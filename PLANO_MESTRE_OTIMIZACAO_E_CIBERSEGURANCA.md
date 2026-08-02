@@ -937,8 +937,8 @@ Garantir finalidade, necessidade, transparencia, seguranca, retencao controlada 
 ### Backlog
 
 - [x] **DSO-001 - P0 - Padronizar o projeto em npm.** npm e `package-lock.json` sao autoritativos; declarar `packageManager` e remover lockfile/configuracao Bun durante a execucao.
-- [ ] **DSO-002 - P0 - Fixar runtime.** `.nvmrc`, `.tool-versions` ou equivalente, com `engines` no `package.json`.
-- [ ] **DSO-003 - P0 - Criar CI obrigatoria sem divida oculta.** Format e lint globais, typecheck, unit, build, bundle, Playwright completo e audit estao no workflow; a baseline de 17 arquivos e 16 `any` explicitos foi encerrada. Permanecem migration/security scans e pin de Actions por SHA. O build falha para warning nao registrado e aceita somente `WARN-NITRO-001` ate 2026-09-01, conforme `docs/evidence/build-warning-policy-2026-08-02.md`.
+- [x] **DSO-002 - P0 - Fixar runtime.** `.nvmrc` fixa Node 24.15.0, minimo tambem declarado em `engines`; npm 11.14.1 permanece fixado por `packageManager` e pela CI.
+- [ ] **DSO-003 - P0 - Criar CI obrigatoria sem divida oculta.** Format e lint globais, typecheck, unit, build, bundle, Playwright completo e audit estao no workflow; a baseline de 17 arquivos e 16 `any` explicitos foi encerrada e Actions oficiais estao fixadas por SHA. Permanecem migration/security scans. O build falha para warning nao registrado e aceita somente `WARN-NITRO-001` ate 2026-09-01, conforme `docs/evidence/build-warning-policy-2026-08-02.md`.
 - [ ] **DSO-004 - P1 - Configurar Renovate/Dependabot.** Atualizacoes agrupadas, changelog e testes automaticos.
 - [ ] **DSO-005 - P1 - Gerar SBOM.** CycloneDX ou SPDX por release.
 - [ ] **DSO-006 - P1 - Verificar licencas.** Allowlist/denylist e revisao de dependencias transitivas.
