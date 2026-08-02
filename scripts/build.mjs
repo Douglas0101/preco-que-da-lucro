@@ -60,7 +60,10 @@ const today = new Date().toISOString().slice(0, 10);
 const releaseChannel =
   process.env.BUILD_RELEASE_CHANNEL ?? (process.env.CI ? "unclassified-ci" : "local");
 const observedWarnings = warningLines.map((line) => {
-  const normalizedLine = line.replace(/^(?:WARN(?:ING)?|\(!\))\s*/i, "").trim();
+  const normalizedLine = line
+    .replace(/^(?:\[(?:warn|warning)\]|WARN(?:ING)?|\(!\))\s*/i, "")
+    .replaceAll("`", "")
+    .trim();
   const exception = warningAllowlist.find(({ signature }) => normalizedLine === signature);
   const expired = exception ? today > exception.expiresOn : false;
   const releaseAllowed = exception?.releaseChannels.includes(releaseChannel) ?? false;

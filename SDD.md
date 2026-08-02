@@ -395,7 +395,7 @@ flowchart LR
 
 As metas DEVEM ser recalibradas com RUM e testes de carga antes do beta. A fórmula do SLI, janela e volume mínimo pertencem ao catálogo de SLOs.
 
-A baseline de 2026-08-01 media o entry em 612.46 kB minificado e 173.53 kB gzip, apesar de route splitting já existir. Após a fronteira TanStack, a retirada de Zod do diagnóstico estático e o carregamento sob demanda do Supabase em 2026-08-02, o entry mede 231581 bytes minificados, 71816 gzip e 62421 Brotli; o grafo estático inicial mede 423418, 132931 e 116317 bytes, respectivamente. `scripts/check-bundle.mjs` bloqueia regressão do entry ou do grafo estático acima de 500000 bytes e publica relatório junto ao manifesto Vite. A landing não aguarda o chunk Supabase: visitantes sem sessão persistida não o carregam; sessões existentes são validadas após o primeiro paint.
+A baseline de 2026-08-01 media o entry em 612.46 kB minificado e 173.53 kB gzip, apesar de route splitting já existir. Após a fronteira TanStack, a retirada de Zod do diagnóstico estático e o carregamento sob demanda do Supabase em 2026-08-02, o entry mede 231581 bytes minificados, 71824 gzip e 62480 Brotli; o grafo estático inicial mede 423418, 132939 e 116376 bytes, respectivamente, no ambiente reproduzido da CI. `scripts/check-bundle.mjs` bloqueia regressão do entry ou do grafo estático acima de 500000 bytes e publica relatório junto ao manifesto Vite. A landing não aguarda o chunk Supabase: visitantes sem sessão persistida não o carregam; sessões existentes são validadas após o primeiro paint.
 
 ### 6.4 Disponibilidade e recuperação
 
