@@ -49,7 +49,7 @@ function Produtos() {
       .select("*")
       .order("created_at", { ascending: false });
     const enriched: Row[] = [];
-    for (const p of (products ?? []) as any[]) {
+    for (const p of products ?? []) {
       const [ing, pack, fees] = await Promise.all([
         supabase.from("product_ingredients").select("*").eq("product_id", p.id),
         supabase.from("product_packaging").select("*").eq("product_id", p.id),

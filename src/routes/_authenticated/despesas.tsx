@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,7 +56,7 @@ const CATEGORIES = [
 ];
 
 function Despesas() {
-  const [list, setList] = useState<any[]>([]);
+  const [list, setList] = useState<Tables<"expenses">[]>([]);
   const [form, setForm] = useState({
     name: "",
     amount: "",

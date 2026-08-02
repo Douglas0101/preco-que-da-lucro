@@ -18,14 +18,28 @@ export const listProducts = createServerFn({ method: "GET" })
 
 export const getProduct = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ id: uuid }).parse(i))
+  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
   .handler(async ({ data, context }) => {
     const [p, ing, pack, fees, market] = await Promise.all([
       context.supabase.from("products").select("*").eq("id", data.id).maybeSingle(),
-      context.supabase.from("product_ingredients").select("*").eq("product_id", data.id).order("created_at"),
-      context.supabase.from("product_packaging").select("*").eq("product_id", data.id).order("created_at"),
+      context.supabase
+        .from("product_ingredients")
+        .select("*")
+        .eq("product_id", data.id)
+        .order("created_at"),
+      context.supabase
+        .from("product_packaging")
+        .select("*")
+        .eq("product_id", data.id)
+        .order("created_at"),
       context.supabase.from("sales_fees").select("*").eq("product_id", data.id).order("created_at"),
-      context.supabase.from("market_prices").select("*").eq("product_id", data.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      context.supabase
+        .from("market_prices")
+        .select("*")
+        .eq("product_id", data.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
     if (p.error) throw new Error(p.error.message);
     return {
@@ -48,7 +62,7 @@ const productInput = z.object({
 });
 export const upsertProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => productInput.parse(i))
+  .validator((i: unknown) => productInput.parse(i))
   .handler(async ({ data, context }) => {
     const row = { ...data, user_id: context.userId };
     const { data: res, error } = await context.supabase
@@ -62,7 +76,7 @@ export const upsertProduct = createServerFn({ method: "POST" })
 
 export const deleteProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ id: uuid }).parse(i))
+  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("products").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -81,7 +95,7 @@ const ingredientInput = z.object({
 });
 export const upsertIngredient = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => ingredientInput.parse(i))
+  .validator((i: unknown) => ingredientInput.parse(i))
   .handler(async ({ data, context }) => {
     const row = { ...data, user_id: context.userId };
     const { data: res, error } = await context.supabase
@@ -95,7 +109,7 @@ export const upsertIngredient = createServerFn({ method: "POST" })
 
 export const deleteIngredient = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ id: uuid }).parse(i))
+  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("product_ingredients").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -111,18 +125,21 @@ const packagingInput = z.object({
 });
 export const upsertPackaging = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => packagingInput.parse(i))
+  .validator((i: unknown) => packagingInput.parse(i))
   .handler(async ({ data, context }) => {
     const row = { ...data, user_id: context.userId };
     const { data: res, error } = await context.supabase
-      .from("product_packaging").upsert(row, { onConflict: "id" }).select().single();
+      .from("product_packaging")
+      .upsert(row, { onConflict: "id" })
+      .select()
+      .single();
     if (error) throw new Error(error.message);
     return res;
   });
 
 export const deletePackaging = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ id: uuid }).parse(i))
+  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("product_packaging").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -137,18 +154,21 @@ const feeInput = z.object({
 });
 export const upsertFee = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => feeInput.parse(i))
+  .validator((i: unknown) => feeInput.parse(i))
   .handler(async ({ data, context }) => {
     const row = { ...data, user_id: context.userId };
     const { data: res, error } = await context.supabase
-      .from("sales_fees").upsert(row, { onConflict: "id" }).select().single();
+      .from("sales_fees")
+      .upsert(row, { onConflict: "id" })
+      .select()
+      .single();
     if (error) throw new Error(error.message);
     return res;
   });
 
 export const deleteFee = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ id: uuid }).parse(i))
+  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("sales_fees").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -163,7 +183,7 @@ const marketInput = z.object({
 });
 export const setMarketPrice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => marketInput.parse(i))
+  .validator((i: unknown) => marketInput.parse(i))
   .handler(async ({ data, context }) => {
     // Simplest: keep only latest — delete previous then insert
     await context.supabase.from("market_prices").delete().eq("product_id", data.product_id);
@@ -179,7 +199,7 @@ export const setMarketPrice = createServerFn({ method: "POST" })
 // Server-computed metrics for a product
 export const getProductMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ id: uuid }).parse(i))
+  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
   .handler(async ({ data, context }) => {
     const [p, ing, pack, fees] = await Promise.all([
       context.supabase.from("products").select("*").eq("id", data.id).maybeSingle(),
@@ -205,7 +225,10 @@ export const listPurchasePrices = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const [products, ing, pack] = await Promise.all([
-      context.supabase.from("products").select("id, name").order("created_at", { ascending: false }),
+      context.supabase
+        .from("products")
+        .select("id, name")
+        .order("created_at", { ascending: false }),
       context.supabase
         .from("product_ingredients")
         .select("id, product_id, name, package_price, package_qty, package_unit, price_updated_at")
@@ -225,7 +248,7 @@ export const listPurchasePrices = createServerFn({ method: "GET" })
 
 export const updatePurchasePrice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
+  .validator((i: unknown) =>
     z
       .object({
         id: uuid,

@@ -56,10 +56,7 @@ Usuário conversa com a IA
 → IA explica os resultados
 → Usuário pode realizar simulações
 
-==================================================
-
-IDENTIDADE E EXPERIÊNCIA DO USUÁRIO
-==================================================
+## 1. Identidade e Experiência do Usuário
 
 Criar uma interface moderna, profissional, acolhedora e simples.
 
@@ -115,8 +112,7 @@ Botão principal:
 
 "Começar agora"
 
-==================================================
-2. CADASTRO CONVERSACIONAL DE PRODUTO
+## 2. Cadastro Conversacional de Produto
 
 Criar uma experiência de chat para cadastro de produtos.
 
@@ -176,8 +172,7 @@ Perguntar:
 
 Permitir que o usuário corrija os dados.
 
-==================================================
-3. CUSTO DOS INGREDIENTES
+## 3. Custo dos Ingredientes
 
 Após confirmar os ingredientes, iniciar uma conversa para identificar o custo de cada ingrediente.
 
@@ -242,8 +237,7 @@ Quando houver dúvida ou unidade incompatível, pedir confirmação ao usuário.
 
 Nunca inventar conversões que não sejam tecnicamente seguras.
 
-==================================================
-4. RENDIMENTO DA RECEITA
+## 4. Rendimento da Receita
 
 Após cadastrar todos os ingredientes, perguntar:
 
@@ -287,8 +281,7 @@ Custo total da receita
 Rendimento
 Custo unitário
 
-==================================================
-5. EMBALAGEM E MATERIAIS
+## 5. Embalagem e Materiais
 
 Perguntar:
 
@@ -348,14 +341,11 @@ Custo total de materiais por unidade.
 Resultado:
 
 Custo direto unitário =
-Ingredientes
-+
-Embalagem
-+
+Ingredientes +
+Embalagem +
 Materiais diretamente relacionados ao produto
 
-==================================================
-6. FORMAÇÃO DE PREÇO
+## 6. Formação de Preço
 
 Após calcular o custo direto, iniciar a etapa de formação de preço.
 
@@ -421,8 +411,7 @@ Permitir cadastrar várias taxas.
 
 Calcular o impacto das taxas no preço.
 
-==================================================
-7. MARGEM DE CONTRIBUIÇÃO
+## 7. Margem de Contribuição
 
 Calcular:
 
@@ -456,8 +445,7 @@ Lucro líquido
 
 Criar uma seção explicativa simples.
 
-==================================================
-8. PREÇO DE MERCADO
+## 8. Preço de Mercado
 
 Perguntar:
 
@@ -514,8 +502,7 @@ Custos
 
 Margem
 
-==================================================
-9. DESPESAS DA EMPRESA
+## 9. Despesas da Empresa
 
 Criar uma área chamada:
 
@@ -583,8 +570,7 @@ Exemplo:
 
 Continuar uma pergunta por vez.
 
-==================================================
-10. PONTO DE EQUILÍBRIO
+## 10. Ponto de Equilíbrio
 
 Calcular:
 
@@ -614,8 +600,7 @@ Explicação:
 
 "Isso significa que, considerando os dados informados, sua empresa precisa atingir esse volume de vendas para cobrir suas despesas e chegar ao ponto de equilíbrio."
 
-==================================================
-11. META DE LUCRO
+## 11. Meta de Lucro
 
 Criar uma ferramenta chamada:
 
@@ -638,8 +623,7 @@ Para obter R$ X de lucro por mês, você precisa vender aproximadamente X unidad
 
 Mostrar também faturamento necessário.
 
-==================================================
-12. SIMULAÇÕES
+## 12. Simulações
 
 Criar uma área de simulação.
 
@@ -690,8 +674,7 @@ Resultado: prejuízo de R$ 1.100,00
 
 Mostrar a diferença.
 
-==================================================
-13. DIAGNÓSTICO FINANCEIRO
+## 13. Diagnóstico Financeiro
 
 Criar uma página chamada:
 
@@ -746,8 +729,7 @@ Usar linguagem:
 "Pode ser interessante simular"
 "Os dados indicam"
 
-==================================================
-14. ESTRUTURA DO BANCO DE DADOS
+## 14. Estrutura do Banco de Dados
 
 Criar uma estrutura de banco de dados organizada para permitir que cada usuário tenha seus próprios dados.
 
@@ -793,8 +775,7 @@ Um produto pode ter vários registros de preço de mercado.
 
 Garantir isolamento dos dados entre usuários.
 
-==================================================
-15. REGRAS FINANCEIRAS IMPORTANTES
+## 15. Regras Financeiras Importantes
 
 Todos os cálculos devem ser realizados pelo sistema, não pela IA.
 
@@ -836,8 +817,7 @@ Percentuais:
 
 10,00%
 
-==================================================
-16. IA CONVERSACIONAL
+## 16. IA Conversacional
 
 A IA deve:
 
@@ -887,8 +867,7 @@ IA:
 
 Continuar a conversa naturalmente.
 
-==================================================
-17. IMPORTANTE SOBRE O MVP
+## 17. Importante Sobre o MVP
 
 Priorizar primeiro o funcionamento completo do fluxo:
 

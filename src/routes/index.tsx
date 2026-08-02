@@ -1,5 +1,5 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, MessageCircle, Calculator, Scale, ArrowRight } from "lucide-react";
 
@@ -19,15 +19,34 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-  beforeLoad: async () => {
-    if (typeof window === "undefined") return;
-    const { data } = await supabase.auth.getUser();
-    if (data.user) throw redirect({ to: "/inicio" });
-  },
   component: Landing,
 });
 
 function Landing() {
+  const navigate = Route.useNavigate();
+
+  useEffect(() => {
+    const hasStoredSession = Array.from({ length: localStorage.length }, (_, index) =>
+      localStorage.key(index),
+    ).some((key) => key != null && /^sb-.*-auth-token$/.test(key));
+
+    if (!hasStoredSession) return;
+
+    let active = true;
+    void import("@/integrations/supabase/client")
+      .then(async ({ supabase }) => {
+        const { data } = await supabase.auth.getUser();
+        if (active && data.user) await navigate({ to: "/inicio", replace: true });
+      })
+      .catch((error: unknown) => {
+        if (active) console.error("Could not validate the persisted session", error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">

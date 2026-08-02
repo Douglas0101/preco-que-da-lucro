@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
@@ -9,8 +8,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/sonner";
 import { Sparkles } from "lucide-react";
 
-const search = z.object({ redirect: z.string().optional() });
-
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
@@ -18,7 +15,9 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Entre ou crie sua conta para começar." },
     ],
   }),
-  validateSearch: (s) => search.parse(s),
+  validateSearch: (search): { redirect?: string } => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  }),
   component: Auth,
 });
 

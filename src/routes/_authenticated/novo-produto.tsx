@@ -52,8 +52,14 @@ function NovoProduto() {
     (async () => {
       try {
         const history = await load();
-        setMessages(history.map((h: any) => ({ id: h.id, role: h.role, content: h.content })));
-        if (history.length === 0) {
+        const restored = history.reduce<Msg[]>((messages, message) => {
+          if (message.role === "user" || message.role === "assistant") {
+            messages.push({ id: message.id, role: message.role, content: message.content });
+          }
+          return messages;
+        }, []);
+
+        if (restored.length === 0) {
           setMessages([
             {
               role: "assistant",
@@ -61,6 +67,8 @@ function NovoProduto() {
                 "Olá! Sou seu consultor financeiro. Vamos descobrir juntos quanto realmente custa produzir e vender seu produto. **Qual produto ou receita você gostaria de analisar primeiro?**",
             },
           ]);
+        } else {
+          setMessages(restored);
         }
       } catch (e) {
         console.error(e);

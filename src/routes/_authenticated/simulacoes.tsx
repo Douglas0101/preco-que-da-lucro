@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import {
   calculateScenario,
   computeProduct,
   type IngredientRow,
   type PackagingRow,
   type FeeRow,
+  type ScenarioResult,
 } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,11 +33,18 @@ export const Route = createFileRoute("/_authenticated/simulacoes")({
   component: Simulacoes,
 });
 
+type BaseScenario = ScenarioResult & {
+  name: string;
+  volume: number;
+  taxRate: number;
+  fees: FeeRow[];
+};
+
 function Simulacoes() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Tables<"products">[]>([]);
   const [productId, setProductId] = useState<string>("");
   const [fixed, setFixed] = useState(0);
-  const [base, setBase] = useState<any>(null);
+  const [base, setBase] = useState<BaseScenario | null>(null);
   const [sim, setSim] = useState({ price: "", unitCost: "", fixed: "", volume: "" });
 
   useEffect(() => {
@@ -194,7 +203,13 @@ function Simulacoes() {
   );
 }
 
-function ScenarioCard({ title, data }: { title: string; data: any }) {
+function ScenarioCard({
+  title,
+  data,
+}: {
+  title: string;
+  data: ScenarioResult & { volume: number };
+}) {
   return (
     <Card>
       <CardHeader>

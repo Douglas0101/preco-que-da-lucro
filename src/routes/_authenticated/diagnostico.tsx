@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import {
   computeProduct,
   calculateBreakEvenUnits,
   type IngredientRow,
   type PackagingRow,
   type FeeRow,
+  type ProductComputation,
 } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,16 @@ import {
 } from "@/components/ui/select";
 import { AlertTriangle, TrendingUp, Info } from "lucide-react";
 
-const search = z.object({ produto: z.string().optional() });
+type DiagnosticAlert = { level: "warn" | "info" | "danger"; text: string };
+
+interface ProductAnalysis {
+  c: ProductComputation;
+  price: number;
+  be: number;
+  suggestedPrice: number;
+  market: Tables<"market_prices"> | null;
+  alerts: DiagnosticAlert[];
+}
 
 export const Route = createFileRoute("/_authenticated/diagnostico")({
   head: () => ({
@@ -30,16 +40,18 @@ export const Route = createFileRoute("/_authenticated/diagnostico")({
       { name: "description", content: "Diagnóstico financeiro completo do seu produto." },
     ],
   }),
-  validateSearch: (s) => search.parse(s),
+  validateSearch: (search): { produto?: string } => ({
+    produto: typeof search.produto === "string" ? search.produto : undefined,
+  }),
   component: Diagnostico,
 });
 
 function Diagnostico() {
   const { produto } = Route.useSearch();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Tables<"products">[]>([]);
   const [productId, setProductId] = useState<string>(produto ?? "");
   const [fixed, setFixed] = useState(0);
-  const [analysis, setAnalysis] = useState<any>(null);
+  const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -81,7 +93,7 @@ function Diagnostico() {
       const price = Number(p.current_price ?? 0);
       const be = calculateBreakEvenUnits(fixed, c.contributionMargin);
       const suggestedPrice = c.unitCost * 1.5; // sugestão simples: custo × 1,5 como referência
-      const alerts: { level: "warn" | "info" | "danger"; text: string }[] = [];
+      const alerts: DiagnosticAlert[] = [];
       if (price > 0 && price < c.unitCost)
         alerts.push({
           level: "danger",
@@ -107,7 +119,7 @@ function Diagnostico() {
           });
         }
       }
-      setAnalysis({ p, c, price, be, suggestedPrice, market: market.data, alerts });
+      setAnalysis({ c, price, be, suggestedPrice, market: market.data, alerts });
     })();
   }, [productId, products, fixed]);
 
@@ -177,7 +189,7 @@ function Diagnostico() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {analysis.alerts.map((a: any, i: number) => (
+                {analysis.alerts.map((a, i) => (
                   <div
                     key={i}
                     className={`flex gap-3 rounded-xl border p-3 text-sm ${

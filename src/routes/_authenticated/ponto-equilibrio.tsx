@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import {
   computeProduct,
   calculateBreakEvenUnits,
@@ -9,6 +10,7 @@ import {
   type IngredientRow,
   type PackagingRow,
   type FeeRow,
+  type ProductComputation,
 } from "@/lib/finance";
 import { brl, pct, num } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,10 +38,12 @@ export const Route = createFileRoute("/_authenticated/ponto-equilibrio")({
 });
 
 function PontoEquilibrio() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Tables<"products">[]>([]);
   const [productId, setProductId] = useState<string>("");
   const [fixed, setFixed] = useState(0);
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<
+    (ProductComputation & { price: number; name: string }) | null
+  >(null);
   const [profitTarget, setProfitTarget] = useState("");
 
   useEffect(() => {

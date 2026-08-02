@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      BUILD_RELEASE_CHANNEL: pre-beta-internal
       VITE_SUPABASE_URL: https://example.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
       SUPABASE_URL: https://example.supabase.co
@@ -26,11 +27,36 @@ jobs:
       - run: npm install --global npm@11.14.1
       - run: npm ci
       - run: npm run check:ui-stack
-      - run: npm run format:ui:check
+      - run: npm run format:check
       - run: npm run typecheck
-      - run: npm run lint:ui
+      - run: npm run lint
       - run: npm run test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e -- --project=chromium
+      - run: npm run check:bundle
+      - name: Upload bundle evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-evidence-${{ github.sha }}
+          path: |
+            .artifacts/bundle-report.json
+            .artifacts/build-warnings.json
+            .output/public/.vite/manifest.json
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run test:e2e
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-evidence-${{ github.sha }}
+          path: |
+            .artifacts/playwright-results.json
+            playwright-report
+            test-results
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 30
       - run: npm audit --audit-level=high

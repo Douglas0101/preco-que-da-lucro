@@ -5,3 +5,12 @@ dist
 pnpm-lock.yaml
 package-lock.json
 routeTree.gen.ts
+
+# Platform-managed generated sources
+AGENTS.md
+src/integrations/lovable/index.ts
+src/integrations/supabase/auth-attacher.ts
+src/integrations/supabase/auth-middleware.ts
+src/integrations/supabase/client.server.ts
+src/integrations/supabase/client.ts
+src/integrations/supabase/types.ts

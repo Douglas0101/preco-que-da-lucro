@@ -55,15 +55,15 @@ function Inicio() {
       const products = prodRes.data ?? [];
       const expenses = expRes.data ?? [];
       const fixedExpenses = expenses
-        .filter((e: any) => e.type === "fixa")
-        .reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+        .filter((expense) => expense.type === "fixa")
+        .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
 
       let best: { name: string; cmPct: number } | null = null;
       let sumCmPct = 0;
       let totalRevenue = 0;
       const alerts: string[] = [];
 
-      for (const p of products as any[]) {
+      for (const p of products) {
         const [ing, pack, fees] = await Promise.all([
           supabase.from("product_ingredients").select("*").eq("product_id", p.id),
           supabase.from("product_packaging").select("*").eq("product_id", p.id),

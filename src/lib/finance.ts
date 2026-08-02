@@ -4,14 +4,24 @@
  */
 
 export type Unit =
-  | "g" | "kg" | "mg"
-  | "ml" | "l"
-  | "unidade" | "un" | "dúzia" | "duzia"
-  | "pacote" | "caixa" | "colher" | "xicara" | "xícara";
+  | "g"
+  | "kg"
+  | "mg"
+  | "ml"
+  | "l"
+  | "unidade"
+  | "un"
+  | "dúzia"
+  | "duzia"
+  | "pacote"
+  | "caixa"
+  | "colher"
+  | "xicara"
+  | "xícara";
 
 const MASS: Record<string, number> = { mg: 0.001, g: 1, kg: 1000 };
 const VOLUME: Record<string, number> = { ml: 1, l: 1000 };
-const COUNT: Record<string, number> = { unidade: 1, un: 1, "dúzia": 12, duzia: 12 };
+const COUNT: Record<string, number> = { unidade: 1, un: 1, dúzia: 12, duzia: 12 };
 
 function normUnit(u: string) {
   return (u || "").trim().toLowerCase();
@@ -62,18 +72,20 @@ export function calculatePackagingCost(rows: PackagingRow[]): number {
   );
 }
 
-export function calculateUnitCost(recipeCost: number, yieldQty: number, packagingCost: number): number {
+export function calculateUnitCost(
+  recipeCost: number,
+  yieldQty: number,
+  packagingCost: number,
+): number {
   const perUnitIngredients = yieldQty > 0 ? recipeCost / yieldQty : 0;
   return perUnitIngredients + packagingCost;
 }
 
-export interface FeeRow { percentage: number }
+export interface FeeRow {
+  percentage: number;
+}
 
-export function calculateVariableCost(
-  price: number,
-  taxRate: number,
-  fees: FeeRow[],
-): number {
+export function calculateVariableCost(price: number, taxRate: number, fees: FeeRow[]): number {
   const feesSum = fees.reduce((s, f) => s + (f.percentage || 0), 0);
   return price * ((taxRate + feesSum) / 100);
 }
@@ -86,10 +98,7 @@ export function calculateContributionMargin(
   return price - unitCost - variableCost;
 }
 
-export function calculateContributionMarginPct(
-  price: number,
-  contributionMargin: number,
-): number {
+export function calculateContributionMarginPct(price: number, contributionMargin: number): number {
   if (price <= 0) return 0;
   return (contributionMargin / price) * 100;
 }
