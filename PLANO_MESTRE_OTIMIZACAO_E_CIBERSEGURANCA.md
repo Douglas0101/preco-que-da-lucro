@@ -4,13 +4,13 @@
 
 | Campo | Valor |
 |---|---|
-| Versao do plano | 1.3 |
+| Versao do plano | 1.4 |
 | Data de referencia | 2026-08-01 |
 | Escopo | Aplicacao web, dominio financeiro, IA, banco, seguranca, UX, operacao e governanca |
 | Estado analisado | Prototipo funcional conectado ao Supabase e Lovable AI |
 | Objetivo | Evoluir para um produto financeiramente confiavel, seguro, auditavel, acessivel e operavel em producao |
 | Publico | Produto, engenharia, seguranca, dados, UX, QA, operacoes e responsavel LGPD |
-| Especificacao tecnica | [`SDD.md`](./SDD.md) versao 1.2 |
+| Especificacao tecnica | [`SDD.md`](./SDD.md) versao 1.3 |
 
 > Este documento e um mapa de planejamento tecnico. Cada item deve virar um epico ou tarefa rastreavel, com responsavel, prazo, evidencias e aprovacao. Nenhum resultado financeiro deve ser disponibilizado como recomendacao confiavel antes da conclusao dos bloqueadores P0 e dos gates de lancamento.
 
@@ -20,6 +20,7 @@
 |---|---|---|
 | 1.2 | 2026-08-01 | Baseline de planejamento anterior. |
 | 1.3 | 2026-08-01 | Formaliza a migracao shadcn/ui para Base UI, o backlog e o gate do stack de componentes. |
+| 1.4 | 2026-08-01 | Formaliza CI sem warnings, proveniencia Git/artifact, compatibilidade Vite/Lovable, budget do entry e matrizes de browsers e leitores de tela. |
 
 Cada revisao normativa atualiza versao, dependencias, gates e rastreabilidade afetados. Correcao editorial sem impacto de planejamento pode preservar a versao.
 
@@ -324,7 +325,7 @@ Eliminar a arquitetura hibrida e criar uma camada de aplicacao consistente, tipa
 - [ ] **ARCH-009 - P0 - Definir estrategia SSR e sessao.** Produzir ADR conjunto com IAM-003, implementar guard server-side quando a sessao BFF permitir e eliminar tela vazia/flicker de autenticacao.
 - [ ] **ARCH-010 - P1 - Definir fronteira de tenant.** Decidir se o tenant permanece usuario individual ou evolui para workspace/equipe; nenhuma tabela nova deve assumir uma opcao diferente sem ADR.
 - [ ] **ARCH-011 - P1 - Confirmar monolito modular.** Os “servicos” da arquitetura-alvo sao inicialmente modulos no mesmo deploy, salvo evidencia operacional para separacao; evitar microservicos prematuros.
-- [x] **ARCH-012 - P0 - Fixar shadcn/ui sobre Base UI como camada exclusiva de primitivos.** Owner: lider tecnico de frontend. Dependencias: SDD 1.2, ADR-016 e DSO-001. Criterio de aceite: features, rotas e aplicacao consomem somente `@/components/ui`, apenas `src/components/ui` importa `@base-ui/react`, especialistas ficam em wrappers allowlisted e o inventario Radix temporario e fechado, sem uso novo.
+- [x] **ARCH-012 - P0 - Fixar shadcn/ui sobre Base UI como camada exclusiva de primitivos.** Owner: lider tecnico de frontend. Dependencias: SDD 1.3, ADR-016 e DSO-001. Criterio de aceite: features, rotas e aplicacao consomem somente `@/components/ui`, apenas `src/components/ui` importa `@base-ui/react`, especialistas ficam em wrappers allowlisted e o inventario Radix temporario e fechado, sem uso novo.
 
 ### Criterios de aceite do setor
 
@@ -644,6 +645,7 @@ Transformar a IA em uma camada de interpretacao e explicacao, nunca em autoridad
 - [ ] **API-011 - P1 - Minimizar respostas.** Retornar somente campos necessarios para a tela ou IA.
 - [ ] **API-012 - P2 - Versionar contratos externos.** Preparar compatibilidade para clientes futuros sem manter codigo legado prematuramente.
 - [ ] **API-013 - P1 - Padronizar controle de concorrencia.** Aceitar versao/ETag nas mutacoes e retornar 409 com estado atual quando houver conflito.
+- [ ] **API-014 - P1 - Migrar validadores das server functions.** Owner: backend. Fase: 1. Migrar os 15 usos de `createServerFn().inputValidator()` em tres arquivos para `.validator()`, preservando primeiro cada callback e comportamento atual; depois endurecer os schemas com `.strict()` e validar entradas, campos extras e regressao por QA-008. Criterio de aceite: zero `.inputValidator()`, os 15 contratos cobertos e nenhuma mudanca silenciosa de payload ou erro.
 
 ### Contrato de erro sugerido
 
@@ -704,7 +706,7 @@ O usuario recebe mensagem segura em pt-BR. Stack, erro do banco e detalhes do pr
 - [x] **FE-028 - P1 - Remover 36 wrappers dormentes.** Owner: frontend. Dependencias: FE-024 e FE-027. Criterio de aceite: nao restam imports ou arquivos dos 36 wrappers descartados e o catalogo contem exatamente `alert-dialog`, `badge`, `button`, `card`, `input`, `label`, `select`, `sheet`, `sonner` e `textarea`.
 - [x] **FE-029 - P1 - Remover `cmdk`, `vaul` e integracoes Radix.** Owner: frontend. Dependencias: FE-026 e FE-028. `cmdk` e `vaul` nao sao elegiveis como especialistas porque mantem Radix. Criterio de aceite: source mantido nao importa `cmdk`, `vaul`, `@radix-ui/*` ou `radix-ui`; nenhuma stack concorrente substitui esses pacotes e Sonner continua como unico especialista allowlisted.
 - [ ] **FE-030 - P1 - Preservar o estilo legado durante a transformacao.** Owner: frontend/UX. Dependencias: ARCH-012 e FE-024. Criterio de aceite: `new-york` e transformado in-place sem regressao visual ou troca de tokens; `components.json` so muda para `base-nova` depois da migracao, como metadata para adicoes futuras.
-- [ ] **FE-031 - P1 - Fechar a conformidade do catalogo Base UI.** Owner: lider tecnico de frontend. Dependencias: FE-026 a FE-030. Criterio de aceite: catalogo, fronteiras, comportamento, a11y, CSP, SSR/hydration e evidencias por wrapper atendem SDD 1.2 e ADR-016.
+- [ ] **FE-031 - P1 - Fechar a conformidade do catalogo Base UI.** Owner: lider tecnico de frontend. Dependencias: FE-026 a FE-030. Criterio de aceite: catalogo, fronteiras, comportamento, a11y, CSP, SSR/hydration e evidencias por wrapper atendem SDD 1.3 e ADR-016.
 
 ### 14.5 Trilha de migracao do stack de componentes
 
@@ -747,12 +749,12 @@ Atender WCAG 2.2 nivel AA nas jornadas principais.
 - [ ] **A11Y-009 - P1 - Corrigir hierarquia de headings.** Titulos de cards semanticos e apenas um `h1` por pagina.
 - [ ] **A11Y-010 - P1 - Respeitar movimento reduzido.** Animacoes e scroll suave condicionados a `prefers-reduced-motion`.
 - [ ] **A11Y-011 - P1 - Usar alvos moveis adequados.** Preferencialmente 44 x 44 px para acoes primarias e destrutivas.
-- [ ] **A11Y-012 - P1 - Testar teclado e leitor de tela.** Chrome/Firefox, NVDA e VoiceOver nas jornadas criticas.
+- [ ] **A11Y-012 - P1 - Testar teclado e leitor de tela.** Usar Orca no host atual ZorinOS Linux como evidencia suplementar e obter validacao externa obrigatoria com NVDA em Windows/Chrome/Firefox e VoiceOver em macOS/Safari reais nas jornadas criticas; Orca nao substitui normativamente NVDA ou VoiceOver.
 - [ ] **A11Y-013 - P1 - Validar reflow e zoom.** Conteudo funcional a 200% e 400%, text spacing ajustado e sem scroll bidimensional desnecessario.
 - [ ] **A11Y-014 - P1 - Padronizar erros acessiveis.** Resumo de erros, foco no resumo, `aria-describedby`, mensagem por campo e identificacao sem depender de cor.
 - [ ] **A11Y-015 - P1 - Tornar graficos e tabelas compreensiveis.** Alternativa textual, cabecalhos corretos, legenda e valores disponiveis para tecnologia assistiva.
 - [ ] **A11Y-016 - P1 - Gerenciar foco na navegacao SPA.** Focar titulo/conteudo, preservar expectativa ao voltar e evitar foco perdido.
-- [ ] **A11Y-017 - P1 - Validar paridade acessivel dos wrappers Base UI.** Owner: UX/acessibilidade. Dependencias: FE-026 e FE-027. Criterio de aceite: `select`, `sheet` e `alert-dialog`, alem dos demais wrappers interativos retidos, passam teclado, foco inicial/retorno, Escape, nomes/descricoes, estados e NVDA/VoiceOver sem regressao.
+- [ ] **A11Y-017 - P1 - Validar paridade acessivel dos wrappers Base UI.** Owner: UX/acessibilidade. Dependencias: FE-026 e FE-027. Criterio de aceite: `select`, `sheet` e `alert-dialog`, alem dos demais wrappers interativos retidos, passam teclado, foco inicial/retorno, Escape, nomes/descricoes e estados; Orca no ZorinOS Linux gera evidencia suplementar, e NVDA em Windows/Chrome/Firefox mais VoiceOver em macOS/Safari reais possuem evidencia externa obrigatoria sem regressao.
 - [ ] **RESP-001 - P0 - Corrigir chat em mobile.** `100dvh`, safe areas, teclado virtual e orientacao horizontal.
 - [ ] **RESP-002 - P1 - Eliminar overflow em 320 px.** Cabecalhos, grupos de botoes, edicao de precos, textos longos e valores grandes.
 - [ ] **RESP-003 - P1 - Permitir scroll no menu movel.** Navegacao e logout acessiveis em viewport baixa.
@@ -762,6 +764,7 @@ Atender WCAG 2.2 nivel AA nas jornadas principais.
 - Zero violacao critica no axe e relatorio manual aprovado; automacao isolada nao encerra o gate.
 - Jornada completa por teclado.
 - Leitor de tela anuncia erros, carregamento e novas mensagens.
+- Orca no ZorinOS Linux esta registrado apenas como evidencia suplementar; NVDA em Windows/Chrome/Firefox e VoiceOver em macOS/Safari reais possuem validacao externa obrigatoria.
 - Contraste AA validado.
 - Reflow, zoom, text spacing e foco SPA validados.
 - Layout utilizavel em 320 px, 375 px, tablet e desktop.
@@ -777,7 +780,7 @@ Atender WCAG 2.2 nivel AA nas jornadas principais.
 - [ ] **PERF-002 - P1 - Usar cache de consultas.** Deduplicacao, invalidacao apos mutacao e prefetch seletivo.
 - [ ] **PERF-003 - P1 - Paginar dados.** Produtos, despesas, historico, mercado, simulacoes e auditoria.
 - [ ] **PERF-004 - P1 - Medir queries.** Planos de execucao, hit ratio, latencia P95/P99 e slow query log.
-- [ ] **PERF-005 - P1 - Medir bundle.** Remover componentes/imports nao usados e dividir rotas pesadas.
+- [ ] **PERF-005 - P1 - Aplicar budget ao bundle.** Owner: frontend/performance. Baseline atual: entry de 612.46 kB minificado e 173.53 kB gzip, com route splitting ja existente. Gerar analyzer/metafile, medir raw/minificado, gzip e Brotli e reduzir o entry para no maximo 500 kB minificado, removendo imports/componentes nao usados ou ajustando fronteiras de carregamento. Aumentar apenas o warning limit nao e correcao e nao encerra o gate.
 - [ ] **PERF-006 - P2 - Otimizar renderizacao.** Virtualizar historicos extensos e evitar recalculos durante digitacao sem necessidade.
 - [ ] **PERF-007 - P2 - Definir estrategia de cache HTTP.** Assets imutaveis com hash; dados autenticados privados.
 - [ ] **PERF-008 - P1 - Executar teste de carga.** Definir massa, concorrencia, ramp-up, duracao, distribuicao de operacoes e criterios para login, dashboard, chat, consultas financeiras e atualizacao de preco.
@@ -793,6 +796,7 @@ Atender WCAG 2.2 nivel AA nas jornadas principais.
 | API P95 sem IA | menor que 500 ms |
 | Chat P95 ate primeiro token util | menor que 2 s |
 | Erros 5xx | menor que 0,5% |
+| Entry chunk minificado | menor ou igual a 500 kB, com raw, gzip e Brotli registrados |
 
 As metas devem ser revisadas com dados reais e separadas por ambiente e operacao.
 
@@ -808,7 +812,7 @@ As metas devem ser revisadas com dados reais e separadas por ambiente e operacao
 - [ ] **QA-004 - P0 - Testar fluxo conversacional.** Multiplas mensagens, reload, correcao, retry, idempotencia e falha do provedor.
 - [ ] **QA-005 - P0 - Testar XSS.** Payloads HTML, SVG, URL e historico persistido.
 - [ ] **QA-006 - P1 - Testes de componentes.** Formularios, estados assincronos e acessibilidade automatizada.
-- [ ] **QA-007 - P1 - E2E com Playwright.** Cadastro, produto, despesas, equilibrio, simulacao, diagnostico, logout e mobile.
+- [ ] **QA-007 - P1 - E2E com Playwright e browsers reais.** Executar cadastro, produto, despesas, equilibrio, simulacao, diagnostico, logout e mobile em Chromium desktop/mobile, Firefox e WebKit, incluindo jornadas autenticadas; anexar traces, screenshots/videos e relatorios por projeto e validar tambem Chrome, Edge, Firefox e Safari reais. A configuracao ja declara os quatro projetos, mas a evidencia atual cobre apenas Chromium desktop/mobile e dois smokes publicos, portanto o item permanece aberto.
 - [ ] **QA-008 - P1 - Testes de contrato.** Schemas de server functions, Supabase e gateway de IA mockado.
 - [ ] **QA-009 - P1 - Testes de migration.** Banco vazio, upgrade com dados, rollback operacional e integridade.
 - [ ] **QA-010 - P1 - Property-based tests.** Invariantes do motor financeiro e conversoes.
@@ -818,18 +822,21 @@ As metas devem ser revisadas com dados reais e separadas por ambiente e operacao
 - [ ] **QA-014 - P1 - Governar testes instaveis.** Quarentena com owner e prazo; teste flaky nao pode ser simplesmente repetido ate passar.
 - [ ] **QA-015 - P1 - Definir limiares das avaliacoes de IA.** Conjunto versionado, taxa minima por intencao, zero violacao de seguranca e revisao humana de amostra.
 - [x] **QA-016 - P0 - Automatizar conformidade do stack de componentes.** Owner: QA/plataforma. Dependencias: ARCH-012, FE-024 e FE-025. Criterio de aceite: CI verifica fronteiras de import, allowlist, inventario sem crescimento, catalogo exato, ausencia de Bun e grafo npm de producao; no gate da Fase 2 bloqueia qualquer Radix, `cmdk` ou `vaul`.
-- [ ] **QA-017 - P1 - Testar paridade dos wrappers migrados.** Owner: QA. Dependencias: FE-026, FE-027, FE-031 e A11Y-017. Criterio de aceite: testes de componente/E2E cobrem comportamento, formularios, teclado, foco, portal, CSP e SSR/hydration por onda e no catalogo integrado.
+- [ ] **QA-017 - P1 - Testar paridade dos wrappers migrados.** Owner: QA. Dependencias: FE-026, FE-027, FE-031 e A11Y-017. Criterio de aceite: testes de componente/E2E cobrem comportamento, formularios, teclado, foco, portal, CSP e SSR/hydration por onda e no catalogo integrado em Chromium desktop/mobile, Firefox e WebKit; artifacts comprovam jornadas autenticadas e validacao nos browsers reais Chrome, Edge, Firefox e Safari.
 
 ### 17.2 Gates de qualidade
 
-- Formatacao verificada sem alterar arquivos na CI.
-- ESLint sem erro.
+- Formatacao global verificada sem alterar arquivos na CI; somente arquivos comprovadamente gerados podem ser ignorados por caminho exato, e arquivos mantidos devem estar formatados.
+- ESLint, CI e build sem erro ou warning nao registrado; allowlist temporaria exige assinatura, owner, justificativa, controle compensatorio, release e expiracao.
 - TypeScript sem erro.
 - Testes unitarios e de integracao aprovados.
 - Build de producao aprovado.
 - Migrations validadas.
 - SAST, secret scan e dependencia sem bloqueador.
 - E2E critico aprovado em staging.
+- Entry menor ou igual a 500 kB minificado, com analyzer/metafile e medidas raw, gzip e Brotli; elevar warning limit nao satisfaz o gate.
+- Playwright aprovado em Chromium desktop/mobile, Firefox e WebKit, com artifacts de jornadas autenticadas e evidencia nos browsers reais Chrome, Edge, Firefox e Safari.
+- Orca/Linux e apenas suplementar; NVDA/Windows em Chrome/Firefox e VoiceOver/macOS em Safari reais possuem evidencia externa obrigatoria.
 - Fronteiras de UI, catalogo allowlisted e grafo npm de producao atendem o gate da fase, sem crescimento do inventario Radix.
 - Cobertura de linhas nao deve ser usada isoladamente; exigir cobertura das regras e branches criticos.
 
@@ -838,13 +845,16 @@ As metas devem ser revisadas com dados reais e separadas por ambiente e operacao
 Uma tarefa so esta pronta quando:
 
 - Implementacao e tratamento de erro estao concluidos.
+- Format check global passa conforme a politica de arquivos gerados e nao ha warning nao registrado na CI/build.
 - Testes relevantes foram adicionados.
+- Mudanca de frontend respeita o budget e anexa medidas raw, gzip e Brotli; jornadas afetadas anexam artifacts da matriz de browsers e leitores aplicavel.
 - Telemetria e auditoria foram consideradas.
 - Acessibilidade foi validada.
 - Ameacas e dados pessoais foram avaliados.
 - Alteracao de frontend/dependencia atende fronteiras, allowlist, catalogo e checks do stack de componentes.
 - Documentacao e migration foram atualizadas.
 - Rollback ou mitigacao foi definido.
+- Entrega de release identifica checkout limpo, commit imutavel, Git SHA, artifact rastreavel e artifact anterior testado para rollback.
 - Criterios de aceite possuem evidencia.
 
 ---
@@ -927,7 +937,7 @@ Garantir finalidade, necessidade, transparencia, seguranca, retencao controlada 
 
 - [x] **DSO-001 - P0 - Padronizar o projeto em npm.** npm e `package-lock.json` sao autoritativos; declarar `packageManager` e remover lockfile/configuracao Bun durante a execucao.
 - [ ] **DSO-002 - P0 - Fixar runtime.** `.nvmrc`, `.tool-versions` ou equivalente, com `engines` no `package.json`.
-- [ ] **DSO-003 - P0 - Criar CI obrigatoria.** Format check, lint, typecheck, testes, build, migration check e scans.
+- [ ] **DSO-003 - P0 - Criar CI obrigatoria sem divida oculta.** Executar format check global, lint, typecheck, testes, build, migration check e scans. A baseline global falha em 17 arquivos: formatar todos os mantidos e ignorar somente arquivos comprovadamente gerados, por caminho exato documentado, sem globs ou diretorios amplos. CI/build devem ter zero warning nao registrado; excecao temporaria exige assinatura, owner, justificativa, controle compensatorio, release e expiracao.
 - [ ] **DSO-004 - P1 - Configurar Renovate/Dependabot.** Atualizacoes agrupadas, changelog e testes automaticos.
 - [ ] **DSO-005 - P1 - Gerar SBOM.** CycloneDX ou SPDX por release.
 - [ ] **DSO-006 - P1 - Verificar licencas.** Allowlist/denylist e revisao de dependencias transitivas.
@@ -946,27 +956,32 @@ Garantir finalidade, necessidade, transparencia, seguranca, retencao controlada 
 - [ ] **DSO-019 - P1 - Definir SLA de vulnerabilidades.** Severidade, explorabilidade, owner, prazo, excecao e expiracao.
 - [ ] **DSO-020 - P1 - Governar feature flags e kill switches.** Owner, escopo, auditoria, valor seguro por padrao, desligamento emergencial e data de remocao.
 - [x] **DSO-021 - P0 - Tornar npm e o grafo de producao autoritativos.** Owner: plataforma/DevOps. Dependencias: DSO-001, ARCH-012 e FE-029. Criterio de aceite: `npm ci` usa `package-lock.json`, `bun.lock`/`bunfig.toml` foram removidos e o lockfile/grafo direto e transitivo de producao contem zero `@radix-ui/*`, `radix-ui`, `cmdk` e `vaul`; Sonner e a unica excecao especialista aprovada.
+- [ ] **DSO-022 - P1 - Resolver o alias Vite 8/Lovable por caminho suportado.** Owner: plataforma/frontend. Fase: 1. Atualizar `@lovable.dev/vite-tanstack-config` ou sua integracao por versao suportada; nao remover `vite-tsconfig-paths` enquanto ele for peer/import obrigatorio. Criterio de aceite: `npm ci`, typecheck, build e resolucao dos aliases passam sem warning nao registrado; wrapper compativel e aceito quando necessario, mas fork ou substituicao permanente exige ADR-013 com manutencao, seguranca e rollback.
+- [ ] **DSO-023 - P0 - Estabelecer repositorio e proveniencia de release.** Owner: plataforma/DevOps. Inicio imediato; gate final na Fase 3A. Baseline concluida: repositorio privado `https://github.com/Douglas0101/preco-que-da-lucro`, branch `main`, commit inicial `db09f5d` publicado. Permanecem pendentes a conexao ao projeto Lovable, branch protection/checks, reproducao por checkout Git limpo em commit imutavel, registro de SHA/artifact e exercicio de rollback pelo artifact anterior testado; historico publicado no Lovable nao pode ser reescrito. O item geral permanece aberto ate todas essas evidencias serem aprovadas.
 
 ### Pipeline minimo
 
 ```text
-Checkout limpo
+Checkout Git limpo em commit imutavel e registrar SHA
   -> instalar por lockfile
   -> verificar fronteiras, catalogo e grafo de producao do stack de UI
-  -> format check
-  -> lint
+  -> format check global; ignorar somente gerados comprovados por caminho exato
+  -> lint e validar zero warning nao registrado
   -> typecheck
   -> unit tests
   -> integration/RLS tests
-  -> build
+  -> build sem warning nao registrado
+  -> analyzer/metafile + tamanhos raw/minificado, gzip e Brotli; entry <= 500 kB
   -> secret scan
   -> SAST
   -> dependency/license scan
   -> SBOM
+  -> publicar artifact rastreavel ao SHA
   -> aplicar expand migration em staging
   -> deploy do artifact em staging
   -> backfill e verificacao em staging
-  -> E2E + DAST + smoke
+  -> E2E Chromium desktop/mobile, Firefox e WebKit + DAST + smoke
+  -> validar browsers reais Chrome/Edge/Firefox/Safari e leitores de tela obrigatorios
   -> aprovacao
   -> criar/verificar ponto de restauracao de producao
   -> aplicar expand migration em producao
@@ -1049,7 +1064,7 @@ Cada runbook deve conter gatilho, owner, contatos, precondicoes, contencao, pres
 - [ ] **DOC-007 - P1 - Criar runbook operacional.** Deploy, rollback, restauracao, alertas e fornecedores.
 - [ ] **DOC-008 - P1 - Criar changelog de regras financeiras.** Alteracao de formula deve ser visivel e versionada.
 - [ ] **DOC-009 - P2 - Criar catalogo de APIs e eventos.** Contratos, codigos de erro e exemplos seguros.
-- [x] **DOC-010 - P0 - Manter ADR e guia normativo do stack de componentes.** Owner: lider tecnico de frontend/documentacao. Dependencias: ARCH-012. Criterio de aceite: ADR-016, SDD 1.2 e Plano 1.3 registram decisao fixa, fronteiras, allowlist, ondas, rollback, gate e governanca de mudancas futuras sem reabrir Base UI.
+- [x] **DOC-010 - P0 - Manter ADR e guia normativo do stack de componentes.** Owner: lider tecnico de frontend/documentacao. Dependencias: ARCH-012. Criterio de aceite: ADR-016, SDD 1.3 e Plano 1.4 registram decisao fixa, fronteiras, allowlist, ondas, rollback, gate e governanca de mudancas futuras sem reabrir Base UI.
 
 ---
 
@@ -1075,6 +1090,7 @@ Objetivo: impedir exploracao e resultados manifestamente incorretos.
 - [ ] DATA-026, DATA-027 e DATA-035: estrategia de migration, backup e saneamento definidos antes das constraints.
 - [ ] SEC-032, QA-001 a QA-005 e QA-012 em escopo P0: threat model, regressao e concorrencia dos limites bloqueantes.
 - [ ] DSO-003 em baseline P0: pipeline minimo executa testes criticos e scans; a expansao completa continua na Fase 1.
+- [ ] DSO-023 em inicio imediato: preservar a baseline ja publicada em `main`/`db09f5d` e iniciar conexao Lovable, branch protection e proveniencia sem reescrever historico; o fechamento ocorre no gate da Fase 3A.
 
 **Gate de saida:** todos os riscos da matriz §2.3 com fase limite “Fase 0” possuem evidencia aprovada. Nenhum P0 critico conhecido permanece exploravel, interrompe o fluxo central ou apresenta recomendacao falsa como valida.
 
@@ -1086,15 +1102,15 @@ Objetivo: estabilizar estado, contratos, dados e pipeline.
 - [ ] ARCH-001 a ARCH-006, ARCH-009, IAM-003 e IAM-011: BFF, contratos, SSR, sessao, CSRF e identidade definidos por ADR.
 - [ ] ARCH-012, FE-024, FE-025, QA-016 e DOC-010: stack Base UI normativo, inventario Radix fechado, fronteiras locais e checks contra novos usos ativos.
 - [ ] DATA-001 a DATA-016 e DATA-031: constraints, FKs compostas, RLS tests, hardening Supabase e indices.
-- [ ] API-006 a API-011, incluindo API-009: paginacao, timeout, autorizacao e auditoria padronizados.
+- [ ] API-006 a API-011, incluindo API-009, e API-014: paginacao, timeout, autorizacao, auditoria e migracao dos 15 validadores com QA-008 padronizados.
 - [ ] FIN-001 a FIN-003: tipos financeiros e politica decimal ponta a ponta.
-- [ ] DSO-001 a DSO-003, DSO-015 e DSO-016: CI segura, npm/`package-lock.json` autoritativos e runtime fixado.
+- [ ] DSO-001 a DSO-003, DSO-015, DSO-016 e DSO-022: CI segura e global, npm/`package-lock.json` autoritativos, runtime fixado e alias Vite 8/Lovable resolvido sem remover plugin ainda obrigatorio.
 - [ ] OBS-001 a OBS-004 e OBS-012: logs request-scoped, correlation ID, redacao e error tracking.
 - [ ] OPS-001 e DOC-001: ambientes, dependencias e setup de desenvolvimento documentados.
 - [ ] PRIV-001 a PRIV-005, PRIV-010 e PRIV-013: finalidade, base legal, aviso, fornecedores e transferencia internacional antes de qualquer usuario externo.
 - [ ] AI-027 e OPS-006: fluxo manual preserva o rascunho quando a IA estiver indisponivel.
 
-**Gate de saida:** todos os itens listados na Fase 1 estao concluidos ou possuem excecao permitida conforme §5.2; fluxo conversacional completo, retomavel, sem duplicacao e com isolamento comprovado; CI, sessao, privacidade, motor decimal e observabilidade possuem evidencias aprovadas. O inventario Radix nao cresceu, nenhum uso novo foi aceito e a excecao fechada permanece com expiracao obrigatoria no gate da Fase 2.
+**Gate de saida:** todos os itens listados na Fase 1 estao concluidos ou possuem excecao permitida conforme §5.2; fluxo conversacional completo, retomavel, sem duplicacao e com isolamento comprovado; CI, sessao, privacidade, motor decimal e observabilidade possuem evidencias aprovadas. Format check global passa com exclusoes apenas por caminho exato de gerados comprovados, CI/build possuem zero warning nao registrado ou allowlist temporaria valida, API-014/QA-008 e DSO-022 estao aprovados. O inventario Radix nao cresceu, nenhum uso novo foi aceito e a excecao fechada permanece com expiracao obrigatoria no gate da Fase 2.
 
 ### Fase 2 - Confiabilidade financeira e experiencia
 
@@ -1107,10 +1123,11 @@ Objetivo: concluir o MVP funcional especificado.
 - [ ] FE-006 a FE-023: estados assincronos, formularios, transparencia, autosave e conflitos.
 - [ ] FE-026 a FE-031: transformar os dez wrappers retidos, promover `sheet`/`alert-dialog`, remover os outros 36 dormentes, eliminar `cmdk`/`vaul` e preservar estilo/tokens.
 - [ ] A11Y-001 a A11Y-017 e RESP-001 a RESP-003: WCAG AA, paridade Base UI e responsividade nas jornadas principais.
-- [ ] PERF-009, QA-006 a QA-011 e QA-013 a QA-017: componentes, contratos, E2E, concorrencia, avaliacoes da IA, bundle e conformidade do stack.
+- [ ] PERF-005 e PERF-009: reduzir o entry para no maximo 500 kB minificado, registrar analyzer/metafile e tamanhos raw/gzip/Brotli e medir a consolidacao do stack sem apenas elevar warning limit.
+- [ ] QA-006 a QA-011 e QA-013 a QA-017: componentes, contratos, E2E autenticado em Chromium desktop/mobile, Firefox e WebKit, browsers reais, concorrencia, avaliacoes da IA, bundle e conformidade do stack.
 - [ ] DSO-021: npm/`package-lock.json` exclusivos, arquivos Bun removidos e grafo de producao limpo.
 
-**Gate de saida:** todos os itens listados na Fase 2 estao concluidos; resultados sao reproduziveis, premissas visiveis, estados assincronos aprovados e gates financeiro, de acessibilidade e do stack de componentes encerrados. A aceitacao exige npm-only com `package-lock.json` autoritativo, nenhum arquivo Bun, exatamente dez wrappers retidos, remocao dos 36 dormentes, Sonner como unico especialista aprovado e zero `@radix-ui/*`/`radix-ui` direto ou transitivo no grafo de producao e no source mantido. A excecao temporaria Radix expira aqui, sem prorrogacao.
+**Gate de saida:** todos os itens listados na Fase 2 estao concluidos; resultados sao reproduziveis, premissas visiveis, estados assincronos aprovados e gates financeiro, de acessibilidade e do stack de componentes encerrados. O entry atende 500 kB com medidas raw/gzip/Brotli; Playwright e browsers reais possuem artifacts das jornadas publicas e autenticadas; NVDA/Windows em Chrome/Firefox e VoiceOver/macOS em Safari reais possuem validacao externa obrigatoria, com Orca/ZorinOS apenas suplementar. A aceitacao exige npm-only com `package-lock.json` autoritativo, nenhum arquivo Bun, exatamente dez wrappers retidos, remocao dos 36 dormentes, Sonner como unico especialista aprovado e zero `@radix-ui/*`/`radix-ui` direto ou transitivo no grafo de producao e no source mantido. A excecao temporaria Radix expira aqui, sem prorrogacao.
 
 ### Fase 3A - Prontidao para beta
 
@@ -1123,8 +1140,9 @@ Objetivo: comprovar que o ambiente esta seguro e operavel antes do primeiro usua
 - [ ] OPS-002 a OPS-005 e OPS-010: backup independente, restauracao isolada e tabletop.
 - [ ] IR-001 a IR-011: runbooks exercitados e contatos validados.
 - [ ] DSO-020: feature flags e kill switches governados.
+- [ ] DSO-023: conectar o repositorio privado ao Lovable, ativar branch protection e comprovar checkout limpo, commit/SHA imutavel, artifact rastreavel e rollback do artifact anterior testado sem reescrita de historico.
 
-**Gate de saida:** checklist §28 aprovado com build, ambiente, evidencias, owners e validade registrados. Nenhum usuario externo entra antes deste gate.
+**Gate de saida:** exige checklist §28 aprovado com build, Git SHA, artifact, ambiente, matriz de browsers/leitores de tela, budget, politica de warnings, evidencias, owners e validade registrados, alem da aprovacao integral de DSO-023. Nenhum usuario externo entra antes deste gate.
 
 ### Fase 3B - Operacao do beta controlado
 
@@ -1161,11 +1179,14 @@ Objetivo: operar com previsibilidade e evoluir sem regressao.
 | Constraints e indices | Apos DATA-035 | Auditoria e saneamento dos dados existentes |
 | Motor decimal | Apos FIN-003 | Politica de precisao e serializacao aprovada |
 | Ficha tecnica | Apos ARCH-002 e GOV-003 | Contratos e estado do produto |
+| Contratos de server functions | Fase 1 | API-014 preserva callbacks antes de schemas estritos; verificacao por QA-008 |
+| Alias Vite 8/Lovable | Fase 1 | DSO-022 e atualizacao suportada; manter `vite-tsconfig-paths` enquanto obrigatorio |
 | Stack de componentes Base UI | Fase 1 para fundacao; Fase 2 para fechamento | ARCH-012, ADR-016, inventario fechado e npm autoritativo |
 | Vendas e mix | Apos GOV-009 | Definicao de periodo, escopo economico e tenant |
 | Diagnostico por IA | Apos FIN-031 | Motor confiavel e resultados estruturados |
 | LGPD | Imediato | Participacao juridica, produto e seguranca |
 | Observabilidade | Baseline imediato | ADR da plataforma para expansao |
+| Repositorio e proveniencia | Imediato; gate na Fase 3A | DSO-023, conexao Lovable, branch protection, SHA/artifact e rollback testado |
 | Pentest | Fase 3A | P0/P1 de seguranca implementados em staging |
 
 ### 25.1 DAG minimo do caminho critico
@@ -1177,11 +1198,15 @@ Objetivo: operar com previsibilidade e evoluir sem regressao.
 | IAM-003, IAM-011, ARCH-009 | ARCH-001 e SEC-010 | BFF, identidade e CSRF dependem da sessao escolhida |
 | DATA-035 | DATA-001 a DATA-011 | Constraints nao podem ser validadas sobre dados invalidos |
 | ARCH-002, API-001, API-009 | FE-001 a FE-023 | UI depende de contratos e autorizacao estaveis |
+| API-014 | QA-008 e Gate da Fase 1 | Migracao dos 15 validadores exige contratos preservados e schemas estritos testados |
+| DSO-022 | Gate da Fase 1 | Build Vite 8/Lovable precisa de alias suportado sem remover peer/import obrigatorio |
 | ARCH-012, ADR-016, FE-024, FE-025, FE-030 | FE-026 a FE-029 | Transformacao depende de decisao, inventario, fronteira e regra de estilo fixos |
 | FE-026 a FE-031, A11Y-017, PERF-009, QA-016, QA-017, DSO-021 | Gate do stack na Fase 2 | Catalogo, paridade, toolchain e grafo precisam de evidencia conjunta |
+| PERF-005, QA-007, QA-017, A11Y-012, A11Y-017 | Gate da Fase 2 | Budget, matriz de browsers, jornadas autenticadas e leitores obrigatorios precisam de artifacts validos |
 | FIN-001 a FIN-018 | FIN-019 a FIN-031 | Preco e diagnostico dependem de custo/margem confiaveis |
 | DSO-003, QA-001 a QA-005 | Gate da Fase 0 | Sem pipeline nao existe evidencia repetivel |
 | Gates das Fases 1 e 2 | Fase 3A | Pentest e prontidao avaliam o produto candidato ao beta |
+| DSO-023 | Gate da Fase 3A | Nenhuma release externa sem conexao Lovable, branch protegida, checkout limpo, SHA/artifact e rollback testado |
 | Gate da Fase 3A | Primeiro usuario externo | Go/no-go obrigatorio |
 
 O DAG completo deve ser mantido na ferramenta de gestao conforme §5.2. Alteracao de dependencia exige atualizacao deste plano ou ADR relacionado.
@@ -1197,9 +1222,12 @@ O DAG completo deve ser mantido na ferramenta de gestao conforme §5.2. Alteraca
 | Banco e RLS | Backend/dados | Lider tecnico | Seguranca |
 | IA | Backend/ML integration | Produto e seguranca | Financeiro e QA |
 | Frontend/a11y | Frontend/UX | Produto | QA e usuarios |
+| Matriz de browsers e leitores | QA e UX/acessibilidade | Lider de release | Frontend, usuarios externos de NVDA/VoiceOver e plataforma |
 | Design system/primitivos | Lider tecnico de frontend | Lider tecnico e Produto/UX | QA, acessibilidade, seguranca e plataforma |
 | LGPD | Encarregado/juridico | Controlador | Engenharia e produto |
 | CI/CD e operacao | Plataforma/DevOps | Lider tecnico | Seguranca e QA |
+| Toolchain Vite/Lovable | Plataforma/frontend | Lider tecnico | QA e Lovable/suporte do fornecedor |
+| Repositorio e proveniencia | Plataforma/DevOps | Lider de release | Lider tecnico, seguranca e responsavel Lovable |
 | Release | Lider de release | Produto/tecnologia | Todas as trilhas |
 
 Uma mesma pessoa pode acumular papeis em equipe pequena, mas aprovacao de regras financeiras e aceite de risco de seguranca nao devem ocorrer sem revisao independente.
@@ -1210,15 +1238,15 @@ Cada gate deve ser registrado como artefato de release:
 
 | Campo | Exemplo |
 |---|---|
-| Build e commit | Artifact imutavel e SHA |
+| Build e commit | Checkout limpo, commit imutavel, SHA e artifact rastreavel |
 | Ambiente | Staging equivalente a producao |
 | Controle | `SEC-030`, `QA-003`, `FIN-004` |
 | Metrica/limiar | Zero bypass cross-tenant; 100% dos vetores criticos aprovados |
-| Evidencia | Relatorio, execucao CI, dashboard ou ata |
+| Evidencia | Relatorio, execucao CI, analyzer/metafile, artifacts de browser/leitor, dashboard ou ata |
 | Executor | Pessoa que realizou a verificacao |
 | Aprovador | Papel independente autorizado |
 | Validade | Release, data ou condicao que invalida a evidencia |
-| Excecao | Owner, justificativa, compensacao, expiracao e risco residual |
+| Excecao | Assinatura, owner, justificativa, controle compensatorio, release, expiracao e risco residual |
 
 ### 26.2 Coordenacao e rastreabilidade de entregas transversais
 
@@ -1232,6 +1260,11 @@ IDs sobrepostos representam implementacao, verificacao e aprovacao diferentes, n
 | Direitos do titular | PRIV-007/PRIV-008 | Teste ponta a ponta | IAM-010 e aprovacao LGPD |
 | Carga e abuso | PERF-008 | QA-012 | Gate da Fase 3A |
 | Stack de componentes | ARCH-012, FE-024 a FE-030 e DSO-021 | A11Y-017, PERF-009, QA-016 e QA-017 | FE-031, DOC-010 e gate da Fase 2 |
+| Validadores de server functions | API-014 | QA-008 | Gate da Fase 1 |
+| Alias Vite 8/Lovable | DSO-022 | Typecheck/build sem warnings nao registrados | Gate da Fase 1; ADR-013 se fork/substituicao permanente |
+| Budget do entry | PERF-005 | Analyzer/metafile e CI raw/gzip/Brotli | Gate da Fase 2 |
+| Browsers e leitores de tela | QA-007/QA-017 e A11Y-012/A11Y-017 | Artifacts Playwright, browsers reais e validacao externa NVDA/VoiceOver | Gates da Fase 2 e Fase 3A |
+| Repositorio e release | DSO-023 | Checkout limpo, SHA/artifact e rollback anterior | Gate da Fase 3A |
 
 Toda decisao marcada como “avaliar” ou “quando aplicavel” deve produzir ADR com alternativas, criterios, decisor e data limite.
 
@@ -1265,6 +1298,8 @@ Toda decisao marcada como “avaliar” ou “quando aplicavel” deve produzir 
 - Custo de IA por produto concluido.
 - Taxa de retry, timeout e abandono.
 - Sucesso dos testes de restauracao.
+- Percentual de releases originadas de checkout limpo com SHA/artifact rastreaveis e rollback do artifact anterior testado; meta 100%.
+- Estado da conexao Lovable e da branch protection do repositorio de release.
 
 ### Qualidade
 
@@ -1272,6 +1307,10 @@ Toda decisao marcada como “avaliar” ou “quando aplicavel” deve produzir 
 - Flakiness dos testes.
 - Tempo de pipeline.
 - Mudancas com rollback.
+- Arquivos mantidos fora do format global e warnings nao registrados/allowlists expiradas; meta zero.
+- Tamanho do entry raw/minificado, gzip e Brotli versus budget de 500 kB; meta de conformidade 100% por release.
+- Cobertura das jornadas publicas e autenticadas em Chromium desktop/mobile, Firefox, WebKit e browsers reais suportados.
+- Cobertura externa obrigatoria de NVDA/Windows/Chrome/Firefox e VoiceOver/macOS/Safari; Orca/ZorinOS reportado separadamente como suplementar.
 - Violacoes de acessibilidade por release.
 - Violacoes de fronteira de import e especialistas fora da allowlist.
 - Quantidade de wrappers mantidos versus catalogo aprovado e remocoes pendentes dos 36 dormentes.
@@ -1325,6 +1364,16 @@ Toda decisao marcada como “avaliar” ou “quando aplicavel” deve produzir 
 - [ ] Loading, erro, vazio e retry consistentes.
 - [ ] WCAG AA validada nas jornadas criticas.
 - [ ] Mobile validado com teclado virtual e viewport estreita.
+- [ ] Playwright aprovado em Chromium desktop/mobile, Firefox e WebKit, com artifacts das jornadas publicas e autenticadas; Chrome, Edge, Firefox e Safari reais validados.
+- [ ] NVDA em Windows/Chrome/Firefox e VoiceOver em macOS/Safari reais validados externamente; Orca no ZorinOS Linux registrado apenas como evidencia suplementar.
+
+### Qualidade e performance
+
+- [ ] Format check global aprovado; somente arquivos gerados comprovados estao ignorados por caminho exato e todos os mantidos estao formatados.
+- [ ] CI e build possuem zero warning nao registrado; cada allowlist temporaria tem assinatura, owner, justificativa, controle, release e expiracao validos.
+- [ ] Entry menor ou igual a 500 kB minificado, com analyzer/metafile e medidas raw, gzip e Brotli anexados; warning limit nao foi elevado como correcao.
+- [ ] API-014/QA-008 comprovam os 15 `.validator()` e schemas estritos sem regressao de contrato.
+- [ ] DSO-022 comprova alias Vite 8/Lovable suportado e preserva `vite-tsconfig-paths` enquanto peer/import obrigatorio.
 
 ### Stack de componentes
 
@@ -1338,13 +1387,15 @@ Toda decisao marcada como “avaliar” ou “quando aplicavel” deve produzir 
 ### Operacao
 
 - [ ] CI/CD e branch protection ativas.
+- [ ] Repositorio privado conectado ao projeto Lovable; a baseline `main`/`db09f5d` foi preservada sem reescrita de historico.
+- [ ] Release parte de checkout Git limpo em commit imutavel e registra Git SHA, artifact rastreavel e artifact anterior testado para rollback.
 - [ ] Logs, metricas, tracing e alertas ativos.
 - [ ] SLOs e error budget definidos.
 - [ ] Runbooks e contatos atualizados.
-- [ ] Rollback testado.
+- [ ] Rollback pelo artifact anterior testado.
 - [ ] Incidente e privacidade possuem processo aprovado.
 - [ ] Tabletop, revogacao emergencial e contatos fora de banda testados.
-- [ ] Build, ambiente, executor, aprovador e evidencias registrados conforme §26.1.
+- [ ] Build, Git SHA, artifact, ambiente, executor, aprovador e evidencias registrados conforme §26.1.
 
 ### Privacidade
 

@@ -5,10 +5,10 @@
 | Campo | Valor |
 |---|---|
 | Documento | Software Design Document - SDD |
-| Versão | 1.2 |
+| Versão | 1.3 |
 | Estado | Baseline técnica proposta |
 | Data | 2026-08-01 |
-| Origem | `PLANO_MESTRE_OTIMIZACAO_E_CIBERSEGURANCA.md` versão 1.3 |
+| Origem | `PLANO_MESTRE_OTIMIZACAO_E_CIBERSEGURANCA.md` versão 1.4 |
 | Sistema atual | React 19, TanStack Start/Router, Supabase, Lovable AI, Tailwind CSS |
 | Arquitetura-alvo | Monólito modular full-stack com BFF, RLS e motor financeiro determinístico |
 | Classificação | Uso interno e confidencial |
@@ -96,6 +96,7 @@ Alterações em fórmulas financeiras, sessão, autorização, tenant, retençã
 |---|---|---|
 | 1.1 | 2026-08-01 | Baseline técnica anterior. |
 | 1.2 | 2026-08-01 | Formaliza shadcn/ui sobre Base UI, suas fronteiras, migração e gates de conformidade. |
+| 1.3 | 2026-08-01 | Formaliza qualidade sem warnings, proveniência Git/artifact, budget do entry e matrizes obrigatórias de browsers e leitores de tela. |
 
 Revisões incrementam a versão do SDD e registram requisitos, rastreabilidade e ADRs afetados. Mudança de decisão arquitetural fixada exige nova versão e ADR próprio; correção editorial sem efeito normativo pode preservar a versão.
 
@@ -388,8 +389,11 @@ flowchart LR
 | NFR-PERF-004 | Operações BFF sem IA com P95 menor que 500 ms, excluindo rede do cliente |
 | NFR-PERF-005 | Aceite do turno e primeiro evento de progresso com P95 menor que 500 ms; conclusão da IA possui SLO separado após benchmark |
 | NFR-PERF-006 | Taxa de 5xx menor que 0,5% na janela acordada |
+| NFR-PERF-007 | O entry chunk inicial DEVE possuir no máximo 500 kB minificado; CI DEVE medir tamanho raw/minificado, gzip e Brotli com analyzer/metafile e bloquear regressão acima do budget; aumentar apenas o warning limit NÃO é correção |
 
 As metas DEVEM ser recalibradas com RUM e testes de carga antes do beta. A fórmula do SLI, janela e volume mínimo pertencem ao catálogo de SLOs.
+
+A baseline de 2026-08-01 mede o entry em 612.46 kB minificado e 173.53 kB gzip, apesar de route splitting já existir; Brotli ainda deve ser registrado. Essa baseline excede NFR-PERF-007 e não constitui aceite do gate.
 
 ### 6.4 Disponibilidade e recuperação
 
@@ -418,9 +422,13 @@ As metas DEVEM ser recalibradas com RUM e testes de carga antes do beta. A fórm
 |---|---|
 | NFR-MAINT-001 | Contratos públicos NÃO DEVEM usar `any` |
 | NFR-MAINT-002 | Regras financeiras DEVEM possuir IDs, versão e testes associados |
-| NFR-MAINT-003 | CI DEVE executar format check, lint, typecheck, testes, build e scans |
+| NFR-MAINT-003 | CI DEVE executar format check global, lint, typecheck, testes, build e scans |
 | NFR-MAINT-004 | Um único package manager e lockfile DEVEM ser usados |
 | NFR-MAINT-005 | Migrations DEVEM ser testadas do zero e sobre dados representativos anonimizados |
+| NFR-MAINT-006 | CI e build DEVEM concluir sem warnings não registrados; exceção temporária exige assinatura do aprovador, owner, justificativa, controle compensatório, release afetada e expiração |
+| NFR-MAINT-007 | Toda release DEVE partir de checkout Git limpo em commit imutável e gerar artifact rastreável ao SHA; histórico publicado conectado ao Lovable NÃO DEVE ser reescrito e rollback DEVE reativar artifact anterior testado |
+
+O format check é global sobre o repositório. Arquivo comprovadamente gerado somente PODE ser ignorado por caminho exato documentado; diretórios amplos, globs genéricos e arquivos mantidos não podem ser excluídos. A baseline atual falha em 17 arquivos: os mantidos devem ser formatados e apenas os gerados comprovados podem entrar nessa lista exata.
 
 ### 6.7 Frontend e design system
 
@@ -1178,6 +1186,7 @@ Requisitos obrigatórios:
 ### 10.1 Convenções
 
 - Server functions/BFF são a interface de domínio.
+- Server functions usam `createServerFn().validator()`; a migração dos 15 usos legados de `.inputValidator()` em três arquivos preserva primeiro o callback atual e, com testes de contrato, endurece depois os schemas para `.strict()`.
 - Entradas e saídas usam schemas Zod `.strict()`.
 - Decimais atravessam JSON como strings canônicas.
 - Funções/views SQL de transporte fazem cast explícito de `NUMERIC` para `TEXT`; tipos Supabase gerados como `number` não são usados em DTO financeiro.
@@ -2219,7 +2228,7 @@ Cores positivas são proibidas quando o resultado estiver incompleto.
 - Foco gerenciado após navegação SPA.
 - Redução de movimento respeitada.
 - Gráficos possuem tabela ou resumo textual equivalente.
-- Teste manual com teclado, NVDA e VoiceOver complementa axe.
+- Teste manual com teclado e Orca no host ZorinOS Linux fornece evidência suplementar; NVDA em Windows com Chrome/Firefox e VoiceOver em macOS com Safari reais permanecem obrigatórios por validação externa e complementam axe.
 
 ---
 
@@ -2340,6 +2349,7 @@ Alertas devem ser testados. Alerta sem owner e runbook não é considerado opera
 - O cliente não recebe `VITE_SUPABASE_*` no target BFF; configuração pública inevitável é servida em runtime e validada.
 - Jobs usam Queue/Cron/worker compatível, nunca continuação oportunista depois da resposta HTTP.
 - Mudança de plataforma ou adapter exige ADR e testes de sessão, streaming, jobs, crypto e conexão Supabase.
+- `vite-tsconfig-paths` permanece instalado e importado enquanto for peer/import obrigatório de `@lovable.dev/vite-tanstack-config`; sua remoção exige atualização suportada ou wrapper compatível, e fork/substituição permanente exige ADR-013.
 
 ### 16.2 Ambientes
 
@@ -2355,22 +2365,25 @@ Projetos Supabase, chaves, domínios e callbacks são separados por ambiente.
 ### 16.3 Pipeline
 
 ```text
-checkout limpo
+checkout Git limpo em commit imutável e registrar SHA
   -> instalar por lockfile
-  -> format check
-  -> lint
+  -> format check global; ignorar somente gerados comprovados por caminho exato
+  -> lint e validar zero warning não registrado
   -> typecheck
   -> unit/property tests
   -> integration/RLS tests
-  -> build imutável
+  -> build imutável e validar zero warning não registrado
+  -> analyzer/metafile + tamanhos raw/minificado, gzip e Brotli; entry <= 500 kB
   -> secret scan
   -> SAST
   -> dependency/license scan
   -> SBOM
+  -> publicar artifact rastreável ao SHA
   -> expand migration em staging
   -> deploy artifact em staging
   -> backfill/verificação
-  -> E2E + a11y + DAST + smoke
+  -> E2E Playwright Chromium desktop/mobile, Firefox e WebKit + a11y + DAST + smoke
+  -> evidência em browsers reais Chrome, Edge, Firefox e Safari e leitores de tela obrigatórios
   -> aprovação do gate
   -> ponto de restauração de produção
   -> expand migration em produção
@@ -2383,6 +2396,10 @@ checkout limpo
 
 ### 16.4 Hardening da CI
 
+- O repositório privado `https://github.com/Douglas0101/preco-que-da-lucro`, branch `main`, possui baseline publicada no commit inicial `db09f5d`; a conexão desse repositório ao projeto Lovable permanece pendente.
+- Checkout deve estar limpo, em commit imutável, e o SHA deve constar no artifact, SBOM, evidências e registro da release.
+- Format check global exclui somente arquivos comprovadamente gerados por caminho exato; arquivos mantidos são formatados.
+- Warning de CI/build é zero por padrão; allowlist temporária registra assinatura, owner, justificativa, controle compensatório, release e expiração.
 - Actions fixadas por SHA.
 - `permissions` mínimas.
 - OIDC em vez de segredo longo quando suportado.
@@ -2426,7 +2443,7 @@ Flag crítica possui:
 
 Aplicação:
 
-- Reativar artifact anterior compatível com schema expandido.
+- Reativar artifact anterior testado, rastreável ao próprio SHA e compatível com schema expandido.
 - Desativar feature flag.
 - Validar smoke e indicadores.
 
@@ -2469,7 +2486,7 @@ SEV-1 exige Incident Commander, comunicação fora de banda, preservação de ev
 | Banco | Migrations, constraints, RLS, views e RPCs |
 | Contrato | BFF, gateway de IA e schemas externos |
 | Componente | Formulários, estados e acessibilidade |
-| E2E | Jornadas completas e mobile |
+| E2E | Jornadas públicas e autenticadas no Playwright com Chromium desktop/mobile, Firefox e WebKit, complementadas por evidência nos browsers reais Chrome, Edge, Firefox e Safari |
 | Segurança | SAST, DAST, secret scan, auth, XSS e autorização |
 | Performance | Carga, concorrência, quota e custo |
 | Resiliência | Timeout, fallback, restore e incidentes |
@@ -2550,8 +2567,9 @@ Gates:
 - axe sem violação crítica.
 - Revisão manual WCAG 2.2 AA.
 - Jornada por teclado.
-- NVDA em Chrome/Firefox.
-- VoiceOver em Safari.
+- Orca no ZorinOS Linux como evidência manual suplementar, sem substituir os leitores obrigatórios.
+- NVDA em Windows com Chrome e Firefox reais, por validação externa obrigatória.
+- VoiceOver em macOS com Safari real, por validação externa obrigatória.
 - Reflow 320 px e zoom 400%.
 - Text spacing.
 - Foco SPA.
@@ -2606,12 +2624,17 @@ Uma alteração está pronta quando:
 
 - Requisito e critérios estão identificados.
 - Código, migration e tratamento de erro estão completos.
+- Format check global passa; eventual exclusão identifica por caminho exato somente arquivo comprovadamente gerado.
+- CI e build não emitem warning não registrado; allowlist temporária possui assinatura, owner, justificativa, controle, release e expiração.
 - Testes aplicáveis foram adicionados.
+- Alteração que afeta frontend possui medição raw/minificada, gzip e Brotli e respeita o budget do entry; aumentar o warning limit não encerra o item.
+- Jornadas afetadas possuem artifacts da matriz Playwright e, quando aplicável, dos browsers reais e leitores de tela obrigatórios.
 - Telemetria e auditoria foram implementadas.
 - Segurança, privacidade e acessibilidade foram avaliadas.
 - A fronteira, allowlist, catálogo e grafo de dependências da camada de UI estão conformes quando a alteração toca frontend ou dependências.
 - Documentação e rastreabilidade foram atualizadas.
 - Rollback ou forward fix está definido.
+- Release parte de checkout Git limpo e associa commit imutável, SHA, artifact rastreável e artifact anterior testado para rollback.
 - Evidências estão anexadas ao gate correto.
 
 ---
@@ -2626,6 +2649,8 @@ Uma alteração está pronta quando:
 - Dados existentes auditados antes de constraints.
 - Feature flags para mudanças de alto risco.
 - Nenhum usuário externo antes do gate da Fase 3A.
+- Cada promoção usa o mesmo artifact rastreável ao SHA de um checkout Git limpo e mantém artifact anterior testado para rollback.
+- Gates de frontend exigem a matriz de browsers e leitores de tela definida na seção 17; Orca no Linux permanece suplementar.
 
 ### 18.2 Política para dados legados ambíguos
 
@@ -2675,6 +2700,8 @@ Entregas de design/implementação:
 - Implementar rate limit, quota, timeout e payload.
 - Corrigir erros de banco apresentados como vazio.
 - Criar baseline de testes e CI.
+- Registrar a baseline já publicada do repositório privado, branch `main` e commit `db09f5d`; concluir a conexão ao Lovable permanece pendente para a Fase 3A.
+- Aplicar format check global à baseline de 17 arquivos, formatando mantidos e excluindo somente gerados comprovados por caminho exato; registrar warnings temporários conforme NFR-MAINT-006.
 
 Gate:
 
@@ -2697,11 +2724,14 @@ Gate:
 - Fallback manual.
 - Runtime edge, bindings e worker durável definidos por ADR.
 - ADR-016, inventário Radix fechado, fronteiras de import e bloqueio de novos usos ativos; npm/`package-lock.json` definidos como autoridade da migração.
+- Migrar os 15 `.inputValidator()` em três arquivos para `.validator()`, preservar callbacks e depois aplicar schemas estritos com testes de contrato.
+- Resolver o alias Vite 8/Lovable por atualização suportada; manter `vite-tsconfig-paths` enquanto obrigatório e usar ADR-013 para fork/substituição permanente.
 
 Gate:
 
 - Fluxo conversacional completo, retomável, idempotente e isolado.
 - Sessão, CI, privacidade, decimal e observabilidade aprovados.
+- Format check global e zero warning não registrado aprovados; exceções temporárias válidas contêm todos os campos de NFR-MAINT-006.
 - Inventário Radix não cresceu e checks de fronteira/dependência estão bloqueantes; a exceção permanece limitada e com expiração no gate seguinte.
 
 ### 18.6 Fase 2: MVP confiável
@@ -2714,11 +2744,15 @@ Gate:
 - Estados assíncronos.
 - WCAG AA.
 - Migração completa dos wrappers retidos para Base UI, promoção de `sheet`/`alert-dialog` e remoção dos outros 36 wrappers dormentes.
+- Entry reduzido para no máximo 500 kB minificado e medido também em gzip/Brotli por analyzer/metafile, sem apenas elevar warning limit.
+- Jornadas públicas e autenticadas aprovadas em Chromium desktop/mobile, Firefox e WebKit, com artifacts nos browsers reais suportados.
 
 Gate:
 
 - Resultados reproduzíveis e aprovados pelo responsável financeiro.
 - Gate de acessibilidade encerrado.
+- NVDA em Windows/Chrome/Firefox e VoiceOver em macOS/Safari reais possuem evidência externa obrigatória; Orca no ZorinOS Linux é somente suplementar.
+- Budget do entry e matriz de browsers foram aprovados.
 - npm e `package-lock.json` são exclusivos, arquivos Bun foram removidos, o catálogo contém exatamente os dez wrappers aprovados e não existe `@radix-ui/*`, `radix-ui`, `cmdk` ou `vaul` no source mantido ou no grafo direto/transitivo de produção.
 - A exceção temporária Radix está encerrada e não pode ser prorrogada.
 
@@ -2731,10 +2765,11 @@ Gate:
 - Backup/restauração.
 - Tabletop de incidente.
 - Kill switches.
+- Repositório privado conectado ao projeto Lovable, branch protection ativa e release candidata reproduzida de checkout limpo com SHA, artifact rastreável e rollback do artifact anterior testado.
 
 Gate:
 
-- Checklist de produção aprovado com build, ambiente, executor, aprovador e validade.
+- Checklist de produção aprovado com build, Git SHA, artifact, ambiente, executor, aprovador, validade, matriz de browsers/leitores de tela, budget e política de warnings.
 
 ### 18.8 Fase 3B: beta controlado
 
@@ -2769,7 +2804,7 @@ Gate:
 | P0-API-01 | NFR-SEC-009, seção 10.3 | BFF/UI | Falhas injetadas |
 | P0-SEC-02 | NFR-SEC-007, seção 12.8/13.9 | BFF/Conversation | Concorrência/carga |
 | P0-DATA-02 | NFR-SEC-003/004, seção 9.4 | Repositórios/DB | Matriz RLS |
-| P0-QA-01 | NFR-MAINT-003, seção 17 | CI | Pipeline bloqueante |
+| P0-QA-01 | NFR-MAINT-003/006/007, seção 17 | CI/release | Pipeline bloqueante e artifact rastreável |
 
 ### 19.2 Cobertura explícita do Plano Mestre
 
@@ -2801,6 +2836,7 @@ Gate:
 | FIN-028 a FIN-034 | FR-DIAG, 11.14 a 11.16 | Diagnóstico e reprodução |
 | API-001 a API-005 | 8.2/8.8, 10.1 a 10.5 | Schema, erro, idempotência e transação |
 | API-006 a API-013 | 9.6, 10.4 a 10.7 | Paginação, retry, auditoria e conflito |
+| API-014 | NFR-MAINT-001/003, 10.1, 17.1/17.11 | Migração para `.validator()`, schemas estritos e QA-008 |
 | FE-001 a FE-005 | FR-PROD/CONV, 14.2 | Ficha e jornada |
 | FE-006 a FE-010 | 14.3 | Estados assíncronos |
 | FE-011 a FE-016 | 14.4 | Formulários e URL |
@@ -2808,12 +2844,14 @@ Gate:
 | FE-024 a FE-031 | DD-013, NFR-UI-001 a NFR-UI-008, 14.1, 18.3 | Migração Base UI, catálogo e paridade |
 | A11Y-001 a A11Y-017 | NFR-A11Y, NFR-UI-006, 14.6/14.7, 17.6/17.10 | WCAG, teclado, leitores de tela e overlays migrados |
 | RESP-001 a RESP-003 | NFR-A11Y-004, 14.6/14.7 | Viewport, overflow e drawer |
-| PERF-001 a PERF-009 | NFR-PERF, NFR-UI-007, 7.5, 9.5, 15.3, 17 | Cache, N+1, bundle, dependências e carga |
+| PERF-001 a PERF-009 | NFR-PERF, NFR-UI-007, 7.5, 9.5, 15.3, 16.3, 17 | Cache, N+1, budget raw/gzip/Brotli, dependências e carga |
 | QA-001 a QA-017 | 17.1 a 17.11 | Pirâmide, vetores, conformidade de UI, E2E e gates |
 | OBS-001 a OBS-015 | 15.1 a 15.6 | Logs, traces, métricas, auditoria e SLO |
 | PRIV-001 a PRIV-018 | NFR-PRIV, 8.9, 9.2, 13.12 | LGPD, jobs, retenção e direitos |
 | DSO-001 a DSO-010 | NFR-MAINT, 13.11, 16.1 a 16.4 | Toolchain, CI, SBOM e ambientes |
 | DSO-011 a DSO-021 | NFR-UI-007, 16.3 a 16.5, 17.10 | Deploy, migration, artifact, flags e grafo npm |
+| DSO-022 | NFR-MAINT-003/004, 16.1/16.4, ADR-013 | Compatibilidade do alias Vite 8/Lovable sem remoção prematura do plugin obrigatório |
+| DSO-023 | NFR-MAINT-007, 16.3/16.4/16.7, 18.4/18.7, 21.7 | Repositório/Lovable, checkout limpo, SHA, branch protection, artifact e rollback |
 | OPS-001 a OPS-010 | NFR-RES, 16.1/16.6/16.7 | Ambiente, backup, restore e continuidade |
 | IR-001 a IR-011 | 16.8, 21.7 | Runbooks, severidade e incidentes |
 | DOC-001 a DOC-010 | 1.3 a 1.5, 14.1, 19, 20 | Guias, ADRs e governança da camada de UI |
@@ -2831,7 +2869,7 @@ Esta seção é a baseline no repositório. Cada requisito FR/NFR deve ainda pos
 - Evidência.
 - Aprovador.
 - Data de validade.
-- Exceção e expiração, quando permitidas.
+- Exceção assinada com owner, justificativa, controle compensatório, release e expiração, quando permitida.
 
 ---
 
@@ -2853,7 +2891,7 @@ Esta seção é a baseline no repositório. Cada requisito FR/NFR deve ainda pos
 | ADR-010 | Escopo econômico | Fase 0 | Mão de obra, perdas, frete, descontos e capacidade |
 | ADR-011 | API SQL de domínio | Fase 1 | Owners, FORCE RLS, funções, quota e grants |
 | ADR-012 | Worker durável | Fase 1 | Cloudflare Queue/Cron ou alternativa equivalente |
-| ADR-013 | Runtime edge | Fase 1 | Adapter Nitro, compatibility date, bindings e streaming |
+| ADR-013 | Runtime edge e integração Vite/Lovable | Fase 1 | Adapter Nitro, compatibility date, bindings, streaming e, se permanente, wrapper, fork ou substituição de `@lovable.dev/vite-tanstack-config` |
 | ADR-014 | Retenção e direitos LGPD | Fase 3A | Prazos, expurgo, artifacts e auditoria |
 | ADR-015 | CSP e estilos dinâmicos | Fase 0 | Refatoração, nonce, `style-src-attr` e Trusted Types |
 | ADR-016 | Execução da migração shadcn/ui de Radix para Base UI | Fase 2 | Sem reabrir Base UI: fronteiras, ondas, estilo, enforcement, evidências e rollback |
@@ -2937,13 +2975,17 @@ Todo ADR contém:
 
 - [ ] Constraints, índices e policies aplicados.
 - [ ] Migrations testadas do zero e sobre dados representativos.
+- [ ] Format check global aprovado; somente arquivos comprovadamente gerados são ignorados por caminho exato e os arquivos mantidos estão formatados.
+- [ ] CI e build possuem zero warning não registrado; qualquer allowlist temporária contém assinatura, owner, justificativa, controle, release e expiração válidos.
+- [ ] Release foi produzida de checkout Git limpo em commit imutável, com SHA e artifact rastreáveis, branch protection ativa e sem reescrita do histórico Lovable.
+- [ ] Entry possui no máximo 500 kB minificado, com relatório analyzer/metafile raw, gzip e Brotli anexado; o limite de warning não foi usado para mascarar excesso.
 - [ ] Concorrência otimista evita sobrescrita silenciosa.
 - [ ] Jobs duráveis possuem lease, dead-letter, idempotência e alerta.
 - [ ] Logs são request-scoped e redigidos.
 - [ ] Auditoria é resistente a alteração normal.
 - [ ] SLOs, alertas e runbooks possuem owner.
 - [ ] Backup independente e restauração isolada comprovam RPO/RTO.
-- [ ] Rollback/forward fix foi exercitado.
+- [ ] Rollback pelo artifact anterior testado, ou forward fix aplicável, foi exercitado.
 - [ ] Tabletop de incidente foi aprovado.
 
 ### 21.5 UX, acessibilidade e privacidade
@@ -2954,6 +2996,8 @@ Todo ADR contém:
 - [ ] Dados demo são segregados.
 - [ ] WCAG 2.2 AA aprovada por automação e revisão manual.
 - [ ] Mobile funciona em 320 px e com teclado virtual.
+- [ ] Playwright aprovou jornadas públicas e autenticadas em Chromium desktop/mobile, Firefox e WebKit, com artifacts de evidência; Chrome, Edge, Firefox e Safari reais foram validados.
+- [ ] NVDA em Windows com Chrome/Firefox e VoiceOver em macOS com Safari reais possuem validação externa; Orca no ZorinOS Linux consta apenas como evidência suplementar.
 - [ ] Aviso, bases legais, fornecedores e transferência estão aprovados.
 - [ ] Direitos do titular funcionam ponta a ponta.
 - [ ] Exportação e exclusão são executadas por worker e respeitam step-up/SLA.
@@ -2984,7 +3028,12 @@ Uma release externa recebe **NO-GO** se qualquer condição abaixo ocorrer:
 - Turno concorrente ou crash capaz de duplicar/corromper estado.
 - Falha de restauração dentro das metas aprovadas.
 - Pendência legal/privacidade que impeça coleta ou transferência.
+- Format check global reprovado, arquivo mantido excluído, ou arquivo gerado ignorado sem comprovação e caminho exato.
+- Warning de CI/build não registrado ou allowlist sem assinatura, owner, justificativa, controle, release ou expiração válida.
+- Checkout sujo, commit mutável, divergência de SHA/artifact, conexão Lovable pendente, branch sem proteção ou ausência de artifact anterior testado para rollback.
+- Entry acima de 500 kB minificado, ausência de medição raw/gzip/Brotli ou tentativa de aceitar o excesso apenas elevando warning limit.
+- Matriz obrigatória de Chromium desktop/mobile, Firefox, WebKit, browsers reais ou leitores NVDA/VoiceOver sem evidência válida; Orca isolado não encerra o gate.
 - Após o gate da Fase 2, qualquer Radix no source mantido ou grafo direto/transitivo de produção, exceção temporária ainda ativa, import fora da fronteira ou especialista não aprovado.
 - Toolchain diferente de npm/`package-lock.json`, arquivo Bun remanescente ou catálogo reutilizável divergente dos dez wrappers aprovados.
 
-O aceite final registra build, commit, ambiente, evidências, executor, aprovadores e validade. A existência de código sem evidência verificável não encerra requisito.
+O aceite final registra build, commit imutável, Git SHA, artifact rastreável, ambiente, evidências, executor, aprovadores e validade. A existência de código sem evidência verificável não encerra requisito.
