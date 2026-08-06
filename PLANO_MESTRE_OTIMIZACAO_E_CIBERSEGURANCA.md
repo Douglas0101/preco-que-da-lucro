@@ -4,7 +4,7 @@
 
 | Campo                 | Valor                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------ |
-| Versao do plano       | 1.5                                                                                                    |
+| Versao do plano       | 1.6                                                                                                    |
 | Data de referencia    | 2026-08-02                                                                                             |
 | Escopo                | Aplicacao web, dominio financeiro, IA, banco, seguranca, UX, operacao e governanca                     |
 | Estado analisado      | Prototipo funcional conectado ao Supabase e Lovable AI                                                 |
@@ -16,12 +16,13 @@
 
 ### Historico de revisoes
 
-| Versao | Data       | Alteracao                                                                                                                                      |
-| ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.2    | 2026-08-01 | Baseline de planejamento anterior.                                                                                                             |
-| 1.3    | 2026-08-01 | Formaliza a migracao shadcn/ui para Base UI, o backlog e o gate do stack de componentes.                                                       |
-| 1.4    | 2026-08-01 | Formaliza CI sem warnings, proveniencia Git/artifact, compatibilidade Vite/Lovable, budget do entry e matrizes de browsers e leitores de tela. |
-| 1.5    | 2026-08-02 | Registra format/lint globais, validadores, alias Vite, bundle medido, matriz Playwright, Orca e excecao Nitro temporaria.                      |
+| Versao | Data       | Alteracao                                                                                                                                                                                               |
+| ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.2    | 2026-08-01 | Baseline de planejamento anterior.                                                                                                                                                                      |
+| 1.3    | 2026-08-01 | Formaliza a migracao shadcn/ui para Base UI, o backlog e o gate do stack de componentes.                                                                                                                |
+| 1.4    | 2026-08-01 | Formaliza CI sem warnings, proveniencia Git/artifact, compatibilidade Vite/Lovable, budget do entry e matrizes de browsers e leitores de tela.                                                          |
+| 1.5    | 2026-08-02 | Registra format/lint globais, validadores, alias Vite, bundle medido, matriz Playwright, Orca e excecao Nitro temporaria.                                                                               |
+| 1.6    | 2026-08-06 | CI completa verde no SHA ecea55a (run 30732769570); baseline de bundle e re-check WARN-NITRO-001 em [`docs/evidence/ci-green-baseline-2026-08-06.md`](./docs/evidence/ci-green-baseline-2026-08-06.md). |
 
 Cada revisao normativa atualiza versao, dependencias, gates e rastreabilidade afetados. Correcao editorial sem impacto de planejamento pode preservar a versao.
 
