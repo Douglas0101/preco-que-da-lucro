@@ -1,6 +1,6 @@
 # Preço que Dá Lucro
 
-Plataforma web em português (pt-BR) de **precificação inteligente assistida por IA** para empreendedores e gestores: estruturação de custos, formação de preço, margem de contribuição, ponto de equilíbrio, despesas, vendas, simulações e diagnóstico financeiro — com cadastro conversacional de produtos e assistente de IA.
+Plataforma web em português (pt-BR) de **precificação inteligente assistida por IA, voltada exclusivamente ao setor de alimentação** — restaurantes, lanchonetes, padarias, confeitarias, bares, delivery e demais negócios de alimentos e bebidas. Cobre estruturação de custos de ingredientes, rendimento de receitas, embalagens, formação de preço, margem de contribuição, ponto de equilíbrio, despesas, vendas, simulações e diagnóstico financeiro — com cadastro conversacional de produtos e assistente de IA.
 
 > O projeto está em programa de engenharia orientado a invariantes: nenhuma otimização de performance ou experiência pode mascarar cálculo incorreto, falha de autorização ou erro silencioso. A ordem é: **correção matemática → segurança → integridade dos dados → fronteiras arquiteturais → estabilidade → observabilidade → performance → experiência → escala**.
 

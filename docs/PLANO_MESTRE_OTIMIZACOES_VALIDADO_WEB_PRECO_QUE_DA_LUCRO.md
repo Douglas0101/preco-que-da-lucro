@@ -426,19 +426,19 @@ Exemplo conceitual:
 ```ts
 type CalculationResult<T> =
   | {
-      status: 'ok'
-      value: T
-      warnings: CalculationWarning[]
+      status: "ok";
+      value: T;
+      warnings: CalculationWarning[];
     }
   | {
-      status: 'incomplete'
-      missing: MissingField[]
-      warnings: CalculationWarning[]
+      status: "incomplete";
+      missing: MissingField[];
+      warnings: CalculationWarning[];
     }
   | {
-      status: 'invalid'
-      errors: CalculationError[]
-    }
+      status: "invalid";
+      errors: CalculationError[];
+    };
 ```
 
 Benefício:
@@ -456,10 +456,10 @@ Remover todos os padrões que retornam zero quando existe ausência.
 Exemplos proibidos:
 
 ```ts
-packagePrice ?? 0
-taxRate ?? 0
-yieldQty || 1
-conversion ?? 0
+packagePrice ?? 0;
+taxRate ?? 0;
+yieldQty || 1;
+conversion ?? 0;
 ```
 
 quando semanticamente desconhecido.
@@ -780,9 +780,9 @@ Exemplo:
 
 ```ts
 interface ProductRepository {
-  findById(ctx: RequestContext, id: ProductId): Promise<Product | null>
-  list(ctx: RequestContext, query: ProductQuery): Promise<Page<Product>>
-  save(ctx: TransactionContext, product: Product): Promise<void>
+  findById(ctx: RequestContext, id: ProductId): Promise<Product | null>;
+  list(ctx: RequestContext, query: ProductQuery): Promise<Page<Product>>;
+  save(ctx: TransactionContext, product: Product): Promise<void>;
 }
 ```
 
@@ -1041,14 +1041,14 @@ DATABASE_URL_DIRECT=
 
 Uso:
 
-| Operação | Conexão |
-|---|---|
-| request runtime | pooled |
-| background short transaction | pooled |
-| migration | direct |
-| pg_dump | direct |
-| restore | direct |
-| admin/session-specific | direct |
+| Operação                     | Conexão |
+| ---------------------------- | ------- |
+| request runtime              | pooled  |
+| background short transaction | pooled  |
+| migration                    | direct  |
+| pg_dump                      | direct  |
+| restore                      | direct  |
+| admin/session-specific       | direct  |
 
 ---
 
@@ -1938,34 +1938,34 @@ Aplicação não deve bloquear request principal.
 
 # 32. Security testing matrix
 
-| Cenário | Resultado esperado |
-|---|---|
-| XSS em resposta IA | não executa |
-| chamada direta sem auth | 401 |
-| tenant A acessa B | 403/zero rows |
-| tool inválida | validation error |
-| SQL injection em string | parametrizado |
-| CSRF cross-site | bloqueado |
-| replay mutation | idempotente |
-| token em localStorage | inexistente |
-| session fixation | sessão rotacionada |
-| rate abuse AI | 429/limit |
+| Cenário                 | Resultado esperado |
+| ----------------------- | ------------------ |
+| XSS em resposta IA      | não executa        |
+| chamada direta sem auth | 401                |
+| tenant A acessa B       | 403/zero rows      |
+| tool inválida           | validation error   |
+| SQL injection em string | parametrizado      |
+| CSRF cross-site         | bloqueado          |
+| replay mutation         | idempotente        |
+| token em localStorage   | inexistente        |
+| session fixation        | sessão rotacionada |
+| rate abuse AI           | 429/limit          |
 
 ---
 
 # 33. Financial regression matrix
 
-| Caso | Esperado |
-|---|---|
-| package price null | incomplete |
-| unit incompatible | incomplete/invalid |
-| yield null | incomplete |
-| tax null | incomplete quando necessária |
-| contribution <= 0 | break-even não atingível |
-| required units 10.1 | 11 |
-| volume unknown | não chamar real |
-| markup arbitrário | inexistente |
-| NaN | nunca formatado como zero |
+| Caso                | Esperado                     |
+| ------------------- | ---------------------------- |
+| package price null  | incomplete                   |
+| unit incompatible   | incomplete/invalid           |
+| yield null          | incomplete                   |
+| tax null            | incomplete quando necessária |
+| contribution <= 0   | break-even não atingível     |
+| required units 10.1 | 11                           |
+| volume unknown      | não chamar real              |
+| markup arbitrário   | inexistente                  |
+| NaN                 | nunca formatado como zero    |
 
 ---
 

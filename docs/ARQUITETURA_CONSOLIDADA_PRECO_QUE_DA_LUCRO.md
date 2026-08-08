@@ -8,13 +8,13 @@
 **Banco canônico:** PostgreSQL  
 **Provedor PostgreSQL inicial:** Neon  
 **Princípio de infraestrutura:** Provider-independent  
-**Paradigma principal:** Monólito modular full-stack com BFF, domínio determinístico, persistência controlada e IA governada pelo backend  
+**Paradigma principal:** Monólito modular full-stack com BFF, domínio determinístico, persistência controlada e IA governada pelo backend
 
 ---
 
 # 1. Visão executiva
 
-O **Preço que Dá Lucro** é concebido como uma plataforma SaaS financeira assistida por inteligência artificial para apoiar empreendedores e gestores na estruturação de custos, precificação, margem de contribuição, ponto de equilíbrio, despesas, vendas, simulações e diagnósticos financeiros.
+O **Preço que Dá Lucro** é concebido como uma plataforma SaaS financeira assistida por inteligência artificial, voltada exclusivamente ao setor de alimentação, para apoiar empreendedores e gestores de negócios de alimentos e bebidas na estruturação de custos, precificação, margem de contribuição, ponto de equilíbrio, despesas, vendas, simulações e diagnósticos financeiros.
 
 A arquitetura consolidada separa explicitamente cinco responsabilidades críticas:
 
@@ -2103,10 +2103,7 @@ Exemplo:
 ```json
 {
   "complete": false,
-  "missing": [
-    "tax_rate",
-    "sales_volume"
-  ]
+  "missing": ["tax_rate", "sales_volume"]
 }
 ```
 
@@ -2650,23 +2647,23 @@ Essa combinação cria uma base sólida para transformar o **Preço que Dá Lucr
 
 # 88. Status da decisão
 
-| Área | Decisão |
-|---|---|
-| Banco | PostgreSQL |
-| Provedor inicial | Neon |
-| Acesso frontend → DB | Proibido |
-| API | TanStack Start BFF |
-| Persistência | Repository Layer |
-| Matemática | Financial Engine |
-| IA | Orquestração controlada |
-| Estado conversacional | Persistente |
-| Memória | Persistent Memory Engine |
-| Busca de memória | Metadata + FTS + pgvector |
-| Fonte financeira | Tabelas canônicas |
-| Auditoria | Obrigatória para ações críticas |
-| Portabilidade | Provider-independent |
-| CI | GitHub Actions |
-| Estratégia de banco | Migrations + branching + testes |
+| Área                  | Decisão                         |
+| --------------------- | ------------------------------- |
+| Banco                 | PostgreSQL                      |
+| Provedor inicial      | Neon                            |
+| Acesso frontend → DB  | Proibido                        |
+| API                   | TanStack Start BFF              |
+| Persistência          | Repository Layer                |
+| Matemática            | Financial Engine                |
+| IA                    | Orquestração controlada         |
+| Estado conversacional | Persistente                     |
+| Memória               | Persistent Memory Engine        |
+| Busca de memória      | Metadata + FTS + pgvector       |
+| Fonte financeira      | Tabelas canônicas               |
+| Auditoria             | Obrigatória para ações críticas |
+| Portabilidade         | Provider-independent            |
+| CI                    | GitHub Actions                  |
+| Estratégia de banco   | Migrations + branching + testes |
 
 ---
 
