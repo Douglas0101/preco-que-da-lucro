@@ -12,6 +12,6 @@
 ## Branching
 
 - `develop` is the daily working branch (development, engineering, cybersecurity). Direct commits are allowed and every push runs the full `ui-stack` CI.
-- `main` is the release branch and the repository default. It only receives merges via PR `develop → main` with green CI, and it is the branch connected to Lovable.
+- `main` is the release branch and the repository default. It only receives merges via PR `develop → main` with green CI. There is no active Lovable connection — this project is a source-code export for engineering work; if a connection is established later, `main` is the branch to connect.
 - Never force-push, rebase, or amend commits already pushed to any published branch.
 - Formal branch protection is pending GitHub Pro or a public repository; see `docs/adr/ADR-017-branching-strategy.md`.

@@ -36,9 +36,9 @@ Em 2026-08-06 o `package-lock.json` foi normalizado pelo toolchain pinado (npm 1
 
 ## Pendências externas (fora do repositório)
 
-| Pendência                                | Bloqueio                                 |
-| ---------------------------------------- | ---------------------------------------- |
-| Branch protection                        | Requer GitHub Pro ou repositório público |
-| Conexão Lovable ↔ GitHub                 | Ação na UI do Lovable                    |
-| Validação NVDA/Windows e VoiceOver/macOS | Requer hardware/OS                       |
-| E2E com backend e credenciais reais      | Requer ambiente provisionado             |
+| Pendência                                | Bloqueio                                                                                 |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Branch protection                        | Requer GitHub Pro ou repositório público                                                 |
+| Conexão Lovable ↔ GitHub                 | Não se aplica: sem conexão direta; fontes obtidos por export (esclarecido em 2026-08-07) |
+| Validação NVDA/Windows e VoiceOver/macOS | Requer hardware/OS                                                                       |
+| E2E com backend e credenciais reais      | Requer ambiente provisionado                                                             |
