@@ -9,6 +9,9 @@ import type { ReactNode } from "react";
  * nenhuma hipótese — não existe caminho de `dangerouslySetInnerHTML`.
  */
 export function renderChatMarkdown(text: string): ReactNode[] {
+  // key={index} é seguro aqui: mensagens do chat são append-only e o conteúdo
+  // de cada bolha é estático após o render. Se o chat ganhar streaming/edição,
+  // compor a chave com o conteúdo.
   return text.split("\n").map((line, index) => <div key={index}>{renderLine(line)}</div>);
 }
 

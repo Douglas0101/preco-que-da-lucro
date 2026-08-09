@@ -49,6 +49,9 @@ describe("renderChatMarkdown — regressão XSS", () => {
   });
 
   it("não usa dangerouslySetInnerHTML (renderer produz apenas nós React)", () => {
+    // Canário: serializar elementos React depende da forma interna do objeto
+    // (não é API estável). A prova real são os testes DOM-based acima; este
+    // existe só para apitar se um dia alguém reintroduzir a prop.
     const nodes = renderChatMarkdown("<b>negrito real?</b> **sim**");
     // Se algum nó carregasse __html perigoso, viria como objeto com
     // dangerouslySetInnerHTML; aqui só existem elementos React planos.
