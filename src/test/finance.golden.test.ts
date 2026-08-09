@@ -23,6 +23,10 @@ import {
  * antes das correções do P0. Comportamentos hoje incorretos são marcados com
  * `golden:` e o lote da sequência determinada (Plano §40) que os corrige.
  * Nenhum valor aqui pode ser "corrigido" sem o lote correspondente.
+ *
+ * Os casts `null as unknown as number` são deliberados: injetam o dado
+ * desconhecido que o tipo não admite para caracterizar a política atual de
+ * unknown/invalid. Não "limpar" esses casts — eles são o objeto do teste.
  */
 
 describe("conversão de unidades", () => {
@@ -98,12 +102,12 @@ describe("custo unitário", () => {
   });
 
   it("yield zero zera o custo de ingredientes por unidade", () => {
-    // golden: comportamento atual incorreto — yield zero vira custo zero (corrigir no lote 08, units)
+    // golden: comportamento atual incorreto — yield zero vira custo zero (corrigir no lote 04, política unknown)
     expect(calculateUnitCost(12, 0, 0.5)).toBe(0.5);
   });
 
   it("yield null vira 1 em computeProduct", () => {
-    // golden: comportamento atual incorreto — yield desconhecido vira 1 (corrigir no lote 07/08)
+    // golden: comportamento atual incorreto — yield desconhecido vira 1 (corrigir no lote 04, política unknown)
     const result = computeProduct({
       ingredients: [
         { used_qty: 200, used_unit: "g", package_price: 6, package_qty: 1, package_unit: "kg" },
