@@ -2,10 +2,12 @@
 
 | Campo  | Valor                                                                                                                                   |
 | ------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Data   | 2026-08-08                                                                                                                              |
+| Data   | 2026-08-08 (reavaliação V7 em 2026-08-09)                                                                                               |
 | Fontes | `docs/DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO.md` (Diretriz) e `docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md` (Plano) |
 | Apoio  | `docs/ARQUITETURA_CONSOLIDADA_PRECO_QUE_DA_LUCRO.md` (Arquitetura)                                                                      |
 | Escopo | Somente leitura cruzada; nenhum documento-fonte foi alterado                                                                            |
+
+> **Nota de superseding (2026-08-09):** a Diretriz original foi substituída por `docs/DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO_V7_SHADCN_BASEUI_SINCRONIZADO_OFICIAL.md` (V7), diretriz consolidada de produto, arquitetura e engenharia. As seções 1–4 abaixo permanecem como registro histórico do cruzamento contra a Diretriz pré-V7; a seção 5 (R1–R8) foi reavaliada contra a V7 na seção 6.
 
 ## 1. Propósito e método
 
@@ -80,6 +82,23 @@ Decisão de escopo registrada em 2026-08-08: o produto é voltado **exclusivamen
 - **R7 — Plano, §39 (itens deferidos) ou novo anexo de backlog**: registrar as expansões pós-MVP da Diretriz §17 (estoque, fluxo de caixa, DRE, ranking, WhatsApp, planos) como backlog futuro do setor de alimentação, explicitando que multi-segmento está fora de escopo.
 - **R8 — Diretriz, abertura e §17**: emendar "outros segmentos/categorias de negócios" para refletir o foco exclusivo em alimentação decidido em 2026-08-08.
 
-## 6. Verificação de referências
+## 6. Reavaliação R1–R8 sob a Diretriz V7 (2026-08-09)
+
+A V7 (`DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO_V7_SHADCN_BASEUI_SINCRONIZADO_OFICIAL.md`) consolidou produto, arquitetura e engenharia em um único documento autenticado contra fontes oficiais. Status de cada recomendação:
+
+| Rec. | Tema                               | Status sob a V7          | Evidência na V7                                                                                                                                                                                                                                                                                                           |
+| ---- | ---------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1   | Contrato das funções financeiras   | parcialmente atendida    | §8.5 documenta as fórmulas centrais conceituais; o contrato de API nomeado (11 funções) segue não declarado                                                                                                                                                                                                               |
+| R2   | Formatação pt-BR                   | atendida                 | Seção "Formas financeiras especializadas" fixa exibição `R$ 1.234,56` separada da precisão interna                                                                                                                                                                                                                        |
+| R3   | MEI/DAS e alíquotas                | atendida                 | Correções #15 (Tax Knowledge Boundary) e #16 (MEI); §10.1.1 "Fronteira de conhecimento tributário"                                                                                                                                                                                                                        |
+| R4   | Mapeamento das entidades           | atendida com ressalva    | §13.1 lista 15 tabelas incluindo `other_direct_costs` e `market_price_history`; `taxes` e `financial_diagnostics` não têm tabela própria (tributação via §10.1.1; diagnóstico como saída computada) — confirmar intencionalidade                                                                                          |
+| R5   | Alertas e linguagem do diagnóstico | atendida                 | §10.3 distingue fato/cálculo/simulação/estimativa/lacuna/interpretação; §10.4 reproduz a linguagem hedged ("vale investigar", "os dados indicam")                                                                                                                                                                         |
+| R6   | Comparação de mercado              | atendida conceitualmente | Correção #17 ("mercado" como camada de contexto); §10.2 "Preço de mercado — referência externa informada"; §27.2. A visualização específica é detalhe de implementação                                                                                                                                                    |
+| R7   | Backlog de expansões pós-MVP       | atendida                 | Seção "Novos requisitos incorporados ao backlog" e §28 "Itens deliberadamente adiados" (estoque, fluxo de caixa, DRE, WhatsApp, etc.)                                                                                                                                                                                     |
+| R8   | Foco exclusivo em alimentação      | atendida                 | §2.2 define público-alvo inicial 100% alimentação (confeitaria, doces, restaurantes, lanchonetes, produção artesanal, cozinhas de produção, microempreendedores, comércio de alimentos); expansão multi-segmento persiste apenas como propriedade arquitetural ("sem reescrever o núcleo"), não como requisito de produto |
+
+Pendência remanescente: **R1** — declarar as 11 funções financeiras como contrato público nomeado do Financial Engine (a V7 cobre as fórmulas conceituais, não a API nomeada).
+
+## 7. Verificação de referências
 
 Todas as seções citadas existem nos documentos-fonte: Diretriz §1–17; Plano §4 (macro-roadmap), §9–20 (fases F4–F15), §36–38 (P0/P1/P2), §39 (deferidos), §40 (ordem); Arquitetura §4, §6, §7–8, §9–11, §75–82. Classificações sem evidência direta foram marcadas como lacuna/parcial por ausência verificada, não por suposição.

@@ -112,14 +112,15 @@ A política de warnings do build aceita somente assinaturas exatas com exceção
 
 ## Documentação
 
-| Documento                                                                                                                                | Conteúdo                                                           |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| [`docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md`](./docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md) | Plano mestre validado: evidências, fases, prioridades, gates, KPIs |
-| [`docs/ARQUITETURA_CONSOLIDADA_PRECO_QUE_DA_LUCRO.md`](./docs/ARQUITETURA_CONSOLIDADA_PRECO_QUE_DA_LUCRO.md)                             | Arquitetura-alvo: camadas, Financial Engine, IA, memória, ADRs     |
-| [`docs/DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO.md`](./docs/DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO.md)                                       | Especificação de domínio: precificação, custos, margem, break-even |
-| [`SDD.md`](./SDD.md)                                                                                                                     | Especificação técnica normativa (v1.4)                             |
-| [`docs/adr/`](./docs/adr/)                                                                                                               | ADRs aceitos (016 shadcn/Base UI, 017 branching)                   |
-| [`docs/evidence/`](./docs/evidence/)                                                                                                     | Evidências de gates: CI, build warnings, acessibilidade            |
+| Documento                                                                                                                                                                      | Conteúdo                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| [`docs/DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO_V7_SHADCN_BASEUI_SINCRONIZADO_OFICIAL.md`](./docs/DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO_V7_SHADCN_BASEUI_SINCRONIZADO_OFICIAL.md) | **Diretriz primária** consolidada de produto, arquitetura e engenharia (V7) — prevalece em divergências |
+| [`docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md`](./docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md)                                       | Plano mestre validado: evidências, fases F0–F15, prioridades, gates, KPIs (referência detalhada)        |
+| [`docs/ARQUITETURA_CONSOLIDADA_PRECO_QUE_DA_LUCRO.md`](./docs/ARQUITETURA_CONSOLIDADA_PRECO_QUE_DA_LUCRO.md)                                                                   | Arquitetura-alvo: camadas, Financial Engine, IA, memória, ADRs (referência detalhada)                   |
+| [`docs/MAPA_CRUZADO_DIRETRIZ_PLANO_PRECO_QUE_DA_LUCRO.md`](./docs/MAPA_CRUZADO_DIRETRIZ_PLANO_PRECO_QUE_DA_LUCRO.md)                                                           | Cruzamento Diretriz × Plano: rastreabilidade, lacunas e reavaliação sob a V7                            |
+| [`SDD.md`](./SDD.md)                                                                                                                                                           | Especificação técnica normativa (v1.4)                                                                  |
+| [`docs/adr/`](./docs/adr/)                                                                                                                                                     | ADRs aceitos (016 shadcn/Base UI, 017 branching)                                                        |
+| [`docs/evidence/`](./docs/evidence/)                                                                                                                                           | Evidências de gates: CI, build warnings, acessibilidade                                                 |
 
 ## Licença
 
