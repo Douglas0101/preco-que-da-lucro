@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getChatHistory, sendChatMessage, clearChatHistory } from "@/lib/chat.functions";
+import { renderChatMarkdown } from "@/lib/chat-markdown";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -229,16 +230,8 @@ function MessageBubble({ role, content }: { role: "user" | "assistant"; content:
         <Sparkles className="h-4 w-4" />
       </div>
       <div className="max-w-[85%] whitespace-pre-wrap text-sm leading-relaxed">
-        {renderMarkdown(content)}
+        {renderChatMarkdown(content)}
       </div>
     </div>
   );
-}
-
-/** Renderização mínima de markdown: **negrito**, listas e quebras. */
-function renderMarkdown(text: string) {
-  return text.split("\n").map((line, i) => {
-    const bold = line.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-    return <div key={i} dangerouslySetInnerHTML={{ __html: bold }} />;
-  });
 }
