@@ -9,6 +9,8 @@
 **Status:** Planejamento pré-implementação  
 **Objetivo:** elevar segurança, integridade financeira, estabilidade, performance, observabilidade e fluidez da experiência sem introduzir complexidade prematura.
 
+> **Alinhamento (2026-08-09):** este plano foi realinhado à Diretriz V7 (`DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO_V7_SHADCN_BASEUI_SINCRONIZADO_OFICIAL.md`), que prevalece em divergências. Renumeração de fases, P0 canônico, invariantes estendidas e itens adiados constam em `docs/REALINHAMENTO_OPERACIONAL_V7_PLANO.md`.
+
 ---
 
 # 1. Resumo executivo
@@ -243,6 +245,8 @@ https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage
 
 # 3. Princípios não negociáveis
 
+> Alinhado à V7 §25 em 2026-08-09: INV-001..015 equivalem às da V7 (INV-009 prevalece na redação "atômica ou idempotente", com compensação como mecanismo aceitável registrado no realinhamento); INV-016..022 incorporadas da V7 (fronteira do design system).
+
 ```text
 INV-001 Frontend não acessa PostgreSQL diretamente.
 INV-002 Nenhuma server function privada confia apenas em beforeLoad.
@@ -252,18 +256,27 @@ INV-005 Memória de IA não substitui dado financeiro.
 INV-006 Unknown não é zero.
 INV-007 NaN/Infinity não são formatados como zero.
 INV-008 Tenant A jamais referencia entidade de Tenant B.
-INV-009 Toda mutação crítica é transacional ou explicitamente compensável.
+INV-009 Toda mutação crítica é atômica ou idempotente (compensação explícita quando nenhuma for possível).
 INV-010 Runtime usa usuário PostgreSQL de menor privilégio.
 INV-011 Neon é substituível.
 INV-012 Migrations são reproduzíveis.
 INV-013 Erros de DB não são transformados em sucesso vazio.
 INV-014 Toda tool da IA possui validação runtime.
 INV-015 Resultados financeiros relevantes registram versão do motor.
+INV-016 Feature não importa Base UI diretamente.
+INV-017 Feature não importa Radix diretamente.
+INV-018 components/ui é a fronteira oficial do design system.
+INV-019 Composição Base UI preserva refs, props, ARIA e handlers.
+INV-020 Atualização shadcn exige diff review e regressão.
+INV-021 Tokens semânticos prevalecem sobre styling hard-coded.
+INV-022 Primitive provider não contém regra financeira.
 ```
 
 ---
 
 # 4. Macro-roadmap
+
+> A numeração canônica de fases é a da V7 §22.1 (F0–F14). Este plano mantém F0–F15 como especificação expandida; a correspondência está em `docs/REALINHAMENTO_OPERACIONAL_V7_PLANO.md` §2 (F11+F12→F11, F13→F12, F14→F13, F15→F14).
 
 ```text
 F0  Baseline e observabilidade
@@ -2003,21 +2016,25 @@ Se não houver ganho ou problema comprovado, reverter complexidade.
 
 # 36. Prioridades P0
 
+> Lista canônica da V7 §22.2 (17 itens), alinhada em 2026-08-09: o antigo item 7 (yield/tax defaults) foi expandido em 7 e 8; o antigo item 8 (conversão incompatível) virou 9; o antigo item 15 (AI timeout/budget) foi expandido em 16 e 17.
+
 1. XSS;
 2. Result Type financeiro;
 3. unknown ≠ zero;
 4. NaN/Infinity;
 5. volume fictício;
-6. markup arbitrário;
-7. yield/tax defaults;
-8. conversão incompatível;
-9. tool Zod;
-10. error taxonomy;
-11. auth por endpoint;
-12. remover tokens de localStorage;
-13. persistir conversation state;
-14. tool execution audit;
-15. AI timeout/budget.
+6. markup arbitrário (`custo × 1,5`);
+7. rendimento default;
+8. imposto default;
+9. validar unidades (conversão incompatível);
+10. tool Zod;
+11. error taxonomy;
+12. auth por endpoint;
+13. sessão server-driven (remover tokens de localStorage);
+14. persistir conversation state;
+15. tool execution audit;
+16. timeout da IA;
+17. quota/budget da IA.
 
 ---
 
@@ -2070,6 +2087,14 @@ Não adotar sem evidência:
 - CQRS completo;
 - event sourcing;
 - multi-region write.
+
+Adiamentos de produto (união com a V7 §28, 2026-08-09):
+
+- estoque completo (não essencial ao MVP);
+- fluxo de caixa completo (expansão futura);
+- DRE completa (expansão futura);
+- WhatsApp (integração posterior);
+- marketplace (complexidade prematura).
 
 ---
 
