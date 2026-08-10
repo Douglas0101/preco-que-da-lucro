@@ -136,7 +136,7 @@ function Produtos() {
                     <div className="font-bold truncate">{r.name}</div>
                     <div className="text-sm text-muted-foreground">
                       Custo: {r.unitCost == null ? "—" : brl(r.unitCost)} · Preço:{" "}
-                      {r.current_price ? brl(Number(r.current_price)) : "—"} ·{" "}
+                      {r.current_price == null ? "—" : brl(Number(r.current_price))} ·{" "}
                       <span
                         className={
                           r.cmPct == null

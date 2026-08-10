@@ -96,7 +96,9 @@ export interface IngredientRow {
 export function calculateIngredientCost(row: IngredientRow): number | null {
   // FIN-01: dado de embalagem desconhecido (null) não vira custo zero.
   // Zero conhecido (package_price === 0) permanece válido (V7 §8.3).
+  // Não finito (NaN/Infinity) é inválido (V7 §8.3) — refinado nos lotes 05/10.
   if (row.package_price == null || row.package_qty == null || row.package_unit == null) return null;
+  if (!Number.isFinite(row.package_price) || !Number.isFinite(row.package_qty)) return null;
   if (row.package_qty <= 0) return null;
   const converted = convertUnit(row.used_qty, row.used_unit, row.package_unit);
   // golden (lote 08): conversão incompatível ainda vira custo zero.
@@ -133,7 +135,7 @@ export function calculateUnitCost(
   packagingCost: number,
 ): number | null {
   // FIN-02: rendimento desconhecido/não positivo não vira 1 nem zera o custo.
-  if (yieldQty <= 0) return null;
+  if (!Number.isFinite(yieldQty) || yieldQty <= 0) return null;
   return recipeCost / yieldQty + packagingCost;
 }
 
@@ -147,10 +149,10 @@ export function calculateVariableCost(
   fees: FeeRow[],
 ): number | null {
   // FIN-03: alíquota/taxa desconhecida não vira 0%.
-  if (taxRate == null) return null;
+  if (taxRate == null || !Number.isFinite(taxRate)) return null;
   let feesSum = 0;
   for (const f of fees) {
-    if (f.percentage == null) return null;
+    if (f.percentage == null || !Number.isFinite(f.percentage)) return null;
     feesSum += f.percentage;
   }
   return price * ((taxRate + feesSum) / 100);
@@ -221,14 +223,15 @@ function invariant<T>(value: T | null, what: string): T {
 function missingFeeFields(fees: FeeRow[]): MissingField[] {
   const missing: MissingField[] = [];
   fees.forEach((f, i) => {
-    if (f.percentage == null) missing.push({ field: `fees[${i}].percentage` });
+    if (f.percentage == null || !Number.isFinite(f.percentage))
+      missing.push({ field: `fees[${i}].percentage` });
   });
   return missing;
 }
 
 export function calculateScenario(i: ScenarioInput): CalculationResult<ScenarioResult> {
   const missing: MissingField[] = [];
-  if (i.taxRate == null) missing.push({ field: "taxRate" });
+  if (i.taxRate == null || !Number.isFinite(i.taxRate)) missing.push({ field: "taxRate" });
   missing.push(...missingFeeFields(i.fees));
   if (missing.length > 0) return calcIncomplete(missing);
   const variableCost = invariant(calculateVariableCost(i.price, i.taxRate, i.fees), "variableCost");
@@ -273,21 +276,27 @@ export function computeProduct(args: {
   fees: FeeRow[];
 }): CalculationResult<ProductComputation> {
   // FIN-001/002: dado desconhecido não vira zero/um — vira `incomplete`.
+  // Não finito (NaN/Infinity) também é rejeitado aqui (V7 §8.3) — a
+  // distinção incomplete/invalid é refinada na taxonomia do lote 10.
   const missing: MissingField[] = [];
   args.ingredients.forEach((row, i) => {
-    if (row.package_price == null) missing.push({ field: `ingredients[${i}].package_price` });
-    if (row.package_qty == null || row.package_qty <= 0)
+    if (row.package_price == null || !Number.isFinite(row.package_price))
+      missing.push({ field: `ingredients[${i}].package_price` });
+    if (row.package_qty == null || !Number.isFinite(row.package_qty) || row.package_qty <= 0)
       missing.push({
         field: `ingredients[${i}].package_qty`,
-        reason: "conteúdo da embalagem desconhecido ou não positivo",
+        reason: "conteúdo da embalagem desconhecido, inválido ou não positivo",
       });
     if (row.package_unit == null) missing.push({ field: `ingredients[${i}].package_unit` });
   });
   missing.push(...missingFeeFields(args.fees));
-  if (args.yieldQty == null || args.yieldQty <= 0)
-    missing.push({ field: "yieldQty", reason: "rendimento desconhecido ou não positivo" });
-  if (args.price == null) missing.push({ field: "price" });
-  if (args.taxRate == null) missing.push({ field: "taxRate" });
+  if (args.yieldQty == null || !Number.isFinite(args.yieldQty) || args.yieldQty <= 0)
+    missing.push({
+      field: "yieldQty",
+      reason: "rendimento desconhecido, inválido ou não positivo",
+    });
+  if (args.price == null || !Number.isFinite(args.price)) missing.push({ field: "price" });
+  if (args.taxRate == null || !Number.isFinite(args.taxRate)) missing.push({ field: "taxRate" });
   if (missing.length > 0) return calcIncomplete(missing);
 
   // Pós-validação: entradas completas — os cálculos não podem retornar null.

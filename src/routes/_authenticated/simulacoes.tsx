@@ -78,12 +78,13 @@ function Simulacoes() {
         taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
+      // TODO(P0-UX): estado vazio distinto para produto incompleto, listando os campos de missing[].
       if (c.status !== "ok") {
         setBase(null);
         return;
       }
       const feeRows = (fees.data ?? []) as unknown as FeeRow[];
-      const price = Number(p.current_price ?? 0);
+      const price = Number(p.current_price); // pós-guarda ok: current_price é não nulo
       const volume = 100;
       const scen = calculateScenario({
         price,

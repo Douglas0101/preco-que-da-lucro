@@ -216,7 +216,8 @@ export const getProductMetrics = createServerFn({ method: "GET" })
       taxRate: p.data.tax_rate == null ? null : Number(p.data.tax_rate),
       fees: (fees.data ?? []) as unknown as FeeRow[],
     });
-    // Retorna o CalculationResult completo: consumidores recebem missing/warnings.
+    // Retorna o CalculationResult completo, preservando missing/warnings
+    // para os consumidores que o BFF de produto introduzir (lote 17).
     return { product: p.data, metrics };
   });
 

@@ -91,12 +91,13 @@ function Diagnostico() {
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
       // FIN-09: produto incompleto não recebe diagnóstico conclusivo — limpa a análise anterior.
+      // TODO(P0-UX): estado vazio distinto para produto incompleto, listando os campos de missing[].
       if (c.status !== "ok") {
         setAnalysis(null);
         return;
       }
       const m = c.value;
-      const price = Number(p.current_price ?? 0);
+      const price = Number(p.current_price); // pós-guarda ok: current_price é não nulo
       const be = calculateBreakEvenUnits(fixed, m.contributionMargin);
       const suggestedPrice = m.unitCost * 1.5; // sugestão simples: custo × 1,5 como referência
       const alerts: DiagnosticAlert[] = [];

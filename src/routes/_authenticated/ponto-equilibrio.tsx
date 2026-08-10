@@ -76,11 +76,12 @@ function PontoEquilibrio() {
         taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
+      // TODO(P0-UX): estado vazio distinto para produto incompleto, listando os campos de missing[].
       if (c.status !== "ok") {
         setMetrics(null);
         return;
       }
-      setMetrics({ ...c.value, price: Number(p.current_price ?? 0), name: p.name });
+      setMetrics({ ...c.value, price: Number(p.current_price), name: p.name });
     })();
   }, [productId, products]);
 

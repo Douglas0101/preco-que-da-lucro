@@ -395,4 +395,64 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
       }),
     ).toBe(0);
   });
+
+  it("alíquota zero conhecida é válida e zera o custo variável (V7 §8.3)", () => {
+    const result = computeProduct({
+      ingredients: [],
+      packaging: [],
+      yieldQty: 10,
+      price: 10,
+      taxRate: 0,
+      fees: [],
+    });
+    expect(unwrap(result).variableCost).toBe(0);
+  });
+
+  it("produto com todos os campos desconhecidos agrega todos os missing", () => {
+    const result = computeProduct({
+      ingredients: [
+        {
+          used_qty: 1,
+          used_unit: "g",
+          package_price: null,
+          package_qty: null,
+          package_unit: null,
+        },
+      ],
+      packaging: [],
+      yieldQty: null,
+      price: null,
+      taxRate: null,
+      fees: [{ percentage: null }],
+    });
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toEqual(
+        expect.arrayContaining([
+          "ingredients[0].package_price",
+          "ingredients[0].package_qty",
+          "ingredients[0].package_unit",
+          "fees[0].percentage",
+          "yieldQty",
+          "price",
+          "taxRate",
+        ]),
+      );
+    }
+  });
+
+  it("entrada não finita (NaN) é inválida, não zero: produto fica incompleto", () => {
+    const result = computeProduct({
+      ingredients: [],
+      packaging: [],
+      yieldQty: Number("abc"),
+      price: 10,
+      taxRate: 10,
+      fees: [],
+    });
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toContain("yieldQty");
+    }
+  });
 });
