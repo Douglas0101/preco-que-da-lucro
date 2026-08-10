@@ -76,7 +76,8 @@ function PontoEquilibrio() {
         taxRate: Number(p.tax_rate ?? 0),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      setMetrics({ ...c, price: Number(p.current_price ?? 0), name: p.name });
+      if (c.status !== "ok") return;
+      setMetrics({ ...c.value, price: Number(p.current_price ?? 0), name: p.name });
     })();
   }, [productId, products]);
 

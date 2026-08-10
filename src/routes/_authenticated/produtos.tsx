@@ -63,12 +63,13 @@ function Produtos() {
         taxRate: Number(p.tax_rate ?? 0),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
+      if (c.status !== "ok") continue;
       enriched.push({
         id: p.id,
         name: p.name,
         current_price: p.current_price,
-        unitCost: c.unitCost,
-        cmPct: c.contributionMarginPct,
+        unitCost: c.value.unitCost,
+        cmPct: c.value.contributionMarginPct,
       });
     }
     setRows(enriched);

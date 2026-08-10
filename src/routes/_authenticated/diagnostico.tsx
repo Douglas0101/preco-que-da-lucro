@@ -90,19 +90,21 @@ function Diagnostico() {
         taxRate: Number(p.tax_rate ?? 0),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
+      if (c.status !== "ok") return;
+      const m = c.value;
       const price = Number(p.current_price ?? 0);
-      const be = calculateBreakEvenUnits(fixed, c.contributionMargin);
-      const suggestedPrice = c.unitCost * 1.5; // sugestão simples: custo × 1,5 como referência
+      const be = calculateBreakEvenUnits(fixed, m.contributionMargin);
+      const suggestedPrice = m.unitCost * 1.5; // sugestão simples: custo × 1,5 como referência
       const alerts: DiagnosticAlert[] = [];
-      if (price > 0 && price < c.unitCost)
+      if (price > 0 && price < m.unitCost)
         alerts.push({
           level: "danger",
           text: "Seu preço de venda está abaixo do custo unitário. Cada venda gera prejuízo — vale investigar.",
         });
-      if (c.contributionMarginPct > 0 && c.contributionMarginPct < 20)
+      if (m.contributionMarginPct > 0 && m.contributionMarginPct < 20)
         alerts.push({
           level: "warn",
-          text: `Margem de contribuição baixa (${pct(c.contributionMarginPct)}). Pode representar risco no médio prazo.`,
+          text: `Margem de contribuição baixa (${pct(m.contributionMarginPct)}). Pode representar risco no médio prazo.`,
         });
       if (fixed > 0 && !Number.isFinite(be))
         alerts.push({
@@ -119,7 +121,7 @@ function Diagnostico() {
           });
         }
       }
-      setAnalysis({ c, price, be, suggestedPrice, market: market.data, alerts });
+      setAnalysis({ c: m, price, be, suggestedPrice, market: market.data, alerts });
     })();
   }, [productId, products, fixed]);
 

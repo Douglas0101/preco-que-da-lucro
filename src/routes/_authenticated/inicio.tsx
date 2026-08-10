@@ -77,17 +77,18 @@ function Inicio() {
           taxRate: Number(p.tax_rate ?? 0),
           fees: (fees.data ?? []) as unknown as FeeRow[],
         });
-        sumCmPct += c.contributionMarginPct;
+        if (c.status !== "ok") continue;
+        sumCmPct += c.value.contributionMarginPct;
         totalRevenue += Number(p.current_price ?? 0);
-        if (!best || c.contributionMarginPct > best.cmPct) {
-          best = { name: p.name, cmPct: c.contributionMarginPct };
+        if (!best || c.value.contributionMarginPct > best.cmPct) {
+          best = { name: p.name, cmPct: c.value.contributionMarginPct };
         }
-        if (p.current_price && Number(p.current_price) < c.unitCost) {
+        if (p.current_price && Number(p.current_price) < c.value.unitCost) {
           alerts.push(`"${p.name}": preço de venda abaixo do custo unitário.`);
         }
-        if (c.contributionMarginPct > 0 && c.contributionMarginPct < 15) {
+        if (c.value.contributionMarginPct > 0 && c.value.contributionMarginPct < 15) {
           alerts.push(
-            `"${p.name}": margem de contribuição baixa (${pct(c.contributionMarginPct)}).`,
+            `"${p.name}": margem de contribuição baixa (${pct(c.value.contributionMarginPct)}).`,
           );
         }
       }

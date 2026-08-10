@@ -12,9 +12,19 @@ import {
   calculateScenario,
   calculateUnitCost,
   calculateVariableCost,
+  calcIncomplete,
+  calcInvalid,
+  calcOk,
   computeProduct,
   convertUnit,
+  type CalculationResult,
 } from "@/lib/finance";
+
+/** Desembrulha um Result esperando `ok` — falha o teste caso contrário. */
+function unwrap<T>(r: CalculationResult<T>): T {
+  if (r.status !== "ok") throw new Error(`expected ok, got ${r.status}`);
+  return r.value;
+}
 
 /**
  * Golden tests (F0-03 — Plano Mestre §5 / V7 Apêndice D, lote 01).
@@ -118,7 +128,7 @@ describe("custo unitário", () => {
       taxRate: 10,
       fees: [],
     });
-    expect(result.unitCost).toBeCloseTo(1.2, 10);
+    expect(unwrap(result).unitCost).toBeCloseTo(1.2, 10);
   });
 
   it("tax null vira 0% em computeProduct", () => {
@@ -131,7 +141,7 @@ describe("custo unitário", () => {
       taxRate: null as unknown as number,
       fees: [],
     });
-    expect(result.variableCost).toBe(0);
+    expect(unwrap(result).variableCost).toBe(0);
   });
 
   it("embalagem com unidades por pacote inválidas é ignorada", () => {
@@ -198,7 +208,7 @@ describe("cenários (exemplo canônico da Diretriz §12)", () => {
   };
 
   it("cenário real: preço R$ 10 gera prejuízo de R$ 1.800", () => {
-    const result = calculateScenario({ ...base, price: 10 });
+    const result = unwrap(calculateScenario({ ...base, price: 10 }));
     expect(result.contributionMargin).toBeCloseTo(6, 10);
     expect(result.contributionMarginPct).toBeCloseTo(60, 10);
     expect(result.breakEvenUnits).toBeCloseTo(1000, 10);
@@ -208,8 +218,56 @@ describe("cenários (exemplo canônico da Diretriz §12)", () => {
   });
 
   it("cenário simulado: preço R$ 11 reduz o prejuízo para R$ 1.100", () => {
-    const result = calculateScenario({ ...base, price: 11 });
+    const result = unwrap(calculateScenario({ ...base, price: 11 }));
     expect(result.contributionMargin).toBeCloseTo(7, 10);
     expect(result.result).toBeCloseTo(-1100, 10);
+  });
+});
+
+describe("contrato CalculationResult (FIN-001 — lote 03)", () => {
+  it("calcOk envelopa o valor com warnings vazios por padrão", () => {
+    expect(calcOk(42)).toEqual({ status: "ok", value: 42, warnings: [] });
+  });
+
+  it("calcOk aceita warnings explícitos", () => {
+    const w = { code: "W_TEST", message: "aviso" };
+    expect(calcOk(1, [w])).toEqual({ status: "ok", value: 1, warnings: [w] });
+  });
+
+  it("calcIncomplete carrega os campos faltantes e warnings vazios por padrão", () => {
+    expect(calcIncomplete([{ field: "yieldQty" }])).toEqual({
+      status: "incomplete",
+      missing: [{ field: "yieldQty" }],
+      warnings: [],
+    });
+  });
+
+  it("calcInvalid carrega os erros", () => {
+    const e = { code: "E_TEST", message: "inválido" };
+    expect(calcInvalid([e])).toEqual({ status: "invalid", errors: [e] });
+  });
+
+  it("computeProduct retorna status ok com warnings vazios para entradas válidas", () => {
+    const r = computeProduct({
+      ingredients: [],
+      packaging: [],
+      yieldQty: 10,
+      price: 10,
+      taxRate: 10,
+      fees: [],
+    });
+    expect(r).toMatchObject({ status: "ok", warnings: [] });
+  });
+
+  it("calculateScenario retorna status ok com warnings vazios para entradas válidas", () => {
+    const r = calculateScenario({
+      price: 10,
+      unitCost: 4,
+      taxRate: 0,
+      fees: [],
+      fixedExpenses: 6000,
+      volume: 700,
+    });
+    expect(r).toMatchObject({ status: "ok", warnings: [] });
   });
 });

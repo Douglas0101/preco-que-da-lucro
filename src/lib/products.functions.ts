@@ -208,7 +208,7 @@ export const getProductMetrics = createServerFn({ method: "GET" })
       context.supabase.from("sales_fees").select("*").eq("product_id", data.id),
     ]);
     if (!p.data) throw new Error("Produto não encontrado");
-    const metrics = computeProduct({
+    const computed = computeProduct({
       ingredients: (ing.data ?? []) as unknown as IngredientRow[],
       packaging: (pack.data ?? []) as unknown as PackagingRow[],
       yieldQty: Number(p.data.yield_qty ?? 1),
@@ -216,6 +216,7 @@ export const getProductMetrics = createServerFn({ method: "GET" })
       taxRate: Number(p.data.tax_rate ?? 0),
       fees: (fees.data ?? []) as unknown as FeeRow[],
     });
+    const metrics = computed.status === "ok" ? computed.value : null;
     return { product: p.data, metrics };
   });
 

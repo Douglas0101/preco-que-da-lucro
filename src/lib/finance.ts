@@ -3,6 +3,49 @@
  * Todos os cálculos do sistema passam por aqui — a IA NUNCA faz contas.
  */
 
+/**
+ * Contrato de resultado do motor (V7 §8.2 / Plano §6.2, FIN-001 — lote 03).
+ * Separa cálculo válido (`ok`), dado incompleto (`incomplete`) e dado
+ * inválido (`invalid`). Neste lote os entry points emitem apenas `ok`;
+ * a detecção de `incomplete`/`invalid` chega nos lotes 04/05/10.
+ */
+export interface CalculationWarning {
+  code: string;
+  message: string;
+  field?: string;
+}
+
+export interface MissingField {
+  field: string;
+  reason?: string;
+}
+
+export interface CalculationError {
+  code: string;
+  message: string;
+  field?: string;
+}
+
+export type CalculationResult<T> =
+  | { status: "ok"; value: T; warnings: CalculationWarning[] }
+  | { status: "incomplete"; missing: MissingField[]; warnings: CalculationWarning[] }
+  | { status: "invalid"; errors: CalculationError[] };
+
+export function calcOk<T>(value: T, warnings: CalculationWarning[] = []): CalculationResult<T> {
+  return { status: "ok", value, warnings };
+}
+
+export function calcIncomplete<T = never>(
+  missing: MissingField[],
+  warnings: CalculationWarning[] = [],
+): CalculationResult<T> {
+  return { status: "incomplete", missing, warnings };
+}
+
+export function calcInvalid<T = never>(errors: CalculationError[]): CalculationResult<T> {
+  return { status: "invalid", errors };
+}
+
 export type Unit =
   | "g"
   | "kg"
@@ -145,7 +188,7 @@ export interface ScenarioResult {
   result: number; // lucro ou prejuízo
 }
 
-export function calculateScenario(i: ScenarioInput): ScenarioResult {
+export function calculateScenario(i: ScenarioInput): CalculationResult<ScenarioResult> {
   const variableCost = calculateVariableCost(i.price, i.taxRate, i.fees);
   const cm = calculateContributionMargin(i.price, i.unitCost, variableCost);
   const cmPct = calculateContributionMarginPct(i.price, cm);
@@ -155,7 +198,7 @@ export function calculateScenario(i: ScenarioInput): ScenarioResult {
   const totalVariable = (i.unitCost + variableCost) * i.volume;
   const totalContribution = cm * i.volume;
   const result = totalContribution - i.fixedExpenses;
-  return {
+  return calcOk({
     price: i.price,
     unitCost: i.unitCost,
     variableCost,
@@ -167,7 +210,7 @@ export function calculateScenario(i: ScenarioInput): ScenarioResult {
     totalVariable,
     totalContribution,
     result,
-  };
+  });
 }
 
 export interface ProductComputation {
@@ -186,19 +229,19 @@ export function computeProduct(args: {
   price: number;
   taxRate: number;
   fees: FeeRow[];
-}): ProductComputation {
+}): CalculationResult<ProductComputation> {
   const recipeCost = calculateRecipeCost(args.ingredients);
   const packagingCost = calculatePackagingCost(args.packaging);
   const unitCost = calculateUnitCost(recipeCost, args.yieldQty || 1, packagingCost);
   const variableCost = calculateVariableCost(args.price || 0, args.taxRate || 0, args.fees);
   const cm = calculateContributionMargin(args.price || 0, unitCost, variableCost);
   const cmPct = calculateContributionMarginPct(args.price || 0, cm);
-  return {
+  return calcOk({
     recipeCost,
     packagingCost,
     unitCost,
     variableCost,
     contributionMargin: cm,
     contributionMarginPct: cmPct,
-  };
+  });
 }

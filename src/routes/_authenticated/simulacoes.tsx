@@ -78,21 +78,29 @@ function Simulacoes() {
         taxRate: Number(p.tax_rate ?? 0),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
+      if (c.status !== "ok") return;
       const feeRows = (fees.data ?? []) as unknown as FeeRow[];
       const price = Number(p.current_price ?? 0);
       const volume = 100;
       const scen = calculateScenario({
         price,
-        unitCost: c.unitCost,
+        unitCost: c.value.unitCost,
         taxRate: Number(p.tax_rate ?? 0),
         fees: feeRows,
         fixedExpenses: fixed,
         volume,
       });
-      setBase({ ...scen, name: p.name, volume, taxRate: Number(p.tax_rate ?? 0), fees: feeRows });
+      if (scen.status !== "ok") return;
+      setBase({
+        ...scen.value,
+        name: p.name,
+        volume,
+        taxRate: Number(p.tax_rate ?? 0),
+        fees: feeRows,
+      });
       setSim({
         price: String(price),
-        unitCost: String(c.unitCost.toFixed(2)),
+        unitCost: String(c.value.unitCost.toFixed(2)),
         fixed: String(fixed),
         volume: String(volume),
       });
@@ -102,7 +110,7 @@ function Simulacoes() {
   const simulated = useMemo(() => {
     if (!base) return null;
     const parse = (v: string) => Number(v.replace(",", ".")) || 0;
-    return calculateScenario({
+    const r = calculateScenario({
       price: parse(sim.price),
       unitCost: parse(sim.unitCost),
       taxRate: base.taxRate,
@@ -110,6 +118,7 @@ function Simulacoes() {
       fixedExpenses: parse(sim.fixed),
       volume: parse(sim.volume),
     });
+    return r.status === "ok" ? r.value : null;
   }, [sim, base]);
 
   return (
