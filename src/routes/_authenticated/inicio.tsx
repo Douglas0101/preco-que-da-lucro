@@ -78,6 +78,8 @@ function Inicio() {
           fees: (fees.data ?? []) as unknown as FeeRow[],
         });
         if (c.status !== "ok") continue;
+        // TODO(lote 04): ao ativar `incomplete`, o denominador de avgCmPct deve
+        // contar apenas produtos com status ok, senão a margem média é subestimada.
         sumCmPct += c.value.contributionMarginPct;
         totalRevenue += Number(p.current_price ?? 0);
         if (!best || c.value.contributionMarginPct > best.cmPct) {

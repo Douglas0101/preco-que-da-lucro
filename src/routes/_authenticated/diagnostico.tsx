@@ -90,7 +90,7 @@ function Diagnostico() {
         taxRate: Number(p.tax_rate ?? 0),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      if (c.status !== "ok") return;
+      if (c.status !== "ok") return; // TODO(lote 04/05): limpar estado anterior (setAnalysis(null)) para não exibir análise stale
       const m = c.value;
       const price = Number(p.current_price ?? 0);
       const be = calculateBreakEvenUnits(fixed, m.contributionMargin);

@@ -63,7 +63,7 @@ function Produtos() {
         taxRate: Number(p.tax_rate ?? 0),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      if (c.status !== "ok") continue;
+      if (c.status !== "ok") continue; // TODO(lote 04): produto incomplete some da lista — decidir UX (ex.: badge "dados incompletos")
       enriched.push({
         id: p.id,
         name: p.name,

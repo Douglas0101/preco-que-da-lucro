@@ -78,6 +78,7 @@ function Simulacoes() {
         taxRate: Number(p.tax_rate ?? 0),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
+      // TODO(lote 04/05): nos ramos não-ok, limpar estado anterior (setBase(null)) para não exibir cenário stale
       if (c.status !== "ok") return;
       const feeRows = (fees.data ?? []) as unknown as FeeRow[];
       const price = Number(p.current_price ?? 0);

@@ -242,6 +242,15 @@ describe("contrato CalculationResult (FIN-001 — lote 03)", () => {
     });
   });
 
+  it("calcIncomplete aceita warnings explícitos", () => {
+    const w = { code: "W_TEST", message: "aviso" };
+    expect(calcIncomplete([{ field: "price" }], [w])).toEqual({
+      status: "incomplete",
+      missing: [{ field: "price" }],
+      warnings: [w],
+    });
+  });
+
   it("calcInvalid carrega os erros", () => {
     const e = { code: "E_TEST", message: "inválido" };
     expect(calcInvalid([e])).toEqual({ status: "invalid", errors: [e] });
