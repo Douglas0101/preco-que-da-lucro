@@ -116,7 +116,10 @@ function Simulacoes() {
 
   const simulated = useMemo(() => {
     if (!base) return null;
-    const parse = (v: string) => Number(v.replace(",", ".")) || 0;
+    const parse = (v: string) => {
+      const normalized = v.trim().replace(",", ".");
+      return normalized === "" ? null : Number(normalized);
+    };
     const r = calculateScenario({
       price: parse(sim.price),
       unitCost: parse(sim.unitCost),

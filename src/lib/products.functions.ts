@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { z } from "zod";
 import { computeProduct, type IngredientRow, type PackagingRow, type FeeRow } from "@/lib/finance";
 
@@ -64,7 +65,11 @@ export const upsertProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((i: unknown) => productInput.parse(i))
   .handler(async ({ data, context }) => {
-    const row = { ...data, user_id: context.userId };
+    // Compatibilidade app-first: inserts preservam ausência mesmo antes da
+    // migration que remove os defaults legados de yield/tax.
+    const row: TablesInsert<"products"> = data.id
+      ? { ...data, user_id: context.userId }
+      : { yield_qty: null, tax_rate: null, ...data, user_id: context.userId };
     const { data: res, error } = await context.supabase
       .from("products")
       .upsert(row, { onConflict: "id" })

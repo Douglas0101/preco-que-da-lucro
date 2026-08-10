@@ -18,6 +18,7 @@ import {
   computeProduct,
   convertUnit,
   type CalculationResult,
+  type ScenarioInput,
 } from "@/lib/finance";
 
 /** Desembrulha um Result esperando `ok` — falha o teste caso contrário. */
@@ -112,6 +113,11 @@ describe("custo unitário", () => {
 
   it("yield zero torna o custo unitário desconhecido (null)", () => {
     expect(calculateUnitCost(12, 0, 0.5)).toBeNull();
+  });
+
+  it("custo unitário propaga custo de receita ou embalagem desconhecido", () => {
+    expect(calculateUnitCost(null, 10, 0.5)).toBeNull();
+    expect(calculateUnitCost(12, 10, null)).toBeNull();
   });
 
   it("yield desconhecido torna o produto incompleto (FIN-02)", () => {
@@ -364,7 +370,8 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
     ).toBeNull();
   });
 
-  it("custo variável com alíquota ou taxa desconhecida retorna null", () => {
+  it("custo variável com preço, alíquota ou taxa desconhecida retorna null", () => {
+    expect(calculateVariableCost(null, 5, [])).toBeNull();
     expect(calculateVariableCost(10, null, [])).toBeNull();
     expect(calculateVariableCost(10, 5, [{ percentage: null }])).toBeNull();
   });
@@ -381,6 +388,41 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
     expect(result.status).toBe("incomplete");
     if (result.status === "incomplete") {
       expect(result.missing.map((m) => m.field)).toContain("taxRate");
+    }
+  });
+
+  it.each(["price", "unitCost", "fixedExpenses", "volume"] as const)(
+    "cenário com %s desconhecido fica incompleto",
+    (field) => {
+      const input: ScenarioInput = {
+        price: 10,
+        unitCost: 4,
+        taxRate: 0,
+        fees: [],
+        fixedExpenses: 6000,
+        volume: 700,
+      };
+      input[field] = null;
+      const result = calculateScenario(input);
+      expect(result.status).toBe("incomplete");
+      if (result.status === "incomplete") {
+        expect(result.missing.map((m) => m.field)).toEqual([field]);
+      }
+    },
+  );
+
+  it("cenário com taxa de venda desconhecida fica incompleto", () => {
+    const result = calculateScenario({
+      price: 10,
+      unitCost: 4,
+      taxRate: 0,
+      fees: [{ percentage: null }],
+      fixedExpenses: 6000,
+      volume: 700,
+    });
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toEqual(["fees[0].percentage"]);
     }
   });
 
@@ -408,6 +450,37 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
     expect(unwrap(result).variableCost).toBe(0);
   });
 
+  it("preço e taxa zero conhecidos permanecem válidos (V7 §8.3)", () => {
+    const result = computeProduct({
+      ingredients: [],
+      packaging: [],
+      yieldQty: 10,
+      price: 0,
+      taxRate: 0,
+      fees: [{ percentage: 0 }],
+    });
+    expect(result.status).toBe("ok");
+    if (result.status === "ok") {
+      expect(result.value.variableCost).toBe(0);
+      expect(result.value.contributionMarginPct).toBe(0);
+    }
+  });
+
+  it("yield zero conhecido não vira um e deixa o produto incompleto", () => {
+    const result = computeProduct({
+      ingredients: [],
+      packaging: [],
+      yieldQty: 0,
+      price: 10,
+      taxRate: 0,
+      fees: [],
+    });
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toEqual(["yieldQty"]);
+    }
+  });
+
   it("produto com todos os campos desconhecidos agrega todos os missing", () => {
     const result = computeProduct({
       ingredients: [
@@ -427,21 +500,19 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
     });
     expect(result.status).toBe("incomplete");
     if (result.status === "incomplete") {
-      expect(result.missing.map((m) => m.field)).toEqual(
-        expect.arrayContaining([
-          "ingredients[0].package_price",
-          "ingredients[0].package_qty",
-          "ingredients[0].package_unit",
-          "fees[0].percentage",
-          "yieldQty",
-          "price",
-          "taxRate",
-        ]),
-      );
+      expect(result.missing.map((m) => m.field)).toEqual([
+        "ingredients[0].package_price",
+        "ingredients[0].package_qty",
+        "ingredients[0].package_unit",
+        "fees[0].percentage",
+        "yieldQty",
+        "price",
+        "taxRate",
+      ]);
     }
   });
 
-  it("entrada não finita (NaN) é inválida, não zero: produto fica incompleto", () => {
+  it("entrada não finita (NaN) falha fechada como incomplete até o Lote 05", () => {
     const result = computeProduct({
       ingredients: [],
       packaging: [],

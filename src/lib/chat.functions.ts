@@ -4,8 +4,6 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
 
-const uuid = z.string().uuid();
-
 interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
@@ -163,7 +161,8 @@ const tools = [
           },
           tax_rate: {
             type: "number",
-            description: "Alíquota em porcentagem (ex: 6 para 6%). Use 0 se não souber.",
+            description:
+              "Alíquota em porcentagem (ex: 6 para 6%). Omita se não souber; use 0 apenas quando a alíquota zero for confirmada.",
           },
         },
         required: ["product_id", "current_price", "tax_regime"],
@@ -247,7 +246,8 @@ async function executeTool(
         const { name } = tool.arguments as { name: string };
         const { data, error } = await supabase
           .from("products")
-          .insert({ user_id: userId, name })
+          // Compatibilidade app-first: não dependa dos defaults legados 1/0.
+          .insert({ user_id: userId, name, yield_qty: null, tax_rate: null })
           .select()
           .single();
         if (error) throw error;
@@ -332,7 +332,7 @@ async function executeTool(
           .update({
             current_price: args.current_price,
             tax_regime: args.tax_regime,
-            tax_rate: args.tax_rate ?? 0,
+            tax_rate: args.tax_rate ?? null,
           })
           .eq("id", args.product_id);
         if (error) throw error;

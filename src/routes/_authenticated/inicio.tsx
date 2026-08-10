@@ -37,8 +37,8 @@ interface Metrics {
   fixedExpenses: number;
   bestProduct: { name: string; cmPct: number } | null;
   totalRevenue: number;
-  breakEvenRevenue: number;
-  avgCmPct: number;
+  breakEvenRevenue: number | null;
+  avgCmPct: number | null;
   alerts: string[];
 }
 
@@ -83,11 +83,11 @@ function Inicio() {
         if (c.status !== "ok") continue;
         okCount += 1;
         sumCmPct += c.value.contributionMarginPct;
-        totalRevenue += Number(p.current_price ?? 0);
+        totalRevenue += Number(p.current_price);
         if (!best || c.value.contributionMarginPct > best.cmPct) {
           best = { name: p.name, cmPct: c.value.contributionMarginPct };
         }
-        if (p.current_price && Number(p.current_price) < c.value.unitCost) {
+        if (Number(p.current_price) < c.value.unitCost) {
           alerts.push(`"${p.name}": preço de venda abaixo do custo unitário.`);
         }
         if (c.value.contributionMarginPct > 0 && c.value.contributionMarginPct < 15) {
@@ -97,9 +97,13 @@ function Inicio() {
         }
       }
 
-      const avgCmPct = okCount > 0 ? sumCmPct / okCount : 0;
+      const avgCmPct = okCount > 0 ? sumCmPct / okCount : null;
       const breakEvenRevenue =
-        avgCmPct > 0 ? calculateBreakEvenRevenue(fixedExpenses, avgCmPct) : 0;
+        avgCmPct == null
+          ? null
+          : avgCmPct > 0
+            ? calculateBreakEvenRevenue(fixedExpenses, avgCmPct)
+            : 0;
 
       setM({
         productCount: products.length,
@@ -147,9 +151,13 @@ function Inicio() {
         <MetricCard
           icon={Scale}
           label="Faturamento p/ equilíbrio"
-          value={brl(m.breakEvenRevenue)}
+          value={m.breakEvenRevenue == null ? "—" : brl(m.breakEvenRevenue)}
         />
-        <MetricCard icon={TrendingUp} label="Margem média" value={pct(m.avgCmPct)} />
+        <MetricCard
+          icon={TrendingUp}
+          label="Margem média"
+          value={m.avgCmPct == null ? "—" : pct(m.avgCmPct)}
+        />
       </div>
 
       {m.bestProduct && (

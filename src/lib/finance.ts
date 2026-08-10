@@ -130,12 +130,19 @@ export function calculatePackagingCost(rows: PackagingRow[]): number {
 }
 
 export function calculateUnitCost(
-  recipeCost: number,
-  yieldQty: number,
-  packagingCost: number,
+  recipeCost: number | null,
+  yieldQty: number | null,
+  packagingCost: number | null,
 ): number | null {
-  // FIN-02: rendimento desconhecido/não positivo não vira 1 nem zera o custo.
-  if (!Number.isFinite(yieldQty) || yieldQty <= 0) return null;
+  // FIN-02: custo/rendimento desconhecido não vira zero/um.
+  if (recipeCost == null || packagingCost == null || yieldQty == null) return null;
+  if (
+    !Number.isFinite(recipeCost) ||
+    !Number.isFinite(packagingCost) ||
+    !Number.isFinite(yieldQty) ||
+    yieldQty <= 0
+  )
+    return null;
   return recipeCost / yieldQty + packagingCost;
 }
 
@@ -144,12 +151,13 @@ export interface FeeRow {
 }
 
 export function calculateVariableCost(
-  price: number,
+  price: number | null,
   taxRate: number | null,
   fees: FeeRow[],
 ): number | null {
-  // FIN-03: alíquota/taxa desconhecida não vira 0%.
-  if (taxRate == null || !Number.isFinite(taxRate)) return null;
+  // FIN-03: preço/alíquota/taxa desconhecidos não viram zero.
+  if (price == null || taxRate == null) return null;
+  if (!Number.isFinite(price) || !Number.isFinite(taxRate)) return null;
   let feesSum = 0;
   for (const f of fees) {
     if (f.percentage == null || !Number.isFinite(f.percentage)) return null;
@@ -191,12 +199,12 @@ export function calculateRequiredSalesForProfit(
 }
 
 export interface ScenarioInput {
-  price: number;
-  unitCost: number;
+  price: number | null;
+  unitCost: number | null;
   taxRate: number | null;
   fees: FeeRow[];
-  fixedExpenses: number;
-  volume: number;
+  fixedExpenses: number | null;
+  volume: number | null;
 }
 
 export interface ScenarioResult {
@@ -231,21 +239,32 @@ function missingFeeFields(fees: FeeRow[]): MissingField[] {
 
 export function calculateScenario(i: ScenarioInput): CalculationResult<ScenarioResult> {
   const missing: MissingField[] = [];
+  if (i.price == null || !Number.isFinite(i.price)) missing.push({ field: "price" });
+  if (i.unitCost == null || !Number.isFinite(i.unitCost)) missing.push({ field: "unitCost" });
   if (i.taxRate == null || !Number.isFinite(i.taxRate)) missing.push({ field: "taxRate" });
   missing.push(...missingFeeFields(i.fees));
+  if (i.fixedExpenses == null || !Number.isFinite(i.fixedExpenses))
+    missing.push({ field: "fixedExpenses" });
+  if (i.volume == null || !Number.isFinite(i.volume)) missing.push({ field: "volume" });
   if (missing.length > 0) return calcIncomplete(missing);
-  const variableCost = invariant(calculateVariableCost(i.price, i.taxRate, i.fees), "variableCost");
-  const cm = calculateContributionMargin(i.price, i.unitCost, variableCost);
-  const cmPct = calculateContributionMarginPct(i.price, cm);
-  const beU = calculateBreakEvenUnits(i.fixedExpenses, cm);
-  const beR = calculateBreakEvenRevenue(i.fixedExpenses, cmPct);
-  const revenue = i.price * i.volume;
-  const totalVariable = (i.unitCost + variableCost) * i.volume;
-  const totalContribution = cm * i.volume;
-  const result = totalContribution - i.fixedExpenses;
+
+  const price = invariant(i.price, "price");
+  const unitCost = invariant(i.unitCost, "unitCost");
+  const taxRate = invariant(i.taxRate, "taxRate");
+  const fixedExpenses = invariant(i.fixedExpenses, "fixedExpenses");
+  const volume = invariant(i.volume, "volume");
+  const variableCost = invariant(calculateVariableCost(price, taxRate, i.fees), "variableCost");
+  const cm = calculateContributionMargin(price, unitCost, variableCost);
+  const cmPct = calculateContributionMarginPct(price, cm);
+  const beU = calculateBreakEvenUnits(fixedExpenses, cm);
+  const beR = calculateBreakEvenRevenue(fixedExpenses, cmPct);
+  const revenue = price * volume;
+  const totalVariable = (unitCost + variableCost) * volume;
+  const totalContribution = cm * volume;
+  const result = totalContribution - fixedExpenses;
   return calcOk({
-    price: i.price,
-    unitCost: i.unitCost,
+    price,
+    unitCost,
     variableCost,
     contributionMargin: cm,
     contributionMarginPct: cmPct,

@@ -101,7 +101,7 @@ function Diagnostico() {
       const be = calculateBreakEvenUnits(fixed, m.contributionMargin);
       const suggestedPrice = m.unitCost * 1.5; // sugestão simples: custo × 1,5 como referência
       const alerts: DiagnosticAlert[] = [];
-      if (price > 0 && price < m.unitCost)
+      if (price < m.unitCost)
         alerts.push({
           level: "danger",
           text: "Seu preço de venda está abaixo do custo unitário. Cada venda gera prejuízo — vale investigar.",
@@ -161,7 +161,7 @@ function Diagnostico() {
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Kpi label="Custo unitário" value={brl(analysis.c.unitCost)} />
-            <Kpi label="Preço atual" value={analysis.price ? brl(analysis.price) : "—"} />
+            <Kpi label="Preço atual" value={brl(analysis.price)} />
             <Kpi label="Preço sugerido (custo × 1,5)" value={brl(analysis.suggestedPrice)} />
             <Kpi
               label="Preço médio mercado"
