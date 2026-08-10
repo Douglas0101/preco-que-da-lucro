@@ -33,3 +33,47 @@ describe("fronteiras de persistência FIN-002", () => {
     expect(source).toContain("{ yield_qty: null, tax_rate: null, ...data");
   });
 });
+
+describe("fronteiras de entrada FIN-003", () => {
+  it("rejeita NaN e Infinity em todos os schemas numéricos do BFF financeiro", () => {
+    for (const path of ["src/lib/products.functions.ts", "src/lib/expenses.functions.ts"]) {
+      const source = projectFile(path);
+      expect(source).not.toMatch(/z\.number\(\)(?!\.finite\(\))/);
+    }
+  });
+
+  it("rejeita texto vazio e números não finitos nos formulários financeiros", () => {
+    const expenses = projectFile("src/routes/_authenticated/despesas.tsx");
+    const prices = projectFile("src/routes/_authenticated/precos.tsx");
+
+    expect(expenses).toContain('rawAmount === ""');
+    expect(expenses).toContain("!Number.isFinite(amount)");
+    expect(prices).toContain("!Number.isFinite(valor)");
+  });
+
+  it("mantém invalid distinto de incomplete nos consumidores financeiros", () => {
+    for (const path of [
+      "src/routes/_authenticated/diagnostico.tsx",
+      "src/routes/_authenticated/inicio.tsx",
+      "src/routes/_authenticated/ponto-equilibrio.tsx",
+      "src/routes/_authenticated/simulacoes.tsx",
+    ]) {
+      const source = projectFile(path);
+      expect(source).toContain("role=");
+      expect(source).toContain('"alert"');
+      expect(source).toContain("Erro de cálculo");
+    }
+
+    const simulation = projectFile("src/routes/_authenticated/simulacoes.tsx");
+    const diagnostic = projectFile("src/routes/_authenticated/diagnostico.tsx");
+    expect(simulation).toContain('simulated?.status === "invalid"');
+    expect(simulation).toContain("Number.isFinite(value) ? value : Number.NaN");
+    expect(diagnostic).toContain("!Number.isFinite(rawDiff)");
+  });
+
+  it("impõe taxas individuais abaixo de 100% no BFF", () => {
+    const source = projectFile("src/lib/products.functions.ts");
+    expect(source).toContain("tax_rate: z.number().finite().min(0).lt(100)");
+    expect(source).toContain("percentage: z.number().finite().min(0).lt(100)");
+  });
+});

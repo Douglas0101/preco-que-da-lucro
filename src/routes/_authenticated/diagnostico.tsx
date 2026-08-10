@@ -5,6 +5,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import {
   computeProduct,
   calculateBreakEvenUnits,
+  sumFiniteNumbers,
   type IngredientRow,
   type PackagingRow,
   type FeeRow,
@@ -52,6 +53,9 @@ function Diagnostico() {
   const [productId, setProductId] = useState<string>(produto ?? "");
   const [fixed, setFixed] = useState(0);
   const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
+  const [calculationStatus, setCalculationStatus] = useState<
+    "idle" | "incomplete" | "invalid" | "ok"
+  >("idle");
 
   useEffect(() => {
     (async () => {
@@ -60,7 +64,7 @@ function Diagnostico() {
         supabase.from("expenses").select("*").eq("type", "fixa"),
       ]);
       setProducts(p.data ?? []);
-      setFixed((e.data ?? []).reduce((s, x) => s + Number(x.amount), 0));
+      setFixed(sumFiniteNumbers((e.data ?? []).map((expense) => Number(expense.amount))));
       setProductId((current) => current || p.data?.[0]?.id || "");
     })();
   }, []);
@@ -70,6 +74,8 @@ function Diagnostico() {
     (async () => {
       const p = products.find((x) => x.id === productId);
       if (!p) return;
+      setAnalysis(null);
+      setCalculationStatus("idle");
       const [ing, pack, fees, market] = await Promise.all([
         supabase.from("product_ingredients").select("*").eq("product_id", p.id),
         supabase.from("product_packaging").select("*").eq("product_id", p.id),
@@ -90,16 +96,22 @@ function Diagnostico() {
         taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      // FIN-09: produto incompleto não recebe diagnóstico conclusivo — limpa a análise anterior.
-      // TODO(P0-UX): estado vazio distinto para produto incompleto, listando os campos de missing[].
+      // FIN-09: produto incompleto/inválido não recebe diagnóstico conclusivo.
       if (c.status !== "ok") {
         setAnalysis(null);
+        setCalculationStatus(c.status);
         return;
       }
       const m = c.value;
       const price = Number(p.current_price); // pós-guarda ok: current_price é não nulo
       const be = calculateBreakEvenUnits(fixed, m.contributionMargin);
-      const suggestedPrice = m.unitCost * 1.5; // sugestão simples: custo × 1,5 como referência
+      const rawSuggestedPrice = m.unitCost * 1.5; // removido no Lote 07 (FIN-005)
+      const suggestedPrice = Number.isFinite(rawSuggestedPrice) ? rawSuggestedPrice : Number.NaN;
+      if (Number.isNaN(be) || Number.isNaN(suggestedPrice)) {
+        setAnalysis(null);
+        setCalculationStatus("invalid");
+        return;
+      }
       const alerts: DiagnosticAlert[] = [];
       if (price < m.unitCost)
         alerts.push({
@@ -111,14 +123,25 @@ function Diagnostico() {
           level: "warn",
           text: `Margem de contribuição baixa (${pct(m.contributionMarginPct)}). Pode representar risco no médio prazo.`,
         });
-      if (fixed > 0 && !Number.isFinite(be))
+      if (fixed > 0 && be === Number.POSITIVE_INFINITY)
         alerts.push({
           level: "warn",
           text: "Com a margem atual, você nunca cobre as despesas fixas. Pode ser interessante simular preço maior ou custo menor.",
         });
-      const marketAvg = market.data?.avg_price ? Number(market.data.avg_price) : null;
-      if (marketAvg && price > 0) {
-        const diff = ((price - marketAvg) / marketAvg) * 100;
+      const marketAvg = market.data?.avg_price == null ? null : Number(market.data.avg_price);
+      if (marketAvg != null && !Number.isFinite(marketAvg)) {
+        setAnalysis(null);
+        setCalculationStatus("invalid");
+        return;
+      }
+      if (marketAvg != null && marketAvg > 0 && price > 0) {
+        const rawDiff = ((price - marketAvg) / marketAvg) * 100;
+        if (!Number.isFinite(rawDiff)) {
+          setAnalysis(null);
+          setCalculationStatus("invalid");
+          return;
+        }
+        const diff = rawDiff;
         if (Math.abs(diff) > 20) {
           alerts.push({
             level: "info",
@@ -127,6 +150,7 @@ function Diagnostico() {
         }
       }
       setAnalysis({ c: m, price, be, suggestedPrice, market: market.data, alerts });
+      setCalculationStatus("ok");
     })();
   }, [productId, products, fixed]);
 
@@ -157,6 +181,17 @@ function Diagnostico() {
         </CardContent>
       </Card>
 
+      {calculationStatus === "invalid" && (
+        <div role="alert" className="rounded-xl border border-destructive/40 p-4 text-destructive">
+          Erro de cálculo. Revise os valores numéricos deste produto.
+        </div>
+      )}
+      {calculationStatus === "incomplete" && (
+        <div className="rounded-xl border p-4 text-muted-foreground">
+          Dados incompletos. Preencha os campos financeiros do produto para gerar o diagnóstico.
+        </div>
+      )}
+
       {analysis && (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -165,7 +200,9 @@ function Diagnostico() {
             <Kpi label="Preço sugerido (custo × 1,5)" value={brl(analysis.suggestedPrice)} />
             <Kpi
               label="Preço médio mercado"
-              value={analysis.market?.avg_price ? brl(Number(analysis.market.avg_price)) : "—"}
+              value={brl(
+                analysis.market?.avg_price == null ? null : Number(analysis.market.avg_price),
+              )}
             />
           </div>
 
@@ -183,7 +220,9 @@ function Diagnostico() {
               <Line label="Despesas fixas / mês" value={brl(fixed)} />
               <Line
                 label="Ponto de equilíbrio"
-                value={Number.isFinite(analysis.be) ? `${num(analysis.be, 0)} un.` : "—"}
+                value={
+                  Number.isFinite(analysis.be) ? `${num(analysis.be, 0)} un.` : num(analysis.be, 0)
+                }
               />
             </CardContent>
           </Card>

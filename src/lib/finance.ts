@@ -6,9 +6,9 @@
 /**
  * Contrato de resultado do motor (V7 §8.2 / Plano §6.2, FIN-001 — lote 03).
  * Separa cálculo válido (`ok`), dado incompleto (`incomplete`) e dado
- * inválido (`invalid`). Os entry points emitem `ok`/`incomplete` desde o
- * lote 04 (FIN-002, unknown ≠ zero); `invalid` chega com a taxonomia de
- * erros (lote 10).
+ * inválido (`invalid`). O lote 04 introduziu `incomplete` para ausência e o
+ * lote 05 introduziu `invalid` para números inválidos; a taxonomia definitiva
+ * dos códigos de erro permanece no lote 10.
  */
 export interface CalculationWarning {
   code: string;
@@ -47,6 +47,85 @@ export function calcInvalid<T = never>(errors: CalculationError[]): CalculationR
   return { status: "invalid", errors };
 }
 
+interface NumericRules {
+  min?: number;
+  minExclusive?: number;
+  max?: number;
+}
+
+function numericInputError(
+  field: string,
+  value: number,
+  rules: NumericRules = {},
+): CalculationError | null {
+  if (!Number.isFinite(value)) {
+    return {
+      code: "INVALID_NUMBER",
+      message: "Informe um número finito.",
+      field,
+    };
+  }
+  if (
+    (rules.min !== undefined && value < rules.min) ||
+    (rules.minExclusive !== undefined && value <= rules.minExclusive) ||
+    (rules.max !== undefined && value > rules.max)
+  ) {
+    return {
+      code: "INVALID_NUMBER",
+      message: "Valor fora do intervalo permitido.",
+      field,
+    };
+  }
+  return null;
+}
+
+function collectNumericError(
+  errors: CalculationError[],
+  field: string,
+  value: number,
+  rules: NumericRules = {},
+): void {
+  const error = numericInputError(field, value, rules);
+  if (error !== null) errors.push(error);
+}
+
+function collectNullableNumber(
+  missing: MissingField[],
+  errors: CalculationError[],
+  field: string,
+  value: number | null,
+  rules: NumericRules = {},
+): void {
+  if (value == null) {
+    missing.push({ field });
+    return;
+  }
+  collectNumericError(errors, field, value, rules);
+}
+
+function nonFiniteResultError(field: string): CalculationError {
+  return {
+    code: "NON_FINITE_RESULT",
+    message: "O cálculo produziu um resultado não finito.",
+    field,
+  };
+}
+
+function finiteResult(value: number): number {
+  return Number.isFinite(value) ? value : Number.NaN;
+}
+
+/** Soma valores finitos sem deixar overflow ou entrada especial vazar. */
+export function sumFiniteNumbers(values: number[]): number {
+  let sum = 0;
+  for (const value of values) {
+    if (!Number.isFinite(value)) return Number.NaN;
+    sum = finiteResult(sum + value);
+    if (Number.isNaN(sum)) return sum;
+  }
+  return sum;
+}
+
 export type Unit =
   | "g"
   | "kg"
@@ -76,12 +155,13 @@ function normUnit(u: string) {
  * Retorna null quando as unidades não são convertíveis com segurança.
  */
 export function convertUnit(qty: number, from: string, to: string): number | null {
+  if (!Number.isFinite(qty)) return Number.NaN;
   const f = normUnit(from);
   const t = normUnit(to);
   if (f === t) return qty;
-  if (f in MASS && t in MASS) return (qty * MASS[f]) / MASS[t];
-  if (f in VOLUME && t in VOLUME) return (qty * VOLUME[f]) / VOLUME[t];
-  if (f in COUNT && t in COUNT) return (qty * COUNT[f]) / COUNT[t];
+  if (f in MASS && t in MASS) return finiteResult((qty * MASS[f]) / MASS[t]);
+  if (f in VOLUME && t in VOLUME) return finiteResult((qty * VOLUME[f]) / VOLUME[t]);
+  if (f in COUNT && t in COUNT) return finiteResult((qty * COUNT[f]) / COUNT[t]);
   return null;
 }
 
@@ -95,27 +175,39 @@ export interface IngredientRow {
 
 export function calculateIngredientCost(row: IngredientRow): number | null {
   // FIN-01: dado de embalagem desconhecido (null) não vira custo zero.
-  // Zero conhecido (package_price === 0) permanece válido (V7 §8.3).
-  // Não finito (NaN/Infinity) é inválido (V7 §8.3) — refinado nos lotes 05/10.
+  // FIN-003: número inválido propaga NaN até o Result Type, nunca zero.
+  if (numericInputError("used_qty", row.used_qty, { minExclusive: 0 })) return Number.NaN;
+  if (
+    row.package_price != null &&
+    numericInputError("package_price", row.package_price, { min: 0 })
+  )
+    return Number.NaN;
+  if (
+    row.package_qty != null &&
+    numericInputError("package_qty", row.package_qty, { minExclusive: 0 })
+  )
+    return Number.NaN;
   if (row.package_price == null || row.package_qty == null || row.package_unit == null) return null;
-  if (!Number.isFinite(row.package_price) || !Number.isFinite(row.package_qty)) return null;
-  if (row.package_qty <= 0) return null;
   const converted = convertUnit(row.used_qty, row.used_unit, row.package_unit);
   // golden (lote 08): conversão incompatível ainda vira custo zero.
   if (converted === null) return 0;
-  const pricePerBaseUnit = row.package_price / row.package_qty;
-  return converted * pricePerBaseUnit;
+  return finiteResult(converted * (row.package_price / row.package_qty));
 }
 
 export function calculateRecipeCost(rows: IngredientRow[]): number | null {
   // Custo total é desconhecido se qualquer ingrediente for desconhecido.
   let sum = 0;
+  let incomplete = false;
   for (const r of rows) {
     const cost = calculateIngredientCost(r);
-    if (cost === null) return null;
-    sum += cost;
+    if (cost === null) {
+      incomplete = true;
+      continue;
+    }
+    sum = finiteResult(sum + cost);
+    if (Number.isNaN(sum)) return sum;
   }
-  return sum;
+  return incomplete ? null : sum;
 }
 
 export interface PackagingRow {
@@ -123,10 +215,15 @@ export interface PackagingRow {
   units_per_package: number;
 }
 export function calculatePackagingCost(rows: PackagingRow[]): number {
-  return rows.reduce(
-    (s, r) => s + (r.units_per_package > 0 ? r.package_price / r.units_per_package : 0),
-    0,
-  );
+  let sum = 0;
+  for (const row of rows) {
+    if (numericInputError("package_price", row.package_price, { min: 0 })) return Number.NaN;
+    if (numericInputError("units_per_package", row.units_per_package, { minExclusive: 0 }))
+      return Number.NaN;
+    sum = finiteResult(sum + row.package_price / row.units_per_package);
+    if (Number.isNaN(sum)) return sum;
+  }
+  return sum;
 }
 
 export function calculateUnitCost(
@@ -135,19 +232,36 @@ export function calculateUnitCost(
   packagingCost: number | null,
 ): number | null {
   // FIN-02: custo/rendimento desconhecido não vira zero/um.
+  if (recipeCost != null && numericInputError("recipeCost", recipeCost, { min: 0 }))
+    return Number.NaN;
+  if (packagingCost != null && numericInputError("packagingCost", packagingCost, { min: 0 }))
+    return Number.NaN;
+  if (yieldQty != null && numericInputError("yieldQty", yieldQty, { minExclusive: 0 }))
+    return Number.NaN;
   if (recipeCost == null || packagingCost == null || yieldQty == null) return null;
-  if (
-    !Number.isFinite(recipeCost) ||
-    !Number.isFinite(packagingCost) ||
-    !Number.isFinite(yieldQty) ||
-    yieldQty <= 0
-  )
-    return null;
-  return recipeCost / yieldQty + packagingCost;
+  return finiteResult(recipeCost / yieldQty + packagingCost);
 }
 
 export interface FeeRow {
   percentage: number | null;
+}
+
+/** SDD §11.7: imposto + taxas sobre preço bruto deve permanecer abaixo de 100%. */
+function combinedRateError(taxRate: number | null, fees: FeeRow[]): CalculationError | null {
+  let total = 0;
+  for (const value of [taxRate, ...fees.map((fee) => fee.percentage)]) {
+    if (value == null) continue;
+    if (numericInputError("rateOnGrossPrice", value, { min: 0, max: 100 })) return null;
+    total = finiteResult(total + value);
+    if (!Number.isFinite(total) || total >= 100) {
+      return {
+        code: "INVALID_NUMBER",
+        message: "A soma de imposto e taxas deve ser menor que 100%.",
+        field: "rateOnGrossPrice",
+      };
+    }
+  }
+  return null;
 }
 
 export function calculateVariableCost(
@@ -156,14 +270,20 @@ export function calculateVariableCost(
   fees: FeeRow[],
 ): number | null {
   // FIN-03: preço/alíquota/taxa desconhecidos não viram zero.
-  if (price == null || taxRate == null) return null;
-  if (!Number.isFinite(price) || !Number.isFinite(taxRate)) return null;
-  let feesSum = 0;
-  for (const f of fees) {
-    if (f.percentage == null || !Number.isFinite(f.percentage)) return null;
-    feesSum += f.percentage;
+  if (price != null && numericInputError("price", price, { min: 0 })) return Number.NaN;
+  if (taxRate != null && numericInputError("taxRate", taxRate, { min: 0, max: 100 }))
+    return Number.NaN;
+  for (const fee of fees) {
+    if (
+      fee.percentage != null &&
+      numericInputError("percentage", fee.percentage, { min: 0, max: 100 })
+    )
+      return Number.NaN;
   }
-  return price * ((taxRate + feesSum) / 100);
+  if (combinedRateError(taxRate, fees)) return Number.NaN;
+  if (price == null || taxRate == null || fees.some((fee) => fee.percentage == null)) return null;
+  const totalRate = taxRate + fees.reduce((sum, fee) => sum + (fee.percentage as number), 0);
+  return finiteResult(price * (totalRate / 100));
 }
 
 export function calculateContributionMargin(
@@ -171,22 +291,31 @@ export function calculateContributionMargin(
   unitCost: number,
   variableCost: number,
 ): number {
-  return price - unitCost - variableCost;
+  if (numericInputError("price", price, { min: 0 })) return Number.NaN;
+  if (numericInputError("unitCost", unitCost, { min: 0 })) return Number.NaN;
+  if (numericInputError("variableCost", variableCost, { min: 0 })) return Number.NaN;
+  return finiteResult(price - unitCost - variableCost);
 }
 
 export function calculateContributionMarginPct(price: number, contributionMargin: number): number {
-  if (price <= 0) return 0;
-  return (contributionMargin / price) * 100;
+  if (numericInputError("price", price, { min: 0 })) return Number.NaN;
+  if (numericInputError("contributionMargin", contributionMargin)) return Number.NaN;
+  if (price === 0) return 0;
+  return finiteResult((contributionMargin / price) * 100);
 }
 
 export function calculateBreakEvenUnits(fixedExpenses: number, cmUnit: number): number {
+  if (numericInputError("fixedExpenses", fixedExpenses, { min: 0 })) return Number.NaN;
+  if (numericInputError("cmUnit", cmUnit)) return Number.NaN;
   if (cmUnit <= 0) return Infinity;
-  return fixedExpenses / cmUnit;
+  return finiteResult(fixedExpenses / cmUnit);
 }
 
 export function calculateBreakEvenRevenue(fixedExpenses: number, cmPct: number): number {
+  if (numericInputError("fixedExpenses", fixedExpenses, { min: 0 })) return Number.NaN;
+  if (numericInputError("cmPct", cmPct)) return Number.NaN;
   if (cmPct <= 0) return Infinity;
-  return fixedExpenses / (cmPct / 100);
+  return finiteResult(fixedExpenses / (cmPct / 100));
 }
 
 export function calculateRequiredSalesForProfit(
@@ -194,8 +323,11 @@ export function calculateRequiredSalesForProfit(
   desiredProfit: number,
   cmUnit: number,
 ): number {
+  if (numericInputError("fixedExpenses", fixedExpenses, { min: 0 })) return Number.NaN;
+  if (numericInputError("desiredProfit", desiredProfit, { min: 0 })) return Number.NaN;
+  if (numericInputError("cmUnit", cmUnit)) return Number.NaN;
   if (cmUnit <= 0) return Infinity;
-  return (fixedExpenses + desiredProfit) / cmUnit;
+  return finiteResult((fixedExpenses + desiredProfit) / cmUnit);
 }
 
 export interface ScenarioInput {
@@ -221,58 +353,79 @@ export interface ScenarioResult {
   result: number; // lucro ou prejuízo
 }
 
-/** Extrai o valor garantido pela pré-validação — null aqui é bug de invariante. */
-function invariant<T>(value: T | null, what: string): T {
-  if (value === null) throw new Error(`motor financeiro: invariante violada (${what})`);
-  return value;
-}
-
 /** Campos de taxas ausentes, indexados para a UI apontar a origem. */
 function missingFeeFields(fees: FeeRow[]): MissingField[] {
   const missing: MissingField[] = [];
   fees.forEach((f, i) => {
-    if (f.percentage == null || !Number.isFinite(f.percentage))
-      missing.push({ field: `fees[${i}].percentage` });
+    if (f.percentage == null) missing.push({ field: `fees[${i}].percentage` });
   });
   return missing;
 }
 
+function invalidFeeErrors(fees: FeeRow[]): CalculationError[] {
+  const errors: CalculationError[] = [];
+  fees.forEach((fee, i) => {
+    if (fee.percentage != null) {
+      collectNumericError(errors, `fees[${i}].percentage`, fee.percentage, { min: 0, max: 100 });
+    }
+  });
+  return errors;
+}
+
 export function calculateScenario(i: ScenarioInput): CalculationResult<ScenarioResult> {
   const missing: MissingField[] = [];
-  if (i.price == null || !Number.isFinite(i.price)) missing.push({ field: "price" });
-  if (i.unitCost == null || !Number.isFinite(i.unitCost)) missing.push({ field: "unitCost" });
-  if (i.taxRate == null || !Number.isFinite(i.taxRate)) missing.push({ field: "taxRate" });
+  const errors: CalculationError[] = [];
+  collectNullableNumber(missing, errors, "price", i.price, { min: 0 });
+  collectNullableNumber(missing, errors, "unitCost", i.unitCost, { min: 0 });
+  collectNullableNumber(missing, errors, "taxRate", i.taxRate, { min: 0, max: 100 });
   missing.push(...missingFeeFields(i.fees));
-  if (i.fixedExpenses == null || !Number.isFinite(i.fixedExpenses))
-    missing.push({ field: "fixedExpenses" });
-  if (i.volume == null || !Number.isFinite(i.volume)) missing.push({ field: "volume" });
+  errors.push(...invalidFeeErrors(i.fees));
+  const rateError = combinedRateError(i.taxRate, i.fees);
+  if (rateError !== null) errors.push(rateError);
+  collectNullableNumber(missing, errors, "fixedExpenses", i.fixedExpenses, { min: 0 });
+  collectNullableNumber(missing, errors, "volume", i.volume, { min: 0 });
+  if (errors.length > 0) return calcInvalid(errors);
   if (missing.length > 0) return calcIncomplete(missing);
 
-  const price = invariant(i.price, "price");
-  const unitCost = invariant(i.unitCost, "unitCost");
-  const taxRate = invariant(i.taxRate, "taxRate");
-  const fixedExpenses = invariant(i.fixedExpenses, "fixedExpenses");
-  const volume = invariant(i.volume, "volume");
-  const variableCost = invariant(calculateVariableCost(price, taxRate, i.fees), "variableCost");
-  const cm = calculateContributionMargin(price, unitCost, variableCost);
-  const cmPct = calculateContributionMarginPct(price, cm);
-  const beU = calculateBreakEvenUnits(fixedExpenses, cm);
-  const beR = calculateBreakEvenRevenue(fixedExpenses, cmPct);
-  const revenue = price * volume;
-  const totalVariable = (unitCost + variableCost) * volume;
-  const totalContribution = cm * volume;
-  const result = totalContribution - fixedExpenses;
+  const price = i.price as number;
+  const unitCost = i.unitCost as number;
+  const taxRate = i.taxRate as number;
+  const fixedExpenses = i.fixedExpenses as number;
+  const volume = i.volume as number;
+  const variableCost = calculateVariableCost(price, taxRate, i.fees);
+  if (variableCost == null || !Number.isFinite(variableCost))
+    return calcInvalid([nonFiniteResultError("variableCost")]);
+  const contributionMargin = calculateContributionMargin(price, unitCost, variableCost);
+  if (!Number.isFinite(contributionMargin))
+    return calcInvalid([nonFiniteResultError("contributionMargin")]);
+  const contributionMarginPct = calculateContributionMarginPct(price, contributionMargin);
+  if (!Number.isFinite(contributionMarginPct))
+    return calcInvalid([nonFiniteResultError("contributionMarginPct")]);
+  const breakEvenUnits = calculateBreakEvenUnits(fixedExpenses, contributionMargin);
+  if (Number.isNaN(breakEvenUnits)) return calcInvalid([nonFiniteResultError("breakEvenUnits")]);
+  const breakEvenRevenue = calculateBreakEvenRevenue(fixedExpenses, contributionMarginPct);
+  if (Number.isNaN(breakEvenRevenue))
+    return calcInvalid([nonFiniteResultError("breakEvenRevenue")]);
+
+  const finiteOutputs = {
+    revenue: finiteResult(price * volume),
+    totalVariable: finiteResult((unitCost + variableCost) * volume),
+    totalContribution: finiteResult(contributionMargin * volume),
+  };
+  const invalidOutput = Object.entries(finiteOutputs).find(([, value]) => !Number.isFinite(value));
+  if (invalidOutput) return calcInvalid([nonFiniteResultError(invalidOutput[0])]);
+  const result = finiteResult(finiteOutputs.totalContribution - fixedExpenses);
+  if (!Number.isFinite(result)) return calcInvalid([nonFiniteResultError("result")]);
+
   return calcOk({
     price,
     unitCost,
     variableCost,
-    contributionMargin: cm,
-    contributionMarginPct: cmPct,
-    breakEvenUnits: beU,
-    breakEvenRevenue: beR,
-    revenue,
-    totalVariable,
-    totalContribution,
+    contributionMargin,
+    contributionMarginPct,
+    breakEvenUnits,
+    breakEvenRevenue,
+    ...finiteOutputs,
     result,
   });
 }
@@ -294,46 +447,61 @@ export function computeProduct(args: {
   taxRate: number | null;
   fees: FeeRow[];
 }): CalculationResult<ProductComputation> {
-  // FIN-001/002: dado desconhecido não vira zero/um — vira `incomplete`.
-  // Não finito (NaN/Infinity) também é rejeitado aqui (V7 §8.3) — a
-  // distinção incomplete/invalid é refinada na taxonomia do lote 10.
+  // FIN-002/003: ausência vira incomplete; número inválido vira invalid.
   const missing: MissingField[] = [];
+  const errors: CalculationError[] = [];
   args.ingredients.forEach((row, i) => {
-    if (row.package_price == null || !Number.isFinite(row.package_price))
-      missing.push({ field: `ingredients[${i}].package_price` });
-    if (row.package_qty == null || !Number.isFinite(row.package_qty) || row.package_qty <= 0)
-      missing.push({
-        field: `ingredients[${i}].package_qty`,
-        reason: "conteúdo da embalagem desconhecido, inválido ou não positivo",
-      });
+    collectNumericError(errors, `ingredients[${i}].used_qty`, row.used_qty, { minExclusive: 0 });
+    collectNullableNumber(missing, errors, `ingredients[${i}].package_price`, row.package_price, {
+      min: 0,
+    });
+    collectNullableNumber(missing, errors, `ingredients[${i}].package_qty`, row.package_qty, {
+      minExclusive: 0,
+    });
     if (row.package_unit == null) missing.push({ field: `ingredients[${i}].package_unit` });
   });
-  missing.push(...missingFeeFields(args.fees));
-  if (args.yieldQty == null || !Number.isFinite(args.yieldQty) || args.yieldQty <= 0)
-    missing.push({
-      field: "yieldQty",
-      reason: "rendimento desconhecido, inválido ou não positivo",
+  args.packaging.forEach((row, i) => {
+    collectNumericError(errors, `packaging[${i}].package_price`, row.package_price, { min: 0 });
+    collectNumericError(errors, `packaging[${i}].units_per_package`, row.units_per_package, {
+      minExclusive: 0,
     });
-  if (args.price == null || !Number.isFinite(args.price)) missing.push({ field: "price" });
-  if (args.taxRate == null || !Number.isFinite(args.taxRate)) missing.push({ field: "taxRate" });
+  });
+  missing.push(...missingFeeFields(args.fees));
+  errors.push(...invalidFeeErrors(args.fees));
+  const rateError = combinedRateError(args.taxRate, args.fees);
+  if (rateError !== null) errors.push(rateError);
+  collectNullableNumber(missing, errors, "yieldQty", args.yieldQty, { minExclusive: 0 });
+  collectNullableNumber(missing, errors, "price", args.price, { min: 0 });
+  collectNullableNumber(missing, errors, "taxRate", args.taxRate, { min: 0, max: 100 });
+  if (errors.length > 0) return calcInvalid(errors);
   if (missing.length > 0) return calcIncomplete(missing);
 
-  // Pós-validação: entradas completas — os cálculos não podem retornar null.
-  const yieldQty = invariant(args.yieldQty, "yieldQty");
-  const price = invariant(args.price, "price");
-  const taxRate = invariant(args.taxRate, "taxRate");
-  const recipeCost = invariant(calculateRecipeCost(args.ingredients), "recipeCost");
+  const yieldQty = args.yieldQty as number;
+  const price = args.price as number;
+  const taxRate = args.taxRate as number;
+  const recipeCost = calculateRecipeCost(args.ingredients);
+  if (recipeCost == null || !Number.isFinite(recipeCost))
+    return calcInvalid([nonFiniteResultError("recipeCost")]);
   const packagingCost = calculatePackagingCost(args.packaging);
-  const unitCost = invariant(calculateUnitCost(recipeCost, yieldQty, packagingCost), "unitCost");
-  const variableCost = invariant(calculateVariableCost(price, taxRate, args.fees), "variableCost");
-  const cm = calculateContributionMargin(price, unitCost, variableCost);
-  const cmPct = calculateContributionMarginPct(price, cm);
+  if (!Number.isFinite(packagingCost)) return calcInvalid([nonFiniteResultError("packagingCost")]);
+  const unitCost = calculateUnitCost(recipeCost, yieldQty, packagingCost);
+  if (unitCost == null || !Number.isFinite(unitCost))
+    return calcInvalid([nonFiniteResultError("unitCost")]);
+  const variableCost = calculateVariableCost(price, taxRate, args.fees);
+  if (variableCost == null || !Number.isFinite(variableCost))
+    return calcInvalid([nonFiniteResultError("variableCost")]);
+  const contributionMargin = calculateContributionMargin(price, unitCost, variableCost);
+  if (!Number.isFinite(contributionMargin))
+    return calcInvalid([nonFiniteResultError("contributionMargin")]);
+  const contributionMarginPct = calculateContributionMarginPct(price, contributionMargin);
+  if (!Number.isFinite(contributionMarginPct))
+    return calcInvalid([nonFiniteResultError("contributionMarginPct")]);
   return calcOk({
     recipeCost,
     packagingCost,
     unitCost,
     variableCost,
-    contributionMargin: cm,
-    contributionMarginPct: cmPct,
+    contributionMargin,
+    contributionMarginPct,
   });
 }

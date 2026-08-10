@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { sumFiniteNumbers } from "@/lib/finance";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -79,8 +80,9 @@ function Despesas() {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    const amount = Number(form.amount.replace(",", "."));
-    if (!form.name || !Number.isFinite(amount) || amount < 0)
+    const rawAmount = form.amount.replace(",", ".").trim();
+    const amount = Number(rawAmount);
+    if (!form.name.trim() || rawAmount === "" || !Number.isFinite(amount) || amount < 0)
       return toast.error("Preencha nome e valor válido");
     setLoading(true);
     const { data: user } = await supabase.auth.getUser();
@@ -103,10 +105,12 @@ function Despesas() {
     load();
   }
 
-  const fixed = list.filter((e) => e.type === "fixa").reduce((s, e) => s + Number(e.amount), 0);
-  const variable = list
-    .filter((e) => e.type === "variavel")
-    .reduce((s, e) => s + Number(e.amount), 0);
+  const fixed = sumFiniteNumbers(
+    list.filter((expense) => expense.type === "fixa").map((expense) => Number(expense.amount)),
+  );
+  const variable = sumFiniteNumbers(
+    list.filter((expense) => expense.type === "variavel").map((expense) => Number(expense.amount)),
+  );
 
   return (
     <>

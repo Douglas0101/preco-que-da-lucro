@@ -55,11 +55,11 @@ export const getProduct = createServerFn({ method: "GET" })
 const productInput = z.object({
   id: uuid.optional(),
   name: z.string().min(1),
-  current_price: z.number().nullable().optional(),
-  yield_qty: z.number().positive().optional(),
+  current_price: z.number().finite().min(0).nullable().optional(),
+  yield_qty: z.number().finite().positive().optional(),
   yield_unit: z.string().optional(),
   tax_regime: z.string().optional(),
-  tax_rate: z.number().min(0).max(100).optional(),
+  tax_rate: z.number().finite().min(0).lt(100).optional(),
 });
 export const upsertProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -92,10 +92,10 @@ const ingredientInput = z.object({
   id: uuid.optional(),
   product_id: uuid,
   name: z.string().min(1),
-  used_qty: z.number().positive(),
+  used_qty: z.number().finite().positive(),
   used_unit: z.string().min(1),
-  package_price: z.number().nullable().optional(),
-  package_qty: z.number().nullable().optional(),
+  package_price: z.number().finite().min(0).nullable().optional(),
+  package_qty: z.number().finite().positive().nullable().optional(),
   package_unit: z.string().nullable().optional(),
 });
 export const upsertIngredient = createServerFn({ method: "POST" })
@@ -125,8 +125,8 @@ const packagingInput = z.object({
   id: uuid.optional(),
   product_id: uuid,
   name: z.string().min(1),
-  package_price: z.number().min(0),
-  units_per_package: z.number().positive(),
+  package_price: z.number().finite().min(0),
+  units_per_package: z.number().finite().positive(),
 });
 export const upsertPackaging = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -155,7 +155,7 @@ const feeInput = z.object({
   id: uuid.optional(),
   product_id: uuid,
   name: z.string().min(1),
-  percentage: z.number().min(0).max(100),
+  percentage: z.number().finite().min(0).lt(100),
 });
 export const upsertFee = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -182,9 +182,9 @@ export const deleteFee = createServerFn({ method: "POST" })
 
 const marketInput = z.object({
   product_id: uuid,
-  min_price: z.number().nullable().optional(),
-  avg_price: z.number().nullable().optional(),
-  max_price: z.number().nullable().optional(),
+  min_price: z.number().finite().min(0).nullable().optional(),
+  avg_price: z.number().finite().min(0).nullable().optional(),
+  max_price: z.number().finite().min(0).nullable().optional(),
 });
 export const setMarketPrice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -260,7 +260,7 @@ export const updatePurchasePrice = createServerFn({ method: "POST" })
       .object({
         id: uuid,
         kind: z.enum(["ingrediente", "embalagem"]),
-        package_price: z.number().min(0),
+        package_price: z.number().finite().min(0),
       })
       .parse(i),
   )

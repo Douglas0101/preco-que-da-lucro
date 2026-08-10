@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { sumFiniteNumbers } from "@/lib/finance";
 import { z } from "zod";
 
 const uuid = z.string().uuid();
@@ -19,7 +20,7 @@ const expenseInput = z.object({
   id: uuid.optional(),
   name: z.string().min(1),
   category: z.string().optional().nullable(),
-  amount: z.number().min(0),
+  amount: z.number().finite().min(0),
   type: z.enum(["fixa", "variavel"]),
   periodicity: z.string().optional(),
   notes: z.string().optional().nullable(),
@@ -54,12 +55,19 @@ export const getTotals = createServerFn({ method: "GET" })
       context.supabase.from("expenses").select("amount, type"),
       context.supabase.from("products").select("id"),
     ]);
-    const fixed = (expenses.data ?? [])
-      .filter((e) => e.type === "fixa")
-      .reduce((s, e) => s + Number(e.amount || 0), 0);
-    const variable = (expenses.data ?? [])
-      .filter((e) => e.type === "variavel")
-      .reduce((s, e) => s + Number(e.amount || 0), 0);
+    const fixed = sumFiniteNumbers(
+      (expenses.data ?? [])
+        .filter((expense) => expense.type === "fixa")
+        .map((expense) => Number(expense.amount)),
+    );
+    const variable = sumFiniteNumbers(
+      (expenses.data ?? [])
+        .filter((expense) => expense.type === "variavel")
+        .map((expense) => Number(expense.amount)),
+    );
+    if (!Number.isFinite(fixed) || !Number.isFinite(variable)) {
+      throw new Error("Dados numéricos de despesas inválidos");
+    }
     return {
       fixed,
       variable,

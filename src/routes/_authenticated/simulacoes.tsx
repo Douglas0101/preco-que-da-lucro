@@ -5,6 +5,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import {
   calculateScenario,
   computeProduct,
+  sumFiniteNumbers,
   type IngredientRow,
   type PackagingRow,
   type FeeRow,
@@ -45,6 +46,7 @@ function Simulacoes() {
   const [productId, setProductId] = useState<string>("");
   const [fixed, setFixed] = useState(0);
   const [base, setBase] = useState<BaseScenario | null>(null);
+  const [baseStatus, setBaseStatus] = useState<"idle" | "incomplete" | "invalid" | "ok">("idle");
   const [sim, setSim] = useState({ price: "", unitCost: "", fixed: "", volume: "" });
 
   useEffect(() => {
@@ -54,8 +56,7 @@ function Simulacoes() {
         supabase.from("expenses").select("*").eq("type", "fixa"),
       ]);
       setProducts(p.data ?? []);
-      const fx = (e.data ?? []).reduce((s, x) => s + Number(x.amount), 0);
-      setFixed(fx);
+      setFixed(sumFiniteNumbers((e.data ?? []).map((expense) => Number(expense.amount))));
       if ((p.data ?? []).length) setProductId(p.data![0].id);
     })();
   }, []);
@@ -65,6 +66,8 @@ function Simulacoes() {
     (async () => {
       const p = products.find((x) => x.id === productId);
       if (!p) return;
+      setBase(null);
+      setBaseStatus("idle");
       const [ing, pack, fees] = await Promise.all([
         supabase.from("product_ingredients").select("*").eq("product_id", p.id),
         supabase.from("product_packaging").select("*").eq("product_id", p.id),
@@ -78,9 +81,9 @@ function Simulacoes() {
         taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      // TODO(P0-UX): estado vazio distinto para produto incompleto, listando os campos de missing[].
       if (c.status !== "ok") {
         setBase(null);
+        setBaseStatus(c.status);
         return;
       }
       const feeRows = (fees.data ?? []) as unknown as FeeRow[];
@@ -96,8 +99,10 @@ function Simulacoes() {
       });
       if (scen.status !== "ok") {
         setBase(null);
+        setBaseStatus(scen.status);
         return;
       }
+      setBaseStatus("ok");
       setBase({
         ...scen.value,
         name: p.name,
@@ -120,7 +125,7 @@ function Simulacoes() {
       const normalized = v.trim().replace(",", ".");
       return normalized === "" ? null : Number(normalized);
     };
-    const r = calculateScenario({
+    return calculateScenario({
       price: parse(sim.price),
       unitCost: parse(sim.unitCost),
       taxRate: base.taxRate,
@@ -128,8 +133,13 @@ function Simulacoes() {
       fixedExpenses: parse(sim.fixed),
       volume: parse(sim.volume),
     });
-    return r.status === "ok" ? r.value : null;
   }, [sim, base]);
+
+  const difference = useMemo(() => {
+    if (!base || simulated?.status !== "ok") return null;
+    const value = simulated.value.result - base.result;
+    return Number.isFinite(value) ? value : Number.NaN;
+  }, [base, simulated]);
 
   return (
     <div className="space-y-6">
@@ -159,7 +169,16 @@ function Simulacoes() {
       </Card>
 
       {!base ? (
-        <div className="text-muted-foreground">Cadastre um produto para simular.</div>
+        <div
+          role={baseStatus === "invalid" ? "alert" : undefined}
+          className={baseStatus === "invalid" ? "text-destructive" : "text-muted-foreground"}
+        >
+          {baseStatus === "invalid"
+            ? "Erro de cálculo. Revise os valores numéricos do produto."
+            : baseStatus === "incomplete"
+              ? "Dados incompletos. Preencha os campos financeiros do produto para simular."
+              : "Cadastre um produto para simular."}
+        </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[1fr_auto_1fr]">
           <ScenarioCard title="Cenário atual" data={base} />
@@ -195,22 +214,41 @@ function Simulacoes() {
                 value={sim.volume}
                 onChange={(v) => setSim({ ...sim, volume: v })}
               />
-              {simulated && (
+              {simulated?.status === "incomplete" && (
+                <div className="mt-3 rounded-xl border p-4 text-sm text-muted-foreground">
+                  Preencha todos os campos do cenário para calcular.
+                </div>
+              )}
+              {simulated?.status === "invalid" && (
+                <div
+                  role="alert"
+                  className="mt-3 rounded-xl border border-destructive/40 p-4 text-sm text-destructive"
+                >
+                  Erro de cálculo. Revise os valores numéricos da simulação.
+                </div>
+              )}
+              {simulated?.status === "ok" && (
                 <div className="mt-3 space-y-1 rounded-xl bg-secondary p-4 text-sm">
                   <Row
                     label="Margem de contribuição"
-                    value={`${brl(simulated.contributionMargin)} (${pct(simulated.contributionMarginPct)})`}
+                    value={`${brl(simulated.value.contributionMargin)} (${pct(simulated.value.contributionMarginPct)})`}
                   />
-                  <Row label="Faturamento" value={brl(simulated.revenue)} />
+                  <Row label="Faturamento" value={brl(simulated.value.revenue)} />
                   <Row
                     label="Resultado"
-                    value={brl(simulated.result)}
-                    accent={simulated.result >= 0 ? "success" : "destructive"}
+                    value={brl(simulated.value.result)}
+                    accent={simulated.value.result >= 0 ? "success" : "destructive"}
                   />
                   <Row
                     label="Diferença vs. atual"
-                    value={brl(simulated.result - base.result)}
-                    accent={simulated.result - base.result >= 0 ? "success" : "destructive"}
+                    value={brl(difference)}
+                    accent={
+                      difference != null && Number.isFinite(difference)
+                        ? difference >= 0
+                          ? "success"
+                          : "destructive"
+                        : undefined
+                    }
                   />
                 </div>
               )}

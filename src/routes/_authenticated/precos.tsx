@@ -131,7 +131,7 @@ function Precos() {
   async function salvar(item: Item) {
     const raw = (drafts[item.id] ?? "").replace(",", ".").trim();
     const valor = Number(raw);
-    if (raw === "" || Number.isNaN(valor) || valor < 0) {
+    if (raw === "" || !Number.isFinite(valor) || valor < 0) {
       toast.error("Informe um preço válido");
       return;
     }

@@ -7,6 +7,7 @@ import {
   calculateBreakEvenUnits,
   calculateBreakEvenRevenue,
   calculateRequiredSalesForProfit,
+  sumFiniteNumbers,
   type IngredientRow,
   type PackagingRow,
   type FeeRow,
@@ -44,6 +45,9 @@ function PontoEquilibrio() {
   const [metrics, setMetrics] = useState<
     (ProductComputation & { price: number; name: string }) | null
   >(null);
+  const [calculationStatus, setCalculationStatus] = useState<
+    "idle" | "incomplete" | "invalid" | "ok"
+  >("idle");
   const [profitTarget, setProfitTarget] = useState("");
 
   useEffect(() => {
@@ -53,7 +57,7 @@ function PontoEquilibrio() {
         supabase.from("expenses").select("*").eq("type", "fixa"),
       ]);
       setProducts(p.data ?? []);
-      setFixed((e.data ?? []).reduce((s, x) => s + Number(x.amount), 0));
+      setFixed(sumFiniteNumbers((e.data ?? []).map((expense) => Number(expense.amount))));
       if ((p.data ?? []).length) setProductId(p.data![0].id);
     })();
   }, []);
@@ -63,6 +67,8 @@ function PontoEquilibrio() {
     (async () => {
       const p = products.find((x) => x.id === productId);
       if (!p) return;
+      setMetrics(null);
+      setCalculationStatus("idle");
       const [ing, pack, fees] = await Promise.all([
         supabase.from("product_ingredients").select("*").eq("product_id", p.id),
         supabase.from("product_packaging").select("*").eq("product_id", p.id),
@@ -76,12 +82,13 @@ function PontoEquilibrio() {
         taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      // TODO(P0-UX): estado vazio distinto para produto incompleto, listando os campos de missing[].
       if (c.status !== "ok") {
         setMetrics(null);
+        setCalculationStatus(c.status);
         return;
       }
       setMetrics({ ...c.value, price: Number(p.current_price), name: p.name });
+      setCalculationStatus("ok");
     })();
   }, [productId, products]);
 
@@ -94,12 +101,14 @@ function PontoEquilibrio() {
       Number.isFinite(target) && target > 0
         ? calculateRequiredSalesForProfit(fixed, target, metrics.contributionMargin)
         : null;
-    return {
-      units,
-      revenue,
-      targetUnits,
-      targetRevenue: targetUnits ? targetUnits * metrics.price : null,
-    };
+    const rawTargetRevenue = targetUnits == null ? null : targetUnits * metrics.price;
+    const targetRevenue =
+      targetUnits == null || !Number.isFinite(targetUnits)
+        ? targetUnits
+        : Number.isFinite(rawTargetRevenue)
+          ? rawTargetRevenue
+          : Number.NaN;
+    return { units, revenue, targetUnits, targetRevenue };
   }, [metrics, fixed, profitTarget]);
 
   return (
@@ -136,7 +145,16 @@ function PontoEquilibrio() {
       </Card>
 
       {!metrics ? (
-        <div className="text-muted-foreground">Cadastre um produto para calcular.</div>
+        <div
+          role={calculationStatus === "invalid" ? "alert" : undefined}
+          className={calculationStatus === "invalid" ? "text-destructive" : "text-muted-foreground"}
+        >
+          {calculationStatus === "invalid"
+            ? "Erro de cálculo. Revise os valores numéricos do produto."
+            : calculationStatus === "incomplete"
+              ? "Dados incompletos. Preencha os campos financeiros do produto."
+              : "Cadastre um produto para calcular."}
+        </div>
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-3">
@@ -156,16 +174,14 @@ function PontoEquilibrio() {
               <div>
                 <div className="text-xs uppercase text-muted-foreground">Você precisa vender</div>
                 <div className="text-3xl font-black">
-                  {Number.isFinite(be!.units) ? `${num(be!.units, 0)} un.` : "—"}
+                  {Number.isFinite(be!.units) ? `${num(be!.units, 0)} un.` : num(be!.units, 0)}
                 </div>
               </div>
               <div>
                 <div className="text-xs uppercase text-muted-foreground">
                   Faturamento necessário
                 </div>
-                <div className="text-3xl font-black">
-                  {Number.isFinite(be!.revenue) ? brl(be!.revenue) : "—"}
-                </div>
+                <div className="text-3xl font-black">{brl(be!.revenue)}</div>
               </div>
               <p className="md:col-span-2 text-sm text-muted-foreground">
                 Considerando os dados informados, sua empresa precisa atingir esse volume de vendas
@@ -189,12 +205,16 @@ function PontoEquilibrio() {
                   placeholder="Ex: 3000"
                 />
               </div>
-              {be?.targetUnits && (
+              {be?.targetUnits != null && (
                 <div className="rounded-xl bg-secondary p-4">
                   Para obter <strong>{brl(Number(profitTarget.replace(",", ".")))}</strong> de lucro
                   / mês, você precisa vender aproximadamente{" "}
-                  <strong>{num(be.targetUnits, 0)} unidades</strong> (faturamento de{" "}
-                  <strong>{brl(be.targetRevenue!)}</strong>).
+                  <strong>
+                    {Number.isFinite(be.targetUnits)
+                      ? `${num(be.targetUnits, 0)} unidades`
+                      : num(be.targetUnits, 0)}
+                  </strong>{" "}
+                  (faturamento de <strong>{brl(be.targetRevenue)}</strong>).
                 </div>
               )}
             </CardContent>

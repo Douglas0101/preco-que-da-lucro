@@ -63,13 +63,15 @@ function Produtos() {
         taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      // Produto com dados incompletos permanece na lista, sem métricas ("—").
+      // Incomplete permanece "—"; invalid chega ao formatter como NaN e vira
+      // "Erro de cálculo", sem mascarar falha numérica como ausência.
+      const unavailableMetric = c.status === "invalid" ? Number.NaN : null;
       enriched.push({
         id: p.id,
         name: p.name,
         current_price: p.current_price,
-        unitCost: c.status === "ok" ? c.value.unitCost : null,
-        cmPct: c.status === "ok" ? c.value.contributionMarginPct : null,
+        unitCost: c.status === "ok" ? c.value.unitCost : unavailableMetric,
+        cmPct: c.status === "ok" ? c.value.contributionMarginPct : unavailableMetric,
       });
     }
     setRows(enriched);

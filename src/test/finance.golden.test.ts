@@ -17,6 +17,7 @@ import {
   calcOk,
   computeProduct,
   convertUnit,
+  sumFiniteNumbers,
   type CalculationResult,
   type ScenarioInput,
 } from "@/lib/finance";
@@ -35,9 +36,9 @@ function unwrap<T>(r: CalculationResult<T>): T {
  * (Plano §40) que os corrige. Nenhum valor aqui pode ser "corrigido" sem o
  * lote correspondente.
  *
- * Lotes já aplicados: 03 (contrato CalculationResult) e 04 (unknown ≠ zero —
- * o motor aceita `null` nas entradas e sinaliza desconhecido com
- * `null`/`incomplete` em vez de defaults zero/um).
+ * Lotes já aplicados: 03 (contrato CalculationResult), 04 (unknown ≠ zero) e
+ * 05 (número inválido ≠ zero). `null` permanece incomplete; valores numéricos
+ * inválidos e resultados não finitos usam `invalid`.
  */
 
 describe("conversão de unidades", () => {
@@ -111,8 +112,8 @@ describe("custo unitário", () => {
     expect(calculateUnitCost(12, 10, 0.5)).toBeCloseTo(1.7, 10);
   });
 
-  it("yield zero torna o custo unitário desconhecido (null)", () => {
-    expect(calculateUnitCost(12, 0, 0.5)).toBeNull();
+  it("yield zero conhecido torna o custo unitário inválido (NaN)", () => {
+    expect(Number.isNaN(calculateUnitCost(12, 0, 0.5))).toBe(true);
   });
 
   it("custo unitário propaga custo de receita ou embalagem desconhecido", () => {
@@ -152,8 +153,10 @@ describe("custo unitário", () => {
     }
   });
 
-  it("embalagem com unidades por pacote inválidas é ignorada", () => {
-    expect(calculatePackagingCost([{ package_price: 50, units_per_package: 0 }])).toBe(0);
+  it("embalagem com unidades por pacote inválidas produz NaN, nunca custo zero", () => {
+    expect(
+      Number.isNaN(calculatePackagingCost([{ package_price: 50, units_per_package: 0 }])),
+    ).toBe(true);
     expect(calculatePackagingCost([{ package_price: 50, units_per_package: 100 }])).toBeCloseTo(
       0.5,
       10,
@@ -308,23 +311,6 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
     }
   });
 
-  it("conteúdo de embalagem não positivo torna o produto incompleto", () => {
-    const result = computeProduct({
-      ingredients: [
-        { used_qty: 200, used_unit: "g", package_price: 6, package_qty: 0, package_unit: "kg" },
-      ],
-      packaging: [],
-      yieldQty: 10,
-      price: 5,
-      taxRate: 10,
-      fees: [],
-    });
-    expect(result.status).toBe("incomplete");
-    if (result.status === "incomplete") {
-      expect(result.missing.map((m) => m.field)).toContain("ingredients[0].package_qty");
-    }
-  });
-
   it("percentual de taxa desconhecido torna o produto incompleto", () => {
     const result = computeProduct({
       ingredients: [],
@@ -466,21 +452,6 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
     }
   });
 
-  it("yield zero conhecido não vira um e deixa o produto incompleto", () => {
-    const result = computeProduct({
-      ingredients: [],
-      packaging: [],
-      yieldQty: 0,
-      price: 10,
-      taxRate: 0,
-      fees: [],
-    });
-    expect(result.status).toBe("incomplete");
-    if (result.status === "incomplete") {
-      expect(result.missing.map((m) => m.field)).toEqual(["yieldQty"]);
-    }
-  });
-
   it("produto com todos os campos desconhecidos agrega todos os missing", () => {
     const result = computeProduct({
       ingredients: [
@@ -511,19 +482,303 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
       ]);
     }
   });
+});
 
-  it("entrada não finita (NaN) falha fechada como incomplete até o Lote 05", () => {
+describe("política invalid number ≠ zero (FIN-003 — lote 05)", () => {
+  const validScenario = (): ScenarioInput => ({
+    price: 10,
+    unitCost: 4,
+    taxRate: 0,
+    fees: [],
+    fixedExpenses: 6000,
+    volume: 700,
+  });
+
+  type ProductInput = Parameters<typeof computeProduct>[0];
+  const validProduct = (): ProductInput => ({
+    ingredients: [
+      {
+        used_qty: 200,
+        used_unit: "g",
+        package_price: 6,
+        package_qty: 1,
+        package_unit: "kg",
+      },
+    ],
+    packaging: [{ package_price: 50, units_per_package: 100 }],
+    yieldQty: 10,
+    price: 10,
+    taxRate: 0,
+    fees: [{ percentage: 1 }],
+  });
+
+  const nonFiniteFields = ["price", "unitCost", "taxRate", "fixedExpenses", "volume"] as const;
+  const nonFiniteValues = [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
+
+  it.each(
+    nonFiniteFields.flatMap((field) => nonFiniteValues.map((value) => [field, value] as const)),
+  )("cenário com %s=%s retorna invalid", (field, value) => {
+    const input = validScenario();
+    input[field] = value;
+    const result = calculateScenario(input);
+    expect(result.status).toBe("invalid");
+    if (result.status === "invalid") {
+      expect(result.errors).toEqual([expect.objectContaining({ code: "INVALID_NUMBER", field })]);
+    }
+  });
+
+  const productNumericFields: Array<{
+    field: string;
+    set: (input: ProductInput, value: number) => void;
+  }> = [
+    {
+      field: "ingredients[0].used_qty",
+      set: (input, value) => (input.ingredients[0].used_qty = value),
+    },
+    {
+      field: "ingredients[0].package_price",
+      set: (input, value) => (input.ingredients[0].package_price = value),
+    },
+    {
+      field: "ingredients[0].package_qty",
+      set: (input, value) => (input.ingredients[0].package_qty = value),
+    },
+    {
+      field: "packaging[0].package_price",
+      set: (input, value) => (input.packaging[0].package_price = value),
+    },
+    {
+      field: "packaging[0].units_per_package",
+      set: (input, value) => (input.packaging[0].units_per_package = value),
+    },
+    { field: "yieldQty", set: (input, value) => (input.yieldQty = value) },
+    { field: "price", set: (input, value) => (input.price = value) },
+    { field: "taxRate", set: (input, value) => (input.taxRate = value) },
+    {
+      field: "fees[0].percentage",
+      set: (input, value) => (input.fees[0].percentage = value),
+    },
+  ];
+
+  it.each(
+    productNumericFields.flatMap(({ field, set }) =>
+      nonFiniteValues.map((value) => [field, value, set] as const),
+    ),
+  )("produto com %s=%s retorna invalid", (field, value, set) => {
+    const input = validProduct();
+    set(input, value);
+    const result = computeProduct(input);
+    expect(result.status).toBe("invalid");
+    if (result.status === "invalid") {
+      expect(result.errors).toContainEqual(
+        expect.objectContaining({ code: "INVALID_NUMBER", field }),
+      );
+    }
+  });
+
+  it.each([
+    ["price", -1],
+    ["unitCost", -1],
+    ["taxRate", -1],
+    ["taxRate", 101],
+    ["fixedExpenses", -1],
+    ["volume", -1],
+  ] as const)("cenário com %s=%s fora do domínio retorna invalid", (field, value) => {
+    const input = validScenario();
+    input[field] = value;
+    const result = calculateScenario(input);
+    expect(result.status).toBe("invalid");
+    if (result.status === "invalid") {
+      expect(result.errors).toEqual([expect.objectContaining({ code: "INVALID_NUMBER", field })]);
+    }
+  });
+
+  it.each([-1, 101, Number.NaN, Number.POSITIVE_INFINITY])(
+    "taxa de venda inválida (%s) retorna invalid",
+    (percentage) => {
+      const result = calculateScenario({
+        ...validScenario(),
+        fees: [{ percentage }],
+      });
+      expect(result.status).toBe("invalid");
+      if (result.status === "invalid") {
+        expect(result.errors).toEqual([
+          expect.objectContaining({
+            code: "INVALID_NUMBER",
+            field: "fees[0].percentage",
+          }),
+        ]);
+      }
+    },
+  );
+
+  it.each([
+    [100, []],
+    [90, [10]],
+    [80, [10, 10]],
+  ] as const)("imposto %s + taxas %s igual a 100%% retorna invalid", (taxRate, percentages) => {
+    const result = calculateScenario({
+      ...validScenario(),
+      taxRate,
+      fees: percentages.map((percentage) => ({ percentage })),
+    });
+    expect(result).toMatchObject({
+      status: "invalid",
+      errors: [{ code: "INVALID_NUMBER", field: "rateOnGrossPrice" }],
+    });
+  });
+
+  it("subtotal conhecido de 100% prevalece sobre taxa ausente", () => {
+    const result = calculateScenario({
+      ...validScenario(),
+      taxRate: null,
+      fees: [{ percentage: 100 }],
+    });
+    expect(result).toMatchObject({
+      status: "invalid",
+      errors: [{ code: "INVALID_NUMBER", field: "rateOnGrossPrice" }],
+    });
+  });
+
+  it("produto agrega todos os campos numéricos inválidos", () => {
     const result = computeProduct({
+      ingredients: [
+        {
+          used_qty: 0,
+          used_unit: "g",
+          package_price: -1,
+          package_qty: 0,
+          package_unit: "kg",
+        },
+      ],
+      packaging: [{ package_price: Number.NaN, units_per_package: 0 }],
+      yieldQty: 0,
+      price: -1,
+      taxRate: 101,
+      fees: [{ percentage: -1 }],
+    });
+    expect(result.status).toBe("invalid");
+    if (result.status === "invalid") {
+      expect(result.errors.map((error) => error.field)).toEqual([
+        "ingredients[0].used_qty",
+        "ingredients[0].package_price",
+        "ingredients[0].package_qty",
+        "packaging[0].package_price",
+        "packaging[0].units_per_package",
+        "fees[0].percentage",
+        "yieldQty",
+        "price",
+        "taxRate",
+      ]);
+      expect(result.errors.every((error) => error.code === "INVALID_NUMBER")).toBe(true);
+    }
+  });
+
+  it("folhas propagam número inválido como NaN, nunca null ou zero", () => {
+    expect(
+      Number.isNaN(
+        calculateIngredientCost({
+          used_qty: 0,
+          used_unit: "g",
+          package_price: 6,
+          package_qty: 1,
+          package_unit: "kg",
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      Number.isNaN(
+        calculateIngredientCost({
+          used_qty: Number.NaN,
+          used_unit: "g",
+          package_price: null,
+          package_qty: null,
+          package_unit: null,
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      Number.isNaN(
+        calculateRecipeCost([
+          {
+            used_qty: 1,
+            used_unit: "g",
+            package_price: null,
+            package_qty: null,
+            package_unit: null,
+          },
+          {
+            used_qty: 0,
+            used_unit: "g",
+            package_price: 6,
+            package_qty: 1,
+            package_unit: "kg",
+          },
+        ]),
+      ),
+    ).toBe(true);
+    expect(
+      Number.isNaN(calculatePackagingCost([{ package_price: 50, units_per_package: 0 }])),
+    ).toBe(true);
+    expect(Number.isNaN(calculateUnitCost(null, 0, 0.5))).toBe(true);
+    expect(Number.isNaN(calculateVariableCost(null, 100, []))).toBe(true);
+    expect(Number.isNaN(calculateContributionMarginPct(Number.NaN, 5))).toBe(true);
+    expect(Number.isNaN(calculateBreakEvenUnits(Number.POSITIVE_INFINITY, 5))).toBe(true);
+    expect(Number.isNaN(sumFiniteNumbers([1, Number.POSITIVE_INFINITY]))).toBe(true);
+    expect(Number.isNaN(sumFiniteNumbers([Number.MAX_VALUE, Number.MAX_VALUE]))).toBe(true);
+    expect(sumFiniteNumbers([1, 2, 3])).toBe(6);
+  });
+
+  it("overflow de resultado derivado retorna invalid", () => {
+    const product = computeProduct({
       ingredients: [],
-      packaging: [],
-      yieldQty: Number("abc"),
+      packaging: [{ package_price: Number.MAX_VALUE, units_per_package: Number.MIN_VALUE }],
+      yieldQty: 1,
       price: 10,
-      taxRate: 10,
+      taxRate: 0,
       fees: [],
     });
-    expect(result.status).toBe("incomplete");
-    if (result.status === "incomplete") {
-      expect(result.missing.map((m) => m.field)).toContain("yieldQty");
+    expect(product).toMatchObject({
+      status: "invalid",
+      errors: [{ code: "NON_FINITE_RESULT", field: "packagingCost" }],
+    });
+
+    const scenario = calculateScenario({
+      ...validScenario(),
+      price: Number.MAX_VALUE,
+      unitCost: 0,
+      fixedExpenses: 0,
+      volume: 2,
+    });
+    expect(scenario).toMatchObject({
+      status: "invalid",
+      errors: [{ code: "NON_FINITE_RESULT", field: "revenue" }],
+    });
+  });
+
+  it("Infinity semântico de break-even permanece não atingível, não invalid", () => {
+    const result = calculateScenario({
+      ...validScenario(),
+      price: 10,
+      unitCost: 10,
+      fixedExpenses: 6000,
+    });
+    expect(result.status).toBe("ok");
+    if (result.status === "ok") {
+      expect(result.value.breakEvenUnits).toBe(Number.POSITIVE_INFINITY);
+      expect(result.value.breakEvenRevenue).toBe(Number.POSITIVE_INFINITY);
+    }
+  });
+
+  it("invalid prevalece quando a mesma entrada também contém ausência", () => {
+    const result = calculateScenario({
+      ...validScenario(),
+      price: null,
+      unitCost: Number.NaN,
+    });
+    expect(result.status).toBe("invalid");
+    if (result.status === "invalid") {
+      expect(result.errors.map((error) => error.field)).toEqual(["unitCost"]);
     }
   });
 });

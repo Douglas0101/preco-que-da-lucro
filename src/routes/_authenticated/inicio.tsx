@@ -6,8 +6,8 @@ import {
   type IngredientRow,
   type PackagingRow,
   type FeeRow,
-  calculateBreakEvenUnits,
   calculateBreakEvenRevenue,
+  sumFiniteNumbers,
 } from "@/lib/finance";
 import { brl, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +39,7 @@ interface Metrics {
   totalRevenue: number;
   breakEvenRevenue: number | null;
   avgCmPct: number | null;
+  hasInvalidCalculation: boolean;
   alerts: string[];
 }
 
@@ -54,13 +55,16 @@ function Inicio() {
       ]);
       const products = prodRes.data ?? [];
       const expenses = expRes.data ?? [];
-      const fixedExpenses = expenses
-        .filter((expense) => expense.type === "fixa")
-        .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+      const fixedExpenses = sumFiniteNumbers(
+        expenses
+          .filter((expense) => expense.type === "fixa")
+          .map((expense) => Number(expense.amount)),
+      );
 
       let best: { name: string; cmPct: number } | null = null;
       let sumCmPct = 0;
       let okCount = 0;
+      let invalidProductCount = 0;
       let totalRevenue = 0;
       const alerts: string[] = [];
 
@@ -78,12 +82,16 @@ function Inicio() {
           taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
           fees: (fees.data ?? []) as unknown as FeeRow[],
         });
-        // Produtos incompletos não entram nos agregados — e o denominador da
-        // margem média conta apenas produtos com cálculo ok.
-        if (c.status !== "ok") continue;
+        // Produto inválido invalida os KPIs consolidados; produto incompleto
+        // permanece fora do denominador sem ser confundido com erro numérico.
+        if (c.status === "invalid") {
+          invalidProductCount += 1;
+          continue;
+        }
+        if (c.status === "incomplete") continue;
         okCount += 1;
-        sumCmPct += c.value.contributionMarginPct;
-        totalRevenue += Number(p.current_price);
+        sumCmPct = sumFiniteNumbers([sumCmPct, c.value.contributionMarginPct]);
+        totalRevenue = sumFiniteNumbers([totalRevenue, Number(p.current_price)]);
         if (!best || c.value.contributionMarginPct > best.cmPct) {
           best = { name: p.name, cmPct: c.value.contributionMarginPct };
         }
@@ -97,21 +105,23 @@ function Inicio() {
         }
       }
 
-      const avgCmPct = okCount > 0 ? sumCmPct / okCount : null;
+      const hasInvalidCalculation =
+        invalidProductCount > 0 ||
+        !Number.isFinite(fixedExpenses) ||
+        !Number.isFinite(sumCmPct) ||
+        !Number.isFinite(totalRevenue);
+      const avgCmPct = hasInvalidCalculation ? Number.NaN : okCount > 0 ? sumCmPct / okCount : null;
       const breakEvenRevenue =
-        avgCmPct == null
-          ? null
-          : avgCmPct > 0
-            ? calculateBreakEvenRevenue(fixedExpenses, avgCmPct)
-            : 0;
+        avgCmPct == null ? null : calculateBreakEvenRevenue(fixedExpenses, avgCmPct);
 
       setM({
         productCount: products.length,
         fixedExpenses,
-        bestProduct: best,
+        bestProduct: hasInvalidCalculation ? null : best,
         totalRevenue,
         breakEvenRevenue,
         avgCmPct,
+        hasInvalidCalculation,
         alerts,
       });
       setLoading(false);
@@ -145,19 +155,23 @@ function Inicio() {
         <p className="text-muted-foreground">Aqui está o resumo do seu negócio.</p>
       </div>
 
+      {m.hasInvalidCalculation && (
+        <Card role="alert" className="border-destructive/40">
+          <CardContent className="p-4 text-destructive">
+            Erro de cálculo. Revise os valores numéricos dos produtos e despesas.
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard icon={Package} label="Produtos" value={String(m.productCount)} />
         <MetricCard icon={Wallet} label="Despesas fixas / mês" value={brl(m.fixedExpenses)} />
         <MetricCard
           icon={Scale}
           label="Faturamento p/ equilíbrio"
-          value={m.breakEvenRevenue == null ? "—" : brl(m.breakEvenRevenue)}
+          value={brl(m.breakEvenRevenue)}
         />
-        <MetricCard
-          icon={TrendingUp}
-          label="Margem média"
-          value={m.avgCmPct == null ? "—" : pct(m.avgCmPct)}
-        />
+        <MetricCard icon={TrendingUp} label="Margem média" value={pct(m.avgCmPct)} />
       </div>
 
       {m.bestProduct && (
