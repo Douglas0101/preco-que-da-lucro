@@ -60,6 +60,7 @@ function Inicio() {
 
       let best: { name: string; cmPct: number } | null = null;
       let sumCmPct = 0;
+      let okCount = 0;
       let totalRevenue = 0;
       const alerts: string[] = [];
 
@@ -72,14 +73,15 @@ function Inicio() {
         const c = computeProduct({
           ingredients: (ing.data ?? []) as unknown as IngredientRow[],
           packaging: (pack.data ?? []) as unknown as PackagingRow[],
-          yieldQty: Number(p.yield_qty ?? 1),
-          price: Number(p.current_price ?? 0),
-          taxRate: Number(p.tax_rate ?? 0),
+          yieldQty: p.yield_qty == null ? null : Number(p.yield_qty),
+          price: p.current_price == null ? null : Number(p.current_price),
+          taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
           fees: (fees.data ?? []) as unknown as FeeRow[],
         });
+        // Produtos incompletos não entram nos agregados — e o denominador da
+        // margem média conta apenas produtos com cálculo ok.
         if (c.status !== "ok") continue;
-        // TODO(lote 04): ao ativar `incomplete`, o denominador de avgCmPct deve
-        // contar apenas produtos com status ok, senão a margem média é subestimada.
+        okCount += 1;
         sumCmPct += c.value.contributionMarginPct;
         totalRevenue += Number(p.current_price ?? 0);
         if (!best || c.value.contributionMarginPct > best.cmPct) {
@@ -95,7 +97,7 @@ function Inicio() {
         }
       }
 
-      const avgCmPct = products.length > 0 ? sumCmPct / products.length : 0;
+      const avgCmPct = okCount > 0 ? sumCmPct / okCount : 0;
       const breakEvenRevenue =
         avgCmPct > 0 ? calculateBreakEvenRevenue(fixedExpenses, avgCmPct) : 0;
 

@@ -85,12 +85,16 @@ function Diagnostico() {
       const c = computeProduct({
         ingredients: (ing.data ?? []) as unknown as IngredientRow[],
         packaging: (pack.data ?? []) as unknown as PackagingRow[],
-        yieldQty: Number(p.yield_qty ?? 1),
-        price: Number(p.current_price ?? 0),
-        taxRate: Number(p.tax_rate ?? 0),
+        yieldQty: p.yield_qty == null ? null : Number(p.yield_qty),
+        price: p.current_price == null ? null : Number(p.current_price),
+        taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      if (c.status !== "ok") return; // TODO(lote 04/05): limpar estado anterior (setAnalysis(null)) para não exibir análise stale
+      // FIN-09: produto incompleto não recebe diagnóstico conclusivo — limpa a análise anterior.
+      if (c.status !== "ok") {
+        setAnalysis(null);
+        return;
+      }
       const m = c.value;
       const price = Number(p.current_price ?? 0);
       const be = calculateBreakEvenUnits(fixed, m.contributionMargin);

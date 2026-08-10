@@ -32,8 +32,8 @@ interface Row {
   id: string;
   name: string;
   current_price: number | null;
-  unitCost: number;
-  cmPct: number;
+  unitCost: number | null;
+  cmPct: number | null;
 }
 
 function Produtos() {
@@ -58,18 +58,18 @@ function Produtos() {
       const c = computeProduct({
         ingredients: (ing.data ?? []) as unknown as IngredientRow[],
         packaging: (pack.data ?? []) as unknown as PackagingRow[],
-        yieldQty: Number(p.yield_qty ?? 1),
-        price: Number(p.current_price ?? 0),
-        taxRate: Number(p.tax_rate ?? 0),
+        yieldQty: p.yield_qty == null ? null : Number(p.yield_qty),
+        price: p.current_price == null ? null : Number(p.current_price),
+        taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      if (c.status !== "ok") continue; // TODO(lote 04): produto incomplete some da lista — decidir UX (ex.: badge "dados incompletos")
+      // Produto com dados incompletos permanece na lista, sem métricas ("—").
       enriched.push({
         id: p.id,
         name: p.name,
         current_price: p.current_price,
-        unitCost: c.value.unitCost,
-        cmPct: c.value.contributionMarginPct,
+        unitCost: c.status === "ok" ? c.value.unitCost : null,
+        cmPct: c.status === "ok" ? c.value.contributionMarginPct : null,
       });
     }
     setRows(enriched);
@@ -135,18 +135,20 @@ function Produtos() {
                   <div className="min-w-0 flex-1">
                     <div className="font-bold truncate">{r.name}</div>
                     <div className="text-sm text-muted-foreground">
-                      Custo: {brl(r.unitCost)} · Preço:{" "}
+                      Custo: {r.unitCost == null ? "—" : brl(r.unitCost)} · Preço:{" "}
                       {r.current_price ? brl(Number(r.current_price)) : "—"} ·{" "}
                       <span
                         className={
-                          r.cmPct > 30
-                            ? "text-success font-medium"
-                            : r.cmPct > 0
-                              ? ""
-                              : "text-destructive"
+                          r.cmPct == null
+                            ? ""
+                            : r.cmPct > 30
+                              ? "text-success font-medium"
+                              : r.cmPct > 0
+                                ? ""
+                                : "text-destructive"
                         }
                       >
-                        Margem: {pct(r.cmPct)}
+                        Margem: {r.cmPct == null ? "—" : pct(r.cmPct)}
                       </span>
                     </div>
                   </div>

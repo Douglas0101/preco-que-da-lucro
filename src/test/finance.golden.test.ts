@@ -29,14 +29,14 @@ function unwrap<T>(r: CalculationResult<T>): T {
 /**
  * Golden tests (F0-03 — Plano Mestre §5 / V7 Apêndice D, lote 01).
  *
- * Testes de caracterização: assertam o comportamento ATUAL do motor financeiro
- * antes das correções do P0. Comportamentos hoje incorretos são marcados com
- * `golden:` e o lote da sequência determinada (Plano §40) que os corrige.
- * Nenhum valor aqui pode ser "corrigido" sem o lote correspondente.
+ * Testes de caracterização do motor financeiro. Comportamentos ainda
+ * incorretos são marcados com `golden:` e o lote da sequência determinada
+ * (Plano §40) que os corrige. Nenhum valor aqui pode ser "corrigido" sem o
+ * lote correspondente.
  *
- * Os casts `null as unknown as number` são deliberados: injetam o dado
- * desconhecido que o tipo não admite para caracterizar a política atual de
- * unknown/invalid. Não "limpar" esses casts — eles são o objeto do teste.
+ * Lotes já aplicados: 03 (contrato CalculationResult) e 04 (unknown ≠ zero —
+ * o motor aceita `null` nas entradas e sinaliza desconhecido com
+ * `null`/`incomplete` em vez de defaults zero/um).
  */
 
 describe("conversão de unidades", () => {
@@ -65,8 +65,7 @@ describe("custo de ingredientes e receita", () => {
     expect(cost).toBeCloseTo(1.2, 10);
   });
 
-  it("custo faltante: dados incompletos viram zero", () => {
-    // golden: comportamento atual incorreto — unknown vira zero (corrigir no lote 04, Unknown ≠ Zero)
+  it("custo faltante: dados incompletos retornam null (desconhecido ≠ zero)", () => {
     expect(
       calculateIngredientCost({
         used_qty: 200,
@@ -75,7 +74,7 @@ describe("custo de ingredientes e receita", () => {
         package_qty: null,
         package_unit: null,
       }),
-    ).toBe(0);
+    ).toBeNull();
   });
 
   it("unidade incompatível: custo vira zero silenciosamente", () => {
@@ -111,37 +110,40 @@ describe("custo unitário", () => {
     expect(calculateUnitCost(12, 10, 0.5)).toBeCloseTo(1.7, 10);
   });
 
-  it("yield zero zera o custo de ingredientes por unidade", () => {
-    // golden: comportamento atual incorreto — yield zero vira custo zero (corrigir no lote 04, política unknown)
-    expect(calculateUnitCost(12, 0, 0.5)).toBe(0.5);
+  it("yield zero torna o custo unitário desconhecido (null)", () => {
+    expect(calculateUnitCost(12, 0, 0.5)).toBeNull();
   });
 
-  it("yield null vira 1 em computeProduct", () => {
-    // golden: comportamento atual incorreto — yield desconhecido vira 1 (corrigir no lote 04, política unknown)
+  it("yield desconhecido torna o produto incompleto (FIN-02)", () => {
     const result = computeProduct({
       ingredients: [
         { used_qty: 200, used_unit: "g", package_price: 6, package_qty: 1, package_unit: "kg" },
       ],
       packaging: [],
-      yieldQty: null as unknown as number,
+      yieldQty: null,
       price: 5,
       taxRate: 10,
       fees: [],
     });
-    expect(unwrap(result).unitCost).toBeCloseTo(1.2, 10);
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toContain("yieldQty");
+    }
   });
 
-  it("tax null vira 0% em computeProduct", () => {
-    // golden: comportamento atual incorreto — alíquota desconhecida vira zero (corrigir no lote 04/05)
+  it("alíquota desconhecida torna o produto incompleto (FIN-03)", () => {
     const result = computeProduct({
       ingredients: [],
       packaging: [],
       yieldQty: 10,
       price: 10,
-      taxRate: null as unknown as number,
+      taxRate: null,
       fees: [],
     });
-    expect(unwrap(result).variableCost).toBe(0);
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toContain("taxRate");
+    }
   });
 
   it("embalagem com unidades por pacote inválidas é ignorada", () => {
@@ -156,6 +158,7 @@ describe("custo unitário", () => {
 describe("margem de contribuição", () => {
   it("margem negativa quando o preço não cobre custos", () => {
     const variable = calculateVariableCost(5, 10, [{ percentage: 5 }]);
+    if (variable === null) throw new Error("expected number, got null");
     expect(variable).toBeCloseTo(0.75, 10);
     const cm = calculateContributionMargin(5, 6, variable);
     expect(cm).toBeCloseTo(-1.75, 10);
@@ -278,5 +281,118 @@ describe("contrato CalculationResult (FIN-001 — lote 03)", () => {
       volume: 700,
     });
     expect(r).toMatchObject({ status: "ok", warnings: [] });
+  });
+});
+
+describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
+  it("ingrediente sem preço de embalagem torna o produto incompleto (FIN-01)", () => {
+    const result = computeProduct({
+      ingredients: [
+        { used_qty: 200, used_unit: "g", package_price: null, package_qty: 1, package_unit: "kg" },
+      ],
+      packaging: [],
+      yieldQty: 10,
+      price: 5,
+      taxRate: 10,
+      fees: [],
+    });
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toContain("ingredients[0].package_price");
+    }
+  });
+
+  it("conteúdo de embalagem não positivo torna o produto incompleto", () => {
+    const result = computeProduct({
+      ingredients: [
+        { used_qty: 200, used_unit: "g", package_price: 6, package_qty: 0, package_unit: "kg" },
+      ],
+      packaging: [],
+      yieldQty: 10,
+      price: 5,
+      taxRate: 10,
+      fees: [],
+    });
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toContain("ingredients[0].package_qty");
+    }
+  });
+
+  it("percentual de taxa desconhecido torna o produto incompleto", () => {
+    const result = computeProduct({
+      ingredients: [],
+      packaging: [],
+      yieldQty: 10,
+      price: 5,
+      taxRate: 10,
+      fees: [{ percentage: null }],
+    });
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toContain("fees[0].percentage");
+    }
+  });
+
+  it("preço desconhecido torna o produto incompleto", () => {
+    const result = computeProduct({
+      ingredients: [],
+      packaging: [],
+      yieldQty: 10,
+      price: null,
+      taxRate: 10,
+      fees: [],
+    });
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toContain("price");
+    }
+  });
+
+  it("custo da receita propaga null de ingrediente incompleto", () => {
+    expect(
+      calculateRecipeCost([
+        { used_qty: 200, used_unit: "g", package_price: 6, package_qty: 1, package_unit: "kg" },
+        {
+          used_qty: 1,
+          used_unit: "unidade",
+          package_price: null,
+          package_qty: null,
+          package_unit: null,
+        },
+      ]),
+    ).toBeNull();
+  });
+
+  it("custo variável com alíquota ou taxa desconhecida retorna null", () => {
+    expect(calculateVariableCost(10, null, [])).toBeNull();
+    expect(calculateVariableCost(10, 5, [{ percentage: null }])).toBeNull();
+  });
+
+  it("cenário com alíquota desconhecida fica incompleto", () => {
+    const result = calculateScenario({
+      price: 10,
+      unitCost: 4,
+      taxRate: null,
+      fees: [],
+      fixedExpenses: 6000,
+      volume: 700,
+    });
+    expect(result.status).toBe("incomplete");
+    if (result.status === "incomplete") {
+      expect(result.missing.map((m) => m.field)).toContain("taxRate");
+    }
+  });
+
+  it("zero conhecido permanece válido: embalagem de R$ 0 custa R$ 0 (V7 §8.3)", () => {
+    expect(
+      calculateIngredientCost({
+        used_qty: 200,
+        used_unit: "g",
+        package_price: 0,
+        package_qty: 1,
+        package_unit: "kg",
+      }),
+    ).toBe(0);
   });
 });

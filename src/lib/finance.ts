@@ -6,8 +6,9 @@
 /**
  * Contrato de resultado do motor (V7 §8.2 / Plano §6.2, FIN-001 — lote 03).
  * Separa cálculo válido (`ok`), dado incompleto (`incomplete`) e dado
- * inválido (`invalid`). Neste lote os entry points emitem apenas `ok`;
- * a detecção de `incomplete`/`invalid` chega nos lotes 04/05/10.
+ * inválido (`invalid`). Os entry points emitem `ok`/`incomplete` desde o
+ * lote 04 (FIN-002, unknown ≠ zero); `invalid` chega com a taxonomia de
+ * erros (lote 10).
  */
 export interface CalculationWarning {
   code: string;
@@ -92,16 +93,27 @@ export interface IngredientRow {
   package_unit: string | null;
 }
 
-export function calculateIngredientCost(row: IngredientRow): number {
-  if (!row.package_price || !row.package_qty || !row.package_unit) return 0;
+export function calculateIngredientCost(row: IngredientRow): number | null {
+  // FIN-01: dado de embalagem desconhecido (null) não vira custo zero.
+  // Zero conhecido (package_price === 0) permanece válido (V7 §8.3).
+  if (row.package_price == null || row.package_qty == null || row.package_unit == null) return null;
+  if (row.package_qty <= 0) return null;
   const converted = convertUnit(row.used_qty, row.used_unit, row.package_unit);
+  // golden (lote 08): conversão incompatível ainda vira custo zero.
   if (converted === null) return 0;
   const pricePerBaseUnit = row.package_price / row.package_qty;
   return converted * pricePerBaseUnit;
 }
 
-export function calculateRecipeCost(rows: IngredientRow[]): number {
-  return rows.reduce((s, r) => s + calculateIngredientCost(r), 0);
+export function calculateRecipeCost(rows: IngredientRow[]): number | null {
+  // Custo total é desconhecido se qualquer ingrediente for desconhecido.
+  let sum = 0;
+  for (const r of rows) {
+    const cost = calculateIngredientCost(r);
+    if (cost === null) return null;
+    sum += cost;
+  }
+  return sum;
 }
 
 export interface PackagingRow {
@@ -119,17 +131,28 @@ export function calculateUnitCost(
   recipeCost: number,
   yieldQty: number,
   packagingCost: number,
-): number {
-  const perUnitIngredients = yieldQty > 0 ? recipeCost / yieldQty : 0;
-  return perUnitIngredients + packagingCost;
+): number | null {
+  // FIN-02: rendimento desconhecido/não positivo não vira 1 nem zera o custo.
+  if (yieldQty <= 0) return null;
+  return recipeCost / yieldQty + packagingCost;
 }
 
 export interface FeeRow {
-  percentage: number;
+  percentage: number | null;
 }
 
-export function calculateVariableCost(price: number, taxRate: number, fees: FeeRow[]): number {
-  const feesSum = fees.reduce((s, f) => s + (f.percentage || 0), 0);
+export function calculateVariableCost(
+  price: number,
+  taxRate: number | null,
+  fees: FeeRow[],
+): number | null {
+  // FIN-03: alíquota/taxa desconhecida não vira 0%.
+  if (taxRate == null) return null;
+  let feesSum = 0;
+  for (const f of fees) {
+    if (f.percentage == null) return null;
+    feesSum += f.percentage;
+  }
   return price * ((taxRate + feesSum) / 100);
 }
 
@@ -168,7 +191,7 @@ export function calculateRequiredSalesForProfit(
 export interface ScenarioInput {
   price: number;
   unitCost: number;
-  taxRate: number;
+  taxRate: number | null;
   fees: FeeRow[];
   fixedExpenses: number;
   volume: number;
@@ -188,8 +211,27 @@ export interface ScenarioResult {
   result: number; // lucro ou prejuízo
 }
 
+/** Extrai o valor garantido pela pré-validação — null aqui é bug de invariante. */
+function invariant<T>(value: T | null, what: string): T {
+  if (value === null) throw new Error(`motor financeiro: invariante violada (${what})`);
+  return value;
+}
+
+/** Campos de taxas ausentes, indexados para a UI apontar a origem. */
+function missingFeeFields(fees: FeeRow[]): MissingField[] {
+  const missing: MissingField[] = [];
+  fees.forEach((f, i) => {
+    if (f.percentage == null) missing.push({ field: `fees[${i}].percentage` });
+  });
+  return missing;
+}
+
 export function calculateScenario(i: ScenarioInput): CalculationResult<ScenarioResult> {
-  const variableCost = calculateVariableCost(i.price, i.taxRate, i.fees);
+  const missing: MissingField[] = [];
+  if (i.taxRate == null) missing.push({ field: "taxRate" });
+  missing.push(...missingFeeFields(i.fees));
+  if (missing.length > 0) return calcIncomplete(missing);
+  const variableCost = invariant(calculateVariableCost(i.price, i.taxRate, i.fees), "variableCost");
   const cm = calculateContributionMargin(i.price, i.unitCost, variableCost);
   const cmPct = calculateContributionMarginPct(i.price, cm);
   const beU = calculateBreakEvenUnits(i.fixedExpenses, cm);
@@ -225,17 +267,39 @@ export interface ProductComputation {
 export function computeProduct(args: {
   ingredients: IngredientRow[];
   packaging: PackagingRow[];
-  yieldQty: number;
-  price: number;
-  taxRate: number;
+  yieldQty: number | null;
+  price: number | null;
+  taxRate: number | null;
   fees: FeeRow[];
 }): CalculationResult<ProductComputation> {
-  const recipeCost = calculateRecipeCost(args.ingredients);
+  // FIN-001/002: dado desconhecido não vira zero/um — vira `incomplete`.
+  const missing: MissingField[] = [];
+  args.ingredients.forEach((row, i) => {
+    if (row.package_price == null) missing.push({ field: `ingredients[${i}].package_price` });
+    if (row.package_qty == null || row.package_qty <= 0)
+      missing.push({
+        field: `ingredients[${i}].package_qty`,
+        reason: "conteúdo da embalagem desconhecido ou não positivo",
+      });
+    if (row.package_unit == null) missing.push({ field: `ingredients[${i}].package_unit` });
+  });
+  missing.push(...missingFeeFields(args.fees));
+  if (args.yieldQty == null || args.yieldQty <= 0)
+    missing.push({ field: "yieldQty", reason: "rendimento desconhecido ou não positivo" });
+  if (args.price == null) missing.push({ field: "price" });
+  if (args.taxRate == null) missing.push({ field: "taxRate" });
+  if (missing.length > 0) return calcIncomplete(missing);
+
+  // Pós-validação: entradas completas — os cálculos não podem retornar null.
+  const yieldQty = invariant(args.yieldQty, "yieldQty");
+  const price = invariant(args.price, "price");
+  const taxRate = invariant(args.taxRate, "taxRate");
+  const recipeCost = invariant(calculateRecipeCost(args.ingredients), "recipeCost");
   const packagingCost = calculatePackagingCost(args.packaging);
-  const unitCost = calculateUnitCost(recipeCost, args.yieldQty || 1, packagingCost);
-  const variableCost = calculateVariableCost(args.price || 0, args.taxRate || 0, args.fees);
-  const cm = calculateContributionMargin(args.price || 0, unitCost, variableCost);
-  const cmPct = calculateContributionMarginPct(args.price || 0, cm);
+  const unitCost = invariant(calculateUnitCost(recipeCost, yieldQty, packagingCost), "unitCost");
+  const variableCost = invariant(calculateVariableCost(price, taxRate, args.fees), "variableCost");
+  const cm = calculateContributionMargin(price, unitCost, variableCost);
+  const cmPct = calculateContributionMarginPct(price, cm);
   return calcOk({
     recipeCost,
     packagingCost,

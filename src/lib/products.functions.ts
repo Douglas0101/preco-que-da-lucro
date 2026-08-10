@@ -208,15 +208,15 @@ export const getProductMetrics = createServerFn({ method: "GET" })
       context.supabase.from("sales_fees").select("*").eq("product_id", data.id),
     ]);
     if (!p.data) throw new Error("Produto não encontrado");
-    const computed = computeProduct({
+    const metrics = computeProduct({
       ingredients: (ing.data ?? []) as unknown as IngredientRow[],
       packaging: (pack.data ?? []) as unknown as PackagingRow[],
-      yieldQty: Number(p.data.yield_qty ?? 1),
-      price: Number(p.data.current_price ?? 0),
-      taxRate: Number(p.data.tax_rate ?? 0),
+      yieldQty: p.data.yield_qty == null ? null : Number(p.data.yield_qty),
+      price: p.data.current_price == null ? null : Number(p.data.current_price),
+      taxRate: p.data.tax_rate == null ? null : Number(p.data.tax_rate),
       fees: (fees.data ?? []) as unknown as FeeRow[],
     });
-    const metrics = computed.status === "ok" ? computed.value : null;
+    // Retorna o CalculationResult completo: consumidores recebem missing/warnings.
     return { product: p.data, metrics };
   });
 

@@ -71,12 +71,15 @@ function PontoEquilibrio() {
       const c = computeProduct({
         ingredients: (ing.data ?? []) as unknown as IngredientRow[],
         packaging: (pack.data ?? []) as unknown as PackagingRow[],
-        yieldQty: Number(p.yield_qty ?? 1),
-        price: Number(p.current_price ?? 0),
-        taxRate: Number(p.tax_rate ?? 0),
+        yieldQty: p.yield_qty == null ? null : Number(p.yield_qty),
+        price: p.current_price == null ? null : Number(p.current_price),
+        taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      if (c.status !== "ok") return;
+      if (c.status !== "ok") {
+        setMetrics(null);
+        return;
+      }
       setMetrics({ ...c.value, price: Number(p.current_price ?? 0), name: p.name });
     })();
   }, [productId, products]);

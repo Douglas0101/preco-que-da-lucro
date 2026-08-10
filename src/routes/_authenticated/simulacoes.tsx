@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/simulacoes")({
 type BaseScenario = ScenarioResult & {
   name: string;
   volume: number;
-  taxRate: number;
+  taxRate: number | null;
   fees: FeeRow[];
 };
 
@@ -73,30 +73,35 @@ function Simulacoes() {
       const c = computeProduct({
         ingredients: (ing.data ?? []) as unknown as IngredientRow[],
         packaging: (pack.data ?? []) as unknown as PackagingRow[],
-        yieldQty: Number(p.yield_qty ?? 1),
-        price: Number(p.current_price ?? 0),
-        taxRate: Number(p.tax_rate ?? 0),
+        yieldQty: p.yield_qty == null ? null : Number(p.yield_qty),
+        price: p.current_price == null ? null : Number(p.current_price),
+        taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: (fees.data ?? []) as unknown as FeeRow[],
       });
-      // TODO(lote 04/05): nos ramos não-ok, limpar estado anterior (setBase(null)) para não exibir cenário stale
-      if (c.status !== "ok") return;
+      if (c.status !== "ok") {
+        setBase(null);
+        return;
+      }
       const feeRows = (fees.data ?? []) as unknown as FeeRow[];
       const price = Number(p.current_price ?? 0);
       const volume = 100;
       const scen = calculateScenario({
         price,
         unitCost: c.value.unitCost,
-        taxRate: Number(p.tax_rate ?? 0),
+        taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: feeRows,
         fixedExpenses: fixed,
         volume,
       });
-      if (scen.status !== "ok") return;
+      if (scen.status !== "ok") {
+        setBase(null);
+        return;
+      }
       setBase({
         ...scen.value,
         name: p.name,
         volume,
-        taxRate: Number(p.tax_rate ?? 0),
+        taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
         fees: feeRows,
       });
       setSim({
