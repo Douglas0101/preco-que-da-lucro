@@ -6,7 +6,7 @@ import { Sparkles, MessageCircle, Calculator, Scale, ArrowRight } from "lucide-r
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Preço que Dá Lucro — descubra o preço certo do seu produto" },
+      { title: "Preço que Dá Lucro — avalie preços sustentáveis para seu produto" },
       {
         name: "description",
         content:
@@ -67,7 +67,8 @@ function Landing() {
             <Sparkles className="h-3 w-3" /> IA que conversa como um consultor
           </span>
           <h1 className="mt-6 text-4xl font-black leading-tight tracking-tight md:text-6xl">
-            Descubra o <span className="text-primary">preço certo</span> do seu produto conversando.
+            Entenda a <span className="text-primary">faixa de preço</span> do seu produto
+            conversando.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
             Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu
@@ -90,7 +91,7 @@ function Landing() {
             {
               icon: Calculator,
               title: "Cálculos precisos",
-              desc: "Custo, margem de contribuição e preço sugerido calculados pelo sistema.",
+              desc: "Custo, margem de contribuição e preços calculados com premissas explícitas.",
             },
             {
               icon: Scale,

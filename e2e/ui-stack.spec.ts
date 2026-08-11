@@ -98,12 +98,44 @@ async function installAuthenticatedSupabaseContract(
   return accessToken;
 }
 
+function completeFinancialRows(): Record<string, unknown[]> {
+  const productId = "00000000-0000-4000-8000-000000000010";
+  const userId = "00000000-0000-4000-8000-000000000001";
+  const timestamp = new Date().toISOString();
+  return {
+    products: [
+      {
+        id: productId,
+        user_id: userId,
+        name: "Produto de teste",
+        current_price: 20,
+        yield_qty: 10,
+        yield_unit: "unidade",
+        tax_rate: 10,
+        tax_regime: null,
+        notes: null,
+        is_demo: false,
+        created_at: timestamp,
+        updated_at: timestamp,
+      },
+    ],
+    expenses: [
+      { amount: 600, type: "fixa" },
+      { amount: 200, type: "variavel" },
+    ],
+    product_ingredients: [],
+    product_packaging: [{ package_price: 100, units_per_package: 10 }],
+    sales_fees: [{ percentage: 5 }],
+    market_prices: [{ avg_price: 18, created_at: timestamp }],
+  };
+}
+
 test("public UI uses valid composed controls and has no serious a11y violations", async ({
   page,
 }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: /descubra o preço certo/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /entenda a faixa de preço/i })).toBeVisible();
   await expect(page.locator("a button, button a")).toHaveCount(0);
 
   const startLink = page.getByRole("link", { name: /começar agora/i });
@@ -169,33 +201,7 @@ test("authenticated shell keeps responsive navigation and accessible structure",
 test("manual simulation has no fictitious current volume and labels hypothetical results", async ({
   page,
 }) => {
-  const productId = "00000000-0000-4000-8000-000000000010";
-  const userId = "00000000-0000-4000-8000-000000000001";
-  const timestamp = new Date().toISOString();
-  await installAuthenticatedSupabaseContract(page, {
-    rows: {
-      products: [
-        {
-          id: productId,
-          user_id: userId,
-          name: "Produto de teste",
-          current_price: 10,
-          yield_qty: 10,
-          yield_unit: "unidade",
-          tax_rate: 0,
-          tax_regime: null,
-          notes: null,
-          is_demo: false,
-          created_at: timestamp,
-          updated_at: timestamp,
-        },
-      ],
-      expenses: [{ amount: 600, type: "fixa" }],
-      product_ingredients: [],
-      product_packaging: [],
-      sales_fees: [],
-    },
-  });
+  await installAuthenticatedSupabaseContract(page, { rows: completeFinancialRows() });
 
   await page.goto("/simulacoes");
 
@@ -220,7 +226,7 @@ test("manual simulation has no fictitious current volume and labels hypothetical
     page.getByText("Preencha os campos indicados da simulação para calcular."),
   ).toBeVisible();
   await expect(price).toHaveAttribute("aria-describedby", "simulation-field-message");
-  await price.fill("10");
+  await price.fill("20");
   await expect(page.getByText("Faturamento simulado", { exact: true })).toBeVisible();
   await expectNoBlockingAxeViolations(page);
 
@@ -229,6 +235,41 @@ test("manual simulation has no fictitious current volume and labels hypothetical
   await expect(page.getByText("Nenhuma venda real registrada.", { exact: true })).toBeVisible();
   await expect(page.getByText("Faturamento p/ equilíbrio", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Margem média", { exact: true })).toHaveCount(0);
+  await expectNoBlockingAxeViolations(page);
+});
+
+test("diagnostic forms prices only from explicit assumptions", async ({ page }) => {
+  await installAuthenticatedSupabaseContract(page, { rows: completeFinancialRows() });
+
+  await page.goto("/diagnostico");
+
+  await expect(page.getByRole("heading", { name: "Meu Diagnóstico" })).toBeVisible();
+  const variableUnitCost = page.getByLabel("Outros custos variáveis por unidade (R$)");
+  const targetRate = page.getByLabel("Margem de contribuição alvo (%)");
+  await expect(variableUnitCost).toHaveValue("");
+  await expect(targetRate).toHaveValue("");
+  await expect(page.getByText(/valores ausentes não são tratados como zero/i)).toBeVisible();
+  await expect(page.getByText(/despesas variáveis periódicas cadastradas/i)).toBeVisible();
+  await expect(page.getByText(/preço sugerido/i)).toHaveCount(0);
+
+  await variableUnitCost.fill("2");
+  await targetRate.fill("20");
+
+  const minimumCard = page
+    .getByText("Preço mínimo para custos unitários", { exact: true })
+    .locator("..");
+  const targetCard = page.getByText("Preço para margem-alvo", { exact: true }).locator("..");
+  const marketCard = page
+    .getByText("Preço médio de mercado informado", { exact: true })
+    .locator("..");
+  await expect(minimumCard).toContainText("14,12");
+  await expect(targetCard).toContainText("18,46");
+  await expect(marketCard).toContainText("18,00");
+
+  await targetRate.fill("90");
+  await expect(targetRate).toHaveAttribute("aria-invalid", "true");
+  await expect(page.getByRole("alert")).toContainText("Revise os custos, as taxas e a margem alvo");
+  await targetRate.fill("20");
   await expectNoBlockingAxeViolations(page);
 });
 
@@ -251,6 +292,13 @@ test("financial query failure is not rendered as empty or zero data", async ({ p
   );
   await expect(page.getByRole("heading", { name: "Bem-vindo!" })).toHaveCount(0);
   await expect(page.getByText(/^Referência de atendimento: DASH-/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Tentar novamente" })).toBeVisible();
+  await expectNoBlockingAxeViolations(page);
+
+  await page.goto("/diagnostico");
+  await expect(page.getByRole("alert")).toContainText(
+    "Não foi possível carregar os dados do diagnóstico",
+  );
   await expect(page.getByRole("button", { name: "Tentar novamente" })).toBeVisible();
   await expectNoBlockingAxeViolations(page);
 });

@@ -7,6 +7,7 @@ import {
   calculateContributionMarginPct,
   calculateIngredientCost,
   calculatePackagingCost,
+  calculatePriceFormation,
   isFactualVolumeSource,
   calculateRecipeCost,
   calculateRequiredSalesForProfit,
@@ -17,9 +18,11 @@ import {
   calcInvalid,
   calcOk,
   computeProduct,
+  computeProductCost,
   convertUnit,
   sumFiniteNumbers,
   type CalculationResult,
+  type PriceFormationInput,
   type ScenarioInput,
   type VolumeSource,
 } from "@/lib/finance";
@@ -39,9 +42,9 @@ function unwrap<T>(r: CalculationResult<T>): T {
  * lote correspondente.
  *
  * Lotes já aplicados: 03 (contrato CalculationResult), 04 (unknown ≠ zero),
- * 05 (número inválido ≠ zero) e 06 (origem explícita do volume). `null`
- * permanece incomplete; valores numéricos inválidos e resultados não finitos
- * usam `invalid`.
+ * 05 (número inválido ≠ zero), 06 (origem explícita do volume) e 07
+ * (formação explícita de preço). `null` permanece incomplete; valores
+ * numéricos inválidos e resultados não finitos usam `invalid`.
  */
 
 describe("conversão de unidades", () => {
@@ -310,6 +313,162 @@ describe("proveniência do volume (FIN-004 — lote 06)", () => {
       expect(result.value.revenue).toBe(0);
       expect(result.value.result).toBe(-6000);
     }
+  });
+});
+
+describe("formação explícita de preço (FIN-005 — lote 07)", () => {
+  const input = (overrides: Partial<PriceFormationInput> = {}): PriceFormationInput => ({
+    directUnitCost: 10,
+    nonPercentageVariableUnitCost: 2,
+    taxRate: 10,
+    fees: [{ percentage: 5 }],
+    targetContributionRate: 20,
+    marketReference: 22,
+    ...overrides,
+  });
+
+  it("calcula mínimo e preço para margem-alvo pelo Modelo A do SDD", () => {
+    const result = calculatePriceFormation(input());
+
+    expect(unwrap(result.minimumSustainablePrice)).toBeCloseTo(12 / 0.85, 12);
+    expect(unwrap(result.targetMarginPrice)).toBeCloseTo(12 / 0.65, 12);
+    expect(unwrap(result.marketReference)).toBe(22);
+  });
+
+  it("não arredonda o preço dentro do motor", () => {
+    const result = calculatePriceFormation(input());
+    const minimum = unwrap(result.minimumSustainablePrice);
+
+    expect(minimum).toBe(12 / 0.85);
+    expect(minimum).not.toBe(14.12);
+  });
+
+  it("margem alvo ausente não oculta mínimo nem mercado", () => {
+    const result = calculatePriceFormation(input({ targetContributionRate: null }));
+
+    expect(result.minimumSustainablePrice.status).toBe("ok");
+    expect(result.targetMarginPrice).toMatchObject({
+      status: "incomplete",
+      missing: [{ field: "targetContributionRate" }],
+    });
+    expect(result.marketReference.status).toBe("ok");
+  });
+
+  it("custo variável unitário ausente não vira zero", () => {
+    const result = calculatePriceFormation(input({ nonPercentageVariableUnitCost: null }));
+
+    expect(result.minimumSustainablePrice).toMatchObject({
+      status: "incomplete",
+      missing: [{ field: "nonPercentageVariableUnitCost" }],
+    });
+    expect(result.targetMarginPrice.status).toBe("incomplete");
+    expect(result.marketReference.status).toBe("ok");
+  });
+
+  it("zeros explícitos são válidos e margem zero coincide com o mínimo", () => {
+    const result = calculatePriceFormation(
+      input({
+        nonPercentageVariableUnitCost: 0,
+        taxRate: 0,
+        fees: [],
+        targetContributionRate: 0,
+      }),
+    );
+
+    expect(unwrap(result.minimumSustainablePrice)).toBe(10);
+    expect(unwrap(result.targetMarginPrice)).toBe(10);
+  });
+
+  it("denominador da margem inválido não apaga o mínimo calculável", () => {
+    const result = calculatePriceFormation(
+      input({ taxRate: 60, fees: [], targetContributionRate: 40 }),
+    );
+
+    expect(unwrap(result.minimumSustainablePrice)).toBe(30);
+    expect(result.targetMarginPrice).toMatchObject({
+      status: "invalid",
+      errors: [{ code: "INVALID_NUMBER", field: "targetContributionRate" }],
+    });
+  });
+
+  it("invalid prevalece por saída sem contaminar resultados independentes", () => {
+    const result = calculatePriceFormation(
+      input({ directUnitCost: null, targetContributionRate: Number.NaN }),
+    );
+
+    expect(result.minimumSustainablePrice.status).toBe("incomplete");
+    expect(result.targetMarginPrice).toMatchObject({
+      status: "invalid",
+      errors: [{ code: "INVALID_NUMBER", field: "targetContributionRate" }],
+    });
+    expect(result.marketReference.status).toBe("ok");
+  });
+
+  it("referência de mercado é validada sem afetar os cálculos internos", () => {
+    const missing = calculatePriceFormation(input({ marketReference: null }));
+    const invalid = calculatePriceFormation(input({ marketReference: -1 }));
+
+    expect(missing.marketReference).toMatchObject({
+      status: "incomplete",
+      missing: [{ field: "marketReference" }],
+    });
+    expect(invalid.marketReference).toMatchObject({
+      status: "invalid",
+      errors: [{ code: "INVALID_NUMBER", field: "marketReference" }],
+    });
+    expect(invalid.minimumSustainablePrice.status).toBe("ok");
+    expect(invalid.targetMarginPrice.status).toBe("ok");
+  });
+
+  it("overflow do custo modelado retorna invalid", () => {
+    const result = calculatePriceFormation(
+      input({
+        directUnitCost: Number.MAX_VALUE,
+        nonPercentageVariableUnitCost: Number.MAX_VALUE,
+      }),
+    );
+
+    expect(result.minimumSustainablePrice).toMatchObject({
+      status: "invalid",
+      errors: [{ code: "NON_FINITE_RESULT", field: "modeledUnitCost" }],
+    });
+    expect(result.targetMarginPrice.status).toBe("invalid");
+  });
+
+  it("aumentar custo aumenta os dois preços, mantendo as demais entradas", () => {
+    const lower = calculatePriceFormation(input({ directUnitCost: 10 }));
+    const higher = calculatePriceFormation(input({ directUnitCost: 11 }));
+
+    expect(unwrap(higher.minimumSustainablePrice)).toBeGreaterThan(
+      unwrap(lower.minimumSustainablePrice),
+    );
+    expect(unwrap(higher.targetMarginPrice)).toBeGreaterThan(unwrap(lower.targetMarginPrice));
+  });
+
+  it("calcula custo direto sem depender do preço atual", () => {
+    const costInput = {
+      ingredients: [
+        {
+          used_qty: 200,
+          used_unit: "g",
+          package_price: 6,
+          package_qty: 1,
+          package_unit: "kg",
+        },
+      ],
+      packaging: [{ package_price: 50, units_per_package: 100 }],
+      yieldQty: 10,
+    };
+    const cost = computeProductCost(costInput);
+    const product = computeProduct({
+      ...costInput,
+      price: null,
+      taxRate: 0,
+      fees: [],
+    });
+
+    expect(cost.status).toBe("ok");
+    expect(product).toMatchObject({ status: "incomplete", missing: [{ field: "price" }] });
   });
 });
 

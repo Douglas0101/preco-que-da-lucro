@@ -68,7 +68,7 @@ describe("fronteiras de entrada FIN-003", () => {
     const diagnostic = projectFile("src/routes/_authenticated/diagnostico.tsx");
     expect(simulation).toContain('simulated?.status === "invalid"');
     expect(simulation).toContain('role="alert"');
-    expect(diagnostic).toContain("!Number.isFinite(rawDiff)");
+    expect(diagnostic).toContain("Number.isFinite(difference)");
   });
 
   it("impõe taxas individuais abaixo de 100% no BFF", () => {
@@ -123,5 +123,59 @@ describe("fronteiras de proveniência FIN-004", () => {
       expect(source).toContain("Referência de atendimento");
       expect(source).toContain("Tentar novamente");
     }
+  });
+});
+
+describe("fronteiras de formação de preço FIN-005", () => {
+  it("remove multiplicador arbitrário e linguagem de preço sugerido", () => {
+    const diagnostic = projectFile("src/routes/_authenticated/diagnostico.tsx");
+    const landing = projectFile("src/routes/index.tsx");
+    const chat = projectFile("src/lib/chat.functions.ts");
+
+    for (const source of [diagnostic, landing, chat]) {
+      expect(source).not.toMatch(/\*\s*1\.5|1\.5\s*\*/);
+      expect(source).not.toMatch(/preço (certo|correto|sugerido)/i);
+    }
+    expect(diagnostic).not.toContain("suggestedPrice");
+  });
+
+  it("exige premissas explícitas sem transformar vazio em zero", () => {
+    const diagnostic = projectFile("src/routes/_authenticated/diagnostico.tsx");
+
+    expect(diagnostic).toContain('nonPercentageVariableUnitCost: ""');
+    expect(diagnostic).toContain('targetContributionRate: ""');
+    expect(diagnostic).toContain("parseOptionalNumber");
+    expect(diagnostic).toContain('return normalized === "" ? null');
+    expect(diagnostic).toContain("Nenhuma margem padrão é presumida");
+  });
+
+  it("distingue cálculo interno, simulação e referência de mercado", () => {
+    const diagnostic = projectFile("src/routes/_authenticated/diagnostico.tsx");
+
+    expect(diagnostic).toContain('label="Preço mínimo para custos unitários"');
+    expect(diagnostic).toContain('label="Preço para margem-alvo"');
+    expect(diagnostic).toContain('label="Preço médio de mercado informado"');
+    expect(diagnostic).toContain('description="Simulação não salva"');
+    expect(diagnostic).toContain("Referência externa sem fonte estruturada");
+  });
+
+  it("não rateia despesas periódicas sem volume ou direcionador", () => {
+    const diagnostic = projectFile("src/routes/_authenticated/diagnostico.tsx");
+
+    expect(diagnostic).toContain("hasUnallocatedVariableExpenses");
+    expect(diagnostic).toContain("falta um volume ou direcionador confiável");
+    expect(diagnostic).not.toMatch(/variableExpenses\s*\/|expense\.amount\s*\//);
+  });
+
+  it("calcula custo direto sem depender do preço atual e verifica erros remotos", () => {
+    const finance = projectFile("src/lib/finance.ts");
+    const diagnostic = projectFile("src/routes/_authenticated/diagnostico.tsx");
+
+    expect(finance).toContain("export function computeProductCost");
+    expect(finance).toContain("export function calculatePriceFormation");
+    expect(diagnostic).toContain("ingredientsResult.error");
+    expect(diagnostic).toContain("packagingResult.error");
+    expect(diagnostic).toContain("feesResult.error");
+    expect(diagnostic).toContain("marketResult.error");
   });
 });
