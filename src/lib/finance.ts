@@ -330,6 +330,19 @@ export function calculateRequiredSalesForProfit(
   return finiteResult((fixedExpenses + desiredProfit) / cmUnit);
 }
 
+export type VolumeSource = "real" | "manual_simulation" | "forecast" | "unknown";
+
+export type ResolvedVolumeSource = Exclude<VolumeSource, "unknown">;
+
+/**
+ * Volume real é requisito necessário, mas não suficiente, para um KPI factual.
+ * Preço hipotético × volume real continua sendo uma simulação; faturamento
+ * realizado deve vir do futuro domínio de vendas.
+ */
+export function isFactualVolumeSource(source: VolumeSource): source is "real" {
+  return source === "real";
+}
+
 export interface ScenarioInput {
   price: number | null;
   unitCost: number | null;
@@ -337,6 +350,7 @@ export interface ScenarioInput {
   fees: FeeRow[];
   fixedExpenses: number | null;
   volume: number | null;
+  volumeSource: VolumeSource;
 }
 
 export interface ScenarioResult {
@@ -347,10 +361,27 @@ export interface ScenarioResult {
   contributionMarginPct: number;
   breakEvenUnits: number;
   breakEvenRevenue: number;
+  volume: number;
+  volumeSource: ResolvedVolumeSource;
   revenue: number;
   totalVariable: number;
   totalContribution: number;
-  result: number; // lucro ou prejuízo
+  result: number; // resultado operacional no escopo informado
+}
+
+const VOLUME_SOURCES: readonly VolumeSource[] = [
+  "real",
+  "manual_simulation",
+  "forecast",
+  "unknown",
+];
+
+function invalidVolumeSourceError(message: string): CalculationError {
+  return {
+    code: "INVALID_VOLUME_SOURCE",
+    message,
+    field: "volumeSource",
+  };
 }
 
 /** Campos de taxas ausentes, indexados para a UI apontar a origem. */
@@ -384,6 +415,11 @@ export function calculateScenario(i: ScenarioInput): CalculationResult<ScenarioR
   if (rateError !== null) errors.push(rateError);
   collectNullableNumber(missing, errors, "fixedExpenses", i.fixedExpenses, { min: 0 });
   collectNullableNumber(missing, errors, "volume", i.volume, { min: 0 });
+  if (!VOLUME_SOURCES.includes(i.volumeSource)) {
+    errors.push(invalidVolumeSourceError("Informe uma origem de volume válida."));
+  } else if (i.volumeSource === "unknown" && i.volume !== null) {
+    errors.push(invalidVolumeSourceError("Volume numérico não pode ter origem desconhecida."));
+  }
   if (errors.length > 0) return calcInvalid(errors);
   if (missing.length > 0) return calcIncomplete(missing);
 
@@ -392,6 +428,7 @@ export function calculateScenario(i: ScenarioInput): CalculationResult<ScenarioR
   const taxRate = i.taxRate as number;
   const fixedExpenses = i.fixedExpenses as number;
   const volume = i.volume as number;
+  const volumeSource = i.volumeSource as ResolvedVolumeSource;
   const variableCost = calculateVariableCost(price, taxRate, i.fees);
   if (variableCost == null || !Number.isFinite(variableCost))
     return calcInvalid([nonFiniteResultError("variableCost")]);
@@ -425,6 +462,8 @@ export function calculateScenario(i: ScenarioInput): CalculationResult<ScenarioR
     contributionMarginPct,
     breakEvenUnits,
     breakEvenRevenue,
+    volume,
+    volumeSource,
     ...finiteOutputs,
     result,
   });

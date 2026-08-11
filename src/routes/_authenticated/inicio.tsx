@@ -3,23 +3,22 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   computeProduct,
+  sumFiniteNumbers,
+  type FeeRow,
   type IngredientRow,
   type PackagingRow,
-  type FeeRow,
-  calculateBreakEvenRevenue,
-  sumFiniteNumbers,
 } from "@/lib/finance";
 import { brl, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  AlertTriangle,
   Package,
   PlusCircle,
-  Wallet,
   Scale,
-  TrendingUp,
-  AlertTriangle,
   Sparkles,
+  TrendingUp,
+  Wallet,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
@@ -36,101 +35,159 @@ interface Metrics {
   productCount: number;
   fixedExpenses: number;
   bestProduct: { name: string; cmPct: number } | null;
-  totalRevenue: number;
-  breakEvenRevenue: number | null;
-  avgCmPct: number | null;
   hasInvalidCalculation: boolean;
+  incompleteProductCount: number;
   alerts: string[];
 }
 
+type LoadStatus = "loading" | "ready" | "error";
+
 function Inicio() {
-  const [loading, setLoading] = useState(true);
-  const [m, setM] = useState<Metrics | null>(null);
+  const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [errorReference, setErrorReference] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const [prodRes, expRes] = await Promise.all([
-        supabase.from("products").select("*"),
-        supabase.from("expenses").select("*"),
-      ]);
-      const products = prodRes.data ?? [];
-      const expenses = expRes.data ?? [];
-      const fixedExpenses = sumFiniteNumbers(
-        expenses
-          .filter((expense) => expense.type === "fixa")
-          .map((expense) => Number(expense.amount)),
-      );
+    let cancelled = false;
 
-      let best: { name: string; cmPct: number } | null = null;
-      let sumCmPct = 0;
-      let okCount = 0;
-      let invalidProductCount = 0;
-      let totalRevenue = 0;
-      const alerts: string[] = [];
-
-      for (const p of products) {
-        const [ing, pack, fees] = await Promise.all([
-          supabase.from("product_ingredients").select("*").eq("product_id", p.id),
-          supabase.from("product_packaging").select("*").eq("product_id", p.id),
-          supabase.from("sales_fees").select("*").eq("product_id", p.id),
+    void (async () => {
+      try {
+        const [productsResult, expensesResult] = await Promise.all([
+          supabase.from("products").select("*"),
+          supabase.from("expenses").select("*"),
         ]);
-        const c = computeProduct({
-          ingredients: (ing.data ?? []) as unknown as IngredientRow[],
-          packaging: (pack.data ?? []) as unknown as PackagingRow[],
-          yieldQty: p.yield_qty == null ? null : Number(p.yield_qty),
-          price: p.current_price == null ? null : Number(p.current_price),
-          taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
-          fees: (fees.data ?? []) as unknown as FeeRow[],
-        });
-        // Produto inválido invalida os KPIs consolidados; produto incompleto
-        // permanece fora do denominador sem ser confundido com erro numérico.
-        if (c.status === "invalid") {
-          invalidProductCount += 1;
-          continue;
+        if (cancelled) return;
+
+        if (productsResult.error || expensesResult.error) {
+          setMetrics(null);
+          setErrorReference(createErrorReference("DASH"));
+          setLoadStatus("error");
+          return;
         }
-        if (c.status === "incomplete") continue;
-        okCount += 1;
-        sumCmPct = sumFiniteNumbers([sumCmPct, c.value.contributionMarginPct]);
-        totalRevenue = sumFiniteNumbers([totalRevenue, Number(p.current_price)]);
-        if (!best || c.value.contributionMarginPct > best.cmPct) {
-          best = { name: p.name, cmPct: c.value.contributionMarginPct };
+
+        const products = productsResult.data ?? [];
+        const expenses = expensesResult.data ?? [];
+        const fixedExpenses = sumFiniteNumbers(
+          expenses
+            .filter((expense) => expense.type === "fixa")
+            .map((expense) => Number(expense.amount)),
+        );
+
+        let bestProduct: { name: string; cmPct: number } | null = null;
+        let invalidProductCount = 0;
+        let incompleteProductCount = 0;
+        const alerts: string[] = [];
+
+        for (const product of products) {
+          const [ingredientsResult, packagingResult, feesResult] = await Promise.all([
+            supabase.from("product_ingredients").select("*").eq("product_id", product.id),
+            supabase.from("product_packaging").select("*").eq("product_id", product.id),
+            supabase.from("sales_fees").select("*").eq("product_id", product.id),
+          ]);
+          if (cancelled) return;
+
+          if (ingredientsResult.error || packagingResult.error || feesResult.error) {
+            setMetrics(null);
+            setErrorReference(createErrorReference("DASH"));
+            setLoadStatus("error");
+            return;
+          }
+
+          const computation = computeProduct({
+            ingredients: (ingredientsResult.data ?? []) as unknown as IngredientRow[],
+            packaging: (packagingResult.data ?? []) as unknown as PackagingRow[],
+            yieldQty: product.yield_qty == null ? null : Number(product.yield_qty),
+            price: product.current_price == null ? null : Number(product.current_price),
+            taxRate: product.tax_rate == null ? null : Number(product.tax_rate),
+            fees: (feesResult.data ?? []) as unknown as FeeRow[],
+          });
+
+          if (computation.status === "invalid") {
+            invalidProductCount += 1;
+            continue;
+          }
+          if (computation.status === "incomplete") {
+            incompleteProductCount += 1;
+            continue;
+          }
+
+          if (!bestProduct || computation.value.contributionMarginPct > bestProduct.cmPct) {
+            bestProduct = {
+              name: product.name,
+              cmPct: computation.value.contributionMarginPct,
+            };
+          }
+          if (Number(product.current_price) < computation.value.unitCost) {
+            alerts.push(`"${product.name}": preço de venda abaixo do custo unitário.`);
+          }
+          if (
+            computation.value.contributionMarginPct > 0 &&
+            computation.value.contributionMarginPct < 15
+          ) {
+            alerts.push(
+              `"${product.name}": margem de contribuição baixa (${pct(computation.value.contributionMarginPct)}).`,
+            );
+          }
         }
-        if (Number(p.current_price) < c.value.unitCost) {
-          alerts.push(`"${p.name}": preço de venda abaixo do custo unitário.`);
-        }
-        if (c.value.contributionMarginPct > 0 && c.value.contributionMarginPct < 15) {
-          alerts.push(
-            `"${p.name}": margem de contribuição baixa (${pct(c.value.contributionMarginPct)}).`,
+
+        if (incompleteProductCount > 0) {
+          alerts.unshift(
+            `${incompleteProductCount} produto(s) não participa(m) dos destaques por ter dados incompletos.`,
           );
         }
+
+        const hasInvalidCalculation = invalidProductCount > 0 || !Number.isFinite(fixedExpenses);
+
+        setMetrics({
+          productCount: products.length,
+          fixedExpenses,
+          bestProduct: hasInvalidCalculation ? null : bestProduct,
+          hasInvalidCalculation,
+          incompleteProductCount,
+          alerts,
+        });
+        setErrorReference(null);
+        setLoadStatus("ready");
+      } catch {
+        if (cancelled) return;
+        setMetrics(null);
+        setErrorReference(createErrorReference("DASH"));
+        setLoadStatus("error");
       }
-
-      const hasInvalidCalculation =
-        invalidProductCount > 0 ||
-        !Number.isFinite(fixedExpenses) ||
-        !Number.isFinite(sumCmPct) ||
-        !Number.isFinite(totalRevenue);
-      const avgCmPct = hasInvalidCalculation ? Number.NaN : okCount > 0 ? sumCmPct / okCount : null;
-      const breakEvenRevenue =
-        avgCmPct == null ? null : calculateBreakEvenRevenue(fixedExpenses, avgCmPct);
-
-      setM({
-        productCount: products.length,
-        fixedExpenses,
-        bestProduct: hasInvalidCalculation ? null : best,
-        totalRevenue,
-        breakEvenRevenue,
-        avgCmPct,
-        hasInvalidCalculation,
-        alerts,
-      });
-      setLoading(false);
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  if (loading) return <div className="text-muted-foreground">Carregando...</div>;
+  if (loadStatus === "loading") {
+    return (
+      <div role="status" className="text-muted-foreground">
+        Carregando...
+      </div>
+    );
+  }
 
-  if (!m || m.productCount === 0) {
+  if (loadStatus === "error") {
+    return (
+      <Card role="alert" className="border-destructive/40">
+        <CardContent className="space-y-3 p-5">
+          <p className="font-medium">Não foi possível carregar o resumo financeiro.</p>
+          {errorReference && (
+            <p className="text-xs text-muted-foreground">
+              Referência de atendimento: {errorReference}
+            </p>
+          )}
+          <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!metrics || metrics.productCount === 0) {
     return (
       <div className="mx-auto max-w-2xl rounded-3xl border bg-card p-8 text-center shadow-[var(--shadow-soft)] md:p-12">
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-primary text-primary-foreground">
@@ -152,43 +209,60 @@ function Inicio() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-black">Olá! 👋</h1>
-        <p className="text-muted-foreground">Aqui está o resumo do seu negócio.</p>
+        <p className="text-muted-foreground">
+          Resumo dos dados cadastrados, sem presumir vendas ou faturamento real.
+        </p>
       </div>
 
-      {m.hasInvalidCalculation && (
+      {metrics.hasInvalidCalculation && (
         <Card role="alert" className="border-destructive/40">
-          <CardContent className="p-4 text-destructive">
+          <CardContent className="p-4 font-medium">
             Erro de cálculo. Revise os valores numéricos dos produtos e despesas.
           </CardContent>
         </Card>
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard icon={Package} label="Produtos" value={String(m.productCount)} />
-        <MetricCard icon={Wallet} label="Despesas fixas / mês" value={brl(m.fixedExpenses)} />
+        <MetricCard icon={Package} label="Produtos" value={String(metrics.productCount)} />
+        <MetricCard
+          icon={Wallet}
+          label="Despesas fixas cadastradas"
+          value={brl(metrics.fixedExpenses)}
+        />
         <MetricCard
           icon={Scale}
-          label="Faturamento p/ equilíbrio"
-          value={brl(m.breakEvenRevenue)}
+          label="Faturamento real"
+          value="—"
+          description="Nenhuma venda real registrada."
         />
-        <MetricCard icon={TrendingUp} label="Margem média" value={pct(m.avgCmPct)} />
+        <MetricCard
+          icon={TrendingUp}
+          label="Margem consolidada"
+          value="—"
+          description="Mix real de vendas indisponível."
+        />
       </div>
 
-      {m.bestProduct && (
+      {metrics.bestProduct && (
         <Card className="border-primary/30">
           <CardHeader>
-            <CardTitle className="text-base">🏆 Produto com maior margem</CardTitle>
+            <CardTitle className="text-base">🏆 Maior margem unitária calculável</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black">{m.bestProduct.name}</div>
+            <div className="text-2xl font-black">{metrics.bestProduct.name}</div>
             <div className="text-muted-foreground">
-              Margem de contribuição: {pct(m.bestProduct.cmPct)}
+              Margem de contribuição unitária: {pct(metrics.bestProduct.cmPct)}
             </div>
+            {metrics.incompleteProductCount > 0 && (
+              <div className="mt-2 text-sm text-muted-foreground">
+                Comparação limitada aos produtos com dados completos.
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {m.alerts.length > 0 && (
+      {metrics.alerts.length > 0 && (
         <Card className="border-warning/40 bg-warning/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -197,8 +271,8 @@ function Inicio() {
           </CardHeader>
           <CardContent>
             <ul className="list-disc space-y-1 pl-5 text-sm">
-              {m.alerts.map((a, i) => (
-                <li key={i}>{a}</li>
+              {metrics.alerts.map((alert) => (
+                <li key={alert}>{alert}</li>
               ))}
             </ul>
           </CardContent>
@@ -221,10 +295,12 @@ function MetricCard({
   icon: Icon,
   label,
   value,
+  description,
 }: {
   icon: typeof Package;
   label: string;
   value: string;
+  description?: string;
 }) {
   return (
     <Card>
@@ -238,7 +314,16 @@ function MetricCard({
           </div>
         </div>
         <div className="mt-2 text-2xl font-black">{value}</div>
+        {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
       </CardContent>
     </Card>
   );
+}
+
+function createErrorReference(prefix: string): string {
+  const token =
+    typeof globalThis.crypto?.randomUUID === "function"
+      ? globalThis.crypto.randomUUID().slice(0, 8)
+      : Date.now().toString(36);
+  return `${prefix}-${token}`.toUpperCase();
 }

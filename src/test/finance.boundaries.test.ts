@@ -67,7 +67,7 @@ describe("fronteiras de entrada FIN-003", () => {
     const simulation = projectFile("src/routes/_authenticated/simulacoes.tsx");
     const diagnostic = projectFile("src/routes/_authenticated/diagnostico.tsx");
     expect(simulation).toContain('simulated?.status === "invalid"');
-    expect(simulation).toContain("Number.isFinite(value) ? value : Number.NaN");
+    expect(simulation).toContain('role="alert"');
     expect(diagnostic).toContain("!Number.isFinite(rawDiff)");
   });
 
@@ -75,5 +75,53 @@ describe("fronteiras de entrada FIN-003", () => {
     const source = projectFile("src/lib/products.functions.ts");
     expect(source).toContain("tax_rate: z.number().finite().min(0).lt(100)");
     expect(source).toContain("percentage: z.number().finite().min(0).lt(100)");
+  });
+});
+
+describe("fronteiras de proveniência FIN-004", () => {
+  it("torna a origem do volume obrigatória no contrato do motor", () => {
+    const finance = projectFile("src/lib/finance.ts");
+
+    expect(finance).toContain('export type VolumeSource = "real" | "manual_simulation"');
+    expect(finance).toContain("volumeSource: VolumeSource");
+    expect(finance).toContain('return source === "real"');
+    expect(finance).toContain("Volume numérico não pode ter origem desconhecida");
+  });
+
+  it("remove o cenário atual fictício e inicia o volume manual vazio", () => {
+    const simulation = projectFile("src/routes/_authenticated/simulacoes.tsx");
+
+    expect(simulation).not.toMatch(/const\s+volume\s*=\s*100/);
+    expect(simulation).not.toContain("Cenário atual");
+    expect(simulation).not.toContain("Diferença vs. atual");
+    expect(simulation).toContain('volume: ""');
+    expect(simulation).toContain('volumeSource: "manual_simulation"');
+    expect(simulation).toContain("Faturamento simulado");
+    expect(simulation).toContain("Resultado operacional simulado dentro do escopo informado");
+    expect(simulation).toContain("aria-describedby");
+  });
+
+  it("não apresenta soma de preços ou média simples como KPI consolidado", () => {
+    const dashboard = projectFile("src/routes/_authenticated/inicio.tsx");
+
+    expect(dashboard).not.toContain("totalRevenue");
+    expect(dashboard).not.toContain("sumCmPct");
+    expect(dashboard).not.toContain("avgCmPct");
+    expect(dashboard).not.toContain("calculateBreakEvenRevenue");
+    expect(dashboard).toContain('label="Faturamento real"');
+    expect(dashboard).toContain('description="Nenhuma venda real registrada."');
+  });
+
+  it("distingue falha de consulta de uma coleção financeira vazia", () => {
+    for (const path of [
+      "src/routes/_authenticated/inicio.tsx",
+      "src/routes/_authenticated/simulacoes.tsx",
+    ]) {
+      const source = projectFile(path);
+      expect(source).toContain("Result.error");
+      expect(source).toContain('setLoadStatus("error")');
+      expect(source).toContain("Referência de atendimento");
+      expect(source).toContain("Tentar novamente");
+    }
   });
 });

@@ -12,7 +12,15 @@ async function expectNoBlockingAxeViolations(page: Page) {
   expect(blocking).toEqual([]);
 }
 
-async function installAuthenticatedSupabaseContract(page: Page) {
+interface SupabaseContractOptions {
+  rows?: Record<string, unknown[]>;
+  errorTables?: string[];
+}
+
+async function installAuthenticatedSupabaseContract(
+  page: Page,
+  { rows = {}, errorTables = [] }: SupabaseContractOptions = {},
+) {
   const now = Math.floor(Date.now() / 1000);
   const user = {
     id: "00000000-0000-4000-8000-000000000001",
@@ -61,11 +69,29 @@ async function installAuthenticatedSupabaseContract(page: Page) {
     });
   });
   await page.route("**/rest/v1/**", async (route) => {
+    let table: string;
+    try {
+      const url = new URL(route.request().url());
+      table = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
+    } catch {
+      await route.fulfill({ status: 400, body: "URL inválida" });
+      return;
+    }
+    if (errorTables.includes(table)) {
+      await route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ code: "E2E_QUERY_ERROR", message: "Falha simulada" }),
+      });
+      return;
+    }
+
+    const tableRows = rows[table] ?? [];
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      headers: { "content-range": "*/0" },
-      body: "[]",
+      headers: { "content-range": `*/${tableRows.length}` },
+      body: JSON.stringify(tableRows),
     });
   });
 
@@ -138,4 +164,93 @@ test("authenticated shell keeps responsive navigation and accessible structure",
   await page.goto("/novo-produto");
   const serverFnRequest = await serverFnRequestPromise;
   expect(serverFnRequest.headers().authorization).toBe(`Bearer ${accessToken}`);
+});
+
+test("manual simulation has no fictitious current volume and labels hypothetical results", async ({
+  page,
+}) => {
+  const productId = "00000000-0000-4000-8000-000000000010";
+  const userId = "00000000-0000-4000-8000-000000000001";
+  const timestamp = new Date().toISOString();
+  await installAuthenticatedSupabaseContract(page, {
+    rows: {
+      products: [
+        {
+          id: productId,
+          user_id: userId,
+          name: "Produto de teste",
+          current_price: 10,
+          yield_qty: 10,
+          yield_unit: "unidade",
+          tax_rate: 0,
+          tax_regime: null,
+          notes: null,
+          is_demo: false,
+          created_at: timestamp,
+          updated_at: timestamp,
+        },
+      ],
+      expenses: [{ amount: 600, type: "fixa" }],
+      product_ingredients: [],
+      product_packaging: [],
+      sales_fees: [],
+    },
+  });
+
+  await page.goto("/simulacoes");
+
+  await expect(page.getByRole("heading", { name: "Simulações" })).toBeVisible();
+  const volume = page.getByLabel("Vendas simuladas (unidades)");
+  await expect(volume).toHaveValue("");
+  await expect(page.getByText(/nenhum volume padrão é presumido/i)).toBeVisible();
+  await expect(page.getByText("Cenário atual", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Diferença vs. atual", { exact: true })).toHaveCount(0);
+
+  await volume.fill("100");
+
+  await expect(page.getByText("Faturamento simulado", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Resultado operacional simulado dentro do escopo informado", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Informado manualmente", { exact: true })).toBeVisible();
+
+  const price = page.getByLabel("Preço de venda simulado (R$)");
+  await price.fill("");
+  await expect(
+    page.getByText("Preencha os campos indicados da simulação para calcular."),
+  ).toBeVisible();
+  await expect(price).toHaveAttribute("aria-describedby", "simulation-field-message");
+  await price.fill("10");
+  await expect(page.getByText("Faturamento simulado", { exact: true })).toBeVisible();
+  await expectNoBlockingAxeViolations(page);
+
+  await page.goto("/inicio");
+  await expect(page.getByText("Faturamento real", { exact: true })).toBeVisible();
+  await expect(page.getByText("Nenhuma venda real registrada.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Faturamento p/ equilíbrio", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Margem média", { exact: true })).toHaveCount(0);
+  await expectNoBlockingAxeViolations(page);
+});
+
+test("financial query failure is not rendered as empty or zero data", async ({ page }) => {
+  await installAuthenticatedSupabaseContract(page, { errorTables: ["expenses"] });
+
+  await page.goto("/simulacoes");
+
+  await expect(page.getByRole("alert")).toContainText(
+    "Não foi possível carregar os dados financeiros",
+  );
+  await expect(page.getByText(/cadastre um produto para criar/i)).toHaveCount(0);
+  await expect(page.getByText(/^Referência de atendimento: SIM-/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Tentar novamente" })).toBeVisible();
+  await expectNoBlockingAxeViolations(page);
+
+  await page.goto("/inicio");
+  await expect(page.getByRole("alert")).toContainText(
+    "Não foi possível carregar o resumo financeiro",
+  );
+  await expect(page.getByRole("heading", { name: "Bem-vindo!" })).toHaveCount(0);
+  await expect(page.getByText(/^Referência de atendimento: DASH-/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Tentar novamente" })).toBeVisible();
+  await expectNoBlockingAxeViolations(page);
 });

@@ -7,6 +7,7 @@ import {
   calculateContributionMarginPct,
   calculateIngredientCost,
   calculatePackagingCost,
+  isFactualVolumeSource,
   calculateRecipeCost,
   calculateRequiredSalesForProfit,
   calculateScenario,
@@ -20,6 +21,7 @@ import {
   sumFiniteNumbers,
   type CalculationResult,
   type ScenarioInput,
+  type VolumeSource,
 } from "@/lib/finance";
 
 /** Desembrulha um Result esperando `ok` — falha o teste caso contrário. */
@@ -36,9 +38,10 @@ function unwrap<T>(r: CalculationResult<T>): T {
  * (Plano §40) que os corrige. Nenhum valor aqui pode ser "corrigido" sem o
  * lote correspondente.
  *
- * Lotes já aplicados: 03 (contrato CalculationResult), 04 (unknown ≠ zero) e
- * 05 (número inválido ≠ zero). `null` permanece incomplete; valores numéricos
- * inválidos e resultados não finitos usam `invalid`.
+ * Lotes já aplicados: 03 (contrato CalculationResult), 04 (unknown ≠ zero),
+ * 05 (número inválido ≠ zero) e 06 (origem explícita do volume). `null`
+ * permanece incomplete; valores numéricos inválidos e resultados não finitos
+ * usam `invalid`.
  */
 
 describe("conversão de unidades", () => {
@@ -217,9 +220,10 @@ describe("cenários (exemplo canônico da Diretriz §12)", () => {
     fees: [],
     fixedExpenses: 6000,
     volume: 700,
+    volumeSource: "manual_simulation" as const,
   };
 
-  it("cenário real: preço R$ 10 gera prejuízo de R$ 1.800", () => {
+  it("simulação manual: preço R$ 10 gera prejuízo de R$ 1.800", () => {
     const result = unwrap(calculateScenario({ ...base, price: 10 }));
     expect(result.contributionMargin).toBeCloseTo(6, 10);
     expect(result.contributionMarginPct).toBeCloseTo(60, 10);
@@ -233,6 +237,79 @@ describe("cenários (exemplo canônico da Diretriz §12)", () => {
     const result = unwrap(calculateScenario({ ...base, price: 11 }));
     expect(result.contributionMargin).toBeCloseTo(7, 10);
     expect(result.result).toBeCloseTo(-1100, 10);
+  });
+});
+
+describe("proveniência do volume (FIN-004 — lote 06)", () => {
+  const scenario = (volumeSource: VolumeSource, volume: number | null = 700): ScenarioInput => ({
+    price: 10,
+    unitCost: 4,
+    taxRate: 0,
+    fees: [],
+    fixedExpenses: 6000,
+    volume,
+    volumeSource,
+  });
+
+  it.each(["real", "manual_simulation", "forecast"] as const)(
+    "preserva volume e origem resolvida %s no resultado",
+    (volumeSource) => {
+      const result = calculateScenario(scenario(volumeSource));
+      expect(result.status).toBe("ok");
+      if (result.status === "ok") {
+        expect(result.value.volume).toBe(700);
+        expect(result.value.volumeSource).toBe(volumeSource);
+      }
+    },
+  );
+
+  it.each([
+    ["real", true],
+    ["manual_simulation", false],
+    ["forecast", false],
+    ["unknown", false],
+  ] as const)("somente %s é elegível como origem factual", (volumeSource, expected) => {
+    expect(isFactualVolumeSource(volumeSource)).toBe(expected);
+  });
+
+  it("origem desconhecida sem volume permanece incompleta", () => {
+    const result = calculateScenario(scenario("unknown", null));
+    expect(result).toMatchObject({ status: "incomplete", missing: [{ field: "volume" }] });
+  });
+
+  it("origem conhecida sem volume permanece incompleta", () => {
+    const result = calculateScenario(scenario("manual_simulation", null));
+    expect(result).toMatchObject({ status: "incomplete", missing: [{ field: "volume" }] });
+  });
+
+  it("rejeita volume numérico com origem desconhecida", () => {
+    const result = calculateScenario(scenario("unknown"));
+    expect(result).toMatchObject({
+      status: "invalid",
+      errors: [{ code: "INVALID_VOLUME_SOURCE", field: "volumeSource" }],
+    });
+  });
+
+  it("rejeita origem não suportada recebida em runtime", () => {
+    const input = {
+      ...scenario("manual_simulation"),
+      volumeSource: "legacy",
+    } as unknown as ScenarioInput;
+    const result = calculateScenario(input);
+    expect(result).toMatchObject({
+      status: "invalid",
+      errors: [{ code: "INVALID_VOLUME_SOURCE", field: "volumeSource" }],
+    });
+  });
+
+  it("zero manual é volume conhecido e válido", () => {
+    const result = calculateScenario(scenario("manual_simulation", 0));
+    expect(result.status).toBe("ok");
+    if (result.status === "ok") {
+      expect(result.value.volume).toBe(0);
+      expect(result.value.revenue).toBe(0);
+      expect(result.value.result).toBe(-6000);
+    }
   });
 });
 
@@ -288,6 +365,7 @@ describe("contrato CalculationResult (FIN-001 — lote 03)", () => {
       fees: [],
       fixedExpenses: 6000,
       volume: 700,
+      volumeSource: "manual_simulation",
     });
     expect(r).toMatchObject({ status: "ok", warnings: [] });
   });
@@ -370,6 +448,7 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
       fees: [],
       fixedExpenses: 6000,
       volume: 700,
+      volumeSource: "manual_simulation",
     });
     expect(result.status).toBe("incomplete");
     if (result.status === "incomplete") {
@@ -387,6 +466,7 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
         fees: [],
         fixedExpenses: 6000,
         volume: 700,
+        volumeSource: "manual_simulation",
       };
       input[field] = null;
       const result = calculateScenario(input);
@@ -405,6 +485,7 @@ describe("política unknown ≠ zero (FIN-002 — lote 04)", () => {
       fees: [{ percentage: null }],
       fixedExpenses: 6000,
       volume: 700,
+      volumeSource: "manual_simulation",
     });
     expect(result.status).toBe("incomplete");
     if (result.status === "incomplete") {
@@ -492,6 +573,7 @@ describe("política invalid number ≠ zero (FIN-003 — lote 05)", () => {
     fees: [],
     fixedExpenses: 6000,
     volume: 700,
+    volumeSource: "manual_simulation",
   });
 
   type ProductInput = Parameters<typeof computeProduct>[0];
