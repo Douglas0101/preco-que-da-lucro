@@ -30,6 +30,7 @@ jobs:
       BUILD_RELEASE_CHANNEL: pre-beta-internal
       DATABASE_ADMIN_URL: postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
+      DATABASE_DRIVER: node-postgres
       VITE_SUPABASE_URL: https://example.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
       SUPABASE_URL: https://example.supabase.co
