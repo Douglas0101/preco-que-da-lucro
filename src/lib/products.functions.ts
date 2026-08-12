@@ -101,42 +101,38 @@ function mapMarket(row: typeof marketPrices.$inferSelect) {
 
 async function loadProductDetail(request: RequestContext, productId: string) {
   const scope = and(eq(products.tenantId, request.tenantId), eq(products.id, productId));
-  const [productRows, ingredientRows, packagingRows, feeRows, marketRows] = await Promise.all([
-    request.transaction.select().from(products).where(scope).limit(1),
-    request.transaction
-      .select()
-      .from(productIngredients)
-      .where(
-        and(
-          eq(productIngredients.tenantId, request.tenantId),
-          eq(productIngredients.productId, productId),
-        ),
-      )
-      .orderBy(asc(productIngredients.createdAt)),
-    request.transaction
-      .select()
-      .from(productPackaging)
-      .where(
-        and(
-          eq(productPackaging.tenantId, request.tenantId),
-          eq(productPackaging.productId, productId),
-        ),
-      )
-      .orderBy(asc(productPackaging.createdAt)),
-    request.transaction
-      .select()
-      .from(salesFees)
-      .where(and(eq(salesFees.tenantId, request.tenantId), eq(salesFees.productId, productId)))
-      .orderBy(asc(salesFees.createdAt)),
-    request.transaction
-      .select()
-      .from(marketPrices)
-      .where(
-        and(eq(marketPrices.tenantId, request.tenantId), eq(marketPrices.productId, productId)),
-      )
-      .orderBy(desc(marketPrices.createdAt))
-      .limit(1),
-  ]);
+  const productRows = await request.transaction.select().from(products).where(scope).limit(1);
+  const ingredientRows = await request.transaction
+    .select()
+    .from(productIngredients)
+    .where(
+      and(
+        eq(productIngredients.tenantId, request.tenantId),
+        eq(productIngredients.productId, productId),
+      ),
+    )
+    .orderBy(asc(productIngredients.createdAt));
+  const packagingRows = await request.transaction
+    .select()
+    .from(productPackaging)
+    .where(
+      and(
+        eq(productPackaging.tenantId, request.tenantId),
+        eq(productPackaging.productId, productId),
+      ),
+    )
+    .orderBy(asc(productPackaging.createdAt));
+  const feeRows = await request.transaction
+    .select()
+    .from(salesFees)
+    .where(and(eq(salesFees.tenantId, request.tenantId), eq(salesFees.productId, productId)))
+    .orderBy(asc(salesFees.createdAt));
+  const marketRows = await request.transaction
+    .select()
+    .from(marketPrices)
+    .where(and(eq(marketPrices.tenantId, request.tenantId), eq(marketPrices.productId, productId)))
+    .orderBy(desc(marketPrices.createdAt))
+    .limit(1);
 
   return {
     product: productRows[0] ? mapProduct(productRows[0]) : null,
@@ -170,42 +166,40 @@ export const listProductsWithMetrics = createServerFn({ method: "GET" })
       .orderBy(desc(products.createdAt));
     const productIds = productRows.map((row) => row.id);
     if (!productIds.length) return [];
-    const [ingredientRows, packagingRows, feeRows, marketRows] = await Promise.all([
-      request.transaction
-        .select()
-        .from(productIngredients)
-        .where(
-          and(
-            eq(productIngredients.tenantId, request.tenantId),
-            inArray(productIngredients.productId, productIds),
-          ),
+    const ingredientRows = await request.transaction
+      .select()
+      .from(productIngredients)
+      .where(
+        and(
+          eq(productIngredients.tenantId, request.tenantId),
+          inArray(productIngredients.productId, productIds),
         ),
-      request.transaction
-        .select()
-        .from(productPackaging)
-        .where(
-          and(
-            eq(productPackaging.tenantId, request.tenantId),
-            inArray(productPackaging.productId, productIds),
-          ),
+      );
+    const packagingRows = await request.transaction
+      .select()
+      .from(productPackaging)
+      .where(
+        and(
+          eq(productPackaging.tenantId, request.tenantId),
+          inArray(productPackaging.productId, productIds),
         ),
-      request.transaction
-        .select()
-        .from(salesFees)
-        .where(
-          and(eq(salesFees.tenantId, request.tenantId), inArray(salesFees.productId, productIds)),
+      );
+    const feeRows = await request.transaction
+      .select()
+      .from(salesFees)
+      .where(
+        and(eq(salesFees.tenantId, request.tenantId), inArray(salesFees.productId, productIds)),
+      );
+    const marketRows = await request.transaction
+      .select()
+      .from(marketPrices)
+      .where(
+        and(
+          eq(marketPrices.tenantId, request.tenantId),
+          inArray(marketPrices.productId, productIds),
         ),
-      request.transaction
-        .select()
-        .from(marketPrices)
-        .where(
-          and(
-            eq(marketPrices.tenantId, request.tenantId),
-            inArray(marketPrices.productId, productIds),
-          ),
-        )
-        .orderBy(desc(marketPrices.createdAt)),
-    ]);
+      )
+      .orderBy(desc(marketPrices.createdAt));
 
     return productRows.map((row) => {
       const product = mapProduct(row);
@@ -493,28 +487,26 @@ export const listPurchasePrices = createServerFn({ method: "GET" })
       .orderBy(desc(products.createdAt));
     const productIds = productRows.map((row) => row.id);
     if (!productIds.length) return { products: [], ingredients: [], packaging: [] };
-    const [ingredientRows, packagingRows] = await Promise.all([
-      request.transaction
-        .select()
-        .from(productIngredients)
-        .where(
-          and(
-            eq(productIngredients.tenantId, request.tenantId),
-            inArray(productIngredients.productId, productIds),
-          ),
-        )
-        .orderBy(asc(productIngredients.name)),
-      request.transaction
-        .select()
-        .from(productPackaging)
-        .where(
-          and(
-            eq(productPackaging.tenantId, request.tenantId),
-            inArray(productPackaging.productId, productIds),
-          ),
-        )
-        .orderBy(asc(productPackaging.name)),
-    ]);
+    const ingredientRows = await request.transaction
+      .select()
+      .from(productIngredients)
+      .where(
+        and(
+          eq(productIngredients.tenantId, request.tenantId),
+          inArray(productIngredients.productId, productIds),
+        ),
+      )
+      .orderBy(asc(productIngredients.name));
+    const packagingRows = await request.transaction
+      .select()
+      .from(productPackaging)
+      .where(
+        and(
+          eq(productPackaging.tenantId, request.tenantId),
+          inArray(productPackaging.productId, productIds),
+        ),
+      )
+      .orderBy(asc(productPackaging.name));
     return {
       products: productRows,
       ingredients: ingredientRows.map(mapIngredient),

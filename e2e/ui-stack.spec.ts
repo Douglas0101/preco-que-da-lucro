@@ -3,7 +3,6 @@ import { expect, test, type Page } from "@playwright/test";
 
 const authEmail = process.env.E2E_AUTH_EMAIL ?? "";
 const authPassword = process.env.E2E_AUTH_PASSWORD ?? "";
-
 async function expectNoBlockingAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -28,6 +27,7 @@ async function login(page: Page): Promise<void> {
 test("public UI uses valid composed controls and has no serious a11y violations", async ({
   page,
 }) => {
+  await page.context().clearCookies();
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: /entenda a faixa de preço/i })).toBeVisible();
@@ -40,7 +40,8 @@ test("public UI uses valid composed controls and has no serious a11y violations"
   await expectNoBlockingAxeViolations(page);
 });
 
-test("authentication controls keep accessible names", async ({ page }) => {
+test("authentication controls keep accessible names", async ({ page, browserName }) => {
+  await page.context().clearCookies();
   await page.goto("/inicio");
   await expect(page).toHaveURL(/\/auth(?:\?|$)/);
 
@@ -62,10 +63,11 @@ test("authentication controls keep accessible names", async ({ page }) => {
   await expect(password).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(submit).toBeFocused();
+
+  if (browserName === "chromium") await login(page);
 });
 
 test("authenticated shell uses an HttpOnly session and accessible navigation", async ({ page }) => {
-  await login(page);
   await page.goto("/");
 
   await expect(page).toHaveURL(/\/inicio$/);
@@ -105,7 +107,6 @@ test("authenticated shell uses an HttpOnly session and accessible navigation", a
 test("manual simulation has no fictitious current volume and labels hypothetical results", async ({
   page,
 }) => {
-  await login(page);
   await page.goto("/simulacoes");
 
   await expect(page.getByRole("heading", { name: "Simulações" })).toBeVisible();
@@ -142,7 +143,6 @@ test("manual simulation has no fictitious current volume and labels hypothetical
 });
 
 test("diagnostic forms prices only from explicit assumptions", async ({ page }) => {
-  await login(page);
   await page.goto("/diagnostico");
 
   await expect(page.getByRole("heading", { name: "Meu Diagnóstico" })).toBeVisible();
@@ -176,7 +176,6 @@ test("diagnostic forms prices only from explicit assumptions", async ({ page }) 
 });
 
 test("financial query failure is not rendered as empty or zero data", async ({ page }) => {
-  await login(page);
   await page.route("**/_serverFn/**", async (route) => {
     await route.fulfill({ status: 503, contentType: "application/json", body: "{}" });
   });
