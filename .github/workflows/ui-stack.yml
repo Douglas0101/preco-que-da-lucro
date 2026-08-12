@@ -58,6 +58,9 @@ jobs:
           runtime_password="$(openssl rand -hex 24)"
           auth_secret="$(openssl rand -hex 32)"
           auth_password="$(openssl rand -base64 24 | tr -d '\n')"
+          echo "::add-mask::${runtime_password}"
+          echo "::add-mask::${auth_secret}"
+          echo "::add-mask::${auth_password}"
           {
             echo "DATABASE_URL=postgresql://app_runtime:${runtime_password}@127.0.0.1:5432/preco_que_da_lucro_test"
             echo "E2E_DB_RUNTIME_PASSWORD=${runtime_password}"

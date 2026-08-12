@@ -1,9 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-const bffEmail = process.env.E2E_AUTH_EMAIL ?? "";
-const bffPassword = process.env.E2E_AUTH_PASSWORD ?? "";
-
 async function expectNoBlockingAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -98,17 +95,6 @@ async function installAuthenticatedSupabaseContract(
     });
   });
 
-  expect(bffEmail, "E2E_AUTH_EMAIL deve estar configurada").not.toBe("");
-  expect(bffPassword, "E2E_AUTH_PASSWORD deve estar configurada").not.toBe("");
-  const bffLogin = await page.context().request.post("/api/auth/sign-in/email", {
-    headers: {
-      origin: "http://127.0.0.1:4173",
-      "sec-fetch-site": "same-origin",
-    },
-    data: { email: bffEmail, password: bffPassword },
-  });
-  expect(bffLogin.ok(), await bffLogin.text()).toBe(true);
-
   return accessToken;
 }
 
@@ -147,6 +133,7 @@ function completeFinancialRows(): Record<string, unknown[]> {
 test("public UI uses valid composed controls and has no serious a11y violations", async ({
   page,
 }) => {
+  await page.context().clearCookies();
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: /entenda a faixa de preço/i })).toBeVisible();
@@ -160,6 +147,7 @@ test("public UI uses valid composed controls and has no serious a11y violations"
 });
 
 test("authentication controls keep accessible names", async ({ page }) => {
+  await page.context().clearCookies();
   await page.goto("/inicio");
   await expect(page).toHaveURL(/\/auth$/);
 
@@ -190,7 +178,7 @@ test("authenticated shell keeps responsive navigation and accessible structure",
   await page.goto("/");
 
   await expect(page).toHaveURL(/\/inicio$/);
-  await expect(page.getByRole("heading", { name: "Bem-vindo!" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Olá! 👋" })).toBeVisible();
 
   const mobileMenu = page.getByRole("button", { name: "Abrir menu de navegação" });
   if (await mobileMenu.isVisible()) await mobileMenu.click();
