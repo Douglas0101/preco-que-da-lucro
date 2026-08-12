@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomBytes } from "node:crypto";
 import { hashSync } from "bcryptjs";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Client, Pool } from "pg";
@@ -51,19 +52,23 @@ function sessionCookie(response: Response): string {
 }
 
 async function main(): Promise<void> {
+  const runtimePassword = randomBytes(24).toString("base64url");
+  const initialPassword = randomBytes(24).toString("base64url");
+  const changedPassword = randomBytes(24).toString("base64url");
+  const legacyPassword = randomBytes(24).toString("base64url");
   const adminUrl = requireAdminUrl();
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
-  await admin.query("alter role app_runtime password 'runtime-integration-only'");
+  await admin.query(`alter role app_runtime password ${admin.escapeLiteral(runtimePassword)}`);
 
   const runtime = new URL(adminUrl);
   runtime.username = "app_runtime";
-  runtime.password = "runtime-integration-only";
+  runtime.password = runtimePassword;
   const pool = new Pool({ connectionString: runtime.toString(), max: 3 });
   const database = drizzle({ client: pool, schema });
   setDatabaseForTests(database as unknown as Database);
 
-  process.env.BETTER_AUTH_SECRET = "integration-only-secret-with-32-characters";
+  process.env.BETTER_AUTH_SECRET = randomBytes(32).toString("base64url");
   process.env.BETTER_AUTH_URL = "http://localhost:3000";
   process.env.AUTH_TRUSTED_ORIGINS = "http://localhost:3000";
 
@@ -76,7 +81,7 @@ async function main(): Promise<void> {
       jsonRequest("/sign-up/email", {
         name: "Maria Integração",
         email: "maria@example.test",
-        password: "senha-inicial-segura",
+        password: initialPassword,
       }),
     );
     assert.equal(signup.status, 200);
@@ -108,7 +113,7 @@ async function main(): Promise<void> {
     const login = await auth.handler(
       jsonRequest("/sign-in/email", {
         email: "maria@example.test",
-        password: "senha-inicial-segura",
+        password: initialPassword,
       }),
     );
     assert.equal(login.status, 200);
@@ -118,8 +123,8 @@ async function main(): Promise<void> {
       jsonRequest(
         "/change-password",
         {
-          currentPassword: "senha-inicial-segura",
-          newPassword: "senha-alterada-segura",
+          currentPassword: initialPassword,
+          newPassword: changedPassword,
           revokeOtherSessions: false,
         },
         oldCookie,
@@ -138,7 +143,7 @@ async function main(): Promise<void> {
     const newLogin = await auth.handler(
       jsonRequest("/sign-in/email", {
         email: "maria@example.test",
-        password: "senha-alterada-segura",
+        password: changedPassword,
       }),
     );
     assert.equal(newLogin.status, 200);
@@ -154,12 +159,12 @@ async function main(): Promise<void> {
     await admin.query(
       `insert into accounts (id, account_id, provider_id, user_id, password)
        values ('legacy-credential-account', $1, 'credential', $1, $2)`,
-      [legacyUserId, hashSync("senha-bcrypt-legada", 4)],
+      [legacyUserId, hashSync(legacyPassword, 4)],
     );
     const legacyLogin = await auth.handler(
       jsonRequest("/sign-in/email", {
         email: "legacy@example.test",
-        password: "senha-bcrypt-legada",
+        password: legacyPassword,
       }),
     );
     assert.equal(legacyLogin.status, 200, "hash bcrypt importado deve autenticar");
