@@ -12,8 +12,24 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: preco_que_da_lucro_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d preco_que_da_lucro_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       BUILD_RELEASE_CHANNEL: pre-beta-internal
+      DATABASE_ADMIN_URL: postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
       VITE_SUPABASE_URL: https://example.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
       SUPABASE_URL: https://example.supabase.co
@@ -31,6 +47,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test
+      - run: npm run db:test
       - run: npm run build
       - run: npm run check:bundle
       - name: Upload bundle evidence
