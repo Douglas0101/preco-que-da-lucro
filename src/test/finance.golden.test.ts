@@ -42,8 +42,9 @@ function unwrap<T>(r: CalculationResult<T>): T {
  * lote correspondente.
  *
  * Lotes já aplicados: 03 (contrato CalculationResult), 04 (unknown ≠ zero),
- * 05 (número inválido ≠ zero), 06 (origem explícita do volume) e 07
- * (formação explícita de preço). `null` permanece incomplete; valores
+ * 05 (número inválido ≠ zero), 06 (origem explícita do volume), 07
+ * (formação explícita de preço), 08 (unidades) e 09 (arredondamento).
+ * `null` permanece incomplete; valores
  * numéricos inválidos e resultados não finitos usam `invalid`.
  */
 
@@ -85,8 +86,7 @@ describe("custo de ingredientes e receita", () => {
     ).toBeNull();
   });
 
-  it("unidade incompatível: custo vira zero silenciosamente", () => {
-    // golden: comportamento atual incorreto — conversão incompatível vira custo zero (corrigir no lote 08, units)
+  it("unidade incompatível: custo permanece desconhecido, nunca zero", () => {
     expect(
       calculateIngredientCost({
         used_qty: 200,
@@ -95,7 +95,26 @@ describe("custo de ingredientes e receita", () => {
         package_qty: 1,
         package_unit: "l",
       }),
-    ).toBe(0);
+    ).toBeNull();
+
+    expect(
+      computeProductCost({
+        ingredients: [
+          {
+            used_qty: 200,
+            used_unit: "g",
+            package_price: 6,
+            package_qty: 1,
+            package_unit: "l",
+          },
+        ],
+        packaging: [],
+        yieldQty: 10,
+      }),
+    ).toMatchObject({
+      status: "incomplete",
+      missing: [{ field: "ingredients[0].conversion_context" }],
+    });
   });
 
   it("custo da receita soma os ingredientes", () => {
@@ -186,20 +205,34 @@ describe("margem de contribuição", () => {
 });
 
 describe("ponto de equilíbrio", () => {
-  it("contribuição zero torna o break-even impossível (Infinity)", () => {
-    // golden: Infinity vaza para a UI — semântica de impossível será formalizada no lote 09/rounding
-    expect(calculateBreakEvenUnits(6000, 0)).toBe(Infinity);
-    expect(calculateBreakEvenRevenue(6000, 0)).toBe(Infinity);
+  it("contribuição zero torna o break-even explicitamente não atingível", () => {
+    expect(calculateBreakEvenUnits(6000, 0)).toMatchObject({
+      status: "unreachable",
+      rawUnits: null,
+      roundedUnits: null,
+      reason: "NON_POSITIVE_CONTRIBUTION",
+    });
+    expect(calculateBreakEvenRevenue(6000, 0)).toBeNull();
   });
 
   it("margem negativa também torna o break-even impossível", () => {
-    expect(calculateBreakEvenUnits(6000, -1)).toBe(Infinity);
-    expect(calculateRequiredSalesForProfit(6000, 2000, -1)).toBe(Infinity);
+    expect(calculateBreakEvenUnits(6000, -1).status).toBe("unreachable");
+    expect(calculateRequiredSalesForProfit(6000, 2000, -1).status).toBe("unreachable");
   });
 
-  it("break-even discreto ainda não usa ceil", () => {
-    // golden: comportamento atual incorreto — 857,14… unidades sem arredondamento discreto (corrigir no lote 09, FIN-08 da V7)
-    expect(calculateBreakEvenUnits(6000, 7)).toBeCloseTo(857.142857, 5);
+  it("break-even discreto preserva o bruto e usa ceil operacional", () => {
+    const result = calculateBreakEvenUnits(6000, 7);
+    expect(result.status).toBe("reachable");
+    if (result.status === "reachable") {
+      expect(result.rawUnits).toBeCloseTo(857.142857, 5);
+      expect(result.roundedUnits).toBe(858);
+    }
+
+    const continuous = calculateBreakEvenUnits(6000, 7, "continuous");
+    expect(continuous.status).toBe("reachable");
+    if (continuous.status === "reachable") {
+      expect(continuous.roundedUnits).toBeCloseTo(continuous.rawUnits, 10);
+    }
   });
 });
 
@@ -230,7 +263,11 @@ describe("cenários (exemplo canônico da Diretriz §12)", () => {
     const result = unwrap(calculateScenario({ ...base, price: 10 }));
     expect(result.contributionMargin).toBeCloseTo(6, 10);
     expect(result.contributionMarginPct).toBeCloseTo(60, 10);
-    expect(result.breakEvenUnits).toBeCloseTo(1000, 10);
+    expect(result.breakEvenUnits).toMatchObject({
+      status: "reachable",
+      rawUnits: 1000,
+      roundedUnits: 1000,
+    });
     expect(result.breakEvenRevenue).toBeCloseTo(10000, 10);
     expect(result.revenue).toBe(7000);
     expect(result.result).toBeCloseTo(-1800, 10);
@@ -964,7 +1001,7 @@ describe("política invalid number ≠ zero (FIN-003 — lote 05)", () => {
     expect(Number.isNaN(calculateUnitCost(null, 0, 0.5))).toBe(true);
     expect(Number.isNaN(calculateVariableCost(null, 100, []))).toBe(true);
     expect(Number.isNaN(calculateContributionMarginPct(Number.NaN, 5))).toBe(true);
-    expect(Number.isNaN(calculateBreakEvenUnits(Number.POSITIVE_INFINITY, 5))).toBe(true);
+    expect(calculateBreakEvenUnits(Number.POSITIVE_INFINITY, 5).status).toBe("invalid");
     expect(Number.isNaN(sumFiniteNumbers([1, Number.POSITIVE_INFINITY]))).toBe(true);
     expect(Number.isNaN(sumFiniteNumbers([Number.MAX_VALUE, Number.MAX_VALUE]))).toBe(true);
     expect(sumFiniteNumbers([1, 2, 3])).toBe(6);
@@ -997,7 +1034,7 @@ describe("política invalid number ≠ zero (FIN-003 — lote 05)", () => {
     });
   });
 
-  it("Infinity semântico de break-even permanece não atingível, não invalid", () => {
+  it("break-even não atingível usa estado explícito e não Infinity", () => {
     const result = calculateScenario({
       ...validScenario(),
       price: 10,
@@ -1006,8 +1043,8 @@ describe("política invalid number ≠ zero (FIN-003 — lote 05)", () => {
     });
     expect(result.status).toBe("ok");
     if (result.status === "ok") {
-      expect(result.value.breakEvenUnits).toBe(Number.POSITIVE_INFINITY);
-      expect(result.value.breakEvenRevenue).toBe(Number.POSITIVE_INFINITY);
+      expect(result.value.breakEvenUnits.status).toBe("unreachable");
+      expect(result.value.breakEvenRevenue).toBeNull();
     }
   });
 

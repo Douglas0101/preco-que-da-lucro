@@ -3,6 +3,17 @@
  * Todos os cálculos do sistema passam por aqui — a IA NUNCA faz contas.
  */
 
+import Decimal from "decimal.js";
+import type { QuantityDimension } from "@/lib/financial-values";
+
+Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
+
+function decimalResult(value: Decimal): number {
+  if (!value.isFinite()) return Number.NaN;
+  const result = value.toNumber();
+  return Number.isFinite(result) ? result : Number.NaN;
+}
+
 /**
  * Contrato de resultado do motor (V7 §8.2 / Plano §6.2, FIN-001 — lote 03).
  * Separa cálculo válido (`ok`), dado incompleto (`incomplete`) e dado
@@ -111,19 +122,15 @@ function nonFiniteResultError(field: string): CalculationError {
   };
 }
 
-function finiteResult(value: number): number {
-  return Number.isFinite(value) ? value : Number.NaN;
-}
-
 /** Soma valores finitos sem deixar overflow ou entrada especial vazar. */
 export function sumFiniteNumbers(values: number[]): number {
-  let sum = 0;
+  let sum = new Decimal(0);
   for (const value of values) {
     if (!Number.isFinite(value)) return Number.NaN;
-    sum = finiteResult(sum + value);
-    if (Number.isNaN(sum)) return sum;
+    sum = sum.plus(value);
+    if (!sum.isFinite()) return Number.NaN;
   }
-  return sum;
+  return decimalResult(sum);
 }
 
 export type Unit =
@@ -146,22 +153,63 @@ const MASS: Record<string, number> = { mg: 0.001, g: 1, kg: 1000 };
 const VOLUME: Record<string, number> = { ml: 1, l: 1000 };
 const COUNT: Record<string, number> = { unidade: 1, un: 1, dúzia: 12, duzia: 12 };
 
+const CONTEXTUAL_UNITS: ReadonlySet<string> = new Set([
+  "pacote",
+  "caixa",
+  "colher",
+  "xicara",
+  "xícara",
+]);
+
 function normUnit(u: string) {
   return (u || "").trim().toLowerCase();
+}
+
+export function unitDimension(unit: string): QuantityDimension | null {
+  const normalized = normUnit(unit);
+  if (normalized in MASS) return "mass";
+  if (normalized in VOLUME) return "volume";
+  if (normalized in COUNT) return "count";
+  if (CONTEXTUAL_UNITS.has(normalized)) return "commercial";
+  return null;
+}
+
+export interface UnitConversionContext {
+  fromUnit: string;
+  toUnit: string;
+  /** Quantidade na unidade de destino correspondente a 1 unidade de origem. */
+  factor: number;
+  contextId: string;
 }
 
 /**
  * Converte quantidade entre unidades da mesma família.
  * Retorna null quando as unidades não são convertíveis com segurança.
  */
-export function convertUnit(qty: number, from: string, to: string): number | null {
+export function convertUnit(
+  qty: number,
+  from: string,
+  to: string,
+  context?: UnitConversionContext,
+): number | null {
   if (!Number.isFinite(qty)) return Number.NaN;
   const f = normUnit(from);
   const t = normUnit(to);
   if (f === t) return qty;
-  if (f in MASS && t in MASS) return finiteResult((qty * MASS[f]) / MASS[t]);
-  if (f in VOLUME && t in VOLUME) return finiteResult((qty * VOLUME[f]) / VOLUME[t]);
-  if (f in COUNT && t in COUNT) return finiteResult((qty * COUNT[f]) / COUNT[t]);
+  if (f in MASS && t in MASS) return decimalResult(new Decimal(qty).mul(MASS[f]).div(MASS[t]));
+  if (f in VOLUME && t in VOLUME)
+    return decimalResult(new Decimal(qty).mul(VOLUME[f]).div(VOLUME[t]));
+  if (f in COUNT && t in COUNT) return decimalResult(new Decimal(qty).mul(COUNT[f]).div(COUNT[t]));
+  if (
+    context &&
+    normUnit(context.fromUnit) === f &&
+    normUnit(context.toUnit) === t &&
+    Number.isFinite(context.factor) &&
+    context.factor > 0 &&
+    context.contextId.trim() !== ""
+  ) {
+    return decimalResult(new Decimal(qty).mul(context.factor));
+  }
   return null;
 }
 
@@ -171,6 +219,7 @@ export interface IngredientRow {
   package_price: number | null;
   package_qty: number | null;
   package_unit: string | null;
+  conversion_context?: UnitConversionContext;
 }
 
 export function calculateIngredientCost(row: IngredientRow): number | null {
@@ -188,15 +237,20 @@ export function calculateIngredientCost(row: IngredientRow): number | null {
   )
     return Number.NaN;
   if (row.package_price == null || row.package_qty == null || row.package_unit == null) return null;
-  const converted = convertUnit(row.used_qty, row.used_unit, row.package_unit);
-  // golden (lote 08): conversão incompatível ainda vira custo zero.
-  if (converted === null) return 0;
-  return finiteResult(converted * (row.package_price / row.package_qty));
+  const converted = convertUnit(
+    row.used_qty,
+    row.used_unit,
+    row.package_unit,
+    row.conversion_context,
+  );
+  // FIN-006: conversão incompatível ou contextual sem fator confirmado é desconhecida.
+  if (converted === null) return null;
+  return decimalResult(new Decimal(converted).mul(row.package_price).div(row.package_qty));
 }
 
 export function calculateRecipeCost(rows: IngredientRow[]): number | null {
   // Custo total é desconhecido se qualquer ingrediente for desconhecido.
-  let sum = 0;
+  let sum = new Decimal(0);
   let incomplete = false;
   for (const r of rows) {
     const cost = calculateIngredientCost(r);
@@ -204,10 +258,10 @@ export function calculateRecipeCost(rows: IngredientRow[]): number | null {
       incomplete = true;
       continue;
     }
-    sum = finiteResult(sum + cost);
-    if (Number.isNaN(sum)) return sum;
+    sum = sum.plus(cost);
+    if (!sum.isFinite()) return Number.NaN;
   }
-  return incomplete ? null : sum;
+  return incomplete ? null : decimalResult(sum);
 }
 
 export interface PackagingRow {
@@ -215,15 +269,15 @@ export interface PackagingRow {
   units_per_package: number;
 }
 export function calculatePackagingCost(rows: PackagingRow[]): number {
-  let sum = 0;
+  let sum = new Decimal(0);
   for (const row of rows) {
     if (numericInputError("package_price", row.package_price, { min: 0 })) return Number.NaN;
     if (numericInputError("units_per_package", row.units_per_package, { minExclusive: 0 }))
       return Number.NaN;
-    sum = finiteResult(sum + row.package_price / row.units_per_package);
-    if (Number.isNaN(sum)) return sum;
+    sum = sum.plus(new Decimal(row.package_price).div(row.units_per_package));
+    if (!sum.isFinite()) return Number.NaN;
   }
-  return sum;
+  return decimalResult(sum);
 }
 
 export function calculateUnitCost(
@@ -239,7 +293,7 @@ export function calculateUnitCost(
   if (yieldQty != null && numericInputError("yieldQty", yieldQty, { minExclusive: 0 }))
     return Number.NaN;
   if (recipeCost == null || packagingCost == null || yieldQty == null) return null;
-  return finiteResult(recipeCost / yieldQty + packagingCost);
+  return decimalResult(new Decimal(recipeCost).div(yieldQty).plus(packagingCost));
 }
 
 export interface FeeRow {
@@ -248,12 +302,12 @@ export interface FeeRow {
 
 /** SDD §11.7: imposto + taxas sobre preço bruto deve permanecer abaixo de 100%. */
 function combinedRateError(taxRate: number | null, fees: FeeRow[]): CalculationError | null {
-  let total = 0;
+  let total = new Decimal(0);
   for (const value of [taxRate, ...fees.map((fee) => fee.percentage)]) {
     if (value == null) continue;
     if (numericInputError("rateOnGrossPrice", value, { min: 0, max: 100 })) return null;
-    total = finiteResult(total + value);
-    if (!Number.isFinite(total) || total >= 100) {
+    total = total.plus(value);
+    if (!total.isFinite() || total.gte(100)) {
       return {
         code: "INVALID_NUMBER",
         message: "A soma de imposto e taxas deve ser menor que 100%.",
@@ -282,8 +336,11 @@ export function calculateVariableCost(
   }
   if (combinedRateError(taxRate, fees)) return Number.NaN;
   if (price == null || taxRate == null || fees.some((fee) => fee.percentage == null)) return null;
-  const totalRate = taxRate + fees.reduce((sum, fee) => sum + (fee.percentage as number), 0);
-  return finiteResult(price * (totalRate / 100));
+  const totalRate = fees.reduce(
+    (sum, fee) => sum.plus(fee.percentage as number),
+    new Decimal(taxRate),
+  );
+  return decimalResult(new Decimal(price).mul(totalRate).div(100));
 }
 
 export function calculateContributionMargin(
@@ -294,40 +351,100 @@ export function calculateContributionMargin(
   if (numericInputError("price", price, { min: 0 })) return Number.NaN;
   if (numericInputError("unitCost", unitCost, { min: 0 })) return Number.NaN;
   if (numericInputError("variableCost", variableCost, { min: 0 })) return Number.NaN;
-  return finiteResult(price - unitCost - variableCost);
+  return decimalResult(new Decimal(price).minus(unitCost).minus(variableCost));
 }
 
 export function calculateContributionMarginPct(price: number, contributionMargin: number): number {
   if (numericInputError("price", price, { min: 0 })) return Number.NaN;
   if (numericInputError("contributionMargin", contributionMargin)) return Number.NaN;
   if (price === 0) return 0;
-  return finiteResult((contributionMargin / price) * 100);
+  return decimalResult(new Decimal(contributionMargin).div(price).mul(100));
 }
 
-export function calculateBreakEvenUnits(fixedExpenses: number, cmUnit: number): number {
-  if (numericInputError("fixedExpenses", fixedExpenses, { min: 0 })) return Number.NaN;
-  if (numericInputError("cmUnit", cmUnit)) return Number.NaN;
-  if (cmUnit <= 0) return Infinity;
-  return finiteResult(fixedExpenses / cmUnit);
+export type BreakEvenUnitMode = "discrete" | "continuous";
+
+export type BreakEvenResult =
+  | {
+      status: "reachable";
+      rawUnits: number;
+      roundedUnits: number;
+      unitMode: BreakEvenUnitMode;
+    }
+  | {
+      status: "unreachable";
+      rawUnits: null;
+      roundedUnits: null;
+      unitMode: BreakEvenUnitMode;
+      reason: "NON_POSITIVE_CONTRIBUTION";
+    }
+  | {
+      status: "invalid";
+      rawUnits: null;
+      roundedUnits: null;
+      unitMode: BreakEvenUnitMode;
+      errors: CalculationError[];
+    };
+
+export function calculateBreakEvenUnits(
+  fixedExpenses: number,
+  cmUnit: number,
+  unitMode: BreakEvenUnitMode = "discrete",
+): BreakEvenResult {
+  const errors = [
+    numericInputError("fixedExpenses", fixedExpenses, { min: 0 }),
+    numericInputError("cmUnit", cmUnit),
+  ].filter((error): error is CalculationError => error !== null);
+  if (errors.length > 0) {
+    return { status: "invalid", rawUnits: null, roundedUnits: null, unitMode, errors };
+  }
+  if (cmUnit <= 0) {
+    return {
+      status: "unreachable",
+      rawUnits: null,
+      roundedUnits: null,
+      unitMode,
+      reason: "NON_POSITIVE_CONTRIBUTION",
+    };
+  }
+  const rawUnits = decimalResult(new Decimal(fixedExpenses).div(cmUnit));
+  if (!Number.isFinite(rawUnits)) {
+    return {
+      status: "invalid",
+      rawUnits: null,
+      roundedUnits: null,
+      unitMode,
+      errors: [nonFiniteResultError("breakEvenUnits")],
+    };
+  }
+  const roundedUnits = unitMode === "discrete" ? new Decimal(rawUnits).ceil().toNumber() : rawUnits;
+  return { status: "reachable", rawUnits, roundedUnits, unitMode };
 }
 
-export function calculateBreakEvenRevenue(fixedExpenses: number, cmPct: number): number {
+export function calculateBreakEvenRevenue(fixedExpenses: number, cmPct: number): number | null {
   if (numericInputError("fixedExpenses", fixedExpenses, { min: 0 })) return Number.NaN;
   if (numericInputError("cmPct", cmPct)) return Number.NaN;
-  if (cmPct <= 0) return Infinity;
-  return finiteResult(fixedExpenses / (cmPct / 100));
+  if (cmPct <= 0) return null;
+  return decimalResult(new Decimal(fixedExpenses).div(new Decimal(cmPct).div(100)));
 }
 
 export function calculateRequiredSalesForProfit(
   fixedExpenses: number,
   desiredProfit: number,
   cmUnit: number,
-): number {
-  if (numericInputError("fixedExpenses", fixedExpenses, { min: 0 })) return Number.NaN;
-  if (numericInputError("desiredProfit", desiredProfit, { min: 0 })) return Number.NaN;
-  if (numericInputError("cmUnit", cmUnit)) return Number.NaN;
-  if (cmUnit <= 0) return Infinity;
-  return finiteResult((fixedExpenses + desiredProfit) / cmUnit);
+  unitMode: BreakEvenUnitMode = "discrete",
+): BreakEvenResult {
+  const desiredProfitError = numericInputError("desiredProfit", desiredProfit, { min: 0 });
+  if (desiredProfitError !== null) {
+    return {
+      status: "invalid",
+      rawUnits: null,
+      roundedUnits: null,
+      unitMode,
+      errors: [desiredProfitError],
+    };
+  }
+  const requiredContribution = decimalResult(new Decimal(fixedExpenses).plus(desiredProfit));
+  return calculateBreakEvenUnits(requiredContribution, cmUnit, unitMode);
 }
 
 export type VolumeSource = "real" | "manual_simulation" | "forecast" | "unknown";
@@ -359,8 +476,8 @@ export interface ScenarioResult {
   variableCost: number;
   contributionMargin: number;
   contributionMarginPct: number;
-  breakEvenUnits: number;
-  breakEvenRevenue: number;
+  breakEvenUnits: BreakEvenResult;
+  breakEvenRevenue: number | null;
   volume: number;
   volumeSource: ResolvedVolumeSource;
   revenue: number;
@@ -451,7 +568,11 @@ function calculatePriceForContributionRate(
   if (!Number.isFinite(percentageRate))
     return calcInvalid([nonFiniteResultError("rateOnGrossPrice")]);
 
-  const denominator = finiteResult(1 - (percentageRate + (targetContributionRate as number)) / 100);
+  const denominator = decimalResult(
+    new Decimal(1).minus(
+      new Decimal(percentageRate).plus(targetContributionRate as number).div(100),
+    ),
+  );
   if (!Number.isFinite(denominator))
     return calcInvalid([nonFiniteResultError("priceFormationDenominator")]);
   if (denominator <= 0) {
@@ -470,7 +591,7 @@ function calculatePriceForContributionRate(
   ]);
   if (!Number.isFinite(modeledUnitCost))
     return calcInvalid([nonFiniteResultError("modeledUnitCost")]);
-  const price = finiteResult(modeledUnitCost / denominator);
+  const price = decimalResult(new Decimal(modeledUnitCost).div(denominator));
   if (!Number.isFinite(price)) return calcInvalid([nonFiniteResultError("price")]);
   return calcOk(price);
 }
@@ -538,19 +659,19 @@ export function calculateScenario(i: ScenarioInput): CalculationResult<ScenarioR
   if (!Number.isFinite(contributionMarginPct))
     return calcInvalid([nonFiniteResultError("contributionMarginPct")]);
   const breakEvenUnits = calculateBreakEvenUnits(fixedExpenses, contributionMargin);
-  if (Number.isNaN(breakEvenUnits)) return calcInvalid([nonFiniteResultError("breakEvenUnits")]);
+  if (breakEvenUnits.status === "invalid") return calcInvalid(breakEvenUnits.errors);
   const breakEvenRevenue = calculateBreakEvenRevenue(fixedExpenses, contributionMarginPct);
-  if (Number.isNaN(breakEvenRevenue))
+  if (breakEvenRevenue != null && Number.isNaN(breakEvenRevenue))
     return calcInvalid([nonFiniteResultError("breakEvenRevenue")]);
 
   const finiteOutputs = {
-    revenue: finiteResult(price * volume),
-    totalVariable: finiteResult((unitCost + variableCost) * volume),
-    totalContribution: finiteResult(contributionMargin * volume),
+    revenue: decimalResult(new Decimal(price).mul(volume)),
+    totalVariable: decimalResult(new Decimal(unitCost).plus(variableCost).mul(volume)),
+    totalContribution: decimalResult(new Decimal(contributionMargin).mul(volume)),
   };
   const invalidOutput = Object.entries(finiteOutputs).find(([, value]) => !Number.isFinite(value));
   if (invalidOutput) return calcInvalid([nonFiniteResultError(invalidOutput[0])]);
-  const result = finiteResult(finiteOutputs.totalContribution - fixedExpenses);
+  const result = decimalResult(new Decimal(finiteOutputs.totalContribution).minus(fixedExpenses));
   if (!Number.isFinite(result)) return calcInvalid([nonFiniteResultError("result")]);
 
   return calcOk({
@@ -605,7 +726,39 @@ function collectProductCostIssues(
     collectNullableNumber(missing, errors, `ingredients[${i}].package_qty`, row.package_qty, {
       minExclusive: 0,
     });
-    if (row.package_unit == null) missing.push({ field: `ingredients[${i}].package_unit` });
+    const usedDimension = unitDimension(row.used_unit);
+    if (usedDimension === null) {
+      errors.push({
+        code: "UNSUPPORTED_UNIT",
+        message: "Informe uma unidade de uso suportada.",
+        field: `ingredients[${i}].used_unit`,
+      });
+    }
+    if (row.package_unit == null) {
+      missing.push({ field: `ingredients[${i}].package_unit` });
+      return;
+    }
+    const packageDimension = unitDimension(row.package_unit);
+    if (packageDimension === null) {
+      errors.push({
+        code: "UNSUPPORTED_UNIT",
+        message: "Informe uma unidade de embalagem suportada.",
+        field: `ingredients[${i}].package_unit`,
+      });
+      return;
+    }
+    if (
+      Number.isFinite(row.used_qty) &&
+      convertUnit(row.used_qty, row.used_unit, row.package_unit, row.conversion_context) === null
+    ) {
+      missing.push({
+        field: `ingredients[${i}].conversion_context`,
+        reason:
+          usedDimension === packageDimension
+            ? "Confirme o fator de conversão comercial."
+            : "A conversão entre dimensões exige um fator contextual confirmado.",
+      });
+    }
   });
   args.packaging.forEach((row, i) => {
     collectNumericError(errors, `packaging[${i}].package_price`, row.package_price, { min: 0 });

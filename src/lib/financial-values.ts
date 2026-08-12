@@ -1,0 +1,91 @@
+import Decimal from "decimal.js";
+import { z } from "zod";
+
+/**
+ * Representação canônica nas fronteiras HTTP/DB. O branding impede que uma
+ * string de apresentação (por exemplo, "R$ 1,00") entre no motor financeiro.
+ */
+export type DecimalString = string & { readonly __decimalString: unique symbol };
+
+export type Money = Readonly<{
+  amount: DecimalString;
+  currency: "BRL";
+}>;
+
+/** Percentual canônico em fração: 0.15 representa 15%. */
+export type Percent = Readonly<{
+  value: DecimalString;
+}>;
+
+export type QuantityDimension = "mass" | "volume" | "count" | "production" | "commercial";
+
+export type Quantity = Readonly<{
+  amount: DecimalString;
+  unit: string;
+  dimension: QuantityDimension;
+  conversionContextId?: string;
+}>;
+
+const decimalPattern = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/;
+
+function isFiniteDecimal(value: string): boolean {
+  try {
+    return new Decimal(value).isFinite();
+  } catch {
+    return false;
+  }
+}
+
+export const decimalStringSchema = z
+  .string()
+  .regex(decimalPattern, "Use uma string decimal canônica.")
+  .refine(isFiniteDecimal, "O decimal deve ser finito.")
+  .transform((value) => value as DecimalString);
+
+export const moneySchema = z.object({
+  amount: decimalStringSchema,
+  currency: z.literal("BRL"),
+});
+
+export const percentSchema = z.object({
+  value: decimalStringSchema.refine(
+    (value) => new Decimal(value).gte(0) && new Decimal(value).lte(1),
+    "O percentual deve estar entre 0 e 1.",
+  ),
+});
+
+export const quantitySchema = z.object({
+  amount: decimalStringSchema.refine(
+    (value) => new Decimal(value).gt(0),
+    "Informe uma quantidade positiva.",
+  ),
+  unit: z.string().trim().min(1),
+  dimension: z.enum(["mass", "volume", "count", "production", "commercial"]),
+  conversionContextId: z.string().trim().min(1).optional(),
+});
+
+export const FINANCIAL_DECIMAL_POLICY = Object.freeze({
+  money: { precision: 19, scale: 4 },
+  intermediate: { precision: 24, scale: 8 },
+  percent: { precision: 9, scale: 6 },
+  quantity: { precision: 24, scale: 6 },
+  rounding: "ROUND_HALF_UP" as const,
+});
+
+Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
+
+export function toDecimalString(value: Decimal.Value, scale?: number): DecimalString {
+  const decimal = new Decimal(value);
+  if (!decimal.isFinite()) throw new Error("NON_FINITE_DECIMAL");
+  return (scale === undefined ? decimal.toString() : decimal.toFixed(scale)) as DecimalString;
+}
+
+export function percentPointsToFraction(value: Decimal.Value): Percent {
+  return {
+    value: toDecimalString(new Decimal(value).div(100), FINANCIAL_DECIMAL_POLICY.percent.scale),
+  };
+}
+
+export function fractionToPercentPoints(value: Percent): Decimal {
+  return new Decimal(value.value).mul(100);
+}

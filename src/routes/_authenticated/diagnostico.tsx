@@ -9,6 +9,7 @@ import {
   computeProductCost,
   sumFiniteNumbers,
   type CalculationResult,
+  type BreakEvenResult,
   type FeeRow,
   type IngredientRow,
   type PackagingRow,
@@ -36,7 +37,7 @@ type ProductStatus = "idle" | "loading" | "incomplete" | "invalid" | "error" | "
 interface CurrentAnalysis {
   computation: ProductComputation;
   price: number;
-  breakEvenUnits: number;
+  breakEvenUnits: BreakEvenResult;
   alerts: DiagnosticAlert[];
 }
 
@@ -192,7 +193,7 @@ function Diagnostico() {
             fixedExpenses,
             current.value.contributionMargin,
           );
-          if (Number.isNaN(breakEvenUnits)) {
+          if (breakEvenUnits.status === "invalid") {
             currentStatus = "invalid";
           } else {
             const alerts: DiagnosticAlert[] = [];
@@ -211,7 +212,7 @@ function Diagnostico() {
                 text: `Margem de contribuição baixa (${pct(current.value.contributionMarginPct)}). Pode representar risco no médio prazo.`,
               });
             }
-            if (fixedExpenses > 0 && breakEvenUnits === Number.POSITIVE_INFINITY) {
+            if (fixedExpenses > 0 && breakEvenUnits.status === "unreachable") {
               alerts.push({
                 level: "warn",
                 text: "Com a margem atual, você não cobre as despesas fixas. Pode ser interessante simular preço maior ou custo menor.",
@@ -507,9 +508,11 @@ function Diagnostico() {
                   label="Ponto de equilíbrio do preço atual"
                   value={
                     diagnostic.currentAnalysis
-                      ? Number.isFinite(diagnostic.currentAnalysis.breakEvenUnits)
-                        ? `${num(diagnostic.currentAnalysis.breakEvenUnits, 0)} un.`
-                        : num(diagnostic.currentAnalysis.breakEvenUnits, 0)
+                      ? diagnostic.currentAnalysis.breakEvenUnits.status === "reachable"
+                        ? `${num(diagnostic.currentAnalysis.breakEvenUnits.roundedUnits, 0)} un. (bruto ${num(diagnostic.currentAnalysis.breakEvenUnits.rawUnits, 2)})`
+                        : diagnostic.currentAnalysis.breakEvenUnits.status === "unreachable"
+                          ? "Não atingível"
+                          : "Erro de cálculo"
                       : "—"
                   }
                 />
