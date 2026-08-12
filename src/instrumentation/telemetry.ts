@@ -24,9 +24,16 @@ export function ensureTelemetryStarted(): void {
   if (telemetryStarted || telemetryStarting || !process.env.OTEL_EXPORTER_OTLP_ENDPOINT) return;
   telemetryStarting = (async () => {
     try {
+      // These packages are server-only. Variable, vite-ignored imports prevent a
+      // server function's shared module graph from pulling Node SDK internals
+      // into the browser bundle while keeping OTLP available at runtime.
+      const sdkPackage = "@opentelemetry/sdk-node";
+      const exporterPackage = "@opentelemetry/exporter-trace-otlp-http";
       const [{ NodeSDK }, { OTLPTraceExporter }] = await Promise.all([
-        import("@opentelemetry/sdk-node"),
-        import("@opentelemetry/exporter-trace-otlp-http"),
+        import(/* @vite-ignore */ sdkPackage) as Promise<typeof import("@opentelemetry/sdk-node")>,
+        import(/* @vite-ignore */ exporterPackage) as Promise<
+          typeof import("@opentelemetry/exporter-trace-otlp-http")
+        >,
       ]);
       const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT!.replace(/\/$/, "");
       const sdk = new NodeSDK({

@@ -1,4 +1,3 @@
-import { setTimeout as delay } from "node:timers/promises";
 import { and, asc, count, eq, gte, sql } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -237,6 +236,24 @@ function isTransientStatus(status: number): boolean {
   );
 }
 
+function delay(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(signal.reason);
+      return;
+    }
+    const onAbort = () => {
+      globalThis.clearTimeout(timer);
+      reject(signal.reason);
+    };
+    const timer = globalThis.setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
 async function callModel(
   messages: GatewayMessage[],
   requestSignal: AbortSignal,
@@ -271,7 +288,7 @@ async function callModel(
       if (response.status === 429) throw new ApplicationError("RATE_LIMIT");
       if (!response.ok) {
         if (isTransientStatus(response.status) && attempt < attempts) {
-          await delay(150 * attempt, undefined, { signal: requestSignal });
+          await delay(150 * attempt, requestSignal);
           continue;
         }
         throw new ApplicationError("DEPENDENCY_ERROR");
@@ -286,7 +303,7 @@ async function callModel(
         throw new ApplicationError("AI_TIMEOUT", { cause: error });
       }
       if (attempt >= attempts) throw new ApplicationError("DEPENDENCY_ERROR", { cause: error });
-      await delay(150 * attempt, undefined, { signal: requestSignal });
+      await delay(150 * attempt, requestSignal);
     } finally {
       applicationMetrics.aiDuration.record(performance.now() - attemptStartedAt, {
         model,
