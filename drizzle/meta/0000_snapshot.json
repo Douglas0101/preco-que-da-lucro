@@ -1,5 +1,5 @@
 {
-  "id": "db99547b-4936-465b-a468-b5ae035c820b",
+  "id": "773a85ff-1b7c-434d-b060-38b294bfb316",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -425,27 +425,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "chat_conversations_tenant_id_uidx": {
-          "name": "chat_conversations_tenant_id_uidx",
-          "columns": [
-            {
-              "expression": "tenant_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -455,7 +434,7 @@
           "tableTo": "products",
           "columnsFrom": ["tenant_id", "current_product_id"],
           "columnsTo": ["tenant_id", "id"],
-          "onDelete": "set null",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         },
         "chat_conversations_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk": {
@@ -469,7 +448,13 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "chat_conversations_tenant_id_uidx": {
+          "name": "chat_conversations_tenant_id_uidx",
+          "nullsNotDistinct": false,
+          "columns": ["tenant_id", "id"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1480,27 +1465,6 @@
         }
       },
       "indexes": {
-        "products_tenant_id_id_uidx": {
-          "name": "products_tenant_id_id_uidx",
-          "columns": [
-            {
-              "expression": "tenant_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "products_tenant_created_idx": {
           "name": "products_tenant_created_idx",
           "columns": [
@@ -1556,7 +1520,13 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "products_tenant_id_id_uidx": {
+          "name": "products_tenant_id_id_uidx",
+          "nullsNotDistinct": false,
+          "columns": ["tenant_id", "id"]
+        }
+      },
       "policies": {},
       "checkConstraints": {
         "products_current_price_check": {
@@ -1669,7 +1639,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "profiles_identity_check": {
+          "name": "profiles_identity_check",
+          "value": "\"profiles\".\"id\" = \"profiles\".\"user_id\""
+        }
+      },
       "isRLSEnabled": false
     },
     "public.sales_fees": {
@@ -2029,7 +2004,7 @@
           "tableTo": "products",
           "columnsFrom": ["tenant_id", "product_id"],
           "columnsTo": ["tenant_id", "id"],
-          "onDelete": "set null",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         },
         "simulations_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk": {

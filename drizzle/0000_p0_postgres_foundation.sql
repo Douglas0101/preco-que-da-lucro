@@ -47,7 +47,8 @@ CREATE TABLE "chat_conversations" (
 	"confirmed_state" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"reset_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "chat_conversations_tenant_id_uidx" UNIQUE("tenant_id","id")
 );
 --> statement-breakpoint
 CREATE TABLE "chat_messages" (
@@ -160,6 +161,7 @@ CREATE TABLE "products" (
 	"archived_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "products_tenant_id_id_uidx" UNIQUE("tenant_id","id"),
 	CONSTRAINT "products_current_price_check" CHECK ("products"."current_price" is null or "products"."current_price" >= 0),
 	CONSTRAINT "products_yield_qty_check" CHECK ("products"."yield_qty" is null or "products"."yield_qty" > 0),
 	CONSTRAINT "products_tax_rate_check" CHECK ("products"."tax_rate" is null or ("products"."tax_rate" >= 0 and "products"."tax_rate" <= 1))
@@ -172,7 +174,8 @@ CREATE TABLE "profiles" (
 	"email" text,
 	"display_name" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "profiles_identity_check" CHECK ("profiles"."id" = "profiles"."user_id")
 );
 --> statement-breakpoint
 CREATE TABLE "sales_fees" (
@@ -269,7 +272,7 @@ CREATE TABLE "verifications" (
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ai_daily_budgets" ADD CONSTRAINT "ai_daily_budgets_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "audit_events" ADD CONSTRAINT "audit_events_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk" FOREIGN KEY ("tenant_id","user_id") REFERENCES "public"."tenant_memberships"("tenant_id","user_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "chat_conversations" ADD CONSTRAINT "chat_conversations_tenant_id_current_product_id_products_tenant_id_id_fk" FOREIGN KEY ("tenant_id","current_product_id") REFERENCES "public"."products"("tenant_id","id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "chat_conversations" ADD CONSTRAINT "chat_conversations_tenant_id_current_product_id_products_tenant_id_id_fk" FOREIGN KEY ("tenant_id","current_product_id") REFERENCES "public"."products"("tenant_id","id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat_conversations" ADD CONSTRAINT "chat_conversations_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk" FOREIGN KEY ("tenant_id","user_id") REFERENCES "public"."tenant_memberships"("tenant_id","user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat_messages" ADD CONSTRAINT "chat_messages_tenant_id_conversation_id_chat_conversations_tenant_id_id_fk" FOREIGN KEY ("tenant_id","conversation_id") REFERENCES "public"."chat_conversations"("tenant_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat_messages" ADD CONSTRAINT "chat_messages_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk" FOREIGN KEY ("tenant_id","user_id") REFERENCES "public"."tenant_memberships"("tenant_id","user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -287,7 +290,7 @@ ALTER TABLE "profiles" ADD CONSTRAINT "profiles_tenant_id_user_id_tenant_members
 ALTER TABLE "sales_fees" ADD CONSTRAINT "sales_fees_tenant_id_product_id_products_tenant_id_id_fk" FOREIGN KEY ("tenant_id","product_id") REFERENCES "public"."products"("tenant_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sales_fees" ADD CONSTRAINT "sales_fees_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk" FOREIGN KEY ("tenant_id","user_id") REFERENCES "public"."tenant_memberships"("tenant_id","user_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "simulations" ADD CONSTRAINT "simulations_tenant_id_product_id_products_tenant_id_id_fk" FOREIGN KEY ("tenant_id","product_id") REFERENCES "public"."products"("tenant_id","id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "simulations" ADD CONSTRAINT "simulations_tenant_id_product_id_products_tenant_id_id_fk" FOREIGN KEY ("tenant_id","product_id") REFERENCES "public"."products"("tenant_id","id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "simulations" ADD CONSTRAINT "simulations_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk" FOREIGN KEY ("tenant_id","user_id") REFERENCES "public"."tenant_memberships"("tenant_id","user_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tenant_memberships" ADD CONSTRAINT "tenant_memberships_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tenant_memberships" ADD CONSTRAINT "tenant_memberships_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -297,7 +300,6 @@ CREATE INDEX "accounts_user_id_idx" ON "accounts" USING btree ("user_id");--> st
 CREATE INDEX "audit_events_tenant_created_idx" ON "audit_events" USING btree ("tenant_id","created_at");--> statement-breakpoint
 CREATE INDEX "audit_events_correlation_idx" ON "audit_events" USING btree ("correlation_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "chat_conversations_tenant_user_uidx" ON "chat_conversations" USING btree ("tenant_id","user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "chat_conversations_tenant_id_uidx" ON "chat_conversations" USING btree ("tenant_id","id");--> statement-breakpoint
 CREATE UNIQUE INDEX "chat_messages_tenant_id_id_uidx" ON "chat_messages" USING btree ("tenant_id","id");--> statement-breakpoint
 CREATE INDEX "chat_messages_tenant_conversation_created_idx" ON "chat_messages" USING btree ("tenant_id","conversation_id","created_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "expenses_tenant_id_id_uidx" ON "expenses" USING btree ("tenant_id","id");--> statement-breakpoint
@@ -310,7 +312,6 @@ CREATE UNIQUE INDEX "product_ingredients_tenant_id_id_uidx" ON "product_ingredie
 CREATE INDEX "product_ingredients_tenant_product_idx" ON "product_ingredients" USING btree ("tenant_id","product_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "product_packaging_tenant_id_id_uidx" ON "product_packaging" USING btree ("tenant_id","id");--> statement-breakpoint
 CREATE INDEX "product_packaging_tenant_product_idx" ON "product_packaging" USING btree ("tenant_id","product_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "products_tenant_id_id_uidx" ON "products" USING btree ("tenant_id","id");--> statement-breakpoint
 CREATE INDEX "products_tenant_created_idx" ON "products" USING btree ("tenant_id","created_at");--> statement-breakpoint
 CREATE INDEX "products_tenant_active_idx" ON "products" USING btree ("tenant_id","archived_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "profiles_tenant_id_id_uidx" ON "profiles" USING btree ("tenant_id","id");--> statement-breakpoint

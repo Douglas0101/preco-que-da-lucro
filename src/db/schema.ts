@@ -12,6 +12,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  unique,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
@@ -177,7 +178,7 @@ export const products = pgTable(
     ...timestamps,
   },
   (table) => [
-    uniqueIndex("products_tenant_id_id_uidx").on(table.tenantId, table.id),
+    unique("products_tenant_id_id_uidx").on(table.tenantId, table.id),
     index("products_tenant_created_idx").on(table.tenantId, table.createdAt),
     index("products_tenant_active_idx").on(table.tenantId, table.archivedAt),
     foreignKey({
@@ -393,7 +394,7 @@ export const chatConversations = pgTable(
   },
   (table) => [
     uniqueIndex("chat_conversations_tenant_user_uidx").on(table.tenantId, table.userId),
-    uniqueIndex("chat_conversations_tenant_id_uidx").on(table.tenantId, table.id),
+    unique("chat_conversations_tenant_id_uidx").on(table.tenantId, table.id),
     foreignKey({
       columns: [table.tenantId, table.currentProductId],
       foreignColumns: [products.tenantId, products.id],

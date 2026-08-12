@@ -96,8 +96,6 @@ GRANT EXECUTE ON FUNCTION app_private.has_tenant_access(uuid) TO app_runtime;
 --> statement-breakpoint
 ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
 --> statement-breakpoint
-ALTER TABLE tenants FORCE ROW LEVEL SECURITY;
---> statement-breakpoint
 CREATE POLICY tenants_select ON tenants
   FOR SELECT TO app_runtime
   USING (
@@ -124,8 +122,6 @@ CREATE POLICY tenants_update ON tenants
   );
 --> statement-breakpoint
 ALTER TABLE tenant_memberships ENABLE ROW LEVEL SECURITY;
---> statement-breakpoint
-ALTER TABLE tenant_memberships FORCE ROW LEVEL SECURITY;
 --> statement-breakpoint
 CREATE POLICY tenant_memberships_select ON tenant_memberships
   FOR SELECT TO app_runtime
@@ -160,7 +156,6 @@ BEGIN
   ]
   LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', table_name);
-    EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', table_name);
     EXECUTE format(
       'CREATE POLICY tenant_isolation ON %I TO app_runtime USING (
         tenant_id = app_private.current_tenant_id()

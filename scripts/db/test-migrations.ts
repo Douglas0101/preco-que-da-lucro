@@ -150,7 +150,7 @@ async function main(): Promise<void> {
     await seedIsolationFixtures(client);
     await assertDatabaseContract(client);
 
-    const rollbackSql = await readFile(resolve("drizzle/rollback/0002_to_0000_down.sql"), "utf8");
+    const rollbackSql = await readFile(resolve("drizzle/rollback/0001_to_0000_down.sql"), "utf8");
     await client.query(rollbackSql);
     const rolledBack = await client.query<{ table_name: string | null }>(
       "select to_regclass('public.products')::text as table_name",
