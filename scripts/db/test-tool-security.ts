@@ -26,9 +26,9 @@ async function main(): Promise<void> {
       [userId, otherUserId],
     );
     await pool.query(
-      `insert into tenants (id, name, kind) values
-        ($1, 'Tool Tenant', 'personal'),
-        ($2, 'Other Tool Tenant', 'personal')
+      `insert into tenants (id, name, slug, kind) values
+        ($1, 'Tool Tenant', 'tool-tenant', 'personal'),
+        ($2, 'Other Tool Tenant', 'other-tool-tenant', 'personal')
        on conflict (id) do nothing`,
       [tenantId, otherTenantId],
     );
