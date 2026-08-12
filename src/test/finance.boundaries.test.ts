@@ -121,7 +121,7 @@ describe("fronteiras de proveniência FIN-004", () => {
       "src/routes/_authenticated/simulacoes.tsx",
     ]) {
       const source = projectFile(path);
-      expect(source).toContain("} catch {");
+      expect(source).toContain("isError");
       expect(source).toContain('setLoadStatus("error")');
       expect(source).toContain("Referência de atendimento");
       expect(source).toContain("Tentar novamente");
@@ -176,8 +176,8 @@ describe("fronteiras de formação de preço FIN-005", () => {
 
     expect(finance).toContain("export function computeProductCost");
     expect(finance).toContain("export function calculatePriceFormation");
-    expect(diagnostic).toContain("listProductsWithMetrics()");
-    expect(diagnostic).toContain("} catch {");
+    expect(diagnostic).toContain("productsWithMetricsQueryOptions()");
+    expect(diagnostic).toContain("isError");
     expect(diagnostic).toContain('setLoadStatus("error")');
     expect(diagnostic).not.toMatch(/current_price\s*[),]\s*ingredients/);
   });

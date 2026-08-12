@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { deleteExpense, listExpenses, upsertExpense } from "@/lib/expenses.functions";
 import { sumFiniteNumbers } from "@/lib/finance";
 import { toDecimalString } from "@/lib/financial-values";
+import { expensesQueryOptions } from "@/lib/query-options";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,7 +61,8 @@ const CATEGORIES = [
 type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>[number];
 
 function Despesas() {
-  const [list, setList] = useState<ExpenseRow[]>([]);
+  const expensesQuery = useQuery(expensesQueryOptions());
+  const list: ExpenseRow[] = expensesQuery.data ?? [];
   const [form, setForm] = useState({
     name: "",
     amount: "",
@@ -68,13 +71,6 @@ function Despesas() {
   });
   const [loading, setLoading] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-
-  async function load() {
-    setList(await listExpenses());
-  }
-  useEffect(() => {
-    load();
-  }, []);
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
@@ -99,12 +95,12 @@ function Despesas() {
     setLoading(false);
     toast.success("Despesa adicionada");
     setForm({ name: "", amount: "", category: "Outros", type: "fixa" });
-    load();
+    await expensesQuery.refetch();
   }
 
   async function del(id: string) {
     await deleteExpense({ data: { id } });
-    load();
+    await expensesQuery.refetch();
   }
 
   const fixed = sumFiniteNumbers(
@@ -209,7 +205,18 @@ function Despesas() {
           </CardContent>
         </Card>
 
-        {list.length === 0 ? (
+        {expensesQuery.isPending ? (
+          <div className="text-muted-foreground">Carregando...</div>
+        ) : expensesQuery.isError ? (
+          <Card role="alert" className="border-destructive/40">
+            <CardContent className="space-y-3 p-5">
+              <p>Não foi possível carregar as despesas.</p>
+              <Button type="button" variant="outline" onClick={() => void expensesQuery.refetch()}>
+                Tentar novamente
+              </Button>
+            </CardContent>
+          </Card>
+        ) : list.length === 0 ? (
           <Card>
             <CardContent className="grid place-items-center gap-2 p-12 text-center text-muted-foreground">
               <Wallet className="h-8 w-8" /> Nenhuma despesa cadastrada ainda.

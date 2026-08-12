@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { listExpenses } from "@/lib/expenses.functions";
+import { useQueries } from "@tanstack/react-query";
 import { listProductsWithMetrics } from "@/lib/products.functions";
+import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
 import {
   calculateBreakEvenUnits,
   calculateBreakEvenRevenue,
@@ -10,6 +11,7 @@ import {
   type ProductComputation,
 } from "@/lib/finance";
 import { brl, pct, num } from "@/lib/format";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,24 +50,24 @@ function PontoEquilibrio() {
     "idle" | "incomplete" | "invalid" | "ok"
   >("idle");
   const [profitTarget, setProfitTarget] = useState("");
+  const [productsQuery, expensesQuery] = useQueries({
+    queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
+  });
 
   useEffect(() => {
-    (async () => {
-      const [loadedDetails, expenses] = await Promise.all([
-        listProductsWithMetrics(),
-        listExpenses(),
-      ]);
-      setDetails(loadedDetails);
-      setFixed(
-        sumFiniteNumbers(
-          expenses
-            .filter((expense) => expense.type === "fixa")
-            .map((expense) => Number(expense.amount)),
-        ),
-      );
-      if (loadedDetails.length) setProductId(loadedDetails[0].product.id);
-    })();
-  }, []);
+    if (!productsQuery.data || !expensesQuery.data) return;
+    const loadedDetails = productsQuery.data;
+    const expenses = expensesQuery.data;
+    setDetails(loadedDetails);
+    setFixed(
+      sumFiniteNumbers(
+        expenses
+          .filter((expense) => expense.type === "fixa")
+          .map((expense) => Number(expense.amount)),
+      ),
+    );
+    if (loadedDetails.length) setProductId(loadedDetails[0].product.id);
+  }, [expensesQuery.data, productsQuery.data]);
 
   useEffect(() => {
     if (!productId) return;
@@ -105,6 +107,34 @@ function PontoEquilibrio() {
           : Number.NaN;
     return { units, revenue, targetUnits, targetRevenue };
   }, [metrics, fixed, profitTarget]);
+
+  if (productsQuery.isPending || expensesQuery.isPending) {
+    return (
+      <div role="status" className="text-muted-foreground">
+        Carregando...
+      </div>
+    );
+  }
+
+  if (productsQuery.isError || expensesQuery.isError) {
+    return (
+      <Card role="alert" className="border-destructive/40">
+        <CardContent className="space-y-3 p-5">
+          <p>Não foi possível carregar os dados do ponto de equilíbrio.</p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              void productsQuery.refetch();
+              void expensesQuery.refetch();
+            }}
+          >
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
