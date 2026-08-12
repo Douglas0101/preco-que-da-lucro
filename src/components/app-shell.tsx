@@ -13,7 +13,7 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { authClient, globalSignOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -105,7 +105,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [email, setEmail] = useState<string>("");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
+    void authClient.getSession().then(({ data }) => setEmail(data?.user.email ?? ""));
   }, []);
 
   useEffect(() => {
@@ -113,8 +113,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [location.pathname]);
 
   async function logout() {
-    await supabase.auth.signOut();
-    router.navigate({ to: "/auth", replace: true });
+    await globalSignOut();
+    await router.navigate({ to: "/auth", replace: true });
   }
 
   return (

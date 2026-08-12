@@ -9,7 +9,7 @@ function projectFile(path: string) {
 describe("fronteiras de persistência FIN-002", () => {
   it("remove defaults legados que convertiam rendimento/imposto ausentes em 1/0", () => {
     const migration = projectFile(
-      "supabase/migrations/20260810014633_drop_unknown_financial_defaults.sql",
+      "docs/archive/supabase/migrations/20260810014633_drop_unknown_financial_defaults.sql",
     );
 
     expect(migration).toContain("publique primeiro a aplicação");

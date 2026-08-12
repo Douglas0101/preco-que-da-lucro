@@ -73,7 +73,7 @@ As palavras abaixo possuem significado normativo:
 - `README.md`: visão original do produto e requisitos de negócio.
 - `PLANO_MESTRE_OTIMIZACAO_E_CIBERSEGURANCA.md`: backlog, fases e gates.
 - `AGENTS.md`: regras de integração com Lovable.
-- `supabase/migrations/*.sql`: estado versionado do schema atual.
+- `docs/archive/supabase/migrations/*.sql`: histórico read-only do schema legado; o schema canônico está em `drizzle/`.
 - `docs/adr/ADR-016-shadcn-base-ui.md`: execução da decisão fixa de shadcn/ui sobre Base UI.
 - `docs/evidence/*.md`: evidências sanitizadas de build, bundle, browsers e acessibilidade.
 - ADRs listados na seção 20: decisões arquiteturais complementares.

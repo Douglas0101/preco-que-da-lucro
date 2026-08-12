@@ -26,20 +26,14 @@ function Landing() {
   const navigate = Route.useNavigate();
 
   useEffect(() => {
-    const hasStoredSession = Array.from({ length: localStorage.length }, (_, index) =>
-      localStorage.key(index),
-    ).some((key) => key != null && /^sb-.*-auth-token$/.test(key));
-
-    if (!hasStoredSession) return;
-
     let active = true;
-    void import("@/integrations/supabase/client")
-      .then(async ({ supabase }) => {
-        const { data } = await supabase.auth.getUser();
-        if (active && data.user) await navigate({ to: "/inicio", replace: true });
+    void import("@/lib/auth-client")
+      .then(async ({ authClient }) => {
+        const { data } = await authClient.getSession();
+        if (active && data?.user) await navigate({ to: "/inicio", replace: true });
       })
       .catch((error: unknown) => {
-        if (active) console.error("Could not validate the persisted session", error);
+        if (active) console.error("Could not validate the server session", error);
       });
 
     return () => {

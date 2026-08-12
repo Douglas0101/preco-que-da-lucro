@@ -36,16 +36,6 @@ function securityHeaders(): Record<string, string> {
   return headers;
 }
 
-const attachSupabaseAuth = createMiddleware({ type: "function" }).client(async ({ next }) => {
-  const { supabase } = await import("@/integrations/supabase/client");
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-
-  return next({
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-});
-
 const requestPolicyMiddleware = createMiddleware().server(
   async ({ handlerType, next, request }) => {
     ensureTelemetryStarted();
@@ -135,6 +125,6 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
+  functionMiddleware: [],
   requestMiddleware: [requestPolicyMiddleware, csrfMiddleware],
 }));

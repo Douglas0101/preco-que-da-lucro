@@ -1,4 +1,4 @@
-
+-- ARQUIVO HISTÓRICO: origem legada read-only; não participa do runtime.
 -- Profiles
 CREATE TABLE public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,

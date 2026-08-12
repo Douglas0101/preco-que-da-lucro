@@ -1,3 +1,4 @@
+-- ARQUIVO HISTÓRICO: origem legada read-only; não participa do runtime.
 ALTER TABLE public.product_ingredients ADD COLUMN IF NOT EXISTS price_updated_at timestamptz;
 ALTER TABLE public.product_packaging ADD COLUMN IF NOT EXISTS price_updated_at timestamptz;
 

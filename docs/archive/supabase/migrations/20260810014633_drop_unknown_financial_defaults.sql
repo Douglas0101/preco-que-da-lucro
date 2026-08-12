@@ -1,3 +1,4 @@
+-- ARQUIVO HISTÓRICO: origem legada read-only; não participa do runtime.
 -- FIN-002 (Lote 04): valores financeiros desconhecidos devem permanecer NULL.
 -- Rollout: publique primeiro a aplicação que grava NULL explicitamente em novos
 -- produtos; só então aplique esta migration que remove os defaults legados.

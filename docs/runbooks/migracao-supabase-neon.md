@@ -12,7 +12,7 @@
 
 ```bash
 npm run db:migrate
-MIGRATION_APPLY=false npm run migration:supabase-to-neon
+MIGRATION_APPLY=false npm run migration:legacy-to-neon
 npm run db:test
 npm run check
 ```
