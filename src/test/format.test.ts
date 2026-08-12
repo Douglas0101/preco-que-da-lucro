@@ -18,7 +18,8 @@ describe("formatação de estados numéricos FIN-003", () => {
 
   it("renderiza Infinity semântico como não atingível", () => {
     for (const format of formatters) expect(format(Number.POSITIVE_INFINITY)).toBe("Não atingível");
-    expect(brl(calculateBreakEvenRevenue(6000, 0))).toBe("Não atingível");
+    // O motor não transporta Infinity: reachability é expressa pelo BreakEvenResult.
+    expect(brl(calculateBreakEvenRevenue(6000, 0))).toBe("—");
     expect(numericDisplayState(Number.POSITIVE_INFINITY)).toBe("infinite");
   });
 

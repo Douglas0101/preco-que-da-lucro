@@ -101,10 +101,11 @@ function PontoEquilibrio() {
       Number.isFinite(target) && target > 0
         ? calculateRequiredSalesForProfit(fixed, target, metrics.contributionMargin)
         : null;
-    const rawTargetRevenue = targetUnits == null ? null : targetUnits * metrics.price;
+    const rawTargetRevenue =
+      targetUnits?.status === "reachable" ? targetUnits.roundedUnits * metrics.price : null;
     const targetRevenue =
-      targetUnits == null || !Number.isFinite(targetUnits)
-        ? targetUnits
+      rawTargetRevenue == null
+        ? null
         : Number.isFinite(rawTargetRevenue)
           ? rawTargetRevenue
           : Number.NaN;
@@ -174,14 +175,25 @@ function PontoEquilibrio() {
               <div>
                 <div className="text-xs uppercase text-muted-foreground">Você precisa vender</div>
                 <div className="text-3xl font-black">
-                  {Number.isFinite(be!.units) ? `${num(be!.units, 0)} un.` : num(be!.units, 0)}
+                  {be!.units.status === "reachable"
+                    ? `${num(be!.units.roundedUnits, 0)} un.`
+                    : be!.units.status === "unreachable"
+                      ? "Não atingível"
+                      : "Erro de cálculo"}
                 </div>
+                {be!.units.status === "reachable" && (
+                  <div className="text-sm text-muted-foreground">
+                    Resultado bruto: {num(be!.units.rawUnits, 2)}; arredondado para venda inteira.
+                  </div>
+                )}
               </div>
               <div>
                 <div className="text-xs uppercase text-muted-foreground">
                   Faturamento necessário
                 </div>
-                <div className="text-3xl font-black">{brl(be!.revenue)}</div>
+                <div className="text-3xl font-black">
+                  {be!.units.status === "unreachable" ? "Não atingível" : brl(be!.revenue)}
+                </div>
               </div>
               <p className="md:col-span-2 text-sm text-muted-foreground">
                 Considerando os dados informados, sua empresa precisa atingir esse volume de vendas
@@ -205,16 +217,12 @@ function PontoEquilibrio() {
                   placeholder="Ex: 3000"
                 />
               </div>
-              {be?.targetUnits != null && (
+              {be?.targetUnits?.status === "reachable" && (
                 <div className="rounded-xl bg-secondary p-4">
                   Para obter <strong>{brl(Number(profitTarget.replace(",", ".")))}</strong> de lucro
                   / mês, você precisa vender aproximadamente{" "}
-                  <strong>
-                    {Number.isFinite(be.targetUnits)
-                      ? `${num(be.targetUnits, 0)} unidades`
-                      : num(be.targetUnits, 0)}
-                  </strong>{" "}
-                  (faturamento de <strong>{brl(be.targetRevenue)}</strong>).
+                  <strong>{num(be.targetUnits.roundedUnits, 0)} unidades</strong> (faturamento de{" "}
+                  <strong>{brl(be.targetRevenue)}</strong>).
                 </div>
               )}
             </CardContent>
