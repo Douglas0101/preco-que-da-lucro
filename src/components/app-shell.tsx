@@ -1,5 +1,6 @@
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Home,
   Package,
@@ -100,6 +101,7 @@ function SidebarContent({
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState<string>("");
@@ -114,6 +116,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   async function logout() {
     await supabase.auth.signOut();
+    queryClient.clear();
     router.navigate({ to: "/auth", replace: true });
   }
 

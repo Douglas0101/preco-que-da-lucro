@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getChatHistory, sendChatMessage, clearChatHistory } from "@/lib/chat.functions";
+import { sendChatMessage, clearChatHistory } from "@/lib/chat.functions";
+import { chatHistoryQueryOptions } from "@/lib/query-options";
 import { renderChatMarkdown } from "@/lib/chat-markdown";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,9 +40,9 @@ interface Msg {
 
 function NovoProduto() {
   const navigate = useNavigate();
-  const load = useServerFn(getChatHistory);
   const send = useServerFn(sendChatMessage);
   const clear = useServerFn(clearChatHistory);
+  const historyQuery = useQuery(chatHistoryQueryOptions());
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,34 +52,39 @@ function NovoProduto() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const history = await load();
-        const restored = history.messages.reduce<Msg[]>((messages, message) => {
-          if (message.role === "user" || message.role === "assistant") {
-            messages.push({ id: message.id, role: message.role, content: message.content });
-          }
-          return messages;
-        }, []);
-
-        if (restored.length === 0) {
-          setMessages([
-            {
-              role: "assistant",
-              content:
-                "Olá! Sou seu consultor financeiro. Vamos descobrir juntos quanto realmente custa produzir e vender seu produto. **Qual produto ou receita você gostaria de analisar primeiro?**",
-            },
-          ]);
-        } else {
-          setMessages(restored);
-        }
-        setCurrentProductId(history.currentProductId);
-      } catch (e) {
-        console.error(e);
+    const history = historyQuery.data;
+    if (!history) {
+      if (historyQuery.isError) {
+        setMessages([
+          {
+            role: "assistant",
+            content: "⚠️ Não foi possível restaurar o histórico da conversa.",
+          },
+        ]);
       }
-    })();
+      return;
+    }
+    const restored = history.messages.reduce<Msg[]>((messages, message) => {
+      if (message.role === "user" || message.role === "assistant") {
+        messages.push({ id: message.id, role: message.role, content: message.content });
+      }
+      return messages;
+    }, []);
+
+    if (restored.length === 0) {
+      setMessages([
+        {
+          role: "assistant",
+          content:
+            "Olá! Sou seu consultor financeiro. Vamos descobrir juntos quanto realmente custa produzir e vender seu produto. **Qual produto ou receita você gostaria de analisar primeiro?**",
+        },
+      ]);
+    } else {
+      setMessages(restored);
+    }
+    setCurrentProductId(history.currentProductId);
     inputRef.current?.focus();
-  }, [load]);
+  }, [historyQuery.data, historyQuery.isError]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
