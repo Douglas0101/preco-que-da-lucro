@@ -1,6 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+const bffEmail = process.env.E2E_AUTH_EMAIL ?? "";
+const bffPassword = process.env.E2E_AUTH_PASSWORD ?? "";
+
 async function expectNoBlockingAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -94,6 +97,17 @@ async function installAuthenticatedSupabaseContract(
       body: JSON.stringify(tableRows),
     });
   });
+
+  expect(bffEmail, "E2E_AUTH_EMAIL deve estar configurada").not.toBe("");
+  expect(bffPassword, "E2E_AUTH_PASSWORD deve estar configurada").not.toBe("");
+  const bffLogin = await page.context().request.post("/api/auth/sign-in/email", {
+    headers: {
+      origin: "http://127.0.0.1:4173",
+      "sec-fetch-site": "same-origin",
+    },
+    data: { email: bffEmail, password: bffPassword },
+  });
+  expect(bffLogin.ok(), await bffLogin.text()).toBe(true);
 
   return accessToken;
 }
@@ -274,7 +288,10 @@ test("diagnostic forms prices only from explicit assumptions", async ({ page }) 
 });
 
 test("financial query failure is not rendered as empty or zero data", async ({ page }) => {
-  await installAuthenticatedSupabaseContract(page, { errorTables: ["expenses"] });
+  await installAuthenticatedSupabaseContract(page);
+  await page.route("**/_serverFn/**", async (route) => {
+    await route.fulfill({ status: 503, contentType: "application/json", body: "{}" });
+  });
 
   await page.goto("/simulacoes");
 

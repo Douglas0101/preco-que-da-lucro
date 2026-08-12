@@ -23,6 +23,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/db/migrate.ts",
     "db:test": "tsx scripts/db/test-migrations.ts && tsx scripts/db/test-auth-integration.ts",
+    "e2e:prepare": "tsx scripts/e2e/seed-auth.ts",
     "test:e2e": "playwright test",
     "check:ui-stack": "node scripts/check-ui-stack.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
