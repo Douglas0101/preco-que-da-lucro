@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { deleteProduct, listProductsWithMetrics } from "@/lib/products.functions";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { deleteProduct } from "@/lib/products.functions";
+import { productsWithMetricsQueryOptions } from "@/lib/query-options";
 import { brl, pct } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,13 +39,10 @@ interface Row {
 
 function Produtos() {
   const navigate = useNavigate();
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(true);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-
-  async function load() {
-    setLoading(true);
-    const products = await listProductsWithMetrics();
+  const productsQuery = useQuery(productsWithMetricsQueryOptions());
+  const rows = useMemo(() => {
+    const products = productsQuery.data ?? [];
     const enriched: Row[] = [];
     for (const { product: p, metrics: c } of products) {
       // Incomplete permanece "—"; invalid chega ao formatter como NaN e vira
@@ -57,12 +56,8 @@ function Produtos() {
         cmPct: c.status === "ok" ? c.value.contributionMarginPct : unavailableMetric,
       });
     }
-    setRows(enriched);
-    setLoading(false);
-  }
-  useEffect(() => {
-    load();
-  }, []);
+    return enriched;
+  }, [productsQuery.data]);
 
   async function del(id: string) {
     try {
@@ -71,7 +66,7 @@ function Produtos() {
       return toast.error("Não foi possível arquivar o produto");
     }
     toast.success("Produto arquivado");
-    load();
+    await productsQuery.refetch();
   }
 
   return (
@@ -95,8 +90,17 @@ function Produtos() {
           </div>
         </div>
 
-        {loading ? (
+        {productsQuery.isPending ? (
           <div className="text-muted-foreground">Carregando...</div>
+        ) : productsQuery.isError ? (
+          <Card role="alert" className="border-destructive/40">
+            <CardContent className="space-y-3 p-5">
+              <p>Não foi possível carregar os produtos.</p>
+              <Button type="button" variant="outline" onClick={() => void productsQuery.refetch()}>
+                Tentar novamente
+              </Button>
+            </CardContent>
+          </Card>
         ) : rows.length === 0 ? (
           <Card>
             <CardContent className="grid place-items-center gap-3 p-12 text-center">

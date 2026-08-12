@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { listExpenses } from "@/lib/expenses.functions";
+import { useQueries } from "@tanstack/react-query";
 import { listProductsWithMetrics } from "@/lib/products.functions";
+import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
 import {
   calculateBreakEvenUnits,
   calculatePriceFormation,
@@ -75,48 +76,51 @@ function Diagnostico() {
     nonPercentageVariableUnitCost: "",
     targetContributionRate: "",
   });
+  const [productsQuery, expensesQuery] = useQueries({
+    queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
+  });
 
   useEffect(() => {
-    let cancelled = false;
+    if (productsQuery.isPending || expensesQuery.isPending) {
+      setLoadStatus("loading");
+      return;
+    }
+    if (productsQuery.isError || expensesQuery.isError) {
+      setLoadStatus("error");
+      return;
+    }
 
-    void (async () => {
-      try {
-        const [loadedDetails, expenses] = await Promise.all([
-          listProductsWithMetrics(),
-          listExpenses(),
-        ]);
-        if (cancelled) return;
-        const fixed = sumFiniteNumbers(
-          expenses
-            .filter((expense) => expense.type === "fixa")
-            .map((expense) => Number(expense.amount)),
-        );
+    const loadedDetails = productsQuery.data;
+    const expenses = expensesQuery.data;
+    const fixed = sumFiniteNumbers(
+      expenses
+        .filter((expense) => expense.type === "fixa")
+        .map((expense) => Number(expense.amount)),
+    );
 
-        setDetails(loadedDetails);
-        setFixedExpenses(fixed);
-        setHasUnallocatedVariableExpenses(expenses.some((expense) => expense.type === "variavel"));
-        if (loadedDetails.length === 0) {
-          setProductId("");
-          setLoadStatus("empty");
-          return;
-        }
+    setDetails(loadedDetails);
+    setFixedExpenses(fixed);
+    setHasUnallocatedVariableExpenses(expenses.some((expense) => expense.type === "variavel"));
+    if (loadedDetails.length === 0) {
+      setProductId("");
+      setLoadStatus("empty");
+      return;
+    }
 
-        setProductId((current) =>
-          loadedDetails.some((detail) => detail.product.id === current)
-            ? current
-            : loadedDetails[0].product.id,
-        );
-        setLoadStatus("ready");
-      } catch {
-        if (cancelled) return;
-        setLoadStatus("error");
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    setProductId((current) =>
+      loadedDetails.some((detail) => detail.product.id === current)
+        ? current
+        : loadedDetails[0].product.id,
+    );
+    setLoadStatus("ready");
+  }, [
+    expensesQuery.data,
+    expensesQuery.isError,
+    expensesQuery.isPending,
+    productsQuery.data,
+    productsQuery.isError,
+    productsQuery.isPending,
+  ]);
 
   useEffect(() => {
     if (loadStatus !== "ready" || !productId) return;
