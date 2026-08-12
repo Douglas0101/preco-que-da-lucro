@@ -25,15 +25,11 @@ export function createAuthInstance(database: Database = getDatabase()) {
       usePlural: true,
       transaction: true,
     }),
-    user: { modelName: "users" },
     session: {
-      modelName: "sessions",
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
       cookieCache: { enabled: false },
     },
-    account: { modelName: "accounts" },
-    verification: { modelName: "verifications" },
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 10,
