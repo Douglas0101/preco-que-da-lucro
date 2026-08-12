@@ -1,18 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { listExpenses } from "@/lib/expenses.functions";
+import { listProductsWithMetrics } from "@/lib/products.functions";
 import {
   calculateBreakEvenUnits,
   calculatePriceFormation,
-  computeProduct,
   computeProductCost,
   sumFiniteNumbers,
   type CalculationResult,
   type BreakEvenResult,
   type FeeRow,
-  type IngredientRow,
-  type PackagingRow,
   type ProductComputation,
   type ProductCostComputation,
 } from "@/lib/finance";
@@ -48,7 +45,7 @@ interface DiagnosticData {
   currentPrice: number | null;
   taxRate: number | null;
   fees: FeeRow[];
-  market: Tables<"market_prices"> | null;
+  market: Awaited<ReturnType<typeof listProductsWithMetrics>>[number]["market"];
 }
 
 export const Route = createFileRoute("/_authenticated/diagnostico")({
@@ -66,7 +63,8 @@ export const Route = createFileRoute("/_authenticated/diagnostico")({
 
 function Diagnostico() {
   const { produto } = Route.useSearch();
-  const [products, setProducts] = useState<Tables<"products">[]>([]);
+  const [details, setDetails] = useState<Awaited<ReturnType<typeof listProductsWithMetrics>>>([]);
+  const products = details.map((detail) => detail.product);
   const [productId, setProductId] = useState(produto ?? "");
   const [fixedExpenses, setFixedExpenses] = useState(0);
   const [hasUnallocatedVariableExpenses, setHasUnallocatedVariableExpenses] = useState(false);
@@ -83,36 +81,30 @@ function Diagnostico() {
 
     void (async () => {
       try {
-        const [productsResult, expensesResult] = await Promise.all([
-          supabase.from("products").select("*").order("created_at", { ascending: false }),
-          supabase.from("expenses").select("*"),
+        const [loadedDetails, expenses] = await Promise.all([
+          listProductsWithMetrics(),
+          listExpenses(),
         ]);
         if (cancelled) return;
-
-        if (productsResult.error || expensesResult.error) {
-          setLoadStatus("error");
-          return;
-        }
-
-        const loadedProducts = productsResult.data ?? [];
-        const expenses = expensesResult.data ?? [];
         const fixed = sumFiniteNumbers(
           expenses
             .filter((expense) => expense.type === "fixa")
             .map((expense) => Number(expense.amount)),
         );
 
-        setProducts(loadedProducts);
+        setDetails(loadedDetails);
         setFixedExpenses(fixed);
         setHasUnallocatedVariableExpenses(expenses.some((expense) => expense.type === "variavel"));
-        if (loadedProducts.length === 0) {
+        if (loadedDetails.length === 0) {
           setProductId("");
           setLoadStatus("empty");
           return;
         }
 
         setProductId((current) =>
-          loadedProducts.some((product) => product.id === current) ? current : loadedProducts[0].id,
+          loadedDetails.some((detail) => detail.product.id === current)
+            ? current
+            : loadedDetails[0].product.id,
         );
         setLoadStatus("ready");
       } catch {
@@ -139,51 +131,21 @@ function Diagnostico() {
 
     void (async () => {
       try {
-        const product = products.find((candidate) => candidate.id === productId);
-        if (!product) {
+        const detail = details.find((candidate) => candidate.product.id === productId);
+        if (!detail) {
           if (!cancelled) setProductStatus("error");
           return;
         }
 
-        const [ingredientsResult, packagingResult, feesResult, marketResult] = await Promise.all([
-          supabase.from("product_ingredients").select("*").eq("product_id", product.id),
-          supabase.from("product_packaging").select("*").eq("product_id", product.id),
-          supabase.from("sales_fees").select("*").eq("product_id", product.id),
-          supabase
-            .from("market_prices")
-            .select("*")
-            .eq("product_id", product.id)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-        ]);
-        if (cancelled) return;
-
-        if (
-          ingredientsResult.error ||
-          packagingResult.error ||
-          feesResult.error ||
-          marketResult.error
-        ) {
-          setProductStatus("error");
-          return;
-        }
-
-        const ingredients = (ingredientsResult.data ?? []) as unknown as IngredientRow[];
-        const packaging = (packagingResult.data ?? []) as unknown as PackagingRow[];
-        const fees = (feesResult.data ?? []) as unknown as FeeRow[];
+        const product = detail.product;
+        const ingredients = detail.ingredients;
+        const packaging = detail.packaging;
+        const fees = detail.fees as FeeRow[];
         const yieldQty = product.yield_qty == null ? null : Number(product.yield_qty);
         const currentPrice = product.current_price == null ? null : Number(product.current_price);
         const taxRate = product.tax_rate == null ? null : Number(product.tax_rate);
         const cost = computeProductCost({ ingredients, packaging, yieldQty });
-        const current = computeProduct({
-          ingredients,
-          packaging,
-          yieldQty,
-          price: currentPrice,
-          taxRate,
-          fees,
-        });
+        const current = detail.metrics;
 
         let currentStatus: DiagnosticData["currentStatus"] = current.status;
         let currentAnalysis: CurrentAnalysis | null = null;
@@ -220,7 +182,7 @@ function Diagnostico() {
             }
 
             const marketAverage =
-              marketResult.data?.avg_price == null ? null : Number(marketResult.data.avg_price);
+              detail.market?.avg_price == null ? null : Number(detail.market.avg_price);
             if (
               marketAverage != null &&
               Number.isFinite(marketAverage) &&
@@ -252,7 +214,7 @@ function Diagnostico() {
           currentPrice,
           taxRate,
           fees,
-          market: marketResult.data,
+          market: detail.market,
         });
         setProductStatus(currentStatus);
       } catch {
@@ -265,7 +227,7 @@ function Diagnostico() {
     return () => {
       cancelled = true;
     };
-  }, [fixedExpenses, loadStatus, productId, products]);
+  }, [details, fixedExpenses, loadStatus, productId]);
 
   const priceFormation = useMemo(() => {
     if (!diagnostic) return null;

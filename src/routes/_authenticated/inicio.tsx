@@ -1,13 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  computeProduct,
-  sumFiniteNumbers,
-  type FeeRow,
-  type IngredientRow,
-  type PackagingRow,
-} from "@/lib/finance";
+import { sumFiniteNumbers } from "@/lib/finance";
+import { listExpenses } from "@/lib/expenses.functions";
+import { listProductsWithMetrics } from "@/lib/products.functions";
 import { brl, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,21 +47,11 @@ function Inicio() {
 
     void (async () => {
       try {
-        const [productsResult, expensesResult] = await Promise.all([
-          supabase.from("products").select("*"),
-          supabase.from("expenses").select("*"),
+        const [productDetails, expenses] = await Promise.all([
+          listProductsWithMetrics(),
+          listExpenses(),
         ]);
         if (cancelled) return;
-
-        if (productsResult.error || expensesResult.error) {
-          setMetrics(null);
-          setErrorReference(createErrorReference("DASH"));
-          setLoadStatus("error");
-          return;
-        }
-
-        const products = productsResult.data ?? [];
-        const expenses = expensesResult.data ?? [];
         const fixedExpenses = sumFiniteNumbers(
           expenses
             .filter((expense) => expense.type === "fixa")
@@ -78,30 +63,7 @@ function Inicio() {
         let incompleteProductCount = 0;
         const alerts: string[] = [];
 
-        for (const product of products) {
-          const [ingredientsResult, packagingResult, feesResult] = await Promise.all([
-            supabase.from("product_ingredients").select("*").eq("product_id", product.id),
-            supabase.from("product_packaging").select("*").eq("product_id", product.id),
-            supabase.from("sales_fees").select("*").eq("product_id", product.id),
-          ]);
-          if (cancelled) return;
-
-          if (ingredientsResult.error || packagingResult.error || feesResult.error) {
-            setMetrics(null);
-            setErrorReference(createErrorReference("DASH"));
-            setLoadStatus("error");
-            return;
-          }
-
-          const computation = computeProduct({
-            ingredients: (ingredientsResult.data ?? []) as unknown as IngredientRow[],
-            packaging: (packagingResult.data ?? []) as unknown as PackagingRow[],
-            yieldQty: product.yield_qty == null ? null : Number(product.yield_qty),
-            price: product.current_price == null ? null : Number(product.current_price),
-            taxRate: product.tax_rate == null ? null : Number(product.tax_rate),
-            fees: (feesResult.data ?? []) as unknown as FeeRow[],
-          });
-
+        for (const { product, metrics: computation } of productDetails) {
           if (computation.status === "invalid") {
             invalidProductCount += 1;
             continue;
@@ -139,7 +101,7 @@ function Inicio() {
         const hasInvalidCalculation = invalidProductCount > 0 || !Number.isFinite(fixedExpenses);
 
         setMetrics({
-          productCount: products.length,
+          productCount: productDetails.length,
           fixedExpenses,
           bestProduct: hasInvalidCalculation ? null : bestProduct,
           hasInvalidCalculation,

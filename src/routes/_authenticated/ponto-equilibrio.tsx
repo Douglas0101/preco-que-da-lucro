@@ -1,16 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { listExpenses } from "@/lib/expenses.functions";
+import { listProductsWithMetrics } from "@/lib/products.functions";
 import {
-  computeProduct,
   calculateBreakEvenUnits,
   calculateBreakEvenRevenue,
   calculateRequiredSalesForProfit,
   sumFiniteNumbers,
-  type IngredientRow,
-  type PackagingRow,
-  type FeeRow,
   type ProductComputation,
 } from "@/lib/finance";
 import { brl, pct, num } from "@/lib/format";
@@ -38,8 +34,11 @@ export const Route = createFileRoute("/_authenticated/ponto-equilibrio")({
   component: PontoEquilibrio,
 });
 
+type ProductDetail = Awaited<ReturnType<typeof listProductsWithMetrics>>[number];
+
 function PontoEquilibrio() {
-  const [products, setProducts] = useState<Tables<"products">[]>([]);
+  const [details, setDetails] = useState<ProductDetail[]>([]);
+  const products = details.map((detail) => detail.product);
   const [productId, setProductId] = useState<string>("");
   const [fixed, setFixed] = useState(0);
   const [metrics, setMetrics] = useState<
@@ -52,36 +51,31 @@ function PontoEquilibrio() {
 
   useEffect(() => {
     (async () => {
-      const [p, e] = await Promise.all([
-        supabase.from("products").select("*").order("created_at", { ascending: false }),
-        supabase.from("expenses").select("*").eq("type", "fixa"),
+      const [loadedDetails, expenses] = await Promise.all([
+        listProductsWithMetrics(),
+        listExpenses(),
       ]);
-      setProducts(p.data ?? []);
-      setFixed(sumFiniteNumbers((e.data ?? []).map((expense) => Number(expense.amount))));
-      if ((p.data ?? []).length) setProductId(p.data![0].id);
+      setDetails(loadedDetails);
+      setFixed(
+        sumFiniteNumbers(
+          expenses
+            .filter((expense) => expense.type === "fixa")
+            .map((expense) => Number(expense.amount)),
+        ),
+      );
+      if (loadedDetails.length) setProductId(loadedDetails[0].product.id);
     })();
   }, []);
 
   useEffect(() => {
     if (!productId) return;
     (async () => {
-      const p = products.find((x) => x.id === productId);
-      if (!p) return;
+      const detail = details.find((item) => item.product.id === productId);
+      if (!detail) return;
+      const p = detail.product;
       setMetrics(null);
       setCalculationStatus("idle");
-      const [ing, pack, fees] = await Promise.all([
-        supabase.from("product_ingredients").select("*").eq("product_id", p.id),
-        supabase.from("product_packaging").select("*").eq("product_id", p.id),
-        supabase.from("sales_fees").select("*").eq("product_id", p.id),
-      ]);
-      const c = computeProduct({
-        ingredients: (ing.data ?? []) as unknown as IngredientRow[],
-        packaging: (pack.data ?? []) as unknown as PackagingRow[],
-        yieldQty: p.yield_qty == null ? null : Number(p.yield_qty),
-        price: p.current_price == null ? null : Number(p.current_price),
-        taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
-        fees: (fees.data ?? []) as unknown as FeeRow[],
-      });
+      const c = detail.metrics;
       if (c.status !== "ok") {
         setMetrics(null);
         setCalculationStatus(c.status);
@@ -90,7 +84,7 @@ function PontoEquilibrio() {
       setMetrics({ ...c.value, price: Number(p.current_price), name: p.name });
       setCalculationStatus("ok");
     })();
-  }, [productId, products]);
+  }, [productId, details]);
 
   const be = useMemo(() => {
     if (!metrics) return null;

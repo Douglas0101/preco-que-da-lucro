@@ -1,14 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { listExpenses } from "@/lib/expenses.functions";
+import { listProductsWithMetrics } from "@/lib/products.functions";
 import {
   calculateScenario,
-  computeProduct,
   sumFiniteNumbers,
   type FeeRow,
-  type IngredientRow,
-  type PackagingRow,
   type ProductComputation,
 } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
@@ -45,7 +42,8 @@ type ProductBaseline = ProductComputation & {
 };
 
 function Simulacoes() {
-  const [products, setProducts] = useState<Tables<"products">[]>([]);
+  const [details, setDetails] = useState<Awaited<ReturnType<typeof listProductsWithMetrics>>>([]);
+  const products = details.map((detail) => detail.product);
   const [productId, setProductId] = useState("");
   const [fixed, setFixed] = useState(0);
   const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
@@ -59,43 +57,35 @@ function Simulacoes() {
 
     void (async () => {
       try {
-        const [productsResult, expensesResult] = await Promise.all([
-          supabase.from("products").select("*").order("created_at", { ascending: false }),
-          supabase.from("expenses").select("*").eq("type", "fixa"),
+        const [loadedDetails, expenses] = await Promise.all([
+          listProductsWithMetrics(),
+          listExpenses(),
         ]);
         if (cancelled) return;
-
-        if (productsResult.error || expensesResult.error) {
-          setProducts([]);
-          setProductId("");
-          setErrorReference(createErrorReference("SIM"));
-          setLoadStatus("error");
-          return;
-        }
-
-        const loadedProducts = productsResult.data ?? [];
         const fixedExpenses = sumFiniteNumbers(
-          (expensesResult.data ?? []).map((expense) => Number(expense.amount)),
+          expenses
+            .filter((expense) => expense.type === "fixa")
+            .map((expense) => Number(expense.amount)),
         );
 
-        setProducts(loadedProducts);
+        setDetails(loadedDetails);
         setFixed(fixedExpenses);
         if (!Number.isFinite(fixedExpenses)) {
           setLoadStatus("invalid");
           return;
         }
-        if (loadedProducts.length === 0) {
+        if (loadedDetails.length === 0) {
           setProductId("");
           setLoadStatus("empty");
           return;
         }
 
-        setProductId(loadedProducts[0].id);
+        setProductId(loadedDetails[0].product.id);
         setErrorReference(null);
         setLoadStatus("ready");
       } catch {
         if (cancelled) return;
-        setProducts([]);
+        setDetails([]);
         setProductId("");
         setErrorReference(createErrorReference("SIM"));
         setLoadStatus("error");
@@ -117,8 +107,8 @@ function Simulacoes() {
 
     void (async () => {
       try {
-        const product = products.find((item) => item.id === productId);
-        if (!product) {
+        const detail = details.find((item) => item.product.id === productId);
+        if (!detail) {
           if (!cancelled) {
             setErrorReference(createErrorReference("SIM"));
             setProductStatus("error");
@@ -126,28 +116,9 @@ function Simulacoes() {
           return;
         }
 
-        const [ingredientsResult, packagingResult, feesResult] = await Promise.all([
-          supabase.from("product_ingredients").select("*").eq("product_id", product.id),
-          supabase.from("product_packaging").select("*").eq("product_id", product.id),
-          supabase.from("sales_fees").select("*").eq("product_id", product.id),
-        ]);
-        if (cancelled) return;
-
-        if (ingredientsResult.error || packagingResult.error || feesResult.error) {
-          setErrorReference(createErrorReference("SIM"));
-          setProductStatus("error");
-          return;
-        }
-
-        const feeRows = (feesResult.data ?? []) as unknown as FeeRow[];
-        const computation = computeProduct({
-          ingredients: (ingredientsResult.data ?? []) as unknown as IngredientRow[],
-          packaging: (packagingResult.data ?? []) as unknown as PackagingRow[],
-          yieldQty: product.yield_qty == null ? null : Number(product.yield_qty),
-          price: product.current_price == null ? null : Number(product.current_price),
-          taxRate: product.tax_rate == null ? null : Number(product.tax_rate),
-          fees: feeRows,
-        });
+        const product = detail.product;
+        const feeRows = detail.fees as FeeRow[];
+        const computation = detail.metrics;
         if (computation.status !== "ok") {
           setProductStatus(computation.status);
           return;
@@ -180,7 +151,7 @@ function Simulacoes() {
     return () => {
       cancelled = true;
     };
-  }, [fixed, loadStatus, productId, products]);
+  }, [details, fixed, loadStatus, productId]);
 
   const simulated = useMemo(() => {
     if (!base) return null;

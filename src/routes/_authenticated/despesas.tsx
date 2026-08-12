@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { deleteExpense, listExpenses, upsertExpense } from "@/lib/expenses.functions";
 import { sumFiniteNumbers } from "@/lib/finance";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -56,8 +55,10 @@ const CATEGORIES = [
   "Outros",
 ];
 
+type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>[number];
+
 function Despesas() {
-  const [list, setList] = useState<Tables<"expenses">[]>([]);
+  const [list, setList] = useState<ExpenseRow[]>([]);
   const [form, setForm] = useState({
     name: "",
     amount: "",
@@ -68,11 +69,7 @@ function Despesas() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   async function load() {
-    const { data } = await supabase
-      .from("expenses")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setList(data ?? []);
+    setList(await listExpenses());
   }
   useEffect(() => {
     load();
@@ -85,23 +82,27 @@ function Despesas() {
     if (!form.name.trim() || rawAmount === "" || !Number.isFinite(amount) || amount < 0)
       return toast.error("Preencha nome e valor válido");
     setLoading(true);
-    const { data: user } = await supabase.auth.getUser();
-    const { error } = await supabase.from("expenses").insert({
-      user_id: user.user!.id,
-      name: form.name,
-      amount,
-      category: form.category,
-      type: form.type,
-    });
+    try {
+      await upsertExpense({
+        data: {
+          name: form.name,
+          amount,
+          category: form.category,
+          type: form.type,
+        },
+      });
+    } catch {
+      setLoading(false);
+      return toast.error("Não foi possível salvar a despesa");
+    }
     setLoading(false);
-    if (error) return toast.error(error.message);
     toast.success("Despesa adicionada");
     setForm({ name: "", amount: "", category: "Outros", type: "fixa" });
     load();
   }
 
   async function del(id: string) {
-    await supabase.from("expenses").delete().eq("id", id);
+    await deleteExpense({ data: { id } });
     load();
   }
 

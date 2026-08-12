@@ -30,7 +30,10 @@ describe("fronteiras de persistência FIN-002", () => {
   it("preserva null também quando o produto é criado pelo BFF manual", () => {
     const source = projectFile("src/lib/products.functions.ts");
 
-    expect(source).toContain("{ yield_qty: null, tax_rate: null, ...data");
+    expect(source).toContain("data.yield_qty == null ? null");
+    expect(source).toContain("percentForDb(data.tax_rate)");
+    expect(source).not.toContain("data.yield_qty ?? 1");
+    expect(source).not.toContain("data.tax_rate ?? 0");
   });
 });
 
@@ -118,7 +121,7 @@ describe("fronteiras de proveniência FIN-004", () => {
       "src/routes/_authenticated/simulacoes.tsx",
     ]) {
       const source = projectFile(path);
-      expect(source).toContain("Result.error");
+      expect(source).toContain("} catch {");
       expect(source).toContain('setLoadStatus("error")');
       expect(source).toContain("Referência de atendimento");
       expect(source).toContain("Tentar novamente");
@@ -173,9 +176,9 @@ describe("fronteiras de formação de preço FIN-005", () => {
 
     expect(finance).toContain("export function computeProductCost");
     expect(finance).toContain("export function calculatePriceFormation");
-    expect(diagnostic).toContain("ingredientsResult.error");
-    expect(diagnostic).toContain("packagingResult.error");
-    expect(diagnostic).toContain("feesResult.error");
-    expect(diagnostic).toContain("marketResult.error");
+    expect(diagnostic).toContain("listProductsWithMetrics()");
+    expect(diagnostic).toContain("} catch {");
+    expect(diagnostic).toContain('setLoadStatus("error")');
+    expect(diagnostic).not.toMatch(/current_price\s*[),]\s*ingredients/);
   });
 });

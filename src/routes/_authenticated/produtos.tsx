@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { computeProduct, type IngredientRow, type PackagingRow, type FeeRow } from "@/lib/finance";
+import { deleteProduct, listProductsWithMetrics } from "@/lib/products.functions";
 import { brl, pct } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,25 +43,9 @@ function Produtos() {
 
   async function load() {
     setLoading(true);
-    const { data: products } = await supabase
-      .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const products = await listProductsWithMetrics();
     const enriched: Row[] = [];
-    for (const p of products ?? []) {
-      const [ing, pack, fees] = await Promise.all([
-        supabase.from("product_ingredients").select("*").eq("product_id", p.id),
-        supabase.from("product_packaging").select("*").eq("product_id", p.id),
-        supabase.from("sales_fees").select("*").eq("product_id", p.id),
-      ]);
-      const c = computeProduct({
-        ingredients: (ing.data ?? []) as unknown as IngredientRow[],
-        packaging: (pack.data ?? []) as unknown as PackagingRow[],
-        yieldQty: p.yield_qty == null ? null : Number(p.yield_qty),
-        price: p.current_price == null ? null : Number(p.current_price),
-        taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
-        fees: (fees.data ?? []) as unknown as FeeRow[],
-      });
+    for (const { product: p, metrics: c } of products) {
       // Incomplete permanece "—"; invalid chega ao formatter como NaN e vira
       // "Erro de cálculo", sem mascarar falha numérica como ausência.
       const unavailableMetric = c.status === "invalid" ? Number.NaN : null;
@@ -82,9 +65,12 @@ function Produtos() {
   }, []);
 
   async function del(id: string) {
-    const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Produto excluído");
+    try {
+      await deleteProduct({ data: { id } });
+    } catch {
+      return toast.error("Não foi possível arquivar o produto");
+    }
+    toast.success("Produto arquivado");
     load();
   }
 

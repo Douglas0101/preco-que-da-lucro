@@ -1,184 +1,435 @@
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { TablesInsert } from "@/integrations/supabase/types";
 import { z } from "zod";
-import { computeProduct, type IngredientRow, type PackagingRow, type FeeRow } from "@/lib/finance";
+import {
+  marketPrices,
+  productIngredients,
+  productPackaging,
+  products,
+  salesFees,
+} from "@/db/schema";
+import { computeProduct, type FeeRow, type IngredientRow, type PackagingRow } from "@/lib/finance";
+import { toDecimalString } from "@/lib/financial-values";
+import { requireDatabaseAuth } from "@/server/auth/request-context.middleware";
+import type { RequestContext } from "@/server/request-context";
 
 const uuid = z.string().uuid();
+const asNumber = (value: string | null) => (value == null ? null : Number(value));
+const percentForUi = (value: string | null) => (value == null ? null : Number(value) * 100);
+const percentForDb = (value: number | null | undefined) =>
+  value == null ? null : toDecimalString(value / 100, 6);
+
+function mapProduct(row: typeof products.$inferSelect) {
+  return {
+    id: row.id,
+    tenant_id: row.tenantId,
+    user_id: row.userId,
+    name: row.name,
+    current_price: asNumber(row.currentPrice),
+    yield_qty: asNumber(row.yieldQty),
+    yield_unit: row.yieldUnit,
+    tax_regime: row.taxRegime,
+    tax_rate: percentForUi(row.taxRate),
+    is_demo: row.isDemo,
+    notes: row.notes,
+    archived_at: row.archivedAt?.toISOString() ?? null,
+    created_at: row.createdAt.toISOString(),
+    updated_at: row.updatedAt.toISOString(),
+  };
+}
+
+function mapIngredient(row: typeof productIngredients.$inferSelect) {
+  return {
+    id: row.id,
+    product_id: row.productId,
+    tenant_id: row.tenantId,
+    user_id: row.userId,
+    name: row.name,
+    used_qty: Number(row.usedQty),
+    used_unit: row.usedUnit,
+    package_price: asNumber(row.packagePrice),
+    package_qty: asNumber(row.packageQty),
+    package_unit: row.packageUnit,
+    conversion_factor: asNumber(row.conversionFactor),
+    price_updated_at: row.priceUpdatedAt?.toISOString() ?? null,
+    created_at: row.createdAt.toISOString(),
+    updated_at: row.updatedAt.toISOString(),
+  };
+}
+
+function mapPackaging(row: typeof productPackaging.$inferSelect) {
+  return {
+    id: row.id,
+    product_id: row.productId,
+    tenant_id: row.tenantId,
+    user_id: row.userId,
+    name: row.name,
+    package_price: Number(row.packagePrice),
+    units_per_package: Number(row.unitsPerPackage),
+    price_updated_at: row.priceUpdatedAt?.toISOString() ?? null,
+    created_at: row.createdAt.toISOString(),
+    updated_at: row.updatedAt.toISOString(),
+  };
+}
+
+function mapFee(row: typeof salesFees.$inferSelect) {
+  return {
+    id: row.id,
+    product_id: row.productId,
+    tenant_id: row.tenantId,
+    user_id: row.userId,
+    name: row.name,
+    percentage: Number(row.percentage) * 100,
+    created_at: row.createdAt.toISOString(),
+    updated_at: row.updatedAt.toISOString(),
+  };
+}
+
+function mapMarket(row: typeof marketPrices.$inferSelect) {
+  return {
+    id: row.id,
+    product_id: row.productId,
+    tenant_id: row.tenantId,
+    user_id: row.userId,
+    min_price: asNumber(row.minPrice),
+    avg_price: asNumber(row.avgPrice),
+    max_price: asNumber(row.maxPrice),
+    created_at: row.createdAt.toISOString(),
+  };
+}
+
+async function loadProductDetail(request: RequestContext, productId: string) {
+  const scope = and(eq(products.tenantId, request.tenantId), eq(products.id, productId));
+  const [productRows, ingredientRows, packagingRows, feeRows, marketRows] = await Promise.all([
+    request.transaction.select().from(products).where(scope).limit(1),
+    request.transaction
+      .select()
+      .from(productIngredients)
+      .where(
+        and(
+          eq(productIngredients.tenantId, request.tenantId),
+          eq(productIngredients.productId, productId),
+        ),
+      )
+      .orderBy(asc(productIngredients.createdAt)),
+    request.transaction
+      .select()
+      .from(productPackaging)
+      .where(
+        and(
+          eq(productPackaging.tenantId, request.tenantId),
+          eq(productPackaging.productId, productId),
+        ),
+      )
+      .orderBy(asc(productPackaging.createdAt)),
+    request.transaction
+      .select()
+      .from(salesFees)
+      .where(and(eq(salesFees.tenantId, request.tenantId), eq(salesFees.productId, productId)))
+      .orderBy(asc(salesFees.createdAt)),
+    request.transaction
+      .select()
+      .from(marketPrices)
+      .where(
+        and(eq(marketPrices.tenantId, request.tenantId), eq(marketPrices.productId, productId)),
+      )
+      .orderBy(desc(marketPrices.createdAt))
+      .limit(1),
+  ]);
+
+  return {
+    product: productRows[0] ? mapProduct(productRows[0]) : null,
+    ingredients: ingredientRows.map(mapIngredient),
+    packaging: packagingRows.map(mapPackaging),
+    fees: feeRows.map(mapFee),
+    market: marketRows[0] ? mapMarket(marketRows[0]) : null,
+  };
+}
 
 export const listProducts = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return data ?? [];
+    const request = context.requestContext;
+    const rows = await request.transaction
+      .select()
+      .from(products)
+      .where(and(eq(products.tenantId, request.tenantId), isNull(products.archivedAt)))
+      .orderBy(desc(products.createdAt));
+    return rows.map(mapProduct);
+  });
+
+export const listProductsWithMetrics = createServerFn({ method: "GET" })
+  .middleware([requireDatabaseAuth])
+  .handler(async ({ context }) => {
+    const request = context.requestContext;
+    const productRows = await request.transaction
+      .select()
+      .from(products)
+      .where(and(eq(products.tenantId, request.tenantId), isNull(products.archivedAt)))
+      .orderBy(desc(products.createdAt));
+    const productIds = productRows.map((row) => row.id);
+    if (!productIds.length) return [];
+    const [ingredientRows, packagingRows, feeRows, marketRows] = await Promise.all([
+      request.transaction
+        .select()
+        .from(productIngredients)
+        .where(
+          and(
+            eq(productIngredients.tenantId, request.tenantId),
+            inArray(productIngredients.productId, productIds),
+          ),
+        ),
+      request.transaction
+        .select()
+        .from(productPackaging)
+        .where(
+          and(
+            eq(productPackaging.tenantId, request.tenantId),
+            inArray(productPackaging.productId, productIds),
+          ),
+        ),
+      request.transaction
+        .select()
+        .from(salesFees)
+        .where(
+          and(eq(salesFees.tenantId, request.tenantId), inArray(salesFees.productId, productIds)),
+        ),
+      request.transaction
+        .select()
+        .from(marketPrices)
+        .where(
+          and(
+            eq(marketPrices.tenantId, request.tenantId),
+            inArray(marketPrices.productId, productIds),
+          ),
+        )
+        .orderBy(desc(marketPrices.createdAt)),
+    ]);
+
+    return productRows.map((row) => {
+      const product = mapProduct(row);
+      const ingredients = ingredientRows
+        .filter((item) => item.productId === row.id)
+        .map(mapIngredient);
+      const packaging = packagingRows.filter((item) => item.productId === row.id).map(mapPackaging);
+      const fees = feeRows.filter((item) => item.productId === row.id).map(mapFee);
+      const marketRow = marketRows.find((item) => item.productId === row.id);
+      return {
+        product,
+        ingredients,
+        packaging,
+        fees,
+        market: marketRow ? mapMarket(marketRow) : null,
+        metrics: computeProduct({
+          ingredients: ingredients as IngredientRow[],
+          packaging: packaging as PackagingRow[],
+          yieldQty: product.yield_qty,
+          price: product.current_price,
+          taxRate: product.tax_rate,
+          fees: fees as FeeRow[],
+        }),
+      };
+    });
   });
 
 export const getProduct = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => z.object({ id: uuid }).parse(input))
   .handler(async ({ data, context }) => {
-    const [p, ing, pack, fees, market] = await Promise.all([
-      context.supabase.from("products").select("*").eq("id", data.id).maybeSingle(),
-      context.supabase
-        .from("product_ingredients")
-        .select("*")
-        .eq("product_id", data.id)
-        .order("created_at"),
-      context.supabase
-        .from("product_packaging")
-        .select("*")
-        .eq("product_id", data.id)
-        .order("created_at"),
-      context.supabase.from("sales_fees").select("*").eq("product_id", data.id).order("created_at"),
-      context.supabase
-        .from("market_prices")
-        .select("*")
-        .eq("product_id", data.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-    ]);
-    if (p.error) throw new Error(p.error.message);
-    return {
-      product: p.data,
-      ingredients: ing.data ?? [],
-      packaging: pack.data ?? [],
-      fees: fees.data ?? [],
-      market: market.data ?? null,
-    };
+    return loadProductDetail(context.requestContext, data.id);
   });
 
 const productInput = z.object({
   id: uuid.optional(),
-  name: z.string().min(1),
+  name: z.string().trim().min(1).max(160),
   current_price: z.number().finite().min(0).nullable().optional(),
-  yield_qty: z.number().finite().positive().optional(),
-  yield_unit: z.string().optional(),
-  tax_regime: z.string().optional(),
-  tax_rate: z.number().finite().min(0).lt(100).optional(),
+  yield_qty: z.number().finite().positive().nullable().optional(),
+  yield_unit: z.string().trim().max(40).nullable().optional(),
+  tax_regime: z.string().trim().max(80).nullable().optional(),
+  tax_rate: z.number().finite().min(0).lt(100).nullable().optional(),
 });
+
 export const upsertProduct = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => productInput.parse(i))
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => productInput.parse(input))
   .handler(async ({ data, context }) => {
-    // Compatibilidade app-first: inserts preservam ausência mesmo antes da
-    // migration que remove os defaults legados de yield/tax.
-    const row: TablesInsert<"products"> = data.id
-      ? { ...data, user_id: context.userId }
-      : { yield_qty: null, tax_rate: null, ...data, user_id: context.userId };
-    const { data: res, error } = await context.supabase
-      .from("products")
-      .upsert(row, { onConflict: "id" })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return res;
+    const request = context.requestContext;
+    const values = {
+      tenantId: request.tenantId,
+      userId: request.userId,
+      name: data.name,
+      currentPrice: data.current_price == null ? null : toDecimalString(data.current_price, 4),
+      yieldQty: data.yield_qty == null ? null : toDecimalString(data.yield_qty, 6),
+      yieldUnit: data.yield_unit ?? null,
+      taxRegime: data.tax_regime ?? null,
+      taxRate: percentForDb(data.tax_rate),
+      updatedAt: new Date(),
+    };
+    const rows = data.id
+      ? await request.transaction
+          .update(products)
+          .set(values)
+          .where(and(eq(products.tenantId, request.tenantId), eq(products.id, data.id)))
+          .returning()
+      : await request.transaction.insert(products).values(values).returning();
+    if (!rows[0]) throw new Error("NOT_FOUND");
+    return mapProduct(rows[0]);
   });
 
-export const deleteProduct = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
+export const archiveProduct = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => z.object({ id: uuid }).parse(input))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("products").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+    const request = context.requestContext;
+    const rows = await request.transaction
+      .update(products)
+      .set({ archivedAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(products.tenantId, request.tenantId), eq(products.id, data.id)))
+      .returning({ id: products.id });
+    if (!rows.length) throw new Error("NOT_FOUND");
     return { ok: true };
   });
+
+// Compatibility alias for existing consumers; deletion becomes recoverable archive.
+export const deleteProduct = archiveProduct;
 
 const ingredientInput = z.object({
   id: uuid.optional(),
   product_id: uuid,
-  name: z.string().min(1),
+  name: z.string().trim().min(1).max(160),
   used_qty: z.number().finite().positive(),
-  used_unit: z.string().min(1),
+  used_unit: z.string().trim().min(1).max(40),
   package_price: z.number().finite().min(0).nullable().optional(),
   package_qty: z.number().finite().positive().nullable().optional(),
-  package_unit: z.string().nullable().optional(),
+  package_unit: z.string().trim().max(40).nullable().optional(),
+  conversion_factor: z.number().finite().positive().nullable().optional(),
 });
+
 export const upsertIngredient = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => ingredientInput.parse(i))
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => ingredientInput.parse(input))
   .handler(async ({ data, context }) => {
-    const row = { ...data, user_id: context.userId };
-    const { data: res, error } = await context.supabase
-      .from("product_ingredients")
-      .upsert(row, { onConflict: "id" })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return res;
+    const request = context.requestContext;
+    const values = {
+      tenantId: request.tenantId,
+      userId: request.userId,
+      productId: data.product_id,
+      name: data.name,
+      usedQty: toDecimalString(data.used_qty, 6),
+      usedUnit: data.used_unit,
+      packagePrice: data.package_price == null ? null : toDecimalString(data.package_price, 4),
+      packageQty: data.package_qty == null ? null : toDecimalString(data.package_qty, 6),
+      packageUnit: data.package_unit ?? null,
+      conversionFactor:
+        data.conversion_factor == null ? null : toDecimalString(data.conversion_factor, 8),
+      priceUpdatedAt: data.package_price == null ? null : new Date(),
+      updatedAt: new Date(),
+    };
+    const rows = data.id
+      ? await request.transaction
+          .update(productIngredients)
+          .set(values)
+          .where(
+            and(
+              eq(productIngredients.tenantId, request.tenantId),
+              eq(productIngredients.id, data.id),
+            ),
+          )
+          .returning()
+      : await request.transaction.insert(productIngredients).values(values).returning();
+    if (!rows[0]) throw new Error("NOT_FOUND");
+    return mapIngredient(rows[0]);
   });
 
-export const deleteIngredient = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("product_ingredients").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
+function deleteChild(
+  table: typeof productIngredients | typeof productPackaging | typeof salesFees,
+) {
+  return createServerFn({ method: "POST" })
+    .middleware([requireDatabaseAuth])
+    .validator((input: unknown) => z.object({ id: uuid }).parse(input))
+    .handler(async ({ data, context }) => {
+      const request = context.requestContext;
+      const rows = await request.transaction
+        .delete(table)
+        .where(and(eq(table.tenantId, request.tenantId), eq(table.id, data.id)))
+        .returning({ id: table.id });
+      if (!rows.length) throw new Error("NOT_FOUND");
+      return { ok: true };
+    });
+}
+
+export const deleteIngredient = deleteChild(productIngredients);
 
 const packagingInput = z.object({
   id: uuid.optional(),
   product_id: uuid,
-  name: z.string().min(1),
+  name: z.string().trim().min(1).max(160),
   package_price: z.number().finite().min(0),
   units_per_package: z.number().finite().positive(),
 });
+
 export const upsertPackaging = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => packagingInput.parse(i))
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => packagingInput.parse(input))
   .handler(async ({ data, context }) => {
-    const row = { ...data, user_id: context.userId };
-    const { data: res, error } = await context.supabase
-      .from("product_packaging")
-      .upsert(row, { onConflict: "id" })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return res;
+    const request = context.requestContext;
+    const values = {
+      tenantId: request.tenantId,
+      userId: request.userId,
+      productId: data.product_id,
+      name: data.name,
+      packagePrice: toDecimalString(data.package_price, 4),
+      unitsPerPackage: toDecimalString(data.units_per_package, 6),
+      priceUpdatedAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const rows = data.id
+      ? await request.transaction
+          .update(productPackaging)
+          .set(values)
+          .where(
+            and(eq(productPackaging.tenantId, request.tenantId), eq(productPackaging.id, data.id)),
+          )
+          .returning()
+      : await request.transaction.insert(productPackaging).values(values).returning();
+    if (!rows[0]) throw new Error("NOT_FOUND");
+    return mapPackaging(rows[0]);
   });
 
-export const deletePackaging = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("product_packaging").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
+export const deletePackaging = deleteChild(productPackaging);
 
 const feeInput = z.object({
   id: uuid.optional(),
   product_id: uuid,
-  name: z.string().min(1),
+  name: z.string().trim().min(1).max(160),
   percentage: z.number().finite().min(0).lt(100),
 });
+
 export const upsertFee = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => feeInput.parse(i))
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => feeInput.parse(input))
   .handler(async ({ data, context }) => {
-    const row = { ...data, user_id: context.userId };
-    const { data: res, error } = await context.supabase
-      .from("sales_fees")
-      .upsert(row, { onConflict: "id" })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return res;
+    const request = context.requestContext;
+    const values = {
+      tenantId: request.tenantId,
+      userId: request.userId,
+      productId: data.product_id,
+      name: data.name,
+      percentage: toDecimalString(data.percentage / 100, 6),
+      updatedAt: new Date(),
+    };
+    const rows = data.id
+      ? await request.transaction
+          .update(salesFees)
+          .set(values)
+          .where(and(eq(salesFees.tenantId, request.tenantId), eq(salesFees.id, data.id)))
+          .returning()
+      : await request.transaction.insert(salesFees).values(values).returning();
+    if (!rows[0]) throw new Error("NOT_FOUND");
+    return mapFee(rows[0]);
   });
 
-export const deleteFee = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("sales_fees").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
+export const deleteFee = deleteChild(salesFees);
 
 const marketInput = z.object({
   product_id: uuid,
@@ -186,92 +437,117 @@ const marketInput = z.object({
   avg_price: z.number().finite().min(0).nullable().optional(),
   max_price: z.number().finite().min(0).nullable().optional(),
 });
+
 export const setMarketPrice = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => marketInput.parse(i))
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => marketInput.parse(input))
   .handler(async ({ data, context }) => {
-    // Simplest: keep only latest — delete previous then insert
-    await context.supabase.from("market_prices").delete().eq("product_id", data.product_id);
-    const { data: res, error } = await context.supabase
-      .from("market_prices")
-      .insert({ ...data, user_id: context.userId })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return res;
+    const request = context.requestContext;
+    const [row] = await request.transaction
+      .insert(marketPrices)
+      .values({
+        tenantId: request.tenantId,
+        userId: request.userId,
+        productId: data.product_id,
+        minPrice: data.min_price == null ? null : toDecimalString(data.min_price, 4),
+        avgPrice: data.avg_price == null ? null : toDecimalString(data.avg_price, 4),
+        maxPrice: data.max_price == null ? null : toDecimalString(data.max_price, 4),
+      })
+      .returning();
+    if (!row) throw new Error("DATABASE_ERROR");
+    return mapMarket(row);
   });
 
-// Server-computed metrics for a product
 export const getProductMetrics = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => z.object({ id: uuid }).parse(i))
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => z.object({ id: uuid }).parse(input))
   .handler(async ({ data, context }) => {
-    const [p, ing, pack, fees] = await Promise.all([
-      context.supabase.from("products").select("*").eq("id", data.id).maybeSingle(),
-      context.supabase.from("product_ingredients").select("*").eq("product_id", data.id),
-      context.supabase.from("product_packaging").select("*").eq("product_id", data.id),
-      context.supabase.from("sales_fees").select("*").eq("product_id", data.id),
-    ]);
-    if (!p.data) throw new Error("Produto não encontrado");
-    const metrics = computeProduct({
-      ingredients: (ing.data ?? []) as unknown as IngredientRow[],
-      packaging: (pack.data ?? []) as unknown as PackagingRow[],
-      yieldQty: p.data.yield_qty == null ? null : Number(p.data.yield_qty),
-      price: p.data.current_price == null ? null : Number(p.data.current_price),
-      taxRate: p.data.tax_rate == null ? null : Number(p.data.tax_rate),
-      fees: (fees.data ?? []) as unknown as FeeRow[],
-    });
-    // Retorna o CalculationResult completo, preservando missing/warnings
-    // para os consumidores que o BFF de produto introduzir (lote 17).
-    return { product: p.data, metrics };
+    const detail = await loadProductDetail(context.requestContext, data.id);
+    if (!detail.product) throw new Error("NOT_FOUND");
+    return {
+      product: detail.product,
+      metrics: computeProduct({
+        ingredients: detail.ingredients as IngredientRow[],
+        packaging: detail.packaging as PackagingRow[],
+        yieldQty: detail.product.yield_qty,
+        price: detail.product.current_price,
+        taxRate: detail.product.tax_rate,
+        fees: detail.fees as FeeRow[],
+      }),
+    };
   });
-
-// ---- Atualização de preços de compra (insumos e embalagens) ----
 
 export const listPurchasePrices = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
-    const [products, ing, pack] = await Promise.all([
-      context.supabase
-        .from("products")
-        .select("id, name")
-        .order("created_at", { ascending: false }),
-      context.supabase
-        .from("product_ingredients")
-        .select("id, product_id, name, package_price, package_qty, package_unit, price_updated_at")
-        .order("name"),
-      context.supabase
-        .from("product_packaging")
-        .select("id, product_id, name, package_price, units_per_package, price_updated_at")
-        .order("name"),
+    const request = context.requestContext;
+    const productRows = await request.transaction
+      .select({ id: products.id, name: products.name })
+      .from(products)
+      .where(and(eq(products.tenantId, request.tenantId), isNull(products.archivedAt)))
+      .orderBy(desc(products.createdAt));
+    const productIds = productRows.map((row) => row.id);
+    if (!productIds.length) return { products: [], ingredients: [], packaging: [] };
+    const [ingredientRows, packagingRows] = await Promise.all([
+      request.transaction
+        .select()
+        .from(productIngredients)
+        .where(
+          and(
+            eq(productIngredients.tenantId, request.tenantId),
+            inArray(productIngredients.productId, productIds),
+          ),
+        )
+        .orderBy(asc(productIngredients.name)),
+      request.transaction
+        .select()
+        .from(productPackaging)
+        .where(
+          and(
+            eq(productPackaging.tenantId, request.tenantId),
+            inArray(productPackaging.productId, productIds),
+          ),
+        )
+        .orderBy(asc(productPackaging.name)),
     ]);
-    if (products.error) throw new Error(products.error.message);
     return {
-      products: products.data ?? [],
-      ingredients: ing.data ?? [],
-      packaging: pack.data ?? [],
+      products: productRows,
+      ingredients: ingredientRows.map(mapIngredient),
+      packaging: packagingRows.map(mapPackaging),
     };
   });
 
 export const updatePurchasePrice = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) =>
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) =>
     z
       .object({
         id: uuid,
         kind: z.enum(["ingrediente", "embalagem"]),
         package_price: z.number().finite().min(0),
       })
-      .parse(i),
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const table = data.kind === "ingrediente" ? "product_ingredients" : "product_packaging";
-    const { data: res, error } = await context.supabase
-      .from(table)
-      .update({ package_price: data.package_price, price_updated_at: new Date().toISOString() })
-      .eq("id", data.id)
-      .select("id, package_price, price_updated_at")
-      .single();
-    if (error) throw new Error(error.message);
-    return res;
+    const request = context.requestContext;
+    const table = data.kind === "ingrediente" ? productIngredients : productPackaging;
+    const rows = await request.transaction
+      .update(table)
+      .set({
+        packagePrice: toDecimalString(data.package_price, 4),
+        priceUpdatedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(table.tenantId, request.tenantId), eq(table.id, data.id)))
+      .returning({
+        id: table.id,
+        package_price: table.packagePrice,
+        price_updated_at: table.priceUpdatedAt,
+      });
+    if (!rows[0]) throw new Error("NOT_FOUND");
+    return {
+      ...rows[0],
+      package_price: Number(rows[0].package_price),
+      price_updated_at: rows[0].price_updated_at?.toISOString() ?? null,
+    };
   });
