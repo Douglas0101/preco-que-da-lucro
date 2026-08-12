@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
+import Decimal from "decimal.js";
 import { z } from "zod";
 import {
   marketPrices,
@@ -9,15 +10,20 @@ import {
   salesFees,
 } from "@/db/schema";
 import { computeProduct, type FeeRow, type IngredientRow, type PackagingRow } from "@/lib/finance";
-import { toDecimalString } from "@/lib/financial-values";
+import {
+  nonNegativeDecimalStringSchema,
+  percentFractionSchema,
+  positiveDecimalStringSchema,
+  toDecimalString,
+} from "@/lib/financial-values";
 import type { RequestContext } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 
 const uuid = z.string().uuid();
-const asNumber = (value: string | null) => (value == null ? null : Number(value));
-const percentForUi = (value: string | null) => (value == null ? null : Number(value) * 100);
-const percentForDb = (value: number | null | undefined) =>
-  value == null ? null : toDecimalString(value / 100, 6);
+const decimalNumber = (value: string | null) =>
+  value == null ? null : new Decimal(value).toNumber();
+const percentPoints = (value: string | null) =>
+  value == null ? null : new Decimal(value).mul(100).toNumber();
 
 function mapProduct(row: typeof products.$inferSelect) {
   return {
@@ -25,11 +31,11 @@ function mapProduct(row: typeof products.$inferSelect) {
     tenant_id: row.tenantId,
     user_id: row.userId,
     name: row.name,
-    current_price: asNumber(row.currentPrice),
-    yield_qty: asNumber(row.yieldQty),
+    current_price: row.currentPrice,
+    yield_qty: row.yieldQty,
     yield_unit: row.yieldUnit,
     tax_regime: row.taxRegime,
-    tax_rate: percentForUi(row.taxRate),
+    tax_rate: row.taxRate,
     is_demo: row.isDemo,
     notes: row.notes,
     archived_at: row.archivedAt?.toISOString() ?? null,
@@ -45,12 +51,12 @@ function mapIngredient(row: typeof productIngredients.$inferSelect) {
     tenant_id: row.tenantId,
     user_id: row.userId,
     name: row.name,
-    used_qty: Number(row.usedQty),
+    used_qty: row.usedQty,
     used_unit: row.usedUnit,
-    package_price: asNumber(row.packagePrice),
-    package_qty: asNumber(row.packageQty),
+    package_price: row.packagePrice,
+    package_qty: row.packageQty,
     package_unit: row.packageUnit,
-    conversion_factor: asNumber(row.conversionFactor),
+    conversion_factor: row.conversionFactor,
     price_updated_at: row.priceUpdatedAt?.toISOString() ?? null,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
@@ -64,8 +70,8 @@ function mapPackaging(row: typeof productPackaging.$inferSelect) {
     tenant_id: row.tenantId,
     user_id: row.userId,
     name: row.name,
-    package_price: Number(row.packagePrice),
-    units_per_package: Number(row.unitsPerPackage),
+    package_price: row.packagePrice,
+    units_per_package: row.unitsPerPackage,
     price_updated_at: row.priceUpdatedAt?.toISOString() ?? null,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
@@ -79,7 +85,7 @@ function mapFee(row: typeof salesFees.$inferSelect) {
     tenant_id: row.tenantId,
     user_id: row.userId,
     name: row.name,
-    percentage: Number(row.percentage) * 100,
+    percentage: row.percentage,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
   };
@@ -91,11 +97,32 @@ function mapMarket(row: typeof marketPrices.$inferSelect) {
     product_id: row.productId,
     tenant_id: row.tenantId,
     user_id: row.userId,
-    min_price: asNumber(row.minPrice),
-    avg_price: asNumber(row.avgPrice),
-    max_price: asNumber(row.maxPrice),
+    min_price: row.minPrice,
+    avg_price: row.avgPrice,
+    max_price: row.maxPrice,
     created_at: row.createdAt.toISOString(),
   };
+}
+
+function toFinanceIngredient(item: ReturnType<typeof mapIngredient>): IngredientRow {
+  return {
+    used_qty: decimalNumber(item.used_qty) as number,
+    used_unit: item.used_unit,
+    package_price: decimalNumber(item.package_price),
+    package_qty: decimalNumber(item.package_qty),
+    package_unit: item.package_unit,
+  };
+}
+
+function toFinancePackaging(item: ReturnType<typeof mapPackaging>): PackagingRow {
+  return {
+    package_price: decimalNumber(item.package_price) as number,
+    units_per_package: decimalNumber(item.units_per_package) as number,
+  };
+}
+
+function toFinanceFee(item: ReturnType<typeof mapFee>): FeeRow {
+  return { percentage: percentPoints(item.percentage) };
 }
 
 async function loadProductDetail(request: RequestContext, productId: string) {
@@ -215,12 +242,12 @@ export const listProductsWithMetrics = createServerFn({ method: "GET" })
         fees,
         market: marketRow ? mapMarket(marketRow) : null,
         metrics: computeProduct({
-          ingredients: ingredients as IngredientRow[],
-          packaging: packaging as PackagingRow[],
-          yieldQty: product.yield_qty,
-          price: product.current_price,
-          taxRate: product.tax_rate,
-          fees: fees as FeeRow[],
+          ingredients: ingredients.map(toFinanceIngredient),
+          packaging: packaging.map(toFinancePackaging),
+          yieldQty: decimalNumber(product.yield_qty),
+          price: decimalNumber(product.current_price),
+          taxRate: percentPoints(product.tax_rate),
+          fees: fees.map(toFinanceFee),
         }),
       };
     });
@@ -236,11 +263,11 @@ export const getProduct = createServerFn({ method: "GET" })
 const productInput = z.object({
   id: uuid.optional(),
   name: z.string().trim().min(1).max(160),
-  current_price: z.number().finite().min(0).nullable().optional(),
-  yield_qty: z.number().finite().positive().nullable().optional(),
+  current_price: nonNegativeDecimalStringSchema.nullable().optional(),
+  yield_qty: positiveDecimalStringSchema.nullable().optional(),
   yield_unit: z.string().trim().max(40).nullable().optional(),
   tax_regime: z.string().trim().max(80).nullable().optional(),
-  tax_rate: z.number().finite().min(0).lt(100).nullable().optional(),
+  tax_rate: percentFractionSchema.nullable().optional(),
 });
 
 export const upsertProduct = createServerFn({ method: "POST" })
@@ -256,7 +283,7 @@ export const upsertProduct = createServerFn({ method: "POST" })
       yieldQty: data.yield_qty == null ? null : toDecimalString(data.yield_qty, 6),
       yieldUnit: data.yield_unit ?? null,
       taxRegime: data.tax_regime ?? null,
-      taxRate: percentForDb(data.tax_rate),
+      taxRate: data.tax_rate == null ? null : toDecimalString(data.tax_rate, 6),
       updatedAt: new Date(),
     };
     const rows = data.id
@@ -291,12 +318,12 @@ const ingredientInput = z.object({
   id: uuid.optional(),
   product_id: uuid,
   name: z.string().trim().min(1).max(160),
-  used_qty: z.number().finite().positive(),
+  used_qty: positiveDecimalStringSchema,
   used_unit: z.string().trim().min(1).max(40),
-  package_price: z.number().finite().min(0).nullable().optional(),
-  package_qty: z.number().finite().positive().nullable().optional(),
+  package_price: nonNegativeDecimalStringSchema.nullable().optional(),
+  package_qty: positiveDecimalStringSchema.nullable().optional(),
   package_unit: z.string().trim().max(40).nullable().optional(),
-  conversion_factor: z.number().finite().positive().nullable().optional(),
+  conversion_factor: positiveDecimalStringSchema.nullable().optional(),
 });
 
 export const upsertIngredient = createServerFn({ method: "POST" })
@@ -358,8 +385,8 @@ const packagingInput = z.object({
   id: uuid.optional(),
   product_id: uuid,
   name: z.string().trim().min(1).max(160),
-  package_price: z.number().finite().min(0),
-  units_per_package: z.number().finite().positive(),
+  package_price: nonNegativeDecimalStringSchema,
+  units_per_package: positiveDecimalStringSchema,
 });
 
 export const upsertPackaging = createServerFn({ method: "POST" })
@@ -396,7 +423,7 @@ const feeInput = z.object({
   id: uuid.optional(),
   product_id: uuid,
   name: z.string().trim().min(1).max(160),
-  percentage: z.number().finite().min(0).lt(100),
+  percentage: percentFractionSchema,
 });
 
 export const upsertFee = createServerFn({ method: "POST" })
@@ -409,7 +436,7 @@ export const upsertFee = createServerFn({ method: "POST" })
       userId: request.userId,
       productId: data.product_id,
       name: data.name,
-      percentage: toDecimalString(data.percentage / 100, 6),
+      percentage: toDecimalString(data.percentage, 6),
       updatedAt: new Date(),
     };
     const rows = data.id
@@ -427,9 +454,9 @@ export const deleteFee = deleteChild(salesFees);
 
 const marketInput = z.object({
   product_id: uuid,
-  min_price: z.number().finite().min(0).nullable().optional(),
-  avg_price: z.number().finite().min(0).nullable().optional(),
-  max_price: z.number().finite().min(0).nullable().optional(),
+  min_price: nonNegativeDecimalStringSchema.nullable().optional(),
+  avg_price: nonNegativeDecimalStringSchema.nullable().optional(),
+  max_price: nonNegativeDecimalStringSchema.nullable().optional(),
 });
 
 export const setMarketPrice = createServerFn({ method: "POST" })
@@ -461,12 +488,12 @@ export const getProductMetrics = createServerFn({ method: "GET" })
     return {
       product: detail.product,
       metrics: computeProduct({
-        ingredients: detail.ingredients as IngredientRow[],
-        packaging: detail.packaging as PackagingRow[],
-        yieldQty: detail.product.yield_qty,
-        price: detail.product.current_price,
-        taxRate: detail.product.tax_rate,
-        fees: detail.fees as FeeRow[],
+        ingredients: detail.ingredients.map(toFinanceIngredient),
+        packaging: detail.packaging.map(toFinancePackaging),
+        yieldQty: decimalNumber(detail.product.yield_qty),
+        price: decimalNumber(detail.product.current_price),
+        taxRate: percentPoints(detail.product.tax_rate),
+        fees: detail.fees.map(toFinanceFee),
       }),
     };
   });
@@ -516,7 +543,7 @@ export const updatePurchasePrice = createServerFn({ method: "POST" })
       .object({
         id: uuid,
         kind: z.enum(["ingrediente", "embalagem"]),
-        package_price: z.number().finite().min(0),
+        package_price: nonNegativeDecimalStringSchema,
       })
       .parse(input),
   )
@@ -539,7 +566,7 @@ export const updatePurchasePrice = createServerFn({ method: "POST" })
     if (!rows[0]) throw new Error("NOT_FOUND");
     return {
       ...rows[0],
-      package_price: Number(rows[0].package_price),
+      package_price: rows[0].package_price,
       price_updated_at: rows[0].price_updated_at?.toISOString() ?? null,
     };
   });

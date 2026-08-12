@@ -179,6 +179,10 @@ test("authenticated shell keeps responsive navigation and accessible structure",
 
   await expect(page).toHaveURL(/\/inicio$/);
   await expect(page.getByRole("heading", { name: "Olá! 👋" })).toBeVisible();
+  await expect(page.getByText("Faturamento real", { exact: true })).toBeVisible();
+  await expect(page.getByText("Nenhuma venda real registrada.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Faturamento p/ equilíbrio", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Margem média", { exact: true })).toHaveCount(0);
 
   const mobileMenu = page.getByRole("button", { name: "Abrir menu de navegação" });
   if (await mobileMenu.isVisible()) await mobileMenu.click();
@@ -230,13 +234,6 @@ test("manual simulation has no fictitious current volume and labels hypothetical
   await expect(price).toHaveAttribute("aria-describedby", "simulation-field-message");
   await price.fill("20");
   await expect(page.getByText("Faturamento simulado", { exact: true })).toBeVisible();
-  await expectNoBlockingAxeViolations(page);
-
-  await page.goto("/inicio");
-  await expect(page.getByText("Faturamento real", { exact: true })).toBeVisible();
-  await expect(page.getByText("Nenhuma venda real registrada.", { exact: true })).toBeVisible();
-  await expect(page.getByText("Faturamento p/ equilíbrio", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("Margem média", { exact: true })).toHaveCount(0);
   await expectNoBlockingAxeViolations(page);
 });
 

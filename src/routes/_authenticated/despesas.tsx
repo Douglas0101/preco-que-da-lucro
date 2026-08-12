@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { deleteExpense, listExpenses, upsertExpense } from "@/lib/expenses.functions";
 import { sumFiniteNumbers } from "@/lib/finance";
+import { toDecimalString } from "@/lib/financial-values";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -86,7 +87,7 @@ function Despesas() {
       await upsertExpense({
         data: {
           name: form.name,
-          amount,
+          amount: toDecimalString(rawAmount, 4),
           category: form.category,
           type: form.type,
         },

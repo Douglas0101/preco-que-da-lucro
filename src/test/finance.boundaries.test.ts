@@ -31,17 +31,18 @@ describe("fronteiras de persistência FIN-002", () => {
     const source = projectFile("src/lib/products.functions.ts");
 
     expect(source).toContain("data.yield_qty == null ? null");
-    expect(source).toContain("percentForDb(data.tax_rate)");
+    expect(source).toContain("data.tax_rate == null ? null");
     expect(source).not.toContain("data.yield_qty ?? 1");
     expect(source).not.toContain("data.tax_rate ?? 0");
   });
 });
 
 describe("fronteiras de entrada FIN-003", () => {
-  it("rejeita NaN e Infinity em todos os schemas numéricos do BFF financeiro", () => {
+  it("usa strings decimais finitas em todos os schemas do BFF financeiro", () => {
     for (const path of ["src/lib/products.functions.ts", "src/lib/expenses.functions.ts"]) {
       const source = projectFile(path);
-      expect(source).not.toMatch(/z\.number\(\)(?!\.finite\(\))/);
+      expect(source).not.toContain("z.number()");
+      expect(source).toMatch(/DecimalStringSchema/);
     }
   });
 
@@ -76,8 +77,8 @@ describe("fronteiras de entrada FIN-003", () => {
 
   it("impõe taxas individuais abaixo de 100% no BFF", () => {
     const source = projectFile("src/lib/products.functions.ts");
-    expect(source).toContain("tax_rate: z.number().finite().min(0).lt(100)");
-    expect(source).toContain("percentage: z.number().finite().min(0).lt(100)");
+    expect(source).toContain("tax_rate: percentFractionSchema");
+    expect(source).toContain("percentage: percentFractionSchema");
   });
 });
 
