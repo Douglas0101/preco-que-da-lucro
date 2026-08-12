@@ -138,12 +138,23 @@ function Diagnostico() {
         }
 
         const product = detail.product;
-        const ingredients = detail.ingredients;
-        const packaging = detail.packaging;
-        const fees = detail.fees as FeeRow[];
+        const ingredients = detail.ingredients.map((ingredient) => ({
+          used_qty: Number(ingredient.used_qty),
+          used_unit: ingredient.used_unit,
+          package_price: ingredient.package_price == null ? null : Number(ingredient.package_price),
+          package_qty: ingredient.package_qty == null ? null : Number(ingredient.package_qty),
+          package_unit: ingredient.package_unit,
+        }));
+        const packaging = detail.packaging.map((item) => ({
+          package_price: Number(item.package_price),
+          units_per_package: Number(item.units_per_package),
+        }));
+        const fees = detail.fees.map((fee) => ({
+          percentage: Number(fee.percentage) * 100,
+        })) satisfies FeeRow[];
         const yieldQty = product.yield_qty == null ? null : Number(product.yield_qty);
         const currentPrice = product.current_price == null ? null : Number(product.current_price);
-        const taxRate = product.tax_rate == null ? null : Number(product.tax_rate);
+        const taxRate = product.tax_rate == null ? null : Number(product.tax_rate) * 100;
         const cost = computeProductCost({ ingredients, packaging, yieldQty });
         const current = detail.metrics;
 

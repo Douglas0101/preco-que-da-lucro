@@ -40,9 +40,24 @@ describe("registro tipado das tools de IA", () => {
     const definition = TOOL_REGISTRY.get("set_price_and_tax");
     const prepared = definition?.prepare(contextWithRole("owner"), {
       product_id: "50000000-0000-4000-8000-000000000005",
-      current_price: 10,
+      current_price: "10.0000",
       tax_regime: "Não sei",
     });
     expect(prepared?.ok).toBe(true);
+  });
+
+  it("transporta percentuais como frações decimais em string", () => {
+    const definition = TOOL_REGISTRY.get("add_fee");
+    const base = {
+      product_id: "50000000-0000-4000-8000-000000000005",
+      name: "Cartão",
+    };
+    expect(definition?.prepare(contextWithRole("owner"), { ...base, percentage: "0.035" }).ok).toBe(
+      true,
+    );
+    expect(definition?.prepare(contextWithRole("owner"), { ...base, percentage: 3.5 })).toEqual({
+      ok: false,
+      code: "VALIDATION_ERROR",
+    });
   });
 });

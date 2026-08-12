@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listPurchasePrices, updatePurchasePrice } from "@/lib/products.functions";
+import { toDecimalString } from "@/lib/financial-values";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +35,7 @@ type Item = {
   id: string;
   product_id: string;
   name: string;
-  package_price: number | null;
+  package_price: string | null;
   price_updated_at: string | null;
   kind: "ingrediente" | "embalagem";
   detail: string;
@@ -75,7 +76,7 @@ function Precos() {
           id: i.id,
           product_id: i.product_id,
           name: i.name,
-          package_price: i.package_price === null ? null : Number(i.package_price),
+          package_price: i.package_price,
           price_updated_at: i.price_updated_at,
           kind: "ingrediente" as const,
           detail:
@@ -87,7 +88,7 @@ function Precos() {
           id: p.id,
           product_id: p.product_id,
           name: p.name,
-          package_price: p.package_price === null ? null : Number(p.package_price),
+          package_price: p.package_price,
           price_updated_at: p.price_updated_at,
           kind: "embalagem" as const,
           detail: `pacote com ${Number(p.units_per_package ?? 1)} unidade(s)`,
@@ -137,11 +138,14 @@ function Precos() {
     }
     setSavingId(item.id);
     try {
-      const res = await save({ data: { id: item.id, kind: item.kind, package_price: valor } });
+      const packagePrice = toDecimalString(raw, 4);
+      const res = await save({
+        data: { id: item.id, kind: item.kind, package_price: packagePrice },
+      });
       setItems((prev) =>
         prev.map((i) =>
           i.id === item.id
-            ? { ...i, package_price: valor, price_updated_at: res.price_updated_at }
+            ? { ...i, package_price: packagePrice, price_updated_at: res.price_updated_at }
             : i,
         ),
       );
@@ -260,7 +264,8 @@ function Precos() {
                       </div>
 
                       <div className="w-full text-xs text-muted-foreground sm:w-auto">
-                        Valor atual: {item.package_price === null ? "—" : brl(item.package_price)}
+                        Valor atual:{" "}
+                        {item.package_price === null ? "—" : brl(Number(item.package_price))}
                       </div>
                     </div>
                   );

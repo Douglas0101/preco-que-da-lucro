@@ -4,8 +4,11 @@ import {
   decimalStringSchema,
   fractionToPercentPoints,
   moneySchema,
+  nonNegativeDecimalStringSchema,
+  percentFractionSchema,
   percentPointsToFraction,
   percentSchema,
+  positiveDecimalStringSchema,
   quantitySchema,
   toDecimalString,
 } from "@/lib/financial-values";
@@ -35,6 +38,15 @@ describe("contratos financeiros exatos", () => {
     expect(percent).toEqual({ value: "0.150000" });
     expect(fractionToPercentPoints(percent).toString()).toBe("15");
     expect(percentSchema.safeParse({ value: "1.000001" }).success).toBe(false);
+    expect(percentFractionSchema.parse("0.150000")).toBe("0.150000");
+    expect(percentFractionSchema.safeParse("1").success).toBe(false);
+  });
+
+  it("valida sinal sem converter a fronteira decimal para number", () => {
+    expect(nonNegativeDecimalStringSchema.parse("0.0000")).toBe("0.0000");
+    expect(nonNegativeDecimalStringSchema.safeParse("-0.01").success).toBe(false);
+    expect(positiveDecimalStringSchema.parse("0.000001")).toBe("0.000001");
+    expect(positiveDecimalStringSchema.safeParse(1).success).toBe(false);
   });
 
   it("aplica ROUND_HALF_UP nas fronteiras declaradas", () => {

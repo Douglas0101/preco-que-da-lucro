@@ -30,7 +30,7 @@ export const Route = createFileRoute("/_authenticated/produtos")({
 interface Row {
   id: string;
   name: string;
-  current_price: number | null;
+  current_price: string | null;
   unitCost: number | null;
   cmPct: number | null;
 }
