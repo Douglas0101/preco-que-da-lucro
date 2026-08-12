@@ -56,7 +56,7 @@ function Landing() {
           </div>
           <span className="font-bold">Preço que Dá Lucro</span>
         </div>
-        <Button render={<Link to="/auth" />} variant="ghost">
+        <Button nativeButton={false} render={<Link to="/auth" />} variant="ghost">
           Entrar
         </Button>
       </header>
@@ -75,7 +75,7 @@ function Landing() {
             negócio e quanto você precisa vender para começar a ter lucro.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button render={<Link to="/auth" />} size="lg" className="gap-2">
+            <Button nativeButton={false} render={<Link to="/auth" />} size="lg" className="gap-2">
               Começar agora <ArrowRight className="h-4 w-4" />
             </Button>
           </div>

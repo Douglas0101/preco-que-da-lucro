@@ -1,0 +1,48 @@
+import { describe, expect, it } from "vitest";
+import { GATEWAY_TOOLS, TOOL_REGISTRY } from "@/lib/ai/tool-registry";
+import type { RequestContext } from "@/lib/request-context";
+
+function contextWithRole(role: string): RequestContext {
+  return {
+    userId: "user-1",
+    tenantId: "50000000-0000-4000-8000-000000000005",
+    roles: [role],
+    correlationId: "60000000-0000-4000-8000-000000000006",
+    signal: new AbortController().signal,
+    transaction: {} as RequestContext["transaction"],
+  };
+}
+
+describe("registro tipado das tools de IA", () => {
+  it("publica exatamente as dez tools com JSON Schema", () => {
+    expect(TOOL_REGISTRY.size).toBe(10);
+    expect(GATEWAY_TOOLS).toHaveLength(10);
+    expect(GATEWAY_TOOLS.every((tool) => tool.function.parameters.type === "object")).toBe(true);
+  });
+
+  it("rejeita entrada inválida antes de construir o executor", () => {
+    const definition = TOOL_REGISTRY.get("set_yield");
+    const prepared = definition?.prepare(contextWithRole("owner"), {
+      product_id: "não-é-uuid",
+      yield_qty: Number.POSITIVE_INFINITY,
+      yield_unit: "un",
+    });
+    expect(prepared).toEqual({ ok: false, code: "VALIDATION_ERROR" });
+  });
+
+  it("rejeita mutação sem role antes de tocar o banco", () => {
+    const definition = TOOL_REGISTRY.get("create_product");
+    const prepared = definition?.prepare(contextWithRole("viewer"), { name: "Bolo" });
+    expect(prepared).toEqual({ ok: false, code: "AUTHORIZATION_ERROR" });
+  });
+
+  it("preserva ausência de imposto como null no executor validado", () => {
+    const definition = TOOL_REGISTRY.get("set_price_and_tax");
+    const prepared = definition?.prepare(contextWithRole("owner"), {
+      product_id: "50000000-0000-4000-8000-000000000005",
+      current_price: 10,
+      tax_regime: "Não sei",
+    });
+    expect(prepared?.ok).toBe(true);
+  });
+});

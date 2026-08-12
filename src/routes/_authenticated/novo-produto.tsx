@@ -53,7 +53,7 @@ function NovoProduto() {
     (async () => {
       try {
         const history = await load();
-        const restored = history.reduce<Msg[]>((messages, message) => {
+        const restored = history.messages.reduce<Msg[]>((messages, message) => {
           if (message.role === "user" || message.role === "assistant") {
             messages.push({ id: message.id, role: message.role, content: message.content });
           }
@@ -71,6 +71,7 @@ function NovoProduto() {
         } else {
           setMessages(restored);
         }
+        setCurrentProductId(history.currentProductId);
       } catch (e) {
         console.error(e);
       }
@@ -104,14 +105,18 @@ function NovoProduto() {
   }
 
   async function reset() {
-    await clear();
-    setMessages([
-      {
-        role: "assistant",
-        content: "Novo começo! Qual produto você gostaria de cadastrar agora?",
-      },
-    ]);
-    setCurrentProductId(null);
+    try {
+      await clear();
+      setMessages([
+        {
+          role: "assistant",
+          content: "Novo começo! Qual produto você gostaria de cadastrar agora?",
+        },
+      ]);
+      setCurrentProductId(null);
+    } catch {
+      toast.error("Não foi possível recomeçar a conversa.");
+    }
   }
 
   return (
@@ -158,12 +163,16 @@ function NovoProduto() {
       </div>
 
       <div className="flex-1 overflow-y-auto rounded-2xl border bg-card p-4 md:p-6 shadow-[var(--shadow-soft)]">
-        <div className="space-y-4">
+        <div className="space-y-4" role="log" aria-live="polite" aria-relevant="additions text">
           {messages.map((m, i) => (
             <MessageBubble key={m.id ?? i} role={m.role} content={m.content} />
           ))}
           {loading && (
-            <div className="flex items-start gap-3">
+            <div
+              className="flex items-start gap-3"
+              role="status"
+              aria-label="Consultor respondendo"
+            >
               <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                 <Bot className="h-4 w-4" />
               </div>

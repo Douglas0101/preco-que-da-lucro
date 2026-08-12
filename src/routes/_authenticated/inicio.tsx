@@ -160,7 +160,12 @@ function Inicio() {
           Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu
           negócio e quanto você precisa vender para começar a ter lucro.
         </p>
-        <Button render={<Link to="/novo-produto" />} size="lg" className="mt-6 gap-2">
+        <Button
+          nativeButton={false}
+          render={<Link to="/novo-produto" />}
+          size="lg"
+          className="mt-6 gap-2"
+        >
           <PlusCircle className="h-5 w-5" /> Começar agora
         </Button>
       </div>
@@ -242,10 +247,10 @@ function Inicio() {
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button render={<Link to="/novo-produto" />} className="gap-2">
+        <Button nativeButton={false} render={<Link to="/novo-produto" />} className="gap-2">
           <PlusCircle className="h-4 w-4" /> Novo produto
         </Button>
-        <Button render={<Link to="/diagnostico" />} variant="outline">
+        <Button nativeButton={false} render={<Link to="/diagnostico" />} variant="outline">
           Ver diagnóstico completo
         </Button>
       </div>

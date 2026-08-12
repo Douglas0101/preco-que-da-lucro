@@ -86,10 +86,15 @@ function Produtos() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button render={<Link to="/precos" />} variant="outline" className="gap-2">
+            <Button
+              nativeButton={false}
+              render={<Link to="/precos" />}
+              variant="outline"
+              className="gap-2"
+            >
               <Tag className="h-4 w-4" /> Preços de compra
             </Button>
-            <Button render={<Link to="/novo-produto" />} className="gap-2">
+            <Button nativeButton={false} render={<Link to="/novo-produto" />} className="gap-2">
               <PlusCircle className="h-4 w-4" /> Novo produto
             </Button>
           </div>
@@ -104,7 +109,11 @@ function Produtos() {
                 <Package className="h-6 w-6" />
               </div>
               <div className="font-semibold">Você ainda não tem produtos</div>
-              <Button render={<Link to="/novo-produto" />} className="mt-2 gap-2">
+              <Button
+                nativeButton={false}
+                render={<Link to="/novo-produto" />}
+                className="mt-2 gap-2"
+              >
                 <MessageCircle className="h-4 w-4" /> Cadastrar primeiro produto
               </Button>
             </CardContent>

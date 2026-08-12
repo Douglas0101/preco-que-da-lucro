@@ -21,6 +21,8 @@ import { Route as AuthenticatedPrecosRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedProdutosRouteImport } from './routes/_authenticated/produtos'
 import { Route as AuthenticatedSimulacoesRouteImport } from './routes/_authenticated/simulacoes'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiHealthLiveRouteImport } from './routes/api/health/live'
+import { Route as ApiHealthReadyRouteImport } from './routes/api/health/ready'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -84,6 +86,16 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthLiveRoute = ApiHealthLiveRouteImport.update({
+  id: '/api/health/live',
+  path: '/api/health/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthReadyRoute = ApiHealthReadyRouteImport.update({
+  id: '/api/health/ready',
+  path: '/api/health/ready',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -97,6 +109,8 @@ export interface FileRoutesByFullPath {
   '/produtos': typeof AuthenticatedProdutosRoute
   '/simulacoes': typeof AuthenticatedSimulacoesRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/health/live': typeof ApiHealthLiveRoute
+  '/api/health/ready': typeof ApiHealthReadyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +124,8 @@ export interface FileRoutesByTo {
   '/produtos': typeof AuthenticatedProdutosRoute
   '/simulacoes': typeof AuthenticatedSimulacoesRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/health/live': typeof ApiHealthLiveRoute
+  '/api/health/ready': typeof ApiHealthReadyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +141,8 @@ export interface FileRoutesById {
   '/_authenticated/produtos': typeof AuthenticatedProdutosRoute
   '/_authenticated/simulacoes': typeof AuthenticatedSimulacoesRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/health/live': typeof ApiHealthLiveRoute
+  '/api/health/ready': typeof ApiHealthReadyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,6 +158,8 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/simulacoes'
     | '/api/auth/$'
+    | '/api/health/live'
+    | '/api/health/ready'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,6 +173,8 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/simulacoes'
     | '/api/auth/$'
+    | '/api/health/live'
+    | '/api/health/ready'
   id:
     | '__root__'
     | '/'
@@ -167,6 +189,8 @@ export interface FileRouteTypes {
     | '/_authenticated/produtos'
     | '/_authenticated/simulacoes'
     | '/api/auth/$'
+    | '/api/health/live'
+    | '/api/health/ready'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -174,6 +198,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiHealthLiveRoute: typeof ApiHealthLiveRoute
+  ApiHealthReadyRoute: typeof ApiHealthReadyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -262,6 +288,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health/live': {
+      id: '/api/health/live'
+      path: '/api/health/live'
+      fullPath: '/api/health/live'
+      preLoaderRoute: typeof ApiHealthLiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health/ready': {
+      id: '/api/health/ready'
+      path: '/api/health/ready'
+      fullPath: '/api/health/ready'
+      preLoaderRoute: typeof ApiHealthReadyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -295,6 +335,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiHealthLiveRoute: ApiHealthLiveRoute,
+  ApiHealthReadyRoute: ApiHealthReadyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -2,6 +2,7 @@ import { Pool } from "@neondatabase/serverless";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import * as schema from "@/db/schema";
+import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 
 export type Database = ReturnType<typeof createDatabase>;
 export type DatabaseTransaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
@@ -44,14 +45,24 @@ export async function withTenantTransaction<T>(
   identity: DatabaseIdentity,
   operation: (transaction: DatabaseTransaction) => Promise<T>,
 ): Promise<T> {
-  return getDatabase().transaction(async (transaction) => {
-    await transaction.execute(sql`
-      select
-        set_config('app.current_user_id', ${identity.userId}, true),
-        set_config('app.current_tenant_id', ${identity.tenantId}, true),
-        set_config('app.current_roles', ${identity.roles.join(",")}, true)
-    `);
+  const startedAt = performance.now();
+  try {
+    return await withSpan(
+      "db.tenant_transaction",
+      { "db.system": "postgresql", "app.tenant_id": identity.tenantId },
+      () =>
+        getDatabase().transaction(async (transaction) => {
+          await transaction.execute(sql`
+            select
+              set_config('app.current_user_id', ${identity.userId}, true),
+              set_config('app.current_tenant_id', ${identity.tenantId}, true),
+              set_config('app.current_roles', ${identity.roles.join(",")}, true)
+          `);
 
-    return operation(transaction);
-  });
+          return operation(transaction);
+        }),
+    );
+  } finally {
+    applicationMetrics.dbDuration.record(performance.now() - startedAt);
+  }
 }

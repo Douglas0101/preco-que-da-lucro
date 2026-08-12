@@ -10,8 +10,9 @@ import {
 } from "@/db/schema";
 import { computeProduct, type FeeRow, type IngredientRow, type PackagingRow } from "@/lib/finance";
 import { toDecimalString } from "@/lib/financial-values";
-import { requireDatabaseAuth } from "@/server/auth/request-context.middleware";
-import type { RequestContext } from "@/server/request-context";
+import { applicationMetrics } from "@/instrumentation/telemetry";
+import type { RequestContext } from "@/lib/request-context";
+import { requireDatabaseAuth } from "@/middleware/request-context";
 
 const uuid = z.string().uuid();
 const asNumber = (value: string | null) => (value == null ? null : Number(value));
@@ -214,20 +215,22 @@ export const listProductsWithMetrics = createServerFn({ method: "GET" })
       const packaging = packagingRows.filter((item) => item.productId === row.id).map(mapPackaging);
       const fees = feeRows.filter((item) => item.productId === row.id).map(mapFee);
       const marketRow = marketRows.find((item) => item.productId === row.id);
+      const metrics = computeProduct({
+        ingredients: ingredients as IngredientRow[],
+        packaging: packaging as PackagingRow[],
+        yieldQty: product.yield_qty,
+        price: product.current_price,
+        taxRate: product.tax_rate,
+        fees: fees as FeeRow[],
+      });
+      applicationMetrics.financialStates.add(1, { state: metrics.status });
       return {
         product,
         ingredients,
         packaging,
         fees,
         market: marketRow ? mapMarket(marketRow) : null,
-        metrics: computeProduct({
-          ingredients: ingredients as IngredientRow[],
-          packaging: packaging as PackagingRow[],
-          yieldQty: product.yield_qty,
-          price: product.current_price,
-          taxRate: product.tax_rate,
-          fees: fees as FeeRow[],
-        }),
+        metrics,
       };
     });
   });
@@ -464,16 +467,18 @@ export const getProductMetrics = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const detail = await loadProductDetail(context.requestContext, data.id);
     if (!detail.product) throw new Error("NOT_FOUND");
+    const metrics = computeProduct({
+      ingredients: detail.ingredients as IngredientRow[],
+      packaging: detail.packaging as PackagingRow[],
+      yieldQty: detail.product.yield_qty,
+      price: detail.product.current_price,
+      taxRate: detail.product.tax_rate,
+      fees: detail.fees as FeeRow[],
+    });
+    applicationMetrics.financialStates.add(1, { state: metrics.status });
     return {
       product: detail.product,
-      metrics: computeProduct({
-        ingredients: detail.ingredients as IngredientRow[],
-        packaging: detail.packaging as PackagingRow[],
-        yieldQty: detail.product.yield_qty,
-        price: detail.product.current_price,
-        taxRate: detail.product.tax_rate,
-        fees: detail.fees as FeeRow[],
-      }),
+      metrics,
     };
   });
 

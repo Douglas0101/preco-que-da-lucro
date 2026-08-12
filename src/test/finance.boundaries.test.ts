@@ -18,13 +18,12 @@ describe("fronteiras de persistência FIN-002", () => {
   });
 
   it("preserva rendimento/imposto desconhecidos como null no fluxo conversacional", () => {
-    const source = projectFile("src/lib/chat.functions.ts");
+    const source = projectFile("src/lib/ai/tool-registry.ts");
 
-    expect(source).toContain("name, yield_qty: null, tax_rate: null");
-    expect(source).toContain("tax_rate: args.tax_rate ?? null");
-    expect(source).toContain("Omita se não souber");
-    expect(source).not.toContain("tax_rate: args.tax_rate ?? 0");
-    expect(source).not.toContain("Use 0 se não souber");
+    expect(source).toContain("yieldQty: null");
+    expect(source).toContain("taxRate: null");
+    expect(source).toContain("input.tax_rate === undefined ? null");
+    expect(source).not.toContain("input.tax_rate ?? 0");
   });
 
   it("preserva null também quando o produto é criado pelo BFF manual", () => {
