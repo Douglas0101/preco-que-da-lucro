@@ -8,7 +8,12 @@ import {
   products,
   salesFees,
 } from "@/db/schema";
-import { toDecimalString } from "@/lib/financial-values";
+import {
+  nonNegativeDecimalStringSchema,
+  percentFractionSchema,
+  positiveDecimalStringSchema,
+  toDecimalString,
+} from "@/lib/financial-values";
 import type { RequestContext } from "@/lib/request-context";
 
 export interface ToolExecutionOutput extends Record<string, unknown> {
@@ -42,7 +47,7 @@ function defineTool<TSchema extends z.ZodType>(definition: {
   authorize?: (context: RequestContext) => boolean;
   execute: (context: RequestContext, input: z.output<TSchema>) => Promise<ToolExecutionOutput>;
 }): RegisteredTool {
-  const jsonSchema = z.toJSONSchema(definition.schema, { target: "draft-7" });
+  const jsonSchema = z.toJSONSchema(definition.schema, { target: "draft-7", io: "input" });
   delete jsonSchema.$schema;
   return {
     name: definition.name,
@@ -66,9 +71,9 @@ function defineTool<TSchema extends z.ZodType>(definition: {
 const id = z.string().uuid();
 const name = z.string().trim().min(1).max(160);
 const unit = z.string().trim().min(1).max(40);
-const money = z.number().finite().min(0);
-const quantity = z.number().finite().positive();
-const percentage = z.number().finite().min(0).lt(100);
+const money = nonNegativeDecimalStringSchema;
+const quantity = positiveDecimalStringSchema;
+const percentage = percentFractionSchema;
 
 async function ensureProduct(context: RequestContext, productId: string): Promise<void> {
   const rows = await context.transaction
@@ -220,7 +225,7 @@ const DEFINITIONS = [
         .set({
           currentPrice: toDecimalString(input.current_price, 4),
           taxRegime: input.tax_regime,
-          taxRate: input.tax_rate === undefined ? null : toDecimalString(input.tax_rate / 100, 6),
+          taxRate: input.tax_rate === undefined ? null : toDecimalString(input.tax_rate, 6),
           updatedAt: new Date(),
         })
         .where(and(eq(products.tenantId, context.tenantId), eq(products.id, input.product_id)))
@@ -242,7 +247,7 @@ const DEFINITIONS = [
           userId: context.userId,
           productId: input.product_id,
           name: input.name,
-          percentage: toDecimalString(input.percentage / 100, 6),
+          percentage: toDecimalString(input.percentage, 6),
         })
         .returning({ id: salesFees.id, name: salesFees.name });
       if (!row) throw new Error("DATABASE_ERROR");

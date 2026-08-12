@@ -2,7 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { expenses, products } from "@/db/schema";
-import { toDecimalString } from "@/lib/financial-values";
+import { nonNegativeDecimalStringSchema, toDecimalString } from "@/lib/financial-values";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 
 const uuid = z.string().uuid();
@@ -10,7 +10,7 @@ const expenseInput = z.object({
   id: uuid.optional(),
   name: z.string().trim().min(1).max(160),
   category: z.string().trim().max(80).optional().nullable(),
-  amount: z.number().finite().min(0),
+  amount: nonNegativeDecimalStringSchema,
   type: z.enum(["fixa", "variavel"]),
   periodicity: z.string().trim().max(40).optional(),
   notes: z.string().trim().max(2000).optional().nullable(),
@@ -23,7 +23,7 @@ function mapExpense(row: typeof expenses.$inferSelect) {
     tenant_id: row.tenantId,
     name: row.name,
     category: row.category,
-    amount: Number(row.amount),
+    amount: row.amount,
     type: row.type,
     periodicity: row.periodicity,
     is_demo: row.isDemo,
@@ -100,8 +100,8 @@ export const getTotals = createServerFn({ method: "GET" })
       .where(eq(expenses.tenantId, request.tenantId));
     if (!totals) throw new Error("DATABASE_ERROR");
     return {
-      fixed: Number(totals.fixed),
-      variable: Number(totals.variable),
+      fixed: totals.fixed,
+      variable: totals.variable,
       productCount: totals.productCount,
     };
   });

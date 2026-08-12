@@ -117,7 +117,9 @@ function Simulacoes() {
         }
 
         const product = detail.product;
-        const feeRows = detail.fees as FeeRow[];
+        const feeRows = detail.fees.map((fee) => ({
+          percentage: Number(fee.percentage) * 100,
+        })) satisfies FeeRow[];
         const computation = detail.metrics;
         if (computation.status !== "ok") {
           setProductStatus(computation.status);
@@ -129,7 +131,7 @@ function Simulacoes() {
           ...computation.value,
           name: product.name,
           price,
-          taxRate: product.tax_rate == null ? null : Number(product.tax_rate),
+          taxRate: product.tax_rate == null ? null : Number(product.tax_rate) * 100,
           fees: feeRows,
         });
         setSim({

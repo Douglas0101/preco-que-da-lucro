@@ -42,6 +42,21 @@ export const decimalStringSchema = z
   .refine(isFiniteDecimal, "O decimal deve ser finito.")
   .transform((value) => value as DecimalString);
 
+export const nonNegativeDecimalStringSchema = decimalStringSchema.refine(
+  (value) => new Decimal(value).gte(0),
+  "O decimal não pode ser negativo.",
+);
+
+export const positiveDecimalStringSchema = decimalStringSchema.refine(
+  (value) => new Decimal(value).gt(0),
+  "O decimal deve ser positivo.",
+);
+
+export const percentFractionSchema = nonNegativeDecimalStringSchema.refine(
+  (value) => new Decimal(value).lt(1),
+  "O percentual deve ser uma fração entre 0 e 1.",
+);
+
 export const moneySchema = z.object({
   amount: decimalStringSchema,
   currency: z.literal("BRL"),
