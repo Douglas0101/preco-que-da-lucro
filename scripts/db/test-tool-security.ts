@@ -110,7 +110,7 @@ async function main(): Promise<void> {
         name: "set_yield",
         rawArguments: JSON.stringify({
           product_id: otherProductId,
-          yield_qty: 10,
+          yield_qty: "10.000000",
           yield_unit: "un",
         }),
         idempotencyKey: "conversation:call-cross-tenant",
