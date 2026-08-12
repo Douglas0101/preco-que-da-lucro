@@ -4,7 +4,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { getDatabase, withTenantTransaction } from "@/db/client.server";
 import { tenantMemberships } from "@/db/schema";
-import { getAuth } from "./auth.server";
+import { getAuth } from "@/server/auth/auth.server";
 
 const uuid = z.string().uuid();
 

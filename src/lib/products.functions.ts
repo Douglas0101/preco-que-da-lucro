@@ -10,8 +10,8 @@ import {
 } from "@/db/schema";
 import { computeProduct, type FeeRow, type IngredientRow, type PackagingRow } from "@/lib/finance";
 import { toDecimalString } from "@/lib/financial-values";
-import { requireDatabaseAuth } from "@/server/auth/request-context.middleware";
-import type { RequestContext } from "@/server/request-context";
+import type { RequestContext } from "@/lib/request-context";
+import { requireDatabaseAuth } from "@/middleware/request-context";
 
 const uuid = z.string().uuid();
 const asNumber = (value: string | null) => (value == null ? null : Number(value));

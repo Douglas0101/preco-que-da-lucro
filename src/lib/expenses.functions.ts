@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { expenses, products } from "@/db/schema";
 import { toDecimalString } from "@/lib/financial-values";
-import { requireDatabaseAuth } from "@/server/auth/request-context.middleware";
+import { requireDatabaseAuth } from "@/middleware/request-context";
 
 const uuid = z.string().uuid();
 const expenseInput = z.object({
