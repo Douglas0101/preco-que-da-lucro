@@ -1,6 +1,6 @@
-# ADR-021 — Taxonomia de erros, segurança da IA e observabilidade
+# ADR-021 (arquivado) — Taxonomia de erros, segurança da IA e observabilidade
 
-- Status: aceito
+- Status: superseded; mantido somente como histórico do lote intermediário
 - Data: 2026-08-12
 - Escopo: BFF, tools, gateway de IA e operação
 

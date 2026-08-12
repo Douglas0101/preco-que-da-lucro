@@ -13,6 +13,12 @@
 | Arquitetura-alvo | Monólito modular full-stack com BFF, RLS e motor financeiro determinístico |
 | Classificação    | Uso interno e confidencial                                                 |
 
+> **Atualização P0 (2026-08-12):** este SDD preserva descrições do baseline
+> legado para rastreabilidade. A decisão vigente é PostgreSQL/Neon + Drizzle e
+> Better Auth server-driven, conforme ADR-019 e ADR-020. Supabase está
+> descartado como runtime final e só é permitido como origem read-only da
+> migração/cutover documentada em ADR-021.
+
 > Este SDD define como o sistema deverá ser construído. O Plano Mestre permanece responsável por prioridade, sequenciamento e governança da execução. Em caso de divergência, requisitos legais e de segurança prevalecem; em seguida, este SDD; depois, ADRs aprovados e o Plano Mestre.
 
 ---

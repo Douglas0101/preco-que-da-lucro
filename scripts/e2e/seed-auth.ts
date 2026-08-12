@@ -5,6 +5,8 @@ import { requireAdminUrl, runMigrations } from "../db/migrate";
 const userId = "00000000-0000-4000-8000-000000000001";
 const tenantId = "00000000-0000-4000-8000-000000000002";
 const productId = "00000000-0000-4000-8000-000000000010";
+const conversationId = "00000000-0000-4000-8000-000000000020";
+const messageId = "00000000-0000-4000-8000-000000000021";
 
 function required(name: "E2E_AUTH_EMAIL" | "E2E_AUTH_PASSWORD"): string {
   const value = process.env[name];
@@ -110,6 +112,23 @@ async function main(): Promise<void> {
          ('00000000-0000-4000-8000-000000000014', $1, $2, 'Despesas fixas', '600.0000', 'fixa'),
          ('00000000-0000-4000-8000-000000000015', $1, $2, 'Despesas variáveis', '200.0000', 'variavel')`,
       [tenantId, userId],
+    );
+    await client.query(
+      `insert into chat_conversations
+         (id, tenant_id, user_id, current_product_id, confirmed_state)
+       values ($1, $2, $3, $4, $5::jsonb)`,
+      [
+        conversationId,
+        tenantId,
+        userId,
+        productId,
+        JSON.stringify({ currentProductId: productId, lastAssistantMessageId: messageId }),
+      ],
+    );
+    await client.query(
+      `insert into chat_messages (id, conversation_id, tenant_id, user_id, role, content)
+       values ($1, $2, $3, $4, 'assistant', 'Mensagem restaurada do histórico E2E.')`,
+      [messageId, conversationId, tenantId, userId],
     );
     await client.query("commit");
   } catch (error) {

@@ -21,7 +21,8 @@ async function resolveMembership(userId: string, requestedTenantId: string | nul
       .from(tenantMemberships)
       .where(
         requestedTenantId
-          ? eq(tenantMemberships.tenantId, requestedTenantId)
+          ? sql`${tenantMemberships.tenantId} = ${requestedTenantId}
+              and ${tenantMemberships.userId} = ${userId}`
           : eq(tenantMemberships.userId, userId),
       )
       .orderBy(asc(tenantMemberships.createdAt))

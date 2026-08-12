@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { sendChatMessage, clearChatHistory } from "@/lib/chat.functions";
 import { chatHistoryQueryOptions } from "@/lib/query-options";
@@ -40,6 +40,7 @@ interface Msg {
 
 function NovoProduto() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const send = useServerFn(sendChatMessage);
   const clear = useServerFn(clearChatHistory);
   const historyQuery = useQuery(chatHistoryQueryOptions());
@@ -101,6 +102,7 @@ function NovoProduto() {
       const res = await send({ data: { message: text, currentProductId } });
       setMessages((m) => [...m, { role: "assistant", content: res.content }]);
       if (res.currentProductId) setCurrentProductId(res.currentProductId);
+      await queryClient.invalidateQueries({ queryKey: ["chat", "history"] });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro ao enviar";
       toast.error(msg);
@@ -114,6 +116,7 @@ function NovoProduto() {
   async function reset() {
     try {
       await clear();
+      await queryClient.invalidateQueries({ queryKey: ["chat", "history"] });
       setMessages([
         {
           role: "assistant",

@@ -1,6 +1,6 @@
-# ADR-022 — Migração Supabase → Neon e cutover sem dual-write
+# ADR-022 (arquivado) — Migração Supabase → Neon e cutover sem dual-write
 
-- Status: aceito
+- Status: superseded; mantido somente como histórico do lote intermediário
 - Data: 2026-08-12
 - Escopo: migração, reconciliação, rollback e release
 

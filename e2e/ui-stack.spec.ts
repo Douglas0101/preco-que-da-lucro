@@ -96,6 +96,16 @@ test("authenticated shell uses an HttpOnly session and accessible navigation", a
   const serverFnRequest = await serverFnRequestPromise;
   expect(serverFnRequest.headers().authorization).toBeUndefined();
 
+  await expect(
+    page.getByText("Mensagem restaurada do histórico E2E.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ver produto" })).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByText("Mensagem restaurada do histórico E2E.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ver produto" })).toBeVisible();
+
   const cookies = await page.context().cookies();
   const sessionCookie = cookies.find((cookie) => cookie.name.includes("session_token"));
   expect(sessionCookie?.httpOnly).toBe(true);
