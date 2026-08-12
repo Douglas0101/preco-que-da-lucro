@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import * as schema from "@/db/schema";
 
-type Database = ReturnType<typeof createDatabase>;
+export type Database = ReturnType<typeof createDatabase>;
 export type DatabaseTransaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 export interface DatabaseIdentity {
@@ -27,6 +27,13 @@ function createDatabase() {
 export function getDatabase(): Database {
   database ??= createDatabase();
   return database;
+}
+
+export function setDatabaseForTests(value: Database | undefined): void {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("A injeção de banco é proibida em produção");
+  }
+  database = value;
 }
 
 /**
