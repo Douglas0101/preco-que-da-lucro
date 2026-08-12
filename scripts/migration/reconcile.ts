@@ -31,6 +31,8 @@ interface ReconciliationSpec {
   table: string;
   sourceTable: string;
   targetTable: string;
+  sourceRelation?: string;
+  targetRelation?: string;
   sourceCreatedAt?: string;
   targetCreatedAt?: string;
   sourceNullExpression?: string;
@@ -51,11 +53,72 @@ const SPECS: ReconciliationSpec[] = [
     targetNullExpression: "count(*) filter (where email is null)",
   },
   {
+    table: "tenants",
+    sourceTable: "auth.users",
+    targetTable: "tenants",
+    targetRelation: `(select membership.user_id as id, tenant.created_at
+      from tenants tenant
+      join tenant_memberships membership on membership.tenant_id = tenant.id
+      where tenant.kind = 'personal' and membership.role = 'owner') reconciled_tenants`,
+    targetOrphanExpression:
+      "(select count(*) from tenants t left join tenant_memberships m on m.tenant_id = t.id where m.tenant_id is null)",
+  },
+  {
+    table: "tenant_memberships",
+    sourceTable: "auth.users",
+    targetTable: "tenant_memberships",
+    targetRelation:
+      "(select user_id as id, created_at from tenant_memberships where role = 'owner') reconciled_memberships",
+    targetOrphanExpression: `(select count(*) from tenant_memberships m
+      left join tenants t on t.id = m.tenant_id
+      left join users u on u.id = m.user_id
+      where t.id is null or u.id is null)`,
+  },
+  {
     table: "profiles",
     sourceTable: "auth.users",
     targetTable: "profiles",
-    sourceNullExpression: ZERO,
+    sourceRelation: `(select users.id::text as id,
+        coalesce(profile.email, users.email) as email,
+        coalesce(profile.created_at, users.created_at) as created_at
+      from auth.users users
+      left join public.profiles profile on profile.id = users.id) reconciled_profiles`,
+    sourceNullExpression: "count(*) filter (where email is null)",
     targetNullExpression: "count(*) filter (where email is null)",
+    targetOrphanExpression: `(select count(*) from profiles p
+      left join users u on u.id = p.id
+      left join tenant_memberships m on m.tenant_id = p.tenant_id and m.user_id = p.user_id
+      where u.id is null or m.user_id is null)`,
+  },
+  {
+    table: "accounts_credentials",
+    sourceTable: "auth.users",
+    targetTable: "accounts",
+    sourceRelation: `(select id::text as id, created_at
+      from auth.users where encrypted_password is not null and btrim(encrypted_password) <> '') reconciled_credentials`,
+    targetRelation: `(select account_id as id, created_at, password
+      from accounts where provider_id = 'credential') reconciled_credentials`,
+    sourceNullExpression: ZERO,
+    targetNullExpression: "count(*) filter (where password is null)",
+  },
+  {
+    table: "accounts_external",
+    sourceTable: "auth.identities",
+    targetTable: "accounts",
+    sourceRelation: `(select coalesce(identity_data->>'sub', id::text) as id, created_at
+      from auth.identities where provider <> 'email') reconciled_external_accounts`,
+    targetRelation: `(select account_id as id, created_at
+      from accounts where provider_id <> 'credential') reconciled_external_accounts`,
+  },
+  {
+    table: "chat_conversations",
+    sourceTable: "auth.users",
+    targetTable: "chat_conversations",
+    targetRelation:
+      "(select user_id as id, created_at from chat_conversations) reconciled_conversations",
+    targetOrphanExpression: `(select count(*) from chat_conversations c
+      left join tenant_memberships m on m.tenant_id = c.tenant_id and m.user_id = c.user_id
+      where m.user_id is null)`,
   },
   {
     table: "products",
@@ -67,6 +130,11 @@ const SPECS: ReconciliationSpec[] = [
       "count(*) filter (where current_price is null) + count(*) filter (where yield_qty is null) + count(*) filter (where tax_rate is null)",
     sourceFinancialExpression: "coalesce(sum(current_price), 0)",
     targetFinancialExpression: "coalesce(sum(current_price), 0)",
+    sourceOrphanExpression:
+      "(select count(*) from public.products p left join auth.users u on u.id = p.user_id where u.id is null)",
+    targetOrphanExpression: `(select count(*) from products p
+      left join tenant_memberships m on m.tenant_id = p.tenant_id and m.user_id = p.user_id
+      where m.user_id is null)`,
   },
   {
     table: "product_ingredients",
@@ -115,6 +183,10 @@ const SPECS: ReconciliationSpec[] = [
       "count(*) filter (where min_price is null) + count(*) filter (where avg_price is null) + count(*) filter (where max_price is null)",
     sourceFinancialExpression: "coalesce(sum(avg_price), 0)",
     targetFinancialExpression: "coalesce(sum(avg_price), 0)",
+    sourceOrphanExpression:
+      "(select count(*) from public.market_prices c left join public.products p on p.id = c.product_id where p.id is null)",
+    targetOrphanExpression:
+      "(select count(*) from market_prices c left join products p on p.tenant_id = c.tenant_id and p.id = c.product_id where p.id is null)",
   },
   {
     table: "expenses",
@@ -122,6 +194,11 @@ const SPECS: ReconciliationSpec[] = [
     targetTable: "expenses",
     sourceFinancialExpression: "coalesce(sum(amount), 0)",
     targetFinancialExpression: "coalesce(sum(amount), 0)",
+    sourceOrphanExpression:
+      "(select count(*) from public.expenses c left join auth.users u on u.id = c.user_id where u.id is null)",
+    targetOrphanExpression: `(select count(*) from expenses c
+      left join tenant_memberships m on m.tenant_id = c.tenant_id and m.user_id = c.user_id
+      where m.user_id is null)`,
   },
   {
     table: "simulations",
@@ -129,8 +206,26 @@ const SPECS: ReconciliationSpec[] = [
     targetTable: "simulations",
     sourceNullExpression: "count(*) filter (where product_id is null)",
     targetNullExpression: "count(*) filter (where product_id is null)",
+    sourceOrphanExpression: `(select count(*) from public.simulations c
+      left join auth.users u on u.id = c.user_id
+      left join public.products p on p.id = c.product_id
+      where u.id is null or (c.product_id is not null and p.id is null))`,
+    targetOrphanExpression: `(select count(*) from simulations c
+      left join tenant_memberships m on m.tenant_id = c.tenant_id and m.user_id = c.user_id
+      left join products p on p.tenant_id = c.tenant_id and p.id = c.product_id
+      where m.user_id is null or (c.product_id is not null and p.id is null))`,
   },
-  { table: "chat_messages", sourceTable: "public.chat_messages", targetTable: "chat_messages" },
+  {
+    table: "chat_messages",
+    sourceTable: "public.chat_messages",
+    targetTable: "chat_messages",
+    sourceOrphanExpression:
+      "(select count(*) from public.chat_messages c left join auth.users u on u.id = c.user_id where u.id is null)",
+    targetOrphanExpression: `(select count(*) from chat_messages c
+      left join chat_conversations conversation
+        on conversation.tenant_id = c.tenant_id and conversation.id = c.conversation_id
+      where conversation.id is null)`,
+  },
 ];
 
 interface SummaryRow {
@@ -155,6 +250,7 @@ function checksum(sample: string): string {
 async function summarize(
   client: PoolClient,
   table: string,
+  relation: string | undefined,
   options: {
     createdAt: string;
     nullExpression: string;
@@ -162,7 +258,7 @@ async function summarize(
     orphanExpression: string;
   },
 ): Promise<SummaryRow> {
-  const safeTable = safeIdentifierPath(table);
+  const safeRelation = relation ?? safeIdentifierPath(table);
   const result = await client.query<SummaryRow>(`
     select
       count(*)::text as count,
@@ -174,8 +270,8 @@ async function summarize(
       end as financial_total,
       (${options.orphanExpression})::text as orphans,
       coalesce((select string_agg(sample.id::text, ',' order by sample.id::text)
-                from (select id from ${safeTable} order by id limit 100) sample), '') as sample
-    from ${safeTable}
+                from (select id from ${safeRelation} order by id limit 100) sample), '') as sample
+    from ${safeRelation}
   `);
   if (!result.rows[0]) throw new Error(`Resumo ausente para ${table}`);
   return result.rows[0];
@@ -191,13 +287,13 @@ export async function reconcileMigration(
 ): Promise<MigrationReconciliation> {
   const tables: TableReconciliation[] = [];
   for (const spec of SPECS) {
-    const sourceSummary = await summarize(source, spec.sourceTable, {
+    const sourceSummary = await summarize(source, spec.sourceTable, spec.sourceRelation, {
       createdAt: spec.sourceCreatedAt ?? "created_at",
       nullExpression: spec.sourceNullExpression ?? ZERO,
       financialExpression: spec.sourceFinancialExpression ?? "null::numeric",
       orphanExpression: spec.sourceOrphanExpression ?? ZERO,
     });
-    const targetSummary = await summarize(target, spec.targetTable, {
+    const targetSummary = await summarize(target, spec.targetTable, spec.targetRelation, {
       createdAt: spec.targetCreatedAt ?? "created_at",
       nullExpression: spec.targetNullExpression ?? ZERO,
       financialExpression: spec.targetFinancialExpression ?? "null::numeric",
