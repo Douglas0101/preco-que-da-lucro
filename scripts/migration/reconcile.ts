@@ -269,8 +269,8 @@ async function summarize(
            else round((${options.financialExpression})::numeric, 6)::numeric(38,6)::text
       end as financial_total,
       (${options.orphanExpression})::text as orphans,
-      coalesce((select string_agg(sample.id::text, ',' order by sample.id::text)
-                from (select id from ${safeRelation} order by id limit 100) sample), '') as sample
+      coalesce((select string_agg(to_jsonb(sample)::text, '|' order by sample.id::text)
+                from (select * from ${safeRelation} order by id limit 100) sample), '') as sample
     from ${safeRelation}
   `);
   if (!result.rows[0]) throw new Error(`Resumo ausente para ${table}`);
