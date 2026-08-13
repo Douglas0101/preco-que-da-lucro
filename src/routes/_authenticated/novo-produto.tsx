@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, RotateCcw, Send, Bot, User } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { chatStatusLabel, isChatBusy, transitionChatState, type ChatState } from "@/lib/chat-fsm";
 
 export const Route = createFileRoute("/_authenticated/novo-produto")({
   head: () => ({
@@ -46,7 +47,8 @@ function NovoProduto() {
   const historyQuery = useQuery(chatHistoryQueryOptions());
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [chatState, setChatState] = useState<ChatState>("idle");
+  const loading = isChatBusy(chatState);
   const [currentProductId, setCurrentProductId] = useState<string | null>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -97,18 +99,19 @@ function NovoProduto() {
     if (!text || loading) return;
     setInput("");
     setMessages((m) => [...m, { role: "user", content: text }]);
-    setLoading(true);
+    setChatState((state) => transitionChatState(state, { type: "SUBMIT" }));
     try {
       const res = await send({ data: { message: text, currentProductId } });
       setMessages((m) => [...m, { role: "assistant", content: res.content }]);
       if (res.currentProductId) setCurrentProductId(res.currentProductId);
       await queryClient.invalidateQueries({ queryKey: ["chat", "history"] });
+      setChatState((state) => transitionChatState(state, { type: "ASSISTANT_RESPONSE" }));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro ao enviar";
       toast.error(msg);
       setMessages((m) => [...m, { role: "assistant", content: `⚠️ ${msg}` }]);
+      setChatState((state) => transitionChatState(state, { type: "FAIL" }));
     } finally {
-      setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }
@@ -124,6 +127,7 @@ function NovoProduto() {
         },
       ]);
       setCurrentProductId(null);
+      setChatState((state) => transitionChatState(state, { type: "RESET" }));
     } catch {
       toast.error("Não foi possível recomeçar a conversa.");
     }
@@ -181,7 +185,7 @@ function NovoProduto() {
             <div
               className="flex items-start gap-3"
               role="status"
-              aria-label="Consultor respondendo"
+              aria-label={chatStatusLabel(chatState) ?? "Consultor respondendo"}
             >
               <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                 <Bot className="h-4 w-4" />
