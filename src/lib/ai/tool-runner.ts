@@ -6,7 +6,11 @@ import { errorCodeFromUnknown } from "@/lib/api-error";
 import type { RequestContext } from "@/lib/request-context";
 import { logJson } from "@/lib/structured-logger";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
-import { TOOL_REGISTRY, type ToolExecutionOutput } from "./tool-registry";
+import {
+  TOOL_REGISTRY,
+  toolExecutionOutputSchema,
+  type ToolExecutionOutput,
+} from "./tool-registry";
 
 export type ToolRunResult =
   | { ok: true; output: ToolExecutionOutput; replayed: boolean }
@@ -25,6 +29,43 @@ function canonicalize(value: unknown): string {
 
 function inputHash(value: unknown): string {
   return createHash("sha256").update(canonicalize(value)).digest("hex");
+}
+
+function sanitizeJson(value: unknown, depth = 0): unknown {
+  if (depth > 8) return null;
+  if (typeof value === "string") {
+    return Array.from(value)
+      .filter((character) => {
+        const code = character.charCodeAt(0);
+        return !(
+          code <= 8 ||
+          code === 11 ||
+          code === 12 ||
+          (code >= 14 && code <= 31) ||
+          code === 127
+        );
+      })
+      .join("")
+      .slice(0, 8_000);
+  }
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "boolean" || value === null) return value;
+  if (Array.isArray(value)) {
+    return value.slice(0, 100).map((entry) => sanitizeJson(entry, depth + 1));
+  }
+  if (typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .slice(0, 100)
+        .map(([key, entry]) => [key.slice(0, 120), sanitizeJson(entry, depth + 1)]),
+    );
+  }
+  return null;
+}
+
+function sanitizeToolOutput(value: unknown): ToolExecutionOutput | null {
+  const parsed = toolExecutionOutputSchema.safeParse(sanitizeJson(value));
+  return parsed.success ? parsed.data : null;
 }
 
 function publicFailure(code: ApiErrorCode): ToolRunResult {
@@ -113,9 +154,11 @@ export async function runRegisteredTool(options: {
       .limit(1);
     if (existing?.requestHash !== hash) return publicFailure("CONFLICT");
     if (existing.status === "succeeded" && existing.response) {
+      const replayedOutput = sanitizeToolOutput(existing.response);
+      if (!replayedOutput) return publicFailure("DATABASE_ERROR");
       return {
         ok: true,
-        output: existing.response as unknown as ToolExecutionOutput,
+        output: replayedOutput,
         replayed: true,
       };
     }
@@ -142,7 +185,7 @@ export async function runRegisteredTool(options: {
 
   try {
     context.signal.throwIfAborted();
-    const output = await withSpan(
+    const rawOutput = await withSpan(
       "ai.tool.execute",
       {
         "app.correlation_id": context.correlationId,
@@ -151,6 +194,8 @@ export async function runRegisteredTool(options: {
       },
       () => prepared.execute(),
     );
+    const output = sanitizeToolOutput(rawOutput);
+    if (!output) throw new Error("DEPENDENCY_ERROR");
     const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
     await context.transaction
       .update(toolExecutions)

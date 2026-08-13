@@ -49,6 +49,7 @@ jobs:
       - run: npm run lint
       - run: npm run test
       - run: npm run db:test
+      - run: npm run db:check
       - name: Configure isolated runtime and E2E credentials
         shell: bash
         run: |
@@ -66,6 +67,9 @@ jobs:
           } >> "$GITHUB_ENV"
       - run: npm run build
       - run: npm run check:bundle
+      # Keep dependency evidence independent from browser startup failures.
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
       - name: Upload bundle evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -92,4 +96,3 @@ jobs:
           if-no-files-found: warn
           include-hidden-files: true
           retention-days: 30
-      - run: npm audit --audit-level=high

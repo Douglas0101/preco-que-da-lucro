@@ -122,7 +122,11 @@ describe("fronteiras de proveniência FIN-004", () => {
     ]) {
       const source = projectFile(path);
       expect(source).toContain("isError");
-      expect(source).toContain('setLoadStatus("error")');
+      if (path === "src/routes/_authenticated/inicio.tsx") {
+        expect(source).toContain("summaryQuery.isError");
+      } else {
+        expect(source).toContain('setLoadStatus("error")');
+      }
       expect(source).toContain("Referência de atendimento");
       expect(source).toContain("Tentar novamente");
     }

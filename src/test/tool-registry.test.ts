@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { GATEWAY_TOOLS, TOOL_REGISTRY } from "@/lib/ai/tool-registry";
+import { GATEWAY_TOOLS, TOOL_REGISTRY, toolExecutionOutputSchema } from "@/lib/ai/tool-registry";
+import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
 import type { RequestContext } from "@/lib/request-context";
 
 function contextWithRole(role: string): RequestContext {
@@ -59,5 +60,15 @@ describe("registro tipado das tools de IA", () => {
       ok: false,
       code: "VALIDATION_ERROR",
     });
+  });
+
+  it("valida a saída pública da tool e remove HTML do texto da IA", () => {
+    expect(
+      toolExecutionOutputSchema.safeParse({ result: { value: "ok" }, state: {} }).success,
+    ).toBe(true);
+    expect(toolExecutionOutputSchema.safeParse({ result: "não é objeto" }).success).toBe(false);
+    expect(sanitizeAiOutput("<script>alert(1)</script> Olá\u0000 **mundo**")).toBe(
+      "alert(1) Olá **mundo**",
+    );
   });
 });

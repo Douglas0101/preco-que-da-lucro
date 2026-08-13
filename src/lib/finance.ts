@@ -147,7 +147,14 @@ export type Unit =
   | "caixa"
   | "colher"
   | "xicara"
-  | "xícara";
+  | "xícara"
+  | "lote"
+  | "porção"
+  | "porcao"
+  | "receita"
+  | "produção"
+  | "producao"
+  | "unidade_produzida";
 
 const MASS: Record<string, number> = { mg: 0.001, g: 1, kg: 1000 };
 const VOLUME: Record<string, number> = { ml: 1, l: 1000 };
@@ -161,6 +168,19 @@ const CONTEXTUAL_UNITS: ReadonlySet<string> = new Set([
   "xícara",
 ]);
 
+// Production units are deliberately distinct from count units: a batch,
+// recipe or production run cannot be converted to an individual unit without
+// an explicit, user-confirmed context factor.
+const PRODUCTION_UNITS: ReadonlySet<string> = new Set([
+  "lote",
+  "porção",
+  "porcao",
+  "receita",
+  "produção",
+  "producao",
+  "unidade_produzida",
+]);
+
 function normUnit(u: string) {
   return (u || "").trim().toLowerCase();
 }
@@ -170,6 +190,7 @@ export function unitDimension(unit: string): QuantityDimension | null {
   if (normalized in MASS) return "mass";
   if (normalized in VOLUME) return "volume";
   if (normalized in COUNT) return "count";
+  if (PRODUCTION_UNITS.has(normalized)) return "production";
   if (CONTEXTUAL_UNITS.has(normalized)) return "commercial";
   return null;
 }
@@ -178,7 +199,7 @@ export interface UnitConversionContext {
   fromUnit: string;
   toUnit: string;
   /** Quantidade na unidade de destino correspondente a 1 unidade de origem. */
-  factor: number;
+  factor: number | string;
   contextId: string;
 }
 
@@ -200,15 +221,15 @@ export function convertUnit(
   if (f in VOLUME && t in VOLUME)
     return decimalResult(new Decimal(qty).mul(VOLUME[f]).div(VOLUME[t]));
   if (f in COUNT && t in COUNT) return decimalResult(new Decimal(qty).mul(COUNT[f]).div(COUNT[t]));
-  if (
-    context &&
-    normUnit(context.fromUnit) === f &&
-    normUnit(context.toUnit) === t &&
-    Number.isFinite(context.factor) &&
-    context.factor > 0 &&
-    context.contextId.trim() !== ""
-  ) {
-    return decimalResult(new Decimal(qty).mul(context.factor));
+  if (context && normUnit(context.fromUnit) === f && normUnit(context.toUnit) === t) {
+    try {
+      const factor = new Decimal(context.factor);
+      if (factor.isFinite() && factor.gt(0) && context.contextId.trim() !== "") {
+        return decimalResult(new Decimal(qty).mul(factor));
+      }
+    } catch {
+      return Number.NaN;
+    }
   }
   return null;
 }

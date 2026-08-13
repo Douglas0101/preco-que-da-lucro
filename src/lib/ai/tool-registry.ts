@@ -21,6 +21,12 @@ export interface ToolExecutionOutput extends Record<string, unknown> {
   state?: { currentProductId?: string };
 }
 
+/** Runtime contract for values that may cross the model/database boundary. */
+export const toolExecutionOutputSchema = z.object({
+  result: z.record(z.string(), z.unknown()),
+  state: z.object({ currentProductId: z.string().uuid().optional() }).optional(),
+});
+
 export type PreparedTool =
   | {
       ok: true;

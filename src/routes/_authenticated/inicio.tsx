@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useQueries } from "@tanstack/react-query";
-import { sumFiniteNumbers } from "@/lib/finance";
-import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { dashboardSummaryQueryOptions } from "@/lib/query-options";
 import { brl, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,8 +27,8 @@ export const Route = createFileRoute("/_authenticated/inicio")({
 
 interface Metrics {
   productCount: number;
-  fixedExpenses: number;
-  bestProduct: { name: string; cmPct: number } | null;
+  fixedExpenses: string | null;
+  bestProduct: { name: string; cmPct: string } | null;
   hasInvalidCalculation: boolean;
   incompleteProductCount: number;
   alerts: string[];
@@ -38,93 +37,17 @@ interface Metrics {
 type LoadStatus = "loading" | "ready" | "error";
 
 function Inicio() {
-  const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
-  const [errorReference, setErrorReference] = useState<string | null>(null);
-  const [productsQuery, expensesQuery] = useQueries({
-    queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
-  });
-
-  useEffect(() => {
-    if (productsQuery.isPending || expensesQuery.isPending) {
-      setLoadStatus("loading");
-      return;
-    }
-    if (productsQuery.isError || expensesQuery.isError) {
-      setMetrics(null);
-      setErrorReference(createErrorReference("DASH"));
-      setLoadStatus("error");
-      return;
-    }
-
-    const productDetails = productsQuery.data;
-    const expenses = expensesQuery.data;
-    const fixedExpenses = sumFiniteNumbers(
-      expenses
-        .filter((expense) => expense.type === "fixa")
-        .map((expense) => Number(expense.amount)),
-    );
-
-    let bestProduct: { name: string; cmPct: number } | null = null;
-    let invalidProductCount = 0;
-    let incompleteProductCount = 0;
-    const alerts: string[] = [];
-
-    for (const { product, metrics: computation } of productDetails) {
-      if (computation.status === "invalid") {
-        invalidProductCount += 1;
-        continue;
-      }
-      if (computation.status === "incomplete") {
-        incompleteProductCount += 1;
-        continue;
-      }
-
-      if (!bestProduct || computation.value.contributionMarginPct > bestProduct.cmPct) {
-        bestProduct = {
-          name: product.name,
-          cmPct: computation.value.contributionMarginPct,
-        };
-      }
-      if (Number(product.current_price) < computation.value.unitCost) {
-        alerts.push(`"${product.name}": preço de venda abaixo do custo unitário.`);
-      }
-      if (
-        computation.value.contributionMarginPct > 0 &&
-        computation.value.contributionMarginPct < 15
-      ) {
-        alerts.push(
-          `"${product.name}": margem de contribuição baixa (${pct(computation.value.contributionMarginPct)}).`,
-        );
-      }
-    }
-
-    if (incompleteProductCount > 0) {
-      alerts.unshift(
-        `${incompleteProductCount} produto(s) não participa(m) dos destaques por ter dados incompletos.`,
-      );
-    }
-
-    const hasInvalidCalculation = invalidProductCount > 0 || !Number.isFinite(fixedExpenses);
-
-    setMetrics({
-      productCount: productDetails.length,
-      fixedExpenses,
-      bestProduct: hasInvalidCalculation ? null : bestProduct,
-      hasInvalidCalculation,
-      incompleteProductCount,
-      alerts,
-    });
-    setErrorReference(null);
-    setLoadStatus("ready");
-  }, [
-    expensesQuery.data,
-    expensesQuery.isError,
-    expensesQuery.isPending,
-    productsQuery.data,
-    productsQuery.isError,
-    productsQuery.isPending,
-  ]);
+  const summaryQuery = useQuery(dashboardSummaryQueryOptions());
+  const loadStatus: LoadStatus = summaryQuery.isPending
+    ? "loading"
+    : summaryQuery.isError
+      ? "error"
+      : "ready";
+  const metrics = summaryQuery.data as Metrics | undefined;
+  const errorReference = useMemo(
+    () => (summaryQuery.isError ? createErrorReference("DASH") : null),
+    [summaryQuery.isError],
+  );
 
   if (loadStatus === "loading") {
     return (

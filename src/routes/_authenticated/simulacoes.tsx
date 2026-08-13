@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { listProductsWithMetrics } from "@/lib/products.functions";
+import { runSimulation } from "@/lib/financial.functions";
 import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
-import {
-  calculateScenario,
-  sumFiniteNumbers,
-  type FeeRow,
-  type ProductComputation,
-} from "@/lib/finance";
+import { sumFiniteNumbers, type FeeRow, type ProductComputation } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -159,23 +155,28 @@ function Simulacoes() {
     };
   }, [details, fixed, loadStatus, productId]);
 
-  const simulated = useMemo(() => {
-    if (!base) return null;
-    const parse = (value: string) => {
-      const normalized = value.trim().replace(",", ".");
-      return normalized === "" ? null : Number(normalized);
-    };
-
-    return calculateScenario({
-      price: parse(sim.price),
-      unitCost: parse(sim.unitCost),
-      taxRate: base.taxRate,
-      fees: base.fees,
-      fixedExpenses: parse(sim.fixed),
-      volume: parse(sim.volume),
-      volumeSource: "manual_simulation",
-    });
-  }, [base, sim]);
+  const simulationQuery = useQuery({
+    queryKey: ["financial-simulation", base?.name, sim.price, sim.unitCost, sim.fixed, sim.volume],
+    queryFn: () =>
+      runSimulation({
+        data: {
+          price: toApiDecimal(sim.price),
+          unitCost: toApiDecimal(sim.unitCost),
+          fixedExpenses: toApiDecimal(sim.fixed),
+          volume: toApiDecimal(sim.volume),
+          taxRate: base?.taxRate == null ? null : String(base.taxRate),
+          fees:
+            base?.fees.map((fee) => ({
+              percentage: fee.percentage == null ? null : String(fee.percentage),
+            })) ?? [],
+          volumeSource: "manual_simulation",
+        },
+      }),
+    enabled: base !== null,
+    staleTime: 0,
+    retry: false,
+  });
+  const simulated = simulationQuery.data ?? null;
 
   const missingFields =
     simulated?.status === "incomplete" ? simulated.missing.map((missing) => missing.field) : [];
@@ -476,4 +477,9 @@ function createErrorReference(prefix: string): string {
       ? globalThis.crypto.randomUUID().slice(0, 8)
       : Date.now().toString(36);
   return `${prefix}-${token}`.toUpperCase();
+}
+
+function toApiDecimal(value: string): string | null {
+  const normalized = value.trim().replace(",", ".");
+  return normalized === "" ? null : normalized;
 }

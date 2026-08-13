@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { getChatHistory } from "@/lib/chat.functions";
+import { getDashboardSummary } from "@/lib/dashboard.functions";
 import { listExpenses } from "@/lib/expenses.functions";
 import { listProductsWithMetrics, listPurchasePrices } from "@/lib/products.functions";
 
@@ -20,6 +21,14 @@ export function expensesQueryOptions() {
   return queryOptions({
     queryKey: ["expenses"] as const,
     queryFn: () => listExpenses(),
+    ...authenticatedQueryPolicy,
+  });
+}
+
+export function dashboardSummaryQueryOptions() {
+  return queryOptions({
+    queryKey: ["dashboard", "summary"] as const,
+    queryFn: () => getDashboardSummary(),
     ...authenticatedQueryPolicy,
   });
 }

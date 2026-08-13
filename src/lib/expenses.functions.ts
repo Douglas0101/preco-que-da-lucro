@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { expenses, products } from "@/db/schema";
 import { nonNegativeDecimalStringSchema, toDecimalString } from "@/lib/financial-values";
+import { assertTenantMutationAuthorized } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 
 const uuid = z.string().uuid();
@@ -50,6 +51,7 @@ export const upsertExpense = createServerFn({ method: "POST" })
   .validator((input: unknown) => expenseInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
+    assertTenantMutationAuthorized(request);
     const values = {
       tenantId: request.tenantId,
       userId: request.userId,
@@ -78,6 +80,7 @@ export const deleteExpense = createServerFn({ method: "POST" })
   .validator((input: unknown) => z.object({ id: uuid }).parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
+    assertTenantMutationAuthorized(request);
     const deleted = await request.transaction
       .delete(expenses)
       .where(and(eq(expenses.tenantId, request.tenantId), eq(expenses.id, data.id)))

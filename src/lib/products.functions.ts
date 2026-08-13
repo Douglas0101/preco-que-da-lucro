@@ -17,7 +17,7 @@ import {
   toDecimalString,
 } from "@/lib/financial-values";
 import { applicationMetrics } from "@/instrumentation/telemetry";
-import type { RequestContext } from "@/lib/request-context";
+import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 
 const uuid = z.string().uuid();
@@ -112,6 +112,15 @@ function toFinanceIngredient(item: ReturnType<typeof mapIngredient>): Ingredient
     package_price: decimalNumber(item.package_price),
     package_qty: decimalNumber(item.package_qty),
     package_unit: item.package_unit,
+    conversion_context:
+      item.conversion_factor != null && item.package_unit != null
+        ? {
+            fromUnit: item.used_unit,
+            toUnit: item.package_unit,
+            factor: item.conversion_factor,
+            contextId: item.id,
+          }
+        : undefined,
   };
 }
 
@@ -278,6 +287,7 @@ export const upsertProduct = createServerFn({ method: "POST" })
   .validator((input: unknown) => productInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
+    assertTenantMutationAuthorized(request);
     const values = {
       tenantId: request.tenantId,
       userId: request.userId,
@@ -305,6 +315,7 @@ export const archiveProduct = createServerFn({ method: "POST" })
   .validator((input: unknown) => z.object({ id: uuid }).parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
+    assertTenantMutationAuthorized(request);
     const rows = await request.transaction
       .update(products)
       .set({ archivedAt: new Date(), updatedAt: new Date() })
@@ -334,6 +345,7 @@ export const upsertIngredient = createServerFn({ method: "POST" })
   .validator((input: unknown) => ingredientInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
+    assertTenantMutationAuthorized(request);
     const values = {
       tenantId: request.tenantId,
       userId: request.userId,
@@ -373,6 +385,7 @@ function deleteChild(
     .validator((input: unknown) => z.object({ id: uuid }).parse(input))
     .handler(async ({ data, context }) => {
       const request = context.requestContext;
+      assertTenantMutationAuthorized(request);
       const rows = await request.transaction
         .delete(table)
         .where(and(eq(table.tenantId, request.tenantId), eq(table.id, data.id)))
@@ -397,6 +410,7 @@ export const upsertPackaging = createServerFn({ method: "POST" })
   .validator((input: unknown) => packagingInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
+    assertTenantMutationAuthorized(request);
     const values = {
       tenantId: request.tenantId,
       userId: request.userId,
@@ -434,6 +448,7 @@ export const upsertFee = createServerFn({ method: "POST" })
   .validator((input: unknown) => feeInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
+    assertTenantMutationAuthorized(request);
     const values = {
       tenantId: request.tenantId,
       userId: request.userId,
@@ -467,6 +482,7 @@ export const setMarketPrice = createServerFn({ method: "POST" })
   .validator((input: unknown) => marketInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
+    assertTenantMutationAuthorized(request);
     const [row] = await request.transaction
       .insert(marketPrices)
       .values({
@@ -554,6 +570,7 @@ export const updatePurchasePrice = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
+    assertTenantMutationAuthorized(request);
     const table = data.kind === "ingrediente" ? productIngredients : productPackaging;
     const rows = await request.transaction
       .update(table)

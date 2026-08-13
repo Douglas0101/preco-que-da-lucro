@@ -6,6 +6,7 @@ import { aiDailyBudgets, chatConversations, chatMessages, products } from "@/db/
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import { ApplicationError } from "@/lib/api-error";
 import { GATEWAY_TOOLS } from "@/lib/ai/tool-registry";
+import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
 import { runRegisteredTool } from "@/lib/ai/tool-runner";
 import type { RequestContext, RequestIdentity } from "@/lib/request-context";
 import { logJson } from "@/lib/structured-logger";
@@ -98,6 +99,22 @@ async function inTenantTransaction<T>(
   }
 }
 
+/** Read-only lookup used by GET handlers. GET must never create tenant data. */
+async function getConversation(context: RequestContext) {
+  const [existing] = await context.transaction
+    .select()
+    .from(chatConversations)
+    .where(
+      and(
+        eq(chatConversations.tenantId, context.tenantId),
+        eq(chatConversations.userId, context.userId),
+      ),
+    )
+    .limit(1);
+  return existing;
+}
+
+/** Creation is intentionally isolated to POST flows (send/reset/explicit create). */
 async function getOrCreateConversation(context: RequestContext) {
   const inserted = await context.transaction
     .insert(chatConversations)
@@ -110,16 +127,7 @@ async function getOrCreateConversation(context: RequestContext) {
     .returning();
   if (inserted[0]) return inserted[0];
 
-  const [existing] = await context.transaction
-    .select()
-    .from(chatConversations)
-    .where(
-      and(
-        eq(chatConversations.tenantId, context.tenantId),
-        eq(chatConversations.userId, context.userId),
-      ),
-    )
-    .limit(1);
+  const existing = await getConversation(context);
   if (!existing) throw new Error("DATABASE_ERROR");
   return existing;
 }
@@ -318,7 +326,18 @@ export const getChatHistory = createServerFn({ method: "GET" })
   .middleware([requireDatabaseIdentity])
   .handler(async ({ context }) =>
     inTenantTransaction(context.requestIdentity, async (request) => {
-      const conversation = await getOrCreateConversation(request);
+      const conversation = await getConversation(request);
+      if (!conversation) {
+        return {
+          messages: [],
+          currentProductId: null,
+          confirmedState: {
+            currentProductId: null,
+            lastAssistantMessageId: null,
+            lastConfirmedAt: null,
+          },
+        };
+      }
       const messages = await request.transaction
         .select({
           id: chatMessages.id,
@@ -354,6 +373,18 @@ export const getChatHistory = createServerFn({ method: "GET" })
               ? conversation.confirmedState.lastConfirmedAt
               : null,
         },
+      };
+    }),
+  );
+
+export const createChatConversation = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseIdentity])
+  .handler(async ({ context }) =>
+    inTenantTransaction(context.requestIdentity, async (request) => {
+      const conversation = await getOrCreateConversation(request);
+      return {
+        id: conversation.id,
+        currentProductId: conversation.currentProductId,
       };
     }),
   );
@@ -456,7 +487,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
         continue;
       }
 
-      const content = modelMessage.content?.trim();
+      const content = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
       if (!content) throw new ApplicationError("DEPENDENCY_ERROR");
       await inTenantTransaction(identity, async (request) => {
         const [saved] = await request.transaction
@@ -499,4 +530,4 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     throw new ApplicationError("DEPENDENCY_ERROR");
   });
 
-export { callModel as callModelForTests };
+export { callModel as callModelForTests, getConversation as getConversationForTests };

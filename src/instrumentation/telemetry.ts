@@ -29,16 +29,37 @@ export function ensureTelemetryStarted(): void {
       // into the browser bundle while keeping OTLP available at runtime.
       const sdkPackage = "@opentelemetry/sdk-node";
       const exporterPackage = "@opentelemetry/exporter-trace-otlp-http";
-      const [{ NodeSDK }, { OTLPTraceExporter }] = await Promise.all([
+      const metricExporterPackage = "@opentelemetry/exporter-metrics-otlp-http";
+      const metricsSdkPackage = "@opentelemetry/sdk-metrics";
+      const [
+        { NodeSDK },
+        { OTLPTraceExporter },
+        { OTLPMetricExporter },
+        { PeriodicExportingMetricReader },
+      ] = await Promise.all([
         import(/* @vite-ignore */ sdkPackage) as Promise<typeof import("@opentelemetry/sdk-node")>,
         import(/* @vite-ignore */ exporterPackage) as Promise<
           typeof import("@opentelemetry/exporter-trace-otlp-http")
         >,
+        import(/* @vite-ignore */ metricExporterPackage) as Promise<
+          typeof import("@opentelemetry/exporter-metrics-otlp-http")
+        >,
+        import(/* @vite-ignore */ metricsSdkPackage) as Promise<
+          typeof import("@opentelemetry/sdk-metrics")
+        >,
       ]);
       const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT!.replace(/\/$/, "");
+      const exportIntervalMillis = Number(process.env.OTEL_METRIC_EXPORT_INTERVAL_MS ?? 15_000);
       const sdk = new NodeSDK({
         serviceName: process.env.OTEL_SERVICE_NAME ?? "preco-que-da-lucro",
         traceExporter: new OTLPTraceExporter({ url: `${endpoint}/v1/traces` }),
+        metricReader: new PeriodicExportingMetricReader({
+          exporter: new OTLPMetricExporter({ url: `${endpoint}/v1/metrics` }),
+          exportIntervalMillis:
+            Number.isFinite(exportIntervalMillis) && exportIntervalMillis >= 1_000
+              ? exportIntervalMillis
+              : 15_000,
+        }),
       });
       sdk.start();
       telemetryStarted = true;
