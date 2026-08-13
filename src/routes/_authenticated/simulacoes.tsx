@@ -338,7 +338,7 @@ function Simulacoes() {
                   <Row
                     label="Resultado operacional simulado dentro do escopo informado"
                     value={brl(simulated.value.result)}
-                    accent={simulated.value.result >= 0 ? "success" : "destructive"}
+                    accent={simulated.value.resultSign === "negative" ? "destructive" : "success"}
                   />
                 </div>
               )}
