@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Sparkles, MessageCircle, Calculator, Scale, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -50,9 +50,9 @@ function Landing() {
           </div>
           <span className="font-bold">Preço que Dá Lucro</span>
         </div>
-        <Button nativeButton={false} render={<Link to="/auth" />} variant="ghost">
+        <Link to="/auth" className={buttonVariants({ variant: "ghost" })}>
           Entrar
-        </Button>
+        </Link>
       </header>
 
       <section className="mx-auto max-w-6xl px-6 pt-8 pb-20 md:pt-16">
@@ -69,9 +69,9 @@ function Landing() {
             negócio e quanto você precisa vender para começar a ter lucro.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button nativeButton={false} render={<Link to="/auth" />} size="lg" className="gap-2">
+            <Link to="/auth" className={buttonVariants({ size: "lg", className: "gap-2" })}>
               Começar agora <ArrowRight className="h-4 w-4" />
-            </Button>
+            </Link>
           </div>
         </div>
 
