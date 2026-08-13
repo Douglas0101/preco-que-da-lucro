@@ -10,10 +10,17 @@ function filesUnder(path) {
 
 const executableFiles = [
   ...filesUnder("src"),
+  ...filesUnder("scripts").filter(
+    (file) =>
+      !file.endsWith("scripts/check-no-supabase-runtime.mjs") &&
+      !file.startsWith("scripts/migration/"),
+  ),
   ...filesUnder(".github/workflows"),
   "package.json",
   "package-lock.json",
   ".env.example",
+  "vite.config.ts",
+  "drizzle.config.ts",
 ];
 
 const forbidden = [
