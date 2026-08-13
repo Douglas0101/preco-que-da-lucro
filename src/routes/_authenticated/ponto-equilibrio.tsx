@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { listProductsWithMetrics } from "@/lib/products.functions";
-import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
 import {
-  calculateBreakEvenUnits,
-  calculateBreakEvenRevenue,
-  calculateRequiredSalesForProfit,
-  sumFiniteNumbers,
-  type ProductComputation,
-} from "@/lib/finance";
+  breakEvenQueryOptions,
+  expensesQueryOptions,
+  productsWithMetricsQueryOptions,
+} from "@/lib/query-options";
 import { brl, pct, num } from "@/lib/format";
+import { toDecimalString } from "@/lib/financial-values";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,15 +35,15 @@ export const Route = createFileRoute("/_authenticated/ponto-equilibrio")({
 });
 
 type ProductDetail = Awaited<ReturnType<typeof listProductsWithMetrics>>[number];
+type ProductMetricsOk = Extract<ProductDetail["metrics"], { status: "ok" }>;
 
 function PontoEquilibrio() {
   const [details, setDetails] = useState<ProductDetail[]>([]);
   const products = details.map((detail) => detail.product);
   const [productId, setProductId] = useState<string>("");
-  const [fixed, setFixed] = useState(0);
-  const [metrics, setMetrics] = useState<
-    (ProductComputation & { price: number; name: string }) | null
-  >(null);
+  const [fixedExpenseAmounts, setFixedExpenseAmounts] = useState<string[]>([]);
+  const [metrics, setMetrics] = useState<ProductMetricsOk | null>(null);
+  const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
   const [calculationStatus, setCalculationStatus] = useState<
     "idle" | "incomplete" | "invalid" | "ok"
   >("idle");
@@ -59,12 +57,8 @@ function PontoEquilibrio() {
     const loadedDetails = productsQuery.data;
     const expenses = expensesQuery.data;
     setDetails(loadedDetails);
-    setFixed(
-      sumFiniteNumbers(
-        expenses
-          .filter((expense) => expense.type === "fixa")
-          .map((expense) => Number(expense.amount)),
-      ),
+    setFixedExpenseAmounts(
+      expenses.filter((expense) => expense.type === "fixa").map((expense) => expense.amount),
     );
     if (loadedDetails.length) setProductId(loadedDetails[0].product.id);
   }, [expensesQuery.data, productsQuery.data]);
@@ -83,30 +77,37 @@ function PontoEquilibrio() {
         setCalculationStatus(c.status);
         return;
       }
-      setMetrics({ ...c.value, price: Number(p.current_price), name: p.name });
+      setMetrics(c);
+      setSelectedPrice(p.current_price);
       setCalculationStatus("ok");
     })();
   }, [productId, details]);
 
-  const be = useMemo(() => {
-    if (!metrics) return null;
-    const units = calculateBreakEvenUnits(fixed, metrics.contributionMargin);
-    const revenue = calculateBreakEvenRevenue(fixed, metrics.contributionMarginPct);
-    const target = Number(profitTarget.replace(",", "."));
-    const targetUnits =
-      Number.isFinite(target) && target > 0
-        ? calculateRequiredSalesForProfit(fixed, target, metrics.contributionMargin)
-        : null;
-    const rawTargetRevenue =
-      targetUnits?.status === "reachable" ? targetUnits.roundedUnits * metrics.price : null;
-    const targetRevenue =
-      rawTargetRevenue == null
-        ? null
-        : Number.isFinite(rawTargetRevenue)
-          ? rawTargetRevenue
-          : Number.NaN;
-    return { units, revenue, targetUnits, targetRevenue };
-  }, [metrics, fixed, profitTarget]);
+  const breakEvenInput =
+    metrics?.status === "ok" && selectedPrice !== null
+      ? {
+          fixedExpenses: fixedExpenseAmounts,
+          price: selectedPrice,
+          contributionMargin: toDecimalString(metrics.value.contributionMargin, 8),
+          contributionMarginPct: toDecimalString(metrics.value.contributionMarginPct, 8),
+          desiredProfit: profitTarget.trim() === "" ? null : toApiDecimal(profitTarget),
+          unitMode: "discrete" as const,
+        }
+      : null;
+  const breakEvenQuery = useQuery({
+    ...breakEvenQueryOptions(
+      breakEvenInput ?? {
+        fixedExpenses: [],
+        price: "0",
+        contributionMargin: "0",
+        contributionMarginPct: "0",
+        desiredProfit: null,
+        unitMode: "discrete",
+      },
+    ),
+    enabled: breakEvenInput !== null,
+  });
+  const be = breakEvenQuery.data ?? null;
 
   if (productsQuery.isPending || expensesQuery.isPending) {
     return (
@@ -164,7 +165,11 @@ function PontoEquilibrio() {
           </div>
           <div className="space-y-1">
             <Label htmlFor="ponto-equilibrio-despesas-fixas">Despesas fixas / mês</Label>
-            <Input id="ponto-equilibrio-despesas-fixas" value={brl(fixed)} readOnly />
+            <Input
+              id="ponto-equilibrio-despesas-fixas"
+              value={brl(breakEvenQuery.data?.fixedExpenses)}
+              readOnly
+            />
           </div>
         </CardContent>
       </Card>
@@ -183,11 +188,11 @@ function PontoEquilibrio() {
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-3">
-            <Metric label="Preço de venda" value={brl(metrics.price)} />
-            <Metric label="Custo unitário" value={brl(metrics.unitCost)} />
+            <Metric label="Preço de venda" value={brl(selectedPrice)} />
+            <Metric label="Custo unitário" value={brl(metrics.value.unitCost)} />
             <Metric
               label="Margem de contribuição"
-              value={`${brl(metrics.contributionMargin)} (${pct(metrics.contributionMarginPct)})`}
+              value={`${brl(metrics.value.contributionMargin)} (${pct(metrics.value.contributionMarginPct)})`}
             />
           </div>
 
@@ -199,15 +204,17 @@ function PontoEquilibrio() {
               <div>
                 <div className="text-xs uppercase text-muted-foreground">Você precisa vender</div>
                 <div className="text-3xl font-black">
-                  {be!.units.status === "reachable"
-                    ? `${num(be!.units.roundedUnits, 0)} un.`
-                    : be!.units.status === "unreachable"
-                      ? "Não atingível"
-                      : "Erro de cálculo"}
+                  {breakEvenQuery.isPending
+                    ? "Calculando..."
+                    : be?.units.status === "reachable"
+                      ? `${num(be.units.roundedUnits, 0)} un.`
+                      : be?.units.status === "unreachable"
+                        ? "Não atingível"
+                        : "Erro de cálculo"}
                 </div>
-                {be!.units.status === "reachable" && (
+                {be?.units.status === "reachable" && (
                   <div className="text-sm text-muted-foreground">
-                    Resultado bruto: {num(be!.units.rawUnits, 2)}; arredondado para venda inteira.
+                    Resultado bruto: {num(be.units.rawUnits, 2)}; arredondado para venda inteira.
                   </div>
                 )}
               </div>
@@ -216,7 +223,7 @@ function PontoEquilibrio() {
                   Faturamento necessário
                 </div>
                 <div className="text-3xl font-black">
-                  {be!.units.status === "unreachable" ? "Não atingível" : brl(be!.revenue)}
+                  {be?.units.status === "unreachable" ? "Não atingível" : brl(be?.revenue)}
                 </div>
               </div>
               <p className="md:col-span-2 text-sm text-muted-foreground">
@@ -243,8 +250,8 @@ function PontoEquilibrio() {
               </div>
               {be?.targetUnits?.status === "reachable" && (
                 <div className="rounded-xl bg-secondary p-4">
-                  Para obter <strong>{brl(Number(profitTarget.replace(",", ".")))}</strong> de lucro
-                  / mês, você precisa vender aproximadamente{" "}
+                  Para obter <strong>{brl(be.targetUnits ? profitTarget : null)}</strong> de lucro /
+                  mês, você precisa vender aproximadamente{" "}
                   <strong>{num(be.targetUnits.roundedUnits, 0)} unidades</strong> (faturamento de{" "}
                   <strong>{brl(be.targetRevenue)}</strong>).
                 </div>
@@ -266,4 +273,8 @@ function Metric({ label, value }: { label: string; value: string }) {
       </CardContent>
     </Card>
   );
+}
+
+function toApiDecimal(value: string): string {
+  return value.trim().replace(",", ".");
 }

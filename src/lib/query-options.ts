@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { getChatHistory } from "@/lib/chat.functions";
+import { calculateBreakEven, type BreakEvenInput } from "@/lib/break-even.functions";
 import { getDashboardSummary } from "@/lib/dashboard.functions";
 import { listExpenses } from "@/lib/expenses.functions";
 import { listProductsWithMetrics, listPurchasePrices } from "@/lib/products.functions";
@@ -46,5 +47,14 @@ export function chatHistoryQueryOptions() {
     queryKey: ["chat", "history"] as const,
     queryFn: () => getChatHistory(),
     ...authenticatedQueryPolicy,
+  });
+}
+
+export function breakEvenQueryOptions(input: BreakEvenInput) {
+  return queryOptions({
+    queryKey: ["break-even", input] as const,
+    queryFn: () => calculateBreakEven({ data: input }),
+    ...authenticatedQueryPolicy,
+    retry: false,
   });
 }
