@@ -55,3 +55,38 @@ O PostgreSQL local não estava disponível (`ECONNREFUSED 127.0.0.1:5432`), ent�
 `npx playwright test --list` confirmou 32 casos (8 cenários em Chromium,
 Firefox, WebKit e Mobile); o gate remoto precisa executar a matriz com banco e
 credenciais reais.
+
+## Teste assistido CI/CD — 2026-08-14
+
+Execução realizada no commit `c6b5575593a8bb927dd7bbbc7b9d007a73f9612`, no
+worktree isolado `codex/pr7-sonar-remediation`:
+
+- `npm ci --ignore-scripts`: passou.
+- `npm run check`: passou; inclui UI stack, ausência de Supabase em runtime,
+  formatação, lint, typecheck, 222 testes unitários, build e bundle.
+- `npm run db:check` com `DATABASE_ADMIN_URL`: passou.
+- `git diff --check`: passou.
+- `npm audit --audit-level=high`: passou; o registry reportou quatro
+  vulnerabilidades moderadas transitivas em `esbuild` via `drizzle-kit`.
+- `npx playwright test --list`: 32 testes descobertos, sem retries ocultos.
+- `npm run db:test`: não executado até o banco; falhou com
+  `ECONNREFUSED 127.0.0.1:5432`, mesmo fora do sandbox.
+- `npm run test:e2e`: não executado até os testes; o `webServer` falhou no
+  `e2e:prepare` pelo mesmo `ECONNREFUSED`.
+
+### Estado remoto durante o teste
+
+- PR #7 continua apontando para `develop` em `d66e53a1a63395ab70dbb21f279c31a90c971ca6`;
+  a remediação local ainda não foi publicada.
+- O último workflow `UI stack` remoto associado a esse SHA foi o run
+  `31665926134`, concluído com sucesso e incluindo `db:test`, build, audit e
+  Playwright.
+- SonarCloud ainda mostra o resultado do SHA remoto antigo: Quality Gate
+  `Failed`, Security Rating de novo código `C`, 40 issues e
+  `githubactions:S6505` aberta em `.github/workflows/neon-preview.yml:L56`.
+- Não há análise Sonar nova do commit local; `sonar-scanner` não está
+  disponível no ambiente e não houve push/execução remota deste branch.
+
+Assim, o gate local determinístico está verde, mas o fechamento completo do
+CI/CD ainda requer PostgreSQL/credenciais no executor e uma nova análise
+SonarCloud depois da publicação do commit remediado.
