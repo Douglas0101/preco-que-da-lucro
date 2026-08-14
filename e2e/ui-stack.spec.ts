@@ -3,6 +3,16 @@ import { expect, test, type Page } from "@playwright/test";
 
 const authEmail = process.env.E2E_AUTH_EMAIL ?? "";
 const authPassword = process.env.E2E_AUTH_PASSWORD ?? "";
+
+function memberEmail(): string {
+  if (process.env.E2E_AUTH_MEMBER_EMAIL) return process.env.E2E_AUTH_MEMBER_EMAIL;
+  const [localPart, domain] = authEmail.split("@");
+  if (!localPart || !domain) return "";
+  return `${localPart}+member@${domain}`;
+}
+
+const memberPassword = process.env.E2E_AUTH_MEMBER_PASSWORD ?? authPassword;
+
 async function expectNoBlockingAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -12,6 +22,18 @@ async function expectNoBlockingAxeViolations(page: Page) {
   );
 
   expect(blocking).toEqual([]);
+}
+
+async function signInWithBetterAuth(page: Page, email: string, password: string): Promise<void> {
+  const pageUrl = page.url();
+  const origin = pageUrl.startsWith("http")
+    ? new URL(pageUrl).origin
+    : (process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4173");
+  const response = await page.request.post("/api/auth/sign-in/email", {
+    headers: { origin, "sec-fetch-site": "same-origin" },
+    data: { email, password },
+  });
+  expect(response.ok(), await response.text()).toBe(true);
 }
 
 async function login(page: Page): Promise<void> {
@@ -65,6 +87,51 @@ test("authentication controls keep accessible names", async ({ page, browserName
   await expect(submit).toBeFocused();
 
   if (browserName === "chromium") await login(page);
+});
+
+test("authentication matrix rejects invalid Better Auth credentials and protects routes", async ({
+  page,
+}) => {
+  await page.context().clearCookies();
+  await page.goto("/auth");
+
+  const response = await page.request.post("/api/auth/sign-in/email", {
+    headers: {
+      origin: new URL(page.url()).origin,
+      "sec-fetch-site": "same-origin",
+    },
+    data: { email: authEmail, password: `${authPassword}-invalid` },
+  });
+  expect(response.status()).toBe(401);
+
+  await page.goto("/inicio");
+  await expect(page).toHaveURL(/\/auth\?redirect=%2Finicio/);
+});
+
+test("authorization matrix blocks member mutations with a Better Auth session", async ({
+  page,
+}) => {
+  expect(memberEmail(), "E2E_AUTH_MEMBER_EMAIL derivável é obrigatória").not.toBe("");
+  expect(memberPassword, "E2E_AUTH_MEMBER_PASSWORD derivável é obrigatória").not.toBe("");
+  await page.context().clearCookies();
+  await page.goto("/auth");
+  await signInWithBetterAuth(page, memberEmail(), memberPassword);
+  await page.goto("/despesas");
+  await expect(page.getByRole("heading", { name: "Minhas Despesas" })).toBeVisible();
+
+  await page.getByLabel("Nome").fill("Tentativa de mutação não autorizada");
+  await page.getByLabel("Valor (R$)").fill("1");
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes("/_serverFn/") && response.request().method() === "POST",
+  );
+  await page.getByRole("button", { name: "Adicionar despesa" }).click();
+  const response = await responsePromise;
+  expect(response.status()).toBe(403);
+  const payload = await response.json();
+  expect(payload).toMatchObject({
+    ok: false,
+    error: { code: "AUTHORIZATION_ERROR", retryable: false },
+  });
 });
 
 test("authenticated shell uses an HttpOnly session and accessible navigation", async ({ page }) => {

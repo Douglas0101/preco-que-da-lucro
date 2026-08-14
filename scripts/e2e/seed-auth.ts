@@ -3,6 +3,7 @@ import { hashPassword } from "../../src/server/auth/password.server";
 import { requireAdminUrl, runMigrations } from "../db/migrate";
 
 const userId = "00000000-0000-4000-8000-000000000001";
+const memberUserId = "00000000-0000-4000-8000-000000000003";
 const tenantId = "00000000-0000-4000-8000-000000000002";
 const productId = "00000000-0000-4000-8000-000000000010";
 const conversationId = "00000000-0000-4000-8000-000000000020";
@@ -14,10 +15,18 @@ function required(name: "E2E_AUTH_EMAIL" | "E2E_AUTH_PASSWORD"): string {
   return value;
 }
 
+function memberEmailFor(ownerEmail: string): string {
+  const [localPart, domain] = ownerEmail.split("@");
+  if (!localPart || !domain) throw new Error("E2E_AUTH_EMAIL deve conter uma origem válida");
+  return process.env.E2E_AUTH_MEMBER_EMAIL?.trim().toLowerCase() ?? `${localPart}+member@${domain}`;
+}
+
 async function main(): Promise<void> {
   const adminUrl = requireAdminUrl();
   const email = required("E2E_AUTH_EMAIL").trim().toLowerCase();
   const password = required("E2E_AUTH_PASSWORD");
+  const memberEmail = memberEmailFor(email);
+  const memberPassword = process.env.E2E_AUTH_MEMBER_PASSWORD ?? password;
   if (password.length < 10) throw new Error("E2E_AUTH_PASSWORD deve ter pelo menos 10 caracteres");
 
   await runMigrations(adminUrl);
@@ -52,7 +61,7 @@ async function main(): Promise<void> {
     }
     await client.query("delete from tenant_memberships where tenant_id = $1", [tenantId]);
     await client.query("delete from tenants where id = $1", [tenantId]);
-    await client.query("delete from users where id = $1", [userId]);
+    await client.query("delete from users where id in ($1, $2)", [userId, memberUserId]);
     await client.query(
       `insert into users (id, name, email, email_verified)
        values ($1, 'Teste E2E', $2, true)`,
@@ -62,6 +71,16 @@ async function main(): Promise<void> {
       `insert into accounts (id, account_id, provider_id, user_id, password)
        values ($1, $2, 'credential', $2, $3)`,
       [`e2e-credential-${userId}`, userId, await hashPassword(password)],
+    );
+    await client.query(
+      `insert into users (id, name, email, email_verified)
+       values ($1, 'Membro E2E', $2, true)`,
+      [memberUserId, memberEmail],
+    );
+    await client.query(
+      `insert into accounts (id, account_id, provider_id, user_id, password)
+       values ($1, $2, 'credential', $2, $3)`,
+      [`e2e-credential-${memberUserId}`, memberUserId, await hashPassword(memberPassword)],
     );
     await client.query(
       `insert into tenants (id, name, slug, kind)
@@ -74,9 +93,19 @@ async function main(): Promise<void> {
       [tenantId, userId],
     );
     await client.query(
+      `insert into tenant_memberships (tenant_id, user_id, role)
+       values ($1, $2, 'member')`,
+      [tenantId, memberUserId],
+    );
+    await client.query(
       `insert into profiles (id, tenant_id, user_id, email, display_name)
        values ($1, $2, $1, $3, 'Teste E2E')`,
       [userId, tenantId, email],
+    );
+    await client.query(
+      `insert into profiles (id, tenant_id, user_id, email, display_name)
+       values ($1, $2, $1, $3, 'Membro E2E')`,
+      [memberUserId, tenantId, memberEmail],
     );
     await client.query(
       `insert into products
@@ -138,7 +167,9 @@ async function main(): Promise<void> {
     await client.end();
   }
 
-  console.log(`Fixture Better Auth/PostgreSQL preparada para ${email}.`);
+  console.log(
+    `Fixture Better Auth/PostgreSQL preparada para owner ${email} e member ${memberEmail}.`,
+  );
 }
 
 await main();

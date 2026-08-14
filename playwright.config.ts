@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4173";
+
 export default defineConfig({
   testDir: "./e2e",
   globalSetup: "./e2e/global-setup.ts",
@@ -14,7 +16,7 @@ export default defineConfig({
       ]
     : "list",
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL,
     storageState: ".artifacts/e2e-auth.json",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
