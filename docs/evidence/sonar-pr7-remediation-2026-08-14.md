@@ -1,0 +1,57 @@
+# Evidência de remediação SonarCloud — PR #7
+
+## Bloqueador confirmado
+
+O Quality Gate do novo código falhava por uma única vulnerabilidade:
+
+- regra `githubactions:S6505`;
+- severidade Major / impacto Medium;
+- arquivo `.github/workflows/neon-preview.yml`, linha 56;
+- causa: instalação npm sem `--ignore-scripts`;
+- correção: `npm ci --ignore-scripts` em `neon-preview.yml` e `ui-stack.yml`.
+
+O projeto possui vulnerabilidades antigas que mantêm o rating geral em `C`.
+Isso é diferente do Security Rating do novo código do PR, que deve ser
+reavaliado pelo SonarCloud depois da publicação do commit.
+
+## Matriz das anotações do PR
+
+| Grupo                                   | Evidência local                                               | Estado                       |
+| --------------------------------------- | ------------------------------------------------------------- | ---------------------------- |
+| S6505 / lifecycle scripts               | Workflows usam `npm ci --ignore-scripts`                      | Corrigido                    |
+| índices React em `chat-markdown.tsx`    | Chaves incluem ocorrência estável por linha/parte             | Corrigido                    |
+| `Set` em `finance.ts`                   | Conjunto somente leitura usado para classificação de unidades | Revisar no Sonar             |
+| props readonly                          | Props de componentes recebem `Readonly`                       | Corrigido                    |
+| ternários aninhados                     | Reavaliar após o próximo scan                                 | Pendente de evidência remota |
+| output/status e TypeError               | Estados de cálculo e erro são discriminados no BFF/UI         | Revisar no Sonar             |
+| TODO, SQL multiline e literal duplicado | Reavaliar contra o diff final                                 | Pendente de evidência remota |
+| complexidade em telas                   | Revisar no scan atualizado após integração                    | Pendente de evidência remota |
+
+O SonarCloud deve ser consultado novamente após o push; a análise local não
+substitui o Quality Gate remoto. A cobertura LCOV ainda não está configurada
+como condição de falha neste projeto.
+
+## Validações locais registradas
+
+- `npm ci --ignore-scripts`
+- `npm test`: 16 arquivos e 222 testes passaram após a integração e os novos testes de segurança financeira.
+- `npm run typecheck`: passou após a migration de rate limit.
+- `npm run lint`: passou.
+- `npm run format:check`: passou.
+- `npm run build`: passou.
+- `npm run check:bundle`: passou.
+- `npm run db:check`: passou.
+- `npm run check:no-supabase-runtime`: passou.
+- `npm audit --audit-level=high`: passou no limiar alto; a auditoria reportou quatro vulnerabilidades moderadas transitivas em `esbuild` via `drizzle-kit`, cuja correção automática exigiria downgrade/breaking change.
+
+## Limitações
+
+O token local do GitHub CLI está inválido nesta execução. Portanto, logs de
+Actions e o novo resultado do check SonarCloud ainda dependem da publicação e
+da consulta remota autenticada.
+
+O PostgreSQL local não estava disponível (`ECONNREFUSED 127.0.0.1:5432`), então
+`npm run db:test` e a execução real dos E2E não foram comprovados localmente.
+`npx playwright test --list` confirmou 32 casos (8 cenários em Chromium,
+Firefox, WebKit e Mobile); o gate remoto precisa executar a matriz com banco e
+credenciais reais.
