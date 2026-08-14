@@ -182,9 +182,9 @@ function NovoProduto() {
             <MessageBubble key={m.id ?? i} role={m.role} content={m.content} />
           ))}
           {loading && (
-            <div
+            <output
               className="flex items-start gap-3"
-              role="status"
+              aria-live="polite"
               aria-label={chatStatusLabel(chatState) ?? "Consultor respondendo"}
             >
               <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
@@ -197,7 +197,7 @@ function NovoProduto() {
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
                 </span>
               </div>
-            </div>
+            </output>
           )}
           <div ref={bottomRef} />
         </div>
@@ -234,7 +234,10 @@ function NovoProduto() {
   );
 }
 
-function MessageBubble({ role, content }: { role: "user" | "assistant"; content: string }) {
+function MessageBubble({
+  role,
+  content,
+}: Readonly<{ role: "user" | "assistant"; content: string }>) {
   if (role === "user") {
     return (
       <div className="flex items-start justify-end gap-3">

@@ -50,11 +50,7 @@ function Inicio() {
   );
 
   if (loadStatus === "loading") {
-    return (
-      <div role="status" className="text-muted-foreground">
-        Carregando...
-      </div>
-    );
+    return <output className="text-muted-foreground">Carregando...</output>;
   }
 
   if (loadStatus === "error") {
@@ -189,12 +185,12 @@ function MetricCard({
   label,
   value,
   description,
-}: {
+}: Readonly<{
   icon: typeof Package;
   label: string;
   value: string;
   description?: string;
-}) {
+}>) {
   return (
     <Card>
       <CardContent className="p-5">

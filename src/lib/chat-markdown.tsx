@@ -9,17 +9,23 @@ import type { ReactNode } from "react";
  * nenhuma hipótese — não existe caminho de `dangerouslySetInnerHTML`.
  */
 export function renderChatMarkdown(text: string): ReactNode[] {
-  // key={index} é seguro aqui: mensagens do chat são append-only e o conteúdo
-  // de cada bolha é estático após o render. Se o chat ganhar streaming/edição,
-  // compor a chave com o conteúdo.
-  return text.split("\n").map((line, index) => <div key={index}>{renderLine(line)}</div>);
+  const lineOccurrences = new Map<string, number>();
+  return text.split("\n").map((line) => {
+    const occurrence = lineOccurrences.get(line) ?? 0;
+    lineOccurrences.set(line, occurrence + 1);
+    return <div key={`${line}-${occurrence}`}>{renderLine(line)}</div>;
+  });
 }
 
 function renderLine(line: string): ReactNode[] {
-  return line.split(/(\*\*.+?\*\*)/g).map((part, index) => {
+  const partOccurrences = new Map<string, number>();
+  return line.split(/(\*\*.+?\*\*)/g).map((part) => {
+    const occurrence = partOccurrences.get(part) ?? 0;
+    partOccurrences.set(part, occurrence + 1);
+    const key = `${part}-${occurrence}`;
     if (part.length > 4 && part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={index}>{part.slice(2, -2)}</strong>;
+      return <strong key={key}>{part.slice(2, -2)}</strong>;
     }
-    return <span key={index}>{part}</span>;
+    return <span key={key}>{part}</span>;
   });
 }

@@ -71,7 +71,7 @@ export const upsertExpense = createServerFn({ method: "POST" })
           .where(and(eq(expenses.tenantId, request.tenantId), eq(expenses.id, data.id)))
           .returning()
       : await request.transaction.insert(expenses).values(values).returning();
-    if (!rows[0]) throw new Error("NOT_FOUND");
+    if (!rows[0]) throw new TypeError("NOT_FOUND");
     return mapExpense(rows[0]);
   });
 
@@ -85,7 +85,7 @@ export const deleteExpense = createServerFn({ method: "POST" })
       .delete(expenses)
       .where(and(eq(expenses.tenantId, request.tenantId), eq(expenses.id, data.id)))
       .returning({ id: expenses.id });
-    if (!deleted.length) throw new Error("NOT_FOUND");
+    if (!deleted.length) throw new TypeError("NOT_FOUND");
     return { ok: true };
   });
 
@@ -101,7 +101,7 @@ export const getTotals = createServerFn({ method: "GET" })
       })
       .from(expenses)
       .where(eq(expenses.tenantId, request.tenantId));
-    if (!totals) throw new Error("DATABASE_ERROR");
+    if (!totals) throw new TypeError("DATABASE_ERROR");
     return {
       fixed: totals.fixed,
       variable: totals.variable,

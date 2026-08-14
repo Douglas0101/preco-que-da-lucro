@@ -110,11 +110,7 @@ function PontoEquilibrio() {
   const be = breakEvenQuery.data ?? null;
 
   if (productsQuery.isPending || expensesQuery.isPending) {
-    return (
-      <div role="status" className="text-muted-foreground">
-        Carregando...
-      </div>
-    );
+    return <output className="text-muted-foreground">Carregando...</output>;
   }
 
   if (productsQuery.isError || expensesQuery.isError) {
@@ -264,7 +260,7 @@ function PontoEquilibrio() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <Card>
       <CardContent className="p-5">

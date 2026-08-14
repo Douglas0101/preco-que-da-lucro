@@ -200,9 +200,7 @@ function Simulacoes() {
       </div>
 
       {loadStatus === "loading" && (
-        <div role="status" className="text-muted-foreground">
-          Carregando produtos e despesas...
-        </div>
+        <output className="text-muted-foreground">Carregando produtos e despesas...</output>
       )}
 
       {loadStatus === "error" && (
@@ -219,9 +217,9 @@ function Simulacoes() {
       )}
 
       {loadStatus === "empty" && (
-        <div role="status" className="text-muted-foreground">
+        <output className="text-muted-foreground">
           Cadastre um produto para criar uma simulação manual.
-        </div>
+        </output>
       )}
 
       {products.length > 0 && loadStatus !== "error" && (
@@ -302,7 +300,6 @@ function Simulacoes() {
               {simulated?.status === "incomplete" && (
                 <div
                   id={issueDescriptionId}
-                  role="status"
                   aria-live="polite"
                   className="mt-3 rounded-xl border p-4 text-sm text-muted-foreground"
                 >
@@ -323,8 +320,7 @@ function Simulacoes() {
               )}
 
               {simulated?.status === "ok" && (
-                <div
-                  role="status"
+                <output
                   aria-live="polite"
                   className="mt-3 space-y-1 rounded-xl bg-secondary p-4 text-sm"
                 >
@@ -340,7 +336,7 @@ function Simulacoes() {
                     value={brl(simulated.value.result)}
                     accent={simulated.value.resultSign === "negative" ? "destructive" : "success"}
                   />
-                </div>
+                </output>
               )}
             </CardContent>
           </Card>
@@ -353,10 +349,10 @@ function Simulacoes() {
 function ProductState({
   status,
   errorReference,
-}: {
+}: Readonly<{
   status: ProductStatus;
   errorReference: string | null;
-}) {
+}>) {
   const invalid = status === "invalid";
   const error = status === "error";
   if (error) {
@@ -367,25 +363,25 @@ function ProductState({
       />
     );
   }
-  return (
-    <div
-      role={invalid ? "alert" : "status"}
-      className={
-        invalid
-          ? "rounded-xl border border-destructive/40 p-4 font-medium"
-          : "text-muted-foreground"
-      }
-    >
-      {invalid
-        ? "Erro de cálculo. Revise os valores numéricos do produto."
-        : status === "incomplete"
-          ? "Dados incompletos. Preencha os campos financeiros do produto para simular."
-          : "Carregando dados do produto..."}
-    </div>
-  );
+  const message = productStateMessage(status);
+  if (invalid) {
+    return (
+      <div role="alert" className="rounded-xl border border-destructive/40 p-4 font-medium">
+        {message}
+      </div>
+    );
+  }
+  return <output className="text-muted-foreground">{message}</output>;
 }
 
-function ProductCard({ data }: { data: ProductBaseline }) {
+function productStateMessage(status: ProductStatus): string {
+  if (status === "incomplete") {
+    return "Dados incompletos. Preencha os campos financeiros do produto para simular.";
+  }
+  return "Carregando dados do produto...";
+}
+
+function ProductCard({ data }: Readonly<{ data: ProductBaseline }>) {
   return (
     <Card>
       <CardHeader>
@@ -412,11 +408,11 @@ function Row({
   label,
   value,
   accent,
-}: {
+}: Readonly<{
   label: string;
   value: string;
   accent?: "success" | "destructive";
-}) {
+}>) {
   return (
     <div className="flex justify-between gap-3">
       <span className="text-muted-foreground">{label}</span>
@@ -432,14 +428,14 @@ function Field({
   describedBy,
   invalid,
   onChange,
-}: {
+}: Readonly<{
   id: string;
   label: string;
   value: string;
   describedBy?: string;
   invalid?: boolean;
   onChange: (value: string) => void;
-}) {
+}>) {
   return (
     <div className="space-y-1">
       <Label htmlFor={id} className="text-xs">
@@ -457,7 +453,10 @@ function Field({
   );
 }
 
-function RemoteErrorState({ message, reference }: { message: string; reference: string | null }) {
+function RemoteErrorState({
+  message,
+  reference,
+}: Readonly<{ message: string; reference: string | null }>) {
   return (
     <div role="alert" className="space-y-3 rounded-xl border border-destructive/40 p-4">
       <p className="font-medium">{message}</p>
