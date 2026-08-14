@@ -59,6 +59,12 @@ function dataBR(iso: string | null) {
   });
 }
 
+function ageLabel(days: number | null): string {
+  if (days == null || days <= 0) return "";
+  if (days === 1) return ` (há ${days} dia)`;
+  return ` (há ${days} dias)`;
+}
+
 function Precos() {
   const save = useServerFn(updatePurchasePrice);
   const pricesQuery = useQuery(purchasePricesQueryOptions());
@@ -272,7 +278,7 @@ function PurchasePriceRow({
   const days = diasDesde(item.price_updated_at);
   const stale = days === null || days > DIAS_ALERTA;
   const inputId = `preco-${item.kind}-${item.id}`;
-  const dayLabel = days !== null && days > 0 ? ` (há ${days} dia${days > 1 ? "s" : ""})` : "";
+  const dayLabel = ageLabel(days);
   return (
     <div className="flex flex-wrap items-end gap-3 rounded-xl border p-3">
       <div className="min-w-[10rem] flex-1">
