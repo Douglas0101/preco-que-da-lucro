@@ -95,15 +95,18 @@ export function errorCodeFromUnknown(error: unknown): ApiErrorCode {
 
 export function apiErrorResponse(code: ApiErrorCode, correlationId: string): Response {
   const policy = ERROR_POLICY[code];
-  return Response.json(
-    { ok: false, error: apiError(code, correlationId) } satisfies ApiResult<never>,
-    {
-      status: policy.status,
-      headers: {
-        "cache-control": "private, no-store",
-        "x-correlation-id": correlationId,
-        vary: "Cookie",
-      },
+  const body = JSON.stringify({
+    ok: false,
+    error: apiError(code, correlationId),
+  } satisfies ApiResult<never>);
+  return new Response(body, {
+    status: policy.status,
+    headers: {
+      "cache-control": "private, no-store",
+      "content-length": String(new TextEncoder().encode(body).byteLength),
+      "content-type": "application/json; charset=utf-8",
+      "x-correlation-id": correlationId,
+      vary: "Cookie",
     },
-  );
+  });
 }

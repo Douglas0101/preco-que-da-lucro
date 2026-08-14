@@ -4,7 +4,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { getDatabase, withTenantTransaction } from "@/db/client.server";
 import { tenantMemberships } from "@/db/schema";
-import { ApplicationError, errorCodeFromUnknown } from "@/lib/api-error";
+import { apiErrorResponse, errorCodeFromUnknown } from "@/lib/api-error";
 import type { RequestIdentity } from "@/lib/request-context";
 import { logJson } from "@/lib/structured-logger";
 import { getAuth } from "@/server/auth/auth.server";
@@ -46,9 +46,9 @@ async function authenticateRequest(options: {
     headers: request.headers,
     query: { disableCookieCache: true },
   });
-  if (!session) throw new ApplicationError("AUTHENTICATION_ERROR");
+  if (!session) throw apiErrorResponse("AUTHENTICATION_ERROR", correlationId);
   const membership = await resolveMembership(session.user.id, request.headers.get("x-tenant-id"));
-  if (!membership) throw new ApplicationError("AUTHORIZATION_ERROR");
+  if (!membership) throw apiErrorResponse("AUTHORIZATION_ERROR", correlationId);
   return {
     userId: session.user.id,
     tenantId: membership.tenantId,
@@ -66,12 +66,10 @@ export const requireDatabaseIdentity = createMiddleware({ type: "function" }).se
       const identity = await authenticateRequest({ context, signal });
       return next({ context: { requestIdentity: identity } });
     } catch (error) {
-      if (error instanceof ApplicationError) throw error;
+      if (error instanceof Response) throw error;
       const code = errorCodeFromUnknown(error);
       logJson("error", "bff.identity_failed", { correlationId, code, error });
-      throw new ApplicationError(code === "INTERNAL_ERROR" ? "DATABASE_ERROR" : code, {
-        cause: error,
-      });
+      throw apiErrorResponse(code === "INTERNAL_ERROR" ? "DATABASE_ERROR" : code, correlationId);
     }
   },
 );
@@ -99,12 +97,10 @@ export const requireDatabaseAuth = createMiddleware({ type: "function" }).server
           }),
       );
     } catch (error) {
-      if (error instanceof ApplicationError) throw error;
+      if (error instanceof Response) throw error;
       const code = errorCodeFromUnknown(error);
       logJson("error", "bff.request_failed", { correlationId, code, error });
-      throw new ApplicationError(code === "INTERNAL_ERROR" ? "DATABASE_ERROR" : code, {
-        cause: error,
-      });
+      throw apiErrorResponse(code === "INTERNAL_ERROR" ? "DATABASE_ERROR" : code, correlationId);
     }
   },
 );
