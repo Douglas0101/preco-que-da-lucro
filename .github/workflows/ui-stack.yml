@@ -41,7 +41,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm install --global npm@11.14.1
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run check:ui-stack
       - run: npm run check:no-supabase-runtime
       - run: npm run format:check
