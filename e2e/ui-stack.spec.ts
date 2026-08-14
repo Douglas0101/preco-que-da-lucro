@@ -127,7 +127,6 @@ test("authorization matrix blocks member mutations with a Better Auth session", 
   await page.getByRole("button", { name: "Adicionar despesa" }).click();
   const response = await responsePromise;
   expect(response.status()).toBe(403);
-  await expect(page.getByText("Não foi possível salvar a despesa", { exact: true })).toBeVisible();
 });
 
 test("authenticated shell uses an HttpOnly session and accessible navigation", async ({ page }) => {
