@@ -262,10 +262,108 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 
+type GatewayResponse = z.output<typeof gatewayResponseSchema>;
+
+async function fetchModelAttempt({
+  apiKey,
+  endpoint,
+  model,
+  messages,
+  signal,
+  requestSignal,
+  attempt,
+  attempts,
+}: Readonly<{
+  apiKey: string;
+  endpoint: string;
+  model: string;
+  messages: GatewayMessage[];
+  signal: AbortSignal;
+  requestSignal: AbortSignal;
+  attempt: number;
+  attempts: number;
+}>): Promise<GatewayResponse | null> {
+  const response = await withSpan(
+    "ai.model.call",
+    { "gen_ai.request.model": model, "app.ai.attempt": attempt },
+    () =>
+      fetch(endpoint, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
+        body: JSON.stringify({ model, messages, tools: GATEWAY_TOOLS, tool_choice: "auto" }),
+        signal,
+      }),
+  );
+  if (response.status === 402) {
+    applicationMetrics.aiQuotas.add(1);
+    throw new ApplicationError("AI_QUOTA");
+  }
+  if (response.status === 429) throw new ApplicationError("RATE_LIMIT");
+  if (!response.ok) {
+    if (isTransientStatus(response.status) && attempt < attempts) {
+      await delay(150 * attempt, requestSignal);
+      return null;
+    }
+    throw new ApplicationError("DEPENDENCY_ERROR");
+  }
+  const parsed = gatewayResponseSchema.safeParse(await response.json());
+  if (!parsed.success) throw new ApplicationError("DEPENDENCY_ERROR");
+  return parsed.data;
+}
+
+async function runModelAttempt({
+  apiKey,
+  endpoint,
+  model,
+  messages,
+  requestSignal,
+  attempt,
+  attempts,
+  timeoutMs,
+}: Readonly<{
+  apiKey: string;
+  endpoint: string;
+  model: string;
+  messages: GatewayMessage[];
+  requestSignal: AbortSignal;
+  attempt: number;
+  attempts: number;
+  timeoutMs: number;
+}>): Promise<GatewayResponse | null> {
+  const signal = AbortSignal.any([requestSignal, AbortSignal.timeout(timeoutMs)]);
+  const attemptStartedAt = performance.now();
+  try {
+    return await fetchModelAttempt({
+      apiKey,
+      endpoint,
+      model,
+      messages,
+      signal,
+      requestSignal,
+      attempt,
+      attempts,
+    });
+  } catch (error) {
+    if (error instanceof ApplicationError) throw error;
+    if (signal.aborted) {
+      applicationMetrics.aiTimeouts.add(1);
+      throw new ApplicationError("AI_TIMEOUT", { cause: error });
+    }
+    if (attempt >= attempts) throw new ApplicationError("DEPENDENCY_ERROR", { cause: error });
+    await delay(150 * attempt, requestSignal);
+    return null;
+  } finally {
+    applicationMetrics.aiDuration.record(performance.now() - attemptStartedAt, {
+      model,
+      attempt,
+    });
+  }
+}
+
 async function callModel(
   messages: GatewayMessage[],
   requestSignal: AbortSignal,
-): Promise<z.output<typeof gatewayResponseSchema>> {
+): Promise<GatewayResponse> {
   const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new ApplicationError("DEPENDENCY_ERROR");
   const endpoint =
@@ -275,49 +373,17 @@ async function callModel(
   const timeoutMs = numberSetting("AI_MODEL_TIMEOUT_MS", 30_000, 1_000, 30_000);
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    const signal = AbortSignal.any([requestSignal, AbortSignal.timeout(timeoutMs)]);
-    const attemptStartedAt = performance.now();
-    try {
-      const response = await withSpan(
-        "ai.model.call",
-        { "gen_ai.request.model": model, "app.ai.attempt": attempt },
-        () =>
-          fetch(endpoint, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-            body: JSON.stringify({ model, messages, tools: GATEWAY_TOOLS, tool_choice: "auto" }),
-            signal,
-          }),
-      );
-      if (response.status === 402) {
-        applicationMetrics.aiQuotas.add(1);
-        throw new ApplicationError("AI_QUOTA");
-      }
-      if (response.status === 429) throw new ApplicationError("RATE_LIMIT");
-      if (!response.ok) {
-        if (isTransientStatus(response.status) && attempt < attempts) {
-          await delay(150 * attempt, requestSignal);
-          continue;
-        }
-        throw new ApplicationError("DEPENDENCY_ERROR");
-      }
-      const parsed = gatewayResponseSchema.safeParse(await response.json());
-      if (!parsed.success) throw new ApplicationError("DEPENDENCY_ERROR");
-      return parsed.data;
-    } catch (error) {
-      if (error instanceof ApplicationError) throw error;
-      if (signal.aborted) {
-        applicationMetrics.aiTimeouts.add(1);
-        throw new ApplicationError("AI_TIMEOUT", { cause: error });
-      }
-      if (attempt >= attempts) throw new ApplicationError("DEPENDENCY_ERROR", { cause: error });
-      await delay(150 * attempt, requestSignal);
-    } finally {
-      applicationMetrics.aiDuration.record(performance.now() - attemptStartedAt, {
-        model,
-        attempt,
-      });
-    }
+    const result = await runModelAttempt({
+      apiKey,
+      endpoint,
+      model,
+      messages,
+      requestSignal,
+      attempt,
+      attempts,
+      timeoutMs,
+    });
+    if (result) return result;
   }
   throw new ApplicationError("DEPENDENCY_ERROR");
 }
