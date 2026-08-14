@@ -9,6 +9,7 @@ import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import {
   TOOL_REGISTRY,
   toolExecutionOutputSchema,
+  type PreparedTool,
   type ToolExecutionOutput,
 } from "./tool-registry";
 
@@ -95,6 +96,68 @@ async function persistRejected(
   applicationMetrics.toolDuration.record(durationMs, { tool: toolName, status: "rejected" });
 }
 
+type PreparedToolSuccess = Extract<PreparedTool, { ok: true }>;
+
+async function prepareToolRequest(
+  context: RequestContext,
+  name: string,
+  rawArguments: string,
+  startedAt: number,
+): Promise<{ hash: string; prepared: PreparedToolSuccess } | { failure: ToolRunResult }> {
+  let rawInput: unknown;
+  try {
+    rawInput = JSON.parse(rawArguments || "{}");
+  } catch {
+    const hash = inputHash(rawArguments);
+    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt);
+    return { failure: publicFailure("VALIDATION_ERROR") };
+  }
+
+  const hash = inputHash(rawInput);
+  const definition = TOOL_REGISTRY.get(name);
+  if (!definition) {
+    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt);
+    return { failure: publicFailure("VALIDATION_ERROR") };
+  }
+  const prepared = definition.prepare(context, rawInput);
+  if (!prepared.ok) {
+    await persistRejected(context, name, hash, prepared.code, startedAt);
+    return { failure: publicFailure(prepared.code) };
+  }
+  return { hash, prepared };
+}
+
+async function resolveExistingClaim(
+  context: RequestContext,
+  name: string,
+  idempotencyKey: string,
+  hash: string,
+): Promise<ToolRunResult> {
+  const [existing] = await context.transaction
+    .select()
+    .from(idempotencyRecords)
+    .where(
+      and(
+        eq(idempotencyRecords.tenantId, context.tenantId),
+        eq(idempotencyRecords.userId, context.userId),
+        eq(idempotencyRecords.operation, `ai.tool.${name}`),
+        eq(idempotencyRecords.key, idempotencyKey),
+      ),
+    )
+    .limit(1);
+  if (existing?.requestHash !== hash) return publicFailure("CONFLICT");
+  if (existing.status === "succeeded" && existing.response) {
+    const replayedOutput = sanitizeToolOutput(existing.response);
+    if (!replayedOutput) return publicFailure("DATABASE_ERROR");
+    return { ok: true, output: replayedOutput, replayed: true };
+  }
+  return {
+    ok: false,
+    code: (existing?.errorCode as ApiErrorCode | null) ?? "CONFLICT",
+    replayed: true,
+  };
+}
+
 export async function runRegisteredTool(options: {
   context: RequestContext;
   name: string;
@@ -103,26 +166,9 @@ export async function runRegisteredTool(options: {
 }): Promise<ToolRunResult> {
   const { context, name, rawArguments, idempotencyKey } = options;
   const startedAt = performance.now();
-  let rawInput: unknown;
-  try {
-    rawInput = JSON.parse(rawArguments || "{}");
-  } catch {
-    const hash = inputHash(rawArguments);
-    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt);
-    return publicFailure("VALIDATION_ERROR");
-  }
-
-  const hash = inputHash(rawInput);
-  const definition = TOOL_REGISTRY.get(name);
-  if (!definition) {
-    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt);
-    return publicFailure("VALIDATION_ERROR");
-  }
-  const prepared = definition.prepare(context, rawInput);
-  if (!prepared.ok) {
-    await persistRejected(context, name, hash, prepared.code, startedAt);
-    return publicFailure(prepared.code);
-  }
+  const preparedRequest = await prepareToolRequest(context, name, rawArguments, startedAt);
+  if ("failure" in preparedRequest) return preparedRequest.failure;
+  const { hash, prepared } = preparedRequest;
 
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1_000);
   const claimed = await context.transaction
@@ -139,35 +185,7 @@ export async function runRegisteredTool(options: {
     .onConflictDoNothing()
     .returning({ id: idempotencyRecords.id });
 
-  if (!claimed[0]) {
-    const [existing] = await context.transaction
-      .select()
-      .from(idempotencyRecords)
-      .where(
-        and(
-          eq(idempotencyRecords.tenantId, context.tenantId),
-          eq(idempotencyRecords.userId, context.userId),
-          eq(idempotencyRecords.operation, `ai.tool.${name}`),
-          eq(idempotencyRecords.key, idempotencyKey),
-        ),
-      )
-      .limit(1);
-    if (existing?.requestHash !== hash) return publicFailure("CONFLICT");
-    if (existing.status === "succeeded" && existing.response) {
-      const replayedOutput = sanitizeToolOutput(existing.response);
-      if (!replayedOutput) return publicFailure("DATABASE_ERROR");
-      return {
-        ok: true,
-        output: replayedOutput,
-        replayed: true,
-      };
-    }
-    return {
-      ok: false,
-      code: (existing?.errorCode as ApiErrorCode | null) ?? "CONFLICT",
-      replayed: true,
-    };
-  }
+  if (!claimed[0]) return resolveExistingClaim(context, name, idempotencyKey, hash);
 
   const [execution] = await context.transaction
     .insert(toolExecutions)

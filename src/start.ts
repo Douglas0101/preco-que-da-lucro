@@ -36,6 +36,66 @@ function securityHeaders(): Record<string, string> {
   return headers;
 }
 
+function applyRequestHeaders(
+  response: Response,
+  correlationId: string,
+  handlerType: string,
+): Response {
+  response.headers.set("x-correlation-id", correlationId);
+  for (const [name, value] of Object.entries(securityHeaders())) {
+    response.headers.set(name, value);
+  }
+  if (handlerType === "serverFn") {
+    response.headers.set("cache-control", "private, no-store");
+    response.headers.append("vary", "Cookie");
+  }
+  return response;
+}
+
+function handleResponseError(
+  error: Response,
+  correlationId: string,
+  handlerType: string,
+  startedAt: number,
+  request: Request,
+): never {
+  applyRequestHeaders(error, correlationId, handlerType);
+  applicationMetrics.requestDuration.record(performance.now() - startedAt, {
+    method: request.method,
+    status: error.status,
+  });
+  throw error;
+}
+
+function handleUnexpectedError(
+  error: unknown,
+  correlationId: string,
+  handlerType: string,
+  startedAt: number,
+  request: Request,
+): Response | never {
+  if (error != null && typeof error === "object" && "statusCode" in error) throw error;
+  const code = errorCodeFromUnknown(error);
+  applicationMetrics.errors.add(1, { code });
+  logJson("error", "request.failed", {
+    correlationId,
+    code,
+    method: request.method,
+    pathname: new URL(request.url).pathname,
+    durationMs: Math.round(performance.now() - startedAt),
+    error,
+  });
+  if (handlerType === "serverFn") return apiErrorResponse(code, correlationId);
+  return new Response(renderErrorPage(), {
+    status: 500,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "x-correlation-id": correlationId,
+      ...securityHeaders(),
+    },
+  });
+}
+
 const requestPolicyMiddleware = createMiddleware().server(
   async ({ handlerType, next, request }) => {
     ensureTelemetryStarted();
@@ -56,15 +116,11 @@ const requestPolicyMiddleware = createMiddleware().server(
         },
         async () => next({ context: { correlationId } }),
       );
-      const response = new Response(result.response.body, result.response);
-      response.headers.set("x-correlation-id", correlationId);
-      for (const [name, value] of Object.entries(securityHeaders())) {
-        response.headers.set(name, value);
-      }
-      if (handlerType === "serverFn") {
-        response.headers.set("cache-control", "private, no-store");
-        response.headers.append("vary", "Cookie");
-      }
+      const response = applyRequestHeaders(
+        new Response(result.response.body, result.response),
+        correlationId,
+        handlerType,
+      );
       logJson("info", "request.completed", {
         correlationId,
         method: request.method,
@@ -79,40 +135,9 @@ const requestPolicyMiddleware = createMiddleware().server(
       return { ...result, response };
     } catch (error) {
       if (error instanceof Response) {
-        error.headers.set("x-correlation-id", correlationId);
-        for (const [name, value] of Object.entries(securityHeaders())) {
-          error.headers.set(name, value);
-        }
-        if (handlerType === "serverFn") {
-          error.headers.set("cache-control", "private, no-store");
-          error.headers.append("vary", "Cookie");
-        }
-        applicationMetrics.requestDuration.record(performance.now() - startedAt, {
-          method: request.method,
-          status: error.status,
-        });
-        throw error;
+        return handleResponseError(error, correlationId, handlerType, startedAt, request);
       }
-      if (error != null && typeof error === "object" && "statusCode" in error) throw error;
-      const code = errorCodeFromUnknown(error);
-      applicationMetrics.errors.add(1, { code });
-      logJson("error", "request.failed", {
-        correlationId,
-        code,
-        method: request.method,
-        pathname: new URL(request.url).pathname,
-        durationMs: Math.round(performance.now() - startedAt),
-        error,
-      });
-      if (handlerType === "serverFn") return apiErrorResponse(code, correlationId);
-      return new Response(renderErrorPage(), {
-        status: 500,
-        headers: {
-          "content-type": "text/html; charset=utf-8",
-          "x-correlation-id": correlationId,
-          ...securityHeaders(),
-        },
-      });
+      return handleUnexpectedError(error, correlationId, handlerType, startedAt, request);
     }
   },
 );

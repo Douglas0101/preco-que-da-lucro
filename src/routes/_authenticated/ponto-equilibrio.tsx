@@ -36,6 +36,10 @@ export const Route = createFileRoute("/_authenticated/ponto-equilibrio")({
 
 type ProductDetail = Awaited<ReturnType<typeof listProductsWithMetrics>>[number];
 type ProductMetricsOk = Extract<ProductDetail["metrics"], { status: "ok" }>;
+type BreakEvenData = Awaited<
+  ReturnType<NonNullable<ReturnType<typeof breakEvenQueryOptions>["queryFn"]>>
+>;
+type BreakEvenQuery = { isPending: boolean };
 
 function PontoEquilibrio() {
   const [details, setDetails] = useState<ProductDetail[]>([]);
@@ -83,17 +87,12 @@ function PontoEquilibrio() {
     })();
   }, [productId, details]);
 
-  const breakEvenInput =
-    metrics?.status === "ok" && selectedPrice !== null
-      ? {
-          fixedExpenses: fixedExpenseAmounts,
-          price: selectedPrice,
-          contributionMargin: toDecimalString(metrics.value.contributionMargin, 8),
-          contributionMarginPct: toDecimalString(metrics.value.contributionMarginPct, 8),
-          desiredProfit: profitTarget.trim() === "" ? null : toApiDecimal(profitTarget),
-          unitMode: "discrete" as const,
-        }
-      : null;
+  const breakEvenInput = createBreakEvenInput(
+    metrics,
+    selectedPrice,
+    fixedExpenseAmounts,
+    profitTarget,
+  );
   const breakEvenQuery = useQuery({
     ...breakEvenQueryOptions(
       breakEvenInput ?? {
@@ -112,27 +111,88 @@ function PontoEquilibrio() {
   if (productsQuery.isPending || expensesQuery.isPending) {
     return <output className="text-muted-foreground">Carregando...</output>;
   }
-
   if (productsQuery.isError || expensesQuery.isError) {
     return (
-      <Card role="alert" className="border-destructive/40">
-        <CardContent className="space-y-3 p-5">
-          <p>Não foi possível carregar os dados do ponto de equilíbrio.</p>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              void productsQuery.refetch();
-              void expensesQuery.refetch();
-            }}
-          >
-            Tentar novamente
-          </Button>
-        </CardContent>
-      </Card>
+      <PontoErrorState
+        onRetry={() => {
+          void productsQuery.refetch();
+          void expensesQuery.refetch();
+        }}
+      />
     );
   }
+  return (
+    <PontoView
+      products={products}
+      productId={productId}
+      onProductChange={setProductId}
+      fixedExpenses={breakEvenQuery.data?.fixedExpenses}
+      metrics={metrics}
+      selectedPrice={selectedPrice}
+      calculationStatus={calculationStatus}
+      breakEvenQuery={breakEvenQuery}
+      breakEven={be}
+      profitTarget={profitTarget}
+      onProfitTargetChange={setProfitTarget}
+    />
+  );
+}
 
+function createBreakEvenInput(
+  metrics: ProductMetricsOk | null,
+  selectedPrice: string | null,
+  fixedExpenses: string[],
+  profitTarget: string,
+) {
+  if (!metrics || selectedPrice === null) return null;
+  return {
+    fixedExpenses,
+    price: selectedPrice,
+    contributionMargin: toDecimalString(metrics.value.contributionMargin, 8),
+    contributionMarginPct: toDecimalString(metrics.value.contributionMarginPct, 8),
+    desiredProfit: profitTarget.trim() === "" ? null : toApiDecimal(profitTarget),
+    unitMode: "discrete" as const,
+  };
+}
+
+function PontoErrorState({ onRetry }: Readonly<{ onRetry: () => void }>) {
+  return (
+    <Card role="alert" className="border-destructive/40">
+      <CardContent className="space-y-3 p-5">
+        <p>Não foi possível carregar os dados do ponto de equilíbrio.</p>
+        <Button type="button" variant="outline" onClick={onRetry}>
+          Tentar novamente
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PontoView({
+  products,
+  productId,
+  onProductChange,
+  fixedExpenses,
+  metrics,
+  selectedPrice,
+  calculationStatus,
+  breakEvenQuery,
+  breakEven,
+  profitTarget,
+  onProfitTargetChange,
+}: Readonly<{
+  products: ProductDetail["product"][];
+  productId: string;
+  onProductChange: (value: string) => void;
+  fixedExpenses: string | null | undefined;
+  metrics: ProductMetricsOk | null;
+  selectedPrice: string | null;
+  calculationStatus: "idle" | "incomplete" | "invalid" | "ok";
+  breakEvenQuery: BreakEvenQuery;
+  breakEven: BreakEvenData | null;
+  profitTarget: string;
+  onProfitTargetChange: (value: string) => void;
+}>) {
   return (
     <div className="space-y-6">
       <div>
@@ -141,19 +201,18 @@ function PontoEquilibrio() {
           Quanto você precisa vender para cobrir suas despesas fixas.
         </p>
       </div>
-
       <Card>
         <CardContent className="grid gap-4 p-5 md:grid-cols-2">
           <div className="space-y-1">
             <Label htmlFor="ponto-equilibrio-produto">Produto</Label>
-            <Select value={productId} onValueChange={setProductId}>
+            <Select value={productId} onValueChange={onProductChange}>
               <SelectTrigger id="ponto-equilibrio-produto">
                 <SelectValue placeholder="Escolha um produto" />
               </SelectTrigger>
               <SelectContent>
-                {products.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
+                {products.map((product) => (
+                  <SelectItem key={product.id} value={product.id}>
+                    {product.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -161,102 +220,157 @@ function PontoEquilibrio() {
           </div>
           <div className="space-y-1">
             <Label htmlFor="ponto-equilibrio-despesas-fixas">Despesas fixas / mês</Label>
-            <Input
-              id="ponto-equilibrio-despesas-fixas"
-              value={brl(breakEvenQuery.data?.fixedExpenses)}
-              readOnly
-            />
+            <Input id="ponto-equilibrio-despesas-fixas" value={brl(fixedExpenses)} readOnly />
           </div>
         </CardContent>
       </Card>
-
-      {!metrics ? (
-        <div
-          role={calculationStatus === "invalid" ? "alert" : undefined}
-          className={calculationStatus === "invalid" ? "text-destructive" : "text-muted-foreground"}
-        >
-          {calculationStatus === "invalid"
-            ? "Erro de cálculo. Revise os valores numéricos do produto."
-            : calculationStatus === "incomplete"
-              ? "Dados incompletos. Preencha os campos financeiros do produto."
-              : "Cadastre um produto para calcular."}
-        </div>
+      {metrics ? (
+        <PontoMetrics
+          metrics={metrics}
+          selectedPrice={selectedPrice}
+          breakEvenQuery={breakEvenQuery}
+          breakEven={breakEven}
+          profitTarget={profitTarget}
+          onProfitTargetChange={onProfitTargetChange}
+        />
       ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Metric label="Preço de venda" value={brl(selectedPrice)} />
-            <Metric label="Custo unitário" value={brl(metrics.value.unitCost)} />
-            <Metric
-              label="Margem de contribuição"
-              value={`${brl(metrics.value.contributionMargin)} (${pct(metrics.value.contributionMarginPct)})`}
-            />
-          </div>
-
-          <Card className="border-primary/30">
-            <CardHeader>
-              <CardTitle>Seu ponto de equilíbrio</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              <div>
-                <div className="text-xs uppercase text-muted-foreground">Você precisa vender</div>
-                <div className="text-3xl font-black">
-                  {breakEvenQuery.isPending
-                    ? "Calculando..."
-                    : be?.units.status === "reachable"
-                      ? `${num(be.units.roundedUnits, 0)} un.`
-                      : be?.units.status === "unreachable"
-                        ? "Não atingível"
-                        : "Erro de cálculo"}
-                </div>
-                {be?.units.status === "reachable" && (
-                  <div className="text-sm text-muted-foreground">
-                    Resultado bruto: {num(be.units.rawUnits, 2)}; arredondado para venda inteira.
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="text-xs uppercase text-muted-foreground">
-                  Faturamento necessário
-                </div>
-                <div className="text-3xl font-black">
-                  {be?.units.status === "unreachable" ? "Não atingível" : brl(be?.revenue)}
-                </div>
-              </div>
-              <p className="md:col-span-2 text-sm text-muted-foreground">
-                Considerando os dados informados, sua empresa precisa atingir esse volume de vendas
-                mensais para cobrir despesas fixas e chegar ao ponto de equilíbrio.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Quanto preciso vender para atingir meu lucro?</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-1 max-w-xs">
-                <Label htmlFor="ponto-equilibrio-lucro-desejado">Lucro desejado / mês (R$)</Label>
-                <Input
-                  id="ponto-equilibrio-lucro-desejado"
-                  inputMode="decimal"
-                  value={profitTarget}
-                  onChange={(e) => setProfitTarget(e.target.value)}
-                  placeholder="Ex: 3000"
-                />
-              </div>
-              {be?.targetUnits?.status === "reachable" && (
-                <div className="rounded-xl bg-secondary p-4">
-                  Para obter <strong>{brl(be.targetUnits ? profitTarget : null)}</strong> de lucro /
-                  mês, você precisa vender aproximadamente{" "}
-                  <strong>{num(be.targetUnits.roundedUnits, 0)} unidades</strong> (faturamento de{" "}
-                  <strong>{brl(be.targetRevenue)}</strong>).
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </>
+        <CalculationState status={calculationStatus} />
       )}
     </div>
+  );
+}
+
+function CalculationState({
+  status,
+}: Readonly<{ status: "idle" | "incomplete" | "invalid" | "ok" }>) {
+  const message = {
+    invalid: "Erro de cálculo. Revise os valores numéricos do produto.",
+    incomplete: "Dados incompletos. Preencha os campos financeiros do produto.",
+    idle: "Cadastre um produto para calcular.",
+    ok: "Cadastre um produto para calcular.",
+  }[status];
+  return (
+    <div
+      role={status === "invalid" ? "alert" : undefined}
+      className={status === "invalid" ? "text-destructive" : "text-muted-foreground"}
+    >
+      {message}
+    </div>
+  );
+}
+
+function PontoMetrics({
+  metrics,
+  selectedPrice,
+  breakEvenQuery,
+  breakEven,
+  profitTarget,
+  onProfitTargetChange,
+}: Readonly<{
+  metrics: ProductMetricsOk;
+  selectedPrice: string | null;
+  breakEvenQuery: BreakEvenQuery;
+  breakEven: BreakEvenData | null;
+  profitTarget: string;
+  onProfitTargetChange: (value: string) => void;
+}>) {
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Metric label="Preço de venda" value={brl(selectedPrice)} />
+        <Metric label="Custo unitário" value={brl(metrics.value.unitCost)} />
+        <Metric
+          label="Margem de contribuição"
+          value={`${brl(metrics.value.contributionMargin)} (${pct(metrics.value.contributionMarginPct)})`}
+        />
+      </div>
+      <BreakEvenCard query={breakEvenQuery} result={breakEven} />
+      <ProfitTargetCard
+        result={breakEven}
+        profitTarget={profitTarget}
+        onProfitTargetChange={onProfitTargetChange}
+      />
+    </>
+  );
+}
+
+function BreakEvenCard({
+  query,
+  result,
+}: Readonly<{ query: BreakEvenQuery; result: PontoMetricsProps["breakEven"] }>) {
+  const unitsLabel = query.isPending
+    ? "Calculando..."
+    : result?.units.status === "reachable"
+      ? `${num(result.units.roundedUnits, 0)} un.`
+      : result?.units.status === "unreachable"
+        ? "Não atingível"
+        : "Erro de cálculo";
+  const revenueLabel =
+    result?.units.status === "unreachable" ? "Não atingível" : brl(result?.revenue);
+  return (
+    <Card className="border-primary/30">
+      <CardHeader>
+        <CardTitle>Seu ponto de equilíbrio</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4 md:grid-cols-2">
+        <div>
+          <div className="text-xs uppercase text-muted-foreground">Você precisa vender</div>
+          <div className="text-3xl font-black">{unitsLabel}</div>
+          {result?.units.status === "reachable" && (
+            <div className="text-sm text-muted-foreground">
+              Resultado bruto: {num(result.units.rawUnits, 2)}; arredondado para venda inteira.
+            </div>
+          )}
+        </div>
+        <div>
+          <div className="text-xs uppercase text-muted-foreground">Faturamento necessário</div>
+          <div className="text-3xl font-black">{revenueLabel}</div>
+        </div>
+        <p className="md:col-span-2 text-sm text-muted-foreground">
+          Considerando os dados informados, sua empresa precisa atingir esse volume de vendas
+          mensais para cobrir despesas fixas e chegar ao ponto de equilíbrio.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+type PontoMetricsProps = Parameters<typeof PontoMetrics>[0];
+
+function ProfitTargetCard({
+  result,
+  profitTarget,
+  onProfitTargetChange,
+}: Readonly<{
+  result: PontoMetricsProps["breakEven"];
+  profitTarget: string;
+  onProfitTargetChange: (value: string) => void;
+}>) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Quanto preciso vender para atingir meu lucro?</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="max-w-xs space-y-1">
+          <Label htmlFor="ponto-equilibrio-lucro-desejado">Lucro desejado / mês (R$)</Label>
+          <Input
+            id="ponto-equilibrio-lucro-desejado"
+            inputMode="decimal"
+            value={profitTarget}
+            onChange={(event) => onProfitTargetChange(event.target.value)}
+            placeholder="Ex: 3000"
+          />
+        </div>
+        {result?.targetUnits?.status === "reachable" && (
+          <div className="rounded-xl bg-secondary p-4">
+            Para obter <strong>{brl(profitTarget)}</strong> de lucro / mês, você precisa vender
+            aproximadamente <strong>{num(result.targetUnits.roundedUnits, 0)} unidades</strong>{" "}
+            (faturamento de <strong>{brl(result.targetRevenue)}</strong>).
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

@@ -9,10 +9,88 @@ import { authClient } from "@/lib/auth-client";
 
 type AuthMode = "signin" | "signup" | "forgot" | "reset";
 
+const modeTitles: Record<AuthMode, string> = {
+  signin: "Bem-vindo de volta",
+  signup: "Vamos começar juntos",
+  forgot: "Recuperar acesso",
+  reset: "Definir nova senha",
+};
+
+const submitLabels: Record<AuthMode, string> = {
+  signin: "Entrar",
+  signup: "Criar conta",
+  forgot: "Enviar instruções",
+  reset: "Redefinir senha",
+};
+
 function safeRedirect(value: unknown): string | undefined {
   return typeof value === "string" && value.startsWith("/") && !value.startsWith("//")
     ? value
     : undefined;
+}
+
+async function submitAuthForm({
+  mode,
+  token,
+  email,
+  password,
+  name,
+  redirect,
+  navigate,
+  setMode,
+  setPassword,
+}: Readonly<{
+  mode: AuthMode;
+  token?: string;
+  email: string;
+  password: string;
+  name: string;
+  redirect?: string;
+  navigate: ReturnType<typeof useNavigate>;
+  setMode: (mode: AuthMode) => void;
+  setPassword: (password: string) => void;
+}>): Promise<void> {
+  if (mode === "forgot") {
+    await authClient.requestPasswordReset({
+      email,
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    toast.success("Se a conta existir, enviaremos as instruções de recuperação.");
+    setMode("signin");
+    return;
+  }
+  if (mode === "reset") {
+    if (!token) throw new Error("Link de recuperação inválido.");
+    const result = await authClient.resetPassword({ newPassword: password, token });
+    if (result.error) throw new Error(result.error.message ?? "Não foi possível redefinir.");
+    toast.success("Senha redefinida. Entre novamente.");
+    setMode("signin");
+    setPassword("");
+    return;
+  }
+  if (mode === "signup") {
+    const result = await authClient.signUp.email({
+      name,
+      email,
+      password,
+      callbackURL: `${window.location.origin}${redirect ?? "/inicio"}`,
+    });
+    if (result.error) throw new Error(result.error.message ?? "Não foi possível criar a conta.");
+    toast.success("Conta criada! Confirme seu e-mail para entrar.");
+    setMode("signin");
+    return;
+  }
+  const result = await authClient.signIn.email({ email, password });
+  if (result.error) throw new Error(result.error.message ?? "Credenciais inválidas.");
+  await navigate({ to: redirect ?? "/inicio", replace: true });
+}
+
+async function signInWithGoogle(redirect?: string): Promise<void> {
+  const result = await authClient.signIn.social({
+    provider: "google",
+    callbackURL: `${window.location.origin}${redirect ?? "/inicio"}`,
+  });
+  if (result.error) throw new Error("Não foi possível entrar com Google.");
 }
 
 export const Route = createFileRoute("/auth")({
@@ -48,71 +126,33 @@ function Auth() {
     };
   }, [navigate, redirect]);
 
-  async function handleSubmit(event: React.FormEvent) {
+  function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setLoading(true);
-    try {
-      if (mode === "forgot") {
-        await authClient.requestPasswordReset({
-          email,
-          redirectTo: `${window.location.origin}/auth`,
-        });
-        toast.success("Se a conta existir, enviaremos as instruções de recuperação.");
-        setMode("signin");
-        return;
-      }
-      if (mode === "reset") {
-        if (!token) throw new Error("Link de recuperação inválido.");
-        const result = await authClient.resetPassword({ newPassword: password, token });
-        if (result.error) throw new Error(result.error.message ?? "Não foi possível redefinir.");
-        toast.success("Senha redefinida. Entre novamente.");
-        setMode("signin");
-        setPassword("");
-        return;
-      }
-      if (mode === "signup") {
-        const result = await authClient.signUp.email({
-          name,
-          email,
-          password,
-          callbackURL: `${window.location.origin}${redirect ?? "/inicio"}`,
-        });
-        if (result.error)
-          throw new Error(result.error.message ?? "Não foi possível criar a conta.");
-        toast.success("Conta criada! Confirme seu e-mail para entrar.");
-        setMode("signin");
-        return;
-      }
-      const result = await authClient.signIn.email({ email, password });
-      if (result.error) throw new Error(result.error.message ?? "Credenciais inválidas.");
-      await navigate({ to: redirect ?? "/inicio", replace: true });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Não foi possível concluir.");
-    } finally {
-      setLoading(false);
-    }
+    void submitAuthForm({
+      mode,
+      token,
+      email,
+      password,
+      name,
+      redirect,
+      navigate,
+      setMode,
+      setPassword,
+    })
+      .catch((error: unknown) => {
+        toast.error(error instanceof Error ? error.message : "Não foi possível concluir.");
+      })
+      .finally(() => setLoading(false));
   }
 
-  async function google() {
+  function handleGoogle() {
     setLoading(true);
-    const result = await authClient.signIn.social({
-      provider: "google",
-      callbackURL: `${window.location.origin}${redirect ?? "/inicio"}`,
-    });
-    if (result.error) {
-      toast.error("Não foi possível entrar com Google.");
+    void signInWithGoogle(redirect).catch((error: unknown) => {
+      toast.error(error instanceof Error ? error.message : "Não foi possível entrar com Google.");
       setLoading(false);
-    }
+    });
   }
-
-  const title =
-    mode === "signin"
-      ? "Bem-vindo de volta"
-      : mode === "signup"
-        ? "Vamos começar juntos"
-        : mode === "forgot"
-          ? "Recuperar acesso"
-          : "Definir nova senha";
 
   return (
     <div className="grid min-h-screen place-items-center bg-background px-4 py-10">
@@ -122,7 +162,7 @@ function Auth() {
             <Sparkles className="h-7 w-7" />
           </div>
           <h1 className="mt-4 text-2xl font-black">Preço que Dá Lucro</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{title}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{modeTitles[mode]}</p>
         </div>
 
         <div className="rounded-2xl border bg-card p-6 shadow-[var(--shadow-soft)]">
@@ -132,7 +172,7 @@ function Auth() {
                 type="button"
                 variant="outline"
                 className="w-full gap-2"
-                onClick={google}
+                onClick={handleGoogle}
                 disabled={loading}
               >
                 <GoogleIcon /> Continuar com Google
@@ -187,15 +227,7 @@ function Auth() {
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading
-                ? "Aguarde..."
-                : mode === "signin"
-                  ? "Entrar"
-                  : mode === "signup"
-                    ? "Criar conta"
-                    : mode === "forgot"
-                      ? "Enviar instruções"
-                      : "Redefinir senha"}
+              {loading ? "Aguarde..." : submitLabels[mode]}
             </Button>
           </form>
 
@@ -219,7 +251,10 @@ function Auth() {
   );
 }
 
-function ModeButton({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+function ModeButton({
+  children,
+  onClick,
+}: Readonly<{ children: React.ReactNode; onClick: () => void }>) {
   return (
     <Button type="button" variant="link" className="h-auto p-0 font-semibold" onClick={onClick}>
       {children}

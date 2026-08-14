@@ -448,6 +448,78 @@ function Diagnostico() {
 
 type ProductDetail = Awaited<ReturnType<typeof listProductsWithMetrics>>[number];
 
+function marketAlert(price: number, market: ProductDetail["market"]): DiagnosticAlert | null {
+  const marketAverage = nullableNumber(market?.avg_price);
+  if (
+    marketAverage == null ||
+    !Number.isFinite(marketAverage) ||
+    marketAverage <= 0 ||
+    price <= 0
+  ) {
+    return null;
+  }
+  const difference = ((price - marketAverage) / marketAverage) * 100;
+  if (!Number.isFinite(difference) || Math.abs(difference) <= 20) return null;
+  return {
+    level: "info",
+    text: `Seu preço atual está ${difference > 0 ? "acima" : "abaixo"} da referência de mercado informada em ${pct(Math.abs(difference), 1)}. Mercado é contexto; posicionamento, qualidade e capacidade também importam.`,
+  };
+}
+
+function buildCurrentAlerts(
+  detail: ProductDetail,
+  metrics: ProductComputation,
+  fixedExpenses: number,
+  price: number,
+  breakEvenUnits: BreakEvenResult,
+): DiagnosticAlert[] {
+  const alerts: DiagnosticAlert[] = [];
+  if (price < metrics.unitCost) {
+    alerts.push({
+      level: "danger",
+      text: "Seu preço de venda está abaixo do custo unitário. Cada venda gera prejuízo — vale investigar.",
+    });
+  }
+  if (metrics.contributionMarginPct > 0 && metrics.contributionMarginPct < 20) {
+    alerts.push({
+      level: "warn",
+      text: `Margem de contribuição baixa (${pct(metrics.contributionMarginPct)}). Pode representar risco no médio prazo.`,
+    });
+  }
+  if (fixedExpenses > 0 && breakEvenUnits.status === "unreachable") {
+    alerts.push({
+      level: "warn",
+      text: "Com a margem atual, você não cobre as despesas fixas. Pode ser interessante simular preço maior ou custo menor.",
+    });
+  }
+  const referenceAlert = marketAlert(price, detail.market);
+  if (referenceAlert) alerts.push(referenceAlert);
+  return alerts;
+}
+
+function analyzeCurrentProduct(
+  detail: ProductDetail,
+  fixedExpenses: number,
+  currentPrice: number | null,
+): { status: DiagnosticData["currentStatus"]; analysis: CurrentAnalysis | null } {
+  const current = detail.metrics;
+  if (current.status !== "ok") return { status: current.status, analysis: null };
+
+  const price = currentPrice as number;
+  const breakEvenUnits = calculateBreakEvenUnits(fixedExpenses, current.value.contributionMargin);
+  if (breakEvenUnits.status === "invalid") return { status: "invalid", analysis: null };
+
+  return {
+    status: "ok",
+    analysis: {
+      computation: current.value,
+      price,
+      breakEvenUnits,
+      alerts: buildCurrentAlerts(detail, current.value, fixedExpenses, price, breakEvenUnits),
+    },
+  };
+}
+
 function buildDiagnostic(
   detail: ProductDetail,
   fixedExpenses: number,
@@ -471,72 +543,19 @@ function buildDiagnostic(
   const currentPrice = product.current_price == null ? null : Number(product.current_price);
   const taxRate = product.tax_rate == null ? null : Number(product.tax_rate) * 100;
   const cost = computeProductCost({ ingredients, packaging, yieldQty });
-  const current = detail.metrics;
-  let currentStatus: DiagnosticData["currentStatus"] = current.status;
-  let currentAnalysis: CurrentAnalysis | null = null;
-
-  if (current.status === "ok") {
-    const price = currentPrice as number;
-    const breakEvenUnits = calculateBreakEvenUnits(fixedExpenses, current.value.contributionMargin);
-    if (breakEvenUnits.status === "invalid") {
-      currentStatus = "invalid";
-    } else {
-      const alerts: DiagnosticAlert[] = [];
-      if (price < current.value.unitCost) {
-        alerts.push({
-          level: "danger",
-          text: "Seu preço de venda está abaixo do custo unitário. Cada venda gera prejuízo — vale investigar.",
-        });
-      }
-      if (current.value.contributionMarginPct > 0 && current.value.contributionMarginPct < 20) {
-        alerts.push({
-          level: "warn",
-          text: `Margem de contribuição baixa (${pct(current.value.contributionMarginPct)}). Pode representar risco no médio prazo.`,
-        });
-      }
-      if (fixedExpenses > 0 && breakEvenUnits.status === "unreachable") {
-        alerts.push({
-          level: "warn",
-          text: "Com a margem atual, você não cobre as despesas fixas. Pode ser interessante simular preço maior ou custo menor.",
-        });
-      }
-
-      const marketAverage = nullableNumber(detail.market?.avg_price);
-      if (
-        marketAverage != null &&
-        Number.isFinite(marketAverage) &&
-        marketAverage > 0 &&
-        price > 0
-      ) {
-        const difference = ((price - marketAverage) / marketAverage) * 100;
-        if (Number.isFinite(difference) && Math.abs(difference) > 20) {
-          alerts.push({
-            level: "info",
-            text: `Seu preço atual está ${difference > 0 ? "acima" : "abaixo"} da referência de mercado informada em ${pct(Math.abs(difference), 1)}. Mercado é contexto; posicionamento, qualidade e capacidade também importam.`,
-          });
-        }
-      }
-
-      currentAnalysis = {
-        computation: current.value,
-        price,
-        breakEvenUnits,
-        alerts,
-      };
-    }
-  }
+  const currentResult = analyzeCurrentProduct(detail, fixedExpenses, currentPrice);
 
   return {
     diagnostic: {
       cost,
-      currentStatus,
-      currentAnalysis,
+      currentStatus: currentResult.status,
+      currentAnalysis: currentResult.analysis,
       currentPrice,
       taxRate,
       fees,
       market: detail.market,
     },
-    status: currentStatus,
+    status: currentResult.status,
   };
 }
 
