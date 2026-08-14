@@ -46,11 +46,24 @@ export interface DecimalScenarioResult {
 function parseValue(value: string | null): number | null {
   if (value == null || value.trim() === "") return null;
   try {
-    const decimal = new Decimal(value.replace(",", "."));
+    const decimal = new Decimal(value);
     return decimal.isFinite() ? decimal.toNumber() : Number.NaN;
   } catch {
     return Number.NaN;
   }
+}
+
+function serializationError(field: string): CalculationResult<never> {
+  return {
+    status: "invalid",
+    errors: [
+      {
+        code: "DECIMAL_OVERFLOW",
+        message: "O resultado excede a precisão financeira suportada.",
+        field,
+      },
+    ],
+  };
 }
 
 export function runFinancialSimulation(
@@ -71,48 +84,55 @@ export function runFinancialSimulation(
   if (result.status !== "ok") return result;
 
   const value = result.value;
-  const decimal = (number: number, scale = 4): DecimalString => toDecimalString(number, scale);
-  const breakEvenUnits: DecimalBreakEvenResult =
-    value.breakEvenUnits.status === "reachable"
-      ? {
-          status: "reachable",
-          rawUnits: decimal(value.breakEvenUnits.rawUnits, 6),
-          roundedUnits: decimal(value.breakEvenUnits.roundedUnits, 6),
-          unitMode: value.breakEvenUnits.unitMode,
-        }
-      : value.breakEvenUnits.status === "unreachable"
+  try {
+    const decimal = (number: number, scale = 4): DecimalString => toDecimalString(number, scale);
+    const breakEvenUnits: DecimalBreakEvenResult =
+      value.breakEvenUnits.status === "reachable"
         ? {
-            status: "unreachable",
-            rawUnits: null,
-            roundedUnits: null,
+            status: "reachable",
+            rawUnits: decimal(value.breakEvenUnits.rawUnits, 6),
+            roundedUnits: decimal(value.breakEvenUnits.roundedUnits, 6),
             unitMode: value.breakEvenUnits.unitMode,
-            reason: value.breakEvenUnits.reason,
           }
-        : {
-            status: "invalid",
-            rawUnits: null,
-            roundedUnits: null,
-            unitMode: value.breakEvenUnits.unitMode,
-            errors: value.breakEvenUnits.errors,
-          };
-  return {
-    status: "ok",
-    value: {
-      price: decimal(value.price),
-      unitCost: decimal(value.unitCost),
-      variableCost: decimal(value.variableCost),
-      contributionMargin: decimal(value.contributionMargin),
-      contributionMarginPct: decimal(value.contributionMarginPct, 6),
-      breakEvenUnits,
-      breakEvenRevenue: value.breakEvenRevenue == null ? null : decimal(value.breakEvenRevenue),
-      volume: decimal(value.volume, 6),
-      volumeSource: value.volumeSource,
-      revenue: decimal(value.revenue),
-      totalVariable: decimal(value.totalVariable),
-      totalContribution: decimal(value.totalContribution),
-      result: decimal(value.result),
-      resultSign: value.result > 0 ? "positive" : value.result < 0 ? "negative" : "zero",
-    },
-    warnings: result.warnings,
-  };
+        : value.breakEvenUnits.status === "unreachable"
+          ? {
+              status: "unreachable",
+              rawUnits: null,
+              roundedUnits: null,
+              unitMode: value.breakEvenUnits.unitMode,
+              reason: value.breakEvenUnits.reason,
+            }
+          : {
+              status: "invalid",
+              rawUnits: null,
+              roundedUnits: null,
+              unitMode: value.breakEvenUnits.unitMode,
+              errors: value.breakEvenUnits.errors,
+            };
+    return {
+      status: "ok",
+      value: {
+        price: decimal(value.price),
+        unitCost: decimal(value.unitCost),
+        variableCost: decimal(value.variableCost),
+        contributionMargin: decimal(value.contributionMargin),
+        contributionMarginPct: decimal(value.contributionMarginPct, 6),
+        breakEvenUnits,
+        breakEvenRevenue: value.breakEvenRevenue == null ? null : decimal(value.breakEvenRevenue),
+        volume: decimal(value.volume, 6),
+        volumeSource: value.volumeSource,
+        revenue: decimal(value.revenue),
+        totalVariable: decimal(value.totalVariable),
+        totalContribution: decimal(value.totalContribution),
+        result: decimal(value.result),
+        resultSign: value.result > 0 ? "positive" : value.result < 0 ? "negative" : "zero",
+      },
+      warnings: result.warnings,
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message === "DECIMAL_OVERFLOW") {
+      return serializationError("financialResult");
+    }
+    throw error;
+  }
 }

@@ -95,7 +95,13 @@ export async function getDashboardSummary(context: RequestContext) {
       incompleteProductCount += 1;
       continue;
     }
-    const cmPct = toDecimalString(metrics.value.contributionMarginPct, 6);
+    let cmPct: string;
+    try {
+      cmPct = toDecimalString(metrics.value.contributionMarginPct, 6);
+    } catch {
+      invalidProductCount += 1;
+      continue;
+    }
     if (!bestProduct || new Decimal(cmPct).gt(bestProduct.cmPct)) {
       bestProduct = { name: product.name, cmPct };
     }
@@ -113,12 +119,20 @@ export async function getDashboardSummary(context: RequestContext) {
       `${incompleteProductCount} produto(s) não participa(m) dos destaques por ter dados incompletos.`,
     );
   }
-  const hasInvalidCalculation = invalidProductCount > 0 || invalidFixedExpenses;
+  let fixedExpensesValue: string | null = null;
+  if (!invalidFixedExpenses) {
+    try {
+      fixedExpensesValue = toDecimalString(fixedExpenses, 4);
+    } catch {
+      invalidFixedExpenses = true;
+    }
+  }
+  const finalHasInvalidCalculation = invalidProductCount > 0 || invalidFixedExpenses;
   return {
     productCount: input.productRows.length,
-    fixedExpenses: invalidFixedExpenses ? null : toDecimalString(fixedExpenses, 4),
-    bestProduct: hasInvalidCalculation ? null : bestProduct,
-    hasInvalidCalculation,
+    fixedExpenses: fixedExpensesValue,
+    bestProduct: finalHasInvalidCalculation ? null : bestProduct,
+    hasInvalidCalculation: finalHasInvalidCalculation,
     incompleteProductCount,
     alerts,
   };

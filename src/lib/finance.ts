@@ -415,6 +415,13 @@ export function calculateBreakEvenUnits(
     numericInputError("fixedExpenses", fixedExpenses, { min: 0 }),
     numericInputError("cmUnit", cmUnit),
   ].filter((error): error is CalculationError => error !== null);
+  if (unitMode !== "discrete" && unitMode !== "continuous") {
+    errors.push({
+      code: "INVALID_UNIT_MODE",
+      message: "Informe um modo de unidade válido.",
+      field: "unitMode",
+    });
+  }
   if (errors.length > 0) {
     return { status: "invalid", rawUnits: null, roundedUnits: null, unitMode, errors };
   }
@@ -454,17 +461,38 @@ export function calculateRequiredSalesForProfit(
   cmUnit: number,
   unitMode: BreakEvenUnitMode = "discrete",
 ): BreakEvenResult {
+  const fixedExpensesError = numericInputError("fixedExpenses", fixedExpenses, { min: 0 });
   const desiredProfitError = numericInputError("desiredProfit", desiredProfit, { min: 0 });
-  if (desiredProfitError !== null) {
+  const cmUnitError = numericInputError("cmUnit", cmUnit);
+  const inputErrors = [fixedExpensesError, desiredProfitError, cmUnitError].filter(
+    (error): error is CalculationError => error !== null,
+  );
+  if (unitMode !== "discrete" && unitMode !== "continuous") {
+    inputErrors.push({
+      code: "INVALID_UNIT_MODE",
+      message: "Informe um modo de unidade válido.",
+      field: "unitMode",
+    });
+  }
+  if (inputErrors.length > 0) {
     return {
       status: "invalid",
       rawUnits: null,
       roundedUnits: null,
       unitMode,
-      errors: [desiredProfitError],
+      errors: inputErrors,
     };
   }
   const requiredContribution = decimalResult(new Decimal(fixedExpenses).plus(desiredProfit));
+  if (!Number.isFinite(requiredContribution)) {
+    return {
+      status: "invalid",
+      rawUnits: null,
+      roundedUnits: null,
+      unitMode,
+      errors: [nonFiniteResultError("requiredContribution")],
+    };
+  }
   return calculateBreakEvenUnits(requiredContribution, cmUnit, unitMode);
 }
 
@@ -682,7 +710,7 @@ export function calculateScenario(i: ScenarioInput): CalculationResult<ScenarioR
   const breakEvenUnits = calculateBreakEvenUnits(fixedExpenses, contributionMargin);
   if (breakEvenUnits.status === "invalid") return calcInvalid(breakEvenUnits.errors);
   const breakEvenRevenue = calculateBreakEvenRevenue(fixedExpenses, contributionMarginPct);
-  if (breakEvenRevenue != null && Number.isNaN(breakEvenRevenue))
+  if (breakEvenRevenue != null && !Number.isFinite(breakEvenRevenue))
     return calcInvalid([nonFiniteResultError("breakEvenRevenue")]);
 
   const finiteOutputs = {

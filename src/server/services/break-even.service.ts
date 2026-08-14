@@ -1,6 +1,7 @@
 import Decimal from "decimal.js";
 import {
   FINANCIAL_DECIMAL_POLICY,
+  decimalStringSchema,
   toDecimalString,
   type DecimalString,
 } from "@/lib/financial-values";
@@ -17,7 +18,7 @@ export interface BreakEvenServiceInput {
 }
 
 export interface BreakEvenServiceError {
-  code: "INVALID_DECIMAL" | "NON_POSITIVE_CONTRIBUTION" | "NON_FINITE_RESULT";
+  code: "INVALID_DECIMAL" | "NON_POSITIVE_CONTRIBUTION" | "NON_FINITE_RESULT" | "DECIMAL_OVERFLOW";
   field: string;
   message: string;
 }
@@ -54,6 +55,7 @@ export interface BreakEvenServiceResult {
 }
 
 function parseDecimal(value: string, field: string, allowZero = true): Decimal {
+  if (!decimalStringSchema.safeParse(value).success) throw invalidDecimal(field);
   let parsed: Decimal;
   try {
     parsed = new Decimal(value);
@@ -72,6 +74,33 @@ function invalidDecimal(field: string): BreakEvenServiceError {
     field,
     message: "Informe um decimal finito dentro do intervalo permitido.",
   };
+}
+
+function serializationError(field: string, error: unknown): BreakEvenServiceError {
+  return {
+    code:
+      error instanceof Error && error.message === "DECIMAL_OVERFLOW"
+        ? "DECIMAL_OVERFLOW"
+        : "NON_FINITE_RESULT",
+    field,
+    message:
+      error instanceof Error && error.message === "DECIMAL_OVERFLOW"
+        ? "O resultado excede a precisão financeira suportada."
+        : "O cálculo não é finito.",
+  };
+}
+
+function serviceError(error: unknown, field: string): BreakEvenServiceError {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    "message" in error &&
+    "field" in error
+  ) {
+    return error as BreakEvenServiceError;
+  }
+  return serializationError(field, error);
 }
 
 function invalidUnits(
@@ -104,12 +133,16 @@ function calculateUnits(
   }
 
   const rounded = unitMode === "discrete" ? raw.ceil() : raw;
-  return {
-    status: "reachable",
-    rawUnits: toDecimalString(raw, FINANCIAL_DECIMAL_POLICY.quantity.scale),
-    roundedUnits: toDecimalString(rounded, FINANCIAL_DECIMAL_POLICY.quantity.scale),
-    unitMode,
-  };
+  try {
+    return {
+      status: "reachable",
+      rawUnits: toDecimalString(raw, FINANCIAL_DECIMAL_POLICY.quantity.scale),
+      roundedUnits: toDecimalString(rounded, FINANCIAL_DECIMAL_POLICY.quantity.scale),
+      unitMode,
+    };
+  } catch (error) {
+    return invalidUnits(unitMode, [serializationError("rawUnits", error)]);
+  }
 }
 
 function invalidResult(
@@ -156,10 +189,16 @@ export function calculateBreakEvenSummary(input: BreakEvenServiceInput): BreakEv
   if (errors.length) return invalidResult(input, errors);
 
   const units = calculateUnits(fixedExpenses, contributionMargin, input.unitMode);
-  const revenue =
-    units.status === "unreachable" || !contributionMarginPct.gt(0)
-      ? null
-      : toDecimalString(fixedExpenses.div(contributionMarginPct.div(100)), 4);
+  if (units.status === "invalid") return invalidResult(input, units.errors);
+
+  let revenue: DecimalString | null = null;
+  if (units.status !== "unreachable" && contributionMarginPct.gt(0)) {
+    try {
+      revenue = toDecimalString(fixedExpenses.div(contributionMarginPct.div(100)), 4);
+    } catch (error) {
+      return invalidResult(input, [serializationError("revenue", error)]);
+    }
+  }
 
   let targetUnits: BreakEvenUnits | null = null;
   let targetRevenue: DecimalString | null = null;
@@ -172,10 +211,14 @@ export function calculateBreakEvenSummary(input: BreakEvenServiceInput): BreakEv
         input.unitMode,
       );
       if (targetUnits.status === "reachable") {
-        targetRevenue = toDecimalString(new Decimal(targetUnits.roundedUnits).mul(price), 4);
+        try {
+          targetRevenue = toDecimalString(new Decimal(targetUnits.roundedUnits).mul(price), 4);
+        } catch (error) {
+          targetUnits = invalidUnits(input.unitMode, [serializationError("targetRevenue", error)]);
+        }
       }
     } catch (error) {
-      targetUnits = invalidUnits(input.unitMode, [error as BreakEvenServiceError]);
+      targetUnits = invalidUnits(input.unitMode, [serviceError(error, "desiredProfit")]);
     }
   }
 
@@ -189,12 +232,16 @@ export function calculateBreakEvenSummary(input: BreakEvenServiceInput): BreakEv
       { code: "NON_FINITE_RESULT", field: "breakEven", message: "O cálculo não é finito." },
     ]);
 
-  return {
-    status: units.status,
-    fixedExpenses: toDecimalString(fixedExpenses, FINANCIAL_DECIMAL_POLICY.money.scale),
-    units,
-    revenue,
-    targetUnits,
-    targetRevenue,
-  };
+  try {
+    return {
+      status: units.status,
+      fixedExpenses: toDecimalString(fixedExpenses, FINANCIAL_DECIMAL_POLICY.money.scale),
+      units,
+      revenue,
+      targetUnits,
+      targetRevenue,
+    };
+  } catch (error) {
+    return invalidResult(input, [serializationError("fixedExpenses", error)]);
+  }
 }

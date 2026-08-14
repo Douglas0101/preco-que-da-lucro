@@ -170,8 +170,10 @@ async function loadProductDetail(request: RequestContext, productId: string) {
     .orderBy(desc(marketPrices.createdAt))
     .limit(1);
 
+  if (!productRows[0]) throw new Error("NOT_FOUND");
+
   return {
-    product: productRows[0] ? mapProduct(productRows[0]) : null,
+    product: mapProduct(productRows[0]),
     ingredients: ingredientRows.map(mapIngredient),
     packaging: packagingRows.map(mapPackaging),
     fees: feeRows.map(mapFee),
@@ -503,7 +505,6 @@ export const getProductMetrics = createServerFn({ method: "GET" })
   .validator((input: unknown) => z.object({ id: uuid }).parse(input))
   .handler(async ({ data, context }) => {
     const detail = await loadProductDetail(context.requestContext, data.id);
-    if (!detail.product) throw new Error("NOT_FOUND");
     const metrics = computeProduct({
       ingredients: detail.ingredients.map(toFinanceIngredient),
       packaging: detail.packaging.map(toFinancePackaging),
