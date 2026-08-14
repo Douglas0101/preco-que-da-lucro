@@ -18,6 +18,10 @@ export default async function globalSetup() {
     extraHTTPHeaders: {
       origin: baseURL,
       "sec-fetch-site": "same-origin",
+      // The preview server is reached directly by Playwright, without the
+      // reverse proxy that supplies the client IP in deployed environments.
+      // Keep the setup login in its own deterministic bucket.
+      "x-forwarded-for": "198.51.100.10",
     },
   });
 

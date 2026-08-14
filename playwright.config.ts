@@ -30,9 +30,36 @@ export default defineConfig({
     timeout: 120_000,
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
-    { name: "webkit", use: { ...devices["Desktop Safari"] } },
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
+    {
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        // The CI preview server has no reverse proxy in front of it. Supplying
+        // a distinct documented test IP prevents unrelated projects sharing
+        // Better Auth's per-IP/path buckets.
+        extraHTTPHeaders: { "x-forwarded-for": "198.51.100.11" },
+      },
+    },
+    {
+      name: "firefox",
+      use: {
+        ...devices["Desktop Firefox"],
+        extraHTTPHeaders: { "x-forwarded-for": "198.51.100.12" },
+      },
+    },
+    {
+      name: "webkit",
+      use: {
+        ...devices["Desktop Safari"],
+        extraHTTPHeaders: { "x-forwarded-for": "198.51.100.13" },
+      },
+    },
+    {
+      name: "mobile",
+      use: {
+        ...devices["Pixel 7"],
+        extraHTTPHeaders: { "x-forwarded-for": "198.51.100.14" },
+      },
+    },
   ],
 });
