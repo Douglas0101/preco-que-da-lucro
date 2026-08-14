@@ -205,50 +205,13 @@ function Despesas() {
           </CardContent>
         </Card>
 
-        {expensesQuery.isPending ? (
-          <div className="text-muted-foreground">Carregando...</div>
-        ) : expensesQuery.isError ? (
-          <Card role="alert" className="border-destructive/40">
-            <CardContent className="space-y-3 p-5">
-              <p>Não foi possível carregar as despesas.</p>
-              <Button type="button" variant="outline" onClick={() => void expensesQuery.refetch()}>
-                Tentar novamente
-              </Button>
-            </CardContent>
-          </Card>
-        ) : list.length === 0 ? (
-          <Card>
-            <CardContent className="grid place-items-center gap-2 p-12 text-center text-muted-foreground">
-              <Wallet className="h-8 w-8" /> Nenhuma despesa cadastrada ainda.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {list.map((e) => (
-              <Card key={e.id}>
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-semibold truncate">{e.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {e.category} · {e.type === "fixa" ? "Fixa" : "Variável"}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-black">{brl(Number(e.amount))}</div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setPendingDeleteId(e.id)}
-                    aria-label={`Excluir ${e.name}`}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+        <ExpenseListState
+          isPending={expensesQuery.isPending}
+          isError={expensesQuery.isError}
+          list={list}
+          onRetry={() => void expensesQuery.refetch()}
+          onDelete={setPendingDeleteId}
+        />
       </div>
 
       <AlertDialog
@@ -279,5 +242,69 @@ function Despesas() {
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+function ExpenseListState({
+  isPending,
+  isError,
+  list,
+  onRetry,
+  onDelete,
+}: Readonly<{
+  isPending: boolean;
+  isError: boolean;
+  list: ExpenseRow[];
+  onRetry: () => void;
+  onDelete: (id: string) => void;
+}>) {
+  if (isPending) return <div className="text-muted-foreground">Carregando...</div>;
+  if (isError) {
+    return (
+      <Card role="alert" className="border-destructive/40">
+        <CardContent className="space-y-3 p-5">
+          <p>Não foi possível carregar as despesas.</p>
+          <Button type="button" variant="outline" onClick={onRetry}>
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+  if (list.length === 0) {
+    return (
+      <Card>
+        <CardContent className="grid place-items-center gap-2 p-12 text-center text-muted-foreground">
+          <Wallet className="h-8 w-8" /> Nenhuma despesa cadastrada ainda.
+        </CardContent>
+      </Card>
+    );
+  }
+  return (
+    <div className="space-y-2">
+      {list.map((expense) => (
+        <Card key={expense.id}>
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-semibold">{expense.name}</div>
+              <div className="text-xs text-muted-foreground">
+                {expense.category} · {expense.type === "fixa" ? "Fixa" : "Variável"}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="font-black">{brl(Number(expense.amount))}</div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(expense.id)}
+              aria-label={`Excluir ${expense.name}`}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }

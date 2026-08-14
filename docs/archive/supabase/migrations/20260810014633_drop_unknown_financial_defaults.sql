@@ -4,7 +4,7 @@
 -- produtos; só então aplique esta migration que remove os defaults legados.
 -- Não reescrevemos linhas existentes com 1/0 porque não há proveniência segura
 -- para distinguir um valor confirmado do default legado.
--- TODO(rollout legado, SDD §18.2): antes de importar dados/abrir produção,
+-- Operação histórica pendente: antes de importar dados/abrir produção,
 -- marcar 1/0 históricos como não verificados e exigir reconfirmação.
 ALTER TABLE public.products
   ALTER COLUMN yield_qty DROP DEFAULT,

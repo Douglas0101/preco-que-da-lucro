@@ -2,6 +2,7 @@ import Decimal from "decimal.js";
 import {
   calculateScenario,
   type CalculationResult,
+  type BreakEvenResult,
   type FeeRow,
   type VolumeSource,
 } from "@/lib/finance";
@@ -66,6 +67,42 @@ function serializationError(field: string): CalculationResult<never> {
   };
 }
 
+function serializeBreakEvenUnits(
+  value: BreakEvenResult,
+  decimal: (number: number, scale?: number) => DecimalString,
+): DecimalBreakEvenResult {
+  if (value.status === "reachable") {
+    return {
+      status: "reachable",
+      rawUnits: decimal(value.rawUnits, 6),
+      roundedUnits: decimal(value.roundedUnits, 6),
+      unitMode: value.unitMode,
+    };
+  }
+  if (value.status === "unreachable") {
+    return {
+      status: "unreachable",
+      rawUnits: null,
+      roundedUnits: null,
+      unitMode: value.unitMode,
+      reason: value.reason,
+    };
+  }
+  return {
+    status: "invalid",
+    rawUnits: null,
+    roundedUnits: null,
+    unitMode: value.unitMode,
+    errors: value.errors,
+  };
+}
+
+function resultSign(value: number): DecimalScenarioResult["resultSign"] {
+  if (value > 0) return "positive";
+  if (value < 0) return "negative";
+  return "zero";
+}
+
 export function runFinancialSimulation(
   input: SimulationServiceInput,
 ): CalculationResult<DecimalScenarioResult> {
@@ -86,29 +123,7 @@ export function runFinancialSimulation(
   const value = result.value;
   try {
     const decimal = (number: number, scale = 4): DecimalString => toDecimalString(number, scale);
-    const breakEvenUnits: DecimalBreakEvenResult =
-      value.breakEvenUnits.status === "reachable"
-        ? {
-            status: "reachable",
-            rawUnits: decimal(value.breakEvenUnits.rawUnits, 6),
-            roundedUnits: decimal(value.breakEvenUnits.roundedUnits, 6),
-            unitMode: value.breakEvenUnits.unitMode,
-          }
-        : value.breakEvenUnits.status === "unreachable"
-          ? {
-              status: "unreachable",
-              rawUnits: null,
-              roundedUnits: null,
-              unitMode: value.breakEvenUnits.unitMode,
-              reason: value.breakEvenUnits.reason,
-            }
-          : {
-              status: "invalid",
-              rawUnits: null,
-              roundedUnits: null,
-              unitMode: value.breakEvenUnits.unitMode,
-              errors: value.breakEvenUnits.errors,
-            };
+    const breakEvenUnits = serializeBreakEvenUnits(value.breakEvenUnits, decimal);
     return {
       status: "ok",
       value: {
@@ -125,7 +140,7 @@ export function runFinancialSimulation(
         totalVariable: decimal(value.totalVariable),
         totalContribution: decimal(value.totalContribution),
         result: decimal(value.result),
-        resultSign: value.result > 0 ? "positive" : value.result < 0 ? "negative" : "zero",
+        resultSign: resultSign(value.result),
       },
       warnings: result.warnings,
     };

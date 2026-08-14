@@ -166,113 +166,158 @@ function Precos() {
         </div>
       )}
 
-      {pricesQuery.isPending ? (
-        <div className="text-muted-foreground">Carregando...</div>
-      ) : pricesQuery.isError ? (
-        <Card role="alert" className="border-destructive/40">
-          <CardContent className="space-y-3 p-5">
-            <p>Não foi possível carregar os preços.</p>
-            <Button type="button" variant="outline" onClick={() => void pricesQuery.refetch()}>
-              Tentar novamente
-            </Button>
+      <PurchasePriceContent
+        isPending={pricesQuery.isPending}
+        isError={pricesQuery.isError}
+        groups={grupos}
+        drafts={drafts}
+        savingId={savingId}
+        onRetry={() => void pricesQuery.refetch()}
+        onDraftChange={(id, value) => setDrafts((current) => ({ ...current, [id]: value }))}
+        onSave={salvar}
+      />
+    </div>
+  );
+}
+
+type PriceGroup = { id: string; name: string; itens: Item[] };
+
+function PurchasePriceContent({
+  isPending,
+  isError,
+  groups,
+  drafts,
+  savingId,
+  onRetry,
+  onDraftChange,
+  onSave,
+}: Readonly<{
+  isPending: boolean;
+  isError: boolean;
+  groups: PriceGroup[];
+  drafts: Record<string, string>;
+  savingId: string | null;
+  onRetry: () => void;
+  onDraftChange: (id: string, value: string) => void;
+  onSave: (item: Item) => Promise<void>;
+}>) {
+  if (isPending) return <div className="text-muted-foreground">Carregando...</div>;
+  if (isError) {
+    return (
+      <Card role="alert" className="border-destructive/40">
+        <CardContent className="space-y-3 p-5">
+          <p>Não foi possível carregar os preços.</p>
+          <Button type="button" variant="outline" onClick={onRetry}>
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+  if (groups.length === 0) {
+    return (
+      <Card>
+        <CardContent className="grid place-items-center gap-3 p-12 text-center">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-primary">
+            <Package className="h-6 w-6" />
+          </div>
+          <div className="font-semibold">Nenhum insumo cadastrado ainda</div>
+          <p className="text-sm text-muted-foreground">
+            Cadastre um produto pelo chat para começar a acompanhar os preços de compra.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  return (
+    <div className="space-y-5">
+      {groups.map((group) => (
+        <Card key={group.id}>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Package className="h-4 w-4 text-primary" /> {group.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {group.itens.map((item) => (
+              <PurchasePriceRow
+                key={item.id}
+                item={item}
+                draft={drafts[item.id] ?? ""}
+                saving={savingId === item.id}
+                onDraftChange={onDraftChange}
+                onSave={onSave}
+              />
+            ))}
           </CardContent>
         </Card>
-      ) : grupos.length === 0 ? (
-        <Card>
-          <CardContent className="grid place-items-center gap-3 p-12 text-center">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-primary">
-              <Package className="h-6 w-6" />
-            </div>
-            <div className="font-semibold">Nenhum insumo cadastrado ainda</div>
-            <p className="text-sm text-muted-foreground">
-              Cadastre um produto pelo chat para começar a acompanhar os preços de compra.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-5">
-          {grupos.map((g) => (
-            <Card key={g.id}>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Package className="h-4 w-4 text-primary" /> {g.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {g.itens.map((item) => {
-                  const dias = diasDesde(item.price_updated_at);
-                  const velho = dias === null || dias > DIAS_ALERTA;
-                  const inputId = `preco-${item.kind}-${item.id}`;
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex flex-wrap items-end gap-3 rounded-xl border p-3"
-                    >
-                      <div className="min-w-[10rem] flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold">{item.name}</span>
-                          <Badge variant="secondary" className="text-[10px] uppercase">
-                            {item.kind}
-                          </Badge>
-                        </div>
-                        <div className="text-xs text-muted-foreground">{item.detail}</div>
-                        <div
-                          className={`mt-1 flex items-center gap-1 text-xs ${
-                            velho ? "text-warning" : "text-muted-foreground"
-                          }`}
-                        >
-                          <CalendarClock className="h-3 w-3" />
-                          Última atualização: {dataBR(item.price_updated_at)}
-                          {dias !== null && dias > 0 && ` (há ${dias} dia${dias > 1 ? "s" : ""})`}
-                        </div>
-                      </div>
+      ))}
+    </div>
+  );
+}
 
-                      <div className="flex items-end gap-2">
-                        <div>
-                          <Label
-                            htmlFor={inputId}
-                            className="mb-1 block text-xs text-muted-foreground"
-                          >
-                            Preço de compra
-                          </Label>
-                          <Input
-                            id={inputId}
-                            inputMode="decimal"
-                            className="w-32"
-                            value={drafts[item.id] ?? ""}
-                            onChange={(e) =>
-                              setDrafts((d) => ({ ...d, [item.id]: e.target.value }))
-                            }
-                          />
-                        </div>
-                        <Button
-                          className="gap-2"
-                          onClick={() => salvar(item)}
-                          disabled={
-                            savingId === item.id ||
-                            (drafts[item.id] ?? "").replace(",", ".") ===
-                              String(item.package_price ?? "")
-                          }
-                        >
-                          <RefreshCw
-                            className={`h-4 w-4 ${savingId === item.id ? "animate-spin" : ""}`}
-                          />
-                          Atualizar
-                        </Button>
-                      </div>
-
-                      <div className="w-full text-xs text-muted-foreground sm:w-auto">
-                        Valor atual:{" "}
-                        {item.package_price === null ? "—" : brl(Number(item.package_price))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          ))}
+function PurchasePriceRow({
+  item,
+  draft,
+  saving,
+  onDraftChange,
+  onSave,
+}: Readonly<{
+  item: Item;
+  draft: string;
+  saving: boolean;
+  onDraftChange: (id: string, value: string) => void;
+  onSave: (item: Item) => Promise<void>;
+}>) {
+  const days = diasDesde(item.price_updated_at);
+  const stale = days === null || days > DIAS_ALERTA;
+  const inputId = `preco-${item.kind}-${item.id}`;
+  const dayLabel = days !== null && days > 0 ? ` (há ${days} dia${days > 1 ? "s" : ""})` : "";
+  return (
+    <div className="flex flex-wrap items-end gap-3 rounded-xl border p-3">
+      <div className="min-w-[10rem] flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold">{item.name}</span>
+          <Badge variant="secondary" className="text-[10px] uppercase">
+            {item.kind}
+          </Badge>
         </div>
-      )}
+        <div className="text-xs text-muted-foreground">{item.detail}</div>
+        <div
+          className={`mt-1 flex items-center gap-1 text-xs ${
+            stale ? "text-warning" : "text-muted-foreground"
+          }`}
+        >
+          <CalendarClock className="h-3 w-3" />
+          Última atualização: {dataBR(item.price_updated_at)}
+          {dayLabel}
+        </div>
+      </div>
+      <div className="flex items-end gap-2">
+        <div>
+          <Label htmlFor={inputId} className="mb-1 block text-xs text-muted-foreground">
+            Preço de compra
+          </Label>
+          <Input
+            id={inputId}
+            inputMode="decimal"
+            className="w-32"
+            value={draft}
+            onChange={(event) => onDraftChange(item.id, event.target.value)}
+          />
+        </div>
+        <Button
+          className="gap-2"
+          onClick={() => void onSave(item)}
+          disabled={saving || draft.replace(",", ".") === String(item.package_price ?? "")}
+        >
+          <RefreshCw className={`h-4 w-4 ${saving ? "animate-spin" : ""}`} />
+          Atualizar
+        </Button>
+      </div>
+      <div className="w-full text-xs text-muted-foreground sm:w-auto">
+        Valor atual: {item.package_price === null ? "—" : brl(Number(item.package_price))}
+      </div>
     </div>
   );
 }

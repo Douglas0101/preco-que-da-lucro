@@ -7,11 +7,16 @@ function displayNumber(v: NumericDisplayValue): number | null {
   if (v == null) return null;
   try {
     const decimal = new Decimal(v);
-    if (!decimal.isFinite()) return decimal.isPositive() ? Infinity : NaN;
+    if (!decimal.isFinite()) {
+      if (decimal.isPositive()) return Infinity;
+      return Number.NaN;
+    }
     const value = decimal.toNumber();
-    return Number.isFinite(value) ? value : value > 0 ? Infinity : NaN;
+    if (Number.isFinite(value)) return value;
+    if (value > 0) return Infinity;
+    return Number.NaN;
   } catch {
-    return NaN;
+    return Number.NaN;
   }
 }
 

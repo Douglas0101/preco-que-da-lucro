@@ -36,13 +36,15 @@ interface Metrics {
 
 type LoadStatus = "loading" | "ready" | "error";
 
+function loadStatusFor(query: { isPending: boolean; isError: boolean }): LoadStatus {
+  if (query.isPending) return "loading";
+  if (query.isError) return "error";
+  return "ready";
+}
+
 function Inicio() {
   const summaryQuery = useQuery(dashboardSummaryQueryOptions());
-  const loadStatus: LoadStatus = summaryQuery.isPending
-    ? "loading"
-    : summaryQuery.isError
-      ? "error"
-      : "ready";
+  const loadStatus = loadStatusFor(summaryQuery);
   const metrics = summaryQuery.data as Metrics | undefined;
   const errorReference = useMemo(
     () => (summaryQuery.isError ? createErrorReference("DASH") : null),

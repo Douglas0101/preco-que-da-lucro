@@ -36,6 +36,7 @@ export const Route = createFileRoute("/_authenticated/ponto-equilibrio")({
 
 type ProductDetail = Awaited<ReturnType<typeof listProductsWithMetrics>>[number];
 type ProductMetricsOk = Extract<ProductDetail["metrics"], { status: "ok" }>;
+type CalculationStatus = "idle" | "incomplete" | "invalid" | "ok";
 type BreakEvenData = Awaited<
   ReturnType<NonNullable<ReturnType<typeof breakEvenQueryOptions>["queryFn"]>>
 >;
@@ -48,9 +49,7 @@ function PontoEquilibrio() {
   const [fixedExpenseAmounts, setFixedExpenseAmounts] = useState<string[]>([]);
   const [metrics, setMetrics] = useState<ProductMetricsOk | null>(null);
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
-  const [calculationStatus, setCalculationStatus] = useState<
-    "idle" | "incomplete" | "invalid" | "ok"
-  >("idle");
+  const [calculationStatus, setCalculationStatus] = useState<CalculationStatus>("idle");
   const [profitTarget, setProfitTarget] = useState("");
   const [productsQuery, expensesQuery] = useQueries({
     queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
@@ -187,7 +186,7 @@ function PontoView({
   fixedExpenses: string | null | undefined;
   metrics: ProductMetricsOk | null;
   selectedPrice: string | null;
-  calculationStatus: "idle" | "incomplete" | "invalid" | "ok";
+  calculationStatus: CalculationStatus;
   breakEvenQuery: BreakEvenQuery;
   breakEven: BreakEvenData | null;
   profitTarget: string;
@@ -240,9 +239,7 @@ function PontoView({
   );
 }
 
-function CalculationState({
-  status,
-}: Readonly<{ status: "idle" | "incomplete" | "invalid" | "ok" }>) {
+function CalculationState({ status }: Readonly<{ status: CalculationStatus }>) {
   const message = {
     invalid: "Erro de cálculo. Revise os valores numéricos do produto.",
     incomplete: "Dados incompletos. Preencha os campos financeiros do produto.",
@@ -298,15 +295,8 @@ function BreakEvenCard({
   query,
   result,
 }: Readonly<{ query: BreakEvenQuery; result: PontoMetricsProps["breakEven"] }>) {
-  const unitsLabel = query.isPending
-    ? "Calculando..."
-    : result?.units.status === "reachable"
-      ? `${num(result.units.roundedUnits, 0)} un.`
-      : result?.units.status === "unreachable"
-        ? "Não atingível"
-        : "Erro de cálculo";
-  const revenueLabel =
-    result?.units.status === "unreachable" ? "Não atingível" : brl(result?.revenue);
+  const unitsLabel = breakEvenUnitsLabel(query.isPending, result);
+  const revenueLabel = breakEvenRevenueLabel(result);
   return (
     <Card className="border-primary/30">
       <CardHeader>
@@ -333,6 +323,18 @@ function BreakEvenCard({
       </CardContent>
     </Card>
   );
+}
+
+function breakEvenUnitsLabel(isPending: boolean, result: PontoMetricsProps["breakEven"]): string {
+  if (isPending) return "Calculando...";
+  if (result?.units.status === "reachable") return `${num(result.units.roundedUnits, 0)} un.`;
+  if (result?.units.status === "unreachable") return "Não atingível";
+  return "Erro de cálculo";
+}
+
+function breakEvenRevenueLabel(result: PontoMetricsProps["breakEven"]): string {
+  if (result?.units.status === "unreachable") return "Não atingível";
+  return brl(result?.revenue);
 }
 
 type PontoMetricsProps = Parameters<typeof PontoMetrics>[0];

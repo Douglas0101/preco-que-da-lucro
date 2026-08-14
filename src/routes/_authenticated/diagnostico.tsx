@@ -560,11 +560,9 @@ function buildDiagnostic(
 }
 
 function directUnitCostFrom(result: CalculationResult<ProductCostComputation>): number | null {
-  return result.status === "ok"
-    ? result.value.unitCost
-    : result.status === "invalid"
-      ? Number.NaN
-      : null;
+  if (result.status === "ok") return result.value.unitCost;
+  if (result.status === "invalid") return Number.NaN;
+  return null;
 }
 
 function nullableNumber(value: string | number | null | undefined): number | null {

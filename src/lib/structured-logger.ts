@@ -2,7 +2,7 @@ const REDACTED = "[REDACTED]";
 const SENSITIVE_KEY =
   /(?:authorization|cookie|token|secret|password|passwd|database_url|connection|string|hash|email|phone|cpf|cnpj)/i;
 const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
-const BEARER = /\bBearer\s+[A-Za-z0-9._~+\x2f-]+=*/gi;
+const BEARER = /\bBearer\s+[^\s]+/gi;
 const DATABASE_URL = /\b(?:postgres(?:ql)?|mysql|redis):\/\/[^\s"']+/gi;
 
 function redactString(value: string): string {
@@ -28,7 +28,9 @@ export function redactLogValue(value: unknown, key = "", depth = 0): unknown {
       ]),
     );
   }
-  return String(value);
+  if (typeof value === "bigint") return value.toString();
+  if (typeof value === "symbol") return value.toString();
+  return "[UNSERIALIZABLE]";
 }
 
 export function logJson(

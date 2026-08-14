@@ -3,10 +3,27 @@
  * understood by the renderer, remove control characters/raw HTML and cap the
  * size before persistence or returning it to the browser.
  */
+function stripHtmlTags(value: string): string {
+  let result = "";
+  let insideTag = false;
+  for (const character of value) {
+    if (character === "<") {
+      insideTag = true;
+      continue;
+    }
+    if (character === ">" && insideTag) {
+      insideTag = false;
+      continue;
+    }
+    if (!insideTag) result += character;
+  }
+  return result;
+}
+
 export function sanitizeAiOutput(value: string): string {
-  return Array.from(value)
+  const clean = Array.from(value)
     .filter((character) => {
-      const code = character.charCodeAt(0);
+      const code = character.codePointAt(0) ?? 0;
       return !(
         code <= 8 ||
         code === 11 ||
@@ -15,8 +32,6 @@ export function sanitizeAiOutput(value: string): string {
         code === 127
       );
     })
-    .join("")
-    .replace(/<[^>]*>/g, "")
-    .slice(0, 12_000)
-    .trim();
+    .join("");
+  return stripHtmlTags(clean).slice(0, 12_000).trim();
 }

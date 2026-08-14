@@ -37,7 +37,7 @@ function sanitizeJson(value: unknown, depth = 0): unknown {
   if (typeof value === "string") {
     return Array.from(value)
       .filter((character) => {
-        const code = character.charCodeAt(0);
+        const code = character.codePointAt(0) ?? 0;
         return !(
           code <= 8 ||
           code === 11 ||
