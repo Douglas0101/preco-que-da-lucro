@@ -26,13 +26,19 @@ class CapturingEmailAdapter implements TransactionalEmailAdapter {
   }
 }
 
-function jsonRequest(path: string, body: Record<string, unknown>, cookie?: string): Request {
+function jsonRequest(
+  path: string,
+  body: Record<string, unknown>,
+  cookie?: string,
+  ipAddress?: string,
+): Request {
   const headers = new Headers({
     "content-type": "application/json",
     origin: "http://localhost:3000",
     "sec-fetch-site": "same-origin",
   });
   if (cookie) headers.set("cookie", cookie);
+  if (ipAddress) headers.set("x-forwarded-for", ipAddress);
   return new Request(`http://localhost:3000/api/auth${path}`, {
     method: "POST",
     headers,
@@ -75,8 +81,40 @@ async function main(): Promise<void> {
   const email = new CapturingEmailAdapter();
   setEmailAdapterForTests(email);
   const auth = createAuthInstance(database as unknown as Database);
+  const authReplica = createAuthInstance(database as unknown as Database);
 
   try {
+    const distributedBurst = await Promise.all(
+      Array.from({ length: 4 }, (_, index) =>
+        (index % 2 === 0 ? auth : authReplica).handler(
+          jsonRequest(
+            "/sign-up/email",
+            {
+              name: `Burst ${index}`,
+              email: `burst-${index}@example.test`,
+              password: initialPassword,
+            },
+            undefined,
+            "198.51.100.42",
+          ),
+        ),
+      ),
+    );
+    assert.equal(
+      distributedBurst.filter((response) => response.status === 429).length,
+      1,
+      "o rate limit deve ser compartilhado e aplicado atomicamente entre instâncias",
+    );
+    const burstBucket = await admin.query<{ id: string; count: number; last_request: string }>(
+      `select id, count, last_request::text as last_request
+       from rate_limits where key = $1`,
+      ["198.51.100.42|/sign-up/email"],
+    );
+    assert.equal(burstBucket.rowCount, 1);
+    assert.ok(burstBucket.rows[0]?.id);
+    assert.equal(burstBucket.rows[0]?.count, 3);
+    assert.match(burstBucket.rows[0]?.last_request ?? "", /^\d+$/);
+
     const signup = await auth.handler(
       jsonRequest("/sign-up/email", {
         name: "Maria Integração",

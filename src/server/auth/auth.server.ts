@@ -86,7 +86,13 @@ export function createAuthInstance(database: Database = getDatabase()) {
       enabled: true,
       window: 60,
       max: 100,
-      storage: "memory",
+      // The memory backend allows each process to accept the same burst.
+      // Better Auth's database backend performs the consume step atomically
+      // through the Drizzle adapter, so all instances share one bucket.
+      storage: "database",
+      customRules: {
+        "/sign-up/email": { window: 60, max: 3 },
+      },
     },
     advanced: {
       useSecureCookies: policy.secureCookies,

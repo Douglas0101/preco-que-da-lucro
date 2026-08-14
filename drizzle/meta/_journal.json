@@ -15,6 +15,13 @@
       "when": 1786510700000,
       "tag": "0001_p0_runtime_role_and_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786679075477,
+      "tag": "0002_rate_limit_database",
+      "breakpoints": true
     }
   ]
 }

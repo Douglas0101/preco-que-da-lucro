@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS
   product_ingredients,
   profiles,
   products,
+  rate_limits,
   tenant_memberships,
   tenants,
   verifications,
