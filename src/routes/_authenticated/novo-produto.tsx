@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getChatHistory, sendChatMessage, clearChatHistory } from "@/lib/chat.functions";
+import { sendChatMessage, clearChatHistory } from "@/lib/chat.functions";
+import { chatHistoryQueryOptions } from "@/lib/query-options";
 import { renderChatMarkdown } from "@/lib/chat-markdown";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, RotateCcw, Send, Bot, User } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { chatStatusLabel, isChatBusy, transitionChatState, type ChatState } from "@/lib/chat-fsm";
 
 export const Route = createFileRoute("/_authenticated/novo-produto")({
   head: () => ({
@@ -38,45 +41,53 @@ interface Msg {
 
 function NovoProduto() {
   const navigate = useNavigate();
-  const load = useServerFn(getChatHistory);
+  const queryClient = useQueryClient();
   const send = useServerFn(sendChatMessage);
   const clear = useServerFn(clearChatHistory);
+  const historyQuery = useQuery(chatHistoryQueryOptions());
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [chatState, setChatState] = useState<ChatState>("idle");
+  const loading = isChatBusy(chatState);
   const [currentProductId, setCurrentProductId] = useState<string | null>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const history = await load();
-        const restored = history.reduce<Msg[]>((messages, message) => {
-          if (message.role === "user" || message.role === "assistant") {
-            messages.push({ id: message.id, role: message.role, content: message.content });
-          }
-          return messages;
-        }, []);
-
-        if (restored.length === 0) {
-          setMessages([
-            {
-              role: "assistant",
-              content:
-                "Olá! Sou seu consultor financeiro. Vamos descobrir juntos quanto realmente custa produzir e vender seu produto. **Qual produto ou receita você gostaria de analisar primeiro?**",
-            },
-          ]);
-        } else {
-          setMessages(restored);
-        }
-      } catch (e) {
-        console.error(e);
+    const history = historyQuery.data;
+    if (!history) {
+      if (historyQuery.isError) {
+        setMessages([
+          {
+            role: "assistant",
+            content: "⚠️ Não foi possível restaurar o histórico da conversa.",
+          },
+        ]);
       }
-    })();
+      return;
+    }
+    const restored = history.messages.reduce<Msg[]>((messages, message) => {
+      if (message.role === "user" || message.role === "assistant") {
+        messages.push({ id: message.id, role: message.role, content: message.content });
+      }
+      return messages;
+    }, []);
+
+    if (restored.length === 0) {
+      setMessages([
+        {
+          role: "assistant",
+          content:
+            "Olá! Sou seu consultor financeiro. Vamos descobrir juntos quanto realmente custa produzir e vender seu produto. **Qual produto ou receita você gostaria de analisar primeiro?**",
+        },
+      ]);
+    } else {
+      setMessages(restored);
+    }
+    setCurrentProductId(history.currentProductId);
     inputRef.current?.focus();
-  }, [load]);
+  }, [historyQuery.data, historyQuery.isError]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -88,30 +99,38 @@ function NovoProduto() {
     if (!text || loading) return;
     setInput("");
     setMessages((m) => [...m, { role: "user", content: text }]);
-    setLoading(true);
+    setChatState((state) => transitionChatState(state, { type: "SUBMIT" }));
     try {
       const res = await send({ data: { message: text, currentProductId } });
       setMessages((m) => [...m, { role: "assistant", content: res.content }]);
       if (res.currentProductId) setCurrentProductId(res.currentProductId);
+      await queryClient.invalidateQueries({ queryKey: ["chat", "history"] });
+      setChatState((state) => transitionChatState(state, { type: "ASSISTANT_RESPONSE" }));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro ao enviar";
       toast.error(msg);
       setMessages((m) => [...m, { role: "assistant", content: `⚠️ ${msg}` }]);
+      setChatState((state) => transitionChatState(state, { type: "FAIL" }));
     } finally {
-      setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }
 
   async function reset() {
-    await clear();
-    setMessages([
-      {
-        role: "assistant",
-        content: "Novo começo! Qual produto você gostaria de cadastrar agora?",
-      },
-    ]);
-    setCurrentProductId(null);
+    try {
+      await clear();
+      await queryClient.invalidateQueries({ queryKey: ["chat", "history"] });
+      setMessages([
+        {
+          role: "assistant",
+          content: "Novo começo! Qual produto você gostaria de cadastrar agora?",
+        },
+      ]);
+      setCurrentProductId(null);
+      setChatState((state) => transitionChatState(state, { type: "RESET" }));
+    } catch {
+      toast.error("Não foi possível recomeçar a conversa.");
+    }
   }
 
   return (
@@ -158,12 +177,16 @@ function NovoProduto() {
       </div>
 
       <div className="flex-1 overflow-y-auto rounded-2xl border bg-card p-4 md:p-6 shadow-[var(--shadow-soft)]">
-        <div className="space-y-4">
+        <div className="space-y-4" role="log" aria-live="polite" aria-relevant="additions text">
           {messages.map((m, i) => (
             <MessageBubble key={m.id ?? i} role={m.role} content={m.content} />
           ))}
           {loading && (
-            <div className="flex items-start gap-3">
+            <div
+              className="flex items-start gap-3"
+              role="status"
+              aria-label={chatStatusLabel(chatState) ?? "Consultor respondendo"}
+            >
               <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                 <Bot className="h-4 w-4" />
               </div>

@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { computeProduct, type IngredientRow, type PackagingRow, type FeeRow } from "@/lib/finance";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { deleteProduct } from "@/lib/products.functions";
+import { productsWithMetricsQueryOptions } from "@/lib/query-options";
 import { brl, pct } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,38 +32,19 @@ export const Route = createFileRoute("/_authenticated/produtos")({
 interface Row {
   id: string;
   name: string;
-  current_price: number | null;
+  current_price: string | null;
   unitCost: number | null;
   cmPct: number | null;
 }
 
 function Produtos() {
   const navigate = useNavigate();
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(true);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-
-  async function load() {
-    setLoading(true);
-    const { data: products } = await supabase
-      .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const productsQuery = useQuery(productsWithMetricsQueryOptions());
+  const rows = useMemo(() => {
+    const products = productsQuery.data ?? [];
     const enriched: Row[] = [];
-    for (const p of products ?? []) {
-      const [ing, pack, fees] = await Promise.all([
-        supabase.from("product_ingredients").select("*").eq("product_id", p.id),
-        supabase.from("product_packaging").select("*").eq("product_id", p.id),
-        supabase.from("sales_fees").select("*").eq("product_id", p.id),
-      ]);
-      const c = computeProduct({
-        ingredients: (ing.data ?? []) as unknown as IngredientRow[],
-        packaging: (pack.data ?? []) as unknown as PackagingRow[],
-        yieldQty: p.yield_qty == null ? null : Number(p.yield_qty),
-        price: p.current_price == null ? null : Number(p.current_price),
-        taxRate: p.tax_rate == null ? null : Number(p.tax_rate),
-        fees: (fees.data ?? []) as unknown as FeeRow[],
-      });
+    for (const { product: p, metrics: c } of products) {
       // Incomplete permanece "—"; invalid chega ao formatter como NaN e vira
       // "Erro de cálculo", sem mascarar falha numérica como ausência.
       const unavailableMetric = c.status === "invalid" ? Number.NaN : null;
@@ -74,18 +56,17 @@ function Produtos() {
         cmPct: c.status === "ok" ? c.value.contributionMarginPct : unavailableMetric,
       });
     }
-    setRows(enriched);
-    setLoading(false);
-  }
-  useEffect(() => {
-    load();
-  }, []);
+    return enriched;
+  }, [productsQuery.data]);
 
   async function del(id: string) {
-    const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Produto excluído");
-    load();
+    try {
+      await deleteProduct({ data: { id } });
+    } catch {
+      return toast.error("Não foi possível arquivar o produto");
+    }
+    toast.success("Produto arquivado");
+    await productsQuery.refetch();
   }
 
   return (
@@ -100,17 +81,31 @@ function Produtos() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button render={<Link to="/precos" />} variant="outline" className="gap-2">
+            <Button
+              nativeButton={false}
+              render={<Link to="/precos" />}
+              variant="outline"
+              className="gap-2"
+            >
               <Tag className="h-4 w-4" /> Preços de compra
             </Button>
-            <Button render={<Link to="/novo-produto" />} className="gap-2">
+            <Button nativeButton={false} render={<Link to="/novo-produto" />} className="gap-2">
               <PlusCircle className="h-4 w-4" /> Novo produto
             </Button>
           </div>
         </div>
 
-        {loading ? (
+        {productsQuery.isPending ? (
           <div className="text-muted-foreground">Carregando...</div>
+        ) : productsQuery.isError ? (
+          <Card role="alert" className="border-destructive/40">
+            <CardContent className="space-y-3 p-5">
+              <p>Não foi possível carregar os produtos.</p>
+              <Button type="button" variant="outline" onClick={() => void productsQuery.refetch()}>
+                Tentar novamente
+              </Button>
+            </CardContent>
+          </Card>
         ) : rows.length === 0 ? (
           <Card>
             <CardContent className="grid place-items-center gap-3 p-12 text-center">
@@ -118,7 +113,11 @@ function Produtos() {
                 <Package className="h-6 w-6" />
               </div>
               <div className="font-semibold">Você ainda não tem produtos</div>
-              <Button render={<Link to="/novo-produto" />} className="mt-2 gap-2">
+              <Button
+                nativeButton={false}
+                render={<Link to="/novo-produto" />}
+                className="mt-2 gap-2"
+              >
                 <MessageCircle className="h-4 w-4" /> Cadastrar primeiro produto
               </Button>
             </CardContent>

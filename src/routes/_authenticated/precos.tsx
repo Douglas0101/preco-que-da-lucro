@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listPurchasePrices, updatePurchasePrice } from "@/lib/products.functions";
+import { updatePurchasePrice } from "@/lib/products.functions";
+import { purchasePricesQueryOptions } from "@/lib/query-options";
+import { toDecimalString } from "@/lib/financial-values";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +37,7 @@ type Item = {
   id: string;
   product_id: string;
   name: string;
-  package_price: number | null;
+  package_price: string | null;
   price_updated_at: string | null;
   kind: "ingrediente" | "embalagem";
   detail: string;
@@ -57,59 +60,46 @@ function dataBR(iso: string | null) {
 }
 
 function Precos() {
-  const fetchAll = useServerFn(listPurchasePrices);
   const save = useServerFn(updatePurchasePrice);
+  const pricesQuery = useQuery(purchasePricesQueryOptions());
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  async function load() {
-    setLoading(true);
-    try {
-      const res = await fetchAll();
-      setProducts(res.products);
-      const all: Item[] = [
-        ...res.ingredients.map((i) => ({
-          id: i.id,
-          product_id: i.product_id,
-          name: i.name,
-          package_price: i.package_price === null ? null : Number(i.package_price),
-          price_updated_at: i.price_updated_at,
-          kind: "ingrediente" as const,
-          detail:
-            i.package_qty && i.package_unit
-              ? `embalagem de ${Number(i.package_qty)} ${i.package_unit}`
-              : "insumo",
-        })),
-        ...res.packaging.map((p) => ({
-          id: p.id,
-          product_id: p.product_id,
-          name: p.name,
-          package_price: p.package_price === null ? null : Number(p.package_price),
-          price_updated_at: p.price_updated_at,
-          kind: "embalagem" as const,
-          detail: `pacote com ${Number(p.units_per_package ?? 1)} unidade(s)`,
-        })),
-      ];
-      setItems(all);
-      setDrafts(
-        Object.fromEntries(
-          all.map((i) => [i.id, i.package_price === null ? "" : String(i.package_price)]),
-        ),
-      );
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Não foi possível carregar os preços");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const res = pricesQuery.data;
+    if (!res) return;
+    setProducts(res.products);
+    const all: Item[] = [
+      ...res.ingredients.map((i) => ({
+        id: i.id,
+        product_id: i.product_id,
+        name: i.name,
+        package_price: i.package_price,
+        price_updated_at: i.price_updated_at,
+        kind: "ingrediente" as const,
+        detail:
+          i.package_qty && i.package_unit
+            ? `embalagem de ${Number(i.package_qty)} ${i.package_unit}`
+            : "insumo",
+      })),
+      ...res.packaging.map((p) => ({
+        id: p.id,
+        product_id: p.product_id,
+        name: p.name,
+        package_price: p.package_price,
+        price_updated_at: p.price_updated_at,
+        kind: "embalagem" as const,
+        detail: `pacote com ${Number(p.units_per_package ?? 1)} unidade(s)`,
+      })),
+    ];
+    setItems(all);
+    setDrafts(
+      Object.fromEntries(
+        all.map((i) => [i.id, i.package_price === null ? "" : String(i.package_price)]),
+      ),
+    );
+  }, [pricesQuery.data]);
 
   const desatualizados = useMemo(
     () =>
@@ -137,11 +127,14 @@ function Precos() {
     }
     setSavingId(item.id);
     try {
-      const res = await save({ data: { id: item.id, kind: item.kind, package_price: valor } });
+      const packagePrice = toDecimalString(raw, 4);
+      const res = await save({
+        data: { id: item.id, kind: item.kind, package_price: packagePrice },
+      });
       setItems((prev) =>
         prev.map((i) =>
           i.id === item.id
-            ? { ...i, package_price: valor, price_updated_at: res.price_updated_at }
+            ? { ...i, package_price: packagePrice, price_updated_at: res.price_updated_at }
             : i,
         ),
       );
@@ -163,7 +156,7 @@ function Precos() {
         </p>
       </div>
 
-      {!loading && items.length > 0 && desatualizados > 0 && (
+      {!pricesQuery.isPending && items.length > 0 && desatualizados > 0 && (
         <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
           <span>
@@ -173,8 +166,17 @@ function Precos() {
         </div>
       )}
 
-      {loading ? (
+      {pricesQuery.isPending ? (
         <div className="text-muted-foreground">Carregando...</div>
+      ) : pricesQuery.isError ? (
+        <Card role="alert" className="border-destructive/40">
+          <CardContent className="space-y-3 p-5">
+            <p>Não foi possível carregar os preços.</p>
+            <Button type="button" variant="outline" onClick={() => void pricesQuery.refetch()}>
+              Tentar novamente
+            </Button>
+          </CardContent>
+        </Card>
       ) : grupos.length === 0 ? (
         <Card>
           <CardContent className="grid place-items-center gap-3 p-12 text-center">
@@ -260,7 +262,8 @@ function Precos() {
                       </div>
 
                       <div className="w-full text-xs text-muted-foreground sm:w-auto">
-                        Valor atual: {item.package_price === null ? "—" : brl(item.package_price)}
+                        Valor atual:{" "}
+                        {item.package_price === null ? "—" : brl(Number(item.package_price))}
                       </div>
                     </div>
                   );

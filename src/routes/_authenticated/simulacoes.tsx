@@ -1,16 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
-import {
-  calculateScenario,
-  computeProduct,
-  sumFiniteNumbers,
-  type FeeRow,
-  type IngredientRow,
-  type PackagingRow,
-  type ProductComputation,
-} from "@/lib/finance";
+import { useEffect, useState } from "react";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { listProductsWithMetrics } from "@/lib/products.functions";
+import { runSimulation } from "@/lib/financial.functions";
+import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
+import { sumFiniteNumbers, type FeeRow, type ProductComputation } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,7 +39,8 @@ type ProductBaseline = ProductComputation & {
 };
 
 function Simulacoes() {
-  const [products, setProducts] = useState<Tables<"products">[]>([]);
+  const [details, setDetails] = useState<Awaited<ReturnType<typeof listProductsWithMetrics>>>([]);
+  const products = details.map((detail) => detail.product);
   const [productId, setProductId] = useState("");
   const [fixed, setFixed] = useState(0);
   const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
@@ -53,59 +48,54 @@ function Simulacoes() {
   const [productStatus, setProductStatus] = useState<ProductStatus>("idle");
   const [errorReference, setErrorReference] = useState<string | null>(null);
   const [sim, setSim] = useState({ price: "", unitCost: "", fixed: "", volume: "" });
+  const [productsQuery, expensesQuery] = useQueries({
+    queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
+  });
 
   useEffect(() => {
-    let cancelled = false;
+    if (productsQuery.isPending || expensesQuery.isPending) {
+      setLoadStatus("loading");
+      return;
+    }
+    if (productsQuery.isError || expensesQuery.isError) {
+      setDetails([]);
+      setProductId("");
+      setErrorReference(createErrorReference("SIM"));
+      setLoadStatus("error");
+      return;
+    }
 
-    void (async () => {
-      try {
-        const [productsResult, expensesResult] = await Promise.all([
-          supabase.from("products").select("*").order("created_at", { ascending: false }),
-          supabase.from("expenses").select("*").eq("type", "fixa"),
-        ]);
-        if (cancelled) return;
+    const loadedDetails = productsQuery.data;
+    const expenses = expensesQuery.data;
+    const fixedExpenses = sumFiniteNumbers(
+      expenses
+        .filter((expense) => expense.type === "fixa")
+        .map((expense) => Number(expense.amount)),
+    );
 
-        if (productsResult.error || expensesResult.error) {
-          setProducts([]);
-          setProductId("");
-          setErrorReference(createErrorReference("SIM"));
-          setLoadStatus("error");
-          return;
-        }
+    setDetails(loadedDetails);
+    setFixed(fixedExpenses);
+    if (!Number.isFinite(fixedExpenses)) {
+      setLoadStatus("invalid");
+      return;
+    }
+    if (loadedDetails.length === 0) {
+      setProductId("");
+      setLoadStatus("empty");
+      return;
+    }
 
-        const loadedProducts = productsResult.data ?? [];
-        const fixedExpenses = sumFiniteNumbers(
-          (expensesResult.data ?? []).map((expense) => Number(expense.amount)),
-        );
-
-        setProducts(loadedProducts);
-        setFixed(fixedExpenses);
-        if (!Number.isFinite(fixedExpenses)) {
-          setLoadStatus("invalid");
-          return;
-        }
-        if (loadedProducts.length === 0) {
-          setProductId("");
-          setLoadStatus("empty");
-          return;
-        }
-
-        setProductId(loadedProducts[0].id);
-        setErrorReference(null);
-        setLoadStatus("ready");
-      } catch {
-        if (cancelled) return;
-        setProducts([]);
-        setProductId("");
-        setErrorReference(createErrorReference("SIM"));
-        setLoadStatus("error");
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    setProductId(loadedDetails[0].product.id);
+    setErrorReference(null);
+    setLoadStatus("ready");
+  }, [
+    expensesQuery.data,
+    expensesQuery.isError,
+    expensesQuery.isPending,
+    productsQuery.data,
+    productsQuery.isError,
+    productsQuery.isPending,
+  ]);
 
   useEffect(() => {
     if (loadStatus !== "ready" || !productId) return;
@@ -117,8 +107,8 @@ function Simulacoes() {
 
     void (async () => {
       try {
-        const product = products.find((item) => item.id === productId);
-        if (!product) {
+        const detail = details.find((item) => item.product.id === productId);
+        if (!detail) {
           if (!cancelled) {
             setErrorReference(createErrorReference("SIM"));
             setProductStatus("error");
@@ -126,28 +116,11 @@ function Simulacoes() {
           return;
         }
 
-        const [ingredientsResult, packagingResult, feesResult] = await Promise.all([
-          supabase.from("product_ingredients").select("*").eq("product_id", product.id),
-          supabase.from("product_packaging").select("*").eq("product_id", product.id),
-          supabase.from("sales_fees").select("*").eq("product_id", product.id),
-        ]);
-        if (cancelled) return;
-
-        if (ingredientsResult.error || packagingResult.error || feesResult.error) {
-          setErrorReference(createErrorReference("SIM"));
-          setProductStatus("error");
-          return;
-        }
-
-        const feeRows = (feesResult.data ?? []) as unknown as FeeRow[];
-        const computation = computeProduct({
-          ingredients: (ingredientsResult.data ?? []) as unknown as IngredientRow[],
-          packaging: (packagingResult.data ?? []) as unknown as PackagingRow[],
-          yieldQty: product.yield_qty == null ? null : Number(product.yield_qty),
-          price: product.current_price == null ? null : Number(product.current_price),
-          taxRate: product.tax_rate == null ? null : Number(product.tax_rate),
-          fees: feeRows,
-        });
+        const product = detail.product;
+        const feeRows = detail.fees.map((fee) => ({
+          percentage: Number(fee.percentage) * 100,
+        })) satisfies FeeRow[];
+        const computation = detail.metrics;
         if (computation.status !== "ok") {
           setProductStatus(computation.status);
           return;
@@ -158,7 +131,7 @@ function Simulacoes() {
           ...computation.value,
           name: product.name,
           price,
-          taxRate: product.tax_rate == null ? null : Number(product.tax_rate),
+          taxRate: product.tax_rate == null ? null : Number(product.tax_rate) * 100,
           fees: feeRows,
         });
         setSim({
@@ -180,25 +153,30 @@ function Simulacoes() {
     return () => {
       cancelled = true;
     };
-  }, [fixed, loadStatus, productId, products]);
+  }, [details, fixed, loadStatus, productId]);
 
-  const simulated = useMemo(() => {
-    if (!base) return null;
-    const parse = (value: string) => {
-      const normalized = value.trim().replace(",", ".");
-      return normalized === "" ? null : Number(normalized);
-    };
-
-    return calculateScenario({
-      price: parse(sim.price),
-      unitCost: parse(sim.unitCost),
-      taxRate: base.taxRate,
-      fees: base.fees,
-      fixedExpenses: parse(sim.fixed),
-      volume: parse(sim.volume),
-      volumeSource: "manual_simulation",
-    });
-  }, [base, sim]);
+  const simulationQuery = useQuery({
+    queryKey: ["financial-simulation", base?.name, sim.price, sim.unitCost, sim.fixed, sim.volume],
+    queryFn: () =>
+      runSimulation({
+        data: {
+          price: toApiDecimal(sim.price),
+          unitCost: toApiDecimal(sim.unitCost),
+          fixedExpenses: toApiDecimal(sim.fixed),
+          volume: toApiDecimal(sim.volume),
+          taxRate: base?.taxRate == null ? null : String(base.taxRate),
+          fees:
+            base?.fees.map((fee) => ({
+              percentage: fee.percentage == null ? null : String(fee.percentage),
+            })) ?? [],
+          volumeSource: "manual_simulation",
+        },
+      }),
+    enabled: base !== null,
+    staleTime: 0,
+    retry: false,
+  });
+  const simulated = simulationQuery.data ?? null;
 
   const missingFields =
     simulated?.status === "incomplete" ? simulated.missing.map((missing) => missing.field) : [];
@@ -360,7 +338,7 @@ function Simulacoes() {
                   <Row
                     label="Resultado operacional simulado dentro do escopo informado"
                     value={brl(simulated.value.result)}
-                    accent={simulated.value.result >= 0 ? "success" : "destructive"}
+                    accent={simulated.value.resultSign === "negative" ? "destructive" : "success"}
                   />
                 </div>
               )}
@@ -499,4 +477,9 @@ function createErrorReference(prefix: string): string {
       ? globalThis.crypto.randomUUID().slice(0, 8)
       : Date.now().toString(36);
   return `${prefix}-${token}`.toUpperCase();
+}
+
+function toApiDecimal(value: string): string | null {
+  const normalized = value.trim().replace(",", ".");
+  return normalized === "" ? null : normalized;
 }

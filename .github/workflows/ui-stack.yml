@@ -30,10 +30,10 @@ jobs:
       BUILD_RELEASE_CHANNEL: pre-beta-internal
       DATABASE_ADMIN_URL: postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
-      VITE_SUPABASE_URL: https://example.supabase.co
-      VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
-      SUPABASE_URL: https://example.supabase.co
-      SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+      DATABASE_DRIVER: node-postgres
+      BETTER_AUTH_URL: http://127.0.0.1:4173
+      AUTH_TRUSTED_ORIGINS: http://127.0.0.1:4173
+      E2E_AUTH_EMAIL: teste@example.test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -43,13 +43,33 @@ jobs:
       - run: npm install --global npm@11.14.1
       - run: npm ci
       - run: npm run check:ui-stack
+      - run: npm run check:no-supabase-runtime
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test
       - run: npm run db:test
+      - run: npm run db:check
+      - name: Configure isolated runtime and E2E credentials
+        shell: bash
+        run: |
+          runtime_password="$(openssl rand -hex 24)"
+          auth_secret="$(openssl rand -hex 32)"
+          auth_password="$(openssl rand -base64 24 | tr -d '\n')"
+          echo "::add-mask::${runtime_password}"
+          echo "::add-mask::${auth_secret}"
+          echo "::add-mask::${auth_password}"
+          {
+            echo "DATABASE_URL=postgresql://app_runtime:${runtime_password}@127.0.0.1:5432/preco_que_da_lucro_test"
+            echo "E2E_DB_RUNTIME_PASSWORD=${runtime_password}"
+            echo "BETTER_AUTH_SECRET=${auth_secret}"
+            echo "E2E_AUTH_PASSWORD=${auth_password}"
+          } >> "$GITHUB_ENV"
       - run: npm run build
       - run: npm run check:bundle
+      # Keep dependency evidence independent from browser startup failures.
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
       - name: Upload bundle evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -76,4 +96,3 @@ jobs:
           if-no-files-found: warn
           include-hidden-files: true
           retention-days: 30
-      - run: npm audit --audit-level=high

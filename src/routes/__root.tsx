@@ -24,7 +24,11 @@ function NotFoundComponent() {
           The page you're looking for doesn't exist or has been moved.
         </p>
         <div className="mt-6">
-          <Button render={<Link to="/" />} className="motion-reduce:transition-none">
+          <Button
+            nativeButton={false}
+            render={<Link to="/" />}
+            className="motion-reduce:transition-none"
+          >
             Go home
           </Button>
         </div>
@@ -61,6 +65,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             Try again
           </Button>
           <Button
+            nativeButton={false}
             render={<Link to="/" />}
             variant="outline"
             className="motion-reduce:transition-none"

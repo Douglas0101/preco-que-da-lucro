@@ -62,6 +62,12 @@ jobs:
           DATABASE_URL: ${{ steps.neon.outputs.db_url_pooled }}
         run: npm run db:test
 
+      - name: Validate migration drift
+        if: steps.config.outputs.enabled == 'true'
+        env:
+          DATABASE_ADMIN_URL: ${{ steps.neon.outputs.db_url }}
+        run: npm run db:check
+
       - name: Delete ephemeral Neon branch
         if: always() && steps.neon.outputs.branch_id != ''
         uses: neondatabase/delete-branch-action@4468d825d5a88ef4012f1705a82f02ec3072f776 # v3.2.1

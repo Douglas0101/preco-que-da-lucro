@@ -19,7 +19,7 @@ Plataforma web em português (pt-BR) de **precificação inteligente assistida p
 
 - **App**: TanStack Start/Router (Release Candidate), React 19, TypeScript 5.8, Vite 8 + Nitro 3 (beta pinado).
 - **UI**: Tailwind CSS 4, shadcn/ui sobre Base UI como camada exclusiva de primitivos (ADR-016).
-- **Dados (fase atual)**: Supabase; a arquitetura-alvo define PostgreSQL/Neon como banco canônico (ver roadmap).
+- **Dados canônicos (P0)**: PostgreSQL no Neon, acessado pelo BFF via Drizzle; Supabase não participa do runtime e só pode ser origem read-only da migração única.
 - **Validação**: Zod em contratos e ferramentas de IA.
 - **Testes**: Vitest (unitários), Playwright (E2E multi-browser com axe).
 - **Toolchain pinada**: Node `24.15.0` (`.nvmrc`), npm `11.14.1`; Actions do GitHub fixadas por SHA.

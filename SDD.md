@@ -13,6 +13,12 @@
 | Arquitetura-alvo | Monólito modular full-stack com BFF, RLS e motor financeiro determinístico |
 | Classificação    | Uso interno e confidencial                                                 |
 
+> **Atualização P0 (2026-08-12):** este SDD preserva descrições do baseline
+> legado para rastreabilidade. A decisão vigente é PostgreSQL/Neon + Drizzle e
+> Better Auth server-driven, conforme ADR-019 e ADR-020. Supabase está
+> descartado como runtime final e só é permitido como origem read-only da
+> migração/cutover documentada em ADR-021.
+
 > Este SDD define como o sistema deverá ser construído. O Plano Mestre permanece responsável por prioridade, sequenciamento e governança da execução. Em caso de divergência, requisitos legais e de segurança prevalecem; em seguida, este SDD; depois, ADRs aprovados e o Plano Mestre.
 
 ---
@@ -73,7 +79,7 @@ As palavras abaixo possuem significado normativo:
 - `README.md`: visão original do produto e requisitos de negócio.
 - `PLANO_MESTRE_OTIMIZACAO_E_CIBERSEGURANCA.md`: backlog, fases e gates.
 - `AGENTS.md`: regras de integração com Lovable.
-- `supabase/migrations/*.sql`: estado versionado do schema atual.
+- `docs/archive/supabase/migrations/*.sql`: histórico read-only do schema legado; o schema canônico está em `drizzle/`.
 - `docs/adr/ADR-016-shadcn-base-ui.md`: execução da decisão fixa de shadcn/ui sobre Base UI.
 - `docs/evidence/*.md`: evidências sanitizadas de build, bundle, browsers e acessibilidade.
 - ADRs listados na seção 20: decisões arquiteturais complementares.

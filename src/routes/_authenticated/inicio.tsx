@@ -1,13 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  computeProduct,
-  sumFiniteNumbers,
-  type FeeRow,
-  type IngredientRow,
-  type PackagingRow,
-} from "@/lib/finance";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { dashboardSummaryQueryOptions } from "@/lib/query-options";
 import { brl, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,8 +27,8 @@ export const Route = createFileRoute("/_authenticated/inicio")({
 
 interface Metrics {
   productCount: number;
-  fixedExpenses: number;
-  bestProduct: { name: string; cmPct: number } | null;
+  fixedExpenses: string | null;
+  bestProduct: { name: string; cmPct: string } | null;
   hasInvalidCalculation: boolean;
   incompleteProductCount: number;
   alerts: string[];
@@ -43,123 +37,17 @@ interface Metrics {
 type LoadStatus = "loading" | "ready" | "error";
 
 function Inicio() {
-  const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
-  const [errorReference, setErrorReference] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        const [productsResult, expensesResult] = await Promise.all([
-          supabase.from("products").select("*"),
-          supabase.from("expenses").select("*"),
-        ]);
-        if (cancelled) return;
-
-        if (productsResult.error || expensesResult.error) {
-          setMetrics(null);
-          setErrorReference(createErrorReference("DASH"));
-          setLoadStatus("error");
-          return;
-        }
-
-        const products = productsResult.data ?? [];
-        const expenses = expensesResult.data ?? [];
-        const fixedExpenses = sumFiniteNumbers(
-          expenses
-            .filter((expense) => expense.type === "fixa")
-            .map((expense) => Number(expense.amount)),
-        );
-
-        let bestProduct: { name: string; cmPct: number } | null = null;
-        let invalidProductCount = 0;
-        let incompleteProductCount = 0;
-        const alerts: string[] = [];
-
-        for (const product of products) {
-          const [ingredientsResult, packagingResult, feesResult] = await Promise.all([
-            supabase.from("product_ingredients").select("*").eq("product_id", product.id),
-            supabase.from("product_packaging").select("*").eq("product_id", product.id),
-            supabase.from("sales_fees").select("*").eq("product_id", product.id),
-          ]);
-          if (cancelled) return;
-
-          if (ingredientsResult.error || packagingResult.error || feesResult.error) {
-            setMetrics(null);
-            setErrorReference(createErrorReference("DASH"));
-            setLoadStatus("error");
-            return;
-          }
-
-          const computation = computeProduct({
-            ingredients: (ingredientsResult.data ?? []) as unknown as IngredientRow[],
-            packaging: (packagingResult.data ?? []) as unknown as PackagingRow[],
-            yieldQty: product.yield_qty == null ? null : Number(product.yield_qty),
-            price: product.current_price == null ? null : Number(product.current_price),
-            taxRate: product.tax_rate == null ? null : Number(product.tax_rate),
-            fees: (feesResult.data ?? []) as unknown as FeeRow[],
-          });
-
-          if (computation.status === "invalid") {
-            invalidProductCount += 1;
-            continue;
-          }
-          if (computation.status === "incomplete") {
-            incompleteProductCount += 1;
-            continue;
-          }
-
-          if (!bestProduct || computation.value.contributionMarginPct > bestProduct.cmPct) {
-            bestProduct = {
-              name: product.name,
-              cmPct: computation.value.contributionMarginPct,
-            };
-          }
-          if (Number(product.current_price) < computation.value.unitCost) {
-            alerts.push(`"${product.name}": preço de venda abaixo do custo unitário.`);
-          }
-          if (
-            computation.value.contributionMarginPct > 0 &&
-            computation.value.contributionMarginPct < 15
-          ) {
-            alerts.push(
-              `"${product.name}": margem de contribuição baixa (${pct(computation.value.contributionMarginPct)}).`,
-            );
-          }
-        }
-
-        if (incompleteProductCount > 0) {
-          alerts.unshift(
-            `${incompleteProductCount} produto(s) não participa(m) dos destaques por ter dados incompletos.`,
-          );
-        }
-
-        const hasInvalidCalculation = invalidProductCount > 0 || !Number.isFinite(fixedExpenses);
-
-        setMetrics({
-          productCount: products.length,
-          fixedExpenses,
-          bestProduct: hasInvalidCalculation ? null : bestProduct,
-          hasInvalidCalculation,
-          incompleteProductCount,
-          alerts,
-        });
-        setErrorReference(null);
-        setLoadStatus("ready");
-      } catch {
-        if (cancelled) return;
-        setMetrics(null);
-        setErrorReference(createErrorReference("DASH"));
-        setLoadStatus("error");
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const summaryQuery = useQuery(dashboardSummaryQueryOptions());
+  const loadStatus: LoadStatus = summaryQuery.isPending
+    ? "loading"
+    : summaryQuery.isError
+      ? "error"
+      : "ready";
+  const metrics = summaryQuery.data as Metrics | undefined;
+  const errorReference = useMemo(
+    () => (summaryQuery.isError ? createErrorReference("DASH") : null),
+    [summaryQuery.isError],
+  );
 
   if (loadStatus === "loading") {
     return (
@@ -198,7 +86,12 @@ function Inicio() {
           Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu
           negócio e quanto você precisa vender para começar a ter lucro.
         </p>
-        <Button render={<Link to="/novo-produto" />} size="lg" className="mt-6 gap-2">
+        <Button
+          nativeButton={false}
+          render={<Link to="/novo-produto" />}
+          size="lg"
+          className="mt-6 gap-2"
+        >
           <PlusCircle className="h-5 w-5" /> Começar agora
         </Button>
       </div>
@@ -280,10 +173,10 @@ function Inicio() {
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button render={<Link to="/novo-produto" />} className="gap-2">
+        <Button nativeButton={false} render={<Link to="/novo-produto" />} className="gap-2">
           <PlusCircle className="h-4 w-4" /> Novo produto
         </Button>
-        <Button render={<Link to="/diagnostico" />} variant="outline">
+        <Button nativeButton={false} render={<Link to="/diagnostico" />} variant="outline">
           Ver diagnóstico completo
         </Button>
       </div>
