@@ -9,7 +9,7 @@ function projectFile(path: string) {
 describe("fronteiras de persistência FIN-002", () => {
   it("remove defaults legados que convertiam rendimento/imposto ausentes em 1/0", () => {
     const migration = projectFile(
-      "supabase/migrations/20260810014633_drop_unknown_financial_defaults.sql",
+      "docs/archive/supabase/migrations/20260810014633_drop_unknown_financial_defaults.sql",
     );
 
     expect(migration).toContain("publique primeiro a aplicação");
@@ -18,27 +18,30 @@ describe("fronteiras de persistência FIN-002", () => {
   });
 
   it("preserva rendimento/imposto desconhecidos como null no fluxo conversacional", () => {
-    const source = projectFile("src/lib/chat.functions.ts");
+    const source = projectFile("src/lib/ai/tool-registry.ts");
 
-    expect(source).toContain("name, yield_qty: null, tax_rate: null");
-    expect(source).toContain("tax_rate: args.tax_rate ?? null");
-    expect(source).toContain("Omita se não souber");
-    expect(source).not.toContain("tax_rate: args.tax_rate ?? 0");
-    expect(source).not.toContain("Use 0 se não souber");
+    expect(source).toContain("yieldQty: null");
+    expect(source).toContain("taxRate: null");
+    expect(source).toContain("input.tax_rate === undefined ? null");
+    expect(source).not.toContain("input.tax_rate ?? 0");
   });
 
   it("preserva null também quando o produto é criado pelo BFF manual", () => {
     const source = projectFile("src/lib/products.functions.ts");
 
-    expect(source).toContain("{ yield_qty: null, tax_rate: null, ...data");
+    expect(source).toContain("data.yield_qty == null ? null");
+    expect(source).toContain("data.tax_rate == null ? null");
+    expect(source).not.toContain("data.yield_qty ?? 1");
+    expect(source).not.toContain("data.tax_rate ?? 0");
   });
 });
 
 describe("fronteiras de entrada FIN-003", () => {
-  it("rejeita NaN e Infinity em todos os schemas numéricos do BFF financeiro", () => {
+  it("usa strings decimais finitas em todos os schemas do BFF financeiro", () => {
     for (const path of ["src/lib/products.functions.ts", "src/lib/expenses.functions.ts"]) {
       const source = projectFile(path);
-      expect(source).not.toMatch(/z\.number\(\)(?!\.finite\(\))/);
+      expect(source).not.toContain("z.number()");
+      expect(source).toMatch(/DecimalStringSchema/);
     }
   });
 
@@ -73,8 +76,8 @@ describe("fronteiras de entrada FIN-003", () => {
 
   it("impõe taxas individuais abaixo de 100% no BFF", () => {
     const source = projectFile("src/lib/products.functions.ts");
-    expect(source).toContain("tax_rate: z.number().finite().min(0).lt(100)");
-    expect(source).toContain("percentage: z.number().finite().min(0).lt(100)");
+    expect(source).toContain("tax_rate: percentFractionSchema");
+    expect(source).toContain("percentage: percentFractionSchema");
   });
 });
 
@@ -118,8 +121,12 @@ describe("fronteiras de proveniência FIN-004", () => {
       "src/routes/_authenticated/simulacoes.tsx",
     ]) {
       const source = projectFile(path);
-      expect(source).toContain("Result.error");
-      expect(source).toContain('setLoadStatus("error")');
+      expect(source).toContain("isError");
+      if (path === "src/routes/_authenticated/inicio.tsx") {
+        expect(source).toContain("summaryQuery.isError");
+      } else {
+        expect(source).toContain('setLoadStatus("error")');
+      }
       expect(source).toContain("Referência de atendimento");
       expect(source).toContain("Tentar novamente");
     }
@@ -173,9 +180,9 @@ describe("fronteiras de formação de preço FIN-005", () => {
 
     expect(finance).toContain("export function computeProductCost");
     expect(finance).toContain("export function calculatePriceFormation");
-    expect(diagnostic).toContain("ingredientsResult.error");
-    expect(diagnostic).toContain("packagingResult.error");
-    expect(diagnostic).toContain("feesResult.error");
-    expect(diagnostic).toContain("marketResult.error");
+    expect(diagnostic).toContain("productsWithMetricsQueryOptions()");
+    expect(diagnostic).toContain("isError");
+    expect(diagnostic).toContain('setLoadStatus("error")');
+    expect(diagnostic).not.toMatch(/current_price\s*[),]\s*ingredients/);
   });
 });

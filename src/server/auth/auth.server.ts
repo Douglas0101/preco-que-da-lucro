@@ -9,6 +9,7 @@ import { getEmailAdapter } from "@/server/email/email-adapter.server";
 import { createPersonalTenantForUser } from "./tenant-bootstrap.server";
 import { resolveAuthPolicy, requireAuthSecret, resolveGoogleCredentials } from "./auth-policy";
 import { hashPassword, verifyPassword } from "./password.server";
+import { createDatabaseRateLimitStorage } from "./rate-limit-storage.server";
 
 export function createAuthInstance(database: Database = getDatabase()) {
   const policy = resolveAuthPolicy();
@@ -86,7 +87,14 @@ export function createAuthInstance(database: Database = getDatabase()) {
       enabled: true,
       window: 60,
       max: 100,
-      storage: "memory",
+      // Keep buckets in PostgreSQL and use an explicit atomic consume
+      // implementation; the adapter's legacy get/set fallback races on first
+      // insert when multiple instances receive the same request burst.
+      storage: "database",
+      customStorage: createDatabaseRateLimitStorage(database),
+      customRules: {
+        "/sign-up/email": { window: 60, max: 3 },
+      },
     },
     advanced: {
       useSecureCookies: policy.secureCookies,

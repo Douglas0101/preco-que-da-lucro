@@ -1,6 +1,18 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+const authEmail = process.env.E2E_AUTH_EMAIL ?? "";
+const authPassword = process.env.E2E_AUTH_PASSWORD ?? "";
+
+function memberEmail(): string {
+  if (process.env.E2E_AUTH_MEMBER_EMAIL) return process.env.E2E_AUTH_MEMBER_EMAIL;
+  const [localPart, domain] = authEmail.split("@");
+  if (!localPart || !domain) return "";
+  return `${localPart}+member@${domain}`;
+}
+
+const memberPassword = process.env.E2E_AUTH_MEMBER_PASSWORD ?? authPassword;
+
 async function expectNoBlockingAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -12,127 +24,32 @@ async function expectNoBlockingAxeViolations(page: Page) {
   expect(blocking).toEqual([]);
 }
 
-interface SupabaseContractOptions {
-  rows?: Record<string, unknown[]>;
-  errorTables?: string[];
+async function signInWithBetterAuth(page: Page, email: string, password: string): Promise<void> {
+  const pageUrl = page.url();
+  const origin = pageUrl.startsWith("http")
+    ? new URL(pageUrl).origin
+    : (process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4173");
+  const response = await page.request.post("/api/auth/sign-in/email", {
+    headers: { origin, "sec-fetch-site": "same-origin" },
+    data: { email, password },
+  });
+  expect(response.ok(), await response.text()).toBe(true);
 }
 
-async function installAuthenticatedSupabaseContract(
-  page: Page,
-  { rows = {}, errorTables = [] }: SupabaseContractOptions = {},
-) {
-  const now = Math.floor(Date.now() / 1000);
-  const user = {
-    id: "00000000-0000-4000-8000-000000000001",
-    aud: "authenticated",
-    role: "authenticated",
-    email: "teste@example.com",
-    email_confirmed_at: new Date().toISOString(),
-    app_metadata: { provider: "email", providers: ["email"] },
-    user_metadata: { full_name: "Teste" },
-    identities: [],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    is_anonymous: false,
-  };
-  const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
-  const accessToken = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({
-    aud: "authenticated",
-    exp: now + 3_600,
-    iat: now,
-    role: "authenticated",
-    sub: user.id,
-  })}.test-signature`;
-  const session = JSON.stringify({
-    access_token: accessToken,
-    refresh_token: "test-refresh-token",
-    expires_at: now + 3_600,
-    expires_in: 3_600,
-    token_type: "bearer",
-    user,
-  });
-
-  await page.addInitScript((storedSession) => {
-    const originalGetItem = Storage.prototype.getItem;
-    localStorage.setItem("sb-e2e-auth-token", storedSession);
-    Storage.prototype.getItem = function getItem(key) {
-      if (/^sb-.*-auth-token$/.test(key)) return storedSession;
-      return originalGetItem.call(this, key);
-    };
-  }, session);
-
-  await page.route("**/auth/v1/user", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify(user),
-    });
-  });
-  await page.route("**/rest/v1/**", async (route) => {
-    let table: string;
-    try {
-      const url = new URL(route.request().url());
-      table = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
-    } catch {
-      await route.fulfill({ status: 400, body: "URL inválida" });
-      return;
-    }
-    if (errorTables.includes(table)) {
-      await route.fulfill({
-        status: 500,
-        contentType: "application/json",
-        body: JSON.stringify({ code: "E2E_QUERY_ERROR", message: "Falha simulada" }),
-      });
-      return;
-    }
-
-    const tableRows = rows[table] ?? [];
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      headers: { "content-range": `*/${tableRows.length}` },
-      body: JSON.stringify(tableRows),
-    });
-  });
-
-  return accessToken;
-}
-
-function completeFinancialRows(): Record<string, unknown[]> {
-  const productId = "00000000-0000-4000-8000-000000000010";
-  const userId = "00000000-0000-4000-8000-000000000001";
-  const timestamp = new Date().toISOString();
-  return {
-    products: [
-      {
-        id: productId,
-        user_id: userId,
-        name: "Produto de teste",
-        current_price: 20,
-        yield_qty: 10,
-        yield_unit: "unidade",
-        tax_rate: 10,
-        tax_regime: null,
-        notes: null,
-        is_demo: false,
-        created_at: timestamp,
-        updated_at: timestamp,
-      },
-    ],
-    expenses: [
-      { amount: 600, type: "fixa" },
-      { amount: 200, type: "variavel" },
-    ],
-    product_ingredients: [],
-    product_packaging: [{ package_price: 100, units_per_package: 10 }],
-    sales_fees: [{ percentage: 5 }],
-    market_prices: [{ avg_price: 18, created_at: timestamp }],
-  };
+async function login(page: Page): Promise<void> {
+  expect(authEmail, "E2E_AUTH_EMAIL deve estar configurada").not.toBe("");
+  expect(authPassword, "E2E_AUTH_PASSWORD deve estar configurada").not.toBe("");
+  await page.goto("/auth");
+  await page.getByLabel("E-mail").fill(authEmail);
+  await page.getByLabel("Senha").fill(authPassword);
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  await expect(page).toHaveURL(/\/inicio$/);
 }
 
 test("public UI uses valid composed controls and has no serious a11y violations", async ({
   page,
 }) => {
+  await page.context().clearCookies();
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: /entenda a faixa de preço/i })).toBeVisible();
@@ -145,9 +62,10 @@ test("public UI uses valid composed controls and has no serious a11y violations"
   await expectNoBlockingAxeViolations(page);
 });
 
-test("authentication controls keep accessible names", async ({ page }) => {
+test("authentication controls keep accessible names", async ({ page, browserName }) => {
+  await page.context().clearCookies();
   await page.goto("/inicio");
-  await expect(page).toHaveURL(/\/auth$/);
+  await expect(page).toHaveURL(/\/auth(?:\?|$)/);
 
   const googleButton = page.getByRole("button", { name: "Continuar com Google" });
   const email = page.getByLabel("E-mail");
@@ -167,16 +85,59 @@ test("authentication controls keep accessible names", async ({ page }) => {
   await expect(password).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(submit).toBeFocused();
+
+  if (browserName === "chromium") await login(page);
 });
 
-test("authenticated shell keeps responsive navigation and accessible structure", async ({
+test("authentication matrix rejects invalid Better Auth credentials and protects routes", async ({
   page,
 }) => {
-  const accessToken = await installAuthenticatedSupabaseContract(page);
+  await page.context().clearCookies();
+  await page.goto("/auth");
+
+  const response = await page.request.post("/api/auth/sign-in/email", {
+    headers: {
+      origin: new URL(page.url()).origin,
+      "sec-fetch-site": "same-origin",
+    },
+    data: { email: authEmail, password: `${authPassword}-invalid` },
+  });
+  expect(response.status()).toBe(401);
+
+  await page.goto("/inicio");
+  await expect(page).toHaveURL(/\/auth\?redirect=%2Finicio/);
+});
+
+test("authorization matrix blocks member mutations with a Better Auth session", async ({
+  page,
+}) => {
+  expect(memberEmail(), "E2E_AUTH_MEMBER_EMAIL derivável é obrigatória").not.toBe("");
+  expect(memberPassword, "E2E_AUTH_MEMBER_PASSWORD derivável é obrigatória").not.toBe("");
+  await page.context().clearCookies();
+  await page.goto("/auth");
+  await signInWithBetterAuth(page, memberEmail(), memberPassword);
+  await page.goto("/despesas");
+  await expect(page.getByRole("heading", { name: "Minhas Despesas" })).toBeVisible();
+
+  await page.getByLabel("Nome").fill("Tentativa de mutação não autorizada");
+  await page.getByLabel("Valor (R$)").fill("1");
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes("/_serverFn/") && response.request().method() === "POST",
+  );
+  await page.getByRole("button", { name: "Adicionar despesa" }).click();
+  const response = await responsePromise;
+  expect(response.status()).toBe(403);
+});
+
+test("authenticated shell uses an HttpOnly session and accessible navigation", async ({ page }) => {
   await page.goto("/");
 
   await expect(page).toHaveURL(/\/inicio$/);
-  await expect(page.getByRole("heading", { name: "Bem-vindo!" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Olá! 👋" })).toBeVisible();
+  await expect(page.getByText("Faturamento real", { exact: true })).toBeVisible();
+  await expect(page.getByText("Nenhuma venda real registrada.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Faturamento p/ equilíbrio", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Margem média", { exact: true })).toHaveCount(0);
 
   const mobileMenu = page.getByRole("button", { name: "Abrir menu de navegação" });
   if (await mobileMenu.isVisible()) await mobileMenu.click();
@@ -195,14 +156,33 @@ test("authenticated shell keeps responsive navigation and accessible structure",
   );
   await page.goto("/novo-produto");
   const serverFnRequest = await serverFnRequestPromise;
-  expect(serverFnRequest.headers().authorization).toBe(`Bearer ${accessToken}`);
+  expect(serverFnRequest.headers().authorization).toBeUndefined();
+
+  await expect(
+    page.getByText("Mensagem restaurada do histórico E2E.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ver produto" })).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByText("Mensagem restaurada do histórico E2E.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ver produto" })).toBeVisible();
+
+  const cookies = await page.context().cookies();
+  const sessionCookie = cookies.find((cookie) => cookie.name.includes("session_token"));
+  expect(sessionCookie?.httpOnly).toBe(true);
+  expect(sessionCookie?.sameSite).toBe("Lax");
+  expect(await page.evaluate(() => document.cookie)).not.toContain("session_token");
+  const storageKeys = await page.evaluate(() => [
+    ...Object.keys(window.localStorage),
+    ...Object.keys(window.sessionStorage),
+  ]);
+  expect(storageKeys.filter((key) => /token|session|auth/i.test(key))).toEqual([]);
 });
 
 test("manual simulation has no fictitious current volume and labels hypothetical results", async ({
   page,
 }) => {
-  await installAuthenticatedSupabaseContract(page, { rows: completeFinancialRows() });
-
   await page.goto("/simulacoes");
 
   await expect(page.getByRole("heading", { name: "Simulações" })).toBeVisible();
@@ -229,18 +209,9 @@ test("manual simulation has no fictitious current volume and labels hypothetical
   await price.fill("20");
   await expect(page.getByText("Faturamento simulado", { exact: true })).toBeVisible();
   await expectNoBlockingAxeViolations(page);
-
-  await page.goto("/inicio");
-  await expect(page.getByText("Faturamento real", { exact: true })).toBeVisible();
-  await expect(page.getByText("Nenhuma venda real registrada.", { exact: true })).toBeVisible();
-  await expect(page.getByText("Faturamento p/ equilíbrio", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("Margem média", { exact: true })).toHaveCount(0);
-  await expectNoBlockingAxeViolations(page);
 });
 
 test("diagnostic forms prices only from explicit assumptions", async ({ page }) => {
-  await installAuthenticatedSupabaseContract(page, { rows: completeFinancialRows() });
-
   await page.goto("/diagnostico");
 
   await expect(page.getByRole("heading", { name: "Meu Diagnóstico" })).toBeVisible();
@@ -274,10 +245,11 @@ test("diagnostic forms prices only from explicit assumptions", async ({ page }) 
 });
 
 test("financial query failure is not rendered as empty or zero data", async ({ page }) => {
-  await installAuthenticatedSupabaseContract(page, { errorTables: ["expenses"] });
+  await page.route("**/_serverFn/**", async (route) => {
+    await route.fulfill({ status: 503, contentType: "application/json", body: "{}" });
+  });
 
   await page.goto("/simulacoes");
-
   await expect(page.getByRole("alert")).toContainText(
     "Não foi possível carregar os dados financeiros",
   );
@@ -290,7 +262,7 @@ test("financial query failure is not rendered as empty or zero data", async ({ p
   await expect(page.getByRole("alert")).toContainText(
     "Não foi possível carregar o resumo financeiro",
   );
-  await expect(page.getByRole("heading", { name: "Bem-vindo!" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Olá! 👋" })).toHaveCount(0);
   await expect(page.getByText(/^Referência de atendimento: DASH-/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Tentar novamente" })).toBeVisible();
   await expectNoBlockingAxeViolations(page);

@@ -1,18 +1,22 @@
+import { and, asc, count, eq, gte, sql } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
+import { withTenantTransaction } from "@/db/client.server";
+import { aiDailyBudgets, chatConversations, chatMessages, products } from "@/db/schema";
+import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import { ApplicationError } from "@/lib/api-error";
+import { GATEWAY_TOOLS } from "@/lib/ai/tool-registry";
+import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
+import { runRegisteredTool } from "@/lib/ai/tool-runner";
+import type { RequestContext, RequestIdentity } from "@/lib/request-context";
+import { logJson } from "@/lib/structured-logger";
+import { requireDatabaseIdentity } from "@/middleware/request-context";
 
-interface ChatMessage {
-  role: "user" | "assistant" | "system";
+interface GatewayMessage {
+  role: "user" | "assistant" | "system" | "tool";
   content: string;
-}
-
-interface ToolCall {
-  id: string;
-  name: string;
-  arguments: Record<string, unknown>;
+  tool_calls?: GatewayToolCall[];
+  tool_call_id?: string;
 }
 
 interface GatewayToolCall {
@@ -20,523 +24,576 @@ interface GatewayToolCall {
   function: { name: string; arguments: string };
 }
 
-interface GatewayMessage {
-  role: ChatMessage["role"] | "tool";
-  content: string;
-  tool_calls?: GatewayToolCall[];
-  tool_call_id?: string;
-}
+const gatewayResponseSchema = z.object({
+  choices: z
+    .array(
+      z.object({
+        message: z.object({
+          content: z.string().nullable().optional(),
+          tool_calls: z
+            .array(
+              z.object({
+                id: z.string().min(1),
+                function: z.object({
+                  name: z.string().min(1),
+                  arguments: z.string(),
+                }),
+              }),
+            )
+            .optional(),
+        }),
+      }),
+    )
+    .min(1),
+  usage: z
+    .object({
+      prompt_tokens: z.number().int().nonnegative().optional(),
+      completion_tokens: z.number().int().nonnegative().optional(),
+    })
+    .optional(),
+});
 
-const SYSTEM_PROMPT = `Você é o "Consultor Preço que Dá Lucro", uma IA amiga e didática que ajuda pequenos empreendedores brasileiros — especialmente do ramo de alimentação — a avaliarem preços sustentáveis e cenários de margem para seus produtos.
+const SYSTEM_PROMPT = `Você é o "Consultor Preço que Dá Lucro", uma IA amiga e didática que ajuda pequenos empreendedores brasileiros a coletarem dados e avaliarem cenários de preço.
 
 REGRAS INEGOCIÁVEIS:
-1) Você conversa em português do Brasil, com linguagem simples, acolhedora e sem jargão contábil.
-2) Você faz UMA pergunta por vez. Nunca solicita vários dados de uma vez só.
-3) Você NUNCA faz cálculos matemáticos. Os cálculos são responsabilidade do sistema (motor financeiro determinístico). Você apenas coleta dados via ferramentas e explica resultados que o sistema informa.
-4) Você NUNCA inventa preços, custos, alíquotas ou impostos. Se o usuário não souber, pergunte de novo em outras palavras ou explique.
-5) Você usa as ferramentas (functions) disponíveis para salvar cada informação estruturada assim que a coletar.
-6) Sempre confirme o que entendeu antes de seguir para o próximo passo.
+1) Converse em português do Brasil, com linguagem simples e uma pergunta por vez.
+2) Nunca faça cálculos matemáticos; o motor financeiro determinístico faz os cálculos.
+3) Nunca invente preço, custo, alíquota ou imposto. Ausência continua ausente, nunca zero.
+4) Confirme o entendimento antes de chamar uma ferramenta de mutação.
+5) Use somente as ferramentas registradas e explique apenas o resultado seguro recebido.
+6) Não solicite senha, token, documento pessoal ou credencial.
 
-FLUXO DE CADASTRO DE PRODUTO (siga na ordem):
-A. Nome do produto → use create_product.
-B. Receita em texto livre → identifique os ingredientes (nome, quantidade, unidade) e chame add_ingredients (uma vez com todos).
-C. Para cada ingrediente, pergunte preço da embalagem e quantidade que vem nela → use set_ingredient_cost.
-D. Rendimento da receita → use set_yield.
-E. Embalagens usadas para vender → use add_packaging.
-F. Preço atual de venda, regime tributário e alíquota se aplicável → use set_price_and_tax.
-G. Taxas por venda (cartão, delivery, marketplace) → use add_fee para cada.
-H. Preços de mercado (mínimo, médio, máximo) → use set_market_price.
-I. Finalize com finish_product e explique brevemente os próximos passos (o usuário pode ver os resultados na tela do produto).
-
-Ao explicar resultados: use linguagem como "vale investigar", "os dados indicam", "pode ser interessante simular". Nunca afirme categoricamente que algo está "certo" ou "errado" sem contexto.`;
-
-const tools = [
-  {
-    type: "function",
-    function: {
-      name: "create_product",
-      description: "Cria um novo produto no sistema com o nome informado pelo usuário.",
-      parameters: {
-        type: "object",
-        properties: { name: { type: "string", description: "Nome do produto." } },
-        required: ["name"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "add_ingredients",
-      description:
-        "Adiciona uma lista de ingredientes ao produto atual, extraídos da receita em texto livre.",
-      parameters: {
-        type: "object",
-        properties: {
-          product_id: { type: "string" },
-          ingredients: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                used_qty: { type: "number" },
-                used_unit: {
-                  type: "string",
-                  description: "g, kg, ml, l, unidade, dúzia, colher, etc.",
-                },
-              },
-              required: ["name", "used_qty", "used_unit"],
-            },
-          },
-        },
-        required: ["product_id", "ingredients"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "set_ingredient_cost",
-      description:
-        "Define o preço da embalagem comprada e a quantidade que vem nela para um ingrediente.",
-      parameters: {
-        type: "object",
-        properties: {
-          ingredient_id: { type: "string" },
-          package_price: { type: "number" },
-          package_qty: { type: "number" },
-          package_unit: { type: "string" },
-        },
-        required: ["ingredient_id", "package_price", "package_qty", "package_unit"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "set_yield",
-      description: "Define o rendimento da receita (quantas unidades ela produz).",
-      parameters: {
-        type: "object",
-        properties: {
-          product_id: { type: "string" },
-          yield_qty: { type: "number" },
-          yield_unit: { type: "string" },
-        },
-        required: ["product_id", "yield_qty", "yield_unit"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "add_packaging",
-      description: "Adiciona uma embalagem/material usado para vender o produto.",
-      parameters: {
-        type: "object",
-        properties: {
-          product_id: { type: "string" },
-          name: { type: "string" },
-          package_price: { type: "number" },
-          units_per_package: { type: "number" },
-        },
-        required: ["product_id", "name", "package_price", "units_per_package"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "set_price_and_tax",
-      description:
-        "Salva o preço atual de venda, o regime tributário e a alíquota efetiva informada pelo usuário.",
-      parameters: {
-        type: "object",
-        properties: {
-          product_id: { type: "string" },
-          current_price: { type: "number" },
-          tax_regime: {
-            type: "string",
-            description: "MEI, Simples Nacional, Lucro Presumido, Lucro Real, Não sei",
-          },
-          tax_rate: {
-            type: "number",
-            description:
-              "Alíquota em porcentagem (ex: 6 para 6%). Omita se não souber; use 0 apenas quando a alíquota zero for confirmada.",
-          },
-        },
-        required: ["product_id", "current_price", "tax_regime"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "add_fee",
-      description:
-        "Adiciona uma taxa percentual sobre a venda (cartão, delivery, marketplace, comissão).",
-      parameters: {
-        type: "object",
-        properties: {
-          product_id: { type: "string" },
-          name: { type: "string" },
-          percentage: { type: "number" },
-        },
-        required: ["product_id", "name", "percentage"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "set_market_price",
-      description: "Salva preços de mercado (mínimo, médio, máximo) informados pelo usuário.",
-      parameters: {
-        type: "object",
-        properties: {
-          product_id: { type: "string" },
-          min_price: { type: "number" },
-          avg_price: { type: "number" },
-          max_price: { type: "number" },
-        },
-        required: ["product_id"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "add_expense",
-      description: "Adiciona uma despesa mensal da empresa (fixa ou variável).",
-      parameters: {
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          amount: { type: "number" },
-          type: { type: "string", enum: ["fixa", "variavel"] },
-          category: { type: "string" },
-        },
-        required: ["name", "amount", "type"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "finish_product",
-      description:
-        "Marca o cadastro do produto como concluído. Use após ter coletado ingredientes, preço e mercado.",
-      parameters: {
-        type: "object",
-        properties: { product_id: { type: "string" } },
-        required: ["product_id"],
-      },
-    },
-  },
-];
-
-async function executeTool(
-  tool: ToolCall,
-  supabase: SupabaseClient<Database>,
-  userId: string,
-): Promise<{ result: string; state?: Record<string, unknown> }> {
-  try {
-    switch (tool.name) {
-      case "create_product": {
-        const { name } = tool.arguments as { name: string };
-        const { data, error } = await supabase
-          .from("products")
-          // Compatibilidade app-first: não dependa dos defaults legados 1/0.
-          .insert({ user_id: userId, name, yield_qty: null, tax_rate: null })
-          .select()
-          .single();
-        if (error) throw error;
-        return {
-          result: JSON.stringify({ ok: true, product_id: data.id, name: data.name }),
-          state: { currentProductId: data.id },
-        };
-      }
-      case "add_ingredients": {
-        const args = tool.arguments as {
-          product_id: string;
-          ingredients: Array<{ name: string; used_qty: number; used_unit: string }>;
-        };
-        const rows = args.ingredients.map((i) => ({
-          product_id: args.product_id,
-          user_id: userId,
-          name: i.name,
-          used_qty: i.used_qty,
-          used_unit: i.used_unit,
-        }));
-        const { data, error } = await supabase.from("product_ingredients").insert(rows).select();
-        if (error) throw error;
-        return { result: JSON.stringify({ ok: true, ingredients: data }) };
-      }
-      case "set_ingredient_cost": {
-        const args = tool.arguments as {
-          ingredient_id: string;
-          package_price: number;
-          package_qty: number;
-          package_unit: string;
-        };
-        const { data, error } = await supabase
-          .from("product_ingredients")
-          .update({
-            package_price: args.package_price,
-            package_qty: args.package_qty,
-            package_unit: args.package_unit,
-          })
-          .eq("id", args.ingredient_id)
-          .select()
-          .single();
-        if (error) throw error;
-        return { result: JSON.stringify({ ok: true, ingredient: data }) };
-      }
-      case "set_yield": {
-        const args = tool.arguments as {
-          product_id: string;
-          yield_qty: number;
-          yield_unit: string;
-        };
-        const { error } = await supabase
-          .from("products")
-          .update({ yield_qty: args.yield_qty, yield_unit: args.yield_unit })
-          .eq("id", args.product_id);
-        if (error) throw error;
-        return { result: JSON.stringify({ ok: true }) };
-      }
-      case "add_packaging": {
-        const args = tool.arguments as {
-          product_id: string;
-          name: string;
-          package_price: number;
-          units_per_package: number;
-        };
-        const { data, error } = await supabase
-          .from("product_packaging")
-          .insert({ ...args, user_id: userId })
-          .select()
-          .single();
-        if (error) throw error;
-        return { result: JSON.stringify({ ok: true, packaging: data }) };
-      }
-      case "set_price_and_tax": {
-        const args = tool.arguments as {
-          product_id: string;
-          current_price: number;
-          tax_regime: string;
-          tax_rate?: number;
-        };
-        const { error } = await supabase
-          .from("products")
-          .update({
-            current_price: args.current_price,
-            tax_regime: args.tax_regime,
-            tax_rate: args.tax_rate ?? null,
-          })
-          .eq("id", args.product_id);
-        if (error) throw error;
-        return { result: JSON.stringify({ ok: true }) };
-      }
-      case "add_fee": {
-        const args = tool.arguments as { product_id: string; name: string; percentage: number };
-        const { data, error } = await supabase
-          .from("sales_fees")
-          .insert({ ...args, user_id: userId })
-          .select()
-          .single();
-        if (error) throw error;
-        return { result: JSON.stringify({ ok: true, fee: data }) };
-      }
-      case "set_market_price": {
-        const args = tool.arguments as {
-          product_id: string;
-          min_price?: number;
-          avg_price?: number;
-          max_price?: number;
-        };
-        await supabase.from("market_prices").delete().eq("product_id", args.product_id);
-        const { data, error } = await supabase
-          .from("market_prices")
-          .insert({ ...args, user_id: userId })
-          .select()
-          .single();
-        if (error) throw error;
-        return { result: JSON.stringify({ ok: true, market: data }) };
-      }
-      case "add_expense": {
-        const args = tool.arguments as {
-          name: string;
-          amount: number;
-          type: string;
-          category?: string;
-        };
-        const { data, error } = await supabase
-          .from("expenses")
-          .insert({ ...args, user_id: userId })
-          .select()
-          .single();
-        if (error) throw error;
-        return { result: JSON.stringify({ ok: true, expense: data }) };
-      }
-      case "finish_product": {
-        return {
-          result: JSON.stringify({
-            ok: true,
-            message: "Produto finalizado. Direcione o usuário para a página do produto.",
-          }),
-        };
-      }
-      default:
-        return { result: JSON.stringify({ error: "Ferramenta desconhecida" }) };
-    }
-  } catch (err) {
-    return {
-      result: JSON.stringify({ error: err instanceof Error ? err.message : "Erro desconhecido" }),
-    };
-  }
-}
-
-export const getChatHistory = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("chat_messages")
-      .select("id, role, content, created_at")
-      .order("created_at", { ascending: true });
-    if (error) throw new Error(error.message);
-    return data ?? [];
-  });
-
-export const clearChatHistory = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { error } = await context.supabase
-      .from("chat_messages")
-      .delete()
-      .eq("user_id", context.userId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
+FLUXO: create_product; add_ingredients; set_ingredient_cost para cada ingrediente; set_yield; add_packaging; set_price_and_tax; add_fee; set_market_price; finish_product.
+Ao explicar, use "vale investigar", "os dados indicam" e "pode ser interessante simular". Não afirme que um preço está certo ou errado sem contexto.`;
 
 const sendInput = z.object({
-  message: z.string().min(1).max(4000),
+  message: z.string().trim().min(1).max(4000),
   currentProductId: z.string().uuid().nullable().optional(),
 });
 
-export const sendChatMessage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((i: unknown) => sendInput.parse(i))
-  .handler(async ({ data, context }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY ausente");
+function numberSetting(name: string, fallback: number, min: number, max: number): number {
+  const parsed = Number(process.env[name]);
+  return Number.isInteger(parsed) && parsed >= min && parsed <= max ? parsed : fallback;
+}
 
-    // Save user message
-    await context.supabase.from("chat_messages").insert({
-      user_id: context.userId,
-      role: "user",
-      content: data.message,
+const CHAT_LIMIT_WINDOW_MS = 10 * 60 * 1_000;
+
+function requestContext(
+  identity: RequestIdentity,
+  transaction: RequestContext["transaction"],
+): RequestContext {
+  return { ...identity, transaction };
+}
+
+async function inTenantTransaction<T>(
+  identity: RequestIdentity,
+  operation: (context: RequestContext) => Promise<T>,
+): Promise<T> {
+  try {
+    return await withTenantTransaction(identity, (transaction) =>
+      operation(requestContext(identity, transaction)),
+    );
+  } catch (error) {
+    if (error instanceof ApplicationError || error instanceof Response) throw error;
+    throw new ApplicationError("DATABASE_ERROR", { cause: error });
+  }
+}
+
+/** Read-only lookup used by GET handlers. GET must never create tenant data. */
+async function getConversation(context: RequestContext) {
+  const [existing] = await context.transaction
+    .select()
+    .from(chatConversations)
+    .where(
+      and(
+        eq(chatConversations.tenantId, context.tenantId),
+        eq(chatConversations.userId, context.userId),
+      ),
+    )
+    .limit(1);
+  return existing;
+}
+
+/** Creation is intentionally isolated to POST flows (send/reset/explicit create). */
+async function getOrCreateConversation(context: RequestContext) {
+  const inserted = await context.transaction
+    .insert(chatConversations)
+    .values({
+      tenantId: context.tenantId,
+      userId: context.userId,
+      confirmedState: {},
+    })
+    .onConflictDoNothing()
+    .returning();
+  if (inserted[0]) return inserted[0];
+
+  const existing = await getConversation(context);
+  if (!existing) throw new Error("DATABASE_ERROR");
+  return existing;
+}
+
+async function validateCurrentProduct(
+  context: RequestContext,
+  productId: string | null,
+): Promise<string | null> {
+  if (!productId) return null;
+  const [row] = await context.transaction
+    .select({ id: products.id })
+    .from(products)
+    .where(and(eq(products.tenantId, context.tenantId), eq(products.id, productId)))
+    .limit(1);
+  if (!row) throw new ApplicationError("NOT_FOUND");
+  return row.id;
+}
+
+async function reserveChatAndLoadHistory(
+  context: RequestContext,
+  message: string,
+  requestedProductId: string | null,
+) {
+  const [recent] = await context.transaction
+    .select({ value: count() })
+    .from(chatMessages)
+    .where(
+      and(
+        eq(chatMessages.tenantId, context.tenantId),
+        eq(chatMessages.userId, context.userId),
+        eq(chatMessages.role, "user"),
+        gte(chatMessages.createdAt, new Date(Date.now() - CHAT_LIMIT_WINDOW_MS)),
+      ),
+    );
+  const chatLimit = numberSetting("AI_CHAT_LIMIT_PER_10_MINUTES", 20, 1, 1_000);
+  if ((recent?.value ?? 0) >= chatLimit) throw new ApplicationError("RATE_LIMIT");
+
+  const usageDate = new Date().toISOString().slice(0, 10);
+  const [budget] = await context.transaction
+    .insert(aiDailyBudgets)
+    .values({ tenantId: context.tenantId, usageDate, chatCount: 1 })
+    .onConflictDoUpdate({
+      target: [aiDailyBudgets.tenantId, aiDailyBudgets.usageDate],
+      set: {
+        chatCount: sql`${aiDailyBudgets.chatCount} + 1`,
+        updatedAt: new Date(),
+      },
+    })
+    .returning({ chatCount: aiDailyBudgets.chatCount });
+  const dailyLimit = numberSetting("AI_DAILY_CHAT_LIMIT_PER_TENANT", 200, 1, 100_000);
+  if (!budget || budget.chatCount > dailyLimit) throw new ApplicationError("AI_QUOTA");
+
+  const conversation = await getOrCreateConversation(context);
+  const currentProductId = await validateCurrentProduct(
+    context,
+    requestedProductId ?? conversation.currentProductId,
+  );
+  await context.transaction.insert(chatMessages).values({
+    conversationId: conversation.id,
+    tenantId: context.tenantId,
+    userId: context.userId,
+    role: "user",
+    content: message,
+  });
+  const history = await context.transaction
+    .select({ role: chatMessages.role, content: chatMessages.content })
+    .from(chatMessages)
+    .where(
+      and(
+        eq(chatMessages.tenantId, context.tenantId),
+        eq(chatMessages.conversationId, conversation.id),
+      ),
+    )
+    .orderBy(asc(chatMessages.createdAt))
+    .limit(60);
+  return { conversation, currentProductId, history };
+}
+
+async function recordModelUsage(
+  identity: RequestIdentity,
+  usage: z.output<typeof gatewayResponseSchema>["usage"],
+): Promise<void> {
+  await inTenantTransaction(identity, async (context) => {
+    const usageDate = new Date().toISOString().slice(0, 10);
+    await context.transaction
+      .insert(aiDailyBudgets)
+      .values({
+        tenantId: context.tenantId,
+        usageDate,
+        modelCallCount: 1,
+        inputTokens: usage?.prompt_tokens ?? 0,
+        outputTokens: usage?.completion_tokens ?? 0,
+      })
+      .onConflictDoUpdate({
+        target: [aiDailyBudgets.tenantId, aiDailyBudgets.usageDate],
+        set: {
+          modelCallCount: sql`${aiDailyBudgets.modelCallCount} + 1`,
+          inputTokens: sql`${aiDailyBudgets.inputTokens} + ${usage?.prompt_tokens ?? 0}`,
+          outputTokens: sql`${aiDailyBudgets.outputTokens} + ${usage?.completion_tokens ?? 0}`,
+          updatedAt: new Date(),
+        },
+      });
+  });
+}
+
+function isTransientStatus(status: number): boolean {
+  return (
+    status === 408 ||
+    status === 425 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504
+  );
+}
+
+function delay(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(signal.reason);
+      return;
+    }
+    const onAbort = () => {
+      globalThis.clearTimeout(timer);
+      reject(signal.reason);
+    };
+    const timer = globalThis.setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+type GatewayResponse = z.output<typeof gatewayResponseSchema>;
+
+async function fetchModelAttempt({
+  apiKey,
+  endpoint,
+  model,
+  messages,
+  signal,
+  requestSignal,
+  attempt,
+  attempts,
+}: Readonly<{
+  apiKey: string;
+  endpoint: string;
+  model: string;
+  messages: GatewayMessage[];
+  signal: AbortSignal;
+  requestSignal: AbortSignal;
+  attempt: number;
+  attempts: number;
+}>): Promise<GatewayResponse | null> {
+  const response = await withSpan(
+    "ai.model.call",
+    { "gen_ai.request.model": model, "app.ai.attempt": attempt },
+    () =>
+      fetch(endpoint, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
+        body: JSON.stringify({ model, messages, tools: GATEWAY_TOOLS, tool_choice: "auto" }),
+        signal,
+      }),
+  );
+  if (response.status === 402) {
+    applicationMetrics.aiQuotas.add(1);
+    throw new ApplicationError("AI_QUOTA");
+  }
+  if (response.status === 429) throw new ApplicationError("RATE_LIMIT");
+  if (!response.ok) {
+    if (isTransientStatus(response.status) && attempt < attempts) {
+      await delay(150 * attempt, requestSignal);
+      return null;
+    }
+    throw new ApplicationError("DEPENDENCY_ERROR");
+  }
+  const parsed = gatewayResponseSchema.safeParse(await response.json());
+  if (!parsed.success) throw new ApplicationError("DEPENDENCY_ERROR");
+  return parsed.data;
+}
+
+async function runModelAttempt({
+  apiKey,
+  endpoint,
+  model,
+  messages,
+  requestSignal,
+  attempt,
+  attempts,
+  timeoutMs,
+}: Readonly<{
+  apiKey: string;
+  endpoint: string;
+  model: string;
+  messages: GatewayMessage[];
+  requestSignal: AbortSignal;
+  attempt: number;
+  attempts: number;
+  timeoutMs: number;
+}>): Promise<GatewayResponse | null> {
+  const signal = AbortSignal.any([requestSignal, AbortSignal.timeout(timeoutMs)]);
+  const attemptStartedAt = performance.now();
+  try {
+    return await fetchModelAttempt({
+      apiKey,
+      endpoint,
+      model,
+      messages,
+      signal,
+      requestSignal,
+      attempt,
+      attempts,
     });
+  } catch (error) {
+    if (error instanceof ApplicationError) throw error;
+    if (signal.aborted) {
+      applicationMetrics.aiTimeouts.add(1);
+      throw new ApplicationError("AI_TIMEOUT", { cause: error });
+    }
+    if (attempt >= attempts) throw new ApplicationError("DEPENDENCY_ERROR", { cause: error });
+    await delay(150 * attempt, requestSignal);
+    return null;
+  } finally {
+    applicationMetrics.aiDuration.record(performance.now() - attemptStartedAt, {
+      model,
+      attempt,
+    });
+  }
+}
 
-    // Load recent history (last 40 messages)
-    const { data: history } = await context.supabase
-      .from("chat_messages")
-      .select("role, content")
-      .order("created_at", { ascending: true })
-      .limit(60);
+async function callModel(
+  messages: GatewayMessage[],
+  requestSignal: AbortSignal,
+): Promise<GatewayResponse> {
+  const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.LOVABLE_API_KEY;
+  if (!apiKey) throw new ApplicationError("DEPENDENCY_ERROR");
+  const endpoint =
+    process.env.AI_GATEWAY_URL ?? "https://ai.gateway.lovable.dev/v1/chat/completions";
+  const model = process.env.AI_MODEL ?? "google/gemini-3.6-flash";
+  const attempts = numberSetting("AI_MODEL_MAX_ATTEMPTS", 2, 1, 2);
+  const timeoutMs = numberSetting("AI_MODEL_TIMEOUT_MS", 30_000, 1_000, 30_000);
 
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const result = await runModelAttempt({
+      apiKey,
+      endpoint,
+      model,
+      messages,
+      requestSignal,
+      attempt,
+      attempts,
+      timeoutMs,
+    });
+    if (result) return result;
+  }
+  throw new ApplicationError("DEPENDENCY_ERROR");
+}
+
+export const getChatHistory = createServerFn({ method: "GET" })
+  .middleware([requireDatabaseIdentity])
+  .handler(async ({ context }) =>
+    inTenantTransaction(context.requestIdentity, async (request) => {
+      const conversation = await getConversation(request);
+      if (!conversation) {
+        return {
+          messages: [],
+          currentProductId: null,
+          confirmedState: {
+            currentProductId: null,
+            lastAssistantMessageId: null,
+            lastConfirmedAt: null,
+          },
+        };
+      }
+      const messages = await request.transaction
+        .select({
+          id: chatMessages.id,
+          role: chatMessages.role,
+          content: chatMessages.content,
+          created_at: chatMessages.createdAt,
+        })
+        .from(chatMessages)
+        .where(
+          and(
+            eq(chatMessages.tenantId, request.tenantId),
+            eq(chatMessages.conversationId, conversation.id),
+          ),
+        )
+        .orderBy(asc(chatMessages.createdAt));
+      return {
+        messages: messages.map((message) => ({
+          ...message,
+          created_at: message.created_at.toISOString(),
+        })),
+        currentProductId: conversation.currentProductId,
+        confirmedState: {
+          currentProductId:
+            typeof conversation.confirmedState.currentProductId === "string"
+              ? conversation.confirmedState.currentProductId
+              : null,
+          lastAssistantMessageId:
+            typeof conversation.confirmedState.lastAssistantMessageId === "string"
+              ? conversation.confirmedState.lastAssistantMessageId
+              : null,
+          lastConfirmedAt:
+            typeof conversation.confirmedState.lastConfirmedAt === "string"
+              ? conversation.confirmedState.lastConfirmedAt
+              : null,
+        },
+      };
+    }),
+  );
+
+export const createChatConversation = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseIdentity])
+  .handler(async ({ context }) =>
+    inTenantTransaction(context.requestIdentity, async (request) => {
+      const conversation = await getOrCreateConversation(request);
+      return {
+        id: conversation.id,
+        currentProductId: conversation.currentProductId,
+      };
+    }),
+  );
+
+export const clearChatHistory = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseIdentity])
+  .handler(async ({ context }) =>
+    inTenantTransaction(context.requestIdentity, async (request) => {
+      const conversation = await getOrCreateConversation(request);
+      await request.transaction
+        .delete(chatMessages)
+        .where(
+          and(
+            eq(chatMessages.tenantId, request.tenantId),
+            eq(chatMessages.conversationId, conversation.id),
+          ),
+        );
+      await request.transaction
+        .update(chatConversations)
+        .set({
+          currentProductId: null,
+          confirmedState: {},
+          resetAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(chatConversations.tenantId, request.tenantId),
+            eq(chatConversations.id, conversation.id),
+          ),
+        );
+      return { ok: true as const };
+    }),
+  );
+
+export const sendChatMessage = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseIdentity])
+  .validator((input: unknown) => sendInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const identity = context.requestIdentity;
+    const requestTimeoutMs = numberSetting("AI_REQUEST_TIMEOUT_MS", 60_000, 1_000, 60_000);
+    const requestSignal = AbortSignal.any([identity.signal, AbortSignal.timeout(requestTimeoutMs)]);
+    const state = await inTenantTransaction(identity, (request) =>
+      reserveChatAndLoadHistory(
+        request,
+        data.message,
+        data.currentProductId === undefined ? null : data.currentProductId,
+      ),
+    );
+    let currentProductId = state.currentProductId;
     const messages: GatewayMessage[] = [{ role: "system", content: SYSTEM_PROMPT }];
-    if (data.currentProductId) {
+    if (currentProductId) {
       messages.push({
         role: "system",
-        content: `Contexto: o produto atualmente em edição tem id "${data.currentProductId}". Use-o quando uma ferramenta pedir product_id.`,
+        content: `O produto atual confirmado tem id "${currentProductId}".`,
       });
     }
-    for (const message of history ?? []) {
+    for (const message of state.history) {
       if (message.role === "user" || message.role === "assistant" || message.role === "system") {
         messages.push({ role: message.role, content: message.content });
       }
     }
 
-    let currentProductId = data.currentProductId ?? null;
+    const maxToolRounds = numberSetting("AI_MAX_TOOL_ROUNDS", 8, 1, 8);
+    for (let round = 0; round < maxToolRounds; round += 1) {
+      if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
+      const modelResponse = await callModel(messages, requestSignal);
+      await recordModelUsage(identity, modelResponse.usage);
+      const modelMessage = modelResponse.choices[0].message;
+      const toolCalls = modelMessage.tool_calls;
 
-    // Tool loop
-    for (let iter = 0; iter < 8; iter++) {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Lovable-API-Key": apiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3.6-flash",
-          messages,
-          tools,
-          tool_choice: "auto",
-        }),
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        if (res.status === 429)
-          throw new Error("Muitas requisições. Tente novamente em alguns instantes.");
-        if (res.status === 402)
-          throw new Error("Créditos de IA esgotados. Adicione créditos para continuar.");
-        throw new Error(`Gateway error ${res.status}: ${errText.slice(0, 200)}`);
-      }
-
-      const json = await res.json();
-      const choice = json.choices?.[0];
-      const msg = choice?.message;
-      if (!msg) throw new Error("Resposta vazia da IA");
-
-      const toolCalls = msg.tool_calls as GatewayToolCall[] | undefined;
-
-      if (toolCalls && toolCalls.length > 0) {
+      if (toolCalls?.length) {
         messages.push({
           role: "assistant",
-          content: msg.content ?? "",
+          content: modelMessage.content ?? "",
           tool_calls: toolCalls,
         });
-
-        for (const tc of toolCalls) {
-          let args: Record<string, unknown> = {};
-          try {
-            args = JSON.parse(tc.function.arguments || "{}");
-          } catch {
-            /* noop */
-          }
-          const { result, state } = await executeTool(
-            { id: tc.id, name: tc.function.name, arguments: args },
-            context.supabase,
-            context.userId,
+        for (const toolCall of toolCalls) {
+          const toolResult = await inTenantTransaction(identity, (request) =>
+            runRegisteredTool({
+              context: request,
+              name: toolCall.function.name,
+              rawArguments: toolCall.function.arguments,
+              idempotencyKey: `${state.conversation.id}:${toolCall.id}`,
+            }),
           );
-          if (state?.currentProductId) currentProductId = state.currentProductId as string;
+          if (toolResult.ok && toolResult.output.state?.currentProductId) {
+            currentProductId = toolResult.output.state.currentProductId;
+          }
           messages.push({
             role: "tool",
-            tool_call_id: tc.id,
-            content: result,
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(
+              toolResult.ok
+                ? { ok: true, ...toolResult.output.result, replayed: toolResult.replayed }
+                : { ok: false, error: { code: toolResult.code }, replayed: toolResult.replayed },
+            ),
           });
         }
         continue;
       }
 
-      const finalText = msg.content ?? "";
-      await context.supabase.from("chat_messages").insert({
-        user_id: context.userId,
-        role: "assistant",
-        content: finalText,
-        metadata: { current_product_id: currentProductId },
+      const content = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
+      if (!content) throw new ApplicationError("DEPENDENCY_ERROR");
+      await inTenantTransaction(identity, async (request) => {
+        const [saved] = await request.transaction
+          .insert(chatMessages)
+          .values({
+            conversationId: state.conversation.id,
+            tenantId: request.tenantId,
+            userId: request.userId,
+            role: "assistant",
+            content,
+            metadata: { currentProductId },
+          })
+          .returning({ id: chatMessages.id });
+        await request.transaction
+          .update(chatConversations)
+          .set({
+            currentProductId,
+            confirmedState: {
+              currentProductId,
+              lastAssistantMessageId: saved?.id ?? null,
+              lastConfirmedAt: new Date().toISOString(),
+            },
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(chatConversations.tenantId, request.tenantId),
+              eq(chatConversations.id, state.conversation.id),
+            ),
+          );
       });
-
-      return { content: finalText, currentProductId };
+      logJson("info", "ai.chat_completed", {
+        correlationId: identity.correlationId,
+        tenantId: identity.tenantId,
+        rounds: round + 1,
+      });
+      return { content, currentProductId };
     }
 
-    const fallback = "Desculpe, tive dificuldade em concluir. Pode reformular?";
-    await context.supabase.from("chat_messages").insert({
-      user_id: context.userId,
-      role: "assistant",
-      content: fallback,
-    });
-    return { content: fallback, currentProductId };
+    throw new ApplicationError("DEPENDENCY_ERROR");
   });
+
+export { callModel as callModelForTests, getConversation as getConversationForTests };

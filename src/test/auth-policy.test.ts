@@ -26,6 +26,7 @@ describe("Better Auth policy", () => {
     expect(policy.secureCookies).toBe(false);
     expect(policy.sessionCookieName.startsWith("__Host-")).toBe(false);
     expect(policy.trustedOrigins).toContain("http://localhost:3000");
+    expect(policy.trustedOrigins).toContain("http://127.0.0.1:4173");
   });
 
   it("rejects non-HTTPS remote origins and partial Google credentials", () => {

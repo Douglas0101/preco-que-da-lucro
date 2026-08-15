@@ -80,6 +80,31 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     rolbypassrls: false,
   });
 
+  const runtimePrivileges = await client.query<{
+    rateLimitSelect: boolean;
+    rateLimitInsert: boolean;
+    publicRateLimitSelect: boolean;
+    membershipFunctionExecute: boolean;
+    tenantDelete: boolean;
+    membershipDelete: boolean;
+  }>(`
+    select
+      has_table_privilege('app_runtime', 'public.rate_limits', 'select') as "rateLimitSelect",
+      has_table_privilege('app_runtime', 'public.rate_limits', 'insert') as "rateLimitInsert",
+      has_table_privilege('public', 'public.rate_limits', 'select') as "publicRateLimitSelect",
+      has_function_privilege('app_runtime', 'app_private.has_tenant_access(uuid)', 'execute') as "membershipFunctionExecute",
+      has_table_privilege('app_runtime', 'public.tenants', 'delete') as "tenantDelete",
+      has_table_privilege('app_runtime', 'public.tenant_memberships', 'delete') as "membershipDelete"
+  `);
+  assert.deepEqual(runtimePrivileges.rows[0], {
+    rateLimitSelect: true,
+    rateLimitInsert: true,
+    publicRateLimitSelect: false,
+    membershipFunctionExecute: true,
+    tenantDelete: false,
+    membershipDelete: false,
+  });
+
   const scales = await client.query<{
     column_name: string;
     numeric_precision: number;
@@ -98,6 +123,51 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     { column_name: "yield_qty", numeric_precision: 24, numeric_scale: 6 },
   ]);
 
+  const rateLimitColumns = await client.query<{
+    column_name: string;
+    data_type: string;
+    is_nullable: string;
+  }>(
+    `select column_name, data_type, is_nullable
+     from information_schema.columns
+     where table_schema = 'public' and table_name = 'rate_limits'
+     order by ordinal_position`,
+  );
+  assert.deepEqual(rateLimitColumns.rows, [
+    { column_name: "id", data_type: "text", is_nullable: "NO" },
+    { column_name: "key", data_type: "text", is_nullable: "NO" },
+    { column_name: "count", data_type: "integer", is_nullable: "NO" },
+    { column_name: "last_request", data_type: "bigint", is_nullable: "NO" },
+  ]);
+
+  const privileges = await client.query<{
+    runtime_create_schema: boolean;
+    auth_delete: boolean;
+    products_delete: boolean;
+    tenants_delete: boolean;
+    memberships_delete: boolean;
+    audit_select: boolean;
+    rate_limit_delete: boolean;
+  }>(
+    `select
+       has_schema_privilege('app_runtime', 'public', 'CREATE') as runtime_create_schema,
+       has_table_privilege('app_runtime', 'public.users', 'DELETE') as auth_delete,
+       has_table_privilege('app_runtime', 'public.products', 'DELETE') as products_delete,
+       has_table_privilege('app_runtime', 'public.tenants', 'DELETE') as tenants_delete,
+       has_table_privilege('app_runtime', 'public.tenant_memberships', 'DELETE') as memberships_delete,
+       has_table_privilege('app_runtime', 'public.audit_events', 'SELECT') as audit_select,
+       has_table_privilege('app_runtime', 'public.rate_limits', 'DELETE') as rate_limit_delete`,
+  );
+  assert.deepEqual(privileges.rows[0], {
+    runtime_create_schema: false,
+    auth_delete: true,
+    products_delete: false,
+    tenants_delete: false,
+    memberships_delete: false,
+    audit_select: false,
+    rate_limit_delete: true,
+  });
+
   await assert.rejects(
     client.query(
       `insert into products (tenant_id, user_id, name, tax_rate)
@@ -115,6 +185,17 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     ownRows.rows.map((row) => row.name),
     ["Produto A"],
   );
+
+  const membershipAccess = await withRuntimeContext(
+    client,
+    { userId: userA, tenantId: tenantA },
+    async () =>
+      client.query<{ own: boolean; other: boolean }>(
+        "select app_private.has_tenant_access($1::uuid) as own, app_private.has_tenant_access($2::uuid) as other",
+        [tenantA, tenantB],
+      ),
+  );
+  assert.deepEqual(membershipAccess.rows[0], { own: true, other: false });
 
   const crossTenantRows = await withRuntimeContext(
     client,

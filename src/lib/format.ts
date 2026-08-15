@@ -1,14 +1,35 @@
+import Decimal from "decimal.js";
+
 export type NumericDisplayState = "ok" | "incomplete" | "invalid" | "infinite";
+export type NumericDisplayValue = number | string | null | undefined;
+
+function displayNumber(v: NumericDisplayValue): number | null {
+  if (v == null) return null;
+  try {
+    const decimal = new Decimal(v);
+    if (!decimal.isFinite()) {
+      if (decimal.isPositive()) return Infinity;
+      return Number.NaN;
+    }
+    const value = decimal.toNumber();
+    if (Number.isFinite(value)) return value;
+    if (value > 0) return Infinity;
+    return Number.NaN;
+  } catch {
+    return Number.NaN;
+  }
+}
 
 /** Classifica valores para apresentação financeira (V7 §8.3 / FIN-003). */
-export function numericDisplayState(v: number | null | undefined): NumericDisplayState {
+export function numericDisplayState(v: NumericDisplayValue): NumericDisplayState {
   if (v == null) return "incomplete";
-  if (typeof v !== "number" || Number.isNaN(v) || v === Number.NEGATIVE_INFINITY) return "invalid";
-  if (v === Number.POSITIVE_INFINITY) return "infinite";
+  const value = displayNumber(v);
+  if (value == null || Number.isNaN(value) || value === Number.NEGATIVE_INFINITY) return "invalid";
+  if (value === Number.POSITIVE_INFINITY) return "infinite";
   return "ok";
 }
 
-function displayFallback(v: number | null | undefined): string | null {
+function displayFallback(v: NumericDisplayValue): string | null {
   switch (numericDisplayState(v)) {
     case "incomplete":
       return "—";
@@ -21,25 +42,27 @@ function displayFallback(v: number | null | undefined): string | null {
   }
 }
 
-export const brl = (v: number | null | undefined) => {
+export const brl = (v: NumericDisplayValue) => {
   const fallback = displayFallback(v);
   if (fallback !== null) return fallback;
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v as number);
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+    displayNumber(v) as number,
+  );
 };
 
-export const pct = (v: number | null | undefined, digits = 2) => {
+export const pct = (v: NumericDisplayValue, digits = 2) => {
   const fallback = displayFallback(v);
   if (fallback !== null) return fallback;
-  return `${(v as number).toLocaleString("pt-BR", {
+  return `${(displayNumber(v) as number).toLocaleString("pt-BR", {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   })}%`;
 };
 
-export const num = (v: number | null | undefined, digits = 2) => {
+export const num = (v: NumericDisplayValue, digits = 2) => {
   const fallback = displayFallback(v);
   if (fallback !== null) return fallback;
-  return (v as number).toLocaleString("pt-BR", {
+  return (displayNumber(v) as number).toLocaleString("pt-BR", {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });

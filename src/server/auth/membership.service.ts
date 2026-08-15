@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { sessions, tenantMemberships } from "@/db/schema";
-import type { RequestContext } from "@/server/request-context";
+import type { RequestContext } from "@/lib/request-context";
 
 export type TenantRole = "owner" | "admin" | "member";
 

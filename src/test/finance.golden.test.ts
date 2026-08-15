@@ -21,6 +21,7 @@ import {
   computeProductCost,
   convertUnit,
   sumFiniteNumbers,
+  unitDimension,
   type CalculationResult,
   type PriceFormationInput,
   type ScenarioInput,
@@ -59,6 +60,20 @@ describe("conversão de unidades", () => {
   it("retorna null para unidades incompatíveis", () => {
     expect(convertUnit(1, "kg", "l")).toBeNull();
     expect(convertUnit(1, "unidade", "g")).toBeNull();
+  });
+
+  it("classifica produção e só converte por fator contextual confirmado", () => {
+    expect(unitDimension("lote")).toBe("production");
+    expect(unitDimension("porção")).toBe("production");
+    expect(convertUnit(1, "lote", "porção")).toBeNull();
+    expect(
+      convertUnit(1, "lote", "porção", {
+        fromUnit: "lote",
+        toUnit: "porção",
+        factor: "12",
+        contextId: "fixture-production",
+      }),
+    ).toBe(12);
   });
 });
 
@@ -232,6 +247,13 @@ describe("ponto de equilíbrio", () => {
     expect(continuous.status).toBe("reachable");
     if (continuous.status === "reachable") {
       expect(continuous.roundedUnits).toBeCloseTo(continuous.rawUnits, 10);
+    }
+
+    const fractional = calculateBreakEvenUnits(101, 10, "discrete");
+    expect(fractional.status).toBe("reachable");
+    if (fractional.status === "reachable") {
+      expect(fractional.rawUnits).toBeCloseTo(10.1, 10);
+      expect(fractional.roundedUnits).toBe(11);
     }
   });
 });

@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listPurchasePrices, updatePurchasePrice } from "@/lib/products.functions";
+import { updatePurchasePrice } from "@/lib/products.functions";
+import { purchasePricesQueryOptions } from "@/lib/query-options";
+import { toDecimalString } from "@/lib/financial-values";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +37,7 @@ type Item = {
   id: string;
   product_id: string;
   name: string;
-  package_price: number | null;
+  package_price: string | null;
   price_updated_at: string | null;
   kind: "ingrediente" | "embalagem";
   detail: string;
@@ -56,60 +59,53 @@ function dataBR(iso: string | null) {
   });
 }
 
+function ageLabel(days: number | null): string {
+  if (days == null || days <= 0) return "";
+  if (days === 1) return ` (há ${days} dia)`;
+  return ` (há ${days} dias)`;
+}
+
 function Precos() {
-  const fetchAll = useServerFn(listPurchasePrices);
   const save = useServerFn(updatePurchasePrice);
+  const pricesQuery = useQuery(purchasePricesQueryOptions());
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  async function load() {
-    setLoading(true);
-    try {
-      const res = await fetchAll();
-      setProducts(res.products);
-      const all: Item[] = [
-        ...res.ingredients.map((i) => ({
-          id: i.id,
-          product_id: i.product_id,
-          name: i.name,
-          package_price: i.package_price === null ? null : Number(i.package_price),
-          price_updated_at: i.price_updated_at,
-          kind: "ingrediente" as const,
-          detail:
-            i.package_qty && i.package_unit
-              ? `embalagem de ${Number(i.package_qty)} ${i.package_unit}`
-              : "insumo",
-        })),
-        ...res.packaging.map((p) => ({
-          id: p.id,
-          product_id: p.product_id,
-          name: p.name,
-          package_price: p.package_price === null ? null : Number(p.package_price),
-          price_updated_at: p.price_updated_at,
-          kind: "embalagem" as const,
-          detail: `pacote com ${Number(p.units_per_package ?? 1)} unidade(s)`,
-        })),
-      ];
-      setItems(all);
-      setDrafts(
-        Object.fromEntries(
-          all.map((i) => [i.id, i.package_price === null ? "" : String(i.package_price)]),
-        ),
-      );
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Não foi possível carregar os preços");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const res = pricesQuery.data;
+    if (!res) return;
+    setProducts(res.products);
+    const all: Item[] = [
+      ...res.ingredients.map((i) => ({
+        id: i.id,
+        product_id: i.product_id,
+        name: i.name,
+        package_price: i.package_price,
+        price_updated_at: i.price_updated_at,
+        kind: "ingrediente" as const,
+        detail:
+          i.package_qty && i.package_unit
+            ? `embalagem de ${Number(i.package_qty)} ${i.package_unit}`
+            : "insumo",
+      })),
+      ...res.packaging.map((p) => ({
+        id: p.id,
+        product_id: p.product_id,
+        name: p.name,
+        package_price: p.package_price,
+        price_updated_at: p.price_updated_at,
+        kind: "embalagem" as const,
+        detail: `pacote com ${Number(p.units_per_package ?? 1)} unidade(s)`,
+      })),
+    ];
+    setItems(all);
+    setDrafts(
+      Object.fromEntries(
+        all.map((i) => [i.id, i.package_price === null ? "" : String(i.package_price)]),
+      ),
+    );
+  }, [pricesQuery.data]);
 
   const desatualizados = useMemo(
     () =>
@@ -137,11 +133,14 @@ function Precos() {
     }
     setSavingId(item.id);
     try {
-      const res = await save({ data: { id: item.id, kind: item.kind, package_price: valor } });
+      const packagePrice = toDecimalString(raw, 4);
+      const res = await save({
+        data: { id: item.id, kind: item.kind, package_price: packagePrice },
+      });
       setItems((prev) =>
         prev.map((i) =>
           i.id === item.id
-            ? { ...i, package_price: valor, price_updated_at: res.price_updated_at }
+            ? { ...i, package_price: packagePrice, price_updated_at: res.price_updated_at }
             : i,
         ),
       );
@@ -163,7 +162,7 @@ function Precos() {
         </p>
       </div>
 
-      {!loading && items.length > 0 && desatualizados > 0 && (
+      {!pricesQuery.isPending && items.length > 0 && desatualizados > 0 && (
         <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
           <span>
@@ -173,103 +172,158 @@ function Precos() {
         </div>
       )}
 
-      {loading ? (
-        <div className="text-muted-foreground">Carregando...</div>
-      ) : grupos.length === 0 ? (
-        <Card>
-          <CardContent className="grid place-items-center gap-3 p-12 text-center">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-primary">
-              <Package className="h-6 w-6" />
-            </div>
-            <div className="font-semibold">Nenhum insumo cadastrado ainda</div>
-            <p className="text-sm text-muted-foreground">
-              Cadastre um produto pelo chat para começar a acompanhar os preços de compra.
-            </p>
+      <PurchasePriceContent
+        isPending={pricesQuery.isPending}
+        isError={pricesQuery.isError}
+        groups={grupos}
+        drafts={drafts}
+        savingId={savingId}
+        onRetry={() => void pricesQuery.refetch()}
+        onDraftChange={(id, value) => setDrafts((current) => ({ ...current, [id]: value }))}
+        onSave={salvar}
+      />
+    </div>
+  );
+}
+
+type PriceGroup = { id: string; name: string; itens: Item[] };
+
+function PurchasePriceContent({
+  isPending,
+  isError,
+  groups,
+  drafts,
+  savingId,
+  onRetry,
+  onDraftChange,
+  onSave,
+}: Readonly<{
+  isPending: boolean;
+  isError: boolean;
+  groups: PriceGroup[];
+  drafts: Record<string, string>;
+  savingId: string | null;
+  onRetry: () => void;
+  onDraftChange: (id: string, value: string) => void;
+  onSave: (item: Item) => Promise<void>;
+}>) {
+  if (isPending) return <div className="text-muted-foreground">Carregando...</div>;
+  if (isError) {
+    return (
+      <Card role="alert" className="border-destructive/40">
+        <CardContent className="space-y-3 p-5">
+          <p>Não foi possível carregar os preços.</p>
+          <Button type="button" variant="outline" onClick={onRetry}>
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+  if (groups.length === 0) {
+    return (
+      <Card>
+        <CardContent className="grid place-items-center gap-3 p-12 text-center">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-primary">
+            <Package className="h-6 w-6" />
+          </div>
+          <div className="font-semibold">Nenhum insumo cadastrado ainda</div>
+          <p className="text-sm text-muted-foreground">
+            Cadastre um produto pelo chat para começar a acompanhar os preços de compra.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  return (
+    <div className="space-y-5">
+      {groups.map((group) => (
+        <Card key={group.id}>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Package className="h-4 w-4 text-primary" /> {group.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {group.itens.map((item) => (
+              <PurchasePriceRow
+                key={item.id}
+                item={item}
+                draft={drafts[item.id] ?? ""}
+                saving={savingId === item.id}
+                onDraftChange={onDraftChange}
+                onSave={onSave}
+              />
+            ))}
           </CardContent>
         </Card>
-      ) : (
-        <div className="space-y-5">
-          {grupos.map((g) => (
-            <Card key={g.id}>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Package className="h-4 w-4 text-primary" /> {g.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {g.itens.map((item) => {
-                  const dias = diasDesde(item.price_updated_at);
-                  const velho = dias === null || dias > DIAS_ALERTA;
-                  const inputId = `preco-${item.kind}-${item.id}`;
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex flex-wrap items-end gap-3 rounded-xl border p-3"
-                    >
-                      <div className="min-w-[10rem] flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold">{item.name}</span>
-                          <Badge variant="secondary" className="text-[10px] uppercase">
-                            {item.kind}
-                          </Badge>
-                        </div>
-                        <div className="text-xs text-muted-foreground">{item.detail}</div>
-                        <div
-                          className={`mt-1 flex items-center gap-1 text-xs ${
-                            velho ? "text-warning" : "text-muted-foreground"
-                          }`}
-                        >
-                          <CalendarClock className="h-3 w-3" />
-                          Última atualização: {dataBR(item.price_updated_at)}
-                          {dias !== null && dias > 0 && ` (há ${dias} dia${dias > 1 ? "s" : ""})`}
-                        </div>
-                      </div>
+      ))}
+    </div>
+  );
+}
 
-                      <div className="flex items-end gap-2">
-                        <div>
-                          <Label
-                            htmlFor={inputId}
-                            className="mb-1 block text-xs text-muted-foreground"
-                          >
-                            Preço de compra
-                          </Label>
-                          <Input
-                            id={inputId}
-                            inputMode="decimal"
-                            className="w-32"
-                            value={drafts[item.id] ?? ""}
-                            onChange={(e) =>
-                              setDrafts((d) => ({ ...d, [item.id]: e.target.value }))
-                            }
-                          />
-                        </div>
-                        <Button
-                          className="gap-2"
-                          onClick={() => salvar(item)}
-                          disabled={
-                            savingId === item.id ||
-                            (drafts[item.id] ?? "").replace(",", ".") ===
-                              String(item.package_price ?? "")
-                          }
-                        >
-                          <RefreshCw
-                            className={`h-4 w-4 ${savingId === item.id ? "animate-spin" : ""}`}
-                          />
-                          Atualizar
-                        </Button>
-                      </div>
-
-                      <div className="w-full text-xs text-muted-foreground sm:w-auto">
-                        Valor atual: {item.package_price === null ? "—" : brl(item.package_price)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          ))}
+function PurchasePriceRow({
+  item,
+  draft,
+  saving,
+  onDraftChange,
+  onSave,
+}: Readonly<{
+  item: Item;
+  draft: string;
+  saving: boolean;
+  onDraftChange: (id: string, value: string) => void;
+  onSave: (item: Item) => Promise<void>;
+}>) {
+  const days = diasDesde(item.price_updated_at);
+  const stale = days === null || days > DIAS_ALERTA;
+  const inputId = `preco-${item.kind}-${item.id}`;
+  const dayLabel = ageLabel(days);
+  return (
+    <div className="flex flex-wrap items-end gap-3 rounded-xl border p-3">
+      <div className="min-w-[10rem] flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold">{item.name}</span>
+          <Badge variant="secondary" className="text-[10px] uppercase">
+            {item.kind}
+          </Badge>
         </div>
-      )}
+        <div className="text-xs text-muted-foreground">{item.detail}</div>
+        <div
+          className={`mt-1 flex items-center gap-1 text-xs ${
+            stale ? "text-warning" : "text-muted-foreground"
+          }`}
+        >
+          <CalendarClock className="h-3 w-3" />
+          Última atualização: {dataBR(item.price_updated_at)}
+          {dayLabel}
+        </div>
+      </div>
+      <div className="flex items-end gap-2">
+        <div>
+          <Label htmlFor={inputId} className="mb-1 block text-xs text-muted-foreground">
+            Preço de compra
+          </Label>
+          <Input
+            id={inputId}
+            inputMode="decimal"
+            className="w-32"
+            value={draft}
+            onChange={(event) => onDraftChange(item.id, event.target.value)}
+          />
+        </div>
+        <Button
+          className="gap-2"
+          onClick={() => void onSave(item)}
+          disabled={saving || draft.replace(",", ".") === String(item.package_price ?? "")}
+        >
+          <RefreshCw className={`h-4 w-4 ${saving ? "animate-spin" : ""}`} />
+          Atualizar
+        </Button>
+      </div>
+      <div className="w-full text-xs text-muted-foreground sm:w-auto">
+        Valor atual: {item.package_price === null ? "—" : brl(Number(item.package_price))}
+      </div>
     </div>
   );
 }

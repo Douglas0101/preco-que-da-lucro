@@ -28,6 +28,30 @@ export type Quantity = Readonly<{
 
 const decimalPattern = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/;
 
+function policyForScale(scale: number) {
+  if (scale === FINANCIAL_DECIMAL_POLICY.money.scale) return FINANCIAL_DECIMAL_POLICY.money;
+  if (scale === FINANCIAL_DECIMAL_POLICY.percent.scale) return FINANCIAL_DECIMAL_POLICY.quantity;
+  if (scale === FINANCIAL_DECIMAL_POLICY.intermediate.scale)
+    return FINANCIAL_DECIMAL_POLICY.intermediate;
+  return { precision: FINANCIAL_DECIMAL_POLICY.intermediate.precision, scale };
+}
+
+function fitsPolicy(value: Decimal, precision: number, scale: number): boolean {
+  const integerDigits = precision - scale;
+  if (integerDigits < 1) return false;
+
+  // Avoid materializing an unbounded fixed-point string for an exponent that
+  // cannot fit in the target NUMERIC precision in the first place.
+  const maximum = new Decimal(10).pow(integerDigits);
+  if (value.abs().gte(maximum)) return false;
+
+  const rounded = value.toDecimalPlaces(scale, Decimal.ROUND_HALF_UP);
+  if (!rounded.isFinite()) return false;
+  const [integerPart] = rounded.toFixed(scale).replace("-", "").split(".");
+  const significantIntegerDigits = integerPart.replace(/^0+/, "").length || 1;
+  return significantIntegerDigits <= integerDigits;
+}
+
 function isFiniteDecimal(value: string): boolean {
   try {
     return new Decimal(value).isFinite();
@@ -41,6 +65,21 @@ export const decimalStringSchema = z
   .regex(decimalPattern, "Use uma string decimal canônica.")
   .refine(isFiniteDecimal, "O decimal deve ser finito.")
   .transform((value) => value as DecimalString);
+
+export const nonNegativeDecimalStringSchema = decimalStringSchema.refine(
+  (value) => new Decimal(value).gte(0),
+  "O decimal não pode ser negativo.",
+);
+
+export const positiveDecimalStringSchema = decimalStringSchema.refine(
+  (value) => new Decimal(value).gt(0),
+  "O decimal deve ser positivo.",
+);
+
+export const percentFractionSchema = nonNegativeDecimalStringSchema.refine(
+  (value) => new Decimal(value).lt(1),
+  "O percentual deve ser uma fração entre 0 e 1.",
+);
 
 export const moneySchema = z.object({
   amount: decimalStringSchema,
@@ -77,7 +116,26 @@ Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 export function toDecimalString(value: Decimal.Value, scale?: number): DecimalString {
   const decimal = new Decimal(value);
   if (!decimal.isFinite()) throw new Error("NON_FINITE_DECIMAL");
-  return (scale === undefined ? decimal.toString() : decimal.toFixed(scale)) as DecimalString;
+
+  if (scale !== undefined) {
+    if (!Number.isInteger(scale) || scale < 0) throw new Error("INVALID_DECIMAL_SCALE");
+    const policy = policyForScale(scale);
+    if (!fitsPolicy(decimal, policy.precision, policy.scale)) {
+      throw new Error("DECIMAL_OVERFLOW");
+    }
+  } else {
+    // A scale-less value is still a financial decimal. Keep it bounded by the
+    // intermediate domain while preserving its exact fractional representation.
+    const maximum = new Decimal(10).pow(FINANCIAL_DECIMAL_POLICY.intermediate.precision);
+    const minimum = new Decimal(10).pow(-FINANCIAL_DECIMAL_POLICY.intermediate.scale);
+    if (decimal.abs().gte(maximum) || (!decimal.isZero() && decimal.abs().lt(minimum))) {
+      throw new Error("DECIMAL_OVERFLOW");
+    }
+  }
+
+  const result = scale === undefined ? decimal.toFixed() : decimal.toFixed(scale);
+  if (!decimalPattern.test(result)) throw new Error("NON_CANONICAL_DECIMAL");
+  return result as DecimalString;
 }
 
 export function percentPointsToFraction(value: Decimal.Value): Percent {
