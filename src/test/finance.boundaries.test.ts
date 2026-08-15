@@ -125,10 +125,18 @@ describe("fronteiras de proveniência FIN-004", () => {
       if (path === "src/routes/_authenticated/inicio.tsx") {
         expect(source).toContain("summaryQuery.isError");
       } else {
-        expect(source).toContain('setLoadStatus("error")');
+        expect(source).toContain("productsQuery.isError || expensesQuery.isError");
       }
       expect(source).toContain("Referência de atendimento");
       expect(source).toContain("Tentar novamente");
+      if (path === "src/routes/_authenticated/simulacoes.tsx") {
+        expect(source).toMatch(/loadStatus === "error"\s*\|\|\s*!selectedDetail/);
+        expect(source).toContain(
+          "<ProductState status={productStatus} errorReference={errorReference} />",
+        );
+        expect(source).toContain("simulationQuery.isError");
+        expect(source).toContain('message="Não foi possível calcular a simulação."');
+      }
     }
   });
 });
@@ -182,7 +190,7 @@ describe("fronteiras de formação de preço FIN-005", () => {
     expect(finance).toContain("export function calculatePriceFormation");
     expect(diagnostic).toContain("productsWithMetricsQueryOptions()");
     expect(diagnostic).toContain("isError");
-    expect(diagnostic).toContain('setLoadStatus("error")');
+    expect(diagnostic).toContain("productsQuery.isError || expensesQuery.isError");
     expect(diagnostic).not.toMatch(/current_price\s*[),]\s*ingredients/);
   });
 });

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { listProductsWithMetrics } from "@/lib/products.functions";
 import {
@@ -43,48 +43,28 @@ type BreakEvenData = Awaited<
 type BreakEvenQuery = { isPending: boolean };
 
 function PontoEquilibrio() {
-  const [details, setDetails] = useState<ProductDetail[]>([]);
-  const products = details.map((detail) => detail.product);
   const [productId, setProductId] = useState<string>("");
-  const [fixedExpenseAmounts, setFixedExpenseAmounts] = useState<string[]>([]);
-  const [metrics, setMetrics] = useState<ProductMetricsOk | null>(null);
-  const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
-  const [calculationStatus, setCalculationStatus] = useState<CalculationStatus>("idle");
   const [profitTarget, setProfitTarget] = useState("");
   const [productsQuery, expensesQuery] = useQueries({
     queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
   });
 
-  useEffect(() => {
-    if (!productsQuery.data || !expensesQuery.data) return;
-    const loadedDetails = productsQuery.data;
-    const expenses = expensesQuery.data;
-    setDetails(loadedDetails);
-    setFixedExpenseAmounts(
-      expenses.filter((expense) => expense.type === "fixa").map((expense) => expense.amount),
-    );
-    if (loadedDetails.length) setProductId(loadedDetails[0].product.id);
-  }, [expensesQuery.data, productsQuery.data]);
-
-  useEffect(() => {
-    if (!productId) return;
-    (async () => {
-      const detail = details.find((item) => item.product.id === productId);
-      if (!detail) return;
-      const p = detail.product;
-      setMetrics(null);
-      setCalculationStatus("idle");
-      const c = detail.metrics;
-      if (c.status !== "ok") {
-        setMetrics(null);
-        setCalculationStatus(c.status);
-        return;
-      }
-      setMetrics(c);
-      setSelectedPrice(p.current_price);
-      setCalculationStatus("ok");
-    })();
-  }, [productId, details]);
+  const details = productsQuery.data ?? [];
+  const products = details.map((detail) => detail.product);
+  const selectedProductId =
+    productId && products.some((product) => product.id === productId)
+      ? productId
+      : (products[0]?.id ?? "");
+  const selectedDetail = details.find((detail) => detail.product.id === selectedProductId);
+  const fixedExpenseAmounts = (expensesQuery.data ?? [])
+    .filter((expense) => expense.type === "fixa")
+    .map((expense) => expense.amount);
+  const metrics =
+    selectedDetail?.metrics.status === "ok"
+      ? selectedDetail.metrics
+      : (null as ProductMetricsOk | null);
+  const selectedPrice = selectedDetail?.product.current_price ?? null;
+  const calculationStatus: CalculationStatus = selectedDetail?.metrics.status ?? "idle";
 
   const breakEvenInput = createBreakEvenInput(
     metrics,
@@ -123,7 +103,7 @@ function PontoEquilibrio() {
   return (
     <PontoView
       products={products}
-      productId={productId}
+      productId={selectedProductId}
       onProductChange={setProductId}
       fixedExpenses={breakEvenQuery.data?.fixedExpenses}
       metrics={metrics}

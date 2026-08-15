@@ -23,6 +23,7 @@ dist-ssr
 .nitro
 coverage
 .artifacts/
+.worktree-*/
 playwright-report
 test-results
 .cache/

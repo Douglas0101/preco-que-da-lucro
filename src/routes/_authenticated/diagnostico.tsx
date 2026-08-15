@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { listProductsWithMetrics } from "@/lib/products.functions";
 import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
@@ -49,6 +49,12 @@ interface DiagnosticData {
   market: Awaited<ReturnType<typeof listProductsWithMetrics>>[number]["market"];
 }
 
+type DiagnosticAssumptions = {
+  productId: string;
+  nonPercentageVariableUnitCost: string;
+  targetContributionRate: string;
+};
+
 export const Route = createFileRoute("/_authenticated/diagnostico")({
   head: () => ({
     meta: [
@@ -64,15 +70,9 @@ export const Route = createFileRoute("/_authenticated/diagnostico")({
 
 function Diagnostico() {
   const { produto } = Route.useSearch();
-  const [details, setDetails] = useState<Awaited<ReturnType<typeof listProductsWithMetrics>>>([]);
-  const products = details.map((detail) => detail.product);
   const [productId, setProductId] = useState(produto ?? "");
-  const [fixedExpenses, setFixedExpenses] = useState(0);
-  const [hasUnallocatedVariableExpenses, setHasUnallocatedVariableExpenses] = useState(false);
-  const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
-  const [productStatus, setProductStatus] = useState<ProductStatus>("idle");
-  const [diagnostic, setDiagnostic] = useState<DiagnosticData | null>(null);
-  const [assumptions, setAssumptions] = useState({
+  const [assumptions, setAssumptions] = useState<DiagnosticAssumptions>({
+    productId: "",
     nonPercentageVariableUnitCost: "",
     targetContributionRate: "",
   });
@@ -80,91 +80,71 @@ function Diagnostico() {
     queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
   });
 
-  useEffect(() => {
-    if (productsQuery.isPending || expensesQuery.isPending) {
-      setLoadStatus("loading");
-      return;
+  const details = productsQuery.data ?? [];
+  const products = details.map((detail) => detail.product);
+  const selectedProductId =
+    productId && products.some((product) => product.id === productId)
+      ? productId
+      : (products[0]?.id ?? "");
+  const selectedDetail = details.find((detail) => detail.product.id === selectedProductId);
+  const expenses = expensesQuery.data ?? [];
+  const fixedExpenses = sumFiniteNumbers(
+    expenses.filter((expense) => expense.type === "fixa").map((expense) => Number(expense.amount)),
+  );
+  const hasUnallocatedVariableExpenses = expenses.some((expense) => expense.type === "variavel");
+  const loadStatus: LoadStatus =
+    productsQuery.isPending || expensesQuery.isPending
+      ? "loading"
+      : productsQuery.isError || expensesQuery.isError
+        ? "error"
+        : details.length === 0
+          ? "empty"
+          : "ready";
+  const diagnosticState = useMemo(() => {
+    if (loadStatus !== "ready" || !selectedProductId) {
+      return { diagnostic: null, status: "idle" as ProductStatus };
     }
-    if (productsQuery.isError || expensesQuery.isError) {
-      setLoadStatus("error");
-      return;
+    if (!selectedDetail) {
+      return { diagnostic: null, status: "error" as ProductStatus };
     }
-
-    const loadedDetails = productsQuery.data;
-    const expenses = expensesQuery.data;
-    const fixed = sumFiniteNumbers(
-      expenses
-        .filter((expense) => expense.type === "fixa")
-        .map((expense) => Number(expense.amount)),
-    );
-
-    setDetails(loadedDetails);
-    setFixedExpenses(fixed);
-    setHasUnallocatedVariableExpenses(expenses.some((expense) => expense.type === "variavel"));
-    if (loadedDetails.length === 0) {
-      setProductId("");
-      setLoadStatus("empty");
-      return;
-    }
-
-    setProductId((current) =>
-      loadedDetails.some((detail) => detail.product.id === current)
-        ? current
-        : loadedDetails[0].product.id,
-    );
-    setLoadStatus("ready");
-  }, [
-    expensesQuery.data,
-    expensesQuery.isError,
-    expensesQuery.isPending,
-    productsQuery.data,
-    productsQuery.isError,
-    productsQuery.isPending,
-  ]);
-
-  useEffect(() => {
-    if (loadStatus !== "ready" || !productId) return;
-
-    let cancelled = false;
-    setDiagnostic(null);
-    setProductStatus("loading");
-    setAssumptions({
-      nonPercentageVariableUnitCost: "",
-      targetContributionRate: "",
-    });
-
     try {
-      const detail = details.find((candidate) => candidate.product.id === productId);
-      if (!detail) {
-        setProductStatus("error");
-      } else {
-        const result = buildDiagnostic(detail, fixedExpenses);
-        setDiagnostic(result.diagnostic);
-        setProductStatus(result.status);
-      }
+      const result = buildDiagnostic(selectedDetail, fixedExpenses);
+      return { diagnostic: result.diagnostic, status: result.status };
     } catch {
-      if (cancelled) return;
-      setDiagnostic(null);
-      setProductStatus("error");
+      return { diagnostic: null, status: "error" as ProductStatus };
     }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [details, fixedExpenses, loadStatus, productId]);
+  }, [fixedExpenses, loadStatus, selectedDetail, selectedProductId]);
+  const diagnostic = diagnosticState.diagnostic;
+  const productStatus = diagnosticState.status;
+  const currentAssumptions = useMemo<DiagnosticAssumptions>(
+    () =>
+      assumptions.productId === selectedProductId
+        ? assumptions
+        : {
+            productId: selectedProductId,
+            nonPercentageVariableUnitCost: "",
+            targetContributionRate: "",
+          },
+    [assumptions, selectedProductId],
+  );
+  const updateAssumptions = (patch: Partial<DiagnosticAssumptions>) => {
+    setAssumptions({ ...currentAssumptions, ...patch, productId: selectedProductId });
+  };
 
   const priceFormation = useMemo(() => {
     if (!diagnostic) return null;
     const directUnitCost = directUnitCostFrom(diagnostic.cost);
     return calculatePriceFormation({
       directUnitCost,
-      nonPercentageVariableUnitCost: parseOptionalNumber(assumptions.nonPercentageVariableUnitCost),
+      nonPercentageVariableUnitCost: parseOptionalNumber(
+        currentAssumptions.nonPercentageVariableUnitCost,
+      ),
       taxRate: diagnostic.taxRate,
       fees: diagnostic.fees,
-      targetContributionRate: parseOptionalNumber(assumptions.targetContributionRate),
+      targetContributionRate: parseOptionalNumber(currentAssumptions.targetContributionRate),
       marketReference: nullableNumber(diagnostic.market?.avg_price),
     });
-  }, [assumptions, diagnostic]);
+  }, [currentAssumptions, diagnostic]);
 
   const assumptionStatusId = "price-formation-assumptions-status";
   const variableCostHasIssue =
@@ -215,7 +195,7 @@ function Diagnostico() {
             <Label htmlFor="diagnostico-produto" className="sr-only">
               Produto para diagnóstico
             </Label>
-            <Select value={productId} onValueChange={setProductId}>
+            <Select value={selectedProductId} onValueChange={setProductId}>
               <SelectTrigger id="diagnostico-produto">
                 <SelectValue placeholder="Escolha um produto" />
               </SelectTrigger>
@@ -260,23 +240,19 @@ function Diagnostico() {
                 id="diagnostico-custo-variavel-unitario"
                 label="Outros custos variáveis por unidade (R$)"
                 help="Informe somente um valor já conhecido por unidade; não use o total mensal. Digite 0 apenas se tiver confirmado que não existem outros custos unitários."
-                value={assumptions.nonPercentageVariableUnitCost}
+                value={currentAssumptions.nonPercentageVariableUnitCost}
                 describedBy={variableCostHasIssue ? assumptionStatusId : undefined}
                 invalid={variableCostIsInvalid}
-                onChange={(value) =>
-                  setAssumptions({ ...assumptions, nonPercentageVariableUnitCost: value })
-                }
+                onChange={(value) => updateAssumptions({ nonPercentageVariableUnitCost: value })}
               />
               <AssumptionField
                 id="diagnostico-margem-alvo"
                 label="Margem de contribuição alvo (%)"
                 help="Informe uma meta explícita. Nenhuma margem padrão é presumida."
-                value={assumptions.targetContributionRate}
+                value={currentAssumptions.targetContributionRate}
                 describedBy={targetRateHasIssue ? assumptionStatusId : undefined}
                 invalid={targetRateIsInvalid}
-                onChange={(value) =>
-                  setAssumptions({ ...assumptions, targetContributionRate: value })
-                }
+                onChange={(value) => updateAssumptions({ targetContributionRate: value })}
               />
               {hasInvalidPriceFormation && (
                 <div
