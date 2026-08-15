@@ -139,6 +139,25 @@ function toFinanceFee(item: ReturnType<typeof mapFee>): FeeRow {
   return { percentage: percentPoints(item.percentage) };
 }
 
+function projectProductCalculation(
+  product: ReturnType<typeof mapProduct>,
+  ingredients: ReturnType<typeof mapIngredient>[],
+  packaging: ReturnType<typeof mapPackaging>[],
+  fees: ReturnType<typeof mapFee>[],
+) {
+  const calculation = calculateProductReadModel({
+    persistedStatus: product.status,
+    currentPrice: product.current_price,
+    yieldQty: product.yield_qty,
+    taxRate: product.tax_rate,
+    ingredients: ingredients.map(toFinanceIngredient),
+    packaging: packaging.map(toFinancePackaging),
+    fees: fees.map(toFinanceFee),
+  });
+  applicationMetrics.financialStates.add(1, { state: calculation.metrics.status });
+  return calculation;
+}
+
 async function loadProductDetail(request: RequestContext, productId: string) {
   const scope = and(eq(products.tenantId, request.tenantId), eq(products.id, productId));
   const productRows = await request.transaction.select().from(products).where(scope).limit(1);
@@ -181,16 +200,7 @@ async function loadProductDetail(request: RequestContext, productId: string) {
   const packaging = packagingRows.map(mapPackaging);
   const fees = feeRows.map(mapFee);
   const market = marketRows[0] ? mapMarket(marketRows[0]) : null;
-  const calculation = calculateProductReadModel({
-    persistedStatus: product.status,
-    currentPrice: product.current_price,
-    yieldQty: product.yield_qty,
-    taxRate: product.tax_rate,
-    ingredients: ingredients.map(toFinanceIngredient),
-    packaging: packaging.map(toFinancePackaging),
-    fees: fees.map(toFinanceFee),
-  });
-  applicationMetrics.financialStates.add(1, { state: calculation.metrics.status });
+  const calculation = projectProductCalculation(product, ingredients, packaging, fees);
   return {
     product: { ...product, status: calculation.status },
     ingredients,
@@ -267,16 +277,7 @@ async function loadProductReadModels(request: RequestContext) {
     const ingredients = ingredientsByProduct.get(row.id) ?? [];
     const packaging = packagingByProduct.get(row.id) ?? [];
     const fees = feesByProduct.get(row.id) ?? [];
-    const calculation = calculateProductReadModel({
-      persistedStatus: product.status,
-      currentPrice: product.current_price,
-      yieldQty: product.yield_qty,
-      taxRate: product.tax_rate,
-      ingredients: ingredients.map(toFinanceIngredient),
-      packaging: packaging.map(toFinancePackaging),
-      fees: fees.map(toFinanceFee),
-    });
-    applicationMetrics.financialStates.add(1, { state: calculation.metrics.status });
+    const calculation = projectProductCalculation(product, ingredients, packaging, fees);
     return {
       product: { ...product, status: calculation.status },
       ingredients,
