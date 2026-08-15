@@ -1,6 +1,18 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+const authEmail = process.env.E2E_AUTH_EMAIL ?? "";
+const authPassword = process.env.E2E_AUTH_PASSWORD ?? "";
+
+function memberEmail(): string {
+  if (process.env.E2E_AUTH_MEMBER_EMAIL) return process.env.E2E_AUTH_MEMBER_EMAIL;
+  const [localPart, domain] = authEmail.split("@");
+  if (!localPart || !domain) return "";
+  return `${localPart}+member@${domain}`;
+}
+
+const memberPassword = process.env.E2E_AUTH_MEMBER_PASSWORD ?? authPassword;
+
 async function expectNoBlockingAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -12,72 +24,35 @@ async function expectNoBlockingAxeViolations(page: Page) {
   expect(blocking).toEqual([]);
 }
 
-async function installAuthenticatedSupabaseContract(page: Page) {
-  const now = Math.floor(Date.now() / 1000);
-  const user = {
-    id: "00000000-0000-4000-8000-000000000001",
-    aud: "authenticated",
-    role: "authenticated",
-    email: "teste@example.com",
-    email_confirmed_at: new Date().toISOString(),
-    app_metadata: { provider: "email", providers: ["email"] },
-    user_metadata: { full_name: "Teste" },
-    identities: [],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    is_anonymous: false,
-  };
-  const encode = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
-  const accessToken = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({
-    aud: "authenticated",
-    exp: now + 3_600,
-    iat: now,
-    role: "authenticated",
-    sub: user.id,
-  })}.test-signature`;
-  const session = JSON.stringify({
-    access_token: accessToken,
-    refresh_token: "test-refresh-token",
-    expires_at: now + 3_600,
-    expires_in: 3_600,
-    token_type: "bearer",
-    user,
+async function signInWithBetterAuth(page: Page, email: string, password: string): Promise<void> {
+  const pageUrl = page.url();
+  const origin = pageUrl.startsWith("http")
+    ? new URL(pageUrl).origin
+    : (process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4173");
+  const response = await page.request.post("/api/auth/sign-in/email", {
+    headers: { origin, "sec-fetch-site": "same-origin" },
+    data: { email, password },
   });
+  expect(response.ok(), await response.text()).toBe(true);
+}
 
-  await page.addInitScript((storedSession) => {
-    const originalGetItem = Storage.prototype.getItem;
-    localStorage.setItem("sb-e2e-auth-token", storedSession);
-    Storage.prototype.getItem = function getItem(key) {
-      if (/^sb-.*-auth-token$/.test(key)) return storedSession;
-      return originalGetItem.call(this, key);
-    };
-  }, session);
-
-  await page.route("**/auth/v1/user", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify(user),
-    });
-  });
-  await page.route("**/rest/v1/**", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      headers: { "content-range": "*/0" },
-      body: "[]",
-    });
-  });
-
-  return accessToken;
+async function login(page: Page): Promise<void> {
+  expect(authEmail, "E2E_AUTH_EMAIL deve estar configurada").not.toBe("");
+  expect(authPassword, "E2E_AUTH_PASSWORD deve estar configurada").not.toBe("");
+  await page.goto("/auth");
+  await page.getByLabel("E-mail").fill(authEmail);
+  await page.getByLabel("Senha").fill(authPassword);
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  await expect(page).toHaveURL(/\/inicio$/);
 }
 
 test("public UI uses valid composed controls and has no serious a11y violations", async ({
   page,
 }) => {
+  await page.context().clearCookies();
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: /descubra o preço certo/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /entenda a faixa de preço/i })).toBeVisible();
   await expect(page.locator("a button, button a")).toHaveCount(0);
 
   const startLink = page.getByRole("link", { name: /começar agora/i });
@@ -87,9 +62,10 @@ test("public UI uses valid composed controls and has no serious a11y violations"
   await expectNoBlockingAxeViolations(page);
 });
 
-test("authentication controls keep accessible names", async ({ page }) => {
+test("authentication controls keep accessible names", async ({ page, browserName }) => {
+  await page.context().clearCookies();
   await page.goto("/inicio");
-  await expect(page).toHaveURL(/\/auth$/);
+  await expect(page).toHaveURL(/\/auth(?:\?|$)/);
 
   const googleButton = page.getByRole("button", { name: "Continuar com Google" });
   const email = page.getByLabel("E-mail");
@@ -109,16 +85,59 @@ test("authentication controls keep accessible names", async ({ page }) => {
   await expect(password).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(submit).toBeFocused();
+
+  if (browserName === "chromium") await login(page);
 });
 
-test("authenticated shell keeps responsive navigation and accessible structure", async ({
+test("authentication matrix rejects invalid Better Auth credentials and protects routes", async ({
   page,
 }) => {
-  const accessToken = await installAuthenticatedSupabaseContract(page);
+  await page.context().clearCookies();
+  await page.goto("/auth");
+
+  const response = await page.request.post("/api/auth/sign-in/email", {
+    headers: {
+      origin: new URL(page.url()).origin,
+      "sec-fetch-site": "same-origin",
+    },
+    data: { email: authEmail, password: `${authPassword}-invalid` },
+  });
+  expect(response.status()).toBe(401);
+
+  await page.goto("/inicio");
+  await expect(page).toHaveURL(/\/auth\?redirect=%2Finicio/);
+});
+
+test("authorization matrix blocks member mutations with a Better Auth session", async ({
+  page,
+}) => {
+  expect(memberEmail(), "E2E_AUTH_MEMBER_EMAIL derivável é obrigatória").not.toBe("");
+  expect(memberPassword, "E2E_AUTH_MEMBER_PASSWORD derivável é obrigatória").not.toBe("");
+  await page.context().clearCookies();
+  await page.goto("/auth");
+  await signInWithBetterAuth(page, memberEmail(), memberPassword);
+  await page.goto("/despesas");
+  await expect(page.getByRole("heading", { name: "Minhas Despesas" })).toBeVisible();
+
+  await page.getByLabel("Nome").fill("Tentativa de mutação não autorizada");
+  await page.getByLabel("Valor (R$)").fill("1");
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes("/_serverFn/") && response.request().method() === "POST",
+  );
+  await page.getByRole("button", { name: "Adicionar despesa" }).click();
+  const response = await responsePromise;
+  expect(response.status()).toBe(403);
+});
+
+test("authenticated shell uses an HttpOnly session and accessible navigation", async ({ page }) => {
   await page.goto("/");
 
   await expect(page).toHaveURL(/\/inicio$/);
-  await expect(page.getByRole("heading", { name: "Bem-vindo!" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Olá! 👋" })).toBeVisible();
+  await expect(page.getByText("Faturamento real", { exact: true })).toBeVisible();
+  await expect(page.getByText("Nenhuma venda real registrada.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Faturamento p/ equilíbrio", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Margem média", { exact: true })).toHaveCount(0);
 
   const mobileMenu = page.getByRole("button", { name: "Abrir menu de navegação" });
   if (await mobileMenu.isVisible()) await mobileMenu.click();
@@ -137,5 +156,121 @@ test("authenticated shell keeps responsive navigation and accessible structure",
   );
   await page.goto("/novo-produto");
   const serverFnRequest = await serverFnRequestPromise;
-  expect(serverFnRequest.headers().authorization).toBe(`Bearer ${accessToken}`);
+  expect(serverFnRequest.headers().authorization).toBeUndefined();
+
+  await expect(
+    page.getByText("Mensagem restaurada do histórico E2E.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ver produto" })).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByText("Mensagem restaurada do histórico E2E.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ver produto" })).toBeVisible();
+
+  const cookies = await page.context().cookies();
+  const sessionCookie = cookies.find((cookie) => cookie.name.includes("session_token"));
+  expect(sessionCookie?.httpOnly).toBe(true);
+  expect(sessionCookie?.sameSite).toBe("Lax");
+  expect(await page.evaluate(() => document.cookie)).not.toContain("session_token");
+  const storageKeys = await page.evaluate(() => [
+    ...Object.keys(window.localStorage),
+    ...Object.keys(window.sessionStorage),
+  ]);
+  expect(storageKeys.filter((key) => /token|session|auth/i.test(key))).toEqual([]);
+});
+
+test("manual simulation has no fictitious current volume and labels hypothetical results", async ({
+  page,
+}) => {
+  await page.goto("/simulacoes");
+
+  await expect(page.getByRole("heading", { name: "Simulações" })).toBeVisible();
+  const volume = page.getByLabel("Vendas simuladas (unidades)");
+  await expect(volume).toHaveValue("");
+  await expect(page.getByText(/nenhum volume padrão é presumido/i)).toBeVisible();
+  await expect(page.getByText("Cenário atual", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Diferença vs. atual", { exact: true })).toHaveCount(0);
+
+  await volume.fill("100");
+
+  await expect(page.getByText("Faturamento simulado", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Resultado operacional simulado dentro do escopo informado", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Informado manualmente", { exact: true })).toBeVisible();
+
+  const price = page.getByLabel("Preço de venda simulado (R$)");
+  await price.fill("");
+  await expect(
+    page.getByText("Preencha os campos indicados da simulação para calcular."),
+  ).toBeVisible();
+  await expect(price).toHaveAttribute("aria-describedby", "simulation-field-message");
+  await price.fill("20");
+  await expect(page.getByText("Faturamento simulado", { exact: true })).toBeVisible();
+  await expectNoBlockingAxeViolations(page);
+});
+
+test("diagnostic forms prices only from explicit assumptions", async ({ page }) => {
+  await page.goto("/diagnostico");
+
+  await expect(page.getByRole("heading", { name: "Meu Diagnóstico" })).toBeVisible();
+  const variableUnitCost = page.getByLabel("Outros custos variáveis por unidade (R$)");
+  const targetRate = page.getByLabel("Margem de contribuição alvo (%)");
+  await expect(variableUnitCost).toHaveValue("");
+  await expect(targetRate).toHaveValue("");
+  await expect(page.getByText(/valores ausentes não são tratados como zero/i)).toBeVisible();
+  await expect(page.getByText(/despesas variáveis periódicas cadastradas/i)).toBeVisible();
+  await expect(page.getByText(/preço sugerido/i)).toHaveCount(0);
+
+  await variableUnitCost.fill("2");
+  await targetRate.fill("20");
+
+  const minimumCard = page
+    .getByText("Preço mínimo para custos unitários", { exact: true })
+    .locator("..");
+  const targetCard = page.getByText("Preço para margem-alvo", { exact: true }).locator("..");
+  const marketCard = page
+    .getByText("Preço médio de mercado informado", { exact: true })
+    .locator("..");
+  await expect(minimumCard).toContainText("14,12");
+  await expect(targetCard).toContainText("18,46");
+  await expect(marketCard).toContainText("18,00");
+
+  await targetRate.fill("90");
+  await expect(targetRate).toHaveAttribute("aria-invalid", "true");
+  await expect(page.getByRole("alert")).toContainText("Revise os custos, as taxas e a margem alvo");
+  await targetRate.fill("20");
+  await expectNoBlockingAxeViolations(page);
+});
+
+test("financial query failure is not rendered as empty or zero data", async ({ page }) => {
+  await page.route("**/_serverFn/**", async (route) => {
+    await route.fulfill({ status: 503, contentType: "application/json", body: "{}" });
+  });
+
+  await page.goto("/simulacoes");
+  await expect(page.getByRole("alert")).toContainText(
+    "Não foi possível carregar os dados financeiros",
+  );
+  await expect(page.getByText(/cadastre um produto para criar/i)).toHaveCount(0);
+  await expect(page.getByText(/^Referência de atendimento: SIM-/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Tentar novamente" })).toBeVisible();
+  await expectNoBlockingAxeViolations(page);
+
+  await page.goto("/inicio");
+  await expect(page.getByRole("alert")).toContainText(
+    "Não foi possível carregar o resumo financeiro",
+  );
+  await expect(page.getByRole("heading", { name: "Olá! 👋" })).toHaveCount(0);
+  await expect(page.getByText(/^Referência de atendimento: DASH-/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Tentar novamente" })).toBeVisible();
+  await expectNoBlockingAxeViolations(page);
+
+  await page.goto("/diagnostico");
+  await expect(page.getByRole("alert")).toContainText(
+    "Não foi possível carregar os dados do diagnóstico",
+  );
+  await expect(page.getByRole("button", { name: "Tentar novamente" })).toBeVisible();
+  await expectNoBlockingAxeViolations(page);
 });

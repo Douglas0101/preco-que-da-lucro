@@ -1,17 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { useEffect, useMemo, useState } from "react";
+import { useQueries } from "@tanstack/react-query";
+import { listProductsWithMetrics } from "@/lib/products.functions";
+import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
 import {
-  computeProduct,
   calculateBreakEvenUnits,
-  type IngredientRow,
-  type PackagingRow,
+  calculatePriceFormation,
+  computeProductCost,
+  sumFiniteNumbers,
+  type CalculationResult,
+  type BreakEvenResult,
   type FeeRow,
   type ProductComputation,
+  type ProductCostComputation,
 } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -20,17 +26,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlertTriangle, TrendingUp, Info } from "lucide-react";
+import { AlertTriangle, Info, TrendingUp } from "lucide-react";
 
 type DiagnosticAlert = { level: "warn" | "info" | "danger"; text: string };
+type LoadStatus = "loading" | "ready" | "empty" | "error";
+type ProductStatus = "idle" | "loading" | "incomplete" | "invalid" | "error" | "ok";
 
-interface ProductAnalysis {
-  c: ProductComputation;
+interface CurrentAnalysis {
+  computation: ProductComputation;
   price: number;
-  be: number;
-  suggestedPrice: number;
-  market: Tables<"market_prices"> | null;
+  breakEvenUnits: BreakEvenResult;
   alerts: DiagnosticAlert[];
+}
+
+interface DiagnosticData {
+  cost: CalculationResult<ProductCostComputation>;
+  currentStatus: "incomplete" | "invalid" | "ok";
+  currentAnalysis: CurrentAnalysis | null;
+  currentPrice: number | null;
+  taxRate: number | null;
+  fees: FeeRow[];
+  market: Awaited<ReturnType<typeof listProductsWithMetrics>>[number]["market"];
 }
 
 export const Route = createFileRoute("/_authenticated/diagnostico")({
@@ -48,201 +64,635 @@ export const Route = createFileRoute("/_authenticated/diagnostico")({
 
 function Diagnostico() {
   const { produto } = Route.useSearch();
-  const [products, setProducts] = useState<Tables<"products">[]>([]);
-  const [productId, setProductId] = useState<string>(produto ?? "");
-  const [fixed, setFixed] = useState(0);
-  const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
+  const [details, setDetails] = useState<Awaited<ReturnType<typeof listProductsWithMetrics>>>([]);
+  const products = details.map((detail) => detail.product);
+  const [productId, setProductId] = useState(produto ?? "");
+  const [fixedExpenses, setFixedExpenses] = useState(0);
+  const [hasUnallocatedVariableExpenses, setHasUnallocatedVariableExpenses] = useState(false);
+  const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
+  const [productStatus, setProductStatus] = useState<ProductStatus>("idle");
+  const [diagnostic, setDiagnostic] = useState<DiagnosticData | null>(null);
+  const [assumptions, setAssumptions] = useState({
+    nonPercentageVariableUnitCost: "",
+    targetContributionRate: "",
+  });
+  const [productsQuery, expensesQuery] = useQueries({
+    queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
+  });
 
   useEffect(() => {
-    (async () => {
-      const [p, e] = await Promise.all([
-        supabase.from("products").select("*").order("created_at", { ascending: false }),
-        supabase.from("expenses").select("*").eq("type", "fixa"),
-      ]);
-      setProducts(p.data ?? []);
-      setFixed((e.data ?? []).reduce((s, x) => s + Number(x.amount), 0));
-      setProductId((current) => current || p.data?.[0]?.id || "");
-    })();
-  }, []);
+    if (productsQuery.isPending || expensesQuery.isPending) {
+      setLoadStatus("loading");
+      return;
+    }
+    if (productsQuery.isError || expensesQuery.isError) {
+      setLoadStatus("error");
+      return;
+    }
+
+    const loadedDetails = productsQuery.data;
+    const expenses = expensesQuery.data;
+    const fixed = sumFiniteNumbers(
+      expenses
+        .filter((expense) => expense.type === "fixa")
+        .map((expense) => Number(expense.amount)),
+    );
+
+    setDetails(loadedDetails);
+    setFixedExpenses(fixed);
+    setHasUnallocatedVariableExpenses(expenses.some((expense) => expense.type === "variavel"));
+    if (loadedDetails.length === 0) {
+      setProductId("");
+      setLoadStatus("empty");
+      return;
+    }
+
+    setProductId((current) =>
+      loadedDetails.some((detail) => detail.product.id === current)
+        ? current
+        : loadedDetails[0].product.id,
+    );
+    setLoadStatus("ready");
+  }, [
+    expensesQuery.data,
+    expensesQuery.isError,
+    expensesQuery.isPending,
+    productsQuery.data,
+    productsQuery.isError,
+    productsQuery.isPending,
+  ]);
 
   useEffect(() => {
-    if (!productId) return;
-    (async () => {
-      const p = products.find((x) => x.id === productId);
-      if (!p) return;
-      const [ing, pack, fees, market] = await Promise.all([
-        supabase.from("product_ingredients").select("*").eq("product_id", p.id),
-        supabase.from("product_packaging").select("*").eq("product_id", p.id),
-        supabase.from("sales_fees").select("*").eq("product_id", p.id),
-        supabase
-          .from("market_prices")
-          .select("*")
-          .eq("product_id", p.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-      ]);
-      const c = computeProduct({
-        ingredients: (ing.data ?? []) as unknown as IngredientRow[],
-        packaging: (pack.data ?? []) as unknown as PackagingRow[],
-        yieldQty: Number(p.yield_qty ?? 1),
-        price: Number(p.current_price ?? 0),
-        taxRate: Number(p.tax_rate ?? 0),
-        fees: (fees.data ?? []) as unknown as FeeRow[],
-      });
-      const price = Number(p.current_price ?? 0);
-      const be = calculateBreakEvenUnits(fixed, c.contributionMargin);
-      const suggestedPrice = c.unitCost * 1.5; // sugestão simples: custo × 1,5 como referência
-      const alerts: DiagnosticAlert[] = [];
-      if (price > 0 && price < c.unitCost)
-        alerts.push({
-          level: "danger",
-          text: "Seu preço de venda está abaixo do custo unitário. Cada venda gera prejuízo — vale investigar.",
-        });
-      if (c.contributionMarginPct > 0 && c.contributionMarginPct < 20)
-        alerts.push({
-          level: "warn",
-          text: `Margem de contribuição baixa (${pct(c.contributionMarginPct)}). Pode representar risco no médio prazo.`,
-        });
-      if (fixed > 0 && !Number.isFinite(be))
-        alerts.push({
-          level: "warn",
-          text: "Com a margem atual, você nunca cobre as despesas fixas. Pode ser interessante simular preço maior ou custo menor.",
-        });
-      const marketAvg = market.data?.avg_price ? Number(market.data.avg_price) : null;
-      if (marketAvg && price > 0) {
-        const diff = ((price - marketAvg) / marketAvg) * 100;
-        if (Math.abs(diff) > 20) {
-          alerts.push({
-            level: "info",
-            text: `Seu preço atual está ${diff > 0 ? "acima" : "abaixo"} do mercado informado em ${pct(Math.abs(diff), 1)}. Preço deve considerar qualidade, público, marca e experiência — vale investigar.`,
-          });
-        }
+    if (loadStatus !== "ready" || !productId) return;
+
+    let cancelled = false;
+    setDiagnostic(null);
+    setProductStatus("loading");
+    setAssumptions({
+      nonPercentageVariableUnitCost: "",
+      targetContributionRate: "",
+    });
+
+    try {
+      const detail = details.find((candidate) => candidate.product.id === productId);
+      if (!detail) {
+        setProductStatus("error");
+      } else {
+        const result = buildDiagnostic(detail, fixedExpenses);
+        setDiagnostic(result.diagnostic);
+        setProductStatus(result.status);
       }
-      setAnalysis({ c, price, be, suggestedPrice, market: market.data, alerts });
-    })();
-  }, [productId, products, fixed]);
+    } catch {
+      if (cancelled) return;
+      setDiagnostic(null);
+      setProductStatus("error");
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [details, fixedExpenses, loadStatus, productId]);
+
+  const priceFormation = useMemo(() => {
+    if (!diagnostic) return null;
+    const directUnitCost = directUnitCostFrom(diagnostic.cost);
+    return calculatePriceFormation({
+      directUnitCost,
+      nonPercentageVariableUnitCost: parseOptionalNumber(assumptions.nonPercentageVariableUnitCost),
+      taxRate: diagnostic.taxRate,
+      fees: diagnostic.fees,
+      targetContributionRate: parseOptionalNumber(assumptions.targetContributionRate),
+      marketReference: nullableNumber(diagnostic.market?.avg_price),
+    });
+  }, [assumptions, diagnostic]);
+
+  const assumptionStatusId = "price-formation-assumptions-status";
+  const variableCostHasIssue =
+    priceFormation != null &&
+    (resultHasField(priceFormation.minimumSustainablePrice, "nonPercentageVariableUnitCost") ||
+      resultHasField(priceFormation.targetMarginPrice, "nonPercentageVariableUnitCost"));
+  const targetRateHasIssue =
+    priceFormation != null &&
+    resultHasField(priceFormation.targetMarginPrice, "targetContributionRate");
+  const variableCostIsInvalid =
+    priceFormation?.minimumSustainablePrice.status === "invalid" &&
+    resultHasField(priceFormation.minimumSustainablePrice, "nonPercentageVariableUnitCost");
+  const targetRateIsInvalid =
+    priceFormation?.targetMarginPrice.status === "invalid" &&
+    resultHasField(priceFormation.targetMarginPrice, "targetContributionRate");
+  const hasInvalidPriceFormation =
+    priceFormation?.minimumSustainablePrice.status === "invalid" ||
+    priceFormation?.targetMarginPrice.status === "invalid";
+  const hasIncompletePriceFormation =
+    priceFormation?.minimumSustainablePrice.status === "incomplete" ||
+    priceFormation?.targetMarginPrice.status === "incomplete";
+  const hasInvalidMarketReference = priceFormation?.marketReference.status === "invalid";
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-black">Meu Diagnóstico</h1>
-        <p className="text-muted-foreground">Análise financeira automática do seu produto.</p>
+        <p className="text-muted-foreground">
+          Cálculos e simulações com as premissas financeiras informadas.
+        </p>
       </div>
 
-      <Card>
-        <CardContent className="p-5 max-w-md">
-          <Label htmlFor="diagnostico-produto" className="sr-only">
-            Produto para diagnóstico
-          </Label>
-          <Select value={productId} onValueChange={setProductId}>
-            <SelectTrigger id="diagnostico-produto">
-              <SelectValue placeholder="Escolha um produto" />
-            </SelectTrigger>
-            <SelectContent>
-              {products.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+      {loadStatus === "loading" && (
+        <output className="text-muted-foreground">Carregando produtos e despesas...</output>
+      )}
+      {loadStatus === "error" && (
+        <RemoteErrorState message="Não foi possível carregar os dados do diagnóstico." />
+      )}
+      {loadStatus === "empty" && (
+        <output className="text-muted-foreground">
+          Cadastre um produto para gerar o diagnóstico.
+        </output>
+      )}
 
-      {analysis && (
+      {products.length > 0 && loadStatus !== "error" && (
+        <Card>
+          <CardContent className="max-w-md p-5">
+            <Label htmlFor="diagnostico-produto" className="sr-only">
+              Produto para diagnóstico
+            </Label>
+            <Select value={productId} onValueChange={setProductId}>
+              <SelectTrigger id="diagnostico-produto">
+                <SelectValue placeholder="Escolha um produto" />
+              </SelectTrigger>
+              <SelectContent>
+                {products.map((product) => (
+                  <SelectItem key={product.id} value={product.id}>
+                    {product.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+      )}
+
+      {loadStatus === "ready" && !diagnostic && <ProductState status={productStatus} />}
+
+      {diagnostic && priceFormation && (
         <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Kpi label="Custo unitário" value={brl(analysis.c.unitCost)} />
-            <Kpi label="Preço atual" value={analysis.price ? brl(analysis.price) : "—"} />
-            <Kpi label="Preço sugerido (custo × 1,5)" value={brl(analysis.suggestedPrice)} />
-            <Kpi
-              label="Preço médio mercado"
-              value={analysis.market?.avg_price ? brl(Number(analysis.market.avg_price)) : "—"}
-            />
-          </div>
+          {diagnostic.currentStatus === "invalid" && (
+            <div role="alert" className="rounded-xl border border-destructive/40 p-4 font-medium">
+              Erro no diagnóstico do preço atual. Revise os valores numéricos deste produto.
+            </div>
+          )}
+          {diagnostic.currentStatus === "incomplete" && (
+            <output className="rounded-xl border p-4 text-muted-foreground">
+              O diagnóstico do preço atual está incompleto, mas os custos conhecidos e a referência
+              de mercado continuam disponíveis abaixo.
+            </output>
+          )}
 
           <Card>
             <CardHeader>
-              <CardTitle>Estrutura financeira</CardTitle>
+              <CardTitle>Premissas da formação de preço</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Simulação local não salva. Os campos começam vazios e são limpos ao trocar de
+                produto.
+              </p>
             </CardHeader>
-            <CardContent className="grid gap-3 md:grid-cols-2 text-sm">
-              <Line label="Custo dos ingredientes" value={brl(analysis.c.recipeCost)} />
-              <Line label="Custo de embalagem/materiais" value={brl(analysis.c.packagingCost)} />
-              <Line
-                label="Margem de contribuição"
-                value={`${brl(analysis.c.contributionMargin)} (${pct(analysis.c.contributionMarginPct)})`}
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <AssumptionField
+                id="diagnostico-custo-variavel-unitario"
+                label="Outros custos variáveis por unidade (R$)"
+                help="Informe somente um valor já conhecido por unidade; não use o total mensal. Digite 0 apenas se tiver confirmado que não existem outros custos unitários."
+                value={assumptions.nonPercentageVariableUnitCost}
+                describedBy={variableCostHasIssue ? assumptionStatusId : undefined}
+                invalid={variableCostIsInvalid}
+                onChange={(value) =>
+                  setAssumptions({ ...assumptions, nonPercentageVariableUnitCost: value })
+                }
               />
-              <Line label="Despesas fixas / mês" value={brl(fixed)} />
-              <Line
-                label="Ponto de equilíbrio"
-                value={Number.isFinite(analysis.be) ? `${num(analysis.be, 0)} un.` : "—"}
+              <AssumptionField
+                id="diagnostico-margem-alvo"
+                label="Margem de contribuição alvo (%)"
+                help="Informe uma meta explícita. Nenhuma margem padrão é presumida."
+                value={assumptions.targetContributionRate}
+                describedBy={targetRateHasIssue ? assumptionStatusId : undefined}
+                invalid={targetRateIsInvalid}
+                onChange={(value) =>
+                  setAssumptions({ ...assumptions, targetContributionRate: value })
+                }
               />
+              {hasInvalidPriceFormation && (
+                <div
+                  id={assumptionStatusId}
+                  role="alert"
+                  className="rounded-xl border border-destructive/40 p-4 font-medium md:col-span-2"
+                >
+                  Erro de cálculo. Revise os custos, as taxas e a margem alvo informada.
+                </div>
+              )}
+              {!hasInvalidPriceFormation && hasIncompletePriceFormation && (
+                <div
+                  id={assumptionStatusId}
+                  aria-live="polite"
+                  className="rounded-xl border p-4 text-sm text-muted-foreground md:col-span-2"
+                >
+                  Complete as premissas manuais e os dados financeiros necessários para liberar cada
+                  cálculo. Valores ausentes não são tratados como zero.
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {analysis.alerts.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <Kpi
+              label="Custo unitário calculado"
+              value={formatCostResult(diagnostic.cost)}
+              description="Cálculo do motor financeiro"
+            />
+            <Kpi
+              label="Preço atual informado"
+              value={brl(diagnostic.currentPrice)}
+              description="Valor praticado cadastrado"
+            />
+            <Kpi
+              label="Preço mínimo para custos unitários"
+              value={formatPriceResult(priceFormation.minimumSustainablePrice)}
+              description="Cálculo no escopo informado"
+            />
+            <Kpi
+              label="Preço para margem-alvo"
+              value={formatPriceResult(priceFormation.targetMarginPrice)}
+              description="Simulação não salva"
+            />
+            <Kpi
+              label="Preço médio de mercado informado"
+              value={formatPriceResult(priceFormation.marketReference)}
+              description="Referência externa sem fonte estruturada"
+            />
+          </div>
+
+          {hasInvalidMarketReference && (
+            <div role="alert" className="rounded-xl border border-destructive/40 p-4 font-medium">
+              A referência de mercado informada contém um valor numérico inválido.
+            </div>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Escopo dos preços calculados</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                O preço mínimo cobre somente o custo unitário, os outros custos variáveis por
+                unidade informados, impostos e taxas percentuais cadastradas. Ele não garante a
+                cobertura das despesas fixas do negócio.
+              </p>
+              {hasUnallocatedVariableExpenses && (
+                <p className="rounded-xl border border-warning/40 bg-warning/5 p-3 text-foreground">
+                  Existem despesas variáveis periódicas cadastradas que não entram nestes preços:
+                  falta um volume ou direcionador confiável para convertê-las em custo por unidade.
+                </p>
+              )}
+              <p>
+                A referência de mercado é contexto informado, não recomendação. Posicionamento,
+                qualidade, capacidade e estratégia continuam sendo decisões do usuário.
+              </p>
+            </CardContent>
+          </Card>
+
+          {diagnostic.cost.status === "ok" && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-warning" /> Alertas e recomendações
-                </CardTitle>
+                <CardTitle>Estrutura financeira</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {analysis.alerts.map((a, i) => (
-                  <div
-                    key={i}
-                    className={`flex gap-3 rounded-xl border p-3 text-sm ${
-                      a.level === "danger"
-                        ? "border-destructive/40 bg-destructive/5"
-                        : a.level === "warn"
-                          ? "border-warning/40 bg-warning/10"
-                          : "border-primary/30 bg-secondary"
-                    }`}
-                  >
-                    {a.level === "danger" ? (
-                      <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
-                    ) : a.level === "warn" ? (
-                      <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
-                    ) : (
-                      <Info className="h-4 w-4 shrink-0 text-primary" />
-                    )}
-                    <span>{a.text}</span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="border-success/30">
-              <CardContent className="flex items-center gap-3 p-5">
-                <TrendingUp className="h-5 w-5 text-success" />
-                <span>
-                  Os dados indicam saúde financeira. Continue monitorando conforme o mercado muda.
-                </span>
+              <CardContent className="grid gap-3 text-sm md:grid-cols-2">
+                <Line
+                  label="Custo dos ingredientes"
+                  value={brl(diagnostic.cost.value.recipeCost)}
+                />
+                <Line
+                  label="Custo de embalagem/materiais"
+                  value={brl(diagnostic.cost.value.packagingCost)}
+                />
+                <Line label="Custo unitário" value={brl(diagnostic.cost.value.unitCost)} />
+                <Line label="Despesas fixas cadastradas" value={brl(fixedExpenses)} />
+                <Line
+                  label="Margem de contribuição atual"
+                  value={
+                    diagnostic.currentAnalysis
+                      ? `${brl(diagnostic.currentAnalysis.computation.contributionMargin)} (${pct(diagnostic.currentAnalysis.computation.contributionMarginPct)})`
+                      : "—"
+                  }
+                />
+                <Line
+                  label="Ponto de equilíbrio do preço atual"
+                  value={
+                    diagnostic.currentAnalysis
+                      ? diagnostic.currentAnalysis.breakEvenUnits.status === "reachable"
+                        ? `${num(diagnostic.currentAnalysis.breakEvenUnits.roundedUnits, 0)} un. (bruto ${num(diagnostic.currentAnalysis.breakEvenUnits.rawUnits, 2)})`
+                        : diagnostic.currentAnalysis.breakEvenUnits.status === "unreachable"
+                          ? "Não atingível"
+                          : "Erro de cálculo"
+                      : "—"
+                  }
+                />
               </CardContent>
             </Card>
           )}
+
+          {diagnostic.currentAnalysis &&
+            (diagnostic.currentAnalysis.alerts.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-warning" /> Alertas e interpretações
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {diagnostic.currentAnalysis.alerts.map((alert) => (
+                    <div
+                      key={`${alert.level}-${alert.text}`}
+                      className={`flex gap-3 rounded-xl border p-3 text-sm ${
+                        alert.level === "danger"
+                          ? "border-destructive/40 bg-destructive/5"
+                          : alert.level === "warn"
+                            ? "border-warning/40 bg-warning/10"
+                            : "border-primary/30 bg-secondary"
+                      }`}
+                    >
+                      {alert.level === "danger" ? (
+                        <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
+                      ) : alert.level === "warn" ? (
+                        <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
+                      ) : (
+                        <Info className="h-4 w-4 shrink-0 text-primary" />
+                      )}
+                      <span>{alert.text}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-success/30">
+                <CardContent className="flex items-center gap-3 p-5">
+                  <TrendingUp className="h-5 w-5 text-success" />
+                  <span>
+                    Nenhum alerta foi identificado pelas regras atuais. Continue monitorando os
+                    dados e o contexto de mercado.
+                  </span>
+                </CardContent>
+              </Card>
+            ))}
         </>
       )}
     </div>
   );
 }
 
-function Kpi({ label, value }: { label: string; value: string }) {
+type ProductDetail = Awaited<ReturnType<typeof listProductsWithMetrics>>[number];
+
+function marketAlert(price: number, market: ProductDetail["market"]): DiagnosticAlert | null {
+  const marketAverage = nullableNumber(market?.avg_price);
+  if (
+    marketAverage == null ||
+    !Number.isFinite(marketAverage) ||
+    marketAverage <= 0 ||
+    price <= 0
+  ) {
+    return null;
+  }
+  const difference = ((price - marketAverage) / marketAverage) * 100;
+  if (!Number.isFinite(difference) || Math.abs(difference) <= 20) return null;
+  return {
+    level: "info",
+    text: `Seu preço atual está ${difference > 0 ? "acima" : "abaixo"} da referência de mercado informada em ${pct(Math.abs(difference), 1)}. Mercado é contexto; posicionamento, qualidade e capacidade também importam.`,
+  };
+}
+
+function buildCurrentAlerts(
+  detail: ProductDetail,
+  metrics: ProductComputation,
+  fixedExpenses: number,
+  price: number,
+  breakEvenUnits: BreakEvenResult,
+): DiagnosticAlert[] {
+  const alerts: DiagnosticAlert[] = [];
+  if (price < metrics.unitCost) {
+    alerts.push({
+      level: "danger",
+      text: "Seu preço de venda está abaixo do custo unitário. Cada venda gera prejuízo — vale investigar.",
+    });
+  }
+  if (metrics.contributionMarginPct > 0 && metrics.contributionMarginPct < 20) {
+    alerts.push({
+      level: "warn",
+      text: `Margem de contribuição baixa (${pct(metrics.contributionMarginPct)}). Pode representar risco no médio prazo.`,
+    });
+  }
+  if (fixedExpenses > 0 && breakEvenUnits.status === "unreachable") {
+    alerts.push({
+      level: "warn",
+      text: "Com a margem atual, você não cobre as despesas fixas. Pode ser interessante simular preço maior ou custo menor.",
+    });
+  }
+  const referenceAlert = marketAlert(price, detail.market);
+  if (referenceAlert) alerts.push(referenceAlert);
+  return alerts;
+}
+
+function analyzeCurrentProduct(
+  detail: ProductDetail,
+  fixedExpenses: number,
+  currentPrice: number | null,
+): { status: DiagnosticData["currentStatus"]; analysis: CurrentAnalysis | null } {
+  const current = detail.metrics;
+  if (current.status !== "ok") return { status: current.status, analysis: null };
+
+  const price = currentPrice as number;
+  const breakEvenUnits = calculateBreakEvenUnits(fixedExpenses, current.value.contributionMargin);
+  if (breakEvenUnits.status === "invalid") return { status: "invalid", analysis: null };
+
+  return {
+    status: "ok",
+    analysis: {
+      computation: current.value,
+      price,
+      breakEvenUnits,
+      alerts: buildCurrentAlerts(detail, current.value, fixedExpenses, price, breakEvenUnits),
+    },
+  };
+}
+
+function buildDiagnostic(
+  detail: ProductDetail,
+  fixedExpenses: number,
+): { diagnostic: DiagnosticData; status: ProductStatus } {
+  const product = detail.product;
+  const ingredients = detail.ingredients.map((ingredient) => ({
+    used_qty: Number(ingredient.used_qty),
+    used_unit: ingredient.used_unit,
+    package_price: ingredient.package_price == null ? null : Number(ingredient.package_price),
+    package_qty: ingredient.package_qty == null ? null : Number(ingredient.package_qty),
+    package_unit: ingredient.package_unit,
+  }));
+  const packaging = detail.packaging.map((item) => ({
+    package_price: Number(item.package_price),
+    units_per_package: Number(item.units_per_package),
+  }));
+  const fees = detail.fees.map((fee) => ({
+    percentage: Number(fee.percentage) * 100,
+  })) satisfies FeeRow[];
+  const yieldQty = product.yield_qty == null ? null : Number(product.yield_qty);
+  const currentPrice = product.current_price == null ? null : Number(product.current_price);
+  const taxRate = product.tax_rate == null ? null : Number(product.tax_rate) * 100;
+  const cost = computeProductCost({ ingredients, packaging, yieldQty });
+  const currentResult = analyzeCurrentProduct(detail, fixedExpenses, currentPrice);
+
+  return {
+    diagnostic: {
+      cost,
+      currentStatus: currentResult.status,
+      currentAnalysis: currentResult.analysis,
+      currentPrice,
+      taxRate,
+      fees,
+      market: detail.market,
+    },
+    status: currentResult.status,
+  };
+}
+
+function directUnitCostFrom(result: CalculationResult<ProductCostComputation>): number | null {
+  if (result.status === "ok") return result.value.unitCost;
+  if (result.status === "invalid") return Number.NaN;
+  return null;
+}
+
+function nullableNumber(value: string | number | null | undefined): number | null {
+  return value == null ? null : Number(value);
+}
+
+function ProductState({ status }: Readonly<{ status: ProductStatus }>) {
+  if (status === "error") {
+    return <RemoteErrorState message="Não foi possível carregar os dados do produto." />;
+  }
+  return (
+    <output
+      role={status === "invalid" ? "alert" : undefined}
+      className={
+        status === "invalid"
+          ? "rounded-xl border border-destructive/40 p-4 font-medium"
+          : "text-muted-foreground"
+      }
+    >
+      {status === "invalid"
+        ? "Erro de cálculo. Revise os valores numéricos do produto."
+        : status === "incomplete"
+          ? "Dados incompletos. Os resultados disponíveis serão apresentados separadamente."
+          : "Carregando dados do produto..."}
+    </output>
+  );
+}
+
+function AssumptionField({
+  id,
+  label,
+  help,
+  value,
+  describedBy,
+  invalid,
+  onChange,
+}: Readonly<{
+  id: string;
+  label: string;
+  help: string;
+  value: string;
+  describedBy?: string;
+  invalid?: boolean;
+  onChange: (value: string) => void;
+}>) {
+  const helpId = `${id}-help`;
+  const descriptionIds = [helpId, describedBy].filter(Boolean).join(" ");
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        inputMode="decimal"
+        value={value}
+        aria-describedby={descriptionIds}
+        aria-invalid={invalid || undefined}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      <p id={helpId} className="text-xs text-muted-foreground">
+        {help}
+      </p>
+    </div>
+  );
+}
+
+function Kpi({
+  label,
+  value,
+  description,
+}: Readonly<{
+  label: string;
+  value: string;
+  description: string;
+}>) {
   return (
     <Card>
       <CardContent className="p-5">
         <div className="text-xs uppercase text-muted-foreground">{label}</div>
         <div className="mt-1 text-xl font-black">{value}</div>
+        <p className="mt-1 text-xs text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
   );
 }
-function Line({ label, value }: { label: string; value: string }) {
+
+function Line({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div className="flex justify-between gap-3 border-b py-1.5 last:border-0">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-semibold">{value}</span>
     </div>
   );
+}
+
+function RemoteErrorState({ message }: Readonly<{ message: string }>) {
+  return (
+    <div role="alert" className="space-y-3 rounded-xl border border-destructive/40 p-4">
+      <p className="font-medium">{message}</p>
+      <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+        Tentar novamente
+      </Button>
+    </div>
+  );
+}
+
+function resultHasField(result: CalculationResult<number>, field: string): boolean {
+  return result.status === "incomplete"
+    ? result.missing.some((missing) => missing.field === field)
+    : result.status === "invalid"
+      ? result.errors.some((error) => error.field === field)
+      : false;
+}
+
+function formatCostResult(result: CalculationResult<ProductCostComputation>): string {
+  return result.status === "ok"
+    ? brl(result.value.unitCost)
+    : result.status === "invalid"
+      ? brl(Number.NaN)
+      : brl(null);
+}
+
+function formatPriceResult(result: CalculationResult<number>): string {
+  return result.status === "ok"
+    ? brl(result.value)
+    : result.status === "invalid"
+      ? brl(Number.NaN)
+      : brl(null);
+}
+
+function parseOptionalNumber(value: string): number | null {
+  const normalized = value.trim().replace(",", ".");
+  return normalized === "" ? null : Number(normalized);
 }

@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { deleteExpense, listExpenses, upsertExpense } from "@/lib/expenses.functions";
+import { sumFiniteNumbers } from "@/lib/finance";
+import { toDecimalString } from "@/lib/financial-values";
+import { expensesQueryOptions } from "@/lib/query-options";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,8 +58,11 @@ const CATEGORIES = [
   "Outros",
 ];
 
+type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>[number];
+
 function Despesas() {
-  const [list, setList] = useState<Tables<"expenses">[]>([]);
+  const expensesQuery = useQuery(expensesQueryOptions());
+  const list: ExpenseRow[] = expensesQuery.data ?? [];
   const [form, setForm] = useState({
     name: "",
     amount: "",
@@ -66,47 +72,43 @@ function Despesas() {
   const [loading, setLoading] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
-  async function load() {
-    const { data } = await supabase
-      .from("expenses")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setList(data ?? []);
-  }
-  useEffect(() => {
-    load();
-  }, []);
-
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    const amount = Number(form.amount.replace(",", "."));
-    if (!form.name || !Number.isFinite(amount) || amount < 0)
+    const rawAmount = form.amount.replace(",", ".").trim();
+    const amount = Number(rawAmount);
+    if (!form.name.trim() || rawAmount === "" || !Number.isFinite(amount) || amount < 0)
       return toast.error("Preencha nome e valor válido");
     setLoading(true);
-    const { data: user } = await supabase.auth.getUser();
-    const { error } = await supabase.from("expenses").insert({
-      user_id: user.user!.id,
-      name: form.name,
-      amount,
-      category: form.category,
-      type: form.type,
-    });
+    try {
+      await upsertExpense({
+        data: {
+          name: form.name,
+          amount: toDecimalString(rawAmount, 4),
+          category: form.category,
+          type: form.type,
+        },
+      });
+    } catch {
+      setLoading(false);
+      return toast.error("Não foi possível salvar a despesa");
+    }
     setLoading(false);
-    if (error) return toast.error(error.message);
     toast.success("Despesa adicionada");
     setForm({ name: "", amount: "", category: "Outros", type: "fixa" });
-    load();
+    await expensesQuery.refetch();
   }
 
   async function del(id: string) {
-    await supabase.from("expenses").delete().eq("id", id);
-    load();
+    await deleteExpense({ data: { id } });
+    await expensesQuery.refetch();
   }
 
-  const fixed = list.filter((e) => e.type === "fixa").reduce((s, e) => s + Number(e.amount), 0);
-  const variable = list
-    .filter((e) => e.type === "variavel")
-    .reduce((s, e) => s + Number(e.amount), 0);
+  const fixed = sumFiniteNumbers(
+    list.filter((expense) => expense.type === "fixa").map((expense) => Number(expense.amount)),
+  );
+  const variable = sumFiniteNumbers(
+    list.filter((expense) => expense.type === "variavel").map((expense) => Number(expense.amount)),
+  );
 
   return (
     <>
@@ -203,39 +205,13 @@ function Despesas() {
           </CardContent>
         </Card>
 
-        {list.length === 0 ? (
-          <Card>
-            <CardContent className="grid place-items-center gap-2 p-12 text-center text-muted-foreground">
-              <Wallet className="h-8 w-8" /> Nenhuma despesa cadastrada ainda.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {list.map((e) => (
-              <Card key={e.id}>
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-semibold truncate">{e.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {e.category} · {e.type === "fixa" ? "Fixa" : "Variável"}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-black">{brl(Number(e.amount))}</div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setPendingDeleteId(e.id)}
-                    aria-label={`Excluir ${e.name}`}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+        <ExpenseListState
+          isPending={expensesQuery.isPending}
+          isError={expensesQuery.isError}
+          list={list}
+          onRetry={() => void expensesQuery.refetch()}
+          onDelete={setPendingDeleteId}
+        />
       </div>
 
       <AlertDialog
@@ -266,5 +242,69 @@ function Despesas() {
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+function ExpenseListState({
+  isPending,
+  isError,
+  list,
+  onRetry,
+  onDelete,
+}: Readonly<{
+  isPending: boolean;
+  isError: boolean;
+  list: ExpenseRow[];
+  onRetry: () => void;
+  onDelete: (id: string) => void;
+}>) {
+  if (isPending) return <div className="text-muted-foreground">Carregando...</div>;
+  if (isError) {
+    return (
+      <Card role="alert" className="border-destructive/40">
+        <CardContent className="space-y-3 p-5">
+          <p>Não foi possível carregar as despesas.</p>
+          <Button type="button" variant="outline" onClick={onRetry}>
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+  if (list.length === 0) {
+    return (
+      <Card>
+        <CardContent className="grid place-items-center gap-2 p-12 text-center text-muted-foreground">
+          <Wallet className="h-8 w-8" /> Nenhuma despesa cadastrada ainda.
+        </CardContent>
+      </Card>
+    );
+  }
+  return (
+    <div className="space-y-2">
+      {list.map((expense) => (
+        <Card key={expense.id}>
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-semibold">{expense.name}</div>
+              <div className="text-xs text-muted-foreground">
+                {expense.category} · {expense.type === "fixa" ? "Fixa" : "Variável"}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="font-black">{brl(Number(expense.amount))}</div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(expense.id)}
+              aria-label={`Excluir ${expense.name}`}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }

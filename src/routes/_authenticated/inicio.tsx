@@ -1,25 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  computeProduct,
-  type IngredientRow,
-  type PackagingRow,
-  type FeeRow,
-  calculateBreakEvenUnits,
-  calculateBreakEvenRevenue,
-} from "@/lib/finance";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { dashboardSummaryQueryOptions } from "@/lib/query-options";
 import { brl, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  AlertTriangle,
   Package,
   PlusCircle,
-  Wallet,
   Scale,
-  TrendingUp,
-  AlertTriangle,
   Sparkles,
+  TrendingUp,
+  Wallet,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
@@ -34,84 +27,53 @@ export const Route = createFileRoute("/_authenticated/inicio")({
 
 interface Metrics {
   productCount: number;
-  fixedExpenses: number;
-  bestProduct: { name: string; cmPct: number } | null;
-  totalRevenue: number;
-  breakEvenRevenue: number;
-  avgCmPct: number;
+  fixedExpenses: string | null;
+  bestProduct: { name: string; cmPct: string } | null;
+  hasInvalidCalculation: boolean;
+  incompleteProductCount: number;
   alerts: string[];
 }
 
+type LoadStatus = "loading" | "ready" | "error";
+
+function loadStatusFor(query: { isPending: boolean; isError: boolean }): LoadStatus {
+  if (query.isPending) return "loading";
+  if (query.isError) return "error";
+  return "ready";
+}
+
 function Inicio() {
-  const [loading, setLoading] = useState(true);
-  const [m, setM] = useState<Metrics | null>(null);
+  const summaryQuery = useQuery(dashboardSummaryQueryOptions());
+  const loadStatus = loadStatusFor(summaryQuery);
+  const metrics = summaryQuery.data as Metrics | undefined;
+  const errorReference = useMemo(
+    () => (summaryQuery.isError ? createErrorReference("DASH") : null),
+    [summaryQuery.isError],
+  );
 
-  useEffect(() => {
-    (async () => {
-      const [prodRes, expRes] = await Promise.all([
-        supabase.from("products").select("*"),
-        supabase.from("expenses").select("*"),
-      ]);
-      const products = prodRes.data ?? [];
-      const expenses = expRes.data ?? [];
-      const fixedExpenses = expenses
-        .filter((expense) => expense.type === "fixa")
-        .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+  if (loadStatus === "loading") {
+    return <output className="text-muted-foreground">Carregando...</output>;
+  }
 
-      let best: { name: string; cmPct: number } | null = null;
-      let sumCmPct = 0;
-      let totalRevenue = 0;
-      const alerts: string[] = [];
+  if (loadStatus === "error") {
+    return (
+      <Card role="alert" className="border-destructive/40">
+        <CardContent className="space-y-3 p-5">
+          <p className="font-medium">Não foi possível carregar o resumo financeiro.</p>
+          {errorReference && (
+            <p className="text-xs text-muted-foreground">
+              Referência de atendimento: {errorReference}
+            </p>
+          )}
+          <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
-      for (const p of products) {
-        const [ing, pack, fees] = await Promise.all([
-          supabase.from("product_ingredients").select("*").eq("product_id", p.id),
-          supabase.from("product_packaging").select("*").eq("product_id", p.id),
-          supabase.from("sales_fees").select("*").eq("product_id", p.id),
-        ]);
-        const c = computeProduct({
-          ingredients: (ing.data ?? []) as unknown as IngredientRow[],
-          packaging: (pack.data ?? []) as unknown as PackagingRow[],
-          yieldQty: Number(p.yield_qty ?? 1),
-          price: Number(p.current_price ?? 0),
-          taxRate: Number(p.tax_rate ?? 0),
-          fees: (fees.data ?? []) as unknown as FeeRow[],
-        });
-        sumCmPct += c.contributionMarginPct;
-        totalRevenue += Number(p.current_price ?? 0);
-        if (!best || c.contributionMarginPct > best.cmPct) {
-          best = { name: p.name, cmPct: c.contributionMarginPct };
-        }
-        if (p.current_price && Number(p.current_price) < c.unitCost) {
-          alerts.push(`"${p.name}": preço de venda abaixo do custo unitário.`);
-        }
-        if (c.contributionMarginPct > 0 && c.contributionMarginPct < 15) {
-          alerts.push(
-            `"${p.name}": margem de contribuição baixa (${pct(c.contributionMarginPct)}).`,
-          );
-        }
-      }
-
-      const avgCmPct = products.length > 0 ? sumCmPct / products.length : 0;
-      const breakEvenRevenue =
-        avgCmPct > 0 ? calculateBreakEvenRevenue(fixedExpenses, avgCmPct) : 0;
-
-      setM({
-        productCount: products.length,
-        fixedExpenses,
-        bestProduct: best,
-        totalRevenue,
-        breakEvenRevenue,
-        avgCmPct,
-        alerts,
-      });
-      setLoading(false);
-    })();
-  }, []);
-
-  if (loading) return <div className="text-muted-foreground">Carregando...</div>;
-
-  if (!m || m.productCount === 0) {
+  if (!metrics || metrics.productCount === 0) {
     return (
       <div className="mx-auto max-w-2xl rounded-3xl border bg-card p-8 text-center shadow-[var(--shadow-soft)] md:p-12">
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-primary text-primary-foreground">
@@ -122,7 +84,12 @@ function Inicio() {
           Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu
           negócio e quanto você precisa vender para começar a ter lucro.
         </p>
-        <Button render={<Link to="/novo-produto" />} size="lg" className="mt-6 gap-2">
+        <Button
+          nativeButton={false}
+          render={<Link to="/novo-produto" />}
+          size="lg"
+          className="mt-6 gap-2"
+        >
           <PlusCircle className="h-5 w-5" /> Começar agora
         </Button>
       </div>
@@ -133,35 +100,60 @@ function Inicio() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-black">Olá! 👋</h1>
-        <p className="text-muted-foreground">Aqui está o resumo do seu negócio.</p>
+        <p className="text-muted-foreground">
+          Resumo dos dados cadastrados, sem presumir vendas ou faturamento real.
+        </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard icon={Package} label="Produtos" value={String(m.productCount)} />
-        <MetricCard icon={Wallet} label="Despesas fixas / mês" value={brl(m.fixedExpenses)} />
-        <MetricCard
-          icon={Scale}
-          label="Faturamento p/ equilíbrio"
-          value={brl(m.breakEvenRevenue)}
-        />
-        <MetricCard icon={TrendingUp} label="Margem média" value={pct(m.avgCmPct)} />
-      </div>
-
-      {m.bestProduct && (
-        <Card className="border-primary/30">
-          <CardHeader>
-            <CardTitle className="text-base">🏆 Produto com maior margem</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-black">{m.bestProduct.name}</div>
-            <div className="text-muted-foreground">
-              Margem de contribuição: {pct(m.bestProduct.cmPct)}
-            </div>
+      {metrics.hasInvalidCalculation && (
+        <Card role="alert" className="border-destructive/40">
+          <CardContent className="p-4 font-medium">
+            Erro de cálculo. Revise os valores numéricos dos produtos e despesas.
           </CardContent>
         </Card>
       )}
 
-      {m.alerts.length > 0 && (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <MetricCard icon={Package} label="Produtos" value={String(metrics.productCount)} />
+        <MetricCard
+          icon={Wallet}
+          label="Despesas fixas cadastradas"
+          value={brl(metrics.fixedExpenses)}
+        />
+        <MetricCard
+          icon={Scale}
+          label="Faturamento real"
+          value="—"
+          description="Nenhuma venda real registrada."
+        />
+        <MetricCard
+          icon={TrendingUp}
+          label="Margem consolidada"
+          value="—"
+          description="Mix real de vendas indisponível."
+        />
+      </div>
+
+      {metrics.bestProduct && (
+        <Card className="border-primary/30">
+          <CardHeader>
+            <CardTitle className="text-base">🏆 Maior margem unitária calculável</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-black">{metrics.bestProduct.name}</div>
+            <div className="text-muted-foreground">
+              Margem de contribuição unitária: {pct(metrics.bestProduct.cmPct)}
+            </div>
+            {metrics.incompleteProductCount > 0 && (
+              <div className="mt-2 text-sm text-muted-foreground">
+                Comparação limitada aos produtos com dados completos.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {metrics.alerts.length > 0 && (
         <Card className="border-warning/40 bg-warning/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -170,8 +162,8 @@ function Inicio() {
           </CardHeader>
           <CardContent>
             <ul className="list-disc space-y-1 pl-5 text-sm">
-              {m.alerts.map((a, i) => (
-                <li key={i}>{a}</li>
+              {metrics.alerts.map((alert) => (
+                <li key={alert}>{alert}</li>
               ))}
             </ul>
           </CardContent>
@@ -179,10 +171,10 @@ function Inicio() {
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button render={<Link to="/novo-produto" />} className="gap-2">
+        <Button nativeButton={false} render={<Link to="/novo-produto" />} className="gap-2">
           <PlusCircle className="h-4 w-4" /> Novo produto
         </Button>
-        <Button render={<Link to="/diagnostico" />} variant="outline">
+        <Button nativeButton={false} render={<Link to="/diagnostico" />} variant="outline">
           Ver diagnóstico completo
         </Button>
       </div>
@@ -194,11 +186,13 @@ function MetricCard({
   icon: Icon,
   label,
   value,
-}: {
+  description,
+}: Readonly<{
   icon: typeof Package;
   label: string;
   value: string;
-}) {
+  description?: string;
+}>) {
   return (
     <Card>
       <CardContent className="p-5">
@@ -211,7 +205,16 @@ function MetricCard({
           </div>
         </div>
         <div className="mt-2 text-2xl font-black">{value}</div>
+        {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
       </CardContent>
     </Card>
   );
+}
+
+function createErrorReference(prefix: string): string {
+  const token =
+    typeof globalThis.crypto?.randomUUID === "function"
+      ? globalThis.crypto.randomUUID().slice(0, 8)
+      : Date.now().toString(36);
+  return `${prefix}-${token}`.toUpperCase();
 }

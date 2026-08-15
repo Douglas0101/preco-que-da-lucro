@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Sparkles, MessageCircle, Calculator, Scale, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Preço que Dá Lucro — descubra o preço certo do seu produto" },
+      { title: "Preço que Dá Lucro — avalie preços sustentáveis para seu produto" },
       {
         name: "description",
         content:
@@ -26,20 +26,14 @@ function Landing() {
   const navigate = Route.useNavigate();
 
   useEffect(() => {
-    const hasStoredSession = Array.from({ length: localStorage.length }, (_, index) =>
-      localStorage.key(index),
-    ).some((key) => key != null && /^sb-.*-auth-token$/.test(key));
-
-    if (!hasStoredSession) return;
-
     let active = true;
-    void import("@/integrations/supabase/client")
-      .then(async ({ supabase }) => {
-        const { data } = await supabase.auth.getUser();
-        if (active && data.user) await navigate({ to: "/inicio", replace: true });
+    void import("@/lib/auth-client")
+      .then(async ({ authClient }) => {
+        const { data } = await authClient.getSession();
+        if (active && data?.user) await navigate({ to: "/inicio", replace: true });
       })
       .catch((error: unknown) => {
-        if (active) console.error("Could not validate the persisted session", error);
+        if (active) console.error("Could not validate the server session", error);
       });
 
     return () => {
@@ -56,9 +50,9 @@ function Landing() {
           </div>
           <span className="font-bold">Preço que Dá Lucro</span>
         </div>
-        <Button render={<Link to="/auth" />} variant="ghost">
+        <Link to="/auth" className={buttonVariants({ variant: "ghost" })}>
           Entrar
-        </Button>
+        </Link>
       </header>
 
       <section className="mx-auto max-w-6xl px-6 pt-8 pb-20 md:pt-16">
@@ -67,16 +61,17 @@ function Landing() {
             <Sparkles className="h-3 w-3" /> IA que conversa como um consultor
           </span>
           <h1 className="mt-6 text-4xl font-black leading-tight tracking-tight md:text-6xl">
-            Descubra o <span className="text-primary">preço certo</span> do seu produto conversando.
+            Entenda a <span className="text-primary">faixa de preço</span> do seu produto
+            conversando.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
             Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu
             negócio e quanto você precisa vender para começar a ter lucro.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button render={<Link to="/auth" />} size="lg" className="gap-2">
+            <Link to="/auth" className={buttonVariants({ size: "lg", className: "gap-2" })}>
               Começar agora <ArrowRight className="h-4 w-4" />
-            </Button>
+            </Link>
           </div>
         </div>
 
@@ -90,7 +85,7 @@ function Landing() {
             {
               icon: Calculator,
               title: "Cálculos precisos",
-              desc: "Custo, margem de contribuição e preço sugerido calculados pelo sistema.",
+              desc: "Custo, margem de contribuição e preços calculados com premissas explícitas.",
             },
             {
               icon: Scale,
