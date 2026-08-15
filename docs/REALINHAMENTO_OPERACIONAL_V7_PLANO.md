@@ -97,18 +97,30 @@ Todos os valores citados foram conferidos por leitura direta: V7 §21–25, §28
 - **F4/F5/F6 — implementação local:** Services/Repositories, Transaction
   Manager, modelo de vendas, completude, histórico de preços, snapshots e
   persistência server-side de simulações foram endurecidos em código e na
-  migration aditiva 0004. O ADR-024 fixa esses contratos. A execução da cadeia
-  em um PostgreSQL 17 descartável ainda depende de infraestrutura local/CI.
+  migration aditiva 0004. O ADR-024 fixa esses contratos. A cadeia foi
+  executada no PostgreSQL 17 local descartável: `db:test` passou com migrations,
+  constraints, RLS, cross-tenant, rollback, Better Auth, tools e chat.
+- **E2E local — comprovado:** seed Better Auth, build, preview em `4173` e
+  matriz Playwright passaram com 32/32 execuções em Chromium, Firefox, WebKit e
+  mobile Pixel 7. A evidência detalhada está em
+  [e2e-local-postgres-2026-08-15](evidence/e2e-local-postgres-2026-08-15.md).
+- **PR #13 — mergeado:** o SHA `71b0dc1` foi integrado em `develop` no merge
+  commit remoto `c232141726baf95285cac796a653905a396af77e`. O `ui-stack` do push
+  pós-merge terminou com `success` nesse SHA.
 - **F7/item 27 — bloqueado externamente:** o projeto Neon, a branch `develop`,
   URLs direct/pooled e o environment protegido ainda dependem das contas e
   chaves dos responsáveis.
 - **F8 — não promovido:** a fonte Supabase permanece opcional; sem sua URL
   read-only o caminho válido é provisionamento limpo, mas isso ainda não prova
   reconciliação, backup/restore ou cutover.
-- **Evidência:** testes unitários, typecheck, lint, format, build/bundle e
-  `db:check` comprovam implementação local; `db:test` exige PostgreSQL 17
-  descartável. Workflow `skipped` ou não executado não altera o estado externo
-  para `passed`.
+- **Evidência:** testes unitários, typecheck, lint, format, build/bundle,
+  `db:check`, `db:test` e E2E local comprovam a cadeia local. Isso não altera o
+  estado externo: workflow `skipped` ou não executado não vira `passed`, e os
+  gates Neon continuam bloqueados.
+- **PR #12 — triagem registrada:** os cinco follow-ups de backlog e as duas
+  threads inline pendentes estão separados em
+  [pr12-followups-triage-2026-08-15](evidence/pr12-followups-triage-2026-08-15.md);
+  nenhuma correção foi aplicada nesta ponte.
 - **Major:** [ADR-023](adr/ADR-023-postgresql-major-target.md) fixa PostgreSQL
   17 até existir uma matriz de compatibilidade e rollback para eventual upgrade.
 - **Integridade P1:** [ADR-024](adr/ADR-024-p1-data-integrity-contracts.md)
