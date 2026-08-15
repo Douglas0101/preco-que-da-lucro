@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import Decimal from "decimal.js";
 import { z } from "zod";
+import { ApplicationError } from "@/lib/api-error";
 import {
   marketPrices,
   productIngredients,
@@ -107,6 +108,10 @@ function mapMarket(row: typeof marketPrices.$inferSelect) {
     max_price: row.maxPrice,
     created_at: row.createdAt.toISOString(),
   };
+}
+
+function isForeignKeyViolation(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "23503";
 }
 
 function toFinanceIngredient(item: ReturnType<typeof mapIngredient>): IngredientRow {
@@ -445,10 +450,21 @@ function deleteChild(
     .handler(async ({ data, context }) => {
       const request = context.requestContext;
       assertTenantMutationAuthorized(request);
-      const rows = await request.transaction
-        .delete(table)
-        .where(and(eq(table.tenantId, request.tenantId), eq(table.id, data.id)))
-        .returning({ id: table.id });
+      let rows: Array<{ id: string }>;
+      try {
+        rows = await request.transaction
+          .delete(table)
+          .where(and(eq(table.tenantId, request.tenantId), eq(table.id, data.id)))
+          .returning({ id: table.id });
+      } catch (error) {
+        if (isForeignKeyViolation(error)) {
+          throw new ApplicationError("CONFLICT", {
+            cause: error,
+            message: "O registro possui histórico de preços e não pode ser removido.",
+          });
+        }
+        throw error;
+      }
       if (!rows.length) throw new Error("NOT_FOUND");
       return { ok: true };
     });
