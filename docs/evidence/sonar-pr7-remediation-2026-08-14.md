@@ -90,3 +90,31 @@ worktree isolado `codex/pr7-sonar-remediation`:
 Assim, o gate local determinístico está verde, mas o fechamento completo do
 CI/CD ainda requer PostgreSQL/credenciais no executor e uma nova análise
 SonarCloud depois da publicação do commit remediado.
+
+## Resultado remoto final — 2026-08-15
+
+### Causa raiz da falha "The last analysis has failed"
+
+O plano Free da organização `douglas0101` limita projetos privados a 50.000
+LOC. O uso estava em 42.639 e a análise do PR adicionava 11.311
+(ts=10.721, plsql=385, yaml=160, js=45), totalizando 53.950 — acima do limite,
+com a tarefa de análise abortada em ~3s em todos os pushes.
+
+Os projetos privados inativos `vitruviano-v2-runtime` (41.728 ncloc, sem
+análise desde mai/2026) e `agent-coding-framework-main` (911 ncloc, desde
+abr/2026) consumiam ~85% da cota.
+
+### Correção aplicada
+
+- Exclusão no SonarCloud de `vitruviano-v2-runtime`,
+  `agent-coding-framework-main` e `Projeto-Contabilidade-AI` (sem análise).
+- Commit de retrigger `65281b4` no branch `codex/pr7-sonar-remediation`.
+
+### Estado remoto após a correção
+
+- SonarCloud Code Analysis no PR #8: **SUCCESS — Quality Gate OK**.
+- Novo código: Security Rating **A** (1.0), 0 vulnerabilidades novas
+  (`githubactions:S6505` fechada), Reliability A, Maintainability A,
+  duplicação 0%, security hotspots 100% revisados.
+- CI GitHub no commit `65281b4`: `verify` (UI stack) SUCCESS e `migration`
+  (Neon preview) SUCCESS.
