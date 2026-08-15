@@ -49,11 +49,19 @@ jobs:
           missing=()
           [[ -n "$NEON_API_KEY" ]] || missing+=(NEON_API_KEY)
           [[ -n "$NEON_PROJECT_ID" ]] || missing+=(NEON_PROJECT_ID)
-          [[ -n "$SUPABASE_MIGRATION_DATABASE_URL" ]] || missing+=(SUPABASE_MIGRATION_DATABASE_URL)
 
           if ((${#missing[@]} > 0)); then
             printf 'Neon readiness blocked: missing required configuration: %s\n' "${missing[*]}" >&2
             exit 1
+          fi
+
+          # The Supabase legacy source is optional: the project never ran on
+          # Supabase officially, so a fresh Neon provision is the default path.
+          if [[ -n "$SUPABASE_MIGRATION_DATABASE_URL" ]]; then
+            legacy_source=true
+          else
+            legacy_source=false
+            echo "Neon readiness: no legacy source configured; fresh-provision checks only."
           fi
 
           case "$MIGRATION_MODE" in
@@ -77,6 +85,7 @@ jobs:
           {
             echo "migration_apply=$migration_apply"
             echo "report_path=$report_path"
+            echo "legacy_source=$legacy_source"
           } >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -175,6 +184,7 @@ jobs:
         run: npm run db:check
 
       - name: Run controlled Supabase to Neon migration
+        if: steps.config.outputs.legacy_source == 'true'
         env:
           SUPABASE_MIGRATION_DATABASE_URL: ${{ secrets.SUPABASE_MIGRATION_DATABASE_URL }}
           MIGRATION_APPLY: ${{ steps.config.outputs.migration_apply }}
@@ -183,6 +193,7 @@ jobs:
         run: npm run migration:legacy-to-neon
 
       - name: Enforce migration report contract
+        if: steps.config.outputs.legacy_source == 'true'
         env:
           MIGRATION_REPORT_PATH: ${{ steps.config.outputs.report_path }}
           MIGRATION_MODE: ${{ inputs.migration_mode }}
@@ -226,12 +237,18 @@ jobs:
         env:
           BRANCH_ID: ${{ steps.neon.outputs.branch_id }}
           MIGRATION_MODE: ${{ inputs.migration_mode }}
+          LEGACY_SOURCE: ${{ steps.config.outputs.legacy_source }}
         run: |
           {
             echo "### Neon readiness boundary"
             echo
             echo "- Mode: \`$MIGRATION_MODE\`"
             echo "- Target: disposable child of the configured Neon develop branch"
+            if [[ "$LEGACY_SOURCE" == "true" ]]; then
+              echo "- Legacy reconciliation: executed against the read-only Supabase source"
+            else
+              echo "- Legacy reconciliation: skipped (no Supabase source configured; fresh provision path)"
+            fi
             echo "- Branch cleanup: requested in the final step, including failures"
             echo "- Production cutover: **not performed**"
             if [[ -n "$BRANCH_ID" ]]; then
