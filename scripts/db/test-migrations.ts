@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
+import { Pool } from "pg";
+import * as schema from "../../src/db/schema";
+import { DrizzlePurchasePriceRepository } from "../../src/server/repositories/purchase-price.repository";
+import type { RequestContext } from "../../src/lib/request-context";
 import { requireAdminUrl, runMigrations } from "./migrate";
 
 const adminUrl = requireAdminUrl();
@@ -11,6 +16,13 @@ const userA = "30000000-0000-4000-8000-000000000003";
 const userB = "40000000-0000-4000-8000-000000000004";
 const productA = "50000000-0000-4000-8000-000000000005";
 const productB = "60000000-0000-4000-8000-000000000006";
+const ingredientA = "70000000-0000-4000-8000-000000000007";
+const packagingA = "80000000-0000-4000-8000-000000000008";
+const historyA = "90000000-0000-4000-8000-000000000009";
+const ingredientB = "a0000000-0000-4000-8000-00000000000a";
+const legacySale = "b0000000-0000-4000-8000-00000000000b";
+const legacySaleItem = "c0000000-0000-4000-8000-00000000000c";
+const orphanHistory = "d0000000-0000-4000-8000-00000000000d";
 const expectedPostgresMajor = Number(process.env.EXPECTED_POSTGRES_MAJOR ?? "17");
 
 if (!Number.isInteger(expectedPostgresMajor) || expectedPostgresMajor < 10) {
@@ -89,6 +101,34 @@ async function seedIsolationFixtures(client: Client): Promise<void> {
      values ($1, $2, $3, 'Produto A', '12.3400', '0.060000'),
             ($4, $5, $6, 'Produto B', '99.9900', '0.120000')`,
     [productA, tenantA, userA, productB, tenantB, userB],
+  );
+  await client.query(
+    `insert into product_ingredients
+       (id, product_id, tenant_id, user_id, name, used_qty, used_unit,
+        package_price, package_qty, package_unit)
+     values ($1, $2, $3, $4, 'Ingrediente A', '1.000000', 'kg',
+             '12.3000', '1.000000', 'kg')`,
+    [ingredientA, productA, tenantA, userA],
+  );
+  await client.query(
+    `insert into product_packaging
+       (id, product_id, tenant_id, user_id, name, package_price, units_per_package)
+     values ($1, $2, $3, $4, 'Embalagem A', '2.5000', '1.000000')`,
+    [packagingA, productA, tenantA, userA],
+  );
+  await client.query(
+    `insert into product_ingredients
+       (id, product_id, tenant_id, user_id, name, used_qty, used_unit)
+     values ($1, $2, $3, $4, 'Ingrediente B', '1.000000', 'kg')`,
+    [ingredientB, productB, tenantB, userB],
+  );
+  await client.query(
+    `insert into purchase_price_history
+       (id, tenant_id, user_id, subject_type, subject_id, ingredient_id,
+        price, quantity, unit, valid_from)
+     values ($1, $2, $3, 'ingredient', $4, $4, '12.3000', '1.000000', 'kg',
+             now() - interval '1 day')`,
+    [historyA, tenantA, userA, ingredientA],
   );
 }
 
@@ -376,6 +416,60 @@ async function assertDatabaseContract(client: Client): Promise<void> {
   );
   assert.ok(tenantASale);
 
+  const historyTimestamps = await client.query<{
+    valid_from: Date;
+    recorded_at: Date;
+  }>(
+    `select valid_from, recorded_at
+     from purchase_price_history
+     where id = $1`,
+    [historyA],
+  );
+  assert.equal(historyTimestamps.rowCount, 1);
+  assert.ok(
+    historyTimestamps.rows[0]!.recorded_at > historyTimestamps.rows[0]!.valid_from,
+    "recorded_at deve usar o timestamp do banco, independente de valid_from",
+  );
+
+  await assert.rejects(
+    withRuntimeCommit(client, { userId: userA, tenantId: tenantA }, async () =>
+      client.query("delete from product_ingredients where tenant_id = $1 and id = $2", [
+        tenantA,
+        ingredientA,
+      ]),
+    ),
+    (error: unknown) =>
+      typeof error === "object" && error !== null && "code" in error && error.code === "23503",
+
+    "filho com histórico não pode ser removido enquanto o histórico for append-only",
+  );
+
+  const historyCount = await client.query<{ count: string }>(
+    "select count(*)::text as count from purchase_price_history where id = $1",
+    [historyA],
+  );
+  assert.equal(historyCount.rows[0]?.count, "1");
+
+  await assert.rejects(
+    client.query(
+      `insert into purchase_price_history
+         (tenant_id, user_id, subject_type, subject_id, ingredient_id,
+          price, quantity, unit, valid_from)
+       values ($1, $2, 'ingredient', $3, $3, '12.3000', '1.000000', 'kg', now())`,
+      [tenantA, userA, ingredientB],
+    ),
+    (error: unknown) =>
+      typeof error === "object" && error !== null && "code" in error && error.code === "23503",
+    "a FK composta deve rejeitar referência ao mesmo sujeito em outro tenant",
+  );
+
+  const totalMath = await client.query<{ mismatches: string }>(
+    `select count(*)::text as mismatches
+     from sales_items
+     where total_amount <> round(quantity * unit_price, 4)`,
+  );
+  assert.equal(totalMath.rows[0]?.mismatches, "0");
+
   await assert.rejects(
     withRuntimeCommit(client, { userId: userA, tenantId: tenantA }, async () =>
       client.query(
@@ -397,6 +491,117 @@ async function assertDatabaseContract(client: Client): Promise<void> {
   assert.equal(crossTenantSales.rowCount, 0);
 }
 
+async function assertPurchasePriceConcurrency(adminUrl: string): Promise<void> {
+  const pool = new Pool({ connectionString: adminUrl, max: 2 });
+  const database = drizzle({ client: pool, schema });
+  const repository = new DrizzlePurchasePriceRepository();
+  const input = {
+    kind: "packaging" as const,
+    subjectId: packagingA,
+    price: "2.5000",
+    quantity: "1.000000",
+    unit: "unidade",
+    validFrom: new Date("2026-08-15T13:00:00.000Z"),
+  };
+
+  const append = () =>
+    database.transaction(async (transaction) => {
+      const context: RequestContext = {
+        userId: userA,
+        tenantId: tenantA,
+        roles: ["owner"],
+        correlationId: "db-test-purchase-price-concurrency",
+        signal: AbortSignal.timeout(10_000),
+        transaction: transaction as unknown as RequestContext["transaction"],
+      };
+      return repository.append(context, input);
+    });
+
+  try {
+    const [first, second] = await Promise.all([append(), append()]);
+    assert.equal(first.id, second.id, "concorrência não pode criar histórico duplicado");
+
+    const count = await pool.query<{ count: string }>(
+      `select count(*)::text as count
+       from purchase_price_history
+       where tenant_id = $1 and subject_type = 'packaging' and subject_id = $2`,
+      [tenantA, packagingA],
+    );
+    assert.equal(count.rows[0]?.count, "1");
+
+    await assert.rejects(
+      pool.query("delete from product_packaging where tenant_id = $1 and id = $2", [
+        tenantA,
+        packagingA,
+      ]),
+      (error: unknown) =>
+        typeof error === "object" && error !== null && "code" in error && error.code === "23503",
+      "embalagem com histórico deve respeitar ON DELETE RESTRICT",
+    );
+
+    const retained = await pool.query<{ count: string }>(
+      `select count(*)::text as count
+       from purchase_price_history
+       where tenant_id = $1 and subject_type = 'packaging' and subject_id = $2`,
+      [tenantA, packagingA],
+    );
+    assert.equal(retained.rows[0]?.count, "1");
+  } finally {
+    await pool.query(
+      "delete from purchase_price_history where tenant_id = $1 and subject_id = $2",
+      [tenantA, packagingA],
+    );
+    await pool.end();
+  }
+}
+
+async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<void> {
+  const rollbackSql = await readFile(resolve("drizzle/rollback/0004_to_0003_down.sql"), "utf8");
+  await client.query(rollbackSql);
+  await client.query(
+    "delete from drizzle.__drizzle_migrations where id = (select max(id) from drizzle.__drizzle_migrations)",
+  );
+
+  await client.query(
+    `insert into sales (id, tenant_id, user_id, occurred_at, gross_amount, net_amount, channel)
+     values ($1, $2, $3, now(), '1.0000', '1.0000', 'manual')`,
+    [legacySale, tenantA, userA],
+  );
+  await client.query(
+    `insert into sales_items
+       (id, sale_id, product_id, tenant_id, user_id, quantity, unit_price, total_amount)
+     values ($1, $2, $3, $4, $5, '3.000000', '0.3334', '1.0001')`,
+    [legacySaleItem, legacySale, productA, tenantA, userA],
+  );
+
+  await runMigrations(adminUrl);
+  const corrected = await client.query<{ total_amount: string }>(
+    "select total_amount::text as total_amount from sales_items where id = $1",
+    [legacySaleItem],
+  );
+  assert.equal(corrected.rows[0]?.total_amount, "1.0002");
+
+  await client.query(rollbackSql);
+  await client.query(
+    "delete from drizzle.__drizzle_migrations where id = (select max(id) from drizzle.__drizzle_migrations)",
+  );
+  await client.query(
+    `insert into purchase_price_history
+       (id, tenant_id, user_id, subject_type, subject_id, price, quantity, unit, valid_from)
+     values ($1, $2, $3, 'ingredient', $4, '4.0000', '1.000000', 'kg', now())`,
+    [orphanHistory, tenantA, userA, "f0000000-0000-4000-8000-00000000000f"],
+  );
+
+  await assert.rejects(
+    runMigrations(adminUrl),
+    (error: unknown) => error instanceof Error && error.message.includes("orphaned target"),
+    "0004 deve abortar quando o histórico legado aponta para um órfão",
+  );
+
+  await client.query("delete from purchase_price_history where id = $1", [orphanHistory]);
+  await runMigrations(adminUrl);
+}
+
 async function main(): Promise<void> {
   await runMigrations(adminUrl);
 
@@ -405,6 +610,8 @@ async function main(): Promise<void> {
   try {
     await seedIsolationFixtures(client);
     await assertDatabaseContract(client);
+    await assertPurchasePriceConcurrency(adminUrl);
+    await assertUpgradeFrom0003(adminUrl, client);
 
     const rollbackSql = await readFile(resolve("drizzle/rollback/0001_to_0000_down.sql"), "utf8");
     await client.query(rollbackSql);

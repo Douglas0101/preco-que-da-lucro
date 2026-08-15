@@ -37,6 +37,16 @@ jobs:
       EXPECTED_POSTGRES_MAJOR: "17"
 
     steps:
+      - name: Require develop ref
+        env:
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != "refs/heads/develop" ]]; then
+            echo "Neon readiness blocked: run only from refs/heads/develop." >&2
+            exit 1
+          fi
+
       - name: Require readiness credentials and confirmation
         id: config
         env:

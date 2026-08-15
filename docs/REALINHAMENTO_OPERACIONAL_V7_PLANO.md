@@ -117,10 +117,13 @@ Todos os valores citados foram conferidos por leitura direta: V7 §21–25, §28
   `db:check`, `db:test` e E2E local comprovam a cadeia local. Isso não altera o
   estado externo: workflow `skipped` ou não executado não vira `passed`, e os
   gates Neon continuam bloqueados.
-- **PR #12 — triagem registrada:** os cinco follow-ups de backlog e as duas
-  threads inline pendentes estão separados em
-  [pr12-followups-triage-2026-08-15](evidence/pr12-followups-triage-2026-08-15.md);
-  nenhuma correção foi aplicada nesta ponte.
+- **PR #12 — follow-ups implementados:** a branch
+  `codex/pr12-followups-hardening` corrige o dedupe concorrente do histórico,
+  aplica o preflight de totais legados antes do check da migration 0004 sem
+  alterar o hash publicado, mantém `ON DELETE RESTRICT`, usa `recorded_at` do
+  banco, mapeia a exclusão bloqueada para `CONFLICT` e registra `active` como
+  estado reservado. A validação local completa está em
+  [pr12-followups-triage-2026-08-15](evidence/pr12-followups-triage-2026-08-15.md).
 - **Major:** [ADR-023](adr/ADR-023-postgresql-major-target.md) fixa PostgreSQL
   17 até existir uma matriz de compatibilidade e rollback para eventual upgrade.
 - **Integridade P1:** [ADR-024](adr/ADR-024-p1-data-integrity-contracts.md)
