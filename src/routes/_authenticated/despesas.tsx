@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteExpense, listExpenses, upsertExpense } from "@/lib/expenses.functions";
 import { sumFiniteNumbers } from "@/lib/finance";
-import { toDecimalString } from "@/lib/financial-values";
+import { toDecimalString, type DecimalString } from "@/lib/financial-values";
 import { expensesQueryOptions } from "@/lib/query-options";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -59,8 +59,15 @@ const CATEGORIES = [
 ];
 
 type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>[number];
+type ExpenseMutationInput = {
+  name: string;
+  amount: DecimalString;
+  category: string;
+  type: "fixa" | "variavel";
+};
 
 function Despesas() {
+  const queryClient = useQueryClient();
   const expensesQuery = useQuery(expensesQueryOptions());
   const list: ExpenseRow[] = expensesQuery.data ?? [];
   const [form, setForm] = useState({
@@ -69,8 +76,31 @@ function Despesas() {
     category: "Outros",
     type: "fixa" as "fixa" | "variavel",
   });
-  const [loading, setLoading] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  const saveExpenseMutation = useMutation({
+    mutationFn: (data: ExpenseMutationInput) => upsertExpense({ data }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["expenses"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard", "summary"] }),
+      ]);
+      toast.success("Despesa adicionada");
+      setForm({ name: "", amount: "", category: "Outros", type: "fixa" });
+    },
+    onError: () => toast.error("Não foi possível salvar a despesa"),
+  });
+  const deleteExpenseMutation = useMutation({
+    mutationFn: (id: string) => deleteExpense({ data: { id } }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["expenses"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard", "summary"] }),
+      ]);
+      setPendingDeleteId(null);
+    },
+    onError: () => toast.error("Não foi possível excluir a despesa"),
+  });
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
@@ -78,29 +108,12 @@ function Despesas() {
     const amount = Number(rawAmount);
     if (!form.name.trim() || rawAmount === "" || !Number.isFinite(amount) || amount < 0)
       return toast.error("Preencha nome e valor válido");
-    setLoading(true);
-    try {
-      await upsertExpense({
-        data: {
-          name: form.name,
-          amount: toDecimalString(rawAmount, 4),
-          category: form.category,
-          type: form.type,
-        },
-      });
-    } catch {
-      setLoading(false);
-      return toast.error("Não foi possível salvar a despesa");
-    }
-    setLoading(false);
-    toast.success("Despesa adicionada");
-    setForm({ name: "", amount: "", category: "Outros", type: "fixa" });
-    await expensesQuery.refetch();
-  }
-
-  async function del(id: string) {
-    await deleteExpense({ data: { id } });
-    await expensesQuery.refetch();
+    saveExpenseMutation.mutate({
+      name: form.name,
+      amount: toDecimalString(rawAmount, 4),
+      category: form.category,
+      type: form.type,
+    });
   }
 
   const fixed = sumFiniteNumbers(
@@ -197,7 +210,7 @@ function Despesas() {
                 </Select>
               </div>
               <div className="md:col-span-5">
-                <Button type="submit" disabled={loading} className="gap-2">
+                <Button type="submit" disabled={saveExpenseMutation.isPending} className="gap-2">
                   <PlusCircle className="h-4 w-4" /> Adicionar despesa
                 </Button>
               </div>
@@ -233,7 +246,7 @@ function Despesas() {
             <AlertDialogAction
               variant="destructive"
               onClick={() => {
-                if (pendingDeleteId !== null) void del(pendingDeleteId);
+                if (pendingDeleteId !== null) deleteExpenseMutation.mutate(pendingDeleteId);
               }}
             >
               Excluir despesa

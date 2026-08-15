@@ -9,6 +9,13 @@ const tenantA = "10000000-0000-4000-8000-000000000001";
 const tenantB = "20000000-0000-4000-8000-000000000002";
 const userA = "30000000-0000-4000-8000-000000000003";
 const userB = "40000000-0000-4000-8000-000000000004";
+const productA = "50000000-0000-4000-8000-000000000005";
+const productB = "60000000-0000-4000-8000-000000000006";
+const expectedPostgresMajor = Number(process.env.EXPECTED_POSTGRES_MAJOR ?? "17");
+
+if (!Number.isInteger(expectedPostgresMajor) || expectedPostgresMajor < 10) {
+  throw new Error("EXPECTED_POSTGRES_MAJOR deve ser um major PostgreSQL inteiro >= 10");
+}
 
 async function withRuntimeContext<T>(
   client: Client,
@@ -53,14 +60,25 @@ async function seedIsolationFixtures(client: Client): Promise<void> {
     [tenantA, userA, tenantB, userB],
   );
   await client.query(
-    `insert into products (tenant_id, user_id, name, current_price, tax_rate)
-     values ($1, $2, 'Produto A', '12.3400', '0.060000'),
-            ($3, $4, 'Produto B', '99.9900', '0.120000')`,
-    [tenantA, userA, tenantB, userB],
+    `insert into products (id, tenant_id, user_id, name, current_price, tax_rate)
+     values ($1, $2, $3, 'Produto A', '12.3400', '0.060000'),
+            ($4, $5, $6, 'Produto B', '99.9900', '0.120000')`,
+    [productA, tenantA, userA, productB, tenantB, userB],
   );
 }
 
 async function assertDatabaseContract(client: Client): Promise<void> {
+  const version = await client.query<{ serverVersionNum: string }>(
+    "select current_setting('server_version_num') as \"serverVersionNum\"",
+  );
+  const serverVersionNum = Number(version.rows[0]?.serverVersionNum);
+  const actualPostgresMajor = Math.floor(serverVersionNum / 10_000);
+  assert.equal(
+    actualPostgresMajor,
+    expectedPostgresMajor,
+    `PostgreSQL major incompatível: esperado ${expectedPostgresMajor}, atual ${actualPostgresMajor}`,
+  );
+
   const role = await client.query<{
     rolcanlogin: boolean;
     rolsuper: boolean;
@@ -194,6 +212,11 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     memberships_delete: boolean;
     audit_select: boolean;
     rate_limit_delete: boolean;
+    purchase_history_select: boolean;
+    purchase_history_update: boolean;
+    sales_insert: boolean;
+    sales_delete: boolean;
+    snapshots_insert: boolean;
   }>(
     `select
        has_schema_privilege('app_runtime', 'public', 'CREATE') as runtime_create_schema,
@@ -202,7 +225,12 @@ async function assertDatabaseContract(client: Client): Promise<void> {
        has_table_privilege('app_runtime', 'public.tenants', 'DELETE') as tenants_delete,
        has_table_privilege('app_runtime', 'public.tenant_memberships', 'DELETE') as memberships_delete,
        has_table_privilege('app_runtime', 'public.audit_events', 'SELECT') as audit_select,
-       has_table_privilege('app_runtime', 'public.rate_limits', 'DELETE') as rate_limit_delete`,
+       has_table_privilege('app_runtime', 'public.rate_limits', 'DELETE') as rate_limit_delete,
+       has_table_privilege('app_runtime', 'public.purchase_price_history', 'SELECT') as purchase_history_select,
+       has_table_privilege('app_runtime', 'public.purchase_price_history', 'UPDATE') as purchase_history_update,
+       has_table_privilege('app_runtime', 'public.sales', 'INSERT') as sales_insert,
+       has_table_privilege('app_runtime', 'public.sales', 'DELETE') as sales_delete,
+       has_table_privilege('app_runtime', 'public.calculation_snapshots', 'INSERT') as snapshots_insert`,
   );
   assert.deepEqual(privileges.rows[0], {
     runtime_create_schema: false,
@@ -212,7 +240,30 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     memberships_delete: false,
     audit_select: false,
     rate_limit_delete: true,
+    purchase_history_select: true,
+    purchase_history_update: false,
+    sales_insert: true,
+    sales_delete: false,
+    snapshots_insert: true,
   });
+
+  const p1Columns = await client.query<{
+    table_name: string;
+    column_name: string;
+  }>(
+    `select table_name, column_name
+     from information_schema.columns
+     where table_schema = 'public'
+       and ((table_name = 'products' and column_name = 'status')
+         or (table_name = 'simulations' and column_name in ('result', 'scenario_type', 'engine_version')))
+     order by table_name, column_name`,
+  );
+  assert.deepEqual(p1Columns.rows, [
+    { table_name: "products", column_name: "status" },
+    { table_name: "simulations", column_name: "engine_version" },
+    { table_name: "simulations", column_name: "result" },
+    { table_name: "simulations", column_name: "scenario_type" },
+  ]);
 
   await assert.rejects(
     client.query(
@@ -266,6 +317,34 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     (error: unknown) =>
       typeof error === "object" && error !== null && "code" in error && error.code === "42501",
   );
+
+  const tenantASale = await withRuntimeContext(
+    client,
+    { userId: userA, tenantId: tenantA },
+    async () => {
+      const sale = await client.query<{ id: string }>(
+        `insert into sales (tenant_id, user_id, occurred_at, gross_amount, net_amount, channel)
+         values ($1, $2, now(), '20.0000', '20.0000', 'manual')
+         returning id`,
+        [tenantA, userA],
+      );
+      await client.query(
+        `insert into sales_items
+           (tenant_id, user_id, sale_id, product_id, quantity, unit_price, total_amount)
+         values ($1, $2, $3, $4, '2.000000', '10.0000', '20.0000')`,
+        [tenantA, userA, sale.rows[0]?.id, productA],
+      );
+      return sale.rows[0]?.id;
+    },
+  );
+  assert.ok(tenantASale);
+
+  const crossTenantSales = await withRuntimeContext(
+    client,
+    { userId: userB, tenantId: tenantB },
+    async () => client.query("select id from sales where tenant_id = $1", [tenantA]),
+  );
+  assert.equal(crossTenantSales.rowCount, 0);
 }
 
 async function main(): Promise<void> {
@@ -289,7 +368,9 @@ async function main(): Promise<void> {
 
   // A rollback must leave a database where the complete migration chain can be replayed.
   await runMigrations(adminUrl);
-  console.log("Migration zero, constraints, RLS, cross-tenant e rollback: OK");
+  console.log(
+    `PostgreSQL ${expectedPostgresMajor}, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK`,
+  );
 }
 
 await main();

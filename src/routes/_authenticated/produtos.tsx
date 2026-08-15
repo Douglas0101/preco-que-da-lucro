@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteProduct } from "@/lib/products.functions";
 import { productsWithMetricsQueryOptions } from "@/lib/query-options";
 import { brl, pct } from "@/lib/format";
@@ -39,8 +39,21 @@ interface Row {
 
 function Produtos() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const productsQuery = useQuery(productsWithMetricsQueryOptions());
+  const archiveProductMutation = useMutation({
+    mutationFn: (id: string) => deleteProduct({ data: { id } }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["products", "with-metrics"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard", "summary"] }),
+      ]);
+      toast.success("Produto arquivado");
+      setPendingDeleteId(null);
+    },
+    onError: () => toast.error("Não foi possível arquivar o produto"),
+  });
   const rows = useMemo(() => {
     const products = productsQuery.data ?? [];
     const enriched: Row[] = [];
@@ -58,16 +71,6 @@ function Produtos() {
     }
     return enriched;
   }, [productsQuery.data]);
-
-  async function del(id: string) {
-    try {
-      await deleteProduct({ data: { id } });
-    } catch {
-      return toast.error("Não foi possível arquivar o produto");
-    }
-    toast.success("Produto arquivado");
-    await productsQuery.refetch();
-  }
 
   return (
     <>
@@ -121,7 +124,7 @@ function Produtos() {
             <AlertDialogAction
               variant="destructive"
               onClick={() => {
-                if (pendingDeleteId !== null) void del(pendingDeleteId);
+                if (pendingDeleteId !== null) archiveProductMutation.mutate(pendingDeleteId);
               }}
             >
               Excluir produto

@@ -22,6 +22,13 @@
       "when": 1786679075477,
       "tag": "0002_rate_limit_database",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786767213666,
+      "tag": "0003_curvy_firebrand",
+      "breakpoints": true
     }
   ]
 }

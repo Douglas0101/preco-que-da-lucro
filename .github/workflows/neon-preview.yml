@@ -16,6 +16,8 @@ jobs:
   migration:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      EXPECTED_POSTGRES_MAJOR: "17"
     steps:
       - name: Detect Neon configuration
         id: config

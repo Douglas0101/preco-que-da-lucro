@@ -91,3 +91,19 @@ Critério idêntico nos dois documentos: não adotar sem evidência/métricas.
 ## 7. Verificação
 
 Todos os valores citados foram conferidos por leitura direta: V7 §21–25, §28 e correções #1–17; Plano §3–4, §29, §36–39, §41–46. SLOs e KPIs não divergem em valor; divergências são de estrutura (roadmap, P0, invariantes, ADRs, adiados) e foram resolvidas conforme a precedência da V7.
+
+## 8. Estado operacional em 2026-08-15
+
+- **F4/F5/F6 — local em execução:** Services/Repositories, Transaction Manager,
+  modelo de vendas, completude, histórico de preços, snapshots e persistência de
+  simulações foram implementados em migrations aditivas sobre PostgreSQL 17.
+- **F7/item 27 — bloqueado externamente:** o projeto Neon, a branch `develop`,
+  URLs direct/pooled e o environment protegido ainda dependem das contas e
+  chaves dos responsáveis.
+- **F8 — não promovido:** a fonte Supabase permanece opcional; sem sua URL
+  read-only o caminho válido é provisionamento limpo, mas isso ainda não prova
+  reconciliação, backup/restore ou cutover.
+- **Evidência:** CI verde, testes locais e `db:check` comprovam implementação;
+  workflow `skipped` ou não executado não altera o estado externo para `passed`.
+- **Major:** [ADR-023](adr/ADR-023-postgresql-major-target.md) fixa PostgreSQL
+  17 até existir uma matriz de compatibilidade e rollback para eventual upgrade.

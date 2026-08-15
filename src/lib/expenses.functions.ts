@@ -1,10 +1,9 @@
-import { and, desc, eq, sql } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { expenses, products } from "@/db/schema";
+import { expenses } from "@/db/schema";
 import { nonNegativeDecimalStringSchema, toDecimalString } from "@/lib/financial-values";
-import { assertTenantMutationAuthorized } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
+import { expenseService } from "@/server/services/expense.service";
 
 const uuid = z.string().uuid();
 const expenseInput = z.object({
@@ -37,12 +36,7 @@ function mapExpense(row: typeof expenses.$inferSelect) {
 export const listExpenses = createServerFn({ method: "GET" })
   .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
-    const request = context.requestContext;
-    const rows = await request.transaction
-      .select()
-      .from(expenses)
-      .where(eq(expenses.tenantId, request.tenantId))
-      .orderBy(desc(expenses.createdAt));
+    const rows = await expenseService.list(context.requestContext);
     return rows.map(mapExpense);
   });
 
@@ -51,28 +45,16 @@ export const upsertExpense = createServerFn({ method: "POST" })
   .validator((input: unknown) => expenseInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
-    assertTenantMutationAuthorized(request);
-    const values = {
-      tenantId: request.tenantId,
-      userId: request.userId,
+    const expense = await expenseService.save(request, {
+      id: data.id,
       name: data.name,
       category: data.category ?? null,
       amount: toDecimalString(data.amount, 4),
       type: data.type,
       periodicity: data.periodicity ?? "mensal",
       notes: data.notes ?? null,
-      updatedAt: new Date(),
-    };
-
-    const rows = data.id
-      ? await request.transaction
-          .update(expenses)
-          .set(values)
-          .where(and(eq(expenses.tenantId, request.tenantId), eq(expenses.id, data.id)))
-          .returning()
-      : await request.transaction.insert(expenses).values(values).returning();
-    if (!rows[0]) throw new TypeError("NOT_FOUND");
-    return mapExpense(rows[0]);
+    });
+    return mapExpense(expense);
   });
 
 export const deleteExpense = createServerFn({ method: "POST" })
@@ -80,31 +62,12 @@ export const deleteExpense = createServerFn({ method: "POST" })
   .validator((input: unknown) => z.object({ id: uuid }).parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
-    assertTenantMutationAuthorized(request);
-    const deleted = await request.transaction
-      .delete(expenses)
-      .where(and(eq(expenses.tenantId, request.tenantId), eq(expenses.id, data.id)))
-      .returning({ id: expenses.id });
-    if (!deleted.length) throw new TypeError("NOT_FOUND");
+    await expenseService.remove(request, data.id);
     return { ok: true };
   });
 
 export const getTotals = createServerFn({ method: "GET" })
   .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
-    const request = context.requestContext;
-    const [totals] = await request.transaction
-      .select({
-        fixed: sql<string>`coalesce(sum(${expenses.amount}) filter (where ${expenses.type} = 'fixa'), 0)`,
-        variable: sql<string>`coalesce(sum(${expenses.amount}) filter (where ${expenses.type} = 'variavel'), 0)`,
-        productCount: sql<number>`(select count(*)::integer from ${products} where ${products.tenantId} = ${request.tenantId} and ${products.archivedAt} is null)`,
-      })
-      .from(expenses)
-      .where(eq(expenses.tenantId, request.tenantId));
-    if (!totals) throw new TypeError("DATABASE_ERROR");
-    return {
-      fixed: totals.fixed,
-      variable: totals.variable,
-      productCount: totals.productCount,
-    };
+    return expenseService.totals(context.requestContext);
   });
