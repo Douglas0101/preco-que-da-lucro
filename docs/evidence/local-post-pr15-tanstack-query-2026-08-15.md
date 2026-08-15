@@ -4,7 +4,7 @@ Data: 2026-08-15
 
 SHA-base: `aed4c375a75bde2c1e1bd51bc9a27dd2c78b12c5`
 
-SHA do patch validado: `72a8ab45267415f2e48b69e5766d58e0530face2`
+SHA do patch validado: `c0c8ed87e4eb334bb3904ad3357da3d492fee144`
 
 Branch de referência: `develop`
 
