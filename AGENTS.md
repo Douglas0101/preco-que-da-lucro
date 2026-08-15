@@ -15,3 +15,8 @@
 - `main` is the release branch and the repository default. It only receives merges via PR `develop → main` with green CI. There is no active Lovable connection — this project is a source-code export for engineering work; if a connection is established later, `main` is the branch to connect.
 - Never force-push, rebase, or amend commits already pushed to any published branch.
 - Formal branch protection is pending GitHub Pro or a public repository; see `docs/adr/ADR-017-branching-strategy.md`.
+
+## Local database
+
+- `npm run db:up` / `npm run db:down` manage a Docker `postgres:17-alpine` container that mirrors CI (`docker-compose.yml`); see `docs/runbooks/postgres-local-docker.md`.
+- `npm run db:test` is self-contained against that container with `DATABASE_URL`/`DATABASE_ADMIN_URL` pointing at `127.0.0.1:5432` and `DATABASE_DRIVER=node-postgres`.

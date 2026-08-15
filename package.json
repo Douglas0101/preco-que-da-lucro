@@ -22,6 +22,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
     "db:migrate": "tsx scripts/db/migrate.ts",
     "db:test": "tsx scripts/db/test-migrations.ts && tsx scripts/db/test-auth-integration.ts && tsx scripts/db/test-tool-security.ts && tsx scripts/db/test-chat-semantics.ts",
     "migration:legacy-to-neon": "tsx scripts/migration/source-to-neon.ts",
