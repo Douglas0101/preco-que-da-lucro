@@ -63,7 +63,6 @@ ALTER TABLE "simulations" ADD COLUMN "engine_version" text DEFAULT 'finance-engi
 ALTER TABLE "calculation_snapshots" ADD CONSTRAINT "calculation_snapshots_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk" FOREIGN KEY ("tenant_id","user_id") REFERENCES "public"."tenant_memberships"("tenant_id","user_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "purchase_price_history" ADD CONSTRAINT "purchase_price_history_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk" FOREIGN KEY ("tenant_id","user_id") REFERENCES "public"."tenant_memberships"("tenant_id","user_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sales" ADD CONSTRAINT "sales_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk" FOREIGN KEY ("tenant_id","user_id") REFERENCES "public"."tenant_memberships"("tenant_id","user_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sales_items" ADD CONSTRAINT "sales_items_tenant_id_sale_id_sales_tenant_id_id_fk" FOREIGN KEY ("tenant_id","sale_id") REFERENCES "public"."sales"("tenant_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sales_items" ADD CONSTRAINT "sales_items_tenant_id_product_id_products_tenant_id_id_fk" FOREIGN KEY ("tenant_id","product_id") REFERENCES "public"."products"("tenant_id","id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sales_items" ADD CONSTRAINT "sales_items_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk" FOREIGN KEY ("tenant_id","user_id") REFERENCES "public"."tenant_memberships"("tenant_id","user_id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "calculation_snapshots_tenant_id_id_uidx" ON "calculation_snapshots" USING btree ("tenant_id","id");--> statement-breakpoint
@@ -75,6 +74,8 @@ CREATE INDEX "sales_tenant_occurred_idx" ON "sales" USING btree ("tenant_id","oc
 CREATE UNIQUE INDEX "sales_items_tenant_id_id_uidx" ON "sales_items" USING btree ("tenant_id","id");--> statement-breakpoint
 CREATE INDEX "sales_items_tenant_sale_idx" ON "sales_items" USING btree ("tenant_id","sale_id");--> statement-breakpoint
 CREATE INDEX "sales_items_tenant_product_idx" ON "sales_items" USING btree ("tenant_id","product_id");--> statement-breakpoint
+-- A FK composta de sales_items exige o índice único de sales já existente.
+ALTER TABLE "sales_items" ADD CONSTRAINT "sales_items_tenant_id_sale_id_sales_tenant_id_id_fk" FOREIGN KEY ("tenant_id","sale_id") REFERENCES "public"."sales"("tenant_id","id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "products" ADD CONSTRAINT "products_status_check" CHECK ("products"."status" in ('draft', 'incomplete', 'ready', 'active', 'archived'));--> statement-breakpoint
 ALTER TABLE "simulations" ADD CONSTRAINT "simulations_scenario_type_check" CHECK ("simulations"."scenario_type" in ('manual_simulation', 'forecast', 'real'));--> statement-breakpoint
 -- New tenant-scoped tables are created after the base privilege migration.
