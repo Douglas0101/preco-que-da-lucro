@@ -2,43 +2,49 @@
 
 ## Base e escopo
 
-- Base de implementação: `origin/develop` em `a1b1a4f`.
-- Checkout de trabalho: `codex/neon-readiness-fresh-provision`.
-- Não houve commit, rebase, amend, squash, force-push ou mutação Neon.
-- O ambiente impediu criar branch nova porque `.git` está montado como somente
-  leitura; as alterações ficaram no checkout atual para integração posterior.
-- O worktree preexistente `.worktree-pr7-sonar/` foi preservado.
+- PR #11 foi integrado remotamente em `develop` no merge commit
+  `0ceabc265ede0480566f79e838f0ad760eb41eff`; o checkout local permanece no
+  trabalho de engenharia P1, sem reescrever histórico publicado.
+- Checkout: `codex/p1-local-engineering`, base local em `2df8b78`; a referência
+  local `origin/develop` está stale porque `.git` é somente leitura. O SHA
+  remoto acima foi confirmado antes desta execução.
+- Não houve commit, rebase, amend, squash, force-push, mutação Neon ou escrita
+  de produção. O worktree preexistente `.worktree-pr7-sonar/` foi preservado.
 
 ## Implementado localmente
 
-| Área                  | Evidência                                                              | Estado                            |
-| --------------------- | ---------------------------------------------------------------------- | --------------------------------- |
-| PostgreSQL major      | `ADR-023`, `EXPECTED_POSTGRES_MAJOR=17` no CI e `db:test`              | implementado                      |
-| Services/Repositories | Product, Expense, Sales, Simulation e Calculation Snapshot             | implementado                      |
-| Transaction Manager   | `TransactionManager`, `TransactionContext` e binding centralizado      | implementado                      |
-| Schema P1             | status de produto, histórico de preços, vendas, snapshots e simulações | implementado                      |
-| Tenant boundary       | FKs compostas, índices, checks, grants e RLS nas tabelas novas         | implementado na migration         |
-| TanStack Query        | mutações de produto/despesa com invalidação de queries                 | implementado                      |
-| Neon                  | workflow protegido e fonte Supabase opcional                           | código pronto; execução bloqueada |
+| Área                     | Evidência                                                                            | Estado                                         |
+| ------------------------ | ------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| Read model de produto    | `src/server/services/product-read-model.service.ts`; list/detail/metrics/dashboard   | implementado localmente                        |
+| Histórico de preço       | `purchase-price.service.ts`, repository, BFF, upserts e IA                           | implementado localmente                        |
+| Integridade de histórico | `drizzle/0004_giant_nocturne.sql`: backfill fail-fast, FKs tenant e checks           | migration preparada; execução DB bloqueada     |
+| Simulações               | schema estrito, cálculo server-side, versão fixa e append-only                       | implementado localmente                        |
+| Vendas                   | arredondamento por linha, limites, checks SQL, trigger deferred e runtime sem UPDATE | implementado localmente; execução DB bloqueada |
+| PostgreSQL major         | ADR-023 e `EXPECTED_POSTGRES_MAJOR=17` no CI                                         | decisão registrada                             |
+| Neon/migração            | workflow e fonte legada opcional                                                     | bloqueado por contas/chaves; não executado     |
 
 ## Verificações executadas
 
 - `npm run typecheck` — aprovado.
-- `npm test` — aprovado: 228 testes.
-- `npm run db:check` — aprovado.
-- `npm run format:check` — aprovado.
+- `npm test -- --run` — aprovado: 20 arquivos, 235 testes.
 - `npm run lint` — aprovado.
-- `npm run check` — aprovado, incluindo build e bundle.
-- `npm run db:test` — bloqueado por `ECONNREFUSED 127.0.0.1:5432`; depende de
-  PostgreSQL local/efêmero e ainda não constitui evidência Neon.
+- `npm run format:check` — aprovado.
+- `npm run build` — aprovado.
+- `npm run check:bundle` — aprovado.
+- `npm run check:ui-stack` — aprovado.
+- `npm run check:no-supabase-runtime` — aprovado.
+- `DATABASE_ADMIN_URL=postgresql://placeholder npm run db:check` — aprovado.
+- `DATABASE_ADMIN_URL=...127.0.0.1:5432... EXPECTED_POSTGRES_MAJOR=17 npm run db:test` —
+  bloqueado por `ECONNREFUSED 127.0.0.1:5432`; nenhum teste de migrations/RLS foi
+  classificado como passed por esse motivo.
 
 ## Limites de evidência
 
 Ainda não comprovados neste checkout:
 
-- projeto Neon PostgreSQL 17 e branch `develop` reais;
-- URLs pooled/direct retornadas pelo Neon;
-- migrations, RLS, privilégios e cleanup executados numa branch Neon;
+- migration 0004 executada e rollback validado em PostgreSQL 17 descartável;
+- privilégios/RLS/FKs e trigger de vendas observados em banco vivo;
+- projeto Neon PostgreSQL 17, branch `develop` e URLs pooled/direct;
 - reconciliação Supabase, `different: 0`, `sessionsImported: 0` e zero órfãos;
 - backup/restore, OAuth Google, Resend, smoke remoto ou cutover.
 

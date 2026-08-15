@@ -2,12 +2,13 @@
 
 ## Referência e escopo
 
-- SHA-base remoto verificado localmente: `origin/develop` em `c47c06d`.
-- Escopo desta entrega: tornar a prontidão Neon executável e auditável; não
-  executar migração de dados, cutover ou mutação de produção.
-- O checkout usado para a edição é ancestral do SHA-base e o metadata Git está
-  somente leitura neste ambiente; por isso esta evidência acompanha um diff
-  local não commitado.
+- SHA-base remoto verificado: merge de PR #11 em `develop`,
+  `0ceabc265ede0480566f79e838f0ad760eb41eff`.
+- O gate Neon continua preparado, mas a execução de branch, migração de dados,
+  cutover ou mutação de produção segue fora do escopo enquanto as contas e
+  chaves são criadas.
+- O checkout de P1 acompanha um diff local não commitado porque o metadata Git
+  está somente leitura neste ambiente; histórico publicado não foi reescrito.
 
 ## Matriz do coordenador
 

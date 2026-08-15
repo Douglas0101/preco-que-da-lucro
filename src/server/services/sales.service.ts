@@ -29,14 +29,26 @@ export class DefaultSalesService implements SalesService {
   async create(context: RequestContext, input: SaleDraft) {
     assertTenantMutationAuthorized(context);
     if (!input.items.length) throw new Error("SALE_REQUIRES_ITEM");
+    if (input.items.length > 100) throw new Error("SALE_TOO_MANY_ITEMS");
+    if (!(input.occurredAt instanceof Date) || !Number.isFinite(input.occurredAt.getTime())) {
+      throw new Error("INVALID_SALE_DATE");
+    }
+    const channel = input.channel.trim();
+    if (!channel || channel.length > 40) throw new Error("INVALID_SALE_CHANNEL");
 
     let gross = new Decimal(0);
     const items = input.items.map((item) => {
-      const quantity = new Decimal(item.quantity);
-      const unitPrice = new Decimal(item.unitPrice);
+      let quantity: Decimal;
+      let unitPrice: Decimal;
+      try {
+        quantity = new Decimal(toDecimalString(item.quantity, 6));
+        unitPrice = new Decimal(toDecimalString(item.unitPrice, 4));
+      } catch {
+        throw new Error("INVALID_SALE_DECIMAL");
+      }
       if (!quantity.isFinite() || quantity.lte(0)) throw new Error("INVALID_SALE_QUANTITY");
       if (!unitPrice.isFinite() || unitPrice.lt(0)) throw new Error("INVALID_SALE_PRICE");
-      const totalAmount = quantity.mul(unitPrice);
+      const totalAmount = new Decimal(toDecimalString(quantity.mul(unitPrice), 4));
       gross = gross.plus(totalAmount);
       return {
         productId: item.productId,
@@ -49,10 +61,13 @@ export class DefaultSalesService implements SalesService {
     const grossAmount = toDecimalString(gross, 4);
     const netAmount = toDecimalString(input.netAmount ?? grossAmount, 4);
     if (new Decimal(netAmount).lt(0)) throw new Error("INVALID_SALE_NET_AMOUNT");
+    if (new Decimal(netAmount).gt(new Decimal(grossAmount))) {
+      throw new Error("INVALID_SALE_NET_AMOUNT");
+    }
 
     const write: SaleWrite = {
       occurredAt: input.occurredAt,
-      channel: input.channel,
+      channel,
       grossAmount,
       netAmount,
       items,

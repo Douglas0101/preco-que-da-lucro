@@ -1,8 +1,9 @@
 import Decimal from "decimal.js";
-import { computeProduct, type FeeRow, type IngredientRow, type PackagingRow } from "@/lib/finance";
+import type { FeeRow, IngredientRow, PackagingRow } from "@/lib/finance";
 import { toDecimalString } from "@/lib/financial-values";
 import type { RequestContext } from "@/lib/request-context";
 import { loadDashboardInputs } from "@/server/repositories/dashboard.repository";
+import { calculateProductReadModel } from "@/server/services/product-read-model.service";
 
 const decimalNumber = (value: string | null): number | null =>
   value == null ? null : new Decimal(value).toNumber();
@@ -84,30 +85,34 @@ function analyzeProduct(input: DashboardInputs, product: DashboardProduct): Prod
   const fees: FeeRow[] = input.feeRows
     .filter((row) => row.productId === product.id)
     .map((row) => ({ percentage: percentPoints(row.percentage) }));
-  const metrics = computeProduct({
+  const calculation = calculateProductReadModel({
+    persistedStatus: product.status,
+    currentPrice: product.currentPrice,
+    yieldQty: product.yieldQty,
+    taxRate: product.taxRate,
     ingredients,
     packaging,
-    yieldQty: decimalNumber(product.yieldQty),
-    price: decimalNumber(product.currentPrice),
-    taxRate: percentPoints(product.taxRate),
     fees,
   });
-  if (metrics.status === "invalid") return { status: "invalid" };
-  if (metrics.status === "incomplete") return { status: "incomplete" };
+  if (calculation.metrics.status === "invalid") return { status: "invalid" };
+  if (calculation.metrics.status === "incomplete") return { status: "incomplete" };
 
   let cmPct: string;
   try {
-    cmPct = toDecimalString(metrics.value.contributionMarginPct, 6);
+    cmPct = toDecimalString(calculation.metrics.value.contributionMarginPct, 6);
   } catch {
     return { status: "invalid" };
   }
 
   const alerts: string[] = [];
   const price = decimalNumber(product.currentPrice);
-  if (price != null && price < metrics.value.unitCost) {
+  if (price != null && price < calculation.metrics.value.unitCost) {
     alerts.push(`"${product.name}": preço de venda abaixo do custo unitário.`);
   }
-  if (metrics.value.contributionMarginPct > 0 && metrics.value.contributionMarginPct < 15) {
+  if (
+    calculation.metrics.value.contributionMarginPct > 0 &&
+    calculation.metrics.value.contributionMarginPct < 15
+  ) {
     alerts.push(`"${product.name}": margem de contribuição baixa.`);
   }
   return { status: "ok", best: { name: product.name, cmPct }, alerts };

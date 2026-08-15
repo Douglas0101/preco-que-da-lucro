@@ -42,6 +42,31 @@ async function withRuntimeContext<T>(
   }
 }
 
+async function withRuntimeCommit<T>(
+  client: Client,
+  identity: { userId?: string; tenantId?: string },
+  operation: () => Promise<T>,
+): Promise<T> {
+  await client.query("begin");
+  try {
+    await client.query("set local role app_runtime");
+    if (identity.userId) {
+      await client.query("select set_config('app.current_user_id', $1, true)", [identity.userId]);
+    }
+    if (identity.tenantId) {
+      await client.query("select set_config('app.current_tenant_id', $1, true)", [
+        identity.tenantId,
+      ]);
+    }
+    const result = await operation();
+    await client.query("commit");
+    return result;
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  }
+}
+
 async function seedIsolationFixtures(client: Client): Promise<void> {
   await client.query(
     `insert into users (id, name, email, email_verified)
@@ -216,6 +241,9 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     purchase_history_update: boolean;
     sales_insert: boolean;
     sales_delete: boolean;
+    sales_update: boolean;
+    sales_items_update: boolean;
+    simulations_update: boolean;
     snapshots_insert: boolean;
   }>(
     `select
@@ -230,6 +258,9 @@ async function assertDatabaseContract(client: Client): Promise<void> {
        has_table_privilege('app_runtime', 'public.purchase_price_history', 'UPDATE') as purchase_history_update,
        has_table_privilege('app_runtime', 'public.sales', 'INSERT') as sales_insert,
        has_table_privilege('app_runtime', 'public.sales', 'DELETE') as sales_delete,
+       has_table_privilege('app_runtime', 'public.sales', 'UPDATE') as sales_update,
+       has_table_privilege('app_runtime', 'public.sales_items', 'UPDATE') as sales_items_update,
+       has_table_privilege('app_runtime', 'public.simulations', 'UPDATE') as simulations_update,
        has_table_privilege('app_runtime', 'public.calculation_snapshots', 'INSERT') as snapshots_insert`,
   );
   assert.deepEqual(privileges.rows[0], {
@@ -244,6 +275,9 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     purchase_history_update: false,
     sales_insert: true,
     sales_delete: false,
+    sales_update: false,
+    sales_items_update: false,
+    simulations_update: false,
     snapshots_insert: true,
   });
 
@@ -255,11 +289,14 @@ async function assertDatabaseContract(client: Client): Promise<void> {
      from information_schema.columns
      where table_schema = 'public'
        and ((table_name = 'products' and column_name = 'status')
+         or (table_name = 'purchase_price_history' and column_name in ('ingredient_id', 'packaging_id'))
          or (table_name = 'simulations' and column_name in ('result', 'scenario_type', 'engine_version')))
      order by table_name, column_name`,
   );
   assert.deepEqual(p1Columns.rows, [
     { table_name: "products", column_name: "status" },
+    { table_name: "purchase_price_history", column_name: "ingredient_id" },
+    { table_name: "purchase_price_history", column_name: "packaging_id" },
     { table_name: "simulations", column_name: "engine_version" },
     { table_name: "simulations", column_name: "result" },
     { table_name: "simulations", column_name: "scenario_type" },
@@ -318,7 +355,7 @@ async function assertDatabaseContract(client: Client): Promise<void> {
       typeof error === "object" && error !== null && "code" in error && error.code === "42501",
   );
 
-  const tenantASale = await withRuntimeContext(
+  const tenantASale = await withRuntimeCommit(
     client,
     { userId: userA, tenantId: tenantA },
     async () => {
@@ -338,6 +375,19 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     },
   );
   assert.ok(tenantASale);
+
+  await assert.rejects(
+    withRuntimeCommit(client, { userId: userA, tenantId: tenantA }, async () =>
+      client.query(
+        `insert into sales (tenant_id, user_id, occurred_at, gross_amount, net_amount, channel)
+         values ($1, $2, now(), '10.0000', '10.0000', 'manual')`,
+        [tenantA, userA],
+      ),
+    ),
+    (error: unknown) => error instanceof Error && error.message.includes("SALE_REQUIRES_ITEM"),
+  );
+
+  await client.query("delete from sales where id = $1", [tenantASale]);
 
   const crossTenantSales = await withRuntimeContext(
     client,

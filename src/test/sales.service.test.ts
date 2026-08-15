@@ -82,4 +82,60 @@ describe("SalesService", () => {
       }),
     ).rejects.toThrow("Você não pode realizar esta ação.");
   });
+
+  it("soma o bruto a partir das linhas já arredondadas e limita o líquido", async () => {
+    const repository = new FakeSalesRepository();
+    const service = new DefaultSalesService(repository);
+
+    await service.create(contextWithRole("owner"), {
+      occurredAt: new Date("2026-08-15T12:00:00.000Z"),
+      channel: " manual ",
+      items: [
+        {
+          productId: "50000000-0000-4000-8000-000000000005",
+          quantity: "3",
+          unitPrice: "0.33335",
+        },
+        {
+          productId: "50000000-0000-4000-8000-000000000005",
+          quantity: "1",
+          unitPrice: "0.33335",
+        },
+      ],
+    });
+
+    expect(repository.lastWrite).toMatchObject({
+      channel: "manual",
+      grossAmount: "1.3336",
+      items: [
+        { unitPrice: "0.3334", totalAmount: "1.0002" },
+        { unitPrice: "0.3334", totalAmount: "0.3334" },
+      ],
+    });
+    await expect(
+      service.create(contextWithRole("owner"), {
+        occurredAt: new Date(),
+        channel: "manual",
+        netAmount: "1.3335",
+        items: [
+          { productId: "50000000-0000-4000-8000-000000000005", quantity: "1", unitPrice: "1" },
+        ],
+      }),
+    ).rejects.toThrow("INVALID_SALE_NET_AMOUNT");
+  });
+
+  it("rejeita data e canal fora do contrato", async () => {
+    const service = new DefaultSalesService(new FakeSalesRepository());
+    const draft = {
+      occurredAt: new Date("invalid"),
+      channel: "manual",
+      items: [{ productId: "50000000-0000-4000-8000-000000000005", quantity: "1", unitPrice: "1" }],
+    };
+    await expect(service.create(contextWithRole("owner"), draft)).rejects.toThrow(
+      "INVALID_SALE_DATE",
+    );
+    await expect(
+      service.create(contextWithRole("owner"), { ...draft, occurredAt: new Date(), channel: " " }),
+    ).rejects.toThrow("INVALID_SALE_CHANNEL");
+  });
 });
