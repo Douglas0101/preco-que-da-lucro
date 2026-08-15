@@ -105,6 +105,52 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     membershipDelete: false,
   });
 
+  const ownedObjects = await client.query<{
+    objectType: string;
+    objectCount: string;
+  }>(`
+    with runtime as (
+      select oid from pg_roles where rolname = 'app_runtime'
+    )
+    select object_type as "objectType", count(*)::text as "objectCount"
+    from (
+      select 'schema' as object_type
+      from pg_namespace n
+      join runtime on runtime.oid = n.nspowner
+      where n.nspname not like 'pg_%'
+        and n.nspname <> 'information_schema'
+      union all
+      select 'database' as object_type
+      from pg_database d
+      join runtime on runtime.oid = d.datdba
+      where d.datname = current_database()
+      union all
+      select 'relation' as object_type
+      from pg_class c
+      join pg_namespace n on n.oid = c.relnamespace
+      join runtime on runtime.oid = c.relowner
+      where n.nspname not like 'pg_%'
+        and n.nspname <> 'information_schema'
+      union all
+      select 'function' as object_type
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+      join runtime on runtime.oid = p.proowner
+      where n.nspname not like 'pg_%'
+        and n.nspname <> 'information_schema'
+      union all
+      select 'type' as object_type
+      from pg_type t
+      join pg_namespace n on n.oid = t.typnamespace
+      join runtime on runtime.oid = t.typowner
+      where n.nspname not like 'pg_%'
+        and n.nspname <> 'information_schema'
+    ) owned
+    group by object_type
+    order by object_type
+  `);
+  assert.deepEqual(ownedObjects.rows, []);
+
   const scales = await client.query<{
     column_name: string;
     numeric_precision: number;

@@ -2,6 +2,7 @@ node_modules
 dist
 .output
 .vinxi
+.worktree-*
 pnpm-lock.yaml
 package-lock.json
 routeTree.gen.ts
