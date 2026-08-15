@@ -23,6 +23,8 @@ const ingredientB = "a0000000-0000-4000-8000-00000000000a";
 const legacySale = "b0000000-0000-4000-8000-00000000000b";
 const legacySaleItem = "c0000000-0000-4000-8000-00000000000c";
 const orphanHistory = "d0000000-0000-4000-8000-00000000000d";
+const inconsistentSale = "ab000000-0000-4000-8000-0000000000ab";
+const inconsistentSaleItem = "ac000000-0000-4000-8000-0000000000ac";
 const expectedPostgresMajor = Number(process.env.EXPECTED_POSTGRES_MAJOR ?? "17");
 
 if (!Number.isInteger(expectedPostgresMajor) || expectedPostgresMajor < 10) {
@@ -581,10 +583,61 @@ async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<
   );
   assert.equal(corrected.rows[0]?.total_amount, "1.0002");
 
+  const reconciledSale = await client.query<{ gross_amount: string; net_amount: string }>(
+    "select gross_amount::text as gross_amount, net_amount::text as net_amount from sales where id = $1",
+    [legacySale],
+  );
+  assert.deepEqual(
+    reconciledSale.rows[0],
+    { gross_amount: "1.0002", net_amount: "1.0000" },
+    "preflight deve reconciliar gross_amount com a soma corrigida dos itens, sem tocar net_amount",
+  );
+
   await client.query(rollbackSql);
   await client.query(
     "delete from drizzle.__drizzle_migrations where id = (select max(id) from drizzle.__drizzle_migrations)",
   );
+
+  await client.query(
+    `insert into sales (id, tenant_id, user_id, occurred_at, gross_amount, net_amount, channel)
+     values ($1, $2, $3, now(), '1.0000', '1.5000', 'manual')`,
+    [inconsistentSale, tenantA, userA],
+  );
+  await client.query(
+    `insert into sales_items
+       (id, sale_id, product_id, tenant_id, user_id, quantity, unit_price, total_amount)
+     values ($1, $2, $3, $4, $5, '3.000000', '0.3334', '1.0001')`,
+    [inconsistentSaleItem, inconsistentSale, productA, tenantA, userA],
+  );
+
+  await assert.rejects(
+    runMigrations(adminUrl),
+    (error: unknown) => error instanceof Error && error.message.includes(inconsistentSale),
+    "preflight deve abortar listando a venda cujo net_amount excede o total reconciliado",
+  );
+
+  const untouchedItem = await client.query<{ total_amount: string }>(
+    "select total_amount::text as total_amount from sales_items where id = $1",
+    [inconsistentSaleItem],
+  );
+  assert.equal(
+    untouchedItem.rows[0]?.total_amount,
+    "1.0001",
+    "preflight abortado não pode persistir a correção dos itens",
+  );
+  const untouchedSale = await client.query<{ gross_amount: string }>(
+    "select gross_amount::text as gross_amount from sales where id = $1",
+    [inconsistentSale],
+  );
+  assert.equal(
+    untouchedSale.rows[0]?.gross_amount,
+    "1.0000",
+    "preflight abortado não pode persistir reconciliação parcial",
+  );
+
+  await client.query("delete from sales_items where id = $1", [inconsistentSaleItem]);
+  await client.query("delete from sales where id = $1", [inconsistentSale]);
+
   await client.query(
     `insert into purchase_price_history
        (id, tenant_id, user_id, subject_type, subject_id, price, quantity, unit, valid_from)
