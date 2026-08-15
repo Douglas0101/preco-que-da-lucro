@@ -31,6 +31,7 @@ jobs:
       DATABASE_ADMIN_URL: postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
       DATABASE_DRIVER: node-postgres
+      EXPECTED_POSTGRES_MAJOR: "17"
       BETTER_AUTH_URL: http://127.0.0.1:4173
       AUTH_TRUSTED_ORIGINS: http://127.0.0.1:4173
       E2E_AUTH_EMAIL: teste@example.test
@@ -40,7 +41,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm install --global npm@11.14.1
+      - run: npm install --global --ignore-scripts npm@11.14.1
       - run: npm ci --ignore-scripts
       - run: npm run check:ui-stack
       - run: npm run check:no-supabase-runtime

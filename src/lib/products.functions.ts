@@ -19,6 +19,11 @@ import {
 import { applicationMetrics } from "@/instrumentation/telemetry";
 import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
+import { productService } from "@/server/services/product.service";
+import {
+  completenessFromCalculation,
+  productStatusFromCalculation,
+} from "@/server/services/product-completeness";
 
 const uuid = z.string().uuid();
 const decimalNumber = (value: string | null) =>
@@ -32,6 +37,7 @@ function mapProduct(row: typeof products.$inferSelect) {
     tenant_id: row.tenantId,
     user_id: row.userId,
     name: row.name,
+    status: row.status,
     current_price: row.currentPrice,
     yield_qty: row.yieldQty,
     yield_unit: row.yieldUnit,
@@ -185,11 +191,7 @@ export const listProducts = createServerFn({ method: "GET" })
   .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
     const request = context.requestContext;
-    const rows = await request.transaction
-      .select()
-      .from(products)
-      .where(and(eq(products.tenantId, request.tenantId), isNull(products.archivedAt)))
-      .orderBy(desc(products.createdAt));
+    const rows = await productService.list(request);
     return rows.map(mapProduct);
   });
 
@@ -257,12 +259,16 @@ export const listProductsWithMetrics = createServerFn({ method: "GET" })
       });
       applicationMetrics.financialStates.add(1, { state: metrics.status });
       return {
-        product,
+        product: {
+          ...product,
+          status: productStatusFromCalculation(product.status, metrics),
+        },
         ingredients,
         packaging,
         fees,
         market: marketRow ? mapMarket(marketRow) : null,
         metrics,
+        completeness: completenessFromCalculation(metrics),
       };
     });
   });
@@ -289,27 +295,16 @@ export const upsertProduct = createServerFn({ method: "POST" })
   .validator((input: unknown) => productInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
-    assertTenantMutationAuthorized(request);
-    const values = {
-      tenantId: request.tenantId,
-      userId: request.userId,
+    const product = await productService.save(request, {
+      id: data.id,
       name: data.name,
       currentPrice: data.current_price == null ? null : toDecimalString(data.current_price, 4),
       yieldQty: data.yield_qty == null ? null : toDecimalString(data.yield_qty, 6),
       yieldUnit: data.yield_unit ?? null,
       taxRegime: data.tax_regime ?? null,
       taxRate: data.tax_rate == null ? null : toDecimalString(data.tax_rate, 6),
-      updatedAt: new Date(),
-    };
-    const rows = data.id
-      ? await request.transaction
-          .update(products)
-          .set(values)
-          .where(and(eq(products.tenantId, request.tenantId), eq(products.id, data.id)))
-          .returning()
-      : await request.transaction.insert(products).values(values).returning();
-    if (!rows[0]) throw new Error("NOT_FOUND");
-    return mapProduct(rows[0]);
+    });
+    return mapProduct(product);
   });
 
 export const archiveProduct = createServerFn({ method: "POST" })
@@ -317,13 +312,7 @@ export const archiveProduct = createServerFn({ method: "POST" })
   .validator((input: unknown) => z.object({ id: uuid }).parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
-    assertTenantMutationAuthorized(request);
-    const rows = await request.transaction
-      .update(products)
-      .set({ archivedAt: new Date(), updatedAt: new Date() })
-      .where(and(eq(products.tenantId, request.tenantId), eq(products.id, data.id)))
-      .returning({ id: products.id });
-    if (!rows.length) throw new Error("NOT_FOUND");
+    await productService.archive(request, data.id);
     return { ok: true };
   });
 

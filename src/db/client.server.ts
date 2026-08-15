@@ -20,6 +20,13 @@ export interface DatabaseIdentity {
   roles: readonly string[];
 }
 
+export interface TransactionManager {
+  run<T>(
+    identity: DatabaseIdentity,
+    operation: (transaction: DatabaseTransaction) => Promise<T>,
+  ): Promise<T>;
+}
+
 let database: Database | undefined;
 
 function createDatabase() {
@@ -82,3 +89,10 @@ export async function withTenantTransaction<T>(
     applicationMetrics.dbDuration.record(performance.now() - startedAt);
   }
 }
+
+/** Public application boundary for short tenant transactions. Keeping this
+ * interface beside the existing primitive allows services to depend on a
+ * transaction manager without opening nested transactions. */
+export const transactionManager: TransactionManager = {
+  run: withTenantTransaction,
+};
