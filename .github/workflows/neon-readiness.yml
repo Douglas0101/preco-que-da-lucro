@@ -87,7 +87,7 @@ jobs:
           cache: npm
 
       - name: Pin npm used by the readiness runner
-        run: npm install --global npm@11.14.1
+        run: npm install --global --ignore-scripts npm@11.14.1
 
       - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
