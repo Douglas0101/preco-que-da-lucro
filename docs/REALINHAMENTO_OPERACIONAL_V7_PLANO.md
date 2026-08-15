@@ -2,7 +2,7 @@
 
 | Campo       | Valor                                                                                                                                                                   |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Data        | 2026-08-09                                                                                                                                                              |
+| Data        | 2026-08-15                                                                                                                                                              |
 | Fontes      | `docs/DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO_V7_SHADCN_BASEUI_SINCRONIZADO_OFICIAL.md` (V7) e `docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md` (Plano) |
 | Precedência | Em divergência, **a V7 prevalece** (declarado no README em 2026-08-09)                                                                                                  |
 | Escopo      | Dados operacionais: roadmap, prioridades, invariantes, ADRs, itens adiados, DoD/gates, SLOs/KPIs. Nenhum detalhe de fase do Plano foi reescrito                         |
@@ -94,16 +94,23 @@ Todos os valores citados foram conferidos por leitura direta: V7 §21–25, §28
 
 ## 8. Estado operacional em 2026-08-15
 
-- **F4/F5/F6 — local em execução:** Services/Repositories, Transaction Manager,
-  modelo de vendas, completude, histórico de preços, snapshots e persistência de
-  simulações foram implementados em migrations aditivas sobre PostgreSQL 17.
+- **F4/F5/F6 — implementação local:** Services/Repositories, Transaction
+  Manager, modelo de vendas, completude, histórico de preços, snapshots e
+  persistência server-side de simulações foram endurecidos em código e na
+  migration aditiva 0004. O ADR-024 fixa esses contratos. A execução da cadeia
+  em um PostgreSQL 17 descartável ainda depende de infraestrutura local/CI.
 - **F7/item 27 — bloqueado externamente:** o projeto Neon, a branch `develop`,
   URLs direct/pooled e o environment protegido ainda dependem das contas e
   chaves dos responsáveis.
 - **F8 — não promovido:** a fonte Supabase permanece opcional; sem sua URL
   read-only o caminho válido é provisionamento limpo, mas isso ainda não prova
   reconciliação, backup/restore ou cutover.
-- **Evidência:** CI verde, testes locais e `db:check` comprovam implementação;
-  workflow `skipped` ou não executado não altera o estado externo para `passed`.
+- **Evidência:** testes unitários, typecheck, lint, format, build/bundle e
+  `db:check` comprovam implementação local; `db:test` exige PostgreSQL 17
+  descartável. Workflow `skipped` ou não executado não altera o estado externo
+  para `passed`.
 - **Major:** [ADR-023](adr/ADR-023-postgresql-major-target.md) fixa PostgreSQL
   17 até existir uma matriz de compatibilidade e rollback para eventual upgrade.
+- **Integridade P1:** [ADR-024](adr/ADR-024-p1-data-integrity-contracts.md)
+  registra a política de status derivado, histórico temporal, simulações
+  server-side e agregados imutáveis de vendas.

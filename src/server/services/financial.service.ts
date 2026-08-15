@@ -1,4 +1,5 @@
 import Decimal from "decimal.js";
+import { z } from "zod";
 import {
   calculateScenario,
   type CalculationResult,
@@ -6,7 +7,24 @@ import {
   type FeeRow,
   type VolumeSource,
 } from "@/lib/finance";
-import { toDecimalString, type DecimalString } from "@/lib/financial-values";
+import { decimalStringSchema, toDecimalString, type DecimalString } from "@/lib/financial-values";
+
+export const FINANCE_ENGINE_VERSION = "finance-engine/2.0.0" as const;
+
+/** Canonical input shared by the execute and persist simulation boundaries. */
+export const simulationParamsSchema = z
+  .object({
+    price: decimalStringSchema.nullable(),
+    unitCost: decimalStringSchema.nullable(),
+    fixedExpenses: decimalStringSchema.nullable(),
+    volume: decimalStringSchema.nullable(),
+    taxRate: decimalStringSchema.nullable(),
+    fees: z.array(z.object({ percentage: decimalStringSchema.nullable() }).strict()).max(100),
+    volumeSource: z.enum(["real", "manual_simulation", "forecast", "unknown"]),
+  })
+  .strict();
+
+export type SimulationParams = z.infer<typeof simulationParamsSchema>;
 
 export interface SimulationServiceInput {
   price: string | null;

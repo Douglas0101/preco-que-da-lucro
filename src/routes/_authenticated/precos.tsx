@@ -38,6 +38,8 @@ type Item = {
   product_id: string;
   name: string;
   package_price: string | null;
+  package_qty: string | null;
+  package_unit: string | null;
   price_updated_at: string | null;
   kind: "ingrediente" | "embalagem";
   detail: string;
@@ -82,6 +84,8 @@ function Precos() {
         product_id: i.product_id,
         name: i.name,
         package_price: i.package_price,
+        package_qty: i.package_qty,
+        package_unit: i.package_unit,
         price_updated_at: i.price_updated_at,
         kind: "ingrediente" as const,
         detail:
@@ -94,9 +98,11 @@ function Precos() {
         product_id: p.product_id,
         name: p.name,
         package_price: p.package_price,
+        package_qty: p.units_per_package,
+        package_unit: "unidade",
         price_updated_at: p.price_updated_at,
         kind: "embalagem" as const,
-        detail: `pacote com ${Number(p.units_per_package ?? 1)} unidade(s)`,
+        detail: `pacote com ${Number(p.units_per_package)} unidade(s)`,
       })),
     ];
     setItems(all);
@@ -131,11 +137,21 @@ function Precos() {
       toast.error("Informe um preço válido");
       return;
     }
+    if (!item.package_qty || !item.package_unit) {
+      toast.error("Informe a quantidade e a unidade da embalagem antes de registrar o preço");
+      return;
+    }
     setSavingId(item.id);
     try {
       const packagePrice = toDecimalString(raw, 4);
       const res = await save({
-        data: { id: item.id, kind: item.kind, package_price: packagePrice },
+        data: {
+          id: item.id,
+          kind: item.kind,
+          package_price: packagePrice,
+          package_qty: toDecimalString(item.package_qty, 6),
+          package_unit: item.package_unit,
+        },
       });
       setItems((prev) =>
         prev.map((i) =>

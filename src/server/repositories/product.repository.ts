@@ -1,5 +1,5 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
-import { products, type Product, type ProductStatus } from "@/db/schema";
+import { products, type Product } from "@/db/schema";
 import type { RequestContext } from "@/lib/request-context";
 
 export interface ProductQuery {
@@ -9,7 +9,6 @@ export interface ProductQuery {
 export interface ProductWrite {
   id?: string;
   name: string;
-  status?: ProductStatus;
   currentPrice: string | null;
   yieldQty: string | null;
   yieldUnit: string | null;
@@ -54,7 +53,6 @@ export class DrizzleProductRepository implements ProductRepository {
       taxRegime: input.taxRegime,
       taxRate: input.taxRate,
       updatedAt: new Date(),
-      ...(input.status ? { status: input.status } : {}),
     };
 
     const rows = input.id
@@ -68,7 +66,6 @@ export class DrizzleProductRepository implements ProductRepository {
           .values({
             tenantId: context.tenantId,
             userId: context.userId,
-            status: input.status ?? "draft",
             ...values,
           })
           .returning();

@@ -3,6 +3,7 @@ import {
   completenessFromCalculation,
   productStatusFromCalculation,
 } from "@/server/services/product-completeness";
+import { calculateProductReadModel } from "@/server/services/product-read-model.service";
 
 describe("product completeness", () => {
   it("does not promote incomplete data to ready", () => {
@@ -35,5 +36,31 @@ describe("product completeness", () => {
       status: "invalid",
       errors: result.errors,
     });
+  });
+
+  it("projeta a mesma regra para leitores server-side", () => {
+    const complete = calculateProductReadModel({
+      persistedStatus: "draft",
+      currentPrice: "20",
+      yieldQty: "1",
+      taxRate: "0.1",
+      ingredients: [],
+      packaging: [],
+      fees: [],
+    });
+    const incomplete = calculateProductReadModel({
+      persistedStatus: "draft",
+      currentPrice: "20",
+      yieldQty: null,
+      taxRate: "0.1",
+      ingredients: [],
+      packaging: [],
+      fees: [],
+    });
+
+    expect(complete.status).toBe("ready");
+    expect(complete.completeness.status).toBe("complete");
+    expect(incomplete.status).toBe("incomplete");
+    expect(incomplete.completeness.status).toBe("incomplete");
   });
 });

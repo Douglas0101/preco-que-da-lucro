@@ -395,6 +395,10 @@ export const purchasePriceHistory = pgTable(
     ...tenantIdentity,
     subjectType: text("subject_type").notNull(),
     subjectId: uuid("subject_id").notNull(),
+    // Keep the discriminator during the additive migration for compatibility,
+    // while explicit tenant-scoped targets make orphaned history impossible.
+    ingredientId: uuid("ingredient_id"),
+    packagingId: uuid("packaging_id"),
     price: money("price").notNull(),
     quantity: quantity("quantity").notNull(),
     unit: text("unit").notNull(),
@@ -410,13 +414,45 @@ export const purchasePriceHistory = pgTable(
       table.subjectId,
       table.validFrom,
     ),
+    index("purchase_price_history_tenant_ingredient_valid_idx").on(
+      table.tenantId,
+      table.ingredientId,
+      table.validFrom,
+    ),
+    index("purchase_price_history_tenant_packaging_valid_idx").on(
+      table.tenantId,
+      table.packagingId,
+      table.validFrom,
+    ),
     foreignKey({
       columns: [table.tenantId, table.userId],
       foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
     }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.tenantId, table.ingredientId],
+      foreignColumns: [productIngredients.tenantId, productIngredients.id],
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.tenantId, table.packagingId],
+      foreignColumns: [productPackaging.tenantId, productPackaging.id],
+    }).onDelete("restrict"),
     check(
       "purchase_price_history_subject_check",
       sql`${table.subjectType} in ('ingredient', 'packaging')`,
+    ),
+    check(
+      "purchase_price_history_target_check",
+      sql`(
+        (${table.subjectType} = 'ingredient'
+          and ${table.ingredientId} is not null
+          and ${table.packagingId} is null
+          and ${table.subjectId} = ${table.ingredientId})
+        or
+        (${table.subjectType} = 'packaging'
+          and ${table.ingredientId} is null
+          and ${table.packagingId} is not null
+          and ${table.subjectId} = ${table.packagingId})
+      )`,
     ),
     check("purchase_price_history_price_check", sql`${table.price} >= 0`),
     check("purchase_price_history_quantity_check", sql`${table.quantity} > 0`),
@@ -442,7 +478,10 @@ export const sales = pgTable(
       foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
     }).onDelete("restrict"),
     check("sales_gross_amount_check", sql`${table.grossAmount} >= 0`),
-    check("sales_net_amount_check", sql`${table.netAmount} >= 0`),
+    check(
+      "sales_net_amount_check",
+      sql`${table.netAmount} >= 0 and ${table.netAmount} <= ${table.grossAmount}`,
+    ),
   ],
 );
 
@@ -477,6 +516,10 @@ export const salesItems = pgTable(
     check("sales_items_quantity_check", sql`${table.quantity} > 0`),
     check("sales_items_unit_price_check", sql`${table.unitPrice} >= 0`),
     check("sales_items_total_amount_check", sql`${table.totalAmount} >= 0`),
+    check(
+      "sales_items_total_amount_math_check",
+      sql`${table.totalAmount} = round(${table.quantity} * ${table.unitPrice}, 4)`,
+    ),
   ],
 );
 

@@ -15,6 +15,7 @@ import {
   toDecimalString,
 } from "@/lib/financial-values";
 import type { RequestContext } from "@/lib/request-context";
+import { purchasePriceService } from "@/server/services/purchase-price.service";
 
 export interface ToolExecutionOutput extends Record<string, unknown> {
   result: Record<string, unknown>;
@@ -151,24 +152,14 @@ const DEFINITIONS = [
       package_unit: unit,
     }),
     async execute(context, input) {
-      const rows = await context.transaction
-        .update(productIngredients)
-        .set({
-          packagePrice: toDecimalString(input.package_price, 4),
-          packageQty: toDecimalString(input.package_qty, 6),
-          packageUnit: input.package_unit,
-          priceUpdatedAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(productIngredients.tenantId, context.tenantId),
-            eq(productIngredients.id, input.ingredient_id),
-          ),
-        )
-        .returning({ id: productIngredients.id });
-      if (!rows[0]) throw new Error("NOT_FOUND");
-      return { result: { ingredientId: rows[0].id } };
+      const updated = await purchasePriceService.update(context, {
+        kind: "ingredient",
+        subjectId: input.ingredient_id,
+        price: input.package_price,
+        quantity: input.package_qty,
+        unit: input.package_unit,
+      });
+      return { result: { ingredientId: updated.id, historyId: updated.historyId } };
     },
   }),
   defineTool({
@@ -200,6 +191,7 @@ const DEFINITIONS = [
     }),
     async execute(context, input) {
       await ensureProduct(context, input.product_id);
+      const priceUpdatedAt = new Date();
       const [row] = await context.transaction
         .insert(productPackaging)
         .values({
@@ -209,11 +201,19 @@ const DEFINITIONS = [
           name: input.name,
           packagePrice: toDecimalString(input.package_price, 4),
           unitsPerPackage: toDecimalString(input.units_per_package, 6),
-          priceUpdatedAt: new Date(),
+          priceUpdatedAt,
         })
         .returning({ id: productPackaging.id, name: productPackaging.name });
       if (!row) throw new Error("DATABASE_ERROR");
-      return { result: { packaging: row } };
+      const history = await purchasePriceService.append(context, {
+        kind: "packaging",
+        subjectId: row.id,
+        price: input.package_price,
+        quantity: input.units_per_package,
+        unit: "unidade",
+        validFrom: priceUpdatedAt,
+      });
+      return { result: { packaging: row, historyId: history.id } };
     },
   }),
   defineTool({
