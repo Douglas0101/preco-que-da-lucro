@@ -2,27 +2,27 @@
 
 **Data da evidência:** 2026-08-17<br>
 **PR:** [#16](https://github.com/Douglas0101/preco-que-da-lucro/pull/16)<br>
-**Head auditado:** `c6a4df2d3d0f0ab86743b644a75146a2893bf2b6`<br>
+**Head auditado:** `fb78847e9d8404e768d9626b0faf24c3a419c65a`<br>
 **Base auditada:** `develop` em `aed4c375a75bde2c1e1bd51bc9a27dd2c78b12c5`<br>
 **Estado:** aberto, draft, `mergeable=true`, `mergeStateStatus=UNSTABLE`<br>
 **Escopo desta evidência:** mapeamento de release, critérios de aceite e runbook; não autoriza merge, aplicação de migração ou cutover.
 
 ## 1. Resumo executivo
 
-O PR #16 contém o lote P1 de performance financeira e a documentação de segurança/credenciais adicionada no head `c6a4df2`. O clone de validação utilizado foi `/tmp/preco-pr16-head-20260816-v2`, limpo e separado do checkout principal. O checkout principal `/home/douglas-souza/preco-que-d-main` continua sujo em `codex/local-dev-postgres`, no commit `71b0dc1`, e não foi usado como base nem alterado.
+O PR #16 contém o lote P1 de performance financeira e a documentação de segurança/credenciais adicionada até o head final `fb78847`. O clone de validação utilizado foi `/tmp/preco-pr16-head-20260816-v2`, limpo e separado do checkout principal. O checkout principal `/home/douglas-souza/preco-que-d-main` continua sujo em `codex/local-dev-postgres`, no commit `71b0dc1`, e não foi usado como base nem alterado.
 
 O código funcional P1 não mudou depois do último head com checks verdes (`83fb89d`). O delta posterior é restrito a:
 
 - `.gitignore`, com cobertura para artefatos dotenv gerados e `.neon`;
 - `docs/evidence/db-credentials-gitignore-review-2026-08-17.md`, com o mapeamento das camadas de credenciais.
 
-Essa separação reduz a hipótese de regressão funcional, mas não substitui a validação do head final. A evidência corrente é:
+Essa separação reduz a hipótese de regressão funcional, mas não substitui a validação do head final. A evidência corrente do head `fb78847` é:
 
-| Check no head `c6a4df2`         | Resultado                                                              | Evidência                                                                                                                       |
-| ------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| UI Stack / `verify`             | **FALHOU** em `npm run format:check`; passos seguintes foram pulados   | [run 31995648389](https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/31995648389), job `95286697576`                |
-| Migration preview / `migration` | **FALHOU** ao criar branch efêmera; o pai `develop` não foi encontrado | [run 31995648382](https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/31995648382), job `95286697781`                |
-| SonarCloud Code Analysis        | **PASSOU**                                                             | [Quality Gate do PR #16](https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro&pullRequest=16), check `95286769093` |
+| Check no head `fb78847`         | Resultado                                                              | Evidência                                                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| UI Stack / `verify`             | **FALHOU** em `npm run format:check`; passos seguintes foram pulados   | [run 31996484009](https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/31996484009), job `95288940903` |
+| Migration preview / `migration` | **FALHOU** ao criar branch efêmera; o pai `develop` não foi encontrado | [run 31996484016](https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/31996484016), job `95288941335` |
+| SonarCloud Code Analysis        | **PASSOU**                                                             | [check 95288987909](https://github.com/Douglas0101/preco-que-da-lucro/runs/95288987909)                          |
 
 Conclusão de release: o PR permanece draft. O release ainda não é elegível para merge porque o head publicado não está verde e porque os gates Neon/migração/cutover permanecem fora de escopo ou bloqueados.
 
@@ -33,17 +33,17 @@ Conclusão de release: o PR permanece draft. O release ainda não é elegível p
 | Repositório                  | `Douglas0101/preco-que-da-lucro`                           |
 | PR                           | `#16`                                                      |
 | Branch de trabalho publicada | `codex/p1-tanstack-query`                                  |
-| Head publicado               | `c6a4df2d3d0f0ab86743b644a75146a2893bf2b6`                 |
+| Head publicado               | `fb78847e9d8404e768d9626b0faf24c3a419c65a`                 |
 | Base                         | `develop` / `aed4c375a75bde2c1e1bd51bc9a27dd2c78b12c5`     |
-| Arquivos alterados           | 18                                                         |
-| Commits no PR                | 12                                                         |
-| Estatística do diff          | 1.152 adições / 273 remoções                               |
+| Arquivos alterados           | 19                                                         |
+| Commits no PR                | 13                                                         |
+| Estatística do diff          | 1.387 adições / 273 remoções                               |
 | Mergeabilidade               | `MERGEABLE`, mas estado instável por checks falhos         |
 | Estado administrativo        | `OPEN`, `DRAFT`                                            |
 | Checkout principal           | preservado, sujo, não usado na validação                   |
 | Clone de validação           | `/tmp/preco-pr16-head-20260816-v2`, limpo antes da análise |
 
-O head atual é a fonte de verdade para a decisão de release. Runs verdes associados a `83fb89d` ou a qualquer SHA anterior são evidência histórica e não promovem `c6a4df2` a verde.
+O head atual é a fonte de verdade para a decisão de release. Runs verdes associados a `83fb89d` ou a qualquer SHA anterior são evidência histórica e não promovem `fb78847` a verde.
 
 ## 3. Mapa plano → implementação → evidência → aceite
 
@@ -94,7 +94,7 @@ O lote não deve ser descrito como uma otimização genérica de todos os endpoi
 
 O job alcançou `npm ci --ignore-scripts`, `check:ui-stack` e `check:no-supabase-runtime`. O primeiro gate substantivo que falhou foi `npm run format:check`. Typecheck, lint, testes, banco, build, bundle, audit, instalação dos navegadores e E2E ficaram pulados por causa da falha anterior.
 
-O arquivo que precisa ser identificado/corrigido no próximo ciclo é o documento de credenciais adicionado no head atual. A correção deve ser limitada à formatação documentada e validada localmente antes do commit. Não é válido usar o run anterior verde para cobrir os passos pulados no head `c6a4df2`.
+O arquivo que precisa ser identificado/corrigido no próximo ciclo é o documento de credenciais adicionado no head atual. A correção deve ser limitada à formatação documentada e validada localmente antes do commit. Não é válido usar o run anterior verde para cobrir os passos pulados no head `fb78847`.
 
 ### Migration preview
 
@@ -115,7 +115,7 @@ Além disso, o projeto Neon auditado anteriormente foi registrado como PostgreSQ
 
 ### SonarCloud
 
-O Quality Gate do head `c6a4df2` passou. Essa aprovação não cobre o UI Stack, o preview Neon, a suíte completa, a migração, o backup/restore ou o cutover.
+O Quality Gate do head `fb78847` passou. Essa aprovação não cobre o UI Stack, o preview Neon, a suíte completa, a migração, o backup/restore ou o cutover.
 
 ## 6. Guia de estabilização antes do próximo push
 
