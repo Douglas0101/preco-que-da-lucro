@@ -7,6 +7,13 @@ protegidas estão ausentes, o workflow de readiness ainda não está registrado
 no default branch e o environment não possui protection rules. Nenhuma
 operação externa foi tentada como substituto.
 
+## Referência do ciclo
+
+- PR: [#16](https://github.com/Douglas0101/preco-que-da-lucro/pull/16).
+- Branch publicada: `codex/p1-tanstack-query`.
+- SHA validado: `a566e602d010dba207a502dab42390854457e9fc`.
+- Modo Neon planejado: `dry-run`, `confirm_apply=false`.
+
 ## Não execução comprovada
 
 - Não houve snapshot, backup, restore ou reconciliação.
