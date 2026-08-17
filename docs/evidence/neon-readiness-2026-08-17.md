@@ -10,7 +10,8 @@ pooled enviada na conversa não foi usada, armazenada ou registrada.
 
 - PR: [#16](https://github.com/Douglas0101/preco-que-da-lucro/pull/16).
 - Branch: `codex/p1-tanstack-query`.
-- SHA validado: `5ffc15b06c9341014479d08cea07660512a7d98d`.
+- SHA validado: `f598ad9d559571c9c063ba567c5c94cc2d01dada`.
+- SHA de base do ciclo: `5ffc15b06c9341014479d08cea07660512a7d98d`.
 - Workflow planejado: `.github/workflows/neon-readiness.yml`.
 - Modo planejado: `dry-run`, `confirm_apply=false`.
 
