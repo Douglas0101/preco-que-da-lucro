@@ -65,7 +65,7 @@ alterar queries, contratos financeiros ou read models.
 | `npm run db:check`                  | PASS                              | PostgreSQL 17 descartável em `127.0.0.1:55432`          |
 | `npm audit --audit-level=high`      | PASS no exit code                 | 4 advisories moderados transitivos de `esbuild`         |
 | `npm run test:e2e`                  | PASS — 32/32                      | quatro projetos Playwright, credenciais locais efêmeras |
-| SonarCloud                          | PENDENTE                          | precisa reanálise no SHA publicado                      |
+| SonarCloud                          | PASS — SHA publicado              | Quality Gate externo sem reprovação de duplicação       |
 
 `db:up` não criou um novo container porque `preco-que-da-lucro-postgres` já
 existia. O container existente foi preservado; a versão observada foi
@@ -83,10 +83,10 @@ terminou com 32/32 testes aprovados.
 
 ## Decisão
 
-**G1 local PASS; aceitação externa PENDENTE.** Todos os gates locais
-executados, incluindo PostgreSQL descartável e os quatro projetos Playwright,
-passaram. O patch ainda não pode ser aceito como correção do PR enquanto a
-reanálise do SonarCloud e o CI externo do SHA publicado não estiverem verdes.
+**G1 PASS.** Todos os gates locais executados, incluindo PostgreSQL descartável
+e os quatro projetos Playwright, passaram. Após a publicação do fix, a análise
+SonarCloud do SHA publicado passou sem a reprovação de duplicação. A execução
+completa do CI de aplicação é registrada na evidência G2.
 
 Não foi executado `npm audit fix`, não houve alteração de threshold/exclusão do
 Sonar, e nenhum segredo foi registrado.
