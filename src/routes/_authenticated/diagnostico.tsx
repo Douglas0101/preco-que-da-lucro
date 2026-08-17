@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { listProductsWithMetrics } from "@/lib/products.functions";
 import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
+import { deriveProductSelection } from "@/lib/product-selection";
 import {
   calculateBreakEvenUnits,
   calculatePriceFormation,
@@ -81,12 +82,10 @@ function Diagnostico() {
   });
 
   const details = productsQuery.data ?? [];
-  const products = details.map((detail) => detail.product);
-  const selectedProductId =
-    productId && products.some((product) => product.id === productId)
-      ? productId
-      : (products[0]?.id ?? "");
-  const selectedDetail = details.find((detail) => detail.product.id === selectedProductId);
+  const { products, selectedProductId, selectedDetail } = deriveProductSelection(
+    details,
+    productId,
+  );
   const expenses = expensesQuery.data ?? [];
   const fixedExpenses = sumFiniteNumbers(
     expenses.filter((expense) => expense.type === "fixa").map((expense) => Number(expense.amount)),

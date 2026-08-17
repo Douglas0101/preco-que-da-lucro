@@ -7,6 +7,7 @@ import {
   productsWithMetricsQueryOptions,
 } from "@/lib/query-options";
 import { sumFiniteNumbers, type FeeRow, type ProductComputation } from "@/lib/finance";
+import { deriveProductSelection } from "@/lib/product-selection";
 import { brl, num, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,12 +63,10 @@ function Simulacoes() {
   });
 
   const details = productsQuery.data ?? [];
-  const products = details.map((detail) => detail.product);
-  const selectedProductId =
-    productId && products.some((product) => product.id === productId)
-      ? productId
-      : (products[0]?.id ?? "");
-  const selectedDetail = details.find((detail) => detail.product.id === selectedProductId);
+  const { products, selectedProductId, selectedDetail } = deriveProductSelection(
+    details,
+    productId,
+  );
   const fixed = sumFiniteNumbers(
     (expensesQuery.data ?? [])
       .filter((expense) => expense.type === "fixa")

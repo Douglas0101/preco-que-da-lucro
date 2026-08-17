@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 import { listProductsWithMetrics } from "@/lib/products.functions";
+import { deriveProductSelection } from "@/lib/product-selection";
 import { loadDashboardInputs } from "@/server/repositories/dashboard.repository";
 import type { RequestContext } from "@/lib/request-context";
 import {
@@ -32,6 +33,36 @@ const simulationInput: FinancialSimulationInput = {
   fees: [{ percentage: "0.02" }],
   volumeSource: "manual_simulation",
 };
+
+describe("seleção de produto", () => {
+  it("retorna seleção vazia para uma lista vazia", () => {
+    expect(deriveProductSelection([], "")).toEqual({
+      products: [],
+      selectedProductId: "",
+      selectedDetail: undefined,
+    });
+  });
+
+  it("preserva uma seleção válida", () => {
+    const details = [{ product: { id: "product-1" } }, { product: { id: "product-2" } }];
+
+    expect(deriveProductSelection(details, "product-2")).toEqual({
+      products: [details[0].product, details[1].product],
+      selectedProductId: "product-2",
+      selectedDetail: details[1],
+    });
+  });
+
+  it("usa o primeiro produto quando a seleção é inválida", () => {
+    const details = [{ product: { id: "product-1" } }, { product: { id: "product-2" } }];
+
+    expect(deriveProductSelection(details, "missing")).toEqual({
+      products: [details[0].product, details[1].product],
+      selectedProductId: "product-1",
+      selectedDetail: details[0],
+    });
+  });
+});
 
 interface FakeQuery {
   from(table: unknown): FakeQuery;

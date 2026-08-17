@@ -7,6 +7,7 @@ import {
   expensesQueryOptions,
   productsWithMetricsQueryOptions,
 } from "@/lib/query-options";
+import { deriveProductSelection } from "@/lib/product-selection";
 import { brl, pct, num } from "@/lib/format";
 import { toDecimalString } from "@/lib/financial-values";
 import { Button } from "@/components/ui/button";
@@ -50,12 +51,10 @@ function PontoEquilibrio() {
   });
 
   const details = productsQuery.data ?? [];
-  const products = details.map((detail) => detail.product);
-  const selectedProductId =
-    productId && products.some((product) => product.id === productId)
-      ? productId
-      : (products[0]?.id ?? "");
-  const selectedDetail = details.find((detail) => detail.product.id === selectedProductId);
+  const { products, selectedProductId, selectedDetail } = deriveProductSelection(
+    details,
+    productId,
+  );
   const fixedExpenseAmounts = (expensesQuery.data ?? [])
     .filter((expense) => expense.type === "fixa")
     .map((expense) => expense.amount);
