@@ -13,12 +13,12 @@ alterado ou registrado neste arquivo.
 O plano nomeia `DATABASE_URL_POOLED` / `DATABASE_URL_DIRECT` (§2.4, §12.2). O
 repositório implementa o mesmo modelo em duas camadas com nomes consolidados:
 
-| Camada | Plano (§12.2) | Variável no repositório | Consumidor |
-| --- | --- | --- | --- |
-| Runtime da aplicação (request/background curto) | `DATABASE_URL_POOLED` | `DATABASE_URL` (endpoint pooled, PgBouncer `transaction`) | `src/db/client.server.ts:33`, driver via `DATABASE_DRIVER` (`neon-serverless` em produção) |
-| Migrations / admin / dump / restore | `DATABASE_URL_DIRECT` | `DATABASE_ADMIN_URL` (endpoint direct) | `drizzle.config.ts:3`, `scripts/db/migrate.ts:7`, `scripts/migration/source-to-neon.ts:566` |
-| Migração legada (processo único, read-only) | — | `SUPABASE_MIGRATION_DATABASE_URL` | transação forçada read-only, ver `.env.example:14-19` |
-| PostgreSQL local Docker (PG17, espelha CI) | — | `DATABASE_URL`/`DATABASE_ADMIN_URL` → `127.0.0.1:5432`, `DATABASE_DRIVER=node-postgres` | `npm run db:up` / `npm run db:test` (ver `AGENTS.md`) |
+| Camada                                          | Plano (§12.2)         | Variável no repositório                                                                 | Consumidor                                                                                  |
+| ----------------------------------------------- | --------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Runtime da aplicação (request/background curto) | `DATABASE_URL_POOLED` | `DATABASE_URL` (endpoint pooled, PgBouncer `transaction`)                               | `src/db/client.server.ts:33`, driver via `DATABASE_DRIVER` (`neon-serverless` em produção)  |
+| Migrations / admin / dump / restore             | `DATABASE_URL_DIRECT` | `DATABASE_ADMIN_URL` (endpoint direct)                                                  | `drizzle.config.ts:3`, `scripts/db/migrate.ts:7`, `scripts/migration/source-to-neon.ts:566` |
+| Migração legada (processo único, read-only)     | —                     | `SUPABASE_MIGRATION_DATABASE_URL`                                                       | transação forçada read-only, ver `.env.example:14-19`                                       |
+| PostgreSQL local Docker (PG17, espelha CI)      | —                     | `DATABASE_URL`/`DATABASE_ADMIN_URL` → `127.0.0.1:5432`, `DATABASE_DRIVER=node-postgres` | `npm run db:up` / `npm run db:test` (ver `AGENTS.md`)                                       |
 
 Controles já existentes que complementam as camadas:
 
@@ -32,11 +32,11 @@ Controles já existentes que complementam as camadas:
 O `npx neon@latest init` gerou credenciais locais na raiz de
 `/home/douglas-souza/preco-que-d-main`:
 
-| Arquivo | Tipo | Coberto pelo `.gitignore` anterior? | Situação após este patch |
-| --- | --- | --- | --- |
-| `.env` (raiz) | dotenv local | sim (linha `.env`) | ignorado |
-| `neon-storage.env` | dotenv gerado com credenciais Neon | **não** — gap: padrões `.env`/`.env.*` exigem prefixo `.env` | ignorado via `*.env` |
-| `.neon` | JSON de estado local do CLI/agente | **não** | ignorado via `.neon` |
+| Arquivo            | Tipo                               | Coberto pelo `.gitignore` anterior?                          | Situação após este patch |
+| ------------------ | ---------------------------------- | ------------------------------------------------------------ | ------------------------ |
+| `.env` (raiz)      | dotenv local                       | sim (linha `.env`)                                           | ignorado                 |
+| `neon-storage.env` | dotenv gerado com credenciais Neon | **não** — gap: padrões `.env`/`.env.*` exigem prefixo `.env` | ignorado via `*.env`     |
+| `.neon`            | JSON de estado local do CLI/agente | **não**                                                      | ignorado via `.neon`     |
 
 Verificação de vazamento no repositório (checkout principal, 2026-08-17):
 
