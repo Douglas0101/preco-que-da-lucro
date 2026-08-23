@@ -1,4 +1,5 @@
 import { access } from "node:fs/promises";
+import { randomBytes } from "node:crypto";
 import { once } from "node:events";
 import net from "node:net";
 import path from "node:path";
@@ -94,9 +95,9 @@ async function runCase(name, portMode) {
     ...process.env,
     NODE_ENV: "production",
     DATABASE_DRIVER: "node-postgres",
-    DATABASE_URL: "postgresql://smoke:invalid@127.0.0.1:1/unavailable?connect_timeout=1",
+    DATABASE_URL: "postgresql://127.0.0.1:1/unavailable?connect_timeout=1",
     BETTER_AUTH_URL: baseUrl,
-    BETTER_AUTH_SECRET: "hostinger-runtime-smoke-secret-012345678901234567890123456789",
+    BETTER_AUTH_SECRET: randomBytes(32).toString("hex"),
     AUTH_TRUSTED_ORIGINS: baseUrl,
     NITRO_HOST: undefined,
     HOST: undefined,
