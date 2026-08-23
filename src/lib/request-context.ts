@@ -9,8 +9,20 @@ export interface RequestIdentity {
   signal: AbortSignal;
 }
 
-export interface RequestContext extends RequestIdentity {
+/** Context shared by application services and repositories. The tenant and
+ * user come from the authenticated membership; a body/header is never the
+ * source of authority for either value. */
+export interface TransactionContext extends RequestIdentity {
   transaction: DatabaseTransaction;
+}
+
+export type RequestContext = TransactionContext;
+
+export function bindTransactionContext(
+  identity: RequestIdentity,
+  transaction: DatabaseTransaction,
+): TransactionContext {
+  return { ...identity, transaction };
 }
 
 /**

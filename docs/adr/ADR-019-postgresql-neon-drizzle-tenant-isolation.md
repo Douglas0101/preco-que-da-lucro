@@ -35,3 +35,10 @@ O runtime Supabase permanece temporariamente intacto até o dry run reconciliado
 - Conexões administrativas não podem ser usadas pelo runtime.
 - Alterações de schema passam a exigir migration, teste de zero, rollback e isolamento.
 - Sem credenciais externas, a prova local/CI usa PostgreSQL efêmero; a prova Neon é ativada automaticamente quando os secrets forem configurados.
+
+## Major PostgreSQL
+
+O major alvo e o critério de compatibilidade do PostgreSQL estão registrados em
+[ADR-023](ADR-023-postgresql-major-target.md). A decisão atual fixa PostgreSQL
+17; este ADR continua sendo a referência para conexão, isolamento e role de
+runtime.

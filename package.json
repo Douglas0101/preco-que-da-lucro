@@ -11,6 +11,7 @@
     "dev": "vite dev",
     "build": "node scripts/build.mjs",
     "build:dev": "vite build --mode development",
+    "start": "node .output/server/index.mjs",
     "preview": "nitro preview",
     "lint": "eslint .",
     "lint:ui": "eslint src/components/ui src/components/app-shell.tsx src/routes src/test --rule '@typescript-eslint/no-explicit-any: off'",
@@ -22,6 +23,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
     "db:migrate": "tsx scripts/db/migrate.ts",
     "db:test": "tsx scripts/db/test-migrations.ts && tsx scripts/db/test-auth-integration.ts && tsx scripts/db/test-tool-security.ts && tsx scripts/db/test-chat-semantics.ts",
     "migration:legacy-to-neon": "tsx scripts/migration/source-to-neon.ts",
@@ -30,6 +33,7 @@
     "check:ui-stack": "node scripts/check-ui-stack.mjs",
     "check:no-supabase-runtime": "node scripts/check-no-supabase-runtime.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
+    "check:hostinger-runtime": "node scripts/check-hostinger-runtime.mjs",
     "check": "npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle"
   },
   "dependencies": {

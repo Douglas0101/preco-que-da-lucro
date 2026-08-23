@@ -16,6 +16,8 @@ jobs:
   migration:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      EXPECTED_POSTGRES_MAJOR: "17"
     steps:
       - name: Detect Neon configuration
         id: config
@@ -29,6 +31,17 @@ jobs:
             echo "enabled=false" >> "$GITHUB_OUTPUT"
             echo "Neon preview skipped: configure NEON_API_KEY and NEON_PROJECT_ID."
           fi
+
+      - name: Record skipped preview boundary
+        if: steps.config.outputs.enabled != 'true'
+        run: |
+          {
+            echo "### Neon preview"
+            echo
+            echo "Skipped because NEON_API_KEY and/or NEON_PROJECT_ID is not configured."
+            echo "A skipped optional preview is not evidence of a Neon branch, migration, reconciliation, backup/restore, or cutover."
+            echo 'Use the protected manual `Neon readiness` workflow after configuring the required credentials.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: steps.config.outputs.enabled == 'true'

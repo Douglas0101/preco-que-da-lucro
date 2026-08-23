@@ -28,6 +28,9 @@ const tenantIdentity = {
   userId: text("user_id").notNull(),
 };
 
+export const productStatusValues = ["draft", "incomplete", "ready", "active", "archived"] as const;
+export type ProductStatus = (typeof productStatusValues)[number];
+
 const money = (name: string) => numeric(name, { precision: 19, scale: 4 });
 const quantity = (name: string) => numeric(name, { precision: 24, scale: 6 });
 const percent = (name: string) => numeric(name, { precision: 9, scale: 6 });
@@ -190,6 +193,7 @@ export const products = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     ...tenantIdentity,
     name: text("name").notNull(),
+    status: text("status").$type<ProductStatus>().notNull().default("draft"),
     currentPrice: money("current_price"),
     yieldQty: quantity("yield_qty"),
     yieldUnit: text("yield_unit"),
@@ -216,6 +220,10 @@ export const products = pgTable(
     check(
       "products_tax_rate_check",
       sql`${table.taxRate} is null or (${table.taxRate} >= 0 and ${table.taxRate} <= 1)`,
+    ),
+    check(
+      "products_status_check",
+      sql`${table.status} in ('draft', 'incomplete', 'ready', 'active', 'archived')`,
     ),
   ],
 );
@@ -380,6 +388,141 @@ export const expenses = pgTable(
   ],
 );
 
+export const purchasePriceHistory = pgTable(
+  "purchase_price_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ...tenantIdentity,
+    subjectType: text("subject_type").notNull(),
+    subjectId: uuid("subject_id").notNull(),
+    // Keep the discriminator during the additive migration for compatibility,
+    // while explicit tenant-scoped targets make orphaned history impossible.
+    ingredientId: uuid("ingredient_id"),
+    packagingId: uuid("packaging_id"),
+    price: money("price").notNull(),
+    quantity: quantity("quantity").notNull(),
+    unit: text("unit").notNull(),
+    supplierId: text("supplier_id"),
+    validFrom: timestamp("valid_from", { withTimezone: true }).notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("purchase_price_history_tenant_id_id_uidx").on(table.tenantId, table.id),
+    index("purchase_price_history_tenant_subject_valid_idx").on(
+      table.tenantId,
+      table.subjectType,
+      table.subjectId,
+      table.validFrom,
+    ),
+    index("purchase_price_history_tenant_ingredient_valid_idx").on(
+      table.tenantId,
+      table.ingredientId,
+      table.validFrom,
+    ),
+    index("purchase_price_history_tenant_packaging_valid_idx").on(
+      table.tenantId,
+      table.packagingId,
+      table.validFrom,
+    ),
+    foreignKey({
+      columns: [table.tenantId, table.userId],
+      foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.tenantId, table.ingredientId],
+      foreignColumns: [productIngredients.tenantId, productIngredients.id],
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.tenantId, table.packagingId],
+      foreignColumns: [productPackaging.tenantId, productPackaging.id],
+    }).onDelete("restrict"),
+    check(
+      "purchase_price_history_subject_check",
+      sql`${table.subjectType} in ('ingredient', 'packaging')`,
+    ),
+    check(
+      "purchase_price_history_target_check",
+      sql`(
+        (${table.subjectType} = 'ingredient'
+          and ${table.ingredientId} is not null
+          and ${table.packagingId} is null
+          and ${table.subjectId} = ${table.ingredientId})
+        or
+        (${table.subjectType} = 'packaging'
+          and ${table.ingredientId} is null
+          and ${table.packagingId} is not null
+          and ${table.subjectId} = ${table.packagingId})
+      )`,
+    ),
+    check("purchase_price_history_price_check", sql`${table.price} >= 0`),
+    check("purchase_price_history_quantity_check", sql`${table.quantity} > 0`),
+  ],
+);
+
+export const sales = pgTable(
+  "sales",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ...tenantIdentity,
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    grossAmount: money("gross_amount").notNull(),
+    netAmount: money("net_amount").notNull(),
+    channel: text("channel").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("sales_tenant_id_id_uidx").on(table.tenantId, table.id),
+    index("sales_tenant_occurred_idx").on(table.tenantId, table.occurredAt),
+    foreignKey({
+      columns: [table.tenantId, table.userId],
+      foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
+    }).onDelete("restrict"),
+    check("sales_gross_amount_check", sql`${table.grossAmount} >= 0`),
+    check(
+      "sales_net_amount_check",
+      sql`${table.netAmount} >= 0 and ${table.netAmount} <= ${table.grossAmount}`,
+    ),
+  ],
+);
+
+export const salesItems = pgTable(
+  "sales_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    saleId: uuid("sale_id").notNull(),
+    productId: uuid("product_id").notNull(),
+    ...tenantIdentity,
+    quantity: quantity("quantity").notNull(),
+    unitPrice: money("unit_price").notNull(),
+    totalAmount: money("total_amount").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("sales_items_tenant_id_id_uidx").on(table.tenantId, table.id),
+    index("sales_items_tenant_sale_idx").on(table.tenantId, table.saleId),
+    index("sales_items_tenant_product_idx").on(table.tenantId, table.productId),
+    foreignKey({
+      columns: [table.tenantId, table.saleId],
+      foreignColumns: [sales.tenantId, sales.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.productId],
+      foreignColumns: [products.tenantId, products.id],
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.tenantId, table.userId],
+      foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
+    }).onDelete("restrict"),
+    check("sales_items_quantity_check", sql`${table.quantity} > 0`),
+    check("sales_items_unit_price_check", sql`${table.unitPrice} >= 0`),
+    check("sales_items_total_amount_check", sql`${table.totalAmount} >= 0`),
+    check(
+      "sales_items_total_amount_math_check",
+      sql`${table.totalAmount} = round(${table.quantity} * ${table.unitPrice}, 4)`,
+    ),
+  ],
+);
+
 export const simulations = pgTable(
   "simulations",
   {
@@ -388,6 +531,9 @@ export const simulations = pgTable(
     productId: uuid("product_id"),
     name: text("name").notNull(),
     params: jsonb("params").$type<Record<string, unknown>>().notNull(),
+    result: jsonb("result").$type<Record<string, unknown> | null>(),
+    scenarioType: text("scenario_type").notNull().default("manual_simulation"),
+    engineVersion: text("engine_version").notNull().default("finance-engine/2.0.0"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -398,6 +544,38 @@ export const simulations = pgTable(
       columns: [table.tenantId, table.productId],
       foreignColumns: [products.tenantId, products.id],
     }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.tenantId, table.userId],
+      foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
+    }).onDelete("restrict"),
+    check(
+      "simulations_scenario_type_check",
+      sql`${table.scenarioType} in ('manual_simulation', 'forecast', 'real')`,
+    ),
+  ],
+);
+
+export const calculationSnapshots = pgTable(
+  "calculation_snapshots",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ...tenantIdentity,
+    entityType: text("entity_type").notNull(),
+    entityId: uuid("entity_id").notNull(),
+    calculationType: text("calculation_type").notNull(),
+    inputs: jsonb("inputs").$type<Record<string, unknown>>().notNull(),
+    outputs: jsonb("outputs").$type<Record<string, unknown>>().notNull(),
+    engineVersion: text("engine_version").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("calculation_snapshots_tenant_id_id_uidx").on(table.tenantId, table.id),
+    index("calculation_snapshots_tenant_entity_created_idx").on(
+      table.tenantId,
+      table.entityType,
+      table.entityId,
+      table.createdAt,
+    ),
     foreignKey({
       columns: [table.tenantId, table.userId],
       foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
@@ -584,3 +762,8 @@ export type Tenant = typeof tenants.$inferSelect;
 export type TenantMembership = typeof tenantMemberships.$inferSelect;
 export type Product = typeof products.$inferSelect;
 export type Expense = typeof expenses.$inferSelect;
+export type PurchasePriceHistory = typeof purchasePriceHistory.$inferSelect;
+export type Sale = typeof sales.$inferSelect;
+export type SaleItem = typeof salesItems.$inferSelect;
+export type Simulation = typeof simulations.$inferSelect;
+export type CalculationSnapshot = typeof calculationSnapshots.$inferSelect;

@@ -22,6 +22,20 @@
       "when": 1786679075477,
       "tag": "0002_rate_limit_database",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786767213666,
+      "tag": "0003_curvy_firebrand",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786772449256,
+      "tag": "0004_giant_nocturne",
+      "breakpoints": true
     }
   ]
 }

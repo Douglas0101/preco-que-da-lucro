@@ -2,6 +2,8 @@ node_modules
 dist
 .output
 .vinxi
+.worktree-*
+.p0-closeout-docker
 pnpm-lock.yaml
 package-lock.json
 routeTree.gen.ts

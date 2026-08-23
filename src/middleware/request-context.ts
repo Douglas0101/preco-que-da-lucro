@@ -5,7 +5,7 @@ import { z } from "zod";
 import { getDatabase, withTenantTransaction } from "@/db/client.server";
 import { tenantMemberships } from "@/db/schema";
 import { apiErrorResponse, errorCodeFromUnknown } from "@/lib/api-error";
-import type { RequestIdentity } from "@/lib/request-context";
+import { bindTransactionContext, type RequestIdentity } from "@/lib/request-context";
 import { logJson } from "@/lib/structured-logger";
 import { getAuth } from "@/server/auth/auth.server";
 
@@ -89,10 +89,7 @@ export const requireDatabaseAuth = createMiddleware({ type: "function" }).server
         (transaction) =>
           next({
             context: {
-              requestContext: {
-                ...identity,
-                transaction,
-              },
+              requestContext: bindTransactionContext(identity, transaction),
             },
           }),
       );
