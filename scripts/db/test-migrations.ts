@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Client } from "pg";
-import { requireAdminUrl, runMigrations } from "./migrate";
+import { ensureRuntimeRoleMembership, requireAdminUrl, runMigrations } from "./migrate";
 
 const adminUrl = requireAdminUrl();
 const tenantA = "10000000-0000-4000-8000-000000000001";
@@ -403,6 +403,7 @@ async function main(): Promise<void> {
   const client = new Client({ connectionString: adminUrl });
   await client.connect();
   try {
+    await ensureRuntimeRoleMembership(client);
     await seedIsolationFixtures(client);
     await assertDatabaseContract(client);
 

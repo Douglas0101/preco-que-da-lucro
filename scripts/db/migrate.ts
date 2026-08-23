@@ -21,6 +21,33 @@ export async function runMigrations(adminUrl = requireAdminUrl()): Promise<void>
   }
 }
 
+interface Queryable {
+  query(text: string): Promise<unknown>;
+}
+
+// SET ROLE exige membership explícita quando o admin não é superuser (Neon).
+// Como o runner da migration cria app_runtime, no PostgreSQL 16+ ele detém
+// ADMIN OPTION sobre a role e pode concedê-la a si mesmo. Localmente o admin
+// é o superuser postgres e o grant é inócuo. Idempotente por construção.
+export async function ensureRuntimeRoleMembership(client: Queryable): Promise<void> {
+  await client.query(`
+    do $$
+    begin
+      if exists (select 1 from pg_roles where rolname = 'app_runtime')
+         and not exists (
+           select 1
+           from pg_auth_members m
+           join pg_roles granted on granted.oid = m.roleid
+           join pg_roles member on member.oid = m.member
+           where granted.rolname = 'app_runtime' and member.rolname = current_user
+         ) then
+        execute format('grant app_runtime to %I', current_user);
+      end if;
+    end
+    $$;
+  `);
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   await runMigrations();
   console.log("Migrations PostgreSQL aplicadas com sucesso.");

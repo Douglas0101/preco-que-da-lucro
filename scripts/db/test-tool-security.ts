@@ -5,7 +5,7 @@ import { Pool } from "pg";
 import * as schema from "../../src/db/schema";
 import { runRegisteredTool } from "../../src/lib/ai/tool-runner";
 import type { RequestContext } from "../../src/lib/request-context";
-import { requireAdminUrl } from "./migrate";
+import { ensureRuntimeRoleMembership, requireAdminUrl } from "./migrate";
 
 const userId = "71000000-0000-4000-8000-000000000001";
 const tenantId = "72000000-0000-4000-8000-000000000002";
@@ -18,6 +18,7 @@ async function main(): Promise<void> {
   const pool = new Pool({ connectionString: requireAdminUrl(), max: 2 });
   const database = drizzle({ client: pool, schema });
   try {
+    await ensureRuntimeRoleMembership(pool);
     await pool.query(
       `insert into users (id, name, email, email_verified) values
         ($1, 'Tool User', 'tool-user@example.test', true),
