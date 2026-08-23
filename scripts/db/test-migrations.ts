@@ -7,7 +7,7 @@ import { Pool } from "pg";
 import * as schema from "../../src/db/schema";
 import { DrizzlePurchasePriceRepository } from "../../src/server/repositories/purchase-price.repository";
 import type { RequestContext } from "../../src/lib/request-context";
-import { requireAdminUrl, runMigrations } from "./migrate";
+import { ensureRuntimeRoleMembership, requireAdminUrl, runMigrations } from "./migrate";
 
 const adminUrl = requireAdminUrl();
 const tenantA = "10000000-0000-4000-8000-000000000001";
@@ -661,6 +661,7 @@ async function main(): Promise<void> {
   const client = new Client({ connectionString: adminUrl });
   await client.connect();
   try {
+    await ensureRuntimeRoleMembership(client);
     await seedIsolationFixtures(client);
     await assertDatabaseContract(client);
     await assertPurchasePriceConcurrency(adminUrl);

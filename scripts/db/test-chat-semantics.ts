@@ -5,7 +5,7 @@ import { Pool } from "pg";
 import * as schema from "../../src/db/schema";
 import { getConversationForTests } from "../../src/lib/chat.functions";
 import type { RequestContext } from "../../src/lib/request-context";
-import { requireAdminUrl } from "./migrate";
+import { ensureRuntimeRoleMembership, requireAdminUrl } from "./migrate";
 
 const userId = "77000000-0000-4000-8000-000000000001";
 const tenantId = "78000000-0000-4000-8000-000000000002";
@@ -15,6 +15,7 @@ async function main(): Promise<void> {
   const pool = new Pool({ connectionString: requireAdminUrl(), max: 2 });
   const database = drizzle({ client: pool, schema });
   try {
+    await ensureRuntimeRoleMembership(pool);
     await pool.query(
       `insert into users (id, name, email, email_verified) values ($1, 'Chat User', 'chat-semantics@example.test', true)
        on conflict (id) do nothing`,

@@ -33,7 +33,6 @@ DROP SCHEMA IF EXISTS app_private CASCADE;
 DO $drop_runtime$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app_runtime') THEN
-    EXECUTE format('REVOKE app_runtime FROM %I', current_user);
     DROP OWNED BY app_runtime;
     DROP ROLE app_runtime;
   END IF;
