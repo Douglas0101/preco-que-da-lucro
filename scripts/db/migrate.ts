@@ -100,10 +100,11 @@ interface Queryable {
   query(text: string): Promise<unknown>;
 }
 
-// SET ROLE exige membership explícita quando o admin não é superuser (Neon).
-// Como o runner da migration cria app_runtime, no PostgreSQL 16+ ele detém
-// ADMIN OPTION sobre a role e pode concedê-la a si mesmo. Localmente o admin
-// é o superuser postgres e o grant é inócuo. Idempotente por construção.
+// SET ROLE exige membership com SET OPTION quando o admin não é superuser
+// (Neon). O PostgreSQL 16+ concede automaticamente ao criador da role uma
+// membership apenas administrativa (admin_option=true, set_option=false), que
+// NÃO autoriza SET ROLE — é preciso um grant simples adicional. Localmente o
+// admin é o superuser postgres e o grant é inócuo. Idempotente por construção.
 export async function ensureRuntimeRoleMembership(client: Queryable): Promise<void> {
   await client.query(`
     do $$
@@ -115,6 +116,7 @@ export async function ensureRuntimeRoleMembership(client: Queryable): Promise<vo
            join pg_roles granted on granted.oid = m.roleid
            join pg_roles member on member.oid = m.member
            where granted.rolname = 'app_runtime' and member.rolname = current_user
+             and m.set_option
          ) then
         execute format('grant app_runtime to %I', current_user);
       end if;
