@@ -9,16 +9,16 @@ humana registrada nos merges.
 
 ## Fase 0 — Verificação pré-merge do PR #17
 
-| Item | Resultado |
-| --- | --- |
-| Estado | OPEN, MERGEABLE, mergeStateStatus CLEAN |
-| Base / head | `develop` ← `codex/local-dev-postgres` @ `34659c335b30942e290f4ea164fd445b3182c898` |
-| verify (ui-stack) | success — run 32647199292 |
-| migration (neon-preview) | success — run 32647199287 |
-| SonarCloud | pass ([dashboard](https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro&pullRequest=17)) |
-| Scan de segredos no diff | limpo (743 linhas; apenas placeholders e regex de redação) |
-| Correção RBAC `set_option` | presente em `scripts/db/migrate.ts` (erro 42501 SET ROLE, PG16+) |
-| Rollback `0001_to_0000` | sem `REVOKE`; apenas `DROP OWNED` + `DROP ROLE app_runtime` |
+| Item                       | Resultado                                                                                            |
+| -------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Estado                     | OPEN, MERGEABLE, mergeStateStatus CLEAN                                                              |
+| Base / head                | `develop` ← `codex/local-dev-postgres` @ `34659c335b30942e290f4ea164fd445b3182c898`                  |
+| verify (ui-stack)          | success — run 32647199292                                                                            |
+| migration (neon-preview)   | success — run 32647199287                                                                            |
+| SonarCloud                 | pass ([dashboard](https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro&pullRequest=17)) |
+| Scan de segredos no diff   | limpo (743 linhas; apenas placeholders e regex de redação)                                           |
+| Correção RBAC `set_option` | presente em `scripts/db/migrate.ts` (erro 42501 SET ROLE, PG16+)                                     |
+| Rollback `0001_to_0000`    | sem `REVOKE`; apenas `DROP OWNED` + `DROP ROLE app_runtime`                                          |
 
 ## Fase 1 — Saneamento e sincronização do checkout local
 
@@ -26,7 +26,7 @@ humana registrada nos merges.
   de origin; working tree sujo (~30 modificados + ~25 não rastreados).
 - Backup: branch `backup/codex-local-dev-postgres-20260823-121847`.
 - Checkpoint: `git stash push -u -m "checkpoint: trabalho local antes de
-  sincronizar codex/local-dev-postgres"` — entrada preservada após o pop.
+sincronizar codex/local-dev-postgres"` — entrada preservada após o pop.
 - Fast-forward limpo `6c876ad → 34659c3` (sem divergência de commits locais).
 - `stash pop`: 3 conflitos resolvidos com upstream prevalecente (decisão
   registrada abaixo); nenhum dado perdido:
@@ -37,11 +37,11 @@ humana registrada nos merges.
 
 ### Decisão de resolução de conflitos
 
-| Arquivo | Conflito | Resolução |
-| --- | --- | --- |
-| `src/server/repositories/purchase-price.repository.ts` | stash setava `recordedAt: new Date()`; upstream usa default do banco | upstream (schema fixa `recorded_at ... defaultNow()`, `src/db/schema.ts:407`) |
-| `src/test/purchase-price.service.test.ts` | teste extra do stash dependia do comportamento substituído | removido; original recuperável em `stash@{0}` |
-| `docs/REALINHAMENTO_OPERACIONAL_V7_PLANO.md` | bullet antigo ("triagem registrada") vs novo ("follow-ups implementados", PR #15) | upstream (narrativa mais recente) |
+| Arquivo                                                | Conflito                                                                          | Resolução                                                                     |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `src/server/repositories/purchase-price.repository.ts` | stash setava `recordedAt: new Date()`; upstream usa default do banco              | upstream (schema fixa `recorded_at ... defaultNow()`, `src/db/schema.ts:407`) |
+| `src/test/purchase-price.service.test.ts`              | teste extra do stash dependia do comportamento substituído                        | removido; original recuperável em `stash@{0}`                                 |
+| `docs/REALINHAMENTO_OPERACIONAL_V7_PLANO.md`           | bullet antigo ("triagem registrada") vs novo ("follow-ups implementados", PR #15) | upstream (narrativa mais recente)                                             |
 
 ## Fase 2 — Merge do PR #17
 
@@ -89,10 +89,10 @@ humana registrada nos merges.
 
 ## Pendências bloqueadas (dependem de ação humana)
 
-| Fase | Bloqueio | Ação necessária |
-| --- | --- | --- |
-| 5 — Card GitHub no console Neon | daemon WebBridge ativo, mas `extension_connected: false` | abrir navegador com extensão Kimi WebBridge conectada |
-| 6 — Checklist hPanel (11 itens) | sessão assistida pendente | executar item a item após Fase 5, sem registrar segredos |
+| Fase                            | Bloqueio                                                 | Ação necessária                                          |
+| ------------------------------- | -------------------------------------------------------- | -------------------------------------------------------- |
+| 5 — Card GitHub no console Neon | daemon WebBridge ativo, mas `extension_connected: false` | abrir navegador com extensão Kimi WebBridge conectada    |
+| 6 — Checklist hPanel (11 itens) | sessão assistida pendente                                | executar item a item após Fase 5, sem registrar segredos |
 
 ## Rollback disponível
 
