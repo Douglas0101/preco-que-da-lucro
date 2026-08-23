@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { purchasePriceHistory, type PurchasePriceHistory } from "@/db/schema";
 import type { RequestContext } from "@/lib/request-context";
 
@@ -32,6 +32,11 @@ function sameEffectiveValue(
 
 export class DrizzlePurchasePriceRepository implements PurchasePriceRepository {
   async append(context: RequestContext, input: PurchasePriceHistoryWrite) {
+    const lockKey = `${context.tenantId}:${input.kind}:${input.subjectId}`;
+    await context.transaction.execute(sql`
+      select pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
+    `);
+
     const targetPredicate =
       input.kind === "ingredient"
         ? and(
@@ -65,7 +70,6 @@ export class DrizzlePurchasePriceRepository implements PurchasePriceRepository {
         unit: input.unit,
         supplierId: input.supplierId ?? null,
         validFrom: input.validFrom,
-        recordedAt: input.validFrom,
       })
       .returning();
     if (!row) throw new Error("DATABASE_ERROR");
