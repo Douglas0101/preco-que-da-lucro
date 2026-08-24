@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { and, asc, count, eq, gte, sql } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -265,7 +266,7 @@ const RETRY_BASE_DELAY_MS = 150;
 
 /** Full-jitter backoff (plan §14.7): uniform delay in [0, base * attempt), never above the cap. */
 function retryDelayMs(attempt: number): number {
-  return Math.random() * (RETRY_BASE_DELAY_MS * attempt);
+  return randomInt(0, RETRY_BASE_DELAY_MS * attempt);
 }
 
 function delay(ms: number, signal: AbortSignal): Promise<void> {
