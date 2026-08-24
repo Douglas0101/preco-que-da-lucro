@@ -87,12 +87,27 @@ sincronizar codex/local-dev-postgres"` — entrada preservada após o pop.
    obrigatórios verdes + environment `neon-readiness` sem credenciais de
    produção.
 
+## Fase 5 — Card GitHub no console Neon (via WebBridge)
+
+- Extensão Kimi WebBridge reconectada pelo responsável (`extension_connected:
+true`, v1.11.6); login no console Neon executado pelo responsável.
+- Página:
+  `https://console.neon.tech/app/projects/damp-forest-57346541/integrations`
+  (projeto `damp-forest-57346541`, exibido como `preco-que-da-lucro-g3-pg17`).
+- Card **GitHub** presente na seção **Added**; diálogo "GitHub integration"
+  confirma **"Your project is connected"** com o repositório
+  `Douglas0101/preco-que-da-lucro`.
+- Secrets/vars instalados pela integração (apenas nomes exibidos, sem
+  valores): `NEON_API_KEY`, `NEON_PROJECT_ID`.
+- Evidência visual sem segredos:
+  [neon-github-card-console-2026-08-23.png](neon-github-card-console-2026-08-23.png)
+  (captura em 2026-08-23 ~13:31 GMT-3).
+
 ## Pendências bloqueadas (dependem de ação humana)
 
-| Fase                            | Bloqueio                                                 | Ação necessária                                          |
-| ------------------------------- | -------------------------------------------------------- | -------------------------------------------------------- |
-| 5 — Card GitHub no console Neon | daemon WebBridge ativo, mas `extension_connected: false` | abrir navegador com extensão Kimi WebBridge conectada    |
-| 6 — Checklist hPanel (11 itens) | sessão assistida pendente                                | executar item a item após Fase 5, sem registrar segredos |
+| Fase                            | Bloqueio                  | Ação necessária                                                                                  |
+| ------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------ |
+| 6 — Checklist hPanel (11 itens) | sessão assistida pendente | executar item a item em `docs/evidence/hostinger-hpanel-verification.md`, sem registrar segredos |
 
 ## Rollback disponível
 
