@@ -8,11 +8,13 @@ const expectedUiFiles = [
   "alert-dialog.tsx",
   "badge.tsx",
   "button.tsx",
+  "calc-explainer.tsx",
   "card.tsx",
   "input.tsx",
   "label.tsx",
   "select.tsx",
   "sheet.tsx",
+  "skeleton.tsx",
   "sonner.tsx",
   "textarea.tsx",
 ];

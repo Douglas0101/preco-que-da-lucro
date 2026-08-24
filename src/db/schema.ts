@@ -721,6 +721,7 @@ export const aiDailyBudgets = pgTable(
     usageDate: date("usage_date").notNull(),
     chatCount: integer("chat_count").notNull().default(0),
     modelCallCount: integer("model_call_count").notNull().default(0),
+    toolCallCount: integer("tool_call_count").notNull().default(0),
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     estimatedCost: money("estimated_cost").notNull().default("0"),
@@ -730,7 +731,7 @@ export const aiDailyBudgets = pgTable(
     primaryKey({ columns: [table.tenantId, table.usageDate] }),
     check(
       "ai_daily_budgets_nonnegative_check",
-      sql`${table.chatCount} >= 0 and ${table.modelCallCount} >= 0 and ${table.inputTokens} >= 0 and ${table.outputTokens} >= 0 and ${table.estimatedCost} >= 0`,
+      sql`${table.chatCount} >= 0 and ${table.modelCallCount} >= 0 and ${table.toolCallCount} >= 0 and ${table.inputTokens} >= 0 and ${table.outputTokens} >= 0 and ${table.estimatedCost} >= 0`,
     ),
   ],
 );

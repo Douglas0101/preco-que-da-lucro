@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { GATEWAY_TOOLS, TOOL_REGISTRY, toolExecutionOutputSchema } from "@/lib/ai/tool-registry";
+import {
+  GATEWAY_TOOLS,
+  GLOBAL_TOOL_NAMES,
+  PRODUCT_SCOPED_TOOL_NAMES,
+  TOOL_REGISTRY,
+  gatewayToolsForState,
+  toolExecutionOutputSchema,
+} from "@/lib/ai/tool-registry";
 import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
 import { contextWithRole } from "./helpers/request-context";
 
@@ -59,5 +66,36 @@ describe("registro tipado das tools de IA", () => {
     expect(sanitizeAiOutput("<script>alert(1)</script> Olá\u0000 **mundo**")).toBe(
       "alert(1) Olá **mundo**",
     );
+  });
+});
+
+describe("allowlist de tools por estado conversacional (plano §14.2)", () => {
+  it("sem produto confirmado expõe apenas as tools globais", () => {
+    const names = gatewayToolsForState(null).map((tool) => tool.function.name);
+    expect(names.sort()).toEqual([...GLOBAL_TOOL_NAMES].sort());
+  });
+
+  it("com produto confirmado expõe o catálogo completo", () => {
+    const names = gatewayToolsForState("50000000-0000-4000-8000-000000000005").map(
+      (tool) => tool.function.name,
+    );
+    expect(names).toHaveLength(GATEWAY_TOOLS.length);
+  });
+
+  it("classifica todas as tools registradas sem órfãos", () => {
+    for (const name of TOOL_REGISTRY.keys()) {
+      expect(
+        GLOBAL_TOOL_NAMES.has(name) || PRODUCT_SCOPED_TOOL_NAMES.has(name),
+        `tool não classificada: ${name}`,
+      ).toBe(true);
+    }
+    expect(GLOBAL_TOOL_NAMES.size + PRODUCT_SCOPED_TOOL_NAMES.size).toBe(TOOL_REGISTRY.size);
+  });
+
+  it("tools com escopo de produto exigem currentProductId para aparecer", () => {
+    const globalOnly = new Set(gatewayToolsForState(null).map((tool) => tool.function.name));
+    for (const name of PRODUCT_SCOPED_TOOL_NAMES) {
+      expect(globalOnly.has(name), `${name} vazou sem produto confirmado`).toBe(false);
+    }
   });
 });

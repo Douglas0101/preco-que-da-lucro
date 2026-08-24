@@ -1,5 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { expenses, products, type Expense } from "@/db/schema";
+import { LIST_LIMITS } from "@/lib/list-limits";
 import type { RequestContext } from "@/lib/request-context";
 
 export interface ExpenseWrite {
@@ -31,7 +32,8 @@ export class DrizzleExpenseRepository implements ExpenseRepository {
       .select()
       .from(expenses)
       .where(eq(expenses.tenantId, context.tenantId))
-      .orderBy(desc(expenses.createdAt));
+      .orderBy(desc(expenses.createdAt))
+      .limit(LIST_LIMITS.expenses);
   }
 
   async save(context: RequestContext, input: ExpenseWrite): Promise<Expense> {

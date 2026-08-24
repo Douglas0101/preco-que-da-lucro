@@ -1,5 +1,6 @@
 import Decimal from "decimal.js";
 import { z } from "zod";
+import { applicationMetrics } from "@/instrumentation/telemetry";
 import {
   calculateScenario,
   type CalculationResult,
@@ -124,6 +125,7 @@ function resultSign(value: number): DecimalScenarioResult["resultSign"] {
 export function runFinancialSimulation(
   input: SimulationServiceInput,
 ): CalculationResult<DecimalScenarioResult> {
+  applicationMetrics.financialEngineVersion.add(1, { version: FINANCE_ENGINE_VERSION });
   const fees: FeeRow[] = input.fees.map((fee) => ({
     percentage: parseValue(fee.percentage),
   }));

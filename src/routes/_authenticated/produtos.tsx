@@ -5,6 +5,7 @@ import { deleteProduct } from "@/lib/products.functions";
 import { productsWithMetricsQueryOptions } from "@/lib/query-options";
 import { brl, pct } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -35,6 +36,8 @@ interface Row {
   current_price: string | null;
   unitCost: number | null;
   cmPct: number | null;
+  /** Badge sistemático de qualidade do dado (plano mestre §18.2). */
+  dataQuality: "real" | "incomplete";
 }
 
 function Produtos() {
@@ -57,7 +60,7 @@ function Produtos() {
   const rows = useMemo(() => {
     const products = productsQuery.data ?? [];
     const enriched: Row[] = [];
-    for (const { product: p, metrics: c } of products) {
+    for (const { product: p, metrics: c, completeness } of products) {
       // Incomplete permanece "—"; invalid chega ao formatter como NaN e vira
       // "Erro de cálculo", sem mascarar falha numérica como ausência.
       const unavailableMetric = c.status === "invalid" ? Number.NaN : null;
@@ -67,6 +70,7 @@ function Produtos() {
         current_price: p.current_price,
         unitCost: c.status === "ok" ? c.value.unitCost : unavailableMetric,
         cmPct: c.status === "ok" ? c.value.contributionMarginPct : unavailableMetric,
+        dataQuality: completeness.status === "complete" ? "real" : "incomplete",
       });
     }
     return enriched;
@@ -196,7 +200,22 @@ function ProductListContent({
               <Package className="h-6 w-6" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="font-bold truncate">{row.name}</div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold truncate">{row.name}</span>
+                {row.dataQuality === "real" ? (
+                  <Badge variant="secondary" className="shrink-0">
+                    REAL
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    title="Faltam dados para o cálculo completo. Abra o produto para ver o que falta."
+                    className="shrink-0 border-amber-500/60 text-amber-600 dark:text-amber-400"
+                  >
+                    DADOS INCOMPLETOS
+                  </Badge>
+                )}
+              </div>
               <div className="text-sm text-muted-foreground">
                 Custo: {row.unitCost == null ? "—" : brl(row.unitCost)} · Preço:{" "}
                 {row.current_price == null ? "—" : brl(Number(row.current_price))} ·{" "}

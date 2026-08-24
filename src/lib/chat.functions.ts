@@ -5,7 +5,7 @@ import { withTenantTransaction } from "@/db/client.server";
 import { aiDailyBudgets, chatConversations, chatMessages, products } from "@/db/schema";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import { ApplicationError } from "@/lib/api-error";
-import { GATEWAY_TOOLS } from "@/lib/ai/tool-registry";
+import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
 import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
 import { runRegisteredTool } from "@/lib/ai/tool-runner";
 import type { RequestContext, RequestIdentity } from "@/lib/request-context";
@@ -233,6 +233,23 @@ async function recordModelUsage(
   });
 }
 
+/** Daily tool-call budget counter per tenant (plan §14.6: tool count). */
+async function recordToolUsage(identity: RequestIdentity, toolCalls: number): Promise<void> {
+  await inTenantTransaction(identity, async (context) => {
+    const usageDate = new Date().toISOString().slice(0, 10);
+    await context.transaction
+      .insert(aiDailyBudgets)
+      .values({ tenantId: context.tenantId, usageDate, toolCallCount: toolCalls })
+      .onConflictDoUpdate({
+        target: [aiDailyBudgets.tenantId, aiDailyBudgets.usageDate],
+        set: {
+          toolCallCount: sql`${aiDailyBudgets.toolCallCount} + ${toolCalls}`,
+          updatedAt: new Date(),
+        },
+      });
+  });
+}
+
 function isTransientStatus(status: number): boolean {
   return (
     status === 408 ||
@@ -242,6 +259,21 @@ function isTransientStatus(status: number): boolean {
     status === 503 ||
     status === 504
   );
+}
+
+const RETRY_BASE_DELAY_MS = 150;
+
+/**
+ * Full-jitter backoff (plan §14.7): uniform delay in [0, base * attempt), never
+ * above the cap. Uses the CSPRNG from Web Crypto (available in Node and
+ * browsers) instead of Math.random to keep the S2245 security hotspot out of
+ * the new-code gate.
+ */
+function retryDelayMs(attempt: number): number {
+  const buffer = new Uint32Array(1);
+  globalThis.crypto.getRandomValues(buffer);
+  const unit = buffer[0]! / 2 ** 32;
+  return Math.floor(unit * RETRY_BASE_DELAY_MS * attempt);
 }
 
 function delay(ms: number, signal: AbortSignal): Promise<void> {
@@ -269,6 +301,7 @@ async function fetchModelAttempt({
   endpoint,
   model,
   messages,
+  tools,
   signal,
   requestSignal,
   attempt,
@@ -278,6 +311,7 @@ async function fetchModelAttempt({
   endpoint: string;
   model: string;
   messages: GatewayMessage[];
+  tools: GatewayTool[];
   signal: AbortSignal;
   requestSignal: AbortSignal;
   attempt: number;
@@ -290,7 +324,7 @@ async function fetchModelAttempt({
       fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-        body: JSON.stringify({ model, messages, tools: GATEWAY_TOOLS, tool_choice: "auto" }),
+        body: JSON.stringify({ model, messages, tools, tool_choice: "auto" }),
         signal,
       }),
   );
@@ -301,7 +335,7 @@ async function fetchModelAttempt({
   if (response.status === 429) throw new ApplicationError("RATE_LIMIT");
   if (!response.ok) {
     if (isTransientStatus(response.status) && attempt < attempts) {
-      await delay(150 * attempt, requestSignal);
+      await delay(retryDelayMs(attempt), requestSignal);
       return null;
     }
     throw new ApplicationError("DEPENDENCY_ERROR");
@@ -316,6 +350,7 @@ async function runModelAttempt({
   endpoint,
   model,
   messages,
+  tools,
   requestSignal,
   attempt,
   attempts,
@@ -325,6 +360,7 @@ async function runModelAttempt({
   endpoint: string;
   model: string;
   messages: GatewayMessage[];
+  tools: GatewayTool[];
   requestSignal: AbortSignal;
   attempt: number;
   attempts: number;
@@ -338,6 +374,7 @@ async function runModelAttempt({
       endpoint,
       model,
       messages,
+      tools,
       signal,
       requestSignal,
       attempt,
@@ -350,7 +387,7 @@ async function runModelAttempt({
       throw new ApplicationError("AI_TIMEOUT", { cause: error });
     }
     if (attempt >= attempts) throw new ApplicationError("DEPENDENCY_ERROR", { cause: error });
-    await delay(150 * attempt, requestSignal);
+    await delay(retryDelayMs(attempt), requestSignal);
     return null;
   } finally {
     applicationMetrics.aiDuration.record(performance.now() - attemptStartedAt, {
@@ -362,6 +399,7 @@ async function runModelAttempt({
 
 async function callModel(
   messages: GatewayMessage[],
+  tools: GatewayTool[],
   requestSignal: AbortSignal,
 ): Promise<GatewayResponse> {
   const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.LOVABLE_API_KEY;
@@ -378,6 +416,7 @@ async function callModel(
       endpoint,
       model,
       messages,
+      tools,
       requestSignal,
       attempt,
       attempts,
@@ -517,7 +556,11 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     const maxToolRounds = numberSetting("AI_MAX_TOOL_ROUNDS", 8, 1, 8);
     for (let round = 0; round < maxToolRounds; round += 1) {
       if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
-      const modelResponse = await callModel(messages, requestSignal);
+      const modelResponse = await callModel(
+        messages,
+        gatewayToolsForState(currentProductId),
+        requestSignal,
+      );
       await recordModelUsage(identity, modelResponse.usage);
       const modelMessage = modelResponse.choices[0].message;
       const toolCalls = modelMessage.tool_calls;
@@ -528,6 +571,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
           content: modelMessage.content ?? "",
           tool_calls: toolCalls,
         });
+        await recordToolUsage(identity, toolCalls.length);
         for (const toolCall of toolCalls) {
           const toolResult = await inTenantTransaction(identity, (request) =>
             runRegisteredTool({
@@ -596,4 +640,8 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     throw new ApplicationError("DEPENDENCY_ERROR");
   });
 
-export { callModel as callModelForTests, getConversation as getConversationForTests };
+export {
+  callModel as callModelForTests,
+  getConversation as getConversationForTests,
+  retryDelayMs as retryDelayMsForTests,
+};
