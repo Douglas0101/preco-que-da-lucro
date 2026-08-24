@@ -7,7 +7,7 @@
  * rollback, então o estado final do banco não é alterado.
  *
  * Uso:
- *   DATABASE_ADMIN_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+ *   DATABASE_ADMIN_URL=<url admin do Postgres local, conforme docker-compose.yml> \
  *     npx tsx scripts/db/explain-evidence.ts
  */
 import { mkdir, writeFile } from "node:fs/promises";
