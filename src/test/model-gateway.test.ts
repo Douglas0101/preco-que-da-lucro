@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { callModelForTests } from "@/lib/chat.functions";
+import { callModelForTests, retryDelayMsForTests } from "@/lib/chat.functions";
+import { GATEWAY_TOOLS } from "@/lib/ai/tool-registry";
 
 const messages = [{ role: "user" as const, content: "Olá" }];
 
@@ -23,7 +24,9 @@ describe("limites do gateway de IA", () => {
       .mockResolvedValueOnce(successResponse());
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(callModelForTests(messages, new AbortController().signal)).resolves.toMatchObject({
+    await expect(
+      callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal),
+    ).resolves.toMatchObject({
       choices: [{ message: { content: "Tudo bem" } }],
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -34,7 +37,9 @@ describe("limites do gateway de IA", () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 429 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(callModelForTests(messages, new AbortController().signal)).rejects.toMatchObject({
+    await expect(
+      callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal),
+    ).rejects.toMatchObject({
       code: "RATE_LIMIT",
       retryable: true,
     });
@@ -50,7 +55,9 @@ describe("limites do gateway de IA", () => {
       vi.fn<typeof fetch>().mockRejectedValue(new DOMException("aborted", "AbortError")),
     );
 
-    await expect(callModelForTests(messages, controller.signal)).rejects.toMatchObject({
+    await expect(
+      callModelForTests(messages, GATEWAY_TOOLS, controller.signal),
+    ).rejects.toMatchObject({
       code: "AI_TIMEOUT",
       retryable: true,
     });

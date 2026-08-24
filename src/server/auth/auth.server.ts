@@ -10,6 +10,7 @@ import { createPersonalTenantForUser } from "./tenant-bootstrap.server";
 import { resolveAuthPolicy, requireAuthSecret, resolveGoogleCredentials } from "./auth-policy";
 import { hashPassword, verifyPassword } from "./password.server";
 import { createDatabaseRateLimitStorage } from "./rate-limit-storage.server";
+import { AUTH_RATE_LIMIT_RULES } from "./rate-limit-rules.server";
 
 export function createAuthInstance(database: Database = getDatabase()) {
   const policy = resolveAuthPolicy();
@@ -92,9 +93,7 @@ export function createAuthInstance(database: Database = getDatabase()) {
       // insert when multiple instances receive the same request burst.
       storage: "database",
       customStorage: createDatabaseRateLimitStorage(database),
-      customRules: {
-        "/sign-up/email": { window: 60, max: 3 },
-      },
+      customRules: { ...AUTH_RATE_LIMIT_RULES },
     },
     advanced: {
       useSecureCookies: policy.secureCookies,

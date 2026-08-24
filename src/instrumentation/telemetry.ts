@@ -14,6 +14,7 @@ export const applicationMetrics = {
   aiQuotas: meter.createCounter("app.ai.quotas"),
   toolExecutions: meter.createCounter("app.ai.tool.executions"),
   financialStates: meter.createCounter("app.financial.states"),
+  financialEngineVersion: meter.createCounter("app.financial.engine_version"),
 };
 
 let telemetryStarted = false;

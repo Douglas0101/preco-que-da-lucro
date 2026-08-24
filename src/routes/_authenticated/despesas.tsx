@@ -8,6 +8,7 @@ import { expensesQueryOptions } from "@/lib/query-options";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -271,7 +272,23 @@ function ExpenseListState({
   onRetry: () => void;
   onDelete: (id: string) => void;
 }>) {
-  if (isPending) return <div className="text-muted-foreground">Carregando...</div>;
+  if (isPending) {
+    return (
+      <div className="space-y-2" aria-hidden="true">
+        {[0, 1, 2].map((row) => (
+          <Card key={row}>
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-4 w-2/5" />
+                <Skeleton className="h-3 w-1/4" />
+              </div>
+              <Skeleton className="h-4 w-24" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
   if (isError) {
     return (
       <Card role="alert" className="border-destructive/40">

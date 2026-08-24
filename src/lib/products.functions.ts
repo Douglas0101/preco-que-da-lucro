@@ -18,6 +18,7 @@ import {
   toDecimalString,
 } from "@/lib/financial-values";
 import { applicationMetrics } from "@/instrumentation/telemetry";
+import { LIST_LIMITS } from "@/lib/list-limits";
 import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 import { productService } from "@/server/services/product.service";
@@ -222,7 +223,8 @@ async function loadProductReadModels(request: RequestContext) {
     .select()
     .from(products)
     .where(and(eq(products.tenantId, request.tenantId), isNull(products.archivedAt)))
-    .orderBy(desc(products.createdAt));
+    .orderBy(desc(products.createdAt))
+    .limit(LIST_LIMITS.products);
   const productIds = productRows.map((row) => row.id);
   if (!productIds.length) return [];
   const ingredientRows = await request.transaction
@@ -233,7 +235,8 @@ async function loadProductReadModels(request: RequestContext) {
         eq(productIngredients.tenantId, request.tenantId),
         inArray(productIngredients.productId, productIds),
       ),
-    );
+    )
+    .limit(LIST_LIMITS.productChildren);
   const packagingRows = await request.transaction
     .select()
     .from(productPackaging)
@@ -242,18 +245,21 @@ async function loadProductReadModels(request: RequestContext) {
         eq(productPackaging.tenantId, request.tenantId),
         inArray(productPackaging.productId, productIds),
       ),
-    );
+    )
+    .limit(LIST_LIMITS.productChildren);
   const feeRows = await request.transaction
     .select()
     .from(salesFees)
-    .where(and(eq(salesFees.tenantId, request.tenantId), inArray(salesFees.productId, productIds)));
+    .where(and(eq(salesFees.tenantId, request.tenantId), inArray(salesFees.productId, productIds)))
+    .limit(LIST_LIMITS.productChildren);
   const marketRows = await request.transaction
     .select()
     .from(marketPrices)
     .where(
       and(eq(marketPrices.tenantId, request.tenantId), inArray(marketPrices.productId, productIds)),
     )
-    .orderBy(desc(marketPrices.createdAt));
+    .orderBy(desc(marketPrices.createdAt))
+    .limit(LIST_LIMITS.productChildren);
   const ingredientsByProduct = new Map<string, ReturnType<typeof mapIngredient>[]>();
   for (const item of ingredientRows) {
     const rows = ingredientsByProduct.get(item.productId) ?? [];
@@ -601,7 +607,8 @@ export const listPurchasePrices = createServerFn({ method: "GET" })
       .select({ id: products.id, name: products.name })
       .from(products)
       .where(and(eq(products.tenantId, request.tenantId), isNull(products.archivedAt)))
-      .orderBy(desc(products.createdAt));
+      .orderBy(desc(products.createdAt))
+      .limit(LIST_LIMITS.products);
     const productIds = productRows.map((row) => row.id);
     if (!productIds.length) return { products: [], ingredients: [], packaging: [] };
     const ingredientRows = await request.transaction
@@ -613,7 +620,8 @@ export const listPurchasePrices = createServerFn({ method: "GET" })
           inArray(productIngredients.productId, productIds),
         ),
       )
-      .orderBy(asc(productIngredients.name));
+      .orderBy(asc(productIngredients.name))
+      .limit(LIST_LIMITS.productChildren);
     const packagingRows = await request.transaction
       .select()
       .from(productPackaging)
@@ -623,7 +631,8 @@ export const listPurchasePrices = createServerFn({ method: "GET" })
           inArray(productPackaging.productId, productIds),
         ),
       )
-      .orderBy(asc(productPackaging.name));
+      .orderBy(asc(productPackaging.name))
+      .limit(LIST_LIMITS.productChildren);
     return {
       products: productRows,
       ingredients: ingredientRows.map(mapIngredient),
