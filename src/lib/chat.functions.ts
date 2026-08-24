@@ -1,4 +1,3 @@
-import { randomInt } from "node:crypto";
 import { and, asc, count, eq, gte, sql } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -264,9 +263,17 @@ function isTransientStatus(status: number): boolean {
 
 const RETRY_BASE_DELAY_MS = 150;
 
-/** Full-jitter backoff (plan §14.7): uniform delay in [0, base * attempt), never above the cap. */
+/**
+ * Full-jitter backoff (plan §14.7): uniform delay in [0, base * attempt), never
+ * above the cap. Uses the CSPRNG from Web Crypto (available in Node and
+ * browsers) instead of Math.random to keep the S2245 security hotspot out of
+ * the new-code gate.
+ */
 function retryDelayMs(attempt: number): number {
-  return randomInt(0, RETRY_BASE_DELAY_MS * attempt);
+  const buffer = new Uint32Array(1);
+  globalThis.crypto.getRandomValues(buffer);
+  const unit = buffer[0]! / 2 ** 32;
+  return Math.floor(unit * RETRY_BASE_DELAY_MS * attempt);
 }
 
 function delay(ms: number, signal: AbortSignal): Promise<void> {
