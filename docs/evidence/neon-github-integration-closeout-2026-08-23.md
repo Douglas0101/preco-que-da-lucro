@@ -105,9 +105,13 @@ true`, v1.11.6); login no console Neon executado pelo responsável.
 
 ## Pendências bloqueadas (dependem de ação humana)
 
-| Fase                            | Bloqueio                  | Ação necessária                                                                                  |
-| ------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------ |
-| 6 — Checklist hPanel (11 itens) | sessão assistida pendente | executar item a item em `docs/evidence/hostinger-hpanel-verification.md`, sem registrar segredos |
+| Fase                            | Bloqueio                                               | Ação necessária                                                                                    |
+| ------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| 6 — Checklist hPanel (11 itens) | plano Hostinger **não adquirido** (decisão 2026-08-23) | executar sessão assistida após a compra, conforme `hostinger-hpanel-verification.md` (11× BLOCKED) |
+
+Encerramento do ciclo Neon ↔ GitHub: **concluído** no que depende de código/CI;
+pendências remanescentes são externas (compra do plano de hospedagem) e já
+possuem ambiente pré-preparado.
 
 ## Rollback disponível
 

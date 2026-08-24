@@ -9,6 +9,14 @@ ambiente equivalente. Nenhum item é promovido por suposição, documentação d
 terceiros ou analogia com o smoke local. Cada linha exige a evidência concreta
 (captura de tela, log ou saída de comando) referenciada na coluna própria.
 
+**Bloqueio atual (2026-08-23):** o plano Hostinger Cloud Startup ainda **não
+foi adquirido**. O ambiente local/runbook está pré-preparado para o momento da
+compra (`docs/runbooks/hostinger-cloud-node.md`,
+`docs/evidence/hostinger-runtime-readiness-2026-08-23.md`), mas nenhum item
+pode sair de `BLOCKED` até que a conta exista e a sessão assistida seja
+executada. A justificativa vale para os 11 itens e não precisa ser repetida
+por linha.
+
 Referências: `docs/runbooks/hostinger-cloud-node.md`,
 `docs/evidence/hostinger-runtime-readiness-2026-08-23.md`, Plano Mestre §20
 (hardening de produção) e §42 (gate antes de Neon production).
