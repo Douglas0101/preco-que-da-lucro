@@ -33,6 +33,11 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Validate migration drift without secrets
+        # drizzle-kit check is purely local (migration snapshot validation) and
+        # never connects; DATABASE_ADMIN_URL is only read by drizzle.config.ts
+        # at load time, so a dummy value satisfies the guard without any secret.
+        env:
+          DATABASE_ADMIN_URL: postgresql://dummy:dummy@localhost:5432/dummy
         run: npm run db:check
 
       - name: Record remote readiness boundary
