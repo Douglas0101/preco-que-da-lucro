@@ -16,6 +16,20 @@ on:
         required: true
         default: false
         type: boolean
+      origin_inventory:
+        description: "Resultado do inventario da origem antes do readiness remoto"
+        required: true
+        default: unknown
+        type: choice
+        options:
+          - unknown
+          - no-legacy-source
+          - legacy-source-read-only
+      authorize_legacy_migration:
+        description: "Authorize legacy rehearsal on the disposable branch only"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -55,6 +69,8 @@ jobs:
           SUPABASE_MIGRATION_DATABASE_URL: ${{ secrets.SUPABASE_MIGRATION_DATABASE_URL }}
           MIGRATION_MODE: ${{ inputs.migration_mode }}
           CONFIRM_APPLY: ${{ inputs.confirm_apply }}
+          ORIGIN_INVENTORY: ${{ inputs.origin_inventory }}
+          AUTHORIZE_LEGACY_MIGRATION: ${{ inputs.authorize_legacy_migration }}
         run: |
           set -euo pipefail
 
@@ -67,14 +83,34 @@ jobs:
             exit 1
           fi
 
-          # The Supabase legacy source is optional: the project never ran on
-          # Supabase officially, so a fresh Neon provision is the default path.
-          if [[ -n "$SUPABASE_MIGRATION_DATABASE_URL" ]]; then
-            legacy_source=true
-          else
-            legacy_source=false
-            echo "Neon readiness: no legacy source configured; fresh-provision checks only."
-          fi
+          case "$ORIGIN_INVENTORY" in
+            unknown)
+              echo "Neon readiness blocked: complete the origin inventory before selecting fresh-provision or legacy migration." >&2
+              exit 1
+              ;;
+            no-legacy-source)
+              if [[ -n "$SUPABASE_MIGRATION_DATABASE_URL" ]]; then
+                echo "Neon readiness blocked: a legacy source was supplied for a no-legacy-source inventory." >&2
+                exit 1
+              fi
+              legacy_source=false
+              ;;
+            legacy-source-read-only)
+              [[ -n "$SUPABASE_MIGRATION_DATABASE_URL" ]] || {
+                echo "Neon readiness blocked: the read-only legacy source is required by the inventory result." >&2
+                exit 1
+              }
+              if [[ "$AUTHORIZE_LEGACY_MIGRATION" != "true" ]]; then
+                echo "Neon readiness blocked: legacy rehearsal requires authorize_legacy_migration=true." >&2
+                exit 1
+              fi
+              legacy_source=true
+              ;;
+            *)
+              echo "Neon readiness blocked: unsupported origin inventory state." >&2
+              exit 1
+              ;;
+          esac
 
           case "$MIGRATION_MODE" in
             dry-run)
@@ -98,6 +134,8 @@ jobs:
             echo "migration_apply=$migration_apply"
             echo "report_path=$report_path"
             echo "legacy_source=$legacy_source"
+            echo "origin_inventory=$ORIGIN_INVENTORY"
+            echo "legacy_authorized=$AUTHORIZE_LEGACY_MIGRATION"
           } >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -119,7 +157,9 @@ jobs:
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           api_key: ${{ secrets.NEON_API_KEY }}
-          parent_branch: ${{ vars.NEON_PARENT_BRANCH || 'develop' }}
+          # The readiness branch is always a disposable child of develop.
+          # Production is never a readiness target.
+          parent_branch: develop
           branch_name: readiness/develop-${{ github.run_id }}
           database: ${{ vars.NEON_DATABASE || 'neondb' }}
           role: ${{ vars.NEON_ADMIN_ROLE || 'neondb_owner' }}
@@ -129,6 +169,7 @@ jobs:
           DATABASE_ADMIN_URL: ${{ steps.neon.outputs.db_url }}
           DATABASE_URL: ${{ steps.neon.outputs.db_url_pooled }}
           EVIDENCE_PATH: ${{ github.workspace }}/.artifacts/neon-readiness/connection-contract.json
+          EXPECTED_POSTGRES_MAJOR: "17"
         run: |
           set -euo pipefail
           [[ -n "$DATABASE_ADMIN_URL" ]] || { echo "Neon readiness blocked: direct URL was not returned." >&2; exit 1; }
@@ -147,6 +188,22 @@ jobs:
           import { writeFile } from "node:fs/promises";
           import { Client } from "pg";
 
+          const directUrl = new URL(process.env.DATABASE_ADMIN_URL);
+          const pooledUrl = new URL(process.env.DATABASE_URL);
+          if (directUrl.hostname === pooledUrl.hostname) {
+            throw new Error("direct and pooled endpoints must use distinct hosts");
+          }
+
+          const isNeonHostname = (hostname) =>
+            hostname.endsWith(".neon.tech") || hostname.endsWith(".aws.neon.tech");
+          if (isNeonHostname(directUrl.hostname) && directUrl.hostname.includes("-pooler")) {
+            throw new Error("DATABASE_ADMIN_URL must use the direct Neon endpoint");
+          }
+          if (isNeonHostname(pooledUrl.hostname) && !pooledUrl.hostname.includes("-pooler")) {
+            throw new Error("DATABASE_URL must use the pooled Neon endpoint");
+          }
+
+          const expectedMajor = Number(process.env.EXPECTED_POSTGRES_MAJOR);
           const connections = [
             ["direct", process.env.DATABASE_ADMIN_URL],
             ["pooled", process.env.DATABASE_URL],
@@ -163,15 +220,20 @@ jobs:
             try {
               await client.connect();
               const result = await client.query(
-                "select current_database() as database, current_user as user",
+                "select current_database() as database, current_user as user, current_setting('server_version_num')::int as version_num",
               );
+              const postgresMajor = Math.floor(Number(result.rows[0]?.version_num) / 10000);
+              if (postgresMajor !== expectedMajor) {
+                throw new Error(`${kind} connection returned PostgreSQL ${postgresMajor}; expected ${expectedMajor}`);
+              }
               evidence[kind] = {
                 connected: true,
                 host: url.hostname,
                 database: result.rows[0]?.database ?? null,
                 user: result.rows[0]?.user ?? null,
+                postgresMajor,
               };
-              console.log(`${kind}: connected (${url.hostname})`);
+              console.log(`${kind}: connected on PostgreSQL ${postgresMajor}`);
             } finally {
               await client.end();
             }
@@ -184,20 +246,22 @@ jobs:
           );
           NODE
 
-          {
-            echo "DATABASE_ADMIN_URL=$DATABASE_ADMIN_URL"
-            echo "DATABASE_URL=$DATABASE_URL"
-          } >> "$GITHUB_ENV"
-
       - name: Validate migrations, runtime privileges and RLS
+        env:
+          DATABASE_ADMIN_URL: ${{ steps.neon.outputs.db_url }}
+          DATABASE_URL: ${{ steps.neon.outputs.db_url_pooled }}
         run: npm run db:test
 
       - name: Validate migration drift
+        env:
+          DATABASE_ADMIN_URL: ${{ steps.neon.outputs.db_url }}
         run: npm run db:check
 
       - name: Run controlled Supabase to Neon migration
-        if: steps.config.outputs.legacy_source == 'true'
+        if: steps.config.outputs.legacy_source == 'true' && steps.config.outputs.legacy_authorized == 'true'
         env:
+          DATABASE_ADMIN_URL: ${{ steps.neon.outputs.db_url }}
+          DATABASE_URL: ${{ steps.neon.outputs.db_url_pooled }}
           SUPABASE_MIGRATION_DATABASE_URL: ${{ secrets.SUPABASE_MIGRATION_DATABASE_URL }}
           MIGRATION_APPLY: ${{ steps.config.outputs.migration_apply }}
           MIGRATION_ALLOW_UPSERT: "false"
@@ -205,7 +269,7 @@ jobs:
         run: npm run migration:legacy-to-neon
 
       - name: Enforce migration report contract
-        if: steps.config.outputs.legacy_source == 'true'
+        if: steps.config.outputs.legacy_source == 'true' && steps.config.outputs.legacy_authorized == 'true'
         env:
           MIGRATION_REPORT_PATH: ${{ steps.config.outputs.report_path }}
           MIGRATION_MODE: ${{ inputs.migration_mode }}
@@ -250,19 +314,22 @@ jobs:
           BRANCH_ID: ${{ steps.neon.outputs.branch_id }}
           MIGRATION_MODE: ${{ inputs.migration_mode }}
           LEGACY_SOURCE: ${{ steps.config.outputs.legacy_source }}
+          ORIGIN_INVENTORY: ${{ steps.config.outputs.origin_inventory }}
+          LEGACY_AUTHORIZED: ${{ steps.config.outputs.legacy_authorized }}
         run: |
           {
             echo "### Neon readiness boundary"
             echo
             echo "- Mode: \`$MIGRATION_MODE\`"
-            echo "- Target: disposable child of the configured Neon develop branch"
+            echo "- Origin inventory: \`$ORIGIN_INVENTORY\`"
+            echo "- Target: disposable child of Neon develop (production excluded)"
             if [[ "$LEGACY_SOURCE" == "true" ]]; then
-              echo "- Legacy reconciliation: executed against the read-only Supabase source"
+              echo "- Legacy rehearsal: authorized and limited to the read-only source on this disposable branch"
             else
-              echo "- Legacy reconciliation: skipped (no Supabase source configured; fresh provision path)"
+              echo "- Legacy rehearsal: skipped; fresh-provision schema checks only on this disposable branch"
             fi
+            echo "- Production mutation/cutover: **not performed**"
             echo "- Branch cleanup: requested in the final step, including failures"
-            echo "- Production cutover: **not performed**"
             if [[ -n "$BRANCH_ID" ]]; then
               echo "- Neon branch was created for this run; its identifier is retained in the private job log."
             else
@@ -276,7 +343,7 @@ jobs:
         with:
           name: neon-readiness-${{ github.run_id }}
           path: .artifacts/neon-readiness
-          if-no-files-found: warn
+          if-no-files-found: error
           include-hidden-files: true
           retention-days: 7
 
