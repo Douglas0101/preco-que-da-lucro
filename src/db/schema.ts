@@ -755,15 +755,8 @@ export const aiUsage = pgTable(
     outcome: text("outcome"),
   },
   (table) => [
-    index("ai_usage_tenant_status_reserved_idx").on(
-      table.tenantId,
-      table.status,
-      table.reservedAt,
-    ),
-    check(
-      "ai_usage_status_check",
-      sql`${table.status} in ('reserved', 'settled', 'expired')`,
-    ),
+    index("ai_usage_tenant_status_reserved_idx").on(table.tenantId, table.status, table.reservedAt),
+    check("ai_usage_status_check", sql`${table.status} in ('reserved', 'settled', 'expired')`),
     check("ai_usage_round_no_check", sql`${table.roundNo} >= 0`),
     check("ai_usage_budget_tokens_check", sql`${table.budgetTokens} >= 0`),
     check(

@@ -1,10 +1,16 @@
-import { and, asc, count, eq, gte, sql } from "drizzle-orm";
+import { and, asc, count, eq, gte } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { withTenantTransaction } from "@/db/client.server";
-import { aiDailyBudgets, chatConversations, chatMessages, products } from "@/db/schema";
+import { chatConversations, chatMessages, products } from "@/db/schema";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import { ApplicationError } from "@/lib/api-error";
+import {
+  budgetConfigFromEnv,
+  createBudgetLedger,
+  type BudgetLedger,
+  type BudgetLedgerConfig,
+} from "@/lib/ai/budget-ledger";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
 import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
 import { runRegisteredTool } from "@/lib/ai/tool-runner";
@@ -148,6 +154,7 @@ async function validateCurrentProduct(
 
 async function reserveChatAndLoadHistory(
   context: RequestContext,
+  budgetLedger: BudgetLedger,
   message: string,
   requestedProductId: string | null,
 ) {
@@ -165,20 +172,11 @@ async function reserveChatAndLoadHistory(
   const chatLimit = numberSetting("AI_CHAT_LIMIT_PER_10_MINUTES", 20, 1, 1_000);
   if ((recent?.value ?? 0) >= chatLimit) throw new ApplicationError("RATE_LIMIT");
 
-  const usageDate = new Date().toISOString().slice(0, 10);
-  const [budget] = await context.transaction
-    .insert(aiDailyBudgets)
-    .values({ tenantId: context.tenantId, usageDate, chatCount: 1 })
-    .onConflictDoUpdate({
-      target: [aiDailyBudgets.tenantId, aiDailyBudgets.usageDate],
-      set: {
-        chatCount: sql`${aiDailyBudgets.chatCount} + 1`,
-        updatedAt: new Date(),
-      },
-    })
-    .returning({ chatCount: aiDailyBudgets.chatCount });
-  const dailyLimit = numberSetting("AI_DAILY_CHAT_LIMIT_PER_TENANT", 200, 1, 100_000);
-  if (!budget || budget.chatCount > dailyLimit) throw new ApplicationError("AI_QUOTA");
+  const chatReserved = await budgetLedger.reserveChatInTransaction(
+    context.transaction,
+    context.tenantId,
+  );
+  if (!chatReserved) throw new ApplicationError("AI_QUOTA");
 
   const conversation = await getOrCreateConversation(context);
   const currentProductId = await validateCurrentProduct(
@@ -204,50 +202,6 @@ async function reserveChatAndLoadHistory(
     .orderBy(asc(chatMessages.createdAt))
     .limit(60);
   return { conversation, currentProductId, history };
-}
-
-async function recordModelUsage(
-  identity: RequestIdentity,
-  usage: z.output<typeof gatewayResponseSchema>["usage"],
-): Promise<void> {
-  await inTenantTransaction(identity, async (context) => {
-    const usageDate = new Date().toISOString().slice(0, 10);
-    await context.transaction
-      .insert(aiDailyBudgets)
-      .values({
-        tenantId: context.tenantId,
-        usageDate,
-        modelCallCount: 1,
-        inputTokens: usage?.prompt_tokens ?? 0,
-        outputTokens: usage?.completion_tokens ?? 0,
-      })
-      .onConflictDoUpdate({
-        target: [aiDailyBudgets.tenantId, aiDailyBudgets.usageDate],
-        set: {
-          modelCallCount: sql`${aiDailyBudgets.modelCallCount} + 1`,
-          inputTokens: sql`${aiDailyBudgets.inputTokens} + ${usage?.prompt_tokens ?? 0}`,
-          outputTokens: sql`${aiDailyBudgets.outputTokens} + ${usage?.completion_tokens ?? 0}`,
-          updatedAt: new Date(),
-        },
-      });
-  });
-}
-
-/** Daily tool-call budget counter per tenant (plan §14.6: tool count). */
-async function recordToolUsage(identity: RequestIdentity, toolCalls: number): Promise<void> {
-  await inTenantTransaction(identity, async (context) => {
-    const usageDate = new Date().toISOString().slice(0, 10);
-    await context.transaction
-      .insert(aiDailyBudgets)
-      .values({ tenantId: context.tenantId, usageDate, toolCallCount: toolCalls })
-      .onConflictDoUpdate({
-        target: [aiDailyBudgets.tenantId, aiDailyBudgets.usageDate],
-        set: {
-          toolCallCount: sql`${aiDailyBudgets.toolCallCount} + ${toolCalls}`,
-          updatedAt: new Date(),
-        },
-      });
-  });
 }
 
 function isTransientStatus(status: number): boolean {
@@ -295,6 +249,31 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
 }
 
 type GatewayResponse = z.output<typeof gatewayResponseSchema>;
+
+export type SendChatMessageInput = z.output<typeof sendInput>;
+
+type ModelCaller = (
+  messages: GatewayMessage[],
+  tools: GatewayTool[],
+  requestSignal: AbortSignal,
+) => Promise<GatewayResponse>;
+
+type ToolRunner = (
+  options: Parameters<typeof runRegisteredTool>[0],
+) => ReturnType<typeof runRegisteredTool>;
+
+export interface ChatExecutionDependencies {
+  budgetLedger?: BudgetLedger;
+  budgetConfig?: Partial<BudgetLedgerConfig>;
+  modelCaller?: ModelCaller;
+  toolRunner?: ToolRunner;
+}
+
+function settlementOutcome(error: unknown): string {
+  if (error instanceof ApplicationError) return `error_${error.code.toLowerCase()}`;
+  if (error instanceof Error && error.name === "AbortError") return "aborted";
+  return "error";
+}
 
 async function fetchModelAttempt({
   apiKey,
@@ -525,56 +504,85 @@ export const clearChatHistory = createServerFn({ method: "POST" })
     }),
   );
 
-export const sendChatMessage = createServerFn({ method: "POST" })
-  .middleware([requireDatabaseIdentity])
-  .validator((input: unknown) => sendInput.parse(input))
-  .handler(async ({ data, context }) => {
-    const identity = context.requestIdentity;
-    const requestTimeoutMs = numberSetting("AI_REQUEST_TIMEOUT_MS", 60_000, 1_000, 60_000);
-    const requestSignal = AbortSignal.any([identity.signal, AbortSignal.timeout(requestTimeoutMs)]);
-    const state = await inTenantTransaction(identity, (request) =>
-      reserveChatAndLoadHistory(
-        request,
-        data.message,
-        data.currentProductId === undefined ? null : data.currentProductId,
-      ),
-    );
-    let currentProductId = state.currentProductId;
-    const messages: GatewayMessage[] = [{ role: "system", content: SYSTEM_PROMPT }];
-    if (currentProductId) {
-      messages.push({
-        role: "system",
-        content: `O produto atual confirmado tem id "${currentProductId}".`,
-      });
-    }
-    for (const message of state.history) {
-      if (message.role === "user" || message.role === "assistant" || message.role === "system") {
-        messages.push({ role: message.role, content: message.content });
-      }
-    }
+async function executeSendChatMessage(
+  data: SendChatMessageInput,
+  identity: RequestIdentity,
+  dependencies: ChatExecutionDependencies = {},
+) {
+  const budgetConfig = { ...budgetConfigFromEnv(), ...dependencies.budgetConfig };
+  const budgetLedger =
+    dependencies.budgetLedger ?? createBudgetLedger({ identity, config: budgetConfig });
+  const modelCaller = dependencies.modelCaller ?? callModel;
+  const toolRunner = dependencies.toolRunner ?? runRegisteredTool;
+  const requestTimeoutMs = numberSetting("AI_REQUEST_TIMEOUT_MS", 60_000, 1_000, 60_000);
+  const requestSignal = AbortSignal.any([identity.signal, AbortSignal.timeout(requestTimeoutMs)]);
 
-    const maxToolRounds = numberSetting("AI_MAX_TOOL_ROUNDS", 8, 1, 8);
-    for (let round = 0; round < maxToolRounds; round += 1) {
-      if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
-      const modelResponse = await callModel(
+  if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
+
+  // reserveAtomic performs the lazy tenant sweep in the same transaction as the
+  // conditional counter update. No gateway call can happen before this point.
+  const state = await inTenantTransaction(identity, (request) =>
+    reserveChatAndLoadHistory(
+      request,
+      budgetLedger,
+      data.message,
+      data.currentProductId === undefined ? null : data.currentProductId,
+    ),
+  );
+  let currentProductId = state.currentProductId;
+  const messages: GatewayMessage[] = [{ role: "system", content: SYSTEM_PROMPT }];
+  if (currentProductId) {
+    messages.push({
+      role: "system",
+      content: `O produto atual confirmado tem id "${currentProductId}".`,
+    });
+  }
+  for (const message of state.history) {
+    if (message.role === "user" || message.role === "assistant" || message.role === "system") {
+      messages.push({ role: message.role, content: message.content });
+    }
+  }
+
+  const maxToolRounds = numberSetting("AI_MAX_TOOL_ROUNDS", 8, 1, 8);
+  for (let round = 0; round < maxToolRounds; round += 1) {
+    if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
+
+    const reservationResult = await budgetLedger.reserveAtomic(
+      identity.tenantId,
+      budgetConfig.conservativeTokenBudget,
+      { kind: "model", roundNo: round },
+    );
+    if (reservationResult.status !== "reserved") throw new ApplicationError("AI_QUOTA");
+
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let realTokens = 0;
+    let toolCallsCount = 0;
+    let outcome = "error";
+
+    try {
+      const modelResponse = await modelCaller(
         messages,
         gatewayToolsForState(currentProductId),
         requestSignal,
       );
-      await recordModelUsage(identity, modelResponse.usage);
+      inputTokens = modelResponse.usage?.prompt_tokens ?? 0;
+      outputTokens = modelResponse.usage?.completion_tokens ?? 0;
+      realTokens = inputTokens + outputTokens;
       const modelMessage = modelResponse.choices[0].message;
       const toolCalls = modelMessage.tool_calls;
 
       if (toolCalls?.length) {
+        toolCallsCount = toolCalls.length;
+        outcome = "tool_round";
         messages.push({
           role: "assistant",
           content: modelMessage.content ?? "",
           tool_calls: toolCalls,
         });
-        await recordToolUsage(identity, toolCalls.length);
         for (const toolCall of toolCalls) {
           const toolResult = await inTenantTransaction(identity, (request) =>
-            runRegisteredTool({
+            toolRunner({
               context: request,
               name: toolCall.function.name,
               rawArguments: toolCall.function.arguments,
@@ -629,16 +637,40 @@ export const sendChatMessage = createServerFn({ method: "POST" })
             ),
           );
       });
+      outcome = "success";
       logJson("info", "ai.chat_completed", {
         correlationId: identity.correlationId,
         tenantId: identity.tenantId,
         rounds: round + 1,
       });
       return { content, currentProductId };
+    } catch (error) {
+      outcome = settlementOutcome(error);
+      throw error;
+    } finally {
+      await budgetLedger.settle(reservationResult.usageId, realTokens, outcome, {
+        inputTokens,
+        outputTokens,
+        toolCalls: toolCallsCount,
+      });
     }
+  }
 
-    throw new ApplicationError("DEPENDENCY_ERROR");
-  });
+  throw new ApplicationError("DEPENDENCY_ERROR");
+}
+
+export const sendChatMessage = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseIdentity])
+  .validator((input: unknown) => sendInput.parse(input))
+  .handler(async ({ data, context }) => executeSendChatMessage(data, context.requestIdentity));
+
+export async function sendChatMessageForTests(
+  data: SendChatMessageInput,
+  identity: RequestIdentity,
+  dependencies: ChatExecutionDependencies = {},
+) {
+  return executeSendChatMessage(sendInput.parse(data), identity, dependencies);
+}
 
 export {
   callModel as callModelForTests,

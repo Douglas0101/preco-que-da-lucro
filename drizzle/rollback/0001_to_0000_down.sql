@@ -1,5 +1,11 @@
 DROP SCHEMA IF EXISTS drizzle CASCADE;
 
+-- ai_usage references tenants with ON DELETE CASCADE. Dropping a referenced
+-- table removes that foreign key but leaves the dependent table in place, so
+-- the global rollback must drop the ledger explicitly before replaying the
+-- migration chain.
+DROP TABLE IF EXISTS ai_usage CASCADE;
+
 DROP TABLE IF EXISTS
   audit_events,
   ai_daily_budgets,
