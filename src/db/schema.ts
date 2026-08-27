@@ -724,6 +724,8 @@ export const aiDailyBudgets = pgTable(
     toolCallCount: integer("tool_call_count").notNull().default(0),
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
+    tokensReserved: integer("tokens_reserved").notNull().default(0),
+    inFlight: integer("in_flight").notNull().default(0),
     estimatedCost: money("estimated_cost").notNull().default("0"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -731,7 +733,42 @@ export const aiDailyBudgets = pgTable(
     primaryKey({ columns: [table.tenantId, table.usageDate] }),
     check(
       "ai_daily_budgets_nonnegative_check",
-      sql`${table.chatCount} >= 0 and ${table.modelCallCount} >= 0 and ${table.toolCallCount} >= 0 and ${table.inputTokens} >= 0 and ${table.outputTokens} >= 0 and ${table.estimatedCost} >= 0`,
+      sql`${table.chatCount} >= 0 and ${table.modelCallCount} >= 0 and ${table.toolCallCount} >= 0 and ${table.inputTokens} >= 0 and ${table.outputTokens} >= 0 and ${table.tokensReserved} >= 0 and ${table.inFlight} >= 0 and ${table.estimatedCost} >= 0`,
+    ),
+  ],
+);
+
+export const aiUsage = pgTable(
+  "ai_usage",
+  {
+    usageId: uuid("usage_id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    roundNo: integer("round_no").notNull().default(0),
+    budgetTokens: integer("budget_tokens").notNull(),
+    status: text("status").notNull().default("reserved"),
+    reservedAt: timestamp("reserved_at", { withTimezone: true }).notNull().defaultNow(),
+    settledAt: timestamp("settled_at", { withTimezone: true }),
+    realTokens: integer("real_tokens"),
+    outcome: text("outcome"),
+  },
+  (table) => [
+    index("ai_usage_tenant_status_reserved_idx").on(
+      table.tenantId,
+      table.status,
+      table.reservedAt,
+    ),
+    check(
+      "ai_usage_status_check",
+      sql`${table.status} in ('reserved', 'settled', 'expired')`,
+    ),
+    check("ai_usage_round_no_check", sql`${table.roundNo} >= 0`),
+    check("ai_usage_budget_tokens_check", sql`${table.budgetTokens} >= 0`),
+    check(
+      "ai_usage_real_tokens_check",
+      sql`${table.realTokens} is null or ${table.realTokens} >= 0`,
     ),
   ],
 );

@@ -252,9 +252,20 @@ nova Q antes de ampliar essa superfície, conforme C-06/C-11.
 ## 9. Subagents e evidência
 
 Newton (CI/harness) e Sartre (schema/env) foram acionados como sidecars somente
-leitura. Após uma janela bounded e um pedido final de handoff, não produziram
-claim + comando + saída/file:line transferível; foram encerrados. As conclusões
-deste relatório dependem exclusivamente dos comandos e caminhos acima, em
+leitura. Ambos entregaram handoff mínimo após a janela bounded:
+
+- Newton confirmou estaticamente os três workflows, o Compose PostgreSQL 17, os
+  scripts `db:*`, a separação local/CI e os limites do workflow Neon, com evidências
+  em `.github/workflows/ui-stack.yml:11-88`, `docker-compose.yml:1-20`,
+  `package.json:10-40` e `docs/runbooks/postgres-local-docker.md:9-20`.
+- Sartre confirmou estaticamente a ausência pré-F1-3 de `tokens_reserved`,
+  `in_flight`, `ai_usage`, limites de model calls e contract tests, além dos call
+  sites em `src/lib/chat.functions.ts:149-641` e do runner Vitest em
+  `vitest.config.ts:4-15`.
+
+Nenhum dos dois editou arquivos, executou migrations, acessou Neon ou produziu
+alteração de Git. Os handoffs corroboram o inventário; as verificações do banco e
+da migration F1-3 foram executadas independentemente pela linha principal, em
 conformidade com C-12/D-13.
 
 ## 10. Gate G-AMBIENTE

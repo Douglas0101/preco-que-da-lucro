@@ -11,7 +11,7 @@ Este arquivo não contém credenciais, tokens, URLs Neon reais ou conteúdo de m
 - Base ratificada: `origin/develop` em `339efb0d02db1c2b868c41d87821357d61f4b021`.
 - Preservação local: `wip/preservacao-c371032-20260826`, não publicada.
 - Início desta execução v3: `2026-08-26T21:43:51-03:00`.
-- Última atualização: `2026-08-27T00:50:30Z`.
+- Última atualização: `2026-08-27T00:54:17Z`.
 
 ## Decisões humanas — transcrição verbatim
 
@@ -61,8 +61,8 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 | T-03 / SPEC-RATIFICADA histórica | DONE | Diff vazio de `src/lib/chat.functions.ts`; saída (a) |
 | F1-1 / branch, evidências e estado | DONE | `10d257d9fa0a9697616cf08ba423db30c183dead`; G-AMBIENTE-0 passou |
 | F1-2 / auditoria ambiental C-11 | DONE | `docs/auditoria-ambiental-2026-08-26.md`; G-AMBIENTE passou |
-| F1-3 / schema local | IN_PROGRESS | PostgreSQL 17 local escolhido; verificar migration + information_schema |
-| F2-1 / módulo budget-ledger | PENDING | Depende de F1-3; contract tests |
+| F1-3 / schema local | DONE | `drizzle/0006_loud_lockjaw.sql`; `db:check` passou; migration aplicada duas vezes; objetos verificados |
+| F2-1 / módulo budget-ledger | IN_PROGRESS | Investigação security-boundary em andamento; implementar interface após fechar G-SCHEMA |
 | F2-2 / integração no chat | PENDING | Depende de F2-1; reserva antes do gateway |
 | F2-3 / configuração e observabilidade | PENDING | Depende de F2-2; fecha Q-005 |
 | F3-1 / T1–T10 | PENDING | Depende de F2-3; PostgreSQL local via node-postgres |
@@ -81,7 +81,7 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 |---|---|---|
 | G-AMBIENTE-0 | DONE | HEAD `10d257d9fa0a9697616cf08ba423db30c183dead`; ancestry em `339efb0`; status limpo; wip sem ref remota |
 | G-AMBIENTE | DONE | `docs/auditoria-ambiental-2026-08-26.md`; harness PostgreSQL 17 confirmado |
-| G-SCHEMA | IN_PROGRESS | F1-3 |
+| G-SCHEMA | DONE | `ai_usage`, counters, índice, checks, RLS e grants verificados no PostgreSQL local |
 | G-IMPL | PENDING | F2-1/F2-2/F2-3 |
 | G-TEST | PENDING | F3-1/F3-2 |
 | G-QUALITY | PENDING | F4-1 |
@@ -97,3 +97,17 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 4. Subagent sem handoff mínimo (claim + comando + saída ou file:line) não é evidência.
 5. Q humana/externa, endpoint Neon real, secrets, `src/routes/auth.tsx`, merge ou operação
    fora dos poderes interrompem a execução.
+
+## F1-3 — evidência do schema local
+
+- `DATABASE_ADMIN_URL=...127.0.0.1:5432... npm run db:check`: PASS (`Everything's fine`).
+- `DATABASE_ADMIN_URL=...127.0.0.1:5432... npm run db:migrate`: PASS; segunda execução
+  também PASS, sem erro e sem reaplicar a migration registrada.
+- Consulta administrativa corrigida: `information_schema.columns` confirmou
+  `tokens_reserved`, `in_flight` e os dez campos de `ai_usage`; `pg_indexes` confirmou
+  `ai_usage_tenant_status_reserved_idx`; constraints confirmaram PK/FK/checks; `pg_class`
+  e `pg_policies` confirmaram RLS/policy `tenant_isolation`; `has_table_privilege`
+  confirmou SELECT/INSERT/UPDATE para `app_runtime`.
+- Primeira tentativa de consulta administrativa falhou somente por quoting do script
+  inline (`column "public" does not exist`); nenhuma alteração ocorreu e a mesma
+  verificação foi repetida com delimitador correto e passou.
