@@ -1,0 +1,43 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "automationDetails": {
+        "id": "2ca2b19a-3ab2-49a1-a436-0a9ab46b3fcd"
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "toolExecutionNotifications": [
+            {
+              "level": "warning",
+              "message": {
+                "text": "Repository remainder outside the six bounded security surfaces was inventoried but not reviewed to exhaustive depth in this local Standard pass."
+              }
+            },
+            {
+              "level": "warning",
+              "message": {
+                "text": "Banach identified callModelForTests as a direct test-only gateway seam; no productive consumer or production bypass was found, but the seam remains a residual review item."
+              }
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "codexSecurityCoverageCompleteness": "partial",
+        "codexSecuritySchemaVersion": "1.0",
+        "codexSecurityTargetKind": "git_revision"
+      },
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "Codex Security",
+          "rules": [],
+          "version": "0.1.22"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}
