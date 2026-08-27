@@ -56,40 +56,40 @@ Este arquivo não contém credenciais, tokens, URLs Neon reais ou conteúdo de m
 
 Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 
-| Tarefa                                | Status      | Evidência / predicado de retomada                                                                      |
-| ------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ |
-| T-00 / partida histórica              | DONE        | Log de execução preservado; worktree inicial catalogado                                                |
-| T-01 / preservação histórica          | DONE        | `a14fdb9` na `wip/`, não publicada                                                                     |
-| T-02 / SHA histórico                  | DONE        | `origin/develop=339efb0d02db1c2b868c41d87821357d61f4b021`                                              |
-| T-03 / SPEC-RATIFICADA histórica      | DONE        | Diff vazio de `src/lib/chat.functions.ts`; saída (a)                                                   |
-| F1-1 / branch, evidências e estado    | DONE        | `10d257d9fa0a9697616cf08ba423db30c183dead`; G-AMBIENTE-0 passou                                        |
-| F1-2 / auditoria ambiental C-11       | DONE        | `docs/auditoria-ambiental-2026-08-26.md`; G-AMBIENTE passou                                            |
-| F1-3 / schema local                   | DONE        | `drizzle/0006_loud_lockjaw.sql`; `db:check` passou; migration aplicada duas vezes; objetos verificados |
-| F2-1 / módulo budget-ledger           | DONE        | `src/lib/ai/budget-ledger.server.ts`; reserve/settle/sweep; typecheck + T1–T10 verdes                  |
-| F2-2 / integração no chat             | DONE        | Reserva antes de `modelCaller`; finally liquida cada round; nenhum SQL de orçamento em chat            |
-| F2-3 / configuração e observabilidade | DONE        | Defaults e eventos estruturados registrados abaixo; Q-005 resolvida                                    |
-| F3-1 / T1–T10                         | DONE        | `npm run db:test` e runner focado verdes no PostgreSQL 17 local                                        |
-| F3-2 / T-CN                           | DONE        | Baseline sem fix: gateway=20; fix: E1 gateway=1                                                        |
-| F4-1 / qualidade                      | DONE        | CI do tip `e61c8c8` verde em UI/E2E, build, lint, typecheck e suíte; `npm run check` local reproduziu somente falha preexistente do property test financeiro, fora do write-set |
-| F4-2 / secrets                        | DONE        | Diff do tip sem `.env*`, chaves, credentials ou secrets; canário auth vazio                            |
-| F4-3 / push e PR draft                | DONE        | Push normal de `e61c8c8`; PR draft #21 aberto; nunca merge                                             |
-| F4-4 / CI                             | DONE        | UI `33034852220`/job `98395236325`, Neon boundary `33034852213`/job `98395236526` e Sonar `98395300602`: SUCCESS no SHA exato e61 |
-| F4-5 / re-scan                        | DONE        | Standard local `2ca2b19a-3ab2-49a1-a436-0a9ab46b3fcd`; zero findings reportáveis nas superfícies revisadas; cobertura parcial 6/240 |
-| F4-6 / canário auth                   | DONE        | `git diff origin/develop..HEAD -- src/routes/auth.tsx`: saída vazia; confirmado no tip `e61c8c8`          |
-| F4-7 / relatório final                | DONE        | Relatório obrigatório e `EXECUTION-STATE.md` atualizados; artefatos canônicos do scan copiados e hash verificado |
+| Tarefa                                | Status | Evidência / predicado de retomada                                                                                                                                               |
+| ------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T-00 / partida histórica              | DONE   | Log de execução preservado; worktree inicial catalogado                                                                                                                         |
+| T-01 / preservação histórica          | DONE   | `a14fdb9` na `wip/`, não publicada                                                                                                                                              |
+| T-02 / SHA histórico                  | DONE   | `origin/develop=339efb0d02db1c2b868c41d87821357d61f4b021`                                                                                                                       |
+| T-03 / SPEC-RATIFICADA histórica      | DONE   | Diff vazio de `src/lib/chat.functions.ts`; saída (a)                                                                                                                            |
+| F1-1 / branch, evidências e estado    | DONE   | `10d257d9fa0a9697616cf08ba423db30c183dead`; G-AMBIENTE-0 passou                                                                                                                 |
+| F1-2 / auditoria ambiental C-11       | DONE   | `docs/auditoria-ambiental-2026-08-26.md`; G-AMBIENTE passou                                                                                                                     |
+| F1-3 / schema local                   | DONE   | `drizzle/0006_loud_lockjaw.sql`; `db:check` passou; migration aplicada duas vezes; objetos verificados                                                                          |
+| F2-1 / módulo budget-ledger           | DONE   | `src/lib/ai/budget-ledger.server.ts`; reserve/settle/sweep; typecheck + T1–T10 verdes                                                                                           |
+| F2-2 / integração no chat             | DONE   | Reserva antes de `modelCaller`; finally liquida cada round; nenhum SQL de orçamento em chat                                                                                     |
+| F2-3 / configuração e observabilidade | DONE   | Defaults e eventos estruturados registrados abaixo; Q-005 resolvida                                                                                                             |
+| F3-1 / T1–T10                         | DONE   | `npm run db:test` e runner focado verdes no PostgreSQL 17 local                                                                                                                 |
+| F3-2 / T-CN                           | DONE   | Baseline sem fix: gateway=20; fix: E1 gateway=1                                                                                                                                 |
+| F4-1 / qualidade                      | DONE   | CI do tip `e61c8c8` verde em UI/E2E, build, lint, typecheck e suíte; `npm run check` local reproduziu somente falha preexistente do property test financeiro, fora do write-set |
+| F4-2 / secrets                        | DONE   | Diff do tip sem `.env*`, chaves, credentials ou secrets; canário auth vazio                                                                                                     |
+| F4-3 / push e PR draft                | DONE   | Push normal de `e61c8c8`; PR draft #21 aberto; nunca merge                                                                                                                      |
+| F4-4 / CI                             | DONE   | UI `33034852220`/job `98395236325`, Neon boundary `33034852213`/job `98395236526` e Sonar `98395300602`: SUCCESS no SHA exato e61                                               |
+| F4-5 / re-scan                        | DONE   | Standard local `2ca2b19a-3ab2-49a1-a436-0a9ab46b3fcd`; zero findings reportáveis nas superfícies revisadas; cobertura parcial 6/240                                             |
+| F4-6 / canário auth                   | DONE   | `git diff origin/develop..HEAD -- src/routes/auth.tsx`: saída vazia; confirmado no tip `e61c8c8`                                                                                |
+| F4-7 / relatório final                | DONE   | Relatório obrigatório e `EXECUTION-STATE.md` atualizados; artefatos canônicos do scan copiados e hash verificado                                                                |
 
 ## Registro de gates
 
-| Gate             | Estado  | Evidência                                                                                                |
-| ---------------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| G-AMBIENTE-0     | DONE    | HEAD `10d257d9fa0a9697616cf08ba423db30c183dead`; ancestry em `339efb0`; status limpo; wip sem ref remota |
-| G-AMBIENTE       | DONE    | `docs/auditoria-ambiental-2026-08-26.md`; harness PostgreSQL 17 confirmado                               |
-| G-SCHEMA         | DONE    | `ai_usage`, counters, índice, checks, RLS e grants verificados no PostgreSQL local                       |
-| G-IMPL           | DONE    | typecheck + inspeção de ordem/isolamento; reserva antes do gateway e settle em `finally`                 |
-| G-TEST           | DONE    | `npm run db:test`: migrações/auth/tools/chat + T1–T10; T-CN reproduziu o race no baseline                |
-| G-QUALITY        | DONE    | CI do SHA `e61c8c8` verde em todos os checks; ressalva local não relacionada registrada em F4-1 e no relatório |
-| G-SCAN           | DONE    | Scan Standard `2ca2b19a-3ab2-49a1-a436-0a9ab46b3fcd` selado; `findings.json` vazio, cobertura parcial 6/240 |
-| MISSÃO-CONCLUÍDA | DONE    | F4-7 concluída; PR draft aberto, sem merge; canário e wip preservados                               |
+| Gate             | Estado | Evidência                                                                                                      |
+| ---------------- | ------ | -------------------------------------------------------------------------------------------------------------- |
+| G-AMBIENTE-0     | DONE   | HEAD `10d257d9fa0a9697616cf08ba423db30c183dead`; ancestry em `339efb0`; status limpo; wip sem ref remota       |
+| G-AMBIENTE       | DONE   | `docs/auditoria-ambiental-2026-08-26.md`; harness PostgreSQL 17 confirmado                                     |
+| G-SCHEMA         | DONE   | `ai_usage`, counters, índice, checks, RLS e grants verificados no PostgreSQL local                             |
+| G-IMPL           | DONE   | typecheck + inspeção de ordem/isolamento; reserva antes do gateway e settle em `finally`                       |
+| G-TEST           | DONE   | `npm run db:test`: migrações/auth/tools/chat + T1–T10; T-CN reproduziu o race no baseline                      |
+| G-QUALITY        | DONE   | CI do SHA `e61c8c8` verde em todos os checks; ressalva local não relacionada registrada em F4-1 e no relatório |
+| G-SCAN           | DONE   | Scan Standard `2ca2b19a-3ab2-49a1-a436-0a9ab46b3fcd` selado; `findings.json` vazio, cobertura parcial 6/240    |
+| MISSÃO-CONCLUÍDA | DONE   | F4-7 concluída; PR draft aberto, sem merge; canário e wip preservados                                          |
 
 ## Regras de retomada
 
@@ -143,7 +143,7 @@ esperado — gateway=20, peak=16`. Com fix, T1/E1 confirmou exatamente uma invoc
   do gateway e 19 rejeições `AI_QUOTA`.
 - G-QUALITY: no candidato anterior, `npm run check` passou UI stack, ausência de Supabase,
   Prettier, ESLint, TypeScript, 25 arquivos/272 testes Vitest e build Nitro; `npm run
-  check:bundle` passou (`index-C6f6_f0_.js`, 223681 minified, 68814 gzip, 59881 Brotli).
+check:bundle` passou (`index-C6f6_f0_.js`, 223681 minified, 68814 gzip, 59881 Brotli).
   Após a correção do limite de empacotamento, o build local passou sem warnings e o CI do
   SHA exato `e61c8c8` repetiu build, suíte, E2E/browser e Sonar com sucesso. Uma execução
   local posterior de `npm run check` falhou de modo reprodutível somente no teste
@@ -219,10 +219,10 @@ esperado — gateway=20, peak=16`. Com fix, T1/E1 confirmou exatamente uma invoc
 - Artefatos copiados para
   `docs/evidence/security-scan/csf-58b444f-2026-08-27/`:
   `report.md`, `findings.json`, `coverage.json`, `scan-manifest.json` e `results.sarif`.
-  Hashes: `report.md` `2f716300d829624e5b37820989eebba92eb2400990bb8eeda6f50e16ca87af0e`;
+  Hashes (após formatação determinística e reconciliação do manifesto): `report.md` `834ec4d79011771ea76e5595bdb35abf78ac7d2036b6b1fae2a62aba7b7fdc99`;
   `findings.json` `54ff38e7cb1000ec90a137c92762cea9a20d91593caa9633dc4b36d25124a4a3`;
-  `coverage.json` `40c39b2e190ce37b1206c5567180c9b0a6cc25f144bbeac783081b23ad5c5475`;
-  `scan-manifest.json` `3bc9e0c1d95e499bc5e51b2c626bfcaca31b215c7c1822602baace8f7246b969`;
+  `coverage.json` `c23c486ea7f53eb82ed1ccdca3d21c4c23534653164b7e0c19e06fb658480052`;
+  `scan-manifest.json` `c5d951e250db043f0852a78116d8bbe2179fbd47f9c0bab112f7b6f624096bdc`;
   `results.sarif` `a2aa22410e4392774b174df8694dbc4256186941c7f7e1ae2550d7fd04b3cd45`.
 
 ## Revisões independentes posteriores

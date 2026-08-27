@@ -10,7 +10,7 @@
       {
         "mediaType": "application/json",
         "path": "coverage.json",
-        "sha256": "40c39b2e190ce37b1206c5567180c9b0a6cc25f144bbeac783081b23ad5c5475"
+        "sha256": "c23c486ea7f53eb82ed1ccdca3d21c4c23534653164b7e0c19e06fb658480052"
       }
     ],
     "completedAt": "2026-08-27T03:07:45.167046Z",
@@ -43,9 +43,7 @@
       ],
       "context": "Validate atomic budget reservation, idempotent settlement, orphan TTL sweep, per-tool-round accounting, tenant boundary, and server-only packaging.",
       "excludePaths": [],
-      "includePaths": [
-        "."
-      ],
+      "includePaths": ["."],
       "limitations": [
         "Coverage is partial: six bounded security surfaces reviewed from a 240-file target inventory.",
         "The scan does not validate Neon, production, migration/cutover state, provider billing, or real external traffic.",

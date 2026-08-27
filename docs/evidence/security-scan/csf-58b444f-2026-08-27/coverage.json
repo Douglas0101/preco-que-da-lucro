@@ -3,17 +3,12 @@
   "deferred": [
     {
       "id": "standard-scan-remainder",
-      "paths": [
-        "."
-      ],
+      "paths": ["."],
       "reason": "Repository remainder outside the six bounded security surfaces was inventoried but not reviewed to exhaustive depth in this local Standard pass."
     },
     {
       "id": "test-only-gateway-seam",
-      "paths": [
-        "src/lib/chat.functions.ts",
-        "src/test/model-gateway.test.ts"
-      ],
+      "paths": ["src/lib/chat.functions.ts", "src/test/model-gateway.test.ts"],
       "reason": "Banach identified callModelForTests as a direct test-only gateway seam; no productive consumer or production bypass was found, but the seam remains a residual review item."
     }
   ],
@@ -41,9 +36,7 @@
       "reason": "Portability is explicitly deferred pending a future human architectural decision."
     }
   ],
-  "includePaths": [
-    "."
-  ],
+  "includePaths": ["."],
   "inventoryStrategy": "repository",
   "mode": "repository",
   "openQuestions": [

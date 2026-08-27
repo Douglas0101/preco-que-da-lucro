@@ -16,6 +16,7 @@ Local Standard security re-scan of the exact fix tip e61c8c80ed7477828e0f44fd6a0
 - Scan context: Validate atomic budget reservation, idempotent settlement, orphan TTL sweep, per-tool-round accounting, tenant boundary, and server-only packaging.
 
 Limitations and exclusions:
+
 - Coverage is partial: six bounded security surfaces reviewed from a 240-file target inventory.
 - The scan does not validate Neon, production, migration/cutover state, provider billing, or real external traffic.
 - Banach found a direct test-only callModelForTests export/consumer seam; no productive bypass was found.
@@ -29,14 +30,14 @@ Limitations and exclusions:
 
 ### Scan Summary
 
-| Field | Value |
-| --- | --- |
-| Scan outcome | completed |
-| Reportable findings | 0 |
-| Severity mix | none |
-| Confidence mix | none |
-| Coverage | partial |
-| Validation mode | Bounded semantic Standard review plus executable local PostgreSQL tests and CI evidence. |
+| Field               | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| Scan outcome        | completed                                                                                |
+| Reportable findings | 0                                                                                        |
+| Severity mix        | none                                                                                     |
+| Confidence mix      | none                                                                                     |
+| Coverage            | partial                                                                                  |
+| Validation mode     | Bounded semantic Standard review plus executable local PostgreSQL tests and CI evidence. |
 
 Canonical artifacts: `scan-manifest.json`, `findings.json`, and `coverage.json`. This report is a deterministic projection of those files.
 
@@ -87,14 +88,14 @@ No reportable findings survived the canonical discovery, validation, and reporta
 
 ## Reviewed Surfaces
 
-| Surface | Risk Area | Outcome | Notes |
-| --- | --- | --- | --- |
-| AI budget admission and settlement | Atomic quota reservation, idempotent settlement, and orphan recovery | No issue found | Reviewed src/lib/ai/budget-ledger.server.ts, src/db/schema.ts, and drizzle/0006_loud_lockjaw.sql. T1-T10 passed against local PostgreSQL 17. |
-| Chat gateway entrypoint | Pre-fetch admission and external AI gateway reachability | No issue found | Reviewed src/lib/chat-execution.server.ts and src/lib/chat.functions.ts. Reservation precedes the production model fetch, each round settles in finally, and chat.functions.ts contains no budget SQL. |
-| Tenant and RLS boundary | Tenant isolation and database authorization | No issue found | Reviewed tenant transaction handling, PostgreSQL RLS policy, runtime grants, and server-side database selection in src/db/schema.ts, src/db/client.server.ts, and src/lib/chat-data.ts. |
-| Tool-round boundary | Independent budget accounting for tool rounds | No issue found | Reviewed the tool execution path and its integration with src/lib/chat-execution.server.ts. T5 and tool-round regression checks passed. |
-| Server-only packaging | Client/server module boundary around gateway and ledger code | No issue found | The build-boundary correction was verified by a successful production build and green UI-stack CI at e61c8c8. |
-| Repository remaining surfaces | Unreviewed repository scope | Needs follow-up | The target inventory contains 240 files; this bounded Standard pass has six scoped review receipts and does not claim exhaustive coverage or absence of other vulnerabilities. |
+| Surface                            | Risk Area                                                            | Outcome         | Notes                                                                                                                                                                                                  |
+| ---------------------------------- | -------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| AI budget admission and settlement | Atomic quota reservation, idempotent settlement, and orphan recovery | No issue found  | Reviewed src/lib/ai/budget-ledger.server.ts, src/db/schema.ts, and drizzle/0006_loud_lockjaw.sql. T1-T10 passed against local PostgreSQL 17.                                                           |
+| Chat gateway entrypoint            | Pre-fetch admission and external AI gateway reachability             | No issue found  | Reviewed src/lib/chat-execution.server.ts and src/lib/chat.functions.ts. Reservation precedes the production model fetch, each round settles in finally, and chat.functions.ts contains no budget SQL. |
+| Tenant and RLS boundary            | Tenant isolation and database authorization                          | No issue found  | Reviewed tenant transaction handling, PostgreSQL RLS policy, runtime grants, and server-side database selection in src/db/schema.ts, src/db/client.server.ts, and src/lib/chat-data.ts.                |
+| Tool-round boundary                | Independent budget accounting for tool rounds                        | No issue found  | Reviewed the tool execution path and its integration with src/lib/chat-execution.server.ts. T5 and tool-round regression checks passed.                                                                |
+| Server-only packaging              | Client/server module boundary around gateway and ledger code         | No issue found  | The build-boundary correction was verified by a successful production build and green UI-stack CI at e61c8c8.                                                                                          |
+| Repository remaining surfaces      | Unreviewed repository scope                                          | Needs follow-up | The target inventory contains 240 files; this bounded Standard pass has six scoped review receipts and does not claim exhaustive coverage or absence of other vulnerabilities.                         |
 
 ## Open Questions And Follow Up
 
