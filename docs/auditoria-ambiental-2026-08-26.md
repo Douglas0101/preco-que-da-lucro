@@ -1,9 +1,9 @@
 # Auditoria ambiental — correção `csf_58b444f152e35ba899b5381e`
 
-**Tarefa:** F1-2 / C-11  
-**Data da auditoria:** 2026-08-26/27  
-**Branch:** `fix/ai-budget-reservation-csf58b4`  
-**Base:** `origin/develop` em `339efb0d02db1c2b868c41d87821357d61f4b021`  
+**Tarefa:** F1-2 / C-11
+**Data da auditoria:** 2026-08-26/27
+**Branch:** `fix/ai-budget-reservation-csf58b4`
+**Base:** `origin/develop` em `339efb0d02db1c2b868c41d87821357d61f4b021`
 **Escopo:** somente ambiente de execução e teste local; nenhum endpoint Neon real,
 Cloudflare, D1, produção ou segredo foi consultado.
 
