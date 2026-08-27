@@ -24,14 +24,14 @@ adiado por REQ-012.
 
 ## 1. Runtime e seleção de driver
 
-| Área | Evidência | Resultado |
-|---|---|---|
-| Servidor web | `vite.config.ts:4-16` | `nitro.preset` é `node-server`; o comentário explica que o default Cloudflare/Wrangler causa timeout no preview |
-| Drivers disponíveis | `src/db/client.server.ts:1-5` | `@neondatabase/serverless`, `drizzle-orm/neon-serverless`, `drizzle-orm/node-postgres` e `pg` |
-| Seleção por ambiente | `src/db/client.server.ts:33-50` | `DATABASE_DRIVER=node-postgres` usa `pg`; o default é `neon-serverless`; outros valores são rejeitados |
-| Transação de tenant | `src/db/client.server.ts:65-100` | `withTenantTransaction` abre uma transação Drizzle e configura GUCs PostgreSQL para identidade/RLS |
-| Schema | `src/db/schema.ts:39-737` | Todas as tabelas são `pgTable`; não há variante `sqliteTable`/D1 |
-| Entrada server-side | `src/server.ts:47-60` | expõe `fetch(request, env, ctx)` genérico, mas o build atual é Node; não existe caminho `waitUntil` nesta missão |
+| Área                 | Evidência                        | Resultado                                                                                                        |
+| -------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Servidor web         | `vite.config.ts:4-16`            | `nitro.preset` é `node-server`; o comentário explica que o default Cloudflare/Wrangler causa timeout no preview  |
+| Drivers disponíveis  | `src/db/client.server.ts:1-5`    | `@neondatabase/serverless`, `drizzle-orm/neon-serverless`, `drizzle-orm/node-postgres` e `pg`                    |
+| Seleção por ambiente | `src/db/client.server.ts:33-50`  | `DATABASE_DRIVER=node-postgres` usa `pg`; o default é `neon-serverless`; outros valores são rejeitados           |
+| Transação de tenant  | `src/db/client.server.ts:65-100` | `withTenantTransaction` abre uma transação Drizzle e configura GUCs PostgreSQL para identidade/RLS               |
+| Schema               | `src/db/schema.ts:39-737`        | Todas as tabelas são `pgTable`; não há variante `sqliteTable`/D1                                                 |
+| Entrada server-side  | `src/server.ts:47-60`            | expõe `fetch(request, env, ctx)` genérico, mas o build atual é Node; não existe caminho `waitUntil` nesta missão |
 
 **Decisão ambiental:** implementar e verificar a missão contra PostgreSQL local via
 `node-postgres`; manter a interface do ledger driver-agnóstica para o contract test
@@ -42,17 +42,17 @@ H-003, REQ-008 rev2 e REQ-012.
 
 Fonte: `package.json:10-40`.
 
-| Comando | Função observada | Uso nesta missão |
-|---|---|---|
-| `npm run db:up` | `docker compose up -d --wait` | subir o PostgreSQL local existente |
-| `npm run db:down` | `docker compose down` | não executado nesta auditoria |
-| `npm run db:generate` | `drizzle-kit generate` | gerar a migração versionada após atualizar o schema |
-| `npm run db:check` | `drizzle-kit check` | validar drift/snapshot sem conexão com banco |
-| `npm run db:migrate` | `tsx scripts/db/migrate.ts` | aplicar migrações usando `DATABASE_ADMIN_URL` |
-| `npm run db:test` | quatro runners em sequência | validar migrações, auth, tools e semântica de chat |
-| `npm run test` | `vitest run` | testes unitários/componentes |
-| `npm run check` | checks, format, lint, typecheck, testes, build e bundle | gate completo posterior |
-| `npm run test:e2e` | Playwright | gate E2E posterior, não F1-2 |
+| Comando               | Função observada                                        | Uso nesta missão                                    |
+| --------------------- | ------------------------------------------------------- | --------------------------------------------------- |
+| `npm run db:up`       | `docker compose up -d --wait`                           | subir o PostgreSQL local existente                  |
+| `npm run db:down`     | `docker compose down`                                   | não executado nesta auditoria                       |
+| `npm run db:generate` | `drizzle-kit generate`                                  | gerar a migração versionada após atualizar o schema |
+| `npm run db:check`    | `drizzle-kit check`                                     | validar drift/snapshot sem conexão com banco        |
+| `npm run db:migrate`  | `tsx scripts/db/migrate.ts`                             | aplicar migrações usando `DATABASE_ADMIN_URL`       |
+| `npm run db:test`     | quatro runners em sequência                             | validar migrações, auth, tools e semântica de chat  |
+| `npm run test`        | `vitest run`                                            | testes unitários/componentes                        |
+| `npm run check`       | checks, format, lint, typecheck, testes, build e bundle | gate completo posterior                             |
+| `npm run test:e2e`    | Playwright                                              | gate E2E posterior, não F1-2                        |
 
 `drizzle.config.ts:1-15` exige `DATABASE_ADMIN_URL` para carregar a configuração,
 mas `db:check` somente verifica artefatos de migração. `scripts/db/migrate.ts:1-16`
@@ -165,17 +165,17 @@ Resultado: nenhuma ocorrência no código, schema, migrações, scripts ou workf
 `.env.example:32-42` e `src/lib/chat.functions.ts` mostram os nomes atualmente
 usados:
 
-| Variável | Fonte/default observado |
-|---|---|
-| `AI_GATEWAY_URL` | endpoint compatível; fallback no código em `src/lib/chat.functions.ts:407-409` |
-| `AI_GATEWAY_API_KEY` | chave opcional; fallback `LOVABLE_API_KEY` em `:405-406` |
-| `AI_MODEL` | fallback em `:409` |
-| `AI_REQUEST_TIMEOUT_MS` | default `60000` em `:533` |
-| `AI_MODEL_TIMEOUT_MS` | default `30000` em `:410-411` |
-| `AI_MODEL_MAX_ATTEMPTS` | default `2` em `:410` |
-| `AI_MAX_TOOL_ROUNDS` | default `8` em `:556` |
-| `AI_CHAT_LIMIT_PER_10_MINUTES` | default `20` em `:165` |
-| `AI_DAILY_CHAT_LIMIT_PER_TENANT` | default `200` em `:180` |
+| Variável                         | Fonte/default observado                                                        |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| `AI_GATEWAY_URL`                 | endpoint compatível; fallback no código em `src/lib/chat.functions.ts:407-409` |
+| `AI_GATEWAY_API_KEY`             | chave opcional; fallback `LOVABLE_API_KEY` em `:405-406`                       |
+| `AI_MODEL`                       | fallback em `:409`                                                             |
+| `AI_REQUEST_TIMEOUT_MS`          | default `60000` em `:533`                                                      |
+| `AI_MODEL_TIMEOUT_MS`            | default `30000` em `:410-411`                                                  |
+| `AI_MODEL_MAX_ATTEMPTS`          | default `2` em `:410`                                                          |
+| `AI_MAX_TOOL_ROUNDS`             | default `8` em `:556`                                                          |
+| `AI_CHAT_LIMIT_PER_10_MINUTES`   | default `20` em `:165`                                                         |
+| `AI_DAILY_CHAT_LIMIT_PER_TENANT` | default `200` em `:180`                                                        |
 
 As variáveis novas de REQ-006 — `AI_DAILY_MODEL_CALL_LIMIT_PER_TENANT`,
 `AI_DAILY_TOKEN_LIMIT_PER_TENANT` e `AI_IN_FLIGHT_LIMIT_PER_TENANT` — não existem
@@ -237,14 +237,14 @@ de orçamento diretamente.
 
 Esta seção é inventário e não altera o Plano silenciosamente.
 
-| Tarefa | Superfície provável | Condição |
-|---|---|---|
-| F1-3 | `src/db/schema.ts`, próxima migração `drizzle/0006_*.sql`, snapshots/journal Drizzle e grants/RLS necessários | somente após confirmar nomes/tipos no schema atual |
-| F2-1 | novo módulo `src/lib/ai/budget-ledger.ts` ou caminho equivalente sob `src/lib/ai/`, interface de transação e contract tests | módulo único; clock injetável; sem SQL espalhado |
-| F2-2 | `src/lib/chat.functions.ts` e testes de integração | reserva antes de cada `fetch`; settle em `finally`; sweep lazy |
-| F2-3 | `.env.example`, configuração do ledger e logging estruturado | placeholders sem segredo; defaults fecham Q-005 |
-| F3-1/F3-2 | novos testes PostgreSQL/ledger e runner local | tenants isolados; gateway mockado; CN local |
-| F4 | somente artefatos/evidências autorizados, sem `auth.tsx` | gates posteriores |
+| Tarefa    | Superfície provável                                                                                                         | Condição                                                       |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| F1-3      | `src/db/schema.ts`, próxima migração `drizzle/0006_*.sql`, snapshots/journal Drizzle e grants/RLS necessários               | somente após confirmar nomes/tipos no schema atual             |
+| F2-1      | novo módulo `src/lib/ai/budget-ledger.ts` ou caminho equivalente sob `src/lib/ai/`, interface de transação e contract tests | módulo único; clock injetável; sem SQL espalhado               |
+| F2-2      | `src/lib/chat.functions.ts` e testes de integração                                                                          | reserva antes de cada `fetch`; settle em `finally`; sweep lazy |
+| F2-3      | `.env.example`, configuração do ledger e logging estruturado                                                                | placeholders sem segredo; defaults fecham Q-005                |
+| F3-1/F3-2 | novos testes PostgreSQL/ledger e runner local                                                                               | tenants isolados; gateway mockado; CN local                    |
+| F4        | somente artefatos/evidências autorizados, sem `auth.tsx`                                                                    | gates posteriores                                              |
 
 Qualquer incompatibilidade descoberta ao editar o schema ou integrar o ledger vira
 nova Q antes de ampliar essa superfície, conforme C-06/C-11.

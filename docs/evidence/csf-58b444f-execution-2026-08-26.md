@@ -131,9 +131,9 @@ como Q do processo, sem respondê-la por inferência.
 
 ## Q-007 — alvo/adapter D1 disponível
 
-| Pergunta | Owner | Bloqueia esta missão? | Status |
-|---|---|---|---|
-| Qual é o adapter, binding e alvo executável D1 (ou equivalente aprovado) a ser disponibilizado no repositório para que REQ-008 possa ser implementado e verificado? | HUMANO | **Sim** | Aberta |
+| Pergunta                                                                                                                                                            | Owner  | Bloqueia esta missão? | Status |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------- | ------ |
+| Qual é o adapter, binding e alvo executável D1 (ou equivalente aprovado) a ser disponibilizado no repositório para que REQ-008 possa ser implementado e verificado? | HUMANO | **Sim**               | Aberta |
 
 O agente não responde Q-007 por inferência nem implementa um adapter fora do escopo
 ratificado. A missão pode ser retomada após a disponibilização e confirmação desse
