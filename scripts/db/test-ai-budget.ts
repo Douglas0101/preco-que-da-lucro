@@ -17,11 +17,11 @@ import {
   type ReserveResult,
   type SettlementResult,
   type SweepResult,
-} from "../../src/lib/ai/budget-ledger";
+} from "../../src/lib/ai/budget-ledger.server";
 import {
-  sendChatMessageForTests,
+  executeSendChatMessage,
   type ChatExecutionDependencies,
-} from "../../src/lib/chat.functions";
+} from "../../src/lib/chat-execution.server";
 import type { RequestIdentity } from "../../src/lib/request-context";
 import { requireAdminUrl } from "./migrate";
 
@@ -167,7 +167,7 @@ async function runE1(pool: Pool): Promise<void> {
 
   const results = await Promise.allSettled(
     Array.from({ length: 20 }, (_, index) =>
-      sendChatMessageForTests({ message: `e1 concurrent ${index}` }, makeIdentity(fixture), {
+      executeSendChatMessage({ message: `e1 concurrent ${index}` }, makeIdentity(fixture), {
         budgetConfig: config,
         modelCaller,
       }),
@@ -277,7 +277,7 @@ async function runE3(pool: Pool): Promise<void> {
     throw new ApplicationError("AI_TIMEOUT");
   };
   await assert.rejects(
-    sendChatMessageForTests({ message: "e3 timeout" }, makeIdentity(fixture), {
+    executeSendChatMessage({ message: "e3 timeout" }, makeIdentity(fixture), {
       budgetConfig: config,
       modelCaller,
     }),
@@ -317,7 +317,7 @@ async function runE4(pool: Pool): Promise<void> {
       else signal.addEventListener("abort", fail, { once: true });
     });
   };
-  const pending = sendChatMessageForTests(
+  const pending = executeSendChatMessage(
     { message: "e4 abort" },
     makeIdentity(fixture, abortController.signal),
     { budgetConfig: testConfig({ inFlightLimit: 1 }), modelCaller },
@@ -365,7 +365,7 @@ async function runE5(pool: Pool): Promise<void> {
     toolCalls += 1;
     return { ok: true, output: { result: { accepted: true } }, replayed: false };
   };
-  const result = await sendChatMessageForTests(
+  const result = await executeSendChatMessage(
     { message: "e5 tool rounds" },
     makeIdentity(fixture),
     { budgetConfig: config, modelCaller, toolRunner },
@@ -402,7 +402,7 @@ async function runE6(pool: Pool): Promise<void> {
   const requestCount = 8;
   const results = await Promise.allSettled(
     Array.from({ length: requestCount }, (_, index) =>
-      sendChatMessageForTests({ message: `e6 in-flight ${index}` }, makeIdentity(fixture), {
+      executeSendChatMessage({ message: `e6 in-flight ${index}` }, makeIdentity(fixture), {
         budgetConfig: config,
         modelCaller,
       }),
@@ -436,11 +436,10 @@ async function runE6(pool: Pool): Promise<void> {
 
 async function runE7(pool: Pool): Promise<void> {
   const fixture = await createFixture(pool, "e7");
-  const result = await sendChatMessageForTests(
-    { message: "e7 regression" },
-    makeIdentity(fixture),
-    { budgetConfig: testConfig(), modelCaller: async () => modelResponse("e7 response") },
-  );
+  const result = await executeSendChatMessage({ message: "e7 regression" }, makeIdentity(fixture), {
+    budgetConfig: testConfig(),
+    modelCaller: async () => modelResponse("e7 response"),
+  });
   assert.equal(result.content, "e7 response");
   const counters = await readCounters(pool, fixture.tenantId);
   assert.equal(counters.chat_count, 1);

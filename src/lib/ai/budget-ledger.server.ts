@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+// This module executes database transactions and must remain server-only.
 import {
   transactionManager as defaultTransactionManager,
   type DatabaseIdentity,

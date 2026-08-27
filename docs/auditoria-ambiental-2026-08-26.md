@@ -179,9 +179,10 @@ usados:
 
 As variáveis novas de REQ-006 — `AI_DAILY_MODEL_CALL_LIMIT_PER_TENANT`,
 `AI_DAILY_TOKEN_LIMIT_PER_TENANT` e `AI_IN_FLIGHT_LIMIT_PER_TENANT` — não existem
-no estado de partida. Não há nome antigo equivalente para reutilizar; F2-3 deverá
-introduzi-las no `.env.example` como placeholders auditados e no código com defaults
-justificados. Q-005 permanece pendente até essa decisão técnica documentada.
+no estado de partida. Não há nome antigo equivalente para reutilizar. Por causa da
+proibição v3 de commitar qualquer `.env*`, F2-3 registra os nomes/defaults no módulo
+server-only, na evidência de Q-005 e no `EXECUTION-STATE.md`, sem alterar o
+`.env.example`. Q-005 permanece pendente até essa decisão técnica documentada.
 
 Os runbooks listam os nomes de gateway/timeout/chat em
 `docs/runbooks/hostinger-cloud-node.md:128-136`, mas não autorizam nem serão usados
@@ -237,14 +238,14 @@ de orçamento diretamente.
 
 Esta seção é inventário e não altera o Plano silenciosamente.
 
-| Tarefa    | Superfície provável                                                                                                         | Condição                                                       |
-| --------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| F1-3      | `src/db/schema.ts`, próxima migração `drizzle/0006_*.sql`, snapshots/journal Drizzle e grants/RLS necessários               | somente após confirmar nomes/tipos no schema atual             |
-| F2-1      | novo módulo `src/lib/ai/budget-ledger.ts` ou caminho equivalente sob `src/lib/ai/`, interface de transação e contract tests | módulo único; clock injetável; sem SQL espalhado               |
-| F2-2      | `src/lib/chat.functions.ts` e testes de integração                                                                          | reserva antes de cada `fetch`; settle em `finally`; sweep lazy |
-| F2-3      | `.env.example`, configuração do ledger e logging estruturado                                                                | placeholders sem segredo; defaults fecham Q-005                |
-| F3-1/F3-2 | novos testes PostgreSQL/ledger e runner local                                                                               | tenants isolados; gateway mockado; CN local                    |
-| F4        | somente artefatos/evidências autorizados, sem `auth.tsx`                                                                    | gates posteriores                                              |
+| Tarefa    | Superfície provável                                                                                                                | Condição                                                       |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| F1-3      | `src/db/schema.ts`, próxima migração `drizzle/0006_*.sql`, snapshots/journal Drizzle e grants/RLS necessários                      | somente após confirmar nomes/tipos no schema atual             |
+| F2-1      | novo módulo `src/lib/ai/budget-ledger.server.ts` ou caminho equivalente sob `src/lib/ai/`, interface de transação e contract tests | módulo único; clock injetável; sem SQL espalhado               |
+| F2-2      | `src/lib/chat.functions.ts` e testes de integração                                                                                 | reserva antes de cada `fetch`; settle em `finally`; sweep lazy |
+| F2-3      | configuração do ledger, logging estruturado e documentação dos nomes/defaults                                                        | sem alteração de `.env*`; defaults fecham Q-005                |
+| F3-1/F3-2 | novos testes PostgreSQL/ledger e runner local                                                                                      | tenants isolados; gateway mockado; CN local                    |
+| F4        | somente artefatos/evidências autorizados, sem `auth.tsx`                                                                           | gates posteriores                                              |
 
 Qualquer incompatibilidade descoberta ao editar o schema ou integrar o ledger vira
 nova Q antes de ampliar essa superfície, conforme C-06/C-11.

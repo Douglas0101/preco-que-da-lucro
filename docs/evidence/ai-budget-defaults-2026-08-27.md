@@ -6,14 +6,14 @@ mensagens.
 
 ## Valores efetivos
 
-| Variável                               |   Default | Papel                                  | Evidência de implementação                           |
-| -------------------------------------- | --------: | -------------------------------------- | ---------------------------------------------------- |
-| `AI_DAILY_MODEL_CALL_LIMIT_PER_TENANT` |     `500` | máximo diário de model rounds          | `src/lib/ai/budget-ledger.ts`, `budgetConfigFromEnv` |
-| `AI_DAILY_TOKEN_LIMIT_PER_TENANT`      | `1500000` | teto diário de tokens reais + reservas | `src/lib/ai/budget-ledger.ts`, `budgetConfigFromEnv` |
-| `AI_DAILY_CHAT_LIMIT_PER_TENANT`       |     `200` | limite diário de chats já existente    | `src/lib/ai/budget-ledger.ts`, `budgetConfigFromEnv` |
-| `AI_IN_FLIGHT_LIMIT_PER_TENANT`        |       `2` | chamadas de modelo simultâneas         | `src/lib/ai/budget-ledger.ts`, `reserveAtomic`       |
-| `AI_CONSERVATIVE_TOKEN_BUDGET`         |   `64000` | reserva conservadora por model round   | `src/lib/ai/budget-ledger.ts`, `reserveAtomic`       |
-| `AI_BUDGET_RESERVATION_TTL_MS`         |  `120000` | TTL para recuperar reservas órfãs      | `src/lib/ai/budget-ledger.ts`, `sweepOrphans`        |
+| Variável                               |   Default | Papel                                  | Evidência de implementação                                  |
+| -------------------------------------- | --------: | -------------------------------------- | ----------------------------------------------------------- |
+| `AI_DAILY_MODEL_CALL_LIMIT_PER_TENANT` |     `500` | máximo diário de model rounds          | `src/lib/ai/budget-ledger.server.ts`, `budgetConfigFromEnv` |
+| `AI_DAILY_TOKEN_LIMIT_PER_TENANT`      | `1500000` | teto diário de tokens reais + reservas | `src/lib/ai/budget-ledger.server.ts`, `budgetConfigFromEnv` |
+| `AI_DAILY_CHAT_LIMIT_PER_TENANT`       |     `200` | limite diário de chats já existente    | `src/lib/ai/budget-ledger.server.ts`, `budgetConfigFromEnv` |
+| `AI_IN_FLIGHT_LIMIT_PER_TENANT`        |       `2` | chamadas de modelo simultâneas         | `src/lib/ai/budget-ledger.server.ts`, `reserveAtomic`       |
+| `AI_CONSERVATIVE_TOKEN_BUDGET`         |   `64000` | reserva conservadora por model round   | `src/lib/ai/budget-ledger.server.ts`, `reserveAtomic`       |
+| `AI_BUDGET_RESERVATION_TTL_MS`         |  `120000` | TTL para recuperar reservas órfãs      | `src/lib/ai/budget-ledger.server.ts`, `sweepOrphans`        |
 
 ## Justificativa
 
