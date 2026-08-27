@@ -11,7 +11,7 @@ Este arquivo não contém credenciais, tokens, URLs Neon reais ou conteúdo de m
 - Base ratificada: `origin/develop` em `339efb0d02db1c2b868c41d87821357d61f4b021`.
 - Preservação local: `wip/preservacao-c371032-20260826`, não publicada.
 - Início desta execução v3: `2026-08-26T21:43:51-03:00`.
-- Última atualização: `2026-08-27T00:45:05Z`.
+- Última atualização: `2026-08-27T00:50:30Z`.
 
 ## Decisões humanas — transcrição verbatim
 
@@ -60,8 +60,8 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 | T-02 / SHA histórico | DONE | `origin/develop=339efb0d02db1c2b868c41d87821357d61f4b021` |
 | T-03 / SPEC-RATIFICADA histórica | DONE | Diff vazio de `src/lib/chat.functions.ts`; saída (a) |
 | F1-1 / branch, evidências e estado | DONE | `10d257d9fa0a9697616cf08ba423db30c183dead`; G-AMBIENTE-0 passou |
-| F1-2 / auditoria ambiental C-11 | IN_PROGRESS | Relatório em `docs/auditoria-ambiental-2026-08-26.md` |
-| F1-3 / schema local | PENDING | Depende de F1-2 e banco local escolhido |
+| F1-2 / auditoria ambiental C-11 | DONE | `docs/auditoria-ambiental-2026-08-26.md`; G-AMBIENTE passou |
+| F1-3 / schema local | IN_PROGRESS | PostgreSQL 17 local escolhido; verificar migration + information_schema |
 | F2-1 / módulo budget-ledger | PENDING | Depende de F1-3; contract tests |
 | F2-2 / integração no chat | PENDING | Depende de F2-1; reserva antes do gateway |
 | F2-3 / configuração e observabilidade | PENDING | Depende de F2-2; fecha Q-005 |
@@ -80,8 +80,8 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 | Gate | Estado | Evidência |
 |---|---|---|
 | G-AMBIENTE-0 | DONE | HEAD `10d257d9fa0a9697616cf08ba423db30c183dead`; ancestry em `339efb0`; status limpo; wip sem ref remota |
-| G-AMBIENTE | PENDING | F1-2 |
-| G-SCHEMA | PENDING | F1-3 |
+| G-AMBIENTE | DONE | `docs/auditoria-ambiental-2026-08-26.md`; harness PostgreSQL 17 confirmado |
+| G-SCHEMA | IN_PROGRESS | F1-3 |
 | G-IMPL | PENDING | F2-1/F2-2/F2-3 |
 | G-TEST | PENDING | F3-1/F3-2 |
 | G-QUALITY | PENDING | F4-1 |
