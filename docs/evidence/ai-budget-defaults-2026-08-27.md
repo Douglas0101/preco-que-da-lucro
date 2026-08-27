@@ -28,7 +28,9 @@ mensagens.
   reserva e devolvido na liquidação/expiração, evitando admissão baseada em estimativa
   otimista.
 - `120000` ms fornece janela bounded para chamadas legítimas e permite que um novo request
-  recupere contador de um processo morto por meio do sweep lazy por tenant.
+  recupere contador de um processo morto por meio do sweep lazy por tenant. O código
+  também rejeita/faz fallback para valores abaixo de `120000` ms: o limite é duas vezes
+  o timeout máximo de request de 60 s, evitando que uma chamada viva seja expirada.
 
 Os valores são validados como inteiros positivos e podem ser substituídos por env. A
 interface pública do ledger recebe configuração e clock injetáveis para os testes de
@@ -43,3 +45,5 @@ commits `.env*`; os nomes e defaults estão documentados no código, neste regis
   com o fix.
 - Nenhum endpoint Neon real foi usado; o segundo caminho é coberto pelo contract adapter
   da interface, conforme H-003/Q-008.
+- T8 também verifica o fallback ambiental e a rejeição de override abaixo do TTL mínimo
+  seguro.

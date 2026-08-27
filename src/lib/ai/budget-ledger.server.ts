@@ -17,6 +17,11 @@ export const DEFAULT_BUDGET_CONFIG = {
   reservationTtlMs: 120_000,
 } as const;
 
+// The chat request timeout is capped at 60 seconds in chat-execution.server.ts.
+// Keep one full request-timeout window as margin so lazy sweeping cannot reclaim
+// a reservation while its production gateway call is still alive.
+export const MIN_SAFE_RESERVATION_TTL_MS = 120_000;
+
 export interface BudgetLedgerConfig {
   dailyModelCallLimit: number;
   dailyTokenLimit: number;
@@ -165,7 +170,7 @@ export function budgetConfigFromEnv(): BudgetLedgerConfig {
     reservationTtlMs: integerSetting(
       "AI_BUDGET_RESERVATION_TTL_MS",
       DEFAULT_BUDGET_CONFIG.reservationTtlMs,
-      1_000,
+      MIN_SAFE_RESERVATION_TTL_MS,
       3_600_000,
     ),
   };
@@ -184,6 +189,14 @@ function assertNonNegativeInteger(name: string, value: number): void {
 function assertPositiveInteger(name: string, value: number): void {
   if (!Number.isInteger(value) || value <= 0) {
     throw new TypeError(`${name} deve ser um inteiro positivo`);
+  }
+}
+
+function assertSafeReservationTtl(value: number): void {
+  if (!Number.isInteger(value) || value < MIN_SAFE_RESERVATION_TTL_MS) {
+    throw new TypeError(
+      `reservationTtlMs deve ser um inteiro de pelo menos ${MIN_SAFE_RESERVATION_TTL_MS} ms`,
+    );
   }
 }
 
@@ -320,7 +333,7 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
   assertPositiveInteger("dailyChatLimit", config.dailyChatLimit);
   assertPositiveInteger("inFlightLimit", config.inFlightLimit);
   assertPositiveInteger("conservativeTokenBudget", config.conservativeTokenBudget);
-  assertPositiveInteger("reservationTtlMs", config.reservationTtlMs);
+  assertSafeReservationTtl(config.reservationTtlMs);
 
   return {
     async reserveChatInTransaction(transaction, tenantId, options = {}): Promise<boolean> {

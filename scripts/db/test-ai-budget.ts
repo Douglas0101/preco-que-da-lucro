@@ -11,7 +11,9 @@ import {
 } from "../../src/db/client.server";
 import { ApplicationError } from "../../src/lib/api-error";
 import {
+  budgetConfigFromEnv,
   createBudgetLedger,
+  MIN_SAFE_RESERVATION_TTL_MS,
   type BudgetLedger,
   type BudgetLedgerConfig,
   type ReserveResult,
@@ -31,7 +33,7 @@ const BASE_CONFIG: BudgetLedgerConfig = {
   dailyChatLimit: 1_000,
   inFlightLimit: 4,
   conservativeTokenBudget: 100,
-  reservationTtlMs: 1_000,
+  reservationTtlMs: MIN_SAFE_RESERVATION_TTL_MS,
 };
 
 interface Fixture {
@@ -453,9 +455,31 @@ async function runE7(pool: Pool): Promise<void> {
 
 async function runE8(pool: Pool): Promise<void> {
   const fixture = await createFixture(pool, "e8");
-  const base = new Date(Date.now() - 5_000);
+  const base = new Date();
+  base.setUTCHours(12, 0, 0, 0);
   let clockNow = base;
   const config = testConfig({ dailyModelCallLimit: 2, dailyTokenLimit: 150, inFlightLimit: 1 });
+  const previousTtl = process.env.AI_BUDGET_RESERVATION_TTL_MS;
+  process.env.AI_BUDGET_RESERVATION_TTL_MS = "1000";
+  try {
+    assert.equal(
+      budgetConfigFromEnv().reservationTtlMs,
+      MIN_SAFE_RESERVATION_TTL_MS,
+      "E8: TTL ambiental abaixo do limite seguro deve voltar ao default seguro",
+    );
+  } finally {
+    if (previousTtl === undefined) delete process.env.AI_BUDGET_RESERVATION_TTL_MS;
+    else process.env.AI_BUDGET_RESERVATION_TTL_MS = previousTtl;
+  }
+  assert.throws(
+    () =>
+      createBudgetLedger({
+        identity: makeIdentity(fixture),
+        config: { reservationTtlMs: 1_000 },
+      }),
+    /pelo menos 120000 ms/,
+    "E8: override de TTL inseguro deve ser rejeitado",
+  );
   const ledger = createBudgetLedger({
     identity: makeIdentity(fixture),
     config,
@@ -467,7 +491,7 @@ async function runE8(pool: Pool): Promise<void> {
     now: base,
   });
   assert.equal(orphan.status, "reserved");
-  clockNow = new Date(base.getTime() + 2_000);
+  clockNow = new Date(base.getTime() + MIN_SAFE_RESERVATION_TTL_MS + 1_000);
   const fresh = await ledger.reserveAtomic(fixture.tenantId, 100, {
     kind: "model",
     roundNo: 1,
@@ -493,7 +517,8 @@ async function runE8(pool: Pool): Promise<void> {
 
 async function runE9(pool: Pool): Promise<void> {
   const fixture = await createFixture(pool, "e9");
-  const base = new Date(Date.now() - 5_000);
+  const base = new Date();
+  base.setUTCHours(12, 0, 0, 0);
   const ledger = createBudgetLedger({
     identity: makeIdentity(fixture),
     config: testConfig({ inFlightLimit: 1 }),
@@ -505,10 +530,10 @@ async function runE9(pool: Pool): Promise<void> {
   });
   assert.equal(orphan.status, "reserved");
   const firstSweep = await ledger.sweepOrphans(fixture.tenantId, {
-    now: new Date(base.getTime() + 2_000),
+    now: new Date(base.getTime() + MIN_SAFE_RESERVATION_TTL_MS + 1_000),
   });
   const secondSweep = await ledger.sweepOrphans(fixture.tenantId, {
-    now: new Date(base.getTime() + 3_000),
+    now: new Date(base.getTime() + MIN_SAFE_RESERVATION_TTL_MS + 2_000),
   });
   assert.deepEqual(firstSweep.expiredCount, 1);
   assert.deepEqual(secondSweep, { expiredCount: 0, usageIds: [] });
@@ -612,7 +637,8 @@ async function runLedgerContract(
   ledger: Pick<BudgetLedger, "reserveAtomic" | "settle" | "sweepOrphans">,
   tenantId: string,
 ): Promise<void> {
-  const base = new Date(Date.now() - 5_000);
+  const base = new Date();
+  base.setUTCHours(12, 0, 0, 0);
   const first = await ledger.reserveAtomic(tenantId, 100, { kind: "model", roundNo: 0, now: base });
   assert.equal(first.status, "reserved", `${label}: reserva deve ser aceita`);
   if (first.status !== "reserved") return;
@@ -654,12 +680,20 @@ async function runLedgerContract(
   });
   assert.equal(orphan.status, "reserved", `${label}: segunda reserva`);
   assert.equal(
-    (await ledger.sweepOrphans(tenantId, { now: new Date(base.getTime() + 2_000) })).expiredCount,
+    (
+      await ledger.sweepOrphans(tenantId, {
+        now: new Date(base.getTime() + MIN_SAFE_RESERVATION_TTL_MS + 1_000),
+      })
+    ).expiredCount,
     1,
     `${label}: sweep TTL`,
   );
   assert.equal(
-    (await ledger.sweepOrphans(tenantId, { now: new Date(base.getTime() + 3_000) })).expiredCount,
+    (
+      await ledger.sweepOrphans(tenantId, {
+        now: new Date(base.getTime() + MIN_SAFE_RESERVATION_TTL_MS + 2_000),
+      })
+    ).expiredCount,
     0,
     `${label}: sweep idempotente`,
   );
