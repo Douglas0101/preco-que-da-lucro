@@ -6,10 +6,12 @@
 **Banco canônico:** PostgreSQL  
 **Provedor inicial:** Neon  
 **Framework full-stack:** TanStack Start + React  
-**Status:** Planejamento pré-implementação  
+**Status:** Implementação em andamento — programa de fechamento SDD v5 (ledger: `EXECUTION-STATE-PROGRAM.md`; auditoria: `docs/auditoria-ambiental-2026-08-26.md`)  
 **Objetivo:** elevar segurança, integridade financeira, estabilidade, performance, observabilidade e fluidez da experiência sem introduzir complexidade prematura.
 
 > **Alinhamento (2026-08-09):** este plano foi realinhado à Diretriz V7 (`DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO_V7_SHADCN_BASEUI_SINCRONIZADO_OFICIAL.md`), que prevalece em divergências. Renumeração de fases, P0 canônico, invariantes estendidas e itens adiados constam em `docs/REALINHAMENTO_OPERACIONAL_V7_PLANO.md`.
+>
+> **Registro de execução (2026-08-27):** o fix `csf_58b444f152e35ba899b5381e` (CWE-770, `resource-exhaustion.ai-budget-race`) está **MERGEADO** em `develop` (PR #21, `12c90a1`) e `main` (PR #22, `55cb550`), com CI verde no tip publicado (UI stack run `33037007387`). Evidência do fix: `docs/evidence/csf-58b444f-final-2026-08-27.md`; readiness da release develop→main: `docs/evidence/release-readiness-develop-main-2026-08-27.md`; mapeamento V7↔Plano Mestre: `docs/MAPA_CRUZADO_DIRETRIZ_PLANO_PRECO_QUE_DA_LUCRO.md` + `docs/REALINHAMENTO_OPERACIONAL_V7_PLANO.md`.
 
 ---
 
