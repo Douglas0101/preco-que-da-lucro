@@ -1,4 +1,5 @@
 import { and, asc, count, eq, gte } from "drizzle-orm";
+import { withTenantTransaction } from "@/db/client.server";
 import { chatConversations, chatMessages } from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
 import {
@@ -11,11 +12,11 @@ import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
 import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
 import { runRegisteredTool } from "@/lib/ai/tool-runner";
 import {
+  createTenantTransaction,
   getOrCreateConversation,
-  inTenantTransaction,
   numberSetting,
   validateCurrentProduct,
-} from "@/lib/chat-data.server";
+} from "@/lib/chat-data";
 import type { RequestContext, RequestIdentity } from "@/lib/request-context";
 import { logJson } from "@/lib/structured-logger";
 
@@ -77,6 +78,7 @@ export interface ChatExecutionDependencies {
 }
 
 const CHAT_LIMIT_WINDOW_MS = 10 * 60 * 1_000;
+const inTenantTransaction = createTenantTransaction(withTenantTransaction);
 
 async function reserveChatAndLoadHistory(
   context: RequestContext,

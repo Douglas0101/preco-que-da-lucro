@@ -1,18 +1,21 @@
 import { and, asc, eq } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { withTenantTransaction } from "@/db/client.server";
 import { chatConversations, chatMessages } from "@/db/schema";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import { ApplicationError } from "@/lib/api-error";
 import {
+  createTenantTransaction,
   getConversation,
   getOrCreateConversation,
-  inTenantTransaction,
   numberSetting,
-} from "@/lib/chat-data.server";
+} from "@/lib/chat-data";
 import { executeSendChatMessage } from "@/lib/chat-execution.server";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
 import { requireDatabaseIdentity } from "@/middleware/request-context";
+
+const inTenantTransaction = createTenantTransaction(withTenantTransaction);
 
 interface GatewayMessage {
   role: "user" | "assistant" | "system" | "tool";
