@@ -11,6 +11,7 @@ Este arquivo não contém credenciais, tokens, URLs Neon reais ou conteúdo de m
 - Base ratificada: `origin/develop` em `339efb0d02db1c2b868c41d87821357d61f4b021`.
 - Preservação local: `wip/preservacao-c371032-20260826`, não publicada.
 - Início desta execução v3: `2026-08-26T21:43:51-03:00`.
+- Última atualização: `2026-08-27T00:45:05Z`.
 
 ## Decisões humanas — transcrição verbatim
 
@@ -58,8 +59,8 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 | T-01 / preservação histórica | DONE | `a14fdb9` na `wip/`, não publicada |
 | T-02 / SHA histórico | DONE | `origin/develop=339efb0d02db1c2b868c41d87821357d61f4b021` |
 | T-03 / SPEC-RATIFICADA histórica | DONE | Diff vazio de `src/lib/chat.functions.ts`; saída (a) |
-| F1-1 / branch, evidências e estado | IN_PROGRESS | Base e cópia allowlistada preparadas; este commit fecha a tarefa |
-| F1-2 / auditoria ambiental C-11 | PENDING | Executar após F1-1; relatório em `docs/auditoria-ambiental-2026-08-26.md` |
+| F1-1 / branch, evidências e estado | DONE | `10d257d9fa0a9697616cf08ba423db30c183dead`; G-AMBIENTE-0 passou |
+| F1-2 / auditoria ambiental C-11 | IN_PROGRESS | Relatório em `docs/auditoria-ambiental-2026-08-26.md` |
 | F1-3 / schema local | PENDING | Depende de F1-2 e banco local escolhido |
 | F2-1 / módulo budget-ledger | PENDING | Depende de F1-3; contract tests |
 | F2-2 / integração no chat | PENDING | Depende de F2-1; reserva antes do gateway |
@@ -78,7 +79,7 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 
 | Gate | Estado | Evidência |
 |---|---|---|
-| G-AMBIENTE-0 | IN_PROGRESS | Branch criada no tip ratificado; cópia allowlistada em andamento |
+| G-AMBIENTE-0 | DONE | HEAD `10d257d9fa0a9697616cf08ba423db30c183dead`; ancestry em `339efb0`; status limpo; wip sem ref remota |
 | G-AMBIENTE | PENDING | F1-2 |
 | G-SCHEMA | PENDING | F1-3 |
 | G-IMPL | PENDING | F2-1/F2-2/F2-3 |
