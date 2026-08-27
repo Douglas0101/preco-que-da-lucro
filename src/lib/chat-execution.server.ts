@@ -202,6 +202,224 @@ function settlementOutcome(error: unknown): string {
   return "error";
 }
 
+interface ChatState {
+  conversation: { id: string };
+  currentProductId: string | null;
+  history: Array<{ role: string; content: string }>;
+}
+
+type RoundResult =
+  | { kind: "continue"; currentProductId: string | null }
+  | { kind: "complete"; content: string; currentProductId: string | null };
+
+function buildInitialMessages(state: ChatState): GatewayMessage[] {
+  const messages: GatewayMessage[] = [{ role: "system", content: SYSTEM_PROMPT }];
+  if (state.currentProductId) {
+    messages.push({
+      role: "system",
+      content: `O produto atual confirmado tem id "${state.currentProductId}".`,
+    });
+  }
+  for (const message of state.history) {
+    if (message.role === "user" || message.role === "assistant" || message.role === "system") {
+      messages.push({ role: message.role, content: message.content });
+    }
+  }
+  return messages;
+}
+
+async function persistAssistantMessage(
+  identity: RequestIdentity,
+  state: ChatState,
+  currentProductId: string | null,
+  content: string,
+): Promise<void> {
+  await inTenantTransaction(identity, async (request) => {
+    const [saved] = await request.transaction
+      .insert(chatMessages)
+      .values({
+        conversationId: state.conversation.id,
+        tenantId: request.tenantId,
+        userId: request.userId,
+        role: "assistant",
+        content,
+        metadata: { currentProductId },
+      })
+      .returning({ id: chatMessages.id });
+    await request.transaction
+      .update(chatConversations)
+      .set({
+        currentProductId,
+        confirmedState: {
+          currentProductId,
+          lastAssistantMessageId: saved?.id ?? null,
+          lastConfirmedAt: new Date().toISOString(),
+        },
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(chatConversations.tenantId, request.tenantId),
+          eq(chatConversations.id, state.conversation.id),
+        ),
+      );
+  });
+}
+
+type ToolResult = Awaited<ReturnType<ToolRunner>>;
+
+function toolMessage(toolCallId: string, toolResult: ToolResult): GatewayMessage {
+  const content = toolResult.ok
+    ? { ok: true, ...toolResult.output.result, replayed: toolResult.replayed }
+    : { ok: false, error: { code: toolResult.code }, replayed: toolResult.replayed };
+  return { role: "tool", tool_call_id: toolCallId, content: JSON.stringify(content) };
+}
+
+async function runToolCall(
+  identity: RequestIdentity,
+  conversationId: string,
+  toolCall: GatewayToolCall,
+  toolRunner: ToolRunner,
+): Promise<ToolResult> {
+  return inTenantTransaction(identity, (request) =>
+    toolRunner({
+      context: request,
+      name: toolCall.function.name,
+      rawArguments: toolCall.function.arguments,
+      idempotencyKey: `${conversationId}:${toolCall.id}`,
+    }),
+  );
+}
+
+async function appendToolCalls(
+  messages: GatewayMessage[],
+  identity: RequestIdentity,
+  state: ChatState,
+  currentProductId: string | null,
+  toolCalls: GatewayToolCall[],
+  toolRunner: ToolRunner,
+): Promise<string | null> {
+  let nextProductId = currentProductId;
+  for (const toolCall of toolCalls) {
+    const toolResult = await runToolCall(identity, state.conversation.id, toolCall, toolRunner);
+    if (toolResult.ok && toolResult.output.state?.currentProductId) {
+      nextProductId = toolResult.output.state.currentProductId;
+    }
+    messages.push(toolMessage(toolCall.id, toolResult));
+  }
+  return nextProductId;
+}
+
+async function handleModelResponse(
+  modelResponse: GatewayResponse,
+  messages: GatewayMessage[],
+  identity: RequestIdentity,
+  state: ChatState,
+  currentProductId: string | null,
+  round: number,
+  toolRunner: ToolRunner,
+): Promise<RoundResult> {
+  const modelMessage = modelResponse.choices[0]!.message;
+  const toolCalls = modelMessage.tool_calls;
+  if (toolCalls?.length) {
+    messages.push({
+      role: "assistant",
+      content: modelMessage.content ?? "",
+      tool_calls: toolCalls,
+    });
+    const nextProductId = await appendToolCalls(
+      messages,
+      identity,
+      state,
+      currentProductId,
+      toolCalls,
+      toolRunner,
+    );
+    return { kind: "continue", currentProductId: nextProductId };
+  }
+
+  const content = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
+  if (!content) throw new ApplicationError("DEPENDENCY_ERROR");
+  await persistAssistantMessage(identity, state, currentProductId, content);
+  logJson("info", "ai.chat_completed", {
+    correlationId: identity.correlationId,
+    tenantId: identity.tenantId,
+    rounds: round + 1,
+  });
+  return { kind: "complete", content, currentProductId };
+}
+
+async function executeReservedRound({
+  budgetLedger,
+  budgetConfig,
+  identity,
+  messages,
+  requestSignal,
+  state,
+  currentProductId,
+  round,
+  modelCaller,
+  toolRunner,
+}: {
+  budgetLedger: BudgetLedger;
+  budgetConfig: BudgetLedgerConfig;
+  identity: RequestIdentity;
+  messages: GatewayMessage[];
+  requestSignal: AbortSignal;
+  state: ChatState;
+  currentProductId: string | null;
+  round: number;
+  modelCaller: ModelCaller;
+  toolRunner: ToolRunner;
+}): Promise<RoundResult> {
+  // reserveAtomic performs the lazy tenant sweep in the same transaction as the
+  // conditional counter update. No gateway call can happen before this point.
+  const reservationResult = await budgetLedger.reserveAtomic(
+    identity.tenantId,
+    budgetConfig.conservativeTokenBudget,
+    { kind: "model", roundNo: round },
+  );
+  if (reservationResult.status !== "reserved") throw new ApplicationError("AI_QUOTA");
+
+  let inputTokens = 0;
+  let outputTokens = 0;
+  let realTokens = 0;
+  let toolCallsCount = 0;
+  let outcome = "error";
+
+  try {
+    const modelResponse = await modelCaller(
+      messages,
+      gatewayToolsForState(currentProductId),
+      requestSignal,
+    );
+    inputTokens = modelResponse.usage?.prompt_tokens ?? 0;
+    outputTokens = modelResponse.usage?.completion_tokens ?? 0;
+    realTokens = inputTokens + outputTokens;
+    toolCallsCount = modelResponse.choices[0]!.message.tool_calls?.length ?? 0;
+    const result = await handleModelResponse(
+      modelResponse,
+      messages,
+      identity,
+      state,
+      currentProductId,
+      round,
+      toolRunner,
+    );
+    outcome = result.kind === "continue" ? "tool_round" : "success";
+    return result;
+  } catch (error) {
+    outcome = settlementOutcome(error);
+    throw error;
+  } finally {
+    await budgetLedger.settle(reservationResult.usageId, realTokens, outcome, {
+      inputTokens,
+      outputTokens,
+      toolCalls: toolCallsCount,
+    });
+  }
+}
+
 export async function executeSendChatMessage(
   data: SendChatMessageInput,
   identity: RequestIdentity,
@@ -216,8 +434,6 @@ export async function executeSendChatMessage(
 
   if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
 
-  // reserveAtomic performs the lazy tenant sweep in the same transaction as the
-  // conditional counter update. No gateway call can happen before this point.
   const state = await inTenantTransaction(identity, (request) =>
     reserveChatAndLoadHistory(
       request,
@@ -227,130 +443,24 @@ export async function executeSendChatMessage(
     ),
   );
   let currentProductId = state.currentProductId;
-  const messages: GatewayMessage[] = [{ role: "system", content: SYSTEM_PROMPT }];
-  if (currentProductId) {
-    messages.push({
-      role: "system",
-      content: `O produto atual confirmado tem id "${currentProductId}".`,
-    });
-  }
-  for (const message of state.history) {
-    if (message.role === "user" || message.role === "assistant" || message.role === "system") {
-      messages.push({ role: message.role, content: message.content });
-    }
-  }
-
+  const messages = buildInitialMessages(state);
   const maxToolRounds = numberSetting("AI_MAX_TOOL_ROUNDS", 8, 1, 8);
   for (let round = 0; round < maxToolRounds; round += 1) {
     if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
-
-    const reservationResult = await budgetLedger.reserveAtomic(
-      identity.tenantId,
-      budgetConfig.conservativeTokenBudget,
-      { kind: "model", roundNo: round },
-    );
-    if (reservationResult.status !== "reserved") throw new ApplicationError("AI_QUOTA");
-
-    let inputTokens = 0;
-    let outputTokens = 0;
-    let realTokens = 0;
-    let toolCallsCount = 0;
-    let outcome = "error";
-
-    try {
-      const modelResponse = await dependencies.modelCaller(
-        messages,
-        gatewayToolsForState(currentProductId),
-        requestSignal,
-      );
-      inputTokens = modelResponse.usage?.prompt_tokens ?? 0;
-      outputTokens = modelResponse.usage?.completion_tokens ?? 0;
-      realTokens = inputTokens + outputTokens;
-      const modelMessage = modelResponse.choices[0].message;
-      const toolCalls = modelMessage.tool_calls;
-
-      if (toolCalls?.length) {
-        toolCallsCount = toolCalls.length;
-        outcome = "tool_round";
-        messages.push({
-          role: "assistant",
-          content: modelMessage.content ?? "",
-          tool_calls: toolCalls,
-        });
-        for (const toolCall of toolCalls) {
-          const toolResult = await inTenantTransaction(identity, (request) =>
-            toolRunner({
-              context: request,
-              name: toolCall.function.name,
-              rawArguments: toolCall.function.arguments,
-              idempotencyKey: `${state.conversation.id}:${toolCall.id}`,
-            }),
-          );
-          if (toolResult.ok && toolResult.output.state?.currentProductId) {
-            currentProductId = toolResult.output.state.currentProductId;
-          }
-          messages.push({
-            role: "tool",
-            tool_call_id: toolCall.id,
-            content: JSON.stringify(
-              toolResult.ok
-                ? { ok: true, ...toolResult.output.result, replayed: toolResult.replayed }
-                : { ok: false, error: { code: toolResult.code }, replayed: toolResult.replayed },
-            ),
-          });
-        }
-        continue;
-      }
-
-      const content = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
-      if (!content) throw new ApplicationError("DEPENDENCY_ERROR");
-      await inTenantTransaction(identity, async (request) => {
-        const [saved] = await request.transaction
-          .insert(chatMessages)
-          .values({
-            conversationId: state.conversation.id,
-            tenantId: request.tenantId,
-            userId: request.userId,
-            role: "assistant",
-            content,
-            metadata: { currentProductId },
-          })
-          .returning({ id: chatMessages.id });
-        await request.transaction
-          .update(chatConversations)
-          .set({
-            currentProductId,
-            confirmedState: {
-              currentProductId,
-              lastAssistantMessageId: saved?.id ?? null,
-              lastConfirmedAt: new Date().toISOString(),
-            },
-            updatedAt: new Date(),
-          })
-          .where(
-            and(
-              eq(chatConversations.tenantId, request.tenantId),
-              eq(chatConversations.id, state.conversation.id),
-            ),
-          );
-      });
-      outcome = "success";
-      logJson("info", "ai.chat_completed", {
-        correlationId: identity.correlationId,
-        tenantId: identity.tenantId,
-        rounds: round + 1,
-      });
-      return { content, currentProductId };
-    } catch (error) {
-      outcome = settlementOutcome(error);
-      throw error;
-    } finally {
-      await budgetLedger.settle(reservationResult.usageId, realTokens, outcome, {
-        inputTokens,
-        outputTokens,
-        toolCalls: toolCallsCount,
-      });
-    }
+    const result = await executeReservedRound({
+      budgetLedger,
+      budgetConfig,
+      identity,
+      messages,
+      requestSignal,
+      state,
+      currentProductId,
+      round,
+      modelCaller: dependencies.modelCaller,
+      toolRunner,
+    });
+    currentProductId = result.currentProductId;
+    if (result.kind === "complete") return result;
   }
 
   throw new ApplicationError("DEPENDENCY_ERROR");
