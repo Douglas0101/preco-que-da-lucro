@@ -243,7 +243,7 @@ Esta seção é inventário e não altera o Plano silenciosamente.
 | F1-3      | `src/db/schema.ts`, próxima migração `drizzle/0006_*.sql`, snapshots/journal Drizzle e grants/RLS necessários                      | somente após confirmar nomes/tipos no schema atual             |
 | F2-1      | novo módulo `src/lib/ai/budget-ledger.server.ts` ou caminho equivalente sob `src/lib/ai/`, interface de transação e contract tests | módulo único; clock injetável; sem SQL espalhado               |
 | F2-2      | `src/lib/chat.functions.ts` e testes de integração                                                                                 | reserva antes de cada `fetch`; settle em `finally`; sweep lazy |
-| F2-3      | configuração do ledger, logging estruturado e documentação dos nomes/defaults                                                        | sem alteração de `.env*`; defaults fecham Q-005                |
+| F2-3      | configuração do ledger, logging estruturado e documentação dos nomes/defaults                                                      | sem alteração de `.env*`; defaults fecham Q-005                |
 | F3-1/F3-2 | novos testes PostgreSQL/ledger e runner local                                                                                      | tenants isolados; gateway mockado; CN local                    |
 | F4        | somente artefatos/evidências autorizados, sem `auth.tsx`                                                                           | gates posteriores                                              |
 

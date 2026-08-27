@@ -9,12 +9,12 @@ Este arquivo não contém credenciais, tokens, URLs Neon reais ou conteúdo de m
 - Finding: `csf_58b444f152e35ba899b5381e` (CWE-770).
 - Branch do fix: `fix/ai-budget-reservation-csf58b4`.
 - Base ratificada: `origin/develop` em `339efb0d02db1c2b868c41d87821357d61f4b021`.
-- Tip local do fix antes do push: `d9c124ec14928fa0fe2fe805cc2a38c84582c0d2`.
-- Tip publicado do fix: `38f1f95508b4312348ad4c12d87455bc7856b1c2`.
+- Tip publicado anterior do fix: `899ec8bcc36870762565d78a2429a2d7eeefed3c`.
+- Tip publicado atual do fix: `c2ff86fdd9ab025d31199816aeb6682268e9f01f`.
 - PR draft: `#21` — https://github.com/Douglas0101/preco-que-da-lucro/pull/21.
 - Preservação local: `wip/preservacao-c371032-20260826`, não publicada.
 - Início desta execução v3: `2026-08-26T21:43:51-03:00`.
-- Última atualização: `2026-08-27T01:44:09Z`.
+- Última atualização: `2026-08-27T02:06:00Z`.
 
 ## Decisões humanas — transcrição verbatim
 
@@ -65,17 +65,17 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 | F1-1 / branch, evidências e estado    | DONE        | `10d257d9fa0a9697616cf08ba423db30c183dead`; G-AMBIENTE-0 passou                                        |
 | F1-2 / auditoria ambiental C-11       | DONE        | `docs/auditoria-ambiental-2026-08-26.md`; G-AMBIENTE passou                                            |
 | F1-3 / schema local                   | DONE        | `drizzle/0006_loud_lockjaw.sql`; `db:check` passou; migration aplicada duas vezes; objetos verificados |
-| F2-1 / módulo budget-ledger           | DONE        | `src/lib/ai/budget-ledger.ts`; reserve/settle/sweep; typecheck + T1–T10 verdes                         |
+| F2-1 / módulo budget-ledger           | DONE        | `src/lib/ai/budget-ledger.server.ts`; reserve/settle/sweep; typecheck + T1–T10 verdes                  |
 | F2-2 / integração no chat             | DONE        | Reserva antes de `modelCaller`; finally liquida cada round; nenhum SQL de orçamento em chat            |
 | F2-3 / configuração e observabilidade | DONE        | Defaults e eventos estruturados registrados abaixo; Q-005 resolvida                                    |
 | F3-1 / T1–T10                         | DONE        | `npm run db:test` e runner focado verdes no PostgreSQL 17 local                                        |
 | F3-2 / T-CN                           | DONE        | Baseline sem fix: gateway=20; fix: E1 gateway=1                                                        |
-| F4-1 / qualidade                      | DONE        | UI/no-Supabase/formatação/lint/typecheck/test/build/bundle verdes                                      |
-| F4-2 / secrets                        | DONE        | Diff sem `.env*`, chaves, credentials ou secrets; canário auth vazio                                   |
-| F4-3 / push e PR draft                | DONE        | Push normal concluído; PR draft #21 aberto; nunca merge                                                |
-| F4-4 / CI                             | IN_PROGRESS | PR #21 checks 33031134027/33031134077 em execução; wait total máximo 15 min                            |
+| F4-1 / qualidade                      | DONE        | `npm run check` passou; build sem warnings; `check:bundle` PASS; tip `c2ff86f`                         |
+| F4-2 / secrets                        | DONE        | Diff do tip sem `.env*`, chaves, credentials ou secrets; canário auth vazio                            |
+| F4-3 / push e PR draft                | DONE        | Push normal de `c2ff86f`; PR draft #21 aberto; nunca merge                                             |
+| F4-4 / CI                             | IN_PROGRESS | Aguarda workflows do `c2ff86f`; falha histórica `33031199183` registrada abaixo                        |
 | F4-5 / re-scan                        | PENDING     | Depende de F4-4; Standard local no tip                                                                 |
-| F4-6 / canário auth                   | PENDING     | Depende de F4-3; diff deve ser vazio                                                                   |
+| F4-6 / canário auth                   | DONE        | `git diff origin/develop..HEAD -- src/routes/auth.tsx`: saída vazia; tip `c2ff86f`                     |
 | F4-7 / relatório final                | PENDING     | Depende de F4-5 e F4-6                                                                                 |
 
 ## Registro de gates
@@ -87,7 +87,7 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 | G-SCHEMA         | DONE    | `ai_usage`, counters, índice, checks, RLS e grants verificados no PostgreSQL local                       |
 | G-IMPL           | DONE    | typecheck + inspeção de ordem/isolamento; reserva antes do gateway e settle em `finally`                 |
 | G-TEST           | DONE    | `npm run db:test`: migrações/auth/tools/chat + T1–T10; T-CN reproduziu o race no baseline                |
-| G-QUALITY        | DONE    | `npm run check` até build; `check:bundle` isolado PASS; `git diff --check` PASS                          |
+| G-QUALITY        | DONE    | `npm run check` PASS após refatoração; build sem warnings; `check:bundle` e `git diff --check` PASS      |
 | G-SCAN           | PENDING | F4-5                                                                                                     |
 | MISSÃO-CONCLUÍDA | PENDING | F4-7                                                                                                     |
 
@@ -117,7 +117,7 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 
 ## F2/F3 — ledger, integração e evidência comportamental
 
-- `src/lib/ai/budget-ledger.ts` concentra `reserveAtomic`, `settle` e `sweepOrphans`,
+- `src/lib/ai/budget-ledger.server.ts` concentra `reserveAtomic`, `settle` e `sweepOrphans`,
   com clock injetável, tenant autenticado, transações PostgreSQL, guard de status
   `reserved` e retry único seguro para falha de cliente após commit.
 - `src/lib/chat.functions.ts` chama a reserva de model round antes de `modelCaller`,
@@ -157,22 +157,37 @@ esperado — gateway=20, peak=16`. Com fix, T1/E1 confirmou exatamente uma invoc
 
 ## F4-2 — auditoria pré-publicação
 
-- Commits do fix antes da publicação: `839d99d` (implementação) e `d9c124e` (testes,
-  harness e evidências); tip completo `d9c124ec14928fa0fe2fe805cc2a38c84582c0d2`.
-- `git diff --name-only origin/develop` listou somente schema/migração, ledger, chat,
-  testes, documentação e estado; não listou `.env*`, `*.pem`, `*.key`, `credentials*`
-  ou `secrets*`.
-- `git diff --exit-code origin/develop -- src/routes/auth.tsx`: PASS, sem alteração.
-- `git diff --check`: PASS. `git ls-remote --heads origin
-wip/preservacao-c371032-20260826`: nenhuma ref remota; a preservação continua local.
+- Commits do fix antes da correção de empacotamento: `839d99d` (implementação) e
+  `d9c124e` (testes, harness e evidências); checkpoint publicado anterior
+  `899ec8b`; correção publicada `c2ff86f`.
+- `git diff --name-only origin/develop..HEAD` listou somente schema/migração, ledger,
+  executor server-only, chat, testes, documentação e estado; não listou `.env*`,
+  `*.pem`, `*.key`, `credentials*` ou `secrets*`.
+- `git diff --exit-code origin/develop..HEAD -- src/routes/auth.tsx`: PASS, sem
+  alteração. `git diff --check origin/develop..HEAD`: PASS.
+- `git ls-remote --heads origin wip/preservacao-c371032-20260826`: saída vazia;
+  nenhuma ref remota da preservação foi publicada.
 
 ## F4-3/F4-4 — publicação e CI
 
-- `git push origin fix/ai-budget-reservation-csf58b4`: PASS; o único ref criado foi a
-  branch `fix/*`.
-- PR draft #21 foi aberto para `develop`, com `isDraft=true`, `baseRefName=develop`,
-  `headRefName=fix/ai-budget-reservation-csf58b4` e `headRefOid=38f1f95508b4312348ad4c12d87455bc7856b1c2`.
-- No início do acompanhamento, os checks estavam `IN_PROGRESS`: workflow `UI stack`,
-  run `33031134077`; workflow `Neon preview database`, run `33031134027`.
+- `git push origin fix/ai-budget-reservation-csf58b4`: PASS para `c2ff86f`; operação
+  normal, sem force-push e sem alterar `main`/`develop`.
+- PR draft #21 está aberto para `develop`, com `isDraft=true`,
+  `baseRefName=develop`, `headRefName=fix/ai-budget-reservation-csf58b4` e
+  `headRefOid=c2ff86fdd9ab025d31199816aeb6682268e9f01f`.
+- No checkpoint anterior `899ec8b`, o `Neon preview database` `33031199219`
+  passou e o `SonarCloud Code Analysis` passou. O `UI stack` `33031199183` falhou
+  somente no passo `npm run build`, depois de compilar, por warnings não registrados
+  de módulos Node externalizados no browser (`node:crypto`, `pg`, `net`, `fs`,
+  `tls` e outros). O diagnóstico local atribuiu a regressão à exportação de
+  `sendChatMessageForTests` em `chat.functions.ts`, que expunha o grafo server-only
+  ao bundle cliente.
+- O build de `origin/develop` não emitiu warnings; após remover a exportação e
+  separar `src/lib/chat-execution.server.ts`,
+  `BUILD_RELEASE_CHANNEL=pre-beta-internal npm run build` passou com
+  `.artifacts/build-warnings.json` em `passed=true` e `observedWarnings=[]`.
+  `npm run check` completo passou no candidato corrigido.
+- `c2ff86f` foi publicado em `2026-08-27`; os workflows desse SHA ainda precisam
+  ser descobertos e aguardados dentro do limite bounded de F4-4.
 - O workflow de preview é observado somente como CI do PR; não houve endpoint Neon
   operado pela missão e H-003/Q-008 permanecem vigentes.
