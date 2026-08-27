@@ -18,6 +18,7 @@ operação externa — essas permanecem bloqueadas por Q-001/A1 (aberta) e pelo 
 | Proveniência dos merges              | `PRESUMIDO-HUMANO` | Q-009 — default C-19 aplicado (não-bloqueante), pendente de confirmação factual      |
 | Evidência final do fix               | `PASS`     | `docs/evidence/csf-58b444f-final-2026-08-27.md` + scan selado `2ca2b19a-3ab2-49a1-a436-0a9ab46b3fcd` |
 | Cutover de produção (F8)             | `BLOQUEADO` | Depende de Q-001/A1 (fresh provisioning OU URL somente leitura da fonte Supabase)             |
+| Readiness Neon no tip publicado `12c90a1` | `FALHOU (E6)` | Run `33080843742` (2026-08-27): boundary íntegro (branch descartável criada/deletada; migrações skipped; URLs provadas) mas `db:test` falhou em T6/E6 (`scripts/db/test-ai-budget.ts:427`) — suposição de wall-clock do harness sob latência Neon; **integridade segurou** (`peakActiveCalls <= 2` PASSOU; T1–T5 verdes); residual roteado ao harness do M-06 |
 
 ## Notas de escopo
 
