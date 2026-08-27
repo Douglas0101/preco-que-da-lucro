@@ -611,20 +611,16 @@ function createMemoryContractLedger(
     },
     async settle(usageId, _realTokens, _outcome, options = {}): Promise<SettlementResult> {
       const usage = usages.get(usageId);
-      if (!usage || usage.status !== "reserved") {
-        return { applied: false, usageId, budgetTokens: null, durationMs: null };
-      }
       const now = options.now ?? new Date();
-      usage.status = "settled";
-      const current = counter(usage.tenantId);
-      current.tokensReserved -= usage.budgetTokens;
-      current.inFlight -= 1;
-      return {
-        applied: true,
-        usageId,
-        budgetTokens: usage.budgetTokens,
-        durationMs: Math.max(0, now.getTime() - usage.reservedAt.getTime()),
-      };
+      if (usage?.status === "reserved") {
+        usage.status = "settled";
+        const current = counter(usage.tenantId);
+        current.tokensReserved -= usage.budgetTokens;
+        current.inFlight -= 1;
+        const durationMs = Math.max(0, now.getTime() - usage.reservedAt.getTime());
+        return { applied: true, usageId, budgetTokens: usage.budgetTokens, durationMs };
+      }
+      return { applied: false, usageId, budgetTokens: null, durationMs: null };
     },
     async sweepOrphans(tenantId, options = {}): Promise<SweepResult> {
       return sweep(tenantId, options.now ?? new Date());
