@@ -340,3 +340,30 @@ export const GATEWAY_TOOLS = DEFINITIONS.map((definition) => ({
     parameters: definition.parameters,
   },
 }));
+
+export type GatewayTool = (typeof GATEWAY_TOOLS)[number];
+
+/**
+ * Tools that are meaningful without a product in conversational context
+ * (plan §14.2). Every other tool is product-scoped and only offered once the
+ * conversation has a confirmed currentProductId. This narrows what the model
+ * can see per turn; runRegisteredTool's tenant/ownership checks remain the
+ * actual authorization boundary.
+ */
+export const GLOBAL_TOOL_NAMES = new Set(["create_product", "add_expense"]);
+
+export const PRODUCT_SCOPED_TOOL_NAMES = new Set(
+  DEFINITIONS.map((definition) => definition.name).filter((name) => !GLOBAL_TOOL_NAMES.has(name)),
+);
+
+const GATEWAY_TOOLS_BY_NAME = new Map(GATEWAY_TOOLS.map((tool) => [tool.function.name, tool]));
+
+/** Gateway tool list restricted to what the persisted conversation state allows. */
+export function gatewayToolsForState(currentProductId: string | null | undefined) {
+  const allowedNames = currentProductId
+    ? DEFINITIONS.map((definition) => definition.name)
+    : [...GLOBAL_TOOL_NAMES];
+  return allowedNames
+    .map((name) => GATEWAY_TOOLS_BY_NAME.get(name))
+    .filter((tool) => tool !== undefined);
+}

@@ -11,6 +11,9 @@ const lovableConfig = defineConfig({
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    // Split each route into its own chunk so the initial bundle only carries
+    // the visited route (plan mestre §17.6).
+    router: { autoCodeSplitting: true },
   },
   vite: {
     environments: {

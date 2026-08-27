@@ -1,0 +1,102 @@
+{
+  "documentType": "codex-security.scan-manifest",
+  "scan": {
+    "artifacts": [
+      {
+        "mediaType": "application/json",
+        "path": "findings.json",
+        "sha256": "54ff38e7cb1000ec90a137c92762cea9a20d91593caa9633dc4b36d25124a4a3"
+      },
+      {
+        "mediaType": "application/json",
+        "path": "coverage.json",
+        "sha256": "c23c486ea7f53eb82ed1ccdca3d21c4c23534653164b7e0c19e06fb658480052"
+      }
+    ],
+    "completedAt": "2026-08-27T03:07:45.167046Z",
+    "coverageRef": "coverage.json",
+    "findingsRef": "findings.json",
+    "id": "2ca2b19a-3ab2-49a1-a436-0a9ab46b3fcd",
+    "preservedSources": {
+      "checkpoints/49bf066112fd2ac618ebdf977213429862a77d0a0ced7d80d92eb56df3edb580.json": "c63b1afa1c8380c0adcd3f3de3e18684642a347424f85ffd2117af03d8adb94d",
+      "checkpoints/54d5a208c13c9326333c3719e58dd54918cee60a2eba87d7928fa0bd1456187b.json": "62ec028b7e390a0e3b1334a0659f4cbe27ca52c1e13d132d6e8d116867587be6",
+      "checkpoints/5da225fa08d1b626f3b911be13aee220dc4f8a11797f219e18109ac1c29a21ef.json": "5da225fa08d1b626f3b911be13aee220dc4f8a11797f219e18109ac1c29a21ef"
+    },
+    "producer": {
+      "name": "codex-security-plugin",
+      "version": "0.1.22"
+    },
+    "scope": {
+      "artifactsReviewed": [
+        "src/lib/ai/budget-ledger.server.ts",
+        "src/lib/chat-execution.server.ts",
+        "src/lib/chat.functions.ts",
+        "src/lib/chat-data.ts",
+        "src/db/schema.ts",
+        "drizzle/0006_loud_lockjaw.sql",
+        "scripts/db/test-ai-budget.ts",
+        "src/db/client.server.ts",
+        "src/lib/tools/runner.ts",
+        "src/lib/tools/registry.ts",
+        "src/middleware.ts",
+        "src/lib/auth-policy.ts"
+      ],
+      "context": "Validate atomic budget reservation, idempotent settlement, orphan TTL sweep, per-tool-round accounting, tenant boundary, and server-only packaging.",
+      "excludePaths": [],
+      "includePaths": ["."],
+      "limitations": [
+        "Coverage is partial: six bounded security surfaces reviewed from a 240-file target inventory.",
+        "The scan does not validate Neon, production, migration/cutover state, provider billing, or real external traffic.",
+        "Banach found a direct test-only callModelForTests export/consumer seam; no productive bypass was found.",
+        "A double transaction failure during settlement can defer correction to the lazy TTL sweep; one bounded retry reduces but does not eliminate this operational residual.",
+        "The local full check has a reproducible unrelated finance property-test failure; the changed security path and remote CI are green."
+      ],
+      "runtimeStatus": "PostgreSQL 17 with node-postgres was exercised locally; neon-serverless is covered only by ledger contract tests; no Neon endpoint or real provider was used.",
+      "summary": "Local Standard security re-scan of the exact fix tip e61c8c80ed7477828e0f44fd6a0c4f799ae9aa48 for the ai-budget-race finding.",
+      "validationMode": "Bounded semantic Standard review plus executable local PostgreSQL tests and CI evidence."
+    },
+    "sealedAt": "2026-08-27T03:07:45.167046Z",
+    "startedAt": "2026-08-27T03:01:57.224633Z",
+    "status": "completed",
+    "target": {
+      "displayName": "preco-que-d-main",
+      "kind": "git_revision",
+      "revision": "e61c8c80ed7477828e0f44fd6a0c4f799ae9aa48",
+      "targetId": "target_sha256_8e4a601a221b879e44fb1eb0802956f976c9574e78ec7dd8f4d6c9fa0f86b8b9"
+    },
+    "threatModel": {
+      "assets": [
+        "per-tenant model-call quota",
+        "per-tenant token quota",
+        "per-tenant in-flight quota",
+        "ai_usage settlement and audit records",
+        "tenant isolation and gateway credentials"
+      ],
+      "assumptions": [
+        "local PostgreSQL 17 is representative for the active node-postgres path",
+        "neon-serverless contract coverage is interface-level only under H-003",
+        "real Neon, production, and provider behavior are outside this scan"
+      ],
+      "attackerCapabilities": [
+        "submit authenticated messages concurrently",
+        "retry requests or repeat settlement-triggering paths",
+        "trigger timeout, abort, provider error, and tool-round paths"
+      ],
+      "securityObjectives": [
+        "reserve budget atomically before gateway contact",
+        "return deterministic AI_QUOTA without external contact when reservation fails",
+        "settle each usage at most once and recover expired orphan reservations",
+        "prevent cross-tenant budget access",
+        "keep the gateway caller server-only"
+      ],
+      "summary": "Authenticated tenant members can submit concurrent messages, retries, tool calls, and requests that fail or abort; the protected assets are tenant budget counters, ai_usage settlement state, tenant isolation, and gateway credentials.",
+      "trustBoundaries": [
+        "authenticated request to server action",
+        "server execution layer to PostgreSQL ledger",
+        "server execution layer to external AI gateway",
+        "tenant transaction and RLS boundary"
+      ]
+    }
+  },
+  "schemaVersion": "1.0"
+}

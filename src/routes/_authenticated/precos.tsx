@@ -8,6 +8,7 @@ import { toDecimalString } from "@/lib/financial-values";
 import { brl } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -223,7 +224,27 @@ function PurchasePriceContent({
   onDraftChange: (id: string, value: string) => void;
   onSave: (item: Item) => Promise<void>;
 }>) {
-  if (isPending) return <div className="text-muted-foreground">Carregando...</div>;
+  if (isPending) {
+    return (
+      <div className="space-y-4" aria-hidden="true">
+        {[0, 1].map((group) => (
+          <Card key={group}>
+            <CardHeader>
+              <Skeleton className="h-5 w-44" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[0, 1, 2].map((row) => (
+                <div key={row} className="flex items-center justify-between gap-4">
+                  <Skeleton className="h-4 flex-1" />
+                  <Skeleton className="h-9 w-36" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
   if (isError) {
     return (
       <Card role="alert" className="border-destructive/40">

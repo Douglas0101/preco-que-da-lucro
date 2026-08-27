@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import { listProductsWithMetrics } from "@/lib/products.functions";
-import { runSimulation } from "@/lib/financial.functions";
-import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
+import {
+  expensesQueryOptions,
+  financialSimulationQueryOptions,
+  productsWithMetricsQueryOptions,
+} from "@/lib/query-options";
 import { sumFiniteNumbers, type FeeRow, type ProductComputation } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,145 +40,109 @@ type ProductBaseline = ProductComputation & {
   fees: FeeRow[];
 };
 
+type SimulationForm = {
+  productId: string;
+  price: string;
+  unitCost: string;
+  fixed: string;
+  volume: string;
+};
+
 function Simulacoes() {
-  const [details, setDetails] = useState<Awaited<ReturnType<typeof listProductsWithMetrics>>>([]);
-  const products = details.map((detail) => detail.product);
   const [productId, setProductId] = useState("");
-  const [fixed, setFixed] = useState(0);
-  const [loadStatus, setLoadStatus] = useState<LoadStatus>("loading");
-  const [base, setBase] = useState<ProductBaseline | null>(null);
-  const [productStatus, setProductStatus] = useState<ProductStatus>("idle");
-  const [errorReference, setErrorReference] = useState<string | null>(null);
-  const [sim, setSim] = useState({ price: "", unitCost: "", fixed: "", volume: "" });
+  const [sim, setSim] = useState<SimulationForm>({
+    productId: "",
+    price: "",
+    unitCost: "",
+    fixed: "",
+    volume: "",
+  });
   const [productsQuery, expensesQuery] = useQueries({
     queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
   });
 
-  useEffect(() => {
-    if (productsQuery.isPending || expensesQuery.isPending) {
-      setLoadStatus("loading");
-      return;
+  const details = productsQuery.data ?? [];
+  const products = details.map((detail) => detail.product);
+  const selectedProductId =
+    productId && products.some((product) => product.id === productId)
+      ? productId
+      : (products[0]?.id ?? "");
+  const selectedDetail = details.find((detail) => detail.product.id === selectedProductId);
+  const fixed = sumFiniteNumbers(
+    (expensesQuery.data ?? [])
+      .filter((expense) => expense.type === "fixa")
+      .map((expense) => Number(expense.amount)),
+  );
+  const loadStatus: LoadStatus =
+    productsQuery.isPending || expensesQuery.isPending
+      ? "loading"
+      : productsQuery.isError || expensesQuery.isError
+        ? "error"
+        : !Number.isFinite(fixed)
+          ? "invalid"
+          : details.length === 0
+            ? "empty"
+            : "ready";
+  const errorReference = useMemo(
+    () => (loadStatus === "error" || !selectedDetail ? createErrorReference("SIM") : null),
+    [loadStatus, selectedDetail],
+  );
+  const base = useMemo<ProductBaseline | null>(() => {
+    if (loadStatus !== "ready" || !selectedDetail || selectedDetail.metrics.status !== "ok") {
+      return null;
     }
-    if (productsQuery.isError || expensesQuery.isError) {
-      setDetails([]);
-      setProductId("");
-      setErrorReference(createErrorReference("SIM"));
-      setLoadStatus("error");
-      return;
-    }
-
-    const loadedDetails = productsQuery.data;
-    const expenses = expensesQuery.data;
-    const fixedExpenses = sumFiniteNumbers(
-      expenses
-        .filter((expense) => expense.type === "fixa")
-        .map((expense) => Number(expense.amount)),
-    );
-
-    setDetails(loadedDetails);
-    setFixed(fixedExpenses);
-    if (!Number.isFinite(fixedExpenses)) {
-      setLoadStatus("invalid");
-      return;
-    }
-    if (loadedDetails.length === 0) {
-      setProductId("");
-      setLoadStatus("empty");
-      return;
-    }
-
-    setProductId(loadedDetails[0].product.id);
-    setErrorReference(null);
-    setLoadStatus("ready");
-  }, [
-    expensesQuery.data,
-    expensesQuery.isError,
-    expensesQuery.isPending,
-    productsQuery.data,
-    productsQuery.isError,
-    productsQuery.isPending,
-  ]);
-
-  useEffect(() => {
-    if (loadStatus !== "ready" || !productId) return;
-
-    let cancelled = false;
-    setBase(null);
-    setErrorReference(null);
-    setProductStatus("loading");
-
-    void (async () => {
-      try {
-        const detail = details.find((item) => item.product.id === productId);
-        if (!detail) {
-          if (!cancelled) {
-            setErrorReference(createErrorReference("SIM"));
-            setProductStatus("error");
-          }
-          return;
-        }
-
-        const product = detail.product;
-        const feeRows = detail.fees.map((fee) => ({
-          percentage: Number(fee.percentage) * 100,
-        })) satisfies FeeRow[];
-        const computation = detail.metrics;
-        if (computation.status !== "ok") {
-          setProductStatus(computation.status);
-          return;
-        }
-
-        const price = Number(product.current_price); // pós-guarda: computeProduct validou presença/finitude
-        setBase({
-          ...computation.value,
-          name: product.name,
-          price,
-          taxRate: product.tax_rate == null ? null : Number(product.tax_rate) * 100,
-          fees: feeRows,
-        });
-        setSim({
-          price: String(price),
-          unitCost: String(computation.value.unitCost.toFixed(2)),
+    const product = selectedDetail.product;
+    return {
+      ...selectedDetail.metrics.value,
+      name: product.name,
+      price: Number(product.current_price),
+      taxRate: product.tax_rate == null ? null : Number(product.tax_rate) * 100,
+      fees: selectedDetail.fees.map((fee) => ({
+        percentage: Number(fee.percentage) * 100,
+      })) satisfies FeeRow[],
+    };
+  }, [loadStatus, selectedDetail]);
+  const productStatus: ProductStatus =
+    loadStatus !== "ready" || !selectedProductId
+      ? "idle"
+      : !selectedDetail
+        ? "error"
+        : selectedDetail.metrics.status;
+  const currentSim: SimulationForm =
+    sim.productId === selectedProductId
+      ? sim
+      : {
+          productId: selectedProductId,
+          price: base ? String(base.price) : "",
+          unitCost: base ? String(base.unitCost.toFixed(2)) : "",
           fixed: String(fixed),
           volume: "",
-        });
-        setErrorReference(null);
-        setProductStatus("ok");
-      } catch {
-        if (cancelled) return;
-        setBase(null);
-        setErrorReference(createErrorReference("SIM"));
-        setProductStatus("error");
-      }
-    })();
+        };
+  const updateSim = (patch: Partial<Omit<SimulationForm, "productId">>) => {
+    setSim({ ...currentSim, ...patch, productId: selectedProductId });
+  };
 
-    return () => {
-      cancelled = true;
-    };
-  }, [details, fixed, loadStatus, productId]);
-
+  const simulationInput = {
+    price: toApiDecimal(currentSim.price),
+    unitCost: toApiDecimal(currentSim.unitCost),
+    fixedExpenses: toApiDecimal(currentSim.fixed),
+    volume: toApiDecimal(currentSim.volume),
+    taxRate: base?.taxRate == null ? null : String(base.taxRate),
+    fees:
+      base?.fees.map((fee) => ({
+        percentage: fee.percentage == null ? null : String(fee.percentage),
+      })) ?? [],
+    volumeSource: "manual_simulation" as const,
+  };
   const simulationQuery = useQuery({
-    queryKey: ["financial-simulation", base?.name, sim.price, sim.unitCost, sim.fixed, sim.volume],
-    queryFn: () =>
-      runSimulation({
-        data: {
-          price: toApiDecimal(sim.price),
-          unitCost: toApiDecimal(sim.unitCost),
-          fixedExpenses: toApiDecimal(sim.fixed),
-          volume: toApiDecimal(sim.volume),
-          taxRate: base?.taxRate == null ? null : String(base.taxRate),
-          fees:
-            base?.fees.map((fee) => ({
-              percentage: fee.percentage == null ? null : String(fee.percentage),
-            })) ?? [],
-          volumeSource: "manual_simulation",
-        },
-      }),
+    ...financialSimulationQueryOptions(simulationInput),
     enabled: base !== null,
-    staleTime: 0,
-    retry: false,
   });
   const simulated = simulationQuery.data ?? null;
+  const simulationErrorReference = useMemo(
+    () => (simulationQuery.isError ? createErrorReference("SIM") : null),
+    [simulationQuery.isError],
+  );
 
   const missingFields =
     simulated?.status === "incomplete" ? simulated.missing.map((missing) => missing.field) : [];
@@ -227,7 +193,7 @@ function Simulacoes() {
           <CardContent className="p-5">
             <div className="max-w-md space-y-1">
               <Label htmlFor="simulacoes-produto">Produto</Label>
-              <Select value={productId} onValueChange={setProductId}>
+              <Select value={selectedProductId} onValueChange={setProductId}>
                 <SelectTrigger id="simulacoes-produto">
                   <SelectValue placeholder="Escolha um produto" />
                 </SelectTrigger>
@@ -264,37 +230,43 @@ function Simulacoes() {
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
+              {simulationQuery.isError && (
+                <RemoteErrorState
+                  message="Não foi possível calcular a simulação."
+                  reference={simulationErrorReference}
+                />
+              )}
               <Field
                 id="simulacao-preco-venda"
                 label="Preço de venda simulado (R$)"
-                value={sim.price}
+                value={currentSim.price}
                 describedBy={describesIssue("price") ? issueDescriptionId : undefined}
                 invalid={invalidFields.includes("price")}
-                onChange={(value) => setSim({ ...sim, price: value })}
+                onChange={(value) => updateSim({ price: value })}
               />
               <Field
                 id="simulacao-custo-unitario"
                 label="Custo unitário simulado (R$)"
-                value={sim.unitCost}
+                value={currentSim.unitCost}
                 describedBy={describesIssue("unitCost") ? issueDescriptionId : undefined}
                 invalid={invalidFields.includes("unitCost")}
-                onChange={(value) => setSim({ ...sim, unitCost: value })}
+                onChange={(value) => updateSim({ unitCost: value })}
               />
               <Field
                 id="simulacao-despesas-fixas"
                 label="Despesas fixas no escopo simulado (R$)"
-                value={sim.fixed}
+                value={currentSim.fixed}
                 describedBy={describesIssue("fixedExpenses") ? issueDescriptionId : undefined}
                 invalid={invalidFields.includes("fixedExpenses")}
-                onChange={(value) => setSim({ ...sim, fixed: value })}
+                onChange={(value) => updateSim({ fixed: value })}
               />
               <Field
                 id="simulacao-volume-vendas"
                 label="Vendas simuladas (unidades)"
-                value={sim.volume}
+                value={currentSim.volume}
                 describedBy={describesIssue("volume") ? issueDescriptionId : undefined}
                 invalid={invalidFields.includes("volume")}
-                onChange={(value) => setSim({ ...sim, volume: value })}
+                onChange={(value) => updateSim({ volume: value })}
               />
 
               {simulated?.status === "incomplete" && (

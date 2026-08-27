@@ -557,12 +557,25 @@ async function assertPurchasePriceConcurrency(adminUrl: string): Promise<void> {
   }
 }
 
-async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<void> {
-  const rollbackSql = await readFile(resolve("drizzle/rollback/0004_to_0003_down.sql"), "utf8");
-  await client.query(rollbackSql);
+async function rollbackTo0003(client: Client): Promise<void> {
+  // O chain pode ter migrations após a 0004 (0005 e 0006); o rollback precisa
+  // desfazer tudo até a 0003 e remover as entradas correspondentes do journal,
+  // senão o re-run tenta CREATE/ADD/DROP em objetos que ainda existem.
+  const downSqls = [
+    await readFile(resolve("drizzle/rollback/0006_to_0005_down.sql"), "utf8"),
+    await readFile(resolve("drizzle/rollback/0005_to_0004_down.sql"), "utf8"),
+    await readFile(resolve("drizzle/rollback/0004_to_0003_down.sql"), "utf8"),
+  ];
+  for (const sql of downSqls) {
+    await client.query(sql);
+  }
   await client.query(
-    "delete from drizzle.__drizzle_migrations where id = (select max(id) from drizzle.__drizzle_migrations)",
+    "delete from drizzle.__drizzle_migrations where id in (select id from drizzle.__drizzle_migrations order by id desc limit 3)",
   );
+}
+
+async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<void> {
+  await rollbackTo0003(client);
 
   await client.query(
     `insert into sales (id, tenant_id, user_id, occurred_at, gross_amount, net_amount, channel)
@@ -593,10 +606,7 @@ async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<
     "preflight deve reconciliar gross_amount com a soma corrigida dos itens, sem tocar net_amount",
   );
 
-  await client.query(rollbackSql);
-  await client.query(
-    "delete from drizzle.__drizzle_migrations where id = (select max(id) from drizzle.__drizzle_migrations)",
-  );
+  await rollbackTo0003(client);
 
   await client.query(
     `insert into sales (id, tenant_id, user_id, occurred_at, gross_amount, net_amount, channel)

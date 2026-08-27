@@ -1,5 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { simulations, type Simulation } from "@/db/schema";
+import { LIST_LIMITS } from "@/lib/list-limits";
 import type { RequestContext } from "@/lib/request-context";
 
 export interface SimulationRecordWrite {
@@ -22,7 +23,8 @@ export class DrizzleSimulationRepository implements SimulationRepository {
       .select()
       .from(simulations)
       .where(eq(simulations.tenantId, context.tenantId))
-      .orderBy(desc(simulations.createdAt));
+      .orderBy(desc(simulations.createdAt))
+      .limit(LIST_LIMITS.simulations);
   }
 
   async append(context: RequestContext, input: SimulationRecordWrite): Promise<Simulation> {
