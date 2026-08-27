@@ -9,9 +9,10 @@ Este arquivo não contém credenciais, tokens, URLs Neon reais ou conteúdo de m
 - Finding: `csf_58b444f152e35ba899b5381e` (CWE-770).
 - Branch do fix: `fix/ai-budget-reservation-csf58b4`.
 - Base ratificada: `origin/develop` em `339efb0d02db1c2b868c41d87821357d61f4b021`.
+- Tip local do fix antes do push: `d9c124ec14928fa0fe2fe805cc2a38c84582c0d2`.
 - Preservação local: `wip/preservacao-c371032-20260826`, não publicada.
 - Início desta execução v3: `2026-08-26T21:43:51-03:00`.
-- Última atualização: `2026-08-27T01:39:16Z`.
+- Última atualização: `2026-08-27T01:44:09Z`.
 
 ## Decisões humanas — transcrição verbatim
 
@@ -53,27 +54,27 @@ Este arquivo não contém credenciais, tokens, URLs Neon reais ou conteúdo de m
 
 Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 
-| Tarefa                                | Status  | Evidência / predicado de retomada                                                                      |
-| ------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------ |
-| T-00 / partida histórica              | DONE    | Log de execução preservado; worktree inicial catalogado                                                |
-| T-01 / preservação histórica          | DONE    | `a14fdb9` na `wip/`, não publicada                                                                     |
-| T-02 / SHA histórico                  | DONE    | `origin/develop=339efb0d02db1c2b868c41d87821357d61f4b021`                                              |
-| T-03 / SPEC-RATIFICADA histórica      | DONE    | Diff vazio de `src/lib/chat.functions.ts`; saída (a)                                                   |
-| F1-1 / branch, evidências e estado    | DONE    | `10d257d9fa0a9697616cf08ba423db30c183dead`; G-AMBIENTE-0 passou                                        |
-| F1-2 / auditoria ambiental C-11       | DONE    | `docs/auditoria-ambiental-2026-08-26.md`; G-AMBIENTE passou                                            |
-| F1-3 / schema local                   | DONE    | `drizzle/0006_loud_lockjaw.sql`; `db:check` passou; migration aplicada duas vezes; objetos verificados |
-| F2-1 / módulo budget-ledger           | DONE    | `src/lib/ai/budget-ledger.ts`; reserve/settle/sweep; typecheck + T1–T10 verdes                         |
-| F2-2 / integração no chat             | DONE    | Reserva antes de `modelCaller`; finally liquida cada round; nenhum SQL de orçamento em chat            |
-| F2-3 / configuração e observabilidade | DONE    | Defaults e eventos estruturados registrados abaixo; Q-005 resolvida                                    |
-| F3-1 / T1–T10                         | DONE    | `npm run db:test` e runner focado verdes no PostgreSQL 17 local                                        |
-| F3-2 / T-CN                           | DONE    | Baseline sem fix: gateway=20; fix: E1 gateway=1                                                        |
-| F4-1 / qualidade                      | DONE    | UI/no-Supabase/formatação/lint/typecheck/test/build/bundle verdes                                      |
-| F4-2 / secrets                        | PENDING | Depende de F4-1                                                                                        |
-| F4-3 / push e PR draft                | PENDING | Depende de F4-2; nunca merge                                                                           |
-| F4-4 / CI                             | PENDING | Depende de F4-3; wait total máximo 15 min                                                              |
-| F4-5 / re-scan                        | PENDING | Depende de F4-4; Standard local no tip                                                                 |
-| F4-6 / canário auth                   | PENDING | Depende de F4-3; diff deve ser vazio                                                                   |
-| F4-7 / relatório final                | PENDING | Depende de F4-5 e F4-6                                                                                 |
+| Tarefa                                | Status      | Evidência / predicado de retomada                                                                      |
+| ------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------ |
+| T-00 / partida histórica              | DONE        | Log de execução preservado; worktree inicial catalogado                                                |
+| T-01 / preservação histórica          | DONE        | `a14fdb9` na `wip/`, não publicada                                                                     |
+| T-02 / SHA histórico                  | DONE        | `origin/develop=339efb0d02db1c2b868c41d87821357d61f4b021`                                              |
+| T-03 / SPEC-RATIFICADA histórica      | DONE        | Diff vazio de `src/lib/chat.functions.ts`; saída (a)                                                   |
+| F1-1 / branch, evidências e estado    | DONE        | `10d257d9fa0a9697616cf08ba423db30c183dead`; G-AMBIENTE-0 passou                                        |
+| F1-2 / auditoria ambiental C-11       | DONE        | `docs/auditoria-ambiental-2026-08-26.md`; G-AMBIENTE passou                                            |
+| F1-3 / schema local                   | DONE        | `drizzle/0006_loud_lockjaw.sql`; `db:check` passou; migration aplicada duas vezes; objetos verificados |
+| F2-1 / módulo budget-ledger           | DONE        | `src/lib/ai/budget-ledger.ts`; reserve/settle/sweep; typecheck + T1–T10 verdes                         |
+| F2-2 / integração no chat             | DONE        | Reserva antes de `modelCaller`; finally liquida cada round; nenhum SQL de orçamento em chat            |
+| F2-3 / configuração e observabilidade | DONE        | Defaults e eventos estruturados registrados abaixo; Q-005 resolvida                                    |
+| F3-1 / T1–T10                         | DONE        | `npm run db:test` e runner focado verdes no PostgreSQL 17 local                                        |
+| F3-2 / T-CN                           | DONE        | Baseline sem fix: gateway=20; fix: E1 gateway=1                                                        |
+| F4-1 / qualidade                      | DONE        | UI/no-Supabase/formatação/lint/typecheck/test/build/bundle verdes                                      |
+| F4-2 / secrets                        | DONE        | Diff sem `.env*`, chaves, credentials ou secrets; canário auth vazio                                   |
+| F4-3 / push e PR draft                | IN_PROGRESS | Push normal de `fix/*` autorizado; nunca merge                                                         |
+| F4-4 / CI                             | PENDING     | Depende de F4-3; wait total máximo 15 min                                                              |
+| F4-5 / re-scan                        | PENDING     | Depende de F4-4; Standard local no tip                                                                 |
+| F4-6 / canário auth                   | PENDING     | Depende de F4-3; diff deve ser vazio                                                                   |
+| F4-7 / relatório final                | PENDING     | Depende de F4-5 e F4-6                                                                                 |
 
 ## Registro de gates
 
@@ -151,3 +152,14 @@ esperado — gateway=20, peak=16`. Com fix, T1/E1 confirmou exatamente uma invoc
 - Noether: revisão final pós-quality gate foi encerrada após a janela bounded sem handoff
   transferível; conforme C-12, silêncio não foi tratado como aprovação, rejeição ou
   evidência. O handoff válido de Hume permanece a revisão final transferível.
+
+## F4-2 — auditoria pré-publicação
+
+- Commits do fix antes da publicação: `839d99d` (implementação) e `d9c124e` (testes,
+  harness e evidências); tip completo `d9c124ec14928fa0fe2fe805cc2a38c84582c0d2`.
+- `git diff --name-only origin/develop` listou somente schema/migração, ledger, chat,
+  testes, documentação e estado; não listou `.env*`, `*.pem`, `*.key`, `credentials*`
+  ou `secrets*`.
+- `git diff --exit-code origin/develop -- src/routes/auth.tsx`: PASS, sem alteração.
+- `git diff --check`: PASS. `git ls-remote --heads origin
+wip/preservacao-c371032-20260826`: nenhuma ref remota; a preservação continua local.
