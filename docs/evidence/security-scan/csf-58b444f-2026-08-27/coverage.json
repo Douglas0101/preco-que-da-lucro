@@ -1,0 +1,99 @@
+{
+  "completeness": "partial",
+  "deferred": [
+    {
+      "id": "standard-scan-remainder",
+      "paths": ["."],
+      "reason": "Repository remainder outside the six bounded security surfaces was inventoried but not reviewed to exhaustive depth in this local Standard pass."
+    },
+    {
+      "id": "test-only-gateway-seam",
+      "paths": ["src/lib/chat.functions.ts", "src/test/model-gateway.test.ts"],
+      "reason": "Banach identified callModelForTests as a direct test-only gateway seam; no productive consumer or production bypass was found, but the seam remains a residual review item."
+    }
+  ],
+  "documentType": "codex-security.coverage",
+  "excludePaths": [],
+  "explicitExclusions": [
+    {
+      "pattern": "Neon endpoints and production infrastructure",
+      "reason": "H-003 and the v3 mandate prohibit real Neon/production access."
+    },
+    {
+      "pattern": "real provider billing or external gateway traffic",
+      "reason": "The plan authorizes mocks/local tests only; no real provider credit may be spent."
+    },
+    {
+      "pattern": "src/routes/auth.tsx",
+      "reason": "The mandate explicitly prohibits editing or using this canary as implementation scope."
+    },
+    {
+      "pattern": "TAC or chatgpt.com/cyber",
+      "reason": "TAC is not granted; the scan is local Standard only and does not bypass enrollment."
+    },
+    {
+      "pattern": "REQ-012 D1/Workers portability",
+      "reason": "Portability is explicitly deferred pending a future human architectural decision."
+    }
+  ],
+  "includePaths": ["."],
+  "inventoryStrategy": "repository",
+  "mode": "repository",
+  "openQuestions": [
+    {
+      "question": "Whether to remove or further constrain the test-only callModelForTests export is outside the authorized production write-set and remains for human review."
+    }
+  ],
+  "scanId": "2ca2b19a-3ab2-49a1-a436-0a9ab46b3fcd",
+  "schemaVersion": "1.0",
+  "surfaces": [
+    {
+      "disposition": "no_issue_found",
+      "id": "ai-budget-admission-settlement",
+      "label": "AI budget admission and settlement",
+      "notes": "Reviewed src/lib/ai/budget-ledger.server.ts, src/db/schema.ts, and drizzle/0006_loud_lockjaw.sql. T1-T10 passed against local PostgreSQL 17.",
+      "receiptRefs": [],
+      "riskArea": "Atomic quota reservation, idempotent settlement, and orphan recovery"
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "chat-gateway-entrypoint",
+      "label": "Chat gateway entrypoint",
+      "notes": "Reviewed src/lib/chat-execution.server.ts and src/lib/chat.functions.ts. Reservation precedes the production model fetch, each round settles in finally, and chat.functions.ts contains no budget SQL.",
+      "receiptRefs": [],
+      "riskArea": "Pre-fetch admission and external AI gateway reachability"
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "tenant-and-rls-boundary",
+      "label": "Tenant and RLS boundary",
+      "notes": "Reviewed tenant transaction handling, PostgreSQL RLS policy, runtime grants, and server-side database selection in src/db/schema.ts, src/db/client.server.ts, and src/lib/chat-data.ts.",
+      "receiptRefs": [],
+      "riskArea": "Tenant isolation and database authorization"
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "tool-round-boundary",
+      "label": "Tool-round boundary",
+      "notes": "Reviewed the tool execution path and its integration with src/lib/chat-execution.server.ts. T5 and tool-round regression checks passed.",
+      "receiptRefs": [],
+      "riskArea": "Independent budget accounting for tool rounds"
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "server-only-packaging",
+      "label": "Server-only packaging",
+      "notes": "The build-boundary correction was verified by a successful production build and green UI-stack CI at e61c8c8.",
+      "receiptRefs": [],
+      "riskArea": "Client/server module boundary around gateway and ledger code"
+    },
+    {
+      "disposition": "needs_follow_up",
+      "id": "repository-remaining-surfaces",
+      "label": "Repository remaining surfaces",
+      "notes": "The target inventory contains 240 files; this bounded Standard pass has six scoped review receipts and does not claim exhaustive coverage or absence of other vulnerabilities.",
+      "receiptRefs": [],
+      "riskArea": "Unreviewed repository scope"
+    }
+  ]
+}
