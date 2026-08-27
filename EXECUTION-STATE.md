@@ -10,6 +10,8 @@ Este arquivo não contém credenciais, tokens, URLs Neon reais ou conteúdo de m
 - Branch do fix: `fix/ai-budget-reservation-csf58b4`.
 - Base ratificada: `origin/develop` em `339efb0d02db1c2b868c41d87821357d61f4b021`.
 - Tip local do fix antes do push: `d9c124ec14928fa0fe2fe805cc2a38c84582c0d2`.
+- Tip publicado do fix: `38f1f95508b4312348ad4c12d87455bc7856b1c2`.
+- PR draft: `#21` — https://github.com/Douglas0101/preco-que-da-lucro/pull/21.
 - Preservação local: `wip/preservacao-c371032-20260826`, não publicada.
 - Início desta execução v3: `2026-08-26T21:43:51-03:00`.
 - Última atualização: `2026-08-27T01:44:09Z`.
@@ -70,8 +72,8 @@ Status permitidos: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 | F3-2 / T-CN                           | DONE        | Baseline sem fix: gateway=20; fix: E1 gateway=1                                                        |
 | F4-1 / qualidade                      | DONE        | UI/no-Supabase/formatação/lint/typecheck/test/build/bundle verdes                                      |
 | F4-2 / secrets                        | DONE        | Diff sem `.env*`, chaves, credentials ou secrets; canário auth vazio                                   |
-| F4-3 / push e PR draft                | IN_PROGRESS | Push normal de `fix/*` autorizado; nunca merge                                                         |
-| F4-4 / CI                             | PENDING     | Depende de F4-3; wait total máximo 15 min                                                              |
+| F4-3 / push e PR draft                | DONE        | Push normal concluído; PR draft #21 aberto; nunca merge                                                |
+| F4-4 / CI                             | IN_PROGRESS | PR #21 checks 33031134027/33031134077 em execução; wait total máximo 15 min                            |
 | F4-5 / re-scan                        | PENDING     | Depende de F4-4; Standard local no tip                                                                 |
 | F4-6 / canário auth                   | PENDING     | Depende de F4-3; diff deve ser vazio                                                                   |
 | F4-7 / relatório final                | PENDING     | Depende de F4-5 e F4-6                                                                                 |
@@ -163,3 +165,14 @@ esperado — gateway=20, peak=16`. Com fix, T1/E1 confirmou exatamente uma invoc
 - `git diff --exit-code origin/develop -- src/routes/auth.tsx`: PASS, sem alteração.
 - `git diff --check`: PASS. `git ls-remote --heads origin
 wip/preservacao-c371032-20260826`: nenhuma ref remota; a preservação continua local.
+
+## F4-3/F4-4 — publicação e CI
+
+- `git push origin fix/ai-budget-reservation-csf58b4`: PASS; o único ref criado foi a
+  branch `fix/*`.
+- PR draft #21 foi aberto para `develop`, com `isDraft=true`, `baseRefName=develop`,
+  `headRefName=fix/ai-budget-reservation-csf58b4` e `headRefOid=38f1f95508b4312348ad4c12d87455bc7856b1c2`.
+- No início do acompanhamento, os checks estavam `IN_PROGRESS`: workflow `UI stack`,
+  run `33031134077`; workflow `Neon preview database`, run `33031134027`.
+- O workflow de preview é observado somente como CI do PR; não houve endpoint Neon
+  operado pela missão e H-003/Q-008 permanecem vigentes.
