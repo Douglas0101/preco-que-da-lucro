@@ -295,6 +295,54 @@ db:test` = PASS (T1–T10); `npm run check` = PASS (26 arquivos/273 testes,
   Q-024 e Q-001/A1 permanecem pendentes; o scan integral novo de S3 ainda é
   obrigatório antes de qualquer pacote C6 ou ação remota.
 
+## Execução SDD v5.1-EXEC — S3 — 2026-08-28
+
+- O relatório endereçável da rodada está em
+  `docs/evidence/s3-security-scan-2026-08-28.md`. O scan foi executado depois
+  de S1/S4/S2, em árvore quiescente, sem fetch, push, merge, GitHub, Neon,
+  produção ou remediações.
+- O security diff scan oficial `fa8f03a6-a7f0-45c5-8b80-5614a6a64003` cobriu a
+  faixa local exata `12c90a17f81edd5a126c2e32c3f703c8b7841f87..e5adbcf2f7a3a50786deb0e01457da55368f46aa`.
+  O workbench selou `complete`, com inventário compacto 7/7, cobertura
+  `complete` e **0 findings reportáveis**. Não houve candidatos para validação
+  ou attack-path analysis.
+- Snapshot digest selado:
+  `codex-security-snapshot/v1:sha256:ef4e857bd1cc67af74e069b9014a30abc6c3e0dfc07cfe366f72eea4cd61e56e`.
+  Hashes dos artefatos: `findings.json`
+  `57251009dd2949d2e66ac9c0d2a7d868a7d6e1c2465dc6a8f543c3fcddaf7801`;
+  `coverage.json`
+  `5b0cbca36dfdf4cac258bf1d03b2bb821ac74021e7aa407ddb8a8908f8ab0d53`;
+  `scan-manifest.json`
+  `b5eae695d0dee5981371b067372ae87368bf0b178072085de032dcdcdc6b6448`;
+  `report.md`
+  `66f83b5edcf81f62bb936344d276ea34075aa3a74e8d14803a4ea477484871a5`;
+  SARIF `05bdc64f9c832b05809030d82eacc96ec9e54badf17fbcc64ef31a14f4ef33df`.
+  Os artefatos canônicos estão no diretório temporário selado registrado no
+  relatório S3 e não foram normalizados.
+- As sete superfícies alteradas receberam `no_issue_found`. A revisão direta
+  de `src/server/repositories/ai-tool.repository.ts` também rastreou o
+  executor produtivo, schema e RLS: o repositório novo possui predicados
+  tenant+usuário, mas ainda não é importado por `src/lib/ai/tool-runner.ts`.
+  Sem caminho de ID controlado pelo atacante e com RLS como controle efetivo
+  local, isso foi mantido como pendência arquitetural, não finding reportável;
+  a integração permanece fora desta rodada.
+- TAC retornou `not_granted`; a revisão local prosseguiu com esse limite. Não há
+  `SECURITY.md` na raiz. O threat model gerado foi preservado no artefato
+  `artifacts/01_context/threat_model.md` do scan selado.
+- Newton foi subagent read-only com write-set vazio. Foi aguardado em janela
+  bounded e encerrado sem handoff transferível; sua observação foi contexto,
+  não aprovação. A ausência foi registrada conforme D-15/C-12.
+- S3 fecha a lacuna de scan integral/R10.2 no candidato `e5adbcf`, mas não
+  consome Q-017 nem qualquer outro gate. Q-017, Q-019, Q-020, Q-021, Q-022,
+  Q-023, Q-024 e Q-001/A1 permanecem pendentes. A branch segue local, com
+  tracking ref sem fetch e `.pi/` preservado.
+- O marker parent-pinned será validado no commit documental desta rodada; seu
+  parent esperado é o candidato atualmente selado:
+
+  ```text
+  Latest state marker parent = `e5adbcf2f7a3a50786deb0e01457da55368f46aa`
+  ```
+
 ---
 
 ## Ledger de módulos e tarefas
