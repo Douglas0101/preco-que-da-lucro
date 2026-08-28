@@ -179,6 +179,34 @@ Resolvidas (histórico): Q-005..Q-008 (v3), Q-011 (H-004).
 - P1 ainda não consome Q-017: todos os commits são locais e a branch continua
   sem push. `.pi/` permanece não rastreado conforme Q-021.
 
+## Execução SDD v5.1-EXEC — P3/P4/P5 — 2026-08-27
+
+- P3 entregou `docs/specs/M-02/reconciliation-r5.md` por handoff transferível;
+  o commit do writer `ba40ef6` foi integrado como `67c9408`. A execução oficial
+  no checkout principal confirmou `npm run m02:matrix:check` e
+  `npm run m02:boundaries` como `PASS`. O documento distingue 13 sites
+  transacionais de 21 arquivos com alcance à persistência, e mantém M02-1b
+  pendente de Q-023.
+- P4 foi read-only, sem alterações de checkout. A revisão encontrou oito
+  achados adicionais, principalmente P1: sweep sem `outcome IS NULL`, ausência
+  de `recordOutcome` idempotente, breakdown insuficiente para recovery,
+  settlement que aceita valores duplicados do chamador, TTL baseado no relógio
+  da aplicação e semântica de late outcome ainda sem persistência runtime. O
+  handoff foi rechecado localmente e registrado em
+  `docs/evidence/m04-p4-adversarial-review-2026-08-27.md`; P9 continua
+  bloqueado por Q-019.
+- P5 entregou `eec4829`, integrado no principal como `8a5b2e8`, com
+  `scripts/e2e-hygiene.sh`, script `test:e2e:hygiene` e documentação do smoke.
+  `bash -n` passou; execução sem `DATABASE_URL` falhou de forma controlada antes
+  do Playwright. O wrapper remove `NO_COLOR` e exige banco de teste configurado;
+  não constitui autorização para banco de produção.
+- Latest state marker parent = `8a5b2e8c87b12618ccf782e542608dd06e1dfa8c`; este
+  marker será validado pelo checker no commit de relatório desta rodada e não
+  referencia o SHA do próprio commit.
+- P2 ainda não foi executado. A árvore contém somente `.pi/` não rastreado e o
+  artefato P4 pendente de integração; depois do commit deste bloco, o agente
+  principal deverá deixar a árvore quiescente antes do scan selado.
+
 ---
 
 ## Ledger de módulos e tarefas

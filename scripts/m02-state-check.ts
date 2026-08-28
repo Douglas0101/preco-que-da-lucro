@@ -13,18 +13,31 @@ function git(...args: string[]): string {
 }
 
 const head = git("rev-parse", "HEAD");
+const parent = git("rev-parse", "HEAD^");
 const branch = git("branch", "--show-current");
 const status = git("status", "--short", "--untracked-files=all");
 const ledger = readFileSync(ledgerPath, "utf8");
-const marker = `\`HEAD\` = \`${head}\``;
+const exactMarker = `\`HEAD\` = \`${head}\``;
+const parentPinnedMarker = `P1 marker parent = \`${parent}\``;
+const latestParentPinnedMarker = `Latest state marker parent = \`${parent}\``;
 
-if (!ledger.includes("## Correção de estado M-02") || !ledger.includes(marker)) {
+if (
+  !ledger.includes("## Correção de estado M-02") ||
+  (!ledger.includes(exactMarker) &&
+    !ledger.includes(parentPinnedMarker) &&
+    !ledger.includes(latestParentPinnedMarker))
+) {
   console.error(
-    `Ledger M-02 desatualizado: registre a correção aditiva para HEAD ${head} antes de prosseguir.`,
+    `Ledger M-02 desatualizado: registre HEAD ${head} ou o parent-pinned marker ${parent} antes de prosseguir.`,
   );
   process.exitCode = 1;
 } else {
-  console.log(`M-02 state marker matches HEAD ${head} on ${branch}.`);
+  const markerKind = ledger.includes(exactMarker)
+    ? "exact"
+    : ledger.includes(latestParentPinnedMarker)
+      ? "latest parent-pinned"
+      : "parent-pinned";
+  console.log(`M-02 ${markerKind} state marker is valid for HEAD ${head} on ${branch}.`);
 }
 
 console.log(`Worktree: ${status ? "dirty (preservado e auditável)" : "clean"}.`);
