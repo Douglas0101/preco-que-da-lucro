@@ -15,7 +15,7 @@ Neon reais ou conteúdo de mensagens. Estrutura: Parte 0 (decisões) → estado 
 - **Ondas (D-16):** W1=M-01 · W2=M-04+M-06 · W3=M-05+M-02 · W4=M-03+M-07+M-08.
   Dependências inegociáveis: M-01→todos; M-04→M-05.
 - **Início do programa:** 2026-08-27.
-- **Última atualização:** 2026-08-27 (W1/M-01 CONCLUÍDA; gate G-M1 selado; PR draft aberto).
+- **Última atualização:** 2026-08-28 (selagem S1/S4/S2 local concluída; S3 pendente; gates intactos).
 
 ---
 
@@ -235,9 +235,9 @@ Resolvidas (histórico): Q-005..Q-008 (v3), Q-011 (H-004).
   Os artefatos estão no diretório selado temporário retornado pelo plugin; não
   foram normalizados nem reformatados.
 - Verificações auxiliares pós-integração e pré-selagem: `npm run
-  m02:matrix:check` = PASS; `npm run m02:boundaries` = PASS; `npm run
-  m02:state:check` = PASS com marker parent-pinned; `bash -n
-  scripts/e2e-hygiene.sh` = PASS; `git diff --check` = PASS. A preparação E2E
+m02:matrix:check` = PASS; `npm run m02:boundaries` = PASS; `npm run
+m02:state:check` = PASS com marker parent-pinned; `bash -n
+scripts/e2e-hygiene.sh` = PASS; `git diff --check` = PASS. A preparação E2E
   não foi executada neste scan por ser destrutiva e depender de banco
   configurado pelo operador.
 - A evidência anterior `762d628c` foi formalmente descartada como evidência
@@ -246,6 +246,54 @@ Resolvidas (histórico): Q-005..Q-008 (v3), Q-011 (H-004).
 - P2 não consome Q-017 nem qualquer outro gate. O marker parent-pinned foi
   atualizado para o parent deste commit; a branch continua somente local, com
   tracking ref sem fetch e `.pi/` preservado.
+
+## Execução SDD v5.1-EXEC — S1/S4/S2 — 2026-08-28
+
+- O relatório endereçável da rodada está em
+  `docs/evidence/s2-sealing-2026-08-28.md`. A execução separou evidência local,
+  referências históricas e limites externos; não houve fetch, push, merge,
+  comentário em PR, operação Neon ou acesso à produção.
+- S1 fechou R8, R9 e R10.1: o WIP de extração permanece em
+  `wip/m02-extraction @ 477707dedee63ed23470e1effca6e4ed7aa90745`; a branch do
+  programa não contém o `src/` desse WIP; `bdeadbe3a1ecb0e75443ce0f9391a1bb5e10e7e3`
+  é o SHA completo do DRAFT M-04; e `a2919e73cb7b8347b520d8979cea7e5d271e1a7a`
+  altera somente este ledger na preservação pré-S1.
+- S4 está materializado no commit `7e00560`: D-011/CAS, settle-after-expire,
+  matriz de crash-recovery e G1–G8 permanecem DRAFT nos quatro artefatos de
+  `docs/specs/M-04/`. Q-019 continua necessária; nenhum runtime, schema ou
+  migration foi alterado.
+- S2 passou localmente contra PostgreSQL 17 descartável em Docker: `npm run
+db:test` = PASS (T1–T10); `npm run check` = PASS (26 arquivos/273 testes,
+  lint, typecheck, format, build, bundle e checks de UI); matriz E6 = 12/12
+  (`gatewayCalls=2`, `peakActiveCalls=2`, 2 sucessos, 6 rejeições,
+  `tokens_reserved=0`, `in_flight=0`); E2E com o wrapper de higiene = 32/32.
+  Tudo isso é `LOCAL-VERIFIED` e não promove o readiness remoto histórico
+  `33080843742`, que continua vermelho no SHA publicado antigo.
+- `git diff --check` = PASS. No candidato pré-M-02, os checks
+  `npm run m02:matrix:check` e `npm run m02:boundaries` retornaram exit 1 e
+  foram classificados como `NOT-APPLICABLE/EXPECTED-FAILURE` até P10, conforme
+  a seção pós-S1 de `docs/specs/M-02/reconciliation-r5.md`; regenerar os
+  artefatos para ocultar o drift não é permitido.
+- A primeira tentativa E2E com `NODE_ENV=test` foi interrompida pelo bundle
+  SSR (`jsxDEV is not a function`) antes de testes. A repetição no modo padrão
+  do preview, com segredo efêmero local válido, passou 32/32; o primeiro evento
+  é limitação de runner/configuração e não foi contado como falha funcional.
+- O revisor read-only Copernicus foi aguardado uma vez e encerrado sem handoff;
+  essa ausência não foi tratada como aprovação. O conteúdo S4 já existente não
+  foi atribuído ao subagent.
+- Antes do commit documental de integração, o marker parent-pinned aponta para
+  `d5da736e12d9a4e2242c2c14aabf38b7a314d610`, o HEAD que será seu parent:
+
+  ```text
+  Latest state marker parent = `d5da736e12d9a4e2242c2c14aabf38b7a314d610`
+  ```
+
+  Depois do commit, S3 deverá usar o candidato resultante como alvo e atualizar
+  o marker apenas no commit final de relatório.
+
+- S1/S2/S4 não consomem gates. Q-017, Q-019, Q-020, Q-021, Q-022, Q-023,
+  Q-024 e Q-001/A1 permanecem pendentes; o scan integral novo de S3 ainda é
+  obrigatório antes de qualquer pacote C6 ou ação remota.
 
 ---
 

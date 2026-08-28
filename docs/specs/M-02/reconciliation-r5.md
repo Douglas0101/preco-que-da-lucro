@@ -27,13 +27,13 @@ RAT-1 não está presente no checkout pesquisado. Portanto, o lado RAT-1 e a
 semântica da comparação são **REPORTED/UNVERIFIED**. O lado atual foi confirmado
 na matriz compilada presente no checkout e pelo check equivalente local.
 
-| Dimensão | RAT-1 | Atual | Delta aritmético | Evidência atual |
-|---|---:|---:|---:|---|
-| módulos BFF (`*.functions.ts`) | 6 | 8 | +2 | **LOCAL-VERIFIED** |
-| declarações `createServerFn` | 26 | 30 | +4 | **LOCAL-VERIFIED** |
-| usos/sites transacionais históricos | “21 usos” | 13 sites literais | -8 | atual **LOCAL-VERIFIED**; histórico **UNVERIFIED** |
-| operações concretas/aliases | 30 | 31 | +1 | **LOCAL-VERIFIED** |
-| rotas API | não localizado | 4 | — | **LOCAL-VERIFIED** |
+| Dimensão                            |          RAT-1 |             Atual | Delta aritmético | Evidência atual                                    |
+| ----------------------------------- | -------------: | ----------------: | ---------------: | -------------------------------------------------- |
+| módulos BFF (`*.functions.ts`)      |              6 |                 8 |               +2 | **LOCAL-VERIFIED**                                 |
+| declarações `createServerFn`        |             26 |                30 |               +4 | **LOCAL-VERIFIED**                                 |
+| usos/sites transacionais históricos |      “21 usos” | 13 sites literais |               -8 | atual **LOCAL-VERIFIED**; histórico **UNVERIFIED** |
+| operações concretas/aliases         |             30 |                31 |               +1 | **LOCAL-VERIFIED**                                 |
+| rotas API                           | não localizado |                 4 |                — | **LOCAL-VERIFIED**                                 |
 
 O delta é apenas uma reconciliação numérica enquanto RAT-1 não for anexado. Em
 particular, “21 usos” não pode ser tratado como sinônimo de
@@ -92,16 +92,16 @@ O gerador procura apenas o padrão lexical
 `/\b(request|context)\.transaction\b/g` e classifica pelo caminho
 (`scripts/m02-matrix.ts:246-272`). O inventário atual é:
 
-| Site(s) | Quantidade | Classificação do gerador | Leitura de atomicidade |
-|---|---:|---|---|
-| `src/server/auth/membership.service.ts:16,31` | 2 | `auth-allowlist` | as duas instruções usam o mesmo `context.transaction` dentro da mudança de membership; a política de atomicidade específica de auth não está declarada na matriz (**UNVERIFIED** como boundary formal) |
-| `src/server/repositories/ai-tool.repository.ts:22,40,64,84` | 4 | `repository-fallback` | operações repository individuais no executor recebido pelo contexto; quando parte do replay de ferramenta, a unidade declarada é `per-tool-call` (**LOCAL-VERIFIED** na política; transação física por chamada não é provada só pelo site) |
-| `src/server/repositories/ai-tool.repository.ts:106,116` | 2 | `repository-fallback` | os dois updates de `markSucceeded` usam o mesmo executor/contexto; pertencem ao fechamento de uma execução de ferramenta, mas o site lexical não prova commit independente (**LOCAL-VERIFIED** quanto ao agrupamento declarado; boundary físico **UNVERIFIED**) |
-| `src/server/repositories/ai-tool.repository.ts:135,145` | 2 | `repository-fallback` | análogo para `markFailed`; unidade declarada `per-tool-call`/`per-tool-execution`, sem nova transação implícita provada pelo fallback (**LOCAL-VERIFIED** na política; boundary físico **UNVERIFIED**) |
-| `src/server/repositories/conversation.repository.ts:86` | 1 | `repository-fallback` | fallback `executor ?? context.transaction`; não abre transação, herda o executor do caller (**LOCAL-VERIFIED**) |
-| `src/server/repositories/executor.ts:10` | 1 | `repository-fallback` | mesma regra de fallback centralizada; não abre transação (**LOCAL-VERIFIED**) |
-| `src/server/services/conversation.service.ts:108` | 1 | `compatibility-facade` | participa da unidade `chat-reservation-history`, cujo boundary declarado é `tenant-transaction` (**LOCAL-VERIFIED**) |
-| **Total** | **13** |  |  |
+| Site(s)                                                     | Quantidade | Classificação do gerador | Leitura de atomicidade                                                                                                                                                                                                                                          |
+| ----------------------------------------------------------- | ---------: | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/server/auth/membership.service.ts:16,31`               |          2 | `auth-allowlist`         | as duas instruções usam o mesmo `context.transaction` dentro da mudança de membership; a política de atomicidade específica de auth não está declarada na matriz (**UNVERIFIED** como boundary formal)                                                          |
+| `src/server/repositories/ai-tool.repository.ts:22,40,64,84` |          4 | `repository-fallback`    | operações repository individuais no executor recebido pelo contexto; quando parte do replay de ferramenta, a unidade declarada é `per-tool-call` (**LOCAL-VERIFIED** na política; transação física por chamada não é provada só pelo site)                      |
+| `src/server/repositories/ai-tool.repository.ts:106,116`     |          2 | `repository-fallback`    | os dois updates de `markSucceeded` usam o mesmo executor/contexto; pertencem ao fechamento de uma execução de ferramenta, mas o site lexical não prova commit independente (**LOCAL-VERIFIED** quanto ao agrupamento declarado; boundary físico **UNVERIFIED**) |
+| `src/server/repositories/ai-tool.repository.ts:135,145`     |          2 | `repository-fallback`    | análogo para `markFailed`; unidade declarada `per-tool-call`/`per-tool-execution`, sem nova transação implícita provada pelo fallback (**LOCAL-VERIFIED** na política; boundary físico **UNVERIFIED**)                                                          |
+| `src/server/repositories/conversation.repository.ts:86`     |          1 | `repository-fallback`    | fallback `executor ?? context.transaction`; não abre transação, herda o executor do caller (**LOCAL-VERIFIED**)                                                                                                                                                 |
+| `src/server/repositories/executor.ts:10`                    |          1 | `repository-fallback`    | mesma regra de fallback centralizada; não abre transação (**LOCAL-VERIFIED**)                                                                                                                                                                                   |
+| `src/server/services/conversation.service.ts:108`           |          1 | `compatibility-facade`   | participa da unidade `chat-reservation-history`, cujo boundary declarado é `tenant-transaction` (**LOCAL-VERIFIED**)                                                                                                                                            |
+| **Total**                                                   |     **13** |                          |                                                                                                                                                                                                                                                                 |
 
 Conclusão importante: 13 é contagem de ocorrências textuais, não contagem de
 transações, commits ou unidades de trabalho. O overlay declara `sendChatMessage`
