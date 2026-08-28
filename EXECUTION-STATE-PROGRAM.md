@@ -85,6 +85,100 @@ Resolvidas (histórico): Q-005..Q-008 (v3), Q-011 (H-004).
 - Auditoria ambiental vigente: `docs/auditoria-ambiental-2026-08-26.md` (Nitro
   `node-server` + PostgreSQL 17; harness `docker-compose.yml` saudável).
 
+## Correção de estado M-02 — registro aditivo (2026-08-27)
+
+- `HEAD` = `154efcd94c97d77d7061ac557e6d6cbf17472395`, branch
+  `program/v5-fechamento-sdd`; o commit é histórico/local e não foi alterado.
+- Worktree **sujo**, com a alteração pré-existente deste ledger, `.pi/` não
+  rastreado e o conjunto de artefatos da execução M-02; nada foi limpo,
+  sobrescrito ou publicado. A diferença entre o estado descrito acima e o
+  estado observado é registrada aqui, não corrigida por rewrite silencioso.
+- Causa-raiz registrada: o ledger de M-01 não foi atualizado após a criação da
+  branch/programa e a abertura do trabalho M-02; por isso o bloco de partida
+  deixou de descrever o checkout efetivo.
+- `.pi/` permanece preservado; Q-004 continua aberta e nenhuma política de
+  versionamento foi inferida. A decisão humana continua necessária.
+- Evidência local do incremento: `npm run typecheck`, `npm run lint -- --quiet`,
+  `npm test -- --reporter=dot` (26 arquivos/276 testes),
+  `npm run m02:matrix:check`, `npm run m02:boundaries`,
+  `npm run m02:state:check`, `npm run check:ui-stack`,
+  `npm run check:no-supabase-runtime`, `npm run build` e
+  `npm run check:bundle` passam; não são evidência de CI, GitHub, Neon,
+  produção ou publicação.
+
+## Handoff C2–C5 + Trilha B-2 — 2026-08-27
+
+- Pacote factual e resultados da execução em
+  `docs/evidence/c2-c5-m04-m06-handoff-2026-08-27.md`.
+- C2/C4 registrados como concluídos no escopo verificável; C3/C5 concluídos
+  localmente após E2E, build, bundle e revisão de segurança do diff.
+- A verificação remota confirmou o PR #23 como `OPEN/DRAFT` documental de M-01;
+  não criar duplicata. O check `verify` permanece `UNSTABLE` por `format:check`.
+- A correção de M-02 descreve `sendChatMessage` como operação composta, sem
+  alterar runtime, schema, migrations ou status de congelamento.
+- M-04 e M-06 foram criados como specs `DRAFT`; Q-019/Q-020 continuam humanas.
+
+## Execução incremental SDD v5.0 — 2026-08-27
+
+- A ativação da Trilha A/B-2 foi aplicada somente aos artefatos locais permitidos:
+  nenhum gate foi consumido, nenhuma spec foi congelada, `SDD.md` legado não foi
+  promovido a derivado e `docs/SDD-v5.0.md` não foi criado antes de Q-024.
+- E6 recebeu um gate lógico exclusivo do harness em
+  `scripts/db/test-ai-budget.ts`. O ledger compartilhado espera as oito
+  reservas antes de liberar os dois admitidos; o runtime, schema e migrations
+  permanecem sem alteração por este patch. `E6_ONLY`, `E6_HOLD_MS` e
+  `E6_QUEUE_MS` são controles bounded de fixture.
+- A matriz E6 local (hold `300/600/1200` ms × queue `0/50/200/500` ms) passou nas
+  12 combinações com 2 chamadas ao gateway, 2 sucessos, 6 rejeições de quota,
+  `peakActiveCalls=2`, `tokens_reserved=0` e `in_flight=0`. A evidência está em
+  `docs/evidence/e6-determinism-2026-08-27.md`; isso não promove o run remoto
+  `33080843742` nem torna E6 verde em `develop`.
+- M-02 teve a distinção de contagem reforçada: `transactionSites=13`,
+  `directDatabaseFiles=21` e `concreteOperations=31`. O gerador/check semântico,
+  a fronteira BFF e o state marker passam localmente.
+- M-04 permanece DRAFT: D-008 (fencing), D-009 (settle-after-expire), D-010
+  (determinismo do harness) e as células F-21/F-22 foram documentados. A
+  compatibilidade entre a escrita prévia de outcome de D-004 e o predicate de
+  claim de D-008 continua explicitamente pendente de Q-019; não houve mudança
+  de settlement, sweep, schema ou outbox.
+- M-06 permanece DRAFT: workload v2 agora exige `N` por bucket, p99 `N/A` para
+  `N<100`, reexecução quando CV do p50 exceder 10%, provider-fixture local,
+  `pg_stat_statements_reset()` entre repetições, labels de ambiente, cold
+  `compute-wake`/`first-query` quando observável e a matriz E6 separada. Runner,
+  seed e percentis continuam não implementados/medidos.
+- `.pi/` e todo WIP preexistente foram preservados. Não houve stage, commit,
+  push, alteração remota, acesso persistente ao Neon ou operação de produção.
+- Verificações locais desta execução: `npm run db:test` (migrations, auth,
+  tools, chat e T1–T10), `npm run typecheck`, `npm run lint -- --quiet`,
+  `npm test -- --reporter=dot` (26 arquivos/276 testes), `npm run format:check`,
+  checks de UI/cutover, `npm run build`, `npm run check:bundle`,
+  `npm run check:hostinger-runtime`, matriz/check de M-02 e E2E 32/32. O E2E
+  foi executado com `NO_COLOR` removido do ambiente para não transformar um
+  aviso do Node em falha do wrapper de build; isso não altera o artefato.
+
+## Execução SDD v5.1-EXEC — P0/P1 — 2026-08-27
+
+- P0 produziu os três briefs de decisão, sem aplicar qualquer Q humano:
+  `docs/decision-briefs/sdd-v5.1-exec/Q-024-ratificacao-sdd-v5.1.md`,
+  `Q-021-politica-pi.md` e `Q-022-e6.md`. Cada brief contém contexto, opções,
+  recomendação, rollback e evidência classificada.
+- R2 foi confirmado em uma árvore limpa obtida por stash nomeado
+  `e2797caf10819fbad43b5a2d9ae9730117c0b10d`: `npm run format:check` falhou
+  somente em `EXECUTION-STATE-PROGRAM.md` e no relatório histórico selado de
+  segurança. O relatório selado não foi reformatado; as exclusões necessárias
+  e a normalização do ledger foram isoladas em `b35b540`.
+- A restauração do WIP foi feita por `git stash apply --index` usando o stash
+  nomeado `7d396ff710fd5c773859d8519055cc2294a04ea5`; o único conflito no
+  quadro de cartões foi resolvido preservando SA-06 e a formatação. O stash
+  permanece local como recuperação; nenhuma limpeza ou rewrite foi executado.
+- A partição local produziu os commits, nesta ordem: `b35b540` (format),
+  `bdeadbe` (M-04 DRAFT), `227631a` (M-06 DRAFT), `d2d44bf` (M-02 matriz e
+  tooling), `fa05b64` (E6 harness/evidência) e `cab5f81` (security-fix com
+  regressão estrutural cross-tenant). O pacote de handoff e ledger segue neste
+  commit; o WIP M-02 será preservado em ref própria no passo 8 do runbook.
+- P1 ainda não consome Q-017: todos os commits são locais e a branch continua
+  sem push. `.pi/` permanece não rastreado conforme Q-021.
+
 ---
 
 ## Ledger de módulos e tarefas
@@ -105,23 +199,24 @@ Status: `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `NOT_RUN`.
 
 ### M-02..M-08 (esqueleto; specs congeladas no pipeline D-14 antes de implementar)
 
-| Módulo                                                    | Onda | Deps             | Status  | Predicado de retomada                                                                       |
-| --------------------------------------------------------- | ---- | ---------------- | ------- | ------------------------------------------------------------------------------------------- |
-| M-02 F3/F4 arquitetura uniforme                           | W3   | M-01             | PENDING | Cartão RAT SA-06 → spec congelada em `docs/specs/M-02-spec.md` antes de implementar         |
-| M-03 F5 decimal canônico (RISCO ALTO, gate humano)        | W4   | M-02 recomendada | PENDING | Cartão RT SA-07 + RD SA-08; gate humano no diff de golden tests antes do PR                 |
-| M-04 F9 orquestração + residual Q-010 (default: corrigir) | W2   | M-01             | PENDING | Cartão AG SA-02; teste dedicado do caso de falha dupla                                      |
-| M-05 F10 memória pela sequência de gate                   | W3   | M-04             | PENDING | Cartões RAT SA-04 + RT SA-05; ordem do gate inegociável                                     |
-| M-06 F0/F11–F14-parcial baselines controlados             | W2   | M-01             | PENDING | Cartão RAT SA-03; rotulagem CONTROLADO (não é RUM); SLO/error budget calculados do baseline |
-| M-07 F14/F1 hardening verificável                         | W4   | M-01             | PENDING | Cartão AG SA-09; cobertura de scan incremental registrada sem mascarar                      |
-| M-08 F2 wire-level com mocks                              | W4   | M-01             | PENDING | Cartão RT SA-10; credenciais reais permanecem Q-014                                         |
+| Módulo                                                    | Onda | Deps             | Status      | Predicado de retomada                                                                                                                                                                                                      |
+| --------------------------------------------------------- | ---- | ---------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M-02 F3/F4 arquitetura uniforme                           | W3   | M-01             | IN_PROGRESS | RAT SA-06 `diverge`; F0 local + implementação incremental; matriz 8 BFF/30 declarações/31 operações/13 transações/21 arquivos DB passa; build/testes locais verdes; spec segue `DRAFT` e congelamento continua gate humano |
+| M-03 F5 decimal canônico (RISCO ALTO, gate humano)        | W4   | M-02 recomendada | PENDING     | Cartão RT SA-07 + RD SA-08; gate humano no diff de golden tests antes do PR                                                                                                                                                |
+| M-04 F9 orquestração + residual Q-010 (default: corrigir) | W2   | M-01             | PENDING     | Cartão AG SA-02; teste dedicado do caso de falha dupla                                                                                                                                                                     |
+| M-05 F10 memória pela sequência de gate                   | W3   | M-04             | PENDING     | Cartões RAT SA-04 + RT SA-05; ordem do gate inegociável                                                                                                                                                                    |
+| M-06 F0/F11–F14-parcial baselines controlados             | W2   | M-01             | PENDING     | Cartão RAT SA-03; rotulagem CONTROLADO (não é RUM); SLO/error budget calculados do baseline                                                                                                                                |
+| M-07 F14/F1 hardening verificável                         | W4   | M-01             | PENDING     | Cartão AG SA-09; cobertura de scan incremental registrada sem mascarar                                                                                                                                                     |
+| M-08 F2 wire-level com mocks                              | W4   | M-01             | PENDING     | Cartão RT SA-10; credenciais reais permanecem Q-014                                                                                                                                                                        |
 
 ---
 
 ## Cartões de missão registrados (C-17/C-18; subagents SOMENTE leitura)
 
-| Cartão | Agente                    | Módulo | Papel | Perguntas fechadas                                                                                                                     | Status                                                                                                                       |
-| ------ | ------------------------- | ------ | ----- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| SA-01  | Turing→carrier `reviewer` | M-01   | AG    | (1) O ledger reflete SHAs/runs reais? (2) Algum diff de docs toca ADR-021? (3) O scan do tip publicado registra csf_58b444f resolvido? | DONE — **VERDICT `confirm`** (handoff D-15 válido; GAPS fechados e evidenciados na linha M01-7; carrier registrado por C-18) |
+| Cartão | Agente                    | Módulo | Papel | Perguntas fechadas                                                                                                                     | Status                                                                                                                                                                      |
+| ------ | ------------------------- | ------ | ----- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SA-01  | Turing→carrier `reviewer` | M-01   | AG    | (1) O ledger reflete SHAs/runs reais? (2) Algum diff de docs toca ADR-021? (3) O scan do tip publicado registra csf_58b444f resolvido? | DONE — **VERDICT `confirm`** (handoff D-15 válido; GAPS fechados e evidenciados na linha M01-7; carrier registrado por C-18)                                                |
+| SA-06  | Kant                      | M-02   | RAT   | (1) BFFs com Drizzle/SQL direto? (2) Serviços/repos do catálogo? (3) Composição/cálculo em telas?                                      | DONE — **VERDICT `diverge`** (recon no `HEAD` `154efcd`; handoff D-15 transferível; catalogação, fronteira e cálculos exigiam spec executável; não é gate de implementação) |
 
 Cartões emergentes: nenhum. Novos cartões SA-11+ são registrados aqui com o mesmo
 template antes da instanciação (C-18). Veredito `diverge` de RAT/RT bloqueia
