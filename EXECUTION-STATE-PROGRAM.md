@@ -15,7 +15,7 @@ Neon reais ou conteúdo de mensagens. Estrutura: Parte 0 (decisões) → estado 
 - **Ondas (D-16):** W1=M-01 · W2=M-04+M-06 · W3=M-05+M-02 · W4=M-03+M-07+M-08.
   Dependências inegociáveis: M-01→todos; M-04→M-05.
 - **Início do programa:** 2026-08-27.
-- **Última atualização:** 2026-08-28 (selagem S1/S4/S2 local concluída; S3 pendente; gates intactos).
+- **Última atualização:** 2026-08-28 (selagem S1/S4/S2/S3 local concluída; QA E2E reexecutada; Browser in-app bloqueado; gates intactos).
 
 ---
 
@@ -341,6 +341,55 @@ db:test` = PASS (T1–T10); `npm run check` = PASS (26 arquivos/273 testes,
 
   ```text
   Latest state marker parent = `e5adbcf2f7a3a50786deb0e01457da55368f46aa`
+  ```
+
+## Execução SDD v5.1-EXEC — QA local e Browser — 2026-08-28
+
+- O relatório endereçável da rodada está em
+  `docs/evidence/browser-navigation-2026-08-28.md`. O escopo foi local e
+  descartável: PostgreSQL 17 em Docker, fixture E2E efêmera e preview em
+  `127.0.0.1:4173`; não houve fetch, push, GitHub, Neon persistente,
+  Hostinger, produção ou consumo de gate.
+- Verificação fresca do candidato: branch `program/v5-fechamento-sdd`,
+  `HEAD=a311fac509cf9581f089263f933b8097792b09a9`, tracking ref local sem
+  fetch e apenas `.pi/` não rastreado deliberado. Nenhum código, schema,
+  migration ou configuração foi alterado durante a rodada.
+- `npm run db:up` terminou com PostgreSQL 17 saudável; `npm run e2e:prepare`
+  preparou a fixture owner/member; `npm run check` terminou com exit 0,
+  incluindo 26 arquivos/273 testes Vitest, lint, typecheck, format, build,
+  bundle e checks de UI. `npm run db:test` terminou com T1–T10 OK. A suíte
+  `npm run test:e2e:hygiene` terminou com `32 passed (1.1m)` nos projetos
+  Chromium, Firefox, WebKit e mobile. Esses resultados são
+  `LOCAL-VERIFIED`, sem promoção para CI/produção.
+- `npm run m02:matrix:check` e `npm run m02:boundaries` foram reexecutados e
+  retornaram exit 1. A saída confirma drift da matriz e caminhos do catálogo
+  ainda ausentes; a classificação operacional é
+  `NOT-APPLICABLE/EXPECTED-FAILURE` até P10, conforme o adendo S1/S4/S2. A
+  matriz não foi regenerada para mascarar o estado; M-02 continua pendente.
+- A tentativa de navegação supervisionada não pôde iniciar: o Browser in-app
+  inicializado pelo runtime oficial respondeu literalmente `Browser is not
+available: iab`. Não houve `goto`, snapshot, login visual, mudança de
+  viewport ou mutação manual. A limitação é
+  `CONFIGURATION-MISSING/BLOCKED`; o skill proíbe fallback para Chrome ou
+  Docker Browser sem nova autorização, regra respeitada.
+- R1 (`01a04822-e069-7520-91de-d115884e1320`) e R2
+  (`01a04829-1125-7810-9eee-040f9d090f07`) foram despachados em write-set
+  vazio/read-only. Ambos produziram comentários parciais, mas nenhum handoff
+  final dentro das janelas bounded; as threads foram arquivadas e a ausência
+  não foi tratada como aprovação. A observação parcial de R1 sobre rotas sem
+  assertões diretas está registrada no relatório, como `REPORTED`.
+- O resultado manual permanece pendente até o IAB estar disponível. A QA
+  automatizada cobre somente os oito cenários existentes; `/produtos`,
+  `/precos` e `/ponto-equilibrio` continuam sem assertão direta específica na
+  suíte atual. Nenhum fluxo de IA foi enviado e nenhuma despesa sentinela foi
+  criada.
+- Esta rodada não consumiu Q-017, Q-019, Q-020, Q-021, Q-022, Q-023, Q-024 ou
+  Q-001/A1. A branch permanece local, sem atualização de estado remoto.
+- Antes do commit documental desta entrada, o marker parent-pinned deverá
+  apontar para o parent do commit final:
+
+  ```text
+  Latest state marker parent = `a311fac509cf9581f089263f933b8097792b09a9`
   ```
 
 ---
