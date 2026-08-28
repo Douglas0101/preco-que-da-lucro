@@ -1,0 +1,627 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "root": "src",
+    "graph": "typescript-compiler-api",
+    "deterministic": true
+  },
+  "counts": {
+    "bffModules": 8,
+    "createServerFnDeclarations": 30,
+    "concreteOperations": 31,
+    "apiRoutes": 4,
+    "transactionSites": 13,
+    "directDatabaseFiles": 21
+  },
+  "bffs": [
+    {
+      "path": "src/lib/break-even.functions.ts",
+      "kind": "server-function",
+      "operations": [
+        {
+          "name": "calculateBreakEven",
+          "line": 21,
+          "declaration": "createServerFn",
+          "service": "BreakEvenService",
+          "repository": null,
+          "atomicity": "per-request"
+        }
+      ],
+      "imports": [
+        "@/lib/financial-values",
+        "@/middleware/request-context",
+        "@/server/services/break-even.service",
+        "@tanstack/react-start",
+        "zod"
+      ],
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/middleware/request-context.ts",
+        "src/server/auth/auth.server.ts",
+        "src/server/auth/rate-limit-storage.server.ts",
+        "src/server/auth/tenant-bootstrap.server.ts"
+      ]
+    },
+    {
+      "path": "src/lib/chat.functions.ts",
+      "kind": "server-function",
+      "operations": [
+        {
+          "name": "getChatHistory",
+          "line": 243,
+          "declaration": "createServerFn",
+          "service": "ConversationService",
+          "repository": "ConversationRepository",
+          "atomicity": "per-conversation-operation"
+        },
+        {
+          "name": "createChatConversation",
+          "line": 251,
+          "declaration": "createServerFn",
+          "service": "ConversationService",
+          "repository": "ConversationRepository",
+          "atomicity": "per-conversation-operation"
+        },
+        {
+          "name": "clearChatHistory",
+          "line": 259,
+          "declaration": "createServerFn",
+          "service": "ConversationService",
+          "repository": "ConversationRepository",
+          "atomicity": "per-conversation-operation"
+        },
+        {
+          "name": "sendChatMessage",
+          "line": 268,
+          "declaration": "createServerFn",
+          "service": "ConversationService/ChatExecution",
+          "repository": "ConversationRepository + BudgetRepository + AiToolRepository + AuditRepository",
+          "atomicity": "composed"
+        }
+      ],
+      "imports": [
+        "@/instrumentation/telemetry",
+        "@/lib/ai/tool-registry",
+        "@/lib/api-error",
+        "@/lib/chat-data",
+        "@/lib/chat-execution.server",
+        "@/middleware/request-context",
+        "@/server/repositories/conversation.repository",
+        "@/server/services/conversation.service",
+        "@tanstack/react-start",
+        "zod"
+      ],
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/middleware/request-context.ts",
+        "src/server/auth/auth.server.ts",
+        "src/server/auth/rate-limit-storage.server.ts",
+        "src/server/auth/tenant-bootstrap.server.ts",
+        "src/server/repositories/ai-tool.repository.ts",
+        "src/server/repositories/audit.repository.ts",
+        "src/server/repositories/budget.repository.ts",
+        "src/server/repositories/conversation.repository.ts",
+        "src/server/repositories/expense.repository.ts",
+        "src/server/repositories/product-catalog.repository.ts",
+        "src/server/repositories/product.repository.ts",
+        "src/server/repositories/purchase-price.repository.ts"
+      ]
+    },
+    {
+      "path": "src/lib/dashboard.functions.ts",
+      "kind": "server-function",
+      "operations": [
+        {
+          "name": "getDashboardSummary",
+          "line": 13,
+          "declaration": "createServerFn",
+          "service": "DashboardService",
+          "repository": "DashboardReadRepository",
+          "atomicity": "per-request"
+        }
+      ],
+      "imports": [
+        "@/middleware/request-context",
+        "@/server/services/dashboard.service",
+        "@tanstack/react-start",
+        "zod"
+      ],
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/middleware/request-context.ts",
+        "src/server/auth/auth.server.ts",
+        "src/server/auth/rate-limit-storage.server.ts",
+        "src/server/auth/tenant-bootstrap.server.ts",
+        "src/server/repositories/dashboard.repository.ts"
+      ]
+    },
+    {
+      "path": "src/lib/diagnostic.functions.ts",
+      "kind": "server-function",
+      "operations": [
+        {
+          "name": "getDiagnostic",
+          "line": 6,
+          "declaration": "createServerFn",
+          "service": "DiagnosticService",
+          "repository": "ProductReadRepository + ExpenseRepository",
+          "atomicity": "per-request"
+        }
+      ],
+      "imports": [
+        "@/middleware/request-context",
+        "@/server/services/diagnostic.service",
+        "@tanstack/react-start",
+        "zod"
+      ],
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/middleware/request-context.ts",
+        "src/server/auth/auth.server.ts",
+        "src/server/auth/rate-limit-storage.server.ts",
+        "src/server/auth/tenant-bootstrap.server.ts",
+        "src/server/repositories/expense.repository.ts",
+        "src/server/repositories/product-catalog.repository.ts",
+        "src/server/repositories/purchase-price.repository.ts"
+      ]
+    },
+    {
+      "path": "src/lib/expenses.functions.ts",
+      "kind": "server-function",
+      "operations": [
+        {
+          "name": "listExpenses",
+          "line": 18,
+          "declaration": "createServerFn",
+          "service": "ExpenseService",
+          "repository": "ExpenseRepository",
+          "atomicity": "per-request"
+        },
+        {
+          "name": "upsertExpense",
+          "line": 25,
+          "declaration": "createServerFn",
+          "service": "ExpenseService",
+          "repository": "ExpenseRepository",
+          "atomicity": "per-request"
+        },
+        {
+          "name": "deleteExpense",
+          "line": 42,
+          "declaration": "createServerFn",
+          "service": "ExpenseService",
+          "repository": "ExpenseRepository",
+          "atomicity": "per-request"
+        },
+        {
+          "name": "getTotals",
+          "line": 51,
+          "declaration": "createServerFn",
+          "service": "ExpenseService",
+          "repository": "ExpenseRepository",
+          "atomicity": "per-request"
+        }
+      ],
+      "imports": [
+        "@/lib/financial-values",
+        "@/middleware/request-context",
+        "@/server/services/expense.service",
+        "@tanstack/react-start",
+        "zod"
+      ],
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/middleware/request-context.ts",
+        "src/server/auth/auth.server.ts",
+        "src/server/auth/rate-limit-storage.server.ts",
+        "src/server/auth/tenant-bootstrap.server.ts",
+        "src/server/repositories/expense.repository.ts"
+      ]
+    },
+    {
+      "path": "src/lib/financial.functions.ts",
+      "kind": "server-function",
+      "operations": [
+        {
+          "name": "runSimulation",
+          "line": 19,
+          "declaration": "createServerFn",
+          "service": "SimulationService",
+          "repository": "SimulationRepository",
+          "atomicity": "per-request"
+        },
+        {
+          "name": "listSimulations",
+          "line": 47,
+          "declaration": "createServerFn",
+          "service": "SimulationService",
+          "repository": "SimulationRepository",
+          "atomicity": "per-request"
+        },
+        {
+          "name": "saveSimulation",
+          "line": 54,
+          "declaration": "createServerFn",
+          "service": "SimulationService",
+          "repository": "SimulationRepository",
+          "atomicity": "per-request"
+        }
+      ],
+      "imports": [
+        "@/middleware/request-context",
+        "@/server/services/financial.service",
+        "@/server/services/simulation.service",
+        "@tanstack/react-start",
+        "zod"
+      ],
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/middleware/request-context.ts",
+        "src/server/auth/auth.server.ts",
+        "src/server/auth/rate-limit-storage.server.ts",
+        "src/server/auth/tenant-bootstrap.server.ts",
+        "src/server/repositories/simulation.repository.ts"
+      ]
+    },
+    {
+      "path": "src/lib/price-formation.functions.ts",
+      "kind": "server-function",
+      "operations": [
+        {
+          "name": "calculatePriceFormationServer",
+          "line": 19,
+          "declaration": "createServerFn",
+          "service": "PricingService",
+          "repository": null,
+          "atomicity": "per-request"
+        }
+      ],
+      "imports": [
+        "@/lib/calculation-result",
+        "@/middleware/request-context",
+        "@/server/services/pricing.service",
+        "@tanstack/react-start",
+        "zod"
+      ],
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/middleware/request-context.ts",
+        "src/server/auth/auth.server.ts",
+        "src/server/auth/rate-limit-storage.server.ts",
+        "src/server/auth/tenant-bootstrap.server.ts",
+        "src/server/repositories/purchase-price.repository.ts"
+      ]
+    },
+    {
+      "path": "src/lib/products.functions.ts",
+      "kind": "server-function",
+      "operations": [
+        {
+          "name": "listProducts",
+          "line": 24,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "listProductsWithMetrics",
+          "line": 32,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "getProduct",
+          "line": 39,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "upsertProduct",
+          "line": 64,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "archiveProduct",
+          "line": 81,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "deleteProduct",
+          "line": 91,
+          "declaration": "alias",
+          "service": "ProductService",
+          "repository": "ProductRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "upsertIngredient",
+          "line": 124,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "deleteIngredient",
+          "line": 148,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "upsertPackaging",
+          "line": 165,
+          "declaration": "createServerFn",
+          "service": "ProductService/PricingService",
+          "repository": "ProductCatalogRepository + PriceRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "deletePackaging",
+          "line": 184,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "upsertFee",
+          "line": 200,
+          "declaration": "createServerFn",
+          "service": "PricingService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "deleteFee",
+          "line": 216,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "setMarketPrice",
+          "line": 232,
+          "declaration": "createServerFn",
+          "service": "PricingService",
+          "repository": "MarketPriceRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "getProductMetrics",
+          "line": 248,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "listPurchasePrices",
+          "line": 261,
+          "declaration": "createServerFn",
+          "service": "PricingService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "updatePurchasePrice",
+          "line": 268,
+          "declaration": "createServerFn",
+          "service": "PricingService",
+          "repository": "PriceRepository",
+          "atomicity": "per-operation"
+        }
+      ],
+      "imports": [
+        "@/lib/financial-values",
+        "@/middleware/request-context",
+        "@/server/contracts/product.contracts",
+        "@/server/services/pricing.service",
+        "@/server/services/product-catalog.service",
+        "@/server/services/product.service",
+        "@tanstack/react-start",
+        "zod"
+      ],
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/middleware/request-context.ts",
+        "src/server/auth/auth.server.ts",
+        "src/server/auth/rate-limit-storage.server.ts",
+        "src/server/auth/tenant-bootstrap.server.ts",
+        "src/server/repositories/product-catalog.repository.ts",
+        "src/server/repositories/product.repository.ts",
+        "src/server/repositories/purchase-price.repository.ts"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "path": "src/routes/api/auth/$.ts",
+      "kind": "route",
+      "operations": [],
+      "imports": [
+        "@/server/auth/auth.server",
+        "@tanstack/react-router"
+      ],
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/server/auth/auth.server.ts",
+        "src/server/auth/rate-limit-storage.server.ts",
+        "src/server/auth/tenant-bootstrap.server.ts"
+      ]
+    },
+    {
+      "path": "src/routes/api/health/live.ts",
+      "kind": "route",
+      "operations": [],
+      "imports": [
+        "@tanstack/react-router"
+      ],
+      "reachesDatabase": false,
+      "databasePaths": []
+    },
+    {
+      "path": "src/routes/api/health/ready.ts",
+      "kind": "route",
+      "operations": [],
+      "imports": [
+        "@/db/client.server",
+        "@/lib/structured-logger",
+        "@tanstack/react-router",
+        "drizzle-orm"
+      ],
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/routes/api/health/ready.ts"
+      ]
+    },
+    {
+      "path": "src/routes/api/vitals.ts",
+      "kind": "route",
+      "operations": [],
+      "imports": [
+        "@/lib/structured-logger",
+        "@/lib/web-vitals-payload",
+        "@tanstack/react-router"
+      ],
+      "reachesDatabase": false,
+      "databasePaths": []
+    }
+  ],
+  "transactionSites": [
+    {
+      "path": "src/server/auth/membership.service.ts",
+      "line": 16,
+      "expression": "context.transaction",
+      "classification": "auth-allowlist"
+    },
+    {
+      "path": "src/server/auth/membership.service.ts",
+      "line": 31,
+      "expression": "context.transaction",
+      "classification": "auth-allowlist"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 22,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 40,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 64,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 84,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 106,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 116,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 135,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 145,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 86,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/executor.ts",
+      "line": 10,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/services/conversation.service.ts",
+      "line": 108,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    }
+  ],
+  "directDatabaseFiles": [
+    "src/db/client.server.ts",
+    "src/db/schema.ts",
+    "src/middleware/request-context.ts",
+    "src/routes/api/health/ready.ts",
+    "src/server/auth/auth.server.ts",
+    "src/server/auth/membership.service.ts",
+    "src/server/auth/rate-limit-storage.server.ts",
+    "src/server/auth/tenant-bootstrap.server.ts",
+    "src/server/repositories/ai-tool.repository.ts",
+    "src/server/repositories/audit.repository.ts",
+    "src/server/repositories/budget.repository.ts",
+    "src/server/repositories/calculation-snapshot.repository.ts",
+    "src/server/repositories/conversation.repository.ts",
+    "src/server/repositories/dashboard.repository.ts",
+    "src/server/repositories/expense.repository.ts",
+    "src/server/repositories/product-catalog.repository.ts",
+    "src/server/repositories/product.repository.ts",
+    "src/server/repositories/purchase-price.repository.ts",
+    "src/server/repositories/sales.repository.ts",
+    "src/server/repositories/simulation.repository.ts",
+    "src/test/purchase-price.service.test.ts"
+  ]
+}
