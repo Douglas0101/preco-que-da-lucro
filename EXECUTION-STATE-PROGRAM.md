@@ -200,12 +200,52 @@ Resolvidas (histórico): Q-005..Q-008 (v3), Q-011 (H-004).
   `bash -n` passou; execução sem `DATABASE_URL` falhou de forma controlada antes
   do Playwright. O wrapper remove `NO_COLOR` e exige banco de teste configurado;
   não constitui autorização para banco de produção.
-- Latest state marker parent = `8a5b2e8c87b12618ccf782e542608dd06e1dfa8c`; este
+- Latest state marker parent = `89712ab61968cd4caed23bc29b2b28cb9040fe1c`; este
   marker será validado pelo checker no commit de relatório desta rodada e não
   referencia o SHA do próprio commit.
 - P2 ainda não foi executado. A árvore contém somente `.pi/` não rastreado e o
   artefato P4 pendente de integração; depois do commit deste bloco, o agente
   principal deverá deixar a árvore quiescente antes do scan selado.
+
+## Execução SDD v5.1-EXEC — P2 — 2026-08-27/28
+
+- O scan final foi executado somente depois da integração P1/P3/P5 e da
+  confirmação de árvore quiescente: apenas `.pi/` permaneceu não rastreado e
+  permitido. O alvo foi o range local exato
+  `154efcd94c97d77d7061ac557e6d6cbf17472395..89712ab61968cd4caed23bc29b2b28cb9040fe1c`,
+  sem fetch, push, CI, GitHub, Neon ou produção.
+- Security diff scan `5957f8ed-7b2c-42db-a63c-f0e52ba3a1e0` foi selado como
+  `complete`, com inventário nativo de 51 itens executáveis e cobertura
+  `51/51`; o resultado foi **0 findings reportáveis** em cinco superfícies
+  (BFF/autenticação/entrada; persistência multi-tenant/RLS; AI budget/retry/tool
+  replay; scripts/harness/E2E; serialização/saída frontend). O TAC consultado
+  imediatamente antes do scan retornou `not_granted`; isso não bloqueou a
+  revisão local nem promove qualquer afirmação para segurança de produção.
+- Snapshot digest selado:
+  `codex-security-snapshot/v1:sha256:0de7376c9528fd2bd1c9f980672882adeb74bb1e22603d35ce357526dc1aa04d`.
+  Hashes canônicos: `findings.json`
+  `d516bd33d2ffd89a754cd4d031a6f17c7c9f58195b0605641f2afef4be40bd6b`;
+  `coverage.json`
+  `53b3e39fbd1b412774a4e40519c59b90a7d194b4969ad8a9c68eb6dbd15558a4`;
+  `scan-manifest.json`
+  `e7cb6ccf21faf2978c7aa0b4a98a092304ded3a4854550a0a7cdc26ce921268c`;
+  `report.md`
+  `9b9298e44f45bb9d5f41b7fc812ac590481d353bf8041810286dbae48df8dd01`;
+  SARIF `b291c53998e54f908c5e936732a3b8041dab523f2e536bd789147899ccbe006b`.
+  Os artefatos estão no diretório selado temporário retornado pelo plugin; não
+  foram normalizados nem reformatados.
+- Verificações auxiliares pós-integração e pré-selagem: `npm run
+  m02:matrix:check` = PASS; `npm run m02:boundaries` = PASS; `npm run
+  m02:state:check` = PASS com marker parent-pinned; `bash -n
+  scripts/e2e-hygiene.sh` = PASS; `git diff --check` = PASS. A preparação E2E
+  não foi executada neste scan por ser destrutiva e depender de banco
+  configurado pelo operador.
+- A evidência anterior `762d628c` foi formalmente descartada como evidência
+  final porque a árvore mutou durante aquele scan. Nenhum finding ficou
+  pendente de validação ou attack path nesta execução.
+- P2 não consome Q-017 nem qualquer outro gate. O marker parent-pinned foi
+  atualizado para o parent deste commit; a branch continua somente local, com
+  tracking ref sem fetch e `.pi/` preservado.
 
 ---
 
