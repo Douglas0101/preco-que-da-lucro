@@ -160,6 +160,25 @@ declara M02-1b concluído nem autoriza a extração M-02. A classificação
 `UNVERIFIED/PENDING` acima permanece até a confirmação executável no checkout
 principal e a aprovação humana correspondente.
 
+### Escopo pós-S1 e validade dos checks M-02
+
+Os arquivos `matrix.generated.yaml` e `matrix.yaml` continuam sendo os
+artefatos do alvo de extração preservado em `wip/m02-extraction`
+(`477707dedee63ed23470e1effca6e4ed7aa90745`). Eles não devem ser regenerados
+contra a branch candidata pré-M-02: essa árvore ainda possui a implementação
+legada, com contadores e alcance transacional diferentes do alvo documentado.
+
+Por isso, no candidato limpo, `npm run m02:matrix:check` e
+`npm run m02:boundaries` são **NOT-APPLICABLE/EXPECTED-FAILURE** até P10; a
+execução contra a árvore limpa produziria drift e classificaria como ausentes
+os paths que existem somente no WIP. A matriz 8/30/31/4/13/21 será
+reverificada no próprio `wip/m02-extraction` antes da extração, e só então
+promovida para evidência `LOCAL-VERIFIED` do candidato M-02.
+
+Essa separação mantém a spec normativa sem mascarar a divergência entre o
+estado legado atual e a arquitetura-alvo. Nenhum artefato derivado deve ser
+alterado apenas para fazer o check passar na branch pré-M-02.
+
 ## 5. O validator aceita BFF → repository?
 
 Sim, como regra estrutural explícita. `scripts/m02-boundaries.ts` considera um
