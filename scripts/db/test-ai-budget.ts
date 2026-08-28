@@ -90,6 +90,13 @@ function sleep(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+const E6_MAX_DELAY_MS = 10_000;
+
+function e6DelayFromEnv(name: string, fallback: number): number {
+  const parsed = Number(process.env[name]);
+  return Number.isInteger(parsed) && parsed >= 0 && parsed <= E6_MAX_DELAY_MS ? parsed : fallback;
+}
+
 async function createFixture(pool: Pool, label: string): Promise<Fixture> {
   const userId = randomUUID();
   const tenantId = randomUUID();
@@ -387,6 +394,31 @@ async function runE5(pool: Pool): Promise<void> {
 async function runE6(pool: Pool): Promise<void> {
   const fixture = await createFixture(pool, "e6");
   const config = testConfig({ dailyModelCallLimit: 20, inFlightLimit: 2 });
+  const holdMs = e6DelayFromEnv("E6_HOLD_MS", 300);
+  const queueMs = e6DelayFromEnv("E6_QUEUE_MS", 0);
+  const requestCount = 8;
+  const sharedLedger = createBudgetLedger({ identity: makeIdentity(fixture), config });
+  let reserveAttempts = 0;
+  let completedReserveAttempts = 0;
+  let releaseReservations!: () => void;
+  const allReserveAttemptsCompleted = new Promise<void>((resolve) => {
+    releaseReservations = resolve;
+  });
+  const gatedLedger: BudgetLedger = {
+    ...sharedLedger,
+    async reserveAtomic(tenantId, budgetTokens, options): Promise<ReserveResult> {
+      reserveAttempts += 1;
+      let result: ReserveResult;
+      try {
+        result = await sharedLedger.reserveAtomic(tenantId, budgetTokens, options);
+      } finally {
+        completedReserveAttempts += 1;
+        if (completedReserveAttempts === requestCount) releaseReservations();
+      }
+      if (result.status === "reserved") await allReserveAttemptsCompleted;
+      return result;
+    },
+  };
   let gatewayCalls = 0;
   let activeCalls = 0;
   let peakActiveCalls = 0;
@@ -395,19 +427,22 @@ async function runE6(pool: Pool): Promise<void> {
     activeCalls += 1;
     peakActiveCalls = Math.max(peakActiveCalls, activeCalls);
     try {
-      await sleep(300);
+      await sleep(holdMs);
       return modelResponse("e6");
     } finally {
       activeCalls -= 1;
     }
   };
-  const requestCount = 8;
   const results = await Promise.allSettled(
     Array.from({ length: requestCount }, (_, index) =>
-      executeSendChatMessage({ message: `e6 in-flight ${index}` }, makeIdentity(fixture), {
-        budgetConfig: config,
-        modelCaller,
-      }),
+      (async () => {
+        if (queueMs > 0) await sleep(index * queueMs);
+        return executeSendChatMessage({ message: `e6 in-flight ${index}` }, makeIdentity(fixture), {
+          budgetConfig: config,
+          budgetLedger: gatedLedger,
+          modelCaller,
+        });
+      })(),
     ),
   );
   const successes = results.filter((result) => result.status === "fulfilled");
@@ -417,6 +452,23 @@ async function runE6(pool: Pool): Promise<void> {
       result.reason instanceof ApplicationError &&
       result.reason.code === "AI_QUOTA",
   );
+  const counters = await readCounters(pool, fixture.tenantId);
+  console.log(
+    `T6/E6 metrics: gatewayCalls=${gatewayCalls} peakActiveCalls=${peakActiveCalls} ` +
+      `sucessos=${successes.length} rejeições=${quotaRejects.length} ` +
+      `tokens_reserved=${counters.tokens_reserved} in_flight=${counters.in_flight}`,
+  );
+  assert.equal(
+    reserveAttempts,
+    requestCount,
+    "E6: as oito tentativas de reserveAtomic devem ocorrer",
+  );
+  assert.equal(
+    completedReserveAttempts,
+    requestCount,
+    "E6: as oito tentativas de reserveAtomic devem concluir",
+  );
+  assert.equal(gatewayCalls, 2, "E6: exatamente os dois slots devem ser admitidos");
   assert.equal(peakActiveCalls <= 2, true, "E6: no máximo dois modelos simultâneos");
   assert.equal(successes.length, gatewayCalls, "E6: cada gateway call corresponde a um sucesso");
   assert.equal(
@@ -429,7 +481,6 @@ async function runE6(pool: Pool): Promise<void> {
     true,
     "E6: a barreira deve rejeitar o burst enquanto os slots estão ocupados",
   );
-  const counters = await readCounters(pool, fixture.tenantId);
   assert.equal(counters.model_call_count, gatewayCalls);
   assert.equal(counters.tokens_reserved, 0);
   assert.equal(counters.in_flight, 0);
@@ -714,16 +765,20 @@ async function main(): Promise<void> {
   const database = drizzle({ client: pool, schema });
   setDatabaseForTests(database as unknown as Database);
   try {
-    await runE1(pool);
-    await runE2(pool);
-    await runE3(pool);
-    await runE4(pool);
-    await runE5(pool);
-    await runE6(pool);
-    await runE7(pool);
-    await runE8(pool);
-    await runE9(pool);
-    await runE10(pool);
+    if (process.env.E6_ONLY === "1") {
+      await runE6(pool);
+    } else {
+      await runE1(pool);
+      await runE2(pool);
+      await runE3(pool);
+      await runE4(pool);
+      await runE5(pool);
+      await runE6(pool);
+      await runE7(pool);
+      await runE8(pool);
+      await runE9(pool);
+      await runE10(pool);
+    }
   } finally {
     const tenantIds = createdFixtures.map((fixture) => fixture.tenantId);
     const userIds = createdFixtures.map((fixture) => fixture.userId);
@@ -734,7 +789,11 @@ async function main(): Promise<void> {
     setDatabaseForTests(undefined);
     await pool.end();
   }
-  console.log("T1–T10: suíte local de orçamento concluída");
+  console.log(
+    process.env.E6_ONLY === "1"
+      ? "E6_ONLY: cenário E6 concluído"
+      : "T1–T10: suíte local de orçamento concluída",
+  );
 }
 
 await main();
