@@ -243,16 +243,16 @@ IAB disponível e, quando necessário, uma autorização de mutação explícita
 
 ## Delta contra o SDD v5.1-EXEC
 
-| Item                             | Estado desta rodada                                                         |
-| -------------------------------- | --------------------------------------------------------------------------- |
-| QA local descartável             | Fechada localmente: `db:test` PASS, `npm run check` PASS                    |
-| E6/T1–T10                        | Fechados localmente conforme saída de `db:test`                             |
-| E2E automatizado                 | Fechado localmente: 32/32 PASS em quatro projetos                           |
-| Navegação Browser supervisionada | `BLOCKED`: IAB indisponível no host                                         |
-| M-02 matrix/boundaries           | Exit 1 observado; esperado até P10, sem promoção de DoD                     |
-| Segurança                        | Nenhum scan novo necessário: não houve diff rastreado após o scan S3 selado |
-| R1/R2                            | Sem handoff final; ausências registradas, não aprovadas                     |
-| GitHub/Neon/produção/gates       | Não tocados; nenhum gate consumido                                          |
+| Item                             | Estado desta rodada                                                                                                                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| QA local descartável             | Fechada localmente: `db:test` PASS, `npm run check` PASS                                                                                                                             |
+| E6/T1–T10                        | Fechados localmente conforme saída de `db:test`                                                                                                                                      |
+| E2E automatizado                 | Fechado localmente: 32/32 PASS em quatro projetos                                                                                                                                    |
+| Navegação Browser supervisionada | `BLOCKED`: IAB indisponível no host                                                                                                                                                  |
+| M-02 matrix/boundaries           | Exit 1 observado; esperado até P10, sem promoção de DoD                                                                                                                              |
+| Segurança                        | Nenhum scan novo foi executado nesta rodada; os commits posteriores ao S3 são docs-only, sem mudança de código/configuração. A faixa S3 não inclui esses novos artefatos documentais |
+| R1/R2                            | Sem handoff final; ausências registradas, não aprovadas                                                                                                                              |
+| GitHub/Neon/produção/gates       | Não tocados; nenhum gate consumido                                                                                                                                                   |
 
 ## Gatilho de retomada
 

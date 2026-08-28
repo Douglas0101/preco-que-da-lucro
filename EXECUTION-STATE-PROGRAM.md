@@ -392,6 +392,17 @@ available: iab`. Não houve `goto`, snapshot, login visual, mudança de
   Latest state marker parent = `a311fac509cf9581f089263f933b8097792b09a9`
   ```
 
+- Correção documental posterior: o relatório não afirma mais que não houve
+  diff após S3; registra que `fc2f322` contém somente os dois artefatos
+  documentais e, portanto, não foi feita nova revisão de código. A cobertura
+  S3 não inclui esses bytes documentais; qualquer requisito de faixa integral
+  incluindo documentação deve ser reexecutado antes de P8.
+- O próximo commit documental desta correção usa o marker parent-pinned:
+
+  ```text
+  Latest state marker parent = `fc2f3227a0facc5e55e0227ce0a34e8fac40626c`
+  ```
+
 ---
 
 ## Ledger de módulos e tarefas
