@@ -141,6 +141,25 @@ registrada como interpretação operacional necessária para o §7.3:
   também está marcado como decisão não aplicada. Logo M02-1a não aprova nem
   inicia M02-1b.
 
+### Escolha normativa proposta para o DoD de Q-023
+
+Para evitar que a distinção factual seja confundida com a conclusão do
+freeze, o DoD de Q-023 deverá adotar a seguinte separação, ainda sem mudar o
+status para `FROZEN`:
+
+- **M02-1a é o invariante do freeze:** o inventário factual, a matriz, os
+  contadores 8/30/31/4/13/21, a classificação dos sites, a allowlist e os
+  contratos devem estar reconciliados e verificáveis no artefato congelado.
+- **M02-1b é o objetivo de implementação do P10:** a mediação completa por
+  services, a ausência de imports BFF → repository fora da política, os
+  contratos por adição, os testes de paridade e os predicados M02-2..M02-6
+  devem ser alcançados durante a extração pós-freeze.
+
+Assim, M02-1a habilita a decisão humana de Q-023 sobre a spec/matriz; não
+declara M02-1b concluído nem autoriza a extração M-02. A classificação
+`UNVERIFIED/PENDING` acima permanece até a confirmação executável no checkout
+principal e a aprovação humana correspondente.
+
 ## 5. O validator aceita BFF → repository?
 
 Sim, como regra estrutural explícita. `scripts/m02-boundaries.ts` considera um
