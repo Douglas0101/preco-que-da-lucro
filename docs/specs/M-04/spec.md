@@ -1,6 +1,7 @@
 # M-04 — Orquestração de orçamento, outcome durável e outbox
 
-Status: `DRAFT` até RAT humano e congelamento em Q-019. Este documento define a
+Status: `DRAFT v2` (emenda 2026-08-28 — SDD v5.2 §8.1) até RAT humano e
+congelamento em Q-019. Este documento define a
 intenção e os contratos do módulo; não autoriza implementação, migration, merge,
 publicação, acesso Neon ou cutover.
 
@@ -280,3 +281,82 @@ M-04 depende dos contratos e fronteiras de M-02, mas o código de Q-010, a tabel
 outbox, migrations, dispatcher e consumers pertencem à implementação posterior.
 Esta spec não congela M-02, não reabre SA-01, não altera ADR-021 e não resolve a
 falha E6; E6 é tratado como cenário de admissão concorrente em M-06.
+
+---
+
+## Emenda v2 — 2026-08-28 (SDD v5.2 §8.1): máquina de estados do budget (D-011)
+
+Esta emenda transcreve o conteúdo canônico do SDD v5.2 §8.1. O documento passa
+a `DRAFT v2`: nada aqui autoriza implementação, migration, merge, publicação,
+acesso Neon ou cutover; o congelamento permanece gate humano em Q-019.
+
+### Nota de fidelidade das referências (pós-S1)
+
+As citações `CODE-PROVED` desta spec foram escritas contra a árvore que continha
+a extração M-02 (commit `477707d`). Na rodada S1 (2026-08-28) esse commit foi
+removido da branch (preservado em `wip/m02-extraction`); em consequência:
+
+- arquivos existentes apenas no WIP — `src/server/services/conversation.service.ts`,
+  `src/server/repositories/budget.repository.ts`, `src/server/contracts/*.ts`,
+  `src/lib/calculation-result.ts` — não existem na árvore commitada da branch;
+  citações a eles passam a `ARTIFACT-REPORTED` (válidas contra
+  `wip/m02-extraction` @ `477707d`) até o P10;
+- arquivos reescritos pelo WIP (`budget-ledger.server.ts`, `tool-runner.ts`,
+  `chat-execution.server.ts`, `chat.functions.ts`, `chat-data.ts`,
+  `query-options.ts`) existem na branch, mas as linhas citadas refletem a
+  versão WIP; revalidar linha a linha no P10;
+- `src/db/schema.ts` e `drizzle/` não foram tocados pelo WIP e permanecem
+  `CODE-PROVED` (reverificado em 2026-08-28: `ai_usage` em
+  `src/db/schema.ts:741-767`).
+
+### D-011 — máquina de estados (resolve D-004 × D-008)
+
+`outcome IS NULL` literal (D-008) confunde "sem resultado" e "outcome gravado,
+settle em voo", contra D-004. Solução canônica: estados explícitos com CAS por
+linha.
+
+```text
+RESERVED ──recordOutcome──▶ COMPLETED ──settle(app|sweep)──▶ SETTLED
+    └───────expire(sweep, TTL)───────▶ EXPIRED
+```
+
+```sql
+-- reserve (idempotente por usage_id)
+INSERT INTO budget_reservation (usage_id, ..., status, ttl_deadline)
+VALUES (:usage_id, ..., 'RESERVED', statement_timestamp() + make_interval(secs => :ttl))
+ON CONFLICT (usage_id) DO NOTHING;
+
+-- recordOutcome (D-004 preservado como transição própria)
+UPDATE budget_reservation SET status='COMPLETED', outcome=:o, real_tokens=:rt
+WHERE usage_id=:u AND status='RESERVED';
+
+-- settle (exatamente um vence; ledger ajustado NA MESMA transação; valor da LINHA, não do chamador — G4)
+UPDATE budget_reservation SET status='SETTLED', settled_at=statement_timestamp()
+WHERE usage_id=:u AND status='COMPLETED';
+
+-- expire (relógio do banco — G5; nunca expira COMPLETED)
+UPDATE budget_reservation SET status='EXPIRED'
+WHERE status='RESERVED' AND now() > ttl_deadline;
+```
+
+Mapeamento para o schema vigente (`PLANNED`): a tabela física atual é
+`ai_usage` (já contém `usage_id`, `status`, `real_tokens`, `outcome`,
+`settled_at`, `reserved_at`); `ttl_deadline` e `late_outcome` são colunas novas
+da migration de P9, junto com a adequação dos valores de `status`
+(`reserved`→`RESERVED`, etc.), conforme o congelamento Q-019.
+
+### Chegadas tardias (D-009 estrito)
+
+- outcome → `EXPIRED`: registra + `late_outcome=true` para auditoria; budget
+  inalterado (F-21);
+- settle → `EXPIRED`: rejeita idempotentemente + evento de auditoria (F-22);
+- re-drive sobre `SETTLED`: 0 linhas = no-op, zero eventos duplicados (G7).
+
+Fundamento: sob READ COMMITTED, UPDATE que bloqueia em linha concorrente
+reavalia o predicado contra a versão commitada (EvalPlanQual, docs PostgreSQL)
+→ exatamente um gravador por transição.
+
+### Matriz de crash (G3) e DoD G1–G8
+
+Ponto a ponto na emenda v2 de `failure-matrix.md`; requisitos de P9 na emenda
+v2 de `definition-of-done.md`.

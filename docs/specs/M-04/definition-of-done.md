@@ -1,6 +1,6 @@
 # M-04 — Definition of Done
 
-Status do módulo: `DRAFT`. A lista abaixo define o que será necessário para
+Status do módulo: `DRAFT v2` (emenda 2026-08-28). A lista abaixo define o que será necessário para
 implementar e propor o congelamento; nada nesta lista foi executado pela criação
 desta documentação.
 
@@ -94,3 +94,27 @@ O módulo só pode sair de `DRAFT` quando:
 3. os contratos e migrations estiverem revisados;
 4. o código e os testes passarem no SHA publicado correspondente;
 5. um RAT humano registrar o congelamento.
+
+---
+
+## Emenda v2 — 2026-08-28 (SDD v5.2 §8.1): DoD G1–G8 para P9
+
+Achados adversariais de P4 convertidos em requisitos. Todos os itens são
+obrigatórios para o DoD de P9 (implementação somente após Q-019):
+
+- [ ] G1 — sweep opera por `status`: expira `RESERVED` e liquida `COMPLETED`
+      usando o `real_tokens` da linha.
+- [ ] G2 — `recordOutcome` runtime com CAS (`RESERVED` → `COMPLETED`);
+      `affected=0` registra F-21 (late outcome).
+- [ ] G3 — matriz de crash testada ponto a ponto (ver `failure-matrix.md`).
+- [ ] G4 — `settle` não aceita valor crítico do chamador; usa o valor da linha.
+- [ ] G5 — TTL avaliado pelo relógio do banco (`now()`/`statement_timestamp()`),
+      nunca pelo relógio da aplicação.
+- [ ] G6 — late outcome runtime completo: outcome tardio sobre `EXPIRED` grava
+      `late_outcome=true` com budget inalterado (F-21).
+- [ ] G7 — evento de settlement somente quando `affected=1`; re-drive sobre
+      `SETTLED` é no-op com zero eventos duplicados.
+- [ ] G8 — suíte concorrente real dock-based, com ≥2 conexões independentes e
+      barreiras de sincronização.
+
+Métrica associada: M04-1 = 0.

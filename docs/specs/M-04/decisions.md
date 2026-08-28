@@ -32,3 +32,15 @@ SA-12/Bayes, mas não substituem a decisão humana de Q-019.
 - A implementação não pode interpretar `AGENT-PROPOSED` como autorização para
   migration ou mudança de comportamento antes do congelamento.
 - Divergências de RAT bloqueiam o congelamento, mas não invalidam o draft.
+
+---
+
+## Emenda v2 — 2026-08-28 (SDD v5.2 §8.1)
+
+| ID        | Pergunta                                         | Proposta para o draft                                                                                                                                                                                                                                 | Evidência / impacto                                                                                                                                         | Estado                                                     |
+| --------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| M04-D-011 | Como resolver a incompatibilidade D-004 × D-008? | Máquina de estados com CAS por linha (`RESERVED`→`COMPLETED`→`SETTLED`; `RESERVED`→`EXPIRED`): `recordOutcome` transita para `COMPLETED`; `settle` exige `status='COMPLETED'`; `expire` exige `status='RESERVED'` e TTL vencido pelo relógio do banco | Elimina o predicado literal `outcome IS NULL`; EvalPlanQual garante exatamente um gravador por transição; chegadas tardias com D-009 estrito (F-21/F-22/G7) | `AGENT-PROPOSED` (canônico do SDD v5.2; pendente de Q-019) |
+
+Regra adicional de congelamento: Q-019 deverá ratificar D-011 como resolução de
+D-004 × D-008, junto com D-003 e os campos finais do contrato de outbox; G1–G8
+passam a compor o DoD de P9.

@@ -1,6 +1,6 @@
 # M-04 — Matriz de falhas e recuperação
 
-Status: `DRAFT`. Esta matriz é o registro operacional de D-006 e deverá ser
+Status: `DRAFT v2` (emenda 2026-08-28). Esta matriz é o registro operacional de D-006 e deverá ser
 aprovada no congelamento Q-019. `OBSERVED` descreve o checkout atual; `PLANNED`
 descreve o comportamento alvo; `NOT-IMPLEMENTED` identifica lacunas que não podem
 ser apresentadas como corrigidas.
@@ -45,3 +45,25 @@ ser apresentadas como corrigidas.
     claim deve ser compatível com a escrita prévia de `outcome` definida em D-004.
 11. Falha, ausência de evidência ou ausência de credencial é registrada como
     `FAILED`, `NOT-EXECUTED`, `BLOCKED` ou `UNKNOWN`, nunca como sucesso implícito.
+
+---
+
+## Emenda v2 — 2026-08-28 (SDD v5.2 §8.1): matriz de crash (G3)
+
+| Ponto de crash                      | Recuperação planejada (D-011)                      |
+| ----------------------------------- | -------------------------------------------------- |
+| pós-reserve / pré-execução          | sweep expira (`RESERVED` → `EXPIRED`)              |
+| pós-resultado / pré-`recordOutcome` | expira + replay (D-003) pode re-executar tool      |
+| pós-`recordOutcome` / pré-settle    | sweep ou re-drive settle (`COMPLETED` → `SETTLED`) |
+| pós-commit settle+outbox (mesma tx) | nada a recuperar                                   |
+| mid-sweep                           | re-run idempotente por CAS                         |
+
+Chegadas tardias (D-009 estrito), alinhadas a F-21/F-22:
+
+- outcome → `EXPIRED`: registra + `late_outcome=true`; budget inalterado (F-21).
+- settle → `EXPIRED`: rejeita idempotentemente + evento de auditoria (F-22).
+- re-drive sobre `SETTLED`: no-op (0 linhas), zero eventos duplicados (G7).
+
+Regra invariante adicional: toda transição é CAS por linha; sob READ COMMITTED
+o predicado é reavaliado contra a versão commitada (EvalPlanQual), garantindo
+exatamente um gravador por transição.
