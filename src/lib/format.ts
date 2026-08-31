@@ -70,7 +70,10 @@ export const num = (v: NumericDisplayValue, digits = 2) => {
 
 const DECIMAL_INPUT_MAX_DIGITS = 6;
 
-/** Semeia draft de input com vírgula pt-BR (NUMERIC cru "20.0000" → "20,00"); vazio/inválido → "". */
+/**
+ * Semeia draft de input com vírgula pt-BR (NUMERIC cru "20.0000" → "20,00").
+ * Valores além da escala suportada são rejeitados para evitar perda silenciosa.
+ */
 export const decimalInput = (v: NumericDisplayValue, minDigits = 2): string => {
   if (v == null) return "";
   let decimal: Decimal;
@@ -80,7 +83,15 @@ export const decimalInput = (v: NumericDisplayValue, minDigits = 2): string => {
     return "";
   }
   if (!decimal.isFinite()) return "";
-  const digits = Math.min(DECIMAL_INPUT_MAX_DIGITS, Math.max(minDigits, decimal.dp()));
+  const requestedDigits = Math.trunc(minDigits);
+  if (
+    requestedDigits < 0 ||
+    requestedDigits > DECIMAL_INPUT_MAX_DIGITS ||
+    decimal.dp() > DECIMAL_INPUT_MAX_DIGITS
+  ) {
+    return "";
+  }
+  const digits = Math.max(requestedDigits, decimal.dp());
   return decimal.toFixed(digits).replace(".", ",");
 };
 
@@ -88,7 +99,7 @@ export const decimalInput = (v: NumericDisplayValue, minDigits = 2): string => {
 export const qty = (v: NumericDisplayValue, unit?: string | null, digits = 6): string => {
   const fallback = displayFallback(v);
   if (fallback !== null) return fallback;
-  let text = new Decimal(displayNumber(v) as number).toFixed(Math.max(0, digits));
+  let text = new Decimal(v as string | number).toFixed(Math.max(0, digits));
   if (text.includes(".")) {
     text = text.replace(/0+$/, "").replace(/\.$/, "");
   }

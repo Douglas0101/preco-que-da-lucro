@@ -6,7 +6,6 @@ import {
   getDatabase,
   TenantMembershipDeniedError,
   withResolvedTenantTransaction,
-  withTenantTransaction,
   type DatabaseTransaction,
 } from "@/db/client.server";
 import { tenantMemberships } from "@/db/schema";
@@ -89,7 +88,8 @@ export const requireDatabaseIdentity = createMiddleware({ type: "function" }).se
 );
 
 /** Contexto transacional para BFFs curtos e exclusivamente dependentes do PostgreSQL.
- * Resolve sessão, membership e GUCs de tenant em UMA transação (S1-PERF-TX). */
+ * A sessão é resolvida antes; membership e GUCs de tenant são configurados em
+ * UMA transação (S1-PERF-TX). */
 export const requireDatabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ context, next, signal }) => {
     const correlationId = getCorrelationId(context);

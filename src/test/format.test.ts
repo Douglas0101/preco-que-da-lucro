@@ -63,6 +63,11 @@ describe("decimalInput: seed de input decimal pt-BR", () => {
     expect(decimalInput("19.9999")).toBe("19,9999");
   });
 
+  it("rejeita escala acima do contrato em vez de arredondar silenciosamente", () => {
+    expect(decimalInput("1.2345678")).toBe("");
+    expect(decimalInput("1.23", 7)).toBe("");
+  });
+
   it("é idempotente após o parse de submissão", () => {
     for (const value of ["20.0000", "1234.5", 0]) {
       const once = decimalInput(value);
@@ -78,6 +83,7 @@ describe("qty: quantidade com unidade", () => {
     expect(qty("6.5", "unidade(s)")).toBe("6,5 unidade(s)");
     expect(qty("6.000000", "kg")).toBe("6 kg");
     expect(qty("0.005", "kg")).toBe("0,005 kg");
+    expect(qty("9007199254740993", "unidade")).toBe("9007199254740993 unidade");
     expect(qty(2, "kg")).toBe("2 kg");
     expect(qty("3")).toBe("3");
   });

@@ -168,6 +168,15 @@ function transactionBoundary(statement: unknown): "begin" | "commit" | "rollback
   return undefined;
 }
 
+function isThenable(value: unknown): value is PromiseLike<unknown> {
+  return (
+    value !== null &&
+    (typeof value === "object" || typeof value === "function") &&
+    "then" in value &&
+    typeof (value as { then?: unknown }).then === "function"
+  );
+}
+
 function instrumentClientRoundTrips(client: unknown): unknown {
   const target = client as { query?: (...queryArgs: unknown[]) => unknown } | null;
   if (!target || typeof target.query !== "function" || instrumentedClients.has(target)) {
@@ -184,16 +193,53 @@ function instrumentClientRoundTrips(client: unknown): unknown {
       transactionStartedAt = performance.now();
     }
     roundTrips += 1;
-    if (boundary === "commit" || boundary === "rollback") {
+    const isEndingBoundary = boundary === "commit" || boundary === "rollback";
+    let finalized = false;
+    const finalize = (error?: unknown) => {
+      if (!isEndingBoundary || finalized) return;
+      finalized = true;
       logJson("info", "app.context_tx", {
         round_trips: roundTrips,
-        outcome: boundary,
-        duration_ms: Math.round(performance.now() - transactionStartedAt),
+        outcome: error ? `${boundary}_failed` : boundary,
+        duration_ms: Math.round(
+          transactionStartedAt > 0 ? performance.now() - transactionStartedAt : 0,
+        ),
       });
       roundTrips = 0;
       transactionStartedAt = 0;
+    };
+
+    const callbackIndex = isEndingBoundary
+      ? queryArgs.findIndex((argument) => typeof argument === "function")
+      : -1;
+    if (callbackIndex >= 0) {
+      const callback = queryArgs[callbackIndex] as (...callbackArgs: unknown[]) => unknown;
+      queryArgs[callbackIndex] = (...callbackArgs: unknown[]) => {
+        finalize(callbackArgs[0]);
+        return callback(...callbackArgs);
+      };
     }
-    return originalQuery(...queryArgs);
+
+    try {
+      const result = originalQuery(...queryArgs);
+      if (isEndingBoundary && callbackIndex < 0 && isThenable(result)) {
+        return result.then(
+          (value) => {
+            finalize();
+            return value;
+          },
+          (error) => {
+            finalize(error);
+            throw error;
+          },
+        );
+      }
+      if (isEndingBoundary && callbackIndex < 0) finalize();
+      return result;
+    } catch (error) {
+      finalize(error);
+      throw error;
+    }
   };
   return client;
 }

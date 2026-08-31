@@ -30,13 +30,23 @@ vi.mock("@/server/auth/auth.server", () => ({
 
 const TENANT_A = "11111111-1111-4111-8111-111111111111";
 const TENANT_B = "22222222-2222-4222-8222-222222222222";
-const TENANT_C = "33333333-3333-4333-8333-333333333333";
 const USER_ID = "user-1";
+const OTHER_USER_ID = "user-2";
 const CORRELATION_ID = "44444444-4444-4444-8444-444444444444";
 
 const memberships = [
-  { tenantId: TENANT_A, role: "owner", createdAt: new Date("2026-01-01T00:00:00.000Z") },
-  { tenantId: TENANT_B, role: "member", createdAt: new Date("2026-01-02T00:00:00.000Z") },
+  {
+    tenantId: TENANT_A,
+    userId: USER_ID,
+    role: "owner",
+    createdAt: new Date("2026-01-01T00:00:00.000Z"),
+  },
+  {
+    tenantId: TENANT_B,
+    userId: OTHER_USER_ID,
+    role: "owner",
+    createdAt: new Date("2026-01-02T00:00:00.000Z"),
+  },
 ];
 
 interface RecordedQuery {
@@ -85,9 +95,17 @@ function createFakeDatabase() {
                 : { sql: "", params: [] as unknown[] };
               timeline.push({ kind: "select", sql: rendered.sql, params: rendered.params });
               const hasTenantFilter = rendered.sql.includes("tenant_id");
+              const requestedTenantId = rendered.params.find((param) =>
+                memberships.some((membership) => membership.tenantId === param),
+              );
+              const currentUserId = harness.state.session?.user.id;
               const rows = hasTenantFilter
-                ? memberships.filter((membership) => rendered.params.includes(membership.tenantId))
-                : [memberships[0]];
+                ? memberships.filter(
+                    (membership) =>
+                      membership.tenantId === requestedTenantId &&
+                      membership.userId === currentUserId,
+                  )
+                : memberships.filter((membership) => membership.userId === currentUserId);
               const projected = fields
                 ? rows.map((row) =>
                     Object.fromEntries(
@@ -128,11 +146,11 @@ afterEach(() => {
 });
 
 describe("T1 perf-waves: negação cross-tenant em requireDatabaseAuth", () => {
-  it("owner solicitando tenant alheio recebe 403; GUC de tenant nunca é definido e a operação não executa", async () => {
+  it("usuário solicitando tenant existente de outro usuário recebe 403; GUC de tenant nunca é definido e a operação não executa", async () => {
     const fake = createFakeDatabase();
     setDatabaseForTests(fake.database as unknown as Database);
     harness.state.session = { user: { id: USER_ID } };
-    harness.state.headers.set("x-tenant-id", TENANT_C);
+    harness.state.headers.set("x-tenant-id", TENANT_B);
     const next = vi.fn(async () => ({}));
 
     let caught: unknown;
