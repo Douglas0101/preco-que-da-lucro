@@ -57,6 +57,9 @@ async function main(): Promise<void> {
       "products",
       "profiles",
     ]) {
+      // SQL deliberado: lista FIXA de tabelas (sem input externo) + tenant parametrizado;
+      // seeder de fixture não usa ORM para limpeza multi-tabela.
+      // pi-lens-ignore: no-sql-in-code
       await client.query(`delete from ${table} where tenant_id = $1`, [tenantId]);
     }
     await client.query("delete from tenant_memberships where tenant_id = $1", [tenantId]);
@@ -68,8 +71,8 @@ async function main(): Promise<void> {
       [userId, email],
     );
     await client.query(
-      `insert into accounts (id, account_id, provider_id, user_id, password)
-       values ($1, $2, 'credential', $2, $3)`,
+      `insert into accounts (id, account_id, provider_id, user_id, password, issuer)
+       values ($1, $2, 'credential', $2, $3, 'local:credential')`,
       [`e2e-credential-${userId}`, userId, await hashPassword(password)],
     );
     await client.query(
@@ -78,8 +81,8 @@ async function main(): Promise<void> {
       [memberUserId, memberEmail],
     );
     await client.query(
-      `insert into accounts (id, account_id, provider_id, user_id, password)
-       values ($1, $2, 'credential', $2, $3)`,
+      `insert into accounts (id, account_id, provider_id, user_id, password, issuer)
+       values ($1, $2, 'credential', $2, $3, 'local:credential')`,
       [`e2e-credential-${memberUserId}`, memberUserId, await hashPassword(memberPassword)],
     );
     await client.query(
