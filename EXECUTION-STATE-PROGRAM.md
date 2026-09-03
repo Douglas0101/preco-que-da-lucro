@@ -15,9 +15,7 @@ Neon reais ou conteúdo de mensagens. Estrutura: Parte 0 (decisões) → estado 
 - **Ondas (D-16):** W1=M-01 · W2=M-04+M-06 · W3=M-05+M-02 · W4=M-03+M-07+M-08.
   Dependências inegociáveis: M-01→todos; M-04→M-05.
 - **Início do programa:** 2026-08-27.
-- **Última atualização:** 2026-08-28 (selagem S1/S4/S2/S3 local concluída; QA E2E reexecutada; Browser in-app bloqueado; gates intactos).
-
----
+- **Última atualização:** 2026-08-29 (programa de ondas PERF/FIN: baseline S0 + ondas PERF-TX/FIN-APPLY/PERF-NAV/CLOSE no adendo; F0-04 fechado com rotulagem `dev-evidence`; patch pós-S4 do orquestrador — bug UNION corrigido e lint fix — com gates re-executados sem pipe; status geral DONE; M-06 permanece PENDING; worktree sem commit).
 
 ## Parte 0 — Registro de decisões
 
@@ -487,3 +485,428 @@ congelamento de spec; `blocked`/ausência de handoff → registra e segue (C-12)
    alterar bytes de `docs/evidence/security-scan/*/` — se o drift ocorrer, restaurar de
    HEAD e re-verificar os hashes do manifesto (aplicado em 2026-08-27 ao delta-scan
    `cb6038a1`).
+
+---
+
+## Adendo de execução — rodada OPEN-01..OPEN-06 — 2026-08-28
+
+**Classe da rodada:** execução local orquestrada; nenhum gate consumido; nenhuma operação remota.
+
+### Baseline reobservado
+
+- Branch: `program/v5-fechamento-sdd`.
+- HEAD: `233ad6c28f0f2f5a543524ee174efc39f5a6d62e`.
+- Tracking: `origin/program/v5-fechamento-sdd`, referência local sem `fetch`, `[ahead 18]`.
+- Worktree rastreado sem diff; `.pi/` permanece untracked e deliberado.
+- `git diff --check`: exit `0`.
+- `npm run m02:matrix:check`: exit `1`, drift esperado/pending.
+- `npm run m02:boundaries`: exit `1`, 13 ocorrências em 9 caminhos únicos ausentes.
+- `npm run m02:state:check`: confirmado pelo agente de QA como verde; não substitui os checks M-02 pendentes.
+
+### Resultados por escopo
+
+1. **OPEN-01 — `BLOCKED` / `CONFIGURATION-MISSING/BLOCKED`:** o IAB oficial inicializou, mas `http://127.0.0.1:4173/` retornou `net::ERR_CONNECTION_REFUSED`. Nenhum fallback foi usado; não há veredicto de produto.
+2. **OPEN-02 — análise concluída, M-02 `PENDING`:** matrix e boundaries continuam exit `1`. Os nove caminhos únicos ausentes foram registrados como `DEFERRED-EXTRACTION` para planejamento; nenhuma matriz foi gerada, nenhum stub/catálogo/runtime foi alterado.
+3. **OPEN-03 — `BLOCKED` / cobertura incompleta:** scan oficial `8dfe96b9-03a5-4521-a840-bcbbbfb3abfe` não produziu `in_scope_files` nem artefato/report selado; `findingCount=0` não foi promovido a `SCAN-CLEAN`. O scan integral continua obrigatório antes de P8.
+4. **OPEN-04 — `BLOCKED`:** `/produtos`, `/precos` e `/ponto-equilibrio` não carregaram por dependerem do runtime bloqueado em OPEN-01.
+5. **OPEN-05 — auditoria concluída:** R1 `01a04822-e069-7520-91de-d115884e1320` e R2 `01a04829-1125-7810-9eee-040f9d090f07` permanecem `ABSENT-HANDOFF`; comentários parciais não foram tratados como aprovação. Os agentes M-02/Security/Scribe da rodada atual também não entregaram handoff final.
+6. **OPEN-06 — preparação concluída:** checklist remoto criado; `remote_touched=false`. Nenhum `fetch`, `pull`, `push`, PR, merge ou deploy.
+
+### Artefatos
+
+- `.pi/evidence/orchestrated-open-scopes-2026-08-28/round.yaml`
+- `.pi/evidence/orchestrated-open-scopes-2026-08-28/report.md`
+- `.pi/evidence/orchestrated-open-scopes-2026-08-28/remote-sync-checklist.md`
+
+### Gates e pendências
+
+Gates consumidos: `[]`.
+
+Gates pendentes: `Q-017`, `Q-019`, `Q-020`, `Q-021`, `Q-022`, `Q-023`, `Q-024`, `Q-001/A1`.
+
+Próxima ação: disponibilizar o runtime/fixture para repetir a manual QA no IAB oficial e obter scan oficial integral selado antes de qualquer P8; manter M-02 pendente até autorização arquitetural correspondente.
+
+---
+
+## Adendo de execução — retomada agentic + Post-Op — 2026-08-28
+
+**Resultado:** `COMPLETED_WITH_POST_OP_FAILURES`.
+
+### Escopo e segurança operacional
+
+- Branch: `program/v5-fechamento-sdd`.
+- HEAD: `233ad6c28f0f2f5a543524ee174efc39f5a6d62e`.
+- O runtime foi iniciado apenas com `DATABASE_URL` e `DATABASE_ADMIN_URL` apontando para `127.0.0.1:5432`; o primeiro preview que herdou endpoints Neon foi encerrado e descartado como evidência.
+- Não houve `fetch`, `pull`, `push`, PR, merge, deploy, acesso a produção, alteração de runtime/schema/migration/configuração, `matrix:generate`, criação de stub ou remoção de volume.
+- Nenhum gate foi consumido: `[]`.
+
+### Pipeline de agentes
+
+1. Runtime Bootstrapper `01a048f4-6fe7-7d63-bfcd-7dc5afa8b699`: handoff final `RUNTIME_HEALTHY`; PID Nitro `3904979`; bind `127.0.0.1:4173`; live/ready/root HTTP `200`. O processo foi encerrado no post-op.
+2. IAB Navigator `01a048f8-ce31-7fe0-a86d-5d89dd1e59e2`: `FAILED`/`CONFIGURATION-MISSING`; a superfície oficial retornou `Browser is not available: iab` e disponibilidade `[]`. Nenhum fallback, login, rota ou snapshot foi usado.
+3. Security Sealer `01a048f8-f335-7ad0-99b0-9788bd7f2d2f`: `BLOCKED-TOOLING/coverage-incomplete`; scan oficial `8dfe96b9-03a5-4521-a840-bcbbbfb3abfe`; `running=true`, `sealed=false`, `in_scope_files.txt` vazio, `reportAvailable=false`, `findingCount=0`. O zero não foi promovido a CLEAN.
+4. Post-Op Auditor `01a048fe-ff96-7c41-99fb-936604f61a9b` e recuperação `01a04903-80bc-7203-84e5-10d97c4bbf91`: sem handoff final; ambos foram encerrados após exceder a janela. A auditoria foi assumida pelo principal e os fatos físicos foram rechecados diretamente.
+
+### Revisão Pós-Operatória
+
+| Item                                                   | Resultado                                           |
+| ------------------------------------------------------ | --------------------------------------------------- |
+| Runtime subiu e respondeu antes do IAB                 | `PASS`                                              |
+| IAB gerou snapshots das três rotas                     | `FAIL` — IAB indisponível                           |
+| `in_scope_files.txt` populado para `fc2f322`/`233ad6c` | `FAIL` — arquivo vazio                              |
+| Scan selado                                            | `FAIL` — `sealed=false`, `running=true`, sem report |
+| M-02 intocado, matrix/boundaries exit `1`              | `PASS`                                              |
+| Gates intactos                                         | `PASS`                                              |
+| Worktree no escopo permitido                           | `PASS` — ledger modificado e `.pi/` não rastreado   |
+| Hashes recalculados                                    | `PASS` — manifest separado                          |
+
+### Teardown e M-02
+
+- Socket `127.0.0.1:4173`: livre após o teardown.
+- `npm run db:down`/teardown Docker: concluído; nenhum container ou rede do compose permanece ativo.
+- Volume `preco-que-d-main_postgres-data`: preservado; não houve `docker volume rm`.
+- `npm run m02:matrix:check`: exit `1`, drift: `execute npm run m02:matrix:generate and review the result.`
+- `npm run m02:boundaries`: exit `1`, mesmas 13 ocorrências em 9 caminhos únicos ausentes.
+
+### Artefatos e hashes
+
+Os hashes abaixo foram calculados depois das respectivas escritas e são repetidos no manifest de evidência:
+
+- `.pi/evidence/orchestrated-open-scopes-2026-08-28/round.yaml`: `a0b1631b1b3032abbcfc713abb86e02447efa338d37dc4182c91e435d9a1cec6`.
+- `.pi/evidence/orchestrated-open-scopes-2026-08-28/report.md`: `0208b87bc7b521b23e7e6963f2645a8e2a3baf20acd633d6c45344835f074907`.
+- `.pi/evidence/orchestrated-open-scopes-2026-08-28/remote-sync-checklist.md`: `46e1216762e046c50a91f56b4b8c096981608653fc43ec19b7674f807038f7dc`.
+- `.pi/evidence/orchestrated-open-scopes-2026-08-28/post-op/iab-report.md`: `5fd6da4d5cc1f5f5cb72cd1d9ea62bd9750242312914f2cae8787d13e2fe3fff`.
+- `.pi/evidence/orchestrated-open-scopes-2026-08-28/post-op/post-op-report.md`: `404e34135fd0040ef1b2bcdceaa58d75d4d784acb79bcfb394074442348a00af`.
+- `.pi/evidence/orchestrated-open-scopes-2026-08-28/post-op/handoff.yaml`: `b46a04b3055a749223f5fb83d675166f77a8127f684d40ed306a15e0ee7ed0e3`.
+- SHA final do próprio ledger: registrado no manifest externo após este append, para evitar circularidade.
+
+### Pendências e próxima ação
+
+OPEN-01 e OPEN-04 permanecem `BLOCKED`; OPEN-02 mantém `DEFERRED-EXTRACTION`; OPEN-03 permanece bloqueado até scan oficial com escopo populado e selo; OPEN-05 foi auditado sem promover ausência a aprovação; OPEN-06 foi preparado sem tocar remoto. A próxima ação é disponibilizar o IAB oficial nesta sessão e produzir o scan integral selado dos commits-alvo antes de qualquer P8. M-02 e todos os gates permanecem pendentes.
+
+---
+
+## Adendo de execução — rodada operacional condicional pós-autenticação — 2026-08-28
+
+**Resultado:** `COMPLETED_WITH_BLOCKERS`.
+
+### Escopo e guardrails
+
+- Branch: `program/v5-fechamento-sdd`.
+- HEAD observado: `233ad6c28f0f2f5a543524ee174efc39f5a6d62e`.
+- A divergência documental prevista no baseline foi observada: o artefato
+  `PLANO_OTIMIZADO_AUTENTICACAO_E_RETOMADA.md` permanece não rastreado e foi
+  criado nesta retomada; não há alteração de código, schema, migration,
+  dependência ou configuração.
+- Não houve `fetch`, `pull`, `push`, PR, merge, deploy, release, acesso a
+  produção ou operação em Neon persistente.
+- Nenhum gate foi consumido: `[]`.
+
+### O1 — Runtime Bootstrap
+
+- `npm run db:up`: exit `0`; container PostgreSQL local saudável.
+- `npm run e2e:prepare`: exit `0`; fixture owner/member local preparada com
+  credenciais efêmeras não registradas.
+- `npm run build`: exit `0`; build client/SSR/Nitro concluído.
+- Preview Nitro: bind `127.0.0.1:4173`, PID `4024089`.
+- Verificações de ambiente do processo confirmaram que `DATABASE_URL` e
+  `DATABASE_ADMIN_URL` apontavam para loopback; o secret estava presente sem
+  ser exposto.
+- Healthchecks: `/api/health/live=200`, `/api/health/ready=200`, `/=200`.
+
+**Handoff O1:** `RUNTIME_HEALTHY`.
+
+### O2 — IAB Navigator
+
+A seleção oficial via `get("iab")` falhou com a saída literal:
+
+```text
+Browser is not available: iab
+```
+
+Por consequência:
+
+- login visual não executado;
+- `/produtos`, `/precos` e `/ponto-equilibrio` não receberam snapshots;
+- despesa sentinela e diálogo de reset não foram executados;
+- nenhum fallback foi usado;
+- cookies, localStorage, sessionStorage, perfis e stores não foram
+  inspecionados, conforme `NOT_PERMITTED_BY_IAB_SKILL`.
+
+**Handoff O2:** `IAB_BLOCKED`; product verdict: `NO-VERDICT`.
+
+### O3 — Scan Continuator
+
+- Scan continuado pelo `scanId` original
+  `8dfe96b9-03a5-4521-a840-bcbbbfb3abfe`.
+- Range preservado:
+  `a311fac509cf9581f089263f933b8097792b09a9..233ad6c28f0f2f5a543524ee174efc39f5a6d62e`.
+- `prepare_codex_security_review_items` no scan existente retornou
+  `reviewItemsTotal=0`.
+- Listagem oficial de review items retornou `items=[]`.
+- Contexto final observado: `running=true`, `phase=threat_model`,
+  `filesTotal=292`, `closedRows=0`, `worklistRows=0`, `findingCount=0`,
+  `reportAvailable=false`, `artifacts={}`.
+- `in_scope_files.txt` permaneceu vazio; não foi criado artefato substituto.
+- Nenhum scan paralelo foi iniciado e o scan existente não foi cancelado.
+
+**Handoff O3:** `SCAN_CONTINUATION_BLOCKED`. O valor zero de findings não foi
+promovido a `SCAN-CLEAN`.
+
+### O4 — M-02 Observer
+
+Handoff recebido: `M02_PENDING_MAINTAINED`.
+
+| Check                      | Exit | Resultado                               |
+| -------------------------- | ---: | --------------------------------------- |
+| `npm run m02:state:check`  |  `0` | marker parent-pinned válido para o HEAD |
+| `npm run m02:matrix:check` |  `1` | drift; geração não autorizada           |
+| `npm run m02:boundaries`   |  `1` | 13 ocorrências em 9 caminhos únicos     |
+
+`npm run m02:matrix:generate` não foi executado. Não houve stub, mock,
+catálogo falso ou waiver implícito. Classificação preservada:
+`DEFERRED-EXTRACTION/PENDING`.
+
+### O5 — Teardown
+
+- Preview encerrado graciosamente; não há processo Nitro e a porta `4173` está
+  livre.
+- `npm run db:down`: exit `0`; container e rede locais removidos.
+- O volume `preco-que-d-main_postgres-data` continua presente.
+- Não houve `docker volume rm` nem `docker compose down -v`.
+- `git diff --check`: exit `0`.
+
+**Handoff O5:** `TEARDOWN_SUCCESS`.
+
+### O6 — Post-op
+
+O subagent auditor `01a04a15-76d7-7070-84be-399847977c79` não produziu handoff
+final dentro das janelas bounded e foi encerrado. A auditoria foi assumida
+diretamente pelo principal; ausência de handoff não foi tratada como aprovação.
+
+| Critério                         | Resultado                                  |
+| -------------------------------- | ------------------------------------------ |
+| runtime saudável antes do IAB    | `PASS`                                     |
+| IAB disponível e jornada manual  | `FAIL/BLOCKED`                             |
+| snapshots das três rotas         | `FAIL/BLOCKED`                             |
+| scan selado, com report e escopo | `FAIL/BLOCKED`                             |
+| M-02 intocado e pendente         | `PASS`                                     |
+| gates intactos                   | `PASS`                                     |
+| remoto intocado                  | `PASS`                                     |
+| volume preservado                | `PASS`                                     |
+| worktree dentro do escopo        | `PASS` — ledger, `.pi/` e plano documental |
+
+### Classificação final e retomada
+
+OPEN-01 e OPEN-04 permanecem `BLOCKED` pelo IAB indisponível. OPEN-02 mantém
+`DEFERRED-EXTRACTION/PENDING`. OPEN-03 é `SCAN_CONTINUATION_BLOCKED` até que o
+scan oficial tenha escopo populado, cobertura concluída, report e selo.
+
+Próxima ação: disponibilizar o IAB oficial e recuperar o scan existente em uma
+rodada futura; somente depois preparar o dossiê para gates humanos. P8 continua
+bloqueado. O hash desta atualização do ledger deve ser calculado externamente,
+após o append, para evitar circularidade.
+
+---
+
+### [2026-08-28T21:06:34Z] Platform Incident Response
+
+- `LOCAL-VERIFIED`: a nova tentativa oficial de `get("iab")` em
+  `2026-08-28T21:00:28.675Z` retornou literalmente `Browser is not available:
+iab`; o stack foi capturado no PIR. Nenhum fallback de browser foi usado.
+- `LOCAL-VERIFIED`: as flags allowlisted de IAB, browser, scanner e sandbox
+  estavam ausentes; isso não prova ausência de quota/provisioning limit.
+- `LOCAL-VERIFIED`: o scan existente
+  `8dfe96b9-03a5-4521-a840-bcbbbfb3abfe`, no range
+  `a311fac509cf9581f089263f933b8097792b09a9..233ad6c28f0f2f5a543524ee174efc39f5a6d62e`,
+  permanece `running=true`, fase `threat_model`, `0/1` superfícies,
+  `filesTotal=292`, `reviewItems=[]`, `reportAvailable=false`,
+  `in_scope_files.txt` vazio e sem artefatos canônicos. `findingCount=0` não
+  foi promovido a `SCAN-CLEAN`; o scan não foi cancelado nem substituído.
+- `LOCAL-VERIFIED`: não foram observados logs de erro do motor, report,
+  manifest, findings ou coverage no `scanDir`; causa-raiz permanece
+  `NOT-DETERMINED`. Pressão de swap é apenas hipótese operacional.
+- `LOCAL-VERIFIED`: nenhum processo Nitro/preview órfão foi identificado; não
+  houve kill/restart de processos e nenhum volume foi removido.
+- `REPORTED`: os três subagents read-only entregaram handoffs finais; forense,
+  metadados e observação do scan confirmaram limitações, hashes históricos e
+  estado incompleto, sem estabelecer causa-raiz ou aprovação.
+- Gerado `.pi/evidence/PLATFORM_INCIDENT_REPORT.md` com diagnóstico,
+  evidências, limitações e critérios de resolução da infraestrutura.
+- Nenhum teste de aplicação, `db:up`, preview, novo scan, cancelamento,
+  alteração de código, operação remota ou gate foi executado nesta resposta de
+  incidente. M-02 permanece `DEFERRED-EXTRACTION/PENDING`.
+- Estado operacional: `WAITING_ON_ENVIRONMENT`; retomar somente após IAB
+  navegável e scan selado ou cancelamento oficial pela infraestrutura.
+
+---
+
+## Adendo de execução — Programa de ondas PERF/FIN 2026-08-29 (Ondas 0–3)
+
+**Classe da rodada:** execução local orquestrada por ondas (S0-BASELINE →
+S1-PERF-TX → S2-FIN-APPLY → S3-PERF-NAV → S4-CLOSE); nenhum gate consumido
+(`[]`); nenhuma operação remota (sem fetch/push/PR/merge/Neon/produção); zero
+novas dependências; schema/migrations intocados pelas ondas; `scripts/forensic/**`
+intocado. Worktree permanece SEM commit.
+
+### F0-04 — Baseline de performance: PARCIAL → FECHADO (rotulado `dev-evidence`)
+
+- Fechamento com as DUAS medições do ciclo: before em
+  `docs/evidence/perf-baseline-2026-08-29.md` (S0; janela UTC
+  19:05:14Z→23:54:46Z de `/tmp/opencode/vite-dev.log`) e after em
+  `docs/evidence/perf-after-2026-08-29.md` (S4; sessão 02:27:29Z→02:46:10Z UTC de
+  2026-08-30 em `/tmp/opencode/vite-dev-after.log`; RT-count instrumentado via
+  `app.context_tx`, n=81, média 5,32 RT/tx, p50 4, p95 11; `/produtos` e
+  `/precos` medidos em 7 RTs/tx, confirmando −5 e −3 RTs da tabela S1).
+- **Limitação rotulada `dev-evidence`**: single-user/Vite dev/Neon remoto; n baixo
+  (0–40 por endpoint); latência por RT varia entre sessões; nenhum valor é SLO e
+  nenhuma afirmação de produção deriva destes documentos.
+- **M-06 permanece caminho de produção e NÃO foi executado**: baseline controlado
+  (rotulagem CONTROLLED) e SLO/error budget continuam no escopo do módulo M-06
+  (`PENDING`); este fechamento é dev-evidence e não consome o cartão SA-03.
+- **Achado material da re-mineração (S4):** o log before contém, além da janela
+  aceita do S0, uma janela intermediária (00:35Z→02:22:12Z UTC de 2026-08-30; 126
+  `request.completed`; 69 `app.context_tx`; 13× 503 no read-model UNION ALL;
+  páginas `/diagnostico`) que o baseline não declarou — registrada como descoberta
+  no doc after §7 e excluída do comparativo.
+
+### Ondas registradas (status por tarefa)
+
+| Onda               | Agente       | Tarefas                                                                                                                                                                                                                                     | Status                                                                                                               | Evidência                                                                                                                                                                                                                                                                                                                                   |
+| ------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Onda 0 — BASELINE  | S0-BASELINE  | Baseline F0-04 + log bruto + diagnóstico aceito (RTs fixos por server function + waterfalls; N+1 já resolvido)                                                                                                                              | DONE                                                                                                                 | `docs/evidence/perf-baseline-2026-08-29.md`; draft `docs/adr/ADR-025-session-cookie-cache.md`; `docs/evidence/manual-navigation-2026-08-29.md`                                                                                                                                                                                              |
+| Onda 1 — PERF-TX   | S1-PERF-TX   | T1 (requireDatabaseAuth em transação única + `withResolvedTenantTransaction` + instrumentação `app.context_tx`) / T2 (loadProductReadModels 5→2 e listPurchasePrices 3→2, UNION ALL na tenant tx, golden 5/5) / T3 (cookie cache de sessão) | DONE / DONE / **BLOCKED_ON_ADR** (ADR-025 PROPOSED/PENDING; status deliberado, NÃO é PARTIAL)                        | `src/middleware/request-context.ts`, `src/db/client.server.ts`, `src/lib/products.functions.ts`; testes `cross-tenant-denial.perf-waves.test.ts`, `round-trip-instrumentation.perf-waves.test.ts`, `products-read-models.golden.perf-waves.test.ts` (+ `src/test/fixtures/`); desvio aprovado: pin `src/test/query-performance.test.ts` 5→2 |
+| Onda 1 — FIN-APPLY | S2-FIN-APPLY | T1–T5 (`decimalInput(v, minDigits=2)` e `qty(v, unit?, digits=6)`; aplicação em precos/simulacoes; SYSTEM_PROMPT pt-BR com vedação de inventar valores; badge SIMULAÇÃO + skeleton; varredura toFixed/Intl limpa)                           | DONE (5/5)                                                                                                           | `src/lib/format.ts`, `src/routes/_authenticated/precos.tsx`, `src/routes/_authenticated/simulacoes.tsx`, `src/lib/chat-execution.server.ts`; `format.test.ts` 21/21                                                                                                                                                                         |
+| Onda 2 — PERF-NAV  | S3-PERF-NAV  | T1–T6 (break-even client-side; loaders não-bloqueantes com ensureQueryData + pendingComponent; preload "intent"; staleTime por query key; debounce 400ms com generation counter + teste de race; get-session único via session-context)     | DONE (6/6)                                                                                                           | `src/lib/break-even.ts`, `src/lib/session-context.tsx`, `src/lib/query-stale-time.ts`, `src/router.tsx`, `src/routes/_authenticated/*.tsx`, `src/components/app-shell.tsx`; testes `break-even.parity.test.ts`, `simulation-race.test.tsx`                                                                                                  |
+| Onda 3 — CLOSE     | S4-CLOSE     | T1 (evidence after) / T2 (este adendo) / T3 (rascunho YAML forense AUTH-2026-08-29-PERF-WAVES.yaml no handoff apenas)                                                                                                                       | **DONE** (handoff intermediário PARTIAL por lint vermelho + 503; ambos resolvidos pelo patch pós-S4 e reverificados) | `docs/evidence/perf-after-2026-08-29.md` (inclui §4.1 patch pós-S4); handoffs S4 (bloco YAML para arquivar em `$EVID/auth/`)                                                                                                                                                                                                                |
+
+### Desvios do orquestrador (authorized_orchestrator)
+
+1. `drizzle.config.ts` — `defineConfig` removido (export de objeto puro) para
+   compatibilidade drizzle-kit 0.18/0.31; drift PRÉ-existente (`package.json` já
+   estava com `^0.18.1` antes das ondas).
+2. Break-even com direção invertida — implementação pura movida para
+   `src/lib/break-even.ts` e `src/server/services/break-even.service.ts` reexporta
+   (o reexport service→lib do S3 violava import-protection e quebrava o build).
+3. `src/lib/query-stale-time.ts` (NOVO, constantes puras) + reexport em
+   `src/lib/query-options.ts` + import em `src/router.tsx` + dynamic imports nos
+   loaders de inicio/despesas/ponto-equilibrio — corrige regressão de bundle
+   (initial graph 610.350B > 500k FAIL → 467.625B PASS; entry 406.942B → 272.380B;
+   a causa era `router.tsx` açoando `query-options` → `*.functions/zod` para o grafo inicial).
+
+### Gates finais registrados pelo orquestrador
+
+Gate 1→2 e Gate 2→3 verdes: vitest 315/315 (31 arquivos), lint 0, typecheck 0,
+build exit 0, check-bundle PASS (entry 272.380 min/84.802 gzip; graph 467.625
+min/148.837 gzip). **Correção de processo:** o "lint 0" original estava mascarado
+por pipe no orquestrador (exit code não propagado); reconhecido como falha de
+processo do orquestrador, não dos agentes — gates re-executados com exit codes
+sem pipe (confiáveis) após o patch pós-S4.
+
+### Patch pós-S4 (authorized_orchestrator_post_s4)
+
+Aplicado pelo orquestrador após o handoff intermediário PARTIAL do S4
+(lint vermelho + descoberta dos 503):
+
+1. **Lint fix:** `npx eslint --fix` em `src/lib/query-options.ts:16` e
+   `src/routes/_authenticated/ponto-equilibrio.tsx:37` (formatação prettier dos
+   desvios 3/S3).
+2. **Bug dos 503 corrigido** em `src/lib/products.functions.ts`: causa-raiz
+   confirmada contra o Neon (`UNION types text and numeric cannot be matched` —
+   bare `null` acumulado nos branches esquerda do UNION ALL resolve como `text` e
+   colide com `numeric` do branch fee). Fix: (i) casts explícitos nos 36
+   placeholders null (`null::text|numeric|timestamptz` conforme a coluna);
+   (ii) `normalizeChildRow` em `loadChildRows` (`execute()` não aplica decoders
+   do Drizzle; neon-serverless devolve timestamptz como string — paridade entre
+   drivers). Detalhes e medição pós-patch em
+   `docs/evidence/perf-after-2026-08-29.md` §4.1.
+3. **Verificação:** tráfego Playwright real 3× (/produtos, /precos) contra
+   dev+Neon → HTTP 200 e UI renderizada ("1 produto cadastrado | Produto de teste
+   | REAL | Custo: R$ 10,00…"); `app.context_tx` rt=7 **commit**. Comparativo
+   final: listProductsWithMetrics p50 4935→2463 (−50,1%) e listPurchasePrices
+   3873→2834 (−26,8%).
+4. **Gates re-executados (exit codes sem pipe):** test 315/315 (31 arquivos),
+   lint 0, typecheck 0, build 0, check-bundle PASS (entry 272.380 min/84.802
+   gzip; graph 467.625 min/148.837 gzip). Reverificação final S4: test/lint/
+   typecheck/build todos exit 0 → **status geral das ondas: DONE**.
+
+**Lição de cobertura (registrada):** golden test com fake transaction não executa
+SQL real — o bug do UNION passou nos gates locais porque node-postgres/
+golden-fake nunca executou o UNION contra o Postgres. Cobertura contra Neon
+exige teste de integração com Postgres real para o read-model UNION
+(recomendação registrada ao próximo agente; ver riscos do handoff S4 final).
+
+### Observação pós-verificação (dev runtime, rotulada; HISTÓRICA — corrigida)
+
+A sessão after original evidenciou 503 recorrentes em `listProductsWithMetrics`
+(0/12) e `listPurchasePrices` (0/4) contra Neon em dev — wrapper Drizzle "Failed
+query" do read-model UNION ALL e `TypeError: row.priceUpdatedAt?.toISOString is
+not a function`. O padrão já ocorria na janela intermediária do log before (13×
+503 a partir de 01:05:05Z) e não foi capturado pelos gates locais. **Este registro
+permanece como histórico do bug; a causa-raiz foi confirmada e corrigida no
+patch pós-S4 (item 2 acima)** — a medição pós-patch com 200s está no §4.1 do
+evidence.
+
+---
+
+## P1 closeout (WS-01..WS-07) — 2026-09-01
+
+> Programa de fechamento P1 do Plano Mestre (§9 "Gates de aceitação final").
+> Evidências: `docs/evidence/ws-01-sales-dashboard-2026-09-01.md` …
+> `ws-07-observability-2026-09-01.md`. Status: **P1 CLOSED 2026-09-01** — ressalvas
+> R1–R4 encerradas pelos passos S1–S6 abaixo (veredito em
+> `docs/evidence/p1-closeout-2026-09-01.md`).
+
+| Item                                                                      | Status | Evidência                                                                                           |
+| ------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------- |
+| WS-01 Sales → BFF → Dashboard (create + list + summary + período)         | DONE   | `vendas.tsx`, `sales.functions.ts`, `dashboard.service.ts` (period), `inicio.tsx` (seletor período) |
+| WS-02 DiagnosticService server-side                                       | DONE   | `diagnostic.service.ts` + `diagnostic.functions.ts`; cálculo canônico removido do browser           |
+| WS-03 Snapshots com callers (diagnostic, pricing, simulation, break_even) | DONE   | migration 0008 (idempotency_key + UNIQUE); repos com `onConflictDoNothing`                          |
+| WS-04 saveSimulation + UI + recálculo server-side                         | DONE   | `simulacoes.tsx` (salvar + listar); `simulation.service` recalcula e grava snapshot                 |
+| WS-05 estimated_cost writer (unknown ≠ zero)                              | DONE   | `budget-ledger.settle` + `estimateModelCost`; `cost_status` explícito                               |
+| WS-06 Conversation FSM + allowlist por estado                             | DONE   | `chat-fsm.server.ts`; gate por estado antes do tool runner                                          |
+| WS-07 observabilidade + evidências                                        | DONE   | métricas/spans novas; 7 evidence files commitados                                                   |
+
+### Gates locais executados (2026-09-01)
+
+- `tsc --noEmit` 0 erros · `vitest` **353/353** (×2 estáveis) · `eslint .` 0 · `npm run build` ok · `check:bundle` PASS (entry 84.9 kB gzip; graph 148.9 kB gzip ≤ 500 kB).
+- PostgreSQL 17 local: migrations do zero 0000→0008 OK; upgrade a partir de 0003 OK (downs de 0007/0008 adicionados); RLS + cross-tenant + rollback OK; tool security OK; chat semantics OK; orçamento IA T1–T10 OK.
+- `drizzle-kit check`: "Everything's fine".
+
+### Ressalvas rotuladas (vereditos em `p1-closeout-2026-09-01.md`)
+
+1. ~~`test-auth-integration.ts` retorna 401 no ambiente local~~ → **R1 resolvida no S1**: raiz = drift better-auth 1.7.2 (committado no wave1) que casa credential accounts por `issuer` + `accountId`; teste tornado hermético + migration 0010 faz backfill de `accounts.issuer` (DATA_MIGRATION/SAFE, idempotente). CI nos tips publicados (1.6.27) permanece verde; merge-gate registra o changelog review (§2.2).
+2. ~~"Margem consolidada" segue "—"~~ → **R2 resolvida no S5**: estado explícito com badge `DADOS INCOMPLETOS` + descrição do insumo faltante; mix real por produto permanece P2.
+3. Custo de IA agregado por rodada de modelo (`ai_usage`) e não por tool — **R3 aceita com suporte**: coluna `ai_usage.tool_execution_id` nullable criada (0009) e nunca escrita (asserção de contrato); atribuição por tool fica para P2.
+4. Estados `calculating/confirming/executing` do FSM — **R4 resolvida no S6 (ADR-026, caminho b)**: grafo executado declarado (`idle → collecting_context → completed|failed` + RESET); os três restantes marcados **RESERVED** com allowlist vazia (gate negativo) e CHECK mantido para forward-compat com M-04.
+
+## S1–S7 — fechamento de ressalvas e closeout P1 (2026-09-01)
+
+Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · evidence · rollback · status`.
+
+| id    | módulo  | tipo      | ref plano                          | passo | testes                                                                                                   | evidence                                           | rollback                                                       | status |
+| ----- | ------- | --------- | ---------------------------------- | ----- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------- | ------ |
+| S1-01 | M-02    | fix+test  | §7.2–7.7 · §32 · INV-002           | S1    | `test-auth-integration.ts` (hermético; prova admin+app_runtime ×2)                                       | `s1-auth-hermetic-2026-09-01.md`                   | reverter commit do teste (auth runtime intocado)               | DONE   |
+| S1-02 | M-02    | migration | §13.4 · §27 · F2                   | S1    | replay incremental + idempotência provados em scratch                                                    | incluída em `p1-closeout`                          | `0010_to_0009_down.sql`                                        | DONE   |
+| S2-01 | M-02/DB | fix+test  | INV-012 · §27 · §34                | S2    | `test-migrations.ts` (downgrade 0010→0001 + replay, journal=11)                                          | `s2-migration-0002-rollback-2026-09-01.md`         | remover par de rollback (forward migration inalterada)         | DONE   |
+| S3-01 | M-03    | fix+test  | §10.6 · §22 · INV-009              | S3    | `snapshot-idempotency.test.ts` + prova de replay em scratch                                              | `s3-snapshot-idempotency-2026-09-01.md`            | helper puro (ADR não requerida — regra documentada)            | DONE   |
+| S4-01 | M-04    | fix+test  | §14.6 · §6.9 · §19.4 · INV-006/014 | S4    | `ai-estimated-cost.test.ts` (boot throw, redaction, tool_execution_id NULL)                              | `s4-ai-pricing-hardening-2026-09-01.md`            | flag de validação de boot (remover chamada em `src/server.ts`) | DONE   |
+| S5-01 | M-02    | test+doc  | §8 BFF-001 · §11.7 · §18.1/2/4/5   | S5    | `e2e/sales-dashboard.spec.ts` (11/11 chromium; 12/12 ×4 projetos na prova A5) + badge R2 em `inicio.tsx` | `s5-sales-e2e-2026-09-01.md`                       | n/a (teste/evidência)                                          | DONE   |
+| S6-01 | M-04    | ADR+test  | §14.1/14.2 · INV-002/009/014       | S6    | `chat-fsm.server.test.ts` (+5: walk executado, reserved gates)                                           | `s6-fsm-grafo-executado-2026-09-01.md` · `ADR-026` | comentários/marcadores (zero mudança de comportamento)         | DONE   |
+| S7-01 | —       | doc       | §45 · §35                          | S7    | gates duplos: vitest 353/353 ×2 · db:test chain ×2 (exit 0) · e2e 11/11                                  | `p1-closeout-2026-09-01.md`                        | n/a                                                            | DONE   |
+
+**P1 CLOSED — 2026-09-01** (commits locais: base `a495492` + trabalho desta janela ainda não commitado — push/PR pendente de decisão humana; Lovable sem conexão ativa).
+
+### S8 — janela de estabilização (condições de entrada em S9)
+
+- 1–2 semanas observando as 10 métricas `app.*` + KPIs §46; error budget §30: **zero tolerância** a erro financeiro crítico.
+- Critérios: nenhum cross-tenant, nenhum unknown→zero, nenhuma regressão P0 (golden F0-03), CI verde na janela inteira.
+- **Não iniciar S9/F10 antes de S8 cumprido.** Itens §39 permanecem bloqueados; HNSW somente após §44.
+
+### S8-1 — higiene de estabilização B1/B2 (2026-09-03)
+
+- **B1 (teardown determinístico do E2E)**: `scripts/e2e/seed-auth.ts` passou a limpar também `calculation_snapshots`, `sales`, `sales_items`, `ai_usage`, `purchase_price_history` e `rate_limits`. Causa-raiz do flake observado em re-execução encadeada (1/11 "Too many requests" no matrix de autorização): a tabela global `rate_limits` (sem tenant_id) das regras de 60s do Better Auth (`rate-limit-rules.server.ts`) vazava entre execuções. Prova de determinismo: DB zerado → 11/11; duas execuções `--project=chromium` **encadeadas** após o fix → 11/11 ×2 (resíduos canônicos de snapshots acumulados pela própria suíte são expurgados pelo seed).
+- **B2 (veredito binário `format:check`)**: PASS. Detritos locais de sessões antigas (`.pi/`, `PLANO_OTIMIZADO_AUTENTICACAO_E_RETOMADA.md`, evidências perf/obs/manual de 28–30/08) foram apenas formatados no working tree e permanecem **não commitados**; `.prettierignore` sem novas entradas (nada é ignorado que não exista no repo).
+- **Decisão de escopo**: forensic-kit (`scripts/forensic/`, `scripts/val/`, `docs/forensic-kit.md`) fica fora do PR (ferramenta de sessão anterior, fora do programa P1); o script órfão `forensic:test` foi removido de `package.json` para o branch fechar autoconsistente em fresh clone (nenhum workflow CI o referenciava).
+- Gates desta janela (após B1/B2): `tsc` 0 · `eslint .` 0 · `vitest` **353/353** · `format:check` PASS · `build`+`check:bundle` PASS (entry 84.9 kB gzip; graph 148.9 kB ≤ 500 kB) · Playwright chromium **11/11 ×2 encadeadas**.
+- **S8 status**: B1/B2 DONE · B3/B4 (janela temporal 1–2 semanas com métricas `app.*`/KPIs §46 no destino publicado) em curso · S9/F10 permanece BLOQUEADO até B4 (§39/§44 inalterados).
