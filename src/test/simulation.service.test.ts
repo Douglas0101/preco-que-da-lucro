@@ -35,12 +35,55 @@ class FakeSimulationRepository implements SimulationRepository {
   }
 }
 
+class FakeTransaction {
+  insert() {
+    return this;
+  }
+  values() {
+    return this;
+  }
+  onConflictDoNothing() {
+    return this;
+  }
+  returning() {
+    const rowPromise = Promise.resolve([{ id: "snapshot-id" }]);
+    return {
+      then: (resolve: (value: unknown) => void) => rowPromise.then(resolve) as Promise<void>,
+    };
+  }
+  select() {
+    return this;
+  }
+  from() {
+    return this;
+  }
+  where() {
+    return this;
+  }
+  limit() {
+    return this;
+  }
+  orderBy() {
+    return this;
+  }
+  then<TResult1 = unknown, TResult2 = never>(
+    onfulfilled?: ((value: unknown) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ) {
+    return Promise.resolve([{ id: "snapshot-id" }]).then(onfulfilled, onrejected) as PromiseLike<
+      TResult1 | TResult2
+    >;
+  }
+}
+
 describe("SimulationService", () => {
   it("calcula no servidor e persiste versão/result sem aceitar payload derivado", async () => {
     const repository = new FakeSimulationRepository();
     const service = new DefaultSimulationService(repository);
+    const context = contextWithRole("owner");
+    (context as { transaction: unknown }).transaction = new FakeTransaction();
 
-    await service.save(contextWithRole("owner"), {
+    await service.save(context, {
       name: "Cenário manual",
       params: validParams,
     });

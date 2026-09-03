@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { updatePurchasePrice } from "@/lib/products.functions";
 import { purchasePricesQueryOptions } from "@/lib/query-options";
 import { toDecimalString } from "@/lib/financial-values";
-import { brl } from "@/lib/format";
+import { brl, decimalInput, qty } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -91,7 +91,7 @@ function Precos() {
         kind: "ingrediente" as const,
         detail:
           i.package_qty && i.package_unit
-            ? `embalagem de ${Number(i.package_qty)} ${i.package_unit}`
+            ? `embalagem de ${qty(i.package_qty, i.package_unit)}`
             : "insumo",
       })),
       ...res.packaging.map((p) => ({
@@ -103,15 +103,11 @@ function Precos() {
         package_unit: "unidade",
         price_updated_at: p.price_updated_at,
         kind: "embalagem" as const,
-        detail: `pacote com ${Number(p.units_per_package)} unidade(s)`,
+        detail: `pacote com ${qty(p.units_per_package, "unidade(s)")}`,
       })),
     ];
     setItems(all);
-    setDrafts(
-      Object.fromEntries(
-        all.map((i) => [i.id, i.package_price === null ? "" : String(i.package_price)]),
-      ),
-    );
+    setDrafts(Object.fromEntries(all.map((i) => [i.id, decimalInput(i.package_price)])));
   }, [pricesQuery.data]);
 
   const desatualizados = useMemo(
@@ -352,7 +348,11 @@ function PurchasePriceRow({
         <Button
           className="gap-2"
           onClick={() => void onSave(item)}
-          disabled={saving || draft.replace(",", ".") === String(item.package_price ?? "")}
+          disabled={
+            saving ||
+            Number(draft.replace(",", ".")) ===
+              (item.package_price == null ? Number.NaN : Number(item.package_price))
+          }
         >
           <RefreshCw className={`h-4 w-4 ${saving ? "animate-spin" : ""}`} />
           Atualizar

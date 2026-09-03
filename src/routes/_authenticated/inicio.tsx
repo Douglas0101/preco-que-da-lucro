@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardSummaryQueryOptions } from "@/lib/query-options";
+import type { DashboardPeriod } from "@/lib/dashboard.functions";
 import { brl, pct } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +17,12 @@ import {
   Wallet,
 } from "lucide-react";
 
+const PERIODS: ReadonlyArray<{ value: DashboardPeriod; label: string }> = [
+  { value: "month", label: "Mês" },
+  { value: "quarter", label: "Trimestre" },
+  { value: "year", label: "Ano" },
+];
+
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
     meta: [
@@ -22,6 +30,16 @@ export const Route = createFileRoute("/_authenticated/inicio")({
       { name: "description", content: "Resumo financeiro do seu negócio." },
     ],
   }),
+  // Prefetch não-bloqueante do summary (T2): mesmo queryKey/options de
+  // query-options.ts; erro é deglutido aqui para que o useQuery do componente
+  // continue exibindo o estado de erro com retry, como hoje.
+  // Dynamic import: mantém query-options (+ *.functions/zod) FORA do grafo
+  // inicial (orçamento de bundle §17.7) — loaders não são code-split.
+  loader: async ({ context }) => {
+    const { dashboardSummaryQueryOptions } = await import("@/lib/query-options");
+    return context.queryClient.ensureQueryData(dashboardSummaryQueryOptions()).catch(() => null);
+  },
+  pendingComponent: () => <output className="text-muted-foreground">Carregando...</output>,
   component: Inicio,
 });
 
@@ -32,6 +50,8 @@ interface Metrics {
   hasInvalidCalculation: boolean;
   incompleteProductCount: number;
   alerts: string[];
+  period: DashboardPeriod;
+  sales: { revenue: string; count: number };
 }
 
 type LoadStatus = "loading" | "ready" | "error";
@@ -43,7 +63,8 @@ function loadStatusFor(query: { isPending: boolean; isError: boolean }): LoadSta
 }
 
 function Inicio() {
-  const summaryQuery = useQuery(dashboardSummaryQueryOptions());
+  const [period, setPeriod] = useState<DashboardPeriod>("month");
+  const summaryQuery = useQuery(dashboardSummaryQueryOptions(period));
   const loadStatus = loadStatusFor(summaryQuery);
   const metrics = summaryQuery.data as Metrics | undefined;
   const errorReference = useMemo(
@@ -101,8 +122,27 @@ function Inicio() {
       <div>
         <h1 className="text-3xl font-black">Olá! 👋</h1>
         <p className="text-muted-foreground">
-          Resumo dos dados cadastrados, sem presumir vendas ou faturamento real.
+          Resumo dos dados cadastrados e das vendas reais, sem presumir volume.
         </p>
+      </div>
+
+      <div
+        className="flex flex-wrap items-center gap-2"
+        role="group"
+        aria-label="Período do faturamento"
+      >
+        {PERIODS.map((item) => (
+          <Button
+            key={item.value}
+            type="button"
+            variant={period === item.value ? "default" : "outline"}
+            aria-pressed={period === item.value}
+            onClick={() => setPeriod(item.value)}
+            className="text-sm"
+          >
+            {item.label}
+          </Button>
+        ))}
       </div>
 
       {metrics.hasInvalidCalculation && (
@@ -120,17 +160,35 @@ function Inicio() {
           label="Despesas fixas cadastradas"
           value={brl(metrics.fixedExpenses)}
         />
-        <MetricCard
-          icon={Scale}
-          label="Faturamento real"
-          value="—"
-          description="Nenhuma venda real registrada."
-        />
+        {metrics.sales.count > 0 ? (
+          <MetricCard
+            icon={Scale}
+            label="Faturamento real"
+            value={brl(metrics.sales.revenue)}
+            description={`${metrics.sales.count} venda(s) no período selecionado.`}
+          />
+        ) : (
+          <MetricCard
+            icon={Scale}
+            label="Faturamento real"
+            value="—"
+            description="Nenhuma venda real registrada."
+          />
+        )}
         <MetricCard
           icon={TrendingUp}
           label="Margem consolidada"
           value="—"
-          description="Mix real de vendas indisponível."
+          description="Registre vendas reais para calcular o mix real de vendas."
+          badge={
+            <Badge
+              variant="outline"
+              title="Faltam vendas reais registradas para calcular a margem consolidada."
+              className="shrink-0 border-amber-500/60 text-amber-700 dark:text-amber-400"
+            >
+              DADOS INCOMPLETOS
+            </Badge>
+          }
         />
       </div>
 
@@ -187,18 +245,23 @@ function MetricCard({
   label,
   value,
   description,
+  badge,
 }: Readonly<{
   icon: typeof Package;
   label: string;
   value: string;
   description?: string;
+  badge?: ReactNode;
 }>) {
   return (
     <Card>
       <CardContent className="p-5">
-        <div className="flex items-center justify-between">
-          <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {label}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {label}
+            </div>
+            {badge}
           </div>
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-secondary text-primary">
             <Icon className="h-4 w-4" />

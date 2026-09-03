@@ -562,8 +562,11 @@ export const calculationSnapshots = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     ...tenantIdentity,
     entityType: text("entity_type").notNull(),
-    entityId: uuid("entity_id").notNull(),
+    entityId: uuid("entity_id"),
     calculationType: text("calculation_type").notNull(),
+    idempotencyKey: text("idempotency_key")
+      .notNull()
+      .default(sql`gen_random_uuid()::text`),
     inputs: jsonb("inputs").$type<Record<string, unknown>>().notNull(),
     outputs: jsonb("outputs").$type<Record<string, unknown>>().notNull(),
     engineVersion: text("engine_version").notNull(),
@@ -571,6 +574,11 @@ export const calculationSnapshots = pgTable(
   },
   (table) => [
     uniqueIndex("calculation_snapshots_tenant_id_id_uidx").on(table.tenantId, table.id),
+    uniqueIndex("calculation_snapshots_idempotency_uidx").on(
+      table.tenantId,
+      table.calculationType,
+      table.idempotencyKey,
+    ),
     index("calculation_snapshots_tenant_entity_created_idx").on(
       table.tenantId,
       table.entityType,
@@ -591,12 +599,19 @@ export const chatConversations = pgTable(
     ...tenantIdentity,
     currentProductId: uuid("current_product_id"),
     confirmedState: jsonb("confirmed_state").$type<Record<string, unknown>>().notNull().default({}),
+    conversationState: text("conversation_state").notNull().default("idle"),
+    stateUpdatedAt: timestamp("state_updated_at", { withTimezone: true }).notNull().defaultNow(),
+    stateMetadata: jsonb("state_metadata").$type<Record<string, unknown>>(),
     resetAt: timestamp("reset_at", { withTimezone: true }),
     ...timestamps,
   },
   (table) => [
     uniqueIndex("chat_conversations_tenant_user_uidx").on(table.tenantId, table.userId),
     unique("chat_conversations_tenant_id_uidx").on(table.tenantId, table.id),
+    check(
+      "chat_conversations_state_check",
+      sql`${table.conversationState} in ('idle', 'collecting_context', 'calculating', 'confirming', 'executing', 'completed', 'failed')`,
+    ),
     foreignKey({
       columns: [table.tenantId, table.currentProductId],
       foreignColumns: [products.tenantId, products.id],
@@ -687,6 +702,8 @@ export const toolExecutions = pgTable(
     safeResult: jsonb("safe_result").$type<Record<string, unknown>>(),
     errorCode: text("error_code"),
     idempotencyKey: text("idempotency_key"),
+    estimatedCost: money("estimated_cost"),
+    costStatus: text("cost_status").notNull().default("unknown"),
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
   },
@@ -698,6 +715,10 @@ export const toolExecutions = pgTable(
       table.idempotencyKey,
     ),
     index("tool_executions_tenant_started_idx").on(table.tenantId, table.startedAt),
+    check(
+      "tool_executions_cost_status_check",
+      sql`${table.costStatus} in ('known', 'unknown', 'invalid')`,
+    ),
     foreignKey({
       columns: [table.tenantId, table.userId],
       foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
@@ -728,13 +749,14 @@ export const aiDailyBudgets = pgTable(
     tokensReserved: integer("tokens_reserved").notNull().default(0),
     inFlight: integer("in_flight").notNull().default(0),
     estimatedCost: money("estimated_cost").notNull().default("0"),
+    estimatedCostUnknownCount: integer("estimated_cost_unknown_count").notNull().default(0),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     primaryKey({ columns: [table.tenantId, table.usageDate] }),
     check(
       "ai_daily_budgets_nonnegative_check",
-      sql`${table.chatCount} >= 0 and ${table.modelCallCount} >= 0 and ${table.toolCallCount} >= 0 and ${table.inputTokens} >= 0 and ${table.outputTokens} >= 0 and ${table.tokensReserved} >= 0 and ${table.inFlight} >= 0 and ${table.estimatedCost} >= 0`,
+      sql`${table.chatCount} >= 0 and ${table.modelCallCount} >= 0 and ${table.toolCallCount} >= 0 and ${table.inputTokens} >= 0 and ${table.outputTokens} >= 0 and ${table.tokensReserved} >= 0 and ${table.inFlight} >= 0 and ${table.estimatedCost} >= 0 and ${table.estimatedCostUnknownCount} >= 0`,
     ),
   ],
 );
@@ -754,6 +776,9 @@ export const aiUsage = pgTable(
     settledAt: timestamp("settled_at", { withTimezone: true }),
     realTokens: integer("real_tokens"),
     outcome: text("outcome"),
+    estimatedCost: money("estimated_cost"),
+    costStatus: text("cost_status").notNull().default("unknown"),
+    toolExecutionId: uuid("tool_execution_id"),
   },
   (table) => [
     index("ai_usage_tenant_status_reserved_idx").on(table.tenantId, table.status, table.reservedAt),
@@ -763,6 +788,10 @@ export const aiUsage = pgTable(
     check(
       "ai_usage_real_tokens_check",
       sql`${table.realTokens} is null or ${table.realTokens} >= 0`,
+    ),
+    check(
+      "ai_usage_cost_status_check",
+      sql`${table.costStatus} in ('known', 'unknown', 'invalid')`,
     ),
   ],
 );

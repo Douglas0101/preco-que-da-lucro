@@ -2,6 +2,12 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { assertPricingConfigForBoot } from "./lib/ai/budget-ledger.server";
+
+// Fail-fast de boot (API-001 §6.9 / §14.6): AI_MODEL_PRICING_JSON definida e
+// inválida derruba o boot com um CONFIG_ERROR explícito; variável ausente usa
+// os preços padrão documentados, então o dev não precisa de configuração.
+assertPricingConfigForBoot();
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;

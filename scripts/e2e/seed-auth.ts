@@ -48,7 +48,12 @@ async function main(): Promise<void> {
       "idempotency_records",
       "audit_events",
       "ai_daily_budgets",
+      "ai_usage",
+      "calculation_snapshots",
+      "sales_items",
+      "sales",
       "simulations",
+      "purchase_price_history",
       "market_prices",
       "sales_fees",
       "product_packaging",
@@ -63,6 +68,10 @@ async function main(): Promise<void> {
       await client.query(`delete from ${table} where tenant_id = $1`, [tenantId]);
     }
     await client.query("delete from tenant_memberships where tenant_id = $1", [tenantId]);
+    // rate_limits é global (sem tenant_id) e janelas de 60s do Better Auth
+    // vazariam entre execuções E2E encadeadas; limpar tudo = re-execução determinística.
+    // pi-lens-ignore: no-sql-in-code
+    await client.query("delete from rate_limits");
     await client.query("delete from tenants where id = $1", [tenantId]);
     await client.query("delete from users where id in ($1, $2)", [userId, memberUserId]);
     await client.query(

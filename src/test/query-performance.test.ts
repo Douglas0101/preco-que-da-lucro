@@ -96,18 +96,22 @@ async function runProductsReadModel(productCount: number) {
   }));
   const transaction = {
     select() {
-      const queryIndex = queryCount++;
       const query: FakeQuery = {
         from: () => query,
         where: () => query,
         orderBy: () => query,
         limit: () => query,
         then: (onfulfilled, onrejected) => {
+          const queryIndex = queryCount++;
           const rows = queryIndex === 0 ? productRows : [];
           return Promise.resolve(rows).then(onfulfilled, onrejected);
         },
       };
       return query;
+    },
+    execute: async () => {
+      queryCount++;
+      return { rows: [] };
     },
   } as unknown as RequestContext["transaction"];
 
@@ -193,7 +197,7 @@ describe("query keys e política de cache financeira", () => {
 
     expect(oneProduct.result).toHaveLength(1);
     expect(threeProducts.result).toHaveLength(3);
-    expect(oneProduct.queryCount).toBe(5);
+    expect(oneProduct.queryCount).toBe(2);
     expect(threeProducts.queryCount).toBe(oneProduct.queryCount);
   });
 });

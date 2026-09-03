@@ -1,7 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireDatabaseAuth } from "@/middleware/request-context";
-import { getDashboardSummary as getDashboardSummaryService } from "@/server/services/dashboard.service";
+import {
+  getDashboardSummary as getDashboardSummaryService,
+  type DashboardPeriod,
+} from "@/server/services/dashboard.service";
+
+export type { DashboardPeriod };
 
 const dashboardInput = z
   .object({
@@ -13,4 +18,6 @@ const dashboardInput = z
 export const getDashboardSummary = createServerFn({ method: "GET" })
   .middleware([requireDatabaseAuth])
   .validator((input: unknown) => dashboardInput.parse(input))
-  .handler(async ({ context }) => getDashboardSummaryService(context.requestContext));
+  .handler(async ({ data, context }) =>
+    getDashboardSummaryService(context.requestContext, data?.period ?? "month"),
+  );

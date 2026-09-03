@@ -1,4 +1,9 @@
 import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
+import { applicationMetrics } from "@/instrumentation/telemetry";
+import {
+  calculationSnapshotService,
+  deriveSnapshotIdempotencyKey,
+} from "@/server/services/calculation-snapshot.service";
 import {
   simulationRepository,
   type SimulationRepository,
@@ -48,7 +53,26 @@ export class DefaultSimulationService implements SimulationService {
       scenarioType: "manual_simulation",
       engineVersion: FINANCE_ENGINE_VERSION,
     };
-    return this.repository.append(context, record);
+    const row = await this.repository.append(context, record);
+    applicationMetrics.simulationSavedTotal.add(1);
+    const inputs = JSON.parse(JSON.stringify({ params })) as Record<string, unknown>;
+    await calculationSnapshotService.append(context, {
+      entityType: "simulation",
+      entityId: row.id,
+      calculationType: "simulation",
+      idempotencyKey: deriveSnapshotIdempotencyKey({
+        calculationType: "simulation",
+        entityType: "simulation",
+        entityId: row.id,
+        engineVersion: FINANCE_ENGINE_VERSION,
+        inputs,
+      }),
+      inputs,
+      outputs: JSON.parse(JSON.stringify({ result })) as Record<string, unknown>,
+      engineVersion: FINANCE_ENGINE_VERSION,
+    });
+    applicationMetrics.snapshotCreatedTotal.add(1, { type: "simulation" });
+    return row;
   }
 }
 

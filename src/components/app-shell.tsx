@@ -13,8 +13,10 @@ import {
   Menu,
   LogOut,
   Sparkles,
+  Receipt,
 } from "lucide-react";
-import { authClient, globalSignOut } from "@/lib/auth-client";
+import { globalSignOut } from "@/lib/auth-client";
+import { useSessionUser } from "@/lib/session-context";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -33,6 +35,7 @@ const NAV: NavItem[] = [
   { to: "/novo-produto", label: "Novo Produto", icon: PlusCircle, highlight: true },
   { to: "/precos", label: "Preços de Compra", icon: Tag },
   { to: "/despesas", label: "Minhas Despesas", icon: Wallet },
+  { to: "/vendas", label: "Vendas", icon: Receipt },
   { to: "/ponto-equilibrio", label: "Ponto de Equilíbrio", icon: Scale },
   { to: "/simulacoes", label: "Simulações", icon: LineChart },
   { to: "/diagnostico", label: "Diagnóstico", icon: Stethoscope },
@@ -51,7 +54,12 @@ function SidebarContent({
 }) {
   return (
     <div className="flex h-full flex-col p-5">
-      <Link to="/inicio" className="mb-8 flex items-center gap-3" onClick={onNavigate}>
+      <Link
+        to="/inicio"
+        preload="intent"
+        className="mb-8 flex items-center gap-3"
+        onClick={onNavigate}
+      >
         <div className="grid h-10 w-10 place-items-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground">
           <Sparkles className="h-5 w-5" />
         </div>
@@ -69,6 +77,7 @@ function SidebarContent({
             <Link
               key={item.to}
               to={item.to}
+              preload="intent"
               onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition motion-reduce:transition-none",
@@ -104,11 +113,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState<string>("");
-
-  useEffect(() => {
-    void authClient.getSession().then(({ data }) => setEmail(data?.user.email ?? ""));
-  }, []);
+  // Sessão vem do provider compartilhado (get-session único): sem refetch de
+  // getSession a cada mount do shell.
+  const user = useSessionUser();
+  const email = user?.email ?? "";
 
   useEffect(() => {
     setOpen(false);
@@ -124,7 +132,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between border-b bg-card px-4 py-3">
-        <Link to="/inicio" className="flex items-center gap-2">
+        <Link to="/inicio" preload="intent" className="flex items-center gap-2">
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Sparkles className="h-4 w-4" />
           </div>

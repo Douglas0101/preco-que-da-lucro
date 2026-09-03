@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import Decimal from "decimal.js";
 import { z } from "zod";
@@ -218,6 +218,217 @@ async function loadProductDetail(request: RequestContext, productId: string) {
   };
 }
 
+type IngredientSelect = typeof productIngredients.$inferSelect;
+type PackagingSelect = typeof productPackaging.$inferSelect;
+type FeeSelect = typeof salesFees.$inferSelect;
+type MarketSelect = typeof marketPrices.$inferSelect;
+type ChildUnionKind = "ingredient" | "packaging" | "fee" | "market";
+
+/** Shape of one row of the consolidated children UNION: every branch carries
+ * the full aligned column list (siblings contribute NULLs) plus branch tags. */
+interface ChildUnionRow extends IngredientSelect {
+  branch: number;
+  ord: number;
+  kind: ChildUnionKind;
+  unitsPerPackage: string | null;
+  percentage: string | null;
+  minPrice: string | null;
+  avgPrice: string | null;
+  maxPrice: string | null;
+}
+
+function rowsFromQueryResult(result: unknown): Record<string, unknown>[] {
+  if (Array.isArray(result)) return result as Record<string, unknown>[];
+  const rows = (result as { rows?: unknown } | null)?.rows;
+  return Array.isArray(rows) ? (rows as Record<string, unknown>[]) : [];
+}
+
+/**
+ * O UNION consolidado executa via `execute()` (sem decoders do Drizzle), então
+ * os valores chegam crús do driver: com neon-serverless, timestamptz volta como
+ * string; com node-postgres, como Date. Normaliza os timestamps para Date antes
+ * dos mappers (que chamam .toISOString()) — paridade entre drivers.
+ */
+const CHILD_TIMESTAMP_FIELDS = ["createdAt", "updatedAt", "priceUpdatedAt"] as const;
+
+function normalizeChildRow<T>(row: T): T {
+  const normalized = { ...(row as Record<string, unknown>) };
+  for (const key of CHILD_TIMESTAMP_FIELDS) {
+    const value = normalized[key];
+    if (typeof value === "string") {
+      const parsed = new Date(value);
+      normalized[key] = Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+  }
+  return normalized as T;
+}
+
+function ingredientChildBranch(
+  request: RequestContext,
+  productIds: string[],
+  ord: SQL,
+  orderColumns: SQL[] = [],
+) {
+  return request.transaction
+    .select({
+      branch: sql`1`.as("branch"),
+      ord: ord.as("ord"),
+      kind: sql`'ingredient'`.as("kind"),
+      id: sql`${productIngredients.id}`.as("id"),
+      productId: sql`${productIngredients.productId}`.as("productId"),
+      tenantId: sql`${productIngredients.tenantId}`.as("tenantId"),
+      userId: sql`${productIngredients.userId}`.as("userId"),
+      name: sql`${productIngredients.name}`.as("name"),
+      usedQty: sql`${productIngredients.usedQty}`.as("usedQty"),
+      usedUnit: sql`${productIngredients.usedUnit}`.as("usedUnit"),
+      packagePrice: sql`${productIngredients.packagePrice}`.as("packagePrice"),
+      packageQty: sql`${productIngredients.packageQty}`.as("packageQty"),
+      packageUnit: sql`${productIngredients.packageUnit}`.as("packageUnit"),
+      conversionFactor: sql`${productIngredients.conversionFactor}`.as("conversionFactor"),
+      priceUpdatedAt: sql`${productIngredients.priceUpdatedAt}`.as("priceUpdatedAt"),
+      unitsPerPackage: sql`null::numeric`.as("unitsPerPackage"),
+      percentage: sql`null::numeric`.as("percentage"),
+      minPrice: sql`null::numeric`.as("minPrice"),
+      avgPrice: sql`null::numeric`.as("avgPrice"),
+      maxPrice: sql`null::numeric`.as("maxPrice"),
+      createdAt: sql`${productIngredients.createdAt}`.as("createdAt"),
+      updatedAt: sql`${productIngredients.updatedAt}`.as("updatedAt"),
+    })
+    .from(productIngredients)
+    .where(
+      and(
+        eq(productIngredients.tenantId, request.tenantId),
+        inArray(productIngredients.productId, productIds),
+      ),
+    )
+    .orderBy(...orderColumns)
+    .limit(LIST_LIMITS.productChildren);
+}
+
+function packagingChildBranch(
+  request: RequestContext,
+  productIds: string[],
+  ord: SQL,
+  orderColumns: SQL[] = [],
+) {
+  return request.transaction
+    .select({
+      branch: sql`2`.as("branch"),
+      ord: ord.as("ord"),
+      kind: sql`'packaging'`.as("kind"),
+      id: sql`${productPackaging.id}`.as("id"),
+      productId: sql`${productPackaging.productId}`.as("productId"),
+      tenantId: sql`${productPackaging.tenantId}`.as("tenantId"),
+      userId: sql`${productPackaging.userId}`.as("userId"),
+      name: sql`${productPackaging.name}`.as("name"),
+      usedQty: sql`null::numeric`.as("usedQty"),
+      usedUnit: sql`null::text`.as("usedUnit"),
+      packagePrice: sql`${productPackaging.packagePrice}`.as("packagePrice"),
+      packageQty: sql`null::numeric`.as("packageQty"),
+      packageUnit: sql`null::text`.as("packageUnit"),
+      conversionFactor: sql`null::numeric`.as("conversionFactor"),
+      priceUpdatedAt: sql`${productPackaging.priceUpdatedAt}`.as("priceUpdatedAt"),
+      unitsPerPackage: sql`${productPackaging.unitsPerPackage}`.as("unitsPerPackage"),
+      percentage: sql`null::numeric`.as("percentage"),
+      minPrice: sql`null::numeric`.as("minPrice"),
+      avgPrice: sql`null::numeric`.as("avgPrice"),
+      maxPrice: sql`null::numeric`.as("maxPrice"),
+      createdAt: sql`${productPackaging.createdAt}`.as("createdAt"),
+      updatedAt: sql`${productPackaging.updatedAt}`.as("updatedAt"),
+    })
+    .from(productPackaging)
+    .where(
+      and(
+        eq(productPackaging.tenantId, request.tenantId),
+        inArray(productPackaging.productId, productIds),
+      ),
+    )
+    .orderBy(...orderColumns)
+    .limit(LIST_LIMITS.productChildren);
+}
+
+function feeChildBranch(request: RequestContext, productIds: string[]) {
+  return request.transaction
+    .select({
+      branch: sql`3`.as("branch"),
+      ord: sql`row_number() over ()`.as("ord"),
+      kind: sql`'fee'`.as("kind"),
+      id: sql`${salesFees.id}`.as("id"),
+      productId: sql`${salesFees.productId}`.as("productId"),
+      tenantId: sql`${salesFees.tenantId}`.as("tenantId"),
+      userId: sql`${salesFees.userId}`.as("userId"),
+      name: sql`${salesFees.name}`.as("name"),
+      usedQty: sql`null::numeric`.as("usedQty"),
+      usedUnit: sql`null::text`.as("usedUnit"),
+      packagePrice: sql`null::numeric`.as("packagePrice"),
+      packageQty: sql`null::numeric`.as("packageQty"),
+      packageUnit: sql`null::text`.as("packageUnit"),
+      conversionFactor: sql`null::numeric`.as("conversionFactor"),
+      priceUpdatedAt: sql`null::timestamptz`.as("priceUpdatedAt"),
+      unitsPerPackage: sql`null::numeric`.as("unitsPerPackage"),
+      percentage: sql`${salesFees.percentage}`.as("percentage"),
+      minPrice: sql`null::numeric`.as("minPrice"),
+      avgPrice: sql`null::numeric`.as("avgPrice"),
+      maxPrice: sql`null::numeric`.as("maxPrice"),
+      createdAt: sql`${salesFees.createdAt}`.as("createdAt"),
+      updatedAt: sql`${salesFees.updatedAt}`.as("updatedAt"),
+    })
+    .from(salesFees)
+    .where(and(eq(salesFees.tenantId, request.tenantId), inArray(salesFees.productId, productIds)))
+    .limit(LIST_LIMITS.productChildren);
+}
+
+function marketChildBranch(request: RequestContext, productIds: string[]) {
+  return request.transaction
+    .select({
+      branch: sql`4`.as("branch"),
+      ord: sql`row_number() over (order by ${marketPrices.createdAt} desc)`.as("ord"),
+      kind: sql`'market'`.as("kind"),
+      id: sql`${marketPrices.id}`.as("id"),
+      productId: sql`${marketPrices.productId}`.as("productId"),
+      tenantId: sql`${marketPrices.tenantId}`.as("tenantId"),
+      userId: sql`${marketPrices.userId}`.as("userId"),
+      name: sql`null::text`.as("name"),
+      usedQty: sql`null::numeric`.as("usedQty"),
+      usedUnit: sql`null::text`.as("usedUnit"),
+      packagePrice: sql`null::numeric`.as("packagePrice"),
+      packageQty: sql`null::numeric`.as("packageQty"),
+      packageUnit: sql`null::text`.as("packageUnit"),
+      conversionFactor: sql`null::numeric`.as("conversionFactor"),
+      priceUpdatedAt: sql`null::timestamptz`.as("priceUpdatedAt"),
+      unitsPerPackage: sql`null::numeric`.as("unitsPerPackage"),
+      percentage: sql`null::numeric`.as("percentage"),
+      minPrice: sql`${marketPrices.minPrice}`.as("minPrice"),
+      avgPrice: sql`${marketPrices.avgPrice}`.as("avgPrice"),
+      maxPrice: sql`${marketPrices.maxPrice}`.as("maxPrice"),
+      createdAt: sql`${marketPrices.createdAt}`.as("createdAt"),
+      updatedAt: sql`null::timestamptz`.as("updatedAt"),
+    })
+    .from(marketPrices)
+    .where(
+      and(eq(marketPrices.tenantId, request.tenantId), inArray(marketPrices.productId, productIds)),
+    )
+    .orderBy(desc(marketPrices.createdAt))
+    .limit(LIST_LIMITS.productChildren);
+}
+
+async function loadChildRows(request: RequestContext, union: SQL) {
+  const result = await request.transaction.execute(union);
+  const rows = rowsFromQueryResult(result) as unknown as ChildUnionRow[];
+  const ingredients: IngredientSelect[] = [];
+  const packaging: PackagingSelect[] = [];
+  const fees: FeeSelect[] = [];
+  const market: MarketSelect[] = [];
+  for (const rawRow of rows) {
+    const row = normalizeChildRow(rawRow);
+    if (row.kind === "ingredient") ingredients.push(row);
+    else if (row.kind === "packaging") packaging.push(row as unknown as PackagingSelect);
+    else if (row.kind === "fee") fees.push(row as unknown as FeeSelect);
+    else if (row.kind === "market") market.push(row as unknown as MarketSelect);
+  }
+  return { ingredients, packaging, fees, market };
+}
+
 async function loadProductReadModels(request: RequestContext) {
   const productRows = await request.transaction
     .select()
@@ -227,59 +438,35 @@ async function loadProductReadModels(request: RequestContext) {
     .limit(LIST_LIMITS.products);
   const productIds = productRows.map((row) => row.id);
   if (!productIds.length) return [];
-  const ingredientRows = await request.transaction
-    .select()
-    .from(productIngredients)
-    .where(
-      and(
-        eq(productIngredients.tenantId, request.tenantId),
-        inArray(productIngredients.productId, productIds),
-      ),
-    )
-    .limit(LIST_LIMITS.productChildren);
-  const packagingRows = await request.transaction
-    .select()
-    .from(productPackaging)
-    .where(
-      and(
-        eq(productPackaging.tenantId, request.tenantId),
-        inArray(productPackaging.productId, productIds),
-      ),
-    )
-    .limit(LIST_LIMITS.productChildren);
-  const feeRows = await request.transaction
-    .select()
-    .from(salesFees)
-    .where(and(eq(salesFees.tenantId, request.tenantId), inArray(salesFees.productId, productIds)))
-    .limit(LIST_LIMITS.productChildren);
-  const marketRows = await request.transaction
-    .select()
-    .from(marketPrices)
-    .where(
-      and(eq(marketPrices.tenantId, request.tenantId), inArray(marketPrices.productId, productIds)),
-    )
-    .orderBy(desc(marketPrices.createdAt))
-    .limit(LIST_LIMITS.productChildren);
+  const scanOrder = sql`row_number() over ()`;
+  const { ingredients, packaging, fees, market } = await loadChildRows(
+    request,
+    sql`${ingredientChildBranch(request, productIds, scanOrder)}
+      union all ${packagingChildBranch(request, productIds, scanOrder)}
+      union all ${feeChildBranch(request, productIds)}
+      union all ${marketChildBranch(request, productIds)}
+      order by branch, ord`,
+  );
   const ingredientsByProduct = new Map<string, ReturnType<typeof mapIngredient>[]>();
-  for (const item of ingredientRows) {
+  for (const item of ingredients) {
     const rows = ingredientsByProduct.get(item.productId) ?? [];
     rows.push(mapIngredient(item));
     ingredientsByProduct.set(item.productId, rows);
   }
   const packagingByProduct = new Map<string, ReturnType<typeof mapPackaging>[]>();
-  for (const item of packagingRows) {
+  for (const item of packaging) {
     const rows = packagingByProduct.get(item.productId) ?? [];
     rows.push(mapPackaging(item));
     packagingByProduct.set(item.productId, rows);
   }
   const feesByProduct = new Map<string, ReturnType<typeof mapFee>[]>();
-  for (const item of feeRows) {
+  for (const item of fees) {
     const rows = feesByProduct.get(item.productId) ?? [];
     rows.push(mapFee(item));
     feesByProduct.set(item.productId, rows);
   }
   const marketByProduct = new Map<string, ReturnType<typeof mapMarket>>();
-  for (const item of marketRows) {
+  for (const item of market) {
     if (!marketByProduct.has(item.productId)) marketByProduct.set(item.productId, mapMarket(item));
   }
 
@@ -611,32 +798,26 @@ export const listPurchasePrices = createServerFn({ method: "GET" })
       .limit(LIST_LIMITS.products);
     const productIds = productRows.map((row) => row.id);
     if (!productIds.length) return { products: [], ingredients: [], packaging: [] };
-    const ingredientRows = await request.transaction
-      .select()
-      .from(productIngredients)
-      .where(
-        and(
-          eq(productIngredients.tenantId, request.tenantId),
-          inArray(productIngredients.productId, productIds),
-        ),
-      )
-      .orderBy(asc(productIngredients.name))
-      .limit(LIST_LIMITS.productChildren);
-    const packagingRows = await request.transaction
-      .select()
-      .from(productPackaging)
-      .where(
-        and(
-          eq(productPackaging.tenantId, request.tenantId),
-          inArray(productPackaging.productId, productIds),
-        ),
-      )
-      .orderBy(asc(productPackaging.name))
-      .limit(LIST_LIMITS.productChildren);
+    const { ingredients, packaging } = await loadChildRows(
+      request,
+      sql`${ingredientChildBranch(
+        request,
+        productIds,
+        sql`row_number() over (order by ${productIngredients.name})`,
+        [asc(productIngredients.name)],
+      )}
+        union all ${packagingChildBranch(
+          request,
+          productIds,
+          sql`row_number() over (order by ${productPackaging.name})`,
+          [asc(productPackaging.name)],
+        )}
+        order by branch, ord`,
+    );
     return {
       products: productRows,
-      ingredients: ingredientRows.map(mapIngredient),
-      packaging: packagingRows.map(mapPackaging),
+      ingredients: ingredients.map(mapIngredient),
+      packaging: packaging.map(mapPackaging),
     };
   });
 

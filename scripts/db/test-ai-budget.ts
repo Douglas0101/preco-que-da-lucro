@@ -359,7 +359,7 @@ async function runE5(pool: Pool): Promise<void> {
               tool_calls: [
                 {
                   id: `e5-tool-${modelCalls}`,
-                  function: { name: "contract_tool", arguments: "{}" },
+                  function: { name: "add_expense", arguments: "{}" },
                 },
               ],
             },

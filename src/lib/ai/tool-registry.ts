@@ -343,6 +343,11 @@ export const GATEWAY_TOOLS = DEFINITIONS.map((definition) => ({
 
 export type GatewayTool = (typeof GATEWAY_TOOLS)[number];
 
+/** Readonly list of every registered tool name (used by the server FSM allowlist). */
+export const REGISTRY_TOOL_NAMES: readonly string[] = DEFINITIONS.map(
+  (definition) => definition.name,
+);
+
 /**
  * Tools that are meaningful without a product in conversational context
  * (plan §14.2). Every other tool is product-scoped and only offered once the

@@ -1,6 +1,8 @@
 const REDACTED = "[REDACTED]";
+// §19.4: "pricing"/"ai_model_pricing" keep AI model price config out of logs
+// (AI_MODEL_PRICING_JSON and any object carrying price tables).
 const SENSITIVE_KEY =
-  /(?:authorization|cookie|token|secret|password|passwd|database_url|connection|string|hash|email|phone|cpf|cnpj)/i;
+  /(?:authorization|cookie|token|secret|password|passwd|database_url|connection|string|hash|email|phone|cpf|cnpj|pricing|ai_model_pricing)/i;
 const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 const BEARER = /\bBearer\s+[^\s]+/gi;
 const DATABASE_URL = /\b(?:postgres(?:ql)?|mysql|redis):\/\/[^\s"']+/gi;
