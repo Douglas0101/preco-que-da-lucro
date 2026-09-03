@@ -910,3 +910,9 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Decisão de escopo**: forensic-kit (`scripts/forensic/`, `scripts/val/`, `docs/forensic-kit.md`) fica fora do PR (ferramenta de sessão anterior, fora do programa P1); o script órfão `forensic:test` foi removido de `package.json` para o branch fechar autoconsistente em fresh clone (nenhum workflow CI o referenciava).
 - Gates desta janela (após B1/B2): `tsc` 0 · `eslint .` 0 · `vitest` **353/353** · `format:check` PASS · `build`+`check:bundle` PASS (entry 84.9 kB gzip; graph 148.9 kB ≤ 500 kB) · Playwright chromium **11/11 ×2 encadeadas**.
 - **S8 status**: B1/B2 DONE · B3/B4 (janela temporal 1–2 semanas com métricas `app.*`/KPIs §46 no destino publicado) em curso · S9/F10 permanece BLOQUEADO até B4 (§39/§44 inalterados).
+
+### A1/A2 — publicação PR #24 (2026-09-03)
+
+- **A1**: `codex/wave1-neon-native` pushado (sem rewrite de histórico; base publicada inalterada) e **PR #24** aberto → `develop` com escopo completo (29 commits; inclui e subsume o draft #23). Commits locais: `87a5d39` (code: FSM gate, idempotência snapshot, backfill issuer 0010, E2E determinístico) + `db0b9a2` (docs: ADR-025/026, 14 evidências, ledger).
+- **A2**: UI stack `verify` **PASS** no tip `db0b9a2` (run 33714878841: lint/tsc/vitest 353 + db:test completo + build + bundle + Playwright matriz) · Secretless Neon preview boundary **PASS** · **SonarCloud Code Analysis FAILURE** (32s; projeto privado — inspeção do quality gate exige acesso humano ao dashboard; histórico: PRs anteriores até 72 arquivos passaram). Sem branch protection, check é advisory — decisão de merge registrada como pendência humana por causa do Sonar + do cutover A4.
+- **Pendências**: (i) triagem Sonar pelo dono da conta; (ii) confirmação de que push em develop não auto-deploya produção antes de A3; (iii) A4 ordem obrigatória: **0010 via URL direta ANTES de tráfego 1.7.2**; (iv) A6 changelog review 1.6→1.7 na conclusão.
