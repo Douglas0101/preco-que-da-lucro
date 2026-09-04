@@ -177,10 +177,10 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
   );
 }
 
-function instrumentClientRoundTrips(client: unknown): unknown {
+function instrumentClientRoundTrips(client: unknown): void {
   const target = client as { query?: (...queryArgs: unknown[]) => unknown } | null;
   if (!target || typeof target.query !== "function" || instrumentedClients.has(target)) {
-    return client;
+    return;
   }
   instrumentedClients.add(target);
   const originalQuery = target.query.bind(target);
@@ -241,7 +241,6 @@ function instrumentClientRoundTrips(client: unknown): unknown {
       throw error;
     }
   };
-  return client;
 }
 
 /** Counts real round trips per transaction and emits an `app.context_tx` log
@@ -253,6 +252,9 @@ export function instrumentPoolRoundTrips(pool: unknown): void {
   poolLike.connect = (...connectArgs: unknown[]) => {
     const connected = originalConnect(...connectArgs);
     if (!(connected instanceof Promise)) return connected;
-    return connected.then((client) => instrumentClientRoundTrips(client));
+    return connected.then((client) => {
+      instrumentClientRoundTrips(client);
+      return client;
+    });
   };
 }

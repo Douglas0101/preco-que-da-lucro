@@ -9,6 +9,8 @@ function git(...args: string[]): string {
   return execFileSync("git", args, {
     cwd: repositoryRoot,
     encoding: "utf8",
+    // S4036: resolve "git" only in fixed, system-owned directories.
+    env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
   }).trim();
 }
 
