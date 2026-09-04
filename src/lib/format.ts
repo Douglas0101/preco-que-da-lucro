@@ -67,3 +67,42 @@ export const num = (v: NumericDisplayValue, digits = 2) => {
     maximumFractionDigits: digits,
   });
 };
+
+const DECIMAL_INPUT_MAX_DIGITS = 6;
+
+/**
+ * Semeia draft de input com vírgula pt-BR (NUMERIC cru "20.0000" → "20,00").
+ * Valores além da escala suportada são rejeitados para evitar perda silenciosa.
+ */
+export const decimalInput = (v: NumericDisplayValue, minDigits = 2): string => {
+  if (v == null) return "";
+  let decimal: Decimal;
+  try {
+    decimal = new Decimal(v);
+  } catch {
+    return "";
+  }
+  if (!decimal.isFinite()) return "";
+  const requestedDigits = Math.trunc(minDigits);
+  if (
+    requestedDigits < 0 ||
+    requestedDigits > DECIMAL_INPUT_MAX_DIGITS ||
+    decimal.dp() > DECIMAL_INPUT_MAX_DIGITS
+  ) {
+    return "";
+  }
+  const digits = Math.max(requestedDigits, decimal.dp());
+  return decimal.toFixed(digits).replace(".", ",");
+};
+
+/** Quantidade sem zeros à direita ("0.5" → "0,5", "6.000000" → "6"), com unidade opcional. */
+export const qty = (v: NumericDisplayValue, unit?: string | null, digits = 6): string => {
+  const fallback = displayFallback(v);
+  if (fallback !== null) return fallback;
+  let text = new Decimal(v as string | number).toFixed(Math.max(0, digits));
+  if (text.includes(".")) {
+    text = text.replace(/0+$/, "").replace(/\.$/, "");
+  }
+  text = text.replace(".", ",");
+  return unit ? `${text} ${unit}` : text;
+};

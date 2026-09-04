@@ -8,6 +8,12 @@ pnpm-lock.yaml
 package-lock.json
 routeTree.gen.ts
 
+# M-02 machine-readable JSON subset kept with the mandated .yaml names.
+docs/specs/M-02/matrix*.yaml
+
+# Hash-addressed security evidence is sealed and must not be formatter-mutated.
+docs/evidence/security-scan/**
+
 # Platform-managed generated sources
 AGENTS.md
 src/integrations/lovable/index.ts

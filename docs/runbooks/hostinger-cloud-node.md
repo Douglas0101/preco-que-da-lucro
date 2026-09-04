@@ -73,6 +73,28 @@ npm run check:hostinger-runtime
 
 Esse smoke não executa migrations, não escreve no Neon e não usa Resend, Google OAuth ou gateway de IA.
 
+O E2E que depende de fixture Better Auth/PostgreSQL deve ser iniciado pelo
+wrapper de higiene:
+
+```text
+npm run test:e2e:hygiene
+```
+
+O wrapper exige `DATABASE_URL`, `DATABASE_ADMIN_URL`, `E2E_AUTH_EMAIL` e
+`E2E_AUTH_PASSWORD`, além das dependências instaladas. Ele falha antes de
+iniciar o Playwright quando a preparação/configuração está ausente e remove
+`NO_COLOR` do ambiente antes de executar `npm run test:e2e`. A preparação da
+fixture executa migrations e escreve no banco configurado; portanto, use um
+banco de teste autorizado e nunca uma URL de produção.
+
+No smoke local degradado do runtime, é esperado observar
+`GET /api/health/live → 200` e `GET /api/health/ready → 503` quando o
+PostgreSQL deliberadamente indisponível é usado pelo teste. Esse `ready=503`
+é evidência de que a aplicação sinaliza a dependência indisponível; não é
+prova de falha da aplicação e não constitui readiness de produção. Readiness
+de produção exige validação separada com o PostgreSQL de produção e os
+controles operacionais do hPanel.
+
 Para validar readiness saudável, executar a aplicação com PostgreSQL local já migrado:
 
 ```text

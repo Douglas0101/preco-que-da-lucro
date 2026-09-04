@@ -20,6 +20,7 @@ import { Route as AuthenticatedPontoEquilibrioRouteImport } from './routes/_auth
 import { Route as AuthenticatedPrecosRouteImport } from './routes/_authenticated/precos'
 import { Route as AuthenticatedProdutosRouteImport } from './routes/_authenticated/produtos'
 import { Route as AuthenticatedSimulacoesRouteImport } from './routes/_authenticated/simulacoes'
+import { Route as AuthenticatedVendasRouteImport } from './routes/_authenticated/vendas'
 import { Route as ApiVitalsRouteImport } from './routes/api/vitals'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiHealthLiveRouteImport } from './routes/api/health/live'
@@ -82,6 +83,11 @@ const AuthenticatedSimulacoesRoute = AuthenticatedSimulacoesRouteImport.update({
   path: '/simulacoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedVendasRoute = AuthenticatedVendasRouteImport.update({
+  id: '/vendas',
+  path: '/vendas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiVitalsRoute = ApiVitalsRouteImport.update({
   id: '/api/vitals',
   path: '/api/vitals',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/precos': typeof AuthenticatedPrecosRoute
   '/produtos': typeof AuthenticatedProdutosRoute
   '/simulacoes': typeof AuthenticatedSimulacoesRoute
+  '/vendas': typeof AuthenticatedVendasRoute
   '/api/vitals': typeof ApiVitalsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/health/live': typeof ApiHealthLiveRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/precos': typeof AuthenticatedPrecosRoute
   '/produtos': typeof AuthenticatedProdutosRoute
   '/simulacoes': typeof AuthenticatedSimulacoesRoute
+  '/vendas': typeof AuthenticatedVendasRoute
   '/api/vitals': typeof ApiVitalsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/health/live': typeof ApiHealthLiveRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/_authenticated/precos': typeof AuthenticatedPrecosRoute
   '/_authenticated/produtos': typeof AuthenticatedProdutosRoute
   '/_authenticated/simulacoes': typeof AuthenticatedSimulacoesRoute
+  '/_authenticated/vendas': typeof AuthenticatedVendasRoute
   '/api/vitals': typeof ApiVitalsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/health/live': typeof ApiHealthLiveRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/precos'
     | '/produtos'
     | '/simulacoes'
+    | '/vendas'
     | '/api/vitals'
     | '/api/auth/$'
     | '/api/health/live'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/precos'
     | '/produtos'
     | '/simulacoes'
+    | '/vendas'
     | '/api/vitals'
     | '/api/auth/$'
     | '/api/health/live'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/_authenticated/precos'
     | '/_authenticated/produtos'
     | '/_authenticated/simulacoes'
+    | '/_authenticated/vendas'
     | '/api/vitals'
     | '/api/auth/$'
     | '/api/health/live'
@@ -294,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSimulacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/vendas': {
+      id: '/_authenticated/vendas'
+      path: '/vendas'
+      fullPath: '/vendas'
+      preLoaderRoute: typeof AuthenticatedVendasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/vitals': {
       id: '/api/vitals'
       path: '/api/vitals'
@@ -334,6 +353,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPrecosRoute: typeof AuthenticatedPrecosRoute
   AuthenticatedProdutosRoute: typeof AuthenticatedProdutosRoute
   AuthenticatedSimulacoesRoute: typeof AuthenticatedSimulacoesRoute
+  AuthenticatedVendasRoute: typeof AuthenticatedVendasRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -345,6 +365,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPrecosRoute: AuthenticatedPrecosRoute,
   AuthenticatedProdutosRoute: AuthenticatedProdutosRoute,
   AuthenticatedSimulacoesRoute: AuthenticatedSimulacoesRoute,
+  AuthenticatedVendasRoute: AuthenticatedVendasRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -4,6 +4,7 @@ import { toDecimalString } from "@/lib/financial-values";
 import {
   salesRepository,
   type SalesRepository,
+  type SalesSummary,
   type SaleWrite,
 } from "@/server/repositories/sales.repository";
 
@@ -21,6 +22,11 @@ export interface SaleDraft {
 export interface SalesService {
   create(context: RequestContext, input: SaleDraft): ReturnType<SalesRepository["create"]>;
   revenue(context: RequestContext, range?: { from?: Date; to?: Date }): Promise<string>;
+  summaryForPeriod(context: RequestContext, from: Date): Promise<SalesSummary>;
+  list(
+    context: RequestContext,
+    range?: { from?: Date; to?: Date; limit?: number },
+  ): ReturnType<SalesRepository["list"]>;
 }
 
 export class DefaultSalesService implements SalesService {
@@ -77,6 +83,17 @@ export class DefaultSalesService implements SalesService {
 
   revenue(context: RequestContext, range?: { from?: Date; to?: Date }) {
     return this.repository.revenue(context, range);
+  }
+
+  summaryForPeriod(context: RequestContext, from: Date): Promise<SalesSummary> {
+    return this.repository.summaryForPeriod(context, from);
+  }
+
+  list(
+    context: RequestContext,
+    range?: { from?: Date; to?: Date; limit?: number },
+  ): ReturnType<SalesRepository["list"]> {
+    return this.repository.list(context, range ?? {});
   }
 }
 

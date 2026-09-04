@@ -30,6 +30,7 @@ interface GatewayToolCall {
 }
 
 const gatewayResponseSchema = z.object({
+  model: z.string().optional(),
   choices: z
     .array(
       z.object({
@@ -241,7 +242,7 @@ async function callModel(
       attempts,
       timeoutMs,
     });
-    if (result) return result;
+    if (result) return { ...result, model: result.model ?? model };
   }
   throw new ApplicationError("DEPENDENCY_ERROR");
 }
@@ -255,6 +256,7 @@ export const getChatHistory = createServerFn({ method: "GET" })
         return {
           messages: [],
           currentProductId: null,
+          conversationState: "idle",
           confirmedState: {
             currentProductId: null,
             lastAssistantMessageId: null,
@@ -283,6 +285,7 @@ export const getChatHistory = createServerFn({ method: "GET" })
           created_at: message.created_at.toISOString(),
         })),
         currentProductId: conversation.currentProductId,
+        conversationState: conversation.conversationState,
         confirmedState: {
           currentProductId:
             typeof conversation.confirmedState.currentProductId === "string"
@@ -331,6 +334,8 @@ export const clearChatHistory = createServerFn({ method: "POST" })
         .set({
           currentProductId: null,
           confirmedState: {},
+          conversationState: "idle",
+          stateUpdatedAt: new Date(),
           resetAt: new Date(),
           updatedAt: new Date(),
         })

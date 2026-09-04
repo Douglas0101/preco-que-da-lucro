@@ -557,21 +557,32 @@ async function assertPurchasePriceConcurrency(adminUrl: string): Promise<void> {
   }
 }
 
-async function rollbackTo0003(client: Client): Promise<void> {
-  // O chain pode ter migrations após a 0004 (0005 e 0006); o rollback precisa
-  // desfazer tudo até a 0003 e remover as entradas correspondentes do journal,
-  // senão o re-run tenta CREATE/ADD/DROP em objetos que ainda existem.
-  const downSqls = [
-    await readFile(resolve("drizzle/rollback/0006_to_0005_down.sql"), "utf8"),
-    await readFile(resolve("drizzle/rollback/0005_to_0004_down.sql"), "utf8"),
-    await readFile(resolve("drizzle/rollback/0004_to_0003_down.sql"), "utf8"),
-  ];
-  for (const sql of downSqls) {
+// Downs que levam a chain 0010→0003, na ordem de aplicação (mais nova primeiro).
+const DOWNS_TIP_TO_0003 = [
+  "0010_to_0009_down.sql",
+  "0009_to_0008_down.sql",
+  "0008_to_0007_down.sql",
+  "0007_to_0006_down.sql",
+  "0006_to_0005_down.sql",
+  "0005_to_0004_down.sql",
+  "0004_to_0003_down.sql",
+];
+
+async function applyDowns(client: Client, downFiles: string[]): Promise<void> {
+  // O chain pode ter migrations além do destino do rollback; é preciso desfazer
+  // cada arquivo da lista e remover exatamente o mesmo número de entradas do
+  // journal, senão o re-run tenta CREATE/ADD/DROP em objetos que ainda existem.
+  for (const downFile of downFiles) {
+    const sql = await readFile(resolve("drizzle/rollback", downFile), "utf8");
     await client.query(sql);
   }
   await client.query(
-    "delete from drizzle.__drizzle_migrations where id in (select id from drizzle.__drizzle_migrations order by id desc limit 3)",
+    `delete from drizzle.__drizzle_migrations where id in (select id from drizzle.__drizzle_migrations order by id desc limit ${downFiles.length})`,
   );
+}
+
+async function rollbackTo0003(client: Client): Promise<void> {
+  await applyDowns(client, DOWNS_TIP_TO_0003);
 }
 
 async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<void> {
@@ -665,6 +676,93 @@ async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<
   await runMigrations(adminUrl);
 }
 
+async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Client): Promise<void> {
+  // Completa a cobertura da cadeia de rollback: além de 0010→0003, aplica
+  // 0003→0002 e o novo 0002→0001, deixando o banco no estado da migration
+  // 0001 com o journal reduzido a 0000/0001 (9 arquivos aplicados = 9 linhas
+  // removidas em applyDowns).
+  await applyDowns(client, [
+    ...DOWNS_TIP_TO_0003,
+    "0003_to_0002_down.sql",
+    "0002_to_0001_down.sql",
+  ]);
+
+  const journal = await client.query<{ count: string }>(
+    "select count(*)::text as count from drizzle.__drizzle_migrations",
+  );
+  assert.equal(journal.rows[0]?.count, "2", "journal deve reter somente 0000 e 0001");
+
+  const dropped = await client.query<{
+    rateLimits: string | null;
+    sales: string | null;
+    purchaseHistory: string | null;
+  }>(
+    `select to_regclass('public.rate_limits')::text as "rateLimits",
+            to_regclass('public.sales')::text as "sales",
+            to_regclass('public.purchase_price_history')::text as "purchaseHistory"`,
+  );
+  assert.deepEqual(
+    dropped.rows[0],
+    { rateLimits: null, sales: null, purchaseHistory: null },
+    "0002→0001 deve remover rate_limits sem dependentes; 0003→0002 remove as tabelas P1",
+  );
+
+  // Os guards IF EXISTS do down de 0002 o tornam no-op na segunda aplicação.
+  const idempotentAgain = await readFile(resolve("drizzle/rollback/0002_to_0001_down.sql"), "utf8");
+  await client.query(idempotentAgain);
+
+  // Replay completo 0002→0010: valida reprodutibilidade de 0002 e 0003.
+  await runMigrations(adminUrl);
+
+  const replayedJournal = await client.query<{ count: string }>(
+    "select count(*)::text as count from drizzle.__drizzle_migrations",
+  );
+  assert.equal(replayedJournal.rows[0]?.count, "11", "replay deve restaurar o journal completo");
+
+  const restored = await client.query<{
+    rateLimits: boolean;
+    rateLimitSelect: boolean;
+    rateLimitInsert: boolean;
+    rateLimitDelete: boolean;
+    publicRateLimitSelect: boolean;
+    sales: boolean;
+  }>(
+    `select to_regclass('public.rate_limits') is not null as "rateLimits",
+            has_table_privilege('app_runtime', 'public.rate_limits', 'select') as "rateLimitSelect",
+            has_table_privilege('app_runtime', 'public.rate_limits', 'insert') as "rateLimitInsert",
+            has_table_privilege('app_runtime', 'public.rate_limits', 'delete') as "rateLimitDelete",
+            has_table_privilege('public', 'public.rate_limits', 'select') as "publicRateLimitSelect",
+            to_regclass('public.sales') is not null as "sales"`,
+  );
+  assert.deepEqual(
+    restored.rows[0],
+    {
+      rateLimits: true,
+      rateLimitSelect: true,
+      rateLimitInsert: true,
+      rateLimitDelete: true,
+      publicRateLimitSelect: false,
+      sales: true,
+    },
+    "replay deve recriar rate_limits com grants idênticos a 0002 (PUBLIC revogado, app_runtime CRUD)",
+  );
+
+  const empty = await client.query<{ count: string }>(
+    "select count(*)::text as count from rate_limits",
+  );
+  assert.equal(empty.rows[0]?.count, "0");
+
+  await withRuntimeCommit(client, {}, async () => {
+    await client.query(
+      `insert into rate_limits (key, count, last_request)
+       values ('s2-replay-probe', 1, $1)
+       on conflict (key) do update set count = rate_limits.count + 1, last_request = excluded.last_request`,
+      [Date.now()],
+    );
+    await client.query("delete from rate_limits where key = 's2-replay-probe'");
+  });
+}
+
 async function main(): Promise<void> {
   await runMigrations(adminUrl);
 
@@ -676,13 +774,19 @@ async function main(): Promise<void> {
     await assertDatabaseContract(client);
     await assertPurchasePriceConcurrency(adminUrl);
     await assertUpgradeFrom0003(adminUrl, client);
+    await assertDowngrade0002To0001AndReplay(adminUrl, client);
 
-    const rollbackSql = await readFile(resolve("drizzle/rollback/0001_to_0000_down.sql"), "utf8");
-    await client.query(rollbackSql);
-    const rolledBack = await client.query<{ table_name: string | null }>(
-      "select to_regclass('public.products')::text as table_name",
-    );
-    assert.equal(rolledBack.rows[0]?.table_name, null);
+    // SKIP_FINAL_ROLLBACK=1 pula o rollback 0001→0000, que dropa a role global
+    // app_runtime — objeto compartilhado entre databases do mesmo servidor.
+    // Usado em banco de prova isolado; o fluxo padrão (test DB dedicada) mantém o passo.
+    if (!process.env.SKIP_FINAL_ROLLBACK) {
+      const rollbackSql = await readFile(resolve("drizzle/rollback/0001_to_0000_down.sql"), "utf8");
+      await client.query(rollbackSql);
+      const rolledBack = await client.query<{ table_name: string | null }>(
+        "select to_regclass('public.products')::text as table_name",
+      );
+      assert.equal(rolledBack.rows[0]?.table_name, null);
+    }
   } finally {
     await client.end();
   }

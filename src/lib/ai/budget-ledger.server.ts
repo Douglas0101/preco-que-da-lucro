@@ -1,4 +1,6 @@
-import { sql } from "drizzle-orm";
+import Decimal from "decimal.js";
+import { sql, type SQL } from "drizzle-orm";
+import { z } from "zod";
 // This module executes database transactions and must remain server-only.
 import {
   transactionManager as defaultTransactionManager,
@@ -6,6 +8,7 @@ import {
   type DatabaseTransaction,
   type TransactionManager,
 } from "@/db/client.server";
+import { toDecimalString } from "@/lib/financial-values";
 import { logJson } from "@/lib/structured-logger";
 
 export const DEFAULT_BUDGET_CONFIG = {
@@ -41,11 +44,29 @@ export interface ReserveOptions {
   now?: Date;
 }
 
+// Reserved for R3 (per-tool cost attribution): ai_usage.tool_execution_id
+// (nullable, migration 0009) exists in the schema, but reserve/settle below
+// intentionally never write it — the column stays NULL until the orchestrator
+// owns per-tool attribution. See docs/evidence/s4-ai-pricing-hardening-2026-09-01.md.
 export interface SettleOptions {
   now?: Date;
   inputTokens?: number;
   outputTokens?: number;
   toolCalls?: number;
+  /** Cost string (4 decimals) when `costStatus` is "known"; null otherwise. Never invent "missing" as zero. */
+  estimatedCost?: string | null;
+  /** Defaults to "unknown" so pricing-less callers never write a fabricated known cost. */
+  costStatus?: "known" | "unknown" | "invalid";
+}
+
+export interface ModelTokenPrice {
+  inputPerMillion: number;
+  outputPerMillion: number;
+}
+
+export interface EstimatedCostResult {
+  cost: string | null;
+  status: "known" | "unknown" | "invalid";
 }
 
 export interface SweepOptions {
@@ -180,6 +201,107 @@ function resolveConfig(overrides: Partial<BudgetLedgerConfig> | undefined): Budg
   return { ...budgetConfigFromEnv(), ...overrides };
 }
 
+// Conservative placeholder prices (USD per million tokens) so cost estimation
+// can run out of the box. They are NOT vendor quotes: override them for the
+// production gateway via AI_MODEL_PRICING_JSON before relying on the totals.
+const DEFAULT_MODEL_TOKEN_PRICES: Record<string, ModelTokenPrice> = Object.freeze({
+  "google/gemini-3.6-flash": { inputPerMillion: 0.1, outputPerMillion: 0.4 },
+});
+
+// API-001 §6.9 + INV-014: AI_MODEL_PRICING_JSON is untrusted config and is
+// validated at boot. Zero prices are accepted deliberately (a model configured
+// as free must estimate "0.0000" as "known", never fall into "unknown");
+// negative, non-finite, missing or non-numeric fields are rejected explicitly.
+const ModelPriceSchema = z.object({
+  inputPerMillion: z.number().finite().nonnegative(),
+  outputPerMillion: z.number().finite().nonnegative(),
+});
+
+const ModelPricingSchema = z.record(z.string().min(1).max(200), ModelPriceSchema);
+
+const PRICING_EXPECTED_SHAPE =
+  'esperado {"<modelo>":{"inputPerMillion":<número finito ≥ 0>,"outputPerMillion":<número finito ≥ 0>}}';
+
+function pricingConfigError(detail: string, cause?: unknown): Error {
+  // §19.4: the message must never echo the raw env value or the parsed prices.
+  return new Error(`CONFIG_ERROR: AI_MODEL_PRICING_JSON inválida — ${detail}`, { cause });
+}
+
+/**
+ * Reads AI_MODEL_PRICING_JSON (model -> {inputPerMillion, outputPerMillion}).
+ * Absent/empty variable → documented conservative defaults (config absent ≠
+ * config invalid). Set but malformed → explicit `CONFIG_ERROR` throw
+ * (API-001 §6.9, fail-fast; never a silent fallback once the variable exists).
+ */
+export function modelTokenPricesFromEnv(
+  env: Record<string, string | undefined> = process.env,
+): Record<string, ModelTokenPrice> {
+  const raw = env.AI_MODEL_PRICING_JSON;
+  if (!raw) return { ...DEFAULT_MODEL_TOKEN_PRICES };
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (cause) {
+    throw pricingConfigError(
+      "não é JSON válido. Corrija a variável ou remova-a para usar os preços padrão documentados.",
+      cause,
+    );
+  }
+  const result = ModelPricingSchema.safeParse(parsed);
+  if (!result.success) {
+    const issues = result.error.issues
+      .slice(0, 5)
+      .map((issue) => `${issue.path.join(".") || "<raiz>"}: ${issue.message}`)
+      .join("; ");
+    throw pricingConfigError(`formato inesperado (${issues}). ${PRICING_EXPECTED_SHAPE}`);
+  }
+  return result.data;
+}
+
+/**
+ * Boot-time fail-fast guard (API-001 §6.9 / §14.6): the server entry calls this
+ * once at startup. An invalid AI_MODEL_PRICING_JSON must prevent boot with an
+ * explicit CONFIG_ERROR; an absent variable keeps the documented defaults so
+ * development boots without configuration. Never logs prices (§19.4).
+ */
+export function assertPricingConfigForBoot(
+  env: Record<string, string | undefined> = process.env,
+): Record<string, ModelTokenPrice> {
+  return modelTokenPricesFromEnv(env);
+}
+
+function isCountableToken(value: number): boolean {
+  return Number.isInteger(value) && value >= 0;
+}
+
+/**
+ * Estimates the USD cost of a model round. Returns "known" only when the model
+ * has a configured price (INV-006: unknown/absent pricing is never fabricated
+ * as a zero cost); non-finite or negative token counts are "invalid".
+ */
+export function estimateModelCost(
+  modelName: string | null,
+  inputTokens: number,
+  outputTokens: number,
+  prices: Record<string, ModelTokenPrice> = modelTokenPricesFromEnv(),
+): EstimatedCostResult {
+  if (!isCountableToken(inputTokens) || !isCountableToken(outputTokens)) {
+    return { cost: null, status: "invalid" };
+  }
+  const price = modelName ? prices[modelName] : undefined;
+  if (!price) return { cost: null, status: "unknown" };
+  const cost = new Decimal(inputTokens)
+    .mul(price.inputPerMillion)
+    .add(new Decimal(outputTokens).mul(price.outputPerMillion))
+    .div(1_000_000);
+  if (!cost.isFinite() || cost.isNeg()) return { cost: null, status: "invalid" };
+  try {
+    return { cost: toDecimalString(cost, 4), status: "known" };
+  } catch {
+    return { cost: null, status: "invalid" };
+  }
+}
+
 function assertNonNegativeInteger(name: string, value: number): void {
   if (!Number.isInteger(value) || value < 0) {
     throw new TypeError(`${name} deve ser um inteiro não negativo`);
@@ -250,6 +372,57 @@ function tokenBreakdown(
     throw new RangeError("inputTokens + outputTokens deve corresponder a realTokens");
   }
   return { inputTokens, outputTokens };
+}
+
+interface BudgetCostSetters {
+  /** Known decimal string to add to ai_daily_budgets.estimated_cost, or null. */
+  costIncrement: string | null;
+  /** Unknown-usable rounds also burden the daily unknown counter. */
+  unknownIncrement: boolean;
+}
+
+function resolveBudgetCostSetters(options: SettleOptions): BudgetCostSetters {
+  const status =
+    options.costStatus === "known" || options.costStatus === "invalid"
+      ? options.costStatus
+      : "unknown";
+  const value = options.estimatedCost ?? null;
+  if (status === "known") {
+    // Only a parseable, non-negative decimal may enter the summed column. A
+    // "known" status without a resolvable string is treated as unknowable
+    // rather than corrupting the daily estimated total with an invented zero.
+    let parsed: Decimal | null = null;
+    if (value !== null) {
+      try {
+        const candidate = new Decimal(value);
+        if (candidate.isFinite() && !candidate.isNeg()) parsed = candidate;
+      } catch {
+        parsed = null;
+      }
+    }
+    if (parsed !== null) return { costIncrement: parsed.toFixed(4), unknownIncrement: false };
+    return { costIncrement: null, unknownIncrement: true };
+  }
+  // "unknown" and "invalid" both leave the known total untouched; either way
+  // the round is accounted in the unknown-usable counter.
+  return { costIncrement: null, unknownIncrement: true };
+}
+
+/**
+ * Intentional deviation: tool_executions cost fields are intentionally NOT
+ * written. Cost is tracked per model round via ai_usage; tool executions share
+ * the round's gateway spend, so per-tool costs would double-count it.
+ */
+function budgetCostSetterSql(options: SettleOptions): SQL {
+  const { costIncrement, unknownIncrement } = resolveBudgetCostSetters(options);
+  const parts: SQL[] = [];
+  if (costIncrement !== null) {
+    parts.push(sql`estimated_cost = estimated_cost + ${costIncrement}`);
+  }
+  if (unknownIncrement) {
+    parts.push(sql`estimated_cost_unknown_count = estimated_cost_unknown_count + 1`);
+  }
+  return sql.join(parts, sql`, `);
 }
 
 async function sweepOrphansInTransaction(
@@ -471,7 +644,9 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
                 status = 'settled',
                 settled_at = ${now},
                 real_tokens = ${realTokens},
-                outcome = ${outcome}
+                outcome = ${outcome},
+                estimated_cost = ${options.estimatedCost ?? null},
+                cost_status = ${options.costStatus ?? "unknown"}
               where usage_id = ${usageId}
                 and tenant_id = ${dependencies.identity.tenantId}
                 and status = 'reserved'
@@ -484,13 +659,18 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
             const usageDate = utcDate(claimed.reservedAt);
             const countersResult = await transaction.execute(sql`
               update ai_daily_budgets
-              set
-                tokens_reserved = tokens_reserved - ${budgetTokens},
-                in_flight = in_flight - 1,
-                input_tokens = input_tokens + ${breakdown.inputTokens},
-                output_tokens = output_tokens + ${breakdown.outputTokens},
-                tool_call_count = tool_call_count + ${toolCalls},
-                updated_at = ${now}
+              set ${sql.join(
+                [
+                  sql`tokens_reserved = tokens_reserved - ${budgetTokens}`,
+                  sql`in_flight = in_flight - 1`,
+                  sql`input_tokens = input_tokens + ${breakdown.inputTokens}`,
+                  sql`output_tokens = output_tokens + ${breakdown.outputTokens}`,
+                  sql`tool_call_count = tool_call_count + ${toolCalls}`,
+                  budgetCostSetterSql(options),
+                  sql`updated_at = ${now}`,
+                ],
+                sql`, `,
+              )}
               where tenant_id = ${dependencies.identity.tenantId}
                 and usage_date = ${usageDate}
               returning tokens_reserved as "tokensReserved", in_flight as "inFlight"

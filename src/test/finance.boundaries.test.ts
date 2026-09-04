@@ -68,10 +68,8 @@ describe("fronteiras de entrada FIN-003", () => {
     }
 
     const simulation = projectFile("src/routes/_authenticated/simulacoes.tsx");
-    const diagnostic = projectFile("src/routes/_authenticated/diagnostico.tsx");
     expect(simulation).toContain('simulated?.status === "invalid"');
     expect(simulation).toContain('role="alert"');
-    expect(diagnostic).toContain("Number.isFinite(difference)");
   });
 
   it("impõe taxas individuais abaixo de 100% no BFF", () => {
@@ -185,12 +183,14 @@ describe("fronteiras de formação de preço FIN-005", () => {
   it("calcula custo direto sem depender do preço atual e verifica erros remotos", () => {
     const finance = projectFile("src/lib/finance.ts");
     const diagnostic = projectFile("src/routes/_authenticated/diagnostico.tsx");
+    const diagnosticService = projectFile("src/server/services/diagnostic.service.ts");
 
     expect(finance).toContain("export function computeProductCost");
     expect(finance).toContain("export function calculatePriceFormation");
-    expect(diagnostic).toContain("productsWithMetricsQueryOptions()");
+    expect(diagnostic).toContain("productsListQueryOptions()");
     expect(diagnostic).toContain("isError");
     expect(diagnostic).toContain("productsQuery.isError || expensesQuery.isError");
+    expect(diagnosticService).toContain("Number.isFinite(difference)");
     expect(diagnostic).not.toMatch(/current_price\s*[),]\s*ingredients/);
   });
 });

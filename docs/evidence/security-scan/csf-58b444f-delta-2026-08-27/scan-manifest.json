@@ -1,0 +1,72 @@
+{
+  "documentType": "program-security.scan-manifest",
+  "scan": {
+    "artifacts": [
+      {
+        "mediaType": "application/json",
+        "path": "findings.json",
+        "sha256": "b1f1575e9f872130e1afe235e2875a6b21c89006e86d2fbf514dd9d733870659"
+      },
+      {
+        "mediaType": "application/json",
+        "path": "coverage.json",
+        "sha256": "704f67cdec0d2b378e58295aa46b8172b8a1bac989ebac309179a953512bb19d"
+      },
+      {
+        "mediaType": "text/markdown",
+        "path": "report.md",
+        "sha256": "52de5c8fa66ec1214c5ca770cd99dc427014dc6b27d0a7b0cd79888bdd555103"
+      }
+    ],
+    "baseScan": {
+      "artifactsDir": "docs/evidence/security-scan/csf-58b444f-2026-08-27/",
+      "id": "2ca2b19a-3ab2-49a1-a436-0a9ab46b3fcd",
+      "producer": "codex-security-plugin 0.1.22",
+      "targetRevision": "e61c8c80ed7477828e0f44fd6a0c4f799ae9aa48"
+    },
+    "completedAt": "2026-08-27T14:16:00Z",
+    "id": "cb6038a1-c397-4042-a68d-ae6427e95802",
+    "producer": {
+      "name": "pi-program-v5.standard-delta-scan",
+      "version": "1.0"
+    },
+    "scope": {
+      "context": "Verify that the sealed base scan at e61c8c8 applies to the published tip 12c90a1 and that csf_58b444f152e35ba899b5381e (CWE-770) is resolved there; register partial coverage without masking.",
+      "delta": {
+        "baseRevision": "e61c8c80ed7477828e0f44fd6a0c4f799ae9aa48",
+        "files": [
+          "EXECUTION-STATE.md",
+          "docs/evidence/csf-58b444f-final-2026-08-27.md",
+          "docs/evidence/security-scan/csf-58b444f-2026-08-27/coverage.json",
+          "docs/evidence/security-scan/csf-58b444f-2026-08-27/findings.json",
+          "docs/evidence/security-scan/csf-58b444f-2026-08-27/report.md",
+          "docs/evidence/security-scan/csf-58b444f-2026-08-27/results.sarif",
+          "docs/evidence/security-scan/csf-58b444f-2026-08-27/scan-manifest.json"
+        ],
+        "nonDocumentationFiles": 0,
+        "publishedRevision": "12c90a17f81edd5a126c2e32c3f703c8b7841f87",
+        "verdict": "zero executable/schema/test/config delta; base scan applies verbatim to the published tip tree"
+      },
+      "excludePaths": [],
+      "includePaths": ["."],
+      "limitations": [
+        "Coverage is partial: six scoped surfaces re-registered from the base scan plus delta verification, from a 240-file target inventory; remainder routed to M-07.",
+        "This manifest is NOT output of the codex-security plugin and does not replace it; it is the main-line bounded delta review that closes the finding history at the published tip.",
+        "results.sarif is not re-emitted: the base SARIF remains the sealed scanner output; no new scanner ran in this delta pass.",
+        "The scan does not validate Neon, production, migration/cutover state, provider billing, or real external traffic (H-003)."
+      ],
+      "runtimeStatus": "No local test execution in this delta pass; executable evidence is the published-tip CI: UI stack run 33037007387 success at 12c90a1 (2026-08-27T03:39:16Z), plus v3 runs at a4e6fb1 (UI 33034852220, Neon boundary 33034852213, Sonar 98395300602). No Neon endpoint was used.",
+      "summary": "Delta-scan Standard of the published tip 12c90a1 closing the csf_58b444f finding history: verdict RESOLVED at the published revision.",
+      "validationMode": "Bounded semantic delta review plus published-tip CI evidence."
+    },
+    "sealedAt": "2026-08-27T14:16:00Z",
+    "startedAt": "2026-08-27T14:02:00Z",
+    "status": "completed",
+    "target": {
+      "displayName": "preco-que-d-main",
+      "kind": "git_revision",
+      "revision": "12c90a17f81edd5a126c2e32c3f703c8b7841f87"
+    }
+  },
+  "schemaVersion": "1.0"
+}

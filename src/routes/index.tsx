@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { buttonVariants } from "@/components/ui/button";
 import { Sparkles, MessageCircle, Calculator, Scale, ArrowRight } from "lucide-react";
 
@@ -24,13 +25,22 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const navigate = Route.useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     let active = true;
-    void import("@/lib/auth-client")
-      .then(async ({ authClient }) => {
-        const { data } = await authClient.getSession();
-        if (active && data?.user) await navigate({ to: "/inicio", replace: true });
+    // T6: reutiliza a query de sessão compartilhada (["auth","session"]) —
+    // mesmo get-session único do layout autenticado; import dinâmico mantém o
+    // auth client fora do grafo SSR da landing.
+    void import("@/lib/session-context")
+      .then(async ({ sessionQueryOptions, SessionUnavailableError }) => {
+        try {
+          const user = await queryClient.fetchQuery(sessionQueryOptions());
+          if (active && user) await navigate({ to: "/inicio", replace: true });
+        } catch (error) {
+          // Visitante anônimo: permanece na landing (comportamento atual).
+          if (!(error instanceof SessionUnavailableError)) throw error;
+        }
       })
       .catch((error: unknown) => {
         if (active) console.error("Could not validate the server session", error);
@@ -39,7 +49,7 @@ function Landing() {
     return () => {
       active = false;
     };
-  }, [navigate]);
+  }, [navigate, queryClient]);
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,12 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { listProductsWithMetrics } from "@/lib/products.functions";
-import {
-  breakEvenQueryOptions,
-  expensesQueryOptions,
-  productsWithMetricsQueryOptions,
-} from "@/lib/query-options";
+import { calculateBreakEvenSummary, type BreakEvenServiceResult } from "@/lib/break-even";
+import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
 import { brl, pct, num } from "@/lib/format";
 import { toDecimalString } from "@/lib/financial-values";
 import { Button } from "@/components/ui/button";
@@ -32,16 +29,26 @@ export const Route = createFileRoute("/_authenticated/ponto-equilibrio")({
       },
     ],
   }),
+  // Prefetch não-bloqueante (T2): base do cálculo em paralelo (Promise.all).
+  // Erros deglutidos para o estado de erro com retry continuar no componente.
+  // Dynamic import: mantém query-options (+ *.functions/zod) FORA do grafo
+  // inicial (orçamento de bundle §17.7) — loaders não são code-split.
+  loader: async ({ context }) => {
+    const { expensesQueryOptions, productsWithMetricsQueryOptions } =
+      await import("@/lib/query-options");
+    return Promise.all([
+      context.queryClient.ensureQueryData(productsWithMetricsQueryOptions()).catch(() => null),
+      context.queryClient.ensureQueryData(expensesQueryOptions()).catch(() => null),
+    ]);
+  },
+  pendingComponent: () => <output className="text-muted-foreground">Carregando...</output>,
   component: PontoEquilibrio,
 });
 
 type ProductDetail = Awaited<ReturnType<typeof listProductsWithMetrics>>[number];
 type ProductMetricsOk = Extract<ProductDetail["metrics"], { status: "ok" }>;
 type CalculationStatus = "idle" | "incomplete" | "invalid" | "ok";
-type BreakEvenData = Awaited<
-  ReturnType<NonNullable<ReturnType<typeof breakEvenQueryOptions>["queryFn"]>>
->;
-type BreakEvenQuery = { isPending: boolean };
+type BreakEvenData = BreakEvenServiceResult;
 
 function PontoEquilibrio() {
   const [productId, setProductId] = useState<string>("");
@@ -73,20 +80,10 @@ function PontoEquilibrio() {
     fixedExpenseAmounts,
     profitTarget,
   );
-  const breakEvenQuery = useQuery({
-    ...breakEvenQueryOptions(
-      breakEvenInput ?? {
-        fixedExpenses: [],
-        price: "0",
-        contributionMargin: "0",
-        contributionMarginPct: "0",
-        desiredProfit: null,
-        unitMode: "discrete",
-      },
-    ),
-    enabled: breakEvenInput !== null,
-  });
-  const be = breakEvenQuery.data ?? null;
+  // T1: exibição calculada client-side (0 RT) com a MESMA função pura usada
+  // pelo server fn de persistência — paridade por construção. unknown/inválido
+  // retorna status explícito (nunca NaN formatado como zero).
+  const breakEven = breakEvenInput ? calculateBreakEvenSummary(breakEvenInput) : null;
 
   if (productsQuery.isPending || expensesQuery.isPending) {
     return <output className="text-muted-foreground">Carregando...</output>;
@@ -106,12 +103,11 @@ function PontoEquilibrio() {
       products={products}
       productId={selectedProductId}
       onProductChange={setProductId}
-      fixedExpenses={breakEvenQuery.data?.fixedExpenses}
+      fixedExpenses={breakEven?.fixedExpenses}
       metrics={metrics}
       selectedPrice={selectedPrice}
       calculationStatus={calculationStatus}
-      breakEvenQuery={breakEvenQuery}
-      breakEven={be}
+      breakEven={breakEven}
       profitTarget={profitTarget}
       onProfitTargetChange={setProfitTarget}
     />
@@ -156,7 +152,6 @@ function PontoView({
   metrics,
   selectedPrice,
   calculationStatus,
-  breakEvenQuery,
   breakEven,
   profitTarget,
   onProfitTargetChange,
@@ -168,7 +163,6 @@ function PontoView({
   metrics: ProductMetricsOk | null;
   selectedPrice: string | null;
   calculationStatus: CalculationStatus;
-  breakEvenQuery: BreakEvenQuery;
   breakEven: BreakEvenData | null;
   profitTarget: string;
   onProfitTargetChange: (value: string) => void;
@@ -208,7 +202,6 @@ function PontoView({
         <PontoMetrics
           metrics={metrics}
           selectedPrice={selectedPrice}
-          breakEvenQuery={breakEvenQuery}
           breakEven={breakEven}
           profitTarget={profitTarget}
           onProfitTargetChange={onProfitTargetChange}
@@ -240,14 +233,12 @@ function CalculationState({ status }: Readonly<{ status: CalculationStatus }>) {
 function PontoMetrics({
   metrics,
   selectedPrice,
-  breakEvenQuery,
   breakEven,
   profitTarget,
   onProfitTargetChange,
 }: Readonly<{
   metrics: ProductMetricsOk;
   selectedPrice: string | null;
-  breakEvenQuery: BreakEvenQuery;
   breakEven: BreakEvenData | null;
   profitTarget: string;
   onProfitTargetChange: (value: string) => void;
@@ -262,7 +253,7 @@ function PontoMetrics({
           value={`${brl(metrics.value.contributionMargin)} (${pct(metrics.value.contributionMarginPct)})`}
         />
       </div>
-      <BreakEvenCard query={breakEvenQuery} result={breakEven} />
+      <BreakEvenCard result={breakEven} />
       <ProfitTargetCard
         result={breakEven}
         profitTarget={profitTarget}
@@ -272,11 +263,8 @@ function PontoMetrics({
   );
 }
 
-function BreakEvenCard({
-  query,
-  result,
-}: Readonly<{ query: BreakEvenQuery; result: PontoMetricsProps["breakEven"] }>) {
-  const unitsLabel = breakEvenUnitsLabel(query.isPending, result);
+function BreakEvenCard({ result }: Readonly<{ result: PontoMetricsProps["breakEven"] }>) {
+  const unitsLabel = breakEvenUnitsLabel(result);
   const revenueLabel = breakEvenRevenueLabel(result);
   return (
     <Card className="border-primary/30">
@@ -321,8 +309,7 @@ function BreakEvenCard({
   );
 }
 
-function breakEvenUnitsLabel(isPending: boolean, result: PontoMetricsProps["breakEven"]): string {
-  if (isPending) return "Calculando...";
+function breakEvenUnitsLabel(result: PontoMetricsProps["breakEven"]): string {
   if (result?.units.status === "reachable") return `${num(result.units.roundedUnits, 0)} un.`;
   if (result?.units.status === "unreachable") return "Não atingível";
   return "Erro de cálculo";

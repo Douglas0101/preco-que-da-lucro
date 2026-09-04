@@ -5,12 +5,22 @@ import { ApplicationError } from "@/lib/api-error";
 import {
   budgetConfigFromEnv,
   createBudgetLedger,
+  estimateModelCost,
   type BudgetLedger,
   type BudgetLedgerConfig,
 } from "@/lib/ai/budget-ledger.server";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
 import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
 import { runRegisteredTool } from "@/lib/ai/tool-runner";
+import {
+  FSM_STATE_TOOL_ALLOWLIST,
+  isConversationState,
+  isTransitionAllowed,
+  transitionConversationState,
+  type ConversationEvent,
+  type ConversationState,
+} from "@/lib/chat-fsm.server";
+import { applicationMetrics } from "@/instrumentation/telemetry";
 import {
   createTenantTransaction,
   getOrCreateConversation,
@@ -51,6 +61,8 @@ REGRAS INEGOCIÁVEIS:
 4) Confirme o entendimento antes de chamar uma ferramenta de mutação.
 5) Use somente as ferramentas registradas e explique apenas o resultado seguro recebido.
 6) Não solicite senha, token, documento pessoal ou credencial.
+7) Apresente valores financeiros no padrão do Brasil: moeda como R$ 1.234,56 e decimais/percentuais com vírgula (ex.: 12,5%).
+8) É vedado inventar, arredondar ou somar valores não fornecidos pelo usuário ou pelo motor financeiro; exiba o valor recebido sem alterar o número.
 
 FLUXO: create_product; add_ingredients; set_ingredient_cost para cada ingrediente; set_yield; add_packaging; set_price_and_tax; add_fee; set_market_price; finish_product.
 Ao explicar, use "vale investigar", "os dados indicam" e "pode ser interessante simular". Não afirme que um preço está certo ou errado sem contexto.`;
@@ -129,7 +141,10 @@ async function reserveChatAndLoadHistory(
     )
     .orderBy(asc(chatMessages.createdAt))
     .limit(60);
-  return { conversation, currentProductId, history };
+  const conversationState: ConversationState = isConversationState(conversation.conversationState)
+    ? conversation.conversationState
+    : "idle";
+  return { conversation, currentProductId, history, conversationState };
 }
 
 function settlementOutcome(error: unknown): string {
@@ -142,6 +157,7 @@ interface ChatState {
   conversation: { id: string };
   currentProductId: string | null;
   history: Array<{ role: string; content: string }>;
+  conversationState: ConversationState;
 }
 
 type RoundResult =
@@ -191,6 +207,8 @@ async function persistAssistantMessage(
           lastAssistantMessageId: saved?.id ?? null,
           lastConfirmedAt: new Date().toISOString(),
         },
+        conversationState: state.conversationState,
+        stateUpdatedAt: new Date(),
         updatedAt: new Date(),
       })
       .where(
@@ -200,6 +218,76 @@ async function persistAssistantMessage(
         ),
       );
   });
+}
+
+async function persistConversationState(
+  identity: RequestIdentity,
+  conversationId: string,
+  conversationState: ConversationState,
+  metadata?: Record<string, unknown>,
+): Promise<void> {
+  await inTenantTransaction(identity, async (request) => {
+    await request.transaction
+      .update(chatConversations)
+      .set({
+        conversationState,
+        stateUpdatedAt: new Date(),
+        ...(metadata === undefined ? {} : { stateMetadata: metadata }),
+      })
+      .where(
+        and(
+          eq(chatConversations.tenantId, request.tenantId),
+          eq(chatConversations.id, conversationId),
+        ),
+      );
+  });
+}
+
+/**
+ * Applies an FSM transition: records the metric, persists the new state when
+ * it differs, and never throws for invalid transitions (returns state as-is).
+ */
+async function transitionConversation(
+  identity: RequestIdentity,
+  conversationId: string,
+  state: ConversationState,
+  event: ConversationEvent,
+  persist = true,
+): Promise<ConversationState> {
+  if (!isTransitionAllowed(state, event)) {
+    applicationMetrics.conversationInvalidTransitions.add(1, { from: state, event });
+    return state;
+  }
+  const next = transitionConversationState(state, event);
+  applicationMetrics.conversationStateTransitions.add(1, { from: state, to: next });
+  if (persist && next !== state) {
+    await persistConversationState(identity, conversationId, next);
+  }
+  return next;
+}
+
+/**
+ * Per-round tool gate (WS-06): tools only run when the conversation state
+ * allowlist and the product scope (gatewayToolsForState) both permit the call.
+ */
+function fsmGuardedToolRunner(
+  getState: () => ConversationState,
+  getProductId: () => string | null,
+  inner: ToolRunner,
+): ToolRunner {
+  return async (options) => {
+    const toolName = options.name;
+    const state = getState();
+    const scopedNames = new Set(
+      gatewayToolsForState(getProductId()).map((tool) => tool.function.name),
+    );
+    if (!FSM_STATE_TOOL_ALLOWLIST[state].includes(toolName) || !scopedNames.has(toolName)) {
+      applicationMetrics.toolExecutions.add(1, { tool: toolName, status: "blocked", state });
+      logJson("warn", "ai.tool_blocked", { toolName, state });
+      return { ok: false as const, code: "VALIDATION_ERROR" as const, replayed: false };
+    }
+    return inner(options);
+  };
 }
 
 type ToolResult = Awaited<ReturnType<ToolRunner>>;
@@ -271,11 +359,24 @@ async function handleModelResponse(
       toolCalls,
       toolRunner,
     );
+    state.conversationState = await transitionConversation(
+      identity,
+      state.conversation.id,
+      state.conversationState,
+      "TOOL_EXECUTED",
+    );
     return { kind: "continue", currentProductId: nextProductId };
   }
 
   const content = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
   if (!content) throw new ApplicationError("DEPENDENCY_ERROR");
+  state.conversationState = await transitionConversation(
+    identity,
+    state.conversation.id,
+    state.conversationState,
+    "FINAL",
+    false,
+  );
   await persistAssistantMessage(identity, state, currentProductId, content);
   logJson("info", "ai.chat_completed", {
     correlationId: identity.correlationId,
@@ -321,6 +422,7 @@ async function executeReservedRound({
   let outputTokens = 0;
   let realTokens = 0;
   let toolCallsCount = 0;
+  let modelName: string | null = null;
   let outcome = "error";
 
   try {
@@ -329,6 +431,7 @@ async function executeReservedRound({
       gatewayToolsForState(currentProductId),
       requestSignal,
     );
+    modelName = (modelResponse as { model?: string }).model ?? null;
     inputTokens = modelResponse.usage?.prompt_tokens ?? 0;
     outputTokens = modelResponse.usage?.completion_tokens ?? 0;
     realTokens = inputTokens + outputTokens;
@@ -348,11 +451,27 @@ async function executeReservedRound({
     outcome = settlementOutcome(error);
     throw error;
   } finally {
+    const est = estimateModelCost(modelName, inputTokens, outputTokens);
     await budgetLedger.settle(reservationResult.usageId, realTokens, outcome, {
       inputTokens,
       outputTokens,
       toolCalls: toolCallsCount,
+      estimatedCost: est.status === "known" ? est.cost : null,
+      costStatus: est.status,
     });
+    try {
+      if (est.status === "known") {
+        applicationMetrics.aiEstimatedCostTotal.add(1, {
+          model: modelName ?? "unknown",
+          status: "known",
+        });
+      } else if (est.status === "unknown") {
+        applicationMetrics.aiCostUnknownTotal.add(1);
+      }
+    } catch (error) {
+      // Cost telemetry must never break the chat settle path.
+      logJson("warn", "ai.cost_metrics_failed", { error });
+    }
   }
 }
 
@@ -364,13 +483,13 @@ export async function executeSendChatMessage(
   const budgetConfig = { ...budgetConfigFromEnv(), ...dependencies.budgetConfig };
   const budgetLedger =
     dependencies.budgetLedger ?? createBudgetLedger({ identity, config: budgetConfig });
-  const toolRunner = dependencies.toolRunner ?? runRegisteredTool;
+  const baseToolRunner = dependencies.toolRunner ?? runRegisteredTool;
   const requestTimeoutMs = numberSetting("AI_REQUEST_TIMEOUT_MS", 60_000, 1_000, 60_000);
   const requestSignal = AbortSignal.any([identity.signal, AbortSignal.timeout(requestTimeoutMs)]);
 
   if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
 
-  const state = await inTenantTransaction(identity, (request) =>
+  const loaded = await inTenantTransaction(identity, (request) =>
     reserveChatAndLoadHistory(
       request,
       budgetLedger,
@@ -378,26 +497,57 @@ export async function executeSendChatMessage(
       data.currentProductId === undefined ? null : data.currentProductId,
     ),
   );
+  const state: ChatState = {
+    conversation: loaded.conversation,
+    currentProductId: loaded.currentProductId,
+    history: loaded.history,
+    conversationState: loaded.conversationState,
+  };
   let currentProductId = state.currentProductId;
+  const toolRunner = fsmGuardedToolRunner(
+    () => state.conversationState,
+    () => currentProductId,
+    baseToolRunner,
+  );
   const messages = buildInitialMessages(state);
   const maxToolRounds = numberSetting("AI_MAX_TOOL_ROUNDS", 8, 1, 8);
-  for (let round = 0; round < maxToolRounds; round += 1) {
-    if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
-    const result = await executeReservedRound({
-      budgetLedger,
-      budgetConfig,
+  try {
+    state.conversationState = await transitionConversation(
       identity,
-      messages,
-      requestSignal,
-      state,
-      currentProductId,
-      round,
-      modelCaller: dependencies.modelCaller,
-      toolRunner,
-    });
-    currentProductId = result.currentProductId;
-    if (result.kind === "complete") return result;
-  }
+      state.conversation.id,
+      state.conversationState,
+      "SUBMIT",
+    );
+    for (let round = 0; round < maxToolRounds; round += 1) {
+      if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
+      const result = await executeReservedRound({
+        budgetLedger,
+        budgetConfig,
+        identity,
+        messages,
+        requestSignal,
+        state,
+        currentProductId,
+        round,
+        modelCaller: dependencies.modelCaller,
+        toolRunner,
+      });
+      currentProductId = result.currentProductId;
+      if (result.kind === "complete") return result;
+    }
 
-  throw new ApplicationError("DEPENDENCY_ERROR");
+    throw new ApplicationError("DEPENDENCY_ERROR");
+  } catch (error) {
+    try {
+      await transitionConversation(
+        identity,
+        state.conversation.id,
+        state.conversationState,
+        "FAILED",
+      );
+    } catch (stateError) {
+      logJson("warn", "ai.state_persist_failed", { error: stateError });
+    }
+    throw error;
+  }
 }

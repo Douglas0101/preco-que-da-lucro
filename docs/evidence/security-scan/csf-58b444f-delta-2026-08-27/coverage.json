@@ -1,0 +1,107 @@
+{
+  "completeness": "partial",
+  "deferred": [
+    {
+      "id": "standard-scan-remainder",
+      "paths": ["."],
+      "reason": "Repository remainder outside the bounded security surfaces was inventoried but not reviewed to exhaustive depth; carried over from base scan 2ca2b19a and routed to M-07 incremental scan strategy."
+    },
+    {
+      "id": "test-only-gateway-seam",
+      "paths": ["src/lib/chat.functions.ts", "src/test/model-gateway.test.ts"],
+      "reason": "callModelForTests direct test-only gateway seam remains a residual review item (identified by Banach in base scan); no productive consumer or production bypass found."
+    }
+  ],
+  "documentType": "program-security.coverage",
+  "explicitExclusions": [
+    {
+      "pattern": "Neon endpoints and production infrastructure",
+      "reason": "H-003 and the v5 mandate prohibit real Neon/production access."
+    },
+    {
+      "pattern": "real provider billing or external gateway traffic",
+      "reason": "No real provider credit may be spent; mocks and local/postgres evidence only."
+    },
+    {
+      "pattern": "src/routes/auth.tsx",
+      "reason": "The mandate explicitly prohibits editing or using this canary as implementation scope."
+    },
+    {
+      "pattern": "TAC or chatgpt.com/cyber",
+      "reason": "TAC is not granted; the scan is local Standard only and does not bypass enrollment."
+    },
+    {
+      "pattern": "REQ-012 D1/Workers portability",
+      "reason": "Portability remains explicitly deferred pending a future human architectural decision."
+    }
+  ],
+  "includePaths": ["."],
+  "inventoryStrategy": "repository",
+  "mode": "repository",
+  "openQuestions": [
+    {
+      "question": "Whether to remove or further constrain the test-only callModelForTests export remains for human review (M-07 residual)."
+    }
+  ],
+  "scanId": "cb6038a1-c397-4042-a68d-ae6427e95802",
+  "baseScanId": "2ca2b19a-3ab2-49a1-a436-0a9ab46b3fcd",
+  "schemaVersion": "1.0",
+  "surfaces": [
+    {
+      "disposition": "no_issue_found",
+      "id": "delta-verification-published-tip",
+      "label": "Delta verification: scanned base vs published tip",
+      "notes": "git diff e61c8c80..12c90a17 lists exactly 7 files, all documentation/evidence (EXECUTION-STATE.md and docs/evidence/*). Zero delta in executable code, schema, migrations, tests or configuration. The sealed base scan at e61c8c8 therefore applies to the published tip tree.",
+      "receiptRefs": [],
+      "riskArea": "Applicability of the sealed base scan to the published revision"
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "ai-budget-admission-settlement",
+      "label": "AI budget admission and settlement",
+      "notes": "Fix present at published tip 12c90a1: src/lib/ai/budget-ledger.server.ts:23 MIN_SAFE_RESERVATION_TTL_MS=120_000; :196-198 TTL guard; :326 createBudgetLedger with reserveAtomic/settle/sweep. T1-T10 were green at the base scan against local PostgreSQL 17.",
+      "receiptRefs": [],
+      "riskArea": "Atomic quota reservation, idempotent settlement, and orphan recovery"
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "chat-gateway-entrypoint",
+      "label": "Chat gateway entrypoint",
+      "notes": "src/lib/chat-execution.server.ts:313 reserveAtomic precedes the production model fetch; each round settles in finally; no budget SQL in chat.functions.ts.",
+      "receiptRefs": [],
+      "riskArea": "Pre-fetch admission and external AI gateway reachability"
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "tenant-and-rls-boundary",
+      "label": "Tenant and RLS boundary",
+      "notes": "Unchanged by the delta (zero non-documentation files); base scan receipt carried over: tenant transaction GUCs, RLS policy, runtime grants verified at e61c8c8.",
+      "receiptRefs": [],
+      "riskArea": "Tenant isolation and database authorization"
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "tool-round-boundary",
+      "label": "Tool-round boundary",
+      "notes": "Unchanged by the delta; base scan receipt carried over (T5 and tool-round regression green at e61c8c8).",
+      "receiptRefs": [],
+      "riskArea": "Independent budget accounting for tool rounds"
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "server-only-packaging",
+      "label": "Server-only packaging",
+      "notes": "Executable evidence at the exact published tip: UI stack run 33037007387 (build, suite, E2E/browser) success at 12c90a1 on 2026-08-27.",
+      "receiptRefs": [],
+      "riskArea": "Client/server module boundary around gateway and ledger code"
+    },
+    {
+      "disposition": "needs_follow_up",
+      "id": "repository-remaining-surfaces",
+      "label": "Repository remaining surfaces",
+      "notes": "The target inventory contains 240 files; this delta pass re-registers the six scoped surfaces of the base scan plus delta verification and does not claim exhaustive coverage or absence of other vulnerabilities. Incremental scan strategy is assigned to M-07.",
+      "receiptRefs": [],
+      "riskArea": "Unreviewed repository scope"
+    }
+  ]
+}
