@@ -1,18 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, type ReactNode } from "react";
-import { useQueries } from "@tanstack/react-query";
-import { listProductsWithMetrics } from "@/lib/products.functions";
-import { expensesQueryOptions, productsWithMetricsQueryOptions } from "@/lib/query-options";
-import {
-  calculateBreakEvenUnits,
-  calculatePriceFormation,
-  computeProductCost,
-  sumFiniteNumbers,
-  type CalculationResult,
-  type BreakEvenResult,
-  type FeeRow,
-  type ProductComputation,
-  type ProductCostComputation,
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { getDiagnostic } from "@/lib/diagnostic.functions";
+import { expensesQueryOptions, productsListQueryOptions } from "@/lib/query-options";
+import type {
+  BreakEvenResult,
+  CalculationResult,
+  FeeRow,
+  ProductComputation,
+  ProductCostComputation,
 } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -32,22 +28,13 @@ import { AlertTriangle, Info, TrendingUp } from "lucide-react";
 type DiagnosticAlert = { level: "warn" | "info" | "danger"; text: string };
 type LoadStatus = "loading" | "ready" | "empty" | "error";
 type ProductStatus = "idle" | "loading" | "incomplete" | "invalid" | "error" | "ok";
+type DiagnosticView = Awaited<ReturnType<typeof getDiagnostic>>;
 
 interface CurrentAnalysis {
   computation: ProductComputation;
   price: number;
   breakEvenUnits: BreakEvenResult;
   alerts: DiagnosticAlert[];
-}
-
-interface DiagnosticData {
-  cost: CalculationResult<ProductCostComputation>;
-  currentStatus: "incomplete" | "invalid" | "ok";
-  currentAnalysis: CurrentAnalysis | null;
-  currentPrice: number | null;
-  taxRate: number | null;
-  fees: FeeRow[];
-  market: Awaited<ReturnType<typeof listProductsWithMetrics>>[number]["market"];
 }
 
 type DiagnosticAssumptions = {
@@ -69,6 +56,19 @@ export const Route = createFileRoute("/_authenticated/diagnostico")({
   component: Diagnostico,
 });
 
+// T5-style debounce: o diagnóstico server-side não dispara a cada tecla das
+// premissas (cada key de query emite uma chamada BFF).
+const DIAGNOSTIC_DEBOUNCE_MS = 400;
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebounced(value), delayMs);
+    return () => window.clearTimeout(timer);
+  }, [value, delayMs]);
+  return debounced;
+}
+
 function Diagnostico() {
   const { produto } = Route.useSearch();
   const [productId, setProductId] = useState(produto ?? "");
@@ -78,45 +78,24 @@ function Diagnostico() {
     targetContributionRate: "",
   });
   const [productsQuery, expensesQuery] = useQueries({
-    queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
+    queries: [productsListQueryOptions(), expensesQueryOptions()],
   });
 
-  const details = productsQuery.data ?? [];
-  const products = details.map((detail) => detail.product);
+  const products = productsQuery.data ?? [];
   const selectedProductId =
     productId && products.some((product) => product.id === productId)
       ? productId
       : (products[0]?.id ?? "");
-  const selectedDetail = details.find((detail) => detail.product.id === selectedProductId);
   const expenses = expensesQuery.data ?? [];
-  const fixedExpenses = sumFiniteNumbers(
-    expenses.filter((expense) => expense.type === "fixa").map((expense) => Number(expense.amount)),
-  );
   const hasUnallocatedVariableExpenses = expenses.some((expense) => expense.type === "variavel");
   const loadStatus: LoadStatus =
     productsQuery.isPending || expensesQuery.isPending
       ? "loading"
       : productsQuery.isError || expensesQuery.isError
         ? "error"
-        : details.length === 0
+        : products.length === 0
           ? "empty"
           : "ready";
-  const diagnosticState = useMemo(() => {
-    if (loadStatus !== "ready" || !selectedProductId) {
-      return { diagnostic: null, status: "idle" as ProductStatus };
-    }
-    if (!selectedDetail) {
-      return { diagnostic: null, status: "error" as ProductStatus };
-    }
-    try {
-      const result = buildDiagnostic(selectedDetail, fixedExpenses);
-      return { diagnostic: result.diagnostic, status: result.status };
-    } catch {
-      return { diagnostic: null, status: "error" as ProductStatus };
-    }
-  }, [fixedExpenses, loadStatus, selectedDetail, selectedProductId]);
-  const diagnostic = diagnosticState.diagnostic;
-  const productStatus = diagnosticState.status;
   const currentAssumptions = useMemo<DiagnosticAssumptions>(
     () =>
       assumptions.productId === selectedProductId
@@ -132,20 +111,48 @@ function Diagnostico() {
     setAssumptions({ ...currentAssumptions, ...patch, productId: selectedProductId });
   };
 
-  const priceFormation = useMemo(() => {
-    if (!diagnostic) return null;
-    const directUnitCost = directUnitCostFrom(diagnostic.cost);
-    return calculatePriceFormation({
-      directUnitCost,
-      nonPercentageVariableUnitCost: parseOptionalNumber(
-        currentAssumptions.nonPercentageVariableUnitCost,
-      ),
-      taxRate: diagnostic.taxRate,
-      fees: diagnostic.fees,
-      targetContributionRate: parseOptionalNumber(currentAssumptions.targetContributionRate),
-      marketReference: nullableNumber(diagnostic.market?.avg_price),
-    });
-  }, [currentAssumptions, diagnostic]);
+  const debouncedAssumptions = useDebouncedValue(currentAssumptions, DIAGNOSTIC_DEBOUNCE_MS);
+  const diagnosticQuery = useQuery({
+    queryKey: [
+      "diagnostic",
+      selectedProductId,
+      debouncedAssumptions.nonPercentageVariableUnitCost,
+      debouncedAssumptions.targetContributionRate,
+    ],
+    queryFn: () =>
+      getDiagnostic({
+        data: {
+          product_id: selectedProductId,
+          non_percentage_variable_unit_cost:
+            parseOptionalNumber(debouncedAssumptions.nonPercentageVariableUnitCost) == null
+              ? null
+              : toApiDecimal(debouncedAssumptions.nonPercentageVariableUnitCost),
+          target_contribution_rate:
+            parseOptionalNumber(debouncedAssumptions.targetContributionRate) == null
+              ? null
+              : toApiDecimal(debouncedAssumptions.targetContributionRate),
+        },
+      }),
+    enabled: loadStatus === "ready" && selectedProductId !== "",
+    retry: false,
+    staleTime: 30_000,
+  });
+  const diagnostic = diagnosticQuery.data as DiagnosticView | undefined;
+  const diagnosticErrorReference = useMemo(
+    () => (diagnosticQuery.isError ? createErrorReference("DIAG") : null),
+    [diagnosticQuery.isError],
+  );
+
+  const productStatus: ProductStatus =
+    loadStatus !== "ready" || !selectedProductId
+      ? "idle"
+      : diagnosticQuery.isPending
+        ? "loading"
+        : diagnosticQuery.isError
+          ? "error"
+          : (diagnostic?.currentStatus ?? "idle");
+
+  const priceFormation = diagnostic?.priceFormation ?? null;
 
   const assumptionStatusId = "price-formation-assumptions-status";
   const variableCostHasIssue =
@@ -182,7 +189,10 @@ function Diagnostico() {
         <output className="text-muted-foreground">Carregando produtos e despesas...</output>
       )}
       {loadStatus === "error" && (
-        <RemoteErrorState message="Não foi possível carregar os dados do diagnóstico." />
+        <RemoteErrorState
+          message="Não foi possível carregar os dados do diagnóstico."
+          reference={null}
+        />
       )}
       {loadStatus === "empty" && (
         <output className="text-muted-foreground">
@@ -212,7 +222,9 @@ function Diagnostico() {
         </Card>
       )}
 
-      {loadStatus === "ready" && !diagnostic && <ProductState status={productStatus} />}
+      {loadStatus === "ready" && !diagnostic && (
+        <ProductState status={productStatus} errorReference={diagnosticErrorReference} />
+      )}
 
       {diagnostic && priceFormation && (
         <>
@@ -232,8 +244,7 @@ function Diagnostico() {
             <CardHeader>
               <CardTitle>Premissas da formação de preço</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Simulação local não salva. Os campos começam vazios e são limpos ao trocar de
-                produto.
+                Simulação não salva. Os campos começam vazios e são limpos ao trocar de produto.
               </p>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
@@ -397,7 +408,7 @@ function Diagnostico() {
                   value={brl(diagnostic.cost.value.packagingCost)}
                 />
                 <Line label="Custo unitário" value={brl(diagnostic.cost.value.unitCost)} />
-                <Line label="Despesas fixas cadastradas" value={brl(fixedExpenses)} />
+                <Line label="Despesas fixas cadastradas" value={brl(diagnostic.fixedExpenses)} />
                 <Line
                   label="Margem de contribuição atual"
                   value={
@@ -471,132 +482,17 @@ function Diagnostico() {
   );
 }
 
-type ProductDetail = Awaited<ReturnType<typeof listProductsWithMetrics>>[number];
-
-function marketAlert(price: number, market: ProductDetail["market"]): DiagnosticAlert | null {
-  const marketAverage = nullableNumber(market?.avg_price);
-  if (
-    marketAverage == null ||
-    !Number.isFinite(marketAverage) ||
-    marketAverage <= 0 ||
-    price <= 0
-  ) {
-    return null;
-  }
-  const difference = ((price - marketAverage) / marketAverage) * 100;
-  if (!Number.isFinite(difference) || Math.abs(difference) <= 20) return null;
-  return {
-    level: "info",
-    text: `Seu preço atual está ${difference > 0 ? "acima" : "abaixo"} da referência de mercado informada em ${pct(Math.abs(difference), 1)}. Mercado é contexto; posicionamento, qualidade e capacidade também importam.`,
-  };
-}
-
-function buildCurrentAlerts(
-  detail: ProductDetail,
-  metrics: ProductComputation,
-  fixedExpenses: number,
-  price: number,
-  breakEvenUnits: BreakEvenResult,
-): DiagnosticAlert[] {
-  const alerts: DiagnosticAlert[] = [];
-  if (price < metrics.unitCost) {
-    alerts.push({
-      level: "danger",
-      text: "Seu preço de venda está abaixo do custo unitário. Cada venda gera prejuízo — vale investigar.",
-    });
-  }
-  if (metrics.contributionMarginPct > 0 && metrics.contributionMarginPct < 20) {
-    alerts.push({
-      level: "warn",
-      text: `Margem de contribuição baixa (${pct(metrics.contributionMarginPct)}). Pode representar risco no médio prazo.`,
-    });
-  }
-  if (fixedExpenses > 0 && breakEvenUnits.status === "unreachable") {
-    alerts.push({
-      level: "warn",
-      text: "Com a margem atual, você não cobre as despesas fixas. Pode ser interessante simular preço maior ou custo menor.",
-    });
-  }
-  const referenceAlert = marketAlert(price, detail.market);
-  if (referenceAlert) alerts.push(referenceAlert);
-  return alerts;
-}
-
-function analyzeCurrentProduct(
-  detail: ProductDetail,
-  fixedExpenses: number,
-  currentPrice: number | null,
-): { status: DiagnosticData["currentStatus"]; analysis: CurrentAnalysis | null } {
-  const current = detail.metrics;
-  if (current.status !== "ok") return { status: current.status, analysis: null };
-
-  const price = currentPrice as number;
-  const breakEvenUnits = calculateBreakEvenUnits(fixedExpenses, current.value.contributionMargin);
-  if (breakEvenUnits.status === "invalid") return { status: "invalid", analysis: null };
-
-  return {
-    status: "ok",
-    analysis: {
-      computation: current.value,
-      price,
-      breakEvenUnits,
-      alerts: buildCurrentAlerts(detail, current.value, fixedExpenses, price, breakEvenUnits),
-    },
-  };
-}
-
-function buildDiagnostic(
-  detail: ProductDetail,
-  fixedExpenses: number,
-): { diagnostic: DiagnosticData; status: ProductStatus } {
-  const product = detail.product;
-  const ingredients = detail.ingredients.map((ingredient) => ({
-    used_qty: Number(ingredient.used_qty),
-    used_unit: ingredient.used_unit,
-    package_price: ingredient.package_price == null ? null : Number(ingredient.package_price),
-    package_qty: ingredient.package_qty == null ? null : Number(ingredient.package_qty),
-    package_unit: ingredient.package_unit,
-  }));
-  const packaging = detail.packaging.map((item) => ({
-    package_price: Number(item.package_price),
-    units_per_package: Number(item.units_per_package),
-  }));
-  const fees = detail.fees.map((fee) => ({
-    percentage: Number(fee.percentage) * 100,
-  })) satisfies FeeRow[];
-  const yieldQty = product.yield_qty == null ? null : Number(product.yield_qty);
-  const currentPrice = product.current_price == null ? null : Number(product.current_price);
-  const taxRate = product.tax_rate == null ? null : Number(product.tax_rate) * 100;
-  const cost = computeProductCost({ ingredients, packaging, yieldQty });
-  const currentResult = analyzeCurrentProduct(detail, fixedExpenses, currentPrice);
-
-  return {
-    diagnostic: {
-      cost,
-      currentStatus: currentResult.status,
-      currentAnalysis: currentResult.analysis,
-      currentPrice,
-      taxRate,
-      fees,
-      market: detail.market,
-    },
-    status: currentResult.status,
-  };
-}
-
-function directUnitCostFrom(result: CalculationResult<ProductCostComputation>): number | null {
-  if (result.status === "ok") return result.value.unitCost;
-  if (result.status === "invalid") return Number.NaN;
-  return null;
-}
-
-function nullableNumber(value: string | number | null | undefined): number | null {
-  return value == null ? null : Number(value);
-}
-
-function ProductState({ status }: Readonly<{ status: ProductStatus }>) {
+function ProductState({
+  status,
+  errorReference,
+}: Readonly<{ status: ProductStatus; errorReference: string | null }>) {
   if (status === "error") {
-    return <RemoteErrorState message="Não foi possível carregar os dados do produto." />;
+    return (
+      <RemoteErrorState
+        message="Não foi possível carregar os dados do produto."
+        reference={errorReference}
+      />
+    );
   }
   return (
     <output
@@ -685,10 +581,16 @@ function Line({ label, value }: Readonly<{ label: string; value: string }>) {
   );
 }
 
-function RemoteErrorState({ message }: Readonly<{ message: string }>) {
+function RemoteErrorState({
+  message,
+  reference,
+}: Readonly<{ message: string; reference: string | null }>) {
   return (
     <div role="alert" className="space-y-3 rounded-xl border border-destructive/40 p-4">
       <p className="font-medium">{message}</p>
+      {reference && (
+        <p className="text-xs text-muted-foreground">Referência de atendimento: {reference}</p>
+      )}
       <Button type="button" variant="outline" onClick={() => window.location.reload()}>
         Tentar novamente
       </Button>
@@ -722,5 +624,20 @@ function formatPriceResult(result: CalculationResult<number>): string {
 
 function parseOptionalNumber(value: string): number | null {
   const normalized = value.trim().replace(",", ".");
-  return normalized === "" ? null : Number(normalized);
+  if (normalized === "") return null;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function toApiDecimal(value: string): string | null {
+  const normalized = value.trim().replace(",", ".");
+  return normalized === "" ? null : normalized;
+}
+
+function createErrorReference(prefix: string): string {
+  const token =
+    typeof globalThis.crypto?.randomUUID === "function"
+      ? globalThis.crypto.randomUUID().slice(0, 8)
+      : Date.now().toString(36);
+  return `${prefix}-${token}`.toUpperCase();
 }

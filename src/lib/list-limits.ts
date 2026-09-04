@@ -13,6 +13,8 @@ export const LIST_LIMITS = {
   expenses: 1_000,
   /** Saved simulations per tenant (rows carry full parameter payloads). */
   simulations: 200,
+  /** Latest sales rows surfaced by the venda history listing (plan WS-01). */
+  sales: 50,
 } as const;
 
 export type ListLimitKey = keyof typeof LIST_LIMITS;

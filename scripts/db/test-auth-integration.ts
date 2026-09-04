@@ -13,6 +13,52 @@ import {
 } from "../../src/server/email/email-adapter.server";
 import { requireAdminUrl } from "./migrate";
 
+// TEST-NET (RFC 5737) addresses keep the Better Auth rate-limit buckets fully
+// owned by this script. Every request carries an explicit x-forwarded-for so
+// the shared "no-trusted-ip" bucket is never used for assertions, and cleanup
+// below deletes only these prefixes plus stale no-trusted-ip counters —
+// hermetic for repeated runs against the same database.
+const SIGNUP_IP = "198.51.100.42";
+// Maria signs up after the burst saturated SIGNUP_IP's 3/min bucket, so she
+// needs her own bucket to stay deterministic.
+const SIGNUP_IP_MARIA = "198.51.100.44";
+const SIGNIN_IP = "198.51.100.43";
+const TEST_IPS = [SIGNUP_IP, SIGNUP_IP_MARIA, SIGNIN_IP] as const;
+const TEST_EMAILS = [
+  "burst-0@example.test",
+  "burst-1@example.test",
+  "burst-2@example.test",
+  "burst-3@example.test",
+  "maria@example.test",
+  "legacy@example.test",
+] as const;
+const LEGACY_USER_ID = "50000000-0000-4000-8000-000000000005";
+
+// Better Auth >= 1.7.2 resolves credential accounts by
+// createLocalAccountIssuer(providerId) === `local:${encodeURIComponent(id)}`.
+// Raw-SQL account fixtures must carry that issuer or sign-in returns 401
+// ("User not found"), independently of the connecting role.
+const CREDENTIAL_ISSUER = "local:credential";
+
+async function cleanupFixtures(admin: Client): Promise<void> {
+  await admin.query(
+    `delete from rate_limits
+      where key like any($1::text[])`,
+    [[...TEST_IPS.map((ip) => `${ip}|%`), "no-trusted-ip|%"]],
+  );
+  await admin.query(`delete from verifications where identifier = any($1::text[])`, [
+    [...TEST_EMAILS],
+  ]);
+  // users cascades to accounts, sessions, tenant_memberships and profiles.
+  await admin.query(`delete from users where email = any($1::text[])`, [[...TEST_EMAILS]]);
+  await admin.query("delete from users where id = $1", [LEGACY_USER_ID]);
+  await admin.query(
+    `delete from tenants t
+      where t.kind = 'personal' and t.slug like 'personal-%'
+        and not exists (select 1 from tenant_memberships m where m.tenant_id = t.id)`,
+  );
+}
+
 class CapturingEmailAdapter implements TransactionalEmailAdapter {
   verification?: AuthEmailMessage;
   reset?: AuthEmailMessage;
@@ -84,6 +130,7 @@ async function main(): Promise<void> {
   const authReplica = createAuthInstance(database as unknown as Database);
 
   try {
+    await cleanupFixtures(admin);
     const distributedBurst = await Promise.all(
       Array.from({ length: 4 }, (_, index) =>
         (index % 2 === 0 ? auth : authReplica).handler(
@@ -95,7 +142,7 @@ async function main(): Promise<void> {
               password: initialPassword,
             },
             undefined,
-            "198.51.100.42",
+            SIGNUP_IP,
           ),
         ),
       ),
@@ -108,7 +155,7 @@ async function main(): Promise<void> {
     const burstBucket = await admin.query<{ id: string; count: number; last_request: string }>(
       `select id, count, last_request::text as last_request
        from rate_limits where key = $1`,
-      ["198.51.100.42|/sign-up/email"],
+      [`${SIGNUP_IP}|/sign-up/email`],
     );
     assert.equal(burstBucket.rowCount, 1);
     assert.ok(burstBucket.rows[0]?.id);
@@ -116,11 +163,16 @@ async function main(): Promise<void> {
     assert.match(burstBucket.rows[0]?.last_request ?? "", /^\d+$/);
 
     const signup = await auth.handler(
-      jsonRequest("/sign-up/email", {
-        name: "Maria Integração",
-        email: "maria@example.test",
-        password: initialPassword,
-      }),
+      jsonRequest(
+        "/sign-up/email",
+        {
+          name: "Maria Integração",
+          email: "maria@example.test",
+          password: initialPassword,
+        },
+        undefined,
+        SIGNUP_IP_MARIA,
+      ),
     );
     assert.equal(signup.status, 200);
     assert.ok(email.verification?.url);
@@ -142,17 +194,26 @@ async function main(): Promise<void> {
     const verificationUrl = new URL(email.verification.url);
     const verify = await auth.handler(
       new Request(verificationUrl, {
-        headers: { origin: "http://localhost:3000", "sec-fetch-site": "same-origin" },
+        headers: {
+          origin: "http://localhost:3000",
+          "sec-fetch-site": "same-origin",
+          "x-forwarded-for": SIGNIN_IP,
+        },
         redirect: "manual",
       }),
     );
     assert.ok(verify.status >= 200 && verify.status < 400);
 
     const login = await auth.handler(
-      jsonRequest("/sign-in/email", {
-        email: "maria@example.test",
-        password: initialPassword,
-      }),
+      jsonRequest(
+        "/sign-in/email",
+        {
+          email: "maria@example.test",
+          password: initialPassword,
+        },
+        undefined,
+        SIGNIN_IP,
+      ),
     );
     assert.equal(login.status, 200);
     const oldCookie = sessionCookie(login);
@@ -166,57 +227,71 @@ async function main(): Promise<void> {
           revokeOtherSessions: false,
         },
         oldCookie,
+        SIGNIN_IP,
       ),
     );
     assert.equal(change.status, 200);
 
     const oldSession = await auth.handler(
       new Request("http://localhost:3000/api/auth/get-session?disableCookieCache=true", {
-        headers: { cookie: oldCookie },
+        headers: { cookie: oldCookie, "x-forwarded-for": SIGNIN_IP },
       }),
     );
     const oldSessionBody = await oldSession.json();
     assert.equal(oldSessionBody, null, "o token anterior à troca de senha deve ser inválido");
 
     const newLogin = await auth.handler(
-      jsonRequest("/sign-in/email", {
-        email: "maria@example.test",
-        password: changedPassword,
-      }),
+      jsonRequest(
+        "/sign-in/email",
+        {
+          email: "maria@example.test",
+          password: changedPassword,
+        },
+        undefined,
+        SIGNIN_IP,
+      ),
     );
     assert.equal(newLogin.status, 200);
     const newCookie = sessionCookie(newLogin);
     assert.notEqual(newCookie, oldCookie);
 
-    const legacyUserId = "50000000-0000-4000-8000-000000000005";
     await admin.query(
       `insert into users (id, name, email, email_verified)
        values ($1, 'Usuário legado', 'legacy@example.test', true)`,
-      [legacyUserId],
+      [LEGACY_USER_ID],
     );
     await admin.query(
-      `insert into accounts (id, account_id, provider_id, user_id, password)
-       values ('legacy-credential-account', $1, 'credential', $1, $2)`,
-      [legacyUserId, hashSync(legacyPassword, 4)],
+      `insert into accounts (id, account_id, provider_id, issuer, user_id, password)
+       values ('legacy-credential-account', $1, 'credential', $3, $1, $2)`,
+      [LEGACY_USER_ID, hashSync(legacyPassword, 4), CREDENTIAL_ISSUER],
     );
     const legacyLogin = await auth.handler(
-      jsonRequest("/sign-in/email", {
-        email: "legacy@example.test",
-        password: legacyPassword,
-      }),
+      jsonRequest(
+        "/sign-in/email",
+        {
+          email: "legacy@example.test",
+          password: legacyPassword,
+        },
+        undefined,
+        SIGNIN_IP,
+      ),
     );
     assert.equal(legacyLogin.status, 200, "hash bcrypt importado deve autenticar");
 
     const sessions = await admin.query<{ count: string }>(
       "select count(*)::text as count from sessions where user_id = $1",
-      [legacyUserId],
+      [LEGACY_USER_ID],
     );
     assert.equal(sessions.rows[0]?.count, "1");
   } finally {
     setEmailAdapterForTests(undefined);
     setDatabaseForTests(undefined);
     await pool.end();
-    await admin.end();
+    try {
+      await cleanupFixtures(admin);
+    } finally {
+      await admin.end();
+    }
   }
 
   console.log("Better Auth, tenant pessoal, cookie, bcrypt/scrypt e rotação de sessão: OK");

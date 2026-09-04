@@ -12,9 +12,19 @@ export const applicationMetrics = {
   errors: meter.createCounter("app.errors"),
   aiTimeouts: meter.createCounter("app.ai.timeouts"),
   aiQuotas: meter.createCounter("app.ai.quotas"),
+  aiEstimatedCostTotal: meter.createCounter("app.ai.estimated_cost_total"),
+  aiCostUnknownTotal: meter.createCounter("app.ai.cost_unknown_total"),
   toolExecutions: meter.createCounter("app.ai.tool.executions"),
+  conversationStateTransitions: meter.createCounter("app.ai.conversation_state_transitions"),
+  conversationInvalidTransitions: meter.createCounter("app.ai.conversation_invalid_transitions"),
   financialStates: meter.createCounter("app.financial.states"),
   financialEngineVersion: meter.createCounter("app.financial.engine_version"),
+  salesCreatedTotal: meter.createCounter("app.sales.created_total"),
+  salesSummaryDuration: meter.createHistogram("app.sales.summary_duration", { unit: "ms" }),
+  diagnosticCalculationTotal: meter.createCounter("app.diagnostic.calculation_total"),
+  simulationSavedTotal: meter.createCounter("app.simulation.saved_total"),
+  snapshotCreatedTotal: meter.createCounter("app.snapshot.created_total"),
+  snapshotFailureTotal: meter.createCounter("app.snapshot.failure_total"),
 };
 
 let telemetryStarted = false;

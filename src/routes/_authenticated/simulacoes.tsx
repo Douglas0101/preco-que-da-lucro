@@ -1,17 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { saveSimulation } from "@/lib/financial.functions";
 import {
   expensesQueryOptions,
   financialSimulationQueryOptions,
   productsWithMetricsQueryOptions,
+  savedSimulationsQueryOptions,
+  type FinancialSimulationInput,
 } from "@/lib/query-options";
 import { sumFiniteNumbers, type FeeRow, type ProductComputation } from "@/lib/finance";
-import { brl, num, pct } from "@/lib/format";
+import { brl, decimalInput, num, pct } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/sonner";
 import {
   Select,
   SelectContent,
@@ -33,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/simulacoes")({
 type LoadStatus = "loading" | "ready" | "empty" | "error" | "invalid";
 type ProductStatus = "idle" | "loading" | "incomplete" | "invalid" | "error" | "ok";
 
-type ProductBaseline = ProductComputation & {
+export type ProductBaseline = ProductComputation & {
   name: string;
   price: number;
   taxRate: number | null;
@@ -48,7 +54,66 @@ type SimulationForm = {
   volume: string;
 };
 
+// T5: debounce da simulação manual — runSimulation não dispara a cada tecla.
+// Exportado para o teste de race; módulo de rota com exports mistos é
+// intencional aqui (helpers do debounce junto da rota que os usa).
+/* eslint-disable react-refresh/only-export-components */
+export const SIMULATION_DEBOUNCE_MS = 400;
+
+/**
+ * Race guard do debounce (T5): cada agendamento ganha uma geração; o timer só
+ * aplica se ainda for a geração mais recente (o cleanup do effect cancela o
+ * timer anterior). Combinado com a cache key por input do react-query, uma
+ * resposta lenta antiga NUNCA sobrescreve a exibição atual.
+ */
+export function createDebounceScheduler(delayMs: number) {
+  let generation = 0;
+  return {
+    schedule(apply: () => void): () => void {
+      generation += 1;
+      const scheduled = generation;
+      const timer = window.setTimeout(() => {
+        if (scheduled === generation) apply();
+      }, delayMs);
+      return () => window.clearTimeout(timer);
+    },
+  };
+}
+
+const EMPTY_SIMULATION_INPUT: FinancialSimulationInput = {
+  price: null,
+  unitCost: null,
+  fixedExpenses: null,
+  volume: null,
+  taxRate: null,
+  fees: [],
+  volumeSource: "manual_simulation",
+};
+
+/**
+ * Mapeamento puro formulário → input do server fn. Campo vazio vira null
+ * (unknown ≠ zero, INV-006/009): nenhum volume padrão é presumido.
+ */
+export function buildSimulationInput(
+  form: SimulationForm,
+  base: ProductBaseline | null,
+): FinancialSimulationInput {
+  return {
+    price: toApiDecimal(form.price),
+    unitCost: toApiDecimal(form.unitCost),
+    fixedExpenses: toApiDecimal(form.fixed),
+    volume: toApiDecimal(form.volume),
+    taxRate: base?.taxRate == null ? null : String(base.taxRate),
+    fees:
+      base?.fees.map((fee) => ({
+        percentage: fee.percentage == null ? null : String(fee.percentage),
+      })) ?? [],
+    volumeSource: "manual_simulation" as const,
+  };
+}
+
 function Simulacoes() {
+  const queryClient = useQueryClient();
   const [productId, setProductId] = useState("");
   const [sim, setSim] = useState<SimulationForm>({
     productId: "",
@@ -57,8 +122,13 @@ function Simulacoes() {
     fixed: "",
     volume: "",
   });
-  const [productsQuery, expensesQuery] = useQueries({
-    queries: [productsWithMetricsQueryOptions(), expensesQueryOptions()],
+  const [simulationName, setSimulationName] = useState("");
+  const [productsQuery, expensesQuery, savedSimulationsQuery] = useQueries({
+    queries: [
+      productsWithMetricsQueryOptions(),
+      expensesQueryOptions(),
+      savedSimulationsQueryOptions(),
+    ],
   });
 
   const details = productsQuery.data ?? [];
@@ -113,30 +183,43 @@ function Simulacoes() {
       ? sim
       : {
           productId: selectedProductId,
-          price: base ? String(base.price) : "",
-          unitCost: base ? String(base.unitCost.toFixed(2)) : "",
-          fixed: String(fixed),
+          price: base ? decimalInput(base.price) : "",
+          unitCost: base ? decimalInput(base.unitCost) : "",
+          fixed: decimalInput(fixed),
           volume: "",
         };
   const updateSim = (patch: Partial<Omit<SimulationForm, "productId">>) => {
     setSim({ ...currentSim, ...patch, productId: selectedProductId });
   };
 
-  const simulationInput = {
-    price: toApiDecimal(currentSim.price),
-    unitCost: toApiDecimal(currentSim.unitCost),
-    fixedExpenses: toApiDecimal(currentSim.fixed),
-    volume: toApiDecimal(currentSim.volume),
-    taxRate: base?.taxRate == null ? null : String(base.taxRate),
-    fees:
-      base?.fees.map((fee) => ({
-        percentage: fee.percentage == null ? null : String(fee.percentage),
-      })) ?? [],
-    volumeSource: "manual_simulation" as const,
-  };
+  const [debouncedSim, setDebouncedSim] = useState<SimulationForm | null>(null);
+  const scheduler = useMemo(() => createDebounceScheduler(SIMULATION_DEBOUNCE_MS), []);
+  const latestSimRef = useRef(currentSim);
+  latestSimRef.current = currentSim;
+  const debouncedSimKey = [
+    currentSim.productId,
+    currentSim.price,
+    currentSim.unitCost,
+    currentSim.fixed,
+    currentSim.volume,
+    base === null ? "idle" : "ready",
+  ].join("|");
+
+  useEffect(
+    () => scheduler.schedule(() => setDebouncedSim(latestSimRef.current)),
+    [scheduler, debouncedSimKey],
+  );
+
+  const debouncedInput =
+    debouncedSim !== null && base !== null && debouncedSim.productId === selectedProductId
+      ? buildSimulationInput(debouncedSim, base)
+      : null;
+  // Race safety (T5): cada input tem sua própria cache key; a resposta da key
+  // antiga escreve só na entrada antiga e a exibição lê a key ATUAL — fora de
+  // ordem, o dado stale nunca aparece.
   const simulationQuery = useQuery({
-    ...financialSimulationQueryOptions(simulationInput),
-    enabled: base !== null,
+    ...financialSimulationQueryOptions(debouncedInput ?? EMPTY_SIMULATION_INPUT),
+    enabled: debouncedInput !== null,
   });
   const simulated = simulationQuery.data ?? null;
   const simulationErrorReference = useMemo(
@@ -155,6 +238,26 @@ function Simulacoes() {
     missingFields.includes(field) || invalidFields.includes(field);
   const onlyVolumeIsMissing = missingFields.length === 1 && missingFields[0] === "volume";
 
+  const saveSimulationMutation = useMutation({
+    mutationFn: () =>
+      saveSimulation({
+        data: {
+          product_id: selectedProductId || null,
+          name: simulationName.trim(),
+          params: debouncedInput ?? EMPTY_SIMULATION_INPUT,
+        },
+      }),
+    onSuccess: async () => {
+      toast.success("Simulação salva");
+      setSimulationName("");
+      await queryClient.invalidateQueries({ queryKey: ["simulations", "saved"] });
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Não foi possível salvar a simulação"),
+  });
+
+  const saveSimulationLabel = saveSimulationMutation.isPending ? "Salvando..." : "Salvar simulação";
+
   return (
     <div className="space-y-6">
       <div>
@@ -165,9 +268,7 @@ function Simulacoes() {
         </p>
       </div>
 
-      {loadStatus === "loading" && (
-        <output className="text-muted-foreground">Carregando produtos e despesas...</output>
-      )}
+      {loadStatus === "loading" && <SimulacoesSkeleton />}
 
       {loadStatus === "error" && (
         <RemoteErrorState
@@ -221,9 +322,13 @@ function Simulacoes() {
             <CardHeader className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <CardTitle>Simulação manual</CardTitle>
-                <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">
-                  Simulação manual
-                </span>
+                <Badge
+                  variant="secondary"
+                  className="shrink-0 uppercase"
+                  title="Resultado hipotético: não é dado factual e não alimenta KPIs."
+                >
+                  Simulação
+                </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
                 O volume e os resultados abaixo são hipotéticos e não alimentam KPIs factuais.
@@ -292,28 +397,142 @@ function Simulacoes() {
               )}
 
               {simulated?.status === "ok" && (
-                <output
-                  aria-live="polite"
-                  className="mt-3 space-y-1 rounded-xl bg-secondary p-4 text-sm"
-                >
-                  <Row label="Origem do volume" value="Informado manualmente" />
-                  <Row label="Volume simulado" value={`${num(simulated.value.volume, 0)} un.`} />
-                  <Row
-                    label="Margem de contribuição"
-                    value={`${brl(simulated.value.contributionMargin)} (${pct(simulated.value.contributionMarginPct)})`}
-                  />
-                  <Row label="Faturamento simulado" value={brl(simulated.value.revenue)} />
-                  <Row
-                    label="Resultado operacional simulado dentro do escopo informado"
-                    value={brl(simulated.value.result)}
-                    accent={simulated.value.resultSign === "negative" ? "destructive" : "success"}
-                  />
-                </output>
+                <>
+                  <output
+                    aria-live="polite"
+                    className="mt-3 space-y-1 rounded-xl bg-secondary p-4 text-sm"
+                  >
+                    <Row label="Origem do volume" value="Informado manualmente" />
+                    <Row label="Volume simulado" value={`${num(simulated.value.volume, 0)} un.`} />
+                    <Row
+                      label="Margem de contribuição"
+                      value={`${brl(simulated.value.contributionMargin)} (${pct(simulated.value.contributionMarginPct)})`}
+                    />
+                    <Row label="Faturamento simulado" value={brl(simulated.value.revenue)} />
+                    <Row
+                      label="Resultado operacional simulado dentro do escopo informado"
+                      value={brl(simulated.value.result)}
+                      accent={simulated.value.resultSign === "negative" ? "destructive" : "success"}
+                    />
+                  </output>
+                  <div className="mt-3 space-y-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="simulacao-nome" className="text-xs">
+                        Nome da simulação
+                      </Label>
+                      <Input
+                        id="simulacao-nome"
+                        maxLength={160}
+                        value={simulationName}
+                        placeholder="Ex.: Margem-alvo de 25%"
+                        onChange={(event) => setSimulationName(event.target.value)}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => saveSimulationMutation.mutate()}
+                      disabled={saveSimulationMutation.isPending || simulationName.trim() === ""}
+                    >
+                      {saveSimulationLabel}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      O servidor recalcula o cenário antes de salvar; o resultado enviado não é
+                      reutilizado (INV-009).
+                    </p>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
         </div>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between gap-2 text-base">
+            Simulações salvas
+            <Badge
+              variant="secondary"
+              className="shrink-0 uppercase"
+              title="Simulações persistidas como hipótese, nunca dado factual."
+            >
+              {savedSimulationsQuery.data?.length ?? 0} registro(s)
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {savedSimulationsQuery.isPending && <Skeleton className="h-16 w-full" />}
+          {savedSimulationsQuery.isError && (
+            <p aria-live="polite" className="text-sm text-muted-foreground">
+              Não foi possível carregar as simulações salvas.
+            </p>
+          )}
+          {savedSimulationsQuery.isSuccess && (savedSimulationsQuery.data?.length ?? 0) === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Nenhuma simulação salva. Registre uma hipótese acima para revisitar depois.
+            </p>
+          )}
+          {savedSimulationsQuery.isSuccess &&
+            (savedSimulationsQuery.data ?? []).map((saved) => (
+              <div key={saved.id} className="rounded-xl border p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-medium">{saved.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatSavedDate(saved.created_at)} · {saved.engine_version}
+                  </span>
+                </div>
+                {saved.result != null &&
+                  saved.result.status === "ok" &&
+                  typeof saved.result.value === "object" &&
+                  saved.result.value !== null &&
+                  "revenue" in saved.result.value &&
+                  typeof saved.result.value.revenue === "string" && (
+                    <div className="mt-1 text-sm text-muted-foreground">
+                      Faturamento simulado: {brl(saved.result.value.revenue)}
+                    </div>
+                  )}
+              </div>
+            ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function SimulacoesSkeleton() {
+  return (
+    <div className="space-y-6" aria-hidden="true">
+      <Card>
+        <CardContent className="space-y-3 p-5">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-9 w-64 max-w-full" />
+        </CardContent>
+      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-52" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[0, 1, 2, 3].map((row) => (
+              <Skeleton key={row} className="h-4 w-full" />
+            ))}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-40" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[0, 1, 2, 3, 4].map((row) => (
+              <div key={row} className="flex items-center justify-between gap-4">
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-9 w-36" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -453,4 +672,12 @@ function createErrorReference(prefix: string): string {
 function toApiDecimal(value: string): string | null {
   const normalized = value.trim().replace(",", ".");
   return normalized === "" ? null : normalized;
+}
+
+function formatSavedDate(value: string): string {
+  return new Date(value).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }

@@ -6,10 +6,12 @@
 **Banco canônico:** PostgreSQL  
 **Provedor inicial:** Neon  
 **Framework full-stack:** TanStack Start + React  
-**Status:** Planejamento pré-implementação  
+**Status:** Implementação em andamento — programa de fechamento SDD v5 (ledger: `EXECUTION-STATE-PROGRAM.md`; auditoria: `docs/auditoria-ambiental-2026-08-26.md`)  
 **Objetivo:** elevar segurança, integridade financeira, estabilidade, performance, observabilidade e fluidez da experiência sem introduzir complexidade prematura.
 
 > **Alinhamento (2026-08-09):** este plano foi realinhado à Diretriz V7 (`DIRETRIZ_PRECIFICA_PRECO_QUE_DA_LUCRO_V7_SHADCN_BASEUI_SINCRONIZADO_OFICIAL.md`), que prevalece em divergências. Renumeração de fases, P0 canônico, invariantes estendidas e itens adiados constam em `docs/REALINHAMENTO_OPERACIONAL_V7_PLANO.md`.
+>
+> **Registro de execução (2026-08-27):** o fix `csf_58b444f152e35ba899b5381e` (CWE-770, `resource-exhaustion.ai-budget-race`) está **MERGEADO** em `develop` (PR #21, `12c90a1`) e `main` (PR #22, `55cb550`), com CI verde no tip publicado (UI stack run `33037007387`). Evidência do fix: `docs/evidence/csf-58b444f-final-2026-08-27.md`; readiness da release develop→main: `docs/evidence/release-readiness-develop-main-2026-08-27.md`; mapeamento V7↔Plano Mestre: `docs/MAPA_CRUZADO_DIRETRIZ_PLANO_PRECO_QUE_DA_LUCRO.md` + `docs/REALINHAMENTO_OPERACIONAL_V7_PLANO.md`.
 
 ---
 
@@ -68,8 +70,8 @@ fronteira real de autorização
 **Decisão:** toda função/rota que leia ou modifique dados privados deve autenticar e autorizar no servidor.
 
 Fonte oficial:  
-https://tanstack.com/start/latest/docs/framework/react/guide/server-functions  
-https://tanstack.com/start/latest/docs/framework/react/guide/authentication-overview
+<https://tanstack.com/start/latest/docs/framework/react/guide/server-functions>  
+<https://tanstack.com/start/latest/docs/framework/react/guide/authentication-overview>
 
 ---
 
@@ -86,7 +88,7 @@ Isso não impede seu uso, mas exige:
 - evitar dependências desnecessárias de APIs internas.
 
 Fonte oficial:  
-https://tanstack.com/start/latest/docs/framework/react/overview
+<https://tanstack.com/start/latest/docs/framework/react/overview>
 
 ---
 
@@ -104,9 +106,9 @@ A documentação do próprio TanStack Start recomenda sessão server-driven e co
 **Nova prioridade:** retirar credenciais/sessões sensíveis do armazenamento acessível a JavaScript.
 
 Fontes:  
-https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html  
-https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html  
-https://tanstack.com/start/v0/docs/framework/react/guide/authentication-server-primitives
+<https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html>  
+<https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html>  
+<https://tanstack.com/start/v0/docs/framework/react/guide/authentication-server-primitives>
 
 ---
 
@@ -133,7 +135,7 @@ DATABASE_URL_DIRECT
 ```
 
 Fonte oficial:  
-https://neon.com/docs/connect/connection-pooling
+<https://neon.com/docs/connect/connection-pooling>
 
 ---
 
@@ -155,8 +157,8 @@ main
 ```
 
 Fonte oficial:  
-https://neon.com/docs/get-started-with-neon/workflow-primer  
-https://neon.com/docs/guides/branching-github-actions
+<https://neon.com/docs/get-started-with-neon/workflow-primer>  
+<https://neon.com/docs/guides/branching-github-actions>
 
 ---
 
@@ -167,7 +169,7 @@ PostgreSQL define `numeric`/`decimal` como tipos exatos e os recomenda para valo
 **Decisão:** evitar `double precision` como representação canônica de dinheiro.
 
 Fonte oficial:  
-https://www.postgresql.org/docs/18/datatype-numeric.html
+<https://www.postgresql.org/docs/18/datatype-numeric.html>
 
 ---
 
@@ -185,7 +187,7 @@ Entretanto, o owner da tabela normalmente não é submetido a RLS.
 - RLS funciona como defesa em profundidade.
 
 Fonte oficial:  
-https://www.postgresql.org/docs/current/ddl-rowsecurity.html
+<https://www.postgresql.org/docs/current/ddl-rowsecurity.html>
 
 ---
 
@@ -198,7 +200,7 @@ PostgreSQL fornece níveis de isolamento diferentes.
 **Decisão:** selecionar isolamento por caso de uso.
 
 Fonte oficial:  
-https://www.postgresql.org/docs/current/transaction-iso.html
+<https://www.postgresql.org/docs/current/transaction-iso.html>
 
 ---
 
@@ -211,9 +213,9 @@ PostgreSQL oferece `tsvector`, `tsquery` e GIN para full-text search.
 **Decisão:** memória usa retrieval híbrido; HNSW somente após benchmark.
 
 Fontes:  
-https://www.postgresql.org/docs/current/textsearch.html  
-https://www.postgresql.org/docs/current/gin.html  
-https://github.com/pgvector/pgvector/blob/master/README.md
+<https://www.postgresql.org/docs/current/textsearch.html>  
+<https://www.postgresql.org/docs/current/gin.html>  
+<https://github.com/pgvector/pgvector/blob/master/README.md>
 
 ---
 
@@ -226,8 +228,8 @@ O plano de execução deve ser validado por `EXPLAIN` e `EXPLAIN ANALYZE`.
 **Decisão:** nenhum índice composto novo será considerado “otimização concluída” sem evidência de workload ou plano.
 
 Fontes:  
-https://www.postgresql.org/docs/18/indexes.html  
-https://www.postgresql.org/docs/18/using-explain.html
+<https://www.postgresql.org/docs/18/indexes.html>  
+<https://www.postgresql.org/docs/18/using-explain.html>
 
 ---
 
@@ -238,8 +240,8 @@ GitHub permite exigir Actions fixadas por SHA completo e disponibiliza Dependenc
 O workflow atual já fixa Actions por SHA; isso deve permanecer como regra.
 
 Fontes:  
-https://docs.github.com/en/actions/reference/security/secure-use  
-https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/configure-dependency-review-action
+<https://docs.github.com/en/actions/reference/security/secure-use>  
+<https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/configure-dependency-review-action>
 
 ---
 
@@ -410,7 +412,7 @@ HTML
 OWASP recomenda sanitização quando HTML precisa ser aceito e cita DOMPurify como opção.
 
 Fonte:  
-https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html
+<https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html>
 
 ## Testes
 
@@ -702,8 +704,8 @@ Para server functions:
 - Origin/Fetch Metadata para mutações.
 
 Fonte:
-https://tanstack.com/start/latest/docs/framework/react/guide/server-functions  
-https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+<https://tanstack.com/start/latest/docs/framework/react/guide/server-functions>  
+<https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html>
 
 ---
 
@@ -1243,7 +1245,7 @@ Por tenant/período:
 OWASP recomenda limitar consumo de recursos e gastos em APIs de terceiros.
 
 Fonte:
-https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/
+<https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/>
 
 # 14.7 Retry
 
@@ -1384,7 +1386,7 @@ Se disponível no ambiente, utilizar para observar:
 - query patterns.
 
 Fonte:
-https://www.postgresql.org/docs/18/pgstatstatements.html
+<https://www.postgresql.org/docs/18/pgstatstatements.html>
 
 # 16.4 EXPLAIN
 
@@ -1448,7 +1450,7 @@ Utilizar em navegação previsível.
 Documentação do TanStack Query destaca prefetch como técnica para evitar waterfalls.
 
 Fonte:
-https://tanstack.com/query/latest/docs/framework/react/guides/prefetching
+<https://tanstack.com/query/latest/docs/framework/react/guides/prefetching>
 
 # 17.5 Stale time
 
@@ -1495,7 +1497,7 @@ CLS <= 0,1
 avaliados no percentil 75.
 
 Fonte:
-https://web.dev/articles/vitals
+<https://web.dev/articles/vitals>
 
 ---
 
@@ -1578,7 +1580,7 @@ Portanto:
 - correlacionar via trace/correlation ID.
 
 Fonte:
-https://opentelemetry.io/docs/languages/js/
+<https://opentelemetry.io/docs/languages/js/>
 
 # 19.2 HTTP spans
 
@@ -1609,7 +1611,7 @@ Não anexar ao trace:
 OWASP recomenda excluir tokens, passwords, connection strings e secrets dos logs.
 
 Fonte:
-https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html
+<https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html>
 
 # 19.5 Financial metrics
 
@@ -1640,7 +1642,7 @@ Introduzir inicialmente `Report-Only`.
 Depois enforcement.
 
 Fonte:
-https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html
+<https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html>
 
 # 20.2 Headers
 
@@ -1660,7 +1662,7 @@ Avaliar:
 - DB role least privilege.
 
 Fonte:
-https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html
+<https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html>
 
 # 20.4 Object authorization
 
@@ -2419,138 +2421,138 @@ LLM
 ## TanStack
 
 - TanStack Start Overview  
-  https://tanstack.com/start/latest/docs/framework/react/overview
+  <https://tanstack.com/start/latest/docs/framework/react/overview>
 
 - Server Functions  
-  https://tanstack.com/start/latest/docs/framework/react/guide/server-functions
+  <https://tanstack.com/start/latest/docs/framework/react/guide/server-functions>
 
 - Authentication Overview  
-  https://tanstack.com/start/latest/docs/framework/react/guide/authentication-overview
+  <https://tanstack.com/start/latest/docs/framework/react/guide/authentication-overview>
 
 - Authentication Server Primitives  
-  https://tanstack.com/start/v0/docs/framework/react/guide/authentication-server-primitives
+  <https://tanstack.com/start/v0/docs/framework/react/guide/authentication-server-primitives>
 
 - TanStack Query Prefetching  
-  https://tanstack.com/query/latest/docs/framework/react/guides/prefetching
+  <https://tanstack.com/query/latest/docs/framework/react/guides/prefetching>
 
 - QueryClient  
-  https://tanstack.com/query/latest/docs/reference/QueryClient
+  <https://tanstack.com/query/latest/docs/reference/QueryClient>
 
 ## PostgreSQL
 
 - Numeric Types  
-  https://www.postgresql.org/docs/18/datatype-numeric.html
+  <https://www.postgresql.org/docs/18/datatype-numeric.html>
 
 - Row Security  
-  https://www.postgresql.org/docs/current/ddl-rowsecurity.html
+  <https://www.postgresql.org/docs/current/ddl-rowsecurity.html>
 
 - Transaction Isolation  
-  https://www.postgresql.org/docs/current/transaction-iso.html
+  <https://www.postgresql.org/docs/current/transaction-iso.html>
 
 - CREATE TABLE / Constraints  
-  https://www.postgresql.org/docs/18/sql-createtable.html
+  <https://www.postgresql.org/docs/18/sql-createtable.html>
 
 - Full Text Search  
-  https://www.postgresql.org/docs/current/textsearch.html
+  <https://www.postgresql.org/docs/current/textsearch.html>
 
 - GIN  
-  https://www.postgresql.org/docs/current/gin.html
+  <https://www.postgresql.org/docs/current/gin.html>
 
 - Indexes  
-  https://www.postgresql.org/docs/18/indexes.html
+  <https://www.postgresql.org/docs/18/indexes.html>
 
 - EXPLAIN  
-  https://www.postgresql.org/docs/18/using-explain.html
+  <https://www.postgresql.org/docs/18/using-explain.html>
 
 - pg_stat_statements  
-  https://www.postgresql.org/docs/18/pgstatstatements.html
+  <https://www.postgresql.org/docs/18/pgstatstatements.html>
 
 ## Neon
 
 - Neon Documentation  
-  https://neon.com/docs/introduction
+  <https://neon.com/docs/introduction>
 
 - Connection Pooling  
-  https://neon.com/docs/connect/connection-pooling
+  <https://neon.com/docs/connect/connection-pooling>
 
 - Branching Workflow Primer  
-  https://neon.com/docs/get-started-with-neon/workflow-primer
+  <https://neon.com/docs/get-started-with-neon/workflow-primer>
 
 - GitHub Actions Branching  
-  https://neon.com/docs/guides/branching-github-actions
+  <https://neon.com/docs/guides/branching-github-actions>
 
 - Neon Compatibility  
-  https://neon.com/docs/reference/compatibility
+  <https://neon.com/docs/reference/compatibility>
 
 - Neon Changelog  
-  https://neon.com/docs/changelog
+  <https://neon.com/docs/changelog>
 
 ## OWASP
 
 - XSS Prevention  
-  https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html
+  <https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html>
 
 - HTML5 Security  
-  https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html
+  <https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html>
 
 - Session Management  
-  https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
+  <https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html>
 
 - CSRF Prevention  
-  https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+  <https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html>
 
 - SQL Injection Prevention  
-  https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html
+  <https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html>
 
 - Logging  
-  https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html
+  <https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html>
 
 - CSP  
-  https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html
+  <https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html>
 
 - API Resource Consumption  
-  https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/
+  <https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/>
 
 ## pgvector
 
 - Official README  
-  https://github.com/pgvector/pgvector/blob/master/README.md
+  <https://github.com/pgvector/pgvector/blob/master/README.md>
 
 ## OpenTelemetry
 
 - JavaScript  
-  https://opentelemetry.io/docs/languages/js/
+  <https://opentelemetry.io/docs/languages/js/>
 
 - Semantic Conventions  
-  https://opentelemetry.io/docs/specs/semconv/
+  <https://opentelemetry.io/docs/specs/semconv/>
 
 - HTTP  
-  https://opentelemetry.io/docs/specs/semconv/http/
+  <https://opentelemetry.io/docs/specs/semconv/http/>
 
 - Database  
-  https://opentelemetry.io/docs/specs/semconv/db/
+  <https://opentelemetry.io/docs/specs/semconv/db/>
 
 ## Web Performance
 
 - Web Vitals  
-  https://web.dev/articles/vitals
+  <https://web.dev/articles/vitals>
 
 - INP  
-  https://web.dev/articles/inp
+  <https://web.dev/articles/inp>
 
 - LCP  
-  https://web.dev/articles/lcp
+  <https://web.dev/articles/lcp>
 
 - CLS  
-  https://web.dev/articles/cls
+  <https://web.dev/articles/cls>
 
 ## GitHub
 
 - Secure Use of GitHub Actions  
-  https://docs.github.com/en/actions/reference/security/secure-use
+  <https://docs.github.com/en/actions/reference/security/secure-use>
 
 - Dependency Review  
-  https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/configure-dependency-review-action
+  <https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/configure-dependency-review-action>
 
 ---
 

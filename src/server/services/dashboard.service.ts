@@ -2,8 +2,25 @@ import Decimal from "decimal.js";
 import type { FeeRow, IngredientRow, PackagingRow } from "@/lib/finance";
 import { toDecimalString } from "@/lib/financial-values";
 import type { RequestContext } from "@/lib/request-context";
+import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import { loadDashboardInputs } from "@/server/repositories/dashboard.repository";
 import { calculateProductReadModel } from "@/server/services/product-read-model.service";
+import { salesService } from "@/server/services/sales.service";
+
+export type DashboardPeriod = "month" | "quarter" | "year";
+
+export function periodStart(period: DashboardPeriod, now: Date = new Date()): Date {
+  const from = new Date(now);
+  from.setHours(0, 0, 0, 0);
+  from.setDate(1);
+  if (period === "quarter") {
+    from.setMonth(Math.floor(from.getMonth() / 3) * 3);
+  }
+  if (period === "year") {
+    from.setMonth(0);
+  }
+  return from;
+}
 
 const decimalNumber = (value: string | null): number | null =>
   value == null ? null : new Decimal(value).toNumber();
@@ -121,10 +138,22 @@ function analyzeProduct(input: DashboardInputs, product: DashboardProduct): Prod
 /**
  * Calculates one server-side, set-based dashboard read model.  The browser
  * receives presentation-ready decimal strings and never aggregates raw rows.
+ * `period` bounds the factual sales KPIs (plan WS-01); it has no effect on
+ * the cadastral/current-shape metrics, which have no time dimension.
  */
-export async function getDashboardSummary(context: RequestContext) {
+export async function getDashboardSummary(
+  context: RequestContext,
+  period: DashboardPeriod = "month",
+) {
   const input = await loadDashboardInputs(context);
   const fixedExpenseSummary = sumFixedExpenses(input.expenseRows);
+  const startedAt = Date.now();
+  const salesSummary = await withSpan(
+    "service.dashboard.sales_summary",
+    { "app.tenant_id": context.tenantId },
+    () => salesService.summaryForPeriod(context, periodStart(period)),
+  );
+  applicationMetrics.salesSummaryDuration.record(Date.now() - startedAt, { period });
 
   let bestProduct: { name: string; cmPct: string } | null = null;
   let invalidProductCount = 0;
@@ -168,5 +197,10 @@ export async function getDashboardSummary(context: RequestContext) {
     hasInvalidCalculation: finalHasInvalidCalculation,
     incompleteProductCount,
     alerts,
+    period,
+    sales: {
+      revenue: salesSummary.revenue,
+      count: salesSummary.count,
+    },
   };
 }

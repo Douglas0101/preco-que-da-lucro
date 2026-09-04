@@ -16,6 +16,14 @@ class FakeSalesRepository implements SalesRepository {
   async revenue(): Promise<string> {
     return "0.0000";
   }
+
+  async summaryForPeriod() {
+    return { revenue: "0.0000", count: 0 };
+  }
+
+  async list() {
+    return [];
+  }
 }
 
 describe("SalesService", () => {
