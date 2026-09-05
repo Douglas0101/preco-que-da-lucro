@@ -67,12 +67,12 @@ function sourceFiles(directory: string): string[] {
     if (entry.isDirectory()) files.push(...sourceFiles(path));
     else if ([".ts", ".tsx"].includes(extname(entry.name))) files.push(path);
   }
-  return files.sort();
+  return files.sort((a, b) => a.localeCompare(b));
 }
 
 const files = sourceFiles(sourceRoot);
 const fileSet = new Set(files);
-const normalizedPath = (path: string) => relative(repositoryRoot, path).split("\\").join("/");
+const normalizedPath = (path: string) => relative(repositoryRoot, path).replaceAll("\\", "/");
 
 function resolveModule(fromFile: string, moduleName: string): string | null {
   if (!moduleName.startsWith(".") && !moduleName.startsWith("@/")) return null;
@@ -117,7 +117,7 @@ function importsOf(path: string): string[] {
     ts.forEachChild(node, visit);
   };
   visit(source);
-  return [...imports].sort();
+  return [...imports].sort((a, b) => a.localeCompare(b));
 }
 
 const importGraph = new Map<string, string[]>();
@@ -130,24 +130,29 @@ for (const path of files) {
   );
 }
 
+const isDatabaseModule = (moduleName: string) =>
+  /^(?:drizzle-orm(?:\/.*)?|@\/db\/.*|\.\.?\/.*db.*)$/.test(moduleName);
+
+function isTypeOnlyImport(node: ts.ImportDeclaration): boolean {
+  const clause = node.importClause;
+  return (
+    clause?.isTypeOnly === true ||
+    (clause?.namedBindings !== undefined &&
+      ts.isNamedImports(clause.namedBindings) &&
+      clause.namedBindings.elements.length > 0 &&
+      clause.namedBindings.elements.every((element) => element.isTypeOnly))
+  );
+}
+
 function hasDatabaseImport(path: string): boolean {
   if (path.startsWith(`${sourceRoot}/db/`)) return true;
   const source = parsedFiles.get(path);
   if (!source) return false;
-  const isDatabaseModule = (moduleName: string) =>
-    /^(?:drizzle-orm(?:\/.*)?|@\/db\/.*|\.\.?\/.*db.*)$/.test(moduleName);
   let found = false;
   const visit = (node: ts.Node) => {
     if (found) return;
     if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
-      const clause = node.importClause;
-      const typeOnly =
-        clause?.isTypeOnly === true ||
-        (clause?.namedBindings !== undefined &&
-          ts.isNamedImports(clause.namedBindings) &&
-          clause.namedBindings.elements.length > 0 &&
-          clause.namedBindings.elements.every((element) => element.isTypeOnly));
-      if (!typeOnly && isDatabaseModule(node.moduleSpecifier.text)) found = true;
+      if (!isTypeOnlyImport(node) && isDatabaseModule(node.moduleSpecifier.text)) found = true;
     }
     if (
       ts.isExportDeclaration(node) &&
@@ -178,7 +183,7 @@ function reachableDatabasePaths(entry: string): string[] {
     for (const imported of importGraph.get(path) ?? []) visit(imported);
   };
   visit(entry);
-  return [...found].sort();
+  return [...found].sort((a, b) => a.localeCompare(b));
 }
 
 function lineAt(source: ts.SourceFile, position: number): number {
@@ -189,6 +194,28 @@ function isExported(node: ts.VariableStatement): boolean {
   return node.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) ?? false;
 }
 
+function classifyServerFunction(text: string): "createServerFn" | "alias" | null {
+  if (text.includes("createServerFn")) return "createServerFn";
+  if (text.includes("deleteChild") || text.includes("archiveProduct")) return "alias";
+  return null;
+}
+
+function collectOperation(
+  source: ts.SourceFile,
+  declaration: ts.VariableDeclaration,
+  operations: SourceEntry["operations"],
+): void {
+  if (!ts.isIdentifier(declaration.name) || !declaration.initializer) return;
+  const kind = classifyServerFunction(declaration.initializer.getText(source));
+  if (kind) {
+    operations.push({
+      name: declaration.name.text,
+      line: lineAt(source, declaration.initializer.getStart(source)),
+      declaration: kind,
+    });
+  }
+}
+
 function serverFunctionOperations(path: string): SourceEntry["operations"] {
   const source = parsedFiles.get(path);
   if (!source) return [];
@@ -196,20 +223,7 @@ function serverFunctionOperations(path: string): SourceEntry["operations"] {
   const visit = (node: ts.Node) => {
     if (ts.isVariableStatement(node) && isExported(node)) {
       for (const declaration of node.declarationList.declarations) {
-        if (!ts.isIdentifier(declaration.name) || !declaration.initializer) continue;
-        const text = declaration.initializer.getText(source);
-        const kind = text.includes("createServerFn")
-          ? "createServerFn"
-          : text.includes("deleteChild") || text.includes("archiveProduct")
-            ? "alias"
-            : null;
-        if (kind) {
-          operations.push({
-            name: declaration.name.text,
-            line: lineAt(source, declaration.initializer.getStart(source)),
-            declaration: kind,
-          });
-        }
+        collectOperation(source, declaration, operations);
       }
     }
     ts.forEachChild(node, visit);
@@ -243,6 +257,14 @@ function routeEntry(path: string): SourceEntry {
   };
 }
 
+function classifyTransactionSite(
+  normalized: string,
+): "auth-allowlist" | "repository-fallback" | "compatibility-facade" {
+  if (normalized.startsWith("src/server/auth/")) return "auth-allowlist";
+  if (normalized.startsWith("src/server/repositories/")) return "repository-fallback";
+  return "compatibility-facade";
+}
+
 function transactionSites() {
   const sites: Array<{
     path: string;
@@ -256,16 +278,11 @@ function transactionSites() {
     for (const match of source.matchAll(pattern)) {
       const prefix = source.slice(0, match.index ?? 0);
       const normalized = normalizedPath(path);
-      const classification = normalized.startsWith("src/server/auth/")
-        ? "auth-allowlist"
-        : normalized.startsWith("src/server/repositories/")
-          ? "repository-fallback"
-          : "compatibility-facade";
       sites.push({
         path: normalized,
         line: prefix.split("\n").length,
         expression: `${match[1]}.transaction` as "request.transaction" | "context.transaction",
-        classification,
+        classification: classifyTransactionSite(normalized),
       });
     }
   }
@@ -328,7 +345,7 @@ function buildMatrix() {
     bffs: functionEntries,
     routes: routeEntries,
     transactionSites: transactions,
-    directDatabaseFiles: [...databaseFiles].map(normalizedPath).sort(),
+    directDatabaseFiles: [...databaseFiles].map(normalizedPath).sort((a, b) => a.localeCompare(b)),
   };
   return {
     generated,
