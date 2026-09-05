@@ -15,7 +15,7 @@ Neon reais ou conteúdo de mensagens. Estrutura: Parte 0 (decisões) → estado 
 - **Ondas (D-16):** W1=M-01 · W2=M-04+M-06 · W3=M-05+M-02 · W4=M-03+M-07+M-08.
   Dependências inegociáveis: M-01→todos; M-04→M-05.
 - **Início do programa:** 2026-08-27.
-- **Última atualização:** 2026-08-29 (programa de ondas PERF/FIN: baseline S0 + ondas PERF-TX/FIN-APPLY/PERF-NAV/CLOSE no adendo; F0-04 fechado com rotulagem `dev-evidence`; patch pós-S4 do orquestrador — bug UNION corrigido e lint fix — com gates re-executados sem pipe; status geral DONE; M-06 permanece PENDING; worktree sem commit).
+- **Última atualização:** 2026-09-05 (publicação confirmada ponta a ponta: wave1 em `main` via PR #25 + fix Sonar R5 via PRs #26/#27 com Quality Gate verde; A6 changelog review 1.6.27→1.7.2 registrado; R5 CLOSED; P1 permanece CLOSED e agora também publicado em git — deploy Hostinger + janela A5/B3 seguem como pendências operacionais; matriz M-02 regenerada contra a árvore atual).
 
 ## Parte 0 — Registro de decisões
 
@@ -923,3 +923,48 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **A4 (metade 1 — migrations ANTES do tráfego 1.7.2)**: `npm run db:migrate` via URL direta unpooled no Neon de produção aplicado com sucesso (journal 8→**11**); colunas FSM + `idempotency_key` + UNIQUE + 5 colunas de custo verificadas pós-aplicação. **0010 foi no-op**: baseline `issuer IS NULL` = 0 de 4 credential accounts (já `local:credential`) → **reconciliação A5-parcial: diferença 0**. Rollbacks preparados (`0010_to_0009_down.sql` → …). Mudanças 100% aditivas: o código hoje publicado (1.6.27) não é afetado.
 - **R5-open (novo resíduo)**: SonarCloud Code Analysis **FAILURE** reprodutível no PR #24 (32s e 53s em dois tips); todos os checks de workflow (UI stack, Neon boundary) verdes. Projeto privado — triagem do quality gate é ação humana no dashboard; sem branch protection, não bloqueou A3. Meres futuros devem registrar o estado do R5.
 - **Pendências**: PR develop→main + CI; deploy Hostinger manual + smoke de login (checklist no release-readiness); janela A5 24–72h; B3/B4; A6 changelog review 1.6→1.7.
+
+### Publicação confirmada + fechamento de R5 + A6 (2026-09-05)
+
+- Latest state marker parent = `0bab6b7cc6fcf02d371ed7b9d7aec928ae6d22c3`
+  (merge do PR #26 em develop); branch de trabalho: `develop`; publicação
+  realizada por merges normais (sem rewrite de histórico).
+- **Release wave1 em `main`**: PR #25 (`develop → main`) mergeado em
+  2026-09-04 (`84030b6`); `verify` PASS ×2 (runs 33830777973, 33830760402);
+  Sonar FAILURE reproduzido (R5).
+- **R5 CLOSED**: causa-raiz identificada via anotações do check run — Reliability
+  D (S3516 em `client.server.ts`, S2871 ×4 e complexidade 16/17 em
+  `m02-matrix.ts`) e Security B (S4036 em `m02-state-check.ts`), mais S1192 na
+  migration 0008 (imutável, já aplicada). Fix publicado: PR #26 → develop
+  (`0bab6b7`; verify PASS 7m0s, run 33938333439; **Sonar Quality Gate passed**,
+  0 issues novas) e PR #27 → main (`b1f9468`; verify PASS 6m36s após re-run —
+  o 1º run foi cancelado com o passo `playwright install` travado 18 min;
+  Sonar PASS). `.sonarcloud.properties` criado com `sonar.exclusions=drizzle/**`
+  (migrations imutáveis + ~29k LOC de snapshots; protege a cota Free de 50k
+  LOC). Evidência completa: `docs/evidence/pub-wave1-2026-09-05.md`.
+- **A6 DONE (revisão)**: changelog review better-auth 1.6.27 → 1.7.2 (§2.2)
+  registrado em `pub-wave1-2026-09-05.md` §3: das 18 breaking changes da 1.7.0,
+  apenas a identidade `(issuer, accountId)` impacta o app — já mitigada por
+  R1/S1 + migration 0010 (no-op na produção, diferença 0). Nenhuma ação de
+  código adicional. Runtime publicado confirmado: better-auth **1.7.2**.
+- **P1 CLOSED (published em git)**: main = `b1f9468` com CI verde
+  (run 33940307955). Ressalva de honestidade de estado: o tráfego de produção
+  (Hostinger) ainda roda a build anterior — **A4 metade 2 (deploy manual +
+  smoke) permanece pendência humana/infra** (hPanel bloqueado por contratação
+  de plano desde 2026-08-24); a janela A5 24–72h e, por consequência, B3/B4,
+  só iniciam com o deploy. Fase C (S9/F10) permanece BLOQUEADA até B4
+  (§39/§43/§44 inalterados).
+- **Higiene de gates M-02**: drift pré-existente em `docs/specs/M-02/`
+  (artefatos commitados defasados vs. árvore pós-wave1: contagens 30→28,
+  31→32, 13→99, 21→31) corrigido por regeneração determinística
+  (`npm run m02:matrix:generate`); `m02:matrix:check` volta a PASS.
+  Refactor de `m02-matrix.ts` comprovado byte-idêntico ao baseline antes da
+  regeneração.
+- **Follow-ups registrados (não bloqueantes)**: (i) Sonar reporta "Quality
+  Gate not computed" (neutral) na branch `main` — investigar configuração da
+  análise automática da branch principal; (ii) 25 warnings Sonar restantes
+  (structuredClone, ternários aninhados, imports não usados, regex
+  super-linear em `format.ts`) — candidatos a PR de higiene; (iii) avaliar
+  cache de browsers Playwright no workflow (hang de 18 min observado no run
+  33938735859); (iv) ADR-025 (session cookie cache) ganhou dados novos na 1.7.x
+  (JWKS + warnings de dados assinados inválidos) — insumos para a decisão.
