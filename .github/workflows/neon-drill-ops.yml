@@ -1,0 +1,144 @@
+name: Neon drill ops
+
+# Operações destrutivas/efêmeras de branch no projeto Neon, executadas via CI
+# para que a NEON_API_KEY permaneça apenas em GitHub Secrets.
+# Casos de uso autorizados: destruir branches sandbox/drill efêmeras,
+# criar branches de drill a partir de production (cópia isolada, sem escrita
+# na production) e inspecionar/criar snapshots nativos quando o plano suportar.
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Operação a executar"
+        required: true
+        type: choice
+        options:
+          - list-branches
+          - create-drill-branch
+          - delete-branch
+          - snapshot-list
+          - snapshot-create
+      branch_id:
+        description: "ID do branch alvo (obrigatório para delete-branch e snapshot-*)"
+        required: false
+        type: string
+      drill_branch_name:
+        description: "Nome do branch de drill a criar (obrigatório para create-drill-branch)"
+        required: false
+        type: string
+      confirm:
+        description: "Confirmação obrigatória para delete-branch"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: neon-drill-ops-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  drill-ops:
+    name: Neon drill ops / ${{ inputs.operation }}
+    environment:
+      name: neon-readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+      NEON_API_BASE: https://console.neon.tech/api/v2
+
+    steps:
+      - name: Require registered ref
+        env:
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          case "$GITHUB_REF" in
+            refs/heads/develop|refs/heads/main) ;;
+            *) echo "Neon drill ops blocked: run only from develop or main." >&2; exit 1 ;;
+          esac
+
+      - name: Require credentials and validate inputs
+        run: |
+          set -euo pipefail
+          [[ -n "$NEON_API_KEY" ]] || { echo "Neon drill ops blocked: NEON_API_KEY secret ausente." >&2; exit 1; }
+          [[ -n "$NEON_PROJECT_ID" ]] || { echo "Neon drill ops blocked: NEON_PROJECT_ID var ausente." >&2; exit 1; }
+          case "${{ inputs.operation }}" in
+            delete-branch)
+              [[ "${{ inputs.confirm }}" == "true" ]] || { echo "delete-branch exige confirm=true." >&2; exit 1; }
+              [[ -n "${{ inputs.branch_id }}" ]] || { echo "delete-branch exige branch_id." >&2; exit 1; }
+              ;;
+            create-drill-branch)
+              [[ -n "${{ inputs.drill_branch_name }}" ]] || { echo "create-drill-branch exige drill_branch_name." >&2; exit 1; }
+              ;;
+            snapshot-list|snapshot-create)
+              [[ -n "${{ inputs.branch_id }}" ]] || { echo "snapshot-* exige branch_id." >&2; exit 1; }
+              ;;
+            list-branches) ;;
+            *) echo "Operação não suportada." >&2; exit 1 ;;
+          esac
+
+      - name: List branches
+        if: inputs.operation == 'list-branches'
+        run: |
+          set -euo pipefail
+          curl -sfS "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches" \
+            -H "Authorization: Bearer $NEON_API_KEY" \
+            -H "Accept: application/json" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);for(const b of j.branches??[]){console.log([b.id,b.name,b.primary?'primary':'',b.created_at].join(' | '))}})"
+
+      - name: Create drill branch from production
+        if: inputs.operation == 'create-drill-branch'
+        id: neon
+        uses: neondatabase/create-branch-action@fb620d43d4c565abaf088b848a4e28e5c4ea4d9c # 6.3.1
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          # Drill branches são cópias isoladas da production; a production
+          # em si nunca é alvo de escrita por este workflow.
+          parent_branch: production
+          branch_name: ${{ inputs.drill_branch_name }}
+
+      - name: Report drill branch
+        if: inputs.operation == 'create-drill-branch'
+        run: |
+          set -euo pipefail
+          [[ -n "${{ steps.neon.outputs.branch_id }}" ]] || { echo "branch_id não retornado." >&2; exit 1; }
+          echo "drill_branch_id=${{ steps.neon.outputs.branch_id }}"
+          echo "- Drill branch criado: ${{ inputs.drill_branch_name }} (id no log privado)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Delete branch
+        if: inputs.operation == 'delete-branch'
+        uses: neondatabase/delete-branch-action@4468d825d5a88ef4012f1705a82f02ec3072f776 # v3.2.1
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          branch: ${{ inputs.branch_id }}
+
+      - name: Snapshot list
+        if: inputs.operation == 'snapshot-list'
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/snapshots.json -w "%{http_code}" \
+            "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/${{ inputs.branch_id }}/snapshots" \
+            -H "Authorization: Bearer $NEON_API_KEY" -H "Accept: application/json")
+          echo "http_status=$code"
+          cat /tmp/snapshots.json
+          # 404/400 aqui é evidência de que o plano não expõe snapshots nativos.
+
+      - name: Snapshot create
+        if: inputs.operation == 'snapshot-create'
+        run: |
+          set -euo pipefail
+          [[ "${{ inputs.confirm }}" == "true" ]] || { echo "snapshot-create exige confirm=true." >&2; exit 1; }
+          code=$(curl -sS -o /tmp/snapshot-create.json -w "%{http_code}" -X POST \
+            "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/${{ inputs.branch_id }}/snapshots" \
+            -H "Authorization: Bearer $NEON_API_KEY" -H "Accept: application/json" \
+            -H "Content-Type: application/json" -d '{}')
+          echo "http_status=$code"
+          cat /tmp/snapshot-create.json
