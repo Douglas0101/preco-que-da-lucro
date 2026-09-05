@@ -458,17 +458,17 @@
           "name": "createSale",
           "line": 56,
           "declaration": "createServerFn",
-          "service": null,
-          "repository": null,
-          "atomicity": "per-request"
+          "service": "SalesService",
+          "repository": "SalesRepository",
+          "atomicity": "per-operation"
         },
         {
           "name": "listSales",
           "line": 92,
           "declaration": "createServerFn",
-          "service": null,
-          "repository": null,
-          "atomicity": "per-request"
+          "service": "SalesService",
+          "repository": "SalesRepository",
+          "atomicity": "per-operation"
         }
       ],
       "imports": [

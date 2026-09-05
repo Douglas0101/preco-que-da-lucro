@@ -458,17 +458,17 @@
           "name": "createSale",
           "line": 56,
           "declaration": "createServerFn",
-          "service": null,
-          "repository": null,
-          "atomicity": "per-request"
+          "service": "SalesService",
+          "repository": "SalesRepository",
+          "atomicity": "per-operation"
         },
         {
           "name": "listSales",
           "line": 92,
           "declaration": "createServerFn",
-          "service": null,
-          "repository": null,
-          "atomicity": "per-request"
+          "service": "SalesService",
+          "repository": "SalesRepository",
+          "atomicity": "per-operation"
         }
       ],
       "imports": [
@@ -1191,8 +1191,9 @@
           "path": "src/server/services/product.service.ts"
         },
         "PricingService": {
-          "status": "implemented",
-          "path": "src/server/services/pricing.service.ts"
+          "status": "consolidated",
+          "path": "src/server/services/purchase-price.service.ts",
+          "note": "implementação shipada consolida pricing em purchase-price.service.ts; serviço dedicado permanece alvo M02-2"
         },
         "ExpenseService": {
           "status": "implemented",
@@ -1211,8 +1212,9 @@
           "path": "src/server/services/diagnostic.service.ts"
         },
         "ConversationService": {
-          "status": "implemented",
-          "path": "src/server/services/conversation.service.ts"
+          "status": "consolidated",
+          "path": "src/lib/chat-data.ts",
+          "note": "persistência de conversas shipada em chat-data.ts; serviço dedicado permanece alvo M02-3"
         },
         "MemoryService": {
           "status": "contract-only",
@@ -1220,8 +1222,9 @@
           "target": "M-05"
         },
         "AuditService": {
-          "status": "implemented",
-          "path": "src/server/services/audit.service.ts"
+          "status": "consolidated",
+          "path": "src/lib/ai/tool-runner.ts",
+          "note": "audit-append shipado no tool runner; serviço dedicado permanece alvo M-04"
         },
         "EventService": {
           "status": "contract-only",
@@ -1236,11 +1239,11 @@
         },
         "IngredientRepository": {
           "status": "consolidated",
-          "path": "src/server/repositories/product-catalog.repository.ts"
+          "path": "src/server/repositories/product.repository.ts"
         },
         "PackagingRepository": {
           "status": "consolidated",
-          "path": "src/server/repositories/product-catalog.repository.ts"
+          "path": "src/server/repositories/product.repository.ts"
         },
         "PriceRepository": {
           "status": "implemented",
@@ -1248,7 +1251,7 @@
         },
         "MarketPriceRepository": {
           "status": "consolidated",
-          "path": "src/server/repositories/product-catalog.repository.ts"
+          "path": "src/server/repositories/product.repository.ts"
         },
         "ExpenseRepository": {
           "status": "implemented",
@@ -1263,8 +1266,9 @@
           "path": "src/server/repositories/simulation.repository.ts"
         },
         "ConversationRepository": {
-          "status": "implemented",
-          "path": "src/server/repositories/conversation.repository.ts"
+          "status": "consolidated",
+          "path": "src/lib/chat-execution.server.ts",
+          "note": "escrita de mensagens shipada no executor de chat; repositório dedicado permanece alvo M02-3"
         },
         "MemoryRepository": {
           "status": "contract-only",
@@ -1276,8 +1280,9 @@
           "path": "src/server/repositories/calculation-snapshot.repository.ts"
         },
         "AuditRepository": {
-          "status": "implemented",
-          "path": "src/server/repositories/audit.repository.ts"
+          "status": "consolidated",
+          "path": "src/server/repositories/ai-tool.repository.ts",
+          "note": "trilha de auditoria shipada em tool_executions via ai-tool.repository.ts; repositório dedicado permanece alvo M-04"
         },
         "EventRepository": {
           "status": "contract-only",
@@ -1316,6 +1321,46 @@
         "id": "infra-migration",
         "pathPrefix": ".migration/",
         "reason": "artefatos de migration"
+      },
+      {
+        "id": "transient-ai-modules",
+        "pathPrefix": "src/lib/ai/",
+        "reason": "TRANSITÓRIO (2026-09-05): budget-ledger é a arquitetura de referência H-001; unidades transacionais em transactionPolicies; migração ao catálogo-alvo permanece backlog M02-3/M-04"
+      },
+      {
+        "id": "transient-chat-data",
+        "pathPrefix": "src/lib/chat-data.ts",
+        "reason": "TRANSITÓRIO (2026-09-05): persistência de conversas shipada (leitura); alvo M02-3"
+      },
+      {
+        "id": "transient-chat-execution",
+        "pathPrefix": "src/lib/chat-execution.server.ts",
+        "reason": "TRANSITÓRIO (2026-09-05): unidades compostas de sendChatMessage (ADR-026); alvo M02-3"
+      },
+      {
+        "id": "transient-bff-chat-self",
+        "pathPrefix": "src/lib/chat.functions.ts",
+        "reason": "TRANSITÓRIO (2026-09-05): histórico de conversa na tenant tx; alvo M02-3"
+      },
+      {
+        "id": "transient-bff-products-self",
+        "pathPrefix": "src/lib/products.functions.ts",
+        "reason": "TRANSITÓRIO (2026-09-05): read-model UNION na tenant tx (wave PERF, patch pós-S4); alvo M02-2"
+      },
+      {
+        "id": "transient-bff-expenses-self",
+        "pathPrefix": "src/lib/expenses.functions.ts",
+        "reason": "TRANSITÓRIO (2026-09-05): consulta de despesas shipada; alvo M02-4"
+      },
+      {
+        "id": "transient-service-purchase-price",
+        "pathPrefix": "src/server/services/purchase-price.service.ts",
+        "reason": "TRANSITÓRIO (2026-09-05): service executa queries na tenant transaction (padrão WS-01..07); alvo M02-2"
+      },
+      {
+        "id": "transient-service-product-detail",
+        "pathPrefix": "src/server/services/product-detail.service.ts",
+        "reason": "TRANSITÓRIO (2026-09-05): service executa queries na tenant transaction (padrão WS-01..07); alvo M02-4"
       }
     ],
     "entryPolicies": {
@@ -1357,6 +1402,11 @@
       "src/lib/break-even.functions.ts": {
         "service": "BreakEvenService",
         "repository": null,
+        "targetPhase": "M02-4"
+      },
+      "src/lib/sales.functions.ts": {
+        "service": "SalesService",
+        "repository": "SalesRepository",
         "targetPhase": "M02-4"
       }
     },
@@ -1447,6 +1497,18 @@
           "service": "ConversationService/ChatExecution",
           "repository": "ConversationRepository + BudgetRepository + AiToolRepository + AuditRepository",
           "atomicity": "composed"
+        }
+      },
+      "src/lib/sales.functions.ts": {
+        "createSale": {
+          "service": "SalesService",
+          "repository": "SalesRepository",
+          "atomicity": "per-operation"
+        },
+        "listSales": {
+          "service": "SalesService",
+          "repository": "SalesRepository",
+          "atomicity": "per-operation"
         }
       }
     },
@@ -1539,6 +1601,11 @@
     "src/lib/break-even.functions.ts": {
       "service": "BreakEvenService",
       "repository": null,
+      "targetPhase": "M02-4"
+    },
+    "src/lib/sales.functions.ts": {
+      "service": "SalesService",
+      "repository": "SalesRepository",
       "targetPhase": "M02-4"
     }
   },

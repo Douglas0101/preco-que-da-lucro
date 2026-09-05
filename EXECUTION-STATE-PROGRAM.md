@@ -15,7 +15,7 @@ Neon reais ou conteúdo de mensagens. Estrutura: Parte 0 (decisões) → estado 
 - **Ondas (D-16):** W1=M-01 · W2=M-04+M-06 · W3=M-05+M-02 · W4=M-03+M-07+M-08.
   Dependências inegociáveis: M-01→todos; M-04→M-05.
 - **Início do programa:** 2026-08-27.
-- **Última atualização:** 2026-09-05 (publicação confirmada ponta a ponta: wave1 em `main` via PR #25 + fix Sonar R5 via PRs #26/#27 com Quality Gate verde; A6 changelog review 1.6.27→1.7.2 registrado; R5 CLOSED; P1 permanece CLOSED e agora também publicado em git — deploy Hostinger + janela A5/B3 seguem como pendências operacionais; matriz M-02 regenerada contra a árvore atual).
+- **Última atualização:** 2026-09-05 (publicação confirmada ponta a ponta: wave1 em `main` via PR #25 + fix Sonar R5 via PRs #26/#27 com Quality Gate verde; A6 changelog review 1.6.27→1.7.2 registrado; R5 CLOSED; P1 permanece CLOSED e agora também publicado em git — deploy Hostinger + janela A5/B3 seguem como pendências operacionais; matriz M-02 regenerada contra a árvore atual; gate M-02 boundaries tratado por categoria e verde com exceções transitórias documentadas; guarda anti-automação no down 0010).
 
 ## Parte 0 — Registro de decisões
 
@@ -968,3 +968,59 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   cache de browsers Playwright no workflow (hang de 18 min observado no run
   33938735859); (iv) ADR-025 (session cookie cache) ganhou dados novos na 1.7.x
   (JWKS + warnings de dados assinados inválidos) — insumos para a decisão.
+
+### M-02 boundaries tratado por categoria + guarda do down 0010 (2026-09-05)
+
+- Latest state marker parent = `bf356d862e3e8240e2f144f84c1b1fa37bc34f32`
+  (commit docs do fechamento de publicação em develop).
+- Entrada (relatório de checagens pós-publicação, 2026-09-05):
+  `npm run m02:boundaries` FAIL com 26 ocorrências. Saída: **PASS**.
+- **Tratamento por categoria** (detalhe em
+  `docs/evidence/m02-boundaries-2026-09-05.md`): (i) 3 gaps documentais de
+  `sales.functions.ts` corrigidos no overlay (entry policy + 2 operation
+  mappings; endpoints já passavam por `requireDatabaseAuth`+`salesService`);
+  (ii) 12 catalog paths repontados para os arquivos reais de implementação
+  (status `consolidated` + fase-alvo) e checker ajustado para não exigir
+  existência de entradas `contract-only` (M-04/M-05), sem criar stubs;
+  (iii) 11 violações BFF→DB reais cobertas por exceções `transient-*` com
+  razão e fase-alvo de remoção (M02-2/3/4), emendadas em
+  `docs/specs/M-02/excecoes.md` + nota transitória em `spec.md` — a regra
+  normativa permanece o alvo e nenhuma exceção autoriza novos acessos.
+- **Guarda do rollback 0010**: `drizzle/rollback/0010_to_0009_down.sql` —
+  registrado que o down NÃO é no-op (casa 4 contas em produção; forward foi
+  no-op verificado), proibido executar automaticamente; pré-requisitos de
+  reconciliação/versão/ledger documentados no próprio arquivo. SQL inalterado.
+- Nenhum código de runtime alterado; schema/migrations intocados; nenhum down
+  executado. Pendências inalteradas: A4 metade 2 (deploy Hostinger + smoke,
+  BLOCKED-AUTH hPanel), janela A5, B3/B4, Fase C bloqueada até B4.
+
+### Checagens pós-publicação — 2026-09-05
+
+- Continuação solicitada conforme o Plano Mestre; usuário informou ausência de
+  acesso ao hPanel e orientou seguir com as próximas checagens. IAB disponível;
+  hPanel redirecionou ao login. A4 deploy/smoke, A5, B3/B4 e Fase C permanecem
+  pendentes nos respectivos gates.
+- GitHub autenticado como `Douglas0101`, permissão admin. Tips remotos
+  confirmados: develop `bf356d8`, main `b1f9468`; runs `33941501282` e
+  `33940307955` com verify success nos SHAs correspondentes. Runtime, scripts,
+  testes, migrations, lockfile e workflows são idênticos entre esses tips.
+- Gates locais: state marker PASS; matrix check PASS; **m02:boundaries FAIL**
+  (26 ocorrências: 11 relações, 1 entry policy, 2 operation mappings e 12
+  referências a 8 caminhos ausentes). Esse comando não integra o ui-stack.
+  Typecheck, lint, format e 353 testes em 34 arquivos passaram.
+- Neon production consultado somente por SELECT: 11 migrations, **11/11 hashes
+  e timestamps reconciliados**, 4 credential accounts com issuer esperado e
+  zero issuer nulo. Colunas, índice UNIQUE, CHECKs e configuração RLS selecionados
+  confirmados. A consulta admin não substitui teste como app_runtime.
+- **Correção do procedimento de rollback:** o down 0010 alteraria as 4 contas
+  atuais; não é no-op mesmo com forward historicamente no-op. Não foi executado.
+  Revisar rollback da aplicação/dados antes de A4. Retenção Neon informada de
+  6h e lista de snapshots gerenciados vazia; backup/restore externo não verificado.
+- Sonar main continua neutral/Quality Gate not computed; causa depende de painel
+  autenticado. O log do hang Playwright localiza a demora em downloads APT do
+  Ubuntu; cache de browsers não resolve essa etapa. ADR-025 já registra ACCEPTED,
+  mas o marker não está implementado nos caminhos atuais de autenticação.
+- Evidência e pacote de entrada A4/A5/B3/B4:
+  `docs/evidence/checagens-pos-publicacao-2026-09-05/report.md`, com JSON, SELECT
+  reproduzível e manifesto de integridade. Sem mudança de código, workflow,
+  migration, refs Git ou dados de produção; arquivos preexistentes preservados.
