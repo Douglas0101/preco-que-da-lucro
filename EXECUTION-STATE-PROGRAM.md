@@ -1074,3 +1074,27 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   `m02:boundaries`, `m02:state:check` reexecutados pós-commit do ledger.
 - Pendências inalteradas: A4 metade 2, A5, B3/B4, Fase C; novos pré-requisitos
   pré-A4: DB-01, DB-02, M02-D-008, snapshot/restore §42, destruição do sandbox.
+
+---
+
+## Rodada pré-A4 — §42 backup/restore comprovado (BAK-01) — 2026-09-05
+
+- Latest state marker parent = `b970c8230a5bd63bcc49d618dcd3303dd9c51484`
+  (merge do PR #29 em develop; base desta branch).
+- **§42 classificado: VIOLAÇÃO de SDD §2446** (PITR ≥ 7 dias indisponível:
+  retenção 6 h + zero snapshots) → exceção **BAK-01** com controles
+  compensatórios + emenda de política vigente
+  (`docs/decision-briefs/2026-09-05-bak-01-backup-restore-policy.md`):
+  snapshot externo pré-deploy obrigatório, restore drill comprovado, cadência
+  semanal manual até o plano suportar PITR ≥ 7 d.
+- **Drill executado e verde** (`npm run m02:backup-verify`, script novo
+  `scripts/db/backup-verify.ts`): dump custom 135.416 bytes
+  (sha256 f5659573…) → restore em banco efêmero `drill_restore_20260905202420`
+  (95,3 s, `--no-owner --no-privileges`) → verificação 27/27 contagens,
+  journal 11/11 hashes, RLS 20/20 tabelas tenant + 25 policies → scratch
+  destruído. Evidência: `docs/evidence/pre-a4-2026-09-05/backup-restore-drill.{md,json}`.
+  Este dump é a rede de segurança que autoriza o purge DB-01 (A3).
+- Limite registrado: ownership/GRANTs fora do escopo do restore (roles de
+  serviço Neon); RPO/RTO observados válidos apenas para o volume atual.
+- Falha intermediária documentada: `SET ROLE neon_service` → corrigida com
+  `--no-owner --no-privileges` (1 falha, sem contorno de protocolo).
