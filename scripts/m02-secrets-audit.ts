@@ -1,163 +1,226 @@
-import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { resolve } from "node:path";
+import { lstatSync, readFileSync, readdirSync } from "node:fs";
+import { basename, extname, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import { parseArgs } from "node:util";
 
-interface SecretEntry {
+const skippedDirectories = new Set([
+  ".git",
+  ".agents",
+  ".codex",
+  ".pi",
+  ".artifacts",
+  ".migration",
+  ".neon",
+  ".output",
+  ".tanstack",
+  ".ruff_cache",
+  "node_modules",
+  "dist",
+  "playwright-report",
+  "test-results",
+  ".p0-closeout-docker",
+]);
+const textExtensions = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".sh",
+  ".json",
+  ".yml",
+  ".yaml",
+  ".md",
+  ".toml",
+  ".sql",
+]);
+const keyPattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const compare = (a: string, b: string): number => a.localeCompare(b);
+const isEnv = (name: string): boolean =>
+  name === ".env" || name.startsWith(".env.") || name.endsWith(".env");
+
+export function envKeyNames(content: string): string[] {
+  return [
+    ...new Set(
+      content.split("\n").flatMap((line) => {
+        const trimmed = line.trim().replace(/^export\s+/, "");
+        const eq = trimmed.indexOf("=");
+        const key = trimmed.slice(0, eq).trim();
+        return eq > 0 && keyPattern.test(key) ? [key] : [];
+      }),
+    ),
+  ].sort(compare);
+}
+
+interface Entry {
   name: string;
   defined_in: string[];
   consumers_code: string[];
   consumers_ci: string[];
   references_docs: string[];
-  classification: "consumer" | "docs-only" | "orphan";
+  classification: "consumer" | "docs-only" | "orphan-candidate" | "unknown";
 }
 
-const repositoryRoot = resolve(import.meta.dirname, "..");
-
-function isAlphaUnderscore(code: number): boolean {
-  return (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 95;
-}
-
-function isValidKeyName(name: string): boolean {
-  if (name.length === 0 || !isAlphaUnderscore(name.charCodeAt(0))) return false;
-  for (let i = 1; i < name.length; i += 1) {
-    const code = name.charCodeAt(i);
-    if (!isAlphaUnderscore(code) && !(code >= 48 && code <= 57)) return false;
-  }
-  return true;
-}
-
-function parseEnvKey(line: string): string | null {
-  const eq = line.indexOf("=");
-  if (eq <= 0) return null;
-  const name = line.slice(0, eq);
-  return isValidKeyName(name) ? name : null;
-}
-
-function envKeysOf(relativePath: string): string[] {
-  const absolute = resolve(repositoryRoot, relativePath);
-  if (!existsSync(absolute)) return [];
-  return readFileSync(absolute, "utf8")
-    .split("\n")
-    .map(parseEnvKey)
-    .filter((key): key is string => key !== null);
-}
-
-function rootEnvFiles(): string[] {
-  return readdirSync(repositoryRoot)
-    .filter((entry) => entry === ".env" || entry.endsWith(".env"))
-    .sort((a, b) => a.localeCompare(b));
-}
-
-function workflowReferences(): { secrets: string[]; vars: string[] } {
-  const secrets = new Set<string>();
-  const vars = new Set<string>();
-  const workflowsDir = resolve(repositoryRoot, ".github/workflows");
-  for (const file of readdirSync(workflowsDir)) {
-    if (!file.endsWith(".yml") && !file.endsWith(".yaml")) continue;
-    const content = readFileSync(resolve(workflowsDir, file), "utf8");
-    for (const match of content.matchAll(/secrets\.([A-Z0-9_]+)/g)) secrets.add(match[1]!);
-    for (const match of content.matchAll(/vars\.([A-Z0-9_]+)/g)) vars.add(match[1]!);
-  }
-  return {
-    secrets: [...secrets].sort((a, b) => a.localeCompare(b)),
-    vars: [...vars].sort((a, b) => a.localeCompare(b)),
-  };
-}
-
-function consumersOf(name: string): string[] {
-  // S5883: o nome é validado contra o formato de chave antes de virar argumento.
-  if (!isValidKeyName(name)) return [];
-  try {
-    // S4036: resolve "git" only in fixed, system-owned directories.
-    return (
-      execFileSync("git", ["grep", "-l", "-F", "-e", name, "--", "."], {
-        cwd: repositoryRoot,
-        encoding: "utf8",
-        env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
-      })
-        .trim()
-        .split("\n")
-        .filter(Boolean)
-        .filter((path) => path !== "package-lock.json")
-        // A saída JSON desta ferramenta menciona todos os nomes; excluí-la evita
-        // auto-referência que mascararia órfãos reais como "docs-only".
-        .filter((path) => !/^docs\/evidence\/.+\/secrets-audit\.json$/.test(path))
-        .sort((a, b) => a.localeCompare(b))
-    );
-  } catch {
-    return [];
-  }
-}
-
-function classify(
-  consumersCode: string[],
-  consumersCi: string[],
-  referencesDocs: string[],
-): SecretEntry["classification"] {
-  if (consumersCode.length + consumersCi.length > 0) return "consumer";
-  if (referencesDocs.length > 0) return "docs-only";
-  return "orphan";
-}
-
-function main(): void {
+export function auditSecrets(root: string, ciNames: string[] = []) {
   const startedAt = new Date().toISOString();
-
-  const definitions = new Map<string, string[]>();
-  const define = (name: string, source: string): void => {
-    const sources = definitions.get(name) ?? [];
-    definitions.set(name, [...sources, source]);
-  };
-
-  for (const envFile of rootEnvFiles()) {
-    // Somente nomes de chaves são lidos; valores nunca entram na saída.
-    for (const key of envKeysOf(envFile)) define(key, envFile);
+  const definitions = new Map<string, Set<string>>();
+  const contents = new Map<string, string>();
+  const excluded: { path: string; reason: string }[] = [];
+  const failures: { path: string; reason: string }[] = [];
+  const literalCandidates: { path: string; line: number; kind: string }[] = [];
+  let scannedFiles = 0;
+  function define(key: string, source: string) {
+    if (!keyPattern.test(key)) throw new Error("invalid CI metadata key");
+    const sources = definitions.get(key) ?? new Set<string>();
+    sources.add(source);
+    definitions.set(key, sources);
   }
-  const ci = workflowReferences();
-  for (const name of ci.secrets) define(name, "github-secrets (referenciado em workflow)");
-  for (const name of ci.vars) define(name, "github-vars (referenciado em workflow)");
-
-  const entries: SecretEntry[] = [...definitions.entries()].map(([name, sources]) => {
-    const paths = consumersOf(name).filter((path) => !sources.includes(path));
-    const consumersCode = paths.filter(
-      (path) => /^(src|scripts|e2e)\//.test(path) || /^docker-compose\.yml$/.test(path),
-    );
-    const consumersCi = paths.filter((path) => path.startsWith(".github/"));
-    const referencesDocs = paths.filter(
-      (path) => !consumersCode.includes(path) && !consumersCi.includes(path),
-    );
-    return {
-      name,
-      defined_in: sources.sort((a, b) => a.localeCompare(b)),
-      consumers_code: consumersCode,
-      consumers_ci: consumersCi,
-      references_docs: referencesDocs,
-      classification: classify(consumersCode, consumersCi, referencesDocs),
-    };
-  });
-
-  entries.sort((a, b) => a.name.localeCompare(b.name));
-  const orphans = entries.filter((entry) => entry.classification === "orphan");
-
-  console.log(
-    JSON.stringify(
-      {
-        check: "m02:secrets-audit",
-        read_only: true,
-        started_at: startedAt,
-        finished_at: new Date().toISOString(),
-        summary: {
-          defined: entries.length,
-          consumer: entries.filter((entry) => entry.classification === "consumer").length,
-          docs_only: entries.filter((entry) => entry.classification === "docs-only").length,
-          orphan: orphans.length,
-        },
-        review_required: orphans.map((entry) => entry.name),
-        entries,
-      },
-      null,
-      2,
-    ),
-  );
+  function walk(dir: string, prefix = "") {
+    let entries;
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      failures.push({ path: prefix || ".", reason: "directory-unreadable" });
+      return;
+    }
+    for (const entry of entries) {
+      const path = prefix ? prefix + "/" + entry.name : entry.name;
+      const absolute = resolve(dir, entry.name);
+      if (entry.isSymbolicLink()) {
+        excluded.push({ path, reason: "symlink-not-followed" });
+        continue;
+      }
+      if (entry.isDirectory()) {
+        if (skippedDirectories.has(entry.name) || entry.name.startsWith(".worktree-"))
+          excluded.push({ path, reason: "generated-vendor-or-private" });
+        else walk(absolute, path);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      if (
+        path.startsWith("docs/evidence/") ||
+        entry.name === "package-lock.json" ||
+        path.includes("secrets-audit") ||
+        path.includes(".test.")
+      ) {
+        excluded.push({ path, reason: "evidence-auditor-or-test-not-consumer" });
+        continue;
+      }
+      if (!isEnv(entry.name) && !textExtensions.has(extname(entry.name))) continue;
+      try {
+        if (lstatSync(absolute).size > 1024 * 1024) {
+          failures.push({ path, reason: "file-over-1MiB" });
+          continue;
+        }
+        const content = readFileSync(absolute, "utf8");
+        scannedFiles++;
+        if (isEnv(entry.name)) {
+          for (const key of envKeyNames(content)) define(key, path);
+          continue;
+        }
+        contents.set(path, content);
+        if (path.startsWith(".github/workflows/"))
+          for (const match of content.matchAll(/secrets\.([A-Za-z_][A-Za-z0-9_]*)/g))
+            define(match[1], "github-workflow-reference (existence unverified)");
+        content.split("\n").forEach((line, index) => {
+          if (
+            /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(line) ||
+            /\b(?:ghp_|github_pat_|sk-proj-)[A-Za-z0-9_-]{20,}/.test(line) ||
+            /\bAKIA[A-Z0-9]{16}\b/.test(line)
+          )
+            literalCandidates.push({
+              path,
+              line: index + 1,
+              kind: "possible-secret-literal; value omitted; liveness unknown",
+            });
+        });
+      } catch {
+        failures.push({ path, reason: "file-unreadable" });
+      }
+    }
+  }
+  walk(resolve(root));
+  ciNames.forEach((name) => define(name, "github-metadata (name only)"));
+  const entries: Entry[] = [...definitions]
+    .map(([name, sources]) => {
+      const code: string[] = [],
+        ci: string[] = [],
+        docs: string[] = [];
+      for (const [path, content] of contents) {
+        // Lexical references are candidates, not proof of runtime use.
+        if (!content.split(/[^A-Za-z0-9_]+/).includes(name)) continue;
+        if (path.startsWith(".github/")) ci.push(path);
+        else if (
+          (path.startsWith("src/") ||
+            path.startsWith("scripts/") ||
+            path.startsWith("e2e/") ||
+            basename(path) === "docker-compose.yml") &&
+          extname(path) !== ".md"
+        )
+          code.push(path);
+        else docs.push(path);
+      }
+      let classification: Entry["classification"] = "orphan-candidate";
+      if (failures.length) classification = "unknown";
+      else if (code.length + ci.length) classification = "consumer";
+      else if (docs.length) classification = "docs-only";
+      return {
+        name,
+        defined_in: [...sources].sort(compare),
+        consumers_code: code.sort(compare),
+        consumers_ci: ci.sort(compare),
+        references_docs: docs.sort(compare),
+        classification,
+      };
+    })
+    .sort((a, b) => compare(a.name, b.name));
+  return {
+    check: "m02:secrets-audit",
+    read_only: true,
+    started_at: startedAt,
+    finished_at: new Date().toISOString(),
+    result: failures.length ? "INCOMPLETE" : "COMPLETE_WITH_LIMITS",
+    limits:
+      "Lexical consumer map; does not prove credential liveness or absence of manual/external consumers. Never authorizes revocation. Env values are discarded; CI metadata contains names only. Evidence, private/vendor directories, tests and symlinks are excluded.",
+    coverage: { scanned_files: scannedFiles, exclusions: excluded, failures },
+    summary: {
+      defined: entries.length,
+      consumers: entries.filter((e) => e.classification === "consumer").length,
+      review_required: entries.filter((e) => e.classification !== "consumer").length,
+    },
+    review_required: entries.filter((e) => e.classification !== "consumer").map((e) => e.name),
+    possible_secret_literals: literalCandidates,
+    entries,
+  };
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  try {
+    const { values } = parseArgs({
+      options: { root: { type: "string" }, "ci-metadata": { type: "string" } },
+      strict: true,
+    });
+    const ci = values["ci-metadata"]
+      ? (JSON.parse(readFileSync(values["ci-metadata"], "utf8")) as { name: string }[])
+      : [];
+    if (!Array.isArray(ci) || ci.some((entry) => typeof entry.name !== "string"))
+      throw new Error("invalid metadata");
+    const report = auditSecrets(
+      values.root ?? resolve(import.meta.dirname, ".."),
+      ci.map((entry) => entry.name),
+    );
+    console.log(JSON.stringify(report, null, 2));
+    process.exitCode = report.coverage.failures.length ? 2 : 0;
+  } catch {
+    console.error(
+      JSON.stringify({
+        check: "m02:secrets-audit",
+        result: "ERROR",
+        error:
+          "Invalid arguments, inaccessible root or invalid CI metadata; details withheld to protect secrets.",
+      }),
+    );
+    process.exitCode = 2;
+  }
+}
