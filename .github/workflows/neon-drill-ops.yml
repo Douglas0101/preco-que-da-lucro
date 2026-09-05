@@ -28,7 +28,7 @@ on:
         required: false
         type: string
       confirm:
-        description: "Confirmação obrigatória para delete-branch"
+        description: "Confirmação obrigatória para delete-branch e snapshot-create"
         required: true
         default: false
         type: boolean
@@ -47,37 +47,40 @@ jobs:
       name: neon-readiness
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-      NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
-      NEON_API_BASE: https://console.neon.tech/api/v2
 
     steps:
       - name: Require registered ref
         env:
-          GITHUB_REF: ${{ github.ref }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          case "$GITHUB_REF" in
-            refs/heads/develop|refs/heads/main) ;;
+          case "$GITHUB_REF_NAME" in
+            develop|main) ;;
             *) echo "Neon drill ops blocked: run only from develop or main." >&2; exit 1 ;;
           esac
 
       - name: Require credentials and validate inputs
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          OPERATION: ${{ inputs.operation }}
+          CONFIRM: ${{ inputs.confirm }}
+          BRANCH_ID: ${{ inputs.branch_id }}
+          DRILL_BRANCH_NAME: ${{ inputs.drill_branch_name }}
         run: |
           set -euo pipefail
           [[ -n "$NEON_API_KEY" ]] || { echo "Neon drill ops blocked: NEON_API_KEY secret ausente." >&2; exit 1; }
           [[ -n "$NEON_PROJECT_ID" ]] || { echo "Neon drill ops blocked: NEON_PROJECT_ID var ausente." >&2; exit 1; }
-          case "${{ inputs.operation }}" in
+          case "$OPERATION" in
             delete-branch)
-              [[ "${{ inputs.confirm }}" == "true" ]] || { echo "delete-branch exige confirm=true." >&2; exit 1; }
-              [[ -n "${{ inputs.branch_id }}" ]] || { echo "delete-branch exige branch_id." >&2; exit 1; }
+              [[ "$CONFIRM" == "true" ]] || { echo "delete-branch exige confirm=true." >&2; exit 1; }
+              [[ -n "$BRANCH_ID" ]] || { echo "delete-branch exige branch_id." >&2; exit 1; }
               ;;
             create-drill-branch)
-              [[ -n "${{ inputs.drill_branch_name }}" ]] || { echo "create-drill-branch exige drill_branch_name." >&2; exit 1; }
+              [[ -n "$DRILL_BRANCH_NAME" ]] || { echo "create-drill-branch exige drill_branch_name." >&2; exit 1; }
               ;;
             snapshot-list|snapshot-create)
-              [[ -n "${{ inputs.branch_id }}" ]] || { echo "snapshot-* exige branch_id." >&2; exit 1; }
+              [[ -n "$BRANCH_ID" ]] || { echo "snapshot-* exige branch_id." >&2; exit 1; }
               ;;
             list-branches) ;;
             *) echo "Operação não suportada." >&2; exit 1 ;;
@@ -85,6 +88,10 @@ jobs:
 
       - name: List branches
         if: inputs.operation == 'list-branches'
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          NEON_API_BASE: https://console.neon.tech/api/v2
         run: |
           set -euo pipefail
           curl -sfS "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches" \
@@ -106,11 +113,14 @@ jobs:
 
       - name: Report drill branch
         if: inputs.operation == 'create-drill-branch'
+        env:
+          DRILL_BRANCH_NAME: ${{ inputs.drill_branch_name }}
+          DRILL_BRANCH_ID: ${{ steps.neon.outputs.branch_id }}
         run: |
           set -euo pipefail
-          [[ -n "${{ steps.neon.outputs.branch_id }}" ]] || { echo "branch_id não retornado." >&2; exit 1; }
-          echo "drill_branch_id=${{ steps.neon.outputs.branch_id }}"
-          echo "- Drill branch criado: ${{ inputs.drill_branch_name }} (id no log privado)" >> "$GITHUB_STEP_SUMMARY"
+          [[ -n "$DRILL_BRANCH_ID" ]] || { echo "branch_id não retornado." >&2; exit 1; }
+          echo "drill_branch_id=$DRILL_BRANCH_ID"
+          echo "- Drill branch criado: $DRILL_BRANCH_NAME (id no log privado)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Delete branch
         if: inputs.operation == 'delete-branch'
@@ -122,10 +132,15 @@ jobs:
 
       - name: Snapshot list
         if: inputs.operation == 'snapshot-list'
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          NEON_API_BASE: https://console.neon.tech/api/v2
+          BRANCH_ID: ${{ inputs.branch_id }}
         run: |
           set -euo pipefail
           code=$(curl -sS -o /tmp/snapshots.json -w "%{http_code}" \
-            "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/${{ inputs.branch_id }}/snapshots" \
+            "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID/snapshots" \
             -H "Authorization: Bearer $NEON_API_KEY" -H "Accept: application/json")
           echo "http_status=$code"
           cat /tmp/snapshots.json
@@ -133,11 +148,17 @@ jobs:
 
       - name: Snapshot create
         if: inputs.operation == 'snapshot-create'
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          NEON_API_BASE: https://console.neon.tech/api/v2
+          BRANCH_ID: ${{ inputs.branch_id }}
+          CONFIRM: ${{ inputs.confirm }}
         run: |
           set -euo pipefail
-          [[ "${{ inputs.confirm }}" == "true" ]] || { echo "snapshot-create exige confirm=true." >&2; exit 1; }
+          [[ "$CONFIRM" == "true" ]] || { echo "snapshot-create exige confirm=true." >&2; exit 1; }
           code=$(curl -sS -o /tmp/snapshot-create.json -w "%{http_code}" -X POST \
-            "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/${{ inputs.branch_id }}/snapshots" \
+            "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID/snapshots" \
             -H "Authorization: Bearer $NEON_API_KEY" -H "Accept: application/json" \
             -H "Content-Type: application/json" -d '{}')
           echo "http_status=$code"
