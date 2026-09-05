@@ -94,10 +94,18 @@ jobs:
           NEON_API_BASE: https://console.neon.tech/api/v2
         run: |
           set -euo pipefail
-          curl -sfS "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches" \
-            -H "Authorization: Bearer $NEON_API_KEY" \
-            -H "Accept: application/json" \
-            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);for(const b of j.branches??[]){console.log([b.id,b.name,b.primary?'primary':'',b.created_at].join(' | '))}})"
+          node --input-type=module <<'NODE'
+          const base = process.env.NEON_API_BASE;
+          const projectId = process.env.NEON_PROJECT_ID;
+          const response = await fetch(`${base}/projects/${projectId}/branches`, {
+            headers: { Authorization: `Bearer ${process.env.NEON_API_KEY}`, Accept: "application/json" },
+          });
+          if (!response.ok) throw new Error(`list-branches HTTP ${response.status}`);
+          const payload = await response.json();
+          for (const branch of payload.branches ?? []) {
+            console.log([branch.id, branch.name, branch.primary ? "primary" : "", branch.created_at].join(" | "));
+          }
+          NODE
 
       - name: Create drill branch from production
         if: inputs.operation == 'create-drill-branch'
@@ -139,12 +147,16 @@ jobs:
           BRANCH_ID: ${{ inputs.branch_id }}
         run: |
           set -euo pipefail
-          code=$(curl -sS -o /tmp/snapshots.json -w "%{http_code}" \
-            "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID/snapshots" \
-            -H "Authorization: Bearer $NEON_API_KEY" -H "Accept: application/json")
-          echo "http_status=$code"
-          cat /tmp/snapshots.json
-          # 404/400 aqui é evidência de que o plano não expõe snapshots nativos.
+          node --input-type=module <<'NODE'
+          const base = process.env.NEON_API_BASE;
+          const url = `${base}/projects/${process.env.NEON_PROJECT_ID}/branches/${process.env.BRANCH_ID}/snapshots`;
+          const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${process.env.NEON_API_KEY}`, Accept: "application/json" },
+          });
+          // 404/400 aqui é evidência de que o plano não expõe snapshots nativos.
+          console.log(`http_status=${response.status}`);
+          console.log(JSON.stringify(await response.json(), null, 2));
+          NODE
 
       - name: Snapshot create
         if: inputs.operation == 'snapshot-create'
@@ -157,9 +169,18 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$CONFIRM" == "true" ]] || { echo "snapshot-create exige confirm=true." >&2; exit 1; }
-          code=$(curl -sS -o /tmp/snapshot-create.json -w "%{http_code}" -X POST \
-            "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID/snapshots" \
-            -H "Authorization: Bearer $NEON_API_KEY" -H "Accept: application/json" \
-            -H "Content-Type: application/json" -d '{}')
-          echo "http_status=$code"
-          cat /tmp/snapshot-create.json
+          node --input-type=module <<'NODE'
+          const base = process.env.NEON_API_BASE;
+          const url = `${base}/projects/${process.env.NEON_PROJECT_ID}/branches/${process.env.BRANCH_ID}/snapshots`;
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.NEON_API_KEY}`,
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: "{}",
+          });
+          console.log(`http_status=${response.status}`);
+          console.log(JSON.stringify(await response.json(), null, 2));
+          NODE
