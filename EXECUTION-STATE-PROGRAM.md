@@ -1098,3 +1098,11 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **A1 (sandbox `br-summer-dream-ayewlgx2`): AGENDADO** — aguarda o workflow
   `neon-drill-ops` (PR #30) ser despachável em `main`; evidência de antes/depois
   entra no relatório consolidado da rodada.
+
+## Pré-A4 — segurança executada, credenciais no emissor ainda pendentes (2026-09-05)
+
+- Latest state marker parent = `53db301d2deedb4e05bbdd99a636f8c2cf4ed674`
+- A1: sandbox `br-summer-dream-ayewlgx2` destruído com listas antes/depois; A2: arquivo local ausente, revogação não comprovada, DB-02/SEC-01 seguem abertos.
+- `m02:secrets-audit` cobre env variantes/nested, distingue referências exatas e declara exclusões. Inventário: 39 definições, 28 consumidores lexicais, 11 para revisão, zero candidatos literais no escopo, nenhuma conclusão de liveness.
+- Verificação local: `npm run check` PASS (357 testes); matrix/boundaries PASS. Artefatos em `docs/evidence/pre-a4-2026-09-05/implementation/security.md`. Prova local não equivale a CI/revogação/cutover.
+- ESTADO DO SUBSTRATO: Tráfego não existe segundo ledger; Neon production preservada nesta etapa; Paridade DESCONHECIDO/G1 pendente; Blockers DB-01, DB-02/SEC-01, BAK-01, G1/G2, hPanel, Sonar.
