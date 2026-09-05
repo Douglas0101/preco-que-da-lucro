@@ -1098,3 +1098,12 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   serviço Neon); RPO/RTO observados válidos apenas para o volume atual.
 - Falha intermediária documentada: `SET ROLE neon_service` → corrigida com
   `--no-owner --no-privileges` (1 falha, sem contorno de protocolo).
+
+## Pré-A4 — snapshot e restore nativo reconciliados (2026-09-05)
+
+- Latest state marker parent = `dbdde7adee6e6e2fcadd64d3e575ada30f78644e`
+- Snapshot `snap-tiny-smoke-ayc382ji`, origem production `br-snowy-violet-aymcvvvv`, criado 22:37:46Z, validade 2026-10-10. Restore isolado `br-floral-pond-ayltjy2t`; sem finalize sobre origem.
+- `m02:backup-verify`: PASS, 27 tabelas contagens/checksums, 11/11 migrations, catálogo e roles iguais. Identidade validada pelo servidor. Prova registrada em `docs/evidence/pre-a4-2026-09-05/implementation/backup.md` e JSON; recursos efêmeros terão cleanup após os drills.
+- BAK-01 continua ABERTA: dump semanal não prova RPO, restore sem grants não prova privilégios e a prova nativa não substitui backup independente. Política histórica e veredito §42 corrigidos sem apagar histórico.
+- Local: `npm run check` PASS (360 testes); matriz regenerada devido ao novo teste e boundaries PASS. CI e publicação ainda devem ser verificados no SHA publicado.
+- ESTADO DO SUBSTRATO: Tráfego inexistente no ledger; Neon com snapshot e restore reconciliado, ainda fixture; Paridade DESCONHECIDO/G1 pendente; Blockers DB-01, DB-02/SEC-01, BAK-01 operacional, G1/G2, hPanel, Sonar.
