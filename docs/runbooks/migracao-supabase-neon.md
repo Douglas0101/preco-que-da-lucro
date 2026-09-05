@@ -85,6 +85,57 @@ Repita com `MIGRATION_APPLY=true` somente em uma branch Neon descartável ou no 
 8. Executar `/api/health/live`, `/api/health/ready`, login, CRUD tenant-scoped, chat e smoke financeiro ainda sem liberar escrita pública.
 9. Liberar escrita no Neon e monitorar autenticação, erros por código, latência DB/IA e cálculos inválidos/incompletos.
 
+## Vigilância pós-deploy (A5) e KPIs B3
+
+> Adendos de 2026-09-05 (auditoria de substrato,
+> `docs/evidence/substrato-2026-09-05/report.md`). O deploy A4 metade 2 ainda não
+> ocorreu; esta seção define as checagens antes do primeiro tráfego real.
+
+### Checagens 0h (registro imediato pós-smoke)
+
+- `deployed_at` e `smoke_passed_at` registrados no ledger (UTC).
+- `npm run smoke:substrate` verde contra o Neon de produção (read-only):
+  major 17, journal/hashes reconciliados, `app_runtime` sem superuser/BYPASSRLS,
+  RLS ativa nas tabelas de tenant, `issuer IS NULL` = 0.
+- `GET /api/health/live` e `/api/health/ready` → 200 via URL pública.
+- Login com conta controlada pelo operador; senha errada rejeitada;
+  logout/relogin; acesso sem sessão bloqueado.
+- Versão better-auth atendendo tráfego confirmada (1.7.x exige issuer preenchido).
+
+### Checagens 24h
+
+- Zero spike de 401 pós-deploy; contagens de `rate_limits`/429 sem anomalia.
+- Contas novas: issuers esperados; nenhuma linha com issuer nulo.
+- Erros por código, latência DB (`app.context_tx`, métricas `app.*`) sem
+  regressão versus o smoke.
+- Sem incidente P0/P1 no ledger.
+
+### Checagens 72h
+
+- Mesmos indicadores de 24h, janela completa.
+- Reconciliação contábil leve (contagens por tabela sem divergência inexplicada).
+- Decisão documentada: manter Neon como destino único; origem Supabase
+  permanece congelada (retenção ADR-021 §9).
+
+### Critérios de abort
+
+Qualquer um dos itens aborta a janela A5 e dispara rollback pelo runbook:
+
+- erro financeiro crítico ou cross-tenant observado em produção;
+- `ready` 5xx sustentado (> 15 min) com banco acessível;
+- spike de 401 pós-deploy indicando sessão/issuer quebrados;
+- divergência de contagem inexplicada em tabela financeira;
+- falha no `smoke:substrate` em qualquer reexecução da janela.
+
+### KPIs B3 — baseline
+
+Não existe baseline do Supabase: a origem nunca serviu tráfego oficial e não há
+janela de medição pré-cutover. Por spec (M02-D-008), o baseline é
+**não mensurável (amostra zero)** — nenhuma taxa zero é inventada. B3 compara a
+janela pós-deploy contra os limites do Plano Mestre §46 e o error budget §30,
+com ambiente, versão, amostra e cobertura temporal identificados (§6 do relatório
+`checagens-pos-publicacao-2026-09-05`).
+
 ## Rollback
 
 - Antes de escrita no Neon: restaurar os secrets/runtime Supabase e retirar manutenção.
