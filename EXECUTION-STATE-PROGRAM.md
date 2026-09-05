@@ -1024,3 +1024,53 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   `docs/evidence/checagens-pos-publicacao-2026-09-05/report.md`, com JSON, SELECT
   reproduzível e manifesto de integridade. Sem mudança de código, workflow,
   migration, refs Git ou dados de produção; arquivos preexistentes preservados.
+
+---
+
+## Auditoria de substrato Supabase→Neon — SDD — 2026-09-05
+
+- Latest state marker parent = `26e4bcafe4d8a0a1f2cdb8db92f335330c5e8e28`
+  (commit de artefatos da auditoria em `audit/substrato-2026-09-05`).
+- **Veredito Leitura A/B:** nem A nem B como formuladas — **não existe runtime
+  em tráfego** (Hostinger sem plano ativo, 0/11 hPanel); o substrato de dados
+  vivo é o Neon production (`damp-forest-57346541`, PG 17.11, journal 11/11
+  hashes reconciliados, última aplicação 2026-09-02T03:35Z); as "4 contas" são
+  **fixture E2E/probe de 2026-08-30** (u2/u3 probe + qa.local.admin ×2, "Tenant
+  E2E"), com 1 produto de teste, 2 despesas, 1 conversa e 2 sessões — zero
+  usuário real. Cutover = **primeiro deploy**, não troca em vivo. Evidência:
+  `docs/evidence/substrato-2026-09-05/report.md`.
+- **Classificações:** CONFORME (journal/hashes, runtime sem Supabase, issuer=0);
+  GAP-DOC ×3 → emendas `M02-D-006` (Storage sem sucedente/cláusula), `M02-D-007`
+  (Realtime sem cláusula; chat é request/response), `M02-D-008` (paridade
+  condicional a decisão de origem; fixture no destino); VIOLAÇÃO ×2 → **DB-01**
+  (fixture no production; fase-alvo pré-A4, guard do down 0010 recontada após
+  limpeza) e **DB-02** (credenciais live órfãs em `neon-storage.env`; revogação
+  ou ratificação pré-produção); FALSO-ALARME ×2 (vars SUPABASE_* residuais;
+  premissa "4 contas em tráfego"); DESCONHECIDO legítimo ×4 (origem Supabase,
+  config de tráfego N/A, backup/restore §42, Sonar main neutral).
+- **Artefatos spec-first:** `npm run smoke:substrate`
+  (`scripts/smoke/substrate-smoke.ts`, read-only) — execução contra produção
+  2026-09-05T19:00:40Z: **PASS 6/6** (major 17, journal count+hashes,
+  app_runtime sem superuser/BYPASSRLS, RLS em 20 tabelas tenant, issuer IS NULL
+  = 0). Runbook A5 (0h/24h/72h + 5 critérios de abort) e baseline B3 declarado
+  **não mensurável (amostra zero)** em `docs/runbooks/migracao-supabase-neon.md`.
+- **Drill rollback 0010 em sandbox:** branch `sandbox-drill-down-0010-20260905`
+  (`br-summer-dream-ayewlgx2`, cópia da production, criada 2026-09-05T18:55:37Z);
+  down → raio **4/4 contas** (confirma que o down NÃO é no-op); forward
+  idempotente → **4/4 reconciliadas**. Produção intocada. Sandbox aguarda
+  destruição (operação destrutiva condicionada a autorização do operador).
+- **BLOCKER-EXT-01:** pedido de acesso hPanel redigido
+  (`docs/evidence/substrato-2026-09-05/hpanel-request.md`) com escopo exato
+  (deploy, env, logs, restart, confirmação negativa de DB local) e prazo 3 dias
+  úteis. Caminho crítico: pré-A4 (DB-01 + M02-D-008 + §42) → A4 → A5 → B3 → B4
+  ≈ 11–18 dias úteis pós-desbloqueio; recomendação de change freeze de deploys
+  durante A5/B3 contra os refactors M02-2/3/4.
+- Matriz de prontidão: schema PRONTO · dados PRONTO-COM-EXCEÇÕES (DB-01,
+  paridade condicional) · auth PRONTO-COM-EXCEÇÕES (smoke produtivo pendente) ·
+  storage NÃO-INICIADO (EM-01) · realtime PRONTO-COM-EXCEÇÕES (M-08 pendente) ·
+  config/infra DESCONHECIDO (sem deploy; §42 aberto).
+- Gates desta rodada: `npm run check` PASS (full), typecheck/lint PASS,
+  `format:check` PASS sobre artefatos novos; `m02:matrix:check`,
+  `m02:boundaries`, `m02:state:check` reexecutados pós-commit do ledger.
+- Pendências inalteradas: A4 metade 2, A5, B3/B4, Fase C; novos pré-requisitos
+  pré-A4: DB-01, DB-02, M02-D-008, snapshot/restore §42, destruição do sandbox.
