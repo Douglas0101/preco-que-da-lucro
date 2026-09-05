@@ -69,19 +69,21 @@ function consumersOf(name: string): string[] {
   if (!isValidKeyName(name)) return [];
   try {
     // S4036: resolve "git" only in fixed, system-owned directories.
-    return execFileSync("git", ["grep", "-l", "-F", "-e", name, "--", "."], {
-      cwd: repositoryRoot,
-      encoding: "utf8",
-      env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
-    })
-      .trim()
-      .split("\n")
-      .filter(Boolean)
-      .filter((path) => path !== "package-lock.json")
-      // A saída JSON desta ferramenta menciona todos os nomes; excluí-la evita
-      // auto-referência que mascararia órfãos reais como "docs-only".
-      .filter((path) => !/^docs\/evidence\/.+\/secrets-audit\.json$/.test(path))
-      .sort((a, b) => a.localeCompare(b));
+    return (
+      execFileSync("git", ["grep", "-l", "-F", "-e", name, "--", "."], {
+        cwd: repositoryRoot,
+        encoding: "utf8",
+        env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
+      })
+        .trim()
+        .split("\n")
+        .filter(Boolean)
+        .filter((path) => path !== "package-lock.json")
+        // A saída JSON desta ferramenta menciona todos os nomes; excluí-la evita
+        // auto-referência que mascararia órfãos reais como "docs-only".
+        .filter((path) => !/^docs\/evidence\/.+\/secrets-audit\.json$/.test(path))
+        .sort((a, b) => a.localeCompare(b))
+    );
   } catch {
     return [];
   }
