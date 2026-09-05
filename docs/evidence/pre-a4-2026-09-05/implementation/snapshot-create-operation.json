@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\n  \"id\": \"snap-tiny-smoke-ayc382ji\",\n  \"name\": \"pre-a4-prepurge-20260905\",\n  \"source_branch_id\": \"br-snowy-violet-aymcvvvv\",\n  \"created_at\": \"2026-09-05T22:37:46Z\",\n  \"expires_at\": \"2026-10-10T23:59:59Z\",\n  \"manual\": true\n}"
+    }
+  ],
+  "isError": false
+}

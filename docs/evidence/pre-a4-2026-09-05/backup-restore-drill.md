@@ -1,3 +1,5 @@
+> CORREÇÃO 2026-09-05: drill histórico parcial. Duração de dump não mede RPO; ownership/GRANTs não foram provados. Ver `implementation/backup.md` e a prova nativa subsequente.
+
 # Drill de backup/restore §42 — 2026-09-05
 
 - **Rodada:** pré-A4 burn-down · **Script:** `scripts/db/backup-verify.ts` (`npm run m02:backup-verify`) · **JSON:** `backup-restore-drill.json` (neste diretório)

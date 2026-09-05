@@ -1,3 +1,5 @@
+> SUPERSEDIDA em 2026-09-05: esta proposta histórica não comprova RPO nem conformidade integral. A política corrigida está em `../evidence/pre-a4-2026-09-05/implementation/backup.md`.
+
 # Emenda de política BAK-01 — backup/restore pré-A4
 
 - **Data:** 2026-09-05 · **Tipo:** VIOLAÇÃO → exceção com controles compensatórios + emenda normativa · **Estado:** ATIVA (exceção) / VIGENTE (política)
