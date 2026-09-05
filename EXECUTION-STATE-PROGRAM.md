@@ -1074,3 +1074,27 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   `m02:boundaries`, `m02:state:check` reexecutados pós-commit do ledger.
 - Pendências inalteradas: A4 metade 2, A5, B3/B4, Fase C; novos pré-requisitos
   pré-A4: DB-01, DB-02, M02-D-008, snapshot/restore §42, destruição do sandbox.
+
+---
+
+## Rodada pré-A4 — higiene de segurança (DB-02, SEC-01) — 2026-09-05
+
+- Latest state marker parent = `b970c8230a5bd63bcc49d618dcd3303dd9c51484`
+  (merge do PR #29 — auditoria de substrato — em develop).
+- **DB-02 (arquivo): RESOLVIDO.** `neon-storage.env` (5 chaves: AWS_* S3-compatible
+  - OPENAI_API_KEY) comprovadamente sem consumidor em código/CI
+    (`npm run m02:secrets-audit`: 24 definidos · 8 consumer · 2 docs-only · 14
+    órfãos) e **removido do disco em 2026-09-05T19:58:45Z**. Evidência
+    antes/depois: `docs/evidence/pre-a4-2026-09-05/secrets-hygiene.md`.
+    **Revogação no emissor: pendente-humano** (console OpenAI + provedor S3
+    identificado por `AWS_ENDPOINT_URL_S3`) → exceção **SEC-01** até confirmação.
+- **Script novo:** `m02:secrets-audit` (`scripts/m02-secrets-audit.ts`,
+  read-only) — inventário segredo→consumidor com flag de órfãos.
+- Classificações da rodada: `SUPABASE_*`/`VITE_SUPABASE_*` residuais =
+  FALSO-ALARME (limpeza local recomendada); `NEON_AUTH_*` = docs-only;
+  `NEON_BRANCH`/`NEON_DATA_API_URL` = órfãos (limpeza local);
+  `DATABASE_URL_UNPOOLED` = FALSO-ALARME (URL direct de operador, ADR-019).
+  GitHub Secrets contém apenas `NEON_API_KEY`; var `NEON_PROJECT_ID` ok.
+- **A1 (sandbox `br-summer-dream-ayewlgx2`): AGENDADO** — aguarda o workflow
+  `neon-drill-ops` (PR #30) ser despachável em `main`; evidência de antes/depois
+  entra no relatório consolidado da rodada.
