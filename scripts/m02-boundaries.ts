@@ -87,6 +87,9 @@ const missingCatalogPaths = Object.values({
   ...matrix.policy.catalog.services,
   ...matrix.policy.catalog.repositories,
 })
+  // contract-only entries are forward declarations for M-04/M-05; the spec
+  // keeps their implementations in those modules, so the files do not exist yet.
+  .filter((entry) => entry.status !== "contract-only")
   .map((entry) => entry.path)
   .filter((path) => !existsSync(resolve(repositoryRoot, path)));
 const computedCounts = {

@@ -60,6 +60,14 @@ rate-limit e migrations/scripts. Server functions de domínio, services e tools 
 não podem importar Drizzle/schema diretamente. Clientes externos de IA não recebem
 permissão de persistência; gravações passam por services/repositories.
 
+> **Registro transitório (2026-09-05):** o código shipado pelas waves PERF/FIN +
+> wave1 diverge desta regra em 11 arestas BFF→DB, cobertas por exceções
+> `transient-*` documentadas em `excecoes.md` (§ Estado transitório aprovado) e no
+> overlay, cada uma com fase-alvo de remoção (M02-2/3/4). Esta spec permanece
+> DRAFT; a regra normativa acima continua sendo o alvo e nenhuma exceção
+> transitória autoriza novos acessos. Evidência:
+> `docs/evidence/m02-boundaries-2026-09-05.md`.
+
 ## Contrato financeiro
 
 - dinheiro: `Decimal` no domínio e `DecimalString` em DTO/DB, escala 4;
