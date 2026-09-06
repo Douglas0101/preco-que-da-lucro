@@ -1,0 +1,70 @@
+{
+  "check": "m02:backup-verify",
+  "started_at": "2026-09-05T20:24:20.645Z",
+  "finished_at": "2026-09-05T20:26:44.021Z",
+  "result": "PASS",
+  "production_db": "neondb",
+  "scratch_db": "drill_restore_20260905202420",
+  "artifact_dir": "/home/douglas-souza/preco-que-d-main/.artifacts/backup-drill/20260905202420",
+  "restore_flags": "--no-owner --no-privileges",
+  "limits": "Cobre dados, journal de migrations, RLS flags, policies e constraints. Ownership e GRANTs não são restaurados (--no-owner --no-privileges) porque objetos internos Neon pertencem a roles de serviço (ex.: neon_service).",
+  "phases": [
+    {
+      "name": "source-inventory",
+      "status": "PASS",
+      "duration_ms": 11129,
+      "detail": {
+        "tables": 27,
+        "journal_entries": 11
+      }
+    },
+    {
+      "name": "pg-dump",
+      "status": "PASS",
+      "duration_ms": 26091,
+      "detail": {
+        "bytes": 135416,
+        "sha256": "f5659573fb0ae9229844e51204634d3350d6bd691cffc2d01ca2c31026541893"
+      }
+    },
+    {
+      "name": "scratch-create",
+      "status": "PASS",
+      "duration_ms": 331,
+      "detail": {
+        "scratch": "drill_restore_20260905202420"
+      }
+    },
+    {
+      "name": "pg-restore",
+      "status": "PASS",
+      "duration_ms": 95307,
+      "detail": {
+        "scratch": "drill_restore_20260905202420"
+      }
+    },
+    {
+      "name": "verify",
+      "status": "PASS",
+      "duration_ms": 9441,
+      "detail": {
+        "tables_compared": 27,
+        "journal_reconciled": "11/11",
+        "rls": {
+          "tenant_tables": 20,
+          "rls_enabled": 20,
+          "policies": 25
+        }
+      }
+    },
+    {
+      "name": "scratch-drop",
+      "status": "PASS",
+      "duration_ms": 1077,
+      "detail": {
+        "dropped": "drill_restore_20260905202420",
+        "restored_before_drop": true
+      }
+    }
+  ]
+}
