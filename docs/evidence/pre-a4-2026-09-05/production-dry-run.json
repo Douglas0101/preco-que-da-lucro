@@ -1,0 +1,37 @@
+{
+  "check": "db:purge-fixtures",
+  "mode": "DRY-RUN",
+  "started_at": "2026-09-06T02:01:34.088Z",
+  "finished_at": "2026-09-06T02:01:39.856Z",
+  "fixture_marker": "@preco-que-da.test",
+  "fixture_users": [
+    {
+      "id": "U5hyhD2sWlMWMGgvtxJKGkuZlDCyxqJC",
+      "email": "u2.probe@preco-que-da.test"
+    },
+    {
+      "id": "O0vTR4Z0QUnfg2ibxkBhJLg1dme76wQa",
+      "email": "u3.probe@preco-que-da.test"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "email": "qa.local.admin@preco-que-da.test"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "email": "qa.local.admin+member@preco-que-da.test"
+    }
+  ],
+  "fixture_tenant_ids": [
+    "00000000-0000-4000-8000-000000000002",
+    "3fa67f25-3e15-46a0-a2c4-abafd07f17f5",
+    "dcddd3e8-3859-421a-ba9b-818e0f38bd3b"
+  ],
+  "non_fixture_user_count": 0,
+  "deleted": {},
+  "post": {
+    "fixture_users_remaining": 4,
+    "fixture_tenants_remaining": 3,
+    "users_total_remaining": 4
+  }
+}

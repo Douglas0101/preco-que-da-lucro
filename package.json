@@ -22,6 +22,9 @@
     "m02:matrix:check": "tsx scripts/m02-matrix.ts --check",
     "m02:boundaries": "tsx scripts/m02-boundaries.ts",
     "m02:state:check": "tsx scripts/m02-state-check.ts",
+    "m02:secrets-audit": "tsx scripts/m02-secrets-audit.ts",
+    "m02:backup-verify": "tsx scripts/db/backup-verify.ts",
+    "db:purge-fixtures": "tsx scripts/db/purge-fixtures.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -37,6 +40,7 @@
     "test:e2e:hygiene": "bash scripts/e2e-hygiene.sh",
     "check:ui-stack": "node scripts/check-ui-stack.mjs",
     "check:no-supabase-runtime": "node scripts/check-no-supabase-runtime.mjs",
+    "smoke:substrate": "tsx scripts/smoke/substrate-smoke.ts",
     "check:bundle": "node scripts/check-bundle.mjs",
     "check:hostinger-runtime": "node scripts/check-hostinger-runtime.mjs",
     "check": "npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle"

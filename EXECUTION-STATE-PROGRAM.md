@@ -1024,3 +1024,205 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   `docs/evidence/checagens-pos-publicacao-2026-09-05/report.md`, com JSON, SELECT
   reproduzível e manifesto de integridade. Sem mudança de código, workflow,
   migration, refs Git ou dados de produção; arquivos preexistentes preservados.
+
+---
+
+## Auditoria de substrato Supabase→Neon — SDD — 2026-09-05
+
+- Latest state marker parent = `26e4bcafe4d8a0a1f2cdb8db92f335330c5e8e28`
+  (commit de artefatos da auditoria em `audit/substrato-2026-09-05`).
+- **Veredito Leitura A/B:** nem A nem B como formuladas — **não existe runtime
+  em tráfego** (Hostinger sem plano ativo, 0/11 hPanel); o substrato de dados
+  vivo é o Neon production (`damp-forest-57346541`, PG 17.11, journal 11/11
+  hashes reconciliados, última aplicação 2026-09-02T03:35Z); as "4 contas" são
+  **fixture E2E/probe de 2026-08-30** (u2/u3 probe + qa.local.admin ×2, "Tenant
+  E2E"), com 1 produto de teste, 2 despesas, 1 conversa e 2 sessões — zero
+  usuário real. Cutover = **primeiro deploy**, não troca em vivo. Evidência:
+  `docs/evidence/substrato-2026-09-05/report.md`.
+- **Classificações:** CONFORME (journal/hashes, runtime sem Supabase, issuer=0);
+  GAP-DOC ×3 → emendas `M02-D-006` (Storage sem sucedente/cláusula), `M02-D-007`
+  (Realtime sem cláusula; chat é request/response), `M02-D-008` (paridade
+  condicional a decisão de origem; fixture no destino); VIOLAÇÃO ×2 → **DB-01**
+  (fixture no production; fase-alvo pré-A4, guard do down 0010 recontada após
+  limpeza) e **DB-02** (credenciais live órfãs em `neon-storage.env`; revogação
+  ou ratificação pré-produção); FALSO-ALARME ×2 (vars SUPABASE_* residuais;
+  premissa "4 contas em tráfego"); DESCONHECIDO legítimo ×4 (origem Supabase,
+  config de tráfego N/A, backup/restore §42, Sonar main neutral).
+- **Artefatos spec-first:** `npm run smoke:substrate`
+  (`scripts/smoke/substrate-smoke.ts`, read-only) — execução contra produção
+  2026-09-05T19:00:40Z: **PASS 6/6** (major 17, journal count+hashes,
+  app_runtime sem superuser/BYPASSRLS, RLS em 20 tabelas tenant, issuer IS NULL
+  = 0). Runbook A5 (0h/24h/72h + 5 critérios de abort) e baseline B3 declarado
+  **não mensurável (amostra zero)** em `docs/runbooks/migracao-supabase-neon.md`.
+- **Drill rollback 0010 em sandbox:** branch `sandbox-drill-down-0010-20260905`
+  (`br-summer-dream-ayewlgx2`, cópia da production, criada 2026-09-05T18:55:37Z);
+  down → raio **4/4 contas** (confirma que o down NÃO é no-op); forward
+  idempotente → **4/4 reconciliadas**. Produção intocada. Sandbox aguarda
+  destruição (operação destrutiva condicionada a autorização do operador).
+- **BLOCKER-EXT-01:** pedido de acesso hPanel redigido
+  (`docs/evidence/substrato-2026-09-05/hpanel-request.md`) com escopo exato
+  (deploy, env, logs, restart, confirmação negativa de DB local) e prazo 3 dias
+  úteis. Caminho crítico: pré-A4 (DB-01 + M02-D-008 + §42) → A4 → A5 → B3 → B4
+  ≈ 11–18 dias úteis pós-desbloqueio; recomendação de change freeze de deploys
+  durante A5/B3 contra os refactors M02-2/3/4.
+- Matriz de prontidão: schema PRONTO · dados PRONTO-COM-EXCEÇÕES (DB-01,
+  paridade condicional) · auth PRONTO-COM-EXCEÇÕES (smoke produtivo pendente) ·
+  storage NÃO-INICIADO (EM-01) · realtime PRONTO-COM-EXCEÇÕES (M-08 pendente) ·
+  config/infra DESCONHECIDO (sem deploy; §42 aberto).
+- Gates desta rodada: `npm run check` PASS (full), typecheck/lint PASS,
+  `format:check` PASS sobre artefatos novos; `m02:matrix:check`,
+  `m02:boundaries`, `m02:state:check` reexecutados pós-commit do ledger.
+- Pendências inalteradas: A4 metade 2, A5, B3/B4, Fase C; novos pré-requisitos
+  pré-A4: DB-01, DB-02, M02-D-008, snapshot/restore §42, destruição do sandbox.
+
+---
+
+## Rodada pré-A4 — higiene de segurança (DB-02, SEC-01) — 2026-09-05
+
+- Latest state marker parent = `b970c8230a5bd63bcc49d618dcd3303dd9c51484`
+  (merge do PR #29 — auditoria de substrato — em develop).
+- **DB-02 (arquivo): RESOLVIDO.** `neon-storage.env` (5 chaves: AWS_* S3-compatible
+  - OPENAI_API_KEY) comprovadamente sem consumidor em código/CI
+    (`npm run m02:secrets-audit`: 24 definidos · 8 consumer · 2 docs-only · 14
+    órfãos) e **removido do disco em 2026-09-05T19:58:45Z**. Evidência
+    antes/depois: `docs/evidence/pre-a4-2026-09-05/secrets-hygiene.md`.
+    **Revogação no emissor: pendente-humano** (console OpenAI + provedor S3
+    identificado por `AWS_ENDPOINT_URL_S3`) → exceção **SEC-01** até confirmação.
+- **Script novo:** `m02:secrets-audit` (`scripts/m02-secrets-audit.ts`,
+  read-only) — inventário segredo→consumidor com flag de órfãos.
+- Classificações da rodada: `SUPABASE_*`/`VITE_SUPABASE_*` residuais =
+  FALSO-ALARME (limpeza local recomendada); `NEON_AUTH_*` = docs-only;
+  `NEON_BRANCH`/`NEON_DATA_API_URL` = órfãos (limpeza local);
+  `DATABASE_URL_UNPOOLED` = FALSO-ALARME (URL direct de operador, ADR-019).
+  GitHub Secrets contém apenas `NEON_API_KEY`; var `NEON_PROJECT_ID` ok.
+- **A1 (sandbox `br-summer-dream-ayewlgx2`): AGENDADO** — aguarda o workflow
+  `neon-drill-ops` (PR #30) ser despachável em `main`; evidência de antes/depois
+  entra no relatório consolidado da rodada.
+
+## Pré-A4 — segurança executada, credenciais no emissor ainda pendentes (2026-09-05)
+
+- Latest state marker parent = `53db301d2deedb4e05bbdd99a636f8c2cf4ed674`
+- A1: sandbox `br-summer-dream-ayewlgx2` destruído com listas antes/depois; A2: arquivo local ausente, revogação não comprovada, DB-02/SEC-01 seguem abertos.
+- `m02:secrets-audit` cobre env variantes/nested, distingue referências exatas e declara exclusões. Inventário: 39 definições, 28 consumidores lexicais, 11 para revisão, zero candidatos literais no escopo, nenhuma conclusão de liveness.
+- Verificação local: `npm run check` PASS (357 testes); matrix/boundaries PASS. Artefatos em `docs/evidence/pre-a4-2026-09-05/implementation/security.md`. Prova local não equivale a CI/revogação/cutover.
+- ESTADO DO SUBSTRATO: Tráfego não existe segundo ledger; Neon production preservada nesta etapa; Paridade DESCONHECIDO/G1 pendente; Blockers DB-01, DB-02/SEC-01, BAK-01, G1/G2, hPanel, Sonar.
+
+## Rodada pré-A4 — §42 backup/restore comprovado (BAK-01) — 2026-09-05
+
+- Latest state marker parent = `b970c8230a5bd63bcc49d618dcd3303dd9c51484`
+  (merge do PR #29 em develop; base desta branch).
+- **§42 classificado: VIOLAÇÃO de SDD §2446** (PITR ≥ 7 dias indisponível:
+  retenção 6 h + zero snapshots) → exceção **BAK-01** com controles
+  compensatórios + emenda de política vigente
+  (`docs/decision-briefs/2026-09-05-bak-01-backup-restore-policy.md`):
+  snapshot externo pré-deploy obrigatório, restore drill comprovado, cadência
+  semanal manual até o plano suportar PITR ≥ 7 d.
+- **Drill executado e verde** (`npm run m02:backup-verify`, script novo
+  `scripts/db/backup-verify.ts`): dump custom 135.416 bytes
+  (sha256 f5659573…) → restore em banco efêmero `drill_restore_20260905202420`
+  (95,3 s, `--no-owner --no-privileges`) → verificação 27/27 contagens,
+  journal 11/11 hashes, RLS 20/20 tabelas tenant + 25 policies → scratch
+  destruído. Evidência: `docs/evidence/pre-a4-2026-09-05/backup-restore-drill.{md,json}`.
+  Este dump é a rede de segurança que autoriza o purge DB-01 (A3).
+- Limite registrado: ownership/GRANTs fora do escopo do restore (roles de
+  serviço Neon); RPO/RTO observados válidos apenas para o volume atual.
+- Falha intermediária documentada: `SET ROLE neon_service` → corrigida com
+  `--no-owner --no-privileges` (1 falha, sem contorno de protocolo).
+
+## Pré-A4 — snapshot e restore nativo reconciliados (2026-09-05)
+
+- Latest state marker parent = `dbdde7adee6e6e2fcadd64d3e575ada30f78644e`
+- Snapshot `snap-tiny-smoke-ayc382ji`, origem production `br-snowy-violet-aymcvvvv`, criado 22:37:46Z, validade 2026-10-10. Restore isolado `br-floral-pond-ayltjy2t`; sem finalize sobre origem.
+- `m02:backup-verify`: PASS, 27 tabelas contagens/checksums, 11/11 migrations, catálogo e roles iguais. Identidade validada pelo servidor. Prova registrada em `docs/evidence/pre-a4-2026-09-05/implementation/backup.md` e JSON; recursos efêmeros terão cleanup após os drills.
+- BAK-01 continua ABERTA: dump semanal não prova RPO, restore sem grants não prova privilégios e a prova nativa não substitui backup independente. Política histórica e veredito §42 corrigidos sem apagar histórico.
+- Local: `npm run check` PASS (360 testes); matriz regenerada devido ao novo teste e boundaries PASS. CI e publicação ainda devem ser verificados no SHA publicado.
+- ESTADO DO SUBSTRATO: Tráfego inexistente no ledger; Neon com snapshot e restore reconciliado, ainda fixture; Paridade DESCONHECIDO/G1 pendente; Blockers DB-01, DB-02/SEC-01, BAK-01 operacional, G1/G2, hPanel, Sonar.
+
+## Pré-A4 — DB-01 verificação independente e publicação (2026-09-06)
+
+- Latest state marker parent = `b735b79206fcab2bd8b56214a797fce4e619e567`
+  (tip de `origin/develop`; branch `chore/pre-a4-db01-purge-guard` sem commits locais,
+  só working tree da rodada).
+- **Cronologia snapshot → purge (A3 CONFORME):** snapshot nativo
+  `snap-tiny-smoke-ayc382ji` criado 2026-09-05T22:37:46Z (validade 2026-10-10) +
+  dump externo `.artifacts/purge-drill/20260906T015217Z/dump.pgc` (135.416 B,
+  sha256 `1e7aa351…`, 2026-09-06T01:52:17Z) → rehearsal scratch 02:00:29Z →
+  production dry-run 02:01:34Z (`non_fixture_user_count: 0`) → production APPLY
+  02:01:52–02:02:04Z (34 linhas, `users_total_remaining: 0`) → smoke 02:02:46Z
+  PASS 7/7. Nenhum APPLY novo nesta rodada (A3: verificação + publicação).
+- **Incidente da guard 0010 — local esclarecido:** a 1ª versão da guarda (RAISE sem
+  transação única) foi derrotada em **scratch local** (`drill_purge`, rehearsal §2):
+  `psql` em autocommit executou `UPDATE 4` após a exceção. Achado de drill, nunca
+  executado em produção (o arquivo de rollback jamais rodou no Neon production).
+  Correção: guarda + down em `BEGIN…COMMIT` único. Segunda falha intermediária
+  (placeholders `$2`/`$3` sem `$1`) idem em scratch, transação com rollback íntegro.
+- **Guard recalibrada:** `count(accounts) > 0 → RAISE EXCEPTION` + rollback da
+  transação; com zero contas o down é no-op e o forward 0010 idempotente
+  (`UPDATE 0`/`UPDATE 0` em scratch). Execução automática proibida; rollback de
+  issuer pós-tráfego = restore de snapshot (BAK-01). Racional documentado no
+  próprio arquivo: após o purge, qualquer conta é tráfego real (better-auth 1.7.x
+  exige issuer).
+- **Grants/RLS no restore (§42):** `inventory()` (`scripts/db/backup-verify.ts:67-77`)
+  coleta grants (`role_table_grants`), policies, constraints, índices, RLS/owner e
+  roles; `compareInventories()` compara catálogo + roles estritamente — ambos os
+  drills passaram com catálogo/roles iguais. Limite residual: restore pg_dump com
+  `--no-owner --no-privileges` não exercita ownership/GRANTs como enforcement, e o
+  comportamento efetivo como `app_runtime` (negação cross-tenant) só será exercitado
+  no smoke A4 em runtime. BAK-01 permanece ABERTA.
+- **Gates desta rodada (árvore PR-2):** `npm run check` PASS (full: ui-stack,
+  no-supabase, format, lint, typecheck, 353+ testes incl. `m02-purge-fixtures`,
+  build, bundle); `m02:matrix:check` PASS (matriz regenerada pelo novo teste);
+  `m02:boundaries` PASS; `m02:state:check` PASS após este registro.
+  Detritos S8-1 (`.pi/`, `PLANO_OTIMIZADO_*`, `forensic-kit`, `scripts/forensic|val`,
+  evidências perf/obs antigas, `checagens-pos-publicacao-2026-09-05/`) NÃO commitados;
+  lista registrada no doc consolidado (PR-3).
+- **Norma nova desta rodada** (nasce do bug da guard): todo script de mutação em
+  banco = transação única + dry-run default + evidência timestamped (emenda
+  normativa no doc consolidado, PR-3).
+- ESTADO DO SUBSTRATO: Tráfego inexistente; Neon production fixture-free (26/26 zero,
+  smoke 7/7); Paridade DESCONHECIDO/G1 pendente; Blockers SEC-01 (revogação humana),
+  BAK-01 operacional, G1/G2, hPanel, Sonar main neutral.
+
+## Pré-A4 — segurança reverificada + G1 instrumentado (2026-09-06, PR-1 #36, mergeado antes de PR-2 #35)
+
+- Latest state marker parent = `b735b79206fcab2bd8b56214a797fce4e619e567`
+  (branch `chore/pre-a4-security-g1`, de `origin/develop`).
+- **Re-auditoria `npm run m02:secrets-audit` (2026-09-06T03:45:22Z):** 39 definidos ·
+  28 com consumidor · 8 orphan-candidate · 3 docs-only; **zero ocorrências
+  das chaves órfãs** (`AWS_*`, `OPENAI_*`) em `src/`, `scripts/`, `e2e/`, `.github/`; `neon-storage.env`
+  ausente do disco (`ls` 03:45:15Z) e nunca versionado. Evidência:
+  `docs/evidence/pre-a4-2026-09-05/secrets-audit-2026-09-06.json`.
+- **Errata M02-D-006 (drift tabela/linha):** onde se lia `products.image`
+  (`src/db/schema.ts:46`), leia-se `users.image` — a linha 46 pertence a `users`
+  (Better Auth); `products` (`:191-230`) não tem coluna de imagem. Fato material
+  inalterado (zero dependência de storage).
+- **G1 instrumentado, NÃO assinado:** memo `M02-D-008-G1-memo.md` (fato, recomendação
+  (a) greenfield com SUNSET 2026-09-20, riscos por ramo, bloco de assinatura).
+  Paridade segue DESCONHECIDA; inferência de origem vazia proibida.
+- **SEC-01 segue ABERTA (risco residual humano):** credenciais possivelmente live no
+  emissor até revogação no console (OpenAI + provedor S3); mitigação vigente: arquivo
+  destruído, zero consumidores, nunca versionado. A1 (sandbox
+  `br-summer-dream-ayewlgx2`) agendado pós-release em `main` via `neon-drill-ops`.
+- ESTADO DO SUBSTRATO: Tráfego inexistente; Neon production fixture-free (PR-2);
+  Paridade DESCONHECIDO/G1 pendente; Blockers SEC-01, BAK-01, G1/G2, hPanel, Sonar.
+
+## Pré-A4 — runbooks A4 + ADR-027 + doc consolidado (2026-09-06, PR-3)
+
+- Latest state marker parent = `b735b79206fcab2bd8b56214a797fce4e619e567`
+  (branch `chore/pre-a4-runbooks-a4`, de `origin/develop`; merge após PR-2 #35,
+  em sequência com PR-1 #36).
+- **Artefatos (dia do desbloqueio = só executar):** `docs/runbooks/hpanel-homologacao.md`
+  (11 itens com comando/saída/FAIL) · `docs/runbooks/a4-a5-cutover.md` (A4 + A5
+  0h/24h/72h + aborts + rollback via snapshot + template de ledger; ponteiro no
+  runbook de migração) · `docs/runbooks/decommission-origem.md` (variantes G1(a)
+  atestação / G1(b) verificação) · `M02-D-009` (freeze A5/B3 + roadmap M02-2/3/4
+  pós-B4 + norma de mutação: tx única + dry-run + fail-closed + evidência).
+- **ADR-027 (EM-01, G2 PENDENTE, sem código):** desescopo de storage pós-B4;
+  alternativas A–D para RFC futura; sem assinatura vale M02-D-006.
+- **Doc consolidado:** `docs/evidence/pre-a4-2026-09-06.md` (matrizes, timeline,
+  3 lacunas respondidas, contagens 8/6/2/3/5, binário NÃO + declaração,
+  ESTADO DO SUBSTRATO, top-3, detritos excluídos).
+- **Binário:** zero desconhecidos de engenharia no caminho crítico;
+  "pronto para cutover — aguardando desbloqueio externo".
+- ESTADO DO SUBSTRATO: Tráfego inexistente; Neon fixture-free (PR-2) + snapshot até
+  2026-10-10; Paridade DESCONHECIDA/G1; Blockers SEC-01, BAK-01, G1/G2, hPanel, Sonar.
