@@ -1137,3 +1137,26 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - BAK-01 continua ABERTA: dump semanal não prova RPO, restore sem grants não prova privilégios e a prova nativa não substitui backup independente. Política histórica e veredito §42 corrigidos sem apagar histórico.
 - Local: `npm run check` PASS (360 testes); matriz regenerada devido ao novo teste e boundaries PASS. CI e publicação ainda devem ser verificados no SHA publicado.
 - ESTADO DO SUBSTRATO: Tráfego inexistente no ledger; Neon com snapshot e restore reconciliado, ainda fixture; Paridade DESCONHECIDO/G1 pendente; Blockers DB-01, DB-02/SEC-01, BAK-01 operacional, G1/G2, hPanel, Sonar.
+
+## Pré-A4 — segurança reverificada + G1 instrumentado (2026-09-06, PR-1)
+
+- Latest state marker parent = `b735b79206fcab2bd8b56214a797fce4e619e567`
+  (branch `chore/pre-a4-security-g1`, de `origin/develop`).
+- **Re-auditoria `npm run m02:secrets-audit` (2026-09-06T03:45:22Z):** 39 definidos ·
+  28 com consumidor · 8 orphan-candidate · 3 docs-only; **zero ocorrências
+  das chaves órfãs** (`AWS_*`, `OPENAI_*`) em `src/`, `scripts/`, `e2e/`, `.github/`; `neon-storage.env`
+  ausente do disco (`ls` 03:45:15Z) e nunca versionado. Evidência:
+  `docs/evidence/pre-a4-2026-09-05/secrets-audit-2026-09-06.json`.
+- **Errata M02-D-006 (drift tabela/linha):** onde se lia `products.image`
+  (`src/db/schema.ts:46`), leia-se `users.image` — a linha 46 pertence a `users`
+  (Better Auth); `products` (`:191-230`) não tem coluna de imagem. Fato material
+  inalterado (zero dependência de storage).
+- **G1 instrumentado, NÃO assinado:** memo `M02-D-008-G1-memo.md` (fato, recomendação
+  (a) greenfield com SUNSET 2026-09-20, riscos por ramo, bloco de assinatura).
+  Paridade segue DESCONHECIDA; inferência de origem vazia proibida.
+- **SEC-01 segue ABERTA (risco residual humano):** credenciais possivelmente live no
+  emissor até revogação no console (OpenAI + provedor S3); mitigação vigente: arquivo
+  destruído, zero consumidores, nunca versionado. A1 (sandbox
+  `br-summer-dream-ayewlgx2`) agendado pós-release em `main` via `neon-drill-ops`.
+- ESTADO DO SUBSTRATO: Tráfego inexistente; Neon production fixture-free (PR-2);
+  Paridade DESCONHECIDO/G1 pendente; Blockers SEC-01, BAK-01, G1/G2, hPanel, Sonar.
