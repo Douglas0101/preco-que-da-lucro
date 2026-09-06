@@ -1138,7 +1138,6 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - Local: `npm run check` PASS (360 testes); matriz regenerada devido ao novo teste e boundaries PASS. CI e publicação ainda devem ser verificados no SHA publicado.
 - ESTADO DO SUBSTRATO: Tráfego inexistente no ledger; Neon com snapshot e restore reconciliado, ainda fixture; Paridade DESCONHECIDO/G1 pendente; Blockers DB-01, DB-02/SEC-01, BAK-01 operacional, G1/G2, hPanel, Sonar.
 
-<<<<<<< HEAD
 ## Pré-A4 — DB-01 verificação independente e publicação (2026-09-06)
 
 - Latest state marker parent = `b735b79206fcab2bd8b56214a797fce4e619e567`
