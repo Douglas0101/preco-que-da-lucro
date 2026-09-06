@@ -1137,3 +1137,22 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - BAK-01 continua ABERTA: dump semanal não prova RPO, restore sem grants não prova privilégios e a prova nativa não substitui backup independente. Política histórica e veredito §42 corrigidos sem apagar histórico.
 - Local: `npm run check` PASS (360 testes); matriz regenerada devido ao novo teste e boundaries PASS. CI e publicação ainda devem ser verificados no SHA publicado.
 - ESTADO DO SUBSTRATO: Tráfego inexistente no ledger; Neon com snapshot e restore reconciliado, ainda fixture; Paridade DESCONHECIDO/G1 pendente; Blockers DB-01, DB-02/SEC-01, BAK-01 operacional, G1/G2, hPanel, Sonar.
+
+## Pré-A4 — fechamento técnico pós-purge — 2026-09-06
+
+Latest state marker parent = `7d7794d52994481bed9114895be6ff311db9dcd8`
+
+- DB-01: purge anterior incorporado à evidência; production confirmada fixture-free, journal 11/11 e smoke TLS 7/7 PASS. Nenhum novo purge/seed em production nesta execução.
+- SEC-02/03/04: TLS validado, guard sob lock transacional e purge restrito ao manifesto da branch de restore; correções implementadas com 368 testes locais e gates check/matrix/boundaries PASS.
+- Guard 0010: quatro contas bloqueadas sem alterações; down vazio; forward 0/0 e preenchimento 1/0; dois ordenamentos concorrentes PASS no Neon.
+- Auth/RLS comportamental: DESCONHECIDO; ensaio e probe runtime falharam, frente encerrada conforme protocolo de duas falhas. BAK-01 permanece ABERTA.
+- Evidências: `docs/evidence/pre-a4-2026-09-06/guard-safety.md` e anexos timestamped.
+
+### ESTADO DO SUBSTRATO
+
+| Dimensão | Estado                                                                            |
+| -------- | --------------------------------------------------------------------------------- |
+| Tráfego  | Nenhum deploy registrado; hPanel pendente                                         |
+| Neon     | Production vazia; snapshot pré-purge preservado; restore usado somente para drill |
+| Paridade | DESCONHECIDO; G1 pendente                                                         |
+| Blockers | DB-02/SEC-01; BAK-01/Auth; G1/G2; hPanel; Sonar main; contratação separada        |
