@@ -1077,6 +1077,36 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 
 ---
 
+## Rodada pré-A4 — higiene de segurança (DB-02, SEC-01) — 2026-09-05
+
+- Latest state marker parent = `b970c8230a5bd63bcc49d618dcd3303dd9c51484`
+  (merge do PR #29 — auditoria de substrato — em develop).
+- **DB-02 (arquivo): RESOLVIDO.** `neon-storage.env` (5 chaves: AWS_* S3-compatible
+  - OPENAI_API_KEY) comprovadamente sem consumidor em código/CI
+    (`npm run m02:secrets-audit`: 24 definidos · 8 consumer · 2 docs-only · 14
+    órfãos) e **removido do disco em 2026-09-05T19:58:45Z**. Evidência
+    antes/depois: `docs/evidence/pre-a4-2026-09-05/secrets-hygiene.md`.
+    **Revogação no emissor: pendente-humano** (console OpenAI + provedor S3
+    identificado por `AWS_ENDPOINT_URL_S3`) → exceção **SEC-01** até confirmação.
+- **Script novo:** `m02:secrets-audit` (`scripts/m02-secrets-audit.ts`,
+  read-only) — inventário segredo→consumidor com flag de órfãos.
+- Classificações da rodada: `SUPABASE_*`/`VITE_SUPABASE_*` residuais =
+  FALSO-ALARME (limpeza local recomendada); `NEON_AUTH_*` = docs-only;
+  `NEON_BRANCH`/`NEON_DATA_API_URL` = órfãos (limpeza local);
+  `DATABASE_URL_UNPOOLED` = FALSO-ALARME (URL direct de operador, ADR-019).
+  GitHub Secrets contém apenas `NEON_API_KEY`; var `NEON_PROJECT_ID` ok.
+- **A1 (sandbox `br-summer-dream-ayewlgx2`): AGENDADO** — aguarda o workflow
+  `neon-drill-ops` (PR #30) ser despachável em `main`; evidência de antes/depois
+  entra no relatório consolidado da rodada.
+
+## Pré-A4 — segurança executada, credenciais no emissor ainda pendentes (2026-09-05)
+
+- Latest state marker parent = `53db301d2deedb4e05bbdd99a636f8c2cf4ed674`
+- A1: sandbox `br-summer-dream-ayewlgx2` destruído com listas antes/depois; A2: arquivo local ausente, revogação não comprovada, DB-02/SEC-01 seguem abertos.
+- `m02:secrets-audit` cobre env variantes/nested, distingue referências exatas e declara exclusões. Inventário: 39 definições, 28 consumidores lexicais, 11 para revisão, zero candidatos literais no escopo, nenhuma conclusão de liveness.
+- Verificação local: `npm run check` PASS (357 testes); matrix/boundaries PASS. Artefatos em `docs/evidence/pre-a4-2026-09-05/implementation/security.md`. Prova local não equivale a CI/revogação/cutover.
+- ESTADO DO SUBSTRATO: Tráfego não existe segundo ledger; Neon production preservada nesta etapa; Paridade DESCONHECIDO/G1 pendente; Blockers DB-01, DB-02/SEC-01, BAK-01, G1/G2, hPanel, Sonar.
+
 ## Rodada pré-A4 — §42 backup/restore comprovado (BAK-01) — 2026-09-05
 
 - Latest state marker parent = `b970c8230a5bd63bcc49d618dcd3303dd9c51484`
