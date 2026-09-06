@@ -114,6 +114,24 @@ async function main(): Promise<void> {
       issuer_counts: accounts.rows,
     });
 
+    // Re-baseline pós-DB-01 (2026-09-05): production deve permanecer livre de
+    // fixture. Re-seedar fixtures em production recria o DB-01 — este check é
+    // o gate contínuo. Seeds de teste pertencem a branches efêmeras/locais.
+    const fixtureUsers = await pool.query<{ count: string }>(
+      "select count(*)::text as count from users where email ilike '%@preco-que-da.test'",
+    );
+    const fixtureTenants = await pool.query<{ count: string }>(
+      "select count(*)::text as count from tenants where slug = 'tenant-e2e'",
+    );
+    const fixtureFree =
+      Number(fixtureUsers.rows[0]?.count ?? "0") === 0 &&
+      Number(fixtureTenants.rows[0]?.count ?? "0") === 0;
+    record("production-fixture-free", fixtureFree, {
+      detail: "marcadores DB-01: users @preco-que-da.test e tenants slug tenant-e2e",
+      fixture_users: Number(fixtureUsers.rows[0]?.count ?? "0"),
+      fixture_tenants: Number(fixtureTenants.rows[0]?.count ?? "0"),
+    });
+
     const pass = results.every((result) => result.status === "PASS");
     console.log(
       JSON.stringify(

@@ -1137,3 +1137,48 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - BAK-01 continua ABERTA: dump semanal não prova RPO, restore sem grants não prova privilégios e a prova nativa não substitui backup independente. Política histórica e veredito §42 corrigidos sem apagar histórico.
 - Local: `npm run check` PASS (360 testes); matriz regenerada devido ao novo teste e boundaries PASS. CI e publicação ainda devem ser verificados no SHA publicado.
 - ESTADO DO SUBSTRATO: Tráfego inexistente no ledger; Neon com snapshot e restore reconciliado, ainda fixture; Paridade DESCONHECIDO/G1 pendente; Blockers DB-01, DB-02/SEC-01, BAK-01 operacional, G1/G2, hPanel, Sonar.
+
+## Pré-A4 — DB-01 verificação independente e publicação (2026-09-06)
+
+- Latest state marker parent = `b735b79206fcab2bd8b56214a797fce4e619e567`
+  (tip de `origin/develop`; branch `chore/pre-a4-db01-purge-guard` sem commits locais,
+  só working tree da rodada).
+- **Cronologia snapshot → purge (A3 CONFORME):** snapshot nativo
+  `snap-tiny-smoke-ayc382ji` criado 2026-09-05T22:37:46Z (validade 2026-10-10) +
+  dump externo `.artifacts/purge-drill/20260906T015217Z/dump.pgc` (135.416 B,
+  sha256 `1e7aa351…`, 2026-09-06T01:52:17Z) → rehearsal scratch 02:00:29Z →
+  production dry-run 02:01:34Z (`non_fixture_user_count: 0`) → production APPLY
+  02:01:52–02:02:04Z (34 linhas, `users_total_remaining: 0`) → smoke 02:02:46Z
+  PASS 7/7. Nenhum APPLY novo nesta rodada (A3: verificação + publicação).
+- **Incidente da guard 0010 — local esclarecido:** a 1ª versão da guarda (RAISE sem
+  transação única) foi derrotada em **scratch local** (`drill_purge`, rehearsal §2):
+  `psql` em autocommit executou `UPDATE 4` após a exceção. Achado de drill, nunca
+  executado em produção (o arquivo de rollback jamais rodou no Neon production).
+  Correção: guarda + down em `BEGIN…COMMIT` único. Segunda falha intermediária
+  (placeholders `$2`/`$3` sem `$1`) idem em scratch, transação com rollback íntegro.
+- **Guard recalibrada:** `count(accounts) > 0 → RAISE EXCEPTION` + rollback da
+  transação; com zero contas o down é no-op e o forward 0010 idempotente
+  (`UPDATE 0`/`UPDATE 0` em scratch). Execução automática proibida; rollback de
+  issuer pós-tráfego = restore de snapshot (BAK-01). Racional documentado no
+  próprio arquivo: após o purge, qualquer conta é tráfego real (better-auth 1.7.x
+  exige issuer).
+- **Grants/RLS no restore (§42):** `inventory()` (`scripts/db/backup-verify.ts:67-77`)
+  coleta grants (`role_table_grants`), policies, constraints, índices, RLS/owner e
+  roles; `compareInventories()` compara catálogo + roles estritamente — ambos os
+  drills passaram com catálogo/roles iguais. Limite residual: restore pg_dump com
+  `--no-owner --no-privileges` não exercita ownership/GRANTs como enforcement, e o
+  comportamento efetivo como `app_runtime` (negação cross-tenant) só será exercitado
+  no smoke A4 em runtime. BAK-01 permanece ABERTA.
+- **Gates desta rodada (árvore PR-2):** `npm run check` PASS (full: ui-stack,
+  no-supabase, format, lint, typecheck, 353+ testes incl. `m02-purge-fixtures`,
+  build, bundle); `m02:matrix:check` PASS (matriz regenerada pelo novo teste);
+  `m02:boundaries` PASS; `m02:state:check` PASS após este registro.
+  Detritos S8-1 (`.pi/`, `PLANO_OTIMIZADO_*`, `forensic-kit`, `scripts/forensic|val`,
+  evidências perf/obs antigas, `checagens-pos-publicacao-2026-09-05/`) NÃO commitados;
+  lista registrada no doc consolidado (PR-3).
+- **Norma nova desta rodada** (nasce do bug da guard): todo script de mutação em
+  banco = transação única + dry-run default + evidência timestamped (emenda
+  normativa no doc consolidado, PR-3).
+- ESTADO DO SUBSTRATO: Tráfego inexistente; Neon production fixture-free (26/26 zero,
+  smoke 7/7); Paridade DESCONHECIDO/G1 pendente; Blockers SEC-01 (revogação humana),
+  BAK-01 operacional, G1/G2, hPanel, Sonar main neutral.
