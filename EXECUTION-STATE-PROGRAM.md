@@ -1226,3 +1226,15 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   "pronto para cutover — aguardando desbloqueio externo".
 - ESTADO DO SUBSTRATO: Tráfego inexistente; Neon fixture-free (PR-2) + snapshot até
   2026-10-10; Paridade DESCONHECIDA/G1; Blockers SEC-01, BAK-01, G1/G2, hPanel, Sonar.
+
+## Pré-A4 — release + A1 reconfirmado (2026-09-06)
+
+- Release PR #38 (`develop → main`) mergeado: `ac2e834`; UI stack em `main` **success**
+  (run 34011022081, 6m32s). PRs #35/#36/#37 fechados como MERGED pelo GitHub.
+- **A1 reconfirmado, sem delete necessário:** sandbox `br-summer-dream-ayewlgx2`
+  já havia sido destruído em 2026-09-05 (commit `148c04d`, before/after em
+  `implementation/branches-{before,after-sandbox-delete}.json`); `list-branches`
+  via `neon-drill-ops` em `main` (run 34011025296, 2026-09-06T04:15Z) lista só
+  `production` + `develop` — sandbox ausente; `br-floral-pond-ayltjy2t` idem (cleanup).
+- ESTADO DO SUBSTRATO: Tráfego inexistente; Neon fixture-free, snapshot até 2026-10-10;
+  Paridade DESCONHECIDA/G1; Blockers SEC-01, BAK-01, G1/G2, hPanel, Sonar main neutral.
