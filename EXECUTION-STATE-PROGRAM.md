@@ -1205,6 +1205,7 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   `br-summer-dream-ayewlgx2`) agendado pós-release em `main` via `neon-drill-ops`.
 - ESTADO DO SUBSTRATO: Tráfego inexistente; Neon production fixture-free (PR-2);
   Paridade DESCONHECIDO/G1 pendente; Blockers SEC-01, BAK-01, G1/G2, hPanel, Sonar.
+
 ## Pré-A4 — runbooks A4 + ADR-027 + doc consolidado (2026-09-06, PR-3)
 
 - Latest state marker parent = `b735b79206fcab2bd8b56214a797fce4e619e567`
