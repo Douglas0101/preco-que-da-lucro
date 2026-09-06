@@ -1,7 +1,6 @@
-import { lstatSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
 import { basename, extname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { parseArgs } from "node:util";
 
 const skippedDirectories = new Set([
   ".git",
@@ -195,21 +194,34 @@ export function auditSecrets(root: string, ciNames: string[] = []) {
   };
 }
 
+// Raiz fixa no repositório e metadados de CI por caminho convencional fixo:
+// sem argumentos de CLI, para não criar fluxo de path-injection (S2083) a
+// partir de process.argv. Testes chamam auditSecrets diretamente com o
+// diretório-fixture.
+// Para incluir nomes de secrets do GitHub (opcional):
+//   gh secret list --json name > .artifacts/m02-secrets-audit-ci.json
+const CI_METADATA_PATH = resolve(import.meta.dirname, "../.artifacts/m02-secrets-audit-ci.json");
+
+function readCiNames(): string[] {
+  if (!existsSync(CI_METADATA_PATH)) return [];
+  const parsed: unknown = JSON.parse(readFileSync(CI_METADATA_PATH, "utf8"));
+  if (
+    !Array.isArray(parsed) ||
+    parsed.some(
+      (entry) =>
+        typeof entry !== "object" ||
+        entry === null ||
+        typeof (entry as { name?: unknown }).name !== "string" ||
+        !keyPattern.test((entry as { name: string }).name),
+    )
+  )
+    throw new Error("invalid CI metadata");
+  return parsed.map((entry) => (entry as { name: string }).name);
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
-    const { values } = parseArgs({
-      options: { root: { type: "string" }, "ci-metadata": { type: "string" } },
-      strict: true,
-    });
-    const ci = values["ci-metadata"]
-      ? (JSON.parse(readFileSync(values["ci-metadata"], "utf8")) as { name: string }[])
-      : [];
-    if (!Array.isArray(ci) || ci.some((entry) => typeof entry.name !== "string"))
-      throw new Error("invalid metadata");
-    const report = auditSecrets(
-      values.root ?? resolve(import.meta.dirname, ".."),
-      ci.map((entry) => entry.name),
-    );
+    const report = auditSecrets(resolve(import.meta.dirname, ".."), readCiNames());
     console.log(JSON.stringify(report, null, 2));
     process.exitCode = report.coverage.failures.length ? 2 : 0;
   } catch {
@@ -218,7 +230,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
         check: "m02:secrets-audit",
         result: "ERROR",
         error:
-          "Invalid arguments, inaccessible root or invalid CI metadata; details withheld to protect secrets.",
+          "Inaccessible repository root or invalid CI metadata; details withheld to protect secrets.",
       }),
     );
     process.exitCode = 2;
