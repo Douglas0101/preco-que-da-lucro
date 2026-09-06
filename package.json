@@ -24,6 +24,7 @@
     "m02:state:check": "tsx scripts/m02-state-check.ts",
     "m02:secrets-audit": "tsx scripts/m02-secrets-audit.ts",
     "m02:backup-verify": "tsx scripts/db/backup-verify.ts",
+    "db:purge-fixtures": "tsx scripts/db/purge-fixtures.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
