@@ -1138,6 +1138,7 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - Local: `npm run check` PASS (360 testes); matriz regenerada devido ao novo teste e boundaries PASS. CI e publicação ainda devem ser verificados no SHA publicado.
 - ESTADO DO SUBSTRATO: Tráfego inexistente no ledger; Neon com snapshot e restore reconciliado, ainda fixture; Paridade DESCONHECIDO/G1 pendente; Blockers DB-01, DB-02/SEC-01, BAK-01 operacional, G1/G2, hPanel, Sonar.
 
+<<<<<<< HEAD
 ## Pré-A4 — DB-01 verificação independente e publicação (2026-09-06)
 
 - Latest state marker parent = `b735b79206fcab2bd8b56214a797fce4e619e567`
@@ -1205,3 +1206,23 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   `br-summer-dream-ayewlgx2`) agendado pós-release em `main` via `neon-drill-ops`.
 - ESTADO DO SUBSTRATO: Tráfego inexistente; Neon production fixture-free (PR-2);
   Paridade DESCONHECIDO/G1 pendente; Blockers SEC-01, BAK-01, G1/G2, hPanel, Sonar.
+## Pré-A4 — runbooks A4 + ADR-027 + doc consolidado (2026-09-06, PR-3)
+
+- Latest state marker parent = `b735b79206fcab2bd8b56214a797fce4e619e567`
+  (branch `chore/pre-a4-runbooks-a4`, de `origin/develop`; merge após PR-2 #35,
+  em sequência com PR-1 #36).
+- **Artefatos (dia do desbloqueio = só executar):** `docs/runbooks/hpanel-homologacao.md`
+  (11 itens com comando/saída/FAIL) · `docs/runbooks/a4-a5-cutover.md` (A4 + A5
+  0h/24h/72h + aborts + rollback via snapshot + template de ledger; ponteiro no
+  runbook de migração) · `docs/runbooks/decommission-origem.md` (variantes G1(a)
+  atestação / G1(b) verificação) · `M02-D-009` (freeze A5/B3 + roadmap M02-2/3/4
+  pós-B4 + norma de mutação: tx única + dry-run + fail-closed + evidência).
+- **ADR-027 (EM-01, G2 PENDENTE, sem código):** desescopo de storage pós-B4;
+  alternativas A–D para RFC futura; sem assinatura vale M02-D-006.
+- **Doc consolidado:** `docs/evidence/pre-a4-2026-09-06.md` (matrizes, timeline,
+  3 lacunas respondidas, contagens 8/6/2/3/5, binário NÃO + declaração,
+  ESTADO DO SUBSTRATO, top-3, detritos excluídos).
+- **Binário:** zero desconhecidos de engenharia no caminho crítico;
+  "pronto para cutover — aguardando desbloqueio externo".
+- ESTADO DO SUBSTRATO: Tráfego inexistente; Neon fixture-free (PR-2) + snapshot até
+  2026-10-10; Paridade DESCONHECIDA/G1; Blockers SEC-01, BAK-01, G1/G2, hPanel, Sonar.

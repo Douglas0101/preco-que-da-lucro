@@ -75,6 +75,8 @@ Repita com `MIGRATION_APPLY=true` somente em uma branch Neon descartável ou no 
 
 ## Cutover de produção
 
+> Operação no dia do desbloqueio: seguir `a4-a5-cutover.md` (sequência A4 + A5 0h/24h/72h + rollback) com pré-requisito `hpanel-homologacao.md` 11/11 PASS. Abaixo, a referência de dados (válida nos dois ramos G1; G1(a) dispensa freeze/delta).
+
 1. Ativar manutenção/read-only no runtime Supabase.
 2. Confirmar que não existem escritas em andamento.
 3. Criar snapshot/PITR do Neon e registrar horário.
