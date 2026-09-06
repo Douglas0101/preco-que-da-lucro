@@ -1,0 +1,15 @@
+{
+  "measured_at": "2026-09-06T03:07:26.319494+00:00",
+  "command": "npm run check",
+  "exit_code": 0,
+  "tests": 368,
+  "test_files": 37,
+  "log_sha256": "44cc82fa3a31611961a554a76e7a9fbe209269b26f31746f03e9efaf230a4618",
+  "other_checks": [
+    "m02:matrix:check PASS",
+    "m02:boundaries PASS",
+    "git diff --check PASS"
+  ],
+  "sql_sha256": "f31039366ba21b678d08a23b1c69441b3ead5cd58a1bafe93b382db126dfe315",
+  "limits": "Local gates; Auth restore external drill failed and stopped. No hPanel/deploy proof."
+}

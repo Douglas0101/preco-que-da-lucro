@@ -1,0 +1,16 @@
+{
+  "check": "m02:rollback-0010-drill",
+  "branch_id": "br-floral-pond-ayltjy2t",
+  "started_at": "2026-09-06T02:56:57.561Z",
+  "finished_at": "2026-09-06T02:57:13.427Z",
+  "result": "PASS",
+  "results": [
+    {
+      "check": "populated-down-refused-no-change",
+      "pass": true,
+      "detail": {
+        "accounts": 4
+      }
+    }
+  ]
+}

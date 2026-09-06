@@ -1,0 +1,1 @@
+{"check":"m02:restore-auth-drill","result":"FAIL","code":"assertion","error":"Restore Auth/RLS drill failed; sensitive details withheld"}

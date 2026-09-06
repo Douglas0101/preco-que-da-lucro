@@ -1,0 +1,6 @@
+{
+  "check": "m02:rollback-0010-drill",
+  "result": "FAIL",
+  "code": "42501",
+  "error": "Drill assertion failed; sensitive database details withheld."
+}

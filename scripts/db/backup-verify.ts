@@ -18,7 +18,7 @@ const quote = (s: string) => '"' + s.replaceAll('"', '""') + '"';
 export const sha256 = (bytes: string | Buffer): string =>
   createHash("sha256").update(bytes).digest("hex");
 
-export function directPool(url: string): Pool {
+export function directConnectionConfig(url: string) {
   const parsed = new URL(url);
   if (
     !["postgres:", "postgresql:"].includes(parsed.protocol) ||
@@ -26,15 +26,19 @@ export function directPool(url: string): Pool {
   )
     throw new Error("A direct PostgreSQL URL is required");
   const local = ["127.0.0.1", "localhost", "::1"].includes(parsed.hostname);
-  parsed.searchParams.delete("sslmode");
-  parsed.searchParams.delete("ssl");
-  return new Pool({
+  for (const key of ["sslmode", "ssl", "sslcert", "sslkey", "sslrootcert", "uselibpqcompat"])
+    parsed.searchParams.delete(key);
+  return {
     connectionString: parsed.toString(),
     ssl: local ? false : { rejectUnauthorized: true },
     max: 1,
     connectionTimeoutMillis: 15000,
     query_timeout: 60000,
-  });
+  };
+}
+
+export function directPool(url: string): Pool {
+  return new Pool(directConnectionConfig(url));
 }
 
 export async function inventory(client: PoolClient, ownTransaction = true): Promise<Inventory> {

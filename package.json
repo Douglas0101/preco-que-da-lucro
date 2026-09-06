@@ -24,6 +24,7 @@
     "m02:state:check": "tsx scripts/m02-state-check.ts",
     "m02:secrets-audit": "tsx scripts/m02-secrets-audit.ts",
     "m02:backup-verify": "tsx scripts/db/backup-verify.ts",
+    "db:purge-fixtures": "tsx scripts/db/purge-fixtures.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -42,7 +43,9 @@
     "smoke:substrate": "tsx scripts/smoke/substrate-smoke.ts",
     "check:bundle": "node scripts/check-bundle.mjs",
     "check:hostinger-runtime": "node scripts/check-hostinger-runtime.mjs",
-    "check": "npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle"
+    "check": "npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle",
+    "m02:rollback-0010-drill": "tsx scripts/db/rollback-0010-drill.ts",
+    "m02:restore-auth-drill": "tsx scripts/db/restore-auth-drill.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

@@ -1,0 +1,33 @@
+{
+  "check": "m02:rollback-0010-drill",
+  "branch_id": "br-floral-pond-ayltjy2t",
+  "started_at": "2026-09-06T02:59:27.096Z",
+  "finished_at": "2026-09-06T03:00:02.741Z",
+  "result": "PASS",
+  "results": [
+    {
+      "check": "empty-down-forward-forward",
+      "pass": true,
+      "detail": {
+        "first": 0,
+        "second": 0
+      }
+    },
+    {
+      "check": "forward-fills-null-once",
+      "pass": true,
+      "detail": {
+        "first": 1,
+        "second": 0
+      }
+    },
+    {
+      "check": "writer-after-guard-waits-and-keeps-issuer",
+      "pass": true
+    },
+    {
+      "check": "writer-before-guard-is-seen-and-down-refused",
+      "pass": true
+    }
+  ]
+}

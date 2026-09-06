@@ -1,0 +1,67 @@
+{
+  "check": "smoke:substrate",
+  "read_only": true,
+  "started_at": "2026-09-06T03:04:25.369Z",
+  "finished_at": "2026-09-06T03:04:28.086Z",
+  "result": "PASS",
+  "results": [
+    {
+      "id": "postgres-major",
+      "status": "PASS",
+      "detail": {
+        "expected": "17",
+        "actual": "170011"
+      }
+    },
+    {
+      "id": "journal-count",
+      "status": "PASS",
+      "detail": {
+        "expected": 11,
+        "actual": 11
+      }
+    },
+    {
+      "id": "journal-hashes",
+      "status": "PASS",
+      "detail": {
+        "reconciled": 11,
+        "mismatches": []
+      }
+    },
+    {
+      "id": "app-runtime-role",
+      "status": "PASS",
+      "detail": {
+        "rolname": "app_runtime",
+        "rolsuper": false,
+        "rolbypassrls": false
+      }
+    },
+    {
+      "id": "tenant-tables-rls",
+      "status": "PASS",
+      "detail": {
+        "checked": 20,
+        "failures": []
+      }
+    },
+    {
+      "id": "accounts-issuer-null",
+      "status": "PASS",
+      "detail": {
+        "detail": "issuer IS NULL quebra sign-in com better-auth 1.7.x",
+        "issuer_counts": []
+      }
+    },
+    {
+      "id": "production-fixture-free",
+      "status": "PASS",
+      "detail": {
+        "detail": "marcadores DB-01: users @preco-que-da.test e tenants slug tenant-e2e",
+        "fixture_users": 0,
+        "fixture_tenants": 0
+      }
+    }
+  ]
+}
