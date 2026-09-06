@@ -54,7 +54,14 @@ describe("propriedades do motor financeiro (fast-check)", () => {
   it("preço formado cresce (não decresce) com a margem alvo", () => {
     const input = fc
       .tuple(nonNegativeMoney, nonNegativeMoney, validRatesArbitrary())
-      .filter(([, , rates]) => rates.target + 25 < 100 - rates.taxRate);
+      .filter(([, , rates]) => {
+        // O denominador do motor (src/lib/finance.ts) exige
+        // taxRate + Σfees + margem < 100; o filtro precisa cobrir a margem
+        // MAIOR (target + 25) — a versão anterior ignorava Σfees e deixava
+        // o gerador produzir margens inválidas (flake em CI).
+        const feesTotal = rates.fees.reduce((sum, fee) => sum + (fee.percentage ?? 0), 0);
+        return rates.taxRate + feesTotal + rates.target + 25 < 99.999999999;
+      });
     const property = fc.property(input, ([directUnitCost, otherVariable, rates]) => {
       const base = {
         directUnitCost,
