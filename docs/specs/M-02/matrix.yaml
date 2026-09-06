@@ -11,7 +11,7 @@
     "concreteOperations": 32,
     "apiRoutes": 4,
     "transactionSites": 99,
-    "directDatabaseFiles": 31
+    "directDatabaseFiles": 32
   },
   "bffs": [
     {
@@ -1175,6 +1175,7 @@
     "src/server/services/purchase-price.service.ts",
     "src/test/ai-estimated-cost.test.ts",
     "src/test/cross-tenant-denial.perf-waves.test.ts",
+    "src/test/m02-backup-verify.test.ts",
     "src/test/products-read-models.golden.perf-waves.test.ts",
     "src/test/purchase-price.service.test.ts",
     "src/test/round-trip-instrumentation.perf-waves.test.ts"

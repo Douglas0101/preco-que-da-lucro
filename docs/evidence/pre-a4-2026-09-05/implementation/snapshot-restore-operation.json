@@ -1,0 +1,14 @@
+{
+  "command": "neon.restore_snapshot(project=damp-forest-57346541, snapshot=snap-tiny-smoke-ayc382ji, new branch=pre-a4-restore-20260905, finalize=false)",
+  "started_at": "2026-09-05T22:38:20.709Z",
+  "finished_at": "2026-09-05T22:38:23.906Z",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\n  \"id\": \"br-floral-pond-ayltjy2t\",\n  \"project_id\": \"damp-forest-57346541\",\n  \"parent_lsn\": \"0/2A9E490\",\n  \"name\": \"pre-a4-restore-20260905\",\n  \"slug\": \"br-floral-pond-ayltjy2t\",\n  \"current_state\": \"init\",\n  \"pending_state\": \"ready\",\n  \"state_changed_at\": \"2026-09-05T22:38:21Z\",\n  \"creation_source\": \"console\",\n  \"primary\": false,\n  \"default\": false,\n  \"protected\": false,\n  \"cpu_used_sec\": 0,\n  \"compute_time_seconds\": 0,\n  \"active_time_seconds\": 0,\n  \"written_data_bytes\": 0,\n  \"data_transfer_bytes\": 0,\n  \"created_at\": \"2026-09-05T22:38:21Z\",\n  \"updated_at\": \"2026-09-05T22:38:21Z\",\n  \"init_source\": \"parent-data\",\n  \"restore_status\": \"restored\",\n  \"restored_from\": \"snap-tiny-smoke-ayc382ji\",\n  \"restored_as\": \"br-snowy-violet-aymcvvvv\"\n}"
+      }
+    ],
+    "isError": false
+  }
+}
