@@ -9,7 +9,11 @@ import { logJson } from "@/lib/structured-logger";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 
 function createNeonDatabase(connectionString: string) {
-  const pool = new NeonPool({ connectionString });
+  // Teto explícito; 901 max_connections medidos no plano (Fase 0.3); default 10 preserva o comportamento atual.
+  const pool = new NeonPool({
+    connectionString,
+    max: Number(process.env.DATABASE_POOL_MAX ?? "10"),
+  });
   instrumentPoolRoundTrips(pool);
   return drizzleNeon({ client: pool, schema });
 }
@@ -56,7 +60,11 @@ function createDatabase() {
   if (driver === "node-postgres") {
     // CI and local integration tests use a regular ephemeral PostgreSQL server.
     // Production remains on Neon pooled through @neondatabase/serverless.
-    const pool = new NodePostgresPool({ connectionString });
+    // Teto explícito; 901 max_connections medidos no plano (Fase 0.3); default 10 preserva o comportamento atual.
+    const pool = new NodePostgresPool({
+      connectionString,
+      max: Number(process.env.DATABASE_POOL_MAX ?? "10"),
+    });
     instrumentPoolRoundTrips(pool);
     return drizzleNodePostgres({ client: pool, schema }) as unknown as Database;
   }

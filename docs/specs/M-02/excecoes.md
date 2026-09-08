@@ -30,3 +30,22 @@ e fase-alvo de migração:
 Nenhuma exceção nova autoriza novos acessos: ampliar qualquer caminho
 `transient-*` exige nova revisão. A remoção de cada exceção é critério de
 saída da fase-alvo correspondente. Registro: `docs/evidence/m02-boundaries-2026-09-05.md`.
+
+## Emenda 2026-09-06 — categoria "probe de monitoramento"
+
+A Fase 0 do cutover A4 (`docs/runbooks/a4-a5-cutover.md`, matriz
+`docs/runbooks/a4-matriz-hipoteses.md`) exige categoria explícita para sondas
+de monitoramento. Define-se **probe de monitoramento**: execução sancionada e
+mínima contra produção, destinada exclusivamente a verificar saúde e
+integridade (ex.: `/api/health/live`+`ready`, `smoke:substrate`,
+`m02:rls-probe` do smoke A4 a, re-probes das janelas A5 24h/72h). Regras:
+
+1. Leitura por padrão; escrita somente se pré-declarada na matriz H-xx e
+   exclusivamente com o domínio-marcador `@preco-que-da.test`.
+2. Toda escrita de probe exige purge sancionado (`npm run db:purge-fixtures`,
+   dry-run default) + re-verificação `production-fixture-free` 26/26 zero.
+3. Cada probe registra evidência datada (JSON + SHA-256) em `docs/evidence/`.
+4. Probe sancionado é a única causa válida de delta de escrita no
+   pós-operatório — e mesmo assim deve ser classificado e registrado; probe
+   fora destas regras é **VIOLAÇÃO** (achado: freeze + investigação, nunca
+   deleção).

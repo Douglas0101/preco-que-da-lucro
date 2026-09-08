@@ -4,6 +4,7 @@ import { z } from "zod";
 import { withTenantTransaction } from "@/db/client.server";
 import { chatConversations, chatMessages } from "@/db/schema";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import { assertGatewayEndpoint } from "@/lib/ai-endpoint.server";
 import { ApplicationError } from "@/lib/api-error";
 import {
   createTenantTransaction,
@@ -128,7 +129,7 @@ async function fetchModelAttempt({
   attempts,
 }: Readonly<{
   apiKey: string;
-  endpoint: string;
+  endpoint: URL;
   model: string;
   messages: GatewayMessage[];
   tools: GatewayTool[];
@@ -177,7 +178,7 @@ async function runModelAttempt({
   timeoutMs,
 }: Readonly<{
   apiKey: string;
-  endpoint: string;
+  endpoint: URL;
   model: string;
   messages: GatewayMessage[];
   tools: GatewayTool[];
@@ -226,6 +227,9 @@ async function callModel(
   if (!apiKey) throw new ApplicationError("DEPENDENCY_ERROR");
   const endpoint =
     process.env.AI_GATEWAY_URL ?? "https://ai.gateway.lovable.dev/v1/chat/completions";
+  // Guard anti-SSRF na origem (G-SEC #10-13): o URL validado é o único que
+  // alcança o fetch nos retries, cobrindo todas as instâncias com um check.
+  const gatewayEndpoint = assertGatewayEndpoint(endpoint);
   const model = process.env.AI_MODEL ?? "google/gemini-3.6-flash";
   const attempts = numberSetting("AI_MODEL_MAX_ATTEMPTS", 2, 1, 2);
   const timeoutMs = numberSetting("AI_MODEL_TIMEOUT_MS", 30_000, 1_000, 30_000);
@@ -233,7 +237,7 @@ async function callModel(
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     const result = await runModelAttempt({
       apiKey,
-      endpoint,
+      endpoint: gatewayEndpoint,
       model,
       messages,
       tools,

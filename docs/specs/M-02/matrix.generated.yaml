@@ -55,7 +55,7 @@
       "operations": [
         {
           "name": "getChatHistory",
-          "line": 250,
+          "line": 254,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -63,7 +63,7 @@
         },
         {
           "name": "createChatConversation",
-          "line": 307,
+          "line": 311,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -71,7 +71,7 @@
         },
         {
           "name": "clearChatHistory",
-          "line": 319,
+          "line": 323,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -79,7 +79,7 @@
         },
         {
           "name": "sendChatMessage",
-          "line": 352,
+          "line": 356,
           "declaration": "createServerFn",
           "service": "ConversationService/ChatExecution",
           "repository": "ConversationRepository + BudgetRepository + AiToolRepository + AuditRepository",
@@ -90,6 +90,7 @@
         "@/db/client.server",
         "@/db/schema",
         "@/instrumentation/telemetry",
+        "@/lib/ai-endpoint.server",
         "@/lib/ai/tool-registry",
         "@/lib/api-error",
         "@/lib/chat-data",
@@ -727,19 +728,19 @@
     },
     {
       "path": "src/lib/chat.functions.ts",
-      "line": 267,
+      "line": 271,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/chat.functions.ts",
-      "line": 324,
+      "line": 328,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/chat.functions.ts",
-      "line": 332,
+      "line": 336,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },

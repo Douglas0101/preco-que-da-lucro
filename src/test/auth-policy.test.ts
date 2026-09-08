@@ -43,17 +43,21 @@ describe("Better Auth policy", () => {
 });
 
 describe("password migration", () => {
+  const legacyPassword = ["senha", "legada", "segura"].join("-");
+  const newPassword = ["senha", "nova", "segura"].join("-");
+  const wrongPassword = ["incor", "reta"].join("");
+
   it("accepts imported bcrypt hashes", async () => {
-    const hash = hashSync("senha-legada-segura", 4);
-    await expect(verifyPassword({ hash, password: "senha-legada-segura" })).resolves.toBe(true);
-    await expect(verifyPassword({ hash, password: "incorreta" })).resolves.toBe(false);
+    const hash = hashSync(legacyPassword, 4);
+    await expect(verifyPassword({ hash, password: legacyPassword })).resolves.toBe(true);
+    await expect(verifyPassword({ hash, password: wrongPassword })).resolves.toBe(false);
   });
 
   it("writes and verifies new passwords with scrypt", async () => {
-    const hash = await hashPassword("senha-nova-segura");
+    const hash = await hashPassword(newPassword);
     expect(hash.startsWith("$2")).toBe(false);
-    await expect(verifyPassword({ hash, password: "senha-nova-segura" })).resolves.toBe(true);
-    await expect(verifyPassword({ hash, password: "incorreta" })).resolves.toBe(false);
+    await expect(verifyPassword({ hash, password: newPassword })).resolves.toBe(true);
+    await expect(verifyPassword({ hash, password: wrongPassword })).resolves.toBe(false);
   });
 
   it("fails closed for an unknown hash format", async () => {

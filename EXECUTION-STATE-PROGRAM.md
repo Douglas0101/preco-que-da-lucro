@@ -1236,5 +1236,69 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   `implementation/branches-{before,after-sandbox-delete}.json`); `list-branches`
   via `neon-drill-ops` em `main` (run 34011025296, 2026-09-06T04:15Z) lista só
   `production` + `develop` — sandbox ausente; `br-floral-pond-ayltjy2t` idem (cleanup).
-- ESTADO DO SUBSTRATO: Tráfego inexistente; Neon fixture-free, snapshot até 2026-10-10;
-  Paridade DESCONHECIDA/G1; Blockers SEC-01, BAK-01, G1/G2, hPanel, Sonar main neutral.
+- ESTADO DO SUBSTRATO: Tráfego inexistente; Neon fixture-free, snapshot até
+  2026-10-10; Paridade DESCONHECIDA/G1; Blockers SEC-01, BAK-01, G1/G2, hPanel, Sonar main neutral.
+
+## C-03 — veredito BAK-01 pós-drill C-02 (2026-09-07, RAT S0; working tree, sem commit)
+
+- Drill C-02 (seis passos): trio `dump.pgc` válido (N-6, sha verificado) +
+  restore efêmero + reconcile 26/26 diff 0 + journal 11/11; `backup-verify`
+  exit 1 por causa isolada (178 linhas `grant` ausentes no restore — artefato
+  das flags sancionadas `--no-owner --no-privileges`; zero divergência em
+  tabelas, policies, constraints, índices, roles). STOP ratificado aplicado:
+  sem PS-S5; cleanup `always()` cumprido (só production+develop restantes).
+- Veredito duplo: (1) compensatório NÃO COMPROVADO neste drill (reabrir por
+  decisão humana: aceitar-com-causa + reparo de grants no runbook, ou
+  re-drill com privilégios); (2) PITR VIOLAÇÃO ABERTA (6h; upgrade existe,
+  não contratado).
+- Cláusula N-10, verbatim:
+  > Cláusula de tráfego DP2: BAK-01 reabre no carimbo "Tráfego: EXISTE"
+  > salvo PITR≥7d ativo (dump lógico não satisfaz RPO≤15min com writes).
+- Evidência: `docs/evidence/pós-rat-2026-09-07/` (C-02, C-03, PS-S1/PS-S6).
+
+## C-02A/B - re-drill com grants e STOP RLS (2026-09-08, working tree, sem commit)
+
+- A1 implementado em `scripts/db/grant-repair.ts`, derivado do coletor de
+  `backup-verify.ts:67-77`: roles-before-grants, 178 grants faltantes,
+  sem criação de senha/role LOGIN ausente; 5 testes unitários com tmpdir.
+- Caso (a): nova branch `restore-2026-09-07-c02a-repair` criada com
+  `expires-at`, restore sancionado, reparo **PASS**, `backup-verify` exit 0
+  (`comparison.pass`, `journal.pass`, `read_only=true`), reconcile 26/26
+  diff 0. Probe H-07 abortou na fase PROBE com `42P01` (**DESCONHECIDO**;
+  negações RLS não comprovadas). Cleanup com prova concluído; só
+  production+develop restantes.
+- Duas falhas consecutivas (probe `42P01` + diagnóstico shell sem execução)
+  acionaram STOP. Sem retry; caso (b) privilegiado **NÃO EXECUTADO** e sem
+  resultado presumido. `PS-S5` **NÃO EMITIDO**; `PS-S6` permanece selo de
+  parada. Evidências: `docs/evidence/pós-rat-2026-09-07/C-02A-repair-stop-report.md`,
+  `C-02B-experiment-not-run.md`, `PS-S5-status.md`.
+- N-10 permanece inalterado: BAK-01 reabre no carimbo "Tráfego: EXISTE"
+  salvo PITR≥7d ativo. BAK-01a (restore/RLS) e BAK-01b (PITR/RPO) seguem
+  abertas; T1-T3/T7/OP-H não iniciados.
+
+## E-CUSTÓDIA — proveniência e reconstrução (2026-09-08, working tree, sem commit)
+
+- **NOTA DE PROVENIÊNCIA E4 (permanente):** recebido = sistema + algoritmos
+  fontes via handover do sócio. NÃO recebido = credenciais Supabase, conta
+  Lovable, export de dados; custódia do domínio A VERIFICAR antes do dia-D.
+  Origem Lovable/Supabase sob custódia de terceiro — o programa nunca a
+  operou. Instância: `docs/evidence/custodia/E4-proveniencia-2026-09-08.md`;
+  template: `docs/specs/M-02/decisions/M02-D-008-E4-nota-proveniencia-template.md`.
+- **D2 FECHADO** (inobtenível por custódia) · **V2b APOSENTADO** (ressuscita
+  pontualmente só em rodada de import ad hoc) · evidência `curl 000`
+  SUPERSEDIDA pelo fato de custódia.
+- **G1(a) pronta com causa CUSTÓDIA** (memo §6, `M02-D-008-G1-memo.md`):
+  aguarda apenas assinatura do operador; SUNSET 20/09 DISSOLVIDO; template E3
+  emitido (`M02-D-008-E3-declaracao-socio-template.md`, não-bloqueante).
+- **Addendum E2** (`emenda-2026-09-08-42-13-reconstrucao.md`): §42 itens 2,3,6
+  (acepção legacy) N/A-por-decisão; §§13.4/13.6 com semântica de
+  reconstrução; fase C = declaração de limite de custódia. **E5**
+  (addendum ADR-023): PG 17 vigente, PG 18 recusado.
+- **Fase A:** A3 feito (`rls-probe-errors.mjs` fail-loud + 4 testes; causa
+  42P01 segue DESCONHECIDA com dono); A1/A2 prontos e BLOQUEADOS (env sem
+  `DATABASE_*`; branch efêmera exige autorização explícita). **Fase B:**
+  BLOQUEADA até causa confirmada. **Fase C:** varredura 2026-09-08 concordante
+  (2 branches, snapshot até 10/10 porém STALE p/ frescor, PITR 6h, 36 tabelas).
+  **Fase D:** D1 publicada; D2 bloqueada até D0 (plano+token+MCP+domínio).
+- Paridade: DESCONHECIDA por spec até assinatura G1(a); então NÃO-APLICÁVEL.
+  N-10 verbatim inalterado. Sem commit (H1 é a ponte).

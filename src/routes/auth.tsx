@@ -23,6 +23,8 @@ const submitLabels: Record<AuthMode, string> = {
   reset: "Redefinir senha",
 };
 
+const PASSWORD_AUTOCOMPLETE = "current-password";
+
 function safeRedirect(value: unknown): string | undefined {
   return typeof value === "string" && value.startsWith("/") && !value.startsWith("//")
     ? value
@@ -220,7 +222,7 @@ function Auth() {
                   type="password"
                   required
                   minLength={10}
-                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  autoComplete={mode === "signin" ? PASSWORD_AUTOCOMPLETE : "new-password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                 />

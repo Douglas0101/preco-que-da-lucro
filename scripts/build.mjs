@@ -13,7 +13,8 @@ const warningAllowlist = [
       "inlineDynamicImports option is ignored because the codeSplitting option is specified.",
     owner: "plataforma/frontend",
     releaseChannels: ["local", "pre-beta-internal"],
-    expiresOn: "2026-09-01",
+    expiresOn: "2026-10-06",
+    recheckedAt: "2026-09-07",
   },
 ];
 
