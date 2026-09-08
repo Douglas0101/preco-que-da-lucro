@@ -14,10 +14,29 @@ lerna-debug.log*
 !.env.example
 !.env.*.example
 .neon
+.envrc*
 .agents/
 .codex/
 skills-lock.json
 .dev.vars*
+
+# Local credentials and provider state
+/.aws/
+/.azure/
+/.gcloud/
+/.secrets/
+/secrets/
+**/.npmrc
+!/.npmrc
+service-account*.json
+credentials*.json
+secrets.json
+.secrets.json
+*-credentials.json
+*-secret.json
+*.token
+*.secret
+*.secrets
 
 node_modules
 dist
@@ -28,6 +47,12 @@ dist-ssr
 .nitro
 coverage
 .artifacts/
+/artifacts/
+/backups/
+/snapshots/
+/exports/
+/tmp/
+/temp/
 .worktree-*/
 .p0-closeout-docker/
 playwright-report
@@ -56,6 +81,33 @@ credentials*.json
 *.sqlite
 *.sqlite3
 *.dump
+*.sql.gz
+*.backup
+*.bak
+*.p8
+*.ppk
+id_rsa*
+id_ed25519*
+
+# Local tooling and Python caches
+.mimosa/
+.pi/
+.zcode/
+.ruff_cache/
+__pycache__/
+.pytest_cache/
+.venv/
+venv/
+.direnv/
+
+# Generated or sensitive forensic subtrees
+docs/evidence/**/artifacts/
+docs/evidence/**/logs/
+docs/evidence/**/snapshots/
+docs/evidence/**/raw/
+docs/evidence/**/private/
+docs/evidence/**/secrets/
+docs/evidence/**/credentials/
 
 # Wrangler / Cloudflare
 .wrangler/
@@ -66,8 +118,12 @@ credentials*.json
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
+.history/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
+*.swp
+*.swo
 *.sw?
