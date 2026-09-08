@@ -184,8 +184,7 @@ function evaluateSnapshotDir(dirPath, nowMs) {
     if (meta.source !== "production") reasons.push("source inesperada");
     if (meta.connection_kind !== "direct") reasons.push("connection_kind diferente de direct");
     if (meta.read_only !== true) reasons.push("read_only falso");
-    if (typeof meta.motivo !== "string" || meta.motivo.trim() === "")
-      reasons.push("motivo vazio");
+    if (typeof meta.motivo !== "string" || meta.motivo.trim() === "") reasons.push("motivo vazio");
     if (typeof meta.sha256 !== "string" || !/^[0-9a-f]{64}$/i.test(meta.sha256))
       reasons.push("sha256 declarado ausente/inválido");
   }

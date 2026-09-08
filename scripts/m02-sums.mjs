@@ -42,8 +42,7 @@ const GSEC_EXCEPTION = {
   label: "vermelho-esperado até assinatura do memo (V0)",
   marker: ".gsec-exception-released",
   pins: {
-    "scripts/env-guard.mjs":
-      "7f3247f2ba8bbdc16f9ff47fb152a579f5961ae3c8b3209e61d17073d7d9c062",
+    "scripts/env-guard.mjs": "7f3247f2ba8bbdc16f9ff47fb152a579f5961ae3c8b3209e61d17073d7d9c062",
     "docs/specs/M-02/emenda-2026-09-07-env-guard.md":
       "efc0d47ada34fbf990ea3896c22445592f59e09082ca5dab4d834d6af1003acf",
   },
@@ -257,7 +256,10 @@ function main() {
         failed: result.failed,
         status: result.status,
         regenerated: !parsed.verify,
-        gsec_label: bundle.name === GSEC_EXCEPTION.bundle && exceptionActive ? GSEC_EXCEPTION.label : undefined,
+        gsec_label:
+          bundle.name === GSEC_EXCEPTION.bundle && exceptionActive
+            ? GSEC_EXCEPTION.label
+            : undefined,
       })}\n`,
     );
     if (result.status === "RED-UNLABELED") {

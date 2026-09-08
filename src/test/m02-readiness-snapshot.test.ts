@@ -1,11 +1,4 @@
-import {
-  mkdtempSync,
-  mkdirSync,
-  writeFileSync,
-  readFileSync,
-  utimesSync,
-  rmSync,
-} from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, utimesSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
@@ -54,7 +47,10 @@ function writeTrio(
       : createHash("sha256").update(bytes).digest("hex");
   const actual = createHash("sha256").update(bytes).digest("hex");
   if (!opts.noSidecar) {
-    writeFileSync(join(dir, "dump.pgc.sha256"), `${opts.tamperSidecar ? "b".repeat(64) : declared}  dump.pgc\n`);
+    writeFileSync(
+      join(dir, "dump.pgc.sha256"),
+      `${opts.tamperSidecar ? "b".repeat(64) : declared}  dump.pgc\n`,
+    );
   }
   if (!opts.noMeta) {
     const created = new Date(

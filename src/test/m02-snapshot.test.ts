@@ -62,8 +62,7 @@ describe("m02-snapshot decisões PRÉ-conexão", () => {
   it("host -pooler → exit 3 (dump é DIRECT only)", () => {
     const r = run([], {
       ALLOW_REMOTE_DB: "teste",
-      DATABASE_ADMIN_URL:
-        "postgresql://fake:fake@ep-fake-pooler.c-5.us-east-2.aws.neon.tech/db",
+      DATABASE_ADMIN_URL: "postgresql://fake:fake@ep-fake-pooler.c-5.us-east-2.aws.neon.tech/db",
     });
     expect(r.status).toBe(3);
     expect(r.stderr).toContain("DIRECT");

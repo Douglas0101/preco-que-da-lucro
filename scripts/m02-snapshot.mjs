@@ -296,9 +296,17 @@ function main() {
       startedAt: startedAt.toISOString(),
       finishedAt: finishedAt.toISOString(),
     });
-    writeFileSync(resolve(outDir, "metadata.json"), `${JSON.stringify(metadata, null, 2)}\n`, "utf8");
+    writeFileSync(
+      resolve(outDir, "metadata.json"),
+      `${JSON.stringify(metadata, null, 2)}\n`,
+      "utf8",
+    );
   } else {
-    writeFileSync(resolve(outDir, `${dumpName}.sha256`), `${sha256}  ${rootRelativeDump}\n`, "utf8");
+    writeFileSync(
+      resolve(outDir, `${dumpName}.sha256`),
+      `${sha256}  ${rootRelativeDump}\n`,
+      "utf8",
+    );
     const metadata = {
       script: "m02:snapshot",
       origin: parsed.origin,
