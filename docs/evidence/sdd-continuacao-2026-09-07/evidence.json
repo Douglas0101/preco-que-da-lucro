@@ -1,0 +1,41 @@
+{
+  "rodada": "SDD-CONTINUAÇÃO materialização (2026-09-07, build mode)",
+  "head": "8d26a2c (inalterado; zero commits, zero staging pelo agente)",
+  "producao": "somente leitura (branches list + snapshots list; zero writes)",
+  "fundacao": [
+    "00-namespace-e-rastreabilidade.md (W1–W4, matriz §42, adendos §24/§25/§45/INV-011/§19.4)",
+    "01-op-c-01-reescrito.md (C1/opção-a: console-check §12.6 no lugar de gates inexistentes)",
+    "02-decisoes-dp1-dp6.md (DP1+DP2 decididos; DP3/DP4 abertos; DP5 especificado; DP6 texto exato)",
+    "03-emenda-05-split-draft.md (DRAFT §11 p/ selagem humana B-00)"
+  ],
+  "agentes": {
+    "A-01": "m02-sums CONFORME 6/6; wiring m02:sums inserido (package.json, 1 linha, JSON OK); sums-contract-audit.md em pendentes/",
+    "B-01": "loaders 6/6 conformes; sem loader oculto; loaders-map-2026-09-07.md",
+    "C-01": "DIVERGENTE (D1 backup-verify não gera dump.pgc; D2 nenhum sancionado escreve no glob do gate); contract-note-2026-09-07.md; C-02 BLOQUEADO até DP5"
+  },
+  "selagem_A-02": {
+    "m02:sums_regen": "PASS exit 0",
+    "m02:sums_verify": "PASS",
+    "sha256sum_-c": {
+      "checagens-pos-publicacao-2026-09-05": "4/4 SUCESSO",
+      "cutover-2026-09-07": "19/19 SUCESSO (STOP-TRIGGER FECHADO)",
+      "cutover-prep-2026-09-07": "25/25 SUCESSO",
+      "fase0-2026-09-06": "28/28 SUCESSO",
+      "gsec-2026-09-06": "18 SUCESSO + 2 FALHOU rotulados (único rótulo permitido)",
+      "pendentes-2026-09-07": "9/9 SUCESSO"
+    },
+    "matrix_check": "sem drift (sem regen)"
+  },
+  "neon_recon_readonly": {
+    "branches": "production ready + develop archived; zero efêmera",
+    "snapshots_list": "FUNCIONA; 1 snapshot: snap-tiny-smoke-ayc382ji (pre-a4-prepurge-20260905), criado 2026-09-05T22:37:46Z, expira 2026-10-10T23:59:59Z",
+    "snapshot_create_diaD": "viável (op ★, nunca agente)",
+    "pitr_upgrade_custo": "pendente (console)"
+  },
+  "bloqueios_ativos": [
+    "C-02 até decisão DP5 (opções: (a) pg_dump padrão V4 no T-0; (b) m02:snapshot --out-dir + renomear p/ dump.pgc; (c) PROIBIDO mudar glob)",
+    "D-01 até credencial D2 (ausente) ou decisão DP3(a)/DP4",
+    "B-02 até selagem Emenda #5 (B-00)"
+  ],
+  "fila": ["selar Emenda #5", "A-03…A-10 commits+push", "B-02 rewiring+B-04", "DP5→C-02/C-03", "E-01 dia-D", "D-01 se D2 até 10/09", "OP-H", "OP-C"]
+}
