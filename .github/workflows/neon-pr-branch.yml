@@ -139,6 +139,8 @@ jobs:
         run: |
           set -euo pipefail
           export DATABASE_RESTORE_URL="$(cat "$RUNNER_TEMP/branch_direct_url")"
+          export NEON_MIGRATION_TARGET_KIND=drill-branch
+          export ALLOW_REMOTE_DB="CI Neon PR branch ${{ github.event.pull_request.number }} — RLS probe em cópia efêmera (§26)"
           if npm run m02:rls-probe -- --target-env DATABASE_RESTORE_URL --out /tmp/rls-probe-pr.md; then
             echo "result=PASS" >> "$GITHUB_OUTPUT"
           else
