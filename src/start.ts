@@ -17,8 +17,8 @@ function securityHeaders(): Record<string, string> {
     "img-src 'self' data: https:",
     "font-src 'self' data:",
     "style-src 'self'",
-    "script-src 'self'",
-    "connect-src 'self' https:",
+    "script-src 'self' 'unsafe-inline'",
+    "connect-src 'self' https: https://*.vercel-analytics.com https://*.vercel-insights.com",
   ].join("; ");
   const headers: Record<string, string> = {
     "content-security-policy-report-only": csp,
