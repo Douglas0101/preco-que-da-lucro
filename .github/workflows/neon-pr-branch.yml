@@ -1,0 +1,217 @@
+name: Neon PR branch CI
+
+# PLANO_MESTRE §26 (item 28 da ordem prática §40): todo PR do próprio repo
+# ganha uma branch Neon efêmera (cópia de production @ HEAD), migrations via
+# DIRECT obtida em runtime, integração, sonda RLS adversarial contra o POOLED
+# da branch e cleanup `always()` com prova. NUNCA usa o DATABASE_URL/secret de
+# produção: a única credencial remota é a NEON_API_KEY (escopo branch), e a
+# URI da branch é criada e destruída pelo próprio workflow.
+#
+# Gate de segurança (Emenda #2): hard-deny de produção permanece incondicional;
+# aqui o alvo é sempre branch de drill (NEON_MIGRATION_TARGET_KIND=drill-branch,
+# host ≠ produção), sancionado com motivo logado.
+#
+# Fork PRs: pulados pelo fork-guard ANTES de qualquer segredo (GitHub já não
+# entrega secrets a forks; a dupla checagem é defesa em profundidade — §25).
+# NEON_API_KEY ausente no repo: skip gracioso ROTULADO (gatilho da rodada),
+# nunca fail silencioso.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: neon-pr-branch-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  NEON_API_BASE: https://console.neon.tech/api/v2
+
+jobs:
+  gate:
+    name: Fork-guard + presença de segredo
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+      reason: ${{ steps.decide.outputs.reason }}
+    steps:
+      - name: Decide
+        id: decide
+        env:
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "reason=fork-guard" >> "$GITHUB_OUTPUT"
+            echo "- Neon PR branch CI: PULADO (fork-guard: head '$HEAD_REPO' ≠ repository '$BASE_REPO')" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ -z "$NEON_API_KEY" ] || [ -z "${NEON_PROJECT_ID:-damp-forest-57346541}" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "reason=secret-missing(SKIP-GRACIOSO-ROTULADO: configure NEON_API_KEY + vars.NEON_PROJECT_ID)" >> "$GITHUB_OUTPUT"
+            echo "- Neon PR branch CI: PULADO com rótulo — NEON_API_KEY indisponível para o evento (skip gracioso rotulado, regra da rodada CUTOVER-PREP)" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "reason=same-repo-with-secrets" >> "$GITHUB_OUTPUT"
+
+  branch-ci:
+    name: Branch efêmera · migrate · integração · RLS probe
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      branch_id: ${{ steps.create.outputs.branch_id }}
+      probe_result: ${{ steps.probe.outputs.result }}
+    env:
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID || 'damp-forest-57346541' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Create ephemeral branch pr-<num> (cópia de production @ HEAD)
+        id: create
+        uses: neondatabase/create-branch-action@fb620d43d4c565abaf088b848a4e28e5c4ea4d9c # 6.3.1
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID || 'damp-forest-57346541' }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          parent_branch: production
+          branch_name: pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
+
+      - name: Rede de segurança §12.5 (expires-at +24h) + URIs da branch em RUNNER_TEMP
+        env:
+          BRANCH_ID: ${{ steps.create.outputs.branch_id }}
+          DB_URL: ${{ steps.create.outputs.db_url }}
+        run: |
+          set -euo pipefail
+          EXPIRES=$(node -e 'const t=Date.now()+24*3600e3;console.log(new Date(t).toISOString().replace(/\.\d{3}Z$/,"Z"))')
+          curl -sf -X PATCH "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID" \
+            -H "Authorization: Bearer $NEON_API_KEY" -H "Content-Type: application/json" \
+            -d "{\"branch\":{\"expires_at\":\"$EXPIRES\"}}" > /dev/null
+          printf '%s' "$DB_URL" > "$RUNNER_TEMP/branch_direct_url"
+          chmod 600 "$RUNNER_TEMP/branch_direct_url"
+          node --input-type=module -e '
+            import { readFileSync, writeFileSync } from "node:fs";
+            const direct = readFileSync(`${process.env.RUNNER_TEMP}/branch_direct_url`, "utf8");
+            const url = new URL(direct);
+            const ep = url.hostname.split(".")[0];
+            url.hostname = url.hostname.replace(`${ep}.`, `${ep}-pooler.`);
+            writeFileSync(`${process.env.RUNNER_TEMP}/branch_pooled_url`, url.toString(), { mode: 0o600 });
+            console.log(JSON.stringify({ step: "pooled-url", direct_host: ep, pooled_host: url.hostname }));
+          '
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Migrations via DIRECT da branch (drill-branch, journal no-op esperado)
+        run: |
+          set -euo pipefail
+          export DATABASE_ADMIN_URL="$(cat "$RUNNER_TEMP/branch_direct_url")"
+          export NEON_MIGRATION_TARGET_KIND=drill-branch
+          export ALLOW_REMOTE_DB="CI Neon PR branch ${{ github.event.pull_request.number }} — migrations em cópia efêmera (§26)"
+          npm run db:migrate
+
+      - name: Integração (suites db:test) contra a branch
+        run: |
+          set -euo pipefail
+          export DATABASE_ADMIN_URL="$(cat "$RUNNER_TEMP/branch_direct_url")"
+          export DATABASE_URL="$(cat "$RUNNER_TEMP/branch_pooled_url")"
+          export ALLOW_REMOTE_DB="CI Neon PR branch ${{ github.event.pull_request.number }} — integração em branch efêmera (§26)"
+          npm run db:test
+
+      - name: Seed sintético + sonda RLS adversarial contra o POOLED da branch (H-07)
+        id: probe
+        run: |
+          set -euo pipefail
+          export V2B_PROBE_TARGET="$(cat "$RUNNER_TEMP/branch_pooled_url")"
+          if npm run m02:rls-probe -- --target-env V2B_PROBE_TARGET --out /tmp/rls-probe-pr.md; then
+            echo "result=PASS" >> "$GITHUB_OUTPUT"
+          else
+            code=$?
+            if [ "$code" = "4" ]; then echo "result=VIOLATION" >> "$GITHUB_OUTPUT"; else echo "result=ERROR-$code" >> "$GITHUB_OUTPUT"; fi
+            exit "$code"
+          fi
+
+      - name: Prova de journal (read-only)
+        run: |
+          set -euo pipefail
+          export DATABASE_ADMIN_URL="$(cat "$RUNNER_TEMP/branch_direct_url")"
+          node --input-type=module -e '
+            import { Client } from "pg";
+            const c = new Client({ connectionString: process.env.DATABASE_ADMIN_URL, ssl: { rejectUnauthorized: true } });
+            await c.connect();
+            await c.query("start transaction read only");
+            const r = await c.query("select count(*)::bigint as n from drizzle.__drizzle_migrations");
+            await c.query("rollback");
+            await c.end();
+            console.log(JSON.stringify({ journal_count: Number(r.rows[0].n) }));
+            process.exit(Number(r.rows[0].n) === 11 ? 0 : 1);
+          '
+
+  cleanup:
+    name: Cleanup always() com prova (§12.5)
+    needs: [gate, branch-ci]
+    if: always() && needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID || 'damp-forest-57346541' }}
+    steps:
+      - name: Delete branch efêmera
+        if: needs.branch-ci.outputs.branch_id != ''
+        uses: neondatabase/delete-branch-action@4468d825d5a88ef4012f1705a82f02ec3072f776 # v3.2.1
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID || 'damp-forest-57346541' }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          branch: ${{ needs.branch-ci.outputs.branch_id }}
+
+      - name: Prova de cleanup + comentário no PR
+        env:
+          BRANCH_ID: ${{ needs.branch-ci.outputs.branch_id }}
+          PROBE_RESULT: ${{ needs.branch-ci.outputs.probe_result }}
+          CI_RESULT: ${{ needs.branch-ci.result }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          if [ -n "$BRANCH_ID" ]; then
+            if curl -sf -o /dev/null -w '%{http_code}' "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID" \
+              -H "Authorization: Bearer $NEON_API_KEY" | grep -qE '^(404|403)$'; then
+              DELETED="confirmado (GET pós-delete ≠ 200)"
+            else
+              DELETED="NAO-CONFIRMADO — checar Neon console"
+            fi
+          else
+            DELETED="n/a (branch nunca chegou a ser criada)"
+          fi
+          {
+            echo "## Neon PR branch CI — resultado"
+            echo
+            echo "- jobs: \`$CI_RESULT\` · sonda RLS (H-07, seeded sintético marcador \`@preco-que-da.test\`): \`${PROBE_RESULT:-n/a}\`"
+            echo "- Branch efêmera \`$BRANCH_ID\`: deletada — $DELETED (§12.5 always())"
+            echo "- Migrations/integração executados contra cópia isolada de production @ HEAD; produção nunca foi alvo."
+          } >> "$GITHUB_STEP_SUMMARY"
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$(cat <<EOF
+          ### Neon PR branch CI
+          - Resultado dos jobs: \`$CI_RESULT\`
+          - Sonda RLS adversarial (H-07): \`${PROBE_RESULT:-n/a}\`
+          - Branch efêmera: \`$BRANCH_ID\` — cleanup: $DELETED
+          - Produção intocada (caminho drill-branch, Emenda #2; hard-deny de produção permanece).
+          EOF
+          )" || echo "aviso: comentário do PR falhou (permissão?) — resultado permanece no summary"

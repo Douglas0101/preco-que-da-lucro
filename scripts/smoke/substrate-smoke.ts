@@ -29,7 +29,7 @@ async function main(): Promise<void> {
     process.exit(2);
   }
 
-  const pool = new Pool({ connectionString: adminUrl, ssl: { rejectUnauthorized: false } });
+  const pool = new Pool({ connectionString: adminUrl, ssl: { rejectUnauthorized: true } });
   const startedAt = new Date().toISOString();
 
   try {

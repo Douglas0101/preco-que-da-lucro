@@ -35,6 +35,22 @@ Assinar que a origem Supabase é **abandonada / sem tráfego oficial**, encerran
 
 Assinar **(a)** com SUNSET acima. Custo de (b) é certo, benefício é especulativo; SUNSET preserva reversibilidade.
 
+## 6. FATO NOVO de proveniência (2026-09-08) — causa CUSTÓDIA
+
+- **FATO 1:** origem = Lovable + Supabase primário, custódia de terceiro (sócio).
+- **FATO 2:** handover = código + algoritmos; sem credenciais Supabase, sem conta
+  Lovable, sem export de dados. D2 FECHADO (inobtenível por custódia).
+- **FATO 3:** a evidência `curl 000` sempre foi fraca — SUPERSEDIDA pelo fato de
+  custódia acima.
+- **DECISÃO:** migração por reconstrução; paridade NÃO-APLICÁVEL por design;
+  V2b APOSENTADO (ressuscita pontualmente só em rodada de import ad hoc).
+  SUNSET 20/09 DISSOLVIDO (decisão baseada em fato, não em espera).
+- **Redação da assinatura:** G1(a) com causa CUSTÓDIA (não "abandono").
+  Declaração do sócio (template E3) = endurecimento não-bloqueante.
+- **Refs:** `M02-D-008-E3-declaracao-socio-template.md` ·
+  `M02-D-008-E4-nota-proveniencia-template.md` ·
+  `emenda-2026-09-08-42-13-reconstrucao.md`.
+
 ---
 
 ## G1 SIGNATURE

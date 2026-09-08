@@ -39,3 +39,11 @@ compatibilidade do produto.
 - ADR-019 — PostgreSQL no Neon, Drizzle e isolamento por tenant.
 - Plano Mestre, §12.1 e §42.
 - `scripts/db/test-migrations.ts` e `EXPECTED_POSTGRES_MAJOR`.
+
+## Addendum 2026-09-08 — §12.1 (E5)
+
+Major vigente: **PG 17** (Neon `damp-forest-57346541`, CI `EXPECTED_POSTGRES_MAJOR=17`,
+`postgres:17-alpine` local). **PG 18 RECUSADO** sem novo ADR + matriz de
+compatibilidade 17/18 (extensões, driver, migration tool, ambiente, rollback),
+conforme Decisão 4 acima. Este addendum fecha o GAP-DOC pendente de §12.1 e é
+a âncora citada pela emenda de reconstrução (`emenda-2026-09-08-42-13-reconstrucao.md`).

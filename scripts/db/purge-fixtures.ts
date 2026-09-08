@@ -159,7 +159,7 @@ async function main(): Promise<void> {
   const local = ["127.0.0.1", "localhost", "::1"].includes(new URL(adminUrl).hostname);
   const pool = new Pool({
     connectionString: adminUrl,
-    ssl: local ? false : { rejectUnauthorized: false },
+    ssl: local ? false : { rejectUnauthorized: true },
     max: 1,
   });
   const startedAt = new Date().toISOString();
