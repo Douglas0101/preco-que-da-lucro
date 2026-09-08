@@ -57,56 +57,49 @@ function existingParent(candidate: string, label: string): { lexical: string; re
     lexical = parent;
   }
   const real = realpathSync(lexical);
-  const repositoryPrefix = repositoryRealPath.endsWith(sep)
-    ? repositoryRealPath
-    : `${repositoryRealPath}${sep}`;
-  if (real !== repositoryRealPath && !real.startsWith(repositoryPrefix)) {
-    fail(`${label} aponta para fora do repositório; fail-closed`);
+  if (real !== repositoryRealPath && !real.startsWith(repositoryRealPath + sep)) {
+    throw new Error(`${label} aponta para fora do repositório; fail-closed`);
   }
   return { lexical, real };
 }
 
 function createOutputDirectory(raw: string, label: string): string {
   const candidate = resolve(repositoryRealPath, raw);
-  const repositoryPrefix = repositoryRealPath.endsWith(sep)
-    ? repositoryRealPath
-    : `${repositoryRealPath}${sep}`;
-  if (candidate !== repositoryRealPath && !candidate.startsWith(repositoryPrefix)) {
-    fail(`${label} aponta para fora do repositório; fail-closed`);
+  if (candidate !== repositoryRealPath && !candidate.startsWith(repositoryRealPath + sep)) {
+    throw new Error(`${label} aponta para fora do repositório; fail-closed`);
   }
   const parent = existingParent(candidate, label);
   const tail = relative(parent.lexical, candidate);
   const safeCandidate = resolve(parent.real, tail);
-  if (safeCandidate !== repositoryRealPath && !safeCandidate.startsWith(repositoryPrefix)) {
-    fail(`${label} aponta para fora do repositório; fail-closed`);
+  if (safeCandidate !== repositoryRealPath && !safeCandidate.startsWith(repositoryRealPath + sep)) {
+    throw new Error(`${label} aponta para fora do repositório; fail-closed`);
   }
   if (existsSync(safeCandidate)) fail("destino já existe; fail-closed, sem sobrescrita");
 
   mkdirSync(safeCandidate, { recursive: true });
   const outputDirectory = realpathSync(safeCandidate);
-  if (outputDirectory !== repositoryRealPath && !outputDirectory.startsWith(repositoryPrefix)) {
-    fail(`${label} aponta para fora do repositório; fail-closed`);
+  if (
+    outputDirectory !== repositoryRealPath &&
+    !outputDirectory.startsWith(repositoryRealPath + sep)
+  ) {
+    throw new Error(`${label} aponta para fora do repositório; fail-closed`);
   }
   return outputDirectory;
 }
 
 function resolveOutputPath(base: string, name: string): string {
   const safeBase = realpathSync(base);
-  const repositoryPrefix = repositoryRealPath.endsWith(sep)
-    ? repositoryRealPath
-    : `${repositoryRealPath}${sep}`;
-  if (safeBase !== repositoryRealPath && !safeBase.startsWith(repositoryPrefix)) {
-    fail("saída do bundle aponta para fora do repositório; fail-closed");
+  if (safeBase !== repositoryRealPath && !safeBase.startsWith(repositoryRealPath + sep)) {
+    throw new Error("saída do bundle aponta para fora do repositório; fail-closed");
   }
   const candidate = resolve(safeBase, name);
   const parent = existingParent(candidate, "saída do bundle");
-  const safeBasePrefix = safeBase.endsWith(sep) ? safeBase : `${safeBase}${sep}`;
-  if (parent.real !== safeBase && !parent.real.startsWith(safeBasePrefix)) {
-    fail("saída do bundle aponta para fora da base permitida; fail-closed");
+  if (parent.real !== safeBase && !parent.real.startsWith(safeBase + sep)) {
+    throw new Error("saída do bundle aponta para fora da base permitida; fail-closed");
   }
   const safeCandidate = resolve(parent.real, relative(parent.lexical, candidate));
-  if (safeCandidate !== safeBase && !safeCandidate.startsWith(safeBasePrefix)) {
-    fail("saída do bundle aponta para fora da base permitida; fail-closed");
+  if (safeCandidate !== safeBase && !safeCandidate.startsWith(safeBase + sep)) {
+    throw new Error("saída do bundle aponta para fora da base permitida; fail-closed");
   }
   if (existsSync(safeCandidate)) fail("arquivo de saída já existe; fail-closed, sem sobrescrita");
   return safeCandidate;
@@ -114,11 +107,8 @@ function resolveOutputPath(base: string, name: string): string {
 
 function resolveIncludedFile(raw: string): string {
   const candidate = resolve(repositoryRealPath, raw);
-  const repositoryPrefix = repositoryRealPath.endsWith(sep)
-    ? repositoryRealPath
-    : `${repositoryRealPath}${sep}`;
-  if (candidate !== repositoryRealPath && !candidate.startsWith(repositoryPrefix)) {
-    fail("--include aponta para fora do repositório; fail-closed");
+  if (candidate !== repositoryRealPath && !candidate.startsWith(repositoryRealPath + sep)) {
+    throw new Error("--include aponta para fora do repositório; fail-closed");
   }
   let realCandidate: string;
   try {
@@ -126,11 +116,8 @@ function resolveIncludedFile(raw: string): string {
   } catch {
     fail(`--include não é arquivo regular: ${raw}`);
   }
-  const realCandidatePrefix = repositoryRealPath.endsWith(sep)
-    ? repositoryRealPath
-    : `${repositoryRealPath}${sep}`;
-  if (realCandidate !== repositoryRealPath && !realCandidate.startsWith(realCandidatePrefix)) {
-    fail("--include resolve para fora do repositório; fail-closed");
+  if (realCandidate !== repositoryRealPath && !realCandidate.startsWith(repositoryRealPath + sep)) {
+    throw new Error("--include resolve para fora do repositório; fail-closed");
   }
   if (!statSync(realCandidate).isFile()) {
     fail(`--include não é arquivo regular: ${raw}`);
