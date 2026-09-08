@@ -53,6 +53,18 @@ coverage
 /exports/
 /tmp/
 /temp/
+# Temporary files and local review scratch space
+*.tmp
+*.temp
+*~
+.#*
+*.orig
+*.rej
+**/.tmp/
+**/.temp/
+**/tmp/
+**/temp/
+.m02-review-tmp*/
 .worktree-*/
 .p0-closeout-docker/
 playwright-report
