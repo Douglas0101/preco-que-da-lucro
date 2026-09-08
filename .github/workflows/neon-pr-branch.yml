@@ -2,7 +2,7 @@ name: Neon PR branch CI
 
 # PLANO_MESTRE §26 (item 28 da ordem prática §40): todo PR do próprio repo
 # ganha uma branch Neon efêmera (cópia de production @ HEAD), migrations via
-# DIRECT obtida em runtime, integração, sonda RLS adversarial contra o POOLED
+# DIRECT obtida em runtime, integração, sonda RLS adversarial contra o DIRECT
 # da branch e cleanup `always()` com prova. NUNCA usa o DATABASE_URL/secret de
 # produção: a única credencial remota é a NEON_API_KEY (escopo branch), e a
 # URI da branch é criada e destruída pelo próprio workflow.
@@ -134,12 +134,12 @@ jobs:
           export ALLOW_REMOTE_DB="CI Neon PR branch ${{ github.event.pull_request.number }} — integração em branch efêmera (§26)"
           npm run db:test
 
-      - name: Seed sintético + sonda RLS adversarial contra o POOLED da branch (H-07)
+      - name: Seed sintético + sonda RLS adversarial contra o DIRECT da branch (H-07)
         id: probe
         run: |
           set -euo pipefail
-          export V2B_PROBE_TARGET="$(cat "$RUNNER_TEMP/branch_pooled_url")"
-          if npm run m02:rls-probe -- --target-env V2B_PROBE_TARGET --out /tmp/rls-probe-pr.md; then
+          export DATABASE_RESTORE_URL="$(cat "$RUNNER_TEMP/branch_direct_url")"
+          if npm run m02:rls-probe -- --target-env DATABASE_RESTORE_URL --out /tmp/rls-probe-pr.md; then
             echo "result=PASS" >> "$GITHUB_OUTPUT"
           else
             code=$?
