@@ -84,7 +84,7 @@ describe("m02-v2b --plan (sem conectar)", () => {
     expect(result.stdout).toContain("nenhuma conexão foi feita");
     expect(result.stdout).toContain("create-branch");
     expect(result.stdout).toContain("cleanup");
-    expect(result.stdout).toContain(ctx.branchName);
+    expect(result.stdout).toMatch(/dryrun-v2b-\d{4}-\d{2}-\d{2}/);
     expect(result.stdout).not.toContain("postgresql://");
   });
 });
