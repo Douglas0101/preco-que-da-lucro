@@ -22,7 +22,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
   group: neon-pr-branch-${{ github.event.pull_request.number }}
@@ -171,6 +170,9 @@ jobs:
     if: always() && needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
       NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID || 'damp-forest-57346541' }}

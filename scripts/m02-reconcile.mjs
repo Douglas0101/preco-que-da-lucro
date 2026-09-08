@@ -63,7 +63,8 @@ function parseArgs(argv) {
   }
   for (const key of ["sourceEnv", "targetEnv", "out"]) {
     if (typeof parsed[key] !== "string" || parsed[key].trim() === "") {
-      return { error: `--${key.replace(/Env$/, "-env")} é obrigatório` };
+      const optionName = key.endsWith("Env") ? `${key.slice(0, -3)}-env` : key;
+      return { error: `--${optionName} é obrigatório` };
     }
   }
   if (!/\.md$/.test(parsed.out)) {
@@ -74,7 +75,7 @@ function parseArgs(argv) {
 
 /** Helper de identificador seguro: escapa aspas duplas e envolve em ". */
 function quote(identifier) {
-  return `"${String(identifier).replace(/"/g, '""')}"`;
+  return `"${String(identifier).replaceAll('"', '""')}"`;
 }
 
 function qualified(schema, table) {

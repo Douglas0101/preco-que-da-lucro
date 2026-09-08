@@ -20,7 +20,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "pg";
 
@@ -32,6 +32,19 @@ const ROLE_NAME = "neondb_owner";
 const EXPECTED_JOURNAL_COUNT = 11;
 const MIGRATION_MOTIVO = "V2b CUTOVER-PREP: carga legacy em branch de drill efêmera";
 const RETRY_LIMIT = 1; // regra da rodada: SEM loop de retry > 1
+const NPM_CLI = resolve(
+  dirname(process.execPath),
+  "..",
+  "lib",
+  "node_modules",
+  "npm",
+  "bin",
+  "npm-cli.js",
+);
+const COMMAND_PATHS = {
+  docker: "/usr/bin/docker",
+  neon: resolve(dirname(process.execPath), "neon"),
+};
 
 function usage() {
   return [
@@ -167,18 +180,21 @@ function printPlan(ctx) {
 }
 
 function runLocal(args, opts = {}) {
-  const result = spawnSync(args[0], args.slice(1), {
+  const commandPath = COMMAND_PATHS[args[0]];
+  if (!commandPath) throw new Error(`comando local não permitido: ${args[0]}`);
+  const result = spawnSync(commandPath, args.slice(1), {
     encoding: "utf8",
     ...opts,
+    env: { ...process.env, ...(opts.env ?? {}) },
   });
   return result;
 }
 
 async function runNpm(scriptName, extraArgs, env) {
   return new Promise((done) => {
-    const child = spawn("npm", ["run", scriptName, ...(extraArgs ?? [])], {
+    const child = spawn(process.execPath, [NPM_CLI, "run", scriptName, ...(extraArgs ?? [])], {
       cwd: resolve(fileURLToPath(import.meta.url), "..", ".."),
-      env,
+      env: { ...process.env, ...(env ?? {}) },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "";
@@ -355,7 +371,7 @@ function pgDumpSchemaOnly(url, outPath) {
 }
 
 function shellQuote(value) {
-  return `'${String(value).replace(/'/g, `'\\''`)}'`;
+  return `'${String(value).replaceAll("'", `'\\''`)}'`;
 }
 
 async function step(name, fn) {
@@ -518,7 +534,7 @@ async function main() {
       return { log: { journal_count: journal, kind: "drill-branch", motivo: MIGRATION_MOTIVO } };
     });
 
-    const migrationReport = await step("carga-legacy", async () => {
+    await step("carga-legacy", async () => {
       const reportPath = resolve(rootDir, ctx.outDir, `migration-report-legacy-${date}.json`);
       const result = await runNpm("migration:legacy-to-neon", [], {
         ...process.env,
@@ -534,8 +550,6 @@ async function main() {
       }
       return { log: { report: `migration-report-legacy-${date}.json` } };
     });
-    void migrationReport;
-
     const reconcile = await step("reconcile-legacy-branch", async () => {
       const outRel = `${ctx.outDir}/reconciliation-legacy-${date}.md`;
       const result = await new Promise((done) => {
@@ -552,7 +566,11 @@ async function main() {
           ],
           {
             cwd: rootDir,
-            env: { ...process.env, V2B_LEGACY_URL: legacyUrl, V2B_BRANCH_URL: branchUrl },
+            env: {
+              ...process.env,
+              V2B_LEGACY_URL: legacyUrl,
+              V2B_BRANCH_URL: branchUrl,
+            },
             stdio: ["ignore", "pipe", "pipe"],
           },
         );
@@ -615,7 +633,7 @@ async function main() {
     });
 
     await step("emit-ledger-snippet", async () => {
-      const md = renderLedgerSnippet(ctx, reconcile, schemaDiff);
+      const md = renderLedgerSnippet(ctx, schemaDiff);
       writeFileSync(resolve(rootDir, ctx.outDir, "ledger-snippet-v2b.md"), md);
       return { log: { file: "ledger-snippet-v2b.md", edited_ledger: false } };
     });
@@ -684,8 +702,7 @@ function renderSchemaDiffMd(ctx, legacySchema, branchSchema, legacySide, branchS
   return `${lines.join("\n")}\n`;
 }
 
-function renderLedgerSnippet(ctx, reconcile, schemaDiff) {
-  void reconcile;
+function renderLedgerSnippet(ctx, schemaDiff) {
   const lines = [];
   lines.push(`## Ledger snippet — V2b executada ${ctx.date} (MEDIDA-EM-CÓPIA, não-edição)`);
   lines.push("");

@@ -31,12 +31,22 @@
 
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { relative, resolve } from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const CONTAINER = "preco-que-da-lucro-postgres";
 const LOCAL_HOSTNAMES = new Set(["127.0.0.1", "localhost", "::1"]);
+const REPOSITORY_ROOT = realpathSync(resolve(fileURLToPath(import.meta.url), "..", ".."));
+const TEMP_ROOT = realpathSync(tmpdir());
 
 /** Trio exato do modo explícito (Emenda #6, contrato N-6). */
 const TRIO_FILENAMES = ["dump.pgc", "dump.pgc.sha256", "metadata.json"];
@@ -126,10 +136,10 @@ function buildTrioMetadata(input) {
   };
 }
 
-function runInContainer(script, env) {
+function runInContainer(command, args, env) {
   const result = spawnSync(
-    "docker",
-    ["exec", "-i", "-e", "PGPASSWORD", CONTAINER, "sh", "-c", script],
+    "/usr/bin/docker",
+    ["exec", "-i", "-e", "PGPASSWORD", CONTAINER, command, ...args],
     {
       encoding: "utf8",
       env: { ...process.env, ...env },
@@ -185,9 +195,57 @@ function readSnapshotTarget(parsed) {
   return { motivo, url, host, isLocal: LOCAL_HOSTNAMES.has(host) };
 }
 
+function isWithin(base, candidate) {
+  const descendant = relative(base, candidate);
+  return descendant === "" || (!descendant.startsWith(`..${sep}`) && !isAbsolute(descendant));
+}
+
+function existingParent(candidate) {
+  let lexical = candidate;
+  while (!existsSync(lexical)) {
+    const parent = resolve(lexical, "..");
+    if (parent === lexical) throw new Error("diretório pai da saída não pode ser resolvido");
+    lexical = parent;
+  }
+  return { lexical, real: realpathSync(lexical) };
+}
+
+function resolveSafeOutputDirectory(rootDir, raw) {
+  const repositoryRoot = realpathSync(rootDir);
+  const candidate = resolve(rootDir, raw);
+  const allowedRoot = [repositoryRoot, TEMP_ROOT].find((root) => isWithin(root, candidate));
+  if (!allowedRoot) {
+    return stop("m02-snapshot: --out-dir fora das raízes permitidas; fail-closed\n", 2);
+  }
+  try {
+    const parent = existingParent(candidate);
+    if (!isWithin(allowedRoot, parent.real)) {
+      return stop("m02-snapshot: pai de --out-dir usa symlink fora da raiz; fail-closed\n", 2);
+    }
+    const safeCandidate = resolve(parent.real, relative(parent.lexical, candidate));
+    if (!isWithin(allowedRoot, safeCandidate)) {
+      return stop("m02-snapshot: --out-dir fora da raiz permitida; fail-closed\n", 2);
+    }
+    if (existsSync(safeCandidate)) {
+      const real = realpathSync(safeCandidate);
+      if (real !== safeCandidate || !statSync(real).isDirectory()) {
+        return stop("m02-snapshot: --out-dir não é diretório regular seguro; fail-closed\n", 2);
+      }
+    }
+    return safeCandidate;
+  } catch {
+    return stop("m02-snapshot: --out-dir não pode ser resolvido com segurança; fail-closed\n", 2);
+  }
+}
+
 function prepareOutput(rootDir, parsed) {
-  const outDir = resolve(rootDir, parsed.outDir);
+  const outDir = resolveSafeOutputDirectory(rootDir, parsed.outDir);
+  if (outDir === null) return null;
   mkdirSync(outDir, { recursive: true });
+  const realOutDir = realpathSync(outDir);
+  if (realOutDir !== outDir) {
+    return stop("m02-snapshot: --out-dir mudou para symlink durante a criação; fail-closed\n", 2);
+  }
   if (parsed.outDirExplicit !== true) return outDir;
   const present = trioPreexists(outDir);
   if (present.length === 0) return outDir;
@@ -198,7 +256,7 @@ function prepareOutput(rootDir, parsed) {
 }
 
 function ensureContainer() {
-  const probe = spawnSync("docker", ["inspect", "-f", "{{.State.Running}}", CONTAINER], {
+  const probe = spawnSync("/usr/bin/docker", ["inspect", "-f", "{{.State.Running}}", CONTAINER], {
     encoding: "utf8",
   });
   if (probe.status === 0 && String(probe.stdout).trim() === "true") return true;
@@ -228,12 +286,13 @@ function prepareSnapshot(rootDir, parsed) {
   const dumpName = chooseDumpName(outDir, parsed, startedAt);
   const dumpPath = resolve(outDir, dumpName);
   const inContainerPath = `/tmp/m02-snapshot-${Date.now()}.pgc`;
-  const versionCheck = runInContainer(`pg_dump --version && psql --version`, {});
-  if (versionCheck.status !== 0) {
+  const pgDumpVersion = runInContainer("pg_dump", ["--version"], {});
+  const psqlVersion = runInContainer("psql", ["--version"], {});
+  if (pgDumpVersion.status !== 0 || psqlVersion.status !== 0) {
     stop("m02-snapshot: binários pg_dump ausentes no container (fail-closed)\n", 2);
     return null;
   }
-  const clientVersion = String(versionCheck.stdout).split("\n")[0].trim();
+  const clientVersion = String(pgDumpVersion.stdout).split("\n")[0].trim();
   return {
     parsed,
     target,
@@ -256,34 +315,62 @@ function captureSnapshot(context) {
   const user = decodeURIComponent(url.username || "neondb_owner");
   const port = url.port || "5432";
   const sslmode = isLocal ? "disable" : "require";
-  const dumpScript = [
-    "set -e",
-    `pg_dump "host=${url.hostname} port=${port} dbname=${database} user=${user} sslmode=${sslmode}" -Fc --no-owner --no-privileges -f ${inContainerPath}`,
-    `psql "host=${url.hostname} port=${port} dbname=${database} user=${user} sslmode=${sslmode}" -tAc "show server_version"`,
-    `psql "host=${url.hostname} port=${port} dbname=${database} user=${user} sslmode=${sslmode}" -tAc "select pg_is_in_recovery()"`,
-  ].join(" && ");
-  const dump = runInContainer(dumpScript, {
+  const connectionArgs = [
+    "--host",
+    url.hostname,
+    "--port",
+    port,
+    "--dbname",
+    database,
+    "--username",
+    user,
+    "--sslmode",
+    sslmode,
+  ];
+  const connectionEnv = {
     PGPASSWORD: url.password ? decodeURIComponent(url.password) : "",
-  });
-  if (dump.status !== 0) {
-    const safe = String(dump.stderr || dump.stdout || "").includes("@")
-      ? "falha no dump (detalhes omitidos — possível credencial na saída)"
-      : String(dump.stderr || "").slice(0, 240);
-    stop(`m02-snapshot: dump falhou (fail-closed; nada escrito no repo): ${safe}\n`, 2);
-    return null;
-  }
-  const [serverVersion, inRecovery] = String(dump.stdout).trim().split(/\r?\n/);
+  };
   try {
-    execFileSync("docker", ["cp", `${CONTAINER}:${inContainerPath}`, dumpPath], {
-      stdio: "ignore",
-    });
-  } catch {
-    stop("m02-snapshot: docker cp falhou (fail-closed)\n", 2);
-    return null;
+    const dump = runInContainer(
+      "pg_dump",
+      [...connectionArgs, "-Fc", "--no-owner", "--no-privileges", "-f", inContainerPath],
+      connectionEnv,
+    );
+    if (dump.status !== 0) {
+      const safe = String(dump.stderr || dump.stdout || "").includes("@")
+        ? "falha no dump (detalhes omitidos — possível credencial na saída)"
+        : String(dump.stderr || "").slice(0, 240);
+      stop(`m02-snapshot: dump falhou (fail-closed; nada escrito no repo): ${safe}\n`, 2);
+      return null;
+    }
+    const serverVersionResult = runInContainer(
+      "psql",
+      [...connectionArgs, "-tAc", "show server_version"],
+      connectionEnv,
+    );
+    const recoveryResult = runInContainer(
+      "psql",
+      [...connectionArgs, "-tAc", "select pg_is_in_recovery()"],
+      connectionEnv,
+    );
+    if (serverVersionResult.status !== 0 || recoveryResult.status !== 0) {
+      stop("m02-snapshot: leitura de metadados falhou (fail-closed; nada escrito no repo)\n", 2);
+      return null;
+    }
+    const serverVersion = String(serverVersionResult.stdout).trim();
+    const inRecovery = String(recoveryResult.stdout).trim();
+    try {
+      execFileSync("/usr/bin/docker", ["cp", `${CONTAINER}:${inContainerPath}`, dumpPath], {
+        stdio: "ignore",
+      });
+    } catch {
+      stop("m02-snapshot: docker cp falhou (fail-closed)\n", 2);
+      return null;
+    }
+    return { serverVersion, inRecovery };
   } finally {
-    runInContainer(`rm -f ${inContainerPath}`, {});
+    runInContainer("rm", ["-f", inContainerPath], {});
   }
-  return { serverVersion, inRecovery };
 }
 
 function writeSnapshotArtifacts(rootDir, context, capture) {

@@ -402,102 +402,125 @@ function printFooter(createdFiles) {
   );
 }
 
-async function main() {
+function missingCredentialNames() {
+  return [!authEmail ? "E2E_AUTH_EMAIL" : null, !authPassword ? "E2E_AUTH_PASSWORD" : null].filter(
+    Boolean,
+  );
+}
+
+function validatedBaseUrl() {
+  try {
+    return new URL(baseUrlInput).toString();
+  } catch (error) {
+    console.error(`BASE_URL inválida: ${errorText(error)}`);
+    return null;
+  }
+}
+
+function unavailableHealthResults(error) {
+  return HEALTH_PATHS.map((path) => ({
+    path,
+    status: null,
+    attempts: 0,
+    ok: false,
+    detail: `falha ao sondar: ${errorText(error)}`,
+  }));
+}
+
+async function runHealthValidation(baseUrl) {
+  let healthResults;
+  try {
+    healthResults = await runHealthChecks(baseUrl);
+  } catch (error) {
+    healthResults = unavailableHealthResults(error);
+  }
+  printHealthSummary(healthResults);
+  if (healthResults.every((result) => result.ok)) return true;
+  console.error("Health indisponível: ambos os endpoints precisam responder HTTP 200.");
+  return false;
+}
+
+async function closePlaywrightResource(resource, label) {
+  try {
+    await resource.close();
+    return true;
+  } catch (error) {
+    console.error(`Falha ao fechar ${label}: ${errorText(error)}`);
+    return false;
+  }
+}
+
+async function runProtectedRoutes(page, createdFiles) {
+  const routeResults = [];
+  for (const route of ROUTES) {
+    routeResults.push(await validateRoute(page, route, createdFiles));
+  }
+  printNavigationSummary(routeResults);
+  return routeResults.every((result) => result.ok) ? 0 : 1;
+}
+
+async function runBrowserValidation(baseUrl, createdFiles) {
   let exitCode = 1;
-  let baseUrl = null;
   let browser = null;
   let browserContext = null;
-  let healthResults = [];
-  let routeResults = [];
-  let loginResult = null;
-  const createdFiles = [];
-
   try {
-    const missingCredentials = [];
-    if (!authEmail) missingCredentials.push("E2E_AUTH_EMAIL");
-    if (!authPassword) missingCredentials.push("E2E_AUTH_PASSWORD");
+    browser = await chromium.launch({ headless: true });
+    browserContext = await browser.newContext({ baseURL: baseUrl });
+    const page = await browserContext.newPage();
+    page.setDefaultTimeout(ASSERTION_TIMEOUT_MS);
+    page.setDefaultNavigationTimeout(NAVIGATION_TIMEOUT_MS);
+    observePage(page);
 
-    if (missingCredentials.length > 0) {
-      console.error(
-        `Credenciais ausentes: defina ${missingCredentials.join(" e ")} no ambiente. Nenhuma credencial é lida de arquivo.`,
-      );
-      exitCode = 2;
+    const loginResult = await loginWithUi(page);
+    printLoginSummary(loginResult);
+    if (!loginResult.ok) {
+      console.error("Login pela UI não ficou verde; as rotas protegidas não serão navegadas.");
     } else {
-      try {
-        baseUrl = new URL(baseUrlInput).toString();
-      } catch (error) {
-        console.error(`BASE_URL inválida: ${errorText(error)}`);
-        exitCode = 3;
-      }
-
-      if (baseUrl) {
-        await mkdir(outputDirectory, { recursive: true });
-
-        try {
-          healthResults = await runHealthChecks(baseUrl);
-        } catch (error) {
-          healthResults = HEALTH_PATHS.map((path) => ({
-            path,
-            status: null,
-            attempts: 0,
-            ok: false,
-            detail: `falha ao sondar: ${errorText(error)}`,
-          }));
-        }
-        printHealthSummary(healthResults);
-
-        if (!healthResults.every((result) => result.ok)) {
-          console.error("Health indisponível: ambos os endpoints precisam responder HTTP 200.");
-          exitCode = 3;
-        } else {
-          browser = await chromium.launch({ headless: true });
-          browserContext = await browser.newContext({ baseURL: baseUrl });
-          const page = await browserContext.newPage();
-          page.setDefaultTimeout(ASSERTION_TIMEOUT_MS);
-          page.setDefaultNavigationTimeout(NAVIGATION_TIMEOUT_MS);
-          observePage(page);
-
-          loginResult = await loginWithUi(page);
-          printLoginSummary(loginResult);
-
-          if (!loginResult.ok) {
-            console.error(
-              "Login pela UI não ficou verde; as rotas protegidas não serão navegadas.",
-            );
-            exitCode = 1;
-          } else {
-            for (const route of ROUTES) {
-              routeResults.push(await validateRoute(page, route, createdFiles));
-            }
-            printNavigationSummary(routeResults);
-            exitCode = routeResults.every((result) => result.ok) ? 0 : 1;
-          }
-        }
-      }
+      exitCode = await runProtectedRoutes(page, createdFiles);
     }
   } catch (error) {
     console.error(`Falha ao executar a validação navegacional: ${errorText(error)}`);
     exitCode = 1;
   } finally {
     if (browserContext) {
-      try {
-        await browserContext.close();
-      } catch (error) {
-        console.error(`Falha ao fechar o contexto Playwright: ${errorText(error)}`);
-        if (exitCode === 0) exitCode = 1;
-      }
+      const closed = await closePlaywrightResource(browserContext, "o contexto Playwright");
+      if (!closed && exitCode === 0) exitCode = 1;
     }
     if (browser) {
-      try {
-        await browser.close();
-      } catch (error) {
-        console.error(`Falha ao fechar o navegador Playwright: ${errorText(error)}`);
-        if (exitCode === 0) exitCode = 1;
-      }
+      const closed = await closePlaywrightResource(browser, "o navegador Playwright");
+      if (!closed && exitCode === 0) exitCode = 1;
     }
-    printFooter(createdFiles);
+  }
+  return exitCode;
+}
+
+async function runValidation(createdFiles) {
+  const missingCredentials = missingCredentialNames();
+  if (missingCredentials.length > 0) {
+    console.error(
+      `Credenciais ausentes: defina ${missingCredentials.join(" e ")} no ambiente. Nenhuma credencial é lida de arquivo.`,
+    );
+    return 2;
   }
 
+  const baseUrl = validatedBaseUrl();
+  if (!baseUrl) return 3;
+  await mkdir(outputDirectory, { recursive: true });
+  if (!(await runHealthValidation(baseUrl))) return 3;
+  return runBrowserValidation(baseUrl, createdFiles);
+}
+
+async function main() {
+  const createdFiles = [];
+  let exitCode = 1;
+  try {
+    exitCode = await runValidation(createdFiles);
+  } catch (error) {
+    console.error(`Falha ao executar a validação navegacional: ${errorText(error)}`);
+    exitCode = 1;
+  } finally {
+    printFooter(createdFiles);
+  }
   return exitCode;
 }
 

@@ -17,14 +17,17 @@
 //     do bloco DO em scripts/db/migrate.ts:108.
 // Exit codes: 0 ok · 3 fora de janela/alvo proibido (pré-conexão) · 2 fail-closed.
 
-import { writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { Client } from "pg";
 import { ensureRuntimeRoleMembership } from "./db/migrate.ts";
 
 const LOCAL_HOSTNAMES = new Set(["127.0.0.1", "localhost", "::1"]);
 const PRODUCTION_ENDPOINT_PREFIX = "ep-long-violet-aye9g0bn";
 const NORMA = "docs/specs/M-02/emenda-2026-09-07-env-guard.md";
+const REPOSITORY_ROOT = realpathSync(resolve(import.meta.dirname, ".."));
+const TEMP_ROOT = realpathSync(tmpdir());
 
 function usage() {
   return [
@@ -145,6 +148,46 @@ function renderMarkdown(payload) {
   return `${lines.join("\n")}\n`;
 }
 
+function isWithin(base, candidate) {
+  const descendant = relative(base, candidate);
+  return descendant === "" || (!descendant.startsWith(`..${sep}`) && !isAbsolute(descendant));
+}
+
+function existingParent(candidate) {
+  let lexical = dirname(candidate);
+  while (!existsSync(lexical)) {
+    const parent = dirname(lexical);
+    if (parent === lexical) throw new Error("diretório pai da saída não pode ser resolvido");
+    lexical = parent;
+  }
+  return { lexical, real: realpathSync(lexical) };
+}
+
+function resolveOutputFile(raw) {
+  const candidate = resolve(raw);
+  const allowedRoot = [REPOSITORY_ROOT, TEMP_ROOT].find((root) => isWithin(root, candidate));
+  if (!allowedRoot) throw new Error("arquivo de saída fora das raízes permitidas; fail-closed");
+  const parent = existingParent(candidate);
+  if (!isWithin(allowedRoot, parent.real)) {
+    throw new Error("pai da saída usa symlink fora da raiz permitida; fail-closed");
+  }
+  const safeCandidate = resolve(parent.real, relative(parent.lexical, candidate));
+  if (!isWithin(allowedRoot, safeCandidate)) {
+    throw new Error("arquivo de saída fora da raiz permitida; fail-closed");
+  }
+  if (existsSync(safeCandidate)) {
+    const real = realpathSync(safeCandidate);
+    if (real !== safeCandidate || !statSync(real).isFile()) {
+      throw new Error("arquivo de saída existente não é um arquivo regular seguro; fail-closed");
+    }
+  }
+  return safeCandidate;
+}
+
+function companionJsonPath(outPath) {
+  return outPath.endsWith(".md") ? `${outPath.slice(0, -3)}.json` : `${outPath}.json`;
+}
+
 function preflightTarget(parsed, env) {
   const rawUrl = env[parsed.targetEnv];
   if (typeof rawUrl !== "string" || rawUrl.trim() === "") {
@@ -213,21 +256,48 @@ function preflightTarget(parsed, env) {
   return { ok: true, url, host, isLocal, window, motivo };
 }
 
-async function main() {
-  const parsed = parseArgs(process.argv.slice(2));
-  if (parsed.error) {
-    process.stderr.write(`m02-role-membership: ${parsed.error}\n${usage()}\n`);
-    process.exitCode = 2;
-    return;
-  }
-  const target = preflightTarget(parsed, process.env);
-  if (!target.ok) {
-    process.stderr.write(target.message);
-    process.exitCode = target.code;
-    return;
-  }
-  const { url, host, isLocal, window, motivo } = target;
+function writeRoleMembershipArtifacts(parsed, payload) {
+  if (!parsed.out) return;
+  const outPath = resolveOutputFile(parsed.out);
+  const jsonPath = resolveOutputFile(companionJsonPath(outPath));
+  writeFileSync(outPath, renderMarkdown(payload), "utf8");
+  writeFileSync(jsonPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+}
 
+function safeErrorMessage(error) {
+  const message = String(error instanceof Error ? error.message : error);
+  return message.includes("://")
+    ? "erro de conexão/banco (detalhes omitidos)"
+    : message.slice(0, 200);
+}
+
+async function rollbackQuietly(client) {
+  try {
+    await client.query("rollback");
+  } catch {
+    // conexão pode ter caído; nada a fazer
+  }
+}
+
+async function runMembershipTransaction(client, parsed, payload) {
+  await client.query("start transaction");
+  payload.before = await membershipState(client);
+  if (!payload.before.app_runtime_exists) {
+    throw new Error("role app_runtime não existe no catálogo do alvo — migrations não aplicadas?");
+  }
+  if (parsed.dryRun) {
+    await client.query("rollback");
+    payload.action = "dry-run: nenhuma escrita";
+    return;
+  }
+  await ensureRuntimeRoleMembership(client);
+  payload.after = await membershipState(client);
+  payload.idempotent_noop = payload.before.has_set_membership === payload.after.has_set_membership;
+  await client.query("commit");
+}
+
+async function executeMembership(parsed, target) {
+  const { url, host, isLocal, window, motivo } = target;
   const client = new Client({
     connectionString: url,
     ssl: isLocal ? false : { rejectUnauthorized: true },
@@ -245,48 +315,33 @@ async function main() {
   };
   try {
     await client.connect();
-    await client.query("start transaction");
-    payload.before = await membershipState(client);
-    if (!payload.before.app_runtime_exists) {
-      throw new Error(
-        "role app_runtime não existe no catálogo do alvo — migrations não aplicadas?",
-      );
-    }
-    if (parsed.dryRun) {
-      await client.query("rollback");
-      payload.action = "dry-run: nenhuma escrita";
-    } else {
-      await ensureRuntimeRoleMembership(client);
-      payload.after = await membershipState(client);
-      payload.idempotent_noop =
-        payload.before.has_set_membership === payload.after.has_set_membership;
-      await client.query("commit");
-    }
-    if (parsed.out) {
-      const outPath = resolve(parsed.out);
-      writeFileSync(outPath, renderMarkdown(payload), "utf8");
-      writeFileSync(
-        outPath.replace(/\.md$/, ".json"),
-        `${JSON.stringify(payload, null, 2)}\n`,
-        "utf8",
-      );
-    }
+    await runMembershipTransaction(client, parsed, payload);
+    writeRoleMembershipArtifacts(parsed, payload);
     process.stdout.write(`${JSON.stringify({ ...payload, url: undefined })}\n`);
     process.exitCode = 0;
   } catch (error) {
-    try {
-      await client.query("rollback");
-    } catch {
-      // conexão pode ter caído; nada a fazer
-    }
-    const safe = String(error instanceof Error ? error.message : error).includes("://")
-      ? "erro de conexão/banco (detalhes omitidos)"
-      : String(error instanceof Error ? error.message : error).slice(0, 200);
-    process.stderr.write(`m02-role-membership: fail-closed: ${safe}\n`);
+    await rollbackQuietly(client);
+    process.stderr.write(`m02-role-membership: fail-closed: ${safeErrorMessage(error)}\n`);
     process.exitCode = 2;
   } finally {
     await client.end().catch(() => {});
   }
+}
+
+async function main() {
+  const parsed = parseArgs(process.argv.slice(2));
+  if (parsed.error) {
+    process.stderr.write(`m02-role-membership: ${parsed.error}\n${usage()}\n`);
+    process.exitCode = 2;
+    return;
+  }
+  const target = preflightTarget(parsed, process.env);
+  if (!target.ok) {
+    process.stderr.write(target.message);
+    process.exitCode = target.code;
+    return;
+  }
+  await executeMembership(parsed, target);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

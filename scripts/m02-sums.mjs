@@ -28,11 +28,20 @@
 // (caminho selado ausente, SUMS malformado, erro interno, vermelho pós-V0).
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, join, relative, resolve } from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { basename, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT_DIR = resolve(fileURLToPath(import.meta.url), "..", "..");
+const ROOT_REAL_DIR = realpathSync(ROOT_DIR);
 const SUMS_NAME = "SHA256SUMS";
 
 // Rótulo de exceção único e datado (roteiro L40–42). Pinado aos hashes selados
@@ -83,7 +92,9 @@ function parseArgs(argv) {
     }
     return { error: `argumento não reconhecido: ${arg}` };
   }
-  if (!/^[A-Za-z0-9._/-]+$/.test(parsed.root)) return { error: "--root exige caminho simples" };
+  if (!/^[A-Za-z0-9._/-]+$/.test(parsed.root) || parsed.root.split("/").includes("..")) {
+    return { error: "--root exige caminho simples dentro do repositório" };
+  }
   return parsed;
 }
 
@@ -91,12 +102,63 @@ function sha256OfFile(path) {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
 
+function comparePaths(left, right) {
+  return left.localeCompare(right, "en", { numeric: false, sensitivity: "variant" });
+}
+
+function isWithin(base, candidate) {
+  const descendant = relative(base, candidate);
+  return descendant === "" || (!descendant.startsWith(`..${sep}`) && !isAbsolute(descendant));
+}
+
+function resolveBundleRoot(raw) {
+  const candidate = resolve(ROOT_REAL_DIR, raw);
+  if (!isWithin(ROOT_REAL_DIR, candidate)) {
+    return { error: "--root deve permanecer dentro do repositório; fail-closed" };
+  }
+  try {
+    const real = realpathSync(candidate);
+    if (!isWithin(ROOT_REAL_DIR, real)) {
+      return { error: "--root resolve para fora do repositório; fail-closed" };
+    }
+    if (!statSync(real).isDirectory()) return { error: "--root não é um diretório" };
+    return { path: real };
+  } catch {
+    return { error: "--root não pode ser resolvido; fail-closed" };
+  }
+}
+
+function resolveRootRelativePath(rootDir, rawPath) {
+  if (
+    typeof rawPath !== "string" ||
+    rawPath.trim() === "" ||
+    isAbsolute(rawPath) ||
+    /^[A-Za-z]:[\\/]/.test(rawPath) ||
+    rawPath.split(/[\\/]/).includes("..")
+  ) {
+    return { error: "caminho SUMS deve ser relativo e sem traversal" };
+  }
+  const candidate = resolve(rootDir, rawPath);
+  if (!isWithin(rootDir, candidate)) return { error: "caminho SUMS fora da raiz" };
+  if (!existsSync(candidate)) return { path: candidate };
+  try {
+    const real = realpathSync(candidate);
+    if (!isWithin(rootDir, real) || real !== candidate) {
+      return { error: "caminho SUMS usa symlink ou resolve para fora da raiz" };
+    }
+    if (!statSync(real).isFile()) return { error: "caminho SUMS não é arquivo regular" };
+    return { path: real };
+  } catch {
+    return { error: "caminho SUMS não pode ser resolvido" };
+  }
+}
+
 function discoverBundles(bundleRoot) {
   return readdirSync(bundleRoot, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith("."))
     .map((dirent) => join(bundleRoot, dirent.name))
     .filter((dir) => existsSync(join(dir, SUMS_NAME)))
-    .sort()
+    .sort(comparePaths)
     .map((dir) => ({ name: basename(dir), dir, sumsPath: join(dir, SUMS_NAME) }));
 }
 
@@ -122,11 +184,11 @@ function collectBundleFiles(rootDir, bundleDir) {
     }
   };
   walk(bundleDir);
-  return found.sort();
+  return found.sort(comparePaths);
 }
 
 function buildSumsContent(entries) {
-  const sorted = [...entries].sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+  const sorted = [...entries].sort((left, right) => comparePaths(left.path, right.path));
   return `${sorted.map((entry) => `${entry.hash}  ${entry.path}`).join("\n")}\n`;
 }
 
@@ -135,9 +197,15 @@ function verifyEntries(entries, options) {
   const pinning = exceptionActive && bundleName === GSEC_EXCEPTION.bundle;
   const failed = [];
   const missingPinned = [];
+  const invalidPaths = [];
   let ok = 0;
   for (const entry of entries) {
-    const absolute = resolve(rootDir, entry.path);
+    const resolved = resolveRootRelativePath(rootDir, entry.path);
+    if (resolved.error) {
+      invalidPaths.push(`${entry.path}: ${resolved.error}`);
+      continue;
+    }
+    const absolute = resolved.path;
     const isPinned = pinning && GSEC_EXCEPTION.pins[entry.path] === entry.hash;
     if (!existsSync(absolute)) {
       if (isPinned) missingPinned.push(entry.path);
@@ -152,12 +220,14 @@ function verifyEntries(entries, options) {
     failed.push({ path: entry.path, expected: entry.hash, actual, labeled: isPinned });
   }
   const status =
-    failed.length === 0
-      ? "GREEN"
-      : failed.every((failure) => failure.labeled)
-        ? "RED-LABELED"
-        : "RED-UNLABELED";
-  return { total: entries.length, ok, failed, missingPinned, status };
+    invalidPaths.length > 0
+      ? "INVALID-PATH"
+      : failed.length === 0
+        ? "GREEN"
+        : failed.every((failure) => failure.labeled)
+          ? "RED-LABELED"
+          : "RED-UNLABELED";
+  return { total: entries.length, ok, failed, missingPinned, invalidPaths, status };
 }
 
 function regenBundle(bundle, options) {
@@ -170,8 +240,10 @@ function regenBundle(bundle, options) {
   ]);
   const pinning = exceptionActive && bundle.name === GSEC_EXCEPTION.bundle;
   const entries = [];
-  for (const path of [...pathSet].sort()) {
-    const absolute = resolve(rootDir, path);
+  for (const path of [...pathSet].sort(comparePaths)) {
+    const resolved = resolveRootRelativePath(rootDir, path);
+    if (resolved.error) return { error: `${bundle.name}: ${path}: ${resolved.error}` };
+    const absolute = resolved.path;
     if (!existsSync(absolute)) {
       return { error: `${bundle.name}: caminho selado ausente no disco: ${path}` };
     }
@@ -182,6 +254,69 @@ function regenBundle(bundle, options) {
   return { entries };
 }
 
+function releaseGsecException(parsed, markerPath) {
+  if (!parsed.releaseGsec || existsSync(markerPath)) return;
+  writeFileSync(
+    markerPath,
+    `exceção gsec liberada em ${new Date().toISOString()} (passo H1 pós-V0; roteiro L41–42)\n`,
+    "utf8",
+  );
+  process.stdout.write(
+    `${JSON.stringify({ tool: "m02-sums", event: "gsec-exception-released", marker: relative(ROOT_DIR, markerPath), label: GSEC_EXCEPTION.label })}\n`,
+  );
+}
+
+function entriesForBundle(bundle, parsed, exceptionActive) {
+  if (parsed.verify) {
+    const current = parseSums(readFileSync(bundle.sumsPath, "utf8"));
+    if (current.error) return { error: `${bundle.name}: ${current.error}` };
+    return { entries: current.entries };
+  }
+  const regen = regenBundle(bundle, { rootDir: ROOT_DIR, exceptionActive });
+  if (regen.error) return { error: regen.error };
+  return { entries: regen.entries };
+}
+
+function processBundle(bundle, parsed, exceptionActive) {
+  const loaded = entriesForBundle(bundle, parsed, exceptionActive);
+  if (loaded.error) {
+    process.stderr.write(`m02-sums: ${loaded.error}\n`);
+    return { fatal: true, worst: 2 };
+  }
+  const result = verifyEntries(loaded.entries, {
+    rootDir: ROOT_DIR,
+    bundleName: bundle.name,
+    exceptionActive,
+  });
+  if (result.missingPinned.length > 0) {
+    process.stderr.write(
+      `m02-sums: ${bundle.name}: caminho pinado ausente no disco (fail-closed): ${result.missingPinned.join(", ")}\n`,
+    );
+    return { fatal: true, worst: 2 };
+  }
+  if (result.invalidPaths.length > 0) {
+    process.stderr.write(
+      `m02-sums: ${bundle.name}: caminho inválido no SUMS (fail-closed): ${result.invalidPaths.join(", ")}\n`,
+    );
+    return { fatal: true, worst: 2 };
+  }
+  process.stdout.write(
+    `${JSON.stringify({
+      bundle: bundle.name,
+      total: result.total,
+      ok: result.ok,
+      failed: result.failed,
+      status: result.status,
+      regenerated: !parsed.verify,
+      gsec_label:
+        bundle.name === GSEC_EXCEPTION.bundle && exceptionActive ? GSEC_EXCEPTION.label : undefined,
+    })}\n`,
+  );
+  if (result.status !== "RED-UNLABELED") return { fatal: false, worst: 0 };
+  const postV0Gsec = bundle.name === GSEC_EXCEPTION.bundle && !exceptionActive;
+  return { fatal: false, worst: postV0Gsec ? 2 : 1 };
+}
+
 function main() {
   const parsed = parseArgs(process.argv.slice(2));
   if (parsed.error) {
@@ -189,12 +324,13 @@ function main() {
     process.exitCode = 2;
     return;
   }
-  const bundleRoot = resolve(ROOT_DIR, parsed.root);
-  if (!existsSync(bundleRoot)) {
-    process.stderr.write(`m02-sums: raiz de bundles inexistente: ${parsed.root}\n`);
+  const bundleRootResult = resolveBundleRoot(parsed.root);
+  if (bundleRootResult.error) {
+    process.stderr.write(`m02-sums: ${bundleRootResult.error}\n`);
     process.exitCode = 2;
     return;
   }
+  const bundleRoot = bundleRootResult.path;
   const bundles = discoverBundles(bundleRoot);
   if (bundles.length === 0) {
     process.stderr.write("m02-sums: nenhum bundle com SHA256SUMS encontrado (fail-closed)\n");
@@ -203,70 +339,15 @@ function main() {
   }
 
   const markerPath = join(bundleRoot, GSEC_EXCEPTION.bundle, GSEC_EXCEPTION.marker);
-  if (parsed.releaseGsec && !existsSync(markerPath)) {
-    writeFileSync(
-      markerPath,
-      `exceção gsec liberada em ${new Date().toISOString()} (passo H1 pós-V0; roteiro L41–42)\n`,
-      "utf8",
-    );
-    process.stdout.write(
-      `${JSON.stringify({ tool: "m02-sums", event: "gsec-exception-released", marker: relative(ROOT_DIR, markerPath), label: GSEC_EXCEPTION.label })}\n`,
-    );
-  }
+  releaseGsecException(parsed, markerPath);
   const exceptionActive = !existsSync(markerPath);
   const mode = parsed.verify ? "verify" : "regen";
   let worst = 0;
 
   for (const bundle of bundles) {
-    let entries;
-    if (parsed.verify) {
-      const current = parseSums(readFileSync(bundle.sumsPath, "utf8"));
-      if (current.error) {
-        process.stderr.write(`m02-sums: ${bundle.name}: ${current.error}\n`);
-        worst = 2;
-        break;
-      }
-      entries = current.entries;
-    } else {
-      const regen = regenBundle(bundle, { rootDir: ROOT_DIR, exceptionActive });
-      if (regen.error) {
-        process.stderr.write(`m02-sums: ${regen.error}\n`);
-        worst = 2;
-        break;
-      }
-      entries = regen.entries;
-    }
-    const result = verifyEntries(entries, {
-      rootDir: ROOT_DIR,
-      bundleName: bundle.name,
-      exceptionActive,
-    });
-    if (result.missingPinned.length > 0) {
-      process.stderr.write(
-        `m02-sums: ${bundle.name}: caminho pinado ausente no disco (fail-closed): ${result.missingPinned.join(", ")}\n`,
-      );
-      worst = 2;
-      break;
-    }
-    process.stdout.write(
-      `${JSON.stringify({
-        bundle: bundle.name,
-        total: result.total,
-        ok: result.ok,
-        failed: result.failed,
-        status: result.status,
-        regenerated: !parsed.verify,
-        gsec_label:
-          bundle.name === GSEC_EXCEPTION.bundle && exceptionActive
-            ? GSEC_EXCEPTION.label
-            : undefined,
-      })}\n`,
-    );
-    if (result.status === "RED-UNLABELED") {
-      // Pós-V0 (exceção liberada), vermelho no gsec é hard fail (roteiro L41–42).
-      const postV0Gsec = bundle.name === GSEC_EXCEPTION.bundle && !exceptionActive;
-      worst = Math.max(worst, postV0Gsec ? 2 : 1);
-    }
+    const outcome = processBundle(bundle, parsed, exceptionActive);
+    worst = Math.max(worst, outcome.worst);
+    if (outcome.fatal) break;
   }
 
   process.stdout.write(

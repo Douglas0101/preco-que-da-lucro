@@ -16,14 +16,34 @@
 // Exit codes: 0 = nenhum hard fail (pendings rotulados ok) · 2 = hard fail.
 
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  realpathSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(fileURLToPath(import.meta.url), "..", "..");
+const REPOSITORY_ROOT = realpathSync(ROOT);
+const TEMP_ROOT = realpathSync(tmpdir());
 const SNAPSHOTS_DIR = "artifacts/snapshots";
 const PRODUCTION_HOST = "ep-long-violet-aye9g0bn";
 const LOCAL_RM_URL = "postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test";
+const NPM_CLI = resolve(
+  dirname(process.execPath),
+  "..",
+  "lib",
+  "node_modules",
+  "npm",
+  "bin",
+  "npm-cli.js",
+);
 
 function parseArgs(argv) {
   const parsed = { outDir: undefined, skipSnapshot: false };
@@ -39,8 +59,8 @@ function parseArgs(argv) {
 
 function npmRun(script, extraArgs, env) {
   const result = spawnSync(
-    "npm",
-    ["run", script, ...(extraArgs && extraArgs.length > 0 ? ["--", ...extraArgs] : [])],
+    process.execPath,
+    [NPM_CLI, "run", script, ...(extraArgs && extraArgs.length > 0 ? ["--", ...extraArgs] : [])],
     {
       cwd: ROOT,
       encoding: "utf8",
@@ -61,10 +81,7 @@ function lastJson(stdout) {
       // cai no fallback de última linha
     }
   }
-  const line = text
-    .split(/\r?\n/)
-    .filter((l) => l.trim().startsWith("{"))
-    .pop();
+  const line = text.split(/\r?\n/).findLast((l) => l.trim().startsWith("{"));
   try {
     return JSON.parse(line);
   } catch {
@@ -80,22 +97,59 @@ function record(id, status, detail, extra) {
   );
 }
 
+function readinessDetail(result, json) {
+  const resultLabel = json?.result ? ` · result=${json.result}` : "";
+  return `exit ${result.status}${resultLabel} — pré-cutover, falhas de agenda (freeze/sec01/g1/snapshot-fresco) são esperadas e rotuladas`;
+}
+
+function isWithin(base, candidate) {
+  const descendant = relative(base, candidate);
+  return descendant === "" || (!descendant.startsWith(`..${sep}`) && !isAbsolute(descendant));
+}
+
+function existingOutputAncestor(candidate) {
+  let lexical = candidate;
+  while (!existsSync(lexical)) {
+    const parent = dirname(lexical);
+    if (parent === lexical) throw new Error("diretório pai da saída não pode ser resolvido");
+    lexical = parent;
+  }
+  return { lexical, real: realpathSync(lexical) };
+}
+
+function resolveSafeOutputDirectory(raw) {
+  const candidate = resolve(ROOT, raw);
+  const allowedRoot = [REPOSITORY_ROOT, TEMP_ROOT].find((root) => isWithin(root, candidate));
+  if (!allowedRoot) return { error: "--out-dir fora das raízes permitidas; fail-closed" };
+  try {
+    const parent = existingOutputAncestor(candidate);
+    if (!isWithin(allowedRoot, parent.real)) {
+      return { error: "pai de --out-dir usa symlink fora da raiz permitida; fail-closed" };
+    }
+    const safeCandidate = resolve(parent.real, relative(parent.lexical, candidate));
+    if (!isWithin(allowedRoot, safeCandidate)) {
+      return { error: "--out-dir fora da raiz permitida; fail-closed" };
+    }
+    if (existsSync(safeCandidate) && !statSync(realpathSync(safeCandidate)).isDirectory()) {
+      return { error: "--out-dir não é um diretório; fail-closed" };
+    }
+    return { path: safeCandidate };
+  } catch {
+    return { error: "--out-dir não pode ser resolvido com segurança; fail-closed" };
+  }
+}
+
 // 1. readiness do dia (gate m02:readiness; hoje esperada INCOMPLETE/FAIL por
 // freeze/sec01/snapshot-fresco — rotulado, não hard fail).
 function checkReadiness() {
   const result = npmRun("m02:readiness", [], {});
   const json = lastJson(result.stdout);
   const status = result.status === 0 ? "PASS" : "EXPECTED-PENDING";
-  record(
-    "gate-readiness",
-    status,
-    `exit ${result.status}${json?.result ? ` · result=${json.result}` : ""} — pré-cutover, falhas de agenda (freeze/sec01/g1/snapshot-fresco) são esperadas e rotuladas`,
-    {
-      failing: (json?.checks ?? [])
-        .filter((c) => c.status !== "PASS")
-        .map((c) => `${c.id}:${c.status}`),
-    },
-  );
+  record("gate-readiness", status, readinessDetail(result, json), {
+    failing: (json?.checks ?? [])
+      .filter((c) => c.status !== "PASS")
+      .map((c) => `${c.id}:${c.status}`),
+  });
 }
 
 // 2. matriz: check SEM regen (regen é humano sob drift).
@@ -133,7 +187,6 @@ function checkDoubleSnapshot(skipSnapshot) {
     );
     return;
   }
-  const before = new Set(listDumpFiles());
   const runs = [];
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     const result = npmRun("m02:snapshot", [], {
@@ -167,7 +220,6 @@ function checkDoubleSnapshot(skipSnapshot) {
     );
     return;
   }
-  void before;
   record(
     "dupla-snapshot",
     "PASS",
@@ -226,14 +278,14 @@ function checkFreezeWindow() {
 function checkSecrets() {
   const problems = [];
   if (existsSync(resolve(ROOT, "gate.env"))) problems.push("gate.env presente no root do repo");
-  const staged = spawnSync("git", ["diff", "--cached", "--name-only"], {
+  const staged = spawnSync("/usr/bin/git", ["diff", "--cached", "--name-only"], {
     cwd: ROOT,
     encoding: "utf8",
   }).stdout.trim();
   const stagedFiles = staged ? staged.split("\n") : [];
   const stagedStops = stagedFiles.filter((f) => /(^|\/)\.env$|gate\.env/.test(f));
   if (stagedStops.length) problems.push(`staged inclui arquivo de env: ${stagedStops.join(", ")}`);
-  const stagedDiff = spawnSync("git", ["diff", "--cached", "-U0"], {
+  const stagedDiff = spawnSync("/usr/bin/git", ["diff", "--cached", "-U0"], {
     cwd: ROOT,
     encoding: "utf8",
   }).stdout;
@@ -253,7 +305,7 @@ function checkSecrets() {
 
 // 6. env-guard selftest (novo count da Emenda #4).
 function checkEnvGuardSelftest() {
-  const result = spawnSync("node", ["scripts/env-guard.mjs", "--selftest"], {
+  const result = spawnSync(process.execPath, ["scripts/env-guard.mjs", "--selftest"], {
     cwd: ROOT,
     encoding: "utf8",
     timeout: 60_000,
@@ -315,7 +367,9 @@ function renderMarkdown(payload) {
     "| --- | --- | --- |",
   ];
   for (const check of payload.checks) {
-    lines.push(`| ${check.id} | ${check.status} | ${String(check.detail).replace(/\|/g, "\\|")} |`);
+    lines.push(
+      `| ${check.id} | ${check.status} | ${String(check.detail).replaceAll("|", "\\|")} |`,
+    );
   }
   lines.push("", "## Snapshot dupla", "");
   const dual = payload.checks.find((c) => c.id === "dupla-snapshot");
@@ -342,6 +396,15 @@ function main() {
     process.exitCode = 2;
     return;
   }
+  const output = resolveSafeOutputDirectory(
+    parsed.outDir ?? "docs/evidence/cutover-prep-2026-09-07",
+  );
+  if (output.error) {
+    process.stderr.write(`m02-cutover-t0: ${output.error}\n`);
+    process.exitCode = 2;
+    return;
+  }
+  const outDir = output.path;
   const started = Date.now();
   checkEnvGuardSelftest();
   checkMatrix();
@@ -358,7 +421,7 @@ function main() {
     script: "m02:cutover-t0",
     executed_at: new Date().toISOString(),
     duration_ms: Date.now() - started,
-    head_sha: spawnSync("git", ["rev-parse", "--short", "HEAD"], {
+    head_sha: spawnSync("/usr/bin/git", ["rev-parse", "--short", "HEAD"], {
       cwd: ROOT,
       encoding: "utf8",
     }).stdout.trim(),
@@ -367,8 +430,15 @@ function main() {
     pending_count: pending,
     exit: hardFail > 0 ? 2 : 0,
   };
-  const outDir = resolve(ROOT, parsed.outDir ?? "docs/evidence/cutover-prep-2026-09-07");
   mkdirSync(outDir, { recursive: true });
+  const realOutDir = realpathSync(outDir);
+  if (!isWithin(REPOSITORY_ROOT, realOutDir) && !isWithin(TEMP_ROOT, realOutDir)) {
+    process.stderr.write(
+      "m02-cutover-t0: --out-dir mudou para fora da raiz permitida; fail-closed\n",
+    );
+    process.exitCode = 2;
+    return;
+  }
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   writeFileSync(
     resolve(outDir, `cutover-t0-${stamp}.json`),

@@ -115,14 +115,32 @@ UniqueSafeLoader.add_constructor(
 )
 
 
+def _absolute_file(path: Path, label: str) -> Path:
+    if not path.is_absolute():
+        raise EnvironmentFailure(f"{label} must be an absolute path: {path}")
+    if path.is_symlink():
+        raise EnvironmentFailure(f"{label} must not be a symlink: {path}")
+    try:
+        resolved = path.resolve(strict=True)
+    except OSError as exc:
+        raise EnvironmentFailure(f"cannot resolve {label} {path}: {exc}") from exc
+    if not resolved.is_file():
+        raise EnvironmentFailure(f"{label} is not a regular file: {resolved}")
+    return resolved
+
+
 def sha256_file(path: Path) -> str:
+    safe_path = _absolute_file(
+        path if path.is_absolute() else Path.cwd() / path,
+        "hash file",
+    )
     digest = hashlib.sha256()
     try:
-        with path.open("rb") as stream:
+        with safe_path.open("rb") as stream:
             for chunk in iter(lambda: stream.read(1024 * 64), b""):
                 digest.update(chunk)
     except OSError as exc:
-        raise EnvironmentFailure(f"cannot read {path}: {exc}") from exc
+        raise EnvironmentFailure(f"cannot read {safe_path}: {exc}") from exc
     return digest.hexdigest()
 
 
@@ -167,40 +185,44 @@ def _load_yaml_block(block: str, source: Path) -> dict[str, Any]:
 
 def load_documents(report_path: Path) -> dict[str, Any]:
     """Extract the supported YAML documents and reject silent overwrites."""
+    safe_report_path = _absolute_file(
+        report_path if report_path.is_absolute() else Path.cwd() / report_path,
+        "report file",
+    )
     try:
-        text = report_path.read_text(encoding="utf-8")
+        text = safe_report_path.read_text(encoding="utf-8")
     except OSError as exc:
-        raise EnvironmentFailure(f"cannot read report {report_path}: {exc}") from exc
+        raise EnvironmentFailure(f"cannot read report {safe_report_path}: {exc}") from exc
 
     blocks = FENCED_YAML_RE.findall(text)
     if not blocks and text.lstrip().startswith("forensic_sdd_report:"):
         blocks = [text]
     if not blocks:
         raise ExtractionError(
-            f"'forensic_sdd_report' YAML block not found in {report_path}"
+            f"'forensic_sdd_report' YAML block not found in {safe_report_path}"
         )
 
     merged: dict[str, Any] = {}
     for block in blocks:
-        document = _load_yaml_block(block, report_path)
+        document = _load_yaml_block(block, safe_report_path)
         for key, value in document.items():
             if key not in DOCUMENT_KEYS:
                 # Keep the key so the strict schema produces its exact path.
                 if key in merged:
                     raise ExtractionError(
-                        f"duplicate top-level YAML document {key!r} in {report_path}"
+                        f"duplicate top-level YAML document {key!r} in {safe_report_path}"
                     )
                 merged[key] = value
                 continue
             if key in merged:
                 raise ExtractionError(
-                    f"duplicate top-level YAML document {key!r} in {report_path}"
+                    f"duplicate top-level YAML document {key!r} in {safe_report_path}"
                 )
             merged[key] = value
 
     if "forensic_sdd_report" not in merged:
         raise ExtractionError(
-            f"'forensic_sdd_report' YAML document not found in {report_path}"
+            f"'forensic_sdd_report' YAML document not found in {safe_report_path}"
         )
     return merged
 
@@ -419,20 +441,6 @@ def _absolute_directory(path: Path, label: str) -> Path:
         raise EnvironmentFailure(f"cannot resolve {label} {path}: {exc}") from exc
     if not resolved.is_dir():
         raise EnvironmentFailure(f"{label} is not a directory: {resolved}")
-    return resolved
-
-
-def _absolute_file(path: Path, label: str) -> Path:
-    if not path.is_absolute():
-        raise EnvironmentFailure(f"{label} must be an absolute path: {path}")
-    if path.is_symlink():
-        raise EnvironmentFailure(f"{label} must not be a symlink: {path}")
-    try:
-        resolved = path.resolve(strict=True)
-    except OSError as exc:
-        raise EnvironmentFailure(f"cannot resolve {label} {path}: {exc}") from exc
-    if not resolved.is_file():
-        raise EnvironmentFailure(f"{label} is not a regular file: {resolved}")
     return resolved
 
 
