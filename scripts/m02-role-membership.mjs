@@ -18,8 +18,7 @@
 // Exit codes: 0 ok · 3 fora de janela/alvo proibido (pré-conexão) · 2 fail-closed.
 
 import { writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { Client } from "pg";
 import { ensureRuntimeRoleMembership } from "./db/migrate.ts";
 
@@ -146,6 +145,74 @@ function renderMarkdown(payload) {
   return `${lines.join("\n")}\n`;
 }
 
+function preflightTarget(parsed, env) {
+  const rawUrl = env[parsed.targetEnv];
+  if (typeof rawUrl !== "string" || rawUrl.trim() === "") {
+    return {
+      ok: false,
+      code: 2,
+      message: `m02-role-membership: erro de ambiente (fail-closed): env ${parsed.targetEnv} ausente (valores nunca impressos)\n`,
+    };
+  }
+
+  const url = rawUrl.trim();
+  let host;
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return {
+      ok: false,
+      code: 2,
+      message: "m02-role-membership: URL malformada (fail-closed; valor omitido)\n",
+    };
+  }
+
+  const isLocal = LOCAL_HOSTNAMES.has(host);
+  const isProduction = host.includes(PRODUCTION_ENDPOINT_PREFIX);
+  if (parsed.kind === "drill-branch" && isProduction) {
+    return {
+      ok: false,
+      code: 3,
+      message: `${JSON.stringify({
+        script: "m02-role-membership",
+        result: "DENY-pre-conexao",
+        reason: "drill-branch nunca pode mirar produção (Emenda #2)",
+      })}\n`,
+    };
+  }
+
+  let window = null;
+  let motivo;
+  if (parsed.kind === "cutover-window") {
+    window = validateFreezeWindow(env);
+    motivo = typeof env.ALLOW_REMOTE_DB === "string" ? env.ALLOW_REMOTE_DB.trim() : "";
+    if (!isLocal && !window.ok) {
+      return {
+        ok: false,
+        code: 3,
+        message: `${JSON.stringify({
+          script: "m02-role-membership",
+          result: "DENY-pre-conexao",
+          reason: `cutover-window recusado: ${window.reason} (Emenda #3; dry-run remoto também exige janela vigente)`,
+        })}\n`,
+      };
+    }
+    if (!isLocal && motivo === "") {
+      return {
+        ok: false,
+        code: 3,
+        message: `${JSON.stringify({
+          script: "m02-role-membership",
+          result: "DENY-pre-conexao",
+          reason: "cutover-window exige ALLOW_REMOTE_DB=<motivo> (Emenda #3)",
+        })}\n`,
+      };
+    }
+  }
+
+  return { ok: true, url, host, isLocal, window, motivo };
+}
+
 async function main() {
   const parsed = parseArgs(process.argv.slice(2));
   if (parsed.error) {
@@ -153,70 +220,13 @@ async function main() {
     process.exitCode = 2;
     return;
   }
-  const rawUrl = process.env[parsed.targetEnv];
-  if (typeof rawUrl !== "string" || rawUrl.trim() === "") {
-    process.stderr.write(
-      `m02-role-membership: erro de ambiente (fail-closed): env ${parsed.targetEnv} ausente (valores nunca impressos)\n`,
-    );
-    process.exitCode = 2;
+  const target = preflightTarget(parsed, process.env);
+  if (!target.ok) {
+    process.stderr.write(target.message);
+    process.exitCode = target.code;
     return;
   }
-  const url = rawUrl.trim();
-  let host = null;
-  try {
-    host = new URL(url).hostname.toLowerCase();
-  } catch {
-    process.stderr.write("m02-role-membership: URL malformada (fail-closed; valor omitido)\n");
-    process.exitCode = 2;
-    return;
-  }
-  const isLocal = LOCAL_HOSTNAMES.has(host);
-  const isProduction = host.includes(PRODUCTION_ENDPOINT_PREFIX);
-
-  // Decisões PRÉ-conexão (espelham o env-guard; o guard no hook continua sendo
-  // a fronteira para db:migrate — aqui este script é a ferramenta sancionada).
-  if (parsed.kind === "drill-branch" && isProduction) {
-    process.stderr.write(
-      JSON.stringify({
-        script: "m02-role-membership",
-        result: "DENY-pre-conexao",
-        reason: "drill-branch nunca pode mirar produção (Emenda #2)",
-      }) + "\n",
-    );
-    process.exitCode = 3;
-    return;
-  }
-  let window = null;
-  let motivo;
-  if (parsed.kind === "cutover-window") {
-    window = validateFreezeWindow(process.env);
-    motivo =
-      typeof process.env.ALLOW_REMOTE_DB === "string" ? process.env.ALLOW_REMOTE_DB.trim() : "";
-    if (!isLocal) {
-      if (!window.ok) {
-        process.stderr.write(
-          JSON.stringify({
-            script: "m02-role-membership",
-            result: "DENY-pre-conexao",
-            reason: `cutover-window recusado: ${window.reason} (Emenda #3; dry-run remoto também exige janela vigente)`,
-          }) + "\n",
-        );
-        process.exitCode = 3;
-        return;
-      }
-      if (motivo === "") {
-        process.stderr.write(
-          JSON.stringify({
-            script: "m02-role-membership",
-            result: "DENY-pre-conexao",
-            reason: "cutover-window exige ALLOW_REMOTE_DB=<motivo> (Emenda #3)",
-          }) + "\n",
-        );
-        process.exitCode = 3;
-        return;
-      }
-    }
-  }
+  const { url, host, isLocal, window, motivo } = target;
 
   const client = new Client({
     connectionString: url,

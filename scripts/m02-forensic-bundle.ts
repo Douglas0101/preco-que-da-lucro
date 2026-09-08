@@ -5,15 +5,17 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   renameSync,
   statSync,
   writeFileSync,
 } from "node:fs";
 import { arch, release, type as osType } from "node:os";
-import { basename, resolve } from "node:path";
+import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 
 const repositoryRoot = resolve(import.meta.dirname, "..");
+const repositoryRealPath = realpathSync(repositoryRoot);
 
 interface IncludeEntry {
   source_path: string;
@@ -50,6 +52,51 @@ function fail(error: string): never {
   process.exit(2);
 }
 
+function isInside(base: string, candidate: string): boolean {
+  const rel = relative(base, candidate);
+  return rel !== "" && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
+}
+
+function rejectSymlinkEscape(candidate: string, label: string): void {
+  let existing = candidate;
+  while (!existsSync(existing)) {
+    const parent = dirname(existing);
+    if (parent === existing) fail(`${label} não pode ser resolvido dentro do repositório`);
+    existing = parent;
+  }
+  const realExisting = realpathSync(existing);
+  if (!isInside(repositoryRealPath, realExisting)) {
+    fail(`${label} aponta para fora do repositório; fail-closed`);
+  }
+}
+
+function resolveRepositoryPath(raw: string, label: string): string {
+  const candidate = resolve(repositoryRoot, raw);
+  if (!isInside(repositoryRealPath, candidate)) {
+    fail(`${label} deve permanecer dentro do repositório; fail-closed`);
+  }
+  rejectSymlinkEscape(candidate, label);
+  return candidate;
+}
+
+function resolveOutputPath(base: string, name: string): string {
+  const candidate = resolve(base, name);
+  if (!isInside(base, candidate)) fail("saída do bundle fora do diretório de destino; fail-closed");
+  return candidate;
+}
+
+function resolveIncludedFile(raw: string): string {
+  const candidate = resolveRepositoryPath(raw, "--include");
+  if (!existsSync(candidate) || !statSync(candidate).isFile()) {
+    fail(`--include não é arquivo regular: ${raw}`);
+  }
+  const realCandidate = realpathSync(candidate);
+  if (!isInside(repositoryRealPath, realCandidate)) {
+    fail("--include aponta para fora do repositório; fail-closed");
+  }
+  return realCandidate;
+}
+
 function main(): void {
   const { values } = parseArgs({
     options: {
@@ -61,7 +108,7 @@ function main(): void {
   });
   if (!values.out)
     fail("--out <dir> é obrigatório (--note e --include <arquivo> são opcionais e repetíveis)");
-  const outDir = resolve(values.out);
+  const outDir = resolveRepositoryPath(values.out, "--out");
   if (existsSync(outDir)) fail("destino já existe; fail-closed, sem sobrescrita");
 
   const startedAt = new Date().toISOString();
@@ -75,17 +122,14 @@ function main(): void {
   const envVarNames = Object.keys(process.env)
     .filter((key) => ENV_NAME_PATTERN.test(key))
     .sort();
-  writeFileSync(resolve(outDir, "env-var-names.txt"), envVarNames.join("\n") + "\n");
+  writeFileSync(resolveOutputPath(outDir, "env-var-names.txt"), envVarNames.join("\n") + "\n");
 
   const includes: IncludeEntry[] = [];
   const requested: string[] = values.include ?? [];
   for (let i = 0; i < requested.length; i++) {
-    const source = resolve(requested[i]!);
-    if (!existsSync(source) || !statSync(source).isFile()) {
-      fail(`--include não é arquivo regular: ${requested[i]}`);
-    }
+    const source = resolveIncludedFile(requested[i]!);
     const storedAs = i === 0 ? basename(source) : `${i}-${basename(source)}`;
-    const dest = resolve(outDir, storedAs);
+    const dest = resolveOutputPath(outDir, storedAs);
     copyFileSync(source, dest);
     const bytes = readFileSync(dest);
     includes.push({
@@ -122,8 +166,8 @@ function main(): void {
     includes,
   };
 
-  const manifestPath = resolve(outDir, "manifest.json");
-  const tmpPath = resolve(outDir, ".manifest.json.tmp");
+  const manifestPath = resolveOutputPath(outDir, "manifest.json");
+  const tmpPath = resolveOutputPath(outDir, ".manifest.json.tmp");
   writeFileSync(tmpPath, JSON.stringify(manifest, null, 2) + "\n");
   renameSync(tmpPath, manifestPath);
 
@@ -131,7 +175,7 @@ function main(): void {
     ...includes.map((inc) => `${inc.sha256}  ${inc.stored_as}`),
     `${sha256(readFileSync(manifestPath))}  manifest.json`,
   ];
-  writeFileSync(resolve(outDir, "SHA256SUMS"), sums.join("\n") + "\n");
+  writeFileSync(resolveOutputPath(outDir, "SHA256SUMS"), sums.join("\n") + "\n");
 
   console.log(
     JSON.stringify(

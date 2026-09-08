@@ -56,7 +56,7 @@ EXIT_PASS = 0
 EXIT_FAIL = 1
 EXIT_ENVIRONMENT = 2
 VALIDATOR_VERSION = "forensic-validate/1.0.0"
-BUNDLED_SCHEMA_PATH = Path(__file__).with_name("forensic-report-v2.schema.json")
+BUNDLED_SCHEMA_PATH = Path(__file__).resolve().with_name("forensic-report-v2.schema.json")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 GITSHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SESSION_RE = re.compile(
@@ -373,11 +373,12 @@ def validate(document: dict[str, Any], schema: dict[str, Any]) -> list[str]:
 
 
 def _load_schema(schema_path: Path) -> dict[str, Any]:
+    safe_schema_path = _absolute_file(schema_path, "schema file")
     try:
-        with schema_path.open(encoding="utf-8") as stream:
+        with safe_schema_path.open(encoding="utf-8") as stream:
             schema = json.load(stream)
     except (OSError, json.JSONDecodeError) as exc:
-        raise EnvironmentFailure(f"cannot load schema {schema_path}: {exc}") from exc
+        raise EnvironmentFailure(f"cannot load schema {safe_schema_path}: {exc}") from exc
     if not isinstance(schema, dict):
         raise EnvironmentFailure(f"schema {schema_path} must be a JSON object")
     return schema
@@ -418,6 +419,20 @@ def _absolute_directory(path: Path, label: str) -> Path:
         raise EnvironmentFailure(f"cannot resolve {label} {path}: {exc}") from exc
     if not resolved.is_dir():
         raise EnvironmentFailure(f"{label} is not a directory: {resolved}")
+    return resolved
+
+
+def _absolute_file(path: Path, label: str) -> Path:
+    if not path.is_absolute():
+        raise EnvironmentFailure(f"{label} must be an absolute path: {path}")
+    if path.is_symlink():
+        raise EnvironmentFailure(f"{label} must not be a symlink: {path}")
+    try:
+        resolved = path.resolve(strict=True)
+    except OSError as exc:
+        raise EnvironmentFailure(f"cannot resolve {label} {path}: {exc}") from exc
+    if not resolved.is_file():
+        raise EnvironmentFailure(f"{label} is not a regular file: {resolved}")
     return resolved
 
 
@@ -734,9 +749,7 @@ def _session_sort_key(entry: SessionEntry) -> tuple[int, date, int, str]:
     )
 
 
-def _collect_sessions(
-    evidence_root: Path, candidate: Path | None
-) -> list[SessionEntry]:
+def _discover_sessions(evidence_root: Path) -> list[SessionEntry]:
     sessions: list[SessionEntry] = []
     for entry in evidence_root.iterdir():
         if not entry.name.startswith(("GENESIS-", "CHK-")):
@@ -746,51 +759,55 @@ def _collect_sessions(
         _parse_directory_name(entry.name)
         _regular_report_file(entry, evidence_root)
         sessions.append(SessionEntry(path=entry, name=entry.name))
+    return sessions
 
-    if candidate is not None:
-        if candidate.is_symlink():
-            raise ForensicError("candidate must not be a symlink")
-        lexical_candidate = Path(os.path.abspath(candidate))
-        if _is_within(lexical_candidate, evidence_root):
-            _reject_symlink_components(
-                evidence_root,
-                PurePath(lexical_candidate.relative_to(evidence_root)),
-            )
-        candidate = candidate.resolve(strict=True)
-        if not _is_within(candidate, evidence_root):
-            raise ForensicError("candidate must be inside evidence root")
+
+def _load_candidate_session(
+    evidence_root: Path, candidate: Path, sessions: list[SessionEntry]
+) -> SessionEntry:
+    if candidate.is_symlink():
+        raise ForensicError("candidate must not be a symlink")
+    lexical_candidate = Path(os.path.abspath(candidate))
+    if _is_within(lexical_candidate, evidence_root):
         _reject_symlink_components(
-            evidence_root, PurePath(candidate.relative_to(evidence_root))
+            evidence_root,
+            PurePath(lexical_candidate.relative_to(evidence_root)),
         )
-        if not candidate.is_dir():
-            raise ForensicError("candidate must be a real directory")
-        if candidate.name.startswith(("GENESIS-", "CHK-")):
-            raise ForensicError(
-                "candidate directory must remain outside the GENESIS-/CHK-* discovery names"
-            )
-        candidate_report_path = _regular_report_file(candidate, evidence_root)
-        try:
-            candidate_document = load_documents(candidate_report_path)
-        except ForensicError as exc:
-            raise ForensicError(f"candidate report cannot be extracted: {exc}") from exc
-        candidate_report = candidate_document.get("forensic_sdd_report")
-        candidate_name = (
-            candidate_report.get("session_id")
-            if isinstance(candidate_report, dict)
-            else None
+    candidate = candidate.resolve(strict=True)
+    if not _is_within(candidate, evidence_root):
+        raise ForensicError("candidate must be inside evidence root")
+    _reject_symlink_components(evidence_root, PurePath(candidate.relative_to(evidence_root)))
+    if not candidate.is_dir():
+        raise ForensicError("candidate must be a real directory")
+    if candidate.name.startswith(("GENESIS-", "CHK-")):
+        raise ForensicError(
+            "candidate directory must remain outside the GENESIS-/CHK-* discovery names"
         )
-        if not isinstance(candidate_name, str):
-            raise ForensicError(
-                "candidate report must declare forensic_sdd_report.session_id"
-            )
-        candidate_parts = _session_parts(candidate_name)
-        if candidate_parts is None or candidate_parts[0] != "CHK":
-            raise ForensicError("candidate report session_id must be a valid CHK-* ID")
-        if any(entry.name == candidate_name for entry in sessions):
-            raise ForensicError(
-                f"candidate duplicates existing session: {candidate_name}"
-            )
-        sessions.append(SessionEntry(path=candidate, name=candidate_name))
+    candidate_report_path = _regular_report_file(candidate, evidence_root)
+    try:
+        candidate_document = load_documents(candidate_report_path)
+    except ForensicError as exc:
+        raise ForensicError(f"candidate report cannot be extracted: {exc}") from exc
+    candidate_report = candidate_document.get("forensic_sdd_report")
+    candidate_name = (
+        candidate_report.get("session_id") if isinstance(candidate_report, dict) else None
+    )
+    if not isinstance(candidate_name, str):
+        raise ForensicError("candidate report must declare forensic_sdd_report.session_id")
+    candidate_parts = _session_parts(candidate_name)
+    if candidate_parts is None or candidate_parts[0] != "CHK":
+        raise ForensicError("candidate report session_id must be a valid CHK-* ID")
+    if any(entry.name == candidate_name for entry in sessions):
+        raise ForensicError(f"candidate duplicates existing session: {candidate_name}")
+    return SessionEntry(path=candidate, name=candidate_name)
+
+
+def _collect_sessions(
+    evidence_root: Path, candidate: Path | None
+) -> list[SessionEntry]:
+    sessions = _discover_sessions(evidence_root)
+    if candidate is not None:
+        sessions.append(_load_candidate_session(evidence_root, candidate, sessions))
 
     return sorted(sessions, key=_session_sort_key)
 

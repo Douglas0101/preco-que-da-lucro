@@ -156,6 +156,171 @@ function denyLine(script, envName, host, remedio) {
   };
 }
 
+function allowDecision(lines = []) {
+  return { result: "ALLOW", exitCode: EXIT_ALLOW, lines };
+}
+
+function cutoverMigrationDecision(env, script, envName, cls) {
+  const motivo = env[OVERRIDE_ENV];
+  const janela = validateFreezeWindow(env);
+  if (janela.ok && typeof motivo === "string" && motivo.trim() !== "") {
+    return {
+      result: "ALLOW",
+      exitCode: EXIT_ALLOW,
+      overrideApplied: true,
+      lines: [
+        {
+          stream: "stderr",
+          payload: {
+            guard: GUARD,
+            result: "ALLOW",
+            path: CUTOVER_WINDOW_KIND,
+            script,
+            env: envName,
+            host: cls.host,
+            freezeStart: janela.freezeStart,
+            freezeEnd: janela.freezeEnd,
+            motivo: motivo.trim(),
+            norma: NORMA_PATH,
+          },
+        },
+      ],
+    };
+  }
+  return {
+    result: "DENY",
+    exitCode: EXIT_DENY,
+    lines: [
+      denyLine(script, envName, cls.host, `cutover-window recusado: ${janela.reason} (emenda #3)`),
+    ],
+  };
+}
+
+function drillMigrationDecision(env, script, envName, cls) {
+  const isProductionHost = cls.host !== null && cls.host.includes(PRODUCTION_ENDPOINT_PREFIX);
+  const motivo = env[OVERRIDE_ENV];
+  if (
+    !isProductionHost &&
+    env.NEON_MIGRATION_TARGET_KIND === DRILL_BRANCH_KIND &&
+    typeof motivo === "string" &&
+    motivo.trim() !== ""
+  ) {
+    return {
+      result: "ALLOW",
+      exitCode: EXIT_ALLOW,
+      overrideApplied: true,
+      lines: [
+        {
+          stream: "stderr",
+          payload: {
+            guard: GUARD,
+            result: "ALLOW",
+            path: DRILL_BRANCH_KIND,
+            script,
+            env: envName,
+            host: cls.host,
+            motivo: motivo.trim(),
+            norma: NORMA_PATH,
+          },
+        },
+      ],
+    };
+  }
+  return {
+    result: "DENY",
+    exitCode: EXIT_DENY,
+    lines: [denyLine(script, envName, cls.host, remedioFor(script))],
+  };
+}
+
+function migrationDecision(env, script, envName, cls) {
+  if (env.NEON_MIGRATION_TARGET_KIND === CUTOVER_WINDOW_KIND) {
+    return cutoverMigrationDecision(env, script, envName, cls);
+  }
+  return drillMigrationDecision(env, script, envName, cls);
+}
+
+function overrideDecision(env, script, envName, cls) {
+  const motivo = env[OVERRIDE_ENV];
+  if (typeof motivo === "string" && motivo.trim() !== "") {
+    return {
+      result: "ALLOW",
+      exitCode: EXIT_ALLOW,
+      overrideApplied: true,
+      lines: [
+        {
+          stream: "stderr",
+          payload: {
+            guard: GUARD,
+            result: "ALLOW",
+            override: true,
+            script,
+            env: envName,
+            host: cls.host,
+            motivo: motivo.trim(),
+          },
+        },
+      ],
+    };
+  }
+  return {
+    result: "DENY",
+    exitCode: EXIT_DENY,
+    lines: [denyLine(script, envName, cls.host, remedioFor(script))],
+  };
+}
+
+function decisionForDatabaseValue(env, script, envName) {
+  const cls = classifyDbEnv(env[envName]);
+  if (cls.status === "unset" || cls.status === "local") return null;
+  if (cls.status === "malformed") {
+    return {
+      result: "DENY",
+      exitCode: EXIT_DENY,
+      lines: [
+        denyLine(
+          script,
+          envName,
+          null,
+          `${remedioFor(script)} (URL malformada; fail-closed, valor omitido)`,
+        ),
+      ],
+    };
+  }
+  return script === "db:migrate"
+    ? migrationDecision(env, script, envName, cls)
+    : overrideDecision(env, script, envName, cls);
+}
+
+function deniedScriptDecision(env, script) {
+  for (const envName of DB_ENV_VARS) {
+    const decision = decisionForDatabaseValue(env, script, envName);
+    if (decision !== null) return decision;
+  }
+  return allowDecision();
+}
+
+function sanctionedRemoteDecision(env, script) {
+  for (const envName of DB_ENV_VARS) {
+    const cls = classifyDbEnv(env[envName]);
+    if (cls.status !== "remote") continue;
+    return allowDecision([
+      {
+        stream: "stderr",
+        payload: {
+          guard: GUARD,
+          result: "ALLOW_SANCTIONED",
+          script,
+          env: envName,
+          host: cls.host,
+          norma: NORMA_PATH,
+        },
+      },
+    ]);
+  }
+  return allowDecision();
+}
+
 /**
  * Decisão pura do guard sobre um record de env (nunca conecta, nunca lê disco).
  * @returns {{result: "ALLOW"|"DENY", exitCode: number, overrideApplied?: boolean,
@@ -164,167 +329,10 @@ function denyLine(script, envName, host, remedio) {
 function guardDecision(env, cliScript) {
   try {
     const script = resolveTargetScript(env.npm_lifecycle_event, cliScript);
-
-    if (script !== undefined && DENY_SET.has(script)) {
-      for (const envName of DB_ENV_VARS) {
-        const cls = classifyDbEnv(env[envName]);
-        if (cls.status === "unset" || cls.status === "local") continue;
-        if (cls.status === "malformed") {
-          // Fail-closed: nem override salva URL indeterminável.
-          return {
-            result: "DENY",
-            exitCode: EXIT_DENY,
-            lines: [
-              denyLine(
-                script,
-                envName,
-                null,
-                `${remedioFor(script)} (URL malformada; fail-closed, valor omitido)`,
-              ),
-            ],
-          };
-        }
-        if (script === "db:migrate") {
-          // Emenda #3: ÚNICO caminho de migration em produção — janela de
-          // freeze do cutover, time-boxed (padrão expiresOn), motivo logado.
-          if (env.NEON_MIGRATION_TARGET_KIND === CUTOVER_WINDOW_KIND) {
-            const motivoCutover = env[OVERRIDE_ENV];
-            const janela = validateFreezeWindow(env);
-            if (janela.ok && typeof motivoCutover === "string" && motivoCutover.trim() !== "") {
-              return {
-                result: "ALLOW",
-                exitCode: EXIT_ALLOW,
-                overrideApplied: true,
-                lines: [
-                  {
-                    stream: "stderr",
-                    payload: {
-                      guard: GUARD,
-                      result: "ALLOW",
-                      path: CUTOVER_WINDOW_KIND,
-                      script,
-                      env: envName,
-                      host: cls.host,
-                      freezeStart: janela.freezeStart,
-                      freezeEnd: janela.freezeEnd,
-                      motivo: motivoCutover.trim(),
-                      norma: NORMA_PATH,
-                    },
-                  },
-                ],
-              };
-            }
-            return {
-              result: "DENY",
-              exitCode: EXIT_DENY,
-              lines: [
-                denyLine(
-                  script,
-                  envName,
-                  cls.host,
-                  `cutover-window recusado: ${janela.reason} (emenda #3)`,
-                ),
-              ],
-            };
-          }
-          // Produção: hard-deny incondicional (emenda #2) para todo o resto.
-          const isProductionHost =
-            cls.host !== null && cls.host.includes(PRODUCTION_ENDPOINT_PREFIX);
-          // Emenda #2: branch de drill Neon é isolada (§12.4) e efêmera (§12.5);
-          // migração nela é sancionada com motivo logado. Produção nunca passa.
-          const isDrillBranch = env.NEON_MIGRATION_TARGET_KIND === DRILL_BRANCH_KIND;
-          const motivo = env[OVERRIDE_ENV];
-          if (
-            !isProductionHost &&
-            isDrillBranch &&
-            typeof motivo === "string" &&
-            motivo.trim() !== ""
-          ) {
-            return {
-              result: "ALLOW",
-              exitCode: EXIT_ALLOW,
-              overrideApplied: true,
-              lines: [
-                {
-                  stream: "stderr",
-                  payload: {
-                    guard: GUARD,
-                    result: "ALLOW",
-                    path: DRILL_BRANCH_KIND,
-                    script,
-                    env: envName,
-                    host: cls.host,
-                    motivo: motivo.trim(),
-                    norma: NORMA_PATH,
-                  },
-                },
-              ],
-            };
-          }
-          return {
-            result: "DENY",
-            exitCode: EXIT_DENY,
-            lines: [denyLine(script, envName, cls.host, remedioFor(script))],
-          };
-        }
-        const motivo = env[OVERRIDE_ENV];
-        if (typeof motivo === "string" && motivo.trim() !== "") {
-          return {
-            result: "ALLOW",
-            exitCode: EXIT_ALLOW,
-            overrideApplied: true,
-            lines: [
-              {
-                stream: "stderr",
-                payload: {
-                  guard: GUARD,
-                  result: "ALLOW",
-                  override: true,
-                  script,
-                  env: envName,
-                  host: cls.host,
-                  motivo: motivo.trim(),
-                },
-              },
-            ],
-          };
-        }
-        return {
-          result: "DENY",
-          exitCode: EXIT_DENY,
-          lines: [denyLine(script, envName, cls.host, remedioFor(script))],
-        };
-      }
-      return { result: "ALLOW", exitCode: EXIT_ALLOW, lines: [] };
-    }
-
-    if (script !== undefined && SANCTIONED_REMOTE.has(script)) {
-      for (const envName of DB_ENV_VARS) {
-        const cls = classifyDbEnv(env[envName]);
-        if (cls.status !== "remote") continue;
-        return {
-          result: "ALLOW",
-          exitCode: EXIT_ALLOW,
-          lines: [
-            {
-              stream: "stderr",
-              payload: {
-                guard: GUARD,
-                result: "ALLOW_SANCTIONED",
-                script,
-                env: envName,
-                host: cls.host,
-                norma: NORMA_PATH,
-              },
-            },
-          ],
-        };
-      }
-      return { result: "ALLOW", exitCode: EXIT_ALLOW, lines: [] };
-    }
-
-    // Outros scripts (ou execução direta sem lifecycle): allow sem opinião.
-    return { result: "ALLOW", exitCode: EXIT_ALLOW, lines: [] };
+    if (script === undefined) return allowDecision();
+    if (DENY_SET.has(script)) return deniedScriptDecision(env, script);
+    if (SANCTIONED_REMOTE.has(script)) return sanctionedRemoteDecision(env, script);
+    return allowDecision();
   } catch (error) {
     return {
       result: "DENY",

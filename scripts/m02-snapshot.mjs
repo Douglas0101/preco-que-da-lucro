@@ -139,114 +139,128 @@ function runInContainer(script, env) {
   return result;
 }
 
-function main() {
-  const rootDir = resolve(fileURLToPath(import.meta.url), "..", "..");
-  const parsed = parseArgs(process.argv.slice(2));
-  if (parsed.error) {
-    process.stderr.write(`m02-snapshot: ${parsed.error}\n${usage()}\n`);
-    process.exitCode = 2;
-    return;
-  }
+function stop(message, code) {
+  process.stderr.write(message);
+  process.exitCode = code;
+  return null;
+}
+
+function readSnapshotTarget(parsed) {
   const motivo =
     typeof process.env.ALLOW_REMOTE_DB === "string" ? process.env.ALLOW_REMOTE_DB.trim() : "";
   if (motivo === "") {
-    process.stderr.write(
+    return stop(
       JSON.stringify({
         script: "m02:snapshot",
         result: "DENY-pre-conexao",
         reason: "motivo obrigatório via ALLOW_REMOTE_DB (Emenda #4; norma §5 da emenda ENV-GUARD)",
       }) + "\n",
+      3,
     );
-    process.exitCode = 3;
-    return;
   }
   const rawUrl = process.env[parsed.sourceEnv];
   if (typeof rawUrl !== "string" || rawUrl.trim() === "") {
-    process.stderr.write(
+    return stop(
       `m02-snapshot: env ${parsed.sourceEnv} ausente (fail-closed; valores nunca impressos)\n`,
+      2,
     );
-    process.exitCode = 2;
-    return;
   }
   let url;
   try {
     url = new URL(rawUrl.trim());
   } catch {
-    process.stderr.write("m02-snapshot: URL malformada (fail-closed; valor omitido)\n");
-    process.exitCode = 2;
-    return;
+    return stop("m02-snapshot: URL malformada (fail-closed; valor omitido)\n", 2);
   }
   const host = url.hostname.toLowerCase();
   if (host.includes("-pooler")) {
-    process.stderr.write(
+    return stop(
       JSON.stringify({
         script: "m02:snapshot",
         result: "DENY-pre-conexao",
         reason: `dump exige DIRECT; host ${host} é pooled (recusado)`,
       }) + "\n",
+      3,
     );
-    process.exitCode = 3;
-    return;
   }
+  return { motivo, url, host, isLocal: LOCAL_HOSTNAMES.has(host) };
+}
+
+function prepareOutput(rootDir, parsed) {
   const outDir = resolve(rootDir, parsed.outDir);
   mkdirSync(outDir, { recursive: true });
-  // Emenda #6 item 2/DP5=(b): trio pré-existente = exit 2 fail-closed,
-  // ANTES de qualquer conexão (prova anterior preservada).
-  if (parsed.outDirExplicit === true) {
-    const present = trioPreexists(outDir);
-    if (present.length > 0) {
-      process.stderr.write(
-        `m02-snapshot: trio já existe em ${parsed.outDir} (${present.join(", ")}); use um diretório novo (fail-closed)\n`,
-      );
-      process.exitCode = 2;
-      return;
-    }
-  }
-  const isLocal = LOCAL_HOSTNAMES.has(host);
+  if (parsed.outDirExplicit !== true) return outDir;
+  const present = trioPreexists(outDir);
+  if (present.length === 0) return outDir;
+  return stop(
+    `m02-snapshot: trio já existe em ${parsed.outDir} (${present.join(", ")}); use um diretório novo (fail-closed)\n`,
+    2,
+  );
+}
+
+function ensureContainer() {
   const probe = spawnSync("docker", ["inspect", "-f", "{{.State.Running}}", CONTAINER], {
     encoding: "utf8",
   });
-  if (probe.status !== 0 || String(probe.stdout).trim() !== "true") {
-    process.stderr.write(
-      `m02-snapshot: container ${CONTAINER} indisponível para pg_dump 17 (fail-closed, nada conectado)\n`,
-    );
-    process.exitCode = 2;
-    return;
-  }
+  if (probe.status === 0 && String(probe.stdout).trim() === "true") return true;
+  stop(
+    `m02-snapshot: container ${CONTAINER} indisponível para pg_dump 17 (fail-closed, nada conectado)\n`,
+    2,
+  );
+  return false;
+}
 
-  const startedAt = new Date();
+function chooseDumpName(outDir, parsed, startedAt) {
+  if (parsed.outDirExplicit === true) return "dump.pgc";
   const date = startedAt.toISOString().slice(0, 10);
   let dumpName = `snapshot-${date}.dump`;
-  if (parsed.outDirExplicit === true) {
-    dumpName = "dump.pgc";
-  } else {
-    for (let seq = 2; existsSync(resolve(outDir, dumpName)); seq += 1) {
-      dumpName = `snapshot-${date}-${seq}.dump`;
-    }
+  for (let seq = 2; existsSync(resolve(outDir, dumpName)); seq += 1) {
+    dumpName = `snapshot-${date}-${seq}.dump`;
   }
+  return dumpName;
+}
+
+function prepareSnapshot(rootDir, parsed) {
+  const target = readSnapshotTarget(parsed);
+  if (target === null) return null;
+  const outDir = prepareOutput(rootDir, parsed);
+  if (outDir === null || !ensureContainer()) return null;
+  const startedAt = new Date();
+  const dumpName = chooseDumpName(outDir, parsed, startedAt);
   const dumpPath = resolve(outDir, dumpName);
   const inContainerPath = `/tmp/m02-snapshot-${Date.now()}.pgc`;
-
   const versionCheck = runInContainer(`pg_dump --version && psql --version`, {});
   if (versionCheck.status !== 0) {
-    process.stderr.write("m02-snapshot: binários pg_dump ausentes no container (fail-closed)\n");
-    process.exitCode = 2;
-    return;
+    stop("m02-snapshot: binários pg_dump ausentes no container (fail-closed)\n", 2);
+    return null;
   }
   const clientVersion = String(versionCheck.stdout).split("\n")[0].trim();
+  return {
+    parsed,
+    target,
+    outDir,
+    startedAt,
+    dumpName,
+    dumpPath,
+    inContainerPath,
+    clientVersion,
+  };
+}
 
+function captureSnapshot(context) {
+  const { parsed, target, dumpPath, inContainerPath } = context;
+  const { url, host, isLocal, motivo } = target;
   process.stdout.write(
     `${JSON.stringify({ script: "m02:snapshot", event: "start", mode: parsed.outDirExplicit ? "trio" : "default", origin: parsed.origin, host, source_env: parsed.sourceEnv, direct: true, motivo })}\n`,
   );
-
   const database = decodeURIComponent(url.pathname.replace(/^\//, "") || "neondb");
   const user = decodeURIComponent(url.username || "neondb_owner");
   const port = url.port || "5432";
+  const sslmode = isLocal ? "disable" : "require";
   const dumpScript = [
-    `set -e`,
-    `pg_dump "host=${url.hostname} port=${port} dbname=${database} user=${user} sslmode=${isLocal ? "disable" : "require"}" -Fc --no-owner --no-privileges -f ${inContainerPath}`,
-    `psql "host=${url.hostname} port=${port} dbname=${database} user=${user} sslmode=${isLocal ? "disable" : "require"}" -tAc "show server_version"`,
-    `psql "host=${url.hostname} port=${port} dbname=${database} user=${user} sslmode=${isLocal ? "disable" : "require"}" -tAc "select pg_is_in_recovery()"`,
+    "set -e",
+    `pg_dump "host=${url.hostname} port=${port} dbname=${database} user=${user} sslmode=${sslmode}" -Fc --no-owner --no-privileges -f ${inContainerPath}`,
+    `psql "host=${url.hostname} port=${port} dbname=${database} user=${user} sslmode=${sslmode}" -tAc "show server_version"`,
+    `psql "host=${url.hostname} port=${port} dbname=${database} user=${user} sslmode=${sslmode}" -tAc "select pg_is_in_recovery()"`,
   ].join(" && ");
   const dump = runInContainer(dumpScript, {
     PGPASSWORD: url.password ? decodeURIComponent(url.password) : "",
@@ -255,27 +269,27 @@ function main() {
     const safe = String(dump.stderr || dump.stdout || "").includes("@")
       ? "falha no dump (detalhes omitidos — possível credencial na saída)"
       : String(dump.stderr || "").slice(0, 240);
-    process.stderr.write(
-      `m02-snapshot: dump falhou (fail-closed; nada escrito no repo): ${safe}\n`,
-    );
-    process.exitCode = 2;
-    return;
+    stop(`m02-snapshot: dump falhou (fail-closed; nada escrito no repo): ${safe}\n`, 2);
+    return null;
   }
   const [serverVersion, inRecovery] = String(dump.stdout).trim().split(/\r?\n/);
-
   try {
     execFileSync("docker", ["cp", `${CONTAINER}:${inContainerPath}`, dumpPath], {
       stdio: "ignore",
     });
   } catch {
-    process.stderr.write("m02-snapshot: docker cp falhou (fail-closed)\n");
-    process.exitCode = 2;
-    return;
+    stop("m02-snapshot: docker cp falhou (fail-closed)\n", 2);
+    return null;
   } finally {
     runInContainer(`rm -f ${inContainerPath}`, {});
   }
+  return { serverVersion, inRecovery };
+}
 
-  // Sucesso SOMENTE pós-hash (Emenda #6 item 5): nada parcial equivale a válido.
+function writeSnapshotArtifacts(rootDir, context, capture) {
+  const { parsed, target, outDir, startedAt, dumpName, dumpPath, clientVersion } = context;
+  const { host, motivo } = target;
+  const { serverVersion, inRecovery } = capture;
   const finishedAt = new Date();
   const sizeBytes = statSync(dumpPath).size;
   const sha256 = sha256OfFile(dumpPath);
@@ -329,8 +343,24 @@ function main() {
     const metadataPath = resolve(outDir, dumpName.replace(/\.dump$/, ".metadata.json"));
     writeFileSync(metadataPath, `${JSON.stringify(metadata, null, 2)}\n`, "utf8");
   }
+  return { finishedAt, sizeBytes, sha256, rootRelativeDump, serverVersion };
+}
+
+function main() {
+  const rootDir = resolve(fileURLToPath(import.meta.url), "..", "..");
+  const parsed = parseArgs(process.argv.slice(2));
+  if (parsed.error) {
+    process.stderr.write(`m02-snapshot: ${parsed.error}\n${usage()}\n`);
+    process.exitCode = 2;
+    return;
+  }
+  const context = prepareSnapshot(rootDir, parsed);
+  if (context === null) return;
+  const capture = captureSnapshot(context);
+  if (capture === null) return;
+  const result = writeSnapshotArtifacts(rootDir, context, capture);
   process.stdout.write(
-    `${JSON.stringify({ script: "m02:snapshot", event: "done", mode: parsed.outDirExplicit ? "trio" : "default", dump: rootRelativeDump, size_bytes: sizeBytes, sha256, duration_ms: finishedAt.getTime() - startedAt.getTime(), server_version: serverVersion ?? null })}\n`,
+    `${JSON.stringify({ script: "m02:snapshot", event: "done", mode: parsed.outDirExplicit ? "trio" : "default", dump: result.rootRelativeDump, size_bytes: result.sizeBytes, sha256: result.sha256, duration_ms: result.finishedAt.getTime() - context.startedAt.getTime(), server_version: result.serverVersion ?? null })}\n`,
   );
   process.exitCode = 0;
 }

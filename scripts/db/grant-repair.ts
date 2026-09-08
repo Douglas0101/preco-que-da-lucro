@@ -4,7 +4,7 @@ import { dirname, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
 import { type PoolClient } from "pg";
-import { compareInventories, directPool, inventory } from "./backup-verify.ts";
+import { compareInventories, directPool, inventory, type Inventory } from "./backup-verify.ts";
 
 const PRODUCTION_ENDPOINT_PREFIX = "ep-long-violet-aye9g0bn";
 const ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -90,6 +90,24 @@ export interface GrantRepairArgs {
 }
 
 type RecordValue = Record<string, unknown>;
+
+interface RepairContext {
+  sourceRaw: string;
+  targetRaw: string;
+  motivo: string | null;
+  startedAt: string;
+  sourcePool: ReturnType<typeof directPool>;
+  targetPool: ReturnType<typeof directPool>;
+}
+
+interface RepairState {
+  sourceInventory: Inventory;
+  targetInventory: Inventory;
+  plan: GrantRepairPlan;
+  targetCurrentRole: string;
+}
+
+type InventoryComparison = ReturnType<typeof compareInventories>;
 
 function isRecord(value: unknown): value is RecordValue {
   return typeof value === "object" && value !== null;
@@ -483,13 +501,7 @@ function planSummary(plan: GrantRepairPlan): RecordValue {
   };
 }
 
-async function main(): Promise<void> {
-  const parsed = parseCli(process.argv.slice(2));
-  if ("error" in parsed) {
-    process.stderr.write(`m02:grant-repair: ${parsed.error}\n`);
-    process.exitCode = 2;
-    return;
-  }
+function prepareRepair(parsed: GrantRepairArgs) {
   const sourceRaw = process.env[parsed.sourceEnv];
   const targetRaw = process.env[parsed.targetEnv];
   if (!sourceRaw || !targetRaw) throw new Error("source/target connection env ausente");
@@ -505,107 +517,175 @@ async function main(): Promise<void> {
     throw new Error("target remoto exige ALLOW_REMOTE_DB com motivo");
   }
   if (motivo?.includes("://")) throw new Error("motivo nao pode conter URL");
+  return {
+    sourceRaw,
+    targetRaw,
+    motivo,
+    startedAt: new Date().toISOString(),
+    sourcePool: directPool(sourceRaw.trim()),
+    targetPool: directPool(targetRaw.trim()),
+  };
+}
 
-  const startedAt = new Date().toISOString();
-  const sourcePool = directPool(sourceRaw.trim());
-  const targetPool = directPool(targetRaw.trim());
+function assertInventoryIdentity(
+  parsed: GrantRepairArgs,
+  sourceInventory: Inventory,
+  targetInventory: Inventory,
+): void {
+  if (
+    sourceInventory.identity?.branch_id !== parsed.sourceBranch ||
+    targetInventory.identity?.branch_id !== parsed.targetBranch ||
+    sourceInventory.identity?.project_id !== targetInventory.identity?.project_id
+  ) {
+    throw new Error("server target identity mismatch");
+  }
+}
+
+async function loadRepairState(
+  parsed: GrantRepairArgs,
+  sourceClient: PoolClient,
+  targetClient: PoolClient,
+): Promise<RepairState> {
+  const sourceInventory = await inventory(sourceClient);
+  const targetInventory = await inventory(targetClient);
+  assertInventoryIdentity(parsed, sourceInventory, targetInventory);
+  const roles = requiredRoleNames(
+    sourceInventory.catalog,
+    extractGrantRows(sourceInventory.catalog),
+  );
+  const [sourceRoles, targetRoles] = await Promise.all([
+    roleRows(sourceClient, roles),
+    roleRows(targetClient, roles),
+  ]);
+  const plan = buildRepairPlan(
+    sourceInventory.catalog,
+    targetInventory.catalog,
+    sourceRoles,
+    targetRoles,
+  );
+  const targetCurrentRole = await currentUser(targetClient);
+  const grantors = new Set(plan.sourceGrants.map((grant) => grant.definition.grantor));
+  if (grantors.size !== 1 || !grantors.has(targetCurrentRole)) {
+    throw new Error("target role nao corresponde ao grantor da origem");
+  }
+  return { sourceInventory, targetInventory, plan, targetCurrentRole };
+}
+
+function resultForRepair(
+  parsed: GrantRepairArgs,
+  canApply: boolean,
+  afterComparison: InventoryComparison | null,
+): string {
+  if (!canApply) return "BLOCKED";
+  if (!parsed.apply) return "DRY_RUN";
+  return afterComparison?.pass ? "PASS" : "FAIL";
+}
+
+function buildRepairPayload(
+  parsed: GrantRepairArgs,
+  context: RepairContext,
+  state: RepairState,
+  result: string,
+  afterComparison: InventoryComparison | null,
+  repairStatements: string[],
+  sql: string,
+): RecordValue {
+  const { plan, targetCurrentRole } = state;
+  return {
+    check: "m02:grant-repair",
+    version: 1,
+    read_only_source: true,
+    target_write: parsed.apply && result !== "BLOCKED",
+    started_at: context.startedAt,
+    finished_at: new Date().toISOString(),
+    source_branch: parsed.sourceBranch,
+    target_branch: parsed.targetBranch,
+    target_kind: parsed.targetKind,
+    apply: parsed.apply,
+    motivo: context.motivo,
+    create_missing_group_roles: parsed.createMissingGroupRoles,
+    target_current_role: targetCurrentRole,
+    result,
+    roles: {
+      required: plan.requiredRoles,
+      source: plan.sourceRoles.map((role) => role.rolname),
+      target_before: plan.targetRoles.map((role) => role.rolname),
+      missing: plan.missingRoles,
+      source_missing: plan.sourceMissingRoles,
+      mismatched: plan.mismatchedRoles,
+      safe_group_roles: plan.safeGroupRoles.map((role) => role.rolname),
+      external_provisioning: plan.externalRoleProvisioning.map((role) => role.rolname),
+      order: "roles-before-grants",
+    },
+    plan: planSummary(plan),
+    after_comparison: afterComparison,
+    sql_statements: repairStatements.length,
+    sql_sha256: createHash("sha256").update(sql).digest("hex"),
+    limits:
+      "Somente a branch target drill-branch pode receber writes; nenhuma senha, URL, row content ou role privileged e criada. Roles ausentes LOGIN/privileged exigem provisionamento externo antes de grants.",
+  };
+}
+
+async function calculateRepair(
+  parsed: GrantRepairArgs,
+  context: RepairContext,
+  state: RepairState,
+  targetClient: PoolClient,
+) {
+  const { sourceInventory, plan } = state;
+  const canApply = planCanApply(plan, parsed.createMissingGroupRoles);
+  const repairStatements = canApply
+    ? buildRepairStatements(plan, parsed.createMissingGroupRoles)
+    : [];
+  let sql = canApply ? `${repairStatements.join("\n\n")}\n` : "";
+  let afterComparison = null;
+  if (parsed.apply && canApply) {
+    await applyStatements(targetClient, repairStatements);
+    const afterInventory = await inventory(targetClient);
+    afterComparison = compareInventories(sourceInventory, afterInventory);
+  }
+  const result = resultForRepair(parsed, canApply, afterComparison);
+  if (!sql && canApply) sql = `${rolesBeforeGrantsStatement(plan.requiredRoles)}\n`;
+  const payload = buildRepairPayload(
+    parsed,
+    context,
+    state,
+    result,
+    afterComparison,
+    repairStatements,
+    sql,
+  );
+  return { payload, sql, result };
+}
+
+async function executeRepair(parsed: GrantRepairArgs, context: RepairContext): Promise<void> {
   let sourceClient: PoolClient | undefined;
   let targetClient: PoolClient | undefined;
-  let payload: RecordValue;
-  let sql = "";
   try {
-    sourceClient = await sourcePool.connect();
-    targetClient = await targetPool.connect();
-    const sourceInventory = await inventory(sourceClient);
-    const targetInventory = await inventory(targetClient);
-    if (
-      sourceInventory.identity?.branch_id !== parsed.sourceBranch ||
-      targetInventory.identity?.branch_id !== parsed.targetBranch ||
-      sourceInventory.identity?.project_id !== targetInventory.identity?.project_id
-    ) {
-      throw new Error("server target identity mismatch");
-    }
-    const roles = requiredRoleNames(
-      sourceInventory.catalog,
-      extractGrantRows(sourceInventory.catalog),
-    );
-    const [sourceRoles, targetRoles] = await Promise.all([
-      roleRows(sourceClient, roles),
-      roleRows(targetClient, roles),
-    ]);
-    const plan = buildRepairPlan(
-      sourceInventory.catalog,
-      targetInventory.catalog,
-      sourceRoles,
-      targetRoles,
-    );
-    const targetCurrentRole = await currentUser(targetClient);
-    const grantors = new Set(plan.sourceGrants.map((grant) => grant.definition.grantor));
-    if (grantors.size !== 1 || !grantors.has(targetCurrentRole)) {
-      throw new Error("target role nao corresponde ao grantor da origem");
-    }
-    const canApply = planCanApply(plan, parsed.createMissingGroupRoles);
-    const repairStatements = canApply
-      ? buildRepairStatements(plan, parsed.createMissingGroupRoles)
-      : [];
-    if (canApply) sql = `${repairStatements.join("\n\n")}\n`;
-    const after: { comparison?: ReturnType<typeof compareInventories> } = {};
-    if (parsed.apply && canApply) {
-      await applyStatements(targetClient, repairStatements);
-      const afterInventory = await inventory(targetClient);
-      after.comparison = compareInventories(sourceInventory, afterInventory);
-    }
-    const result = !canApply
-      ? "BLOCKED"
-      : parsed.apply
-        ? after.comparison?.pass
-          ? "PASS"
-          : "FAIL"
-        : "DRY_RUN";
-    if (!sql && canApply) sql = `${rolesBeforeGrantsStatement(plan.requiredRoles)}\n`;
-    const finishedAt = new Date().toISOString();
-    payload = {
-      check: "m02:grant-repair",
-      version: 1,
-      read_only_source: true,
-      target_write: parsed.apply && canApply,
-      started_at: startedAt,
-      finished_at: finishedAt,
-      source_branch: parsed.sourceBranch,
-      target_branch: parsed.targetBranch,
-      target_kind: parsed.targetKind,
-      apply: parsed.apply,
-      motivo,
-      create_missing_group_roles: parsed.createMissingGroupRoles,
-      target_current_role: targetCurrentRole,
-      result,
-      roles: {
-        required: plan.requiredRoles,
-        source: plan.sourceRoles.map((role) => role.rolname),
-        target_before: plan.targetRoles.map((role) => role.rolname),
-        missing: plan.missingRoles,
-        source_missing: plan.sourceMissingRoles,
-        mismatched: plan.mismatchedRoles,
-        safe_group_roles: plan.safeGroupRoles.map((role) => role.rolname),
-        external_provisioning: plan.externalRoleProvisioning.map((role) => role.rolname),
-        order: "roles-before-grants",
-      },
-      plan: planSummary(plan),
-      after_comparison: after.comparison ?? null,
-      sql_statements: repairStatements.length,
-      sql_sha256: createHash("sha256").update(sql).digest("hex"),
-      limits:
-        "Somente a branch target drill-branch pode receber writes; nenhuma senha, URL, row content ou role privileged e criada. Roles ausentes LOGIN/privileged exigem provisionamento externo antes de grants.",
-    };
+    sourceClient = await context.sourcePool.connect();
+    targetClient = await context.targetPool.connect();
+    const state = await loadRepairState(parsed, sourceClient!, targetClient!);
+    const { payload, sql, result } = await calculateRepair(parsed, context, state, targetClient!);
     if (parsed.out) writeArtifacts(parsed.out, payload, sql);
     process.stdout.write(`${JSON.stringify(payload)}\n`);
     process.exitCode = result === "PASS" || result === "DRY_RUN" ? 0 : 1;
   } finally {
     sourceClient?.release();
     targetClient?.release();
-    await sourcePool.end();
-    await targetPool.end();
+    await context.sourcePool.end();
+    await context.targetPool.end();
   }
+}
+
+async function main(): Promise<void> {
+  const parsed = parseCli(process.argv.slice(2));
+  if ("error" in parsed) {
+    process.stderr.write(`m02:grant-repair: ${parsed.error}\n`);
+    process.exitCode = 2;
+    return;
+  }
+  const context = prepareRepair(parsed);
+  await executeRepair(parsed, context);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

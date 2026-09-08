@@ -355,7 +355,9 @@ function equalOrNull(a, b) {
 }
 
 function compareMetricMaps(sourceMap, targetMap) {
-  const keys = Array.from(new Set([...Object.keys(sourceMap), ...Object.keys(targetMap)])).sort();
+  const keys = Array.from(new Set([...Object.keys(sourceMap), ...Object.keys(targetMap)])).sort(
+    (a, b) => a.localeCompare(b),
+  );
   return keys.map((key) => ({
     key,
     source: sourceMap[key] ?? null,
@@ -365,7 +367,9 @@ function compareMetricMaps(sourceMap, targetMap) {
 }
 
 function compareBounds(sourceMap, targetMap) {
-  const keys = Array.from(new Set([...Object.keys(sourceMap), ...Object.keys(targetMap)])).sort();
+  const keys = Array.from(new Set([...Object.keys(sourceMap), ...Object.keys(targetMap)])).sort(
+    (a, b) => a.localeCompare(b),
+  );
   return keys.map((key) => ({
     key,
     source: sourceMap[key] ?? { min: null, max: null },
@@ -396,7 +400,9 @@ function compareOrphans(sourceOrphans, targetOrphans) {
 }
 
 function reconcileTables(sourceData, targetData, sourceTables, targetTables) {
-  const allTables = Array.from(new Set([...sourceTables, ...targetTables])).sort();
+  const allTables = Array.from(new Set([...sourceTables, ...targetTables])).sort((a, b) =>
+    a.localeCompare(b),
+  );
   return allTables.map((table) => {
     const inSource = sourceTables.includes(table);
     const inTarget = targetTables.includes(table);
@@ -454,98 +460,109 @@ function reconcileTables(sourceData, targetData, sourceTables, targetTables) {
   });
 }
 
-function renderMarkdown(report) {
-  const lines = [];
-  lines.push(`# Reconciliação M-02 (§13.4/§13.5) — ${report.meta.label}`);
-  lines.push("");
-  lines.push(`- gerado_em: ${report.meta.generated_at}`);
-  lines.push(`- source_env: \`${report.meta.source_env}\` (valor da URL omitido por norma)`);
-  lines.push(`- target_env: \`${report.meta.target_env}\` (valor da URL omitido por norma)`);
-  lines.push("- modo: somente leitura (`start transaction read only` + rollback; apenas SELECT)");
-  lines.push(
+function renderHeader(report) {
+  return [
+    `# Reconciliação M-02 (§13.4/§13.5) — ${report.meta.label}`,
+    "",
+    `- gerado_em: ${report.meta.generated_at}`,
+    `- source_env: \`${report.meta.source_env}\` (valor da URL omitido por norma)`,
+    `- target_env: \`${report.meta.target_env}\` (valor da URL omitido por norma)`,
+    "- modo: somente leitura (`start transaction read only` + rollback; apenas SELECT)",
     "- métricas por tabela (§13.4): row count; null count por coluna; min/max de timestamps " +
       "(created_at/updated_at); soma de colunas financeiras; órfãos por FK declarada no target; " +
       `checksum sha256 da amostra (≤${SAMPLE_LIMIT} linhas ordenadas pela PK, to_jsonb(t)::text)`,
-  );
-  lines.push("");
-  lines.push("## Tabela §13.5");
-  lines.push("");
-  lines.push("| table | source_count | target_count | difference | status |");
-  lines.push("| --- | ---: | ---: | ---: | --- |");
-  for (const row of report.tables) {
+    "",
+  ];
+}
+
+function renderTableSummary(report) {
+  const rows = report.tables.map((row) => {
     const difference = row.difference === null ? "N/A" : String(row.difference);
     const sourceCount = row.source_count === null ? "—" : String(row.source_count);
     const targetCount = row.target_count === null ? "—" : String(row.target_count);
-    lines.push(
-      `| ${row.table} | ${sourceCount} | ${targetCount} | ${difference} | ${row.status} |`,
-    );
+    return `| ${row.table} | ${sourceCount} | ${targetCount} | ${difference} | ${row.status} |`;
+  });
+  return [
+    "## Tabela §13.5",
+    "",
+    "| table | source_count | target_count | difference | status |",
+    "| --- | ---: | ---: | ---: | --- |",
+    ...rows,
+    "",
+  ];
+}
+
+function renderMetricLines(title, items, format) {
+  if (items.length === 0) return [];
+  return [title, ...items.map(format)];
+}
+
+function renderTableDetails(row) {
+  const header = [`### ${row.table}`, ""];
+  if (row.status === "MISSING_IN_SOURCE" || row.status === "MISSING_IN_TARGET") {
+    return [
+      ...header,
+      `- presença: source=${row.details.presence.source} target=${row.details.presence.target}`,
+      "",
+    ];
   }
-  lines.push("");
-  lines.push("## Detalhes por tabela");
-  lines.push("");
-  for (const row of report.tables) {
-    lines.push(`### ${row.table}`);
-    lines.push("");
-    if (row.status === "MISSING_IN_SOURCE" || row.status === "MISSING_IN_TARGET") {
-      lines.push(
-        `- presença: source=${row.details.presence.source} target=${row.details.presence.target}`,
-      );
-      lines.push("");
-      continue;
-    }
-    lines.push(`- row_count: source=${row.source_count} target=${row.target_count}`);
-    const nonNullColumns = row.details.null_counts.filter(
-      (item) => item.source !== 0 || item.target !== 0,
-    );
-    lines.push(
-      `- null_counts: ${nonNullColumns.length === 0 ? "nenhum null em coluna comum" : ""}`,
-    );
-    for (const item of nonNullColumns) {
-      lines.push(
-        `  - ${item.key}: source=${item.source} target=${item.target} equal=${item.equal}`,
-      );
-    }
-    if (row.details.timestamp_bounds.length > 0) {
-      lines.push("- timestamp_bounds (min/max, UTC):");
-      for (const item of row.details.timestamp_bounds) {
-        lines.push(
-          `  - ${item.key}: source=[${item.source.min} .. ${item.source.max}] ` +
-            `target=[${item.target.min} .. ${item.target.max}] equal=${item.equal}`,
-        );
-      }
-    }
-    if (row.details.financial_sums.length > 0) {
-      lines.push("- financial_sums:");
-      for (const item of row.details.financial_sums) {
-        lines.push(
-          `  - ${item.key}: source=${item.source} target=${item.target} equal=${item.equal}`,
-        );
-      }
-    }
-    if (row.details.orphans.length > 0) {
-      lines.push("- orphans (FKs declaradas no target):");
-      for (const item of row.details.orphans) {
-        lines.push(
-          `  - ${item.constraint} (${item.child_table} → ${item.parent_table}): ` +
-            `source=${item.source} target=${item.target} equal=${item.equal}`,
-        );
-      }
-    }
-    const checksum = row.details.sample_checksum;
-    lines.push(
-      `- sample_checksum (${checksum.source.rows ?? 0}/${SAMPLE_LIMIT} linhas, sha256): ` +
-        `source=${checksum.source.checksum ?? "omitido"} target=${checksum.target.checksum ?? "omitido"} ` +
-        `equal=${checksum.equal}`,
-    );
-    lines.push("");
-  }
-  lines.push("## Sumário");
-  lines.push("");
-  lines.push(`- tables_compared: ${report.summary.tables_compared}`);
-  lines.push(`- differences_total: ${report.summary.differences_total}`);
-  lines.push(`- pass: ${report.summary.pass}`);
-  lines.push("");
-  return lines.join("\n");
+  const nonNullColumns = row.details.null_counts.filter(
+    (item) => item.source !== 0 || item.target !== 0,
+  );
+  const checksum = row.details.sample_checksum;
+  return [
+    ...header,
+    `- row_count: source=${row.source_count} target=${row.target_count}`,
+    `- null_counts: ${nonNullColumns.length === 0 ? "nenhum null em coluna comum" : ""}`,
+    ...nonNullColumns.map(
+      (item) => `  - ${item.key}: source=${item.source} target=${item.target} equal=${item.equal}`,
+    ),
+    ...renderMetricLines(
+      "- timestamp_bounds (min/max, UTC):",
+      row.details.timestamp_bounds,
+      (item) =>
+        `  - ${item.key}: source=[${item.source.min} .. ${item.source.max}] ` +
+        `target=[${item.target.min} .. ${item.target.max}] equal=${item.equal}`,
+    ),
+    ...renderMetricLines(
+      "- financial_sums:",
+      row.details.financial_sums,
+      (item) => `  - ${item.key}: source=${item.source} target=${item.target} equal=${item.equal}`,
+    ),
+    ...renderMetricLines(
+      "- orphans (FKs declaradas no target):",
+      row.details.orphans,
+      (item) =>
+        `  - ${item.constraint} (${item.child_table} → ${item.parent_table}): ` +
+        `source=${item.source} target=${item.target} equal=${item.equal}`,
+    ),
+    `- sample_checksum (${checksum.source.rows ?? 0}/${SAMPLE_LIMIT} linhas, sha256): ` +
+      `source=${checksum.source.checksum ?? "omitido"} target=${checksum.target.checksum ?? "omitido"} ` +
+      `equal=${checksum.equal}`,
+    "",
+  ];
+}
+
+function renderSummary(report) {
+  return [
+    "## Sumário",
+    "",
+    `- tables_compared: ${report.summary.tables_compared}`,
+    `- differences_total: ${report.summary.differences_total}`,
+    `- pass: ${report.summary.pass}`,
+    "",
+  ];
+}
+
+function renderMarkdown(report) {
+  return [
+    ...renderHeader(report),
+    ...renderTableSummary(report),
+    "## Detalhes por tabela",
+    "",
+    ...report.tables.flatMap(renderTableDetails),
+    ...renderSummary(report),
+  ].join("\n");
 }
 
 async function main() {
