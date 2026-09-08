@@ -14,6 +14,9 @@ docs/specs/M-02/matrix*.yaml
 # Hash-addressed security evidence is sealed and must not be formatter-mutated.
 docs/evidence/security-scan/**
 
+# This evidence bundle is sealed by its repository-root SHA256SUMS manifest.
+docs/evidence/sdd-continuacao-2026-09-07/**
+
 # Platform-managed generated sources
 AGENTS.md
 src/integrations/lovable/index.ts
