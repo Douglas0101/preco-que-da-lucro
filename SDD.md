@@ -5,7 +5,7 @@
 | Campo            | Valor                                                                                             |
 | ---------------- | ------------------------------------------------------------------------------------------------- |
 | Documento        | Software Design Document - SDD                                                                    |
-| Versão           | 1.5                                                                                               |
+| Versão           | 1.6                                                                                               |
 | Estado           | Baseline técnica atualizada; operação Hostinger autorizada; produção ainda condicionada aos gates |
 | Data             | 2026-09-09                                                                                        |
 | Origem           | `docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md` versão 2.0 + realinhamento V7  |
@@ -26,6 +26,15 @@
 > Neon separado por ambiente, backup/restore, domínio e aprovação go/no-go.
 > Vercel permanece fora do caminho de produção nesta rodada; nenhum domínio,
 > DNS, Neon production ou secret é alterado por esta emenda.
+
+> **Emenda de fluxo (2026-09-09):** o repositório mantém somente `develop` como
+> branch persistente de trabalho e `main` como branch persistente de release.
+> O único PR de release autorizado é `develop -> main`, com CI verde e todos
+> os gates operacionais encerrados. Branches Git auxiliares de automação,
+> evidência ou integração são transitórias, não podem se tornar fluxo paralelo
+> e devem receber destino explícito antes de serem aposentadas. Branches Neon de
+> preview são objetos de banco, não branches Git, e continuam permitidas pelo
+> ciclo de vida do Plano Mestre.
 
 > Este SDD define como o sistema deverá ser construído e operado. A Diretriz V7
 > prevalece em requisitos de produto e invariantes; o Plano Mestre prevalece
@@ -124,6 +133,7 @@ Alterações em fórmulas financeiras, sessão, autorização, tenant, retençã
 | 1.3    | 2026-08-01 | Formaliza qualidade sem warnings, proveniência Git/artifact, budget do entry e matrizes obrigatórias de browsers e leitores de tela.                                                                      |
 | 1.4    | 2026-08-02 | Registra execução dos gates globais, alias Vite nativo, bundle medido, matriz Playwright, Orca e exceção Nitro temporária.                                                                                |
 | 1.5    | 2026-09-09 | Alinha PostgreSQL/Neon, Better Auth, Nitro Node, branches por PR e pipeline ao Plano Mestre; registra G-VER `HOSTINGER-PROD`, dependência do domínio, gates de preview/produção e higiene de credenciais. |
+| 1.6    | 2026-09-09 | Fixa `develop` e `main` como as únicas branches Git persistentes; o PR final é exclusivamente `develop -> main`, mantendo branches Neon de preview fora do repositório Git.                               |
 
 Revisões incrementam a versão do SDD e registram requisitos, rastreabilidade e ADRs afetados. Mudança de decisão arquitetural fixada exige nova versão e ADR próprio; correção editorial sem efeito normativo pode preservar a versão.
 
@@ -207,6 +217,13 @@ escrita na branch Neon `production` dependem do go/no-go. A configuração
 observada no hPanel reconhece o repositório privado
 `Douglas0101/preco-que-da-lucro`, mas isso não constitui evidência de deploy,
 readiness ou produção ativa.
+
+O repositório Git não usa branches de feature, deploy ou provedor como fluxo
+permanente: o trabalho autorizado ocorre em `develop`, e a promoção formal
+ocorre somente pelo PR final `develop -> main`. Qualquer ref auxiliar já criada
+deve ser inventariada, ter seu PR classificado e ser aposentada somente após
+destino explícito; sua existência não autoriza merge, deploy ou alteração de
+produção.
 
 As limitações que motivam o redesenho são registradas no Plano Mestre, especialmente XSS no chat, perda de estado conversacional, defaults financeiros inseguros, ausência de constraints, arquitetura híbrida e ausência de testes.
 
@@ -2485,9 +2502,9 @@ Inventário associado à decisão: o repositório privado deve ser identificado 
 ### 16.3 Pipeline
 
 ```text
-feature/develop
-  -> PR checks bloqueantes
-  -> criar branch Neon por PR com TTL
+develop (commit/push; única branch de trabalho persistente)
+  -> CI bloqueante no SHA
+  -> criar branch Neon de preview, somente como objeto de banco, com TTL
   -> migration direct na branch isolada
   -> integração pooled, schema diff, RLS, unit/property/integration/E2E
   -> cleanup da branch Neon em `always()`
@@ -2499,7 +2516,8 @@ feature/develop
   -> health live -> health ready -> smoke degradado/completo -> 11/11 hPanel
   -> DAST, browsers/leitores obrigatórios e observabilidade
   -> evidência e aprovação go/no-go
-  -> release `develop -> main` via PR com CI verde
+  -> abrir/atualizar o único PR final `develop -> main`
+  -> CI do PR final verde e revisão aprovada
   -> ponto de restauração e backup verificado
   -> migration direct compatível em Neon production
   -> promover o mesmo artifact no Hostinger canônico
@@ -2507,11 +2525,11 @@ feature/develop
   -> contract migration em release posterior
 ```
 
-O fluxo não autoriza publicar a partir de WIP local, nem transforma um build verde em prova de runtime. Cada promoção deve apontar para o mesmo SHA/artifact e preservar o estado dos arquivos não incluídos no write-set.
+O fluxo não autoriza publicar a partir de WIP local, nem transforma um build verde em prova de runtime. Cada promoção deve apontar para o mesmo SHA/artifact e preservar o estado dos arquivos não incluídos no write-set. A criação de qualquer branch Git além de `develop` e `main` é `NO-GO` para o fluxo permanente; uma ref transitória existente exige inventário e destino explícito, não aprovação implícita.
 
 ### 16.4 Hardening da CI
 
-- O repositório canônico é `Douglas0101/preco-que-da-lucro`; owner e nome completo são obrigatórios para eliminar ambiguidades de integração. A branch `develop` é o fluxo diário; `main` recebe release por PR aprovado. O SHA da release nunca fica fixado neste documento: vem do checkout limpo e da evidência da execução.
+- O repositório canônico é `Douglas0101/preco-que-da-lucro`; owner e nome completo são obrigatórios para eliminar ambiguidades de integração. `develop` é a única branch Git persistente de trabalho; `main` é a única branch Git persistente de release e recebe exclusivamente o PR final `develop -> main`. O SHA da release nunca fica fixado neste documento: vem do checkout limpo e da evidência da execução.
 - Checkout deve estar limpo, em commit imutável, e o SHA deve constar no artifact, SBOM, evidências e registro da release.
 - Format check global exclui somente arquivos comprovadamente gerados por caminho exato; arquivos mantidos são formatados.
 - Warning de CI/build é zero por padrão; allowlist temporária registra assinatura, owner, justificativa, controle compensatório, release e expiração.
