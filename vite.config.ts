@@ -5,8 +5,9 @@ const lovableConfig = defineConfig({
   // The BFF is deployed as a Node server (Neon/Better Auth), and CI's
   // Playwright webServer starts the generated Nitro output directly.  The
   // Lovable default targets Cloudflare, which leaves `nitro preview` trying
-  // to start Wrangler and makes the preview health check time out.
-  nitro: { preset: "node-server" },
+  // to start Wrangler and makes the preview health check time out.  Vercel
+  // builds (VERCEL=1) emit the Build Output API (`.vercel/output`) instead.
+  nitro: { preset: process.env.VERCEL ? "vercel" : "node-server" },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
