@@ -2,16 +2,16 @@
 
 ## Preço que Dá Lucro
 
-| Campo            | Valor                                                                      |
-| ---------------- | -------------------------------------------------------------------------- |
-| Documento        | Software Design Document - SDD                                             |
-| Versão           | 1.5                                                                                              |
+| Campo            | Valor                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| Documento        | Software Design Document - SDD                                                                    |
+| Versão           | 1.5                                                                                               |
 | Estado           | Baseline técnica atualizada; operação Hostinger autorizada; produção ainda condicionada aos gates |
-| Data             | 2026-09-09                                                                                       |
-| Origem           | `docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md` versão 2.0 + realinhamento V7   |
-| Sistema atual    | React 19, TanStack Start/Router, Vite 8, Nitro 3, Node 24, PostgreSQL/Neon, Drizzle e Better Auth  |
-| Arquitetura-alvo | Monólito modular full-stack com BFF, Neon, runtime Node/Nitro e motor financeiro determinístico  |
-| Classificação    | Uso interno e confidencial                                                 |
+| Data             | 2026-09-09                                                                                        |
+| Origem           | `docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md` versão 2.0 + realinhamento V7  |
+| Sistema atual    | React 19, TanStack Start/Router, Vite 8, Nitro 3, Node 24, PostgreSQL/Neon, Drizzle e Better Auth |
+| Arquitetura-alvo | Monólito modular full-stack com BFF, Neon, runtime Node/Nitro e motor financeiro determinístico   |
+| Classificação    | Uso interno e confidencial                                                                        |
 
 > **Atualização P0 (2026-08-12, mantida):** este SDD preserva descrições do
 > baseline legado somente para rastreabilidade. A decisão vigente é
@@ -117,12 +117,12 @@ Alterações em fórmulas financeiras, sessão, autorização, tenant, retençã
 
 ### 1.5 Histórico e versionamento
 
-| Versão | Data       | Alteração                                                                                                                            |
-| ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 1.1    | 2026-08-01 | Baseline técnica anterior.                                                                                                           |
-| 1.2    | 2026-08-01 | Formaliza shadcn/ui sobre Base UI, suas fronteiras, migração e gates de conformidade.                                                |
-| 1.3    | 2026-08-01 | Formaliza qualidade sem warnings, proveniência Git/artifact, budget do entry e matrizes obrigatórias de browsers e leitores de tela. |
-| 1.4    | 2026-08-02 | Registra execução dos gates globais, alias Vite nativo, bundle medido, matriz Playwright, Orca e exceção Nitro temporária.           |
+| Versão | Data       | Alteração                                                                                                                                                                                                 |
+| ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1    | 2026-08-01 | Baseline técnica anterior.                                                                                                                                                                                |
+| 1.2    | 2026-08-01 | Formaliza shadcn/ui sobre Base UI, suas fronteiras, migração e gates de conformidade.                                                                                                                     |
+| 1.3    | 2026-08-01 | Formaliza qualidade sem warnings, proveniência Git/artifact, budget do entry e matrizes obrigatórias de browsers e leitores de tela.                                                                      |
+| 1.4    | 2026-08-02 | Registra execução dos gates globais, alias Vite nativo, bundle medido, matriz Playwright, Orca e exceção Nitro temporária.                                                                                |
 | 1.5    | 2026-09-09 | Alinha PostgreSQL/Neon, Better Auth, Nitro Node, branches por PR e pipeline ao Plano Mestre; registra G-VER `HOSTINGER-PROD`, dependência do domínio, gates de preview/produção e higiene de credenciais. |
 
 Revisões incrementam a versão do SDD e registram requisitos, rastreabilidade e ADRs afetados. Mudança de decisão arquitetural fixada exige nova versão e ADR próprio; correção editorial sem efeito normativo pode preservar a versão.
@@ -240,19 +240,19 @@ flowchart LR
 
 ### 3.4 Fronteiras de confiança
 
-| Fronteira                       | Regra                                                                                            |
-| ------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Navegador para BFF              | Toda entrada é não confiável; autenticar, validar e limitar                                      |
-| BFF para Better Auth            | Validar sessão server-side; cookie opaco, CSRF e origem exata; nunca confiar em estado do cliente |
-| BFF para Neon pooled            | Usar `DATABASE_URL` somente com role runtime, transações curtas e filtros explícitos de tenant |
-| Migration/admin para Neon direct| Usar `DATABASE_ADMIN_URL` somente em processo controlado; nunca entregar ao runtime web |
-| GitHub Actions para Neon        | Usar apenas os nomes `NEON_API_KEY` e `NEON_PROJECT_ID`; criar branch de PR com expiração e limpar em `always()` |
-| Hostinger para serviços externos | Validar saída TLS para Neon, Resend e gateway de IA; separar preview e produção |
-| Domínio/DNS para produção       | `diretrizprecifica.com` permanece sob custódia Hostinger; nenhuma alteração de DNS ou associação canônica antes do gate |
-| BFF para IA                     | Minimizar dados, limitar capacidade e validar toda resposta                                      |
-| Aplicação para observabilidade  | Redigir segredos e PII antes da emissão                                                          |
-| CI/CD para produção             | Artifact imutável, credencial de curta duração e aprovação                                       |
-| Operador para plano de controle | MFA, menor privilégio e auditoria                                                                |
+| Fronteira                        | Regra                                                                                                                   |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Navegador para BFF               | Toda entrada é não confiável; autenticar, validar e limitar                                                             |
+| BFF para Better Auth             | Validar sessão server-side; cookie opaco, CSRF e origem exata; nunca confiar em estado do cliente                       |
+| BFF para Neon pooled             | Usar `DATABASE_URL` somente com role runtime, transações curtas e filtros explícitos de tenant                          |
+| Migration/admin para Neon direct | Usar `DATABASE_ADMIN_URL` somente em processo controlado; nunca entregar ao runtime web                                 |
+| GitHub Actions para Neon         | Usar apenas os nomes `NEON_API_KEY` e `NEON_PROJECT_ID`; criar branch de PR com expiração e limpar em `always()`        |
+| Hostinger para serviços externos | Validar saída TLS para Neon, Resend e gateway de IA; separar preview e produção                                         |
+| Domínio/DNS para produção        | `diretrizprecifica.com` permanece sob custódia Hostinger; nenhuma alteração de DNS ou associação canônica antes do gate |
+| BFF para IA                      | Minimizar dados, limitar capacidade e validar toda resposta                                                             |
+| Aplicação para observabilidade   | Redigir segredos e PII antes da emissão                                                                                 |
+| CI/CD para produção              | Artifact imutável, credencial de curta duração e aprovação                                                              |
+| Operador para plano de controle  | MFA, menor privilégio e auditoria                                                                                       |
 
 ---
 
@@ -288,25 +288,25 @@ flowchart LR
 
 ### 4.3 Decisões fixadas por este SDD
 
-| ID     | Decisão                                                                                                                                             | Estado            |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| DD-001 | Arquitetura de monólito modular                                                                                                                     | Aprovada pelo SDD |
-| DD-002 | BFF como única API suportada pela UI; invariantes também são impostas pela API SQL restrita                                                         | Aprovada pelo SDD |
-| DD-003 | RLS, constraints e funções SQL restritas como defesa contra acesso direto ao PostgreSQL/Neon                                                         | Aprovada pelo SDD |
-| DD-004 | Motor financeiro sem dependência de IA ou banco                                                                                                     | Aprovada pelo SDD |
-| DD-005 | Decimal exato para valores financeiros                                                                                                              | Aprovada pelo SDD |
-| DD-006 | Produto com status e completude                                                                                                                     | Aprovada pelo SDD |
-| DD-007 | IA controlada por máquina de estados server-side                                                                                                    | Aprovada pelo SDD |
-| DD-008 | Tenant individual por usuário no MVP                                                                                                                | Aprovada pelo SDD |
-| DD-009 | Dados demo segregados dos dados reais                                                                                                               | Aprovada pelo SDD |
-| DD-010 | Artifact único promovido entre ambientes                                                                                                            | Aprovada pelo SDD |
-| DD-011 | DML direto de `authenticated` revogado; escrita somente por funções SQL versionadas                                                                 | Aprovada pelo SDD |
-| DD-012 | Jobs duráveis executados por outbox e worker separado da requisição web                                                                             | Aprovada pelo SDD |
-| DD-013 | shadcn/ui sobre Base UI é a camada exclusiva de primitivos reutilizáveis; consumo ocorre por `@/components/ui` e Radix é eliminado conforme ADR-016 | Aprovada pelo SDD |
-| DD-014 | PostgreSQL no Neon é o banco canônico; Supabase é somente origem read-only da migração única conforme ADR-019/021                                       | Aprovada por ADR |
-| DD-015 | Runtime usa `DATABASE_URL` pooled; migrations/admin usam `DATABASE_ADMIN_URL` direct, sem fallback implícito                                           | Aprovada por ADR |
-| DD-016 | Branch model `production -> develop -> preview/pr-*`; branch Neon de PR possui TTL e limpeza em `always()`                                             | Aprovada por ADR |
-| DD-017 | `HOSTINGER-PROD` é o destino operacional escolhido; deploy começa em preview temporário e só promove após os gates desta seção                   | Autorizada; go/no-go pendente |
+| ID     | Decisão                                                                                                                                             | Estado                        |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| DD-001 | Arquitetura de monólito modular                                                                                                                     | Aprovada pelo SDD             |
+| DD-002 | BFF como única API suportada pela UI; invariantes também são impostas pela API SQL restrita                                                         | Aprovada pelo SDD             |
+| DD-003 | RLS, constraints e funções SQL restritas como defesa contra acesso direto ao PostgreSQL/Neon                                                        | Aprovada pelo SDD             |
+| DD-004 | Motor financeiro sem dependência de IA ou banco                                                                                                     | Aprovada pelo SDD             |
+| DD-005 | Decimal exato para valores financeiros                                                                                                              | Aprovada pelo SDD             |
+| DD-006 | Produto com status e completude                                                                                                                     | Aprovada pelo SDD             |
+| DD-007 | IA controlada por máquina de estados server-side                                                                                                    | Aprovada pelo SDD             |
+| DD-008 | Tenant individual por usuário no MVP                                                                                                                | Aprovada pelo SDD             |
+| DD-009 | Dados demo segregados dos dados reais                                                                                                               | Aprovada pelo SDD             |
+| DD-010 | Artifact único promovido entre ambientes                                                                                                            | Aprovada pelo SDD             |
+| DD-011 | DML direto de `authenticated` revogado; escrita somente por funções SQL versionadas                                                                 | Aprovada pelo SDD             |
+| DD-012 | Jobs duráveis executados por outbox e worker separado da requisição web                                                                             | Aprovada pelo SDD             |
+| DD-013 | shadcn/ui sobre Base UI é a camada exclusiva de primitivos reutilizáveis; consumo ocorre por `@/components/ui` e Radix é eliminado conforme ADR-016 | Aprovada pelo SDD             |
+| DD-014 | PostgreSQL no Neon é o banco canônico; Supabase é somente origem read-only da migração única conforme ADR-019/021                                   | Aprovada por ADR              |
+| DD-015 | Runtime usa `DATABASE_URL` pooled; migrations/admin usam `DATABASE_ADMIN_URL` direct, sem fallback implícito                                        | Aprovada por ADR              |
+| DD-016 | Branch model `production -> develop -> preview/pr-*`; branch Neon de PR possui TTL e limpeza em `always()`                                          | Aprovada por ADR              |
+| DD-017 | `HOSTINGER-PROD` é o destino operacional escolhido; deploy começa em preview temporário e só promove após os gates desta seção                      | Autorizada; go/no-go pendente |
 
 ---
 
@@ -2415,19 +2415,19 @@ Alertas devem ser testados. Alerta sem owner e runbook não é considerado opera
 
 ### 16.1.1 Decisão de provedor e dependências operacionais
 
-| Ramo | Decisão | Custo técnico confirmado | Estado operacional |
-| ---- | ------- | ------------------------ | ------------------ |
-| `HOSTINGER-PROD` | Hostinger Cloud Startup executa Node/Nitro; preview temporário antecede a promoção | Processo persistente, configuração de start/restart, health externo, egress TLS para Neon/Resend/IA, hPanel 11/11, backup/restore e custo de operação do painel | Escolhido; produção ainda `NO-GO` até todos os gates |
-| `VERCEL-PROD` | Não é o destino desta rodada | Projeto herdado espera `dist`, enquanto o build atual produz `.output`; requer correção de preset/output, homologação nova e medição de cold start/egress | Fora do caminho; sem redeploy autorizado nesta emenda |
-| `HÍBRIDO` | Hostinger para produção e Vercel apenas para preview, se houver assinatura específica | Mantém os custos de dois provedores, duas cadeias de logs/env e um gate de integração adicional | Não escolhido; não pode ser inferido de uma integração ativa |
+| Ramo             | Decisão                                                                               | Custo técnico confirmado                                                                                                                                        | Estado operacional                                           |
+| ---------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `HOSTINGER-PROD` | Hostinger Cloud Startup executa Node/Nitro; preview temporário antecede a promoção    | Processo persistente, configuração de start/restart, health externo, egress TLS para Neon/Resend/IA, hPanel 11/11, backup/restore e custo de operação do painel | Escolhido; produção ainda `NO-GO` até todos os gates         |
+| `VERCEL-PROD`    | Não é o destino desta rodada                                                          | Projeto herdado espera `dist`, enquanto o build atual produz `.output`; requer correção de preset/output, homologação nova e medição de cold start/egress       | Fora do caminho; sem redeploy autorizado nesta emenda        |
+| `HÍBRIDO`        | Hostinger para produção e Vercel apenas para preview, se houver assinatura específica | Mantém os custos de dois provedores, duas cadeias de logs/env e um gate de integração adicional                                                                 | Não escolhido; não pode ser inferido de uma integração ativa |
 
-| Dimensão de custo técnico | `VERCEL-PROD` | `HOSTINGER-PROD` | `HÍBRIDO` |
-| ------------------------- | -------------- | ----------------- | --------- |
-| Runtime/preset | Nitro `vercel`/serverless a confirmar; o projeto herdado espera `dist` e o build atual gera `.output`; cold start composto e egress ainda precisam de medição | Nitro `node-server` persistente; start/restart, timeout, cold/warm behavior, egress e limites do Cloud Startup precisam de prova no hPanel | Soma os dois contratos, observabilidade/env duplicados e divergência de comportamento entre preview e produção |
-| Homologação | Lista nova: região, timeout, egress, logs, secrets por nomes e cold start; não reutilizar 11/11 do hPanel | Matriz 11/11 já definida em `docs/runbooks/hpanel-homologacao.md`, mais health/smoke externo | Homologação nova no Vercel e 11/11 no Hostinger; dois owners e duas trilhas de rollback |
-| Neon | Integração nativa aparece instalada, mas nomes/eventos de injeção de conexão do projeto Vercel ainda são `UNVERIFIED` | Nenhuma injeção Neon nativa é presumida; `DATABASE_URL` pooled e `DATABASE_ADMIN_URL` direct são configurados manualmente por ambiente | Integração Vercel e configuração manual Hostinger precisam ser isoladas e reconciliadas |
-| Cadeia humana até o primeiro deploy | Owner do projeto, integração GitHub/Vercel, preset/output, env, preview, logs e aprovação | Owner do hPanel, import do repositório, preset Nitro, env, URL temporária, health, smoke e 11/11 | Ambas as cadeias, mais decisão sobre qual superfície é fonte de verdade |
-| Custo imediato conhecido | Nenhum preço é inferido neste SDD; custo técnico é `UNKNOWN` até limites/egress/cold start medidos | Nenhum preço é inferido neste SDD; custo técnico inclui plano ativo, operação persistente e backup/restore | Custo técnico e operacional de dois provedores; não aprovado sem orçamento/owner |
+| Dimensão de custo técnico           | `VERCEL-PROD`                                                                                                                                                 | `HOSTINGER-PROD`                                                                                                                           | `HÍBRIDO`                                                                                                      |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Runtime/preset                      | Nitro `vercel`/serverless a confirmar; o projeto herdado espera `dist` e o build atual gera `.output`; cold start composto e egress ainda precisam de medição | Nitro `node-server` persistente; start/restart, timeout, cold/warm behavior, egress e limites do Cloud Startup precisam de prova no hPanel | Soma os dois contratos, observabilidade/env duplicados e divergência de comportamento entre preview e produção |
+| Homologação                         | Lista nova: região, timeout, egress, logs, secrets por nomes e cold start; não reutilizar 11/11 do hPanel                                                     | Matriz 11/11 já definida em `docs/runbooks/hpanel-homologacao.md`, mais health/smoke externo                                               | Homologação nova no Vercel e 11/11 no Hostinger; dois owners e duas trilhas de rollback                        |
+| Neon                                | Integração nativa aparece instalada, mas nomes/eventos de injeção de conexão do projeto Vercel ainda são `UNVERIFIED`                                         | Nenhuma injeção Neon nativa é presumida; `DATABASE_URL` pooled e `DATABASE_ADMIN_URL` direct são configurados manualmente por ambiente     | Integração Vercel e configuração manual Hostinger precisam ser isoladas e reconciliadas                        |
+| Cadeia humana até o primeiro deploy | Owner do projeto, integração GitHub/Vercel, preset/output, env, preview, logs e aprovação                                                                     | Owner do hPanel, import do repositório, preset Nitro, env, URL temporária, health, smoke e 11/11                                           | Ambas as cadeias, mais decisão sobre qual superfície é fonte de verdade                                        |
+| Custo imediato conhecido            | Nenhum preço é inferido neste SDD; custo técnico é `UNKNOWN` até limites/egress/cold start medidos                                                            | Nenhum preço é inferido neste SDD; custo técnico inclui plano ativo, operação persistente e backup/restore                                 | Custo técnico e operacional de dois provedores; não aprovado sem orçamento/owner                               |
 
 Dependência de domínio: o domínio canônico declarado é `diretrizprecifica.com` e a custódia operacional observada é Hostinger. O plano não presume que DNS, NS, MX, SPF, DKIM ou DMARC já apontem para a aplicação; o owner deve confirmar autoridade, registros atuais e destino antes de qualquer alteração. Nenhuma escrita de DNS ou associação canônica ocorre durante o preview.
 
@@ -2444,17 +2444,17 @@ Critérios que governam o go/no-go:
 
 Os gates abaixo são uma sequência de execução, não uma declaração de que a operação já foi concluída. Cada gate deve gerar evidência com data, executor, SHA, ambiente, resultado e próximo passo. A ausência de evidência mantém o gate `NOT-EXECUTED` ou `BLOCKED`.
 
-| Gate | Ação e critério de saída | Evidência mínima | Falha/ação |
-| ---- | ------------------------ | ---------------- | ---------- |
-| HP-1 | Confirmar o repositório completo `Douglas0101/preco-que-da-lucro`, owner e branch exatos; revisar OAuth/App e menor privilégio | URL completa, branch, SHA e escopo sem token/URL credenciada | Se a superfície retornar 404/401 ou exigir escopo não confirmado, `BLOCKED`; pedir reautorização humana |
-| HP-2 | Configurar/importar aplicação Node no hPanel com preset Nitro, root `./`, Node 24.x, branch de artefato escolhida e output padrão Nitro | Tela/configuração sanitizada e SHA pretendido | Não implantar se preset/output for `dist`, branch/SHA não for o pretendido ou checkout estiver sujo |
-| HP-3 | Inventariar somente nomes de env; injetar valores pelo secret manager correto, separados por local/CI/preview/produção | Lista de nomes, escopo, `configured`/`missing` e responsável | Qualquer valor em evidência ou env de produção no preview = `NO-GO`; revogar/limpar por operador autorizado |
-| HP-4 | Confirmar processo, porta, restart, timeout, logs, TLS e egress para Neon, Resend e gateway de IA | Configuração e observações redigidas do painel/log | Dois erros consecutivos ou saída não-TLS interrompem a sequência |
-| HP-5 | Implantar o artifact imutável somente na URL temporária, sem DNS/canonical association | URL temporária, SHA, horário e artifact | Redeploy sem validação local e sem artifact íntegro é proibido |
-| HP-6 | Validar `GET /api/health/live` = 200; validar `GET /api/health/ready` = 200 contra Neon não produtivo; executar smoke degradado e completo | Status, latências, logs redigidos, smoke e confirmação de ausência de escrita em Neon `production` | `ready=503`, segredo em log, erro de runtime ou escrita produtiva mantém `BLOCKED` |
-| HP-7 | Executar a matriz 11/11 do runbook hPanel, inclusive restart, domínio temporário, logs, TLS, env, assets, sessão e erro | Checklist 11/11 assinado e evidências por item | Item não observável não é aprovado; reter promoção |
-| HP-8 | Validar branch Neon de preview com TTL/cleanup, migrations direct e runtime pooled; reconciliar schema, RLS, restore e backup | Branch/TTL sanitizados, checks, relatório de migration e restore | Branch vencida, checksum divergente ou backup insuficiente = `NO-GO`; preservar manifesto/estado anterior |
-| HP-9 | Revisar o required check/integração Vercel no GitHub; limitar/desativar somente com mudança autorizada e auditável | Configuração antes/depois e motivo | Sem escrita autorizada, registrar `NOT-EXECUTED`; não mascarar falha removendo check |
+| Gate | Ação e critério de saída                                                                                                                   | Evidência mínima                                                                                   | Falha/ação                                                                                                  |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| HP-1 | Confirmar o repositório completo `Douglas0101/preco-que-da-lucro`, owner e branch exatos; revisar OAuth/App e menor privilégio             | URL completa, branch, SHA e escopo sem token/URL credenciada                                       | Se a superfície retornar 404/401 ou exigir escopo não confirmado, `BLOCKED`; pedir reautorização humana     |
+| HP-2 | Configurar/importar aplicação Node no hPanel com preset Nitro, root `./`, Node 24.x, branch de artefato escolhida e output padrão Nitro    | Tela/configuração sanitizada e SHA pretendido                                                      | Não implantar se preset/output for `dist`, branch/SHA não for o pretendido ou checkout estiver sujo         |
+| HP-3 | Inventariar somente nomes de env; injetar valores pelo secret manager correto, separados por local/CI/preview/produção                     | Lista de nomes, escopo, `configured`/`missing` e responsável                                       | Qualquer valor em evidência ou env de produção no preview = `NO-GO`; revogar/limpar por operador autorizado |
+| HP-4 | Confirmar processo, porta, restart, timeout, logs, TLS e egress para Neon, Resend e gateway de IA                                          | Configuração e observações redigidas do painel/log                                                 | Dois erros consecutivos ou saída não-TLS interrompem a sequência                                            |
+| HP-5 | Implantar o artifact imutável somente na URL temporária, sem DNS/canonical association                                                     | URL temporária, SHA, horário e artifact                                                            | Redeploy sem validação local e sem artifact íntegro é proibido                                              |
+| HP-6 | Validar `GET /api/health/live` = 200; validar `GET /api/health/ready` = 200 contra Neon não produtivo; executar smoke degradado e completo | Status, latências, logs redigidos, smoke e confirmação de ausência de escrita em Neon `production` | `ready=503`, segredo em log, erro de runtime ou escrita produtiva mantém `BLOCKED`                          |
+| HP-7 | Executar a matriz 11/11 do runbook hPanel, inclusive restart, domínio temporário, logs, TLS, env, assets, sessão e erro                    | Checklist 11/11 assinado e evidências por item                                                     | Item não observável não é aprovado; reter promoção                                                          |
+| HP-8 | Validar branch Neon de preview com TTL/cleanup, migrations direct e runtime pooled; reconciliar schema, RLS, restore e backup              | Branch/TTL sanitizados, checks, relatório de migration e restore                                   | Branch vencida, checksum divergente ou backup insuficiente = `NO-GO`; preservar manifesto/estado anterior   |
+| HP-9 | Revisar o required check/integração Vercel no GitHub; limitar/desativar somente com mudança autorizada e auditável                         | Configuração antes/depois e motivo                                                                 | Sem escrita autorizada, registrar `NOT-EXECUTED`; não mascarar falha removendo check                        |
 
 Antes de HP-5, executar localmente os gates de formato, lint, typecheck, testes, build Nitro e `npm run check:hostinger-runtime` conforme disponibilidade do ambiente. Esse smoke local é degradado e não substitui HP-6/HP-7. Antes de HP-6, health e smoke devem usar a configuração de preview e nunca credenciais de produção. Após HP-7/HP-8, o owner registra go/no-go; somente então pode associar o domínio canônico, migrar/promover o mesmo artifact e iniciar tráfego controlado.
 
@@ -2462,23 +2462,23 @@ Antes de HP-5, executar localmente os gates de formato, lint, typecheck, testes,
 
 O mapa abaixo registra capacidades e limites sem ler valores de credenciais. A configuração de uma integração não prova que um deploy, uma migration ou uma escrita remota ocorreu.
 
-| Integração | O que pode fazer | Eventos/escopo a confirmar | Estado e regra |
-| ---------- | ---------------- | -------------------------- | -------------- |
-| Neon × GitHub Actions | Criar branch Neon temporária, expor conexão de teste ao job e remover a branch | PR `opened`, `reopened` e `synchronize` criam; `closed` remove; TTL esperado de 14 dias; cleanup em `always()` | Nomes permitidos em evidência: `NEON_API_KEY`, `NEON_PROJECT_ID`; nunca registrar URLs ou valores |
-| Neon × Vercel | Integração nativa instalada no projeto e potencialmente capaz de provisionar/injetar env conforme o ambiente do projeto | Nome da connection/env de preview e produção, evento de deploy e branch de banco devem ser confirmados na configuração autenticada | `UNVERIFIED` para a injeção efetiva; não usar esse caminho para produção nesta rodada |
-| GitHub App Vercel | Observar repositório/PR, iniciar builds/checks e, se autorizado, escrever branches/commits/configurações | Permissões de contents, pull requests, checks, deployments, branches e actions devem ser inventariadas por nome | Recomenda-se limitar a leitura/build/checks; nenhuma escrita ou remoção de required check sem necessidade registrada |
-| Hostinger Git deploy | Importar o repositório completo, selecionar branch, instalar/buildar e iniciar o processo Node/Nitro | Branch escolhida, preset, root, Node, start, output, env, restart e domínio temporário | Reconhecimento do repositório não prova deploy; HP-1 a HP-7 encerram a prova |
+| Integração            | O que pode fazer                                                                                                        | Eventos/escopo a confirmar                                                                                                         | Estado e regra                                                                                                       |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Neon × GitHub Actions | Criar branch Neon temporária, expor conexão de teste ao job e remover a branch                                          | PR `opened`, `reopened` e `synchronize` criam; `closed` remove; TTL esperado de 14 dias; cleanup em `always()`                     | Nomes permitidos em evidência: `NEON_API_KEY`, `NEON_PROJECT_ID`; nunca registrar URLs ou valores                    |
+| Neon × Vercel         | Integração nativa instalada no projeto e potencialmente capaz de provisionar/injetar env conforme o ambiente do projeto | Nome da connection/env de preview e produção, evento de deploy e branch de banco devem ser confirmados na configuração autenticada | `UNVERIFIED` para a injeção efetiva; não usar esse caminho para produção nesta rodada                                |
+| GitHub App Vercel     | Observar repositório/PR, iniciar builds/checks e, se autorizado, escrever branches/commits/configurações                | Permissões de contents, pull requests, checks, deployments, branches e actions devem ser inventariadas por nome                    | Recomenda-se limitar a leitura/build/checks; nenhuma escrita ou remoção de required check sem necessidade registrada |
+| Hostinger Git deploy  | Importar o repositório completo, selecionar branch, instalar/buildar e iniciar o processo Node/Nitro                    | Branch escolhida, preset, root, Node, start, output, env, restart e domínio temporário                                             | Reconhecimento do repositório não prova deploy; HP-1 a HP-7 encerram a prova                                         |
 
 Inventário associado à decisão: o repositório privado deve ser identificado como `Douglas0101/preco-que-da-lucro`; o projeto Vercel é herdado da conta própria e apresentou historicamente o mismatch `dist`/`.output`; Deployment Checks Vercel não são presumidos como configurados. Qualquer valor divergente desta matriz interrompe a execução e exige classificação antes de nova ação.
 
 ### 16.2 Ambientes
 
-| Ambiente | Aplicação/dados | Segredos e callbacks | Uso e limite |
-| -------- | --------------- | -------------------- | ------------ |
-| Local | Postgres sintético/local | Limitados, fora de produção | Desenvolvimento e smoke degradado |
-| CI | Postgres efêmero ou branch Neon por PR | OIDC/segredos mínimos; `NEON_API_KEY` e `NEON_PROJECT_ID` somente por nome em evidência | Testes, migration direct, integração pooled, E2E e cleanup em `always()` |
-| Preview/homologação | URL temporária Hostinger + branch Neon de PR com TTL | Valores próprios, callbacks próprios, nenhum segredo/dado de produção | HP-5 a HP-8, health/readiness, smoke, 11/11 e DAST controlado |
-| Produção | Hostinger canônico + branch Neon `production` | Secret manager de produção, somente após go/no-go | Tráfego autorizado, rollout gradual, monitoramento e rollback |
+| Ambiente            | Aplicação/dados                                      | Segredos e callbacks                                                                    | Uso e limite                                                             |
+| ------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Local               | Postgres sintético/local                             | Limitados, fora de produção                                                             | Desenvolvimento e smoke degradado                                        |
+| CI                  | Postgres efêmero ou branch Neon por PR               | OIDC/segredos mínimos; `NEON_API_KEY` e `NEON_PROJECT_ID` somente por nome em evidência | Testes, migration direct, integração pooled, E2E e cleanup em `always()` |
+| Preview/homologação | URL temporária Hostinger + branch Neon de PR com TTL | Valores próprios, callbacks próprios, nenhum segredo/dado de produção                   | HP-5 a HP-8, health/readiness, smoke, 11/11 e DAST controlado            |
+| Produção            | Hostinger canônico + branch Neon `production`        | Secret manager de produção, somente após go/no-go                                       | Tráfego autorizado, rollout gradual, monitoramento e rollback            |
 
 `DATABASE_URL` pooled é obrigatório para o runtime web; `DATABASE_ADMIN_URL` direct fica restrito a migration/admin runner. Nenhuma variável de produção é reutilizada em local, CI ou preview. O domínio temporário é o único destino antes do gate; `diretrizprecifica.com` permanece sob a dependência de custódia e DNS declarada na seção 16.1.1.
 
@@ -2602,16 +2602,16 @@ SEV-1 exige Incident Commander, comunicação fora de banda, preservação de ev
 
 O registro da execução deve usar a matriz abaixo, sem converter `UNKNOWN`, `UNVERIFIED`, `BLOCKED` ou `NOT-EXECUTED` em sucesso:
 
-| Item | Estado inicial desta versão | Evidência/owner requerido |
-| ---- | --------------------------- | -------------------------- |
-| G-VER | `SIGNED: HOSTINGER-PROD` | Owner do produto + ADR/ledger |
-| Repositório/branch/SHA | Observado no Git; deve ser resolvido por release | checkout limpo, SHA, artifact e PR |
-| Preset/output | Nitro `.output` definido; runtime remoto deve ser provado | build, configuração hPanel e HP-6 |
-| Neon | Projeto/branches mapeados; produção não autorizada por este SDD | pooled/direct, branch TTL, migration, backup/restore |
-| Integrações | Neon×GitHub/Vercel observadas por nomes/escopos; limitação Vercel pendente | inventário sanitizado e mudança auditável |
-| Domínio | Custódia Hostinger declarada; apontamento não presumido | owner DNS, registros atuais e HP-7 |
-| Runtime | Preview/deploy/health/smoke ainda dependem de execução | HP-5/HP-6/HP-7 |
-| Produção | `NO-GO` até backup, gates, CI, domínio e assinatura final | ledger datado e aprovação go/no-go |
+| Item                   | Estado inicial desta versão                                                | Evidência/owner requerido                            |
+| ---------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------- |
+| G-VER                  | `SIGNED: HOSTINGER-PROD`                                                   | Owner do produto + ADR/ledger                        |
+| Repositório/branch/SHA | Observado no Git; deve ser resolvido por release                           | checkout limpo, SHA, artifact e PR                   |
+| Preset/output          | Nitro `.output` definido; runtime remoto deve ser provado                  | build, configuração hPanel e HP-6                    |
+| Neon                   | Projeto/branches mapeados; produção não autorizada por este SDD            | pooled/direct, branch TTL, migration, backup/restore |
+| Integrações            | Neon×GitHub/Vercel observadas por nomes/escopos; limitação Vercel pendente | inventário sanitizado e mudança auditável            |
+| Domínio                | Custódia Hostinger declarada; apontamento não presumido                    | owner DNS, registros atuais e HP-7                   |
+| Runtime                | Preview/deploy/health/smoke ainda dependem de execução                     | HP-5/HP-6/HP-7                                       |
+| Produção               | `NO-GO` até backup, gates, CI, domínio e assinatura final                  | ledger datado e aprovação go/no-go                   |
 
 O ledger deve registrar também a emenda correspondente do Plano Mestre, a janela de validade, o executor, o aprovador e o plano de rollback. O documento não é evidência de que qualquer gate foi executado.
 
@@ -3006,22 +3006,22 @@ Gate:
 | DSO-011 a DSO-021                                                           | NFR-UI-007, 16.3 a 16.5, 17.10                              | Deploy, migration, artifact, flags e grafo npm                                      |
 | DSO-022                                                                     | NFR-MAINT-003/004, 16.1/16.4, ADR-013                       | Compatibilidade do alias Vite 8/Lovable sem remoção prematura do plugin obrigatório |
 | DSO-023                                                                     | NFR-MAINT-007, 16.3/16.4/16.7, 18.4/18.7, 21.7              | Repositório/branches, checkout limpo, SHA, checks, artifact e rollback              |
-| OPS-001 a OPS-010                                                           | NFR-RES, 16.1/16.2/16.6/16.7                                | Hostinger/Nitro, Neon pooled/direct, backup, restore e continuidade                |
-| IR-001 a IR-011                                                             | 16.8, 16.9, 21.7                                           | Provedor, autenticação, output, domínio, Neon, severidade e incidentes              |
+| OPS-001 a OPS-010                                                           | NFR-RES, 16.1/16.2/16.6/16.7                                | Hostinger/Nitro, Neon pooled/direct, backup, restore e continuidade                 |
+| IR-001 a IR-011                                                             | 16.8, 16.9, 21.7                                            | Provedor, autenticação, output, domínio, Neon, severidade e incidentes              |
 | DOC-001 a DOC-010                                                           | 1.3 a 1.5, 14.1, 19, 20                                     | Guias, ADRs e governança da camada de UI                                            |
 | ARCH-012, FE-024 a FE-031, A11Y-017, PERF-009, QA-016/017, DSO-021, DOC-010 | DD-013, NFR-UI-001 a NFR-UI-008, 14.1, 17.10, 18.3, ADR-016 | Gate integrado do stack de componentes                                              |
 
 ### 19.2.1 Rastreabilidade operacional
 
-| Decisão/gate | Contrato SDD | Evidência que encerra o gate |
-| ------------ | ------------ | ---------------------------- |
-| G-VER `HOSTINGER-PROD` | DD-017, 16.1.1, 16.9 | Ledger assinado, owner, dependência de domínio e go/no-go |
-| HP-1 a HP-2 | 16.1.2, 16.4 | Repositório completo, branch, SHA, configuração hPanel e artifact |
-| HP-3 a HP-4 | 3.4, 4.2, 13.10, 16.1/16.2 | Inventário de nomes de env, segregação, processo, TLS, logs redigidos e egress |
-| HP-5 a HP-7 | 16.1.2, 16.3, 18.7 | URL temporária, live/ready, smoke, 11/11 e observabilidade |
-| HP-8 | 4.2, 9.4, 16.6/16.7, 18.7 | Branch Neon/TTL, migration direct, runtime pooled, reconciliação, backup/restore e rollback |
-| HP-9 | 16.1.2, 16.4, 21.7 | Alteração de integração/check documentada, reversível e auditável; ou `NOT-EXECUTED` |
-| Promoção canônica | 16.2/16.3, 18.9, 21.7 | Domínio/DNS confirmado, CI verde, artifact idêntico, gates assinados e rollout controlado |
+| Decisão/gate           | Contrato SDD               | Evidência que encerra o gate                                                                |
+| ---------------------- | -------------------------- | ------------------------------------------------------------------------------------------- |
+| G-VER `HOSTINGER-PROD` | DD-017, 16.1.1, 16.9       | Ledger assinado, owner, dependência de domínio e go/no-go                                   |
+| HP-1 a HP-2            | 16.1.2, 16.4               | Repositório completo, branch, SHA, configuração hPanel e artifact                           |
+| HP-3 a HP-4            | 3.4, 4.2, 13.10, 16.1/16.2 | Inventário de nomes de env, segregação, processo, TLS, logs redigidos e egress              |
+| HP-5 a HP-7            | 16.1.2, 16.3, 18.7         | URL temporária, live/ready, smoke, 11/11 e observabilidade                                  |
+| HP-8                   | 4.2, 9.4, 16.6/16.7, 18.7  | Branch Neon/TTL, migration direct, runtime pooled, reconciliação, backup/restore e rollback |
+| HP-9                   | 16.1.2, 16.4, 21.7         | Alteração de integração/check documentada, reversível e auditável; ou `NOT-EXECUTED`        |
+| Promoção canônica      | 16.2/16.3, 18.9, 21.7      | Domínio/DNS confirmado, CI verde, artifact idêntico, gates assinados e rollout controlado   |
 
 ### 19.3 Evidência por requisito
 
@@ -3061,14 +3061,14 @@ Esta seção é a baseline no repositório. Cada requisito FR/NFR deve ainda pos
 | ADR-014 | Retenção e direitos LGPD                             | Fase 3A            | Prazos, expurgo, artifacts e auditoria                                                                                                        |
 | ADR-015 | CSP e estilos dinâmicos                              | Fase 0             | Refatoração, nonce, `style-src-attr` e Trusted Types                                                                                          |
 | ADR-016 | Execução da migração shadcn/ui de Radix para Base UI | Fase 2             | Sem reabrir Base UI: fronteiras, ondas, estilo, enforcement, evidências e rollback                                                            |
-| ADR-019 | PostgreSQL no Neon, Drizzle e isolamento por tenant | Fase 1/cutover      | `DATABASE_URL` pooled, `DATABASE_ADMIN_URL` direct, RLS, GUCs e branch Neon por PR                                                          |
-| ADR-020 | Better Auth e sessões server-driven                | Fase 1/cutover      | Cookie opaco, sessão revogável, callbacks e secrets segregados                                                                               |
-| ADR-021 | Migração e cutover Supabase para PostgreSQL/Neon    | Fase 3A/cutover     | Dry run, reconciliação, manutenção, rollback e execução remota pendente                                                                       |
-| ADR-022 | Taxonomia de erros e observabilidade do P0         | Fase 1              | Respostas, logs redigidos, correlation ID e SLOs                                                                                               |
-| ADR-023 | Major PostgreSQL alvo para CI e Neon               | Fase 1              | PostgreSQL 17, compatibilidade e detecção de drift                                                                                             |
-| ADR-024 | Contratos de integridade P1                         | P1/cutover          | Products, preços, simulações e vendas no PostgreSQL 17/Neon                                                                                  |
-| ADR-025 | Cache de sessão por marker assinado                | S5, condicional      | TTL <= 60s, HMAC, revogação, forgery e escrita sem confiança no marker                                                                       |
-| ADR-026 | Grafo executado da FSM de conversa                 | P1/S6               | Estados server-side, poda/reserva e autorização de tools                                                                                      |
+| ADR-019 | PostgreSQL no Neon, Drizzle e isolamento por tenant  | Fase 1/cutover     | `DATABASE_URL` pooled, `DATABASE_ADMIN_URL` direct, RLS, GUCs e branch Neon por PR                                                            |
+| ADR-020 | Better Auth e sessões server-driven                  | Fase 1/cutover     | Cookie opaco, sessão revogável, callbacks e secrets segregados                                                                                |
+| ADR-021 | Migração e cutover Supabase para PostgreSQL/Neon     | Fase 3A/cutover    | Dry run, reconciliação, manutenção, rollback e execução remota pendente                                                                       |
+| ADR-022 | Taxonomia de erros e observabilidade do P0           | Fase 1             | Respostas, logs redigidos, correlation ID e SLOs                                                                                              |
+| ADR-023 | Major PostgreSQL alvo para CI e Neon                 | Fase 1             | PostgreSQL 17, compatibilidade e detecção de drift                                                                                            |
+| ADR-024 | Contratos de integridade P1                          | P1/cutover         | Products, preços, simulações e vendas no PostgreSQL 17/Neon                                                                                   |
+| ADR-025 | Cache de sessão por marker assinado                  | S5, condicional    | TTL <= 60s, HMAC, revogação, forgery e escrita sem confiança no marker                                                                        |
+| ADR-026 | Grafo executado da FSM de conversa                   | P1/S6              | Estados server-side, poda/reserva e autorização de tools                                                                                      |
 
 ADR-016 operacionaliza DD-013. A escolha de Base UI, a exclusividade da camada e a eliminação de Radix são premissas fixas, não opções pendentes desse ADR.
 
