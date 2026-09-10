@@ -190,6 +190,57 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     membershipDelete: false,
   });
 
+  // 0011: as cinco tabelas de autenticação (identidade global, sem tenant_id)
+  // ficam com RLS habilitado e política única de serviço `auth_service_access`
+  // (FOR ALL, permissiva, exclusiva de app_runtime). A role legada com grants
+  // permanece sem política = negada; owner/BYPASSRLS não é afetado.
+  const authRls = await client.query<{
+    table_name: string;
+    rowsecurity: boolean;
+    policy_count: string;
+    policy_roles: string[];
+    policy_cmd: string;
+  }>(
+    `select c.relname as table_name,
+            c.relrowsecurity as rowsecurity,
+            (select count(*)::text
+               from pg_policy p
+              where p.polrelid = c.oid
+                and p.polname = 'auth_service_access') as policy_count,
+            coalesce(
+              (select array_agg(r.rolname::text order by r.rolname)
+                 from pg_policy p
+                 cross join lateral unnest(p.polroles) as polrole(role_oid)
+                 join pg_roles r on r.oid = polrole.role_oid
+                where p.polrelid = c.oid
+                  and p.polname = 'auth_service_access'),
+              '{}'
+            ) as policy_roles,
+            coalesce(
+              (select p.polcmd::text
+                 from pg_policy p
+                where p.polrelid = c.oid
+                  and p.polname = 'auth_service_access'),
+              ''
+            ) as policy_cmd
+       from pg_class c
+       join pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public'
+        and c.relname in ('users', 'sessions', 'accounts', 'verifications', 'rate_limits')
+      order by c.relname`,
+  );
+  assert.deepEqual(
+    authRls.rows,
+    ["accounts", "rate_limits", "sessions", "users", "verifications"].map((table_name) => ({
+      table_name,
+      rowsecurity: true,
+      policy_count: "1",
+      policy_roles: ["app_runtime"],
+      policy_cmd: "*",
+    })),
+    "0011 deve deixar RLS + auth_service_access (FOR ALL → app_runtime) nas 5 tabelas de auth",
+  );
+
   const ownedObjects = await client.query<{
     objectType: string;
     objectCount: string;
@@ -557,8 +608,9 @@ async function assertPurchasePriceConcurrency(adminUrl: string): Promise<void> {
   }
 }
 
-// Downs que levam a chain 0010→0003, na ordem de aplicação (mais nova primeiro).
+// Downs que levam a chain 0011→0003, na ordem de aplicação (mais nova primeiro).
 const DOWNS_TIP_TO_0003 = [
+  "0011_to_0010_down.sql",
   "0010_to_0009_down.sql",
   "0009_to_0008_down.sql",
   "0008_to_0007_down.sql",
@@ -679,7 +731,7 @@ async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<
 async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Client): Promise<void> {
   // Completa a cobertura da cadeia de rollback: além de 0010→0003, aplica
   // 0003→0002 e o novo 0002→0001, deixando o banco no estado da migration
-  // 0001 com o journal reduzido a 0000/0001 (9 arquivos aplicados = 9 linhas
+  // 0001 com o journal reduzido a 0000/0001 (10 arquivos aplicados = 10 linhas
   // removidas em applyDowns).
   await applyDowns(client, [
     ...DOWNS_TIP_TO_0003,
@@ -717,7 +769,7 @@ async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Clie
   const replayedJournal = await client.query<{ count: string }>(
     "select count(*)::text as count from drizzle.__drizzle_migrations",
   );
-  assert.equal(replayedJournal.rows[0]?.count, "11", "replay deve restaurar o journal completo");
+  assert.equal(replayedJournal.rows[0]?.count, "12", "replay deve restaurar o journal completo");
 
   const restored = await client.query<{
     rateLimits: boolean;
