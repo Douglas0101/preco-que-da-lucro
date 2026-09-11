@@ -1,0 +1,121 @@
+Pager usage is off.
+### probe1-catalog-before (RLS + política presentes)
+  table_name   | rls | policies 
+---------------+-----+----------
+ accounts      | t   | 1
+ rate_limits   | t   | 1
+ sessions      | t   | 1
+ users         | t   | 1
+ verifications | t   | 1
+(5 rows)
+
+### probe1-simula-drift (drop policy mantendo RLS)
+DO
+### probe1-catalog-drift (RLS ligado, 0 políticas)
+  table_name   | rls | policies 
+---------------+-----+----------
+ accounts      | t   | 0
+ rate_limits   | t   | 0
+ sessions      | t   | 0
+ users         | t   | 0
+ verifications | t   | 0
+(5 rows)
+
+### probe1-app_runtime-select-users (esperado: 0 linhas, sem erro)
+BEGIN
+SET
+ visible_users 
+---------------
+ 0
+(1 row)
+
+COMMIT
+### probe1-app_runtime-insert-users (esperado: erro 42501 de policy)
+BEGIN
+SET
+ERROR:  new row violates row-level security policy for table "users"
+ROLLBACK
+
+--- apply drizzle/0011_auth_rls_normalization.sql (1st) ---
+DO
+DO
+
+--- reapply drizzle/0011_auth_rls_normalization.sql (2nd, idempotency) ---
+DO
+DO
+Pager usage is off.
+### probe2-catalog-after (RLS + 1 política por tabela)
+  table_name   | rls | policies 
+---------------+-----+----------
+ accounts      | t   | 1
+ rate_limits   | t   | 1
+ sessions      | t   | 1
+ users         | t   | 1
+ verifications | t   | 1
+(5 rows)
+
+### probe2-app_runtime-select-users (esperado: ok)
+BEGIN
+SET
+ visible_users 
+---------------
+ 3
+(1 row)
+
+COMMIT
+### probe2-app_runtime-select-4-tabelas (esperado: ok)
+BEGIN
+SET
+ sessions | accounts | verifications | rate_limits 
+----------+----------+---------------+-------------
+        0 |        0 |             0 |           0
+(1 row)
+
+COMMIT
+### probe2-app_runtime-insert-users (esperado: ok, 1 linha)
+BEGIN
+SET
+INSERT 0 1
+ visible_probe_user 
+--------------------
+ 1
+(1 row)
+
+COMMIT
+### probe2-app_runtime-insert-rate_limits (esperado: ok)
+BEGIN
+SET
+INSERT 0 1
+DELETE 1
+COMMIT
+### probe2-journal-count (esperado: 12)
+ journal_entries 
+-----------------
+ 12
+(1 row)
+
+Pager usage is off.
+### probe3-owner-select-users (esperado: ok — owner/superuser não sofre RLS)
+ owner_visible_users 
+---------------------
+ 4
+(1 row)
+
+### probe3-policy-targets (esperado: 5 linhas, role=app_runtime, permissive=t, cmd=*)
+  table_name   |       polname       | polpermissive | cmd |    role     
+---------------+---------------------+---------------+-----+-------------
+ accounts      | auth_service_access | t             | *   | app_runtime
+ rate_limits   | auth_service_access | t             | *   | app_runtime
+ sessions      | auth_service_access | t             | *   | app_runtime
+ users         | auth_service_access | t             | *   | app_runtime
+ verifications | auth_service_access | t             | *   | app_runtime
+(5 rows)
+
+### probe3-cleanup (remove fixture do probe)
+DELETE 1
+### probe3-cleanup-verify (esperado: 0)
+ probe_users_remaining 
+-----------------------
+ 0
+(1 row)
+

@@ -153,15 +153,17 @@ jobs:
           set -euo pipefail
           export DATABASE_ADMIN_URL="$(cat "$RUNNER_TEMP/branch_direct_url")"
           node --input-type=module -e '
+            import { readFileSync } from "node:fs";
             import { Client } from "pg";
+            const expected = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8")).entries.length;
             const c = new Client({ connectionString: process.env.DATABASE_ADMIN_URL, ssl: { rejectUnauthorized: true } });
             await c.connect();
             await c.query("start transaction read only");
             const r = await c.query("select count(*)::bigint as n from drizzle.__drizzle_migrations");
             await c.query("rollback");
             await c.end();
-            console.log(JSON.stringify({ journal_count: Number(r.rows[0].n) }));
-            process.exit(Number(r.rows[0].n) === 11 ? 0 : 1);
+            console.log(JSON.stringify({ journal_count: Number(r.rows[0].n), expected }));
+            process.exit(Number(r.rows[0].n) === expected ? 0 : 1);
           '
 
   cleanup:
