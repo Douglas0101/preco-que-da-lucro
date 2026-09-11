@@ -200,6 +200,7 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     policy_count: string;
     policy_roles: string[];
     policy_cmd: string;
+    policy_permissive: boolean;
   }>(
     `select c.relname as table_name,
             c.relrowsecurity as rowsecurity,
@@ -222,7 +223,14 @@ async function assertDatabaseContract(client: Client): Promise<void> {
                 where p.polrelid = c.oid
                   and p.polname = 'auth_service_access'),
               ''
-            ) as policy_cmd
+            ) as policy_cmd,
+            coalesce(
+              (select p.polpermissive
+                 from pg_policy p
+                where p.polrelid = c.oid
+                  and p.polname = 'auth_service_access'),
+              false
+            ) as policy_permissive
        from pg_class c
        join pg_namespace n on n.oid = c.relnamespace
       where n.nspname = 'public'
@@ -237,8 +245,9 @@ async function assertDatabaseContract(client: Client): Promise<void> {
       policy_count: "1",
       policy_roles: ["app_runtime"],
       policy_cmd: "*",
+      policy_permissive: true,
     })),
-    "0011 deve deixar RLS + auth_service_access (FOR ALL → app_runtime) nas 5 tabelas de auth",
+    "0011 deve deixar RLS + auth_service_access (FOR ALL permissiva → app_runtime) nas 5 tabelas de auth",
   );
 
   const ownedObjects = await client.query<{
@@ -729,7 +738,7 @@ async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<
 }
 
 async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Client): Promise<void> {
-  // Completa a cobertura da cadeia de rollback: além de 0010→0003, aplica
+  // Completa a cobertura da cadeia de rollback: além de 0011→0003, aplica
   // 0003→0002 e o novo 0002→0001, deixando o banco no estado da migration
   // 0001 com o journal reduzido a 0000/0001 (10 arquivos aplicados = 10 linhas
   // removidas em applyDowns).
@@ -763,7 +772,7 @@ async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Clie
   const idempotentAgain = await readFile(resolve("drizzle/rollback/0002_to_0001_down.sql"), "utf8");
   await client.query(idempotentAgain);
 
-  // Replay completo 0002→0010: valida reprodutibilidade de 0002 e 0003.
+  // Replay completo 0002→0011: valida reprodutibilidade de 0002 e 0003.
   await runMigrations(adminUrl);
 
   const replayedJournal = await client.query<{ count: string }>(

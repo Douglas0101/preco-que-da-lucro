@@ -126,7 +126,7 @@ function buildPlan(ctx) {
     {
       id: "migrate",
       what: "npm run db:migrate contra DIRECT da branch com NEON_MIGRATION_TARGET_KIND=drill-branch + ALLOW_REMOTE_DB (motivo logado; emenda #2 — produção intocável)",
-      expected: `journal __drizzle_migrations = ${EXPECTED_JOURNAL_COUNT} (no-op 12/12)`,
+      expected: `journal __drizzle_migrations = ${EXPECTED_JOURNAL_COUNT} (12/12 pós-migrate)`,
       on_fail: "fail → cleanup always() → exit 1 (sem retry > 1)",
     },
     {
@@ -529,7 +529,9 @@ async function main() {
       }
       const journal = await queryJournalCount(branchUrl);
       if (journal !== EXPECTED_JOURNAL_COUNT) {
-        throw new Error(`journal ${journal} ≠ ${EXPECTED_JOURNAL_COUNT} esperado (no-op 12/12)`);
+        throw new Error(
+          `journal ${journal} ≠ ${EXPECTED_JOURNAL_COUNT} esperado (12/12 pós-migrate)`,
+        );
       }
       return { log: { journal_count: journal, kind: "drill-branch", motivo: MIGRATION_MOTIVO } };
     });

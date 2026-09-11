@@ -1,0 +1,11 @@
+a372958cd9c4f1b065a9e6a1f11979372ce244980580ae1b816771aa42a73460  .github/workflows/neon-pr-branch.yml
+6c9d62a66e40edfb53e6f1eb2be1d0195390192ab75ea17af0ac87f897138fef  drizzle/0011_auth_rls_normalization.sql
+8a21875e95a50c0a32ad7c072cf0b3935ac3dc8bc23b5f6c8aaf56127a35e35a  drizzle/rollback/0011_to_0010_down.sql
+4e4050238c0421f5031ed44154a95ffc631b73a4cc1e46b9641ada5507972863  drizzle/meta/_journal.json
+9a661043f6c5c3cf051a9f682d968315940ee57d305a86a7d24c9f0927c0c664  scripts/db/test-migrations.ts
+056f2e244617d61955ab96b95e5b9ca682c9515b6019a287578cc7de05035e9b  scripts/m02-v2b.mjs
+1b4d96355f9ad8ba04dedd7735f2cc8bce82a049151a38f051b3b122dba5d496  docs/runbooks/a4-matriz-hipoteses.md
+8c37834e99b4c00faeadf25cf9aa9f197a835b4f5c96813922beaddf2b4e8d65  docs/evidence/cp1-auth-rls-2026-09-10/report.md
+37f39c16b1c995f9a52b2a3cb640320b984be8ebe6aa9e8bb9dc79ebe301edc4  docs/evidence/cp1-auth-rls-2026-09-10/probes-local.txt
+69149bf2aa869cc2574b016392bb21629e697a4e812c593cd72e4e1153964fe2  docs/evidence/cp1-auth-rls-2026-09-10/db-test-2026-09-10.txt
+187b53b1d5dd24073176667c098279b4400c7be6c00766af47a38a7631673878  docs/evidence/vercel-prod-fix-2026-09-10.md

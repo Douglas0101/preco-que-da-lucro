@@ -22,10 +22,14 @@ qualquer role não-owner — ver `docs/evidence/verificacao-producao-2026-09-10.
 | `drizzle/0011_auth_rls_normalization.sql` | `6c9d62a66e40edfb53e6f1eb2be1d0195390192ab75ea17af0ac87f897138fef` |
 | `drizzle/rollback/0011_to_0010_down.sql`  | `8a21875e95a50c0a32ad7c072cf0b3935ac3dc8bc23b5f6c8aaf56127a35e35a` |
 | `drizzle/meta/_journal.json`              | `4e4050238c0421f5031ed44154a95ffc631b73a4cc1e46b9641ada5507972863` |
-| `scripts/db/test-migrations.ts`           | `bd4f34250e89da2fca80fcecb4c48968086b7a9cdc3a1cc229949080a5f6b175` |
-| `scripts/m02-v2b.mjs`                     | `bd29cc9f426e090e05855f175f22d085eda87fddd3eaea854f6da98b98338cb2` |
+| `scripts/db/test-migrations.ts`           | `9a661043f6c5c3cf051a9f682d968315940ee57d305a86a7d24c9f0927c0c664` |
+| `scripts/m02-v2b.mjs`                     | `056f2e244617d61955ab96b95e5b9ca682c9515b6019a287578cc7de05035e9b` |
+| `.github/workflows/neon-pr-branch.yml`    | `a372958cd9c4f1b065a9e6a1f11979372ce244980580ae1b816771aa42a73460` |
+| `docs/runbooks/a4-matriz-hipoteses.md`    | `1b4d96355f9ad8ba04dedd7735f2cc8bce82a049151a38f051b3b122dba5d496` |
 
-Registro: `sha256sums.txt`.
+Selo da rodada (inclui também esta evidência, as transcrições brutas e o fix de
+produção): `SHA256SUMS`. As transcrições `probes-local.txt` e
+`db-test-2026-09-10.txt` são saída bruta de terminal, sem edição.
 
 ## Ambiente
 
@@ -44,7 +48,7 @@ Registro: `sha256sums.txt`.
 2. Drop das 5 políticas (mantendo RLS) = estado de produção de 2026-09-10.
 3. Como `app_runtime` personificado (`set local role app_runtime`):
    - `SELECT count(*) FROM users` → **0 linhas, sem erro** (deny-all silencioso);
-   - `INSERT INTO users (...)` → **ERROR 42501 `new row violates row-level security policy`**.
+   - `INSERT INTO users (...)` → **ERROR `new row violates row-level security policy for table "users"`** (SQLSTATE 42501; o psql não ecoa o código no transcript, apenas a mensagem).
 
 Resultado: **PASS** — o drift explica o bloqueio do ciclo better-auth para
 qualquer runtime conectado como `app_runtime`.
@@ -58,7 +62,9 @@ qualquer runtime conectado como `app_runtime`.
    - `SELECT` em `users` (3 linhas visíveis), `sessions`, `accounts`,
      `verifications`, `rate_limits` → **ok**;
    - `INSERT` em `users` + `SELECT` da própria linha → **ok**;
-   - `INSERT ... ON CONFLICT` + `DELETE` em `rate_limits` → **ok**.
+   - `INSERT ... ON CONFLICT` + `DELETE` em `rate_limits` → **ok** (transcript
+     registra os efeitos `INSERT 0 1` / `DELETE 1`; o texto das sentenças não é
+     ecoado).
 3. Journal: **12 entradas** (`drizzle.__drizzle_migrations`).
 
 Resultado: **PASS** — política resolve o deny-all e é idempotente.
@@ -69,15 +75,18 @@ Resultado: **PASS** — política resolve o deny-all e é idempotente.
    `SELECT count(*) FROM users` → **ok** (RLS não se aplica ao owner).
 2. Catálogo `auth_service_access`: **5 linhas**, `polpermissive = t`,
    `polcmd = *`, role **exatamente `app_runtime`** (sem PUBLIC/roles legadas).
-3. Cleanup dos fixtures do probe verificado: **0** usuários `cp1-probe-%`.
+3. Cleanup dos fixtures do probe verificado: a query final do transcript
+   retorna `probe_users_remaining = 0`.
 
 Resultado: **PASS**.
 
 ## Cadeia canônica `db:test` (transcrição bruta: `db-test-2026-09-10.txt`)
 
-Exit code **0**, banco zerado, com os ajustes de harness desta rodada
-(`DOWNS_TIP_TO_0003` inclui `0011_to_0010_down.sql`; replay do journal espera
-12; contrato de RLS de auth assertado em `assertDatabaseContract`):
+Execução capturada pelo operador com `tee` (exit code 0 observado no shell; o
+arquivo é o stdout/stderr bruto, sem linha de exit), banco zerado, com os
+ajustes de harness desta rodada (`DOWNS_TIP_TO_0003` inclui
+`0011_to_0010_down.sql`; replay do journal espera 12; contrato de RLS de auth
+assertado em `assertDatabaseContract`):
 
 - `PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK`
   (0000→0011 do zero; upgrade a partir de 0003 com preflight da 0004;
