@@ -1,0 +1,57 @@
+{
+  "check": "m02:readiness",
+  "fail_closed": true,
+  "started_at": "2026-09-12T02:45:11.312Z",
+  "result": "PASS",
+  "checks": [
+    {
+      "id": "substrate-smoke",
+      "status": "PASS",
+      "source": "scripts/smoke/substrate-smoke.ts (DATABASE_ADMIN_URL)",
+      "detail": "exit 0; 7 checks PASS"
+    },
+    {
+      "id": "m02-matrix",
+      "status": "PASS",
+      "source": "scripts/m02-matrix.ts",
+      "detail": "exit 0"
+    },
+    {
+      "id": "m02-boundaries",
+      "status": "PASS",
+      "source": "scripts/m02-boundaries.ts",
+      "detail": "exit 0"
+    },
+    {
+      "id": "m02-state",
+      "status": "PASS",
+      "source": "scripts/m02-state-check.ts",
+      "detail": "exit 0"
+    },
+    {
+      "id": "g1-assinada",
+      "status": "PASS",
+      "source": "docs/specs/M-02/decisions/M02-D-008-G1-memo.md",
+      "detail": "bloco G1 SIGNATURE preenchido"
+    },
+    {
+      "id": "sec01-fechada",
+      "status": "PASS",
+      "source": "EXECUTION-STATE-PROGRAM.md",
+      "detail": "registro de fechamento/revogação encontrado no ledger"
+    },
+    {
+      "id": "freeze-ativo",
+      "status": "PASS",
+      "source": "EXECUTION-STATE-PROGRAM.md",
+      "detail": "declaração de freeze ativo encontrada no ledger"
+    },
+    {
+      "id": "snapshot-fresco",
+      "status": "PASS",
+      "source": ".artifacts/backup-drill/*/dump.pgc",
+      "detail": "trio válido em 2026-09-11-cutover2; idade 15.2h por created_at (mtime ignorado)"
+    }
+  ],
+  "notes": "PASS só com todos os checks PASS. INCOMPLETE (exit 2) = ambiente não produziu resultado confiável. GO/NO-GO do cutover é decisão documentada, não saída deste script."
+}

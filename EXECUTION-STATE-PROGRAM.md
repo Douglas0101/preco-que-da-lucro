@@ -103,6 +103,19 @@ Resolvidas (histórico): Q-005..Q-008 (v3), Q-011 (H-004).
   `npm run check:no-supabase-runtime`, `npm run build` e
   `npm run check:bundle` passam; não são evidência de CI, GitHub, Neon,
   produção ou publicação.
+- Registro aditivo (2026-09-11): `HEAD` = `e6da2479b7bd82b8a91fd2ab006bc9226f4c9dca`,
+  branch `develop` (parent `c2c84f64580e861de1f6b0235e1e5b770a2c54c0`). O checkout
+  efetivo passou a `develop` após os PRs #42/#43; o histórico anterior permanece
+  inalterado (sem rewrite). Evidência local: `npm ci` pelo lock do HEAD,
+  `m02:state:check` e trio de snapshot `m02:snapshot` do dia
+  (`.artifacts/backup-drill/2026-09-11-cutover2/`, read-only).
+- Atualização aditiva (2026-09-12): `HEAD` = `e7db6bfa618974c19005968458e65693a4e2caac`,
+  branch `develop` (parent `d837114991b8df4d342fe8517ac56bbc9016cb35`) — commits
+  `d837114` (fix do snapshot PGSSLMODE) e `e7db6bf` (ledger/freeze/SEC-01/matriz);
+  CI `UI stack` verde em `develop` (run 34665381651).
+- **G1 transcrito por delegação explícita do operador** (2026-09-12T02:43Z):
+  assinatura de Douglas no `M02-D-008-G1-memo.md`, opção (a) greenfield/SUNSET
+  2026-09-20; transcrição autorizada em sessão e registrada para auditoria.
 
 ## Handoff C2–C5 + Trilha B-2 — 2026-08-27
 
@@ -1302,3 +1315,29 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   **Fase D:** D1 publicada; D2 bloqueada até D0 (plano+token+MCP+domínio).
 - Paridade: DESCONHECIDA por spec até assinatura G1(a); então NÃO-APLICÁVEL.
   N-10 verbatim inalterado. Sem commit (H1 é a ponte).
+
+## Registro de operador — 2026-09-12 (cutover-window)
+
+- **SEC-01 FECHADA** (atestação do operador, registro por delegação explícita
+  autorizada em sessão): as 5 credenciais de `neon-storage.env` foram revogadas
+  no emissor; risco residual encerrado para fins do gate `sec01-fechada`.
+- **freeze ativo: deploys congelados da janela A4→B3 (exceção única: hotfix de
+  segurança), declarada 2026-09-12T02:05:00Z — M02-D-009**
+  - Janela do guard (amarração exigida pela seção 11 do runbook):
+    `NEON_MIGRATION_FREEZE_START=2026-09-12T02:05:00Z` ·
+    `NEON_MIGRATION_FREEZE_END=2026-09-12T04:05:00Z` (2h).
+  - **EXECUTADO** (2026-09-12T02:44Z): G1 transcrito por delegação explícita
+    (registro abaixo); `db:migrate` com guard `ALLOW`/`cutover-window` **exit 0**
+    — **0011 aplicada**; `m02:role-membership` exit 0 (`has_set_membership`
+    `false→true`, sem superuser/BYPASSRLS); `smoke:substrate` **7/7 PASS**
+    (`journal-count` 12/12, `journal-hashes` 12 reconciliados); `m02:readiness`
+    **PASS 8/8** pós-migração. Evidências em `docs/evidence/cutover-2026-09-12/`.
+  - **Estado:** Neon production em **12/12 migrations**; tráfego de aplicação
+    **ainda NÃO EXISTE** (deploy/homologação hPanel pendente de env vars).
+    `HEAD` = `5dae04cffd6f10ac7a42e192a6f4a81a9ca154ce`
+    Latest state marker parent = `5dae04cffd6f10ac7a42e192a6f4a81a9ca154ce`
+- **Nota operacional (2026-09-12T02:38Z):** o working tree voltou a apresentar
+  `drizzle-kit ^0.18.1` + lock reescrito após o resume da sessão, sem log npm
+  correspondente; restaurado ao HEAD + `npm ci` (0.31.10) antes deste registro.
+  Causa não determinada; conferir `grep '"drizzle-kit"' package.json` antes de
+  cada gate/commit.

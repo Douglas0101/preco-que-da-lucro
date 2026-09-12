@@ -55,7 +55,8 @@ Assinar **(a)** com SUNSET acima. Custo de (b) é certo, benefício é especulat
 
 ## G1 SIGNATURE
 
-- Nome (humano, legível): __________________________
-- Data (UTC): __________________________
-- Opção: [ ] (a) origem abandonada → greenfield com SUNSET 2026-09-20 · [ ] (b) origem existe → BLOCKER-EXT-02 + reconciliação ADR-021 §6
-- Assinatura: __________________________
+- Nome (humano, legível): Douglas
+- Data (UTC): 2026-09-12T02:43:00Z
+- Opção: [x] (a) origem abandonada → greenfield com SUNSET 2026-09-20 · [ ] (b) origem existe → BLOCKER-EXT-02 + reconciliação ADR-021 §6
+- Assinatura: Douglas
+- Nota de auditoria: assinatura transcrita por delegação explícita do operador em sessão (2026-09-12T02:43Z), com autorização registrada no ledger.
