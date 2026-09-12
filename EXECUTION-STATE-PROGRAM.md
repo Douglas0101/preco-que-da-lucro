@@ -103,6 +103,12 @@ Resolvidas (histórico): Q-005..Q-008 (v3), Q-011 (H-004).
   `npm run check:no-supabase-runtime`, `npm run build` e
   `npm run check:bundle` passam; não são evidência de CI, GitHub, Neon,
   produção ou publicação.
+- Registro aditivo (2026-09-11): `HEAD` = `e6da2479b7bd82b8a91fd2ab006bc9226f4c9dca`,
+  branch `develop` (parent `c2c84f64580e861de1f6b0235e1e5b770a2c54c0`). O checkout
+  efetivo passou a `develop` após os PRs #42/#43; o histórico anterior permanece
+  inalterado (sem rewrite). Evidência local: `npm ci` pelo lock do HEAD,
+  `m02:state:check` e trio de snapshot `m02:snapshot` do dia
+  (`.artifacts/backup-drill/2026-09-11-cutover2/`, read-only).
 
 ## Handoff C2–C5 + Trilha B-2 — 2026-08-27
 
@@ -1302,3 +1308,17 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   **Fase D:** D1 publicada; D2 bloqueada até D0 (plano+token+MCP+domínio).
 - Paridade: DESCONHECIDA por spec até assinatura G1(a); então NÃO-APLICÁVEL.
   N-10 verbatim inalterado. Sem commit (H1 é a ponte).
+
+## Registro de operador — 2026-09-12 (cutover-window)
+
+- **SEC-01 FECHADA** (atestação do operador, registro por delegação explícita
+  autorizada em sessão): as 5 credenciais de `neon-storage.env` foram revogadas
+  no emissor; risco residual encerrado para fins do gate `sec01-fechada`.
+- **freeze ativo: deploys congelados da janela A4→B3 (exceção única: hotfix de
+  segurança), declarada 2026-09-12T02:05:00Z — M02-D-009**
+  - Janela do guard (amarração exigida pela seção 11 do runbook):
+    `NEON_MIGRATION_FREEZE_START=2026-09-12T02:05:00Z` ·
+    `NEON_MIGRATION_FREEZE_END=2026-09-12T04:05:00Z` (2h).
+  - Pendente para GO: assinatura G1 em
+    `docs/specs/M-02/decisions/M02-D-008-G1-memo.md` pelo operador e decisão
+    documentada sobre o check `substrate-smoke` pré-migração (11/12).
