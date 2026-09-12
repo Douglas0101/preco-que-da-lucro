@@ -1364,4 +1364,21 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   `docs/evidence/subagents/*-2026-09-12.md`.
 - **Consolidação:** `docs/evidence/F-CONS-consolidacao-2026-09-12.md`; G-VER-v2 pronto
   para assinatura (H-3); fila humana H-1..H-5 instrumentada; dia-D sem data.
-  Latest state marker parent = `c080586c9dda2cbbe57e742447fc778c4a3128ca`
+- **F-HP (parcial, 2026-09-12 04:2x–04:5xZ):** Web App Node **PREVIEW criado**
+  (`darkgray-pony-545965.hostingersite.com`) com preset Nitro, branch `main`, Node 24.x,
+  root `./`, build padrão Nitro e **11 env vars** (CP-G2 CLEAN pelo S-SEC; valor de
+  `DATABASE_URL` mascarado no painel — evidência do item 11). 1º build **FAIL —
+  `EBADENGINE`**: Node do alvo `v24.6.0` < `>=24.15.0` exigido pelo `engines` (item 1 do
+  runbook; evidência `docs/evidence/hpanel-homologacao-2026-09-12/01-node-version.md`).
+  Workaround documentado pendente de sessão: `NPM_CONFIG_ENGINE_STRICT=false` (env não-secreta).
+- **F-HP LIMITE DE SESSÃO (H-6):** após a rajada de navegações, o Cloudflare passou a
+  desafiar o contexto automatizado (headed + 45s não resolveram; cookies válidos até
+  15/09) — sem contorno de autenticação. Detector `h6-watch.sh` armado; retomada
+  automática quando o dono renovar a sessão no Firefox. Detalhe em
+  `docs/evidence/hpanel-homologacao-2026-09-12/SESSION-LIMIT.md`.
+- **F-VER (token):** criação de token pela UI iniciada; o formulário exige scope+expiração
+  e o combobox customizado resistiu ao clique automatizado — pendente de nova rodada
+  (não bloqueia o dia-D).
+- **F-NEON:** trio fresco pós-cutover `.artifacts/backup-drill/2026-09-12-fresco/`
+  (`sha256 352f9ff4…`).
+  Latest state marker parent = `8e3f5d2f8eab86e02dd7a18e5a1ff1b8b94de2bf`
