@@ -1,0 +1,80 @@
+
+> smoke:substrate
+> tsx scripts/smoke/substrate-smoke.ts
+
+(node:22131) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "check": "smoke:substrate",
+  "read_only": true,
+  "started_at": "2026-09-12T02:44:45.091Z",
+  "finished_at": "2026-09-12T02:44:47.216Z",
+  "result": "PASS",
+  "results": [
+    {
+      "id": "postgres-major",
+      "status": "PASS",
+      "detail": {
+        "expected": "17",
+        "actual": "170011"
+      }
+    },
+    {
+      "id": "journal-count",
+      "status": "PASS",
+      "detail": {
+        "expected": 12,
+        "actual": 12
+      }
+    },
+    {
+      "id": "journal-hashes",
+      "status": "PASS",
+      "detail": {
+        "reconciled": 12,
+        "mismatches": []
+      }
+    },
+    {
+      "id": "app-runtime-role",
+      "status": "PASS",
+      "detail": {
+        "rolname": "app_runtime",
+        "rolsuper": false,
+        "rolbypassrls": false
+      }
+    },
+    {
+      "id": "tenant-tables-rls",
+      "status": "PASS",
+      "detail": {
+        "checked": 20,
+        "failures": []
+      }
+    },
+    {
+      "id": "accounts-issuer-null",
+      "status": "PASS",
+      "detail": {
+        "detail": "issuer IS NULL quebra sign-in com better-auth 1.7.x",
+        "issuer_counts": []
+      }
+    },
+    {
+      "id": "production-fixture-free",
+      "status": "PASS",
+      "detail": {
+        "detail": "marcadores DB-01: users @preco-que-da.test e tenants slug tenant-e2e",
+        "fixture_users": 0,
+        "fixture_tenants": 0
+      }
+    }
+  ]
+}

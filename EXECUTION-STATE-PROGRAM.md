@@ -109,6 +109,13 @@ Resolvidas (histórico): Q-005..Q-008 (v3), Q-011 (H-004).
   inalterado (sem rewrite). Evidência local: `npm ci` pelo lock do HEAD,
   `m02:state:check` e trio de snapshot `m02:snapshot` do dia
   (`.artifacts/backup-drill/2026-09-11-cutover2/`, read-only).
+- Atualização aditiva (2026-09-12): `HEAD` = `e7db6bfa618974c19005968458e65693a4e2caac`,
+  branch `develop` (parent `d837114991b8df4d342fe8517ac56bbc9016cb35`) — commits
+  `d837114` (fix do snapshot PGSSLMODE) e `e7db6bf` (ledger/freeze/SEC-01/matriz);
+  CI `UI stack` verde em `develop` (run 34665381651).
+- **G1 transcrito por delegação explícita do operador** (2026-09-12T02:43Z):
+  assinatura de Douglas no `M02-D-008-G1-memo.md`, opção (a) greenfield/SUNSET
+  2026-09-20; transcrição autorizada em sessão e registrada para auditoria.
 
 ## Handoff C2–C5 + Trilha B-2 — 2026-08-27
 
@@ -1319,6 +1326,12 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   - Janela do guard (amarração exigida pela seção 11 do runbook):
     `NEON_MIGRATION_FREEZE_START=2026-09-12T02:05:00Z` ·
     `NEON_MIGRATION_FREEZE_END=2026-09-12T04:05:00Z` (2h).
-  - Pendente para GO: assinatura G1 em
-    `docs/specs/M-02/decisions/M02-D-008-G1-memo.md` pelo operador e decisão
-    documentada sobre o check `substrate-smoke` pré-migração (11/12).
+  - **EXECUTADO** (2026-09-12T02:44Z): G1 transcrito por delegação explícita
+    (registro abaixo); `db:migrate` com guard `ALLOW`/`cutover-window` **exit 0**
+    — **0011 aplicada**; `m02:role-membership` exit 0 (`has_set_membership`
+    `false→true`, sem superuser/BYPASSRLS); `smoke:substrate` **7/7 PASS**
+    (`journal-count` 12/12, `journal-hashes` 12 reconciliados); `m02:readiness`
+    **PASS 8/8** pós-migração. Evidências em `docs/evidence/cutover-2026-09-12/`.
+  - **Estado:** Neon production em **12/12 migrations**; tráfego de aplicação
+    **ainda NÃO EXISTE** (deploy/homologação hPanel pendente de env vars).
+- `Latest state marker parent = `e7db6bfa618974c19005968458e65693a4e2caac``
