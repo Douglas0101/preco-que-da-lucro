@@ -19,7 +19,7 @@
 
 ## Local quality gate (definition of done)
 
-- Before pushing, run `npm run check` and keep it green. It chains `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
+- Before pushing, run `npm run check` and keep it green. It chains `m02:lockfile-guard`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
 - The CI `verify` job (`.github/workflows/ui-stack.yml`) runs those same gates plus `db:test`, `db:check`, `npm audit --audit-level=high`, and Playwright e2e on chromium/firefox/webkit. A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
 - Never claim work is done with a red gate, and never delete, skip, or loosen a test, lint rule, or budget to force a green.
 
