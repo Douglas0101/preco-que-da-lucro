@@ -4,13 +4,17 @@
 - **Bloqueio:** após uma rajada de navegações automatizadas, o hPanel passou a redirecionar para `auth.hostinger.com/login` com **challenge Cloudflare** ("Executando verificação de segurança"), inclusive em modo **headed** e com espera de 45s. Os cookies do dono **não expiraram** (`jwt` válido até 2026-09-15 00:43), então o bloqueio é anti-bot, não de credencial.
 - **Decisão (mandato):** canal negado pelo sistema = **limite declarado**, nunca contorno agressivo. Não houve tentativa de burlar o challenge.
 
-## Ação humana mínima — H-6
+- **Observação (2026-09-12T09:08Z):** após ~4h de cooldown, **uma** sondagem headed carregou a home autenticada; a navegação seguinte (novo contexto de automação) foi desafiada de novo. O bloqueio é **intermitente** e dirigido à automação (não à credencial). Estratégia adotada: **parar de insistir**.
 
-1. Abrir o **Firefox do dono** (perfil já usado pelo helper) e acessar <https://hpanel.hostinger.com/>.
-2. Se aparecer a verificação de segurança, aguardar/confirmar até a home carregar ("Olá, Elaine").
-3. Isso renova `__cf_bm`/sessão no perfil; o **watcher H-6** detecta e retoma sozinho.
+## Ação humana — H-6 (caminho mais rápido, ~2 min, no seu Firefox)
 
-**Detector:** `~/.local/share/pi-fronts/hpanel/h6-watch.sh` (bg task) — aguarda `__cf_bm` fresco no perfil e, então, faz **uma** sondagem headed; ao carregar a home autenticada, escreve `H6-ready.txt` e encerra (notificação automática).
+1. Abrir <https://hpanel.hostinger.com/websites/darkgray-pony-545965.hostingersite.com> no **Firefox do dono**.
+2. **Variáveis de ambiente** → **Adicionar variável de ambiente** → chave `NPM_CONFIG_ENGINE_STRICT`, valor `false` → salvar (o salvar já redispara o deploy).
+3. **Implantações** → **Reimplantar** (acompanhar o build).
+4. Ainda em **Variáveis de ambiente**, adicionar `BETTER_AUTH_URL` = `https://darkgray-pony-545965.hostingersite.com` e `AUTH_TRUSTED_ORIGINS` = o mesmo valor → salvar (novo redeploy).
+5. Me avisar — eu retomo a verificação **11/12** e capturo as evidências por item.
+
+**Detector:** `h6-watch.sh` **v3** (bg task rastreada) — sinal forte = **mudança do hash do `jwt`** no perfil (seu re-login); então faz **uma** sondagem headed. Zero sondagem especulativa.
 
 ## Retomada prevista (após H-6)
 
