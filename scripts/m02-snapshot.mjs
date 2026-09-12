@@ -139,7 +139,7 @@ function buildTrioMetadata(input) {
 function runInContainer(command, args, env) {
   const result = spawnSync(
     "/usr/bin/docker",
-    ["exec", "-i", "-e", "PGPASSWORD", CONTAINER, command, ...args],
+    ["exec", "-i", "-e", "PGPASSWORD", "-e", "PGSSLMODE", CONTAINER, command, ...args],
     {
       encoding: "utf8",
       env: { ...process.env, ...env },
@@ -324,11 +324,10 @@ function captureSnapshot(context) {
     database,
     "--username",
     user,
-    "--sslmode",
-    sslmode,
   ];
   const connectionEnv = {
     PGPASSWORD: url.password ? decodeURIComponent(url.password) : "",
+    PGSSLMODE: sslmode,
   };
   try {
     const dump = runInContainer(
