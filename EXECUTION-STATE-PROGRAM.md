@@ -1334,4 +1334,10 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
     **PASS 8/8** pós-migração. Evidências em `docs/evidence/cutover-2026-09-12/`.
   - **Estado:** Neon production em **12/12 migrations**; tráfego de aplicação
     **ainda NÃO EXISTE** (deploy/homologação hPanel pendente de env vars).
-- `Latest state marker parent = `e7db6bfa618974c19005968458e65693a4e2caac``
+    `HEAD` = `5dae04cffd6f10ac7a42e192a6f4a81a9ca154ce`
+    Latest state marker parent = `5dae04cffd6f10ac7a42e192a6f4a81a9ca154ce`
+- **Nota operacional (2026-09-12T02:38Z):** o working tree voltou a apresentar
+  `drizzle-kit ^0.18.1` + lock reescrito após o resume da sessão, sem log npm
+  correspondente; restaurado ao HEAD + `npm ci` (0.31.10) antes deste registro.
+  Causa não determinada; conferir `grep '"drizzle-kit"' package.json` antes de
+  cada gate/commit.
