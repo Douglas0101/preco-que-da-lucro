@@ -1341,3 +1341,27 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   correspondente; restaurado ao HEAD + `npm ci` (0.31.10) antes deste registro.
   Causa não determinada; conferir `grep '"drizzle-kit"' package.json` antes de
   cada gate/commit.
+
+## Rodada de produção — 2026-09-12 (F-GIT/F-VER/F-HP/F-NEON/F-REPO/F-CONS)
+
+- **CP-G1 executado:** PR develop→main mergeado em 2026-09-12T03:15:40Z após checks
+  verdes; **`main` = `ef2110e7315e568348d083c944ea6cc65778f646`** (SHA final do dia-D);
+  CI verde nos 3 pushes da rodada (`34665381651`, `34668574247`, `34668707268`).
+- **F-NEON:** 12/12 migrations; smoke 7/7; readiness 8/8; trio pós-cutover em
+  `.artifacts/backup-drill/2026-09-12-pos-cutover/` (sha256 `a8d35646…`); snapshot
+  nativo `snap-tiny-smoke-ayc382ji` válido até 2026-10-10.
+- **F-VER (interino):** alias público `preco-que-da-lucro-sage.vercel.app` verde
+  (live/ready/get-session 200, 03:07–03:08Z); alias canônico 404 DEPLOYMENT_NOT_FOUND;
+  deployment medido sob SSO; inventário dependente de token (H-2).
+- **F-HP:** DOCMAP parcial (3 páginas oficiais: itens 1, 2, 11 e parcial 6) + GAP-DOC
+  material (Hostinger não tem rollback por commit); Web App n/12 aguardando
+  `~/.config/hpanel-secrets.env` (H-1, watcher armado).
+- **F-REPO:** dois episódios de drift `drizzle-kit ^0.18.1` (02:38:55Z e 02:58:54Z);
+  causa não estabelecida — LIMITE DECLARADO (dono: Douglas); guard `m02:lockfile-guard`
+  proposto (não wired); working tree restaurado ao HEAD + `npm ci` (0.31.10).
+- **Supervisão:** S-SEC CLEAN; S-TEC OK com notas (1 P1 de janela PITR corrigido no memo);
+  S-ALIN DESVIO parcial (2 P1 corrigidos). Artefatos em
+  `docs/evidence/subagents/*-2026-09-12.md`.
+- **Consolidação:** `docs/evidence/F-CONS-consolidacao-2026-09-12.md`; G-VER-v2 pronto
+  para assinatura (H-3); fila humana H-1..H-5 instrumentada; dia-D sem data.
+  Latest state marker parent = `c080586c9dda2cbbe57e742447fc778c4a3128ca`

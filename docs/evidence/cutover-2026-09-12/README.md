@@ -46,6 +46,6 @@ Saída do runner: `Migrations PostgreSQL aplicadas com sucesso.` (exit 0, ~30 s)
 
 ## Pendências na trilha de produção
 
-1. **hPanel**: criar o Node Web App (preview), preencher env vars (aguarda `/tmp/hpanel-secrets.env`), executar 11/11 e só então domínio/SSL.
+1. **hPanel**: criar o Node Web App (preview), preencher env vars (aguarda `~/.config/hpanel-secrets.env`; watcher H-1 armado), executar 11/11 e só então domínio/SSL.
 2. **A5**: carimbos `deployed_at`/`smoke_passed_at` e vigilância 0h/24h/72h após o deploy.
 3. Reconciliação T+ (production × legacy): credenciais legacy desconhecidas — dono humano (D2 fechado por custódia).
