@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "schema_validation": "No schema path supplied for this round",
+  "round": "PENDENTES-CLOSE",
+  "observed_at_utc": "2026-09-07T03:09:16Z",
+  "outcome": "STOP-TRIGGER",
+  "identity": {
+    "root": "/home/douglas-souza/preco-que-d-main",
+    "branch": "develop",
+    "head": "8d26a2c954172a4fee8ecfc9fad1d7fbab8a117f",
+    "stack_mode": "uncommitted"
+  },
+  "stop": {
+    "id": "Q0-SUMS-CUTOVER-UNLABELLED",
+    "source": "/home/douglas-souza/.codex/attachments/fa6f4c2c-9cbf-408f-bb20-0858b108722d/pasted-text.txt:138",
+    "rule": "m02:sums vermelho não-rotulado em bundle não-gsec",
+    "interpretation": "Applied to the equivalent mandatory Q0 sha256sum -c check, before m02:sums implementation",
+    "triggered_before_source_edits": true
+  },
+  "checksum_checks": [
+    {
+      "bundle": "cutover-2026-09-07",
+      "total": 18,
+      "passed": 15,
+      "failed": 3,
+      "individual_exit_code": null,
+      "classification": "STOP-TRIGGER",
+      "failures": [
+        {
+          "path": "docs/runbooks/cutover-A4.md",
+          "expected_sha256": "252f9c7eb846e95b2b11dd27c273c7054d722f67ae9bb79354b48ef3714cb38c",
+          "actual_sha256": "f547aeec849d9dd4cbff6a877546a9248441abae3fee9485a85b47ae7532c916"
+        },
+        {
+          "path": "scripts/env-guard.mjs",
+          "expected_sha256": "625b6bed9654b75923068df1d90e8714f3e585d959c0aa08714868128114acb1",
+          "actual_sha256": "808b4a5b0501dfb44a9cf3b3721e51c9ed95ac87fb0e4091bcf469c39d5121f5"
+        },
+        {
+          "path": "docs/specs/M-02/emenda-2026-09-07-env-guard.md",
+          "expected_sha256": "7772dd8a28128737a79b4354a62a1d34f4cddf1a95003c0e0e098f72894fee4e",
+          "actual_sha256": "0ed014d128a6b03c55ce1f2fcaf55712a8e113eea8381d2af38acce252393267"
+        }
+      ]
+    },
+    {
+      "bundle": "cutover-prep-2026-09-07",
+      "total": 25,
+      "passed": 25,
+      "failed": 0,
+      "individual_exit_code": null,
+      "classification": "LOCAL-VERIFIED",
+      "failures": []
+    },
+    {
+      "bundle": "gsec-2026-09-06",
+      "total": 14,
+      "passed": 12,
+      "failed": 2,
+      "individual_exit_code": 1,
+      "classification": "EXPECTED-RED-UNTIL-V0",
+      "failures": [
+        {
+          "path": "scripts/env-guard.mjs",
+          "expected_sha256": "7f3247f2ba8bbdc16f9ff47fb152a579f5961ae3c8b3209e61d17073d7d9c062",
+          "actual_sha256": "808b4a5b0501dfb44a9cf3b3721e51c9ed95ac87fb0e4091bcf469c39d5121f5"
+        },
+        {
+          "path": "docs/specs/M-02/emenda-2026-09-07-env-guard.md",
+          "expected_sha256": "efc0d47ada34fbf990ea3896c22445592f59e09082ca5dab4d834d6af1003acf",
+          "actual_sha256": "0ed014d128a6b03c55ce1f2fcaf55712a8e113eea8381d2af38acce252393267"
+        }
+      ]
+    }
+  ],
+  "provenance_assessment": {
+    "classification": "INFERENCE",
+    "source": "docs/evidence/cutover-prep-2026-09-07/manifest-5.md:12",
+    "statement": "Manifest 5 documents PREP changes to the same three paths; plausible checksum drift explanation, without byte-level historical equivalence or exception expansion"
+  },
+  "neon": {
+    "classification": "REMOTE-VERIFIED-METADATA",
+    "source": "mcp__codex_apps__neon_list_branches",
+    "project_id": "damp-forest-57346541",
+    "branches": [
+      { "name": "production", "id": "br-snowy-violet-aymcvvvv", "current_state": "ready" },
+      { "name": "develop", "id": "br-small-hill-aymcu14y", "current_state": "archived" }
+    ],
+    "ephemeral_branches_observed": 0,
+    "branch_audit_script_implemented": false,
+    "database_queries_executed": 0
+  },
+  "github": {
+    "classification": "REMOTE-VERIFIED-LIMITED",
+    "source": "mcp__codex_apps__github_search_branches",
+    "repository": "Douglas0101/preco-que-da-lucro",
+    "observed_branch": "develop",
+    "remote_tip_sha": null,
+    "ci_current_head": "UNVERIFIED"
+  },
+  "readiness": {
+    "current": "NOT-RUN-AFTER-STOP",
+    "historical_nonpass_set": [
+      "m02-state",
+      "g1-assinada",
+      "sec01-fechada",
+      "freeze-ativo",
+      "snapshot-fresco"
+    ],
+    "historical_source": "docs/evidence/cutover-prep-2026-09-07/report.md:25"
+  },
+  "phases": {
+    "Q0": "PARTIAL-STOP",
+    "Q1": "BLOCKED-BY-STOP",
+    "Q2": "NOT-CONCLUDED",
+    "Q3": "METADATA-ONLY-NO-IMPLEMENTATION",
+    "Q4": "BLOCKED-BY-STOP",
+    "Q5": "REQUESTED-QUEUE-REPORTED-NO-RUNBOOK",
+    "Q6": "STOP-REPORT-ONLY-NO-SEALED-SCAN"
+  },
+  "legacy_neon_parity": "DESCONHECIDA",
+  "collection_limitation": {
+    "operation": "Auxiliary Node collector spawning sha256sum -c",
+    "result": "EPERM",
+    "exit_code": 1,
+    "completed_checksum_checks": 0,
+    "workaround_attempted": false,
+    "valid_prior_output": "artifacts/q0-checks-observed.txt",
+    "error_artifact": "artifacts/collector-error.txt"
+  },
+  "invariants": {
+    "agent_commits": 0,
+    "staging_operations": 0,
+    "source_files_edited": 0,
+    "existing_checksums_regenerated": 0,
+    "production_writes": 0,
+    "neon_mutations": 0,
+    "browser_actions": 0,
+    "scans_started": 0,
+    "tests_executed": 0
+  },
+  "write_set": ["docs/evidence/pendentes-2026-09-07/"],
+  "resume_requires": "Explicit triage and decision on the three cutover checksum mismatches; clarify the auxiliary collector EPERM before new subprocess collection; then resume Q0 and Q1–Q6"
+}

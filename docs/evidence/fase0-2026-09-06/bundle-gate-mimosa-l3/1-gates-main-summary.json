@@ -1,0 +1,83 @@
+{
+  "gerado_em": "2026-09-06T18:36:42.687Z",
+  "worktree": "/tmp/pqd-main-wt",
+  "commit": "ac2e8341bc416d0834a3fa22355416ba63b1d98e",
+  "node": "v24.15.0",
+  "npm": "11.14.1",
+  "postgres_local": "postgres:17-alpine (container preco-que-da-lucro-postgres, ja em execucao, reutilizado sem modificacao)",
+  "env_teste": "somente 127.0.0.1:5432/preco_que_da_lucro_test (user postgres), DATABASE_DRIVER=node-postgres; nenhum host *.neon.tech",
+  "gates": [
+    {
+      "gate": "check:ui-stack",
+      "status": "PASS",
+      "duracao_s": 0.139,
+      "notas": "shadcn/Base UI boundary e catalogo limpos"
+    },
+    {
+      "gate": "check:no-supabase-runtime",
+      "status": "PASS",
+      "duracao_s": 0.128,
+      "notas": "runtime sem Supabase e sem token em Web Storage"
+    },
+    {
+      "gate": "format:check",
+      "status": "PASS",
+      "duracao_s": 6.372,
+      "notas": "prettier OK em todos os arquivos"
+    },
+    {
+      "gate": "lint",
+      "status": "PASS",
+      "duracao_s": 6.244,
+      "notas": "eslint sem erros"
+    },
+    {
+      "gate": "typecheck",
+      "status": "PASS",
+      "duracao_s": 7.682,
+      "notas": "tsc --noEmit sem erros"
+    },
+    {
+      "gate": "test",
+      "status": "PASS",
+      "duracao_s": 22.921,
+      "notas": "vitest 37 arquivos / 368 testes pass / 0 fail / 0 skip"
+    },
+    {
+      "gate": "build",
+      "status": "PASS",
+      "duracao_s": 4.825,
+      "notas": "vite+nitro build OK sem warnings nao registrados (allowlist WARN-NITRO-001 expirado 2026-09-01 nao chegou a ser acionado)"
+    },
+    {
+      "gate": "check:bundle",
+      "status": "PASS",
+      "duracao_s": 0.807,
+      "notas": "272793 minified / 84888 gzip bytes; initial graph 468038 minified"
+    },
+    {
+      "gate": "m02:matrix:check",
+      "status": "PASS",
+      "duracao_s": 1.117,
+      "notas": "matriz M-02 deterministica e atualizada"
+    },
+    {
+      "gate": "m02:boundaries",
+      "status": "PASS",
+      "duracao_s": 0.25,
+      "notas": "NAO reproduziu o FAIL esperado de 26 ocorrencias (2026-09-05): boundary clean em ac2e834, 0 ocorrencias"
+    },
+    {
+      "gate": "m02:state:check",
+      "status": "FAIL",
+      "duracao_s": 0.276,
+      "notas": "Ledger EXECUTION-STATE-PROGRAM.md sem marker para HEAD ac2e8341bc416d0834a3fa22355416ba63b1d98e nem parent f220f190729ad880b63a00b566df0ad02c2f9046; markers existentes sao de commits antigos (HEAD a4e6fb1/154efcd; Latest parent dbdde7ad/b735b79). Nao corrigido (rodada investigativa)"
+    },
+    {
+      "gate": "m02:secrets-audit",
+      "status": "PASS",
+      "duracao_s": 0.704,
+      "notas": "result COMPLETE_WITH_LIMITS; 28 entries todas consumer; JSON salvo em secrets-audit.json. Delta vs baseline: 0 chaves novas/removidas em codigo; 11 entradas do baseline (8 orphan-candidate + 3 docs-only) vinham do .env local gitignored ausente no worktree; DATABASE_ADMIN_URL ganhou consumer scripts/db/purge-fixtures.ts"
+    }
+  ]
+}

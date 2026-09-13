@@ -1,0 +1,86 @@
+{
+  "rodada": "G-SEC-EXEC (E0–E4)",
+  "data": "2026-09-07",
+  "tipo": "execucao-opcao-a + preparo-opcao-b",
+  "gatilho": "brief G-SEC-EXEC: executar (b) via manifests (humano) + iniciar (a) (agente)",
+  "E0": {
+    "integridade": "SHA256SUMS da rodada anterior tinha paths externos relativos à raiz (defeito de autoria); corrigidos gsec+fase0; verificação 11/11 + 15/15 SUCESSO",
+    "write_probe": "OK (criar/remover .writeprobe)",
+    "pendente_humano": [
+      "E0.2 assinatura memo-G-SEC.md",
+      "E1 commits Manifests 1+2 + ledger (Manifest 3 agora também humano)"
+    ]
+  },
+  "E2": {
+    "baseline_scan": {
+      "scanId": "scan-2026-09-06T21-51-06.949Z-ad4283adaaa3",
+      "seal": "sha256:5d68bb46b87c27ce1820567df034d8e32bb7296f94e3c2631abd58da6786d419",
+      "findings": 11
+    },
+    "fixes": {
+      "E2.2_env_guard": "scripts/env-guard.mjs (selftest 7/7, deny exit 3 fail-closed, pre* normalizado, db:migrate imune a override) + wiring package.json (provado: npm run test com URL remota → DENY antes da suite) + emenda docs/specs/M-02/emenda-2026-09-07-env-guard.md",
+      "E2.3_ssrf_guard": "src/lib/ai-endpoint.server.ts (https público; IP/loopback/RFC1918/link-local negados; bypass hex/octal cobertos) + callModel integrado (URL tipada) + src/test/ai-endpoint.server.test.ts 7/7; overlay transient-bff-chat-self mantido (cai na M02-3)",
+      "E2.4_ssl": "substrate-smoke.ts:32 e purge-fixtures.ts:162 → rejectUnauthorized:true (zero ocorrências restantes)",
+      "E2.5_pool": "max: DATABASE_POOL_MAX ?? 10 nos dois pools (client.server.ts)",
+      "warn_nitro": "build.mjs expiresOn 2026-10-06 + recheckedAt 2026-09-07",
+      "cosmeticos_zero_finding": "auth-policy.test.ts (constantes join), auth.tsx (PASSWORD_AUTOCOMPLETE), forensic_validate.py (alias _yaml_load_safe — SCHEMA_PASS)"
+    },
+    "loop_scan": [
+      {
+        "iteracao": "baseline",
+        "scanId": "scan-2026-09-06T21-51-06.949Z-ad4283adaaa3",
+        "findings": 11
+      },
+      {
+        "iteracao": 1,
+        "scanId": "scan-2026-09-06T22-16-47.203Z-537d14a85316",
+        "seal": "sha256:3e448b980e309467085d53f3025fbf581bc14532a542ad40fa33e3760c250921",
+        "findings": 10,
+        "delta": "auth.tsx:223 limpo"
+      },
+      {
+        "iteracao": 2,
+        "scanId": "scan-2026-09-06T22-19-15.722Z-9a46d46b17d4",
+        "seal": "sha256:d66b74053e87987fd0977a94b0b1694b432f1127cc805ac6028cf5bf80b8755f",
+        "findings": 9,
+        "delta": "forensic_validate.py:154 limpo",
+        "floor": "9 restantes = by-design triados (chat ×4 taint-by-config, request-context, migrate, explain-evidence, backup-verify ×2); zero exigiria contorção fora da spec"
+      }
+    ],
+    "nova_classe_finding": false
+  },
+  "E3": {
+    "gates": {
+      "m02:matrix:check": "PASS (após regeneração — drift legítimo do import novo)",
+      "m02:boundaries": "PASS",
+      "m02:state:check": "FAIL (esperado — loop ledger↔commit; conserta no E1)",
+      "m02:secrets-audit": "COMPLETE_WITH_LIMITS",
+      "m02:readiness": "INCOMPLETE exit 2 (honesto)",
+      "typecheck_vitest_unit": "verdes"
+    },
+    "manifest_3_tentativa_agente": {
+      "resultado": "NEGADO pelo gate L3",
+      "gate_inline_antes": 12,
+      "gate_inline_depois": "9 (8 high + 1 medium) — fixes de testes ×2 e auth.tsx reconhecidos",
+      "fallback": "Manifest 3 executado pelo HUMANO junto ao E1 (bind agente-only provado)",
+      "commit_pousado": false,
+      "stage": "desfeito (git reset)"
+    },
+    "keep_warm_B3": {
+      "ttff_frio_producao_ms": [1683.6, 2135.6, 2214.8],
+      "auto_suspend_s": "304–316 (3 ciclos)",
+      "max_connections": 901,
+      "server_version": "17.11 (32e7196)",
+      "decisao": "(i) aceitar no A4/A5; revisar na B3 com usuários reais",
+      "evidencia": "artifacts/keepwarm/ (+ /tmp/keepwarm-b3/)"
+    }
+  },
+  "conformidade": {
+    "commits": 0,
+    "escritas_producao": 0,
+    "branches_criadas": 0,
+    "producao_deixada_como_encontrada": true,
+    "diff_src": "somente fixes spec-rastreados E2 (ai-endpoint.server.ts novo, chat.functions, client.server, auth.tsx, auth-policy.test, ai-endpoint test)",
+    "segredos": "nenhum valor emitido; probes com URIs mascaradas; leak-scan 0 hits"
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "recorded_at": "2026-09-07T15:55:08.433Z",
+  "head": "8d26a2c954172a4fee8ecfc9fad1d7fbab8a117f",
+  "purpose": "Source hashes for review; not a PS seal and not a SHA256SUMS replacement",
+  "sources": [
+    {
+      "path": ".gitignore",
+      "bytes": 808,
+      "sha256": "685606b1e6d3cd1977cbe9f27b6b9b0d2593c9514a0c229831138d8a236fa174"
+    },
+    {
+      "path": "/home/douglas-souza/.codex/attachments/9eecd5d5-6a31-4ee4-824f-e84fb510643e/pasted-text.txt",
+      "bytes": 10175,
+      "sha256": "ceccf87cef715f3456afdfbe16f92660949bbac660959298846b7ea8d7b7c0c8"
+    },
+    {
+      "path": "EXECUTION-STATE-PROGRAM.md",
+      "bytes": 107508,
+      "sha256": "24981320ae2a40bcd21cb672a67672f47fcd09c7c786958004c1d428a4748bf7"
+    },
+    {
+      "path": "docs/evidence/checagens-pos-publicacao-2026-09-05/SHA256SUMS",
+      "bytes": 484,
+      "sha256": "41aca569c02b1b243fd9387b040d23f51c9b68861f7f7b12bcce8793d561784c"
+    },
+    {
+      "path": "docs/evidence/cutover-2026-09-07/SHA256SUMS",
+      "bytes": 2228,
+      "sha256": "563a1d59cf8bddda2f57e75e3f1c5c206b84c8c99beb8629f5a51bf6e68ff5cd"
+    },
+    {
+      "path": "docs/evidence/cutover-prep-2026-09-07/SHA256SUMS",
+      "bytes": 3452,
+      "sha256": "541cee6c1bd2b22f6db9feea7ccd57a5d25f3c3681e16f5f41f8756ebed1a80d"
+    },
+    {
+      "path": "docs/evidence/fase0-2026-09-06/SHA256SUMS",
+      "bytes": 3403,
+      "sha256": "20587bc20a8d09281d6bebb67586c09b33ea8e0548a8da7d692b9a975b2532e1"
+    },
+    {
+      "path": "docs/evidence/gsec-2026-09-06/SHA256SUMS",
+      "bytes": 2358,
+      "sha256": "f702e692e79b28a2ce9345091af68d2ca36a22af4f93b43d7201a6108472655b"
+    },
+    {
+      "path": "docs/evidence/pendentes-2026-09-07/SHA256SUMS",
+      "bytes": 1119,
+      "sha256": "7b303b6dd4b8d0faf02b923fe5ce44e08109c68c960aa6c531e2ee1718d0e422"
+    },
+    {
+      "path": "docs/evidence/sdd-continuacao-2026-09-07/01-op-c-01-reescrito.md",
+      "bytes": 3394,
+      "sha256": "a5faa7fe6b36a4dcef653df88d1f22bc8a3ff80da4d48f7077959bda578f90e9"
+    },
+    {
+      "path": "docs/evidence/sdd-continuacao-2026-09-07/02-decisoes-dp1-dp6.md",
+      "bytes": 2114,
+      "sha256": "9442138843fa8552301f9c2cbb5aabcca32c38f021ce71a9e45204671c7a3620"
+    },
+    {
+      "path": "docs/evidence/sdd-continuacao-2026-09-07/03-emenda-05-split-draft.md",
+      "bytes": 2351,
+      "sha256": "761e47e33ad286b8a7dc7c0483df22cdfb381ea90767af91b58914bf13c3e879"
+    },
+    {
+      "path": "docs/evidence/sdd-continuacao-2026-09-07/SHA256SUMS",
+      "bytes": 1048,
+      "sha256": "95f3d4bda65f6efd3627968f8187d6b71381e6015ad1ade2c345c2b131507f1e"
+    },
+    {
+      "path": "docs/runbooks/a4-matriz-hipoteses.md",
+      "bytes": 10472,
+      "sha256": "3c8515ad6a92f26d81d73f913a0cb1745096f3f14956613ca4051aff54df8fa7"
+    },
+    {
+      "path": "docs/runbooks/cutover-A4.md",
+      "bytes": 36915,
+      "sha256": "f547aeec849d9dd4cbff6a877546a9248441abae3fee9485a85b47ae7532c916"
+    },
+    {
+      "path": "docs/specs/M-02/decisions/M02-D-008-G1-memo.md",
+      "bytes": 3767,
+      "sha256": "5d872f959b6e18395e2bcdc68e4ae1278318bb9e6949c873eddfb780fba8ac97"
+    },
+    {
+      "path": "docs/specs/M-02/emenda-2026-09-07-env-guard.md",
+      "bytes": 9528,
+      "sha256": "0ed014d128a6b03c55ce1f2fcaf55712a8e113eea8381d2af38acce252393267"
+    },
+    {
+      "path": "docs/specs/M-02/excecoes.md",
+      "bytes": 4171,
+      "sha256": "5f0cecf75c728a817e181e564b860f6ac1e6163dc93719094053390366ef8b9d"
+    },
+    {
+      "path": "docs/specs/M-02/matrix.generated.yaml",
+      "bytes": 35933,
+      "sha256": "c91cb830d4a8f6e40c8d983c55240596f75500091884a3c82a161bd4811e9497"
+    },
+    {
+      "path": "docs/specs/M-02/matrix.yaml",
+      "bytes": 52402,
+      "sha256": "29d8a2e215292c4f48fb924fc7f4d11034f00105ebf25b9c84e1f54c1b1f544e"
+    },
+    {
+      "path": "package.json",
+      "bytes": 6036,
+      "sha256": "d5df20fe3e9dfa39cc1f4610cfcf6a8f2c093b8af98c2175d105c327c5416fbc"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "bytes": 3263,
+      "sha256": "7de85f0c17a5ac235d1056d5418e6c5798256b692a5f3d697f10aed39bd9d3c8"
+    },
+    {
+      "path": "scripts/db/backup-verify.ts",
+      "bytes": 9049,
+      "sha256": "2863ca2930840706c072c997e6215c2e77345330e4a4dda2847d1c80ee8e847f"
+    },
+    {
+      "path": "scripts/db/purge-fixtures.ts",
+      "bytes": 7218,
+      "sha256": "38b0eb78016f5f45e25b11fff3cf4aecc7b170f65b183b1a4ba4465541f1e670"
+    },
+    {
+      "path": "scripts/env-guard.mjs",
+      "bytes": 18700,
+      "sha256": "808b4a5b0501dfb44a9cf3b3721e51c9ed95ac87fb0e4091bcf469c39d5121f5"
+    },
+    {
+      "path": "scripts/m02-readiness.mjs",
+      "bytes": 8168,
+      "sha256": "7227e3b28c18b2f9aeb846706477bd07042103b3f4bd3a7400f0c7e3d503b9e9"
+    },
+    {
+      "path": "scripts/m02-secrets-audit.ts",
+      "bytes": 8420,
+      "sha256": "6adb12faed6d95298e26a07016e8382998bf6c636b27dab5a24a8acc9d2600a4"
+    },
+    {
+      "path": "scripts/m02-snapshot.d.mts",
+      "bytes": 230,
+      "sha256": "76e61ff37d5f3d58f521f0422017b33071e877793d18c47137e5f65e1581d548"
+    },
+    {
+      "path": "scripts/m02-snapshot.mjs",
+      "bytes": 9517,
+      "sha256": "deb3814a5a88dd21ba11d013d750a1c90a27b17fa638989b9d51ff0b49aae737"
+    },
+    {
+      "path": "scripts/m02-sums.mjs",
+      "bytes": 10787,
+      "sha256": "9fd45b8157946bf8a14f626f129f1c3953c104d093dcc0554445af83406b4372"
+    },
+    {
+      "path": "scripts/smoke/substrate-smoke.ts",
+      "bytes": 5889,
+      "sha256": "2bc1dbfb79c4b5d1f6f8142afebb9bff344d903e1e2d2a280c433d604173ac7c"
+    },
+    {
+      "path": "src/db/client.server.ts",
+      "bytes": 9680,
+      "sha256": "6aa22b0e1d43a60bcf1d7fb1df0ddec8a5e79571dc95332fb1fe1f9e0cdf2daf"
+    },
+    {
+      "path": "src/lib/chat.functions.ts",
+      "bytes": 11055,
+      "sha256": "0d8192bfa0e6686da77a41c1d1b6984b566597d680bd13abeea2633d97d7b2aa"
+    },
+    {
+      "path": "src/routes/auth.tsx",
+      "bytes": 9579,
+      "sha256": "198c17765edcdf9d35174f9770ddf2d8f62321fdf33c61a605578e56d4692b95"
+    },
+    {
+      "path": "src/test/auth-policy.test.ts",
+      "bytes": 2767,
+      "sha256": "64ad07447d0236acaf55ede7d0664e84b8fcadae045d956c5353db68cca6b655"
+    },
+    {
+      "path": "src/test/m02-snapshot.test.ts",
+      "bytes": 2600,
+      "sha256": "10ae2d8ba4710cd9248f7f0ca409da40e9e501d563b7dfd6a679e541eafaf125"
+    }
+  ]
+}

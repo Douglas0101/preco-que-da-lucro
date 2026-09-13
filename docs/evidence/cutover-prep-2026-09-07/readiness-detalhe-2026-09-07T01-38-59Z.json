@@ -1,0 +1,57 @@
+{
+  "check": "m02:readiness",
+  "fail_closed": true,
+  "started_at": "2026-09-07T01:39:03.586Z",
+  "result": "FAIL",
+  "checks": [
+    {
+      "id": "substrate-smoke",
+      "status": "PASS",
+      "source": "scripts/smoke/substrate-smoke.ts (DATABASE_ADMIN_URL)",
+      "detail": "exit 0; 7 checks PASS"
+    },
+    {
+      "id": "m02-matrix",
+      "status": "PASS",
+      "source": "scripts/m02-matrix.ts",
+      "detail": "exit 0"
+    },
+    {
+      "id": "m02-boundaries",
+      "status": "PASS",
+      "source": "scripts/m02-boundaries.ts",
+      "detail": "exit 0"
+    },
+    {
+      "id": "m02-state",
+      "status": "FAIL",
+      "source": "scripts/m02-state-check.ts",
+      "detail": "Ledger M-02 desatualizado: registre HEAD 8d26a2c954172a4fee8ecfc9fad1d7fbab8a117f ou o parent-pinned marker 499ae31d385edb872c725c15f3aca1b6938f5de0 antes de prosseguir."
+    },
+    {
+      "id": "g1-assinada",
+      "status": "FAIL",
+      "source": "docs/specs/M-02/decisions/M02-D-008-G1-memo.md",
+      "detail": "bloco G1 SIGNATURE vazio (M02-D-008; sunset 2026-09-20)"
+    },
+    {
+      "id": "sec01-fechada",
+      "status": "FAIL",
+      "source": "EXECUTION-STATE-PROGRAM.md",
+      "detail": "sem registro de fechamento (revogação no emissor das 5 credenciais de neon-storage.env é ação humana)"
+    },
+    {
+      "id": "freeze-ativo",
+      "status": "FAIL",
+      "source": "EXECUTION-STATE-PROGRAM.md",
+      "detail": "sem declaração; convencionar linha no ledger contendo 'freeze ativo' + janela (M02-D-009)"
+    },
+    {
+      "id": "snapshot-fresco",
+      "status": "FAIL",
+      "source": ".artifacts/backup-drill/*/dump.pgc",
+      "detail": "dump externo stale: 29.2h (exige snapshot novo no dia do cutover)"
+    }
+  ],
+  "notes": "PASS só com todos os checks PASS. INCOMPLETE (exit 2) = ambiente não produziu resultado confiável. GO/NO-GO do cutover é decisão documentada, não saída deste script."
+}

@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-09-07T16:00:17.324Z",
+  "purpose": "Artifact identity for review, not SHA256SUMS or a PS seal",
+  "artifacts": [
+    {
+      "path": "entry-checks.json",
+      "bytes": 3239,
+      "sha256": "285542128e42ab00e74ca969fa95ec2391f89b381a0755d29cddc5e23a1e7a51"
+    },
+    {
+      "path": "head-final.txt",
+      "bytes": 41,
+      "sha256": "9735becaec2d1990646eaba2f14de7c7a9a01c1652634b1575a62b4154da6fc7"
+    },
+    {
+      "path": "neon-recon.json",
+      "bytes": 2733,
+      "sha256": "e5b20a36a3eaf31592db420794d33f40f12b29daa617b3ebc6025ab3142737f2"
+    },
+    {
+      "path": "rat-dp5-emenda6-draft.md",
+      "bytes": 8770,
+      "sha256": "6d3409117bb77c1900c50986c6d5ef19a325ae6ba61ea9aa3f4ff1ed9438581b"
+    },
+    {
+      "path": "report.md",
+      "bytes": 13564,
+      "sha256": "4b0ac6c8b3b3176135202ceff399941c61caa3a240529aa5802e5d176dffe9a1"
+    },
+    {
+      "path": "source-hashes.json",
+      "bytes": 6357,
+      "sha256": "efc1a0d97d08b5ee75a929d5bb5e01a658fcb42c1164ba4cdfbcdef84173860a"
+    },
+    {
+      "path": "staged-final.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sums-verify.log",
+      "bytes": 1357,
+      "sha256": "78377f1e44f89916d4ad82e5f7bd78ee9eeb0efa2cd4430593900e2a9cd14424"
+    },
+    {
+      "path": "validation-attempt1.txt",
+      "bytes": 913,
+      "sha256": "7bb914ccb0ecf22f9f81aa68a63900020b446448133820fe29b31788486c8c1b"
+    },
+    {
+      "path": "validation.json",
+      "bytes": 813,
+      "sha256": "927a66233f8f0dc1d4d577a581e3703a098331a76598f1f96bafe0efe1c18b86"
+    }
+  ]
+}

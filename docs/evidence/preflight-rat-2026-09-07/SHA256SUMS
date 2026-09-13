@@ -1,0 +1,15 @@
+ceb93fb27eeb60040883641e6759f83c1086e8f32d42ae65d521d91f8fb2690d  docs/evidence/preflight-rat-2026-09-07/logs/env-guard-decisao-test.log
+685017c28cc940cc14bc53dce0460f5a6fc93cfa1620eff7e7ab5adcd81457d9  docs/evidence/preflight-rat-2026-09-07/logs/env-guard-selftest.log
+d5516d301fc021b7ffd8a2609e8690aa087cb882dc6b48b59ae7e1cf8e5f8b41  docs/evidence/preflight-rat-2026-09-07/logs/m02-v2b-plan.log
+5dab841b817d124b3c63e94ed1cfd0cf1ffedda25554c4bf4da79aa3fcc729bf  docs/evidence/preflight-rat-2026-09-07/logs/m02-v2b-sem-credencial.log
+d8ae89747206482a4011cf31b7087e47e638d54cd90d8e49effe929b579836d0  docs/evidence/preflight-rat-2026-09-07/logs/npm-test-deny.log
+92607d2db3c38cd35083f9b25184ccd1122df98d268d6f9ee3cc26be0de2dd89  docs/evidence/preflight-rat-2026-09-07/logs/readiness.json
+22958f1a835fb6b6bbd0fe28f159c9d6f9a0e2f5a1cfdd0b6b27d6255263ebd5  docs/evidence/preflight-rat-2026-09-07/logs/sums-verify-after-tests.log
+22958f1a835fb6b6bbd0fe28f159c9d6f9a0e2f5a1cfdd0b6b27d6255263ebd5  docs/evidence/preflight-rat-2026-09-07/logs/sums-verify-before.log
+2a53ade81447ffa9db05ec4171e2793a9481356640fe6e0c6e5623f43f214dba  docs/evidence/preflight-rat-2026-09-07/logs/vitest-ci-equivalente.log
+5032b4cbcb2c86ef5282037c260c3f561f14db2d948f138a22081b705be337d1  docs/evidence/preflight-rat-2026-09-07/mapa-flips-readiness.md
+e4614b6ad9961a9d03303851f1aad20ebb21a04104970f0cb5258e017982a0bf  docs/evidence/preflight-rat-2026-09-07/pedido-d2-credencial.md
+411a777c8e7da3c59f199f798e7db0dc0bfcf8b05ae7e78348cf833761c4d6c6  docs/evidence/preflight-rat-2026-09-07/preflight-2026-09-07.md
+a91d9c2f10bf4245b36b2c68f75e3ad748cf6b5b51a2dd7510fd4749aee32db4  docs/evidence/preflight-rat-2026-09-07/rat-s0-signature-block.md
+f3acba8d9af76d24773b1679d7052b6ce29fbbd7bfac3f93a417cf7c7d7c73da  docs/evidence/preflight-rat-2026-09-07/README.md
+26dc13b03346bf72ea44f115cdfe2d982ce1c4c30c7265865126a9135c94b4e9  docs/evidence/preflight-rat-2026-09-07/sdd-exec-ps01-add-ops.md

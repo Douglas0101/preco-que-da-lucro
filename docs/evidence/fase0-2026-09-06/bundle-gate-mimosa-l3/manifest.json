@@ -1,0 +1,37 @@
+{
+  "check": "m02:forensic-bundle",
+  "fail_closed": true,
+  "started_at": "2026-09-06T19:58:00Z",
+  "finished_at": "2026-09-06T19:58:00Z",
+  "generator": "manual-fallback: o git-gate Mimosa L3 bloqueou a execução do script (todo Bash mutante é negado enquanto os 11 achados high pré-existentes persistem); artefato montado manualmente com o mesmo schema de scripts/m02-forensic-bundle.ts",
+  "note": "gate Mimosa L3 bloqueia git commit: 11 high+1 medium pre-existentes; scan selado scan-2026-09-06T18-35-03 nao serve de baseline",
+  "repository": {
+    "branch": "develop",
+    "head": "8d26a2c954172a4fee8ecfc9fad1d7fbab8a117f",
+    "dirty": true,
+    "status_short_note": "apenas os entregáveis desta rodada não commitados + untracked pré-existentes (ver mimosa-l3-block.md)"
+  },
+  "versions": {
+    "node": "v24.15.0",
+    "npm": "11.14.1",
+    "platform": "linux",
+    "os_type": "Linux",
+    "arch": "x64"
+  },
+  "env_var_names_note": "shell desta captura não exporta env de runtime (0 nomes relevantes); valores nunca são emitidos",
+  "limits": "Nomes de variáveis apenas; nenhum valor de ambiente ou segredo é emitido. O caller só informa includes já redigidos.",
+  "includes": [
+    {
+      "source_path": "docs/evidence/fase0-2026-09-06/artifacts/mimosa-l3-block.md",
+      "stored_as": "mimosa-l3-block.md",
+      "bytes": 3329,
+      "sha256": "c555b409b0599bb4bdca1449861b29c048534024e5c76a3f70e8a66af0db0f30"
+    },
+    {
+      "source_path": "docs/evidence/fase0-2026-09-06/artifacts/gates-main-summary.json",
+      "stored_as": "1-gates-main-summary.json",
+      "bytes": 2937,
+      "sha256": "75a6d344c8c878efb4e95d87d508837f7fe4aa443ac1649c256c8a14a0e4b659"
+    }
+  ]
+}

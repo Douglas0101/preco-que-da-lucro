@@ -1,0 +1,25 @@
+{
+  "script": "m02-role-membership",
+  "executed_at": "2026-09-07T01:22:46.766Z",
+  "kind": "drill-branch",
+  "dry_run": false,
+  "host": "ep-long-feather-ayxexehk.c-5.us-east-2.aws.neon.tech",
+  "local": false,
+  "motivo": null,
+  "window": null,
+  "before": {
+    "has_set_membership": true,
+    "app_runtime_exists": true,
+    "member_role": "neondb_owner",
+    "app_runtime_bypassrls": false,
+    "app_runtime_superuser": false
+  },
+  "after": {
+    "has_set_membership": true,
+    "app_runtime_exists": true,
+    "member_role": "neondb_owner",
+    "app_runtime_bypassrls": false,
+    "app_runtime_superuser": false
+  },
+  "idempotent_noop": true
+}

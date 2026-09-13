@@ -1,0 +1,20 @@
+{
+  "validated_at": "2026-09-07T16:00:17.323Z",
+  "head": "8d26a2c954172a4fee8ecfc9fad1d7fbab8a117f",
+  "head_unchanged": true,
+  "source_files": 36,
+  "changed_source_files": [],
+  "staged_files": [],
+  "report_sections": 7,
+  "sums_bundles": 7,
+  "sums_pass": true,
+  "markdown_whitespace_errors": [],
+  "json_files_parsed": 3,
+  "implementation_tests": "NOT_RUN - no implementation changes; stopped before S1",
+  "limitations": [
+    "Nested npm capture produced no output; only direct sums-verify.log supports the sums verdict.",
+    "Aggregated validation with child-process Git failed with EPERM; preserved in validation-attempt1.txt. Final content validation uses filesystem only; Git evidence captured by direct commands."
+  ],
+  "report_package": "UNSEALED - not a PS operational seal",
+  "pass": true
+}

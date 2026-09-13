@@ -1,0 +1,35 @@
+ M docs/specs/M-02/excecoes.md
+ M docs/specs/M-02/matrix.generated.yaml
+ M docs/specs/M-02/matrix.yaml
+ M package.json
+ M scripts/build.mjs
+ M scripts/db/purge-fixtures.ts
+ M scripts/smoke/substrate-smoke.ts
+ M src/db/client.server.ts
+ M src/lib/chat.functions.ts
+ M src/routes/auth.tsx
+ M src/test/auth-policy.test.ts
+?? .mimosa/
+?? .pi/
+?? .zcode/
+?? PLANO_OTIMIZADO_AUTENTICACAO_E_RETOMADA.md
+?? docs/evidence/checagens-pos-publicacao-2026-09-05/
+?? docs/evidence/cutover-2026-09-07/
+?? docs/evidence/fase0-2026-09-06/
+?? docs/evidence/gsec-2026-09-06/
+?? docs/evidence/manual-navigation-2026-08-29.md
+?? docs/evidence/obs-local-2026-08-30.md
+?? docs/evidence/perf-after-2026-08-29.md
+?? docs/evidence/perf-baseline-2026-08-29.md
+?? docs/forensic-kit.md
+?? docs/runbooks/a4-matriz-hipoteses.md
+?? docs/runbooks/cutover-A4.md
+?? docs/specs/M-02/emenda-2026-09-07-env-guard.md
+?? scripts/env-guard.mjs
+?? scripts/forensic/
+?? scripts/m02-forensic-bundle.ts
+?? scripts/m02-readiness.mjs
+?? scripts/m02-reconcile.mjs
+?? scripts/rls-probe.mjs
+?? scripts/val/
+?? src/lib/ai-endpoint.server.ts
