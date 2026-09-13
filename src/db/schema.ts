@@ -702,6 +702,9 @@ export const toolExecutions = pgTable(
     safeResult: jsonb("safe_result").$type<Record<string, unknown>>(),
     errorCode: text("error_code"),
     idempotencyKey: text("idempotency_key"),
+    toolCallId: text("tool_call_id"),
+    input: jsonb("input").$type<Record<string, unknown>>(),
+    usageId: uuid("usage_id"),
     estimatedCost: money("estimated_cost"),
     costStatus: text("cost_status").notNull().default("unknown"),
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
@@ -715,6 +718,7 @@ export const toolExecutions = pgTable(
       table.idempotencyKey,
     ),
     index("tool_executions_tenant_started_idx").on(table.tenantId, table.startedAt),
+    index("tool_executions_tenant_usage_idx").on(table.tenantId, table.usageId),
     check(
       "tool_executions_cost_status_check",
       sql`${table.costStatus} in ('known', 'unknown', 'invalid')`,

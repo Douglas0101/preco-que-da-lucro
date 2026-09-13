@@ -9,25 +9,69 @@ export interface ExistingToolClaim {
   errorCode: string | null;
 }
 
-export class DrizzleAiToolRepository {
-  async persistRejected(
+export interface RejectedToolWrite {
+  toolName: string;
+  inputHash: string;
+  errorCode: string;
+  durationMs: number;
+  toolCallId?: string | null;
+  input?: Record<string, unknown> | null;
+  usageId?: string | null;
+}
+
+export interface ToolExecutionStart {
+  name: string;
+  requestHash: string;
+  idempotencyKey: string;
+  toolCallId?: string | null;
+  input?: Record<string, unknown> | null;
+  usageId?: string | null;
+}
+
+/** Contrato de persistência de execuções de tool (§9.2). O singleton tipado é o
+ * ponto de injeção para consumidores; o SQL permanece no repositório. */
+export interface AiToolRepository {
+  persistRejected(context: RequestContext, payload: RejectedToolWrite): Promise<void>;
+  findClaim(
     context: RequestContext,
-    input: {
-      toolName: string;
-      inputHash: string;
-      errorCode: string;
-      durationMs: number;
-    },
-  ): Promise<void> {
+    name: string,
+    idempotencyKey: string,
+  ): Promise<ExistingToolClaim | undefined>;
+  claim(
+    context: RequestContext,
+    input: { name: string; idempotencyKey: string; requestHash: string; expiresAt: Date },
+  ): Promise<string | undefined>;
+  startExecution(context: RequestContext, input: ToolExecutionStart): Promise<string | undefined>;
+  markSucceeded(
+    context: RequestContext,
+    executionId: string,
+    claimId: string,
+    output: Record<string, unknown>,
+    durationMs: number,
+  ): Promise<void>;
+  markFailed(
+    context: RequestContext,
+    executionId: string,
+    claimId: string,
+    errorCode: string,
+    durationMs: number,
+  ): Promise<void>;
+}
+
+export class DrizzleAiToolRepository implements AiToolRepository {
+  async persistRejected(context: RequestContext, payload: RejectedToolWrite): Promise<void> {
     await context.transaction.insert(toolExecutions).values({
       tenantId: context.tenantId,
       userId: context.userId,
       correlationId: context.correlationId,
-      toolName: input.toolName,
-      inputHash: input.inputHash,
+      toolName: payload.toolName,
+      inputHash: payload.inputHash,
+      input: payload.input ?? null,
+      toolCallId: payload.toolCallId ?? null,
+      usageId: payload.usageId ?? null,
       status: "failed",
-      durationMs: input.durationMs,
-      errorCode: input.errorCode,
+      durationMs: payload.durationMs,
+      errorCode: payload.errorCode,
       completedAt: new Date(),
     });
   }
@@ -79,7 +123,7 @@ export class DrizzleAiToolRepository {
 
   async startExecution(
     context: RequestContext,
-    input: { name: string; requestHash: string; idempotencyKey: string },
+    input: ToolExecutionStart,
   ): Promise<string | undefined> {
     const [execution] = await context.transaction
       .insert(toolExecutions)
@@ -89,6 +133,9 @@ export class DrizzleAiToolRepository {
         correlationId: context.correlationId,
         toolName: input.name,
         inputHash: input.requestHash,
+        input: input.input ?? null,
+        toolCallId: input.toolCallId ?? null,
+        usageId: input.usageId ?? null,
         status: "pending",
         idempotencyKey: input.idempotencyKey,
       })
@@ -155,4 +202,4 @@ export class DrizzleAiToolRepository {
   }
 }
 
-export const aiToolRepository = new DrizzleAiToolRepository();
+export const aiToolRepository: AiToolRepository = new DrizzleAiToolRepository();

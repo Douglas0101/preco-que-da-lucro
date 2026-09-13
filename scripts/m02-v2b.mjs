@@ -29,7 +29,7 @@ const DEFAULT_PROJECT_ID = "damp-forest-57346541";
 const DEFAULT_PARENT_BRANCH_ID = "br-snowy-violet-aymcvvvv"; // production (id, não nome)
 const DB_NAME = "neondb";
 const ROLE_NAME = "neondb_owner";
-const EXPECTED_JOURNAL_COUNT = 12;
+const EXPECTED_JOURNAL_COUNT = 13;
 const MIGRATION_MOTIVO = "V2b CUTOVER-PREP: carga legacy em branch de drill efêmera";
 const RETRY_LIMIT = 1; // regra da rodada: SEM loop de retry > 1
 const NPM_CLI = resolve(
@@ -126,7 +126,7 @@ function buildPlan(ctx) {
     {
       id: "migrate",
       what: "npm run db:migrate contra DIRECT da branch com NEON_MIGRATION_TARGET_KIND=drill-branch + ALLOW_REMOTE_DB (motivo logado; emenda #2 — produção intocável)",
-      expected: `journal __drizzle_migrations = ${EXPECTED_JOURNAL_COUNT} (12/12 pós-migrate)`,
+      expected: `journal __drizzle_migrations = ${EXPECTED_JOURNAL_COUNT} (13/13 pós-migrate)`,
       on_fail: "fail → cleanup always() → exit 1 (sem retry > 1)",
     },
     {
@@ -530,7 +530,7 @@ async function main() {
       const journal = await queryJournalCount(branchUrl);
       if (journal !== EXPECTED_JOURNAL_COUNT) {
         throw new Error(
-          `journal ${journal} ≠ ${EXPECTED_JOURNAL_COUNT} esperado (12/12 pós-migrate)`,
+          `journal ${journal} ≠ ${EXPECTED_JOURNAL_COUNT} esperado (13/13 pós-migrate)`,
         );
       }
       return { log: { journal_count: journal, kind: "drill-branch", motivo: MIGRATION_MOTIVO } };

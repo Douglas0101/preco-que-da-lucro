@@ -11,7 +11,7 @@
     "concreteOperations": 32,
     "apiRoutes": 4,
     "transactionSites": 96,
-    "directDatabaseFiles": 37
+    "directDatabaseFiles": 38
   },
   "bffs": [
     {
@@ -610,61 +610,61 @@
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 85,
+      "line": 93,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 143,
+      "line": 162,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 157,
+      "line": 176,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 216,
+      "line": 246,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 240,
+      "line": 270,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 260,
+      "line": 290,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 288,
+      "line": 321,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 292,
+      "line": 325,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 313,
+      "line": 346,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 322,
+      "line": 355,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
@@ -808,19 +808,7 @@
     },
     {
       "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 22,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 40,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 64,
+      "line": 63,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -832,25 +820,37 @@
     },
     {
       "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 106,
+      "line": 108,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 116,
+      "line": 128,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 135,
+      "line": 153,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 145,
+      "line": 163,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 182,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 192,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -1168,7 +1168,8 @@
     "src/test/migration-classes.test.ts",
     "src/test/products-read-models.golden.perf-waves.test.ts",
     "src/test/purchase-price.service.test.ts",
-    "src/test/round-trip-instrumentation.perf-waves.test.ts"
+    "src/test/round-trip-instrumentation.perf-waves.test.ts",
+    "src/test/tool-runner.persistence.test.ts"
   ],
   "policy": {
     "schemaVersion": 1,
