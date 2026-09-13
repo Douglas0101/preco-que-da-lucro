@@ -41,6 +41,7 @@
 | L23 | 02:54:00 | ✔   | **Reconciliação:** `git checkout develop` + `cherry-pick d49fc8b` → `develop` = `0115637`; `.vercel/` adicionado ao `.gitignore` e build local limpo; artefato da FASE 1 em `docs/evidence/build-contract-2026-09-13.md`. Lição: agente que muta repo recebe **worktree próprio**.                                                               |
 | L24 | 02:50:00 | ✔   | **FASE 1 = PASS:** `.output/server/index.mjs` (21.443 B) e `.vercel/output/*` (config 366 B) gerados, ambos exit 0 → preset condicional sem regressão cruzada; FASE 2 (port) desbloqueada.                                                                                                                                                       |
 | L25 | 03:0x:00 | ✔   | **FASE 3 mergeada:** PR #45 (CI leve p/ `docs/evidence/**` + pesado preservado) com `verify` verde → `develop` = `bc91be0`; filtro ATIVO (ci-light.yml + paths-ignore). Provas de run em sequência (este push é a **PROVA A**: só-docs ⇒ leve roda, pesado pula).                                                                                |
+| L26 | 03:1x:00 | ✔   | **PROVA A validada:** push só-docs `455ea7f` → rodou **apenas** `CI light` (success) e o `UI stack` foi **pulado**. A seguir, este commit MISTO (ledger+journal) é a **PROVA B**.                                                                                                                                                                |
 
 ## 3. Fila humana (o que está bloqueado em pessoa)
 
