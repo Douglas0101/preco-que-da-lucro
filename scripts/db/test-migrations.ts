@@ -404,6 +404,59 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     { table_name: "simulations", column_name: "scenario_type" },
   ]);
 
+  // 0013 (T2): products e expenses ganham version integer NOT NULL DEFAULT 0
+  // com CHECK version >= 0.
+  const versionColumns = await client.query<{
+    table_name: string;
+    column_name: string;
+    data_type: string;
+    is_nullable: string;
+    column_default: string | null;
+  }>(
+    `select table_name, column_name, data_type, is_nullable, column_default
+     from information_schema.columns
+     where table_schema = 'public'
+       and table_name in ('products', 'expenses')
+       and column_name = 'version'
+     order by table_name`,
+  );
+  assert.deepEqual(versionColumns.rows, [
+    {
+      table_name: "expenses",
+      column_name: "version",
+      data_type: "integer",
+      is_nullable: "NO",
+      column_default: "0",
+    },
+    {
+      table_name: "products",
+      column_name: "version",
+      data_type: "integer",
+      is_nullable: "NO",
+      column_default: "0",
+    },
+  ]);
+
+  const versionChecks = await client.query<{ conname: string }>(
+    `select conname
+     from pg_constraint
+     where conrelid in ('public.products'::regclass, 'public.expenses'::regclass)
+       and conname in ('products_version_check', 'expenses_version_check')
+     order by conname`,
+  );
+  assert.deepEqual(
+    versionChecks.rows.map((row) => row.conname),
+    ["expenses_version_check", "products_version_check"],
+    "0013 deve criar CHECK version >= 0 nas duas tabelas",
+  );
+
+  await assert.rejects(
+    client.query("update products set version = -1 where id = $1", [productA]),
+    (error: unknown) =>
+      typeof error === "object" && error !== null && "code" in error && error.code === "23514",
+    "CHECK version >= 0 deve rejeitar contador negativo",
+  );
+
   await assert.rejects(
     client.query(
       `insert into products (tenant_id, user_id, name, tax_rate)
@@ -617,8 +670,9 @@ async function assertPurchasePriceConcurrency(adminUrl: string): Promise<void> {
   }
 }
 
-// Downs que levam a chain 0012→0003, na ordem de aplicação (mais nova primeiro).
+// Downs que levam a chain 0013→0003, na ordem de aplicação (mais nova primeiro).
 const DOWNS_TIP_TO_0003 = [
+  "0013_to_0012_down.sql",
   "0012_to_0011_down.sql",
   "0011_to_0010_down.sql",
   "0010_to_0009_down.sql",
@@ -739,9 +793,9 @@ async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<
 }
 
 async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Client): Promise<void> {
-  // Completa a cobertura da cadeia de rollback: além de 0012→0003, aplica
+  // Completa a cobertura da cadeia de rollback: além de 0013→0003, aplica
   // 0003→0002 e o novo 0002→0001, deixando o banco no estado da migration
-  // 0001 com o journal reduzido a 0000/0001 (11 arquivos aplicados = 11 linhas
+  // 0001 com o journal reduzido a 0000/0001 (12 arquivos aplicados = 12 linhas
   // removidas em applyDowns).
   await applyDowns(client, [
     ...DOWNS_TIP_TO_0003,
@@ -773,13 +827,13 @@ async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Clie
   const idempotentAgain = await readFile(resolve("drizzle/rollback/0002_to_0001_down.sql"), "utf8");
   await client.query(idempotentAgain);
 
-  // Replay completo 0002→0012: valida reprodutibilidade de 0002 e 0003.
+  // Replay completo 0002→0013: valida reprodutibilidade de 0002 e 0003.
   await runMigrations(adminUrl);
 
   const replayedJournal = await client.query<{ count: string }>(
     "select count(*)::text as count from drizzle.__drizzle_migrations",
   );
-  assert.equal(replayedJournal.rows[0]?.count, "13", "replay deve restaurar o journal completo");
+  assert.equal(replayedJournal.rows[0]?.count, "14", "replay deve restaurar o journal completo");
 
   const restored = await client.query<{
     rateLimits: boolean;

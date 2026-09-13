@@ -1,6 +1,6 @@
 {
-  "id": "fde26fcb-32ec-4979-a96f-a6baeb45fd71",
-  "prevId": "cad63630-c0af-4166-ac28-218e647cee1c",
+  "id": "6bfb7086-3642-4b7e-ad73-7d8f682974c0",
+  "prevId": "fde26fcb-32ec-4979-a96f-a6baeb45fd71",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1051,6 +1051,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -1132,6 +1139,10 @@
         "expenses_type_check": {
           "name": "expenses_type_check",
           "value": "\"expenses\".\"type\" in ('fixa', 'variavel')"
+        },
+        "expenses_version_check": {
+          "name": "expenses_version_check",
+          "value": "\"expenses\".\"version\" >= 0"
         }
       },
       "isRLSEnabled": false
@@ -1838,6 +1849,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "archived_at": {
           "name": "archived_at",
           "type": "timestamp with time zone",
@@ -1939,6 +1957,10 @@
         "products_status_check": {
           "name": "products_status_check",
           "value": "\"products\".\"status\" in ('draft', 'incomplete', 'ready', 'active', 'archived')"
+        },
+        "products_version_check": {
+          "name": "products_version_check",
+          "value": "\"products\".\"version\" >= 0"
         }
       },
       "isRLSEnabled": false

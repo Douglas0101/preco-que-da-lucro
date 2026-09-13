@@ -22,7 +22,7 @@ export type MigrationClass = (typeof MIGRATION_CLASSES)[number];
 
 /**
  * `empty` — migration aplicada quando o banco ainda não tinha dados de
- * aplicação (as 13 atuais); `live` — havia dados e o plano de backfill/rollback
+ * aplicação (as 14 atuais); `live` — havia dados e o plano de backfill/rollback
  * é obrigatório no PR.
  */
 export type AppliedOn = "empty" | "live";
@@ -230,6 +230,25 @@ export const migrationClasses: readonly MigrationClassEntry[] = [
     ],
     sha256: "fc34d49308a814caa351ffd158de7e1797a02bc59b4d3fbc04260d4da1e68dba",
     rollback: "drizzle/rollback/0012_to_0011_down.sql",
+    appliedOn: "empty",
+  },
+  {
+    tag: "0013_robust_cammi",
+    class: "ONLINE_WITH_CARE",
+    rationale:
+      "Adiciona version integer NOT NULL DEFAULT 0 e CHECK (version >= 0) em products e expenses (T2/CAS otimista); o ALTER ADD COLUMN é metadata-only no PG17, mas a validação do CHECK varre cada tabela.",
+    evidence: [
+      "drizzle/0013_robust_cammi.sql",
+      "drizzle/rollback/0013_to_0012_down.sql",
+      "scripts/db/test-migrations.ts (replay do chain e colunas version)",
+      "scripts/db/test-concurrency.ts (CAS 1 OK + 1 CONFLICT + incremento)",
+      "docs/adr/ADR-029-concurrency-t2-optimistic-version.md",
+      "docs/evidence/onda1-t2-bff-2026-09-13.md",
+    ],
+    sha256: "f974d0b255ef2797844ed0c50c56ce59eacf6d2559509ccf5840ab76df119bf2",
+    onlineCare:
+      "Aplicar fora do pico: cada ALTER TABLE pega ACCESS EXCLUSIVE breve por tabela; a validação do CHECK version >= 0 escaneia products e expenses uma vez. O down remove constraint e coluna sem preservar o contador.",
+    rollback: "drizzle/rollback/0013_to_0012_down.sql",
     appliedOn: "empty",
   },
 ];
