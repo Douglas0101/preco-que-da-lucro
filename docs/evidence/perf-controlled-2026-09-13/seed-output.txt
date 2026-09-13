@@ -1,0 +1,10 @@
+
+> pree2e:prepare
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> e2e:prepare
+> tsx scripts/e2e/seed-auth.ts
+
+Fixture Better Auth/PostgreSQL preparada para owner perf.controlled@example.test e member perf.controlled+member@example.test.

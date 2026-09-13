@@ -14,6 +14,7 @@ import {
 } from "@/lib/chat-data";
 import { executeSendChatMessage } from "@/lib/chat-execution.server";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
+import { logJson } from "@/lib/structured-logger";
 import { requireDatabaseIdentity } from "@/middleware/request-context";
 
 const inTenantTransaction = createTenantTransaction(withTenantTransaction);
@@ -189,8 +190,9 @@ async function runModelAttempt({
 }>): Promise<GatewayResponse | null> {
   const signal = AbortSignal.any([requestSignal, AbortSignal.timeout(timeoutMs)]);
   const attemptStartedAt = performance.now();
+  let outcome = "error";
   try {
-    return await fetchModelAttempt({
+    const response = await fetchModelAttempt({
       apiKey,
       endpoint,
       model,
@@ -201,19 +203,36 @@ async function runModelAttempt({
       attempt,
       attempts,
     });
+    outcome = response === null ? "retry" : "success";
+    return response;
   } catch (error) {
-    if (error instanceof ApplicationError) throw error;
+    if (error instanceof ApplicationError) {
+      outcome = error.code;
+      throw error;
+    }
     if (signal.aborted) {
+      outcome = "AI_TIMEOUT";
       applicationMetrics.aiTimeouts.add(1);
       throw new ApplicationError("AI_TIMEOUT", { cause: error });
     }
-    if (attempt >= attempts) throw new ApplicationError("DEPENDENCY_ERROR", { cause: error });
+    if (attempt >= attempts) {
+      outcome = "DEPENDENCY_ERROR";
+      throw new ApplicationError("DEPENDENCY_ERROR", { cause: error });
+    }
     await delay(retryDelayMs(attempt), requestSignal);
+    outcome = "retry";
     return null;
   } finally {
-    applicationMetrics.aiDuration.record(performance.now() - attemptStartedAt, {
+    const elapsedMs = performance.now() - attemptStartedAt;
+    applicationMetrics.aiDuration.record(elapsedMs, {
       model,
       attempt,
+    });
+    logJson("info", "ai.model_attempt", {
+      model,
+      attempt,
+      durationMs: Math.round(elapsedMs),
+      outcome,
     });
   }
 }

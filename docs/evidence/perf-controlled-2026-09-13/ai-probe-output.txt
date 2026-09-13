@@ -1,0 +1,5 @@
+{"timestamp":"2026-09-13T15:28:49.302Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":41,"outcome":"success"}
+{"timestamp":"2026-09-13T15:28:49.339Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":36,"outcome":"success"}
+{"timestamp":"2026-09-13T15:28:49.377Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":37,"outcome":"success"}
+{"timestamp":"2026-09-13T15:28:49.413Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":36,"outcome":"success"}
+AI_PROBE_OK

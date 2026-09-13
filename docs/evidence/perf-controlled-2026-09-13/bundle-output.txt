@@ -1,0 +1,6 @@
+
+> check:bundle
+> node scripts/check-bundle.mjs
+
+PASS assets/index-BfoIlnr6.js: 274797 minified, 85636 gzip, 74323 Brotli bytes
+Initial graph (6 chunks): 470042 minified, 149671 gzip, 131307 Brotli bytes

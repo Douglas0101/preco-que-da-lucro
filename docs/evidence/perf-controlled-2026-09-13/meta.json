@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "label": "CONTROLADO",
+  "commit": "42d4b76",
+  "startedAt": "2026-09-13T15:25:17.161Z",
+  "finishedAt": "2026-09-13T15:28:49.451Z",
+  "baseUrl": "http://127.0.0.1:4219",
+  "port": 4219,
+  "serverReused": false,
+  "serverStartMs": 571,
+  "buildMs": 5243,
+  "iterations": 5,
+  "warmupIterations": 1,
+  "chatIterations": 3,
+  "routes": [
+    {
+      "path": "/inicio",
+      "ready": "heading:Olá! 👋"
+    },
+    {
+      "path": "/produtos",
+      "ready": "text:Produto de teste"
+    },
+    {
+      "path": "/ponto-equilibrio",
+      "ready": "heading:Ponto de Equilíbrio"
+    },
+    {
+      "path": "/simulacoes",
+      "ready": "text:Dados unitários do produto"
+    },
+    {
+      "path": "/diagnostico",
+      "ready": "text:Premissas da formação de preço"
+    }
+  ],
+  "node": "v24.15.0",
+  "platform": "linux",
+  "playwright": {
+    "browser": "chromium",
+    "version": "151.0.7922.34"
+  },
+  "aiMock": {
+    "enabled": true,
+    "endpoint": "https://ai.gateway.lovable.dev/v1/chat/completions",
+    "latencyMs": 35,
+    "content": "Resposta mockada do baseline controlado F0-04."
+  },
+  "database": {
+    "host": "127.0.0.1:5432",
+    "database": "preco_que_da_lucro_test",
+    "driver": "node-postgres"
+  },
+  "preloadChunk": "server-CyLyr1x6.mjs",
+  "aiProbe": {
+    "code": 0,
+    "records": 4
+  },
+  "notes": [
+    "AI mockada em processo (fetch interceptado via NODE_OPTIONS) — NÃO é o gateway real.",
+    "PostgreSQL 17 local em Docker — NÃO é Neon.",
+    "Rotas autenticadas são client-side (ssr: false): prontidão medida após hidratação/dados.",
+    "Build atual tem split circular de createCsrfMiddleware; pré-import de server-CyLyr1x6.mjs via NODE_OPTIONS restaura a ordem de avaliação (workaround do harness, sem mudar lógica do app).",
+    "npm run db:up falhou (exit 1) por conflito de nome de container, mas 127.0.0.1:5432 já responde — banco local reusado."
+  ],
+  "gaps": [
+    "Chat iteração 0 (warmup=true): page.waitForFunction: Timeout 30000ms exceeded.",
+    "Chat iteração 1 (warmup=false): page.waitForFunction: Timeout 30000ms exceeded.",
+    "Chat iteração 2 (warmup=false): page.waitForFunction: Timeout 30000ms exceeded.",
+    "Chat iteração 3 (warmup=false): page.waitForFunction: Timeout 30000ms exceeded.",
+    "Circuito HTTP de chat não gerou ai.model_attempt — detalhe do cliente: Mensagem restaurada do histórico E2E. | Mensagem controlada de baseline #0. | ⚠️ The \"signals[0]\" argument must be an instance of AbortSignal. Received undefined."
+  ]
+}
