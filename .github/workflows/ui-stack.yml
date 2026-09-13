@@ -1,9 +1,14 @@
 name: UI stack
 
+# Full pipeline: build, db:test/db:check, npm audit, Playwright e2e.
+# Docs-only pushes to main/develop go to ci-light.yml instead. Pull
+# requests always run this full pipeline (see AGENTS.md § Local quality gate).
 on:
   pull_request:
   push:
     branches: [main, develop]
+    paths-ignore:
+      - "docs/evidence/**"
 
 permissions:
   contents: read
@@ -28,8 +33,10 @@ jobs:
           --health-retries 10
     env:
       BUILD_RELEASE_CHANNEL: pre-beta-internal
-      DATABASE_ADMIN_URL: postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
+      DATABASE_ADMIN_URL: >-
+        postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
+      DATABASE_URL: >-
+        postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
       DATABASE_DRIVER: node-postgres
       EXPECTED_POSTGRES_MAJOR: "17"
       BETTER_AUTH_URL: http://127.0.0.1:4173
@@ -37,7 +44,8 @@ jobs:
       E2E_AUTH_EMAIL: teste@example.test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      # actions/setup-node v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -57,11 +65,13 @@ jobs:
           runtime_password="$(openssl rand -hex 24)"
           auth_secret="$(openssl rand -hex 32)"
           auth_password="$(openssl rand -base64 24 | tr -d '\n')"
+          db_host="127.0.0.1:5432/preco_que_da_lucro_test"
           echo "::add-mask::${runtime_password}"
           echo "::add-mask::${auth_secret}"
           echo "::add-mask::${auth_password}"
           {
-            echo "DATABASE_URL=postgresql://app_runtime:${runtime_password}@127.0.0.1:5432/preco_que_da_lucro_test"
+            runtime_url="postgresql://app_runtime:${runtime_password}@${db_host}"
+            echo "DATABASE_URL=${runtime_url}"
             echo "E2E_DB_RUNTIME_PASSWORD=${runtime_password}"
             echo "BETTER_AUTH_SECRET=${auth_secret}"
             echo "E2E_AUTH_PASSWORD=${auth_password}"
@@ -73,7 +83,8 @@ jobs:
         run: npm audit --audit-level=high
       - name: Upload bundle evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        # actions/upload-artifact v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: bundle-evidence-${{ github.sha }}
           path: |
@@ -87,7 +98,8 @@ jobs:
       - run: npm run test:e2e
       - name: Upload browser evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        # actions/upload-artifact v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: browser-evidence-${{ github.sha }}
           path: |

@@ -9,6 +9,7 @@ import {
   percentPointsToFraction,
   percentSchema,
   positiveDecimalStringSchema,
+  quantityUnitSchema,
   quantitySchema,
   toDecimalString,
 } from "@/lib/financial-values";
@@ -31,6 +32,14 @@ describe("contratos financeiros exatos", () => {
       unit: "kg",
       dimension: "mass",
     });
+    expect(quantityUnitSchema.parse(" KG ")).toBe("kg");
+    expect(quantitySchema.safeParse({ amount: "1", unit: "kg", dimension: "volume" }).success).toBe(
+      false,
+    );
+    expect(
+      quantitySchema.safeParse({ amount: "1", unit: "unidade-inventada", dimension: "count" })
+        .success,
+    ).toBe(false);
   });
 
   it("usa fração como percentual canônico", () => {

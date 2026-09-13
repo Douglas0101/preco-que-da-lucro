@@ -1321,11 +1321,10 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **SEC-01 FECHADA** (atestação do operador, registro por delegação explícita
   autorizada em sessão): as 5 credenciais de `neon-storage.env` foram revogadas
   no emissor; risco residual encerrado para fins do gate `sec01-fechada`.
-- **freeze ativo: deploys congelados da janela A4→B3 (exceção única: hotfix de
-  segurança), declarada 2026-09-12T02:05:00Z — M02-D-009**
-  - Janela do guard (amarração exigida pela seção 11 do runbook):
-    `NEON_MIGRATION_FREEZE_START=2026-09-12T02:05:00Z` ·
-    `NEON_MIGRATION_FREEZE_END=2026-09-12T04:05:00Z` (2h).
+- **Change-freeze — errata 2026-09-13 (S-ALIN P1-5):** são **dois instrumentos distintos**, e a redação anterior os confundia:
+  - **(i) freeze de deploys N-1 = `M02-D-009`** (`docs/specs/M-02/decisions/M02-D-009-change-freeze.md:6,8-10`): janela normativa **A5 0h → B3** (1–2 semanas), **NÃO INICIADA** — a A5 só abre com o dia-D. Merges em `develop` permitidos; exceção única = hotfix de segurança **com go/no-go do operador registrado no ledger**.
+  - **(ii) guard de migração da Emenda #3** = janela de 2 h `2026-09-12T02:05:00Z–04:05:00Z` (`NEON_MIGRATION_FREEZE_START/END`) — **expirada**; é o guard do `db:migrate`, **não** o freeze.
+  - **Redeploy de preview do H-6 (salvar env + Reimplantar):** fica **FORA** do `M02-D-009` (A5 não iniciada) e **FORA** da janela do guard (expirada). Registrado aqui como **go/no-go explícito do operador** para o redeploy de _preview_, com a ressalva expressa: **não** autoriza tráfego de produção nem apontamento de domínio — isso é CP-G3/dia-D.
   - **EXECUTADO** (2026-09-12T02:44Z): G1 transcrito por delegação explícita
     (registro abaixo); `db:migrate` com guard `ALLOW`/`cutover-window` **exit 0**
     — **0011 aplicada**; `m02:role-membership` exit 0 (`has_set_membership`
@@ -1341,3 +1340,98 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   correspondente; restaurado ao HEAD + `npm ci` (0.31.10) antes deste registro.
   Causa não determinada; conferir `grep '"drizzle-kit"' package.json` antes de
   cada gate/commit.
+
+## Rodada de produção — 2026-09-12 (F-GIT/F-VER/F-HP/F-NEON/F-REPO/F-CONS)
+
+- **CP-G1 executado:** PR develop→main mergeado em 2026-09-12T03:15:40Z após checks
+  verdes; **`main` = `ef2110e7315e568348d083c944ea6cc65778f646`** (SHA final do dia-D);
+  CI verde nos 3 pushes da rodada (`34665381651`, `34668574247`, `34668707268`).
+- **F-NEON:** 12/12 migrations; smoke 7/7; readiness 8/8; trio pós-cutover em
+  `.artifacts/backup-drill/2026-09-12-pos-cutover/` (sha256 `a8d35646…`); snapshot
+  nativo `snap-tiny-smoke-ayc382ji` válido até 2026-10-10.
+- **F-VER (interino):** alias público `preco-que-da-lucro-sage.vercel.app` verde
+  (live/ready/get-session 200, 03:07–03:08Z); alias canônico 404 DEPLOYMENT_NOT_FOUND;
+  deployment medido sob SSO; inventário dependente de token (H-2).
+- **F-HP:** DOCMAP parcial (3 páginas oficiais: itens 1, 2, 11 e parcial 6) + GAP-DOC
+  material (Hostinger não tem rollback por commit); Web App n/12 aguardando
+  `~/.config/hpanel-secrets.env` (H-1, watcher armado).
+- **F-REPO:** dois episódios de drift `drizzle-kit ^0.18.1` (02:38:55Z e 02:58:54Z);
+  causa não estabelecida — LIMITE DECLARADO (dono: Douglas); guard `m02:lockfile-guard`
+  proposto (não wired); working tree restaurado ao HEAD + `npm ci` (0.31.10).
+- **Supervisão:** S-SEC CLEAN; S-TEC OK com notas (1 P1 de janela PITR corrigido no memo);
+  S-ALIN DESVIO parcial (2 P1 corrigidos). Artefatos em
+  `docs/evidence/subagents/*-2026-09-12.md`.
+- **Consolidação:** `docs/evidence/F-CONS-consolidacao-2026-09-12.md`; G-VER-v2 pronto
+  para assinatura (H-3); fila humana H-1..H-5 instrumentada; dia-D sem data.
+- **F-HP (parcial, 2026-09-12 04:2x–04:5xZ):** Web App Node **PREVIEW criado**
+  (`darkgray-pony-545965.hostingersite.com`) com preset Nitro, branch `main`, Node 24.x,
+  root `./`, build padrão Nitro e **11 env vars** (CP-G2 CLEAN pelo S-SEC; valor de
+  `DATABASE_URL` mascarado no painel — evidência do item 11). 1º build **FAIL —
+  `EBADENGINE`**: Node do alvo `v24.6.0` < `>=24.15.0` exigido pelo `engines` (item 1 do
+  runbook; evidência `docs/evidence/hpanel-homologacao-2026-09-12/01-node-version.md`).
+  Workaround documentado pendente de sessão: `NPM_CONFIG_ENGINE_STRICT=false` (env não-secreta).
+- **F-HP LIMITE DE SESSÃO (H-6):** após a rajada de navegações, o Cloudflare passou a
+  desafiar o contexto automatizado (headed + 45s não resolveram; cookies válidos até
+  15/09) — sem contorno de autenticação. Detector `h6-watch.sh` armado; retomada
+  automática quando o dono renovar a sessão no Firefox. Detalhe em
+  `docs/evidence/hpanel-homologacao-2026-09-12/SESSION-LIMIT.md`.
+- **F-VER (token):** criação de token pela UI iniciada; o formulário exige scope+expiração
+  e o combobox customizado resistiu ao clique automatizado — pendente de nova rodada
+  (não bloqueia o dia-D).
+- **F-NEON:** trio fresco pós-cutover `.artifacts/backup-drill/2026-09-12-fresco/`
+  (`sha256 352f9ff4…`).
+
+---
+
+## Rodada de produção — 2026-09-12/13 (F-3 · F-6 · F-1 · F-2 · F-4 + supervisão)
+
+- **F-3 NEON (prontidão):** journal **12/12**; RLS **26 tabelas / 30 políticas** (número canônico
+  atual — a expectativa anterior "20/20" fica como GAP-DOC a reconciliar no docmap, não como falha);
+  1 conexão (ocioso, só a sessão MCP); TTFF via MCP **630/635 ms**; `current_setting` de retenção
+  indisponível por SQL (valor vigente **21600 s**, **BAK-01b ABERTO**); snapshot trio **agendado**
+  para <24 h do go-live (não executado). Artefato `docs/evidence/neon-prontidao-2026-09-13.md`
+  (sha256 `2aa31feb4db7…`).
+- **F-6 VERCEL (probes sem token):** interina `-sage` live/ready/get-session **200/200/200**
+  (2026-09-13T01:01:24–27Z; `ready` com `postgres: ok`); alias canônico **404 DEPLOYMENT_NOT_FOUND**
+  (sem mutação); **SHA auto-deployado NÃO VERIFICADO** — depende de H-2. Artefato
+  `docs/evidence/vercel-probes-interina-2026-09-13.md` (sha256 `e46fc7b396ed…`).
+- **F-4 LEDGER/MEMÓRIA:** achado **INFRA-MEM-01** (warning do `pi-hermes-memory`; P1 operacional,
+  ABERTO, dono Douglas) + regra permanente **estado crítico só em artefato versionado; memória do
+  agente é redundância, nunca fonte**; arqueologia do lockfile `drizzle-kit` com timestamps e limite
+  declarado (`docs/evidence/agent-infra-findings-2026-09-12.md`, sha256 `e0e0b77efcf4…`); substrato
+  consolidado (`docs/evidence/substrato-estado-2026-09-12.md`, sha256 `9be8a79f00d4…`);
+  `m02:matrix:check` **PASS**; `m02:state:check` FAIL-por-desenho até esta entrada.
+- **F-1 ENGINES (ADR-028, PROPOSTA/DRAFT):** checklist 24.6→24.15 fechado com **2 blockers** — o `engines` **declarado** do root (`>=24.15.0`) e um **piso oculto em `jsdom@30.0.1`** (dev, `^22.22.2 || ^24.15.0 || >=26.0.0`), que **sobrevive** ao relaxamento do root; nenhuma API > 24.6.0 no código; runtime/build de produção compatível com 24.6.0. Artefatos: `docs/adr/ADR-028-node-engines-24-6-fallback.md` (sha256 `7f3fb2cff52d…`) e `docs/evidence/engines-reconciliation-2026-09-12.md` (sha256 `aa62292ca8a7…`, fonte da verdade do checklist). **Ratificação = ato humano H-7** (novo na fila); o fallback D3-ii só vale com H-7 ou com o critério de saída (a) — seletor do painel oferecer 24.15+.
+- **F-2 RUNBOOK DIA-D:** ordem dura (vars → reimplantar → domínio → SSL → probes canônicos →
+  integridade de e-mail) + rollback R1–R7 + template A5 0h/24h/72h com baseline numérica e
+  critérios de abort por janela; status **ARMADO / NÃO EXECUTÁVEL**
+  (`docs/runbooks/dia-d-2026-09-12.md`, sha256 `b4e478da1239…`).
+- **F-HP (H-6 parcial):** em 2026-09-13T00:55:03Z o `jwt` mudou (dono renovou a sessão no Firefox),
+  mas a sondagem automatizada foi **desafiada de novo** pelo Cloudflare → item **PARADO** por
+  protocolo (2 falhas consecutivas) → caminho manual de ~2 min publicado em `SESSION-LIMIT.md`.
+  Detectores armados: `app-live` (health 200) e `h6-watch` (mudança de `jwt`). Último poll do
+  `app-live`: 2026-09-13T00:49:43Z, `http=404` (build ainda não sobe).
+- **Supervisão transversal (2026-09-13):** S-SEC **CLEAN** — 0 P0/P1; 5 P2 de endurecimento, sendo 1 aplicado (janela de validade do `jwt` removida de `SESSION-LIMIT.md`; hash/valor nunca transcrito). S-ALIN **DESVIO: 0 P0 · 5 P1**, todos corrigidos nesta entrada: P1-1 → P9 (BAK-01b) + N-10 nos critérios de abort 0h do runbook; P1-2 → bullet F-1 + H-7 acima/na fila; P1-3 → proveniência do `matrix:check` (comando + timestamp + HEAD `e0c8ec44…`) corrigida em `agent-infra-findings`; P1-4 → **errata** na célula hPanel do `G-VER-v2-memo` (app criado + build FAIL), antes de qualquer coleta de assinatura H-3; P1-5 → errata do freeze acima. P2 fechados: pipes do ADR-028 escapados; `AGENTS.md` → ADR-028 (proposta); `GAP-DOC-RLS-01` nomeado; `GAP-DOC-ENGINES-01` no registro do docmap; vereditos anexados abaixo. Artefatos: `docs/evidence/subagents/S-{SEC,ALIN}-2026-09-13.md`.
+- **F-7 CONSOLIDAÇÃO:** `docs/evidence/F7-consolidacao-2026-09-13.md` (sha256 `a33899bec59b…`) — tabela de frentes + vereditos, fila humana (H-2/H-4/H-5/H-6/**H-7**), dia-D estimado em **2026-09-15/16** e top-3 riscos (BAK-01b · sessão hPanel · rollback sem commit). Vereditos de supervisão arquivados: S-SEC `d3d963b8f129…` · S-TEC `7238e4c8135d…` · S-ALIN `b6a58489c4d4…`. **Nota de higiene de hash (S-ALIN §verificações item 2):** os prefixos acima foram **recalculados após todas as correções pós-supervisão** — hashes medidos antes de uma edição não valem para o arquivo entregue.
+- **Versionamento de evidências (higiene de rastro):** os **124 artefatos** de rodadas anteriores em `docs/evidence/**` (2026-08-29..09-09) que estavam **fora do git** foram versionados em commit único — todos os 17 diretórios são **citados por docs rastreados** (1–6 refs cada) e 115 arquivos estavam órfãos de versão (CI não os via). Removidos os rascunhos locais `.m02-review-tmp{,2}/` (1 linha cada, apenas _nome_ de env var). Varredura de conteúdo antes do commit: nenhum valor de segredo/credencial; `.gitignore` segue excluindo `artifacts/logs/snapshots/raw/private/secrets/credentials` dentro de `docs/evidence/**`.
+- **Trabalho ilhado inventariado (higiene de rastro):** o worktree aninhado `.p0-closeout-docker` (excluído pelo `.gitignore:57`; branch `codex/p0-closeout`, base `aed4c37` = 2026-08-15) carregava **24 pendentes** — 22 modificados + 2 novos, ~**+685/−118** linhas de um **lote P0 de 2026-08-19** (contratos financeiros, taxonomia de erro, logging/redaction, IA + 9 arquivos de teste), com **~81% (252/312) das linhas adicionadas ausentes de `develop`** e **sem branch remoto**. **Ação:** commit `c0ef351` + publicação do branch **WIP** `codex/p0-closeout` (não é PR; `main`/`develop` intocados; merge exigirá port/rebse sobre base 4 semanas mais nova). **Varreduras:** 0 credencial real (único hit = fixture de redaction em `db.example`); 0 artefato de build/pasta de política no staging; 2 adicionados + 22 modificados conferidos.
+- **Risco residual (higiene separada, NÃO tratado nesta rodada):** 15 worktrees do Codex (`~/.codex/worktrees/*`, **82–115 pendentes cada**) e 3 em `~/pre-a4-work` (2–10) seguem como trabalho/artefato ilhado do mesmo tipo — inventário e triagem exigem rodada dedicada.
+- **Vercel — deploy FAIL do WIP diagnosticado e corrigido (2026-09-13, frente paralela):** e-mail do Vercel ao dono disparou a inspeção no painel (sessão do dono, **um navegador**). Deployment `3uf5t5CtT4STAa4Dkj7EquVBjrRe` do branch `codex/p0-closeout` @ `c0ef351` = **Error em 13 s** com `Build Failed — No Output Directory named "dist" found after the Build completed`; **todos** os deploys de `develop` da rodada (`97d5f24`…`a3d5db7`) e o de produção (`ef2110e`, `main`) = **Ready** (13–19 s); alias interino `-sage` seguiu servindo. **Causa raiz [MEDIDO]:** a revisão do WIP (base 2026-08-15, 158 commits atrás) tinha `nitro: { preset: "node-server" }`; é o preset `vercel` sob `VERCEL=1` (commit `f386d72`, 2026-09-09) que emite a **Build Output API** (`.vercel/output`) — sem ela o preset de framework do projeto (`TanStack Start`, importado do Lovable) exige `dist` e o build falha. **Correção:** commit `49eaf2b` no WIP (só `vite.config.ts`, +3/−2) → novo deployment **Ready em 18 s** ✅; `develop`/`main` intocados; **nenhuma** mudança de configuração no painel (`Ignored Build Step` segue `Automatic`). **Config registrada:** Node `24.x` · Framework Preset `TanStack Start` · Build/Output/Install **sem override** · retenção de deploys com erro 30 dias. **Risco latente:** o projeto depende da Build Output API — qualquer caminho de build que não a emita reproduz o mesmo erro; a config vive só no painel (drift de repositório, registrar em evidência conforme AGENTS.md).
+- **FASE J — PROGRESS-JOURNAL instituído (2026-09-13):** criado `docs/evidence/agent-state/PROGRESS.md` (handoff entre sessões; **apenas ponteiros** — caminhos, SHAs, timestamps, _nomes_ de env; nunca valores) com protocolo explícito: intenção `▶` **antes** da mutação, resultado `✔`/`✘` depois (append-only), intenção órfã ⇒ o próximo boot **reconcilia antes de agir**, marcos commitados a cada fronteira de fase (perda máxima = reexecutar desde o marco, declarada). Protocolo de boot (~30 s: journal → marcador parent-pinned → watchers → reconciliar → retomar) e a regra "**memória de agente é cache invalidável** — nada que vá para artefato/journal entra nela" gravados em `AGENTS.md`. Motivo: INFRA-MEM-01 (memória saturada — 497% no escopo de projeto e 322% no de falhas — com auto-review em `parse_error`/`timeout`); podagem (J5) pendente com métrica antes/depois.
+- **FASE J concluída (J1–J6, 2026-09-13):** journal `docs/evidence/agent-state/PROGRESS.md` no ar (ponteiros apenas: refs, fila humana, watchers, marcos; protocolo intenção `▶` **antes** / resultado `✔`/`✘` depois; intenção órfã ⇒ reconciliar no boot; marcos commitados por fronteira de fase, perda máxima declarada) · protocolo de boot (~30 s: journal → marcador parent-pinned → watchers → reconciliar → retomar) e a regra permanente \"memória de agente é cache invalidável\" gravados em `AGENTS.md` · **J5 podagem executada**: `pi-hermes-memory/failures.md` 32.261→**600** chars (322%→**6%**) e `projects-memory/preco-que-d-main/MEMORY.md` 24.872→**638** chars (497%→**12%**); lições duráveis destiladas em `docs/evidence/agent-state/AGENT-ENV-NOTES.md`; backup integral dos 4 stores em `~/.local/share/pi-fronts/memory-prune-2026-09-13/`; **fora do escopo aprovado** (recomendação aberta): global `MEMORY.md` 192% e `USER.md` 145%. **Pendência de verificação:** comportamento do auto-review na próxima fronteira de sessão (métrica antes/depois já registrada no INFRA-MEM-01).
+- **FASE 1 PASS + colisão de escrita reconciliada (2026-09-13):** contrato duplo de build provado localmente — `npm run build` gera `.output/server/index.mjs` (21.443 B) **e** `VERCEL=1 npm run build` gera `.vercel/output/{config.json,functions,static,nitro.json}` (config 366 B), ambos exit 0 → o preset condicional não causa regressão cruzada; evidência `docs/evidence/build-contract-2026-09-13.md`. **Higiene:** `.vercel/` estava fora do `.gitignore` (build local deixava ~138 arquivos soltos e quebrava o `prettier --check .` do gate local) → corrigido. **Colisão de escrita (caso real da técnica J2):** o subagente da FASE 3 fez checkout do branch `chore/ci-path-filter` no **mesmo worktree** e o commit M1 (`d49fc8b`) caiu no branch dele; mitigação — _steer_ imediato com escopo estrito (sem `git add -A`, sem `.vercel/**`, sem ledger), agente commitou apenas os seus arquivos (`56727e7`, publicado) e a reconciliação devolveu o M1 ao `develop` por cherry-pick (`0115637`). **Lição operacional:** agente que muta repositório recebe **worktree próprio** — um cwd não admite dois escritores. Marco **M2** abaixo.
+  Latest state marker parent = `36e9c635e6d9a5123fb48957ea182557bddd503d`,
+
+### Back-merge obrigatório `main → develop` (AGENTS.md:12-14)
+
+- **Verificação:** `git merge-base --is-ancestor origin/main develop` → **NÃO era ancestral** (main `ef2110e7`, merge do PR #44, tinha avançado a linha de release) ⇒ back-merge **PENDENTE** e exigido pela norma.
+- **Ação:** merge `--no-ff origin/main` → **`6f2a392d648fc610953d00a4ddaa04f05715a41c`** (estratégia `ort`, sem conflito; árvore de conteúdo idêntica) — registrado nesta entrada. A partir daqui `main` é ancestral de `develop`.
+- **Consequência imediata:** nenhuma de conteúdo; publica a sincronia e evita reploy de configuração defasada (incidente do PR #42 citado em `AGENTS.md:12-14`).
+
+### Supervisão transversal — resultado e limite declarado (2026-09-13)
+
+- **S-SEC:** **CLEAN** — 0 P0 / 0 P1; 5 P2 de endurecimento, 1 aplicado (janela de validade do `jwt` removida de `SESSION-LIMIT.md`; hash/valor nunca transcrito). Veredito independente replicado pelo orquestrador com `grep` (único hit = o próprio padrão de grep dentro do runbook) e `npm run m02:secrets-audit` = `COMPLETE_WITH_LIMITS` com `failures: []`. Artefato: `docs/evidence/subagents/S-SEC-2026-09-13.md`.
+- **S-ALIN:** **DESVIO — 0 P0 / 5 P1 / 4 P2**, todos corrigidos ou endereçados nesta rodada: P1-1 → **P9 (BAK-01b) + N-10** nos critérios de abort 0h do runbook; P1-2 → bullet **F-1** + **H-7** (ratificação do ADR-028) registrados; P1-3 → **proveniência** do `matrix:check` (comando + timestamp + HEAD) corrigida em `agent-infra-findings`; P1-4 → **errata** na célula hPanel do `G-VER-v2-memo` (app criado + build FAIL) antes de qualquer coleta de assinatura H-3; P1-5 → **errata do freeze** (M02-D-009 = A5 0h→B3, não iniciado × guard de migração de 2 h, expirado) + go/no-go explícito do redeploy de preview do H-6. P2: pipes do ADR-028 escapados; `AGENTS.md` → ADR-028 (proposta); `GAP-DOC-RLS-01` nomeado; `GAP-DOC-ENGINES-01` registrado no docmap. Artefato: `docs/evidence/subagents/S-ALIN-2026-09-13.md`.
+- **S-TEC:** **DESVIO — 0 P0 · 1 P1 material · 4 P2**, materialmente **corrigidos nesta rodada**: o **P1** derrubou a alegação central do probe de auth do runbook (`GET /api/auth/get-session` **não** prova a troca de `BETTER_AUTH_URL`: `originCheckMiddleware` do better-auth **retorna cedo em GET/HEAD/OPTIONS** — `node_modules/better-auth/dist/api/middlewares/origin-check.mjs:44` — e `auth-policy.ts:35-45` só exige existência + origem https, que o host de preview também satisfaz) → o runbook §1.6 foi reescrito para o que o probe **de fato** prova (`≠200 ⇒ ABORT` segue correto; `200` **não** é prova), com **asserção discriminante (c1)** obrigatória (host do link de reset pelo canônico) e **(c2)** explícita para o caso `RESEND_*` ausente (`auth_baseurl_verified: false` ⇒ critério de abort do 0h). P2 corrigidos: hipótese do `engine-strict` sobre nó `devOptional` rotulada em ADR-028 §2.1 e no checklist (com prova equivalente da via (ii) no §8.6); `reset`+push removido do GAP-DOC do R3 (vedado por ADR-017); regra herdada do drill reescopada (mutações via npm script; probes read-only sancionados). Veredito do ADR-028 isolado: **OK with notes** (§1–§8 conferem com o lock e o código; §8 executável). Artefato: `docs/evidence/subagents/S-TEC-2026-09-13.md`.
+- **Gate local (pré-push):** `npm run check` executado no HEAD `6f2a392` — primeira passagem **reprovou em `format:check`** por **198 arquivos NÃO rastreados** (evidências de rodadas anteriores no worktree; o CI, que só vê rastreados, estava limpo) — corrigido com `prettier --write` no worktree; `m02:lockfile-guard` PASS; `m02:state:check` PASS em `d2cc4e9`. **Lição registrada:** `npm run check | tail -N` mascara o exit code (o 0 vinha do `tail`); conferir sempre `PIPESTATUS`/sem pipe.
+- **PROVAS DO FILTRO DE CI (FASE 3, 2026-09-13):** `develop` = `bc91be0` (PR #45) com o filtro ATIVO. **Prova A** — push só-docs `455ea7f` ⇒ rodou **apenas** `CI light (docs/evidence)` (success; guard aplicável) e o `UI stack` **não** foi disparado. **Prova B** — commit misto `36e9c63` (ledger + evidência) ⇒ `UI stack` **disparado** e o leve decidiu `applicable=false` ("changed paths outside docs/evidence/ — heavy pipeline owns it"). Bônus: o merge `bc91be0` (código+docs) também manteve o pesado. Evidência consolidada em `docs/evidence/ci-path-filter-2026-09-13.md` §8.

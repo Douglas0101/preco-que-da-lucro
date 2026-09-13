@@ -125,6 +125,18 @@ function resultSign(value: number): DecimalScenarioResult["resultSign"] {
 export function runFinancialSimulation(
   input: SimulationServiceInput,
 ): CalculationResult<DecimalScenarioResult> {
+  if (input.volumeSource === "real") {
+    return {
+      status: "invalid",
+      errors: [
+        {
+          code: "INVALID_VOLUME_SOURCE",
+          message: "Volume real exige dados do domínio de vendas; use uma simulação explícita.",
+          field: "volumeSource",
+        },
+      ],
+    };
+  }
   applicationMetrics.financialEngineVersion.add(1, { version: FINANCE_ENGINE_VERSION });
   const fees: FeeRow[] = input.fees.map((fee) => ({
     percentage: parseValue(fee.percentage),

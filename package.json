@@ -34,6 +34,7 @@
     "m02:matrix:check": "tsx scripts/m02-matrix.ts --check",
     "m02:boundaries": "tsx scripts/m02-boundaries.ts",
     "m02:state:check": "tsx scripts/m02-state-check.ts",
+    "m02:lockfile-guard": "node scripts/m02-lockfile-guard.mjs",
     "m02:secrets-audit": "tsx scripts/m02-secrets-audit.ts",
     "m02:readiness": "node scripts/m02-readiness.mjs",
     "m02:forensic-bundle": "tsx scripts/m02-forensic-bundle.ts",
@@ -66,7 +67,7 @@
     "smoke:substrate": "tsx scripts/smoke/substrate-smoke.ts",
     "check:bundle": "node scripts/check-bundle.mjs",
     "check:hostinger-runtime": "node scripts/check-hostinger-runtime.mjs",
-    "check": "npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle"
+    "check": "npm run m02:lockfile-guard && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

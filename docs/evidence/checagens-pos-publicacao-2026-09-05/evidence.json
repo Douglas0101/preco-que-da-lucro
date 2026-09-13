@@ -1,0 +1,475 @@
+{
+  "recordedAt": "2026-09-05T16:26:30Z",
+  "scope": "Checagens pos-publicacao sem deploy; consultas externas GET/SELECT e gates locais",
+  "sources": {
+    "githubPlugin": "GitHub",
+    "neonPlugin": "Neon",
+    "browser": "Codex In-app Browser"
+  },
+  "authorization": {
+    "github": {
+      "login": "Douglas0101",
+      "repository": "Douglas0101/preco-que-da-lucro",
+      "permission": "admin"
+    },
+    "neon": {
+      "projectId": "damp-forest-57346541",
+      "projectName": "preco-que-da-lucro-g3-pg17",
+      "permission": "ADMIN",
+      "branchId": "br-snowy-violet-aymcvvvv",
+      "branchName": "production",
+      "database": "neondb",
+      "sqlRole": "neondb_owner"
+    },
+    "hostinger": {
+      "status": "BLOCKED-AUTH",
+      "observedUrl": "https://auth.hostinger.com/login",
+      "userReportedAccessUnavailable": true
+    },
+    "sonarDashboard": {
+      "status": "BLOCKED-AUTH",
+      "observedMessage": "The requested project does not exist, or you have not authenticated with SonarQube Cloud.",
+      "configurationVerified": false
+    }
+  },
+  "git": {
+    "localHead": "bf356d862e3e8240e2f144f84c1b1fa37bc34f32",
+    "branch": "develop",
+    "remoteDevelop": "bf356d862e3e8240e2f144f84c1b1fa37bc34f32",
+    "remoteMain": "b1f946883a106668a5cf1d67ec8d7ec5d48810a2",
+    "trackedWorktreeInitiallyClean": true,
+    "preexistingUntrackedPreserved": true,
+    "runtimeTreesIdenticalBetweenPublishedTips": true,
+    "prs": [
+      {
+        "number": 24,
+        "base": "develop",
+        "head": "codex/wave1-neon-native",
+        "headSha": "b8fcb0b1e71f4918fce6a77dfa28596e8c3a7cf4",
+        "merged": true,
+        "mergeCommitSha": "b7c98f4443c613584a0bb9b03910a8123ffaff28",
+        "mergedAt": "2026-09-04T02:33:25Z",
+        "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/24"
+      },
+      {
+        "number": 25,
+        "base": "main",
+        "head": "develop",
+        "headSha": "f4679bdfeec7c9e45041be7fa8e8cdd51a5044f2",
+        "merged": true,
+        "mergeCommitSha": "84030b662a77c99ed7d54df2001401f55e36e42c",
+        "mergedAt": "2026-09-04T03:24:17Z",
+        "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/25"
+      },
+      {
+        "number": 26,
+        "base": "develop",
+        "head": "fix/sonar-pr25-quality-gate",
+        "headSha": "fdc0a17e8daaa73c549bf27098a95e622f5987f9",
+        "merged": true,
+        "mergeCommitSha": "0bab6b7cc6fcf02d371ed7b9d7aec928ae6d22c3",
+        "mergedAt": "2026-09-05T02:10:42Z",
+        "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/26"
+      },
+      {
+        "number": 27,
+        "base": "main",
+        "head": "develop",
+        "headSha": "0bab6b7cc6fcf02d371ed7b9d7aec928ae6d22c3",
+        "merged": true,
+        "mergeCommitSha": "b1f946883a106668a5cf1d67ec8d7ec5d48810a2",
+        "mergedAt": "2026-09-05T02:52:38Z",
+        "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/27"
+      }
+    ]
+  },
+  "ci": [
+    {
+      "runId": 33941501282,
+      "headSha": "bf356d862e3e8240e2f144f84c1b1fa37bc34f32",
+      "branch": "develop",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/33941501282"
+    },
+    {
+      "runId": 33940307955,
+      "headSha": "b1f946883a106668a5cf1d67ec8d7ec5d48810a2",
+      "branch": "main",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/33940307955"
+    }
+  ],
+  "sonarMain": [
+    {
+      "id": 101236398317,
+      "headSha": "b1f946883a106668a5cf1d67ec8d7ec5d48810a2",
+      "conclusion": "neutral",
+      "title": "Quality Gate not computed",
+      "url": "https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro&branch=main"
+    }
+  ],
+  "sonarPr26": [
+    {
+      "id": 100907596511,
+      "headSha": "fdc0a17e8daaa73c549bf27098a95e622f5987f9",
+      "conclusion": "success",
+      "title": "Quality Gate passed",
+      "url": "https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro&pullRequest=26"
+    }
+  ],
+  "mainArtifacts": [
+    {
+      "id": 9961672946,
+      "name": "browser-evidence-b1f946883a106668a5cf1d67ec8d7ec5d48810a2",
+      "expired": false,
+      "digest": "sha256:ee260a584affb51055c7b7ffe94538bb6ce0dabafb845df8e6e1908ceecae094",
+      "headSha": "b1f946883a106668a5cf1d67ec8d7ec5d48810a2",
+      "downloaded": false
+    },
+    {
+      "id": 9961609977,
+      "name": "bundle-evidence-b1f946883a106668a5cf1d67ec8d7ec5d48810a2",
+      "expired": false,
+      "digest": "sha256:dd91555cfc97a83c914f87d2f1605fd775472dd3417e9dad26c66fee73302614",
+      "headSha": "b1f946883a106668a5cf1d67ec8d7ec5d48810a2",
+      "downloaded": false
+    }
+  ],
+  "localChecks": {
+    "m02State": {
+      "status": "PASS",
+      "head": "bf356d862e3e8240e2f144f84c1b1fa37bc34f32"
+    },
+    "m02Matrix": {
+      "status": "PASS",
+      "message": "M-02 matrix is deterministic and up to date."
+    },
+    "m02Boundaries": {
+      "status": "FAIL",
+      "exitCode": 1,
+      "total": 26,
+      "uniqueMissingCatalogPaths": [
+        "src/server/services/pricing.service.ts",
+        "src/server/services/conversation.service.ts",
+        "src/server/contracts/memory.contracts.ts",
+        "src/server/services/audit.service.ts",
+        "src/server/contracts/event.contracts.ts",
+        "src/server/repositories/product-catalog.repository.ts",
+        "src/server/repositories/conversation.repository.ts",
+        "src/server/repositories/audit.repository.ts"
+      ],
+      "violations": [
+        "src/lib/chat.functions.ts -> src/lib/ai/budget-ledger.server.ts",
+        "src/lib/chat.functions.ts -> src/lib/ai/tool-registry.ts",
+        "src/lib/chat.functions.ts -> src/lib/ai/tool-runner.ts",
+        "src/lib/chat.functions.ts -> src/lib/chat-data.ts",
+        "src/lib/chat.functions.ts -> src/lib/chat-execution.server.ts",
+        "src/lib/chat.functions.ts -> src/lib/chat.functions.ts",
+        "src/lib/chat.functions.ts -> src/server/services/purchase-price.service.ts",
+        "src/lib/diagnostic.functions.ts -> src/server/services/product-detail.service.ts",
+        "src/lib/expenses.functions.ts -> src/lib/expenses.functions.ts",
+        "src/lib/products.functions.ts -> src/lib/products.functions.ts",
+        "src/lib/products.functions.ts -> src/server/services/purchase-price.service.ts"
+      ],
+      "missingEntryPolicies": ["src/lib/sales.functions.ts"],
+      "missingOperationMappings": [
+        "src/lib/sales.functions.ts:createSale",
+        "src/lib/sales.functions.ts:listSales"
+      ],
+      "missingCatalogPaths": [
+        "src/server/services/pricing.service.ts",
+        "src/server/services/conversation.service.ts",
+        "src/server/contracts/memory.contracts.ts",
+        "src/server/services/audit.service.ts",
+        "src/server/contracts/event.contracts.ts",
+        "src/server/repositories/product-catalog.repository.ts",
+        "src/server/repositories/product-catalog.repository.ts",
+        "src/server/repositories/product-catalog.repository.ts",
+        "src/server/repositories/conversation.repository.ts",
+        "src/server/contracts/memory.contracts.ts",
+        "src/server/repositories/audit.repository.ts",
+        "src/server/contracts/event.contracts.ts"
+      ]
+    },
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "vitest": {
+      "status": "PASS",
+      "files": 34,
+      "tests": 353
+    },
+    "formatBeforeEvidence": "PASS",
+    "gitDiffCheckBeforeEvidence": "PASS",
+    "sandboxRetry": {
+      "firstAttempt": "tsx IPC listen EPERM in sandbox",
+      "escalation": "approved automatically",
+      "gatesConsumedOnlyAfterActualExecution": true
+    }
+  },
+  "dependencies": {
+    "node": "24.15.0",
+    "npm": "11.14.1",
+    "betterAuth": "1.7.2",
+    "drizzleAuthAdapter": "1.7.2",
+    "playwright": "1.62.1",
+    "vitest": "4.1.11"
+  },
+  "neon": {
+    "projectVersion": 17,
+    "serverVersionNum": "170011",
+    "historyRetentionSeconds": 21600,
+    "managedSnapshots": [],
+    "productionRestoreTest": "UNVERIFIED",
+    "journal": [
+      {
+        "id": 1,
+        "hash": "952004d7ccebd5af1c3064a350d1a2cd322c2911728b7ae6a2d239df68641743",
+        "created_at": 1786510674427
+      },
+      {
+        "id": 2,
+        "hash": "c1bf8f25a7534f9ec154c3844da8a7000d329d8a2170d1ecd5978fe1029eaf16",
+        "created_at": 1786510700000
+      },
+      {
+        "id": 3,
+        "hash": "d730f0fbb9a54d4a4f09b11526540d6f11fb0d0ea734fa699fc998b2940e8ff6",
+        "created_at": 1786679075477
+      },
+      {
+        "id": 4,
+        "hash": "c524ddbd26ace10b17fcb9fba7a78162f66779874b05f2fdcfc326c42c7e38ec",
+        "created_at": 1786767213666
+      },
+      {
+        "id": 5,
+        "hash": "1517e6f4684aa87137d16bb6f5e81b18c0bd651210f4a454ecfea8f502258570",
+        "created_at": 1786772449256
+      },
+      {
+        "id": 6,
+        "hash": "7a6495ce7e9d39ffa368efbab48031e7e2ed7cb71babd064740ca348081d4ead",
+        "created_at": 1787300000000
+      },
+      {
+        "id": 7,
+        "hash": "51f32b321436a83c666229ea850e9e8fc851b915e7c37774167d81a5508b0dcb",
+        "created_at": 1787791901561
+      },
+      {
+        "id": 8,
+        "hash": "db08871dbb49d16be1de994fc1963e26661dced76e768e9488ee031772610e5e",
+        "created_at": 1788030982407
+      },
+      {
+        "id": 9,
+        "hash": "a8ca9a022686b5f1b8fff0aef3725fa2a3f0fa190ee310148a9d2cfa4fcc8e0b",
+        "created_at": 1788234629775
+      },
+      {
+        "id": 10,
+        "hash": "e544600a73dc01c4cc32f61c7be12ad67aeb3785272685c77512317af5d6d734",
+        "created_at": 1788320068519
+      },
+      {
+        "id": 11,
+        "hash": "5bbe63899706fb8be6ef8777b099db1bcdd120fa02fc539ca69ba6e85349b605",
+        "created_at": 1788320100000
+      }
+    ],
+    "credential_aggregates": {
+      "issuer_null": 0,
+      "issuer_other": 0,
+      "issuer_expected": 4,
+      "credential_accounts": 4,
+      "rollback_0010_would_update": 4
+    },
+    "wave1_columns": [
+      {
+        "type": "integer",
+        "table": "ai_daily_budgets",
+        "column": "estimated_cost_unknown_count",
+        "nullable": "NO"
+      },
+      {
+        "type": "text",
+        "table": "ai_usage",
+        "column": "cost_status",
+        "nullable": "NO"
+      },
+      {
+        "type": "numeric",
+        "table": "ai_usage",
+        "column": "estimated_cost",
+        "nullable": "YES"
+      },
+      {
+        "type": "uuid",
+        "table": "ai_usage",
+        "column": "tool_execution_id",
+        "nullable": "YES"
+      },
+      {
+        "type": "uuid",
+        "table": "calculation_snapshots",
+        "column": "entity_id",
+        "nullable": "YES"
+      },
+      {
+        "type": "text",
+        "table": "calculation_snapshots",
+        "column": "idempotency_key",
+        "nullable": "NO"
+      },
+      {
+        "type": "text",
+        "table": "chat_conversations",
+        "column": "conversation_state",
+        "nullable": "NO"
+      },
+      {
+        "type": "jsonb",
+        "table": "chat_conversations",
+        "column": "state_metadata",
+        "nullable": "YES"
+      },
+      {
+        "type": "timestamp with time zone",
+        "table": "chat_conversations",
+        "column": "state_updated_at",
+        "nullable": "NO"
+      },
+      {
+        "type": "text",
+        "table": "tool_executions",
+        "column": "cost_status",
+        "nullable": "NO"
+      },
+      {
+        "type": "numeric",
+        "table": "tool_executions",
+        "column": "estimated_cost",
+        "nullable": "YES"
+      }
+    ],
+    "snapshot_index": {
+      "valid": true,
+      "unique": true,
+      "definition": "CREATE UNIQUE INDEX calculation_snapshots_idempotency_uidx ON public.calculation_snapshots USING btree (tenant_id, calculation_type, idempotency_key)"
+    },
+    "wave1_constraints": [
+      {
+        "name": "ai_daily_budgets_nonnegative_check",
+        "validated": true
+      },
+      {
+        "name": "ai_usage_cost_status_check",
+        "validated": true
+      },
+      {
+        "name": "chat_conversations_state_check",
+        "validated": true
+      },
+      {
+        "name": "tool_executions_cost_status_check",
+        "validated": true
+      }
+    ],
+    "runtime_role": {
+      "login": true,
+      "bypassrls": false,
+      "superuser": false
+    },
+    "tenant_tables": [
+      {
+        "rls": true,
+        "table": "ai_daily_budgets",
+        "force_rls": false,
+        "owner_is_runtime": false
+      },
+      {
+        "rls": true,
+        "table": "ai_usage",
+        "force_rls": false,
+        "owner_is_runtime": false
+      },
+      {
+        "rls": true,
+        "table": "calculation_snapshots",
+        "force_rls": false,
+        "owner_is_runtime": false
+      },
+      {
+        "rls": true,
+        "table": "chat_conversations",
+        "force_rls": false,
+        "owner_is_runtime": false
+      },
+      {
+        "rls": true,
+        "table": "tool_executions",
+        "force_rls": false,
+        "owner_is_runtime": false
+      }
+    ]
+  },
+  "adr025": {
+    "documentStatus": "ACCEPTED",
+    "ownerDecisionDate": "2026-08-30",
+    "implementationStatus": "NOT_IMPLEMENTED",
+    "cookieCacheEnabled": false,
+    "disableCookieCacheInMiddleware": true
+  },
+  "playwrightIncident": {
+    "runId": 33938735859,
+    "failedAttempt": 1,
+    "jobId": 101231751360,
+    "status": "cancelled",
+    "installStart": "2026-09-05T02:21:33Z",
+    "installEnd": "2026-09-05T02:39:31Z",
+    "durationSeconds": 1078,
+    "retryInstallSeconds": 52,
+    "lastObservedPhase": "APT operating-system dependency download",
+    "mirror": "azure.archive.ubuntu.com",
+    "excerpt": [
+      "2026-09-05T02:21:39.8682616Z Need to get 114 MB of archives.",
+      "2026-09-05T02:21:39.8685140Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]",
+      "2026-09-05T02:21:40.1046147Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]",
+      "2026-09-05T02:21:40.2687845Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]",
+      "2026-09-05T02:21:40.4841331Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]",
+      "2026-09-05T02:21:40.5645684Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]",
+      "2026-09-05T02:21:40.7471572Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]",
+      "2026-09-05T02:21:41.0003371Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libproxy1v5 amd64 0.5.4-4build1 [26.5 kB]",
+      "2026-09-05T02:27:27.9017429Z Ign:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 glib-networking-common all 2.80.0-1build1",
+      "2026-09-05T02:32:52.5466290Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 glib-networking-services amd64 2.80.0-1build1 [12.8 kB]"
+    ],
+    "recommendation": "Browser binary cache does not address the observed apt dependency stall."
+  },
+  "nextGates": {
+    "A4Deploy": "BLOCKED-AUTH",
+    "A5Observation": "NOT_STARTED",
+    "B3Metrics": "NOT_STARTED",
+    "B4": "BLOCKED",
+    "C": "BLOCKED",
+    "Hnsw": "BLOCKED"
+  },
+  "restrictions": {
+    "gitRefMutation": false,
+    "commit": false,
+    "push": false,
+    "pullRequestWrite": false,
+    "merge": false,
+    "databaseMutation": false,
+    "migrationReplayed": false,
+    "credentialRetrieved": false,
+    "productionSmoke": false
+  },
+  "references": {
+    "playwright": "https://playwright.dev/docs/ci#caching-browsers",
+    "sonar": "https://docs.sonarsource.com/sonarqube-cloud/standards/quality-gates"
+  }
+}

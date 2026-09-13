@@ -1,0 +1,70 @@
+{
+  "status": "PRE_S0_READ_ONLY_RECON",
+  "assembled_at_utc": "2026-09-07 15:52:39 UTC",
+  "classification": "LIVE_VERIFIED",
+  "collection": "Neon plugin list_organizations, list_projects, list_branches, list_snapshots; authenticated browser UI",
+  "organization": [
+    {
+      "id": "org-purple-snow-18870527",
+      "name": "Douglas",
+      "plan": "free"
+    }
+  ],
+  "project": [
+    {
+      "id": "damp-forest-57346541",
+      "name": "preco-que-da-lucro-g3-pg17",
+      "pg_version": 17,
+      "region_id": "aws-us-east-2",
+      "history_retention_seconds": 21600
+    }
+  ],
+  "branches": [
+    {
+      "id": "br-snowy-violet-aymcvvvv",
+      "name": "production",
+      "current_state": "ready",
+      "default": true
+    },
+    {
+      "id": "br-small-hill-aymcu14y",
+      "name": "develop",
+      "current_state": "archived",
+      "default": false,
+      "parent_id": "br-snowy-violet-aymcvvvv"
+    }
+  ],
+  "ephemeral_branches_present": [],
+  "snapshots": [
+    {
+      "id": "snap-tiny-smoke-ayc382ji",
+      "name": "pre-a4-prepurge-20260905",
+      "source_branch_id": "br-snowy-violet-aymcvvvv",
+      "created_at": "2026-09-05T22:37:46Z",
+      "expires_at": "2026-10-10T23:59:59Z",
+      "manual": true
+    }
+  ],
+  "browser": {
+    "user_confirmed_login": true,
+    "authenticated_ui_observed": true,
+    "url": "https://console.neon.tech/app/projects/damp-forest-57346541/settings#storage",
+    "history_options_hours": [0, 1, 2, 6],
+    "history_save_disabled": true,
+    "upgrade_window_text": "up to 30 days",
+    "offered_plans": ["Launch", "Scale"],
+    "upgrade_offered": true,
+    "upgrade_selected": false,
+    "paid_plan_activation_verified": false,
+    "upgrade_impossible": null,
+    "upgrade_impossibility_proven": false,
+    "note": "Extract of visible UI transcribed from CUA observations; not a screenshot. The upgrade dialog was closed without choosing a plan or saving settings."
+  },
+  "limits": [
+    "No SQL, row count, role membership, fixture purge, logical dump, restore or snapshot-create was performed.",
+    "Native snapshot presence does not prove independent backup, current dump freshness, RPO/RTO or runtime Auth/RLS.",
+    "No complete console-check of alerts, spending controls or compute monitoring was performed; this is not PS-S5, PS-S6, PS-S7 or PS-S10.",
+    "Public documentation fetches for plans and pricing returned HTTP 400 unsupported text/markdown; no claim of paid-plan activation or specific plan retention was derived from them.",
+    "An initial list_projects without org_id returned HTTP 400; organization resolution followed by list_projects with org_id succeeded. This was not a snapshot API regression."
+  ]
+}

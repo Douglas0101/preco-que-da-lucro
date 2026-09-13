@@ -1,0 +1,101 @@
+{
+  "rodada": "CUTOVER-PREP (P0–P6)",
+  "data": "2026-09-07 (D0, date -u 01:06Z de abertura)",
+  "tipo": "mecanização do cutover — zero commits, zero escrita em produção, prep não-promotor do gate §42",
+  "P0": {
+    "stack_mode": "uncommitted",
+    "head": "8d26a2c",
+    "risco_top1": "feixe humano V0+V4+V5 acumulado no mesmo working tree",
+    "sha256sums": "cutover-2026-09-07 18/18 SUCESSO; gsec-2026-09-06 12/14 + 2 FALHOU (deriva documentada pelo Manifest 4, emendas #2/#3 pós-selo)",
+    "writeprobe": "OK",
+    "evidencia": "round-state.md"
+  },
+  "P1": {
+    "script": "scripts/m02-v2b.mjs (+ .d.mts) · npm m02:v2b",
+    "plano": "--plan exit 0 sem conexão (v2b-plan.log)",
+    "sem_credencial": "exit 3 PRÉ-conexão, log sockets_abertos=0, orientação D2 (v2b-exec-sem-credencial.log)",
+    "execucao_real": "PENDENTE HUMANO D2 (SUPABASE_MIGRATION_DATABASE_URL ausente; NO-GO 10/09 se inconclusa)",
+    "testes": "src/test/m02-v2b.test.ts — 9/9 sem rede",
+    "ledger_snippet": "NÃO emitido (V2b não executou — regra da rodada)"
+  },
+  "P2": {
+    "workflow": ".github/workflows/neon-pr-branch.yml",
+    "aceite_local": "YAML parse OK · pin-check OK (4 uses por SHA, reaproveitados) · simulação gate fork-guard/secret-missing (skip gracioso rotulado) · transformação pooled validada (neon-pr-branch-workflow-validation.md)",
+    "run_real": "1º PR pós-merge (pendência de CI, não da rodada)"
+  },
+  "P3": {
+    "script": "scripts/m02-role-membership.mjs — reusa ensureRuntimeRoleMembership de scripts/db/migrate.ts (fonte única, nenhum SQL duplicado)",
+    "kinds": [
+      "drill-branch (branch ≠ produção)",
+      "cutover-window (janela Emenda #3; dry remoto também exige janela)"
+    ],
+    "idempotencia": "run1 false→true; run2 no-op; diff mid×after VAZIO (role-membership-state-{before,mid,after}.json)",
+    "branch": "probe-membership-2026-09-07 (br-super-dawn-ayzdf306) — deletada com prova antes/depois",
+    "producao": "conferida read-only: set_option=false como no achado V3 (grant não vazou — per-branch)",
+    "runbook": "cutover-A4.md §2.5 (v) antes do smoke + linha na §10; GAP-TOOLING = fechado por ordem de runbook + script",
+    "testes": "src/test/m02-role-membership.test.ts — 4/4 (DENY pré-conexão Emendas #2/#3)",
+    "evidencia": "role-membership-test-2026-09-07.md"
+  },
+  "P4": {
+    "script": "scripts/m02-cutover-t0.mjs · npm m02:cutover-t0",
+    "run_oficial": "cutover-t0-2026-09-07T01-55-17-306Z.{json,md} — exit 0 · PASS×4 · EXPECTED-PENDING×3 (janela freeze rotulada 'esperado pré-cutover'; readiness FAIL de agenda nomeada: m02-state/g1/sec01/freeze/snapshot-fresco) · DIA-D×1 · hard_fail=0",
+    "dupla_snapshot": "shas distintos por run (oficial: 7e2d03…/cb7b9f…) com ALLOW_SANCTIONED do guard registrado por execução",
+    "iteracoes": "attempt1 (args npm sem '--'), attempt2 (parser JSON com banner do npm) — bugs do MECANISMO, corrigidos e revalidados; artefatos preservados com prefixos",
+    "readiness_detalhe": "readiness-detalhe-2026-09-07T01-38-59Z.json (substrate 7/7 PASS; fails = agenda humana state/g1/sec01/freeze/snapshot-fresco)",
+    "testes": "src/test/m02-cutover-t0.test.ts — 2/2"
+  },
+  "P5": {
+    "script": "scripts/m02-snapshot.mjs · npm m02:snapshot · hook prem02:snapshot (guard ALLOW_SANCTIONED logado)",
+    "baseline": {
+      "arquivo": "artifacts/snapshots/snapshot-2026-09-07.dump",
+      "sha256": "85b1cc1ba04463f273b3bd2dc4e07d747bc78919a9baceec021c72704fa5acfe",
+      "sha256_check": "root-relative SUCESSO via sha256sum -c a partir da raiz",
+      "tamanho_bytes": 120757,
+      "duracao_ms": 25189,
+      "pg_server_version": "17.11 (32e7196)",
+      "origem": "production (DIRECT; host mascarado; read-only proof no metadata)"
+    },
+    "emenda_4": "m02:snapshot na allowlist (somente pg_dump read-only; NÃO relaxa hard-deny de migrate) — emenda datada §10 + tabela §4; selftest 12→13 (novo caso remoto+m02:snapshot=ALLOW); MANAGED_KEYS + SUPABASE_MIGRATION_DATABASE_URL",
+    "attempt1": "bug de parse de metadata (slice) só no artefato local; corrigido e re-baselineado; logs preservados",
+    "testes": "src/test/m02-snapshot.test.ts — 4/4"
+  },
+  "P6": {
+    "manifest": "manifest-5.md (staging exato + nota de empilhamento + mensagem de commit + pré-flight + conferência de segredos)",
+    "preflight": {
+      "env_guard_selftest": "13/13",
+      "unit": "35/35 em 6 suítes sem DB (npx = gap do pretest guard já documentado)",
+      "typecheck": "exit 0",
+      "eslint": "exit 0 (115 prettier auto-corrigidos em arquivos novos)",
+      "matrix": "m02:matrix:check PASS sem drift → sem regen",
+      "boundaries": "PASS",
+      "state": "VERMELHO ROTULADO (V0 pendente; fica verde na cadeia)",
+      "secrets_audit": "COMPLETE_WITH_LIMITS; possible_secret_literals=[]"
+    },
+    "scan_selado": "ferramenta MCP indisponível nesta sessão → triagem manual pelos critérios G-SEC T1: nenhuma CLASSE NOVA ao floor 9; novas localizações da classe env→conexão (pg/pg_dump conninfo) registradas em report.md §7, sem improvisar fix; re-selamento humano pendente (fila)"
+  },
+  "producao_hoje": {
+    "escritas": 0,
+    "ops_read_only_logadas": [
+      "pg_dump baseline (1 válido + 1 attempt local-bug)",
+      "6× pg_dump via dupla snapshot T-0 (run1+run2+run3-oficial) com motivo no metadata",
+      "SELECTs journal/membership (read-only sessions)",
+      "3× substrate-smoke via m02:readiness (sanctioned)"
+    ],
+    "estado": "como encontrado (suspensa→acorda para leitura; fixture-free; sem branch efêmera remanescente)"
+  },
+  "regras": {
+    "commits": 0,
+    "ledger_tocado": false,
+    "paridade_legado": "DESCONHECIDA (redação não convertida; V2b não executou)",
+    "branches_efemeras": "probe-membership-2026-09-07 deletada com prova §12.5 always() equivalente",
+    "matriz": "sem regen (sem drift)"
+  },
+  "fila_humana": [
+    "1) V0+V4 (Manifests 1–4) pousar em sequência com CI verde",
+    "2) Manifest 5 (nota de empilhamento de env-guard/emenda/runbook/package.json)",
+    "3) D2 credencial → npm run m02:v2b → triagem dos artefatos legacy (deadline 10/09)",
+    "4) hPanel 10–11/09",
+    "5) Cutover 11–12/09 via runbook: freeze no ledger → m02:cutover-t0 completo → §2.5 membership na janela → db:migrate Emenda #3 → smoke+H-07 --cleanup → carimbos",
+    "6) renovação snapshot nativo antes de 20/09; G1 sunset 20/09; WARN-NITRO 06/10"
+  ]
+}

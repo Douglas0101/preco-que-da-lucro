@@ -19,8 +19,12 @@
 
 ## Local quality gate (definition of done)
 
-- Before pushing, run `npm run check` and keep it green. It chains `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
+- Before pushing, run `npm run check` and keep it green. It chains `m02:lockfile-guard`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
 - The CI `verify` job (`.github/workflows/ui-stack.yml`) runs those same gates plus `db:test`, `db:check`, `npm audit --audit-level=high`, and Playwright e2e on chromium/firefox/webkit. A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
+- **Two CI pipelines, selected by changed paths:**
+  - **Heavy — `UI stack`** (`.github/workflows/ui-stack.yml`): every pull request, plus pushes to `main`/`develop` whose changed files are **not** all under `docs/evidence/**` (`paths-ignore`).
+  - **Light — `CI light (docs/evidence)`** (`.github/workflows/ci-light.yml`): pushes and pull requests whose changed files are **all** under `docs/evidence/**` — runs `scripts/m02-lockfile-guard.mjs`, `scripts/m02-secrets-audit.ts` and `prettier --check` on the changed files only. It installs **no** dependencies: both scripts import node built-ins only. A mixed push (code + docs) belongs to the heavy pipeline; the light job's scope guard exits without work instead of failing.
+  - Neither filter applies to code: anything under `src/**`, `scripts/**`, `.github/**` or the manifests always goes through the heavy pipeline.
 - Never claim work is done with a red gate, and never delete, skip, or loosen a test, lint rule, or budget to force a green.
 
 ## Dependency discipline
@@ -49,8 +53,16 @@
 
 ## Decisions and evidence
 
-- Architectural changes require a new ADR in `docs/adr/`, following the `ADR-0XX-kebab.md` sequence (latest: ADR-027). Read the relevant ADRs before touching an architected area.
+- Architectural changes require a new ADR in `docs/adr/`, following the `ADR-0XX-kebab.md` sequence (latest: ADR-028, **proposta/draft** — pendente de ratificação; último ratificado: ADR-027). Read the relevant ADRs before touching an architected area.
 - Operational evidence belongs in `docs/evidence/`; operational procedures belong in `docs/runbooks/`.
+
+## Session boot and progress journal
+
+- `docs/evidence/agent-state/PROGRESS.md` is the **session handoff**: one file, pointers only (paths, SHAs, timestamps, env **names**), never secret values and never long content. A new model reads it and resumes without agent memory.
+- **Boot protocol (~30 s), in this order:** (1) read `PROGRESS.md`; (2) verify the parent-pinned marker in `EXECUTION-STATE-PROGRAM.md` (`npm run m02:state:check`); (3) check watchers and their marker files' last signal; (4) **reconcile** the world first (git refs, artifacts, deployments) — never re-execute blindly; (5) resume from the declared phase.
+- **Write protocol:** record intent (`▶`) **before** any mutation and result (`✔`/`✘`) **after**, append-only. An orphan intent means the next boot must reconcile before acting.
+- **Milestones:** commit the journal at every phase boundary; the maximum acceptable loss is re-executing from the last milestone (declared, never implicit).
+- **Agent memory is an invalidatable cache:** nothing that belongs in an artifact or in the journal is written to agent memory — journal + ledger are the source of truth. Memory carries at most a boot index pointing here.
 
 ## Commits
 

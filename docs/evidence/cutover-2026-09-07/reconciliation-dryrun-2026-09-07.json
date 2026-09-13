@@ -1,0 +1,3686 @@
+{
+  "meta": {
+    "label": "DATABASE_ADMIN_URL × DATABASE_RESTORE_URL",
+    "generated_at": "2026-09-06T23:28:56.726Z",
+    "source_env": "DATABASE_ADMIN_URL",
+    "target_env": "DATABASE_RESTORE_URL",
+    "read_only": true,
+    "sample_limit": 100,
+    "checksum_algorithm": "sha256(to_jsonb(t)::text) sobre ≤100 linhas ordenadas pela PK"
+  },
+  "tables": [
+    {
+      "table": "accounts",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "access_token",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "access_token_expires_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "account_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id_token",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "issuer",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "password",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "provider_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "refresh_token",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "refresh_token_expires_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "scope",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "accounts_user_id_users_id_fk",
+            "child_table": "accounts",
+            "parent_table": "users",
+            "columns": [
+              {
+                "child_column": "user_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "ai_daily_budgets",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "chat_count",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "estimated_cost",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "estimated_cost_unknown_count",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "in_flight",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "input_tokens",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "model_call_count",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "output_tokens",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tokens_reserved",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tool_call_count",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "usage_date",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "estimated_cost",
+            "source": null,
+            "target": null,
+            "equal": true
+          },
+          {
+            "key": "estimated_cost_unknown_count",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "ai_daily_budgets_tenant_id_tenants_id_fk",
+            "child_table": "ai_daily_budgets",
+            "parent_table": "tenants",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["tenant_id", "usage_date"],
+          "target": ["tenant_id", "usage_date"]
+        }
+      }
+    },
+    {
+      "table": "ai_usage",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "budget_tokens",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "cost_status",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "estimated_cost",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "kind",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "outcome",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "real_tokens",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "reserved_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "round_no",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "settled_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "status",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tool_execution_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "usage_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "estimated_cost",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [],
+        "orphans": [
+          {
+            "constraint": "ai_usage_tenant_id_tenants_id_fk",
+            "child_table": "ai_usage",
+            "parent_table": "tenants",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["usage_id"],
+          "target": ["usage_id"]
+        }
+      }
+    },
+    {
+      "table": "audit_events",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "correlation_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "event_type",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "resource_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "resource_type",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "safe_metadata",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "audit_events_tenant_id_user_id_tenant_memberships_tenant_id_use",
+            "child_table": "audit_events",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "calculation_snapshots",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "calculation_type",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "engine_version",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "entity_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "entity_type",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "idempotency_key",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "inputs",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "outputs",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "calculation_snapshots_tenant_id_user_id_tenant_memberships_tena",
+            "child_table": "calculation_snapshots",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "chat_conversations",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "confirmed_state",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "conversation_state",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "current_product_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "reset_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "state_metadata",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "state_updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "state_updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "chat_conversations_tenant_id_current_product_id_products_tenant",
+            "child_table": "chat_conversations",
+            "parent_table": "products",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "current_product_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "chat_conversations_tenant_id_user_id_tenant_memberships_tenant_",
+            "child_table": "chat_conversations",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "chat_messages",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "content",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "conversation_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "metadata",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "role",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "chat_messages_tenant_id_conversation_id_chat_conversations_tena",
+            "child_table": "chat_messages",
+            "parent_table": "chat_conversations",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "conversation_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "chat_messages_tenant_id_user_id_tenant_memberships_tenant_id_us",
+            "child_table": "chat_messages",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "expenses",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "amount",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "category",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "is_demo",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "name",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "notes",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "periodicity",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "type",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "amount",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "expenses_tenant_id_user_id_tenant_memberships_tenant_id_user_id",
+            "child_table": "expenses",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "idempotency_records",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "error_code",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "expires_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "key",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "operation",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "request_hash",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "response",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "status",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "idempotency_records_tenant_id_user_id_tenant_memberships_tenant",
+            "child_table": "idempotency_records",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "market_prices",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "avg_price",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "max_price",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "min_price",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "product_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "avg_price",
+            "source": null,
+            "target": null,
+            "equal": true
+          },
+          {
+            "key": "max_price",
+            "source": null,
+            "target": null,
+            "equal": true
+          },
+          {
+            "key": "min_price",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "market_prices_tenant_id_product_id_products_tenant_id_id_fk",
+            "child_table": "market_prices",
+            "parent_table": "products",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "product_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "market_prices_tenant_id_user_id_tenant_memberships_tenant_id_us",
+            "child_table": "market_prices",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "product_ingredients",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "conversion_factor",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "name",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "package_price",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "package_qty",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "package_unit",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "price_updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "product_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "used_qty",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "used_unit",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "package_price",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "price_updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "product_ingredients_tenant_id_product_id_products_tenant_id_id_",
+            "child_table": "product_ingredients",
+            "parent_table": "products",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "product_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "product_ingredients_tenant_id_user_id_tenant_memberships_tenant",
+            "child_table": "product_ingredients",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "product_packaging",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "name",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "package_price",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "price_updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "product_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "units_per_package",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "package_price",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "price_updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "product_packaging_tenant_id_product_id_products_tenant_id_id_fk",
+            "child_table": "product_packaging",
+            "parent_table": "products",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "product_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "product_packaging_tenant_id_user_id_tenant_memberships_tenant_i",
+            "child_table": "product_packaging",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "products",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "archived_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "current_price",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "is_demo",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "name",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "notes",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "status",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tax_rate",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tax_regime",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "yield_qty",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "yield_unit",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "current_price",
+            "source": null,
+            "target": null,
+            "equal": true
+          },
+          {
+            "key": "tax_rate",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "products_tenant_id_user_id_tenant_memberships_tenant_id_user_id",
+            "child_table": "products",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "profiles",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "display_name",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "email",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "profiles_id_users_id_fk",
+            "child_table": "profiles",
+            "parent_table": "users",
+            "columns": [
+              {
+                "child_column": "id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "profiles_tenant_id_user_id_tenant_memberships_tenant_id_user_id",
+            "child_table": "profiles",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "purchase_price_history",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "ingredient_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "packaging_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "price",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "quantity",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "recorded_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "subject_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "subject_type",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "supplier_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "unit",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "valid_from",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "price",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [],
+        "orphans": [
+          {
+            "constraint": "purchase_price_history_tenant_id_ingredient_id_product_ingredie",
+            "child_table": "purchase_price_history",
+            "parent_table": "product_ingredients",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "ingredient_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "purchase_price_history_tenant_id_packaging_id_product_packaging",
+            "child_table": "purchase_price_history",
+            "parent_table": "product_packaging",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "packaging_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "purchase_price_history_tenant_id_user_id_tenant_memberships_ten",
+            "child_table": "purchase_price_history",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "rate_limits",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "count",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "key",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "last_request",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [],
+        "orphans": [],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "sales",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "channel",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "gross_amount",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "net_amount",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "occurred_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "gross_amount",
+            "source": null,
+            "target": null,
+            "equal": true
+          },
+          {
+            "key": "net_amount",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "sales_tenant_id_user_id_tenant_memberships_tenant_id_user_id_fk",
+            "child_table": "sales",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "sales_fees",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "name",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "percentage",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "product_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "sales_fees_tenant_id_product_id_products_tenant_id_id_fk",
+            "child_table": "sales_fees",
+            "parent_table": "products",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "product_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "sales_fees_tenant_id_user_id_tenant_memberships_tenant_id_user_",
+            "child_table": "sales_fees",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "sales_items",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "product_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "quantity",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "sale_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "total_amount",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "unit_price",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "total_amount",
+            "source": null,
+            "target": null,
+            "equal": true
+          },
+          {
+            "key": "unit_price",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "sales_items_tenant_id_product_id_products_tenant_id_id_fk",
+            "child_table": "sales_items",
+            "parent_table": "products",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "product_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "sales_items_tenant_id_sale_id_sales_tenant_id_id_fk",
+            "child_table": "sales_items",
+            "parent_table": "sales",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "sale_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "sales_items_tenant_id_user_id_tenant_memberships_tenant_id_user",
+            "child_table": "sales_items",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "sessions",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "expires_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "ip_address",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "token",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_agent",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "sessions_user_id_users_id_fk",
+            "child_table": "sessions",
+            "parent_table": "users",
+            "columns": [
+              {
+                "child_column": "user_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "simulations",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "engine_version",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "name",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "params",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "product_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "result",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "scenario_type",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "simulations_tenant_id_product_id_products_tenant_id_id_fk",
+            "child_table": "simulations",
+            "parent_table": "products",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "product_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "simulations_tenant_id_user_id_tenant_memberships_tenant_id_user",
+            "child_table": "simulations",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "tenant_memberships",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "role",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [
+          {
+            "constraint": "tenant_memberships_tenant_id_tenants_id_fk",
+            "child_table": "tenant_memberships",
+            "parent_table": "tenants",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "constraint": "tenant_memberships_user_id_users_id_fk",
+            "child_table": "tenant_memberships",
+            "parent_table": "users",
+            "columns": [
+              {
+                "child_column": "user_id",
+                "parent_column": "id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["tenant_id", "user_id"],
+          "target": ["tenant_id", "user_id"]
+        }
+      }
+    },
+    {
+      "table": "tenants",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "kind",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "name",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "slug",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "tool_executions",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "completed_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "correlation_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "cost_status",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "duration_ms",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "error_code",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "estimated_cost",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "idempotency_key",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "input_hash",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "safe_result",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "started_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "status",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tenant_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "tool_name",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "user_id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [
+          {
+            "key": "estimated_cost",
+            "source": null,
+            "target": null,
+            "equal": true
+          }
+        ],
+        "timestamp_bounds": [],
+        "orphans": [
+          {
+            "constraint": "tool_executions_tenant_id_user_id_tenant_memberships_tenant_id_",
+            "child_table": "tool_executions",
+            "parent_table": "tenant_memberships",
+            "columns": [
+              {
+                "child_column": "tenant_id",
+                "parent_column": "tenant_id"
+              },
+              {
+                "child_column": "user_id",
+                "parent_column": "user_id"
+              }
+            ],
+            "count": 0,
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "users",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "email",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "email_verified",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "image",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "name",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    },
+    {
+      "table": "verifications",
+      "source_count": 0,
+      "target_count": 0,
+      "difference": 0,
+      "status": "OK",
+      "details": {
+        "null_counts": [
+          {
+            "key": "created_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "expires_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "id",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "identifier",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          },
+          {
+            "key": "value",
+            "source": 0,
+            "target": 0,
+            "equal": true
+          }
+        ],
+        "financial_sums": [],
+        "timestamp_bounds": [
+          {
+            "key": "created_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          },
+          {
+            "key": "updated_at",
+            "source": {
+              "min": null,
+              "max": null
+            },
+            "target": {
+              "min": null,
+              "max": null
+            },
+            "equal": true
+          }
+        ],
+        "orphans": [],
+        "sample_checksum": {
+          "source": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "target": {
+            "algorithm": "sha256",
+            "rows": 0,
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": null
+          },
+          "equal": true
+        },
+        "primary_keys": {
+          "source": ["id"],
+          "target": ["id"]
+        }
+      }
+    }
+  ],
+  "summary": {
+    "tables_compared": 26,
+    "differences_total": 0,
+    "pass": true
+  }
+}

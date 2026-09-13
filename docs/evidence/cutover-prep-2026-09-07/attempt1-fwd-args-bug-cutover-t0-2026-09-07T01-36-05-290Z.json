@@ -1,0 +1,68 @@
+{
+  "script": "m02:cutover-t0",
+  "executed_at": "2026-09-07T01:36:05.285Z",
+  "duration_ms": 67443,
+  "head_sha": "8d26a2c",
+  "checks": [
+    {
+      "id": "env-guard-selftest",
+      "status": "PASS",
+      "detail": "total=13 failed=0"
+    },
+    {
+      "id": "m02-matrix-check",
+      "status": "PASS",
+      "detail": "determinística e atualizada (sem drift; regen não é needed)"
+    },
+    {
+      "id": "janela-freeze",
+      "status": "EXPECTED-PENDING",
+      "detail": "linha 'freeze ativo:' ainda não anexada ao ledger (é do humano no Manifest 5/dia-D; runbook §1) — fora de janela é ESPERADO pré-cutover, NÃO é fail"
+    },
+    {
+      "id": "segredos-staged",
+      "status": "EXPECTED-PENDING",
+      "detail": "nada staged na pré-confecção do Manifest 5 (a conferência definitiva é no staging do feixe humano); gate.env ausente do repo"
+    },
+    {
+      "id": "role-membership-dry",
+      "status": "PENDING",
+      "detail": "dry local sem resultado confiável (exit 2; container pg local em pé? npm run db:up) — rotulado, mecanismo já provado no drill da branch em role-membership-test-2026-09-07.md"
+    },
+    {
+      "id": "dupla-snapshot",
+      "status": "PASS",
+      "detail": "2 dumps read-only com sha256 distintos (57e7628f7bcb… vs c1e6abd39b22…)",
+      "runs": [
+        {
+          "dump": "artifacts/snapshots/snapshot-2026-09-07-2.dump",
+          "sha256": "57e7628f7bcb4b439fd9ba5ee2b2ea3d13b6b89aedd3e703a3b9f1bcb0f46f0b",
+          "size_bytes": 120757,
+          "duration_ms": 24912,
+          "guard_log": "{\"guard\":\"env-guard\",\"result\":\"ALLOW_SANCTIONED\",\"script\":\"m02:snapshot\",\"env\":\"DATABASE_URL\",\"host\":\"ep-long-violet-aye9g0bn-pooler.c-5.us-east-2.aws.neon.tech\",\"norma\":\"docs/specs/M-02/emenda-2026-09-07-env-guard.md\"}"
+        },
+        {
+          "dump": "artifacts/snapshots/snapshot-2026-09-07-3.dump",
+          "sha256": "c1e6abd39b2290c8e6603efca8b28c441177a5f3c14ff85b0081c1903350065f",
+          "size_bytes": 120757,
+          "duration_ms": 33798,
+          "guard_log": "{\"guard\":\"env-guard\",\"result\":\"ALLOW_SANCTIONED\",\"script\":\"m02:snapshot\",\"env\":\"DATABASE_URL\",\"host\":\"ep-long-violet-aye9g0bn-pooler.c-5.us-east-2.aws.neon.tech\",\"norma\":\"docs/specs/M-02/emenda-2026-09-07-env-guard.md\"}"
+        }
+      ]
+    },
+    {
+      "id": "rls-probe-producao",
+      "status": "DIA-D",
+      "detail": "a sonda H-07 executa SOMENTE no smoke A4 (runbook §5) dentro da janela; T-0 de hoje não sonda produção"
+    },
+    {
+      "id": "gate-readiness",
+      "status": "EXPECTED-PENDING",
+      "detail": "exit 1 — pré-cutover, falhas de agenda (freeze/sec01/g1/snapshot-fresco) são esperadas e rotuladas",
+      "failing": []
+    }
+  ],
+  "hard_fail_count": 0,
+  "pending_count": 5,
+  "exit": 0
+}

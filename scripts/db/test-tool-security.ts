@@ -46,6 +46,22 @@ async function main(): Promise<void> {
        on conflict (id) do nothing`,
       [otherProductId, otherTenantId, otherUserId],
     );
+    await pool.query(
+      `delete from idempotency_records
+       where tenant_id = $1 and user_id = $2
+         and operation = 'ai.tool.create_product'
+         and key = 'conversation:expired'`,
+      [tenantId, userId],
+    );
+    await pool.query(
+      `insert into idempotency_records
+        (id, tenant_id, user_id, operation, key, request_hash, status, expires_at)
+       values
+        ('77000000-0000-4000-8000-000000000007', $1, $2,
+         'ai.tool.create_product', 'conversation:expired', 'stale-hash', 'pending',
+         now() - interval '1 minute')`,
+      [tenantId, userId],
+    );
 
     await database.transaction(async (transaction) => {
       await transaction.execute(sql`set local role app_runtime`);
@@ -82,6 +98,27 @@ async function main(): Promise<void> {
       assert.equal(replay.ok, true);
       assert.equal(replay.replayed, true);
 
+      const conflictingReplay = await runRegisteredTool({
+        context,
+        name: "create_product",
+        rawArguments: JSON.stringify({ name: "Outro produto para a mesma chave" }),
+        idempotencyKey: "conversation:call-create",
+      });
+      assert.deepEqual(conflictingReplay, {
+        ok: false,
+        code: "CONFLICT",
+        replayed: false,
+      });
+
+      const expired = await runRegisteredTool({
+        context,
+        name: "create_product",
+        rawArguments: JSON.stringify({ name: "Chave reciclada" }),
+        idempotencyKey: "conversation:expired",
+      });
+      assert.equal(expired.ok, true);
+      assert.equal(expired.replayed, false);
+
       const invalid = await runRegisteredTool({
         context,
         name: "set_yield",
@@ -101,6 +138,36 @@ async function main(): Promise<void> {
         idempotencyKey: "conversation:call-unauthorized",
       });
       assert.deepEqual(unauthorized, {
+        ok: false,
+        code: "AUTHORIZATION_ERROR",
+        replayed: false,
+      });
+
+      const stateBlocked = await runRegisteredTool({
+        context,
+        name: "create_product",
+        rawArguments: JSON.stringify({ name: "Estado não permite" }),
+        idempotencyKey: "conversation:state-blocked",
+        allowedToolNames: ["set_yield"],
+        requireConfirmation: true,
+        confirmed: true,
+      });
+      assert.deepEqual(stateBlocked, {
+        ok: false,
+        code: "AUTHORIZATION_ERROR",
+        replayed: false,
+      });
+
+      const confirmationBlocked = await runRegisteredTool({
+        context,
+        name: "create_product",
+        rawArguments: JSON.stringify({ name: "Sem confirmação" }),
+        idempotencyKey: "conversation:confirmation-blocked",
+        allowedToolNames: ["create_product"],
+        requireConfirmation: true,
+        confirmed: false,
+      });
+      assert.deepEqual(confirmationBlocked, {
         ok: false,
         code: "AUTHORIZATION_ERROR",
         replayed: false,
@@ -134,7 +201,12 @@ async function main(): Promise<void> {
       "select count(*)::text as count from tool_executions where tenant_id = $1",
       [tenantId],
     );
-    assert.equal(executions.rows[0]?.count, "4", "execuções e rejeições devem ser auditadas");
+    assert.equal(executions.rows[0]?.count, "7", "execuções e rejeições devem ser auditadas");
+    const rejectedAudit = await pool.query<{ count: string }>(
+      "select count(*)::text as count from audit_events where tenant_id = $1 and event_type = 'ai.tool.rejected'",
+      [tenantId],
+    );
+    assert.equal(rejectedAudit.rows[0]?.count, "4", "rejeições devem gerar audit_event");
   } finally {
     await pool.end();
   }

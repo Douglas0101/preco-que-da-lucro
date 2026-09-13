@@ -1,0 +1,42 @@
+{
+  "check": "m02:grant-repair",
+  "version": 1,
+  "read_only_source": true,
+  "target_write": true,
+  "started_at": "2026-09-08T00:38:08.315Z",
+  "finished_at": "2026-09-08T00:39:36.456Z",
+  "source_branch": "br-snowy-violet-aymcvvvv",
+  "target_branch": "br-solitary-breeze-ayxae7tq",
+  "target_kind": "drill-branch",
+  "apply": true,
+  "motivo": "C-02 A2 grant repair: roles-before-grants in fresh drill branch",
+  "create_missing_group_roles": false,
+  "target_current_role": "neondb_owner",
+  "result": "PASS",
+  "roles": {
+    "required": ["app_runtime", "authenticated", "neondb_owner"],
+    "source": ["app_runtime", "authenticated", "neondb_owner"],
+    "target_before": ["app_runtime", "authenticated", "neondb_owner"],
+    "missing": [],
+    "source_missing": [],
+    "mismatched": [],
+    "safe_group_roles": [],
+    "external_provisioning": [],
+    "order": "roles-before-grants"
+  },
+  "plan": {
+    "source": 367,
+    "target_before": 189,
+    "missing": 178,
+    "extra": 0,
+    "mismatched": 0
+  },
+  "after_comparison": {
+    "pass": true,
+    "tables_compared": 27,
+    "failures": []
+  },
+  "sql_statements": 179,
+  "sql_sha256": "05647429a34ccc83b868c73f26548dc1e64ddab443986fc0bc9f066f8d164c72",
+  "limits": "Somente a branch target drill-branch pode receber writes; nenhuma senha, URL, row content ou role privileged e criada. Roles ausentes LOGIN/privileged exigem provisionamento externo antes de grants."
+}

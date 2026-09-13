@@ -1,0 +1,28 @@
+{
+  "membership": [
+    {
+      "granted": "app_runtime",
+      "member": "neondb_owner",
+      "set_option": false,
+      "admin_option": true
+    },
+    {
+      "granted": "app_runtime",
+      "member": "neondb_owner",
+      "set_option": true,
+      "admin_option": false
+    }
+  ],
+  "roles": [
+    {
+      "rolname": "app_runtime",
+      "rolsuper": false,
+      "rolbypassrls": false
+    },
+    {
+      "rolname": "neondb_owner",
+      "rolsuper": false,
+      "rolbypassrls": true
+    }
+  ]
+}

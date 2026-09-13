@@ -1,0 +1,371 @@
+{
+  "script": "rls-probe",
+  "result": "PASS",
+  "meta": {
+    "generated_at": "2026-09-07T00:42:30.705Z",
+    "target_env": "RLS_PROBE_TARGET_ENV",
+    "target": {
+      "host": "ep-frosty-mode-ayaemvhy.<mascarado>",
+      "database": "neondb",
+      "role": "neondb_owner"
+    },
+    "design": "docs/runbooks/a4-matriz-hipoteses.md — Design H-07 (m02:rls-probe)",
+    "executa_negacao_bidirecional": true,
+    "cleanup_flag": false,
+    "exit_code": 0,
+    "json_path": "",
+    "json_sha256": "",
+    "notas": [
+      "URL de conexão obtida e consumida em-processo (nunca em argv, nunca impressa; incidente SASL/SSL do V2: substitution multi-linha do shell chega vazia — padrão in-process mantido).",
+      "Invocação direta via node (gap documentado em env-guard-drill.md: guard npm não está no caminho; compensação — script sem URL em argv, SQL parametrizado, probes em transação com rollback).",
+      "Cleanup do seed (sem --cleanup) é delegado à deleção da branch inteira no V4 (§12.5 always()); com --cleanup o seed é apagado e verificado ao final (uso no dia do cutover).",
+      "Membership do admin (neondb_owner) em app_runtime com SET OPTION é garantida pelo seed desta sonda (idempotente). Achado V3: `npm run db:migrate` NÃO invoca `ensureRuntimeRoleMembership` (apenas os scripts `db:test-*`), de modo que a premissa de que o db:migrate do V2 garantiu a membership não se verificou — na 1ª execução do V3 o SET ROLE falhou (42501) até o ensure do seed; no smoke A4 o ensure criará a membership em produção (criada_pelo_probe=true).",
+      "users é tabela global better-auth (sem tenant_id, sem RLS — fora do escopo 'tabelas tenant' do H-07): a leitura cross-tenant de identidades é probe d via tenant_memberships (SELECT+RLS) e obs2 via profiles (INSERT-only por grant, migration 0001)."
+    ]
+  },
+  "seed": {
+    "membership": {
+      "set_option_before": true,
+      "set_option_after": true,
+      "created_by_probe": false
+    },
+    "ids": {
+      "tenants": ["48cc4be3-de57-40f9-b68e-97584b3a6a6c", "989823a1-3521-48cb-951e-d52418fb4d96"],
+      "users": ["88912fae-1e8d-471f-9c95-a8673c00e004", "226a6e16-4d11-4e93-8d9f-3c637ab1fc24"],
+      "products": ["2f9ae036-4d10-4a0b-b14c-412f93c29c8d", "dcb9d6c7-c8dc-4208-a847-6c78116d0f68"]
+    },
+    "slugs": ["probe-a-tenant", "probe-b-tenant"],
+    "emails": ["rls-probe-a@preco-que-da.test", "rls-probe-b@preco-que-da.test"],
+    "counts": {
+      "tenants": 2,
+      "users": 2,
+      "memberships": 2,
+      "products": 2
+    },
+    "ok": true,
+    "cleanup": "não deletado por padrão — branch efêmera deletada inteira no V4 (§12.5 always()); no dia do cutover contra produção, re-executar com --cleanup para apagar e verificar o seed"
+  },
+  "sessions": [
+    {
+      "label": "A (probe-a-tenant)",
+      "context": {
+        "role": "app_runtime",
+        "user_id": "88912fae-1e8d-471f-9c95-a8673c00e004",
+        "tenant_id": "48cc4be3-de57-40f9-b68e-97584b3a6a6c",
+        "roles": "member"
+      },
+      "probes": [
+        {
+          "probe": "a-leitura-products-b",
+          "operacao": "SELECT count(*) FROM products WHERE tenant_id = probe-b-tenant",
+          "esperado": 0,
+          "obtido": 0,
+          "pass": true,
+          "detalhe": "RLS tenant_isolation deve ocultar integralmente as linhas da outra tenant"
+        },
+        {
+          "probe": "a2-leitura-products-total",
+          "operacao": "SELECT count(*) FROM products (visibilidade total como app_runtime)",
+          "esperado": 1,
+          "obtido": 1,
+          "pass": true,
+          "detalhe": "somente a própria linha de seed deve estar visível"
+        },
+        {
+          "probe": "b-update-products-b",
+          "operacao": "UPDATE products SET updated_at = updated_at WHERE id = <product probe-b-tenant>",
+          "esperado": "0 rows affected (ou erro de policy)",
+          "obtido": "0 rows affected",
+          "pass": true,
+          "detalhe": "negado por 0 linhas afetadas (USING oculta a linha)"
+        },
+        {
+          "probe": "c-insert-products-b",
+          "operacao": "INSERT INTO products ... tenant_id = probe-b-tenant",
+          "esperado": "negado (0 linhas ou erro de policy)",
+          "obtido": "erro 42501 (policy RLS)",
+          "pass": true,
+          "detalhe": "negado por exceção de policy RLS",
+          "erro": {
+            "code": "42501",
+            "severity": "ERROR",
+            "message": "detalhes omitidos (norma: nenhum valor de URL/credencial impresso)"
+          }
+        },
+        {
+          "probe": "d-leitura-users-b-via-memberships",
+          "operacao": "SELECT count(*) FROM users JOIN tenant_memberships ... WHERE tenant_memberships.tenant_id = probe-b-tenant",
+          "esperado": 0,
+          "obtido": 0,
+          "pass": true,
+          "detalhe": "identidades da outra tenant só são alcançáveis via tabela tenant-scoped; RLS de tenant_memberships (user_id = current_user_id) deve ocultar"
+        },
+        {
+          "probe": "obs2-leitura-users-b-via-profiles",
+          "operacao": "SELECT count(*) FROM users JOIN profiles ... WHERE profiles.tenant_id = probe-b-tenant",
+          "esperado": "negado (0 rows ou erro 42501)",
+          "obtido": "erro 42501",
+          "pass": true,
+          "detalhe": "observação complementar: negação por grant — profiles é INSERT-only para app_runtime (design migration 0001); leitura de perfis da outra tenant é bloqueada",
+          "erro": {
+            "code": "42501",
+            "severity": "ERROR",
+            "message": "detalhes omitidos (norma: nenhum valor de URL/credencial impresso)"
+          }
+        },
+        {
+          "probe": "obs-leitura-direta-users-b",
+          "operacao": "SELECT count(*) FROM users WHERE id = <user B> (leitura direta)",
+          "esperado": 1,
+          "obtido": 1,
+          "pass": true,
+          "detalhe": "observação (não é probe de negação): users é tabela global better-auth sem tenant_id/RLS (fora do escopo 'tabelas tenant' do H-07); leitura direta por id é by-design e a descoberta cross-tenant é bloqueada (probe d e obs2). Esperado=1 registra o design."
+        }
+      ]
+    },
+    {
+      "label": "B (probe-b-tenant)",
+      "context": {
+        "role": "app_runtime",
+        "user_id": "226a6e16-4d11-4e93-8d9f-3c637ab1fc24",
+        "tenant_id": "989823a1-3521-48cb-951e-d52418fb4d96",
+        "roles": "member"
+      },
+      "probes": [
+        {
+          "probe": "a-leitura-products-b",
+          "operacao": "SELECT count(*) FROM products WHERE tenant_id = probe-a-tenant",
+          "esperado": 0,
+          "obtido": 0,
+          "pass": true,
+          "detalhe": "RLS tenant_isolation deve ocultar integralmente as linhas da outra tenant"
+        },
+        {
+          "probe": "a2-leitura-products-total",
+          "operacao": "SELECT count(*) FROM products (visibilidade total como app_runtime)",
+          "esperado": 1,
+          "obtido": 1,
+          "pass": true,
+          "detalhe": "somente a própria linha de seed deve estar visível"
+        },
+        {
+          "probe": "b-update-products-b",
+          "operacao": "UPDATE products SET updated_at = updated_at WHERE id = <product probe-a-tenant>",
+          "esperado": "0 rows affected (ou erro de policy)",
+          "obtido": "0 rows affected",
+          "pass": true,
+          "detalhe": "negado por 0 linhas afetadas (USING oculta a linha)"
+        },
+        {
+          "probe": "c-insert-products-b",
+          "operacao": "INSERT INTO products ... tenant_id = probe-a-tenant",
+          "esperado": "negado (0 linhas ou erro de policy)",
+          "obtido": "erro 42501 (policy RLS)",
+          "pass": true,
+          "detalhe": "negado por exceção de policy RLS",
+          "erro": {
+            "code": "42501",
+            "severity": "ERROR",
+            "message": "detalhes omitidos (norma: nenhum valor de URL/credencial impresso)"
+          }
+        },
+        {
+          "probe": "d-leitura-users-b-via-memberships",
+          "operacao": "SELECT count(*) FROM users JOIN tenant_memberships ... WHERE tenant_memberships.tenant_id = probe-a-tenant",
+          "esperado": 0,
+          "obtido": 0,
+          "pass": true,
+          "detalhe": "identidades da outra tenant só são alcançáveis via tabela tenant-scoped; RLS de tenant_memberships (user_id = current_user_id) deve ocultar"
+        },
+        {
+          "probe": "obs2-leitura-users-b-via-profiles",
+          "operacao": "SELECT count(*) FROM users JOIN profiles ... WHERE profiles.tenant_id = probe-a-tenant",
+          "esperado": "negado (0 rows ou erro 42501)",
+          "obtido": "erro 42501",
+          "pass": true,
+          "detalhe": "observação complementar: negação por grant — profiles é INSERT-only para app_runtime (design migration 0001); leitura de perfis da outra tenant é bloqueada",
+          "erro": {
+            "code": "42501",
+            "severity": "ERROR",
+            "message": "detalhes omitidos (norma: nenhum valor de URL/credencial impresso)"
+          }
+        }
+      ]
+    }
+  ],
+  "catalog": {
+    "app_runtime": {
+      "rolsuper": false,
+      "rolbypassrls": false,
+      "rolinherit": false,
+      "rolcanlogin": true,
+      "ok": true
+    },
+    "neondb_owner_observacao": {
+      "rolsuper": false,
+      "rolbypassrls": true,
+      "nota": "owner/admin: rolbypassrls = true é esperado (sonda 0.3, fase0-2026-09-06)"
+    },
+    "tenant_tables": [
+      {
+        "table": "ai_daily_budgets",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "ai_usage",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "audit_events",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "calculation_snapshots",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "chat_conversations",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "chat_messages",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "expenses",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "idempotency_records",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "market_prices",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "product_ingredients",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "product_packaging",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "products",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "profiles",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "purchase_price_history",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "sales",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "sales_fees",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "sales_items",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "simulations",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "tenant_memberships",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "tenants",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      },
+      {
+        "table": "tool_executions",
+        "row_security": true,
+        "table_owner": "neondb_owner",
+        "rls_ok": true,
+        "owner_ok": true
+      }
+    ],
+    "policy_count": 25,
+    "ok": true
+  },
+  "summary": {
+    "probes_total": 13,
+    "probes_negacao": 10,
+    "probes_negacao_pass": 10,
+    "observacoes": 3,
+    "observacoes_pass": 3,
+    "catalog_ok": true,
+    "seed_ok": true,
+    "pass": true
+  }
+}

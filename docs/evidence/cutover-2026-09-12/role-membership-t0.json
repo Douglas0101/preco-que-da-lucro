@@ -3,7 +3,7 @@
   "executed_at": "2026-09-12T02:44:42.926Z",
   "kind": "cutover-window",
   "dry_run": false,
-  "host": "ep-long-violet-aye9g0bn.c-5.us-east-2.aws.neon.tech",
+  "host": "ep-...-aye9g0bn.<region>.aws.neon.tech",
   "local": false,
   "motivo": "cutover A4 T-0: membership admin->app_runtime antes do smoke (H-07 exige SET ROLE)",
   "window": {

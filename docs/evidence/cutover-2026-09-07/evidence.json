@@ -1,0 +1,64 @@
+{
+  "rodada": "CUTOVER-READY (V0–V6)",
+  "data": "2026-09-07 (D0)",
+  "tipo": "fechamento de gate §42 em modos + runbook A4 + guards de migração",
+  "V0": {
+    "status": "PENDENTE HUMANO",
+    "nota": "Manifests 1–3 + ledger (fila herdada G-SEC-EXEC); SHA256SUMS root-relative prontos"
+  },
+  "V1": {
+    "env_guard_drill": "selftest 9/9 → 12/12 (emenda #3); gap npx/direto documentado como risco aceito + regra de runbook",
+    "emenda_2": "drill-branch sancionado p/ db:migrate (log path:drill-branch); produção hard-deny incondicional",
+    "emenda_3": "cutover-window time-boxed (NEON_MIGRATION_FREEZE_START/END ISO, validação de vigência) = ÚNICO caminho de migration em produção; janela do guard = janela de freeze do ledger"
+  },
+  "V2": {
+    "branch": "dryrun-2026-09-07 (br-weathered-darkness-ayssv0qf, parent production, expirava 2026-09-08)",
+    "migrations_em_copia": "db:migrate via caminho sancionado (ALLOW path:drill-branch), no-op; journal 11/11 verificado",
+    "m02_reconcile_mjs": "novo script-âncora §13.4/§13.5; reconcile production×dryrun = 26 tabelas, differences_total=0, pass=true",
+    "schema_diff": "pg_dump 17.11; diff normalizado vazio; checklist §13.3 8/8 EQUAL (extensions 2, constraints 108, indexes 77, RLS 21 tabelas/25 policies, roles 9)",
+    "legacy": "DESCONHECIDO — dono humano (sem SUPABASE_MIGRATION_DATABASE_URL no .env); paridade NÃO convertida para MEDIDA nesta rodada"
+  },
+  "V3": {
+    "resultado": "PASS total — 10/10 probes de negação bidirecionais (SELECT=0, UPDATE=0 rows, INSERT=42501, descoberta via memberships=0) como app_runtime (SET ROLE + GUCs)",
+    "catalogo": "app_runtime rolsuper=false rolbypassrls=false; 21 tabelas tenant RLS on, owner=neondb_owner ≠ app_runtime; 25 policies",
+    "seed_sintetico": "2 tenants + 2 users @preco-que-da.test + 2 products (ids registrados); cleanup = deleção da branch",
+    "achado_GAP-TOOLING": "db:migrate não invoca ensureRuntimeRoleMembership (membership criada pelo probe, idempotente; smoke A4 criará em produção)",
+    "evidencia": "rls-probe-2026-09-07.md + .json"
+  },
+  "V4": {
+    "resultado": "PASS — mecanismo dump→restore→reconcile end-to-end; RTO ~5 min (lower bound, produção vazia); dump sha256 6e576126…9ff7a (120.757 B); reconcile 26/26, 0 diff; journal 11/11 restaurado",
+    "escopo_reduzido": "MECANISMO (dump de produção vazia); metade de DADOS fecha no V2b; erros de restore = schemas de plataforma (neon_auth/pgrst), nenhum em public/drizzle",
+    "reuso_ancora": "reuso nº 2 de m02-reconcile.mjs"
+  },
+  "V5": {
+    "runbook": "docs/runbooks/cutover-A4.md — 13 seções (freeze c/ linha de ledger exata; T-0 snapshot dupla; smoke tolerante a cold start ~2,2 s; monitoração §16.7; rollback §13.7 completo; T+ reuso nº 3; emenda #3 §11; contrato reconcile §12; V2b NO-GO 10/09 §13)"
+  },
+  "cleanup_12_5": {
+    "deletadas": [
+      "dryrun-2026-09-07 (br-weathered-darkness-ayssv0qf)",
+      "restore-2026-09-07 (br-tiny-waterfall-ay6a51b9)"
+    ],
+    "prova": "antes/depois via neon branches list — restam só production (ready) + develop (archived)",
+    "seed_destruido_com_branch": true
+  },
+  "§42_modos": {
+    "migrations_do_zero": "produção (journal 11/11)",
+    "migrations_em_copia": "CÓPIA (V2)",
+    "schema_diff_revisado": "CÓPIA (V2; legacy-pendente V2b)",
+    "tenant_tests": "CÓPIA (V3)",
+    "rls_tests": "CÓPIA (V3; produção repete no dia)",
+    "reconciliation_report": "CÓPIA (V2/V4; legacy-pendente V2b/T+)",
+    "backup_restore_testado": "MECANISMO (V4) + drill 09-05; dados: legacy-pendente V2b",
+    "direct_pooled_urls": "produção/config (ADR-019)",
+    "rollback_documentado": "runbook (V5)",
+    "smoke_automatizados": "produção/config (smoke:substrate 7/7 + runbook V5)"
+  },
+  "conformidade": {
+    "commits": 0,
+    "escritas_producao": 0,
+    "branches_criadas": 2,
+    "branches_deletadas": 2,
+    "producao_deixada_como_encontrada": true,
+    "paridade_ledger": "DESCONHECIDA (dono humano D2); MEDIDA-EM-CÓPIA somente após V2b — NÃO convertida por causa do V2"
+  }
+}

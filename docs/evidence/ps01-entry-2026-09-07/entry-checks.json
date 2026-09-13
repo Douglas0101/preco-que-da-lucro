@@ -1,0 +1,35 @@
+{
+  "recorded_at": "2026-09-07T15:55:08.289Z",
+  "head": {
+    "command": ["git", "rev-parse", "HEAD"],
+    "started_at": "2026-09-07T15:55:08.289Z",
+    "finished_at": "2026-09-07T15:55:08.293Z",
+    "exit_code": 0,
+    "stdout": "8d26a2c954172a4fee8ecfc9fad1d7fbab8a117f\n",
+    "stderr": ""
+  },
+  "status": {
+    "command": ["git", "status", "--short", "--branch"],
+    "started_at": "2026-09-07T15:55:08.293Z",
+    "finished_at": "2026-09-07T15:55:08.298Z",
+    "exit_code": 0,
+    "stdout": "## develop...origin/develop\n M docs/specs/M-02/excecoes.md\n M docs/specs/M-02/matrix.generated.yaml\n M docs/specs/M-02/matrix.yaml\n M package.json\n M scripts/build.mjs\n M scripts/db/purge-fixtures.ts\n M scripts/smoke/substrate-smoke.ts\n M src/db/client.server.ts\n M src/lib/chat.functions.ts\n M src/routes/auth.tsx\n M src/test/auth-policy.test.ts\n?? .github/workflows/neon-pr-branch.yml\n?? .mimosa/\n?? .pi/\n?? .zcode/\n?? PLANO_OTIMIZADO_AUTENTICACAO_E_RETOMADA.md\n?? artifacts/\n?? docs/evidence/checagens-pos-publicacao-2026-09-05/\n?? docs/evidence/cutover-2026-09-07/\n?? docs/evidence/cutover-prep-2026-09-07/\n?? docs/evidence/fase0-2026-09-06/\n?? docs/evidence/gsec-2026-09-06/\n?? docs/evidence/manual-navigation-2026-08-29.md\n?? docs/evidence/obs-local-2026-08-30.md\n?? docs/evidence/pendentes-2026-09-07/\n?? docs/evidence/perf-after-2026-08-29.md\n?? docs/evidence/perf-baseline-2026-08-29.md\n?? docs/evidence/ps01-entry-2026-09-07/\n?? docs/evidence/sdd-continuacao-2026-09-07/\n?? docs/forensic-kit.md\n?? docs/runbooks/a4-matriz-hipoteses.md\n?? docs/runbooks/cutover-A4.md\n?? docs/specs/M-02/emenda-2026-09-07-env-guard.md\n?? scripts/env-guard.mjs\n?? scripts/forensic/\n?? scripts/m02-cutover-t0.d.mts\n?? scripts/m02-cutover-t0.mjs\n?? scripts/m02-forensic-bundle.ts\n?? scripts/m02-readiness.mjs\n?? scripts/m02-reconcile.mjs\n?? scripts/m02-role-membership.d.mts\n?? scripts/m02-role-membership.mjs\n?? scripts/m02-snapshot.d.mts\n?? scripts/m02-snapshot.mjs\n?? scripts/m02-sums.d.mts\n?? scripts/m02-sums.mjs\n?? scripts/m02-v2b.d.mts\n?? scripts/m02-v2b.mjs\n?? scripts/rls-probe.mjs\n?? scripts/val/\n?? src/lib/ai-endpoint.server.ts\n?? src/test/ai-endpoint.server.test.ts\n?? src/test/m02-cutover-t0.test.ts\n?? src/test/m02-role-membership.test.ts\n?? src/test/m02-snapshot.test.ts\n?? src/test/m02-v2b.test.ts\n",
+    "stderr": ""
+  },
+  "diff_names": {
+    "command": ["git", "diff", "--name-only"],
+    "started_at": "2026-09-07T15:55:08.298Z",
+    "finished_at": "2026-09-07T15:55:08.302Z",
+    "exit_code": 0,
+    "stdout": "docs/specs/M-02/excecoes.md\ndocs/specs/M-02/matrix.generated.yaml\ndocs/specs/M-02/matrix.yaml\npackage.json\nscripts/build.mjs\nscripts/db/purge-fixtures.ts\nscripts/smoke/substrate-smoke.ts\nsrc/db/client.server.ts\nsrc/lib/chat.functions.ts\nsrc/routes/auth.tsx\nsrc/test/auth-policy.test.ts\n",
+    "stderr": ""
+  },
+  "sums": {
+    "command": ["npm", "run", "m02:sums", "--", "--verify"],
+    "started_at": "2026-09-07T15:55:08.302Z",
+    "finished_at": "2026-09-07T15:55:08.429Z",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+}
