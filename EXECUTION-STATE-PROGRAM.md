@@ -1412,7 +1412,8 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   Detectores armados: `app-live` (health 200) e `h6-watch` (mudança de `jwt`). Último poll do
   `app-live`: 2026-09-13T00:49:43Z, `http=404` (build ainda não sobe).
 - **Supervisão transversal (2026-09-13):** S-SEC **CLEAN** — 0 P0/P1; 5 P2 de endurecimento, sendo 1 aplicado (janela de validade do `jwt` removida de `SESSION-LIMIT.md`; hash/valor nunca transcrito). S-ALIN **DESVIO: 0 P0 · 5 P1**, todos corrigidos nesta entrada: P1-1 → P9 (BAK-01b) + N-10 nos critérios de abort 0h do runbook; P1-2 → bullet F-1 + H-7 acima/na fila; P1-3 → proveniência do `matrix:check` (comando + timestamp + HEAD `e0c8ec44…`) corrigida em `agent-infra-findings`; P1-4 → **errata** na célula hPanel do `G-VER-v2-memo` (app criado + build FAIL), antes de qualquer coleta de assinatura H-3; P1-5 → errata do freeze acima. P2 fechados: pipes do ADR-028 escapados; `AGENTS.md` → ADR-028 (proposta); `GAP-DOC-RLS-01` nomeado; `GAP-DOC-ENGINES-01` no registro do docmap; vereditos anexados abaixo. Artefatos: `docs/evidence/subagents/S-{SEC,ALIN}-2026-09-13.md`.
-  Latest state marker parent = `6f2a392d648fc610953d00a4ddaa04f05715a41c`,
+- **F-7 CONSOLIDAÇÃO:** `docs/evidence/F7-consolidacao-2026-09-13.md` — tabela de frentes + vereditos, fila humana (H-2/H-4/H-5/H-6/**H-7**), dia-D estimado em **2026-09-15/16** e top-3 riscos (BAK-01b · sessão hPanel · rollback sem commit).
+  Latest state marker parent = `8676fd5f0cef729f3e3862d375cb1b521398e971`,
 
 ### Back-merge obrigatório `main → develop` (AGENTS.md:12-14)
 
