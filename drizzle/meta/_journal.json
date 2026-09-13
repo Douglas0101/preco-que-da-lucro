@@ -85,6 +85,13 @@
       "when": 1789046119111,
       "tag": "0011_auth_rls_normalization",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789324378233,
+      "tag": "0012_youthful_stellaris",
+      "breakpoints": true
     }
   ]
 }

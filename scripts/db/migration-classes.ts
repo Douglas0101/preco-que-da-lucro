@@ -22,7 +22,7 @@ export type MigrationClass = (typeof MIGRATION_CLASSES)[number];
 
 /**
  * `empty` — migration aplicada quando o banco ainda não tinha dados de
- * aplicação (as 12 atuais); `live` — havia dados e o plano de backfill/rollback
+ * aplicação (as 13 atuais); `live` — havia dados e o plano de backfill/rollback
  * é obrigatório no PR.
  */
 export type AppliedOn = "empty" | "live";
@@ -215,6 +215,21 @@ export const migrationClasses: readonly MigrationClassEntry[] = [
     sha256: "6c9d62a66e40edfb53e6f1eb2be1d0195390192ab75ea17af0ac87f897138fef",
     idempotent: true,
     rollback: "drizzle/rollback/0011_to_0010_down.sql",
+    appliedOn: "empty",
+  },
+  {
+    tag: "0012_youthful_stellaris",
+    class: "SAFE",
+    rationale:
+      "Expand puro: adiciona tool_call_id text, input jsonb e usage_id uuid nullable mais o índice (tenant_id, usage_id) em tool_executions, sem FK, CHECK ou DML.",
+    evidence: [
+      "drizzle/0012_youthful_stellaris.sql",
+      "drizzle/rollback/0012_to_0011_down.sql",
+      "scripts/db/test-migrations.ts (replay do chain)",
+      "docs/evidence/onda1-tool-execution-2026-09-13.md",
+    ],
+    sha256: "fc34d49308a814caa351ffd158de7e1797a02bc59b4d3fbc04260d4da1e68dba",
+    rollback: "drizzle/rollback/0012_to_0011_down.sql",
     appliedOn: "empty",
   },
 ];

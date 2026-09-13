@@ -24,11 +24,12 @@ async function realInputs() {
 
 describe("classificação de migrations (§27a)", () => {
   it("mantém a bijeção journal ↔ registry ↔ drizzle/*.sql com hash byte a byte", async () => {
+    const journal = await loadJournal(root);
     const result = await classifyProject(root);
     expect(result.errors).toEqual([]);
-    expect(result.total).toBe(12);
+    expect(result.total).toBe(journal.entries.length);
     expect(result.classified).toBe(result.total);
-    expect(migrationClasses).toHaveLength(12);
+    expect(migrationClasses).toHaveLength(journal.entries.length);
   });
 
   it("falha quando o sha256 do registry é adulterado", async () => {
