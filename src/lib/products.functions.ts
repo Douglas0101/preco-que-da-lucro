@@ -20,6 +20,7 @@ import {
 } from "@/lib/financial-values";
 import { applicationMetrics } from "@/instrumentation/telemetry";
 import { LIST_LIMITS } from "@/lib/list-limits";
+import { optimisticVersionSchema } from "@/lib/optimistic-version";
 import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 import { productService } from "@/server/services/product.service";
@@ -46,6 +47,7 @@ function mapProduct(row: typeof products.$inferSelect) {
     tax_rate: row.taxRate,
     is_demo: row.isDemo,
     notes: row.notes,
+    version: row.version,
     archived_at: row.archivedAt?.toISOString() ?? null,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
@@ -517,8 +519,7 @@ export const getProduct = createServerFn({ method: "GET" })
     };
   });
 
-const productInput = z.object({
-  id: uuid.optional(),
+const productFields = z.object({
   name: z.string().trim().min(1).max(160),
   current_price: nonNegativeDecimalStringSchema.nullable().optional(),
   yield_qty: positiveDecimalStringSchema.nullable().optional(),
@@ -527,21 +528,92 @@ const productInput = z.object({
   tax_rate: percentFractionSchema.nullable().optional(),
 });
 
+/** Contrato de criação: sem `id`/`version` (o banco inicia em 0). */
+export const createProductInput = productFields;
+
+/** Contrato de atualização: CAS otimista exige `id` + `version` correntes. */
+export const updateProductInput = productFields.extend({
+  id: uuid,
+  version: optimisticVersionSchema,
+});
+
+/**
+ * Compatibilidade: o input legado aceita `id` opcional, mas atualização sem
+ * `version` falha em VALIDATION_ERROR — nunca faz last-write-wins.
+ */
+const legacyProductInput = productFields
+  .extend({
+    id: uuid.optional(),
+    version: optimisticVersionSchema.optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.id && value.version === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["version"],
+        message: "Atualização exige a versão corrente do produto.",
+      });
+    }
+    if (!value.id && value.version !== undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["version"],
+        message: "Versão só se aplica a atualização com id.",
+      });
+    }
+  });
+
+type ProductFields = z.output<typeof productFields>;
+
+function toProductWrite(data: ProductFields) {
+  return {
+    name: data.name,
+    currentPrice: data.current_price == null ? null : toDecimalString(data.current_price, 4),
+    yieldQty: data.yield_qty == null ? null : toDecimalString(data.yield_qty, 6),
+    yieldUnit: data.yield_unit ?? null,
+    taxRegime: data.tax_regime ?? null,
+    taxRate: data.tax_rate == null ? null : toDecimalString(data.tax_rate, 6),
+  };
+}
+
+async function createProductWrite(
+  request: RequestContext,
+  data: ProductFields,
+): Promise<ReturnType<typeof mapProduct>> {
+  const product = await productService.save(request, toProductWrite(data));
+  return mapProduct(product);
+}
+
+async function updateProductWrite(
+  request: RequestContext,
+  data: z.output<typeof updateProductInput>,
+): Promise<ReturnType<typeof mapProduct>> {
+  const product = await productService.save(request, {
+    id: data.id,
+    version: data.version,
+    ...toProductWrite(data),
+  });
+  return mapProduct(product);
+}
+
+export const createProduct = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => createProductInput.parse(input))
+  .handler(async ({ data, context }) => createProductWrite(context.requestContext, data));
+
+export const updateProduct = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => updateProductInput.parse(input))
+  .handler(async ({ data, context }) => updateProductWrite(context.requestContext, data));
+
+/** Dispatcher legado: sem `id` cria; com `id` + `version` atualiza via CAS. */
 export const upsertProduct = createServerFn({ method: "POST" })
   .middleware([requireDatabaseAuth])
-  .validator((input: unknown) => productInput.parse(input))
+  .validator((input: unknown) => legacyProductInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
-    const product = await productService.save(request, {
-      id: data.id,
-      name: data.name,
-      currentPrice: data.current_price == null ? null : toDecimalString(data.current_price, 4),
-      yieldQty: data.yield_qty == null ? null : toDecimalString(data.yield_qty, 6),
-      yieldUnit: data.yield_unit ?? null,
-      taxRegime: data.tax_regime ?? null,
-      taxRate: data.tax_rate == null ? null : toDecimalString(data.tax_rate, 6),
-    });
-    return mapProduct(product);
+    if (!data.id) return createProductWrite(request, data);
+    return updateProductWrite(request, updateProductInput.parse(data));
   });
 
 export const archiveProduct = createServerFn({ method: "POST" })

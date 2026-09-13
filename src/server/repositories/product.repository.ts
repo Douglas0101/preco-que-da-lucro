@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { products, type Product } from "@/db/schema";
 import type { RequestContext } from "@/lib/request-context";
 
@@ -8,6 +8,8 @@ export interface ProductQuery {
 
 export interface ProductWrite {
   id?: string;
+  /** Versão esperada para CAS otimista; obrigatória quando `id` está presente. */
+  version?: number;
   name: string;
   currentPrice: string | null;
   yieldQty: string | null;
@@ -55,23 +57,39 @@ export class DrizzleProductRepository implements ProductRepository {
       updatedAt: new Date(),
     };
 
-    const rows = input.id
-      ? await context.transaction
-          .update(products)
-          .set(values)
-          .where(and(eq(products.tenantId, context.tenantId), eq(products.id, input.id)))
-          .returning()
-      : await context.transaction
-          .insert(products)
-          .values({
-            tenantId: context.tenantId,
-            userId: context.userId,
-            ...values,
-          })
-          .returning();
+    if (!input.id) {
+      const rows = await context.transaction
+        .insert(products)
+        .values({
+          tenantId: context.tenantId,
+          userId: context.userId,
+          ...values,
+        })
+        .returning();
+      if (!rows[0]) throw new Error("DATABASE_ERROR");
+      return rows[0];
+    }
 
-    if (!rows[0]) throw new Error("NOT_FOUND");
-    return rows[0];
+    if (input.version === undefined) throw new Error("VALIDATION_ERROR");
+    const rows = await context.transaction
+      .update(products)
+      .set({ ...values, version: sql`${products.version} + 1` })
+      .where(
+        and(
+          eq(products.tenantId, context.tenantId),
+          eq(products.id, input.id),
+          eq(products.version, input.version),
+        ),
+      )
+      .returning();
+    if (rows[0]) return rows[0];
+
+    const existing = await context.transaction
+      .select({ id: products.id })
+      .from(products)
+      .where(and(eq(products.tenantId, context.tenantId), eq(products.id, input.id)))
+      .limit(1);
+    throw new Error(existing[0] ? "CONFLICT" : "NOT_FOUND");
   }
 
   async archive(context: RequestContext, id: string): Promise<void> {

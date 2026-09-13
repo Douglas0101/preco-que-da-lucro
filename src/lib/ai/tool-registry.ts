@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   expenses,
@@ -173,6 +173,7 @@ const DEFINITIONS = [
         .set({
           yieldQty: toDecimalString(input.yield_qty, 6),
           yieldUnit: input.yield_unit,
+          version: sql`${products.version} + 1`,
           updatedAt: new Date(),
         })
         .where(and(eq(products.tenantId, context.tenantId), eq(products.id, input.product_id)))
@@ -233,6 +234,7 @@ const DEFINITIONS = [
           currentPrice: toDecimalString(input.current_price, 4),
           taxRegime: input.tax_regime,
           taxRate: input.tax_rate === undefined ? null : toDecimalString(input.tax_rate, 6),
+          version: sql`${products.version} + 1`,
           updatedAt: new Date(),
         })
         .where(and(eq(products.tenantId, context.tenantId), eq(products.id, input.product_id)))

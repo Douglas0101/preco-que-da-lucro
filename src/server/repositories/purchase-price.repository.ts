@@ -16,6 +16,15 @@ export interface PurchasePriceHistoryWrite {
 
 export interface PurchasePriceRepository {
   append(context: RequestContext, input: PurchasePriceHistoryWrite): Promise<PurchasePriceHistory>;
+  /**
+   * Serializa read-modify-write por tenant/kind/subject. O serviço adquire o
+   * lock ANTES do UPDATE da linha base; o append reentra no mesmo lock
+   * (advisory xact locks são reentrantes por sessão).
+   */
+  lock(
+    context: RequestContext,
+    input: Pick<PurchasePriceHistoryWrite, "kind" | "subjectId">,
+  ): Promise<void>;
 }
 
 function sameEffectiveValue(
@@ -31,11 +40,18 @@ function sameEffectiveValue(
 }
 
 export class DrizzlePurchasePriceRepository implements PurchasePriceRepository {
-  async append(context: RequestContext, input: PurchasePriceHistoryWrite) {
+  async lock(
+    context: RequestContext,
+    input: Pick<PurchasePriceHistoryWrite, "kind" | "subjectId">,
+  ): Promise<void> {
     const lockKey = `${context.tenantId}:${input.kind}:${input.subjectId}`;
     await context.transaction.execute(sql`
       select pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
     `);
+  }
+
+  async append(context: RequestContext, input: PurchasePriceHistoryWrite) {
+    await this.lock(context, input);
 
     const targetPredicate =
       input.kind === "ingredient"
