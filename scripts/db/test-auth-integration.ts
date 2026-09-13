@@ -23,7 +23,10 @@ const SIGNUP_IP = "198.51.100.42";
 // needs her own bucket to stay deterministic.
 const SIGNUP_IP_MARIA = "198.51.100.44";
 const SIGNIN_IP = "198.51.100.43";
-const TEST_IPS = [SIGNUP_IP, SIGNUP_IP_MARIA, SIGNIN_IP] as const;
+// §32 session fixation needs an attacker whose sign-in bucket is independent
+// from the victim's, otherwise the two logins share the 5/min limit.
+const ATTACKER_IP = "198.51.100.45";
+const TEST_IPS = [SIGNUP_IP, SIGNUP_IP_MARIA, SIGNIN_IP, ATTACKER_IP] as const;
 const TEST_EMAILS = [
   "burst-0@example.test",
   "burst-1@example.test",
@@ -31,8 +34,10 @@ const TEST_EMAILS = [
   "burst-3@example.test",
   "maria@example.test",
   "legacy@example.test",
+  "attacker@example.test",
 ] as const;
 const LEGACY_USER_ID = "50000000-0000-4000-8000-000000000005";
+const ATTACKER_USER_ID = "50000000-0000-4000-8000-000000000006";
 
 // Better Auth >= 1.7.2 resolves credential accounts by
 // createLocalAccountIssuer(providerId) === `local:${encodeURIComponent(id)}`.
@@ -103,11 +108,31 @@ function sessionCookie(response: Response): string {
   return setCookie.split(";", 1)[0]!;
 }
 
+function cookieValue(cookie: string): string {
+  return decodeURIComponent(cookie.slice(cookie.indexOf("=") + 1));
+}
+
+async function sessionEmail(
+  auth: ReturnType<typeof createAuthInstance>,
+  cookie: string,
+  ipAddress: string,
+): Promise<string | undefined> {
+  const response = await auth.handler(
+    new Request("http://localhost:3000/api/auth/get-session?disableCookieCache=true", {
+      headers: { cookie, "x-forwarded-for": ipAddress },
+    }),
+  );
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as { user?: { email?: string } } | null;
+  return body?.user?.email;
+}
+
 async function main(): Promise<void> {
   const runtimePassword = randomBytes(24).toString("base64url");
   const initialPassword = randomBytes(24).toString("base64url");
   const changedPassword = randomBytes(24).toString("base64url");
   const legacyPassword = randomBytes(24).toString("base64url");
+  const attackerPassword = randomBytes(24).toString("base64url");
   const adminUrl = requireAdminUrl();
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
@@ -283,6 +308,61 @@ async function main(): Promise<void> {
       [LEGACY_USER_ID],
     );
     assert.equal(sessions.rows[0]?.count, "1");
+
+    // §32 — Session fixation: the attacker signs in first and plants S_A; the
+    // victim's login receives S_A in the Cookie header and must mint a fresh
+    // session S_B that never echoes the attacker's token. Better Auth always
+    // creates a new session on login, but it does not revoke the pre-existing
+    // one — pre-login token invalidation is only promised by the change-password
+    // block above, which deletes every session of the user.
+    await admin.query(
+      `insert into users (id, name, email, email_verified)
+       values ($1, 'Usuário atacante', 'attacker@example.test', true)`,
+      [ATTACKER_USER_ID],
+    );
+    await admin.query(
+      `insert into accounts (id, account_id, provider_id, issuer, user_id, password)
+       values ('attacker-credential-account', $1, 'credential', $3, $1, $2)`,
+      [ATTACKER_USER_ID, hashSync(attackerPassword, 4), CREDENTIAL_ISSUER],
+    );
+    const attackerLogin = await auth.handler(
+      jsonRequest(
+        "/sign-in/email",
+        { email: "attacker@example.test", password: attackerPassword },
+        undefined,
+        ATTACKER_IP,
+      ),
+    );
+    assert.equal(attackerLogin.status, 200);
+    const attackerCookie = sessionCookie(attackerLogin);
+
+    const victimLogin = await auth.handler(
+      jsonRequest(
+        "/sign-in/email",
+        { email: "maria@example.test", password: changedPassword },
+        attackerCookie,
+        SIGNIN_IP,
+      ),
+    );
+    assert.equal(victimLogin.status, 200);
+    const victimSetCookie = victimLogin.headers.get("set-cookie");
+    assert.ok(victimSetCookie, "login da vítima deve emitir Set-Cookie");
+    const victimCookie = sessionCookie(victimLogin);
+    assert.notEqual(victimCookie, attackerCookie, "S_B deve diferir de S_A");
+    assert.ok(
+      !decodeURIComponent(victimSetCookie).includes(cookieValue(attackerCookie)),
+      "Set-Cookie da vítima não pode ecoar o token plantado pelo atacante",
+    );
+    assert.equal(
+      await sessionEmail(auth, attackerCookie, ATTACKER_IP),
+      "attacker@example.test",
+      "S_A deve continuar pertencendo ao atacante",
+    );
+    assert.equal(
+      await sessionEmail(auth, victimCookie, SIGNIN_IP),
+      "maria@example.test",
+      "S_B deve pertencer à vítima",
+    );
   } finally {
     setEmailAdapterForTests(undefined);
     setDatabaseForTests(undefined);
@@ -294,7 +374,7 @@ async function main(): Promise<void> {
     }
   }
 
-  console.log("Better Auth, tenant pessoal, cookie, bcrypt/scrypt e rotação de sessão: OK");
+  console.log("Better Auth, tenant pessoal, cookie, bcrypt/scrypt, fixação de sessão: OK");
 }
 
 await main();
