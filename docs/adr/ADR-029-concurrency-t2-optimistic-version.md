@@ -40,7 +40,7 @@
 ## 5. Consequências
 
 - `drizzle/rollback/0013_to_0012_down.sql` remove constraint/coluna (destrutivo apenas para o contador; pós-tráfego o rollback canônico é restore de snapshot).
-- Toda escrita de produto/despesa passa a devolver 409 em corrida; a UI ainda não trata esse código (o `upsertExpense` legado segue só-insert; `updateProduct`/`updateExpense` são novos exports).
+- Toda escrita de produto/despesa passa a devolver 409 em corrida; a UI ainda não trata esse código (o único consumidor de UI, `despesas.tsx`, usa apenas insert; `updateProduct`/`updateExpense` são novos exports).
 - O registry de migrations vai a **14/14**; `scripts/db/test-migrations.ts`, `scripts/m02-v2b.mjs` e snapshots foram atualizados na mesma rodada.
 - T3 herda: CAS de estado da conversa, avaliação de `SERIALIZABLE` e política de retry no cliente.
 

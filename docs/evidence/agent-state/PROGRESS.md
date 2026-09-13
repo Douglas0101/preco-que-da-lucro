@@ -17,9 +17,9 @@
 
 ## 1. Estado corrente
 
-- **Fase:** `5 — consolidação` (J · 1 · 2 · 3 concluídas; 4 dormente aguardando H-6/H-2; recapitulação + medição em L31; **Onda 0 do plano de PARTIALs concluída — L33; próxima: hotfix BUG-CHAT + Onda 1**)
-- **Refs:** `develop` = `29804a6` (fechamento da Onda 0; commit do painel avança o HEAD — `git log --grep='EXECUCAO-ONDA0' -1 --format=%h`) · `origin/main` = `9724d2c` (**SHA do dia-D**) · `main` local = `ac2e834` (59 atrás; obsoleto — não usar) · WIP `codex/p0-closeout` = `49eaf2b` (preservado) · back-merge `origin/main → develop` concluído em L32
-- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned atualizado para `29804a6` no fechamento da Onda 0 (válido para o HEAD pós-commit; `m02:state:check`).
+- **Fase:** `5 — consolidação` (J · 1 · 2 · 3 concluídas; 4 dormente aguardando H-6/H-2; recapitulação + medição em L31; **Onda 0 (L33) + hotfix BUG-CHAT (L34) + Onda 1 (L35) concluídas; próxima: Onda 2 — observabilidade**)
+- **Refs:** `develop` = `e8a73ef` (fechamento da Onda 1; commit do painel avança o HEAD — `git log --grep='EXECUCAO-ONDA1' -1 --format=%h`) · `origin/main` = `9724d2c` (**SHA do dia-D**) · `main` local = `ac2e834` (59 atrás; obsoleto — não usar) · WIP `codex/p0-closeout` = `49eaf2b` (preservado) · back-merge `origin/main → develop` concluído em L32
+- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned atualizado para `e8a73ef` no fechamento da Onda 1 (válido para o HEAD pós-commit; `m02:state:check`).
 - **Árvore:** limpa no repo principal; worktree `.p0-closeout-docker` limpo (pós-`49eaf2b`).
 - **Ambiente local:** Postgres Docker `preco-que-da-lucro-postgres` (127.0.0.1:5432, `preco_que_da_lucro_test`) usado nos gates; `.env` aponta para produção e por isso **todo** dev/test/build exige override explícito para `127.0.0.1` (sancionado por `AGENTS.md`).
 
@@ -54,6 +54,8 @@
 | L33 | 16:02:00 | ✔   | **ONDA 0 concluída (5 integrações; V1–V5 todos PRONTO):** §27 registry+checker, §35 template+gate, F0-04 baseline controlado+`ai.model_attempt`, §32 SQLi, §32 fixação + AUTH-005 A+B. Gates finais `npm run check` + `db:test` (8 suítes) verdes. 5 PARTIALs fechados (**77,8% → ~79,1%**). Descoberto **BUG-CHAT** (pré-existente; hotfix proposto). Painel: `docs/evidence/plan-partials-2026-09-13/EXECUCAO-ONDA0.md`; commits `git log --oneline 42d4b76..HEAD`. |
 | L34 | 16:05:00 | ▶   | **Hotfix BUG-CHAT (aprovado pelo humano):** operador O6 em worktree próprio; fallback `request.signal` em `request-context.ts` + e2e de regressão com prova vermelho→verde; V6 adversarial na sequência. Sem push.                                                                                                                                                                                                                                                    |
 | L34 | 16:15:00 | ✔   | **Hotfix BUG-CHAT concluído** (merge `d6f5706`; operador `bd0a768`): fallback em `authenticateRequest`/`requireDatabaseAuth`; e2e reproduzido por V6 (4/4, exit 0) e suíte 444 testes verde. Evidência `docs/evidence/bug-chat-fix-2026-09-13.md`.                                                                                                                                                                                                                    |
+| L35 | 17:05:00 | ▶   | **ONDA 1 do plano de PARTIALs (enxame + schema lane):** 9.2 Dashboard/ai-tool, 9.1 Pricing/Conversation/Audit + contracts Event/Memory, 14.3 (migration 0012), T2 (migration 0013 + ADR-029), BFF create/update split; operadores O7–O12 + fixes O10c/O10d; V7–V12. Sem push.                                                                                                                                                                                         |
+| L35 | 17:30:00 | ✔   | **ONDA 1 concluída (8 integrações; V7–V12 PRONTO após bloqueio V10 corrigido):** migrations 0012/0013 (registry 14/14), 4 PARTIALs fechados (**~79,1% → ~80,2%**), ADR-029/M02-D-010/M04-D-012, contracts reais. Gates finais: `npm run check` 495 testes + build/format; `db:test` 9 suítes. Painel: `docs/evidence/plan-partials-2026-09-13/EXECUCAO-ONDA1.md`.                                                                                                     |
 
 ## 3. Fila humana (o que está bloqueado em pessoa)
 
@@ -78,7 +80,7 @@ Instrução clique-a-clique do H-6: `docs/evidence/hpanel-homologacao-2026-09-12
 
 - Estado do programa: `EXECUTION-STATE-PROGRAM.md` · consolidação da rodada: `docs/evidence/F7-consolidacao-2026-09-13.md`
 - Recapitulação/medição do Plano Mestre: `docs/evidence/plan-recap-2026-09-13/` — `CONSOLIDADO.md` · `part-A..D` · `part-E-medicao.md` (medição §16–§35 + verificação do recap §5–§15)
-- Plano dos PARTIAL (execução): `docs/evidence/plan-partials-2026-09-13/` — `PLANO.md` + `part-1..part-5` · painel da Onda 0: `EXECUCAO-ONDA0.md` (a criar)
+- Plano dos PARTIAL (execução): `docs/evidence/plan-partials-2026-09-13/` — `PLANO.md` + `part-1..part-5` · painéis: `EXECUCAO-ONDA0.md` · `EXECUCAO-ONDA1.md`
 - hPanel: `docs/runbooks/hpanel-homologacao.md` · `docs/evidence/hpanel-homologacao-2026-09-12/` (item 1 FAIL + `SESSION-LIMIT.md`)
 - Neon: `docs/evidence/neon-prontidao-2026-09-13.md` · PITR: `docs/evidence/neon-pitr-memo-2026-09-12.md`
 - Vercel: `docs/evidence/vercel-docmap-2026-09-12.md` · falha/correção: `docs/evidence/vercel-deploy-failure-2026-09-13.md`
