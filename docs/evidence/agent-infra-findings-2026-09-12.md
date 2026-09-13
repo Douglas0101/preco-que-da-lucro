@@ -155,3 +155,26 @@ Resumo de uma linha: **tráfego de aplicação NÃO EXISTE · Neon 12/12 · hPan
 - Verificações de ambiente da extensão: existência de `~/.pi/agent/hermes-memory-config.json` (**ausente**) e leitura do
   `README.md`/`src/handlers/background-review.ts` do pacote instalado `pi-hermes-memory`.
 - Extração de trechos do transcript da sessão pai (JSONL, read-only) para localizar o registro do warning e as medições de capacidade (100%).
+
+---
+
+## PODA J5 — executada (2026-09-13)
+
+**Antes → depois (stores core do pi-hermes; limites: 5.000 chars projeto/user, 10.000 falhas):**
+
+| Store                                        | Antes                      | Depois                                   | % do limite                |
+| -------------------------------------------- | -------------------------- | ---------------------------------------- | -------------------------- |
+| `pi-hermes-memory/failures.md`               | 32.261 chars · 38 entradas | **600 chars**                            | 322% → **6%**              |
+| `projects-memory/preco-que-d-main/MEMORY.md` | 24.872 chars · 23 entradas | **638 chars**                            | 497% → **12%**             |
+| `pi-hermes-memory/MEMORY.md` (global)        | 9.624 chars · 17 entradas  | **não podado** (fora do escopo aprovado) | 192% — recomendação aberta |
+| `USER.md`                                    | 7.253 chars · 14 entradas  | **não podado** (fora do escopo aprovado) | 145% — recomendação aberta |
+
+**Método:** backup integral dos 4 stores em `~/.local/share/pi-fronts/memory-prune-2026-09-13/`; destilação das lições duráveis
+para `docs/evidence/agent-state/AGENT-ENV-NOTES.md` (artefato versionado); gravação de um **índice de boot** em cada store
+podado, apontando para o journal e para o artefato (regra `AGENTS.md`: memória = cache invalidável).
+
+**Métrica de sucesso (auto-review volta a responder):**
+
+- Evidência direta: os stores core voltaram a ficar **abaixo do limite** (o overflow era a causa declarada das gravações recusadas com `usage` cheio) e `memory_search` responde normalmente após a poda.
+- Evidência indireta declarada: o `sessions.db` (store estendido, ilimitado) preserva o histórico — buscas continuam encontrando entradas antigas; isso **não** é sintoma de saturação dos stores core.
+- **Residual honesto:** o comportamento do loop de auto-review só se observa na próxima fronteira de sessão — registrado como pendência de verificação com data prevista (próximo boot, conforme `PROGRESS.md`).
