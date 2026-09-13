@@ -120,3 +120,62 @@ escopo). Nenhum `matrix*.yaml` tocado; regeneração/`m02:matrix:check` ficam pa
 - Token DB liberado (`/tmp/opencode/onda1-db.lock` removido).
 - Próximo (S): incorporar a branch e resolver o manifest request de matriz, se houver; nenhum pendente
   de banco.
+
+## Correção V10 — lone surrogates (fix dirigido O10c)
+
+**Branch:** `ops/onda1-surrogate-fix` · **Base:** `32154b7` · **Data:** 2026-09-13 (UTC).
+
+### Defeito confirmado
+
+`sanitizeString` (`src/lib/ai/tool-payload.ts`) podia emitir lone surrogates mesmo com o sanitizador:
+
+1. `Array.from(...).join("").slice(0, 8000)` cortava um par surrogate ao meio quando o code point
+   astral cruzava o limite — sobrava um high surrogate solto.
+2. Escapes lone já presentes no JSON de entrada (`"\ud83d"`, `"\udc00"`) passavam intactos: o filtro
+   só removia code points de controle e `Array.from` entrega o lone surrogate como code unit.
+
+O `pg` serializa o valor como `\ud83d` e o jsonb rejeita; o insert do campo `input` em
+`tool-runner.ts` fica **fora** do `try`, então o erro virava exceção não tratada em vez de rejeição
+controlada. Prova negativa (sanitizador antigo aplicado a `"Bolo \ud83d solto"` + insert jsonb):
+`invalid input syntax for type json` / detail `Unicode low surrogate must follow a high surrogate.`
+
+### Correção
+
+- `sanitizeString` passa a acumular por **code point** (`for...of`): descarta qualquer code point em
+  `0xD800–0xDFFF` (loops sobre string já entrega pares válidos como um único code point astral) e
+  aplica o teto de 8 000 unidades UTF-16 sem cortar par — um astral ocupa 2 unidades e só entra se
+  couber inteiro; ao atingir exatamente 8 000 a varredura para. Demais limites (array 100, chaves por
+  objeto 100, chave 120, profundidade 8, `NaN`/`Infinity` → `null`) e a redação por chave estrita
+  seguem inalterados.
+- Testes unitários (`src/test/tool-runner.persistence.test.ts`): lone high (`\ud83d`) e low
+  (`\udc00`) removidos preservando par válido (`🚀`); limite 8 000 com emoji (`7 998 "a" + 🚀` →
+  8 000 exatos; `7 999 "a" + 🚀b` → 7 999, sem par cortado); persistência via `runRegisteredTool` com
+  escapes lone no JSON de argumentos → `input` persistido sem lone surrogate.
+- Regressão DB (`scripts/db/test-tool-security.ts`): chamada `create_product` com
+  `'{"name":"Bolo \\ud83d solto"}'`, execução `ok` e `input` persistido `{ name: "Bolo  solto" }`;
+  contagem de execuções 9 → 10.
+
+### Validação (sem `| tail`)
+
+| Comando                                                                                                                  | Exit | Resultado                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------- |
+| `npx vitest run src/test/tool-runner.persistence.test.ts src/test/ai-estimated-cost.test.ts`                             | 0    | 2 arquivos, 27 testes, 0 falhas                                                           |
+| `docker exec preco-que-da-lucro-postgres psql -U postgres -c "DROP DATABASE ... WITH (FORCE);" -c "CREATE DATABASE ..."` | 0    | `DROP DATABASE` / `CREATE DATABASE`                                                       |
+| `npx tsx scripts/db/test-migrations.ts` (env local, `DATABASE_DRIVER=node-postgres`)                                     | 0    | `PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK` |
+| `npx tsx scripts/db/test-tool-security.ts` (env local)                                                                   | 0    | `Tool registry: validação, AuthZ, idempotência, auditoria e isolamento: OK`               |
+| Prova negativa (sanitizador antigo + insert jsonb direto)                                                                | n/a  | `EXPECTED REJECTION: invalid input syntax for type json`                                  |
+| `npm run typecheck`                                                                                                      | 0    | sem erros                                                                                 |
+| `npx prettier --check` (arquivos do fix)                                                                                 | 0    | `All matched files use Prettier code style!`                                              |
+| `npm run m02:boundaries`                                                                                                 | 0    | `M-02 BFF boundary is clean`                                                              |
+
+### Arquivos do fix
+
+| Ação     | Arquivo                                            | Notas                                                    |
+| -------- | -------------------------------------------------- | -------------------------------------------------------- |
+| alterado | `src/lib/ai/tool-payload.ts`                       | sanitização por code point + limite sem cortar par       |
+| alterado | `src/test/tool-runner.persistence.test.ts`         | lone high/low, par preservado, borda 8 000, persistência |
+| alterado | `scripts/db/test-tool-security.ts`                 | regressão jsonb com escape lone surrogate                |
+| alterado | `docs/evidence/onda1-tool-execution-2026-09-13.md` | esta seção (append)                                      |
+
+Commit único (staging explícito, sem push):
+`fix(ai): sanitizador remove lone surrogates e nao corta par surrogate (§14.3)`.

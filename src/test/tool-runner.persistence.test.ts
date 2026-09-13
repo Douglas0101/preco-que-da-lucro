@@ -9,6 +9,14 @@ const userId = "71000000-0000-4000-8000-000000000001";
 const correlationId = "76000000-0000-4000-8000-000000000006";
 const usageId = "78000000-0000-4000-8000-000000000008";
 
+function hasLoneSurrogate(value: string): boolean {
+  for (const character of value) {
+    const code = character.codePointAt(0) ?? 0;
+    if (code >= 0xd800 && code <= 0xdfff) return true;
+  }
+  return false;
+}
+
 interface WrittenRow {
   table: unknown;
   values: Record<string, unknown>;
@@ -165,6 +173,23 @@ describe("persistência da tool execution (§14.3)", () => {
       pricing: "preservado",
     });
   });
+
+  it("persiste input sem lone surrogates mesmo com escapes no JSON de entrada", async () => {
+    const transaction = new FakeTransaction();
+    const result = await runRegisteredTool({
+      context: fakeContext(transaction),
+      name: "create_product",
+      rawArguments: '{"name":"Bolo \\ud83d com low \\udc00 e par \\ud83d\\ude00"}',
+      idempotencyKey: "conversation:call-surrogate",
+      toolCallId: "call-surrogate",
+      usageId,
+    });
+
+    expect(result.ok).toBe(true);
+    const [execution] = transaction.insertsFor(toolExecutions);
+    expect(execution.input).toEqual({ name: "Bolo  com low  e par 😀" });
+    expect(hasLoneSurrogate(JSON.stringify(execution.input))).toBe(false);
+  });
 });
 
 describe("sanitizeToolInput", () => {
@@ -223,6 +248,34 @@ describe("sanitizeToolInput", () => {
     }
     expect(levels).toBe(9);
     expect(cursor).toBeNull();
+  });
+
+  it("remove lone surrogates e preserva pares válidos", () => {
+    const sanitized = sanitizeToolInput({
+      high: "antes \ud83d depois",
+      low: "antes \udc00 depois",
+      pair: "antes \u{1F680} depois",
+    });
+
+    expect(sanitized).toEqual({
+      high: "antes  depois",
+      low: "antes  depois",
+      pair: "antes 🚀 depois",
+    });
+    expect(hasLoneSurrogate(JSON.stringify(sanitized))).toBe(false);
+  });
+
+  it("não corta par surrogate no limite de 8000 unidades UTF-16", () => {
+    const sanitized = sanitizeToolInput({
+      fits: "a".repeat(7_998) + "🚀",
+      cuts: "a".repeat(7_999) + "🚀b",
+    });
+
+    expect(sanitized?.fits).toHaveLength(8_000);
+    expect((sanitized?.fits as string).endsWith("🚀")).toBe(true);
+    expect(sanitized?.cuts).toHaveLength(7_999);
+    expect(hasLoneSurrogate(sanitized?.fits as string)).toBe(false);
+    expect(hasLoneSurrogate(sanitized?.cuts as string)).toBe(false);
   });
 
   it("retorna null para payload que não é objeto JSON", () => {
