@@ -266,6 +266,7 @@ async function runToolCall(
   conversationId: string,
   toolCall: GatewayToolCall,
   toolRunner: ToolRunner,
+  usageId: string,
 ): Promise<ToolResult> {
   return inTenantTransaction(identity, (request) =>
     toolRunner({
@@ -273,6 +274,8 @@ async function runToolCall(
       name: toolCall.function.name,
       rawArguments: toolCall.function.arguments,
       idempotencyKey: `${conversationId}:${toolCall.id}`,
+      toolCallId: toolCall.id,
+      usageId,
     }),
   );
 }
@@ -284,10 +287,17 @@ async function appendToolCalls(
   currentProductId: string | null,
   toolCalls: GatewayToolCall[],
   toolRunner: ToolRunner,
+  usageId: string,
 ): Promise<string | null> {
   let nextProductId = currentProductId;
   for (const toolCall of toolCalls) {
-    const toolResult = await runToolCall(identity, state.conversation.id, toolCall, toolRunner);
+    const toolResult = await runToolCall(
+      identity,
+      state.conversation.id,
+      toolCall,
+      toolRunner,
+      usageId,
+    );
     if (toolResult.ok && toolResult.output.state?.currentProductId) {
       nextProductId = toolResult.output.state.currentProductId;
     }
@@ -305,6 +315,7 @@ async function handleModelResponse(
   round: number,
   toolRunner: ToolRunner,
   conversationService: ConversationService,
+  usageId: string,
 ): Promise<RoundResult> {
   const modelMessage = modelResponse.choices[0]!.message;
   const toolCalls = modelMessage.tool_calls;
@@ -321,6 +332,7 @@ async function handleModelResponse(
       currentProductId,
       toolCalls,
       toolRunner,
+      usageId,
     );
     state.conversationState = await transitionConversation(
       conversationService,
@@ -412,6 +424,7 @@ async function executeReservedRound({
       round,
       toolRunner,
       conversationService,
+      reservationResult.usageId,
     );
     outcome = result.kind === "continue" ? "tool_round" : "success";
     return result;

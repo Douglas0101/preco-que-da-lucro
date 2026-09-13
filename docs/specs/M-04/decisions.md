@@ -44,3 +44,15 @@ SA-12/Bayes, mas não substituem a decisão humana de Q-019.
 Regra adicional de congelamento: Q-019 deverá ratificar D-011 como resolução de
 D-004 × D-008, junto com D-003 e os campos finais do contrato de outbox; G1–G8
 passam a compor o DoD de P9.
+
+---
+
+## Emenda v3 — 2026-09-13 (Onda 1, §14.3)
+
+| ID        | Pergunta                                           | Proposta para o draft                                                                                                                                                                                                                                                                                                                                               | Evidência / impacto                                                                                                                                                                                                                                                                                                                                                                                                       | Estado           |
+| --------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| M04-D-012 | Como vincular as execuções de tool ao round de IA? | O vínculo canônico é **N:1 via `tool_executions.usage_id`**: um round tem um `usage_id` (D-002) e pode executar N tools, cada uma com sua linha em `tool_executions` e seu `tool_call_id`; `ai_usage.tool_execution_id` permanece reservada e **não** é preenchida com "last tool wins", pois isso sobrescreveria o vínculo das execuções anteriores do mesmo round | Migration 0012 (`tool_call_id text`, `input jsonb`, `usage_id uuid` + índice `(tenant_id, usage_id)`, sem FK — `ai_usage` não tem `UNIQUE(tenant, id)`); threading de `toolCallId`/`usageId` em `runRegisteredTool` ← `runToolCall` ← `executeReservedRound` (`reservationResult.usageId`); replay idempotente preserva o vínculo; testes `src/test/tool-runner.persistence.test.ts` e `scripts/db/test-tool-security.ts` | `AGENT-PROPOSED` |
+
+Regra adicional de congelamento: D-012 é decisão de contrato de dados e não
+autoriza escrita em `ai_usage.tool_execution_id` nem migration adicional. Q-019
+deverá ratificá-la junto de D-011.

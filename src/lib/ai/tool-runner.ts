@@ -13,6 +13,7 @@ import {
   type PreparedTool,
   type ToolExecutionOutput,
 } from "./tool-registry";
+import { sanitizeToolInput } from "./tool-payload";
 
 export type ToolRunResult =
   | { ok: true; output: ToolExecutionOutput; replayed: boolean }
@@ -74,12 +75,19 @@ function publicFailure(code: ApiErrorCode): ToolRunResult {
   return { ok: false, code, replayed: false };
 }
 
+interface ToolExecutionTrace {
+  input: Record<string, unknown> | null;
+  toolCallId?: string;
+  usageId?: string;
+}
+
 async function persistRejected(
   context: RequestContext,
   toolName: string,
   hash: string,
   code: ApiErrorCode,
   startedAt: number,
+  trace: ToolExecutionTrace,
 ): Promise<void> {
   const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
   await context.transaction.insert(toolExecutions).values({
@@ -88,6 +96,9 @@ async function persistRejected(
     correlationId: context.correlationId,
     toolName,
     inputHash: hash,
+    input: trace.input,
+    toolCallId: trace.toolCallId ?? null,
+    usageId: trace.usageId ?? null,
     status: "failed",
     durationMs,
     errorCode: code,
@@ -110,28 +121,36 @@ async function prepareToolRequest(
   name: string,
   rawArguments: string,
   startedAt: number,
-): Promise<{ hash: string; prepared: PreparedToolSuccess } | { failure: ToolRunResult }> {
+  trace: Pick<ToolExecutionTrace, "toolCallId" | "usageId">,
+): Promise<
+  | { hash: string; input: Record<string, unknown> | null; prepared: PreparedToolSuccess }
+  | { failure: ToolRunResult }
+> {
   let rawInput: unknown;
   try {
     rawInput = JSON.parse(rawArguments || "{}");
   } catch {
     const hash = inputHash(rawArguments);
-    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt);
+    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt, {
+      input: null,
+      ...trace,
+    });
     return { failure: publicFailure("VALIDATION_ERROR") };
   }
 
   const hash = inputHash(rawInput);
+  const input = sanitizeToolInput(rawInput);
   const definition = TOOL_REGISTRY.get(name);
   if (!definition) {
-    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt);
+    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt, { input, ...trace });
     return { failure: publicFailure("VALIDATION_ERROR") };
   }
   const prepared = definition.prepare(context, rawInput);
   if (!prepared.ok) {
-    await persistRejected(context, name, hash, prepared.code, startedAt);
+    await persistRejected(context, name, hash, prepared.code, startedAt, { input, ...trace });
     return { failure: publicFailure(prepared.code) };
   }
-  return { hash, prepared };
+  return { hash, input, prepared };
 }
 
 async function resolveExistingClaim(
@@ -185,6 +204,8 @@ export async function runRegisteredTool(options: {
   name: string;
   rawArguments: string;
   idempotencyKey: string;
+  toolCallId?: string;
+  usageId?: string;
   allowedToolNames?: readonly string[];
   requireConfirmation?: boolean;
   confirmed?: boolean;
@@ -194,21 +215,30 @@ export async function runRegisteredTool(options: {
     name,
     rawArguments,
     idempotencyKey,
+    toolCallId,
+    usageId,
     allowedToolNames,
     requireConfirmation = false,
     confirmed = false,
   } = options;
   const startedAt = performance.now();
-  const preparedRequest = await prepareToolRequest(context, name, rawArguments, startedAt);
+  const trace = { toolCallId, usageId };
+  const preparedRequest = await prepareToolRequest(context, name, rawArguments, startedAt, trace);
   if ("failure" in preparedRequest) return preparedRequest.failure;
-  const { hash, prepared } = preparedRequest;
+  const { hash, input, prepared } = preparedRequest;
 
   if (allowedToolNames && !allowedToolNames.includes(name)) {
-    await persistRejected(context, name, hash, "AUTHORIZATION_ERROR", startedAt);
+    await persistRejected(context, name, hash, "AUTHORIZATION_ERROR", startedAt, {
+      input,
+      ...trace,
+    });
     return publicFailure("AUTHORIZATION_ERROR");
   }
   if (requireConfirmation && !confirmed) {
-    await persistRejected(context, name, hash, "AUTHORIZATION_ERROR", startedAt);
+    await persistRejected(context, name, hash, "AUTHORIZATION_ERROR", startedAt, {
+      input,
+      ...trace,
+    });
     return publicFailure("AUTHORIZATION_ERROR");
   }
 
@@ -265,6 +295,9 @@ export async function runRegisteredTool(options: {
       correlationId: context.correlationId,
       toolName: name,
       inputHash: hash,
+      input: sanitizeToolInput(prepared.input),
+      toolCallId: toolCallId ?? null,
+      usageId: usageId ?? null,
       status: "pending",
       idempotencyKey,
     })
