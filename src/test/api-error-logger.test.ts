@@ -6,6 +6,7 @@ import {
   errorCodeFromUnknown,
 } from "@/lib/api-error";
 import { logJson, redactLogValue } from "@/lib/structured-logger";
+import { describeError } from "@/lib/error-capture";
 
 const correlationId = "50000000-0000-4000-8000-000000000005";
 
@@ -24,6 +25,7 @@ describe("taxonomia pública de erros", () => {
       error: apiError("DATABASE_ERROR", correlationId),
     });
     expect(JSON.stringify(body)).not.toContain("segredo");
+    expect(errorCodeFromUnknown(new Error("INVALID_PRICE_UNIT"))).toBe("VALIDATION_ERROR");
   });
 });
 
@@ -50,5 +52,12 @@ describe("logs estruturados com redaction", () => {
     logJson("info", "request.completed", { correlationId });
     expect(() => JSON.parse(String(info.mock.calls[0]?.[0]))).not.toThrow();
     info.mockRestore();
+  });
+
+  it("redige causa e stack no caminho catastrófico", () => {
+    const error = new Error("postgresql://admin:secret@db.example/prod password=segredo");
+    const described = describeError(error);
+    expect(described).not.toContain("secret@db.example");
+    expect(described).not.toContain("password=segredo");
   });
 });

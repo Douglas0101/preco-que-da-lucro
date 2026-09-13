@@ -19,9 +19,35 @@ export type Percent = Readonly<{
 
 export type QuantityDimension = "mass" | "volume" | "count" | "production" | "commercial";
 
+export const QUANTITY_UNITS = [
+  "g",
+  "kg",
+  "mg",
+  "ml",
+  "l",
+  "unidade",
+  "un",
+  "dúzia",
+  "duzia",
+  "pacote",
+  "caixa",
+  "colher",
+  "xicara",
+  "xícara",
+  "lote",
+  "porção",
+  "porcao",
+  "receita",
+  "produção",
+  "producao",
+  "unidade_produzida",
+] as const;
+
+export type QuantityUnit = (typeof QUANTITY_UNITS)[number];
+
 export type Quantity = Readonly<{
   amount: DecimalString;
-  unit: string;
+  unit: QuantityUnit;
   dimension: QuantityDimension;
   conversionContextId?: string;
 }>;
@@ -93,15 +119,58 @@ export const percentSchema = z.object({
   ),
 });
 
-export const quantitySchema = z.object({
-  amount: decimalStringSchema.refine(
-    (value) => new Decimal(value).gt(0),
-    "Informe uma quantidade positiva.",
-  ),
-  unit: z.string().trim().min(1),
-  dimension: z.enum(["mass", "volume", "count", "production", "commercial"]),
-  conversionContextId: z.string().trim().min(1).optional(),
-});
+export const quantityUnitSchema = z.string().trim().toLowerCase().pipe(z.enum(QUANTITY_UNITS));
+
+const QUANTITY_UNIT_DIMENSIONS: Record<QuantityUnit, QuantityDimension> = {
+  g: "mass",
+  kg: "mass",
+  mg: "mass",
+  ml: "volume",
+  l: "volume",
+  unidade: "count",
+  un: "count",
+  dúzia: "count",
+  duzia: "count",
+  pacote: "commercial",
+  caixa: "commercial",
+  colher: "commercial",
+  xicara: "commercial",
+  xícara: "commercial",
+  lote: "production",
+  porção: "production",
+  porcao: "production",
+  receita: "production",
+  produção: "production",
+  producao: "production",
+  unidade_produzida: "production",
+};
+
+export function quantityUnitDimension(unit: string): QuantityDimension | null {
+  const normalized = unit.trim().toLowerCase();
+  return normalized in QUANTITY_UNIT_DIMENSIONS
+    ? QUANTITY_UNIT_DIMENSIONS[normalized as QuantityUnit]
+    : null;
+}
+
+export const quantitySchema = z
+  .object({
+    amount: decimalStringSchema.refine(
+      (value) => new Decimal(value).gt(0),
+      "Informe uma quantidade positiva.",
+    ),
+    unit: quantityUnitSchema,
+    dimension: z.enum(["mass", "volume", "count", "production", "commercial"]),
+    conversionContextId: z.string().trim().min(1).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (quantityUnitDimension(value.unit) !== value.dimension) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["dimension"],
+        message: "A dimensão não corresponde à unidade informada.",
+      });
+    }
+  });
 
 export const FINANCIAL_DECIMAL_POLICY = Object.freeze({
   money: { precision: 19, scale: 4 },

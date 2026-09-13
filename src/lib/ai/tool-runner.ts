@@ -92,6 +92,15 @@ async function persistRejected(
     errorCode: code,
     completedAt: new Date(),
   });
+  await context.transaction.insert(auditEvents).values({
+    tenantId: context.tenantId,
+    userId: context.userId,
+    correlationId: context.correlationId,
+    eventType: "ai.tool.rejected",
+    resourceType: "tool",
+    resourceId: toolName,
+    safeMetadata: { code, inputHash: hash, durationMs },
+  });
   applicationMetrics.toolExecutions.add(1, { tool: toolName, status: "rejected", code });
   applicationMetrics.toolDuration.record(durationMs, { tool: toolName, status: "rejected" });
 }
@@ -132,7 +141,7 @@ async function resolveExistingClaim(
   name: string,
   idempotencyKey: string,
   hash: string,
-): Promise<ToolRunResult> {
+): Promise<ToolRunResult | { claimId: string } | null> {
   const [existing] = await context.transaction
     .select()
     .from(idempotencyRecords)
@@ -145,7 +154,22 @@ async function resolveExistingClaim(
       ),
     )
     .limit(1);
-  if (existing?.requestHash !== hash) return publicFailure("CONFLICT");
+  if (!existing) return null;
+  if (existing.expiresAt <= new Date()) {
+    await context.transaction
+      .update(idempotencyRecords)
+      .set({
+        requestHash: hash,
+        status: "pending",
+        response: null,
+        errorCode: null,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1_000),
+        updatedAt: new Date(),
+      })
+      .where(eq(idempotencyRecords.id, existing.id));
+    return { claimId: existing.id };
+  }
+  if (existing.requestHash !== hash) return publicFailure("CONFLICT");
   if (existing.status === "succeeded" && existing.response) {
     const replayedOutput = sanitizeToolOutput(existing.response);
     if (!replayedOutput) return publicFailure("DATABASE_ERROR");
@@ -163,15 +187,35 @@ export async function runRegisteredTool(options: {
   name: string;
   rawArguments: string;
   idempotencyKey: string;
+  allowedToolNames?: readonly string[];
+  requireConfirmation?: boolean;
+  confirmed?: boolean;
 }): Promise<ToolRunResult> {
-  const { context, name, rawArguments, idempotencyKey } = options;
+  const {
+    context,
+    name,
+    rawArguments,
+    idempotencyKey,
+    allowedToolNames,
+    requireConfirmation = false,
+    confirmed = false,
+  } = options;
   const startedAt = performance.now();
   const preparedRequest = await prepareToolRequest(context, name, rawArguments, startedAt);
   if ("failure" in preparedRequest) return preparedRequest.failure;
   const { hash, prepared } = preparedRequest;
 
+  if (allowedToolNames && !allowedToolNames.includes(name)) {
+    await persistRejected(context, name, hash, "AUTHORIZATION_ERROR", startedAt);
+    return publicFailure("AUTHORIZATION_ERROR");
+  }
+  if (requireConfirmation && !confirmed) {
+    await persistRejected(context, name, hash, "AUTHORIZATION_ERROR", startedAt);
+    return publicFailure("AUTHORIZATION_ERROR");
+  }
+
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1_000);
-  const claimed = await context.transaction
+  let claimed = await context.transaction
     .insert(idempotencyRecords)
     .values({
       tenantId: context.tenantId,
@@ -185,7 +229,35 @@ export async function runRegisteredTool(options: {
     .onConflictDoNothing()
     .returning({ id: idempotencyRecords.id });
 
-  if (!claimed[0]) return resolveExistingClaim(context, name, idempotencyKey, hash);
+  if (!claimed[0]) {
+    const existing = await resolveExistingClaim(context, name, idempotencyKey, hash);
+    if (existing && "claimId" in existing) {
+      claimed = [{ id: existing.claimId }];
+    } else if (existing) {
+      return existing;
+    }
+  }
+
+  if (!claimed[0]) {
+    claimed = await context.transaction
+      .insert(idempotencyRecords)
+      .values({
+        tenantId: context.tenantId,
+        userId: context.userId,
+        operation: `ai.tool.${name}`,
+        key: idempotencyKey,
+        requestHash: hash,
+        status: "pending",
+        expiresAt,
+      })
+      .onConflictDoNothing()
+      .returning({ id: idempotencyRecords.id });
+    if (!claimed[0]) {
+      const raced = await resolveExistingClaim(context, name, idempotencyKey, hash);
+      if (raced && "claimId" in raced) claimed = [{ id: raced.claimId }];
+      else return raced ?? publicFailure("CONFLICT");
+    }
+  }
 
   const [execution] = await context.transaction
     .insert(toolExecutions)
@@ -237,11 +309,20 @@ export async function runRegisteredTool(options: {
     return { ok: true, output, replayed: false };
   } catch (error) {
     const mapped = errorCodeFromUnknown(error);
-    const code = mapped === "INTERNAL_ERROR" ? "DATABASE_ERROR" : mapped;
+    const code = context.signal.aborted
+      ? "AI_TIMEOUT"
+      : mapped === "INTERNAL_ERROR"
+        ? "DATABASE_ERROR"
+        : mapped;
     const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
     await context.transaction
       .update(toolExecutions)
-      .set({ status: "failed", durationMs, errorCode: code, completedAt: new Date() })
+      .set({
+        status: code === "AI_TIMEOUT" ? "cancelled" : "failed",
+        durationMs,
+        errorCode: code,
+        completedAt: new Date(),
+      })
       .where(eq(toolExecutions.id, execution.id));
     await context.transaction
       .update(idempotencyRecords)
@@ -251,13 +332,14 @@ export async function runRegisteredTool(options: {
       tenantId: context.tenantId,
       userId: context.userId,
       correlationId: context.correlationId,
-      eventType: "ai.tool.failed",
+      eventType: code === "AI_TIMEOUT" ? "ai.tool.cancelled" : "ai.tool.failed",
       resourceType: "tool",
       resourceId: name,
       safeMetadata: { code, durationMs },
     });
-    applicationMetrics.toolExecutions.add(1, { tool: name, status: "failed", code });
-    applicationMetrics.toolDuration.record(durationMs, { tool: name, status: "failed" });
+    const status = code === "AI_TIMEOUT" ? "cancelled" : "failed";
+    applicationMetrics.toolExecutions.add(1, { tool: name, status, code });
+    applicationMetrics.toolDuration.record(durationMs, { tool: name, status });
     logJson("warn", "ai.tool_failed", {
       correlationId: context.correlationId,
       toolName: name,

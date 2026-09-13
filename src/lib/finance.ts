@@ -4,7 +4,7 @@
  */
 
 import Decimal from "decimal.js";
-import type { QuantityDimension } from "@/lib/financial-values";
+import { quantityUnitDimension, type QuantityDimension } from "@/lib/financial-values";
 
 Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 
@@ -160,39 +160,12 @@ const MASS: Record<string, number> = { mg: 0.001, g: 1, kg: 1000 };
 const VOLUME: Record<string, number> = { ml: 1, l: 1000 };
 const COUNT: Record<string, number> = { unidade: 1, un: 1, dúzia: 12, duzia: 12 };
 
-const CONTEXTUAL_UNITS: ReadonlySet<string> = new Set([
-  "pacote",
-  "caixa",
-  "colher",
-  "xicara",
-  "xícara",
-]);
-
-// Production units are deliberately distinct from count units: a batch,
-// recipe or production run cannot be converted to an individual unit without
-// an explicit, user-confirmed context factor.
-const PRODUCTION_UNITS: ReadonlySet<string> = new Set([
-  "lote",
-  "porção",
-  "porcao",
-  "receita",
-  "produção",
-  "producao",
-  "unidade_produzida",
-]);
-
 function normUnit(u: string) {
   return (u || "").trim().toLowerCase();
 }
 
 export function unitDimension(unit: string): QuantityDimension | null {
-  const normalized = normUnit(unit);
-  if (normalized in MASS) return "mass";
-  if (normalized in VOLUME) return "volume";
-  if (normalized in COUNT) return "count";
-  if (PRODUCTION_UNITS.has(normalized)) return "production";
-  if (CONTEXTUAL_UNITS.has(normalized)) return "commercial";
-  return null;
+  return quantityUnitDimension(unit);
 }
 
 export interface UnitConversionContext {
@@ -216,6 +189,7 @@ export function convertUnit(
   if (!Number.isFinite(qty)) return Number.NaN;
   const f = normUnit(from);
   const t = normUnit(to);
+  if (unitDimension(f) === null || unitDimension(t) === null) return null;
   if (f === t) return qty;
   if (f in MASS && t in MASS) return decimalResult(new Decimal(qty).mul(MASS[f]).div(MASS[t]));
   if (f in VOLUME && t in VOLUME)

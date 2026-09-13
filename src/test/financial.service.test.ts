@@ -51,4 +51,48 @@ describe("financial simulation BFF contract", () => {
     expect(add).toHaveBeenCalledTimes(2);
     expect(add).toHaveBeenCalledWith(1, { version: FINANCE_ENGINE_VERSION });
   });
+
+  it("mantém unknown como incomplete e entradas não finitas como invalid", () => {
+    const incomplete = runFinancialSimulation({
+      price: "20",
+      unitCost: null,
+      taxRate: "0.1",
+      fees: [],
+      fixedExpenses: "100",
+      volume: "10",
+      volumeSource: "manual_simulation",
+    });
+    expect(incomplete.status).toBe("incomplete");
+
+    const invalid = runFinancialSimulation({
+      price: "NaN",
+      unitCost: "5",
+      taxRate: "0.1",
+      fees: [],
+      fixedExpenses: "100",
+      volume: "10",
+      volumeSource: "manual_simulation",
+    });
+    expect(invalid).toMatchObject({
+      status: "invalid",
+      errors: [expect.objectContaining({ code: "INVALID_NUMBER", field: "price" })],
+    });
+  });
+
+  it("não trata volume real arbitrário como simulação factual", () => {
+    expect(
+      runFinancialSimulation({
+        price: "20",
+        unitCost: "5",
+        taxRate: "0",
+        fees: [],
+        fixedExpenses: "100",
+        volume: "10",
+        volumeSource: "real",
+      }),
+    ).toMatchObject({
+      status: "invalid",
+      errors: [expect.objectContaining({ code: "INVALID_VOLUME_SOURCE" })],
+    });
+  });
 });

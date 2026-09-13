@@ -60,6 +60,7 @@ describe("conversão de unidades", () => {
   it("retorna null para unidades incompatíveis", () => {
     expect(convertUnit(1, "kg", "l")).toBeNull();
     expect(convertUnit(1, "unidade", "g")).toBeNull();
+    expect(convertUnit(1, "unidade-inventada", "unidade-inventada")).toBeNull();
   });
 
   it("classifica produção e só converte por fator contextual confirmado", () => {

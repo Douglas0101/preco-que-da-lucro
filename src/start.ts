@@ -4,37 +4,9 @@ import { renderErrorPage } from "./lib/error-page";
 import { applicationMetrics, ensureTelemetryStarted, withSpan } from "./instrumentation/telemetry";
 import { apiErrorResponse, errorCodeFromUnknown } from "./lib/api-error";
 import { logJson } from "./lib/structured-logger";
+import { securityHeaders } from "./lib/security-headers";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function securityHeaders(): Record<string, string> {
-  const csp = [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "object-src 'none'",
-    "frame-ancestors 'none'",
-    "form-action 'self'",
-    "img-src 'self' data: https:",
-    "font-src 'self' data:",
-    "style-src 'self'",
-    "script-src 'self'",
-    "connect-src 'self' https:",
-  ].join("; ");
-  const headers: Record<string, string> = {
-    "content-security-policy-report-only": csp,
-    "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
-    "referrer-policy": "strict-origin-when-cross-origin",
-    "x-content-type-options": "nosniff",
-  };
-  if (process.env.CSP_ENFORCE === "true") {
-    delete headers["content-security-policy-report-only"];
-    headers["content-security-policy"] = csp;
-  }
-  if (process.env.NODE_ENV === "production") {
-    headers["strict-transport-security"] = "max-age=31536000; includeSubDomains";
-  }
-  return headers;
-}
 
 function applyRequestHeaders(
   response: Response,
@@ -73,8 +45,7 @@ function handleUnexpectedError(
   handlerType: string,
   startedAt: number,
   request: Request,
-): Response | never {
-  if (error != null && typeof error === "object" && "statusCode" in error) throw error;
+): Response {
   const code = errorCodeFromUnknown(error);
   applicationMetrics.errors.add(1, { code });
   logJson("error", "request.failed", {
@@ -85,15 +56,21 @@ function handleUnexpectedError(
     durationMs: Math.round(performance.now() - startedAt),
     error,
   });
-  if (handlerType === "serverFn") return apiErrorResponse(code, correlationId);
-  return new Response(renderErrorPage(), {
-    status: 500,
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "x-correlation-id": correlationId,
-      ...securityHeaders(),
-    },
+  const response =
+    handlerType === "serverFn"
+      ? apiErrorResponse(code, correlationId)
+      : new Response(renderErrorPage(), {
+          status: 500,
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+          },
+        });
+  applyRequestHeaders(response, correlationId, handlerType);
+  applicationMetrics.requestDuration.record(performance.now() - startedAt, {
+    method: request.method,
+    status: response.status,
   });
+  return response;
 }
 
 const requestPolicyMiddleware = createMiddleware().server(
