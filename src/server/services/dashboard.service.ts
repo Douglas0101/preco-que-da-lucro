@@ -3,11 +3,30 @@ import type { FeeRow, IngredientRow, PackagingRow } from "@/lib/finance";
 import { toDecimalString } from "@/lib/financial-values";
 import type { RequestContext } from "@/lib/request-context";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
-import { loadDashboardInputs } from "@/server/repositories/dashboard.repository";
+import {
+  dashboardRepository,
+  type DashboardInputs,
+  type DashboardRepository,
+} from "@/server/repositories/dashboard.repository";
 import { calculateProductReadModel } from "@/server/services/product-read-model.service";
-import { salesService } from "@/server/services/sales.service";
+import { salesService, type SalesService } from "@/server/services/sales.service";
 
 export type DashboardPeriod = "month" | "quarter" | "year";
+
+export interface DashboardSummary {
+  productCount: number;
+  fixedExpenses: string | null;
+  bestProduct: { name: string; cmPct: string } | null;
+  hasInvalidCalculation: boolean;
+  incompleteProductCount: number;
+  alerts: string[];
+  period: DashboardPeriod;
+  sales: { revenue: string; count: number };
+}
+
+export interface DashboardService {
+  getSummary(context: RequestContext, period?: DashboardPeriod): Promise<DashboardSummary>;
+}
 
 export function periodStart(period: DashboardPeriod, now: Date = new Date()): Date {
   const from = new Date(now);
@@ -25,9 +44,7 @@ export function periodStart(period: DashboardPeriod, now: Date = new Date()): Da
 const decimalNumber = (value: string | null): number | null =>
   value == null ? null : new Decimal(value).toNumber();
 
-function ingredientRow(
-  row: Awaited<ReturnType<typeof loadDashboardInputs>>["ingredientRows"][number],
-): IngredientRow {
+function ingredientRow(row: DashboardInputs["ingredientRows"][number]): IngredientRow {
   return {
     used_qty: decimalNumber(row.usedQty) as number,
     used_unit: row.usedUnit,
@@ -46,9 +63,7 @@ function ingredientRow(
   };
 }
 
-function packagingRow(
-  row: Awaited<ReturnType<typeof loadDashboardInputs>>["packagingRows"][number],
-): PackagingRow {
+function packagingRow(row: DashboardInputs["packagingRows"][number]): PackagingRow {
   return {
     package_price: decimalNumber(row.packagePrice) as number,
     units_per_package: decimalNumber(row.unitsPerPackage) as number,
@@ -58,7 +73,6 @@ function packagingRow(
 const percentPoints = (value: string | null): number | null =>
   value == null ? null : new Decimal(value).mul(100).toNumber();
 
-type DashboardInputs = Awaited<ReturnType<typeof loadDashboardInputs>>;
 type DashboardProduct = DashboardInputs["productRows"][number];
 
 function sumFixedExpenses(rows: DashboardInputs["expenseRows"]): {
@@ -141,66 +155,83 @@ function analyzeProduct(input: DashboardInputs, product: DashboardProduct): Prod
  * `period` bounds the factual sales KPIs (plan WS-01); it has no effect on
  * the cadastral/current-shape metrics, which have no time dimension.
  */
-export async function getDashboardSummary(
+export class DefaultDashboardService implements DashboardService {
+  constructor(
+    private readonly repository: DashboardRepository,
+    private readonly sales: SalesService = salesService,
+  ) {}
+
+  async getSummary(
+    context: RequestContext,
+    period: DashboardPeriod = "month",
+  ): Promise<DashboardSummary> {
+    const input = await this.repository.loadInputs(context);
+    const fixedExpenseSummary = sumFixedExpenses(input.expenseRows);
+    const startedAt = Date.now();
+    const salesSummary = await withSpan(
+      "service.dashboard.sales_summary",
+      { "app.tenant_id": context.tenantId },
+      () => this.sales.summaryForPeriod(context, periodStart(period)),
+    );
+    applicationMetrics.salesSummaryDuration.record(Date.now() - startedAt, { period });
+
+    let bestProduct: { name: string; cmPct: string } | null = null;
+    let invalidProductCount = 0;
+    let incompleteProductCount = 0;
+    const alerts: string[] = [];
+
+    for (const product of input.productRows) {
+      const analysis = analyzeProduct(input, product);
+      if (analysis.status === "invalid") {
+        invalidProductCount += 1;
+        continue;
+      }
+      if (analysis.status === "incomplete") {
+        incompleteProductCount += 1;
+        continue;
+      }
+      if (!bestProduct || new Decimal(analysis.best.cmPct).gt(bestProduct.cmPct)) {
+        bestProduct = analysis.best;
+      }
+      alerts.push(...analysis.alerts);
+    }
+
+    if (incompleteProductCount > 0) {
+      alerts.unshift(
+        `${incompleteProductCount} produto(s) não participa(m) dos destaques por ter dados incompletos.`,
+      );
+    }
+    let fixedExpensesValue: string | null = null;
+    if (!fixedExpenseSummary.invalid) {
+      try {
+        fixedExpensesValue = toDecimalString(fixedExpenseSummary.value, 4);
+      } catch {
+        fixedExpenseSummary.invalid = true;
+      }
+    }
+    const finalHasInvalidCalculation = invalidProductCount > 0 || fixedExpenseSummary.invalid;
+    return {
+      productCount: input.productRows.length,
+      fixedExpenses: fixedExpensesValue,
+      bestProduct: finalHasInvalidCalculation ? null : bestProduct,
+      hasInvalidCalculation: finalHasInvalidCalculation,
+      incompleteProductCount,
+      alerts,
+      period,
+      sales: {
+        revenue: salesSummary.revenue,
+        count: salesSummary.count,
+      },
+    };
+  }
+}
+
+export const dashboardService: DashboardService = new DefaultDashboardService(dashboardRepository);
+
+/** Adapter consumed by `src/lib/dashboard.functions.ts` and existing tests. */
+export function getDashboardSummary(
   context: RequestContext,
   period: DashboardPeriod = "month",
-) {
-  const input = await loadDashboardInputs(context);
-  const fixedExpenseSummary = sumFixedExpenses(input.expenseRows);
-  const startedAt = Date.now();
-  const salesSummary = await withSpan(
-    "service.dashboard.sales_summary",
-    { "app.tenant_id": context.tenantId },
-    () => salesService.summaryForPeriod(context, periodStart(period)),
-  );
-  applicationMetrics.salesSummaryDuration.record(Date.now() - startedAt, { period });
-
-  let bestProduct: { name: string; cmPct: string } | null = null;
-  let invalidProductCount = 0;
-  let incompleteProductCount = 0;
-  const alerts: string[] = [];
-
-  for (const product of input.productRows) {
-    const analysis = analyzeProduct(input, product);
-    if (analysis.status === "invalid") {
-      invalidProductCount += 1;
-      continue;
-    }
-    if (analysis.status === "incomplete") {
-      incompleteProductCount += 1;
-      continue;
-    }
-    if (!bestProduct || new Decimal(analysis.best.cmPct).gt(bestProduct.cmPct)) {
-      bestProduct = analysis.best;
-    }
-    alerts.push(...analysis.alerts);
-  }
-
-  if (incompleteProductCount > 0) {
-    alerts.unshift(
-      `${incompleteProductCount} produto(s) não participa(m) dos destaques por ter dados incompletos.`,
-    );
-  }
-  let fixedExpensesValue: string | null = null;
-  if (!fixedExpenseSummary.invalid) {
-    try {
-      fixedExpensesValue = toDecimalString(fixedExpenseSummary.value, 4);
-    } catch {
-      fixedExpenseSummary.invalid = true;
-    }
-  }
-  const finalHasInvalidCalculation = invalidProductCount > 0 || fixedExpenseSummary.invalid;
-  return {
-    productCount: input.productRows.length,
-    fixedExpenses: fixedExpensesValue,
-    bestProduct: finalHasInvalidCalculation ? null : bestProduct,
-    hasInvalidCalculation: finalHasInvalidCalculation,
-    incompleteProductCount,
-    alerts,
-    period,
-    sales: {
-      revenue: salesSummary.revenue,
-      count: salesSummary.count,
-    },
-  };
+): Promise<DashboardSummary> {
+  return dashboardService.getSummary(context, period);
 }

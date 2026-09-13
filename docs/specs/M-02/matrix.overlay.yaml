@@ -10,9 +10,8 @@
         "path": "src/server/services/product.service.ts"
       },
       "PricingService": {
-        "status": "consolidated",
-        "path": "src/server/services/purchase-price.service.ts",
-        "note": "implementação shipada consolida pricing em purchase-price.service.ts; serviço dedicado permanece alvo M02-2"
+        "status": "implemented",
+        "path": "src/server/services/pricing.service.ts"
       },
       "ExpenseService": {
         "status": "implemented",
@@ -80,6 +79,10 @@
       "SimulationRepository": {
         "status": "implemented",
         "path": "src/server/repositories/simulation.repository.ts"
+      },
+      "DashboardRepository": {
+        "status": "implemented",
+        "path": "src/server/repositories/dashboard.repository.ts"
       },
       "ConversationRepository": {
         "status": "consolidated",
@@ -194,11 +197,11 @@
     },
     "src/lib/dashboard.functions.ts": {
       "service": "DashboardService",
-      "repository": "DashboardReadRepository",
+      "repository": "DashboardRepository",
       "targetPhase": "M02-4"
     },
     "src/lib/diagnostic.functions.ts": {
-      "service": "DiagnosticService",
+      "service": "DiagnosticService/PricingService",
       "repository": "ProductReadRepository + ExpenseRepository",
       "targetPhase": "M02-4"
     },
