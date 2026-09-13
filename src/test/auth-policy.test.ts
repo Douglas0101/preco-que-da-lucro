@@ -36,6 +36,16 @@ describe("Better Auth policy", () => {
     expect(() => resolveGoogleCredentials({ GOOGLE_CLIENT_ID: "client" })).toThrow(/juntos/);
   });
 
+  it("returns the Google credential pair together and undefined when absent", () => {
+    expect(
+      resolveGoogleCredentials({
+        GOOGLE_CLIENT_ID: "client",
+        GOOGLE_CLIENT_SECRET: "client-secret",
+      }),
+    ).toEqual({ clientId: "client", clientSecret: "client-secret" });
+    expect(resolveGoogleCredentials({})).toBeUndefined();
+  });
+
   it("requires a sufficiently strong server secret", () => {
     expect(() => requireAuthSecret({ BETTER_AUTH_SECRET: "short" })).toThrow(/32/);
     expect(requireAuthSecret({ BETTER_AUTH_SECRET: "x".repeat(32) })).toHaveLength(32);
