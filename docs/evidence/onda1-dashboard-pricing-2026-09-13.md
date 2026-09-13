@@ -12,9 +12,8 @@
   `class DrizzleDashboardRepository implements DashboardRepository` e o singleton tipado
   `dashboardRepository`. O corpo de query foi movido verbatim para `loadInputs` (mesmos 6 selects
   tenant-scoped, mesmo número fixo de queries por produto).
-- A função exportada `loadDashboardInputs(context)` virou adapter que delega ao singleton — importadores
-  existentes seguem funcionando (`src/test/query-performance.test.ts`,
-  `src/test/products-read-models.golden.perf-waves.test.ts`).
+- A função exportada `loadDashboardInputs(context)` virou adapter que delega ao singleton — importador
+  existente segue funcionando (`src/test/query-performance.test.ts`).
 - `src/server/services/dashboard.service.ts`: `interface DashboardSummary`, `interface DashboardService`,
   `class DefaultDashboardService` com `constructor(repo: DashboardRepository, sales: SalesService = salesService)`.
   A função `getDashboardSummary(context, period)` segue exportada como adapter do singleton

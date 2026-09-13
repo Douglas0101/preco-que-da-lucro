@@ -1509,7 +1509,7 @@
           {
             "id": "chat-reservation-history",
             "boundary": "tenant-transaction",
-            "evidence": "src/server/services/conversation.service.ts:95-124"
+            "evidence": "src/lib/chat-execution.server.ts:93-128"
           },
           {
             "id": "model-round-reserve",
@@ -1606,7 +1606,7 @@
         {
           "id": "chat-reservation-history",
           "boundary": "tenant-transaction",
-          "evidence": "src/server/services/conversation.service.ts:95-124"
+          "evidence": "src/lib/chat-execution.server.ts:93-128"
         },
         {
           "id": "model-round-reserve",
