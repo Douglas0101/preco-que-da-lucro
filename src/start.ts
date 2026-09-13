@@ -7,7 +7,7 @@ import { logJson } from "./lib/structured-logger";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function securityHeaders(): Record<string, string> {
+export function securityHeaders(): Record<string, string> {
   const csp = [
     "default-src 'self'",
     "base-uri 'self'",
@@ -73,8 +73,7 @@ function handleUnexpectedError(
   handlerType: string,
   startedAt: number,
   request: Request,
-): Response | never {
-  if (error != null && typeof error === "object" && "statusCode" in error) throw error;
+): Response {
   const code = errorCodeFromUnknown(error);
   applicationMetrics.errors.add(1, { code });
   logJson("error", "request.failed", {
@@ -85,15 +84,21 @@ function handleUnexpectedError(
     durationMs: Math.round(performance.now() - startedAt),
     error,
   });
-  if (handlerType === "serverFn") return apiErrorResponse(code, correlationId);
-  return new Response(renderErrorPage(), {
-    status: 500,
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "x-correlation-id": correlationId,
-      ...securityHeaders(),
-    },
+  const response =
+    handlerType === "serverFn"
+      ? apiErrorResponse(code, correlationId)
+      : new Response(renderErrorPage(), {
+          status: 500,
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+          },
+        });
+  applyRequestHeaders(response, correlationId, handlerType);
+  applicationMetrics.requestDuration.record(performance.now() - startedAt, {
+    method: request.method,
+    status: response.status,
   });
+  return response;
 }
 
 const requestPolicyMiddleware = createMiddleware().server(

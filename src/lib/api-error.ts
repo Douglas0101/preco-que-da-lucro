@@ -25,6 +25,18 @@ export interface ApiError {
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiError };
 
+const DOMAIN_VALIDATION_PREFIXES = [
+  "INVALID_",
+  "NON_",
+  "DECIMAL_",
+  "SIMULATION_",
+  "SALE_",
+] as const;
+
+function isDomainValidationCode(value: string): boolean {
+  return DOMAIN_VALIDATION_PREFIXES.some((prefix) => value.startsWith(prefix));
+}
+
 const ERROR_POLICY: Record<ApiErrorCode, { status: number; message: string; retryable: boolean }> =
   {
     VALIDATION_ERROR: { status: 400, message: "Revise os dados informados.", retryable: false },
@@ -87,8 +99,10 @@ export function apiError(code: ApiErrorCode, correlationId: string): ApiError {
 export function errorCodeFromUnknown(error: unknown): ApiErrorCode {
   if (error instanceof ZodError) return "VALIDATION_ERROR";
   if (error instanceof ApplicationError) return error.code;
-  if (error instanceof Error && API_ERROR_CODES.includes(error.message as ApiErrorCode)) {
-    return error.message as ApiErrorCode;
+  if (error instanceof Error) {
+    const message = error.message.trim();
+    if (API_ERROR_CODES.includes(message as ApiErrorCode)) return message as ApiErrorCode;
+    if (isDomainValidationCode(message)) return "VALIDATION_ERROR";
   }
   return "INTERNAL_ERROR";
 }

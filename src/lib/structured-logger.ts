@@ -6,9 +6,14 @@ const SENSITIVE_KEY =
 const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 const BEARER = /\bBearer\s+[^\s]+/gi;
 const DATABASE_URL = /\b(?:postgres(?:ql)?|mysql|redis):\/\/[^\s"']+/gi;
+const SECRET_ASSIGNMENT = /\b(?:password|passwd|secret|token|api[_-]?key)\s*[=:]\s*[^\s&;,]+/gi;
 
 function redactString(value: string): string {
-  return value.replace(DATABASE_URL, REDACTED).replace(BEARER, REDACTED).replace(EMAIL, REDACTED);
+  return value
+    .replace(DATABASE_URL, REDACTED)
+    .replace(BEARER, REDACTED)
+    .replace(SECRET_ASSIGNMENT, REDACTED)
+    .replace(EMAIL, REDACTED);
 }
 
 export function redactLogValue(value: unknown, key = "", depth = 0): unknown {

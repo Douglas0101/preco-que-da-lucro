@@ -12,6 +12,7 @@ import {
   nonNegativeDecimalStringSchema,
   percentFractionSchema,
   positiveDecimalStringSchema,
+  quantityUnitSchema,
   toDecimalString,
 } from "@/lib/financial-values";
 import type { RequestContext } from "@/lib/request-context";
@@ -77,7 +78,7 @@ function defineTool<TSchema extends z.ZodType>(definition: {
 
 const id = z.string().uuid();
 const name = z.string().trim().min(1).max(160);
-const unit = z.string().trim().min(1).max(40);
+const unit = quantityUnitSchema;
 const money = nonNegativeDecimalStringSchema;
 const quantity = positiveDecimalStringSchema;
 const percentage = percentFractionSchema;
@@ -263,12 +264,20 @@ const DEFINITIONS = [
   defineTool({
     name: "set_market_price",
     description: "Registra referências de preço de mercado informadas pelo usuário.",
-    schema: z.object({
-      product_id: id,
-      min_price: money.optional(),
-      avg_price: money.optional(),
-      max_price: money.optional(),
-    }),
+    schema: z
+      .object({
+        product_id: id,
+        min_price: money.optional(),
+        avg_price: money.optional(),
+        max_price: money.optional(),
+      })
+      .refine(
+        (value) =>
+          value.min_price !== undefined ||
+          value.avg_price !== undefined ||
+          value.max_price !== undefined,
+        { message: "Informe pelo menos uma referência de mercado." },
+      ),
     async execute(context, input) {
       await ensureProduct(context, input.product_id);
       const [row] = await context.transaction
