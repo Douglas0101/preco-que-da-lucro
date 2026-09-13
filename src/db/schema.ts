@@ -202,6 +202,7 @@ export const products = pgTable(
     taxRate: percent("tax_rate"),
     isDemo: boolean("is_demo").notNull().default(false),
     notes: text("notes"),
+    version: integer("version").notNull().default(0),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     ...timestamps,
   },
@@ -226,6 +227,7 @@ export const products = pgTable(
       "products_status_check",
       sql`${table.status} in ('draft', 'incomplete', 'ready', 'active', 'archived')`,
     ),
+    check("products_version_check", sql`${table.version} >= 0`),
   ],
 );
 
@@ -375,6 +377,7 @@ export const expenses = pgTable(
     periodicity: text("periodicity").notNull().default("mensal"),
     isDemo: boolean("is_demo").notNull().default(false),
     notes: text("notes"),
+    version: integer("version").notNull().default(0),
     ...timestamps,
   },
   (table) => [
@@ -386,6 +389,7 @@ export const expenses = pgTable(
     }).onDelete("restrict"),
     check("expenses_amount_check", sql`${table.amount} >= 0`),
     check("expenses_type_check", sql`${table.type} in ('fixa', 'variavel')`),
+    check("expenses_version_check", sql`${table.version} >= 0`),
   ],
 );
 

@@ -66,6 +66,9 @@ export class DefaultPurchasePriceService implements PurchasePriceService {
 
   async update(context: RequestContext, input: PurchasePriceUpdate) {
     assertTenantMutationAuthorized(context);
+    // Lock ordering: serializa o read-modify-write ANTES de tocar a linha base;
+    // o append reentra no mesmo advisory lock na mesma transação.
+    await this.repository.lock(context, { kind: input.kind, subjectId: input.subjectId });
     const normalized = normalizedPriceInput({
       ...input,
       validFrom: new Date(),

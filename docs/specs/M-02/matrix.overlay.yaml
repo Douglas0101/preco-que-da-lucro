@@ -218,6 +218,8 @@
       "listProductsWithMetrics": { "service": "ProductService", "repository": "ProductCatalogRepository" },
       "getProduct": { "service": "ProductService", "repository": "ProductCatalogRepository" },
       "upsertProduct": { "service": "ProductService", "repository": "ProductRepository" },
+      "createProduct": { "service": "ProductService", "repository": "ProductRepository" },
+      "updateProduct": { "service": "ProductService", "repository": "ProductRepository" },
       "archiveProduct": { "service": "ProductService", "repository": "ProductRepository" },
       "deleteProduct": { "service": "ProductService", "repository": "ProductRepository" },
       "upsertIngredient": { "service": "ProductService", "repository": "ProductCatalogRepository" },
@@ -230,6 +232,14 @@
       "getProductMetrics": { "service": "ProductService", "repository": "ProductCatalogRepository" },
       "listPurchasePrices": { "service": "PricingService", "repository": "ProductCatalogRepository" },
       "updatePurchasePrice": { "service": "PricingService", "repository": "PriceRepository" }
+    },
+    "src/lib/expenses.functions.ts": {
+      "listExpenses": { "service": "ExpenseService", "repository": "ExpenseRepository" },
+      "createExpense": { "service": "ExpenseService", "repository": "ExpenseRepository" },
+      "updateExpense": { "service": "ExpenseService", "repository": "ExpenseRepository" },
+      "upsertExpense": { "service": "ExpenseService", "repository": "ExpenseRepository" },
+      "deleteExpense": { "service": "ExpenseService", "repository": "ExpenseRepository" },
+      "getTotals": { "service": "ExpenseService", "repository": "ExpenseRepository" }
     },
     "src/lib/chat.functions.ts": {
       "getChatHistory": {

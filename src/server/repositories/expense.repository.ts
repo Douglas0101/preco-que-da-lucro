@@ -5,6 +5,8 @@ import type { RequestContext } from "@/lib/request-context";
 
 export interface ExpenseWrite {
   id?: string;
+  /** Versão esperada para CAS otimista; obrigatória quando `id` está presente. */
+  version?: number;
   name: string;
   category: string | null;
   amount: string;
@@ -47,19 +49,35 @@ export class DrizzleExpenseRepository implements ExpenseRepository {
       updatedAt: new Date(),
     };
 
-    const rows = input.id
-      ? await context.transaction
-          .update(expenses)
-          .set(values)
-          .where(and(eq(expenses.tenantId, context.tenantId), eq(expenses.id, input.id)))
-          .returning()
-      : await context.transaction
-          .insert(expenses)
-          .values({ tenantId: context.tenantId, userId: context.userId, ...values })
-          .returning();
+    if (!input.id) {
+      const rows = await context.transaction
+        .insert(expenses)
+        .values({ tenantId: context.tenantId, userId: context.userId, ...values })
+        .returning();
+      if (!rows[0]) throw new Error("DATABASE_ERROR");
+      return rows[0];
+    }
 
-    if (!rows[0]) throw new Error("NOT_FOUND");
-    return rows[0];
+    if (input.version === undefined) throw new Error("VALIDATION_ERROR");
+    const rows = await context.transaction
+      .update(expenses)
+      .set({ ...values, version: sql`${expenses.version} + 1` })
+      .where(
+        and(
+          eq(expenses.tenantId, context.tenantId),
+          eq(expenses.id, input.id),
+          eq(expenses.version, input.version),
+        ),
+      )
+      .returning();
+    if (rows[0]) return rows[0];
+
+    const existing = await context.transaction
+      .select({ id: expenses.id })
+      .from(expenses)
+      .where(and(eq(expenses.tenantId, context.tenantId), eq(expenses.id, input.id)))
+      .limit(1);
+    throw new Error(existing[0] ? "CONFLICT" : "NOT_FOUND");
   }
 
   async remove(context: RequestContext, id: string): Promise<void> {
