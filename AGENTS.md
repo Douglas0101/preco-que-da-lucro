@@ -49,7 +49,7 @@
 
 ## Decisions and evidence
 
-- Architectural changes require a new ADR in `docs/adr/`, following the `ADR-0XX-kebab.md` sequence (latest: ADR-027). Read the relevant ADRs before touching an architected area.
+- Architectural changes require a new ADR in `docs/adr/`, following the `ADR-0XX-kebab.md` sequence (latest: ADR-028, **proposta/draft** — pendente de ratificação; último ratificado: ADR-027). Read the relevant ADRs before touching an architected area.
 - Operational evidence belongs in `docs/evidence/`; operational procedures belong in `docs/runbooks/`.
 
 ## Commits

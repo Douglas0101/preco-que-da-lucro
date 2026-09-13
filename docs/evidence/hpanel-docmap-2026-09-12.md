@@ -245,6 +245,7 @@ escopo da fonte, não omissão de pesquisa:
 - GAP-DOCs abertos: **1 de ferramental (GAP-DOC-TOOLING-00)**, **4 internos** (driver do banco,
   build na plataforma, env-guard fora de build/start, janela do allowlist) e **1 menor**
   (convenção de evidência).
+- **GAP-DOC-ENGINES-01** (achado material da rodada 2026-09-12/13): a doc oficial do painel oferece seleção de Node **apenas por major** (18/20/22/24) enquanto o runbook exige patch `>= 24.15.0` e manda ABORT abaixo disso → divergência **doc ↔ runbook**; destino: **ADR-028** (fallback `>=24.6.0` como transição com prazo). Evidência: `docs/evidence/hpanel-homologacao-2026-09-12/01-node-version.md:4,18,25`; `docs/adr/ADR-028-node-engines-24-6-fallback.md`.
 - Nenhum item foi promovido a `PASS`; nenhuma URL, seção ou limite foi inventado; nenhum valor de
   secret/env foi reproduzido (somente nomes e estados).
 

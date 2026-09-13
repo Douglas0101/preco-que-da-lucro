@@ -22,7 +22,7 @@ SELECT count(*)::int FROM pg_policies   WHERE schemaname='public';              
 ```
 
 - **Resultado:** `26` tabelas com RLS habilitado e `30` políticas no schema `public`.
-- Observação: a expectativa histórica registrada em mandatos anteriores citava "20/20"; o número medido hoje é **26/30** — a diferença é compatível com migrations posteriores (0010/0011). **Fica registrado como o número canônico atual**; se algum gate exigir exatamente 20/20, é GAP-DOC a resolver no docmap, não uma falha de RLS.
+- Observação: a expectativa histórica registrada em mandatos anteriores citava "20/20"; o número medido hoje é **26/30** — a diferença é compatível com migrations posteriores (0010/0011). **Fica registrado como o número canônico atual**; se algum gate exigir exatamente 20/20, é o **GAP-DOC-RLS-01** (dono: orquestrador; ação: reconciliar a expectativa 20/20 com o medido 26/30 e atualizar o registro de gates — registrado nesta rodada, não em "docmap" genérico), não uma falha de RLS.
 
 ## 3. Conexões ativas
 

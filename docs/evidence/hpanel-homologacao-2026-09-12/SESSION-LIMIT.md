@@ -1,7 +1,7 @@
 # hPanel — LIMITE DECLARADO: sessão automatizada bloqueada por Cloudflare (2026-09-12)
 
 - **Estado:** o Web App **foi criado** (`darkgray-pony-545965.hostingersite.com`) com **11 env vars** (CP-G2 CLEAN) e o 1º build **falhou** por `EBADENGINE` (item 1 — ver `01-node-version.md`).
-- **Bloqueio:** após uma rajada de navegações automatizadas, o hPanel passou a redirecionar para `auth.hostinger.com/login` com **challenge Cloudflare** ("Executando verificação de segurança"), inclusive em modo **headed** e com espera de 45s. Os cookies do dono **não expiraram** (`jwt` válido até 2026-09-15 00:43), então o bloqueio é anti-bot, não de credencial.
+- **Bloqueio:** após uma rajada de navegações automatizadas, o hPanel passou a redirecionar para `auth.hostinger.com/login` com **challenge Cloudflare** ("Executando verificação de segurança"), inclusive em modo **headed** e com espera de 45s. A sessão do dono **permanecia válida na coleta** (janela de validade **não transcrita** — metadado de credencial viva), então o bloqueio é anti-bot, não de credencial.
 - **Decisão (mandato):** canal negado pelo sistema = **limite declarado**, nunca contorno agressivo. Não houve tentativa de burlar o challenge.
 
 - **Observação (2026-09-12T09:08Z):** após ~4h de cooldown, **uma** sondagem headed carregou a home autenticada; a navegação seguinte (novo contexto de automação) foi desafiada de novo. O bloqueio é **intermitente** e dirigido à automação (não à credencial). Estratégia adotada: **parar de insistir**.
@@ -14,7 +14,7 @@
 4. Ainda em **Variáveis de ambiente**, adicionar `BETTER_AUTH_URL` = `https://darkgray-pony-545965.hostingersite.com` e `AUTH_TRUSTED_ORIGINS` = o mesmo valor → salvar (novo redeploy).
 5. Me avisar — eu retomo a verificação **11/12** e capturo as evidências por item.
 
-**Detector:** `h6-watch.sh` **v3** (bg task rastreada) — sinal forte = **mudança do hash do `jwt`** no perfil (seu re-login); então faz **uma** sondagem headed. Zero sondagem especulativa.
+**Detector:** `h6-watch.sh` **v3** (bg task rastreada) — sinal forte = **mudança do valor do `jwt`** no perfil (seu re-login; o valor/hash **nunca** é transcrito em evidência); então faz **uma** sondagem headed. Zero sondagem especulativa.
 
 ## Retomada prevista (após H-6)
 
