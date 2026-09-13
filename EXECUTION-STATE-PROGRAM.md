@@ -1390,7 +1390,7 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   1 conexão (ocioso, só a sessão MCP); TTFF via MCP **630/635 ms**; `current_setting` de retenção
   indisponível por SQL (valor vigente **21600 s**, **BAK-01b ABERTO**); snapshot trio **agendado**
   para <24 h do go-live (não executado). Artefato `docs/evidence/neon-prontidao-2026-09-13.md`
-  (sha256 `74c0ddf4f175…`).
+  (sha256 `2aa31feb4db7…`).
 - **F-6 VERCEL (probes sem token):** interina `-sage` live/ready/get-session **200/200/200**
   (2026-09-13T01:01:24–27Z; `ready` com `postgres: ok`); alias canônico **404 DEPLOYMENT_NOT_FOUND**
   (sem mutação); **SHA auto-deployado NÃO VERIFICADO** — depende de H-2. Artefato
@@ -1398,22 +1398,22 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **F-4 LEDGER/MEMÓRIA:** achado **INFRA-MEM-01** (warning do `pi-hermes-memory`; P1 operacional,
   ABERTO, dono Douglas) + regra permanente **estado crítico só em artefato versionado; memória do
   agente é redundância, nunca fonte**; arqueologia do lockfile `drizzle-kit` com timestamps e limite
-  declarado (`docs/evidence/agent-infra-findings-2026-09-12.md`, sha256 `73f3a8d54e4f…`); substrato
-  consolidado (`docs/evidence/substrato-estado-2026-09-12.md`, sha256 `601deec6c23f…`);
+  declarado (`docs/evidence/agent-infra-findings-2026-09-12.md`, sha256 `e0e0b77efcf4…`); substrato
+  consolidado (`docs/evidence/substrato-estado-2026-09-12.md`, sha256 `9be8a79f00d4…`);
   `m02:matrix:check` **PASS**; `m02:state:check` FAIL-por-desenho até esta entrada.
-- **F-1 ENGINES (ADR-028, PROPOSTA/DRAFT):** checklist 24.6→24.15 fechado com **2 blockers** — o `engines` **declarado** do root (`>=24.15.0`) e um **piso oculto em `jsdom@30.0.1`** (dev, `^22.22.2 || ^24.15.0 || >=26.0.0`), que **sobrevive** ao relaxamento do root; nenhuma API > 24.6.0 no código; runtime/build de produção compatível com 24.6.0. Artefatos: `docs/adr/ADR-028-node-engines-24-6-fallback.md` (sha256 `bf6631ad5b69…`) e `docs/evidence/engines-reconciliation-2026-09-12.md` (sha256 `cd6e5b3d4f8b…`, fonte da verdade do checklist). **Ratificação = ato humano H-7** (novo na fila); o fallback D3-ii só vale com H-7 ou com o critério de saída (a) — seletor do painel oferecer 24.15+.
+- **F-1 ENGINES (ADR-028, PROPOSTA/DRAFT):** checklist 24.6→24.15 fechado com **2 blockers** — o `engines` **declarado** do root (`>=24.15.0`) e um **piso oculto em `jsdom@30.0.1`** (dev, `^22.22.2 || ^24.15.0 || >=26.0.0`), que **sobrevive** ao relaxamento do root; nenhuma API > 24.6.0 no código; runtime/build de produção compatível com 24.6.0. Artefatos: `docs/adr/ADR-028-node-engines-24-6-fallback.md` (sha256 `7f3fb2cff52d…`) e `docs/evidence/engines-reconciliation-2026-09-12.md` (sha256 `aa62292ca8a7…`, fonte da verdade do checklist). **Ratificação = ato humano H-7** (novo na fila); o fallback D3-ii só vale com H-7 ou com o critério de saída (a) — seletor do painel oferecer 24.15+.
 - **F-2 RUNBOOK DIA-D:** ordem dura (vars → reimplantar → domínio → SSL → probes canônicos →
   integridade de e-mail) + rollback R1–R7 + template A5 0h/24h/72h com baseline numérica e
   critérios de abort por janela; status **ARMADO / NÃO EXECUTÁVEL**
-  (`docs/runbooks/dia-d-2026-09-12.md`, sha256 `c1d364c02b01…`).
+  (`docs/runbooks/dia-d-2026-09-12.md`, sha256 `b4e478da1239…`).
 - **F-HP (H-6 parcial):** em 2026-09-13T00:55:03Z o `jwt` mudou (dono renovou a sessão no Firefox),
   mas a sondagem automatizada foi **desafiada de novo** pelo Cloudflare → item **PARADO** por
   protocolo (2 falhas consecutivas) → caminho manual de ~2 min publicado em `SESSION-LIMIT.md`.
   Detectores armados: `app-live` (health 200) e `h6-watch` (mudança de `jwt`). Último poll do
   `app-live`: 2026-09-13T00:49:43Z, `http=404` (build ainda não sobe).
 - **Supervisão transversal (2026-09-13):** S-SEC **CLEAN** — 0 P0/P1; 5 P2 de endurecimento, sendo 1 aplicado (janela de validade do `jwt` removida de `SESSION-LIMIT.md`; hash/valor nunca transcrito). S-ALIN **DESVIO: 0 P0 · 5 P1**, todos corrigidos nesta entrada: P1-1 → P9 (BAK-01b) + N-10 nos critérios de abort 0h do runbook; P1-2 → bullet F-1 + H-7 acima/na fila; P1-3 → proveniência do `matrix:check` (comando + timestamp + HEAD `e0c8ec44…`) corrigida em `agent-infra-findings`; P1-4 → **errata** na célula hPanel do `G-VER-v2-memo` (app criado + build FAIL), antes de qualquer coleta de assinatura H-3; P1-5 → errata do freeze acima. P2 fechados: pipes do ADR-028 escapados; `AGENTS.md` → ADR-028 (proposta); `GAP-DOC-RLS-01` nomeado; `GAP-DOC-ENGINES-01` no registro do docmap; vereditos anexados abaixo. Artefatos: `docs/evidence/subagents/S-{SEC,ALIN}-2026-09-13.md`.
-- **F-7 CONSOLIDAÇÃO:** `docs/evidence/F7-consolidacao-2026-09-13.md` — tabela de frentes + vereditos, fila humana (H-2/H-4/H-5/H-6/**H-7**), dia-D estimado em **2026-09-15/16** e top-3 riscos (BAK-01b · sessão hPanel · rollback sem commit).
-  Latest state marker parent = `8676fd5f0cef729f3e3862d375cb1b521398e971`,
+- **F-7 CONSOLIDAÇÃO:** `docs/evidence/F7-consolidacao-2026-09-13.md` (sha256 `a33899bec59b…`) — tabela de frentes + vereditos, fila humana (H-2/H-4/H-5/H-6/**H-7**), dia-D estimado em **2026-09-15/16** e top-3 riscos (BAK-01b · sessão hPanel · rollback sem commit). Vereditos de supervisão arquivados: S-SEC `d3d963b8f129…` · S-TEC `7238e4c8135d…` · S-ALIN `b6a58489c4d4…`. **Nota de higiene de hash (S-ALIN §verificações item 2):** os prefixos acima foram **recalculados após todas as correções pós-supervisão** — hashes medidos antes de uma edição não valem para o arquivo entregue.
+  Latest state marker parent = `b4de98ee3935eac41d52cdcfa45005dc1dbb41a4`,
 
 ### Back-merge obrigatório `main → develop` (AGENTS.md:12-14)
 
