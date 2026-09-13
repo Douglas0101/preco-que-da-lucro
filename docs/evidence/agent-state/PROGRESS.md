@@ -42,6 +42,7 @@
 | L24 | 02:50:00 | ✔   | **FASE 1 = PASS:** `.output/server/index.mjs` (21.443 B) e `.vercel/output/*` (config 366 B) gerados, ambos exit 0 → preset condicional sem regressão cruzada; FASE 2 (port) desbloqueada.                                                                                                                                                       |
 | L25 | 03:0x:00 | ✔   | **FASE 3 mergeada:** PR #45 (CI leve p/ `docs/evidence/**` + pesado preservado) com `verify` verde → `develop` = `bc91be0`; filtro ATIVO (ci-light.yml + paths-ignore). Provas de run em sequência (este push é a **PROVA A**: só-docs ⇒ leve roda, pesado pula).                                                                                |
 | L26 | 03:1x:00 | ✔   | **PROVA A validada:** push só-docs `455ea7f` → rodou **apenas** `CI light` (success) e o `UI stack` foi **pulado**. A seguir, este commit MISTO (ledger+journal) é a **PROVA B**.                                                                                                                                                                |
+| L27 | 03:2x:00 | ✔   | **PROVA B validada:** commit misto `36e9c63` → `UI stack` (pesado) rodou; guard do leve: "changed paths outside docs/evidence/ — heavy pipeline owns it". Ambas as provas do filtro registradas no artefato `docs/evidence/ci-path-filter-2026-09-13.md`.                                                                                        |
 
 ## 3. Fila humana (o que está bloqueado em pessoa)
 

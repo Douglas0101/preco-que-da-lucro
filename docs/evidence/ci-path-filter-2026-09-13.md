@@ -76,3 +76,13 @@ Cinco linhas do arquivo **anterior à minha mudança** excediam 80 colunas (regr
 - Este agente usou **caminhos explícitos** em `git add`; **nenhum** `git add -A`/`git add .` foi executado.
 - **Não** foram tocados: `.vercel/**` (138 arquivos de build do orquestrador), `docs/evidence/agent-state/**`, `EXECUTION-STATE-PROGRAM.md`.
 - Arquivos de terceiros na árvore permaneceram intactos; ver §9 do relatório de handoff.
+
+## 8. Provas de run (executadas pelo orquestrador, 2026-09-13)
+
+| Prova                        | Commit    | Conteúdo                                           | Resultado observado                                                                                                                                                                                    |
+| ---------------------------- | --------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **A — só docs**              | `455ea7f` | apenas `docs/evidence/agent-state/PROGRESS.md`     | Rodou **apenas** `CI light (docs/evidence)` (run `34734036621`, success; guard aplicável, `prettier` em 1 arquivo: "All matched files use Prettier code style!") — **o `UI stack` NÃO foi disparado**. |
+| **B — misto**                | `36e9c63` | `EXECUTION-STATE-PROGRAM.md` + `docs/evidence/...` | **`UI stack` disparado** (`push`, em execução no momento do registro) e o leve avaliou `applicable=false`: _"changed paths outside docs/evidence/ — heavy pipeline owns it"_.                          |
+| (bônus) merge de código+docs | `bc91be0` | merge do PR #45                                    | Pesado rodou; leve no-op (`applicable=false`) — confirma a regra de posse em merge real.                                                                                                               |
+
+**Conclusão:** o filtro por caminho está provado nas duas direções: `docs/evidence/**` isolado ⇒ pipeline leve; qualquer caminho de código/manifest ⇒ pipeline pesado (com o leve se declarando não-aplicável, sem custo).
