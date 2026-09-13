@@ -4,7 +4,7 @@ import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { assertPricingConfigForBoot } from "./lib/ai/budget-ledger.server";
 import { logJson } from "./lib/structured-logger";
-import { securityHeaders } from "./start";
+import { securityHeaders } from "./lib/security-headers";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
