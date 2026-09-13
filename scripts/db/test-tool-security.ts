@@ -203,6 +203,17 @@ async function main(): Promise<void> {
       });
       assert.deepEqual(invalidJson, { ok: false, code: "VALIDATION_ERROR", replayed: false });
 
+      const loneSurrogate = await runRegisteredTool({
+        context,
+        name: "create_product",
+        rawArguments: '{"name":"Bolo \\ud83d solto"}',
+        idempotencyKey: "conversation:call-lone-surrogate",
+        toolCallId: "call-lone-surrogate",
+        usageId,
+      });
+      assert.equal(loneSurrogate.ok, true);
+      assert.equal(loneSurrogate.replayed, false);
+
       const crossTenant = await runRegisteredTool({
         context,
         name: "set_yield",
@@ -231,7 +242,7 @@ async function main(): Promise<void> {
       "select count(*)::text as count from tool_executions where tenant_id = $1",
       [tenantId],
     );
-    assert.equal(executions.rows[0]?.count, "9", "execuções e rejeições devem ser auditadas");
+    assert.equal(executions.rows[0]?.count, "10", "execuções e rejeições devem ser auditadas");
     const rejectedAudit = await pool.query<{ count: string }>(
       "select count(*)::text as count from audit_events where tenant_id = $1 and event_type = 'ai.tool.rejected'",
       [tenantId],
@@ -279,6 +290,16 @@ async function main(): Promise<void> {
       invalidInputExecution.rows[0]?.input,
       null,
       "JSON inválido deve persistir input null",
+    );
+
+    const surrogateExecution = await pool.query<{ input: Record<string, unknown> | null }>(
+      "select input from tool_executions where tenant_id = $1 and tool_call_id = 'call-lone-surrogate'",
+      [tenantId],
+    );
+    assert.deepEqual(
+      surrogateExecution.rows[0]?.input,
+      { name: "Bolo  solto" },
+      "escape lone surrogate deve ser removido antes do insert jsonb",
     );
 
     const sensitiveKeys = await pool.query<{ count: string }>(

@@ -32,19 +32,24 @@ function normalizeKey(key: string): string {
 }
 
 function sanitizeString(value: string): string {
-  return Array.from(value)
-    .filter((character) => {
-      const code = character.codePointAt(0) ?? 0;
-      return !(
-        code <= 8 ||
-        code === 11 ||
-        code === 12 ||
-        (code >= 14 && code <= 31) ||
-        code === 127
-      );
-    })
-    .join("")
-    .slice(0, MAX_STRING_LENGTH);
+  let sanitized = "";
+  for (const character of value) {
+    const code = character.codePointAt(0) ?? 0;
+    if (
+      (code >= 0xd800 && code <= 0xdfff) ||
+      code <= 8 ||
+      code === 11 ||
+      code === 12 ||
+      (code >= 14 && code <= 31) ||
+      code === 127
+    ) {
+      continue;
+    }
+    if (sanitized.length + character.length > MAX_STRING_LENGTH) break;
+    sanitized += character;
+    if (sanitized.length === MAX_STRING_LENGTH) break;
+  }
+  return sanitized;
 }
 
 function sanitizeValue(value: unknown, depth: number): unknown {
