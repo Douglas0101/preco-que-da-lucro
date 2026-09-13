@@ -51,7 +51,9 @@ function getCorrelationId(context: unknown): string {
 
 async function authenticateRequest(options: {
   context: unknown;
-  signal: AbortSignal;
+  // O dispatch HTTP de server function declara `signal`, mas não o injeta em
+  // runtime; o fallback é o signal real da Request do adapter (nunca undefined).
+  signal: AbortSignal | undefined;
 }): Promise<RequestIdentity> {
   const request = getRequest();
   const correlationId = getCorrelationId(options.context);
@@ -67,7 +69,7 @@ async function authenticateRequest(options: {
     tenantId: membership.tenantId,
     roles: [membership.role],
     correlationId,
-    signal: options.signal,
+    signal: options.signal ?? request.signal,
   };
 }
 
@@ -116,7 +118,7 @@ export const requireDatabaseAuth = createMiddleware({ type: "function" }).server
                   tenantId: membership.tenantId,
                   roles: [membership.role],
                   correlationId,
-                  signal,
+                  signal: signal ?? request.signal,
                 },
                 transaction,
               ),
