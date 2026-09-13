@@ -127,3 +127,6 @@ Thumbs.db
 *.swp
 *.swo
 *.sw?
+
+# Vercel local build output (Build Output API)
+.vercel/
