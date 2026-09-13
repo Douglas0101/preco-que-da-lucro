@@ -50,10 +50,13 @@ test("public UI uses valid composed controls and has no serious a11y violations"
   page,
 }) => {
   await page.context().clearCookies();
-  await page.goto("/");
+  const response = await page.goto("/");
 
   await expect(page.getByRole("heading", { name: /entenda a faixa de preço/i })).toBeVisible();
   await expect(page.locator("a button, button a")).toHaveCount(0);
+  expect(response).not.toBeNull();
+  expect(response?.headers()["content-security-policy-report-only"]).toContain("script-src 'self'");
+  expect(response?.headers()["x-content-type-options"]).toBe("nosniff");
 
   const startLink = page.getByRole("link", { name: /começar agora/i });
   await startLink.focus();
@@ -127,6 +130,35 @@ test("authorization matrix blocks member mutations with a Better Auth session", 
   await page.getByRole("button", { name: "Adicionar despesa" }).click();
   const response = await responsePromise;
   expect(response.status()).toBe(403);
+});
+
+test("CSRF rejects a cross-site replay of a server-function mutation", async ({ page }) => {
+  expect(memberEmail(), "E2E_AUTH_MEMBER_EMAIL derivável é obrigatória").not.toBe("");
+  expect(memberPassword, "E2E_AUTH_MEMBER_PASSWORD derivável é obrigatória").not.toBe("");
+  await page.context().clearCookies();
+  await page.goto("/auth");
+  await signInWithBetterAuth(page, memberEmail(), memberPassword);
+  await page.goto("/despesas");
+
+  await page.getByLabel("Nome").fill("Replay CSRF de teste");
+  await page.getByLabel("Valor (R$)").fill("1");
+  const requestPromise = page.waitForRequest(
+    (request) => request.url().includes("/_serverFn/") && request.method() === "POST",
+  );
+  await page.getByRole("button", { name: "Adicionar despesa" }).click();
+  const originalRequest = await requestPromise;
+
+  const replay = await page.request.fetch(originalRequest.url(), {
+    method: "POST",
+    headers: {
+      ...originalRequest.headers(),
+      origin: "https://evil.example",
+      "sec-fetch-site": "cross-site",
+    },
+    data: originalRequest.postData() ?? undefined,
+  });
+
+  expect(replay.status()).toBe(403);
 });
 
 test("authenticated shell uses an HttpOnly session and accessible navigation", async ({ page }) => {
