@@ -21,6 +21,10 @@
 
 - Before pushing, run `npm run check` and keep it green. It chains `m02:lockfile-guard`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
 - The CI `verify` job (`.github/workflows/ui-stack.yml`) runs those same gates plus `db:test`, `db:check`, `npm audit --audit-level=high`, and Playwright e2e on chromium/firefox/webkit. A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
+- **Two CI pipelines, selected by changed paths:**
+  - **Heavy — `UI stack`** (`.github/workflows/ui-stack.yml`): every pull request, plus pushes to `main`/`develop` whose changed files are **not** all under `docs/evidence/**` (`paths-ignore`).
+  - **Light — `CI light (docs/evidence)`** (`.github/workflows/ci-light.yml`): pushes and pull requests whose changed files are **all** under `docs/evidence/**` — runs `scripts/m02-lockfile-guard.mjs`, `scripts/m02-secrets-audit.ts` and `prettier --check` on the changed files only. It installs **no** dependencies: both scripts import node built-ins only. A mixed push (code + docs) belongs to the heavy pipeline; the light job's scope guard exits without work instead of failing.
+  - Neither filter applies to code: anything under `src/**`, `scripts/**`, `.github/**` or the manifests always goes through the heavy pipeline.
 - Never claim work is done with a red gate, and never delete, skip, or loosen a test, lint rule, or budget to force a green.
 
 ## Dependency discipline
