@@ -276,6 +276,35 @@ test("diagnostic forms prices only from explicit assumptions", async ({ page }) 
   await expectNoBlockingAxeViolations(page);
 });
 
+test("chat HTTP dispatch survives a missing framework signal (BUG-CHAT)", async ({ page }) => {
+  await page.goto("/novo-produto");
+  await expect(page.getByRole("heading", { name: "Cadastro conversacional" })).toBeVisible();
+
+  const probe = `BUGCHAT-${Date.now()}`;
+  const responsePromise = page.waitForResponse(
+    (response) =>
+      response.url().includes("/_serverFn/") &&
+      response.request().method() === "POST" &&
+      (response.request().postData() ?? "").includes(probe),
+  );
+  await page.locator("#novo-produto-mensagem").fill(probe);
+  await page.getByRole("button", { name: "Enviar" }).click();
+  const response = await responsePromise;
+  const body = await response.text();
+
+  expect(body).not.toContain("signals[0]");
+  expect(body).not.toContain("TypeError");
+  expect(response.status()).toBeLessThan(500);
+
+  const textarea = page.locator("#novo-produto-mensagem");
+  await expect(textarea).toBeEnabled({ timeout: 15_000 });
+  await expect(page.getByRole("log")).toContainText(/⚠️|indisponível|resposta/i, {
+    timeout: 15_000,
+  });
+  await textarea.fill(`BUGCHAT-followup-${Date.now()}`);
+  await expect(page.getByRole("button", { name: "Enviar" })).toBeEnabled({ timeout: 15_000 });
+});
+
 test("financial query failure is not rendered as empty or zero data", async ({ page }) => {
   await page.route("**/_serverFn/**", async (route) => {
     await route.fulfill({ status: 503, contentType: "application/json", body: "{}" });
