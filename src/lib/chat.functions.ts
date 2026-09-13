@@ -7,7 +7,6 @@ import { ApplicationError } from "@/lib/api-error";
 import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
 import { executeSendChatMessage } from "@/lib/chat-execution.server";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
-import type { RequestContext } from "@/lib/request-context";
 import { conversationService } from "@/server/services/conversation.service";
 import { logJson } from "@/lib/structured-logger";
 import { requireDatabaseIdentity } from "@/middleware/request-context";
@@ -346,9 +345,5 @@ export const sendChatMessage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) =>
     executeSendChatMessage(data, context.requestIdentity, { modelCaller: callModel }),
   );
-
-export function getConversationForTests(context: RequestContext) {
-  return conversationService.findForUser(context);
-}
 
 export { callModel as callModelForTests, retryDelayMs as retryDelayMsForTests };

@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "../../src/db/schema";
-import { getConversationForTests } from "../../src/lib/chat.functions";
+import { getConversationForTests } from "../../src/lib/chat-execution.server";
 import type { RequestContext } from "../../src/lib/request-context";
 import { ensureRuntimeRoleMembership, requireAdminUrl } from "./migrate";
 
