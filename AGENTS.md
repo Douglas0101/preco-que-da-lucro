@@ -37,6 +37,7 @@
 - `npm run db:up` / `npm run db:down` manage a Docker `postgres:17-alpine` container that mirrors CI (`docker-compose.yml`); see `docs/runbooks/postgres-local-docker.md`.
 - `npm run db:test` is self-contained against that container with `DATABASE_URL`/`DATABASE_ADMIN_URL` pointing at `127.0.0.1:5432` and `DATABASE_DRIVER=node-postgres`.
 - Author migrations with `npm run db:generate` (drizzle-kit), validate them with `npm run db:check`, and exercise them with `npm run db:test` — always against the local container.
+- Classifique toda migration no registry sidecar (`scripts/db/migration-classes.ts`) e valide com `npm run db:classify:check` (prepend do `db:test`); a política expand/contract está em `docs/runbooks/migration-safety.md`.
 - `scripts/env-guard.mjs` runs as a pre-hook on dev/test/build/db commands and denies remote (Neon) targets. Never bypass it with ambient environment variables; explicit overrides may only point at `127.0.0.1`.
 
 ## Security baseline
