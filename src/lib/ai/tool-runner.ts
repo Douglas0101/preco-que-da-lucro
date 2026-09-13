@@ -1,11 +1,12 @@
 import { createHash } from "node:crypto";
 import { and, eq } from "drizzle-orm";
-import { auditEvents, idempotencyRecords, toolExecutions } from "@/db/schema";
+import { idempotencyRecords, toolExecutions } from "@/db/schema";
 import type { ApiErrorCode } from "@/lib/api-error";
 import { errorCodeFromUnknown } from "@/lib/api-error";
 import type { RequestContext } from "@/lib/request-context";
 import { logJson } from "@/lib/structured-logger";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import { auditService } from "@/server/services/audit.service";
 import {
   TOOL_REGISTRY,
   toolExecutionOutputSchema,
@@ -92,10 +93,7 @@ async function persistRejected(
     errorCode: code,
     completedAt: new Date(),
   });
-  await context.transaction.insert(auditEvents).values({
-    tenantId: context.tenantId,
-    userId: context.userId,
-    correlationId: context.correlationId,
+  await auditService.append(context, {
     eventType: "ai.tool.rejected",
     resourceType: "tool",
     resourceId: toolName,
@@ -295,10 +293,7 @@ export async function runRegisteredTool(options: {
       .update(idempotencyRecords)
       .set({ status: "succeeded", response: output, updatedAt: new Date() })
       .where(eq(idempotencyRecords.id, claimed[0].id));
-    await context.transaction.insert(auditEvents).values({
-      tenantId: context.tenantId,
-      userId: context.userId,
-      correlationId: context.correlationId,
+    await auditService.append(context, {
       eventType: "ai.tool.succeeded",
       resourceType: "tool",
       resourceId: name,
@@ -328,10 +323,7 @@ export async function runRegisteredTool(options: {
       .update(idempotencyRecords)
       .set({ status: "failed", errorCode: code, updatedAt: new Date() })
       .where(eq(idempotencyRecords.id, claimed[0].id));
-    await context.transaction.insert(auditEvents).values({
-      tenantId: context.tenantId,
-      userId: context.userId,
-      correlationId: context.correlationId,
+    await auditService.append(context, {
       eventType: code === "AI_TIMEOUT" ? "ai.tool.cancelled" : "ai.tool.failed",
       resourceType: "tool",
       resourceId: name,

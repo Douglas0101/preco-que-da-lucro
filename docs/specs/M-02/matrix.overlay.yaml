@@ -37,9 +37,8 @@
         "target": "M-05"
       },
       "AuditService": {
-        "status": "consolidated",
-        "path": "src/lib/ai/tool-runner.ts",
-        "note": "audit-append shipado no tool runner; serviço dedicado permanece alvo M-04"
+        "status": "implemented",
+        "path": "src/server/services/audit.service.ts"
       },
       "EventService": {
         "status": "contract-only",
@@ -99,9 +98,8 @@
         "path": "src/server/repositories/calculation-snapshot.repository.ts"
       },
       "AuditRepository": {
-        "status": "consolidated",
-        "path": "src/server/repositories/ai-tool.repository.ts",
-        "note": "trilha de auditoria shipada em tool_executions via ai-tool.repository.ts; repositório dedicado permanece alvo M-04"
+        "status": "implemented",
+        "path": "src/server/repositories/audit.repository.ts"
       },
       "EventRepository": {
         "status": "contract-only",

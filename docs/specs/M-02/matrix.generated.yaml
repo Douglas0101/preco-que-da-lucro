@@ -10,8 +10,8 @@
     "createServerFnDeclarations": 28,
     "concreteOperations": 32,
     "apiRoutes": 4,
-    "transactionSites": 102,
-    "directDatabaseFiles": 35
+    "transactionSites": 100,
+    "directDatabaseFiles": 37
   },
   "bffs": [
     {
@@ -115,6 +115,7 @@
         "src/server/auth/auth.server.ts",
         "src/server/auth/rate-limit-storage.server.ts",
         "src/server/auth/tenant-bootstrap.server.ts",
+        "src/server/repositories/audit.repository.ts",
         "src/server/repositories/purchase-price.repository.ts",
         "src/server/services/purchase-price.service.ts"
       ]
@@ -609,79 +610,61 @@
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 84,
+      "line": 85,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 95,
+      "line": 143,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 145,
+      "line": 157,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 159,
+      "line": 216,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 218,
+      "line": 240,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 242,
+      "line": 260,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 262,
+      "line": 288,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 290,
+      "line": 292,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 294,
+      "line": 313,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 298,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-runner.ts",
-      "line": 318,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-runner.ts",
-      "line": 327,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-runner.ts",
-      "line": 331,
+      "line": 322,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
@@ -944,6 +927,12 @@
       "classification": "repository-fallback"
     },
     {
+      "path": "src/server/repositories/audit.repository.ts",
+      "line": 19,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
       "path": "src/server/repositories/calculation-snapshot.repository.ts",
       "line": 26,
       "expression": "context.transaction",
@@ -1184,6 +1173,7 @@
     "src/server/auth/rate-limit-storage.server.ts",
     "src/server/auth/tenant-bootstrap.server.ts",
     "src/server/repositories/ai-tool.repository.ts",
+    "src/server/repositories/audit.repository.ts",
     "src/server/repositories/calculation-snapshot.repository.ts",
     "src/server/repositories/dashboard.repository.ts",
     "src/server/repositories/expense.repository.ts",
@@ -1194,6 +1184,7 @@
     "src/server/services/product-detail.service.ts",
     "src/server/services/purchase-price.service.ts",
     "src/test/ai-estimated-cost.test.ts",
+    "src/test/audit.service.test.ts",
     "src/test/cross-tenant-denial.perf-waves.test.ts",
     "src/test/m02-backup-verify.test.ts",
     "src/test/m02-grant-repair.test.ts",
