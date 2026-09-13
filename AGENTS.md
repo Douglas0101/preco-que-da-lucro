@@ -56,6 +56,7 @@
 
 - Architectural changes require a new ADR in `docs/adr/`, following the `ADR-0XX-kebab.md` sequence (latest: ADR-028, **proposta/draft** — pendente de ratificação; último ratificado: ADR-027). Read the relevant ADRs before touching an architected area.
 - Operational evidence belongs in `docs/evidence/`; operational procedures belong in `docs/runbooks/`.
+- Evidência de performance segue `docs/evidence/_templates/performance-evidence.md` (7 campos: hypothesis, metric, before, change, after, result, decision) e é enforçada por `src/test/perf-evidence.test.ts` — artefatos novos `perf-*.md`/`*-perf-*.md` em `docs/evidence/` falham sem os 7 rótulos.
 
 ## Session boot and progress journal
 
