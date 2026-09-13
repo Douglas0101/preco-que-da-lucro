@@ -44,6 +44,7 @@
 | L26 | 03:1x:00 | ✔   | **PROVA A validada:** push só-docs `455ea7f` → rodou **apenas** `CI light` (success) e o `UI stack` foi **pulado**. A seguir, este commit MISTO (ledger+journal) é a **PROVA B**.                                                                                                                                                                                                                                            |
 | L27 | 03:2x:00 | ✔   | **PROVA B validada:** commit misto `36e9c63` → `UI stack` (pesado) rodou; guard do leve: "changed paths outside docs/evidence/ — heavy pipeline owns it". Ambas as provas do filtro registradas no artefato `docs/evidence/ci-path-filter-2026-09-13.md`.                                                                                                                                                                    |
 | L28 | 03:22:00 | ✔   | **FASE 2 fechada + RELEASE:** PR #46 (port P0) mergeado (`develop` = `0734ed9`) após o fix do ciclo SSR (`4bd4a76`); **release PR #47 → `main` = `9724d2c` — NOVO SHA DO DIA-D** (substitui `ef2110e7`); deploy de **produção** do Vercel para `9724d2c` = **Ready em 15 s**; probes da interina **200/200/200** em 2026-09-13T03:22:10Z. Gap declarado: `chat.functions.ts` não portado (arquitetura reescrita em develop). |
+| L29 | 03:4x:00 | ✔   | **Inspeção das 3 tarefas em andamento (anti-loop quebrado):** nenhum subagente travado (todos `complete`), fila de todo vazia, sem processos duplicados; **porém** `h6-watch` e `app-live-watch` expiravam em **~26–30 h** (09-14T05:04Z/09:09Z) — antes do dia-D — e foram **estendidos para 7 d** (~09-20T03:40Z) e re-armados (PIDs 753048/753051). `h2-watch` já tinha 7 d.                                              |
 
 ## 3. Fila humana (o que está bloqueado em pessoa)
 
@@ -58,11 +59,11 @@ Instrução clique-a-clique do H-6: `docs/evidence/hpanel-homologacao-2026-09-12
 
 ## 4. Watchers (último sinal conhecido)
 
-| watcher                          | PID    | último sinal                                                                  | marcador                                          |
-| -------------------------------- | ------ | ----------------------------------------------------------------------------- | ------------------------------------------------- |
-| `h6-watch.sh` (mudança de `jwt`) | 125663 | sondagem bloqueada (Cloudflare) em 2026-09-13T00:55Z; aguardando nova mudança | `~/.local/share/pi-fronts/H6-ready.txt` (ausente) |
-| `app-live-watch.sh` (health 200) | 227273 | poll 1020 em 02:20:09Z → `http=404` (app ainda não sobe)                      | `~/.local/share/pi-fronts/app-live.txt` (ausente) |
-| `h2-watch.sh` (token Vercel)     | 377893 | sem token/CLI até agora                                                       | `~/.local/share/pi-fronts/H2-ready.txt` (ausente) |
+| watcher                          | PID    | último sinal                                                                                                                                             | marcador                                          |
+| -------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `h6-watch.sh` (mudança de `jwt`) | 753048 | **re-armado 2026-09-13T03:4xZ** com horizonte de **7 d** (antes: 48 h → morreria em 09-14T05:04Z); aguardando mudança de sessão                          | `~/.local/share/pi-fronts/H6-ready.txt` (ausente) |
+| `app-live-watch.sh` (health 200) | 753051 | **re-armado 2026-09-13T03:4xZ**, horizonte **7 d** (antes: 48 h → morreria em 09-14T09:09Z); alvo `darkgray-pony-545965` (build ainda FAIL, aguarda H-6) | `~/.local/share/pi-fronts/app-live.txt` (ausente) |
+| `h2-watch.sh` (token Vercel)     | 377893 | sem token/CLI até agora                                                                                                                                  | `~/.local/share/pi-fronts/H2-ready.txt` (ausente) |
 
 ## 5. Ponteiros de artefatos (o "onde está o quê")
 
