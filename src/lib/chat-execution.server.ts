@@ -537,3 +537,7 @@ export async function executeSendChatMessage(
     throw error;
   }
 }
+
+export function getConversationForTests(context: RequestContext) {
+  return defaultConversationService.findForUser(context);
+}
