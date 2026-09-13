@@ -10,7 +10,7 @@
     "createServerFnDeclarations": 28,
     "concreteOperations": 32,
     "apiRoutes": 4,
-    "transactionSites": 100,
+    "transactionSites": 96,
     "directDatabaseFiles": 37
   },
   "bffs": [
@@ -55,7 +55,7 @@
       "operations": [
         {
           "name": "getChatHistory",
-          "line": 273,
+          "line": 268,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -63,7 +63,7 @@
         },
         {
           "name": "createChatConversation",
-          "line": 330,
+          "line": 313,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -71,7 +71,7 @@
         },
         {
           "name": "clearChatHistory",
-          "line": 342,
+          "line": 325,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -79,7 +79,7 @@
         },
         {
           "name": "sendChatMessage",
-          "line": 375,
+          "line": 343,
           "declaration": "createServerFn",
           "service": "ConversationService/ChatExecution",
           "repository": "ConversationRepository + BudgetRepository + AiToolRepository + AuditRepository",
@@ -88,17 +88,17 @@
       ],
       "imports": [
         "@/db/client.server",
-        "@/db/schema",
         "@/instrumentation/telemetry",
         "@/lib/ai-endpoint.server",
         "@/lib/ai/tool-registry",
         "@/lib/api-error",
-        "@/lib/chat-data",
         "@/lib/chat-execution.server",
+        "@/lib/request-context",
         "@/lib/structured-logger",
+        "@/lib/tenant-transaction",
         "@/middleware/request-context",
+        "@/server/services/conversation.service",
         "@tanstack/react-start",
-        "drizzle-orm",
         "zod"
       ],
       "reachesDatabase": true,
@@ -108,7 +108,6 @@
         "src/lib/ai/budget-ledger.server.ts",
         "src/lib/ai/tool-registry.ts",
         "src/lib/ai/tool-runner.ts",
-        "src/lib/chat-data.ts",
         "src/lib/chat-execution.server.ts",
         "src/lib/chat.functions.ts",
         "src/middleware/request-context.ts",
@@ -116,6 +115,7 @@
         "src/server/auth/rate-limit-storage.server.ts",
         "src/server/auth/tenant-bootstrap.server.ts",
         "src/server/repositories/audit.repository.ts",
+        "src/server/repositories/conversation.repository.ts",
         "src/server/repositories/purchase-price.repository.ts",
         "src/server/services/purchase-price.service.ts"
       ]
@@ -669,81 +669,9 @@
       "classification": "compatibility-facade"
     },
     {
-      "path": "src/lib/chat-data.ts",
-      "line": 46,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-data.ts",
-      "line": 61,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-data.ts",
-      "line": 82,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 101,
+      "line": 108,
       "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 116,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 126,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 133,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 190,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 201,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 230,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat.functions.ts",
-      "line": 290,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat.functions.ts",
-      "line": 347,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat.functions.ts",
-      "line": 355,
-      "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
@@ -947,6 +875,54 @@
     {
       "path": "src/server/repositories/calculation-snapshot.repository.ts",
       "line": 69,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 56,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 71,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 92,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 111,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 129,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 148,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 160,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 171,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -1161,7 +1137,6 @@
     "src/lib/ai/budget-ledger.server.ts",
     "src/lib/ai/tool-registry.ts",
     "src/lib/ai/tool-runner.ts",
-    "src/lib/chat-data.ts",
     "src/lib/chat-execution.server.ts",
     "src/lib/chat.functions.ts",
     "src/lib/expenses.functions.ts",
@@ -1175,6 +1150,7 @@
     "src/server/repositories/ai-tool.repository.ts",
     "src/server/repositories/audit.repository.ts",
     "src/server/repositories/calculation-snapshot.repository.ts",
+    "src/server/repositories/conversation.repository.ts",
     "src/server/repositories/dashboard.repository.ts",
     "src/server/repositories/expense.repository.ts",
     "src/server/repositories/product.repository.ts",
@@ -1226,9 +1202,8 @@
           "path": "src/server/services/diagnostic.service.ts"
         },
         "ConversationService": {
-          "status": "consolidated",
-          "path": "src/lib/chat-data.ts",
-          "note": "persistência de conversas shipada em chat-data.ts; serviço dedicado permanece alvo M02-3"
+          "status": "implemented",
+          "path": "src/server/services/conversation.service.ts"
         },
         "MemoryService": {
           "status": "contract-only",
@@ -1283,9 +1258,8 @@
           "path": "src/server/repositories/dashboard.repository.ts"
         },
         "ConversationRepository": {
-          "status": "consolidated",
-          "path": "src/lib/chat-execution.server.ts",
-          "note": "escrita de mensagens shipada no executor de chat; repositório dedicado permanece alvo M02-3"
+          "status": "implemented",
+          "path": "src/server/repositories/conversation.repository.ts"
         },
         "MemoryRepository": {
           "status": "contract-only",
@@ -1342,11 +1316,6 @@
         "id": "transient-ai-modules",
         "pathPrefix": "src/lib/ai/",
         "reason": "TRANSITÓRIO (2026-09-05): budget-ledger é a arquitetura de referência H-001; unidades transacionais em transactionPolicies; migração ao catálogo-alvo permanece backlog M02-3/M-04"
-      },
-      {
-        "id": "transient-chat-data",
-        "pathPrefix": "src/lib/chat-data.ts",
-        "reason": "TRANSITÓRIO (2026-09-05): persistência de conversas shipada (leitura); alvo M02-3"
       },
       {
         "id": "transient-chat-execution",

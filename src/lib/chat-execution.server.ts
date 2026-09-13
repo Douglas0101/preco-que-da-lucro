@@ -1,6 +1,4 @@
-import { and, asc, count, eq, gte } from "drizzle-orm";
 import { withTenantTransaction } from "@/db/client.server";
-import { chatConversations, chatMessages } from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
 import {
   budgetConfigFromEnv,
@@ -21,13 +19,12 @@ import {
   type ConversationState,
 } from "@/lib/chat-fsm.server";
 import { applicationMetrics } from "@/instrumentation/telemetry";
-import {
-  createTenantTransaction,
-  getOrCreateConversation,
-  numberSetting,
-  validateCurrentProduct,
-} from "@/lib/chat-data";
+import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
 import type { RequestContext, RequestIdentity } from "@/lib/request-context";
+import {
+  conversationService as defaultConversationService,
+  type ConversationService,
+} from "@/server/services/conversation.service";
 import { logJson } from "@/lib/structured-logger";
 
 interface GatewayMessage {
@@ -87,6 +84,7 @@ export interface ChatExecutionDependencies {
   budgetLedger?: BudgetLedger;
   budgetConfig?: Partial<BudgetLedgerConfig>;
   toolRunner?: ToolRunner;
+  conversationService?: ConversationService;
 }
 
 const CHAT_LIMIT_WINDOW_MS = 10 * 60 * 1_000;
@@ -95,22 +93,16 @@ const inTenantTransaction = createTenantTransaction(withTenantTransaction);
 async function reserveChatAndLoadHistory(
   context: RequestContext,
   budgetLedger: BudgetLedger,
+  conversationService: ConversationService,
   message: string,
   requestedProductId: string | null,
 ) {
-  const [recent] = await context.transaction
-    .select({ value: count() })
-    .from(chatMessages)
-    .where(
-      and(
-        eq(chatMessages.tenantId, context.tenantId),
-        eq(chatMessages.userId, context.userId),
-        eq(chatMessages.role, "user"),
-        gte(chatMessages.createdAt, new Date(Date.now() - CHAT_LIMIT_WINDOW_MS)),
-      ),
-    );
+  const recent = await conversationService.countRecentUserMessages(
+    context,
+    new Date(Date.now() - CHAT_LIMIT_WINDOW_MS),
+  );
   const chatLimit = numberSetting("AI_CHAT_LIMIT_PER_10_MINUTES", 20, 1, 1_000);
-  if ((recent?.value ?? 0) >= chatLimit) throw new ApplicationError("RATE_LIMIT");
+  if (recent >= chatLimit) throw new ApplicationError("RATE_LIMIT");
 
   const chatReserved = await budgetLedger.reserveChatInTransaction(
     context.transaction,
@@ -118,29 +110,17 @@ async function reserveChatAndLoadHistory(
   );
   if (!chatReserved) throw new ApplicationError("AI_QUOTA");
 
-  const conversation = await getOrCreateConversation(context);
-  const currentProductId = await validateCurrentProduct(
+  const conversation = await conversationService.getOrCreate(context);
+  const currentProductId = await conversationService.validateProduct(
     context,
     requestedProductId ?? conversation.currentProductId,
   );
-  await context.transaction.insert(chatMessages).values({
+  await conversationService.appendMessage(context, {
     conversationId: conversation.id,
-    tenantId: context.tenantId,
-    userId: context.userId,
     role: "user",
     content: message,
   });
-  const history = await context.transaction
-    .select({ role: chatMessages.role, content: chatMessages.content })
-    .from(chatMessages)
-    .where(
-      and(
-        eq(chatMessages.tenantId, context.tenantId),
-        eq(chatMessages.conversationId, conversation.id),
-      ),
-    )
-    .orderBy(asc(chatMessages.createdAt))
-    .limit(60);
+  const history = await conversationService.listMessages(context, conversation.id, { limit: 60 });
   const conversationState: ConversationState = isConversationState(conversation.conversationState)
     ? conversation.conversationState
     : "idle";
@@ -181,65 +161,46 @@ function buildInitialMessages(state: ChatState): GatewayMessage[] {
 }
 
 async function persistAssistantMessage(
+  conversationService: ConversationService,
   identity: RequestIdentity,
   state: ChatState,
   currentProductId: string | null,
   content: string,
 ): Promise<void> {
   await inTenantTransaction(identity, async (request) => {
-    const [saved] = await request.transaction
-      .insert(chatMessages)
-      .values({
-        conversationId: state.conversation.id,
-        tenantId: request.tenantId,
-        userId: request.userId,
-        role: "assistant",
-        content,
-        metadata: { currentProductId },
-      })
-      .returning({ id: chatMessages.id });
-    await request.transaction
-      .update(chatConversations)
-      .set({
+    const saved = await conversationService.appendMessage(request, {
+      conversationId: state.conversation.id,
+      role: "assistant",
+      content,
+      metadata: { currentProductId },
+    });
+    await conversationService.updateConversation(request, state.conversation.id, {
+      currentProductId,
+      confirmedState: {
         currentProductId,
-        confirmedState: {
-          currentProductId,
-          lastAssistantMessageId: saved?.id ?? null,
-          lastConfirmedAt: new Date().toISOString(),
-        },
-        conversationState: state.conversationState,
-        stateUpdatedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(chatConversations.tenantId, request.tenantId),
-          eq(chatConversations.id, state.conversation.id),
-        ),
-      );
+        lastAssistantMessageId: saved?.id ?? null,
+        lastConfirmedAt: new Date().toISOString(),
+      },
+      conversationState: state.conversationState,
+      stateUpdatedAt: new Date(),
+      updatedAt: new Date(),
+    });
   });
 }
 
 async function persistConversationState(
+  conversationService: ConversationService,
   identity: RequestIdentity,
   conversationId: string,
   conversationState: ConversationState,
   metadata?: Record<string, unknown>,
 ): Promise<void> {
   await inTenantTransaction(identity, async (request) => {
-    await request.transaction
-      .update(chatConversations)
-      .set({
-        conversationState,
-        stateUpdatedAt: new Date(),
-        ...(metadata === undefined ? {} : { stateMetadata: metadata }),
-      })
-      .where(
-        and(
-          eq(chatConversations.tenantId, request.tenantId),
-          eq(chatConversations.id, conversationId),
-        ),
-      );
+    await conversationService.updateConversation(request, conversationId, {
+      conversationState,
+      stateUpdatedAt: new Date(),
+      ...(metadata === undefined ? {} : { stateMetadata: metadata }),
+    });
   });
 }
 
@@ -248,6 +209,7 @@ async function persistConversationState(
  * it differs, and never throws for invalid transitions (returns state as-is).
  */
 async function transitionConversation(
+  conversationService: ConversationService,
   identity: RequestIdentity,
   conversationId: string,
   state: ConversationState,
@@ -261,7 +223,7 @@ async function transitionConversation(
   const next = transitionConversationState(state, event);
   applicationMetrics.conversationStateTransitions.add(1, { from: state, to: next });
   if (persist && next !== state) {
-    await persistConversationState(identity, conversationId, next);
+    await persistConversationState(conversationService, identity, conversationId, next);
   }
   return next;
 }
@@ -342,6 +304,7 @@ async function handleModelResponse(
   currentProductId: string | null,
   round: number,
   toolRunner: ToolRunner,
+  conversationService: ConversationService,
 ): Promise<RoundResult> {
   const modelMessage = modelResponse.choices[0]!.message;
   const toolCalls = modelMessage.tool_calls;
@@ -360,6 +323,7 @@ async function handleModelResponse(
       toolRunner,
     );
     state.conversationState = await transitionConversation(
+      conversationService,
       identity,
       state.conversation.id,
       state.conversationState,
@@ -371,13 +335,14 @@ async function handleModelResponse(
   const content = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
   if (!content) throw new ApplicationError("DEPENDENCY_ERROR");
   state.conversationState = await transitionConversation(
+    conversationService,
     identity,
     state.conversation.id,
     state.conversationState,
     "FINAL",
     false,
   );
-  await persistAssistantMessage(identity, state, currentProductId, content);
+  await persistAssistantMessage(conversationService, identity, state, currentProductId, content);
   logJson("info", "ai.chat_completed", {
     correlationId: identity.correlationId,
     tenantId: identity.tenantId,
@@ -397,6 +362,7 @@ async function executeReservedRound({
   round,
   modelCaller,
   toolRunner,
+  conversationService,
 }: {
   budgetLedger: BudgetLedger;
   budgetConfig: BudgetLedgerConfig;
@@ -408,6 +374,7 @@ async function executeReservedRound({
   round: number;
   modelCaller: ModelCaller;
   toolRunner: ToolRunner;
+  conversationService: ConversationService;
 }): Promise<RoundResult> {
   // reserveAtomic performs the lazy tenant sweep in the same transaction as the
   // conditional counter update. No gateway call can happen before this point.
@@ -444,6 +411,7 @@ async function executeReservedRound({
       currentProductId,
       round,
       toolRunner,
+      conversationService,
     );
     outcome = result.kind === "continue" ? "tool_round" : "success";
     return result;
@@ -483,6 +451,7 @@ export async function executeSendChatMessage(
   const budgetConfig = { ...budgetConfigFromEnv(), ...dependencies.budgetConfig };
   const budgetLedger =
     dependencies.budgetLedger ?? createBudgetLedger({ identity, config: budgetConfig });
+  const conversationService = dependencies.conversationService ?? defaultConversationService;
   const baseToolRunner = dependencies.toolRunner ?? runRegisteredTool;
   const requestTimeoutMs = numberSetting("AI_REQUEST_TIMEOUT_MS", 60_000, 1_000, 60_000);
   const requestSignal = AbortSignal.any([identity.signal, AbortSignal.timeout(requestTimeoutMs)]);
@@ -493,6 +462,7 @@ export async function executeSendChatMessage(
     reserveChatAndLoadHistory(
       request,
       budgetLedger,
+      conversationService,
       data.message,
       data.currentProductId === undefined ? null : data.currentProductId,
     ),
@@ -513,6 +483,7 @@ export async function executeSendChatMessage(
   const maxToolRounds = numberSetting("AI_MAX_TOOL_ROUNDS", 8, 1, 8);
   try {
     state.conversationState = await transitionConversation(
+      conversationService,
       identity,
       state.conversation.id,
       state.conversationState,
@@ -531,6 +502,7 @@ export async function executeSendChatMessage(
         round,
         modelCaller: dependencies.modelCaller,
         toolRunner,
+        conversationService,
       });
       currentProductId = result.currentProductId;
       if (result.kind === "complete") return result;
@@ -540,6 +512,7 @@ export async function executeSendChatMessage(
   } catch (error) {
     try {
       await transitionConversation(
+        conversationService,
         identity,
         state.conversation.id,
         state.conversationState,

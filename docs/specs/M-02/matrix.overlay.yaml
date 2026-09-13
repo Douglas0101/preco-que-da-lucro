@@ -27,9 +27,8 @@
         "path": "src/server/services/diagnostic.service.ts"
       },
       "ConversationService": {
-        "status": "consolidated",
-        "path": "src/lib/chat-data.ts",
-        "note": "persistência de conversas shipada em chat-data.ts; serviço dedicado permanece alvo M02-3"
+        "status": "implemented",
+        "path": "src/server/services/conversation.service.ts"
       },
       "MemoryService": {
         "status": "contract-only",
@@ -84,9 +83,8 @@
         "path": "src/server/repositories/dashboard.repository.ts"
       },
       "ConversationRepository": {
-        "status": "consolidated",
-        "path": "src/lib/chat-execution.server.ts",
-        "note": "escrita de mensagens shipada no executor de chat; repositório dedicado permanece alvo M02-3"
+        "status": "implemented",
+        "path": "src/server/repositories/conversation.repository.ts"
       },
       "MemoryRepository": {
         "status": "contract-only",
@@ -135,11 +133,6 @@
       "id": "transient-ai-modules",
       "pathPrefix": "src/lib/ai/",
       "reason": "TRANSITÓRIO (2026-09-05): budget-ledger é a arquitetura de referência H-001; unidades transacionais em transactionPolicies; migração ao catálogo-alvo permanece backlog M02-3/M-04"
-    },
-    {
-      "id": "transient-chat-data",
-      "pathPrefix": "src/lib/chat-data.ts",
-      "reason": "TRANSITÓRIO (2026-09-05): persistência de conversas shipada (leitura); alvo M02-3"
     },
     {
       "id": "transient-chat-execution",
