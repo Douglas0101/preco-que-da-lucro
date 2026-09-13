@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "commit": null,
+  "manifest": ".output/public/.vite/manifest.json",
+  "budget": {
+    "entryMinifiedBytes": 500000,
+    "initialGraphMinifiedBytes": 500000
+  },
+  "entries": [
+    {
+      "source": "../node_modules/@tanstack/react-start/dist/plugin/default-entry/client.tsx",
+      "file": "assets/index-BfoIlnr6.js",
+      "minifiedBytes": 274797,
+      "gzipBytes": 85636,
+      "brotliBytes": 74323,
+      "limitBytes": 500000,
+      "passed": true,
+      "initialGraph": {
+        "files": [
+          "assets/auth-client-DkVMaKOW.js",
+          "assets/index-BfoIlnr6.js",
+          "assets/preload-helper-Czpn1I53.js",
+          "assets/react-dom-DnMgFH6B.js",
+          "assets/rolldown-runtime-hePW80VL.js",
+          "assets/tanstack-vendor-D1mahD_Y.js"
+        ],
+        "minifiedBytes": 470042,
+        "gzipBytes": 149671,
+        "brotliBytes": 131307,
+        "limitBytes": 500000
+      }
+    }
+  ]
+}

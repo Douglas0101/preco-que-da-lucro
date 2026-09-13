@@ -67,6 +67,8 @@
     "check:no-supabase-runtime": "node scripts/check-no-supabase-runtime.mjs",
     "smoke:substrate": "tsx scripts/smoke/substrate-smoke.ts",
     "check:bundle": "node scripts/check-bundle.mjs",
+    "perf:capture": "node scripts/perf/capture-baseline.mjs",
+    "perf:summarize": "node scripts/perf/summarize.mjs",
     "check:hostinger-runtime": "node scripts/check-hostinger-runtime.mjs",
     "check": "npm run m02:lockfile-guard && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle"
   },

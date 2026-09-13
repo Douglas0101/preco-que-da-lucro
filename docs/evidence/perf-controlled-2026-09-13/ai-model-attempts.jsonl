@@ -1,0 +1,4 @@
+{"kind":"ai.model_attempt","timestamp":"2026-09-13T15:28:49.302Z","model":"google/gemini-3.6-flash","attempt":1,"durationMs":41,"outcome":"success","phase":"ai:direct","iteration":0,"warmup":true}
+{"kind":"ai.model_attempt","timestamp":"2026-09-13T15:28:49.339Z","model":"google/gemini-3.6-flash","attempt":1,"durationMs":36,"outcome":"success","phase":"ai:direct","iteration":1,"warmup":false}
+{"kind":"ai.model_attempt","timestamp":"2026-09-13T15:28:49.377Z","model":"google/gemini-3.6-flash","attempt":1,"durationMs":37,"outcome":"success","phase":"ai:direct","iteration":2,"warmup":false}
+{"kind":"ai.model_attempt","timestamp":"2026-09-13T15:28:49.413Z","model":"google/gemini-3.6-flash","attempt":1,"durationMs":36,"outcome":"success","phase":"ai:direct","iteration":3,"warmup":false}

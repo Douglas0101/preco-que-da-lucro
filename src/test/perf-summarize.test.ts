@@ -1,0 +1,347 @@
+import { spawnSync } from "node:child_process";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { afterEach, describe, expect, it } from "vitest";
+import {
+  percentile,
+  renderReport,
+  summarize,
+  summarizeDir,
+  type PerfRaw,
+} from "../../scripts/perf/summarize.mjs";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const script = path.join(root, "scripts/perf/summarize.mjs");
+const tempDirs: string[] = [];
+
+afterEach(async () => {
+  while (tempDirs.length > 0) {
+    const dir = tempDirs.pop();
+    if (dir) await rm(dir, { recursive: true, force: true });
+  }
+});
+
+async function makeTempDir(): Promise<string> {
+  const dir = await mkdtemp(path.join(tmpdir(), "perf-summarize-"));
+  tempDirs.push(dir);
+  return dir;
+}
+
+function fixtureRaw(): PerfRaw {
+  return {
+    meta: {
+      label: "CONTROLADO",
+      commit: "abc1234",
+      startedAt: "2026-09-13T10:00:00.000Z",
+      finishedAt: "2026-09-13T10:10:00.000Z",
+      iterations: 3,
+      warmupIterations: 1,
+      baseUrl: "http://127.0.0.1:4219",
+      gaps: ["gateway real de IA não medido"],
+    },
+    routeSamples: [
+      {
+        kind: "route",
+        route: "/inicio",
+        iteration: 1,
+        warmup: false,
+        status: 200,
+        readyMs: 100,
+        ttfbMs: 10,
+        lcpMs: 200,
+        cls: 0.01,
+        fcpMs: 50,
+        loadMs: 150,
+        serverFn: [{ path: "/_serverFn/a", durationMs: 30 }],
+      },
+      {
+        kind: "route",
+        route: "/inicio",
+        iteration: 2,
+        warmup: false,
+        status: 200,
+        readyMs: 120,
+        ttfbMs: 12,
+        lcpMs: 220,
+        cls: 0.02,
+        fcpMs: 60,
+        loadMs: 160,
+        serverFn: [{ path: "/_serverFn/a", durationMs: 40 }],
+      },
+      {
+        kind: "route",
+        route: "/inicio",
+        iteration: 3,
+        warmup: false,
+        status: 200,
+        readyMs: 140,
+        ttfbMs: 14,
+        lcpMs: 240,
+        cls: 0.03,
+        fcpMs: 70,
+        loadMs: 170,
+        serverFn: [{ path: "/_serverFn/a", durationMs: 50 }],
+      },
+      {
+        kind: "route",
+        route: "/inicio",
+        iteration: 0,
+        warmup: true,
+        status: 200,
+        readyMs: 999,
+        ttfbMs: 999,
+        lcpMs: 999,
+        cls: 0.9,
+        fcpMs: 999,
+        loadMs: 999,
+        serverFn: [],
+      },
+      {
+        kind: "route",
+        route: "/produtos",
+        iteration: 1,
+        warmup: false,
+        status: 200,
+        readyMs: 200,
+        ttfbMs: 20,
+        lcpMs: 300,
+        cls: 0.04,
+        fcpMs: 80,
+        loadMs: 250,
+        serverFn: [{ path: "/_serverFn/b", durationMs: 70 }],
+      },
+      {
+        kind: "route",
+        route: "/produtos",
+        iteration: 2,
+        warmup: false,
+        status: 200,
+        readyMs: 220,
+        ttfbMs: 22,
+        lcpMs: 320,
+        cls: 0.05,
+        fcpMs: 90,
+        loadMs: 260,
+        serverFn: [{ path: "/_serverFn/b", durationMs: 80 }],
+      },
+      {
+        kind: "route",
+        route: "/produtos",
+        iteration: 3,
+        warmup: false,
+        status: 200,
+        readyMs: 240,
+        ttfbMs: 24,
+        lcpMs: 340,
+        cls: 0.06,
+        fcpMs: 100,
+        loadMs: 270,
+        serverFn: [{ path: "/_serverFn/b", durationMs: 90 }],
+      },
+    ],
+    chatSamples: [
+      { kind: "chat", iteration: 1, warmup: false, status: 200, sendMs: 120 },
+      { kind: "chat", iteration: 2, warmup: false, status: 200, sendMs: 130 },
+      { kind: "chat", iteration: 3, warmup: false, status: 200, sendMs: 140 },
+    ],
+    contextTx: [
+      {
+        kind: "context_tx",
+        phase: "route:/inicio",
+        warmup: false,
+        round_trips: 3,
+        duration_ms: 2,
+        outcome: "commit",
+      },
+      {
+        kind: "context_tx",
+        phase: "route:/inicio",
+        warmup: false,
+        round_trips: 4,
+        duration_ms: 4,
+        outcome: "commit",
+      },
+      {
+        kind: "context_tx",
+        phase: "route:/inicio",
+        warmup: false,
+        round_trips: 5,
+        duration_ms: 6,
+        outcome: "commit",
+      },
+      {
+        kind: "context_tx",
+        phase: "route:/produtos",
+        warmup: false,
+        round_trips: 7,
+        duration_ms: 8,
+        outcome: "commit",
+      },
+    ],
+    aiAttempts: [
+      {
+        kind: "ai.model_attempt",
+        phase: "chat:1",
+        warmup: false,
+        model: "mock/model",
+        attempt: 1,
+        durationMs: 40,
+        outcome: "success",
+      },
+      {
+        kind: "ai.model_attempt",
+        phase: "chat:2",
+        warmup: false,
+        model: "mock/model",
+        attempt: 1,
+        durationMs: 50,
+        outcome: "success",
+      },
+      {
+        kind: "ai.model_attempt",
+        phase: "chat:3",
+        warmup: false,
+        model: "mock/model",
+        attempt: 1,
+        durationMs: 60,
+        outcome: "success",
+      },
+    ],
+    bundleReport: {
+      budget: { entryMinifiedBytes: 500_000, initialGraphMinifiedBytes: 500_000 },
+      entries: [
+        {
+          file: "assets/app-abc.js",
+          minifiedBytes: 100_000,
+          gzipBytes: 30_000,
+          brotliBytes: 25_000,
+          passed: true,
+          initialGraph: {
+            files: ["assets/app-abc.js"],
+            minifiedBytes: 120_000,
+            gzipBytes: 35_000,
+            brotliBytes: 30_000,
+            limitBytes: 500_000,
+          },
+        },
+      ],
+    },
+  };
+}
+
+async function writeFixture(dir: string, raw: PerfRaw): Promise<void> {
+  const lines = (items: Array<Record<string, unknown>> | undefined) =>
+    `${(items ?? []).map((item) => JSON.stringify(item)).join("\n")}\n`;
+  await writeFile(path.join(dir, "meta.json"), JSON.stringify(raw.meta ?? {}, null, 2));
+  await writeFile(path.join(dir, "route-samples.jsonl"), lines(raw.routeSamples));
+  await writeFile(path.join(dir, "chat-samples.jsonl"), lines(raw.chatSamples));
+  await writeFile(path.join(dir, "context-tx.jsonl"), lines(raw.contextTx));
+  await writeFile(path.join(dir, "ai-model-attempts.jsonl"), lines(raw.aiAttempts));
+  await writeFile(
+    path.join(dir, "bundle-report.json"),
+    JSON.stringify(raw.bundleReport ?? {}, null, 2),
+  );
+}
+
+describe("percentile (interpolação linear R-7)", () => {
+  it("interpola entre ranks", () => {
+    expect(percentile([40, 10, 30, 20], 50)).toBe(25);
+    expect(percentile([10, 20, 30, 40], 95)).toBe(38.5);
+  });
+
+  it("lida com vazio, unitário e valores inválidos", () => {
+    expect(percentile([], 50)).toBeNull();
+    expect(percentile([5], 95)).toBe(5);
+    expect(percentile([Number.NaN, 10, Number.POSITIVE_INFINITY], 50)).toBe(10);
+  });
+});
+
+describe("summarize com fixture sintético", () => {
+  it("agrega rotas, queries, IA e bundle e declara lacunas", () => {
+    const report = summarize(fixtureRaw());
+    const inicio = report.routes.find((route) => route.route === "/inicio");
+    expect(inicio?.samples).toBe(3);
+    expect(inicio?.ready.p50).toBe(120);
+    expect(inicio?.ready.p95).toBe(138);
+    expect(inicio?.ttfb.p50).toBe(12);
+    expect(inicio?.serverFn.p50).toBe(40);
+    expect(inicio?.lcp.p50).toBe(220);
+
+    const produtos = report.routes.find((route) => route.route === "/produtos");
+    expect(produtos?.ready.p50).toBe(220);
+    expect(produtos?.serverFn.p50).toBe(80);
+
+    const queryInicio = report.query.find((row) => row.route === "/inicio");
+    expect(queryInicio?.events).toBe(3);
+    expect(queryInicio?.roundTrips).toBe(12);
+    expect(queryInicio?.duration.p50).toBe(4);
+
+    expect(report.ai.latency.n).toBe(3);
+    expect(report.ai.latency.p50).toBe(50);
+    expect(report.ai.latency.p95).toBe(59);
+    expect(report.ai.bySource).toEqual({ "chat-http": 3 });
+    expect(report.chat.send.p50).toBe(130);
+
+    expect(report.bundle?.entries[0]?.minifiedBytes).toBe(100_000);
+    expect(report.bundle?.entries[0]?.passed).toBe(true);
+
+    expect(report.gaps).toContain("gateway real de IA não medido");
+    expect(report.gaps).not.toContain("Nenhuma amostra de rota medida (Playwright indisponível?).");
+  });
+
+  it("avisa quando a IA veio só do probe direto (chat HTTP indisponível)", () => {
+    const raw = fixtureRaw();
+    for (const attempt of raw.aiAttempts ?? []) attempt.phase = "ai:direct";
+    const markdown = renderReport(summarize(raw));
+    expect(markdown).toContain("sonda direta da camada de modelo");
+  });
+
+  it("renderiza os 8 itens de §5, método e limitações", () => {
+    const markdown = renderReport(summarize(fixtureRaw()));
+    expect(markdown).toContain("# Baseline de performance CONTROLADO");
+    expect(markdown).toContain("1. p50/p95 de rotas internas");
+    expect(markdown).toContain("2. Query count por tela");
+    expect(markdown).toContain("3. Query duration");
+    expect(markdown).toContain("4. Tempo de carregamento do dashboard");
+    expect(markdown).toContain("5. Tempo de lista de produtos");
+    expect(markdown).toContain("6. AI latency");
+    expect(markdown).toContain("7. Tamanho de bundle");
+    expect(markdown).toContain("8. Core Web Vitals em ambiente controlado");
+    expect(markdown).toContain("`/inicio`");
+    expect(markdown).toContain("## Decisões");
+    expect(markdown).toContain("Mock de IA ≠ gateway real");
+    expect(markdown).toContain("Local ≠ Neon");
+    expect(markdown).toContain("interpolação linear R-7");
+  });
+
+  it("summarizeDir lê o raw e grava report.md", async () => {
+    const dir = await makeTempDir();
+    await writeFixture(dir, fixtureRaw());
+    const { reportPath, report } = await summarizeDir(dir);
+    expect(path.basename(reportPath)).toBe("report.md");
+    expect(report.routes).toHaveLength(2);
+    const markdown = await readFile(reportPath, "utf8");
+    expect(markdown).toContain("# Baseline de performance CONTROLADO");
+  });
+
+  it("CLI com fixture termina com exit 0 e grava o relatório", async () => {
+    const dir = await makeTempDir();
+    await writeFixture(dir, fixtureRaw());
+    const result = spawnSync(process.execPath, [script, "--dir", dir], {
+      cwd: root,
+      encoding: "utf8",
+      timeout: 60_000,
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain("report.md gerado");
+  });
+
+  it("declara lacuna quando o raw está vazio", async () => {
+    const dir = await makeTempDir();
+    const { report } = await summarizeDir(dir);
+    expect(report.routes).toHaveLength(0);
+    expect(report.gaps.length).toBeGreaterThan(0);
+  });
+});
