@@ -52,3 +52,15 @@ verificador adversarial independente por integração (V1–V5), token DB e marc
 1. **Hotfix BUG-CHAT** (operador único, escopo 2 arquivos + e2e) — aguardando aprovação.
 2. **Onda 1** (dados/arquitetura): 9.2 → Audit → 14.3 (migration 0012) → Conversation → T2 (0013) → BFF split → Pricing → contracts.
 3. **Ondas 2–4** conforme `PLANO.md`, decisões abertas: RUM persistido, spike schema-only, exports N/A.
+
+## 6. Hotfix BUG-CHAT (I6) — executado após a aprovação
+
+| Int. | Item                                      | Operador | Commit do operador | Merge     | V         | Gates                                                                                |
+| ---- | ----------------------------------------- | -------- | ------------------ | --------- | --------- | ------------------------------------------------------------------------------------ |
+| I6   | BUG-CHAT: fallback `request.signal` + e2e | O6       | `bd0a768`          | `d6f5706` | V6 PRONTO | e2e vermelho→verde reproduzido por V6 (4/4, exit 0); 444 testes, typecheck, prettier |
+
+- **Fix:** `request-context.ts` — `signal: options.signal ?? request.signal` e `signal: signal ?? request.signal`; cobre
+  chat e tool-runner (únicos construtores de contexto); `??` preserva signal existente (inclusive abortado).
+- **Regressão:** e2e `BUG-CHAT` em `e2e/ui-stack.spec.ts` (POST `/_serverFn/` com probe único; assere ausência de
+  `signals[0]`/`TypeError`, status < 500 e recuperação da UI); vermelho pré-fix registrado (200 mascarando TypeError).
+- **Evidência:** `docs/evidence/bug-chat-fix-2026-09-13.md`. Residual: gateway real não coberto (verde usa `DEPENDENCY_ERROR`).

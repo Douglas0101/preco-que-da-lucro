@@ -107,7 +107,8 @@ Screenshot do passo: `⚠️ Um serviço necessário está indisponível.`
   `scripts/perf/capture-baseline.mjs`), sem mudança de lógica do app. No CI o
   caminho é o do workflow.
 - **Escopo:** a suíte e2e completa não foi executada nesta rodada; rodou-se o
-  teste focado do hotfix, typecheck, prettier e o teste unitário do middleware.
+  teste focado do hotfix, typecheck e prettier; o `src/test/request-context.test.ts` é pré-existente e
+  cobre apenas autorização owner/admin/member — a cobertura do fallback de `signal` é o e2e (vermelho→verde acima).
 
 ## 6. Decisão
 
