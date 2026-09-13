@@ -36,7 +36,7 @@ Resultado: **existem exatamente 2 nós da árvore que excluem 24.6.0** — o `ro
 ### 2.1 Achado A2 — piso oculto do `jsdom` (não previsto)
 
 - `jsdom@30.0.1` está em `devDependencies` (`package.json:130`, spec `^30.0.1`) e é `devOptional` no lock (`package-lock.json:8677`); é exigido por `vitest` (peer `jsdom: "*"`, `node_modules/vitest/package.json`) e usado por `vitest.config.ts:11` (`environment: "jsdom"`).
-- `engines.node` de `30.0.0`/`30.0.1` = `^22.22.2 || ^24.15.0 || >=26.0.0` → **Node 24.6.0 não satisfaz**; com `engine-strict=true` isso é `EBADENGINE` fatal, exatamente como no root.
+- `engines.node` de `30.0.0`/`30.0.1` = `^22.22.2 || ^24.15.0 || >=26.0.0` → **Node 24.6.0 não satisfaz**; com `engine-strict=true` isso é `EBADENGINE` fatal, exatamente como no root — comportamento **assumido e a confirmar** no §8.2 (S-TEC P2: o único `EBADENGINE` reproduzido é o do `root` declarado; `engine-strict` sobre nó `devOptional` não foi exercitado).
 - Packument do registry no cache npm local (285 versões estáveis): a última linha que aceita 24.6.0 é **`jsdom@29.1.1`** (publicada 2026-04-30, `engines.node = "^20.19.0 || ^22.13.0 || >=24.0.0"`); a quebra para `^22.22.2 || ^24.15.0 || >=26.0.0` entra em `30.0.0` (2026-07-27).
 - `vitest@4.1.11` aceita qualquer `jsdom` (peer `*`), então um pin `~29.1.1` **não cria conflito de peer** — mas exige `package-lock.json` sincronizado e `npm run test` verde no CI (24.15) antes do merge.
 
@@ -107,6 +107,7 @@ O fallback expira — é uma **janela**, não um novo normal.
 3. `nvm use 24.15.0 && npm run check` verde (CI local, mesmo gate do `ui-stack.yml`).
 4. Build no alvo sem `EBADENGINE`, com `node --version` registrado; app sobe e `/api/health/live` responde 200 (item 2 do runbook; `scripts/check-hostinger-runtime.mjs` cobre o equivalente local).
 5. Evidência arquivada em `docs/evidence/` (checklist da seção 2 + log do build + versão do Node) e runbooks A8 emendados.
+6. **Via (ii) do §4 (fallback mínimo, sem mudar `engines`):** a prova equivalente **não** é o item 2 — é o **log de build do alvo** com `NPM_CONFIG_ENGINE_STRICT=false` ativo e `node --version` registrado (`v24.6.0`), mais os probes do item 4. Registrar no pacote de evidência (S-TEC P2).
 
 ## 9. Ratificação
 
