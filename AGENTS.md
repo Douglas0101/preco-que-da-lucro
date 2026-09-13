@@ -52,6 +52,14 @@
 - Architectural changes require a new ADR in `docs/adr/`, following the `ADR-0XX-kebab.md` sequence (latest: ADR-028, **proposta/draft** — pendente de ratificação; último ratificado: ADR-027). Read the relevant ADRs before touching an architected area.
 - Operational evidence belongs in `docs/evidence/`; operational procedures belong in `docs/runbooks/`.
 
+## Session boot and progress journal
+
+- `docs/evidence/agent-state/PROGRESS.md` is the **session handoff**: one file, pointers only (paths, SHAs, timestamps, env **names**), never secret values and never long content. A new model reads it and resumes without agent memory.
+- **Boot protocol (~30 s), in this order:** (1) read `PROGRESS.md`; (2) verify the parent-pinned marker in `EXECUTION-STATE-PROGRAM.md` (`npm run m02:state:check`); (3) check watchers and their marker files' last signal; (4) **reconcile** the world first (git refs, artifacts, deployments) — never re-execute blindly; (5) resume from the declared phase.
+- **Write protocol:** record intent (`▶`) **before** any mutation and result (`✔`/`✘`) **after**, append-only. An orphan intent means the next boot must reconcile before acting.
+- **Milestones:** commit the journal at every phase boundary; the maximum acceptable loss is re-executing from the last milestone (declared, never implicit).
+- **Agent memory is an invalidatable cache:** nothing that belongs in an artifact or in the journal is written to agent memory — journal + ledger are the source of truth. Memory carries at most a boot index pointing here.
+
 ## Commits
 
 - Conventional Commits in English (`fix(ci):`, `docs(evidence):`, `chore(format):`). The message states the root cause, not the symptom.
