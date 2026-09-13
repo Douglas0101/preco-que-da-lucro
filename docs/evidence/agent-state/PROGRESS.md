@@ -17,9 +17,9 @@
 
 ## 1. Estado corrente
 
-- **Fase:** `5 — consolidação` (J · 1 · 2 · 3 concluídas; 4 dormente aguardando H-6/H-2; recapitulação + medição do Plano Mestre em L31)
-- **Refs:** `develop` = `73da1da` (pacote part-E) + merge do back-merge (`origin/main` `9724d2c`; HEAD = merge commit — `git log --oneline -1`) · `origin/main` = `9724d2c` (**SHA do dia-D**) · `main` local = `ac2e834` (59 atrás; obsoleto — não usar) · WIP `codex/p0-closeout` = `49eaf2b` (preservado) · back-merge `origin/main → develop` concluído em L32
-- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned atualizado para `73da1da` no merge do back-merge (L32; válido para o HEAD pós-merge; `m02:state:check` verde).
+- **Fase:** `5 — consolidação` (J · 1 · 2 · 3 concluídas; 4 dormente aguardando H-6/H-2; recapitulação + medição em L31; **Onda 0 do plano de PARTIALs em execução — L33**)
+- **Refs:** `develop` = `83efb16` (base do C1/Onda 0; o commit do plano avança o HEAD — `git log --grep='plan-partials' -1 --format=%h`) · `origin/main` = `9724d2c` (**SHA do dia-D**) · `main` local = `ac2e834` (59 atrás; obsoleto — não usar) · WIP `codex/p0-closeout` = `49eaf2b` (preservado) · back-merge `origin/main → develop` concluído em L32
+- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned atualizado para `83efb16` no C1 (plano de PARTIALs; válido para o HEAD pós-commit; `m02:state:check`).
 - **Árvore:** limpa no repo principal; worktree `.p0-closeout-docker` limpo (pós-`49eaf2b`).
 - **Ambiente local:** Postgres Docker `preco-que-da-lucro-postgres` (127.0.0.1:5432, `preco_que_da_lucro_test`) usado nos gates; `.env` aponta para produção e por isso **todo** dev/test/build exige override explícito para `127.0.0.1` (sancionado por `AGENTS.md`).
 
@@ -50,6 +50,7 @@
 | L31 | 04:42:00 | ✔   | Medição: 194 itens mapeados · 187 acionáveis — 129 DONE · 33 PARTIAL · 25 NS = **69,0% cru / 77,8% crédito** (oficial); P0 97,1% · P1 86,7% · P2 30,0% · §40 30/38 · gates 2/4. Correções E1–E14 aplicadas ao recap §5–§15. Artefato: `docs/evidence/plan-recap-2026-09-13/part-E-medicao.md`. Commit: `git log --grep='part-E' -1 --format=%h`.                                                                             |
 | L32 | 04:45:00 | ▶   | Back-merge obrigatório `origin/main` (`9724d2c`) → `develop` (AGENTS.md:18), pendente; commit de merge próprio com marcador parent-pinned recalculado para o SHA do pacote.                                                                                                                                                                                                                                                  |
 | L32 | 04:52:00 | ✔   | **Back-merge `origin/main` (`9724d2c`) → `develop` concluído sem conflitos** (merge commit; parent = `73da1da`); marcador parent-pinned recalculado para `73da1da` e `m02:state:check` verde. Sem push (decisão local).                                                                                                                                                                                                      |
+| L33 | 14:49:00 | ▶   | **ONDA 0 do plano de PARTIALs (enxame + supervisão):** artefato `docs/evidence/plan-partials-2026-09-13/` (PLANO + 5 fatias) no C1; executar 7 itens (F0-04, §27a/b, §35, §32 fixação+SQLi, AUTH-005 A+B) com 3 operadores em worktrees próprios, integração unitária com verificador por commit, WIP 3 e token DB. Sem push.                                                                                                |
 
 ## 3. Fila humana (o que está bloqueado em pessoa)
 
@@ -74,6 +75,7 @@ Instrução clique-a-clique do H-6: `docs/evidence/hpanel-homologacao-2026-09-12
 
 - Estado do programa: `EXECUTION-STATE-PROGRAM.md` · consolidação da rodada: `docs/evidence/F7-consolidacao-2026-09-13.md`
 - Recapitulação/medição do Plano Mestre: `docs/evidence/plan-recap-2026-09-13/` — `CONSOLIDADO.md` · `part-A..D` · `part-E-medicao.md` (medição §16–§35 + verificação do recap §5–§15)
+- Plano dos PARTIAL (execução): `docs/evidence/plan-partials-2026-09-13/` — `PLANO.md` + `part-1..part-5` · painel da Onda 0: `EXECUCAO-ONDA0.md` (a criar)
 - hPanel: `docs/runbooks/hpanel-homologacao.md` · `docs/evidence/hpanel-homologacao-2026-09-12/` (item 1 FAIL + `SESSION-LIMIT.md`)
 - Neon: `docs/evidence/neon-prontidao-2026-09-13.md` · PITR: `docs/evidence/neon-pitr-memo-2026-09-12.md`
 - Vercel: `docs/evidence/vercel-docmap-2026-09-12.md` · falha/correção: `docs/evidence/vercel-deploy-failure-2026-09-13.md`
