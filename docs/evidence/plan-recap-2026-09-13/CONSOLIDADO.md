@@ -17,7 +17,7 @@
 | **NÃO VERIFICADO** | **1**  | 1%  | Gate M-02 `m02:boundaries` no HEAD (sem re-execução)                               |
 
 Leitura executiva: **o plano está substancialmente cumprido** — 70% DONE e apenas **10% não iniciado, todo ele concentrado
-num único bloco (FASE 10 — memória persistente), cujo não-início é um _deferral deliberado_ com gate próprio**, não um esquecimento.
+na FASE 10 (memória persistente, 7 itens) e em `MemoryService`/`EventService` (§9.1), cujo não-início é um _deferral deliberado_ com gate próprio**, não um esquecimento.
 
 ## 2. Matriz por fase (itens com lacuna relevante)
 
@@ -42,7 +42,7 @@ SEC-001 (XSS no chat: CSP ainda **report-only** por padrão, enforce só com `CS
 
 AUTH-001 (ADR aceito; addendum do cutover em DRAFT) · AUTH-002 (`__Host-` cookie) · AUTH-003 (sessão opaca; ADR-025 aceito, não implementado) · AUTH-004 (rotação com testes) · **AUTH-005 OAuth = PARTIAL — nunca verificado em runtime** (sem e2e de callback e sem credenciais) · AUTH-006 (verificação 1:1 nos 8 BFFs) · AUTH-007 (CSRF em todas as mutações).
 
-### FASE 3 — BFF (§8) — 5 DONE · 2 PARTIAL · 1 não verificado
+### FASE 3 — BFF (§8) — 6 DONE (BFF-001/004/005/006/007 + Gate §8) · 2 PARTIAL (BFF-002/003) · 1 NÃO VERIFICADO (gate M-02)
 
 DONE: BFF-001 Dashboard · BFF-004 Preços (há **entrada morta** em `matrix.yaml`/`matrix.overlay.yaml` apontando módulo renomeado) · BFF-005 Break-even (cálculo client-side com o mesmo módulo — desvio consciente) · BFF-006 Diagnóstico (zero imports de `@/db` em rotas/componentes) · BFF-007 Simulações (persistência server-side; efêmero por desenho).
 PARTIAL: **BFF-002/BFF-003** — o plano pedia `createProduct`/`updateProduct` e `createExpense`/`updateExpense` separados; o código **consolidou em `upsert*`** (mudança de contrato, não dívida).
@@ -60,11 +60,11 @@ Money (NUMERIC + escalas 19,4 / 24,8 / 9,6 / 24,6) · Percent (tipo marcado; `pe
 
 PK+tenant (exceções auxiliares: `audit_events`, `ai_usage`) · índices no lado referenciado (EXPLAIN local PG17; **sem gate automatizado**) · CHECKs (valores e matemática) · nullability (desconhecido ≠ 0) · product status (5 estados; completude derivada — ADR-024) · price history (append-only **por privilégio**, sem trigger) · sales · simulations · **RLS (26 tabelas/30 políticas; GAP-DOC-RLS-01: expectativa antiga "20/20")**.
 
-### FASE 7 — Preparação Neon (§12) — 4 DONE · 3 PARTIAL · 1 SUPERSEDED
+### FASE 7 — Preparação Neon (§12) — 2 DONE (12.1, 12.3) · 3 PARTIAL (12.4–12.6) · 1 SUPERSEDED (12.2)
 
-§12.1 major PostgreSQL DONE · **§12.2 SUPERSEDED** (nomes `DATABASE_URL_POOLED/DIRECT` não existem; o repo usa `DATABASE_URL`/`DATABASE_URL_UNPOOLED`) · §12.3 transações curtas (evidência **estrutural**, sem teste executado) · **§12.4 branch model PARTIAL** · **§12.5 lifecycle PARTIAL (falta o passo E2E na branch efêmera)** · **§12.6 spending guardrails PARTIAL — alertas de gasto e métricas de compute NÃO VERIFICADOS**.
+§12.1 major PostgreSQL DONE · **§12.2 SUPERSEDED** (nomes `DATABASE_URL_POOLED/DIRECT` do plano não são consumidos por código/scripts/config; sobrevivem apenas em documentação; o repo usa `DATABASE_URL`/`DATABASE_URL_UNPOOLED`) · §12.3 transações curtas (evidência **estrutural**, sem teste executado) · **§12.4 branch model PARTIAL** · **§12.5 lifecycle PARTIAL (falta o passo E2E na branch efêmera)** · **§12.6 spending guardrails PARTIAL — alertas de gasto e métricas de compute NÃO VERIFICADOS**.
 
-### FASE 8 — Migração para Neon (§13) — 3 DONE · 2 PARTIAL · 2 SUPERSEDED
+### FASE 8 — Migração para Neon (§13) — 4 DONE (13.1–13.3, 13.5) · 2 PARTIAL (13.6, 13.7) · 1 SUPERSEDED (13.4)
 
 §13.1 pré-requisitos DONE (INV-012 restaurada pela 0011; spec M-02 ainda DRAFT) · §13.2 dry run DONE (cópia; produção só SELECT) · §13.3 schema migration DONE (**journal 12/12**) · **§13.4 SUPERSEDED** (origem Supabase sob custódia de terceiro; emenda de reconstrução é o ato normativo) · §13.5 reconciliação DONE (Neon×cópia; legado×Neon N/A por decisão) · **§13.6 PARTIAL** (itens "freeze/read-only da origem" N/A por custódia) · **§13.7 rollback PARTIAL — PITR 6 h < 7 d (BAK-01b ABERTO, = H-4)**.
 
@@ -111,13 +111,28 @@ o único que o plano exige antes do primeiro tráfego (§16.6).
 2. **Ausência provada por busca:** itens NOT STARTED foram inferidos por `grep` em `src/**`/`drizzle/**` e pelo índice git (`-S`) — ausência de evidência nesses escopos, não prova universal.
 3. **Drift temporal:** `docs/specs/M-02/matrix.yaml` tem mtime 2026-09-11; commits posteriores podem tê-lo deixado defasado (o gate `m02:boundaries` não foi re-executado por contrato).
 4. **Evidência indireta sinalizada:** §11.2 (EXPLAIN local com dataset sintético), §12.3 (estrutural), AUTH-005 (leitura de pacote em `node_modules`).
-5. **Fora de escopo:** §15.8+ (tenant filter e além) não classificados; fila humana (H-4…H-7) é tratada em `F8-consolidacao-2026-09-13.md`.
+5. **Fora de escopo desta fatia:** §15.8+ (tenant filter) segue não classificado — §16–§35 são medidos no part-E —; fila humana (H-2/H-4/H-5/H-6) é tratada em `F8-consolidacao-2026-09-13.md`; H-7 (ratificação do ADR-028) em `F7-consolidacao-2026-09-13.md`.
 
 ## 7. Fatias (evidência bruta)
 
-| Parte | Escopo                                            | Arquivo                        |
-| ----- | ------------------------------------------------- | ------------------------------ |
-| A     | §5 FASE 0 + §6 FASE 1                             | `part-A-fase0-fase1.md`        |
-| B     | §7 AUTH + §8 BFF + §9 services                    | `part-B-auth-bff-services.md`  |
-| C     | §10 engine + §11 schema + §12 prep + §13 migração | `part-C-engine-schema-neon.md` |
-| D     | §14 IA + §15 memória (+ §1/§4 prioridades)        | `part-D-ia-memoria.md`         |
+| Parte | Escopo                                                                    | Arquivo                        |
+| ----- | ------------------------------------------------------------------------- | ------------------------------ |
+| A     | §5 FASE 0 + §6 FASE 1                                                     | `part-A-fase0-fase1.md`        |
+| B     | §7 AUTH + §8 BFF + §9 services                                            | `part-B-auth-bff-services.md`  |
+| C     | §10 engine + §11 schema + §12 prep + §13 migração                         | `part-C-engine-schema-neon.md` |
+| D     | §14 IA + §15 memória (+ §1/§4 prioridades)                                | `part-D-ia-memoria.md`         |
+| E     | Medição quantitativa §16–§35 + verificação do recap §5–§15 (5 subagentes) | `part-E-medicao.md`            |
+
+## 8. Medição quantitativa (2026-09-13) — métrica oficial: crédito parcial 77,8%
+
+Recontagem de §5–§35 + §29–§31 pela régua do recap (crédito parcial = DONE + ½ × PARTIAL) sobre denominadores explícitos por bloco. Os blocos A–C confirmam o placar; o bloco D (§29–§31) é o único com crédito baixo, puxado por itens de medição não iniciados. **Métrica oficial: 77,8% de crédito parcial global (denom 187).**
+
+| Bloco  | Escopo            | denom | DONE | PARTIAL | NOT STARTED | % DONE | Crédito parcial |
+| ------ | ----------------- | ----- | ---- | ------- | ----------- | ------ | --------------- |
+| A      | §5–§15            | 75    | 55   | 12      | 8           | 73,3%  | 81,3%           |
+| B      | §16–§20           | 34    | 22   | 10      | 2           | 64,7%  | 79,4%           |
+| C      | §21–§28 + §32–§35 | 73    | 51   | 8       | 14          | 69,9%  | 75,3%           |
+| D      | §29–§31           | 6     | 1    | 3       | 2           | 16,7%  | 41,7%           |
+| Global | §5–§35 + §29–§31  | 187   | 129  | 33      | 25          | 69,0%  | **77,8%**       |
+
+Detalhe completo: `part-E-medicao.md`. Placar antigo §5–§15: 81,3% de crédito sobre 75 acionáveis (de 79 itens; 3 SUPERSEDED + 1 NÃO VERIFICADO fora do denominador). P0 97,1% / P1 86,7% / P2 30,0%; §40 30/38.

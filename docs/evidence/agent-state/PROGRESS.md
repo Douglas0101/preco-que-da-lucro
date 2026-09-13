@@ -17,9 +17,9 @@
 
 ## 1. Estado corrente
 
-- **Fase:** `5 — consolidação` (J · 1 · 2 · 3 concluídas; 4 dormente aguardando H-6/H-2)
-- **Refs:** `develop` = `0734ed9` · `main` = `9724d2c` (**SHA do dia-D**) · WIP `codex/p0-closeout` = `49eaf2b` (preservado)
-- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned válido para o HEAD atual (ver último commit).
+- **Fase:** `5 — consolidação` (J · 1 · 2 · 3 concluídas; 4 dormente aguardando H-6/H-2; recapitulação + medição do Plano Mestre em L31)
+- **Refs:** `develop` = `8df3fe3` (base do L31; o commit do pacote avança o HEAD — `git log --grep='part-E' -1 --format=%h`) · `origin/main` = `9724d2c` (**SHA do dia-D**) · `main` local = `ac2e834` (59 atrás; obsoleto — não usar) · WIP `codex/p0-closeout` = `49eaf2b` (preservado) · back-merge `origin/main → develop` em execução nesta rodada (L32)
+- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned atualizado para `8df3fe3` neste pacote (válido para o HEAD pós-commit; `m02:state:check`).
 - **Árvore:** limpa no repo principal; worktree `.p0-closeout-docker` limpo (pós-`49eaf2b`).
 - **Ambiente local:** Postgres Docker `preco-que-da-lucro-postgres` (127.0.0.1:5432, `preco_que_da_lucro_test`) usado nos gates; `.env` aponta para produção e por isso **todo** dev/test/build exige override explícito para `127.0.0.1` (sancionado por `AGENTS.md`).
 
@@ -46,6 +46,9 @@
 | L28 | 03:22:00 | ✔   | **FASE 2 fechada + RELEASE:** PR #46 (port P0) mergeado (`develop` = `0734ed9`) após o fix do ciclo SSR (`4bd4a76`); **release PR #47 → `main` = `9724d2c` — NOVO SHA DO DIA-D** (substitui `ef2110e7`); deploy de **produção** do Vercel para `9724d2c` = **Ready em 15 s**; probes da interina **200/200/200** em 2026-09-13T03:22:10Z. Gap declarado: `chat.functions.ts` não portado (arquitetura reescrita em develop). |
 | L29 | 03:4x:00 | ✔   | **Inspeção das 3 tarefas em andamento (anti-loop quebrado):** nenhum subagente travado (todos `complete`), fila de todo vazia, sem processos duplicados; **porém** `h6-watch` e `app-live-watch` expiravam em **~26–30 h** (09-14T05:04Z/09:09Z) — antes do dia-D — e foram **estendidos para 7 d** (~09-20T03:40Z) e re-armados (PIDs 753048/753051). `h2-watch` já tinha 7 d.                                              |
 | L30 | 04:0x:00 | ✔   | **Recapitulação do Plano Mestre (leitura em 4 fatias paralelas):** 79 itens auditados → **55 DONE (70%)** · 12 PARTIAL · 8 NOT STARTED (todos na FASE 10 — deferral com gate) · 3 SUPERSEDED · 1 não verificado. Artefatos: `docs/evidence/plan-recap-2026-09-13/{CONSOLIDADO.md,part-A..D}`. Nada bloqueia o dia-D; única exigência do plano pré-tráfego = BAK-01b/PITR (**H-4**).                                          |
+| L31 | 04:37:00 | ▶   | Leitura/medição do Plano Mestre por 5 subagentes read-only (4 fatias §16–§35 + 1 verificador do recap §5–§15); corrigir o recap (`CONSOLIDADO.md`/`part-A..D`) e criar `part-E`; commitar docs+journal+marcador. Sem mutação de código.                                                                                                                                                                                      |
+| L31 | 04:42:00 | ✔   | Medição: 194 itens mapeados · 187 acionáveis — 129 DONE · 33 PARTIAL · 25 NS = **69,0% cru / 77,8% crédito** (oficial); P0 97,1% · P1 86,7% · P2 30,0% · §40 30/38 · gates 2/4. Correções E1–E14 aplicadas ao recap §5–§15. Artefato: `docs/evidence/plan-recap-2026-09-13/part-E-medicao.md`. Commit: `git log --grep='part-E' -1 --format=%h`.                                                                             |
+| L32 | 04:45:00 | ▶   | Back-merge obrigatório `origin/main` (`9724d2c`) → `develop` (AGENTS.md:18), pendente; commit de merge próprio com marcador parent-pinned recalculado para o SHA do pacote.                                                                                                                                                                                                                                                  |
 
 ## 3. Fila humana (o que está bloqueado em pessoa)
 
@@ -69,6 +72,7 @@ Instrução clique-a-clique do H-6: `docs/evidence/hpanel-homologacao-2026-09-12
 ## 5. Ponteiros de artefatos (o "onde está o quê")
 
 - Estado do programa: `EXECUTION-STATE-PROGRAM.md` · consolidação da rodada: `docs/evidence/F7-consolidacao-2026-09-13.md`
+- Recapitulação/medição do Plano Mestre: `docs/evidence/plan-recap-2026-09-13/` — `CONSOLIDADO.md` · `part-A..D` · `part-E-medicao.md` (medição §16–§35 + verificação do recap §5–§15)
 - hPanel: `docs/runbooks/hpanel-homologacao.md` · `docs/evidence/hpanel-homologacao-2026-09-12/` (item 1 FAIL + `SESSION-LIMIT.md`)
 - Neon: `docs/evidence/neon-prontidao-2026-09-13.md` · PITR: `docs/evidence/neon-pitr-memo-2026-09-12.md`
 - Vercel: `docs/evidence/vercel-docmap-2026-09-12.md` · falha/correção: `docs/evidence/vercel-deploy-failure-2026-09-13.md`
@@ -85,6 +89,7 @@ Instrução clique-a-clique do H-6: `docs/evidence/hpanel-homologacao-2026-09-12
 
 ## 7. Marcos (commits deste journal)
 
-| marco | commit                                        | escopo                                                    |
-| ----- | --------------------------------------------- | --------------------------------------------------------- |
-| M0    | `git log --grep='agent-state' -1 --format=%h` | criação do journal + regra de boot/memória no `AGENTS.md` |
+| marco | commit                                        | escopo                                                                   |
+| ----- | --------------------------------------------- | ------------------------------------------------------------------------ |
+| M0    | `git log --grep='agent-state' -1 --format=%h` | criação do journal + regra de boot/memória no `AGENTS.md`                |
+| M3    | `git log --grep='part-E' -1 --format=%h`      | medição quantitativa do Plano Mestre (part-E) + correções do recap + L31 |

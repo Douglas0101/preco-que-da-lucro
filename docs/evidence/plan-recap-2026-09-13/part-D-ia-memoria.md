@@ -1,6 +1,6 @@
 # PART-D — Auditoria do Plano Mestre: §14 FASE 9 (Orquestração de IA) e §15 FASE 10 (Memória persistente)
 
-**Fatia:** plano linhas 1195–1332 (§14.1–14.7 em 1197–1262 · §15.1–15.7 em 1264–1342), com ancoragem em §1 (linhas 1–47) e §4 (279–303).
+**Fatia:** plano linhas 1195–1342 (§14.1–14.7 em 1197–1262 · §15.1–15.7 em 1264–1342), com ancoragem em §1 (linhas 1–47) e §4 (279–303).
 **Método:** auditoria READ-ONLY sobre `develop @ 143239e` (2026-09-13; inclui PR #46 = `0734ed9` e back-merge `6f2a392`), cruzando código (`src/**`, `drizzle/**`), ledger `EXECUTION-STATE-PROGRAM.md`, ADRs e artefatos versionados de `docs/evidence/**`. Não executei npm/build/testes.
 **Ancoragem de criticidade:** o plano ordena segurança→integridade→…→escala (§1) e coloca F9/F10 depois de F8/Neon (§4). No programa, F9 = módulo M-04 e F10 = M-05, ambos **PENDING** (`EXECUTION-STATE-PROGRAM.md:441-442`); `S9/F10` está **BLOQUEADA até B4** (`:917,:925,:968`) e M-05 depende de M-04 com "ordem do gate inegociável" (`:442`). A auditoria anterior registra F9 DONE e F10 "não iniciado (correto)" por gates §43/§44 (`docs/evidence/analise-plano-mestre-2026-09-10.md:43-44`). Tráfego de aplicação ainda não existe (app canônico 404 em 2026-09-13; ledger `:1370-1386`).
 
