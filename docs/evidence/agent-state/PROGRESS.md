@@ -18,8 +18,8 @@
 ## 1. Estado corrente
 
 - **Fase:** `5 — consolidação` (J · 1 · 2 · 3 concluídas; 4 dormente aguardando H-6/H-2; recapitulação + medição do Plano Mestre em L31)
-- **Refs:** `develop` = `8df3fe3` (base do L31; o commit do pacote avança o HEAD — `git log --grep='part-E' -1 --format=%h`) · `origin/main` = `9724d2c` (**SHA do dia-D**) · `main` local = `ac2e834` (59 atrás; obsoleto — não usar) · WIP `codex/p0-closeout` = `49eaf2b` (preservado) · back-merge `origin/main → develop` em execução nesta rodada (L32)
-- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned atualizado para `8df3fe3` neste pacote (válido para o HEAD pós-commit; `m02:state:check`).
+- **Refs:** `develop` = `73da1da` (pacote part-E) + merge do back-merge (`origin/main` `9724d2c`; HEAD = merge commit — `git log --oneline -1`) · `origin/main` = `9724d2c` (**SHA do dia-D**) · `main` local = `ac2e834` (59 atrás; obsoleto — não usar) · WIP `codex/p0-closeout` = `49eaf2b` (preservado) · back-merge `origin/main → develop` concluído em L32
+- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned atualizado para `73da1da` no merge do back-merge (L32; válido para o HEAD pós-merge; `m02:state:check` verde).
 - **Árvore:** limpa no repo principal; worktree `.p0-closeout-docker` limpo (pós-`49eaf2b`).
 - **Ambiente local:** Postgres Docker `preco-que-da-lucro-postgres` (127.0.0.1:5432, `preco_que_da_lucro_test`) usado nos gates; `.env` aponta para produção e por isso **todo** dev/test/build exige override explícito para `127.0.0.1` (sancionado por `AGENTS.md`).
 
@@ -49,6 +49,7 @@
 | L31 | 04:37:00 | ▶   | Leitura/medição do Plano Mestre por 5 subagentes read-only (4 fatias §16–§35 + 1 verificador do recap §5–§15); corrigir o recap (`CONSOLIDADO.md`/`part-A..D`) e criar `part-E`; commitar docs+journal+marcador. Sem mutação de código.                                                                                                                                                                                      |
 | L31 | 04:42:00 | ✔   | Medição: 194 itens mapeados · 187 acionáveis — 129 DONE · 33 PARTIAL · 25 NS = **69,0% cru / 77,8% crédito** (oficial); P0 97,1% · P1 86,7% · P2 30,0% · §40 30/38 · gates 2/4. Correções E1–E14 aplicadas ao recap §5–§15. Artefato: `docs/evidence/plan-recap-2026-09-13/part-E-medicao.md`. Commit: `git log --grep='part-E' -1 --format=%h`.                                                                             |
 | L32 | 04:45:00 | ▶   | Back-merge obrigatório `origin/main` (`9724d2c`) → `develop` (AGENTS.md:18), pendente; commit de merge próprio com marcador parent-pinned recalculado para o SHA do pacote.                                                                                                                                                                                                                                                  |
+| L32 | 04:52:00 | ✔   | **Back-merge `origin/main` (`9724d2c`) → `develop` concluído sem conflitos** (merge commit; parent = `73da1da`); marcador parent-pinned recalculado para `73da1da` e `m02:state:check` verde. Sem push (decisão local).                                                                                                                                                                                                      |
 
 ## 3. Fila humana (o que está bloqueado em pessoa)
 
