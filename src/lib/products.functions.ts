@@ -15,6 +15,7 @@ import {
   nonNegativeDecimalStringSchema,
   percentFractionSchema,
   positiveDecimalStringSchema,
+  quantityUnitSchema,
   toDecimalString,
 } from "@/lib/financial-values";
 import { applicationMetrics } from "@/instrumentation/telemetry";
@@ -521,7 +522,7 @@ const productInput = z.object({
   name: z.string().trim().min(1).max(160),
   current_price: nonNegativeDecimalStringSchema.nullable().optional(),
   yield_qty: positiveDecimalStringSchema.nullable().optional(),
-  yield_unit: z.string().trim().max(40).nullable().optional(),
+  yield_unit: quantityUnitSchema.nullable().optional(),
   tax_regime: z.string().trim().max(80).nullable().optional(),
   tax_rate: percentFractionSchema.nullable().optional(),
 });
@@ -561,10 +562,10 @@ const ingredientInput = z
     product_id: uuid,
     name: z.string().trim().min(1).max(160),
     used_qty: positiveDecimalStringSchema,
-    used_unit: z.string().trim().min(1).max(40),
+    used_unit: quantityUnitSchema,
     package_price: nonNegativeDecimalStringSchema.nullable().optional(),
     package_qty: positiveDecimalStringSchema.nullable().optional(),
-    package_unit: z.string().trim().min(1).max(40).nullable().optional(),
+    package_unit: quantityUnitSchema.nullable().optional(),
     conversion_factor: positiveDecimalStringSchema.nullable().optional(),
   })
   .superRefine((value, ctx) => {
@@ -830,7 +831,7 @@ export const updatePurchasePrice = createServerFn({ method: "POST" })
         kind: z.enum(["ingrediente", "embalagem"]),
         package_price: nonNegativeDecimalStringSchema,
         package_qty: positiveDecimalStringSchema,
-        package_unit: z.string().trim().min(1).max(40),
+        package_unit: quantityUnitSchema,
       })
       .parse(input),
   )
