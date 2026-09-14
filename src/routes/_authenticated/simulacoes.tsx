@@ -9,7 +9,12 @@ import {
   savedSimulationsQueryOptions,
   type FinancialSimulationInput,
 } from "@/lib/query-options";
-import { sumFiniteNumbers, type FeeRow, type ProductComputation } from "@/lib/finance";
+import {
+  sumFiniteNumbers,
+  type FeeRow,
+  type ProductComputation,
+  type ResolvedVolumeSource,
+} from "@/lib/finance";
 import { brl, decimalInput, num, pct } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,12 +57,90 @@ type SimulationForm = {
   unitCost: string;
   fixed: string;
   volume: string;
+  volumeSource: SimulationVolumeSource;
 };
 
-// T5: debounce da simulação manual — runSimulation não dispara a cada tecla.
-// Exportado para o teste de race; módulo de rota com exports mistos é
-// intencional aqui (helpers do debounce junto da rota que os usa).
 /* eslint-disable react-refresh/only-export-components */
+/**
+ * Origens de volume oferecidas na UI. `real` vem do domínio de vendas (o BFF
+ * de simulação a recusa) e `unknown` é o estado vazio — nenhuma das duas é
+ * selecionável aqui.
+ */
+export type SimulationVolumeSource = Extract<
+  ResolvedVolumeSource,
+  "manual_simulation" | "forecast"
+>;
+
+export const SIMULATION_VOLUME_SOURCES: readonly SimulationVolumeSource[] = [
+  "manual_simulation",
+  "forecast",
+];
+
+interface VolumeSourceDisplay {
+  cardTitle: string;
+  headerHint: string;
+  optionLabel: string;
+  optionHint: string;
+  /** O volume é a origem declarada: chamá-lo de simulado seria falso numa projeção. */
+  volumeFieldLabel: string;
+  badge: string;
+  badgeTitle: string;
+  /** A persistência (`simulation.service.ts`) aceita apenas `manual_simulation`. */
+  persistable: boolean;
+}
+
+/**
+ * Fontes diferentes têm rótulos diferentes: um cenário hipotético informado à
+ * mão é uma simulação; uma projeção de volume é uma estimativa. O motor calcula
+ * as duas com a mesma matemática — o que muda é a origem declarada do volume e
+ * o direito de ser salva.
+ */
+export const VOLUME_SOURCE_DISPLAY: Record<SimulationVolumeSource, VolumeSourceDisplay> = {
+  manual_simulation: {
+    cardTitle: "Simulação manual",
+    headerHint: "O volume e os resultados abaixo são hipotéticos e não alimentam KPIs factuais.",
+    optionLabel: "Simulação manual",
+    optionHint: "Volume informado por você como hipótese. Pode ser salva.",
+    volumeFieldLabel: "Vendas simuladas (unidades)",
+    badge: "Simulação",
+    badgeTitle: "Resultado hipotético: não é dado factual e não alimenta KPIs.",
+    persistable: true,
+  },
+  forecast: {
+    cardTitle: "Estimativa de volume",
+    headerHint:
+      "A estimativa e os resultados abaixo são hipotéticos: partem do volume projetado que você informa e não alimentam KPIs factuais.",
+    optionLabel: "Estimativa (projeção)",
+    optionHint: "Volume projetado por você. Não é persistida nesta versão.",
+    volumeFieldLabel: "Vendas estimadas (unidades)",
+    badge: "Estimativa",
+    badgeTitle:
+      "Projeção de volume informada por você: não é dado factual, não alimenta KPIs e ainda não é persistida.",
+    persistable: false,
+  },
+};
+
+/**
+ * Rótulos da origem do volume exibida junto do resultado. O valor vem do eco do
+ * motor (`ResolvedVolumeSource`), por isso o mapa é total: `real` existe só para
+ * o tipo fechar e nunca é devolvido pelo BFF de simulação.
+ */
+const VOLUME_ORIGIN_LABELS: Record<ResolvedVolumeSource, string> = {
+  real: "Vendas reais",
+  manual_simulation: "Informado manualmente",
+  forecast: "Estimativa informada (projeção)",
+};
+
+/**
+ * Id do aviso que explica por que uma estimativa não pode ser salva. Fica
+ * ligado ao botão por `aria-describedby` (o motivo não pode depender de o
+ * usuário adivinhar).
+ */
+const SIMULATION_SAVE_BLOCKED_NOTE_ID = "simulacao-origem-nao-persistivel";
+
+// T5: debounce da simulação manual — runSimulation não dispara a cada tecla.
+// Exportado para o teste de race; os contratos da UI (origem de volume, display,
+// debounce) vivem junto da rota que os usa.
 export const SIMULATION_DEBOUNCE_MS = 400;
 
 /**
@@ -108,11 +191,11 @@ export function buildSimulationInput(
       base?.fees.map((fee) => ({
         percentage: fee.percentage == null ? null : String(fee.percentage),
       })) ?? [],
-    volumeSource: "manual_simulation" as const,
+    volumeSource: form.volumeSource,
   };
 }
 
-function Simulacoes() {
+export function Simulacoes() {
   const queryClient = useQueryClient();
   const [productId, setProductId] = useState("");
   const [sim, setSim] = useState<SimulationForm>({
@@ -121,6 +204,7 @@ function Simulacoes() {
     unitCost: "",
     fixed: "",
     volume: "",
+    volumeSource: "manual_simulation",
   });
   const [simulationName, setSimulationName] = useState("");
   const [productsQuery, expensesQuery, savedSimulationsQuery] = useQueries({
@@ -187,6 +271,7 @@ function Simulacoes() {
           unitCost: base ? decimalInput(base.unitCost) : "",
           fixed: decimalInput(fixed),
           volume: "",
+          volumeSource: sim.volumeSource,
         };
   const updateSim = (patch: Partial<Omit<SimulationForm, "productId">>) => {
     setSim({ ...currentSim, ...patch, productId: selectedProductId });
@@ -202,6 +287,7 @@ function Simulacoes() {
     currentSim.unitCost,
     currentSim.fixed,
     currentSim.volume,
+    currentSim.volumeSource,
     base === null ? "idle" : "ready",
   ].join("|");
 
@@ -257,6 +343,7 @@ function Simulacoes() {
   });
 
   const saveSimulationLabel = saveSimulationMutation.isPending ? "Salvando..." : "Salvar simulação";
+  const sourceDisplay = VOLUME_SOURCE_DISPLAY[currentSim.volumeSource];
 
   return (
     <div className="space-y-6">
@@ -321,18 +408,16 @@ function Simulacoes() {
           <Card>
             <CardHeader className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <CardTitle>Simulação manual</CardTitle>
+                <CardTitle>{sourceDisplay.cardTitle}</CardTitle>
                 <Badge
                   variant="secondary"
                   className="shrink-0 uppercase"
-                  title="Resultado hipotético: não é dado factual e não alimenta KPIs."
+                  title={sourceDisplay.badgeTitle}
                 >
-                  Simulação
+                  {sourceDisplay.badge}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">
-                O volume e os resultados abaixo são hipotéticos e não alimentam KPIs factuais.
-              </p>
+              <p className="text-sm text-muted-foreground">{sourceDisplay.headerHint}</p>
             </CardHeader>
             <CardContent className="space-y-3">
               {simulationQuery.isError && (
@@ -341,6 +426,10 @@ function Simulacoes() {
                   reference={simulationErrorReference}
                 />
               )}
+              <VolumeSourceSelector
+                value={currentSim.volumeSource}
+                onChange={(volumeSource) => updateSim({ volumeSource })}
+              />
               <Field
                 id="simulacao-preco-venda"
                 label="Preço de venda simulado (R$)"
@@ -367,7 +456,7 @@ function Simulacoes() {
               />
               <Field
                 id="simulacao-volume-vendas"
-                label="Vendas simuladas (unidades)"
+                label={sourceDisplay.volumeFieldLabel}
                 value={currentSim.volume}
                 describedBy={describesIssue("volume") ? issueDescriptionId : undefined}
                 invalid={invalidFields.includes("volume")}
@@ -381,7 +470,7 @@ function Simulacoes() {
                   className="mt-3 rounded-xl border p-4 text-sm text-muted-foreground"
                 >
                   {onlyVolumeIsMissing
-                    ? "Informe o volume da simulação para calcular. Nenhum volume padrão é presumido."
+                    ? `Informe o volume ${currentSim.volumeSource === "forecast" ? "estimado" : "da simulação"} para calcular. Nenhum volume padrão é presumido.`
                     : "Preencha os campos indicados da simulação para calcular."}
                 </div>
               )}
@@ -402,7 +491,10 @@ function Simulacoes() {
                     aria-live="polite"
                     className="mt-3 space-y-1 rounded-xl bg-secondary p-4 text-sm"
                   >
-                    <Row label="Origem do volume" value="Informado manualmente" />
+                    <Row
+                      label="Origem do volume"
+                      value={VOLUME_ORIGIN_LABELS[simulated.value.volumeSource]}
+                    />
                     <Row label="Volume simulado" value={`${num(simulated.value.volume, 0)} un.`} />
                     <Row
                       label="Margem de contribuição"
@@ -431,14 +523,33 @@ function Simulacoes() {
                     <Button
                       type="button"
                       onClick={() => saveSimulationMutation.mutate()}
-                      disabled={saveSimulationMutation.isPending || simulationName.trim() === ""}
+                      disabled={
+                        saveSimulationMutation.isPending ||
+                        simulationName.trim() === "" ||
+                        !sourceDisplay.persistable
+                      }
+                      aria-describedby={
+                        sourceDisplay.persistable ? undefined : SIMULATION_SAVE_BLOCKED_NOTE_ID
+                      }
                     >
                       {saveSimulationLabel}
                     </Button>
-                    <p className="text-xs text-muted-foreground">
-                      O servidor recalcula o cenário antes de salvar; o resultado enviado não é
-                      reutilizado (INV-009).
-                    </p>
+                    {/* Região viva sempre presente: trocar a origem anuncia o motivo. */}
+                    <div aria-live="polite">
+                      {sourceDisplay.persistable ? (
+                        <p className="text-xs text-muted-foreground">
+                          O servidor recalcula o cenário antes de salvar; o resultado enviado não é
+                          reutilizado (INV-009).
+                        </p>
+                      ) : (
+                        <p id={SIMULATION_SAVE_BLOCKED_NOTE_ID} className="text-xs font-medium">
+                          Salvar está indisponível para estimativas: a persistência aceita apenas a
+                          origem «simulação manual» — guardar projeções está previsto para a v2. O
+                          cálculo acima continua válido e nada é convertido em simulação manual em
+                          segundo plano.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </>
               )}
@@ -609,6 +720,53 @@ function Row({
       <span className="text-muted-foreground">{label}</span>
       <span className={accent ? "font-bold text-foreground" : "font-medium"}>{value}</span>
     </div>
+  );
+}
+
+/**
+ * Seletor radio nativo: Tab alcança o grupo, as setas trocam a opção e cada
+ * opção tem rótulo e dica próprios — o estado (`checked`) e o motivo da escolha
+ * são anunciados sem JS extra.
+ */
+function VolumeSourceSelector({
+  value,
+  onChange,
+}: Readonly<{
+  value: SimulationVolumeSource;
+  onChange: (source: SimulationVolumeSource) => void;
+}>) {
+  return (
+    <fieldset className="space-y-2 rounded-xl border p-4">
+      <legend className="px-1 text-xs font-medium">Origem do volume simulado</legend>
+      <div className="flex flex-wrap gap-4">
+        {SIMULATION_VOLUME_SOURCES.map((source) => {
+          const optionId = `simulacao-origem-${source}`;
+          const hintId = `${optionId}-dica`;
+          return (
+            <div key={source} className="flex items-start gap-2">
+              <Input
+                type="radio"
+                id={optionId}
+                name="simulacao-origem-volume"
+                value={source}
+                checked={value === source}
+                onChange={() => onChange(source)}
+                aria-describedby={hintId}
+                className="mt-0.5 h-4 w-4 shrink-0 border-0 bg-transparent p-0 shadow-none accent-primary"
+              />
+              <div className="space-y-0.5">
+                <Label htmlFor={optionId} className="text-sm font-normal">
+                  {VOLUME_SOURCE_DISPLAY[source].optionLabel}
+                </Label>
+                <p id={hintId} className="text-xs text-muted-foreground">
+                  {VOLUME_SOURCE_DISPLAY[source].optionHint}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
 

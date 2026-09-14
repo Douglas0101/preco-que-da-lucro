@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-onda3-estimated
+
+
+ Test Files  7 passed (7)
+      Tests  48 passed (48)
+   Start at  12:43:04
+   Duration  9.59s (transform 1.66s, setup 1.40s, import 10.90s, tests 5.88s, environment 8.27s)
+

@@ -1,0 +1,16 @@
+Mutação temporária em src/routes/_authenticated/simulacoes.tsx: buildSimulationInput voltou a fixar
+  volumeSource: "manual_simulation" (contrato anterior do item). A fonte foi restaurada em seguida.
+Objetivo: provar que os testes novos NÃO são vacuosos.
+
+ ❯ src/test/simulation-volume-source.test.tsx (7 tests | 3 failed) 6350ms
+     × envia forecast quando o usuário escolhe a estimativa — sem fallback silencioso 6ms
+     × mantém campo vazio como null também na estimativa (unknown ≠ zero) 1ms
+     × anuncia a estimativa e bloqueia o salvamento com o motivo declarado 5007ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected 'manual_simulation' to be 'forecast' // Object.is equality
+ ❯ src/test/simulation-volume-source.test.tsx:117:40
+AssertionError: expected 'manual_simulation' to be 'forecast' // Object.is equality
+ ❯ src/test/simulation-volume-source.test.tsx:127:32
+ ❯ src/test/simulation-volume-source.test.tsx:210:3
+ Test Files  1 failed (1)
+      Tests  3 failed | 4 passed (7)
