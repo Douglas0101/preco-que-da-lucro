@@ -9,6 +9,8 @@ import { toDecimalString } from "@/lib/financial-values";
 import { Button } from "@/components/ui/button";
 import { CalcExplainer } from "@/components/ui/calc-explainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -41,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/ponto-equilibrio")({
       context.queryClient.ensureQueryData(expensesQueryOptions()).catch(() => null),
     ]);
   },
-  pendingComponent: () => <output className="text-muted-foreground">Carregando...</output>,
+  pendingComponent: PontoEquilibrioSkeleton,
   component: PontoEquilibrio,
 });
 
@@ -86,7 +88,7 @@ function PontoEquilibrio() {
   const breakEven = breakEvenInput ? calculateBreakEvenSummary(breakEvenInput) : null;
 
   if (productsQuery.isPending || expensesQuery.isPending) {
-    return <output className="text-muted-foreground">Carregando...</output>;
+    return <PontoEquilibrioSkeleton />;
   }
   if (productsQuery.isError || expensesQuery.isError) {
     return (
@@ -129,6 +131,63 @@ function createBreakEvenInput(
     desiredProfit: profitTarget.trim() === "" ? null : toApiDecimal(profitTarget),
     unitMode: "discrete" as const,
   };
+}
+
+function PontoEquilibrioSkeleton() {
+  return (
+    <LoadingSkeleton className="space-y-6">
+      <div>
+        <Skeleton className="h-9 w-72 max-w-full" />
+        <Skeleton className="mt-2 h-6 w-96 max-w-full" />
+      </div>
+      <Card>
+        <CardContent className="grid gap-4 p-5 md:grid-cols-2">
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        {[0, 1, 2].map((metric) => (
+          <Card key={metric}>
+            <CardContent className="p-5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="mt-1 h-7 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-5 w-56" />
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-9 w-40" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-9 w-40" />
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-5 w-80 max-w-full" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-9 w-64 max-w-full" />
+        </CardContent>
+      </Card>
+    </LoadingSkeleton>
+  );
 }
 
 function PontoErrorState({ onRetry }: Readonly<{ onRetry: () => void }>) {

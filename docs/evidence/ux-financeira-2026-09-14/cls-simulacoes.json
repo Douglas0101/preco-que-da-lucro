@@ -1,0 +1,158 @@
+{
+  "route": "/simulacoes",
+  "label": "CONTROLADO",
+  "caveat": "preview Nitro node-server local + PostgreSQL 17 em Docker; N\u00c3O \u00e9 produ\u00e7\u00e3o",
+  "webVitals": [
+    "CLS (unitless)",
+    "LCP (ms)",
+    "TTFB (ms)",
+    "FCP (ms)",
+    "readyMs (goto \u2192 dado vis\u00edvel, ms)"
+  ],
+  "percentileMethod": "interpola\u00e7\u00e3o linear R-7 sobre as amostras ordenadas, warmups descartados (n=5)",
+  "before": {
+    "source": "docs/evidence/perf-controlled-2026-09-13/route-samples.jsonl",
+    "commit": "42d4b76",
+    "capturedAt": "2026-09-13T15:25Z",
+    "iterations": 5,
+    "warmup": 1,
+    "metrics": {
+      "readyMs": {
+        "n": 5,
+        "p50": 2505.0,
+        "p95": 2556.0,
+        "min": 2473,
+        "max": 2568
+      },
+      "ttfbMs": {
+        "n": 5,
+        "p50": 6.3,
+        "p95": 7.5,
+        "min": 3.3,
+        "max": 7.7
+      },
+      "fcpMs": {
+        "n": 5,
+        "p50": 160.0,
+        "p95": 224.0,
+        "min": 152,
+        "max": 236
+      },
+      "lcpMs": {
+        "n": 5,
+        "p50": 1272.0,
+        "p95": 1342.4,
+        "min": 1256,
+        "max": 1360
+      },
+      "cls": {
+        "n": 5,
+        "p50": 0.02,
+        "p95": 0.02,
+        "min": 0.02,
+        "max": 0.02
+      }
+    }
+  },
+  "after": {
+    "source": "docs/evidence/ux-financeira-2026-09-14/route-samples.jsonl",
+    "commit": "2382636",
+    "capturedAt": "2026-09-14T15:24Z",
+    "iterations": 5,
+    "warmup": 0,
+    "metrics": {
+      "readyMs": {
+        "n": 5,
+        "p50": 3154.0,
+        "p95": 4091.2,
+        "min": 3042,
+        "max": 4277
+      },
+      "ttfbMs": {
+        "n": 5,
+        "p50": 6.2,
+        "p95": 9.06,
+        "min": 4.1,
+        "max": 9.5
+      },
+      "fcpMs": {
+        "n": 5,
+        "p50": 188.0,
+        "p95": 276.8,
+        "min": 156,
+        "max": 296
+      },
+      "lcpMs": {
+        "n": 5,
+        "p50": 1724.0,
+        "p95": 2633.6,
+        "min": 1612,
+        "max": 2804
+      },
+      "cls": {
+        "n": 5,
+        "p50": 0.02,
+        "p95": 0.02,
+        "min": 0.02,
+        "max": 0.02
+      }
+    }
+  },
+  "afterSamples": [
+    {
+      "iteration": 1,
+      "startedAt": "2026-09-14T15:25:03.398Z",
+      "status": 200,
+      "error": null,
+      "readyMs": 4277,
+      "ttfbMs": 5.300000004470348,
+      "fcpMs": 188,
+      "lcpMs": 2804,
+      "cls": 0.0243
+    },
+    {
+      "iteration": 2,
+      "startedAt": "2026-09-14T15:25:07.750Z",
+      "status": 200,
+      "error": null,
+      "readyMs": 3154,
+      "ttfbMs": 6.199999995529652,
+      "fcpMs": 188,
+      "lcpMs": 1724,
+      "cls": 0.0243
+    },
+    {
+      "iteration": 3,
+      "startedAt": "2026-09-14T15:25:10.955Z",
+      "status": 200,
+      "error": null,
+      "readyMs": 3042,
+      "ttfbMs": 4.100000001490116,
+      "fcpMs": 156,
+      "lcpMs": 1612,
+      "cls": 0.0243
+    },
+    {
+      "iteration": 4,
+      "startedAt": "2026-09-14T15:25:14.064Z",
+      "status": 200,
+      "error": null,
+      "readyMs": 3112,
+      "ttfbMs": 7.299999997019768,
+      "fcpMs": 200,
+      "lcpMs": 1636,
+      "cls": 0.0243
+    },
+    {
+      "iteration": 5,
+      "startedAt": "2026-09-14T15:25:17.276Z",
+      "status": 200,
+      "error": null,
+      "readyMs": 3348,
+      "ttfbMs": 9.5,
+      "fcpMs": 296,
+      "lcpMs": 1952,
+      "cls": 0.0243
+    }
+  ]
+}

@@ -12,6 +12,24 @@
 
 ## 2. Detalhe por integração
 
+### I-O19 — §18.5 skeletons de carregamento nas quatro rotas
+
+**Entrega:** componente novo `src/components/loading-skeleton.tsx` concentrando o contrato de a11y num único lugar (`role="status"` + `sr-only` "Carregando..." **fora** do bloco `aria-hidden` — se ficasse dentro, o leitor de tela o suprimiria), e skeletons com **geometria real** nas quatro rotas que tinham **zero** `Skeleton`: `inicio` (grade KPI `md:2 lg:4`), `produtos` (lista de cards `grid gap-3`), `ponto-equilibrio` (seleção `md:2` + métricas `md:3` + break-even), `diagnostico` (grade `md:2 xl:5` + reuso de `DiagnosticoDataSkeleton`). `MetricCard` **intocado** (aditivo, para o §18.3 poder adicionar o slot `explain`) e `simulacoes.tsx` **intocado**.
+
+**Substituição de padrão — declarada, não enterrada.** O plano pedia `role="status"` + `sr-only`; o **código do repo** usava `<output className="text-muted-foreground">Carregando...</output>` — que tem role `status` **implícita** mas com texto **visível** — e os skeletons já existentes do app não tinham anúncio nenhum. O operador adotou o mecanismo do plano com a **string exata do repo**, o que faz o texto de carregamento passar de visível a `sr-only`, com o **skeleton como indicador visual**. É a leitura correta do item (18.5 troca texto por geometria), e está documentada em detalhe no relatório §2 junto com a divergência plano×código.
+
+**Prova de não-vacuidade do teste:** revertendo o gate de `/inicio` para o `<output>` antigo, o teste **falha** (`região role=status ausente no estado de carregamento`); o arquivo foi restaurado em seguida. Os testes asseguram geometria real (`.lg\:grid-cols-4 > *` com 4 filhos, `.md\:grid-cols-3 > *` com 3), não apenas presença de barras.
+
+**Performance MEDIDA (não declarada como não-mensurável):** harness F0-04 executado (exit 0), **n=5 por rota**, seed sob token DB, `--chat-iterations 0`. **CLS p50 = 0 nas quatro rotas antes e depois** (controle `/simulacoes` mantém 0.02).
+
+**Leitura honesta que eu destaco:** LCP/TTFB/ready subiram em **todas** as rotas, **inclusive `/simulacoes`, que o item não tocou** (`readyMs` 2505 → 3154). O relatório diz, textualmente, que o desvio é **da rodada/ambiente** (`n=5`, `warmup 0` em vez de 1, máquina com outros processos) e que **"nenhuma regressão pode ser imputada a §18.5 com este par antes/depois"**, e ainda que o ganho do item é de **geometria/percepção**, não mensurável por CLS nesta fixture — _"declarado como tal em vez de inventar número"_. Um operador que tivesse escondido a linha de controle teria fabricado uma regressão que não existe; ele publicou o controle.
+
+**Nota de verificação:** meu primeiro `grep` por "drift" não achou a caveat porque o relatório está em português e usa "desvio"/"subiram" — **o meu check estava errado, não o relatório**. Segunda vez na rodada que uma checagem minha gerou falso alarme; verificar o verificador (inclusive quando sou eu) segue valendo.
+
+**Gates do S:** 16 testes em 3 arquivos, `npm run build` **exit 0** (o gate que pegou o bug de import-protection na Onda 1 — obrigatório para slice de frontend), typecheck/eslint/prettier/ui-stack/matriz/boundaries limpos.
+
+**Residuais declarados:** captura é **CONTROLADO** (Nitro local + Postgres Docker, IA mockada ≠ produção); sem `npm run check`/`db:test`/e2e completo (contrato do operador — o S roda no PC); dois arquivos de evidência ficam **0 byte** (`ai-model-attempts.jsonl`, `chat-samples.jsonl`) porque o circuito de chat foi **explicitamente pulado** (`--chat-iterations 0`), o que é consistente com o relatório.
+
 ### I-O24 — §12.5 schema diff + §12.4 branch model
 
 **§12.4 parent:** `.github/workflows/neon-pr-branch.yml:109` passa a usar `${{ github.base_ref == 'main' && 'production' || 'develop' }}`. O operador **simulou a expressão** (extraindo a string do YAML e avaliando) em vez de afirmar: `main → production` · `develop → develop` · `release/1.0 → develop`. É a prova correta para uma expressão que só roda dentro do runner.

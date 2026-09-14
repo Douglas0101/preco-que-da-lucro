@@ -7,6 +7,8 @@ import { brl, pct } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertTriangle,
   Package,
@@ -39,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/inicio")({
     const { dashboardSummaryQueryOptions } = await import("@/lib/query-options");
     return context.queryClient.ensureQueryData(dashboardSummaryQueryOptions()).catch(() => null);
   },
-  pendingComponent: () => <output className="text-muted-foreground">Carregando...</output>,
+  pendingComponent: InicioSkeleton,
   component: Inicio,
 });
 
@@ -73,7 +75,7 @@ function Inicio() {
   );
 
   if (loadStatus === "loading") {
-    return <output className="text-muted-foreground">Carregando...</output>;
+    return <InicioSkeleton />;
   }
 
   if (loadStatus === "error") {
@@ -237,6 +239,40 @@ function Inicio() {
         </Button>
       </div>
     </div>
+  );
+}
+
+function InicioSkeleton() {
+  return (
+    <LoadingSkeleton className="space-y-6">
+      <div>
+        <Skeleton className="h-9 w-48" />
+        <Skeleton className="mt-2 h-6 w-80 max-w-full" />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {[0, 1, 2].map((period) => (
+          <Skeleton key={period} className="h-9 w-24" />
+        ))}
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((card) => (
+          <Card key={card}>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+              </div>
+              <Skeleton className="mt-2 h-8 w-24" />
+              <Skeleton className="mt-1 h-4 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <Skeleton className="h-9 w-36" />
+        <Skeleton className="h-9 w-44" />
+      </div>
+    </LoadingSkeleton>
   );
 }
 
