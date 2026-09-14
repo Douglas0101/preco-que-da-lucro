@@ -18,6 +18,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { PlusCircle, Trash2, MessageCircle, Package, Tag } from "lucide-react";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/_authenticated/produtos")({
@@ -160,7 +162,7 @@ function ProductListContent({
   onView: (id: string) => void;
   onDelete: (id: string) => void;
 }>) {
-  if (isPending) return <output className="text-muted-foreground">Carregando...</output>;
+  if (isPending) return <ProdutosSkeleton />;
   if (isError) {
     return (
       <Card role="alert" className="border-destructive/40">
@@ -241,6 +243,28 @@ function ProductListContent({
         </Card>
       ))}
     </div>
+  );
+}
+
+function ProdutosSkeleton() {
+  return (
+    <LoadingSkeleton className="grid gap-3">
+      {[0, 1, 2].map((row) => (
+        <Card key={row}>
+          <CardContent className="flex flex-wrap items-center gap-4 p-5">
+            <Skeleton className="h-12 w-12 shrink-0 rounded-xl" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-5 w-64 max-w-full" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-8 w-14" />
+              <Skeleton className="h-9 w-9" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </LoadingSkeleton>
   );
 }
 
