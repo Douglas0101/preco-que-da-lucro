@@ -122,10 +122,19 @@ function resultSign(value: number): DecimalScenarioResult["resultSign"] {
   return "zero";
 }
 
+function recordFinancialState(state: "ok" | "incomplete" | "invalid"): void {
+  applicationMetrics.financialStates.add(1, {
+    state,
+    engine_version: FINANCE_ENGINE_VERSION,
+  });
+}
+
 export function runFinancialSimulation(
   input: SimulationServiceInput,
 ): CalculationResult<DecimalScenarioResult> {
   if (input.volumeSource === "real") {
+    applicationMetrics.financialEngineVersion.add(1, { version: FINANCE_ENGINE_VERSION });
+    recordFinancialState("invalid");
     return {
       status: "invalid",
       errors: [
@@ -150,13 +159,16 @@ export function runFinancialSimulation(
     volume: parseValue(input.volume),
     volumeSource: input.volumeSource,
   });
-  if (result.status !== "ok") return result;
+  if (result.status !== "ok") {
+    recordFinancialState(result.status);
+    return result;
+  }
 
   const value = result.value;
   try {
     const decimal = (number: number, scale = 4): DecimalString => toDecimalString(number, scale);
     const breakEvenUnits = serializeBreakEvenUnits(value.breakEvenUnits, decimal);
-    return {
+    const output: CalculationResult<DecimalScenarioResult> = {
       status: "ok",
       value: {
         price: decimal(value.price),
@@ -176,8 +188,11 @@ export function runFinancialSimulation(
       },
       warnings: result.warnings,
     };
+    recordFinancialState("ok");
+    return output;
   } catch (error) {
     if (error instanceof Error && error.message === "DECIMAL_OVERFLOW") {
+      recordFinancialState("invalid");
       return serializationError("financialResult");
     }
     throw error;

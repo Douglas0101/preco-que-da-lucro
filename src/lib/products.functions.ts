@@ -18,7 +18,6 @@ import {
   quantityUnitSchema,
   toDecimalString,
 } from "@/lib/financial-values";
-import { applicationMetrics } from "@/instrumentation/telemetry";
 import { LIST_LIMITS } from "@/lib/list-limits";
 import { optimisticVersionSchema } from "@/lib/optimistic-version";
 import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
@@ -163,7 +162,6 @@ function projectProductCalculation(
     packaging: packaging.map(toFinancePackaging),
     fees: fees.map(toFinanceFee),
   });
-  applicationMetrics.financialStates.add(1, { state: calculation.metrics.status });
   return calculation;
 }
 

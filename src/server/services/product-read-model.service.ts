@@ -1,5 +1,7 @@
 import { computeProduct, type FeeRow, type IngredientRow, type PackagingRow } from "@/lib/finance";
 import type { ProductStatus } from "@/db/schema";
+import { applicationMetrics } from "@/instrumentation/telemetry";
+import { FINANCE_ENGINE_VERSION } from "@/server/services/financial.service";
 import {
   completenessFromCalculation,
   productStatusFromCalculation,
@@ -28,6 +30,11 @@ export function calculateProductReadModel(input: ProductCalculationInput) {
     price: input.currentPrice == null ? null : Number(input.currentPrice),
     taxRate: input.taxRate == null ? null : Number(input.taxRate) * 100,
     fees: input.fees,
+  });
+
+  applicationMetrics.financialStates.add(1, {
+    state: metrics.status,
+    engine_version: FINANCE_ENGINE_VERSION,
   });
 
   return {
