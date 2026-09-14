@@ -1,0 +1,243 @@
+# §30 — Error budget: transcrição de execução e códigos de saída observados
+
+- Data: 2026-09-14 (UTC).
+- Ambiente: `dev-evidence` **local-first** — sem banco, sem rede e sem origem de produção.
+- Runtime: node v24.15.0 · tsx ^4.23.12 (devDependency) · `prettier` só para formatar o `.md`.
+- Worktree: `.worktree-onda2-budget`, branch `ops/onda2-budget` (base `9f8280e`).
+- Insumos: fixtures versionadas em `src/test/fixtures/error-budget/` (`basic-7d.jsonl`,
+  `financial-invalid.jsonl`, `insufficient.jsonl`) e o input sintético desta pasta,
+  `demo-ok-24h.jsonl`, usado apenas para exibir o caminho verde (exit 0). Não é baseline.
+- Cada bloco traz o comando exato, o stdout integral e o código de saída observado.
+- `artifacts/` é o scratch gitignored (`docs/evidence/**/artifacts/`) das provas de
+  local-first; o que vale como fonte é este `.txt` e os `.md`/`.json` versionados na pasta.
+
+## Resultado por cenário
+
+| # | Cenário | Entrada | Veredito | Exit |
+| - | ------- | ------- | -------- | ---- |
+| 1 | budget estourado em `server_fault`, IA ainda em DRAFT | `basic-7d.jsonl` | `FAIL` | `1` |
+| 2 | financeiro crítico `invalid` (tolerância zero) | `financial-invalid.jsonl` | `FAIL` | `1` |
+| 3 | fail-closed por N abaixo do piso | `insufficient.jsonl` | `INSUFFICIENT` | `2` |
+| 4 | caminho verde com baseline sintético declarado | `demo-ok-24h.jsonl` | `OK` | `0` |
+
+Os blocos 5, 7 e 10 repetem o cenário 3 por outros caminhos (stdin, rede isolada,
+`DATABASE_URL` de produção) e devolvem o mesmo `INSUFFICIENT`/`exit 2`.
+
+## 0) ajuda
+$ npx tsx scripts/obs/error-budget.ts --help
+Usage: npx tsx scripts/obs/error-budget.ts [options]
+
+Lê JSONL (stdin ou --input) de request.completed/request.failed/ai.* e linhas
+de métrica app.financial.states/app.ai.timeouts; grava
+docs/evidence/error-budget-<janela>.md (DRAFT até Q-020).
+
+Options:
+  --input=<arquivo.jsonl>   fixture/log de entrada (default: stdin)
+  --window=<dur>            janela relativa ao último timestamp (s|m|h|d; default: 7d)
+  --min-requests=<n>        N mínimo de requests na janela (default: 100)
+  --baseline=<ref>          ref do baseline M-06 que ratifica a tolerância de IA
+  --out=<arquivo.md>        saída (default: docs/evidence/error-budget-<janela>.md)
+  --help                    esta ajuda
+
+Exit: 0 OK · 1 budget excedido · 2 fail-closed (N insuficiente/sem sinal/sem baseline)
+
+exit=0
+
+## 1) fixture basic-7d.jsonl — janela 7d, N mínimo default (100)
+$ npx tsx scripts/obs/error-budget.ts --input=src/test/fixtures/error-budget/basic-7d.jsonl --window=7d --out=docs/evidence/error-budget-2026-09-14/basic-7d.md
+error-budget (7d): FAIL (exit 1) → docs/evidence/error-budget-2026-09-14/basic-7d.md
+error-budget: financial_critical consumo=0 base=2 → OK
+error-budget: ai_transient consumo=2 base=3 → DRAFT
+error-budget: server_fault consumo=4 base=11 → EXHAUSTED
+exit=1
+
+## 2) fixture financial-invalid.jsonl — financeiro crítico com tolerância zero
+$ npx tsx scripts/obs/error-budget.ts --input=src/test/fixtures/error-budget/financial-invalid.jsonl --window=7d --out=docs/evidence/error-budget-2026-09-14/financial-invalid.md
+error-budget (7d): FAIL (exit 1) → docs/evidence/error-budget-2026-09-14/financial-invalid.md
+error-budget: financial_critical consumo=1 base=1 → EXHAUSTED
+error-budget: ai_transient consumo=0 base=0 → UNKNOWN
+error-budget: server_fault consumo=1 base=3 → EXHAUSTED
+exit=1
+
+## 3) fixture insufficient.jsonl — fail-closed por N insuficiente
+$ npx tsx scripts/obs/error-budget.ts --input=src/test/fixtures/error-budget/insufficient.jsonl --window=7d --out=docs/evidence/error-budget-2026-09-14/insufficient.md
+error-budget (7d): INSUFFICIENT (exit 2) → docs/evidence/error-budget-2026-09-14/insufficient.md
+error-budget: financial_critical consumo=0 base=0 → UNKNOWN
+error-budget: ai_transient consumo=0 base=0 → UNKNOWN
+error-budget: server_fault consumo=0 base=2 → OK
+exit=2
+
+## 4) demo-ok-24h.jsonl — caminho verde, baseline sintético declarado (não ratificado)
+$ npx tsx scripts/obs/error-budget.ts --input=docs/evidence/error-budget-2026-09-14/demo-ok-24h.jsonl --window=24h --min-requests=100 --baseline=demo-sintetico-nao-ratificado --out=docs/evidence/error-budget-2026-09-14/demo-ok-24h.md
+error-budget (24h): OK (exit 0) → docs/evidence/error-budget-2026-09-14/demo-ok-24h.md
+error-budget: financial_critical consumo=0 base=100 → OK
+error-budget: ai_transient consumo=1 base=101 → OK
+error-budget: server_fault consumo=0 base=101 → OK
+exit=0
+
+## 5) stdin (sem --input) — saída só no scratch, mesmo veredito
+$ cat src/test/fixtures/error-budget/insufficient.jsonl | npx tsx scripts/obs/error-budget.ts --window=7d --out=docs/evidence/error-budget-2026-09-14/artifacts/stdin-insufficient.md
+error-budget (7d): INSUFFICIENT (exit 2) → docs/evidence/error-budget-2026-09-14/artifacts/stdin-insufficient.md
+error-budget: financial_critical consumo=0 base=0 → UNKNOWN
+error-budget: ai_transient consumo=0 base=0 → UNKNOWN
+error-budget: server_fault consumo=0 base=2 → OK
+exit=2
+
+## 6) dump JSON do mesmo relatório (raw machine-readable)
+
+O `.md` é o artefato canônico; o `.json` homônimo é o mesmo `ErrorBudgetReport`
+serializado pela função exportada `buildReport`, sem regra de negócio nova. Harness
+(definido uma vez, colável):
+
+$ dump_report() {
+    local name="$1" input="$2"; shift 2
+    node --import tsx --input-type=module -e '
+  import { buildReport, parseArgs } from "./scripts/obs/error-budget.ts";
+  import { readFileSync } from "node:fs";
+  const [input, ...argv] = process.argv.slice(1);
+  const report = buildReport(readFileSync(input, "utf8"), parseArgs(argv), input);
+  process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+  ' "$input" "$@" > "docs/evidence/error-budget-2026-09-14/$name.json"
+  }
+
+$ dump_report basic-7d src/test/fixtures/error-budget/basic-7d.jsonl --window=7d
+  (exit=0) basic-7d.json: FAIL/1 classes=financial_critical:OK,ai_transient:DRAFT,server_fault:EXHAUSTED
+$ dump_report financial-invalid src/test/fixtures/error-budget/financial-invalid.jsonl --window=7d
+  (exit=0) financial-invalid.json: FAIL/1 classes=financial_critical:EXHAUSTED,ai_transient:UNKNOWN,server_fault:EXHAUSTED
+$ dump_report insufficient src/test/fixtures/error-budget/insufficient.jsonl --window=7d
+  (exit=0) insufficient.json: INSUFFICIENT/2 classes=financial_critical:UNKNOWN,ai_transient:UNKNOWN,server_fault:OK
+$ dump_report demo-ok-24h docs/evidence/error-budget-2026-09-14/demo-ok-24h.jsonl --window=24h --min-requests=100 --baseline=demo-sintetico-nao-ratificado
+  (exit=0) demo-ok-24h.json: OK/0 classes=financial_critical:OK,ai_transient:OK,server_fault:OK
+
+## 7) Prova local-first — rede isolada (namespace de rede vazio)
+
+Namespace novo (`unshare -rn`), só loopback DOWN: se o script dependesse de rede, falharia.
+
+$ unshare -rn sh -c 'ip -o link; npx tsx scripts/obs/error-budget.ts --input=...insufficient.jsonl --window=7d --out=artifacts/netns-insufficient.md'
+  1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN mode DEFAULT group default qlen 1000\    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+error-budget (7d): INSUFFICIENT (exit 2) → docs/evidence/error-budget-2026-09-14/artifacts/netns-insufficient.md
+error-budget: financial_critical consumo=0 base=0 → UNKNOWN
+error-budget: ai_transient consumo=0 base=0 → UNKNOWN
+error-budget: server_fault consumo=0 base=2 → OK
+exit=2
+
+Diff ignorando o campo volátil `Gerado em:` entre a run com rede (bloco 3) e a run sem rede:
+$ diff <(grep -v '^- Gerado em:' docs/evidence/error-budget-2026-09-14/insufficient.md) <(grep -v '^- Gerado em:' docs/evidence/error-budget-2026-09-14/artifacts/netns-insufficient.md)
+(sem diferenças — relatório idêntico sem rede)
+
+## 8) Prova local-first — syscalls de rede (`strace -f -e trace=network`)
+
+$ strace -f -e trace=network -o docs/evidence/error-budget-2026-09-14/artifacts/strace-network.txt npx tsx scripts/obs/error-budget.ts --input=...insufficient.jsonl --window=7d --out=docs/evidence/error-budget-2026-09-14/artifacts/write-scope.md
+exit=2
+
+$ cat docs/evidence/error-budget-2026-09-14/artifacts/run-stdout.txt
+  error-budget (7d): INSUFFICIENT (exit 2) → docs/evidence/error-budget-2026-09-14/artifacts/write-scope.md
+  error-budget: financial_critical consumo=0 base=0 → UNKNOWN
+  error-budget: ai_transient consumo=0 base=0 → UNKNOWN
+  error-budget: server_fault consumo=0 base=2 → OK
+
+$ grep -c 'socket(AF_INET\|socket(AF_INET6)' docs/evidence/error-budget-2026-09-14/artifacts/strace-network.txt
+  0   # nenhum socket IP
+$ grep -c 'connect(' docs/evidence/error-budget-2026-09-14/artifacts/strace-network.txt
+  2   # só AF_UNIX (pipes IPC do tsx)
+$ grep -h 'socket(\|connect(' docs/evidence/error-budget-2026-09-14/artifacts/strace-network.txt
+  45340 socket(AF_NETLINK, SOCK_RAW|SOCK_CLOEXEC, NETLINK_ROUTE) = 20
+  45371 socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 21
+  45382 socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 21
+  45382 connect(21, {sa_family=AF_UNIX, sun_path="/tmp/tsx-1000/45371.pipe"}, 110) = 0
+  45382 socket(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 22
+  45382 connect(22, {sa_family=AF_UNIX, sun_path="/tmp/tsx-1000/45371.pipe"}, 110) = 0
+
+As únicas chamadas são AF_NETLINK (enumeração de interfaces feita pelo próprio kernel no
+boot do node) e AF_UNIX (pipes locais do runner tsx). Nenhum endereço IP, nenhum `connect`
+de rede. O trace bruto fica no scratch gitignored `artifacts/`; este bloco é o registro versionado.
+
+## 9) Prova — escopo de escrita
+
+$ strace -f -e trace=openat,openat2,creat,rename,unlink,mkdir -o docs/evidence/error-budget-2026-09-14/artifacts/strace-writes.txt npx tsx scripts/obs/error-budget.ts --input=...insufficient.jsonl --window=7d --out=docs/evidence/error-budget-2026-09-14/artifacts/write-scope.md
+exit=2
+
+Aberturas com intenção de escrita (`O_WRONLY`/`O_RDWR`/`O_CREAT`) e `mkdir` (a de ENOENT some):
+$ grep -E 'O_WRONLY|O_RDWR|O_CREAT|mkdir' docs/evidence/error-budget-2026-09-14/artifacts/strace-writes.txt | grep -v ENOENT | sort -u
+  45443 mkdir("/tmp/node-compile-cache/v24.15.0-x64-cf738c9d-1000", 0777) = -1 EEXIST (Arquivo existe)
+  45443 openat(AT_FDCWD, "/home/douglas-souza/.npm/_logs/2026-09-14T03_38_13_152Z-debug-0.log", O_WRONLY|O_CREAT|O_APPEND|O_CLOEXEC, 0666) = 20
+  45462 mkdir("/home/douglas-souza/.npm", 0777) = -1 EEXIST (Arquivo existe)
+  45464 mkdir("/home/douglas-souza/.npm/_logs", 0777) = -1 EEXIST (Arquivo existe)
+  45507 mkdir("/tmp/tsx-1000", 0777)      = -1 EEXIST (Arquivo existe)
+  45509 mkdir("/tmp/tsx-1000", 0777)      = -1 EEXIST (Arquivo existe)
+  45520 mkdir("/home/douglas-souza/preco-que-d-main/.worktree-onda2-budget/docs/evidence/error-budget-2026-09-14/artifacts", 0777) = -1 EEXIST (Arquivo existe)
+  45521 openat(AT_FDCWD, "/home/douglas-souza/preco-que-d-main/.worktree-onda2-budget/docs/evidence/error-budget-2026-09-14/artifacts/write-scope.md", O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0666) = 23
+
+Destinos: o `--out` pedido (o script), o debug-log do próprio `npx` (`~/.npm/_logs`) e
+pipes/cache do runner `tsx` em `/tmp`. O script não escreve fora de `--out`.
+
+## 10) Prova — ambiente de produção não muda nada
+
+O script nunca lê `process.env` (bloco 11). Mesmo recebendo URL remota e
+`NODE_ENV=production`, o veredito é o mesmo:
+
+
+## 10a) DATABASE_URL remoto + NODE_ENV=production
+$ DATABASE_URL=postgresql://user:REMOVIDO@host-remoto-exemplo.invalid:5432/db NODE_ENV=production npx tsx scripts/obs/error-budget.ts --input=src/test/fixtures/error-budget/insufficient.jsonl --window=7d --out=docs/evidence/error-budget-2026-09-14/artifacts/prodenv-insufficient.md
+error-budget (7d): INSUFFICIENT (exit 2) → docs/evidence/error-budget-2026-09-14/artifacts/prodenv-insufficient.md
+error-budget: financial_critical consumo=0 base=0 → UNKNOWN
+error-budget: ai_transient consumo=0 base=0 → UNKNOWN
+error-budget: server_fault consumo=0 base=2 → OK
+exit=2
+
+## 10b) env canônico local
+$ DATABASE_URL=postgresql://postgres:REMOVIDO@127.0.0.1:5432/preco_que_da_lucro_test DATABASE_ADMIN_URL=postgresql://postgres:REMOVIDO@127.0.0.1:5432/preco_que_da_lucro_test DATABASE_DRIVER=node-postgres npx tsx scripts/obs/error-budget.ts --input=src/test/fixtures/error-budget/insufficient.jsonl --window=7d --out=docs/evidence/error-budget-2026-09-14/artifacts/localenv-insufficient.md
+error-budget (7d): INSUFFICIENT (exit 2) → docs/evidence/error-budget-2026-09-14/artifacts/localenv-insufficient.md
+error-budget: financial_critical consumo=0 base=0 → UNKNOWN
+error-budget: ai_transient consumo=0 base=0 → UNKNOWN
+error-budget: server_fault consumo=0 base=2 → OK
+exit=2
+
+Nenhum banco é aberto em 10a/10b: o script não tem cliente de banco nem pool.
+
+$ diff <(grep -v '^- Gerado em:' docs/evidence/error-budget-2026-09-14/artifacts/prodenv-insufficient.md) <(grep -v '^- Gerado em:' docs/evidence/error-budget-2026-09-14/insufficient.md)
+(sem diferenças — o ambiente não entra na apuração)
+
+## 11) Prova estática — inventário de dependências, env e escrita
+
+$ grep -nE 'node:http|node:https|node:net|node:dns|node:tls|node:child_process|fetch\(|WebSocket|XMLHttpRequest|undici|axios|require\(' scripts/obs/error-budget.ts
+exit=1  (sem linhas = nenhum cliente de rede/HTTP nem eval de require)
+
+$ grep -n 'process\.env' scripts/obs/error-budget.ts
+exit=1  (sem linhas = o script não lê ambiente)
+
+$ grep -n '^import\|await import(' scripts/obs/error-budget.ts
+  22:import { readFileSync } from "node:fs";
+  23:import { mkdir, writeFile } from "node:fs/promises";
+  24:import { dirname, resolve } from "node:path";
+  643:  const { format } = await import("prettier");
+
+$ grep -n 'writeFile\|appendFile\|createWriteStream\|mkdir\|unlink\|rm(' scripts/obs/error-budget.ts
+  23:import { mkdir, writeFile } from "node:fs/promises";
+  642:  await mkdir(dirname(outPath), { recursive: true });
+  645:  await writeFile(outPath, markdown, "utf8");
+
+Um único `writeFile` (dentro de `main`) e um único `mkdir`, ambos sobre `dirname(resolve(args.out))`
+e `resolve(args.out)`. Não há escrita em caminho fixo nem upload.
+
+## 12) Erro de uso falha fechado (exit 2, mensagem em stderr)
+
+Argumento desconhecido, janela inválida e piso não-inteiro:
+
+$ npx tsx scripts/obs/error-budget.ts --window=7w --input=src/test/fixtures/error-budget/insufficient.jsonl
+  error-budget: --window inválida: "7w" (use s|m|h|d, ex.: 7d)
+exit=2
+
+$ npx tsx scripts/obs/error-budget.ts --window=0d --input=src/test/fixtures/error-budget/insufficient.jsonl
+  error-budget: --window inválida: "0d"
+exit=2
+
+$ npx tsx scripts/obs/error-budget.ts --min-requests=0 --input=src/test/fixtures/error-budget/insufficient.jsonl
+  error-budget: --min-requests exige um inteiro positivo
+exit=2
+
+$ npx tsx scripts/obs/error-budget.ts --nope --input=src/test/fixtures/error-budget/insufficient.jsonl
+  error-budget: argumento desconhecido: --nope
+exit=2
+
+Nenhum desses casos produziu veredito verde nem gravou artefato.

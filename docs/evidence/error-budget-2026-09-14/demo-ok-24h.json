@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-09-14T03:38:10.738Z",
+  "source": "docs/evidence/error-budget-2026-09-14/demo-ok-24h.jsonl",
+  "window": {
+    "token": "24h",
+    "ms": 86400000,
+    "start": "2026-09-13T00:01:00.000Z",
+    "end": "2026-09-14T00:01:00.000Z"
+  },
+  "parsed": {
+    "lines": 301,
+    "parsed": 301,
+    "skipped": 0
+  },
+  "requests": {
+    "total": 101,
+    "completed": 100,
+    "failed": 1,
+    "chat": 101,
+    "healthy": 100
+  },
+  "minimumRequests": 100,
+  "baseline": "demo-sintetico-nao-ratificado",
+  "classes": [
+    {
+      "id": "financial_critical",
+      "label": "Financeiro crítico (`app.financial.states{state=invalid}` em caminho do usuário)",
+      "signal": "linhas `app.financial.states` com `state=invalid`",
+      "basisLabel": "sinais de métrica",
+      "basis": 100,
+      "consumption": 0,
+      "toleranceDisplay": "0 (zero estrutural)",
+      "verdict": "OK",
+      "detail": "0 estado(s) `invalid` em 100 sinal(is) de métrica"
+    },
+    {
+      "id": "ai_transient",
+      "label": "IA transitória (`AI_TIMEOUT`/`DEPENDENCY_ERROR` de chat + `app.ai.timeouts`)",
+      "signal": "`request.failed` de chat e métrica `app.ai.timeouts`",
+      "basisLabel": "requisições de chat",
+      "basis": 101,
+      "consumption": 1,
+      "toleranceDisplay": "1% de 101 = 1,01",
+      "verdict": "OK",
+      "detail": "1 falha(s) de envelope · métrica `app.ai.timeouts` = 0 (consumo = max)"
+    },
+    {
+      "id": "server_fault",
+      "label": "Falha de servidor/dependência (`DATABASE_ERROR`/`INTERNAL_ERROR`/5xx)",
+      "signal": "`request.failed` e `request.completed` com status ≥ 500",
+      "basisLabel": "requests totais",
+      "basis": 101,
+      "consumption": 0,
+      "toleranceDisplay": "0 (zero estrutural, revisível no baseline)",
+      "verdict": "OK",
+      "detail": "0 falha(s) de servidor/dependência"
+    }
+  ],
+  "codes": [
+    {
+      "code": "AI_TIMEOUT",
+      "bucket": "ai_transient",
+      "count": 1
+    }
+  ],
+  "excluded": [],
+  "monitored": [
+    {
+      "code": "FINANCIAL_STATE_INCOMPLETE",
+      "count": 0
+    },
+    {
+      "code": "AI_TIMEOUT_METRIC",
+      "count": 0
+    }
+  ],
+  "aiMetricTimeouts": 0,
+  "financialSignals": 100,
+  "verdict": "OK",
+  "exitCode": 0,
+  "notes": []
+}
