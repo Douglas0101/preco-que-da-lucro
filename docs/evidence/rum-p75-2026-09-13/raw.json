@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-09-14T02:45:52.473Z",
+  "window": "7 days",
+  "min_samples": 20,
+  "targets": {
+    "LCP": {
+      "target": 2500,
+      "unit": "ms",
+      "label": "LCP ≤ 2,5 s"
+    },
+    "INP": {
+      "target": 200,
+      "unit": "ms",
+      "label": "INP ≤ 200 ms"
+    },
+    "CLS": {
+      "target": 0.1,
+      "unit": "",
+      "label": "CLS ≤ 0,1"
+    }
+  },
+  "rows": [
+    {
+      "name": "CLS",
+      "n": 12,
+      "p75": 0.07,
+      "window_start": "2026-09-13T14:45:51.597Z",
+      "window_end": "2026-09-14T01:45:51.597Z",
+      "verdict": "N/A (N=12 < 20)"
+    },
+    {
+      "name": "FCP",
+      "n": 25,
+      "p75": 1000,
+      "window_start": "2026-09-13T01:45:51.597Z",
+      "window_end": "2026-09-14T01:45:51.597Z",
+      "verdict": "sem target declarado"
+    },
+    {
+      "name": "INP",
+      "n": 40,
+      "p75": 150,
+      "window_start": "2026-09-12T10:45:51.597Z",
+      "window_end": "2026-09-14T01:45:51.597Z",
+      "verdict": "OK"
+    },
+    {
+      "name": "LCP",
+      "n": 40,
+      "p75": 2300,
+      "window_start": "2026-09-12T10:45:51.597Z",
+      "window_end": "2026-09-14T01:45:51.597Z",
+      "verdict": "OK"
+    }
+  ]
+}

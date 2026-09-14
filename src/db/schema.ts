@@ -4,6 +4,7 @@ import {
   bigint,
   check,
   date,
+  doublePrecision,
   foreignKey,
   index,
   integer,
@@ -824,6 +825,25 @@ export const auditEvents = pgTable(
       foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
     }).onDelete("restrict"),
   ],
+);
+
+/** Série de Web Vitals (RUM) persistida para agregação p75 (§17.8).
+ * Sem tenant_id e sem RLS por design: é métrica de performance do browser,
+ * sem PII; a ingestão é best-effort (INSERT-only para app_runtime) e a
+ * leitura fica restrita ao operador (DATABASE_ADMIN_URL, local-only). */
+export const rumVitals = pgTable(
+  "rum_vitals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    metricId: text("metric_id").notNull(),
+    name: text("name").notNull(),
+    value: doublePrecision("value").notNull(),
+    rating: text("rating").notNull(),
+    delta: doublePrecision("delta").notNull(),
+    navigationType: text("navigation_type"),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("rum_vitals_name_received_at_idx").on(table.name, table.receivedAt)],
 );
 
 export type User = typeof users.$inferSelect;

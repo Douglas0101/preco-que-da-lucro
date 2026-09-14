@@ -11,7 +11,7 @@
     "concreteOperations": 36,
     "apiRoutes": 4,
     "transactionSites": 98,
-    "directDatabaseFiles": 39
+    "directDatabaseFiles": 40
   },
   "bffs": [
     {
@@ -579,12 +579,18 @@
       "kind": "route",
       "operations": [],
       "imports": [
+        "@/db/client.server",
+        "@/db/schema",
         "@/lib/structured-logger",
         "@/lib/web-vitals-payload",
         "@tanstack/react-router"
       ],
-      "reachesDatabase": false,
-      "databasePaths": []
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/routes/api/vitals.ts"
+      ]
     }
   ],
   "transactionSites": [
@@ -1189,6 +1195,7 @@
     "src/lib/products.functions.ts",
     "src/middleware/request-context.ts",
     "src/routes/api/health/ready.ts",
+    "src/routes/api/vitals.ts",
     "src/server/auth/auth.server.ts",
     "src/server/auth/membership.service.ts",
     "src/server/auth/rate-limit-storage.server.ts",

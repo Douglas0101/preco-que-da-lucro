@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS
   profiles,
   products,
   rate_limits,
+  rum_vitals,
   tenant_memberships,
   tenants,
   verifications,

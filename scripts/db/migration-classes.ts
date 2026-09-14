@@ -251,4 +251,19 @@ export const migrationClasses: readonly MigrationClassEntry[] = [
     rollback: "drizzle/rollback/0013_to_0012_down.sql",
     appliedOn: "empty",
   },
+  {
+    tag: "0014_mighty_veda",
+    class: "SAFE",
+    rationale:
+      "Cria a série append-only rum_vitals, o índice (name, received_at) e os grants (INSERT-only para app_runtime); sem tenant_id, sem RLS por design e sem DML.",
+    evidence: [
+      "drizzle/0014_mighty_veda.sql",
+      "drizzle/rollback/0014_to_0013_down.sql",
+      "scripts/db/test-rum-persistence.ts (insert best-effort e grants da série)",
+      "docs/evidence/rum-persistence-2026-09-13.md",
+    ],
+    sha256: "069b97ae9f1658708d2a85d08c3b36fa36c988d217860c2c135230f1ae34c3f2",
+    rollback: "drizzle/rollback/0014_to_0013_down.sql",
+    appliedOn: "empty",
+  },
 ];
