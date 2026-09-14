@@ -170,8 +170,16 @@ export class DefaultDashboardService implements DashboardService {
     const startedAt = Date.now();
     const salesSummary = await withSpan(
       "service.dashboard.sales_summary",
-      { "app.tenant_id": context.tenantId },
-      () => this.sales.summaryForPeriod(context, periodStart(period)),
+      {
+        "app.tenant_id": context.tenantId,
+        "app.correlation_id": context.correlationId,
+        "app.dashboard.period": period,
+      },
+      async (span) => {
+        const summary = await this.sales.summaryForPeriod(context, periodStart(period));
+        span.setAttribute("app.sales.count", summary.count);
+        return summary;
+      },
     );
     applicationMetrics.salesSummaryDuration.record(Date.now() - startedAt, { period });
 
