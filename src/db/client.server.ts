@@ -212,6 +212,20 @@ function createQuerySpan(statement: unknown) {
   return { span: startDatabaseQuerySpan(operation, redacted), operation };
 }
 
+/** Métrica de query: um `record` que lança nunca pode rejeitar uma query que
+ * já teve sucesso nem pular o callback do usuário (mesma regra defensiva dos
+ * observables do pool em `telemetry.ts`). */
+function recordQueryDuration(operation: string, durationMs: number): void {
+  try {
+    applicationMetrics.dbQueryDuration.record(durationMs, {
+      "db.operation.name": operation,
+      "db.system.name": "postgresql",
+    });
+  } catch {
+    // Observabilidade nunca quebra o caminho da request.
+  }
+}
+
 function instrumentClientRoundTrips(client: unknown, hooks: PoolClientHooks = {}): void {
   const target = client as { query?: (...queryArgs: unknown[]) => unknown } | null;
   if (!target || typeof target.query !== "function" || instrumentedClients.has(target)) {
@@ -236,10 +250,7 @@ function instrumentClientRoundTrips(client: unknown, hooks: PoolClientHooks = {}
     const finalizeSpan = (error?: unknown) => {
       if (!querySpan || spanFinalized) return;
       spanFinalized = true;
-      applicationMetrics.dbQueryDuration.record(performance.now() - queryStartedAt, {
-        "db.operation.name": querySpan.operation,
-        "db.system.name": "postgresql",
-      });
+      recordQueryDuration(querySpan.operation, performance.now() - queryStartedAt);
       endSpanWithResult(querySpan.span, error);
     };
 
@@ -311,7 +322,10 @@ function resolvePoolDriver(driver?: string): string {
 
 /** Counts real round trips per transaction and emits an `app.context_tx` log
  * line on commit/rollback (S1-PERF-TX RT instrumentation, zero dependencies).
- * Também expõe snapshot do pool (§16.7) e spans por query (§19.3). */
+ * Também expõe snapshot do pool (§16.7) e spans por query (§19.3) nos dois
+ * caminhos de aquisição de cliente: promise (`pool.connect()`) e callback
+ * (`pool.connect(cb)` — o caminho que `pool.query` usa e que devolve
+ * `undefined`). */
 export function instrumentPoolRoundTrips(
   pool: unknown,
   driver?: string,
@@ -351,6 +365,14 @@ export function instrumentPoolRoundTrips(
   instrumentedPools.set(poolLike, handle);
 
   const originalConnect = poolLike.connect.bind(poolLike);
+  const clientHooks: PoolClientHooks = {
+    onTransactionBegin: () => {
+      inFlightTransactions += 1;
+    },
+    onTransactionEnd: () => {
+      inFlightTransactions = Math.max(0, inFlightTransactions - 1);
+    },
+  };
   poolLike.connect = (...connectArgs: unknown[]) => {
     const startedAt = performance.now();
     let waitRecorded = false;
@@ -366,23 +388,21 @@ export function instrumentPoolRoundTrips(
       const callback = connectArgs[callbackIndex] as (...callbackArgs: unknown[]) => unknown;
       connectArgs[callbackIndex] = (...callbackArgs: unknown[]) => {
         recordWait();
+        // `pg-pool` adquire o cliente de `pool.query` por este caminho e devolve
+        // `undefined` (node_modules/pg-pool/index.js:190,449); sem instrumentar
+        // aqui, toda query fora de transação (rate limiter, health, vitals, auth)
+        // ficaria sem span. O `instrumentedClients` WeakSet garante um único
+        // wrapper por cliente, então o caminho promise abaixo nunca duplica.
+        if (!callbackArgs[0]) instrumentClientRoundTrips(callbackArgs[1], clientHooks);
         return callback(...callbackArgs);
       };
     }
     const connected = originalConnect(...connectArgs);
     if (!isThenable(connected)) return connected;
-    const hooks: PoolClientHooks = {
-      onTransactionBegin: () => {
-        inFlightTransactions += 1;
-      },
-      onTransactionEnd: () => {
-        inFlightTransactions = Math.max(0, inFlightTransactions - 1);
-      },
-    };
     return connected.then(
       (client) => {
         recordWait();
-        instrumentClientRoundTrips(client, hooks);
+        instrumentClientRoundTrips(client, clientHooks);
         return client;
       },
       (error) => {

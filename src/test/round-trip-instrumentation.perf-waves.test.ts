@@ -1,6 +1,13 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Attributes, ObservableResult } from "@opentelemetry/api";
+import "./helpers/otel-metrics";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { SpanStatusCode, trace, type Attributes, type ObservableResult } from "@opentelemetry/api";
+import {
+  BasicTracerProvider,
+  InMemorySpanExporter,
+  SimpleSpanProcessor,
+} from "@opentelemetry/sdk-trace-base";
 import { instrumentPoolRoundTrips } from "@/db/client.server";
+import { SQL_REDACTION_MAX_LENGTH } from "@/instrumentation/sql-redactor";
 import {
   aggregatePoolSnapshots,
   applicationMetrics,
@@ -11,7 +18,7 @@ import {
 } from "@/instrumentation/telemetry";
 
 interface FakeQueryClient {
-  query: (...args: unknown[]) => Promise<unknown>;
+  query: (...args: unknown[]) => unknown;
 }
 
 interface FakePoolOptions {
@@ -25,26 +32,100 @@ interface FakePoolOptions {
 
 const unregisters: Array<() => void> = [];
 
-async function instrumentFakePool(options: FakePoolOptions = {}) {
-  const events: Record<string, unknown>[] = [];
-  vi.spyOn(console, "info").mockImplementation((record: unknown) => {
-    events.push(JSON.parse(String(record)) as Record<string, unknown>);
-  });
-  const queries: unknown[][] = [];
-  const client: FakeQueryClient = {
-    query: vi.fn(async (...args: unknown[]) => {
+/** Exportador em memória: sem provider global o tracer é noop e as asserções de
+ * atributo passariam em falso. */
+const spanExporter = new InMemorySpanExporter();
+const tracerProvider = new BasicTracerProvider({
+  spanProcessors: [new SimpleSpanProcessor(spanExporter)],
+});
+
+beforeAll(() => {
+  trace.setGlobalTracerProvider(tracerProvider);
+});
+
+/** Spans de query emitidos (todo `db.tenant_transaction` fica de fora). */
+function querySpans() {
+  return spanExporter.getFinishedSpans().filter((span) => "db.operation.name" in span.attributes);
+}
+
+/** Mímica de `pg.Client`: chamado com callback devolve `undefined` e entrega o
+ * resultado pelo callback; sem callback devolve a promise. */
+function recordingClient(queries: unknown[][], options: FakePoolOptions = {}): FakeQueryClient {
+  return {
+    query: (...args: unknown[]) => {
       queries.push(args);
       const statement = args[0];
       const text =
         typeof statement === "string"
           ? statement
           : ((statement as { text?: unknown } | undefined)?.text ?? "");
-      if (options.failOn && typeof text === "string" && text.includes(options.failOn)) {
-        throw new Error("syntax error");
+      const callback = args.find((argument) => typeof argument === "function") as
+        ((error: unknown, result: unknown) => void) | undefined;
+      const failure =
+        options.failOn && typeof text === "string" && text.includes(options.failOn)
+          ? new Error("syntax error")
+          : undefined;
+      if (callback) {
+        callback(failure, failure ? undefined : { rows: [] });
+        return undefined;
       }
-      return { rows: [] };
-    }),
+      return failure ? Promise.reject(failure) : Promise.resolve({ rows: [] });
+    },
   };
+}
+
+/** Mímica de `pg.Pool` (`node_modules/pg-pool/index.js:190,431`): `connect(cb)`
+ * devolve `undefined` e entrega o cliente pelo callback, e `query` adquire o
+ * cliente exatamente por esse caminho — é assim que o
+ * `drizzle-orm/node-postgres` roteia toda query fora de transação. */
+function createPgPoolLike(client: FakeQueryClient, options: FakePoolOptions = {}) {
+  return {
+    totalCount: options.totalCount ?? 1,
+    idleCount: options.idleCount ?? 1,
+    waitingCount: options.waitingCount ?? 0,
+    options: { max: options.max ?? 10 },
+    connect(cb?: (error: unknown, pooledClient: unknown, release: () => void) => void) {
+      if (!cb) return Promise.resolve(client);
+      cb(undefined, client, () => undefined);
+      return undefined;
+    },
+    query(text: unknown, valuesOrCallback?: unknown, maybeCallback?: unknown): unknown {
+      const callback =
+        typeof valuesOrCallback === "function"
+          ? (valuesOrCallback as (error: unknown, result: unknown) => void)
+          : (maybeCallback as ((error: unknown, result: unknown) => void) | undefined);
+      const values = typeof valuesOrCallback === "function" ? undefined : valuesOrCallback;
+      if (callback) {
+        this.connect((error, pooledClient) => {
+          if (error) return callback(error, undefined);
+          (pooledClient as FakeQueryClient).query(text, values, callback);
+        });
+        return undefined;
+      }
+      return new Promise((resolve, reject) => {
+        this.connect((error, pooledClient) => {
+          if (error) return reject(error);
+          (pooledClient as FakeQueryClient).query(
+            text,
+            values,
+            (queryError: unknown, result: unknown) =>
+              queryError ? reject(queryError) : resolve(result),
+          );
+        });
+      });
+    },
+  };
+}
+
+/** Pool no formato do wrapper anterior (connect promise), para os testes de
+ * `app.context_tx`/snapshot que já existiam. */
+async function instrumentFakePool(options: FakePoolOptions = {}) {
+  const events: Record<string, unknown>[] = [];
+  vi.spyOn(console, "info").mockImplementation((record: unknown) => {
+    events.push(JSON.parse(String(record)) as Record<string, unknown>);
+  });
+  const queries: unknown[][] = [];
+  const client = recordingClient(queries, options);
   const pool = {
     totalCount: options.totalCount ?? 0,
     idleCount: options.idleCount ?? 0,
@@ -61,11 +142,11 @@ async function instrumentFakePool(options: FakePoolOptions = {}) {
 
 function collectRecordedMetrics() {
   const records: Array<{ value: number; attributes: Record<string, unknown> }> = [];
-  vi.spyOn(applicationMetrics.dbQueryDuration, "record").mockImplementation(
-    (value: number, attributes?: Attributes) => {
-      records.push({ value, attributes: (attributes ?? {}) as Record<string, unknown> });
-    },
-  );
+  const record = (value: number, attributes?: Attributes) => {
+    records.push({ value, attributes: (attributes ?? {}) as Record<string, unknown> });
+  };
+  vi.spyOn(applicationMetrics.dbQueryDuration, "record").mockImplementation(record);
+  vi.spyOn(applicationMetrics.dbPoolWaitTime, "record").mockImplementation(record);
   return {
     queryRecords: () => records.filter((record) => "db.operation.name" in record.attributes),
     waitRecords: () => records.filter((record) => "driver" in record.attributes),
@@ -84,7 +165,13 @@ function recordingObservable() {
 
 afterEach(() => {
   for (const unregister of unregisters.splice(0)) unregister();
+  spanExporter.reset();
   vi.restoreAllMocks();
+});
+
+afterAll(async () => {
+  await tracerProvider.shutdown();
+  trace.disable();
 });
 
 describe("T1 perf-waves: instrumentação de round trips por transação (app.context_tx)", () => {
@@ -317,5 +404,172 @@ describe("§16.7: observables defensivos", () => {
     } finally {
       throwingSource();
     }
+  });
+});
+
+describe("B2A-1: cobertura do caminho pool.query", () => {
+  it("emite exatamente um span e uma métrica por query disparada pelo pool", async () => {
+    const metrics = collectRecordedMetrics();
+    const queries: unknown[][] = [];
+    const pool = createPgPoolLike(recordingClient(queries));
+    const handle = instrumentPoolRoundTrips(pool, "node-postgres");
+    if (handle) unregisters.push(handle.unregister);
+
+    await pool.query("select 1");
+    await pool.query("select 2");
+
+    expect(queries).toHaveLength(2);
+    expect(querySpans().map((span) => span.name)).toEqual(["SELECT", "SELECT"]);
+    expect(metrics.queryRecords()).toHaveLength(2);
+  });
+
+  it("cobre a forma callback de pool.query com o texto redigido", async () => {
+    const queries: unknown[][] = [];
+    const pool = createPgPoolLike(recordingClient(queries));
+    instrumentPoolRoundTrips(pool, "node-postgres");
+
+    const received: unknown[] = [];
+    await new Promise<void>((resolve) => {
+      pool.query(
+        "select $1::text from users where email = 'joao@example.com'",
+        ["ok"],
+        (error: unknown, result: unknown) => {
+          received.push(error, result);
+          resolve();
+        },
+      );
+    });
+
+    expect(received).toEqual([undefined, { rows: [] }]);
+    const spans = querySpans();
+    expect(spans).toHaveLength(1);
+    expect(spans[0].attributes["db.query.text"]).toBe("select $1::text from users where email = ?");
+  });
+
+  it("não duplica o span quando o mesmo cliente atende os dois caminhos", async () => {
+    const queries: unknown[][] = [];
+    const pool = createPgPoolLike(recordingClient(queries));
+    instrumentPoolRoundTrips(pool, "node-postgres");
+
+    const pooledClient = (await pool.connect()) as FakeQueryClient;
+    await pooledClient.query("select 1");
+    expect(querySpans()).toHaveLength(1);
+
+    await pool.query("select 2");
+    expect(querySpans()).toHaveLength(2);
+  });
+});
+
+describe("B2A-4: atributos do span de query", () => {
+  it("grava db.system.name/db.operation.name e trunca db.query.text redigido em 256", async () => {
+    const { instrumented } = await instrumentFakePool();
+
+    const filler = Array.from({ length: 60 }, (_, index) => `colum${index}`).join(", ");
+    await instrumented.query(`select 'joao@example.com', ${filler} from users`);
+
+    const spans = querySpans();
+    expect(spans).toHaveLength(1);
+    expect(spans[0].name).toBe("SELECT");
+    expect(Object.keys(spans[0].attributes).sort()).toEqual([
+      "db.operation.name",
+      "db.query.text",
+      "db.system.name",
+    ]);
+    expect(spans[0].attributes["db.system.name"]).toBe("postgresql");
+    expect(spans[0].attributes["db.operation.name"]).toBe("SELECT");
+    const text = String(spans[0].attributes["db.query.text"]);
+    expect(text.startsWith("select ?, colum0, colum1, ")).toBe(true);
+    expect(text).not.toContain("joao@example.com");
+    expect(text.length).toBe(SQL_REDACTION_MAX_LENGTH);
+    expect(text.endsWith("...")).toBe(true);
+  });
+
+  it("nunca anexa `values` ao span", async () => {
+    const { instrumented } = await instrumentFakePool();
+
+    await instrumented.query({
+      text: "select * from users where email = $1",
+      values: ["joao@example.com"],
+    });
+
+    const spans = querySpans();
+    expect(spans).toHaveLength(1);
+    expect(JSON.stringify(spans[0].attributes)).not.toContain("joao@example.com");
+    expect(spans[0].attributes["db.query.text"]).toBe("select * from users where email = $1");
+  });
+});
+
+describe("B2A-4: caminho callback de client.query", () => {
+  it("client.query(sql, cb) fecha um único span OK e chama o callback do usuário", async () => {
+    const { instrumented } = await instrumentFakePool();
+
+    const received: unknown[] = [];
+    await new Promise<void>((resolve) => {
+      instrumented.query("insert into t (a) values ('x')", (error: unknown, result: unknown) => {
+        received.push(error, result);
+        resolve();
+      });
+    });
+
+    expect(received).toEqual([undefined, { rows: [] }]);
+    const spans = querySpans();
+    expect(spans).toHaveLength(1);
+    expect(spans[0].name).toBe("INSERT");
+    expect(spans[0].status.code).toBe(SpanStatusCode.OK);
+    expect(spans[0].attributes["db.query.text"]).toBe("insert into t (a) values (?)");
+  });
+
+  it("cb(err) vira span ERROR sem duplicar a finalização", async () => {
+    const { instrumented } = await instrumentFakePool({ failOn: "boom" });
+
+    const received: unknown[] = [];
+    await new Promise<void>((resolve) => {
+      instrumented.query("select boom", (error: unknown) => {
+        received.push(error);
+        resolve();
+      });
+    });
+
+    expect((received[0] as Error).message).toBe("syntax error");
+    const spans = querySpans();
+    expect(spans).toHaveLength(1);
+    expect(spans[0].status.code).toBe(SpanStatusCode.ERROR);
+  });
+});
+
+describe("B2A-3: métrica nunca derruba a query", () => {
+  function throwOnRecord() {
+    vi.spyOn(applicationMetrics.dbQueryDuration, "record").mockImplementation(() => {
+      throw new Error("metric boom");
+    });
+  }
+
+  it("um record que lança não rejeita uma query que já teve sucesso", async () => {
+    const { instrumented } = await instrumentFakePool();
+    throwOnRecord();
+
+    await expect(instrumented.query("select 1")).resolves.toEqual({ rows: [] });
+    expect(querySpans()).toHaveLength(1);
+  });
+
+  it("um record que lança não pula o callback do usuário", async () => {
+    const { instrumented } = await instrumentFakePool();
+    throwOnRecord();
+
+    // O `pg.Client` com callback entrega o resultado pelo callback; este fake o
+    // invoca de forma síncrona, então um throw da instrumentação escaparia aqui.
+    const received: unknown[] = [];
+    let thrown: unknown;
+    try {
+      instrumented.query("select 1", (error: unknown, result: unknown) => {
+        received.push(error, result);
+      });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeUndefined();
+    expect(received).toEqual([undefined, { rows: [] }]);
+    expect(querySpans()).toHaveLength(1);
   });
 });
