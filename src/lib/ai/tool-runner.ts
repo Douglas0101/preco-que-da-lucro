@@ -36,7 +36,13 @@ function inputHash(value: unknown): string {
   return createHash("sha256").update(canonicalize(value)).digest("hex");
 }
 
-function sanitizeJson(value: unknown, depth = 0): unknown {
+/** Recursive JSON shape this normaliser can emit. Naming it keeps the contract
+ * explicit instead of `unknown`; the `toolExecutionOutputSchema` parse at the call
+ * site stays the single source of truth for the domain type. */
+type SanitizedJson =
+  string | number | boolean | null | SanitizedJson[] | { [key: string]: SanitizedJson };
+
+function sanitizeJson(value: unknown, depth = 0): SanitizedJson {
   if (depth > 8) return null;
   if (typeof value === "string") {
     return Array.from(value)

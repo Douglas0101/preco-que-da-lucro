@@ -49,8 +49,10 @@ function pool(): Pool {
 }
 
 function client(poolInstance: Pool): Database {
-  // Same cross-driver structural assertion as src/db/client.server.ts: the
-  // integration script runs node-postgres against the local container.
+  // SAFETY: this script runs node-postgres against the local container, and the
+  // cast mirrors the same cross-driver structural assertion as
+  // src/db/client.server.ts - both driver branches must expose the operations the
+  // local `Database` interface requires, which TypeScript cannot unify.
   return drizzle({ client: poolInstance, schema }) as unknown as Database;
 }
 

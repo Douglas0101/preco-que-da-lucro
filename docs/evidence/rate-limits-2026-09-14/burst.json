@@ -12,13 +12,7 @@
       "instances": 2,
       "allowed": 20,
       "denied": 5,
-      "retryAfterSeconds": [
-        601,
-        600,
-        600,
-        601,
-        601
-      ],
+      "retryAfterSeconds": [601, 600, 600, 601, 601],
       "persistedCount": 20,
       "counterRows": 1
     },
@@ -33,18 +27,7 @@
       "instances": 2,
       "allowed": 40,
       "denied": 10,
-      "retryAfterSeconds": [
-        601,
-        601,
-        600,
-        600,
-        600,
-        601,
-        600,
-        601,
-        601,
-        600
-      ],
+      "retryAfterSeconds": [601, 601, 600, 600, 600, 601, 600, 601, 601, 600],
       "persistedCount": 40,
       "counterRows": 1
     }

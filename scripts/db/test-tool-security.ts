@@ -83,6 +83,10 @@ async function main(): Promise<void> {
         roles: ["owner"],
         correlationId,
         signal: new AbortController().signal,
+        // SAFETY: the harness drives a real RLS-scoped driver transaction (the GUCs
+        // are set just above) and the app's `RequestContext.transaction` is an opaque
+        // handle, so the cast is the boundary between the raw driver type and that
+        // handle. The runner only issues queries through it.
         transaction: transaction as unknown as RequestContext["transaction"],
       };
 

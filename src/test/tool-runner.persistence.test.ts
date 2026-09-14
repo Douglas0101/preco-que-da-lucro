@@ -101,6 +101,9 @@ function fakeContext(transaction: FakeTransaction, roles: string[] = ["owner"]):
     roles,
     correlationId,
     signal: new AbortController().signal,
+    // SAFETY: same boundary as scripts/db/test-tool-security.ts - the app-facing
+    // `RequestContext.transaction` is an opaque handle, and this helper hands it a
+    // fake transaction that satisfies the query surface the runner uses.
     transaction: transaction as unknown as RequestContext["transaction"],
   };
 }
