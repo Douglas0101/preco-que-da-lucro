@@ -1,0 +1,4 @@
+chat: 20 admitidas / 5 recusadas (max=20, janela=600s, concorrência=25, instâncias=2), contador=20, retryAfter=600–601s
+tool: 40 admitidas / 10 recusadas (max=40, janela=600s, concorrência=50, instâncias=2), contador=40, retryAfter=600–601s
+T20.5: relatório cru gravado em docs/evidence/rate-limits-2026-09-14/burst.json
+T20.5: buckets de chat/tool são atômicos sob concorrência distribuída: OK

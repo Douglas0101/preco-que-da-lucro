@@ -1,0 +1,23 @@
+# O20 — gates (§20.5) — 2026-09-14T15:32:42Z
+# Árvore: ops/onda3-ratelimit sobre 2382636
+
+$ npx tsc -p tsconfig.json --noEmit
+exit=0
+
+$ npx eslint $FILES
+exit=0
+
+$ npx prettier --check $FILES SDD.md docs/evidence/rate-limits-2026-09-14/report.md
+Checking formatting...
+All matched files use Prettier code style!
+exit=0
+
+$ npx tsx scripts/m02-matrix.ts --check
+M-02 matrix is deterministic and up to date.
+exit=0
+
+$ npx tsx scripts/m02-boundaries.ts
+M-02 BFF boundary is clean: all database reachability is allowlisted or repository-only.
+exit=0
+
+# npx vitest run (65 arquivos / 587 testes, verde) — saída crua em vitest-full.txt

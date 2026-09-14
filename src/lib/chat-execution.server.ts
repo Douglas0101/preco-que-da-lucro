@@ -25,6 +25,11 @@ import {
   conversationService as defaultConversationService,
   type ConversationService,
 } from "@/server/services/conversation.service";
+import { USER_RATE_LIMIT_RULES, userRateLimitKey } from "@/server/auth/rate-limit-rules.server";
+import {
+  consumeRateLimitInTransaction,
+  type RateLimitRule,
+} from "@/server/auth/rate-limit-storage.server";
 import { logJson } from "@/lib/structured-logger";
 
 interface GatewayMessage {
@@ -87,8 +92,19 @@ export interface ChatExecutionDependencies {
   conversationService?: ConversationService;
 }
 
-const CHAT_LIMIT_WINDOW_MS = 10 * 60 * 1_000;
 const inTenantTransaction = createTenantTransaction(withTenantTransaction);
+
+/**
+ * Chat bucket (§20.5). The window comes from USER_RATE_LIMIT_RULES; the max
+ * stays operator-tunable through AI_CHAT_LIMIT_PER_10_MINUTES (default 20), the
+ * same variable that drove the previous count of persisted user messages.
+ */
+export function chatRateLimitRule(): RateLimitRule {
+  return {
+    window: USER_RATE_LIMIT_RULES.chat.window,
+    max: numberSetting("AI_CHAT_LIMIT_PER_10_MINUTES", USER_RATE_LIMIT_RULES.chat.max, 1, 1_000),
+  };
+}
 
 async function reserveChatAndLoadHistory(
   context: RequestContext,
@@ -97,12 +113,22 @@ async function reserveChatAndLoadHistory(
   message: string,
   requestedProductId: string | null,
 ) {
-  const recent = await conversationService.countRecentUserMessages(
-    context,
-    new Date(Date.now() - CHAT_LIMIT_WINDOW_MS),
+  // Admission (§20.5) before any side effect of the turn: the bucket is atomic
+  // and shared by every instance, unlike the previous count of persisted user
+  // messages, which two concurrent turns could both pass. Denied turns burn no
+  // AI quota because this runs before the budget reservation.
+  const admission = await consumeRateLimitInTransaction(
+    context.transaction,
+    userRateLimitKey("chat", context.userId),
+    chatRateLimitRule(),
   );
-  const chatLimit = numberSetting("AI_CHAT_LIMIT_PER_10_MINUTES", 20, 1, 1_000);
-  if (recent >= chatLimit) throw new ApplicationError("RATE_LIMIT");
+  if (!admission.allowed) {
+    logJson("warn", "ai.chat_rate_limited", {
+      bucket: "chat",
+      retryAfterSeconds: admission.retryAfter,
+    });
+    throw new ApplicationError("RATE_LIMIT");
+  }
 
   const chatReserved = await budgetLedger.reserveChatInTransaction(
     context.transaction,

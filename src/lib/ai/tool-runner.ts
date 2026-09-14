@@ -7,6 +7,8 @@ import type { RequestContext } from "@/lib/request-context";
 import { logJson } from "@/lib/structured-logger";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import { auditService } from "@/server/services/audit.service";
+import { USER_RATE_LIMIT_RULES, userRateLimitKey } from "@/server/auth/rate-limit-rules.server";
+import { consumeRateLimitInTransaction } from "@/server/auth/rate-limit-storage.server";
 import {
   TOOL_REGISTRY,
   toolExecutionOutputSchema,
@@ -240,6 +242,19 @@ export async function runRegisteredTool(options: {
       ...trace,
     });
     return publicFailure("AUTHORIZATION_ERROR");
+  }
+
+  // Admission (§20.5) after Zod+AuthZ and before the idempotency claim: a
+  // denied call must not occupy the (tenant, user, operation, key) row, or the
+  // retry would replay it as if it had been accepted.
+  const admission = await consumeRateLimitInTransaction(
+    context.transaction,
+    userRateLimitKey("tool", context.userId),
+    USER_RATE_LIMIT_RULES.tool,
+  );
+  if (!admission.allowed) {
+    await persistRejected(context, name, hash, "RATE_LIMIT", startedAt, { input, ...trace });
+    return publicFailure("RATE_LIMIT");
   }
 
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1_000);

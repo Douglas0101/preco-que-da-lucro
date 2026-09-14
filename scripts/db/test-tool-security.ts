@@ -5,6 +5,7 @@ import { Pool } from "pg";
 import * as schema from "../../src/db/schema";
 import { runRegisteredTool } from "../../src/lib/ai/tool-runner";
 import type { RequestContext } from "../../src/lib/request-context";
+import { userRateLimitKey } from "../../src/server/auth/rate-limit-rules.server";
 import { ensureRuntimeRoleMembership, requireAdminUrl } from "./migrate";
 
 const userId = "71000000-0000-4000-8000-000000000001";
@@ -20,6 +21,10 @@ async function main(): Promise<void> {
   const database = drizzle({ client: pool, schema });
   try {
     await ensureRuntimeRoleMembership(pool);
+    // §20.5: as 12 chamadas deste script consomem o bucket `tool|<userId>`
+    // (40/10 min) com userId fixo; sem limpar, a 5ª execução dentro da mesma
+    // janela seria recusada com RATE_LIMIT em vez de exercitar o runner.
+    await pool.query(`delete from rate_limits where key = $1`, [userRateLimitKey("tool", userId)]);
     await pool.query(
       `insert into users (id, name, email, email_verified) values
         ($1, 'Tool User', 'tool-user@example.test', true),

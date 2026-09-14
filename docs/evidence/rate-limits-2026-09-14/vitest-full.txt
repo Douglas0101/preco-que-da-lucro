@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-onda3-ratelimit
+
+
+ Test Files  65 passed (65)
+      Tests  587 passed (587)
+   Start at  12:27:40
+   Duration  57.65s (transform 3.51s, setup 12.75s, import 38.75s, tests 24.02s, environment 78.38s)
+

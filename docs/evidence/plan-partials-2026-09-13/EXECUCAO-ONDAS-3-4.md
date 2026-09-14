@@ -12,6 +12,38 @@
 
 ## 2. Detalhe por integração
 
+### I-O20 — §20.5 rate limits atômicos para chat e tool
+
+**Entrega:** `consumeRateLimitInTransaction` extraído em `rate-limit-storage.server.ts` (o `consume` de auth vira wrapper fino, com **mesmo SQL e mesmo `now`** — semântica de auth preservada); `USER_RATE_LIMIT_RULES` + `userRateLimitKey`; regra **chat `{600, 20}`** chave `chat|<userId>` consumida como **primeira** instrução de `reserveChatAndLoadHistory`; regra **tool `{600, 40}`** chave `tool|<userId>` em `runRegisteredTool` **após** Zod+AuthZ e **antes** do claim de idempotência; exports documentados como **N/A** com condição de reabertura.
+
+**Um único limitador (o requisito que mais importava):** o limitador por contagem (`countRecentUserMessages` + `CHAT_LIMIT_WINDOW_MS`) **deixou de ser o caminho de chat** — `CHAT_LIMIT_WINDOW_MS` tem **zero** ocorrências — e `AI_CHAT_LIMIT_PER_10_MINUTES` passou a ser o **max** da regra com a janela vindo do módulo de regras. Não restaram dois limitadores concorrentes.
+
+**Divergência ADR-021 × SDD:** o default implementado (20/600 s) foi tratado como fonte de verdade e o **SDD foi alinhado** (linha de chat → "20 turnos por 10 min/usuário"; linha de tools ganha "40 execuções por 10 min/usuário"). **Nenhum limite numérico foi alterado** para acomodar texto obsoleto — exatamente como o briefing exigia.
+
+**Prova de atomicidade — REPRODUZIDA PELO SUPERVISOR, não aceita do relato.** Rodei sob o token DB:
+
+| bucket | concorrência | instâncias | admitidas | recusadas | contador persistido | linhas | retryAfter |
+| ------ | ------------ | ---------- | --------- | --------- | ------------------- | ------ | ---------- |
+| chat   | 25           | 2          | **20**    | 5         | 20                  | 1      | 600–601 s  |
+| tool   | 50           | 2          | **40**    | 10        | 40                  | 1      | 600–601 s  |
+
+Ou seja: exatamente `max` admitidas, contador exato, **uma** linha por bucket, entre **duas instâncias** (2 pools) — a atomicidade distribuída é real. O operador entregou também uma prova de wiring contra Postgres real: 12 chamadas a `runRegisteredTool` → exatamente **6** consumos de bucket (as outras 6 recusadas antes da admissão por Zod/AuthZ), o que mostra que o script é hermético dentro da janela.
+
+**Ordem de admissão (o ponto sutil):** recusar **depois** do claim de idempotência faria a chamada negada **ocupar** a linha `(tenant, user, operation, key)` e um retry seria reproduzido como se tivesse sido aceito. Os testes unitários provam: bucket negado ⇒ **0** inserções de idempotência; bucket permitido ⇒ **1**; e nenhum efeito colateral roda antes da admissão do chat.
+
+**Manifest do supervisor:** `scripts/db/test-rate-limit-burst.ts` estava fora do `db:test` (o operador não pode tocar `package.json`) — **encadeei como 11º passo**, então a prova de atomicidade passa a rodar em todo `db:test`.
+
+**Higiene do S (política consistente):** `format:check` falhava **apenas** no JSON de evidência `burst.json` → formatado. Três sítios de `as unknown as` apontados pelo hook eram **pré-existentes** (`pre-HEAD=1, post=1`) em arquivos que o operador tocou por outro motivo → documentados com comentário `SAFETY:` (comportamento zero alterado). E o `sanitizeJson` que retornava `unknown`: a regra tinha razão, então **tipifiquei** com o tipo recursivo `SanitizedJson`, derivado do próprio corpo da função — mudança **type-only**, e o parse do schema no call-site segue como fonte de verdade do tipo de domínio.
+
+**Sobre os `[line-length]` da matriz (recusados com argumento):** são **pré-existentes** (provei: **9 linhas >80 chars no HEAD pré-merge e 9 agora**) e estão num arquivo **gerado**. Editá-lo à mão **quebraria** o `m02:matrix:check`, que exige o YAML commitado byte-idêntico à saída do gerador — reformatar seria ativamente errado. A regra de line-length não está no `eslint.config.js` nem no prettier do repo (ambos passam). Registrado como advisory, não como dívida.
+
+**Gates do S:** 23 testes locais (3 arquivos), burst exit 0 reproduzido, typecheck/eslint/format/matriz/boundaries limpos.
+
+**Follow-ups abertos por este item (rastreados, não bloqueantes):**
+
+1. **O 429 não envia `Retry-After`** embora o SDD o prometa; a regra já devolve `retryAfter`, mas quem monta a resposta (`chat.functions.ts`/rota) estava **reservado** para o F2C-1 — o cabeçalho fica para quando esse arquivo for tocado.
+2. **`countRecentUserMessages` ficou sem uso em runtime** (segue no repository/service com testes próprios): remover ou manter deliberadamente é decisão de limpeza, declarada pelo próprio operador.
+
 ### I-O19 — §18.5 skeletons de carregamento nas quatro rotas
 
 **Entrega:** componente novo `src/components/loading-skeleton.tsx` concentrando o contrato de a11y num único lugar (`role="status"` + `sr-only` "Carregando..." **fora** do bloco `aria-hidden` — se ficasse dentro, o leitor de tela o suprimiria), e skeletons com **geometria real** nas quatro rotas que tinham **zero** `Skeleton`: `inicio` (grade KPI `md:2 lg:4`), `produtos` (lista de cards `grid gap-3`), `ponto-equilibrio` (seleção `md:2` + métricas `md:3` + break-even), `diagnostico` (grade `md:2 xl:5` + reuso de `DiagnosticoDataSkeleton`). `MetricCard` **intocado** (aditivo, para o §18.3 poder adicionar o slot `explain`) e `simulacoes.tsx` **intocado**.

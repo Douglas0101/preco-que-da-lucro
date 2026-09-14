@@ -10,7 +10,7 @@
     "createServerFnDeclarations": 32,
     "concreteOperations": 36,
     "apiRoutes": 4,
-    "transactionSites": 98,
+    "transactionSites": 100,
     "directDatabaseFiles": 42
   },
   "bffs": [
@@ -649,67 +649,79 @@
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 93,
+      "line": 95,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 162,
+      "line": 164,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 176,
+      "line": 178,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 246,
+      "line": 251,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 270,
+      "line": 261,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 290,
+      "line": 285,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 321,
+      "line": 305,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 325,
+      "line": 336,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 346,
+      "line": 340,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 355,
+      "line": 361,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/ai/tool-runner.ts",
+      "line": 370,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 108,
+      "line": 121,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/chat-execution.server.ts",
+      "line": 134,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
