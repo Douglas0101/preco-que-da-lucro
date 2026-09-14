@@ -6,7 +6,14 @@ import {
   InMemorySpanExporter,
   SimpleSpanProcessor,
 } from "@opentelemetry/sdk-trace-base";
-import { instrumentPoolRoundTrips } from "@/db/client.server";
+import {
+  instrumentPoolRoundTrips,
+  setDatabaseForTests,
+  TenantMembershipDeniedError,
+  withResolvedTenantTransaction,
+  withTenantTransaction,
+  type Database,
+} from "@/db/client.server";
 import { SQL_REDACTION_MAX_LENGTH } from "@/instrumentation/sql-redactor";
 import {
   aggregatePoolSnapshots,
@@ -166,6 +173,7 @@ function recordingObservable() {
 afterEach(() => {
   for (const unregister of unregisters.splice(0)) unregister();
   spanExporter.reset();
+  setDatabaseForTests(undefined);
   vi.restoreAllMocks();
 });
 
@@ -571,5 +579,190 @@ describe("B2A-3: métrica nunca derruba a query", () => {
     expect(thrown).toBeUndefined();
     expect(received).toEqual([undefined, { rows: [] }]);
     expect(querySpans()).toHaveLength(1);
+  });
+});
+
+describe("B2A-5: métricas de transação e de checkout nunca quebram o caminho", () => {
+  const IDENTITY = { userId: "user-1", tenantId: "tenant-1", roles: ["owner"] };
+
+  /** Um `record` que lança não pode rejeitar transação já commitada nem trocar
+   * o erro real (inclusive `TenantMembershipDeniedError`). */
+  function throwOnRecord(histogram: { record: (value: number) => void }, message: string) {
+    vi.spyOn(histogram, "record").mockImplementation(() => {
+      throw new Error(message);
+    });
+  }
+
+  function recordCalls(histogram: { record: (value: number) => void }) {
+    const records: Array<{ value: number; attributes: Record<string, unknown> }> = [];
+    vi.spyOn(histogram, "record").mockImplementation(
+      (value: number, attributes?: Record<string, unknown>) => {
+        records.push({ value, attributes: attributes ?? {} });
+      },
+    );
+    return records;
+  }
+
+  /** Mímica mínima do `db.transaction` do drizzle: só o `execute` que aplica os
+   * GUCs, sem PostgreSQL. */
+  function createTransactionDatabase() {
+    const statements: unknown[] = [];
+    const database = {
+      transaction: async <T>(
+        callback: (transaction: {
+          execute: (fragment: unknown) => Promise<{ rows: unknown[] }>;
+        }) => Promise<T>,
+      ): Promise<T> =>
+        callback({
+          execute: async (fragment: unknown) => {
+            statements.push(fragment);
+            return { rows: [] };
+          },
+        }),
+    };
+    return { database: database as unknown as Database, statements };
+  }
+
+  /** Mímica do `pg.Pool` com contabilidade de aquisição/liberação: o `connect`
+   * entrega o cliente de forma assíncrona, como o `pg-pool` faz, e o callback
+   * roda fora de qualquer try/catch do pool — um throw ali vira
+   * `uncaughtException` com o cliente preso fora do pool. Aqui o escape é
+   * registrado para a falha virar asserção em vez de derrubar a suíte. */
+  function createAccountingPool(client: FakeQueryClient) {
+    const escapes: unknown[] = [];
+    const state = { total: 1, idle: 1 };
+    const pool = {
+      get totalCount() {
+        return state.total;
+      },
+      get idleCount() {
+        return state.idle;
+      },
+      waitingCount: 0,
+      options: { max: 1 },
+      connect(cb?: (error: unknown, pooledClient: unknown, release: () => void) => void) {
+        if (!cb) return Promise.resolve(client);
+        setTimeout(() => {
+          state.idle = 0;
+          try {
+            cb(undefined, client, () => {
+              state.idle += 1;
+            });
+          } catch (error) {
+            escapes.push(error);
+          }
+        }, 0);
+        return undefined;
+      },
+      query(
+        text: unknown,
+        valuesOrCallback?: unknown,
+        maybeCallback?: unknown,
+      ): Promise<unknown> | undefined {
+        const callback =
+          typeof valuesOrCallback === "function"
+            ? (valuesOrCallback as (error: unknown, result: unknown) => void)
+            : (maybeCallback as ((error: unknown, result: unknown) => void) | undefined);
+        const values = typeof valuesOrCallback === "function" ? undefined : valuesOrCallback;
+        if (callback) {
+          this.connect((error: unknown, pooledClient: unknown, release: () => void) => {
+            if (error) return callback(error, undefined);
+            (pooledClient as FakeQueryClient).query(
+              text,
+              values,
+              (queryError: unknown, result: unknown) => {
+                release();
+                callback(queryError, result);
+              },
+            );
+          });
+          return undefined;
+        }
+        return new Promise<unknown>((resolve, reject) => {
+          this.connect((error: unknown, pooledClient: unknown, release: () => void) => {
+            if (error) return reject(error);
+            (pooledClient as FakeQueryClient).query(
+              text,
+              values,
+              (queryError: unknown, result: unknown) => {
+                release();
+                return queryError ? reject(queryError) : resolve(result);
+              },
+            );
+          });
+        });
+      },
+    };
+    return { pool, escapes };
+  }
+
+  it("(a) um dbDuration.record que lança não rejeita uma transação que já teve sucesso", async () => {
+    const { database, statements } = createTransactionDatabase();
+    setDatabaseForTests(database);
+    throwOnRecord(applicationMetrics.dbDuration, "dbDuration boom");
+
+    await expect(withTenantTransaction(IDENTITY, async () => "ok")).resolves.toBe("ok");
+    expect(statements).toHaveLength(1);
+  });
+
+  it("(b) um dbDuration.record que lança não substitui o erro real da operação", async () => {
+    const { database } = createTransactionDatabase();
+    setDatabaseForTests(database);
+    throwOnRecord(applicationMetrics.dbDuration, "dbDuration boom");
+
+    await expect(
+      withTenantTransaction(IDENTITY, async () => {
+        throw new Error("db exploded");
+      }),
+    ).rejects.toThrow("db exploded");
+  });
+
+  it("(c) um dbDuration.record que lança não engole TenantMembershipDeniedError", async () => {
+    const { database } = createTransactionDatabase();
+    setDatabaseForTests(database);
+    throwOnRecord(applicationMetrics.dbDuration, "dbDuration boom");
+
+    await expect(
+      withResolvedTenantTransaction(
+        "user-1",
+        async () => undefined,
+        async () => "ok",
+      ),
+    ).rejects.toBeInstanceOf(TenantMembershipDeniedError);
+  });
+
+  it("(d) um dbPoolWaitTime.record que lança não pendura pool.query nem esgota o pool", async () => {
+    throwOnRecord(applicationMetrics.dbPoolWaitTime, "pool wait boom");
+    const queries: unknown[][] = [];
+    const { pool, escapes } = createAccountingPool(recordingClient(queries));
+    const handle = instrumentPoolRoundTrips(pool, "node-postgres");
+    if (handle) unregisters.push(handle.unregister);
+    const pending = pool.query("select 1");
+    if (!pending) throw new Error("pool.query sem callback precisa devolver uma promise");
+
+    const settled = await Promise.race([
+      pending.then(
+        () => "settled" as const,
+        () => "settled" as const,
+      ),
+      new Promise<"timeout">((resolve) => setTimeout(() => resolve("timeout"), 300)),
+    ]);
+
+    expect(settled).toBe("settled");
+    expect(escapes).toEqual([]);
+    expect({ total: pool.totalCount, idle: pool.idleCount }).toEqual({ total: 1, idle: 1 });
+    expect(queries).toHaveLength(1);
+  });
+
+  it("registra app.db.duration com o mesmo valor/atributos quando o record é sadio", async () => {
+    const { database } = createTransactionDatabase();
+    setDatabaseForTests(database);
+    const records = recordCalls(applicationMetrics.dbDuration);
+
+    await withTenantTransaction(IDENTITY, async () => "ok");
+
+    expect(records).toHaveLength(1);
+    expect(records[0].value).toBeGreaterThanOrEqual(0);
+    expect(records[0].attributes).toEqual({});
   });
 });

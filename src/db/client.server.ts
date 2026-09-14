@@ -129,7 +129,7 @@ export async function withTenantTransaction<T>(
         }),
     );
   } finally {
-    applicationMetrics.dbDuration.record(performance.now() - startedAt);
+    recordTransactionDuration(performance.now() - startedAt);
   }
 }
 
@@ -163,7 +163,7 @@ export async function withResolvedTenantTransaction<T>(
       }),
     );
   } finally {
-    applicationMetrics.dbDuration.record(performance.now() - startedAt);
+    recordTransactionDuration(performance.now() - startedAt);
   }
 }
 
@@ -230,6 +230,29 @@ function recordQueryDuration(operation: string, durationMs: number): void {
       "db.operation.name": operation,
       "db.system.name": "postgresql",
     });
+  } catch {
+    // Observabilidade nunca quebra o caminho da request.
+  }
+}
+
+/** Métrica de duração de `db.tenant_transaction`: um `record` que lança no
+ * `finally` não pode rejeitar uma transação já commitada nem substituir o erro
+ * real (inclusive `TenantMembershipDeniedError`). */
+function recordTransactionDuration(durationMs: number): void {
+  try {
+    applicationMetrics.dbDuration.record(durationMs);
+  } catch {
+    // Observabilidade nunca quebra o caminho da request.
+  }
+}
+
+/** Métrica de espera por cliente do pool: o `pg-pool` invoca o callback de
+ * `connect` sem try/catch, então um `record` que lança viraria
+ * `uncaughtException` e deixaria o cliente preso fora do pool — a query nunca
+ * assenta e o pool esgota. */
+function recordPoolWait(durationMs: number, driver: string): void {
+  try {
+    applicationMetrics.dbPoolWaitTime.record(durationMs, { driver });
   } catch {
     // Observabilidade nunca quebra o caminho da request.
   }
@@ -388,9 +411,7 @@ export function instrumentPoolRoundTrips(
     const recordWait = () => {
       if (waitRecorded) return;
       waitRecorded = true;
-      applicationMetrics.dbPoolWaitTime.record(performance.now() - startedAt, {
-        driver: driverLabel,
-      });
+      recordPoolWait(performance.now() - startedAt, driverLabel);
     };
     const callbackIndex = connectArgs.findIndex((argument) => typeof argument === "function");
     if (callbackIndex >= 0) {
