@@ -1,0 +1,88 @@
+# post-fix: touched suites
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-onda2-finmetrics
+
+
+ Test Files  2 passed (2)
+      Tests  14 passed (14)
+   Start at  00:33:26
+   Duration  2.04s (transform 357ms, setup 243ms, import 1.30s, tests 49ms, environment 1.29s)
+
+
+# post-fix: regression suites touching product-read-model / dashboard / diagnostic / simulation
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-onda2-finmetrics
+
+
+ Test Files  10 passed (10)
+      Tests  63 passed (63)
+   Start at  00:33:29
+   Duration  9.35s (transform 1.38s, setup 1.27s, import 12.16s, tests 397ms, environment 9.52s)
+
+
+# post-fix run 3 — full unit suite (`npx vitest run --reporter=verbose`)
+src/test/ai-endpoint.server.test.ts
+src/test/ai-estimated-cost.test.ts
+src/test/ai-tool.repository.security.test.ts
+src/test/api-error-contract.test.ts
+src/test/api-error-logger.test.ts
+src/test/audit.service.test.ts
+src/test/auth-policy.test.ts
+src/test/bff-create-update-contract.test.ts
+src/test/break-even.parity.test.ts
+src/test/break-even.service.test.ts
+src/test/chat-fsm.server.test.ts
+src/test/chat-fsm.test.ts
+src/test/chat-markdown.test.tsx
+src/test/contracts.test.ts
+src/test/conversation.service.test.ts
+src/test/cross-tenant-denial.perf-waves.test.ts
+src/test/dashboard.service.test.ts
+src/test/finance.boundaries.test.ts
+src/test/finance.golden.test.ts
+src/test/finance.properties.test.ts
+src/test/finance.required-sales.test.ts
+src/test/financial-metrics.test.ts
+src/test/financial.service.test.ts
+src/test/financial-values.test.ts
+src/test/format.test.ts
+src/test/list-limits.test.ts
+src/test/m02-backup-verify.test.ts
+src/test/m02-cutover-t0.test.ts
+src/test/m02-grant-repair.test.ts
+src/test/m02-purge-fixtures.test.ts
+src/test/m02-readiness-snapshot.test.ts
+src/test/m02-role-membership.test.ts
+src/test/m02-secrets-audit.test.ts
+src/test/m02-snapshot.test.ts
+src/test/m02-v2b.test.ts
+src/test/migration-classes.test.ts
+src/test/migration-reconcile.test.ts
+src/test/model-gateway.test.ts
+src/test/observability-spans.test.ts
+src/test/optimistic-version.repository.test.ts
+src/test/perf-evidence.test.ts
+src/test/perf-summarize.test.ts
+src/test/pricing.service.test.ts
+src/test/product-completeness.test.ts
+src/test/products-read-models.golden.perf-waves.test.ts
+src/test/purchase-price.service.test.ts
+src/test/query-performance.test.ts
+src/test/rate-limit-rules.test.ts
+src/test/request-context.test.ts
+src/test/rls-probe-contract.test.ts
+src/test/rls-probe-errors.test.ts
+src/test/round-trip-instrumentation.perf-waves.test.ts
+src/test/sales.service.test.ts
+src/test/simulation-race.test.tsx
+src/test/simulation.service.test.ts
+src/test/snapshot-idempotency.test.ts
+src/test/sql-redactor.test.ts
+src/test/tool-registry.test.ts
+src/test/tool-runner.persistence.test.ts
+src/test/ui-stack.test.tsx
+src/test/web-vitals-payload.test.ts
+
+ Test Files  61 passed (61)
+      Tests  531 passed (531)
+   Duration  54.37s (transform 3.17s, setup 10.38s, import 37.27s, tests 20.70s, environment 73.41s)

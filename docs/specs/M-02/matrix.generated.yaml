@@ -11,7 +11,7 @@
     "concreteOperations": 36,
     "apiRoutes": 4,
     "transactionSites": 98,
-    "directDatabaseFiles": 40
+    "directDatabaseFiles": 41
   },
   "bffs": [
     {
@@ -312,7 +312,7 @@
       "operations": [
         {
           "name": "listProducts",
-          "line": 494,
+          "line": 492,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -320,7 +320,7 @@
         },
         {
           "name": "listProductsWithMetrics",
-          "line": 502,
+          "line": 500,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -328,7 +328,7 @@
         },
         {
           "name": "getProduct",
-          "line": 508,
+          "line": 506,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -336,7 +336,7 @@
         },
         {
           "name": "createProduct",
-          "line": 599,
+          "line": 597,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -344,7 +344,7 @@
         },
         {
           "name": "updateProduct",
-          "line": 604,
+          "line": 602,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -352,7 +352,7 @@
         },
         {
           "name": "upsertProduct",
-          "line": 610,
+          "line": 608,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -360,7 +360,7 @@
         },
         {
           "name": "archiveProduct",
-          "line": 619,
+          "line": 617,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -368,7 +368,7 @@
         },
         {
           "name": "deleteProduct",
-          "line": 629,
+          "line": 627,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -376,7 +376,7 @@
         },
         {
           "name": "upsertIngredient",
-          "line": 662,
+          "line": 660,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -384,7 +384,7 @@
         },
         {
           "name": "deleteIngredient",
-          "line": 739,
+          "line": 737,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -392,7 +392,7 @@
         },
         {
           "name": "upsertPackaging",
-          "line": 749,
+          "line": 747,
           "declaration": "createServerFn",
           "service": "ProductService/PricingService",
           "repository": "ProductCatalogRepository + PriceRepository",
@@ -400,7 +400,7 @@
         },
         {
           "name": "deletePackaging",
-          "line": 786,
+          "line": 784,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -408,7 +408,7 @@
         },
         {
           "name": "upsertFee",
-          "line": 795,
+          "line": 793,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -416,7 +416,7 @@
         },
         {
           "name": "deleteFee",
-          "line": 820,
+          "line": 818,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -424,7 +424,7 @@
         },
         {
           "name": "setMarketPrice",
-          "line": 829,
+          "line": 827,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "MarketPriceRepository",
@@ -432,7 +432,7 @@
         },
         {
           "name": "getProductMetrics",
-          "line": 850,
+          "line": 848,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -440,7 +440,7 @@
         },
         {
           "name": "listPurchasePrices",
-          "line": 862,
+          "line": 860,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -448,7 +448,7 @@
         },
         {
           "name": "updatePurchasePrice",
-          "line": 897,
+          "line": 895,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "PriceRepository",
@@ -457,7 +457,6 @@
       ],
       "imports": [
         "@/db/schema",
-        "@/instrumentation/telemetry",
         "@/lib/api-error",
         "@/lib/finance",
         "@/lib/financial-values",
@@ -716,121 +715,121 @@
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 172,
+      "line": 170,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 173,
+      "line": 171,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 183,
+      "line": 181,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 193,
+      "line": 191,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 198,
+      "line": 196,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 275,
+      "line": 273,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 317,
+      "line": 315,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 354,
+      "line": 352,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 385,
+      "line": 383,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 419,
+      "line": 417,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 436,
+      "line": 434,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 685,
+      "line": 683,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 695,
+      "line": 693,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 721,
+      "line": 719,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 766,
+      "line": 764,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 773,
+      "line": 771,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 810,
+      "line": 808,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 815,
+      "line": 813,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 835,
+      "line": 833,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 866,
+      "line": 864,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
@@ -1215,6 +1214,7 @@
     "src/test/ai-estimated-cost.test.ts",
     "src/test/audit.service.test.ts",
     "src/test/cross-tenant-denial.perf-waves.test.ts",
+    "src/test/financial-metrics.test.ts",
     "src/test/m02-backup-verify.test.ts",
     "src/test/m02-grant-repair.test.ts",
     "src/test/m02-purge-fixtures.test.ts",

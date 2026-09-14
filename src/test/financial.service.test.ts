@@ -48,8 +48,73 @@ describe("financial simulation BFF contract", () => {
       volumeSource: "unknown",
     });
 
-    expect(add).toHaveBeenCalledTimes(2);
-    expect(add).toHaveBeenCalledWith(1, { version: FINANCE_ENGINE_VERSION });
+    const versionCalls = add.mock.calls.filter(
+      ([, attributes]) => attributes !== undefined && "version" in attributes,
+    );
+    expect(versionCalls).toEqual([
+      [1, { version: FINANCE_ENGINE_VERSION }],
+      [1, { version: FINANCE_ENGINE_VERSION }],
+    ]);
+  });
+
+  it("registra estado e versão do motor em todos os caminhos, inclusive volume real", () => {
+    const add = vi.spyOn(applicationMetrics.financialStates, "add");
+
+    runFinancialSimulation({
+      price: "20",
+      unitCost: "5",
+      taxRate: "10",
+      fees: [],
+      fixedExpenses: "101",
+      volume: "10.1",
+      volumeSource: "manual_simulation",
+    });
+    runFinancialSimulation({
+      price: null,
+      unitCost: null,
+      taxRate: null,
+      fees: [],
+      fixedExpenses: null,
+      volume: null,
+      volumeSource: "unknown",
+    });
+    runFinancialSimulation({
+      price: "NaN",
+      unitCost: "5",
+      taxRate: "10",
+      fees: [],
+      fixedExpenses: "101",
+      volume: "10",
+      volumeSource: "manual_simulation",
+    });
+    runFinancialSimulation({
+      price: "20",
+      unitCost: "5",
+      taxRate: "0",
+      fees: [],
+      fixedExpenses: "100",
+      volume: "10",
+      volumeSource: "real",
+    });
+
+    const stateCalls = add.mock.calls.filter(
+      ([, attributes]) => attributes !== undefined && "state" in attributes,
+    );
+    const versionCalls = add.mock.calls.filter(
+      ([, attributes]) => attributes !== undefined && "version" in attributes,
+    );
+    expect(stateCalls).toEqual([
+      [1, { state: "ok", engine_version: FINANCE_ENGINE_VERSION }],
+      [1, { state: "incomplete", engine_version: FINANCE_ENGINE_VERSION }],
+      [1, { state: "invalid", engine_version: FINANCE_ENGINE_VERSION }],
+      [1, { state: "invalid", engine_version: FINANCE_ENGINE_VERSION }],
+    ]);
+    expect(versionCalls).toEqual([
+      [1, { version: FINANCE_ENGINE_VERSION }],
+      [1, { version: FINANCE_ENGINE_VERSION }],
+      [1, { version: FINANCE_ENGINE_VERSION }],
+      [1, { version: FINANCE_ENGINE_VERSION }],
+    ]);
   });
 
   it("mantém unknown como incomplete e entradas não finitas como invalid", () => {

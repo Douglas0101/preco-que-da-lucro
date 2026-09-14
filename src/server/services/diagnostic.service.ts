@@ -214,7 +214,6 @@ export async function getDiagnostic(
     engineVersion: FINANCE_ENGINE_VERSION,
   };
 
-  applicationMetrics.financialStates.add(1, { state: currentResult.status });
   applicationMetrics.diagnosticCalculationTotal.add(1, { status: currentResult.status });
   await recordDiagnosticSnapshots(context, input, view);
   return view;

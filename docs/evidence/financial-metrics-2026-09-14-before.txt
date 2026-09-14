@@ -1,0 +1,109 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-onda2-finmetrics
+
+ ❯ src/test/financial-metrics.test.ts (9 tests | 3 failed) 47ms
+     × emite um único estado por view, no choke point do read model 10ms
+     × emite um único estado invalid quando o cálculo do produto é inválido 3ms
+     × conta o status da view em app.diagnostic.calculation_total, não no estado do read model 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/financial-metrics.test.ts > app.financial.states no diagnóstico > emite um único estado por view, no choke point do read model
+AssertionError: expected [ [ 1, { state: 'ok', …(1) } ], …(1) ] to deeply equal [ [ 1, { state: 'ok', …(1) } ] ]
+
+- Expected
++ Received
+
+@@ -4,6 +4,13 @@
+      {
+        "engine_version": "finance-engine/2.0.0",
+        "state": "ok",
+      },
+    ],
++   [
++     1,
++     {
++       "engine_version": "finance-engine/2.0.0",
++       "state": "ok",
++     },
++   ],
+  ]
+
+ ❯ src/test/financial-metrics.test.ts:427:40
+    425|     expect(view.currentStatus).toBe("ok");
+    426|     expect(view.engineVersion).toBe(FINANCE_ENGINE_VERSION);
+    427|     expect(callsWith(states, "state")).toEqual([
+       |                                        ^
+    428|       [1, { state: "ok", engine_version: FINANCE_ENGINE_VERSION }],
+    429|     ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/test/financial-metrics.test.ts > app.financial.states no diagnóstico > emite um único estado invalid quando o cálculo do produto é inválido
+AssertionError: expected [ …(2) ] to deeply equal [ [ 1, { state: 'invalid', …(1) } ] ]
+
+- Expected
++ Received
+
+@@ -4,6 +4,13 @@
+      {
+        "engine_version": "finance-engine/2.0.0",
+        "state": "invalid",
+      },
+    ],
++   [
++     1,
++     {
++       "engine_version": "finance-engine/2.0.0",
++       "state": "invalid",
++     },
++   ],
+  ]
+
+ ❯ src/test/financial-metrics.test.ts:443:40
+    441|
+    442|     expect(view.currentStatus).toBe("invalid");
+    443|     expect(callsWith(states, "state")).toEqual([
+       |                                        ^
+    444|       [1, { state: "invalid", engine_version: FINANCE_ENGINE_VERSION }…
+    445|     ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/test/financial-metrics.test.ts > app.financial.states no diagnóstico > conta o status da view em app.diagnostic.calculation_total, não no estado do read model
+AssertionError: expected [ [ 1, { state: 'ok', …(1) } ], …(1) ] to deeply equal [ [ 1, { state: 'ok', …(1) } ] ]
+
+- Expected
++ Received
+
+@@ -4,6 +4,13 @@
+      {
+        "engine_version": "finance-engine/2.0.0",
+        "state": "ok",
+      },
+    ],
++   [
++     1,
++     {
++       "engine_version": "finance-engine/2.0.0",
++       "state": "invalid",
++     },
++   ],
+  ]
+
+ ❯ src/test/financial-metrics.test.ts:462:40
+    460|     // invalid porque `fixedExpenses` não é numérico.
+    461|     expect(view.currentStatus).toBe("invalid");
+    462|     expect(callsWith(states, "state")).toEqual([
+       |                                        ^
+    463|       [1, { state: "ok", engine_version: FINANCE_ENGINE_VERSION }],
+    464|     ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  3 failed | 11 passed (14)
+   Start at  00:33:04
+   Duration  2.32s (transform 436ms, setup 260ms, import 1.52s, tests 57ms, environment 1.42s)
+
