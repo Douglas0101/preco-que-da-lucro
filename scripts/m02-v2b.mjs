@@ -26,6 +26,14 @@ import { Client } from "pg";
 
 const GUARD_FILE = "docs/specs/M-02/emenda-2026-09-07-env-guard.md";
 const DEFAULT_PROJECT_ID = "damp-forest-57346541";
+// NORMA §12.4 (modelo de branch: production → develop → preview/pr-<n>): este
+// default aponta para production (`br-snowy-violet-aymcvvvv`, read-only) porque
+// o V2b é o ensaio aposentado de cutover e copia o primeiro elo da cadeia — a
+// cópia é descartável e o parent nunca é alvo de escrita. A escolha do parent é
+// parâmetro explícito: `NEON_PARENT_BRANCH_ID` (ver main()) tem precedência, e
+// qualquer execução nova deve passá-lo (ex.: o id da branch develop,
+// `br-small-hill-aymcu14y`) em vez de herdar este default. O workflow §12.4
+// (`neon-pr-branch.yml`) aplica a mesma norma via `github.base_ref`.
 const DEFAULT_PARENT_BRANCH_ID = "br-snowy-violet-aymcvvvv"; // production (id, não nome)
 const DB_NAME = "neondb";
 const ROLE_NAME = "neondb_owner";
