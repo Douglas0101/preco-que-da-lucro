@@ -9,7 +9,7 @@
     "bffModules": 8,
     "createServerFnDeclarations": 32,
     "concreteOperations": 36,
-    "apiRoutes": 4,
+    "apiRoutes": 5,
     "transactionSites": 98,
     "directDatabaseFiles": 42
   },
@@ -545,6 +545,18 @@
         "src/server/auth/rate-limit-storage.server.ts",
         "src/server/auth/tenant-bootstrap.server.ts"
       ]
+    },
+    {
+      "path": "src/routes/api/csp-report.ts",
+      "kind": "route",
+      "operations": [],
+      "imports": [
+        "@/lib/csp-report-payload",
+        "@/lib/structured-logger",
+        "@tanstack/react-router"
+      ],
+      "reachesDatabase": false,
+      "databasePaths": []
     },
     {
       "path": "src/routes/api/health/live.ts",

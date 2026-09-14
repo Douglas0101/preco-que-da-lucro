@@ -21,6 +21,7 @@ import { Route as AuthenticatedPrecosRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedProdutosRouteImport } from './routes/_authenticated/produtos'
 import { Route as AuthenticatedSimulacoesRouteImport } from './routes/_authenticated/simulacoes'
 import { Route as AuthenticatedVendasRouteImport } from './routes/_authenticated/vendas'
+import { Route as ApiCspReportRouteImport } from './routes/api/csp-report'
 import { Route as ApiVitalsRouteImport } from './routes/api/vitals'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiHealthLiveRouteImport } from './routes/api/health/live'
@@ -88,6 +89,11 @@ const AuthenticatedVendasRoute = AuthenticatedVendasRouteImport.update({
   path: '/vendas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiCspReportRoute = ApiCspReportRouteImport.update({
+  id: '/api/csp-report',
+  path: '/api/csp-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiVitalsRoute = ApiVitalsRouteImport.update({
   id: '/api/vitals',
   path: '/api/vitals',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/produtos': typeof AuthenticatedProdutosRoute
   '/simulacoes': typeof AuthenticatedSimulacoesRoute
   '/vendas': typeof AuthenticatedVendasRoute
+  '/api/csp-report': typeof ApiCspReportRoute
   '/api/vitals': typeof ApiVitalsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/health/live': typeof ApiHealthLiveRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/produtos': typeof AuthenticatedProdutosRoute
   '/simulacoes': typeof AuthenticatedSimulacoesRoute
   '/vendas': typeof AuthenticatedVendasRoute
+  '/api/csp-report': typeof ApiCspReportRoute
   '/api/vitals': typeof ApiVitalsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/health/live': typeof ApiHealthLiveRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/_authenticated/produtos': typeof AuthenticatedProdutosRoute
   '/_authenticated/simulacoes': typeof AuthenticatedSimulacoesRoute
   '/_authenticated/vendas': typeof AuthenticatedVendasRoute
+  '/api/csp-report': typeof ApiCspReportRoute
   '/api/vitals': typeof ApiVitalsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/health/live': typeof ApiHealthLiveRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/simulacoes'
     | '/vendas'
+    | '/api/csp-report'
     | '/api/vitals'
     | '/api/auth/$'
     | '/api/health/live'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/simulacoes'
     | '/vendas'
+    | '/api/csp-report'
     | '/api/vitals'
     | '/api/auth/$'
     | '/api/health/live'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/_authenticated/produtos'
     | '/_authenticated/simulacoes'
     | '/_authenticated/vendas'
+    | '/api/csp-report'
     | '/api/vitals'
     | '/api/auth/$'
     | '/api/health/live'
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiCspReportRoute: typeof ApiCspReportRoute
   ApiVitalsRoute: typeof ApiVitalsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiHealthLiveRoute: typeof ApiHealthLiveRoute
@@ -313,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/csp-report': {
+      id: '/api/csp-report'
+      path: '/api/csp-report'
+      fullPath: '/api/csp-report'
+      preLoaderRoute: typeof ApiCspReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/vitals': {
       id: '/api/vitals'
       path: '/api/vitals'
@@ -375,6 +395,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiCspReportRoute: ApiCspReportRoute,
   ApiVitalsRoute: ApiVitalsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiHealthLiveRoute: ApiHealthLiveRoute,

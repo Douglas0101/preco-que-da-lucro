@@ -55,7 +55,13 @@ test("public UI uses valid composed controls and has no serious a11y violations"
   await expect(page.getByRole("heading", { name: /entenda a faixa de preço/i })).toBeVisible();
   await expect(page.locator("a button, button a")).toHaveCount(0);
   expect(response).not.toBeNull();
-  expect(response?.headers()["content-security-policy-report-only"]).toContain("script-src 'self'");
+  const reportOnlyCsp = response?.headers()["content-security-policy-report-only"] ?? "";
+  expect(reportOnlyCsp).toContain("script-src 'self'");
+  expect(reportOnlyCsp).toContain("report-uri /api/csp-report");
+  expect(reportOnlyCsp).toContain("report-to csp-endpoint");
+  expect(response?.headers()["reporting-endpoints"]).toBe('csp-endpoint="/api/csp-report"');
+  // Sem CSP_ENFORCE o header de enforcement não existe — é o switch de rollback por env.
+  expect(response?.headers()["content-security-policy"]).toBeUndefined();
   expect(response?.headers()["x-content-type-options"]).toBe("nosniff");
 
   const startLink = page.getByRole("link", { name: /começar agora/i });
@@ -63,6 +69,24 @@ test("public UI uses valid composed controls and has no serious a11y violations"
   await expect(startLink).toBeFocused();
 
   await expectNoBlockingAxeViolations(page);
+});
+
+// O canal apontado por `report-uri` precisa existir de fato: apontar para uma rota
+// inexistente tornaria a coleta (e o gate de zero violações) silenciosamente vazia.
+test("the CSP report channel answers 204 for a violation report", async ({ request }) => {
+  const report = await request.post("/api/csp-report", {
+    headers: { "content-type": "application/csp-report" },
+    data: JSON.stringify({
+      "csp-report": {
+        "document-uri": "https://preview.invalid/inicio",
+        "effective-directive": "script-src",
+        "blocked-uri": "https://cdn.example/blocked.js",
+      },
+    }),
+  });
+
+  expect(report.status()).toBe(204);
+  expect(report.headers()["cache-control"]).toBe("no-store");
 });
 
 test("authentication controls keep accessible names", async ({ page, browserName }) => {
