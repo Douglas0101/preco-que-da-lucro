@@ -4,12 +4,14 @@
  *
  * Contrato:
  * - `$1`, `$2`, ... (placeholders) são preservados — `values` nunca é anexado;
- * - literais entre aspas simples (inclusive `''` escapado e prefixo `E'...'`)
- *   e dollar-quoted (`$tag$...$tag$`) viram `?`;
- * - identificadores entre aspas duplas são preservados;
- * - comentários `--` e `/* *\/` (aninhados) são removidos;
- * - o resultado é normalizado (espaços colapsados) e truncado em `maxLength`
- *   caracteres, com sufixo `...`;
+ * - literais entre aspas simples (`''` escapado; barra invertida escapa apenas
+ *   em `E'...'`/`e'...'`, como em `standard_conforming_strings=on`) e
+ *   dollar-quoted (`$tag$...$tag$`) viram `?`;
+ * - identificadores entre aspas duplas são preservados byte a byte (inclusive
+ *   espaços internos);
+ * - comentários `--` (até `\n` ou `\r`) e `/* *\/` (aninhados) são removidos;
+ * - o resultado é normalizado (espaços colapsados **fora** dos identificadores)
+ *   e truncado em `maxLength` caracteres, com sufixo `...`;
  * - a operação (`SELECT`, `INSERT`, ...) é derivada do texto redigido e cai
  *   para `QUERY` quando não reconhecida.
  */
@@ -81,13 +83,16 @@ function truncate(text: string, limit: number): string {
   return `${text.slice(0, limit - TRUNCATION_SUFFIX.length)}${TRUNCATION_SUFFIX}`;
 }
 
-/** Consome `'...'` (com `''` escapado; backslash também protege o próximo
- * caractere para não vazar o resto da query em strings `E'...'`). */
-function consumeSingleQuoted(sql: string, start: number): number {
+/** Consome `'...'`. Em literal comum (`standard_conforming_strings=on`, o
+ * default do PostgreSQL) só `''` escapa: a barra invertida é um caractere
+ * literal. Tratá-la como escape fazia o literal engolir a aspa seguinte e
+ * emitir o conteúdo do literal vizinho em `db.query.text`.
+ * `backslashEscapes` liga a semântica de `E'...'`/`e'...'`. */
+function consumeSingleQuoted(sql: string, start: number, backslashEscapes: boolean): number {
   let index = start + 1;
   while (index < sql.length) {
     const char = sql[index];
-    if (char === "\\" && index + 1 < sql.length) {
+    if (backslashEscapes && char === "\\" && index + 1 < sql.length) {
       index += 2;
       continue;
     }
@@ -101,6 +106,16 @@ function consumeSingleQuoted(sql: string, start: number): number {
     index += 1;
   }
   return sql.length;
+}
+
+/** Reconhece o prefixo `E'...'`/`e'...'` (string com escape por barra
+ * invertida). O `E` só conta como prefixo no início de uma palavra —
+ * `true'...'` não é uma string com escape. */
+function hasEscapeStringPrefix(sql: string, quoteIndex: number): boolean {
+  const prefix = sql[quoteIndex - 1];
+  if (prefix !== "e" && prefix !== "E") return false;
+  const before = quoteIndex >= 2 ? sql[quoteIndex - 2] : undefined;
+  return before === undefined || !/[A-Za-z0-9_$]/.test(before);
 }
 
 function consumeDoubleQuoted(sql: string, start: number): number {
@@ -120,7 +135,7 @@ function consumeDoubleQuoted(sql: string, start: number): number {
 
 function consumeLineComment(sql: string, start: number): number {
   let index = start + 2;
-  while (index < sql.length && sql[index] !== "\n") index += 1;
+  while (index < sql.length && sql[index] !== "\n" && sql[index] !== "\r") index += 1;
   return index;
 }
 
@@ -160,47 +175,60 @@ function consumeDollarQuoted(sql: string, start: number, delimiter: string): num
   return end < 0 ? sql.length : end + delimiter.length;
 }
 
-/** Redige um SQL: literais/comentários fora, espaços colapsados, truncado. */
+/** Redige um SQL: literais/comentários fora, espaços colapsados fora dos
+ * identificadores entre aspas duplas, truncado. */
 export function redactSqlText(sql: string, maxLength = SQL_REDACTION_MAX_LENGTH): string {
   if (typeof sql !== "string" || sql.length === 0) return "";
   const limit = normalizeLimit(maxLength);
-  const parts: string[] = [];
+  const segments: Array<{ text: string; verbatim: boolean }> = [];
+  const push = (text: string, verbatim = false): void => {
+    if (text === "") return;
+    const last = segments[segments.length - 1];
+    if (last && last.verbatim === verbatim) {
+      last.text += text;
+      return;
+    }
+    segments.push({ text, verbatim });
+  };
   let index = 0;
   while (index < sql.length) {
     const char = sql[index]!;
     if (char === "'") {
-      index = consumeSingleQuoted(sql, index);
-      parts.push("?");
+      index = consumeSingleQuoted(sql, index, hasEscapeStringPrefix(sql, index));
+      push("?");
       continue;
     }
     if (char === '"') {
       const end = consumeDoubleQuoted(sql, index);
-      parts.push(sql.slice(index, end));
+      push(sql.slice(index, end), true);
       index = end;
       continue;
     }
     if (char === "-" && sql[index + 1] === "-") {
       index = consumeLineComment(sql, index);
-      parts.push(" ");
+      push(" ");
       continue;
     }
     if (char === "/" && sql[index + 1] === "*") {
       index = consumeBlockComment(sql, index);
-      parts.push(" ");
+      push(" ");
       continue;
     }
     if (char === "$") {
       const delimiter = dollarQuoteDelimiter(sql, index);
       if (delimiter) {
         index = consumeDollarQuoted(sql, index, delimiter);
-        parts.push("?");
+        push("?");
         continue;
       }
     }
-    parts.push(char);
+    push(char);
     index += 1;
   }
-  const normalized = parts.join("").replace(/\s+/g, " ").trim();
+  const normalized = segments
+    .map((segment) => (segment.verbatim ? segment.text : segment.text.replace(/\s+/g, " ")))
+    .join("")
+    .trim();
   return truncate(normalized, limit);
 }
 

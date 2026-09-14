@@ -36,6 +36,32 @@ describe("sql-redactor (§19.3): redação de texto de query", () => {
     expect(redactSqlText("select 1 /* a /* b */ c */ from t")).toBe("select 1 from t");
   });
 
+  it("aplica escape por barra invertida apenas em E'...'/e'...'", () => {
+    // `standard_conforming_strings=on` (default do PostgreSQL): em literal comum a
+    // barra invertida é um caractere literal e a aspa é fechada normalmente.
+    expect(redactSqlText("select E'a\\'b'")).toBe("select E?");
+    expect(redactSqlText("select e'a\\'b'")).toBe("select e?");
+
+    const leaked = redactSqlText("select 'a\\', 'secret' from t");
+    expect(leaked).not.toContain("secret");
+    expect(leaked).toBe("select ?, ? from t");
+
+    const apostrophe = redactSqlText("select * from t where name = 'O\\'Brien'");
+    expect(apostrophe).not.toContain("'Brien'");
+    expect(apostrophe).toBe("select * from t where name = ?Brien?");
+  });
+
+  it("preserva o conteúdo dos identificadores entre aspas duplas (espaços internos)", () => {
+    expect(redactSqlText('select "col  name", "outro\tcol" from "t 1"')).toBe(
+      'select "col  name", "outro\tcol" from "t 1"',
+    );
+  });
+
+  it("encerra comentário de linha também no CR solitário", () => {
+    expect(redactSqlText("select 1 -- secret 'x'\rselect 2")).toBe("select 1 select 2");
+    expect(redactSqlText("select 1 -- secret 'x'\r\nselect 2")).toBe("select 1 select 2");
+  });
+
   it("substitui dollar-quoted strings", () => {
     expect(redactSqlText("do $body$ select 'x' $body$ language plpgsql")).toBe(
       "do ? language plpgsql",
