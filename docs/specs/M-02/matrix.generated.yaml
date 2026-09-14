@@ -312,7 +312,7 @@
       "operations": [
         {
           "name": "listProducts",
-          "line": 492,
+          "line": 507,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -320,7 +320,7 @@
         },
         {
           "name": "listProductsWithMetrics",
-          "line": 500,
+          "line": 515,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -328,7 +328,7 @@
         },
         {
           "name": "getProduct",
-          "line": 506,
+          "line": 521,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -336,7 +336,7 @@
         },
         {
           "name": "createProduct",
-          "line": 597,
+          "line": 612,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -344,22 +344,6 @@
         },
         {
           "name": "updateProduct",
-          "line": 602,
-          "declaration": "createServerFn",
-          "service": "ProductService",
-          "repository": "ProductRepository",
-          "atomicity": "per-operation"
-        },
-        {
-          "name": "upsertProduct",
-          "line": 608,
-          "declaration": "createServerFn",
-          "service": "ProductService",
-          "repository": "ProductRepository",
-          "atomicity": "per-operation"
-        },
-        {
-          "name": "archiveProduct",
           "line": 617,
           "declaration": "createServerFn",
           "service": "ProductService",
@@ -367,8 +351,24 @@
           "atomicity": "per-operation"
         },
         {
+          "name": "upsertProduct",
+          "line": 623,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "archiveProduct",
+          "line": 632,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductRepository",
+          "atomicity": "per-operation"
+        },
+        {
           "name": "deleteProduct",
-          "line": 627,
+          "line": 642,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -376,7 +376,7 @@
         },
         {
           "name": "upsertIngredient",
-          "line": 660,
+          "line": 675,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -384,7 +384,7 @@
         },
         {
           "name": "deleteIngredient",
-          "line": 737,
+          "line": 752,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -392,7 +392,7 @@
         },
         {
           "name": "upsertPackaging",
-          "line": 747,
+          "line": 762,
           "declaration": "createServerFn",
           "service": "ProductService/PricingService",
           "repository": "ProductCatalogRepository + PriceRepository",
@@ -400,7 +400,7 @@
         },
         {
           "name": "deletePackaging",
-          "line": 784,
+          "line": 799,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -408,7 +408,7 @@
         },
         {
           "name": "upsertFee",
-          "line": 793,
+          "line": 808,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -416,7 +416,7 @@
         },
         {
           "name": "deleteFee",
-          "line": 818,
+          "line": 833,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -424,7 +424,7 @@
         },
         {
           "name": "setMarketPrice",
-          "line": 827,
+          "line": 842,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "MarketPriceRepository",
@@ -432,7 +432,7 @@
         },
         {
           "name": "getProductMetrics",
-          "line": 848,
+          "line": 863,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -440,7 +440,7 @@
         },
         {
           "name": "listPurchasePrices",
-          "line": 860,
+          "line": 875,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -448,7 +448,7 @@
         },
         {
           "name": "updatePurchasePrice",
-          "line": 895,
+          "line": 910,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "PriceRepository",
@@ -775,61 +775,61 @@
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 434,
+      "line": 449,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 683,
+      "line": 698,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 693,
+      "line": 708,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 719,
+      "line": 734,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 764,
+      "line": 779,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 771,
+      "line": 786,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 808,
+      "line": 823,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 813,
+      "line": 828,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 833,
+      "line": 848,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/products.functions.ts",
-      "line": 864,
+      "line": 879,
       "expression": "request.transaction",
       "classification": "compatibility-facade"
     },

@@ -21,6 +21,7 @@
 import "@/test/helpers/otel-metrics";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { format, resolveConfig } from "prettier";
 import type { Histogram } from "@opentelemetry/api";
 import { applicationMetrics } from "@/instrumentation/telemetry";
@@ -270,8 +271,7 @@ export async function main(argv: readonly string[]): Promise<void> {
 }
 
 const invokedDirectly =
-  process.argv[1] !== undefined &&
-  import.meta.url === new URL(`file://${resolve(process.argv[1])}`).href;
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 if (invokedDirectly) {
   await main(process.argv.slice(2)).catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : error);

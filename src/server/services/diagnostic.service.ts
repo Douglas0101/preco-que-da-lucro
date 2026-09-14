@@ -230,6 +230,15 @@ async function recordDiagnosticSnapshots(
     targetContributionRate: input.targetContributionRate,
     marketAvgPrice: view.market?.avgPrice ?? null,
   };
+  // SAFETY: `JSON.parse(JSON.stringify(...))` cannot throw here. `view` is a fresh
+  // object literal assembled in `getDiagnostic` whose leaves are primitives, flat
+  // records of primitives and arrays of those (financial-engine results, `fees`
+  // rows, a nullable market record) - none of them can reference `view` itself, so
+  // `JSON.stringify` cannot encounter a cycle, and the string it produces is by
+  // construction valid JSON for `JSON.parse`. The deep clone exists to drop
+  // `undefined` leaves before the snapshot payload is hashed. If a non-JSON-safe
+  // value (e.g. a circular reference or a BigInt) is ever added to `view`, this
+  // assumption breaks and the call must be wrapped in try/catch.
   const outputs: Record<string, unknown> = JSON.parse(
     JSON.stringify({
       cost: view.cost,

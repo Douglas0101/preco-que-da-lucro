@@ -11,6 +11,7 @@
 
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { Client } from "pg";
 import { format } from "prettier";
 
@@ -192,8 +193,7 @@ async function main(): Promise<void> {
 }
 
 const invokedDirectly =
-  process.argv[1] !== undefined &&
-  import.meta.url === new URL(`file://${resolve(process.argv[1])}`).href;
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 if (invokedDirectly) {
   await main().catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : error);

@@ -415,6 +415,11 @@ function marketChildBranch(request: RequestContext, productIds: string[]) {
 
 async function loadChildRows(request: RequestContext, union: SQL) {
   const result = await request.transaction.execute(union);
+  // SAFETY: the consolidated UNION runs through raw `execute()`, which bypasses
+  // Drizzle's decoders, so the driver hands back `Record<string, unknown>`. The
+  // rows ARE the aligned `ChildUnionRow` shape because every UNION branch projects
+  // the full column superset (siblings contribute typed NULLs such as
+  // `sql`null::numeric`.as("unitsPerPackage")`), so no field is ever absent.
   const rows = rowsFromQueryResult(result) as unknown as ChildUnionRow[];
   const ingredients: IngredientSelect[] = [];
   const packaging: PackagingSelect[] = [];
@@ -422,6 +427,16 @@ async function loadChildRows(request: RequestContext, union: SQL) {
   const market: MarketSelect[] = [];
   for (const rawRow of rows) {
     const row = normalizeChildRow(rawRow);
+    // SAFETY: `kind` is the branch tag emitted by each UNION branch, and the
+    // aligned-superset projection above guarantees that a row tagged 'packaging'
+    // carries exactly the `PackagingSelect` payload in those columns (same for
+    // 'fee'/'market'). TypeScript cannot verify it here because `ChildUnionRow` is
+    // a flat interface extending `IngredientSelect` whose `kind` is a runtime tag,
+    // not a discriminated union linking `kind` to the sibling shapes; and
+    // `normalizeChildRow` is shape-preserving (it only rewrites the three timestamp
+    // fields string->Date), so it does not invalidate the narrowing. FRAGILE: if a
+    // branch changes its projected columns without updating this mapping, these
+    // casts would silently hide the mismatch - the aligned superset is the guard.
     if (row.kind === "ingredient") ingredients.push(row);
     else if (row.kind === "packaging") packaging.push(row as unknown as PackagingSelect);
     else if (row.kind === "fee") fees.push(row as unknown as FeeSelect);
