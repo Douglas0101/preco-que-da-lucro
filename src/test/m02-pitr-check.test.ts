@@ -23,6 +23,9 @@ import {
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const script = resolve(root, "scripts/m02-pitr-check.mjs");
 const FAKE_KEY = "neon-key-de-teste-0000";
+// Base inalcançável: se uma regressão fizer o modo --plan/skip tentar rede, o
+// teste falha de forma determinística em vez de tocar a API real.
+const UNREACHABLE_API_BASE = "http://127.0.0.1:1/api/v2";
 
 function run(args: string[], env: NodeJS.ProcessEnv) {
   return spawnSync(process.execPath, [script, ...args], {
@@ -34,7 +37,7 @@ function run(args: string[], env: NodeJS.ProcessEnv) {
 }
 
 function envWithoutCredentials() {
-  const env = { ...process.env } as NodeJS.ProcessEnv;
+  const env = { ...process.env, NEON_API_BASE: UNREACHABLE_API_BASE } as NodeJS.ProcessEnv;
   delete env.NEON_API_KEY;
   delete env.NEON_PROJECT_ID;
   return env;
@@ -204,6 +207,7 @@ describe("m02-pitr-check CLI (sem rede externa)", () => {
     const result = run(["--plan"], {
       NEON_API_KEY: FAKE_KEY,
       NEON_PROJECT_ID: "proj-x",
+      NEON_API_BASE: UNREACHABLE_API_BASE,
     });
     expect(result.status).toBe(0);
     const parsed = JSON.parse(result.stdout);
