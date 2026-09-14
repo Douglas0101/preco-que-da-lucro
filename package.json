@@ -68,6 +68,7 @@
     "smoke:substrate": "tsx scripts/smoke/substrate-smoke.ts",
     "obs:pool": "tsx scripts/obs/pool-activity.ts",
     "obs:rum-p75": "tsx scripts/obs/rum-percentiles.ts",
+    "obs:ai-latency": "tsx scripts/obs/ai-latency-baseline.ts",
     "check:bundle": "node scripts/check-bundle.mjs",
     "perf:capture": "node scripts/perf/capture-baseline.mjs",
     "perf:summarize": "node scripts/perf/summarize.mjs",

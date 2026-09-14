@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-09-14T03:35:19.132Z",
+  "window": "7 days",
+  "min_samples": 20,
+  "targets": {
+    "LCP": {
+      "target": 2500,
+      "unit": "ms",
+      "label": "LCP ≤ 2,5 s"
+    },
+    "INP": {
+      "target": 200,
+      "unit": "ms",
+      "label": "INP ≤ 200 ms"
+    },
+    "CLS": {
+      "target": 0.1,
+      "unit": "",
+      "label": "CLS ≤ 0,1"
+    }
+  },
+  "rows": []
+}

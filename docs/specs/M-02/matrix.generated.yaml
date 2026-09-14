@@ -11,7 +11,7 @@
     "concreteOperations": 36,
     "apiRoutes": 4,
     "transactionSites": 98,
-    "directDatabaseFiles": 41
+    "directDatabaseFiles": 42
   },
   "bffs": [
     {
@@ -1215,6 +1215,7 @@
     "src/test/audit.service.test.ts",
     "src/test/cross-tenant-denial.perf-waves.test.ts",
     "src/test/financial-metrics.test.ts",
+    "src/test/helpers/chat-execution-fakes.ts",
     "src/test/m02-backup-verify.test.ts",
     "src/test/m02-grant-repair.test.ts",
     "src/test/m02-purge-fixtures.test.ts",

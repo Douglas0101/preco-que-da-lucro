@@ -1,0 +1,115 @@
+{
+  "artifact": "§29 — Web Vitals p75 (derivação CONTROLADA sobre fixtures sintéticas)",
+  "generated_at": "2026-09-14T03:35:26.316Z",
+  "regime": "CONTROLLED",
+  "provider": "mock",
+  "origin": {
+    "script": "scripts/obs/rum-percentiles.ts",
+    "command": "npx tsx scripts/obs/rum-percentiles.ts --date=2026-09-13 --window=\"7 days\"",
+    "raw": "docs/evidence/rum-p75-2026-09-13/raw.json",
+    "report": "docs/evidence/rum-p75-2026-09-13/report.md",
+    "series": "rum_vitals (migration 0014) via POST /api/vitals",
+    "provenance": "fixtures sintéticas locais (sem PII), removidas do banco após a geração — docs/evidence/rum-persistence-2026-09-13.md §6"
+  },
+  "rerun_2026_09_14": {
+    "command": "npx tsx scripts/obs/rum-percentiles.ts --date=2026-09-14 --window=\"7 days\" --out=docs/evidence/slo-ai-2026-09-14/rum-rerun-2026-09-14",
+    "raw": "docs/evidence/slo-ai-2026-09-14/rum-rerun-2026-09-14/raw.json",
+    "rows": 0
+  },
+  "window": "7 days",
+  "min_samples": 20,
+  "targets": {
+    "LCP": {
+      "target": 2500,
+      "unit": "ms",
+      "label": "LCP ≤ 2,5 s"
+    },
+    "INP": {
+      "target": 200,
+      "unit": "ms",
+      "label": "INP ≤ 200 ms"
+    },
+    "CLS": {
+      "target": 0.1,
+      "unit": "",
+      "label": "CLS ≤ 0,1"
+    }
+  },
+  "series": [
+    {
+      "name": "CLS",
+      "regime": "CONTROLLED",
+      "provider": "mock",
+      "n": 12,
+      "p75": 0.07,
+      "unit": "",
+      "target": 0.1,
+      "target_label": "CLS ≤ 0,1",
+      "verdict": "N/A (N=12 < 20)",
+      "window_start": "2026-09-13T14:45:51.597Z",
+      "window_end": "2026-09-14T01:45:51.597Z"
+    },
+    {
+      "name": "FCP",
+      "regime": "CONTROLLED",
+      "provider": "mock",
+      "n": 25,
+      "p75": 1000,
+      "unit": "",
+      "target": null,
+      "target_label": null,
+      "verdict": "sem target declarado",
+      "window_start": "2026-09-13T01:45:51.597Z",
+      "window_end": "2026-09-14T01:45:51.597Z"
+    },
+    {
+      "name": "INP",
+      "regime": "CONTROLLED",
+      "provider": "mock",
+      "n": 40,
+      "p75": 150,
+      "unit": "ms",
+      "target": 200,
+      "target_label": "INP ≤ 200 ms",
+      "verdict": "OK",
+      "window_start": "2026-09-12T10:45:51.597Z",
+      "window_end": "2026-09-14T01:45:51.597Z"
+    },
+    {
+      "name": "LCP",
+      "regime": "CONTROLLED",
+      "provider": "mock",
+      "n": 40,
+      "p75": 2300,
+      "unit": "ms",
+      "target": 2500,
+      "target_label": "LCP ≤ 2,5 s",
+      "verdict": "OK",
+      "window_start": "2026-09-12T10:45:51.597Z",
+      "window_end": "2026-09-14T01:45:51.597Z"
+    }
+  ],
+  "unavailable": [
+    {
+      "name": "LCP",
+      "regime": "OBSERVED-UNAVAILABLE",
+      "provider": "real",
+      "n": 0,
+      "reason": "H-6 (tráfego real autorizado) pendente: não existe amostra de usuário real; nenhum p75 OBSERVED foi medido."
+    },
+    {
+      "name": "INP",
+      "regime": "OBSERVED-UNAVAILABLE",
+      "provider": "real",
+      "n": 0,
+      "reason": "H-6 (tráfego real autorizado) pendente: não existe amostra de usuário real; nenhum p75 OBSERVED foi medido."
+    },
+    {
+      "name": "CLS",
+      "regime": "OBSERVED-UNAVAILABLE",
+      "provider": "real",
+      "n": 0,
+      "reason": "H-6 (tráfego real autorizado) pendente: não existe amostra de usuário real; nenhum p75 OBSERVED foi medido."
+    }
+  ]
+}

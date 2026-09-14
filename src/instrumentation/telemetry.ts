@@ -95,6 +95,12 @@ export const applicationMetrics = {
     unit: "{transaction}",
   }),
   aiDuration: meter.createHistogram("app.ai.duration", { unit: "ms" }),
+  // §29: fases da latência percebida no chat não-streaming. `app.ai.duration`
+  // continua medindo cada tentativa de gateway; estes histogramas medem o
+  // tempo desde o aceite da mensagem até acknowledge/conteúdo/final.
+  aiTimeToAcknowledge: meter.createHistogram("app.ai.time_to_acknowledge", { unit: "ms" }),
+  aiTimeToFirstContent: meter.createHistogram("app.ai.time_to_first_content", { unit: "ms" }),
+  aiTimeToFinal: meter.createHistogram("app.ai.time_to_final", { unit: "ms" }),
   toolDuration: meter.createHistogram("app.ai.tool.duration", { unit: "ms" }),
   errors: meter.createCounter("app.errors"),
   aiTimeouts: meter.createCounter("app.ai.timeouts"),
