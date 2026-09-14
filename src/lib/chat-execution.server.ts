@@ -18,7 +18,7 @@ import {
   type ConversationEvent,
   type ConversationState,
 } from "@/lib/chat-fsm.server";
-import { applicationMetrics } from "@/instrumentation/telemetry";
+import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
 import type { RequestContext, RequestIdentity } from "@/lib/request-context";
 import {
@@ -138,6 +138,36 @@ interface ChatState {
   currentProductId: string | null;
   history: Array<{ role: string; content: string }>;
   conversationState: ConversationState;
+}
+
+/**
+ * §29: fases da latência do chat não-streaming, medidas desde o aceite da
+ * mensagem do usuário (`startedAt`) até: primeira resposta do gateway
+ * (`time_to_acknowledge`, mesmo que seja tool call), primeiro conteúdo
+ * (`time_to_first_content`) e resposta final (`time_to_final`). Sem streaming,
+ * conteúdo e final chegam na mesma resposta do gateway; os dois histogramas
+ * permanecem separados para receber streaming sem renomear série.
+ */
+interface ChatLatencyTracker {
+  startedAt: number;
+  acknowledgedAt: number | null;
+}
+
+function createChatLatencyTracker(startedAt: number): ChatLatencyTracker {
+  return { startedAt, acknowledgedAt: null };
+}
+
+/** Registra uma única vez o primeiro modelo retornado pelo gateway. */
+function acknowledgeGatewayResponse(latency: ChatLatencyTracker): void {
+  if (latency.acknowledgedAt !== null) return;
+  latency.acknowledgedAt = performance.now();
+  applicationMetrics.aiTimeToAcknowledge.record(latency.acknowledgedAt - latency.startedAt);
+}
+
+function timeToAcknowledgeMs(latency: ChatLatencyTracker): number | null {
+  return latency.acknowledgedAt === null
+    ? null
+    : Math.round(latency.acknowledgedAt - latency.startedAt);
 }
 
 type RoundResult =
@@ -316,6 +346,7 @@ async function handleModelResponse(
   toolRunner: ToolRunner,
   conversationService: ConversationService,
   usageId: string,
+  latency: ChatLatencyTracker,
 ): Promise<RoundResult> {
   const modelMessage = modelResponse.choices[0]!.message;
   const toolCalls = modelMessage.tool_calls;
@@ -355,10 +386,20 @@ async function handleModelResponse(
     false,
   );
   await persistAssistantMessage(conversationService, identity, state, currentProductId, content);
+  // Sem streaming, o primeiro conteúdo e o final são a mesma resposta: os dois
+  // registros saem daqui e devem permanecer iguais até existir streaming.
+  const completedAt = performance.now();
+  const timeToFirstContentMs = completedAt - latency.startedAt;
+  const timeToFinalMs = timeToFirstContentMs;
+  applicationMetrics.aiTimeToFirstContent.record(timeToFirstContentMs);
+  applicationMetrics.aiTimeToFinal.record(timeToFinalMs);
   logJson("info", "ai.chat_completed", {
     correlationId: identity.correlationId,
     tenantId: identity.tenantId,
     rounds: round + 1,
+    timeToAcknowledgeMs: timeToAcknowledgeMs(latency),
+    timeToFirstContentMs: Math.round(timeToFirstContentMs),
+    timeToFinalMs: Math.round(timeToFinalMs),
   });
   return { kind: "complete", content, currentProductId };
 }
@@ -375,6 +416,7 @@ async function executeReservedRound({
   modelCaller,
   toolRunner,
   conversationService,
+  latency,
 }: {
   budgetLedger: BudgetLedger;
   budgetConfig: BudgetLedgerConfig;
@@ -387,6 +429,7 @@ async function executeReservedRound({
   modelCaller: ModelCaller;
   toolRunner: ToolRunner;
   conversationService: ConversationService;
+  latency: ChatLatencyTracker;
 }): Promise<RoundResult> {
   // reserveAtomic performs the lazy tenant sweep in the same transaction as the
   // conditional counter update. No gateway call can happen before this point.
@@ -410,6 +453,7 @@ async function executeReservedRound({
       gatewayToolsForState(currentProductId),
       requestSignal,
     );
+    acknowledgeGatewayResponse(latency);
     modelName = (modelResponse as { model?: string }).model ?? null;
     inputTokens = modelResponse.usage?.prompt_tokens ?? 0;
     outputTokens = modelResponse.usage?.completion_tokens ?? 0;
@@ -425,6 +469,7 @@ async function executeReservedRound({
       toolRunner,
       conversationService,
       reservationResult.usageId,
+      latency,
     );
     outcome = result.kind === "continue" ? "tool_round" : "success";
     return result;
@@ -461,6 +506,9 @@ export async function executeSendChatMessage(
   identity: RequestIdentity,
   dependencies: ChatExecutionDependencies,
 ) {
+  // t0 do §29: aceite da mensagem, antes de qualquer I/O (rate limit, histórico,
+  // reserva de orçamento) — é a latência que o usuário percebe.
+  const latency = createChatLatencyTracker(performance.now());
   const budgetConfig = { ...budgetConfigFromEnv(), ...dependencies.budgetConfig };
   const budgetLedger =
     dependencies.budgetLedger ?? createBudgetLedger({ identity, config: budgetConfig });
@@ -502,26 +550,47 @@ export async function executeSendChatMessage(
       state.conversationState,
       "SUBMIT",
     );
-    for (let round = 0; round < maxToolRounds; round += 1) {
-      if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
-      const result = await executeReservedRound({
-        budgetLedger,
-        budgetConfig,
-        identity,
-        messages,
-        requestSignal,
-        state,
-        currentProductId,
-        round,
-        modelCaller: dependencies.modelCaller,
-        toolRunner,
-        conversationService,
-      });
-      currentProductId = result.currentProductId;
-      if (result.kind === "complete") return result;
-    }
+    return await withSpan(
+      "ai.chat.send",
+      { "app.ai.max_rounds": maxToolRounds },
+      async (sendSpan) => {
+        for (let round = 0; round < maxToolRounds; round += 1) {
+          if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
+          const result = await withSpan(
+            "ai.chat.round",
+            { "app.ai.round_no": round },
+            async (roundSpan) => {
+              const roundResult = await executeReservedRound({
+                budgetLedger,
+                budgetConfig,
+                identity,
+                messages,
+                requestSignal,
+                state,
+                currentProductId,
+                round,
+                modelCaller: dependencies.modelCaller,
+                toolRunner,
+                conversationService,
+                latency,
+              });
+              roundSpan.setAttribute(
+                "app.ai.outcome",
+                roundResult.kind === "continue" ? "tool_round" : "success",
+              );
+              return roundResult;
+            },
+          );
+          currentProductId = result.currentProductId;
+          if (result.kind === "complete") {
+            sendSpan.setAttribute("app.ai.outcome", "success");
+            return result;
+          }
+        }
 
-    throw new ApplicationError("DEPENDENCY_ERROR");
+        throw new ApplicationError("DEPENDENCY_ERROR");
+      },
+    );
   } catch (error) {
     try {
       await transitionConversation(
