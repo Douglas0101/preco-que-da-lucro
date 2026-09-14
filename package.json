@@ -66,6 +66,7 @@
     "check:ui-stack": "node scripts/check-ui-stack.mjs",
     "check:no-supabase-runtime": "node scripts/check-no-supabase-runtime.mjs",
     "smoke:substrate": "tsx scripts/smoke/substrate-smoke.ts",
+    "obs:pool": "tsx scripts/obs/pool-activity.ts",
     "check:bundle": "node scripts/check-bundle.mjs",
     "perf:capture": "node scripts/perf/capture-baseline.mjs",
     "perf:summarize": "node scripts/perf/summarize.mjs",
