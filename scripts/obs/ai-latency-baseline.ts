@@ -270,6 +270,11 @@ export async function main(argv: readonly string[]): Promise<void> {
   console.log(`Baseline CONTROLADO (mock, ${args.runs} execuções): ${summary} → ${args.outDir}`);
 }
 
+// Guarda de entrypoint: só roda main() quando este arquivo é executado direto,
+// para que importá-lo em testes não dispare o sampler. A comparação usa
+// `pathToFileURL` — o padrão canônico do repositório (ver m02-secrets-audit.ts) —
+// porque uma URL `file://` montada à mão quebra em paths com caracteres
+// significativos para URL (ex.: '#' ou '?').
 const invokedDirectly =
   process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 if (invokedDirectly) {

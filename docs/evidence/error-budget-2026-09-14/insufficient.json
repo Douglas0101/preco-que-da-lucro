@@ -1,0 +1,80 @@
+{
+  "generatedAt": "2026-09-14T03:38:10.656Z",
+  "source": "src/test/fixtures/error-budget/insufficient.jsonl",
+  "window": {
+    "token": "7d",
+    "ms": 604800000,
+    "start": "2026-09-06T12:00:00.000Z",
+    "end": "2026-09-13T12:00:00.000Z"
+  },
+  "parsed": {
+    "lines": 2,
+    "parsed": 2,
+    "skipped": 0
+  },
+  "requests": {
+    "total": 2,
+    "completed": 2,
+    "failed": 0,
+    "chat": 0,
+    "healthy": 2
+  },
+  "minimumRequests": 100,
+  "baseline": null,
+  "classes": [
+    {
+      "id": "financial_critical",
+      "label": "Financeiro crítico (`app.financial.states{state=invalid}` em caminho do usuário)",
+      "signal": "linhas `app.financial.states` com `state=invalid`",
+      "basisLabel": "sinais de métrica",
+      "basis": 0,
+      "consumption": 0,
+      "toleranceDisplay": "0 (zero estrutural)",
+      "verdict": "UNKNOWN",
+      "detail": "sem linhas `app.financial.states` no input: counter OTEL-only hoje; exporte a série para JSONL (runbook) — fail-closed"
+    },
+    {
+      "id": "ai_transient",
+      "label": "IA transitória (`AI_TIMEOUT`/`DEPENDENCY_ERROR` de chat + `app.ai.timeouts`)",
+      "signal": "`request.failed` de chat e métrica `app.ai.timeouts`",
+      "basisLabel": "requisições de chat",
+      "basis": 0,
+      "consumption": 0,
+      "toleranceDisplay": "candidata 1% em 7d (não ratificada)",
+      "verdict": "UNKNOWN",
+      "detail": "sem requisições de chat na janela"
+    },
+    {
+      "id": "server_fault",
+      "label": "Falha de servidor/dependência (`DATABASE_ERROR`/`INTERNAL_ERROR`/5xx)",
+      "signal": "`request.failed` e `request.completed` com status ≥ 500",
+      "basisLabel": "requests totais",
+      "basis": 2,
+      "consumption": 0,
+      "toleranceDisplay": "0 (zero estrutural, revisível no baseline)",
+      "verdict": "OK",
+      "detail": "0 falha(s) de servidor/dependência"
+    }
+  ],
+  "codes": [],
+  "excluded": [],
+  "monitored": [
+    {
+      "code": "FINANCIAL_STATE_INCOMPLETE",
+      "count": 0
+    },
+    {
+      "code": "AI_TIMEOUT_METRIC",
+      "count": 0
+    }
+  ],
+  "aiMetricTimeouts": 0,
+  "financialSignals": 0,
+  "verdict": "INSUFFICIENT",
+  "exitCode": 2,
+  "notes": [
+    "Sem sinal financeiro: `app.financial.states` é um counter OTEL e só é medido aqui quando a série é exportada para JSONL; sem export a classe permanece UNKNOWN (fail-closed).",
+    "Tolerância de IA transitória (1% em 7d) é candidata: ratificação só em Q-020 com baseline M-06; nenhum rótulo CONTROLADO antes disso.",
+    "fail-closed: N=2 < --min-requests=100; nenhum veredito verde é emitido."
+  ]
+}

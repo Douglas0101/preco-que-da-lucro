@@ -1,0 +1,89 @@
+{
+  "generatedAt": "2026-09-14T03:38:10.577Z",
+  "source": "src/test/fixtures/error-budget/financial-invalid.jsonl",
+  "window": {
+    "token": "7d",
+    "ms": 604800000,
+    "start": "2026-09-06T12:00:00.000Z",
+    "end": "2026-09-13T12:00:00.000Z"
+  },
+  "parsed": {
+    "lines": 4,
+    "parsed": 4,
+    "skipped": 0
+  },
+  "requests": {
+    "total": 3,
+    "completed": 2,
+    "failed": 1,
+    "chat": 0,
+    "healthy": 2
+  },
+  "minimumRequests": 100,
+  "baseline": null,
+  "classes": [
+    {
+      "id": "financial_critical",
+      "label": "Financeiro crítico (`app.financial.states{state=invalid}` em caminho do usuário)",
+      "signal": "linhas `app.financial.states` com `state=invalid`",
+      "basisLabel": "sinais de métrica",
+      "basis": 1,
+      "consumption": 1,
+      "toleranceDisplay": "0 (zero estrutural)",
+      "verdict": "EXHAUSTED",
+      "detail": "1 estado(s) `invalid` em 1 sinal(is) de métrica"
+    },
+    {
+      "id": "ai_transient",
+      "label": "IA transitória (`AI_TIMEOUT`/`DEPENDENCY_ERROR` de chat + `app.ai.timeouts`)",
+      "signal": "`request.failed` de chat e métrica `app.ai.timeouts`",
+      "basisLabel": "requisições de chat",
+      "basis": 0,
+      "consumption": 0,
+      "toleranceDisplay": "candidata 1% em 7d (não ratificada)",
+      "verdict": "UNKNOWN",
+      "detail": "sem requisições de chat na janela"
+    },
+    {
+      "id": "server_fault",
+      "label": "Falha de servidor/dependência (`DATABASE_ERROR`/`INTERNAL_ERROR`/5xx)",
+      "signal": "`request.failed` e `request.completed` com status ≥ 500",
+      "basisLabel": "requests totais",
+      "basis": 3,
+      "consumption": 1,
+      "toleranceDisplay": "0 (zero estrutural, revisível no baseline)",
+      "verdict": "EXHAUSTED",
+      "detail": "1 falha(s) de servidor/dependência"
+    }
+  ],
+  "codes": [
+    {
+      "code": "FINANCIAL_STATE_INVALID",
+      "bucket": "financial_critical",
+      "count": 1
+    },
+    {
+      "code": "INTERNAL_ERROR",
+      "bucket": "server_fault",
+      "count": 1
+    }
+  ],
+  "excluded": [],
+  "monitored": [
+    {
+      "code": "FINANCIAL_STATE_INCOMPLETE",
+      "count": 0
+    },
+    {
+      "code": "AI_TIMEOUT_METRIC",
+      "count": 0
+    }
+  ],
+  "aiMetricTimeouts": 0,
+  "financialSignals": 1,
+  "verdict": "FAIL",
+  "exitCode": 1,
+  "notes": [
+    "Tolerância de IA transitória (1% em 7d) é candidata: ratificação só em Q-020 com baseline M-06; nenhum rótulo CONTROLADO antes disso."
+  ]
+}
