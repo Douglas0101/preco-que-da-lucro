@@ -1,0 +1,15 @@
+# scripts/db/test-tool-security.ts com a admissão §20.5 — 2026-09-14T15:32:33Z
+
+$ node tmp-fixture-state.cjs --clean   # restaura a fixture (primeira execução)
+{"cleaned":{"toolExecutions":0,"idempotency":0,"products":0,"auditEvents":0},"bucketCount":null}
+
+$ npx tsx scripts/db/test-tool-security.ts
+{"timestamp":"2026-09-14T15:32:35.003Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"set_yield","code":"NOT_FOUND","error":{"name":"Error","message":"NOT_FOUND"}}
+Tool registry: validação, AuthZ, idempotência, auditoria e isolamento: OK
+exit=0
+
+$ node tmp-fixture-state.cjs            # bucket consumido no fim da execução
+{"cleaned":{},"bucketCount":6}
+
+$ node tmp-fixture-state.cjs --clean --with-bucket   # deixa o banco local pronto para o db:test do gate
+{"cleaned":{"toolExecutions":10,"idempotency":4,"products":3,"auditEvents":10,"rateLimits":1},"bucketCount":null}

@@ -28,6 +28,7 @@ class FakeTransaction {
   private readonly updates: WrittenRow[] = [];
   private claimCounter = 0;
   private executionCounter = 0;
+  private rateLimitDenied = false;
 
   insertsFor(table: unknown): Record<string, unknown>[] {
     return this.inserts.filter((row) => row.table === table).map((row) => row.values);
@@ -83,7 +84,13 @@ class FakeTransaction {
   }
 
   async execute() {
-    return undefined;
+    // Resposta do bucket de rate limit: linha de contador aprovado por padrão.
+    return this.rateLimitDenied ? { rows: [] } : { rows: [{ count: 1, last_request: Date.now() }] };
+  }
+
+  /** Simula o bucket saturado: o UPDATE condicional não devolve linha. */
+  denyRateLimit(): void {
+    this.rateLimitDenied = true;
   }
 }
 
@@ -189,6 +196,47 @@ describe("persistência da tool execution (§14.3)", () => {
     const [execution] = transaction.insertsFor(toolExecutions);
     expect(execution.input).toEqual({ name: "Bolo  com low  e par 😀" });
     expect(hasLoneSurrogate(JSON.stringify(execution.input))).toBe(false);
+  });
+});
+
+describe("admissão por rate limit (§20.5)", () => {
+  it("devolve RATE_LIMIT sem ocupar a chave de idempotência", async () => {
+    const transaction = new FakeTransaction();
+    transaction.denyRateLimit();
+
+    const result = await runRegisteredTool({
+      context: fakeContext(transaction),
+      name: "create_product",
+      rawArguments: JSON.stringify({ name: "Bolo throttled" }),
+      idempotencyKey: "conversation:call-throttled",
+      toolCallId: "call-throttled",
+      usageId,
+    });
+
+    expect(result).toEqual({ ok: false, code: "RATE_LIMIT", replayed: false });
+    expect(transaction.insertsFor(idempotencyRecords)).toHaveLength(0);
+    const [rejected] = transaction.insertsFor(toolExecutions);
+    expect(rejected).toMatchObject({
+      toolName: "create_product",
+      status: "failed",
+      errorCode: "RATE_LIMIT",
+      toolCallId: "call-throttled",
+      usageId,
+    });
+  });
+
+  it("ocupa a chave de idempotência quando o bucket aprova", async () => {
+    const transaction = new FakeTransaction();
+
+    const result = await runRegisteredTool({
+      context: fakeContext(transaction),
+      name: "create_product",
+      rawArguments: JSON.stringify({ name: "Bolo aceito" }),
+      idempotencyKey: "conversation:call-accepted",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(transaction.insertsFor(idempotencyRecords)).toHaveLength(1);
   });
 });
 

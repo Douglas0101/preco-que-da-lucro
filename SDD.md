@@ -2044,16 +2044,16 @@ Dimensões:
 
 Baseline inicial, ajustável somente por configuração versionada:
 
-| Operação             | Limite inicial                                               |
-| -------------------- | ------------------------------------------------------------ |
-| Login                | 10 tentativas por 10 min/IP e cooldown progressivo por conta |
-| Cadastro             | 3 por hora/IP                                                |
-| Recuperação de senha | 3 por hora/conta e 10 por hora/IP                            |
-| Envio ao chat        | 10 turnos por minuto/usuário e 200 por dia/usuário           |
-| Mensagem             | 4.000 caracteres após normalização                           |
-| Modelo               | Máximo 4 chamadas e 20.000 tokens de entrada por turno       |
-| Saída do modelo      | Máximo 3.000 tokens por chamada                              |
-| Ferramentas          | Máximo 8 propostas por turno                                 |
+| Operação             | Limite inicial                                                                                           |
+| -------------------- | -------------------------------------------------------------------------------------------------------- |
+| Login                | 10 tentativas por 10 min/IP e cooldown progressivo por conta                                             |
+| Cadastro             | 3 por hora/IP                                                                                            |
+| Recuperação de senha | 3 por hora/conta e 10 por hora/IP                                                                        |
+| Envio ao chat        | 20 turnos por 10 min/usuário (bucket atômico em DB, `AI_CHAT_LIMIT_PER_10_MINUTES`) e 200 por dia/tenant |
+| Mensagem             | 4.000 caracteres após normalização                                                                       |
+| Modelo               | Máximo 4 chamadas e 20.000 tokens de entrada por turno                                                   |
+| Saída do modelo      | Máximo 3.000 tokens por chamada                                                                          |
+| Ferramentas          | Máximo 8 propostas por turno e 40 execuções por 10 min/usuário                                           |
 
 O cap financeiro diário por usuário/plano é obrigatório em produção e definido no ADR-005; a aplicação falha no startup/deploy se a configuração estiver ausente. Se o store distribuído falhar, operações caras/IA falham fechadas com 503; não seguem sem limite. 429 retorna `Retry-After`. Cabeçalhos não revelam dados de outros usuários.
 

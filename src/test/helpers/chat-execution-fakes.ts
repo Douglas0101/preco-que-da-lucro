@@ -15,10 +15,15 @@ import type { RequestIdentity } from "@/lib/request-context";
  * Fakes compartilhados pelos testes da instrumentação de chat (§29). O banco é
  * injetado por `setDatabaseForTests` — nenhum teste toca PostgreSQL.
  */
-export function installFakeDatabase(): void {
+export function installFakeDatabase(options: { rateLimitAllowed?: boolean } = {}): void {
+  // O bucket de rate limit lê `execute(...).rows`: a linha de contador aprovado
+  // mantém o resto da suíte determinístico; `rateLimitAllowed: false` simula o
+  // bucket saturado.
+  const rateLimitRows =
+    options.rateLimitAllowed === false ? [] : [{ count: 1, last_request: Date.now() }];
   setDatabaseForTests({
     transaction: async <T>(operation: (transaction: unknown) => Promise<T>): Promise<T> =>
-      operation({ execute: async () => ({ rows: [] }) }),
+      operation({ execute: async () => ({ rows: rateLimitRows }) }),
   } as unknown as Database);
 }
 
