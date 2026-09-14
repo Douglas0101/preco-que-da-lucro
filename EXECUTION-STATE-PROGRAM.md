@@ -1445,6 +1445,8 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   Latest state marker parent = `326908067508d304aeebda262e5ac5a8dcd74383`,
   Latest state marker parent = `0dc18a384da4ad34850656c4a52a6fe50a9f692c`,
 
+  Latest state marker parent = `d8d814edf36db32c9737fa6ae9609da5562c3923`,
+
 ### Back-merge obrigatório `main → develop` (AGENTS.md:12-14)
 
 - **Verificação:** `git merge-base --is-ancestor origin/main develop` → **NÃO era ancestral** (main `ef2110e7`, merge do PR #44, tinha avançado a linha de release) ⇒ back-merge **PENDENTE** e exigido pela norma.
