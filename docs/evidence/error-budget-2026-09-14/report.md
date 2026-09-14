@@ -74,9 +74,15 @@ ambos derivados de `--out`; nenhuma escrita em caminho fixo e nenhum upload.
 
 ## Limitações conhecidas (não fechadas aqui)
 
-- **`app.financial.states` é counter OTEL, não log.** Enquanto a série não for exportada em
-  JSONL, a classe financeira fica `UNKNOWN` e o veredito geral `INDETERMINATE` (fail-closed).
-  É o caso das execuções 1–3; o cenário 4 traz o sinal.
+- **`app.financial.states` é counter OTEL, não log.** Em produção, enquanto a série não for
+  exportada em JSONL, a classe financeira fica `UNKNOWN` e o veredito geral `INDETERMINATE`
+  (fail-closed) — é o caso da **execução 3** (`insufficient.jsonl`, `base=0`). **Nas execuções 1
+  e 2 o sinal foi suprido nos próprios fixtures**: a execução 1 (`basic-7d`) tem `base=2` → `OK`
+  (não `UNKNOWN`); a execução 2 (`financial-invalid`) tem `base=1` → **`EXHAUSTED`**, isto é, um
+  `FAIL` de tolerância zero de verdade — e não um `UNKNOWN`. A execução 4 (`demo-ok-24h`) traz a
+  exportação sintética de 100 linhas. Fonte: `runs.txt:49,57,65,73`. **Correção aplicada em
+  2026-09-14** (L39): a redação anterior afirmava `UNKNOWN` para as execuções 1–3 e assim
+  **subdeclarava a execução 2**, que é justamente o veredito mais severo do artefato.
 - **Nenhum baseline M-06 executado**, logo nenhuma tolerância é promessa e `--baseline` não
   tem valor real. O documento de política e o script seguem `DRAFT`.
 - **Sem gate de CI**: nenhum workflow invoca o script; promover a gate exige ADR e Q-020.

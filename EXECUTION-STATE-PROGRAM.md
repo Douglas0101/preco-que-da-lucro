@@ -1447,6 +1447,9 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 
   Latest state marker parent = `d8d814edf36db32c9737fa6ae9609da5562c3923`,
 
+- **Correção de evidência pós-V18 (S, 2026-09-14T04:2xZ, L39):** o artefato de evidência do §30 afirmava que a classe financeira fica `UNKNOWN` nas execuções 1–3. Verificado contra `runs.txt`: a execução 1 (`basic-7d`) tem `base=2` → **`OK`** e a execução 2 (`financial-invalid`) tem `base=1` → **`EXHAUSTED`**, isto é, um **FAIL real de tolerância zero que estava subdeclarado como `UNKNOWN`**; só a execução 3 (`insufficient`, `base=0`) é `UNKNOWN` (`runs.txt:49,57,65`). Corrigido em `docs/evidence/error-budget-2026-09-14/report.md`, neste ledger e no painel. Duas outras imprecisões propagadas foram corrigidas junto: o caminho `stdin` **escreve** artefato (o exit 2 vem do ramo `INSUFFICIENT`, não de uso indevido) e a pasta tem **11** arquivos, não 12. A mensagem do merge `0dc18a3` **não** foi reescrita (`AGENTS.md` proíbe reescrever histórico) — a correção vive no artefato, no painel e no journal. Variante do V18 ainda reportada como não-bloqueante: `demo-ok-24h.json` é o único JSON sem `notes: []`/selo de DRAFT (o selo vive no nome do arquivo e no banner `.md`).
+  Latest state marker parent = `90421b42e40eefd30ea0690b197016f60fd597c5`,
+
 ### Back-merge obrigatório `main → develop` (AGENTS.md:12-14)
 
 - **Verificação:** `git merge-base --is-ancestor origin/main develop` → **NÃO era ancestral** (main `ef2110e7`, merge do PR #44, tinha avançado a linha de release) ⇒ back-merge **PENDENTE** e exigido pela norma.
