@@ -27,10 +27,7 @@ import {
   type Database,
   type DatabaseIdentity,
 } from "../../src/db/client.server";
-import {
-  bindTransactionContext,
-  type RequestIdentity,
-} from "../../src/lib/request-context";
+import { bindTransactionContext, type RequestIdentity } from "../../src/lib/request-context";
 import type { Executor } from "../../src/server/contracts/event.contracts";
 import { ApplicationError } from "../../src/lib/api-error";
 import {
@@ -456,7 +453,8 @@ async function t2ConcurrentClaim(pool: Pool): Promise<void> {
     signalFirstHandler = resolve;
   });
 
-  const handlerFor = (workerName: string, blockOnFirstEvent: boolean) =>
+  const handlerFor =
+    (workerName: string, blockOnFirstEvent: boolean) =>
     async (event: { id: string }): Promise<void> => {
       effects.set(event.id, (effects.get(event.id) ?? 0) + 1);
       handledBy.get(event.id)?.add(workerName);
@@ -610,7 +608,11 @@ async function t3ConsumerIdempotency(pool: Pool): Promise<void> {
       "sem dispatcher o contrato não pode fingir que publicou",
     );
     const published = await new DrizzleOutboxRepository(
-      new OutboxWorker(handler, { batchSize: 5, maxAttempts: 5, consumerName: "consumer-contract" }),
+      new OutboxWorker(handler, {
+        batchSize: 5,
+        maxAttempts: 5,
+        consumerName: "consumer-contract",
+      }),
     ).publishPending(context);
     assert.equal(published, 1, "o contrato devolve quantos eventos foram publicados");
   });
@@ -691,10 +693,7 @@ async function t4FailureBackoff(pool: Pool): Promise<void> {
     },
     { consumerName: "consumer-default-backoff", maxAttempts: 2 },
   );
-  const defaultBackoffEventId = await appendEvent(
-    "t4:2",
-    "ee000000-0000-4000-8000-00000000000e",
-  );
+  const defaultBackoffEventId = await appendEvent("t4:2", "ee000000-0000-4000-8000-00000000000e");
   const defaultFailure = await defaultBackoffWorker.runOnce(identityA);
   assert.equal(defaultFailure.claimed, 1);
   assert.equal(defaultFailure.failed, 1);

@@ -1,13 +1,13 @@
 # §20.1 — CSP: paridade report-only × enforcement, critério de promoção e bloqueio declarado (WP-B3)
 
-| campo | conteúdo |
-| ----- | -------- |
-| **item** | `20.1` (CSP: report-only → promoção) · **WP-B3** · squad `SQUAD-SEC` |
-| **branch / base** | `mission/b3-csp` · base `1f94b56` |
-| **spec-card** | `docs/evidence/agent-state/SPEC-CARDS/20.1-csp.md` |
-| **spec_ref** | Plano Mestre §20.1 (`docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md:1636-1646`) · `AGENTS.md:45` (CSP estrita; nunca `'unsafe-inline'` nem host novo) · `docs/evidence/plan-partials-2026-09-13/part-4-seguranca-ux.md:18-31` (gates do §20.1) |
-| **status pleiteado** | **PARTIAL** — bloqueio **H-6** (ambiente placeholder) + H-2 (sem preview/token) |
-| **ambiente** | worktree local isolado; **nenhum** enforcement ligado; preview/produção intocados |
+| campo                | conteúdo                                                                                                                                                                                                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **item**             | `20.1` (CSP: report-only → promoção) · **WP-B3** · squad `SQUAD-SEC`                                                                                                                                                                                             |
+| **branch / base**    | `mission/b3-csp` · base `1f94b56`                                                                                                                                                                                                                                |
+| **spec-card**        | `docs/evidence/agent-state/SPEC-CARDS/20.1-csp.md`                                                                                                                                                                                                               |
+| **spec_ref**         | Plano Mestre §20.1 (`docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md:1636-1646`) · `AGENTS.md:45` (CSP estrita; nunca `'unsafe-inline'` nem host novo) · `docs/evidence/plan-partials-2026-09-13/part-4-seguranca-ux.md:18-31` (gates do §20.1) |
+| **status pleiteado** | **PARTIAL** — bloqueio **H-6** (ambiente placeholder) + H-2 (sem preview/token)                                                                                                                                                                                  |
+| **ambiente**         | worktree local isolado; **nenhum** enforcement ligado; preview/produção intocados                                                                                                                                                                                |
 
 ## 1. O que este WP entrega
 
@@ -56,16 +56,16 @@ as duas políticas nunca coexistam (linha 70) e que `reporting-endpoints` não s
 
 ## 3. IMPLEMENTAÇÃO — `arquivo:linha`
 
-| arquivo | linhas | o que muda |
-| ------- | ------ | ---------- |
-| `src/lib/security-headers.ts` | `13-24` | `SOURCE_DIRECTIVES`: as 10 diretivas de fonte, **congeladas** (antes eram literais inline dentro de `securityHeaders()`) |
-| `src/lib/security-headers.ts` | `32` | `REPORTING_DIRECTIVES`: `report-uri /api/csp-report` + `report-to csp-endpoint` (canal, não fonte) |
-| `src/lib/security-headers.ts` | `39-58` | `securityHeaders()`: modo enforçado (`:45-47`) devolve `SOURCE_DIRECTIVES.join("; ")`; modo report-only (`:48-53`) devolve fontes + canal **e** anuncia `reporting-endpoints` |
-| `src/test/security-headers.test.ts` | `13-28` | listas congeladas de diretivas de fonte e de report |
-| `src/test/security-headers.test.ts` | `32-47` | `directivesOf()` (parser de política → `Record`) + restauração de `CSP_ENFORCE` |
-| `src/test/security-headers.test.ts` | `56-75` | **T1** paridade byte a byte / canal fora do enforçado |
-| `src/test/security-headers.test.ts` | `79-111` | **T2** travas do AGENTS.md |
-| `src/test/security-headers.test.ts` | `113-166` | **T3** canal best-effort com cap |
+| arquivo                             | linhas    | o que muda                                                                                                                                                                    |
+| ----------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/security-headers.ts`       | `13-24`   | `SOURCE_DIRECTIVES`: as 10 diretivas de fonte, **congeladas** (antes eram literais inline dentro de `securityHeaders()`)                                                      |
+| `src/lib/security-headers.ts`       | `32`      | `REPORTING_DIRECTIVES`: `report-uri /api/csp-report` + `report-to csp-endpoint` (canal, não fonte)                                                                            |
+| `src/lib/security-headers.ts`       | `39-58`   | `securityHeaders()`: modo enforçado (`:45-47`) devolve `SOURCE_DIRECTIVES.join("; ")`; modo report-only (`:48-53`) devolve fontes + canal **e** anuncia `reporting-endpoints` |
+| `src/test/security-headers.test.ts` | `13-28`   | listas congeladas de diretivas de fonte e de report                                                                                                                           |
+| `src/test/security-headers.test.ts` | `32-47`   | `directivesOf()` (parser de política → `Record`) + restauração de `CSP_ENFORCE`                                                                                               |
+| `src/test/security-headers.test.ts` | `56-75`   | **T1** paridade byte a byte / canal fora do enforçado                                                                                                                         |
+| `src/test/security-headers.test.ts` | `79-111`  | **T2** travas do AGENTS.md                                                                                                                                                    |
+| `src/test/security-headers.test.ts` | `113-166` | **T3** canal best-effort com cap                                                                                                                                              |
 
 Nenhuma diretiva de fonte foi afrouxada; nenhum host novo; nenhum `'unsafe-inline'`; nenhum nonce (decisão
 explícita do plano §20.1 — ver §10). O endpoint `POST /api/csp-report` e seu contrato (`src/lib/csp-report-payload.ts`,
@@ -204,7 +204,7 @@ report-only — nunca relaxar a política.
 ## 10. Notas de interpretação (para o SPEC-STEWARD)
 
 1. **"Paridade byte a byte"**: adotada a leitura mais estrita — `enforçado == report-only − {report-uri,
-   report-to}` (card, aceitação 2 e linha de testes "removendo as diretivas de report, `diff` vazio"). Isso
+report-to}` (card, aceitação 2 e linha de testes "removendo as diretivas de report, `diff` vazio"). Isso
    mudou o comportamento do modo enforçado (antes: cópia da política com o canal dentro).
 2. **`reporting-endpoints` fora do modo enforçado**: consequência coerente de "o canal de relatório não entra
    na política enforçada" — sem `report-to` o header seria um anúncio órfão. Se o SPEC-STEWARD quiser o

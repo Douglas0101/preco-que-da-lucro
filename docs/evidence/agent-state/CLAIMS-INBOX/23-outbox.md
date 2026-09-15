@@ -92,20 +92,21 @@ $ docker exec pqdl-b1-outbox psql -U postgres -d preco_que_da_lucro_test -c "sel
 ### 2. Prova de atomicidade (T1, sem banco limpo entre casos)
 
 `T1` cobre os três sentidos exigidos pelo card, com asserções de contagem no banco (não no retorno das funções):
+
 - (a) `expenseService.save` + `throw` na mesma transação ⇒ `outbox_events` e `expenses` voltam a zero (nenhum evento órfão);
 - (b) commit ⇒ exatamente 1 evento com `aggregate_id = despesa.id`, `idempotency_key = expense.saved:<id>:v0`, `status='pending'`, `attempts=0`, `processed_at/last_error` nulos e payload esperado;
 - (c) `append` com `event_type` vazio (viola `outbox_events_identity_check`) ⇒ erro `23514` e a despesa escrita antes **não** persiste (mesma transação).
 
 ### 3. Autoverificação adversarial do squad (mutations — o verificador deve reconferir do zero)
 
-| mutação aplicada | teste que falhou (mensagem real) |
-| --- | --- |
-| remover `.for("update", { skipLocked: true })` do claim | `T2`: `o segundo claim não pode bloquear nas linhas travadas pelo primeiro worker` |
-| `markConsumed` sempre `true` | `T3`: `1 !== 2` (`redelivered.duplicates`/efeitos) |
-| append do domínio em transação separada (`withTenantTransaction` próprio no service) | `T1`: `rollback do domínio não pode deixar evento órfão` |
-| claim ignorando `attempts < maxAttempts` | `T4`: `attempts esgotado não volta para a fila` |
-| `DROP POLICY tenant_isolation ON outbox_events` no banco | `T5`: `A deve enxergar o próprio evento` (RLS deny-by-default) |
-| `REVOKE SELECT ON outbox_events FROM app_runtime` | `T5`: `outbox_events deve ter RLS habilitado e grants SELECT/INSERT/UPDATE somente para app_runtime` |
+| mutação aplicada                                                                     | teste que falhou (mensagem real)                                                                     |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| remover `.for("update", { skipLocked: true })` do claim                              | `T2`: `o segundo claim não pode bloquear nas linhas travadas pelo primeiro worker`                   |
+| `markConsumed` sempre `true`                                                         | `T3`: `1 !== 2` (`redelivered.duplicates`/efeitos)                                                   |
+| append do domínio em transação separada (`withTenantTransaction` próprio no service) | `T1`: `rollback do domínio não pode deixar evento órfão`                                             |
+| claim ignorando `attempts < maxAttempts`                                             | `T4`: `attempts esgotado não volta para a fila`                                                      |
+| `DROP POLICY tenant_isolation ON outbox_events` no banco                             | `T5`: `A deve enxergar o próprio evento` (RLS deny-by-default)                                       |
+| `REVOKE SELECT ON outbox_events FROM app_runtime`                                    | `T5`: `outbox_events deve ter RLS habilitado e grants SELECT/INSERT/UPDATE somente para app_runtime` |
 
 ### 4. Escopo (motor financeiro e `:5432` intocados)
 

@@ -3,7 +3,7 @@
 - **data:** 2026-09-15
 - **wp / squad / branch:** WP-A4 · SQUAD-APP-SUPPLY · `mission/a4-supply` (worktree `.worktree-mA4`, base `1f94b56`)
 - **spec_ref:** Plano Mestre §12.5 "Branch lifecycle" (`docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md:1090-1105` — `create branch → apply migrations → seed safe data → integration tests → E2E`, e `delete branch` no close) e §26 "Database CI com Neon Branching" (`:1811-1832`)
-- **artefato:** `.github/workflows/neon-pr-branch.yml` (único arquivo de workflow tocado; **64 inserções, 7 deleções** = passo E2E novo + correção do *delete-proof*, §3.5)
+- **artefato:** `.github/workflows/neon-pr-branch.yml` (único arquivo de workflow tocado; **64 inserções, 7 deleções** = passo E2E novo + correção do _delete-proof_, §3.5)
 - **claim:** `docs/evidence/agent-state/CLAIMS-INBOX/12.5-25.4-supply.md`
 - **status pleiteado:** **PARTIAL** — o desenho do ciclo está completo e verificado localmente; a **execução live** do ciclo depende de `NEON_API_KEY` (H-2) e não foi exercitada.
 
@@ -11,21 +11,21 @@
 
 Job `gate` (`:46-76`) → job `branch-ci` (`:78-385`) → job `cleanup` (`:387-451`).
 
-| # | fase (§12.5/§26) | passo/ação | `arquivo:linha` | condição |
-| - | ---------------- | ---------- | --------------- | -------- |
-| 0 | gate de fork + presença de segredo | job `gate`, `Decide` (fork-guard `HEAD_REPO != BASE_REPO`) | `.github/workflows/neon-pr-branch.yml:46-76` (`:57-66` fork-guard) | sempre; para fork, `run=false` e nada mais roda |
-| 1 | **create branch** | `neondatabase/create-branch-action`, `parent_branch` = `production` (PR p/ `main`) ou `develop` | `:104-114` | `needs.gate.outputs.run == 'true'` (`:81`) |
-| 2 | rede de segurança | `expires-at` +24 h + URIs (direct/pooled) em `RUNNER_TEMP` | `:116-136` | sucesso do passo anterior |
-| 3 | install | `npm ci --ignore-scripts` | `:138-139` | idem |
-| 4 | **migrate** | `npm run db:migrate` com `DATABASE_ADMIN_URL` = DIRECT da branch, `NEON_MIGRATION_TARGET_KIND=drill-branch` | `:141-147` | idem |
-| 5 | schema diff | `compare_schema` branch vs produção (+ artefato e comentário) | `:149-286`; upload `:288-298` (`if: always()`) | idem |
-| 6 | **integration** | `npm run db:test` contra a branch | `:300-306` | idem |
-| 7 | **seed** | `npm run m02:rls-probe` (seed sintético + sonda RLS adversarial) | `:308-321` | idem |
-| 8 | prova de journal | contagem read-only de `drizzle.__drizzle_migrations` vs `_journal.json` | `:323-334` | idem |
-| 9 | **E2E (novo)** | `npx playwright install --with-deps chromium firefox webkit` + `npm run test:e2e` | **`:351-385`** | idem — sem `if:` próprio |
-| 10 | delete + prova | `delete-branch-action`; GET pós-delete comparado por código HTTP e comentário no PR | `:400-406`; `:408-451` (comparação em `:424-431`) | **`always()`** (`:390`) e `branch_id != ''` |
+| #   | fase (§12.5/§26)                   | passo/ação                                                                                                  | `arquivo:linha`                                                    | condição                                        |
+| --- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------- |
+| 0   | gate de fork + presença de segredo | job `gate`, `Decide` (fork-guard `HEAD_REPO != BASE_REPO`)                                                  | `.github/workflows/neon-pr-branch.yml:46-76` (`:57-66` fork-guard) | sempre; para fork, `run=false` e nada mais roda |
+| 1   | **create branch**                  | `neondatabase/create-branch-action`, `parent_branch` = `production` (PR p/ `main`) ou `develop`             | `:104-114`                                                         | `needs.gate.outputs.run == 'true'` (`:81`)      |
+| 2   | rede de segurança                  | `expires-at` +24 h + URIs (direct/pooled) em `RUNNER_TEMP`                                                  | `:116-136`                                                         | sucesso do passo anterior                       |
+| 3   | install                            | `npm ci --ignore-scripts`                                                                                   | `:138-139`                                                         | idem                                            |
+| 4   | **migrate**                        | `npm run db:migrate` com `DATABASE_ADMIN_URL` = DIRECT da branch, `NEON_MIGRATION_TARGET_KIND=drill-branch` | `:141-147`                                                         | idem                                            |
+| 5   | schema diff                        | `compare_schema` branch vs produção (+ artefato e comentário)                                               | `:149-286`; upload `:288-298` (`if: always()`)                     | idem                                            |
+| 6   | **integration**                    | `npm run db:test` contra a branch                                                                           | `:300-306`                                                         | idem                                            |
+| 7   | **seed**                           | `npm run m02:rls-probe` (seed sintético + sonda RLS adversarial)                                            | `:308-321`                                                         | idem                                            |
+| 8   | prova de journal                   | contagem read-only de `drizzle.__drizzle_migrations` vs `_journal.json`                                     | `:323-334`                                                         | idem                                            |
+| 9   | **E2E (novo)**                     | `npx playwright install --with-deps chromium firefox webkit` + `npm run test:e2e`                           | **`:351-385`**                                                     | idem — sem `if:` próprio                        |
+| 10  | delete + prova                     | `delete-branch-action`; GET pós-delete comparado por código HTTP e comentário no PR                         | `:400-406`; `:408-451` (comparação em `:424-431`)                  | **`always()`** (`:390`) e `branch_id != ''`     |
 
-Ordem provada estruturalmente (T3, §3.3): `provisionamento(2) < migração(5) < integração(8) < seed(9) < E2E(11)` — o E2E é o **último** passo de `branch-ci`, depois de provisionar/migrar/seed, como o spec-card exige. O `if: always() && needs.gate.outputs.run == 'true'` do job `cleanup` (`:390`) e o `delete-branch-action` (`:400-406`) seguem **inalterados**; o que foi corrigido é a *prova* do delete, que era inalcançável (§3.5).
+Ordem provada estruturalmente (T3, §3.3): `provisionamento(2) < migração(5) < integração(8) < seed(9) < E2E(11)` — o E2E é o **último** passo de `branch-ci`, depois de provisionar/migrar/seed, como o spec-card exige. O `if: always() && needs.gate.outputs.run == 'true'` do job `cleanup` (`:390`) e o `delete-branch-action` (`:400-406`) seguem **inalterados**; o que foi corrigido é a _prova_ do delete, que era inalcançável (§3.5).
 
 ## 2. Contrato do passo E2E (por que ele é "a mesma invocation do `ui-stack.yml`")
 
@@ -40,17 +40,17 @@ O `webServer` de `playwright.config.ts:25-28` faz `e2e:prepare && build && previ
 
 Ambiente produzido no runner (nenhum segredo novo; tudo gerado por `openssl` no próprio passo):
 
-| variável | valor | fonte |
-| -------- | ----- | ----- |
-| `DATABASE_ADMIN_URL` | DIRECT da branch | `$RUNNER_TEMP/branch_direct_url` (fase 2) |
-| `DATABASE_URL` | **`app_runtime`** sobre o pooler da branch | derivado do `branch_pooled_url` (fase 2) |
-| `E2E_DB_RUNTIME_PASSWORD` | `openssl rand -hex 24` | gerado no passo |
-| `BETTER_AUTH_SECRET` | `openssl rand -hex 32` | gerado no passo |
-| `E2E_AUTH_PASSWORD` | `openssl rand -base64 24` | gerado no passo |
-| `E2E_AUTH_EMAIL` | `teste@example.test` | literal (igual ao `ui-stack.yml:44`) |
-| `BETTER_AUTH_URL` / `AUTH_TRUSTED_ORIGINS` | `http://127.0.0.1:4173` | literal (igual ao `ui-stack.yml:42-43`) |
-| `ALLOW_REMOTE_DB` | motivo rotulado, com o nº do PR | literal no passo |
-| `DATABASE_DRIVER` | **não definido** (default `neon-serverless`, o driver de produção — `src/db/client.server.ts:68,92`) | decisão explícita |
+| variável                                   | valor                                                                                                | fonte                                     |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `DATABASE_ADMIN_URL`                       | DIRECT da branch                                                                                     | `$RUNNER_TEMP/branch_direct_url` (fase 2) |
+| `DATABASE_URL`                             | **`app_runtime`** sobre o pooler da branch                                                           | derivado do `branch_pooled_url` (fase 2)  |
+| `E2E_DB_RUNTIME_PASSWORD`                  | `openssl rand -hex 24`                                                                               | gerado no passo                           |
+| `BETTER_AUTH_SECRET`                       | `openssl rand -hex 32`                                                                               | gerado no passo                           |
+| `E2E_AUTH_PASSWORD`                        | `openssl rand -base64 24`                                                                            | gerado no passo                           |
+| `E2E_AUTH_EMAIL`                           | `teste@example.test`                                                                                 | literal (igual ao `ui-stack.yml:44`)      |
+| `BETTER_AUTH_URL` / `AUTH_TRUSTED_ORIGINS` | `http://127.0.0.1:4173`                                                                              | literal (igual ao `ui-stack.yml:42-43`)   |
+| `ALLOW_REMOTE_DB`                          | motivo rotulado, com o nº do PR                                                                      | literal no passo                          |
+| `DATABASE_DRIVER`                          | **não definido** (default `neon-serverless`, o driver de produção — `src/db/client.server.ts:68,92`) | decisão explícita                         |
 
 Diferença consciente vs. `ui-stack.yml`: lá o alvo é um Postgres local e o `ui-stack.yml` fixa `DATABASE_DRIVER: node-postgres`. Aqui o alvo é uma branch Neon real, então o E2E roda no driver de produção — é o que dá valor ao E2E na branch.
 
