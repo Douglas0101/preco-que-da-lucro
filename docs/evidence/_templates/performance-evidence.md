@@ -1,10 +1,13 @@
 # Template — evidência de performance (§35)
 
-> Copie este arquivo para `docs/evidence/<tema>-<data>.md` e nomeie como
-> `perf-*.md` ou `*-perf-*.md` quando o PR/commit afirmar ganho ou conserto de
-> performance. `_templates/**` é ignorado pelo gate; o artefato copiado **não** é:
-> `src/test/perf-evidence.test.ts` exige os 7 rótulos de §35 em todo
-> `perf-*.md`/`*-perf-*.md` novo fora da allowlist de legado.
+> Copie este arquivo para um diretório de captura `docs/evidence/<tema>-<data>/`
+> nomeando-o `perf-evidence.md`, ou para `docs/evidence/perf-<tema>-<data>.md`,
+> quando o PR/commit afirmar ganho ou conserto de performance. `_templates/**` é
+> ignorado pelo gate; o artefato copiado **não** é: `src/test/perf-evidence.test.ts`
+> descobre por **caminho** — todo `.md` sob `docs/evidence/perf-*/**` e todo
+> `perf-*.md`/`*-perf-*.md` — e exige os 7 rótulos de §35 de cada artefato, com
+> descoberta vazia reprovando (fail-closed) e allowlist de legado de 2 artefatos
+> `dev-evidence` pré-gate, justificada no próprio gate.
 
 ## Cabeçalho obrigatório
 
