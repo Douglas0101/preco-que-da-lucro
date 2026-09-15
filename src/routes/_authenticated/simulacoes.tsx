@@ -40,6 +40,12 @@ export const Route = createFileRoute("/_authenticated/simulacoes")({
       { name: "description", content: "Simule preço, custo, despesas e volume." },
     ],
   }),
+  // `Simulacoes` NÃO pode ser exportado: o code splitter do router só separa
+  // `component` quando o binding não é exportado (`autoCodeSplitting` §17.6).
+  // Exportá-lo inlina a tela inteira — e com ela `@/lib/query-options`, os
+  // primitivos de UI e `@/lib/format` — no módulo de referência que o
+  // `routeTree.gen.ts` importa estaticamente, ou seja, no grafo inicial.
+  // Os testes alcançam a tela por `Route.options.component`.
   component: Simulacoes,
 });
 
@@ -210,7 +216,7 @@ export function buildSimulationInput(
   };
 }
 
-export function Simulacoes() {
+function Simulacoes() {
   const queryClient = useQueryClient();
   const [productId, setProductId] = useState("");
   const [sim, setSim] = useState<SimulationForm>({

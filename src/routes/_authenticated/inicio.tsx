@@ -37,14 +37,12 @@ export const Route = createFileRoute("/_authenticated/inicio")({
   // Prefetch não-bloqueante do summary (T2): mesmo queryKey/options de
   // query-options.ts; erro é deglutido aqui para que o useQuery do componente
   // continue exibindo o estado de erro com retry, como hoje.
-  // NOTA (§17.7): o import dinâmico que existia aqui era INEFETIVO — o mesmo módulo
-  // já é importado estaticamente no topo, porque o componente usa
-  // `dashboardSummaryQueryOptions` no useQuery, então ele nunca saía do grafo
-  // inicial. O dinâmico foi removido e o símbolo estático é usado; o bundle não
-  // muda (o módulo já estava no grafo). Alcançar a intenção de adiar exigiria
-  // tirar o uso do componente do caminho estático, o que é mudança de bundle e
-  // precisa de medição — follow-up, não algo a fingir com um import morto.
+  // Dynamic import — e não o símbolo estático do topo: o import do topo serve o
+  // componente, que é code-split, e o plugin do router o apaga do módulo de
+  // referência. Só o dinâmico mantém query-options (+ *.functions/zod) FORA do
+  // grafo inicial (orçamento de bundle §17.7) — loaders não são code-split.
   loader: async ({ context }) => {
+    const { dashboardSummaryQueryOptions } = await import("@/lib/query-options");
     return context.queryClient.ensureQueryData(dashboardSummaryQueryOptions()).catch(() => null);
   },
   pendingComponent: InicioSkeleton,

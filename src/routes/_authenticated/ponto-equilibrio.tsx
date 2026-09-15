@@ -33,12 +33,14 @@ export const Route = createFileRoute("/_authenticated/ponto-equilibrio")({
   }),
   // Prefetch não-bloqueante (T2): base do cálculo em paralelo (Promise.all).
   // Erros deglutidos para o estado de erro com retry continuar no componente.
-  // NOTA (§17.7): o import dinâmico que existia aqui era INEFETIVO — o mesmo módulo
-  // já é importado estaticamente no topo, porque o componente usa as duas options
-  // no useQueries, então ele nunca saía do grafo inicial. O dinâmico foi removido e
-  // os símbolos estáticos são usados; o bundle não muda (o módulo já estava no
-  // grafo). Alcançar a intenção de adiar exige medir o bundle — follow-up.
+  // Dynamic import — e não os símbolos estáticos do topo: os imports do topo
+  // servem o componente, que é code-split, e o plugin do router os apaga do
+  // módulo de referência. Só o dinâmico mantém query-options (+ *.functions/zod)
+  // FORA do grafo inicial (orçamento de bundle §17.7) — loaders não são
+  // code-split.
   loader: async ({ context }) => {
+    const { expensesQueryOptions, productsWithMetricsQueryOptions } =
+      await import("@/lib/query-options");
     return Promise.all([
       context.queryClient.ensureQueryData(productsWithMetricsQueryOptions()).catch(() => null),
       context.queryClient.ensureQueryData(expensesQueryOptions()).catch(() => null),
