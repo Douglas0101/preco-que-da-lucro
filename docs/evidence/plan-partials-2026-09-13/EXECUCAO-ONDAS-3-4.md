@@ -12,6 +12,22 @@
 
 ## 2. Detalhe por integração
 
+### I-O26 — §13.6 preparação do cutover (preflight executável + probes canônicos)
+
+**Entrega:** `scripts/m02-auth-preflight.ts` e `scripts/m02-canonical-probe.ts` (novos), uma função **aditiva** em `auth-policy.ts` (`describeAuthEnv`) para o preflight **reusar** a política em vez de duplicá-la, §2.1 do runbook com o **R3 detalhado**, e `docs/evidence/cutover-prep-2026-09-14/` com raws + templates de assinatura.
+
+**Preflight por NOME/ESTADO, com prova de que não imprime valores (o ponto mais importante).** Quatro casos rodaram com **valores-sentinela** (incluindo uma URL carregando usuário e senha); `grep -ci sentinel` deu **0** em todas as saídas. Só `presence` e mensagens derivadas da política entram no output — até `NODE_ENV` é reduzido a um booleano. O exit `0/1/2` bloqueia em `invalid`/`incomplete` (a instância de auth lança na construção → 500 em toda request de auth) e em `missing` para `required`/`required-in-production`.
+
+**Probes canônicos EXECUTADOS localmente** (artefato Nitro node-server, DB local): `live` ×3 **PASS**, `ready` ×3 **PASS** (`postgres ok`), `get-session` **PASS** 200 `null`, e — o que o plano exigia — o **par de controle de origem**: origem positiva → 401 `INVALID_EMAIL_OR_PASSWORD`, **origem negativa → 403 `INVALID_ORIGIN`**, repetido com cookie; sem header `Origin` → 403 `MISSING_OR_NULL_ORIGIN`. Ou seja: **não** se mediu a troca de auth pelo `get-session` isolado (o probe fraco que o plano proíbe) — mediu-se o **conjunto** com controle negativo, e o veredito imprime que a troca **não está carimbada**, coerente com H-6.
+
+**Comportamento exemplar em caso-limite:** 429 (bucket 5/min por IP) → **INCONCLUSIVO, exit 2** — nunca PASS nem FAIL. Alvo inalcançável → idem, com um commit próprio (`7504909`) porque o primeiro tratamento classificava errado. Latências rotuladas como **local/controlado**, nunca produção.
+
+**Defeito real achado pelo hook em código NOVO e corrigido:** `scripts/m02-canonical-probe.ts` fazia `new URL(baseUrl)` **sem try/catch** — um `--base-url` malformado lançava `TypeError` em vez de dar erro de uso, o que derrota o propósito de um preflight que existe para **classificar**. Como o `auth-policy.ts` **já** tinha o idioma certo (try/catch em volta do `new URL`), espelhei-o: agora um valor malformado produz `usageError` (exit 2). **Prova:** valor malformado → mensagem limpa + exit 2; e uma URL válida segue funcionando.
+
+**Manifest do supervisor:** aliases `m02:auth-preflight` e `m02:canonical-probe` (o operador não pode tocar `package.json`).
+
+**Residuais declarados:** host canônico / SSL / DNS pós-associação e a asserção de host de e-mail exigem **D-0/H-5/H-6** e `RESEND_*` real; preview Vercel exige H-2; `smoke:substrate`/`m02:readiness` são gates do supervisor.
+
 ### I-O22 — §18.3 explain calculation (paridade amarrada ao motor)
 
 **Entrega:** `src/lib/calc-explanation.ts` (novo) + slot `explain` no `MetricCard` para os **4 KPIs** de `/inicio` e o card de melhor margem, mais um explainer _"Como calculamos?"_ no resultado da simulação. `CalcExplainer` foi **reusado**, e `finance.ts` ficou **intocado** (somente leitura). 12 testes.
