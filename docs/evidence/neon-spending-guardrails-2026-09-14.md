@@ -77,7 +77,7 @@ mockado; nenhuma rede externa é tocada pelos testes.
 4. **Alerta de e-mail só é conhecido por documentação de v2** (`neon-pitr-memo-2026-09-12.md` §6.13, residual);
    a existência/configuração do alerta na conta atual **não** foi medida — o que este artefato afirma é apenas
    que ele **não** suspende compute e não pode ser vendido como guardrail forte.
-5. **Alias npm** (`m02:neon-spend` / `m02:pitr-check`) **não** foi adicionado a `package.json` (arquivo com dono
+5. **Alias npm** (`m02:neon-spend` / `m02:pitr-check`) **foi** adicionado a `package.json` pelo **manifest do supervisor** na integração — na branch do operador não existia, e esta frase ficou obsoleta no merge (arquivo com dono
    declarado nesta onda); a invocação é direta: `node scripts/m02-neon-spend.mjs`.
 6. **Retenção de snapshots e billing de snapshots** (memo v2 §6.8) continua **RESIDUAL**.
 

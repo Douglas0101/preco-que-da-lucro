@@ -341,7 +341,7 @@ Sem `NEON_API_KEY`/`NEON_PROJECT_ID` os scripts **PULAM COM RÓTULO** (exit `0`)
 - **Chamada live NÃO VERIFICADA:** sem `NEON_API_KEY` neste ambiente (H-2), a forma real da resposta de `GET /projects/{id}` e o comportamento de `PATCH` (§12.2) permanecem **TO-CONFIRM**; o que foi provado é a lógica (testes unitários com `fetch` mockado + caminho de skip executado de verdade).
 - **Confirmação do envelope e do teto:** só com chave + plano pago (H-4).
 - **Janela vigente:** o valor `21600` continua sendo o medido antes desta rodada (§1.2) — esta v3 **não** re-mediu nada.
-- **Alias de npm:** `m02:pitr-check` / `m02:neon-spend` **não** foram adicionados a `package.json` (arquivo com dono declarado nesta onda); a invocação é `node scripts/m02-pitr-check.mjs`.
+- **Alias de npm:** `m02:pitr-check` / `m02:neon-spend` **foram** adicionados a `package.json` — ação de **manifest do supervisor** na integração (o arquivo tem dono declarado e não pertence à lane do operador). Na branch do operador eles **não** existiam; a afirmação original de que faltavam era verdadeira lá e tornou-se falsa no merge. Invocação equivalente: `npm run m02:pitr-check` ou `node scripts/m02-pitr-check.mjs`.
 
 ---
 

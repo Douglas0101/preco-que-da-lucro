@@ -157,7 +157,7 @@ lança não rejeita transação já commitada / não substitui o erro real / nã
 
 ## 6. O que deliberadamente NÃO mudou
 
-- **`applicationMetrics.<counter>.add(...)`** (14 sítios: `errors`, `aiTimeouts`, `aiQuotas`, `toolExecutions`,
+- **`applicationMetrics.<counter>.add(...)`** (**25 sítios em 15 instrumentos** — o "14" que aparece em outros pontos deste relatório é a contagem de ofensores de `record` **antes** do fix, não o tamanho deste residual; a classe de defeito é a mesma e este residual **não** foi corrigido: `errors`, `aiTimeouts`, `aiQuotas`, `toolExecutions`,
   `conversationStateTransitions`, `financialStates`, `snapshotCreatedTotal`, …): fora do escopo do F2C-1, que
   fala de `record`. Mesma classe de defeito em teoria; **residual declarado** para lane própria.
 - **`applicationMetrics` em `telemetry.ts`** e os callbacks de observable do pool: já são defensivos.
