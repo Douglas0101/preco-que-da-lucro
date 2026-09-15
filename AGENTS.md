@@ -56,7 +56,8 @@
 
 - Architectural changes require a new ADR in `docs/adr/`, following the `ADR-0XX-kebab.md` sequence (latest: ADR-029, **proposta/draft** — implementação já mergeada (migration 0013 + CAS + lock ordering) com ratificação pendente em **H-8**; último ratificado: **ADR-026**. ADR-027 e ADR-028 também seguem `PROPOSTA`). Read the relevant ADRs before touching an architected area.
 - Operational evidence belongs in `docs/evidence/`; operational procedures belong in `docs/runbooks/`.
-- Evidência de performance segue `docs/evidence/_templates/performance-evidence.md` (7 campos: hypothesis, metric, before, change, after, result, decision) e é enforçada por `src/test/perf-evidence.test.ts` — artefatos novos `perf-*.md`/`*-perf-*.md` em `docs/evidence/` falham sem os 7 rótulos.
+- Evidência de performance segue `docs/evidence/_templates/performance-evidence.md` (7 campos: hypothesis, metric, before, change, after, result, decision) e é enforçada por `src/test/perf-evidence.test.ts` — a descoberta é **por caminho** (`docs/evidence/perf-*/**` e `**/*perf-*.md`, com a árvore de processo `docs/evidence/agent-state/**` e `_templates/**` fora da varredura), com **fail-closed** para descoberta vazia: artefato contratado sem os 7 rótulos falha, e a allowlist de legado (2 entradas, ancoradas em conteúdo `dev-evidence`) exige a marca no próprio arquivo.
+- `npm run db:test` roda 13 suítes em cadeia (inclui `scripts/db/test-outbox.ts` e `scripts/db/test-backfill.ts`); rode-as sempre contra um **container PG17 efêmero** — o container `:5432` pode conter dado não-fixture e os guards fail-closed recusam higiene/rollback nele.
 
 ## Session boot and progress journal
 
