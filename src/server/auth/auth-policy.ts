@@ -71,6 +71,133 @@ export function resolveAuthPolicy(
   };
 }
 
+// §13.6 (preparação do cutover): pré-voo por NOME/ESTADO para `scripts/m02-auth-preflight.ts`.
+// As três funções de política acima continuam sendo a fonte única do veredito — este relatório
+// apenas as exercita sobre o ambiente do alvo e devolve nome, presença e veredito. Nenhum campo
+// carrega valor: `detail` só reproduz mensagens de política (que citam a variável, nunca o
+// conteúdo) ou contagens derivadas.
+export type AuthEnvPresence = "present" | "empty" | "absent";
+export type AuthEnvRequirement =
+  "required" | "required-in-production" | "optional" | "optional-pair";
+export type AuthEnvVerdict = "ok" | "invalid" | "missing" | "incomplete" | "not-configured";
+
+export interface AuthEnvEntry {
+  name: string;
+  presence: AuthEnvPresence;
+  requirement: AuthEnvRequirement;
+  verdict: AuthEnvVerdict;
+  detail: string;
+}
+
+export function authEnvPresence(value: string | undefined): AuthEnvPresence {
+  if (value === undefined) return "absent";
+  return value.trim() ? "present" : "empty";
+}
+
+function policyMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "erro de política sem mensagem";
+}
+
+function baseUrlEntry(
+  environment: Readonly<Record<string, string | undefined>>,
+  production: boolean,
+): AuthEnvEntry {
+  const value = environment.BETTER_AUTH_URL;
+  const entry = {
+    name: "BETTER_AUTH_URL",
+    presence: authEnvPresence(value),
+    requirement: "required-in-production" as const,
+  };
+  if (!value?.trim()) {
+    return {
+      ...entry,
+      verdict: production ? "missing" : "not-configured",
+      detail: production ? "obrigatória em produção" : "ausente fora de produção",
+    };
+  }
+  try {
+    parseOrigin(value, "BETTER_AUTH_URL");
+    return { ...entry, verdict: "ok", detail: "origem aceita pela política" };
+  } catch (error) {
+    return { ...entry, verdict: "invalid", detail: policyMessage(error) };
+  }
+}
+
+function trustedOriginsEntry(
+  environment: Readonly<Record<string, string | undefined>>,
+): AuthEnvEntry {
+  const value = environment.AUTH_TRUSTED_ORIGINS;
+  const entry = {
+    name: "AUTH_TRUSTED_ORIGINS",
+    presence: authEnvPresence(value),
+    requirement: "optional" as const,
+  };
+  const configured = (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  try {
+    for (const origin of configured) parseOrigin(origin, "AUTH_TRUSTED_ORIGINS");
+  } catch (error) {
+    return { ...entry, verdict: "invalid", detail: policyMessage(error) };
+  }
+  if (configured.length === 0) {
+    return {
+      ...entry,
+      verdict: "not-configured",
+      detail: "lista vazia; baseURL entra automaticamente",
+    };
+  }
+  return { ...entry, verdict: "ok", detail: `${configured.length} origem(ns) válida(s)` };
+}
+
+function secretEntry(environment: Readonly<Record<string, string | undefined>>): AuthEnvEntry {
+  const entry = {
+    name: "BETTER_AUTH_SECRET",
+    presence: authEnvPresence(environment.BETTER_AUTH_SECRET),
+    requirement: "required" as const,
+  };
+  if (entry.presence !== "present") return { ...entry, verdict: "missing", detail: "obrigatória" };
+  try {
+    requireAuthSecret(environment);
+    return { ...entry, verdict: "ok", detail: "mínimo de 32 caracteres atendido" };
+  } catch (error) {
+    return { ...entry, verdict: "invalid", detail: policyMessage(error) };
+  }
+}
+
+function googleEntries(environment: Readonly<Record<string, string | undefined>>): AuthEnvEntry[] {
+  let resolved: { clientId: string; clientSecret: string } | undefined;
+  let failure: string | undefined;
+  try {
+    resolved = resolveGoogleCredentials(environment);
+  } catch (error) {
+    failure = policyMessage(error);
+  }
+  const verdict: AuthEnvVerdict = failure ? "incomplete" : resolved ? "ok" : "not-configured";
+  const detail =
+    failure ?? (resolved ? "par completo (id e segredo presentes)" : "provider Google desativado");
+  return (["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"] as const).map((name) => ({
+    name,
+    presence: authEnvPresence(environment[name]),
+    requirement: "optional-pair" as const,
+    verdict,
+    detail,
+  }));
+}
+
+export function describeAuthEnv(
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): AuthEnvEntry[] {
+  const production = environment.NODE_ENV === "production";
+  return [
+    baseUrlEntry(environment, production),
+    trustedOriginsEntry(environment),
+    secretEntry(environment),
+    ...googleEntries(environment),
+  ];
+}
+
 export function requireAuthSecret(
   environment: Readonly<Record<string, string | undefined>> = process.env,
 ): string {

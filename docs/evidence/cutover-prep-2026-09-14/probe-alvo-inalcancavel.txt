@@ -1,0 +1,18 @@
+# Corrida contra alvo inalcançável (porta fechada) — captura bruta 2026-09-14
+# Comando: node node_modules/tsx/dist/cli.mjs scripts/m02-canonical-probe.ts --base-url http://127.0.0.1:1
+# Esperado: nenhuma asserção avaliada, INCONCLUSIVO, exit 2 (nunca PASS nem FAIL).
+
+m02-canonical-probe — §13.6 conjunto canônico + controle de origem
+alvo: http://127.0.0.1:1 (origem canônica do probe: http://127.0.0.1:1)
+limite por requisição: 3000 ms · amostras de live/ready: 3
+latências abaixo são LOCAIS/CONTROLADAS — não são números de produção
+
+transporte  INCONCLUSIVO  alvo alcançável
+                  observado: erro: TypeError
+
+get-session: NÃO discrimina a troca de auth (origin check retorna cedo em GET/HEAD/OPTIONS).
+troca de auth: NÃO CARIMBADA por este probe — exige a asserção (c1) do host do link de reset
+de senha, emitida por e-mail controlado no canônico (dia-d §1.6-c1/c2).
+custo do conjunto: 5 POSTs em /sign-in/email — bucket 5/min por IP (sem isolamento: todos os clientes locais compartilham o bucket).
+RESULTADO: INCONCLUSIVO — alvo inalcançável: nenhuma asserção foi avaliada.
+exit=2

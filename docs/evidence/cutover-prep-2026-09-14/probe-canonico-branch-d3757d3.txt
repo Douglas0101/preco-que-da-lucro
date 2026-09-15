@@ -1,0 +1,38 @@
+# Conjunto canônico de probes (§13.6) — saída bruta 2026-09-14
+# Artefato: build Nitro node-server de 'git archive' do HEAD da branch (d3757d3), cópia em /tmp com node_modules
+#           compartilhado por symlink (o build do próprio worktree sai quebrado — ver artefato-worktree-quebrado.txt).
+# Ambiente controlado: NODE_ENV=production · DATABASE_URL=127.0.0.1/postgres local · BETTER_AUTH_URL e
+#   AUTH_TRUSTED_ORIGINS = http://127.0.0.1:<porta efêmera> · BETTER_AUTH_SECRET aleatório do processo
+#   (nunca impresso) · RESEND_*/GOOGLE_* ausentes.
+# Comando: node node_modules/tsx/dist/cli.mjs scripts/m02-canonical-probe.ts --base-url http://127.0.0.1:<porta>
+#          --samples 3 --max-time-ms 3000 --bucket-ip 203.0.113.7
+# Extra do harness: padroes_de_segredo_no_log_do_servidor=0 · linhas_no_log_do_servidor=27
+
+m02-canonical-probe — §13.6 conjunto canônico + controle de origem
+alvo: http://127.0.0.1:60911 (origem canônica do probe: http://127.0.0.1:60911)
+limite por requisição: 3000 ms · amostras de live/ready: 3
+latências abaixo são LOCAIS/CONTROLADAS — não são números de produção
+
+warm-up                 INFO  GET /api/health/live paga o TTFF a frio (não é asserção)
+                              observado: status=200 latencia_ms=96
+live                    PASS  GET /api/health/live → 200 e corpo esperado (3 amostra(s))
+                              observado: status=200 body={"status":"ok"} latencias_ms=[28, 11, 8]
+ready                   PASS  GET /api/health/ready → 200 e corpo esperado (3 amostra(s))
+                              observado: status=200 body={"status":"ready","dependencies":{"postgres":"ok"}} latencias_ms=[92, 17, 9]
+get-session             PASS  GET /api/auth/get-session → 200 e corpo `null` (prova só que a instância subiu)
+                              observado: status=200 body=null latencia_ms=71
+origem-positiva         PASS  POST /api/auth/sign-in/email com Origin canônico → ≠403 (sem este PASS o controle negativo não vale)
+                              observado: status=401 body={"message":"Invalid email or password","code":"INVALID_EMAIL_OR_PASSWORD"} cookies=[(nenhum)] latencia_ms=192
+origem-negativa         PASS  POST /api/auth/sign-in/email com Origin não confiável → 403
+                              observado: status=403 body={"message":"Invalid origin","code":"INVALID_ORIGIN"} cookies=[(nenhum)] latencia_ms=38
+origem-negativa-cookie  PASS  POST /api/auth/sign-in/email com Origin não confiável e cookie → 403 (caminho `useCookies` do validateOrigin)
+                              observado: status=403 body={"message":"Invalid origin","code":"INVALID_ORIGIN"} cookies=[(nenhum)] latencia_ms=28
+origem-positiva-cookie  PASS  POST /api/auth/sign-in/email com Origin canônico e cookie → ≠403 (par do controle negativo com cookie)
+                              observado: status=401 body={"message":"Invalid email or password","code":"INVALID_EMAIL_OR_PASSWORD"} cookies=[(nenhum)] latencia_ms=237
+origem-ausente          INFO  POST sem Origin nem cookie → INFO, não asserção (o veredito depende dos headers Sec-Fetch-* do cliente)
+                              observado: status=403 body={"message":"Missing or null Origin","code":"MISSING_OR_NULL_ORIGIN"}
+
+get-session: NÃO discrimina a troca de auth (origin check retorna cedo em GET/HEAD/OPTIONS).
+troca de auth: NÃO CARIMBADA por este probe — exige a asserção (c1) do host do link de reset
+de senha, emitida por e-mail controlado no canônico (dia-d §1.6-c1/c2).
+custo do conjunto: 5 POSTs em /sign-in/email — bucket 5/min por IP (isolado em 203.0.113.7).
