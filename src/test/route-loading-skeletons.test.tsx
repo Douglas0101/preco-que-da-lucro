@@ -90,6 +90,9 @@ function expectLoadingContract(container: HTMLElement): HTMLElement {
   const announcement = region.querySelector(".sr-only");
   expect(announcement).toHaveTextContent("Carregando...");
   const body = skeletonBody(region);
+  // Existir `.sr-only` na região não basta: dentro da subárvore `aria-hidden` o
+  // anúncio é suprimido do leitor de tela e o contrato de §18.5 cai.
+  expect(body.contains(announcement)).toBe(false);
   expect(body.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(0);
   return body;
 }

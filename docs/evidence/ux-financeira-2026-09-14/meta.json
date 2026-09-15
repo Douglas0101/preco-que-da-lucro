@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "label": "CONTROLADO",
   "commit": "2382636",
+  "commitNote": "HEAD registrado pelo harness (gitHead() lê o HEAD do worktree da captura), anterior ao commit da fatia: o build medido em .output veio do worktree da feature ('.worktree-onda3-skeleton'), cujas mudanças foram commitadas em d158f71 depois desta janela — 'commit' NÃO identifica o build medido.",
+  "measuredBuildFrom": "d158f71",
   "startedAt": "2026-09-14T15:24:22.214Z",
   "finishedAt": "2026-09-14T15:25:35.275Z",
   "baseUrl": "http://127.0.0.1:4219",
