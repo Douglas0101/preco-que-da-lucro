@@ -139,3 +139,16 @@ preco-que-da-lucro-postgres	0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
 ```
 
 Nenhum arquivo do motor financeiro aparece no diff (`src/lib/financial*.ts`, `src/lib/calc-explanation.ts`, `src/server/services/financial.service.ts`, `src/lib/ai/budget-ledger.server.ts`, `src/server/services/pricing.service.ts`): o único arquivo de **domínio** alterado é `src/server/services/expense.service.ts` (append do evento no mesmo `context.transaction`), sem alteração de cálculo. `EXECUTION-STATE-PROGRAM.md`, `docs/evidence/agent-state/{QUEUE.md,PROGRESS.md}` e arquivos de outros worktrees/repo principal não foram tocados.
+
+## ADVERSARIAL (preenchido pelo verificador designado)
+
+- **verificador:** V-B1 (fresh, read-only)
+- **veredicto:** **CONFIRMED, zero correções** — xmin idêntico entre despesa e evento (mesma transação), atomicidade nas duas direções (23502/23514), `SKIP LOCKED` + stress 3×9×3 sem repetição, idempotência do consumidor (3 execuções ⇒ 1 efeito), RLS cross-tenant 0 rows/42501, up→down→up restaurando, 6 mutações mortas por testes específicos.
+- **status recomendado:** 23.1 DONE · 23.2 DONE
+
+## LEDGER (preenchido pelo MAESTRO)
+
+- **promoção:** 23.1 NS → DONE · 23.2 NS → DONE
+- **integração:** I-M4 · merge `b5e880f` (+ wiring `db:test` em `87532d2`)
+- **placar após a integração:** 81,82% → 82,89%
+- **nota:** ver `docs/evidence/agent-state/SPEC-DELTAS/DECISOES-STEWARD-2026-09-15.md` para as interpretações ratificadas.

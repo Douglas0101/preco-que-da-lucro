@@ -154,3 +154,16 @@ Verde também sem o flag de console (o `console.log` do T5 fica oculto pelo repo
 ## Rollback
 
 `git revert 91152be` (commit atômico; nada fora de `src/test/perf-evidence.test.ts`, `docs/evidence/perf-controlled-2026-09-13/**` e `docs/evidence/_templates/performance-evidence.md` foi tocado). O commit do claim é independente e pode ser revertido junto.
+
+## ADVERSARIAL (preenchido pelo verificador designado)
+
+- **verificador:** V-A1 (fresh, read-only)
+- **veredicto:** **CONFIRMED** — vacuidade da base reproduzida (2 candidatos por basename, 0 checados), gate novo 8/8 com fail-closed provado, 7 rótulos testados um a um, 6 números do artefato re-derivados do raw. Correção de integração aplicada em `91152be` (fonte única de descoberta + `agent-state/**` fora da varredura), achada pelo `npm run check` no HEAD integrado.
+- **status recomendado:** DONE
+
+## LEDGER (preenchido pelo MAESTRO)
+
+- **promoção:** PARTIAL → DONE
+- **integração:** I-M5 · merge `d71be7b`
+- **placar após a integração:** 82,89% → 83,16%
+- **nota:** ver `docs/evidence/agent-state/SPEC-DELTAS/DECISOES-STEWARD-2026-09-15.md` para as interpretações ratificadas.

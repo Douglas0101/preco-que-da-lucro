@@ -217,3 +217,16 @@ $ docker exec preco-que-da-lucro-postgres psql -U postgres -c "select datname, n
 ```
 
 Nenhum arquivo do WP-B1 aparece no diff (`package.json`, `drizzle/**`, `scripts/db/migration-classes.ts`, `src/db/schema.ts`, `scripts/db/test-migrations.ts` intocados — o commit toca exatamente os quatro arquivos do escopo do card). `EXECUTION-STATE-PROGRAM.md`, `docs/evidence/agent-state/{QUEUE.md,PROGRESS.md}` e arquivos de outros worktrees/repo principal não foram tocados.
+
+## ADVERSARIAL (preenchido pelo verificador designado)
+
+- **verificador:** V-B2 (fresh, read-only)
+- **veredicto:** **CONFIRMED** — batch (4 execuções reais), rate-limit (relógio virtual + sonda real 551ms/621ms), observabilidade (T4), retomada após SIGKILL×2 e erro 22012 sem pular nem replicar (`max_apply_count=1`), 4 mutações mortas. Achado declarado: contadores de checkpoint last-write-wins sob runners concorrentes (efeito permanece seguro).
+- **status recomendado:** 28.1 DONE · 28.2 PARTIAL · 28.3 DONE · 28.4 PARTIAL · 28.5 DONE
+
+## LEDGER (preenchido pelo MAESTRO)
+
+- **promoção:** 28.1 NS → DONE · 28.2 NS → PARTIAL · 28.3 NS → DONE · 28.4 PARTIAL → PARTIAL · 28.5 PARTIAL → DONE
+- **integração:** I-M6 · merge `0235084` (+ wiring `db:test` em `d96a889`)
+- **placar após a integração:** 83,16% → 84,76%
+- **nota:** ver `docs/evidence/agent-state/SPEC-DELTAS/DECISOES-STEWARD-2026-09-15.md` para as interpretações ratificadas.
