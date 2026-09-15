@@ -1,0 +1,11 @@
+# Prova de que o pré-voo NÃO imprime valor (valores-SENTINELA injetados nos 4 casos)
+# grep -ci 'sentinel' em cada saída — esperado 0 em todas:
+case-a-prod-completo.txt: 0
+case-b-prod-faltando.txt: 0
+case-c-prod-invalido.txt: 0
+case-d-dev-json.txt: 0
+# Valores-sentinela usados (nomes e formas, sem conteúdo real):
+#   BETTER_AUTH_URL=https://sentinel-canonical.invalid | AUTH_TRUSTED_ORIGINS=<duas origens sentinel>
+#   BETTER_AUTH_SECRET=sentinel-secret-… (32+) | GOOGLE_CLIENT_ID/SECRET=sentinel-…
+#   RESEND_API_KEY=sentinel-resend-key | AUTH_EMAIL_FROM=noreply@sentinel.invalid
+#   caso C: BETTER_AUTH_URL com usuário/senha/path/query sentinela

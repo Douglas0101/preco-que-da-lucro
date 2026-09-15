@@ -1,0 +1,139 @@
+# Pré-voo de env por NOME/ESTADO — saída bruta (2026-09-14)
+# Comando (por caso, ambiente limpo via env -i, valores-SENTINELA para provar que não são impressos):
+#   node node_modules/tsx/dist/cli.mjs scripts/m02-auth-preflight.ts --target-label <caso>
+#   caso A: produção, todas presentes · B: produção, BETTER_AUTH_URL ausente + segredo curto
+#   C: produção, URL com path/credencial + origem http + par Google pela metade
+#   D: não-produção, sem Google, par de e-mail ausente, --json --require-email
+
+===== case-a-prod-completo =====
+m02-auth-preflight — §13.6 pré-voo de env por NOME/ESTADO (nenhum valor é impresso)
+alvo: case-a-prod-completo
+modo: produção (NODE_ENV=production)
+escopo: variáveis adjudicadas por src/server/auth/auth-policy.ts + par de e-mail de auth
+fora do escopo: DATABASE_*, AI_*, SUPABASE_*, MIGRATION_* — checklist por NOME de cutover-A4.md §4.4
+
+VARIAVEL                  PRESENCA   EXIGENCIA                VEREDITO  DETALHE
+BETTER_AUTH_URL           present    required-in-production   ok        origem aceita pela política
+AUTH_TRUSTED_ORIGINS      present    optional                 ok        2 origem(ns) válida(s)
+BETTER_AUTH_SECRET        present    required                 ok        mínimo de 32 caracteres atendido
+GOOGLE_CLIENT_ID          present    optional-pair            ok        par completo (id e segredo presentes)
+GOOGLE_CLIENT_SECRET      present    optional-pair            ok        par completo (id e segredo presentes)
+RESEND_API_KEY            present    required-for-auth-email  ok        par aceito por getEmailAdapter() (envio real não é testado aqui)
+AUTH_EMAIL_FROM           present    required-for-auth-email  ok        par aceito por getEmailAdapter() (envio real não é testado aqui)
+
+BLOQUEIOS: nenhum
+RESULTADO: PASS — sem veredito sobre o que não foi medido
+
+===== case-b-prod-faltando =====
+m02-auth-preflight — §13.6 pré-voo de env por NOME/ESTADO (nenhum valor é impresso)
+alvo: case-b-prod-faltando
+modo: produção (NODE_ENV=production)
+escopo: variáveis adjudicadas por src/server/auth/auth-policy.ts + par de e-mail de auth
+fora do escopo: DATABASE_*, AI_*, SUPABASE_*, MIGRATION_* — checklist por NOME de cutover-A4.md §4.4
+
+VARIAVEL                  PRESENCA   EXIGENCIA                VEREDITO        DETALHE
+BETTER_AUTH_URL           absent     required-in-production   missing         obrigatória em produção
+AUTH_TRUSTED_ORIGINS      absent     optional                 not-configured  lista vazia; baseURL entra automaticamente
+BETTER_AUTH_SECRET        present    required                 invalid         BETTER_AUTH_SECRET deve ter pelo menos 32 caracteres
+GOOGLE_CLIENT_ID          absent     optional-pair            not-configured  provider Google desativado
+GOOGLE_CLIENT_SECRET      absent     optional-pair            not-configured  provider Google desativado
+RESEND_API_KEY            absent     required-for-auth-email  missing         faltando: RESEND_API_KEY, AUTH_EMAIL_FROM
+AUTH_EMAIL_FROM           absent     required-for-auth-email  missing         faltando: RESEND_API_KEY, AUTH_EMAIL_FROM
+
+BLOQUEIOS: BETTER_AUTH_URL (missing), BETTER_AUTH_SECRET (invalid)
+RESULTADO: FAIL — sem veredito sobre o que não foi medido
+
+===== case-c-prod-invalido =====
+m02-auth-preflight — §13.6 pré-voo de env por NOME/ESTADO (nenhum valor é impresso)
+alvo: case-c-prod-invalido
+modo: produção (NODE_ENV=production)
+escopo: variáveis adjudicadas por src/server/auth/auth-policy.ts + par de e-mail de auth
+fora do escopo: DATABASE_*, AI_*, SUPABASE_*, MIGRATION_* — checklist por NOME de cutover-A4.md §4.4
+
+VARIAVEL                  PRESENCA   EXIGENCIA                VEREDITO    DETALHE
+BETTER_AUTH_URL           present    required-in-production   invalid     BETTER_AUTH_URL deve conter somente a origem, sem path, credencial ou query
+AUTH_TRUSTED_ORIGINS      present    optional                 invalid     AUTH_TRUSTED_ORIGINS deve usar HTTPS fora do ambiente local
+BETTER_AUTH_SECRET        present    required                 ok          mínimo de 32 caracteres atendido
+GOOGLE_CLIENT_ID          present    optional-pair            incomplete  GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET devem ser configurados juntos
+GOOGLE_CLIENT_SECRET      absent     optional-pair            incomplete  GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET devem ser configurados juntos
+RESEND_API_KEY            present    required-for-auth-email  missing     faltando: AUTH_EMAIL_FROM
+AUTH_EMAIL_FROM           absent     required-for-auth-email  missing     faltando: AUTH_EMAIL_FROM
+
+BLOQUEIOS: BETTER_AUTH_URL (invalid), AUTH_TRUSTED_ORIGINS (invalid), GOOGLE_CLIENT_ID (incomplete), GOOGLE_CLIENT_SECRET (incomplete)
+RESULTADO: FAIL — sem veredito sobre o que não foi medido
+
+===== case-d (--json --require-email) =====
+{
+  "targetLabel": "case-d",
+  "production": false,
+  "entries": [
+    {
+      "name": "BETTER_AUTH_URL",
+      "presence": "present",
+      "requirement": "required-in-production",
+      "verdict": "ok",
+      "detail": "origem aceita pela política",
+      "blocking": false
+    },
+    {
+      "name": "AUTH_TRUSTED_ORIGINS",
+      "presence": "absent",
+      "requirement": "optional",
+      "verdict": "not-configured",
+      "detail": "lista vazia; baseURL entra automaticamente",
+      "blocking": false
+    },
+    {
+      "name": "BETTER_AUTH_SECRET",
+      "presence": "present",
+      "requirement": "required",
+      "verdict": "ok",
+      "detail": "mínimo de 32 caracteres atendido",
+      "blocking": false
+    },
+    {
+      "name": "GOOGLE_CLIENT_ID",
+      "presence": "absent",
+      "requirement": "optional-pair",
+      "verdict": "not-configured",
+      "detail": "provider Google desativado",
+      "blocking": false
+    },
+    {
+      "name": "GOOGLE_CLIENT_SECRET",
+      "presence": "absent",
+      "requirement": "optional-pair",
+      "verdict": "not-configured",
+      "detail": "provider Google desativado",
+      "blocking": false
+    },
+    {
+      "name": "RESEND_API_KEY",
+      "presence": "absent",
+      "requirement": "required-for-auth-email",
+      "verdict": "missing",
+      "detail": "faltando: RESEND_API_KEY, AUTH_EMAIL_FROM",
+      "blocking": true
+    },
+    {
+      "name": "AUTH_EMAIL_FROM",
+      "presence": "absent",
+      "requirement": "required-for-auth-email",
+      "verdict": "missing",
+      "detail": "faltando: RESEND_API_KEY, AUTH_EMAIL_FROM",
+      "blocking": true
+    }
+  ],
+  "blockers": [
+    "RESEND_API_KEY",
+    "AUTH_EMAIL_FROM"
+  ],
+  "verdict": "FAIL",
+  "note": "Relatório por nome/estado: nenhum valor de variável é lido para a saída."
+}
+
+===== exit codes =====
+case-a-prod-completo exit=0
+case-b-prod-faltando exit=1
+case-c-prod-invalido exit=1
+case-d exit=1
