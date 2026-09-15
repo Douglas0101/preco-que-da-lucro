@@ -12,6 +12,24 @@
 
 ## 2. Detalhe por integração
 
+### I-O21 — §18.1 estado `estimated` / origem de volume `forecast`
+
+**Entrega:** seletor de origem do volume em `simulacoes.tsx` com grupo acessível (`role="group"` + radios), badge `SIMULAÇÃO`↔`ESTIMATIVA`, título do card, rótulo do campo (`Vendas simuladas`/`Vendas estimadas`) e uma linha **Origem do volume** no resultado que lê o **eco do motor** (`simulated.value.volumeSource`), não o formulário. 269 linhas de teste novo (7 casos) + 2 literais de formulário ajustados em `simulation-race.test.tsx` (o builder deixou de aceitar formulário sem origem declarada).
+
+**A UI não promete o que o servidor recusa (a trava de honestidade do item):** o botão de salvar fica `disabled` quando a origem não é persistível, com `aria-describedby` apontando para uma nota **sempre presente** em região `aria-live="polite"`: _"Salvar está indisponível para estimativas: a persistência aceita apenas a origem «simulação manual» — guardar projeções está previsto para a v2. O cálculo acima continua válido e nada é convertido em simulação manual em segundo plano."_ A dica da própria opção já avisa antes do resultado existir (_"Não é persistida nesta versão"_), e **não há fallback silencioso**: `buildSimulationInput` repassa `form.volumeSource`.
+
+**`forecast` COMPUTA? — sim, com evidência (era a pergunta que eu exigi responder):** `VOLUME_SOURCES` em `finance.ts` inclui `forecast`; `calculateScenario` só rejeita `unknown` com volume numérico; `runFinancialSimulation` só rejeita `real`; o schema de params aceita a origem. O teste unitário roda as duas origens e mostra `status: "ok"` nos dois casos, com os resultados **deep-equal ao remover só o `volumeSource`** — ou seja, a **matemática é idêntica** e só a origem declarada muda. Consequência declarada: **não existe previsão estatística** e nenhum texto da UI sugere que exista. O teste de componente dirige o caminho real (`financialSimulationQueryOptions` → `runSimulation` → motor, com mock só na fronteira HTTP) e assere o resultado renderizado com `Estimativa informada (projeção)`.
+
+**A recusa é do serviço, não do banco:** o CHECK de `scenario_type` **já** aceita `forecast`; a guarda que recusa a persistência é a do `simulation.service.ts` — que ficou **intacta**, e o teste pré-existente de rejeição continua passando. Ou seja: a UI respeita a guarda em vez de contorná-la.
+
+**Prova de falsificação (vermelho→verde):** restaurando o literal fixo antigo, **3 dos 7** testes novos falham (capturado em `falsification.txt`).
+
+**COLISÃO DE EVIDÊNCIA — erro de planejamento do supervisor, resolvido preservando os dois lados.** O único arquivo em conflito (`AA`) foi `docs/evidence/ux-financeira-2026-09-14/report.md`, porque dei a **O19 (18.5) e O21 (18.1) o mesmo diretório de evidência** sem nomes distintos — cada um escreveu o seu `report.md`. A resolução **não** descartou nenhum lado: o de 18.5 virou `report-18.5-skeletons.md` (160 linhas), o de 18.1 virou `report-18.1-volume-origin.md` (113 linhas), e `report.md` passou a ser um **índice** que aponta os dois e carrega os **fatos transversais** (a deriva de performance que atinge a rota de controle, e o contrato de não-persistência do forecast). O `PLANO-ONDAS-3-4.md` foi corrigido para que as fatias seguintes recebam **caminhos de evidência únicos por operador**, não apenas diretórios. Lição: **propriedade de arquivo inclui o caminho do artefato de evidência**, não só o do código.
+
+**Gates do S:** 16 testes (3 arquivos), typecheck/eslint/format limpos, matriz determinística.
+
+**Residuais declarados pelo operador:** sem Playwright em browser real (a prova de teclado é jsdom/`user-event`, então o comportamento de seta/leitura de tela **não** está verificado); `e2e/ui-stack.spec.ts` é arquivo de O23, então o toggle ficou como teste de componente por desenho; o caminho de toast de salvamento rejeitado é inalcançável por construção (botão desabilitado) e segue coberto no serviço; **persistência de forecast é v2 e NÃO foi entregue**.
+
 ### I-O23 — §20.1 canal de coleta de violações CSP
 
 **Entrega:** `src/routes/api/csp-report.ts` + `src/lib/csp-report-payload.ts` (media types, cap de bytes, normalização das **duas** formas, limite por request); `security-headers.ts` ganha `report-uri`/`report-to` + o header `reporting-endpoints`; 16 testes novos (13+3); assert do e2e reescrito; `routeTree.gen.ts` regenerado; matriz regenerada (`apiRoutes: 4→5`).
