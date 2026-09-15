@@ -378,8 +378,11 @@ describe("paridade com o motor (§18.3)", () => {
 
 /**
  * Campos do eco do motor que o "Como calculamos?" do resultado NÃO repete, com
- * o motivo. Um campo novo em `ScenarioResult`/`DecimalScenarioResult` sem
- * decisão registrada aqui derruba o teste de cobertura acima.
+ * o motivo. Um campo novo no eco serializado pelo BFF (`DecimalScenarioResult`
+ * de `runFinancialSimulation`) sem decisão registrada aqui derruba o teste de
+ * cobertura acima; um campo que exista só no motor (`ScenarioResult` de
+ * `calculateScenario`, que o BFF ecoa por lista explícita de campos) não passa
+ * por este lock.
  */
 const NOT_EXPLAINED_HERE: Record<string, string> = {
   price: "entrada informada no formulário",

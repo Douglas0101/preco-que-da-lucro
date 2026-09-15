@@ -43,13 +43,17 @@ custo variável unitário`, `margem ÷ preço × 100`, `preço × volume`, `(cus
    `margem × volume`, `margem total − despesas fixas`) e confere com o eco **passo a passo**. Se o motor
    mudar a aritmética de um passo (ex.: faturamento deixar de ser `preço × volume`), **falha**.
 3. **Nada de número à mão**: o valor exibido é comparado com `brl`/`pct` do eco do motor.
-4. **Contrato de campos**: o teste percorre todas as chaves do eco serializado e exige que cada uma esteja
-   explicada **ou** declarada em `NOT_EXPLAINED_HERE` com motivo (`price`/`unitCost`/`volume` = entradas;
-   `breakEven*` = explicados em `/ponto-equilibrio`; `resultSign` = só cor da linha). Um campo novo em
-   `ScenarioResult` derruba o teste até alguém decidir se ele entra na explicação.
+4. **Contrato de campos**: o teste percorre todas as chaves do eco **serializado pelo BFF**
+   (`runFinancialSimulation` → `DecimalScenarioResult`) e exige que cada uma esteja explicada **ou**
+   declarada em `NOT_EXPLAINED_HERE` com motivo (`price`/`unitCost`/`volume` = entradas;
+   `breakEven*` = explicados em `/ponto-equilibrio`; `resultSign` = só cor da linha). Um campo novo
+   **no eco** derruba o teste até alguém decidir se ele entra na explicação; um campo que exista só no
+   motor (`ScenarioResult` de `calculateScenario`, cujo eco é uma lista explícita de campos montada em
+   `financial.service.ts`) **não** derruba: o lock cobre as chaves do eco, não as do motor.
 5. **Anti-cópia entre telas**: `CONTRIBUTION_MARGIN_PCT_FORMULA` é a **mesma string** do passo
-   `contributionMarginPct` (preso ao motor pelo item 2) e é ela que o card de `/inicio` renderiza — o teste
-   confere a identidade e a página renderizada contém a string.
+   `contributionMarginPct` (preso ao motor pelo item 2 **pelo campo e pelo valor, não pelo texto** — ver
+   residual 1) e é ela que o card de `/inicio` renderiza — o teste confere a identidade e a página
+   renderizada contém a string.
 
 **Falsificação executada** (mutação temporária em `src/lib/calc-explanation.ts`, fonte restaurada e
 conferida com `diff` — arquivo idêntico ao backup):
@@ -59,10 +63,17 @@ reescrito à mão` **falha**: `expected 'R$ 202,00' to be 'R$ 200,00'`;
 - `totalContribution` trocado por `totalVariable` na tabela → `cobre todo campo do eco do motor, ou declara
 por que não cobre` **falha**: `campo do motor sem explicação declarada: totalContribution`.
 
-**Limite declarado (residual 1):** o _texto_ da fórmula é linguagem natural — nenhum teste o lê. O que está
-provado é que o valor exibido é o eco do motor, que a aritmética transcrita ao lado da string bate com o
-motor e que o conjunto de campos cobertos segue o contrato. Uma edição que troque só a prosa por uma
-fórmula que o motor não usa não é detectada automaticamente; ela ficaria ao lado do `field` que explica.
+**Limite declarado (residual 1):** a garantia automática sobre o **texto** das fórmulas é desigual por
+passo. As prosas de `variableCost`, `contributionMargin`, `revenue`, `totalContribution` e `result` são
+assertadas **literalmente** no teste do resultado (`toContain("Faturamento: preço × volume")`, por
+exemplo, nas duas telas), então trocar a prosa de `revenue` por uma fórmula que o motor não usa **não**
+passa — o teste falha. O que fica **sem guarda** é exatamente a prosa de dois pontos: o passo
+`totalVariable` ("Custo variável total", `(custo unitário + custo variável unitário) × volume`) e a
+constante `CONTRIBUTION_MARGIN_PCT_FORMULA`, que o teste usa **pela própria constante** (identidade e
+`toContain`), nunca pelo conteúdo literal — reescrever o texto dela por outra fórmula não derruba nada.
+O que está provado é que o valor exibido é o eco do motor, que a aritmética transcrita ao lado da string
+bate com o motor e que o conjunto de campos cobertos segue o contrato; nesses dois pontos a fórmula
+escrita pode divergir do motor em silêncio e depende de revisão.
 
 ## 3. Como a origem `forecast` é descrita
 
@@ -115,9 +126,14 @@ com NBSP, normalizado antes das asserções.
 
 ## 6. Residuais declarados
 
-1. **O texto das fórmulas não é verificado por teste** (§2, limite): a garantia automática cobre valor
-   exibido = eco do motor, aritmética transcrita = motor e cobertura de campos. Prosa trocada à mão por
-   fórmula que o motor não usa depende de revisão.
+1. **A prosa de duas das sete fórmulas não é verificada por teste** (§2, limite): a garantia automática
+   cobre valor exibido = eco do motor, aritmética transcrita = motor e cobertura de campos, e as prosas
+   de `variableCost`, `contributionMargin`, `revenue`, `totalContribution` e `result` são assertadas
+   literalmente no teste do resultado — trocar a de `revenue` derruba 2 testes (a asserção
+   `toContain("Faturamento: preço × volume = R$ 200,00")`, em `forecast` e em `simulação manual`).
+   Ficam sem guarda só a prosa do passo `totalVariable` e a constante
+   `CONTRIBUTION_MARGIN_PCT_FORMULA` (o teste a usa pela própria constante, então a troca de texto passa
+   despercebida): nelas a fórmula escrita pode divergir do motor e depende de revisão.
 2. **Sem e2e autenticado.** O e2e exigiria preview + `E2E_AUTH_EMAIL/PASSWORD` + seed e `e2e/ui-stack.spec.ts`
    é propriedade de O23 (20.1) na tabela de ownership; a prova de teclado é jsdom/`user-event`. Em
    particular, **a alternância por Enter/Espaço no `<summary>` não é exercitada**: jsdom não implementa a

@@ -11,11 +11,11 @@
 As regras de usuário ficaram ao lado das de auth, em
 `src/server/auth/rate-limit-rules.server.ts`, com a chave `<bucket>|<userId>`:
 
-| Bucket   | Regra                      | Chave consumida | Aplicação        | Superfície                                                       |
-| -------- | -------------------------- | --------------- | ---------------- | ---------------------------------------------------------------- |
-| `chat`   | `{ window: 600, max: 20 }` | `chat           | <userId>`        | `reserveChatAndLoadHistory` (`src/lib/chat-execution.server.ts`) | `ApplicationError("RATE_LIMIT")` → 429                                             |
-| `tool`   | `{ window: 600, max: 40 }` | `tool           | <userId>`        | `runRegisteredTool` (`src/lib/ai/tool-runner.ts`)                | `{ ok: false, code: "RATE_LIMIT" }` + `tool_executions`/`audit_events` de rejeição |
-| `export` | —                          | —               | **N/A** (ver §5) | —                                                                |
+| Bucket   | Regra                      | Chave consumida  | Aplicação                                                        | Superfície                                                                         |
+| -------- | -------------------------- | ---------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `chat`   | `{ window: 600, max: 20 }` | `chat\|<userId>` | `reserveChatAndLoadHistory` (`src/lib/chat-execution.server.ts`) | `ApplicationError("RATE_LIMIT")` → 429                                             |
+| `tool`   | `{ window: 600, max: 40 }` | `tool\|<userId>` | `runRegisteredTool` (`src/lib/ai/tool-runner.ts`)                | `{ ok: false, code: "RATE_LIMIT" }` + `tool_executions`/`audit_events` de rejeição |
+| `export` | —                          | —                | **N/A** (ver §5)                                                 | —                                                                                  |
 
 O helper transacional foi extraído de `createDatabaseRateLimitStorage.consume` para
 `consumeRateLimitInTransaction(transaction, key, rule, now?)` em
@@ -47,8 +47,11 @@ instâncias diferentes (§4).
   metades: com bucket saturado há 0 inserts em `idempotency_records`; com bucket aprovado há 1.
 - O `Retry-After` calculado pelo bucket é registrado no log estruturado
   (`ai.chat_rate_limited`, simétrico ao `ai.chat_budget_rejected` do limite diário). O header HTTP
-  `Retry-After` não é emitido: quem constrói a resposta é `chat.functions.ts`/rota, fora do escopo
-  desta fatia (ver §6).
+  `Retry-After` não é emitido: a resposta 429 ao cliente é montada por `apiErrorResponse`
+  (`src/lib/api-error.ts`, política `RATE_LIMIT` → `status: 429`), chamada do handler de erro de
+  `src/start.ts` — nenhum dos dois recebe o `retryAfter` do bucket. O `429` de
+  `src/lib/chat.functions.ts` é o do **gateway upstream** (mapeia o 429 do `fetch` em
+  `ApplicationError("RATE_LIMIT")`), não a resposta ao cliente. Fora do escopo desta fatia (ver §7).
 
 ## 3. `AI_CHAT_LIMIT_PER_10_MINUTES` e a divergência com o SDD
 
@@ -140,11 +143,17 @@ scripts/m02-boundaries.ts` → clean. A matriz foi regerada (`transactionSites` 
 - A prova de atomicidade exercita `consumeRateLimitInTransaction` com as mesmas regras e chaves do
   runtime, mas não sobe o servidor Nitro: não há e2e HTTP de 429 de chat nesta fatia (a rota pertence
   ao O19).
-- O script `scripts/db/test-rate-limit-burst.ts` não foi adicionado à cadeia `db:test` do
-  `package.json` (arquivo fora do escopo desta fatia) — precisa ser encadeado na integração para
-  rodar no CI.
-- `Retry-After` no 429 continua ausente (SDD §13.9 o promete); exige mudança em
-  `chat.functions.ts`/rota, arquivos reservados para outras fatias.
+- O script `scripts/db/test-rate-limit-burst.ts` **está** encadeado como o **último passo** da
+  cadeia `db:test` do `package.json` (`… && tsx scripts/db/test-rate-limit-burst.ts`, passo 11) e
+  portanto roda no CI pelo `db:test` do job `verify` (`.github/workflows/ui-stack.yml:60`). O
+  encadeamento não foi feito por esta fatia (o operador não podia tocar `package.json`): é ação de
+  manifest do supervisor, commit `46812f6` ("chore(obs): wire the burst test into db:test …",
+  12:44 -0300), 11 min depois da redação desta lista — a frase anterior descrevia o estado da
+  entrega, não o estado do branch.
+- `Retry-After` no 429 continua ausente (SDD §13.9 o promete): a resposta nasce em
+  `apiErrorResponse` (`src/lib/api-error.ts`, `RATE_LIMIT` → 429), chamada de `src/start.ts`, que não
+  recebem o `retryAfter` do bucket; exige mudança nesses arquivos, não em `chat.functions.ts` (ali o
+  429 é o do gateway upstream).
 - `conversationService.countRecentUserMessages` / `conversation.repository.countRecentUserMessages`
   ficaram sem uso no runtime (eram o contador antigo). Não foram removidos para não alargar o escopo
   (têm testes próprios em `src/test/conversation.service.test.ts`).

@@ -69,14 +69,23 @@ Resultado: **1 arquivo, 5 testes, 5 passando** (2,9 s).
 - `inicio`, `produtos`, `ponto-equilibrio`, `diagnostico` — um teste por rota que **renderiza o
   `component` real da rota** (`Route.options.component`) com as queries mockadas em estado
   `pending`, exercitando o gate de carregamento de verdade; cada teste exige
-  `role="status"` + `sr-only` + barras `[data-slot="skeleton"]` e confere a grade real
+  `role="status"` + `sr-only` + barras `[data-slot="skeleton"]` + anúncio **fora** da subárvore
+  `aria-hidden` (`expect(body.contains(announcement)).toBe(false)`) e confere a grade real
   (`lg:grid-cols-4` com 4 filhos, `xl:grid-cols-5` com 5 filhos, `grid gap-3` com 3 cards,
   `md:grid-cols-3` com 3 métricas) + `axe` sem violações (regra `color-contrast` desabilitada,
   igual a `src/test/ui-stack.test.tsx`).
 
-Prova de que o teste não é vacuoso: revertendo o gate de `/inicio` para o `<output>` antigo, o
-teste falha (`região role=status ausente no estado de carregamento`); o arquivo foi restaurado em
-seguida.
+Prova de que o teste não é vacuoso (duas mutações; o arquivo mutado foi restaurado e conferido por
+hash em seguida):
+
+1. revertendo o gate de `/inicio` para o `<output>` antigo, o teste falha
+   (`região role=status ausente no estado de carregamento`);
+2. movendo o `<span className="sr-only">` para **dentro** da `div aria-hidden`
+   (`src/components/loading-skeleton.tsx`), os **5** testes falham com
+   `AssertionError: expected true to be false // Object.is equality` em
+   `expectLoadingContract (src/test/route-loading-skeletons.test.tsx:95:39)` — a asserção
+   discrimina o caso "anúncio dentro da subárvore suprimida", que a checagem de existência de
+   `.sr-only` não pegava.
 
 Regressão vizinha: `npx vitest run src/test/ui-stack.test.tsx src/test/simulation-race.test.tsx src/test/query-performance.test.ts` → **3 arquivos, 18 testes, 18 passando**.
 
@@ -112,8 +121,12 @@ Seed e captura rodaram com `DATABASE_URL`/`DATABASE_ADMIN_URL` explícitos em
 `127.0.0.1:5432/preco_que_da_lucro_test` (+ `DATABASE_DRIVER=node-postgres`) e as credenciais
 `E2E_AUTH_*` default do harness — nunca Neon/produção.
 
-- Captura concluída (exit 0) em `2026-09-14T15:24:22Z → 15:25:35Z`, commit `2382636`,
-  base `http://127.0.0.1:4219`, chromium 151, **n = 5 amostras por rota**, 81 `app.context_tx`.
+- Captura concluída (exit 0) em `2026-09-14T15:24:22Z → 15:25:35Z`, base
+  `http://127.0.0.1:4219`, chromium 151, **n = 5 amostras por rota**, 81 `app.context_tx`. O campo
+  `commit` de `meta.json` é `2382636` — o HEAD que o harness (`gitHead()`) leu no worktree no
+  instante da captura, **antes** do commit da fatia; o build medido em `.output` saiu do worktree da
+  feature, commitado em `d158f71` (`2026-09-14 12:30 -0300`). Ou seja: `commit` **não** identifica o
+  build medido (ver `measuredBuildFrom`/`commitNote` em `meta.json`).
 - Percentis por interpolação linear R-7, mesmo método do baseline F0-04.
 - Raw: `route-samples.jsonl`, `context-tx.jsonl`, `server-stdout.txt`, `meta.json`,
   `capture-stdout.txt`, `ai-probe-output.txt`. Derivado: `cls-<rota>.json` (before/after + amostras).
@@ -133,10 +146,13 @@ Leitura honesta dos números:
 
 - **CLS não regride**: as quatro rotas ficam em `0` antes e depois (o `/simulacoes` de controle
   mantém `0.02` nas duas rodadas).
-- LCP/TTFB/ready subiram em **todas** as rotas, inclusive `/simulacoes`, que este item **não
-  tocou** (`readyMs` 2505 → 3154). O desvio é da rodada/ambiente (n=5, `warmup 0` em vez de 1,
-  máquina com outros processos ativos), não atribuível ao esqueleto; nenhuma regressão pode ser
-  imputada a §18.5 com este par antes/depois.
+- LCP/`readyMs`: subiram nas **cinco** rotas, inclusive `/simulacoes`, que este item **não tocou**
+  (LCP p50 1272 → 1724 ms; `readyMs` p50 2505 → 3154 ms). TTFB: subiu nas **quatro rotas alteradas**
+  (4.0 → 5.1, 3.8 → 4.8, 4.1 → 6.8 e 4.6 → 5.3 ms) e **não** subiu na rota de controle
+  (`/simulacoes` 6.3 → 6.2 ms). O desvio dominante está no LCP/`readyMs` do controle, que nenhum
+  código desta fatia alterou, então ele é da rodada/ambiente (n=5, `warmup 0` em vez de 1, máquina
+  com outros processos ativos), não atribuível ao esqueleto; nenhuma regressão pode ser imputada a
+  §18.5 com este par antes/depois.
 - O ganho do item é de **geometria/percepção** (o carregamento ocupa o espaço final), não
   mensurável por CLS nesta fixture — declarado como tal em vez de inventar número.
 
