@@ -36,7 +36,7 @@ npx playwright install --with-deps chromium firefox webkit
 npm run test:e2e
 ```
 
-O `webServer` de `playwright.config.ts:29-31` faz `e2e:prepare && build && preview --host 127.0.0.1 --port 4173`; `e2e:prepare` (`package.json` → `scripts/e2e/seed-auth.ts`) roda migrations na branch e re-escreve a senha de `app_runtime` com `E2E_DB_RUNTIME_PASSWORD` (`scripts/e2e/seed-auth.ts:37-42`).
+O `webServer` de `playwright.config.ts:25-28` faz `e2e:prepare && build && preview --host 127.0.0.1 --port 4173`; `e2e:prepare` (`package.json` → `scripts/e2e/seed-auth.ts`) roda migrations na branch e re-escreve a senha de `app_runtime` com `E2E_DB_RUNTIME_PASSWORD` (`scripts/e2e/seed-auth.ts:37-42`).
 
 Ambiente produzido no runner (nenhum segredo novo; tudo gerado por `openssl` no próprio passo):
 
@@ -48,7 +48,7 @@ Ambiente produzido no runner (nenhum segredo novo; tudo gerado por `openssl` no 
 | `BETTER_AUTH_SECRET` | `openssl rand -hex 32` | gerado no passo |
 | `E2E_AUTH_PASSWORD` | `openssl rand -base64 24` | gerado no passo |
 | `E2E_AUTH_EMAIL` | `teste@example.test` | literal (igual ao `ui-stack.yml:44`) |
-| `BETTER_AUTH_URL` / `AUTH_TRUSTED_ORIGINS` | `http://127.0.0.1:4173` | literal (igual ao `ui-stack.yml:38-39`) |
+| `BETTER_AUTH_URL` / `AUTH_TRUSTED_ORIGINS` | `http://127.0.0.1:4173` | literal (igual ao `ui-stack.yml:42-43`) |
 | `ALLOW_REMOTE_DB` | motivo rotulado, com o nº do PR | literal no passo |
 | `DATABASE_DRIVER` | **não definido** (default `neon-serverless`, o driver de produção — `src/db/client.server.ts:68,90`) | decisão explícita |
 
@@ -138,7 +138,7 @@ Leitura: o override é o caminho sancionado de drill (§26) e o guard **falha fe
 ## 5. Limites declarados
 
 1. **E2E não executado live** (sem `NEON_API_KEY`). O que está provado é: parse dos YAMLs, lógica de shell + ambiente produzido, ordem/condição do passo e aderência ao `env-guard`. Não provado: que o Playwright passa contra a branch (depende de H-2).
-2. **Artefato de browser não é publicado.** O `ui-stack.yml:100-113` sobe `playwright-report`/`test-results`/`playwright-results.json`; aqui **não** foi adicionado upload, por decisão de diff mínimo do WP. Consequência: numa falha de E2E em CI, a evidência de browser morre com o runner (o log e o `GITHUB_STEP_SUMMARY` do job permanecem). Proposta para o MAESTRO: passo `upload-artifact` de 8 linhas, espelhando o `ui-stack.yml`, se quiser rastreabilidade.
-3. **Orçamento de tempo inalterado.** `branch-ci` segue com `timeout-minutes: 30` (`:79`); o E2E (`playwright install` + `build` + 4 projetos) entra nesse mesmo orçamento. Se a primeira execução live estourar o teto, o knob é o timeout — decisão do MAESTRO, não deste WP.
+2. **Artefato de browser não é publicado.** O `ui-stack.yml:99-113` sobe `playwright-report`/`test-results`/`playwright-results.json`; aqui **não** foi adicionado upload, por decisão de diff mínimo do WP. Consequência: numa falha de E2E em CI, a evidência de browser morre com o runner (o log e o `GITHUB_STEP_SUMMARY` do job permanecem). Proposta para o MAESTRO: passo `upload-artifact` de 8 linhas, espelhando o `ui-stack.yml`, se quiser rastreabilidade.
+3. **Orçamento de tempo inalterado.** `branch-ci` segue com `timeout-minutes: 30` (`:83`); o E2E (`playwright install` + `build` + 4 projetos) entra nesse mesmo orçamento. Se a primeira execução live estourar o teto, o knob é o timeout — decisão do MAESTRO, não deste WP.
 4. **Ordem §26 vs. §12.5 (observação, não divergência).** O texto de §26 lista `… → E2E → schema diff`; no workflow o schema diff roda imediatamente após as migrations (pré-existente, `:149`) e o E2E fecha o job (`:351`). O spec-card deste WP fixa "depois de provisionar/migrar/seed", que é exatamente onde o E2E ficou; §12.5 (`create → migrate → seed → integration → E2E`) também é satisfeito. Mover o schema diff para depois do E2E seria uma troca de 2 blocos e **não** foi feita por não estar no spec-card.
 5. **Regime:** CONTROLLED (inspeção local + execução de scripts em ambiente local com shims); nenhuma execução remota.
