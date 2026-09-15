@@ -11,7 +11,7 @@
     "concreteOperations": 36,
     "apiRoutes": 5,
     "transactionSites": 100,
-    "directDatabaseFiles": 42
+    "directDatabaseFiles": 44
   },
   "bffs": [
     {
@@ -55,7 +55,7 @@
       "operations": [
         {
           "name": "getChatHistory",
-          "line": 267,
+          "line": 268,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -63,7 +63,7 @@
         },
         {
           "name": "createChatConversation",
-          "line": 312,
+          "line": 313,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -71,7 +71,7 @@
         },
         {
           "name": "clearChatHistory",
-          "line": 324,
+          "line": 325,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -79,7 +79,7 @@
         },
         {
           "name": "sendChatMessage",
-          "line": 342,
+          "line": 343,
           "declaration": "createServerFn",
           "service": "ConversationService/ChatExecution",
           "repository": "ConversationRepository + BudgetRepository + AiToolRepository + AuditRepository",
@@ -88,6 +88,7 @@
       ],
       "imports": [
         "@/db/client.server",
+        "@/instrumentation/safe-record",
         "@/instrumentation/telemetry",
         "@/lib/ai-endpoint.server",
         "@/lib/ai/tool-registry",
@@ -661,79 +662,79 @@
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 101,
+      "line": 102,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 170,
+      "line": 171,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 184,
+      "line": 185,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 257,
+      "line": 258,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 267,
+      "line": 268,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 291,
+      "line": 292,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 311,
+      "line": 312,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 342,
+      "line": 343,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 346,
+      "line": 347,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 367,
+      "line": 368,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 376,
+      "line": 377,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 121,
+      "line": 122,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 134,
+      "line": 135,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
@@ -1240,6 +1241,7 @@
     "src/test/cross-tenant-denial.perf-waves.test.ts",
     "src/test/financial-metrics.test.ts",
     "src/test/helpers/chat-execution-fakes.ts",
+    "src/test/helpers/tool-runner-fakes.ts",
     "src/test/m02-backup-verify.test.ts",
     "src/test/m02-grant-repair.test.ts",
     "src/test/m02-purge-fixtures.test.ts",
@@ -1248,6 +1250,7 @@
     "src/test/products-read-models.golden.perf-waves.test.ts",
     "src/test/purchase-price.service.test.ts",
     "src/test/round-trip-instrumentation.perf-waves.test.ts",
+    "src/test/safe-record.test.ts",
     "src/test/tool-runner.persistence.test.ts"
   ],
   "policy": {
