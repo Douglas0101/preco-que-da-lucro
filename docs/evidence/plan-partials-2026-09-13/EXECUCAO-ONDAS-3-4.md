@@ -12,6 +12,20 @@
 
 ## 2. Detalhe por integração
 
+### I-O23 — §20.1 canal de coleta de violações CSP
+
+**Entrega:** `src/routes/api/csp-report.ts` + `src/lib/csp-report-payload.ts` (media types, cap de bytes, normalização das **duas** formas, limite por request); `security-headers.ts` ganha `report-uri`/`report-to` + o header `reporting-endpoints`; 16 testes novos (13+3); assert do e2e reescrito; `routeTree.gen.ts` regenerado; matriz regenerada (`apiRoutes: 4→5`).
+
+**A prova que importava — nenhuma diretiva de origem mudou (byte-level).** Removendo as duas diretivas de report das strings antes/depois, o `diff` é **vazio**: as **10 diretivas de origem** são idênticas, e o modo enforce carrega a mesma política (só muda _qual_ header é usado). Sem `'unsafe-inline'`, sem host novo, sem nonce — exatamente a trava do `AGENTS.md`. `src/test/security-headers.test.ts` congela a lista de diretivas e assere que `CSP_ENFORCE` é o **único** caminho de enforcement (rollback por env).
+
+**Contrato do endpoint:** `application/csp-report` → 204 + `csp.violation`; `application/reports+json` → 204 por violação (outros `type`s ignorados); media type desconhecido → **415**; corpo >8 KiB → **413** (corpo **não** lido); JSON malformado → 400; >10 violações → 204 + `csp.violation_truncated`; **nunca 500**; tudo com `cache-control: no-store`.
+
+**Raciocínio de e2e que vale registrar:** além de manter `script-src 'self'` e `nosniff`, ele assere que `content-security-policy` deve estar **`undefined`** (a chave de rollback) **e** criou um teste que **posta um report no caminho publicado exigindo 204** — porque _"um `report-uri` apontando para um 404 anularia silenciosamente o gate de zero violações"_. Ou seja: ele testou o canal, não só o header.
+
+**Declarado como NÃO VERIFICADO (não fingido):** soak 3× report-only ❌ · enforce no **preview** ❌ · produção/H-2 ❌ · as duas asserções de e2e ❌ (exigem build+preview+browsers) · comportamento real de browser de uma URL **relativa** em `Reporting-Endpoints` ❌ · relatórios duplicados se o Chromium honrar os dois canais (ruído de log, declarado).
+
+**Colisão de matriz prevista e resolvida como ele recomendou:** o operador avisou que, se O20 também regenerasse a matriz, o correto seria **re-rodar o gerador** no tree integrado, não fazer merge manual de um arquivo gerado. Foi exatamente o que aconteceu (O20 mexeu em `transactionSites`, O23 em `apiRoutes`), e foi o que fiz — resultado: `apiRoutes=5` **e** `transactionSites=100` coexistem, com o check determinístico verde.
+
 ### I-O20 — §20.5 rate limits atômicos para chat e tool
 
 **Entrega:** `consumeRateLimitInTransaction` extraído em `rate-limit-storage.server.ts` (o `consume` de auth vira wrapper fino, com **mesmo SQL e mesmo `now`** — semântica de auth preservada); `USER_RATE_LIMIT_RULES` + `userRateLimitKey`; regra **chat `{600, 20}`** chave `chat|<userId>` consumida como **primeira** instrução de `reserveChatAndLoadHistory`; regra **tool `{600, 40}`** chave `tool|<userId>` em `runRegisteredTool` **após** Zod+AuthZ e **antes** do claim de idempotência; exports documentados como **N/A** com condição de reabertura.

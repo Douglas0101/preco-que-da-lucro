@@ -9,7 +9,7 @@
     "bffModules": 8,
     "createServerFnDeclarations": 32,
     "concreteOperations": 36,
-    "apiRoutes": 4,
+    "apiRoutes": 5,
     "transactionSites": 100,
     "directDatabaseFiles": 42
   },
@@ -547,6 +547,18 @@
       ]
     },
     {
+      "path": "src/routes/api/csp-report.ts",
+      "kind": "route",
+      "operations": [],
+      "imports": [
+        "@/lib/csp-report-payload",
+        "@/lib/structured-logger",
+        "@tanstack/react-router"
+      ],
+      "reachesDatabase": false,
+      "databasePaths": []
+    },
+    {
       "path": "src/routes/api/health/live.ts",
       "kind": "route",
       "operations": [],
@@ -649,67 +661,67 @@
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 95,
+      "line": 101,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 164,
+      "line": 170,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 178,
+      "line": 184,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 251,
+      "line": 257,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 261,
+      "line": 267,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 285,
+      "line": 291,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 305,
+      "line": 311,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 336,
+      "line": 342,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 340,
+      "line": 346,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 361,
+      "line": 367,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 370,
+      "line": 376,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
