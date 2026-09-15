@@ -20,7 +20,8 @@
 //        [--canonical-origin <origem>] [--wrong-origin <origem>]
 //        [--samples <n>] [--max-time-ms <n>]
 //
-// Exit codes: 0 = PASS · 1 = FAIL de asserção · 2 = INCONCLUSIVO (alvo inalcançável).
+// Exit codes: 0 = PASS · 1 = FAIL de asserção · 2 = INCONCLUSIVO (alvo inalcançável ou 429
+// mascarando o veredito de origem) ou uso inválido.
 // As latências medidas aqui são LOCAIS/CONTROLADAS — nunca rotular como produção.
 
 interface Note {
@@ -275,9 +276,10 @@ try {
     id: "transporte",
     expectation: "alvo alcançável",
     observed: `erro: ${error instanceof Error ? error.name : "desconhecido"}`,
-    status: "FAIL",
+    status: "INCONCLUSIVO",
   });
   console.log(render(args, notes));
+  console.log("RESULTADO: INCONCLUSIVO — alvo inalcançável: nenhuma asserção foi avaliada.");
   process.exit(2);
 }
 

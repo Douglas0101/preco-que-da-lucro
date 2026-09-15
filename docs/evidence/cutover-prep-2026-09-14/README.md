@@ -142,6 +142,7 @@ symlink (o worktree usa `<worktree>/node_modules`, a cópia pristina resolve par
 | `env-preflight-sentinel-proof.txt`  | prova de que nenhum valor é impresso                           |
 | `probe-canonico-branch-d3757d3.txt` | saída bruta do conjunto canônico (PASS)                        |
 | `probe-bucket-429-inconclusivo.txt` | duas execuções seguidas: PASS (exit 0) e INCONCLUSIVO (exit 2) |
+| `probe-alvo-inalcancavel.txt`       | alvo inalcançável: INCONCLUSIVO, exit 2 (nunca PASS/FAIL)      |
 | `artefato-worktree-quebrado.txt`    | 500 em todas as rotas no artefato do worktree                  |
 | `templates-assinaturas-h3-h5-p9.md` | H-3, H-5 e P9 prontos para assinar                             |
 
