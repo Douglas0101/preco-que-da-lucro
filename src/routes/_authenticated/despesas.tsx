@@ -40,10 +40,12 @@ export const Route = createFileRoute("/_authenticated/despesas")({
   }),
   // Prefetch não-bloqueante (T2): mesmas options/queryKey de query-options.ts;
   // erro deglutido para o estado de erro com retry continuar no componente.
-  // Dynamic import: mantém query-options (+ *.functions/zod) FORA do grafo
-  // inicial (orçamento de bundle §17.7) — loaders não são code-split.
+  // NOTA (§17.7): o import dinâmico que existia aqui era INEFETIVO — o mesmo módulo
+  // já é importado estaticamente no topo, porque o componente usa
+  // `expensesQueryOptions` no useQuery, então ele nunca saía do grafo inicial. O
+  // dinâmico foi removido e o símbolo estático é usado; o bundle não muda (o módulo
+  // já estava no grafo). Alcançar a intenção de adiar exige medição — follow-up.
   loader: async ({ context }) => {
-    const { expensesQueryOptions } = await import("@/lib/query-options");
     return context.queryClient.ensureQueryData(expensesQueryOptions()).catch(() => null);
   },
   pendingComponent: () => <output className="text-muted-foreground">Carregando...</output>,
