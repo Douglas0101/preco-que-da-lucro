@@ -127,14 +127,14 @@ Verde também sem o flag de console (o `console.log` do T5 fica oculto pelo repo
 
 ## Cobertura da aceitação do SPEC-CARD
 
-| # | critério | onde |
-| - | -------- | ---- |
-| 1 | descoberta vazia ⇒ falha com mensagem explícita | `:108-111` + T1 `:178` e T1b `:188` |
-| 2 | descoberta por caminho (`docs/evidence/perf-*/**` e `**/*perf-*.md`) | `:71-76` + T2 `:195` (bundle `perf-*/report.md`) e T5 `:241` |
-| 3 | artefato do baseline no caminho contratado com os 7 rótulos + `CONTROLLED`/n/ambiente/commit | `docs/evidence/perf-controlled-2026-09-13/perf-evidence.md` |
-| 4 | rejeita rótulo faltante, rejeita conjunto vazio, aceita artefato novo; allowlist de legado reduzida/justificada | T2 `:195-205` (7 casos), T1/T1b, T3 `:206-219`, T4 `:220-240`, T6 `:256-271` |
-| 6 | (fix de integração) artefato de processo sob `agent-state/**` não reprova e a régua segue fail-closed | T5 `:250` (árvore real) + T6 `:256-271` |
-| 5 | evidência com comando + saída + vermelho→verde + contagem > 0 | seções 2 e 4 acima (R0→R3) |
+| #   | critério                                                                                                        | onde                                                                         |
+| --- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 1   | descoberta vazia ⇒ falha com mensagem explícita                                                                 | `:108-111` + T1 `:178` e T1b `:188`                                          |
+| 2   | descoberta por caminho (`docs/evidence/perf-*/**` e `**/*perf-*.md`)                                            | `:71-76` + T2 `:195` (bundle `perf-*/report.md`) e T5 `:241`                 |
+| 3   | artefato do baseline no caminho contratado com os 7 rótulos + `CONTROLLED`/n/ambiente/commit                    | `docs/evidence/perf-controlled-2026-09-13/perf-evidence.md`                  |
+| 4   | rejeita rótulo faltante, rejeita conjunto vazio, aceita artefato novo; allowlist de legado reduzida/justificada | T2 `:195-205` (7 casos), T1/T1b, T3 `:206-219`, T4 `:220-240`, T6 `:256-271` |
+| 6   | (fix de integração) artefato de processo sob `agent-state/**` não reprova e a régua segue fail-closed           | T5 `:250` (árvore real) + T6 `:256-271`                                      |
+| 5   | evidência com comando + saída + vermelho→verde + contagem > 0                                                   | seções 2 e 4 acima (R0→R3)                                                   |
 
 ## Limites declarados
 
