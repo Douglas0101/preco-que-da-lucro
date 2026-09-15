@@ -10,8 +10,8 @@
     "createServerFnDeclarations": 32,
     "concreteOperations": 36,
     "apiRoutes": 5,
-    "transactionSites": 100,
-    "directDatabaseFiles": 44
+    "transactionSites": 108,
+    "directDatabaseFiles": 47
   },
   "bffs": [
     {
@@ -181,6 +181,7 @@
         "src/server/auth/tenant-bootstrap.server.ts",
         "src/server/repositories/calculation-snapshot.repository.ts",
         "src/server/repositories/expense.repository.ts",
+        "src/server/repositories/outbox.repository.ts",
         "src/server/services/product-detail.service.ts"
       ]
     },
@@ -256,7 +257,8 @@
         "src/server/auth/auth.server.ts",
         "src/server/auth/rate-limit-storage.server.ts",
         "src/server/auth/tenant-bootstrap.server.ts",
-        "src/server/repositories/expense.repository.ts"
+        "src/server/repositories/expense.repository.ts",
+        "src/server/repositories/outbox.repository.ts"
       ]
     },
     {
@@ -1063,6 +1065,42 @@
       "classification": "repository-fallback"
     },
     {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 4,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 76,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 117,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 166,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 182,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 201,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
       "path": "src/server/repositories/product.repository.ts",
       "line": 33,
       "expression": "context.transaction",
@@ -1165,6 +1203,18 @@
       "classification": "repository-fallback"
     },
     {
+      "path": "src/server/services/expense.service.ts",
+      "line": 31,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/server/services/outbox.worker.ts",
+      "line": 118,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
       "path": "src/server/services/product-detail.service.ts",
       "line": 45,
       "expression": "context.transaction",
@@ -1230,14 +1280,17 @@
     "src/server/repositories/conversation.repository.ts",
     "src/server/repositories/dashboard.repository.ts",
     "src/server/repositories/expense.repository.ts",
+    "src/server/repositories/outbox.repository.ts",
     "src/server/repositories/product.repository.ts",
     "src/server/repositories/purchase-price.repository.ts",
     "src/server/repositories/sales.repository.ts",
     "src/server/repositories/simulation.repository.ts",
+    "src/server/services/outbox.worker.ts",
     "src/server/services/product-detail.service.ts",
     "src/server/services/purchase-price.service.ts",
     "src/test/ai-estimated-cost.test.ts",
     "src/test/audit.service.test.ts",
+    "src/test/backfill-runner.test.ts",
     "src/test/cross-tenant-denial.perf-waves.test.ts",
     "src/test/financial-metrics.test.ts",
     "src/test/helpers/chat-execution-fakes.ts",
