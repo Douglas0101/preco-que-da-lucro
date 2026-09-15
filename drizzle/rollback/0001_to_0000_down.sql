@@ -7,6 +7,8 @@ DROP SCHEMA IF EXISTS drizzle CASCADE;
 DROP TABLE IF EXISTS ai_usage CASCADE;
 
 DROP TABLE IF EXISTS
+  outbox_consumptions,
+  outbox_events,
   audit_events,
   ai_daily_budgets,
   tool_executions,

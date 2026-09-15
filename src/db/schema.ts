@@ -846,6 +846,70 @@ export const rumVitals = pgTable(
   (table) => [index("rum_vitals_name_received_at_idx").on(table.name, table.receivedAt)],
 );
 
+/** §23 — outbox transacional. O evento é inserido na MESMA transação da
+ * mutação de domínio (`withTenantTransaction`) e drenado por worker idempotente
+ * (23.2). `idempotency_key` é única por tenant: repetir o append devolve o
+ * evento existente (`duplicate: true`) em vez de duplicar a linha. */
+export const outboxEvents = pgTable(
+  "outbox_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(),
+    aggregateType: text("aggregate_type").notNull(),
+    aggregateId: text("aggregate_id").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    status: text("status").notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    /** Próxima tentativa permitida; o backoff de falha empurra este instante. */
+    availableAt: timestamp("available_at", { withTimezone: true }).notNull().defaultNow(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("outbox_events_tenant_idempotency_uidx").on(table.tenantId, table.idempotencyKey),
+    /** Índice do claim: filtra por tenant + fila de pendentes por vencimento. */
+    index("outbox_events_claim_idx").on(
+      table.tenantId,
+      table.status,
+      table.availableAt,
+      table.createdAt,
+    ),
+    check(
+      "outbox_events_status_check",
+      sql`${table.status} in ('pending', 'processing', 'processed', 'failed')`,
+    ),
+    check("outbox_events_attempts_check", sql`${table.attempts} >= 0`),
+    check(
+      "outbox_events_identity_check",
+      sql`${table.eventType} <> '' and ${table.aggregateType} <> '' and ${table.aggregateId} <> '' and ${table.idempotencyKey} <> ''`,
+    ),
+  ],
+);
+
+/** Inbox do consumidor (23.2): a entrega é at-least-once, então a chave
+ * (consumer, event) é o que garante 1 efeito por evento mesmo com reentrega. É
+ * gravada na MESMA transação do efeito do handler. */
+export const outboxConsumptions = pgTable(
+  "outbox_consumptions",
+  {
+    consumerName: text("consumer_name").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => outboxEvents.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.consumerName, table.eventId] })],
+);
+
 export type User = typeof users.$inferSelect;
 export type Tenant = typeof tenants.$inferSelect;
 export type TenantMembership = typeof tenantMemberships.$inferSelect;
@@ -856,3 +920,5 @@ export type Sale = typeof sales.$inferSelect;
 export type SaleItem = typeof salesItems.$inferSelect;
 export type Simulation = typeof simulations.$inferSelect;
 export type CalculationSnapshot = typeof calculationSnapshots.$inferSelect;
+export type OutboxEvent = typeof outboxEvents.$inferSelect;
+export type OutboxConsumption = typeof outboxConsumptions.$inferSelect;

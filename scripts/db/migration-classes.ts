@@ -266,4 +266,20 @@ export const migrationClasses: readonly MigrationClassEntry[] = [
     rollback: "drizzle/rollback/0014_to_0013_down.sql",
     appliedOn: "empty",
   },
+  {
+    tag: "0015_curved_riptide",
+    class: "SAFE",
+    rationale:
+      "Cria as tabelas outbox_events e outbox_consumptions com índices, CHECKs e grants/RLS para app_runtime; aditiva, sem DML e sem alterar objetos pré-existentes.",
+    evidence: [
+      "drizzle/0015_curved_riptide.sql",
+      "drizzle/rollback/0015_to_0014_down.sql",
+      "scripts/db/test-outbox.ts (T1 atomicidade, T5 RLS/grants e isolamento de tenant)",
+      "docs/specs/M-04/spec.md:231-254 (contrato e requisitos de grants/RLS do outbox)",
+      "docs/evidence/agent-state/SPEC-CARDS/23-outbox.md",
+    ],
+    sha256: "c91c648921990b5d30eea3040b51ce09c3ffb9e4d36423168931817b0e3968cb",
+    rollback: "drizzle/rollback/0015_to_0014_down.sql",
+    appliedOn: "empty",
+  },
 ];

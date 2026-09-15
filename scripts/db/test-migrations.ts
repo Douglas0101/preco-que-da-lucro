@@ -729,8 +729,9 @@ async function assertPurchasePriceConcurrency(adminUrl: string): Promise<void> {
   }
 }
 
-// Downs que levam a chain 0014→0003, na ordem de aplicação (mais nova primeiro).
+// Downs que levam a chain 0015→0003, na ordem de aplicação (mais nova primeiro).
 const DOWNS_TIP_TO_0003 = [
+  "0015_to_0014_down.sql",
   "0014_to_0013_down.sql",
   "0013_to_0012_down.sql",
   "0012_to_0011_down.sql",
@@ -853,9 +854,9 @@ async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<
 }
 
 async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Client): Promise<void> {
-  // Completa a cobertura da cadeia de rollback: além de 0014→0003, aplica
+  // Completa a cobertura da cadeia de rollback: além de 0015→0003, aplica
   // 0003→0002 e o novo 0002→0001, deixando o banco no estado da migration
-  // 0001 com o journal reduzido a 0000/0001 (13 arquivos aplicados = 13 linhas
+  // 0001 com o journal reduzido a 0000/0001 (14 arquivos aplicados = 14 linhas
   // removidas em applyDowns).
   await applyDowns(client, [
     ...DOWNS_TIP_TO_0003,
@@ -893,7 +894,7 @@ async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Clie
   const replayedJournal = await client.query<{ count: string }>(
     "select count(*)::text as count from drizzle.__drizzle_migrations",
   );
-  assert.equal(replayedJournal.rows[0]?.count, "15", "replay deve restaurar o journal completo");
+  assert.equal(replayedJournal.rows[0]?.count, "16", "replay deve restaurar o journal completo");
 
   const restored = await client.query<{
     rateLimits: boolean;
