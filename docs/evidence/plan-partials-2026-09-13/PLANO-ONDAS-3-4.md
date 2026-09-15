@@ -48,6 +48,12 @@ O plano ordena `18.5 → 18.1 → 18.3 → 20.5 → 20.1`, mas **18.1 e 18.3 dis
 
 Cada integração: `git merge --no-ff --no-commit` → manifests do supervisor → gates → marcador parent-pinned → commit → **verificador adversarial** (V19…) com contexto _fresh_.
 
+## 3.1 Disciplina do token DB (lição gravada em execução)
+
+O token (`flock /tmp/opencode/onda2-db.lock`) serializa **operações curtas** de banco. **Nunca** se inicia processo **longevo** (preview server, dev server, watcher, daemon) **dentro** do lock: ele segura o token indefinidamente e **todos** os pares que precisam de DB passam a falhar (`flock -w 15` desiste em 15 s). Servidores sobem **fora** do token, ou não sobem.
+
+Corolário de diagnóstico: quando **dois ou mais** children travam **ao mesmo tempo**, a hipótese primária é **recurso compartilhado** (token, porta, DB, disco), não dois defeitos independentes — e a correção é **libertar o recurso**, nunca _steer_ (que aborta a ferramenta em vôo).
+
 ## 4. Verificação por item (o que o V adversarial vai tentar falsificar)
 
 | Item  | Alvo da falsificação                                                                                                                                                                                                                                                  |
