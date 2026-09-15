@@ -3,6 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  buildArtifact,
   buildReport,
   classifyCriticalQuery,
   CRITICAL_QUERIES,
@@ -11,13 +12,23 @@ import {
   REGIME,
   renderMarkdown,
   resolveLocalTarget,
+  type ArtifactMeta,
   type StatRow,
 } from "../../scripts/obs/pg-stat-statements";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const evidencePath = join(root, "docs", "evidence", "pg-stat-statements-2026-09-15.md");
-
 const CREDENTIAL = "s3cr3t-not-leaked";
+
+/** SQL real renderizado pelos repositórios drizzle (`.toSQL()`, PG17). */
+const REAL_SQL = {
+  productsList:
+    'select "id", "tenant_id", "user_id", "name", "status", "current_price", "yield_qty", "yield_unit", "tax_regime", "tax_rate", "is_demo", "notes", "version", "archived_at", "created_at", "updated_at" from "products" where ("products"."tenant_id" = $1 and "products"."archived_at" is null) order by "products"."created_at" desc',
+  latestPrice:
+    'select "id", "tenant_id", "user_id", "subject_type", "subject_id", "ingredient_id", "packaging_id", "price", "quantity", "unit", "supplier_id", "valid_from", "recorded_at" from "purchase_price_history" where ("purchase_price_history"."tenant_id" = $1 and "purchase_price_history"."ingredient_id" = $2) order by "purchase_price_history"."valid_from" desc, "purchase_price_history"."recorded_at" desc limit $3',
+  dashboardIngredients: (placeholders: string) =>
+    `select "id", "product_id", "tenant_id", "user_id", "name", "used_qty", "used_unit", "package_price", "package_qty", "package_unit", "conversion_factor", "price_updated_at", "created_at", "updated_at" from "product_ingredients" where ("product_ingredients"."tenant_id" = $1 and "product_ingredients"."product_id" in (${placeholders}))`,
+} as const;
 
 function row(overrides: Partial<StatRow> = {}): StatRow {
   return {
@@ -30,6 +41,17 @@ function row(overrides: Partial<StatRow> = {}): StatRow {
   };
 }
 
+function metaOf(rows: readonly StatRow[], topN = 10): ArtifactMeta {
+  return {
+    generatedAt: "2026-09-15T00:00:00.000Z",
+    host: "127.0.0.1",
+    database: "pqdl_pgstat",
+    topN,
+    statementEntries: rows.length,
+    report: buildReport(rows, topN),
+  };
+}
+
 describe("§16.3 — guarda de host loopback do coletor pg_stat_statements", () => {
   it("aceita loopback explícito (127.0.0.1, localhost, ::1)", () => {
     const localhost = resolveLocalTarget({
@@ -38,15 +60,19 @@ describe("§16.3 — guarda de host loopback do coletor pg_stat_statements", () 
     expect(localhost.host).toBe("localhost");
     expect(localhost.database).toBe("pqdl_pgstat");
 
-    const ipv4 = resolveLocalTarget({
-      DATABASE_ADMIN_URL: "postgresql://postgres@127.0.0.1:5435/pqdl_pgstat",
-    });
-    expect(ipv4.host).toBe("127.0.0.1");
-
-    const ipv6 = resolveLocalTarget({
-      DATABASE_ADMIN_URL: "postgresql://postgres@[::1]:5435/pqdl_pgstat",
-    });
-    expect(ipv6.host).toBe("::1");
+    expect(
+      resolveLocalTarget({ DATABASE_ADMIN_URL: "postgresql://postgres@127.0.0.1:5435/pqdl_pgstat" })
+        .host,
+    ).toBe("127.0.0.1");
+    expect(
+      resolveLocalTarget({ DATABASE_ADMIN_URL: "postgresql://postgres@[::1]:5435/pqdl_pgstat" })
+        .host,
+    ).toBe("::1");
+    expect(
+      resolveLocalTarget({
+        DATABASE_ADMIN_URL: "postgresql://postgres@127.0.0.1:5435/pqdl_pgstat?host=localhost",
+      }).host,
+    ).toBe("localhost");
   });
 
   it("recusa host não-loopback com erro explícito e sem vazar a connection string", () => {
@@ -54,10 +80,18 @@ describe("§16.3 — guarda de host loopback do coletor pg_stat_statements", () 
       `postgresql://user:${CREDENTIAL}@db.neon.tech:5432/prod`,
       `postgresql://user:${CREDENTIAL}@10.0.0.5:5432/prod`,
       `postgresql://user:${CREDENTIAL}@pg.internal.example.com/prod`,
+      // override de host na query string: o driver usaria db.neon.tech
+      `postgresql://user:${CREDENTIAL}@127.0.0.1:5432/prod?host=db.neon.tech`,
+      // hostaddr não é honrado pelo driver: recusado por construção
+      `postgresql://user:${CREDENTIAL}@127.0.0.1:5432/prod?hostaddr=10.0.0.5`,
+      // socket unix fora do loopback
+      `postgresql:///prod?host=/var/run/postgresql`,
+      // multi-host com um destino remoto
+      `postgresql://user:${CREDENTIAL}@127.0.0.1:5432/prod?host=127.0.0.1,db.neon.tech`,
     ];
     for (const connectionString of remote) {
       const attempt = () => resolveLocalTarget({ DATABASE_ADMIN_URL: connectionString });
-      expect(attempt).toThrow(/loopback/i);
+      expect(attempt).toThrow(/loopback|hostaddr/i);
       try {
         attempt();
       } catch (error) {
@@ -89,36 +123,19 @@ describe("§16.3 — guarda de host loopback do coletor pg_stat_statements", () 
   });
 });
 
-describe("§16.3 — relatório de queries críticas (linhas sintéticas, sem rede)", () => {
-  it("classifica as três queries críticas do §16.4 e reporta alvos ausentes", () => {
-    const rows: StatRow[] = [
-      row({
-        query:
-          "select * from products where tenant_id = $1 and archived_at is null order by created_at desc",
-        calls: 5,
-        total_exec_time: 3.1,
-        mean_exec_time: 0.62,
-        rows: 10_000,
-      }),
-      row({
-        // `limit 1` nunca aparece no `pg_stat_statements`: o Postgres o
-        // normaliza como mais uma constante (`limit $3`, texto real capturado
-        // no container efêmero da evidência de 2026-09-15).
-        query:
-          "select *\n        from purchase_price_history\n        where tenant_id = $1 and ingredient_id = $2\n        order by valid_from desc, recorded_at desc limit $3",
-        calls: 4,
-        total_exec_time: 0.36,
-        mean_exec_time: 0.09,
-        rows: 4,
-      }),
-      row({ query: "select pg_sleep(0)", calls: 1, total_exec_time: 0.01, mean_exec_time: 0.01 }),
-    ];
-    const report = buildReport(rows, 10);
-    expect(report.missingCritical).toEqual(["dashboard.productIngredients"]);
-    expect(report.critical.map((entry) => entry.critical)).toEqual([
-      "products.list",
-      "purchasePrice.latest",
-    ]);
+describe("§16.3 — casamento com o SQL real do app", () => {
+  it("reconhece o SQL renderizado pelos repositórios drizzle", () => {
+    expect(classifyCriticalQuery(REAL_SQL.productsList)).toBe("products.list");
+    expect(classifyCriticalQuery(REAL_SQL.latestPrice)).toBe("purchasePrice.latest");
+    expect(classifyCriticalQuery(REAL_SQL.dashboardIngredients("$2, $3"))).toBe(
+      "dashboard.productIngredients",
+    );
+    expect(classifyCriticalQuery(REAL_SQL.dashboardIngredients("$2, $3, $4"))).toBe(
+      "dashboard.productIngredients",
+    );
+  });
+
+  it("aceita variações de caixa/espaço e a forma literal do §16.4", () => {
     expect(
       classifyCriticalQuery(
         "  SELECT * FROM products\n  WHERE tenant_id = $1 AND archived_at IS NULL ORDER BY created_at DESC  ",
@@ -129,53 +146,150 @@ describe("§16.3 — relatório de queries críticas (linhas sintéticas, sem re
         "select * from product_ingredients where tenant_id = $1 and product_id = any($2)",
       ),
     ).toBe("dashboard.productIngredients");
-    expect(classifyCriticalQuery("select current_database()")).toBeNull();
   });
 
-  it("ordena por total_exec_time desc, aplica top-N e redige parâmetros", () => {
+  it("não casa vizinhos: mesmo tabela com predicado diferente ou join fica de fora", () => {
+    expect(
+      classifyCriticalQuery('select "id" from "products" where "products"."tenant_id" = $1'),
+    ).toBeNull();
+    expect(
+      classifyCriticalQuery(
+        'select "id" from "products" where ("products"."tenant_id" = $1 and "products"."archived_at" is not null) order by "products"."created_at" desc',
+      ),
+    ).toBeNull();
+    expect(classifyCriticalQuery("select current_database()")).toBeNull();
+  });
+});
+
+describe("§16.3 — relatório agregado (linhas sintéticas, sem rede)", () => {
+  it("soma todas as entradas do mesmo alvo, inclusive formas de `in` diferentes", () => {
+    const rows: StatRow[] = [
+      row({
+        query: REAL_SQL.productsList,
+        calls: 5,
+        total_exec_time: 3.1,
+        mean_exec_time: 0.62,
+        rows: 10_000,
+      }),
+      row({
+        query: REAL_SQL.latestPrice,
+        calls: 4,
+        total_exec_time: 0.36,
+        mean_exec_time: 0.09,
+        rows: 4,
+      }),
+      row({
+        query: REAL_SQL.dashboardIngredients("$2, $3"),
+        calls: 3,
+        total_exec_time: 0.06,
+        mean_exec_time: 0.02,
+        rows: 30,
+      }),
+      row({
+        query: REAL_SQL.dashboardIngredients("$2, $3, $4"),
+        calls: 2,
+        total_exec_time: 0.04,
+        mean_exec_time: 0.02,
+        rows: 20,
+      }),
+      row({ query: "select pg_sleep(0)", calls: 1, total_exec_time: 0.01, mean_exec_time: 0.01 }),
+    ];
+    const report = buildReport(rows, 10);
+    expect(report.missingCritical).toEqual([]);
+    expect(report.critical.map((entry) => entry.label)).toEqual([
+      "products.list",
+      "purchasePrice.latest",
+      "dashboard.productIngredients",
+    ]);
+    const ingredients = report.critical[2]!;
+    expect(ingredients.statements).toBe(2);
+    expect(ingredients.calls).toBe(5);
+    expect(ingredients.total_exec_time).toBeCloseTo(0.1, 10);
+    expect(ingredients.mean_exec_time).toBeCloseTo(0.02, 10);
+    expect(ingredients.rows).toBe(50);
+    expect(ingredients.shapes).toHaveLength(2);
+    expect(ingredients.source).toContain("dashboard.repository.ts");
+    // 5 padrões: 3 alvos, sendo que o dashboard rende 2 formas de `in`, + o ruído
+    expect(report.patterns).toBe(5);
+  });
+
+  it("ordena por total_exec_time desc, aplica top-N e agrega entradas repetidas", () => {
     const report = buildReport(
       [
         row({
           query: "select * from products where sku = 'AB-123' and tenant_id = $1",
           total_exec_time: 1,
         }),
-        row({ query: "select * from products where sku = $1", total_exec_time: 9 }),
-        row({ query: "select * from products where sku = $1", total_exec_time: 5 }),
+        row({
+          query: "select * from products where sku = $1",
+          total_exec_time: 9,
+          calls: 3,
+          rows: 30,
+        }),
+        row({
+          query: "select * from products where sku = $1",
+          total_exec_time: 5,
+          calls: 2,
+          rows: 20,
+        }),
       ],
       2,
     );
+    expect(report.patterns).toBe(2);
     expect(report.top).toHaveLength(2);
-    expect(report.top.map((entry) => entry.total_exec_time)).toEqual([9, 5]);
-    const redacted = report.top[0]?.redacted_query ?? "";
-    expect(redacted).not.toContain("AB-123");
+    // as duas entradas idênticas viram uma linha somada (9 + 5) e ficam na frente
+    expect(report.top.map((entry) => entry.total_exec_time)).toEqual([14, 1]);
+    const repeated = report.top[0]!;
+    expect(repeated.statements).toBe(2);
+    expect(repeated.calls).toBe(5);
+    expect(repeated.rows).toBe(50);
+    expect(repeated.mean_exec_time).toBeCloseTo(14 / 5, 10);
     expect(report.top.some((entry) => entry.redacted_query.includes("AB-123"))).toBe(false);
   });
 
-  it("o markdown carrega as colunas exigidas, o regime CONTROLADO e nada de literal", () => {
+  it("o JSON e o markdown saem com o SQL redigido — nunca o texto cru", () => {
     const rows: StatRow[] = [
       row({
-        query:
-          "select * from products where tenant_id = '70000000-0000-4000-8000-000000000701' and archived_at is null order by created_at desc",
+        query: "set application_name = 'super-secret-value'",
+        calls: 2,
+        total_exec_time: 0.4,
+        mean_exec_time: 0.2,
+        rows: 2,
+      }),
+      row({
+        query: REAL_SQL.productsList,
         calls: 7,
         total_exec_time: 4.2,
         mean_exec_time: 0.6,
         rows: 14_000,
       }),
     ];
-    const markdown = renderMarkdown({
-      generatedAt: "2026-09-15T00:00:00.000Z",
-      host: "127.0.0.1",
-      database: "pqdl_pgstat",
-      topN: 10,
-      totalStatements: 1,
-      ...buildReport(rows, 10),
-    });
-    for (const column of ["calls", "total_exec_time_ms", "mean_exec_time_ms", "rows", "query"]) {
+    const meta = metaOf(rows);
+    const artifact = buildArtifact(meta);
+    const json = JSON.stringify(artifact);
+    const markdown = renderMarkdown(meta);
+    for (const rendered of [json, markdown]) {
+      expect(rendered).not.toContain("super-secret-value");
+      expect(rendered).not.toContain('"query":');
+    }
+    const top = artifact.top as Array<Record<string, unknown>>;
+    expect(top.map((entry) => entry.redacted_query)).toContain("set application_name = ?");
+    expect(Object.keys(top[0]!).sort()).toEqual([
+      "calls",
+      "critical",
+      "mean_exec_time",
+      "operation",
+      "redacted_query",
+      "rows",
+      "statements",
+      "total_exec_time",
+    ]);
+    expect(markdown).toContain("set application_name = ?");
+    for (const column of ["calls", "total_exec_time_ms", "mean_exec_time_ms", "rows", "critical"]) {
       expect(markdown).toContain(column);
     }
     expect(markdown).toContain(REGIME);
     expect(REGIME).toBe("CONTROLLED");
-    expect(markdown).not.toContain("70000000-0000-4000-8000-000000000701");
   });
 
   it("a evidência versionada declara os 7 rótulos do §35 e o regime CONTROLADO", () => {
@@ -195,5 +309,8 @@ describe("§16.3 — relatório de queries críticas (linhas sintéticas, sem re
     expect(evidence).toMatch(/Neon[^\n]*pendente|pendente[^\n]*Neon/i);
     expect(evidence).not.toMatch(/^\s*[-*]\s*\*\*regime:\*\*\s*OBSERVED/m);
     expect(CRITICAL_QUERIES).toHaveLength(3);
+    for (const target of CRITICAL_QUERIES) {
+      expect(target.source).toMatch(/^src\/server\/repositories\/[\w.-]+\.ts:\d+-\d+$/);
+    }
   });
 });
