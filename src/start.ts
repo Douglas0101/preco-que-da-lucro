@@ -2,6 +2,7 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 
 import { renderErrorPage } from "./lib/error-page";
 import { applicationMetrics, ensureTelemetryStarted } from "./instrumentation/telemetry";
+import { recordSafely } from "./instrumentation/safe-record";
 import { setHttpResponseStatus, withHttpRequestSpan } from "./instrumentation/http-request-span";
 import { apiErrorResponse, errorCodeFromUnknown } from "./lib/api-error";
 import { logJson } from "./lib/structured-logger";
@@ -33,7 +34,7 @@ function handleResponseError(
   request: Request,
 ): never {
   applyRequestHeaders(error, correlationId, handlerType);
-  applicationMetrics.requestDuration.record(performance.now() - startedAt, {
+  recordSafely(applicationMetrics.requestDuration, performance.now() - startedAt, {
     method: request.method,
     status: error.status,
   });
@@ -67,7 +68,7 @@ function handleUnexpectedError(
           },
         });
   applyRequestHeaders(response, correlationId, handlerType);
-  applicationMetrics.requestDuration.record(performance.now() - startedAt, {
+  recordSafely(applicationMetrics.requestDuration, performance.now() - startedAt, {
     method: request.method,
     status: response.status,
   });
@@ -107,7 +108,7 @@ const requestPolicyMiddleware = createMiddleware().server(
             status: response.status,
             durationMs: Math.round(performance.now() - startedAt),
           });
-          applicationMetrics.requestDuration.record(performance.now() - startedAt, {
+          recordSafely(applicationMetrics.requestDuration, performance.now() - startedAt, {
             method: request.method,
             status: response.status,
           });

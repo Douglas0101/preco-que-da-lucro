@@ -6,11 +6,41 @@
 
 ## 1. Integrações
 
-| Int.  | Item                                      | Operador | Commits   | Merge    | V        | Gates                                                                                                                             |
-| ----- | ----------------------------------------- | -------- | --------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| I-O24 | §12.5 schema diff + §12.4 parent/política | O24      | `84b576f` | pendente | pendente | secrets-audit `failures=[]` · YAML parse OK · m02-v2b 9/9 · ui-stack/boundaries/matrix limpos · lockfile ok · format 0 · eslint 0 |
+| Int.  | Item                                      | Operador | Commits                         | Merge               | V        | Gates do supervisor                                                                                                                                                          |
+| ----- | ----------------------------------------- | -------- | ------------------------------- | ------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I-O24 | §12.5 schema diff + §12.4 parent/política | O24      | `84b576f`                       | `6132325`           | pendente | secrets-audit `failures=[]` · YAML parse OK · m02-v2b 9/9 · ui-stack/boundaries/matriz limpos · lockfile ok · format 0                                                       |
+| I-O19 | 18.5 skeletons nas 4 rotas                | O19      | `d158f71`                       | `4af18ec`           | pendente | 16 testes (3 arquivos) · **build exit 0** · typecheck/eslint/prettier/ui-stack/matriz/boundaries limpos                                                                      |
+| I-O20 | 20.5 rate limits (chat/tool)              | O20      | `2951e4a`                       | `ca38937`+`46812f6` | pendente | 23 testes · **burst reproduzido pelo S: chat 20/5 e tool 40/10 (2 instâncias)** · typecheck/eslint/format/matriz limpos                                                      |
+| I-O23 | 20.1 canal de coleta CSP                  | O23      | `52311a6`, `9b6c84f`            | `e335935`           | pendente | 16 testes novos (**594 no total**) · **build exit 0** · tsc/eslint/prettier/ui-stack/boundaries limpos · matriz regen                                                        |
+| I-O21 | 18.1 estado `estimated`                   | O21      | `50de38c`                       | `a609bfc`           | pendente | 16 testes (3 arquivos) · tsc/eslint limpos · **conflito `AA` de evidência resolvido preservando os dois relatórios**                                                         |
+| I-O25 | §13.7 PITR + §12.6 spending               | O25      | `717426a`                       | `f47318a`           | pendente | **34 testes** · secrets-audit `failures=[]`/`literals=[]` · skip real exercitado · YAML/lockfile/matriz/format limpos                                                        |
+| I-O22 | 18.3 explain calculation                  | O22      | `ac58b83`, `95625f5`            | `2049d7b`           | pendente | **12 testes** + **189 em 10 arquivos** · tsc/eslint/prettier/matriz limpos                                                                                                   |
+| I-O26 | §13.6 preparação de cutover               | O26      | `d3757d3`, `74b707c`, `7504909` | `999556e`           | pendente | preflight exit 1 **correto** (bloqueios reais) · probes canônicos com **par de controle 401/403** · tsc/eslint/format OK                                                     |
+| I-O27 | **F2C-1** safe-record sistêmico           | O27      | `1221000`                       | pendente            | pendente | **31 testes** (2 arquivos) · 11 sítios migrados com **red-first por sítio** · `client.server.ts` delega com aridade byte-idêntica · tsc/eslint/format/matriz/lockfile limpos |
 
 ## 2. Detalhe por integração
+
+### I-O27 — F2C-1: um único helper de safe-record para os 11 sítios
+
+**Entrega:** `src/instrumentation/safe-record.ts` (novo, 28 linhas) + 11 sítios migrados + `src/test/safe-record.test.ts` (588 linhas, 20 testes) + `tool-runner-fakes.ts` extraído mecanicamente. `client.server.ts` passou a **delegar** aos helpers que já existiam.
+
+**O detalhe que faz a solução ser limpa:** os argumentos são encaminhados por **rest tuple**, então `recordSafely(m, 7)` chama `m.record(7)` com **um** argumento — nunca `record(7, undefined)`. A **aridade fica byte-idêntica sem nenhum condicional**, o que é exatamente o que se quer de uma mudança cujo risco é alterar a série emitida.
+
+**Local escolhido com justificativa:** `src/instrumentation/` e **não** o `src/lib/observability/**` tentativo do meu briefing. O operador seguiu a convenção do repo — é ali que vivem `telemetry.ts`, `http-request-span.ts` e `sql-redactor.ts`, e onde mora a regra documentada _"observabilidade nunca quebra o caminho da request"_ (`telemetry.ts:44-57`). Desvio declarado, e o critério mais correto que o meu.
+
+**Os 11 sítios, com falha vermelha CAPTURADA em cada um** (produção revertida para `HEAD`: `Tests 12 failed | 8 passed (20)` → pós-fix `20 passed`). Os três de maior valor:
+
+| #   | sítio                                                            | por que importa                                                                                                                            |
+| --- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `chat.functions.ts` — `runModelAttempt`, **dentro do `finally`** | a **mesma classe de mascaramento** do defeito original: o `metric boom` substituía a resposta do gateway                                   |
+| 2   | `start.ts` — `handleResponseError`                               | um record que lance **no tratamento de erro** substitui o próprio erro sendo reportado (`expected Error: metric boom to be Response{503}`) |
+| 3   | `start.ts` — `handleUnexpectedError`                             | o 500 **nunca era devolvido** quando o record lançava                                                                                      |
+
+Mais os 3 do §29 em `chat-execution.server.ts` (incluindo o `acknowledgeGatewayResponse` e os dois histogramas de fase), 1 em `dashboard.service.ts` e os 3 de `tool-runner.ts` (incluindo um em que a execução **já persistida** virava falha).
+
+**`client.server.ts` delega, com byte-identidade medida:** stub que **só captura** + `toStrictEqual` — que **distingue aridade**, portanto prova mais que uma comparação frouxa — rodado **nos dois estados** (verde antes e depois da delegação). Assim o repo fica com **um idioma só**, em vez de dois helpers locais mais um compartilhado.
+
+**Gates:** 31 testes (2 arquivos), typecheck/eslint/prettier/matriz/lockfile limpos.
 
 ### I-O26 — §13.6 preparação do cutover (preflight executável + probes canônicos)
 

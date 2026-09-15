@@ -6,6 +6,7 @@ import { errorCodeFromUnknown } from "@/lib/api-error";
 import type { RequestContext } from "@/lib/request-context";
 import { logJson } from "@/lib/structured-logger";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import { recordSafely } from "@/instrumentation/safe-record";
 import { auditService } from "@/server/services/audit.service";
 import { USER_RATE_LIMIT_RULES, userRateLimitKey } from "@/server/auth/rate-limit-rules.server";
 import { consumeRateLimitInTransaction } from "@/server/auth/rate-limit-storage.server";
@@ -119,7 +120,7 @@ async function persistRejected(
     safeMetadata: { code, inputHash: hash, durationMs },
   });
   applicationMetrics.toolExecutions.add(1, { tool: toolName, status: "rejected", code });
-  applicationMetrics.toolDuration.record(durationMs, { tool: toolName, status: "rejected" });
+  recordSafely(applicationMetrics.toolDuration, durationMs, { tool: toolName, status: "rejected" });
 }
 
 type PreparedToolSuccess = Extract<PreparedTool, { ok: true }>;
@@ -354,7 +355,7 @@ export async function runRegisteredTool(options: {
       safeMetadata: { durationMs, replayed: false },
     });
     applicationMetrics.toolExecutions.add(1, { tool: name, status: "succeeded" });
-    applicationMetrics.toolDuration.record(durationMs, { tool: name, status: "succeeded" });
+    recordSafely(applicationMetrics.toolDuration, durationMs, { tool: name, status: "succeeded" });
     return { ok: true, output, replayed: false };
   } catch (error) {
     const mapped = errorCodeFromUnknown(error);
@@ -385,7 +386,7 @@ export async function runRegisteredTool(options: {
     });
     const status = code === "AI_TIMEOUT" ? "cancelled" : "failed";
     applicationMetrics.toolExecutions.add(1, { tool: name, status, code });
-    applicationMetrics.toolDuration.record(durationMs, { tool: name, status });
+    recordSafely(applicationMetrics.toolDuration, durationMs, { tool: name, status });
     logJson("warn", "ai.tool_failed", {
       correlationId: context.correlationId,
       toolName: name,
