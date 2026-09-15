@@ -48,10 +48,10 @@ export type ScenarioStepField = Exclude<
 /** O mesmo valor chega cru do motor (número) e serializado pelo BFF (decimal-string). */
 export type ScenarioStepValue = number | string;
 
-/** Eco do motor lido pela explicação: os campos que viram passo + a origem do volume. */ export type ScenarioEcho =
-  Record<ScenarioStepField, ScenarioStepValue> & {
-    volumeSource: ResolvedVolumeSource;
-  };
+/** Eco do motor lido pela explicação: os campos que viram passo + a origem do volume. */
+export type ScenarioEcho = Record<ScenarioStepField, ScenarioStepValue> & {
+  volumeSource: ResolvedVolumeSource;
+};
 
 export interface ScenarioStep {
   /** Campo do eco do motor que alimenta `value` — a UI não refaz a conta. */
