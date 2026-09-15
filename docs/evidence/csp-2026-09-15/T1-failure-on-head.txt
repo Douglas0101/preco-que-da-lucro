@@ -1,0 +1,30 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-mB3
+
+ ❯ src/test/security-headers.test.ts (3 tests | 1 failed) 15ms
+     × T1: a política enforçada é byte-idêntica à de report-only sem as diretivas de report 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/security-headers.test.ts > política de CSP (§20.1) > T1: a política enforçada é byte-idêntica à de report-only sem as diretivas de report
+AssertionError: expected 'default-src \'self\'; base-uri \'self…' to be 'default-src \'self\'; base-uri \'self…' // Object.is equality
+
+Expected: "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:"
+Received: "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint"
+
+ ❯ src/test/security-headers.test.ts:65:22
+     63|       .join("; ");
+     64|     expect(withoutReporting).toBe(SOURCE_DIRECTIVES.join("; "));
+     65|     expect(enforced).toBe(withoutReporting);
+       |                      ^
+     66|     expect(enforced).toHaveLength(withoutReporting.length);
+     67|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  01:49:37
+   Duration  914ms (transform 56ms, setup 117ms, import 75ms, tests 15ms, environment 595ms)
+

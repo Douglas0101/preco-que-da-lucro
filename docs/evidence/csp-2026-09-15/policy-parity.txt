@@ -1,0 +1,10 @@
+REPORT-ONLY content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+REPORT-ONLY reporting-endpoints: csp-endpoint="/api/csp-report"
+ENFORCED   content-security-policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:
+ENFORCED   content-security-policy-report-only: undefined
+ENFORCED   reporting-endpoints: undefined
+REPORT-ONLY menos diretivas de report: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:
+diff(enforced, report-only sem report): (vazio)
+bytes: 214 enforcado / 214 esperado
+sha256(enforced): 51ad78eb5afacb6affd6d8fdf1552b451f77b2e88da3fc941cbba4a512e9bac7
+sha256(report-only sem report): 51ad78eb5afacb6affd6d8fdf1552b451f77b2e88da3fc941cbba4a512e9bac7

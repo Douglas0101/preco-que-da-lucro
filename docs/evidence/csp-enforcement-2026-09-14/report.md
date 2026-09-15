@@ -5,6 +5,13 @@
 - **Commit da implementação:** `52311a6` (`feat(security): collect CSP violation reports via report-uri/Reporting-Endpoints`)
 - **Data:** 2026-09-14 · **Ambiente:** worktree local, sem preview Vercel e sem token (H-2)
 
+> **Nota de supersessão (2026-09-15, WP-B3/`20.1`).** A leitura de paridade em §2 ("a política em modo
+> enforce tem exatamente o mesmo conteúdo da política em report-only") foi **corrigida**: a promoção agora
+> serve as diretivas de fonte **sem** as diretivas de report (`src/lib/security-headers.ts:45-47`), conforme a
+> aceitação 2 do `SPEC-CARDS/20.1-csp.md`. O restante deste relatório descreve a base `6132325`/`52311a6` e
+> permanece válido para a janela report-only. Artefato vigente:
+> `docs/evidence/csp-2026-09-15/report.md`.
+
 ## 1. O que foi entregue
 
 | Arquivo                                    | Mudança                                                                                                             |
