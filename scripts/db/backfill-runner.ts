@@ -185,7 +185,8 @@ export function createBackfillRunner<T>(options: BackfillRunnerOptions<T>): Back
   }
   const abortOnRowError = (options.onRowError ?? "abort") === "abort";
   const now = options.now ?? Date.now;
-  const sleep = options.sleep ?? ((ms: number) => new Promise<void>((done) => setTimeout(done, ms)));
+  const sleep =
+    options.sleep ?? ((ms: number) => new Promise<void>((done) => setTimeout(done, ms)));
 
   // Taxa com piso de 1 ms: um run instantâneo não deve reportar `Infinity`.
   const ratePerSecond = (rows: number, elapsedMs: number) =>

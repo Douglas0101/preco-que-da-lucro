@@ -83,10 +83,11 @@ function rowId(index: number): string {
 async function seed(pool: Pool, count: number, options: { poisonAt?: number } = {}): Promise<void> {
   await pool.query("truncate backfill_demo_rows, backfill_work_items, backfill_checkpoints");
   for (let index = 1; index <= count; index += 1) {
-    await pool.query(
-      `insert into backfill_demo_rows (id, amount, poison) values ($1, $2, $3)`,
-      [rowId(index), (100 + index * 10).toFixed(2), options.poisonAt === index],
-    );
+    await pool.query(`insert into backfill_demo_rows (id, amount, poison) values ($1, $2, $3)`, [
+      rowId(index),
+      (100 + index * 10).toFixed(2),
+      options.poisonAt === index,
+    ]);
   }
 }
 
@@ -310,7 +311,9 @@ async function crashAndResumePhases(pool: Pool): Promise<void> {
     ["--import", "tsx", fileURLToPath(import.meta.url), "--phase=crash"],
     { env: process.env, stdio: "inherit" },
   );
-  console.log(`  [pai] filho: status=${child.status} signal=${child.signal} (morte real no meio do run)`);
+  console.log(
+    `  [pai] filho: status=${child.status} signal=${child.signal} (morte real no meio do run)`,
+  );
   assert.equal(child.signal, "SIGKILL", "o run precisa ter morrido por SIGKILL");
   assert.equal(child.status, null);
 
@@ -361,7 +364,11 @@ async function crashAndResumePhases(pool: Pool): Promise<void> {
   const afterVerify = await readState(pool, VERIFY_RUN_KEY);
   await printState(pool, "após a 2ª tentativa", VERIFY_RUN_KEY);
   assert.deepEqual(
-    { derived: afterVerify.derived, maxApplies: afterVerify.maxApplies, duplicated: afterVerify.duplicated },
+    {
+      derived: afterVerify.derived,
+      maxApplies: afterVerify.maxApplies,
+      duplicated: afterVerify.duplicated,
+    },
     { derived: 10, maxApplies: 1, duplicated: 0 },
     "rodar 2× não muda o estado",
   );
@@ -381,7 +388,9 @@ async function fullStory(): Promise<void> {
     await ensureBackfillLedger(pool);
     await poisonPhase(pool);
     await crashAndResumePhases(pool);
-    console.log("\nBackfill §28 (28.1 lote · 28.2 checkpoint · 28.3 rate-limit · 28.4 idempotência · 28.5 observabilidade): OK");
+    console.log(
+      "\nBackfill §28 (28.1 lote · 28.2 checkpoint · 28.3 rate-limit · 28.4 idempotência · 28.5 observabilidade): OK",
+    );
   } finally {
     await pool.end();
   }
@@ -399,7 +408,8 @@ async function teardown(): Promise<void> {
   }
 }
 
-const phase = process.argv.find((arg) => arg.startsWith("--phase="))?.slice("--phase=".length) ?? "all";
+const phase =
+  process.argv.find((arg) => arg.startsWith("--phase="))?.slice("--phase=".length) ?? "all";
 if (phase === "crash") await crashPhase();
 else if (phase === "teardown") await teardown();
 else if (phase === "all") await fullStory();
