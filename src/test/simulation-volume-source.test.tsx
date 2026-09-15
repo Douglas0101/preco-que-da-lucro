@@ -3,11 +3,12 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { describe, expect, it, vi } from "vitest";
+import type { ReactElement } from "react";
 
 import { runFinancialSimulation } from "@/server/services/financial.service";
 import {
   buildSimulationInput,
-  Simulacoes,
+  Route as SimulacoesRoute,
   VOLUME_SOURCE_DISPLAY,
   type ProductBaseline,
 } from "@/routes/_authenticated/simulacoes";
@@ -152,6 +153,16 @@ describe("forecast computa no motor (§18.1)", () => {
     expect(forecastNumbers).toEqual(manualNumbers);
   });
 });
+
+/** A rota de arquivo devolve a opção crua `component` — o componente da rota não
+ * é exportado para não desligar o code splitting (§17.6). */
+function routeComponent(route: { options: { component?: unknown } }): () => ReactElement {
+  const component = route.options.component;
+  if (typeof component !== "function") throw new Error("rota sem componente");
+  return component as () => ReactElement;
+}
+
+const Simulacoes = routeComponent(SimulacoesRoute);
 
 async function renderSimulacoes() {
   const user = userEvent.setup();

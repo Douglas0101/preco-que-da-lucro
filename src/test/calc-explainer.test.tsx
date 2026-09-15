@@ -122,7 +122,10 @@ import {
 } from "@/lib/calc-explanation";
 import { runFinancialSimulation } from "@/server/services/financial.service";
 import { Route as InicioRoute } from "@/routes/_authenticated/inicio";
-import { Simulacoes, VOLUME_ORIGIN_EXPLANATION } from "@/routes/_authenticated/simulacoes";
+import {
+  Route as SimulacoesRoute,
+  VOLUME_ORIGIN_EXPLANATION,
+} from "@/routes/_authenticated/simulacoes";
 
 async function expectNoAxeViolations(container: HTMLElement) {
   const result = await axe.run(container, {
@@ -162,6 +165,7 @@ function routeComponent(route: { options: { component?: unknown } }): () => Reac
 }
 
 const Inicio = routeComponent(InicioRoute);
+const Simulacoes = routeComponent(SimulacoesRoute);
 
 describe("CalcExplainer — revelação alcançável por teclado (§18.3)", () => {
   it("Tab alcança o resumo e o foco continua nele depois de revelar e esconder", async () => {
