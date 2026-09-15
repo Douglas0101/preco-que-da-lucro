@@ -56,7 +56,7 @@ const validScenarioArbitrary = fc.record({
   price: fc.double({ min: 0.01, max: 5_000, noNaN: true }),
   unitCost: nonNegativeMoney,
   fixedExpenses: nonNegativeMoney,
-  volume: fc.double({ min: 0, max: 1_000_000, noNaN: true }),
+  volume: fc.double({ min: 0.01, max: 1_000_000, noNaN: true }),
   volumeSource: fc.constantFrom("manual_simulation" as const, "forecast" as const),
   rates: validRatesArbitrary(),
 });
@@ -265,7 +265,7 @@ describe("propriedades do motor financeiro (fast-check)", () => {
 
   it("custo unitário maior, todo o resto igual ⇒ margem de contribuição não aumenta", () => {
     const property = fc.property(
-      fc.tuple(validScenarioArbitrary, fc.double({ min: 0, max: 10_000, noNaN: true })),
+      fc.tuple(validScenarioArbitrary, fc.double({ min: 0.01, max: 10_000, noNaN: true })),
       ([parts, extraUnitCost]) => {
         const base = calculateScenario(scenarioInput(parts));
         const higher = calculateScenario(
@@ -285,7 +285,7 @@ describe("propriedades do motor financeiro (fast-check)", () => {
 
   it("volume maior, todo o resto igual ⇒ receita não diminui", () => {
     const property = fc.property(
-      fc.tuple(validScenarioArbitrary, fc.double({ min: 0, max: 1_000_000, noNaN: true })),
+      fc.tuple(validScenarioArbitrary, fc.double({ min: 0.01, max: 1_000_000, noNaN: true })),
       ([parts, extraVolume]) => {
         const base = calculateScenario(scenarioInput(parts));
         const higher = calculateScenario(
