@@ -23,6 +23,10 @@ name: Neon PR branch CI
 # PR com production (baseline read-only, a branch já carrega as migrations do
 # PR) e persiste artefato + resumo em forma de comentário. Sem NEON_API_KEY o
 # passo PULA COM RÓTULO (nunca fail silencioso) e o CI permanece verde.
+#
+# §12.5 (ciclo de vida) + §26: fechado o provisionamento/migração/seed, o job
+# roda o E2E (Playwright, mesma invocation do ui-stack.yml) contra a branch
+# efêmera; o delete da branch segue no job `cleanup` com `always()`.
 
 on:
   pull_request:
@@ -72,7 +76,7 @@ jobs:
           echo "reason=same-repo-with-secrets" >> "$GITHUB_OUTPUT"
 
   branch-ci:
-    name: Branch efêmera · migrate · integração · RLS probe
+    name: Branch efêmera · migrate · integração · RLS probe · E2E
     needs: gate
     if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
@@ -334,6 +338,52 @@ jobs:
             process.exit(Number(r.rows[0].n) === expected ? 0 : 1);
           '
 
+      # §12.5 (create → migrate → seed → integration → E2E) e §26 (o ciclo da
+      # branch termina no E2E antes do delete). Mesma invocation do ui-stack.yml:
+      # `npx playwright install --with-deps chromium firefox webkit` + `npm run
+      # test:e2e`; o webServer do playwright.config.ts roda e2e:prepare, build e
+      # preview em 127.0.0.1:4173. Sem `if:` próprio ⇒ condição de sucesso
+      # default do job (depois de provisionar/migrar/seed); falha aqui deixa o
+      # job vermelho e o cleanup `always()` roda de todo modo. Nenhum segredo
+      # novo: runtime/auth são gerados no runner e a única credencial remota
+      # segue sendo a NEON_API_KEY já entregue ao job — PR de fork nunca chega
+      # aqui (fork-guard do job `gate`).
+      - name: E2E Playwright contra a branch efêmera (§12.5 · §26.7)
+        run: |
+          set -euo pipefail
+          runtime_password="$(openssl rand -hex 24)"
+          auth_secret="$(openssl rand -hex 32)"
+          auth_password="$(openssl rand -base64 24 | tr -d '\n')"
+          echo "::add-mask::${runtime_password}"
+          echo "::add-mask::${auth_secret}"
+          echo "::add-mask::${auth_password}"
+          export DATABASE_ADMIN_URL="$(cat "$RUNNER_TEMP/branch_direct_url")"
+          # DATABASE_URL = app_runtime sobre o pooler da branch (mesmo papel que o
+          # ui-stack.yml usa no E2E): e2e:prepare re-escreve a senha do papel com
+          # E2E_DB_RUNTIME_PASSWORD. DATABASE_DRIVER fica intencionalmente não
+          # definido para exercitar o driver de produção (neon-serverless).
+          export DATABASE_URL="$(
+            BRANCH_POOLED_URL="$(cat "$RUNNER_TEMP/branch_pooled_url")" \
+              RUNTIME_PASSWORD="$runtime_password" \
+              node --input-type=module -e '
+                const url = new URL(process.env.BRANCH_POOLED_URL);
+                url.username = "app_runtime";
+                url.password = process.env.RUNTIME_PASSWORD;
+                process.stdout.write(url.toString());
+              '
+          )"
+          export E2E_DB_RUNTIME_PASSWORD="$runtime_password"
+          export BETTER_AUTH_SECRET="$auth_secret"
+          export E2E_AUTH_EMAIL="teste@example.test"
+          export E2E_AUTH_PASSWORD="$auth_password"
+          export BETTER_AUTH_URL="http://127.0.0.1:4173"
+          export AUTH_TRUSTED_ORIGINS="http://127.0.0.1:4173"
+          # O env-guard é fail-closed contra banco remoto em test:e2e/e2e:prepare;
+          # o alvo aqui é a branch efêmera (drill), nunca produção.
+          export ALLOW_REMOTE_DB="CI Neon PR branch ${{ github.event.pull_request.number }} — E2E em branch efêmera (§26)"
+          npx playwright install --with-deps chromium firefox webkit
+          npm run test:e2e
+
   cleanup:
     name: Cleanup always() com prova (§12.5)
     needs: [gate, branch-ci]
@@ -366,12 +416,19 @@ jobs:
         run: |
           set -euo pipefail
           if [ -n "$BRANCH_ID" ]; then
-            if curl -sf -o /dev/null -w '%{http_code}' "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID" \
-              -H "Authorization: Bearer $NEON_API_KEY" | grep -qE '^(404|403)$'; then
-              DELETED="confirmado (GET pós-delete ≠ 200)"
-            else
-              DELETED="NAO-CONFIRMADO — checar Neon console"
-            fi
+            # `curl -f` sai 22 em HTTP >= 400 e, sob `pipefail`, derruba o
+            # pipeline justamente no caso 404/403 que confirma o delete — o
+            # ramo "confirmado" ficava inalcançável. O código HTTP é capturado
+            # e comparado explicitamente; falha de rede vira 000 e cai em
+            # NAO-CONFIRMADO (nunca confirma por omissão).
+            HTTP_CODE="$(curl -s -o /dev/null -w '%{http_code}' \
+              "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID" \
+              -H "Authorization: Bearer $NEON_API_KEY" || echo 000)"
+            case "$HTTP_CODE" in
+              404|403) DELETED="confirmado (GET pós-delete = HTTP $HTTP_CODE)" ;;
+              200) DELETED="NAO-CONFIRMADO — GET pós-delete ainda responde 200 (checar Neon console)" ;;
+              *) DELETED="NAO-CONFIRMADO — GET pós-delete respondeu HTTP $HTTP_CODE (checar Neon console)" ;;
+            esac
           else
             DELETED="n/a (branch nunca chegou a ser criada)"
           fi
