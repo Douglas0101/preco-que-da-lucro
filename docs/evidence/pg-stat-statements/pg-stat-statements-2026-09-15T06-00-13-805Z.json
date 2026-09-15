@@ -1,0 +1,126 @@
+{
+  "check": "obs:pg-stat-statements",
+  "read_only": true,
+  "regime": "CONTROLLED",
+  "generated_at": "2026-09-15T06:00:13.805Z",
+  "environment": {
+    "host": "127.0.0.1",
+    "database": "preco_que_da_lucro_test",
+    "local_only": true,
+    "top_n": 10
+  },
+  "statement_entries": 8,
+  "patterns": 7,
+  "missing_critical": [],
+  "critical": [
+    {
+      "label": "products.list",
+      "source": "src/server/repositories/product.repository.ts:30-37",
+      "calls": 14,
+      "total_exec_time": 74.04079700000001,
+      "mean_exec_time": 5.288628357142858,
+      "rows": 22150,
+      "statements": 2,
+      "shapes": [
+        "select \"id\", \"tenant_id\", \"user_id\", \"name\", \"status\", \"current_price\", \"yield_qty\", \"yield_unit\", \"tax_regime\", \"tax_rate\", \"is_demo\", \"notes\", \"version\", \"archived_at\", \"created_at\", \"updated_at\" from \"products\" where (\"products\".\"tenant_id\" = $1 and \"products\".\"archived_at\" is null) order by \"products\".\"created_at\" desc"
+      ]
+    },
+    {
+      "label": "purchasePrice.latest",
+      "source": "src/server/repositories/purchase-price.repository.ts:66-71",
+      "calls": 12,
+      "total_exec_time": 0.296566,
+      "mean_exec_time": 0.024713833333333334,
+      "rows": 12,
+      "statements": 1,
+      "shapes": [
+        "select \"id\", \"tenant_id\", \"user_id\", \"subject_type\", \"subject_id\", \"ingredient_id\", \"packaging_id\", \"price\", \"quantity\", \"unit\", \"supplier_id\", \"valid_from\", \"recorded_at\" from \"purchase_price_history\" where (\"purchase_price_history\".\"tenant_id\" = $1 and \"purchase_price_history\".\"ingredient_id\" = $2) order by \"purchase_price_history\".\"valid_from\" desc, \"purchase_price_history\".\"recorded_at\" desc limit $3"
+      ]
+    },
+    {
+      "label": "dashboard.productIngredients",
+      "source": "src/server/repositories/dashboard.repository.ts:48-58",
+      "calls": 12,
+      "total_exec_time": 0.289208,
+      "mean_exec_time": 0.02410066666666667,
+      "rows": 150,
+      "statements": 2,
+      "shapes": [
+        "select \"id\", \"product_id\", \"tenant_id\", \"user_id\", \"name\", \"used_qty\", \"used_unit\", \"package_price\", \"package_qty\", \"package_unit\", \"conversion_factor\", \"price_updated_at\", \"created_at\", \"updated_at\" from \"product_ingredients\" where (\"product_ingredients\".\"tenant_id\" = $1 and \"product_ingredients\".\"product_id\" in ($2, $3, $4))",
+        "select \"id\", \"product_id\", \"tenant_id\", \"user_id\", \"name\", \"used_qty\", \"used_unit\", \"package_price\", \"package_qty\", \"package_unit\", \"conversion_factor\", \"price_updated_at\", \"created_at\", \"updated_at\" from \"product_ingredients\" where (\"product_ingredients\".\"tenant_id\" = $1 and \"product_ingredients\".\"product_id\" in ($2, $3))"
+      ]
+    }
+  ],
+  "top": [
+    {
+      "critical": "products.list",
+      "operation": "SELECT",
+      "calls": 14,
+      "total_exec_time": 74.04079700000001,
+      "mean_exec_time": 5.288628357142858,
+      "rows": 22150,
+      "statements": 2,
+      "redacted_query": "select \"id\", \"tenant_id\", \"user_id\", \"name\", \"status\", \"current_price\", \"yield_qty\", \"yield_unit\", \"tax_regime\", \"tax_rate\", \"is_demo\", \"notes\", \"version\", \"archived_at\", \"created_at\", \"updated_at\" from \"products\" where (\"products\".\"tenant_id\" = $1 and \"products\".\"archived_at\" is null) order by \"products\".\"created_at\" desc"
+    },
+    {
+      "critical": "purchasePrice.latest",
+      "operation": "SELECT",
+      "calls": 12,
+      "total_exec_time": 0.296566,
+      "mean_exec_time": 0.02471383333333333,
+      "rows": 12,
+      "statements": 1,
+      "redacted_query": "select \"id\", \"tenant_id\", \"user_id\", \"subject_type\", \"subject_id\", \"ingredient_id\", \"packaging_id\", \"price\", \"quantity\", \"unit\", \"supplier_id\", \"valid_from\", \"recorded_at\" from \"purchase_price_history\" where (\"purchase_price_history\".\"tenant_id\" = $1 and \"purchase_price_history\".\"ingredient_id\" = $2) order by \"purchase_price_history\".\"valid_from\" desc, \"purchase_price_history\".\"recorded_at\" desc limit $3"
+    },
+    {
+      "critical": "dashboard.productIngredients",
+      "operation": "SELECT",
+      "calls": 6,
+      "total_exec_time": 0.176032,
+      "mean_exec_time": 0.02933866666666667,
+      "rows": 90,
+      "statements": 1,
+      "redacted_query": "select \"id\", \"product_id\", \"tenant_id\", \"user_id\", \"name\", \"used_qty\", \"used_unit\", \"package_price\", \"package_qty\", \"package_unit\", \"conversion_factor\", \"price_updated_at\", \"created_at\", \"updated_at\" from \"product_ingredients\" where (\"product_ingredients\".\"tenant_id\" = $1 and \"product_ingredients\".\"product_id\" in ($2, $3, $4))"
+    },
+    {
+      "critical": "dashboard.productIngredients",
+      "operation": "SELECT",
+      "calls": 6,
+      "total_exec_time": 0.113176,
+      "mean_exec_time": 0.01886266666666667,
+      "rows": 60,
+      "statements": 1,
+      "redacted_query": "select \"id\", \"product_id\", \"tenant_id\", \"user_id\", \"name\", \"used_qty\", \"used_unit\", \"package_price\", \"package_qty\", \"package_unit\", \"conversion_factor\", \"price_updated_at\", \"created_at\", \"updated_at\" from \"product_ingredients\" where (\"product_ingredients\".\"tenant_id\" = $1 and \"product_ingredients\".\"product_id\" in ($2, $3))"
+    },
+    {
+      "critical": null,
+      "operation": "SELECT",
+      "calls": 2,
+      "total_exec_time": 0.025217000000000003,
+      "mean_exec_time": 0.012608500000000002,
+      "rows": 2,
+      "statements": 1,
+      "redacted_query": "select set_config($1, $2, $3)"
+    },
+    {
+      "critical": null,
+      "operation": "SET",
+      "calls": 1,
+      "total_exec_time": 0.023865,
+      "mean_exec_time": 0.023865,
+      "rows": 0,
+      "statements": 1,
+      "redacted_query": "set role app_runtime"
+    },
+    {
+      "critical": null,
+      "operation": "RESET",
+      "calls": 1,
+      "total_exec_time": 0.010143,
+      "mean_exec_time": 0.010143,
+      "rows": 0,
+      "statements": 1,
+      "redacted_query": "reset role"
+    }
+  ]
+}
