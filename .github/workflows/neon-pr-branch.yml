@@ -416,12 +416,19 @@ jobs:
         run: |
           set -euo pipefail
           if [ -n "$BRANCH_ID" ]; then
-            if curl -sf -o /dev/null -w '%{http_code}' "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID" \
-              -H "Authorization: Bearer $NEON_API_KEY" | grep -qE '^(404|403)$'; then
-              DELETED="confirmado (GET pós-delete ≠ 200)"
-            else
-              DELETED="NAO-CONFIRMADO — checar Neon console"
-            fi
+            # `curl -f` sai 22 em HTTP >= 400 e, sob `pipefail`, derruba o
+            # pipeline justamente no caso 404/403 que confirma o delete — o
+            # ramo "confirmado" ficava inalcançável. O código HTTP é capturado
+            # e comparado explicitamente; falha de rede vira 000 e cai em
+            # NAO-CONFIRMADO (nunca confirma por omissão).
+            HTTP_CODE="$(curl -s -o /dev/null -w '%{http_code}' \
+              "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID" \
+              -H "Authorization: Bearer $NEON_API_KEY" || echo 000)"
+            case "$HTTP_CODE" in
+              404|403) DELETED="confirmado (GET pós-delete = HTTP $HTTP_CODE)" ;;
+              200) DELETED="NAO-CONFIRMADO — GET pós-delete ainda responde 200 (checar Neon console)" ;;
+              *) DELETED="NAO-CONFIRMADO — GET pós-delete respondeu HTTP $HTTP_CODE (checar Neon console)" ;;
+            esac
           else
             DELETED="n/a (branch nunca chegou a ser criada)"
           fi
