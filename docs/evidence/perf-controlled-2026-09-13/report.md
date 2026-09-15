@@ -11,6 +11,20 @@
 - Playwright: {"browser":"chromium","version":"151.0.7922.34"}
 - IA: {"enabled":true,"endpoint":"https://ai.gateway.lovable.dev/v1/chat/completions","latencyMs":35,"content":"Resposta mockada do baseline controlado F0-04."}
 
+## §35 — rótulos de evidência de performance
+
+> Bloco mantido à mão: `scripts/perf/summarize.mjs` não o emite (regenerar este
+> arquivo exige recolocá-lo). O artefato §35 completo — método, n, janela,
+> limites e follow-ups — é `perf-evidence.md`, neste mesmo diretório.
+
+- **hypothesis:** a captura CONTROLADA (preview Nitro local + PostgreSQL 17 em Docker, IA mockada) dá um `before` re-derivável do raw; espera-se prontidão de rota p50 na ordem de ~2,5 s, TTFB de poucos ms e entry dentro do budget de 500 000 B.
+- **metric:** prontidão de rota (dados visíveis) p50/p95 em ms; secundárias: TTFB ms, round trips por evento `app.context_tx`, duração de transação ms, LCP/CLS, bytes minificados.
+- **before:** `N/A` no mesmo regime — esta é a primeira captura `CONTROLLED`. O único `before` do repositório (`docs/evidence/perf-baseline-2026-08-29.md`) é de regime `dev-evidence`, com fonte `/tmp` não versionada, e não é comparável.
+- **change:** nenhuma mudança de produto; passaram a existir o harness `scripts/perf/*` e este diretório de evidência (commit `42d4b76`).
+- **after:** prontidão p50/p95 (n=5 por rota): `/inicio` 2490,0/2526,6 ms; `/produtos` 2461,0/2477,0 ms; `/diagnostico` 2476,0/2518,0 ms; `/ponto-equilibrio` 2512,0/2519,2 ms; `/simulacoes` 2505,0/2556,0 ms. TTFB p50 3,8–6,3 ms. Entry 268,4 KiB min / 83,6 KiB gzip, grafo inicial 459,0 KiB ≤ 500 000 B (PASS). AI latency mock n=3 p50 36,0 / p95 36,9 ms. Chat HTTP n=0.
+- **result:** referência registrada, **sem alegação de ganho**; confundidores declarados: IA mockada ≠ gateway real, PostgreSQL em loopback ≠ Neon, n=5 (p95 frágil) e chat HTTP não medido (n=0).
+- **decision:** `keep` — adotar como `before` canônico dos PRs de §5; follow-ups em `perf-evidence.md`.
+
 ## Método
 
 1. `npm run build` (preset `node-server`) e `npm run preview -- --host 127.0.0.1`; stdout do
