@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { withTenantTransaction } from "@/db/client.server";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import { recordSafely } from "@/instrumentation/safe-record";
 import { assertGatewayEndpoint } from "@/lib/ai-endpoint.server";
 import { ApplicationError } from "@/lib/api-error";
 import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
@@ -218,7 +219,7 @@ async function runModelAttempt({
     return null;
   } finally {
     const elapsedMs = performance.now() - attemptStartedAt;
-    applicationMetrics.aiDuration.record(elapsedMs, {
+    recordSafely(applicationMetrics.aiDuration, elapsedMs, {
       model,
       attempt,
     });

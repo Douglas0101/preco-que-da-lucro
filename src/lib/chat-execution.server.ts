@@ -19,6 +19,7 @@ import {
   type ConversationState,
 } from "@/lib/chat-fsm.server";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import { recordSafely } from "@/instrumentation/safe-record";
 import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
 import type { RequestContext, RequestIdentity } from "@/lib/request-context";
 import {
@@ -187,7 +188,7 @@ function createChatLatencyTracker(startedAt: number): ChatLatencyTracker {
 function acknowledgeGatewayResponse(latency: ChatLatencyTracker): void {
   if (latency.acknowledgedAt !== null) return;
   latency.acknowledgedAt = performance.now();
-  applicationMetrics.aiTimeToAcknowledge.record(latency.acknowledgedAt - latency.startedAt);
+  recordSafely(applicationMetrics.aiTimeToAcknowledge, latency.acknowledgedAt - latency.startedAt);
 }
 
 function timeToAcknowledgeMs(latency: ChatLatencyTracker): number | null {
@@ -417,8 +418,8 @@ async function handleModelResponse(
   const completedAt = performance.now();
   const timeToFirstContentMs = completedAt - latency.startedAt;
   const timeToFinalMs = timeToFirstContentMs;
-  applicationMetrics.aiTimeToFirstContent.record(timeToFirstContentMs);
-  applicationMetrics.aiTimeToFinal.record(timeToFinalMs);
+  recordSafely(applicationMetrics.aiTimeToFirstContent, timeToFirstContentMs);
+  recordSafely(applicationMetrics.aiTimeToFinal, timeToFinalMs);
   logJson("info", "ai.chat_completed", {
     correlationId: identity.correlationId,
     tenantId: identity.tenantId,

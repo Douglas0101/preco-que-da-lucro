@@ -3,6 +3,7 @@ import type { FeeRow, IngredientRow, PackagingRow } from "@/lib/finance";
 import { toDecimalString } from "@/lib/financial-values";
 import type { RequestContext } from "@/lib/request-context";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import { recordSafely } from "@/instrumentation/safe-record";
 import {
   dashboardRepository,
   type DashboardInputs,
@@ -181,7 +182,7 @@ export class DefaultDashboardService implements DashboardService {
         return summary;
       },
     );
-    applicationMetrics.salesSummaryDuration.record(Date.now() - startedAt, { period });
+    recordSafely(applicationMetrics.salesSummaryDuration, Date.now() - startedAt, { period });
 
     let bestProduct: { name: string; cmPct: string } | null = null;
     let invalidProductCount = 0;

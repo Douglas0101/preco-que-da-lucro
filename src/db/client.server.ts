@@ -7,6 +7,7 @@ import * as schema from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
 import { logJson } from "@/lib/structured-logger";
 import { normalizeSqlOperation, redactSqlText } from "@/instrumentation/sql-redactor";
+import { recordSafely } from "@/instrumentation/safe-record";
 import {
   applicationMetrics,
   endSpanWithResult,
@@ -225,25 +226,17 @@ function createQuerySpan(statement: unknown) {
  * já teve sucesso nem pular o callback do usuário (mesma regra defensiva dos
  * observables do pool em `telemetry.ts`). */
 function recordQueryDuration(operation: string, durationMs: number): void {
-  try {
-    applicationMetrics.dbQueryDuration.record(durationMs, {
-      "db.operation.name": operation,
-      "db.system.name": "postgresql",
-    });
-  } catch {
-    // Observabilidade nunca quebra o caminho da request.
-  }
+  recordSafely(applicationMetrics.dbQueryDuration, durationMs, {
+    "db.operation.name": operation,
+    "db.system.name": "postgresql",
+  });
 }
 
 /** Métrica de duração de `db.tenant_transaction`: um `record` que lança no
  * `finally` não pode rejeitar uma transação já commitada nem substituir o erro
  * real (inclusive `TenantMembershipDeniedError`). */
 function recordTransactionDuration(durationMs: number): void {
-  try {
-    applicationMetrics.dbDuration.record(durationMs);
-  } catch {
-    // Observabilidade nunca quebra o caminho da request.
-  }
+  recordSafely(applicationMetrics.dbDuration, durationMs);
 }
 
 /** Métrica de espera por cliente do pool: o `pg-pool` invoca o callback de
@@ -251,11 +244,7 @@ function recordTransactionDuration(durationMs: number): void {
  * `uncaughtException` e deixaria o cliente preso fora do pool — a query nunca
  * assenta e o pool esgota. */
 function recordPoolWait(durationMs: number, driver: string): void {
-  try {
-    applicationMetrics.dbPoolWaitTime.record(durationMs, { driver });
-  } catch {
-    // Observabilidade nunca quebra o caminho da request.
-  }
+  recordSafely(applicationMetrics.dbPoolWaitTime, durationMs, { driver });
 }
 
 function instrumentClientRoundTrips(client: unknown, hooks: PoolClientHooks = {}): void {
