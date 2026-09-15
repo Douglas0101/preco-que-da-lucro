@@ -15,7 +15,9 @@ import {
   type ProductComputation,
   type ResolvedVolumeSource,
 } from "@/lib/finance";
+import { scenarioExplanation, type ScenarioEcho } from "@/lib/calc-explanation";
 import { brl, decimalInput, num, pct } from "@/lib/format";
+import { CalcExplainer } from "@/components/ui/calc-explainer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -129,6 +131,19 @@ const VOLUME_ORIGIN_LABELS: Record<ResolvedVolumeSource, string> = {
   real: "Vendas reais",
   manual_simulation: "Informado manualmente",
   forecast: "Estimativa informada (projeção)",
+};
+
+/**
+ * Origem do volume por extenso, no "Como calculamos?" do resultado. A
+ * estimativa é uma projeção INFORMADA por quem usa o app: o motor não tem série
+ * histórica nem modelo estatístico, e calcula a projeção com a mesma matemática
+ * da simulação manual — o que muda é só a origem declarada do volume (§18.1).
+ */
+export const VOLUME_ORIGIN_EXPLANATION: Record<ResolvedVolumeSource, string> = {
+  real: "soma das vendas registradas; nenhuma projeção entra aqui.",
+  manual_simulation: "volume hipotético informado por você como premissa do cenário.",
+  forecast:
+    "projeção de volume informada por você — não é previsão estatística: o motor não usa série histórica nem modelo. A matemática é a mesma da simulação manual; muda apenas a origem declarada do volume.",
 };
 
 /**
@@ -507,6 +522,7 @@ export function Simulacoes() {
                       accent={simulated.value.resultSign === "negative" ? "destructive" : "success"}
                     />
                   </output>
+                  <ScenarioExplanation result={simulated.value} />
                   <div className="mt-3 space-y-2">
                     <div className="space-y-1">
                       <Label htmlFor="simulacao-nome" className="text-xs">
@@ -720,6 +736,32 @@ function Row({
       <span className="text-muted-foreground">{label}</span>
       <span className={accent ? "font-bold text-foreground" : "font-medium"}>{value}</span>
     </div>
+  );
+}
+
+/**
+ * "Como calculamos?" do resultado: as fórmulas na ordem em que o motor as
+ * aplica e a origem declarada do volume. Os valores são o eco do motor (§18.3).
+ */
+function ScenarioExplanation({ result }: Readonly<{ result: ScenarioEcho }>) {
+  return (
+    <CalcExplainer className="mt-3">
+      <p>
+        O motor calcula este cenário nesta ordem e nada é refeito na tela: cada valor abaixo é o eco
+        do próprio motor.
+      </p>
+      <ul className="space-y-1">
+        {scenarioExplanation(result).map((step) => (
+          <li key={step.field}>
+            <span className="font-medium">{step.label}:</span> {step.formula} = {step.value}
+          </li>
+        ))}
+      </ul>
+      <p>
+        <span className="font-medium">Origem do volume:</span>{" "}
+        {VOLUME_ORIGIN_EXPLANATION[result.volumeSource]}
+      </p>
+    </CalcExplainer>
   );
 }
 
