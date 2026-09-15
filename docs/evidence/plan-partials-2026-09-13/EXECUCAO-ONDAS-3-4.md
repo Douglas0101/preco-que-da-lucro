@@ -12,6 +12,18 @@
 
 ## 2. Detalhe por integração
 
+### I-O22 — §18.3 explain calculation (paridade amarrada ao motor)
+
+**Entrega:** `src/lib/calc-explanation.ts` (novo) + slot `explain` no `MetricCard` para os **4 KPIs** de `/inicio` e o card de melhor margem, mais um explainer _"Como calculamos?"_ no resultado da simulação. `CalcExplainer` foi **reusado**, e `finance.ts` ficou **intocado** (somente leitura). 12 testes.
+
+**A trava que define o item — paridade de fórmula — foi resolvida com QUATRO bindings, não com prosa:** produção **nunca** re-deriva aritmética (`scenarioExplanation(echo)` só lê o eco do motor) e cada passo declara o `field` que explica. Os quatro testes em `describe("paridade com o motor")` cobrem: (1) os **próprios helpers exportados** do motor aplicados às mesmas entradas igualam o eco (deriva de composição); (2) uma **transcrição independente em `Decimal`** de cada string de fórmula declarada iguala o eco **passo a passo** (deriva aritmética — ex.: a receita deixar de ser `price × volume`); (3) o valor **exibido** tem de igualar `brl/pct` do campo do eco; (4) **trava de cobertura de campos** sobre todas as chaves do eco do BFF, com `NOT_EXPLAINED_HERE` declarando os motivos. Mais um teste **anti-cópia entre telas** (a constante de margem de contribuição é a mesma string do passo fixado e do que o card de `/inicio` renderiza).
+
+**Falsificação executada:** um número escrito à mão (`brl(202)`) falha com `expected 'R$ 202,00' to be 'R$ 200,00'`; trocar o campo explicado por outro falha com `campo do motor sem explicação declarada: totalContribution`; a fonte foi restaurada e conferida **byte a byte** com `diff` (`RESTORED_OK`).
+
+**Origem `forecast` descrita corretamente:** _"projeção de volume informada por você — **não é previsão estatística**: o motor não usa série histórica nem modelo. A matemática é a mesma da simulação manual; muda apenas a origem declarada do volume."_ — coerente com o que o §18.1 estabeleceu (mesma matemática), e o teste de rota assere exatamente isso.
+
+**Residual honesto:** a **prosa** da explicação é linguagem natural e não é lida por máquina; a prova automática cobre valor=eco, aritmética transcrita=motor e cobertura de campos, mas uma troca **só de prosa** depende de revisão. E o toggle nativo `<summary>` (Enter/Espaço) **não** é exercitado porque o jsdom não tem camada de teclado para ele — o teste cobre alcançabilidade por Tab, retenção de foco e o caminho de ativação; o comportamento em browser real fica declarado como não verificado.
+
 ### I-O25 — §13.7 (PITR) + §12.6 (spending guardrails)
 
 **Entrega:** `scripts/m02-pitr-check.mjs` + `scripts/m02-neon-spend.mjs` (com `.d.mts`), duas operações novas no workflow manual `neon-drill-ops.yml` (`pitr-status`, `spend-status`), memo v3 e o artefato de evidência de spending.
