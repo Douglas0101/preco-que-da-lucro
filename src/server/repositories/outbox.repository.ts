@@ -14,7 +14,7 @@
  */
 import { and, asc, eq, inArray, lt, lte, sql } from "drizzle-orm";
 import type { OutboxEvent } from "@/db/schema";
-import { outboxEvents } from "@/db/schema";
+import { outboxConsumptions, outboxEvents } from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
 import type { RequestContext } from "@/lib/request-context";
 import type {
@@ -45,7 +45,29 @@ export interface OutboxDispatcher {
   publishPending(context: RequestContext, executor?: Executor): Promise<number>;
 }
 
-export class DrizzleOutboxRepository implements EventRepositoryPort {
+/** Persistência mínima consumida pelo worker (23.2). */
+export interface OutboxStore {
+  claimPending(
+    context: RequestContext,
+    options: OutboxClaimOptions,
+    executor?: Executor,
+  ): Promise<readonly OutboxEvent[]>;
+  markConsumed(
+    context: RequestContext,
+    consumerName: string,
+    eventId: string,
+    executor?: Executor,
+  ): Promise<boolean>;
+  markProcessed(context: RequestContext, eventId: string, executor?: Executor): Promise<boolean>;
+  markFailed(
+    context: RequestContext,
+    eventId: string,
+    failure: { error: string; backoffMs: number },
+    executor?: Executor,
+  ): Promise<boolean>;
+}
+
+export class DrizzleOutboxRepository implements EventRepositoryPort, OutboxStore {
   constructor(private readonly dispatcher?: OutboxDispatcher) {}
 
   async append(
@@ -127,6 +149,67 @@ export class DrizzleOutboxRepository implements EventRepositoryPort {
         ),
       )
       .returning();
+  }
+
+  /**
+   * Inbox do consumidor: registra (consumer, event) na transação corrente e
+   * devolve `true` na primeira entrega. Numa reentrega at-least-once o INSERT
+   * conflita com a linha já commitada e devolve `false` — é isso que impede o
+   * mesmo handler de aplicar o efeito duas vezes. Gravar o registro na MESMA
+   * transação do efeito (e não antes dele) faz o par andar junto: se o handler
+   * falhar, o savepoint reverte o registro e a próxima tentativa reprocessa.
+   */
+  async markConsumed(
+    context: RequestContext,
+    consumerName: string,
+    eventId: string,
+    executor: Executor = context.transaction,
+  ): Promise<boolean> {
+    const inserted = await executor
+      .insert(outboxConsumptions)
+      .values({ consumerName, eventId, tenantId: context.tenantId })
+      .onConflictDoNothing({
+        target: [outboxConsumptions.consumerName, outboxConsumptions.eventId],
+      })
+      .returning({ eventId: outboxConsumptions.eventId });
+    return inserted.length === 1;
+  }
+
+  /** Fecha o evento com `processed_at` no relógio do banco. */
+  async markProcessed(
+    context: RequestContext,
+    eventId: string,
+    executor: Executor = context.transaction,
+  ): Promise<boolean> {
+    const updated = await executor
+      .update(outboxEvents)
+      .set({ status: "processed", processedAt: sql`now()`, lastError: null })
+      .where(and(eq(outboxEvents.tenantId, context.tenantId), eq(outboxEvents.id, eventId)))
+      .returning({ id: outboxEvents.id });
+    return updated.length === 1;
+  }
+
+  /**
+   * Devolve o evento à fila com `failed`, `last_error` e `available_at` no
+   * futuro (backoff). Quando `attempts` atinge `maxAttempts` o predicado do
+   * claim deixa de alcançá-lo: sem retry infinito, a linha fica para inspeção.
+   */
+  async markFailed(
+    context: RequestContext,
+    eventId: string,
+    failure: { error: string; backoffMs: number },
+    executor: Executor = context.transaction,
+  ): Promise<boolean> {
+    const updated = await executor
+      .update(outboxEvents)
+      .set({
+        status: "failed",
+        lastError: failure.error,
+        availableAt: sql`now() + make_interval(secs => ${failure.backoffMs / 1000}::double precision)`,
+      })
+      .where(and(eq(outboxEvents.tenantId, context.tenantId), eq(outboxEvents.id, eventId)))
+      .returning({ id: outboxEvents.id });
+    return updated.length === 1;
   }
 
   /**
