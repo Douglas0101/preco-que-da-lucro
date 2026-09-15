@@ -3,13 +3,13 @@
 - **data:** 2026-09-15
 - **wp / squad / branch:** WP-A4 · SQUAD-APP-SUPPLY · `mission/a4-supply` (worktree `.worktree-mA4`, base `1f94b56`)
 - **spec_ref:** Plano Mestre §12.5 "Branch lifecycle" (`docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md:1090-1105` — `create branch → apply migrations → seed safe data → integration tests → E2E`, e `delete branch` no close) e §26 "Database CI com Neon Branching" (`:1811-1832`)
-- **artefato:** `.github/workflows/neon-pr-branch.yml` (único arquivo de workflow tocado; **51 inserções, 1 deleção**)
+- **artefato:** `.github/workflows/neon-pr-branch.yml` (único arquivo de workflow tocado; **64 inserções, 7 deleções** = passo E2E novo + correção do *delete-proof*, §3.5)
 - **claim:** `docs/evidence/agent-state/CLAIMS-INBOX/12.5-25.4-supply.md`
 - **status pleiteado:** **PARTIAL** — o desenho do ciclo está completo e verificado localmente; a **execução live** do ciclo depende de `NEON_API_KEY` (H-2) e não foi exercitada.
 
 ## 1. O ciclo, fase a fase, no workflow
 
-Job `gate` (`:46-76`) → job `branch-ci` (`:78-385`) → job `cleanup` (`:387-444`).
+Job `gate` (`:46-76`) → job `branch-ci` (`:78-385`) → job `cleanup` (`:387-451`).
 
 | # | fase (§12.5/§26) | passo/ação | `arquivo:linha` | condição |
 | - | ---------------- | ---------- | --------------- | -------- |
@@ -23,9 +23,9 @@ Job `gate` (`:46-76`) → job `branch-ci` (`:78-385`) → job `cleanup` (`:387-4
 | 7 | **seed** | `npm run m02:rls-probe` (seed sintético + sonda RLS adversarial) | `:308-321` | idem |
 | 8 | prova de journal | contagem read-only de `drizzle.__drizzle_migrations` vs `_journal.json` | `:323-334` | idem |
 | 9 | **E2E (novo)** | `npx playwright install --with-deps chromium firefox webkit` + `npm run test:e2e` | **`:351-385`** | idem — sem `if:` próprio |
-| 10 | delete + prova | `delete-branch-action`; GET pós-delete `≠ 200` e comentário no PR | `:400-406`; `:408-444` | **`always()`** (`:390`) e `branch_id != ''` |
+| 10 | delete + prova | `delete-branch-action`; GET pós-delete comparado por código HTTP e comentário no PR | `:400-406`; `:408-451` (comparação em `:424-431`) | **`always()`** (`:390`) e `branch_id != ''` |
 
-Ordem provada estruturalmente (T3, §3.3): `provisionamento(2) < migração(5) < integração(8) < seed(9) < E2E(11)` — o E2E é o **último** passo de `branch-ci`, depois de provisionar/migrar/seed, como o spec-card exige. `cleanup` mantém `if: always() && needs.gate.outputs.run == 'true'` (`:390`) inalterado.
+Ordem provada estruturalmente (T3, §3.3): `provisionamento(2) < migração(5) < integração(8) < seed(9) < E2E(11)` — o E2E é o **último** passo de `branch-ci`, depois de provisionar/migrar/seed, como o spec-card exige. O `if: always() && needs.gate.outputs.run == 'true'` do job `cleanup` (`:390`) e o `delete-branch-action` (`:400-406`) seguem **inalterados**; o que foi corrigido é a *prova* do delete, que era inalcançável (§3.5).
 
 ## 2. Contrato do passo E2E (por que ele é "a mesma invocation do `ui-stack.yml`")
 
@@ -50,7 +50,7 @@ Ambiente produzido no runner (nenhum segredo novo; tudo gerado por `openssl` no 
 | `E2E_AUTH_EMAIL` | `teste@example.test` | literal (igual ao `ui-stack.yml:44`) |
 | `BETTER_AUTH_URL` / `AUTH_TRUSTED_ORIGINS` | `http://127.0.0.1:4173` | literal (igual ao `ui-stack.yml:42-43`) |
 | `ALLOW_REMOTE_DB` | motivo rotulado, com o nº do PR | literal no passo |
-| `DATABASE_DRIVER` | **não definido** (default `neon-serverless`, o driver de produção — `src/db/client.server.ts:68,90`) | decisão explícita |
+| `DATABASE_DRIVER` | **não definido** (default `neon-serverless`, o driver de produção — `src/db/client.server.ts:68,92`) | decisão explícita |
 
 Diferença consciente vs. `ui-stack.yml`: lá o alvo é um Postgres local e o `ui-stack.yml` fixa `DATABASE_DRIVER: node-postgres`. Aqui o alvo é uma branch Neon real, então o E2E roda no driver de produção — é o que dá valor ao E2E na branch.
 
@@ -129,6 +129,49 @@ step_exit=3
 
 Leitura: o override é o caminho sancionado de drill (§26) e o guard **falha fechado** quando ele falta — o passo não enfraquece o gate. Nenhuma URL real de produção foi usada (o host é sintético; o guard só inspeciona strings e nunca conecta).
 
+### 3.5 ACHADO CORRIGIDO — a "prova de delete" era inalcançável
+
+**Bug (pré-existente, no `cleanup`):** a prova do delete usava
+
+```bash
+if curl -sf -o /dev/null -w '%{http_code}' "$URL" -H "…" | grep -qE '^(404|403)$'; then
+  DELETED="confirmado (GET pós-delete ≠ 200)"
+```
+
+sob `set -euo pipefail`. `curl -f` sai **22** em HTTP ≥ 400; com `pipefail` o status do pipeline é o de curl (22), **mesmo com o `grep` casando** ⇒ o `if` é falso e o ramo `confirmado` nunca executa. Para HTTP 200 o `grep` falha (1) e o pipeline também falha. Resultado: **os três casos caíam em `NAO-CONFIRMADO`**, tornando a prova de `12.5` decorativa. O `delete-branch-action` em si (que apaga a branch) não era afetado — só a evidência.
+
+**Correção aplicada** (`:424-431`): captura explícita do código HTTP e comparação por `case`, sem `-f` e sem pipeline:
+
+```bash
+HTTP_CODE="$(curl -s -o /dev/null -w '%{http_code}' "$URL" -H "…" || echo 000)"
+case "$HTTP_CODE" in
+  404|403) DELETED="confirmado (GET pós-delete = HTTP $HTTP_CODE)" ;;
+  200) DELETED="NAO-CONFIRMADO — GET pós-delete ainda responde 200 (checar Neon console)" ;;
+  *) DELETED="NAO-CONFIRMADO — GET pós-delete respondeu HTTP $HTTP_CODE (checar Neon console)" ;;
+esac
+```
+
+`|| echo 000` existe porque a atribuição com substituição de comando herda o status do curl sob `set -e`: sem ele, um erro de rede abortaria o passo. Falha de rede vira `000` ⇒ NAO-CONFIRMADO (nunca confirma por omissão).
+
+**Prova local, sem rede.** O script do passo foi **extraído dos YAMLs reais** (via parser) nas duas versões — `git show 1f94b56:…` (pré-fix) e `HEAD` (pós-fix) — e executado sob um `curl` simulado que reproduz o contrato de `-s [-f] -o /dev/null -w '%{http_code}'` (imprime o código; com `-f`, sai 22 quando ≥ 400). `gh` também é shim. A linha `deletada — …` do `GITHUB_STEP_SUMMARY` é a asserção:
+
+```
+### A) SCRIPT PRÉ-FIX (extraído de 1f94b56) — bug: ramo 'confirmado' inalcançável
+pre-fix-404    curl=404 mode=code    exit=0   deletada — NAO-CONFIRMADO — checar Neon console (§12.5 always())
+pre-fix-403    curl=403 mode=code    exit=0   deletada — NAO-CONFIRMADO — checar Neon console (§12.5 always())
+pre-fix-200    curl=200 mode=code    exit=0   deletada — NAO-CONFIRMADO — checar Neon console (§12.5 always())
+
+### B) SCRIPT PÓS-FIX (extraído de HEAD) — 404/403 confirmam; 200 e falha de rede NÃO confirmam
+pos-fix-404    curl=404 mode=code    exit=0   deletada — confirmado (GET pós-delete = HTTP 404) (§12.5 always())
+pos-fix-403    curl=403 mode=code    exit=0   deletada — confirmado (GET pós-delete = HTTP 403) (§12.5 always())
+pos-fix-200    curl=200 mode=code    exit=0   deletada — NAO-CONFIRMADO — GET pós-delete ainda responde 200 (checar Neon console) (§12.5 always())
+pos-fix-netfail curl=000 mode=netfail exit=0   deletada — NAO-CONFIRMADO — GET pós-delete respondeu HTTP 000 (checar Neon console) (§12.5 always())
+```
+
+Leitura: pré-fix, **404 e 403 também caíam em NAO-CONFIRMADO** (bug reproduzido); pós-fix, 404 e 403 confirmam, 200 não confirma e erro de rede não confirma. Conclusão robusta ao detalhe do `-w` sob `-f`: mesmo que curl não imprimisse nada no caso `-f`, o `grep` falharia e o resultado seria o mesmo `NAO-CONFIRMADO`.
+
+Nota de escopo: o achado foi reportado pela verificação adversarial (V-A4) e corrigido **neste WP** — a prova de delete é parte da aceitação de `12.5`.
+
 ## 4. Execução live: o que falta e por quê
 
 - **Dependência declarada:** a execução do ciclo em si (criar branch Neon, migrar, semear, rodar E2E, deletar) exige `NEON_API_KEY` + `vars.NEON_PROJECT_ID` no repositório. **H-2** = sem token/API (e sem push, por regra da missão), não há como disparar nem observar o workflow. O próprio arquivo já trata o caso: sem a chave, `gate` marca `run=false` com rótulo (`:57-71`) e o schema diff escreve um artefato de PULO rotulado — **nunca** fail silencioso.
@@ -137,8 +180,8 @@ Leitura: o override é o caminho sancionado de drill (§26) e o guard **falha fe
 
 ## 5. Limites declarados
 
-1. **E2E não executado live** (sem `NEON_API_KEY`). O que está provado é: parse dos YAMLs, lógica de shell + ambiente produzido, ordem/condição do passo e aderência ao `env-guard`. Não provado: que o Playwright passa contra a branch (depende de H-2).
-2. **Artefato de browser não é publicado.** O `ui-stack.yml:99-113` sobe `playwright-report`/`test-results`/`playwright-results.json`; aqui **não** foi adicionado upload, por decisão de diff mínimo do WP. Consequência: numa falha de E2E em CI, a evidência de browser morre com o runner (o log e o `GITHUB_STEP_SUMMARY` do job permanecem). Proposta para o MAESTRO: passo `upload-artifact` de 8 linhas, espelhando o `ui-stack.yml`, se quiser rastreabilidade.
+1. **E2E não executado live** (sem `NEON_API_KEY`). O que está provado é: parse dos YAMLs, lógica de shell + ambiente produzido, ordem/condição do passo e aderência ao `env-guard`. Não provado: que o Playwright passa contra a branch (depende de H-2). A **prova de delete** foi corrigida e exercitada localmente contra os dois scripts reais (§3.5); o que ainda depende de H-2 é o **resultado real** do GET pós-delete numa branch Neon de verdade (o `delete-branch-action` e o `always()` não foram tocados).
+2. **Artefato de browser não é publicado.** O `ui-stack.yml:99-111` sobe `playwright-report`/`test-results`/`playwright-results.json`; aqui **não** foi adicionado upload, por decisão de diff mínimo do WP. Consequência: numa falha de E2E em CI, a evidência de browser morre com o runner (o log e o `GITHUB_STEP_SUMMARY` do job permanecem). Proposta para o MAESTRO: passo `upload-artifact` de 8 linhas, espelhando o `ui-stack.yml`, se quiser rastreabilidade.
 3. **Orçamento de tempo inalterado.** `branch-ci` segue com `timeout-minutes: 30` (`:83`); o E2E (`playwright install` + `build` + 4 projetos) entra nesse mesmo orçamento. Se a primeira execução live estourar o teto, o knob é o timeout — decisão do MAESTRO, não deste WP.
 4. **Ordem §26 vs. §12.5 (observação, não divergência).** O texto de §26 lista `… → E2E → schema diff`; no workflow o schema diff roda imediatamente após as migrations (pré-existente, `:149`) e o E2E fecha o job (`:351`). O spec-card deste WP fixa "depois de provisionar/migrar/seed", que é exatamente onde o E2E ficou; §12.5 (`create → migrate → seed → integration → E2E`) também é satisfeito. Mover o schema diff para depois do E2E seria uma troca de 2 blocos e **não** foi feita por não estar no spec-card.
 5. **Regime:** CONTROLLED (inspeção local + execução de scripts em ambiente local com shims); nenhuma execução remota.
