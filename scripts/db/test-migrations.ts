@@ -855,10 +855,11 @@ async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<
 }
 
 async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Client): Promise<void> {
-  // Completa a cobertura da cadeia de rollback: além de 0016→0003, aplica
-  // 0003→0002 e o novo 0002→0001, deixando o banco no estado da migration
-  // 0001 com o journal reduzido a 0000/0001 (16 arquivos aplicados = 16 linhas
-  // removidas em applyDowns).
+  // Completa a cobertura da cadeia de rollback: além de DOWNS_TIP_TO_0003, aplica
+  // 0003→0002 e o novo 0002→0001, deixando o banco no estado da migration 0001
+  // com o journal reduzido a 0000/0001 — uma linha do journal por arquivo
+  // aplicado (`applyDowns` deriva o número de `downFiles.length`; nenhum total é
+  // escrito à mão, então acrescentar down à lista não envelhece este comentário).
   await applyDowns(client, [
     ...DOWNS_TIP_TO_0003,
     "0003_to_0002_down.sql",
