@@ -7,6 +7,8 @@ DROP SCHEMA IF EXISTS drizzle CASCADE;
 DROP TABLE IF EXISTS ai_usage CASCADE;
 
 DROP TABLE IF EXISTS
+  backfill_checkpoints,
+  backfill_work_items,
   outbox_consumptions,
   outbox_events,
   audit_events,

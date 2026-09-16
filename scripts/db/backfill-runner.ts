@@ -14,6 +14,8 @@
  *   gravado na MESMA transação do efeito, como §23 faz no consumidor de
  *   outbox). Devolve `applied` (efeito novo) ou `duplicate` (já estava feito).
  * - `checkpoints`        — persistência do progresso (`cursor` + contadores).
+ *   O avanço é **CAS por versão**: dois runners no mesmo `runKey` nunca se
+ *   sobrescrevem em silêncio — quem perde recebe `BackfillCheckpointConflictError`.
  *
  * Garantias (ver `src/test/backfill-runner.test.ts` T1–T4):
  * - O checkpoint só avança em **lote fechado**: uma interrupção no meio de um
@@ -64,6 +66,12 @@ export interface BackfillCheckpoint {
   readonly rowsApplied: number;
   readonly rowsDuplicate: number;
   readonly errors: number;
+  /**
+   * Token do CAS. `load` devolve a versão persistida; `save` recebe a versão
+   * NOVA (a anterior + 1) e só grava se a persistida ainda for a anterior.
+   * `0` significa "nada persistido ainda".
+   */
+  readonly version: number;
   readonly updatedAt: string;
 }
 
@@ -74,7 +82,30 @@ export interface BackfillCheckpointStore {
    * trabalho com outra tentativa não reaplica nada.
    */
   load(runKey: string): Promise<BackfillCheckpoint | null>;
+  /**
+   * Gravação condicional por versão (CAS): persiste `checkpoint` apenas se a
+   * versão em disco ainda for `checkpoint.version - 1`; a linha passa a valer
+   * `checkpoint.version`. Perdeu a corrida ⇒ `BackfillCheckpointConflictError`
+   * (explícito) — nunca sobrescreve em silêncio o avanço de outro runner.
+   */
   save(runKey: string, checkpoint: BackfillCheckpoint): Promise<void>;
+}
+
+/** `save` perdeu a corrida do CAS: outro runner avançou o checkpoint primeiro. */
+export class BackfillCheckpointConflictError extends Error {
+  readonly runKey: string;
+  /** Versão que este runner acreditava estar persistida. */
+  readonly expectedVersion: number;
+
+  constructor(runKey: string, expectedVersion: number) {
+    super(
+      `backfill-runner: checkpoint de "${runKey}" está em outra versão (CAS esperava a versão ${expectedVersion}); ` +
+        "outro runner avançou primeiro — este run foi descartado sem sobrescrever nada",
+    );
+    this.name = "BackfillCheckpointConflictError";
+    this.runKey = runKey;
+    this.expectedVersion = expectedVersion;
+  }
 }
 
 export interface BackfillRateLimit {
@@ -244,6 +275,7 @@ export function createBackfillRunner<T>(options: BackfillRunnerOptions<T>): Back
       rowsApplied: 0,
       rowsDuplicate: 0,
       errors: 0,
+      version: 0,
       updatedAt: new Date(startedAt).toISOString(),
     };
 
@@ -279,7 +311,7 @@ export function createBackfillRunner<T>(options: BackfillRunnerOptions<T>): Back
       batchApplied = 0;
       batchDuplicate = 0;
       batchErrors = 0;
-      checkpoint = {
+      const next: BackfillCheckpoint = {
         cursor,
         completed,
         batches: committedBatches,
@@ -287,9 +319,14 @@ export function createBackfillRunner<T>(options: BackfillRunnerOptions<T>): Back
         rowsApplied: committedApplied,
         rowsDuplicate: committedDuplicate,
         errors: committedErrors,
+        version: checkpoint.version + 1,
         updatedAt: new Date(now()).toISOString(),
       };
-      await checkpoints.save(runKey, checkpoint);
+      // Avanço condicional: o store só grava se a versão em disco ainda for a
+      // anterior (`next.version - 1`). Conflito ⇒ aborta o run inteiro sem
+      // adotar a versão que este runner não conseguiu persistir.
+      await checkpoints.save(runKey, next);
+      checkpoint = next;
     };
 
     const emit = (type: BackfillProgressEvent["type"], rows: number, completed: boolean) => {
