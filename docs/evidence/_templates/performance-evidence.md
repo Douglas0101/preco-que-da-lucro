@@ -29,6 +29,11 @@ quando não há amostra de rota; `revert` nunca é derivado, só declarado. O
 artefato §35 revisável (método, n, janela, limites e follow-ups) continua sendo o
 `perf-evidence.md` ao lado do sumário.
 
+Quando o raw **declara um par** `before`/`change`/`after`, o gerador não calcula
+ganho nem perda: o `result` passa a apontar o par declarado (em vez de afirmar
+“sem alegação de ganho”) e, sem `meta.section35.decision`, a decisão derivada é
+`follow-up` — declarar a decisão é do autor, não do gerador.
+
 ## Cabeçalho obrigatório
 
 - **ambiente:** `dev-evidence` | `CONTROLLED` (nunca misturar; `dev-evidence` não

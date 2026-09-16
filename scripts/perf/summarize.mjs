@@ -231,8 +231,10 @@ function routeTable(rows, rowFor) {
  * um número inventado. Os rótulos de JULGAMENTO (`hypothesis`, `before`,
  * `change`, `decision`) podem ser declarados verbatim pelo operador em
  * `meta.section35.<rótulo>` do raw; sem declaração, saem os padrões derivados
- * abaixo (`decision` é conservadora: sem amostra de rota — métrica primária —
- * sai `follow-up`; `revert` nunca é derivado, só declarado).
+ * abaixo (`decision` é conservadora: sem amostra de rota — métrica primária — ou
+ * com par antes/depois declarado sem decisão, sai `follow-up`; `revert` nunca é
+ * derivado, só declarado). Com par declarado o gerador não afirma ausência de
+ * ganho nem conclui `keep`: a leitura do par é do autor.
  * -------------------------------------------------------------------------- */
 
 const SECTION_35_HEADING = "## §35 — rótulos de evidência de performance";
@@ -451,7 +453,9 @@ function section35Lines(data) {
 
 function resultText(data) {
   const parts = [
-    "referência registrada, **sem alegação de ganho**: não há par antes/depois no mesmo regime",
+    hasDeclaredPair(data.meta ?? {})
+      ? "referência registrada: o par antes/depois é declarado em `meta.section35` — o ganho não é calculado pelo gerador (a leitura do par é do autor)"
+      : "referência registrada, **sem alegação de ganho**: não há par antes/depois no mesmo regime",
   ];
   const smallest = rangeText(
     data.routes.map((row) => row.ready.n),
@@ -470,13 +474,30 @@ function resultText(data) {
 }
 
 /**
+ * O raw declara um par antes/depois (ou um `after`) em `meta.section35`? Então a
+ * leitura do ganho é do AUTOR, não do gerador: o bloco não pode afirmar ausência
+ * de par e a decisão derivada não pode concluir `keep`/`revert` sozinha.
+ */
+function hasDeclaredPair(meta) {
+  return (
+    declaredLabel(meta, "before") !== null ||
+    declaredLabel(meta, "change") !== null ||
+    declaredLabel(meta, "after") !== null
+  );
+}
+
+/**
  * Decisão derivada do raw. `revert` NUNCA sai daqui: reverter exige julgamento
  * humano e só entra declarado (`meta.section35.decision`). O padrão é `keep`
  * quando a métrica primária (prontidão de rota) foi medida — as lacunas vão
- * declaradas em `result`/§Lacunas —, e `follow-up` quando não há amostra de rota:
- * sem métrica primária não existe referência a adotar sem nova captura.
+ * declaradas em `result`/§Lacunas —, e `follow-up` quando não há amostra de rota
+ * (sem métrica primária não existe referência a adotar) ou quando o raw declara
+ * um par antes/depois sem decisão declarada (o ganho não é calculado aqui).
  */
 function decisionText(data) {
+  if (hasDeclaredPair(data.meta ?? {})) {
+    return "`follow-up` — par antes/depois declarado em `meta.section35` sem decisão declarada: o gerador não calcula ganho nem perda; declare `meta.section35.decision` (`keep`/`revert`) com o julgamento (o artefato §35 revisável é `perf-evidence.md`).";
+  }
   const closing =
     "Sem alegação de ganho: não há par antes/depois no mesmo regime (o artefato §35 revisável é `perf-evidence.md`).";
   if (data.routes.length === 0) {

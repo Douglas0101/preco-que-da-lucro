@@ -456,4 +456,31 @@ describe("§35 — o report gerado carrega os rótulos do contrato", () => {
     expect(section35Block(markdown)).toContain("- **hypothesis:**");
     expect(missingSection35Labels(section35Block(markdown))).toEqual([]);
   });
+
+  it("T1f: par antes/depois declarado no raw não é contradito pelo `result`/`decision` derivados", () => {
+    const raw = fixtureRaw();
+    raw.meta = {
+      ...raw.meta,
+      section35: {
+        before:
+          "p50 3000 ms (n=5, captura 2026-09-10, fonte `docs/evidence/perf-baseline-2026-09-10.md`)",
+        change: "`src/lib/products.functions.ts` (patch do read-model)",
+      },
+    };
+    const block = section35Block(renderReport(summarize(raw)));
+    expect(section35Line(block, "before")).toContain("p50 3000 ms");
+    expect(section35Line(block, "change")).toContain("patch do read-model");
+    // o gerador não calcula ganho: não pode afirmar que NÃO existe par antes/depois
+    expect(section35Line(block, "result")).not.toContain("sem alegação de ganho");
+    expect(section35Line(block, "result")).toContain(
+      "o par antes/depois é declarado em `meta.section35`",
+    );
+    // com par declarado, `keep` exigiria julgamento: a decisão derivada pede revisão
+    expect(section35Line(block, "decision")).toMatch(/\*\*decision:\*\* `follow-up`/);
+
+    // sem par declarado, o bloco segue sem alegação de ganho e com a referência adotada
+    const plain = section35Block(renderReport(summarize(fixtureRaw())));
+    expect(section35Line(plain, "result")).toContain("sem alegação de ganho");
+    expect(section35Line(plain, "decision")).toMatch(/\*\*decision:\*\* `keep`/);
+  });
 });
