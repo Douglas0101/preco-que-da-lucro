@@ -1,9 +1,11 @@
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   buildPlan,
+  expectedJournalCount,
   maskUrl,
   parseArgs,
   preflight,
@@ -76,6 +78,25 @@ describe("m02-v2b --plan (sem conectar)", () => {
       "cleanup",
     ]);
   });
+  it("deriva a contagem esperada do journal canônico (nunca um literal)", () => {
+    const journal = JSON.parse(
+      readFileSync(resolve(root, "drizzle/meta/_journal.json"), "utf8"),
+    ) as { entries: unknown[] };
+    const expected = expectedJournalCount();
+    expect(expected).toBe(journal.entries.length);
+    // O passo `migrate` compara o journal do banco com esse número: um literal
+    // reintroduzido no script quebra este teste na primeira migration nova, em
+    // vez de quebrar o ensaio de cutover (0015 → ed29d4b, 0016 → esta correção).
+    const migrate = buildPlan(ctx).find((step: { id: string }) => step.id === "migrate");
+    expect(migrate?.expected).toContain(`= ${expected} `);
+  });
+
+  it("fail-closed: journal ilegível é erro acionável, nunca contagem 0", () => {
+    expect(() => expectedJournalCount("/diretorio-inexistente")).toThrow(
+      /journal do Drizzle ilegível em drizzle\/meta\/_journal\.json/,
+    );
+  });
+
   it("CLI imprime o DAG e sai 0 mesmo SEM credencial alguma", () => {
     const env = { ...process.env } as NodeJS.ProcessEnv;
     delete env.SUPABASE_MIGRATION_DATABASE_URL;
