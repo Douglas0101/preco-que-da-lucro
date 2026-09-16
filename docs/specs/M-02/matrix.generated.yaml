@@ -10,8 +10,8 @@
     "createServerFnDeclarations": 32,
     "concreteOperations": 36,
     "apiRoutes": 5,
-    "transactionSites": 108,
-    "directDatabaseFiles": 47
+    "transactionSites": 119,
+    "directDatabaseFiles": 48
   },
   "bffs": [
     {
@@ -1065,6 +1065,30 @@
       "classification": "repository-fallback"
     },
     {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 4,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 139,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 187,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 241,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
       "path": "src/server/repositories/outbox.repository.ts",
       "line": 4,
       "expression": "context.transaction",
@@ -1203,6 +1227,24 @@
       "classification": "repository-fallback"
     },
     {
+      "path": "src/server/services/event.service.ts",
+      "line": 8,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/server/services/event.service.ts",
+      "line": 38,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/server/services/event.service.ts",
+      "line": 45,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
       "path": "src/server/services/expense.service.ts",
       "line": 31,
       "expression": "context.transaction",
@@ -1255,6 +1297,30 @@
       "line": 115,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/test/event-service.test.ts",
+      "line": 130,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/test/event-service.test.ts",
+      "line": 143,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/test/event-service.test.ts",
+      "line": 165,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/test/event-service.test.ts",
+      "line": 222,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
     }
   ],
   "directDatabaseFiles": [
@@ -1280,6 +1346,7 @@
     "src/server/repositories/conversation.repository.ts",
     "src/server/repositories/dashboard.repository.ts",
     "src/server/repositories/expense.repository.ts",
+    "src/server/repositories/memory.repository.ts",
     "src/server/repositories/outbox.repository.ts",
     "src/server/repositories/product.repository.ts",
     "src/server/repositories/purchase-price.repository.ts",

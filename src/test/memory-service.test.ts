@@ -63,23 +63,36 @@ describe("MemoryService.propose — rejeições com erro tipado", () => {
       policy({ minConfidence: 0.8 }),
       candidate({ provenance: provenance({ confidence: 0.79 }) }),
     ],
-    ["(b) escopo fora de allowedScopes", policy({ allowedScopes: ["user"] }), candidate({ scope: "tenant" })],
+    [
+      "(b) escopo fora de allowedScopes",
+      policy({ allowedScopes: ["user"] }),
+      candidate({ scope: "tenant" }),
+    ],
     [
       "(c) proveniência ausente com requireProvenance = true",
       policy({ requireProvenance: true }),
       candidate({ provenance: undefined }),
     ],
-    ["(d) conteúdo acima de maxContentLength", policy({ maxContentLength: 10 }), candidate({ content: "a".repeat(11) })],
+    [
+      "(d) conteúdo acima de maxContentLength",
+      policy({ maxContentLength: 10 }),
+      candidate({ content: "a".repeat(11) }),
+    ],
   ];
 
-  it.each(REJECTIONS)("rejeita %s com VALIDATION_ERROR", (_label, policyUnderTest, candidateUnderTest) => {
-    const error = memoryRejection(() => memoryService.propose(candidateUnderTest, policyUnderTest));
+  it.each(REJECTIONS)(
+    "rejeita %s com VALIDATION_ERROR",
+    (_label, policyUnderTest, candidateUnderTest) => {
+      const error = memoryRejection(() =>
+        memoryService.propose(candidateUnderTest, policyUnderTest),
+      );
 
-    expect(error.code).toBe("VALIDATION_ERROR");
-    expect(error.status).toBe(400);
-    expect(error.retryable).toBe(false);
-    expect(error.message).not.toBe("");
-  });
+      expect(error.code).toBe("VALIDATION_ERROR");
+      expect(error.status).toBe(400);
+      expect(error.retryable).toBe(false);
+      expect(error.message).not.toBe("");
+    },
+  );
 
   it("não consulta o banco: a rejeição acontece antes de qualquer persistência", () => {
     const error = memoryRejection(() =>
@@ -111,7 +124,11 @@ describe("MemoryService.propose — aceitação e normalização", () => {
     const raw = "  Cafe\u0301 com   espac\u0327os  ";
     expect(raw.normalize("NFC")).not.toBe(raw);
 
-    const receivedProvenance = provenance({ sourceKind: "model", inferred: true, confidence: 0.73 });
+    const receivedProvenance = provenance({
+      sourceKind: "model",
+      inferred: true,
+      confidence: 0.73,
+    });
     const proposal = memoryService.propose(
       candidate({ content: raw, provenance: receivedProvenance }),
       policy(),
@@ -139,7 +156,10 @@ describe("MemoryService.propose — aceitação e normalização", () => {
   });
 
   it("preserva scope e importance aprovados", () => {
-    const proposal = memoryService.propose(candidate({ scope: "user", importance: 0.25 }), policy());
+    const proposal = memoryService.propose(
+      candidate({ scope: "user", importance: 0.25 }),
+      policy(),
+    );
 
     expect(proposal.candidate.scope).toBe("user");
     expect(proposal.candidate.importance).toBe(0.25);
@@ -150,27 +170,41 @@ describe("MemoryService.propose — retenção vem da policy (dados)", () => {
   const now = new Date("2026-09-16T12:00:00.000Z");
 
   it("sem TTL na policy, a proposta não expira", () => {
-    const proposal = memoryService.propose(candidate(), policy({ retention: { ttlSeconds: null } }), { now });
+    const proposal = memoryService.propose(
+      candidate(),
+      policy({ retention: { ttlSeconds: null } }),
+      { now },
+    );
 
     expect(proposal.expiresAt).toBeNull();
   });
 
   it("TTL da policy determina expiresAt a partir do relógio injetado", () => {
-    const proposal = memoryService.propose(candidate(), policy({ retention: { ttlSeconds: 3600 } }), { now });
+    const proposal = memoryService.propose(
+      candidate(),
+      policy({ retention: { ttlSeconds: 3600 } }),
+      { now },
+    );
 
     expect(proposal.expiresAt?.toISOString()).toBe("2026-09-16T13:00:00.000Z");
   });
 
   it("mesma política e mesmo relógio ⇒ mesmo expiresAt (determinístico)", () => {
-    const first = memoryService.propose(candidate(), policy({ retention: { ttlSeconds: 60 } }), { now });
-    const second = memoryService.propose(candidate(), policy({ retention: { ttlSeconds: 60 } }), { now });
+    const first = memoryService.propose(candidate(), policy({ retention: { ttlSeconds: 60 } }), {
+      now,
+    });
+    const second = memoryService.propose(candidate(), policy({ retention: { ttlSeconds: 60 } }), {
+      now,
+    });
 
     expect(first.expiresAt?.toISOString()).toBe(second.expiresAt?.toISOString());
   });
 
   it("TTL inválido na policy falha fechado", () => {
     const error = memoryRejection(() =>
-      memoryService.propose(candidate(), policy({ retention: { ttlSeconds: Number.NaN } }), { now }),
+      memoryService.propose(candidate(), policy({ retention: { ttlSeconds: Number.NaN } }), {
+        now,
+      }),
     );
 
     expect(error.code).toBe("INTERNAL_ERROR");

@@ -203,7 +203,8 @@ describe("INV-005 — grafo de import da memória", () => {
       for (const edge of edgesOf(module)) {
         expect(edge.specifier, `${module} → ${edge.specifier}`).not.toMatch(/financ/i);
         const target = resolveSpecifier(module, edge.specifier);
-        if (target) expect(FINANCE_ENGINE_PATTERN.test(target), `${module} → ${target}`).toBe(false);
+        if (target)
+          expect(FINANCE_ENGINE_PATTERN.test(target), `${module} → ${target}`).toBe(false);
       }
     }
   });
@@ -214,10 +215,7 @@ describe("INV-005 — grafo de import da memória", () => {
     // Poder discriminante: o percurso realmente andou — do serviço até a policy e
     // da policy até a fronteira de erro.
     expect(closure).toEqual(
-      expect.arrayContaining([
-        "src/server/services/memory.policy.ts",
-        "src/lib/api-error.ts",
-      ]),
+      expect.arrayContaining(["src/server/services/memory.policy.ts", "src/lib/api-error.ts"]),
     );
     expect(closure.filter((path) => FINANCE_ENGINE_PATTERN.test(path))).toEqual([]);
   });
@@ -226,7 +224,9 @@ describe("INV-005 — grafo de import da memória", () => {
     for (const module of MEMORY_MODULES) {
       for (const edge of edgesOf(module)) {
         expect(edge.specifier.startsWith("@/db"), `${module} → ${edge.specifier}`).toBe(false);
-        expect(edge.specifier.startsWith("drizzle-orm"), `${module} → ${edge.specifier}`).toBe(false);
+        expect(edge.specifier.startsWith("drizzle-orm"), `${module} → ${edge.specifier}`).toBe(
+          false,
+        );
       }
     }
 
@@ -262,7 +262,11 @@ describe("INV-005 — grafo de import da memória", () => {
     for (const module of canonicalCalculators()) {
       for (const edge of edgesOf(module)) {
         const target = resolveSpecifier(module, edge.specifier);
-        if (target) expect((MEMORY_MODULES as readonly string[]).includes(target), `${module} → ${target}`).toBe(false);
+        if (target)
+          expect(
+            (MEMORY_MODULES as readonly string[]).includes(target),
+            `${module} → ${target}`,
+          ).toBe(false);
       }
     }
   });

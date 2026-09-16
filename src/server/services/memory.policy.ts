@@ -128,7 +128,10 @@ export function evaluateMemoryPolicy(
   const content = candidate.content.normalize("NFC").trim();
   if (content === "") return reject("CONTENT_EMPTY", "conteúdo vazio após normalização");
   if (content.length > policy.maxContentLength) {
-    return reject("CONTENT_TOO_LONG", `${content.length} > maxContentLength ${policy.maxContentLength}`);
+    return reject(
+      "CONTENT_TOO_LONG",
+      `${content.length} > maxContentLength ${policy.maxContentLength}`,
+    );
   }
 
   const provenance = candidate.provenance;
@@ -167,7 +170,9 @@ export function resolveMemoryResultLimit(policy: MemoryPolicy, requested?: numbe
 
   if (requested === undefined) return policy.maxResults;
   if (!Number.isInteger(requested) || requested < 1) {
-    throw memoryPolicyError(reject("INVALID_REQUESTED_LIMIT", `limite pedido inválido: ${requested}`));
+    throw memoryPolicyError(
+      reject("INVALID_REQUESTED_LIMIT", `limite pedido inválido: ${requested}`),
+    );
   }
   return Math.min(requested, policy.maxResults);
 }

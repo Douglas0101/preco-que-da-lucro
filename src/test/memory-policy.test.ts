@@ -74,7 +74,11 @@ describe("evaluateMemoryPolicy — (a) confiança mínima", () => {
       candidate({ provenance: provenance({ confidence: 0.79 }) }),
     );
 
-    expect(decision).toEqual({ accepted: false, reason: "CONFIDENCE_BELOW_MINIMUM", detail: expect.any(String) });
+    expect(decision).toEqual({
+      accepted: false,
+      reason: "CONFIDENCE_BELOW_MINIMUM",
+      detail: expect.any(String),
+    });
   });
 
   it("aceita exatamente no limite (minConfidence é inclusivo)", () => {
@@ -88,7 +92,10 @@ describe("evaluateMemoryPolicy — (a) confiança mínima", () => {
 
   it("trata confiança fora de [0,1] ou não finita como rejeição, não como compare silencioso", () => {
     for (const confidence of [Number.NaN, 1.01, -0.01, Number.POSITIVE_INFINITY]) {
-      const decision = rejectionReasons(policy(), candidate({ provenance: provenance({ confidence }) }));
+      const decision = rejectionReasons(
+        policy(),
+        candidate({ provenance: provenance({ confidence }) }),
+      );
       expect(decision.reason).toBe("CONFIDENCE_OUT_OF_RANGE");
     }
   });
@@ -96,9 +103,16 @@ describe("evaluateMemoryPolicy — (a) confiança mínima", () => {
 
 describe("evaluateMemoryPolicy — (b) escopo permitido", () => {
   it("rejeita scope fora de allowedScopes", () => {
-    const decision = rejectionReasons(policy({ allowedScopes: ["user"] }), candidate({ scope: "tenant" }));
+    const decision = rejectionReasons(
+      policy({ allowedScopes: ["user"] }),
+      candidate({ scope: "tenant" }),
+    );
 
-    expect(decision).toEqual({ accepted: false, reason: "SCOPE_NOT_ALLOWED", detail: expect.any(String) });
+    expect(decision).toEqual({
+      accepted: false,
+      reason: "SCOPE_NOT_ALLOWED",
+      detail: expect.any(String),
+    });
   });
 
   it("aceita todo scope presente em allowedScopes", () => {
@@ -110,9 +124,16 @@ describe("evaluateMemoryPolicy — (b) escopo permitido", () => {
 
 describe("evaluateMemoryPolicy — (c) proveniência obrigatória", () => {
   it("rejeita ausência de proveniência quando requireProvenance = true", () => {
-    const decision = rejectionReasons(policy({ requireProvenance: true }), candidate({ provenance: undefined }));
+    const decision = rejectionReasons(
+      policy({ requireProvenance: true }),
+      candidate({ provenance: undefined }),
+    );
 
-    expect(decision).toEqual({ accepted: false, reason: "PROVENANCE_REQUIRED", detail: expect.any(String) });
+    expect(decision).toEqual({
+      accepted: false,
+      reason: "PROVENANCE_REQUIRED",
+      detail: expect.any(String),
+    });
   });
 
   it("rejeita proveniência que não identifica origem (sourceId em branco)", () => {
@@ -150,17 +171,27 @@ describe("evaluateMemoryPolicy — (d) tamanho máximo de conteúdo", () => {
       candidate({ content: "a".repeat(41) }),
     );
 
-    expect(decision).toEqual({ accepted: false, reason: "CONTENT_TOO_LONG", detail: expect.any(String) });
+    expect(decision).toEqual({
+      accepted: false,
+      reason: "CONTENT_TOO_LONG",
+      detail: expect.any(String),
+    });
   });
 
   it("aceita exatamente no limite", () => {
-    expect(evaluateMemoryPolicy(policy({ maxContentLength: 40 }), candidate({ content: "a".repeat(40) })).accepted).toBe(true);
+    expect(
+      evaluateMemoryPolicy(policy({ maxContentLength: 40 }), candidate({ content: "a".repeat(40) }))
+        .accepted,
+    ).toBe(true);
   });
 
   it("mede o limite sobre o conteúdo normalizado, não sobre o texto cru", () => {
     const padded = `${" ".repeat(200)}ok${" ".repeat(200)}`;
 
-    expect(evaluateMemoryPolicy(policy({ maxContentLength: 40 }), candidate({ content: padded })).accepted).toBe(true);
+    expect(
+      evaluateMemoryPolicy(policy({ maxContentLength: 40 }), candidate({ content: padded }))
+        .accepted,
+    ).toBe(true);
   });
 
   it("rejeita conteúdo vazio (inclusive só espaços) como vazio, não como longo", () => {
@@ -177,7 +208,10 @@ describe("evaluateMemoryPolicy — (e) normalização preservando proveniência"
     expect(raw.normalize("NFC")).not.toBe(raw);
 
     const inputProvenance = provenance({ inferred: true, confidence: 0.73, sourceKind: "model" });
-    const decision = evaluateMemoryPolicy(policy(), candidate({ content: raw, provenance: inputProvenance }));
+    const decision = evaluateMemoryPolicy(
+      policy(),
+      candidate({ content: raw, provenance: inputProvenance }),
+    );
 
     expect(decision.accepted).toBe(true);
     if (!decision.accepted) return;
@@ -212,21 +246,32 @@ describe("evaluateMemoryPolicy — limites vêm da policy (dados), não de const
   it("mesmo candidato: rejeitado sob policy estrita, aceito sob policy permissiva", () => {
     const content = "a".repeat(60);
 
-    expect(evaluateMemoryPolicy(policy({ maxContentLength: 20 }), candidate({ content })).accepted).toBe(false);
-    expect(evaluateMemoryPolicy(policy({ maxContentLength: 100 }), candidate({ content })).accepted).toBe(true);
+    expect(
+      evaluateMemoryPolicy(policy({ maxContentLength: 20 }), candidate({ content })).accepted,
+    ).toBe(false);
+    expect(
+      evaluateMemoryPolicy(policy({ maxContentLength: 100 }), candidate({ content })).accepted,
+    ).toBe(true);
   });
 
   it("precedência determinística: escopo antes de conteúdo e de confiança", () => {
     const decision = rejectionReasons(
       policy({ allowedScopes: ["user"], maxContentLength: 5, minConfidence: 0.9 }),
-      candidate({ scope: "tenant", content: "muito maior que o limite", provenance: provenance({ confidence: 0.1 }) }),
+      candidate({
+        scope: "tenant",
+        content: "muito maior que o limite",
+        provenance: provenance({ confidence: 0.1 }),
+      }),
     );
 
     expect(decision.reason).toBe("SCOPE_NOT_ALLOWED");
 
     const contentFirst = rejectionReasons(
       policy({ maxContentLength: 5, minConfidence: 0.9 }),
-      candidate({ content: "muito maior que o limite", provenance: provenance({ confidence: 0.1 }) }),
+      candidate({
+        content: "muito maior que o limite",
+        provenance: provenance({ confidence: 0.1 }),
+      }),
     );
 
     expect(contentFirst.reason).toBe("CONTENT_TOO_LONG");
@@ -248,7 +293,10 @@ const INVALID_POLICIES: Array<[string, Partial<MemoryPolicy>]> = [
   ["maxContentLength zero", { maxContentLength: 0 }],
   ["maxResults fracionário", { maxResults: 2.5 }],
   ["ttl negativo", { retention: { ttlSeconds: -1 } }],
-  ["peso de ranking não finito", { ranking: { recency: Number.NaN, importance: 0.3, confidence: 0.3 } }],
+  [
+    "peso de ranking não finito",
+    { ranking: { recency: Number.NaN, importance: 0.3, confidence: 0.3 } },
+  ],
 ];
 
 describe("evaluateMemoryPolicy — policy inválida falha fechado", () => {

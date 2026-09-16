@@ -20,6 +20,7 @@
   7. LEDGER: (preenchido pelo MAESTRO — deixar vazio)
 
 - **EVIDENCE-A — RED (falha por ausência, antes de existir qualquer runtime de memória):**
+
   ```text
   $ npx vitest run src/test/memory-policy.test.ts src/test/memory-service.test.ts
    RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-n1c
@@ -33,6 +34,7 @@
   Error: Failed to resolve import "@/server/services/memory.policy" from "src/test/memory-policy.test.ts". Does the file exist?
     Plugin: vite:import-analysis
   ```
+
   ```text
   $ npx vitest run src/test/memory-policy.test.ts src/test/memory-service.test.ts src/test/memory-import-graph.test.ts
    FAIL  src/test/memory-import-graph.test.ts > INV-005 — grafo de import da memória > o fecho de runtime da memória não alcança o Financial Engine
@@ -42,9 +44,11 @@
         Tests  4 failed | 1 passed (5)
      Start at  00:12:28
   ```
+
   (o único teste que passava era `nenhuma saída de memória é consumida pelo cálculo canônico`, que percorre apenas o motor financeiro — os módulos de memória ainda não existiam, logo nada a apontar.)
 
 - **EVIDENCE-B — GREEN (comando do aceite, após a correção adversarial V-MEM-D1):**
+
   ```text
   $ npx vitest run src/test/memory-*.test.ts
    RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-n1c
@@ -54,12 +58,15 @@
      Start at  00:27:23
      Duration  1.77s
   ```
+
   ```text
   $ npx tsc -p tsconfig.json --noEmit
   TSC_EXIT=0
   ```
+
   (o mesmo comando antes da correção: `3 passed / 55 tests` + `tsc EXIT=0` — a correção acrescenta 1 teste de derivação das raízes canônicas)
   Cobertura nominal do aceite (rodado com `--reporter=verbose`, `4 passed / 64 tests` incluindo `src/test/contracts.test.ts`):
+
   ```text
    ✓ memory-policy.test.ts > (a) confiança mínima > rejeita candidato com confidence abaixo de minConfidence
    ✓ memory-policy.test.ts > (b) escopo permitido > rejeita scope fora de allowedScopes
@@ -83,6 +90,7 @@
    Test Files  4 passed (4)
         Tests  64 passed (64)
   ```
+
   Notas de método (fronteiras e determinismo, não só “caminho feliz”):
   - **Erro tipado**: as rejeições do serviço são `ApplicationError` da taxonomia (`VALIDATION_ERROR`, `status 400`, `retryable false`); política inválida é `INTERNAL_ERROR`/500 (falha de servidor, não de candidato).
   - **Normalização com poder discriminante**: o fixture do conteúdo NFD é verificado (`raw.normalize("NFC") !== raw`) antes de exigir a forma NFC; espaço interno é **preservado** (não colapsado); conteúdo só com espaços é `CONTENT_EMPTY`, não `CONTENT_TOO_LONG`.
@@ -91,13 +99,16 @@
   - **`maxResults` é teto**: pedir 100 com `maxResults = 5` devolve 5; pedido inválido (0, -1, 1.5, NaN, 0.5) lança `VALIDATION_ERROR`.
 
 - **EVIDENCE-C — typecheck (S4):**
+
   ```text
   $ npx tsc -p tsconfig.json --noEmit
   EXIT=0
   ```
+
   (sem saída; nenhum erro de tipo introduzido no projeto)
 
 - **EVIDENCE-D — as asserções de grafo do INV-005 são capazes de falhar (sondas descartáveis, revertidas):**
+
   ```text
   $ # sonda 1: import de valor do motor financeiro injetado em memory.service.ts
   $ npx vitest run src/test/memory-import-graph.test.ts
@@ -132,9 +143,11 @@
   + ]
        Tests  1 failed | 5 passed (6)
   ```
+
   Todas as sondas foram revertidas; o estado final é o do commit (`git status --short` limpo; a cópia em `/tmp` foi removida). A cláusula de aresta direta é a que pega acoplamento **de tipo**; o fecho de runtime é o que pega dependência executável — e o fecho é não-vacuoso por asserção explícita (`memory.service → memory.policy → @/lib/api-error`). A sonda 3 é a que prova que o invariante reverso **morde**: `pricing.service.ts` (calculador canônico que chama `calculatePriceFormation` de `@/lib/finance`) foi apontado junto com os 5 módulos que o alcançam.
 
 - **EVIDENCE-E — escopo (S5):**
+
   ```text
   $ git show --stat 9e910cc            # commit do deliverable
    src/server/contracts/memory.contracts.ts |  36 +++-
@@ -152,6 +165,7 @@
   $ git status --short                 # antes de 9e910cc
   (vazio)
   ```
+
   Nenhum arquivo fora do escopo exclusivo do item (a correção V-MEM-D1 mexe apenas no teste de grafo + este claim). `docs/specs/M-02/matrix.yaml` **não** foi tocado (regeração é do MAESTRO).
 
 - **correção adversarial (V-MEM-D1):** veredicto = **INCORRECT** (1 defeito bloqueante), corrigido neste mesmo commit.
@@ -161,7 +175,7 @@
   - **Saída após a correção:** `npx vitest run src/test/memory-*.test.ts` → `3 passed / 56 tests`; `npx tsc -p tsconfig.json --noEmit` → `EXIT=0` (EVIDENCE-B/C).
 
 - **riscos / limites conhecidos:**
-  1. **`MemoryRecordInput` passou a ter `provenance` opcional** (era obrigatório). É o port de persistência de um contrato *type-only* sem nenhum consumidor no repositório (verificado: só `src/test/contracts.test.ts` referencia o arquivo). A coerção fica na persistência (D2), conforme a decisão **C** do STEWARD (proveniência 1:N com FKs; `sourceId` derivado/opcional). Se o MAESTRO preferir o `NOT NULL` no port, o ajuste é de uma linha — mas contradiria `requireProvenance = false`.
+  1. **`MemoryRecordInput` passou a ter `provenance` opcional** (era obrigatório). É o port de persistência de um contrato _type-only_ sem nenhum consumidor no repositório (verificado: só `src/test/contracts.test.ts` referencia o arquivo). A coerção fica na persistência (D2), conforme a decisão **C** do STEWARD (proveniência 1:N com FKs; `sourceId` derivado/opcional). Se o MAESTRO preferir o `NOT NULL` no port, o ajuste é de uma linha — mas contradiria `requireProvenance = false`.
   2. **`MemoryRecord`/`MemoryPolicy` ganharam campos obrigatórios** (`status`, `expiresAt?`; `retention`, `ranking`). Aditivo para quem **consome** (nenhum consumidor hoje), mas qualquer policy literal futura precisa preencher os dois blocos novos. Justificado pelo próprio gap report (“Ampliar o contrato é parte de D1 … sem congelamento”).
   3. **Definição de “proveniência presente” é um pouco mais estrita que o tipo**: `sourceId` em branco ou `capturedAt` inválido rejeitam como `PROVENANCE_REQUIRED`. É a leitura substantiva de “ausência de proveniência” no aceite (c); D2 deve materializar isso como FK/CHECK.
   4. **`MemoryStatus` tem apenas `active|superseded`** — deliberadamente mínimo (é o que D3 §15.6 e o retrieval `status='active'` exigem). Estados extras (ex.: “em conflito”) só entram se D3 os pedir; `ai_memory_conflicts` é tabela própria.
