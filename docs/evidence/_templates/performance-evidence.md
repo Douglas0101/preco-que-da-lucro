@@ -9,6 +9,26 @@
 > descoberta vazia reprovando (fail-closed) e allowlist de legado de 2 artefatos
 > `dev-evidence` pré-gate, justificada no próprio gate.
 
+## `report.md` de captura: bloco §35 gerado (não manter à mão)
+
+`scripts/perf/summarize.mjs` **emite o bloco §35** no `report.md` que gera, a
+partir do raw do próprio diretório (`meta.json`, `route-samples.jsonl`,
+`chat-samples.jsonl`, `context-tx.jsonl`, `ai-model-attempts.jsonl`,
+`bundle-report.json`): regime (`label`), `n`/warmup, ambiente (base URL, banco,
+mock de IA, runtime, browser), janela, commit de origem e as métricas medidas
+entram derivados; o que o raw não tem sai como `N/A`/lacuna declarada — o
+gerador **nunca** inventa número. Regenerar (`node scripts/perf/summarize.mjs
+--dir <dir>`) reproduz o bloco e mantém o gate verde; não recoloque o bloco à mão.
+
+Rótulos de **julgamento** podem (e devem) ser declarados verbatim no raw, em
+`meta.section35.<rótulo>` (`hypothesis`, `before`, `change`, `decision`): o texto
+declarado tem precedência sobre o padrão derivado. Sem declaração, o `before` e o
+`change` saem `N/A` (nada é presumido) e a `decision` derivada é conservadora —
+`keep` quando a métrica primária (prontidão de rota) foi medida, `follow-up`
+quando não há amostra de rota; `revert` nunca é derivado, só declarado. O
+artefato §35 revisável (método, n, janela, limites e follow-ups) continua sendo o
+`perf-evidence.md` ao lado do sumário.
+
 ## Cabeçalho obrigatório
 
 - **ambiente:** `dev-evidence` | `CONTROLLED` (nunca misturar; `dev-evidence` não

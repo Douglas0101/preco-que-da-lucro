@@ -345,3 +345,115 @@ describe("summarize com fixture sintético", () => {
     expect(report.gaps.length).toBeGreaterThan(0);
   });
 });
+
+/**
+ * §35 — o gerador de evidência de performance NÃO pode apagar o contrato.
+ *
+ * O gate (`src/test/perf-evidence.test.ts`) descobre por CAMINHO todo `.md` de
+ * `docs/evidence/perf-<tema>-<data>/` — o `report.md` gerado por
+ * `scripts/perf/summarize.mjs` inclusive — e exige os 7 rótulos, com descoberta
+ * vazia reprovando. Aqui o predicado do gate é replicado: rótulo presente e com
+ * valor não vazio.
+ */
+const SECTION35_LABELS = [
+  "hypothesis",
+  "metric",
+  "before",
+  "change",
+  "after",
+  "result",
+  "decision",
+] as const;
+
+const SECTION35_PATTERNS = SECTION35_LABELS.map((label) => ({
+  label,
+  // mesma forma do gate: `**rótulo:**` no início de uma linha, com valor não vazio
+  pattern: new RegExp(`^\\s*(?:[-*]\\s*)?\\*\\*${label}\\s*:\\*\\*\\s*(\\S.*)$`, "im"),
+}));
+
+/** Recorta a seção `## §35` do markdown gerado (até o próximo título `## `). */
+function section35Block(markdown: string): string {
+  const start = markdown.indexOf("## §35");
+  expect(start, "o report gerado não tem a seção `## §35`").toBeGreaterThanOrEqual(0);
+  const rest = markdown.slice(start);
+  const next = rest.indexOf("\n## ", 1);
+  return next === -1 ? rest : rest.slice(0, next);
+}
+
+function missingSection35Labels(block: string): string[] {
+  return SECTION35_PATTERNS.filter(({ pattern }) => !pattern.test(block)).map(({ label }) => label);
+}
+
+function section35Line(block: string, label: (typeof SECTION35_LABELS)[number]): string {
+  const pattern = new RegExp(`\\*\\*${label}\\s*:\\*\\*`);
+  const line = block.split("\n").find((candidate) => pattern.test(candidate));
+  expect(line, `rótulo \`${label}\` ausente no bloco §35`).toBeDefined();
+  return line ?? "";
+}
+
+describe("§35 — o report gerado carrega os rótulos do contrato", () => {
+  it("T1: o bloco §35 traz os 7 rótulos, todos com valor", () => {
+    const block = section35Block(renderReport(summarize(fixtureRaw())));
+    expect(missingSection35Labels(block)).toEqual([]);
+  });
+
+  it("T1b: nada é inventado — os valores do bloco seguem o raw", () => {
+    const original = section35Block(renderReport(summarize(fixtureRaw())));
+    expect(original).toContain("CONTROLADO"); // regime
+    expect(original).toContain("abc1234"); // commit de origem
+    expect(original).toContain("2026-09-13T10:00:00.000Z"); // janela
+    expect(original).toContain("n=3"); // amostras medidas por rota
+    expect(original).toContain("`/inicio`");
+    expect(original).toContain("120.0"); // prontidão p50 derivada do raw
+
+    // dobra a prontidão medida no raw: o bloco tem de acompanhar
+    const scaled = fixtureRaw();
+    for (const sample of scaled.routeSamples ?? []) {
+      if (sample.route === "/inicio" && sample.warmup === false) {
+        sample.readyMs = Number(sample.readyMs) * 2;
+      }
+    }
+    const after = section35Block(renderReport(summarize(scaled)));
+    expect(original).not.toContain("240.0");
+    expect(after).toContain("240.0");
+    expect(after).toContain("276.0"); // p95 também derivado
+  });
+
+  it("T1c: rótulos de julgamento podem vir declarados no raw (`meta.section35`)", () => {
+    const raw = fixtureRaw();
+    raw.meta = {
+      ...raw.meta,
+      section35: {
+        decision: "keep — decisão declarada pelo operador no raw",
+        before: "p50 100 ms (n=5, captura anterior declarada no raw)",
+      },
+    };
+    const block = section35Block(renderReport(summarize(raw)));
+    expect(missingSection35Labels(block)).toEqual([]);
+    expect(block).toContain("keep — decisão declarada pelo operador no raw");
+    expect(block).toContain("p50 100 ms (n=5, captura anterior declarada no raw)");
+    expect(block).toContain("abc1234"); // os derivados seguem derivados
+  });
+
+  it("T1d: a decisão derivada é conservadora — métrica primária ausente ⇒ `follow-up`, captura medida ⇒ `keep`", () => {
+    const measured = section35Block(renderReport(summarize(fixtureRaw())));
+    expect(section35Line(measured, "decision")).toContain("`keep`");
+    expect(section35Line(measured, "decision")).not.toContain("follow-up");
+
+    // sem amostra de rota não há métrica primária: não há referência a adotar
+    const empty = fixtureRaw();
+    empty.routeSamples = [];
+    const emptyBlock = section35Block(renderReport(summarize(empty)));
+    expect(section35Line(emptyBlock, "decision")).toContain("`follow-up`");
+    expect(section35Line(emptyBlock, "decision")).not.toContain("`keep`");
+  });
+
+  it("T1e: o `report.md` gravado por summarizeDir carrega o bloco (é o arquivo que o gate varre)", async () => {
+    const dir = await makeTempDir();
+    await writeFixture(dir, fixtureRaw());
+    const { reportPath } = await summarizeDir(dir);
+    const markdown = await readFile(reportPath, "utf8");
+    expect(section35Block(markdown)).toContain("- **hypothesis:**");
+    expect(missingSection35Labels(section35Block(markdown))).toEqual([]);
+  });
+});
