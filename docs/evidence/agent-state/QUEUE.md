@@ -1,61 +1,51 @@
-# QUEUE — MISSÃO SDD (fechamento verificado repo-local) · 2026-09-15
+# QUEUE — NAS-2 (navegação supervisionada por enxame SDD) · ciclo 1 · 2026-09-16
 
-> **Escritor único deste arquivo: MAESTRO.** Squads não editam esta fila; entregam `CLAIMS-INBOX/<id>.md` no seu worktree e o MAESTRO integra.
-> **Objetivo unilateral:** maximizar o crédito verificado sob a régua oficial (DONE + ½·PARTIAL, denom. 187) executando o Plano Mestre na ordem §1, sob disciplina SDD de 7 passos (spec-card → teste → código → evidência → claim → adversarial → ledger).
+> **Escritor único: MAESTRO.** Este arquivo é o snapshot humano-legível do pipeline (O(1): em que estado está cada item, com quem está a bola, qual a próxima transição).
+> **Objetivo unilateral:** completar as tarefas pendentes do Plano Mestre V2.0 sob SDD integral, maximizando **crédito verificado** (DONE + ½·PARTIAL, denom. 187), na ordem canônica §1, com os gates §41–§44 como critério de parada. O placar é consequência, não o trabalho.
 
 ## Base
 
-- HEAD de partida: `1f94b56` (medição vigente). Placar: **139 D / 25 P / 21 NS / 2 UNV = 81,0% parcial · 74,3% cru**.
-- FASE 0 (reconciliação do «antes») é **bloqueante**: veredicto de `V0-Reconciliador` em `RECONCILIACAO-BASE-2026-09-15.md` antes de qualquer promoção de claim.
-- Restrições absolutas: nada pushado · container `:5432` **intocado** (dado não-fixture aguarda decisão humana) · nenhum guard fail-closed enfraquecido · Neon live / GitHub settings / OAuth = fila humana · segredos nunca logados ou commitados · métrica OBSERVED só em ambiente real (H-6 aberto ⇒ no máximo CONTROLLED local, etiquetado).
+- HEAD local `4d500fc` · árvore limpa · marcador parent-pinned válido · **153 commits à frente** de `origin/develop` (`8df3fe3`) · `origin/main` = `9724d2c` · 7 branches `mission/*` preservadas · worktrees podados.
+- Placar vigente: **147 D · 26 P · 12 NS · 2 UNV** = **85,6% parcial / 78,6% crua** (A 85,5 · B 85,3 · C 88,7 · D 50,0).
+- **Lacuna contábil em verificação (WP-0, bloqueante para claims novas):** a diretiva NAS-2 aponta 2 saídas de DONE do bloco C não nomeadas + 1 NS→P residual "forçados pela aritmética". O MAESTRO mediu o fechamento 71 = 60/6/3/2 e as entradas/saídas nomeadas (6 P→D, 3 NS→P, 4 NS→D, 0 D→saída líquida) — **fecham exatamente**; o WP-0 decide com matriz 187×2 sentidos.
+- Ambiente: MCPs Linear/Neon descosados (H-11) · CI nunca viu este HEAD (H-10) · alvo em placeholder PHP (H-6) · `:5432` com dado não-fixture (H-9).
 
-## Work packages
+## Máquina de estados (S0–S9)
 
-**Ordem canônica §1 respeitada (validação do SPEC-STEWARD, 2026-09-15):** correção matemática → segurança → integridade → fronteiras → estabilidade → observabilidade → performance. O despacho é **por onda ordenada**, e a onda N+1 só abre quando a onda N estiver integrada e verificada — performance (WP-A3) **não** pode ser despachada com item crítico de fase anterior aberto.
+```text
+S0 BACKLOG(M) → S1 SPEC'D(STEWARD) → S2 RED(SQUAD) → S3 GREEN(SQUAD) → S4 E1(SQUAD)
+→ S5 CLAIMED(SQUAD) → S6 VERDICT(ADVERSARIAL) → S7 MERGED(M) → S8 E2(M/VERIFICADOR) → S9 LEDGERED(M)
+```
 
-| onda                         | wp    | itens                                                                                | squad      | worktree/branch                          | spec-card                                  | estado                                        |
-| ---------------------------- | ----- | ------------------------------------------------------------------------------------ | ---------- | ---------------------------------------- | ------------------------------------------ | --------------------------------------------- |
-| 1 (correção matemática)      | WP-A2 | `10.7` (2 propriedades PBT restantes)                                                | SQUAD-FIN  | `.worktree-mA2` · `mission/a2-pbt`       | `SPEC-CARDS/10.7-pbt.md`                   | **despachado**                                |
-| 2 (segurança)                | WP-B3 | `20.1` (CSP: procedimento + bloqueio explícito; sem enforcement sem relatório limpo) | SQUAD-SEC  | `.worktree-mB3` · `mission/b3-csp`       | `SPEC-CARDS/20.1-csp.md`                   | aguarda onda 1                                |
-| 2 (integridade)              | WP-B1 | `23.1`/`23.2` (outbox na mesma tx + worker idempotente)                              | SQUAD-DB   | `.worktree-mB1` · `mission/b1-outbox`    | `SPEC-CARDS/23-outbox.md`                  | aguarda onda 1                                |
-| 2 (integridade/estabilidade) | WP-B2 | `28.1`–`28.5` (batch/checkpoint/rate-limit/idempotência/observabilidade)             | SQUAD-DB2  | `.worktree-mB2` · `mission/b2-backfill`  | `SPEC-CARDS/28-backfill.md`                | aguarda onda 1 (e WP-B1 para `scripts/db/**`) |
-| 2 (estabilidade/CI)          | WP-A4 | `12.5`/`26.7` (E2E na branch efêmera) · `25.4` (Dependabot) · `25.5` (classificação) | SQUAD-APP  | `.worktree-mA4` · `mission/a4-supply`    | `SPEC-CARDS/12.5-25.4-supply-lifecycle.md` | aguarda onda 1                                |
-| 3 (observabilidade)          | WP-A1 | `35` (gate perf-evidence, CLASSE A)                                                  | SQUAD-PERF | `.worktree-mA1` · `mission/a1-perf-gate` | `SPEC-CARDS/35-perf-gate.md`               | aguarda onda 2                                |
-| 3 (performance)              | WP-A3 | `16.3` (pg_stat_statements local)                                                    | SQUAD-OBS  | `.worktree-mA3` · `mission/a3-pgstat`    | `SPEC-CARDS/16.3-pgstat.md`                | aguarda onda 2                                |
+- Transições: `S6→S7` só com **CONFIRMED**; `S6→S5` se CORRECTED (o squad aplica o diff; bound 2); `S6→S3` se REJECTED (bound 2); bounds esgotados ⇒ **escalonamento ao STEWARD** (SPEC-DELTA · downgrade honesto · re-planejamento) — nunca aprovação por exaustão.
+- **E1** (S4) = evidência no worktree, **provisória**; **E2** (S8) = re-executada no **HEAD integrado**, com os gates do subconjunto tocado. **Ledger só grava com E2.**
+- Serialidade **dentro** do item (S2→S3→S5→S6→S7→S8→S9, sem exceção); paralelismo **entre** itens (escopos de arquivo disjuntos, WIP limit 1 por squad).
 
-> **Correção de infra (declarada):** a primeira versão desta fila presumia que os worktrees das ondas 2–3 já existiam — existiam apenas `mA1`–`mA4`. `SQUAD-SEC` criou o seu `.worktree-mB3`; o MAESTRO criou `.worktree-mB1` e `.worktree-mB2`. Nenhum squad deve presumir infra: verifique antes de começar.
+## Ciclo 1 — despacho
 
-| artefato entregue (aguardando adversarial) | commit(s)                   | branch           | status pleiteado                                                                                      |
-| ------------------------------------------ | --------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
-| `10.7` PBT (WP-A2)                         | `2f42bf2` + claim `8e0164f` | `mission/a2-pbt` | DONE                                                                                                  |
-| `20.1` CSP (WP-B3)                         | `304c4f1` + claim `35e76a7` | `mission/b3-csp` | PARTIAL (bloqueio H-6; **defeito real corrigido**: modo enforçado republicava as diretivas de report) |
+| wp                   | itens                                                    | dono                                           | estado                   | branch/worktree                                 | escopo de arquivos (exclusivo)                                                                                                                                      | dep    | spec-card                      |
+| -------------------- | -------------------------------------------------------- | ---------------------------------------------- | ------------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------------------------ |
+| **WP-0**             | matriz de transições 187×2                               | VERIFICADOR-C (+ adversarial aritmético em S6) | **S2**                   | read-only                                       | `docs/evidence/agent-state/TRANSICOES-ROUND-2026-09-15.md` (novo)                                                                                                   | —      | NAS-2 §10                      |
+| **WP-1a**            | `28.2`/`28.4` → ledger persistente + CAS                 | SQUAD-DB                                       | **S2**                   | `.worktree-n1a` · `mission/n1a-backfill-ledger` | `drizzle/**` · `src/db/schema.ts` · `scripts/db/backfill-*.ts` · `scripts/db/test-backfill.ts` · `scripts/db/migration-classes.ts` · `scripts/db/purge-fixtures.ts` | —      | NAS-2 §10                      |
+| **WP-1b**            | `35` (regeneração do `report.md` sem perder o bloco §35) | SQUAD-APP                                      | **S2**                   | `.worktree-n1b` · `mission/n1b-summarize`       | `scripts/perf/summarize.mjs` · `src/test/perf-*.test.ts` · `docs/evidence/_templates/performance-evidence.md`                                                       | —      | NAS-2 §10 + F-§35 do relatório |
+| **MEM-D0**           | gap report §43 (o que falta para o gate da memória)      | SQUAD-MEM (read-only)                          | **S2**                   | read-only                                       | `docs/evidence/agent-state/MEM-D0-GAP-REPORT.md` (novo)                                                                                                             | —      | NAS-2 §8 trilha 4              |
+| WP-1c                | allowlist de legado do §35 → 0                           | SQUAD-SEC                                      | S0 (fila)                | —                                               | `src/test/perf-evidence.test.ts` · `docs/evidence/perf-*/**`                                                                                                        | WP-1b  | NAS-2 §7                       |
+| WP-1d                | flag de CSP + asserções e2e enforçado                    | SQUAD-SEC                                      | **bloqueado** (H-6)      | —                                               | `src/lib/security-headers.ts` · `e2e/ui-stack.spec.ts`                                                                                                              | H-6    | NAS-2 §7                       |
+| WP-1g                | EventService runtime (resto de `9.1-ME`)                 | SQUAD-APP                                      | S0 (fila)                | —                                               | `src/server/contracts/event.contracts.ts` · `src/server/services/**`                                                                                                | —      | NAS-2 §7                       |
+| MEM-D1..D7           | escada §43                                               | SQUAD-MEM                                      | S0                       | —                                               | schema/migrations + testes                                                                                                                                          | MEM-D0 | NAS-2 §8 trilha 4              |
+| BATERIA-CI           | CI verde no HEAD publicado                               | todos                                          | **bloqueado** (H-10)     | —                                               | —                                                                                                                                                                   | H-10   | NAS-2 §7                       |
+| BATERIA-NEON         | `12.5`/`13.7`/`ORD-28` + §42 em ambiente real            | SQUAD-DB+SEC                                   | **bloqueado** (H-2/H-11) | —                                               | —                                                                                                                                                                   | H-2    | NAS-2 §7                       |
+| BATERIA-5432         | verificação padrão pós-reset                             | SQUAD-DB                                       | **bloqueado** (H-9)      | —                                               | —                                                                                                                                                                   | H-9    | NAS-2 §7                       |
+| OBSERVED/RUM/CSP-e2e | séries reais                                             | —                                              | **bloqueado** (H-6)      | —                                               | —                                                                                                                                                                   | H-6    | NAS-2 §7                       |
 
-## Arbitragem de escopo de arquivos (decidida ANTES do despacho)
+## Fila humana (briefes emitidos no ciclo 1)
 
-| artefato                                                                         | dono único                                               | observação                                                |
-| -------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
-| `package.json`                                                                   | **MAESTRO** (integração)                                 | squads propõem a linha exata no claim; eu aplico no merge |
-| `EXECUTION-STATE-PROGRAM.md`, `PROGRESS.md`, `QUEUE.md`                          | **MAESTRO**                                              | ledger só é gravado na FASE 4                             |
-| `drizzle/**`, `scripts/db/migration-classes.ts`, `src/db/schema.ts`              | SQUAD-DB (WP-B1)                                         | `db:generate` + registry + `db:classify:check`            |
-| `docs/specs/M-02/matrix.yaml`                                                    | **MAESTRO** (regeneração `m02:matrix:generate` no merge) | gerado, não escrito à mão                                 |
-| `src/test/finance.properties.test.ts`                                            | SQUAD-FIN (WP-A2)                                        |                                                           |
-| `src/test/perf-evidence.test.ts` + `docs/evidence/perf-controlled-2026-09-13/**` | SQUAD-PERF (WP-A1)                                       |                                                           |
-| `scripts/obs/pg-stat-statements.ts` (+ teste)                                    | SQUAD-OBS (WP-A3)                                        | `docker-compose.yml` **não** é tocado                     |
-| `.github/workflows/neon-pr-branch.yml`, `.github/dependabot.yml`                 | SQUAD-APP (WP-A4)                                        | `.github/workflows/ui-stack.yml` intocado                 |
-| `docs/evidence/agent-state/CLAIMS-INBOX/<id>.md`                                 | squad do item (1 arquivo por claim)                      |                                                           |
-| `docs/evidence/agent-state/SPEC-DELTAS/<id>.md`                                  | squad propõe; **SPEC-STEWARD decide**                    |                                                           |
+`DECISIONS-PENDING/{H-10,H-11,H-9,H-6}.md` + `REGISTRO-H.md`. Prioridade recomendada: **H-10 → H-6 → H-9 → H-11**. Nenhum squad para por espera humana: as trilhas desbloqueadas seguem.
 
-## Protocolo de integração
+## Estado do placar (recompute — só MAESTRO)
 
-1. Squad commita **1 item = 1 commit atômico** no seu worktree/branch e escreve `CLAIMS-INBOX/<id>.md` (cadeia completa: spec_ref → SHA → evidência → comandos/execução).
-2. MAESTRO faz `merge --no-ff` na ordem A1→A2→A3→A4 (depois B1→B2), resolve `package.json`/matriz, roda `npm run check` + `db:test` (container efêmero PG17).
-3. Verificador adversarial _fresh-context_ por claim (V-A1..V-A4, V-B1, V-B2) ataca do zero; veredicto CONFIRMED/CORRECTED/REJECTED.
-4. Só após CONFIRMED o MAESTRO promove no ledger (`DONE`/`PARTIAL`) e recomputa o placar; discrepância item a item ⇒ a rodada não fecha.
-
-## Estado do placar (recompute oficial — só MAESTRO)
-
-| momento        | D   | P   | NS  | UNV | parcial | cru   |
-| -------------- | --- | --- | --- | --- | ------- | ----- |
-| base `1f94b56` | 139 | 25  | 21  | 2   | 81,0%   | 74,3% |
-| após WP-A*     | —   | —   | —   | —   | —       | —     |
-| após WP-B*     | —   | —   | —   | —   | —       | —     |
+| momento                | D   | P   | NS  | UNV | parcial | cru   |
+| ---------------------- | --- | --- | --- | --- | ------- | ----- |
+| base NAS-2 (`4d500fc`) | 147 | 26  | 12  | 2   | 85,6%   | 78,6% |
+| após WP-0              | —   | —   | —   | —   | —       | —     |
+| após ciclo 1           | —   | —   | —   | —   | —       | —     |
