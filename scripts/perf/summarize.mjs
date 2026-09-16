@@ -232,9 +232,10 @@ function routeTable(rows, rowFor) {
  * `change`, `decision`) podem ser declarados verbatim pelo operador em
  * `meta.section35.<rótulo>` do raw; sem declaração, saem os padrões derivados
  * abaixo (`decision` é conservadora: sem amostra de rota — métrica primária — ou
- * com par antes/depois declarado sem decisão, sai `follow-up`; `revert` nunca é
- * derivado, só declarado). Com par declarado o gerador não afirma ausência de
- * ganho nem conclui `keep`: a leitura do par é do autor.
+ * com rótulo(s) de comparação declarado(s) sem decisão, sai `follow-up`;
+ * `revert` nunca é derivado, só declarado). Com rótulo de comparação declarado o
+ * gerador não afirma ausência de ganho nem conclui `keep`: a leitura do ganho é
+ * do autor — e o texto cita apenas os rótulos realmente declarados.
  * -------------------------------------------------------------------------- */
 
 const SECTION_35_HEADING = "## §35 — rótulos de evidência de performance";
@@ -452,9 +453,10 @@ function section35Lines(data) {
 }
 
 function resultText(data) {
+  const comparison = declaredComparisonLabels(data.meta ?? {});
   const parts = [
-    hasDeclaredPair(data.meta ?? {})
-      ? "referência registrada: o par antes/depois é declarado em `meta.section35` — o ganho não é calculado pelo gerador (a leitura do par é do autor)"
+    comparison.length > 0
+      ? `referência registrada: o raw declara ${labelList(comparison)} em \`meta.section35\` — o ganho não é calculado pelo gerador (a leitura é do autor)`
       : "referência registrada, **sem alegação de ganho**: não há par antes/depois no mesmo regime",
   ];
   const smallest = rangeText(
@@ -474,16 +476,22 @@ function resultText(data) {
 }
 
 /**
- * O raw declara um par antes/depois (ou um `after`) em `meta.section35`? Então a
- * leitura do ganho é do AUTOR, não do gerador: o bloco não pode afirmar ausência
- * de par e a decisão derivada não pode concluir `keep`/`revert` sozinha.
+ * Rótulos de COMPARAÇÃO declarados verbatim no raw (`before`/`change`/`after`),
+ * na ordem canônica. Declarar qualquer um deles é uma alegação de comparação: a
+ * leitura do ganho passa a ser do AUTOR, então o bloco não pode afirmar ausência
+ * de par e a decisão derivada não pode concluir `keep`/`revert` sozinha — só o
+ * rótulo realmente declarado é citado (nada de afirmar "par" quando só há
+ * `change`).
  */
-function hasDeclaredPair(meta) {
-  return (
-    declaredLabel(meta, "before") !== null ||
-    declaredLabel(meta, "change") !== null ||
-    declaredLabel(meta, "after") !== null
-  );
+function declaredComparisonLabels(meta) {
+  return ["before", "change", "after"].filter((label) => declaredLabel(meta, label) !== null);
+}
+
+/** `["before"]` → `` `before` `` · `["before","change"]` → `` `before` e `change` ``. */
+function labelList(labels) {
+  const quoted = labels.map((label) => `\`${label}\``);
+  if (quoted.length <= 1) return quoted.join("");
+  return `${quoted.slice(0, -1).join(", ")} e ${quoted.at(-1)}`;
 }
 
 /**
@@ -492,11 +500,12 @@ function hasDeclaredPair(meta) {
  * quando a métrica primária (prontidão de rota) foi medida — as lacunas vão
  * declaradas em `result`/§Lacunas —, e `follow-up` quando não há amostra de rota
  * (sem métrica primária não existe referência a adotar) ou quando o raw declara
- * um par antes/depois sem decisão declarada (o ganho não é calculado aqui).
+ * rótulo(s) de comparação sem decisão declarada (o ganho não é calculado aqui).
  */
 function decisionText(data) {
-  if (hasDeclaredPair(data.meta ?? {})) {
-    return "`follow-up` — par antes/depois declarado em `meta.section35` sem decisão declarada: o gerador não calcula ganho nem perda; declare `meta.section35.decision` (`keep`/`revert`) com o julgamento (o artefato §35 revisável é `perf-evidence.md`).";
+  const comparison = declaredComparisonLabels(data.meta ?? {});
+  if (comparison.length > 0) {
+    return `\`follow-up\` — o raw declara ${labelList(comparison)} em \`meta.section35\` sem decisão declarada: o gerador não calcula ganho nem perda; declare \`meta.section35.decision\` (\`keep\`/\`revert\`) com o julgamento (o artefato §35 revisável é \`perf-evidence.md\`).`;
   }
   const closing =
     "Sem alegação de ganho: não há par antes/depois no mesmo regime (o artefato §35 revisável é `perf-evidence.md`).";

@@ -247,3 +247,57 @@ a37ae76 docs(runbook): descoberta e allowlist do gate §35 alinhadas ao gate vig
 a75eec8 fix(perf): bloco §35 não pode contradizer par antes/depois declarado (F1)
 9f6f158 perf(evidence): gerador do report passa a emitir o bloco §35 (WP-1b)
 ```
+
+### P2 (2ª verificação) — `a872f26` · mesma família do F1
+
+O verificador achou que a correção do F1 ainda afirmava demais: `hasDeclaredPair()` ligava “par antes/depois declarado” com **qualquer** um de `before`/`change`/`after` — e o próprio texto default do bloco convida a declarar `meta.section35.change`, então o caso isolado é alcançável. Reprodução (raw real + **só `change`** em `/tmp/n1b-p2/raw`), ANTES:
+
+```text
+- **before:** `N/A` — o raw deste diretório não embute uma captura anterior do mesmo regime (commit `42d4b76`): …
+- **result:** referência registrada: o par antes/depois é declarado em `meta.section35` — o ganho não é calculado pelo gerador (a leitura do par é do autor); …
+```
+
+Correção: `declaredComparisonLabels()` + `labelList()` — o texto cita **exatamente** os rótulos declarados. DEPOIS:
+
+```text
+$ node scripts/perf/summarize.mjs --dir /tmp/n1b-p2/raw        # só `change` declarado
+- **before:** `N/A` — … use `meta.section35.before` no raw.
+- **change:** src/lib/products.functions.ts (patch do read-model)
+- **result:** referência registrada: o raw declara `change` em `meta.section35` — o ganho não é calculado pelo gerador (a leitura é do autor); …
+- **decision:** `follow-up` — o raw declara `change` em `meta.section35` sem decisão declarada: … declare `meta.section35.decision` (`keep`/`revert`) …
+
+$ node scripts/perf/summarize.mjs --dir /tmp/n1b-f1/raw        # before + change
+- **result:** referência registrada: o raw declara `before` e `change` em `meta.section35` — …
+- **decision:** `follow-up` — o raw declara `before` e `change` em `meta.section35` sem decisão declarada: …
+```
+
+Regressão: `T1f` atualizado (par completo) + `T1g` novo (só `change`); contra o gerador do F1 (`a75eec8`) os dois falham — poder discriminante:
+
+```text
+$ cd /tmp/mut-p2 && vitest run src/test/perf-summarize.test.ts     # gerador do a75eec8 + teste novo
+ ❯ src/test/perf-summarize.test.ts (15 tests | 2 failed)
+     × T1f: par antes/depois declarado no raw não é contradito pelo `result`/`decision` derivados
+     × T1g: `change` declarado sozinho não vira «par declarado» — o texto cita só o rótulo que existe
+AssertionError: expected '- **result:** referência registrada: o par antes/depois é declarado em `meta.section35` — …' to contain 'o raw declara `change` em `meta.section35`'
+ Test Files  1 failed (1)
+      Tests  2 failed | 13 passed (15)
+```
+
+Verificação final no HEAD do item:
+
+```text
+$ npx vitest run src/test/perf-summarize.test.ts src/test/perf-evidence.test.ts
+ Test Files  2 passed (2)
+      Tests  23 passed (23)
+$ npx vitest run src/test/perf-evidence.test.ts                  # gate §35 pós-regeneração
+      Tests  8 passed (8)
+$ npx tsc -p tsconfig.json --noEmit
+exit=0
+$ npx prettier --check scripts/perf/summarize.mjs src/test/perf-summarize.test.ts \
+      docs/evidence/_templates/performance-evidence.md docs/evidence/perf-controlled-2026-09-13/report.md \
+      docs/evidence/perf-controlled-2026-09-13/perf-evidence.md docs/runbooks/performance-evidence.md \
+      docs/evidence/agent-state/CLAIMS-INBOX/WP-1b-summarize-35.md
+All matched files use Prettier code style!
+```
+
+O artefato versionado (`report.md`) segue intocado por F1/P2: regenerar difere **só** na linha `- Gerado em:`.

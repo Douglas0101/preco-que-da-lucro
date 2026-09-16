@@ -473,14 +473,31 @@ describe("§35 — o report gerado carrega os rótulos do contrato", () => {
     // o gerador não calcula ganho: não pode afirmar que NÃO existe par antes/depois
     expect(section35Line(block, "result")).not.toContain("sem alegação de ganho");
     expect(section35Line(block, "result")).toContain(
-      "o par antes/depois é declarado em `meta.section35`",
+      "o raw declara `before` e `change` em `meta.section35`",
     );
-    // com par declarado, `keep` exigiria julgamento: a decisão derivada pede revisão
+    // com rótulo de comparação declarado, `keep` exigiria julgamento: a decisão derivada pede revisão
     expect(section35Line(block, "decision")).toMatch(/\*\*decision:\*\* `follow-up`/);
 
-    // sem par declarado, o bloco segue sem alegação de ganho e com a referência adotada
+    // sem rótulo declarado, o bloco segue sem alegação de ganho e com a referência adotada
     const plain = section35Block(renderReport(summarize(fixtureRaw())));
     expect(section35Line(plain, "result")).toContain("sem alegação de ganho");
     expect(section35Line(plain, "decision")).toMatch(/\*\*decision:\*\* `keep`/);
+  });
+
+  it("T1g: `change` declarado sozinho não vira «par declarado» — o texto cita só o rótulo que existe", () => {
+    const raw = fixtureRaw();
+    raw.meta = {
+      ...raw.meta,
+      section35: { change: "`src/lib/products.functions.ts` (patch do read-model)" },
+    };
+    const block = section35Block(renderReport(summarize(raw)));
+    // o `before` continua sendo lacuna declarada — e o `result` não pode afirmar um par
+    expect(section35Line(block, "before")).toMatch(/\*\*before:\*\* `N\/A`/);
+    expect(section35Line(block, "result")).toContain("o raw declara `change` em `meta.section35`");
+    expect(section35Line(block, "result")).not.toContain("par antes/depois");
+    expect(section35Line(block, "result")).not.toContain("sem alegação de ganho");
+    // a decisão segue pedindo o julgamento do autor (o ganho não é calculado aqui)
+    expect(section35Line(block, "decision")).toMatch(/\*\*decision:\*\* `follow-up`/);
+    expect(section35Line(block, "decision")).toContain("`change` em `meta.section35`");
   });
 });
