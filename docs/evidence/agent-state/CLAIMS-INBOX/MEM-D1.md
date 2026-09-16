@@ -13,6 +13,7 @@
      - `src/server/services/memory.service.ts:1-58` — `MemoryService.propose` (candidato → decisão): lança o erro tipado quando rejeitado, devolve `{ candidate normalizado, status: "active", expiresAt }` (TTL vem de `policy.retention`, relógio injetável por `options.now`). Nenhum import de `@/db`/`drizzle-orm`/finance; nenhuma persistência.
      - Normalização: `content.normalize("NFC").trim()` (`memory.policy.ts:128`); o limite de tamanho é medido **sobre a forma canônica**; `inferred`/`confidence` passam intactos (`value: { ...candidate, content }`, `:159`).
      - Limites são **dados**: nenhuma constante de limite no código — trocar `MemoryPolicy` muda o veredito (teste “rejeitado sob policy estrita, aceito sob permissiva”).
+     - `src/test/memory-import-graph.test.ts` (INV-005) — o cálculo canônico é **derivado do grafo**, não de lista fixa: o universo é todo módulo de produção de `src/` (exceto `src/test/**` e `*.test.tsx?`), o motor financeiro é derivado por padrão (`src/lib/financ*`) e as raízes canônicas são o **fecho reverso** do motor (todo módulo que o alcança). O invariante é `canônico ∩ alcança-memória = ∅`, com guarda fail-closed de conjunto não vazio (EVIDENCE-D/probe 3).
   4. EVIDENCE: EVIDENCE-A (RED), EVIDENCE-B (GREEN), EVIDENCE-C (`tsc`), EVIDENCE-D (poder discriminante da asserção de grafo), EVIDENCE-E (escopo do diff).
   5. (este arquivo)
   6. ADVERSARIAL: (preenchido pelo verificador designado pelo MAESTRO — deixar vazio)
@@ -43,26 +44,22 @@
   ```
   (o único teste que passava era `nenhuma saída de memória é consumida pelo cálculo canônico`, que percorre apenas o motor financeiro — os módulos de memória ainda não existiam, logo nada a apontar.)
 
-- **EVIDENCE-B — GREEN (comando do aceite):**
+- **EVIDENCE-B — GREEN (comando do aceite, após a correção adversarial V-MEM-D1):**
   ```text
   $ npx vitest run src/test/memory-*.test.ts
    RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-n1c
 
    Test Files  3 passed (3)
-        Tests  55 passed (55)
-     Start at  00:16:09
-     Duration  1.94s
+        Tests  56 passed (56)
+     Start at  00:27:23
+     Duration  1.77s
   ```
   ```text
-  $ npx vitest run src/test/memory-policy.test.ts src/test/memory-service.test.ts src/test/memory-import-graph.test.ts
-   RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-n1c
-
-   Test Files  3 passed (3)
-        Tests  55 passed (55)
-     Start at  00:14:38
-     Duration  1.83s
+  $ npx tsc -p tsconfig.json --noEmit
+  TSC_EXIT=0
   ```
-  Cobertura nominal do aceite (rodado com `--reporter=verbose`, `4 passed / 63 tests` incluindo `src/test/contracts.test.ts`):
+  (o mesmo comando antes da correção: `3 passed / 55 tests` + `tsc EXIT=0` — a correção acrescenta 1 teste de derivação das raízes canônicas)
+  Cobertura nominal do aceite (rodado com `--reporter=verbose`, `4 passed / 64 tests` incluindo `src/test/contracts.test.ts`):
   ```text
    ✓ memory-policy.test.ts > (a) confiança mínima > rejeita candidato com confidence abaixo de minConfidence
    ✓ memory-policy.test.ts > (b) escopo permitido > rejeita scope fora de allowedScopes
@@ -74,14 +71,17 @@
    ✓ memory-service.test.ts > rejeita (c) proveniência ausente com requireProvenance = true com VALIDATION_ERROR
    ✓ memory-service.test.ts > rejeita (d) conteúdo acima de maxContentLength com VALIDATION_ERROR
    ✓ memory-service.test.ts > aceitação e normalização > normaliza trim + NFC preservando inferred/confidence intactos
+   ✓ memory-import-graph.test.ts > INV-005 > os módulos analisados existem e resolvem (senão a asserção seria vacua)
    ✓ memory-import-graph.test.ts > INV-005 > nenhum módulo de memória importa o Financial Engine — nem como tipo
    ✓ memory-import-graph.test.ts > INV-005 > o fecho de runtime da memória não alcança o Financial Engine
+   ✓ memory-import-graph.test.ts > INV-005 > os módulos de memória não importam @/db nem drizzle-orm
+   ✓ memory-import-graph.test.ts > INV-005 > as raízes do cálculo canônico são derivadas do grafo (conjunto não vazio e fail-closed)
    ✓ memory-import-graph.test.ts > INV-005 > nenhuma saída de memória é consumida pelo cálculo canônico
    ✓ contracts.test.ts > 'src/server/contracts/memory.contracts.ts' é type-only (nenhum valor executável)
    ✓ contracts.test.ts > 'src/server/contracts/memory.contracts.ts' não importa @/db, drizzle-orm nem repositórios
 
    Test Files  4 passed (4)
-        Tests  63 passed (63)
+        Tests  64 passed (64)
   ```
   Notas de método (fronteiras e determinismo, não só “caminho feliz”):
   - **Erro tipado**: as rejeições do serviço são `ApplicationError` da taxonomia (`VALIDATION_ERROR`, `status 400`, `retryable false`); política inválida é `INTERNAL_ERROR`/500 (falha de servidor, não de candidato).
@@ -97,7 +97,7 @@
   ```
   (sem saída; nenhum erro de tipo introduzido no projeto)
 
-- **EVIDENCE-D — a asserção de grafo do INV-005 é capaz de falhar (sonda descartável, revertida):**
+- **EVIDENCE-D — as asserções de grafo do INV-005 são capazes de falhar (sondas descartáveis, revertidas):**
   ```text
   $ # sonda 1: import de valor do motor financeiro injetado em memory.service.ts
   $ npx vitest run src/test/memory-import-graph.test.ts
@@ -111,12 +111,32 @@
   $ npx vitest run src/test/memory-import-graph.test.ts
        × nenhum módulo de memória importa o Financial Engine — nem como tipo
        Tests  1 failed | 4 passed (5)
+
+  $ # sonda 3 (correção V-MEM-D1): cópia do worktree em /tmp com
+  $ #   import { memoryService } from "@/server/services/memory.service"; em pricing.service.ts
+  $ npx vitest run src/test/memory-import-graph.test.ts      # na cópia /tmp
+       × nenhuma saída de memória é consumida pelo cálculo canônico
+  AssertionError: expected [ …(6) ] to deeply equal []
+
+  - Expected
+  + Received
+
+  - []
+  + [
+  +   "src/server/services/diagnostic.service.ts",
+  +   "src/server/services/pricing.service.ts",
+  +   "src/lib/diagnostic.functions.ts",
+  +   "src/routeTree.gen.ts",
+  +   "src/routes/_authenticated/diagnostico.tsx",
+  +   "src/routes/_authenticated/…"
+  + ]
+       Tests  1 failed | 5 passed (6)
   ```
-  Ambas as sondas foram revertidas; o estado final é o do commit (`git status --short` limpo para os dois módulos, EVIDENCE-E). A cláusula de aresta direta é a que pega acoplamento **de tipo**; o fecho de runtime é o que pega dependência executável — e o fecho é não-vacuoso por asserção explícita (`memory.service → memory.policy → @/lib/api-error`).
+  Todas as sondas foram revertidas; o estado final é o do commit (`git status --short` limpo; a cópia em `/tmp` foi removida). A cláusula de aresta direta é a que pega acoplamento **de tipo**; o fecho de runtime é o que pega dependência executável — e o fecho é não-vacuoso por asserção explícita (`memory.service → memory.policy → @/lib/api-error`). A sonda 3 é a que prova que o invariante reverso **morde**: `pricing.service.ts` (calculador canônico que chama `calculatePriceFormation` de `@/lib/finance`) foi apontado junto com os 5 módulos que o alcançam.
 
 - **EVIDENCE-E — escopo (S5):**
   ```text
-  $ git show --stat 9e910cc
+  $ git show --stat 9e910cc            # commit do deliverable
    src/server/contracts/memory.contracts.ts |  36 +++-
    src/server/services/memory.policy.ts     | 173 +++++++++++++++++++
    src/server/services/memory.service.ts    |  58 +++++++
@@ -125,10 +145,20 @@
    src/test/memory-service.test.ts          | 178 +++++++++++++++++++++++
    6 files changed, 916 insertions(+), 2 deletions(-)
 
-  $ git status --short            # antes do commit do claim
+  $ git diff --stat -- src/test/memory-import-graph.test.ts   # correção V-MEM-D1 (este commit)
+   src/test/memory-import-graph.test.ts | 140 +++++++++++++++++++++++++++--------
+   1 file changed, 111 insertions(+), 29 deletions(-)
+
+  $ git status --short                 # antes de 9e910cc
   (vazio)
   ```
-  Nenhum arquivo fora do escopo exclusivo do item. `docs/specs/M-02/matrix.yaml` **não** foi tocado (regeração é do MAESTRO).
+  Nenhum arquivo fora do escopo exclusivo do item (a correção V-MEM-D1 mexe apenas no teste de grafo + este claim). `docs/specs/M-02/matrix.yaml` **não** foi tocado (regeração é do MAESTRO).
+
+- **correção adversarial (V-MEM-D1):** veredicto = **INCORRECT** (1 defeito bloqueante), corrigido neste mesmo commit.
+  - **Finding (P2):** a direção reversa do INV-005 (“nenhuma saída de memória é consumida por cálculo canônico”) inspecionava apenas **5 raízes fixas** (`FINANCE_ROOTS`), embora o comentário afirmasse cobrir “os serviços canônicos que o consomem”. Calculadores reais ficavam fora do conjunto — `pricing.service.ts` (`calculatePriceFormationFor` → `calculatePriceFormation` de `@/lib/finance`), `dashboard.service.ts`, `product-read-model.service.ts`, `diagnostic.service.ts` etc. Prova do verificador: injetar `memoryService` em `pricing.service.ts` deixava as asserções **verdes**.
+  - **Correção aplicada:** as raízes deixaram de ser lista fixa e passaram a ser **derivadas do grafo** — universo = todos os módulos de produção de `src/` (fora `src/test/**` e `*.test.tsx?`); motor financeiro derivado por padrão `^src/lib/financ`; raízes canônicas = **fecho reverso** do motor (`reverseReachable`), com guarda **fail-closed** de conjunto não vazio e de presença dos calculadores conhecidos (`financial.service`, `simulation.service`, `pricing.service`, `dashboard.service`, `product-read-model.service`, `lib/break-even.ts`). O invariante passou a ser exato: `canônico ∩ alcança-memória = ∅`.
+  - **Poder discriminante da correção (sonda 3, EVIDENCE-D):** na cópia `/tmp` com o import de memória em `pricing.service.ts`, a asserção **morre** e aponta 6 consumidores (`pricing.service.ts` + `diagnostic.service.ts`, `diagnostic.functions.ts`, `routeTree.gen.ts`, `diagnostico.tsx` e mais 1). Antes da correção, o mesmo cenário ficava verde — exatamente o defeito apontado.
+  - **Saída após a correção:** `npx vitest run src/test/memory-*.test.ts` → `3 passed / 56 tests`; `npx tsc -p tsconfig.json --noEmit` → `EXIT=0` (EVIDENCE-B/C).
 
 - **riscos / limites conhecidos:**
   1. **`MemoryRecordInput` passou a ter `provenance` opcional** (era obrigatório). É o port de persistência de um contrato *type-only* sem nenhum consumidor no repositório (verificado: só `src/test/contracts.test.ts` referencia o arquivo). A coerção fica na persistência (D2), conforme a decisão **C** do STEWARD (proveniência 1:N com FKs; `sourceId` derivado/opcional). Se o MAESTRO preferir o `NOT NULL` no port, o ajuste é de uma linha — mas contradiria `requireProvenance = false`.
