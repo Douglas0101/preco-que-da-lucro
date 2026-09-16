@@ -5,8 +5,7 @@ import {
   type ExpenseTotals,
   type ExpenseWrite,
 } from "@/server/repositories/expense.repository";
-import { outboxRepository } from "@/server/repositories/outbox.repository";
-import type { EventRepositoryPort } from "@/server/contracts/event.contracts";
+import { eventService, type EventService } from "@/server/services/event.service";
 import type { Expense } from "@/db/schema";
 
 export interface ExpenseService {
@@ -19,7 +18,7 @@ export interface ExpenseService {
 export class DefaultExpenseService implements ExpenseService {
   constructor(
     private readonly repository: ExpenseRepository,
-    private readonly events: EventRepositoryPort = outboxRepository,
+    private readonly events: EventService = eventService,
   ) {}
 
   list(context: RequestContext): Promise<Expense[]> {
@@ -27,10 +26,11 @@ export class DefaultExpenseService implements ExpenseService {
   }
 
   /**
-   * §23 — a mutação de domínio e o evento de outbox commitam juntos: o append
-   * usa `context.transaction` (o executor da transação corrente), então rollback
-   * de qualquer um dos dois desfaz ambos. A chave de idempotência é estável por
-   * (despesa, version), então um retry do mesmo write não cria segundo evento.
+   * §23 — a mutação de domínio e o evento de outbox commitam juntos: o evento
+   * passa pelo `EventService`, que o appenda no executor da transação corrente
+   * (`context.transaction`), então rollback de qualquer um dos dois desfaz
+   * ambos. A chave de idempotência é estável por (despesa, version), então um
+   * retry do mesmo write não cria segundo evento.
    */
   async save(context: RequestContext, input: ExpenseWrite): Promise<Expense> {
     assertTenantMutationAuthorized(context);
