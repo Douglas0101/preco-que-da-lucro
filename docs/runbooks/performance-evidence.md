@@ -30,13 +30,22 @@ for citado no PR, a evidência passa a ser exigida.
 
 ## Gate
 
-- `src/test/perf-evidence.test.ts` varre `docs/evidence/**` por arquivos
-  `perf-*.md`/`*-perf-*.md`, ignora `_templates/**` e exige os 7 rótulos nos
-  artefatos novos. Em falha, a mensagem aponta o arquivo e o(s) rótulo(s)
-  ausente(s).
-- Allowlist de legado (publicado antes do gate; não reescrever):
-  `perf-baseline-2026-08-29.md`, `perf-after-2026-08-29.md`,
-  `explain-critical-queries-2026-08-21.md`.
+- `src/test/perf-evidence.test.ts` descobre por **caminho**: todo `.md` sob um
+  diretório `docs/evidence/perf-<tema>-<data>/` (o `report.md` gerado inclusive)
+  e todo `.md` cujo nome case `perf-*.md`/`*-perf-*.md`. Ignora `_templates/**` e
+  `agent-state/**` (árvore de fluxo da missão) e exige os 7 rótulos dos artefatos
+  restantes, com descoberta vazia **reprovando** (fail-closed). Em falha, a
+  mensagem aponta o arquivo e o(s) rótulo(s) ausente(s).
+- O bloco §35 do `report.md` gerado **não** é mantido à mão desde o WP-1b
+  (commit `9f6f158`): `scripts/perf/summarize.mjs` o emite a partir do raw, com
+  os rótulos de julgamento declarados em `meta.section35.<rótulo>` quando for o
+  caso (ver `docs/evidence/_templates/performance-evidence.md`).
+- Allowlist de legado (publicado antes do gate; não reescrever) — **2 entradas**,
+  ancoradas em CONTEÚDO (o arquivo tem de declarar o regime no corpo):
+  `perf-baseline-2026-08-29.md` e `perf-after-2026-08-29.md`, ambos
+  `dev-evidence`. `explain-critical-queries-2026-08-21.md` **não** está na
+  allowlist: não casava nenhum predicado de caminho e nunca era descoberto (a
+  entrada era morta).
 - O gate roda no `npm run test` e no CI pesado (`ui-stack`); um artefato novo
   fora do padrão deixa a árvore vermelha.
 
