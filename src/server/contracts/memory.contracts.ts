@@ -31,8 +31,30 @@ export interface MemoryRecord {
   content: string;
   provenance: MemoryProvenance;
   importance: number;
+  /** Ciclo de vida (§15.6/D3): só `active` entra em retrieval; versão substituída
+   * permanece no histórico imutável. */
+  status: MemoryStatus;
   createdAt: Date;
   updatedAt: Date;
+  /** Derivado de `MemoryPolicy.retention` na gravação; `null` = sem expiração. */
+  expiresAt?: Date | null;
+}
+
+/** Ciclo de vida de uma memória (§15.6/D3). */
+export type MemoryStatus = "active" | "superseded";
+
+/** Retenção §23.2: TTL por camada, decidido pela policy. */
+export interface MemoryRetention {
+  /** Segundos até a expiração; `null` = retenção indefinida. */
+  readonly ttlSeconds: number | null;
+}
+
+/** Pesos do ranking §15.7 (recência/importância/confiança). Vivem na policy:
+ * o chamador nunca escolhe peso nem amplia limite. */
+export interface MemoryRankingWeights {
+  readonly recency: number;
+  readonly importance: number;
+  readonly confidence: number;
 }
 
 /** Política §15.3: limites decididos pelo backend antes de qualquer persistência
@@ -44,14 +66,24 @@ export interface MemoryPolicy {
   requireProvenance: boolean;
   maxContentLength: number;
   maxResults: number;
+  /** Ampliação D1 (aditiva) — consumida pelo write path (D2/D3) e pelo ranking (D6). */
+  retention: MemoryRetention;
+  ranking: MemoryRankingWeights;
 }
 
-export interface MemoryRecordInput {
+/** Candidato proposto (pelo modelo, por tool ou pelo usuário) antes da decisão da
+ * policy: a proveniência é opcional no candidato porque `requireProvenance` é
+ * quem a exige. */
+export interface MemoryCandidate {
   scope: MemoryScope;
   content: string;
-  provenance: MemoryProvenance;
+  provenance?: MemoryProvenance;
   importance?: number;
 }
+
+/** Port de persistência: mesmo formato do candidato aprovado (§5-C do gap report —
+ * `sourceId` deixa de ser polimórfico e a proveniência passa a 1:N na tabela). */
+export type MemoryRecordInput = MemoryCandidate;
 
 export interface MemorySearchQuery {
   text: string;
