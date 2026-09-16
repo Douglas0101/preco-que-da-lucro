@@ -113,3 +113,13 @@ Nenhuma proposta de SPEC-DELTA ficou sem decisão. As decisões (arquivo `docs/e
 | `npm run m02:state:check`   | **exit 0**             | marcador parent-pinned válido para o HEAD do fechamento (ver ledger)                                               |
 
 > **Nota de integração (achados dos verificadores, todos corrigidos antes do fechamento):** drift da matriz M-02 (`c121497`), `EXPECTED_JOURNAL_COUNT` preso em 15 (`ed29d4b`), escopo da varredura do §35 colidindo com os nomes dos próprios cartões (`91152be`), ponteiros de linha do anexo (`2173bf9`) e o vazamento de literal no artefato do pgstat (`bc74e5f`).
+
+### 9. ERRATA — WP-0 (2026-09-16): semântica das tabelas §2/§3 e matriz de transições da rodada
+
+> **Origem:** a matriz 187×2 do WP-0 (`docs/evidence/agent-state/TRANSICOES-ROUND-2026-09-15.md`) recontou o raw e provou que a aritmética da rodada **fecha exatamente nos dois sentidos** (base `139/25/21/2` → final `147/26/12/2`, 12 transições nomeadas, **zero saídas de DONE**). A "lacuna contábil" apontada pela diretiva NAS-2 (2 saídas de DONE no bloco C + 1 NS→P residual) **não existe**: ela é artefato de leitura **deste** relatório, pelas duas razões abaixo. Nenhuma transição está faltando (as 12 aparecem no §2/§3), mas o **status por linha** e a **visão matricial** faltavam — daí a errata.
+>
+> - **E-1 (§2):** a tabela "Itens fechados nesta rodada" lista **claims adjudicados**, **não** promoções a DONE (a coluna de status por item não existe). Efeito líquido real: **8** promoções a DONE (`10.7`, `23.1`, `23.2`, `28.1`, `28.3`, `28.5`, `16.3`, `35`) + **3** a PARTIAL (`9.1-ME`, `26.7`, `25.4`) + **1** PARTIAL mantido (`28.4`) = **12** transições — e não 10 DONE. Em particular `26.7` e `25.4` **não** são DONE: terminaram `NS→PARTIAL` (§LEDGER do claim `12.5-25.4-supply`), por H-2.
+> - **E-2 (§2/§3):** o §3 reúne "rebaixados / sem upgrade" e por isso sugere, erradamente, que `28.2` não mudou. `28.2` é **`NS→PARTIAL`** (+0,5 crédito); a menção à sua promoção está só na **prosa** do §2. Sem mudança de fato: `12.5`, `20.1`, `28.4`, `30` e `26.8` (`PARTIAL→PARTIAL`) e `25.5` (duplicado, fora do denominador).
+> - **E-3 (§5):** a tabela por bloco (Δ de crédito) não trazia a decomposição por transição. Ela está publicada em `TRANSICOES-ROUND-2026-09-15.md` §3: A `9.1-ME`+`10.7` · B `16.3` · C 4 `NS→D` + 2 `P→D` + 3 `NS→P` · D nenhuma; `DONE→PARTIAL` = **0** nesta rodada e nenhum item DONE da base deixou de ser DONE.
+>
+> **Base final reconfirmada:** `147 D · 26 P · 12 NS · 2 UNV = 187` (85,56% parcial / 78,61% crua), idêntica ao §5 e ao ledger (`PROGRESS.md` L44) — recontagem independente do raw reproduzível pelo script do apêndice do artefato do WP-0.
