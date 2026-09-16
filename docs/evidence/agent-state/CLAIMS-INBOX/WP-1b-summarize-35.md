@@ -140,7 +140,7 @@ Error: §35: rótulo `result` ficou vazio — o gate reprovaria o report
       Tests  10 failed | 3 passed (13)
 ```
 
-**(f) Verificação auxiliar (fora do pedido, para não deixar o E2 do MAESTRO quebrar por causa deste item):** `npx tsc -p tsconfig.json --noEmit` → `exit=0`; `npx prettier --check` nos 4 arquivos tocados → *All matched files use Prettier code style*.
+**(f) Verificação auxiliar (fora do pedido, para não deixar o E2 do MAESTRO quebrar por causa deste item):** `npx tsc -p tsconfig.json --noEmit` → `exit=0`; `npx prettier --check` nos 4 arquivos tocados → _All matched files use Prettier code style_.
 
 ### Como reproduzir
 
@@ -168,7 +168,7 @@ node scripts/perf/summarize.mjs && npx vitest run src/test/perf-evidence.test.ts
 4. **Detalhe a mais, não a menos:** o `after` gerado é mais granular que o texto à mão (`server fn p50`, RT/evento por rota, faixa de CLS). Todos derivados do mesmo raw — conferi que prontidão/TTFB/bundle/AI/chat batem valor a valor com o bloco removido.
 5. **Formato numérico:** o bloco gerado usa ponto decimal (`.`) como o resto do relatório gerado; o bloco à mão usava vírgula pt-BR. Cosmético, mas é um diff visível.
 6. **`hypothesis` do bloco** afirma a re-derivabilidade da captura (a alegação do artefato), não uma hipótese de produto de §5. Hipótese de produto se declara em `meta.section35.hypothesis` — limite do que o raw permite derivar.
-7. **Risco residual do gate:** nada foi afrouxado — `src/test/perf-evidence.test.ts` está **intocado** (é do WP-1c) e continua fail-closed com descoberta vazia; a allowlist de legado segue com 2 entradas de conteúdo; o gerador agora é *adicionalmente* fail-closed (lança em rótulo vazio).
+7. **Risco residual do gate:** nada foi afrouxado — `src/test/perf-evidence.test.ts` está **intocado** (é do WP-1c) e continua fail-closed com descoberta vazia; a allowlist de legado segue com 2 entradas de conteúdo; o gerador agora é _adicionalmente_ fail-closed (lança em rótulo vazio).
 8. **Drift de runbook achado fora do escopo — RESOLVIDO por ordem do STEWARD** (ver §6, `WP-1b-reg`/`a37ae76`): `docs/runbooks/performance-evidence.md:37-39` listava **3** entradas na “allowlist de legado”, incluindo `explain-critical-queries-2026-08-21.md` — o gate atual tem **2** (a terceira foi removida como entrada morta, `src/test/perf-evidence.test.ts:47-49`). Não era defeito da minha spec-card ⇒ **sem SPEC-DELTA**; corrigido em commit separado depois do veredicto.
 9. **Falso alarme já corrigido durante o trabalho:** uma edição com caminho relativo caiu no repo principal (`preco-que-d-main`) em vez do worktree; restaurei o blob do `HEAD` no mesmo instante (`git show HEAD:src/test/perf-summarize.test.ts > src/test/perf-summarize.test.ts`, `git status` limpo, sem `git checkout -f`/stash) e segui só com caminhos absolutos do worktree. Todos os artefatos deste claim vêm do worktree.
 
