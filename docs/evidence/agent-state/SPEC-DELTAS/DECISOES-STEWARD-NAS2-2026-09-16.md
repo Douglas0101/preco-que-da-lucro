@@ -12,7 +12,24 @@
 - **Decisão:** o card fica corrigido por esta nota; a aceitação efetiva passa a ser "suíte de backfill verde **dentro** do `db:test` já existente (13 suítes)", sem mudança de `package.json`. O erro é do STEWARD (card escrito antes de conferir o fio do `db:test`), não do squad.
 - **Lição registrada:** card novo deve **verificar o estado do pipeline no HEAD** (ex.: quais suítes o `db:test` já encadeia) antes de fixar aceitação — evita pedir trabalho já feito.
 
-## SD-3 — `WP-1b` e o artefato de runbook (`docs/runbooks/performance-evidence.md`) → **FOLLOW-UP `WP-1b-reg`**
+## SD-4 — SPEC-DELTA `MEM-D2-scope-chain-and-purge` → **APROVADA** (2026-09-16)
 
-- **Achado (fora do escopo do WP-1b, corretamente não tocado):** `docs/runbooks/performance-evidence.md:37-39` lista **3** entradas de allowlist de legado, enquanto o gate tem **2** (a de `explain-critical-queries-2026-08-21.md` foi removida como entrada morta no WP-A1).
-- **Decisão:** virar **`WP-1b-reg`** (docs-only, 1 commit, dono SQUAD-APP) para alinhar o runbook ao gate vigente. Não bloqueia o WP-1b; entra depois do veredicto adversarial do WP-1b (para o verificador não inspecionar branch em movimento).
+- **Pedido:** sanção para o MEM-D2 tocar `scripts/db/test-migrations.ts` (down da `0017` na cadeia + journal 17→18) e `scripts/db/purge-fixtures.ts` — ambos fora do escopo exclusivo do card.
+- **Decisão: APROVADA**, pelo mesmo fundamento do **SD-1**: (a) toda migration nova **precisa** entrar na cadeia de downs do teste de migrations, senão o próprio teste falha; (b) `purge-fixtures` enumera tabelas tenant-scoped e ficaria inconsistente sem as novas; (c) o card listou o escopo de forma abreviada — omissão do STEWARD, não excesso do squad; (d) a mudança é aditiva e verificada (`test-migrations.ts` verde: chain de 18, replay + down de 0017).
+- **Propagação obrigatória:** `0017_past_gideon` no registry (`SAFE`, sha256 `ba66a3f3…`), no `_journal.json` (idx 17 → 18 entradas) e no `meta/0017_snapshot.json`; down em `drizzle/rollback/0017_to_0016_down.sql` + `DROP` no global `0001_to_0000_down.sql`.
+- **Observação de risco registrada pelo squad (aceita):** `MEMORY_MIGRATION_TAG` fica acoplado à tag sorteada — regerar a migration exige atualizar registry/hash **e** o T5; o `db:classify:check` falha alto se não acompanhar (fail-closed, aceitável).
+
+## SD-5 — Decisões de coluna do MEM-D2 → **RATIFICADAS**
+
+| decisão do squad                                                                         | decisão do STEWARD                                                                                 |
+| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `user_id NOT NULL` + FK composta `(tenant_id,user_id)` → `tenant_memberships`            | **ratificada** (o spec_ref exige; a lista do card era abreviada)                                   |
+| sem `expires_at`/TTL no D2 (o port não carrega TTL)                                      | **ratificada** — TTL é D3/D6 e depende do briefe **H-12**                                          |
+| `confidence` nulável com CHECK de faixa; `importance` NOT NULL DEFAULT 0                 | **ratificada**                                                                                     |
+| `ai_memory_sources` append-only (SELECT/INSERT); o `DELETE` do §43 vive em `ai_memories` | **ratificada** (cascata provada sob `app_runtime`)                                                 |
+| `search` = substring parametrizada + tenant/status antes de tudo                         | **ratificada** — FTS é D5, ranking é D6; o §15.8 (filtro de tenant **pré**-retrieval) está honrado |
+
+## SD-3 (histórico) — `WP-1b` e o runbook de evidência de performance → **executado como `WP-1b-reg`**
+
+- **Achado (fora do escopo do WP-1b, corretamente não tocado):** `docs/runbooks/performance-evidence.md:37-39` listava **3** entradas de allowlist de legado, enquanto o gate tinha **2** (a de `explain-critical-queries-2026-08-21.md` foi removida como entrada morta no WP-A1).
+- **Decisão:** virou **`WP-1b-reg`** (docs-only, 1 commit) e foi **executada** no ciclo 1 (`a37ae76`): runbook alinhado à descoberta por caminho + `checked === discovered`. **Superado no ciclo 2** pelo `WP-1c`, que eliminou a allowlist de vez (`a242af5`) — o runbook e o `AGENTS.md` já refletem zero isenções.
