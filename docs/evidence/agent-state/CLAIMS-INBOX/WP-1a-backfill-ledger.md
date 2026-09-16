@@ -31,90 +31,43 @@ $ git show --stat 1800252
 
 ```text
 $ npx tsx scripts/db/test-backfill.ts
-scripts/db/test-backfill.ts:36
-  BackfillCheckpointConflictError,
-  ^
-SyntaxError: The requested module './backfill-runner' does not provide an export named 'BackfillCheckpointConflictError'
-    at #asyncInstantiate (node:internal/modules/esm/module_job:326:21)
-
-$ grep -c "backfill" drizzle/0015_curved_riptide.sql src/db/schema.ts
-drizzle/0015_curved_riptide.sql:0
-src/db/schema.ts:0
-
-$ docker exec pqdl-n1a-pg17 psql -U postgres -d preco_que_da_lucro_test -c "select to_regclass('public.backfill_checkpoints') as checkpoints, to_regclass('public.backfill_work_items') as work_items;"
- checkpoints | work_items
--------------+------------
-             |
-(1 row)
-
-# sonda de runtime (persistência do ledger), mesmo banco:
-RED (persistência ausente): relation "backfill_checkpoints" does not exist
-```
-
-As três faces da ausência ficam registradas: o export do contrato, o DDL no schema declarado e a tabela no banco migrado. Nenhuma falha de bug de teste.
-
-## 3. S3 (GREEN) — o que foi implementado
-
-- **Schema** (`src/db/schema.ts:913-967`): `backfillCheckpoints` (`:917`, PK `(tenant_id, run_key)`, `version integer not null` = token do CAS, CHECKs de identidade/versão/contadores) e `backfillWorkItems` (`:948`, PK `(tenant_id, work_key)`, `run_key`/`row_key`, índice `(tenant_id, run_key)`, CHECK de identidade). FKs para `tenants` com `on delete cascade`.
-- **Migration gerada** (`npm run db:generate`, env local): `drizzle/0016_slim_imperial_guard.sql` (sha256 `46b57f88…708be7`) + `drizzle/meta/0016_snapshot.json` + entrada `idx: 16` no journal. Grants/RLS anexados ao SQL no padrão de `0015`: `REVOKE ALL … FROM PUBLIC`, `GRANT SELECT, INSERT, UPDATE` em checkpoints / `SELECT, INSERT` nos marcadores para `app_runtime`, `ENABLE ROW LEVEL SECURITY` + policy `tenant_isolation` (`USING`/`WITH CHECK` = `tenant_id = app_private.current_tenant_id() AND app_private.has_tenant_access(tenant_id)`).
-- **Registry** (`scripts/db/migration-classes.ts:285-300`): `0016_slim_imperial_guard` classe **SAFE**, `appliedOn: "empty"`, sha256 do arquivo final, rollback apontado. Down compatível: `drizzle/rollback/0016_to_0015_down.sql` (drop policy → revoke → drop das tabelas) e as duas tabelas entraram no `DROP TABLE` global de `drizzle/rollback/0001_to_0000_down.sql:10-11` (sem isso o replay do chain quebra, mesmo achado do WP-B1).
-- **CAS** (`scripts/db/backfill-ledger.ts:76-111`): `save` faz o avanço condicional numa única instrução —
-  `insert into backfill_checkpoints (…, version, …) values (…) on conflict (tenant_id, run_key) do update set …, version = excluded.version where backfill_checkpoints.version = excluded.version - 1`; `rowCount = 0` ⇒ `throw new BackfillCheckpointConflictError(runKey, checkpoint.version - 1)`. Sem outro caminho de escrita: não existe sobrescrita silenciosa.
-- **Contrato do runner** (`scripts/db/backfill-runner.ts`): `BackfillCheckpoint.version: number` (0 = nada persistido) e `BackfillCheckpointConflictError` (exportado, carrega `runKey` + `expectedVersion`). `commitBatch` persiste o candidato e só então adota a versão (`checkpoint = next`) — conflito aborta o run sem adotar versão que não foi gravada.
-- **Ledger persistido, sem DDL no teste:** `BACKFILL_LEDGER_DDL`/`ensureBackfillLedger` foram **removidos** (cutover limpo; nenhum caller sobrou). `createPostgresCheckpointStore(pool, { tenantId })` e `applyWorkItemOnce(pool, { tenantId, … })` são tenant-scoped; o runner do teste usa a migration em vez do `CREATE TABLE IF NOT EXISTS`.
-- **Chain e fixtures:** `scripts/db/test-migrations.ts` (down 0016 no topo de `DOWNS_TIP_TO_0003`, journal esperado 17, comentários) e `scripts/db/purge-fixtures.ts:27-28` (as duas tabelas no purge, filho primeiro).
-
-## 4. S4 (E1) — comandos e saída real (container efêmero PG17)
-
-Container: `docker run -d --name pqdl-n1a-pg17 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=preco_que_da_lucro_test -p 5433:5432 postgres:17-alpine` · envs `DATABASE_ADMIN_URL=postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test` (local, `env-guard` permite sem override; nunca `ALLOW_REMOTE_DB`).
-
-### 4.1 `npm run db:classify:check` + `npx tsx scripts/db/test-backfill.ts`
-
-```text
-$ npm run db:classify:check
-> tsx scripts/db/check-migration-classes.ts
-
-✔ 17/17 classificadas
-
-$ npx tsx scripts/db/test-backfill.ts
-
 == T1 — SIGKILL no meio do run (10 linhas, batchSize=3, rate-limit 4/50ms) ==
   estado (antes): linhas=10 derivadas=0 max_apply_count=0 linhas_duplicadas=0 marcadores=0 checkpoint=ausente
   [filho] run backfill-demo:attempt-1 batchSize=3 · SIGKILL após processar a linha 4
-    [batch lote 1] linhas=3 lidas=3 aplicadas=3 duplicadas=0 erros=0 cursor=d03 versão=1 taxa=50.0/s checkpoint=em curso
+    [batch lote 1] linhas=3 lidas=3 aplicadas=3 duplicadas=0 erros=0 cursor=d03 versão=1 taxa=3000.0/s checkpoint=em curso
   [pai] filho: status=null signal=SIGKILL (morte real no meio do run)
   estado (após o SIGKILL): linhas=10 derivadas=4 max_apply_count=1 linhas_duplicadas=0 marcadores=4 checkpoint=d03/lotes=1/lidas=3/aplicadas=3/dup=0/erros=0/v=1/em curso
   -- retomada (mesmo runKey) --
-    [batch lote 1] linhas=3 lidas=3 aplicadas=2 duplicadas=1 erros=0 cursor=d06 versão=2 taxa=166.7/s checkpoint=em curso
-    [batch lote 2] linhas=3 lidas=6 aplicadas=5 duplicadas=1 erros=0 cursor=d09 versão=3 taxa=89.6/s checkpoint=em curso
-    [completed lote 3] linhas=1 lidas=7 aplicadas=6 duplicadas=1 erros=0 cursor=d10 versão=4 taxa=95.9/s checkpoint=concluído
-  retomada: lotes=3 lidas=7 aplicadas=6 duplicadas=1 erros=0 taxa=94.6/s esperas=1(27ms) checkpoint=d10/concluído versão=4 retomada=true duração=74ms
+    [batch lote 1] linhas=3 lidas=3 aplicadas=2 duplicadas=1 erros=0 cursor=d06 versão=2 taxa=3000.0/s checkpoint=em curso
+    [batch lote 2] linhas=3 lidas=6 aplicadas=5 duplicadas=1 erros=0 cursor=d09 versão=3 taxa=120.0/s checkpoint=em curso
+    [completed lote 3] linhas=1 lidas=7 aplicadas=6 duplicadas=1 erros=0 cursor=d10 versão=4 taxa=140.0/s checkpoint=concluído
+  retomada: lotes=3 lidas=7 aplicadas=6 duplicadas=1 erros=0 taxa=140.0/s esperas=1(50ms) checkpoint=d10/concluído versão=4 retomada=true duração=50ms
   estado (após a retomada): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=9/dup=1/erros=0/v=4/concluído
   -- T4: 2ª tentativa completa (checkpoint novo, mesma workKey) --
-    [batch lote 1] linhas=3 lidas=3 aplicadas=0 duplicadas=3 erros=0 cursor=d03 versão=1 taxa=428.6/s checkpoint=em curso
-    [batch lote 2] linhas=3 lidas=6 aplicadas=0 duplicadas=6 erros=0 cursor=d06 versão=2 taxa=96.8/s checkpoint=em curso
-    [batch lote 3] linhas=3 lidas=9 aplicadas=0 duplicadas=9 erros=0 cursor=d09 versão=3 taxa=85.7/s checkpoint=em curso
-    [completed lote 4] linhas=1 lidas=10 aplicadas=0 duplicadas=10 erros=0 cursor=d10 versão=4 taxa=87.7/s checkpoint=concluído
-  2ª tentativa: lotes=4 lidas=10 aplicadas=0 duplicadas=10 erros=0 taxa=87.7/s esperas=2(68ms) checkpoint=d10/concluído versão=4 retomada=false duração=114ms
+    [batch lote 1] linhas=3 lidas=3 aplicadas=0 duplicadas=3 erros=0 cursor=d03 versão=1 taxa=3000.0/s checkpoint=em curso
+    [batch lote 2] linhas=3 lidas=6 aplicadas=0 duplicadas=6 erros=0 cursor=d06 versão=2 taxa=120.0/s checkpoint=em curso
+    [batch lote 3] linhas=3 lidas=9 aplicadas=0 duplicadas=9 erros=0 cursor=d09 versão=3 taxa=90.0/s checkpoint=em curso
+    [completed lote 4] linhas=1 lidas=10 aplicadas=0 duplicadas=10 erros=0 cursor=d10 versão=4 taxa=100.0/s checkpoint=concluído
+  2ª tentativa: lotes=4 lidas=10 aplicadas=0 duplicadas=10 erros=0 taxa=100.0/s esperas=2(100ms) checkpoint=d10/concluído versão=4 retomada=false duração=100ms
   estado (após a 2ª tentativa): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=0/dup=10/erros=0/v=4/concluído
 
 == T3 — erro real do Postgres (22012) no meio do lote: aborta, checkpoint no lote anterior, retoma ==
   estado (antes): linhas=4 derivadas=0 max_apply_count=0 linhas_duplicadas=0 marcadores=0 checkpoint=ausente
-    [batch lote 1] linhas=2 lidas=2 aplicadas=2 duplicadas=0 erros=0 cursor=d02 versão=1 taxa=142.9/s checkpoint=em curso
-  abortado: lotes=2 lidas=4 aplicadas=3 duplicadas=0 erros=1 taxa=153.8/s esperas=0(0ms) checkpoint=d02/em curso versão=1 retomada=false duração=26ms
+    [batch lote 1] linhas=2 lidas=2 aplicadas=2 duplicadas=0 erros=0 cursor=d02 versão=1 taxa=33.3/s checkpoint=em curso
+  abortado: lotes=2 lidas=4 aplicadas=3 duplicadas=0 erros=1 taxa=31.3/s esperas=0(0ms) checkpoint=d02/em curso versão=1 retomada=false duração=128ms
   estado (após o abort): linhas=4 derivadas=3 max_apply_count=1 linhas_duplicadas=0 marcadores=3 checkpoint=d02/lotes=1/lidas=2/aplicadas=2/dup=0/erros=0/v=1/em curso
-    [batch lote 1] linhas=2 lidas=2 aplicadas=1 duplicadas=1 erros=0 cursor=d04 versão=2 taxa=125.0/s checkpoint=em curso
-    [completed lote 1] linhas=0 lidas=2 aplicadas=1 duplicadas=1 erros=0 cursor=d04 versão=3 taxa=100.0/s checkpoint=concluído
-  retomada: lotes=1 lidas=2 aplicadas=1 duplicadas=1 erros=0 taxa=100.0/s esperas=0(0ms) checkpoint=d04/concluído versão=3 retomada=true duração=20ms
+    [batch lote 1] linhas=2 lidas=2 aplicadas=1 duplicadas=1 erros=0 cursor=d04 versão=2 taxa=23.8/s checkpoint=em curso
+    [completed lote 1] linhas=0 lidas=2 aplicadas=1 duplicadas=1 erros=0 cursor=d04 versão=3 taxa=20.0/s checkpoint=concluído
+  retomada: lotes=1 lidas=2 aplicadas=1 duplicadas=1 erros=0 taxa=20.0/s esperas=0(0ms) checkpoint=d04/concluído versão=3 retomada=true duração=100ms
   estado (final): linhas=4 derivadas=4 max_apply_count=1 linhas_duplicadas=0 marcadores=4 checkpoint=d04/lotes=3/lidas=4/aplicadas=3/dup=1/erros=0/v=3/concluído
 
 == T2 — contenção CAS: 2 workers no mesmo runKey (mesma versão de partida) ==
-    [worker 1 lote 1] lidas=3 aplicadas=3 duplicadas=0 v=1
-    [worker 1 lote 2] lidas=6 aplicadas=6 duplicadas=0 v=2
-    [worker 1 lote 3] lidas=9 aplicadas=9 duplicadas=0 v=3
-    [worker 1 lote 4] lidas=10 aplicadas=10 duplicadas=0 v=4
+    [worker 2 lote 1] lidas=3 aplicadas=3 duplicadas=0 v=1
+    [worker 2 lote 2] lidas=6 aplicadas=6 duplicadas=0 v=2
+    [worker 2 lote 3] lidas=9 aplicadas=9 duplicadas=0 v=3
+    [worker 2 lote 4] lidas=10 aplicadas=10 duplicadas=0 v=4
   perdedor: backfill-runner: checkpoint de "backfill-demo:contention" está em outra versão (CAS esperava a versão 0); outro runner avançou primeiro — este run foi descartado sem sobrescrever nada
-  vencedor: lotes=4 lidas=10 aplicadas=10 duplicadas=0 erros=0 taxa=112.4/s esperas=0(0ms) checkpoint=d10/concluído versão=4 retomada=false duração=89ms
+  vencedor: lotes=4 lidas=10 aplicadas=10 duplicadas=0 erros=0 taxa=35.7/s esperas=0(0ms) checkpoint=d10/concluído versão=4 retomada=false duração=280ms
   estado (após a contenção): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=10/dup=0/erros=0/v=4/concluído
   checkpoint do vencedor: aplicadas=10 duplicadas=0 (repartição depende da corrida)
 
@@ -125,7 +78,7 @@ Backfill §28 (28.1 lote · 28.2 checkpoint+CAS · 28.3 rate-limit · 28.4 idemp
 EXIT=0
 ```
 
-**T2 (contenção CAS) — como o "exatamente 1 avança" é determinístico:** os dois workers compartilham o mesmo `runKey` e uma **barreira de arranque** garante que ambos leiam a mesma versão persistida (`v=0`) antes de qualquer `save` (sem a barreira, o segundo apenas retomaria o checkpoint do primeiro — caminho seguro, mas não a corrida). A partir daí a arbitragem é do banco: o `INSERT … ON CONFLICT … WHERE version = excluded.version - 1` faz um avançar e o outro receber `rowCount = 0` ⇒ `BackfillCheckpointConflictError`. Os contadores provados no ledger são **só os do vencedor**: `lotes=4`, `lidas=10`, `aplicadas + duplicadas = 10`, `versão=4` — a inflação `lotes=5 para 4 lotes` observada por V-B2 não é mais alcançável. Rodadas sucessivas alternam o vencedor (a primeira prova teve worker 2 vencendo; a capturada acima, worker 1), então nada no teste está fixado à ordem de chegada.
+**T2 (contenção CAS) — como o "exatamente 1 avança" é determinístico:** os dois workers compartilham o mesmo `runKey` e uma **barreira de arranque** garante que ambos leiam a mesma versão persistida (`v=0`) antes de qualquer `save` (sem a barreira, o segundo apenas retomaria o checkpoint do primeiro — caminho seguro, mas não a corrida). A partir daí a arbitragem é do banco: o `INSERT … ON CONFLICT … WHERE version = excluded.version - 1` faz um avançar e o outro receber `rowCount = 0` ⇒ `BackfillCheckpointConflictError`. Os contadores provados no ledger são **só os do vencedor**: `lotes=4`, `lidas=10`, `aplicadas + duplicadas = 10`, `versão=4` — a inflação `lotes=5 para 4 lotes` observada por V-B2 não é mais alcançável. Rodadas sucessivas alternam o vencedor (a captura acima: worker 2 aplicando as 10; em outra rodada, o worker 1 venceu e o perdedor morreu depois de já ter aplicado o lote 1), então nada no teste está fixado à ordem de chegada.
 
 ### 4.2 Não regrediu: outbox + unit tests + chain + gates M-02
 
@@ -153,6 +106,13 @@ $ npx vitest run src/test/m02-purge-fixtures.test.ts
 $ npm run m02:matrix:check && npm run m02:boundaries
 M-02 matrix is deterministic and up to date.
 M-02 BFF boundary is clean: all database reachability is allowlisted or repository-only.
+
+$ npx tsc -p tsconfig.json --noEmit        # achou 1 defeito meu (ver §5) e depois ficou verde
+TSC_EXIT=0
+
+$ npm run format:check                    # idem: achou 4 arquivos meus sem prettier
+All matched files use Prettier code style!
+FORMAT_EXIT=0
 ```
 
 ### 4.3 `psql` — tabelas, policies e grants novas (reproduzir: `docker exec pqdl-n1a-pg17 psql -U postgres -d preco_que_da_lucro_test …`)
@@ -194,17 +154,22 @@ T5 exercita esse contrato sob a role real (não só o catálogo): dentro de uma 
 
 ## 5. Autoverificação adversarial (mutações — o verificador deve reconferir do zero)
 
-| mutação aplicada | teste que morreu |
-| --- | --- |
-| `scripts/db/backfill-ledger.ts`: remover `where backfill_checkpoints.version = excluded.version - 1` (upsert sem CAS) | **T2**: `AssertionError: exatamente 1 worker pode avançar o checkpoint` |
-| banco: `drop policy tenant_isolation on backfill_work_items` | **T5**: `AssertionError: A deve enxergar o próprio marcador de T5` |
-| banco: `drop policy tenant_isolation on backfill_checkpoints` | **T5**: `AssertionError: A deve enxergar o próprio checkpoint de T5` |
-| banco: policy com `using (true) with check (true)` nas duas tabelas | **T5**: `AssertionError: A deve enxergar o próprio checkpoint de T5` (vê 2+, o esperado é 1) |
+| mutação aplicada                                                                                                      | teste que morreu                                                                             |
+| --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `scripts/db/backfill-ledger.ts`: remover `where backfill_checkpoints.version = excluded.version - 1` (upsert sem CAS) | **T2**: `AssertionError: exatamente 1 worker pode avançar o checkpoint`                      |
+| banco: `drop policy tenant_isolation on backfill_work_items`                                                          | **T5**: `AssertionError: A deve enxergar o próprio marcador de T5`                           |
+| banco: `drop policy tenant_isolation on backfill_checkpoints`                                                         | **T5**: `AssertionError: A deve enxergar o próprio checkpoint de T5`                         |
+| banco: policy com `using (true) with check (true)` nas duas tabelas                                                   | **T5**: `AssertionError: A deve enxergar o próprio checkpoint de T5` (vê 2+, o esperado é 1) |
 
-A 2ª/3ª/4ª linhas expuseram uma fraqueza real do meu primeiro T5 (ele só provava *fail-closed*, e uma tabela com RLS ligada e **nenhuma** policy também é fail-closed): o teste foi endurecido com "o dono enxerga o próprio" e "o dono grava o próprio" antes de fechar o item. Ou seja, o teste que está no commit é mais forte do que o que passou na primeira rodada.
+A 2ª/3ª/4ª linhas expuseram uma fraqueza real do meu primeiro T5 (ele só provava _fail-closed_, e uma tabela com RLS ligada e **nenhuma** policy também é fail-closed): o teste foi endurecido com "o dono enxerga o próprio" e "o dono grava o próprio" antes de fechar o item. Ou seja, o teste que está no commit é mais forte do que o que passou na primeira rodada.
 
 - **Veredicto S6 (S5→S6, verificador independente):** **CONFIRMED** — recomendação `28.2 = DONE` e `28.4 = DONE`. O verificador re-derivou o item no próprio container (porta 5438), reconferiu o sha256 do registry, achou o CAS no **único** caminho de escrita e provou o valor dele (sem o `WHERE`, numa cópia `/tmp`, uma leitura obsoleta regride um checkpoint `completed` de `v4` para `v1` **sem erro** — exatamente a sobrescrita silenciosa que a aceitação proíbe); `drop` das tabelas ⇒ suíte morre (nada é autocriado em tempo de teste), up→down→up com diff vazio, RLS `0 rows` + `42501` nas duas tabelas.
 - **Correção docs-only pós-veredicto (aplicada neste branch):** o comentário do downgrade em `scripts/db/test-migrations.ts` afirmava "16 arquivos aplicados"; o total real é o da lista (`DOWNS_TIP_TO_0003` = 13 + `0003→0002` + `0002→0001` = **15**). Em vez de trocar por outro número que envelhece, o comentário passou a derivar o total de `downFiles.length` (`:858-862`). A asserção do journal (`17`) estava correta e não mudou; `npx tsx scripts/db/test-migrations.ts` rodou verde depois da correção.
+- **Três achados do E2 no HEAD integrado, todos corrigidos neste branch** (o E1 não podia vê-los: ele roda no meu worktree, não no HEAD integrado nem com os gates de repo):
+  1. `scripts/m02-v2b.mjs` tinha `EXPECTED_JOURNAL_COUNT = 16` com o journal em 17 (2ª ocorrência da classe; a 0015 exigiu `ed29d4b`). Corrigido **estruturalmente**: a constante saiu e `expectedJournalCount()` deriva de `drizzle/meta/_journal.json` (fail-closed com caminho na mensagem; derivado antes de criar a branch de drill). Commit `51a0023`.
+  2. `src/test/m02-v2b.test.ts` importava `expectedJournalCount`, mas `scripts/m02-v2b.d.mts` não declarava o export ⇒ `TS2305` no typecheck (o vitest não checa tipos). Corrigido em `b98185b` com a assinatura + JSDoc.
+  3. `npm run format:check` reprovava **4 arquivos meus** (o claim, o snapshot gerado de 0016, `test-backfill.ts` e `m02-v2b.mjs`): o `drizzle-kit` não formata o snapshot no padrão do repo e eu não rodei o prettier nos arquivos novos. Corrigido aplicando o prettier (snapshot verificado semanticamente idêntico: `JSON.stringify` igual ao anterior).
+- **Um flake meu, encontrado ao re-rodar a suíte depois da formatação:** a asserção de rate-limit de T1 (`7 linhas em janelas de 4 ⇒ 1 espera`) media a janela com **tempo real**, então em host mais lento a 5ª linha chegava depois dos 50 ms e a espera virava 0 — ora passava, ora não. Não relaxei a asserção: o caso com `rateLimit` passou a injetar **relógio virtual** (`now`/`sleep`, como o unit test já fazia), o que a torna **exata** (`esperas=1`, `espera=50ms = windowMs`), e os casos sem janela continuam medindo tempo real. 3 rodadas seguidas verdes depois disso.
 
 ## 6. Auto-avaliação de riscos
 
