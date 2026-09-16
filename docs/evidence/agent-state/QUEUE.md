@@ -7,7 +7,8 @@
 
 - HEAD local `4d500fc` · árvore limpa · marcador parent-pinned válido · **153 commits à frente** de `origin/develop` (`8df3fe3`) · `origin/main` = `9724d2c` · 7 branches `mission/*` preservadas · worktrees podados.
 - Placar vigente: **147 D · 26 P · 12 NS · 2 UNV** = **85,6% parcial / 78,6% crua** (A 85,5 · B 85,3 · C 88,7 · D 50,0).
-- **Lacuna contábil em verificação (WP-0, bloqueante para claims novas):** a diretiva NAS-2 aponta 2 saídas de DONE do bloco C não nomeadas + 1 NS→P residual "forçados pela aritmética". O MAESTRO mediu o fechamento 71 = 60/6/3/2 e as entradas/saídas nomeadas (6 P→D, 3 NS→P, 4 NS→D, 0 D→saída líquida) — **fecham exatamente**; o WP-0 decide com matriz 187×2 sentidos.
+- **Lacuna contábil da NAS-2 — WP-0 entregue em S6:** o artefato `TRANSICOES-ROUND-2026-09-15.md` (`c5d7bfe`) fecha as duas matrizes em 187 e **refuta** a alegação (bloco C: 54+6−0=60 · 5−2+3=6 · 10−7=3 · UNV 2 ⇒ resíduo **0,0**; busca exaustiva em 512 subconjuntos × 3 bases documentadas ⇒ **0** configurações com a assinatura (2,1)). A origem provável da alegação está identificada (§4.3 do artefato): leitura do `RELATORIO` §2 como lista de promoções a DONE (8 entradas em C em vez de 6 — `26.7`/`25.4` são NS→PARTIAL) + omissão de `28.2` na tabela de upgrades. **O bloqueio de claims novas será liberado com o veredicto do adversarial aritmético (S6).**
+- Correção de rastro (apontada pelo WP-0): a frase anterior desta fila dizia "6 P→D" no bloco C — errado. O correto é **6 entradas em DONE (4 NS→D + 2 P→D), 3 NS→PARTIAL, 0 saídas de DONE** no bloco C.
 - Ambiente: MCPs Linear/Neon descosados (H-11) · CI nunca viu este HEAD (H-10) · alvo em placeholder PHP (H-6) · `:5432` com dado não-fixture (H-9).
 
 ## Máquina de estados (S0–S9)
