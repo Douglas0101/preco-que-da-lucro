@@ -298,4 +298,20 @@ export const migrationClasses: readonly MigrationClassEntry[] = [
     rollback: "drizzle/rollback/0016_to_0015_down.sql",
     appliedOn: "empty",
   },
+  {
+    tag: "0017_past_gideon",
+    class: "SAFE",
+    rationale:
+      "Cria a persistência da memória (ai_memories + ai_memory_sources 1:N) com FK composta de tenant, CHECKs de faixa/conteúdo, índices e grants/RLS para app_runtime; aditiva, sem DML e sem alterar objetos pré-existentes.",
+    evidence: [
+      "drizzle/0017_past_gideon.sql",
+      "drizzle/rollback/0017_to_0016_down.sql",
+      "scripts/db/test-memory.ts (T1 isolamento de tenant + WITH CHECK, T2 proveniência/FK/CHECK, T3 atomicidade com efeito de domínio, T4 delete/cascata/grants, T5 classificação)",
+      "src/db/schema.ts (aiMemories/aiMemorySources)",
+      "docs/evidence/agent-state/SPEC-CARDS/CICLO-2.md (§MEM-D2)",
+    ],
+    sha256: "ba66a3f37a238bb1ff9b6cc7b658fa746b076aec2d41bc76d5d92b99078c2c90",
+    rollback: "drizzle/rollback/0017_to_0016_down.sql",
+    appliedOn: "empty",
+  },
 ];
