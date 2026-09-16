@@ -300,3 +300,93 @@ build PASS, **lint FAIL** (2 erros prettier pré-existentes) → handoff PARTIAL
    (entry 272.380 min/84.802 gzip; graph 467.625 min/148.837 gzip).
 4. **Reverificação final S4 (T3, exit codes sem pipe):** registrada no handoff
    S4-CLOSE final (test/lint/typecheck/build).
+
+## Bloco §35 — contrato de evidência de performance
+
+> Acrescentado no WP-1c (2026-09-16) para que este artefato cumpra o contrato de §35
+> **sem isenção de legado**. Nenhuma linha de §1–§9 mudou: nenhum número, tabela, janela,
+> amostra ou nota de contaminação foi removido. Os rótulos abaixo citam o que já está
+> medido neste arquivo; o que os logs brutos não permitem re-derivar sai `N/A` com a
+> lacuna declarada — nada aqui foi estimado.
+
+### Cabeçalho obrigatório
+
+- **ambiente:** `dev-evidence` — `vite dev` (VITE v8.2.2) single-user/single-process
+  contra Neon remoto, com instrumentação S1 (`app.context_tx`) ativa no after. Não é
+  produção e nenhum valor aqui sustenta SLO.
+- **método:** idêntico ao baseline S0 — mineração de `request.completed` (JSON com
+  `timestamp/method/pathname/status/durationMs`), server functions como
+  `/_serverFn/<base64>` decodificado para `{file, export}`, percentil por interpolação
+  linear — acrescido de `app.context_tx` (`{round_trips, outcome, duration_ms}` por
+  transação, instrumentação S1) e de navegação real Playwright autenticada no circuito
+  `/inicio→/produtos→/precos→/ponto-equilibrio→/despesas→/simulacoes`.
+- **n:** 0–40 amostras por endpoint de `request.completed` (§1) e n=81 `app.context_tx`
+  na sessão principal + n=36 na janela pós-patch (§3.2); LCP RUM n=29 na sessão
+  principal + n=14 pós-patch (§6.5).
+- **janela:** before = janela aceita de S0, `2026-08-29T19:05:14.505Z` →
+  `2026-08-29T23:54:46.626Z` (UTC); after = sessão principal
+  `2026-08-30T02:27:29.125Z` → `2026-08-30T02:46:10.650Z` + janela pós-patch
+  `2026-08-30T03:24:29.426Z` → `03:33:58.830Z` (mesmo arquivo, append), com a janela B
+  do log before (`00:35Z`→`02:22:12Z`) **excluída** do comparativo (§7).
+- **fonte:** `/tmp/opencode/vite-dev.log` e `/tmp/opencode/vite-dev-after.log` —
+  **não versionadas** (gitignored e hoje indisponíveis): os números são a transcrição da
+  mineração feita à época e **não são re-deriváveis** a partir do repositório (ver lacuna
+  em `result` e `decision`).
+
+### Campos §35
+
+- **hypothesis:** as refatorações das ondas PERF/FIN — S1 (transação única por server
+  function + instrumentação `app.context_tx`) e S3 (loaders não-bloqueantes +
+  `pendingComponent`) — cortam RTs por server function e o p50/p95 dos endpoints-chave
+  (`listProductsWithMetrics`, `listPurchasePrices`) no mesmo regime `dev-evidence`, sem
+  mexer no imposto de sessão (ADR-020) e sem regressão nos endpoints não tocados.
+- **metric:** métrica primária: **RT-count por server function**
+  (`app.context_tx.round_trips`) — §2 declara ser a métrica robusta entre sessões;
+  secundárias: p50/p95/max ms por endpoint (`request.completed.durationMs`), latência de
+  transação por `outcome` (commit/rollback) e LCP RUM. RT-count **before**: `N/A` — a
+  instrumentação não existia na janela aceita (§3); o "before" de RT é a tabela estática
+  de design do S1 (§3.1), que é **estimativa**, não medição.
+- **before:** janela aceita do baseline S0 — fonte
+  `docs/evidence/perf-baseline-2026-08-29.md` §1 (transcrita no comparativo §2 deste
+  arquivo), p50/p95/max ms: getDashboardSummary
+  5657/6004/6043 (n=2); listProductsWithMetrics 4935/6358/6614 (n=5); listExpenses
+  3409/5108/5155 (n=5); listPurchasePrices 3873/3873/3873 (n=1); calculateBreakEven
+  4608/4608/4608 (n=1); `/api/auth/get-session` 2316/3345/3436 (n=12);
+  `/api/auth/sign-in/email` 2909/3173/3202 (n=3); `/auth` 204/204/204 (n=1);
+  `/api/vitals` 1/2/2 (n=4). RT-count before: `N/A` (§3).
+- **change:** S1 (transação única + instrumentação `app.context_tx`) e S3 (loaders
+  não-bloqueantes + `pendingComponent`) das ondas PERF/FIN, mais o patch pós-S4 do bug
+  UNION (§4.1): casts explícitos `null::text|numeric|timestamptz` nos 36 placeholders e
+  `normalizeChildRow` em `src/lib/products.functions.ts`.
+- **after:** mesma sessão after, mesmo regime (§1–§3) — p50/p95 ms: listProductsWithMetrics
+  2463/2638 (n=4, somente amostras 200 pós-patch); listPurchasePrices 2834/3277 (n=6,
+  pós-patch); listExpenses 3165/3565 (n=12); getDashboardSummary 5215/6257 (n=4);
+  `/api/auth/get-session` 2385/3573 (n=40); `/api/auth/sign-in/email` 2759/3119 (n=5);
+  `/auth` 9/61 (n=11); `/api/vitals` 1/2 (n=121); calculateBreakEven n=0 (saiu do caminho
+  de navegação, §4). RT-count medido (`app.context_tx`, n=81): média 5,32 RT/tx, p50 4,
+  p95 11 (65 commit / 16 rollback), com **7 RTs/tx em `/produtos` e `/precos`** (commit)
+  confirmando os −5/−3 RTs do S1; janela pós-patch (n=36) repete rt=7 em commit. LCP RUM:
+  p50 4436 / p95 6588 ms (n=29) na sessão principal; p50 2538 ms (n=14) pós-patch em
+  `/produtos`/`/precos`.
+- **result:** **caiu em parte, não caiu em parte, e regrediu — corrigido** (§4, medição,
+  não promessa). Caiu: listProductsWithMetrics p50 4935→2463 (**−50,1%**, pós-patch),
+  listPurchasePrices p50 3873→2834 (**−26,8%**, pós-patch), listExpenses p95
+  5108→3565 (**−30,2%**) e 12/12 com rt=6/tx, shells de rota 3–7 ms (24/24, §1.1),
+  calculateBreakEven fora do caminho (1→0 chamadas). Não caiu: `/api/auth/get-session`
+  p50 2316→2385 (**+3,0%**) — imposto de sessão, ADR-020 mantida e cookie cache em
+  ADR-025 `BLOCKED_ON_ADR`; getDashboardSummary sem queda material (p95/max subiram,
+  rt=11/tx é o maior do sistema). Regrediu: 503×12 em listProductsWithMetrics e 503×4 em
+  listPurchasePrices pelo bug do UNION ALL, **corrigido** no patch pós-S4 (§4.1) e
+  reverificado com 200×4 / 200×6 em rt=7 commit. Confundidor declarado: a latência por RT
+  Neon varia entre sessões (§2), logo os deltas de latência são conservadores e o
+  RT-count é a leitura robusta. Lacunas (registradas, não estimadas): `runSimulation` n=0
+  e `calculateBreakEven` n=0 no after; listPurchasePrices before n=1; shells sem baseline
+  before; LCP sem baseline before; RT-count before não observável.
+- **decision:** `follow-up` — os números medidos não sustentam `keep` por si: regime
+  `dev-evidence` (single-user, sem build de produção) e fontes em `/tmp` **não
+  versionadas** ⇒ não re-deriváveis (o contrato de §35 só admite `keep` com fonte
+  versionada e re-derivável). Próximos passos declarados: (1) re-baseline sob regime
+  `CONTROLLED` com raw versionado — entregue em
+  `docs/evidence/perf-controlled-2026-09-13/perf-evidence.md`; (2) cobertura de integração
+  contra Postgres real para o read-model UNION (§4.1, lição registrada); (3) `get-session`
+  / cookie cache segue `BLOCKED_ON_ADR` (ADR-025 PROPOSED).

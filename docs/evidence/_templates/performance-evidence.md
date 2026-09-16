@@ -6,8 +6,10 @@
 > ignorado pelo gate; o artefato copiado **não** é: `src/test/perf-evidence.test.ts`
 > descobre por **caminho** — todo `.md` sob `docs/evidence/perf-*/**` e todo
 > `perf-*.md`/`*-perf-*.md` — e exige os 7 rótulos de §35 de cada artefato, com
-> descoberta vazia reprovando (fail-closed) e allowlist de legado de 2 artefatos
-> `dev-evidence` pré-gate, justificada no próprio gate.
+> descoberta vazia reprovando (fail-closed) e **sem allowlist nem isenção de legado**
+> (WP-1c): `checked === discovered`. Os dois artefatos `dev-evidence` de 2026-08-29
+> (`perf-baseline-2026-08-29.md`, `perf-after-2026-08-29.md`) cumprem o contrato com o
+> bloco §35 no próprio arquivo, como qualquer outro artefato descoberto.
 
 ## `report.md` de captura: bloco §35 gerado (não manter à mão)
 
@@ -75,5 +77,10 @@ com só `change`, o `result` diz que `change` está declarado e o `before` segue
 - `before` e `after` no **mesmo regime** de medição; declare confundidores (ex.:
   latência de rede entre sessões).
 - Sem fonte versionada e re-derivável, o número não sustenta `keep`.
+- Artefato de legado sem raw versionado (`/tmp`, log gitignored): preencha os 7 rótulos
+  com o que já está medido no próprio artefato e `N/A` + lacuna declarada onde o log
+  bruto não permite re-derivar — nunca invente número e nunca apague medição publicada.
+  A `decision` desses artefatos é `follow-up` (sem fonte versionada não há `keep`), com
+  o próximo passo nomeado (ex.: re-baseline `CONTROLLED`).
 - Lacuna de amostragem é registrada como lacuna, nunca estimada.
 - `CONTROLLED` só vale para harness local/mockado; tráfego real é `OBSERVED`.

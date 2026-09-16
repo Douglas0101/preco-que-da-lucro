@@ -26,28 +26,25 @@ const LABEL_PATTERNS = REQUIRED_LABELS.map((label) => ({
 }));
 
 /**
- * Allowlist de legado — REDUZIDA de 3 para 2 entradas em WP-A1 (`35`).
+ * SEM allowlist e SEM isenção de legado (WP-1c).
  *
- * Por que estas duas ficam: `perf-baseline-2026-08-29.md` e
- * `perf-after-2026-08-29.md` são artefatos de regime `dev-evidence` publicados
- * ANTES deste gate (commit `53f09e4`), com raw NÃO versionado
- * (`/tmp/opencode/vite-dev.log`, hoje inexistente). Preencher os 7 rótulos
- * exigiria inventar `before`/`after`/`metric` — reescrever evidência histórica
- * com números não re-deriváveis. Ficam isentos, mas a isenção é ancorada em
- * CONTEÚDO: o arquivo precisa declarar o regime de legado no próprio corpo
- * (ver `auditPerfEvidence`); nome sozinho não isenta.
+ * Histórico do que foi removido: até o WP-1b (item `35`) este gate isentava dois
+ * artefatos de 2026-08-29 — `perf-baseline-2026-08-29.md` e
+ * `perf-after-2026-08-29.md`, regime `dev-evidence` publicado ANTES do gate
+ * (commit `53f09e4`) — porque a fonte da medição vivia em
+ * `/tmp/opencode/vite-dev.log` (não versionada) e preencher os 7 rótulos parecia
+ * exigir inventar `before`/`after`/`metric`. A isenção era ancorada em CONTEÚDO
+ * (o arquivo tinha de declarar o regime no corpo); nome sozinho não isentava.
  *
- * Por que a 3ª entrada foi REMOVIDA: `explain-critical-queries-2026-08-21.md`
- * não casa nenhum dos predicados de caminho (§ abaixo) e nunca era descoberto —
- * a entrada era morta e dava a impressão falsa de que a allowlist cobria um caso.
+ * O WP-1c eliminou a isenção: os dois artefatos passaram a carregar o bloco §35
+ * (cabeçalho obrigatório + os 7 rótulos) com os números transcritos das medições
+ * já publicadas e `N/A` + lacuna declarada onde o log bruto não permite
+ * re-derivar. Nenhum valor medido foi removido e nenhum número foi inventado.
  *
- * Nenhuma entrada nova pode ser acrescentada: artefato novo sem os 7 rótulos
- * REPROVA (é o propósito do gate).
+ * Invariante do gate (fail-closed nos dois sentidos): descoberta vazia REPROVA
+ * (`EMPTY_DISCOVERY_FAILURE`) e TODO artefato descoberto é checado contra os 7
+ * rótulos — `checked === discovered`, sem exceção (T4/T5).
  */
-const LEGACY_ALLOWLIST: Readonly<Record<string, string>> = {
-  "perf-baseline-2026-08-29.md": "dev-evidence",
-  "perf-after-2026-08-29.md": "dev-evidence",
-};
 
 const EMPTY_DISCOVERY_FAILURE =
   "docs/evidence/**: descoberta vazia — nenhum artefato de evidência de performance encontrado; o gate §35 é fail-closed e REPROVA conjunto vazio (contrato em docs/evidence/_templates/performance-evidence.md)";
@@ -101,39 +98,25 @@ function missingLabels(content: string): RequiredLabel[] {
 interface PerfEvidenceAudit {
   discovered: string[];
   checked: string[];
-  allowlisted: string[];
   failures: string[];
 }
 
 function auditPerfEvidence(dir: string): PerfEvidenceAudit {
   const discovered = discoverPerfEvidence(dir);
   if (discovered.length === 0) {
-    return { discovered, checked: [], allowlisted: [], failures: [EMPTY_DISCOVERY_FAILURE] };
+    return { discovered, checked: [], failures: [EMPTY_DISCOVERY_FAILURE] };
   }
   const checked: string[] = [];
-  const allowlisted: string[] = [];
   const failures: string[] = [];
   for (const relativePath of discovered) {
     const content = readFileSync(join(dir, relativePath), "utf8");
-    const legacyRegime = Object.hasOwn(LEGACY_ALLOWLIST, relativePath)
-      ? LEGACY_ALLOWLIST[relativePath]
-      : undefined;
-    if (legacyRegime !== undefined) {
-      allowlisted.push(relativePath);
-      if (!content.includes(legacyRegime)) {
-        failures.push(
-          `docs/evidence/${relativePath}: isento como legado (\`${legacyRegime}\`) mas não declara esse regime — a allowlist de legado não isenta por nome`,
-        );
-      }
-      continue;
-    }
     checked.push(relativePath);
     const missing = missingLabels(content);
     if (missing.length > 0) {
       failures.push(`docs/evidence/${relativePath}: rótulo(s) ausente(s): ${missing.join(", ")}`);
     }
   }
-  return { discovered, checked, allowlisted, failures };
+  return { discovered, checked, failures };
 }
 
 const fixtureRoots: string[] = [];
@@ -217,40 +200,48 @@ describe("gate §35 — evidência de performance", () => {
     ]);
   });
 
-  it("T4: a allowlist de legado é explícita, mínima e ancorada em conteúdo", () => {
-    // T4a: conjunto exato (reduzido de 3 para 2; `explain-critical-queries-*` era entrada morta).
-    expect(LEGACY_ALLOWLIST).toEqual({
-      "perf-after-2026-08-29.md": "dev-evidence",
-      "perf-baseline-2026-08-29.md": "dev-evidence",
+  it("T4: NÃO existe isenção de legado — artefato de legado sem os 7 rótulos REPROVA", () => {
+    // T4a: os dois caminhos que a allowlist isentava (WP-1c). Declarar o regime de
+    // legado no corpo NÃO isenta mais: o arquivo tem de carregar os 7 rótulos.
+    for (const legacyPath of ["perf-baseline-2026-08-29.md", "perf-after-2026-08-29.md"]) {
+      const dir = fixture({ [legacyPath]: "> **RÓTULO GLOBAL: `dev-evidence`.**\n" });
+      const audit = auditPerfEvidence(dir);
+      expect(audit.checked).toEqual([legacyPath]);
+      for (const label of REQUIRED_LABELS) {
+        expect(audit.failures.join("\n")).toContain(label);
+      }
+    }
+    // T4b: com os rótulos anexados (WP-1c), o mesmo caminho de legado passa como
+    // qualquer artefato contratado — a isenção foi substituída por conformidade.
+    const compliant = fixture({
+      "perf-baseline-2026-08-29.md": CONTRACT_ARTIFACT,
+      "perf-after-2026-08-29.md": CONTRACT_ARTIFACT,
     });
-    // T4b: isenção NÃO vale só pelo nome — mesmo caminho de legado sem o regime reprova.
-    const rogue = fixture({
-      "perf-baseline-2026-08-29.md": withoutLabel(CONTRACT_ARTIFACT, "metric"),
-    });
-    const rogueAudit = auditPerfEvidence(rogue);
-    expect(rogueAudit.failures.join("\n")).toContain("perf-baseline-2026-08-29.md");
-    // T4c: o legado real (regime `dev-evidence` declarado no arquivo) segue isento.
-    const legit = fixture({
-      "perf-baseline-2026-08-29.md": "> **RÓTULO GLOBAL: `dev-evidence`.**\n",
-    });
-    const legitAudit = auditPerfEvidence(legit);
-    expect(legitAudit.allowlisted).toEqual(["perf-baseline-2026-08-29.md"]);
-    expect(legitAudit.failures).toEqual([]);
+    const compliantAudit = auditPerfEvidence(compliant);
+    expect(compliantAudit.checked).toEqual([
+      "perf-after-2026-08-29.md",
+      "perf-baseline-2026-08-29.md",
+    ]);
+    expect(compliantAudit.failures).toEqual([]);
   });
 
-  it("T5: na árvore real o gate inspeciona > 0 artefatos e inclui o baseline controlado", () => {
+  it("T5: na árvore real nenhum artefato é isento (checked === discovered) e o baseline controlado entra", () => {
     const audit = auditPerfEvidence(evidenceRoot);
     console.log(
-      `gate §35: ${audit.discovered.length} descoberto(s) por caminho, ${audit.checked.length} checado(s) contra os 7 rótulos, ${audit.allowlisted.length} na allowlist de legado`,
+      `gate §35: ${audit.discovered.length} descoberto(s) por caminho, ${audit.checked.length} checado(s) contra os 7 rótulos, 0 isento(s)`,
     );
     expect(audit.failures.join("\n")).toBe("");
     expect(audit.discovered.length).toBeGreaterThan(0);
     expect(audit.checked.length).toBeGreaterThan(0);
+    // nenhuma isenção: todo artefato descoberto é checado contra os 7 rótulos
+    expect(audit.checked).toEqual(audit.discovered);
     // a árvore de fluxo da missão (card/claim `35-perf-gate.md`) não entra na varredura real
     expect(audit.discovered.some((path) => path.startsWith("agent-state/"))).toBe(false);
     expect(audit.checked).toContain("perf-controlled-2026-09-13/perf-evidence.md");
     expect(audit.checked).toContain("perf-controlled-2026-09-13/report.md");
-    expect(audit.allowlisted).toEqual(["perf-after-2026-08-29.md", "perf-baseline-2026-08-29.md"]);
+    // os 2 legados de 2026-08-29 deixaram de ser isentos e cumprem o contrato
+    expect(audit.checked).toContain("perf-after-2026-08-29.md");
+    expect(audit.checked).toContain("perf-baseline-2026-08-29.md");
   });
 
   it("T6: artefato de FLUXO da missão sob `agent-state/**` não reprova; artefato real sem rótulo continua reprovando", () => {

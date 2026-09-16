@@ -40,7 +40,7 @@ vêm do raw versionado deste diretório e do sumário `report.md` (gerado por
   `CONTROLLED` (F0-04). O único `before` do repositório é
   `docs/evidence/perf-baseline-2026-08-29.md`, de regime `dev-evidence` (log de
   `vite dev`, n=1–12, fonte `/tmp` não versionada): regimes diferentes, **não
-  comparáveis**; é por isso que ele segue na allowlist de legado do gate.
+  comparáveis**.
 - **change:** nenhuma mudança de produto. O que passou a existir é o harness de
   medição controlada: `scripts/perf/capture-baseline.mjs` (captura no commit
   `42d4b76`) e `scripts/perf/summarize.mjs` (sumário `report.md`), mais este

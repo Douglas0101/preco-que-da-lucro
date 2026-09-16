@@ -40,12 +40,13 @@ for citado no PR, a evidência passa a ser exigida.
   (commit `9f6f158`): `scripts/perf/summarize.mjs` o emite a partir do raw, com
   os rótulos de julgamento declarados em `meta.section35.<rótulo>` quando for o
   caso (ver `docs/evidence/_templates/performance-evidence.md`).
-- Allowlist de legado (publicado antes do gate; não reescrever) — **2 entradas**,
-  ancoradas em CONTEÚDO (o arquivo tem de declarar o regime no corpo):
-  `perf-baseline-2026-08-29.md` e `perf-after-2026-08-29.md`, ambos
-  `dev-evidence`. `explain-critical-queries-2026-08-21.md` **não** está na
-  allowlist: não casava nenhum predicado de caminho e nunca era descoberto (a
-  entrada era morta).
+- Não há allowlist nem isenção de legado (WP-1c): todo artefato descoberto é checado
+  contra os 7 rótulos (`checked === discovered`). Os dois artefatos de legado de
+  2026-08-29 (`perf-baseline-2026-08-29.md`, `perf-after-2026-08-29.md`, regime
+  `dev-evidence` com raw em `/tmp` não versionado) carregam o bloco §35 no próprio
+  arquivo, com `N/A` + lacuna declarada onde o log bruto não permite re-derivar.
+  `explain-critical-queries-2026-08-21.md` segue fora da varredura: não casa nenhum
+  predicado de caminho.
 - O gate roda no `npm run test` e no CI pesado (`ui-stack`); um artefato novo
   fora do padrão deixa a árvore vermelha.
 
