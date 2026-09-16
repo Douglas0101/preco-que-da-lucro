@@ -29,7 +29,12 @@ export interface MemoryRecord {
   id: string;
   scope: MemoryScope;
   content: string;
-  provenance: MemoryProvenance;
+  /** Proveniência primária (§15.4). Opcional porque o `MemoryRecordInput` a tem
+   * opcional: quando a policy não exige proveniência, o registro é gravado sem
+   * fonte e não há o que devolver. A decisão C do STEWARD materializa a
+   * proveniência 1:N em `ai_memory_sources`; o read model expõe a fonte mais
+   * antiga e o `sourceId` deixa de ser o identificador da origem. */
+  provenance?: MemoryProvenance;
   importance: number;
   /** Ciclo de vida (§15.6/D3): só `active` entra em retrieval; versão substituída
    * permanece no histórico imutável. */

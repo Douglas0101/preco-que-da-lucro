@@ -966,6 +966,138 @@ export const backfillWorkItems = pgTable(
   ],
 );
 
+/** §43/§15.2 — memória persistente (alvo M-05, degrau D2). Os nomes são os do
+ * plano (`ai_memories`/`ai_memory_sources`); `chat_*` permanece como
+ * implementação vigente do §15.2-conversas (decisão A do STEWARD: alias
+ * canônico, sem renomeação de tabela em uso). `(tenant_id, id)` é único para
+ * servir de alvo da FK composta de `ai_memory_sources` — o padrão §34 de
+ * `chat_conversations`/`chat_messages`.
+ *
+ * `user_id` é o autor da gravação (não o tenant): a FK composta para
+ * `tenant_memberships` impede memória atribuída a quem não é membro e dá a
+ * âncora por usuário que D4 exige para delete/export. `confidence` é a cópia de
+ * retrieval da confiança declarada na proveniência (nula quando a policy não
+ * exige proveniência e o candidato foi gravado sem fonte) e `importance` usa
+ * `0` como neutro documentado — o read model `MemoryRecord.importance` é
+ * numérico. */
+export const aiMemories = pgTable(
+  "ai_memories",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(),
+    scope: text("scope").notNull(),
+    content: text("content").notNull(),
+    importance: doublePrecision("importance").notNull().default(0),
+    confidence: doublePrecision("confidence"),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    /** Alvo da FK composta de `ai_memory_sources`: precisa ser **constraint**
+     * (não índice) para existir antes dos `ALTER TABLE ... ADD FOREIGN KEY` do
+     * arquivo gerado — mesmo padrão de `chat_conversations`. */
+    unique("ai_memories_tenant_id_id_uidx").on(table.tenantId, table.id),
+    /** Índice do retrieval lexical de D5/D6: tenant primeiro (§15.8). */
+    index("ai_memories_tenant_status_created_idx").on(
+      table.tenantId,
+      table.status,
+      table.createdAt,
+    ),
+    foreignKey({
+      columns: [table.tenantId, table.userId],
+      foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
+    }).onDelete("cascade"),
+    check("ai_memories_scope_check", sql`${table.scope} in ('tenant', 'user', 'conversation')`),
+    check("ai_memories_content_check", sql`${table.content} <> ''`),
+    check("ai_memories_status_check", sql`${table.status} in ('active', 'superseded')`),
+    check(
+      "ai_memories_importance_check",
+      sql`${table.importance} >= 0 and ${table.importance} <= 1`,
+    ),
+    check(
+      "ai_memories_confidence_check",
+      sql`${table.confidence} is null or (${table.confidence} >= 0 and ${table.confidence} <= 1)`,
+    ),
+  ],
+);
+
+/** §15.4 — proveniência 1:N de uma memória (decisão C do STEWARD): as origens
+ * conhecidas viram FKs **opcionais** (FK composta com coluna nula não é
+ * verificada — MATCH SIMPLE), em vez do `sourceId` polimórfico do contrato.
+ * `source_ref` preserva o rótulo opaco do produtor quando existe; o CHECK
+ * `origin_check` exige que ao menos uma origem identifique a fonte, senão a
+ * linha seria proveniência decorativa. `ON DELETE cascade` nas origens: origem
+ * removida não deixa referência pendurada; `(tenant_id, memory_id)` em cascata
+ * garante que apagar a memória não deixa fonte órfã. */
+export const aiMemorySources = pgTable(
+  "ai_memory_sources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    memoryId: uuid("memory_id").notNull(),
+    sourceKind: text("source_kind").notNull(),
+    sourceRef: text("source_ref"),
+    conversationId: uuid("conversation_id"),
+    messageId: uuid("message_id"),
+    productId: uuid("product_id"),
+    simulationId: uuid("simulation_id"),
+    userId: text("user_id"),
+    inferred: boolean("inferred").notNull().default(false),
+    confidence: doublePrecision("confidence").notNull(),
+    capturedAt: timestamp("captured_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("ai_memory_sources_tenant_memory_idx").on(table.tenantId, table.memoryId),
+    foreignKey({
+      columns: [table.tenantId, table.memoryId],
+      foreignColumns: [aiMemories.tenantId, aiMemories.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.conversationId],
+      foreignColumns: [chatConversations.tenantId, chatConversations.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.messageId],
+      foreignColumns: [chatMessages.tenantId, chatMessages.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.productId],
+      foreignColumns: [products.tenantId, products.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.simulationId],
+      foreignColumns: [simulations.tenantId, simulations.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.userId],
+      foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
+    }).onDelete("cascade"),
+    check(
+      "ai_memory_sources_kind_check",
+      sql`${table.sourceKind} in ('user', 'tool', 'model', 'import')`,
+    ),
+    check(
+      "ai_memory_sources_confidence_check",
+      sql`${table.confidence} >= 0 and ${table.confidence} <= 1`,
+    ),
+    check(
+      "ai_memory_sources_ref_check",
+      sql`${table.sourceRef} is null or ${table.sourceRef} <> ''`,
+    ),
+    check(
+      "ai_memory_sources_origin_check",
+      sql`${table.sourceRef} is not null or ${table.conversationId} is not null or ${table.messageId} is not null or ${table.productId} is not null or ${table.simulationId} is not null or ${table.userId} is not null`,
+    ),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type Tenant = typeof tenants.$inferSelect;
 export type TenantMembership = typeof tenantMemberships.$inferSelect;
@@ -980,3 +1112,5 @@ export type OutboxEvent = typeof outboxEvents.$inferSelect;
 export type OutboxConsumption = typeof outboxConsumptions.$inferSelect;
 export type BackfillCheckpointRecord = typeof backfillCheckpoints.$inferSelect;
 export type BackfillWorkItem = typeof backfillWorkItems.$inferSelect;
+export type AiMemory = typeof aiMemories.$inferSelect;
+export type AiMemorySource = typeof aiMemorySources.$inferSelect;

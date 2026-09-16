@@ -24,6 +24,8 @@ export function isFixtureEmail(email: string): boolean {
 
 /** Tabelas tenant-scoped, filhos antes dos pais (espelha scripts/e2e/seed-auth.ts). */
 export const TENANT_SCOPED_TABLES = [
+  "ai_memory_sources",
+  "ai_memories",
   "backfill_work_items",
   "backfill_checkpoints",
   "outbox_consumptions",
