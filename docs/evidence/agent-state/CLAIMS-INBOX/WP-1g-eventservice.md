@@ -137,7 +137,12 @@
   (1 row)
   ```
 
-  Leitura: os 2 eventos de `expense.saved` são os appends do caminho de runtime **já passando pelo `EventService`** (commit da despesa em T1 + o segundo `save`); `expenses = 0` é o resultado esperado de T1 (rollback do domínio sem despesa e sem evento órfão) e `migrations = 17` confirma que o alvo era o banco efêmero migrado na própria corrida (e não o `:5432`).
+  **Leitura correta do `psql` acima (correção V-WP1g — atribuição, não número):** essas 2 linhas **não** vêm do caminho `EventService`: `seedFixtures` apaga `outbox_events` e `expenses` dos dois tenants (`scripts/db/test-outbox.ts:104-105`) e roda no início de T2 (`:437`) e de T5 (`:290`) — a linha que T1 commitou via `expenseService.save` é removida ali. As 2 `expense.saved/pending` são as de **T5**, que appenda **direto no `outboxRepository`** para provar RLS/claim (`t5:a` em `:291-300`, `t5:b` em `:301-310`); e `expenses = 0` é o efeito do mesmo `delete` (`:105`), **não** do rollback de T1. O que esta consulta prova é apenas **onde** a corrida rodou (banco efêmero recriado do zero, `migrations = 17`, nada no `:5432`) — não a fiação nova.
+
+  Onde cada pedaço do aceite fica provado, então:
+  - **`EventService → port` (executor da transação, DI, erro não engolido):** testes **unitários** de `src/test/event-service.test.ts` — o fake registra o terceiro argumento e a asserção é `toBe(context.transaction)`, com o teste do consumidor injetando `DefaultEventService` real e mostrando que o `save` do `expense.service` passa pelo serviço com o executor da transação (EVIDENCE-B), mais as sondas de EVIDENCE-F;
+  - **append na mesma transação do domínio (integração):** `test-outbox.ts` **inalterado** e verde — em T1, `expenseService.save` é chamado em `:178` (bloco de rollback `:175-188`) e `:203-209` (commit), e as asserções correspondentes (`:190-201` rollback sem evento órfão; `:229` commit da despesa persiste exatamente um evento) rodam sobre o caminho `expenseService.save → EventService → outboxRepository`; já `:246-277` prova a falha do append **direto no repositório** desfazendo a mutação. É a E2 do item;
+  - **efeito do `EventService` no caminho do repositório:** coberto por T1 (o evento sai com `event_type`/`aggregate_type`/`idempotency_key`/payload esperados) — a sonda 3 de EVIDENCE-F mostra que esse teste morre se o `expense.service` deixar de appendar.
 
   ```text
   $ docker rm -f pqdl-n2b-eventservice
