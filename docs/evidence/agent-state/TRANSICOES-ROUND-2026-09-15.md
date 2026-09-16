@@ -58,7 +58,7 @@ D (6) : 1 NS→PARTIAL
 
 ## 3. Matriz da rodada da MISSÃO (base `139/25/21/2` → final `147/26/12/2`)
 
-Base = coluna `status` do anexo (fim da medição). Final = `RELATORIO-MISSAO §5` (placar consolidado). Cada transição não-identidade tem **fonte primária declarada** na seção `## LEDGER` do claim respectivo (o MAESTRO é quem promove).
+Base = coluna `status` do anexo (fim da medição). Final = `RELATORIO-MISSAO §5` (placar consolidado). Fonte primária de cada transição não-identidade = a seção `## LEDGER` do claim respectivo e, **quando o item não tem claim**, a decisão do STEWARD que o promove — é o caso de `9.1-ME` (emenda **D5** em `SPEC-DELTAS/DECISOES-STEWARD-2026-09-15.md`, commit `b45e2fe`; não existe `CLAIMS-INBOX/9.1-ME.md`).
 
 | origem → destino          | n     | quem                                                                                                                                     |
 | ------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
@@ -76,7 +76,7 @@ Base = coluna `status` do anexo (fim da medição). Final = `RELATORIO-MISSAO §
 
 | id       | antes → depois      | bloco | `anexo:linha` | âncora do estado final / integração                                                                       |
 | -------- | ------------------- | ----- | ------------- | --------------------------------------------------------------------------------------------------------- |
-| `9.1-ME` | `NS → PARTIAL`      | A     | :41           | `DECISOES-STEWARD` **D5** (emenda pós-V3-A: `outbox.repository.ts:70-75`, `outbox.worker.ts:118,162`)      |
+| `9.1-ME` | `NS → PARTIAL`      | A     | :41           | `DECISOES-STEWARD` **D5** (emenda pós-V3-A: `outbox.repository.ts:70-75`, `outbox.worker.ts:118,162` · commit `b45e2fe`) |
 | `10.7`   | `PARTIAL → DONE`    | A     | :50           | `CLAIMS-INBOX/10.7.md §LEDGER` (I-M1 · merge `25dd0f5`)                                                    |
 | `16.3`   | `NS → DONE`         | B     | :90           | `CLAIMS-INBOX/16.3-pgstat.md §LEDGER` (I-M8 · merge `406eb81`)                                             |
 | `23.1`   | `NS → DONE`         | C     | :129          | `CLAIMS-INBOX/23-outbox.md §LEDGER` (I-M4 · merge `b5e880f`)                                               |
@@ -313,7 +313,7 @@ status:
   3. **IMPLEMENT:** `docs/evidence/agent-state/TRANSICOES-ROUND-2026-09-15.md` (novo) · `docs/evidence/agent-state/RELATORIO-MISSAO-2026-09-15.md` (§9 ERRATA apensa). Nada mais foi tocado.
   4. **EVIDENCE:** §6 (comando + saída colada integral) e §6.1 (caminho curto em `awk`); o script do §9, **extraído do próprio documento e executado, reproduz a saída colada byte a byte** (`diff` vazio).
   5. (este arquivo)
-  6. ADVERSARIAL: (vazio — S6, adversarial aritmético, recontagem do zero sem ler a matriz primeiro).
+  6. **ADVERSARIAL (S6, aritmético — recontagem do zero, sem ler a matriz): CONFIRMED na substância** — medição `128/10/1/22/2/21/2/1 = 187` idêntica ao `RECONCILIACAO`; missão `139/25/21/2 → 147/26/12/2 = 187` nos dois sentidos; marcos do LEDGER compatíveis; refutação da lacuna NAS-2 sustentada. Com **CORRECTED** em 2 linhas documentais (sem efeito em número): (a) errata E-1/E-2 — `28.4` é `PARTIAL→PARTIAL` (identidade); quem promoveu a PARTIAL foi `28.2`; a prosa do `§2` do relatório foi marcada inline; (b) a regra de fonte primária do `§3` passou a cobrir o caso sem claim (`9.1-ME` = emenda D5 do STEWARD, `b45e2fe`). Aplicadas no commit de correção — ponteiro estável: `git log -1 --format='%h %s' -- docs/evidence/agent-state/TRANSICOES-ROUND-2026-09-15.md`.
   7. LEDGER: (vazio — MAESTRO).
 - **E1 (evidência provisória deste worktree):**
   - caminho: `docs/evidence/agent-state/TRANSICOES-ROUND-2026-09-15.md` · trecho-chave: §3 (matriz da missão, 12 transições nomeadas, `139/25/21/2 → 147/26/12/2`) e §4.1 (`DONE 54 + 6 − 0 = 60 … residuais (0, 0)`);
