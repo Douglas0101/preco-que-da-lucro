@@ -21,6 +21,11 @@
  *   T5  RLS/grants: sob `app_runtime` (NOSUPERUSER/NOBYPASSRLS) o ledger de outro
  *       tenant é invisível e a escrita cruzada é recusada pela policy.
  *
+ * Tempo: o caso com `rateLimit` (T1) injeta **relógio virtual** (`now`/`sleep`)
+ * — a janela pertence ao teste, não à latência do host, então `esperas` é
+ * determinístico; nele, `taxa`/`duração` do lote são virtuais. Os demais casos
+ * usam o relógio real e reportam medição de verdade.
+ *
  * Uso:
  *   npx tsx scripts/db/test-backfill.ts                 # narrativa T1..T5
  *   npx tsx scripts/db/test-backfill.ts --phase=crash    # filho (morre no meio)
@@ -203,6 +208,25 @@ function printSummary(label: string, summary: BackfillRunSummary): void {
   );
 }
 
+/**
+ * Relógio virtual do rate-limit: a janela pertence ao TESTE, não à latência do
+ * banco. `sleep` avança o relógio sem dormir de verdade, então a espera é
+ * determinística — medir a janela com tempo real fazia a asserção de T1 oscilar
+ * (0 ou 1 espera) conforme a máquina, que é flake, não gate.
+ */
+function virtualClock(start = Date.now()) {
+  let current = start;
+  const sleeps: number[] = [];
+  return {
+    now: () => current,
+    sleep: async (ms: number) => {
+      sleeps.push(ms);
+      current += ms;
+    },
+    sleeps,
+  };
+}
+
 function buildRunner(
   pool: Pool,
   options: {
@@ -214,6 +238,10 @@ function buildRunner(
     checkpoints?: BackfillCheckpointStore;
   },
 ) {
+  // Relógio virtual SÓ onde há janela de rate-limit (a espera é do teste, não da
+  // latência do host); nos casos sem janela o tempo real continua sendo o
+  // reportado (a taxa/duração de T2–T4 segue sendo medição de verdade).
+  const clock = options.rateLimit ? virtualClock() : null;
   return createBackfillRunner<DemoRow>({
     workKey: WORK_KEY,
     runKey: options.runKey,
@@ -228,6 +256,7 @@ function buildRunner(
     checkpoints: options.checkpoints ?? createPostgresCheckpointStore(pool, { tenantId: TENANT_A }),
     rateLimit: options.rateLimit,
     onProgress: options.onProgress ?? printProgress,
+    ...(clock ? { now: clock.now, sleep: clock.sleep } : {}),
   });
 }
 
@@ -342,9 +371,10 @@ async function t1CrashAndResume(pool: Pool): Promise<void> {
   assert.equal(resumed.rowsApplied, 6);
   assert.equal(resumed.errors, 0);
   assert.equal(resumed.rateLimitWaits, 1, "7 linhas em janelas de 4 ⇒ 1 espera");
-  assert.ok(
-    resumed.rateLimitWaitMs > 0 && resumed.rateLimitWaitMs <= RATE_LIMIT.windowMs,
-    `a espera fica dentro da janela (${resumed.rateLimitWaitMs}ms de ${RATE_LIMIT.windowMs}ms)`,
+  assert.equal(
+    resumed.rateLimitWaitMs,
+    RATE_LIMIT.windowMs,
+    "com relógio virtual a espera é a janela cheia (sem depender da latência do banco)",
   );
   assert.equal(resumed.completed, true);
   assert.equal(resumed.checkpoint.cursor, "d10");
@@ -456,7 +486,10 @@ function startBarrier(count: number): () => Promise<void> {
  * persistida. Sem a barreira, o segundo worker poderia simplesmente retomar o
  * checkpoint do primeiro (caminho seguro, mas não a corrida que T2 prova).
  */
-function gatedStore(store: BackfillCheckpointStore, gate: () => Promise<void>): BackfillCheckpointStore {
+function gatedStore(
+  store: BackfillCheckpointStore,
+  gate: () => Promise<void>,
+): BackfillCheckpointStore {
   return {
     load: async (runKey) => {
       const checkpoint = await store.load(runKey);
