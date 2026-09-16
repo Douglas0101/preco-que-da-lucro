@@ -62,12 +62,14 @@ vêm do raw versionado deste diretório e do sumário `report.md` (gerado por
 - **decision:** `keep` — adotar este artefato como o `before` canônico dos
   próximos PRs de §5. Follow-ups: (1) repetir com n≥30 para p95 utilizável;
   (2) medir o chat HTTP (lacuna n=0) e, quando houver tráfego real, declarar
-  regime `OBSERVED`; (3) `scripts/perf/summarize.mjs` deve passar a emitir o
-  bloco §35 no `report.md` gerado, hoje mantido à mão (fora do escopo de WP-A1).
+  regime `OBSERVED`; (3) **[concluído em WP-1b, commit `9f6f158`]**
+  `scripts/perf/summarize.mjs` passou a emitir o bloco §35 no `report.md` gerado
+  — o bloco não é mais mantido à mão.
 
 ## Cadeia de proveniência
 
 O `report.md` deste diretório é regenerado por `scripts/perf/summarize.mjs` e
-carrega um bloco §35 mantido à mão (o gerador não o emite); este arquivo é o
-artefato §35 revisável, com o contexto que o sumário não tem. Nenhum número
+carrega um bloco §35 **gerado** pelo próprio sumarizador a partir do raw deste
+diretório (commit `9f6f158`; antes disso o bloco era mantido à mão); este arquivo
+é o artefato §35 revisável, com o contexto que o sumário não tem. Nenhum número
 deste documento foi estimado: todos constam do raw listado em **fonte**.
