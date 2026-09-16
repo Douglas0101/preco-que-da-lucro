@@ -163,13 +163,13 @@ node scripts/perf/summarize.mjs && npx vitest run src/test/perf-evidence.test.ts
 ## 4. Auto-avaliação de riscos (declarados, não escondidos)
 
 1. **Julgamento declarado vs derivado.** O bloco gerado troca a prosa histórica do bloco à mão por padrões derivados: `before`/`change` saem `N/A` + ponteiro para `meta.section35.<rótulo>`. As informações que só existiam na prosa à mão (o `before` de `dev-evidence` não é comparável; o harness `scripts/perf/*` nasceu no commit `42d4b76`) **não** desaparecem do repositório — seguem em `perf-evidence.md:antes/depois`, que é o artefato §35 revisável e é para onde o bloco aponta. Re-ancorar essa prosa no bloco exigiria declarar `meta.section35` no raw, e **o raw (`meta.json`) está fora do meu escopo** — não o toquei.
-2. **`decision` derivada é mecânica.** `keep` se existe amostra de rota (lacunas ficam declaradas em `result`/§35), `follow-up` se não existe; `revert` nunca sai do gerador. Para o baseline controlado a decisão **permaneceu `keep`** (consistente com `perf-evidence.md`), mas o critério agora é do gerador, não do autor — quem quiser outro valor declara `meta.section35.decision`.
+2. **`decision` derivada é mecânica.** `keep` se existe amostra de rota (lacunas ficam declaradas em `result`/§35), `follow-up` se não existe **ou se o raw declara um par antes/depois sem decisão declarada** (regra acrescentada em F1, §6); `revert` nunca sai do gerador. Para o baseline controlado a decisão **permaneceu `keep`** (consistente com `perf-evidence.md`), mas o critério agora é do gerador, não do autor — quem quiser outro valor declara `meta.section35.decision`.
 3. **Nenhum número mudou**, mas o artefato tem `- Gerado em:` novo (`2026-09-16T03:13:04.678Z`); janela/commit da captura seguem `2026-09-13` / `42d4b76`. Regenerar no repo foi autorizado pelo card (“artefato gerado somente se a regeneração for executada no repo — diga no claim”): **foi**.
 4. **Detalhe a mais, não a menos:** o `after` gerado é mais granular que o texto à mão (`server fn p50`, RT/evento por rota, faixa de CLS). Todos derivados do mesmo raw — conferi que prontidão/TTFB/bundle/AI/chat batem valor a valor com o bloco removido.
 5. **Formato numérico:** o bloco gerado usa ponto decimal (`.`) como o resto do relatório gerado; o bloco à mão usava vírgula pt-BR. Cosmético, mas é um diff visível.
 6. **`hypothesis` do bloco** afirma a re-derivabilidade da captura (a alegação do artefato), não uma hipótese de produto de §5. Hipótese de produto se declara em `meta.section35.hypothesis` — limite do que o raw permite derivar.
 7. **Risco residual do gate:** nada foi afrouxado — `src/test/perf-evidence.test.ts` está **intocado** (é do WP-1c) e continua fail-closed com descoberta vazia; a allowlist de legado segue com 2 entradas de conteúdo; o gerador agora é *adicionalmente* fail-closed (lança em rótulo vazio).
-8. **Drift achado fora do escopo (não corrigido, declarado):** `docs/runbooks/performance-evidence.md:37-39` ainda lista **3** entradas na “allowlist de legado”, incluindo `explain-critical-queries-2026-08-21.md` — o gate atual tem **2** (a terceira foi removida como entrada morta, `src/test/perf-evidence.test.ts:47-49`). `docs/runbooks/**` não está no meu escopo de arquivos; registro aqui em vez de tocar arquivo de outra trilha. Não é defeito da minha spec-card ⇒ **sem SPEC-DELTA**.
+8. **Drift de runbook achado fora do escopo — RESOLVIDO por ordem do STEWARD** (ver §6, `WP-1b-reg`/`a37ae76`): `docs/runbooks/performance-evidence.md:37-39` listava **3** entradas na “allowlist de legado”, incluindo `explain-critical-queries-2026-08-21.md` — o gate atual tem **2** (a terceira foi removida como entrada morta, `src/test/perf-evidence.test.ts:47-49`). Não era defeito da minha spec-card ⇒ **sem SPEC-DELTA**; corrigido em commit separado depois do veredicto.
 9. **Falso alarme já corrigido durante o trabalho:** uma edição com caminho relativo caiu no repo principal (`preco-que-d-main`) em vez do worktree; restaurei o blob do `HEAD` no mesmo instante (`git show HEAD:src/test/perf-summarize.test.ts > src/test/perf-summarize.test.ts`, `git status` limpo, sem `git checkout -f`/stash) e segui só com caminhos absolutos do worktree. Todos os artefatos deste claim vêm do worktree.
 
 ## 5. O que explicitamente NÃO foi feito
@@ -181,5 +181,69 @@ node scripts/perf/summarize.mjs && npx vitest run src/test/perf-evidence.test.ts
 - **Não** rodei `npm run check`, suíte completa, `npm run build` nem `check:bundle` (E2 é do MAESTRO); rodei apenas os 2 testes do item (`perf-summarize`, `perf-evidence`), `tsc -p tsconfig.json --noEmit` e `prettier --check` dos 4 arquivos.
 - **Não** subi container, não usei o PG17 efêmero e **não** toquei `:5432`: o item não executa banco (nenhum env de conexão foi usado).
 - **Não** escrevi no `EXECUTION-STATE-PROGRAM.md`, `QUEUE.md`, `PROGRESS.md`, `SUPERVISION-LOG.md`, `DECISIONS-PENDING/**`, ledger ou em qualquer arquivo de outro worktree.
-- **Não** commitei nada em `main`/outras branches nem dei `push`; 1 item = 1 commit em `mission/n1b-summarize`.
-- **Não** corrigi o drift do runbook (item 4.8) nem atualizei `CLAIMS-INBOX/35-perf-gate.md` (arquivo de outro item já encerrado).
+- **Não** commitei nada em `main`/outras branches nem dei `push`; o item saiu em `9f6f158` e as correções do veredicto em commits separados (§6).
+- **Não** atualizei `CLAIMS-INBOX/35-perf-gate.md` (arquivo de outro item já encerrado); o drift do runbook (item 4.8) só foi corrigido depois de ordem explícita do STEWARD (§6, `WP-1b-reg`).
+
+## 6. Correções pós-veredicto adversarial (S6 = CONFIRMED, 2026-09-16)
+
+O verificador confirmou DONE (7 rótulos re-derivados, 21/21 testes, idempotência, gate verde pós-regeneração, nenhum número medido alterado) e apontou 2 defeitos não bloqueantes + 1 item docs-only do STEWARD. Todos corrigidos em **commits separados**, com os testes re-executados ao final.
+
+### F1 (P2) — `a75eec8`
+
+`resultText`/`decisionText` **nunca consultavam `meta.section35`**: com `before`/`change` declarados, o bloco se contradizia. Reprodução (raw real + par declarado em `/tmp/n1b-f1/raw`), ANTES do fix:
+
+```text
+- **before:** p50 3000 ms (n=5, captura 2026-09-10, fonte docs/evidence/perf-baseline-2026-09-10.md)
+- **result:** referência registrada, **sem alegação de ganho**: não há par antes/depois no mesmo regime; …
+- **decision:** `keep` — adotar como referência do regime `CONTROLADO`: …
+```
+
+Regressão escrita antes (T1f) e capturada em RED:
+
+```text
+$ npx vitest run src/test/perf-summarize.test.ts
+ ❯ src/test/perf-summarize.test.ts (14 tests | 1 failed)
+     × T1f: par antes/depois declarado no raw não é contradito pelo `result`/`decision` derivados
+AssertionError: expected '- **result:** referência registrada, …' not to contain 'sem alegação de ganho'
+ Test Files  1 failed (1)
+      Tests  1 failed | 13 passed (14)
+```
+
+DEPOIS do fix (`hasDeclaredPair()`: com par declarado, o `result` aponta o par e o ganho como leitura do autor; a `decision` derivada vira `follow-up` exigindo `meta.section35.decision` declarado):
+
+```text
+$ node scripts/perf/summarize.mjs --dir /tmp/n1b-f1/raw
+- **result:** referência registrada: o par antes/depois é declarado em `meta.section35` — o ganho não é calculado pelo gerador (a leitura do par é do autor); …
+- **decision:** `follow-up` — par antes/depois declarado em `meta.section35` sem decisão declarada: o gerador não calcula ganho nem perda; declare `meta.section35.decision` (`keep`/`revert`) com o julgamento …
+
+$ npx vitest run src/test/perf-summarize.test.ts src/test/perf-evidence.test.ts
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+```
+
+O artefato versionado **não** mudou com o fix: regenerar em `/tmp/n1b-f1/plain` difere do commitado **só** na linha `- Gerado em:`. Sem par declarado nada muda (`sem alegação de ganho` + `keep` continuam, cobertos por T1f).
+
+### F2 (P3) — `3c081a1`
+
+`docs/evidence/perf-controlled-2026-09-13/perf-evidence.md`: follow-up (3) do rótulo `decision` marcado como **concluído no WP-1b (`9f6f158`)** e "Cadeia de proveniência" passa a descrever o bloco §35 **gerado** pelo sumarizador (antes: "mantido à mão (o gerador não o emite)"). Nenhum número medido do artefato foi alterado.
+
+### WP-1b-reg (docs-only, ordem do STEWARD) — `a37ae76`
+
+`docs/runbooks/performance-evidence.md`: descoberta do gate descrita como é hoje (**por caminho**, incluindo o `report.md` gerado; `_templates/**` e `agent-state/**` fora; descoberta vazia reprova); **allowlist de legado 3 → 2 entradas** (`perf-baseline-2026-08-29.md`, `perf-after-2026-08-29.md`), com a justificativa de que `explain-critical-queries-2026-08-21.md` era entrada morta (nunca descoberta por caminho); nota de que o bloco §35 gerado não é mais mantido à mão.
+
+### Verificação final (após os três commits)
+
+```text
+$ npx vitest run src/test/perf-summarize.test.ts src/test/perf-evidence.test.ts
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+$ npx prettier --check scripts/perf/summarize.mjs src/test/perf-summarize.test.ts \
+      docs/evidence/_templates/performance-evidence.md \
+      docs/evidence/perf-controlled-2026-09-13/perf-evidence.md docs/runbooks/performance-evidence.md
+All matched files use Prettier code style!
+$ git log --oneline -4
+a37ae76 docs(runbook): descoberta e allowlist do gate §35 alinhadas ao gate vigente (WP-1b-reg)
+3c081a1 docs(evidence): a proveniência do baseline controlado cita o gerador §35 (F2)
+a75eec8 fix(perf): bloco §35 não pode contradizer par antes/depois declarado (F1)
+9f6f158 perf(evidence): gerador do report passa a emitir o bloco §35 (WP-1b)
+```
