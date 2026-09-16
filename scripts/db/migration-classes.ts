@@ -282,4 +282,20 @@ export const migrationClasses: readonly MigrationClassEntry[] = [
     rollback: "drizzle/rollback/0015_to_0014_down.sql",
     appliedOn: "empty",
   },
+  {
+    tag: "0016_slim_imperial_guard",
+    class: "SAFE",
+    rationale:
+      "Cria as tabelas do ledger de backfill (backfill_checkpoints e backfill_work_items) com PKs compostas por tenant, CHECKs, índice e grants/RLS para app_runtime; aditiva, sem DML e sem alterar objetos pré-existentes.",
+    evidence: [
+      "drizzle/0016_slim_imperial_guard.sql",
+      "drizzle/rollback/0016_to_0015_down.sql",
+      "scripts/db/test-backfill.ts (T1 SIGKILL+retomada, T2 contenção CAS, T3 22012, T4 idempotência, T5 RLS/grants)",
+      "src/db/schema.ts (backfillCheckpoints/backfillWorkItems)",
+      "docs/evidence/agent-state/SPEC-CARDS/WP-1a-backfill-ledger.md",
+    ],
+    sha256: "46b57f880467a9df7cb2a93a3fed6d931c34c8c3793fa5a718b81dc564708be7",
+    rollback: "drizzle/rollback/0016_to_0015_down.sql",
+    appliedOn: "empty",
+  },
 ];

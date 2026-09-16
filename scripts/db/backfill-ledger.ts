@@ -6,69 +6,58 @@
  * este módulo é a implementação sobre `pg`, usada pelo caso de integração
  * (`test-backfill.ts`) e reutilizável por qualquer backfill futuro.
  *
+ * As tabelas são **schema-managed** (`src/db/schema.ts` + migration gerada),
+ * tenant-scoped e sob RLS: `(tenant_id, run_key)` é a PK do checkpoint e
+ * `(tenant_id, work_key)` a do marcador. Este módulo nunca cria DDL.
+ *
  * Invariantes:
- * - `backfill_work_items.work_key` é a PK e é derivada da LINHA (não da
- *   tentativa): reexecutar o mesmo trabalho em outra tentativa não reaplica o
- *   efeito — o `INSERT … ON CONFLICT DO NOTHING` é a arbitragem.
+ * - O checkpoint avança por **CAS de versão** (`save` grava só se a versão em
+ *   disco ainda for `checkpoint.version - 1`); dois runners no mesmo `runKey`
+ *   ⇒ exatamente um avança, o outro recebe `BackfillCheckpointConflictError`.
+ * - `backfill_work_items.work_key` é derivada da LINHA (não da tentativa):
+ *   reexecutar o mesmo trabalho em outra tentativa não reaplica o efeito — o
+ *   `INSERT … ON CONFLICT DO NOTHING` é a arbitragem.
  * - O marcador e o efeito rodam na MESMA transação (`applyWorkItemOnce`): se o
  *   efeito falha, o marcador desaparece com ele; se o processo morre depois do
  *   commit, o marcador sobrevive e a retomada vê `duplicate`.
- *
- * Estas tabelas não estão em `src/db/schema.ts` (escopo do WP-B1): o DDL abaixo é
- * idempotente e vive no banco descartável de teste. Levar o ledger para produção
- * exige uma migration própria — proposta registrada no claim do WP-B2.
  */
 
 import type { Pool, PoolClient } from "pg";
-import type {
-  BackfillApplyOutcome,
-  BackfillCheckpoint,
-  BackfillCheckpointStore,
+import {
+  BackfillCheckpointConflictError,
+  type BackfillApplyOutcome,
+  type BackfillCheckpoint,
+  type BackfillCheckpointStore,
 } from "./backfill-runner";
 
-export const BACKFILL_LEDGER_DDL = `
-create table if not exists backfill_checkpoints (
-  run_key text primary key,
-  cursor text,
-  completed boolean not null default false,
-  batches integer not null default 0,
-  rows_scanned integer not null default 0,
-  rows_applied integer not null default 0,
-  rows_duplicate integer not null default 0,
-  errors integer not null default 0,
-  updated_at timestamptz not null
-);
-
-create table if not exists backfill_work_items (
-  work_key text primary key,
-  run_key text not null,
-  row_key text not null,
-  applied_at timestamptz not null default now()
-);
-
-create index if not exists backfill_work_items_run_key_idx on backfill_work_items (run_key);
-`;
-
-export async function ensureBackfillLedger(pool: Pool): Promise<void> {
-  await pool.query(BACKFILL_LEDGER_DDL);
+export interface BackfillLedgerOptions {
+  /** Tenant dono do trabalho — é a chave da RLS do ledger. */
+  readonly tenantId: string;
 }
 
-export function createPostgresCheckpointStore(pool: Pool): BackfillCheckpointStore {
+interface CheckpointRow {
+  cursor: string | null;
+  completed: boolean;
+  batches: number;
+  rows_scanned: number;
+  rows_applied: number;
+  rows_duplicate: number;
+  errors: number;
+  version: number;
+  updated_at: Date;
+}
+
+export function createPostgresCheckpointStore(
+  pool: Pool,
+  options: BackfillLedgerOptions,
+): BackfillCheckpointStore {
+  const { tenantId } = options;
   return {
     load: async (runKey) => {
-      const result = await pool.query<{
-        cursor: string | null;
-        completed: boolean;
-        batches: number;
-        rows_scanned: number;
-        rows_applied: number;
-        rows_duplicate: number;
-        errors: number;
-        updated_at: Date;
-      }>(
-        `select cursor, completed, batches, rows_scanned, rows_applied, rows_duplicate, errors, updated_at
-         from backfill_checkpoints where run_key = $1`,
-        [runKey],
+      const result = await pool.query<CheckpointRow>(
+        `select cursor, completed, batches, rows_scanned, rows_applied, rows_duplicate, errors, version, updated_at
+         from backfill_checkpoints where tenant_id = $1 and run_key = $2`,
+        [tenantId, runKey],
       );
       const row = result.rows[0];
       if (!row) return null;
@@ -80,15 +69,19 @@ export function createPostgresCheckpointStore(pool: Pool): BackfillCheckpointSto
         rowsApplied: row.rows_applied,
         rowsDuplicate: row.rows_duplicate,
         errors: row.errors,
+        version: row.version,
         updatedAt: row.updated_at.toISOString(),
       } satisfies BackfillCheckpoint;
     },
     save: async (runKey, checkpoint) => {
-      await pool.query(
+      // CAS numa única instrução: sem linha ⇒ INSERT na versão pedida; com linha
+      // ⇒ UPDATE somente se a versão gravada for exatamente a anterior
+      // (`excluded.version - 1`). Corrida perdida devolve rowCount 0.
+      const result = await pool.query(
         `insert into backfill_checkpoints
-           (run_key, cursor, completed, batches, rows_scanned, rows_applied, rows_duplicate, errors, updated_at)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9::timestamptz)
-         on conflict (run_key) do update set
+           (tenant_id, run_key, cursor, completed, batches, rows_scanned, rows_applied, rows_duplicate, errors, version, updated_at)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::timestamptz)
+         on conflict (tenant_id, run_key) do update set
            cursor = excluded.cursor,
            completed = excluded.completed,
            batches = excluded.batches,
@@ -96,8 +89,11 @@ export function createPostgresCheckpointStore(pool: Pool): BackfillCheckpointSto
            rows_applied = excluded.rows_applied,
            rows_duplicate = excluded.rows_duplicate,
            errors = excluded.errors,
-           updated_at = excluded.updated_at`,
+           version = excluded.version,
+           updated_at = excluded.updated_at
+         where backfill_checkpoints.version = excluded.version - 1`,
         [
+          tenantId,
           runKey,
           checkpoint.cursor,
           checkpoint.completed,
@@ -106,14 +102,18 @@ export function createPostgresCheckpointStore(pool: Pool): BackfillCheckpointSto
           checkpoint.rowsApplied,
           checkpoint.rowsDuplicate,
           checkpoint.errors,
+          checkpoint.version,
           checkpoint.updatedAt,
         ],
       );
+      if (result.rowCount === 0) {
+        throw new BackfillCheckpointConflictError(runKey, checkpoint.version - 1);
+      }
     },
   };
 }
 
-export interface WorkItemApply {
+export interface WorkItemApply extends BackfillLedgerOptions {
   /** `<workKey>#<rowKey>` — identidade global do efeito. */
   readonly workKey: string;
   /** Tentativa que está aplicando (rastreabilidade). */
@@ -136,11 +136,11 @@ export async function applyWorkItemOnce(
   try {
     await client.query("begin");
     const inserted = await client.query<{ work_key: string }>(
-      `insert into backfill_work_items (work_key, run_key, row_key)
-       values ($1, $2, $3)
-       on conflict (work_key) do nothing
+      `insert into backfill_work_items (tenant_id, work_key, run_key, row_key)
+       values ($1, $2, $3, $4)
+       on conflict (tenant_id, work_key) do nothing
        returning work_key`,
-      [input.workKey, input.runKey, input.rowKey],
+      [input.tenantId, input.workKey, input.runKey, input.rowKey],
     );
     if (inserted.rowCount === 0) {
       await client.query("rollback");

@@ -910,6 +910,62 @@ export const outboxConsumptions = pgTable(
   (table) => [primaryKey({ columns: [table.consumerName, table.eventId] })],
 );
 
+/** §28.2 — checkpoint do backfill: uma linha por TENTATIVA (`runKey`) do trabalho
+ * lógico (`workKey`). `version` é o token do CAS: o store só grava quando a
+ * versão persistida é exatamente a anterior, então dois runners no mesmo
+ * `runKey` nunca se sobrescrevem em silêncio — o perdedor recebe conflito. */
+export const backfillCheckpoints = pgTable(
+  "backfill_checkpoints",
+  {
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    runKey: text("run_key").notNull(),
+    cursor: text("cursor"),
+    completed: boolean("completed").notNull().default(false),
+    batches: integer("batches").notNull().default(0),
+    rowsScanned: integer("rows_scanned").notNull().default(0),
+    rowsApplied: integer("rows_applied").notNull().default(0),
+    rowsDuplicate: integer("rows_duplicate").notNull().default(0),
+    errors: integer("errors").notNull().default(0),
+    version: integer("version").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.tenantId, table.runKey] }),
+    check("backfill_checkpoints_identity_check", sql`${table.runKey} <> ''`),
+    check("backfill_checkpoints_version_check", sql`${table.version} >= 0`),
+    check(
+      "backfill_checkpoints_counters_check",
+      sql`${table.batches} >= 0 and ${table.rowsScanned} >= 0 and ${table.rowsApplied} >= 0 and ${table.rowsDuplicate} >= 0 and ${table.errors} >= 0`,
+    ),
+  ],
+);
+
+/** §28.4 — marcador de idempotência: a chave é derivada da LINHA (não da
+ * tentativa), então reexecutar o mesmo trabalho em outra tentativa não reaplica
+ * o efeito. É gravado na MESMA transação do efeito (`applyWorkItemOnce`). */
+export const backfillWorkItems = pgTable(
+  "backfill_work_items",
+  {
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    workKey: text("work_key").notNull(),
+    runKey: text("run_key").notNull(),
+    rowKey: text("row_key").notNull(),
+    appliedAt: timestamp("applied_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.tenantId, table.workKey] }),
+    index("backfill_work_items_tenant_run_key_idx").on(table.tenantId, table.runKey),
+    check(
+      "backfill_work_items_identity_check",
+      sql`${table.workKey} <> '' and ${table.rowKey} <> '' and ${table.runKey} <> ''`,
+    ),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type Tenant = typeof tenants.$inferSelect;
 export type TenantMembership = typeof tenantMemberships.$inferSelect;
@@ -922,3 +978,5 @@ export type Simulation = typeof simulations.$inferSelect;
 export type CalculationSnapshot = typeof calculationSnapshots.$inferSelect;
 export type OutboxEvent = typeof outboxEvents.$inferSelect;
 export type OutboxConsumption = typeof outboxConsumptions.$inferSelect;
+export type BackfillCheckpointRecord = typeof backfillCheckpoints.$inferSelect;
+export type BackfillWorkItem = typeof backfillWorkItems.$inferSelect;
