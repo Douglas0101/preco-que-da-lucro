@@ -3,7 +3,7 @@
 **Rótulo:** CONTROLADO — preview Nitro local (`node-server`) + PostgreSQL 17 em Docker;
 **não** é produção, **não** usa o gateway real de IA e **não** consome M-06/Q-020.
 
-- Gerado em: 2026-09-13T15:30:04.880Z
+- Gerado em: 2026-09-16T03:13:04.678Z
 - Capturado em: 2026-09-13T15:25:17.161Z — 2026-09-13T15:28:49.451Z
 - Commit: `42d4b76`
 - Base URL: `http://127.0.0.1:4219`
@@ -13,17 +13,26 @@
 
 ## §35 — rótulos de evidência de performance
 
-> Bloco mantido à mão: `scripts/perf/summarize.mjs` não o emite (regenerar este
-> arquivo exige recolocá-lo). O artefato §35 completo — método, n, janela,
-> limites e follow-ups — é `perf-evidence.md`, neste mesmo diretório.
+> Bloco **gerado** por `scripts/perf/summarize.mjs` a partir do raw deste
+> diretório (`meta.json`, `route-samples.jsonl`, `chat-samples.jsonl`,
+> `context-tx.jsonl`, `ai-model-attempts.jsonl`, `bundle-report.json`): nenhum
+> número é estimado — o que o raw não tem vira lacuna declarada. O artefato §35
+> revisável (método, n, janela, limites e follow-ups) é `perf-evidence.md`, neste
+> mesmo diretório.
 
-- **hypothesis:** a captura CONTROLADA (preview Nitro local + PostgreSQL 17 em Docker, IA mockada) dá um `before` re-derivável do raw; espera-se prontidão de rota p50 na ordem de ~2,5 s, TTFB de poucos ms e entry dentro do budget de 500 000 B.
-- **metric:** prontidão de rota (dados visíveis) p50/p95 em ms; secundárias: TTFB ms, round trips por evento `app.context_tx`, duração de transação ms, LCP/CLS, bytes minificados.
-- **before:** `N/A` no mesmo regime — esta é a primeira captura `CONTROLLED`. O único `before` do repositório (`docs/evidence/perf-baseline-2026-08-29.md`) é de regime `dev-evidence`, com fonte `/tmp` não versionada, e não é comparável.
-- **change:** nenhuma mudança de produto; passaram a existir o harness `scripts/perf/*` e este diretório de evidência (commit `42d4b76`).
-- **after:** prontidão p50/p95 (n=5 por rota): `/inicio` 2490,0/2526,6 ms; `/produtos` 2461,0/2477,0 ms; `/diagnostico` 2476,0/2518,0 ms; `/ponto-equilibrio` 2512,0/2519,2 ms; `/simulacoes` 2505,0/2556,0 ms. TTFB p50 3,8–6,3 ms. Entry 268,4 KiB min / 83,6 KiB gzip, grafo inicial 459,0 KiB ≤ 500 000 B (PASS). AI latency mock n=3 p50 36,0 / p95 36,9 ms. Chat HTTP n=0.
-- **result:** referência registrada, **sem alegação de ganho**; confundidores declarados: IA mockada ≠ gateway real, PostgreSQL em loopback ≠ Neon, n=5 (p95 frágil) e chat HTTP não medido (n=0).
-- **decision:** `keep` — adotar como `before` canônico dos PRs de §5; follow-ups em `perf-evidence.md`.
+- **hypothesis:** a captura `CONTROLADO` (base `http://127.0.0.1:4219`; PostgreSQL `preco_que_da_lucro_test` em `127.0.0.1:5432` (node-postgres); IA mockada em processo (latência artificial 35 ms); v24.15.0 / linux; Playwright chromium 151.0.7922.34) é re-derivável do raw deste diretório — `node scripts/perf/summarize.mjs --dir <dir>` reproduz este bloco; commit de origem `42d4b76`, janela `2026-09-13T15:25:17.161Z → 2026-09-13T15:28:49.451Z`, n=5 amostras por rota (1 descartado).
+- **metric:** prontidão de rota (dados visíveis) p50/p95 em ms — métrica primária; secundárias: TTFB ms, prontidão das server functions ms, round trips e duração por evento `app.context_tx`, LCP p50/CLS p50, latência de IA ms e bytes minificados do entry/grafo inicial.
+- **before:** `N/A` — o raw deste diretório não embute uma captura anterior do mesmo regime (commit `42d4b76`): nenhum `before` é derivado nem estimado. Para declarar a comparação, use `meta.section35.before` no raw.
+- **change:** `N/A` — o raw não declara mudança de produto; captura no commit `42d4b76`. Para registrar o que mudou, use `meta.section35.change` no raw.
+- **after:** valores desta captura, no mesmo método e regime do `before`:
+  - prontidão p50/p95 — `/diagnostico` 2476.0/2518.0 ms; `/inicio` 2490.0/2526.6 ms; `/ponto-equilibrio` 2512.0/2519.2 ms; `/produtos` 2461.0/2477.0 ms; `/simulacoes` 2505.0/2556.0 ms
+  - TTFB p50 3.8–6.3 ms; server fn p50 17.7–31.1 ms
+  - query: `/diagnostico` 8.00 RT/evento, transação p50 17.0 ms; `/inicio` 8.00 RT/evento, transação p50 21.0 ms; `/ponto-equilibrio` 5.67 RT/evento, transação p50 17.0 ms; `/produtos` 5.50 RT/evento, transação p50 24.0 ms; `/simulacoes` 5.60 RT/evento, transação p50 16.0 ms
+  - LCP p50 1116.0–1272.0 ms, CLS p50 0.0000–0.0243
+  - bundle `assets/index-BfoIlnr6.js` 268.4 KiB min / 83.6 KiB gzip, grafo inicial 459.0 KiB ≤ 500000 B → PASS
+  - AI latency n=3 p50 36.0/p95 36.9 ms; chat HTTP n=0 — circuito completo não medido
+- **result:** referência registrada, **sem alegação de ganho**: não há par antes/depois no mesmo regime; n=5 por rota torna o p95 frágil (< 30); chat HTTP com n=0: o circuito completo do chat não foi medido; 5 lacuna(s) declarada(s) no raw (ver §Lacunas declaradas).
+- **decision:** `keep` — adotar como referência do regime `CONTROLADO`: métrica primária medida (prontidão de rota, 5 rota(s)), 5 lacuna(s) declarada(s) no raw (§Lacunas declaradas). Sem alegação de ganho: não há par antes/depois no mesmo regime (o artefato §35 revisável é `perf-evidence.md`).
 
 ## Método
 

@@ -221,6 +221,295 @@ function routeTable(rows, rowFor) {
   return lines;
 }
 
+/* ------------------------------------------------------------------ §35 --- *
+ * O `report.md` gerado é descoberto pelo gate `src/test/perf-evidence.test.ts`
+ * (caminho `docs/evidence/perf-<tema>-<data>/`), que exige os 7 rótulos de §35.
+ * Regenerar o relatório NÃO pode apagar o contrato — este bloco é emitido pelo
+ * próprio gerador, com valores derivados do raw.
+ *
+ * Regra de honestidade: o que o raw não tem vira `N/A`/lacuna declarada — nunca
+ * um número inventado. Os rótulos de JULGAMENTO (`hypothesis`, `before`,
+ * `change`, `decision`) podem ser declarados verbatim pelo operador em
+ * `meta.section35.<rótulo>` do raw; sem declaração, saem os padrões derivados
+ * abaixo (`decision` é conservadora: sem amostra de rota — métrica primária — ou
+ * com par antes/depois declarado sem decisão, sai `follow-up`; `revert` nunca é
+ * derivado, só declarado). Com par declarado o gerador não afirma ausência de
+ * ganho nem conclui `keep`: a leitura do par é do autor.
+ * -------------------------------------------------------------------------- */
+
+const SECTION_35_HEADING = "## §35 — rótulos de evidência de performance";
+const SECTION_35_LABELS = [
+  "hypothesis",
+  "metric",
+  "before",
+  "change",
+  "after",
+  "result",
+  "decision",
+];
+
+/** Texto não vazio, ou `null` (nunca inventa). */
+function declaredText(value) {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
+/** Rótulo declarado no raw (`meta.section35.<rótulo>`), verbatim. */
+function declaredLabel(meta, label) {
+  const section35 = meta.section35;
+  if (!section35 || typeof section35 !== "object") return null;
+  return declaredText(section35[label]);
+}
+
+/** Ambiente declarado no raw (base URL, banco, mock de IA, runtime, browser). */
+function environmentSummary(meta) {
+  const parts = [];
+  const baseUrl = declaredText(meta.baseUrl);
+  if (baseUrl) parts.push(`base \`${baseUrl}\``);
+  const database = meta.database;
+  if (database && typeof database === "object") {
+    const name = declaredText(database.database) ?? "?";
+    const host = declaredText(database.host) ?? "?";
+    parts.push(
+      `PostgreSQL \`${name}\` em \`${host}\` (${declaredText(database.driver) ?? "driver não declarado"})`,
+    );
+  } else {
+    parts.push("banco não declarado no raw");
+  }
+  const aiMock = meta.aiMock;
+  if (aiMock && typeof aiMock === "object") {
+    const latency = Number.isFinite(aiMock.latencyMs) ? `${aiMock.latencyMs} ms` : "não declarada";
+    parts.push(
+      aiMock.enabled === true
+        ? `IA mockada em processo (latência artificial ${latency})`
+        : "IA não mockada (gateway real)",
+    );
+  } else {
+    parts.push("IA não declarada no raw");
+  }
+  const runtime = [declaredText(meta.node), declaredText(meta.platform)].filter(Boolean);
+  if (runtime.length > 0) parts.push(runtime.join(" / "));
+  const playwright = meta.playwright;
+  if (playwright && typeof playwright === "object") {
+    const version = [declaredText(playwright.browser), declaredText(playwright.version)]
+      .filter(Boolean)
+      .join(" ");
+    if (version !== "") parts.push(`Playwright ${version}`);
+  }
+  return parts.join("; ");
+}
+
+function windowLabel(meta) {
+  const started = declaredText(meta.startedAt);
+  const finished = declaredText(meta.finishedAt);
+  if (!started && !finished) return "janela não declarada no raw";
+  return `${started ?? "?"} → ${finished ?? "?"}`;
+}
+
+function sampleLabel(meta, data) {
+  const iterations = Number.isFinite(meta.iterations)
+    ? meta.iterations
+    : (data.routes[0]?.ready.n ?? null);
+  if (!Number.isFinite(iterations)) return "n não declarado no raw";
+  const warmup = Number.isFinite(meta.warmupIterations) ? meta.warmupIterations : null;
+  const warmupText =
+    warmup === null
+      ? "warmup não declarado"
+      : `${warmup} ${warmup === 1 ? "descartado" : "descartados"}`;
+  return `n=${iterations} amostras por rota (${warmupText})`;
+}
+
+function rangeText(values, render = formatNumber) {
+  const finite = values.filter((value) => Number.isFinite(value));
+  if (finite.length === 0) return null;
+  const min = render(Math.min(...finite));
+  const max = render(Math.max(...finite));
+  return min === max ? min : `${min}–${max}`;
+}
+
+function routeMetricsText(data) {
+  if (data.routes.length === 0) return "nenhuma amostra de rota medida (lacuna declarada)";
+  const readiness = data.routes.map(
+    (row) => `\`${row.route}\` ${formatNumber(row.ready.p50)}/${formatNumber(row.ready.p95)} ms`,
+  );
+  return `prontidão p50/p95 — ${readiness.join("; ")}`;
+}
+
+function vitalsText(data) {
+  const lcp = rangeText(data.routes.map((row) => row.lcp.p50));
+  const cls = rangeText(
+    data.routes.map((row) => row.cls.p50),
+    (value) => formatNumber(value, 4),
+  );
+  const parts = [];
+  if (lcp) parts.push(`LCP p50 ${lcp} ms`);
+  if (cls) parts.push(`CLS p50 ${cls}`);
+  return parts.length > 0 ? parts.join(", ") : null;
+}
+
+function queryText(data) {
+  if (data.query.length === 0) return "sem evento `app.context_tx` atribuído (lacuna declarada)";
+  const rows = data.query.map((row) => {
+    const perEvent = row.events > 0 ? formatNumber(row.roundTrips / row.events, 2) : "—";
+    return `\`${row.route}\` ${perEvent} RT/evento, transação p50 ${formatNumber(
+      row.duration.p50,
+    )} ms`;
+  });
+  return `query: ${rows.join("; ")}`;
+}
+
+function bundleText(data) {
+  const entry = data.bundle?.entries?.[0];
+  if (!data.bundle || !entry) return "`bundle-report.json` ausente (lacuna declarada)";
+  const graph = entry.initialGraph;
+  const graphText = graph
+    ? `, grafo inicial ${bytes(graph.minifiedBytes)} ≤ ${graph.limitBytes ?? "?"} B`
+    : "";
+  return `bundle \`${entry.file}\` ${bytes(entry.minifiedBytes)} min / ${bytes(
+    entry.gzipBytes,
+  )} gzip${graphText} → ${entry.passed ? "PASS" : "FAIL"}`;
+}
+
+function aiText(data) {
+  const latency = data.ai.latency;
+  const latencyText =
+    latency.n === 0
+      ? "AI latency não medida (nenhum `ai.model_attempt` com outcome `success`)"
+      : `AI latency n=${latency.n} p50 ${formatNumber(latency.p50)}/p95 ${formatNumber(
+          latency.p95,
+        )} ms`;
+  const chatText =
+    data.chat.samples === 0
+      ? "chat HTTP n=0 — circuito completo não medido"
+      : `chat HTTP n=${data.chat.samples} p50 ${formatNumber(
+          data.chat.send.p50,
+        )}/p95 ${formatNumber(data.chat.send.p95)} ms`;
+  return `${latencyText}; ${chatText}`;
+}
+
+/** Métricas derivadas do raw, na ordem em que o relatório as traz. */
+function measuredParts(data) {
+  const ttfb = rangeText(data.routes.map((row) => row.ttfb.p50));
+  const serverFn = rangeText(data.routes.map((row) => row.serverFn.p50));
+  const latency = [
+    ttfb ? `TTFB p50 ${ttfb} ms` : null,
+    serverFn ? `server fn p50 ${serverFn} ms` : null,
+  ]
+    .filter(Boolean)
+    .join("; ");
+  return [
+    routeMetricsText(data),
+    latency === "" ? null : latency,
+    queryText(data),
+    vitalsText(data),
+    bundleText(data),
+    aiText(data),
+  ].filter(Boolean);
+}
+
+/** As 7 linhas de §35, todas derivadas do raw (ou declaradas em `meta.section35`). */
+function section35Lines(data) {
+  const { meta } = data;
+  const environment = environmentSummary(meta);
+  const commit = declaredText(meta.commit) ?? "não declarado no raw";
+  const window = windowLabel(meta);
+  const samples = sampleLabel(meta, data);
+
+  const derived = {
+    hypothesis: `a captura \`${data.label}\` (${environment}) é re-derivável do raw deste diretório — \`node scripts/perf/summarize.mjs --dir <dir>\` reproduz este bloco; commit de origem \`${commit}\`, janela \`${window}\`, ${samples}.`,
+    metric:
+      "prontidão de rota (dados visíveis) p50/p95 em ms — métrica primária; secundárias: TTFB ms, prontidão das server functions ms, round trips e duração por evento `app.context_tx`, LCP p50/CLS p50, latência de IA ms e bytes minificados do entry/grafo inicial.",
+    before: `\`N/A\` — o raw deste diretório não embute uma captura anterior do mesmo regime (commit \`${commit}\`): nenhum \`before\` é derivado nem estimado. Para declarar a comparação, use \`meta.section35.before\` no raw.`,
+    change: `\`N/A\` — o raw não declara mudança de produto; captura no commit \`${commit}\`. Para registrar o que mudou, use \`meta.section35.change\` no raw.`,
+    after: "valores desta captura, no mesmo método e regime do `before`:",
+    result: resultText(data),
+    decision: decisionText(data),
+  };
+
+  const lines = [
+    SECTION_35_HEADING,
+    "",
+    "> Bloco **gerado** por `scripts/perf/summarize.mjs` a partir do raw deste",
+    "> diretório (`meta.json`, `route-samples.jsonl`, `chat-samples.jsonl`,",
+    "> `context-tx.jsonl`, `ai-model-attempts.jsonl`, `bundle-report.json`): nenhum",
+    "> número é estimado — o que o raw não tem vira lacuna declarada. O artefato §35",
+    "> revisável (método, n, janela, limites e follow-ups) é `perf-evidence.md`, neste",
+    "> mesmo diretório.",
+    "",
+  ];
+  for (const label of SECTION_35_LABELS) {
+    const declared = declaredLabel(meta, label);
+    const value = declared ?? derived[label];
+    if (declaredText(value) === null) {
+      throw new Error(`§35: rótulo \`${label}\` ficou vazio — o gate reprovaria o report`);
+    }
+    lines.push(`- **${label}:** ${value}`);
+    if (label === "after" && declared === null) {
+      for (const part of measuredParts(data)) lines.push(`  - ${part}`);
+    }
+  }
+  lines.push("");
+  return lines;
+}
+
+function resultText(data) {
+  const parts = [
+    hasDeclaredPair(data.meta ?? {})
+      ? "referência registrada: o par antes/depois é declarado em `meta.section35` — o ganho não é calculado pelo gerador (a leitura do par é do autor)"
+      : "referência registrada, **sem alegação de ganho**: não há par antes/depois no mesmo regime",
+  ];
+  const smallest = rangeText(
+    data.routes.map((row) => row.ready.n),
+    (value) => String(value),
+  );
+  if (smallest !== null && Math.min(...data.routes.map((row) => row.ready.n)) < 30) {
+    parts.push(`n=${smallest} por rota torna o p95 frágil (< 30)`);
+  }
+  if (data.chat.samples === 0) {
+    parts.push("chat HTTP com n=0: o circuito completo do chat não foi medido");
+  }
+  if (data.gaps.length > 0) {
+    parts.push(`${data.gaps.length} lacuna(s) declarada(s) no raw (ver §Lacunas declaradas)`);
+  }
+  return `${parts.join("; ")}.`;
+}
+
+/**
+ * O raw declara um par antes/depois (ou um `after`) em `meta.section35`? Então a
+ * leitura do ganho é do AUTOR, não do gerador: o bloco não pode afirmar ausência
+ * de par e a decisão derivada não pode concluir `keep`/`revert` sozinha.
+ */
+function hasDeclaredPair(meta) {
+  return (
+    declaredLabel(meta, "before") !== null ||
+    declaredLabel(meta, "change") !== null ||
+    declaredLabel(meta, "after") !== null
+  );
+}
+
+/**
+ * Decisão derivada do raw. `revert` NUNCA sai daqui: reverter exige julgamento
+ * humano e só entra declarado (`meta.section35.decision`). O padrão é `keep`
+ * quando a métrica primária (prontidão de rota) foi medida — as lacunas vão
+ * declaradas em `result`/§Lacunas —, e `follow-up` quando não há amostra de rota
+ * (sem métrica primária não existe referência a adotar) ou quando o raw declara
+ * um par antes/depois sem decisão declarada (o ganho não é calculado aqui).
+ */
+function decisionText(data) {
+  if (hasDeclaredPair(data.meta ?? {})) {
+    return "`follow-up` — par antes/depois declarado em `meta.section35` sem decisão declarada: o gerador não calcula ganho nem perda; declare `meta.section35.decision` (`keep`/`revert`) com o julgamento (o artefato §35 revisável é `perf-evidence.md`).";
+  }
+  const closing =
+    "Sem alegação de ganho: não há par antes/depois no mesmo regime (o artefato §35 revisável é `perf-evidence.md`).";
+  if (data.routes.length === 0) {
+    return `\`follow-up\` — nenhuma amostra de rota medida (métrica primária ausente): re-capturar antes de adotar qualquer referência; ${data.gaps.length} lacuna(s) declarada(s) no raw. ${closing}`;
+  }
+  const gaps =
+    data.gaps.length === 0
+      ? "sem lacuna declarada no raw"
+      : `${data.gaps.length} lacuna(s) declarada(s) no raw (§Lacunas declaradas)`;
+  return `\`keep\` — adotar como referência do regime \`${data.label}\`: métrica primária medida (prontidão de rota, ${data.routes.length} rota(s)), ${gaps}. ${closing}`;
+}
+
 /** Renderiza o `report.md` (determinístico, sem dados sensíveis). */
 export function renderReport(data) {
   const { meta } = data;
@@ -242,6 +531,7 @@ export function renderReport(data) {
   lines.push(`- Playwright: ${meta.playwright ? JSON.stringify(meta.playwright) : "não usado"}`);
   lines.push(`- IA: ${meta.aiMock ? JSON.stringify(meta.aiMock) : "não mockada/indisponível"}`);
   lines.push("");
+  lines.push(...section35Lines(data));
   lines.push("## Método");
   lines.push("");
   lines.push(
