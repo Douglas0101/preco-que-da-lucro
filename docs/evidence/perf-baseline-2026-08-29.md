@@ -110,3 +110,63 @@ na janela; sign-in/email 3202ms (401) e 1565ms (200).
 3. Sem spans `app.db.duration` no log → RT-count não observável; instrumentação S1
    obrigatória para derivar RT-count no after.
 4. `/simulacoes` sem amostras (rota não exercitada).
+
+## Bloco §35 — contrato de evidência de performance
+
+> Acrescentado no WP-1c (2026-09-16) para que este artefato cumpra o contrato de §35
+> **sem isenção de legado**. Nenhuma linha de §1–§6 mudou: nenhum número, tabela, janela
+> ou amostra foi removido. Os rótulos abaixo citam o que já está medido neste arquivo; o
+> que o log bruto não permite re-derivar sai `N/A` com a lacuna declarada — nada aqui foi
+> estimado.
+
+### Cabeçalho obrigatório
+
+- **ambiente:** `dev-evidence` — `vite dev` (VITE v8.2.2), single-user/single-process
+  contra Neon remoto. Não é produção e nenhum valor aqui sustenta SLO.
+- **método:** mineração de `request.completed` (JSON com
+  `timestamp/method/pathname/status/durationMs`) do stdout de `vite dev`; server
+  functions como `/_serverFn/<base64>` decodificado para `{file, export}`; percentil por
+  interpolação linear (estilo numpy `linear`).
+- **n:** 1–12 amostras por endpoint — o `n` de cada linha está declarado na tabela §1
+  (n baixo ⇒ p95 frágil, comparável só dentro deste regime).
+- **janela:** `2026-08-29T19:05:14.505Z` → `2026-08-29T23:54:46.626Z` (UTC).
+- **fonte:** `/tmp/opencode/vite-dev.log` — **não versionada** (gitignored e hoje
+  indisponível). Os números deste artefato são a transcrição da mineração feita à época e
+  **não são re-deriváveis** a partir do repositório (ver lacuna em `before` e `result`).
+
+### Campos §35
+
+- **hypothesis:** o diagnóstico aceito à época — custo fixo de invocação/sessão (≈8–10
+  RTs Neon por server function a ≈0,5s/RT) somado ao waterfall de sessão, e **não** as
+  queries, domina a latência das server functions (§2–§3); o baseline S0 fixa o `before`
+  do comparativo before/after das ondas PERF/FIN, dentro deste mesmo regime.
+- **metric:** métrica primária: p50 ms por endpoint (`request.completed.durationMs`,
+  interpolação linear); secundárias: p95/max ms e status HTTP. RT-count por server
+  function: `N/A` neste artefato — o log de dev não contém spans `app.db.duration` (0
+  ocorrências, §2); a instrumentação S1 só existe no `after`.
+- **before:** `N/A` — não existe medição anterior: este artefato **é** o baseline S0
+  (F0-04, ONDA 0 / S0-BASELINE). Lacuna declarada: um `before` de regime `CONTROLLED` só
+  passa a existir depois (`docs/evidence/perf-controlled-2026-09-13/perf-evidence.md`,
+  2026-09-13), e regimes de medição não se misturam.
+- **change:** `N/A` — nenhuma mudança de código: captura de medição pura (S0-BASELINE),
+  anterior às ondas PERF/FIN.
+- **after:** os valores medidos nesta captura (§1), que são a **referência** e não um
+  depois de mudança: `/_serverFn` listProductsWithMetrics p50 4935 / p95 6358 ms (n=5);
+  listExpenses 3409 / 5108 ms (n=5); getDashboardSummary 5657 / 6004 ms (n=2);
+  listPurchasePrices 3873 ms (n=1); calculateBreakEven 4608 ms (n=1);
+  `/api/auth/get-session` 2316 / 3345 ms (n=12); `/api/auth/sign-in/email` 2909 / 3173 ms
+  (n=3); `/auth` (GET) 204 ms (n=1); `/api/vitals` (POST) 1 ms (n=4). Sem par
+  antes/depois: nada aqui é alegação de ganho.
+- **result:** referência registrada, **sem alegação de ganho** (não há par antes/depois
+  no mesmo regime). A leitura que o dado sustenta é qualitativa: `calculateBreakEven`
+  (0 queries) 4608 ms vs `listExpenses` (1 query) 3409–5155 ms (§2), coerente com custo
+  fixo de invocação/RTs. Limites: `dev-evidence` single-user, latências absolutas **não**
+  extrapolam para produção; p95 frágil (n=1–12); `/simulacoes` sem amostras
+  (`runSimulation`, n=0); RT-count não observável (§2 e §6).
+- **decision:** `follow-up` — os números não sustentam `keep` fora deste regime: a fonte
+  vive em `/tmp` não versionada, logo não é re-derivável nem re-executável (o contrato de
+  §35 só admite `keep` com fonte versionada e re-derivável). Uso declarado e legítimo:
+  servir de `before` do comparativo das ondas PERF/FIN **dentro do mesmo regime**, como
+  faz `docs/evidence/perf-after-2026-08-29.md` §2. Próximo passo: re-baseline sob regime
+  `CONTROLLED` com raw versionado — entregue em
+  `docs/evidence/perf-controlled-2026-09-13/perf-evidence.md`.
