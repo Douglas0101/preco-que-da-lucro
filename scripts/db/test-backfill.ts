@@ -456,7 +456,10 @@ function startBarrier(count: number): () => Promise<void> {
  * persistida. Sem a barreira, o segundo worker poderia simplesmente retomar o
  * checkpoint do primeiro (caminho seguro, mas não a corrida que T2 prova).
  */
-function gatedStore(store: BackfillCheckpointStore, gate: () => Promise<void>): BackfillCheckpointStore {
+function gatedStore(
+  store: BackfillCheckpointStore,
+  gate: () => Promise<void>,
+): BackfillCheckpointStore {
   return {
     load: async (runKey) => {
       const checkpoint = await store.load(runKey);

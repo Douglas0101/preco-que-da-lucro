@@ -1,13 +1,13 @@
 # TRANSIÇÕES DA RODADA — matrizes 187 × 2 (2026-09-15) · WP-0
 
-| campo          | conteúdo                                                                                                                                        |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **id**         | `WP-0` (VERIFICADOR-C — auditoria da régua; read-only sobre código)                                                                              |
-| **spec_ref**   | `SPEC-CARDS/WP-0-transicoes.md` · §45 (DoD) · NAS-2 §3.2 (E1/E2) · NAS-2 §10                                                                      |
-| **objetivo**   | decidir, com matriz completa e não com narrativa, se a lacuna contábil alegada pela diretiva NAS-2 existe                                        |
-| **fontes**     | `plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md` (raw, item a item) · `MEDICAO-2026-09-15.md` · `RECONCILIACAO-BASE-2026-09-15.md` · `RELATORIO-MISSAO-2026-09-15.md` · `CLAIMS-INBOX/*` (§LEDGER) · `DECISOES-STEWARD-2026-09-15.md` (D1–D6) |
-| **HEAD de leitura** | `4d500fc` (base NAS-2) · round medido `1f94b56..4d500fc` · HEAD integrado da missão `2173bf9`                                                |
-| **veredito**   | **lacuna REFUTADA** — a aritmética fecha exatamente nos dois sentidos; a alegação é artefato de leitura do `RELATORIO-MISSAO` (§4 abaixo)         |
+| campo               | conteúdo                                                                                                                                                                                                                                       |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **id**              | `WP-0` (VERIFICADOR-C — auditoria da régua; read-only sobre código)                                                                                                                                                                            |
+| **spec_ref**        | `SPEC-CARDS/WP-0-transicoes.md` · §45 (DoD) · NAS-2 §3.2 (E1/E2) · NAS-2 §10                                                                                                                                                                   |
+| **objetivo**        | decidir, com matriz completa e não com narrativa, se a lacuna contábil alegada pela diretiva NAS-2 existe                                                                                                                                      |
+| **fontes**          | `plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md` (raw, item a item) · `MEDICAO-2026-09-15.md` · `RECONCILIACAO-BASE-2026-09-15.md` · `RELATORIO-MISSAO-2026-09-15.md` · `CLAIMS-INBOX/*` (§LEDGER) · `DECISOES-STEWARD-2026-09-15.md` (D1–D6) |
+| **HEAD de leitura** | `4d500fc` (base NAS-2) · round medido `1f94b56..4d500fc` · HEAD integrado da missão `2173bf9`                                                                                                                                                  |
+| **veredito**        | **lacuna REFUTADA** — a aritmética fecha exatamente nos dois sentidos; a alegação é artefato de leitura do `RELATORIO-MISSAO` (§4 abaixo)                                                                                                      |
 
 **Nada foi lido do headline:** todas as contagens abaixo saem da coluna `prev`/`status` do anexo (raw) e da seção `## LEDGER` de cada claim — o raw é a única entrada do script de recontagem (§6).
 
@@ -15,13 +15,13 @@
 
 ## 1. Universo e denominador (193 → 187)
 
-| etapa                                                  | n   | prova                                                                                                  |
-| ------------------------------------------------------ | --- | ------------------------------------------------------------------------------------------------------ |
-| linhas na tabela "Blocos A–D (§5–§35 + §29–§31)"        | 193 | anexo, linhas 9–201 (entre os dois cabeçalhos `##`)                                                     |
-| − 3 `SUPERSEDED` (`12.2`, `13.4`, `15.2c`)              | 190 | `MEDICAO §6.4` (decisões, não dívidas)                                                                 |
-| − 2 `N/A` (`27.3`, `31.2`)                              | 188 | `MEDICAO §6.4` (princípio / pré-requisito ausente)                                                      |
-| − 1 duplicado (`25.5` = `24.13`)                        | 187 | `MEDICAO §6.4` (contado uma vez)                                                                        |
-| **denominador acionável**                               | **187** | soma dos blocos `76 + 34 + 71 + 6 = 187`                                                            |
+| etapa                                            | n       | prova                                               |
+| ------------------------------------------------ | ------- | --------------------------------------------------- |
+| linhas na tabela "Blocos A–D (§5–§35 + §29–§31)" | 193     | anexo, linhas 9–201 (entre os dois cabeçalhos `##`) |
+| − 3 `SUPERSEDED` (`12.2`, `13.4`, `15.2c`)       | 190     | `MEDICAO §6.4` (decisões, não dívidas)              |
+| − 2 `N/A` (`27.3`, `31.2`)                       | 188     | `MEDICAO §6.4` (princípio / pré-requisito ausente)  |
+| − 1 duplicado (`25.5` = `24.13`)                 | 187     | `MEDICAO §6.4` (contado uma vez)                    |
+| **denominador acionável**                        | **187** | soma dos blocos `76 + 34 + 71 + 6 = 187`            |
 
 A classificação por bloco (`§5–§15` A · `§16–§20` B · `§21–§28 + §32–§35` C · `§29–§31` D; os itens nomeados `F0-*`/`SEC-*`/`FIN-*`/`API-*`/`IA-*`/`AUTH-*`/`BFF-*`/`GATE-*` caem em A, inclusive `GATE-M02`) **reproduz exatamente** a linha "Blocos atuais" do `RECONCILIACAO-BASE §2`:
 
@@ -33,17 +33,17 @@ A 76 = 60/8/8/0 · B 34 = 24/8/2/0 · C 71 = 54/5/10/2 · D 6 = 1/4/1/0   =>  13
 
 ## 2. Matriz da rodada de MEDIÇÃO (`prev` → `status` do anexo)
 
-| transição             | n     | âncora nominal (item · `anexo:linha`)                                                                                                                                                                                                 |
-| --------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DONE→DONE`           | 128   | — (identidade)                                                                                                                                                                                                                         |
-| `PARTIAL→DONE`        | 10    | `F0-04` :12 · `BFF-002` :32 · `BFF-003` :33 · `12.4` :63 · `14.3` :75 · `18.5` :108 · `19.5` :115 · `21.2` :123 · `32.5` :179 · `32.9` :183                                                    |
-| `DONE→PARTIAL`        | 1     | `10.7` :50 (só 1 das 3 propriedades PBT)                                                                                                                                                                                               |
-| `PARTIAL→PARTIAL`     | 22    | — (identidade)                                                                                                                                                                                                                         |
-| `NS→PARTIAL`          | 2     | `26.8` :158 · `30` :171                                                                                                                                                                                                                |
-| `NS→NS`               | 21    | — (identidade)                                                                                                                                                                                                                         |
-| `NS→UNVERIFIABLE`     | 2     | `25.6` :149 · `25.7` :150 (settings-side do GitHub)                                                                                                                                                                                    |
-| `NÃO VERIFICADO→DONE` | 1     | `GATE-M02` :39 (execução real de `m02:boundaries` / `m02:matrix:check`)                                                                                                                                                                |
-| **total**             | **187** | colunas fecham em **139 D · 25 P · 21 NS · 2 UNV**                                                                                                                                                                                   |
+| transição             | n       | âncora nominal (item · `anexo:linha`)                                                                                                       |
+| --------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DONE→DONE`           | 128     | — (identidade)                                                                                                                              |
+| `PARTIAL→DONE`        | 10      | `F0-04` :12 · `BFF-002` :32 · `BFF-003` :33 · `12.4` :63 · `14.3` :75 · `18.5` :108 · `19.5` :115 · `21.2` :123 · `32.5` :179 · `32.9` :183 |
+| `DONE→PARTIAL`        | 1       | `10.7` :50 (só 1 das 3 propriedades PBT)                                                                                                    |
+| `PARTIAL→PARTIAL`     | 22      | — (identidade)                                                                                                                              |
+| `NS→PARTIAL`          | 2       | `26.8` :158 · `30` :171                                                                                                                     |
+| `NS→NS`               | 21      | — (identidade)                                                                                                                              |
+| `NS→UNVERIFIABLE`     | 2       | `25.6` :149 · `25.7` :150 (settings-side do GitHub)                                                                                         |
+| `NÃO VERIFICADO→DONE` | 1       | `GATE-M02` :39 (execução real de `m02:boundaries` / `m02:matrix:check`)                                                                     |
+| **total**             | **187** | colunas fecham em **139 D · 25 P · 21 NS · 2 UNV**                                                                                          |
 
 **Confirmação de identidade:** a matriz acima é **idêntica, célula a célula**, à do `RECONCILIACAO-BASE-2026-09-15.md §2` — o script de recontagem (§6) compara as duas com `==` e imprime `idêntica ao RECONCILIACAO-BASE §2: True` (soma 187 · zero células fora das 8 listadas). A lista nominal das 16 transições não-identidade já está publicada no `RECONCILIACAO §3` (com âncora `arquivo:linha` no HEAD); aqui só se re-deriva a contagem do raw, bloco a bloco:
 
@@ -60,59 +60,59 @@ D (6) : 1 NS→PARTIAL
 
 Base = coluna `status` do anexo (fim da medição). Final = `RELATORIO-MISSAO §5` (placar consolidado). Fonte primária de cada transição não-identidade = a seção `## LEDGER` do claim respectivo e, **quando o item não tem claim**, a decisão do STEWARD que o promove — é o caso de `9.1-ME` (emenda **D5** em `SPEC-DELTAS/DECISOES-STEWARD-2026-09-15.md`, commit `b45e2fe`; não existe `CLAIMS-INBOX/9.1-ME.md`).
 
-| origem → destino          | n     | quem                                                                                                                                     |
-| ------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `DONE→DONE`               | 139   | — (zero saídas de DONE nesta rodada)                                                                                                      |
-| `PARTIAL→DONE`            | 3     | `10.7` (A) · `35` (C) · `28.5` (C)                                                                                                        |
-| `DONE→PARTIAL`            | 0     | —                                                                                                                                         |
-| `PARTIAL→PARTIAL`         | 22    | — (identidade; `12.5`, `20.1`, `28.4`, `26.8`… permanecem PARTIAL)                                                                        |
-| `NS→DONE`                 | 5     | `16.3` (B) · `23.1`, `23.2`, `28.1`, `28.3` (C)                                                                                           |
-| `NS→PARTIAL`              | 4     | `9.1-ME` (A) · `28.2`, `26.7`, `25.4` (C)                                                                                                 |
-| `NS→NS`                   | 12    | — (identidade)                                                                                                                            |
-| `UNVERIFIABLE→UNVERIFIABLE` | 2   | `25.6`, `25.7` (D4 mantém)                                                                                                                |
-| **total**                 | **187** | linhas fecham em **139/25/21/2** (base) e colunas em **147/26/12/2** (final) — **187 nos dois sentidos**                                |
+| origem → destino            | n       | quem                                                                                                     |
+| --------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| `DONE→DONE`                 | 139     | — (zero saídas de DONE nesta rodada)                                                                     |
+| `PARTIAL→DONE`              | 3       | `10.7` (A) · `35` (C) · `28.5` (C)                                                                       |
+| `DONE→PARTIAL`              | 0       | —                                                                                                        |
+| `PARTIAL→PARTIAL`           | 22      | — (identidade; `12.5`, `20.1`, `28.4`, `26.8`… permanecem PARTIAL)                                       |
+| `NS→DONE`                   | 5       | `16.3` (B) · `23.1`, `23.2`, `28.1`, `28.3` (C)                                                          |
+| `NS→PARTIAL`                | 4       | `9.1-ME` (A) · `28.2`, `26.7`, `25.4` (C)                                                                |
+| `NS→NS`                     | 12      | — (identidade)                                                                                           |
+| `UNVERIFIABLE→UNVERIFIABLE` | 2       | `25.6`, `25.7` (D4 mantém)                                                                               |
+| **total**                   | **187** | linhas fecham em **139/25/21/2** (base) e colunas em **147/26/12/2** (final) — **187 nos dois sentidos** |
 
 ### 3.1 Lista nominal das 12 transições (id · antes → depois · âncora)
 
-| id       | antes → depois      | bloco | `anexo:linha` | âncora do estado final / integração                                                                       |
-| -------- | ------------------- | ----- | ------------- | --------------------------------------------------------------------------------------------------------- |
-| `9.1-ME` | `NS → PARTIAL`      | A     | :41           | `DECISOES-STEWARD` **D5** (emenda pós-V3-A: `outbox.repository.ts:70-75`, `outbox.worker.ts:118,162` · commit `b45e2fe`) |
-| `10.7`   | `PARTIAL → DONE`    | A     | :50           | `CLAIMS-INBOX/10.7.md §LEDGER` (I-M1 · merge `25dd0f5`)                                                    |
-| `16.3`   | `NS → DONE`         | B     | :90           | `CLAIMS-INBOX/16.3-pgstat.md §LEDGER` (I-M8 · merge `406eb81`)                                             |
-| `23.1`   | `NS → DONE`         | C     | :129          | `CLAIMS-INBOX/23-outbox.md §LEDGER` (I-M4 · merge `b5e880f`)                                               |
-| `23.2`   | `NS → DONE`         | C     | :130          | `CLAIMS-INBOX/23-outbox.md §LEDGER` (I-M4 · merge `b5e880f`)                                               |
-| `25.4`   | `NS → PARTIAL`      | C     | :147          | `CLAIMS-INBOX/12.5-25.4-supply.md §LEDGER` (I-M3 · merge `be87d87`)                                        |
-| `26.7`   | `NS → PARTIAL`      | C     | :157          | `CLAIMS-INBOX/12.5-25.4-supply.md §LEDGER` (I-M3 · merge `be87d87`)                                        |
-| `28.1`   | `NS → DONE`         | C     | :163          | `CLAIMS-INBOX/28-backfill.md §LEDGER` (I-M6 · merge `0235084`)                                             |
-| `28.2`   | `NS → PARTIAL`      | C     | :164          | `CLAIMS-INBOX/28-backfill.md §LEDGER` + D3 (ledger só no banco de teste)                                    |
-| `28.3`   | `NS → DONE`         | C     | :165          | `CLAIMS-INBOX/28-backfill.md §LEDGER` (I-M6)                                                               |
-| `28.5`   | `PARTIAL → DONE`    | C     | :167          | `CLAIMS-INBOX/28-backfill.md §LEDGER` (I-M6)                                                               |
-| `35`     | `PARTIAL → DONE`    | C     | :201          | `CLAIMS-INBOX/35-perf-gate.md §LEDGER` (I-M5 · merge `d71be7b`)                                            |
+| id       | antes → depois   | bloco | `anexo:linha` | âncora do estado final / integração                                                                                      |
+| -------- | ---------------- | ----- | ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `9.1-ME` | `NS → PARTIAL`   | A     | :41           | `DECISOES-STEWARD` **D5** (emenda pós-V3-A: `outbox.repository.ts:70-75`, `outbox.worker.ts:118,162` · commit `b45e2fe`) |
+| `10.7`   | `PARTIAL → DONE` | A     | :50           | `CLAIMS-INBOX/10.7.md §LEDGER` (I-M1 · merge `25dd0f5`)                                                                  |
+| `16.3`   | `NS → DONE`      | B     | :90           | `CLAIMS-INBOX/16.3-pgstat.md §LEDGER` (I-M8 · merge `406eb81`)                                                           |
+| `23.1`   | `NS → DONE`      | C     | :129          | `CLAIMS-INBOX/23-outbox.md §LEDGER` (I-M4 · merge `b5e880f`)                                                             |
+| `23.2`   | `NS → DONE`      | C     | :130          | `CLAIMS-INBOX/23-outbox.md §LEDGER` (I-M4 · merge `b5e880f`)                                                             |
+| `25.4`   | `NS → PARTIAL`   | C     | :147          | `CLAIMS-INBOX/12.5-25.4-supply.md §LEDGER` (I-M3 · merge `be87d87`)                                                      |
+| `26.7`   | `NS → PARTIAL`   | C     | :157          | `CLAIMS-INBOX/12.5-25.4-supply.md §LEDGER` (I-M3 · merge `be87d87`)                                                      |
+| `28.1`   | `NS → DONE`      | C     | :163          | `CLAIMS-INBOX/28-backfill.md §LEDGER` (I-M6 · merge `0235084`)                                                           |
+| `28.2`   | `NS → PARTIAL`   | C     | :164          | `CLAIMS-INBOX/28-backfill.md §LEDGER` + D3 (ledger só no banco de teste)                                                 |
+| `28.3`   | `NS → DONE`      | C     | :165          | `CLAIMS-INBOX/28-backfill.md §LEDGER` (I-M6)                                                                             |
+| `28.5`   | `PARTIAL → DONE` | C     | :167          | `CLAIMS-INBOX/28-backfill.md §LEDGER` (I-M6)                                                                             |
+| `35`     | `PARTIAL → DONE` | C     | :201          | `CLAIMS-INBOX/35-perf-gate.md §LEDGER` (I-M5 · merge `d71be7b`)                                                          |
 
 **Identidades que a NAS-2 poderia suspeitar e que o raw confirma:** `28.4` `PARTIAL→PARTIAL` (pedido DONE negado em D3 — §3 do relatório) · `12.5` e `20.1` `PARTIAL→PARTIAL` (§2: "sem mudança") · `26.8` `PARTIAL→PARTIAL` · `30` `PARTIAL→PARTIAL` · `25.6`/`25.7` `UNVERIFIABLE→UNVERIFIABLE` (D4).
 
 ### 3.2 Por bloco (base → final) — soma 187
 
-| bloco | denom | base `D/P/NS/UNV` | final `D/P/NS/UNV` | não-identidade no bloco                        | Δ crédito |
-| ----- | ----- | ----------------- | ------------------ | ---------------------------------------------- | --------- |
-| A     | 76    | 60/8/8/0          | **61/8/7/0**       | `9.1-ME` NS→P · `10.7` P→D                     | +1,0      |
-| B     | 34    | 24/8/2/0          | **25/8/1/0**       | `16.3` NS→D                                    | +1,0      |
-| C     | 71    | 54/5/10/2         | **60/6/3/2**       | 4 NS→D · 2 P→D · 3 NS→P (as 9 do bloco)        | +6,5      |
-| D     | 6     | 1/4/1/0           | **1/4/1/0**        | **nenhuma**                                    | 0,0       |
-| total | 187   | 139/25/21/2       | **147/26/12/2**    | 12 transições                                  | +8,5      |
+| bloco | denom | base `D/P/NS/UNV` | final `D/P/NS/UNV` | não-identidade no bloco                 | Δ crédito |
+| ----- | ----- | ----------------- | ------------------ | --------------------------------------- | --------- |
+| A     | 76    | 60/8/8/0          | **61/8/7/0**       | `9.1-ME` NS→P · `10.7` P→D              | +1,0      |
+| B     | 34    | 24/8/2/0          | **25/8/1/0**       | `16.3` NS→D                             | +1,0      |
+| C     | 71    | 54/5/10/2         | **60/6/3/2**       | 4 NS→D · 2 P→D · 3 NS→P (as 9 do bloco) | +6,5      |
+| D     | 6     | 1/4/1/0           | **1/4/1/0**        | **nenhuma**                             | 0,0       |
+| total | 187   | 139/25/21/2       | **147/26/12/2**    | 12 transições                           | +8,5      |
 
 ### 3.3 Replay do placar pelos marcos do LEDGER (prova incremental item a item)
 
-| marco (claim)                       | estado      | crédito | %     |
-| ----------------------------------- | ----------- | ------- | ----- |
-| base do round (`RECONCILIACAO §2`)  | 139/25/21/2 | 151,5   | 81,02 |
-| `+10.7` P→D (claim `10.7`)          | 140/24/21/2 | 152,0   | 81,28 |
-| `+25.4` · `+26.7` NS→P (claim `12.5-25.4`) | 140/26/19/2 | 153,0 | 81,82 |
-| `+23.1` · `+23.2` NS→D (claim `23-outbox`) | 142/26/17/2 | 155,0 | 82,89 |
-| `+35` P→D (claim `35-perf-gate`)    | 143/25/17/2 | 155,5   | 83,16 |
-| `+28.1` · `28.2` · `28.3` · `28.5` (claim `28-backfill`) | 146/26/14/2 | 158,5 | 84,76 |
-| `+16.3` NS→D (claim `16.3-pgstat`)  | 147/25/13/2 | 159,5   | 85,29 |
-| `+9.1-ME` NS→P (D5/emenda)          | **147/26/12/2** | **160,0** | **85,56** |
+| marco (claim)                                            | estado          | crédito   | %         |
+| -------------------------------------------------------- | --------------- | --------- | --------- |
+| base do round (`RECONCILIACAO §2`)                       | 139/25/21/2     | 151,5     | 81,02     |
+| `+10.7` P→D (claim `10.7`)                               | 140/24/21/2     | 152,0     | 81,28     |
+| `+25.4` · `+26.7` NS→P (claim `12.5-25.4`)               | 140/26/19/2     | 153,0     | 81,82     |
+| `+23.1` · `+23.2` NS→D (claim `23-outbox`)               | 142/26/17/2     | 155,0     | 82,89     |
+| `+35` P→D (claim `35-perf-gate`)                         | 143/25/17/2     | 155,5     | 83,16     |
+| `+28.1` · `28.2` · `28.3` · `28.5` (claim `28-backfill`) | 146/26/14/2     | 158,5     | 84,76     |
+| `+16.3` NS→D (claim `16.3-pgstat`)                       | 147/25/13/2     | 159,5     | 85,29     |
+| `+9.1-ME` NS→P (D5/emenda)                               | **147/26/12/2** | **160,0** | **85,56** |
 
 Os seis marcos publicados nos claims (`81,28` · `81,82` · `82,89` · `83,16` · `84,76` · `85,56`) **batem dígito a dígito** com o replay — ou seja: as promoções registradas no §LEDGER já fechavam a conta; nenhuma transição ficou de fora.
 
@@ -120,7 +120,7 @@ Os seis marcos publicados nos claims (`81,28` · `81,82` · `82,89` · `83,16` �
 
 ## 4. Veredito sobre a lacuna alegada pela NAS-2 — **REFUTADA**
 
-> Alegação sob teste (NAS-2 §10, citada em `QUEUE.md §Base`): *"2 saídas de DONE no bloco C não nomeadas + 1 NS→P residual, **forçados pela aritmética por bloco**"*.
+> Alegação sob teste (NAS-2 §10, citada em `QUEUE.md §Base`): _"2 saídas de DONE no bloco C não nomeadas + 1 NS→P residual, **forçados pela aritmética por bloco**"_.
 
 ### 4.1 A conta do bloco C, item a item
 
@@ -143,22 +143,22 @@ UNV      2                                          =  2   ✓ alvo  2
 
 Definindo a **assinatura da alegação** como `(saídas de DONE fantasmas, entradas NS→P residuais) = (2, 1)` e rodando a busca sobre as bases documentadas × os 512 subconjuntos das 9 transições verdadeiras do bloco C:
 
-| configuração                                                                     | assinatura |
-| -------------------------------------------------------------------------------- | ---------- |
-| base correta (`54/5/10/2`) + as 9 transições verdadeiras                          | **(0, 0)** |
-| **§2 lido como lista de DONE** (8 entradas em C: `23.1, 23.2, 35, 28.1, 28.3, 28.5, 26.7, 25.4`) **e `28.2` não nomeado** | **(2, 1)** ← a alegação |
-| mesma leitura, mas com `28.2` também nomeado                                     | (2, 0)     |
-| base = 1ª passada da medição (`35` ainda DONE ⇒ `55/4/10/2`) + as 9 verdadeiras    | (1, 0)     |
-| base = 1ª passada + §2 lido como DONE (7 entradas) e `28.2` não nomeado            | (2, 1)     |
-| busca exaustiva (512 × 3 bases documentadas)                                       | **0 configurações** com a assinatura |
+| configuração                                                                                                              | assinatura                           |
+| ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| base correta (`54/5/10/2`) + as 9 transições verdadeiras                                                                  | **(0, 0)**                           |
+| **§2 lido como lista de DONE** (8 entradas em C: `23.1, 23.2, 35, 28.1, 28.3, 28.5, 26.7, 25.4`) **e `28.2` não nomeado** | **(2, 1)** ← a alegação              |
+| mesma leitura, mas com `28.2` também nomeado                                                                              | (2, 0)                               |
+| base = 1ª passada da medição (`35` ainda DONE ⇒ `55/4/10/2`) + as 9 verdadeiras                                           | (1, 0)                               |
+| base = 1ª passada + §2 lido como DONE (7 entradas) e `28.2` não nomeado                                                   | (2, 1)                               |
+| busca exaustiva (512 × 3 bases documentadas)                                                                              | **0 configurações** com a assinatura |
 
 ### 4.3 Origem mais provável (uma só causa dominante)
 
-**Causa:** o `RELATORIO-MISSAO §2` intitula a tabela de *"Itens fechados nesta rodada"* e **não tem coluna de status** — quem a lê como lista de promoções a DONE conta **8** entradas em DONE no bloco C em vez de 6. As duas que não são DONE são justamente **`26.7` e `25.4`**, cujo status efetivo (`NS→PARTIAL`, por H-2) está registrado apenas na **prosa** logo abaixo da tabela e no §LEDGER do claim. Somando a isso a omissão de **`28.2`** — cuja promoção `NS→PARTIAL` aparece só na prosa do §2 e numa tabela do §3 cujo título é *"Itens rebaixados / sem upgrade"* (que sugere, erradamente, ausência de mudança) —, a aritmética "fecha" forçando **exatamente 2 saídas de DONE e 1 NS→P residual**. Bate com a alegação nos dois números.
+**Causa:** o `RELATORIO-MISSAO §2` intitula a tabela de _"Itens fechados nesta rodada"_ e **não tem coluna de status** — quem a lê como lista de promoções a DONE conta **8** entradas em DONE no bloco C em vez de 6. As duas que não são DONE são justamente **`26.7` e `25.4`**, cujo status efetivo (`NS→PARTIAL`, por H-2) está registrado apenas na **prosa** logo abaixo da tabela e no §LEDGER do claim. Somando a isso a omissão de **`28.2`** — cuja promoção `NS→PARTIAL` aparece só na prosa do §2 e numa tabela do §3 cujo título é _"Itens rebaixados / sem upgrade"_ (que sugere, erradamente, ausência de mudança) —, a aritmética "fecha" forçando **exatamente 2 saídas de DONE e 1 NS→P residual**. Bate com a alegação nos dois números.
 
 **Sobre a hipótese (b) do spec-card ("bases diferentes / o meio da medição, quando `35` foi DONE e rebaixado"):** ela **contribui com ±1 em D, mas não é a causa e não basta sozinha**. A troca de base pela 1ª passada da medição (global `140/25/20/2` = 81,55% — o "81,6%" do `MEDICAO §1`) com as 9 transições verdadeiras dá assinatura **(1, 0)**, não (2, 1); a base correta dá (0, 0). O fator decisivo é a **leitura da tabela §2**, não a base.
 
-**Observação (fora do meu escopo de escrita):** o parêntese do `QUEUE.md §Base` — *"6 P→D, 3 NS→P, 4 NS→D, 0 D→saída líquida"* — é internamente impossível: o bloco C tem só **5** PARTIAL na base, logo não pode haver 6 `P→D`; `6` é o número de **entradas em DONE** (4 NS→D + 2 P→D). É o mesmo tipo de erro de prosa (contagem sem recontagem item a item) que gerou a lacuna fantasma — o MAESTRO decide se corrige.
+**Observação (fora do meu escopo de escrita):** o parêntese do `QUEUE.md §Base` — _"6 P→D, 3 NS→P, 4 NS→D, 0 D→saída líquida"_ — é internamente impossível: o bloco C tem só **5** PARTIAL na base, logo não pode haver 6 `P→D`; `6` é o número de **entradas em DONE** (4 NS→D + 2 P→D). É o mesmo tipo de erro de prosa (contagem sem recontagem item a item) que gerou a lacuna fantasma — o MAESTRO decide se corrige.
 
 ### 4.4 Consequência para o ledger
 
@@ -292,8 +292,8 @@ status:
 ## 7. Limites declarados e o que **NÃO** foi feito
 
 - **Read-only sobre código:** nenhum arquivo de código, migration, workflow ou teste foi tocado. Este WP escreve **apenas** `TRANSICOES-ROUND-2026-09-15.md` e a errata apensa ao `RELATORIO-MISSAO-2026-09-15.md` (escopo exclusivo do card).
-- **Não houve execução de suíte, build, gate `m02:*`, `db:test`, container PG ou banco algum.** A validação deste item é *recontagem aritmética* sobre o raw (não há teste de software a rodar). `:5432` nunca foi tocado.
-- **Não li o headline antes do raw:** as contagens saem do anexo e do §LEDGER dos claims; `MEDICAO`/`RELATORIO` foram usados só como *destino* de comparação (valores a confirmar), nunca como fonte dos números.
+- **Não houve execução de suíte, build, gate `m02:*`, `db:test`, container PG ou banco algum.** A validação deste item é _recontagem aritmética_ sobre o raw (não há teste de software a rodar). `:5432` nunca foi tocado.
+- **Não li o headline antes do raw:** as contagens saem do anexo e do §LEDGER dos claims; `MEDICAO`/`RELATORIO` foram usados só como _destino_ de comparação (valores a confirmar), nunca como fonte dos números.
 - **O que este WP não decide:** (a) se `26.7`/`25.4`/`28.2` deveriam ter sido promovidos a DONE — é julgamento do STEWARD, já feito (D3/D4 e §3 do relatório); (b) o mérito das evidências de cada claim (é do adversarial de cada WP); (c) a correção do `QUEUE.md` (fora do escopo de arquivo — §4.3 deixa a observação registrada).
 - **Risco assumido (auto-avaliação):** a lista nominal da rodada da missão depende do **§LEDGER dos claims** como fonte do estado final; se algum claim for reaberto (S6→S5) ou reclassificado pelo MAESTRO, **as linhas afetadas desta matriz precisam ser recalculadas** — o script do §9 torna isso trivial (basta editar `MISSION` no topo). Não há risco de código: nada aqui é executável em produção.
 - **Sem push.** 1 item = 1 commit local (§CLAIM abaixo).

@@ -194,14 +194,14 @@ T5 exercita esse contrato sob a role real (não só o catálogo): dentro de uma 
 
 ## 5. Autoverificação adversarial (mutações — o verificador deve reconferir do zero)
 
-| mutação aplicada | teste que morreu |
-| --- | --- |
-| `scripts/db/backfill-ledger.ts`: remover `where backfill_checkpoints.version = excluded.version - 1` (upsert sem CAS) | **T2**: `AssertionError: exatamente 1 worker pode avançar o checkpoint` |
-| banco: `drop policy tenant_isolation on backfill_work_items` | **T5**: `AssertionError: A deve enxergar o próprio marcador de T5` |
-| banco: `drop policy tenant_isolation on backfill_checkpoints` | **T5**: `AssertionError: A deve enxergar o próprio checkpoint de T5` |
-| banco: policy com `using (true) with check (true)` nas duas tabelas | **T5**: `AssertionError: A deve enxergar o próprio checkpoint de T5` (vê 2+, o esperado é 1) |
+| mutação aplicada                                                                                                      | teste que morreu                                                                             |
+| --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `scripts/db/backfill-ledger.ts`: remover `where backfill_checkpoints.version = excluded.version - 1` (upsert sem CAS) | **T2**: `AssertionError: exatamente 1 worker pode avançar o checkpoint`                      |
+| banco: `drop policy tenant_isolation on backfill_work_items`                                                          | **T5**: `AssertionError: A deve enxergar o próprio marcador de T5`                           |
+| banco: `drop policy tenant_isolation on backfill_checkpoints`                                                         | **T5**: `AssertionError: A deve enxergar o próprio checkpoint de T5`                         |
+| banco: policy com `using (true) with check (true)` nas duas tabelas                                                   | **T5**: `AssertionError: A deve enxergar o próprio checkpoint de T5` (vê 2+, o esperado é 1) |
 
-A 2ª/3ª/4ª linhas expuseram uma fraqueza real do meu primeiro T5 (ele só provava *fail-closed*, e uma tabela com RLS ligada e **nenhuma** policy também é fail-closed): o teste foi endurecido com "o dono enxerga o próprio" e "o dono grava o próprio" antes de fechar o item. Ou seja, o teste que está no commit é mais forte do que o que passou na primeira rodada.
+A 2ª/3ª/4ª linhas expuseram uma fraqueza real do meu primeiro T5 (ele só provava _fail-closed_, e uma tabela com RLS ligada e **nenhuma** policy também é fail-closed): o teste foi endurecido com "o dono enxerga o próprio" e "o dono grava o próprio" antes de fechar o item. Ou seja, o teste que está no commit é mais forte do que o que passou na primeira rodada.
 
 - **Veredicto S6 (S5→S6, verificador independente):** **CONFIRMED** — recomendação `28.2 = DONE` e `28.4 = DONE`. O verificador re-derivou o item no próprio container (porta 5438), reconferiu o sha256 do registry, achou o CAS no **único** caminho de escrita e provou o valor dele (sem o `WHERE`, numa cópia `/tmp`, uma leitura obsoleta regride um checkpoint `completed` de `v4` para `v1` **sem erro** — exatamente a sobrescrita silenciosa que a aceitação proíbe); `drop` das tabelas ⇒ suíte morre (nada é autocriado em tempo de teste), up→down→up com diff vazio, RLS `0 rows` + `42501` nas duas tabelas.
 - **Correção docs-only pós-veredicto (aplicada neste branch):** o comentário do downgrade em `scripts/db/test-migrations.ts` afirmava "16 arquivos aplicados"; o total real é o da lista (`DOWNS_TIP_TO_0003` = 13 + `0003→0002` + `0002→0001` = **15**). Em vez de trocar por outro número que envelhece, o comentário passou a derivar o total de `downFiles.length` (`:858-862`). A asserção do journal (`17`) estava correta e não mudou; `npx tsx scripts/db/test-migrations.ts` rodou verde depois da correção.
