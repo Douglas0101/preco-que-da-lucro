@@ -64,5 +64,16 @@ Data da destilação: **2026-09-13** · Escopo: lições ainda correntes (entrad
 
 ---
 
+## 10. Credencial de produção no ambiente da sessão — **stop condition do loop SDD** (2026-09-17)
+
+- **Fato medido:** `DATABASE_URL_UNPOOLED` aponta para o endpoint **de produção** do Neon (`ep-long-violet-aye9g0bn…`, o mesmo prefixo que o guard hard-deny) e existe no ambiente **herdado** da sessão do dono — não no shell interativo do agente, mas em processos do harness (`omp`, VS Code, `gnome-keyring-daemon`) e, por herança, em **todo processo supervisionado** lançado pelo `hub` (o servidor de preview do ciclo 3 subiu com ela presente).
+- **Contenção verificada:** (i) **nenhum código do repo consome** a variável — `scripts/env-guard.mjs` apenas a inspeciona e `scripts/m02-v2b.mjs:572` a define para o drill sancionado; (ii) o `env-guard` faz **DENY fail-closed** (`exit 3`) com o prefixo de produção detectado (`npm run pretest` → `DENY`, host mascarado na saída).
+- **Regra sistêmica (obrigatória a partir do ciclo 3):** **todo processo longo ou agente lançado pelo enxame** sobe com `env -u DATABASE_URL_UNPOOLED …` — e, por extensão, com strip de qualquer variável capaz de carregar credencial de produção — para que o runtime do enxame **nunca** porte credencial de produção.
+- **Prova do mecanismo (medida, não inferida):** dois processos supervisionados idênticos, um sem e outro com o strip → `CONTROLE_SEM_STRIP=PRESENTE` / `COM_STRIP=AUSENTE`.
+- **Ação do dono (mais limpa, opcional):** remover a variável do perfil de login se nenhum outro fluxo local a usa.
+- **Nota de boot:** ao subir qualquer serviço, confira o env do processo (`/proc/<pid>/environ`, host mascarado) **antes** de apontar o browser ou rodar mutação — a checagem `pid → cwd → banco` do ciclo 3 nasceu de uma armadilha real (porta 4173 respondida por um `nitro preview` de outro repo apontando para `:5432`).
+
+---
+
 **Nota de manutenção:** este artefato é a fonte durável; a memória do agente guarda apenas um índice de boot apontando
 para o journal e para cá. Acrescentar lições aqui **antes** de qualquer nova gravação em memória (regra `AGENTS.md`).

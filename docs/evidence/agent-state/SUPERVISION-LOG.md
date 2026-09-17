@@ -41,6 +41,13 @@ Formato de cada entrada (`LOG-ENTRY`): `timestamp · tier · decisão · raciona
 - **Itens afetados:** `docs/evidence/browser-batteries-2026-09-16/CICLO-3-BATERIAS-UI.md` §1.1.
 - **Reversão:** nenhuma (é diagnóstico); o processo do repo principal **não** foi tocado.
 
+## 2026-09-17T05:2xZ · Tier A · **STOP CONDITION acionada** (credencial de produção no ambiente) — contida e convertida em regra
+
+- **Decisão:** (1) **escalar ao dono** a condição de parada do loop SDD §8 ("credencial de produção detectada no ambiente"); (2) adotar como regra sistêmica o strip no lançamento (`env -u DATABASE_URL_UNPOOLED …`) para todo processo longo ou agente do enxame; (3) **não** iniciar o ciclo 4 (S0) até o aceite do dono.
+- **Racional (fatos medidos, não inferidos):** `DATABASE_URL_UNPOOLED` aponta para o endpoint **de produção** do Neon e existe no ambiente **herdado** da sessão do dono (presente em `omp`, VS Code e `gnome-keyring-daemon`; ausente do shell interativo do agente) — logo **todo** processo supervisionado lançado pelo `hub` a herda (foi o caso do servidor de preview do ciclo 3). Contenção verificada: **nenhum código do repo a consome** (`scripts/env-guard.mjs` só a inspeciona; `scripts/m02-v2b.mjs:572` a define para o drill sancionado), o `env-guard` faz **DENY fail-closed** com o prefixo de produção (exit 3) e o strip foi **provado** com dois processos idênticos (`CONTROLE_SEM_STRIP=PRESENTE` / `COM_STRIP=AUSENTE`).
+- **Itens afetados:** todo lançamento de processo do enxame; `AGENT-ENV-NOTES.md` §10 (lição durável); `CONFORMIDADE-LOOP-SDD-CICLO-3.md` §3–§4 (checklist de parada + escalonamento); S0 do ciclo 4 fica **bloqueado por aceite**.
+- **Reversão:** a regra é operacional (1 linha em cada lançamento); o aceite do dono pode optar por remover a variável do perfil de login, o que extingue a condição na raiz.
+
 ## 2026-09-17T03:1xZ · Tier A · **reincidência da colisão de escrita** (lição do L22) — squad escreveu no worktree do MAESTRO
 
 - **Decisão:** o MAESTRO **moveu** os artefatos do WP-D3 para o worktree do squad (`/tmp/wt-mem-d3`, branch `mission/n3a-mem-d3`) com verificação `sha256` (8/8 byte-idênticos) e restaurou o próprio worktree ao HEAD; o squad recebeu steer com a regra de `cwd` explícito e a lista de armadilhas do ambiente dele (sem `node_modules`, sem `.env`).
