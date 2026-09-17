@@ -31,18 +31,16 @@
         "path": "src/server/services/conversation.service.ts"
       },
       "MemoryService": {
-        "status": "contract-only",
-        "path": "src/server/contracts/memory.contracts.ts",
-        "target": "M-05"
+        "status": "implemented",
+        "path": "src/server/services/memory.service.ts"
       },
       "AuditService": {
         "status": "implemented",
         "path": "src/server/services/audit.service.ts"
       },
       "EventService": {
-        "status": "contract-only",
-        "path": "src/server/contracts/event.contracts.ts",
-        "target": "M-04"
+        "status": "implemented",
+        "path": "src/server/services/event.service.ts"
       }
     },
     "repositories": {
@@ -87,9 +85,8 @@
         "path": "src/server/repositories/conversation.repository.ts"
       },
       "MemoryRepository": {
-        "status": "contract-only",
-        "path": "src/server/contracts/memory.contracts.ts",
-        "target": "M-05"
+        "status": "implemented",
+        "path": "src/server/repositories/memory.repository.ts"
       },
       "CalculationSnapshotRepository": {
         "status": "implemented",
@@ -100,9 +97,8 @@
         "path": "src/server/repositories/audit.repository.ts"
       },
       "EventRepository": {
-        "status": "contract-only",
-        "path": "src/server/contracts/event.contracts.ts",
-        "target": "M-04"
+        "status": "implemented",
+        "path": "src/server/repositories/outbox.repository.ts"
       }
     }
   },

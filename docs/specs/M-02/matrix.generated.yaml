@@ -10,7 +10,7 @@
     "createServerFnDeclarations": 32,
     "concreteOperations": 36,
     "apiRoutes": 5,
-    "transactionSites": 119,
+    "transactionSites": 123,
     "directDatabaseFiles": 48
   },
   "bffs": [
@@ -1072,19 +1072,43 @@
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 139,
+      "line": 302,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 187,
+      "line": 383,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 241,
+      "line": 476,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 525,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 557,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 584,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 638,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },

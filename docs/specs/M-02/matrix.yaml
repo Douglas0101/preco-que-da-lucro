@@ -10,7 +10,7 @@
     "createServerFnDeclarations": 32,
     "concreteOperations": 36,
     "apiRoutes": 5,
-    "transactionSites": 119,
+    "transactionSites": 123,
     "directDatabaseFiles": 48
   },
   "bffs": [
@@ -1072,19 +1072,43 @@
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 139,
+      "line": 302,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 187,
+      "line": 383,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 241,
+      "line": 476,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 525,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 557,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 584,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 638,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -1409,18 +1433,16 @@
           "path": "src/server/services/conversation.service.ts"
         },
         "MemoryService": {
-          "status": "contract-only",
-          "path": "src/server/contracts/memory.contracts.ts",
-          "target": "M-05"
+          "status": "implemented",
+          "path": "src/server/services/memory.service.ts"
         },
         "AuditService": {
           "status": "implemented",
           "path": "src/server/services/audit.service.ts"
         },
         "EventService": {
-          "status": "contract-only",
-          "path": "src/server/contracts/event.contracts.ts",
-          "target": "M-04"
+          "status": "implemented",
+          "path": "src/server/services/event.service.ts"
         }
       },
       "repositories": {
@@ -1465,9 +1487,8 @@
           "path": "src/server/repositories/conversation.repository.ts"
         },
         "MemoryRepository": {
-          "status": "contract-only",
-          "path": "src/server/contracts/memory.contracts.ts",
-          "target": "M-05"
+          "status": "implemented",
+          "path": "src/server/repositories/memory.repository.ts"
         },
         "CalculationSnapshotRepository": {
           "status": "implemented",
@@ -1478,9 +1499,8 @@
           "path": "src/server/repositories/audit.repository.ts"
         },
         "EventRepository": {
-          "status": "contract-only",
-          "path": "src/server/contracts/event.contracts.ts",
-          "target": "M-04"
+          "status": "implemented",
+          "path": "src/server/repositories/outbox.repository.ts"
         }
       }
     },
