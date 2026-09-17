@@ -127,6 +127,13 @@
       "when": 1789530795231,
       "tag": "0017_past_gideon",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1789614656044,
+      "tag": "0018_polite_living_tribunal",
+      "breakpoints": true
     }
   ]
 }

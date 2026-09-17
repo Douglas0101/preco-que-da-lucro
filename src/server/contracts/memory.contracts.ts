@@ -96,10 +96,79 @@ export interface MemorySearchQuery {
   limit?: number;
 }
 
+/** Sinal de duplicidade do append (§15.6/D3, SD-C3-7 — mesma forma de
+ * `AppendEventResult.duplicate`): `duplicated: true` significa que a chave de
+ * dedup já identificava uma memória **ativa** do tenant e **nada** foi gravado
+ * (nem memória, nem fonte, nem versão). */
+export interface MemoryAppendResult {
+  record: MemoryRecord;
+  duplicated: boolean;
+}
+
+/** Entrada de revisão (§15.6/D3, SD-C3-4): `scope`, tenant e autoria são do
+ * registro revisado — a revisão só altera conteúdo/importância/proveniência e
+ * arquiva o estado substituído. */
+export interface MemoryRevisionInput {
+  content: string;
+  importance?: number;
+  provenance?: MemoryProvenance;
+}
+
+/** Versão arquivada (§15.6/D3, SD-C3-3): o estado que a revisão substituiu.
+ * `superseded` é **derivado** (não existe coluna nem UPDATE): o head
+ * (`ai_memories`) é a versão corrente da memória, então uma versão arquivada
+ * sempre tem sucessor — a marcação é do head, não da linha. */
+export interface MemoryVersionRecord {
+  id: string;
+  memoryId: string;
+  /** Índice do estado arquivado na memória (1, 2, …). */
+  version: number;
+  content: string;
+  dedupKey: string;
+  createdAt: Date;
+  superseded: boolean;
+}
+
+/** Ciclo de vida do conflito (§15.6/D3, SD-C3-6); quem resolve é o serviço
+ * (D4+), nunca o repositório. */
+export type MemoryConflictStatus = "open" | "dismissed" | "resolved";
+
+/** Conflito registrado (§15.6/D3, SD-C3-5): o candidato contraditório do mesmo
+ * escopo. O registro **não** toca a memória ativa. */
+export interface MemoryConflictRecord {
+  id: string;
+  memoryId: string;
+  candidateContent: string;
+  candidateDedupKey: string;
+  status: MemoryConflictStatus;
+  detectedAt: Date;
+  resolvedAt?: Date | null;
+}
+
+export interface MemoryConflictFilter {
+  status?: MemoryConflictStatus;
+  memoryId?: string;
+}
+
+/** Expurgo (§15.6/D3, SD-C3-9): sem `purgeHistory`, o `delete` do D2 **recusa**
+ * (devolve `false`, sem erro) memória com histórico ou conflito registrado; a
+ * eliminação completa é este caminho explícito. */
+export interface MemoryDeleteOptions {
+  purgeHistory: boolean;
+}
+
 export interface MemoryRepositoryPort {
   append(
     context: RequestContext,
     input: MemoryRecordInput,
+    executor?: Executor,
+  ): Promise<MemoryAppendResult>;
+  /** Revisão do head (§15.6/D3): arquiva a versão substituída e atualiza a
+   * memória no lugar. Não julga contradição semântica (SD-C3-5). */
+  revise(
+    context: RequestContext,
+    memoryId: string,
+    revision: MemoryRevisionInput,
     executor?: Executor,
   ): Promise<MemoryRecord>;
   search(
@@ -107,5 +176,26 @@ export interface MemoryRepositoryPort {
     query: MemorySearchQuery,
     executor?: Executor,
   ): Promise<readonly MemoryRecord[]>;
-  delete(context: RequestContext, id: string, executor?: Executor): Promise<boolean>;
+  listVersions(
+    context: RequestContext,
+    memoryId: string,
+    executor?: Executor,
+  ): Promise<readonly MemoryVersionRecord[]>;
+  recordConflict(
+    context: RequestContext,
+    memoryId: string,
+    candidate: MemoryCandidate,
+    executor?: Executor,
+  ): Promise<MemoryConflictRecord>;
+  listConflicts(
+    context: RequestContext,
+    filter?: MemoryConflictFilter,
+    executor?: Executor,
+  ): Promise<readonly MemoryConflictRecord[]>;
+  delete(
+    context: RequestContext,
+    id: string,
+    options?: MemoryDeleteOptions,
+    executor?: Executor,
+  ): Promise<boolean>;
 }

@@ -314,4 +314,20 @@ export const migrationClasses: readonly MigrationClassEntry[] = [
     rollback: "drizzle/rollback/0017_to_0016_down.sql",
     appliedOn: "empty",
   },
+  {
+    tag: "0018_polite_living_tribunal",
+    class: "SAFE",
+    rationale:
+      "Dedup/versionamento/conflitos da memória (§15.6/D3): cria ai_memory_versions e ai_memory_conflicts com FK composta RESTRICT, CHECKs e índices, adiciona ai_memories.dedup_key NOT NULL (tabela sem escritor antes de D3) com índice único parcial e concede grants/RLS mínimos; aditiva, sem DML e sem alterar objetos pré-existentes.",
+    evidence: [
+      "drizzle/0018_polite_living_tribunal.sql",
+      "drizzle/rollback/0018_to_0017_down.sql",
+      "scripts/db/test-memory.ts (D3/T1 dedup idempotente, T2 revisão/versão byte a byte, T3 conflito sem sobrescrever o ativo, T4 delete × expurgo, T5 concorrência de 2 sessões no índice único, T6 isolamento de tenant, T7 imutabilidade por privilégio, T8 classificação)",
+      "src/db/schema.ts (aiMemoryVersions/aiMemoryConflicts + ai_memories.dedupKey)",
+      "docs/evidence/agent-state/SPEC-CARDS/CICLO-3.md (§WP-D3, SD-C3-1…SD-C3-11)",
+    ],
+    sha256: "4cdeecf7a61efeba31d0ee9e1f3d04a1a5dfe1a03f22b9b403738cf41de4176a",
+    rollback: "drizzle/rollback/0018_to_0017_down.sql",
+    appliedOn: "empty",
+  },
 ];
