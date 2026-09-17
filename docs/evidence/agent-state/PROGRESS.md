@@ -17,12 +17,12 @@
 
 ## 1. Estado corrente
 
-- **Fase:** `5 — consolidação` — **NAS-2 ciclo 1 fechado (L45):** **86,10% de crédito parcial** (149 D · 24 P · 12 NS · 2 UNV em 187; crua 79,68%). Fechados no ciclo: `28.2`/`28.4` (DONE) e o residual do `35` (o gerador emite o bloco §35); WP-0 refutou a lacuna contábil da NAS-2; escada §43 com gap report (0/7) + degrau D1 entregue. Pipeline em S0–S9 com **E1/E2** — ledger só grava com evidência re-executada no HEAD integrado.
-- **Refs:** `develop` = HEAD do ciclo `e7458fc` (**nada pushado** — H-10) · `origin/develop` = `8df3fe3` · `origin/main` = `9724d2c` (**SHA do dia-D**) · branches `mission/*` preservadas como evidência.
-- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned por commit — último: ciclo 1 do NAS-2 (2026-09-16, parent `e7458fc`).
-- **Árvore:** limpa no repo principal. Artefatos do ciclo: `docs/evidence/agent-state/{RELATORIO-CICLO-1-2026-09-16.md,TRANSICOES-ROUND-2026-09-15.md,MEM-D0-GAP-REPORT.md,QUEUE.md,SUPERVISION-LOG.md,DECISIONS-PENDING/**,SPEC-CARDS/WP-*.md,SPEC-DELTAS/DECISOES-STEWARD-{NAS2,MEM}-2026-09-16.md,CLAIMS-INBOX/*}`.
-- **Gate local:** `npm run check` **exit 0** (9/9; bundle 475.253 B < 500 KB) · `npm run db:test` **exit 0** (14 suítes, inclui o CAS do backfill) · `m02:boundaries`/`m02:matrix:check`/`m02:secrets-audit` exit 0 · drill `m02:v2b` esperando **17/17** derivado do journal — todos em container PG17 efêmero (o `:5432` segue com dado não-fixture, ver **H-9**).
-- **Ambiente local:** Postgres Docker `preco-que-da-lucro-postgres` (127.0.0.1:5432, `preco_que_da_lucro_test`) usado nos gates; `.env` aponta para produção e por isso **todo** dev/test/build exige override explícito para `127.0.0.1` (sancionado por `AGENTS.md`).
+- **Fase:** `5 — consolidação` — **NAS-2 ciclo 3 em curso (L47):** placar vigente **86,36% de crédito parcial** (150 D · 23 P · 12 NS · 2 UNV em 187; crua 80,21%) — **inalterado neste ciclo até haver E2**. Fechado no ciclo 3: **baterias de computer-user** §18/§20/§23/§32/§33 com **veredicto adversarial** (12 CONFIRMED · 5 CORRECTED · 0 REJECTED, nenhum comportamento refutado) e o **briefe H-12**. Em execução: **WP-D3** (dedup/versões/conflitos) em `mission/n3a-mem-d3` — **sem crédito até E2**.
+- **Refs:** `develop` = `f3c56db` (**nada pushado** — H-10) · `origin/develop` = `8df3fe3` · `origin/main` = `9724d2c` (**SHA do dia-D**) · branches `mission/*` preservadas como evidência · worktree do squad: `/tmp/wt-mem-d3`.
+- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned por commit — último: ciclo 3 (2026-09-17, parent `53b2996`; commit `f3c56db`).
+- **Árvore:** limpa no worktree principal após o marco `f3c56db`. Artefatos do ciclo: `docs/evidence/browser-batteries-2026-09-16/{CICLO-3-BATERIAS-UI.md,VERDICT-ADVERSARIAL.md,playwright-mcp/**(36 selados + `playwright-mcp.sha256`),playwright-mcp-verifier/**(30, ver README)}` · `docs/evidence/agent-state/{SPEC-CARDS/CICLO-3.md,SPEC-DELTAS/CICLO-3-SOURCE-FACTS.md,DECISIONS-PENDING/H-12.md,QUEUE.md,SUPERVISION-LOG.md}`.
+- **Gate local (fase docs, HEAD `53b2996` + artefatos):** `npm run check` **exit 0** (9/9; bundle 475.253 B < 500 KB) · `m02:env-guard-selftest` **13/13** · `m02:secrets-audit` exit 0 · `m02:state:check` válido pós-commit.
+- **Ambiente do ciclo (efêmero, removível):** preview **local** `node .output/server/index.mjs` em `127.0.0.1:4273` (pid 2443804, cwd = worktree, `DATABASE_URL` → `:55432`) · container `nas2c3-pg` (`127.0.0.1:55432`, fixture `scripts/e2e/seed-auth.ts`) · squad D3 com container próprio `n3a-pg` (`:55440`). `:5432` **intocado** (H-9) e o `.env` **destes** worktrees aponta só para `127.0.0.1` (o repo principal é que aponta para produção).
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 

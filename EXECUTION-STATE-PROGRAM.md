@@ -1635,3 +1635,4 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro:** `docs/evidence/browser-batteries-2026-09-16/**` (baterias + `VERDICT-ADVERSARIAL.md`) · `SPEC-CARDS/CICLO-3.md` · `SPEC-DELTAS/CICLO-3-SOURCE-FACTS.md` · `DECISIONS-PENDING/H-12.md` · `QUEUE.md` · `SUPERVISION-LOG.md` · journal L47.
 - **Próximo:** integração + **E2** do WP-D3 (e então o crédito correspondente) · `9.2`-residual (4 pontos de acesso direto à transação) · `MEM-D4` com o H-12 respondido · baterias remotas seguem bloqueadas (H-10/H-6/H-2/H-11/H-9).
   Latest state marker parent = `53b29960251dceea9e416ab17478b81c2273befa`,
+  Latest state marker parent = `f3c56db5e163894a091c5d03a0975419deb0e169`,
