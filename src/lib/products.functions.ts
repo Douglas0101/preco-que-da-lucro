@@ -1,15 +1,7 @@
-import { and, asc, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import Decimal from "decimal.js";
 import { z } from "zod";
 import { ApplicationError } from "@/lib/api-error";
-import {
-  marketPrices,
-  productIngredients,
-  productPackaging,
-  products,
-  salesFees,
-} from "@/db/schema";
 import type { FeeRow, IngredientRow, PackagingRow } from "@/lib/finance";
 import {
   nonNegativeDecimalStringSchema,
@@ -18,10 +10,19 @@ import {
   quantityUnitSchema,
   toDecimalString,
 } from "@/lib/financial-values";
-import { LIST_LIMITS } from "@/lib/list-limits";
 import { optimisticVersionSchema } from "@/lib/optimistic-version";
 import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
+import type {
+  MarketPrice,
+  Product,
+  ProductChildKind,
+  ProductIngredient,
+  ProductPackaging,
+  ProductStatus,
+  SalesFee,
+} from "@/server/contracts/product.contracts";
+import { productRepository } from "@/server/repositories/product.repository";
 import { productService } from "@/server/services/product.service";
 import { calculateProductReadModel } from "@/server/services/product-read-model.service";
 import { purchasePriceService } from "@/server/services/purchase-price.service";
@@ -32,7 +33,79 @@ const decimalNumber = (value: string | null) =>
 const percentPoints = (value: string | null) =>
   value == null ? null : new Decimal(value).mul(100).toNumber();
 
-function mapProduct(row: typeof products.$inferSelect) {
+/** Projeções snake_case devolvidas ao BFF de produtos (contrato das rotas). */
+interface ProductView {
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  name: string;
+  status: ProductStatus;
+  current_price: string | null;
+  yield_qty: string | null;
+  yield_unit: string | null;
+  tax_regime: string | null;
+  tax_rate: string | null;
+  is_demo: boolean;
+  notes: string | null;
+  version: number;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface IngredientView {
+  id: string;
+  product_id: string;
+  tenant_id: string;
+  user_id: string;
+  name: string;
+  used_qty: string;
+  used_unit: string;
+  package_price: string | null;
+  package_qty: string | null;
+  package_unit: string | null;
+  conversion_factor: string | null;
+  price_updated_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PackagingView {
+  id: string;
+  product_id: string;
+  tenant_id: string;
+  user_id: string;
+  name: string;
+  package_price: string;
+  units_per_package: string;
+  price_updated_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface FeeView {
+  id: string;
+  product_id: string;
+  tenant_id: string;
+  user_id: string;
+  name: string;
+  percentage: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface MarketView {
+  id: string;
+  product_id: string;
+  tenant_id: string;
+  user_id: string;
+  min_price: string | null;
+  avg_price: string | null;
+  max_price: string | null;
+  created_at: string;
+}
+
+function mapProduct(row: Product): ProductView {
   return {
     id: row.id,
     tenant_id: row.tenantId,
@@ -53,7 +126,7 @@ function mapProduct(row: typeof products.$inferSelect) {
   };
 }
 
-function mapIngredient(row: typeof productIngredients.$inferSelect) {
+function mapIngredient(row: ProductIngredient): IngredientView {
   return {
     id: row.id,
     product_id: row.productId,
@@ -72,7 +145,7 @@ function mapIngredient(row: typeof productIngredients.$inferSelect) {
   };
 }
 
-function mapPackaging(row: typeof productPackaging.$inferSelect) {
+function mapPackaging(row: ProductPackaging): PackagingView {
   return {
     id: row.id,
     product_id: row.productId,
@@ -87,7 +160,7 @@ function mapPackaging(row: typeof productPackaging.$inferSelect) {
   };
 }
 
-function mapFee(row: typeof salesFees.$inferSelect) {
+function mapFee(row: SalesFee): FeeView {
   return {
     id: row.id,
     product_id: row.productId,
@@ -100,7 +173,7 @@ function mapFee(row: typeof salesFees.$inferSelect) {
   };
 }
 
-function mapMarket(row: typeof marketPrices.$inferSelect) {
+function mapMarket(row: MarketPrice): MarketView {
   return {
     id: row.id,
     product_id: row.productId,
@@ -117,7 +190,7 @@ function isForeignKeyViolation(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && error.code === "23503";
 }
 
-function toFinanceIngredient(item: ReturnType<typeof mapIngredient>): IngredientRow {
+function toFinanceIngredient(item: IngredientView): IngredientRow {
   return {
     used_qty: decimalNumber(item.used_qty) as number,
     used_unit: item.used_unit,
@@ -136,22 +209,22 @@ function toFinanceIngredient(item: ReturnType<typeof mapIngredient>): Ingredient
   };
 }
 
-function toFinancePackaging(item: ReturnType<typeof mapPackaging>): PackagingRow {
+function toFinancePackaging(item: PackagingView): PackagingRow {
   return {
     package_price: decimalNumber(item.package_price) as number,
     units_per_package: decimalNumber(item.units_per_package) as number,
   };
 }
 
-function toFinanceFee(item: ReturnType<typeof mapFee>): FeeRow {
+function toFinanceFee(item: FeeView): FeeRow {
   return { percentage: percentPoints(item.percentage) };
 }
 
 function projectProductCalculation(
-  product: ReturnType<typeof mapProduct>,
-  ingredients: ReturnType<typeof mapIngredient>[],
-  packaging: ReturnType<typeof mapPackaging>[],
-  fees: ReturnType<typeof mapFee>[],
+  product: ProductView,
+  ingredients: IngredientView[],
+  packaging: PackagingView[],
+  fees: FeeView[],
 ) {
   const calculation = calculateProductReadModel({
     persistedStatus: product.status,
@@ -166,47 +239,14 @@ function projectProductCalculation(
 }
 
 async function loadProductDetail(request: RequestContext, productId: string) {
-  const scope = and(eq(products.tenantId, request.tenantId), eq(products.id, productId));
-  const productRows = await request.transaction.select().from(products).where(scope).limit(1);
-  const ingredientRows = await request.transaction
-    .select()
-    .from(productIngredients)
-    .where(
-      and(
-        eq(productIngredients.tenantId, request.tenantId),
-        eq(productIngredients.productId, productId),
-      ),
-    )
-    .orderBy(asc(productIngredients.createdAt));
-  const packagingRows = await request.transaction
-    .select()
-    .from(productPackaging)
-    .where(
-      and(
-        eq(productPackaging.tenantId, request.tenantId),
-        eq(productPackaging.productId, productId),
-      ),
-    )
-    .orderBy(asc(productPackaging.createdAt));
-  const feeRows = await request.transaction
-    .select()
-    .from(salesFees)
-    .where(and(eq(salesFees.tenantId, request.tenantId), eq(salesFees.productId, productId)))
-    .orderBy(asc(salesFees.createdAt));
-  const marketRows = await request.transaction
-    .select()
-    .from(marketPrices)
-    .where(and(eq(marketPrices.tenantId, request.tenantId), eq(marketPrices.productId, productId)))
-    .orderBy(desc(marketPrices.createdAt))
-    .limit(1);
+  const detail = await productRepository.loadDetail(request, productId);
+  if (!detail) throw new Error("NOT_FOUND");
 
-  if (!productRows[0]) throw new Error("NOT_FOUND");
-
-  const product = mapProduct(productRows[0]);
-  const ingredients = ingredientRows.map(mapIngredient);
-  const packaging = packagingRows.map(mapPackaging);
-  const fees = feeRows.map(mapFee);
-  const market = marketRows[0] ? mapMarket(marketRows[0]) : null;
+  const product = mapProduct(detail.product);
+  const ingredients = detail.ingredients.map(mapIngredient);
+  const packaging = detail.packaging.map(mapPackaging);
+  const fees = detail.fees.map(mapFee);
+  const market = detail.market ? mapMarket(detail.market) : null;
   const calculation = projectProductCalculation(product, ingredients, packaging, fees);
   return {
     product: { ...product, status: calculation.status },
@@ -219,270 +259,30 @@ async function loadProductDetail(request: RequestContext, productId: string) {
   };
 }
 
-type IngredientSelect = typeof productIngredients.$inferSelect;
-type PackagingSelect = typeof productPackaging.$inferSelect;
-type FeeSelect = typeof salesFees.$inferSelect;
-type MarketSelect = typeof marketPrices.$inferSelect;
-type ChildUnionKind = "ingredient" | "packaging" | "fee" | "market";
-
-/** Shape of one row of the consolidated children UNION: every branch carries
- * the full aligned column list (siblings contribute NULLs) plus branch tags. */
-interface ChildUnionRow extends IngredientSelect {
-  branch: number;
-  ord: number;
-  kind: ChildUnionKind;
-  unitsPerPackage: string | null;
-  percentage: string | null;
-  minPrice: string | null;
-  avgPrice: string | null;
-  maxPrice: string | null;
-}
-
-function rowsFromQueryResult(result: unknown): Record<string, unknown>[] {
-  if (Array.isArray(result)) return result as Record<string, unknown>[];
-  const rows = (result as { rows?: unknown } | null)?.rows;
-  return Array.isArray(rows) ? (rows as Record<string, unknown>[]) : [];
-}
-
-/**
- * O UNION consolidado executa via `execute()` (sem decoders do Drizzle), então
- * os valores chegam crús do driver: com neon-serverless, timestamptz volta como
- * string; com node-postgres, como Date. Normaliza os timestamps para Date antes
- * dos mappers (que chamam .toISOString()) — paridade entre drivers.
- */
-const CHILD_TIMESTAMP_FIELDS = ["createdAt", "updatedAt", "priceUpdatedAt"] as const;
-
-function normalizeChildRow<T>(row: T): T {
-  const normalized = { ...(row as Record<string, unknown>) };
-  for (const key of CHILD_TIMESTAMP_FIELDS) {
-    const value = normalized[key];
-    if (typeof value === "string") {
-      const parsed = new Date(value);
-      normalized[key] = Number.isNaN(parsed.getTime()) ? null : parsed;
-    }
-  }
-  return normalized as T;
-}
-
-function ingredientChildBranch(
-  request: RequestContext,
-  productIds: string[],
-  ord: SQL,
-  orderColumns: SQL[] = [],
-) {
-  return request.transaction
-    .select({
-      branch: sql`1`.as("branch"),
-      ord: ord.as("ord"),
-      kind: sql`'ingredient'`.as("kind"),
-      id: sql`${productIngredients.id}`.as("id"),
-      productId: sql`${productIngredients.productId}`.as("productId"),
-      tenantId: sql`${productIngredients.tenantId}`.as("tenantId"),
-      userId: sql`${productIngredients.userId}`.as("userId"),
-      name: sql`${productIngredients.name}`.as("name"),
-      usedQty: sql`${productIngredients.usedQty}`.as("usedQty"),
-      usedUnit: sql`${productIngredients.usedUnit}`.as("usedUnit"),
-      packagePrice: sql`${productIngredients.packagePrice}`.as("packagePrice"),
-      packageQty: sql`${productIngredients.packageQty}`.as("packageQty"),
-      packageUnit: sql`${productIngredients.packageUnit}`.as("packageUnit"),
-      conversionFactor: sql`${productIngredients.conversionFactor}`.as("conversionFactor"),
-      priceUpdatedAt: sql`${productIngredients.priceUpdatedAt}`.as("priceUpdatedAt"),
-      unitsPerPackage: sql`null::numeric`.as("unitsPerPackage"),
-      percentage: sql`null::numeric`.as("percentage"),
-      minPrice: sql`null::numeric`.as("minPrice"),
-      avgPrice: sql`null::numeric`.as("avgPrice"),
-      maxPrice: sql`null::numeric`.as("maxPrice"),
-      createdAt: sql`${productIngredients.createdAt}`.as("createdAt"),
-      updatedAt: sql`${productIngredients.updatedAt}`.as("updatedAt"),
-    })
-    .from(productIngredients)
-    .where(
-      and(
-        eq(productIngredients.tenantId, request.tenantId),
-        inArray(productIngredients.productId, productIds),
-      ),
-    )
-    .orderBy(...orderColumns)
-    .limit(LIST_LIMITS.productChildren);
-}
-
-function packagingChildBranch(
-  request: RequestContext,
-  productIds: string[],
-  ord: SQL,
-  orderColumns: SQL[] = [],
-) {
-  return request.transaction
-    .select({
-      branch: sql`2`.as("branch"),
-      ord: ord.as("ord"),
-      kind: sql`'packaging'`.as("kind"),
-      id: sql`${productPackaging.id}`.as("id"),
-      productId: sql`${productPackaging.productId}`.as("productId"),
-      tenantId: sql`${productPackaging.tenantId}`.as("tenantId"),
-      userId: sql`${productPackaging.userId}`.as("userId"),
-      name: sql`${productPackaging.name}`.as("name"),
-      usedQty: sql`null::numeric`.as("usedQty"),
-      usedUnit: sql`null::text`.as("usedUnit"),
-      packagePrice: sql`${productPackaging.packagePrice}`.as("packagePrice"),
-      packageQty: sql`null::numeric`.as("packageQty"),
-      packageUnit: sql`null::text`.as("packageUnit"),
-      conversionFactor: sql`null::numeric`.as("conversionFactor"),
-      priceUpdatedAt: sql`${productPackaging.priceUpdatedAt}`.as("priceUpdatedAt"),
-      unitsPerPackage: sql`${productPackaging.unitsPerPackage}`.as("unitsPerPackage"),
-      percentage: sql`null::numeric`.as("percentage"),
-      minPrice: sql`null::numeric`.as("minPrice"),
-      avgPrice: sql`null::numeric`.as("avgPrice"),
-      maxPrice: sql`null::numeric`.as("maxPrice"),
-      createdAt: sql`${productPackaging.createdAt}`.as("createdAt"),
-      updatedAt: sql`${productPackaging.updatedAt}`.as("updatedAt"),
-    })
-    .from(productPackaging)
-    .where(
-      and(
-        eq(productPackaging.tenantId, request.tenantId),
-        inArray(productPackaging.productId, productIds),
-      ),
-    )
-    .orderBy(...orderColumns)
-    .limit(LIST_LIMITS.productChildren);
-}
-
-function feeChildBranch(request: RequestContext, productIds: string[]) {
-  return request.transaction
-    .select({
-      branch: sql`3`.as("branch"),
-      ord: sql`row_number() over ()`.as("ord"),
-      kind: sql`'fee'`.as("kind"),
-      id: sql`${salesFees.id}`.as("id"),
-      productId: sql`${salesFees.productId}`.as("productId"),
-      tenantId: sql`${salesFees.tenantId}`.as("tenantId"),
-      userId: sql`${salesFees.userId}`.as("userId"),
-      name: sql`${salesFees.name}`.as("name"),
-      usedQty: sql`null::numeric`.as("usedQty"),
-      usedUnit: sql`null::text`.as("usedUnit"),
-      packagePrice: sql`null::numeric`.as("packagePrice"),
-      packageQty: sql`null::numeric`.as("packageQty"),
-      packageUnit: sql`null::text`.as("packageUnit"),
-      conversionFactor: sql`null::numeric`.as("conversionFactor"),
-      priceUpdatedAt: sql`null::timestamptz`.as("priceUpdatedAt"),
-      unitsPerPackage: sql`null::numeric`.as("unitsPerPackage"),
-      percentage: sql`${salesFees.percentage}`.as("percentage"),
-      minPrice: sql`null::numeric`.as("minPrice"),
-      avgPrice: sql`null::numeric`.as("avgPrice"),
-      maxPrice: sql`null::numeric`.as("maxPrice"),
-      createdAt: sql`${salesFees.createdAt}`.as("createdAt"),
-      updatedAt: sql`${salesFees.updatedAt}`.as("updatedAt"),
-    })
-    .from(salesFees)
-    .where(and(eq(salesFees.tenantId, request.tenantId), inArray(salesFees.productId, productIds)))
-    .limit(LIST_LIMITS.productChildren);
-}
-
-function marketChildBranch(request: RequestContext, productIds: string[]) {
-  return request.transaction
-    .select({
-      branch: sql`4`.as("branch"),
-      ord: sql`row_number() over (order by ${marketPrices.createdAt} desc)`.as("ord"),
-      kind: sql`'market'`.as("kind"),
-      id: sql`${marketPrices.id}`.as("id"),
-      productId: sql`${marketPrices.productId}`.as("productId"),
-      tenantId: sql`${marketPrices.tenantId}`.as("tenantId"),
-      userId: sql`${marketPrices.userId}`.as("userId"),
-      name: sql`null::text`.as("name"),
-      usedQty: sql`null::numeric`.as("usedQty"),
-      usedUnit: sql`null::text`.as("usedUnit"),
-      packagePrice: sql`null::numeric`.as("packagePrice"),
-      packageQty: sql`null::numeric`.as("packageQty"),
-      packageUnit: sql`null::text`.as("packageUnit"),
-      conversionFactor: sql`null::numeric`.as("conversionFactor"),
-      priceUpdatedAt: sql`null::timestamptz`.as("priceUpdatedAt"),
-      unitsPerPackage: sql`null::numeric`.as("unitsPerPackage"),
-      percentage: sql`null::numeric`.as("percentage"),
-      minPrice: sql`${marketPrices.minPrice}`.as("minPrice"),
-      avgPrice: sql`${marketPrices.avgPrice}`.as("avgPrice"),
-      maxPrice: sql`${marketPrices.maxPrice}`.as("maxPrice"),
-      createdAt: sql`${marketPrices.createdAt}`.as("createdAt"),
-      updatedAt: sql`null::timestamptz`.as("updatedAt"),
-    })
-    .from(marketPrices)
-    .where(
-      and(eq(marketPrices.tenantId, request.tenantId), inArray(marketPrices.productId, productIds)),
-    )
-    .orderBy(desc(marketPrices.createdAt))
-    .limit(LIST_LIMITS.productChildren);
-}
-
-async function loadChildRows(request: RequestContext, union: SQL) {
-  const result = await request.transaction.execute(union);
-  // SAFETY: the consolidated UNION runs through raw `execute()`, which bypasses
-  // Drizzle's decoders, so the driver hands back `Record<string, unknown>`. The
-  // rows ARE the aligned `ChildUnionRow` shape because every UNION branch projects
-  // the full column superset (siblings contribute typed NULLs such as
-  // `sql`null::numeric`.as("unitsPerPackage")`), so no field is ever absent.
-  const rows = rowsFromQueryResult(result) as unknown as ChildUnionRow[];
-  const ingredients: IngredientSelect[] = [];
-  const packaging: PackagingSelect[] = [];
-  const fees: FeeSelect[] = [];
-  const market: MarketSelect[] = [];
-  for (const rawRow of rows) {
-    const row = normalizeChildRow(rawRow);
-    // SAFETY: `kind` is the branch tag emitted by each UNION branch, and the
-    // aligned-superset projection above guarantees that a row tagged 'packaging'
-    // carries exactly the `PackagingSelect` payload in those columns (same for
-    // 'fee'/'market'). TypeScript cannot verify it here because `ChildUnionRow` is
-    // a flat interface extending `IngredientSelect` whose `kind` is a runtime tag,
-    // not a discriminated union linking `kind` to the sibling shapes; and
-    // `normalizeChildRow` is shape-preserving (it only rewrites the three timestamp
-    // fields string->Date), so it does not invalidate the narrowing. FRAGILE: if a
-    // branch changes its projected columns without updating this mapping, these
-    // casts would silently hide the mismatch - the aligned superset is the guard.
-    if (row.kind === "ingredient") ingredients.push(row);
-    else if (row.kind === "packaging") packaging.push(row as unknown as PackagingSelect);
-    else if (row.kind === "fee") fees.push(row as unknown as FeeSelect);
-    else if (row.kind === "market") market.push(row as unknown as MarketSelect);
-  }
-  return { ingredients, packaging, fees, market };
-}
-
 async function loadProductReadModels(request: RequestContext) {
-  const productRows = await request.transaction
-    .select()
-    .from(products)
-    .where(and(eq(products.tenantId, request.tenantId), isNull(products.archivedAt)))
-    .orderBy(desc(products.createdAt))
-    .limit(LIST_LIMITS.products);
-  const productIds = productRows.map((row) => row.id);
-  if (!productIds.length) return [];
-  const scanOrder = sql`row_number() over ()`;
-  const { ingredients, packaging, fees, market } = await loadChildRows(
-    request,
-    sql`${ingredientChildBranch(request, productIds, scanOrder)}
-      union all ${packagingChildBranch(request, productIds, scanOrder)}
-      union all ${feeChildBranch(request, productIds)}
-      union all ${marketChildBranch(request, productIds)}
-      order by branch, ord`,
-  );
-  const ingredientsByProduct = new Map<string, ReturnType<typeof mapIngredient>[]>();
-  for (const item of ingredients) {
+  const rows = await productRepository.loadReadModel(request);
+  const productRows = rows.products;
+  if (!productRows.length) return [];
+  const ingredientsByProduct = new Map<string, IngredientView[]>();
+  for (const item of rows.ingredients) {
     const rows = ingredientsByProduct.get(item.productId) ?? [];
     rows.push(mapIngredient(item));
     ingredientsByProduct.set(item.productId, rows);
   }
-  const packagingByProduct = new Map<string, ReturnType<typeof mapPackaging>[]>();
-  for (const item of packaging) {
+  const packagingByProduct = new Map<string, PackagingView[]>();
+  for (const item of rows.packaging) {
     const rows = packagingByProduct.get(item.productId) ?? [];
     rows.push(mapPackaging(item));
     packagingByProduct.set(item.productId, rows);
   }
-  const feesByProduct = new Map<string, ReturnType<typeof mapFee>[]>();
-  for (const item of fees) {
+  const feesByProduct = new Map<string, FeeView[]>();
+  for (const item of rows.fees) {
     const rows = feesByProduct.get(item.productId) ?? [];
     rows.push(mapFee(item));
     feesByProduct.set(item.productId, rows);
   }
-  const marketByProduct = new Map<string, ReturnType<typeof mapMarket>>();
-  for (const item of market) {
+  const marketByProduct = new Map<string, MarketView>();
+  for (const item of rows.market) {
     if (!marketByProduct.has(item.productId)) marketByProduct.set(item.productId, mapMarket(item));
   }
 
@@ -592,7 +392,7 @@ function toProductWrite(data: ProductFields) {
 async function createProductWrite(
   request: RequestContext,
   data: ProductFields,
-): Promise<ReturnType<typeof mapProduct>> {
+): Promise<ProductView> {
   const product = await productService.save(request, toProductWrite(data));
   return mapProduct(product);
 }
@@ -600,7 +400,7 @@ async function createProductWrite(
 async function updateProductWrite(
   request: RequestContext,
   data: z.output<typeof updateProductInput>,
-): Promise<ReturnType<typeof mapProduct>> {
+): Promise<ProductView> {
   const product = await productService.save(request, {
     id: data.id,
     version: data.version,
@@ -679,9 +479,8 @@ export const upsertIngredient = createServerFn({ method: "POST" })
     const request = context.requestContext;
     assertTenantMutationAuthorized(request);
     const priceUpdatedAt = data.package_price == null ? null : new Date();
-    const values = {
-      tenantId: request.tenantId,
-      userId: request.userId,
+    const row = await productRepository.saveIngredient(request, {
+      id: data.id,
       productId: data.product_id,
       name: data.name,
       usedQty: toDecimalString(data.used_qty, 6),
@@ -692,49 +491,29 @@ export const upsertIngredient = createServerFn({ method: "POST" })
       conversionFactor:
         data.conversion_factor == null ? null : toDecimalString(data.conversion_factor, 8),
       priceUpdatedAt,
-      updatedAt: new Date(),
-    };
-    const rows = data.id
-      ? await request.transaction
-          .update(productIngredients)
-          .set(values)
-          .where(
-            and(
-              eq(productIngredients.tenantId, request.tenantId),
-              eq(productIngredients.id, data.id),
-            ),
-          )
-          .returning()
-      : await request.transaction.insert(productIngredients).values(values).returning();
-    if (!rows[0]) throw new Error("NOT_FOUND");
+    });
     if (data.package_price != null && data.package_qty != null && data.package_unit != null) {
       await purchasePriceService.append(request, {
         kind: "ingredient",
-        subjectId: rows[0].id,
+        subjectId: row.id,
         price: data.package_price,
         quantity: data.package_qty,
         unit: data.package_unit,
         validFrom: priceUpdatedAt ?? new Date(),
       });
     }
-    return mapIngredient(rows[0]);
+    return mapIngredient(row);
   });
 
-function deleteChild(
-  table: typeof productIngredients | typeof productPackaging | typeof salesFees,
-) {
+function deleteChild(kind: ProductChildKind) {
   return createServerFn({ method: "POST" })
     .middleware([requireDatabaseAuth])
     .validator((input: unknown) => z.object({ id: uuid }).parse(input))
     .handler(async ({ data, context }) => {
       const request = context.requestContext;
       assertTenantMutationAuthorized(request);
-      let rows: Array<{ id: string }>;
       try {
-        rows = await request.transaction
-          .delete(table)
-          .where(and(eq(table.tenantId, request.tenantId), eq(table.id, data.id)))
-          .returning({ id: table.id });
+        await productRepository.deleteChild(request, kind, data.id);
       } catch (error) {
         if (isForeignKeyViolation(error)) {
           throw new ApplicationError("CONFLICT", {
@@ -744,12 +523,11 @@ function deleteChild(
         }
         throw error;
       }
-      if (!rows.length) throw new Error("NOT_FOUND");
       return { ok: true };
     });
 }
 
-export const deleteIngredient = deleteChild(productIngredients);
+export const deleteIngredient = deleteChild("ingredient");
 
 const packagingInput = z.object({
   id: uuid.optional(),
@@ -765,38 +543,27 @@ export const upsertPackaging = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
     assertTenantMutationAuthorized(request);
-    const values = {
-      tenantId: request.tenantId,
-      userId: request.userId,
+    const priceUpdatedAt = new Date();
+    const row = await productRepository.savePackaging(request, {
+      id: data.id,
       productId: data.product_id,
       name: data.name,
       packagePrice: toDecimalString(data.package_price, 4),
       unitsPerPackage: toDecimalString(data.units_per_package, 6),
-      priceUpdatedAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const rows = data.id
-      ? await request.transaction
-          .update(productPackaging)
-          .set(values)
-          .where(
-            and(eq(productPackaging.tenantId, request.tenantId), eq(productPackaging.id, data.id)),
-          )
-          .returning()
-      : await request.transaction.insert(productPackaging).values(values).returning();
-    if (!rows[0]) throw new Error("NOT_FOUND");
+      priceUpdatedAt,
+    });
     await purchasePriceService.append(request, {
       kind: "packaging",
-      subjectId: rows[0].id,
+      subjectId: row.id,
       price: data.package_price,
       quantity: data.units_per_package,
       unit: "unidade",
-      validFrom: values.priceUpdatedAt,
+      validFrom: priceUpdatedAt,
     });
-    return mapPackaging(rows[0]);
+    return mapPackaging(row);
   });
 
-export const deletePackaging = deleteChild(productPackaging);
+export const deletePackaging = deleteChild("packaging");
 
 const feeInput = z.object({
   id: uuid.optional(),
@@ -811,26 +578,16 @@ export const upsertFee = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
     assertTenantMutationAuthorized(request);
-    const values = {
-      tenantId: request.tenantId,
-      userId: request.userId,
+    const row = await productRepository.saveFee(request, {
+      id: data.id,
       productId: data.product_id,
       name: data.name,
       percentage: toDecimalString(data.percentage, 6),
-      updatedAt: new Date(),
-    };
-    const rows = data.id
-      ? await request.transaction
-          .update(salesFees)
-          .set(values)
-          .where(and(eq(salesFees.tenantId, request.tenantId), eq(salesFees.id, data.id)))
-          .returning()
-      : await request.transaction.insert(salesFees).values(values).returning();
-    if (!rows[0]) throw new Error("NOT_FOUND");
-    return mapFee(rows[0]);
+    });
+    return mapFee(row);
   });
 
-export const deleteFee = deleteChild(salesFees);
+export const deleteFee = deleteChild("fee");
 
 const marketInput = z.object({
   product_id: uuid,
@@ -845,18 +602,12 @@ export const setMarketPrice = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
     assertTenantMutationAuthorized(request);
-    const [row] = await request.transaction
-      .insert(marketPrices)
-      .values({
-        tenantId: request.tenantId,
-        userId: request.userId,
-        productId: data.product_id,
-        minPrice: data.min_price == null ? null : toDecimalString(data.min_price, 4),
-        avgPrice: data.avg_price == null ? null : toDecimalString(data.avg_price, 4),
-        maxPrice: data.max_price == null ? null : toDecimalString(data.max_price, 4),
-      })
-      .returning();
-    if (!row) throw new Error("DATABASE_ERROR");
+    const row = await productRepository.createMarketPrice(request, {
+      productId: data.product_id,
+      minPrice: data.min_price == null ? null : toDecimalString(data.min_price, 4),
+      avgPrice: data.avg_price == null ? null : toDecimalString(data.avg_price, 4),
+      maxPrice: data.max_price == null ? null : toDecimalString(data.max_price, 4),
+    });
     return mapMarket(row);
   });
 
@@ -875,35 +626,11 @@ export const getProductMetrics = createServerFn({ method: "GET" })
 export const listPurchasePrices = createServerFn({ method: "GET" })
   .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
-    const request = context.requestContext;
-    const productRows = await request.transaction
-      .select({ id: products.id, name: products.name })
-      .from(products)
-      .where(and(eq(products.tenantId, request.tenantId), isNull(products.archivedAt)))
-      .orderBy(desc(products.createdAt))
-      .limit(LIST_LIMITS.products);
-    const productIds = productRows.map((row) => row.id);
-    if (!productIds.length) return { products: [], ingredients: [], packaging: [] };
-    const { ingredients, packaging } = await loadChildRows(
-      request,
-      sql`${ingredientChildBranch(
-        request,
-        productIds,
-        sql`row_number() over (order by ${productIngredients.name})`,
-        [asc(productIngredients.name)],
-      )}
-        union all ${packagingChildBranch(
-          request,
-          productIds,
-          sql`row_number() over (order by ${productPackaging.name})`,
-          [asc(productPackaging.name)],
-        )}
-        order by branch, ord`,
-    );
+    const rows = await productRepository.loadPurchasePriceRows(context.requestContext);
     return {
-      products: productRows,
-      ingredients: ingredients.map(mapIngredient),
-      packaging: packaging.map(mapPackaging),
+      products: rows.products,
+      ingredients: rows.ingredients.map(mapIngredient),
+      packaging: rows.packaging.map(mapPackaging),
     };
   });
 

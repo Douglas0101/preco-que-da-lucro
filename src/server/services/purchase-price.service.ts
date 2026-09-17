@@ -1,8 +1,8 @@
 import Decimal from "decimal.js";
-import { and, eq } from "drizzle-orm";
-import { productIngredients, productPackaging } from "@/db/schema";
-import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
 import { toDecimalString } from "@/lib/financial-values";
+import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
+import type { ProductChildPriceWriter } from "@/server/contracts/product.contracts";
+import { productRepository } from "@/server/repositories/product.repository";
 import {
   purchasePriceRepository,
   type PurchasePriceHistoryWrite,
@@ -55,8 +55,18 @@ function normalizedPriceInput(input: PurchasePriceHistoryWrite): PurchasePriceHi
   };
 }
 
+/**
+ * O `update` escreve em dois ports (§9.2): o histórico de preço (com o advisory
+ * lock que serializa o read-modify-write) e a **linha base do filho do produto**
+ * — coluna de `product_ingredients`/`product_packaging`, cujo adapter é o
+ * `ProductRepository`. Nenhum dos dois expõe o driver: o serviço não conhece o
+ * dialeto SQL nem o schema.
+ */
 export class DefaultPurchasePriceService implements PurchasePriceService {
-  constructor(private readonly repository: PurchasePriceRepository) {}
+  constructor(
+    private readonly repository: PurchasePriceRepository,
+    private readonly productChildren: ProductChildPriceWriter = productRepository,
+  ) {}
 
   async append(context: RequestContext, input: PurchasePriceHistoryWrite) {
     assertTenantMutationAuthorized(context);
@@ -76,28 +86,13 @@ export class DefaultPurchasePriceService implements PurchasePriceService {
     const now = normalized.validFrom;
 
     if (input.kind === "ingredient") {
-      const rows = await context.transaction
-        .update(productIngredients)
-        .set({
-          packagePrice: normalized.price,
-          packageQty: normalized.quantity,
-          packageUnit: normalized.unit,
-          priceUpdatedAt: now,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(productIngredients.tenantId, context.tenantId),
-            eq(productIngredients.id, input.subjectId),
-          ),
-        )
-        .returning({
-          id: productIngredients.id,
-          packagePrice: productIngredients.packagePrice,
-          priceUpdatedAt: productIngredients.priceUpdatedAt,
-        });
-      const row = rows[0];
-      if (!row) throw new Error("NOT_FOUND");
+      const row = await this.productChildren.updateIngredientPrice(context, {
+        id: input.subjectId,
+        packagePrice: normalized.price,
+        packageQty: normalized.quantity,
+        packageUnit: normalized.unit,
+        priceUpdatedAt: now,
+      });
       const history = await this.repository.append(context, {
         ...normalized,
         kind: "ingredient",
@@ -112,27 +107,12 @@ export class DefaultPurchasePriceService implements PurchasePriceService {
     }
 
     if (normalized.unit !== "unidade") throw new Error("INVALID_PRICE_UNIT");
-    const rows = await context.transaction
-      .update(productPackaging)
-      .set({
-        packagePrice: normalized.price,
-        unitsPerPackage: normalized.quantity,
-        priceUpdatedAt: now,
-        updatedAt: now,
-      })
-      .where(
-        and(
-          eq(productPackaging.tenantId, context.tenantId),
-          eq(productPackaging.id, input.subjectId),
-        ),
-      )
-      .returning({
-        id: productPackaging.id,
-        packagePrice: productPackaging.packagePrice,
-        priceUpdatedAt: productPackaging.priceUpdatedAt,
-      });
-    const row = rows[0];
-    if (!row) throw new Error("NOT_FOUND");
+    const row = await this.productChildren.updatePackagingPrice(context, {
+      id: input.subjectId,
+      packagePrice: normalized.price,
+      unitsPerPackage: normalized.quantity,
+      priceUpdatedAt: now,
+    });
     const history = await this.repository.append(context, {
       ...normalized,
       kind: "packaging",
