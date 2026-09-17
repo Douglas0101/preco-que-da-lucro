@@ -41,6 +41,19 @@ Formato de cada entrada (`LOG-ENTRY`): `timestamp · tier · decisão · raciona
 - **Itens afetados:** `docs/evidence/browser-batteries-2026-09-16/CICLO-3-BATERIAS-UI.md` §1.1.
 - **Reversão:** nenhuma (é diagnóstico); o processo do repo principal **não** foi tocado.
 
+## 2026-09-17T15:1xZ · Tier A · **H-10 EXECUTADO** — `develop` publicado, CI verde no tip (com uma parada e correção no caminho)
+
+- **Decisão:** executar o push autorizado pelo supervisor (apenas `develop`), acompanhar o CI, **parar** na primeira falha e corrigi-la como prioridade máxima antes de iniciar o `WP-9.2T` (condição dura do despacho).
+- **Fatos:**
+  1. **Push 1:** `8df3fe3..3c0f62c` (**215 commits**). Run `35235161800` (`UI stack`) = **failure**, **apenas** em `npm run test:e2e` (8 testes = 2 × 4 engines em `sales-dashboard.spec.ts`); todos os demais passos verdes (check, db:test, db:check, build, bundle, audit, browsers).
+  2. **Causa-raiz do e2e:** **fragilidade de locator, não regressão** — `metricCard()` filtrava por `hasText` (substring **case-insensitive**) e o card de "Margem consolidada" passou a explicar "quantas unidades de **cada produto** foram vendidas" (trabalho de explain da Onda 3/4, **nunca antes visto pelo CI**: `origin/develop` estava 215 commits atrás) ⇒ o filtro por "Produtos" resolvia **2 cards** (strict mode violation). O valor exibido estava correto.
+  3. **Correção:** `5e2ee86` (âncora em texto exato: `has: getByText(label, { exact: true })` — **asserção não afrouxada**) + `5d9169b` (formatação; o 2º run falhou só em `format:check`). **Prova local antes do push:** spec 12/12 nas 4 engines e suíte completa **56/56**.
+  4. **Push 2/3:** `3c0f62c..5e2ee86`, `5e2ee86..5d9169b`. Run **`35237829581`** (`UI stack`) em `5d9169b3` = **SUCCESS** (26/26 passos, incl. `test:e2e`); `CI light` também success.
+- **Prova de que NÃO houve deploy de produção:** `main` = **`9724d2c`** inalterado (`git ls-remote` antes e depois); **apenas** `develop` foi publicado; o contrato do repositório é produção somente a partir de `main`; probes do alias de produção (`-sage`) **200/200** antes e depois; nenhum comando tocou Neon, produção ou `:5432` (H-9 preservado) e nenhum gate §42 foi contornado.
+- **Lições convertidas em regra:** (i) o gate local (`npm run check`) **não** inclui `test:e2e` ⇒ **F-C5-1**: rodar o e2e localmente antes de publicar WP que toque UI/rotas (a suíte leva ~1,5 min); (ii) **rodar `format:check` antes de todo push** (o 2º run caiu só por formatação).
+- **Itens afetados:** `GATE-41` (critério "CI verde" **satisfeito** para o tip `5d9169b`), `H-10` (**fechado**), `WP-9.2T` (congelamento **levantado**; despachado).
+- **Reversão:** `git revert` do commit de correção (o histórico publicado nunca é reescrito).
+
 ## 2026-09-17T06:3xZ · Tier B · **E2 pegou o que o E1 não viu** (WP-9.2R): BFF importando repositório ⇒ build de cliente quebra
 
 - **Decisão:** rejeitar a entrega no estado em que estava e despachar correção dirigida (S6→S5, bound 2) ao squad; registrar o padrão no runbook mental do ciclo (**E1 de squad não substitui o build de cliente**).
