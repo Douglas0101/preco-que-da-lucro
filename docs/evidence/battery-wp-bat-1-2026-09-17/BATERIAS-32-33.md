@@ -37,3 +37,15 @@
 1. Bateria executada em **Firefox** (Playwright) contra preview **local**; produção/Neon seguem bloqueados por gate (H-6/H-2).
 2. O item §32.1 (replay) foi medido **na UI** (não idempotente por desenho); a idempotência do caminho de tools **não** foi exercitada por sonda própria (sem gateway de IA local).
 3. §33.8/§33.9 ficam com o ponteiro da camada que cobre — **não** são "medidos" por este WP.
+
+---
+
+## Correção pós-veredicto (append-only, 2026-09-17) — §33.6/B-7
+
+A **hipótese** registrada acima ("`breakEven` chega `null` por `createBreakEvenInput`") foi **refutada por medição** (`CLAIMS-INBOX/WP-BAT-1-VERDICT.md`): o card **recebe** `breakEven={"status":"invalid", "units":{"errors":[{"code":"INVALID_DECIMAL","field":"contributionMargin"}]}}` e `metrics.status="ok"`.
+
+- **Causa pinada:** `src/lib/break-even.ts:78` rejeita decimal **negativo** (`contributionMargin="-9.15"`) em `parseBaseInputs` (`:192-204`) ⇒ `status:"invalid"`; o ramo `NON_POSITIVE_CONTRIBUTION` (`:126-139`) nunca é atingido no caminho do cliente.
+- **Contraste:** `/diagnostico` usa `finance.ts:383-423` (`calculateBreakEvenUnits`), aceita margem negativa e devolve `unreachable` ⇒ "Não atingível".
+- **Borda medida:** `cm=−9.15 → invalid` · `cm=0 → unreachable` · `cm=+0.1 → reachable`.
+- **Veredicto: DEFEITO** (classificação errada escondendo o rótulo honesto). Correção mínima: aceitar negativo para `contributionMargin`/`contributionMarginPct` no `parseDecimal`.
+- **Outras correções do veredicto:** provas de restauração **não versionadas** (o commit é docs-only); resíduo de sondagem no container (efêmero, destruído); bloqueio do chat volta **200** (não 429) com envelope `$TSR/Error`; `R$ 0,00` usa NBSP.
