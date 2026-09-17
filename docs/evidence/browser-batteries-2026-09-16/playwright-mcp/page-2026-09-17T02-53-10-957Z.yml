@@ -1,0 +1,12 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e221]:
+    - banner [ref=f7e222]:
+      - link "Preço que Dá Lucro" [ref=f7e223] [cursor=pointer]:
+        - /url: /inicio
+      - button "Abrir menu de navegação" [ref=f7e229] [cursor=pointer]
+    - main [ref=f7e231]:
+      - generic [ref=f7e233]:
+        - heading "Bem-vindo!" [level=1] [ref=f7e238]
+        - paragraph [ref=f7e239]: Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu negócio e quanto você precisa vender para começar a ter lucro.
+        - button "Começar agora" [ref=f7e240] [cursor=pointer]
+  - region "Notifications alt+T"

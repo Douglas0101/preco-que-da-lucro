@@ -14,6 +14,11 @@ docs/specs/M-02/matrix*.yaml
 # Hash-addressed security evidence is sealed and must not be formatter-mutated.
 docs/evidence/security-scan/**
 
+# Raw computer-user captures (MCP Playwright a11y snapshots / console logs), from the
+# QA-BROWSER session and from adversarial verifiers, are evidence, not source: sealed
+# like the security scans, never formatter-mutated.
+docs/evidence/*/playwright-mcp*/**
+
 # Platform-managed generated sources
 AGENTS.md
 src/integrations/lovable/index.ts

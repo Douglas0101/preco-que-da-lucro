@@ -1,0 +1,24 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]: Preço que Dá Lucro
+      - link "Entrar" [ref=e10] [cursor=pointer]:
+        - /url: /auth
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - generic [ref=e13]: IA que conversa como um consultor
+        - heading "Entenda a faixa de preço do seu produto conversando." [level=1] [ref=e17]
+        - paragraph [ref=e18]: Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu negócio e quanto você precisa vender para começar a ter lucro.
+        - link "Começar agora" [ref=e20] [cursor=pointer]:
+          - /url: /auth
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - heading "Cadastro por conversa" [level=3] [ref=e26]
+          - paragraph [ref=e27]: Escreva a receita do seu jeito. A IA organiza tudo para você.
+        - generic [ref=e28]:
+          - heading "Cálculos precisos" [level=3] [ref=e32]
+          - paragraph [ref=e33]: Custo, margem de contribuição e preços calculados com premissas explícitas.
+        - generic [ref=e34]:
+          - heading "Ponto de equilíbrio" [level=3] [ref=e40]
+          - paragraph [ref=e41]: Saiba exatamente quanto vender para parar de ter prejuízo.
+  - region "Notifications alt+T"

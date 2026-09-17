@@ -1,0 +1,98 @@
+- generic [ref=f26e1]:
+  - generic [ref=f26e4]:
+    - banner [ref=f26e5]:
+      - link "Preço que Dá Lucro" [ref=f26e6] [cursor=pointer]:
+        - /url: /inicio
+      - button "Abrir menu de navegação" [ref=f26e12] [cursor=pointer]
+    - main [ref=f26e14]:
+      - generic [ref=f26e16]:
+        - generic [ref=f26e17]:
+          - heading "Simulações" [level=1] [ref=f26e18]
+          - paragraph [ref=f26e19]: Teste uma hipótese informada por você. Sem vendas registradas, nenhum cenário é tratado como atual ou factual.
+        - generic [ref=f26e22]:
+          - text: Produto
+          - combobox "Produto" [ref=f26e23] [cursor=pointer]:
+            - generic [ref=f26e24]: 00000000-0000-4000-8000-000000000010
+            - img [aria-hidden] [ref=f26e25]: ▼
+          - textbox [aria-hidden] [ref=f26e27]: 00000000-0000-4000-8000-000000000010
+        - generic [ref=f26e28]:
+          - generic [ref=f26e29]:
+            - generic [ref=f26e30]:
+              - generic [ref=f26e31]: Dados unitários do produto
+              - paragraph [ref=f26e32]: Produto de teste
+            - generic [ref=f26e33]:
+              - generic [ref=f26e34]:
+                - generic [ref=f26e35]: Preço informado
+                - generic [ref=f26e36]: R$ 20,00
+              - generic [ref=f26e37]:
+                - generic [ref=f26e38]: Custo unitário
+                - generic [ref=f26e39]: R$ 10,00
+              - generic [ref=f26e40]:
+                - generic [ref=f26e41]: Custo variável unitário
+                - generic [ref=f26e42]: R$ 3,00
+              - generic [ref=f26e43]:
+                - generic [ref=f26e44]: Margem de contribuição unitária
+                - generic [ref=f26e45]: R$ 7,00 (35,00%)
+              - generic [ref=f26e46]: "Volume real: —. Registre vendas reais antes de usar volume em um KPI factual."
+          - generic [ref=f26e47]:
+            - generic [ref=f26e48]:
+              - generic [ref=f26e49]:
+                - generic [ref=f26e50]: Simulação manual
+                - 'generic "Resultado hipotético: não é dado factual e não alimenta KPIs." [ref=f26e51]': Simulação
+              - paragraph [ref=f26e52]: O volume e os resultados abaixo são hipotéticos e não alimentam KPIs factuais.
+            - generic [ref=f26e53]:
+              - group "Origem do volume simulado" [ref=f26e54]:
+                - generic [ref=f26e56]:
+                  - generic [ref=f26e57]:
+                    - radio "Simulação manual" [checked] [ref=f26e58]
+                    - generic [ref=f26e59]:
+                      - text: Simulação manual
+                      - paragraph [ref=f26e60]: Volume informado por você como hipótese. Pode ser salva.
+                  - generic [ref=f26e61]:
+                    - radio "Estimativa (projeção)" [ref=f26e62]
+                    - generic [ref=f26e63]:
+                      - text: Estimativa (projeção)
+                      - paragraph [ref=f26e64]: Volume projetado por você. Não é persistida nesta versão.
+              - generic [ref=f26e65]:
+                - text: Preço de venda simulado (R$)
+                - textbox "Preço de venda simulado (R$)" [ref=f26e66]: 20,00
+              - generic [ref=f26e67]:
+                - text: Custo unitário simulado (R$)
+                - textbox "Custo unitário simulado (R$)" [ref=f26e68]: 10,00
+              - generic [ref=f26e69]:
+                - text: Despesas fixas no escopo simulado (R$)
+                - textbox "Despesas fixas no escopo simulado (R$)" [ref=f26e70]: 723,45
+              - generic [ref=f26e71]:
+                - text: Vendas simuladas (unidades)
+                - textbox "Vendas simuladas (unidades)" [active] [ref=f26e72]: "100"
+              - status [ref=f26e80]:
+                - generic [ref=f26e81]:
+                  - generic [ref=f26e82]: Origem do volume
+                  - generic [ref=f26e83]: Informado manualmente
+                - generic [ref=f26e84]:
+                  - generic [ref=f26e85]: Volume simulado
+                  - generic [ref=f26e86]: 100 un.
+                - generic [ref=f26e87]:
+                  - generic [ref=f26e88]: Margem de contribuição
+                  - generic [ref=f26e89]: R$ 7,00 (35,00%)
+                - generic [ref=f26e90]:
+                  - generic [ref=f26e91]: Faturamento simulado
+                  - generic [ref=f26e92]: R$ 2.000,00
+                - generic [ref=f26e93]:
+                  - generic [ref=f26e94]: Resultado operacional simulado dentro do escopo informado
+                  - generic [ref=f26e95]: "-R$ 23,45"
+              - group [ref=f26e96]:
+                - generic "Como calculamos?" [ref=f26e97] [cursor=pointer]
+              - generic [ref=f26e98]:
+                - generic [ref=f26e99]:
+                  - text: Nome da simulação
+                  - textbox "Nome da simulação" [ref=f26e100]:
+                    - /placeholder: "Ex.: Margem-alvo de 25%"
+                - button "Salvar simulação" [disabled]
+                - paragraph [ref=f26e102]: O servidor recalcula o cenário antes de salvar; o resultado enviado não é reutilizado (INV-009).
+        - generic [ref=f26e74]:
+          - generic [ref=f26e76]:
+            - text: Simulações salvas
+            - generic "Simulações persistidas como hipótese, nunca dado factual." [ref=f26e77]: 0 registro(s)
+          - paragraph [ref=f26e79]: Nenhuma simulação salva. Registre uma hipótese acima para revisitar depois.
+  - region "Notifications alt+T"
