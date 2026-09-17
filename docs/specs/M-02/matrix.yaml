@@ -11,7 +11,7 @@
     "concreteOperations": 36,
     "apiRoutes": 5,
     "transactionSites": 88,
-    "directDatabaseFiles": 46
+    "directDatabaseFiles": 47
   },
   "bffs": [
     {
@@ -315,7 +315,7 @@
       "operations": [
         {
           "name": "listProducts",
-          "line": 306,
+          "line": 318,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -323,7 +323,7 @@
         },
         {
           "name": "listProductsWithMetrics",
-          "line": 314,
+          "line": 326,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -331,7 +331,7 @@
         },
         {
           "name": "getProduct",
-          "line": 320,
+          "line": 332,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -339,7 +339,7 @@
         },
         {
           "name": "createProduct",
-          "line": 411,
+          "line": 423,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -347,7 +347,7 @@
         },
         {
           "name": "updateProduct",
-          "line": 416,
+          "line": 428,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -355,7 +355,7 @@
         },
         {
           "name": "upsertProduct",
-          "line": 422,
+          "line": 434,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -363,7 +363,7 @@
         },
         {
           "name": "archiveProduct",
-          "line": 431,
+          "line": 443,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -371,7 +371,7 @@
         },
         {
           "name": "deleteProduct",
-          "line": 441,
+          "line": 453,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -379,7 +379,7 @@
         },
         {
           "name": "upsertIngredient",
-          "line": 474,
+          "line": 486,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -387,7 +387,7 @@
         },
         {
           "name": "deleteIngredient",
-          "line": 532,
+          "line": 544,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -395,7 +395,7 @@
         },
         {
           "name": "upsertPackaging",
-          "line": 547,
+          "line": 559,
           "declaration": "createServerFn",
           "service": "ProductService/PricingService",
           "repository": "ProductCatalogRepository + PriceRepository",
@@ -403,7 +403,7 @@
         },
         {
           "name": "deletePackaging",
-          "line": 572,
+          "line": 584,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -411,7 +411,7 @@
         },
         {
           "name": "upsertFee",
-          "line": 586,
+          "line": 598,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -419,7 +419,7 @@
         },
         {
           "name": "deleteFee",
-          "line": 600,
+          "line": 612,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -427,7 +427,7 @@
         },
         {
           "name": "setMarketPrice",
-          "line": 612,
+          "line": 624,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "MarketPriceRepository",
@@ -435,7 +435,7 @@
         },
         {
           "name": "getProductMetrics",
-          "line": 626,
+          "line": 638,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -443,7 +443,7 @@
         },
         {
           "name": "listPurchasePrices",
-          "line": 638,
+          "line": 650,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -451,7 +451,7 @@
         },
         {
           "name": "updatePurchasePrice",
-          "line": 649,
+          "line": 661,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "PriceRepository",
@@ -1175,6 +1175,7 @@
     "src/test/migration-classes.test.ts",
     "src/test/optimistic-version.repository.test.ts",
     "src/test/product-contracts.test.ts",
+    "src/test/products-fk-conflict.test.ts",
     "src/test/products-read-models.golden.perf-waves.test.ts",
     "src/test/purchase-price.service.test.ts",
     "src/test/round-trip-instrumentation.perf-waves.test.ts",

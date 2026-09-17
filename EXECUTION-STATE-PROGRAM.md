@@ -1687,5 +1687,21 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   Latest state marker parent = `538bcb116b0a30d11c30f8e924f2b44586a4fa74`,
   Latest state marker parent = `c31331b9a010efe5531dac7cbee157f7431332d4`,
   Latest state marker parent = `0b797b8e7f5e07b23c00cc5fdc16a1d2c959211f`,
+
+---
+
+### NAS-2 — ciclo 6 (2026-09-17; MAESTRO + SQUAD-APP + verificador adversarial)
+
+- **WP:** `F-C4-1` — mapeamento `23503 → CONFLICT` **latentemente morto** (defeito **pré-existente**, severidade ALTA, achado do veredicto adversarial do ciclo 4). Entrega `959fae1`, merge `b362671`, **publicado**.
+- **Fix:** `isForeignKeyViolation` (`src/lib/products.functions.ts`) passa a **caminhar a cadeia de `cause`** (profundidade limitada, sem laço infinito), copiando o padrão canônico de `memory.repository.ts:303-311`; **sem** consolidar helpers (`src/lib/db-error.ts` **não** criado — diff mínimo, declarado no claim).
+- **E1:** **RED real** (o teste entregue rodado contra o pai: `4 failed | 5 passed`) → **GREEN** (`9 passed`); **caminho real de banco** medido sob `app_runtime` + GUCs de tenant: `ApplicationError{code: CONFLICT, status: 409}` no delete de filho com histórico, com **histórico e filho preservados**; controles negativos (23505, sem `cause`, `cause` circular, `null`/string/objeto, cadeia de 1000 níveis) seguram sem travar; `tsc`/`build`/`boundaries`/`format`/`eslint` = 0. **E2 (HEAD integrado, container virgem):** `npm run check` **exit 0** (9/9; bundle 475.253 B) · `npm run db:test` **exit 0**.
+- **Veredicto adversarial (`WP-C4-1-VERDICT.md`):** **25 CONFIRMED · 5 CORRECTED · 0 REJECTED · 2 UNVERIFIABLE** — **núcleo não falsificado**. Corrigido: o erro anterior era **`503 DATABASE_ERROR` retryable** (não 500); contagens de skip; e — **material** — o commit **introduz drift de matrix** (o claim dizia "nada a regenerar"), **regularizado pelo MAESTRO** (`directDatabaseFiles` **46 → 47**, pois o arquivo de teste novo conta como arquivo de banco direto; `matrix:check` verde). Correções **append-only** no claim.
+- **Dívidas novas:** **F-C6-1** (mapeamento **agnóstico de tabela** + mensagem fixa "histórico de preços"; folga de profundidade real=1 vs tabela até 3 ⇒ um segundo wrapper voltaria a falhar em silêncio com 503) · **F-C6-2** (a **prova de banco fica fora do E2**: `db:test` não roda o arquivo novo e `check` roda vitest **sem** `DATABASE_ADMIN_URL` ⇒ `5 passed | 4 skipped`; o vitest **não** lê `.env`) — mesma classe do R6 do ciclo 4.
+- **S5:** **não aplicável ao WP** (nenhuma superfície de UI tocada) — smoke de boot com evidência: `/`, `/auth`, `/api/health/live`, `/api/health/ready` = **200**; rotas autenticadas servem o shell SPA (4231 B); a bateria real do WP é a de banco (acima).
+- **Guard (S7):** `env-guard --selftest` **13/13** · `secrets-audit` exit 0 · `lockfile-guard` OK · `:5432` **intocado** (26 tabelas) · preview do ciclo **sem** `DATABASE_URL_UNPOOLED` · containers efêmeros removidos · nenhum host remoto.
+- **Placar: inalterado** (86,36% parcial / 80,21% crua) — `F-C4-1` é correção de defeito **fora** do denominador do Plano Mestre.
+- **Registro:** `docs/evidence/agent-state/RELATORIO-CICLO-6-2026-09-17.md` · `SPEC-CARDS/CICLO-6.md` · `CLAIMS-INBOX/{WP-C4-1.md,WP-C4-1-VERDICT.md}` · journal L57.
+- **Próximo (ordem do supervisor):** **`WP-BAT-1`** (lacunas de bateria §32/§33) → **`MEM-D4`** (H-12 aprovado + SD-C3-12). Filas paralelas: `F-C6-1`/`F-C6-2`, `F-C5-2`/`F-C5-3`, `WP-B1`.
+  Latest state marker parent = `b362671e79d9200a724b078cd19595d42ccc4bb3`,
   Latest state marker parent = `53b29960251dceea9e416ab17478b81c2273befa`,
   Latest state marker parent = `f3c56db5e163894a091c5d03a0975419deb0e169`,

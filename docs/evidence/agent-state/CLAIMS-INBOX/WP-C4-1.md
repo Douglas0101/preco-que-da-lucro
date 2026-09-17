@@ -261,3 +261,17 @@ src/lib/products.functions.ts:533:    if (isForeignKeyViolation(error)) {
 - A prova de banco **não** está em `db:test` (R-a) — repetida aqui para o adversarial reconferir com o comando do §3.2.
 
 - **rollback:** `git revert <sha>`
+
+---
+
+## 7. CORREÇÕES PÓS-VEREDICTO (aplicadas pelo MAESTRO em 2026-09-17, append-only)
+
+> Fonte: `CLAIMS-INBOX/WP-C4-1-VERDICT.md` (verifier `VFk`, contexto novo): **25 CONFIRMED · 5 CORRECTED · 0 REJECTED · 2 UNVERIFIABLE**. O **núcleo não foi falsificado** (RED real no pai = 4 falhas → GREEN 9/9; sonda própria de banco mediu `409/CONFLICT` com histórico e filho preservados; controles negativos seguram 23505, sem `cause`, `cause` circular, `null`/string/objeto e cadeia de 1000 níveis sem travar).
+
+- **CORRECTED (2.7) — o erro anterior não era 500.** O claim dizia "erro cru do driver (500)"; o mapeamento ausente produzia **`503 DATABASE_ERROR` `retryable`** (`api-error.ts:60` + `request-context.ts:157`). O **409** da entrega está correto.
+- **CORRECTED (5.4/7.4) — contagens de skip.** O `check` vê **5 passed | 4 skipped** no arquivo novo (não "9 skips"); os 13 skips citados somavam o bloco de `product-contracts` (9) ao do arquivo novo (4).
+- **CORRECTED (6.2/7.5) — material: o commit **introduz** drift de matrix** e o claim dizia "nada a regenerar". Medido pelo verificador: pai limpo (`--check` exit 0) × entrega **suja** (exit 1); `m02:matrix:generate` ⇒ 40 inserções/38 remoções, com **`directDatabaseFiles` 46 → 47** (o arquivo de teste novo conta como arquivo de banco direto) e as linhas de `products.functions.ts` +12. **Regularizado pelo MAESTRO** no HEAD integrado (matriz regenerada, `matrix:check` verde).
+- **RESÍDUO NOVO (R-2) — mapeamento agnóstico de tabela e mensagem fixa.** Um `23503` de **outra** FK também vira `CONFLICT/409` com a mensagem "histórico de preços". Impacto **hoje nulo** (só `purchase_price_history` tem `confdeltype='r'` apontando para ingrediente/embalagem; `sales_fees` não tem FK de entrada), mas a mensagem mente no futuro ⇒ **F-C6-1**.
+- **RESÍDUO NOVO (R-3) — a prova de banco fica FORA do E2.** `package.json:61` (`db:test`) não roda o arquivo novo; `check` roda `vitest run` **sem** `DATABASE_ADMIN_URL` ⇒ **5 passed | 4 skipped** (o vitest **não** lê `.env`, verificado pelo verificador). Ou seja: a única prova de 409/CONFLICT **não entra na CI** ⇒ **F-C6-2** (mesma classe do R6 do ciclo 4).
+- **RESÍDUO NOVO (R-8) — folga de profundidade.** O erro real está em `depth=1`; a tabela do helper aceita até 3. Um segundo wrapper futuro voltaria a falhar **em silêncio** (503) ⇒ nota no **F-C6-1**.
+- **R-4 (BAIXO) — `m02:state:check` vermelho na entrega** (marcador parent-pinned): passo do MAESTRO, executado no commit de fechamento.
