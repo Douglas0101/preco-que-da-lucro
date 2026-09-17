@@ -1686,5 +1686,6 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Próximo:** `MEM-D4` (com **H-12 aprovado** e **SD-C3-12**) · `F-C4-1` (23503) · `WP-BAT-1` (lacunas §32/§33) · `F-C5-2`/`F-C5-3` (scanner + gate da matriz).
   Latest state marker parent = `538bcb116b0a30d11c30f8e924f2b44586a4fa74`,
   Latest state marker parent = `c31331b9a010efe5531dac7cbee157f7431332d4`,
+  Latest state marker parent = `0b797b8e7f5e07b23c00cc5fdc16a1d2c959211f`,
   Latest state marker parent = `53b29960251dceea9e416ab17478b81c2273befa`,
   Latest state marker parent = `f3c56db5e163894a091c5d03a0975419deb0e169`,
