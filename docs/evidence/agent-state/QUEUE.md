@@ -1,4 +1,4 @@
-# QUEUE — NAS-2 (navegação supervisionada por enxame SDD) · ciclo 3 em curso · 2026-09-17
+# QUEUE — NAS-2 (navegação supervisionada por enxame SDD) · ciclo 5 em curso · 2026-09-17
 
 > **Escritor único: MAESTRO.** Snapshot humano-legível do pipeline (O(1): estado de cada item, dono da bola, próxima transição).
 > **Objetivo unilateral:** completar as tarefas pendentes do Plano Mestre V2.0 sob SDD integral, maximizando **crédito verificado** (DONE + ½·PARTIAL, denom. 187), na ordem canônica §1, com os gates §41–§44 como critério de parada. O placar é consequência, não o trabalho.
@@ -65,7 +65,21 @@ S0 BACKLOG(M) → S1 SPEC'D(STEWARD) → S2 RED(SQUAD) → S3 GREEN(SQUAD) → S
 | MEM-D4                                  | delete/export + access log (LGPD) com **SD-C3-12** aplicado                                                                                     | SQUAD-MEM  | **bloqueado** — aguarda resposta ao briefe **H-12**                              | H-12 |
 | WP-1d · BATERIA-CI/NEON/5432 · OBSERVED | —                                                                                                                                               | —          | **bloqueados** (H-6 / H-10 / H-2 / H-11 / H-9)                                   | H-*  |
 
-`DECISIONS-PENDING/{H-10,H-11,H-9,H-6}.md` + `REGISTRO-H.md` (+ H-12 e pós-gate registrados). Prioridade recomendada: **H-10 → H-6 → H-9 → H-11**. Nenhum squad para por espera humana: as trilhas desbloqueadas seguem. **H-12** (TTL/retenção por camada + escopo do export) tem briefe canônico emitido no ciclo 3 junto de D4; o **mecanismo** não depende dos valores.
+## Ciclo 5 — fila (despacho pelo MAESTRO, 2026-09-17)
+
+> **Pré-requisito satisfeito:** **H-10 executado** — `develop` publicado (`8df3fe3..1fc8197`), **CI verde** no tip `5d9169b3` (run `35237829581`, 26/26 passos) após **parada + correção** de um locator de e2e frágil; `main` intocado (`9724d2c`) e **nenhum deploy de produção**.
+
+| wp                                   | itens                                                                                                                      | dono       | estado                                                                                                          | dep |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------- | --- |
+| **WP-9.2T**                          | desacoplar o **tipo** de `RequestContext.transaction` do driver ⇒ **fecha o item `9.2`**                                   | SQUAD-APP  | **S7 — mergeado** (`8ff51b7` → `538bcb1`) · **E2 verde** · bateria Firefox 3/3 · veredicto adversarial em curso | —   |
+| **F-C4-1**                           | mapeamento `23503→CONFLICT` latentemente morto (pré-existente, `products.functions.ts:189-192`)                            | SQUAD-APP  | S0 — proposto (WP próprio)                                                                                      | —   |
+| **F-C5-1**                           | rodar `test:e2e` local antes de publicar WP que toque UI/rotas (o gate local não o inclui)                                 | todos      | **regra adotada** (registrada no `SUPERVISION-LOG`)                                                             | —   |
+| WP-BAT-1                             | lacunas de bateria §32/§33 (replay idempotente, session fixation, rate abuse, unidade/yield/tax null, break-even, 10.1→11) | QA-BROWSER | S0 — proposto                                                                                                   | —   |
+| WP-B1                                | `@vercel/analytics` incondicional (`src/routes/__root.tsx:11,119`)                                                         | SQUAD-APP  | S0 — proposto                                                                                                   | —   |
+| MEM-D4                               | delete/export + access log com **SD-C3-12** e **H-12 aprovado**                                                            | SQUAD-MEM  | S1 — pronto para despacho (após o `9.2` fechado)                                                                | —   |
+| WP-1d · BATERIA-NEON/5432 · OBSERVED | —                                                                                                                          | —          | **bloqueados** (H-6 / H-2 / H-11 / H-9)                                                                         | H-* |
+
+`DECISIONS-PENDING/{H-10,H-11,H-9,H-6}.md` + `REGISTRO-H.md` (+ H-12 e pós-gate registrados). **H-10 fechado** (CI verde no tip publicado) e **H-12 aprovado** pelo supervisor (TTL L1–L5 + export + L0 não persistido + delete/export auditável + access log, respeitando o §43). Prioridade recomendada restante: **H-6 → H-4 → H-9 → H-2**. Nenhum squad para por espera humana: as trilhas desbloqueadas seguem.
 
 ## Estado do placar (recompute — só MAESTRO)
 

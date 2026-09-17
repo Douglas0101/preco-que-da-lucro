@@ -1666,5 +1666,24 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   Latest state marker parent = `3c0f62c30eb406bd41e2e9145b24d490b72c5189`,
   Latest state marker parent = `5e2ee86f804328748de78c481c6c261c92d68ec5`,
   Latest state marker parent = `5d9169b3027457d8067ffb5790e533977a1fa0e3`,
+
+---
+
+### NAS-2 — ciclo 5 (2026-09-17; MAESTRO + SQUAD-APP + verificador adversarial + QA-BROWSER no Firefox)
+
+- **Pré-requisito do ciclo:** **H-10 executado** — `develop` publicado (`8df3fe3..1fc8197`), **CI verde** no tip `5d9169b3` (run `35237829581`, 26/26 passos) após **parada + correção** de um locator de e2e frágil; `main` intocado (`9724d2c`) e **nenhum deploy de produção**.
+- **WP:** `9.2`-**T** — desacoplar o **tipo** de `RequestContext.transaction` do driver (resíduo **R3** do ciclo 4). Entrega `8ff51b7`, merge **`538bcb1`**, **publicado**.
+- **O que entrou:** contrato **type-only** `src/server/contracts/transaction.contracts.ts` (`TransactionExecutor`); `request-context.ts` deixa de importar `@/db/client.server`; **77 conversões checadas** (`as DatabaseTransaction`) nos adapters; teste **A/B de independência de driver** que **reproduz o RED no pai** e passa na entrega.
+- **E1:** A/B RED→GREEN, `tsc` 0, `build` 0, `boundaries` 0, greps limpos, 204 testes dirigidos + banco real em container próprio. **E2 (HEAD integrado, container virgem):** `npm run check` **exit 0** (9/9; bundle PASS 475.253 B) · `npm run db:test` **exit 0**.
+- **Veredicto adversarial (`WP-9.2T-VERDICT.md`):** **7 CONFIRMED · 3 CORRECTED · 1 REJECTED · 0 UNVERIFIABLE**. **Provado:** R3 **fechado** com A/B independente (`TS2307` em `request-context.ts:1:42` no pai → **0 diagnósticos** na entrega, com controle positivo de que o remap age); grafo de tipos do contexto+contratos com **zero** arestas a `drizzle-orm`/driver; **zero mudança de runtime** (27 tokens por arquivo, 0 drift; stream normalizado idêntico); nenhuma supressão de tipo nova; fronteira intacta com `import-protection` **comprovadamente fail-closed** (controle positivo); comportamento preservado (5 testes do agregado **byte-idênticos**, multiset de `expect(` igual).
+- **Corrigido/derrubado (registrado, não escondido):** **7c REJECTED** — a atribuição do claim de que o drift da matriz era herdado é **falsa**: o pai estava byte-limpo e o drift nasce **neste WP** (número correto: **88**, não 87) · **2b/3b/7a CORRECTED** — 75 das 77 "asserções apagadas" são **statements executáveis** (bundles minificados diferem pai×HEAD nos 19 arquivos), a porta aceita **qualquer** `execute` (e nenhum adapter a chama) e o "delta de tipo zero" é falso (**20 → 1** membro). Correções aplicadas **append-only** no claim.
+- **Achados novos (dívida da métrica, não do item):** **F-C5-2** (`transactionSites` perdeu sentido como inventário: o scanner casa texto e o alias faz N statements valerem **1**; + classificação errada de um comentário type-only) · **F-C5-3** (o drift da matriz é **invisível** ao `npm run check`, que não inclui `m02:matrix:check`).
+- **Matriz regenerada (MAESTRO):** `transactionSites` **119 → 88** (com a ressalva do F-C5-2), `directDatabaseFiles` 46 = 46; `m02:matrix:check` verde.
+- **Bateria S5 (Firefox):** **3/3 rotas OK**, zero erro novo.
+- **Guard (S7):** `env-guard --selftest` **13/13** · `secrets-audit` exit 0 · `lockfile-guard` OK · `:5432` **intocado** (26 tabelas) · preview do ciclo **sem** `DATABASE_URL_UNPOOLED` · containers efêmeros removidos · nenhum host remoto.
+- **Placar: inalterado** (86,36% parcial / 80,21% crua) — a promoção do item `9.2` exige recomputação do MAESTRO.
+- **Registro:** `docs/evidence/agent-state/RELATORIO-CICLO-5-2026-09-17.md` · `SPEC-CARDS/CICLO-5.md` · `CLAIMS-INBOX/{WP-9.2T.md,WP-9.2T-VERDICT.md}` · `docs/evidence/cycle-5-92t-2026-09-17/` · journal L55.
+- **Próximo:** `MEM-D4` (com **H-12 aprovado** e **SD-C3-12**) · `F-C4-1` (23503) · `WP-BAT-1` (lacunas §32/§33) · `F-C5-2`/`F-C5-3` (scanner + gate da matriz).
+  Latest state marker parent = `538bcb116b0a30d11c30f8e924f2b44586a4fa74`,
   Latest state marker parent = `53b29960251dceea9e416ab17478b81c2273befa`,
   Latest state marker parent = `f3c56db5e163894a091c5d03a0975419deb0e169`,
