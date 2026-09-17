@@ -55,7 +55,15 @@ S0 BACKLOG(M) → S1 SPEC'D(STEWARD) → S2 RED(SQUAD) → S3 GREEN(SQUAD) → S
 | BATERIA-5432         | verificação pós-reset                                                           | SQUAD-DB     | **bloqueado** (H-9)                                                                                                                                                                                  | H-9  |
 | OBSERVED/RUM/CSP-e2e | séries reais                                                                    | —            | **bloqueado** (H-6)                                                                                                                                                                                  | H-6  |
 
-## Fila humana (briefes emitidos no ciclo 1; H-12 em emissão no ciclo 3)
+## Ciclo 4 — fila (despacho pelo MAESTRO, 2026-09-17)
+
+| wp                                      | itens                                                                                                                                           | dono       | estado                                                                           | dep  |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------- | ---- |
+| **WP-9.2R**                             | `9.2` residual: os 4 pontos de acesso direto à transação (`products.functions.ts` ×2, `purchase-price.service.ts`, `product-detail.service.ts`) | SQUAD-APP  | **S2/S3 em execução** (branch `mission/n4a-9-2-residual`, a partir de `fdd7e4d`) | —    |
+| WP-BAT-1                                | lacunas de bateria §32/§33 (replay idempotente, session fixation, rate abuse, unit/yield/tax null, break-even, 10.1→11)                         | QA-BROWSER | S0 — proposto (sem crédito de placar)                                            | —    |
+| WP-B1                                   | `@vercel/analytics` incondicional (`src/routes/__root.tsx:11,119`)                                                                              | SQUAD-APP  | S0 — proposto (achado menor)                                                     | —    |
+| MEM-D4                                  | delete/export + access log (LGPD) com **SD-C3-12** aplicado                                                                                     | SQUAD-MEM  | **bloqueado** — aguarda resposta ao briefe **H-12**                              | H-12 |
+| WP-1d · BATERIA-CI/NEON/5432 · OBSERVED | —                                                                                                                                               | —          | **bloqueados** (H-6 / H-10 / H-2 / H-11 / H-9)                                   | H-*  |
 
 `DECISIONS-PENDING/{H-10,H-11,H-9,H-6}.md` + `REGISTRO-H.md` (+ H-12 e pós-gate registrados). Prioridade recomendada: **H-10 → H-6 → H-9 → H-11**. Nenhum squad para por espera humana: as trilhas desbloqueadas seguem. **H-12** (TTL/retenção por camada + escopo do export) tem briefe canônico emitido no ciclo 3 junto de D4; o **mecanismo** não depende dos valores.
 
