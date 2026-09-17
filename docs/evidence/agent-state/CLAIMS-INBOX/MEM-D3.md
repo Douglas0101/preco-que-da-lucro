@@ -241,7 +241,6 @@
 
   Os quatro comandos rodaram com `DATABASE_ADMIN_URL=postgres://postgres:postgres@127.0.0.1:55470/preco_que_da_lucro_test` (`d3b-pg`) e `cwd=/tmp/wt-mem-d3`; `prettier --check` nos três arquivos TS/TSX tocados por esta rodada (**só** eles) = limpo, e `npx tsx scripts/db/test-migrations.ts` **não** foi reexecutado nesta rodada (a correção não toca DDL; a cadeia continua coberta por E1-E).
 
-
 - **decisões declaradas (o que o card não fixa explicitamente):**
   1. **`revise` como método do port.** O card descreve a revisão (SD-C3-4) e exige o teste T2, mas **não nomeia** o método: o port só cita `append` (SD-C3-7), `listVersions`/`listConflicts` (SD-C3-8) e `delete` (SD-C3-9). Sem uma entrada explícita, a revisão só seria alcançável por SQL direto no teste — o que não provaria o caminho da aplicação. Assinatura escolhida: `revise(context, memoryId, { content, importance?, provenance? }, executor?)`, restrita ao tenant corrente e ao `status='active'` (`NOT_FOUND` fora disso).
   2. **`listConflicts(context, filter?, executor?)`** — SD-C3-8 escreve `listConflicts(context, status?)`; o parâmetro virou um filtro `{ status?, memoryId? }` (superconjunto compatível) porque a verificação de T3 precisa distinguir "conflito desta memória" de "conflito do tenant", e D4 vai querer o mesmo recorte.
