@@ -18,9 +18,9 @@
  * D3 (§15.6 — dedup + versionamento + conflitos), com controle positivo e
  * negativo em cada caso:
  *   D3/T1 dedup idempotente: 2ª gravação idêntica (inclusive com outra forma de
- *      espaço/Unicode) não cria linha, devolve a existente com `duplicated:true`
- *      e a contagem de memória/fonte/versão não muda; caixa **não** é
- *      normalizada (memória nova);
+ *      espaço/Unicode/invisível `Cf`) não cria linha, devolve a existente com
+ *      `duplicated:true` e a contagem de memória/fonte/versão não muda; caixa
+ *      **não** é normalizada (memória nova);
  *   D3/T2 revisão: arquiva o estado substituído em `ai_memory_versions` com
  *      `version` incremental e a versão anterior fica **byte a byte** igual
  *      (`content`/`dedup_key`/`created_at` lidos do banco); revisão sem
@@ -39,7 +39,11 @@
  *      **não** consegue `UPDATE`/`DELETE` em `ai_memory_versions` (42501), com os
  *      metadados de RLS/grants das duas tabelas novas;
  *   D3/T8 classificação: a migration nova está `SAFE`/`appliedOn: empty` no
- *      registry §27a e tem down.
+ *      registry §27a e tem down;
+ *   D3/T9 revisão × colisão de chave: revisar para um conteúdo que JÁ é o head
+ *      ativo de outra memória do tenant vira `ApplicationError`/CONFLICT (não o
+ *      23505 cru do driver, que viraria 500) e a transação faz rollback sem
+ *      rastro — nem a versão arquivada pelo `revise` fica.
  *
  * As denegações são provadas **no banco**: o admin do container é superuser e
  * bypassa RLS, então os negativos rodam sob `set local role app_runtime`
@@ -927,6 +931,30 @@ async function d3T1DedupIdempotent(pool: Pool): Promise<void> {
     "sob app_runtime com o GUC de A a contagem (não vacuosa) precisa continuar 1",
   );
 
+  // Invisível também é FORMA, não conteúdo: a categoria `Cf` sai antes do
+  // colapso de espaços (C2.5), então um ZWSP no meio da palavra — texto
+  // visualmente idêntico ao da 1ª gravação — tem de deduplicar.
+  const invisible = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestA, transaction),
+      memoryInput({
+        content: "Preferência: relat\u200bórios semanais com margem por produto",
+        provenance: undefined,
+      }),
+    ),
+  );
+  assert.equal(
+    invisible.duplicated,
+    true,
+    "um U+200B no meio da palavra não pode criar memória nova",
+  );
+  assert.equal(invisible.record.id, first.record.id, "e devolve a memória que já existia");
+  assert.deepEqual(
+    await memoryCounts(pool, tenantA),
+    afterDuplicate,
+    "o invisível colapsado não pode mudar contagem alguma",
+  );
+
   // Caixa NÃO entra na normalização (decisão registrada): conteúdo diferente.
   const differentCase = await withTenantTransaction(identityA, (transaction) =>
     memoryRepository.append(
@@ -1689,6 +1717,100 @@ async function d3T8MigrationClassification(): Promise<void> {
   );
 }
 
+/**
+ * D3/T9 — `revise` × colisão de chave (achado C8.5 do veredicto adversarial):
+ * revisar a memória A para um conteúdo que **já é o head ativo** da memória B do
+ * mesmo tenant. A chave de B está tomada no índice único parcial
+ * (`(tenant_id, dedup_key) WHERE status='active'`), então o `UPDATE` do head de
+ * A viola 23505. O caminho tem de virar `ApplicationError` (o erro cru do driver
+ * viraria 500) e a transação inteira tem de fazer rollback — inclusive a versão
+ * que o `revise` arquiva **antes** do `UPDATE`: colisão não deixa rastro.
+ */
+async function d3T9ReviseKeyCollision(pool: Pool): Promise<void> {
+  await seedFixtures(pool);
+
+  const first = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.append(bindTransactionContext(requestA, transaction), memoryInput()),
+  );
+  const second = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestA, transaction),
+      memoryInput({ content: "Preferência: relatórios mensais consolidados por produto" }),
+    ),
+  );
+  assert.equal(first.duplicated, false, "o 1º conteúdo cria a memória A");
+  assert.equal(second.duplicated, false, "o 2º conteúdo é DISTINTO e cria a memória B");
+
+  const firstBytes = await memoryBytes(pool, first.record.id);
+  const secondBytes = await memoryBytes(pool, second.record.id);
+  const countsBefore = await memoryCounts(pool, tenantA);
+  assert.equal(countsBefore.versions, 0, "controle prévio: ainda não existe versão arquivada");
+
+  // A revisão de A para o conteúdo de B colide com a chave ativa de B.
+  await assert.rejects(
+    withTenantTransaction(identityA, (transaction) =>
+      memoryRepository.revise(bindTransactionContext(requestA, transaction), first.record.id, {
+        content: second.record.content,
+      }),
+    ),
+    (error: unknown) => {
+      assert.ok(
+        error instanceof ApplicationError,
+        `a colisão tem de virar ApplicationError, não o 23505 cru do driver (recebido: ${String(error)})`,
+      );
+      assert.equal(
+        error.code,
+        "CONFLICT",
+        "a colisão de chave é um conflito de estado, não erro interno",
+      );
+      assert.equal(error.status, 409);
+      assert.equal((error as Error).name, "ApplicationError");
+      return true;
+    },
+    "revisão para conteúdo já ativo em outra memória deve falhar alto como ApplicationError",
+  );
+
+  // Rollback sem rastro: memória, versão, fonte e conflito com a contagem de antes.
+  assert.deepEqual(
+    await memoryBytes(pool, first.record.id),
+    firstBytes,
+    "o head de A fica byte a byte inalterado (nem conteúdo, nem dedup_key, nem updated_at)",
+  );
+  assert.deepEqual(
+    await memoryBytes(pool, second.record.id),
+    secondBytes,
+    "o head de B não é tocado",
+  );
+  assert.deepEqual(
+    await memoryCounts(pool, tenantA),
+    countsBefore,
+    "a revisão colidente não pode arquivar versão nem gravar nada (rollback)",
+  );
+
+  // Controle positivo: a revisão legítima do MESMO head continua funcionando.
+  const revisedContent = "Preferência: relatórios anuais com margem por produto";
+  const revised = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.revise(bindTransactionContext(requestA, transaction), first.record.id, {
+      content: revisedContent,
+    }),
+  );
+  assert.equal(
+    revised.id,
+    first.record.id,
+    "a revisão legítima continua atualizando o head in-place",
+  );
+  assert.equal(revised.content, revisedContent);
+  assert.equal(
+    (await memoryCounts(pool, tenantA, first.record.id)).versions,
+    1,
+    "a revisão legítima arquiva exatamente a versão do estado substituído",
+  );
+
+  console.log(
+    "D3/T9 revisão × colisão de chave: ApplicationError/CONFLICT com rollback sem rastro + revisão legítima: OK",
+  );
+}
+
 async function main(): Promise<void> {
   const adminUrl = requireAdminUrl();
   const pool = new Pool({ connectionString: adminUrl, max: 4 });
@@ -1711,6 +1833,7 @@ async function main(): Promise<void> {
     await d3T6DedupTenantIsolation(pool);
     await d3T7VersionImmutability(pool);
     await d3T8MigrationClassification();
+    await d3T9ReviseKeyCollision(pool);
   } finally {
     setDatabaseForTests(undefined);
     await pool.end();

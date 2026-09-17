@@ -48,6 +48,33 @@ describe("normalizeMemoryContent — NFC + trim + colapso de espaços internos",
     expect(normalizeMemoryContent("cafe\u0301")).toBe(normalizeMemoryContent("café"));
   });
 
+  it("remove os caracteres de formatação invisíveis (categoria Cf) sem virar espaço", () => {
+    // Os cinco citados no veredicto + dois vizinhos da MESMA categoria `Cf`
+    // (o soft hyphen e o RIGHT-TO-LEFT MARK) para fixar que a limpeza é da
+    // categoria inteira, não de uma lista de cinco literais.
+    const invisibles = ["\u200b", "\u200c", "\u200d", "\u2060", "\ufeff", "\u00ad", "\u200f"];
+    const clean = "relatórios semanais";
+    for (const invisible of invisibles) {
+      const code = `U+${invisible.codePointAt(0)?.toString(16).toUpperCase().padStart(4, "0")}`;
+      // Dentro da palavra: o invisível some, NÃO vira separador.
+      expect(normalizeMemoryContent(`rela${invisible}tórios semanais`), code).toBe(clean);
+      // Nas bordas: o invisível não sobrevive ao `trim` (que só cobre espaços).
+      expect(normalizeMemoryContent(` \u200b${clean}${invisible} `), code).toBe(clean);
+      // E a chave acompanha a normalização: texto visualmente idêntico deduplica.
+      expect(key({ content: `rela${invisible}tórios semanais` }), code).toBe(
+        key({ content: clean }),
+      );
+    }
+  });
+
+  it("não transforma o invisível removido em espaço (o dedup não funde 'ab' com 'a b')", () => {
+    expect(normalizeMemoryContent("a\u200bb")).toBe("ab");
+    expect(normalizeMemoryContent("a b")).toBe("a b");
+    expect(normalizeMemoryContent("a b")).not.toBe(normalizeMemoryContent("ab"));
+    expect(normalizeMemoryContent("a\u200bb")).not.toBe(normalizeMemoryContent("a b"));
+    expect(key({ content: "a\u200bb" })).not.toBe(key({ content: "a b" }));
+  });
+
   it("não dobra caixa (decisão registrada: 'Margem' ≠ 'margem')", () => {
     expect(normalizeMemoryContent("  Margem  ")).toBe("Margem");
     expect(normalizeMemoryContent("Margem")).not.toBe(normalizeMemoryContent("margem"));

@@ -3,7 +3,8 @@
 - **wp / squad / branch / commit:** MEM-D3 · SQUAD-MEM · `mission/n3a-mem-d3` · **commit único do branch** (deliverable + este claim; o SHA exato é reportado no retorno ao MAESTRO — o claim entra no próprio commit, então escrever o SHA aqui o invalidaria a cada `--amend`)
 - **spec_ref:** SPEC-CARD `docs/evidence/agent-state/SPEC-CARDS/CICLO-3.md` (§WP-D3) · degrau **D3** do `MEM-D0-GAP-REPORT.md:128-133` (entrega + aceite (a)–(d)) · **SD-C3-1…SD-C3-11** de `SPEC-DELTAS/CICLO-3-SOURCE-FACTS.md:§5` · `PLANO:1273-1295` · `V7:3008-3009` e `V7:3517` (DoD §23.2) · §34 (imutabilidade de histórico) · §27a (classificação) · §15.6/§15.8 · §43 · §48 (LGPD)
 - **status pleiteado:** DONE no degrau D3 (fechamento ancorado no DoD da V7 §23.2, conforme **SD-C3-11**; o gate §43 **não** cita dedup). `matrix.yaml`/overlay **não** foram tocados — regeneração é do MAESTRO.
-- **worktree/container:** `/tmp/wt-mem-d3` (branch `mission/n3a-mem-d3`, a partir de `53b2996` = `develop`) · container efêmero **`n3a-pg`** (`postgres:17-alpine`, `127.0.0.1:55440`, criado para este item e **removido** na limpeza). `:5432` (`preco-que-da-lucro-postgres`) intocado, Neon/produção intocados, `ALLOW_REMOTE_DB` **nunca** usado, nada pushado, nenhum PR, nenhum `--force`.
+- **correção pós-veredicto adversarial (2026-09-17, mesmo branch, commit único desta rodada):** o veredicto `CLAIMS-INBOX/MEM-D3-VERDICT.md` fechou **39 CONFIRMED / 1 CORRECTED (C8.2) / 0 REJECTED** e registrou dois achados **não reivindicados**: **C8.5** (`revise` × colisão de chave → erro cru 23505/500) e **C2.5** (normalização não colapsava formatters invisíveis). Esta rodada corrige C8.5, C2.5 e a honestidade de C8.2, com teste vermelho→verde para os dois defeitos de código, qualifica as afirmações de rollback e declara os resíduos §11–§13. Escopo: `memory.repository.ts`, `src/test/memory-dedup.test.ts`, `scripts/db/test-memory.ts`, o cabeçalho de `drizzle/rollback/0018_to_0017_down.sql` e este claim (nenhum DDL, nenhum contrato, nenhuma migration nova). Ver **E1-G**.
+- **worktree/container:** `/tmp/wt-mem-d3` (branch `mission/n3a-mem-d3`, a partir de `53b2996` = `develop`) · container efêmero **`n3a-pg`** (`postgres:17-alpine`, `127.0.0.1:55440`, criado para este item e **removido** na limpeza) · correção pós-veredicto: container efêmero próprio **`d3b-pg`** (`postgres:17-alpine`, `127.0.0.1:55470`), também removido (E1-G). `:5432` (`preco-que-da-lucro-postgres`) intocado, Neon/produção intocados, `ALLOW_REMOTE_DB` **nunca** usado, nada pushado, nenhum PR, nenhum `--force`.
 - **nota de ambiente:** `npm ci --ignore-scripts` no worktree; `node_modules` presente; todas as mutações (npm/tsx/drizzle-kit/git) rodaram com `cwd=/tmp/wt-mem-d3`.
 
 - **cadeia SDD:**
@@ -15,10 +16,10 @@
      - `drizzle/rollback/0018_to_0017_down.sql` — down (políticas → grants → tabelas → índice → coluna, filho antes do pai). `drizzle/rollback/0001_to_0000_down.sql` — as duas tabelas entram no DROP global do rollback de raiz (padrão do D2, confirmado correto pelo STEWARD).
      - `scripts/db/migration-classes.ts` — entrada `0018_polite_living_tribunal` = `SAFE`/`appliedOn: empty` com `sha256` byte a byte (`4cdeecf7…`) e evidências.
      - `src/server/contracts/memory.contracts.ts` — ampliação **aditiva** do port: `MemoryAppendResult` (`{record, duplicated}` — SD-C3-7), `MemoryRevisionInput`, `MemoryVersionRecord`, `MemoryConflictStatus`/`MemoryConflictRecord`/`MemoryConflictFilter`, `MemoryDeleteOptions`; `MemoryRepositoryPort` ganha `revise`/`listVersions`/`recordConflict`/`listConflicts` e `delete(context, id, options?, executor?)` (SD-C3-8/9). Continua **type-only** (`contracts.test.ts` verde).
-     - `src/server/repositories/memory.repository.ts` — `computeMemoryDedupKey`/`normalizeMemoryContent`/`memoryDedupDiscriminator` (função pura, `node:crypto`), `append` com `INSERT … ON CONFLICT (tenant_id, dedup_key) WHERE status='active' DO NOTHING RETURNING *` + leitura da existente (SD-C3-10), `revise` (arquiva o estado substituído e atualiza o head in-place, `SELECT … FOR UPDATE`), `recordConflict` (sem tocar o ativo), `listVersions` (com `superseded` derivado em SQL), `listConflicts`, `delete` com recusa por histórico/conflito e expurgo transacional.
-     - `scripts/db/test-memory.ts` — D2 mantido (ajustado ao novo retorno de `append` e ao `dedup_key` NOT NULL) + **D3/T1–T8** (977 linhas no arquivo).
+     - `src/server/repositories/memory.repository.ts` — `computeMemoryDedupKey`/`normalizeMemoryContent`/`memoryDedupDiscriminator` (função pura, `node:crypto`), `append` com `INSERT … ON CONFLICT (tenant_id, dedup_key) WHERE status='active' DO NOTHING RETURNING *` + leitura da existente (SD-C3-10), `revise` (arquiva o estado substituído e atualiza o head in-place, `SELECT … FOR UPDATE`), `recordConflict` (sem tocar o ativo), `listVersions` (com `superseded` derivado em SQL), `listConflicts`, `delete` com recusa por histórico/conflito e expurgo transacional. **Correção pós-veredicto (E1-G):** `normalizeMemoryContent` passa a remover a categoria `Cf` (C2.5) e o `UPDATE` do head em `revise` trata a violação de unicidade como `ApplicationError("CONFLICT")` (C8.5).
+     - `scripts/db/test-memory.ts` — D2 mantido (ajustado ao novo retorno de `append` e ao `dedup_key` NOT NULL) + **D3/T1–T8** (977 linhas no arquivo); a correção pós-veredicto acrescenta o controle do invisível em D3/T1 e o **D3/T9** (E1-G).
      - `src/test/memory-dedup.test.ts` — unitários da chave pura (normalização NFC/trim/espaços, caixa não dobrada, discriminador por escopo, fronteira de campo com 0x1f, determinismo contra uma implementação independente da fórmula).
-  3. EVIDENCE: E1-A a E1-F abaixo.
+  3. EVIDENCE: E1-A a E1-F abaixo + **E1-G** (correção pós-veredicto adversarial).
   4. (este arquivo).
   5. ADVERSARIAL: (preenchido pelo verificador designado pelo MAESTRO — deixar vazio)
   6. LEDGER: (preenchido pelo MAESTRO — deixar vazio)
@@ -57,8 +58,8 @@
   EXIT=0
   ```
 
-  Cobertura nominal T1–T7 (o que cada caso prova **no banco**):
-  - **T1 (dedup idempotente)** — 1ª gravação `duplicated:false`; 2ª gravação do mesmo conteúdo com outra **forma** (`"  Preferência:\trelatórios\n semanais com margem  por produto  "`) devolve `duplicated:true`, o **mesmo `id`** e o conteúdo **armazenado** da 1ª (o dedup não reescreve); o agregado do tenant fica `{memories:1, sources:1, versions:0, conflicts:0}` (contagem de memória **e** de fonte **e** de versão inalterada) e sob `app_runtime` com o GUC de A a contagem segue 1 (não vacuosa). Controle negativo: `"preferência: …"` (caixa diferente) cria memória nova (a caixa **não** é normalizada — decisão documentada).
+  Cobertura nominal T1–T9 (o que cada caso prova **no banco**):
+  - **T1 (dedup idempotente)** — 1ª gravação `duplicated:false`; 2ª gravação do mesmo conteúdo com outra **forma** (`"  Preferência:\trelatórios\n semanais com margem  por produto  "`) devolve `duplicated:true`, o **mesmo `id`** e o conteúdo **armazenado** da 1ª (o dedup não reescreve); o agregado do tenant fica `{memories:1, sources:1, versions:0, conflicts:0}` (contagem de memória **e** de fonte **e** de versão inalterada) e sob `app_runtime` com o GUC de A a contagem segue 1 (não vacuosa). Controle negativo: `"preferência: …"` (caixa diferente) cria memória nova (a caixa **não** é normalizada — decisão documentada). Controle de **forma invisível** (correção C2.5, E1-G): o mesmo conteúdo com um `U+200B` dentro da palavra ⇒ `duplicated:true`, mesmo `id` e agregado inalterado.
   - **T2 (revisão)** — a revisão mantém o `id`, muda o conteúdo e a `importance` no head; `ai_memory_versions` ganha `version = 1` com o conteúdo/chave do estado **substituído**; a 2ª revisão cria `version = 2` (`[1, 2]`) e a linha da v1, relida do banco (`content`/`dedup_key`/`created_at`), fica **byte a byte igual**; `dedup_key` do head difere da v1 e da v2; a proveniência da revisão entra como fonte (2 fontes) e o read model segue expondo a **mais antiga**; revisão sem alteração de conteúdo ⇒ `VALIDATION_ERROR` **sem** arquivar versão; revisão de memória de outro tenant ⇒ `NOT_FOUND`.
   - **T3 (conflito)** — `recordConflict` grava `status:'open'`, `resolved_at null` e `candidate_dedup_key` no formato sha256 hex; a memória ativa fica **byte a byte** igual (todas as colunas comparadas) e o agregado só ganha o conflito; `search` continua devolvendo **só** o ativo (o candidato não entra no retrieval) e o filtro por status/memória de `listConflicts` não é vacuoso; sob `app_runtime` o conflito de A é invisível para B (0) e visível para A (1); conflito contra memória inexistente ⇒ `NOT_FOUND`.
   - **T4 (delete × expurgo)** — memória sem histórico continua apagável (`true`, semântica D2); com histórico **e** conflito o delete devolve `false` **e nada é apagado** (agregado idêntico antes/depois); o expurgo rodado dentro de uma transação que **falha depois** devolve tudo (prova de mesma-transação); o expurgo efetivo zera `{memories:0, sources:0, versions:0, conflicts:0}` e é idempotente (`false` na 2ª); e as duas FKs novas são `confdeltype = 'r'` (**RESTRICT**, não CASCADE) no catálogo.
@@ -66,6 +67,7 @@
   - **T6 (isolamento de tenant)** — o mesmo conteúdo (mesmo escopo) em dois tenants ⇒ 2 linhas, `ids` diferentes e `duplicated:false` nos dois; B vê a própria memória (busca não vacuosa) e **não** vê a de A; `runtimeCount` = 1 para cada tenant. Discriminador: o mesmo conteúdo, mesmo escopo `conversation`, em duas conversas do **mesmo** tenant ⇒ 2 memórias (sem colapso silencioso).
   - **T7 (imutabilidade por privilégio)** — controle **positivo** primeiro: `app_runtime` **consegue** `INSERT` em `ai_memory_versions` (a linha entra, 2 versões visíveis para a role); depois `UPDATE` e `DELETE` são negados com **42501** e a versão continua byte a byte igual. Catálogo: `ai_memory_versions` = RLS ligado, `SELECT/INSERT` **sim**, `UPDATE/DELETE` **não**; `ai_memory_conflicts` = `SELECT/INSERT/UPDATE` **sim**, `DELETE` não; nada para `PUBLIC`; as duas policies `tenant_isolation` com `USING` **e** `WITH CHECK` contendo `current_tenant_id()` + `has_tenant_access`.
   - **T8 (classificação)** — `classifyProject` dentro do script: 0 erros, `19/19`, `0018_polite_living_tribunal` = `SAFE`/`appliedOn: empty`/`ok` e o down existe.
+  - **T9 (revisão × colisão de chave, correção C8.5 — E1-G)** — duas memórias ativas do mesmo tenant com conteúdos distintos; revisar A para o conteúdo de B ⇒ `ApplicationError` com `code:'CONFLICT'`, `status:409` e `name:'ApplicationError'` (antes: erro cru do driver com 23505 na cadeia de causas, `isApplicationError:false`); nenhuma versão arquivada e heads de A e B **byte a byte** iguais ao estado anterior (prova do rollback); controle positivo: a revisão legítima do mesmo head continua arquivando exatamente 1 versão.
 
 - **E1-C — psql das policies, índices e grants (container efêmero):**
 
@@ -131,6 +133,15 @@
   linhas_versao=0
   ```
 
+  **Condição desta prova (C8.2 do veredicto adversarial):** o round trip acima vale para
+  `ai_memories` **vazia** (`memorias_removidas=0`). Com **uma memória pré-existente** o 2º up
+  **falha** — `ALTER TABLE "ai_memories" ADD COLUMN "dedup_key" text NOT NULL` não tem default nem
+  backfill e encontra `column "dedup_key" of relation "ai_memories" contains null values`, deixando o
+  banco preso em 0017 (histórico/conflitos já destruídos pelo `DROP TABLE` do down). Logo isto **não**
+  é garantia de rollback pós-tráfego: o down é válido só **antes de tráfego** e, depois dele, o
+  caminho é restore de snapshot. O cabeçalho de `drizzle/rollback/0018_to_0017_down.sql` diz isso de
+  forma imperativa; a prova do vermelho está em E1-G.
+
 - **E1-E — cadeia de migrations/rollback (o down novo entra em `DOWNS_TIP_TO_0003`):**
 
   ```text
@@ -139,7 +150,7 @@
   EXIT=0
   ```
 
-  O script aplica `0018→0003` (com `0018_to_0017_down.sql` no topo), reduz o journal a 0000/0001, aplica `0003→0002`/`0002→0001` e **replaya** `0002→0018` conferindo `journal = 19` — é o up→down→up da cadeia inteira, com o rollback de raiz (`0001→0000`, que agora dropa as duas tabelas novas) incluído.
+  O script aplica `0018→0003` (com `0018_to_0017_down.sql` no topo), reduz o journal a 0000/0001, aplica `0003→0002`/`0002→0001` e **replaya** `0002→0018` conferindo `journal = 19` — é o up→down→up da cadeia inteira, com o rollback de raiz (`0001→0000`, que agora dropa as duas tabelas novas) incluído. **A mesma condição de E1-D se aplica:** o script migra um banco **do zero**, então a cadeia prova o par 0018 em `ai_memories` vazia — não o re-up pós-tráfego.
 
 - **E1-F — vitest dirigido, tipos e prettier:**
 
@@ -157,6 +168,79 @@
   ```
 
   (`drizzle/*.sql` não têm parser no Prettier — o `format:check` do repo não cobre migrations, como em 0017.)
+
+- **E1-G — correção pós-veredicto adversarial (C2.5, C8.2, C8.5) — container efêmero PRÓPRIO `d3b-pg` (`127.0.0.1:55470`, `postgres:17-alpine`, removido na limpeza):**
+
+  O veredicto (`CLAIMS-INBOX/MEM-D3-VERDICT.md`) fechou **39 CONFIRMED / 1 CORRECTED (C8.2) / 0 REJECTED** e registrou dois achados **não reivindicados** (C8.5, C2.5). Esta rodada corrige os três, com **vermelho→verde** para os dois defeitos de código. `:5432`/`:55432`/`:55440`/`:55450` intocados, nada pushado; o vermelho foi produzido revertendo **só** `src/server/repositories/memory.repository.ts` (`git stash push -- <arquivo>`), nunca a árvore inteira.
+
+  1. **C8.5 — `revise` × colisão de chave (defeito real: virava 500).** Revisar para um conteúdo que já é o head ativo de **outra** memória do tenant viola o índice único parcial no `UPDATE` do head e o erro **cru** do driver vazava (`sqlstateChain:[null,"23505"]`, `isApplicationError:false`). Agora só o `UPDATE` do head é protegido: `isUniqueViolation` busca o SQLSTATE na **cadeia de causas** (o Drizzle embrulha o driver) e o caminho vira `ApplicationError("CONFLICT")` (409, `retryable:false`); erro que **não** é 23505 é relançado como veio, e nada é engolido. O `INSERT` de versão acima e o `append` (`ON CONFLICT DO NOTHING`) não precisam da rede. O **rollback da transação** desfaz a versão arquivada antes do `UPDATE` ⇒ colisão não deixa rastro. Prova: **D3/T9 (novo)** — colisão ⇒ `ApplicationError` com `code === "CONFLICT"`, `status === 409`, `name === "ApplicationError"` **e** agregado do tenant idêntico ao de antes (`memories/sources/versions/conflicts`), heads de A e B byte a byte iguais; **controle positivo** na sequência: a revisão legítima do mesmo head continua arquivando exatamente 1 versão.
+  2. **C2.5 — normalização × formatadores invisíveis.** `normalizeMemoryContent` era NFC + `trim` + colapso de `\s`; `U+200B`/`U+200C`/`U+200D`/`U+2060` criavam memória nova para texto visualmente idêntico (`U+FEFF` virava **espaço**, porque o `\s` do JS o cobre). Agora a normalização remove a **categoria Unicode `Cf` inteira** (`\p{Cf}` — não uma lista de cinco literais: cobre também o hífen suave e os controles de direção) **antes** do `trim`/colapso, mantendo NFC; o **conteúdo armazenado** segue sendo o do chamador, caractere por caractere. Prova: unitários novos em `src/test/memory-dedup.test.ts` (os cinco chars + dois vizinhos `Cf`, dentro da palavra e nas bordas, por `normalizeMemoryContent` **e** por `computeMemoryDedupKey`; negativo `"a b"` ≠ `"ab"`) **e** a asserção de banco em D3/T1 (um `U+200B` no meio da palavra ⇒ `duplicated:true`, mesmo `id`, agregado inalterado).
+  3. **C8.2 — honestidade do down.** `drizzle/rollback/0018_to_0017_down.sql` ganhou um cabeçalho **imperativo**: o down vale só **antes de tráfego** (`ai_memories` vazia); com uma linha pré-existente o 2º up falha (`ADD COLUMN "dedup_key" text NOT NULL` sem default/backfill → `contains null values`) e o banco fica preso em 0017, com histórico/conflitos já destruídos pelo `DROP TABLE`; **pós-tráfego o caminho é restore de snapshot**, e reaplicar 0018 com dados exigiria um backfill de `dedup_key` que o downgrade não tem como reconstruir (a normalização vive no TypeScript). **Nenhum DDL mudou** — só o comentário —, o `db:classify:check` segue `19/19` e o down segue o mesmo arquivo (o registry §27a não guarda hash de down). As afirmações correspondentes de E1-D/E1-E e a linha de `rollback:` foram **qualificadas** nesta mesma edição; a prova do vermelho do 2º up com dados é a do veredicto (C8.2: `journal=18`, `memorias_pos_up=1`), que eu **não** reproduzi de novo (o veredicto a marcou CORRECTED, não REJECTED).
+
+  ```text
+  # VERMELHO — unidade (repositório anterior à correção)
+  $ npx vitest run src/test/memory-dedup.test.ts
+   FAIL  src/test/memory-dedup.test.ts > normalizeMemoryContent — NFC + trim + colapso de espaços internos > remove os caracteres de formatação invisíveis (categoria Cf) sem virar espaço
+  AssertionError: U+200B: expected 'relatórios semanais' to be 'relatórios semanais' // Object.is equality
+   FAIL  src/test/memory-dedup.test.ts > normalizeMemoryContent — NFC + trim + colapso de espaços internos > não transforma o invisível removido em espaço (o dedup não funde 'ab' com 'a b')
+  AssertionError: expected 'ab' to be 'ab' // Object.is equality
+        Tests  2 failed | 9 passed (11)
+  VITEST_EXIT=1
+  ```
+
+  (As duas strings de cada comparação diferem **apenas pelo `U+200B`**, que é invisível — é exatamente o defeito; o texto de `Received`/`actual` carrega o formatter.)
+
+  ```text
+  # VERMELHO — banco (T1, item 2): o U+200B no meio da palavra criou memória NOVA
+  $ npx tsx scripts/db/test-memory.ts
+  D3/T8 classificação: 19/19 classificadas · 0018_polite_living_tribunal = SAFE/empty + down: OK
+  AssertionError [ERR_ASSERTION]: um U+200B no meio da palavra não pode criar memória nova
+  TSX_EXIT=1
+
+  # VERMELHO — banco (T9, item 1), mesma reversão, com o caso do invisível neutralizado
+  #            para o script chegar até o T9 (T1–T8 verdes nessa execução):
+  AssertionError [ERR_ASSERTION]: a colisão tem de virar ApplicationError, não o 23505 cru do driver
+    (recebido: Error: Failed query: update "ai_memories" set "content" = $1, "dedup_key" = $2,
+     "importance" = $3, "confidence" = $4, "updated_at" = now() where ("ai_memories"."tenant_id" = $5
+     and "ai_memories"."id" = $6) returning "id", …)
+  TSX_EXIT=1
+  ```
+
+  ```text
+  # VERDE — os quatro comandos do aceite, estado final desta correção
+  $ npx tsx scripts/db/test-memory.ts
+  T1 isolamento: busca de B = 0 linhas sob RLS + append forjado recusado por WITH CHECK (42501): OK
+  T2 proveniência: search devolve a fonte mais antiga; órfã/sem origem impossíveis (23503/23514): OK
+  T3 atomicidade: rollback e falha cruzadas entre memória e despesa deixam zero linhas: OK
+  T4 delete: só o tenant corrente apaga, cascata na fonte, false para id inexistente e de terceiro: OK
+  T5 classificação: 19/19 classificadas · 0017_past_gideon = SAFE/empty + down: OK
+  D3/T1 dedup: 2ª gravação idêntica = duplicated:true + contagem inalterada (memória/fonte/versão): OK
+  D3/T2 revisão: versão incremental arquivada, anterior byte a byte inalterada, head atualizado: OK
+  D3/T3 conflito: registrado e visível só no tenant, ativo byte a byte intacto, search só do ativo: OK
+  D3/T4 delete × expurgo: recusa sem apagar + expurgo transacional (rollback devolve tudo): OK
+  D3/T5 concorrência: 2 sessões no mesmo conteúdo ⇒ 1 linha ativa (índice único parcial): OK
+  D3/T6 isolamento: mesmo conteúdo em 2 tenants = 2 linhas (B não vê A) + discriminador de conversa: OK
+  D3/T7 imutabilidade: INSERT permitido e UPDATE/DELETE negados (42501) em ai_memory_versions + grants/RLS: OK
+  D3/T8 classificação: 19/19 classificadas · 0018_polite_living_tribunal = SAFE/empty + down: OK
+  D3/T9 revisão × colisão de chave: ApplicationError/CONFLICT com rollback sem rastro + revisão legítima: OK
+  Memória §43/D2+D3 (persistência, proveniência, tenant, dedup, versões, conflitos): OK
+  TSX_EXIT=0
+
+  $ npx vitest run src/test/memory-dedup.test.ts
+   Test Files  1 passed (1)
+        Tests  11 passed (11)
+  VITEST_EXIT=0
+
+  $ npx tsc -p tsconfig.json --noEmit
+  TSC_EXIT=0
+
+  $ npm run db:classify:check
+  ✔ 19/19 classificadas
+  CLASSIFY_EXIT=0
+  ```
+
+  Os quatro comandos rodaram com `DATABASE_ADMIN_URL=postgres://postgres:postgres@127.0.0.1:55470/preco_que_da_lucro_test` (`d3b-pg`) e `cwd=/tmp/wt-mem-d3`; `prettier --check` nos três arquivos TS/TSX tocados por esta rodada (**só** eles) = limpo, e `npx tsx scripts/db/test-migrations.ts` **não** foi reexecutado nesta rodada (a correção não toca DDL; a cadeia continua coberta por E1-E).
+
 
 - **decisões declaradas (o que o card não fixa explicitamente):**
   1. **`revise` como método do port.** O card descreve a revisão (SD-C3-4) e exige o teste T2, mas **não nomeia** o método: o port só cita `append` (SD-C3-7), `listVersions`/`listConflicts` (SD-C3-8) e `delete` (SD-C3-9). Sem uma entrada explícita, a revisão só seria alcançável por SQL direto no teste — o que não provaria o caminho da aplicação. Assinatura escolhida: `revise(context, memoryId, { content, importance?, provenance? }, executor?)`, restrita ao tenant corrente e ao `status='active'` (`NOT_FOUND` fora disso).
@@ -188,6 +272,9 @@
   8. **A tag `0018_polite_living_tribunal` é acoplada ao sorteio do Drizzle**: regenerar a migration muda tag/hash e exige acompanhar `migration-classes.ts`, o nome do down e as duas constantes do `test-memory.ts`. O `db:classify:check` (primeiro da cadeia) falha alto se não acompanharem — não há falha silenciosa.
   9. **`npm run check`, ESLint, build/bundle e a suíte vitest completa NÃO rodaram** (E2 é do MAESTRO). Rodaram: `db:classify:check`, `test-memory.ts`, `test-migrations.ts`, o vitest dirigido e `tsc`.
   10. **Incidente de colisão de worktree (resolvido, registrado por transparência):** durante a fase inicial eu editei/rodei `db:generate` dentro do worktree do STEWARD (`wt-20260916-234317-7609fed`) por engano; o STEWARD moveu os 8 arquivos para `/tmp/wt-mem-d3` (sha256 idênticos) e restaurou o worktree dele; todo o trabalho posterior rodou apenas em `/tmp/wt-mem-d3` e o conteúdo final foi revalidado (E1-B/E1-E) no worktree próprio.
+  11. **A unicidade de `dedup_key` não prova `dedup_key = hash(conteúdo)` (C8.3/C8.4 do veredicto — achados não reivindicados, declarados aqui).** O índice único parcial garante **no máximo uma ativa por chave**, não que a chave seja a da função pura: um escritor que **não** passa pelo repositório — SQL direto sob `app_runtime`, que tem `INSERT` em `ai_memories` e, por herança da 0017, `UPDATE` — pode gravar com `dedup_key` artesanal, inserir `superseded` com a chave de uma ativa, ou virar o `status` do ativo e **liberar a chave**, e então duas memórias ativas do MESMO conteúdo coexistem. O repositório é o único caminho que computa a chave; D3 não tem como impedir escritor privilegiado fora dele (exigiria trigger/`CHECK` com a normalização em SQL, que o Postgres não expressa, ou revogar `UPDATE`/`INSERT` — decisão de grants, não de D3). Portanto: **"mesmo conteúdo ⇒ 1 ativa" vale para os caminhos que passam pelo repositório**, e nada além disso.
+  12. **Limitações da normalização `Cf` (item 2 desta correção, E1-G).** (a) A remoção é da **categoria inteira**: `Cf` com valor de forma — os ZWJ de sequências de emoji e os joiners de escrita (árabe/indic) — também somem da **chave**, então dois textos que só diferem por eles deduplicam (o conteúdo **armazenado** não muda; o que se perde é a distinção entre duas memórias quase idênticas). É a escolha declarada (categoria fechada e estável × lista de cinco literais que envelhece) e o efeito é **só** na chave. (b) `Cf` removido **não** vira espaço: `"ab"` ≠ `"a b"` (asserção negativa no teste). (c) A mudança vale para **chaves novas**: linhas já gravadas guardam a chave antiga (com o invisível), então uma memória pré-existente com `U+200B` continua distinta da forma limpa até ser revisada/re-gravada — **não há backfill de `dedup_key`** (e o down não o poderia reconstruir: ver E1-G.3).
+  13. **T5/T6 (concorrência e isolamento do dedup) não foram sondados de forma independente pelo verificador.** O próprio veredicto registra isso como resíduo (C8.10): ele reproduziu o script do squad em cluster limpo — corroboração —, mas **não** re-executou a corrida com barreira em `wait_event_type='Lock'` nem o isolamento por tenant do dedup. A prova de E1-B/E1-C permanece como está (o veredicto a marcou CONFIRMED, e o D3/T9 desta rodada não a substitui); o que falta é **sonda independente** desses dois casos, não implementação.
 
 - **o que NÃO foi feito (fronteira do degrau):**
   - **FTS/`tsvector`/GIN/`unaccent` e busca lexical portuguesa** (D5) · **embeddings/`pgvector`/HNSW** (pós-gate §44) · **ranking §15.7**, contexto e `ai_memory_policies` (D6).
@@ -196,6 +283,7 @@
   - **`matrix.yaml`/overlay** (`MemoryRepository`: `contract-only → implemented` é regeneração do MAESTRO) · ledger/QUEUE/PROGRESS/EXECUTION-STATE-PROGRAM · `docs/specs/M-02/**` · `package.json`.
   - **Consumo de memória em KPI/financeiro** (INV-004/INV-005) e qualquer superfície server-side fora de service/repository.
   - Nada pushado; nenhum merge; `:5432` intocado.
+  - **Nesta rodada de correção (E1-G):** `test-migrations.ts` **não** foi reexecutado (nenhum DDL mudou) e `contracts`/`schema`/registry/matrix não foram tocados; o vermelho foi produzido revertendo **só** `src/server/repositories/memory.repository.ts` por `git stash`. A cadeia de migrations continua coberta por E1-E, sem nova medição — e a correção **não** mudou a fronteira de privilégio (o expurgo segue exigindo executor privilegiado, resíduo §1) nem o dedup de `append`/`recordConflict` (que não passam por violação de unicidade: `ON CONFLICT DO NOTHING` e nenhum `UPDATE` em `ai_memories`).
 
 - **diff stat (deliverable, `git show --stat` do commit do branch; este claim entra no mesmo commit e não está contado abaixo):**
 
@@ -218,6 +306,18 @@
 
   `git diff --stat -- docs/specs/M-02/` = **vazio** (matrix intocada). `git status` limpo após o commit.
 
+- **diff stat desta rodada (correção pós-veredicto; este claim entra no mesmo commit e não está contado abaixo):**
+
+  ```text
+   drizzle/rollback/0018_to_0017_down.sql       |  19 ++++
+   scripts/db/test-memory.ts                    | 131 ++++++++++++++++++++++++++-
+   src/server/repositories/memory.repository.ts |  85 +++++++++++++++++++-----
+   src/test/memory-dedup.test.ts                |  27 ++++++
+   4 files changed, 239 insertions(+), 23 deletions(-)
+  ```
+
+  O down muda **apenas no comentário** (nenhum comando novo), então o hash do up, o registry §27a e o `down` do `test-migrations` seguem idênticos.
+
 - **propostas de integração (quem aplica é o MAESTRO):**
   1. **`docs/specs/M-02/matrix.yaml` (+overlay)** — `MemoryRepository`/`MemoryService` já aparecem como `contract-only`; com D3 o repositório tem dedup/versão/conflito implementados (a mudança de status e a regeneração são do MAESTRO).
   2. **Registry/journal/snapshot/down/root-rollback** — já propagados nesta branch; nada mais a propagar.
@@ -225,4 +325,4 @@
   4. **Aplicação da migration 0018 é pré-requisito** de qualquer deploy que use o repositório de memória (a coluna `dedup_key` é NOT NULL e o schema a exige).
   5. **Ponto de contrato §1 (expurgo × privilégio)** — precisa de decisão do STEWARD antes de D4 prometer delete-export sob a role de aplicação.
 
-- **rollback:** `git revert <commit do branch>` (deliverable + claim no mesmo commit). O DDL reversível é `drizzle/rollback/0018_to_0017_down.sql` (testado up→down→up em E1-D/E1-E); pós-tráfego o caminho canônico é restore de snapshot — o down descarta histórico/conflitos e a coluna de dedup (§48).
+- **rollback:** `git revert <commit do branch>` (deliverable + claim no mesmo commit; a rodada de correção é **um** commit próprio, também reversível por `git revert`). O DDL reversível é `drizzle/rollback/0018_to_0017_down.sql`, **testado up→down→up apenas com `ai_memories` vazia** (E1-D/E1-E; o script de cadeia migra do zero) — **pós-tráfego o 2º up falha** e o banco fica preso em 0017 (ver o cabeçalho do down e E1-G.3), então o caminho pós-tráfego é restore de snapshot: o down descarta histórico/conflitos e a coluna de dedup (§48), e um re-up com dados exigiria backfill de `dedup_key`, que o downgrade não reconstrói.
