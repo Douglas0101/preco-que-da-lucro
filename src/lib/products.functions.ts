@@ -11,7 +11,7 @@ import {
   toDecimalString,
 } from "@/lib/financial-values";
 import { optimisticVersionSchema } from "@/lib/optimistic-version";
-import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
+import type { RequestContext } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 import type {
   MarketPrice,
@@ -22,7 +22,6 @@ import type {
   ProductStatus,
   SalesFee,
 } from "@/server/contracts/product.contracts";
-import { productRepository } from "@/server/repositories/product.repository";
 import { productService } from "@/server/services/product.service";
 import { calculateProductReadModel } from "@/server/services/product-read-model.service";
 import { purchasePriceService } from "@/server/services/purchase-price.service";
@@ -239,7 +238,7 @@ function projectProductCalculation(
 }
 
 async function loadProductDetail(request: RequestContext, productId: string) {
-  const detail = await productRepository.loadDetail(request, productId);
+  const detail = await productService.loadDetail(request, productId);
   if (!detail) throw new Error("NOT_FOUND");
 
   const product = mapProduct(detail.product);
@@ -260,7 +259,7 @@ async function loadProductDetail(request: RequestContext, productId: string) {
 }
 
 async function loadProductReadModels(request: RequestContext) {
-  const rows = await productRepository.loadReadModel(request);
+  const rows = await productService.loadReadModel(request);
   const productRows = rows.products;
   if (!productRows.length) return [];
   const ingredientsByProduct = new Map<string, IngredientView[]>();
@@ -477,9 +476,8 @@ export const upsertIngredient = createServerFn({ method: "POST" })
   .validator((input: unknown) => ingredientInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
-    assertTenantMutationAuthorized(request);
     const priceUpdatedAt = data.package_price == null ? null : new Date();
-    const row = await productRepository.saveIngredient(request, {
+    const row = await productService.saveIngredient(request, {
       id: data.id,
       productId: data.product_id,
       name: data.name,
@@ -505,29 +503,38 @@ export const upsertIngredient = createServerFn({ method: "POST" })
     return mapIngredient(row);
   });
 
-function deleteChild(kind: ProductChildKind) {
-  return createServerFn({ method: "POST" })
-    .middleware([requireDatabaseAuth])
-    .validator((input: unknown) => z.object({ id: uuid }).parse(input))
-    .handler(async ({ data, context }) => {
-      const request = context.requestContext;
-      assertTenantMutationAuthorized(request);
-      try {
-        await productRepository.deleteChild(request, kind, data.id);
-      } catch (error) {
-        if (isForeignKeyViolation(error)) {
-          throw new ApplicationError("CONFLICT", {
-            cause: error,
-            message: "O registro possui histórico de preços e não pode ser removido.",
-          });
-        }
-        throw error;
-      }
-      return { ok: true };
-    });
+/**
+ * Corpo compartilhado dos deletes de filho. É um helper de módulo — e não uma
+ * fábrica de `createServerFn` — porque o compilador do TanStack exige que cada
+ * `createServerFn` seja atribuído a uma variável no topo do módulo: uma cadeia
+ * aninhada não é extraída para o módulo servidor, o que deixa o handler e o
+ * import do serviço vivos no bundle do cliente (`import-protection`).
+ */
+async function deleteProductChild(
+  request: RequestContext,
+  kind: ProductChildKind,
+  id: string,
+): Promise<{ ok: true }> {
+  try {
+    await productService.deleteChild(request, kind, id);
+  } catch (error) {
+    if (isForeignKeyViolation(error)) {
+      throw new ApplicationError("CONFLICT", {
+        cause: error,
+        message: "O registro possui histórico de preços e não pode ser removido.",
+      });
+    }
+    throw error;
+  }
+  return { ok: true };
 }
 
-export const deleteIngredient = deleteChild("ingredient");
+export const deleteIngredient = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => z.object({ id: uuid }).parse(input))
+  .handler(async ({ data, context }) =>
+    deleteProductChild(context.requestContext, "ingredient", data.id),
+  );
 
 const packagingInput = z.object({
   id: uuid.optional(),
@@ -542,9 +549,8 @@ export const upsertPackaging = createServerFn({ method: "POST" })
   .validator((input: unknown) => packagingInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
-    assertTenantMutationAuthorized(request);
     const priceUpdatedAt = new Date();
-    const row = await productRepository.savePackaging(request, {
+    const row = await productService.savePackaging(request, {
       id: data.id,
       productId: data.product_id,
       name: data.name,
@@ -563,7 +569,12 @@ export const upsertPackaging = createServerFn({ method: "POST" })
     return mapPackaging(row);
   });
 
-export const deletePackaging = deleteChild("packaging");
+export const deletePackaging = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => z.object({ id: uuid }).parse(input))
+  .handler(async ({ data, context }) =>
+    deleteProductChild(context.requestContext, "packaging", data.id),
+  );
 
 const feeInput = z.object({
   id: uuid.optional(),
@@ -577,8 +588,7 @@ export const upsertFee = createServerFn({ method: "POST" })
   .validator((input: unknown) => feeInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
-    assertTenantMutationAuthorized(request);
-    const row = await productRepository.saveFee(request, {
+    const row = await productService.saveFee(request, {
       id: data.id,
       productId: data.product_id,
       name: data.name,
@@ -587,7 +597,10 @@ export const upsertFee = createServerFn({ method: "POST" })
     return mapFee(row);
   });
 
-export const deleteFee = deleteChild("fee");
+export const deleteFee = createServerFn({ method: "POST" })
+  .middleware([requireDatabaseAuth])
+  .validator((input: unknown) => z.object({ id: uuid }).parse(input))
+  .handler(async ({ data, context }) => deleteProductChild(context.requestContext, "fee", data.id));
 
 const marketInput = z.object({
   product_id: uuid,
@@ -601,8 +614,7 @@ export const setMarketPrice = createServerFn({ method: "POST" })
   .validator((input: unknown) => marketInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
-    assertTenantMutationAuthorized(request);
-    const row = await productRepository.createMarketPrice(request, {
+    const row = await productService.createMarketPrice(request, {
       productId: data.product_id,
       minPrice: data.min_price == null ? null : toDecimalString(data.min_price, 4),
       avgPrice: data.avg_price == null ? null : toDecimalString(data.avg_price, 4),
@@ -626,7 +638,7 @@ export const getProductMetrics = createServerFn({ method: "GET" })
 export const listPurchasePrices = createServerFn({ method: "GET" })
   .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
-    const rows = await productRepository.loadPurchasePriceRows(context.requestContext);
+    const rows = await productService.loadPurchasePriceRows(context.requestContext);
     return {
       products: rows.products,
       ingredients: rows.ingredients.map(mapIngredient),
