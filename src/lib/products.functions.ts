@@ -185,8 +185,20 @@ function mapMarket(row: MarketPrice): MarketView {
   };
 }
 
+/** Violação de chave estrangeira do Postgres (SQLSTATE `23503`). O Drizzle
+ * embrulha o erro do driver (`DrizzleQueryError`), então o SQLSTATE tem de ser
+ * buscado na cadeia de causas — mesma técnica de `isUniqueViolation` em
+ * `src/server/repositories/memory.repository.ts`. Profundidade limitada: uma
+ * cadeia circular não trava. */
 function isForeignKeyViolation(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "23503";
+  let current: unknown = error;
+  for (let depth = 0; depth < 4; depth += 1) {
+    if (typeof current !== "object" || current === null) return false;
+    if ("code" in current && current.code === "23503") return true;
+    if (!("cause" in current)) return false;
+    current = current.cause;
+  }
+  return false;
 }
 
 function toFinanceIngredient(item: IngredientView): IngredientRow {
