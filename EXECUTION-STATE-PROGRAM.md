@@ -1644,5 +1644,23 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   Latest state marker parent = `70a802cdc21478e5c00f700a672153a3345b2b63`,
   Latest state marker parent = `fdf3e0fe392596dd22141ed87de46b1e7080d15a`,
   Latest state marker parent = `fdd7e4d6459d09e3d7055594f4be2887570c0211`,
+
+---
+
+### NAS-2 — ciclo 4 (2026-09-17; MAESTRO + SQUAD-APP + verificador adversarial + QA-BROWSER no Firefox)
+
+- **WP:** `9.2`-residual — zerar os **4 pontos de acesso direto à transação** (`products.functions.ts:169-455` e `:697-828`, `purchase-price.service.ts:79-115`, `product-detail.service.ts:45-81`), conforme `MEDICAO-2026-09-15.md:109`.
+- **Entregas:** `4660d0c` (contrato `src/server/contracts/product.contracts.ts` **type-only** + `product.repository.ts` como **único** arquivo do agregado com o driver + rewire dos 4 pontos) e `5a4bd86` (correção de fronteira). Merges `919cbb3` e `2d02936`. **Nada pushado.**
+- **E1 (squad):** grep de resíduo **22→0 / 4→0 / 7→0** (com controle positivo no adapter), os **5 arquivos de teste do card verdes sem asserção alterada** (36/36), teste de banco novo 14/14, `tsc` 0, `m02:boundaries` 0.
+- **E2 (HEAD integrado, container PG17 virgem):** `npm run check` **exit 0** (9/9; bundle PASS 475.253 B) · `npm run db:test` **exit 0**.
+- **O E2 pegou o que o E1 não viu — e a correção achou uma causa de plataforma:** o build de cliente quebrava porque o **BFF importava `@/server/repositories/**`** (import-protection fail-closed, fronteira M-02). Trocar repositório por **serviço** não bastou: o compilador do TanStack **não promove fábricas aninhadas de `createServerFn`** — a fábrica `deleteChild(kind)` (`products.functions.ts:509`) mantinha o handler (e o import server) **vivos no bundle cliente**. Corrigido com três cadeias de topo (`deleteIngredient`/`deletePackaging`/`deleteFee`), 8 call sites via `productService` e a asserção de tenant movida para o serviço (mesma semântica). **Lição incorporada:** `npm run build` entra no E1 de todo WP que toca módulo alcançável pelo cliente.
+- **Veredicto adversarial (`WP-9.2R-VERDICT.md`):** **8 CONFIRMED · 1 CORRECTED · 2 REJECTED · 0 UNVERIFIABLE** com sondas próprias (worktree `--detach`, container `:55480`, 20 asserções sob `app_runtime`). Resíduos: **R2** (mapeamento `23503→CONFLICT` **latentemente morto** — `DrizzleQueryError` põe o code no `.cause`; **pré-existente**, não regressão ⇒ F-C4-1) · **R3** (o **grafo de tipos** do contexto ainda alcança `@/db/client.server` via `RequestContext.transaction` ⇒ **residual real do item `9.2`** ⇒ F-C4-2/WP-9.2T) · R4 (`contracts.test.ts` sem o contrato novo) · R6 (bloco de banco do teste novo fora da cadeia `db:test`).
+- **Bateria S5 (Firefox, preview local):** **3/3 rotas OK** (`/produtos`, `/precos`, `/ponto-equilibrio`), sem erro novo. **Achado para o §20.1:** o Firefox **expõe no console** as violações da CSP **Report-Only** (inline script/style/eval) ⇒ promover a CSP exige **nonce/hash**, não apenas o switch de enforcement (insumo direto do H-6/`20.1`).
+- **Matriz regenerada (ato do MAESTRO):** **`directDatabaseFiles` 48 → 46** e `transactionSites` 123 → 119 — efeito medível do WP.
+- **Placar: inalterado** (86,36% parcial / 80,21% crua): o item `9.2` **não fecha** enquanto o R3 existir (a tipagem do contexto é parte do item).
+- **Guard (S7):** `env-guard --selftest` **13/13** · `secrets-audit` exit 0 · `lockfile-guard` OK · `:5432` **intocado** (26 tabelas) · preview do ciclo rodou **sem** `DATABASE_URL_UNPOOLED` (regra do ciclo 3 aplicada e verificada em `/proc`) · nenhum segredo nos artefatos.
+- **Registro:** `docs/evidence/agent-state/RELATORIO-CICLO-4-2026-09-17.md` · `SPEC-CARDS/CICLO-4.md` · `CLAIMS-INBOX/{WP-9.2R.md,WP-9.2R-VERDICT.md}` · `docs/evidence/cycle-4-92r-2026-09-17/` (3 capturas seladas) · journal L51.
+- **Próximo despacho:** **`WP-9.2T`** (desacoplar o tipo de `RequestContext.transaction` do driver ⇒ fecha `9.2`) · `WP-BAT-1` (lacunas de bateria §32/§33) · `MEM-D4` (bloqueado pelo briefe **H-12**) · **F-C4-1** (mapeamento 23503 pré-existente).
+  Latest state marker parent = `2d0293654a3cc6d48b3c0b6b2fc5093914fe2793`,
   Latest state marker parent = `53b29960251dceea9e416ab17478b81c2273befa`,
   Latest state marker parent = `f3c56db5e163894a091c5d03a0975419deb0e169`,

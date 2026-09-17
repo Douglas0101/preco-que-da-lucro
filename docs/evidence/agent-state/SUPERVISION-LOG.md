@@ -41,6 +41,16 @@ Formato de cada entrada (`LOG-ENTRY`): `timestamp · tier · decisão · raciona
 - **Itens afetados:** `docs/evidence/browser-batteries-2026-09-16/CICLO-3-BATERIAS-UI.md` §1.1.
 - **Reversão:** nenhuma (é diagnóstico); o processo do repo principal **não** foi tocado.
 
+## 2026-09-17T06:3xZ · Tier B · **E2 pegou o que o E1 não viu** (WP-9.2R): BFF importando repositório ⇒ build de cliente quebra
+
+- **Decisão:** rejeitar a entrega no estado em que estava e despachar correção dirigida (S6→S5, bound 2) ao squad; registrar o padrão no runbook mental do ciclo (**E1 de squad não substitui o build de cliente**).
+- **Fato medido (E2, HEAD integrado `919cbb3`):** `npm run db:test` **exit 0**, mas `npm run check` **exit 1** no passo `build`:
+  `[plugin tanstack-start-core:import-protection] Import denied in client environment — Denied by file pattern: **/server/**; Importer: src/lib/products.functions.ts; Import: src/server/repositories/product.repository`, com a trilha `router.tsx → routeTree.gen.ts → routes/_authenticated/precos.tsx → src/lib/products.functions`.
+- **Diagnóstico:** o squad injetou o repositório por _singleton de módulo_ **dentro do BFF** — mas `src/lib/*.functions.ts` está no **grafo cliente** (as rotas o importam) e a fronteira M-02 manda o BFF falar com **services**, não com repositories. Prova de contraste: todos os outros BFFs importam `@/server/services/**` (permitido) e os **services** é que importam repositories.
+- **Por que o E1 não pegou:** o E1 do squad rodou vitest/tsc/boundaries — nenhum deles avalia o **bundle cliente**. Lição para o próximo spec-card: **`npm run build` entra no E1 de todo WP que toca módulo alcançável pelo cliente**.
+- **Itens afetados:** WP-9.2R (correção em curso), `SPEC-CARDS/CICLO-4.md` (aceitação ganha o build), relatório do ciclo 4.
+- **Reversão:** a correção é aditiva (mover as operações para o serviço); nenhum dado/ambiente afetado.
+
 ## 2026-09-17T06:0xZ · Tier A · navegação autônoma passa a usar o **Firefox do dono** (determinação humana) — método, limites e fatos de infra
 
 - **Decisão:** adotar, como canal padrão de navegação para **infraestrutura** (hPanel/Vercel/Neon), o **Firefox do dono** com o perfil copiado para scratch e aberto pelo Firefox do Playwright — o MCP `playwright` do harness sobe Chromium **sem** os logins. A sessão viva do dono **não** é tocada (o Firefox dele segue aberto).
