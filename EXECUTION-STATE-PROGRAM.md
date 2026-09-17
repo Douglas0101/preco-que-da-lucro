@@ -1663,5 +1663,6 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Próximo despacho:** **`WP-9.2T`** (desacoplar o tipo de `RequestContext.transaction` do driver ⇒ fecha `9.2`) · `WP-BAT-1` (lacunas de bateria §32/§33) · `MEM-D4` (bloqueado pelo briefe **H-12**) · **F-C4-1** (mapeamento 23503 pré-existente).
   Latest state marker parent = `2d0293654a3cc6d48b3c0b6b2fc5093914fe2793`,
   Latest state marker parent = `be07761dbc349eb14b3402eb62f28ab6e7835b06`,
+  Latest state marker parent = `3c0f62c30eb406bd41e2e9145b24d490b72c5189`,
   Latest state marker parent = `53b29960251dceea9e416ab17478b81c2273befa`,
   Latest state marker parent = `f3c56db5e163894a091c5d03a0975419deb0e169`,
