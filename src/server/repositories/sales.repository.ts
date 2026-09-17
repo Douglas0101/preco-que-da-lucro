@@ -1,4 +1,5 @@
 import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { products, sales, salesItems, type Sale, type SaleItem } from "@/db/schema";
 import { LIST_LIMITS } from "@/lib/list-limits";
 import type { RequestContext } from "@/lib/request-context";
@@ -49,7 +50,10 @@ export interface SalesRepository {
 
 export class DrizzleSalesRepository implements SalesRepository {
   async create(context: RequestContext, input: SaleWrite) {
-    const [sale] = await context.transaction
+    // §9.2 — o adapter estreita o handle neutro do contexto para a transação do
+    // driver; o contrato (`RequestContext`) segue driver-agnostic.
+    const tx = context.transaction as DatabaseTransaction;
+    const [sale] = await tx
       .insert(sales)
       .values({
         tenantId: context.tenantId,
@@ -62,7 +66,7 @@ export class DrizzleSalesRepository implements SalesRepository {
       .returning();
     if (!sale) throw new Error("DATABASE_ERROR");
 
-    const items = await context.transaction
+    const items = await tx
       .insert(salesItems)
       .values(
         input.items.map((item) => ({
@@ -81,11 +85,12 @@ export class DrizzleSalesRepository implements SalesRepository {
   }
 
   async revenue(context: RequestContext, range: { from?: Date; to?: Date } = {}) {
+    const tx = context.transaction as DatabaseTransaction;
     const predicates = [eq(sales.tenantId, context.tenantId)];
     if (range.from) predicates.push(gte(sales.occurredAt, range.from));
     if (range.to) predicates.push(lte(sales.occurredAt, range.to));
 
-    const [row] = await context.transaction
+    const [row] = await tx
       .select({ revenue: sql<string>`coalesce(sum(${sales.netAmount}), 0)` })
       .from(sales)
       .where(and(...predicates));
@@ -93,7 +98,8 @@ export class DrizzleSalesRepository implements SalesRepository {
   }
 
   async summaryForPeriod(context: RequestContext, from: Date): Promise<SalesSummary> {
-    const [row] = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const [row] = await tx
       .select({
         revenue: sql<string>`coalesce(sum(${sales.netAmount}), 0)`,
         count: sql<number>`count(${sales.id})::integer`,
@@ -108,12 +114,13 @@ export class DrizzleSalesRepository implements SalesRepository {
     context: RequestContext,
     range: { from?: Date; to?: Date; limit?: number } = {},
   ): Promise<SaleListRow[]> {
+    const tx = context.transaction as DatabaseTransaction;
     const limit = Math.min(Math.max(range.limit ?? LIST_LIMITS.sales, 1), LIST_LIMITS.sales);
     const predicates = [eq(sales.tenantId, context.tenantId)];
     if (range.from) predicates.push(gte(sales.occurredAt, range.from));
     if (range.to) predicates.push(lte(sales.occurredAt, range.to));
 
-    const saleRows = await context.transaction
+    const saleRows = await tx
       .select()
       .from(sales)
       .where(and(...predicates))
@@ -121,7 +128,7 @@ export class DrizzleSalesRepository implements SalesRepository {
       .limit(limit);
     if (saleRows.length === 0) return [];
 
-    const itemRows = await context.transaction
+    const itemRows = await tx
       .select({
         id: salesItems.id,
         saleId: salesItems.saleId,

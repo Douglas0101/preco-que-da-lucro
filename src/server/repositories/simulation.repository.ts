@@ -1,4 +1,5 @@
 import { desc, eq } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { simulations, type Simulation } from "@/db/schema";
 import { LIST_LIMITS } from "@/lib/list-limits";
 import type { RequestContext } from "@/lib/request-context";
@@ -19,7 +20,10 @@ export interface SimulationRepository {
 
 export class DrizzleSimulationRepository implements SimulationRepository {
   list(context: RequestContext): Promise<Simulation[]> {
-    return context.transaction
+    // §9.2 — o adapter estreita o handle neutro do contexto para a transação do
+    // driver; o contrato (`RequestContext`) segue driver-agnostic.
+    const tx = context.transaction as DatabaseTransaction;
+    return tx
       .select()
       .from(simulations)
       .where(eq(simulations.tenantId, context.tenantId))
@@ -28,7 +32,8 @@ export class DrizzleSimulationRepository implements SimulationRepository {
   }
 
   async append(context: RequestContext, input: SimulationRecordWrite): Promise<Simulation> {
-    const [row] = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const [row] = await tx
       .insert(simulations)
       .values({
         tenantId: context.tenantId,

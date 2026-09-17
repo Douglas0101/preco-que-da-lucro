@@ -6,6 +6,7 @@ import { Pool } from "pg";
 import ts from "typescript";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import * as schema from "@/db/schema";
+import type { DatabaseTransaction } from "@/db/client.server";
 import type { RequestContext } from "@/lib/request-context";
 import { productRepository } from "@/server/repositories/product.repository";
 import { ensureRuntimeRoleMembership, runMigrations } from "../../scripts/db/migrate";
@@ -327,7 +328,8 @@ dbDescribe("ProductRepository — operações do port sob app_runtime (PG efême
   it("a sessão de prova roda como app_runtime e o RLS esconde as linhas do outro tenant", async () => {
     const [row] = rowsOf(
       await asTenant(TENANT_A, USER_A, (context) =>
-        context.transaction.execute(sql`
+        // §9.2 — a sonda roda SQL: estreita o handle neutro para o driver.
+        (context.transaction as DatabaseTransaction).execute(sql`
           select current_user as role,
                  (select rolbypassrls from pg_roles where rolname = current_user) as bypass_rls,
                  (select count(*) from product_ingredients) as visible_ingredients,

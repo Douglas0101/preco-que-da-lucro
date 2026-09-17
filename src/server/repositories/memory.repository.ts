@@ -27,6 +27,7 @@
  */
 import { createHash } from "node:crypto";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { aiMemories, aiMemoryConflicts, aiMemorySources, aiMemoryVersions } from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
 import type { RequestContext } from "@/lib/request-context";
@@ -243,12 +244,12 @@ function toConflictRecord(row: MemoryConflictRow): MemoryConflictRecord {
  * proveniência primária do read model, e é o mesmo critério em `append`,
  * `revise` e `search` — um helper só, para os três não divergirem. */
 async function primarySourcesFor(
-  executor: Executor,
+  tx: DatabaseTransaction,
   tenantId: string,
   memoryIds: readonly string[],
 ): Promise<Map<string, MemorySourceRow>> {
   if (memoryIds.length === 0) return new Map();
-  const sources = await executor
+  const sources = await tx
     .select()
     .from(aiMemorySources)
     .where(
@@ -271,13 +272,13 @@ async function primarySourcesFor(
  * sintético. Usada pelo append e pela revisão, que são as duas escritas que
  * produzem uma observação nova. */
 async function insertSource(
-  executor: Executor,
+  tx: DatabaseTransaction,
   tenantId: string,
   userId: string,
   memoryId: string,
   provenance: MemoryProvenance,
 ): Promise<MemorySourceRow> {
-  const sources = await executor
+  const sources = await tx
     .insert(aiMemorySources)
     .values({
       tenantId,
@@ -329,6 +330,9 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     input: MemoryRecordInput,
     executor: Executor = context.transaction,
   ): Promise<MemoryAppendResult> {
+    // §9.2 — o adapter estreita o handle neutro do contexto/executor para a
+    // transação do driver; o contrato (`MemoryRepositoryPort`) segue agnostic.
+    const tx = executor as DatabaseTransaction;
     const dedupKey = computeMemoryDedupKey({
       scope: input.scope,
       content: input.content,
@@ -336,7 +340,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
       conversationId: input.provenance?.conversationId ?? null,
     });
 
-    const inserted = await executor
+    const inserted = await tx
       .insert(aiMemories)
       .values({
         tenantId: context.tenantId,
@@ -358,7 +362,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     const row = inserted[0];
 
     if (!row) {
-      const existing = await executor
+      const existing = await tx
         .select()
         .from(aiMemories)
         .where(
@@ -374,20 +378,14 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
       // `(tenant_id, dedup_key) WHERE status='active'`, então a linha existe;
       // ausência aqui é estado impossível, não um "não encontrado".
       if (!duplicate) throw new ApplicationError("DATABASE_ERROR");
-      const primary = await primarySourcesFor(executor, context.tenantId, [duplicate.id]);
+      const primary = await primarySourcesFor(tx, context.tenantId, [duplicate.id]);
       return { record: toRecord(duplicate, primary.get(duplicate.id)), duplicated: true };
     }
 
     const provenance = input.provenance;
     if (!provenance) return { record: toRecord(row, undefined), duplicated: false };
 
-    const source = await insertSource(
-      executor,
-      context.tenantId,
-      context.userId,
-      row.id,
-      provenance,
-    );
+    const source = await insertSource(tx, context.tenantId, context.userId, row.id, provenance);
     return { record: toRecord(row, source), duplicated: false };
   }
 
@@ -410,7 +408,8 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     revision: MemoryRevisionInput,
     executor: Executor = context.transaction,
   ): Promise<MemoryRecord> {
-    const found = await executor
+    const tx = executor as DatabaseTransaction;
+    const found = await tx
       .select()
       .from(aiMemories)
       .where(
@@ -429,7 +428,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
       });
     }
 
-    const primaryBefore = await primarySourcesFor(executor, context.tenantId, [head.id]);
+    const primaryBefore = await primarySourcesFor(tx, context.tenantId, [head.id]);
     const dedupKey = computeMemoryDedupKey({
       scope: asScope(head.scope),
       content: revision.content,
@@ -446,7 +445,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
       });
     }
 
-    const maxVersion = await executor
+    const maxVersion = await tx
       .select({ version: sql<number>`coalesce(max(${aiMemoryVersions.version}), 0)` })
       .from(aiMemoryVersions)
       .where(
@@ -455,7 +454,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
           eq(aiMemoryVersions.memoryId, head.id),
         ),
       );
-    const archived = await executor
+    const archived = await tx
       .insert(aiMemoryVersions)
       .values({
         tenantId: context.tenantId,
@@ -477,7 +476,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     // a revisão colidente não deixa rastro (nem memória, nem versão).
     let updated: MemoryRow[];
     try {
-      updated = await executor
+      updated = await tx
         .update(aiMemories)
         .set({
           content: revision.content,
@@ -504,8 +503,8 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     if (!provenance) return toRecord(row, primaryBefore.get(row.id));
     // A observação da revisão é gravada como fonte (proveniência 1:N) e o read
     // model é relido: a fonte primária é a mais antiga, e a nova pode ser ela.
-    await insertSource(executor, context.tenantId, context.userId, row.id, provenance);
-    const primaryAfter = await primarySourcesFor(executor, context.tenantId, [row.id]);
+    await insertSource(tx, context.tenantId, context.userId, row.id, provenance);
+    const primaryAfter = await primarySourcesFor(tx, context.tenantId, [row.id]);
     return toRecord(row, primaryAfter.get(row.id));
   }
 
@@ -522,7 +521,8 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     candidate: MemoryCandidate,
     executor: Executor = context.transaction,
   ): Promise<MemoryConflictRecord> {
-    const found = await executor
+    const tx = executor as DatabaseTransaction;
+    const found = await tx
       .select({ id: aiMemories.id })
       .from(aiMemories)
       .where(
@@ -539,7 +539,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
       });
     }
 
-    const inserted = await executor
+    const inserted = await tx
       .insert(aiMemoryConflicts)
       .values({
         tenantId: context.tenantId,
@@ -571,7 +571,8 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     memoryId: string,
     executor: Executor = context.transaction,
   ): Promise<readonly MemoryVersionRecord[]> {
-    const rows = await executor
+    const tx = executor as DatabaseTransaction;
+    const rows = await tx
       .select({
         id: aiMemoryVersions.id,
         memoryId: aiMemoryVersions.memoryId,
@@ -603,7 +604,8 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     filter: MemoryConflictFilter = {},
     executor: Executor = context.transaction,
   ): Promise<readonly MemoryConflictRecord[]> {
-    const rows = await executor
+    const tx = executor as DatabaseTransaction;
+    const rows = await tx
       .select()
       .from(aiMemoryConflicts)
       .where(
@@ -630,11 +632,12 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     query: MemorySearchQuery,
     executor: Executor = context.transaction,
   ): Promise<readonly MemoryRecord[]> {
+    const tx = executor as DatabaseTransaction;
     const limit = resolveLimit(query.limit);
     const text = query.text.normalize("NFC").trim();
     const scopes = query.scopes ?? [];
 
-    const rows = await executor
+    const rows = await tx
       .select()
       .from(aiMemories)
       .where(
@@ -652,7 +655,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     if (rows.length === 0) return [];
 
     const primary = await primarySourcesFor(
-      executor,
+      tx,
       context.tenantId,
       rows.map((row) => row.id),
     );
@@ -684,19 +687,20 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     options: MemoryDeleteOptions = { purgeHistory: false },
     executor: Executor = context.transaction,
   ): Promise<boolean> {
+    const tx = executor as DatabaseTransaction;
     if (options.purgeHistory) {
-      await executor
+      await tx
         .delete(aiMemoryConflicts)
         .where(
           and(eq(aiMemoryConflicts.tenantId, context.tenantId), eq(aiMemoryConflicts.memoryId, id)),
         );
-      await executor
+      await tx
         .delete(aiMemoryVersions)
         .where(
           and(eq(aiMemoryVersions.tenantId, context.tenantId), eq(aiMemoryVersions.memoryId, id)),
         );
     } else {
-      const history = await executor
+      const history = await tx
         .select({ one: sql<number>`1` })
         .from(aiMemoryVersions)
         .where(
@@ -704,7 +708,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
         )
         .limit(1);
       if (history.length > 0) return false;
-      const conflicts = await executor
+      const conflicts = await tx
         .select({ one: sql<number>`1` })
         .from(aiMemoryConflicts)
         .where(
@@ -714,7 +718,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
       if (conflicts.length > 0) return false;
     }
 
-    const deleted = await executor
+    const deleted = await tx
       .delete(aiMemories)
       .where(and(eq(aiMemories.tenantId, context.tenantId), eq(aiMemories.id, id)))
       .returning({ id: aiMemories.id });

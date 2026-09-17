@@ -1,4 +1,5 @@
 import { desc, eq, and, isNull } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { calculationSnapshots, type CalculationSnapshot } from "@/db/schema";
 import type { RequestContext } from "@/lib/request-context";
 
@@ -23,7 +24,10 @@ export interface CalculationSnapshotRepository {
 
 export class DrizzleCalculationSnapshotRepository implements CalculationSnapshotRepository {
   async append(context: RequestContext, input: CalculationSnapshotWrite) {
-    const [row] = await context.transaction
+    // §9.2 — o adapter estreita o handle neutro do contexto para a transação do
+    // driver; o contrato (`RequestContext`) segue driver-agnostic.
+    const tx = context.transaction as DatabaseTransaction;
+    const [row] = await tx
       .insert(calculationSnapshots)
       .values({
         tenantId: context.tenantId,
@@ -41,7 +45,7 @@ export class DrizzleCalculationSnapshotRepository implements CalculationSnapshot
     if (row) return row;
     // Replay idempotente: a única violação possível é o UNIQUE
     // (tenant_id, calculation_type, idempotency_key) — devolve o registro existente.
-    const [existing] = await context.transaction
+    const [existing] = await tx
       .select()
       .from(calculationSnapshots)
       .where(
@@ -66,7 +70,7 @@ export class DrizzleCalculationSnapshotRepository implements CalculationSnapshot
     } else {
       predicates.push(eq(calculationSnapshots.entityId, entityId));
     }
-    return context.transaction
+    return (context.transaction as DatabaseTransaction)
       .select()
       .from(calculationSnapshots)
       .where(and(...predicates))

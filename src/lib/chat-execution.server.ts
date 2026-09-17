@@ -19,6 +19,7 @@ import {
   type ConversationState,
 } from "@/lib/chat-fsm.server";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { recordSafely } from "@/instrumentation/safe-record";
 import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
 import type { RequestContext, RequestIdentity } from "@/lib/request-context";
@@ -114,12 +115,15 @@ async function reserveChatAndLoadHistory(
   message: string,
   requestedProductId: string | null,
 ) {
+  // §9.2 — o handle neutro do contexto é estreitado aqui: rate limit e
+  // orçamento são APIs de adapter (transação do driver).
+  const tx = context.transaction as DatabaseTransaction;
   // Admission (§20.5) before any side effect of the turn: the bucket is atomic
   // and shared by every instance, unlike the previous count of persisted user
   // messages, which two concurrent turns could both pass. Denied turns burn no
   // AI quota because this runs before the budget reservation.
   const admission = await consumeRateLimitInTransaction(
-    context.transaction,
+    tx,
     userRateLimitKey("chat", context.userId),
     chatRateLimitRule(),
   );
@@ -131,10 +135,7 @@ async function reserveChatAndLoadHistory(
     throw new ApplicationError("RATE_LIMIT");
   }
 
-  const chatReserved = await budgetLedger.reserveChatInTransaction(
-    context.transaction,
-    context.tenantId,
-  );
+  const chatReserved = await budgetLedger.reserveChatInTransaction(tx, context.tenantId);
   if (!chatReserved) throw new ApplicationError("AI_QUOTA");
 
   const conversation = await conversationService.getOrCreate(context);

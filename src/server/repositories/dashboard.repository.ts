@@ -1,4 +1,5 @@
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import {
   expenses,
   marketPrices,
@@ -32,7 +33,10 @@ export class DrizzleDashboardRepository implements DashboardRepository {
    * admin tooling and making the tenant boundary explicit in every query.
    */
   async loadInputs(context: RequestContext): Promise<DashboardInputs> {
-    const productRows = await context.transaction
+    // §9.2 — o adapter estreita o handle neutro do contexto para a transação do
+    // driver; o contrato (`RequestContext`) segue driver-agnostic.
+    const tx = context.transaction as DatabaseTransaction;
+    const productRows = await tx
       .select()
       .from(products)
       .where(and(eq(products.tenantId, context.tenantId), isNull(products.archivedAt)))
@@ -40,13 +44,13 @@ export class DrizzleDashboardRepository implements DashboardRepository {
     const productIds = productRows.map((row) => row.id);
 
     const [expenseRows, ingredientRows, packagingRows, feeRows, marketRows] = await Promise.all([
-      context.transaction
+      tx
         .select()
         .from(expenses)
         .where(eq(expenses.tenantId, context.tenantId))
         .orderBy(desc(expenses.createdAt)),
       productIds.length
-        ? context.transaction
+        ? tx
             .select()
             .from(productIngredients)
             .where(
@@ -57,7 +61,7 @@ export class DrizzleDashboardRepository implements DashboardRepository {
             )
         : Promise.resolve([]),
       productIds.length
-        ? context.transaction
+        ? tx
             .select()
             .from(productPackaging)
             .where(
@@ -68,7 +72,7 @@ export class DrizzleDashboardRepository implements DashboardRepository {
             )
         : Promise.resolve([]),
       productIds.length
-        ? context.transaction
+        ? tx
             .select()
             .from(salesFees)
             .where(
@@ -79,7 +83,7 @@ export class DrizzleDashboardRepository implements DashboardRepository {
             )
         : Promise.resolve([]),
       productIds.length
-        ? context.transaction
+        ? tx
             .select()
             .from(marketPrices)
             .where(

@@ -117,10 +117,13 @@ export class OutboxWorker {
     context: RequestContext,
     executor: Executor = context.transaction,
   ): Promise<OutboxBatchResult> {
+    // §9.2 — o worker é adapter: estreita o handle neutro para a transação do
+    // driver (o savepoint de cada evento é API do driver).
+    const tx = executor as DatabaseTransaction;
     const claimed = await this.store.claimPending(
       context,
       { batchSize: this.batchSize, maxAttempts: this.maxAttempts },
-      executor,
+      tx,
     );
     const result: OutboxBatchResult = {
       claimed: claimed.length,
@@ -131,7 +134,7 @@ export class OutboxWorker {
 
     for (const event of claimed) {
       try {
-        const firstDelivery = await executor.transaction(async (savepoint) => {
+        const firstDelivery = await tx.transaction(async (savepoint) => {
           const consumed = await this.store.markConsumed(
             context,
             this.consumerName,
@@ -150,7 +153,7 @@ export class OutboxWorker {
           context,
           event.id,
           { error: errorText(error), backoffMs: this.backoffMs(event.attempts) },
-          executor,
+          tx,
         );
       }
     }

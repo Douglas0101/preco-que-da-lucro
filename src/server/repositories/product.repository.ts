@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import {
   marketPrices,
   productIngredients,
@@ -90,7 +91,10 @@ function ingredientChildBranch(
   ord: SQL,
   orderColumns: SQL[] = [],
 ) {
-  return context.transaction
+  // §9.2 — o adapter estreita o handle neutro do contexto para a transação do
+  // driver; o contrato (`RequestContext`) segue driver-agnostic.
+  const tx = context.transaction as DatabaseTransaction;
+  return tx
     .select({
       branch: sql`1`.as("branch"),
       ord: ord.as("ord"),
@@ -132,7 +136,8 @@ function packagingChildBranch(
   ord: SQL,
   orderColumns: SQL[] = [],
 ) {
-  return context.transaction
+  const tx = context.transaction as DatabaseTransaction;
+  return tx
     .select({
       branch: sql`2`.as("branch"),
       ord: ord.as("ord"),
@@ -169,7 +174,8 @@ function packagingChildBranch(
 }
 
 function feeChildBranch(context: RequestContext, productIds: string[]) {
-  return context.transaction
+  const tx = context.transaction as DatabaseTransaction;
+  return tx
     .select({
       branch: sql`3`.as("branch"),
       ord: sql`row_number() over ()`.as("ord"),
@@ -200,7 +206,8 @@ function feeChildBranch(context: RequestContext, productIds: string[]) {
 }
 
 function marketChildBranch(context: RequestContext, productIds: string[]) {
-  return context.transaction
+  const tx = context.transaction as DatabaseTransaction;
+  return tx
     .select({
       branch: sql`4`.as("branch"),
       ord: sql`row_number() over (order by ${marketPrices.createdAt} desc)`.as("ord"),
@@ -234,7 +241,8 @@ function marketChildBranch(context: RequestContext, productIds: string[]) {
 }
 
 async function loadChildRows(context: RequestContext, union: SQL) {
-  const result = await context.transaction.execute(union);
+  const tx = context.transaction as DatabaseTransaction;
+  const result = await tx.execute(union);
   // SAFETY: the consolidated UNION runs through raw `execute()`, which bypasses
   // Drizzle's decoders, so the driver hands back `Record<string, unknown>`. The
   // rows ARE the aligned `ChildUnionRow` shape because every UNION branch projects
@@ -273,10 +281,11 @@ const childTables = {
 
 export class DrizzleProductRepository implements ProductRepository {
   async list(context: RequestContext, query: ProductQuery = {}): Promise<Product[]> {
+    const tx = context.transaction as DatabaseTransaction;
     const predicates = [eq(products.tenantId, context.tenantId)];
     if (!query.includeArchived) predicates.push(isNull(products.archivedAt));
 
-    return context.transaction
+    return tx
       .select()
       .from(products)
       .where(and(...predicates))
@@ -284,7 +293,8 @@ export class DrizzleProductRepository implements ProductRepository {
   }
 
   async findById(context: RequestContext, id: string): Promise<Product | null> {
-    const rows = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const rows = await tx
       .select()
       .from(products)
       .where(and(eq(products.tenantId, context.tenantId), eq(products.id, id)))
@@ -293,6 +303,7 @@ export class DrizzleProductRepository implements ProductRepository {
   }
 
   async save(context: RequestContext, input: ProductWrite): Promise<Product> {
+    const tx = context.transaction as DatabaseTransaction;
     const values = {
       name: input.name,
       currentPrice: input.currentPrice,
@@ -304,7 +315,7 @@ export class DrizzleProductRepository implements ProductRepository {
     };
 
     if (!input.id) {
-      const rows = await context.transaction
+      const rows = await tx
         .insert(products)
         .values({
           tenantId: context.tenantId,
@@ -317,7 +328,7 @@ export class DrizzleProductRepository implements ProductRepository {
     }
 
     if (input.version === undefined) throw new Error("VALIDATION_ERROR");
-    const rows = await context.transaction
+    const rows = await tx
       .update(products)
       .set({ ...values, version: sql`${products.version} + 1` })
       .where(
@@ -330,7 +341,7 @@ export class DrizzleProductRepository implements ProductRepository {
       .returning();
     if (rows[0]) return rows[0];
 
-    const existing = await context.transaction
+    const existing = await tx
       .select({ id: products.id })
       .from(products)
       .where(and(eq(products.tenantId, context.tenantId), eq(products.id, input.id)))
@@ -339,7 +350,8 @@ export class DrizzleProductRepository implements ProductRepository {
   }
 
   async archive(context: RequestContext, id: string): Promise<void> {
-    const rows = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const rows = await tx
       .update(products)
       .set({ status: "archived", archivedAt: new Date(), updatedAt: new Date() })
       .where(and(eq(products.tenantId, context.tenantId), eq(products.id, id)))
@@ -348,7 +360,8 @@ export class DrizzleProductRepository implements ProductRepository {
   }
 
   async loadDetail(context: RequestContext, productId: string): Promise<ProductDetailRows | null> {
-    const productRows = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const productRows = await tx
       .select()
       .from(products)
       .where(and(eq(products.tenantId, context.tenantId), eq(products.id, productId)))
@@ -356,7 +369,7 @@ export class DrizzleProductRepository implements ProductRepository {
     const product = productRows[0];
     if (!product) return null;
 
-    const ingredientRows = await context.transaction
+    const ingredientRows = await tx
       .select()
       .from(productIngredients)
       .where(
@@ -366,7 +379,7 @@ export class DrizzleProductRepository implements ProductRepository {
         ),
       )
       .orderBy(asc(productIngredients.createdAt));
-    const packagingRows = await context.transaction
+    const packagingRows = await tx
       .select()
       .from(productPackaging)
       .where(
@@ -376,12 +389,12 @@ export class DrizzleProductRepository implements ProductRepository {
         ),
       )
       .orderBy(asc(productPackaging.createdAt));
-    const feeRows = await context.transaction
+    const feeRows = await tx
       .select()
       .from(salesFees)
       .where(and(eq(salesFees.tenantId, context.tenantId), eq(salesFees.productId, productId)))
       .orderBy(asc(salesFees.createdAt));
-    const marketRows = await context.transaction
+    const marketRows = await tx
       .select()
       .from(marketPrices)
       .where(
@@ -400,7 +413,8 @@ export class DrizzleProductRepository implements ProductRepository {
   }
 
   async loadReadModel(context: RequestContext): Promise<ProductReadModelRows> {
-    const productRows = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const productRows = await tx
       .select()
       .from(products)
       .where(and(eq(products.tenantId, context.tenantId), isNull(products.archivedAt)))
@@ -423,7 +437,8 @@ export class DrizzleProductRepository implements ProductRepository {
   }
 
   async loadPurchasePriceRows(context: RequestContext): Promise<PurchasePriceRows> {
-    const productRows: ProductRef[] = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const productRows: ProductRef[] = await tx
       .select({ id: products.id, name: products.name })
       .from(products)
       .where(and(eq(products.tenantId, context.tenantId), isNull(products.archivedAt)))
@@ -454,6 +469,7 @@ export class DrizzleProductRepository implements ProductRepository {
     context: RequestContext,
     input: IngredientWrite,
   ): Promise<ProductIngredient> {
+    const tx = context.transaction as DatabaseTransaction;
     const values = {
       tenantId: context.tenantId,
       userId: context.userId,
@@ -469,7 +485,7 @@ export class DrizzleProductRepository implements ProductRepository {
       updatedAt: new Date(),
     };
     const rows = input.id
-      ? await context.transaction
+      ? await tx
           .update(productIngredients)
           .set(values)
           .where(
@@ -479,12 +495,13 @@ export class DrizzleProductRepository implements ProductRepository {
             ),
           )
           .returning()
-      : await context.transaction.insert(productIngredients).values(values).returning();
+      : await tx.insert(productIngredients).values(values).returning();
     if (!rows[0]) throw new Error("NOT_FOUND");
     return rows[0];
   }
 
   async savePackaging(context: RequestContext, input: PackagingWrite): Promise<ProductPackaging> {
+    const tx = context.transaction as DatabaseTransaction;
     const values = {
       tenantId: context.tenantId,
       userId: context.userId,
@@ -496,19 +513,20 @@ export class DrizzleProductRepository implements ProductRepository {
       updatedAt: new Date(),
     };
     const rows = input.id
-      ? await context.transaction
+      ? await tx
           .update(productPackaging)
           .set(values)
           .where(
             and(eq(productPackaging.tenantId, context.tenantId), eq(productPackaging.id, input.id)),
           )
           .returning()
-      : await context.transaction.insert(productPackaging).values(values).returning();
+      : await tx.insert(productPackaging).values(values).returning();
     if (!rows[0]) throw new Error("NOT_FOUND");
     return rows[0];
   }
 
   async saveFee(context: RequestContext, input: FeeWrite): Promise<SalesFee> {
+    const tx = context.transaction as DatabaseTransaction;
     const values = {
       tenantId: context.tenantId,
       userId: context.userId,
@@ -518,18 +536,19 @@ export class DrizzleProductRepository implements ProductRepository {
       updatedAt: new Date(),
     };
     const rows = input.id
-      ? await context.transaction
+      ? await tx
           .update(salesFees)
           .set(values)
           .where(and(eq(salesFees.tenantId, context.tenantId), eq(salesFees.id, input.id)))
           .returning()
-      : await context.transaction.insert(salesFees).values(values).returning();
+      : await tx.insert(salesFees).values(values).returning();
     if (!rows[0]) throw new Error("NOT_FOUND");
     return rows[0];
   }
 
   async createMarketPrice(context: RequestContext, input: MarketPriceWrite): Promise<MarketPrice> {
-    const [row] = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const [row] = await tx
       .insert(marketPrices)
       .values({
         tenantId: context.tenantId,
@@ -545,8 +564,9 @@ export class DrizzleProductRepository implements ProductRepository {
   }
 
   async deleteChild(context: RequestContext, kind: ProductChildKind, id: string): Promise<void> {
+    const tx = context.transaction as DatabaseTransaction;
     const table = childTables[kind];
-    const rows = await context.transaction
+    const rows = await tx
       .delete(table)
       .where(and(eq(table.tenantId, context.tenantId), eq(table.id, id)))
       .returning({ id: table.id });
@@ -557,7 +577,8 @@ export class DrizzleProductRepository implements ProductRepository {
     context: RequestContext,
     input: IngredientPriceUpdate,
   ): Promise<IngredientPriceRow> {
-    const rows = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const rows = await tx
       .update(productIngredients)
       .set({
         packagePrice: input.packagePrice,
@@ -583,7 +604,8 @@ export class DrizzleProductRepository implements ProductRepository {
     context: RequestContext,
     input: PackagingPriceUpdate,
   ): Promise<PackagingPriceRow> {
-    const rows = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const rows = await tx
       .update(productPackaging)
       .set({
         packagePrice: input.packagePrice,
