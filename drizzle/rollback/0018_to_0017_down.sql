@@ -2,6 +2,25 @@
 -- (§15.6/D3 — `ai_memory_versions` + `ai_memory_conflicts` + a coluna
 -- `ai_memories.dedup_key` e o índice único parcial do dedup).
 --
+-- **Use este down somente ANTES de tráfego** (`ai_memories` vazia). O par
+-- up→down→up só fecha nessa condição: o up de 0018 é
+-- `ALTER TABLE "ai_memories" ADD COLUMN "dedup_key" text NOT NULL` **sem
+-- default e sem backfill** (a tabela não tinha escritor quando a migration foi
+-- escrita — SD-C3-2), então basta **uma linha pré-existente** para o 2º up
+-- falhar com `column "dedup_key" of relation "ai_memories" contains null
+-- values`, deixando o banco preso em 0017 — com o histórico e os conflitos já
+-- destruídos por este down (`DROP TABLE`).
+--
+-- **Pós-tráfego, faça restore de snapshot — não reaplique este par.** Reaplicar
+-- 0018 com dados exige um **backfill de `dedup_key`** que este downgrade não tem
+-- como reconstruir: a chave é
+-- `sha256(scope ‖ 0x1f ‖ discriminador ‖ 0x1f ‖ conteúdo normalizado)` e a
+-- normalização (NFC + remoção da categoria `Cf` + `trim` + colapso de espaços)
+-- vive no TypeScript do repositório; o down descarta a coluna sem guardar cópia
+-- das chaves e o SQL da migration não expressa aquela normalização (nem o
+-- discriminador de conversa, que vem da fonte primária). Se o backfill for
+-- realmente necessário, trate-o como job explícito — não como migration.
+--
 -- DDL reversível e aditivo: as duas tabelas são criadas por 0018 e a FK
 -- composta delas para `ai_memories` é ON DELETE RESTRICT (o filho precisa cair
 -- antes do pai). O down descarta o histórico e os conflitos já registrados,

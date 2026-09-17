@@ -74,11 +74,20 @@ type MemoryConflictRow = typeof aiMemoryConflicts.$inferSelect;
  * são memórias distintas, e duas conversas também. Em `scope='tenant'` não há
  * discriminador (a memória é do tenant inteiro).
  *
- * Normalização: NFC + `trim` + colapso de espaços internos. **Caixa não é
- * normalizada** (decisão registrada no spec-card/T-testes): "Margem" e "margem"
- * são conteúdos diferentes, e colapsá-los exigiria uma regra de equivalência
- * que a fonte não fixa. O conteúdo **armazenado** continua sendo o do chamador:
- * a normalização só alimenta a chave.
+ * Normalização: NFC + remoção dos caracteres de formatação invisíveis + `trim`
+ * + colapso de espaços internos. Os invisíveis removidos são a **categoria
+ * Unicode `Cf` inteira** (`\p{Cf}`), não só o mínimo citado pelo veredicto
+ * (`U+200B`/`U+200C`/`U+200D`/`U+2060`/`U+FEFF`): a categoria é fechada,
+ * estável e cobre também o hífen suave (`U+00AD`) e os controles de direção
+ * (`U+200E`/`U+200F`, `U+202A-202E`, `U+2066-2069`), que são o mesmo tipo de
+ * ruído — uma lista explícita envelheceria a cada versão do Unicode e deixaria
+ * passar os vizinhos. Sem isso, texto **visualmente idêntico** que difere só
+ * por um `U+200B` (que o `\s` do JS não cobre) cria memória nova em vez de
+ * deduplicar. **Caixa não é normalizada** (decisão registrada no
+ * spec-card/T-testes): "Margem" e "margem" são conteúdos diferentes, e
+ * colapsá-los exigiria uma regra de equivalência que a fonte não fixa. Tudo
+ * isso vale **só para a chave**: o conteúdo **armazenado** continua sendo o do
+ * chamador, caractere por caractere.
  * ------------------------------------------------------------------------- */
 
 /** Separador de campo do hash (US, 0x1f) — fora dos caracteres de texto útil. */
@@ -93,10 +102,15 @@ export interface MemoryDedupKeyInput {
   conversationId?: string | null;
 }
 
-/** Normalização do conteúdo para a chave: NFC + `trim` + espaços internos
- * colapsados num único espaço ASCII (o `\s` do JS cobre NBSP e quebras). */
+/** Normalização do conteúdo para a chave: NFC, remoção dos caracteres de
+ * formatação invisíveis (categoria `Cf`), `trim` e espaços internos colapsados
+ * num único espaço ASCII (o `\s` do JS cobre NBSP e quebras). */
 export function normalizeMemoryContent(content: string): string {
-  return content.normalize("NFC").trim().replace(/\s+/g, " ");
+  return content
+    .normalize("NFC")
+    .replace(/\p{Cf}/gu, "")
+    .trim()
+    .replace(/\s+/g, " ");
 }
 
 /** Discriminador da chave por escopo (SD-C3-1): `user_id` em `user`, a conversa
@@ -282,6 +296,20 @@ async function insertSource(
   return source;
 }
 
+/** Violação de unicidade do Postgres (SQLSTATE `23505`). O Drizzle embrulha o
+ * erro do driver (`DrizzleQueryError`), então o SQLSTATE tem de ser buscado na
+ * cadeia de causas — mesma técnica de `scripts/db/test-memory.ts`. */
+function isUniqueViolation(error: unknown): boolean {
+  let current: unknown = error;
+  for (let depth = 0; depth < 4; depth += 1) {
+    if (typeof current !== "object" || current === null) return false;
+    if ("code" in current && current.code === "23505") return true;
+    if (!("cause" in current)) return false;
+    current = current.cause;
+  }
+  return false;
+}
+
 export class DrizzleMemoryRepository implements MemoryRepositoryPort {
   /**
    * Grava a memória e suas fontes no executor recebido. Os dois INSERTs usam a
@@ -439,17 +467,36 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
       .returning();
     if (!archived[0]) throw new ApplicationError("DATABASE_ERROR");
 
-    const updated = await executor
-      .update(aiMemories)
-      .set({
-        content: revision.content,
-        dedupKey,
-        importance: revision.importance ?? head.importance,
-        confidence: revision.provenance?.confidence ?? head.confidence,
-        updatedAt: sql`now()`,
-      })
-      .where(and(eq(aiMemories.tenantId, context.tenantId), eq(aiMemories.id, head.id)))
-      .returning();
+    // O conteúdo revisado pode ser o head ativo de OUTRA memória do tenant: o
+    // índice único parcial `(tenant_id, dedup_key) WHERE status='active'`
+    // recusa o `UPDATE` com 23505 — é o único índice único de `ai_memories`
+    // fora a PK, e a PK não é tocada por uma revisão (o `id` não muda). Sem
+    // esta rede o erro do driver vaza cru (`isApplicationError:false` → 500);
+    // aqui vira CONFLICT. Erro que NÃO é violação de unicidade é relançado como
+    // veio, e a versão arquivada acima é desfeita pelo rollback da transação —
+    // a revisão colidente não deixa rastro (nem memória, nem versão).
+    let updated: MemoryRow[];
+    try {
+      updated = await executor
+        .update(aiMemories)
+        .set({
+          content: revision.content,
+          dedupKey,
+          importance: revision.importance ?? head.importance,
+          confidence: revision.provenance?.confidence ?? head.confidence,
+          updatedAt: sql`now()`,
+        })
+        .where(and(eq(aiMemories.tenantId, context.tenantId), eq(aiMemories.id, head.id)))
+        .returning();
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        throw new ApplicationError("CONFLICT", {
+          cause: error,
+          message: `revisão de ${memoryId} colide com uma memória ativa do tenant (a chave de dedup do conteúdo revisado já está em uso)`,
+        });
+      }
+      throw error;
+    }
     const row = updated[0];
     if (!row) throw new ApplicationError("DATABASE_ERROR");
 
