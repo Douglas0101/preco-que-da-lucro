@@ -990,6 +990,12 @@ export const aiMemories = pgTable(
     userId: text("user_id").notNull(),
     scope: text("scope").notNull(),
     content: text("content").notNull(),
+    /** Chave determinística de dedup (§15.6/D3, SD-C3-1): sha256 hex de
+     * `scope ‖ 0x1f ‖ discriminador ‖ 0x1f ‖ conteúdo normalizado`. O
+     * discriminador impede que dois usuários com o mesmo texto colapsem numa
+     * linha só; a normalização (NFC + trim + colapso de espaços internos) não
+     * toca maiúsculas/minúsculas. */
+    dedupKey: text("dedup_key").notNull(),
     importance: doublePrecision("importance").notNull().default(0),
     confidence: doublePrecision("confidence"),
     status: text("status").notNull().default("active"),
@@ -1001,6 +1007,14 @@ export const aiMemories = pgTable(
      * (não índice) para existir antes dos `ALTER TABLE ... ADD FOREIGN KEY` do
      * arquivo gerado — mesmo padrão de `chat_conversations`. */
     unique("ai_memories_tenant_id_id_uidx").on(table.tenantId, table.id),
+    /** Dedup do D3 (§15.6/SD-C3-2): **único parcial** — o mesmo conteúdo só
+     * colide entre memórias **ativas** do mesmo tenant; uma memória substituída
+     * (`status='superseded'`) não bloqueia a gravação de um ativo novo. É o
+     * índice que resolve a concorrência do append (`ON CONFLICT … DO NOTHING`,
+     * SD-C3-10, sem advisory lock). */
+    uniqueIndex("ai_memories_tenant_dedup_key_active_uidx")
+      .on(table.tenantId, table.dedupKey)
+      .where(sql`${table.status} = 'active'`),
     /** Índice do retrieval lexical de D5/D6: tenant primeiro (§15.8). */
     index("ai_memories_tenant_status_created_idx").on(
       table.tenantId,
@@ -1098,6 +1112,85 @@ export const aiMemorySources = pgTable(
   ],
 );
 
+/** §15.6/D3 — histórico imutável de uma memória (`ai_memory_versions`, SD-C3-3).
+ *
+ * A revisão arquiva o estado **substituído** antes de atualizar o head
+ * (`ai_memories`) in-place: a linha gravada guarda `content`/`dedup_key` da
+ * versão anterior, então o histórico inteiro é reconstruível (versões em ordem
+ * de `version` + head). Nenhum `UPDATE`/`DELETE` é concedido a `app_runtime`
+ * (SD-C3-4) — a imutabilidade é estrutural, não disciplina de código.
+ *
+ * A FK composta `(tenant_id, memory_id) → ai_memories(tenant_id, id)` é
+ * **ON DELETE RESTRICT**: sem histórico, o delete do D2 continua valendo; com
+ * histórico, o banco recusa a remoção do head e o expurgo passa a ser o caminho
+ * explícito (SD-C3-9). */
+export const aiMemoryVersions = pgTable(
+  "ai_memory_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    memoryId: uuid("memory_id").notNull(),
+    /** Índice do estado arquivado na memória (1, 2, …), nunca reutilizado. */
+    version: integer("version").notNull(),
+    content: text("content").notNull(),
+    dedupKey: text("dedup_key").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    /** Alvo da FK composta de futuras tabelas e chave de leitura do histórico
+     * (`listVersions` ordena por `version` dentro da memória). */
+    unique("ai_memory_versions_tenant_memory_version_uidx").on(
+      table.tenantId,
+      table.memoryId,
+      table.version,
+    ),
+    foreignKey({
+      columns: [table.tenantId, table.memoryId],
+      foreignColumns: [aiMemories.tenantId, aiMemories.id],
+    }).onDelete("restrict"),
+    check("ai_memory_versions_version_check", sql`${table.version} > 0`),
+    check("ai_memory_versions_content_check", sql`${table.content} <> ''`),
+  ],
+);
+
+/** §15.6/D3 — registro de conflito (`ai_memory_conflicts`, SD-C3-6).
+ *
+ * D3 **não** julga contradição semântica (SD-C3-5): o policy/service registra o
+ * candidato contraditório com `recordConflict()` e o ativo **nunca** é
+ * sobrescrito — esta tabela só acrescenta linhas, e o ciclo de vida
+ * (`open → dismissed|resolved`) é do serviço. A FK composta também é
+ * **ON DELETE RESTRICT**, pelo mesmo motivo do histórico. */
+export const aiMemoryConflicts = pgTable(
+  "ai_memory_conflicts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    memoryId: uuid("memory_id").notNull(),
+    candidateContent: text("candidate_content").notNull(),
+    candidateDedupKey: text("candidate_dedup_key").notNull(),
+    status: text("status").notNull().default("open"),
+    detectedAt: timestamp("detected_at", { withTimezone: true }).notNull().defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("ai_memory_conflicts_tenant_memory_idx").on(table.tenantId, table.memoryId),
+    index("ai_memory_conflicts_tenant_status_idx").on(table.tenantId, table.status),
+    foreignKey({
+      columns: [table.tenantId, table.memoryId],
+      foreignColumns: [aiMemories.tenantId, aiMemories.id],
+    }).onDelete("restrict"),
+    check(
+      "ai_memory_conflicts_status_check",
+      sql`${table.status} in ('open', 'dismissed', 'resolved')`,
+    ),
+    check("ai_memory_conflicts_content_check", sql`${table.candidateContent} <> ''`),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type Tenant = typeof tenants.$inferSelect;
 export type TenantMembership = typeof tenantMemberships.$inferSelect;
@@ -1114,3 +1207,5 @@ export type BackfillCheckpointRecord = typeof backfillCheckpoints.$inferSelect;
 export type BackfillWorkItem = typeof backfillWorkItems.$inferSelect;
 export type AiMemory = typeof aiMemories.$inferSelect;
 export type AiMemorySource = typeof aiMemorySources.$inferSelect;
+export type AiMemoryVersion = typeof aiMemoryVersions.$inferSelect;
+export type AiMemoryConflict = typeof aiMemoryConflicts.$inferSelect;
