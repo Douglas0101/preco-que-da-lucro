@@ -1706,3 +1706,25 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   Latest state marker parent = `53b29960251dceea9e416ab17478b81c2273befa`,
   Latest state marker parent = `f3c56db5e163894a091c5d03a0975419deb0e169`,
   Latest state marker parent = `190954b3d6b626707cf57d286da71e681778d354`,
+
+---
+
+### NAS-2 — ciclo 7 (2026-09-17; MAESTRO como QA-BROWSER + verificador adversarial)
+
+- **WP:** `WP-BAT-1` — fechar as lacunas das baterias **§32/§33** (o que o ciclo 3 mediu como parcial). **Nenhum código de produto tocado** (`src/` intocado, provado por `git status`).
+- **Ambiente:** preview local (`:4277`, build do HEAD `190954b`) + container PG17 **efêmero** `nas2c7-pg` (`:55434`) com a fixture semeada; navegação por **Firefox** (Playwright); `env -u DATABASE_URL_UNPOOLED` em todo lançamento; `:5432`/Neon/produção intocados.
+- **Medido (por sonda própria, com restauração provada em cada mutação):**
+  - **§32.2 session fixation — PASS:** dois logins ⇒ **tokens distintos**; `HttpOnly` + `SameSite=Lax`; cookie **forjado** ⇒ `get-session` `null`; **logout de B invalida só B** (A segue com `user`). _(Erro meu registrado: o primeiro probe reenviava o cookie sem o prefixo `preco_que_da_lucro.` e devolvia "sem sessão" — descartado e refeito.)_
+  - **§32.3 rate abuse (chat) — PASS:** o **21º** envio devolve "⚠️ Muitas solicitações. Aguarde e tente novamente." (bucket 20/600 s consumido antes do gateway).
+  - **§32.4 (bônus) rate limit de auth — PASS:** rajada de logins ⇒ **429** com corpo explícito.
+  - **§33.4 `yield_qty := NULL` — PASS:** **DADOS INCOMPLETOS**, sem `R$ 0,00`.
+  - **§33.5 `tax_rate := NULL` — PASS:** banner de diagnóstico incompleto + `—`; o `R$ 0,00` da página é a semântica **O-1** (ingredientes vazios), não fabricação.
+  - **§33.7 unidades 10,1 → 11 — PASS:** com fixa 70,70 e margem 7 ⇒ **`11 un. (bruto 10,10)`**.
+  - **§32.1 replay — MEDIDO:** a UI **não** é idempotente por desenho (2 linhas); a garantia vive no caminho de tools (`db:test`/`test-tool-security`) — **declarado**, não medido aqui.
+- **Achado B-7 (candidato, §33.6):** com `contribution ≤ 0` (preço abaixo do custo), `/ponto-equilibrio` exibe **"Erro de cálculo"** no card "VOCÊ PRECISA VENDER" — enquanto o **motor devolve `unreachable`** (`NON_POSITIVE_CONTRIBUTION`, `finance.ts:404-410` / `break-even.ts:131-139`), a função de rótulo da própria página mapeia `unreachable → "Não atingível"` (`ponto-equilibrio.tsx:374-377`) e o `/diagnostico` **explica** o estado ("Seu preço de venda está abaixo do custo unitário"). Hipótese **marcada como hipótese**: `breakEven` chega `null` ao card via `createBreakEvenInput` (`ponto-equilibrio.tsx:82-91`). **Veredicto adversarial: em curso.**
+- **Não medidos (declarados com ponteiro):** §33.8 (unidade incompatível — só entra por ingrediente criado no chat com IA) e §33.9 (markup arbitrário — coberto por e2e + ciclo 3).
+- **Evidência:** `docs/evidence/battery-wp-bat-1-2026-09-17/` — `BATERIAS-32-33.md` + **8 capturas** com manifesto `sha256sum -c` = ALL MATCH.
+- **Placar: inalterado** (86,36% parcial / 80,21% crua) — bateria é evidência de validação; o crédito depende da régua.
+- **Registro:** `RELATORIO-CICLO-7-2026-09-17.md` · `SPEC-CARDS/CICLO-7.md` · `CLAIMS-INBOX/WP-BAT-1.md` · journal L58.
+- **Próximo:** `MEM-D4` (H-12 aprovado + SD-C3-12) · `F-C6-1`/`F-C6-2` · `F-C5-2`/`F-C5-3` · `WP-B1` · **B-7** (se confirmado).
+  Latest state marker parent = `8305a6727441307e478e4f185847750b137367fc`,
