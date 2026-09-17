@@ -41,6 +41,15 @@ Formato de cada entrada (`LOG-ENTRY`): `timestamp · tier · decisão · raciona
 - **Itens afetados:** `docs/evidence/browser-batteries-2026-09-16/CICLO-3-BATERIAS-UI.md` §1.1.
 - **Reversão:** nenhuma (é diagnóstico); o processo do repo principal **não** foi tocado.
 
+## 2026-09-17T06:0xZ · Tier A · navegação autônoma passa a usar o **Firefox do dono** (determinação humana) — método, limites e fatos de infra
+
+- **Decisão:** adotar, como canal padrão de navegação para **infraestrutura** (hPanel/Vercel/Neon), o **Firefox do dono** com o perfil copiado para scratch e aberto pelo Firefox do Playwright — o MCP `playwright` do harness sobe Chromium **sem** os logins. A sessão viva do dono **não** é tocada (o Firefox dele segue aberto).
+- **Racional:** o dono determinou explicitamente ("faça a navegação autônoma pelo firefox onde todo o ecossistema e infraestrutura está logada") e isso destrava leitura de estado que estava bloqueada por H-2/H-4. A técnica é read-only e reprodutível; nenhum modal de token/connection string foi aberto.
+- **Fatos capturados (Neon, autoritativos):** plano **Free**; **History retention = 6 h** ⇒ **causa-raiz do H-4**; Postgres **17**; branch default **`production`** (`br-snowy-violet-aymcvvvv`, `Expires: Never`); 4 branches; endpoint **`ep-long-violet-aye9g0bn`** = o mesmo do **B-3** (severidade confirmada); IP restrictions: none; **BetterAuth habilitado**.
+- **Limites declarados (sem contorno):** **hPanel** atrás de **Cloudflare Turnstile** mesmo em modo headed ⇒ **H-6 segue humano** (runbook de 2 min); **Vercel** autentica mas o SPA quebra ⇒ **H-2 segue humano** (token).
+- **Itens afetados:** H-2, H-4, H-6, B-3, §42; artefato `docs/evidence/infra-recon-2026-09-17/` (método + 5 capturas seladas).
+- **Reversão:** nenhuma (leitura); o scratch `/tmp/ff-profile` é descartável.
+
 ## 2026-09-17T05:2xZ · Tier A · **STOP CONDITION acionada** (credencial de produção no ambiente) — contida e convertida em regra
 
 - **Decisão:** (1) **escalar ao dono** a condição de parada do loop SDD §8 ("credencial de produção detectada no ambiente"); (2) adotar como regra sistêmica o strip no lançamento (`env -u DATABASE_URL_UNPOOLED …`) para todo processo longo ou agente do enxame; (3) **não** iniciar o ciclo 4 (S0) até o aceite do dono.
