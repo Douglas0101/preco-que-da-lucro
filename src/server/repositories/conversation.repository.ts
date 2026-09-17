@@ -1,4 +1,5 @@
 import { and, asc, count, eq, gte } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { chatConversations, chatMessages, products } from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
 import type { RequestContext } from "@/lib/request-context";
@@ -53,7 +54,10 @@ export interface ConversationRepository {
 export class DrizzleConversationRepository implements ConversationRepository {
   /** Read-only lookup used by GET handlers. GET must never create tenant data. */
   async findForUser(context: RequestContext): Promise<Conversation | undefined> {
-    const [existing] = await context.transaction
+    // §9.2 — o adapter estreita o handle neutro do contexto para a transação do
+    // driver; o contrato (`RequestContext`) segue driver-agnostic.
+    const tx = context.transaction as DatabaseTransaction;
+    const [existing] = await tx
       .select()
       .from(chatConversations)
       .where(
@@ -68,7 +72,8 @@ export class DrizzleConversationRepository implements ConversationRepository {
 
   /** Creation is intentionally isolated to POST flows (send/reset/explicit create). */
   async getOrCreate(context: RequestContext): Promise<Conversation> {
-    const inserted = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const inserted = await tx
       .insert(chatConversations)
       .values({
         tenantId: context.tenantId,
@@ -89,7 +94,8 @@ export class DrizzleConversationRepository implements ConversationRepository {
     conversationId: string,
     options: { limit?: number } = {},
   ): Promise<ConversationMessageSummary[]> {
-    const query = context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const query = tx
       .select({
         id: chatMessages.id,
         role: chatMessages.role,
@@ -108,7 +114,8 @@ export class DrizzleConversationRepository implements ConversationRepository {
   }
 
   async countRecentUserMessages(context: RequestContext, since: Date): Promise<number> {
-    const [recent] = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const [recent] = await tx
       .select({ value: count() })
       .from(chatMessages)
       .where(
@@ -126,7 +133,8 @@ export class DrizzleConversationRepository implements ConversationRepository {
     context: RequestContext,
     input: ConversationMessageInput,
   ): Promise<{ id: string } | undefined> {
-    const [saved] = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const [saved] = await tx
       .insert(chatMessages)
       .values({
         conversationId: input.conversationId,
@@ -145,7 +153,8 @@ export class DrizzleConversationRepository implements ConversationRepository {
     conversationId: string,
     changes: ConversationUpdate,
   ): Promise<void> {
-    await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    await tx
       .update(chatConversations)
       .set(changes)
       .where(
@@ -157,7 +166,8 @@ export class DrizzleConversationRepository implements ConversationRepository {
   }
 
   async deleteMessages(context: RequestContext, conversationId: string): Promise<void> {
-    await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    await tx
       .delete(chatMessages)
       .where(
         and(
@@ -168,7 +178,8 @@ export class DrizzleConversationRepository implements ConversationRepository {
   }
 
   async findProduct(context: RequestContext, productId: string): Promise<{ id: string } | null> {
-    const [row] = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const [row] = await tx
       .select({ id: products.id })
       .from(products)
       .where(and(eq(products.tenantId, context.tenantId), eq(products.id, productId)))

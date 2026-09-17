@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { idempotencyRecords, toolExecutions } from "@/db/schema";
 import type { RequestContext } from "@/lib/request-context";
 
@@ -60,7 +61,10 @@ export interface AiToolRepository {
 
 export class DrizzleAiToolRepository implements AiToolRepository {
   async persistRejected(context: RequestContext, payload: RejectedToolWrite): Promise<void> {
-    await context.transaction.insert(toolExecutions).values({
+    // §9.2 — o adapter estreita o handle neutro do contexto para a transação do
+    // driver; o contrato (`RequestContext`) segue driver-agnostic.
+    const tx = context.transaction as DatabaseTransaction;
+    await tx.insert(toolExecutions).values({
       tenantId: context.tenantId,
       userId: context.userId,
       correlationId: context.correlationId,
@@ -81,7 +85,8 @@ export class DrizzleAiToolRepository implements AiToolRepository {
     name: string,
     idempotencyKey: string,
   ): Promise<ExistingToolClaim | undefined> {
-    const [existing] = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const [existing] = await tx
       .select({
         requestHash: idempotencyRecords.requestHash,
         status: idempotencyRecords.status,
@@ -105,7 +110,8 @@ export class DrizzleAiToolRepository implements AiToolRepository {
     context: RequestContext,
     input: { name: string; idempotencyKey: string; requestHash: string; expiresAt: Date },
   ): Promise<string | undefined> {
-    const [claimed] = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const [claimed] = await tx
       .insert(idempotencyRecords)
       .values({
         tenantId: context.tenantId,
@@ -125,7 +131,8 @@ export class DrizzleAiToolRepository implements AiToolRepository {
     context: RequestContext,
     input: ToolExecutionStart,
   ): Promise<string | undefined> {
-    const [execution] = await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    const [execution] = await tx
       .insert(toolExecutions)
       .values({
         tenantId: context.tenantId,
@@ -150,7 +157,8 @@ export class DrizzleAiToolRepository implements AiToolRepository {
     output: Record<string, unknown>,
     durationMs: number,
   ): Promise<void> {
-    await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    await tx
       .update(toolExecutions)
       .set({ status: "succeeded", durationMs, safeResult: output, completedAt: new Date() })
       .where(
@@ -160,7 +168,7 @@ export class DrizzleAiToolRepository implements AiToolRepository {
           eq(toolExecutions.userId, context.userId),
         ),
       );
-    await context.transaction
+    await tx
       .update(idempotencyRecords)
       .set({ status: "succeeded", response: output, updatedAt: new Date() })
       .where(
@@ -179,7 +187,8 @@ export class DrizzleAiToolRepository implements AiToolRepository {
     errorCode: string,
     durationMs: number,
   ): Promise<void> {
-    await context.transaction
+    const tx = context.transaction as DatabaseTransaction;
+    await tx
       .update(toolExecutions)
       .set({ status: "failed", durationMs, errorCode, completedAt: new Date() })
       .where(
@@ -189,7 +198,7 @@ export class DrizzleAiToolRepository implements AiToolRepository {
           eq(toolExecutions.userId, context.userId),
         ),
       );
-    await context.transaction
+    await tx
       .update(idempotencyRecords)
       .set({ status: "failed", errorCode, updatedAt: new Date() })
       .where(

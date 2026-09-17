@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { and, eq } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { idempotencyRecords, toolExecutions } from "@/db/schema";
 import type { ApiErrorCode } from "@/lib/api-error";
 import { errorCodeFromUnknown } from "@/lib/api-error";
@@ -98,8 +99,9 @@ async function persistRejected(
   startedAt: number,
   trace: ToolExecutionTrace,
 ): Promise<void> {
+  const tx = context.transaction as DatabaseTransaction;
   const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
-  await context.transaction.insert(toolExecutions).values({
+  await tx.insert(toolExecutions).values({
     tenantId: context.tenantId,
     userId: context.userId,
     correlationId: context.correlationId,
@@ -168,7 +170,8 @@ async function resolveExistingClaim(
   idempotencyKey: string,
   hash: string,
 ): Promise<ToolRunResult | { claimId: string } | null> {
-  const [existing] = await context.transaction
+  const tx = context.transaction as DatabaseTransaction;
+  const [existing] = await tx
     .select()
     .from(idempotencyRecords)
     .where(
@@ -182,7 +185,7 @@ async function resolveExistingClaim(
     .limit(1);
   if (!existing) return null;
   if (existing.expiresAt <= new Date()) {
-    await context.transaction
+    await tx
       .update(idempotencyRecords)
       .set({
         requestHash: hash,
@@ -230,6 +233,7 @@ export async function runRegisteredTool(options: {
     requireConfirmation = false,
     confirmed = false,
   } = options;
+  const tx = context.transaction as DatabaseTransaction;
   const startedAt = performance.now();
   const trace = { toolCallId, usageId };
   const preparedRequest = await prepareToolRequest(context, name, rawArguments, startedAt, trace);
@@ -255,7 +259,7 @@ export async function runRegisteredTool(options: {
   // denied call must not occupy the (tenant, user, operation, key) row, or the
   // retry would replay it as if it had been accepted.
   const admission = await consumeRateLimitInTransaction(
-    context.transaction,
+    tx,
     userRateLimitKey("tool", context.userId),
     USER_RATE_LIMIT_RULES.tool,
   );
@@ -265,7 +269,7 @@ export async function runRegisteredTool(options: {
   }
 
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1_000);
-  let claimed = await context.transaction
+  let claimed = await tx
     .insert(idempotencyRecords)
     .values({
       tenantId: context.tenantId,
@@ -289,7 +293,7 @@ export async function runRegisteredTool(options: {
   }
 
   if (!claimed[0]) {
-    claimed = await context.transaction
+    claimed = await tx
       .insert(idempotencyRecords)
       .values({
         tenantId: context.tenantId,
@@ -309,7 +313,7 @@ export async function runRegisteredTool(options: {
     }
   }
 
-  const [execution] = await context.transaction
+  const [execution] = await tx
     .insert(toolExecutions)
     .values({
       tenantId: context.tenantId,
@@ -340,11 +344,11 @@ export async function runRegisteredTool(options: {
     const output = sanitizeToolOutput(rawOutput);
     if (!output) throw new Error("DEPENDENCY_ERROR");
     const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
-    await context.transaction
+    await tx
       .update(toolExecutions)
       .set({ status: "succeeded", durationMs, safeResult: output, completedAt: new Date() })
       .where(eq(toolExecutions.id, execution.id));
-    await context.transaction
+    await tx
       .update(idempotencyRecords)
       .set({ status: "succeeded", response: output, updatedAt: new Date() })
       .where(eq(idempotencyRecords.id, claimed[0].id));
@@ -365,7 +369,7 @@ export async function runRegisteredTool(options: {
         ? "DATABASE_ERROR"
         : mapped;
     const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
-    await context.transaction
+    await tx
       .update(toolExecutions)
       .set({
         status: code === "AI_TIMEOUT" ? "cancelled" : "failed",
@@ -374,7 +378,7 @@ export async function runRegisteredTool(options: {
         completedAt: new Date(),
       })
       .where(eq(toolExecutions.id, execution.id));
-    await context.transaction
+    await tx
       .update(idempotencyRecords)
       .set({ status: "failed", errorCode: code, updatedAt: new Date() })
       .where(eq(idempotencyRecords.id, claimed[0].id));

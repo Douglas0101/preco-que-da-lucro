@@ -1,4 +1,5 @@
 import { and, desc, eq, sql } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { purchasePriceHistory, type PurchasePriceHistory } from "@/db/schema";
 import type { RequestContext } from "@/lib/request-context";
 
@@ -45,13 +46,17 @@ export class DrizzlePurchasePriceRepository implements PurchasePriceRepository {
     input: Pick<PurchasePriceHistoryWrite, "kind" | "subjectId">,
   ): Promise<void> {
     const lockKey = `${context.tenantId}:${input.kind}:${input.subjectId}`;
-    await context.transaction.execute(sql`
+    // §9.2 — o adapter estreita o handle neutro do contexto para a transação do
+    // driver; o contrato (`RequestContext`) segue driver-agnostic.
+    const tx = context.transaction as DatabaseTransaction;
+    await tx.execute(sql`
       select pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
     `);
   }
 
   async append(context: RequestContext, input: PurchasePriceHistoryWrite) {
     await this.lock(context, input);
+    const tx = context.transaction as DatabaseTransaction;
 
     const targetPredicate =
       input.kind === "ingredient"
@@ -63,7 +68,7 @@ export class DrizzlePurchasePriceRepository implements PurchasePriceRepository {
             eq(purchasePriceHistory.tenantId, context.tenantId),
             eq(purchasePriceHistory.packagingId, input.subjectId),
           );
-    const latestRows = await context.transaction
+    const latestRows = await tx
       .select()
       .from(purchasePriceHistory)
       .where(targetPredicate)
@@ -72,7 +77,7 @@ export class DrizzlePurchasePriceRepository implements PurchasePriceRepository {
     const latest = latestRows[0];
     if (sameEffectiveValue(latest, input)) return latest;
 
-    const [row] = await context.transaction
+    const [row] = await tx
       .insert(purchasePriceHistory)
       .values({
         tenantId: context.tenantId,

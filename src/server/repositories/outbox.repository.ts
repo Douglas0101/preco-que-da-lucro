@@ -15,6 +15,7 @@
 import { and, asc, eq, inArray, lt, lte, sql } from "drizzle-orm";
 import type { OutboxEvent } from "@/db/schema";
 import { outboxConsumptions, outboxEvents } from "@/db/schema";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { ApplicationError } from "@/lib/api-error";
 import type { RequestContext } from "@/lib/request-context";
 import type {
@@ -75,7 +76,10 @@ export class DrizzleOutboxRepository implements EventRepositoryPort, OutboxStore
     input: DomainEventInput,
     executor: Executor = context.transaction,
   ): Promise<AppendEventResult> {
-    const inserted = await executor
+    // §9.2 — o adapter estreita o handle neutro do executor para a transação do
+    // driver; o contrato (`EventRepositoryPort`) segue driver-agnostic.
+    const tx = executor as DatabaseTransaction;
+    const inserted = await tx
       .insert(outboxEvents)
       .values({
         tenantId: context.tenantId,
@@ -91,7 +95,7 @@ export class DrizzleOutboxRepository implements EventRepositoryPort, OutboxStore
     const created = inserted[0];
     if (created) return { eventId: created.id, duplicate: false };
 
-    const existing = await executor
+    const existing = await tx
       .select({ id: outboxEvents.id })
       .from(outboxEvents)
       .where(
@@ -116,6 +120,7 @@ export class DrizzleOutboxRepository implements EventRepositoryPort, OutboxStore
     options: OutboxClaimOptions,
     executor: Executor = context.transaction,
   ): Promise<readonly OutboxEvent[]> {
+    const tx = executor as DatabaseTransaction;
     if (!Number.isInteger(options.batchSize) || options.batchSize <= 0) {
       throw new Error("OUTBOX_BATCH_SIZE_INVALID");
     }
@@ -123,7 +128,7 @@ export class DrizzleOutboxRepository implements EventRepositoryPort, OutboxStore
       throw new Error("OUTBOX_MAX_ATTEMPTS_INVALID");
     }
 
-    const candidates = await executor
+    const candidates = await tx
       .select({ id: outboxEvents.id })
       .from(outboxEvents)
       .where(
@@ -139,7 +144,7 @@ export class DrizzleOutboxRepository implements EventRepositoryPort, OutboxStore
       .for("update", { skipLocked: true });
     if (candidates.length === 0) return [];
 
-    return executor
+    return tx
       .update(outboxEvents)
       .set({ status: "processing", attempts: sql`${outboxEvents.attempts} + 1` })
       .where(
@@ -165,7 +170,8 @@ export class DrizzleOutboxRepository implements EventRepositoryPort, OutboxStore
     eventId: string,
     executor: Executor = context.transaction,
   ): Promise<boolean> {
-    const inserted = await executor
+    const tx = executor as DatabaseTransaction;
+    const inserted = await tx
       .insert(outboxConsumptions)
       .values({ consumerName, eventId, tenantId: context.tenantId })
       .onConflictDoNothing({
@@ -181,7 +187,8 @@ export class DrizzleOutboxRepository implements EventRepositoryPort, OutboxStore
     eventId: string,
     executor: Executor = context.transaction,
   ): Promise<boolean> {
-    const updated = await executor
+    const tx = executor as DatabaseTransaction;
+    const updated = await tx
       .update(outboxEvents)
       .set({ status: "processed", processedAt: sql`now()`, lastError: null })
       .where(and(eq(outboxEvents.tenantId, context.tenantId), eq(outboxEvents.id, eventId)))
@@ -200,7 +207,8 @@ export class DrizzleOutboxRepository implements EventRepositoryPort, OutboxStore
     failure: { error: string; backoffMs: number },
     executor: Executor = context.transaction,
   ): Promise<boolean> {
-    const updated = await executor
+    const tx = executor as DatabaseTransaction;
+    const updated = await tx
       .update(outboxEvents)
       .set({
         status: "failed",

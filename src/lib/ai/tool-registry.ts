@@ -1,4 +1,5 @@
 import { and, eq, sql } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { z } from "zod";
 import {
   expenses,
@@ -84,7 +85,10 @@ const quantity = positiveDecimalStringSchema;
 const percentage = percentFractionSchema;
 
 async function ensureProduct(context: RequestContext, productId: string): Promise<void> {
-  const rows = await context.transaction
+  // §9.2 — os tools de IA são adapter de persistência: estreitam o handle
+  // neutro do contexto para a transação do driver onde executam SQL.
+  const tx = context.transaction as DatabaseTransaction;
+  const rows = await tx
     .select({ id: products.id })
     .from(products)
     .where(and(eq(products.tenantId, context.tenantId), eq(products.id, productId)))
@@ -98,7 +102,8 @@ const DEFINITIONS = [
     description: "Cria um novo produto com o nome confirmado pelo usuário.",
     schema: z.object({ name }),
     async execute(context, input) {
-      const [row] = await context.transaction
+      const tx = context.transaction as DatabaseTransaction;
+      const [row] = await tx
         .insert(products)
         .values({
           tenantId: context.tenantId,
@@ -126,8 +131,9 @@ const DEFINITIONS = [
         .max(50),
     }),
     async execute(context, input) {
+      const tx = context.transaction as DatabaseTransaction;
       await ensureProduct(context, input.product_id);
-      const rows = await context.transaction
+      const rows = await tx
         .insert(productIngredients)
         .values(
           input.ingredients.map((ingredient) => ({
@@ -168,7 +174,8 @@ const DEFINITIONS = [
     description: "Registra o rendimento confirmado da receita.",
     schema: z.object({ product_id: id, yield_qty: quantity, yield_unit: unit }),
     async execute(context, input) {
-      const rows = await context.transaction
+      const tx = context.transaction as DatabaseTransaction;
+      const rows = await tx
         .update(products)
         .set({
           yieldQty: toDecimalString(input.yield_qty, 6),
@@ -192,9 +199,10 @@ const DEFINITIONS = [
       units_per_package: quantity,
     }),
     async execute(context, input) {
+      const tx = context.transaction as DatabaseTransaction;
       await ensureProduct(context, input.product_id);
       const priceUpdatedAt = new Date();
-      const [row] = await context.transaction
+      const [row] = await tx
         .insert(productPackaging)
         .values({
           tenantId: context.tenantId,
@@ -228,7 +236,8 @@ const DEFINITIONS = [
       tax_rate: percentage.optional(),
     }),
     async execute(context, input) {
-      const rows = await context.transaction
+      const tx = context.transaction as DatabaseTransaction;
+      const rows = await tx
         .update(products)
         .set({
           currentPrice: toDecimalString(input.current_price, 4),
@@ -248,8 +257,9 @@ const DEFINITIONS = [
     description: "Adiciona uma taxa percentual sobre a venda.",
     schema: z.object({ product_id: id, name, percentage }),
     async execute(context, input) {
+      const tx = context.transaction as DatabaseTransaction;
       await ensureProduct(context, input.product_id);
-      const [row] = await context.transaction
+      const [row] = await tx
         .insert(salesFees)
         .values({
           tenantId: context.tenantId,
@@ -281,8 +291,9 @@ const DEFINITIONS = [
         { message: "Informe pelo menos uma referência de mercado." },
       ),
     async execute(context, input) {
+      const tx = context.transaction as DatabaseTransaction;
       await ensureProduct(context, input.product_id);
-      const [row] = await context.transaction
+      const [row] = await tx
         .insert(marketPrices)
         .values({
           tenantId: context.tenantId,
@@ -307,7 +318,8 @@ const DEFINITIONS = [
       category: z.string().trim().max(80).optional(),
     }),
     async execute(context, input) {
-      const [row] = await context.transaction
+      const tx = context.transaction as DatabaseTransaction;
+      const [row] = await tx
         .insert(expenses)
         .values({
           tenantId: context.tenantId,

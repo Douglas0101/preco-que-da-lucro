@@ -17,6 +17,10 @@ const CONTRACTS: readonly ContractExpectation[] = [
     path: "src/server/contracts/memory.contracts.ts",
     exports: ["MemoryRecord", "MemoryPolicy", "MemoryRepositoryPort"],
   },
+  {
+    path: "src/server/contracts/transaction.contracts.ts",
+    exports: ["TransactionExecutor"],
+  },
 ];
 
 const FORBIDDEN_MODULES = ["@/db", "drizzle-orm", "src/server/repositories"];

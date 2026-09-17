@@ -1,3 +1,4 @@
+import type { DatabaseTransaction } from "@/db/client.server";
 import { auditEvents } from "@/db/schema";
 import type { RequestContext } from "@/lib/request-context";
 
@@ -16,7 +17,10 @@ export interface AuditRepository {
 
 export class DrizzleAuditRepository implements AuditRepository {
   async append(context: RequestContext, input: AuditEventWrite) {
-    await context.transaction.insert(auditEvents).values({
+    // §9.2 — o adapter estreita o handle neutro do contexto para a transação do
+    // driver; o contrato (`RequestContext`) segue driver-agnostic.
+    const tx = context.transaction as DatabaseTransaction;
+    await tx.insert(auditEvents).values({
       tenantId: context.tenantId,
       userId: context.userId,
       correlationId: context.correlationId,
