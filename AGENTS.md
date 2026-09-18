@@ -77,6 +77,7 @@
 - Keep `develop` green — a broken daily branch compounds into every PR cut from it.
 - Debug systematically: reproduce → gather evidence → form one hypothesis → apply one fix → verify. No "while I'm here" changes bundled into a fix.
 - Bundle budgets (`check:bundle`) and e2e hygiene (`test:e2e:hygiene`) are contracts; renegotiate them only through an explicit ADR, never silently.
+- `npm run check` runs `m02:matrix:check`: a change under `src/**` that moves any generated counter (`transactionSites`, `directDatabaseFiles`, …) fails the gate until you run `npm run m02:matrix:generate` and review the diff. The generated `docs/specs/M-02/matrix*.yaml` is the record; never hand-edit it.
 
 ## Note for agents
 
