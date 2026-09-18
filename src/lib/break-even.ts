@@ -67,7 +67,19 @@ export interface BreakEvenServiceResult {
   targetRevenue: DecimalString | null;
 }
 
-function parseDecimal(value: string, field: string, allowZero = true): Decimal {
+/**
+ * Domínio do decimal aceito na fronteira do motor. `non-negative` rejeita
+ * qualquer valor negativo; `signed` o aceita — uma margem de contribuição
+ * negativa (preço abaixo do custo variável) é um estado econômico legítimo,
+ * que o motor classifica como não atingível, nunca como entrada inválida.
+ */
+type DecimalDomain = "non-negative" | "signed";
+
+function parseDecimal(
+  value: string,
+  field: string,
+  domain: DecimalDomain = "non-negative",
+): Decimal {
   if (!decimalStringSchema.safeParse(value).success) throw invalidDecimal(field);
   let parsed: Decimal;
   try {
@@ -75,7 +87,7 @@ function parseDecimal(value: string, field: string, allowZero = true): Decimal {
   } catch {
     throw invalidDecimal(field);
   }
-  if (!parsed.isFinite() || (allowZero ? parsed.isNegative() : !parsed.gt(0))) {
+  if (!parsed.isFinite() || (domain === "non-negative" && parsed.isNegative())) {
     throw invalidDecimal(field);
   }
   return parsed;
@@ -197,8 +209,12 @@ function parseBaseInputs(
   try {
     return {
       price: parseDecimal(input.price, "price"),
-      contributionMargin: parseDecimal(input.contributionMargin, "contributionMargin"),
-      contributionMarginPct: parseDecimal(input.contributionMarginPct, "contributionMarginPct"),
+      contributionMargin: parseDecimal(input.contributionMargin, "contributionMargin", "signed"),
+      contributionMarginPct: parseDecimal(
+        input.contributionMarginPct,
+        "contributionMarginPct",
+        "signed",
+      ),
     };
   } catch (error) {
     return { errors: [error as BreakEvenServiceError] };
