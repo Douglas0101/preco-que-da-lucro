@@ -1,0 +1,34 @@
+# GREEN do gate m02:matrix:check na copia com a matriz REGENERADA (arvore integrada)
+$ env -u DATABASE_URL_UNPOOLED npm run m02:matrix:generate   # SO na copia; docs/specs do worktree intocado
+
+> m02:matrix:generate
+> tsx scripts/m02-matrix.ts
+
+GEN_EXIT=0
+
+$ sha256sum docs/specs/M-02/matrix.yaml docs/specs/M-02/matrix.generated.yaml | tee /tmp/trkd1-gate-sums.txt
+638cdaa311ca6bd5ea4a4c93f88a66e1e05ed9ca8daa2b90da0cbadc032266ff  docs/specs/M-02/matrix.yaml
+c6ce105e28a7ed2e3a5c781b62dc71c8aa2fbd570fb7c998714108f1abb15004  docs/specs/M-02/matrix.generated.yaml
+
+$ env -u DATABASE_URL_UNPOOLED npm run m02:matrix:check    # execucao 1
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix is deterministic and up to date.
+CHECK1_EXIT=0
+
+$ env -u DATABASE_URL_UNPOOLED npm run m02:matrix:check    # execucao 2
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix is deterministic and up to date.
+CHECK2_EXIT=0
+
+$ env -u DATABASE_URL_UNPOOLED npx tsx scripts/m02-matrix.ts      # 3a geracao seguida, para medir determinismo de bytes
+GEN2_EXIT=0
+$ sha256sum -c /tmp/trkd1-gate-sums.txt   # bytes identicos entre geracoes
+docs/specs/M-02/matrix.yaml: OK
+docs/specs/M-02/matrix.generated.yaml: OK
+SUMS_EXIT=0

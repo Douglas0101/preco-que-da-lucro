@@ -1,0 +1,26 @@
+# RED do gate: arquivo INERTE sob src/db/ numa copia (o drift que era invisivel)
+$ printf "export const inertDriftProbe = true;\n" > src/db/inert-drift-probe.ts
+$ env -u DATABASE_URL_UNPOOLED npm run m02:boundaries   # validador INTERNO: recomputa as contagens da PROPRIA matriz
+
+> m02:boundaries
+> tsx scripts/m02-boundaries.ts
+
+M-02 BFF boundary is clean: all database reachability is allowlisted or repository-only.
+BOUNDARIES_EXIT=0   <-- drift INVISIVEL para ele
+
+$ env -u DATABASE_URL_UNPOOLED npm run m02:matrix:check   # gate NOVO (F-C5-3)
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix drift: execute npm run m02:matrix:generate and review the result.
+GATE_EXIT=1   <-- detecta o drift
+
+$ rm src/db/inert-drift-probe.ts
+$ env -u DATABASE_URL_UNPOOLED npm run m02:matrix:check   # restaurado
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix is deterministic and up to date.
+POST_EXIT=0

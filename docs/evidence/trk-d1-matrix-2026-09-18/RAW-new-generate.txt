@@ -1,0 +1,37 @@
+$ cd /tmp/trkd1-gate   # copia da arvore integrada (trk-d1-matrix)
+$ sha256sum scripts/lib/m02-transaction-sites.ts
+d60ad757a757f41daaab1302a591fe30a4623c383ab8c453a0ba9913141b8659  scripts/lib/m02-transaction-sites.ts
+$ env -u DATABASE_URL_UNPOOLED npx tsx scripts/m02-matrix.ts
+EXIT=0
+$ jq .counts docs/specs/M-02/matrix.generated.yaml
+{
+  "bffModules": 8,
+  "createServerFnDeclarations": 35,
+  "concreteOperations": 36,
+  "apiRoutes": 5,
+  "transactionSites": 113,
+  "directDatabaseFiles": 48
+}
+$ jq -r ".transactionSites | group_by(.path)[] | \"\(.[0].path) \(length)\"" docs/specs/M-02/matrix.generated.yaml
+src/lib/ai/tool-registry.ts 9
+src/lib/ai/tool-runner.ts 11
+src/lib/chat-execution.server.ts 2
+src/server/auth/membership.service.ts 2
+src/server/repositories/ai-tool.repository.ts 8
+src/server/repositories/audit.repository.ts 1
+src/server/repositories/calculation-snapshot.repository.ts 3
+src/server/repositories/conversation.repository.ts 8
+src/server/repositories/dashboard.repository.ts 6
+src/server/repositories/expense.repository.ts 6
+src/server/repositories/memory.repository.ts 10
+src/server/repositories/outbox.repository.ts 5
+src/server/repositories/product.repository.ts 28
+src/server/repositories/purchase-price.repository.ts 3
+src/server/repositories/sales.repository.ts 6
+src/server/repositories/simulation.repository.ts 2
+src/server/services/event.service.ts 2
+src/server/services/outbox.worker.ts 1
+$ jq -r ".transactionSites | group_by(.classification)[] | \"\(.[0].classification) \(length)\"" docs/specs/M-02/matrix.generated.yaml
+auth-allowlist 2
+compatibility-facade 22
+repository-fallback 89

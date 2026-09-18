@@ -1,0 +1,12 @@
+$ sha256sum -c manifest.sha256
+README.md: OK
+RAW-counts-delta.txt: OK
+RAW-gate-green-determinism.txt: OK
+RAW-gate-red-drift.txt: OK
+RAW-gate-wiring.txt: OK
+RAW-new-generate.txt: OK
+RAW-parent-baseline.txt: OK
+RAW-static-gates.txt: OK
+RAW-vitest-green-fixtures.txt: OK
+RAW-vitest-red-parent-fixtures.txt: OK
+EXIT=0

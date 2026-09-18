@@ -1,0 +1,52 @@
+# F-C5-3: onde o gate foi ligado e por que o drift era invisivel antes
+
+$ grep -n "m02:matrix:check" package.json .github/workflows/ui-stack.yml
+package.json:34:    "m02:matrix:check": "tsx scripts/m02-matrix.ts --check",
+package.json:77:    "check": "npm run m02:lockfile-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle",
+.github/workflows/ui-stack.yml:54:      - run: npm run m02:matrix:check
+
+$ jq -r ".scripts.check" package.json
+npm run m02:lockfile-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle
+
+# estado do PAI (759330f) — o gate nao estava em lugar nenhum:
+$ git show 759330f:package.json | jq -r ".scripts.check" | grep -c "m02:matrix:check"
+0
+$ git show 759330f:.github/workflows/ui-stack.yml | grep -c "m02:matrix:check"
+0
+
+$ node -e "yaml.parse(ui-stack.yml)" → passos que executam npm
+  - npm install --global --ignore-scripts npm@11.14.1
+  - npm ci --ignore-scripts
+  - npm run m02:matrix:check
+  - npm run check:ui-stack
+  - npm run check:no-supabase-runtime
+  - npm run format:check
+  - npm run typecheck
+  - npm run lint
+  - npm run test
+  - npm run db:test
+  - npm run db:check
+  - runtime_password="$(openssl rand -hex 24)"
+auth_secret="$(openssl rand -hex 32)"
+auth_password="$(openssl rand -base64 24 | tr -d '\n')"
+db_host="127.0.0.1:5432/preco_que_da_lucro_test"
+echo "::add-mask::${runtime_password}"
+echo "::add-mask::${auth_secret}"
+echo "::add-mask::${auth_password}"
+{
+  runtime_url="postgresql://app_runtime:${runtime_password}@${db_host}"
+  echo "DATABASE_URL=${runtime_url}"
+  echo "E2E_DB_RUNTIME_PASSWORD=${runtime_password}"
+  echo "BETTER_AUTH_SECRET=${auth_secret}"
+  echo "E2E_AUTH_PASSWORD=${auth_password}"
+} >> "$GITHUB_ENV"
+
+  - npm run build
+  - npm run check:bundle
+  - npm audit --audit-level=high
+  - npx playwright install --with-deps chromium firefox webkit
+  - npm run test:e2e
+
+$ sha256sum docs/specs/M-02/matrix.yaml docs/specs/M-02/matrix.generated.yaml   # matriz COMITADA: intocada nesta trilha
+a0a6d64ea1bc136904b54d5f2fd22f34328a9a2bdddad1888446e239872c820e  docs/specs/M-02/matrix.yaml
+d40cd9b3db8399a1c05326a6b8349ca93411e5433770bfd264300684a0f5aa69  docs/specs/M-02/matrix.generated.yaml
