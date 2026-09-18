@@ -1,6 +1,6 @@
 # CLAIM — MEM-D4 (degrau D4 da escada §43)
 
-- **wp / squad / branch / commit:** MEM-D4 · SQUAD-MEM (`TrkB`) · branch **`trk-b-mem-d4`** · base `648c029` (= `origin/develop`) · entrega em `docs/evidence/trk-b-mem-d4-2026-09-17/` · **SHA do commit desta entrega: no rodapé (§Commit).**
+- **wp / squad / branch / commit:** MEM-D4 · SQUAD-MEM (`TrkB`) · branch **`trk-b-mem-d4`** · base `648c029` (= `origin/develop`) · **deliverable `6b38580`** (código + migration + testes + evidência + este claim) · entrega em `docs/evidence/trk-b-mem-d4-2026-09-17/`.
 - **spec_ref:** §43 (`PLANO:2181-2191`, gate "delete/export") · V7 §15.4 (`ai_memory_access_log`) e §23.2 (DoD "TTL" da área Memória) · **H-12 aprovado** (`DECISIONS-PENDING/H-12.md`, opção A: TTL L1–L5 + escopo do `export` + L0 não persistido) · **SD-C3-12** (`DECISOES-STEWARD-CICLO-3-POS-E1.md`: `DELETE` do expurgo para `app_runtime` em D4) · `MEM-D0-GAP-REPORT.md` §D4 (entrega e aceite a–e) · §27a (classificação) · §34/INV-008/INV-010/INV-012/INV-013
 - **status pleiteado:** **DONE** (degrau D4). Sem auto-aprovação: o veredicto é do ADVERSARIAL.
 - **worktree/container:** `.worktree-trk-b` (branch `trk-b-mem-d4`, `cwd` explícito em todo comando) · container efêmero **`trk-b-pg`** (`postgres:17-alpine`, `127.0.0.1:55440`, banco `pqdl_trk_b`) **removido na limpeza** · `env -u DATABASE_URL_UNPOOLED` em todo lançamento · `:5432`/Neon/`vercel`/host remoto **intocados** · **nada pushado** · `package.json`/`package-lock.json` intocados · `docs/specs/M-02/**` intocado.
@@ -96,4 +96,4 @@ policies_table        | (ausente)                  | ai_memory_policies
 ## 6. Commit
 
 - **branch:** `trk-b-mem-d4` (worktree `.worktree-trk-b`), base `648c029`.
-- **SHA da entrega:** reportado no retorno ao MAESTRO (commit único com código + migration + testes + evidência + este claim). **Nada pushado.**
+- **SHA da entrega:** `6b3858056122d9abc45a75e4e4a4616369967f29` (`6b38580`) em `trk-b-mem-d4`, commit único com código + migration + testes + evidência + este claim (o `HEAD` do branch é este commit; nenhum outro commit foi feito depois). **Nada pushado** — `git push` não foi executado; o merge é do MAESTRO.
