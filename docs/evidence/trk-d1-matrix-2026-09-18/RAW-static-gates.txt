@@ -1,0 +1,22 @@
+$ npx tsc --noEmit   # tsconfig inclui scripts/**
+TSC_EXIT=0
+
+$ npx prettier --check scripts/lib/m02-transaction-sites.ts scripts/m02-matrix.ts src/test/m02-transaction-sites.test.ts package.json .github/workflows/ui-stack.yml
+Checking formatting...
+All matched files use Prettier code style!
+PRETTIER_EXIT=0
+
+$ env -u DATABASE_URL_UNPOOLED npm run m02:boundaries   # na arvore integrada (matriz comitada do pai)
+
+> m02:boundaries
+> tsx scripts/m02-boundaries.ts
+
+M-02 BFF boundary is clean: all database reachability is allowlisted or repository-only.
+BOUNDARIES_EXIT=0
+
+$ env -u DATABASE_URL_UNPOOLED npx tsx scripts/m02-matrix.ts --check   # ESPERADO 1: a matriz comitada ainda e a do pai
+M-02 matrix drift: execute npm run m02:matrix:generate and review the result.
+CHECK_EXIT=1   <-- regeneracao + commit da matriz = MAESTRO no land (nao commitei docs/specs)
+
+$ git status --short docs/specs   # prova de que a matriz comitada nao foi tocada
+(vazio)

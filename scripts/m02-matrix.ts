@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, extname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
+import { isEntrypoint, transactionSites } from "./lib/m02-transaction-sites";
 
 type Overlay = {
   schemaVersion: number;
@@ -257,38 +258,6 @@ function routeEntry(path: string): SourceEntry {
   };
 }
 
-function classifyTransactionSite(
-  normalized: string,
-): "auth-allowlist" | "repository-fallback" | "compatibility-facade" {
-  if (normalized.startsWith("src/server/auth/")) return "auth-allowlist";
-  if (normalized.startsWith("src/server/repositories/")) return "repository-fallback";
-  return "compatibility-facade";
-}
-
-function transactionSites() {
-  const sites: Array<{
-    path: string;
-    line: number;
-    expression: "request.transaction" | "context.transaction";
-    classification: "auth-allowlist" | "repository-fallback" | "compatibility-facade";
-  }> = [];
-  for (const path of files) {
-    const source = readFileSync(path, "utf8");
-    const pattern = /\b(request|context)\.transaction\b/g;
-    for (const match of source.matchAll(pattern)) {
-      const prefix = source.slice(0, match.index ?? 0);
-      const normalized = normalizedPath(path);
-      sites.push({
-        path: normalized,
-        line: prefix.split("\n").length,
-        expression: `${match[1]}.transaction` as "request.transaction" | "context.transaction",
-        classification: classifyTransactionSite(normalized),
-      });
-    }
-  }
-  return sites.sort((a, b) => a.path.localeCompare(b.path) || a.line - b.line);
-}
-
 function loadOverlay(): Overlay {
   return JSON.parse(readFileSync(overlayPath, "utf8")) as Overlay;
 }
@@ -318,7 +287,9 @@ function buildMatrix() {
   const routeEntries = files
     .filter((path) => path.startsWith(`${sourceRoot}/routes/api/`))
     .map(routeEntry);
-  const transactions = transactionSites();
+  const transactions = transactionSites(
+    files.map((path) => ({ path: normalizedPath(path), source: readFileSync(path, "utf8") })),
+  );
   const generated = {
     schemaVersion: 1,
     source: {
@@ -381,6 +352,10 @@ function checkOutputs(outputs: ReturnType<typeof buildMatrix>) {
   console.log("M-02 matrix is deterministic and up to date.");
 }
 
-const outputs = buildMatrix();
-if (process.argv.includes("--check")) checkOutputs(outputs);
-else writeOutputs(outputs);
+// Guarda de entrypoint: importar este módulo (testes, ferramentas) NÃO pode
+// regravar a matriz. Só a execução como script escreve ou valida.
+if (isEntrypoint(import.meta.url, process.argv[1])) {
+  const outputs = buildMatrix();
+  if (process.argv.includes("--check")) checkOutputs(outputs);
+  else writeOutputs(outputs);
+}

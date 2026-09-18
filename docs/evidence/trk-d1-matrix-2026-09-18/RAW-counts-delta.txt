@@ -1,0 +1,32 @@
+$ python3 (comparacao path a path: /tmp/trkd1-red=PAI  vs  /tmp/trkd1-gate=NOVO)
+path                                                          pai  novo  delta
+src/lib/ai/tool-registry.ts                                     9     9     =
+src/lib/ai/tool-runner.ts                                       3    11  +8
+src/lib/chat-execution.server.ts                                1     2  +1
+src/server/auth/membership.service.ts                           1     2  +1
+src/server/contracts/transaction.contracts.ts                   1     0  -1
+src/server/repositories/ai-tool.repository.ts                   6     8  +2
+src/server/repositories/audit.repository.ts                     1     1     =
+src/server/repositories/calculation-snapshot.repository.ts      2     3  +1
+src/server/repositories/conversation.repository.ts              8     8     =
+src/server/repositories/dashboard.repository.ts                 1     6  +5
+src/server/repositories/expense.repository.ts                   4     6  +2
+src/server/repositories/memory.repository.ts                   11    10  -1
+src/server/repositories/outbox.repository.ts                    6     5  -1
+src/server/repositories/product.repository.ts                  19    28  +9
+src/server/repositories/purchase-price.repository.ts            2     3  +1
+src/server/repositories/sales.repository.ts                     4     6  +2
+src/server/repositories/simulation.repository.ts                2     2     =
+src/server/services/event.service.ts                            3     2  -1
+src/server/services/expense.service.ts                          1     0  -1
+src/server/services/outbox.worker.ts                            1     1     =
+src/test/event-service.test.ts                                  4     0  -4
+src/test/product-contracts.test.ts                              1     0  -1
+TOTAL                                                          91   113  +22
+
+PAI  counts={"apiRoutes": 5, "bffModules": 8, "concreteOperations": 36, "createServerFnDeclarations": 35, "directDatabaseFiles": 48, "transactionSites": 91}
+PAI  classification={'auth-allowlist': 1, 'compatibility-facade': 24, 'repository-fallback': 66}
+NOVO counts={"apiRoutes": 5, "bffModules": 8, "concreteOperations": 36, "createServerFnDeclarations": 35, "directDatabaseFiles": 48, "transactionSites": 113}
+NOVO classification={'auth-allowlist': 2, 'compatibility-facade': 22, 'repository-fallback': 89}
+
+# ancoras do F-C5-2 (S0): tool-runner 11 · dashboard.repository 6 · product.repository 28

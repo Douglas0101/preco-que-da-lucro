@@ -1,0 +1,28 @@
+# GREEN das fixtures com o modulo entregue
+$ sha256sum scripts/lib/m02-transaction-sites.ts
+d60ad757a757f41daaab1302a591fe30a4623c383ab8c453a0ba9913141b8659  scripts/lib/m02-transaction-sites.ts
+$ env -u DATABASE_URL_UNPOOLED npx vitest run src/test/m02-transaction-sites.test.ts --reporter=verbose
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-trk-d1
+
+ ✓ src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > conta uma entrada por referência de valor ao alias, não uma por declaração 28ms
+ ✓ src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > conta zero quando o alias não é referenciado e ignora sombreamento por parâmetro 10ms
+ ✓ src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não conta comentários, nem em arquivo só-tipo 2ms
+ ✓ src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não conta literais de string que mencionam o handle 1ms
+ ✓ src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não conta handle em posição de tipo 1ms
+ ✓ src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não varre src/test/**, que é código de teste 0ms
+ ✓ src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > conta o uso direto do handle, sem alias 1ms
+ ✓ src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > é determinístico: duas execuções e a ordem de entrada não mudam os bytes 2ms
+ ✓ src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > rotula pelo alvo da política, com evidência de runtime 1ms
+ ✓ src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > rotula fallback de executor como repository-fallback mesmo fora de src/server/repositories 1ms
+ ✓ src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > rotula o lado direito de ?? como fallback de executor 0ms
+ ✓ src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > deixa o shape decidir antes do caminho 0ms
+ ✓ src/test/m02-transaction-sites.test.ts > guarda de entrypoint de scripts/m02-matrix.ts > só reconhece o próprio módulo em argv[1] 0ms
+ ✓ src/test/m02-transaction-sites.test.ts > guarda de entrypoint de scripts/m02-matrix.ts > importar o gerador não regrava a matriz 848ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  00:13:14
+   Duration  1.90s (transform 129ms, setup 94ms, import 281ms, tests 897ms, environment 507ms)
+
+EXIT=0

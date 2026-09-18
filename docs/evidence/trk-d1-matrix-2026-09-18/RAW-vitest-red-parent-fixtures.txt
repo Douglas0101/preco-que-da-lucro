@@ -1,0 +1,242 @@
+# RED das fixtures contra a SEMANTICA DO PAI (stand-in fiel; fonte no README §4)
+$ sha256sum .trkd1-scratch/m02-transaction-sites.parent.ts
+b746a4235a8dd4a68891435a9b69a0941b52cad19526870d19917df54e5b9787  .trkd1-scratch/m02-transaction-sites.parent.ts
+$ cp .trkd1-scratch/m02-transaction-sites.parent.ts scripts/lib/m02-transaction-sites.ts
+$ env -u DATABASE_URL_UNPOOLED npx vitest run src/test/m02-transaction-sites.test.ts --reporter=verbose
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-trk-d1
+
+ × src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > conta uma entrada por referência de valor ao alias, não uma por declaração 7ms
+   → expected [ { …(4) } ] to have a length of 3 but got 1
+ × src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > conta zero quando o alias não é referenciado e ignora sombreamento por parâmetro 7ms
+   → expected [ { …(4) }, { …(4) } ] to have a length of 1 but got 2
+ × src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não conta comentários, nem em arquivo só-tipo 2ms
+   → expected [ { …(4) }, { …(4) } ] to deeply equal []
+ × src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não conta literais de string que mencionam o handle 1ms
+   → expected [ { …(4) }, { …(4) } ] to deeply equal []
+ × src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não conta handle em posição de tipo 1ms
+   → expected [ { …(4) } ] to deeply equal []
+ × src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não varre src/test/**, que é código de teste 1ms
+   → expected [ { …(4) } ] to deeply equal []
+ ✓ src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > conta o uso direto do handle, sem alias 0ms
+ ✓ src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > é determinístico: duas execuções e a ordem de entrada não mudam os bytes 0ms
+ ✓ src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > rotula pelo alvo da política, com evidência de runtime 0ms
+ × src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > rotula fallback de executor como repository-fallback mesmo fora de src/server/repositories 2ms
+   → expected 'compatibility-facade' to be 'repository-fallback' // Object.is equality
+ × src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > rotula o lado direito de ?? como fallback de executor 1ms
+   → expected 'compatibility-facade' to be 'repository-fallback' // Object.is equality
+ × src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > deixa o shape decidir antes do caminho 1ms
+   → expected 'auth-allowlist' to be 'repository-fallback' // Object.is equality
+ ✓ src/test/m02-transaction-sites.test.ts > guarda de entrypoint de scripts/m02-matrix.ts > só reconhece o próprio módulo em argv[1] 0ms
+ ✓ src/test/m02-transaction-sites.test.ts > guarda de entrypoint de scripts/m02-matrix.ts > importar o gerador não regrava a matriz 1207ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > conta uma entrada por referência de valor ao alias, não uma por declaração
+AssertionError: expected [ { …(4) } ] to have a length of 3 but got 1
+
+- Expected
++ Received
+
+- 3
++ 1
+
+ ❯ src/test/m02-transaction-sites.test.ts:43:19
+     41|     );
+     42|
+     43|     expect(sites).toHaveLength(3);
+       |                   ^
+     44|     expect(sites.map((site) => site.line)).toEqual([4, 5, 6]);
+     45|     expect(sites.map((site) => site.path)).toEqual([
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > conta zero quando o alias não é referenciado e ignora sombreamento por parâmetro
+AssertionError: expected [ { …(4) }, { …(4) } ] to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ src/test/m02-transaction-sites.test.ts:69:19
+     67|     );
+     68|
+     69|     expect(sites).toHaveLength(1);
+       |                   ^
+     70|     expect(sites[0].line).toBe(4);
+     71|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não conta comentários, nem em arquivo só-tipo
+AssertionError: expected [ { …(4) }, { …(4) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "classification": "compatibility-facade",
++     "expression": "context.transaction",
++     "line": 3,
++     "path": "src/server/contracts/transaction.contracts.ts",
++   },
++   {
++     "classification": "compatibility-facade",
++     "expression": "request.transaction",
++     "line": 5,
++     "path": "src/server/contracts/transaction.contracts.ts",
++   },
++ ]
+
+ ❯ src/test/m02-transaction-sites.test.ts:88:19
+     86|     );
+     87|
+     88|     expect(sites).toEqual([]);
+       |                   ^
+     89|   });
+     90|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não conta literais de string que mencionam o handle
+AssertionError: expected [ { …(4) }, { …(4) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "classification": "repository-fallback",
++     "expression": "context.transaction",
++     "line": 1,
++     "path": "src/server/repositories/inventory.repository.ts",
++   },
++   {
++     "classification": "repository-fallback",
++     "expression": "request.transaction",
++     "line": 2,
++     "path": "src/server/repositories/inventory.repository.ts",
++   },
++ ]
+
+ ❯ src/test/m02-transaction-sites.test.ts:101:19
+     99|     );
+    100|
+    101|     expect(sites).toEqual([]);
+       |                   ^
+    102|   });
+    103|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não conta handle em posição de tipo
+AssertionError: expected [ { …(4) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "classification": "compatibility-facade",
++     "expression": "context.transaction",
++     "line": 2,
++     "path": "src/server/contracts/transaction.contracts.ts",
++   },
++ ]
+
+ ❯ src/test/m02-transaction-sites.test.ts:116:19
+    114|     );
+    115|
+    116|     expect(sites).toEqual([]);
+       |                   ^
+    117|   });
+    118|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  src/test/m02-transaction-sites.test.ts > scanner M-02 de transaction sites > não varre src/test/**, que é código de teste
+AssertionError: expected [ { …(4) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "classification": "compatibility-facade",
++     "expression": "context.transaction",
++     "line": 2,
++     "path": "src/test/event-service.test.ts",
++   },
++ ]
+
+ ❯ src/test/m02-transaction-sites.test.ts:129:19
+    127|     );
+    128|
+    129|     expect(sites).toEqual([]);
+       |                   ^
+    130|   });
+    131|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > rotula fallback de executor como repository-fallback mesmo fora de src/server/repositories
+AssertionError: expected 'compatibility-facade' to be 'repository-fallback' // Object.is equality
+
+Expected: "repository-fallback"
+Received: "compatibility-facade"
+
+ ❯ src/test/m02-transaction-sites.test.ts:189:40
+    187|
+    188|     expect(fallback).toHaveLength(1);
+    189|     expect(fallback[0].classification).toBe("repository-fallback");
+       |                                        ^
+    190|   });
+    191|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > rotula o lado direito de ?? como fallback de executor
+AssertionError: expected 'compatibility-facade' to be 'repository-fallback' // Object.is equality
+
+Expected: "repository-fallback"
+Received: "compatibility-facade"
+
+ ❯ src/test/m02-transaction-sites.test.ts:203:40
+    201|
+    202|     expect(fallback).toHaveLength(1);
+    203|     expect(fallback[0].classification).toBe("repository-fallback");
+       |                                        ^
+    204|   });
+    205|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  src/test/m02-transaction-sites.test.ts > classificação dos transaction sites > deixa o shape decidir antes do caminho
+AssertionError: expected 'auth-allowlist' to be 'repository-fallback' // Object.is equality
+
+Expected: "repository-fallback"
+Received: "auth-allowlist"
+
+ ❯ src/test/m02-transaction-sites.test.ts:207:86
+    205|
+    206|   it("deixa o shape decidir antes do caminho", () => {
+    207|     expect(classifyTransactionSite({ path: AUTH_PATH, shape: "executor…
+       |                                                                                      ^
+    208|       "repository-fallback",
+    209|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 5 passed (14)
+   Start at  00:13:07
+   Duration  1.95s (transform 122ms, setup 94ms, import 31ms, tests 1.23s, environment 488ms)
+

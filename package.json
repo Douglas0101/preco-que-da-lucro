@@ -74,7 +74,7 @@
     "perf:capture": "node scripts/perf/capture-baseline.mjs",
     "perf:summarize": "node scripts/perf/summarize.mjs",
     "check:hostinger-runtime": "node scripts/check-hostinger-runtime.mjs",
-    "check": "npm run m02:lockfile-guard && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle",
+    "check": "npm run m02:lockfile-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle",
     "m02:pitr-check": "node scripts/m02-pitr-check.mjs",
     "m02:neon-spend": "node scripts/m02-neon-spend.mjs",
     "m02:auth-preflight": "tsx scripts/m02-auth-preflight.ts",
