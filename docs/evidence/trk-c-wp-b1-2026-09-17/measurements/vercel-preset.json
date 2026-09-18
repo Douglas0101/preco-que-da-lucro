@@ -1,0 +1,178 @@
+{
+  "label": "vercel-preset",
+  "baseUrl": "http://127.0.0.1:4393",
+  "path": "/",
+  "measuredAt": "2026-09-18T02:31:48.907Z",
+  "engines": [
+    {
+      "engine": "chromium",
+      "url": "http://127.0.0.1:4393/",
+      "analyticsRequests": [
+        {
+          "url": "http://127.0.0.1:4393/_vercel/insights/script.js",
+          "status": 404,
+          "contentType": "text/html; charset=utf-8"
+        }
+      ],
+      "injectedScripts": [
+        {
+          "src": "/_vercel/insights/script.js",
+          "sdkn": "@vercel/analytics/react",
+          "sdkv": "1.6.1"
+        }
+      ],
+      "errorResponses": [
+        {
+          "url": "http://127.0.0.1:4393/_vercel/insights/script.js",
+          "status": 404,
+          "contentType": "text/html; charset=utf-8"
+        }
+      ],
+      "requestFailures": [
+        {
+          "url": "http://127.0.0.1:4393/_vercel/insights/script.js",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "mimeRefusals": [
+        {
+          "type": "error",
+          "text": "Refused to execute script from 'http://127.0.0.1:4393/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+        }
+      ],
+      "consoleErrors": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "error",
+          "text": "Refused to execute script from 'http://127.0.0.1:4393/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+        }
+      ],
+      "consoleMessageCount": 7,
+      "consoleMessages": [
+        {
+          "type": "info",
+          "text": "Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken."
+        },
+        {
+          "type": "info",
+          "text": "Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-GbPEQ91l7ZD3w8sxY+1DvqaBht7+bs+qUD9ezA40tx4='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken."
+        },
+        {
+          "type": "info",
+          "text": "Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken."
+        },
+        {
+          "type": "info",
+          "text": "Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken."
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "error",
+          "text": "Refused to execute script from 'http://127.0.0.1:4393/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+        },
+        {
+          "type": "log",
+          "text": "[Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information."
+        }
+      ],
+      "screenshot": "docs/evidence/trk-c-wp-b1-2026-09-17/measurements/vercel-preset-chromium.png"
+    },
+    {
+      "engine": "firefox",
+      "url": "http://127.0.0.1:4393/",
+      "analyticsRequests": [
+        {
+          "url": "http://127.0.0.1:4393/_vercel/insights/script.js",
+          "status": 404,
+          "contentType": "text/html; charset=utf-8"
+        }
+      ],
+      "injectedScripts": [
+        {
+          "src": "/_vercel/insights/script.js",
+          "sdkn": "@vercel/analytics/react",
+          "sdkv": "1.6.1"
+        }
+      ],
+      "errorResponses": [
+        {
+          "url": "http://127.0.0.1:4393/_vercel/insights/script.js",
+          "status": 404,
+          "contentType": "text/html; charset=utf-8"
+        }
+      ],
+      "requestFailures": [
+        {
+          "url": "http://127.0.0.1:4393/_vercel/insights/script.js",
+          "error": "NS_ERROR_CORRUPTED_CONTENT"
+        }
+      ],
+      "mimeRefusals": [
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"The resource from “http://127.0.0.1:4393/_vercel/insights/script.js” was blocked due to MIME type (“text/html”) mismatch (X-Content-Type-Options: nosniff).\" {file: \"http://127.0.0.1:4393/\" line: 0}]"
+        }
+      ],
+      "consoleErrors": [
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY=') or a nonce.\" {file: \"http://127.0.0.1:4393/\" line: 1}]"
+        },
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-eRIsh/vU4hzBp8qQlKUBXknh3vi4+CTpZJQLkSRdd0c=') or a nonce.\" {file: \"http://127.0.0.1:4393/\" line: 1}]"
+        },
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"http://127.0.0.1:4393/assets/index-DC1OyfB3.js\" line: 10}]"
+        },
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"http://127.0.0.1:4393/assets/index-DC1OyfB3.js\" line: 10}]"
+        },
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"The resource from “http://127.0.0.1:4393/_vercel/insights/script.js” was blocked due to MIME type (“text/html”) mismatch (X-Content-Type-Options: nosniff).\" {file: \"http://127.0.0.1:4393/\" line: 0}]"
+        }
+      ],
+      "consoleMessageCount": 7,
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY=') or a nonce.\" {file: \"http://127.0.0.1:4393/\" line: 1}]"
+        },
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-eRIsh/vU4hzBp8qQlKUBXknh3vi4+CTpZJQLkSRdd0c=') or a nonce.\" {file: \"http://127.0.0.1:4393/\" line: 1}]"
+        },
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"http://127.0.0.1:4393/assets/index-DC1OyfB3.js\" line: 10}]"
+        },
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"http://127.0.0.1:4393/assets/index-DC1OyfB3.js\" line: 10}]"
+        },
+        {
+          "type": "log",
+          "text": "[Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information."
+        },
+        {
+          "type": "error",
+          "text": "[JavaScript Error: \"The resource from “http://127.0.0.1:4393/_vercel/insights/script.js” was blocked due to MIME type (“text/html”) mismatch (X-Content-Type-Options: nosniff).\" {file: \"http://127.0.0.1:4393/\" line: 0}]"
+        },
+        {
+          "type": "warning",
+          "text": "[JavaScript Warning: \"Loading failed for the <script> with source “http://127.0.0.1:4393/_vercel/insights/script.js”.\" {file: \"http://127.0.0.1:4393/\" line: 1}]"
+        }
+      ],
+      "screenshot": "docs/evidence/trk-c-wp-b1-2026-09-17/measurements/vercel-preset-firefox.png"
+    }
+  ]
+}

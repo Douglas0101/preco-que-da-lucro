@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+import { vercelAnalyticsEnabled } from "@/lib/vercel-analytics";
 
 function NotFoundComponent() {
   return (
@@ -116,7 +117,9 @@ function RootShell({ children }: { children: ReactNode }) {
       <body>
         {children}
         <Scripts />
-        <Analytics />
+        {/* `@vercel/analytics` injeta `/_vercel/insights/script.js`, servido só pela plataforma:
+            fora dela (preset `node-server`) o script responde 404 + recusa por MIME (achado B-1). */}
+        {vercelAnalyticsEnabled ? <Analytics /> : null}
       </body>
     </html>
   );
