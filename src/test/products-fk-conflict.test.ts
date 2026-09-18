@@ -31,6 +31,22 @@ const HISTORY_PACKAGING = "c4100000-0000-4000-8000-000000000007";
 const MISSING_CHILD = "c4100000-0000-4000-8000-0000000000ff";
 const CORRELATION_ID = "c4100000-0000-4000-8000-0000000000c1";
 
+/**
+ * Nomes **reais** das constraints de `purchase_price_history`, medidos no banco
+ * (PG17 efêmero): o literal da migration `0004_giant_nocturne.sql` tem 79/82
+ * caracteres e o PostgreSQL trunca identificadores em 63 bytes (`NAMEDATALEN`).
+ * O nome truncado é o que o driver devolve em `DatabaseError.constraint`.
+ */
+const HISTORY_INGREDIENT_FK = "purchase_price_history_tenant_id_ingredient_id_product_ingredie";
+const HISTORY_PACKAGING_FK = "purchase_price_history_tenant_id_packaging_id_product_packaging";
+/** FK hipotética de outra tabela: hoje nenhuma outra FK referencia os filhos do
+ * produto (medido em `pg_constraint`), então o ramo genérico só é alcançável
+ * por este erro sintético — e é ele que separa F-C6-1 de "qualquer 23503". */
+const FOREIGN_FK = "another_table_tenant_id_ingredient_id_fk";
+const HISTORY_MESSAGE = "O registro possui histórico de preços e não pode ser removido.";
+const FOREIGN_KEY_MESSAGE =
+  "O registro está referenciado por outros registros e não pode ser removido.";
+
 type Handler = (input: {
   data: { id: string };
   context: { requestContext: RequestContext };
@@ -56,13 +72,14 @@ function invokeDelete(handler: unknown, id: string, context: RequestContext): Pr
  * node-postgres em `DrizzleQueryError` (sem `code`) com o `DatabaseError` do
  * driver — onde mora o SQLSTATE — em `.cause`.
  */
-function drizzleWrappedError(code: string): DrizzleQueryError {
+function drizzleWrappedError(code: string, constraint?: string): DrizzleQueryError {
   const driverError = new DatabaseError(
-    'update or delete on table "product_ingredients" violates foreign key constraint "purchase_price_history_tenant_id_ingredient_id_product_i_fk" on table "purchase_price_history"',
+    `update or delete on table "product_ingredients" violates foreign key constraint "${constraint ?? "unknown_fk"}" on table "purchase_price_history"`,
     0,
     "error",
   );
   driverError.code = code;
+  if (constraint !== undefined) driverError.constraint = constraint;
   return new DrizzleQueryError(
     'delete from "product_ingredients" where "id" = $1',
     [INGREDIENT],
@@ -83,9 +100,19 @@ function failingDeleteTransaction(error: unknown): RequestContext["transaction"]
   return { delete: () => chain } as unknown as RequestContext["transaction"];
 }
 
+/** Embrulha `error` em `count` erros genéricos — cada embrulho é um elo extra da
+ * cadeia de causas (o `depth` que `foreignKeyViolation` percorre). */
+function wrapCause(error: unknown, count: number): unknown {
+  let current = error;
+  for (let index = 0; index < count; index += 1) {
+    current = Object.assign(new Error(`wrapper ${index + 1}`), { cause: current });
+  }
+  return current;
+}
+
 describe("mapeamento FK 23503 → CONFLICT (WP-C4-1)", () => {
   it("deleteIngredient mapeia o erro embrulhado pelo Drizzle (cause.code = 23503) para CONFLICT/409", async () => {
-    const wrapped = drizzleWrappedError("23503");
+    const wrapped = drizzleWrappedError("23503", HISTORY_INGREDIENT_FK);
     await expect(
       invokeDelete(deleteIngredient, INGREDIENT, contextFor(failingDeleteTransaction(wrapped))),
     ).rejects.toMatchObject({
@@ -94,20 +121,71 @@ describe("mapeamento FK 23503 → CONFLICT (WP-C4-1)", () => {
       status: 409,
       retryable: false,
       cause: wrapped,
+      message: HISTORY_MESSAGE,
     });
   });
 
-  it("deletePackaging usa o mesmo mapeamento", async () => {
+  it("deletePackaging usa o mesmo mapeamento (constraint de embalagem)", async () => {
     const error = await invokeDelete(
       deletePackaging,
       PACKAGING,
-      contextFor(failingDeleteTransaction(drizzleWrappedError("23503"))),
+      contextFor(failingDeleteTransaction(drizzleWrappedError("23503", HISTORY_PACKAGING_FK))),
     ).then(
       () => null,
       (reason: unknown) => reason,
     );
     expect(error).toBeInstanceOf(ApplicationError);
-    expect(error).toMatchObject({ code: "CONFLICT", status: 409 });
+    expect(error).toMatchObject({
+      code: "CONFLICT",
+      status: 409,
+      message: HISTORY_MESSAGE,
+    });
+  });
+
+  it("F-C6-1: 23503 de FK alheia não herda a mensagem de histórico", async () => {
+    const wrapped = drizzleWrappedError("23503", FOREIGN_FK);
+    const error = await invokeDelete(
+      deleteIngredient,
+      INGREDIENT,
+      contextFor(failingDeleteTransaction(wrapped)),
+    ).then(
+      () => null,
+      (reason: unknown) => reason,
+    );
+    expect(error).toBeInstanceOf(ApplicationError);
+    expect(error).toMatchObject({
+      code: "CONFLICT",
+      status: 409,
+      cause: wrapped,
+      message: FOREIGN_KEY_MESSAGE,
+    });
+    expect((error as Error).message).not.toBe(HISTORY_MESSAGE);
+  });
+
+  it("profundidade: o SQLSTATE em depth=2 é encontrado com uma constraint a mais", async () => {
+    const wrapped = drizzleWrappedError("23503", HISTORY_INGREDIENT_FK);
+    const deep = wrapCause(wrapped, 1);
+    const error = await invokeDelete(
+      deleteIngredient,
+      INGREDIENT,
+      contextFor(failingDeleteTransaction(deep)),
+    ).then(
+      () => null,
+      (reason: unknown) => reason,
+    );
+    expect(error).toMatchObject({
+      code: "CONFLICT",
+      status: 409,
+      cause: deep,
+      message: HISTORY_MESSAGE,
+    });
+  });
+
+  it("profundidade: um 23503 em depth=4 fica fora do limite e é relançado como veio", async () => {
+    const deep = wrapCause(drizzleWrappedError("23503", HISTORY_INGREDIENT_FK), 4);
+    await expect(
+      invokeDelete(deleteIngredient, INGREDIENT, contextFor(failingDeleteTransaction(deep))),
+    ).rejects.toBe(deep);
   });
 
   it("controle negativo: outro SQLSTATE (23505) é relançado como veio", async () => {
@@ -124,6 +202,13 @@ describe("mapeamento FK 23503 → CONFLICT (WP-C4-1)", () => {
     await expect(
       invokeDelete(deleteIngredient, INGREDIENT, contextFor(failingDeleteTransaction(notFound))),
     ).rejects.toBe(notFound);
+  });
+
+  it("controle negativo: `cause` primitiva (string) encerra a busca sem virar CONFLICT", async () => {
+    const primitive = Object.assign(new Error("wrapper"), { cause: "23503" });
+    await expect(
+      invokeDelete(deleteIngredient, INGREDIENT, contextFor(failingDeleteTransaction(primitive))),
+    ).rejects.toBe(primitive);
   });
 
   it("limite de profundidade: cadeia circular não trava", async () => {
@@ -249,20 +334,29 @@ dbDescribe("delete de filho com histórico — caminho real do driver (PG efême
     }
   }
 
-  it("ingrediente com histórico ⇒ CONFLICT/409 (antes: erro cru do driver)", async () => {
+  it("ingrediente com histórico ⇒ CONFLICT/409 com a mensagem de histórico (antes: erro cru do driver)", async () => {
     const error = await errorFrom(() =>
       asTenant((context) => invokeDelete(deleteIngredient, INGREDIENT, context)),
     );
     expect(error).toBeInstanceOf(ApplicationError);
-    expect(error).toMatchObject({ code: "CONFLICT", status: 409, retryable: false });
+    expect(error).toMatchObject({
+      code: "CONFLICT",
+      status: 409,
+      retryable: false,
+      message: HISTORY_MESSAGE,
+    });
   });
 
-  it("embalagem com histórico ⇒ CONFLICT/409", async () => {
+  it("embalagem com histórico ⇒ CONFLICT/409 com a mensagem de histórico", async () => {
     const error = await errorFrom(() =>
       asTenant((context) => invokeDelete(deletePackaging, PACKAGING, context)),
     );
     expect(error).toBeInstanceOf(ApplicationError);
-    expect(error).toMatchObject({ code: "CONFLICT", status: 409 });
+    expect(error).toMatchObject({
+      code: "CONFLICT",
+      status: 409,
+      message: HISTORY_MESSAGE,
+    });
   });
 
   it("controle negativo: filho inexistente ⇒ NOT_FOUND, nunca CONFLICT", async () => {

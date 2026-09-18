@@ -1,0 +1,6 @@
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix drift: execute npm run m02:matrix:generate and review the result.
+EXIT=1

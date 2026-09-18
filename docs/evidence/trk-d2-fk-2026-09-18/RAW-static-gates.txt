@@ -1,0 +1,7 @@
+$ npx tsc --noEmit
+TSC_EXIT=0
+
+$ npx prettier --check src/lib/products.functions.ts src/test/products-fk-conflict.test.ts scripts/db/test-products-fk-conflict.ts package.json
+Checking formatting...
+All matched files use Prettier code style!
+PRETTIER_EXIT=0

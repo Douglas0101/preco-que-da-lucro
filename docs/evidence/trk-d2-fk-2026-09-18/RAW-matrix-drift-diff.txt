@@ -1,0 +1,263 @@
+$ npm run m02:matrix:generate && git diff -U2 docs/specs/M-02/matrix.generated.yaml docs/specs/M-02/matrix.yaml
+(matriz restaurada com git checkout -- depois desta medição)
+
+diff --git a/docs/specs/M-02/matrix.generated.yaml b/docs/specs/M-02/matrix.generated.yaml
+index 5dedff8..49c5c83 100644
+--- a/docs/specs/M-02/matrix.generated.yaml
++++ b/docs/specs/M-02/matrix.generated.yaml
+@@ -316,5 +316,5 @@
+         {
+           "name": "listProducts",
+-          "line": 318,
++          "line": 339,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -324,5 +324,5 @@
+         {
+           "name": "listProductsWithMetrics",
+-          "line": 326,
++          "line": 347,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -332,5 +332,5 @@
+         {
+           "name": "getProduct",
+-          "line": 332,
++          "line": 353,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -340,5 +340,5 @@
+         {
+           "name": "createProduct",
+-          "line": 423,
++          "line": 444,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -348,5 +348,5 @@
+         {
+           "name": "updateProduct",
+-          "line": 428,
++          "line": 449,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -356,5 +356,5 @@
+         {
+           "name": "upsertProduct",
+-          "line": 434,
++          "line": 455,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -364,5 +364,5 @@
+         {
+           "name": "archiveProduct",
+-          "line": 443,
++          "line": 464,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -372,5 +372,5 @@
+         {
+           "name": "deleteProduct",
+-          "line": 453,
++          "line": 474,
+           "declaration": "alias",
+           "service": "ProductService",
+@@ -380,5 +380,5 @@
+         {
+           "name": "upsertIngredient",
+-          "line": 486,
++          "line": 507,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -388,5 +388,5 @@
+         {
+           "name": "deleteIngredient",
+-          "line": 544,
++          "line": 568,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -396,5 +396,5 @@
+         {
+           "name": "upsertPackaging",
+-          "line": 559,
++          "line": 583,
+           "declaration": "createServerFn",
+           "service": "ProductService/PricingService",
+@@ -404,5 +404,5 @@
+         {
+           "name": "deletePackaging",
+-          "line": 584,
++          "line": 608,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -412,5 +412,5 @@
+         {
+           "name": "upsertFee",
+-          "line": 598,
++          "line": 622,
+           "declaration": "createServerFn",
+           "service": "PricingService",
+@@ -420,5 +420,5 @@
+         {
+           "name": "deleteFee",
+-          "line": 612,
++          "line": 636,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -428,5 +428,5 @@
+         {
+           "name": "setMarketPrice",
+-          "line": 624,
++          "line": 648,
+           "declaration": "createServerFn",
+           "service": "PricingService",
+@@ -436,5 +436,5 @@
+         {
+           "name": "getProductMetrics",
+-          "line": 638,
++          "line": 662,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -444,5 +444,5 @@
+         {
+           "name": "listPurchasePrices",
+-          "line": 650,
++          "line": 674,
+           "declaration": "createServerFn",
+           "service": "PricingService",
+@@ -452,5 +452,5 @@
+         {
+           "name": "updatePurchasePrice",
+-          "line": 661,
++          "line": 685,
+           "declaration": "createServerFn",
+           "service": "PricingService",
+diff --git a/docs/specs/M-02/matrix.yaml b/docs/specs/M-02/matrix.yaml
+index ff56269..fa0fd23 100644
+--- a/docs/specs/M-02/matrix.yaml
++++ b/docs/specs/M-02/matrix.yaml
+@@ -316,5 +316,5 @@
+         {
+           "name": "listProducts",
+-          "line": 318,
++          "line": 339,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -324,5 +324,5 @@
+         {
+           "name": "listProductsWithMetrics",
+-          "line": 326,
++          "line": 347,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -332,5 +332,5 @@
+         {
+           "name": "getProduct",
+-          "line": 332,
++          "line": 353,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -340,5 +340,5 @@
+         {
+           "name": "createProduct",
+-          "line": 423,
++          "line": 444,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -348,5 +348,5 @@
+         {
+           "name": "updateProduct",
+-          "line": 428,
++          "line": 449,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -356,5 +356,5 @@
+         {
+           "name": "upsertProduct",
+-          "line": 434,
++          "line": 455,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -364,5 +364,5 @@
+         {
+           "name": "archiveProduct",
+-          "line": 443,
++          "line": 464,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -372,5 +372,5 @@
+         {
+           "name": "deleteProduct",
+-          "line": 453,
++          "line": 474,
+           "declaration": "alias",
+           "service": "ProductService",
+@@ -380,5 +380,5 @@
+         {
+           "name": "upsertIngredient",
+-          "line": 486,
++          "line": 507,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -388,5 +388,5 @@
+         {
+           "name": "deleteIngredient",
+-          "line": 544,
++          "line": 568,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -396,5 +396,5 @@
+         {
+           "name": "upsertPackaging",
+-          "line": 559,
++          "line": 583,
+           "declaration": "createServerFn",
+           "service": "ProductService/PricingService",
+@@ -404,5 +404,5 @@
+         {
+           "name": "deletePackaging",
+-          "line": 584,
++          "line": 608,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -412,5 +412,5 @@
+         {
+           "name": "upsertFee",
+-          "line": 598,
++          "line": 622,
+           "declaration": "createServerFn",
+           "service": "PricingService",
+@@ -420,5 +420,5 @@
+         {
+           "name": "deleteFee",
+-          "line": 612,
++          "line": 636,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -428,5 +428,5 @@
+         {
+           "name": "setMarketPrice",
+-          "line": 624,
++          "line": 648,
+           "declaration": "createServerFn",
+           "service": "PricingService",
+@@ -436,5 +436,5 @@
+         {
+           "name": "getProductMetrics",
+-          "line": 638,
++          "line": 662,
+           "declaration": "createServerFn",
+           "service": "ProductService",
+@@ -444,5 +444,5 @@
+         {
+           "name": "listPurchasePrices",
+-          "line": 650,
++          "line": 674,
+           "declaration": "createServerFn",
+           "service": "PricingService",
+@@ -452,5 +452,5 @@
+         {
+           "name": "updatePurchasePrice",
+-          "line": 661,
++          "line": 685,
+           "declaration": "createServerFn",
+           "service": "PricingService",

@@ -185,20 +185,41 @@ function mapMarket(row: MarketPrice): MarketView {
   };
 }
 
+/**
+ * FKs de `purchase_price_history` que restringem (`ON DELETE restrict`) o delete
+ * dos filhos do produto. Os nomes estão **truncados em 63 bytes**: o literal da
+ * migration `0004_giant_nocturne.sql` tem 79/82 caracteres e o PostgreSQL corta
+ * identificadores em `NAMEDATALEN - 1`, então é o nome cortado que chega em
+ * `DatabaseError.constraint` (medido no PG17 efêmero).
+ */
+const PURCHASE_HISTORY_FKS: Readonly<Record<string, true>> = {
+  purchase_price_history_tenant_id_ingredient_id_product_ingredie: true,
+  purchase_price_history_tenant_id_packaging_id_product_packaging: true,
+};
+
+/** Elos da cadeia de causas inspecionados. O `DatabaseError` do driver fica em
+ * `depth = 1` (medido); a folga cobre wrappers futuros e uma cadeia circular ou
+ * mais funda que o limite devolve `null` sem travar. */
+const FK_CAUSE_CHAIN_LIMIT = 4;
+
 /** Violação de chave estrangeira do Postgres (SQLSTATE `23503`). O Drizzle
  * embrulha o erro do driver (`DrizzleQueryError`), então o SQLSTATE tem de ser
  * buscado na cadeia de causas — mesma técnica de `isUniqueViolation` em
- * `src/server/repositories/memory.repository.ts`. Profundidade limitada: uma
- * cadeia circular não trava. */
-function isForeignKeyViolation(error: unknown): boolean {
+ * `src/server/repositories/memory.repository.ts`. Devolve a `constraint`
+ * (quando o driver a informa) para quem chama distinguir **qual** FK caiu:
+ * um `23503` de outra tabela não tem nada a ver com histórico de preços. */
+function foreignKeyViolation(error: unknown): { constraint: string | null } | null {
   let current: unknown = error;
-  for (let depth = 0; depth < 4; depth += 1) {
-    if (typeof current !== "object" || current === null) return false;
-    if ("code" in current && current.code === "23503") return true;
-    if (!("cause" in current)) return false;
+  for (let depth = 0; depth < FK_CAUSE_CHAIN_LIMIT; depth += 1) {
+    if (typeof current !== "object" || current === null) return null;
+    if ("code" in current && current.code === "23503") {
+      const { constraint } = current as { constraint?: unknown };
+      return { constraint: typeof constraint === "string" ? constraint : null };
+    }
+    if (!("cause" in current)) return null;
     current = current.cause;
   }
-  return false;
+  return null;
 }
 
 function toFinanceIngredient(item: IngredientView): IngredientRow {
@@ -530,13 +551,16 @@ async function deleteProductChild(
   try {
     await productService.deleteChild(request, kind, id);
   } catch (error) {
-    if (isForeignKeyViolation(error)) {
-      throw new ApplicationError("CONFLICT", {
-        cause: error,
-        message: "O registro possui histórico de preços e não pode ser removido.",
-      });
-    }
-    throw error;
+    const violation = foreignKeyViolation(error);
+    if (!violation) throw error;
+    const history =
+      violation.constraint !== null && PURCHASE_HISTORY_FKS[violation.constraint] === true;
+    throw new ApplicationError("CONFLICT", {
+      cause: error,
+      message: history
+        ? "O registro possui histórico de preços e não pode ser removido."
+        : "O registro está referenciado por outros registros e não pode ser removido.",
+    });
   }
   return { ok: true };
 }

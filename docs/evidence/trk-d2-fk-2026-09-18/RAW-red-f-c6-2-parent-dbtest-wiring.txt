@@ -1,0 +1,17 @@
+$ git show HEAD:package.json | grep -o 'scripts/db/test[a-z-]*\.ts' | sort -u | tail -3
+scripts/db/test-ai-budget.ts
+scripts/db/test-auth-integration.ts
+scripts/db/test-backfill.ts
+scripts/db/test-chat-semantics.ts
+scripts/db/test-concurrency.ts
+scripts/db/test-memory.ts
+scripts/db/test-migrations.ts
+scripts/db/test-oauth-boundary.ts
+scripts/db/test-outbox.ts
+scripts/db/test-rate-limit-burst.ts
+scripts/db/test-rum-persistence.ts
+scripts/db/test-sql-injection.ts
+scripts/db/test-tool-security.ts
+
+$ git show HEAD:package.json | grep -c 'test-products-fk-conflict'
+0
