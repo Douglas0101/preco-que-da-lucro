@@ -1,0 +1,19 @@
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> test
+> vitest run
+
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-trk-d2
+
+
+ Test Files  85 passed (85)
+      Tests  838 passed | 13 skipped (851)
+   Start at  00:41:20
+   Duration  58.48s (transform 3.40s, setup 10.52s, import 43.61s, tests 28.21s, environment 72.85s)
+
+EXIT=0
