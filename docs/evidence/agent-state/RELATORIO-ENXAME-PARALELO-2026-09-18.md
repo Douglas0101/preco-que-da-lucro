@@ -1,6 +1,6 @@
 # RELATÓRIO CONSOLIDADO — ENXAME PARALELO PÓS-CICLO 7 (2026-09-18)
 
-**Base de partida:** `648c029` (CI verde) · **Base de chegada:** `ca9f95c` (develop, CI verde) · **MAESTRO/ESCRIVÃO:** esta sessão · **4 trilhos + resgate S0 + 4 adversariais**.
+**Base de partida:** `648c029` (CI verde) · **Base de chegada:** `2bbb35e` (develop, 5/5 landados) · **MAESTRO/ESCRIVÃO:** esta sessão · **4 trilhos + resgate S0 + 4 adversariais**.
 
 ## 1. Estado dos trilhos
 
@@ -14,7 +14,7 @@
 | **D-S0** | resgate de escopo dos 4 follow-ups          | **CONCLUÍDO**                   | (leitura)         | —                                        | —                                                     |
 | **F**    | itens com gate humano                       | **BLOQUEADO** (só planejamento) | —                 | —                                        | —                                                     |
 
-**Ordem de land executada:** A → B → C → D1 (um merge por vez, `--no-ff`, E2 integrado após cada um). **Todos os merges passaram** — nenhum revert foi necessário.
+**Ordem de land executada:** A → B → C → D1 → D2 (um merge por vez, `--no-ff`, E2 integrado após cada um). **Todos os merges passaram** — nenhum revert foi necessário.
 
 ## 2. O que cada trilho provou (não o que afirmou)
 
@@ -22,6 +22,7 @@
 - **B:** cadeia **0000→0019 do zero e com dados** + `up→down→up`; isolamento de tenant **atacado por 4 vetores** sem furo (com controle positivo); **trilha atômica** provada por trigger que bloqueia o log (rollback sem órfã); `UPDATE/DELETE` na trilha ⇒ `42501`; **TTL** muda com policy versionada **sem deploy**; `L0`/camada sem policy ⇒ erro alto (INV-013); **0 pgvector/HNSW**.
 - **C:** RED real (`404 text/html` + recusa de MIME) → GREEN com console limpo; **VERCEL=1 byte-idêntico ao pai**; CSP intocada; bundle **−2023 B**; **6 combinações de `VERCEL`** testadas sem achar caminho de perda silenciosa.
 - **D1:** `transactionSites` 91 → **113** com as três âncoras do S0 batendo; módulo puro + **guarda de entrypoint** (import não regrava a matriz); **gate de drift** ligado no `check` **e** no CI, com RED (drift invisível → `EXIT=1`) e GREEN (2× determinístico) medidos.
+- **D2:** `23503` **ciente da constraint** (mensagem genérica para FK alheia; histórico preservado nas duas reais, com nomes **truncados a 63 bytes** medidos em `pg_constraint` **e** no erro real do driver) + **prova de banco encadeada** no `db:test` (15 passos) com **fail-closed provado 3/3** — inclusive URL **remota** ⇒ `EXIT=1` com **zero `connect()` TCP sob `strace`**. Contrato de API **não piora** (o corpo HTTP nunca carregou a mensagem de domínio).
 
 ## 3. Follow-ups abertos (nada silenciado)
 
