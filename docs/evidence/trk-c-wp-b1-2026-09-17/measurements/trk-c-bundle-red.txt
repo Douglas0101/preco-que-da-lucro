@@ -1,0 +1,6 @@
+
+> check:bundle
+> node scripts/check-bundle.mjs
+
+PASS assets/index-DC1OyfB3.js: 239717 minified, 74025 gzip, 64413 Brotli bytes
+Initial graph (9 chunks): 475253 minified, 151820 gzip, 133538 Brotli bytes
