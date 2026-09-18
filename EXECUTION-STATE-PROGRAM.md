@@ -1735,3 +1735,16 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   Latest state marker parent = `8305a6727441307e478e4f185847750b137367fc`,
   Latest state marker parent = `59854080a1f191561e3519cbfed91627ca389249`,
   Latest state marker parent = `7431eb2b0b2ecaf3fc048fce0ee43804ec2e8df1`,
+
+---
+
+### NAS-2 — enxame paralelo pós-ciclo 7 (2026-09-17; MAESTRO + 3 trilhos + resgate S0)
+
+- **▶ Intenção registrada ANTES das mutações.** Base `648c029` (CI verde). **R1 verificado:** A ∩ B = ∅ · A ∩ C = ∅ · B ∩ C = ∅ (ver journal L61).
+- **Trilho A — `WP-B7`** (MÁXIMA): corrigir o guard de `contributionMargin` negativo em `src/lib/break-even.ts` para que `cm<0` flua ao ramo `NON_POSITIVE_CONTRIBUTION`; exigir **concordância** entre `/ponto-equilibrio` (`break-even.ts`) e `/diagnostico` (`finance.ts`) nos três pontos da borda; **proibido** remendo só de rótulo. Worktree `.worktree-trk-a` / `trk-a-wp-b7`.
+- **Trilho B — `MEM-D4`** (ALTA, gate §43): delete/export tenant-scoped + `ai_memory_access_log` + TTL L1–L5 idempotente; migration reproduzível do zero e classificada; container efêmero `trk-b-pg` (:55440); **sem** embeddings/HNSW. Worktree `.worktree-trk-b` / `trk-b-mem-d4`.
+- **Trilho C — `WP-B1`** (MÉDIA): condicionar `@vercel/analytics` ao ambiente Vercel; console/rede limpos em `node-server`; sem afrouxar a CSP; budget §17.7. Worktree `.worktree-trk-c` / `trk-c-wp-b1`.
+- **Trilho D — S0/S1** (condicional, só leitura): resgate de escopo de F-C6-1/F-C6-2/F-C5-2/F-C5-3 + teste de disjunção; **não** implementa sem aprovação do MAESTRO.
+- **Trilho E (transversal):** ADVERSARIAL por claim em contexto novo (falsificação, não revisão), GUARDIÃO antes do land (worktree/cwd/container/credencial), ESCRIVÃO = MAESTRO (ledger com lock, um registro por vez).
+- **Regras de contenção ativas:** R1–R10 do prompt do enxame; land **A → B → C → D** com E2 integrado após cada merge; nenhum push além de `develop`; nenhuma operação de produção.
+  Latest state marker parent = `648c0291c8f0262c20cc8edfa38e90268936bd00`,
