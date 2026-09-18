@@ -10,7 +10,7 @@
     "createServerFnDeclarations": 35,
     "concreteOperations": 36,
     "apiRoutes": 5,
-    "transactionSites": 88,
+    "transactionSites": 91,
     "directDatabaseFiles": 48
   },
   "bffs": [
@@ -834,43 +834,61 @@
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 331,
+      "line": 532,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 409,
+      "line": 618,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 522,
+      "line": 731,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 572,
+      "line": 781,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 605,
+      "line": 814,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 633,
+      "line": 848,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/memory.repository.ts",
-      "line": 688,
+      "line": 920,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 1046,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 1110,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 1137,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },

@@ -906,7 +906,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
    * negada porque o `UPDATE` continua fora do grant).
    *
    * Autorização por escopo (§43/D4, aceite e): memória `scope='user'` só é
-   * apagável pelo próprio autor ou por owner/admin do tenant — a checagem é de
+   * apagável pelo próprio autor ou por owner do tenant — a checagem é de
    * aplicação **e** o predicado do `DELETE` repete a condição, então nem um
    * caminho alternativo apaga memória pessoal de terceiro dentro do tenant.
    *
