@@ -32,6 +32,23 @@ const tenantIdentity = {
 export const productStatusValues = ["draft", "incomplete", "ready", "active", "archived"] as const;
 export type ProductStatus = (typeof productStatusValues)[number];
 
+/** Camadas **persistidas** de memória (§15.2 da V7 / §13 do ARQ). L0 (working)
+ * fica **fora**: não é persistido, então não há linha para expirar (H-12). */
+export const memoryLayerValues = ["L1", "L2", "L3", "L4", "L5"] as const;
+export type MemoryLayer = (typeof memoryLayerValues)[number];
+
+/** Ações auditadas em `ai_memory_access_log` (§15.4/D4): retrieval, eliminação
+ * e portabilidade. */
+export const memoryAccessActionValues = ["access", "delete", "export"] as const;
+export type MemoryAccessAction = (typeof memoryAccessActionValues)[number];
+
+/** Resultado de uma operação auditada: `not_found` cobre o id inexistente **e**
+ * o de outro tenant (a RLS torna os dois indistinguíveis — não há oráculo de
+ * existência) e `refused` é a recusa por política (histórico presente ou
+ * memória de escopo pessoal de outro autor). */
+export const memoryAccessResultValues = ["allowed", "not_found", "refused"] as const;
+export type MemoryAccessResult = (typeof memoryAccessResultValues)[number];
+
 const money = (name: string) => numeric(name, { precision: 19, scale: 4 });
 const quantity = (name: string) => numeric(name, { precision: 24, scale: 6 });
 const percent = (name: string) => numeric(name, { precision: 9, scale: 6 });
@@ -996,6 +1013,15 @@ export const aiMemories = pgTable(
      * linha só; a normalização (NFC + trim + colapso de espaços internos) não
      * toca maiúsculas/minúsculas. */
     dedupKey: text("dedup_key").notNull(),
+    /** Camada da memória (§15.2/§13): é ela que seleciona o TTL em
+     * `ai_memory_policies`. `L2` (episódica) é o default **declarado** do
+     * append atual (observações de conversa/tool); L0 não é persistido. */
+    layer: text("layer").notNull().default("L2"),
+    /** Fim da validade, derivado da policy da camada **na gravação** (`null` =
+     * sem expiração: L4 acompanha a entidade referenciada e L5 é versionada).
+     * É a coluna do expirador e o segundo filtro do retrieval (defesa em
+     * profundidade enquanto o expirador não rodou). */
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
     importance: doublePrecision("importance").notNull().default(0),
     confidence: doublePrecision("confidence"),
     status: text("status").notNull().default("active"),
@@ -1027,7 +1053,13 @@ export const aiMemories = pgTable(
     }).onDelete("cascade"),
     check("ai_memories_scope_check", sql`${table.scope} in ('tenant', 'user', 'conversation')`),
     check("ai_memories_content_check", sql`${table.content} <> ''`),
-    check("ai_memories_status_check", sql`${table.status} in ('active', 'superseded')`),
+    /** Vocabulário de estados do Apêndice C (§15.6/D4): `expired` entra com o
+     * TTL. `deleted` **não** entra porque o delete é físico (a linha não existe
+     * para carregar o estado — o rastro é a linha de `ai_memory_access_log`) e
+     * `rejected` nunca é persistido (a policy de D1 recusa o candidato antes da
+     * gravação). */
+    check("ai_memories_status_check", sql`${table.status} in ('active', 'superseded', 'expired')`),
+    check("ai_memories_layer_check", sql`${table.layer} in ('L1', 'L2', 'L3', 'L4', 'L5')`),
     check(
       "ai_memories_importance_check",
       sql`${table.importance} >= 0 and ${table.importance} <= 1`,
@@ -1191,6 +1223,84 @@ export const aiMemoryConflicts = pgTable(
   ],
 );
 
+/** §15.1/L5 + §15.4 — política de retenção **versionada** por camada
+ * (`ai_memory_policies`, SD-D4-A/H-12). Tabela **global** (não há `tenant_id`:
+ * retenção é política do sistema, não do tenant) e **append-only por
+ * privilégio**: `app_runtime` recebe `SELECT`+`INSERT` — publicar uma política
+ * nova é um INSERT (versão maior), nunca um UPDATE; reverter é publicar de novo
+ * a versão anterior. O backend lê `max(version)` por camada, então **nenhum TTL
+ * vive em constante de código nem em SQL**: os valores são linhas (defaults
+ * aprovados no H-12: L1 30 d · L2 180 d · L3 365 d · L4 acompanha a entidade
+ * referenciada · L5 sem TTL, ambos `null`). */
+export const aiMemoryPolicies = pgTable(
+  "ai_memory_policies",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    layer: text("layer").notNull(),
+    version: integer("version").notNull(),
+    /** Segundos até a expiração; `null` = retenção indefinida. */
+    ttlSeconds: integer("ttl_seconds"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique("ai_memory_policies_layer_version_uidx").on(table.layer, table.version),
+    check("ai_memory_policies_layer_check", sql`${table.layer} in ('L1', 'L2', 'L3', 'L4', 'L5')`),
+    check("ai_memory_policies_version_check", sql`${table.version} > 0`),
+    check(
+      "ai_memory_policies_ttl_check",
+      sql`${table.ttlSeconds} is null or ${table.ttlSeconds} > 0`,
+    ),
+  ],
+);
+
+/** §43/§15.4 — trilha de auditoria da memória (`ai_memory_access_log`, D4):
+ * registra **acesso, delete e export** com quem (`user_id`), quando
+ * (`created_at`), o quê (`action`, `memory_id`, `row_count`) e o resultado.
+ *
+ * Sem `content` e sem o texto da consulta por desenho (o log não é superfície
+ * de dado pessoal — o gap report exige "nenhuma linha contém content"). Sem FK
+ * para `ai_memories`: a trilha tem de **sobreviver** ao delete físico que ela
+ * audita (uma FK em cascata apagaria o próprio rastro; `RESTRICT` impediria o
+ * delete). A âncora de tenant é a FK composta para `tenant_memberships`, no
+ * molde de `audit_events` (`0000:274`), e a role de runtime recebe
+ * `SELECT`+`INSERT` — sem `UPDATE`/`DELETE`, a imutabilidade da trilha é
+ * privilégio, não disciplina de código. */
+export const aiMemoryAccessLog = pgTable(
+  "ai_memory_access_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ...tenantIdentity,
+    action: text("action").notNull(),
+    /** Alvo único (delete); `null` em operação de conjunto (access/export). */
+    memoryId: uuid("memory_id"),
+    result: text("result").notNull(),
+    /** Linhas afetadas/devolvidas: 1 no delete efetivo, N no access/export. */
+    rowCount: integer("row_count").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("ai_memory_access_log_tenant_action_created_idx").on(
+      table.tenantId,
+      table.action,
+      table.createdAt,
+    ),
+    index("ai_memory_access_log_tenant_memory_idx").on(table.tenantId, table.memoryId),
+    foreignKey({
+      columns: [table.tenantId, table.userId],
+      foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
+    }).onDelete("restrict"),
+    check(
+      "ai_memory_access_log_action_check",
+      sql`${table.action} in ('access', 'delete', 'export')`,
+    ),
+    check(
+      "ai_memory_access_log_result_check",
+      sql`${table.result} in ('allowed', 'not_found', 'refused')`,
+    ),
+    check("ai_memory_access_log_row_count_check", sql`${table.rowCount} >= 0`),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type Tenant = typeof tenants.$inferSelect;
 export type TenantMembership = typeof tenantMemberships.$inferSelect;
@@ -1209,3 +1319,5 @@ export type AiMemory = typeof aiMemories.$inferSelect;
 export type AiMemorySource = typeof aiMemorySources.$inferSelect;
 export type AiMemoryVersion = typeof aiMemoryVersions.$inferSelect;
 export type AiMemoryConflict = typeof aiMemoryConflicts.$inferSelect;
+export type AiMemoryPolicy = typeof aiMemoryPolicies.$inferSelect;
+export type AiMemoryAccessLog = typeof aiMemoryAccessLog.$inferSelect;

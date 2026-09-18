@@ -12,6 +12,10 @@ import type { Executor } from "./event.contracts";
 
 export type MemoryScope = "tenant" | "user" | "conversation";
 
+/** Camadas **persistidas** de memória (§15.2 da V7 / §13 do ARQ). L0 (working)
+ * não é persistido — não há TTL para uma linha que não existe (H-12). */
+export type MemoryLayer = "L1" | "L2" | "L3" | "L4" | "L5";
+
 export type MemorySourceKind = "user" | "tool" | "model" | "import";
 
 /** Proveniência §15.4: quem disse, onde, quando, se foi inferida e com que
@@ -28,6 +32,8 @@ export interface MemoryProvenance {
 export interface MemoryRecord {
   id: string;
   scope: MemoryScope;
+  /** Camada persistida (§15.2/§13); é ela que seleciona o TTL da policy. */
+  layer: MemoryLayer;
   content: string;
   /** Proveniência primária (§15.4). Opcional porque o `MemoryRecordInput` a tem
    * opcional: quando a policy não exige proveniência, o registro é gravado sem
@@ -45,8 +51,10 @@ export interface MemoryRecord {
   expiresAt?: Date | null;
 }
 
-/** Ciclo de vida de uma memória (§15.6/D3). */
-export type MemoryStatus = "active" | "superseded";
+/** Ciclo de vida de uma memória (§15.6/D3 + TTL do D4). `expired` é o estado
+ * que o expirador grava quando `expiresAt` vence; `deleted` não existe porque o
+ * delete é físico (o rastro é a linha de `ai_memory_access_log`). */
+export type MemoryStatus = "active" | "superseded" | "expired";
 
 /** Retenção §23.2: TTL por camada, decidido pela policy. */
 export interface MemoryRetention {
@@ -84,6 +92,9 @@ export interface MemoryCandidate {
   content: string;
   provenance?: MemoryProvenance;
   importance?: number;
+  /** Camada persistida (§15.2/§13). Omitida, o write path usa `L2` (episódica)
+   * — o default declarado para a observação de conversa/tool de hoje. */
+  layer?: MemoryLayer;
 }
 
 /** Port de persistência: mesmo formato do candidato aprovado (§5-C do gap report —
@@ -157,6 +168,50 @@ export interface MemoryDeleteOptions {
   purgeHistory: boolean;
 }
 
+/** Ação auditada em `ai_memory_access_log` (§15.4/D4). */
+export type MemoryAccessAction = "access" | "delete" | "export";
+
+/** Resultado auditado: `not_found` cobre id inexistente **e** id de outro
+ * tenant (a RLS torna os dois indistinguíveis — não há oráculo de existência) e
+ * `refused` é a recusa por política (histórico presente, ou memória pessoal de
+ * outro autor). */
+export type MemoryAccessResult = "allowed" | "not_found" | "refused";
+
+/** Linha da trilha de auditoria (read model do log). */
+export interface MemoryAccessLogEntry {
+  id: string;
+  userId: string;
+  action: MemoryAccessAction;
+  /** Alvo único (delete); `null` em operação de conjunto (access/export). */
+  memoryId?: string | null;
+  result: MemoryAccessResult;
+  rowCount: number;
+  createdAt: Date;
+}
+
+/** Filtro do `export` (§43/D4): recorte opcional do conjunto do tenant. Sem
+ * filtro, a exportação é **todo** o conjunto do tenant (todas as camadas e
+ * todos os estados), que é o que a portabilidade LGPD exige. */
+export interface MemoryExportFilter {
+  scopes?: readonly MemoryScope[];
+  layers?: readonly MemoryLayer[];
+}
+
+/** Uma memória exportada com o que a portabilidade precisa: o registro, **todas**
+ * as fontes (não só a primária) e o histórico de versões. */
+export interface MemoryExportMemory {
+  record: MemoryRecord;
+  sources: readonly MemoryProvenance[];
+  versions: readonly MemoryVersionRecord[];
+}
+
+/** Pacote de exportação do tenant (§43): o `tenantId` é o do contexto
+ * autenticado — o pacote nunca mistura tenants (INV-008). */
+export interface MemoryExportBundle {
+  tenantId: string;
+  memories: readonly MemoryExportMemory[];
+}
+
 export interface MemoryRepositoryPort {
   append(
     context: RequestContext,
@@ -198,4 +253,30 @@ export interface MemoryRepositoryPort {
     options?: MemoryDeleteOptions,
     executor?: Executor,
   ): Promise<boolean>;
+  /** Portabilidade LGPD (§43): o conjunto do tenant do contexto, com versões e
+   * fontes. Nega alto (não devolve pacote vazio) quando a identidade não tem
+   * `has_tenant_access` — INV-013. */
+  export(
+    context: RequestContext,
+    filter?: MemoryExportFilter,
+    executor?: Executor,
+  ): Promise<MemoryExportBundle>;
+  /** Expirador do TTL (§23.2/H-12): passa a `expired` as memórias **ativas** do
+   * tenant cujo `expires_at` venceu e devolve os ids afetados. Segunda chamada
+   * devolve `[]` (idempotente) e falha do banco sobe como erro — nunca como
+   * "zero expiradas". */
+  expireDue(context: RequestContext, executor?: Executor): Promise<readonly string[]>;
+  /** Trilha de auditoria do tenant (§15.4/D4), da mais recente para a mais
+   * antiga — leitura tenant-scoped do próprio log. */
+  listAccessLog(
+    context: RequestContext,
+    filter?: MemoryAccessLogFilter,
+    executor?: Executor,
+  ): Promise<readonly MemoryAccessLogEntry[]>;
+}
+
+export interface MemoryAccessLogFilter {
+  action?: MemoryAccessAction;
+  memoryId?: string;
+  limit?: number;
 }

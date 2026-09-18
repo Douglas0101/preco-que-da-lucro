@@ -1,0 +1,24 @@
+# RED complementar: mesmo código do pai (648c029), banco de trabalho JÁ migrado até a 0019
+# (prova que a API nova do repositório não existe no pai, mesmo com o schema presente)
+$ env -u DATABASE_URL_UNPOOLED DATABASE_ADMIN_URL=<trk-b-pg / pqdl_trk_b> npx tsx scripts/db/test-memory.ts
+D3/T6 isolamento: mesmo conteúdo em 2 tenants = 2 linhas (B não vê A) + discriminador de conversa: OK
+D3/T7 imutabilidade: UPDATE negado (42501) e DELETE concedido com alcance limitado por RLS em ai_memory_versions + grants/RLS: OK
+D3/T8 classificação: 19/19 classificadas · 0018_polite_living_tribunal = SAFE/empty + down: OK
+D3/T9 revisão × colisão de chave: ApplicationError/CONFLICT com rollback sem rastro + revisão legítima: OK
+/tmp/trkb-red/scripts/db/test-memory.ts:2009
+    memoryRepository.export(bindTransactionContext(requestA, transaction)),
+                     ^
+
+TypeError: memoryRepository.export is not a function
+    at <anonymous> (/tmp/trkb-red/scripts/db/test-memory.ts:2009:22)
+    at <anonymous> (/tmp/trkb-red/src/db/client.server.ts:129:18)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async NodePgSession.transaction (/home/douglas-souza/preco-que-d-main/.worktree-trk-b/node_modules/src/node-postgres/session.ts:259:19)
+    at async <anonymous> (/tmp/trkb-red/src/instrumentation/telemetry.ts:246:22)
+    at async withTenantTransaction (/tmp/trkb-red/src/db/client.server.ts:117:12)
+    at async d4T1ExportTenantIsolation (/tmp/trkb-red/scripts/db/test-memory.ts:2008:19)
+    at async main (/tmp/trkb-red/scripts/db/test-memory.ts:2903:5)
+    at async <anonymous> (/tmp/trkb-red/scripts/db/test-memory.ts:2919:1)
+
+Node.js v24.15.0
+EXIT=1
