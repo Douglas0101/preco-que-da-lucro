@@ -1,0 +1,8 @@
+$ env -u DATABASE_URL_UNPOOLED DATABASE_ADMIN_URL=<trk-b-pg/pqdl_trk_b> npx tsx scripts/db/check-migration-classes.ts
+✔ 20/20 classificadas
+EXIT=0
+
+$ sha256sum drizzle/0019_tiresome_robin_chapel.sql
+9d81a7857157191a289b41d798684631434504ebde3e09f30711f83aeb44d663  drizzle/0019_tiresome_robin_chapel.sql
+$ grep -n 'sha256: "9d81a785' scripts/db/migration-classes.ts
+347:    sha256: "9d81a7857157191a289b41d798684631434504ebde3e09f30711f83aeb44d663",

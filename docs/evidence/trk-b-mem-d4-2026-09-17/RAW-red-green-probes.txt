@@ -1,0 +1,21 @@
+# Sondas de schema: RED (pai 648c029, banco pqdl_trk_b_red) vs GREEN (trk-b-mem-d4, banco pqdl_trk_b)
+         probe         |                               value                                
+-----------------------+--------------------------------------------------------------------
+ journal               | 19
+ status_check          | CHECK ((status = ANY (ARRAY['active'::text, 'superseded'::text])))
+ layer_expires_cols    | (nenhuma)
+ versions_delete_grant | false
+ access_log_table      | (ausente)
+ policies_table        | (ausente)
+(6 rows)
+
+         probe         |                                        value                                        
+-----------------------+-------------------------------------------------------------------------------------
+ journal               | 20
+ status_check          | CHECK ((status = ANY (ARRAY['active'::text, 'superseded'::text, 'expired'::text])))
+ layer_expires_cols    | expires_at,layer
+ versions_delete_grant | true
+ access_log_table      | ai_memory_access_log
+ policies_table        | ai_memory_policies
+(6 rows)
+

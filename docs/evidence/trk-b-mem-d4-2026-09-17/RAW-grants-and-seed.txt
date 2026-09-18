@@ -1,0 +1,21 @@
+# RLS/grants da trilha e das políticas + seed (GREEN, após db:test)
+       relname        | rls | sel | ins | upd | del | public_sel 
+----------------------+-----+-----+-----+-----+-----+------------
+ ai_memory_access_log | t   | t   | t   | f   | f   | f
+ ai_memory_policies   | f   | t   | t   | f   | f   | f
+(2 rows)
+
+      tablename       |    policyname    |     roles     | cmd |                                             qual                                             |                                          with_check                                          
+----------------------+------------------+---------------+-----+----------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------
+ ai_memory_access_log | tenant_isolation | {app_runtime} | ALL | ((tenant_id = app_private.current_tenant_id()) AND app_private.has_tenant_access(tenant_id)) | ((tenant_id = app_private.current_tenant_id()) AND app_private.has_tenant_access(tenant_id))
+(1 row)
+
+ layer | version | ttl_seconds |         dias         
+-------+---------+-------------+----------------------
+ L1    |       1 |     2592000 |  30.0000000000000000
+ L2    |       1 |    15552000 | 180.0000000000000000
+ L3    |       1 |    31536000 | 365.0000000000000000
+ L4    |       1 |             |                     
+ L5    |       1 |             |                     
+(5 rows)
+

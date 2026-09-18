@@ -1,5 +1,5 @@
 /**
- * §43/§15.2/§15.4/§15.6 — memória persistente (MEM-D2 degrau D2 + MEM-D3 degrau D3).
+ * §43/§15.2/§15.4/§15.6 — memória persistente (MEM-D2/D3/D4 — degraus D2, D3 e D4).
  *
  * Cobre, contra o banco descartável (container efêmero PG17, `127.0.0.1`):
  *   T1 (a) isolamento de tenant: append com identidade A é invisível para B
@@ -45,6 +45,28 @@
  *      23505 cru do driver, que viraria 500) e a transação faz rollback sem
  *      rastro — nem a versão arquivada pelo `revise` fica.
  *
+ * D4 (§43 — delete/export + access log + TTL por camada, H-12 aprovado):
+ *   D4/T1 export do tenant A = exatamente o conjunto de A (fontes + versões) e
+ *      nada de B, recortes por camada/escopo, auditoria do export e
+ *      `AUTHORIZATION_ERROR` para identidade sem `has_tenant_access` (nunca
+ *      pacote vazio);
+ *   D4/T2 auditoria do delete: `allowed`/`refused`/`not_found` por chamada com
+ *      alvo, autor e linhas afetadas; recusa de memória pessoal de outro autor
+ *      para membro e allow para owner (controle positivo) e para o escopo do
+ *      tenant; trilha tenant-scoped e sem conteúdo;
+ *   D4/T3 TTL por camada: janela vinda da policy versionada (L1/L2/L3 com TTL,
+ *      L4/L5 sem), republicação de policy mudando a janela das gravações
+ *      seguintes, expiração idempotente e tenant-scoped, retrieval sem vencida
+ *      e falha alta quando a camada não tem policy (INV-013);
+ *   D4/T4 migration reproduzível: cadeia 0000→0019 do zero e up→down→up da 0019
+ *      COM DADO (conteúdo preservado, colunas re-adicionadas com default,
+ *      políticas re-semeadas);
+ *   D4/T5 classificação da 0019 (ONLINE_WITH_CARE + idempotent + onlineCare +
+ *      sha256 byte a byte + down);
+ *   D4/T6 privilégios: trilha append-only medida sob `app_runtime` (42501 em
+ *      UPDATE/DELETE), `WITH CHECK` contra linha forjada, CHECKs de vocabulário,
+ *      políticas globais com SELECT/INSERT e sem RLS.
+ *
  * As denegações são provadas **no banco**: o admin do container é superuser e
  * bypassa RLS, então os negativos rodam sob `set local role app_runtime`
  * (NOSUPERUSER/NOBYPASSRLS) com as GUCs de tenant — mesma técnica de
@@ -74,8 +96,9 @@ import { ApplicationError } from "../../src/lib/api-error";
 import type { MemoryRecordInput } from "../../src/server/contracts/memory.contracts";
 import { memoryRepository } from "../../src/server/repositories/memory.repository";
 import { expenseRepository } from "../../src/server/repositories/expense.repository";
-import { classifyProject } from "./check-migration-classes";
+import { classifyProject, computeSha256 } from "./check-migration-classes";
 import { ensureRuntimeRoleMembership, requireAdminUrl, runMigrations } from "./migrate";
+import { migrationClasses } from "./migration-classes";
 
 const userA = "c1000000-0000-4000-8000-000000000001";
 const tenantA = "c2000000-0000-4000-8000-000000000002";
@@ -92,6 +115,12 @@ const MEMORY_MIGRATION_DOWN = "0017_to_0016_down.sql";
 /** Tag do degrau D3 (dedup/versões/conflitos) e seu down. */
 const MEMORY_D3_MIGRATION_TAG = "0018_polite_living_tribunal";
 const MEMORY_D3_MIGRATION_DOWN = "0018_to_0017_down.sql";
+
+/** Tag do degrau D4 (delete/export + access log + TTL por camada) e seu down. */
+const MEMORY_D4_MIGRATION_TAG = "0019_tiresome_robin_chapel";
+const MEMORY_D4_MIGRATION_DOWN = "0019_to_0018_down.sql";
+/** A cadeia completa do journal (0000…0019) aplicada do zero. */
+const EXPECTED_JOURNAL_COUNT = "20";
 
 /** Segunda conversa do tenant A: prova que o discriminador da chave separa duas
  * conversas com o mesmo conteúdo (senão uma sumiria como "duplicata"). O índice
@@ -164,6 +193,10 @@ const expenseFixture = {
  * encadeado no `db:test`, onde o banco já tem as tabelas). O histórico e os
  * conflitos caem antes da memória: as FKs do D3 são `ON DELETE RESTRICT`. */
 async function resetMemory(pool: Pool): Promise<void> {
+  await pool.query("delete from ai_memory_access_log where tenant_id in ($1, $2)", [
+    tenantA,
+    tenantB,
+  ]);
   await pool.query("delete from ai_memory_conflicts where tenant_id in ($1, $2)", [
     tenantA,
     tenantB,
@@ -1554,11 +1587,14 @@ async function d3T6DedupTenantIsolation(pool: Pool): Promise<void> {
 }
 
 /**
- * D3/T7 — imutabilidade por privilégio: `app_runtime` **consegue** inserir em
- * `ai_memory_versions` (controle positivo — a denegação seguinte não é vacuosa
- * por falta de acesso) e **não** consegue `UPDATE` nem `DELETE` (42501). Os
- * metadados do catálogo fecham a história: RLS ligado, grants mínimos por
- * tabela e nada para PUBLIC.
+ * D3/T7 — imutabilidade por privilégio, atualizada por **SD-C3-12**: desde a
+ * 0019 `app_runtime` **consegue** `INSERT` (controle positivo) e `DELETE` — o
+ * expurgo LGPD tem de rodar pela role da aplicação — e **não** consegue `UPDATE`
+ * (42501): reescrever o histórico continua impossível, que é a dimensão da
+ * imutabilidade que o §34 exige. O alcance do `DELETE` é limitado pela RLS: a
+ * versão de outro tenant não é alcançável (0 linhas) e a do próprio tenant é
+ * (controle positivo). Os metadados do catálogo fecham a história: RLS ligado,
+ * grants mínimos por tabela e nada para PUBLIC.
  */
 async function d3T7VersionImmutability(pool: Pool): Promise<void> {
   await seedFixtures(pool);
@@ -1609,18 +1645,71 @@ async function d3T7VersionImmutability(pool: Pool): Promise<void> {
       ),
     "UPDATE em ai_memory_versions deve ser negado por privilégio (42501)",
   );
-  await expectRuntimeDenial(
-    pool,
-    identityA,
-    "42501",
-    (transaction) =>
-      transaction.execute(sql`delete from ai_memory_versions where id = ${archivedId}`),
-    "DELETE em ai_memory_versions deve ser negado por privilégio (42501)",
-  );
   assert.deepEqual(
     await versionBytes(pool, archivedId),
     archivedBytes,
-    "depois das tentativas negadas a versão continua byte a byte igual",
+    "depois da tentativa negada a versão continua byte a byte igual",
+  );
+
+  // SD-C3-12: em D4 o DELETE passa a ser concedido (o expurgo LGPD tem de rodar
+  // sob a role de aplicação) — a imutabilidade do histórico segue enforçada pela
+  // negação do UPDATE acima. O controle positivo abaixo apaga a linha de
+  // controle; o negativo prova que a RLS limita o alcance ao tenant do GUC.
+  await withRuntimeRoleTransaction(pool, identityB, async (transaction) => {
+    const created = await memoryRepository.append(
+      bindTransactionContext(requestB, transaction),
+      memoryInput({ content: "Memória de B para provar o alcance do DELETE por RLS" }),
+    );
+    await memoryRepository.revise(
+      bindTransactionContext(requestB, transaction),
+      created.record.id,
+      {
+        content: "Memória de B revisada para materializar uma versão",
+      },
+    );
+  });
+  const foreignVersions = await pool.query<{ id: string }>(
+    "select id from ai_memory_versions where tenant_id = $1",
+    [tenantB],
+  );
+  const foreignVersionId = foreignVersions.rows[0]?.id as string;
+  assert.ok(foreignVersionId, "a revisão de B precisa ter arquivado uma versão");
+
+  const foreignDeleted = await withRuntimeRoleTransaction(pool, identityA, (transaction) =>
+    transaction.execute(sql`delete from ai_memory_versions where id = ${foreignVersionId}`),
+  );
+  assert.equal(
+    foreignDeleted.rowCount,
+    0,
+    "o DELETE concedido não pode alcançar a versão de outro tenant (RLS USING)",
+  );
+  assert.equal(
+    await countRows(pool, "select count(*)::text as count from ai_memory_versions where id = $1", [
+      foreignVersionId,
+    ]),
+    1,
+    "a versão de B permanece intacta depois da tentativa de A",
+  );
+
+  const purgeControl = await withRuntimeRoleTransaction(pool, identityA, (transaction) =>
+    transaction.execute(
+      sql`delete from ai_memory_versions
+           where memory_id = ${created.record.id} and version = 99 and tenant_id = ${tenantA}`,
+    ),
+  );
+  assert.equal(
+    purgeControl.rowCount,
+    1,
+    "o DELETE concedido (SD-C3-12) precisa remover a linha do próprio tenant (controle positivo)",
+  );
+  assert.equal(
+    await countRows(
+      pool,
+      "select count(*)::text as count from ai_memory_versions where memory_id = $1",
+      [created.record.id],
+    ),
+    1,
+    "a linha do próprio tenant sai e a versão legítima do histórico permanece",
   );
 
   const metadata = await pool.query<{
@@ -1665,7 +1754,7 @@ async function d3T7VersionImmutability(pool: Pool): Promise<void> {
         sel: true,
         ins: true,
         upd: true,
-        del: false,
+        del: true,
         pub: false,
       },
       {
@@ -1674,11 +1763,11 @@ async function d3T7VersionImmutability(pool: Pool): Promise<void> {
         sel: true,
         ins: true,
         upd: false,
-        del: false,
+        del: true,
         pub: false,
       },
     ],
-    "grants mínimos: conflito com SELECT/INSERT/UPDATE e histórico só SELECT/INSERT; nada para PUBLIC",
+    "grants: conflito com SELECT/INSERT/UPDATE/DELETE, histórico com SELECT/INSERT/DELETE (SD-C3-12) e UPDATE negado; nada para PUBLIC",
   );
   for (const row of metadata.rows) {
     assert.match(
@@ -1689,7 +1778,7 @@ async function d3T7VersionImmutability(pool: Pool): Promise<void> {
   }
 
   console.log(
-    "D3/T7 imutabilidade: INSERT permitido e UPDATE/DELETE negados (42501) em ai_memory_versions + grants/RLS: OK",
+    "D3/T7 imutabilidade: UPDATE negado (42501) e DELETE concedido com alcance limitado por RLS em ai_memory_versions + grants/RLS: OK",
   );
 }
 
@@ -1811,6 +1900,983 @@ async function d3T9ReviseKeyCollision(pool: Pool): Promise<void> {
   );
 }
 
+/* ------------------------------------------------------------------------- *
+ * D4 — delete/export + trilha de auditoria + TTL por camada (§43/§15.4/H-12).
+ *
+ * Os casos medem o banco: as denegações sob `app_runtime` com GUC por transação
+ * (o admin do container é superuser e bypassaria RLS) e as permissões de tabela
+ * pelo catálogo. Nenhum resultado é inferido de filtro de aplicação.
+ * ------------------------------------------------------------------------- */
+
+/** Ids das linhas de `ai_memory_access_log` do tenant, do mais recente ao mais
+ * antigo — é a leitura crua que confere a trilha gravada pela aplicação. */
+async function accessLogRows(
+  pool: Pool,
+  tenantId: string,
+): Promise<
+  Array<{
+    action: string;
+    result: string;
+    memory_id: string | null;
+    row_count: number;
+    user_id: string;
+  }>
+> {
+  const result = await pool.query<{
+    action: string;
+    result: string;
+    memory_id: string | null;
+    row_count: number;
+    user_id: string;
+  }>(
+    `select action, result, memory_id, row_count, user_id
+       from ai_memory_access_log
+      where tenant_id = $1
+      order by created_at asc, id asc`,
+    [tenantId],
+  );
+  return result.rows;
+}
+
+/** TTL vigente por camada (maior versão publicada), lido das linhas — a mesma
+ * fonte que o repositório usa: nenhum valor esperado é duplicado no teste. */
+async function publishedTtlSeconds(pool: Pool): Promise<Record<string, number | null>> {
+  const rows = await pool.query<{ layer: string; ttl_seconds: number | null }>(
+    `select distinct on (layer) layer, ttl_seconds
+       from ai_memory_policies
+      order by layer, version desc`,
+  );
+  const table: Record<string, number | null> = {};
+  for (const row of rows.rows) table[row.layer] = row.ttl_seconds;
+  return table;
+}
+
+/** Janela de validade efetiva da memória, em segundos — `expires_at - created_at`
+ * medido no BANCO (as duas colunas nascem na mesma transação do append). */
+async function expiryWindowSeconds(pool: Pool, id: string): Promise<number | null> {
+  const result = await pool.query<{ seconds: string | null }>(
+    `select case when expires_at is null then null
+                 else floor(extract(epoch from expires_at - created_at))::text end as seconds
+       from ai_memories where id = $1`,
+    [id],
+  );
+  const seconds = result.rows[0]?.seconds;
+  return seconds === null || seconds === undefined ? null : Number(seconds);
+}
+
+/**
+ * D4/T1 — export (§43, H-12 critério 4): o pacote do tenant A é **exatamente** o
+ * conjunto de A (com fontes e versões) e nada de B; o de B é o de B (controle
+ * positivo). O recorte por camada/escopo é medido, e a identidade sem
+ * `has_tenant_access` recebe `AUTHORIZATION_ERROR` — nunca pacote vazio.
+ */
+async function d4T1ExportTenantIsolation(pool: Pool): Promise<void> {
+  await seedFixtures(pool);
+
+  const revised = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestA, transaction),
+      memoryInput({ content: "Memória de A com histórico e duas fontes", layer: "L3" }),
+    ),
+  );
+  await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.revise(bindTransactionContext(requestA, transaction), revised.record.id, {
+      content: "Memória de A revisada (versão arquivada)",
+    }),
+  );
+  // Segunda fonte da mesma memória: a exportação carrega a proveniência
+  // INTEIRA, não só a primária do read model.
+  await pool.query(
+    `insert into ai_memory_sources
+       (tenant_id, memory_id, source_kind, source_ref, confidence, captured_at)
+     values ($1, $2, 'model', 'model:segunda-fonte', 0.4, $3)`,
+    [tenantA, revised.record.id, new Date("2026-09-16T15:00:00.000Z")],
+  );
+  const personal = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestA, transaction),
+      memoryInput({ scope: "user", content: "Memória pessoal de A", layer: "L1" }),
+    ),
+  );
+  const fromB = await withTenantTransaction(identityB, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestB, transaction),
+      memoryInput({ content: "Memória de B que nunca pode entrar no pacote de A" }),
+    ),
+  );
+
+  const bundleA = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.export(bindTransactionContext(requestA, transaction)),
+  );
+  assert.equal(bundleA.tenantId, tenantA, "o pacote pertence ao tenant do contexto");
+  assert.deepEqual(
+    bundleA.memories.map((memory) => memory.record.id).sort(),
+    [revised.record.id, personal.record.id].sort(),
+    "o export de A devolve exatamente as memórias de A",
+  );
+  assert.equal(
+    bundleA.memories.some((memory) => memory.record.id === fromB.record.id),
+    false,
+    "nenhuma memória de B entra no pacote de A",
+  );
+
+  const exported = bundleA.memories.find((memory) => memory.record.id === revised.record.id);
+  assert.ok(exported, "a memória revisada precisa estar no pacote");
+  assert.equal(exported.sources.length, 2, "o pacote carrega TODAS as fontes da memória");
+  assert.deepEqual(
+    exported.sources.map((source) => source.sourceId).sort(),
+    ["chat-message-42", "model:segunda-fonte"],
+    "as duas proveniências declaradas saem no pacote",
+  );
+  assert.equal(exported.versions.length, 1, "o histórico arquivado sai no pacote");
+  assert.equal(exported.versions[0]?.content, revised.record.content);
+  assert.equal(exported.record.status, "active");
+
+  // Controle positivo do outro lado: o pacote de B devolve só a memória de B.
+  const bundleB = await withTenantTransaction(identityB, (transaction) =>
+    memoryRepository.export(bindTransactionContext(requestB, transaction)),
+  );
+  assert.deepEqual(
+    bundleB.memories.map((memory) => memory.record.id),
+    [fromB.record.id],
+    "o export de B devolve exatamente a memória de B (o de A não é a lista vazia)",
+  );
+
+  // Recortes do filtro: camada e escopo restringem o pacote do tenant.
+  const onlyL3 = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.export(bindTransactionContext(requestA, transaction), { layers: ["L3"] }),
+  );
+  assert.deepEqual(
+    onlyL3.memories.map((memory) => memory.record.id),
+    [revised.record.id],
+    "o filtro de camada recorta o pacote",
+  );
+  const onlyUser = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.export(bindTransactionContext(requestA, transaction), { scopes: ["user"] }),
+  );
+  assert.deepEqual(
+    onlyUser.memories.map((memory) => memory.record.id),
+    [personal.record.id],
+    "o filtro de escopo recorta o pacote",
+  );
+
+  // Exportar é auditado: uma linha por operação, com o tamanho do pacote.
+  const logA = await accessLogRows(pool, tenantA);
+  assert.deepEqual(
+    logA.filter((row) => row.action === "export"),
+    [
+      { action: "export", result: "allowed", memory_id: null, row_count: 2, user_id: userA },
+      { action: "export", result: "allowed", memory_id: null, row_count: 1, user_id: userA },
+      { action: "export", result: "allowed", memory_id: null, row_count: 1, user_id: userA },
+    ],
+    "cada export grava uma linha com o número de memórias do pacote",
+  );
+
+  // Identidade sem vínculo com o tenant: a checagem roda ANTES de qualquer
+  // consulta de dado e falha alto (INV-013) — não existe "pacote vazio" para
+  // quem não tem acesso.
+  const forged = { userId: userA, tenantId: tenantB, roles: ["owner"] };
+  const logsBefore = await countRows(
+    pool,
+    "select count(*)::text as count from ai_memory_access_log where tenant_id = $1",
+    [tenantB],
+  );
+  await assert.rejects(
+    withRuntimeRoleTransaction(pool, forged, (transaction) =>
+      memoryRepository.export(bindTransactionContext({ ...requestA, ...forged }, transaction)),
+    ),
+    (error: unknown) => {
+      assert.ok(
+        error instanceof ApplicationError,
+        `export sem has_tenant_access deve falhar alto como ApplicationError (recebido: ${String(error)})`,
+      );
+      assert.equal(error.code, "AUTHORIZATION_ERROR");
+      return true;
+    },
+    "export com identidade sem has_tenant_access deve ser negado antes de qualquer consulta",
+  );
+  assert.equal(
+    await runtimeCount(pool, forged, "ai_memories"),
+    0,
+    "sob a identidade forjada a RLS não devolve NENHUMA linha de B — sem a checagem explícita o export seria um sucesso vazio (INV-013)",
+  );
+  assert.equal(
+    await countRows(
+      pool,
+      "select count(*)::text as count from ai_memory_access_log where tenant_id = $1",
+      [tenantB],
+    ),
+    logsBefore,
+    "a tentativa negada não deixa linha de auditoria em outro tenant",
+  );
+
+  console.log(
+    "D4/T1 export: conjunto exato do tenant com fontes+versões, recortes por camada/escopo e AUTHORIZATION_ERROR sem has_tenant_access: OK",
+  );
+}
+
+/**
+ * D4/T2 — auditoria e autorização do delete (§43/§15.4, aceite e do gap report):
+ * todo delete grava `delete` com o resultado (`allowed`/`not_found`/`refused`),
+ * o id de outro tenant é `not_found` sem tocar a linha, memória de escopo
+ * pessoal de outro autor é recusada para membro e apagável por owner (controle
+ * positivo via `has_tenant_owner_access`), e a trilha é tenant-scoped.
+ */
+async function d4T2DeleteAuditAndScope(pool: Pool): Promise<void> {
+  await seedFixtures(pool);
+  // Membro (não-owner) do tenant A, com a própria conversa.
+  await pool.query(
+    `insert into users (id, name, email, email_verified)
+     values ($1, 'Memória C', 'memory-c@example.test', true)
+     on conflict (id) do nothing`,
+    [userC],
+  );
+  await pool.query(
+    `insert into tenant_memberships (tenant_id, user_id, role) values ($1, $2, 'member')
+     on conflict (tenant_id, user_id) do nothing`,
+    [tenantA, userC],
+  );
+  const identityC: DatabaseIdentity = { userId: userC, tenantId: tenantA, roles: ["member"] };
+  const requestC: RequestIdentity = {
+    ...identityC,
+    correlationId: "db-test-memory-c",
+    signal: new AbortController().signal,
+  };
+
+  const tenantScopeMemory = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestA, transaction),
+      memoryInput({ content: "Memória do tenant A, apagável por qualquer membro" }),
+    ),
+  );
+  const personalOfA = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestA, transaction),
+      memoryInput({ scope: "user", content: "Memória pessoal de A" }),
+    ),
+  );
+  const personalOfC = await withTenantTransaction(identityC, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestC, transaction),
+      memoryInput({ scope: "user", content: "Memória pessoal de C" }),
+    ),
+  );
+  const secondPersonalOfC = await withTenantTransaction(identityC, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestC, transaction),
+      memoryInput({ scope: "user", content: "Segunda memória pessoal de C (apagada por owner)" }),
+    ),
+  );
+  const fromB = await withTenantTransaction(identityB, (transaction) =>
+    memoryRepository.append(bindTransactionContext(requestB, transaction), memoryInput()),
+  );
+
+  // 1. Delete legítimo de memória de escopo pessoal PRÓPRIO por membro.
+  assert.equal(
+    await withTenantTransaction(identityC, (transaction) =>
+      memoryRepository.delete(bindTransactionContext(requestC, transaction), personalOfC.record.id),
+    ),
+    true,
+    "o autor de uma memória pessoal pode apagá-la",
+  );
+
+  // 2. Membro não apaga memória pessoal de OUTRO autor do mesmo tenant.
+  assert.equal(
+    await withTenantTransaction(identityC, (transaction) =>
+      memoryRepository.delete(bindTransactionContext(requestC, transaction), personalOfA.record.id),
+    ),
+    false,
+    "membro não apaga memória pessoal de outro autor (§43 aceite e)",
+  );
+  assert.equal(
+    await countRows(pool, "select count(*)::text as count from ai_memories where id = $1", [
+      personalOfA.record.id,
+    ]),
+    1,
+    "a recusa por escopo não pode apagar a linha",
+  );
+
+  // 3. Controle positivo da mesma regra: owner do tenant apaga memória pessoal
+  //    de OUTRO autor (has_tenant_owner_access). O membro C é o autor, o owner A
+  //    não é — a autorização aqui vem do papel, não da autoria.
+  assert.equal(
+    await withTenantTransaction(identityA, (transaction) =>
+      memoryRepository.delete(
+        bindTransactionContext(requestA, transaction),
+        secondPersonalOfC.record.id,
+      ),
+    ),
+    true,
+    "owner apaga memória pessoal de outro autor do próprio tenant (controle positivo)",
+  );
+  assert.equal(
+    await countRows(pool, "select count(*)::text as count from ai_memories where id = $1", [
+      secondPersonalOfC.record.id,
+    ]),
+    0,
+    "a memória pessoal apagada pelo owner sai de verdade",
+  );
+
+  // 4. Controle de escopo: a recusa do item 2 é da memória PESSOAL, não um
+  //    bloqueio geral — o membro apaga memória de escopo do tenant.
+  assert.equal(
+    await withTenantTransaction(identityC, (transaction) =>
+      memoryRepository.delete(
+        bindTransactionContext(requestC, transaction),
+        tenantScopeMemory.record.id,
+      ),
+    ),
+    true,
+    "membro apaga memória de escopo do tenant (a recusa anterior é do escopo pessoal)",
+  );
+
+  // 5. Id de outro tenant: `false` sem erro e a linha de B intacta.
+  assert.equal(
+    await withTenantTransaction(identityA, (transaction) =>
+      memoryRepository.delete(bindTransactionContext(requestA, transaction), fromB.record.id),
+    ),
+    false,
+    "delete de memória de outro tenant devolve false",
+  );
+  assert.equal(
+    await countRows(pool, "select count(*)::text as count from ai_memories where id = $1", [
+      fromB.record.id,
+    ]),
+    1,
+    "a memória de B permanece intacta",
+  );
+
+  // 6. Idempotência: a 2ª chamada devolve false e ambos ficam auditados.
+  const again = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.delete(
+      bindTransactionContext(requestA, transaction),
+      tenantScopeMemory.record.id,
+    ),
+  );
+  assert.equal(again, false, "a segunda chamada de delete devolve false (idempotente)");
+
+  const logA = await accessLogRows(pool, tenantA);
+  const deletes = logA.filter((row) => row.action === "delete");
+  assert.deepEqual(
+    deletes.map((row) => ({
+      result: row.result,
+      memoryId: row.memory_id,
+      rowCount: row.row_count,
+      userId: row.user_id,
+    })),
+    [
+      { result: "allowed", memoryId: personalOfC.record.id, rowCount: 1, userId: userC },
+      { result: "refused", memoryId: personalOfA.record.id, rowCount: 0, userId: userC },
+      { result: "allowed", memoryId: secondPersonalOfC.record.id, rowCount: 1, userId: userA },
+      { result: "allowed", memoryId: tenantScopeMemory.record.id, rowCount: 1, userId: userC },
+      { result: "not_found", memoryId: fromB.record.id, rowCount: 0, userId: userA },
+      { result: "not_found", memoryId: tenantScopeMemory.record.id, rowCount: 0, userId: userA },
+    ],
+    "a trilha registra allow/refused/not_found por chamada, com alvo, autor e linhas afetadas",
+  );
+
+  // 7. A busca também é auditada, e o log de um tenant não é visível ao outro.
+  await withTenantTransaction(identityB, (transaction) =>
+    memoryRepository.search(bindTransactionContext(requestB, transaction), { text: "relatórios" }),
+  );
+  const logB = await accessLogRows(pool, tenantB);
+  assert.deepEqual(
+    logB.map((row) => ({ action: row.action, rowCount: row.row_count, userId: row.user_id })),
+    [{ action: "access", rowCount: 1, userId: userB }],
+    "o log de B tem só a busca de B",
+  );
+  assert.equal(
+    logB.some((row) => row.user_id === userA || row.user_id === userC),
+    false,
+    "a trilha é tenant-scoped: nada de A aparece em B",
+  );
+  assert.equal(
+    await runtimeCount(pool, identityA, "ai_memory_access_log"),
+    logA.length,
+    "sob app_runtime com o GUC de A a trilha de A aparece inteira",
+  );
+  assert.equal(
+    await runtimeCount(pool, identityB, "ai_memory_access_log"),
+    logB.length,
+    "e com o GUC de B aparece só a de B (RLS, não filtro de aplicação)",
+  );
+
+  // 8. A trilha sobrevive ao delete que ela audita e não guarda conteúdo.
+  const auditTrail = await pool.query<{ rows: string }>(
+    `select count(*)::text as rows from ai_memory_access_log where memory_id = $1`,
+    [tenantScopeMemory.record.id],
+  );
+  assert.equal(
+    auditTrail.rows[0]?.rows,
+    "2",
+    "a memória apagada mantém o rastro (delete allowed + delete not_found da chamada seguinte)",
+  );
+  const contentLeak = await pool.query<{ leaks: string }>(
+    `select count(*)::text as leaks
+       from ai_memory_access_log
+      where row_to_json(ai_memory_access_log)::text like '%' || $1 || '%'`,
+    [tenantScopeMemory.record.content],
+  );
+  assert.equal(
+    contentLeak.rows[0]?.leaks,
+    "0",
+    "nenhuma linha da trilha contém o conteúdo da memória",
+  );
+
+  console.log(
+    "D4/T2 auditoria: allow/refused/not_found por chamada, recusa de escopo pessoal com controle positivo, trilha tenant-scoped e sem conteúdo: OK",
+  );
+}
+
+/**
+ * D4/T3 — TTL por camada com expiração IDEMPOTENTE (§23.2, H-12 critérios 1-3):
+ * a janela de cada memória vem da policy versionada da sua camada (L1/L2/L3 com
+ * TTL, L4/L5 sem); publicar uma versão nova da policy muda a janela das
+ * gravações seguintes (prova de que o mecanismo lê dado, não constante); o
+ * expirador passa a `expired` só o que venceu, é idempotente, não atravessa
+ * tenant, e `search` já não devolve linha vencida. Camada sem policy publicada
+ * **falha alta** e não grava nada (INV-013).
+ */
+async function d4T3TtlByLayer(pool: Pool): Promise<void> {
+  await seedFixtures(pool);
+  // A política é dado GLOBAL do sistema: o teste republica uma versão nova
+  // abaixo, então repõe o estado (versões > 1) antes de medir — o script é
+  // reexecutável e o valor medido não depende de uma execução anterior.
+  await pool.query("delete from ai_memory_policies where version > 1");
+
+  const ttl = await publishedTtlSeconds(pool);
+  assert.deepEqual(
+    Object.keys(ttl).sort(),
+    ["L1", "L2", "L3", "L4", "L5"],
+    "as cinco camadas persistidas precisam de política publicada",
+  );
+  assert.equal(ttl.L4, null, "L4 acompanha a entidade referenciada (sem TTL de relógio)");
+  assert.equal(ttl.L5, null, "L5 é versionada (sem TTL)");
+  assert.ok(
+    (ttl.L1 ?? 0) > 0 && (ttl.L1 ?? 0) < (ttl.L2 ?? 0) && (ttl.L2 ?? 0) < (ttl.L3 ?? 0),
+    "os TTLs precisam crescer de L1 para L3 (minimização: sessão < episódica < semântica)",
+  );
+
+  const byLayer = new Map<string, string>();
+  for (const layer of ["L1", "L2", "L3", "L4", "L5"] as const) {
+    const appended = await withTenantTransaction(identityA, (transaction) =>
+      memoryRepository.append(
+        bindTransactionContext(requestA, transaction),
+        memoryInput({ content: `Memória da camada ${layer}`, layer }),
+      ),
+    );
+    byLayer.set(layer, appended.record.id);
+    assert.equal(appended.record.layer, layer, `a camada ${layer} precisa ser persistida`);
+    assert.equal(
+      await expiryWindowSeconds(pool, appended.record.id),
+      layer === "L4" || layer === "L5" ? null : ttl[layer],
+      `a janela de ${layer} é o TTL da policy da camada`,
+    );
+  }
+  assert.equal(
+    await countRows(
+      pool,
+      "select count(*)::text as count from ai_memories where tenant_id = $1 and expires_at is null",
+      [tenantA],
+    ),
+    2,
+    "só L4 e L5 nascem sem `expires_at` (sem expiração)",
+  );
+
+  // Camada além das persistidas: a camada é fechada (o CHECK do banco diz o
+  // mesmo), então um valor fora do vocabulário é erro do chamador.
+  await assert.rejects(
+    withTenantTransaction(identityA, (transaction) =>
+      memoryRepository.append(
+        bindTransactionContext(requestA, transaction),
+        memoryInput({ content: "Camada inexistente L0", layer: "L0" as never }),
+      ),
+    ),
+    (error: unknown) => error instanceof ApplicationError && error.code === "VALIDATION_ERROR",
+    "L0 (working) não é persistido: gravar nessa camada falha alto",
+  );
+
+  // Publicar uma versão nova da policy (INSERT sob app_runtime, sem DDL) muda a
+  // janela das gravações seguintes — o TTL é dado, não constante de código.
+  const shorterTtl = 60;
+  await withRuntimeRoleTransaction(pool, identityA, (transaction) =>
+    transaction.execute(
+      sql`insert into ai_memory_policies (layer, version, ttl_seconds)
+          values ('L1', 2, ${shorterTtl})`,
+    ),
+  );
+  const republished = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestA, transaction),
+      memoryInput({ content: "Memória L1 depois da republicação da policy", layer: "L1" }),
+    ),
+  );
+  assert.equal(
+    await expiryWindowSeconds(pool, republished.record.id),
+    shorterTtl,
+    "a janela passa a ser a da versão mais nova da policy (mecanismo dirigido por dado)",
+  );
+  assert.equal(
+    await expiryWindowSeconds(pool, byLayer.get("L1") as string),
+    ttl.L1,
+    "a republicação não é retroativa: a memória já gravada mantém a janela antiga",
+  );
+
+  // Vencimento: a linha L1 vai para o passado (mesma coluna que o expirador
+  // lê) e B ganha uma linha vencida própria — o expirador de A não pode alcançar
+  // a de B.
+  const expiredInA = byLayer.get("L1") as string;
+  await pool.query("update ai_memories set expires_at = now() - interval '1 hour' where id = $1", [
+    expiredInA,
+  ]);
+  const inB = await withTenantTransaction(identityB, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestB, transaction),
+      memoryInput({ content: "Memória de B vencida para medir o alcance do expirador" }),
+    ),
+  );
+  await pool.query("update ai_memories set expires_at = now() - interval '1 hour' where id = $1", [
+    inB.record.id,
+  ]);
+
+  const searchBefore = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.search(bindTransactionContext(requestA, transaction), { text: "Memória" }),
+  );
+  assert.equal(
+    searchBefore.some((record) => record.id === expiredInA),
+    false,
+    "memória vencida não aparece no retrieval",
+  );
+  const stillValid = byLayer.get("L2") as string;
+  assert.equal(
+    searchBefore.some((record) => record.id === stillValid),
+    true,
+    "controle positivo: a memória dentro do prazo continua aparecendo",
+  );
+
+  const expiredByA = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.expireDue(bindTransactionContext(requestA, transaction)),
+  );
+  assert.deepEqual(
+    expiredByA,
+    [expiredInA],
+    "o expirador afeta exatamente a linha vencida do tenant do contexto",
+  );
+  assert.equal(
+    await countRows(
+      pool,
+      "select count(*)::text as count from ai_memories where id = $1 and status = $2",
+      [expiredInA, "expired"],
+    ),
+    1,
+    "a linha vencida passa a `expired`",
+  );
+  assert.equal(
+    await countRows(
+      pool,
+      "select count(*)::text as count from ai_memories where id = $1 and status = $2",
+      [stillValid, "active"],
+    ),
+    1,
+    "a linha dentro do prazo não é tocada",
+  );
+  assert.equal(
+    await countRows(
+      pool,
+      "select count(*)::text as count from ai_memories where id = $1 and status = $2",
+      [inB.record.id, "active"],
+    ),
+    1,
+    "o expirador de A não alcança a linha de B",
+  );
+
+  const idempotent = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.expireDue(bindTransactionContext(requestA, transaction)),
+  );
+  assert.deepEqual(idempotent, [], "a segunda passada devolve [] (expirador idempotente)");
+  assert.deepEqual(
+    await withTenantTransaction(identityB, (transaction) =>
+      memoryRepository.expireDue(bindTransactionContext(requestB, transaction)),
+    ),
+    [inB.record.id],
+    "controle positivo do outro lado: B expira a própria linha vencida",
+  );
+
+  // Expirar é transição de estado, não exclusão: a linha continua exportável.
+  const bundleAfterExpiry = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.export(bindTransactionContext(requestA, transaction)),
+  );
+  const expiredExported = bundleAfterExpiry.memories.find(
+    (memory) => memory.record.id === expiredInA,
+  );
+  assert.equal(
+    expiredExported?.record.status,
+    "expired",
+    "a memória expirada continua no pacote de portabilidade (com o estado correto)",
+  );
+
+  // INV-013: sem policy publicada para a camada, o append falha alto e não grava
+  // nada — retenção indefinida silenciosa não é sucesso.
+  const beforeMissingPolicy = await countRows(
+    pool,
+    "select count(*)::text as count from ai_memories where tenant_id = $1",
+    [tenantA],
+  );
+  await pool.query("delete from ai_memory_policies where layer = 'L3'");
+  try {
+    await assert.rejects(
+      withTenantTransaction(identityA, (transaction) =>
+        memoryRepository.append(
+          bindTransactionContext(requestA, transaction),
+          memoryInput({ content: "Sem policy de L3 não pode gravar", layer: "L3" }),
+        ),
+      ),
+      (error: unknown) => {
+        assert.ok(
+          error instanceof ApplicationError,
+          `camada sem policy deve falhar alto (recebido: ${String(error)})`,
+        );
+        assert.equal(error.code, "INTERNAL_ERROR");
+        return true;
+      },
+      "camada sem política publicada falha alto em vez de gravar com TTL indefinido",
+    );
+  } finally {
+    await pool.query(
+      `insert into ai_memory_policies (layer, version, ttl_seconds) values ('L3', 1, $1)
+       on conflict (layer, version) do nothing`,
+      [ttl.L3],
+    );
+  }
+  assert.equal(
+    await countRows(pool, "select count(*)::text as count from ai_memories where tenant_id = $1", [
+      tenantA,
+    ]),
+    beforeMissingPolicy,
+    "a falha do append sem policy não deixa linha gravada",
+  );
+
+  console.log(
+    "D4/T3 TTL: janela por camada vinda da policy versionada, expiração idempotente e tenant-scoped, retrieval sem vencida e falha alta sem policy: OK",
+  );
+}
+
+/**
+ * D4/T4 — migration reproduzível do zero e COM DADOS (INV-012): o banco
+ * descartável aplica a cadeia inteira (journal 20) e o par 0019 up→down→up
+ * roda com memória gravada, preservando o dado (a coluna `layer` volta com o
+ * default e `expires_at` volta nula) e revogando o estado `expired` que o down
+ * não tem como representar.
+ */
+async function d4T4MigrationWithData(pool: Pool): Promise<void> {
+  await seedFixtures(pool);
+
+  const journal = await pool.query<{ count: string }>(
+    "select count(*)::text as count from drizzle.__drizzle_migrations",
+  );
+  assert.equal(
+    journal.rows[0]?.count,
+    EXPECTED_JOURNAL_COUNT,
+    "a cadeia 0000→0019 precisa estar aplicada do zero no banco descartável",
+  );
+  const policies = await countRows(
+    pool,
+    "select count(*)::text as count from ai_memory_policies where version = 1",
+  );
+  assert.equal(policies, 5, "o seed da 0019 publica as cinco políticas iniciais");
+
+  const before = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.append(
+      bindTransactionContext(requestA, transaction),
+      memoryInput({ content: "Memória que precisa sobreviver ao up→down→up da 0019" }),
+    ),
+  );
+  assert.deepEqual(
+    await withTenantTransaction(identityA, (transaction) =>
+      memoryRepository.expireDue(bindTransactionContext(requestA, transaction)),
+    ),
+    [],
+    "controle prévio: nenhuma linha vencida antes do down",
+  );
+
+  const downSql = await readFile(resolve("drizzle/rollback", MEMORY_D4_MIGRATION_DOWN), "utf8");
+  const client = await pool.connect();
+  try {
+    await client.query(downSql);
+    await client.query(
+      "delete from drizzle.__drizzle_migrations where id in (select id from drizzle.__drizzle_migrations order by id desc limit 1)",
+    );
+    const gone = await client.query<{ log: string | null; policies: string | null }>(
+      `select to_regclass('public.ai_memory_access_log')::text as log,
+              to_regclass('public.ai_memory_policies')::text as policies`,
+    );
+    assert.deepEqual(
+      gone.rows[0],
+      { log: null, policies: null },
+      "o down da 0019 remove a trilha e as políticas",
+    );
+    const columns = await client.query<{ column_name: string }>(
+      `select column_name from information_schema.columns
+        where table_schema = 'public' and table_name = 'ai_memories'
+          and column_name in ('layer', 'expires_at')`,
+    );
+    assert.deepEqual(columns.rows, [], "o down remove layer e expires_at de ai_memories");
+  } finally {
+    client.release();
+  }
+
+  await runMigrations(requireAdminUrl());
+
+  const restored = await pool.query<{
+    content: string;
+    layer: string;
+    status: string;
+    expires: boolean;
+  }>(
+    `select content, layer, status, expires_at is null as expires
+       from ai_memories where id = $1`,
+    [before.record.id],
+  );
+  assert.deepEqual(
+    restored.rows[0],
+    {
+      content: before.record.content,
+      layer: "L2",
+      status: "active",
+      expires: true,
+    },
+    "o up de novo re-adiciona as colunas com o default e o dado sobrevive byte a byte no conteúdo",
+  );
+  assert.equal(
+    await countRows(
+      pool,
+      "select count(*)::text as count from ai_memory_policies where version = 1",
+    ),
+    5,
+    "o seed das políticas volta no segundo up (INSERT idempotente)",
+  );
+  assert.equal(
+    await countRows(pool, "select count(*)::text as count from ai_memory_access_log"),
+    0,
+    "a trilha recriada começa vazia (o down descarta o rastro; declarado no down)",
+  );
+  const vocabulary = await pool.query<{ definition: string }>(
+    `select pg_get_constraintdef(oid) as definition from pg_constraint
+      where conname = 'ai_memories_status_check'`,
+  );
+  assert.match(
+    vocabulary.rows[0]?.definition ?? "",
+    /expired/,
+    "o vocabulário de estados volta com `expired` depois do segundo up",
+  );
+  const journalAfter = await pool.query<{ count: string }>(
+    "select count(*)::text as count from drizzle.__drizzle_migrations",
+  );
+  assert.equal(
+    journalAfter.rows[0]?.count,
+    EXPECTED_JOURNAL_COUNT,
+    "o journal volta ao tamanho da cadeia completa",
+  );
+
+  console.log(
+    "D4/T4 migration: cadeia 20/20 do zero + up→down→up da 0019 com dado preservado e políticas re-semeadas: OK",
+  );
+}
+
+/** D4/T5 — a migration do degrau está classificada no registry §27a (classe,
+ * `appliedOn`, `idempotent` e `onlineCare` declarados) e tem down. */
+async function d4T5MigrationClassification(): Promise<void> {
+  const result = await classifyProject(process.cwd());
+  assert.deepEqual(result.errors, [], "o registry de classes precisa estar sem divergências");
+  const entry = result.rows.find((row) => row.tag === MEMORY_D4_MIGRATION_TAG);
+  assert.ok(entry, `a migration ${MEMORY_D4_MIGRATION_TAG} precisa estar no journal e no registry`);
+  assert.equal(
+    entry.class,
+    "ONLINE_WITH_CARE",
+    "ALTER TABLE com validação de CHECK + DML de seed não são SAFE (§27)",
+  );
+  assert.equal(entry.appliedOn, "empty");
+  assert.equal(entry.ok, true);
+  const registry = migrationClasses.find((row) => row.tag === MEMORY_D4_MIGRATION_TAG);
+  assert.equal(registry?.idempotent, true, "o seed precisa ser idempotente");
+  assert.ok((registry?.onlineCare ?? "").trim().length > 0, "ONLINE_WITH_CARE exige onlineCare");
+  assert.equal(
+    registry?.sha256,
+    computeSha256(await readFile(resolve("drizzle", `${MEMORY_D4_MIGRATION_TAG}.sql`))),
+    "o sha256 do registry precisa ser byte a byte o do arquivo",
+  );
+  await assert.doesNotReject(
+    readFile(resolve("drizzle/rollback", MEMORY_D4_MIGRATION_DOWN), "utf8"),
+    `o down ${MEMORY_D4_MIGRATION_DOWN} precisa existir`,
+  );
+
+  console.log(
+    `D4/T5 classificação: ${result.classified}/${result.total} classificadas · ${MEMORY_D4_MIGRATION_TAG} = ONLINE_WITH_CARE/empty + idempotent + down: OK`,
+  );
+}
+
+/**
+ * D4/T6 — privilégio da trilha e das políticas (§34/INV-010): a trilha é
+ * append-only **medida** (UPDATE/DELETE negados sob `app_runtime`), o `WITH
+ * CHECK` recusa linha forjada de outro tenant, o vocabulário de ações é fechado
+ * e as políticas são SELECT+INSERT sem RLS (tabela global de configuração).
+ */
+async function d4T6AuditPrivileges(pool: Pool): Promise<void> {
+  await seedFixtures(pool);
+  const appended = await withTenantTransaction(identityA, (transaction) =>
+    memoryRepository.append(bindTransactionContext(requestA, transaction), memoryInput()),
+  );
+  await withRuntimeRoleTransaction(pool, identityA, (transaction) =>
+    memoryRepository.delete(bindTransactionContext(requestA, transaction), appended.record.id),
+  );
+
+  await expectRuntimeDenial(
+    pool,
+    identityA,
+    "42501",
+    (transaction) => transaction.execute(sql`update ai_memory_access_log set result = 'allowed'`),
+    "UPDATE na trilha de auditoria deve ser negado por privilégio (42501)",
+  );
+  await expectRuntimeDenial(
+    pool,
+    identityA,
+    "42501",
+    (transaction) => transaction.execute(sql`delete from ai_memory_access_log`),
+    "DELETE na trilha de auditoria deve ser negado por privilégio (42501)",
+  );
+  await expectRuntimeDenial(
+    pool,
+    identityA,
+    "42501",
+    (transaction) =>
+      transaction.execute(
+        sql`insert into ai_memory_access_log (tenant_id, user_id, action, result, row_count)
+            values (${tenantB}, ${userA}, 'access', 'allowed', 0)`,
+      ),
+    "linha de trilha forjando o tenant de B sob o GUC de A deve violar o WITH CHECK (42501)",
+  );
+  await expectRuntimeDenial(
+    pool,
+    identityA,
+    "23514",
+    (transaction) =>
+      transaction.execute(
+        sql`insert into ai_memory_access_log (tenant_id, user_id, action, result, row_count)
+            values (${tenantA}, ${userA}, 'expire', 'allowed', 0)`,
+      ),
+    "ação fora de access/delete/export deve ser recusada pelo CHECK (23514)",
+  );
+  await expectRuntimeDenial(
+    pool,
+    identityA,
+    "23514",
+    (transaction) =>
+      transaction.execute(
+        sql`insert into ai_memory_access_log (tenant_id, user_id, action, result, row_count)
+            values (${tenantA}, ${userA}, 'delete', 'maybe', 0)`,
+      ),
+    "resultado fora de allowed/not_found/refused deve ser recusado pelo CHECK (23514)",
+  );
+  await expectRuntimeDenial(
+    pool,
+    identityA,
+    "23514",
+    (transaction) =>
+      transaction.execute(
+        sql`insert into ai_memory_policies (layer, version, ttl_seconds) values ('L0', 1, 10)`,
+      ),
+    "camada fora de L1..L5 deve ser recusada pelo CHECK das políticas (23514)",
+  );
+  await expectRuntimeDenial(
+    pool,
+    identityA,
+    "23514",
+    (transaction) =>
+      transaction.execute(
+        sql`insert into ai_memory_policies (layer, version, ttl_seconds) values ('L1', 900, 0)`,
+      ),
+    "TTL zero deve ser recusado pelo CHECK das políticas (23514)",
+  );
+
+  const metadata = await pool.query<{
+    table_name: string;
+    rowSecurity: boolean;
+    select: boolean;
+    insert: boolean;
+    update: boolean;
+    delete: boolean;
+    publicSelect: boolean;
+    policies: string;
+  }>(
+    `select c.relname as table_name,
+            c.relrowsecurity as "rowSecurity",
+            has_table_privilege('app_runtime', 'public.' || c.relname, 'select') as "select",
+            has_table_privilege('app_runtime', 'public.' || c.relname, 'insert') as "insert",
+            has_table_privilege('app_runtime', 'public.' || c.relname, 'update') as "update",
+            has_table_privilege('app_runtime', 'public.' || c.relname, 'delete') as "delete",
+            has_table_privilege('public', 'public.' || c.relname, 'select') as "publicSelect",
+            coalesce((select string_agg(p.policyname || ':' || coalesce(p.qual, '-') || ':' || coalesce(p.with_check, '-'), '|')
+               from pg_policies p
+              where p.schemaname = 'public' and p.tablename = c.relname), '') as "policies"
+       from pg_class c
+       join pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public' and c.relname in ('ai_memory_access_log', 'ai_memory_policies')
+      order by c.relname`,
+  );
+  assert.deepEqual(
+    metadata.rows.map((row) => ({
+      table: row.table_name,
+      rls: row.rowSecurity,
+      sel: row.select,
+      ins: row.insert,
+      upd: row.update,
+      del: row.delete,
+      pub: row.publicSelect,
+    })),
+    [
+      {
+        table: "ai_memory_access_log",
+        rls: true,
+        sel: true,
+        ins: true,
+        upd: false,
+        del: false,
+        pub: false,
+      },
+      {
+        table: "ai_memory_policies",
+        rls: false,
+        sel: true,
+        ins: true,
+        upd: false,
+        del: false,
+        pub: false,
+      },
+    ],
+    "trilha append-only com RLS; políticas globais com SELECT/INSERT e sem RLS; nada para PUBLIC",
+  );
+  assert.match(
+    metadata.rows[0]?.policies ?? "",
+    /^tenant_isolation:.*current_tenant_id.*has_tenant_access.*:.*current_tenant_id.*has_tenant_access.*$/,
+    "a policy da trilha precisa ter USING e WITH CHECK com has_tenant_access",
+  );
+
+  const columns = await pool.query<{ column_name: string }>(
+    `select column_name from information_schema.columns
+      where table_schema = 'public' and table_name = 'ai_memory_access_log'
+      order by column_name`,
+  );
+  assert.deepEqual(
+    columns.rows.map((row) => row.column_name),
+    ["action", "created_at", "id", "memory_id", "result", "row_count", "tenant_id", "user_id"],
+    "a trilha não tem coluna de conteúdo nem de consulta (o log não é superfície de dado pessoal)",
+  );
+
+  console.log(
+    "D4/T6 privilégios: trilha append-only medida (42501), WITH CHECK e CHECKs de vocabulário, políticas globais com SELECT+INSERT: OK",
+  );
+}
+
 async function main(): Promise<void> {
   const adminUrl = requireAdminUrl();
   const pool = new Pool({ connectionString: adminUrl, max: 4 });
@@ -1834,13 +2900,19 @@ async function main(): Promise<void> {
     await d3T7VersionImmutability(pool);
     await d3T8MigrationClassification();
     await d3T9ReviseKeyCollision(pool);
+    await d4T1ExportTenantIsolation(pool);
+    await d4T2DeleteAuditAndScope(pool);
+    await d4T3TtlByLayer(pool);
+    await d4T6AuditPrivileges(pool);
+    await d4T5MigrationClassification();
+    await d4T4MigrationWithData(pool);
   } finally {
     setDatabaseForTests(undefined);
     await pool.end();
   }
 
   console.log(
-    "Memória §43/D2+D3 (persistência, proveniência, tenant, dedup, versões, conflitos): OK",
+    "Memória §43/D2+D3+D4 (persistência, proveniência, tenant, dedup, versões, conflitos, delete/export, TTL): OK",
   );
 }
 

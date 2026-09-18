@@ -24,21 +24,42 @@
  * histórico append-only de versões (SD-C3-3/4) e registro explícito de conflito
  * (SD-C3-5/6). Nenhum `UPDATE`/`DELETE` é emitido contra `ai_memory_versions` —
  * a imutabilidade do histórico é do privilégio do banco, não do código.
+ *
+ * D4 fecha o §43: `export` (portabilidade com versões e fontes), `expireDue`
+ * (TTL por camada, lido de `ai_memory_policies` — nunca de constante), delete
+ * **físico** com autorização por escopo e a trilha `ai_memory_access_log`
+ * gravada na MESMA transação de cada acesso, delete e export. O log não tem FK
+ * para `ai_memories`: a trilha sobrevive ao delete que ela audita.
  */
 import { createHash } from "node:crypto";
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, lte, ne, or, sql } from "drizzle-orm";
 import type { DatabaseTransaction } from "@/db/client.server";
-import { aiMemories, aiMemoryConflicts, aiMemorySources, aiMemoryVersions } from "@/db/schema";
+import {
+  aiMemories,
+  aiMemoryAccessLog,
+  aiMemoryConflicts,
+  aiMemoryPolicies,
+  aiMemorySources,
+  aiMemoryVersions,
+} from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
 import type { RequestContext } from "@/lib/request-context";
 import type { Executor } from "@/server/contracts/event.contracts";
 import type {
+  MemoryAccessAction,
+  MemoryAccessLogEntry,
+  MemoryAccessLogFilter,
+  MemoryAccessResult,
   MemoryAppendResult,
   MemoryCandidate,
   MemoryConflictFilter,
   MemoryConflictRecord,
   MemoryConflictStatus,
   MemoryDeleteOptions,
+  MemoryExportBundle,
+  MemoryExportFilter,
+  MemoryExportMemory,
+  MemoryLayer,
   MemoryProvenance,
   MemoryRecord,
   MemoryRecordInput,
@@ -57,10 +78,20 @@ const DEFAULT_SEARCH_LIMIT = 20;
 /** Guarda de sanidade do port: `query.limit` não pode virar varredura sem fim. */
 const MAX_SEARCH_LIMIT = 100;
 
+/** Camada default do append quando o candidato não declara uma (declarado no
+ * claim): L2 (episódica) é a observação de conversa/tool que o write path de
+ * hoje produz. L1 (sessão, 30 d) como default silencioso descartaria memória
+ * cedo demais para ser um default. */
+const DEFAULT_MEMORY_LAYER: MemoryLayer = "L2";
+/** Teto do read model da trilha de auditoria (mesma guarda do retrieval). */
+const MAX_ACCESS_LOG_LIMIT = 200;
+const DEFAULT_ACCESS_LOG_LIMIT = 50;
+
 type MemoryRow = typeof aiMemories.$inferSelect;
 type MemorySourceRow = typeof aiMemorySources.$inferSelect;
 type MemoryVersionRow = typeof aiMemoryVersions.$inferSelect;
 type MemoryConflictRow = typeof aiMemoryConflicts.$inferSelect;
+type MemoryAccessLogRow = typeof aiMemoryAccessLog.$inferSelect;
 
 /* ------------------------------------------------------------------------- *
  * Chave de dedup (SD-C3-1) — função pura, sem banco e sem estado.
@@ -145,6 +176,7 @@ const SOURCE_KIND_BY_VALUE: Record<string, MemorySourceKind | undefined> = {
 const STATUS_BY_VALUE: Record<string, MemoryStatus | undefined> = {
   active: "active",
   superseded: "superseded",
+  expired: "expired",
 };
 const CONFLICT_STATUS_BY_VALUE: Record<string, MemoryConflictStatus | undefined> = {
   open: "open",
@@ -172,6 +204,38 @@ function asStatus(value: string): MemoryStatus {
   return status;
 }
 
+const LAYER_BY_VALUE: Record<string, MemoryLayer | undefined> = {
+  L1: "L1",
+  L2: "L2",
+  L3: "L3",
+  L4: "L4",
+  L5: "L5",
+};
+
+/** Camada do candidato: o tipo do contrato já é fechado, mas o valor pode vir
+ * de um payload — camada fora do vocabulário é erro do chamador (o CHECK do
+ * banco é a segunda barreira, não a primeira). */
+function resolveLayer(value: MemoryLayer | undefined): MemoryLayer {
+  if (value === undefined) return DEFAULT_MEMORY_LAYER;
+  const layer = LAYER_BY_VALUE[value];
+  if (layer === undefined) {
+    throw new ApplicationError("VALIDATION_ERROR", {
+      message: `camada de memória inválida: ${String(value)}`,
+    });
+  }
+  return layer;
+}
+
+function asLayer(value: string): MemoryLayer {
+  const layer = LAYER_BY_VALUE[value];
+  if (layer === undefined) {
+    throw new ApplicationError("DATABASE_ERROR", {
+      message: `layer inválido persistido em ai_memories: ${value}`,
+    });
+  }
+  return layer;
+}
+
 function asSourceKind(value: string): MemorySourceKind {
   const kind = SOURCE_KIND_BY_VALUE[value];
   if (kind === undefined) {
@@ -197,12 +261,14 @@ function toRecord(row: MemoryRow, source: MemorySourceRow | undefined): MemoryRe
   return {
     id: row.id,
     scope: asScope(row.scope),
+    layer: asLayer(row.layer),
     content: row.content,
     provenance: source ? toProvenance(source) : undefined,
     importance: row.importance,
     status: asStatus(row.status),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    expiresAt: row.expiresAt,
   };
 }
 
@@ -297,6 +363,141 @@ async function insertSource(
   return source;
 }
 
+/** TTL da camada lido de `ai_memory_policies` (§15.1/L5, SD-D4-A): a **maior
+ * versão** por camada decide. Nenhum TTL vive em constante de código nem em SQL
+ * — o valor é a linha. Camada sem política publicada falha alto: um append sem
+ * TTL conhecido seria retenção indefinida silenciosa (INV-013). */
+async function resolveLayerTtlSeconds(
+  tx: DatabaseTransaction,
+  layer: MemoryLayer,
+): Promise<number | null> {
+  const policies = await tx
+    .select({ ttlSeconds: aiMemoryPolicies.ttlSeconds })
+    .from(aiMemoryPolicies)
+    .where(eq(aiMemoryPolicies.layer, layer))
+    .orderBy(desc(aiMemoryPolicies.version))
+    .limit(1);
+  const policy = policies[0];
+  if (!policy) {
+    throw new ApplicationError("INTERNAL_ERROR", {
+      message: `camada ${layer} sem política de retenção publicada em ai_memory_policies`,
+    });
+  }
+  return policy.ttlSeconds;
+}
+
+/** Grava a linha de auditoria (§15.4/D4) na MESMA transação da operação: sem o
+ * log a operação não commita, então não existe acesso/delete/export sem
+ * rastro. O log não guarda `content` nem o texto da consulta. */
+async function insertAccessLog(
+  tx: DatabaseTransaction,
+  context: RequestContext,
+  entry: {
+    action: MemoryAccessAction;
+    result: MemoryAccessResult;
+    memoryId: string | null;
+    rowCount: number;
+  },
+): Promise<void> {
+  await tx.insert(aiMemoryAccessLog).values({
+    tenantId: context.tenantId,
+    userId: context.userId,
+    action: entry.action,
+    memoryId: entry.memoryId,
+    result: entry.result,
+    rowCount: entry.rowCount,
+  });
+}
+
+/** Todas as fontes por memória (`captured_at` asc, `id` asc) — a exportação
+ * carrega a proveniência **inteira**, não só a primária do read model. */
+async function allSourcesFor(
+  tx: DatabaseTransaction,
+  tenantId: string,
+  memoryIds: readonly string[],
+): Promise<Map<string, MemorySourceRow[]>> {
+  const grouped = new Map<string, MemorySourceRow[]>();
+  if (memoryIds.length === 0) return grouped;
+  const sources = await tx
+    .select()
+    .from(aiMemorySources)
+    .where(
+      and(
+        eq(aiMemorySources.tenantId, tenantId),
+        inArray(aiMemorySources.memoryId, [...memoryIds]),
+      ),
+    )
+    .orderBy(asc(aiMemorySources.capturedAt), asc(aiMemorySources.id));
+  for (const source of sources) {
+    const bucket = grouped.get(source.memoryId);
+    if (bucket) bucket.push(source);
+    else grouped.set(source.memoryId, [source]);
+  }
+  return grouped;
+}
+
+/** Histórico por memória, em ordem de `version` (mesma leitura de
+ * `listVersions`, sem o `superseded` derivado que a exportação não usa). */
+async function versionsFor(
+  tx: DatabaseTransaction,
+  tenantId: string,
+  memoryIds: readonly string[],
+): Promise<Map<string, MemoryVersionRow[]>> {
+  const grouped = new Map<string, MemoryVersionRow[]>();
+  if (memoryIds.length === 0) return grouped;
+  const rows = await tx
+    .select()
+    .from(aiMemoryVersions)
+    .where(
+      and(
+        eq(aiMemoryVersions.tenantId, tenantId),
+        inArray(aiMemoryVersions.memoryId, [...memoryIds]),
+      ),
+    )
+    .orderBy(asc(aiMemoryVersions.version), asc(aiMemoryVersions.id));
+  for (const row of rows) {
+    const bucket = grouped.get(row.memoryId);
+    if (bucket) bucket.push(row);
+    else grouped.set(row.memoryId, [row]);
+  }
+  return grouped;
+}
+
+function toVersionRecord(row: MemoryVersionRow, latestVersion: number): MemoryVersionRecord {
+  return {
+    id: row.id,
+    memoryId: row.memoryId,
+    version: row.version,
+    content: row.content,
+    dedupKey: row.dedupKey,
+    createdAt: row.createdAt,
+    superseded: row.version < latestVersion,
+  };
+}
+
+function toAccessLogEntry(row: MemoryAccessLogRow): MemoryAccessLogEntry {
+  return {
+    id: row.id,
+    userId: row.userId,
+    action: row.action as MemoryAccessAction,
+    memoryId: row.memoryId,
+    result: row.result as MemoryAccessResult,
+    rowCount: row.rowCount,
+    createdAt: row.createdAt,
+  };
+}
+
+/** Guarda de sanidade do read model do log (mesma forma de `resolveLimit`). */
+function resolveAccessLogLimit(requested: number | undefined): number {
+  if (requested === undefined) return DEFAULT_ACCESS_LOG_LIMIT;
+  if (!Number.isInteger(requested) || requested < 1) {
+    throw new ApplicationError("VALIDATION_ERROR", {
+      message: `limite de auditoria inválido: ${requested}`,
+    });
+  }
+  return Math.min(requested, MAX_ACCESS_LOG_LIMIT);
+}
+
 /** Violação de unicidade do Postgres (SQLSTATE `23505`). O Drizzle embrulha o
  * erro do driver (`DrizzleQueryError`), então o SQLSTATE tem de ser buscado na
  * cadeia de causas — mesma técnica de `scripts/db/test-memory.ts`. */
@@ -340,14 +541,22 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
       conversationId: input.provenance?.conversationId ?? null,
     });
 
+    // TTL por camada (§23.2/H-12): o valor vem da policy versionada, e o fim da
+    // validade é calculado no relógio do BANCO (`now()`), não no do processo —
+    // `created_at` e `expires_at` ficam na mesma escala de tempo.
+    const layer = resolveLayer(input.layer);
+    const ttlSeconds = await resolveLayerTtlSeconds(tx, layer);
+
     const inserted = await tx
       .insert(aiMemories)
       .values({
         tenantId: context.tenantId,
         userId: context.userId,
         scope: input.scope,
+        layer,
         content: input.content,
         dedupKey,
+        expiresAt: ttlSeconds === null ? null : sql`now() + make_interval(secs => ${ttlSeconds})`,
         importance: input.importance ?? 0,
         confidence: input.provenance?.confidence ?? null,
       })
@@ -622,10 +831,16 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
   }
 
   /**
-   * Retrieval do tenant corrente: só `active`, com o filtro textual aplicado por
-   * substring parametrizada (`position(lower($n) in lower(content))`), sem
-   * wildcard interpretável e sem concatenação de SQL. Ordenação determinística
-   * por (`created_at` desc, `id`) — a composição de score §15.7 é D6.
+   * Retrieval do tenant corrente: só `active` **e dentro da validade**
+   * (`expires_at` nulo ou futuro — defesa em profundidade enquanto o expirador
+   * não rodou), com o filtro textual aplicado por substring parametrizada
+   * (`position(lower($n) in lower(content))`), sem wildcard interpretável e sem
+   * concatenação de SQL. Ordenação determinística por (`created_at` desc, `id`)
+   * — a composição de score §15.7 é D6.
+   *
+   * Toda busca grava a linha de auditoria `access` (mesmo com 0 resultados:
+   * "acesso sem resultado" também é auditável), na MESMA transação — um log que
+   * não grava derruba a busca inteira (INV-013).
    */
   async search(
     context: RequestContext,
@@ -644,6 +859,7 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
         and(
           eq(aiMemories.tenantId, context.tenantId),
           eq(aiMemories.status, "active"),
+          or(isNull(aiMemories.expiresAt), gt(aiMemories.expiresAt, sql`now()`)),
           scopes.length > 0 ? inArray(aiMemories.scope, [...scopes]) : undefined,
           text === ""
             ? undefined
@@ -652,6 +868,13 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
       )
       .orderBy(desc(aiMemories.createdAt), asc(aiMemories.id))
       .limit(limit);
+
+    await insertAccessLog(tx, context, {
+      action: "access",
+      result: "allowed",
+      memoryId: null,
+      rowCount: rows.length,
+    });
     if (rows.length === 0) return [];
 
     const primary = await primarySourcesFor(
@@ -677,9 +900,18 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
    * Com `purgeHistory: true` as versões e os conflitos caem explicitamente antes
    * da memória, na MESMA transação (as fontes pela cascata da memória, que é o
    * único caminho possível: `app_runtime` não tem `DELETE` em
-   * `ai_memory_sources`). O expurgo é o caminho LGPD (§48) e exige executor com
-   * privilégio de `DELETE` em `ai_memory_versions` — a role de aplicação não o
-   * tem, por desenho (T7 do `test-memory.ts`).
+   * `ai_memory_sources`). O expurgo é o caminho LGPD (§48) e roda **sob a role
+   * de aplicação** desde a 0019 (SD-C3-12 concedeu `DELETE` em
+   * `ai_memory_versions`/`ai_memory_conflicts`; a reescrita da história segue
+   * negada porque o `UPDATE` continua fora do grant).
+   *
+   * Autorização por escopo (§43/D4, aceite e): memória `scope='user'` só é
+   * apagável pelo próprio autor ou por owner/admin do tenant — a checagem é de
+   * aplicação **e** o predicado do `DELETE` repete a condição, então nem um
+   * caminho alternativo apaga memória pessoal de terceiro dentro do tenant.
+   *
+   * Todo delete — inclusive os recusados — grava a linha de auditoria `delete`
+   * com o resultado (`allowed`/`not_found`/`refused`) e o alvo.
    */
   async delete(
     context: RequestContext,
@@ -688,6 +920,42 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
     executor: Executor = context.transaction,
   ): Promise<boolean> {
     const tx = executor as DatabaseTransaction;
+    const found = await tx
+      .select({ id: aiMemories.id, scope: aiMemories.scope, userId: aiMemories.userId })
+      .from(aiMemories)
+      .where(and(eq(aiMemories.tenantId, context.tenantId), eq(aiMemories.id, id)))
+      .limit(1);
+    const target = found[0];
+    if (!target) {
+      await insertAccessLog(tx, context, {
+        action: "delete",
+        result: "not_found",
+        memoryId: id,
+        rowCount: 0,
+      });
+      return false;
+    }
+
+    // Autorização por escopo (§43/D4, aceite e): memória `scope='user'` de outro
+    // autor só cai por quem tem `has_tenant_owner_access` — o MESMO predicado do
+    // banco que o `DELETE` repete na cláusula, então não existe janela entre a
+    // checagem (que produz a linha de auditoria) e a remoção.
+    const foreignPersonalMemory = target.scope === "user" && target.userId !== context.userId;
+    if (foreignPersonalMemory) {
+      const ownerAccess = await tx.execute<{ owner: boolean }>(
+        sql`select app_private.has_tenant_owner_access(${context.tenantId}::uuid) as owner`,
+      );
+      if (ownerAccess.rows[0]?.owner !== true) {
+        await insertAccessLog(tx, context, {
+          action: "delete",
+          result: "refused",
+          memoryId: id,
+          rowCount: 0,
+        });
+        return false;
+      }
+    }
+
     if (options.purgeHistory) {
       await tx
         .delete(aiMemoryConflicts)
@@ -707,7 +975,15 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
           and(eq(aiMemoryVersions.tenantId, context.tenantId), eq(aiMemoryVersions.memoryId, id)),
         )
         .limit(1);
-      if (history.length > 0) return false;
+      if (history.length > 0) {
+        await insertAccessLog(tx, context, {
+          action: "delete",
+          result: "refused",
+          memoryId: id,
+          rowCount: 0,
+        });
+        return false;
+      }
       const conflicts = await tx
         .select({ one: sql<number>`1` })
         .from(aiMemoryConflicts)
@@ -715,14 +991,168 @@ export class DrizzleMemoryRepository implements MemoryRepositoryPort {
           and(eq(aiMemoryConflicts.tenantId, context.tenantId), eq(aiMemoryConflicts.memoryId, id)),
         )
         .limit(1);
-      if (conflicts.length > 0) return false;
+      if (conflicts.length > 0) {
+        await insertAccessLog(tx, context, {
+          action: "delete",
+          result: "refused",
+          memoryId: id,
+          rowCount: 0,
+        });
+        return false;
+      }
     }
 
     const deleted = await tx
       .delete(aiMemories)
-      .where(and(eq(aiMemories.tenantId, context.tenantId), eq(aiMemories.id, id)))
+      .where(
+        and(
+          eq(aiMemories.tenantId, context.tenantId),
+          eq(aiMemories.id, id),
+          // O predicado repete a autorização por escopo: a checagem acima é a
+          // mensagem de auditoria, esta linha é o que o banco executa.
+          or(
+            ne(aiMemories.scope, "user"),
+            eq(aiMemories.userId, context.userId),
+            sql`app_private.has_tenant_owner_access(${context.tenantId}::uuid)`,
+          ),
+        ),
+      )
       .returning({ id: aiMemories.id });
+    await insertAccessLog(tx, context, {
+      action: "delete",
+      result: "allowed",
+      memoryId: id,
+      rowCount: deleted.length,
+    });
     return deleted.length === 1;
+  }
+
+  /**
+   * Portabilidade (§43/D4, H-12 critério 4): devolve **todo** o conjunto do
+   * tenant do contexto — todas as camadas e todos os estados — com as fontes
+   * (proveniência inteira) e o histórico de versões de cada memória. Nenhuma
+   * linha de outro tenant entra no pacote: o predicado de `tenant_id` é
+   * explícito em todas as consultas e a RLS é a segunda barreira (INV-008).
+   *
+   * Sem `has_tenant_access` a exportação **falha alto** em vez de devolver
+   * pacote vazio: uma identidade sem vínculo com o tenant não pode receber
+   * "sucesso" com zero memórias (INV-013), e a checagem roda **antes** de
+   * qualquer consulta de dado. A linha de auditoria `export` acompanha a
+   * operação, com o número de memórias do pacote.
+   */
+  async export(
+    context: RequestContext,
+    filter: MemoryExportFilter = {},
+    executor: Executor = context.transaction,
+  ): Promise<MemoryExportBundle> {
+    const tx = executor as DatabaseTransaction;
+    const access = await tx.execute<{ allowed: boolean }>(
+      sql`select app_private.has_tenant_access(${context.tenantId}::uuid) as allowed`,
+    );
+    if (access.rows[0]?.allowed !== true) {
+      throw new ApplicationError("AUTHORIZATION_ERROR", {
+        message: `exportação negada: a identidade ${context.userId} não tem acesso ao tenant ${context.tenantId}`,
+      });
+    }
+
+    const scopes = filter.scopes ?? [];
+    const layers = filter.layers ?? [];
+    const rows = await tx
+      .select()
+      .from(aiMemories)
+      .where(
+        and(
+          eq(aiMemories.tenantId, context.tenantId),
+          scopes.length > 0 ? inArray(aiMemories.scope, [...scopes]) : undefined,
+          layers.length > 0 ? inArray(aiMemories.layer, [...layers]) : undefined,
+        ),
+      )
+      .orderBy(asc(aiMemories.createdAt), asc(aiMemories.id));
+
+    const memoryIds = rows.map((row) => row.id);
+    const [sources, versions, primary] = await Promise.all([
+      allSourcesFor(tx, context.tenantId, memoryIds),
+      versionsFor(tx, context.tenantId, memoryIds),
+      primarySourcesFor(tx, context.tenantId, memoryIds),
+    ]);
+
+    const memories: MemoryExportMemory[] = rows.map((row) => {
+      const history = versions.get(row.id) ?? [];
+      const latestVersion = history.reduce((max, version) => Math.max(max, version.version), 0);
+      return {
+        record: toRecord(row, primary.get(row.id)),
+        sources: (sources.get(row.id) ?? []).map(toProvenance),
+        versions: history.map((version) => toVersionRecord(version, latestVersion)),
+      };
+    });
+
+    await insertAccessLog(tx, context, {
+      action: "export",
+      result: "allowed",
+      memoryId: null,
+      rowCount: memories.length,
+    });
+    return { tenantId: context.tenantId, memories };
+  }
+
+  /**
+   * Expirador do TTL (§23.2/H-12): passa a `expired` as memórias **ativas** do
+   * tenant corrente cujo `expires_at` venceu, devolvendo os ids afetados.
+   *
+   * Idempotente por construção: a segunda passada não encontra mais
+   * `status='active'` vencida e devolve `[]`. Falha do banco **sobe** como erro
+   * — nada de `try/catch` transformando erro em "0 expiradas" (INV-013). Não há
+   * `DELETE`: expirar é transição de estado, e a linha permanece auditável e
+   * exportável; a eliminação física é o `delete`/`purgeHistory`.
+   */
+  async expireDue(
+    context: RequestContext,
+    executor: Executor = context.transaction,
+  ): Promise<readonly string[]> {
+    const tx = executor as DatabaseTransaction;
+    const expired = await tx
+      .update(aiMemories)
+      .set({ status: "expired", updatedAt: sql`now()` })
+      .where(
+        and(
+          eq(aiMemories.tenantId, context.tenantId),
+          eq(aiMemories.status, "active"),
+          isNotNull(aiMemories.expiresAt),
+          lte(aiMemories.expiresAt, sql`now()`),
+        ),
+      )
+      .returning({ id: aiMemories.id });
+    return expired.map((row) => row.id);
+  }
+
+  /**
+   * Read model da trilha de auditoria (§15.4/D4), do mais recente para o mais
+   * antigo, sempre com o predicado de tenant (RLS como segunda barreira). O log
+   * é append-only por privilégio: este é o único caminho de leitura da
+   * aplicação, e ele não expõe `content` porque a tabela não o tem.
+   */
+  async listAccessLog(
+    context: RequestContext,
+    filter: MemoryAccessLogFilter = {},
+    executor: Executor = context.transaction,
+  ): Promise<readonly MemoryAccessLogEntry[]> {
+    const tx = executor as DatabaseTransaction;
+    const limit = resolveAccessLogLimit(filter.limit);
+    const rows = await tx
+      .select()
+      .from(aiMemoryAccessLog)
+      .where(
+        and(
+          eq(aiMemoryAccessLog.tenantId, context.tenantId),
+          filter.action === undefined ? undefined : eq(aiMemoryAccessLog.action, filter.action),
+          filter.memoryId === undefined
+            ? undefined
+            : eq(aiMemoryAccessLog.memoryId, filter.memoryId),
+        ),
+      )
+      .orderBy(desc(aiMemoryAccessLog.createdAt), asc(aiMemoryAccessLog.id))
+      .limit(limit);
+    return rows.map(toAccessLogEntry);
   }
 }
 

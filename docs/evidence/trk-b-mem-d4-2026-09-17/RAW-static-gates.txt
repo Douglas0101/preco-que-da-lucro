@@ -1,0 +1,7 @@
+$ npx tsc --noEmit
+EXIT=0
+
+$ npx prettier --check .
+Checking formatting...
+All matched files use Prettier code style!
+EXIT=0

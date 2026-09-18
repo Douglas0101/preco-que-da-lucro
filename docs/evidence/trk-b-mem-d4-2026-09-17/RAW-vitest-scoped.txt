@@ -1,0 +1,10 @@
+$ npx vitest run src/test/memory-policy.test.ts src/test/memory-service.test.ts src/test/memory-import-graph.test.ts src/test/memory-dedup.test.ts src/test/migration-classes.test.ts src/test/m02-purge-fixtures.test.ts
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-trk-b
+
+
+ Test Files  6 passed (6)
+      Tests  74 passed (74)
+   Start at  23:42:23
+   Duration  3.37s (transform 453ms, setup 898ms, import 1.54s, tests 635ms, environment 5.32s)
+
+EXIT=0

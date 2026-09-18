@@ -7,6 +7,8 @@ DROP SCHEMA IF EXISTS drizzle CASCADE;
 DROP TABLE IF EXISTS ai_usage CASCADE;
 
 DROP TABLE IF EXISTS
+  ai_memory_access_log,
+  ai_memory_policies,
   ai_memory_conflicts,
   ai_memory_versions,
   ai_memory_sources,

@@ -330,4 +330,25 @@ export const migrationClasses: readonly MigrationClassEntry[] = [
     rollback: "drizzle/rollback/0018_to_0017_down.sql",
     appliedOn: "empty",
   },
+  {
+    tag: "0019_tiresome_robin_chapel",
+    class: "ONLINE_WITH_CARE",
+    rationale:
+      "Degrau D4 (§43/§15.4 + H-12): cria ai_memory_access_log e ai_memory_policies, adiciona ai_memories.layer NOT NULL DEFAULT 'L2' + expires_at, troca o CHECK de status para incluir 'expired' (vocabulário do Apêndice C), concede DELETE a app_runtime em ai_memory_versions/ai_memory_conflicts (SD-C3-12) e semeia as 5 políticas de retenção versionadas (§H-12 opção A).",
+    evidence: [
+      "drizzle/0019_tiresome_robin_chapel.sql",
+      "drizzle/rollback/0019_to_0018_down.sql",
+      "scripts/db/test-memory.ts (D4/T1 export por tenant com fontes+versões e AUTHORIZATION_ERROR sem has_tenant_access, D4/T2 auditoria do access log + autorização por escopo, D4/T3 TTL por camada com expiração idempotente, D4/T4 migration com dados (up→down→up da 0019), D4/T5 classificação, D4/T6 grants/RLS do log e das policies + DELETE do expurgo)",
+      "src/db/schema.ts (aiMemoryAccessLog/aiMemoryPolicies + ai_memories.layer/expiresAt)",
+      "docs/evidence/agent-state/DECISIONS-PENDING/H-12.md (TTL L1–L5 aprovado + escopo do export)",
+      "docs/evidence/agent-state/SPEC-DELTAS/DECISOES-STEWARD-CICLO-3-POS-E1.md (SD-C3-12)",
+      "docs/evidence/trk-b-mem-d4-2026-09-17/",
+    ],
+    sha256: "9d81a7857157191a289b41d798684631434504ebde3e09f30711f83aeb44d663",
+    idempotent: true,
+    rollback: "drizzle/rollback/0019_to_0018_down.sql",
+    appliedOn: "empty",
+    onlineCare:
+      "Aplicar fora do pico: os dois ALTER TABLE de ai_memories pegam ACCESS EXCLUSIVE breve (o ADD COLUMN com default constante é metadata-only no PG17, mas a validação do CHECK de status e do CHECK de layer escaneia a tabela) e o seed de políticas é INSERT idempotente de 5 linhas. A tabela de memória não tem escritor em produção (feature não exposta), então o escaneamento incide sobre 0 linhas; o down é executável com dados (coluna com default + seed idempotente).",
+  },
 ];
