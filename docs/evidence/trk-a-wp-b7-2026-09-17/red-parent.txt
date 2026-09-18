@@ -1,0 +1,97 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-trk-a
+
+ ❯ src/test/break-even.negative-margin.test.tsx (15 tests | 5 failed) 332ms
+     × margem negativa: status calculado é unreachable 13ms
+     × margem negativa não é classificada como INVALID_DECIMAL 2ms
+     × margem percentual negativa não suprime a classificação (mesmo estado, sem fabricar zero) 1ms
+     × margem negativa: mesma classificação pelo preço/custo e pela margem crua 2ms
+     × margem negativa: /ponto-equilibrio e /diagnostico concordam 144ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/break-even.negative-margin.test.tsx > WP-B7 · motor compartilhado: margem não positiva é estado, não entrada inválida > margem negativa: status calculado é unreachable
+AssertionError: expected 'invalid' to be 'unreachable' // Object.is equality
+
+Expected: "unreachable"
+Received: "invalid"
+
+ ❯ src/test/break-even.negative-margin.test.tsx:321:29
+    319|       const result = summaryFor(edge);
+    320|
+    321|       expect(result.status).toBe(edge.expected);
+       |                             ^
+    322|       expect(result.units.status).toBe(edge.expected);
+    323|       // A entrada foi aceita: o guard não a rejeita como decimal invá…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/test/break-even.negative-margin.test.tsx > WP-B7 · motor compartilhado: margem não positiva é estado, não entrada inválida > margem negativa não é classificada como INVALID_DECIMAL
+AssertionError: expected 'invalid' not to be 'invalid' // Object.is equality
+ ❯ src/test/break-even.negative-margin.test.tsx:340:31
+    338|     const result = summaryFor(EDGES[0]);
+    339|
+    340|     expect(result.status).not.toBe("invalid");
+       |                               ^
+    341|     expect(JSON.stringify(result)).not.toContain("INVALID_DECIMAL");
+    342|     expect(JSON.stringify(result)).not.toContain("contributionMargin");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/test/break-even.negative-margin.test.tsx > WP-B7 · motor compartilhado: margem não positiva é estado, não entrada inválida > margem percentual negativa não suprime a classificação (mesmo estado, sem fabricar zero)
+AssertionError: expected 'invalid' to be 'unreachable' // Object.is equality
+
+Expected: "unreachable"
+Received: "invalid"
+
+ ❯ src/test/break-even.negative-margin.test.tsx:355:27
+    353|     });
+    354|
+    355|     expect(result.status).toBe("unreachable");
+       |                           ^
+    356|     expect(result.revenue).toBeNull();
+    357|     expect(result.units.rawUnits).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/test/break-even.negative-margin.test.tsx > WP-B7 · concordância dos dois motores (break-even.ts × finance.ts) > margem negativa: mesma classificação pelo preço/custo e pela margem crua
+AssertionError: expected 'invalid' to be 'unreachable' // Object.is equality
+
+Expected: "unreachable"
+Received: "invalid"
+
+ ❯ src/test/break-even.negative-margin.test.tsx:382:29
+    380|       const numericEngine = calculateBreakEvenUnits(1000, derivedMargi…
+    381|
+    382|       expect(decimalEngine).toBe(edge.expected);
+       |                             ^
+    383|       expect(numericEngine).toBe(edge.expected);
+    384|       expect(decimalEngine).toBe(numericEngine);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/test/break-even.negative-margin.test.tsx > WP-B7 · as duas superfícies exibem a mesma classificação > margem negativa: /ponto-equilibrio e /diagnostico concordam
+AssertionError: expected [ <div …(1)></div> ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/test/break-even.negative-margin.test.tsx:445:57
+    443|         // O rótulo exato do motor — o texto explicativo estático ("..…
+    444|         // como Não atingível") não conta: só o VALOR calculado é medi…
+    445|         expect(scope.queryAllByText("Erro de cálculo")).toHaveLength(0…
+       |                                                         ^
+    446|         if (unreachable) {
+    447|           expect(scope.getAllByText("Não atingível").length).toBeGreat…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 10 passed (15)
+   Start at  23:26:24
+   Duration  3.94s (transform 618ms, setup 192ms, import 2.22s, tests 332ms, environment 1.03s)
+

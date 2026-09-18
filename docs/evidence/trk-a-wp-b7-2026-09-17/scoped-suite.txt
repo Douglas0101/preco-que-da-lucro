@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-trk-a
+
+
+ Test Files  7 passed (7)
+      Tests  180 passed (180)
+   Start at  23:27:10
+   Duration  5.54s (transform 1.30s, setup 1.12s, import 5.58s, tests 629ms, environment 6.80s)
+
