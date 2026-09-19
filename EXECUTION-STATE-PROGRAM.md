@@ -1787,3 +1787,7 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Estado do ciclo 6:** nenhum commit, nenhuma claim; os 4 branches `mission/n7*` estão na base `de8c232`. **Não se afirma** que os worktrees morreram: `/tmp` é tmpfs vazio nesta sessão e o veredito `prunable` do git é artefato do sandbox.
 
   Latest state marker parent = `0350a9a2bde0970e8e82d4230c7adf72165f33d3`,
+
+- **Stream D — briefings de decisão humana preparados** (`docs/evidence/human-decisions-2026-09-19/`): **D1 H-4** (a decisão de billing/risco que trava o dia-D e os 263 commits — com a **correção de premissa declarada**: o PR `develop → main` exige **CI verde** pelo ADR-017 §19/§21, não o §42; o requisito de PITR ≥ 7 d vem do **SDD §16.6**, não do §42), **D2 H-6** (detecção bloqueada por Cloudflare Turnstile; ação humana de ~2 min com prazo ≈ 2026-09-21T03:37Z) e **D3** (consolidado da fila: H-5/H-9/H-2/H-8/H-11 + as ratificações pendentes `F-B-mem-policies`, `SD-C3-12`). **Nenhuma decisão foi tomada pelo MAESTRO** — billing e assinaturas são atos humanos.
+
+  Latest state marker parent = `0d71283c2751f35929c2d8baae36810e6ec5529f`,
