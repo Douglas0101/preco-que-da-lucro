@@ -19,39 +19,15 @@ import ts from "typescript";
  *    ocorrência lexical, o alias contribui com **uma entrada por referência de
  *    valor a `tx`** no seu escopo léxico — ou seja, por instrução que roda
  *    dentro da transação. Alias sem referência contribui com 0 entradas (não
- *    executa instrução alguma).
- *    - Referência em **posição de tipo** não conta: `typeof tx` é asserção de
- *      tipo, não leitura de valor. A cláusula 1 vale para a referência ao
- *      *alias*, não apenas para o handle.
- *      **Limite declarado:** o mesmo teste descarta `class A extends tx {}`,
- *      cuja leitura é de runtime (o nó `ExpressionWithTypeArguments` é `TypeNode`
- *      no AST). O handle sempre foi descartado pelo mesmo motivo, então o
- *      comportamento é consistente — mas é um falso negativo, não uma virtude.
- *    - **Sombreamento é respeitado** para as ligações que este scanner modela:
- *      um bloco que declara `tx` no próprio escopo poda a subárvore **inteira**
- *      — `const`/`let`/`class` por TDZ (a sombra vale inclusive para as
- *      referências escritas **antes** da sombreadora), `function` por hoisting.
- *      Parâmetro, `catch`, cabeçalho de `for`, `import` e declaração homônima de
- *      função/classe sombreiam a subárvore em que aparecem.
- *    - **Limites declarados do modelo de escopo** — medidos ausentes da árvore
- *      hoje, deliberadamente **fora** desta correção e candidatos a WP próprio:
- *      (i) `var` é *function-scoped* na linguagem e o scanner o trata como
- *      escopado ao bloco mais próximo, então um `var tx` em bloco aninhado perde
- *      as referências fora do bloco e não sombreia o alias externo lá fora;
- *      (ii) o nome de um **método ou campo de classe** homônimo poda a subárvore
- *      como se fosse ligação de valor, embora não ligue o nome no corpo;
- *      (iii) um `namespace` não delimita escopo aqui. Nenhum destes é coberto
- *      por teste hoje.
+ *    executa instrução alguma). Sombreamento por nome homônimo é respeitado.
  * 3. `src/test/**` é código de teste, não caminho de runtime: fica fora da
  *    varredura (o gerador enumera `src/**`).
  * 4. A classificação deixa de ser prefixo de caminho puro: o *shape* do site é
  *    evidência de runtime e tem precedência, e um arquivo só-tipo (sem instrução
  *    de valor) não produz site nenhum, logo não recebe rótulo de runtime.
  *    - `executor-fallback`: o handle só preenche o executor padrão de um
- *      parâmetro (`executor: Executor = context.transaction`) ou o **lado
- *      direito** de `??`, `||`, `??=` ou `||=`; não abre transação, herda a do
- *      chamador. À **esquerda** o handle é o primário, não o default, e o site
- *      não é fallback.
+ *      parâmetro (`executor: Executor = context.transaction`) ou o lado direito
+ *      de `??`/`||`; não abre transação, herda a do chamador.
  *    - `auth-allowlist`: módulo no prefixo que `scripts/m02-boundaries.ts`
  *      permite direto (`src/server/auth/**`).
  *    - `repository-fallback`: módulo de repositório consumindo o handle do
@@ -121,31 +97,15 @@ function inTypePosition(node: ts.Node): boolean {
   return false;
 }
 
-/** Operadores cujo **lado direito** é o fallback do executor. */
-const FALLBACK_OPERATORS: ReadonlySet<ts.SyntaxKind> = new Set([
-  ts.SyntaxKind.QuestionQuestionToken,
-  ts.SyntaxKind.BarBarToken,
-  ts.SyntaxKind.QuestionQuestionEqualsToken,
-  ts.SyntaxKind.BarBarEqualsToken,
-]);
-
-/** `true` quando `node` está na subárvore de `ancestor`. */
-function isWithin(ancestor: ts.Node, node: ts.Node): boolean {
-  let current: ts.Node | undefined = node;
-  while (current) {
-    if (current === ancestor) return true;
-    current = current.parent;
-  }
-  return false;
-}
-
-function siteShape(host: ts.Node, handle: ts.Node): TransactionSiteShape {
+function siteShape(host: ts.Node): TransactionSiteShape {
   if (ts.isVariableDeclaration(host) && ts.isIdentifier(host.name)) return "binding-alias";
   if (ts.isParameter(host)) return "executor-fallback";
-  if (ts.isBinaryExpression(host) && FALLBACK_OPERATORS.has(host.operatorToken.kind)) {
-    // Só o lado DIREITO é fallback. À esquerda o handle é o primário: rotulá-lo
-    // de fallback inverteria a leitura de quem paga a transação.
-    return isWithin(host.right, handle) ? "executor-fallback" : "direct-use";
+  if (
+    ts.isBinaryExpression(host) &&
+    (host.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken ||
+      host.operatorToken.kind === ts.SyntaxKind.BarBarToken)
+  ) {
+    return "executor-fallback";
   }
   return "direct-use";
 }
@@ -203,11 +163,6 @@ function declaredParameters(node: ts.Node): readonly ts.ParameterDeclaration[] {
  * alvo em toda a sua subárvore (parâmetro, variável, função, classe, `catch`,
  * import).
  */
-/** `true` quando alguma declaração da lista liga `name`. */
-function declarationListDeclaresName(list: ts.VariableDeclarationList, name: string): boolean {
-  return list.declarations.some((declaration) => bindingNames(declaration.name).includes(name));
-}
-
 function declaresName(node: ts.Node, name: string): boolean {
   if (ts.isImportDeclaration(node) || ts.isImportEqualsDeclaration(node)) return true;
   if (declaredName(node) === name) return true;
@@ -217,15 +172,6 @@ function declaresName(node: ts.Node, name: string): boolean {
   if (ts.isVariableDeclaration(node) && bindingNames(node.name).includes(name)) return true;
   if (ts.isCatchClause(node) && node.variableDeclaration) {
     return bindingNames(node.variableDeclaration.name).includes(name);
-  }
-  // `for (const tx of …)`: o cabeçalho é o escopo do laço, então sombreia o
-  // corpo e o próprio cabeçalho — podar a subárvore inteira do `for` é correto.
-  const loopInitializer: ts.Node | undefined =
-    ts.isForStatement(node) || ts.isForInStatement(node) || ts.isForOfStatement(node)
-      ? node.initializer
-      : undefined;
-  if (loopInitializer && ts.isVariableDeclarationList(loopInitializer)) {
-    return declarationListDeclaresName(loopInitializer, name);
   }
   return false;
 }
@@ -237,101 +183,17 @@ function isValueReference(node: ts.Identifier, name: string): boolean {
   if (ts.isPropertyAccessExpression(parent) && parent.name === node) return false;
   if (ts.isQualifiedName(parent) && parent.right === node) return false;
   if (ts.isPropertyAssignment(parent) && parent.name === node) return false;
-  // Posição de tipo não é leitura de valor: `type H = typeof tx` não executa
-  // instrução alguma. A cláusula vale para a referência ao alias, não só para o
-  // handle (que já é filtrado em `sitesForModule`).
-  if (inTypePosition(node)) return false;
   return true;
 }
 
-/**
- * O bloco mais próximo delimita o alias. Vale para **todas** as declarações que
- * este scanner reconhece, inclusive `var` — que é *function-scoped* na
- * linguagem e portanto um limite declarado do modelo (ver o cabeçalho).
- */
+/** `const` é escopado pelo bloco: o bloco mais próximo é o limite do alias. */
 function enclosingScope(node: ts.Node): ts.Node {
   let current: ts.Node | undefined = node.parent;
   while (current) {
-    if (
-      ts.isSourceFile(current) ||
-      ts.isBlock(current) ||
-      ts.isModuleBlock(current) ||
-      ts.isCaseBlock(current)
-    ) {
-      return current;
-    }
+    if (ts.isSourceFile(current) || ts.isBlock(current) || ts.isCaseBlock(current)) return current;
     current = current.parent;
   }
   return node.getSourceFile();
-}
-
-/** Contêineres cujo corpo é um escopo léxico com lista de instruções própria. */
-function isScopeContainer(node: ts.Node): boolean {
-  return (
-    ts.isSourceFile(node) || ts.isBlock(node) || ts.isModuleBlock(node) || ts.isCaseBlock(node)
-  );
-}
-
-function statementsOf(container: ts.Node): readonly ts.Statement[] | undefined {
-  if (ts.isSourceFile(container) || ts.isBlock(container) || ts.isModuleBlock(container)) {
-    return container.statements;
-  }
-  if (ts.isCaseBlock(container)) {
-    return container.clauses.flatMap((clause) => clause.statements);
-  }
-  return undefined;
-}
-
-/**
- * `true` quando a instrução introduz `name` **no escopo em que aparece**. Não
- * desce em blocos nem em corpos de função: esses são outros escopos.
- */
-function statementDeclaresName(statement: ts.Statement, name: string): boolean {
-  if (ts.isVariableStatement(statement)) {
-    return declarationListDeclaresName(statement.declarationList, name);
-  }
-  if (
-    (ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement)) &&
-    statement.name?.text === name
-  ) {
-    return true;
-  }
-  if (ts.isImportDeclaration(statement) || ts.isImportEqualsDeclaration(statement)) return true;
-  // Sem caso de `for` aqui: o cabeçalho de um laço escopa só o próprio laço, não
-  // o bloco em volta — quem poda a subárvore do laço é `declaresName`.
-  return false;
-}
-
-/**
- * `true` quando o escopo de `container` declara `name` **fora do próprio
- * alias** — logo o alias está sombreado em toda a subárvore de `container`.
- *
- * Podar a subárvore **inteira** (e não só o que vem depois da declaração
- * sombreadora) é o que a linguagem faz: `const`/`let`/`class` deixam o nome em
- * TDZ desde o topo do bloco e `function` sofre hoisting, então uma referência
- * escrita antes do sombreador também pertence ao sombreador.
- */
-function scopeShadowsName(
-  container: ts.Node,
-  name: string,
-  declaration: ts.VariableDeclaration,
-): boolean {
-  const statements = statementsOf(container);
-  if (!statements) return false;
-  for (const statement of statements) {
-    if (
-      ts.isVariableStatement(statement) &&
-      statement.declarationList.declarations.includes(declaration)
-    ) {
-      // O próprio alias não sombreia a si mesmo; um irmão do mesmo `const` sombrearia.
-      for (const sibling of statement.declarationList.declarations) {
-        if (sibling !== declaration && bindingNames(sibling.name).includes(name)) return true;
-      }
-      continue;
-    }
-    if (statementDeclaresName(statement, name)) return true;
-  }
-  return false;
 }
 
 /**
@@ -340,22 +202,9 @@ function scopeShadowsName(
  */
 function bindingReferences(declaration: ts.VariableDeclaration, name: string): ts.Identifier[] {
   const references: ts.Identifier[] = [];
-  // O caminho até o próprio alias nunca é podado. Sem esta guarda, um alias que
-  // nasce no cabeçalho de um `for` seria podado por `declaresName` (que
-  // reconhece o inicializador do laço) e perderia as suas próprias referências.
-  const lineage = new Set<ts.Node>();
-  for (let current: ts.Node | undefined = declaration; current; current = current.parent) {
-    lineage.add(current);
-  }
   const visit = (node: ts.Node): void => {
     if (node === declaration) return;
-    if (!lineage.has(node)) {
-      // 1. Sombra de escopo: o bloco declara o nome no próprio escopo, então
-      //    nada abaixo dele pertence ao alias externo.
-      if (isScopeContainer(node) && scopeShadowsName(node, name, declaration)) return;
-      // 2. Sombra local: parâmetro, `catch`, `for`, função/classe/import homônimo.
-      if (declaresName(node, name)) return;
-    }
+    if (declaresName(node, name)) return;
     if (ts.isIdentifier(node) && isValueReference(node, name)) references.push(node);
     ts.forEachChild(node, visit);
   };
@@ -399,7 +248,7 @@ function sitesForModule({ path, source }: TransactionSiteSource): TransactionSit
       const expression = handleBase(node);
       if (expression) {
         const host = unwrap(node).parent;
-        const shape = siteShape(host, node);
+        const shape = siteShape(host);
         if (
           shape === "binding-alias" &&
           ts.isVariableDeclaration(host) &&

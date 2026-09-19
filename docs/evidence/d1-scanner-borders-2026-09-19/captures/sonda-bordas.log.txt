@@ -1,0 +1,53 @@
+=== A. ARVORE REAL (src/**, sem src/test/**) ===
+arquivos varridos: 132
+scanner do PAI : 113 sites
+scanner CORRIGIDO: 113 sites
+so no pai      : 0
+so no corrigido: 0
+VEREDITO A: diff VAZIO -> correcao neutra em contagem
+
+=== B. BATERIA SINTETICA DAS BORDAS ===
+
+--- b1 sombreamento por bloco aninhado [DIVERGE] ---
+  pai:
+    L3 repository-fallback  context.transaction
+    L6 repository-fallback  context.transaction
+    L8 repository-fallback  context.transaction
+  corrigido:
+    L3 repository-fallback  context.transaction
+    L8 repository-fallback  context.transaction
+
+--- b2 sombreamento por cabecalho de for [DIVERGE] ---
+  pai:
+    L3 repository-fallback  context.transaction
+    L4 repository-fallback  context.transaction
+  corrigido:
+    L4 repository-fallback  context.transaction
+
+--- b3 referencia ao alias em posicao de tipo [DIVERGE] ---
+  pai:
+    L3 repository-fallback  context.transaction
+    L4 repository-fallback  context.transaction
+  corrigido:
+    L4 repository-fallback  context.transaction
+
+--- b4 handle a ESQUERDA da coalescencia [DIVERGE] ---
+  pai:
+    L2 repository-fallback  context.transaction
+  corrigido:
+    L2 auth-allowlist  context.transaction
+
+--- b5 handle a DIREITA da coalescencia (regressao) [igual] ---
+  pai:
+    L2 repository-fallback  context.transaction
+  corrigido:
+    L2 repository-fallback  context.transaction
+
+--- b6 operador de atribuicao (??=) [DIVERGE] ---
+  pai:
+    L2 compatibility-facade  context.transaction
+  corrigido:
+    L2 repository-fallback  context.transaction
+
+VEREDITO B: 5 de 6 casos divergem entre pai e corrigido
+SONDA OK: neutra na arvore E observavel na bateria

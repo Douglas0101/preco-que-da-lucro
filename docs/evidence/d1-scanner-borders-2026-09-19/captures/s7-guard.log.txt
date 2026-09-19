@@ -1,0 +1,38 @@
+== S7 GUARD do WP1 ==
+HEAD: 55b0090dd9d2deed2493208e0047e7af4998b0d6
+branch: mission/wp1-scanner-borders
+listeners na 5432 (H-9): 0
+containers efemeros deste WP: 0
+
+== arquivos tocados pela mudanca ==
+ M scripts/lib/m02-transaction-sites.ts
+ M src/test/m02-transaction-sites.test.ts
+?? docs/evidence/d1-scanner-borders-2026-09-19/
+
+== segredos adicionados no diff (tracked) ==
+linhas suspeitas no diff: 7
+
+== credenciais de producao no ambiente ==
+variaveis de credencial herdadas: 0
+
+== m02:secrets-audit ==
+SECRETS_EXIT=0
+        "docs/adr/archive/ADR-022-supabase-neon-migration-cutover.md",
+        "docs/runbooks/cutover-A4.md",
+        "docs/runbooks/decommission-origem.md",
+        "docs/runbooks/hostinger-cloud-node.md",
+        "docs/runbooks/migracao-supabase-neon.md",
+        "docs/specs/M-02/decisions/M02-D-008-G1-memo.md",
+        "docs/specs/M-02/decisions/M02-D-008.md",
+        "docs/specs/M-02/emenda-2026-09-07-env-guard.md",
+        "docs/specs/M-02/emenda-2026-09-08-urls-direct-pooled.md"
+      ],
+      "classification": "consumer"
+    }
+  ]
+}
+
+== o que a mudanca NAO toca ==
+scripts/lib/m02-transaction-sites.ts
+src/test/m02-transaction-sites.test.ts
+S7_EXIT=0
