@@ -1776,3 +1776,14 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Escopo desta errata:** somente documentos. Nenhum código de produto foi tocado; nada foi pushado.
 
   Latest state marker parent = `de8c23234b007dc9c45a22eb95934af4a6c84009`,
+
+---
+
+### Integridade documental + artefatos de reconciliação — 2026-09-19 (Streams A/B do prompt SDD)
+
+- **Stream A — commit `0350a9a`** ("docs(integrity): reconcile six stale registry entries and correct the F-C6-2 premise"). Seis registros contradiziam o próprio fato-fonte e foram reconciliados **depois** de re-derivar cada fato (nunca sincronizando dois registros suspeitos): `H-10` (fechado — push `8df3fe3..3c0f62c`, 215 commits, run `35237829581` 26/26 no tip `5d9169b3`), `H-12` (atendido — briefe `f3c56db` emitido em 2026-09-17, recomendação A implementada no MEM-D4 `6b38580`), data do `H-11` (16/09 → 15/09), D2 do relatório do enxame ("EM CURSO" → LANDADO, `31f2431`+`2107348`), `AGENTS.md` (13 → **15** suítes de `db:test`) e a camada §36–§40 (marcada **obsoleta** com os deltas provados). Gate: `npm run check` **exit 0** (9/9; grafo inicial **473.230 B**), `m02:*` exit 0, `secrets-audit` `failures: []`.
+- **Stream B — artefatos preparados, NÃO executados** (`docs/evidence/reconciliation-2026-09-19/`): `B1` runbook de reconciliação do ciclo 6 (exige host: `/tmp`, PIDs), `B2` re-arme do `app-live-watch` (caduca ≈ **2026-09-21T03:37:56Z**; invocação lida do próprio script, sem args), `B3` higiene do listener `127.0.0.1:4173` (preview obsoleto com CSP **enforçada** — armadilha C-1 do ciclo 3). O sandbox (`--tmpfs /tmp --unshare-pid`) não pode executá-los nem encerrar processo.
+- **Pré-condição do Stream C verificada antes de qualquer trabalho:** `WP-B7` (`93c1d62`) e `MEM-D4` (`6b38580`) **já são ancestrais de HEAD** (`git merge-base --is-ancestor` = YES) ⇒ **C1/C2 não são trabalho pendente**; a fila real é C3 + os follow-ups do ciclo 6, que segue `UNAUDITABLE-FROM-SANDBOX` até a execução do B1.
+- **Estado do ciclo 6:** nenhum commit, nenhuma claim; os 4 branches `mission/n7*` estão na base `de8c232`. **Não se afirma** que os worktrees morreram: `/tmp` é tmpfs vazio nesta sessão e o veredito `prunable` do git é artefato do sandbox.
+
+  Latest state marker parent = `0350a9a2bde0970e8e82d4230c7adf72165f33d3`,
