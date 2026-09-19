@@ -16,11 +16,20 @@ substitui. Cada afirmação tem um selo versionado por trás, com
 | A      | `F-D2-runner-failopen`  | `9e22a67` | `f06c6d8`      | `35461588021` | `35461588003` |
 | B      | `F-B-reconcile-unknown` | `f06c6d8` | `d9e58a2`      | `35465899382` | `35465899399` |
 | C      | `F-D2-recompute-36-40`  | `d9e58a2` | `6c2113b`      | `35468216009` | `35468216002` |
+| fecho  | registro documental     | `6c2113b` | `b4d68fc`      | `35469764628` | `35469764626` |
 
-Os seis runs acima foram **consultados via `gh run list` nesta rodada**, não
+Os oito runs acima foram **consultados via `gh run list` nesta rodada**, não
 citados de memória, e todos estão `completed / success`.
 
-- `develop` = `origin/develop` = `6c2113b28e66e0aba9d85c6cd71fd463aaca267a`
+- `develop` = `origin/develop` = `b4d68fc58a613c2dbe035793ddcdfdd5508818cb` (o commit de
+  fecho documental; a cadeia do Bloco 1 propriamente dita termina em `6c2113b`).
+- **Regra de parada declarada, não omitida:** este artefato registra a CI de
+  todos os commits substantivos, **inclusive** a do commit de fecho `b4d68fc`
+  (run `35469764628`) — que já era fato quando estas linhas foram escritas. O
+  que ele **não** afirma é o resultado da execução do commit que carrega este
+  próprio arquivo: essa é conferível por `gh run list` para o seu sha e não
+  pode ser escrita aqui sem auto-referência. A parada é declarada, não um
+  buraco silencioso.
 - `origin/main` = `9724d2c73b269d0a0199ea305308f3237b38fa09` — **intocado em
   toda a rodada**, verificado antes e depois de cada push.
 - **16 commits** entre `9e22a67` e `6c2113b`.
@@ -59,7 +68,7 @@ rodado, e um dos dois arquivos de prova **nunca teve runner nenhum**.
      gated e **nenhum** script na cadeia `db:test` que os executasse.
 
 **Correção.** `DATABASE_URL_UNPOOLED` passa a ser definida como loopback no
-bloco `env:` do job; new runner `scripts/db/test-product-contracts.ts`; piso de
+bloco `env:` do job; novo runner `scripts/db/test-product-contracts.ts`; piso de
 cardinalidade (`MIN_TOTAL_TESTS = 13`) antes do assert de falhas; `AGENTS.md`
 atualizado (cadeia 15 → 16).
 
