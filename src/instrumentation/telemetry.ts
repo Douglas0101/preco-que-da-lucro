@@ -108,6 +108,16 @@ export const applicationMetrics = {
   aiEstimatedCostTotal: meter.createCounter("app.ai.estimated_cost_total"),
   aiCostUnknownTotal: meter.createCounter("app.ai.cost_unknown_total"),
   aiUsageUnknownTotal: meter.createCounter("app.ai.usage_unknown_total"),
+  // TRILHO B: o job de reconciliação trata eventos `usage_unknown` que o varredor
+  // de reservas nunca alcança (predicados disjuntos). `total` conta as linhas
+  // tratadas; `failed` conta as que terminaram sem medição. Hoje as duas
+  // coincidem, porque o gateway não expõe retrieval por id e nenhum payload de
+  // uso é persistido — continuarão distintas se um caminho de medição existir.
+  aiReconciliationTotal: meter.createCounter("app.ai.reconciliation_total"),
+  aiReconciliationFailed: meter.createCounter("app.ai.reconciliation_failed"),
+  aiReconciliationOldestAge: meter.createObservableGauge("app.ai.reconciliation_oldest_age_ms", {
+    unit: "ms",
+  }),
   toolExecutions: meter.createCounter("app.ai.tool.executions"),
   conversationStateTransitions: meter.createCounter("app.ai.conversation_state_transitions"),
   conversationInvalidTransitions: meter.createCounter("app.ai.conversation_invalid_transitions"),
@@ -153,6 +163,23 @@ applicationMetrics.dbPoolInFlightTransactions.addCallback((result) => {
   reportPoolInFlightObservations(result);
 });
 
+/** Idade do evento `usage_unknown` mais antigo visto na varredura mais recente
+ * da reconciliação. `null` significa **nunca medido** — nenhuma varredura
+ * completou, então o gauge não emite ponto nenhum. Uma varredura que completou
+ * e não achou candidato reporta `0`: ela *observou* que não há atraso pendente,
+ * e manter o valor anterior de pé publicaria para sempre a idade de um backlog
+ * já tratado (defeito D2 do adversarial). */
+let reconciliationOldestAgeMs: number | null = null;
+
+export function reportReconciliationOldestAge(ageMs: number | null): void {
+  reconciliationOldestAgeMs =
+    typeof ageMs === "number" && Number.isFinite(ageMs) && ageMs >= 0 ? ageMs : null;
+}
+
+applicationMetrics.aiReconciliationOldestAge.addCallback((result) => {
+  if (reconciliationOldestAgeMs !== null) result.observe(reconciliationOldestAgeMs);
+});
+
 /** Abre um span de query sem tornar o contexto ativo (o wrapper de client
  * preserva callback/thenable e finaliza o span manualmente). */
 export function startDatabaseQuerySpan(operation: string, redactedQueryText?: string): Span {
@@ -177,6 +204,25 @@ export function endSpanWithResult(span: Span, error?: unknown): void {
 
 let telemetryStarted = false;
 let telemetryStarting: Promise<void> | undefined;
+let activeSdk: { shutdown(): Promise<void> } | undefined;
+let shutdownPromise: Promise<void> | undefined;
+
+/** Encerra o SDK ativo com single-flight.
+ *
+ * Os handlers de sinal e `flushTelemetry` compartilham a MESMA promise. Sem isto
+ * um segundo chamador recebe o retorno antecipado de `sdk.shutdown()` — que é
+ * no-op depois do primeiro (o SDK apenas emite `diag.warn`) — e resolve ANTES do
+ * dreno em andamento terminar: a garantia "drenou antes de sair" deixaria de
+ * valer justamente quando um sinal vence a corrida. */
+function shutdownActiveSdk(): Promise<void> {
+  const sdk = activeSdk;
+  if (!sdk) return Promise.resolve();
+  activeSdk = undefined;
+  shutdownPromise ??= sdk
+    .shutdown()
+    .catch((error: unknown) => logJson("warn", "telemetry.shutdown_failed", { error }));
+  return shutdownPromise;
+}
 
 /** OTLP is opt-in and initialization failures never block or fail a request. */
 export function ensureTelemetryStarted(): void {
@@ -222,10 +268,9 @@ export function ensureTelemetryStarted(): void {
       });
       sdk.start();
       telemetryStarted = true;
+      activeSdk = sdk;
       const shutdown = () => {
-        void sdk
-          .shutdown()
-          .catch((error: unknown) => logJson("warn", "telemetry.shutdown_failed", { error }));
+        void shutdownActiveSdk();
       };
       process.once("SIGTERM", shutdown);
       process.once("SIGINT", shutdown);
@@ -235,6 +280,38 @@ export function ensureTelemetryStarted(): void {
       telemetryStarting = undefined;
     }
   })();
+}
+
+/** Variante aguardável de `ensureTelemetryStarted`, para processos curtos
+ * (scripts e jobs) que precisam do provider global registrado e não podem
+ * terminar antes do primeiro ciclo do exportador periódico.
+ *
+ * LIMITE MEDIDO — não leia isto como "as métricas passam a sair do processo":
+ * o `meter` e os instrumentos de `applicationMetrics` nascem no MOMENTO DO
+ * IMPORT deste módulo, quando a API ainda devolve os singletons noop (`NOOP_METER`
+ * é compartilhado, `NOOP_COUNTER_METRIC.add` é vazio e `addCallback` nunca
+ * registra). Registrar o provider aqui, depois, NÃO re-vincula instrumentos já
+ * criados: `@opentelemetry/api` não tem proxy de métrica — o único proxy é o de
+ * trace. Um processo que importa este módulo e só então chama `startTelemetry()`
+ * continua emitindo em instrumentos noop, e o `PeriodicExportingMetricReader`
+ * nem invoca o exporter. Fechado apenas por `F-otel-provider-order`, WP próprio
+ * que torna a obtenção do meter lazy. */
+export async function startTelemetry(): Promise<void> {
+  ensureTelemetryStarted();
+  await telemetryStarting;
+}
+
+/** Drena o exportador periódico e encerra o SDK.
+ *
+ * Um processo curto que esquece isto perde a última janela de métricas: com o
+ * `exportIntervalMillis` padrão de 15 s, o processo termina antes do primeiro
+ * flush. Idempotente — um segundo chamado não encontra SDK ativo e devolve sem
+ * erro. Compartilha a promise de `shutdownActiveSdk` com os handlers de sinal,
+ * então aguarda o MESMO dreno em vez de receber um retorno antecipado. Não
+ * rearma `telemetryStarted`: depois do `shutdown` o SDK não volta. */
+export async function flushTelemetry(): Promise<void> {
+  await telemetryStarting;
+  await shutdownActiveSdk();
 }
 
 export async function withSpan<T>(

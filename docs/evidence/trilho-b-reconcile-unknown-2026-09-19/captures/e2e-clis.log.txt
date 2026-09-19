@@ -1,0 +1,47 @@
+=== limpeza prévia ===
+
+=== fixture: evento usage_unknown de 7 h atrás, reserva de 800 tokens RETIDA ===
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+estado_inicial: outcome=usage_unknown tokens_reserved=800 real_tokens=NULL
+
+=== guardas: entradas inválidas são RECUSADAS (exit 1 cada) ===
+Node.js v24.15.0
+Node.js v24.15.0
+Node.js v24.15.0
+
+=== JOB: npm run db:reconcile-ai-usage -- --all-tenants ===
+  tenant=11111111-1111-4111-8111-111111111111 marcados=1 mais_antigo_ms=25203288 ids=33333333-3333-4333-8333-333333333333
+TRILHO-B reconciliação: tenants=14 candidatos=1 marcados=1 mais_antigo_ms=25203288 modo=aplicado
+AVISO: 1 evento(s) sem medição possível. A reserva continua RETIDA. A liberação é decisão humana: scripts/db/release-unknown-reservations.ts --tenant <uuid> --usage-id <uuid> --confirm
+JOB_EXIT=0
+
+=== estado após o JOB (reserva deve seguir RETIDA, real_tokens NULL) ===
+apos_job: outcome=reconciliation_failed status=settled tokens_reserved=800 real_tokens=NULL
+
+=== replay do JOB (deve ser no-op: marcados=0) ===
+TRILHO-B reconciliação: tenants=14 candidatos=0 marcados=0 mais_antigo_ms=n/a modo=aplicado
+
+=== LIBERAÇÃO: dry-run (não escreve) ===
+  usage_id=33333333-3333-4333-8333-333333333333 outcome=reconciliation_failed tokens=800 settled_at=2026-09-19T11:56:46.472Z [elegível para liberação]
+TRILHO-B liberação: DRY-RUN (nada foi escrito). elegíveis=1. Repita com --confirm para devolver as reservas elegíveis.
+  tokens_reserved ainda = 800
+
+=== LIBERAÇÃO: --confirm ===
+  usage_id=33333333-3333-4333-8333-333333333333 outcome=reconciliation_failed tokens=800 settled_at=2026-09-19T11:56:46.472Z [elegível para liberação]
+  usage_id=33333333-3333-4333-8333-333333333333 liberado: 800 tokens devolvidos
+TRILHO-B liberação: aplicada. eventos=1 tokens_devolvidos=800. real_tokens continua NULL — a devolução do orçamento não mede o consumo.
+RELEASE_EXIT=0
+
+=== estado final ===
+final: outcome=reservation_released tokens_reserved=0 real_tokens=NULL
+
+=== replay da LIBERAÇÃO (deve ser no-op) ===
+  usage_id=33333333-3333-4333-8333-333333333333 outcome=reservation_released tokens=800 settled_at=2026-09-19T11:56:46.472Z [NÃO elegível — só reconciliation_failed é liberável]
+TRILHO-B liberação: nada elegível — nenhuma escrita realizada
+
+=== limpeza ===
+fixtures restantes (TRILHO-B): 0

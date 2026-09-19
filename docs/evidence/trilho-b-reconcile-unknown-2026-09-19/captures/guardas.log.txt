@@ -1,0 +1,38 @@
+############ A. job (reconcile-ai-usage) ############
+--- A1 sem argumento nenhum
+    exit=1
+    msg: nunca varre tenants por conta própria sem ordem explícita
+--- A2 flag desconhecida (--turbo)
+    exit=1
+    msg: argumento desconhecido: ${flag}`);
+--- A3 --batch-size 0 (no-op com sucesso)
+    exit=1
+    msg: exige inteiro entre 1 e ${MAX_RECONCILE_BATCH_SIZE}`);
+--- A4 --batch-size 1001 (acima do teto)
+    exit=1
+    msg: exige inteiro entre 1 e ${MAX_RECONCILE_BATCH_SIZE}`);
+--- A5 --min-age-ms -1 (negativo)
+    exit=1
+    msg: exige inteiro >= 0
+
+############ B. liberação (release-unknown-reservations) ############
+--- B1 sem --tenant
+    exit=1
+    msg: obrigatório
+--- B2 sem --usage-id (sem liberação em massa)
+    exit=1
+    msg: obrigatório (repetível); não existe liberação em massa — cada devolução de orçamento é uma decisão revisada
+--- B3 tenant inexistente
+    exit=1
+    msg: não tem membro owner/admin
+
+############ C. GUARD DE LOOPBACK (o que impede produção) ############
+--- C/db:reconcile-ai-usage host remoto
+    exit=1
+    msg: aponta para "db.producao.example.com", não para loopback — o job de reconciliação nunca roda contra host remoto
+--- C/db:release-unknown-reservations host remoto
+    exit=1
+    msg: aponta para "db.producao.example.com", não para loopback — recusando rodar contra host remoto
+
+############ D. guarda de estado: nada foi tocado ############
+ai_usage marcados=0
