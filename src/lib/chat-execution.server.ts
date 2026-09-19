@@ -7,6 +7,7 @@ import {
   type BudgetLedger,
   type BudgetLedgerConfig,
   type EstimatedCostResult,
+  type SettlementUsage,
 } from "@/lib/ai/budget-ledger.server";
 import { parseAiUsage, type TokenUsage } from "@/lib/ai/token-usage";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
@@ -470,7 +471,11 @@ async function executeReservedRound({
   );
   if (reservationResult.status !== "reserved") throw new ApplicationError("AI_QUOTA");
 
-  let usage: TokenUsage = { kind: "unknown", reason: "absent" };
+  // `null` significa que **nenhuma resposta foi recebida** (a chamada falhou antes de
+  // medir). Isso NÃO é "uso desconhecido": sem resposta não há medição a classificar, e
+  // o contrato legado da falha continua valendo (libera a reserva, registra o outcome do
+  // erro). `TokenUsage` só é atribuído depois que o gateway respondeu.
+  let usage: TokenUsage | null = null;
   let toolCallsCount = 0;
   let modelName: string | null = null;
   let outcome = "error";
@@ -505,21 +510,29 @@ async function executeReservedRound({
     outcome = settlementOutcome(error);
     throw error;
   } finally {
-    // Cost is estimated only from measured tokens: feeding the estimator fabricated
-    // zeros would report a "known" cost of 0 — the same defect in the cost dimension.
+    // Sem resposta do gateway (`usage === null`) não há medição a classificar: preserva-se
+    // o contrato legado da falha — liquida com zero, libera a reserva e registra o outcome
+    // do erro. "Uso desconhecido" fica reservado ao caso em que o gateway **respondeu** e o
+    // `usage` não era utilizável (ausente/parcial/inválido).
+    const settlementUsage: SettlementUsage = usage ?? 0;
     const est: EstimatedCostResult =
-      usage.kind === "known"
+      usage?.kind === "known"
         ? estimateModelCost(modelName, usage.inputTokens, usage.outputTokens)
-        : { cost: null, status: "unknown" };
-    await budgetLedger.settle(reservationResult.usageId, usage, outcome, {
-      ...(usage.kind === "known"
+        : usage === null
+          ? // Caminho de falha: o estimador é alimentado com zero exatamente como antes
+            // desta mudança, para não alterar as métricas de custo de chamadas que falharam.
+            estimateModelCost(modelName, 0, 0)
+          : // Resposta recebida sem medição confiável: nenhum custo é afirmado.
+            { cost: null, status: "unknown" };
+    await budgetLedger.settle(reservationResult.usageId, settlementUsage, outcome, {
+      ...(usage?.kind === "known"
         ? { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens }
         : {}),
       toolCalls: toolCallsCount,
       estimatedCost: est.cost,
       costStatus: est.status,
     });
-    if (usage.kind === "unknown") {
+    if (usage?.kind === "unknown") {
       // Auditable alarm: the state is persisted (real_tokens NULL + outcome
       // 'usage_unknown'), so this event is not the only trace of the unknown.
       logJson("warn", "ai.usage_unknown", {
@@ -532,7 +545,7 @@ async function executeReservedRound({
       });
     }
     try {
-      if (usage.kind === "unknown") {
+      if (usage?.kind === "unknown") {
         applicationMetrics.aiUsageUnknownTotal.add(1, { reason: usage.reason });
       }
       if (est.status === "known") {
