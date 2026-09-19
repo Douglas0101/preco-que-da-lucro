@@ -4,15 +4,15 @@
 
 ## 1. Estado dos trilhos
 
-| Trilho   | WP                                          | Estado                          | Commit de entrega | Veredicto adversarial                    | E2 pós-merge                                          |
-| -------- | ------------------------------------------- | ------------------------------- | ----------------- | ---------------------------------------- | ----------------------------------------------------- |
-| **A**    | `WP-B7` (break-even com margem negativa)    | **LANDADO**                     | `93c1d62`         | **9 C · 1 Corr · 0 R · 0 U**             | `check` 9/9 + `build` + bundle + `db:test` **verde**  |
-| **B**    | `MEM-D4` (delete/export + access log + TTL) | **LANDADO**                     | `6b38580`         | **35 C · 2 Corr · 0 R · 0 U**            | `check` 9/9 + `db:test` (D4/T1–T6) **verde**          |
-| **C**    | `WP-B1` (analytics condicional)             | **LANDADO**                     | `04b88fd`         | **9 C · 1 parcial · 1 Corr · 0 R · 0 U** | `check` 9/9 + bundle + `db:test` **verde**            |
-| **D1**   | `F-C5-2` + `F-C5-3` (scanner + gate)        | **LANDADO**                     | `6b62a29`         | **21 C · 5 Corr · 3 R (latentes) · 0 U** | `check` 9/9 **incl. gate novo** + `db:test` **verde** |
-| **D2**   | `F-C6-1` + `F-C6-2`                         | **EM CURSO**                    | —                 | —                                        | —                                                     |
-| **D-S0** | resgate de escopo dos 4 follow-ups          | **CONCLUÍDO**                   | (leitura)         | —                                        | —                                                     |
-| **F**    | itens com gate humano                       | **BLOQUEADO** (só planejamento) | —                 | —                                        | —                                                     |
+| Trilho   | WP                                          | Estado                                                           | Commit de entrega     | Veredicto adversarial                    | E2 pós-merge                                                                                 |
+| -------- | ------------------------------------------- | ---------------------------------------------------------------- | --------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **A**    | `WP-B7` (break-even com margem negativa)    | **LANDADO**                                                      | `93c1d62`             | **9 C · 1 Corr · 0 R · 0 U**             | `check` 9/9 + `build` + bundle + `db:test` **verde**                                         |
+| **B**    | `MEM-D4` (delete/export + access log + TTL) | **LANDADO**                                                      | `6b38580`             | **35 C · 2 Corr · 0 R · 0 U**            | `check` 9/9 + `db:test` (D4/T1–T6) **verde**                                                 |
+| **C**    | `WP-B1` (analytics condicional)             | **LANDADO**                                                      | `04b88fd`             | **9 C · 1 parcial · 1 Corr · 0 R · 0 U** | `check` 9/9 + bundle + `db:test` **verde**                                                   |
+| **D1**   | `F-C5-2` + `F-C5-3` (scanner + gate)        | **LANDADO**                                                      | `6b62a29`             | **21 C · 5 Corr · 3 R (latentes) · 0 U** | `check` 9/9 **incl. gate novo** + `db:test` **verde**                                        |
+| **D2**   | `F-C6-1` + `F-C6-2`                         | **LANDADO** (linha 13 corrigida em 2026-09-19: dizia "EM CURSO") | `31f2431` + `2107348` | **9/9 grupos C · 0 R · 0 U · 6 Corr**    | `check` 9/9 **incl. gate da matriz** + `build` + bundle PASS · `db:test` **15 passos** verde |
+| **D-S0** | resgate de escopo dos 4 follow-ups          | **CONCLUÍDO**                                                    | (leitura)             | —                                        | —                                                                                            |
+| **F**    | itens com gate humano                       | **BLOQUEADO** (só planejamento)                                  | —                     | —                                        | —                                                                                            |
 
 **Ordem de land executada:** A → B → C → D1 → D2 (um merge por vez, `--no-ff`, E2 integrado após cada um). **Todos os merges passaram** — nenhum revert foi necessário.
 
