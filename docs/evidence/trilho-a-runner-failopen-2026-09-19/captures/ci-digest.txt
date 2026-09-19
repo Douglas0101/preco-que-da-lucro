@@ -1,0 +1,54 @@
+# Digest da CI real — push de `develop` em `1a11ee2` (2026-09-19)
+
+Companion legível do bruto. O bruto (`ci-ui-stack-db-test-step.txt`, 341 linhas, ANSI cru) é a prova;
+este arquivo só reúne metadados que o recorte da etapa não carrega.
+
+Coletado com `gh run view`/`gh run list` às 2026-09-19T17:0xZ. Nenhuma edição manual: os valores abaixo
+são saída literal dos comandos.
+
+## Pipeline pesado — `UI stack` (`.github/workflows/ui-stack.yml`)
+
+| campo       | valor                              |
+| ----------- | ---------------------------------- |
+| run         | `35456266833`                      |
+| evento      | `push`                             |
+| branch      | `develop`                          |
+| commit      | `1a11ee2` (o commit documental)    |
+| status      | `completed`                        |
+| conclusão   | **`success`**                      |
+| criado em   | `2026-09-19T16:51:22Z`             |
+| passos      | **24 de 24 `success`**             |
+
+Passos do job `verify` (todos `success`): `Set up job` · `Initialize containers` · `checkout` ·
+`setup-node` · `npm install --global --ignore-scripts npm@11.14.1` · `npm ci --ignore-scripts` ·
+`npm run m02:matrix:check` · `npm run check:ui-stack` · `npm run check:no-supabase-runtime` ·
+`npm run format:check` · `npm run typecheck` · `npm run lint` · **`npm run test`** ·
+**`npm run db:test`** · `npm run db:check` · `Configure isolated runtime and E2E credentials` ·
+`npm run build` · `npm run check:bundle` · `Audit dependencies` · `Upload bundle evidence` ·
+`npx playwright install --with-deps chromium firefox webkit` · `npm run test:e2e` ·
+`Upload browser evidence` · (posts) · `Stop containers` · `Complete job`.
+
+## Pipeline leve — `CI light (docs/evidence)` (`.github/workflows/ci-light.yml`)
+
+| campo     | valor           |
+| --------- | --------------- |
+| run       | `35456266847`   |
+| evento    | `push`          |
+| branch    | `develop`       |
+| commit    | `1a11ee2`       |
+| conclusão | **`success`**   |
+
+## A prova que o DoD (f) exigia — execução real, sem skip
+
+Extraído de `ci-ui-stack-db-test-step.ansi-stripped.txt` (mesma etapa do bruto):
+
+```
+prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 13 passed (13), 0 skipped — admin=127.0.0.1:5432
+prova de banco (src/test/product-contracts.test.ts) contra 127.0.0.1: 14 passed (14), 0 skipped — admin=127.0.0.1:5432
+```
+
+Ambas com `0 skipped`, e a etapa `Run npm run db:test` concluída `success`. O alvo na CI é o serviço
+`postgres:17-alpine` do próprio job (`127.0.0.1:5432` **dentro do runner**); localmente a validação usou
+o container efêmero em `127.0.0.1:5433`. Ambos loopback — o kill-switch não é afetado em nenhum dos dois.
+
+`Run npm run test` (vitest, antes do `db:test`) também `success`, com `Test Files 87 passed (87)`.

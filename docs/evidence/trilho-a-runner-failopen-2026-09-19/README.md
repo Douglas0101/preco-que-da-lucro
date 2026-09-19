@@ -5,17 +5,18 @@
 
 ## 1. Estado
 
-| Campo      | Valor                                                                                                                                        |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Branch     | `mission/a-runner-failopen`                                                                                                                  |
-| Worktree   | `.worktree-a-failopen` (gitignored por `.gitignore:56` = `.worktree-*/`)                                                                     |
-| Base SHA   | `9e22a6799652b4b65b67ea6ae8cfa3c1e662dbf0` (= `origin/develop`, CI verde)                                                                    |
-| Head       | **`5fba8e7e3a9308d29a6e731f7ad7c03914394cad`** em `mission/a-runner-failopen` — 4 `M` + 1 `A` (base + 5 arquivos)                            |
-| CI local   | `npm run check` **exit 0** (9/9 gates, incl. gate da matriz) · `npm run db:test` **exit 0** (16 suítes) — `captures/bateria-final-2.log.txt` |
-| CI origin  | **não executado** — nada pushado; `origin/main` = `9724d2c` intocado                                                                         |
-| MCPs       | **0/7** — `MCP_DOCKER`, `playwright`, `context7`, `github`, `chrome-devtools`, `linear` sem listener; `neon` só cache (113 tools)            |
-| Containers | `trk-a-pg` — `postgres:17-alpine`, **PostgreSQL 17.11**, `127.0.0.1:5433` (efêmero)                                                          |
-| `:5432`    | **intocado** (H-9 aberto)                                                                                                                    |
+| Campo      | Valor                                                                                                                                                                                         |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Branch     | `mission/a-runner-failopen`                                                                                                                                                                   |
+| Worktree   | `.worktree-a-failopen` (gitignored por `.gitignore:56` = `.worktree-*/`)                                                                                                                      |
+| Base SHA   | `9e22a6799652b4b65b67ea6ae8cfa3c1e662dbf0` (= `origin/develop`, CI verde)                                                                                                                     |
+| Head       | **`5fba8e7e3a9308d29a6e731f7ad7c03914394cad`** em `mission/a-runner-failopen` — 4 `M` + 1 `A` (base + 5 arquivos)                                                                             |
+| Land       | `develop` = **`1a11ee285cd6c2587f6ad52acaca1ae08529d288`** (`--ff-only` `9e22a67..5fba8e7` + commit documental) — **pushado** a `origin/develop`                                              |
+| CI local   | `npm run check` **exit 0** (9/9 gates, incl. gate da matriz) · `npm run db:test` **exit 0** (16 suítes) — `captures/bateria-final-2.log.txt`                                                  |
+| CI origin  | **os dois pipelines VERDES** em `1a11ee2` — `UI stack` run `35456266833` (**24/24 passos**) e `CI light` run `35456266847`; `origin/main` = `9724d2c` **intocado** — `captures/ci-digest.txt` |
+| MCPs       | **0/7** — `MCP_DOCKER`, `playwright`, `context7`, `github`, `chrome-devtools`, `linear` sem listener; `neon` só cache (113 tools)                                                             |
+| Containers | `trk-a-pg` — `postgres:17-alpine`, **PostgreSQL 17.11**, `127.0.0.1:5433` (efêmero)                                                                                                           |
+| `:5432`    | **intocado** (H-9 aberto)                                                                                                                                                                     |
 
 ### Vínculo commit ↔ selo, e o manifesto
 
@@ -126,16 +127,38 @@ Confirmado de forma independente e load-bearing: o `numTotalTests` é um **núme
 - `it.todo` derrota o guard de `numPendingTests` (reporta `numTodoTests`, não pending) — quem salva é `numPassedTests === numTotalTests`.
 - **A CI executava os casos de banco em dobro**: uma vez em `npm run test` e outra em `db:test` (consequência da §2.1).
 
+### 3.6 CI real — os dois pipelines verdes em `1a11ee2` (o DoD f)
+
+| Pipeline                   | run           | conclusão                       |
+| -------------------------- | ------------- | ------------------------------- |
+| `UI stack` (pesado)        | `35456266833` | **`success`** — 24 de 24 passos |
+| `CI light (docs/evidence)` | `35456266847` | **`success`**                   |
+
+A etapa `Run npm run db:test` **executou de verdade na CI**, com as **duas** linhas de prova e `0 skipped`:
+
+```
+prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 13 passed (13), 0 skipped — admin=127.0.0.1:5432
+prova de banco (src/test/product-contracts.test.ts) contra 127.0.0.1: 14 passed (14), 0 skipped — admin=127.0.0.1:5432
+```
+
+Bruto: `captures/ci-ui-stack-db-test-step.txt` (**341 linhas**, a etapa inteira extraída do log da CI, ANSI cru)
+com companion legível `ci-ui-stack-db-test-step.ansi-stripped.txt`; metadados dos runs em
+`captures/ci-digest.txt`. Na CI o alvo é o serviço `postgres:17-alpine` do próprio job
+(`127.0.0.1:5432` **dentro do runner**) — loopback, exatamente como o `:5433` da validação local.
+
+Também `success` no mesmo run: `npm run test` (`Test Files 87 passed (87)`), `db:check`, `build`,
+`check:bundle`, `Audit dependencies` e `test:e2e` (chromium/firefox/webkit).
+
 ## 4. Gates
 
 | Gate                                            | Estado                                                                                                                                                     |
 | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **A** — `db:test` verde + prova em PG17 efêmero | **SATISFEITO** (16 suítes, 0 skipped, `:5433`)                                                                                                             |
+| **A** — `db:test` verde + prova em PG17 efêmero | **SATISFEITO** (16 suítes, 0 skipped, `:5433` — e, na CI, `:5432` do job, também 0 skipped)                                                                |
 | **B** — B1 concluído, sem contenção             | **SATISFEITO** — contenção A × B verificada **∅** (`ui-stack.yml` + `scripts/db/*` vs `budget-ledger.server.ts`/`telemetry.ts`/script novo/`package.json`) |
-| **C** — aprovação do supervisor                 | **PENDENTE** — land não executado                                                                                                                          |
+| **C** — aprovação do supervisor                 | **SATISFEITO** — autorizado pelo humano (`Aprovar land + seguir ao trilho B`); land e push executados                                                      |
 | **I** — trilho I                                | N/A (parqueado; MCPs 0/7)                                                                                                                                  |
 
-## 5. ERRATA-5 (a aplicar no ledger no land)
+## 5. ERRATA-5 (APLICADA ao ledger no land)
 
 O ledger afirma hoje, em dois lugares, uma mecânica **contrária ao código medido** — e o meu comentário no YAML a contradiz abertamente. Se o land não registrar a correção, o próximo boot **re-deriva a crença falsa**. Texto pronto em `ERRATA-5.md` (append-only, mesma forma da ERRATA-1..4 do Stream A).
 

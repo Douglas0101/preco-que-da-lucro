@@ -43,5 +43,8 @@ b834539b3af3a27447294b937c0590c9795968cbb5a8480102a9e722568f44a0  ./captures/adv
 34f301d1a8797569627f2b26d265a79ec66719fa8bb963527291d0ed32b57e54  ./captures/adversarial-probes/verify-trilho-a.sh.txt
 76757b9cdf07862d8241fd8866cab058e642f29f19a11e757aa28d07ab854d4d  ./captures/bateria-final-2.log.txt
 d72390ea87d571517e927052810d4ea122d28cc1e8dbd91b29893ef701daac07  ./captures/bateria-final.log.txt
+1443381f3f8d56ed59c96f05aa0f860a9cc11651393e108c28170776a838c083  ./captures/ci-digest.txt
+3b88370667297e1628c5d6eea8ddded3fb7bc3edcc858bf50b7042e51418312e  ./captures/ci-ui-stack-db-test-step.ansi-stripped.txt
+3b88370667297e1628c5d6eea8ddded3fb7bc3edcc858bf50b7042e51418312e  ./captures/ci-ui-stack-db-test-step.txt
 ab061e0b8f165ef2baa1fc60d06024bfb07ddc157d4d53076dee02ad04020543  ./ERRATA-5.md
-fdc269de5aa258eed48a1f53a67227e94ea5151f54c7d2f3daa4bf433646506d  ./README.md
+a6a5cc089103e659d19d7a061ff49caf4a7257bd0e8ea9950a77094acc91b358  ./README.md

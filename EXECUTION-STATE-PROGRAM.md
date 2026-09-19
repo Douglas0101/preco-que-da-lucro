@@ -1885,3 +1885,16 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Crédito de placar: nenhum.** Correção de defeito **fora** do denominador de 187 itens; o placar segue **150 D · 23 P · 12 NS · 2 UNV = 86,36% parcial / 80,21% crua**. `origin/main` intocado em `9724d2c`; `:5432` nunca tocado; produção intocada.
 
   Latest state marker parent = `5fba8e7e3a9308d29a6e731f7ad7c03914394cad`,
+
+---
+
+### CI real verde nos dois pipelines — TRILHO A fechado (2026-09-19)
+
+- **`npm run check` local: exit 0** antes do push (`Test Files 87 passed (87)`; `852 passed | 13 skipped` — os 13 são os blocos de banco, cobertos por `db:test`); `build` + `check:bundle` PASS.
+- **`UI stack`** (pesado) run **`35456266833`** = **`success`, 24 de 24 passos**, incluindo `Run npm run db:test`.
+- **`CI light (docs/evidence)`** run **`35456266847`** = **`success`**.
+- **O DoD (f) do F-D2 é fechado pela própria pipeline, não só pelo container local:** a etapa `db:test` executou **de verdade** na CI com `0 skipped` nas **duas** suítes — `prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 13 passed (13), 0 skipped — admin=127.0.0.1:5432` e `prova de banco (src/test/product-contracts.test.ts) contra 127.0.0.1: 14 passed (14), 0 skipped — admin=127.0.0.1:5432`. O alvo na CI é o serviço `postgres:17-alpine` do próprio job (`127.0.0.1:5432` **dentro do runner**) — loopback, como o `:5433` da validação local.
+- **Selo ampliado** com a extração **crua** da etapa (`captures/ci-ui-stack-db-test-step.txt`, **341 linhas**), companion legível `.ansi-stripped.txt` e `captures/ci-digest.txt`; manifesto **50/50**, `checked === discovered` OK, **0** referências a `raw/`, **0** arquivos ignorados — pela convenção do repo, `captures/` versiona (93 `.txt` versionados, **0** `.log`).
+- **Gates A + B + C satisfeitos ⇒ TRILHO A FECHADO.** `origin/main` = `9724d2c` **intocado**; `:5432` nunca tocado; produção intocada. Próximo da ordem canônica: **TRILHO B** (job de reconciliação de uso desconhecido), com a decisão de produto bloqueante declarada a seguir.
+
+  Latest state marker parent = `1a11ee285cd6c2587f6ad52acaca1ae08529d288`,
