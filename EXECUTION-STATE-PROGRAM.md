@@ -1961,4 +1961,4 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Dívida declarada do journal (não corrigida em silêncio).** Persistem **dois ids `L90`** (linhas 136 e 144 de `PROGRESS.md`, já declarados no ciclo anterior) e **7 linhas de journal malformadas** cujo texto carrega `|` literal dentro da célula — linhas 92, 98, 118, 125, 138, 140 e 149, com 5 ou 6 colunas onde a tabela tem 4. Consequência: **renderização** dessas linhas, não o conteúdo. O journal é append-only; a correção exigiria reescrever linha publicada, então fica declarada em vez de corrigida.
 - **Registro no journal:** `L104` (intenção) e `L105` (resultado) de `docs/evidence/agent-state/PROGRESS.md`.
 
-  Latest state marker parent = `9502b416ce07d0a28c89fd5d9764d5a74243bd6f`,
+  Latest state marker parent = `3e818da63bdf587a9909670482c6bfb2653d9027`,
