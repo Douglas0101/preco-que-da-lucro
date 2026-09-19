@@ -16,9 +16,10 @@
 
 1. **Sem agente adversarial independente.** As mutações foram executadas pelo mesmo autor do código:
    reduz o valor probatório. Mitigação: toda mutação foi medida por **execução** (RED observado), não por leitura.
-2. **Sem verificação de banco real.** O daemon Docker está **indisponível** nesta sessão ⇒ `db:test` **não foi executado**.
-   Riscos residuais não cobertos: comportamento do driver ao **vincular `NULL`** em `real_tokens`; a CHECK
-   `ai_usage_real_tokens_check` (`is null or >= 0`) contra `NULL` real; e o caminho `settle` sobre um banco PG17.
+2. ~~**Sem verificação de banco real.**~~ **RESOLVIDO em 2026-09-19** (adendo abaixo): o Docker subiu e a
+   verificação foi executada contra **PostgreSQL 17.11** real.
+   ~~Riscos residuais não cobertos: comportamento do driver ao **vincular `NULL`** em `real_tokens`; a CHECK
+   `ai_usage_real_tokens_check` (`is null or >= 0`) contra `NULL` real; e o caminho `settle` sobre um banco PG17.~~
    Os testes de banco existentes (`scripts/db/test-ai-budget.ts`) **não foram editados** por serem de trilho bloqueado.
 3. **A omissão de `usage` pelo gateway real não foi observada** — depende de tráfego (H-6).
 4. **A reserva retida não foi exercitada sob concorrência** (dois settles simultâneos do mesmo `usage_id`).
@@ -31,3 +32,29 @@
   follow-up de reconciliação antes de ligar em produção com tráfego real.
 - `tool_call_count` **é** incrementado no caminho desconhecido (valor medido em `choices`, não derivado de `usage`).
   Direção segura; declarado porque o §5 da spec lista "não incrementar contadores" de forma ampla.
+
+---
+
+## Adendo — a suíte de banco como adversarial (2026-09-19)
+
+| #   | hipótese a falsificar                                                     | como foi testada                                         | resultado medido                                                    | veredicto                                         |
+| --- | ------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------- |
+| A7  | "a correção não quebra nenhum contrato existente"                         | `npm run db:test` (**15 passos**) contra PG17 real       | **FALHOU** em `T3/E3` (`actual: 100, expected: 0`)                  | **REJECTED** — o WP tinha defeito real            |
+| A8  | "o defeito de A7 é visível sem banco"                                     | suíte unitária dirigida (32 testes) e `npm run check`    | **passaram** antes e depois ⇒ o defeito era **invisível sem banco** | **CONFIRMED** (o gate de banco era indispensável) |
+| A9  | "o `settle` grava `NULL` sem lançar no driver real"                       | prova nova, caso 1, com leitura da linha persistida      | `real_tokens = null`, `outcome = usage_unknown`, `applied = true`   | **CONFIRMED**                                     |
+| A10 | "o desconhecido libera a reserva"                                         | prova nova, caso 1, `ai_daily_budgets.tokens_reserved`   | permanece **1000** (retida)                                         | **REJECTED** (não libera)                         |
+| A11 | "os testes de banco existentes continuam verdes com a assinatura aditiva" | `db:test` passa por `test-ai-budget.ts` **sem editá-lo** | `DB_TEST_EXIT=0`                                                    | **CONFIRMED**                                     |
+| A12 | "a prova-FK roda de fato (sem skip silencioso)"                           | saída do runner encadeado                                | `13 passed (13), 0 skipped — admin=127.0.0.1:5433`                  | **CONFIRMED**                                     |
+| A13 | "o script poderia tocar produção por acidente"                            | execução com `DATABASE_ADMIN_URL` remota                 | recusado **antes** de conectar (sem `ENOTFOUND`/`ECONNREFUSED`)     | **REJECTED**                                      |
+
+**Lição registrada:** o achado A7/A8 é o argumento empírico de por que o land **não podia** ser autorizado só com
+unidade + dublê. A verificação adversarial mais forte não veio de uma mutação minha, e sim da **suíte de banco que
+já existia** — exatamente o que o gate da Condição B foi desenhado para capturar.
+
+## Limites que permanecem (após o adendo)
+
+- **Sem agente adversarial independente** (mesma sessão do CODER) — o veredicto continua `ADVERSARIAL-LIMITED`.
+- **Comportamento do gateway real não observado** (H-6): assume-se que ele _pode_ omitir `usage`; não se afirma que omite.
+- **Reserva retida não exercitada sob concorrência** (dois `settle` simultâneos do mesmo `usage_id`).
+- **Contrato da falha preservado por decisão** (`usage === null` ⇒ liquida com 0): se o produto quiser tratar
+  timeout como uso possivelmente consumido, é **outro** WP, com análise própria.

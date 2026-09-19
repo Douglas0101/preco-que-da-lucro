@@ -1,0 +1,135 @@
+
+> predb:test
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> db:test
+> tsx scripts/db/check-migration-classes.ts && tsx scripts/db/test-migrations.ts && tsx scripts/db/test-concurrency.ts && tsx scripts/db/test-auth-integration.ts && tsx scripts/db/test-oauth-boundary.ts && tsx scripts/db/test-tool-security.ts && tsx scripts/db/test-sql-injection.ts && tsx scripts/db/test-chat-semantics.ts && tsx scripts/db/test-ai-budget.ts && tsx scripts/db/test-rum-persistence.ts && tsx scripts/db/test-rate-limit-burst.ts && tsx scripts/db/test-outbox.ts && tsx scripts/db/test-backfill.ts && tsx scripts/db/test-memory.ts && tsx scripts/db/test-products-fk-conflict.ts
+
+✔ 20/20 classificadas
+PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+T2 CAS: produto e despesa com 1 update OK + 1 CONFLICT por burst + version incrementada: OK
+Better Auth, tenant pessoal, cookie, bcrypt/scrypt, fixação de sessão: OK
+2026-09-19T15:18:49.260Z ERROR [Better Auth]: Invalid origin: https://evil.example
+AUTH-005 A+B: boundary OAuth (state, PKCE, redirect, scopes, origem): OK
+{"timestamp":"2026-09-19T15:18:50.216Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"set_yield","code":"NOT_FOUND","error":{"name":"Error","message":"NOT_FOUND"}}
+Tool registry: validação, AuthZ, idempotência, auditoria e isolamento: OK
+{
+  "check": "db:test-sql-injection",
+  "engine": "postgres",
+  "payloads": 6,
+  "paths": [
+    "create_product",
+    "DrizzleProductRepository.save"
+  ],
+  "products_table_exists": true,
+  "pwned_exact_rows": 0,
+  "reports": [
+    {
+      "payload": "' OR '1'='1",
+      "control_potent": true,
+      "control_evidence": "tautologia selecionou 1 linha(s) do canário; com $1, 0",
+      "tool_duration_ms": 29,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "x'); DROP TABLE products; --",
+      "control_potent": true,
+      "control_evidence": "concatenação aceitou o payload e abortou: cannot drop table products because other objects depend on it",
+      "tool_duration_ms": 21,
+      "repository_duration_ms": 1,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "1; SELECT pg_sleep(2); --",
+      "control_potent": true,
+      "control_evidence": "pg_sleep(2) concatenado bloqueou por 2005ms",
+      "tool_duration_ms": 19,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "'); UPDATE products SET name='pwned' WHERE '1'='1'; --",
+      "control_potent": true,
+      "control_evidence": "concatenação alterou 5 linha(s) de products para 'pwned'",
+      "tool_duration_ms": 13,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "{\"$ne\":null}",
+      "control_potent": false,
+      "control_evidence": "operador NoSQL é literal inerte em SQL; canário permaneceu intacto",
+      "tool_duration_ms": 12,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "%'); COPY (SELECT '') TO PROGRAM 'true'; --",
+      "control_potent": true,
+      "control_evidence": "concatenação executou INSERT e COPY ... TO PROGRAM 'true' sem erro (papel admin)",
+      "tool_duration_ms": 11,
+      "repository_duration_ms": 3,
+      "stored_rows_byte_identical": 2
+    }
+  ]
+}
+SQL injection adversarial: parametrização resiste aos 6 payloads, 0 mutações: OK
+Chat GET é somente leitura; criação fica restrita a POST: OK
+{"timestamp":"2026-09-19T15:18:55.132Z","level":"info","event":"ai.budget_reserved","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","usageId":"26271497-1022-4fdc-8590-3592a3d330a5","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:18:55.146Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.156Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.189Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.206Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.223Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.242Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.259Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.264Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.291Z","level":"info","event":"ai.chat_completed","correlationId":"b2aa5323-4a52-4de6-b758-53a1b29a3a9d","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","rounds":1,"timeToAcknowledgeMs":275,"timeToFirstContentMs":285,"timeToFinalMs":285}
+{"timestamp":"2026-09-19T15:18:55.292Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.310Z","level":"info","event":"ai.budget_settled","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","usageId":"26271497-1022-4fdc-8590-3592a3d330a5","budget":100,"real":5,"usageUnknownReason":null,"durationMs":177,"outcome":"success","applied":true}
+{"timestamp":"2026-09-19T15:18:55.310Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.327Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.342Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.357Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.383Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.404Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.427Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.449Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.466Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:18:55.470Z","level":"warn","event":"ai.budget_rejected","tenantId":"570b7291-983a-4982-b0a2-3da77b4b1447","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+T1/E1: reserva atômica sob 20 concorrentes: OK
+{"timestamp":"2026-09-19T15:18:55.490Z","level":"info","event":"ai.budget_reserved","tenantId":"6aedf868-d569-4bce-80a4-67003ca41618","usageId":"22a901fe-a656-40e2-a9d1-a56462b677bd","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:18:55.494Z","level":"info","event":"ai.budget_settled","tenantId":"6aedf868-d569-4bce-80a4-67003ca41618","usageId":"22a901fe-a656-40e2-a9d1-a56462b677bd","budget":100,"real":7,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+{"timestamp":"2026-09-19T15:18:55.498Z","level":"info","event":"ai.budget_settled","tenantId":"6aedf868-d569-4bce-80a4-67003ca41618","usageId":"22a901fe-a656-40e2-a9d1-a56462b677bd","budget":null,"real":7,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+{"timestamp":"2026-09-19T15:18:55.505Z","level":"info","event":"ai.budget_reserved","tenantId":"6aedf868-d569-4bce-80a4-67003ca41618","usageId":"690e6a53-0ae7-4ded-9516-7021452de34e","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+{"timestamp":"2026-09-19T15:18:55.510Z","level":"warn","event":"ai.budget_settlement_retry","tenantId":"6aedf868-d569-4bce-80a4-67003ca41618","usageId":"690e6a53-0ae7-4ded-9516-7021452de34e","outcome":"success","error":{"name":"Error","message":"simulated_post_commit_failure"}}
+{"timestamp":"2026-09-19T15:18:55.512Z","level":"info","event":"ai.budget_settled","tenantId":"6aedf868-d569-4bce-80a4-67003ca41618","usageId":"690e6a53-0ae7-4ded-9516-7021452de34e","budget":null,"real":0,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+T2/E2: settlement exatamente-uma-vez: OK
+{"timestamp":"2026-09-19T15:18:55.535Z","level":"info","event":"ai.budget_reserved","tenantId":"03c90ffa-d10e-4521-9175-6c597901fb7c","usageId":"38410537-b7e7-46de-9b4b-0aa7af7b6580","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:18:55.540Z","level":"info","event":"ai.budget_settled","tenantId":"03c90ffa-d10e-4521-9175-6c597901fb7c","usageId":"38410537-b7e7-46de-9b4b-0aa7af7b6580","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":4,"outcome":"usage_unknown","applied":true}
+{"timestamp":"2026-09-19T15:18:55.540Z","level":"warn","event":"ai.usage_unknown","tenantId":"03c90ffa-d10e-4521-9175-6c597901fb7c","usageId":"38410537-b7e7-46de-9b4b-0aa7af7b6580","reason":"absent","flowOutcome":"error_ai_timeout","model":null,"round":0}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+100 !== 0
+
+    at runE3 (/home/douglas-souza/preco-que-d-main/.worktree-inv006/scripts/db/test-ai-budget.ts:300:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async main (/home/douglas-souza/preco-que-d-main/.worktree-inv006/scripts/db/test-ai-budget.ts:773:7)
+    at async <anonymous> (/home/douglas-souza/preco-que-d-main/.worktree-inv006/scripts/db/test-ai-budget.ts:799:1) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 100,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.15.0
+DB_TEST_EXIT=1
