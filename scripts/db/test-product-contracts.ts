@@ -1,24 +1,24 @@
-// F-C6-2: a prova de banco de `src/test/products-fk-conflict.test.ts` (os 4 casos
-// que exigem `DATABASE_ADMIN_URL`) **não** entrava em `npm run db:test` — rodava
-// só pelo `npm run test`, sem nenhum passo que assertasse o resultado. Este passo
-// encadeia a prova na suíte de banco e falha alto em três casos:
+// F-D2-runner-failopen (lado vitest): `src/test/product-contracts.test.ts` tem 14
+// casos, dos quais 9 são gated por banco (`dbDescribe`). Nenhum passo assertava que
+// eles **executaram** — se o gate de loopback fechasse, o arquivo viraria
+// `5 passed | 9 skipped` com exit 0 e `npm run test` seguiria verde sem ter
+// exercitado o banco. Este passo encadeia a prova na suíte de banco e falha alto em
+// três casos:
 //
 //   1. `DATABASE_ADMIN_URL` ausente (`requireAdminUrl`);
-//   2. o bloco de banco ter sido **pulado**: o resumo do reporter JSON precisa
-//      ter 0 testes pendentes. O gate de loopback do próprio teste só desabilita
-//      o bloco quando uma das URLs está **definida e fora de loopback** — é o
-//      kill-switch contra credencial de produção herdada, e `isLoopbackUrl`
-//      devolve `true` para valor ausente (`if (!value) return true`), então a
-//      ausência da variável faz o bloco **executar**, não pular. Medido em
-//      2026-09-19 neste worktree: `DATABASE_URL_UNPOOLED` remoto ⇒
-//      `13 total / 9 passed / 4 pending`; variável ausente ⇒
-//      `13 total / 13 passed / 0 pending`;
-//   3. F-D2-runner-failopen — a cardinalidade do arquivo ter encolhido. Um
-//      arquivo **sem** casos faz o vitest sair != 0, e a asserção de status
-//      abaixo já reprova antes das demais (medido: `total=0 passed=0
-//      pending=0 failed=0`, exit 1). Mas um arquivo com menos casos que o
-//      contrato — **todos passando** — sai 0, e o passo ficaria verde com a
-//      cobertura de banco reduzida em silêncio. É isso que o piso fecha.
+//   2. o bloco de banco ter sido **pulado**: o resumo do reporter JSON precisa ter
+//      0 testes pendentes. O gate do próprio teste só desabilita o bloco quando uma
+//      das URLs está **definida e fora de loopback** — é o kill-switch contra
+//      credencial de produção herdada, e `isLoopbackUrl` devolve `true` para valor
+//      ausente (`if (!value) return true`), então a ausência da variável faz o bloco
+//      **executar**, não pular. Medido em 2026-09-19 neste worktree:
+//      `DATABASE_URL_UNPOOLED` remoto ⇒ `14 total / 5 passed / 9 pending`;
+//      variável ausente ⇒ `14 total / 14 passed / 0 pending`;
+//   3. a cardinalidade do arquivo ter encolhido. Um arquivo **sem** casos faz o
+//      vitest sair != 0, e a asserção de status abaixo já reprova antes das demais.
+//      Mas um arquivo com menos casos que o contrato — **todos passando** — sai 0, e
+//      o passo ficaria verde com a cobertura de banco reduzida em silêncio. Medido:
+//      1 caso que passa ⇒ `1 < 14` e exit 1. É isso que o piso fecha.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -28,16 +28,16 @@ import { fileURLToPath } from "node:url";
 import { requireAdminUrl } from "./migrate";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
-const testFile = "src/test/products-fk-conflict.test.ts";
+const testFile = "src/test/product-contracts.test.ts";
 
 /**
  * Piso de cardinalidade do arquivo (F-D2-runner-failopen). O runner já reprova
- * quando o vitest sai != 0 — um arquivo sem casos cai aí — mas um arquivo com
- * menos casos que o contrato, **todos passando**, sai 0 e o passo ficaria verde
- * com a cobertura encolhida em silêncio. Medido em 2026-09-19: arquivo com 1
- * caso que passa ⇒ `1 < 13` e exit 1.
+ * quando o vitest sai != 0 — um arquivo sem casos cai aí — mas um arquivo com menos
+ * casos que o contrato, **todos passando**, sai 0 e o passo ficaria verde com a
+ * cobertura encolhida em silêncio. Medido em 2026-09-19: arquivo com 1 caso que
+ * passa ⇒ `1 < 14` e exit 1.
  */
-const MIN_TOTAL_TESTS = 13;
+const MIN_TOTAL_TESTS = 14;
 
 /** Resumo do reporter JSON do vitest (só o que este passo lê). */
 interface VitestSummary {
@@ -55,7 +55,7 @@ function vitestBin(): string {
 
 async function main(): Promise<void> {
   const adminUrl = requireAdminUrl();
-  const scratch = mkdtempSync(join(tmpdir(), "trk-d2-fk-"));
+  const scratch = mkdtempSync(join(tmpdir(), "trk-d2-pc-"));
   const summaryPath = join(scratch, "summary.json");
   try {
     const result = spawnSync(

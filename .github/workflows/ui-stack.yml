@@ -37,6 +37,20 @@ jobs:
         postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
       DATABASE_URL: >-
         postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
+      # INV-006 / F-D2-runner-failopen: `src/test/product-contracts.test.ts` e
+      # `src/test/products-fk-conflict.test.ts` leem esta terceira URL como
+      # kill-switch contra credencial de produção herdada. O gate é
+      # `isLoopbackUrl`, que devolve `true` para valor **ausente**
+      # (`if (!value) return true`) — logo a ausência faz o bloco **executar**,
+      # não pular — e `false` quando a URL está definida **fora** de loopback,
+      # fechando o bloco e deixando os 4 + 9 casos gated em `pending` — o vitest
+      # sai 0 com prova pulada, mas o runner de `db:test` reprova por isso.
+      # Declarar aqui torna o valor determinístico: o job deixa de depender do que
+      # o ambiente do runner ofereça e os casos de banco sempre têm contra o que
+      # executar (medido 2026-09-19: ausente ⇒ 13/13 e 14/14 executam; remota ⇒
+      # 4 e 9 em `pending`).
+      DATABASE_URL_UNPOOLED: >-
+        postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
       DATABASE_DRIVER: node-postgres
       EXPECTED_POSTGRES_MAJOR: "17"
       BETTER_AUTH_URL: http://127.0.0.1:4173
