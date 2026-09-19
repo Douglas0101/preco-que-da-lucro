@@ -107,6 +107,7 @@ export const applicationMetrics = {
   aiQuotas: meter.createCounter("app.ai.quotas"),
   aiEstimatedCostTotal: meter.createCounter("app.ai.estimated_cost_total"),
   aiCostUnknownTotal: meter.createCounter("app.ai.cost_unknown_total"),
+  aiUsageUnknownTotal: meter.createCounter("app.ai.usage_unknown_total"),
   toolExecutions: meter.createCounter("app.ai.tool.executions"),
   conversationStateTransitions: meter.createCounter("app.ai.conversation_state_transitions"),
   conversationInvalidTransitions: meter.createCounter("app.ai.conversation_invalid_transitions"),
