@@ -1,0 +1,113 @@
+== tabelas outbox no schema ==
+871:  "outbox_events",
+892:    uniqueIndex("outbox_events_tenant_idempotency_uidx").on(table.tenantId, table.idempotencyKey),
+894:    index("outbox_events_claim_idx").on(
+901:      "outbox_events_status_check",
+904:    check("outbox_events_attempts_check", sql`${table.attempts} >= 0`),
+906:      "outbox_events_identity_check",
+== idempotencia (indice unico) em outbox_events ==
+4:892:    uniqueIndex("outbox_events_tenant_idempotency_uidx").on(table.tenantId, table.idempotencyKey),
+5:894:    index("outbox_events_claim_idx").on(
+
+== tabelas ai_memory_* declaradas no schema ==
+"ai_memories"
+"ai_memory_access_log"
+"ai_memory_access_log_action_check"
+"ai_memory_access_log_result_check"
+"ai_memory_access_log_row_count_check"
+"ai_memory_access_log_tenant_action_created_idx"
+"ai_memory_access_log_tenant_memory_idx"
+"ai_memory_conflicts"
+"ai_memory_conflicts_content_check"
+"ai_memory_conflicts_status_check"
+"ai_memory_conflicts_tenant_memory_idx"
+"ai_memory_conflicts_tenant_status_idx"
+"ai_memory_policies"
+"ai_memory_policies_layer_check"
+"ai_memory_policies_layer_version_uidx"
+"ai_memory_policies_ttl_check"
+"ai_memory_policies_version_check"
+"ai_memory_sources"
+"ai_memory_sources_confidence_check"
+"ai_memory_sources_kind_check"
+"ai_memory_sources_origin_check"
+"ai_memory_sources_ref_check"
+"ai_memory_sources_tenant_memory_idx"
+"ai_memory_versions"
+"ai_memory_versions_content_check"
+"ai_memory_versions_tenant_memory_version_uidx"
+"ai_memory_versions_version_check"
+
+== tamanhos ==
+src/server/services/memory.service.ts                58 linhas
+src/server/services/memory.policy.ts                 178 linhas
+src/server/repositories/memory.repository.ts         1160 linhas
+src/server/services/event.service.ts                 51 linhas
+src/server/services/outbox.worker.ts                 182 linhas
+src/server/repositories/outbox.repository.ts         241 linhas
+scripts/db/test-memory.ts                            2919 linhas
+scripts/db/test-outbox.ts                            731 linhas
+scripts/obs/pg-stat-statements.ts                    505 linhas
+
+== exports de memory.service.ts ==
+17:export interface MemoryProposeOptions {
+22:export interface MemoryProposal {
+30:export interface MemoryService {
+38:export class DefaultMemoryService implements MemoryService {
+58:export const memoryService: MemoryService = new DefaultMemoryService();
+
+== 9.1 do plano: lista de servicos ==
+## 9.1 Application Services
+
+Criar:
+
+- ProductService;
+- PricingService;
+- ExpenseService;
+- SalesService;
+- SimulationService;
+- DiagnosticService;
+- ConversationService;
+- MemoryService;
+- AuditService;
+- EventService.
+
+## 9.2 Repository interfaces
+
+Criar contratos independentes de driver.
+
+Exemplo:
+
+```ts
+interface ProductRepository {
+  findById(ctx: RequestContext, id: ProductId): Promise<Product | null>;
+  list(ctx: RequestContext, query: ProductQuery): Promise<Page<Product>>;
+  save(ctx: TransactionContext, product: Product): Promise<void>;
+}
+```
+
+## 9.3 Contexto obrigatório
+
+
+== P1-11 (linha do anexo) ==
+| `P0-11`   | **DONE**    | high   | src/lib/api-error.ts:3-13 (11 códigos) e :45-77 (status/retryable/mensagem); src/test/api-error-contract.test.ts:22-26; docs/adr/ADR-022-error-taxonomy-observability.md                                                                                                                                                                                                                                                                                                                                  | Taxonomia única consumida pelo BFF, chat e tool-runner; domínios (INVALID_/NON_/...) mapeiam para VALIDATION_ERROR.                                                     
+
+== db:test: numero de etapas da cadeia ==
+etapas = 17
+    tsx scripts/db/check-migration-classes.ts
+    tsx scripts/db/test-migrations.ts
+    tsx scripts/db/test-concurrency.ts
+    tsx scripts/db/test-auth-integration.ts
+    tsx scripts/db/test-oauth-boundary.ts
+    tsx scripts/db/test-tool-security.ts
+    tsx scripts/db/test-sql-injection.ts
+    tsx scripts/db/test-chat-semantics.ts
+    tsx scripts/db/test-ai-budget.ts
+    tsx scripts/db/test-rum-persistence.ts
+    tsx scripts/db/test-rate-limit-burst.ts
+    tsx scripts/db/test-outbox.ts
+    tsx scripts/db/test-backfill.ts
+    tsx scripts/db/test-memory.ts
+    tsx scripts/db/test-products-fk-conflict.ts
+    tsx scripts/db/test-product-contracts.ts
+    tsx scripts/db/test-reconcile-ai-usage.ts

@@ -1,0 +1,8 @@
+# TRILHO C — gerador da camada recomputada (NAO mede nada: aplica overrides declarados)
+# comando: python3 .artifacts/zz-trilho-c-recompute.py
+# data: 2026-09-19T20:14:27Z
+
+OK: 89 -> 89 linhas; docs/evidence/trilho-c-recompute-36-40-2026-09-19/camada-36-40-recomputada.md
+Mudanças de status: P2-02: NS->DONE, GATE-41: PARTIAL->DONE, GATE-43: NS->PARTIAL
+Contagens: {'DONE': 69, 'PARTIAL': 10, 'NS': 9, 'NA': 1}
+EXIT=0

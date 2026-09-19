@@ -1,0 +1,153 @@
+# Verificação mecânica da camada §36–§40
+# gerado por .artifacts/zz-verify-36-40.py
+# data UTC: 2026-09-19T19:59:49Z
+
+HEAD = d9e58a28d21c0178f2b810d00e38d4b4866e82d8
+BRANCH = develop
+ANEXO = docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md
+ITENS DESCOBERTOS = 89
+  [`P0-01`] QUEBRADA esperado=1 medido=4                         <- grep 'dangerouslySetInnerHTML/DOMPurify' em src/
+  [`P0-01`] ARQUIVO AUSENTE                                      <- src/lib/chat-markdown.ts
+  [`P0-01`] ARQUIVO AUSENTE                                      <- src/test/chat-markdown.test.ts
+  [`P0-02`] ARQUIVO AUSENTE                                      <- finance.boundaries.test.ts
+  [`P0-04`] ARQUIVO AUSENTE                                      <- break-even.parity.test.ts
+  [`P0-12`] ARQUIVO AUSENTE                                      <- .functions.ts
+  [`P0-13`] OK(0)                                                <- grep 'localStorage' em src/
+  [`P0-15`] ARQUIVO AUSENTE                                      <- budget-ledger.server.ts
+  [`P1-01`] ARQUIVO AUSENTE                                      <- .functions.ts
+  [`P1-01`] ARQUIVO AUSENTE                                      <- package.js
+  [`P1-02`] ARQUIVO AUSENTE                                      <- event.contracts.ts
+  [`P1-03`] ARQUIVO AUSENTE                                      <- dashboard.repository.ts
+  [`P1-03`] ARQUIVO AUSENTE                                      <- product.repository.ts
+  [`P1-03`] ARQUIVO AUSENTE                                      <- sales.repository.ts
+  [`P1-11`] LINHA FORA DE ALCANCE 70>64                          <- src/lib/financial.functions.ts:70 (tem 64)
+  [`P1-13`] ARQUIVO AUSENTE                                      <- simulacoes.ts
+  [`P1-13`] ARQUIVO AUSENTE                                      <- src/routes/_authenticated/inicio.ts
+  [`P1-15`] ARQUIVO AUSENTE                                      <- drizzle/meta/_journal.js
+  [`P2-02`] MEDIDO=286 (sem expectativa explícita)               <- grep 'outbox' em src/ drizzle/ scripts/
+  [`P2-04`] QUEBRADA esperado=0 medido=127                       <- grep 'tsvector/to_tsvector/tsquery/GIN' em src/ drizzle/ scripts/
+  [`P2-05`] OK(0)                                                <- grep 'pgvector/hnsw/embedding' em src/ drizzle/ scripts/
+  [`P2-06`] QUEBRADA esperado=0 medido=18                        <- grep 'hybrid/retrieval/rrf' em src/ drizzle/ scripts/
+  [`P2-07`] QUEBRADA esperado=0 medido=401                       <- grep 'memory/memória' em src/routes/ drizzle/ src/db/schema.ts
+  [`P2-10`] ARQUIVO AUSENTE                                      <- package.js
+  [`P2-10`] ARQUIVO AUSENTE                                      <- products.functions.ts
+  [`P2-10`] ARQUIVO AUSENTE                                      <- sales.repository.ts
+  [`ORD-02`] ARQUIVO AUSENTE                                      <- src/lib/chat-markdown.ts
+  [`ORD-02`] ARQUIVO AUSENTE                                      <- src/test/chat-markdown.test.ts
+  [`ORD-12`] ARQUIVO AUSENTE                                      <- .functions.ts
+  [`ORD-18`] ARQUIVO AUSENTE                                      <- product-completeness.ts
+  [`ORD-18`] ARQUIVO AUSENTE                                      <- product-read-model.service.ts
+  [`ORD-29`] ARQUIVO AUSENTE                                      <- reconciliation-dryrun-2026-09-07.md
+  [`ORD-29`] ARQUIVO AUSENTE                                      <- schema-diff-2026-09-07.md
+  [`ORD-32`] QUEBRADA esperado=0 medido=338                       <- grep 'memory/memória' em src/routes/ drizzle/
+  [`ORD-32`] ARQUIVO AUSENTE                                      <- schema.ts
+  [`ORD-33`] OK(0)                                                <- grep 'tsvector/to_tsvector/tsquery' em src/ drizzle/ scripts/
+  [`ORD-34`] OK(0)                                                <- grep 'pgvector/hnsw/embedding' em src/ drizzle/ scripts/
+  [`ORD-35`] QUEBRADA esperado=0 medido=18                        <- grep 'hybrid/retrieval' em src/ drizzle/ scripts/
+  [`ORD-37`] ARQUIVO AUSENTE                                      <- package.js
+  [`ORD-37`] ARQUIVO AUSENTE                                      <- src/routes/_authenticated/inicio.ts
+  [`GATE-43`] QUEBRADA esperado=0 medido=239                       <- grep 'tsvector/provenance/delete.*export/policy' em src/
+  [`GATE-44`] QUEBRADA esperado=0 medido=10                        <- grep 'pgvector/hnsw/embedding/pg_stat_statements' em src/ drizzle/ scripts/
+  [`DEF-01`] MEDIDO=23 (sem expectativa explícita)                <- grep 'estoque/inventory' em src/ drizzle/ scripts/
+  [`DEF-02`] OK(0)                                                <- grep 'fluxo de caixa/cash_flow/cashflow' em src/ drizzle/ scripts/
+  [`DEF-03`] OK(0)                                                <- grep '\bDRE\b' em src/ drizzle/ scripts/
+  [`DEF-04`] OK(0)                                                <- grep 'whatsapp' em src/ drizzle/ scripts/
+  [`DEF-05`] OK(0)                                                <- grep 'marketplace' em src/ drizzle/ scripts/
+
+===== RESUMO =====
+  arquivo_ausente = 28
+  itens = 89
+  linha_fora = 1
+  ok = 8
+  quebrada = 8
+  ref_ok = 142
+  sem_afirmacao_verificavel = 2
+  sem_expectativa = 2
+
+===== ITENS COM AFIRMAÇÃO QUEBRADA =====
+  `P0-01` (**DONE**) -> QUEBRADA esperado=1 medido=4; ARQUIVO AUSENTE; ARQUIVO AUSENTE
+  `P0-02` (**DONE**) -> ARQUIVO AUSENTE
+  `P0-04` (**DONE**) -> ARQUIVO AUSENTE
+  `P0-12` (**DONE**) -> ARQUIVO AUSENTE
+  `P0-15` (**DONE**) -> ARQUIVO AUSENTE
+  `P1-01` (**DONE**) -> ARQUIVO AUSENTE; ARQUIVO AUSENTE
+  `P1-02` (**PARTIAL**) -> ARQUIVO AUSENTE
+  `P1-03` (**DONE**) -> ARQUIVO AUSENTE; ARQUIVO AUSENTE; ARQUIVO AUSENTE
+  `P1-11` (**DONE**) -> LINHA FORA DE ALCANCE 70>64
+  `P1-13` (**DONE**) -> ARQUIVO AUSENTE; ARQUIVO AUSENTE
+  `P1-15` (**DONE**) -> ARQUIVO AUSENTE
+  `P2-04` (**NS**) -> QUEBRADA esperado=0 medido=127
+  `P2-06` (**NS**) -> QUEBRADA esperado=0 medido=18
+  `P2-07` (**NS**) -> QUEBRADA esperado=0 medido=401
+  `P2-10` (**PARTIAL**) -> ARQUIVO AUSENTE; ARQUIVO AUSENTE; ARQUIVO AUSENTE
+  `ORD-02` (**DONE**) -> ARQUIVO AUSENTE; ARQUIVO AUSENTE
+  `ORD-12` (**DONE**) -> ARQUIVO AUSENTE
+  `ORD-18` (**DONE**) -> ARQUIVO AUSENTE; ARQUIVO AUSENTE
+  `ORD-29` (**DONE**) -> ARQUIVO AUSENTE; ARQUIVO AUSENTE
+  `ORD-32` (**NS**) -> QUEBRADA esperado=0 medido=338; ARQUIVO AUSENTE
+  `ORD-35` (**NS**) -> QUEBRADA esperado=0 medido=18
+  `ORD-37` (**DONE**) -> ARQUIVO AUSENTE; ARQUIVO AUSENTE
+  `GATE-43` (**NS**) -> QUEBRADA esperado=0 medido=239
+  `GATE-44` (**NA**) -> QUEBRADA esperado=0 medido=10
+
+===== DETALHE DAS QUEBRAS (primeiros hits) =====
+  `P0-01` · grep 'dangerouslySetInnerHTML/DOMPurify' em src/ · QUEBRADA esperado=1 medido=4
+      src/lib/chat-markdown.tsx:9: * nenhuma hipótese — não existe caminho de `dangerouslySetInnerHTML`.
+      src/test/chat-markdown.test.tsx:51:  it("não usa dangerouslySetInnerHTML (renderer produz apenas nós React)", () => {
+      src/test/chat-markdown.test.tsx:57:    // dangerouslySetInnerHTML; aqui só existem elementos React planos.
+      src/test/chat-markdown.test.tsx:59:      typeof value === "object" && value !== null && "dangerouslySetInnerHTML" in value
+  `P2-04` · grep 'tsvector/to_tsvector/tsquery/GIN' em src/ drizzle/ scripts/ · QUEBRADA esperado=0 medido=127
+      drizzle/0004_giant_nocturne.sql:14:BEGIN
+      drizzle/0004_giant_nocturne.sql:64:BEGIN
+      src/lib/calc-explanation.ts:76:export const CONTRIBUTION_MARGIN_PCT_FORMULA =
+      src/lib/calc-explanation.ts:100:    formula: CONTRIBUTION_MARGIN_PCT_FORMULA,
+      scripts/db/backup-verify.ts:41:  if (ownTransaction) await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+      scripts/db/test-auth-integration.ts:150:  process.env.AUTH_TRUSTED_ORIGINS = "http://localhost:3000";
+  `P2-06` · grep 'hybrid/retrieval/rrf' em src/ drizzle/ scripts/ · QUEBRADA esperado=0 medido=18
+      drizzle/0017_past_gideon.sql:60:-- SELECT (retrieval), INSERT (append), UPDATE (ciclo de vida — D3) e DELETE
+      src/lib/ai/budget-ledger.server.ts:731:      reason: "gateway_retrieval_unavailable",
+      scripts/db/reconcile-ai-usage.ts:10://     sem retrieval por id e `ai_usage` não guarda payload, então re-consultar o
+      scripts/db/test-memory.ts:59: *      seguintes, expiração idempotente e tenant-scoped, retrieval sem vencida
+      scripts/db/test-memory.ts:1194:  assert.deepEqual(candidateSearch, [], "o candidato em conflito não entra no retrieval");
+      scripts/db/test-memory.ts:2448:    "memória vencida não aparece no retrieval",
+  `P2-07` · grep 'memory/memória' em src/routes/ drizzle/ src/db/schema.ts · QUEBRADA esperado=0 medido=401
+      src/db/schema.ts:35:/** Camadas **persistidas** de memória (§15.2 da V7 / §13 do ARQ). L0 (working)
+      src/db/schema.ts:37:export const memoryLayerValues = ["L1", "L2", "L3", "L4", "L5"] as const;
+      src/db/schema.ts:38:export type MemoryLayer = (typeof memoryLayerValues)[number];
+      src/db/schema.ts:40:/** Ações auditadas em `ai_memory_access_log` (§15.4/D4): retrieval, eliminação
+      src/db/schema.ts:42:export const memoryAccessActionValues = ["access", "delete", "export"] as const;
+      src/db/schema.ts:43:export type MemoryAccessAction = (typeof memoryAccessActionValues)[number];
+  `ORD-32` · grep 'memory/memória' em src/routes/ drizzle/ · QUEBRADA esperado=0 medido=338
+      drizzle/0017_past_gideon.sql:1:-- §43/§15.2 — memória persistente (alvo M-05, degrau D2). As tabelas novas usam
+      drizzle/0017_past_gideon.sql:25:CREATE TABLE "ai_memory_sources" (
+      drizzle/0017_past_gideon.sql:28:	"memory_id" uuid NOT NULL,
+      drizzle/0017_past_gideon.sql:40:	CONSTRAINT "ai_memory_sources_kind_check" CHECK ("ai_memory_sources"."source_kind" in ('user', 'tool', 'model', 'import')),
+      drizzle/0017_past_gideon.sql:41:	CONSTRAINT "ai_memory_sources_confidence_check" CHECK ("ai_memory_sources"."confidence" >= 0 and "ai_memory_sources"."confidence" <= 1),
+      drizzle/0017_past_gideon.sql:42:	CONSTRAINT "ai_memory_sources_ref_check" CHECK ("ai_memory_sources"."source_ref" is null or "ai_memory_sources"."source_ref" <> ''),
+  `ORD-35` · grep 'hybrid/retrieval' em src/ drizzle/ scripts/ · QUEBRADA esperado=0 medido=18
+      drizzle/0017_past_gideon.sql:60:-- SELECT (retrieval), INSERT (append), UPDATE (ciclo de vida — D3) e DELETE
+      src/lib/ai/budget-ledger.server.ts:731:      reason: "gateway_retrieval_unavailable",
+      scripts/db/reconcile-ai-usage.ts:10://     sem retrieval por id e `ai_usage` não guarda payload, então re-consultar o
+      scripts/db/test-memory.ts:59: *      seguintes, expiração idempotente e tenant-scoped, retrieval sem vencida
+      scripts/db/test-memory.ts:1194:  assert.deepEqual(candidateSearch, [], "o candidato em conflito não entra no retrieval");
+      scripts/db/test-memory.ts:2448:    "memória vencida não aparece no retrieval",
+  `GATE-43` · grep 'tsvector/provenance/delete.*export/policy' em src/ · QUEBRADA esperado=0 medido=239
+      src/lib/security-headers.ts:41:    "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+      src/lib/security-headers.ts:42:    "referrer-policy": "strict-origin-when-cross-origin",
+      src/lib/security-headers.ts:46:    headers["content-security-policy"] = SOURCE_DIRECTIVES.join("; ");
+      src/lib/security-headers.ts:48:    headers["content-security-policy-report-only"] = [
+      src/lib/api-error.ts:85:    const policy = ERROR_POLICY[code];
+      src/lib/api-error.ts:86:    super(options.message ?? policy.message, { cause: options.cause });
+  `GATE-44` · grep 'pgvector/hnsw/embedding/pg_stat_statements' em src/ drizzle/ scripts/ · QUEBRADA esperado=0 medido=10
+      scripts/obs/pg-stat-statements.ts:2: * Coletor local de `pg_stat_statements` (§16.3): lê `calls`, `total_exec_time`,
+      scripts/obs/pg-stat-statements.ts:22: * `shared_preload_libraries=pg_stat_statements` + `CREATE EXTENSION` já rodaram
+      scripts/obs/pg-stat-statements.ts:59:/** Linha crua de `pg_stat_statements` (bigint chega como string pelo driver). */
+      scripts/obs/pg-stat-statements.ts:85:  /** Quantas entradas de `pg_stat_statements` foram somadas nesta linha. */
+      scripts/obs/pg-stat-statements.ts:126:  from pg_stat_statements
+      scripts/obs/pg-stat-statements.ts:128:    and query not like '%pg_stat_statements%'
+
+===== INVARIANTE =====
+  descobertos = 89 · verificados = 89
+  checked === discovered: OK
+
+PY_EXIT=0

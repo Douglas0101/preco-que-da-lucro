@@ -1,0 +1,111 @@
+== quem usa memoryService / DefaultMemoryService (fora de teste) ==
+src/test/memory-service.test.ts:8:import { DefaultMemoryService, memoryService } from "@/server/services/memory.service";
+src/test/memory-service.test.ts:57:    expect(memoryService).toBeInstanceOf(DefaultMemoryService);
+src/test/memory-service.test.ts:87:        memoryService.propose(candidateUnderTest, policyUnderTest),
+src/test/memory-service.test.ts:99:      memoryService.propose(candidate({ scope: "tenant" }), policy({ allowedScopes: ["user"] })),
+src/test/memory-service.test.ts:107:      memoryService.propose(candidate(), policy({ minConfidence: Number.NaN })),
+src/test/memory-service.test.ts:117:    expect(() => memoryService.propose(received, policy())).toThrow(ApplicationError);
+src/test/memory-service.test.ts:132:    const proposal = memoryService.propose(
+src/test/memory-service.test.ts:147:    memoryService.propose(received, policy());
+src/test/memory-service.test.ts:153:    const proposal = memoryService.propose(candidate(), policy());
+src/test/memory-service.test.ts:159:    const proposal = memoryService.propose(
+src/test/memory-service.test.ts:173:    const proposal = memoryService.propose(
+src/test/memory-service.test.ts:183:    const proposal = memoryService.propose(
+src/test/memory-service.test.ts:193:    const first = memoryService.propose(candidate(), policy({ retention: { ttlSeconds: 60 } }), {
+src/test/memory-service.test.ts:196:    const second = memoryService.propose(candidate(), policy({ retention: { ttlSeconds: 60 } }), {
+src/test/memory-service.test.ts:205:      memoryService.propose(candidate(), policy({ retention: { ttlSeconds: Number.NaN } }), {
+--- contagem:
+src/test/memory-service.test.ts:15
+
+== quem usa eventService / DefaultEventService ==
+src/server/services/expense.service.ts:8:import { eventService, type EventService } from "@/server/services/event.service";
+src/server/services/expense.service.ts:21:    private readonly events: EventService = eventService,
+src/test/event-service.test.ts:20:  DefaultEventService,
+src/test/event-service.test.ts:21:  eventService,
+src/test/event-service.test.ts:117:    expect(eventService).toBeInstanceOf(DefaultEventService);
+src/test/event-service.test.ts:122:    const service: EventService = new DefaultEventService(repository);
+src/test/event-service.test.ts:136:    const service = new DefaultEventService(repository);
+src/test/event-service.test.ts:150:    const service = new DefaultEventService(repository);
+src/test/event-service.test.ts:158:    const service = new DefaultEventService(repository);
+src/test/event-service.test.ts:170:    const service = new DefaultEventService(repository);
+src/test/event-service.test.ts:184:    const service = new DefaultEventService(repository);
+src/test/event-service.test.ts:214:    const service = new DefaultExpenseService(expenses, new DefaultEventService(events));
+src/test/event-service.test.ts:244:    const service = new DefaultExpenseService(expenses, new DefaultEventService(events));
+
+== quem usa o memory repository (port) ==
+scripts/db/test-memory.ts:97:import { memoryRepository } from "../../src/server/repositories/memory.repository";
+scripts/db/test-memory.ts:311:      memoryRepository.append(bindTransactionContext(requestA, transaction), memoryInput()),
+scripts/db/test-memory.ts:330:    memoryRepository.search(bindTransactionContext(requestB, transaction), {
+scripts/db/test-memory.ts:395:    memoryRepository.append(
+scripts/db/test-memory.ts:429:    memoryRepository.search(bindTransactionContext(requestA, transaction), {
+scripts/db/test-memory.ts:449:    memoryRepository.search(bindTransactionContext(requestA, transaction), {
+scripts/db/test-memory.ts:557:    memoryRepository.search(bindTransactionContext(requestA, transaction), {
+scripts/db/test-memory.ts:589:      await memoryRepository.append(context, memoryInput());
+scripts/db/test-memory.ts:629:      await memoryRepository.append(context, memoryInput({ content: "" }));
+scripts/db/test-memory.ts:656:    const { record: memory } = await memoryRepository.append(context, memoryInput());
+scripts/db/test-memory.ts:687:    memoryRepository.append(bindTransactionContext(requestA, transaction), memoryInput()),
+scripts/db/test-memory.ts:690:    memoryRepository.delete(bindTransactionContext(requestA, transaction), mine.id),
+scripts/db/test-memory.ts:715:    memoryRepository.delete(
+scripts/db/test-memory.ts:723:    memoryRepository.append(bindTransactionContext(requestA, transaction), memoryInput()),
+scripts/db/test-memory.ts:726:    memoryRepository.delete(bindTransactionContext(requestB, transaction), foreignKeyRow.id),
+scripts/db/test-memory.ts:738:    memoryRepository.delete(bindTransactionContext(requestA, transaction), foreignKeyRow.id),
+scripts/db/test-memory.ts:743:      memoryRepository.delete(bindTransactionContext(requestA, transaction), foreignKeyRow.id),
+scripts/db/test-memory.ts:814:      memoryRepository.search(bindTransactionContext(requestA, transaction), {
+scripts/db/test-memory.ts:927:    memoryRepository.append(bindTransactionContext(requestA, transaction), memoryInput()),
+scripts/db/test-memory.ts:939:    memoryRepository.append(
+
+== saveSimulation: onde vive agora ==
+src/lib/financial.functions.ts:54:export const saveSimulation = createServerFn({ method: "POST" })
+src/test/calc-explainer.test.tsx:42:  return { ...actual, saveSimulation: vi.fn() };
+src/routes/_authenticated/simulacoes.tsx:4:import { saveSimulation } from "@/lib/financial.functions";
+src/routes/_authenticated/simulacoes.tsx:348:  const saveSimulationMutation = useMutation({
+src/routes/_authenticated/simulacoes.tsx:350:      saveSimulation({
+src/routes/_authenticated/simulacoes.tsx:366:  const saveSimulationLabel = saveSimulationMutation.isPending ? "Salvando..." : "Salvar simulação";
+src/routes/_authenticated/simulacoes.tsx:547:                      onClick={() => saveSimulationMutation.mutate()}
+src/routes/_authenticated/simulacoes.tsx:549:                        saveSimulationMutation.isPending ||
+src/routes/_authenticated/simulacoes.tsx:557:                      {saveSimulationLabel}
+src/test/simulation-volume-source.test.tsx:15:import { saveSimulation } from "@/lib/financial.functions";
+
+== tamanho de src/lib/financial.functions.ts ==
+64 src/lib/financial.functions.ts
+
+== simulacoes: rotas e services ==
+ai
+ai-endpoint.server.ts
+api-error.ts
+auth-client.ts
+break-even.functions.ts
+break-even.ts
+calc-explanation.ts
+chat-data.ts
+chat-execution.server.ts
+chat-fsm.server.ts
+chat-fsm.ts
+chat.functions.ts
+chat-markdown.tsx
+csp-report-payload.ts
+dashboard.functions.ts
+diagnostic.functions.ts
+error-capture.ts
+error-page.ts
+expenses.functions.ts
+finance.ts
+financial.functions.ts
+financial-values.ts
+format.ts
+list-limits.ts
+lovable-error-reporting.ts
+optimistic-version.ts
+products.functions.ts
+query-options.ts
+query-stale-time.ts
+request-context.ts
+sales.functions.ts
+security-headers.ts
+session-context.tsx
+structured-logger.ts
+tenant-transaction.ts
+utils.ts
+vercel-analytics.ts
+web-vitals.client.ts
+web-vitals-payload.ts

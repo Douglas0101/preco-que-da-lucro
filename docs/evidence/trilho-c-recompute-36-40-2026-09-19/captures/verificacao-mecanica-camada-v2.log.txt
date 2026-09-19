@@ -1,0 +1,82 @@
+# Verificação mecânica da camada §36–§40 — v2 (fronteira de palavra, arquivos)
+# gerado por .artifacts/zz-verify-36-40-v2.py
+# data UTC: 2026-09-19T20:00:19Z
+
+HEAD = d9e58a28d21c0178f2b810d00e38d4b4866e82d8
+BRANCH = develop
+ITENS DESCOBERTOS = 89
+  [`P0-01`] GREP QUEBRADA 'dangerouslySetInnerHTML/DOMPurify' em src/: esperado=1 medido=2 arquivos
+         src/lib/chat-markdown.tsx
+         src/test/chat-markdown.test.tsx
+  [`P2-04`] GREP QUEBRADA 'tsvector/to_tsvector/tsquery/GIN' em src/ drizzle/ scripts/: esperado=0 medido=1 arquivos
+         src/server/repositories/memory.repository.ts
+  [`P2-06`] GREP QUEBRADA 'hybrid/retrieval/rrf' em src/ drizzle/ scripts/: esperado=0 medido=9 arquivos
+         drizzle/0017_past_gideon.sql
+         scripts/db/reconcile-ai-usage.ts
+         scripts/db/test-memory.ts
+         src/db/schema.ts
+         src/instrumentation/telemetry.ts
+         src/server/contracts/memory.contracts.ts
+         src/server/repositories/memory.repository.ts
+         src/server/services/memory.policy.ts
+  [`P2-07`] GREP QUEBRADA 'memory/memória' em src/routes/ drizzle/ src/db/schema.ts: esperado=0 medido=4 arquivos
+         drizzle/0017_past_gideon.sql
+         drizzle/rollback/0017_to_0016_down.sql
+         drizzle/rollback/0018_to_0017_down.sql
+         src/db/schema.ts
+  [`ORD-32`] GREP QUEBRADA 'memory/memória' em src/routes/ drizzle/: esperado=0 medido=3 arquivos
+         drizzle/0017_past_gideon.sql
+         drizzle/rollback/0017_to_0016_down.sql
+         drizzle/rollback/0018_to_0017_down.sql
+  [`ORD-35`] GREP QUEBRADA 'hybrid/retrieval' em src/ drizzle/ scripts/: esperado=0 medido=9 arquivos
+         drizzle/0017_past_gideon.sql
+         scripts/db/reconcile-ai-usage.ts
+         scripts/db/test-memory.ts
+         src/db/schema.ts
+         src/instrumentation/telemetry.ts
+         src/server/contracts/memory.contracts.ts
+         src/server/repositories/memory.repository.ts
+         src/server/services/memory.policy.ts
+  [`GATE-43`] GREP QUEBRADA 'tsvector/provenance/delete.*export/policy' em src/: esperado=0 medido=17 arquivos
+         src/db/schema.ts
+         src/lib/api-error.ts
+         src/lib/financial-values.ts
+         src/lib/security-headers.ts
+         src/server/auth/auth.server.ts
+         src/server/contracts/memory.contracts.ts
+         src/server/repositories/memory.repository.ts
+         src/server/services/memory.policy.ts
+  [`GATE-44`] GREP QUEBRADA 'pgvector/hnsw/embedding/pg_stat_statements' em src/ drizzle/ scripts/: esperado=0 medido=2 arquivos
+         scripts/obs/pg-stat-statements.ts
+         src/test/pg-stat-statements.test.ts
+
+  grep = 18
+  grep_ok = 8
+  grep_quebrada = 8
+  ref = 172
+  ref_fora = 1
+  ref_ignorada = 19
+  ref_ok = 152
+
+===== ITENS COM AFIRMAÇÃO QUEBRADA =====
+  `P0-01` (**DONE**)
+      - GREP 'dangerouslySetInnerHTML/DOMPurify' esperado=1 medido=2
+  `P1-11` (**DONE**)
+      - LINHA FORA src/lib/financial.functions.ts:70 (tem 64)
+  `P2-04` (**NS**)
+      - GREP 'tsvector/to_tsvector/tsquery/GIN' esperado=0 medido=1
+  `P2-06` (**NS**)
+      - GREP 'hybrid/retrieval/rrf' esperado=0 medido=9
+  `P2-07` (**NS**)
+      - GREP 'memory/memória' esperado=0 medido=4
+  `ORD-32` (**NS**)
+      - GREP 'memory/memória' esperado=0 medido=3
+  `ORD-35` (**NS**)
+      - GREP 'hybrid/retrieval' esperado=0 medido=9
+  `GATE-43` (**NS**)
+      - GREP 'tsvector/provenance/delete.*export/policy' esperado=0 medido=17
+  `GATE-44` (**NA**)
+      - GREP 'pgvector/hnsw/embedding/pg_stat_statements' esperado=0 medido=2
+
+  itens = 89 · itens com quebra = 9
+PY_EXIT=0
