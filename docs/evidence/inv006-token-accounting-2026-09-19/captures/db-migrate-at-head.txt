@@ -1,0 +1,11 @@
+
+> predb:migrate
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> db:migrate
+> tsx scripts/db/migrate.ts
+
+Migrations PostgreSQL aplicadas com sucesso.
+MIGRATE_EXIT=0

@@ -11,7 +11,7 @@
     "concreteOperations": 36,
     "apiRoutes": 5,
     "transactionSites": 113,
-    "directDatabaseFiles": 48
+    "directDatabaseFiles": 49
   },
   "bffs": [
     {
@@ -726,13 +726,13 @@
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 126,
+      "line": 129,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 138,
+      "line": 141,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
@@ -1313,6 +1313,7 @@
     "src/server/repositories/simulation.repository.ts",
     "src/server/services/outbox.worker.ts",
     "src/test/ai-estimated-cost.test.ts",
+    "src/test/ai-usage-unknown.test.ts",
     "src/test/audit.service.test.ts",
     "src/test/backfill-runner.test.ts",
     "src/test/break-even.negative-margin.test.tsx",

@@ -1,0 +1,11 @@
+{"timestamp":"2026-09-19T15:29:04.413Z","level":"info","event":"ai.budget_reserved","tenantId":"24466fee-79af-4e84-9b9d-026e30c80df4","usageId":"43d6cd09-fd78-4d18-8b88-5b65ae033c1d","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+{"timestamp":"2026-09-19T15:29:04.420Z","level":"info","event":"ai.budget_settled","tenantId":"24466fee-79af-4e84-9b9d-026e30c80df4","usageId":"43d6cd09-fd78-4d18-8b88-5b65ae033c1d","budget":1000,"real":null,"usageUnknownReason":"absent","durationMs":15,"outcome":"usage_unknown","applied":true}
+INV-006/desconhecido: real_tokens NULL + reserva retida + in_flight liberado: OK
+{"timestamp":"2026-09-19T15:29:04.434Z","level":"info","event":"ai.budget_reserved","tenantId":"4744f3cb-d78d-453d-8931-374a183c4ee2","usageId":"9c8e3388-ea58-48aa-bacb-a9ca3aff1905","budget":200,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+{"timestamp":"2026-09-19T15:29:04.441Z","level":"info","event":"ai.budget_settled","tenantId":"4744f3cb-d78d-453d-8931-374a183c4ee2","usageId":"9c8e3388-ea58-48aa-bacb-a9ca3aff1905","budget":200,"real":155,"usageUnknownReason":null,"durationMs":6,"outcome":"success","applied":true}
+INV-006/conhecido: real_tokens 155 + reserva liberada + contadores: OK
+{"timestamp":"2026-09-19T15:29:04.453Z","level":"info","event":"ai.budget_reserved","tenantId":"76552265-de82-484f-b224-d6b012281faf","usageId":"8eed9ebb-99c3-437c-920f-08f2668622bd","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:29:04.459Z","level":"info","event":"ai.budget_settled","tenantId":"76552265-de82-484f-b224-d6b012281faf","usageId":"8eed9ebb-99c3-437c-920f-08f2668622bd","budget":100,"real":7,"usageUnknownReason":null,"durationMs":6,"outcome":"success","applied":true}
+INV-006/regressão numérica: caminho legado inalterado: OK
+INV-006: prova de banco do caminho desconhecido concluída (3 casos)
+PROVA_EXIT=0

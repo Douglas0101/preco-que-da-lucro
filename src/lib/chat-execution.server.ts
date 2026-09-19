@@ -6,7 +6,10 @@ import {
   estimateModelCost,
   type BudgetLedger,
   type BudgetLedgerConfig,
+  type EstimatedCostResult,
+  type SettlementUsage,
 } from "@/lib/ai/budget-ledger.server";
+import { parseAiUsage, type TokenUsage } from "@/lib/ai/token-usage";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
 import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
 import { runRegisteredTool } from "@/lib/ai/tool-runner";
@@ -468,9 +471,11 @@ async function executeReservedRound({
   );
   if (reservationResult.status !== "reserved") throw new ApplicationError("AI_QUOTA");
 
-  let inputTokens = 0;
-  let outputTokens = 0;
-  let realTokens = 0;
+  // `null` significa que **nenhuma resposta foi recebida** (a chamada falhou antes de
+  // medir). Isso NÃO é "uso desconhecido": sem resposta não há medição a classificar, e
+  // o contrato legado da falha continua valendo (libera a reserva, registra o outcome do
+  // erro). `TokenUsage` só é atribuído depois que o gateway respondeu.
+  let usage: TokenUsage | null = null;
   let toolCallsCount = 0;
   let modelName: string | null = null;
   let outcome = "error";
@@ -483,9 +488,9 @@ async function executeReservedRound({
     );
     acknowledgeGatewayResponse(latency);
     modelName = (modelResponse as { model?: string }).model ?? null;
-    inputTokens = modelResponse.usage?.prompt_tokens ?? 0;
-    outputTokens = modelResponse.usage?.completion_tokens ?? 0;
-    realTokens = inputTokens + outputTokens;
+    // INV-006: absence of `usage` is unknown, never zero. The gateway envelope is
+    // external input, so the classification happens once, here, and travels typed.
+    usage = parseAiUsage((modelResponse as { usage?: unknown }).usage);
     toolCallsCount = modelResponse.choices[0]!.message.tool_calls?.length ?? 0;
     const result = await handleModelResponse(
       modelResponse,
@@ -505,15 +510,44 @@ async function executeReservedRound({
     outcome = settlementOutcome(error);
     throw error;
   } finally {
-    const est = estimateModelCost(modelName, inputTokens, outputTokens);
-    await budgetLedger.settle(reservationResult.usageId, realTokens, outcome, {
-      inputTokens,
-      outputTokens,
+    // Sem resposta do gateway (`usage === null`) não há medição a classificar: preserva-se
+    // o contrato legado da falha — liquida com zero, libera a reserva e registra o outcome
+    // do erro. "Uso desconhecido" fica reservado ao caso em que o gateway **respondeu** e o
+    // `usage` não era utilizável (ausente/parcial/inválido).
+    const settlementUsage: SettlementUsage = usage ?? 0;
+    const est: EstimatedCostResult =
+      usage?.kind === "known"
+        ? estimateModelCost(modelName, usage.inputTokens, usage.outputTokens)
+        : usage === null
+          ? // Caminho de falha: o estimador é alimentado com zero exatamente como antes
+            // desta mudança, para não alterar as métricas de custo de chamadas que falharam.
+            estimateModelCost(modelName, 0, 0)
+          : // Resposta recebida sem medição confiável: nenhum custo é afirmado.
+            { cost: null, status: "unknown" };
+    await budgetLedger.settle(reservationResult.usageId, settlementUsage, outcome, {
+      ...(usage?.kind === "known"
+        ? { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens }
+        : {}),
       toolCalls: toolCallsCount,
-      estimatedCost: est.status === "known" ? est.cost : null,
+      estimatedCost: est.cost,
       costStatus: est.status,
     });
+    if (usage?.kind === "unknown") {
+      // Auditable alarm: the state is persisted (real_tokens NULL + outcome
+      // 'usage_unknown'), so this event is not the only trace of the unknown.
+      logJson("warn", "ai.usage_unknown", {
+        tenantId: identity.tenantId,
+        usageId: reservationResult.usageId,
+        reason: usage.reason,
+        flowOutcome: outcome,
+        model: modelName,
+        round,
+      });
+    }
     try {
+      if (usage?.kind === "unknown") {
+        applicationMetrics.aiUsageUnknownTotal.add(1, { reason: usage.reason });
+      }
       if (est.status === "known") {
         applicationMetrics.aiEstimatedCostTotal.add(1, {
           model: modelName ?? "unknown",

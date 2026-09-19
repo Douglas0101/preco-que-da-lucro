@@ -10,6 +10,7 @@ import {
 } from "@/db/client.server";
 import { toDecimalString } from "@/lib/financial-values";
 import { logJson } from "@/lib/structured-logger";
+import { type TokenUsage, type TokenUsageUnknownReason } from "@/lib/ai/token-usage";
 
 export const DEFAULT_BUDGET_CONFIG = {
   dailyModelCallLimit: 500,
@@ -58,6 +59,16 @@ export interface SettleOptions {
   /** Defaults to "unknown" so pricing-less callers never write a fabricated known cost. */
   costStatus?: "known" | "unknown" | "invalid";
 }
+
+/**
+ * What a settlement is allowed to assert about token usage (INV-006).
+ *
+ * A plain `number` keeps every pre-existing call site working unchanged. A
+ * `TokenUsage` carries the gateway classification: only `{ kind: "known" }`
+ * produces counts; `{ kind: "unknown" }` is persisted as such instead of being
+ * coerced into a zero that was never measured.
+ */
+export type SettlementUsage = number | TokenUsage;
 
 export interface ModelTokenPrice {
   inputPerMillion: number;
@@ -112,7 +123,7 @@ export interface BudgetLedger {
   ): Promise<ReserveResult>;
   settle(
     usageId: string,
-    realTokens: number,
+    usage: SettlementUsage,
     outcome: string,
     options?: SettleOptions,
   ): Promise<SettlementResult>;
@@ -374,6 +385,41 @@ function tokenBreakdown(
   return { inputTokens, outputTokens };
 }
 
+type ResolvedSettlement =
+  | {
+      kind: "known";
+      realTokens: number;
+      breakdown: { inputTokens: number; outputTokens: number };
+    }
+  | { kind: "unknown"; reason: TokenUsageUnknownReason };
+
+/**
+ * Normalises a settlement input into counts we can defend (INV-006).
+ *
+ * A numeric input is treated as an already-known measurement (legacy call sites).
+ * A `TokenUsage` is honoured as classified: `unknown` never fabricates a breakdown.
+ */
+function resolveSettlementUsage(
+  usage: SettlementUsage,
+  options: SettleOptions,
+): ResolvedSettlement {
+  if (typeof usage === "number") {
+    return { kind: "known", realTokens: usage, breakdown: tokenBreakdown(usage, options) };
+  }
+  if (usage.kind === "unknown") return { kind: "unknown", reason: usage.reason };
+
+  const realTokens = usage.inputTokens + usage.outputTokens;
+  return {
+    kind: "known",
+    realTokens,
+    breakdown: tokenBreakdown(realTokens, {
+      ...options,
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    }),
+  };
+}
+
 interface BudgetCostSetters {
   /** Known decimal string to add to ai_daily_budgets.estimated_cost, or null. */
   costIncrement: string | null;
@@ -625,14 +671,18 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
       return transactionResult.reservation;
     },
 
-    async settle(usageId, realTokens, outcome, options = {}): Promise<SettlementResult> {
+    async settle(usageId, usage, outcome, options = {}): Promise<SettlementResult> {
       assertText("usageId", usageId);
       assertText("outcome", outcome);
       const now = options.now ?? clock.now();
       assertDate(now, "now");
-      const breakdown = tokenBreakdown(realTokens, options);
+      const settlement = resolveSettlementUsage(usage, options);
       const toolCalls = options.toolCalls ?? 0;
       assertNonNegativeInteger("toolCalls", toolCalls);
+      // The column already carries reasons (`ttl_expired`, `chat_limit`, `budget_limit`),
+      // so an unknown measurement is recorded as a reason rather than as a flow result.
+      // The flow outcome travels in the structured event below, so nothing is lost.
+      const persistedOutcome = settlement.kind === "unknown" ? "usage_unknown" : outcome;
 
       const applySettlement = () =>
         transactionRunner.run(
@@ -643,8 +693,8 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
               set
                 status = 'settled',
                 settled_at = ${now},
-                real_tokens = ${realTokens},
-                outcome = ${outcome},
+                real_tokens = ${settlement.kind === "known" ? settlement.realTokens : null},
+                outcome = ${persistedOutcome},
                 estimated_cost = ${options.estimatedCost ?? null},
                 cost_status = ${options.costStatus ?? "unknown"}
               where usage_id = ${usageId}
@@ -657,20 +707,32 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
 
             const budgetTokens = asInteger(claimed.budgetTokens, "budgetTokens");
             const usageDate = utcDate(claimed.reservedAt);
+            // Known usage: release the reservation and add the measured counts.
+            // Unknown usage (INV-006): the call is no longer in flight, but the reserved
+            // tokens stay held — releasing them would assert a consumption of zero that
+            // was never measured, which is exactly what hid usage from the daily ceiling.
+            // Retaining the reservation errs on the safe side (over-estimate) and the
+            // `ai.usage_unknown` event keeps the leak visible for reconciliation.
+            const counterUpdates =
+              settlement.kind === "known"
+                ? [
+                    sql`tokens_reserved = tokens_reserved - ${budgetTokens}`,
+                    sql`in_flight = in_flight - 1`,
+                    sql`input_tokens = input_tokens + ${settlement.breakdown.inputTokens}`,
+                    sql`output_tokens = output_tokens + ${settlement.breakdown.outputTokens}`,
+                    sql`tool_call_count = tool_call_count + ${toolCalls}`,
+                    budgetCostSetterSql(options),
+                    sql`updated_at = ${now}`,
+                  ]
+                : [
+                    sql`in_flight = in_flight - 1`,
+                    sql`tool_call_count = tool_call_count + ${toolCalls}`,
+                    budgetCostSetterSql(options),
+                    sql`updated_at = ${now}`,
+                  ];
             const countersResult = await transaction.execute(sql`
               update ai_daily_budgets
-              set ${sql.join(
-                [
-                  sql`tokens_reserved = tokens_reserved - ${budgetTokens}`,
-                  sql`in_flight = in_flight - 1`,
-                  sql`input_tokens = input_tokens + ${breakdown.inputTokens}`,
-                  sql`output_tokens = output_tokens + ${breakdown.outputTokens}`,
-                  sql`tool_call_count = tool_call_count + ${toolCalls}`,
-                  budgetCostSetterSql(options),
-                  sql`updated_at = ${now}`,
-                ],
-                sql`, `,
-              )}
+              set ${sql.join(counterUpdates, sql`, `)}
               where tenant_id = ${dependencies.identity.tenantId}
                 and usage_date = ${usageDate}
               returning tokens_reserved as "tokensReserved", in_flight as "inFlight"
@@ -707,9 +769,10 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
         tenantId: dependencies.identity.tenantId,
         usageId,
         budget: result.budgetTokens,
-        real: realTokens,
+        real: settlement.kind === "known" ? settlement.realTokens : null,
+        usageUnknownReason: settlement.kind === "unknown" ? settlement.reason : null,
         durationMs: result.durationMs,
-        outcome,
+        outcome: persistedOutcome,
         applied: result.applied,
       });
       return result;
