@@ -1791,3 +1791,13 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Stream D — briefings de decisão humana preparados** (`docs/evidence/human-decisions-2026-09-19/`): **D1 H-4** (a decisão de billing/risco que trava o dia-D e os 263 commits — com a **correção de premissa declarada**: o PR `develop → main` exige **CI verde** pelo ADR-017 §19/§21, não o §42; o requisito de PITR ≥ 7 d vem do **SDD §16.6**, não do §42), **D2 H-6** (detecção bloqueada por Cloudflare Turnstile; ação humana de ~2 min com prazo ≈ 2026-09-21T03:37Z) e **D3** (consolidado da fila: H-5/H-9/H-2/H-8/H-11 + as ratificações pendentes `F-B-mem-policies`, `SD-C3-12`). **Nenhuma decisão foi tomada pelo MAESTRO** — billing e assinaturas são atos humanos.
 
   Latest state marker parent = `0d71283c2751f35929c2d8baae36810e6ec5529f`,
+
+---
+
+### Publicação e escalação — 2026-09-19 (pós-despacho do MAESTRO)
+
+- **Push autorizado executado:** `origin/develop` = `f7c0e4e` (`de8c232..f7c0e4e`, os 3 commits documentais). `CI light` **success** (run `35446740465`); `UI stack` run `35446740389`. Nenhuma falha nova; `origin/main` intocado (`9724d2c`); nenhum deploy de produção.
+- **Escalação de defeito de classe P0 (proposta, NÃO implementada):** `docs/evidence/defect-escalation-2026-09-19/INV-006-ai-token-accounting.md`. **INV-006 confirmado no código** no orçamento de IA: `GatewayResponse.usage` é opcional no tipo (`src/lib/chat-execution.server.ts:49-57`), sem validação de runtime; o único tratamento converte a ausência em `0` (`:486-488`); e o `settle` grava esse `0` como consumo real liberando a reserva (`src/lib/ai/budget-ledger.server.ts:646,664,666-667`), tornando o consumo invisível ao teto `AI_DAILY_*` (P0-17/§14.6, OWASP API4). **Alcance em produção não provado** (gateway real não observável sem tráfego — H-6). Correção proposta: variante **B** (`real_tokens = NULL` + `outcome='usage_unknown'`, sem liberar a reserva como zero) com alarme da variante A; exige regressão com gateway que **omite** `usage`. **Fila de código congelada até a reconciliação B1** (decisão do MAESTRO).
+- **Follow-up especificado (não executado):** `F-D2-runner-failopen` lado vitest — definir `DATABASE_URL_UNPOOLED` no bloco `env:` do job (`ui-stack.yml:34-44`) para os 13 testes de banco pararem de skippar em silêncio, com 4 cuidados obrigatórios (validar em PG efêmero antes de ligar, manter `isLoopbackUrl`, checar fixture, assertar execução ≠ skip).
+
+  Latest state marker parent = `f7c0e4e1d3bcaa32ba1cfb080ef8bf1846174544`,
