@@ -1856,3 +1856,16 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Artefato:** `docs/evidence/reconciliation-2026-09-19/EXECUCAO-2026-09-19.md`.
 
   Latest state marker parent = `bafa5c79b1766fffc274dec258a16c110b939359`,
+
+---
+
+### LAND DO INV-006 — `develop` = `c7fa618` (2026-09-19)
+
+- **Gate C autorizado pelo supervisor** ("Autorizo o land agora"). Gates **A** (db:test em PG17 real) e **B** (ciclo 6 reconciliado, sem contenção) já satisfeitos.
+- **Pré-merge:** interseção de arquivos entre `mission/inv006-token-accounting` e o que `develop` recebeu desde `a69a47e` = **∅** (medido com `comm`, não presumido). Merge `--no-ff` de `cbffc4c` **sem conflito** ⇒ `c7fa618`.
+- **E2 no HEAD integrado:** `npm run check` **exit 0** (87 arquivos / **852** testes, 13 skips pré-existentes) · `db:migrate` **exit 0** · **`npm run db:test` exit 0** (48 marcas `OK`; prova-FK **`13 passed (13), 0 skipped`**) em container **efêmero** `inv006-land-pg` (`:5433`, PostgreSQL 17.11), **destruído** ao fim. `:5432` **intocado**; produção intocada.
+- **O que entrou:** `src/lib/ai/token-usage.ts` (novo) · `src/lib/ai/budget-ledger.server.ts` · `src/lib/chat-execution.server.ts` · `src/instrumentation/telemetry.ts` · `src/test/{token-usage,ai-usage-unknown}.test.ts` (novos) · `scripts/db/test-ai-usage-unknown.ts` (novo) · `docs/specs/M-02/matrix{,.generated}.yaml` + evidência selada (11/11).
+- **Crédito de placar: nenhum.** Correção de defeito **fora** do denominador de 187 itens (P0-17 já era DONE); placar segue **150 D · 23 P · 12 NS · 2 UNV = 86,36% parcial / 80,21% crua**.
+- **Pendências que o land NÃO resolve:** job de reconciliação (fila C3, spec aprovada) · `F-D2-runner-failopen` (spec corrigida: a variável deve ser **definida e loopback**) · os demais follow-ups C3 · gates humanos H-4/H-6/H-2/H-5/H-8/H-9/H-11.
+
+  Latest state marker parent = `c7fa61851d24f4c427d9229bfee195dfa904993e`,

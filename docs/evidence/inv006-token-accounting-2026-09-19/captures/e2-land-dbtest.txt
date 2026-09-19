@@ -1,0 +1,315 @@
+
+> predb:test
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> db:test
+> tsx scripts/db/check-migration-classes.ts && tsx scripts/db/test-migrations.ts && tsx scripts/db/test-concurrency.ts && tsx scripts/db/test-auth-integration.ts && tsx scripts/db/test-oauth-boundary.ts && tsx scripts/db/test-tool-security.ts && tsx scripts/db/test-sql-injection.ts && tsx scripts/db/test-chat-semantics.ts && tsx scripts/db/test-ai-budget.ts && tsx scripts/db/test-rum-persistence.ts && tsx scripts/db/test-rate-limit-burst.ts && tsx scripts/db/test-outbox.ts && tsx scripts/db/test-backfill.ts && tsx scripts/db/test-memory.ts && tsx scripts/db/test-products-fk-conflict.ts
+
+✔ 20/20 classificadas
+PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+T2 CAS: produto e despesa com 1 update OK + 1 CONFLICT por burst + version incrementada: OK
+Better Auth, tenant pessoal, cookie, bcrypt/scrypt, fixação de sessão: OK
+2026-09-19T15:44:56.279Z ERROR [Better Auth]: Invalid origin: https://evil.example
+AUTH-005 A+B: boundary OAuth (state, PKCE, redirect, scopes, origem): OK
+{"timestamp":"2026-09-19T15:44:57.239Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"set_yield","code":"NOT_FOUND","error":{"name":"Error","message":"NOT_FOUND"}}
+Tool registry: validação, AuthZ, idempotência, auditoria e isolamento: OK
+{
+  "check": "db:test-sql-injection",
+  "engine": "postgres",
+  "payloads": 6,
+  "paths": [
+    "create_product",
+    "DrizzleProductRepository.save"
+  ],
+  "products_table_exists": true,
+  "pwned_exact_rows": 0,
+  "reports": [
+    {
+      "payload": "' OR '1'='1",
+      "control_potent": true,
+      "control_evidence": "tautologia selecionou 1 linha(s) do canário; com $1, 0",
+      "tool_duration_ms": 23,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "x'); DROP TABLE products; --",
+      "control_potent": true,
+      "control_evidence": "concatenação aceitou o payload e abortou: cannot drop table products because other objects depend on it",
+      "tool_duration_ms": 12,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "1; SELECT pg_sleep(2); --",
+      "control_potent": true,
+      "control_evidence": "pg_sleep(2) concatenado bloqueou por 2004ms",
+      "tool_duration_ms": 12,
+      "repository_duration_ms": 1,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "'); UPDATE products SET name='pwned' WHERE '1'='1'; --",
+      "control_potent": true,
+      "control_evidence": "concatenação alterou 5 linha(s) de products para 'pwned'",
+      "tool_duration_ms": 11,
+      "repository_duration_ms": 1,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "{\"$ne\":null}",
+      "control_potent": false,
+      "control_evidence": "operador NoSQL é literal inerte em SQL; canário permaneceu intacto",
+      "tool_duration_ms": 12,
+      "repository_duration_ms": 1,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "%'); COPY (SELECT '') TO PROGRAM 'true'; --",
+      "control_potent": true,
+      "control_evidence": "concatenação executou INSERT e COPY ... TO PROGRAM 'true' sem erro (papel admin)",
+      "tool_duration_ms": 12,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    }
+  ]
+}
+SQL injection adversarial: parametrização resiste aos 6 payloads, 0 mutações: OK
+Chat GET é somente leitura; criação fica restrita a POST: OK
+{"timestamp":"2026-09-19T15:45:02.093Z","level":"info","event":"ai.budget_reserved","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","usageId":"a82b419e-c86c-43c8-929b-de9a4025e71a","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:02.107Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.121Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.137Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.157Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.173Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.192Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.206Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.223Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.237Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.254Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.255Z","level":"info","event":"ai.chat_completed","correlationId":"2a0802a1-6d08-4310-b15f-d7219ca55ae4","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","rounds":1,"timeToAcknowledgeMs":282,"timeToFirstContentMs":292,"timeToFinalMs":292}
+{"timestamp":"2026-09-19T15:45:02.275Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.276Z","level":"info","event":"ai.budget_settled","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","usageId":"a82b419e-c86c-43c8-929b-de9a4025e71a","budget":100,"real":5,"usageUnknownReason":null,"durationMs":183,"outcome":"success","applied":true}
+{"timestamp":"2026-09-19T15:45:02.292Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.320Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.333Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.349Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.361Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.377Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.389Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.397Z","level":"warn","event":"ai.budget_rejected","tenantId":"419fcf40-c47e-477c-9e4a-bcfd16636087","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+T1/E1: reserva atômica sob 20 concorrentes: OK
+{"timestamp":"2026-09-19T15:45:02.415Z","level":"info","event":"ai.budget_reserved","tenantId":"7c7a282d-81f0-45d3-a570-f487989b621a","usageId":"3dbcd8be-993d-41d5-94c4-5dfda1fec1f7","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:02.418Z","level":"info","event":"ai.budget_settled","tenantId":"7c7a282d-81f0-45d3-a570-f487989b621a","usageId":"3dbcd8be-993d-41d5-94c4-5dfda1fec1f7","budget":100,"real":7,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+{"timestamp":"2026-09-19T15:45:02.422Z","level":"info","event":"ai.budget_settled","tenantId":"7c7a282d-81f0-45d3-a570-f487989b621a","usageId":"3dbcd8be-993d-41d5-94c4-5dfda1fec1f7","budget":null,"real":7,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+{"timestamp":"2026-09-19T15:45:02.429Z","level":"info","event":"ai.budget_reserved","tenantId":"7c7a282d-81f0-45d3-a570-f487989b621a","usageId":"7a440f9e-6b5a-4335-b54a-bea2191bb6aa","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+{"timestamp":"2026-09-19T15:45:02.433Z","level":"warn","event":"ai.budget_settlement_retry","tenantId":"7c7a282d-81f0-45d3-a570-f487989b621a","usageId":"7a440f9e-6b5a-4335-b54a-bea2191bb6aa","outcome":"success","error":{"name":"Error","message":"simulated_post_commit_failure"}}
+{"timestamp":"2026-09-19T15:45:02.436Z","level":"info","event":"ai.budget_settled","tenantId":"7c7a282d-81f0-45d3-a570-f487989b621a","usageId":"7a440f9e-6b5a-4335-b54a-bea2191bb6aa","budget":null,"real":0,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+T2/E2: settlement exatamente-uma-vez: OK
+{"timestamp":"2026-09-19T15:45:02.458Z","level":"info","event":"ai.budget_reserved","tenantId":"dc974660-2fae-4a3f-8175-c15d81be04f0","usageId":"ecfd5b03-b543-4f8f-a10f-fcd2d957840f","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:02.463Z","level":"info","event":"ai.budget_settled","tenantId":"dc974660-2fae-4a3f-8175-c15d81be04f0","usageId":"ecfd5b03-b543-4f8f-a10f-fcd2d957840f","budget":100,"real":0,"usageUnknownReason":null,"durationMs":5,"outcome":"error_ai_timeout","applied":true}
+T3/E3: timeout liquida a reserva e libera in_flight: OK
+{"timestamp":"2026-09-19T15:45:02.488Z","level":"info","event":"ai.budget_reserved","tenantId":"4f65bd75-eee4-4a47-b2fb-330ff442b21e","usageId":"cec5c3b0-839c-4e88-a457-039f67d5955f","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:02.493Z","level":"info","event":"ai.budget_settled","tenantId":"4f65bd75-eee4-4a47-b2fb-330ff442b21e","usageId":"cec5c3b0-839c-4e88-a457-039f67d5955f","budget":100,"real":0,"usageUnknownReason":null,"durationMs":6,"outcome":"error_ai_timeout","applied":true}
+T4/E4: abort liquida a reserva no finally: OK
+{"timestamp":"2026-09-19T15:45:02.517Z","level":"info","event":"ai.budget_reserved","tenantId":"c5b3465b-5009-4e07-b879-0e3d27c44d0d","usageId":"8c869bd0-e426-4bcc-b348-85184c070142","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:02.523Z","level":"info","event":"ai.budget_settled","tenantId":"c5b3465b-5009-4e07-b879-0e3d27c44d0d","usageId":"8c869bd0-e426-4bcc-b348-85184c070142","budget":100,"real":5,"usageUnknownReason":null,"durationMs":7,"outcome":"tool_round","applied":true}
+{"timestamp":"2026-09-19T15:45:02.529Z","level":"info","event":"ai.budget_reserved","tenantId":"c5b3465b-5009-4e07-b879-0e3d27c44d0d","usageId":"afff5118-40f1-4538-8158-aadc3ea91a0a","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+{"timestamp":"2026-09-19T15:45:02.534Z","level":"info","event":"ai.budget_settled","tenantId":"c5b3465b-5009-4e07-b879-0e3d27c44d0d","usageId":"afff5118-40f1-4538-8158-aadc3ea91a0a","budget":100,"real":5,"usageUnknownReason":null,"durationMs":7,"outcome":"tool_round","applied":true}
+{"timestamp":"2026-09-19T15:45:02.540Z","level":"info","event":"ai.budget_reserved","tenantId":"c5b3465b-5009-4e07-b879-0e3d27c44d0d","usageId":"d9541c0b-42ce-4a86-a4f4-676289f397ae","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":2}
+{"timestamp":"2026-09-19T15:45:02.545Z","level":"info","event":"ai.chat_completed","correlationId":"78781d11-9073-4f69-8646-88b4e72133b9","tenantId":"c5b3465b-5009-4e07-b879-0e3d27c44d0d","rounds":3,"timeToAcknowledgeMs":17,"timeToFirstContentMs":44,"timeToFinalMs":44}
+{"timestamp":"2026-09-19T15:45:02.549Z","level":"info","event":"ai.budget_settled","tenantId":"c5b3465b-5009-4e07-b879-0e3d27c44d0d","usageId":"d9541c0b-42ce-4a86-a4f4-676289f397ae","budget":100,"real":5,"usageUnknownReason":null,"durationMs":11,"outcome":"success","applied":true}
+T5/E5: reserva/liquidação independente por tool round: OK
+{"timestamp":"2026-09-19T15:45:02.580Z","level":"info","event":"ai.budget_reserved","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","usageId":"531b369e-84fb-4762-8c9b-daecced858b4","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:02.592Z","level":"info","event":"ai.budget_reserved","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","usageId":"390c5ac9-2912-4206-80b8-6cc8ac543fec","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:02.594Z","level":"warn","event":"ai.budget_rejected","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.608Z","level":"warn","event":"ai.budget_rejected","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.619Z","level":"warn","event":"ai.budget_rejected","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.631Z","level":"warn","event":"ai.budget_rejected","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.639Z","level":"warn","event":"ai.budget_rejected","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.642Z","level":"warn","event":"ai.budget_rejected","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:02.958Z","level":"info","event":"ai.chat_completed","correlationId":"13477631-97a4-4acd-894e-80f352245d0f","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","rounds":1,"timeToAcknowledgeMs":389,"timeToFirstContentMs":405,"timeToFinalMs":405}
+{"timestamp":"2026-09-19T15:45:02.961Z","level":"info","event":"ai.chat_completed","correlationId":"234c4178-838b-40dd-8bb5-7e4c05c1b495","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","rounds":1,"timeToAcknowledgeMs":389,"timeToFirstContentMs":407,"timeToFinalMs":407}
+{"timestamp":"2026-09-19T15:45:02.965Z","level":"info","event":"ai.budget_settled","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","usageId":"531b369e-84fb-4762-8c9b-daecced858b4","budget":100,"real":5,"usageUnknownReason":null,"durationMs":389,"outcome":"success","applied":true}
+{"timestamp":"2026-09-19T15:45:02.966Z","level":"info","event":"ai.budget_settled","tenantId":"d7f9c554-62d4-466c-a243-65c52ded74e3","usageId":"390c5ac9-2912-4206-80b8-6cc8ac543fec","budget":100,"real":5,"usageUnknownReason":null,"durationMs":386,"outcome":"success","applied":true}
+T6/E6 metrics: gatewayCalls=2 peakActiveCalls=2 sucessos=2 rejeições=6 tokens_reserved=0 in_flight=0
+T6/E6: limite in-flight sob concorrência: OK
+{"timestamp":"2026-09-19T15:45:02.989Z","level":"info","event":"ai.budget_reserved","tenantId":"4871d161-ef29-46ed-8640-fe15f4950bf2","usageId":"15170dd4-7195-46c2-9f86-95706904da06","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:02.994Z","level":"info","event":"ai.chat_completed","correlationId":"200be7de-53c8-416f-9708-23e0179093ef","tenantId":"4871d161-ef29-46ed-8640-fe15f4950bf2","rounds":1,"timeToAcknowledgeMs":17,"timeToFirstContentMs":21,"timeToFinalMs":21}
+{"timestamp":"2026-09-19T15:45:02.998Z","level":"info","event":"ai.budget_settled","tenantId":"4871d161-ef29-46ed-8640-fe15f4950bf2","usageId":"15170dd4-7195-46c2-9f86-95706904da06","budget":100,"real":5,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+T7/E7: single-shot preservado com contadores coerentes: OK
+{"timestamp":"2026-09-19T15:45:03.008Z","level":"info","event":"ai.budget_reserved","tenantId":"1018e914-7442-40a9-861d-754dda618865","usageId":"349b7689-43cc-4718-ae27-53668ebda23d","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:03.016Z","level":"info","event":"ai.budget_expired","tenantId":"1018e914-7442-40a9-861d-754dda618865","usageId":"349b7689-43cc-4718-ae27-53668ebda23d","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+{"timestamp":"2026-09-19T15:45:03.016Z","level":"info","event":"ai.budget_reserved","tenantId":"1018e914-7442-40a9-861d-754dda618865","usageId":"c3a8dd9b-cfcb-4cbb-80e4-4180afdb4eb1","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+{"timestamp":"2026-09-19T15:45:03.021Z","level":"info","event":"ai.budget_settled","tenantId":"1018e914-7442-40a9-861d-754dda618865","usageId":"c3a8dd9b-cfcb-4cbb-80e4-4180afdb4eb1","budget":100,"real":0,"usageUnknownReason":null,"durationMs":1,"outcome":"success","applied":true}
+T8/E8: TTL lazy sweep recupera reserva órfã antes da nova reserva: OK
+{"timestamp":"2026-09-19T15:45:03.032Z","level":"info","event":"ai.budget_reserved","tenantId":"71ada519-34c6-4d5c-acf6-46c0ff0b212b","usageId":"04e3c745-af60-4b96-8b8d-5314b95bf734","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:03.036Z","level":"info","event":"ai.budget_expired","tenantId":"71ada519-34c6-4d5c-acf6-46c0ff0b212b","usageId":"04e3c745-af60-4b96-8b8d-5314b95bf734","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+T9/E9: replay do sweep não duplica a correção: OK
+{"timestamp":"2026-09-19T15:45:03.050Z","level":"info","event":"ai.budget_reserved","tenantId":"9e148143-9fde-41f6-9ea9-9df95a6a3804","usageId":"f710a1a0-2558-4a35-bb40-6d087c9908bb","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T15:45:03.054Z","level":"warn","event":"ai.budget_rejected","tenantId":"9e148143-9fde-41f6-9ea9-9df95a6a3804","budget":100,"kind":"model","roundNo":1,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T15:45:03.057Z","level":"info","event":"ai.budget_settled","tenantId":"9e148143-9fde-41f6-9ea9-9df95a6a3804","usageId":"f710a1a0-2558-4a35-bb40-6d087c9908bb","budget":100,"real":7,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+{"timestamp":"2026-09-19T15:45:03.061Z","level":"info","event":"ai.budget_settled","tenantId":"9e148143-9fde-41f6-9ea9-9df95a6a3804","usageId":"f710a1a0-2558-4a35-bb40-6d087c9908bb","budget":null,"real":7,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+{"timestamp":"2026-09-19T15:45:03.066Z","level":"info","event":"ai.budget_reserved","tenantId":"9e148143-9fde-41f6-9ea9-9df95a6a3804","usageId":"89dbe27d-c68c-48a6-bdc9-f6e77869b64f","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":2}
+{"timestamp":"2026-09-19T15:45:03.069Z","level":"info","event":"ai.budget_expired","tenantId":"9e148143-9fde-41f6-9ea9-9df95a6a3804","usageId":"89dbe27d-c68c-48a6-bdc9-f6e77869b64f","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+T10/E10: contrato comum node-postgres + adaptador sem endpoint Neon: OK
+T1–T10: suíte local de orçamento concluída
+{"timestamp":"2026-09-19T15:45:03.948Z","level":"info","event":"rum.web_vitals","id":"v1-1712345678901-123456789","name":"LCP","value":1234.5,"rating":"good","delta":12.3,"navigationType":"navigate"}
+{"timestamp":"2026-09-19T15:45:03.950Z","level":"info","event":"rum.web_vitals","id":"v1-1712345678901-123456789","name":"LCP","value":1234.5,"rating":"good","delta":12.3,"navigationType":"navigate"}
+{"timestamp":"2026-09-19T15:45:03.950Z","level":"warn","event":"rum.web_vitals_persist_failed","name":"LCP","error":{"name":"Error","message":"forced db failure"}}
+{"timestamp":"2026-09-19T15:45:03.951Z","level":"info","event":"rum.web_vitals","id":"v1-1712345678901-123456789","name":"LCP","value":1234.5,"rating":"good","delta":12.3,"navigationType":"navigate"}
+{"timestamp":"2026-09-19T15:45:03.952Z","level":"warn","event":"rum.web_vitals_rejected","reason":"invalid_payload"}
+{"timestamp":"2026-09-19T15:45:03.952Z","level":"warn","event":"rum.web_vitals_rejected","reason":"payload_too_large"}
+RUM persistence: insert best-effort + grant app_runtime INSERT (0014): OK
+chat: 20 admitidas / 5 recusadas (max=20, janela=600s, concorrência=25, instâncias=2), contador=20, retryAfter=600–601s
+tool: 40 admitidas / 10 recusadas (max=40, janela=600s, concorrência=50, instâncias=2), contador=40, retryAfter=600–601s
+{
+  "script": "scripts/db/test-rate-limit-burst.ts",
+  "buckets": [
+    {
+      "bucket": "chat",
+      "key": "chat|79000000-0000-4000-8000-00000000000a",
+      "rule": {
+        "window": 600,
+        "max": 20
+      },
+      "concurrency": 25,
+      "instances": 2,
+      "allowed": 20,
+      "denied": 5,
+      "retryAfterSeconds": [
+        600,
+        601,
+        600,
+        600,
+        600
+      ],
+      "persistedCount": 20,
+      "counterRows": 1
+    },
+    {
+      "bucket": "tool",
+      "key": "tool|79000000-0000-4000-8000-00000000000b",
+      "rule": {
+        "window": 600,
+        "max": 40
+      },
+      "concurrency": 50,
+      "instances": 2,
+      "allowed": 40,
+      "denied": 10,
+      "retryAfterSeconds": [
+        601,
+        601,
+        601,
+        601,
+        601,
+        600,
+        600,
+        600,
+        601,
+        600
+      ],
+      "persistedCount": 40,
+      "counterRows": 1
+    }
+  ]
+}
+T20.5: buckets de chat/tool são atômicos sob concorrência distribuída: OK
+T1 atomicidade: rollback do domínio sem evento órfão + falha do evento sem despesa: OK
+  5854ad48-23a7-4d79-9b3f-d30fb32b3715 → worker=worker-1 · efeitos=1
+  1ef42647-0e03-455c-a213-e877436133f5 → worker=worker-1 · efeitos=1
+  4ed648b9-6196-41fe-aee6-bdb3e761de56 → worker=worker-2 · efeitos=1
+  d96acfba-e9ed-4686-bb71-464e49243b77 → worker=worker-2 · efeitos=1
+  inbox: 1ef42647-0e03-455c-a213-e877436133f5 ← consumer-1
+  inbox: 4ed648b9-6196-41fe-aee6-bdb3e761de56 ← consumer-2
+  inbox: 5854ad48-23a7-4d79-9b3f-d30fb32b3715 ← consumer-1
+  inbox: d96acfba-e9ed-4686-bb71-464e49243b77 ← consumer-2
+T2 claim concorrente: 2 workers com SKIP LOCKED dividem o lote sem repetir: OK
+  0e3f356b-0917-45fa-8cf6-6286b8f981ca → efeito consumer-idempotent=1 após 3 entregas · consumer-other=1
+T3 idempotência: mesmo evento 2× ⇒ 1 efeito (inbox persistida por consumidor): OK
+T4 falha: attempts++ + available_at futuro + retry limitado por maxAttempts: OK
+T5 isolamento: RLS por tenant sob app_runtime + WITH CHECK do append cruzado: OK
+Outbox §23 (23.1 + 23.2): atomicidade, claim concorrente, idempotência: OK
+
+== T1 — SIGKILL no meio do run (10 linhas, batchSize=3, rate-limit 4/50ms) ==
+  estado (antes): linhas=10 derivadas=0 max_apply_count=0 linhas_duplicadas=0 marcadores=0 checkpoint=ausente
+  [filho] run backfill-demo:attempt-1 batchSize=3 · SIGKILL após processar a linha 4
+    [batch lote 1] linhas=3 lidas=3 aplicadas=3 duplicadas=0 erros=0 cursor=d03 versão=1 taxa=3000.0/s checkpoint=em curso
+  [pai] filho: status=null signal=SIGKILL (morte real no meio do run)
+  estado (após o SIGKILL): linhas=10 derivadas=4 max_apply_count=1 linhas_duplicadas=0 marcadores=4 checkpoint=d03/lotes=1/lidas=3/aplicadas=3/dup=0/erros=0/v=1/em curso
+  -- retomada (mesmo runKey) --
+    [batch lote 1] linhas=3 lidas=3 aplicadas=2 duplicadas=1 erros=0 cursor=d06 versão=2 taxa=3000.0/s checkpoint=em curso
+    [batch lote 2] linhas=3 lidas=6 aplicadas=5 duplicadas=1 erros=0 cursor=d09 versão=3 taxa=120.0/s checkpoint=em curso
+    [completed lote 3] linhas=1 lidas=7 aplicadas=6 duplicadas=1 erros=0 cursor=d10 versão=4 taxa=140.0/s checkpoint=concluído
+  retomada: lotes=3 lidas=7 aplicadas=6 duplicadas=1 erros=0 taxa=140.0/s esperas=1(50ms) checkpoint=d10/concluído versão=4 retomada=true duração=50ms
+  estado (após a retomada): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=9/dup=1/erros=0/v=4/concluído
+  -- T4: 2ª tentativa completa (checkpoint novo, mesma workKey) --
+    [batch lote 1] linhas=3 lidas=3 aplicadas=0 duplicadas=3 erros=0 cursor=d03 versão=1 taxa=3000.0/s checkpoint=em curso
+    [batch lote 2] linhas=3 lidas=6 aplicadas=0 duplicadas=6 erros=0 cursor=d06 versão=2 taxa=120.0/s checkpoint=em curso
+    [batch lote 3] linhas=3 lidas=9 aplicadas=0 duplicadas=9 erros=0 cursor=d09 versão=3 taxa=90.0/s checkpoint=em curso
+    [completed lote 4] linhas=1 lidas=10 aplicadas=0 duplicadas=10 erros=0 cursor=d10 versão=4 taxa=100.0/s checkpoint=concluído
+  2ª tentativa: lotes=4 lidas=10 aplicadas=0 duplicadas=10 erros=0 taxa=100.0/s esperas=2(100ms) checkpoint=d10/concluído versão=4 retomada=false duração=100ms
+  estado (após a 2ª tentativa): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=0/dup=10/erros=0/v=4/concluído
+
+== T3 — erro real do Postgres (22012) no meio do lote: aborta, checkpoint no lote anterior, retoma ==
+  estado (antes): linhas=4 derivadas=0 max_apply_count=0 linhas_duplicadas=0 marcadores=0 checkpoint=ausente
+    [batch lote 1] linhas=2 lidas=2 aplicadas=2 duplicadas=0 erros=0 cursor=d02 versão=1 taxa=222.2/s checkpoint=em curso
+  abortado: lotes=2 lidas=4 aplicadas=3 duplicadas=0 erros=1 taxa=250.0/s esperas=0(0ms) checkpoint=d02/em curso versão=1 retomada=false duração=16ms
+  estado (após o abort): linhas=4 derivadas=3 max_apply_count=1 linhas_duplicadas=0 marcadores=3 checkpoint=d02/lotes=1/lidas=2/aplicadas=2/dup=0/erros=0/v=1/em curso
+    [batch lote 1] linhas=2 lidas=2 aplicadas=1 duplicadas=1 erros=0 cursor=d04 versão=2 taxa=250.0/s checkpoint=em curso
+    [completed lote 1] linhas=0 lidas=2 aplicadas=1 duplicadas=1 erros=0 cursor=d04 versão=3 taxa=200.0/s checkpoint=concluído
+  retomada: lotes=1 lidas=2 aplicadas=1 duplicadas=1 erros=0 taxa=200.0/s esperas=0(0ms) checkpoint=d04/concluído versão=3 retomada=true duração=10ms
+  estado (final): linhas=4 derivadas=4 max_apply_count=1 linhas_duplicadas=0 marcadores=4 checkpoint=d04/lotes=3/lidas=4/aplicadas=3/dup=1/erros=0/v=3/concluído
+
+== T2 — contenção CAS: 2 workers no mesmo runKey (mesma versão de partida) ==
+    [worker 2 lote 1] lidas=3 aplicadas=3 duplicadas=0 v=1
+    [worker 2 lote 2] lidas=6 aplicadas=6 duplicadas=0 v=2
+    [worker 2 lote 3] lidas=9 aplicadas=9 duplicadas=0 v=3
+    [worker 2 lote 4] lidas=10 aplicadas=10 duplicadas=0 v=4
+  perdedor: backfill-runner: checkpoint de "backfill-demo:contention" está em outra versão (CAS esperava a versão 0); outro runner avançou primeiro — este run foi descartado sem sobrescrever nada
+  vencedor: lotes=4 lidas=10 aplicadas=10 duplicadas=0 erros=0 taxa=196.1/s esperas=0(0ms) checkpoint=d10/concluído versão=4 retomada=false duração=51ms
+  estado (após a contenção): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=10/dup=0/erros=0/v=4/concluído
+  checkpoint do vencedor: aplicadas=10 duplicadas=0 (repartição depende da corrida)
+
+== T5 — RLS/grants do ledger sob app_runtime (NOSUPERUSER/NOBYPASSRLS) ==
+T5 isolamento: RLS por tenant no ledger + WITH CHECK da escrita cruzada: OK
+
+Backfill §28 (28.1 lote · 28.2 checkpoint+CAS · 28.3 rate-limit · 28.4 idempotência · 28.5 observabilidade): OK
+T1 isolamento: busca de B = 0 linhas sob RLS + append forjado recusado por WITH CHECK (42501): OK
+T2 proveniência: search devolve a fonte mais antiga; órfã/sem origem impossíveis (23503/23514): OK
+T3 atomicidade: rollback e falha cruzadas entre memória e despesa deixam zero linhas: OK
+T4 delete: só o tenant corrente apaga, cascata na fonte, false para id inexistente e de terceiro: OK
+T5 classificação: 20/20 classificadas · 0017_past_gideon = SAFE/empty + down: OK
+D3/T1 dedup: 2ª gravação idêntica = duplicated:true + contagem inalterada (memória/fonte/versão): OK
+D3/T2 revisão: versão incremental arquivada, anterior byte a byte inalterada, head atualizado: OK
+D3/T3 conflito: registrado e visível só no tenant, ativo byte a byte intacto, search só do ativo: OK
+D3/T4 delete × expurgo: recusa sem apagar + expurgo transacional (rollback devolve tudo): OK
+D3/T5 concorrência: 2 sessões no mesmo conteúdo ⇒ 1 linha ativa (índice único parcial): OK
+D3/T6 isolamento: mesmo conteúdo em 2 tenants = 2 linhas (B não vê A) + discriminador de conversa: OK
+D3/T7 imutabilidade: UPDATE negado (42501) e DELETE concedido com alcance limitado por RLS em ai_memory_versions + grants/RLS: OK
+D3/T8 classificação: 20/20 classificadas · 0018_polite_living_tribunal = SAFE/empty + down: OK
+D3/T9 revisão × colisão de chave: ApplicationError/CONFLICT com rollback sem rastro + revisão legítima: OK
+(node:152015) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+D4/T1 export: conjunto exato do tenant com fontes+versões, recortes por camada/escopo e AUTHORIZATION_ERROR sem has_tenant_access: OK
+D4/T2 auditoria: allow/refused/not_found por chamada, recusa de escopo pessoal com controle positivo, trilha tenant-scoped e sem conteúdo: OK
+D4/T3 TTL: janela por camada vinda da policy versionada, expiração idempotente e tenant-scoped, retrieval sem vencida e falha alta sem policy: OK
+D4/T6 privilégios: trilha append-only medida (42501), WITH CHECK e CHECKs de vocabulário, políticas globais com SELECT+INSERT: OK
+D4/T5 classificação: 20/20 classificadas · 0019_tiresome_robin_chapel = ONLINE_WITH_CARE/empty + idempotent + down: OK
+D4/T4 migration: cadeia 20/20 do zero + up→down→up da 0019 com dado preservado e políticas re-semeadas: OK
+Memória §43/D2+D3+D4 (persistência, proveniência, tenant, dedup, versões, conflitos, delete/export, TTL): OK
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ✓ src/test/products-fk-conflict.test.ts (13 tests) 99ms
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  12:45:10
+   Duration  1.82s (transform 256ms, setup 89ms, import 966ms, tests 99ms, environment 548ms)
+
+JSON report written to /tmp/trk-d2-fk-Ag1qzf/summary.json
+prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 13 passed (13), 0 skipped — admin=127.0.0.1:5433
+E2_DBTEST_EXIT=0
