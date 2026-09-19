@@ -1,0 +1,38 @@
+=== D10 — prova do gauge publicado UMA vez com o MÁXIMO agregado ===
+Ordem de iteração do CLI é 'order by t.id': A(aaaa) < B(bbbb) < C(cccc).
+A tem backlog de ~9h · B NÃO tem candidato algum · C tem backlog de ~7h.
+MÁXIMO agregado esperado = A (~32,4M ms). Last-write-wins daria C (~25,2M ms).
+
+--- limpeza prévia ---
+--- fixture ---
+fixture inserida
+
+--- estado inicial (A=9h, B=nenhum, C=7h — ambos acima do corte de 6h) ---
+aaaaaaaa-0000-4000-8000-000000000001 | usage_unknown | settled_at=2026-09-19 10:31:33.964435+00
+cccccccc-0000-4000-8000-000000000003 | usage_unknown | settled_at=2026-09-19 12:31:33.964435+00
+
+--- dry-run: idades por tenant, na ordem de iteração ---
+  tenant=aaaaaaaa-0000-4000-8000-000000000001 dry-run: candidatos=1 mais_antigo_ms=32400884
+  tenant=bbbbbbbb-0000-4000-8000-000000000002 dry-run: candidatos=0 mais_antigo_ms=n/a
+  tenant=cccccccc-0000-4000-8000-000000000003 dry-run: candidatos=1 mais_antigo_ms=25200891
+TRILHO-B reconciliação: tenants=16 candidatos=2 marcados=0 mais_antigo_ms=32400884 modo=dry-run
+
+--- aplicado ---
+  tenant=aaaaaaaa-0000-4000-8000-000000000001 marcados=1 mais_antigo_ms=32401724 ids=3b28c8c8-3b1d-43df-a333-b7893cfe4be4
+  tenant=cccccccc-0000-4000-8000-000000000003 marcados=1 mais_antigo_ms=25201760 ids=d5d2183b-06ce-455c-b974-3b46810b238f
+TRILHO-B reconciliação: tenants=16 candidatos=2 marcados=2 mais_antigo_ms=32401724 modo=aplicado
+AVISO: 2 evento(s) sem medição possível. A reserva continua RETIDA. A liberação é decisão humana: scripts/db/release-unknown-reservations.ts --tenant <uuid> --usage-id <uuid> --confirm
+JOB_EXIT=0
+
+--- estado final ---
+aaaaaaaa-0000-4000-8000-000000000001 | reconciliation_failed | real_tokens=NULL
+cccccccc-0000-4000-8000-000000000003 | reconciliation_failed | real_tokens=NULL
+
+--- PROVA ESTRUTURAL: sítios de publicação do gauge ---
+budget-ledger.server.ts (biblioteca, per-tenant) referencia o gauge?
+  NAO — a biblioteca não publica mais (D10 corrigido do lado do per-tenant)
+chamadas em scripts/db/reconcile-ai-usage.ts:
+350:      reportReconciliationOldestAge(oldestAgeMs ?? 0);
+
+--- limpeza final ---
+fixtures restantes D10: 0

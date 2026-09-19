@@ -1,0 +1,18 @@
+# Sonda D4 corrigida — controle positivo do tenant sem owner/admin
+# A captura anterior (correcoes-d1-d6-1a-corrida.log.txt, secao 6) FALHOU no setup:
+#   ERROR: null value in column "slug" of relation "tenants" violates not-null constraint
+# Zero medido com fixture ausente nao e prova. Esta e a sonda com o fixture correto.
+
+data=2026-09-19T19:07:41Z
+
+## fixture: tenant orfao (sem membro owner/admin)
+INSERT 0 1
+tenant=99999999-9999-4999-8999-999999999999 membro_owner_admin=<NENHUM>
+
+## job --all-tenants --dry-run (stderr filtrado para o AVISO)
+AVISO: 1 tenant(s) sem membro owner/admin — nenhuma identidade para agir, nenhuma linha avaliada: 99999999-9999-4999-8999-999999999999
+TRILHO-B reconciliação: tenants=13 candidatos=0 marcados=0 mais_antigo_ms=n/a modo=dry-run
+
+## cleanup
+DELETE 1
+orfao_restante=0
