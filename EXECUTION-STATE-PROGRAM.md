@@ -1843,3 +1843,16 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Estado do land:** **Gate A PASSA**; resta **Gate B (B1 host-visible)** + **aprovação explícita do supervisor**. `origin/develop` = `06df703`; `origin/main` = `9724d2c`; produção intocada.
 
   Latest state marker parent = `06df70359d3bf55d4915c6ec02cbc51acb33f37c`,
+
+---
+
+### B1/B2/B3 EXECUTADOS — sandbox removido, visibilidade de host (2026-09-19)
+
+- **Mudança de capacidade (medida antes de agir):** a sessão deixou de rodar sob `bwrap` — `/tmp` **real** (868 entradas, ext4), **347 processos visíveis**, `ps -p 1` = `/sbin/init`. A premissa de que os artefatos de reconciliação só podiam ser executados por terceiros **deixou de valer**.
+- **B1 — ciclo 6 RECONCILIADO:** os quatro worktrees `/tmp/wt-n7{a,b,c,d}-*` **existem** e estão **todos em `de8c232`, com 0 commits, `status --porcelain` vazio e nenhuma claim** ⇒ **SEM TRABALHO**. Sem patch/stash a salvar; **sem contenção com os arquivos do INV-006**; branches vazios preservados. **⇒ GATE B SATISFEITO.**
+- **B2 — watchers re-armados:** `44531`/`44532` encerrados; novos **`143396`** (`app-live-watch`) e **`143397`** (`h2-watch`) destacados via `setsid nohup`. `.arm` com nova linha `armado 2026-09-19T15:31:33Z` ⇒ horizonte ≈ **2026-09-26T15:31:33Z**; marcadores ausentes (alvo em placeholder). Verificado depois: 2 vivos.
+- **B3 — preview obsoleto encerrado:** PID `935255` (`nitro preview` do **repo principal**, cwd `~/preco-que-d-main`, 4 dias, `CSP_ENFORCE` + `DATABASE_URL_UNPOOLED`, sem clientes, build antigo) ⇒ `SIGTERM`, porta 4173 livre. Era a armadilha C-1.
+- **Estado do land:** **Gate A PASSA** e **Gate B PASSA**; resta **Gate C — aprovação explícita do supervisor** para o merge de `mission/inv006-token-accounting` → `develop`. A regra de não autoaprovar foi mantida: **o land não foi executado**.
+- **Artefato:** `docs/evidence/reconciliation-2026-09-19/EXECUCAO-2026-09-19.md`.
+
+  Latest state marker parent = `bafa5c79b1766fffc274dec258a16c110b939359`,
