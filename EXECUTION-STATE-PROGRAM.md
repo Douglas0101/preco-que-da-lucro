@@ -1830,3 +1830,16 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Achado que corrige uma spec pendente:** o `db:test` verde exige `DATABASE_URL_UNPOOLED` **definida e loopback** (`isLoopbackUrl(undefined) → false` ⇒ teste **pulado** ⇒ `numPendingTests !== 0` ⇒ prova-FK reprova). O padrão dos ciclos 3–5 (`env -u DATABASE_URL_UNPOOLED`) **não** satisfaz o gate; a spec do `F-D2-runner-failopen` deve dizer "definida apontando para loopback", não "removida do ambiente". Briefing da Condição B: `docs/evidence/human-decisions-2026-09-19/D4-db-test-provisioning.md`.
 
   Latest state marker parent = `ec7cc198ac23b6357fd98db0827521cb1deaef79`,
+
+---
+
+### Condição B do land do INV-006 — SATISFEITA em PG17 real (2026-09-19)
+
+- **Ambiente:** container **efêmero** `inv006-pg` (`postgres:17-alpine`, **PostgreSQL 17.11**) em `127.0.0.1:5433`. O `:5432` **não foi tocado** (dado não-fixture, H-9 aberto) e o container foi **destruído** ao fim. As três URLs (`DATABASE_URL`, `DATABASE_ADMIN_URL`, `DATABASE_URL_UNPOOLED`) apontaram para loopback.
+- **Resultado:** `db:migrate` exit 0 · **prova nova** (`scripts/db/test-ai-usage-unknown.ts`) exit 0 com 3 casos · **`npm run db:test` exit 0** com as **15 suítes** (48 marcas `OK`) e a prova-FK em **`13 passed (13), 0 skipped`** · `npm run check` do worktree exit 0.
+- **Lacuna de integridade de dados FECHADA:** `ai_usage.real_tokens = NULL` persiste pelo driver real; a CHECK `ai_usage_real_tokens_check` (`is null or >= 0`) aceita a linha; no desconhecido a reserva fica **retida**, `input_tokens`/`output_tokens` **não avançam** e `in_flight` é decrementado.
+- **DEFEITO DESTE WP ENCONTRADO PELO GATE (e corrigido):** a 1ª execução reprovou em `T3/E3` (`actual: 100, expected: 0`). O WP conflacionava _"o gateway respondeu sem `usage` utilizável"_ com _"a chamada falhou antes de medir"_: em `E3` o `modelCaller` lança `AI_TIMEOUT`, a atribuição de `usage` nunca executava, a variável mantinha `{kind:'unknown'}` e a liquidação **retinha a reserva** e trocava o `outcome`. **Corrigido** com `usage: TokenUsage | null` (`null` = nenhuma resposta ⇒ contrato legado da falha: liquida 0, libera reserva, estimador de custo com zero como antes). **Nenhum teste unitário pegou; a suíte de banco existente pegou** — evidência empírica de que o land não podia ser autorizado só com unidade. Log da falha **preservado**.
+- **Selagem:** branch `mission/inv006-token-accounting` @ **`36b50b4`**; manifesto **10/10**; capturas em `captures/` (versionado). Deriva de matriz aceita (só deslocamento de linha).
+- **Estado do land:** **Gate A PASSA**; resta **Gate B (B1 host-visible)** + **aprovação explícita do supervisor**. `origin/develop` = `06df703`; `origin/main` = `9724d2c`; produção intocada.
+
+  Latest state marker parent = `06df70359d3bf55d4915c6ec02cbc51acb33f37c`,
