@@ -9,6 +9,7 @@ import {
   type TransactionManager,
 } from "@/db/client.server";
 import { toDecimalString } from "@/lib/financial-values";
+import { applicationMetrics } from "@/instrumentation/telemetry";
 import { logJson } from "@/lib/structured-logger";
 import { type TokenUsage, type TokenUsageUnknownReason } from "@/lib/ai/token-usage";
 
@@ -110,6 +111,57 @@ export interface SweepResult {
   usageIds: readonly string[];
 }
 
+/**
+ * TRILHO B — reconciliação dos eventos `usage_unknown`.
+ *
+ * O varredor de reservas só alcança `status='reserved'`; um evento que chegou a
+ * `settle` sem medição fica em `status='settled'` + `outcome='usage_unknown'` e
+ * nunca é revisitado, retendo `tokens_reserved` indefinidamente. Este caminho
+ * fecha essa lacuna **sem liberar a reserva**: ele torna o estado persistido e
+ * auditável, e a liberação continua sendo uma decisão humana em comando próprio.
+ */
+export interface ReconcileUnknownOptions {
+  /** Idade mínima desde `settled_at` para tratar a linha (ms). */
+  minAgeMs?: number;
+  /** Teto de linhas tratadas em uma execução. */
+  batchSize?: number;
+  now?: Date;
+}
+
+export interface ReconcileUnknownResult {
+  /** Linhas candidatas dentro do corte de idade. */
+  scannedCount: number;
+  /** Linhas efetivamente marcadas nesta execução (CAS ganho). */
+  failedCount: number;
+  /** `usage_id`s marcados **nesta** execução — vazio em replay. */
+  usageIds: readonly string[];
+  /** Idade do candidato mais antigo visto, ou `null` quando não houve candidato. */
+  oldestAgeMs: number | null;
+}
+
+/** Rótulo persistido em `ai_usage.outcome` quando não há como medir o uso real. */
+export const RECONCILIATION_FAILED_OUTCOME = "reconciliation_failed";
+
+/**
+ * Rótulo gravado pelo **comando humano** de liberação. Deliberadamente **não** é
+ * `reconciled`: nada foi reconciliado — a medição continua impossível e
+ * `real_tokens` continua `NULL`. O rótulo diz o que de fato aconteceu: a reserva
+ * foi devolvida sem que o consumo tenha sido medido.
+ */
+export const RESERVATION_RELEASED_OUTCOME = "reservation_released";
+
+export interface ReleaseUnknownResult {
+  /** `false` quando o CAS não encontrou a linha (replay, ou outro executor venceu). */
+  applied: boolean;
+  usageId: string;
+  /** Tokens devolvidos a `tokens_reserved`, ou `null` quando `applied` é `false`. */
+  releasedTokens: number | null;
+}
+
+export const DEFAULT_RECONCILE_MIN_AGE_MS = 6 * 60 * 60 * 1000;
+export const DEFAULT_RECONCILE_BATCH_SIZE = 100;
+export const MAX_RECONCILE_BATCH_SIZE = 1_000;
+
 export interface BudgetLedger {
   reserveChatInTransaction(
     transaction: DatabaseTransaction,
@@ -128,6 +180,20 @@ export interface BudgetLedger {
     options?: SettleOptions,
   ): Promise<SettlementResult>;
   sweepOrphans(tenantId: string, options?: SweepOptions): Promise<SweepResult>;
+  reconcileUnknownUsage(
+    tenantId: string,
+    options?: ReconcileUnknownOptions,
+  ): Promise<ReconcileUnknownResult>;
+  /**
+   * Devolve a reserva retida de **um** evento `reconciliation_failed`. É o passo
+   * que a decisão humana reservou para comando explícito: nunca é chamado pelo
+   * job de reconciliação. `real_tokens` permanece `NULL`.
+   */
+  releaseUnknownReservation(
+    tenantId: string,
+    usageId: string,
+    options?: { now?: Date },
+  ): Promise<ReleaseUnknownResult>;
 }
 
 export interface BudgetLedgerDependencies {
@@ -542,6 +608,138 @@ function logExpired(tenantId: string, now: Date, result: SweepInTransactionResul
   }
 }
 
+interface UnknownUsageRow {
+  usageId: string;
+  budgetTokens: number;
+  settledAt: Date | string;
+}
+
+interface ReconcileInTransactionResult {
+  scannedCount: number;
+  oldestAgeMs: number | null;
+  failed: readonly UnknownUsageRow[];
+}
+
+async function reconcileUnknownInTransaction(
+  transaction: DatabaseTransaction,
+  tenantId: string,
+  now: Date,
+  minAgeMs: number,
+  batchSize: number,
+): Promise<ReconcileInTransactionResult> {
+  const cutoff = new Date(now.getTime() - minAgeMs);
+  const candidateResult = await transaction.execute(sql`
+    select
+      usage_id::text as "usageId",
+      budget_tokens as "budgetTokens",
+      settled_at as "settledAt"
+    from ai_usage
+    where tenant_id = ${tenantId}
+      and status = 'settled'
+      and outcome = 'usage_unknown'
+      and settled_at is not null
+      and settled_at < ${cutoff}
+    order by settled_at asc
+    limit ${batchSize}
+  `);
+  const candidates = rows<UnknownUsageRow>(candidateResult).map((row) => ({
+    usageId: String(row.usageId),
+    budgetTokens: asInteger(row.budgetTokens, "budgetTokens"),
+    settledAt: row.settledAt as Date | string,
+  }));
+  if (candidates.length === 0) return { scannedCount: 0, oldestAgeMs: null, failed: [] };
+
+  let oldestAgeMs = 0;
+  const failed: UnknownUsageRow[] = [];
+  for (const candidate of candidates) {
+    const age = durationMs(now, candidate.settledAt);
+    if (age > oldestAgeMs) oldestAgeMs = age;
+    // INV-009 — compare-and-set pela identidade do evento. `returning` vazio
+    // significa que outro executor (ou o comando humano de liberação) já tratou
+    // esta linha: o replay é no-op e nunca duplica efeito. O `status` continua
+    // `settled` e `real_tokens` continua nulo — nada aqui inventa um número.
+    const claimedResult = await transaction.execute(sql`
+      update ai_usage
+      set outcome = ${RECONCILIATION_FAILED_OUTCOME}
+      where usage_id = ${candidate.usageId}
+        and tenant_id = ${tenantId}
+        and status = 'settled'
+        and outcome = 'usage_unknown'
+      returning usage_id::text as "usageId"
+    `);
+    if (rows(claimedResult).length !== 1) continue;
+    failed.push(candidate);
+  }
+  return { scannedCount: candidates.length, oldestAgeMs, failed };
+}
+
+async function releaseUnknownInTransaction(
+  transaction: DatabaseTransaction,
+  tenantId: string,
+  usageId: string,
+  now: Date,
+): Promise<ReleaseUnknownResult> {
+  // INV-009 — o CAS é o que torna o comando humano seguro de repetir: um replay
+  // não encontra mais `reconciliation_failed` e devolve `applied: false` sem
+  // tocar no contador.
+  const claimedResult = await transaction.execute(sql`
+    update ai_usage
+    set outcome = ${RESERVATION_RELEASED_OUTCOME}
+    where usage_id = ${usageId}
+      and tenant_id = ${tenantId}
+      and status = 'settled'
+      and outcome = ${RECONCILIATION_FAILED_OUTCOME}
+    returning budget_tokens as "budgetTokens", reserved_at as "reservedAt"
+  `);
+  const [claimed] = rows<ClaimedRow>(claimedResult);
+  if (!claimed) return { applied: false, usageId, releasedTokens: null };
+
+  const budgetTokens = asInteger(claimed.budgetTokens, "budgetTokens");
+  const usageDate = utcDate(claimed.reservedAt);
+  // Só `tokens_reserved` volta: `in_flight` já foi decrementado no `settle`, e
+  // `real_tokens` continua `NULL` — devolver a reserva não mede o consumo.
+  const countersResult = await transaction.execute(sql`
+    update ai_daily_budgets
+    set
+      tokens_reserved = tokens_reserved - ${budgetTokens},
+      updated_at = ${now}
+    where tenant_id = ${tenantId}
+      and usage_date = ${usageDate}
+    returning tokens_reserved as "tokensReserved"
+  `);
+  if (rows(countersResult).length !== 1) {
+    throw new Error("A liberação não encontrou o contador diário correspondente");
+  }
+  return { applied: true, usageId, releasedTokens: budgetTokens };
+}
+
+function logReconciliationFailed(
+  tenantId: string,
+  now: Date,
+  result: ReconcileInTransactionResult,
+): void {
+  for (const row of result.failed) {
+    applicationMetrics.aiReconciliationTotal.add(1, { outcome: RECONCILIATION_FAILED_OUTCOME });
+    applicationMetrics.aiReconciliationFailed.add(1, { outcome: RECONCILIATION_FAILED_OUTCOME });
+    logJson("warn", "ai.reconciliation_failed", {
+      tenantId,
+      usageId: row.usageId,
+      budget: row.budgetTokens,
+      real: null,
+      durationMs: durationMs(now, row.settledAt),
+      outcome: RECONCILIATION_FAILED_OUTCOME,
+      reason: "gateway_retrieval_unavailable",
+    });
+  }
+  // O gauge NÃO é publicado aqui de propósito. Esta função roda uma vez por
+  // tenant (o CLI itera tenants) e o gauge é last-write-wins: cada escrita apaga
+  // a anterior. Publicar por tenant fazia um tenant posterior SEM candidatos
+  // gravar 0 e apagar a idade de backlog de um tenant anterior — defeito D10,
+  // regressão introduzida pela correção do D2. Quem publica é o chamador, uma
+  // única vez, com o MÁXIMO da corrida inteira. Os counters acima ficam: são
+  // por evento e somam corretamente entre tenants.
+}
+
 export function createBudgetLedger(dependencies: BudgetLedgerDependencies): BudgetLedger {
   const transactionRunner = dependencies.transactionManager ?? defaultTransactionManager;
   const config = resolveConfig(dependencies.config);
@@ -787,6 +985,58 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
       );
       logExpired(tenantId, now, result);
       return { expiredCount: result.expiredCount, usageIds: result.usageIds };
+    },
+
+    async reconcileUnknownUsage(tenantId, options = {}): Promise<ReconcileUnknownResult> {
+      assertIdentityTenant(dependencies.identity, tenantId);
+      const now = options.now ?? clock.now();
+      assertDate(now, "now");
+      const minAgeMs = options.minAgeMs ?? DEFAULT_RECONCILE_MIN_AGE_MS;
+      // Um lote de 0 trataria nada e ainda assim sairia com sucesso — o mesmo
+      // fail-open silencioso que o TRILHO A fechou. `assertPositiveInteger` recusa.
+      // O teto é recusado, e não aparado: o CLI já rejeita `> MAX`, e um clamp
+      // silencioso aqui daria dois contratos para a mesma opção (defeito D3).
+      const batchSize = options.batchSize ?? DEFAULT_RECONCILE_BATCH_SIZE;
+      assertNonNegativeInteger("minAgeMs", minAgeMs);
+      assertPositiveInteger("batchSize", batchSize);
+      if (batchSize > MAX_RECONCILE_BATCH_SIZE) {
+        throw new RangeError(`${MAX_RECONCILE_BATCH_SIZE} é o teto de batchSize`);
+      }
+      const result = await transactionRunner.run(dependencies.identity, (transaction) =>
+        reconcileUnknownInTransaction(transaction, tenantId, now, minAgeMs, batchSize),
+      );
+      logReconciliationFailed(tenantId, now, result);
+      return {
+        scannedCount: result.scannedCount,
+        failedCount: result.failed.length,
+        usageIds: result.failed.map((row) => row.usageId),
+        oldestAgeMs: result.oldestAgeMs,
+      };
+    },
+
+    async releaseUnknownReservation(
+      tenantId,
+      usageId,
+      options = {},
+    ): Promise<ReleaseUnknownResult> {
+      assertIdentityTenant(dependencies.identity, tenantId);
+      assertText("usageId", usageId);
+      const now = options.now ?? clock.now();
+      assertDate(now, "now");
+      const result = await transactionRunner.run(dependencies.identity, (transaction) =>
+        releaseUnknownInTransaction(transaction, tenantId, usageId, now),
+      );
+      if (result.applied) {
+        logJson("warn", "ai.reservation_released", {
+          tenantId,
+          usageId,
+          budget: result.releasedTokens,
+          real: null,
+          outcome: RESERVATION_RELEASED_OUTCOME,
+          actor: dependencies.identity.userId,
+        });
+      }
+      return result;
     },
   };
 }

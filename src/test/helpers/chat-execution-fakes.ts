@@ -66,6 +66,19 @@ export function createFakeBudgetLedger(): BudgetLedger {
       durationMs: null,
     }),
     sweepOrphans: async () => ({ expiredCount: 0, usageIds: [] }),
+    // TRILHO B: dublê neutro — este caminho só é exercido contra PostgreSQL real
+    // (`scripts/db/test-reconcile-ai-usage.ts`), não na execução de chat.
+    reconcileUnknownUsage: async () => ({
+      scannedCount: 0,
+      failedCount: 0,
+      usageIds: [],
+      oldestAgeMs: null,
+    }),
+    releaseUnknownReservation: async (_tenantId: string, usageId: string) => ({
+      applied: false,
+      usageId,
+      releasedTokens: null,
+    }),
   };
 }
 
