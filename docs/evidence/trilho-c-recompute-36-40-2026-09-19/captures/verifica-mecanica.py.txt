@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""Verificação mecânica da camada §36–§40 (v2).
+
+Correções sobre a v1, todas medidas na v1:
+  - a alternância das extensões era `ts|tsx|...`, então `package.json` casava
+    como `package.js` e `chat-markdown.tsx` como `chat-markdown.ts` + `x`;
+    agora a alternância é ordenada do maior para o menor;
+  - `grep 'a/b/c'` no texto original significa alternativas (`grep -E`), mas a
+    v1 casava substrings: `GIN` encontrava `BEGIN` (127 falsos positivos em
+    P2-04) e `policy` encontrava `permissions-policy` (239 falsos em GATE-43).
+    Agora cada alternativa é casada com fronteira de palavra quando é
+    alfanumérica, e o relatório lista ARQUIVOS (não linhas), que é o dado que
+    decide se a afirmação caiu.
+"""
+
+import io
+import os
+import re
+import subprocess
+import sys
+from collections import Counter
+
+ANEXO = "docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md"
+DEFAULT_PATHS = ["src/", "drizzle/", "scripts/"]
+FIRST_ITEM = 209
+LAST_ITEM = 297
+
+RE_GREP = re.compile(r"grep\s+(-i\s+)?'([^']+)'\s*(?:em\s+)?([^→]*)→\s*(.*)")
+RE_REF = re.compile(
+    r"((?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.(?:tsx|json|yaml|sql|mjs|yml|ts|js|md))"
+    r"(?::(\d+)(?:[-,](\d+))?)?"
+)
+RE_EXPECT_0 = re.compile(r"\b0\s*hits?\b")
+RE_EXPECT_N = re.compile(r"\b(\d+)\s*hits?\b")
+RE_WORDY = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
+
+
+def git(args):
+    return subprocess.run(["git"] + args, capture_output=True, text=True, check=False).stdout.strip()
+
+
+def rg_files(terms, paths, ignore_case):
+    """Devolve (arquivos únicos casados, erro)."""
+    cmd = ["rg", "--no-ignore", "-l", "--no-heading"]
+    if ignore_case:
+        cmd.append("-i")
+    for t in terms:
+        if RE_WORDY.match(t):
+            cmd += ["-w", "-e", t]
+        else:
+            cmd += ["-e", t]
+    cmd += paths
+    res = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    if res.returncode not in (0, 1):
+        return None, res.stderr.strip()
+    files = sorted({ln for ln in res.stdout.splitlines() if ln.strip()})
+    return files, None
+
+
+def parse_paths(raw):
+    raw = raw.strip()
+    if not raw:
+        return list(DEFAULT_PATHS)
+    keep = []
+    for p in re.split(r"[,\s]+", raw):
+        p = p.strip().rstrip(",")
+        if p.startswith(("src", "drizzle", "scripts", ".github", "package.json")):
+            keep.append(p)
+    return keep or list(DEFAULT_PATHS)
+
+
+def file_lines(path):
+    try:
+        with io.open(path, encoding="utf-8", errors="replace") as fh:
+            return sum(1 for _ in fh)
+    except OSError:
+        return None
+
+
+def resolve(path):
+    if os.path.isfile(path):
+        return path
+    for prefix in (".github", "docs", "src", "scripts"):
+        cand = os.path.join(prefix, path)
+        if os.path.isfile(cand):
+            return cand
+    return None
+
+
+def main():
+    print(f"HEAD = {git(['rev-parse', 'HEAD'])}")
+    print(f"BRANCH = {git(['rev-parse', '--abbrev-ref', 'HEAD'])}")
+    lines = io.open(ANEXO, encoding="utf-8").read().split("\n")
+
+    rows = []
+    for n in range(FIRST_ITEM, LAST_ITEM + 1):
+        raw = lines[n - 1] if n - 1 < len(lines) else ""
+        if not raw.startswith("|"):
+            continue
+        cells = [c.strip() for c in raw.strip().strip("|").split("|")]
+        if len(cells) < 5 or set(cells[0]) <= set("-: "):
+            continue
+        rows.append((n, cells))
+
+    print(f"ITENS DESCOBERTOS = {len(rows)}")
+    totals = Counter()
+    quebradas = []
+
+    for n, c in rows:
+        item, status, evid, nota = c[0], c[1], c[3], c[4]
+        blob = f"{evid} ;; {nota}"
+        findings = []
+
+        for m in RE_GREP.finditer(blob):
+            icase, pattern, raw_paths, result = m.group(1), m.group(2), m.group(3), m.group(4)
+            paths = parse_paths(raw_paths)
+            terms = [t for t in pattern.split("/") if t]
+            files, err = rg_files(terms, paths, bool(icase))
+            if err:
+                continue
+            measured = len(files)
+            if RE_EXPECT_0.search(result):
+                expected = 0
+            else:
+                mn = RE_EXPECT_N.search(result)
+                expected = int(mn.group(1)) if mn else None
+            totals["grep"] += 1
+            if expected is None:
+                continue
+            if measured == expected:
+                totals["grep_ok"] += 1
+            else:
+                totals["grep_quebrada"] += 1
+                findings.append(f"GREP '{pattern}' esperado={expected} medido={measured}")
+                print(f"  [{item}] GREP QUEBRADA '{pattern}' em {' '.join(paths)}: esperado={expected} medido={measured} arquivos")
+                for f in files[:8]:
+                    print(f"         {f}")
+
+        for m in RE_REF.finditer(blob):
+            path, l1, l2 = m.group(1), m.group(2), m.group(3)
+            real = resolve(path)
+            totals["ref"] += 1
+            if real is None:
+                # `npm run x`/`drizzle/0000-0014` e afins não são arquivos
+                if "/" in path and not path.startswith(("http",)):
+                    totals["ref_ausente"] += 1
+                    findings.append(f"ARQUIVO AUSENTE {path}")
+                else:
+                    totals["ref_ignorada"] += 1
+                continue
+            nlines = file_lines(real)
+            want = max(int(l1 or 0), int(l2 or 0))
+            if want and nlines is not None and nlines < want:
+                totals["ref_fora"] += 1
+                findings.append(f"LINHA FORA {real}:{want} (tem {nlines})")
+            else:
+                totals["ref_ok"] += 1
+
+        if findings:
+            quebradas.append((item, status, findings))
+
+    print()
+    for k in sorted(totals):
+        print(f"  {k} = {totals[k]}")
+    print()
+    print("===== ITENS COM AFIRMAÇÃO QUEBRADA =====")
+    for item, status, f in quebradas:
+        print(f"  {item} ({status})")
+        for x in f:
+            print(f"      - {x}")
+    print()
+    print(f"  itens = {len(rows)} · itens com quebra = {len(quebradas)}")
+
+
+if __name__ == "__main__":
+    sys.exit(main())

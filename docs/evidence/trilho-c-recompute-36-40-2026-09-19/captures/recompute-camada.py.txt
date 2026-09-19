@@ -1,0 +1,397 @@
+#!/usr/bin/env python3
+"""TRILHO C — recomputa a camada §36–§40 do ANEXO contra o HEAD corrente.
+
+Regra fail-closed:
+  - lê as 89 linhas da camada (ANEXO linhas 209..297);
+  - aplica APENAS overrides declarados abaixo (status, evidência, nota);
+  - o que não tem override sai byte-idêntico;
+  - conta entrada == saída e aborta com exit 1 se divergir.
+
+Não mede nada por conta própria: a medição foi feita fora (grep/cat-file/
+rg) e está registrada no README do selo. Aqui só se materializa o resultado.
+"""
+
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+ANEXO_REL = "docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md"
+ANEXO = ROOT / ANEXO_REL
+OUT = ROOT / "docs/evidence/trilho-c-recompute-36-40-2026-09-19/camada-36-40-recomputada.md"
+
+# A medição ORIGINAL é lida do commit, nunca do working tree: o working tree recebe
+# o aviso RECOMPUTADA e desloca as linhas. Foi assim que a 1ª versão deste script
+# (que indexava linhas 209..297 por número absoluto) gerou uma tabela errada —
+# e o guard `checked === discovered` PASSOU porque comparava cardinalidade, não
+# identidade. O defeito é o mesmo que o TRILHO A fechou nos guards de runner.
+ORIGIN_COMMIT = "d9e58a28d21c0178f2b810d00e38d4b4866e82d8"
+ID_RE = re.compile(r"^\|\s*`((?:P0|P1|P2|ORD|GATE|DEF)-\d+)`")
+
+# item -> (novo_status | None, nova_evidencia | None, nova_nota | None)
+O = {}
+
+O["P0-01"] = (
+    None,
+    "src/lib/chat-markdown.tsx:8-11 (renderChatMarkdown só produz nós React); "
+    "src/test/chat-markdown.test.tsx:51 (canário anti-dangerouslySetInnerHTML)",
+    "CORRIGIDO na recomputação: o grep 'dangerouslySetInnerHTML/DOMPurify' devolve **2** arquivos "
+    "(o módulo e o próprio teste), não 1 — ambos dentro de comentário/asserção, nenhum uso real. "
+    "Status DONE mantido. Enforcement de CSP é o item P2-09.",
+)
+
+O["P1-02"] = (
+    None,
+    "src/server/services/ (20 módulos); docs/specs/M-02/matrix.overlay.yaml:33,41 declara "
+    "**MemoryService** e **EventService** com status `implemented` (e o gerado "
+    "docs/specs/M-02/matrix.yaml:1372,1380 idem); src/server/services/memory.service.ts (58 linhas, "
+    "degrau D1: propose + policy, **sem persistência**); src/server/services/event.service.ts "
+    "(51 linhas, append/publishPending, consumido por expense.service.ts:8,21)",
+    "PARTIAL mantido, **com a razão corrigida**. A razão antiga ('MemoryService e EventService seguem "
+    "contratos sem runtime, bloqueio M-05/M-04') está **falsificada**: os dois existem como runtime. "
+    "A razão vigente é a divergência medida entre o registry do projeto — que declara os **10/10** "
+    "serviços `implemented` — e o placar de 187, que mantém `9.1` como PARTIAL (8/10 dedicados) e "
+    "`9.1-ME` como item separado já DONE. **Divergência registry×placar: decisão da régua do MAESTRO.**",
+)
+
+O["P1-03"] = (
+    None,
+    "src/server/repositories/ — **12** arquivos (ai-tool, audit, calculation-snapshot, conversation, "
+    "dashboard, expense, memory, outbox, product, purchase-price, sales, simulation)",
+    "Status DONE mantido. A evidência original dizia '10 arquivos': **desatualizada** (drift de "
+    "contagem), sem prejuízo do item.",
+)
+
+O["P1-11"] = (
+    None,
+    "src/db/schema.ts:532-560 (simulations + CHECKs); src/server/services/simulation.service.ts "
+    "(guarda de origem persistível); src/lib/financial.functions.ts:54 (`saveSimulation` — o arquivo "
+    "tem **64** linhas); src/server/repositories/simulation.repository.ts; consumido por "
+    "src/routes/_authenticated/simulacoes.tsx:4,348,350",
+    "Status DONE mantido. A referência original `src/lib/financial.functions.ts:54-70` estava **fora "
+    "de alcance** (o arquivo termina na linha 64) — corrigida para `:54`. Achado do verificador "
+    "mecânico; a substância do item não muda.",
+)
+
+O["P1-15"] = (
+    None,
+    "drizzle/meta/_journal.json — **20 entradas**, `idx` 0..19, último `0019_tiresome_robin_chapel`; "
+    "scripts/db/migrate.ts; scripts/db/migration-classes.ts (registry sidecar); "
+    "drizzle/rollback/0012_to_0011_down.sql .. 0019_to_0018_down.sql",
+    "Status DONE mantido. A evidência original dizia 'idx 0..14, último `0014_mighty_veda`': "
+    "**desatualizada** — 5 migrações novas entraram depois da medição (0015 outbox, 0016 backfill, "
+    "0017/0018/0019 memória).",
+)
+
+O["P2-02"] = (
+    "PARTIAL",
+    "src/db/schema.ts:871 `outbox_events` (+ `:892` uniqueIndex outbox_events_tenant_idempotency_uidx "
+    "sobre (tenant_id, idempotency_key); `:894` index outbox_events_claim_idx; checks status/attempts/"
+    "identity); drizzle/0015_curved_riptide.sql (outbox_events + outbox_consumptions); "
+    "src/server/repositories/outbox.repository.ts (241 linhas); src/server/services/event.service.ts "
+    "(append/publishPending); src/server/services/outbox.worker.ts (182 linhas — batch, maxAttempts, "
+    "backoff, CAS, inbox idempotente); scripts/db/test-outbox.ts (731 linhas — etapa 12 da cadeia "
+    "`db:test`); src/server/services/expense.service.ts:8,21,30-31,38 (append no executor da transação)",
+    "**PROMOVIDO NS→PARTIAL, e depois REBAIXADO de DONE→PARTIAL pelo S6 adversarial.** A nota original "
+    "('único hit é o comentário PLANNED em `event.contracts.ts:1-2`; nenhuma tabela/worker') está "
+    "**falsificada**: a mecânica do §23 existe inteira e é testada. O que **não** existe é o resto: "
+    "`new OutboxWorker` só aparece em `scripts/db/test-outbox.ts` (8x, nenhuma instanciação de "
+    "runtime); nenhum cron/setInterval/plugin em `src/`; nenhum runbook e nenhum `vercel.json` de "
+    "trigger; nenhuma métrica de backlog pendente. §23 pede worker (existe) e o append transacional "
+    "(existe) — mas **nada drena**: em produção a tabela só cresce. Ressalva honesta: um cron externo "
+    "ao repo (Hostinger) não é verificável daqui ⇒ a metade operacional é UNVERIFIABLE, não falsa. "
+    "**DIVERGÊNCIA DECLARADA:** o placar de 187 mantém `23.1`/`23.2` DONE; a camada passa a discordar "
+    "dele com base no mesmo fato. É decisão da régua do MAESTRO — não foi tomada aqui.",
+)
+
+O["P2-03"] = (
+    None,
+    "src/db/schema.ts — 6 tabelas de memória existem: ai_memories, ai_memory_sources (:1082), "
+    "ai_memory_versions (:1159), ai_memory_conflicts (:1197), ai_memory_policies (:1235), "
+    "ai_memory_access_log (:1268); src/server/services/memory.service.ts (D1); "
+    "src/server/services/memory.policy.ts (178 linhas); "
+    "src/server/repositories/memory.repository.ts (1160 linhas); "
+    "drizzle/0017_past_gideon.sql + 0018_polite_living_tribunal.sql + 0019_tiresome_robin_chapel.sql; "
+    "scripts/db/test-memory.ts (2919 linhas — etapa 14 da cadeia `db:test`)",
+    "NS mantido **por decisão de régua**, não por ausência de artefato. A nota original ('nenhuma "
+    "tabela de memória, nenhum serviço') está **falsificada**. O ciclo anterior já havia fixado a "
+    "leitura que prevalece: a escada §43 (D0→D4) é **degrau de gate**, não item do Plano — os itens "
+    "de memória do Plano exigem FTS/vetor/ranking, que **continuam ausentes** (medido: "
+    "rg -w tsvector/to_tsvector/to_tsquery → 0 hits). **O crédito de item é decisão da régua do "
+    "MAESTRO** (leitura alternativa: o subsistema está construído e FTS/vetor são P2-04/P2-05).",
+)
+
+O["P2-04"] = (
+    None,
+    "rg -w 'tsvector' → 0 hits; rg -w 'to_tsvector' → 0 hits; rg -w 'to_tsquery' → 0 hits; "
+    "rg -w 'GIN' → 1 arquivo, e é **comentário**: src/server/repositories/memory.repository.ts:14 "
+    "('a representação lexical (FTS/GIN) é D5'); o único search é "
+    "`sql`position(lower(${text}) in lower(${content})) > 0`` em memory.repository.ts:866",
+    "NS mantido. A afirmação de grep da camada ('→ 0 hits') é **falsa na letra** (o termo `GIN` "
+    "aparece em comentário) e **verdadeira na substância**: não existe representação lexical. FTS é "
+    "pré-requisito explícito do §43 antes de embeddings.",
+)
+
+O["P2-06"] = (
+    None,
+    "rg -w 'hybrid' → 0 hits; rg -w 'rrf' → 0 hits; rg -w 'retrieval' → 9 arquivos, **todos em "
+    "prosa/comentário** (memory.policy.ts, memory.service.ts, memory.contracts.ts, memory.repository.ts, "
+    "schema.ts, 0017_past_gideon.sql, telemetry.ts, test-memory.ts, reconcile-ai-usage.ts) — nenhuma "
+    "implementação de ranking híbrido",
+    "NS mantido. A afirmação 'grep hybr./retr./rrf → 0 hits' era falsa porque a notação `a/b/c` da "
+    "camada é uma **alternância**, e `retrieval` aparece em prosa em 9 arquivos. **Defeito "
+    "sistemático de evidência da camada** (a notação de grep com `/` como OR superestima o zero). "
+    "Substância intacta: FTS + vetor não existem, logo não há o que ranquear.",
+)
+
+O["P2-07"] = (
+    None,
+    "nenhuma rota em src/routes/ casa memory / memoria / memória (rg -rlw → vazio); "
+    "rg -i -w memory / memória em drizzle/ + src/db/schema.ts → 4 arquivos "
+    "(drizzle/0017_past_gideon.sql, drizzle/rollback/0017_to_0016_down.sql, "
+    "drizzle/rollback/0018_to_0017_down.sql, src/db/schema.ts)",
+    "NS mantido: não existe **central** de memória (UI/rota de gestão). A afirmação 'grep → 0 hits' é "
+    "falsa (os artefatos de dados existem), mas o item pede a central, e ela não existe. Ressalva: o "
+    "Plano Mestre **não expande** o item 7 — a única ocorrência do termo é o rótulo em "
+    "docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md:2071. Interpretação "
+    "UI/rota mantida por continuidade; régua do MAESTRO pode redefinir.",
+)
+
+O["P2-08"] = (
+    None,
+    None,
+    "DONE mantido, **com a ressalva D7 anexada**. O achado de produção **D7** (o meter é obtido no "
+    "module scope — src/instrumentation/telemetry.ts:12 — antes de qualquer provider existir) atinge "
+    "diretamente este item: os **instrumentos de métrica** deste módulo são noop, exatamente como os "
+    "de reconciliação. O que sustenta o DONE é a metade de **traces**: o único proxy de re-vinculação "
+    "da API é o `ProxyTracerProvider` (api/trace.js), então os spans de http-request-span.ts e "
+    "`withSpan ai.chat.round` funcionam. A nota herdada (2026-09-15) declara só o gap mais fraco "
+    "('sem coletor OTLP local') e **não** conhecia o D7. Mesmo registro de ORD-36/P2-10; "
+    "WP próprio `F-otel-provider-order` na fila.",
+)
+
+O["P2-10"] = (
+    None,
+    "scripts/db/explain-evidence.ts; src/lib/list-limits.ts (aplicado em products.functions.ts:454 e "
+    "sales.repository.ts:111); package.json:77 (check:bundle); scripts/obs/pool-activity.ts; "
+    "**scripts/obs/pg-stat-statements.ts (505 linhas) + src/test/pg-stat-statements.test.ts** + "
+    "artefato de performance docs/evidence/pg-stat-statements-2026-09-15.md e raw versionado em "
+    "docs/evidence/pg-stat-statements/pg-stat-statements-2026-09-15T06-00-13-805Z.json",
+    "PARTIAL mantido, **com a razão corrigida**. 'faltam pg_stat_statements (grep → 0 hits)' está "
+    "**falsificado**: o coletor existe desde 2026-09-15 e o item `16.3` do placar já foi fechado "
+    "como DONE naquele dia. O que permanece aberto é a **medição de scale-to-zero (§16.8)**, que "
+    "exige produção. Acrescento material: o achado de produção **D7** (métricas de aplicação são "
+    "noop — meter obtido no module scope antes de qualquer provider) atinge diretamente este item.",
+)
+
+O["ORD-32"] = (
+    None,
+    "mesma base de P2-03: 6 tabelas de memória em src/db/schema.ts; "
+    "src/server/services/memory.service.ts + memory.policy.ts; "
+    "src/server/repositories/memory.repository.ts (1160 linhas, degraus D2/D3/D4); "
+    "scripts/db/test-memory.ts (2919 linhas)",
+    "NS mantido por régua, espelhando P2-03 (mesmo item, outra vista). Nota original ('nenhuma "
+    "tabela, nenhum serviço') **falsificada**. O núcleo existe; FTS/vetor/hybrid (ORD-33/34/35) não.",
+)
+
+O["ORD-33"] = (
+    None,
+    "rg -w tsvector / to_tsvector / to_tsquery → 0 hits cada; sem índice GIN de texto",
+    "NS mantido; espelha P2-04.",
+)
+
+O["ORD-35"] = (
+    None,
+    "rg -w 'hybrid' → 0; rg -w 'rrf' → 0; rg -w 'retrieval' → 9 arquivos, todos prosa/comentário",
+    "NS mantido; espelha P2-06.",
+)
+
+O["ORD-36"] = (
+    None,
+    "src/instrumentation/telemetry.ts; http-request-span.ts:24-28; sql-redactor.ts; safe-record.ts; "
+    "src/lib/chat-execution.server.ts (ai.chat.round); scripts/obs/{pool-activity,rum-percentiles,"
+    "baseline-regime,error-budget,ai-latency-baseline,pg-stat-statements}.ts",
+    "PARTIAL mantido. Acrescento material: spans e instrumentos **existem**, mas o achado D7 mostra "
+    "que os instrumentos de nível de módulo nunca exportam (meter obtido no import, antes do "
+    "provider) — a observabilidade de runtime está **pior do que a camada supunha**, e o WP "
+    "`F-otel-provider-order` foi aberto para isso. Abertos originais: spans de service do `19.2` e "
+    "§29/§30 sem tráfego real (H-6).",
+)
+
+O["GATE-41"] = (
+    "DONE",
+    "as **11 condições** do §41 medidas uma a uma no HEAD `d9e58a2`: (1) XSS — "
+    "src/test/chat-markdown.test.tsx:51; (2) unknown≠zero — src/lib/finance.ts:473-516; "
+    "(3) NaN/Infinity — src/lib/finance.ts:12,129,189,205,222; (4) volume fictício — "
+    "src/lib/finance.ts:663 + finance.boundaries.test.ts:87,99; (5) markup arbitrário — "
+    "finance.boundaries.test.ts:142-150; (6) tools runtime-validated — src/lib/ai/tool-registry.ts "
+    "+ tool-runner.ts:80; (7) auth por endpoint — src/middleware/request-context.ts:113 (7 BFFs "
+    "consumidores); (8) localStorage — **0 hits em src/** (fora de teste); e2e/ui-stack.spec.ts:233 "
+    "assere que nenhuma chave de storage casa token/session/auth; (9) estado da IA — "
+    "src/db/schema.ts:617,648 (chat_conversations/chat_messages) + conversation.repository.ts + "
+    "chat-execution.server.ts:144-149; (10) timeout — src/lib/chat-execution.server.ts:580 "
+    "(AbortSignal.timeout(requestTimeoutMs)); (11) **CI verde** — UI stack run `35465442629` "
+    "(commit `9be9956`) e run `35461588021` (commit `f06c6d8`), ambos `success`",
+    "**PROMOVIDO PARTIAL→DONE.** O único critério que faltava na medição original era o literal "
+    "'CI verde' ('107 commits não publicados'). Ele foi observado em 2026-09-19 nos dois runs acima, "
+    "e os 10 critérios de conteúdo foram reconferidos um a um nesta recomputação (eram declarados "
+    "cobertos pela própria nota original). Gate de conteúdo sobre o P0, que já está 17/17 no placar.",
+)
+
+O["GATE-43"] = (
+    "PARTIAL",
+    "**6 das 7 condições do §43 têm artefato medido**: (1) Conversation Service — "
+    "src/server/services/conversation.service.ts; (2) Memory Service — memory.service.ts (degrau D1) "
+    "+ persistência em src/server/repositories/memory.repository.ts (1160 linhas: append, revise, "
+    "recordConflict, listVersions, listConflicts, search, delete, export, expireDue, listAccessLog); "
+    "(3) policy engine — memory.policy.ts (178 linhas); (4) proveniência — ai_memory_sources 1:N "
+    "(:1082) reconstruída em MemoryProvenance, com fallback para o id da linha quando `source_ref` é "
+    "nulo; (5) tenant isolation — predicado explícito tenant_id+user_id **e** RLS `tenant_isolation` "
+    "(0017/0018/0019) + scripts/db/test-memory.ts (2919 linhas); (6) delete/export — delete com "
+    "autorização por escopo + `purgeHistory`, export com versões e fontes, trilha em "
+    "ai_memory_access_log na mesma transação. **(7) FTS: AUSENTE** — rg -w "
+    "tsvector/to_tsvector/to_tsquery → 0 hits; o único `search` é "
+    "`position(lower($1) in lower(content)) > 0`",
+    "**PROMOVIDO NS→PARTIAL.** A nota original ('grep de memória → 0 hits; faltam Memory Service, "
+    "policy engine, proveniência, isolamento, delete/export e FTS') está **falsificada em 6 dos 7 "
+    "itens**. A condição 2 é limítrofe: o serviço é degrau D1 (decide, não persiste) e a persistência "
+    "mora no repositório. §43 diz 'Só então embeddings' — o gate **não** passou, então P2-05/P2-06 e "
+    "GATE-44 seguem bloqueados. Espelha o delta de P2-03/ORD-32.",
+)
+
+O["GATE-44"] = (
+    None,
+    "rg -w 'pgvector' → 0 hits; rg -w 'hnsw' → 0 hits; rg -w 'embedding' → 0 hits; "
+    "rg -w 'embeddings' → 0 hits; tabela ai_memory_embeddings **inexistente** (declarada no §15.2 do "
+    "Plano, ausente de src/db/schema.ts)",
+    "NA mantido. A afirmação de grep da camada é falsa na letra (ela embutia `pg_stat_statements` no "
+    "mesmo padrão, e esse termo **existe** desde 2026-09-15) e verdadeira na substância: sem vetor "
+    "não há memory rows, p95 de busca exata, CPU, recall nem target latency para registrar. "
+    "Pré-requisito ausente ⇒ gate não aplicável.",
+)
+
+
+def load_original_rows():
+    """Lê a camada da MEDIÇÃO ORIGINAL a partir do commit — por PADRÃO, não por linha."""
+    text = subprocess.run(
+        ["git", "show", f"{ORIGIN_COMMIT}:{ANEXO_REL}"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    rows = []
+    for line in text.splitlines():
+        if ID_RE.match(line):
+            rows.append(line)
+    ids = [ID_RE.match(r).group(1) for r in rows]
+    if len(ids) != len(set(ids)):
+        dup = sorted({i for i in ids if ids.count(i) > 1})
+        print(f"FALHOU: ids duplicados na origem: {dup}", file=sys.stderr)
+        raise SystemExit(1)
+    return rows, ids
+
+
+def split_row(line: str):
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
+def main() -> int:
+    orig_rows, orig_ids = load_original_rows()
+    if len(orig_rows) != 89:
+        print(f"FALHOU: origem tem {len(orig_rows)} linhas, esperado 89", file=sys.stderr)
+        return 1
+
+    unknown = [i for i in O if i not in orig_ids]
+    if unknown:
+        print(f"FALHOU: override para item inexistente na origem: {unknown}", file=sys.stderr)
+        return 1
+
+    rows = []
+    for line in orig_rows:
+        cells = split_row(line)
+        if len(cells) != 5:
+            print(f"FALHOU: linha com {len(cells)} células: {line[:80]}", file=sys.stderr)
+            return 1
+        rows.append(cells)
+
+    status_changes = []
+    out_rows = []
+    for cells in rows:
+        item = re.sub(r"[`*]", "", cells[0])
+        if item in O:
+            status, evidence, nota = O[item]
+            before = cells[1]
+            if status is not None:
+                cells[1] = f"**{status}**"
+                if status != re.sub(r"[*`]", "", before):
+                    status_changes.append((item, re.sub(r"[*`]", "", before), status))
+            if evidence is not None:
+                cells[3] = evidence
+            if nota is not None:
+                cells[4] = nota
+        out_rows.append(cells)
+
+    # INVARIANTE DE IDENTIDADE (não de cardinalidade): mesma sequência de ids,
+    # e as linhas sem override byte-idênticas.
+    out_ids = [re.sub(r"[`*]", "", c[0]) for c in out_rows]
+    if out_ids != orig_ids:
+        print("FALHOU: a sequência de ids de saída difere da origem", file=sys.stderr)
+        print(f"  origem : {orig_ids[:5]} ... {orig_ids[-3:]}", file=sys.stderr)
+        print(f"  saída  : {out_ids[:5]} ... {out_ids[-3:]}", file=sys.stderr)
+        return 1
+    for orig_line, cells in zip(orig_rows, out_rows):
+        item = re.sub(r"[`*]", "", cells[0])
+        if item not in O and split_row(orig_line) != cells:
+            print(f"FALHOU: linha sem override foi alterada: {item}", file=sys.stderr)
+            print(f"  origem: {split_row(orig_line)}", file=sys.stderr)
+            print(f"  saída : {cells}", file=sys.stderr)
+            return 1
+    if len(out_rows) != 89:
+        print(f"FALHOU: saída com {len(out_rows)} linhas", file=sys.stderr)
+        return 1
+
+    counts = {}
+    for cells in out_rows:
+        counts[re.sub(r"[*`]", "", cells[1])] = counts.get(re.sub(r"[*`]", "", cells[1]), 0) + 1
+
+    header = [
+        "# Camada §36–§40 — RECOMPUTADA em 2026-09-19",
+        "",
+        f"- **Base da recomputação:** `develop @ d9e58a28d21c0178f2b810d00e38d4b4866e82d8` (2026-09-19).",
+        "- **Base da medição original:** `develop @ 724594c` (2026-09-15T00:54:23-03:00).",
+        "- **Fonte:** as **89 linhas da camada** lidas do commit `` `d9e58a2` ``",
+        f"  (`{ANEXO_REL}`), selecionadas por **padrão de id** — nunca por número de linha.",
+        "  O gerador recusa overrides para id inexistente, recusa id duplicado e exige que",
+        "  **a sequência de ids de saída seja idêntica à de entrada**, além de exigir que toda",
+        "  linha sem override saia byte-idêntica. `checked === discovered` aqui é identidade,",
+        "  não cardinalidade — a 1ª versão deste gerador indexava linhas e deixou passar uma",
+        "  tabela errada; o guard de contagem não a pegou.",
+        f"- **Inventário:** {len(rows)} linhas de entrada → {len(out_rows)} linhas de saída "
+        "(`checked === discovered`);",
+        f"  status recomputado: {counts.get('DONE', 0)} DONE · {counts.get('PARTIAL', 0)} PARTIAL · "
+        f"{counts.get('NS', 0)} NS · {counts.get('NA', 0)} NA.",
+        "- **Método do recompute:** verificação mecânica das 18 afirmações de grep e das 172 referências",
+        "  `arquivo:linha` da camada reexecutada contra o HEAD (`.artifacts/zz-verify-36-40-v2.py`),",
+        "  mais leitura direta dos artefatos que decidem cada item. O gerador desta tabela é",
+        "  `.artifacts/zz-trilho-c-recompute.py` — ele **não mede nada**: aplica apenas os overrides",
+        "  declarados e deixa o resto byte-idêntico.",
+        "",
+        "| item | status | conf | evidência no HEAD | nota |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(
+        "\n".join(header + ["| " + " | ".join(c) + " |" for c in out_rows]) + "\n",
+        encoding="utf-8",
+    )
+
+    print(f"OK: {len(rows)} -> {len(out_rows)} linhas; {OUT.relative_to(ROOT)}")
+    print("Mudanças de status: " + (", ".join(f"{i}: {a}->{b}" for i, a, b in status_changes) or "nenhuma"))
+    print(f"Contagens: {counts}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

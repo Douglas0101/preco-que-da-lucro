@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""Colhe o transcript de um delegate cortado por limite de turnos."""
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+assistant_text = []
+tool_calls = []
+for line in path.read_text(encoding="utf-8").splitlines():
+    if not line.strip():
+        continue
+    try:
+        rec = json.loads(line)
+    except json.JSONDecodeError:
+        continue
+    msg = rec.get("message") or rec
+    role = msg.get("role")
+    if role != "assistant":
+        continue
+    content = msg.get("content") or []
+    if isinstance(content, str):
+        assistant_text.append(content)
+        continue
+    for block in content:
+        if not isinstance(block, dict):
+            continue
+        if block.get("type") == "text" and block.get("text", "").strip():
+            assistant_text.append(block["text"])
+        elif block.get("type") == "toolCall" or block.get("type") == "tool_use":
+            name = block.get("name") or block.get("toolName")
+            args = block.get("arguments") or block.get("input") or {}
+            target = args.get("path") or args.get("query") or args.get("pattern") or ""
+            tool_calls.append(f"{name}({str(target)[:110]})")
+
+print(f"# mensagens de texto do filho: {len(assistant_text)}")
+print(f"# tool calls: {len(tool_calls)}")
+print()
+print("=" * 70)
+print("TOOL CALLS (o que ele de fato checou)")
+print("=" * 70)
+for i, c in enumerate(tool_calls, 1):
+    print(f"{i:3d}. {c}")
+print()
+print("=" * 70)
+print("TEXTO DO FILHO")
+print("=" * 70)
+for t in assistant_text:
+    print(t)
+    print("-" * 70)

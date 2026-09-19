@@ -48,7 +48,12 @@ ok = (
     and len(set(ids)) == 89
     and set(nf) == {6}
     and ids == orig_ids
-    and status == {"DONE": 69, "PARTIAL": 10, "NS": 9, "NA": 1}
+# Esperado DERIVADO, nao observado: origem 67 D / 10 P / 11 NS / 1 NA.
+#   P2-02  NS -> PARTIAL      (S6: nada instancia o OutboxWorker em runtime)
+#   GATE-41 PARTIAL -> DONE   (as 11 condicoes do §41, inclusive o literal CI verde)
+#   GATE-43 NS -> PARTIAL     (6 de 7 condicoes; falta FTS)
+# => 68 DONE / 11 PARTIAL / 9 NS / 1 NA
+    and status == {"DONE": 68, "PARTIAL": 11, "NS": 9, "NA": 1}
 )
 print(f"\nVERIFICACAO INDEPENDENTE: {'OK' if ok else 'FALHOU'}")
 raise SystemExit(0 if ok else 1)

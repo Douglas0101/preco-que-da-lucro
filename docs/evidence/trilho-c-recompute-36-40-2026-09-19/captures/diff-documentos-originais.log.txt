@@ -1,43 +1,5 @@
 # TRILHO C — o que mudou nos dois documentos de origem da camada
-# data: 2026-09-19T20:28:04Z
+# data: 2026-09-19T20:35:12Z
 # base: HEAD antes do commit documental
 
- docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md | 2 +-
- docs/evidence/plan-recap-2026-09-15/MEDICAO-2026-09-15.md     | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md b/docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md
-index d51b776..ef9bf74 100644
---- a/docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md
-+++ b/docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md
-@@ -202,7 +202,7 @@ Fonte: `MEDICAO-2026-09-15.md`. Evidência **integral** (sem truncamento) — ca
- 
- ## Camada §36–§40 + gates + deferidos (89 itens; overlap, não somada ao denominador)
- 
--> **✅ RECOMPUTADA em 2026-09-19 (`F-D2-recompute-36-40`).** O aviso abaixo descreve a janela 2026-09-15 → 2026-09-19 e **fica preservado como registro histórico**. A camada recomputada contra `develop @ d9e58a28d21c0178f2b810d00e38d4b4866e82d8` está em `docs/evidence/trilho-c-recompute-36-40-2026-09-19/camada-36-40-recomputada.md` — **89 == 89 linhas**, `69 DONE · 10 PARTIAL · 9 NS · 1 NA` —, com os deltas item a item em `docs/evidence/trilho-c-recompute-36-40-2026-09-19/README.md`. **As 89 linhas abaixo permanecem byte a byte a medição de `724594c`**: não foram reescritas. Placar de 187 inalterado (a camada tem overlap e não é somada ao denominador).
-+> **✅ RECOMPUTADA em 2026-09-19 (`F-D2-recompute-36-40`).** O aviso abaixo descreve a janela 2026-09-15 → 2026-09-19 e **fica preservado como registro histórico**. A camada recomputada contra `develop @ d9e58a28d21c0178f2b810d00e38d4b4866e82d8` está em `docs/evidence/trilho-c-recompute-36-40-2026-09-19/camada-36-40-recomputada.md` — **89 == 89 linhas**, `68 DONE · 11 PARTIAL · 9 NS · 1 NA` —, com os deltas item a item em `docs/evidence/trilho-c-recompute-36-40-2026-09-19/README.md`. **As 89 linhas abaixo permanecem byte a byte a medição de `724594c`**: não foram reescritas. Placar de 187 inalterado (a camada tem overlap e não é somada ao denominador).
- >
- > **⚠ (histórico) CAMADA OBSOLETA entre 2026-09-15 e 2026-09-19 — não citar como estado corrente.** Esta camada foi medida no HEAD `724594c` em **2026-09-15** e não foi recomputada. Exemplo verificado na árvore: `P2-02` (outbox) aparece como **NS** abaixo, mas os itens `23.1`+`23.2` foram landados e a tabela `outbox_events` existe (`src/db/schema.ts:870`, `src/server/repositories/outbox.repository.ts`, `drizzle/0015_curved_riptide.sql`). Deltas conhecidos, o que segue válido e a exigência de recomputação estão em `MEDICAO-2026-09-15.md` §3–§4.
- 
-diff --git a/docs/evidence/plan-recap-2026-09-15/MEDICAO-2026-09-15.md b/docs/evidence/plan-recap-2026-09-15/MEDICAO-2026-09-15.md
-index d60f3d5..747642b 100644
---- a/docs/evidence/plan-recap-2026-09-15/MEDICAO-2026-09-15.md
-+++ b/docs/evidence/plan-recap-2026-09-15/MEDICAO-2026-09-15.md
-@@ -46,7 +46,7 @@
- >
- > | item da camada         | era     | passa a                           | prova (re-derivada em 2026-09-19)                                                                                                                                                                                                    |
- > | ---------------------- | ------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
--> | `P2-02` outbox         | NS      | **DONE (recomputar e ratificar)** | `src/db/schema.ts:870` (`outbox_events` + índice único de idempotência) · `src/server/repositories/outbox.repository.ts` · `src/server/services/event.service.ts` · `drizzle/0015_curved_riptide.sql` — itens `23.1`+`23.2` landados |
-+> | `P2-02` outbox         | NS      | **PARTIAL (recomputar e ratificar)** | a mecânica existe e é testada (`src/db/schema.ts:871` `outbox_events` + índice único de idempotência · `src/server/repositories/outbox.repository.ts` · `src/server/services/outbox.worker.ts` · `src/server/services/event.service.ts` · `drizzle/0015_curved_riptide.sql`), mas **nada a executa**: nenhuma instanciação de runtime, nenhum agendador, nenhuma métrica de backlog |
- > | `P1-02` (9.1)          | PARTIAL | **recomputar**                    | `9.1` segue PARTIAL (8/10 serviços), mas `9.1-ME` foi promovido a DONE no ciclo 2 (MemoryService + EventService com runtime e repositórios) — `EXECUTION-STATE-PROGRAM.md` §NAS-2 ciclo 2                                            |
- > | `P2-03..P2-07` memória | NS      | **segue NS como item do Plano**   | a escada §43 avançou D0→D4 e as tabelas `ai_memories`/`_sources`/`_versions`/`_conflicts`/`_access_log`/`_policies` existem; FTS/vetor/ranking continuam ausentes, então o crédito de item é decisão da régua do MAESTRO             |
- >
-@@ -60,7 +60,7 @@
- 
- **P0 — 17/17 DONE.** P1 — 2 PARTIAL: `P1-02` Application Services (8 de 10 serviços; Memory/Event são contract-only) e `P1-14` Neon branch CI (fluxo implementado; execução live exige `NEON_API_KEY`). P2 — 2 PARTIAL (`P2-09` CSP enforcement ainda opt-in; `P2-10` performance avançada com 16.3/16.7 abertos) e **6 NS**: outbox (`P2-02`) + memória/FTS/vetor/ranking/central de memória (`P2-03..P2-07`), todos deferidos com gate §43/§44.
- 
--> **Resultado da recomputação de 2026-09-19 (corrige o parágrafo acima).** As tabelas e o parágrafo desta seção **permanecem como registro da medição de `724594c`**; o estado corrente é o do artefato novo. Três status mudaram — `P2-02` NS→**DONE** (outbox completa e `23.1`/`23.2` já contados DONE no placar); `GATE-41` PARTIAL→**DONE** (as 11 condições do §41 reconferidas; o critério literal "CI verde" foi observado); `GATE-43` NS→**PARTIAL** (6 das 7 condições com artefato medido; falta FTS). Outras quinze linhas tiveram **evidência corrigida sem mudança de status** — entre elas `P1-02`, cuja razão "MemoryService e EventService seguem contratos sem runtime" está **falsificada** (os dois existem como runtime; o registry M-02 declara os 10/10 serviços `implemented`, em divergência com o placar — decisão da régua do MAESTRO) e `P2-10`, cuja razão "faltam pg_stat_statements" está **falsificada** (o coletor existe desde 2026-09-15 e `16.3` já é DONE). `P2-03` permanece **NS por régua**, não por ausência de artefato. Detalhe item a item: `docs/evidence/trilho-c-recompute-36-40-2026-09-19/README.md` §4–§5.
-+> **Resultado da recomputação de 2026-09-19 (corrige o parágrafo acima).** As tabelas e o parágrafo desta seção **permanecem como registro da medição de `724594c`**; o estado corrente é o do artefato novo. Três status mudaram — `P2-02` NS→**PARTIAL** (a mecânica do outbox existe e é testada, mas **nada a executa em runtime**: `new OutboxWorker` só aparece em `scripts/db/test-outbox.ts`, não há agendador nem métrica de backlog — **rebaixada de DONE→PARTIAL pela verificação adversarial S6**, e portanto a camada passa a **divergir** do placar `23.1`/`23.2`); `GATE-41` PARTIAL→**DONE** (as 11 condições do §41 reconferidas; o critério literal "CI verde" foi observado); `GATE-43` NS→**PARTIAL** (6 das 7 condições com artefato medido; falta FTS). Outras quinze linhas tiveram **evidência corrigida sem mudança de status** — entre elas `P1-02`, cuja razão "MemoryService e EventService seguem contratos sem runtime" está **falsificada** (os dois existem como runtime; o registry M-02 declara os 10/10 serviços `implemented`, em divergência com o placar — decisão da régua do MAESTRO) e `P2-10`, cuja razão "faltam pg_stat_statements" está **falsificada** (o coletor existe desde 2026-09-15 e `16.3` já é DONE). `P2-03` permanece **NS por régua**, não por ausência de artefato. Detalhe item a item: `docs/evidence/trilho-c-recompute-36-40-2026-09-19/README.md` §4–§5.
- 
- ## 4. Ordem prática (§40) e gates (§41–§44)
- 
