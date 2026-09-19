@@ -55,8 +55,8 @@ Capturas: `captures/verificacao-mecanica-camada-v2.log.txt` (autoritativa, 3 579
 
 |         | antes (724594c) | depois (d9e58a2) |
 | ------- | --------------- | ---------------- |
-| DONE    | 67              | **69**           |
-| PARTIAL | 10              | **10**           |
+| DONE    | 67              | **68**           |
+| PARTIAL | 10              | **11**           |
 | NS      | 11              | **9**            |
 | NA      | 1               | **1**            |
 | total   | 89              | **89**           |
@@ -66,16 +66,88 @@ A camada **não é somada ao denominador de 187** (ela tem overlap declarado com
 
 ## 4. Deltas de status — 3
 
-| item      | antes   | depois      | razão medida                                                                                                                                                                                                                                                                                                                                                                                   |
-| --------- | ------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `P2-02`   | NS      | **DONE**    | outbox completa: `outbox_events` + índice único de idempotência (`src/db/schema.ts:871,892,894`), `0015_curved_riptide.sql`, `outbox.repository.ts` (241 l.), `event.service.ts`, `outbox.worker.ts` (182 l.) e `scripts/db/test-outbox.ts` (731 l., etapa 12 do `db:test`). Os itens `23.1`/`23.2` **já contam DONE no placar** desde 2026-09-15 — a camada é que não havia sido recomputada. |
-| `GATE-41` | PARTIAL | **DONE**    | as 11 condições do §41 reconferidas uma a uma; a única que faltava era o literal **"CI verde"**, observado em 2026-09-19 (`UI stack` run `35465442629` em `9be9956` e run `35461588021` em `f06c6d8`, ambos `success`).                                                                                                                                                                        |
-| `GATE-43` | NS      | **PARTIAL** | **6 das 7 condições** do §43 têm artefato medido (Conversation Service, Memory Service, policy engine, proveniência, tenant isolation, delete/export). A 7ª — **FTS** — está ausente: `rg -w tsvector / to_tsvector / to_tsquery` → 0 hits, e o único `search` é `position(lower($1) in lower(content)) > 0`.                                                                                  |
+| item      | antes   | depois      | razão medida                                                                                                                                                                                                                                                                                                              |
+| --------- | ------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `P2-02`   | NS      | **PARTIAL** | a mecânica do §23 existe **inteira e testada** (ver §4.1) — mas **nada a executa**: `new OutboxWorker` só aparece em `scripts/db/test-outbox.ts` (8×), nenhum cron/`setInterval`/plugin em `src/`, nenhum runbook, nenhum `vercel.json`. Em produção a tabela só cresce. **Rebaixada de DONE→PARTIAL no S6 adversarial.** |
+| `GATE-41` | PARTIAL | **DONE**    | as 11 condições do §41 reconferidas uma a uma; a única que faltava era o literal **"CI verde"**, observado em 2026-09-19 (`UI stack` run `35465442629` em `9be9956` e run `35461588021` em `f06c6d8`, ambos `success`).                                                                                                   |
+| `GATE-43` | NS      | **PARTIAL** | **6 das 7 condições** do §43 têm artefato medido (Conversation Service, Memory Service, policy engine, proveniência, tenant isolation, delete/export). A 7ª — **FTS** — está ausente: `rg -w tsvector / to_tsvector / to_tsquery` → 0 hits, e o único `search` é `position(lower($1) in lower(content)) > 0`.             |
 
 `GATE-43` é o delta que mais importa: a nota original dizia "faltam Memory Service, policy engine,
 proveniência, isolamento, delete/export e FTS" — **6 dos 7 itens dessa lista existem hoje**. O gate
 continua **não** passado, e §43 diz "Só então embeddings", logo `P2-05`/`P2-06`/`GATE-44` seguem
 bloqueados.
+
+### 4.1 `P2-02` — a metade operacional do outbox não existe (achado do S6)
+
+A primeira versão desta recomputação promoveu `P2-02` de NS para **DONE**. Isso estava **errado**, e a
+correção veio da verificação adversarial de contexto limpo (S6).
+
+O que **existe** e é sólido — a mecânica do §23 do Plano ("Outbox strategy"):
+
+| peça                                 | evidência medida                                                                                                                                                                                     |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| append na mesma transação do domínio | `src/server/services/expense.service.ts:8,21,30-31,38` — o evento entra no `context.transaction`                                                                                                     |
+| tabela + idempotência                | `src/db/schema.ts:871` `outbox_events`; `:892` uniqueIndex sobre `(tenant_id, idempotency_key)`; `:894` `outbox_events_claim_idx`; `drizzle/0015_curved_riptide.sql` (+ `outbox_consumptions`)       |
+| repositório                          | `src/server/repositories/outbox.repository.ts` (241 l.)                                                                                                                                              |
+| worker                               | `src/server/services/outbox.worker.ts` (182 l.) — lote, `maxAttempts`, `backoffMs(attempts)`, CAS no claim, inbox idempotente `(consumer_name, event_id)`, para de reclamar ao atingir `maxAttempts` |
+| serviço de aplicação                 | `src/server/services/event.service.ts` — `append` / `publishPending`                                                                                                                                 |
+| prova                                | `scripts/db/test-outbox.ts` (731 l.) — etapa 12 da cadeia `db:test`, verde                                                                                                                           |
+
+O que **não** existe — a metade operacional:
+
+| ausência                           | comando que a mede                                                    | resultado                                                                             |
+| ---------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| nada instancia o worker em runtime | `rg -n 'new OutboxWorker' src scripts e2e`                            | 8 hits, **todos** em `scripts/db/test-outbox.ts` (`:467,472,561,577,589,611,637,690`) |
+| nenhum agendador                   | `rg -niE 'cron\|setInterval\|nitro.*plugin' package.json src scripts` | **0**                                                                                 |
+| nenhum procedimento operacional    | `rg -l 'outbox' docs/runbooks docs/adr`                               | **0** arquivos                                                                        |
+| nenhum trigger de plataforma       | `ls vercel.json`                                                      | **não existe**                                                                        |
+| nenhuma métrica de backlog         | `rg -n 'outbox' src/instrumentation/telemetry.ts`                     | **0**                                                                                 |
+
+**Consequência:** o §23 pede worker (existe) e o append transacional (existe) — mas **nada drena**.
+Em produção a tabela só cresce, e nada percebe, porque não há métrica de backlog nem runbook.
+É o mesmo modo de falha do TRILHO A: um mecanismo correto e testado, cuja **existência** foi confundida
+com **funcionamento**.
+
+**Ressalva declarada:** um agendador **externo ao repositório** (cron no hPanel/Hostinger) não é
+verificável daqui. A metade operacional é, portanto, **UNVERIFIABLE** — não "falsa".
+
+**Divergência aberta com o placar de 187:** os itens `23.1`/`23.2` contam **DONE** no placar desde
+2026-09-15. A camada agora discorda deles **com base no mesmo fato**. Resolver essa divergência é
+decisão da **régua do MAESTRO** — não foi tomada aqui, e o placar não foi tocado.
+
+### 4.2 O subsistema de memória também não tem entrada de runtime (achado do S6, C10)
+
+A mesma pergunta feita ao outbox, feita a **todos** os serviços e repositórios, por contagem de
+**importadores de runtime** (import apontando para o módulo, fora de `src/test/**` e de
+`scripts/db/test-*`) — [`captures/verificacao-s6-followup.log.txt`](captures/verificacao-s6-followup.log.txt):
+
+| módulo                                          | importadores de runtime |
+| ----------------------------------------------- | ----------------------- |
+| `src/server/services/memory.service.ts`         | **0**                   |
+| `src/server/repositories/memory.repository.ts`  | **0**                   |
+| `src/server/services/outbox.worker.ts`          | **0**                   |
+| `src/server/repositories/ai-tool.repository.ts` | **0**                   |
+| todos os outros serviços e repositórios         | ≥ 1                     |
+
+Os três primeiros não têm **nenhum** importador de runtime: o repositório de memória (1160 l.) só é
+referido em doc-comments (`memory.service.ts:6`, `products.functions.ts:208`) e na declaração da porta
+(`memory.contracts.ts:215`); `memoryService` aparece apenas em `src/test/memory-service.test.ts`; o
+`OutboxWorker` só é importado por `scripts/db/test-outbox.ts:39`. **Não existe rota nem BFF que
+exponha memória** (`rg 'memory|memoria' src/routes/ src/lib/` → só um doc-comment).
+
+**Controle negativo, para não exagerar o achado.** "Sem importador" **não** é o mesmo que
+"capacidade ausente". `ai-tool.repository.ts` também tem 0 importadores, e **a trilha de auditoria
+funciona assim mesmo**: `src/lib/ai/tool-runner.ts:104` e `:317` escrevem em `tool_executions`
+**direto**, pela transação, sem passar pelo repositório. A diferença que importa: para a trilha de
+tool existe **caminho alternativo** (o item `P0-15` segue DONE, corretamente); para o outbox e para a
+memória **não existe outro caminho** — nada os alcança.
+
+**Efeito na camada:** `GATE-43` credita "Memory Service pronto" e "delete/export" como 2 das 6
+condições satisfeitas. Essas duas repousam em código que **nada chama**. `GATE-43` permanece
+**PARTIAL** (não poderia ser DONE de qualquer forma: falta FTS), mas a nota passa a declarar o fato em
+vez de creditar as duas condições sem ressalva. Levá-lo a NS seria a leitura estritamente consistente
+com o rebaixamento do `P2-02` — e é a mesma **decisão de régua** que a §4.1 deixa aberta, não uma
+decisão minha.
 
 ## 5. Correções de evidência sem mudança de status — 15
 
@@ -113,8 +185,21 @@ crases, e o resultado medido por extenso — nunca `a/b/c → 0`.
 ## 7. O que NÃO está provado
 
 - **Nenhum item promovido ganhou crédito no placar de 187** — a camada é uma vista com overlap, e o
-  DoD deste WP é a camada, não o placar. `P2-02` já era DONE no placar; `GATE-41`/`GATE-43` são
-  gates, não itens do denominador.
+  DoD deste WP é a camada, não o placar. `GATE-41`/`GATE-43` são gates, não itens do denominador.
+  `P2-02` **não** foi promovido (e a camada agora **discorda** do DONE que o placar mantém para
+  `23.1`/`23.2` — divergência declarada na §4.1).
+- **O S6 adversarial não emitiu veredicto.** Duas tentativas falharam por **orçamento de lane**, não
+  por achado: `db7b0df0c3aad48f575a12d6d03d4205d` morreu em `child_turn_limit` (31 turnos, 50 tool
+  calls, nenhuma conclusão). **Não é um S6 cumprido.** O que se salvou foi uma **pista** do transcript
+  (_"Critical lead: runOnce may have no caller."_), que **eu mesmo verifiquei** por leitura direta e
+  que produziu a correção da §4.1. A verificação adversarial formal do restante dos 89 itens
+  (sobretudo `GATE-41`, `GATE-43`, `P2-04`, `C7`–`C10`) segue **em voo** (`d35eb97c`).
+  **Consequência pratica:** `P2-02` é hoje o único item cuja correção nasceu de suspeita adversarial;
+  os demais repousam na verificação mecânica (`zz-verify-36-40-v2.py`) e na leitura dirigida, não em
+  contexto limpo.
+- **O gap do outbox é medido no repositório, não em produção.** A ausência de agendador é
+  verificável para tudo que vive no repo. Um cron configurado **fora** dele (painel do provedor) não
+  é verificável daqui — por isso a metade ausente é **UNVERIFIABLE**, não "falsa".
 - **`P2-03`/`ORD-32` são decisão de régua, não medida.** O artefato existe; creditar o item como
   DONE (contando FTS/vetor como `P2-04`/`P2-05` separados) é legítimo e está declarado como
   alternativa. Mantive **NS** pela leitura conservadora já fixada no ciclo anterior
@@ -141,14 +226,22 @@ documental; os avisos de OBSOLETA dos dois documentos originais voltam no mesmo 
 
 ## 9. Artefatos
 
-| arquivo                                           | conteúdo                                                                                              |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `camada-36-40-recomputada.md`                     | as **89 linhas** da camada, recomputadas, com o inventário no cabeçalho                               |
-| `captures/verificacao-mecanica-camada-v2.log.txt` | verificação mecânica autoritativa (89 == 89)                                                          |
-| `captures/verificacao-mecanica-camada.log.txt`    | v1, preservada com os **28 falsos "ARQUIVO AUSENTE"** e os **127 falsos positivos** de `GIN` visíveis |
-| `captures/fatos-do-tree.log.txt` · `-2` · `-3`    | contagens de serviços, repositórios, migrações, tabelas, tamanhos                                     |
-| `captures/quando-entrou.log.txt`                  | commit e data de entrada de cada artefato que decide um delta                                         |
-| `captures/recompute-camada.log.txt`               | saida do gerador: `89 -> 89`, os 3 deltas de status e as contagens 69/10/9/1                          |
-| `captures/verificacao-independente.log.txt`       | **a prova do escopo**: 89 ids idênticos à origem e **exatamente 18** linhas com células diferentes    |
-| `captures/diff-documentos-originais.log.txt`      | o diff dos dois documentos de origem (o aviso de recomputada que foi acrescentado)                    |
-| `MANIFEST.sha256`                                 | selo de tudo acima (conferido **da raiz do repo** — o manifesto carrega caminhos relativos à raiz)    |
+| arquivo                                           | conteúdo                                                                                                                                          |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `camada-36-40-recomputada.md`                     | as **89 linhas** da camada, recomputadas, com o inventário no cabeçalho                                                                           |
+| `captures/verificacao-mecanica-camada-v2.log.txt` | verificação mecânica autoritativa (89 == 89)                                                                                                      |
+| `captures/verificacao-mecanica-camada.log.txt`    | v1, preservada com os **28 falsos "ARQUIVO AUSENTE"** e os **127 falsos positivos** de `GIN` visíveis                                             |
+| `captures/fatos-do-tree.log.txt` · `-2` · `-3`    | contagens de serviços, repositórios, migrações, tabelas, tamanhos                                                                                 |
+| `captures/quando-entrou.log.txt`                  | commit e data de entrada de cada artefato que decide um delta                                                                                     |
+| `captures/recompute-camada.log.txt`               | saida do gerador: `89 -> 89`, os 3 deltas de status e as contagens 68/11/9/1                                                                      |
+| `captures/verificacao-independente.log.txt`       | **a prova do escopo**: 89 ids idênticos à origem e **exatamente 18** linhas com células diferentes                                                |
+| `captures/diff-documentos-originais.log.txt`      | o diff dos dois documentos de origem (o aviso de recomputada que foi acrescentado)                                                                |
+| `captures/verificacao-outbox-runtime.log.txt`     | **a medicao do S6 que falsificou o Delta 1**: os 5 comandos que provam a ausencia da metade operacional, e os 2 que provam a presenca da mecanica |
+| `captures/verificacao-s6-followup.log.txt`        | follow-up do S6: FTS (C4, 9 termos → 0), contagem independente da camada (C9, 68/11/9/1) e o C10 com o controle negativo                          |
+| `captures/adversarial-c-transcript.txt`           | transcript da 1a tentativa adversarial — 7 mensagens, 50 tool calls, **nenhum veredicto**, e a pista que sobreviveu                               |
+| `captures/adversarial-c-lane-failure.log.txt`     | `child-terminal.json` (`child_turn_limit`) e `runtime-budget.json` da 1a tentativa: a prova de que foi **falha de lane**, nao veredicto           |
+| `captures/db-test-efemero.log.txt`                | a cadeia `db:test` inteira (17 passos) em PG17 efemero, com as 3 provas de guarda dos Trilhos A/B                                                 |
+| `captures/db-test-efemero.sh.txt`                 | o script que rodou a cadeia (container virgem em 127.0.0.1:5436, `:5432` intocado, removido ao fim)                                               |
+| `captures/verifica-camada.py.txt`                 | o verificador independente (identidade, nao cardinalidade), copiado para o selo                                                                   |
+| `captures/verifica-vinculo.py.txt`                | o verificador do vinculo `git show <sha>:<path>` x linha do manifesto                                                                             |
+| `MANIFEST.sha256`                                 | selo de tudo acima (conferido **da raiz do repo** — o manifesto carrega caminhos relativos à raiz)                                                |

@@ -1,13 +1,13 @@
 # TRILHO C — verificacao independente da camada recomputada
 # comando: python3 .artifacts/zz-verifica-camada.py
-# data: 2026-09-19T20:14:30Z
+# data: 2026-09-19T20:28:08Z
 # a prova que importa: o numero de linhas com celulas diferentes da origem
 # tem de bater com o numero de overrides DECLARADOS (18 = 3 status + 15 evidencias).
 
 linhas de tabela      = 89  (esperado 89)
 ids unicos            = 89
 pipes por linha (NF)  = {6: 89}  (esperado {6: 89} -> 5 colunas + 2 bordas)
-status                = {'DONE': 69, 'PARTIAL': 10, 'NS': 9, 'NA': 1}
+status                = {'DONE': 68, 'PARTIAL': 11, 'NS': 9, 'NA': 1}
 ids identicos a origem= True
 linhas com celulas diferentes da origem = 18
   itens: ['P0-01', 'P1-02', 'P1-03', 'P1-11', 'P1-15', 'P2-02', 'P2-03', 'P2-04', 'P2-06', 'P2-07', 'P2-10', 'ORD-32', 'ORD-33', 'ORD-35', 'ORD-36', 'GATE-41', 'GATE-43', 'GATE-44']

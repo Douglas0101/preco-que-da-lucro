@@ -1,0 +1,82 @@
+# S6 follow-up — verificacao independente dos claims que a lane adversarial nao cobriu
+# data (UTC): 2026-09-19T20:27:37Z
+# HEAD: 9502b416ce07d0a28c89fd5d9764d5a74243bd6f
+
+== C4 (P2-04 / ORD-33): existe QUALQUER busca lexical/FTS no repo? ==
+  tsvector               -> 0
+  to_tsvector            -> 0
+  to_tsquery             -> 0
+  plainto_tsquery        -> 0
+  websearch_to_tsquery   -> 0
+  phraseto_tsquery       -> 0
+  pg_trgm                -> 0
+  unaccent               -> 0
+  using gin              -> 0
+  (0 em todos = nenhuma busca lexical, so posicional)
+
+== C4b: o search da memoria e posicional? ==
+837:   * (`position(lower($n) in lower(content))`), sem wildcard interpretável e sem
+866:            : sql`position(lower(${text}) in lower(${aiMemories.content})) > 0`,
+
+== C10: quais servicos/repositorios NAO tem nenhum importador de runtime? ==
+   (importador = ocorrencia de import/from apontando para o modulo, fora de src/test/** e scripts/db/test-*)
+  audit.service                    1
+  break-even.service               1
+  calculation-snapshot.service     4
+  conversation.service             3
+  dashboard.service                1
+  diagnostic.service               1
+  event.service                    1
+  expense.service                  2
+  financial.service                6
+  memory.policy                    1
+  memory.service                   0
+  outbox.worker                    0
+  pricing.service                  1
+  product-completeness             1
+  product-detail.service           1
+  product-read-model.service       3
+  product.service                  1
+  purchase-price.service           2
+  sales.service                    2
+  simulation.service               1
+  ai-tool.repository               0
+  audit.repository                 1
+  calculation-snapshot.repository  1
+  conversation.repository          1
+  dashboard.repository             1
+  expense.repository               1
+  memory.repository                0
+  outbox.repository                2
+  product.repository               3
+  purchase-price.repository        1
+  sales.repository                 1
+  simulation.repository            1
+
+== C10b: o worker do outbox e importado por algum runtime? ==
+scripts/db/test-outbox.ts:39:import { OutboxWorker } from "../../src/server/services/outbox.worker";
+  (unico importador: scripts/db/test-outbox.ts:39)
+
+== C10c: o repositorio de memoria e alcancavel em runtime? ==
+src/lib/products.functions.ts:208: * `src/server/repositories/memory.repository.ts`. Devolve a `constraint`
+src/server/services/memory.service.ts:6: * canônica. A gravação/retrieval chegam em D2 pelo `MemoryRepositoryPort`, com
+src/server/contracts/memory.contracts.ts:215:export interface MemoryRepositoryPort {
+  (nenhum import — so doc-comment e a declaracao da porta em memory.contracts.ts:215)
+
+== C10d: existe superficie (rota ou BFF) que exponha memoria? ==
+  (vazio = nenhuma superficie de runtime)
+
+== C10e: CONTROLE NEGATIVO — 'sem importador' != 'capacidade ausente' ==
+   ai-tool.repository tambem tem 0 importadores; a trilha de auditoria de tool existe sem ele:
+104:  await tx.insert(toolExecutions).values({
+317:    .insert(toolExecutions)
+   ^ tool-runner.ts escreve em tool_executions DIRETO (nao pelo repositorio).
+   Diferenca que importa: para o outbox e a memoria nao ha caminho alternativo;
+   para a trilha de tool ha. P0-15 segue DONE.
+
+== C9: contagens da camada recomputada (medicao direta, independente do log do gerador) ==
+  linhas de tabela de item: 89
+  DONE     68
+  PARTIAL  11
+  NS       9
+  NA       1
