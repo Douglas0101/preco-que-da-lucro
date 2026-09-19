@@ -38,6 +38,38 @@ Isto viola a disciplina de dependências do `AGENTS.md` (_"Every `package.json` 
 
 **Hipótese (não confirmada):** o mesmo sintoma já apareceu em `L63` e `L66` (drizzle-kit `0.18.1` em `node_modules`, com manifest/lock então limpos), e `L66` nomeou como suspeito um app-server Codex de longa duração. O symlink `deepseek-harness` (criado 2026-09-19 00:03) indica ferramental externo ativo no diretório. **Nenhuma das duas hipóteses foi testada**; ficam registradas como linha de investigação, não como fato.
 
+## Mecanismo medido (2026-09-19, ao fechar o TRILHO A) — `npm audit fix --force`
+
+A auditoria do próprio npm prescreve, para os advisories de esbuild:
+
+```
+esbuild <=0.24.2
+  fix available via `npm audit fix --force`
+  Will install drizzle-kit@0.18.1, which is a breaking change
+```
+
+e a faixa vulnerável é `drizzle-kit 0.19.0 - 1.0.0-beta.1-fd8bfcc`, que **cobre** o `0.31.10` do
+repositório. Ou seja: **a "correção" que o npm recomenda é exatamente um downgrade para
+`drizzle-kit@0.18.1`** — a versão que a mutação não registrada plantou em `package.json`.
+
+O teste de falsificação sobre o artefato preservado (`package-drift.patch`, 3693 linhas) mostra a
+impressão digital dessa operação — não uma edição manual:
+
+| sinal no patch                                                                         | leitura                                                  |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **+** `cli-color`, `commander`, `difflib`, `dreamopt`                                  | árvore de dependências do drizzle-kit **0.18.x**         |
+| **+** `es5-ext`, `es6-iterator`, `es6-symbol`, `es6-weak-map`, `d`, `camelcase`        | idem                                                     |
+| **+** `node_modules/drizzle-kit/node_modules/zod`                                      | o 0.18.x pina o próprio zod                              |
+| **+** `esbuild-android-64`, `esbuild-linux-32`, `esbuild-register`, `esbuild-sunos-64` | nomenclatura **legada** do esbuild (≤0.24.x)             |
+| **−** `node_modules/drizzle-kit/node_modules/@esbuild/*`                               | removidos os binários modernos que o 0.31.x traz         |
+| 123 chaves `node_modules/` adicionadas, 121 removidas                                  | reescrita em massa do lockfile, como o `npm install` faz |
+
+**Conclusão (hipótese forte, não fato):** a deriva é a impressão digital de `npm audit fix --force`
+perseguindo advisories de esbuild — e o resultado é pior que o problema: troca **qual** esbuild
+vulnerável está instalado e **rebaixa uma ferramenta de trabalho** para uma versão de 2023. Não há log
+de `npm audit fix` no prefixo padrão do npm para o dia (só `npm view`), então a autoria do comando
+segue **não atribuída**; o **mecanismo**, agora, está medido.
+
 ## 3. Remediação executada (autorizada pelo humano)
 
 1. Patch integral preservado **dentro do workspace** — `package-drift.patch` (3693 linhas). Nunca em `/tmp`: a lição `L76` já provou que cada `bash` roda em bwrap com `/tmp` efêmero e os backups somem entre chamadas.
