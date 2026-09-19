@@ -1816,3 +1816,17 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 
   Latest state marker parent = `fd3767864fdc028202bf9f32629e3a31af079dc1`,
   Latest state marker parent = `a69a47ed7be5a7cddd2f21a17784c2e1f2ed956d`,
+
+---
+
+### Decisões do MAESTRO — 2026-09-19 (pós-INV-006)
+
+- **D1 — push documental AUTORIZADO e executado:** `origin/develop` = `ec7cc19` (`fd37678..ec7cc19`). `CI light` **success**; nenhuma falha nova. Nada de código pushado; `origin/main` = `9724d2c`.
+- **D2 — LAND DO INV-006 NEGADO** até **duas condições simultâneas**: **(A)** B1 concluído por processo host-visible, confirmando ausência de contenção com os arquivos do INV-006; **(B)** `db:test` executado em **PG17 real**. A missão permanece `READY_TO_LAND_BLOCKED` na branch `mission/inv006-token-accounting` (head `9686402`), **fora** de `develop`. Sem (B), o land carregaria lacuna de integridade de dados **declarada mas não verificada**.
+- **D3 — job de reconciliação: spec aprovada, execução pós-land.** `docs/evidence/c3-queue-2026-09-19/SPEC-reconciliation-job.md` — varredura de `ai_usage` com `outcome='usage_unknown'`, reconciliação idempotente, `reconciliation_failed` **persistido** (nunca log silencioso), métricas `app.ai.reconciliation_{total,failed}`. Fila **C3**, após B1 e após o land.
+- **D4 — B2 (re-arme do `app-live-watch`) é URGENTE:** caduca ≈ **2026-09-21T03:37:56Z**; host-visible; sem re-arme, declarar **perda de cobertura do H-6** no journal.
+- **D5 — delta de matriz `directDatabaseFiles` 48 → 49 ACEITO** (Decisão 5): crescimento da superfície de banco coberta por teste, não regressão; revisado em `captures/diff-and-matrix.txt`; não bloqueia land.
+- **Congelamento mantido:** nenhum WP de código novo; C3 e `F-D2-runner-failopen` não iniciados.
+- **Achado que corrige uma spec pendente:** o `db:test` verde exige `DATABASE_URL_UNPOOLED` **definida e loopback** (`isLoopbackUrl(undefined) → false` ⇒ teste **pulado** ⇒ `numPendingTests !== 0` ⇒ prova-FK reprova). O padrão dos ciclos 3–5 (`env -u DATABASE_URL_UNPOOLED`) **não** satisfaz o gate; a spec do `F-D2-runner-failopen` deve dizer "definida apontando para loopback", não "removida do ambiente". Briefing da Condição B: `docs/evidence/human-decisions-2026-09-19/D4-db-test-provisioning.md`.
+
+  Latest state marker parent = `ec7cc198ac23b6357fd98db0827521cb1deaef79`,

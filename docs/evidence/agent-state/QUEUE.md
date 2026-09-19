@@ -115,3 +115,18 @@ S0 BACKLOG(M) → S1 SPEC'D(STEWARD) → S2 RED(SQUAD) → S3 GREEN(SQUAD) → S
 | pós WP-0 (integridade da régua) | 147     | 26     | 12     | 2     | 85,56%     | 78,61%     |
 | **pós ciclo 1** (`e7458fc`)     | **149** | **24** | **12** | **2** | **86,10%** | **79,68%** |
 | **pós ciclo 2** (`53b2996`)     | **150** | **23** | **12** | **2** | **86,36%** | **80,21%** |
+
+> Placar **inalterado** desde o ciclo 2: ciclos 3–7, o enxame paralelo, as correções documentais e o WP do INV-006 produziram **validação, correções e uma entrega ainda não landada** — não promoções de item do Plano Mestre.
+
+## Fila vigente — 2026-09-19
+
+| #   | item                                                                               | estado                                                                      | bloqueio                                                                                                       |
+| --- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 1   | **`INV-006`** — contabilização de tokens de IA (variante B)                        | **entregue e verificada — `READY_TO_LAND_BLOCKED`**                         | branch `mission/inv006-token-accounting` (head `9686402`); land negado até **B1** + **`db:test` em PG17 real** |
+| 2   | **Job de reconciliação** de uso desconhecido                                       | **spec aprovada** (`docs/evidence/c3-queue-2026-09-19/`)                    | executar **pós-land** do INV-006; fila C3                                                                      |
+| 3   | `F-D1-scanner-borders` + `F-D1-gate-ux`                                            | aguardando                                                                  | **B1**                                                                                                         |
+| 4   | `F-D2-depth-pin` + `F-D2-runner-failopen`                                          | aguardando — **spec corrigida** (URL **definida** e loopback, não removida) | **B1**                                                                                                         |
+| 5   | `F-B-mem-purge` · `F-B1-e2e`                                                       | aguardando                                                                  | **B1**                                                                                                         |
+| 6   | Recomputar **§36–§40** sobre 150/23/12/2                                           | aguardando                                                                  | **B1** (escreve em arquivo que os worktrees podem estar tocando)                                               |
+| —   | **B1** reconciliação do ciclo 6 · **B2** re-arme do watcher · **B3** listener 4173 | ⏳ **host-visible**                                                         | **B2 é URGENTE: caduca ≈ 2026-09-21T03:37:56Z**                                                                |
+| —   | Gates humanos H-4 · H-6 · H-5 · H-9 · H-2 · H-8 · H-11                             | abertos                                                                     | ver `DECISIONS-PENDING/REGISTRO-H.md` e `docs/evidence/human-decisions-2026-09-19/`                            |
