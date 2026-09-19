@@ -1936,4 +1936,4 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Placebo de placar: nenhum.** Correção de defeito de infraestrutura fora do denominador de 187 — o placar segue **150 D · 23 P · 12 NS · 2 UNV** (86,36% parcial / 80,21% crua).
 - **Registro no journal:** `L98` (intenção) e `L99` (resultado) de `docs/evidence/agent-state/PROGRESS.md`; detalhamento completo do veredicto adversarial em `docs/evidence/trilho-b-reconcile-unknown-2026-09-19/README.md` §6.2.
 
-  Latest state marker parent = `db341a7409a50376db3c38c651ca6dd93485ad78`,
+  Latest state marker parent = `9be9956f078002d5ccc27d649dad3ef9002e8de1`,

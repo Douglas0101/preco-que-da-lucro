@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Acompanha os dois pipelines do push. Uso: bash zz-ci-watch-land-b.sh <sha-curto>
+SHA="${1:-9be9956}"
+cd /home/douglas-souza/preco-que-d-main
+OUT=.artifacts/ci-watch-land-b.log
+: > "$OUT"
+
+echo "aguardando runs para $SHA" | tee -a "$OUT"
+for i in $(seq 1 40); do
+  runs=$(gh run list --limit 12 --json databaseId,name,headSha,status,conclusion \
+    --jq ".[] | select(.headSha|startswith(\"$SHA\")) | \"\(.databaseId) \(.name) \(.status) \(.conclusion)\"")
+  [ -n "$runs" ] && break
+  sleep 15
+done
+echo "runs encontrados:" | tee -a "$OUT"
+echo "$runs" | tee -a "$OUT"
+
+for id in $(echo "$runs" | awk '{print $1}'); do
+  for i in $(seq 1 80); do
+    st=$(gh run view "$id" --json status,conclusion --jq '"\(.status) \(.conclusion)"')
+    case "$st" in
+      completed*) break ;;
+    esac
+    sleep 20
+  done
+  echo "--- run $id -> $st" | tee -a "$OUT"
+  gh run view "$id" --json name,conclusion,jobs \
+    --jq '"PIPELINE: \(.name) => \(.conclusion)", (.jobs[] | "  job \(.name): \(.status)/\(.conclusion)")' | tee -a "$OUT"
+  if [ "${st%% *}" = "completed" ] && [ "${st##* }" != "success" ]; then
+    echo "  passos que falharam:" | tee -a "$OUT"
+    gh run view "$id" --json jobs \
+      --jq '.jobs[].steps[] | select(.conclusion != "success" and .conclusion != "skipped") | "    \(.number) \(.name) => \(.conclusion)"' | tee -a "$OUT"
+  fi
+done
+
+echo "== WATCH_DONE ==" | tee -a "$OUT"
