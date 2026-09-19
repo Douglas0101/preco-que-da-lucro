@@ -1,0 +1,8 @@
+scanner do PAI (copia imutavel, base do worktree):
+d60ad757a757f41daaab1302a591fe30a4623c383ab8c453a0ba9913141b8659  .artifacts/scanner-parent.ts
+scanner CORRIGIDO (worktree):
+87044a6ec8167f5d7602ee718ef70d7d73f9e7743838742d24e2c3eda685fac7  scripts/lib/m02-transaction-sites.ts
+arquivo em 6b62a29 (o commit que o veredicto do TRK-D1 mediu):
+d60ad757a757f41daaab1302a591fe30a4623c383ab8c453a0ba9913141b8659  -
+arquivo em HEAD da base (55b0090) — deve ser igual ao pai:
+d60ad757a757f41daaab1302a591fe30a4623c383ab8c453a0ba9913141b8659  -

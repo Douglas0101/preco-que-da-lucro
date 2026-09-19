@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""Extrai o veredicto do S6 adversarial do WP1 do artefato da lane, conferindo o sha256
+que a propria lane reportou. Nao inventa nem resume: grava os bytes exatos."""
+import base64
+import hashlib
+import json
+import pathlib
+import sys
+
+LANE = pathlib.Path(
+    "/home/douglas-souza/preco-que-d-main/.pi/delegate/01a0ba68-f0bb-7334-a6ef-44c1a7da4485-163167/"
+    "da02799e9bcac9327e96a2bf64063af75/result.json"
+)
+DEST = pathlib.Path(
+    "/home/douglas-souza/preco-que-d-main/.worktree-wp1-scanner/docs/evidence/"
+    "d1-scanner-borders-2026-09-19/captures/adversarial-wp1-verdict.md.txt"
+)
+ESPERADO = "846ff6469a3be41ff09755422cf70cb1f48ecbf992900727c298891479284164"
+
+if not LANE.exists():
+    print(f"LANE AUSENTE: {LANE}")
+    sys.exit(1)
+
+bruto = json.loads(LANE.read_text(encoding="utf-8"))
+resposta = bruto.get("answer")
+
+if isinstance(resposta, str):
+    texto = resposta
+elif isinstance(resposta, dict) and "blocks" in resposta:
+    partes = []
+    for bloco in resposta["blocks"]:
+        dados = bloco.get("data_base64")
+        if dados:
+            partes.append(base64.b64decode(dados))
+    texto = b"".join(partes).decode("utf-8")
+else:
+    print(f"FORMATO INESPERADO da chave 'answer': {type(resposta)}")
+    sys.exit(1)
+
+decodificado = hashlib.sha256(texto.encode()).hexdigest()
+if isinstance(resposta, dict) and resposta.get("sha256"):
+    print(f"sha256 declarado pela lane   : {resposta['sha256']}")
+    print(f"sha256 dos bytes decodificados: {decodificado}")
+
+if decodificado != ESPERADO:
+    print("DIVERGENCIA: os bytes decodificados NAO sao o que a lane reportou")
+    sys.exit(2)
+
+# A newline final e conveniencia de arquivo, nao conteudo: ela NAO entra na
+# conferencia de custodia acima, e o hash do arquivo e reportado a parte.
+if not texto.endswith("\n"):
+    texto += "\n"
+
+DEST.parent.mkdir(parents=True, exist_ok=True)
+DEST.write_text(texto, encoding="utf-8")
+
+print(f"bytes gravados  : {DEST.stat().st_size}")
+print(f"sha256 do arquivo (com a newline final): {hashlib.sha256(DEST.read_bytes()).hexdigest()}")
+print("CADEIA DE CUSTODIA: OK — o conteudo selado e byte a byte o que a lane reportou")
+sys.exit(0)

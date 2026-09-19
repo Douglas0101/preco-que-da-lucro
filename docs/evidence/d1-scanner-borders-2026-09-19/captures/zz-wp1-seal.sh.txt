@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# Selo do WP1 (F-D1-scanner-borders). Roda no worktree.
+# Convenção de captura: captures/ + sufixo .txt (nem ESLint nem prettier
+# processam .txt, e .gitignore:107 ignora docs/evidence/**/raw/ + .gitignore:3
+# ignora *.log — os dois traps que já custaram um manifesto inverificável).
+set -uo pipefail
+cd "$(dirname "$0")/.." || exit 1
+SEAL="docs/evidence/d1-scanner-borders-2026-09-19"
+CAP="$SEAL/captures"
+mkdir -p "$CAP"
+
+echo "== 1. bateria completa (autoritativa) =="
+bash .artifacts/zz-wp1-verify.sh > "$CAP/bateria-wp1.log.txt" 2>&1
+BATERIA_EXIT=$?
+echo "BATERIA_EXIT=$BATERIA_EXIT"
+
+echo "== 2. sonda de bordas isolada =="
+npx tsx .artifacts/wp1-diff.ts > "$CAP/sonda-bordas.log.txt" 2>&1
+SONDA_EXIT=$?
+echo "SONDA_EXIT=$SONDA_EXIT"
+
+echo "== 3. suíte do scanner isolada =="
+npx vitest run src/test/m02-transaction-sites.test.ts > "$CAP/suite-scanner.log.txt" 2>&1
+echo "VITEST_EXIT=$?"
+
+echo "== 4. determinismo da matriz (deve passar SEM regenerar) =="
+npm run m02:matrix:check > "$CAP/matrix-check.log.txt" 2>&1
+echo "MATRIX_EXIT=$?"
+
+echo "== 5. tipos =="
+npx tsc -p tsconfig.json --noEmit > "$CAP/tsc.log.txt" 2>&1
+echo "TSC_EXIT=$?"
+
+echo "== 6. instrumentos versionados (snapshots, não pipeline executável) =="
+cp .artifacts/wp1-diff.ts "$CAP/wp1-diff.ts.txt"
+cp .artifacts/zz-wp1-verify.sh "$CAP/zz-wp1-verify.sh.txt"
+cp .artifacts/zz-wp1-seal.sh "$CAP/zz-wp1-seal.sh.txt"
+cp .artifacts/zz-wp1-colhe-veredicto.py "$CAP/colhe-veredicto.py.txt"
+cp .artifacts/scanner-parent.ts "$CAP/scanner-do-pai.ts.txt"
+cp scripts/lib/m02-transaction-sites.ts "$CAP/scanner-corrigido.ts.txt"
+cp src/test/m02-transaction-sites.test.ts "$CAP/suite-scanner.ts.txt"
+cp .artifacts/wp1-gate-local-3.log "$CAP/gate-local.log.txt"
+cp .artifacts/wp1-s7.log "$CAP/s7-guard.log.txt"
+cp .artifacts/wp1-verify-run2.log "$CAP/bateria-run2-antes-do-selo.log.txt"
+echo "instrumentos copiados: $(ls -1 "$CAP" | wc -l) arquivos em captures/"
+
+echo "== 7. hash do pai, do corrigido e da base declarada pelo veredicto =="
+{
+  echo "scanner do PAI (copia imutavel, base do worktree):"
+  sha256sum .artifacts/scanner-parent.ts
+  echo "scanner CORRIGIDO (worktree):"
+  sha256sum scripts/lib/m02-transaction-sites.ts
+  echo "arquivo em 6b62a29 (o commit que o veredicto do TRK-D1 mediu):"
+  git show 6b62a29:scripts/lib/m02-transaction-sites.ts | sha256sum
+  echo "arquivo em HEAD da base (55b0090) — deve ser igual ao pai:"
+  git show HEAD:scripts/lib/m02-transaction-sites.ts | sha256sum
+} > "$CAP/hashes-scanner.log.txt" 2>&1
+cat "$CAP/hashes-scanner.log.txt"
+
+echo "== 8. armadilhas do .gitignore =="
+echo "diretórios raw/: $(find "$SEAL" -type d -name raw | wc -l)"
+echo "arquivos *.log (não .log.txt): $(find "$SEAL" -type f -name '*.log' | wc -l)"
+echo "arquivos ignorados pelo git: $(find "$SEAL" -type f -print0 | xargs -0 git check-ignore 2>/dev/null | wc -l)"
+
+echo "== 9. prettier dos documentos do selo =="
+npx prettier --write "$SEAL"/*.md > /dev/null 2>&1
+npx prettier --check "$SEAL"/*.md
+echo "PRETTIER_CHECK_EXIT=$?"
+
+echo "== 10. manifesto =="
+( cd "$SEAL" && find . -type f ! -name 'MANIFEST.sha256' -print0 | sort -z | xargs -0 sha256sum > MANIFEST.sha256 )
+DESCOBERTOS=$(cd "$SEAL" && find . -type f ! -name 'MANIFEST.sha256' | wc -l)
+LISTADOS=$(wc -l < "$SEAL/MANIFEST.sha256")
+echo "descobertos=$DESCOBERTOS listados=$LISTADOS"
+[ "$DESCOBERTOS" -eq "$LISTADOS" ] && echo "checked === discovered: OK" || echo "checked === discovered: FALHOU"
+( cd "$SEAL" && LC_ALL=C sha256sum -c MANIFEST.sha256 > /dev/null 2>&1 && echo "sha256sum -c (LC_ALL=C): OK" || echo "sha256sum -c: FALHOU" )
+echo "tamanho do selo: $(du -sh "$SEAL" | cut -f1)"
+
+echo
+echo "RESUMO DO SELO: BATERIA=$BATERIA_EXIT SONDA=$SONDA_EXIT"

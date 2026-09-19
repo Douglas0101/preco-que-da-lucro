@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Bateria de verificação do WP1 (F-D1-scanner-borders). Roda no worktree.
+# Uso: bash .artifacts/zz-wp1-verify.sh
+set -uo pipefail
+cd "$(dirname "$0")/.." || exit 1
+
+echo "=== 0. contexto ==="
+echo "branch   : $(git rev-parse --abbrev-ref HEAD)"
+echo "HEAD_SHA : $(git rev-parse HEAD)"
+echo "node     : $(node --version)"
+echo "npm      : $(npm --version)"
+echo "typescript: $(node -p 'require("typescript/package.json").version' 2>/dev/null)"
+echo "porta 5432 (H-9) tocada? -> $(ss -ltn 2>/dev/null | grep -c ':5432') listener(es)"
+
+echo
+echo "=== 0.5 normalizacao de formato dos arquivos novos ==="
+# O pi-lens reformata DEPOIS da escrita, entao um documento recem-criado por
+# ferramenta de edicao costuma estar fora do estilo do prettier. Normalizar aqui
+# e o que impede o `format:check` de `npm run check` de reprovar em documento
+# novo — armadilha ja ocorrida tres vezes neste ciclo.
+npx prettier --write docs/evidence/d1-scanner-borders-2026-09-19/*.md \
+  scripts/lib/m02-transaction-sites.ts src/test/m02-transaction-sites.test.ts \
+  > /dev/null 2>&1
+echo "normalizados (ou ja em estilo)"
+
+echo
+echo "=== 1. sonda de bordas: diff da arvore real + bateria sintetica ==="
+npx tsx .artifacts/wp1-diff.ts
+SONDA_EXIT=$?
+echo "SONDA_EXIT=$SONDA_EXIT"
+
+echo
+echo "=== 2. suite do scanner ==="
+npx vitest run src/test/m02-transaction-sites.test.ts 2>&1 | tail -25
+VITEST_EXIT=${PIPESTATUS[0]}
+echo "VITEST_EXIT=$VITEST_EXIT"
+
+echo
+echo "=== 3. determinismo da matriz (deve passar SEM regenerar) ==="
+npm run m02:matrix:check
+MATRIX_EXIT=$?
+echo "MATRIX_EXIT=$MATRIX_EXIT"
+
+echo
+echo "=== 4. tipos e estilo nos arquivos tocados ==="
+npx tsc -p tsconfig.json --noEmit
+TSC_EXIT=$?
+echo "TSC_EXIT=$TSC_EXIT"
+npx prettier --check scripts/lib/m02-transaction-sites.ts src/test/m02-transaction-sites.test.ts
+PRETTIER_EXIT=$?
+echo "PRETTIER_EXIT=$PRETTIER_EXIT"
+
+echo
+echo "=== RESUMO ==="
+echo "SONDA=$SONDA_EXIT VITEST=$VITEST_EXIT MATRIX=$MATRIX_EXIT TSC=$TSC_EXIT PRETTIER=$PRETTIER_EXIT"
+if [ "$SONDA_EXIT" -eq 0 ] && [ "$VITEST_EXIT" -eq 0 ] && [ "$MATRIX_EXIT" -eq 0 ] \
+   && [ "$TSC_EXIT" -eq 0 ] && [ "$PRETTIER_EXIT" -eq 0 ]; then
+  echo "BATERIA WP1: OK"
+else
+  echo "BATERIA WP1: REPROVADA"
+fi

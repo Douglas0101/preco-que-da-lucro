@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-wp1-scanner
+
+
+ Test Files  1 passed (1)
+      Tests  21 passed (21)
+   Start at  20:44:24
+   Duration  2.10s (transform 146ms, setup 97ms, import 293ms, tests 1.03s, environment 540ms)
+
