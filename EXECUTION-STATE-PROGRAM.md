@@ -1801,3 +1801,18 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Follow-up especificado (não executado):** `F-D2-runner-failopen` lado vitest — definir `DATABASE_URL_UNPOOLED` no bloco `env:` do job (`ui-stack.yml:34-44`) para os 13 testes de banco pararem de skippar em silêncio, com 4 cuidados obrigatórios (validar em PG efêmero antes de ligar, manter `isLoopbackUrl`, checar fixture, assertar execução ≠ skip).
 
   Latest state marker parent = `f7c0e4e1d3bcaa32ba1cfb080ef8bf1846174544`,
+
+---
+
+### Missão INV-006 (variante B) — entregue e verificada, LAND BLOQUEADO — 2026-09-19
+
+- **Estado:** `READY_TO_LAND_BLOCKED` — branch `mission/inv006-token-accounting` (worktree `.worktree-inv006`), base `a69a47e`, **head `9686402`** (3 commits). **Land não executado**: `origin/develop` continua `fd37678`; nenhum código pushado; `origin/main` intocado (`9724d2c`).
+- **Correção:** o uso de tokens passa a ser classificado **uma única vez** (`src/lib/ai/token-usage.ts`, Zod `safeParse` **não-strict** de propósito — gateways reais enviam `total_tokens`): ausente/parcial/inválido ⇒ `unknown` com razão; `{0,0}` explícito segue `known`. No caminho desconhecido o `settle` grava **`real_tokens = NULL` + `outcome = 'usage_unknown'`**, **retém** a reserva (erra para o lado seguro), **não** incrementa `input_tokens`/`output_tokens`, decrementa `in_flight` e **não** estima custo a partir de zeros fabricados; evento `ai.usage_unknown` + métrica `app.ai.usage_unknown_total`. **Sem migration** (`real_tokens` já nulável, CHECK `is null or >= 0`).
+- **Compatibilidade preservada:** a assinatura de `settle` foi ampliada de forma **aditiva** ⇒ os 10 call sites existentes continuam idênticos — inclusive o de `scripts/db/test-ai-budget.ts`, que é **trilho A** do ciclo 6 e está congelado. **Nenhum arquivo bloqueado foi tocado** (6 arquivos alterados, todos fora dos trilhos).
+- **Verificação adversarial (`ADVERSARIAL-LIMITED`, sem agente independente):** falsificação **por execução** — testes novos contra o código-pai ⇒ **5 falhas**; mutações "desconhecido grava 0" ⇒ 2 falhas · "remover a guarda Zod" ⇒ 2 falhas · "liberar a reserva" ⇒ 3 falhas.
+- **Gate:** `npm run check` **exit 0** no HEAD commitado (bundle inalterado em 473.230 B; suíte **87 arquivos / 852 testes**, 838 + 14 novos ⇒ os novos **executaram**, os 13 skips são os pré-existentes do `ERRATA-1`). Deriva de matriz esperada e revisada: `directDatabaseFiles` **48 → 49** (teste novo importa `@/db`).
+- **Não coberto (declarado):** `db:test` (daemon Docker indisponível nesta sessão), vínculo de `NULL` no driver real e CHECK contra PG17 real, comportamento do gateway real (H-6), reserva retida sob concorrência.
+- **Errata de marcador (defeito do próprio ciclo):** o commit `a69a47e` (spec + linha de intenção) foi gravado **sem** o marcador parent-pinned do seu pai `fd37678`, deixando `m02:state:check` **VERMELHO** na `develop`. Corrigido nesta entrada, que registra ambos os marcadores. Lição: **o marcador é parte do commit, não um passo posterior.**
+
+  Latest state marker parent = `fd3767864fdc028202bf9f32629e3a31af079dc1`,
+  Latest state marker parent = `a69a47ed7be5a7cddd2f21a17784c2e1f2ed956d`,
