@@ -1,0 +1,72 @@
+import { spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
+
+const REPO = "/home/douglas-souza/preco-que-d-main/.worktree-a-failopen";
+const ART = REPO + "/.artifacts";
+const ADMIN = "postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test";
+
+function trivial(tag, n) {
+  const lines = ['import { describe, expect, it } from "vitest";', "", 'describe("sonda ' + tag + '", () => {'];
+  for (let i = 1; i <= n; i++) {
+    lines.push('  it("caso ' + i + '", () => {', "    expect(1).toBe(1);", "  });");
+  }
+  lines.push("});", "");
+  return lines.join("\n");
+}
+writeFileSync(ART + "/s6-one.test.ts", trivial("one", 1));
+writeFileSync(ART + "/s6-five.test.ts", trivial("five", 5));
+writeFileSync(ART + "/s6-vitest2.config.ts", [
+  'import { defineConfig } from "vitest/config";',
+  "export default defineConfig({ test: { environment: \"node\", include: [\".artifacts/s6-one.test.ts\", \".artifacts/s6-five.test.ts\"] } });",
+  "",
+].join("\n"));
+
+const src = readFileSync(REPO + "/scripts/db/test-product-contracts.ts", "utf8");
+const FLOOR_RE = / {4}assert\.ok\(\n {6}summary\.numTotalTests >= MIN_TOTAL_TESTS,[\s\S]*?\n {4}\);\n/;
+const floorBlock = src.match(FLOOR_RE)[0];
+console.log("floor block identical between copies:", FLOOR_RE.test(src), "| bytes:", floorBlock.length);
+
+function build(name, target, withFloor) {
+  let out = src;
+  const reps = [
+    ['const testFile = "src/test/product-contracts.test.ts";', 'const testFile = "' + target + '";'],
+    ['const repoRoot = fileURLToPath(new URL("../..", import.meta.url));', 'const repoRoot = "' + REPO + '";'],
+    ['import { requireAdminUrl } from "./migrate";', 'import { requireAdminUrl } from "../scripts/db/migrate";'],
+    ['"--reporter=default",', '"--config", ".artifacts/s6-vitest2.config.ts", "--reporter=default",'],
+  ];
+  for (const r of reps) {
+    if (!out.includes(r[0])) throw new Error("patch anchor missing: " + r[0]);
+    out = out.replace(r[0], r[1]);
+  }
+  if (!withFloor) {
+    if (!FLOOR_RE.test(out)) throw new Error("floor not present for removal");
+    out = out.replace(FLOOR_RE, "");
+  }
+  const file = ART + "/" + name;
+  writeFileSync(file, out);
+  return file;
+}
+
+function run(label, script) {
+  const env = { ...process.env };
+  env.DATABASE_ADMIN_URL = ADMIN;
+  env.DATABASE_URL = ADMIN;
+  env.DATABASE_DRIVER = "node-postgres";
+  delete env.DATABASE_URL_UNPOOLED;
+  const r = spawnSync(process.execPath, ["node_modules/.bin/tsx", script], { cwd: REPO, env, encoding: "utf8", maxBuffer: 100 * 1024 * 1024 });
+  const lines = ((r.stdout || "") + (r.stderr || "")).split("\n").map((s) => s.trim()).filter(Boolean);
+  console.log("### " + label + "   exit=" + String(r.status));
+  for (const s of lines.filter((l) => /Tests |Test Files|AssertionError|produziu casos|passed \(/.test(l)).slice(-4)) console.log("    | " + s);
+  console.log("");
+}
+
+const fOne = build("s6-run-floor-one.ts", ".artifacts/s6-one.test.ts", true);
+const fFive = build("s6-run-floor-five.ts", ".artifacts/s6-five.test.ts", true);
+const nOne = build("s6-run-nofloor-one.ts", ".artifacts/s6-one.test.ts", false);
+const nFive = build("s6-run-nofloor-five.ts", ".artifacts/s6-five.test.ts", false);
+
+run("C6a floor ON | 1 case  (expect 1)", fOne);
+run("C6b floor ON | 5 cases (expect 1)", fFive);
+run("C6c floor OFF| 1 case  (expect 0)", nOne);
+run("C6d floor OFF| 5 cases (expect 0)", nFive);
+console.log("scratch files:", [fOne, fFive, nOne, nFive].map((f) => f.split("/").pop()).join(", "));

@@ -1,0 +1,15 @@
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+const args = process.argv.slice(2);
+let env = { ...process.env };
+const envFile = args.indexOf("--ENVFILE--");
+if (envFile !== -1) {
+  const kv = JSON.parse(readFileSync(args[envFile + 1], "utf8"));
+  for (const k of Object.keys(kv)) {
+    if (kv[k] === null) delete env[k];
+    else env[k] = kv[k];
+  }
+  args.splice(envFile, 2);
+}
+const r = spawnSync(args[0], args.slice(1), { stdio: "inherit", env, cwd: process.env.S6_CWD || undefined });
+console.log("EXIT=" + String(r.status));

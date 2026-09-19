@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# S8 SEAL — bateria final do trilho A na revisão que será landada.
+# Alvo: container efêmero PG17 em 127.0.0.1:5433. :5432 e qualquer host remoto intocados.
+set -u
+cd /home/douglas-souza/preco-que-d-main/.worktree-a-failopen
+
+export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test"
+export DATABASE_ADMIN_URL="postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test"
+export DATABASE_URL_UNPOOLED="postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test"
+export DATABASE_DRIVER="node-postgres"
+
+echo "### REVISAO"
+git rev-parse HEAD
+git status --porcelain -uall | grep -v '^!!'
+echo
+echo "### sha256 da revisao sob selo"
+sha256sum .github/workflows/ui-stack.yml scripts/db/test-products-fk-conflict.ts \
+          scripts/db/test-product-contracts.ts package.json AGENTS.md
+echo
+echo "### container alvo"
+docker exec trk-a-pg postgres --version 2>&1 | head -1
+echo
+echo "### npm run db:test"
+npm run db:test 2>&1
+DBTEST_EXIT=$?
+echo "DBTEST_EXIT=$DBTEST_EXIT"
+echo
+echo "### npm run check"
+npm run check 2>&1
+CHECK_EXIT=$?
+echo "CHECK_EXIT=$CHECK_EXIT"
+echo
+echo "### RESULTADO"
+echo "DBTEST_EXIT=$DBTEST_EXIT CHECK_EXIT=$CHECK_EXIT"

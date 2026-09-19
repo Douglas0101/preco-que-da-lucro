@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Falsificação dirigida do guard de cardinalidade: um arquivo que COMPILA, roda e
+# passa — mas com menos casos que o contrato. É o cenário que o piso existe para
+# pegar (deleção silenciosa de prova), já que `result.status === 0` só garante >= 1.
+set -u
+ADMIN="postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test"
+
+cat > src/test/zz-short-probe.test.ts <<'EOF'
+import { describe, expect, it } from "vitest";
+
+describe("sonda curta", () => {
+  it("passa", () => {
+    expect(1).toBe(1);
+  });
+});
+EOF
+
+sed 's|const testFile = "src/test/products-fk-conflict.test.ts";|const testFile = "src/test/zz-short-probe.test.ts";|' \
+  scripts/db/test-products-fk-conflict.ts > scripts/db/zz-short-probe.ts
+
+env -u DATABASE_URL_UNPOOLED \
+  DATABASE_ADMIN_URL="$ADMIN" DATABASE_URL="$ADMIN" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/zz-short-probe.ts 2>&1 | grep -E 'AssertionError|não produziu casos' | head -3
+echo "EXIT_COM_1_CASO_EM_VEZ_DE_13=${PIPESTATUS[0]}  (esperado: 1)"
+
+rm -f src/test/zz-short-probe.test.ts scripts/db/zz-short-probe.ts

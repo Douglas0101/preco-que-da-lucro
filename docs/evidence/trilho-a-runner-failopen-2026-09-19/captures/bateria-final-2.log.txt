@@ -1,0 +1,694 @@
+==============================================================
+BATERIA FINAL SELADA — TRILHO A (ambiente limpo de scratch)
+UTC: 2026-09-19T16:37:38Z
+==============================================================
+== REVISAO ==
+BASE_FILE=n/d
+HEAD_SHA=9e22a6799652b4b65b67ea6ae8cfa3c1e662dbf0
+BRANCH=mission/a-runner-failopen
+
+== ARVORE (porcelain -uall) ==
+ M .github/workflows/ui-stack.yml
+ M AGENTS.md
+ M package.json
+ M scripts/db/test-products-fk-conflict.ts
+?? scripts/db/test-product-contracts.ts
+
+== sha256 DOS 5 ARQUIVOS DA REVISAO ==
+7245a024d59e7d7626d9f6cffff95157a5e12a100c6b7feea238f8be605485d9  .github/workflows/ui-stack.yml
+72d953a9679d82fd65d2994b5b62aa5bbeb34b9787ea113da66ff0f6ce926f30  scripts/db/test-products-fk-conflict.ts
+5b45dd8201d6469d645f33ad3234d3816eb54d7790317bec577ca8e0a8570a64  scripts/db/test-product-contracts.ts
+5e11fc2968603050e0ec4367e554b9d1184f01bd3004e283b4431642a7021ad5  package.json
+78b9270412fb72cba69129b2917a4d5034beda752d1860f5bb5f208af24086a3  AGENTS.md
+
+== BANCO EFEMERO ==
+postgres (PostgreSQL) 17.11
+porta 5432 (H-9) tocada? -> 0 listener(es) em :5432
+
+== GATE A: npm run db:test (16 suites, PG17 efemero :5433) ==
+
+> predb:test
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> db:test
+> tsx scripts/db/check-migration-classes.ts && tsx scripts/db/test-migrations.ts && tsx scripts/db/test-concurrency.ts && tsx scripts/db/test-auth-integration.ts && tsx scripts/db/test-oauth-boundary.ts && tsx scripts/db/test-tool-security.ts && tsx scripts/db/test-sql-injection.ts && tsx scripts/db/test-chat-semantics.ts && tsx scripts/db/test-ai-budget.ts && tsx scripts/db/test-rum-persistence.ts && tsx scripts/db/test-rate-limit-burst.ts && tsx scripts/db/test-outbox.ts && tsx scripts/db/test-backfill.ts && tsx scripts/db/test-memory.ts && tsx scripts/db/test-products-fk-conflict.ts && tsx scripts/db/test-product-contracts.ts
+
+✔ 20/20 classificadas
+PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+T2 CAS: produto e despesa com 1 update OK + 1 CONFLICT por burst + version incrementada: OK
+Better Auth, tenant pessoal, cookie, bcrypt/scrypt, fixação de sessão: OK
+[2m2026-09-19T16:37:45.368Z[0m [31mERROR[0m [1m[Better Auth]:[0m Invalid origin: https://evil.example
+AUTH-005 A+B: boundary OAuth (state, PKCE, redirect, scopes, origem): OK
+{"timestamp":"2026-09-19T16:37:46.477Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"set_yield","code":"NOT_FOUND","error":{"name":"Error","message":"NOT_FOUND"}}
+Tool registry: validação, AuthZ, idempotência, auditoria e isolamento: OK
+{
+  "check": "db:test-sql-injection",
+  "engine": "postgres",
+  "payloads": 6,
+  "paths": [
+    "create_product",
+    "DrizzleProductRepository.save"
+  ],
+  "products_table_exists": true,
+  "pwned_exact_rows": 0,
+  "reports": [
+    {
+      "payload": "' OR '1'='1",
+      "control_potent": true,
+      "control_evidence": "tautologia selecionou 1 linha(s) do canário; com $1, 0",
+      "tool_duration_ms": 27,
+      "repository_duration_ms": 3,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "x'); DROP TABLE products; --",
+      "control_potent": true,
+      "control_evidence": "concatenação aceitou o payload e abortou: cannot drop table products because other objects depend on it",
+      "tool_duration_ms": 19,
+      "repository_duration_ms": 3,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "1; SELECT pg_sleep(2); --",
+      "control_potent": true,
+      "control_evidence": "pg_sleep(2) concatenado bloqueou por 2004ms",
+      "tool_duration_ms": 12,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "'); UPDATE products SET name='pwned' WHERE '1'='1'; --",
+      "control_potent": true,
+      "control_evidence": "concatenação alterou 5 linha(s) de products para 'pwned'",
+      "tool_duration_ms": 21,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "{\"$ne\":null}",
+      "control_potent": false,
+      "control_evidence": "operador NoSQL é literal inerte em SQL; canário permaneceu intacto",
+      "tool_duration_ms": 16,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    },
+    {
+      "payload": "%'); COPY (SELECT '') TO PROGRAM 'true'; --",
+      "control_potent": true,
+      "control_evidence": "concatenação executou INSERT e COPY ... TO PROGRAM 'true' sem erro (papel admin)",
+      "tool_duration_ms": 17,
+      "repository_duration_ms": 2,
+      "stored_rows_byte_identical": 2
+    }
+  ]
+}
+SQL injection adversarial: parametrização resiste aos 6 payloads, 0 mutações: OK
+Chat GET é somente leitura; criação fica restrita a POST: OK
+{"timestamp":"2026-09-19T16:37:51.560Z","level":"info","event":"ai.budget_reserved","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","usageId":"3dfccd9f-8676-48cc-8d2d-d91a461b337b","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:51.562Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.586Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.602Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.626Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.646Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.663Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.682Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.699Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.719Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.720Z","level":"info","event":"ai.chat_completed","correlationId":"ec73e4b4-6af7-4780-814a-7f95dcfe489b","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","rounds":1,"timeToAcknowledgeMs":299,"timeToFirstContentMs":309,"timeToFinalMs":309}
+{"timestamp":"2026-09-19T16:37:51.733Z","level":"info","event":"ai.budget_settled","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","usageId":"3dfccd9f-8676-48cc-8d2d-d91a461b337b","budget":100,"real":5,"usageUnknownReason":null,"durationMs":184,"outcome":"success","applied":true}
+{"timestamp":"2026-09-19T16:37:51.736Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.748Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.762Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.788Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.812Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.827Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.845Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.864Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.877Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:51.882Z","level":"warn","event":"ai.budget_rejected","tenantId":"8cc2a5f6-b01f-4daf-ba46-139e78ac04d9","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+T1/E1: reserva atômica sob 20 concorrentes: OK
+{"timestamp":"2026-09-19T16:37:51.899Z","level":"info","event":"ai.budget_reserved","tenantId":"b74ba7ec-69a0-4a67-8faa-dc841c4d06ab","usageId":"e7fe2610-2e18-447a-8fdb-2c43a8db1237","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:51.903Z","level":"info","event":"ai.budget_settled","tenantId":"b74ba7ec-69a0-4a67-8faa-dc841c4d06ab","usageId":"e7fe2610-2e18-447a-8fdb-2c43a8db1237","budget":100,"real":7,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+{"timestamp":"2026-09-19T16:37:51.906Z","level":"info","event":"ai.budget_settled","tenantId":"b74ba7ec-69a0-4a67-8faa-dc841c4d06ab","usageId":"e7fe2610-2e18-447a-8fdb-2c43a8db1237","budget":null,"real":7,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+{"timestamp":"2026-09-19T16:37:51.911Z","level":"info","event":"ai.budget_reserved","tenantId":"b74ba7ec-69a0-4a67-8faa-dc841c4d06ab","usageId":"9eb0daba-bd29-46df-b3b0-c864c153da1f","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+{"timestamp":"2026-09-19T16:37:51.915Z","level":"warn","event":"ai.budget_settlement_retry","tenantId":"b74ba7ec-69a0-4a67-8faa-dc841c4d06ab","usageId":"9eb0daba-bd29-46df-b3b0-c864c153da1f","outcome":"success","error":{"name":"Error","message":"simulated_post_commit_failure"}}
+{"timestamp":"2026-09-19T16:37:51.918Z","level":"info","event":"ai.budget_settled","tenantId":"b74ba7ec-69a0-4a67-8faa-dc841c4d06ab","usageId":"9eb0daba-bd29-46df-b3b0-c864c153da1f","budget":null,"real":0,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+T2/E2: settlement exatamente-uma-vez: OK
+{"timestamp":"2026-09-19T16:37:51.936Z","level":"info","event":"ai.budget_reserved","tenantId":"c521363c-30a9-40e3-b9c8-41f9e2eb3c5b","usageId":"108bb7cb-3fe4-4257-944b-b2945e6f0588","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:51.941Z","level":"info","event":"ai.budget_settled","tenantId":"c521363c-30a9-40e3-b9c8-41f9e2eb3c5b","usageId":"108bb7cb-3fe4-4257-944b-b2945e6f0588","budget":100,"real":0,"usageUnknownReason":null,"durationMs":5,"outcome":"error_ai_timeout","applied":true}
+T3/E3: timeout liquida a reserva e libera in_flight: OK
+{"timestamp":"2026-09-19T16:37:51.967Z","level":"info","event":"ai.budget_reserved","tenantId":"d3886944-d198-4d0e-bc3f-9c3b08316c0a","usageId":"0b91ff84-186e-41f8-bd92-3186ca708cdc","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:51.971Z","level":"info","event":"ai.budget_settled","tenantId":"d3886944-d198-4d0e-bc3f-9c3b08316c0a","usageId":"0b91ff84-186e-41f8-bd92-3186ca708cdc","budget":100,"real":0,"usageUnknownReason":null,"durationMs":5,"outcome":"error_ai_timeout","applied":true}
+T4/E4: abort liquida a reserva no finally: OK
+{"timestamp":"2026-09-19T16:37:51.991Z","level":"info","event":"ai.budget_reserved","tenantId":"575706e1-6d5a-4605-99f0-969cfc4713a4","usageId":"1c1c5d8a-5359-4b29-8b92-a1250574f0aa","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:51.997Z","level":"info","event":"ai.budget_settled","tenantId":"575706e1-6d5a-4605-99f0-969cfc4713a4","usageId":"1c1c5d8a-5359-4b29-8b92-a1250574f0aa","budget":100,"real":5,"usageUnknownReason":null,"durationMs":6,"outcome":"tool_round","applied":true}
+{"timestamp":"2026-09-19T16:37:52.003Z","level":"info","event":"ai.budget_reserved","tenantId":"575706e1-6d5a-4605-99f0-969cfc4713a4","usageId":"da069b73-8750-4c48-95f4-e1c23ae75af0","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+{"timestamp":"2026-09-19T16:37:52.008Z","level":"info","event":"ai.budget_settled","tenantId":"575706e1-6d5a-4605-99f0-969cfc4713a4","usageId":"da069b73-8750-4c48-95f4-e1c23ae75af0","budget":100,"real":5,"usageUnknownReason":null,"durationMs":7,"outcome":"tool_round","applied":true}
+{"timestamp":"2026-09-19T16:37:52.013Z","level":"info","event":"ai.budget_reserved","tenantId":"575706e1-6d5a-4605-99f0-969cfc4713a4","usageId":"ec53f2b6-c79c-4c17-bed4-bb1c7f4e783f","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":2}
+{"timestamp":"2026-09-19T16:37:52.016Z","level":"info","event":"ai.chat_completed","correlationId":"3582b522-d45d-4884-9650-6044fdc41a43","tenantId":"575706e1-6d5a-4605-99f0-969cfc4713a4","rounds":3,"timeToAcknowledgeMs":13,"timeToFirstContentMs":38,"timeToFinalMs":38}
+{"timestamp":"2026-09-19T16:37:52.021Z","level":"info","event":"ai.budget_settled","tenantId":"575706e1-6d5a-4605-99f0-969cfc4713a4","usageId":"ec53f2b6-c79c-4c17-bed4-bb1c7f4e783f","budget":100,"real":5,"usageUnknownReason":null,"durationMs":8,"outcome":"success","applied":true}
+T5/E5: reserva/liquidação independente por tool round: OK
+{"timestamp":"2026-09-19T16:37:52.058Z","level":"info","event":"ai.budget_reserved","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","usageId":"5beba403-4e98-4cac-b804-4b6f900ca78c","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:52.071Z","level":"info","event":"ai.budget_reserved","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","usageId":"ce791b8f-1553-4c1e-8d3c-f197d18e338b","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:52.073Z","level":"warn","event":"ai.budget_rejected","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:52.090Z","level":"warn","event":"ai.budget_rejected","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:52.103Z","level":"warn","event":"ai.budget_rejected","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:52.115Z","level":"warn","event":"ai.budget_rejected","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:52.128Z","level":"warn","event":"ai.budget_rejected","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:52.138Z","level":"warn","event":"ai.budget_rejected","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:52.454Z","level":"info","event":"ai.chat_completed","correlationId":"d501309b-26a4-47fe-b70b-186d178e8814","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","rounds":1,"timeToAcknowledgeMs":412,"timeToFirstContentMs":427,"timeToFinalMs":427}
+{"timestamp":"2026-09-19T16:37:52.456Z","level":"info","event":"ai.chat_completed","correlationId":"3bd92176-f834-4904-9423-073d98268312","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","rounds":1,"timeToAcknowledgeMs":412,"timeToFirstContentMs":429,"timeToFinalMs":429}
+{"timestamp":"2026-09-19T16:37:52.461Z","level":"info","event":"ai.budget_settled","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","usageId":"5beba403-4e98-4cac-b804-4b6f900ca78c","budget":100,"real":5,"usageUnknownReason":null,"durationMs":410,"outcome":"success","applied":true}
+{"timestamp":"2026-09-19T16:37:52.463Z","level":"info","event":"ai.budget_settled","tenantId":"ab4b1c5d-8586-4d22-a265-ae839714f35e","usageId":"ce791b8f-1553-4c1e-8d3c-f197d18e338b","budget":100,"real":5,"usageUnknownReason":null,"durationMs":397,"outcome":"success","applied":true}
+T6/E6 metrics: gatewayCalls=2 peakActiveCalls=2 sucessos=2 rejeições=6 tokens_reserved=0 in_flight=0
+T6/E6: limite in-flight sob concorrência: OK
+{"timestamp":"2026-09-19T16:37:52.495Z","level":"info","event":"ai.budget_reserved","tenantId":"854e5c1b-d859-4b75-9174-32106f72d34f","usageId":"c8333441-3182-4950-b1fd-91c30a42f2cd","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:52.502Z","level":"info","event":"ai.chat_completed","correlationId":"d0e51995-2c48-4ef9-9531-3019f4149d8d","tenantId":"854e5c1b-d859-4b75-9174-32106f72d34f","rounds":1,"timeToAcknowledgeMs":26,"timeToFirstContentMs":32,"timeToFinalMs":32}
+{"timestamp":"2026-09-19T16:37:52.508Z","level":"info","event":"ai.budget_settled","tenantId":"854e5c1b-d859-4b75-9174-32106f72d34f","usageId":"c8333441-3182-4950-b1fd-91c30a42f2cd","budget":100,"real":5,"usageUnknownReason":null,"durationMs":14,"outcome":"success","applied":true}
+T7/E7: single-shot preservado com contadores coerentes: OK
+{"timestamp":"2026-09-19T16:37:52.528Z","level":"info","event":"ai.budget_reserved","tenantId":"00a972f5-e1e9-4a08-b451-9e26b6854c61","usageId":"2e8b8e6e-ef61-4d6c-a7c4-f939bf48c149","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:52.536Z","level":"info","event":"ai.budget_expired","tenantId":"00a972f5-e1e9-4a08-b451-9e26b6854c61","usageId":"2e8b8e6e-ef61-4d6c-a7c4-f939bf48c149","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+{"timestamp":"2026-09-19T16:37:52.536Z","level":"info","event":"ai.budget_reserved","tenantId":"00a972f5-e1e9-4a08-b451-9e26b6854c61","usageId":"e5ee48bc-03a5-4d2f-a68f-41ceb7030c60","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+{"timestamp":"2026-09-19T16:37:52.543Z","level":"info","event":"ai.budget_settled","tenantId":"00a972f5-e1e9-4a08-b451-9e26b6854c61","usageId":"e5ee48bc-03a5-4d2f-a68f-41ceb7030c60","budget":100,"real":0,"usageUnknownReason":null,"durationMs":1,"outcome":"success","applied":true}
+T8/E8: TTL lazy sweep recupera reserva órfã antes da nova reserva: OK
+{"timestamp":"2026-09-19T16:37:52.562Z","level":"info","event":"ai.budget_reserved","tenantId":"bf230652-a795-4940-a99b-0aadb13a56be","usageId":"f49b5e94-6837-4d36-a28b-74b97f069d16","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:52.567Z","level":"info","event":"ai.budget_expired","tenantId":"bf230652-a795-4940-a99b-0aadb13a56be","usageId":"f49b5e94-6837-4d36-a28b-74b97f069d16","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+T9/E9: replay do sweep não duplica a correção: OK
+{"timestamp":"2026-09-19T16:37:52.582Z","level":"info","event":"ai.budget_reserved","tenantId":"7ce41b6b-a1d8-4b77-bcd6-a4dcf5a1bb5a","usageId":"ca08dc7e-63bd-4d77-bbf6-f9c3431497e2","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-19T16:37:52.586Z","level":"warn","event":"ai.budget_rejected","tenantId":"7ce41b6b-a1d8-4b77-bcd6-a4dcf5a1bb5a","budget":100,"kind":"model","roundNo":1,"outcome":"budget_limit"}
+{"timestamp":"2026-09-19T16:37:52.590Z","level":"info","event":"ai.budget_settled","tenantId":"7ce41b6b-a1d8-4b77-bcd6-a4dcf5a1bb5a","usageId":"ca08dc7e-63bd-4d77-bbf6-f9c3431497e2","budget":100,"real":7,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+{"timestamp":"2026-09-19T16:37:52.593Z","level":"info","event":"ai.budget_settled","tenantId":"7ce41b6b-a1d8-4b77-bcd6-a4dcf5a1bb5a","usageId":"ca08dc7e-63bd-4d77-bbf6-f9c3431497e2","budget":null,"real":7,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+{"timestamp":"2026-09-19T16:37:52.598Z","level":"info","event":"ai.budget_reserved","tenantId":"7ce41b6b-a1d8-4b77-bcd6-a4dcf5a1bb5a","usageId":"fdb740ef-3b85-4000-b254-4bb4d9600d4a","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":2}
+{"timestamp":"2026-09-19T16:37:52.602Z","level":"info","event":"ai.budget_expired","tenantId":"7ce41b6b-a1d8-4b77-bcd6-a4dcf5a1bb5a","usageId":"fdb740ef-3b85-4000-b254-4bb4d9600d4a","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+T10/E10: contrato comum node-postgres + adaptador sem endpoint Neon: OK
+T1–T10: suíte local de orçamento concluída
+{"timestamp":"2026-09-19T16:37:53.554Z","level":"info","event":"rum.web_vitals","id":"v1-1712345678901-123456789","name":"LCP","value":1234.5,"rating":"good","delta":12.3,"navigationType":"navigate"}
+{"timestamp":"2026-09-19T16:37:53.556Z","level":"info","event":"rum.web_vitals","id":"v1-1712345678901-123456789","name":"LCP","value":1234.5,"rating":"good","delta":12.3,"navigationType":"navigate"}
+{"timestamp":"2026-09-19T16:37:53.556Z","level":"warn","event":"rum.web_vitals_persist_failed","name":"LCP","error":{"name":"Error","message":"forced db failure"}}
+{"timestamp":"2026-09-19T16:37:53.557Z","level":"info","event":"rum.web_vitals","id":"v1-1712345678901-123456789","name":"LCP","value":1234.5,"rating":"good","delta":12.3,"navigationType":"navigate"}
+{"timestamp":"2026-09-19T16:37:53.558Z","level":"warn","event":"rum.web_vitals_rejected","reason":"invalid_payload"}
+{"timestamp":"2026-09-19T16:37:53.558Z","level":"warn","event":"rum.web_vitals_rejected","reason":"payload_too_large"}
+RUM persistence: insert best-effort + grant app_runtime INSERT (0014): OK
+chat: 20 admitidas / 5 recusadas (max=20, janela=600s, concorrência=25, instâncias=2), contador=20, retryAfter=600–600s
+tool: 40 admitidas / 10 recusadas (max=40, janela=600s, concorrência=50, instâncias=2), contador=40, retryAfter=600–600s
+{
+  "script": "scripts/db/test-rate-limit-burst.ts",
+  "buckets": [
+    {
+      "bucket": "chat",
+      "key": "chat|79000000-0000-4000-8000-00000000000a",
+      "rule": {
+        "window": 600,
+        "max": 20
+      },
+      "concurrency": 25,
+      "instances": 2,
+      "allowed": 20,
+      "denied": 5,
+      "retryAfterSeconds": [
+        600,
+        600,
+        600,
+        600,
+        600
+      ],
+      "persistedCount": 20,
+      "counterRows": 1
+    },
+    {
+      "bucket": "tool",
+      "key": "tool|79000000-0000-4000-8000-00000000000b",
+      "rule": {
+        "window": 600,
+        "max": 40
+      },
+      "concurrency": 50,
+      "instances": 2,
+      "allowed": 40,
+      "denied": 10,
+      "retryAfterSeconds": [
+        600,
+        600,
+        600,
+        600,
+        600,
+        600,
+        600,
+        600,
+        600,
+        600
+      ],
+      "persistedCount": 40,
+      "counterRows": 1
+    }
+  ]
+}
+T20.5: buckets de chat/tool são atômicos sob concorrência distribuída: OK
+T1 atomicidade: rollback do domínio sem evento órfão + falha do evento sem despesa: OK
+  ffa1a3c6-c8c4-49f4-b803-be06be4b8a30 → worker=worker-1 · efeitos=1
+  c192273a-0673-4c45-b5a9-45d0da292f9f → worker=worker-1 · efeitos=1
+  cdbf0270-216c-4f61-880f-85f2830ee794 → worker=worker-2 · efeitos=1
+  0287928b-7d0c-4916-879c-1c3737c0e9c3 → worker=worker-2 · efeitos=1
+  inbox: 0287928b-7d0c-4916-879c-1c3737c0e9c3 ← consumer-2
+  inbox: c192273a-0673-4c45-b5a9-45d0da292f9f ← consumer-1
+  inbox: cdbf0270-216c-4f61-880f-85f2830ee794 ← consumer-2
+  inbox: ffa1a3c6-c8c4-49f4-b803-be06be4b8a30 ← consumer-1
+T2 claim concorrente: 2 workers com SKIP LOCKED dividem o lote sem repetir: OK
+  d760bbac-cdfc-4604-a355-9480fa232bc2 → efeito consumer-idempotent=1 após 3 entregas · consumer-other=1
+T3 idempotência: mesmo evento 2× ⇒ 1 efeito (inbox persistida por consumidor): OK
+T4 falha: attempts++ + available_at futuro + retry limitado por maxAttempts: OK
+T5 isolamento: RLS por tenant sob app_runtime + WITH CHECK do append cruzado: OK
+Outbox §23 (23.1 + 23.2): atomicidade, claim concorrente, idempotência: OK
+
+== T1 — SIGKILL no meio do run (10 linhas, batchSize=3, rate-limit 4/50ms) ==
+  estado (antes): linhas=10 derivadas=0 max_apply_count=0 linhas_duplicadas=0 marcadores=0 checkpoint=ausente
+  [filho] run backfill-demo:attempt-1 batchSize=3 · SIGKILL após processar a linha 4
+    [batch lote 1] linhas=3 lidas=3 aplicadas=3 duplicadas=0 erros=0 cursor=d03 versão=1 taxa=3000.0/s checkpoint=em curso
+  [pai] filho: status=null signal=SIGKILL (morte real no meio do run)
+  estado (após o SIGKILL): linhas=10 derivadas=4 max_apply_count=1 linhas_duplicadas=0 marcadores=4 checkpoint=d03/lotes=1/lidas=3/aplicadas=3/dup=0/erros=0/v=1/em curso
+  -- retomada (mesmo runKey) --
+    [batch lote 1] linhas=3 lidas=3 aplicadas=2 duplicadas=1 erros=0 cursor=d06 versão=2 taxa=3000.0/s checkpoint=em curso
+    [batch lote 2] linhas=3 lidas=6 aplicadas=5 duplicadas=1 erros=0 cursor=d09 versão=3 taxa=120.0/s checkpoint=em curso
+    [completed lote 3] linhas=1 lidas=7 aplicadas=6 duplicadas=1 erros=0 cursor=d10 versão=4 taxa=140.0/s checkpoint=concluído
+  retomada: lotes=3 lidas=7 aplicadas=6 duplicadas=1 erros=0 taxa=140.0/s esperas=1(50ms) checkpoint=d10/concluído versão=4 retomada=true duração=50ms
+  estado (após a retomada): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=9/dup=1/erros=0/v=4/concluído
+  -- T4: 2ª tentativa completa (checkpoint novo, mesma workKey) --
+    [batch lote 1] linhas=3 lidas=3 aplicadas=0 duplicadas=3 erros=0 cursor=d03 versão=1 taxa=3000.0/s checkpoint=em curso
+    [batch lote 2] linhas=3 lidas=6 aplicadas=0 duplicadas=6 erros=0 cursor=d06 versão=2 taxa=120.0/s checkpoint=em curso
+    [batch lote 3] linhas=3 lidas=9 aplicadas=0 duplicadas=9 erros=0 cursor=d09 versão=3 taxa=90.0/s checkpoint=em curso
+    [completed lote 4] linhas=1 lidas=10 aplicadas=0 duplicadas=10 erros=0 cursor=d10 versão=4 taxa=100.0/s checkpoint=concluído
+  2ª tentativa: lotes=4 lidas=10 aplicadas=0 duplicadas=10 erros=0 taxa=100.0/s esperas=2(100ms) checkpoint=d10/concluído versão=4 retomada=false duração=100ms
+  estado (após a 2ª tentativa): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=0/dup=10/erros=0/v=4/concluído
+
+== T3 — erro real do Postgres (22012) no meio do lote: aborta, checkpoint no lote anterior, retoma ==
+  estado (antes): linhas=4 derivadas=0 max_apply_count=0 linhas_duplicadas=0 marcadores=0 checkpoint=ausente
+    [batch lote 1] linhas=2 lidas=2 aplicadas=2 duplicadas=0 erros=0 cursor=d02 versão=1 taxa=181.8/s checkpoint=em curso
+  abortado: lotes=2 lidas=4 aplicadas=3 duplicadas=0 erros=1 taxa=210.5/s esperas=0(0ms) checkpoint=d02/em curso versão=1 retomada=false duração=19ms
+  estado (após o abort): linhas=4 derivadas=3 max_apply_count=1 linhas_duplicadas=0 marcadores=3 checkpoint=d02/lotes=1/lidas=2/aplicadas=2/dup=0/erros=0/v=1/em curso
+    [batch lote 1] linhas=2 lidas=2 aplicadas=1 duplicadas=1 erros=0 cursor=d04 versão=2 taxa=181.8/s checkpoint=em curso
+    [completed lote 1] linhas=0 lidas=2 aplicadas=1 duplicadas=1 erros=0 cursor=d04 versão=3 taxa=142.9/s checkpoint=concluído
+  retomada: lotes=1 lidas=2 aplicadas=1 duplicadas=1 erros=0 taxa=142.9/s esperas=0(0ms) checkpoint=d04/concluído versão=3 retomada=true duração=14ms
+  estado (final): linhas=4 derivadas=4 max_apply_count=1 linhas_duplicadas=0 marcadores=4 checkpoint=d04/lotes=3/lidas=4/aplicadas=3/dup=1/erros=0/v=3/concluído
+
+== T2 — contenção CAS: 2 workers no mesmo runKey (mesma versão de partida) ==
+    [worker 2 lote 1] lidas=3 aplicadas=3 duplicadas=0 v=1
+    [worker 2 lote 2] lidas=6 aplicadas=6 duplicadas=0 v=2
+    [worker 2 lote 3] lidas=9 aplicadas=9 duplicadas=0 v=3
+    [worker 2 lote 4] lidas=10 aplicadas=10 duplicadas=0 v=4
+  perdedor: backfill-runner: checkpoint de "backfill-demo:contention" está em outra versão (CAS esperava a versão 0); outro runner avançou primeiro — este run foi descartado sem sobrescrever nada
+  vencedor: lotes=4 lidas=10 aplicadas=10 duplicadas=0 erros=0 taxa=122.0/s esperas=0(0ms) checkpoint=d10/concluído versão=4 retomada=false duração=82ms
+  estado (após a contenção): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=10/dup=0/erros=0/v=4/concluído
+  checkpoint do vencedor: aplicadas=10 duplicadas=0 (repartição depende da corrida)
+
+== T5 — RLS/grants do ledger sob app_runtime (NOSUPERUSER/NOBYPASSRLS) ==
+T5 isolamento: RLS por tenant no ledger + WITH CHECK da escrita cruzada: OK
+
+Backfill §28 (28.1 lote · 28.2 checkpoint+CAS · 28.3 rate-limit · 28.4 idempotência · 28.5 observabilidade): OK
+T1 isolamento: busca de B = 0 linhas sob RLS + append forjado recusado por WITH CHECK (42501): OK
+T2 proveniência: search devolve a fonte mais antiga; órfã/sem origem impossíveis (23503/23514): OK
+T3 atomicidade: rollback e falha cruzadas entre memória e despesa deixam zero linhas: OK
+T4 delete: só o tenant corrente apaga, cascata na fonte, false para id inexistente e de terceiro: OK
+T5 classificação: 20/20 classificadas · 0017_past_gideon = SAFE/empty + down: OK
+D3/T1 dedup: 2ª gravação idêntica = duplicated:true + contagem inalterada (memória/fonte/versão): OK
+D3/T2 revisão: versão incremental arquivada, anterior byte a byte inalterada, head atualizado: OK
+D3/T3 conflito: registrado e visível só no tenant, ativo byte a byte intacto, search só do ativo: OK
+D3/T4 delete × expurgo: recusa sem apagar + expurgo transacional (rollback devolve tudo): OK
+D3/T5 concorrência: 2 sessões no mesmo conteúdo ⇒ 1 linha ativa (índice único parcial): OK
+D3/T6 isolamento: mesmo conteúdo em 2 tenants = 2 linhas (B não vê A) + discriminador de conversa: OK
+D3/T7 imutabilidade: UPDATE negado (42501) e DELETE concedido com alcance limitado por RLS em ai_memory_versions + grants/RLS: OK
+D3/T8 classificação: 20/20 classificadas · 0018_polite_living_tribunal = SAFE/empty + down: OK
+D3/T9 revisão × colisão de chave: ApplicationError/CONFLICT com rollback sem rastro + revisão legítima: OK
+(node:206390) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+D4/T1 export: conjunto exato do tenant com fontes+versões, recortes por camada/escopo e AUTHORIZATION_ERROR sem has_tenant_access: OK
+D4/T2 auditoria: allow/refused/not_found por chamada, recusa de escopo pessoal com controle positivo, trilha tenant-scoped e sem conteúdo: OK
+D4/T3 TTL: janela por camada vinda da policy versionada, expiração idempotente e tenant-scoped, retrieval sem vencida e falha alta sem policy: OK
+D4/T6 privilégios: trilha append-only medida (42501), WITH CHECK e CHECKs de vocabulário, políticas globais com SELECT+INSERT: OK
+D4/T5 classificação: 20/20 classificadas · 0019_tiresome_robin_chapel = ONLINE_WITH_CARE/empty + idempotent + down: OK
+D4/T4 migration: cadeia 20/20 do zero + up→down→up da 0019 com dado preservado e políticas re-semeadas: OK
+Memória §43/D2+D3+D4 (persistência, proveniência, tenant, dedup, versões, conflitos, delete/export, TTL): OK
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-a-failopen
+
+ ✓ src/test/products-fk-conflict.test.ts (13 tests) 137ms
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  13:38:00
+   Duration  2.07s (transform 279ms, setup 103ms, import 1.10s, tests 137ms, environment 602ms)
+
+JSON report written to /tmp/trk-d2-fk-PASPSs/summary.json
+prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 13 passed (13), 0 skipped — admin=127.0.0.1:5433
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-a-failopen
+
+ ✓ src/test/product-contracts.test.ts (14 tests) 342ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  13:38:03
+   Duration  1.72s (transform 202ms, setup 92ms, import 702ms, tests 342ms, environment 479ms)
+
+JSON report written to /tmp/trk-d2-pc-QGyaSZ/summary.json
+prova de banco (src/test/product-contracts.test.ts) contra 127.0.0.1: 14 passed (14), 0 skipped — admin=127.0.0.1:5433
+DBTEST_EXIT=0
+
+== GATE LOCAL: npm run check ==
+
+> check
+> npm run m02:lockfile-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle
+
+
+> m02:lockfile-guard
+> node scripts/m02-lockfile-guard.mjs
+
+{
+  "schema": "m02-lockfile-guard/1",
+  "ok": true,
+  "status": "pass",
+  "generatedAt": "2026-09-19T16:38:05.560Z",
+  "repo": "/home/douglas-souza/preco-que-d-main/.worktree-a-failopen",
+  "observed": {
+    "spec": "^0.31.10",
+    "lockSpec": "^0.31.10",
+    "lockResolvedVersion": "0.31.10",
+    "lockSha256": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124",
+    "headLockSha256": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124",
+    "installedVersion": "0.31.10"
+  },
+  "checks": [
+    {
+      "id": "package-json-devdep",
+      "status": "pass",
+      "detail": "spec '^0.31.10'"
+    },
+    {
+      "id": "lock-top-spec",
+      "status": "pass",
+      "detail": "lock '^0.31.10'"
+    },
+    {
+      "id": "lock-resolved",
+      "status": "pass",
+      "detail": "resolvido 0.31.10"
+    },
+    {
+      "id": "lock-sha256-head",
+      "status": "pass",
+      "detail": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124"
+    },
+    {
+      "id": "node-modules-installed",
+      "status": "pass",
+      "detail": "instalado 0.31.10"
+    }
+  ],
+  "reasons": [],
+  "hint": "git checkout -- package.json package-lock.json && npm ci --ignore-scripts && npm run m02:lockfile-guard"
+}
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix is deterministic and up to date.
+
+> check:ui-stack
+> node scripts/check-ui-stack.mjs
+
+UI stack check passed: shadcn/Base UI boundary and catalog are clean.
+
+> check:no-supabase-runtime
+> node scripts/check-no-supabase-runtime.mjs
+
+Gate de cutover: runtime sem Supabase e sem token em Web Storage.
+
+> format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> lint
+> eslint .
+
+
+> typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> test
+> vitest run
+
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-a-failopen
+
+
+ Test Files  87 passed (87)
+      Tests  865 passed (865)
+   Start at  13:38:44
+   Duration  62.30s (transform 3.35s, setup 11.37s, import 47.67s, tests 30.49s, environment 79.67s)
+
+
+> build
+> node scripts/build.mjs
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 2345 modules transformed.
+rendering chunks...
+computing gzip size...
+.output/public/.vite/manifest.json                   17.05 kB │ gzip:  1.90 kB
+.output/public/assets/styles-o_AGAKHr.css            42.29 kB │ gzip:  8.04 kB
+.output/public/assets/trending-up-D0-z9Y5V.js         0.17 kB │ gzip:  0.17 kB
+.output/public/assets/circle-plus-Ot16J1q7.js         0.20 kB │ gzip:  0.17 kB
+.output/public/assets/message-circle-BtsSYoVG.js      0.24 kB │ gzip:  0.21 kB
+.output/public/assets/triangle-alert-DKmozdSR.js      0.26 kB │ gzip:  0.21 kB
+.output/public/assets/wallet-CM13DWu5.js              0.28 kB │ gzip:  0.20 kB
+.output/public/assets/loading-skeleton-CDy-7ruO.js    0.29 kB │ gzip:  0.21 kB
+.output/public/assets/finance-nMFL6VlT.js             0.32 kB │ gzip:  0.23 kB
+.output/public/assets/tag--pwtrGpU.js                 0.32 kB │ gzip:  0.24 kB
+.output/public/assets/trash-2-CIagGSiV.js             0.32 kB │ gzip:  0.21 kB
+.output/public/assets/scale-DFV9GAd-.js               0.33 kB │ gzip:  0.22 kB
+.output/public/assets/label-DsSsGPVR.js               0.35 kB │ gzip:  0.26 kB
+.output/public/assets/package-mJnzy48B.js             0.37 kB │ gzip:  0.25 kB
+.output/public/assets/useServerFn-DtOC6iJy.js         0.38 kB │ gzip:  0.27 kB
+.output/public/assets/sparkles-Dwseka6l.js            0.49 kB │ gzip:  0.28 kB
+.output/public/assets/input-Bux_7VrY.js               0.66 kB │ gzip:  0.41 kB
+.output/public/assets/calc-explainer-DYetHXYt.js      0.71 kB │ gzip:  0.44 kB
+.output/public/assets/rolldown-runtime-hePW80VL.js    0.71 kB │ gzip:  0.42 kB
+.output/public/assets/badge-CpgyLfKH.js               0.81 kB │ gzip:  0.43 kB
+.output/public/assets/calc-explanation-QEb0suM8.js    1.07 kB │ gzip:  0.43 kB
+.output/public/assets/preload-helper-Czpn1I53.js      1.19 kB │ gzip:  0.67 kB
+.output/public/assets/createLucideIcon-B5H5xK_Q.js    1.24 kB │ gzip:  0.72 kB
+.output/public/assets/skeleton-DCYwDF4Q.js            1.29 kB │ gzip:  0.48 kB
+.output/public/assets/format-RsbuSrg2.js              1.32 kB │ gzip:  0.65 kB
+.output/public/assets/alert-dialog-tzeyIrdI.js        2.21 kB │ gzip:  0.82 kB
+.output/public/assets/react-dom-DnMgFH6B.js           3.59 kB │ gzip:  1.37 kB
+.output/public/assets/routes-CSbz4b3U.js              4.44 kB │ gzip:  1.88 kB
+.output/public/assets/auth-B0NmbgLe.js                5.95 kB │ gzip:  2.41 kB
+.output/public/assets/produtos-DcG9I2mb.js            6.00 kB │ gzip:  2.26 kB
+.output/public/assets/vendas-DlK46JcL.js              6.11 kB │ gzip:  2.27 kB
+.output/public/assets/despesas-B-4ulcjT.js            6.71 kB │ gzip:  2.31 kB
+.output/public/assets/precos-DYVXFCgv.js              7.44 kB │ gzip:  2.94 kB
+.output/public/assets/route-CqgoyHIX.js               7.89 kB │ gzip:  2.86 kB
+.output/public/assets/novo-produto-D7AcBEAl.js        8.22 kB │ gzip:  3.33 kB
+.output/public/assets/inicio-FK1Uvt3A.js              8.57 kB │ gzip:  3.13 kB
+.output/public/assets/web-vitals-viX3FQND.js          8.62 kB │ gzip:  3.22 kB
+.output/public/assets/DialogTrigger-kCAI4vFT.js       9.50 kB │ gzip:  3.39 kB
+.output/public/assets/ponto-equilibrio-CJ3SG5EE.js   10.27 kB │ gzip:  3.51 kB
+.output/public/assets/simulacoes-BYIwLat3.js         14.96 kB │ gzip:  4.92 kB
+.output/public/assets/diagnostico-Bkg4jhV-.js        15.31 kB │ gzip:  4.86 kB
+.output/public/assets/auth-client-DkVMaKOW.js        29.34 kB │ gzip: 11.10 kB
+.output/public/assets/button-CiZwOupE.js             38.70 kB │ gzip: 13.17 kB
+.output/public/assets/composite-C7bqY-9T.js          42.74 kB │ gzip: 14.83 kB
+.output/public/assets/select-CYRjaKew.js             67.69 kB │ gzip: 24.75 kB
+.output/public/assets/query-options-CI0UEwDo.js     125.84 kB │ gzip: 40.65 kB
+.output/public/assets/tanstack-vendor-D1mahD_Y.js   160.39 kB │ gzip: 51.16 kB
+.output/public/assets/index-eXg04t5H.js             237.69 kB │ gzip: 74.10 kB
+
+✓ built in 1.91s
+vite v8.2.2 building ssr environment for production...
+transforming...
+✓ 273 modules transformed.
+rendering chunks...
+computing gzip size...
+node_modules/.nitro/vite/services/ssr/assets/styles-o_AGAKHr.css                        42.29 kB │ gzip:  8.04 kB
+node_modules/.nitro/vite/services/ssr/assets/kysely-adapter-Cj_QZw5p.js                  0.05 kB │ gzip:  0.07 kB
+node_modules/.nitro/vite/services/ssr/assets/server-IztW8GkZ.js                          0.07 kB │ gzip:  0.08 kB
+node_modules/.nitro/vite/services/ssr/assets/session-context-BU1JJi3m.js                 0.15 kB │ gzip:  0.11 kB
+node_modules/.nitro/vite/services/ssr/assets/empty-plugin-adapters-D9UWiqvJ.js           0.22 kB │ gzip:  0.16 kB
+node_modules/.nitro/vite/services/ssr/assets/optimistic-version-MifrSw5n.js              0.40 kB │ gzip:  0.30 kB
+node_modules/.nitro/vite/services/ssr/assets/label-DV8FU6sa.js                           0.42 kB │ gzip:  0.30 kB
+node_modules/.nitro/vite/services/ssr/assets/useServerFn-CrZF2pjq.js                     0.63 kB │ gzip:  0.35 kB
+node_modules/.nitro/vite/services/ssr/assets/input-BRH-q4T-.js                           0.76 kB │ gzip:  0.46 kB
+node_modules/.nitro/vite/services/ssr/assets/createMiddleware-B_4t7rW1.js                0.83 kB │ gzip:  0.32 kB
+node_modules/.nitro/vite/services/ssr/assets/loading-skeleton-WoAvWHYM.js                0.89 kB │ gzip:  0.53 kB
+node_modules/.nitro/vite/services/ssr/assets/badge-V0ZSdmhV.js                           0.98 kB │ gzip:  0.51 kB
+node_modules/.nitro/vite/services/ssr/assets/calc-explainer-CZvPLeWp.js                  1.04 kB │ gzip:  0.59 kB
+node_modules/.nitro/vite/services/ssr/assets/list-limits-CClApKk-.js                     1.16 kB │ gzip:  0.69 kB
+node_modules/.nitro/vite/services/ssr/assets/button-CjvnBxIY.js                          1.71 kB │ gzip:  0.76 kB
+node_modules/.nitro/vite/services/ssr/assets/skeleton-B5edokos.js                        1.88 kB │ gzip:  0.56 kB
+node_modules/.nitro/vite/services/ssr/assets/product-read-model.service-jjaFuJMC.js      1.94 kB │ gzip:  0.78 kB
+node_modules/.nitro/vite/services/ssr/assets/calc-explanation-BGVtIlQX.js                2.09 kB │ gzip:  0.85 kB
+node_modules/.nitro/vite/services/ssr/assets/format-Di3yxDKa.js                          2.85 kB │ gzip:  1.12 kB
+node_modules/.nitro/vite/services/ssr/assets/alert-dialog-C8nFhAg9.js                    3.25 kB │ gzip:  0.92 kB
+node_modules/.nitro/vite/services/ssr/assets/calculation-snapshot.service-B4oIpEu_.js    3.65 kB │ gzip:  1.40 kB
+node_modules/.nitro/vite/services/ssr/assets/sales.functions-nRN5v6Yf.js                 3.81 kB │ gzip:  1.48 kB
+node_modules/.nitro/vite/services/ssr/assets/select-aSL6r7Zo.js                          3.91 kB │ gzip:  1.27 kB
+node_modules/.nitro/vite/services/ssr/assets/routes-BQbt7329.js                          4.61 kB │ gzip:  1.69 kB
+node_modules/.nitro/vite/services/ssr/assets/financial-values-BaX1B0WJ.js                4.94 kB │ gzip:  1.70 kB
+node_modules/.nitro/vite/services/ssr/assets/purchase-price.service-C_TAwQxd.js          5.21 kB │ gzip:  1.75 kB
+node_modules/.nitro/vite/services/ssr/assets/start-CXv3c6oV.js                           5.45 kB │ gzip:  1.78 kB
+node_modules/.nitro/vite/services/ssr/assets/request-context-BSxg65Dc.js                 5.63 kB │ gzip:  1.82 kB
+node_modules/.nitro/vite/services/ssr/assets/financial.functions-D-_O-xmc.js             5.83 kB │ gzip:  1.93 kB
+node_modules/.nitro/vite/services/ssr/assets/sales.service-BsfFgETW.js                   5.84 kB │ gzip:  1.77 kB
+node_modules/.nitro/vite/services/ssr/assets/expenses.functions-BGdiimuU.js              5.96 kB │ gzip:  1.79 kB
+node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-BB2p94Eq.js      6.43 kB │ gzip:  1.25 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-Cg3mt3bW.js                            8.98 kB │ gzip:  2.88 kB
+node_modules/.nitro/vite/services/ssr/assets/dashboard.functions-DD7LHS4M.js             9.15 kB │ gzip:  3.14 kB
+node_modules/.nitro/vite/services/ssr/assets/produtos-Byfq7_lD.js                        9.49 kB │ gzip:  2.85 kB
+node_modules/.nitro/vite/services/ssr/assets/route-CEuaJdQy.js                           9.57 kB │ gzip:  2.84 kB
+node_modules/.nitro/vite/services/ssr/assets/vendas-CXiNlqUn.js                         10.28 kB │ gzip:  2.88 kB
+node_modules/.nitro/vite/services/ssr/assets/precos-BlWDesdV.js                         10.44 kB │ gzip:  3.41 kB
+node_modules/.nitro/vite/services/ssr/assets/expense.service-Bmw9Yy0T.js                10.69 kB │ gzip:  3.57 kB
+node_modules/.nitro/vite/services/ssr/assets/despesas-xdiKfrvS.js                       11.26 kB │ gzip:  2.98 kB
+node_modules/.nitro/vite/services/ssr/assets/inicio-Cr_1PAl6.js                         11.99 kB │ gzip:  3.58 kB
+node_modules/.nitro/vite/services/ssr/assets/diagnostic.functions-DbOSwh70.js           12.31 kB │ gzip:  3.78 kB
+node_modules/.nitro/vite/services/ssr/assets/novo-produto-CMv6CTKL.js                   12.45 kB │ gzip:  4.03 kB
+node_modules/.nitro/vite/services/ssr/assets/telemetry-Cdc1FMHX.js                      14.18 kB │ gzip:  4.75 kB
+node_modules/.nitro/vite/services/ssr/assets/product.repository-DgrPvu_i.js             16.54 kB │ gzip:  3.06 kB
+node_modules/.nitro/vite/services/ssr/assets/ponto-equilibrio-Dba-PDXu.js               18.08 kB │ gzip:  4.96 kB
+node_modules/.nitro/vite/services/ssr/assets/query-options-Bge9joIT.js                  18.55 kB │ gzip:  5.28 kB
+node_modules/.nitro/vite/services/ssr/assets/financial.service-ByOmt_Op.js              23.90 kB │ gzip:  5.56 kB
+node_modules/.nitro/vite/services/ssr/assets/diagnostico-gDiuSglr.js                    24.09 kB │ gzip:  6.07 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-client-B8RkM-ov.js                    26.27 kB │ gzip:  7.56 kB
+node_modules/.nitro/vite/services/ssr/index.js                                          27.02 kB │ gzip:  8.46 kB
+node_modules/.nitro/vite/services/ssr/assets/products.functions-BfkNSwJe.js             27.25 kB │ gzip:  6.41 kB
+node_modules/.nitro/vite/services/ssr/assets/simulacoes-BvcVALKQ.js                     27.35 kB │ gzip:  7.45 kB
+node_modules/.nitro/vite/services/ssr/assets/router-CEeW5-DE.js                         34.15 kB │ gzip:  9.18 kB
+node_modules/.nitro/vite/services/ssr/assets/chat.functions-C3_l0-XV.js                 62.35 kB │ gzip: 16.77 kB
+node_modules/.nitro/vite/services/ssr/assets/client.server-eKOnaelA.js                  66.05 kB │ gzip: 15.91 kB
+node_modules/.nitro/vite/services/ssr/assets/server-BpVcnRO4.js                         75.43 kB │ gzip: 19.96 kB
+node_modules/.nitro/vite/services/ssr/assets/auth.server-_GTcJccQ.js                   367.77 kB │ gzip: 87.58 kB
+
+✓ built in 1.03s
+
+[nitro] ◐ Building [Nitro] (preset: node-server, compatibility: 2026-09-14)
+[nitro] ✔ Generated public .output/public
+vite v8.2.2 building nitro environment for production...
+transforming...
+✓ 3011 modules transformed.
+rendering chunks...
+computing gzip size...
+.output/server/_ssr/server-IztW8GkZ.mjs                          0.09 kB │ gzip:   0.09 kB
+.output/server/_libs/vercel__analytics.mjs                       0.13 kB │ gzip:   0.12 kB
+.output/server/_ssr/session-context-BU1JJi3m.mjs                 0.15 kB │ gzip:   0.12 kB
+.output/server/_ssr/kysely-adapter-Cj_QZw5p.mjs                  0.15 kB │ gzip:   0.12 kB
+.output/server/_ssr/empty-plugin-adapters-D9UWiqvJ.mjs           0.23 kB │ gzip:   0.16 kB
+.output/server/_ssr/optimistic-version-MifrSw5n.mjs              0.49 kB │ gzip:   0.36 kB
+.output/server/_ssr/label-DV8FU6sa.mjs                           0.54 kB │ gzip:   0.33 kB
+.output/server/_chunks/ssr-renderer.mjs                          0.59 kB │ gzip:   0.35 kB
+.output/server/_ssr/useServerFn-CrZF2pjq.mjs                     0.83 kB │ gzip:   0.45 kB
+.output/server/_ssr/input-BRH-q4T-.mjs                           1.00 kB │ gzip:   0.55 kB
+.output/server/_ssr/list-limits-CClApKk-.mjs                     1.12 kB │ gzip:   0.68 kB
+.output/server/_ssr/badge-V0ZSdmhV.mjs                           1.13 kB │ gzip:   0.54 kB
+.output/server/_ssr/calc-explainer-CZvPLeWp.mjs                  1.33 kB │ gzip:   0.68 kB
+.output/server/_libs/defu.mjs                                    1.41 kB │ gzip:   0.58 kB
+.output/server/_ssr/calc-explanation-BGVtIlQX.mjs                1.69 kB │ gzip:   0.66 kB
+.output/server/_ssr/product-read-model.service-jjaFuJMC.mjs      1.91 kB │ gzip:   0.80 kB
+.output/server/_runtime.mjs                                      1.92 kB │ gzip:   0.87 kB
+.output/server/_libs/ufo.mjs                                     2.21 kB │ gzip:   0.72 kB
+.output/server/_ssr/format-Di3yxDKa.mjs                          2.92 kB │ gzip:   1.17 kB
+.output/server/_libs/class-variance-authority+clsx.mjs           3.17 kB │ gzip:   1.24 kB
+.output/server/_ssr/calculation-snapshot.service-B4oIpEu_.mjs    3.73 kB │ gzip:   1.46 kB
+.output/server/_ssr/alert-dialog-C8nFhAg9.mjs                    3.77 kB │ gzip:   1.00 kB
+.output/server/_libs/better-auth__utils.mjs                      3.80 kB │ gzip:   1.31 kB
+.output/server/_ssr/sales.functions-nRN5v6Yf.mjs                 3.92 kB │ gzip:   1.54 kB
+.output/server/_ssr/select-aSL6r7Zo.mjs                          4.68 kB │ gzip:   1.37 kB
+.output/server/_ssr/financial-values-BaX1B0WJ.mjs                5.08 kB │ gzip:   1.78 kB
+.output/server/_ssr/purchase-price.service-C_TAwQxd.mjs          5.25 kB │ gzip:   1.80 kB
+.output/server/_ssr/start-CXv3c6oV.mjs                           5.39 kB │ gzip:   1.77 kB
+.output/server/_ssr/routes-BQbt7329.mjs                          5.43 kB │ gzip:   1.81 kB
+.output/server/_libs/nanostores.mjs                              5.53 kB │ gzip:   1.80 kB
+.output/server/_ssr/request-context-BSxg65Dc.mjs                 5.62 kB │ gzip:   1.85 kB
+.output/server/_ssr/financial.functions-D-_O-xmc.mjs             5.79 kB │ gzip:   1.95 kB
+.output/server/_ssr/sales.service-BsfFgETW.mjs                   5.91 kB │ gzip:   1.83 kB
+.output/server/_ssr/expenses.functions-BGdiimuU.mjs              6.05 kB │ gzip:   1.85 kB
+.output/server/_tanstack-start-manifest_v-BB2p94Eq.mjs           6.48 kB │ gzip:   1.28 kB
+.output/server/_libs/stablelib__base64.mjs                       6.72 kB │ gzip:   1.75 kB
+.output/server/_ssr/dashboard.functions-DD7LHS4M.mjs             9.14 kB │ gzip:   3.17 kB
+.output/server/_libs/tanstack__react-query.mjs                   9.28 kB │ gzip:   2.21 kB
+.output/server/_ssr/auth-Cg3mt3bW.mjs                           10.25 kB │ gzip:   2.99 kB
+.output/server/_libs/fast-sha256.mjs                            10.45 kB │ gzip:   3.09 kB
+.output/server/_ssr/expense.service-Bmw9Yy0T.mjs                10.56 kB │ gzip:   3.59 kB
+.output/server/_ssr/route-CEuaJdQy.mjs                          11.11 kB │ gzip:   2.98 kB
+.output/server/_ssr/produtos-Byfq7_lD.mjs                       11.20 kB │ gzip:   2.98 kB
+.output/server/_ssr/precos-BlWDesdV.mjs                         11.93 kB │ gzip:   3.53 kB
+.output/server/_ssr/vendas-CXiNlqUn.mjs                         11.98 kB │ gzip:   3.00 kB
+.output/server/_libs/tanstack__history.mjs                      12.05 kB │ gzip:   3.46 kB
+.output/server/_ssr/diagnostic.functions-DbOSwh70.mjs           12.24 kB │ gzip:   3.81 kB
+.output/server/_ssr/despesas-xdiKfrvS.mjs                       13.31 kB │ gzip:   3.11 kB
+.output/server/_ssr/novo-produto-CMv6CTKL.mjs                   13.83 kB │ gzip:   4.11 kB
+.output/server/_ssr/inicio-Cr_1PAl6.mjs                         14.08 kB │ gzip:   3.72 kB
+.output/server/_libs/better-auth__memory-adapter.mjs            14.71 kB │ gzip:   4.12 kB
+.output/server/_ssr/product.repository-DgrPvu_i.mjs             16.64 kB │ gzip:   3.13 kB
+.output/server/_libs/lucide-react.mjs                           17.31 kB │ gzip:   3.74 kB
+.output/server/_libs/@better-auth/telemetry+[...].mjs           17.53 kB │ gzip:   4.90 kB
+.output/server/_ssr/query-options-Bge9joIT.mjs                  18.25 kB │ gzip:   5.29 kB
+.output/server/_ssr/ponto-equilibrio-Dba-PDXu.mjs               19.80 kB │ gzip:   5.08 kB
+.output/server/index.mjs                                        21.93 kB │ gzip:   6.30 kB
+.output/server/_libs/noble__hashes.mjs                          23.93 kB │ gzip:   7.95 kB
+.output/server/_ssr/financial.service-ByOmt_Op.mjs              23.98 kB │ gzip:   5.62 kB
+.output/server/_ssr/ssr.mjs                                     27.24 kB │ gzip:   8.57 kB
+.output/server/_libs/h3+srvx.mjs                                27.27 kB │ gzip:   7.19 kB
+.output/server/_ssr/products.functions-BfkNSwJe.mjs             27.28 kB │ gzip:   6.46 kB
+.output/server/_ssr/diagnostico-gDiuSglr.mjs                    27.39 kB │ gzip:   6.19 kB
+.output/server/_ssr/simulacoes-BvcVALKQ.mjs                     30.59 kB │ gzip:   7.60 kB
+.output/server/_libs/bcryptjs.mjs                               32.95 kB │ gzip:  11.20 kB
+.output/server/_libs/jose.mjs                                   33.30 kB │ gzip:   8.03 kB
+.output/server/_libs/resend+standardwebhooks.mjs                44.67 kB │ gzip:   8.63 kB
+.output/server/_libs/noble__ciphers.mjs                         47.40 kB │ gzip:  14.67 kB
+.output/server/_libs/h3-v2+rou3+srvx.mjs                        49.38 kB │ gzip:  13.28 kB
+.output/server/_libs/sonner.mjs                                 53.62 kB │ gzip:  12.11 kB
+.output/server/_libs/decimal.js.mjs                             55.37 kB │ gzip:  15.47 kB
+.output/server/_libs/@better-auth/drizzle-adapter+[...].mjs     60.74 kB │ gzip:  13.66 kB
+.output/server/_ssr/chat.functions-C3_l0-XV.mjs                 61.73 kB │ gzip:  16.72 kB
+.output/server/_libs/opentelemetry__api.mjs                     63.94 kB │ gzip:  12.28 kB
+.output/server/_ssr/router-CEeW5-DE.mjs                         64.59 kB │ gzip:  17.34 kB
+.output/server/_libs/tanstack__query-core.mjs                   72.84 kB │ gzip:  15.36 kB
+.output/server/_ssr/server-BpVcnRO4.mjs                         74.72 kB │ gzip:  20.05 kB
+.output/server/_ssr/client.server-eKOnaelA.mjs                  79.89 kB │ gzip:  20.32 kB
+.output/server/_libs/tailwind-merge.mjs                         88.13 kB │ gzip:  15.66 kB
+.output/server/_libs/postal-mime.mjs                            91.46 kB │ gzip:  25.70 kB
+.output/server/_libs/@tanstack/router-core+[...].mjs           122.94 kB │ gzip:  25.89 kB
+.output/server/_libs/neondatabase__serverless.mjs              182.38 kB │ gzip:  51.29 kB
+.output/server/_libs/drizzle-orm.mjs                           305.25 kB │ gzip:  63.96 kB
+.output/server/_ssr/auth.server-_GTcJccQ.mjs                   361.96 kB │ gzip:  86.88 kB
+.output/server/_libs/@base-ui/react+[...].mjs                  375.65 kB │ gzip:  85.63 kB
+.output/server/_libs/@better-auth/kysely-adapter+[...].mjs     498.94 kB │ gzip:  82.92 kB
+.output/server/_libs/@react-email/render+[...].mjs             511.51 kB │ gzip: 151.63 kB
+.output/server/_libs/@tanstack/react-router+[...].mjs          649.49 kB │ gzip: 136.21 kB
+.output/server/_libs/@better-auth/core+[...].mjs               832.76 kB │ gzip: 164.77 kB
+
+✓ built in 728ms
+ℹ Generated .output/nitro.json
+
+[nitro] ✔ You can preview this build using npx vite preview
+
+> check:bundle
+> node scripts/check-bundle.mjs
+
+PASS assets/index-eXg04t5H.js: 237694 minified, 73259 gzip, 63812 Brotli bytes
+Initial graph (9 chunks): 473230 minified, 151054 gzip, 132937 Brotli bytes
+CHECK_EXIT=0
+
+==============================================================
+DBTEST_EXIT=0 CHECK_EXIT=0
+==============================================================

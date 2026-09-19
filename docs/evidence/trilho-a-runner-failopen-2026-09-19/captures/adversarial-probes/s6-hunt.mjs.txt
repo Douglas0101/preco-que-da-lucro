@@ -1,0 +1,67 @@
+import { spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
+
+const REPO = "/home/douglas-souza/preco-que-d-main/.worktree-a-failopen";
+const ART = REPO + "/.artifacts";
+const ADMIN = "postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test";
+const DEAD = "postgresql://postgres:postgres@127.0.0.1:59999/preco_que_da_lucro_test";
+
+// --- hunt fixture 1: 1 real pass + 13 `it.todo` (the DB cases turned into todos)
+const todo = ['import { describe, expect, it } from "vitest";', "", 'describe("hunt todo", () => {', '  it("real", () => {', "    expect(1).toBe(1);", "  });"];
+for (let i = 1; i <= 13; i++) todo.push('  it.todo("gated ' + i + '");');
+todo.push("});", "");
+writeFileSync(ART + "/s6-hunt-todo.test.ts", todo.join("\n"));
+
+// --- hunt fixture 2: 14 trivial passing cases, NO database at all
+const subst = ['import { describe, expect, it } from "vitest";', "", 'describe("hunt subst", () => {'];
+for (let i = 1; i <= 14; i++) subst.push('  it("t' + i + '", () => {', "    expect(1).toBe(1);", "  });");
+subst.push("});", "");
+writeFileSync(ART + "/s6-hunt-subst.test.ts", subst.join("\n"));
+
+writeFileSync(ART + "/s6-vitest3.config.ts", ['import { defineConfig } from "vitest/config";', "", 'export default defineConfig({ test: { environment: "node", include: [".artifacts/s6-hunt-todo.test.ts", ".artifacts/s6-hunt-subst.test.ts", ".artifacts/s6-one.test.ts", ".artifacts/s6-five.test.ts"] } });', ""].join("\n"));
+
+function vitestJson(target, tag) {
+  const out = ART + "/s6-sum-" + tag + ".json";
+  const r = spawnSync(process.execPath, ["node_modules/.bin/vitest", "run", target, "--config", ".artifacts/s6-vitest3.config.ts", "--reporter=json", "--outputFile.json=" + out], { cwd: REPO, encoding: "utf8", maxBuffer: 100 * 1024 * 1024 });
+  const j = JSON.parse(readFileSync(out, "utf8"));
+  const keys = ["numTotalTests", "numPassedTests", "numFailedTests", "numPendingTests", "numTodoTests", "numTotalTestSuites", "success"];
+  console.log("--- vitest json for " + target + " (exit " + String(r.status) + ") ---");
+  for (const k of keys) console.log("    " + k + " = " + JSON.stringify(j[k]) + "  (typeof " + typeof j[k] + ")");
+  return { j, status: r.status };
+}
+
+const t = vitestJson(".artifacts/s6-hunt-todo.test.ts", "todo");
+const s = vitestJson(".artifacts/s6-hunt-subst.test.ts", "subst");
+
+// --- run the floor-bearing scratch runner on both
+const src = readFileSync(REPO + "/scripts/db/test-product-contracts.ts", "utf8");
+const FLOOR_RE = / {4}assert\.ok\(\n {6}summary\.numTotalTests >= MIN_TOTAL_TESTS,[\s\S]*?\n {4}\);\n/;
+function build(name, target) {
+  let out = src;
+  const reps = [
+    ['const testFile = "src/test/product-contracts.test.ts";', 'const testFile = "' + target + '";'],
+    ['const repoRoot = fileURLToPath(new URL("../..", import.meta.url));', 'const repoRoot = "' + REPO + '";'],
+    ['import { requireAdminUrl } from "./migrate";', 'import { requireAdminUrl } from "../scripts/db/migrate";'],
+    ['"--reporter=default",', '"--config", ".artifacts/s6-vitest3.config.ts", "--reporter=default",'],
+  ];
+  for (const r of reps) out = out.replace(r[0], r[1]);
+  if (out === src) throw new Error("no patch applied");
+  writeFileSync(ART + "/" + name, out);
+  return ART + "/" + name;
+}
+function run(label, script, admin) {
+  const env = { ...process.env };
+  env.DATABASE_ADMIN_URL = admin;
+  env.DATABASE_URL = admin;
+  env.DATABASE_DRIVER = "node-postgres";
+  delete env.DATABASE_URL_UNPOOLED;
+  const r = spawnSync(process.execPath, ["node_modules/.bin/tsx", script], { cwd: REPO, env, encoding: "utf8", maxBuffer: 100 * 1024 * 1024 });
+  const lines = ((r.stdout || "") + (r.stderr || "")).split("\n").map((x) => x.trim()).filter(Boolean);
+  console.log("### " + label + "  exit=" + String(r.status));
+  for (const x of lines.filter((l) => /Tests |AssertionError|produziu|passed \(|incompleta|pulada/.test(l)).slice(-3)) console.log("    | " + x);
+  console.log("");
+}
+
+run("HUNT-A todo-shrink (1 real + 13 it.todo)", build("s6-run-floor-todo.ts", ".artifacts/s6-hunt-todo.test.ts"), ADMIN);
+run("HUNT-B substitution (14 trivial, DB unreachable :59999)", build("s6-run-floor-subst.ts", ".artifacts/s6-hunt-subst.test.ts"), DEAD);
+console.log("(HUNT-B admin URL points at a CLOSED port 59999 — no Postgres there)");

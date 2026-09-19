@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Sonda do trilho A (F-D2-runner-failopen) — roda DENTRO do worktree.
+# Mede o gate de loopback e a robustez do runner do db:test contra skips.
+# Nenhuma variável é herdada: as três URLs são literais loopback em :5433.
+set -u
+
+ADMIN="postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test"
+REMOTE="postgresql://postgres:postgres@remoto.example.com:5432/x"
+
+echo "=== CONTROLE 1: runner do db:test com DATABASE_URL_UNPOOLED REMOTO (bloco deve pular) ==="
+DATABASE_URL_UNPOOLED="$REMOTE" \
+DATABASE_ADMIN_URL="$ADMIN" \
+DATABASE_URL="$ADMIN" \
+DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/test-products-fk-conflict.ts 2>&1 | tail -4
+echo "RUNNER_EXIT_COM_UNPOOLED_REMOTO=${PIPESTATUS[0]}"
+
+echo
+echo "=== CONTROLE 2: runner do db:test sem DATABASE_URL_UNPOOLED (bloco executa) ==="
+env -u DATABASE_URL_UNPOOLED \
+DATABASE_ADMIN_URL="$ADMIN" \
+DATABASE_URL="$ADMIN" \
+DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/test-products-fk-conflict.ts 2>&1 | tail -3
+echo "RUNNER_EXIT_SEM_UNPOOLED=${PIPESTATUS[0]}"
+
+echo
+echo "=== CONTROLE 3: product-contracts.test.ts sem nenhum runner (14 total, 9 gated) ==="
+DATABASE_URL_UNPOOLED="$REMOTE" \
+DATABASE_ADMIN_URL="$ADMIN" \
+DATABASE_URL="$ADMIN" \
+DATABASE_DRIVER=node-postgres \
+  node node_modules/vitest/vitest.mjs run src/test/product-contracts.test.ts \
+  --reporter=json --outputFile.json=.artifacts/pc-controle.json >/dev/null 2>&1
+echo "VITEST_EXIT=$?"
+node -e "const s=require('./.artifacts/pc-controle.json');console.log('  total='+s.numTotalTests+' passed='+s.numPassedTests+' pending='+s.numPendingTests+' failed='+s.numFailedTests)"

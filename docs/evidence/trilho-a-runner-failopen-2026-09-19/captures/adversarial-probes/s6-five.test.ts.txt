@@ -1,0 +1,19 @@
+import { describe, expect, it } from "vitest";
+
+describe("sonda five", () => {
+  it("caso 1", () => {
+    expect(1).toBe(1);
+  });
+  it("caso 2", () => {
+    expect(1).toBe(1);
+  });
+  it("caso 3", () => {
+    expect(1).toBe(1);
+  });
+  it("caso 4", () => {
+    expect(1).toBe(1);
+  });
+  it("caso 5", () => {
+    expect(1).toBe(1);
+  });
+});

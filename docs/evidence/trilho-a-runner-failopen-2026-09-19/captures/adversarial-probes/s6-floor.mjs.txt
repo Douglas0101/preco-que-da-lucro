@@ -1,0 +1,76 @@
+import { spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
+
+const REPO = "/home/douglas-souza/preco-que-d-main/.worktree-a-failopen";
+const ART = REPO + "/.artifacts";
+const ADMIN = "postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test";
+
+function trivial(n) {
+  const lines = ['import { describe, expect, it } from "vitest";', "", 'describe("sonda curta S6", () => {'];
+  for (let i = 1; i <= n; i++) {
+    lines.push('  it("caso " + ' + i + ', () => {');
+    lines.push("    expect(1).toBe(1);");
+    lines.push("  });");
+  }
+  lines.push("});", "");
+  return lines.join("\n");
+}
+writeFileSync(ART + "/s6-short1.test.ts", trivial(1));
+writeFileSync(ART + "/s6-short5.test.ts", trivial(5));
+writeFileSync(
+  ART + "/s6-vitest.config.ts",
+  ['import { defineConfig } from "vitest/config";', "", 'export default defineConfig({ test: { environment: "node", include: [".artifacts/s6-*.test.ts"] } });', ""].join("\n"),
+);
+
+const src = readFileSync(REPO + "/scripts/db/test-product-contracts.ts", "utf8");
+const patches = [
+  ['const testFile = "src/test/product-contracts.test.ts";', 'const testFile = "ART_TARGET";'],
+  ['const repoRoot = fileURLToPath(new URL("../..", import.meta.url));', 'const repoRoot = "' + REPO + '";'],
+  ['import { requireAdminUrl } from "./migrate";', 'import { requireAdminUrl } from "../scripts/db/migrate";'],
+  ['"--reporter=default",', '"--config", ".artifacts/s6-vitest.config.ts", "--reporter=default",'],
+];
+const floorAnchor = "summary.numTotalTests >= MIN_TOTAL_TESTS";
+const floorMsgAnchor = "a prova de banco n\u00e3o produziu casos suficientes";
+console.log("real runner contains floor assert:", src.includes(floorAnchor), "| floor msg:", src.includes(floorMsgAnchor));
+
+function build(target, withFloor) {
+  let out = src;
+  for (const p of patches) {
+    const before = out;
+    out = out.split(p[0]).join(p[1].split("ART_TARGET").join(target));
+    if (out === before) throw new Error("patch did not apply: " + p[0]);
+  }
+  const m = out.match(/ {4}assert\.ok\(\n {6}summary\.numTotalTests >= MIN_TOTAL_TESTS,[\s\S]*?\n {4}\);\n/);
+  if (!m) throw new Error("floor block not located verbatim");
+  console.log("  scratch copy of runner (target=" + target + ") floor block bytes:", m[0].length, "identical-to-real:", m[0] === src.match(/ {4}assert\.ok\(\n {6}summary\.numTotalTests >= MIN_TOTAL_TESTS,[\s\S]*?\n {4}\);\n/)[0]);
+  if (!withFloor) out = out.replace(m[0], "");
+  const file = ART + (withFloor ? "/s6-runner-floor.ts" : "/s6-runner-nofloor.ts");
+  writeFileSync(file, out);
+  return file;
+}
+
+function run(label, script, target) {
+  const env = { ...process.env };
+  env.DATABASE_ADMIN_URL = ADMIN;
+  env.DATABASE_URL = ADMIN;
+  env.DATABASE_DRIVER = "node-postgres";
+  delete env.DATABASE_URL_UNPOOLED;
+  const r = spawnSync(process.execPath, ["node_modules/.bin/tsx", script, target], {
+    cwd: REPO, env, encoding: "utf8", maxBuffer: 100 * 1024 * 1024,
+  });
+  const out = (r.stdout || "") + (r.stderr || "");
+  const lines = out.split("\n").map((s) => s.trim()).filter(Boolean);
+  console.log("### " + label + "   exit=" + String(r.status));
+  for (const s of lines.filter((l) => /Tests |AssertionError|produziu casos|passed \(/.test(l)).slice(-4)) console.log("    | " + s);
+  console.log("");
+}
+
+const file1 = build(".artifacts/s6-short1.test.ts", true);
+const file5 = build(".artifacts/s6-short5.test.ts", true);
+build(".artifacts/s6-short1.test.ts", false);
+build(".artifacts/s6-short5.test.ts", false);
+
+run("C6a floor ON, 1 case (expected exit 1)", file1, ".artifacts/s6-short1.test.ts");
+run("C6b floor ON, 5 cases (expected exit 1)", file5, ".artifacts/s6-short5.test.ts");
+run("C6c floor OFF, 1 case (expect exit 0 -> floor is the only thing)", ".artifacts/s6-runner-nofloor.ts", ".artifacts/s6-short1.test.ts");
+run("C6d floor OFF, 5 cases (expect exit 0)", ".artifacts/s6-runner-nofloor.ts", ".artifacts/s6-short5.test.ts");

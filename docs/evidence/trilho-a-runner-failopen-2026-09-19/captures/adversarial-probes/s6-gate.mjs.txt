@@ -1,0 +1,23 @@
+import { spawnSync } from "node:child_process";
+const REPO = "/home/douglas-souza/preco-que-d-main/.worktree-a-failopen";
+const LOCAL = "postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test";
+const REMOTE = "postgresql://postgres:pw@ep-remote-prod.neon.tech:5432/neondb";
+const MALFORMED = "not-a-url";
+
+function run(label, vars) {
+  const env = { ...process.env };
+  for (const k of Object.keys(vars)) {
+    if (vars[k] === null) delete env[k];
+    else env[k] = vars[k];
+  }
+  const r = spawnSync(process.execPath, ["node_modules/.bin/tsx", "scripts/db/test-products-fk-conflict.ts"], { cwd: REPO, env, encoding: "utf8", maxBuffer: 100 * 1024 * 1024 });
+  const lines = ((r.stdout || "") + (r.stderr || "")).split("\n").map((s) => s.trim()).filter(Boolean);
+  console.log("### " + label + "  exit=" + String(r.status));
+  for (const s of lines.filter((l) => /Tests |AssertionError/.test(l)).slice(-2)) console.log("    | " + s);
+  console.log("");
+}
+
+run("C3 remote ADMIN + loopback URL/UNPOOLED", { DATABASE_ADMIN_URL: REMOTE, DATABASE_URL: LOCAL, DATABASE_URL_UNPOOLED: LOCAL, DATABASE_DRIVER: "node-postgres" });
+run("C3 loopback ADMIN + remote DATABASE_URL", { DATABASE_ADMIN_URL: LOCAL, DATABASE_URL: REMOTE, DATABASE_URL_UNPOOLED: LOCAL, DATABASE_DRIVER: "node-postgres" });
+run("C3 malformed DATABASE_URL_UNPOOLED", { DATABASE_ADMIN_URL: LOCAL, DATABASE_URL: LOCAL, DATABASE_URL_UNPOOLED: MALFORMED, DATABASE_DRIVER: "node-postgres" });
+run("C3 ADMIN absent", { DATABASE_ADMIN_URL: null, DATABASE_URL: LOCAL, DATABASE_URL_UNPOOLED: LOCAL, DATABASE_DRIVER: "node-postgres" });

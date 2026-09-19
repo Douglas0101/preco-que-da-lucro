@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# ADVERSARIAL: o que acontece com os runners quando o alvo e REMOTO (o cenario de
+# .github/workflows/neon-pr-branch.yml:300-306 e neon-readiness.yml:249-253)?
+# Nada conecta: o gate de loopback fecha o bloco antes de qualquer query.
+set -u
+FAKE="postgresql://postgres:x@ep-fake-pooler.c-5.us-east-2.aws.neon.tech/db"
+FAKE_ADMIN="postgresql://postgres:x@ep-fake.us-east-2.aws.neon.tech/db"
+
+echo "=== H1: runner FK com ADMIN REMOTO (+ALLOW_REMOTE_DB, como o worfklow Neon) ==="
+DATABASE_ADMIN_URL="$FAKE_ADMIN" DATABASE_URL="$FAKE" \
+  ALLOW_REMOTE_DB="probe: cenario neon-pr-branch" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/test-products-fk-conflict.ts 2>&1 | grep -iE 'AssertionError|pulada|pendentes|loopback|remot' | head -3
+echo "H1_EXIT_ESPERADO_1=${PIPESTATUS[0]}"
+
+echo
+echo "=== H2: runner NOVO com ADMIN REMOTO ==="
+DATABASE_ADMIN_URL="$FAKE_ADMIN" DATABASE_URL="$FAKE" \
+  ALLOW_REMOTE_DB="probe: cenario neon-pr-branch" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/test-product-contracts.ts 2>&1 | grep -iE 'AssertionError|pulada|pendentes|loopback|remot' | head -3
+echo "H2_EXIT_ESPERADO_1=${PIPESTATUS[0]}"
+
+echo
+echo "=== H3: o gate do teste fecha com admin remoto mesmo com UNPOOLED loopback? ==="
+grep -n 'isLoopbackUrl(adminUrl)' src/test/products-fk-conflict.test.ts src/test/product-contracts.test.ts

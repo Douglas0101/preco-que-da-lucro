@@ -1,0 +1,35 @@
+import { spawnSync } from "node:child_process";
+
+const REPO = "/home/douglas-souza/preco-que-d-main/.worktree-a-failopen";
+const ADMIN = "postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test";
+const REMOTE = "postgresql://postgres:secretpw@ep-remote-prod.neon.tech:5432/neondb";
+
+function run(label, script, unpooled) {
+  const env = { ...process.env };
+  env.DATABASE_ADMIN_URL = ADMIN;
+  env.DATABASE_URL = ADMIN;
+  env.DATABASE_DRIVER = "node-postgres";
+  if (unpooled === null) delete env.DATABASE_URL_UNPOOLED;
+  else env.DATABASE_URL_UNPOOLED = unpooled;
+  const r = spawnSync(process.execPath, ["node_modules/.bin/tsx", script], {
+    cwd: REPO,
+    env,
+    encoding: "utf8",
+    maxBuffer: 200 * 1024 * 1024,
+  });
+  const out = (r.stdout || "") + (r.stderr || "");
+  const lines = out.split("\n").map((s) => s.trim()).filter(Boolean);
+  const decisive = lines.filter((s) =>
+    /passed|pending|skipped|AssertionError|nao produziu|n\u00e3o produziu|pulada|Test Files/.test(s),
+  );
+  console.log("### " + label + "  file=" + script + "  unpooled=" + String(unpooled));
+  console.log("    exit=" + String(r.status) + " signal=" + String(r.signal) + " error=" + String(r.error));
+  for (const s of decisive.slice(-6)) console.log("    | " + s);
+  console.log("");
+}
+
+run("C4/C5 fk ausente", "scripts/db/test-products-fk-conflict.ts", null);
+run("C4 fk vazio", "scripts/db/test-products-fk-conflict.ts", "");
+run("C5 fk remoto", "scripts/db/test-products-fk-conflict.ts", REMOTE);
+run("C7 pc ausente", "scripts/db/test-product-contracts.ts", null);
+run("C7 pc remoto", "scripts/db/test-product-contracts.ts", REMOTE);

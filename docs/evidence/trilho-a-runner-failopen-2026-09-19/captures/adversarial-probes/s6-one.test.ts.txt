@@ -1,0 +1,7 @@
+import { describe, expect, it } from "vitest";
+
+describe("sonda one", () => {
+  it("caso 1", () => {
+    expect(1).toBe(1);
+  });
+});

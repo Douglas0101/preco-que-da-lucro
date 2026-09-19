@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Re-verificação do trilho A após a correção de redação. Roda no worktree, :5433.
+set -u
+ADMIN="postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test"
+
+echo "=== F0: revisao sob verificacao ==="
+git rev-parse HEAD
+git status --porcelain
+sha256sum .github/workflows/ui-stack.yml scripts/db/test-products-fk-conflict.ts
+
+echo
+echo "=== F1: prettier nos dois arquivos tocados ==="
+npx --no-install prettier --check .github/workflows/ui-stack.yml scripts/db/test-products-fk-conflict.ts
+echo "F1_EXIT=$?"
+
+echo
+echo "=== F2: nenhuma redacao falsa remanescente (0 casos = exit 0) ==="
+grep -rn '0 === 0\|sem ter exercitado o banco\|virarem .pending. com exit 0' \
+  .github/workflows/ui-stack.yml scripts/db/test-products-fk-conflict.ts && echo "F2_ENCONTROU=$?" || echo "F2_LIMPO (nenhuma ocorrencia)"
+
+echo
+echo "=== F3: piso de cardinalidade DISPARA com 1 caso em vez de 13 ==="
+cat > src/test/zz-short-probe.test.ts <<'EOF'
+import { describe, expect, it } from "vitest";
+
+describe("sonda curta", () => {
+  it("passa", () => {
+    expect(1).toBe(1);
+  });
+});
+EOF
+sed 's|const testFile = "src/test/products-fk-conflict.test.ts";|const testFile = "src/test/zz-short-probe.test.ts";|' \
+  scripts/db/test-products-fk-conflict.ts > scripts/db/zz-short-probe.ts
+env -u DATABASE_URL_UNPOOLED \
+  DATABASE_ADMIN_URL="$ADMIN" DATABASE_URL="$ADMIN" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/zz-short-probe.ts 2>&1 | grep -E 'AssertionError|nao produziu casos|não produziu casos' | head -2
+echo "F3_EXIT_ESPERADO_1=${PIPESTATUS[0]}"
+rm -f src/test/zz-short-probe.test.ts scripts/db/zz-short-probe.ts
+
+echo
+echo "=== F4: caminho feliz com a variavel AUSENTE (executa, nao pula) ==="
+env -u DATABASE_URL_UNPOOLED \
+  DATABASE_ADMIN_URL="$ADMIN" DATABASE_URL="$ADMIN" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/test-products-fk-conflict.ts 2>&1 | tail -1
+echo "F4_EXIT=${PIPESTATUS[0]}"
+
+echo
+echo "=== F5: kill-switch REMOTO reprova (fail-closed contra skip) ==="
+DATABASE_URL_UNPOOLED="postgresql://postgres:postgres@remoto.example.com:5432/x" \
+  DATABASE_ADMIN_URL="$ADMIN" DATABASE_URL="$ADMIN" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/test-products-fk-conflict.ts >/dev/null 2>&1
+echo "F5_EXIT_ESPERADO_1=$?"
+
+echo
+echo "=== F6: a chave esta no bloco env: do job e nao e reescrita depois ==="
+grep -n 'DATABASE_URL_UNPOOLED\|GITHUB_ENV' .github/workflows/ui-stack.yml
+
+echo
+echo "=== F7: arvore limpa de sondas residuais ==="
+git status --porcelain --untracked-files=all | grep -v '^ M ' || echo "(sem residuo nao-rastreado)"
