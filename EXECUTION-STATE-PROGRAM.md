@@ -2220,3 +2220,22 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L135`.
 
   Latest state marker parent = `358f991763277f2a7c85db3009da986e7773dd7a`,
+
+### WP-R1 — registry de dívidas `DEBTS.md` + guard (S9 — landado)
+
+- **O que era:** dívidas declaradas viviam só em prosa; sem ID/closure mecânicos, dívida sem closure
+  test some, e registry sem guard degenera em silêncio (vazio, duplicado, `N/A`).
+- **O que foi feito:** registry canônico em `docs/evidence/agent-state/DEBTS.md` (12 dívidas
+  `DBT-01..12`, proveniência por `Lnn`/selo/§), `scripts/m02-debts-guard.mjs` (node-only; colunas
+  pelo header, tabela dupla reprova, degenerados/0=0 reprovam, closure ausente ⇔ status `NS` nas
+  duas direções), 16 casos de teste, wiring em `check` + `verify` do ui-stack + `ci-light`, contrato
+  no `AGENTS.md`.
+- **Prova:** RED 10/10 (guard ausente) e 2/16 (achados do S6) → GREEN `16 passed`; S6 adversarial
+  **5 CONFIRMED · 2 CORRECTED · 4 REJECTED · 0 UNVERIFIABLE · 8 N** (todos tratados); selo
+  `docs/evidence/debts-registry-2026-09-20/` (13 arquivos, `checked === discovered`, `sha256sum -c`
+  0 não-OK); E2 `CHECK_EXIT=0` no integrado; CI `90976ba@35532153460` (heavy) e
+  `90976ba@35532153466` (light no-op).
+- **Placar: inalterado** — 150 D · 23 P · 12 NS · 2 UNV / 187.
+- **Registro no journal:** `L136` (intenção) e `L137` (resultado).
+
+  Latest state marker parent = `90976ba220465820f547521d22a33dd6d54da4f9`,
