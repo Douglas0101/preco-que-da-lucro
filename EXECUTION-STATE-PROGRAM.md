@@ -2239,3 +2239,26 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L136` (intenção) e `L137` (resultado).
 
   Latest state marker parent = `90976ba220465820f547521d22a33dd6d54da4f9`,
+
+### WP-R4 — selo mecânico, KPI, item 16, cobertura de CI e bundle por conteúdo (S9 — landado)
+
+- **O que era:** selo ad-hoc por WP (`D -eq L` passava 0 = 0), KPI do checklist ausente, item 16 não
+  formal, U sem semântica, complementaridade dos filtros de CI sem teste, falsificação do guard só
+  manual, "bundle idêntico" por tamanho e citação `run@sha` aceitando run no-op.
+- **O que foi feito:** `scripts/m02-seal.mjs` (não-vacuidade, `D≠L`, sha256, `SPEC`/`README`,
+  ancestralidade offline por `merge-base`, `run@sha` com ≥ 1 check aplicável), item 16
+  (guard/template/AGENTS; 15→16), KPI/auto-verificação pré-S6, semântica de U e periodicidade da
+  calibração, `scripts/lib/m02-ci-coverage.ts`, falsificação do guard na CI, `check-bundle` schema 2
+  com sha256 de conteúdo.
+- **Prova:** RED dirigido pelo S6 `10 failed` → `44 passed`; aceitação real (heavy OK × light no-op
+  reprovada); S6 **7 CONFIRMED · 1 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE · 12 N** (todos tratados);
+  selo `docs/evidence/seal-kpi-item16-2026-09-20/` (17 arquivos, `checked === discovered` gerado e
+  conferido pelo próprio `m02-seal`).
+- **Incidente de CI:** a primeira heavy do land (`81cc7ed@35534879029`) reprovou em `npm run test`
+  porque o teste de ancestralidade dependia do histórico completo (checkout CI é raso) e o caso
+  invertido passava por vacuidade; corrigido em `8a981f6` (repo git temporário autocontido, provado
+  em clone `--depth 1`) e revalidado (`8a981f6@35535596160` = success).
+- **Placar: inalterado** — 150 D · 23 P · 12 NS · 2 UNV / 187.
+- **Registro no journal:** `L138` (intenção) e `L139` (resultado).
+
+  Latest state marker parent = `8a981f68d97df6139720402f17f6874084cbc57d`,
