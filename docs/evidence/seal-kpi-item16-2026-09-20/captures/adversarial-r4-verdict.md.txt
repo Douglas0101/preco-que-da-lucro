@@ -1,0 +1,84 @@
+# Veredicto adversarial — WP-R4 (S6, lane read-only de contexto limpo)
+
+**Método:** subagente de contexto limpo, sem histórico do autor; auditoria read-only do branch
+`mission/r4-seal-kpi` (revisão auditada `8909f70`, base `2f407f7`) com sondas próprias em
+`/tmp/opencode/s6-r4/**`; `gh` read-only. Veredicto verbatim abaixo.
+**Ciclo S5 (correções):** os 12 achados (N1–N12; 2 materiais) foram tratados no commit `cc3ae9b`;
+o RED dirigido (`captures/s6-red-tests.log.txt`, `10 failed`) e o GREEN
+(`captures/s6-green-tests.log.txt`, `44 passed`) estão selados.
+
+---
+
+# S6 ADVERSARIAL DE CONTEXTO LIMPO — WP-R4 (selo mecânico, KPI, item 16, identidade de bundle, cobertura de CI)
+
+**HEAD auditado:** `8909f70db12b4250027c5e011aad2c5ed0d88273` (base `2f407f7`) · branch `mission/r4-seal-kpi`
+**Lane:** read-only; toda fixture criada em `/tmp/opencode/s6-r4/**`. Nenhum arquivo do repo foi criado/alterado por esta lane (ver nota de integridade ao fim).
+**Método:** `node scripts/m02-seal.mjs ...`, `node --input-type=module` importando os módulos reais, `npx vitest run` (sem editar), `gh run view`, `sha256sum -c`, `git diff/log/merge-base`, mutações do guard em cópias sob `/tmp`.
+
+---
+
+## C1–C8 × veredicto × evidência
+
+| #   | claim auditada                                                                                                                                                                            | veredicto     | evidência verbatim                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1  | `m02-seal` reprova descoberta vazia, `D≠L`, hash divergente, entrada de manifesto sem arquivo e ausência de `SPEC.md`/`README.md`; aceita R1=13 e R3=20                                  | **CONFIRMED** | `m02-seal: descoberta vazia: 0 = 0 reprova` · `MANIFEST tem 2 entradas; descobertos 3 (checked === discovered)` · `m02-seal: hash diverge: wronghash/SPEC.md` · `MANIFEST cita arquivo ausente: ../etc/hostname` · `m02-seal: selo sem SPEC.md` · `m02-seal: OK (13 arquivos...)` e `OK (20 arquivos...)`; `sha256sum -c` independente: 13/13 e 20/20 `SUCESSO`                                                                                                                              |
+| C2  | `--ancestry` re-executa `git merge-base --is-ancestor` do texto, reprova claim falsa; 0 claims reprova                                                                                    | **CONFIRMED** | `git merge-base --is-ancestor a7f1e4a c9d1740` → `EXIT=0`; invertida → `EXIT=1`; `--ancestry` no `PROGRESS.md` real → `OK (13 arquivos...)`; arquivo sem claims → `nenhuma declaracao de ancestralidade encontrada (0 = 0 reprova)` `EXIT=1`                                                                                                                                                                                                                                                  |
+| C3  | `--run <id>@<sha>` exige success + headSha igual/descendente + ≥1 aplicável; heavy `35532153460@90976ba` passa, light no-op `35532153466@90976ba` reprova                                | **CONFIRMED** | `HEAVY_EXIT=0`; `m02-seal: run sem check aplicavel (no-op)...` `LIGHT_EXIT=1`; `gh run view`: ambos `conclusion=success`, `sha=90976ba...`; steps da light real (scope success + 6 guards skipped) contam `applicable=0`                                                                                                                                                                                                                                                                     |
+| C4  | `m02-ci-coverage` transforma em asserção `light.push.paths == heavy.push.paths-ignore`, PR irrestrito da heavy e guards nos dois lados — contra os workflows reais                           | **CORRECTED** | Igualdade e guards: `baseline: []`, 6/6 testes passam. Mas "PR irrestrito" **não** era o que se assertava: heavy com `pull_request: paths-ignore: ["src/**"]` → `auditCoverage` devolvia `[]` e `pullRequestAny = true` (só a presença de `paths:` era detectada)                                                                                                                                                                                                                            |
+| C5  | `check-bundle` publica sha256 por artefato + agregado; "mesmo tamanho, conteúdo diferente" falsificado pelo teste                                                                          | **CONFIRMED** | `bundle-report.json` `"schemaVersion": 2`, `"sha256": "a67e89b4..."`, `initialGraph.sha256: "bfdc8d79..."`; recomputo independente dos 9 arquivos reais → `igual: true`; 4/4 testes                                                                                                                                                                                                                                                                                                             |
+| C6  | Guard exige 16 itens + âncora `Auto-verificação pré-S6`; mutações (item 16, `N/A`, coluna extra, âncora) reprovam via testes                                                               | **CONFIRMED** | `work-package guard: OK (16 itens...)`; mutações com o guard real: `checklist tem 15 itens; esperado 16` · `origem degenerada` · `5 colunas` · `template sem o campo de auto-verificacao pre-S6` — todas `EXIT=1`; suíte 6/6                                                                                                                                                                                                                                                                    |
+| C7  | SPEC §8 demonstra os 16 itens; DoD só marca `[x]` o que existe no HEAD                                                                                                                    | **CONFIRMED** | §8 = 16 linhas; DoD = 7 `[x]` + 2 `[ ]` (S6 e selo), corretamente abertos; `r4-gate.log:341 CHECK_EXIT=0`; prettier no SPEC exit 0                                                                                                                                                                                                                                                                                                                                                         |
+| C8  | Diff não toca runtime/migrations/`QUEUE.md`/placar/lockfile; não versiona `deepseek-harness`                                                                                               | **CONFIRMED** | `git diff --name-only 2f407f7..HEAD` = AGENTS, template, PROGRESS, SPEC, 4 scripts, 2 `.d.mts`, 4 testes; `QUEUE`/migration/lockfile → nenhum; `git ls-files deepseek-harness` = 0                                                                                                                                                                                                                                                                                                            |
+
+---
+
+## Achados N (defeitos/lacunas)
+
+| id      | arquivo:linha                                                 | severidade   | origem       | achado                                                                                                                                                                                                                     | repro                                                                                       |
+| ------- | ------------------------------------------------------------- | ------------ | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **N1**  | `scripts/m02-seal.mjs:36-37` + `:201`,`:213`                  | **material** | este WP      | `--ancestry`/`--run` **sem valor** eram silenciosamente engolidos: `if (parsed.ancestry)` falsy pulava a checagem e imprimia `OK` (fail-open num tool de prova)                                                             | `--ancestry` sem valor → `OK` `EXIT=0`                                                      |
+| **N2**  | `scripts/lib/m02-ci-coverage.ts:44-49`, `:93-97`              | **material** | este WP      | `pullRequestAny` significava "sem `paths:`", não "irrestrito": `pull_request:` com `paths-ignore:` (filtro válido) passava verde e podia abrir buraco de PR entre os dois pipelines                                          | heavy mutado com `paths-ignore` → `auditCoverage = []`                                       |
+| N3      | `scripts/lib/m02-ci-coverage.ts:99-107`                       | baixa        | este WP      | presença dos guards asserida por regex no arquivo inteiro: um **comentário** satisfazia o check com o passo real removido                                                                                                   | guards só em comentário → `[]`                                                               |
+| N4      | `scripts/lib/m02-ci-coverage.ts:99-104`                       | baixa        | este WP      | a asserção cobria só `work-package-guard` e `debts-guard`; remover `m02-lockfile-guard`, `m02-secrets-audit.ts` ou o prettier da light não gerava finding                                                                  | 3 mutações → `[]`                                                                            |
+| N5      | `scripts/m02-work-package-guard.mjs:5`                        | baixa        | este WP      | comentário do guard ainda dizia "15 itens" com `EXPECTED_ITEMS = 16`                                                                                                                                                        | `grep "15 itens"` = linha 5                                                                  |
+| N6      | `docs/evidence/seal-kpi-item16-2026-09-20/SPEC.md:31`         | baixa        | este WP      | §3 afirmava "44 casos novos"; a suíte real tinha 33                                                                                                                                                                         | `grep -c "  it("` → 17/6/6/4                                                                  |
+| N7      | `scripts/m02-seal.mjs:44-55`, `:176`, `:198`                  | baixa        | este WP      | descoberta **omitia em silêncio** symlinks, diretórios vazios e `MANIFEST.sha256` aninhado — e ainda imprimia `checked === discovered`                                                                                       | symlink/MANIFEST aninhado → `OK (2 arquivos)`                                                |
+| N8      | `scripts/m02-seal.mjs:57-68`                                  | baixa        | este WP      | linhas duplicadas no `MANIFEST` eram toleradas (Map last-wins); `checked` contava paths únicos, não linhas                                                                                                                   | 4 linhas p/ 3 arquivos → `OK`                                                                |
+| N9      | `src/test/m02-work-package-guard.test.ts:46-51` vs `guards:91` | baixa        | este WP      | o teste de "origem degenerada" usava `N/A` (3 chars), pego **também** por `length < 4`; neutralizar `DEGENERATE_ORIGIN` não reprovava e um degenerado de 5 chars passava no guard mutado                                  | mutação do regex + `?????` → `OK`                                                            |
+| N10     | `scripts/lib/bundle-identity.mjs:15-22`                       | baixa        | este WP      | agregado é `join("\n")` de `${file}:${hash}` sem validação: nome com `\n`/`:` colide e entrada sem `sha256` vira `file:undefined` sem erro                                                                                  | `colisao = true`                                                                             |
+| N11     | `scripts/m02-seal.mjs:127-134`; `SPEC.md:62`                  | baixa        | este WP      | `countApplicableSteps` contava passos de **instalação** (`Run npm ci --ignore-scripts`) como check aplicável                                                                                                                | install-only → `applicable=1`, `falhas=[]`                                                   |
+| N12     | `docs/evidence/seal-kpi-item16-2026-09-20/SPEC.md:78`         | baixa        | este WP      | §8 item 5 era só `N/A`, sem a justificativa que o template exige                                                                                                                                                            | leitura literal da linha 78                                                                  |
+
+**Passa e é aceitável:** flow style falha fechado; aspas simples iguais nos dois lados ok; colisão do agregado só com `:`/`\n` (inalcançável nos nomes Vite atuais); identidade criptográfica de conteúdo idêntico é aceita — correto.
+
+---
+
+## Integridade da auditoria
+
+- Nada escrito no repo por esta lane; fixtures só em `/tmp/opencode/s6-r4/`.
+- **Concorrência externa observada:** `.gitignore` apareceu modificado às **17:02:33** (por processo alheio à lane; bloco de configs MCP). Não foi revertido; os veredictos valem para `8909f70` e não dependem dessa alteração de working tree.
+
+---
+
+## Contagem final
+
+**7 CONFIRMED · 1 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE · 12 achados (2 materiais N1–N2, 10 baixos N3–N12)**
+
+---
+
+## Tratamento dos achados (S5 → selo)
+
+| achado | tratamento aplicado (commit `cc3ae9b`)                                                                                             |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| N1     | `parseArgs` exige valor para `--dir`/`--ancestry`/`--run`; flag sem valor vira erro de uso (exit 2) e teste dedicado               |
+| N2     | `paths-ignore` sob `pull_request` também zera `pullRequestAny`; fixture com `paths-ignore` reprova                                  |
+| N3     | regex ancorada em linha de execução (`^\s*run:` / `^\s*- run:`) — comentário não satisfaz                                      |
+| N4     | cobertura passa a exigir lockfile guard, work-package guard, debts guard, secrets audit e prettier na light; guards na heavy     |
+| N5     | comentário do guard atualizado para 16 itens                                                                                        |
+| N6     | SPEC corrigido para 33 casos                                                                                                        |
+| N7     | `scanSelo` reporta symlink e `MANIFEST` aninhado; ambos reprovam com mensagem nomeada                                               |
+| N8     | `parseManifest` reprova path duplicado                                                                                              |
+| N9     | teste novo com `?????` pina o `DEGENERATE` (sem depender do length)                                                                 |
+| N10    | `aggregateSha256` lança para nome com `:`/`\n` e para hash inválido                                                                 |
+| N11    | `Run npm ci`/`Run npm install` entram no filtro de infraestrutura; teste install-only exige `applicable=0`                           |
+| N12    | §8 item 5 ganhou a justificativa ("nenhuma espera temporal neste WP")                                                               |
