@@ -1,0 +1,8 @@
+8f29e1d43c41123bd74ee5b998427fccf85cfa486555b696c7947dc23df2d38e  scripts/m02-debts-guard.mjs
+6fe64aea89d984e020b53bd8c8346be3ba48df48341026ad9863701aa42a48a0  src/test/m02-debts-guard.test.ts
+42a8b701c9bae808df74b90ae7ec7d8dcbb910afc5230750f2138bc00aba9b28  docs/evidence/agent-state/DEBTS.md
+a4bb2ecee72bbae6c04347ce4676ff3895cb0401233bfa76e11cec9c47bed794  docs/evidence/debts-registry-2026-09-20/SPEC.md
+adfcb239008d311fc254520466d2eea19a3de5f9a8d81caae23fc912748e9003  AGENTS.md
+e8500835a3d2502083e3d259b38b25f23144327416edb9beb0344bce66354c51  package.json
+a35389e80721817a177070640da66a4b0b84de51de887be5ee3940d05b503a43  .github/workflows/ui-stack.yml
+951f8f7553dbaedcd735b537dbadf8669c32989f3be5af75689b634c2f649b40  .github/workflows/ci-light.yml

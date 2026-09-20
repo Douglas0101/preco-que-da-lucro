@@ -1,0 +1,54 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/m02-debts-guard.test.ts (16 tests | 2 failed) 749ms
+     × cabeçalho fora de ordem é reconhecido pelo header, não pela posição 59ms
+     × segunda tabela canônica no mesmo arquivo reprova 55ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > cabeçalho fora de ordem é reconhecido pelo header, não pela posição
+AssertionError: expected 'debts guard: registry sem linha de ca…' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ debts guard: registry sem linha de cabecalho (| id | ...)
++ debts guard: REPROVADO (1 falha(s))
++
+
+ ❯ src/test/m02-debts-guard.test.ts:58:27
+     56|     ].join("\n");
+     57|     const result = run(fixture("reordenado.md", `${reordered}\n`));
+     58|     expect(result.stderr).toBe("");
+       |                           ^
+     59|     expect(result.status).toBe(0);
+     60|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > segunda tabela canônica no mesmo arquivo reprova
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/test/m02-debts-guard.test.ts:65:27
+     63|     const second = HEADER + "\n| DBT-02 | WP3 N2 | robustez | media | …
+     64|     const result = run(fixture("duas-tabelas.md", `${HEADER}\n${ROW}\n…
+     65|     expect(result.status).toBe(1);
+       |                           ^
+     66|     expect(result.stderr).toContain("mais de uma tabela canonica");
+     67|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 14 passed (16)
+   Start at  16:16:35
+   Duration  1.76s (transform 81ms, setup 132ms, import 67ms, tests 749ms, environment 665ms)
+
