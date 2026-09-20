@@ -2107,4 +2107,25 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L121` (intenção) e `L122` (resultado) de
   `docs/evidence/agent-state/PROGRESS.md`.
 
-  Latest state marker parent = `8f6041c9949d6a267b8d6989cadc501a19b64f87`,
+### WP5 — `F-B1-e2e` (S9 — landado)
+
+- **O que era:** nenhum teste forçava a invariante `preset Nitro ≡ gate do analytics`; uma edição
+  futura na fonte do preset podia ligar/desligar o `@vercel/analytics` em silêncio. Merge
+  `261e9c69bec3d5ed45f896b1f6cd955ec9562502` (parent `612c34b`), branch `mission/wp5-analytics-e2e`,
+  commit `059150f`.
+- **O que foi feito:** `e2e/analytics-gate.spec.ts` — no preview node-server, listener antes do
+  primeiro `goto`, espera pelo marcador de hidratação `__reactContainer$` e asserção de zero
+  requisições `/_vercel/insights/*` + `typeof window.va === "undefined"`.
+- **Prova:** falsificação com o gate forçado a `true` (restaurado byte a byte) reprovando os 4
+  projetos com a requisição; GREEN 4/4 com zero; E1 `60 passed` no preview real contra PG17
+  efêmero; `npm run check` verde com bundle idêntico. S6 adversarial (subagente read-only,
+  contexto limpo): **6 CONFIRMED · 1 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE**; N1/N2 (timing e
+  asserção inerte), N3 (reuse de porta), N4 (errata) e N7 (capturas) corrigidos; N6/N8/N9
+  declarados.
+- **Selo versionado:** `docs/evidence/f-b1-e2e-2026-09-20/` (MANIFEST com 22 arquivos).
+- **Placar: nenhum crédito** — teste de invariante fora do denominador de 187 ⇒ segue
+  **150 D · 23 P · 12 NS · 2 UNV = 86,36 % parcial / 80,21 % crua**.
+- **Registro no journal:** `L123` (intenção) e `L124` (resultado) de
+  `docs/evidence/agent-state/PROGRESS.md`.
+
+  Latest state marker parent = `261e9c69bec3d5ed45f896b1f6cd955ec9562502`,
