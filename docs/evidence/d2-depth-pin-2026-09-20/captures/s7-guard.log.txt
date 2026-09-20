@@ -1,0 +1,43 @@
+=== S7 GUARD — WP3 F-D2-depth-pin ===
+HEAD: 524ec542d069f04132342ca276b1809468b0e75c
+branch: mission/wp3-depth-pin
+data: 2026-09-20T01:27:05Z
+
+=== IDENTIDADE do que foi examinado (nao cardinalidade) ===
+  bytes do artefato examinado: 23392
+  sha256 do artefato examinado: d5507049540a5473b5e1fd2bb0c860bb0ed5c70c548f7cb407771e79331df8d3
+  sha256 src/test/products-fk-conflict.test.ts: febe27fa69a54126e056050b680f74293566424b2a5a0d80f849ded64dff4454
+  sha256 scripts/db/test-products-fk-conflict.ts: 95fa85766eb1c275897e5652a3e30e3fe2122e0584990fc64ad2b132c56ce2eb
+  sha256 src/lib/products.functions.ts: f9a89220622e02f8283889253227f593b07e9a62d026b04ac1240b1c8ee01647
+
+=== 1. arquivos tocados ===
+   M scripts/db/test-products-fk-conflict.ts
+   M src/test/products-fk-conflict.test.ts
+  ?? docs/evidence/d2-depth-pin-2026-09-20/
+  total: 3
+  fora do escopo declarado: 0 (esperado 0)
+
+=== 2. o runtime nao foi tocado (ASSERTADO) ===
+  FK_CAUSE_CHAIN_LIMIT == 4: 1 (esperado 1)
+  products.functions.ts no diff? 0 (esperado 0)
+
+=== 3. credenciais herdadas no ambiente ===
+  variaveis de credencial herdadas: 0 (esperado 0)
+
+=== 4. secrets audit ===
+  SECRETS_EXIT=0
+
+=== 5. varredura do diff por padroes de segredo ===
+  linhas suspeitas no diff: 0
+
+=== 6. H-9 e containers (ASSERTADO) ===
+  listeners na 5432 (H-9): 0 (esperado 0)
+  containers efemeros deste WP: 0 (esperado 0)
+
+=== 7. nenhum push acidental ===
+  origin/main: 9724d2c73b269d0a0199ea305308f3237b38fa09
+  origin/develop: 524ec542d069f04132342ca276b1809468b0e75c
+  commits locais a frente de origin/develop nesta branch: 0
+
+S7 GUARD: OK (nenhum veto)
+S7_EXIT=0

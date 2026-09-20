@@ -1,0 +1,367 @@
+diff --git a/scripts/db/test-products-fk-conflict.ts b/scripts/db/test-products-fk-conflict.ts
+index ac423fe..89eb300 100644
+--- a/scripts/db/test-products-fk-conflict.ts
++++ b/scripts/db/test-products-fk-conflict.ts
+@@ -36,8 +36,13 @@ const testFile = "src/test/products-fk-conflict.test.ts";
+  * menos casos que o contrato, **todos passando**, sai 0 e o passo ficaria verde
+  * com a cobertura encolhida em silêncio. Medido em 2026-09-19: arquivo com 1
+  * caso que passa ⇒ `1 < 13` e exit 1.
++ *
++ * Subiu de 13 para 15 em 2026-09-20 com o `F-D2-depth-pin`, que acrescentou os
++ * dois casos de fronteira da cadeia de `cause`. O piso tem de acompanhar a
++ * contagem do arquivo: um piso que fica para trás permite apagar em silêncio
++ * exactamente a prova que ele existe para proteger.
+  */
+-const MIN_TOTAL_TESTS = 13;
++const MIN_TOTAL_TESTS = 15;
+ 
+ /** Resumo do reporter JSON do vitest (só o que este passo lê). */
+ interface VitestSummary {
+@@ -102,7 +107,7 @@ async function main(): Promise<void> {
+     );
+     console.log(
+       `prova de banco (${testFile}) contra 127.0.0.1: ${summary.numPassedTests} passed ` +
+-        `(${summary.numTotalTests}), 0 skipped — admin=${new URL(adminUrl).host}`,
++        `(${summary.numTotalTests}), ${summary.numPendingTests} skipped — admin=${new URL(adminUrl).host}`,
+     );
+   } finally {
+     rmSync(scratch, { recursive: true, force: true });
+diff --git a/src/test/products-fk-conflict.test.ts b/src/test/products-fk-conflict.test.ts
+index c9474cc..e0c66c7 100644
+--- a/src/test/products-fk-conflict.test.ts
++++ b/src/test/products-fk-conflict.test.ts
+@@ -181,7 +181,32 @@ describe("mapeamento FK 23503 → CONFLICT (WP-C4-1)", () => {
+     });
+   });
+ 
+-  it("profundidade: um 23503 em depth=4 fica fora do limite e é relançado como veio", async () => {
++  it("fronteira: um 23503 no último elo inspecionado (depth=3) ainda é encontrado", async () => {
++    const deep = wrapCause(drizzleWrappedError("23503", HISTORY_INGREDIENT_FK), 2);
++    const error = await invokeDelete(
++      deleteIngredient,
++      INGREDIENT,
++      contextFor(failingDeleteTransaction(deep)),
++    ).then(
++      () => null,
++      (reason: unknown) => reason,
++    );
++    expect(error).toMatchObject({
++      code: "CONFLICT",
++      status: 409,
++      cause: deep,
++      message: HISTORY_MESSAGE,
++    });
++  });
++
++  it("fronteira: um 23503 em depth=4 (o primeiro elo fora do limite) é relançado como veio", async () => {
++    const deep = wrapCause(drizzleWrappedError("23503", HISTORY_INGREDIENT_FK), 3);
++    await expect(
++      invokeDelete(deleteIngredient, INGREDIENT, contextFor(failingDeleteTransaction(deep))),
++    ).rejects.toBe(deep);
++  });
++
++  it("profundidade: um 23503 em depth=5 fica bem fora do limite e é relançado como veio", async () => {
+     const deep = wrapCause(drizzleWrappedError("23503", HISTORY_INGREDIENT_FK), 4);
+     await expect(
+       invokeDelete(deleteIngredient, INGREDIENT, contextFor(failingDeleteTransaction(deep))),
+--- arquivos nao rastreados ---
+### docs/evidence/d2-depth-pin-2026-09-20/README.md
+# WP3 `F-D2-depth-pin` — a fronteira de profundidade da cadeia de `cause`
+
+**Work package:** `F-D2-depth-pin` (Bloco 3, terceiro na ordem canônica)
+**Fato-fonte:** `docs/evidence/agent-state/QUEUE.md:84`
+**Base:** `524ec542d069f04132342ca276b1809468b0e75c`
+**Branch:** `mission/wp3-depth-pin`
+
+---
+
+## 1. Sumário
+
+O mapeamento de violação de chave estrangeira percorre a cadeia de `cause` até um limite
+(`FK_CAUSE_CHAIN_LIMIT`). A suíte exercitava o caso **dentro** do limite e um caso **muito fora**,
+mas não o **par de fronteira** — o último elo inspecionado e o primeiro que o laço não dá. Com
+isso, a suíte era indiferente entre um limite de 3 e um limite de 4: qualquer edição futura poderia
+mover a constante em silêncio, e é exactamente para **parar** que um limite de profundidade existe.
+
+Este WP acrescenta os dois casos de fronteira, corrige um rótulo que dizia um número diferente do
+que media, e **sobe o piso de cardinalidade do runner** de 13 para 15 para que os casos novos não
+possam ser apagados em silêncio. **A constante não foi tocada** — o WP pina a fronteira, não a move.
+
+## 2. O que muda
+
+### 2.1 Os dois casos novos, e o par que eles formam
+
+| caso novo                                                                              | `wrapCause` | índice do 23503 | espera                                             | falha se…                 |
+| -------------------------------------------------------------------------------------- | ----------- | --------------- | -------------------------------------------------- | ------------------------- |
+| `fronteira: um 23503 no último elo inspecionado (depth=3) ainda é encontrado`          | `2`         | **3**           | CONFLICT/409, `cause: deep`, mensagem de histórico | o limite **cair** para 3  |
+| `fronteira: um 23503 em depth=4 (o primeiro elo fora do limite) é relançado como veio` | `3`         | **4**           | `rejects.toBe(deep)`                               | o limite **subir** para 5 |
+
+A aritmética que os situa: o laço `for (let depth = 0; depth < FK_CAUSE_CHAIN_LIMIT; depth += 1)`
+inspeciona os índices **0 a 3**; e `drizzleWrappedError` devolve um `DrizzleQueryError` **sem
+`code`** cuja `.cause` é o `DatabaseError` **com** `code = '23503'`, de modo que
+`wrapCause(drizzleWrappedError(...), n)` deixa o SQLSTATE no índice **n+1**.
+
+### 2.2 O rótulo corrigido
+
+O caso que existia dizia `depth=4` e media **5** (`wrapCause(..., 4)` ⇒ índice 5). Passou a dizer o
+que mede: `profundidade: um 23503 em depth=5 fica bem fora do limite e é relançado como veio`. Um
+caso de teste cujo nome afirma um número que ele não mede é um documento que mente — na mesma
+família que esta rodada vem combatendo.
+
+### 2.3 O piso de cardinalidade
+
+`scripts/db/test-products-fk-conflict.ts:40` — `MIN_TOTAL_TESTS` subiu de **13** para **15**, com o
+comentário explicando por quê. O piso existe desde o `F-D2-runner-failopen` para que apagar casos
+seja detectado: um arquivo com menos casos que o contrato, **todos passando**, sairia 0 e deixaria o
+passo verde com a cobertura encolhida em silêncio. Um piso que fica para trás permite apagar em
+silêncio exactamente a prova que ele existe para proteger — subir junto é **consequência direta** da
+adição, não emenda de ocasião.
+
+## 3. Evidência
+
+### 3.1 A falsificação de fronteira — a prova central
+
+`bash .artifacts/zz-wp3-falsifica.sh` → `.artifacts/wp3-falsifica.log`, `FALSIFICA_EXIT=0`:
+
+| corrida                                           | resultado                                                                | leitura                                                                                                |
+| ------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| suite **nova**, limite **4** (real)               | `Test Files 1 passed (1)` · `Tests 11 passed \| 4 skipped (15)` · EXIT=0 | verde                                                                                                  |
+| suite **nova**, limite **3** (mutado)             | `Tests 1 failed \| 10 passed \| 4 skipped (15)` · EXIT=1                 | falha **exactamente** em `fronteira: um 23503 no último elo inspecionado (depth=3) ainda é encontrado` |
+| suite **antiga** (do pai, 13 casos), limite **3** | `Tests 9 passed \| 4 skipped (13)` · EXIT=0                              | **não distingue**                                                                                      |
+
+O veredicto é **calculado** pelo script, e inclui a **identidade** do caso que falha, não só a
+contagem:
+
+```text
+  suite nova verde com limite 4:      1 (esperado 1)
+  suite nova com falhas no limite 3:  1 (esperado >= 1)
+  a falha e no caso de FRONTEIRA:     2 (esperado >= 1)
+  suite antiga verde com limite 3:    1 (esperado 1)
+  suite antiga NAO falhou:            0 (esperado 0)
+  VEREDITO: FRONTEIRA PINADA - a nova distingue 3 de 4, a antiga nao distinguia
+```
+
+Sem o par (nova reprova / antiga passa) com o **mesmo** limite mutado, "pinar a fronteira" seria só
+uma afirmação: o que prova o WP não é a suíte ficar vermelha, é ela ficar vermelha **onde a antiga
+ficava verde**. O limite foi restaurado e conferido **byte a byte**
+(`f9a89220622e02f8283889253227f593b07e9a62d026b04ac1240b1c8ee01647` antes e depois).
+
+**Uma primeira corrida deste script saiu com `FALSIFICA_EXIT=1` e a evidência certa** — os `grep` de
+veredicto procuravam `Tests 15 passed` quando a saída é `11 passed | 4 skipped (15)`, com o total
+entre parênteses. Um script cujo **veredicto** está errado enquanto a **evidência** está certa é a
+mesma família de artefato que mente; as asserções foram corrigidas e a corrida repetida, e é a
+segunda que está selada.
+
+### 3.2 A bateria — `bash .artifacts/zz-wp3-verify.sh` → `.artifacts/wp3-verify.log`
+
+Container efêmero `wp3-pg` em `127.0.0.1:5438`, PostgreSQL **17.11**, `docker run rc=0`, pronto em 3 s.
+
+| verificação                              | resultado                                                                                                                                                                                              |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| runner com piso, contra o container      | `RUNNER_EXIT=0` · `Test Files 1 passed (1)` · **`Tests 15 passed (15)`** · `prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 15 passed (15), 0 skipped — admin=127.0.0.1:5438` |
+| **piso com dentes**: piso mutado para 16 | `PISO_EXIT=1` · `AssertionError: a prova de banco não produziu casos suficientes: 15 < 16 — … (fail-open, F-D2-runner-failopen)`; runner restaurado                                                    |
+| suíte direta                             | `VITEST_EXIT=0` · `Tests 15 passed (15)`                                                                                                                                                               |
+| matriz                                   | `MATRIX_EXIT=0` · `M-02 matrix is deterministic and up to date.` — **sem regenerar**                                                                                                                   |
+| a fronteira não moveu o runtime          | `FK_CAUSE_CHAIN_LIMIT: 203:const FK_CAUSE_CHAIN_LIMIT = 4;` · `products.functions.ts aparece no diff? 0`                                                                                               |
+| H-9                                      | `porta 5432 tocada? -> 0 listener(es)` **no início e no fim**                                                                                                                                          |
+
+Os **4 skipped** das corridas fora do runner são os casos gated por loopback, que só rodam quando há
+alvo de banco: `Boolean(adminUrl) && isLoopbackUrl(adminUrl) && …` é falso com as variáveis ausentes,
+e é por isso que a prova de banco de verdade vive no runner e no `env:` do job da CI, não em
+`npm run check`.
+
+## 4. Riscos e limites declarados
+
+| item                                                           | situação                                                                                                             |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| o valor `4` continua sendo uma escolha, não um número medido   | **declarado** — o WP pina a fronteira corrente; discuti-la é outro WP, com medição de cadeias reais do driver        |
+| o caso de fronteira poderia passar por outra via de mapeamento | mitigado: o `expect` é `toMatchObject` com `cause: deep` **e** a mensagem, não só o `code`                           |
+| a falsificação muta um arquivo de runtime                      | mitigada: `sed` de uma linha, restauro conferido por sha256, e a mutação **não** entra em nenhum commit              |
+| o piso subir acopla o runner à contagem do arquivo             | intencional — é o que dá dentes; toda adição futura de caso precisa subir o piso no mesmo commit                     |
+| `.artifacts/` fora do `ignores` do ESLint 9 flat config        | **declarado, não corrigido aqui** — já custou duas corridas de gate nesta rodada (WP1 e WP2); candidato a WP próprio |
+
+## 5. Arquivos tocados
+
+| arquivo                                   | mudança                                                                                                                                      |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/test/products-fk-conflict.test.ts`   | +2 casos de fronteira, 1 rótulo corrigido, `13 → 15` casos                                                                                   |
+| `scripts/db/test-products-fk-conflict.ts` | `MIN_TOTAL_TESTS` `13 → 15` + comentário                                                                                                     |
+| `docs/evidence/d2-depth-pin-2026-09-20/`  | este selo                                                                                                                                    |
+| `docs/evidence/agent-state/PROGRESS.md`   | journal (`L119` ▶ / `L120` ✔) — gravado em `develop` no commit de land, **não** nesta branch, para não conflitar com o `L119` que já está lá |
+
+**Fora do diff:** `src/lib/products.functions.ts` — conferido por `git status`.
+
+## 6. Como reproduzir
+
+```bash
+# a fronteira
+bash .artifacts/zz-wp3-falsifica.sh   # FALSIFICA_EXIT=0, veredicto calculado
+
+# a bateria (sobe e derruba o container efemero)
+bash .artifacts/zz-wp3-verify.sh      # VERIFY_EXIT=0
+
+# o gate do repositorio, sobre os bytes finais
+npm run check                          # CHECK_EXIT=0
+```
+
+## 7. S6 ADVERSARIAL
+
+_(preenchido após o veredicto)_
+### docs/evidence/d2-depth-pin-2026-09-20/SPEC.md
+# SPEC — WP3 `F-D2-depth-pin`
+
+**Work package:** `F-D2-depth-pin` (Bloco 3, terceiro na ordem canônica)
+**Fato-fonte:** `docs/evidence/agent-state/QUEUE.md:84`
+**Base:** `524ec542d069f04132342ca276b1809468b0e75c`
+**Branch:** `mission/wp3-depth-pin` · worktree `.worktree-wp3-depthpin`
+
+---
+
+## 1. Problema
+
+A fronteira de profundidade da cadeia de `cause` — quantos embrulhos o mapeamento de violação de
+chave estrangeira ainda atravessa antes de desistir — **não está fixada por nenhum teste**. A fila
+o descreve assim:
+
+> a fronteira de profundidade da cadeia de `cause` **não está pinada** por teste (o caso rotulado
+> `depth=4` mede `depth=5`; a suíte passaria com limite 3 ou 4)
+
+Um limite de profundidade existe para **parar** — é o que impede uma cadeia circular ou
+patologicamente longa de virar laço infinito ou busca sem fim. Uma constante de parada cuja
+fronteira não é exercitada é uma constante que qualquer edição futura pode mover **em silêncio**:
+nem o `tsc` nem a suíte notariam. Este WP pina a fronteira; **não** move o limite.
+
+## 2. Fato-fonte medido
+
+### 2.1 A implementação (leitura direta)
+
+`src/lib/products.functions.ts:203`
+
+```ts
+const FK_CAUSE_CHAIN_LIMIT = 4;
+
+function foreignKeyViolation(error: unknown): { constraint: string | null } | null {
+  let current: unknown = error;
+  for (let depth = 0; depth < FK_CAUSE_CHAIN_LIMIT; depth += 1) {
+    if (typeof current !== "object" || current === null) return null;
+    if ("code" in current && current.code === "23503") {
+      const { constraint } = current as { constraint?: unknown };
+      return { constraint: typeof constraint === "string" ? constraint : null };
+    }
+    if (!("cause" in current)) return null;
+    current = current.cause;
+  }
+  return null;
+}
+```
+
+O laço inspeciona os índices **0, 1, 2 e 3** da cadeia — quatro erros, o `error` de entrada
+incluído. O índice 4 nunca é olhado.
+
+### 2.2 A construção dos casos de teste (leitura direta)
+
+`src/test/products-fk-conflict.test.ts:105-112` — `wrapCause(error, count)` embrulha `error` em
+`count` erros genéricos, cada um com o anterior em `.cause`; `count = 0` devolve o próprio erro.
+
+`src/test/products-fk-conflict.test.ts:80-93` — `drizzleWrappedError(code, constraint)` devolve um
+`DrizzleQueryError` **sem `code`** cuja `.cause` é o `DatabaseError` **com** `code = '23503'`. Ou
+seja: no erro base, o SQLSTATE está no **índice 1**, não no 0.
+
+Consequência aritmética: `wrapCause(drizzleWrappedError(...), n)` deixa o SQLSTATE no índice
+**n+1**.
+
+### 2.3 Os dois casos que existem hoje
+
+| `it`                                                                | linha  | `wrapCause` | índice do 23503 | achado? | rótulo                  |
+| ------------------------------------------------------------------- | ------ | ----------- | --------------- | ------- | ----------------------- |
+| "o SQLSTATE em `depth=2` é encontrado com uma constraint a mais"    | `:165` | `1`         | 2               | **sim** | `depth=2` — **correto** |
+| "um 23503 em `depth=4` fica fora do limite e é relançado como veio" | `:184` | `4`         | 5               | não     | `depth=4` — **mede 5**  |
+
+### 2.4 A lacuna
+
+Os dois casos são **indiferentes ao valor do limite** dentro de uma faixa larga:
+
+| `FK_CAUSE_CHAIN_LIMIT` | índice 2 é achado? | índice 5 é achado? | suíte atual |
+| ---------------------- | ------------------ | ------------------ | ----------- |
+| 3                      | sim (2 < 3)        | não                | **verde**   |
+| 4 (hoje)               | sim                | não                | **verde**   |
+| 5                      | sim                | **sim**            | vermelha    |
+
+O limite só começa a ser sentido em 5 — e para baixo, só a partir de 2. Entre 3 e 4, a suíte é
+**cega**. O valor que ela deveria distinguir é o par de fronteira:
+
+- índice **3** (a última volta do laço) ⇒ **encontrado** — um limite 3 falharia aqui;
+- índice **4** (a primeira volta que o laço não dá) ⇒ **não encontrado** — um limite 5 falharia
+  aqui.
+
+Nenhum dos dois existe. A lacuna não é de cobertura de _linha_ (o `return null` final é alcançado
+pelo caso `depth=5`); é de **cobertura de fronteira**, que é a única que pinar valor.
+
+**Isto é hipótese, não fato medido** até a seção 5 §1 da bateria: a tabela acima é leitura de
+código, e a prova é mutar a constante e ver a suíte se comportar como previsto.
+
+## 3. Âncoras
+
+- Fila vigente: `docs/evidence/agent-state/QUEUE.md:84` e `:128` (`F-D2-depth-pin` +
+  `F-D2-runner-failopen`, este último **já landado** como TRILHO A — ver `5fba8e7`).
+- INV-009 (idempotência) — não se aplica: sem escrita.
+- A família de defeito já combatida nesta rodada: **cardinalidade não é identidade** (WP1 §8.4,
+  TRILHO C §2.1, WP2 §9). Aqui a lacuna é prima dela: **um caso que passa não é um limite
+  exercitado**.
+
+## 4. DoD
+
+- [ ] os dois casos de fronteira existem: índice 3 encontrado, índice 4 não encontrado
+- [ ] o caso existente rotulado `depth=4` **ou** é corrigido para `depth=5`, **ou** passa a ser o
+      caso do índice 4 — o rótulo nunca diz um número diferente do que ele mede
+- [ ] a suíte **nova reproduz** a suíte **antiga** contra o código real (`FK_CAUSE_CHAIN_LIMIT`
+      inalterado em 4): nenhum caso novo passa por acidente
+- [ ] **falsificação de fronteira:** com `FK_CAUSE_CHAIN_LIMIT = 3` a suíte **nova reprova** e a
+      **antiga continuaria verde** — é o que prova que a fronteira passou a estar pinada
+- [ ] `npm run check` exit 0 sobre os bytes finais
+- [ ] `m02:matrix:check` verde **sem regenerar** a matriz
+- [ ] `check:bundle` byte-idêntico ao WP2 (`473230` minified / `assets/index-eXg04t5H.js: 237694`)
+- [ ] **`FK_CAUSE_CHAIN_LIMIT` continua 4** — o WP pina, não move
+- [ ] `src/lib/products.functions.ts` **não** aparece no diff
+
+## 5. Testes
+
+Acrescentar a `src/test/products-fk-conflict.test.ts`, dentro do `describe("mapeamento FK 23503 →
+CONFLICT (WP-C4-1)")`:
+
+1. **"fronteira: um 23503 no último elo inspecionado (depth=3) ainda é encontrado"** —
+   `wrapCause(drizzleWrappedError("23503", HISTORY_INGREDIENT_FK), 2)`, esperando CONFLICT/409 com
+   `cause: deep` e `message: HISTORY_MESSAGE`. Falha se o limite baixar para 3.
+2. **"fronteira: um 23503 em depth=4 (o primeiro elo fora do limite) é relançado como veio"** —
+   `wrapCause(drizzleWrappedError("23503", HISTORY_INGREDIENT_FK), 3)`, esperando
+   `rejects.toBe(deep)`. Falha se o limite subir para 5.
+3. **correção de rótulo** — o caso `:184` deixa de dizer `depth=4` e diz o que mede (`depth=5`), ou
+   é absorvido pelo caso 2; a escolha fica registrada no README do selo.
+
+Os três são **aditivos**: nenhum caso existente é enfraquecido, e os dois `it`s atuais continuam
+valendo como estão (salvo o rótulo).
+
+## 6. Riscos
+
+| risco                                                                                  | por que é baixo                                                               |
+| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| mexer no teste e não no produto não muda comportamento                                 | é exatamente o objetivo: o WP pina uma fronteira existente                    |
+| o caso 1 pode passar por motivo errado (o erro ser mapeado por outra via)              | o `expect` é `toMatchObject` com `cause: deep` **e** `message`, não só `code` |
+| a falsificação com limite 3 pode reprovar por outro motivo (erro de tipo, por exemplo) | a bateria registra a **mensagem** da falha, não só o exit code                |
+| a suíte nova pode "provar" a fronteira com um caso vacuamente verdadeiro               | o caso 2 assere `rejects.toBe(deep)` — identidade do objeto, não forma        |
+
+## 7. Rollback
+
+Descartar a branch e o worktree. O WP não toca runtime, schema, migration nem configuração: o diff
+é de um único arquivo de teste mais a prosa do selo. Nada fica em `develop` antes do Gate C.
+
+## 8. Fora de escopo
+
+- **mudar `FK_CAUSE_CHAIN_LIMIT`** — o WP pina o valor corrente; discuti-lo é outro WP, com
+  medição de cadeias reais do driver.
+- `products-fk-conflict.test.ts` já tem, do TRILHO A, o piso de cardinalidade
+  (`MIN_TOTAL_TESTS = 13`) e, do WP2, nenhuma mudança. O piso **sobe** com os casos novos — isso é
+  consequência, não objetivo.
+- `F-D1-raw-sha` (`QUEUE.md:88`) segue com o MAESTRO/ESCRIVÃO.
+- A fricção recorrente do `.artifacts/` fora do `ignores` do ESLint 9 flat config, que custou duas
+  corridas de gate nesta rodada, fica **declarada** e não é consertada aqui.
