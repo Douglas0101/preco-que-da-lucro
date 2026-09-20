@@ -39,6 +39,38 @@ function run(args: string[]) {
   });
 }
 
+function runIn(cwd: string, args: string[]) {
+  return spawnSync(process.execPath, [script, ...args], {
+    cwd,
+    encoding: "utf8",
+    timeout: 30_000,
+  });
+}
+
+/** Repo git temporário e autocontido: a ancestralidade não depende do histórico do repo real. */
+function makeGitRepo(): { dir: string; first: string; second: string } {
+  const dir = mkdtempSync(join(tmp, "git-"));
+  const git = (...args: string[]) => {
+    const result = spawnSync("git", args, { cwd: dir, encoding: "utf8", timeout: 30_000 });
+    if (result.status !== 0) {
+      throw new Error(`git ${args.join(" ")} falhou: ${result.stderr}`);
+    }
+    return result.stdout.trim();
+  };
+  git("init", "-q");
+  git("config", "user.email", "test@example.test");
+  git("config", "user.name", "test");
+  writeFileSync(join(dir, "a.txt"), "1\n");
+  git("add", "a.txt");
+  git("commit", "-q", "-m", "first");
+  const first = git("rev-parse", "HEAD");
+  writeFileSync(join(dir, "a.txt"), "2\n");
+  git("add", "a.txt");
+  git("commit", "-q", "-m", "second");
+  const second = git("rev-parse", "HEAD");
+  return { dir, first, second };
+}
+
 describe("m02-seal — manifesto e não-vacuidade", () => {
   it("selo real (SPEC + README + capturas) gera e verifica o manifesto", () => {
     const dir = sealFixture("ok", {
@@ -152,33 +184,37 @@ describe("m02-seal — manifesto e não-vacuidade", () => {
 
 describe("m02-seal — ancestralidade offline (formato do L133)", () => {
   it("claim verdadeira passa e é reconhecida", () => {
+    const { dir: repo, first, second } = makeGitRepo();
     const dir = sealFixture("ancestral", { "SPEC.md": "a\n", "README.md": "b\n" });
-    expect(run(["--dir", dir, "--write"]).status).toBe(0);
+    expect(runIn(repo, ["--dir", dir, "--write"]).status).toBe(0);
     writeFileSync(
       join(tmp, "ancestral.md"),
-      "Medido: `git merge-base --is-ancestor a7f1e4a c9d1740` → exit 0.\n",
+      `Medido: \`git merge-base --is-ancestor ${first} ${second}\` → exit 0.\n`,
     );
-    const result = run(["--dir", dir, "--ancestry", join(tmp, "ancestral.md")]);
+    const result = runIn(repo, ["--dir", dir, "--ancestry", join(tmp, "ancestral.md")]);
+    expect(result.stderr).toBe("");
     expect(result.status).toBe(0);
   });
 
-  it("claim invertida reprova", () => {
+  it("claim invertida reprova (objetos existem: o vermelho é da relação, não da ausência)", () => {
+    const { dir: repo, first, second } = makeGitRepo();
     const dir = sealFixture("ancestral-falsa", { "SPEC.md": "a\n", "README.md": "b\n" });
-    expect(run(["--dir", dir, "--write"]).status).toBe(0);
+    expect(runIn(repo, ["--dir", dir, "--write"]).status).toBe(0);
     writeFileSync(
       join(tmp, "ancestral-falsa.md"),
-      "`git merge-base --is-ancestor c9d1740 a7f1e4a` seria falso.\n",
+      `\`git merge-base --is-ancestor ${second} ${first}\` seria falso.\n`,
     );
-    const result = run(["--dir", dir, "--ancestry", join(tmp, "ancestral-falsa.md")]);
+    const result = runIn(repo, ["--dir", dir, "--ancestry", join(tmp, "ancestral-falsa.md")]);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("ancestralidade falsa");
   });
 
   it("arquivo sem nenhuma claim reprova (0 = 0)", () => {
+    const { dir: repo } = makeGitRepo();
     const dir = sealFixture("ancestral-vazio", { "SPEC.md": "a\n", "README.md": "b\n" });
-    expect(run(["--dir", dir, "--write"]).status).toBe(0);
+    expect(runIn(repo, ["--dir", dir, "--write"]).status).toBe(0);
     writeFileSync(join(tmp, "ancestral-vazio.md"), "sem comando de ancestralidade aqui.\n");
-    const result = run(["--dir", dir, "--ancestry", join(tmp, "ancestral-vazio.md")]);
+    const result = runIn(repo, ["--dir", dir, "--ancestry", join(tmp, "ancestral-vazio.md")]);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("nenhuma declaracao de ancestralidade");
   });
