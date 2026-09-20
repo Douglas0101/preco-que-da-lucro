@@ -2169,4 +2169,22 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   (R0b) com S6 e ratificação MAESTRO ⇒ segue **150 D · 23 P · 12 NS · 2 UNV**.
 - **Registro no journal:** `L128` (intenção) e `L129` (resultado).
 
-  Latest state marker parent = `6a0fad95b757ed2316e3797c81d4ccf2b1975e6f`,
+### WP-R3 — forense da citação de CI + item 15 + contract lint + calibração (S9 — landado)
+
+- **O que era:** a citação de CI do WP-R2 apontava para `35484327532` (de `1aad70c`, anterior); os
+  runs reais (`35512525965`/`35512525992`) existiam e eram verdes em `c9d1740`. Merge
+  `4be7b2a77a08d11f27161b7f373c3a83236db69b` (parent `ad05428`), branch `mission/r3-forensics`,
+  commit `256e9c5`.
+- **O que foi feito:** item 15 do checklist (run atado ao commit selado); guard
+  `scripts/m02-work-package-guard.mjs` (node-only, `--template`, coluna de origem pelo header,
+  degenerados rejeitados) ligado ao `check`, ao `verify` do `ui-stack` e ao `ci-light`; análise da
+  Fase 0 persistida; calibração do S6 (REJECTED e UNVERIFIABLE alcançáveis).
+- **Prova:** errata com `headSha` conferido (`ci-binding`); 4 casos de falsificação do guard com
+  scratch versionado; calibração com discriminação por linha de veredicto; `npm run check` exit 0;
+  S6 adversarial **0 REJECTED · 0 UNVERIFIABLE · 2 CORRECTED · 11 N**, todos tratados antes do selo.
+- **Selo versionado:** `docs/evidence/wp-r3-forensics-2026-09-20/` (20 arquivos).
+- **Placar: inalterado** — correção de contrato fora do denominador ⇒
+  **150 D · 23 P · 12 NS · 2 UNV**.
+- **Registro no journal:** `L130` (intenção), `L131` (errata) e `L132` (resultado).
+
+  Latest state marker parent = `4be7b2a77a08d11f27161b7f373c3a83236db69b`,
