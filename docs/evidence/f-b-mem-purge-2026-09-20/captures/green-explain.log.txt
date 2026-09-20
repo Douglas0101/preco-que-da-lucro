@@ -1,0 +1,10 @@
+products.list (listagem ativa por tenant): OK
+  antes : ->  Bitmap Heap Scan on products  (cost=4.31..19.14 rows=1 width=309) (actual time=0.092..0.480 rows=2000 loops=1) | Execution Time: 1.238 ms
+  depois: ->  Index Scan using products_tenant_active_idx on products  (cost=0.28..8.29 rows=1 width=309) (actual time=0.024..0.455 rows=2000 loops=1) | Execution Time: 1.315 ms
+purchasePrice.latest (último preço por insumo): OK
+  antes : ->  Bitmap Heap Scan on purchase_price_history  (cost=6.54..837.72 rows=2 width=266) (actual time=1.879..13.589 rows=10 loops=1) | Execution Time: 13.675 ms
+  depois: ->  Index Scan Backward using purchase_price_history_tenant_ingredient_valid_idx on purchase_price_history  (cost=0.41..12.45 rows=2 width=266) (actual time=0.013..0.015 rows=2 loops=1) | Execution Time: 0.071 ms
+dashboard.productIngredients (insumos por produto): OK
+  antes : Bitmap Heap Scan on product_ingredients  (cost=4.49..81.08 rows=1 width=286) (actual time=1.243..1.244 rows=0 loops=1) | Execution Time: 1.273 ms
+  depois: Index Scan using product_ingredients_tenant_product_idx on product_ingredients  (cost=0.28..8.30 rows=1 width=286) (actual time=0.011..0.011 rows=0 loops=1) | Execution Time: 0.023 ms
+Evidência gravada em docs/evidence/explain-critical-queries-2026-09-20.md

@@ -1,0 +1,29 @@
+[01:47:58] === revisao examinada nesta fase ===
+  HEAD: 47d39a936f12961a2ff9922de5e1a319f49c8ea0
+  sha256 scripts/db/purge-fixtures.ts: f7cfb14474979d44e89916b40b410c1fb1afc49bff879a03d20f0e27d2fb01f8
+  sha256 scripts/e2e/seed-auth.ts: cbdb10f482c13bbf794c4092fb7df10ed7a1f5462d6dd7ea322360896361b781
+  sha256 scripts/db/explain-evidence.ts: 23d56dc3e75296f268caa578fff79c20104dea58bc4afd1bc00d16b9d248c55b
+  sha256 scripts/db/test-backfill.ts: 92bf2117f48d9830f914d698388d4e103c291e51f65ca78e52cf7f6881c646f4
+  sha256 scripts/db/test-auth-integration.ts: fe04693c9488fefe638ea4c6360b67a37cc1f812285a15f741a5ed4a02798c0c
+  sha256 scripts/db/test-ai-budget.ts: 50eb570fe0455189e05e062312544fef5aa1965b54c4adfcda4e9e8f015b8ca7
+[01:47:58] === GREEN: confere a precondicao de estado (o RED tem de ter rodado) ===
+  trigger probe_trail: 1 (esperado 1)
+  linhas de trilha antes do GREEN: 18 (esperado >= 1)
+[01:47:58] === FASE green: 5 caminhos ===
+[01:47:58] --- seed-auth
+  seed-auth EXIT=0 · ocorrencias de 23503: 0
+[01:47:59] --- explain
+  explain EXIT=0 · ocorrencias de 23503: 0
+[01:48:06] --- backfill
+  backfill EXIT=0 · ocorrencias de 23503: 0
+[01:48:09] --- auth-integ
+  auth-integ EXIT=0 · ocorrencias de 23503: 0
+[01:48:11] --- ai-budget
+  ai-budget EXIT=0 · ocorrencias de 23503: 0
+[01:48:13] === RESUMO green ===
+  seed-auth: EXIT=0 · 23503=0
+  explain: EXIT=0 · 23503=0
+  backfill: EXIT=0 · 23503=0
+  auth-integ: EXIT=0 · 23503=0
+  ai-budget: EXIT=0 · 23503=0
+GREEN: OK (5/5 exit 0 sem 23503)

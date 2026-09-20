@@ -1,0 +1,51 @@
+=== S7 GUARD — WP4 F-B-mem-purge ===
+HEAD: 47d39a936f12961a2ff9922de5e1a319f49c8ea0
+branch: mission/wp4-mem-purge
+data: 2026-09-20T01:52:38Z
+
+=== IDENTIDADE do que foi examinado (nao cardinalidade) ===
+  bytes do artefato examinado: 29438
+  sha256 do artefato examinado: 689a2d8f86b47566a49ac8b1f1223169acc10ec24568d2de25792ddc15c6b80b
+  sha256 scripts/db/purge-fixtures.ts: f7cfb14474979d44e89916b40b410c1fb1afc49bff879a03d20f0e27d2fb01f8
+  sha256 scripts/e2e/seed-auth.ts: cbdb10f482c13bbf794c4092fb7df10ed7a1f5462d6dd7ea322360896361b781
+  sha256 scripts/db/explain-evidence.ts: 23d56dc3e75296f268caa578fff79c20104dea58bc4afd1bc00d16b9d248c55b
+  sha256 scripts/db/test-backfill.ts: 92bf2117f48d9830f914d698388d4e103c291e51f65ca78e52cf7f6881c646f4
+  sha256 scripts/db/test-auth-integration.ts: fe04693c9488fefe638ea4c6360b67a37cc1f812285a15f741a5ed4a02798c0c
+  sha256 scripts/db/test-ai-budget.ts: 50eb570fe0455189e05e062312544fef5aa1965b54c4adfcda4e9e8f015b8ca7
+
+=== 1. arquivos tocados ===
+   M scripts/db/explain-evidence.ts
+   M scripts/db/purge-fixtures.ts
+   M scripts/db/test-ai-budget.ts
+   M scripts/db/test-auth-integration.ts
+   M scripts/db/test-backfill.ts
+   M scripts/e2e/seed-auth.ts
+  ?? docs/evidence/f-b-mem-purge-2026-09-20/
+  total: 7
+  fora do escopo declarado: 0 (esperado 0)
+
+=== 2. runtime/schema/manifests intocados (ASSERTADO) ===
+  src/** + drizzle/** + package*.json no diff: 0 (esperado 0)
+
+=== 3. credenciais herdadas no ambiente ===
+  variaveis de credencial herdadas: 0 (esperado 0)
+
+=== 4. secrets audit ===
+  SECRETS_EXIT=0
+
+=== 5. varredura do diff por padroes de segredo ===
+  linhas suspeitas no diff: 1
+  --- as linhas, para inspecao ---
+    151: import { hashPassword } from "../../src/server/auth/password.server";
+
+=== 6. H-9 e containers (ASSERTADO) ===
+  listeners na 5432 (H-9): 0 (esperado 0)
+  containers efemeros deste WP: 0 (esperado 0)
+
+=== 7. nenhum push acidental ===
+  origin/main: 9724d2c73b269d0a0199ea305308f3237b38fa09
+  origin/develop: 47d39a936f12961a2ff9922de5e1a319f49c8ea0
+  commits locais a frente de origin/develop nesta branch: 0
+
+S7 GUARD: OK (nenhum veto)
+S7_EXIT=0
