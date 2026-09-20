@@ -1,0 +1,293 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index 707e42b..cae90b8 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -61,6 +61,12 @@
+ - `npm run db:test` roda **17** suítes em cadeia (`check-migration-classes`, `test-migrations`, `test-concurrency`, `test-auth-integration`, `test-oauth-boundary`, `test-tool-security`, `test-sql-injection`, `test-chat-semantics`, `test-ai-budget`, `test-rum-persistence`, `test-rate-limit-burst`, `test-outbox`, `test-backfill`, `test-memory`, `test-products-fk-conflict`, `test-product-contracts`, `test-reconcile-ai-usage`); rode-as sempre contra um **container PG17 efêmero** — o container `:5432` pode conter dado não-fixture e os guards fail-closed recusam higiene/rollback nele.
+ - O uso de IA **sem medição** é reconciliado por `npm run db:reconcile-ai-usage` (marca `reconciliation_failed` de forma persistida e **retém** a reserva); devolver o orçamento é decisão humana, via `npm run db:release-unknown-reservations -- --tenant <uuid> --usage-id <uuid> --confirm` (dry-run por padrão). Ver `docs/runbooks/reconcile-ai-usage.md`.
+ 
++## Work packages (contrato de prova)
++
++- Todo work package segue o template `docs/evidence/_templates/work-package.md`: `SPEC.md` (S1) + `README.md`/selo (S5) + `captures/*.txt` + `MANIFEST.sha256`, com o **checklist anti-vacuoso demonstrado item a item** antes do S6 adversarial — 14 itens: controle negativo, fronteira nas duas direções, identidade (não cardinalidade), proibido exit-code-only, proibido sleep fixo, sem valor degenerado na identidade, precondição de estado compartilhado, sentinela real por cenário, fingerprint de revisão, `checked === discovered`, S6 de contexto limpo, falha alta/fail-closed, isolamento de bancada assertado e todo check impresso com gate+captura.
++- **Taxonomia de veredicto:** **CORR** = *claim* corrigida pelo S6; **N** = defeito novo encontrado (pode existir com `0 CORR`); "correções forçadas" = CORR + N corrigidos. Os dois números vão **nomeados** no journal — contar só CORR subnotifica o custo do S6. Os bounds do SDD (`bound 2`) limitam **rodadas de correção de um WP**, não a quantidade de claims corrigidas num veredicto.
++- O S6 é lane adversarial de **contexto limpo** com `0 REJECTED`; `UNVERIFIABLE` exige declaração no selo e **não** conta como verificado; os N **corrigidos** ficam na §7 do selo e os **declarados** na §Riscos, nunca omitidos.
++
+ ## Session boot and progress journal
+ 
+ - `docs/evidence/agent-state/PROGRESS.md` is the **session handoff**: one file, pointers only (paths, SHAs, timestamps, env **names**), never secret values and never long content. A new model reads it and resumes without agent memory.
+--- arquivos nao rastreados ---
+### docs/evidence/_templates/work-package.md
+# Template de Work Package (SDD) — `docs/evidence/_templates/work-package.md`
+
+> **Para que serve:** é o molde de todo WP. O autor copia a estrutura para
+> `docs/evidence/<slug>-<data>/SPEC.md` (plano) e `README.md` (resultado/selo), preenche as
+> seções e **demonstra o checklist anti-vacuoso** item a item antes do S6 adversarial.
+> **Regra dura:** um WP sem o checklist demonstrado volta do S6 — a checklist não é prosa
+> decorativa, é o contrato de prova. Origem: os defeitos de harness que o S6 forçou nos
+> WPs 1–5 (ver apêndice A).
+
+---
+
+## 1. Seções obrigatórias do SPEC (S1)
+
+| seção          | conteúdo mínimo                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------------- |
+| **Fato-fonte** | caminho e linha da fila/veredicto que abriu o WP (`QUEUE.md:NN`, veredicto, medição)               |
+| **Problema**   | o defeito/lacuna **medido**, com arquivo:linha e trecho verbatim; o que o plano mestre diz do item |
+| **Contrato**   | a invariante que passa a valer, em termos falsificáveis (o que tem de ser verdade após o fix)      |
+| **Mudanças**   | lista fechada de arquivos e mudanças; o que **não** muda                                           |
+| **DoD**        | critérios binários, cada um com o comando/artefato que o prova                                     |
+| **Testes**     | RED/GREEN planejados e a **falsificação** (o par que reprova quando o defeito existe)              |
+| **Riscos**     | o que pode dar falso verde, o que fica declarado e não corrigido                                   |
+| **Rollback**   | como desfazer (branch/worktree/migration down) e o que não fica em `develop` antes do Gate C       |
+
+## 2. Seções obrigatórias do README (S5, claim)
+
+- Sumário do que mudou e por quê; tabela de arquivos com sha256 (ou ponteiro para `captures/hashes.txt`).
+- **Evidência** por fase (RED, GREEN, bateria, gate, E2) com ponteiro para `captures/` e os números
+  medidos.
+- **Riscos e limites declarados** (defeitos novos declarados, com razão).
+- Seção **S6 ADVERSARIAL** preenchida (claims × veredicto, CORR tratadas na §7, N declarados na §4).
+- `MANIFEST.sha256` com `checked === discovered`.
+
+## 3. Checklist anti-vacuoso (obrigatório — demonstrar item a item)
+
+Marque **como cada item foi satisfeito**, com ponteiro (arquivo:linha, captura, hash). Um item não
+aplicável exige justificativa; "não se aplica" não substitui prova.
+
+| #   | item                                       | como demonstrar                                                                                                                      | origem (S6)                      |
+| --- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
+| 1   | **Controle negativo obrigatório**          | a prova central tem um par que **reprova** quando o defeito existe; o par roda os **bytes do pai** ou mutação restaurada por sha256  | WP3 C5/N1; WP5 C2/N1             |
+| 2   | **Fronteira nas duas direções**            | ao pinar limite/constante, o teste distingue os **dois** lados (descer e subir) e a suíte antiga passa nos dois                      | WP3 C4                           |
+| 3   | **Identidade, não cardinalidade**          | o veredicto nomeia **o caso** que falhou, ancorado na linha de falha, e exige queda **única**; contagem igual não distingue revisões | WP3 C5/N1; TRILHO C §2.1; WP2 §9 |
+| 4   | **Proibido exit-code-only**                | verde não se decide só por `exit 0`; exige **zero do sintoma** (ex.: `23503 == 0`, requisição ausente)                               | WP4 C5/N2                        |
+| 5   | **Proibido sleep fixo como sincronização** | espera por **marcador observável** (ex.: `__reactContainer$`); sem o sinal, a medição **falha alto**                                 | WP5 C2/N1                        |
+| 6   | **Sem valor degenerado na identidade**     | a asserção compara valor **serializável e distinto** nos dois estados; nada que serialize para `undefined`/constante                 | WP5 C2/N2                        |
+| 7   | **Precondição de estado compartilhado**    | fases que compartilham estado **assertam** a precondição (container, trigger, linhas semeadas); fase isolada não passa vazio         | WP4 N3                           |
+| 8   | **Sentinela real por cenário**             | a prova usa dado semeado de fato (id fixo/trigger/linha real) por cenário, não inferência de lista                                   | WP4 C4; WP4 SPEC §5              |
+| 9   | **Fingerprint de revisão**                 | cada fase fixa `HEAD` + sha256 dos bytes; o RED **asserta** que roda os bytes do pai                                                 | WP4 N5                           |
+| 10  | **`checked === discovered`**               | o selo declara o conjunto descoberto e o listado; manifesto conferido; sem allowlist de legado                                       | AGENTS.md; TRILHO C §2.1; WP2 §9 |
+| 11  | **S6 adversarial de contexto limpo**       | veredicto por claims com `0 REJECTED`; `UNVERIFIABLE` exige declaração na §4 e **não** conta como verificado; CORR tratado           | WPs 1–5                          |
+| 12  | **Falha alta (fail-closed)**               | nenhum `try/catch` compensatório converte erro em sucesso vazio; guards/runner/piso reprovam com mensagem nomeada                    | WP3 N2/N3; INV-013               |
+| 13  | **Isolamento de bancada assertado**        | `:5432` intocada, container efêmero removido, zero credencial herdada e `origin/main` conferido — **assertado**, não só impresso     | WP3 N4; WP4 N7; WP5 N7           |
+| 14  | **Todo check impresso tem gate e captura** | exits de scaffold/cleanup viram asserção; as capturas exigidas pelo DoD (gate, bateria, H-9) existem no selo                         | WP4 N4; WP5 N7                   |
+
+## 4. Taxonomia de veredicto (fixar no journal do land)
+
+- **CORR** = _claim_ do autor corrigida pelo S6 (o claim dizia A, o fato dizia B).
+- **N** = **defeito novo** encontrado pelo S6, latente ou material (pode existir com `0 CORR`).
+- **"Correções forçadas"** = CORR + N corrigidos antes do selo. Contar só CORR subnotifica o custo do
+  S6; contar os dois sem separar confunde auditoria. Usar sempre os dois números, nomeados.
+- **Bounds do SDD** (S6→S5 e S6→S3) limitam **rodadas de correção de um WP**, não a quantidade de
+  claims corrigidas num veredicto: um veredicto com 3 CORR (WP1) não viola bound nenhum; viola se o
+  mesmo WP voltar ao S6 além da segunda rodada.
+- **Onde cada coisa mora no selo:** CORR tratadas na §7 (S6 ADVERSARIAL); N corrigidos na §7; N
+  **declarados** (não corrigidos) na §Riscos.
+
+## Apêndice A — rastreabilidade do checklist (por que cada item existe)
+
+| item | defeito real que o item pega                                                                                                                         |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | WP3: o veredicto da falsificação aceitava qualquer falha desde que o nome do caso aparecesse; WP5: a metade `window.va` não tinha par que reprovasse |
+| 2    | WP3: a suíte era cega para limite 3 e 5; só a fronteira nos dois lados pina o valor                                                                  |
+| 3    | WP3: o grep contava o nome do caso em qualquer linha (inclusive `✓`); qualquer falha alheia passava                                                  |
+| 4    | WP4: o veredicto GREEN decidia só por `exit==0`; um caminho que engolisse 23503 passaria verde                                                       |
+| 5    | WP5: `waitForTimeout(1500)` como única margem; hidratação mais lenta ⇒ o gate divergente não aparecia na janela                                      |
+| 6    | WP5: `expect(window.va).toBeUndefined()` era inerte porque `page.evaluate` não serializa funções                                                     |
+| 7    | WP4: o GREEN assumia "mesmo estado do RED" sem asserir container/trigger/trilha; num banco limpo passaria vazio                                      |
+| 8    | WP4: a trilha existia de fato (pré-semeio por id fixo + trigger de probe), não numa lista                                                            |
+| 9    | WP4: o instrumento rodava o working tree; a honestidade do RED dependia de forense de stack trace                                                    |
+| 10   | TRILHO C §2.1 (guard comparava cardinalidade, não identidade); WP2 §9 (manifesto verde sobre a revisão errada, conforme o relato do próprio selo)    |
+| 11   | Todos: o S6 de contexto limpo pegou o que a suíte do autor não pegava (a suíte testava as strings escolhidas pelo autor)                             |
+| 12   | WP3: o runner encadeado saía 0 com a prova de banco apagada (F-D2-runner-failopen)                                                                   |
+| 13   | WP3 N4 (H-9/runtime impressos sem asserção); WP4 N7 (container residual); WP5 N7 (portas sem captura)                                                |
+| 14   | WP4 N4 (exits do scaffold só ecoados); WP5 N7 (captura de gate/cleanup ausente)                                                                      |
+
+## Apêndice B — layout do selo
+
+```
+docs/evidence/<slug>-<data>/
+├── SPEC.md                 # plano (S1), com o checklist preenchido na §3
+├── README.md               # resultado (S5), com S6 preenchido
+├── MANIFEST.sha256         # checked === discovered (ferramenta do selo)
+└── captures/               # *.txt: logs, scripts, auditoria, hashes — nunca bytes reformatados
+```
+
+O journal (`docs/evidence/agent-state/PROGRESS.md`) registra `▶` antes da mutação e `✔`/`✘` depois,
+com o sha do merge no commit de land.
+### docs/evidence/wp-template-2026-09-20/README.md
+# WP-R2 — checklist anti-vacuoso no template de work package
+
+**Work package:** `WP-R2` (Fase 0 do plano pós-Bloco 3, primeira da ordem aprovada)
+**Fato-fonte:** veredictos S6 selados dos WPs 3–5 (ponteiros na §3) + análise do Bloco 3 × Plano
+Mestre (2026-09-20, a ser persistida em `docs/evidence/analise-avancada-...` no WP-R0)
+**Base:** `1aad70cbc` (develop pós-fecho do Bloco 3)
+**Branch:** `mission/r2-wp-checklist`
+
+---
+
+## 1. Problema
+
+O S6 adversarial virou **carga estrutural**: os defeitos que ele força a corrigir são, quase todos,
+de **identidade do harness de prova**, não de código de produto. Só entre os WPs 3–5, o recorte de
+**7 defeitos materiais de harness** está na §3; pela taxonomia do template (CORR + N corrigidos),
+o custo total dos três WPs foi **17 correções forçadas — 3 CORR + 14 N corrigidos** (WP3: 2 CORR +
+3 N; WP4: 0 CORR + 5 N; WP5: 1 CORR + 6 N), além dos N declarados. Sem um contrato de prova no WP,
+cada rodada paga as mesmas lições de novo.
+
+## 2. O que muda
+
+| #   | arquivo                                    | mudança                                                                                                                 |
+| --- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | `docs/evidence/_templates/work-package.md` | template do WP (SPEC S1 + README S5 + layout do selo) com o **checklist anti-vacuoso de 14 itens** e origens rastreadas |
+| 2   | `AGENTS.md`                                | seção **Work packages (contrato de prova)**: template obrigatório, checklist, taxonomia CORR×N, bounds e onde N mora    |
+| 3   | `docs/evidence/wp-template-2026-09-20/`    | este selo (SPEC + README + captures + MANIFEST)                                                                         |
+
+Hashes dos bytes finais (R_b, pós-correções do S6; conferidos pela captura `hashes.txt`):
+
+| arquivo                                        | sha256                                                             |
+| ---------------------------------------------- | ------------------------------------------------------------------ |
+| `docs/evidence/_templates/work-package.md`     | `e358638d06d05dd8e7440435806db746b859f778b92ee05d93b784bd6e97548b` |
+| `AGENTS.md`                                    | `26dae6c13ad6daf91cf8b8eb18b713cc19b7326d9b7ed32198189775e6e0e034` |
+| `docs/evidence/wp-template-2026-09-20/SPEC.md` | `177767d88ac5cb5d4262342054bdd971d9cf28467d12e5594f1af14c8c5791e3` |
+
+**Nenhuma mudança de código.** O diff é documental: `docs/**` + `AGENTS.md`.
+
+## 3. Validação — o checklist tem dentes (falsificação)
+
+O critério não é "o template existe": é **o checklist pegar os defeitos reais que o S6 pegou**.
+Rastreabilidade fiel, item a item, com a citação do veredicto:
+
+| defeito forçado pelo S6                                       | item do checklist | citação (veredicto selado)                                                |
+| ------------------------------------------------------------- | ----------------- | ------------------------------------------------------------------------- |
+| WP3 — identidade da falsificação aceitava qualquer falha (N1) | **#1**, **#3**    | `d2-depth-pin-2026-09-20/captures/adversarial-wp3-verdict.md.txt` (C5/N1) |
+| WP3 — restauro do runner passava com `PISO=-1` (N3)           | **#12**           | idem (N3)                                                                 |
+| WP4 — GREEN decidia só por `exit==0` (N2)                     | **#4**            | `f-b-mem-purge-2026-09-20/captures/adversarial-wp4-verdict.md.txt` (N2)   |
+| WP4 — GREEN sem precondição de estado (N3)                    | **#7**            | idem (N3)                                                                 |
+| WP4 — revisão dos bytes não fixada (N5)                       | **#9**            | idem (N5)                                                                 |
+| WP5 — sleep fixo como sincronização (N1)                      | **#5**            | `f-b1-e2e-2026-09-20/captures/adversarial-wp5-verdict.md.txt` (C2/N1)     |
+| WP5 — asserção `window.va` inerte (N2)                        | **#6**            | idem (C2/N2)                                                              |
+
+**Controle positivo (sem falso positivo):** os itens #2, #8, #10, #11, #13 e #14 foram satisfeitos
+pelos próprios WPs 3–5 **depois** das correções — fronteira nas duas direções (falsificação final do
+WP3), sentinela real (pré-semeio + trigger do WP4), `checked === discovered` (selos 3–5),
+`0 REJECTED`/`0 UNVERIFIABLE` (os três veredictos), isolamento assertado (S7 da bateria do WP4 e do
+WP5) e exits/capturas com gate (correções N4/N7 dos dois). O checklist não inventa exigência que um
+WP correto não cumpra: ele nomeia o que os WPs corretos já fizeram.
+
+**Contraprova de vacuidade:** no WP3 o par de falsificação **existia**, mas o critério de aceitação
+era fail-open (item #3); no WP5 a metade `window.va` não tinha par que reprovasse (item #6) e a
+detecção só valia sob o timing local (item #5). Os itens #1 e #3 existem para exigir, no ato da
+escrita, o que o S6 teve de exigir depois.
+
+## 4. Gate local e isolamento
+
+`npm run check` exit 0 sobre os bytes finais (captura `gate-local.log.txt`), incluindo
+`format:check` dos `.md` novos. Isolamento assertado pelo S7 (`s7-guard.log.txt`): sem credencial
+herdada, `:5432` com 0 listeners, `origin/main` = `9724d2c`, escopo apenas `AGENTS.md` +
+`docs/**`.
+
+## 5. Riscos e limites declarados
+
+| item                                                                       | situação                                                                                                     |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| o checklist é prosa — não é gate automático                                | **declarado**: o enforcement é humano/S6; automatizar exigiria interpretar artefatos e viraria linter frágil |
+| o template não impede reincidência sozinho                                 | declarado: ele move a lição para o autor; o S6 continua sendo a lane que reprova o que passar                |
+| templates irmãos (performance-evidence, SPEC-CARDS) têm contratos próprios | declarado: este template é para **work packages** do SDD; os outros seguem onde estão definidos              |
+| N6 do S6 (lacunas de cobertura: secrets/boundaries)                        | declarado: `m02:secrets-audit`/`m02:boundaries` são gate global do `AGENTS.md` e não entram no checklist     |
+| `.artifacts/` fora do `ignores` do ESLint 9 flat config                    | segue declarado (WPs 1–5)                                                                                    |
+
+## 6. Como reproduzir
+
+```bash
+# o template (14 itens + apêndices) e o pointer
+sed -n '1,140p' docs/evidence/_templates/work-package.md
+grep -n 'Work packages' -A4 AGENTS.md
+
+# gate
+npm run check
+```
+
+## 7. S6 ADVERSARIAL
+
+**Revisão auditada (R_a):** template `5f901796…`, `AGENTS.md` `6a832b8a…`, README `a318704c…`.
+**Método:** auditoria read-only por **subagente de contexto limpo** (substituição declarada da lane
+`.pi/delegate`), veredicto selado verbatim em `captures/adversarial-r2-verdict.md.txt`.
+
+**Veredicto:** **5 CONFIRMED · 2 CORRECTED (C2, C3) · 0 REJECTED · 0 UNVERIFIABLE.** O S6 validou os
+manifests dos WPs 3–5 (16/16, 36/36, 22/22) e confirmou que os 12 itens originais tinham dentes
+sobre os 7 defeitos mapeados — mas provou que **o próprio pacote contava errado** e que o selo não
+cumpria o template que introduz.
+
+**Defeitos novos e tratamento (correções na revisão final R_b):**
+
+| achado                                                                     | tratamento                                                                                                 |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **N1** — "7/6/0" sem aritmética; o 7º nunca nomeado; total real 17         | §1 reescrita: recorte de 7 material de harness **na §3** + total pela taxonomia (3 CORR + 14 N)            |
+| **N2** — rastreabilidade §3 × apêndice inconsistente (#1 e #2)             | origens corrigidas: #1 = WP3 C5/N1 + WP5 C2/N1; #2 = WP3 C4 (sem N1); #3 = WP3 C5/N1                       |
+| **N3** — "canário de memória" sem lastro                                   | rótulo trocado por **sentinela real** (pré-semeio por id fixo + trigger de probe)                          |
+| **N4** — citação de "WP1 N3" (refutado no próprio selo do WP1)             | removida; #10 fica com TRILHO C §2.1 + WP2 §9 (relato do próprio selo, declarado)                          |
+| **N5** — "bound 2" contradito pelo WP1 e sem consequência                  | §4 do template e AGENTS: bounds limitam **rodadas de correção de um WP**, não claims num veredicto         |
+| **N6** — lacunas (H-9/isolamento, exits, capturas)                         | checklist vai a **14 itens**: #13 isolamento assertado e #14 todo check impresso com gate e captura        |
+| **N7** — item #11 aceitava `UNVERIFIABLE`                                  | #11 passa a exigir `UNVERIFIABLE` declarado na §4 e não contado como verificado                            |
+| **N8** — o selo não cumpria o template (sem SPEC/captures/MANIFEST/hashes) | **corrigido**: `SPEC.md` incluído, captures + `MANIFEST.sha256` no selo, tabela de hashes na §2            |
+| **N9** — risco de leitura como gate automático; ambigüidade de onde N mora | AGENTS explicitou: N **corrigidos** na §7, **declarados** na §Riscos; §5 declara que não é gate automático |
+
+As correções **não afrouxam** nenhum item do checklist: as duas de taxonomia (#11/#5 do template) e
+as duas de cobertura (#13/#14) o deixam mais estrito. O SPEC do WP-R2 foi escrito na abertura e
+versionado no selo.
+### docs/evidence/wp-template-2026-09-20/SPEC.md
+# SPEC — WP-R2 (checklist anti-vacuoso no template de work package)
+
+**Fato-fonte:** análise do Bloco 3 × Plano Mestre (2026-09-20), achado "o S6 está caçando harness
+vacuoso, não bugs"; veredictos S6 selados dos WPs 3–5 (ponteiros na §3 do README).
+**Base:** `1aad70cbc` · **Branch:** `mission/r2-wp-checklist` · **Worktree:** `.worktree-r2-wp-checklist`
+
+## 1. Problema
+
+Os S6 dos WPs 3–5 forçaram 17 correções (3 CORR + 14 N), das quais 7 são defeitos **materiais de
+harness** e 0 são de código de produto. Sem contrato de prova no WP, o S6 paga as mesmas lições a
+cada rodada.
+
+## 2. Contrato
+
+- Todo WP segue `docs/evidence/_templates/work-package.md` com o **checklist anti-vacuoso de 14
+  itens** demonstrado item a item antes do S6.
+- Taxonomia fixada: **CORR** = claim corrigida; **N** = defeito novo; "correções forçadas" = CORR +
+  N corrigidos; bounds do SDD limitam rodadas de correção, não claims corrigidas; N corrigidos na
+  §7 do selo, declarados na §Riscos.
+- O checklist **não** é gate automático — o enforcement é humano/S6 (declarado).
+
+## 3. Mudanças
+
+1. `docs/evidence/_templates/work-package.md` (novo; 14 itens + apêndices A/B).
+2. `AGENTS.md` (nova seção `## Work packages (contrato de prova)`).
+3. Este selo (`SPEC.md` + `README.md` + `captures/` + `MANIFEST.sha256`).
+
+Não muda: nenhum arquivo de código, dependência, schema ou CI.
+
+## 4. DoD
+
+- [x] template com o checklist de 14 itens e origens rastreadas (apêndice A)
+- [x] pointer no `AGENTS.md` sem contradizer regras vigentes e sem prometer automação
+- [x] **validação por rastreabilidade**: cada um dos 7 defeitos de harness mapeado a itens, com
+      citação do veredicto selado; controle positivo nos itens cobertos pelos bytes finais (README §3)
+- [x] `npm run check` exit 0 (captura `gate-local.log.txt`)
+- [x] S7 assertado (isolamento, credenciais, H-9, escopo, refs; `s7-guard.log.txt`)
+- [x] `checked === discovered` no `MANIFEST.sha256`
+
+## 5. Testes / validação
+
+O WP não tem código a testar; a falsificação é a **rastreabilidade**: o checklist tem de pegar os
+defeitos reais que o S6 pegou (tabela §3 do README). O S6 adversarial audita o pacote e a
+fidelidade das citações — foi o que encontrou as imprecisões que a revisão final corrigiu (§7).
+
+## 6. Riscos
+
+- Prosa não impede reincidência sozinha — declarado; o S6 continua sendo a lane de reprovação.
+- Cobertura parcial: `m02:secrets-audit`/`m02:boundaries` são gate global e ficam fora do checklist.
+- Automatizar o checklist viraria linter frágil — declaradamente fora de escopo.
+
+## 7. Rollback
+
+Descartar a branch e o worktree. O diff é `AGENTS.md` + `docs/**`; nada em `develop` antes do Gate C.
