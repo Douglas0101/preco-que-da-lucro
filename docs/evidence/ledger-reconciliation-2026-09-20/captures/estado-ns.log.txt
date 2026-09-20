@@ -1,0 +1,43 @@
+== 15.1 service+policy ==
+src/server/services/memory.policy.ts
+src/server/services/memory.service.ts
+== 15.2 tabelas ai_* ==
+drizzle/0017_past_gideon.sql
+drizzle/0018_polite_living_tribunal.sql
+drizzle/0019_tiresome_robin_chapel.sql
+drizzle/0017_past_gideon.sql:CREATE TABLE "ai_memories"
+drizzle/0017_past_gideon.sql:CREATE TABLE "ai_memory_sources"
+drizzle/0018_polite_living_tribunal.sql:CREATE TABLE "ai_memory_conflicts"
+drizzle/0018_polite_living_tribunal.sql:CREATE TABLE "ai_memory_versions"
+drizzle/0019_tiresome_robin_chapel.sql:CREATE TABLE "ai_memory_access_log"
+drizzle/0019_tiresome_robin_chapel.sql:CREATE TABLE "ai_memory_policies"
+== 15.3 policy ==
+25
+== 15.4 proveniencia ==
+21
+== 15.5 FTS ==
+0
+== 15.6 vetor ==
+0
+== 19.6 metricas de memoria ==
+0
+== 22.4 purge idempotencia (testes nao contam) ==
+2
+== 25.4 dependabot ==
+9a473a2 2026-09-15 chore(security): Dependabot repo-local (§25.4)
+== 25.5/24.13 dedup ==
+6:- **itens cobertos:** `25.1` (Actions pinadas por SHA) · `25.2` (permissions mínimas) · `25.3` (secrets não expostos em PR não confiável) · `25.4` (Dependabot) · `25.5` (Dependency Review — mesmo item de `24.13`, contado uma vez no placar) · `25.6` (CodeQL) · `25.7` (secret scanning)
+14:- Divergência relevante para leitura do placar: `25.5` e `24.13` são o **mesmo** item (o plano lista Dependency Review em §24 e §25); este documento o classifica uma única vez (`25.5`).
+== 29.1 M-06 ==
+3:**Status:** DRAFT
+== 21.3 T3 ==
+22:7. **`SERIALIZABLE` e retry de transação são T3** (fora desta rodada), assim como o CAS de estado da conversa — `persistConversationState` segue sem CAS declarado (dívida registrada, não silenciada).
+36:| `SERIALIZABLE` global                 | Adiada (T3): exige retry/40001 e revisão de todas as transações compostas.                         |
+1
+== 15.7 retrieval ==
+2
+== 25.5 estado ==
+| `25.5` | Dependency Review                        | **settings do GitHub** (pré-requisito de feature)                
+== 25.6/25.7 estado ==
+| `25.6` | CodeQL "se compatível com plano"         | **misto: repo-local se o repo for público; settings/plano se for
+| `25.7` | secret scanning "se compatível"          | **settings do GitHub**                                           

@@ -1,0 +1,35 @@
+=== S7 GUARD — WP-R0 reconciliacao do ledger ===
+HEAD: c9d1740cbb9a576876ed0fd83f4e1c8bea4054cb
+branch: mission/r0-ledger-recon
+data: 2026-09-20T13:20:48Z
+
+sha256 do artefato examinado: fc4806ff3a487c6f2532bd00513e55e610064516f58d94332c946d032743a164
+  sha256 docs/evidence/analise-avancada-bloco3-plano-mestre-2026-09-20.md: 54d47799f4f527f478d1d223141c9a1582767b59dfe8e983e9695d4927524cda
+  sha256 docs/evidence/ledger-reconciliation-2026-09-20/README.md: 4f0b1eaafaf922fa61c9b0d730a47b851adf1a8d102b5ea1a2a56ae5f6daacd0
+  sha256 docs/evidence/ledger-reconciliation-2026-09-20/SPEC.md: cc58ec6f167c93da601a3e40f2eceeda8435bb39fbd0dfcf6a7d9aa751c2dfc0
+
+=== 1. escopo ===
+  ?? docs/evidence/analise-avancada-bloco3-plano-mestre-2026-09-20.md
+  ?? docs/evidence/ledger-reconciliation-2026-09-20/
+  fora do escopo: 0 (esperado 0)
+  codigo/AGENTS/manifests no diff: 0 (esperado 0)
+
+=== 2. placar intocado (ASSERTADO) ===
+  docs/evidence/agent-state/QUEUE.md no diff: 0 (esperado 0)
+  EXECUTION-STATE-PROGRAM.md no diff: 0 (esperado 0)
+
+=== 3. credenciais herdadas ===
+  0 (esperado 0)
+
+=== 4. secrets audit ===
+  SECRETS_EXIT=0
+
+=== 5. H-9 ===
+  5432=0 (esperado 0)
+
+=== 6. refs ===
+  origin/main: 9724d2c73b269d0a0199ea305308f3237b38fa09
+  origin/develop: c9d1740cbb9a576876ed0fd83f4e1c8bea4054cb
+
+S7 GUARD: OK
+S7_EXIT=0
