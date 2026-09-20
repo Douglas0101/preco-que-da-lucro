@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# S7 GUARD do WP2 (F-D1-gate-ux). Fail-closed: mede e recusa o que nao pode afirmar.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+
+FAIL=0
+RECUSAS=""
+
+echo "=== identidade ==="
+HEAD_SHA=$(git rev-parse HEAD)
+echo "HEAD: $HEAD_SHA"
+echo "branch: $(git rev-parse --abbrev-ref HEAD)"
+echo "base deste worktree: $(git merge-base HEAD origin/develop 2>/dev/null || echo '(sem origin/develop)')"
+
+echo
+echo "=== H-9: producao intocada ==="
+L5432=$(ss -ltn 2>/dev/null | grep -c ':5432')
+echo "listeners na 5432 (H-9): $L5432"
+[ "$L5432" -eq 0 ] || { echo "VETO: listener na 5432"; FAIL=1; }
+DCONTAINERS=$(docker ps --filter "name=wp2" --format '{{.Names}}' 2>/dev/null | wc -l)
+echo "containers efemeros deste WP: $DCONTAINERS"
+
+echo
+echo "=== fronteira de arquivos: so o que o WP declara ==="
+git status --short
+TOUCHED=$(git status --short | awk '{print $2}' | grep -v '^\.artifacts/$' | sort)
+echo "--- tocados ---"
+echo "$TOUCHED"
+ESPERADO="docs/evidence/d1-gate-ux-2026-09-19/
+scripts/lib/m02-matrix-drift.ts
+scripts/m02-matrix.ts
+src/test/m02-matrix-drift.test.ts"
+echo "--- esperados ---"
+echo "$ESPERADO"
+INTRUSO=0
+while IFS= read -r linha; do
+  [ -z "$linha" ] && continue
+  case "$linha" in
+    docs/evidence/d1-gate-ux-2026-09-19/|scripts/lib/m02-matrix-drift.ts|scripts/m02-matrix.ts|src/test/m02-matrix-drift.test.ts) ;;
+    *) echo "INTRUSO: $linha"; INTRUSO=1 ;;
+  esac
+done <<< "$(git status --short | sed 's/^...//' | grep -v '^\.artifacts/' | sort)"
+[ "$INTRUSO" -eq 0 ] || { RECUSAS="$RECUSAS arquivo-fora-do-escopo"; FAIL=1; }
+
+echo
+echo "=== credenciais herdadas ==="
+HERDADAS=$(env | grep -cE '^(NEON_|VERCEL|DATABASE_URL|DATABASE_ADMIN_URL|PG|GH_|GITHUB_|CLOUDFLARE|AWS_|STRIPE)' || true)
+echo "variaveis de credencial herdadas: $HERDADAS"
+[ "$HERDADAS" -eq 0 ] || { RECUSAS="$RECUSAS credencial-herdada"; FAIL=1; }
+for VAR in DATABASE_URL DATABASE_ADMIN_URL DATABASE_URL_UNPOOLED; do
+  VAL=$(printenv "$VAR" 2>/dev/null || echo "(ausente)")
+  echo "  $VAR = $VAL"
+done
+
+echo
+echo "=== secret audit ==="
+npm run m02:secrets-audit > .artifacts/wp2-s7-secrets.log 2>&1
+SECRETS_EXIT=$?
+tail -5 .artifacts/wp2-s7-secrets.log
+echo "SECRETS_EXIT=$SECRETS_EXIT"
+[ "$SECRETS_EXIT" -eq 0 ] || { RECUSAS="$RECUSAS secrets-audit"; FAIL=1; }
+
+echo
+echo "=== varredura GROSSA de segredo no diff (medida, nao conclusiva) ==="
+git diff > .artifacts/wp2-s7-diff.txt
+git diff --stat >> .artifacts/wp2-s7-diff.txt
+for f in scripts/lib/m02-matrix-drift.ts src/test/m02-matrix-drift.test.ts; do
+  cat "$f" >> .artifacts/wp2-s7-diff.txt
+done
+SUSPEITAS=$(grep -cE 'eyJ|sk-|ghp_|napi_|BEGIN [A-Z ]*PRIVATE KEY|password\s*[:=]' .artifacts/wp2-s7-diff.txt || true)
+echo "linhas suspeitas no diff: $SUSPEITAS"
+if [ "$SUSPEITAS" -gt 0 ]; then
+  echo "--- refinando: o que sao essas linhas? ---"
+  grep -nE 'eyJ|sk-|ghp_|napi_|BEGIN [A-Z ]*PRIVATE KEY|password\s*[:=]' .artifacts/wp2-s7-diff.txt || true
+fi
+
+echo
+echo "=== IDENTIDADE do que foi examinado (nao cardinalidade) ==="
+# Um guard que so reporta CONTAGENS nao consegue provar que examinou a revisao
+# atual: rodar sobre bytes diferentes produz as mesmas contagens. Foi assim que a
+# primeira versao deste log saiu IDENTICA depois das correcoes do S6 e o proprio
+# script de reselo a acusou. O hash abaixo e o que amarra a verificacao ao
+# artefato — mesma licao do guard do scanner (WP1) e do gerador do TRILHO C.
+echo "sha256 do artefato examinado: $(sha256sum .artifacts/wp2-s7-diff.txt | cut -d' ' -f1)"
+echo "bytes examinados: $(wc -c < .artifacts/wp2-s7-diff.txt)"
+for f in scripts/m02-matrix.ts scripts/lib/m02-matrix-drift.ts src/test/m02-matrix-drift.test.ts; do
+  if [ -f "$f" ]; then echo "sha256 $f: $(sha256sum "$f" | cut -d' ' -f1)"; fi
+done
+
+echo
+echo "=== o gate nao faz I/O no descritor? ==="
+grep -nE "^import|require\(" scripts/lib/m02-matrix-drift.ts || echo "(nenhum import)"
+echo "imports do descritor: $(grep -cE '^import' scripts/lib/m02-matrix-drift.ts)"
+
+echo
+echo "=== o gerador ainda escreve so no --generate? ==="
+grep -nE 'isEntrypoint|writeOutputs|checkOutputs' scripts/m02-matrix.ts | tail -6
+
+echo
+echo "=== o descritor decide exit code? ==="
+grep -n 'process.exit' scripts/lib/m02-matrix-drift.ts && echo "VETO: descritor decide exit" && FAIL=1 || echo "OK: nenhum process.exit no descritor"
+
+echo
+echo "=== VEREDITO ==="
+if [ "$FAIL" -eq 0 ]; then
+  echo "S7: GUARD OK — sem veto. Recusas declaradas:${RECUSAS:- nenhuma}"
+else
+  echo "S7: VETO ACIONADO — recusas:$RECUSAS"
+fi
+echo "S7_EXIT=$FAIL"
+exit "$FAIL"

@@ -2,7 +2,6 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, extname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import { describeMatrixDrift } from "./lib/m02-matrix-drift";
 import { isEntrypoint, transactionSites } from "./lib/m02-transaction-sites";
 
 type Overlay = {
@@ -347,16 +346,6 @@ function checkOutputs(outputs: ReturnType<typeof buildMatrix>) {
   const actualMatrix = existsSync(matrixPath) ? readFileSync(matrixPath, "utf8") : null;
   if (actualGenerated !== expectedGenerated || actualMatrix !== expectedMatrix) {
     console.error("M-02 matrix drift: execute npm run m02:matrix:generate and review the result.");
-    for (const line of describeMatrixDrift([
-      {
-        label: normalizedPath(generatedPath),
-        fromTree: expectedGenerated,
-        onDisk: actualGenerated,
-      },
-      { label: normalizedPath(matrixPath), fromTree: expectedMatrix, onDisk: actualMatrix },
-    ])) {
-      console.error(line);
-    }
     process.exitCode = 1;
     return;
   }

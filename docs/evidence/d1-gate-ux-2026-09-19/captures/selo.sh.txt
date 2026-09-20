@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# Selo do WP2 (F-D1-gate-ux): captures + MANIFEST.sha256.
+# Convencao `captures/` + `*.txt`: nem o ESLint nem o prettier processam .txt, e o
+# .gitignore nao engole (ao contrario de raw/ e de *.log). Ver WP1 e TRILHO A/C.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+
+SELO="docs/evidence/d1-gate-ux-2026-09-19"
+CAP="$SELO/captures"
+A=".artifacts"
+
+echo "=== 1. prepara captures/ ==="
+# DO ZERO, de proposito. Um `find` sobre o que ja esta no diretorio sela tambem
+# restos de corridas anteriores: a corrida 2 deixou `bateria.log.txt` (o log de
+# ANTES do S6) e a corrida 3 escreveu `bateria-antes-do-S6.log.txt` ao lado, mesma
+# coisa com outro nome — e o sem rotulo era o que parecia canonico. O que o selo
+# versiona tem de ser funcao do SCRIPT, nao do historico do diretorio.
+rm -rf "$CAP"
+mkdir -p "$CAP"
+
+echo "=== 2. instrumentos (o que mede) ==="
+copy() { if [ -f "$1" ]; then cp "$1" "$2" && echo "  $2 ($(wc -c < "$2") B)"; else echo "  AUSENTE: $1"; fi; }
+copy "$A/zz-wp2-verify.sh"        "$CAP/bateria.sh.txt"
+copy "$A/zz-wp2-falsifica.sh"     "$CAP/falsifica.sh.txt"
+copy "$A/zz-wp2-s7.sh"            "$CAP/s7-guard.sh.txt"
+copy "$A/zz-wp2-fechar.sh"        "$CAP/fechar.sh.txt"
+copy "$A/zz-wp2-seal.sh"          "$CAP/selo.sh.txt"
+copy "$A/zz-wp2-colhe-veredicto.py" "$CAP/colhe-veredicto.py.txt"
+copy "scripts/lib/m02-matrix-drift.ts"  "$CAP/m02-matrix-drift.ts.txt"
+copy "scripts/m02-matrix.ts"            "$CAP/m02-matrix.ts.txt"
+copy "src/test/m02-matrix-drift.test.ts" "$CAP/suite-m02-matrix-drift.ts.txt"
+
+echo "=== 2.1 a revisao do PAI, para comparacao ==="
+git show HEAD:scripts/m02-matrix.ts > "$CAP/m02-matrix-do-pai.ts.txt" 2>/dev/null \
+  && echo "  $CAP/m02-matrix-do-pai.ts.txt ($(wc -c < "$CAP/m02-matrix-do-pai.ts.txt") B)"
+
+echo "=== 3. logs (o que foi medido) ==="
+# REGRA: o log que vale e o da ULTIMA medicao. Os anteriores levam o sufixo
+# `-antes-do-S6` no nome, porque o codigo mudou DEPOIS deles. A corrida 2 deste
+# selo copiou `gate-local-2` e `verify-run1` como se fossem os finais: manifesto
+# 17/17 OK atestando a revisao ERRADA — o mesmo modo de falha que o projeto todo
+# combate, nascido dentro do proprio selo. Daqui em diante o nome diz a revisao.
+copy "$A/wp2-fechar.log"          "$CAP/fecho-final.log.txt"
+copy "$A/wp2-gate-local-3.log"    "$CAP/gate-local.log.txt"
+copy "$A/wp2-falsifica.log"       "$CAP/falsifica.log.txt"
+copy "$A/wp2-s7.log"              "$CAP/s7-guard.log.txt"
+copy "$A/wp2-s7-diff.txt"         "$CAP/s7-diff.txt"
+copy "$A/wp2-verify-run1.log"     "$CAP/bateria-antes-do-S6.log.txt"
+copy "$A/wp2-gate-local-2.log"    "$CAP/gate-local-2-antes-do-S6.log.txt"
+copy "$A/wp2-s7-antes-do-S6.log"  "$CAP/s7-guard-antes-do-S6.log.txt"
+copy "$A/wp2-gate-local.log"      "$CAP/gate-local-1-reprovado-em-format.log.txt"
+copy "$A/wp2-prettier.log"        "$CAP/prettier.log.txt"
+copy "$A/wp2-falsifica-run1.log"  "$CAP/falsifica-direcao-INVERTIDA.log.txt"
+
+echo
+echo "=== 3.2 armadilhas do .gitignore: nada do selo pode ser ignorado ==="
+RAW=$(find "$SELO" -path '*/raw/*' | wc -l)
+LOGS=$(find "$SELO" -name '*.log' | wc -l)
+echo "arquivos em raw/: $RAW"
+echo "arquivos *.log (nao .log.txt): $LOGS"
+[ "$RAW" -eq 0 ] || echo "  ATENCAO: raw/ e ignorado pelo .gitignore"
+[ "$LOGS" -eq 0 ] || echo "  ATENCAO: *.log e ignorado pelo .gitignore"
+
+echo
+echo "=== 3.5 normaliza formato dos .md do selo ANTES de selar ==="
+npx prettier --write "$SELO"/*.md > /dev/null 2>&1
+npx prettier --check "$SELO"/*.md
+PRETTIER_CHECK_EXIT=$?
+echo "PRETTIER_CHECK_EXIT=$PRETTIER_CHECK_EXIT"
+
+echo
+echo "=== 3.6 verificacao independente do selo ==="
+DESC=$(find "$SELO" -type f ! -name 'MANIFEST.sha256' | wc -l)
+echo "arquivos do selo (fora o manifesto): $DESC"
+IGNORADOS=0
+while IFS= read -r f; do
+  if git check-ignore -q "$f"; then echo "  IGNORADO PELO GIT: $f"; IGNORADOS=$((IGNORADOS + 1)); fi
+done <<< "$(find "$SELO" -type f)"
+echo "arquivos do selo ignorados pelo git: $IGNORADOS"
+[ "$IGNORADOS" -eq 0 ] || { echo "VETO: o selo nao seria versionado"; exit 1; }
+
+echo
+echo "=== 4. manifesto sha256 (caminhos REPO-relativos) ==="
+# O manifesto tem de ser conferivel DA RAIZ: `sha256sum -c` resolve os nomes pelo
+# CWD. Gerar de dentro do selo produz `./README.md`, e da raiz isso resolve para o
+# README DO REPOSITORIO — foi exatamente o que reprovou a corrida 1 (15 unreadable
+# + 1 checksum mismatch), e o veto fail-closed funcionou.
+find "$SELO" -type f ! -name 'MANIFEST.sha256' -print0 | sort -z | xargs -0 sha256sum > "$SELO/MANIFEST.sha256"
+LISTADOS=$(wc -l < "$SELO/MANIFEST.sha256")
+echo "descobertos=$DESC listados=$LISTADOS"
+if [ "$DESC" -eq "$LISTADOS" ]; then echo "checked === discovered: OK"; else echo "checked === discovered: DIVERGE"; exit 1; fi
+echo "--- os caminhos do manifesto sao repo-relativos? ---"
+head -2 "$SELO/MANIFEST.sha256"
+if grep -qvE "^[0-9a-f]{64}  $SELO/" "$SELO/MANIFEST.sha256"; then
+  echo "VETO: ha caminho fora de $SELO/ no manifesto"
+  exit 1
+fi
+echo "--- conferindo da raiz do repo ---"
+LC_ALL=C sha256sum -c "$SELO/MANIFEST.sha256" > "$A/wp2-seal-check.log" 2>&1
+CHECK=$?
+OK=$(grep -c ': OK$' "$A/wp2-seal-check.log" || true)
+BAD=$(grep -c ': FAILED$' "$A/wp2-seal-check.log" || true)
+echo "OK=$OK NAO-OK=$BAD (exit=$CHECK)"
+[ "$CHECK" -eq 0 ] || { echo "VETO: manifesto nao confere"; exit 1; }
+
+echo
+echo "=== 5. tamanho do selo ==="
+du -sh "$SELO"
+echo
+echo "SEAL_SCRIPT_EXIT=0"

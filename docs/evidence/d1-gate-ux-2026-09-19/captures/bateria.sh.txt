@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# Bateria do WP2 (F-D1-gate-ux). Mede e imprime; nao decide nada por si.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+
+FAIL=0
+
+echo "=== contexto ==="
+echo "branch = $(git rev-parse --abbrev-ref HEAD)"
+echo "HEAD_SHA = $(git rev-parse HEAD)"
+echo "node = $(node --version) / npm = $(npm --version)"
+echo "porta 5432 (H-9) tocada? -> $(ss -ltn 2>/dev/null | grep -c ':5432') listener(es)"
+
+echo
+echo "=== 0.5 normaliza formato ANTES de qualquer gate ==="
+npx prettier --write \
+  scripts/lib/m02-matrix-drift.ts scripts/m02-matrix.ts src/test/m02-matrix-drift.test.ts \
+  docs/evidence/d1-gate-ux-2026-09-19/*.md >/dev/null 2>&1
+npx prettier --check \
+  scripts/lib/m02-matrix-drift.ts scripts/m02-matrix.ts src/test/m02-matrix-drift.test.ts \
+  docs/evidence/d1-gate-ux-2026-09-19/*.md
+PRETTIER_EXIT=$?
+echo "PRETTIER_EXIT=$PRETTIER_EXIT"
+[ "$PRETTIER_EXIT" -eq 0 ] || FAIL=1
+
+echo
+echo "=== 1. suite do descritor ==="
+npx vitest run src/test/m02-matrix-drift.test.ts 2>&1 | tail -6
+VITEST_EXIT=${PIPESTATUS[0]}
+echo "VITEST_EXIT=$VITEST_EXIT"
+[ "$VITEST_EXIT" -eq 0 ] || FAIL=1
+
+echo
+echo "=== 2. suite do scanner (nao pode ter regredido) ==="
+npx vitest run src/test/m02-transaction-sites.test.ts 2>&1 | tail -6
+VITEST2_EXIT=${PIPESTATUS[0]}
+echo "VITEST2_EXIT=$VITEST2_EXIT"
+[ "$VITEST2_EXIT" -eq 0 ] || FAIL=1
+
+echo
+echo "=== 3. tsc ==="
+npx tsc --noEmit 2>&1 | tail -5
+TSC_EXIT=${PIPESTATUS[0]}
+echo "TSC_EXIT=$TSC_EXIT"
+[ "$TSC_EXIT" -eq 0 ] || FAIL=1
+
+echo
+echo "=== 4. matriz neutra (sem regenerar) ==="
+npm run m02:matrix:check 2>&1 | tail -2
+MATRIX_EXIT=${PIPESTATUS[0]}
+echo "MATRIX_EXIT=$MATRIX_EXIT"
+[ "$MATRIX_EXIT" -eq 0 ] || FAIL=1
+
+echo
+echo "=== 5. falsificacao do gate: dispara, nomeia, limpa ==="
+bash .artifacts/zz-wp2-falsifica.sh > .artifacts/wp2-falsifica.log 2>&1
+FALSIFICA_EXIT=$?
+echo "FALSIFICA_EXIT=$FALSIFICA_EXIT"
+grep -E 'GATE_EXIT=|EXIT_ANTES=|EXIT_DEPOIS=|PRIMEIRA_LINHA|counts\.|^      [+-] |^  docs/specs' .artifacts/wp2-falsifica.log
+[ "$FALSIFICA_EXIT" -eq 0 ] || FAIL=1
+# O gate TEM que ter disparado e TEM que ter voltado sozinho.
+grep -q 'GATE_EXIT=1' .artifacts/wp2-falsifica.log || { echo "FALHA: o gate nao disparou"; FAIL=1; }
+grep -q 'EXIT_DEPOIS=0' .artifacts/wp2-falsifica.log || { echo "FALHA: nao voltou a verde"; FAIL=1; }
+
+echo
+echo "=== 6. nenhum arquivo de sonda sobrou ==="
+git status --short
+
+echo
+echo "=== 7. a mensagem diz a direcao certa? (arquivo ADICIONADO aparece como +) ==="
+if grep -q '^      + src/lib/zzz-wp2-probe.functions.ts' .artifacts/wp2-falsifica.log; then
+  echo "DIRECAO: OK (sonda nova aparece como +)"
+else
+  echo "DIRECAO: ERRADA (sonda nova nao aparece como +)"; FAIL=1
+fi
+if grep -qE 'counts\.bffModules: 8 -> 9' .artifacts/wp2-falsifica.log; then
+  echo "CONTADOR: OK (8 -> 9, do disco para a arvore)"
+else
+  echo "CONTADOR: ERRADO"; FAIL=1
+fi
+
+echo
+if [ "$FAIL" -eq 0 ]; then
+  echo "RESUMO: PRETTIER=$PRETTIER_EXIT VITEST=$VITEST_EXIT VITEST2=$VITEST2_EXIT TSC=$TSC_EXIT MATRIX=$MATRIX_EXIT FALSIFICA=$FALSIFICA_EXIT"
+  echo "BATERIA WP2: OK"
+else
+  echo "RESUMO: PRETTIER=$PRETTIER_EXIT VITEST=$VITEST_EXIT VITEST2=$VITEST2_EXIT TSC=$TSC_EXIT MATRIX=$MATRIX_EXIT FALSIFICA=$FALSIFICA_EXIT"
+  echo "BATERIA WP2: REPROVADA"
+fi
+exit "$FAIL"

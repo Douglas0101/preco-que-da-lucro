@@ -1,0 +1,75 @@
+
+> check
+> npm run m02:lockfile-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle
+
+
+> m02:lockfile-guard
+> node scripts/m02-lockfile-guard.mjs
+
+{
+  "schema": "m02-lockfile-guard/1",
+  "ok": true,
+  "status": "pass",
+  "generatedAt": "2026-09-19T23:57:11.482Z",
+  "repo": "/home/douglas-souza/preco-que-d-main/.worktree-wp2-gateux",
+  "observed": {
+    "spec": "^0.31.10",
+    "lockSpec": "^0.31.10",
+    "lockResolvedVersion": "0.31.10",
+    "lockSha256": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124",
+    "headLockSha256": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124",
+    "installedVersion": "0.31.10"
+  },
+  "checks": [
+    {
+      "id": "package-json-devdep",
+      "status": "pass",
+      "detail": "spec '^0.31.10'"
+    },
+    {
+      "id": "lock-top-spec",
+      "status": "pass",
+      "detail": "lock '^0.31.10'"
+    },
+    {
+      "id": "lock-resolved",
+      "status": "pass",
+      "detail": "resolvido 0.31.10"
+    },
+    {
+      "id": "lock-sha256-head",
+      "status": "pass",
+      "detail": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124"
+    },
+    {
+      "id": "node-modules-installed",
+      "status": "pass",
+      "detail": "instalado 0.31.10"
+    }
+  ],
+  "reasons": [],
+  "hint": "git checkout -- package.json package-lock.json && npm ci --ignore-scripts && npm run m02:lockfile-guard"
+}
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix is deterministic and up to date.
+
+> check:ui-stack
+> node scripts/check-ui-stack.mjs
+
+UI stack check passed: shadcn/Base UI boundary and catalog are clean.
+
+> check:no-supabase-runtime
+> node scripts/check-no-supabase-runtime.mjs
+
+Gate de cutover: runtime sem Supabase e sem token em Web Storage.
+
+> format:check
+> prettier --check .
+
+Checking formatting...
+[warn] docs/evidence/d1-gate-ux-2026-09-19/SPEC.md
+[warn] Code style issues found in the above file. Run Prettier with --write to fix.
+CHECK_EXIT=1
