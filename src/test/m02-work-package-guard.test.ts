@@ -50,6 +50,13 @@ describe("guard do contrato de work package (falsificação em CI)", () => {
     expect(result.stderr).toContain("origem degenerada");
   });
 
+  it("origem degenerada de 5 caracteres reprova (pino do DEGENERATE, não do length)", () => {
+    const degenerate = realTemplate.replace("WP3 C5/N1; WP5 C2/N1", "?????");
+    const result = run(fixture("origem-interrogacoes.md", degenerate));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("origem degenerada");
+  });
+
   it("coluna extra no checklist reprova pela contagem de colunas", () => {
     const extra = realTemplate.replace(/(\| origem \(S6\)[^|]*\|)/, "$1 extra |");
     const result = run(fixture("coluna-extra.md", extra));

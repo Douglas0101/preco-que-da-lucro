@@ -2,7 +2,7 @@
 // Guard do contrato de work package (docs/evidence/_templates/work-package.md).
 //
 // Valida a ESTRUTURA do template: secoes obrigatorias, checklist anti-vacuoso com
-// 15 itens numerados, coluna de origem identificada pelo header (nao "a ultima
+// 16 itens numerados, coluna de origem identificada pelo header (nao "a ultima
 // coluna") e com conteudo rastreavel (nao degenerado), taxonomia CORR x N e o
 // layout do selo. Nao valida prosa nem conteudo de um WP especifico — o
 // enforcement de conteudo e humano/S6 (vide o proprio template).

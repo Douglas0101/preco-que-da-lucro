@@ -1,5 +1,13 @@
 import { spawnSync } from "node:child_process";
-import { appendFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  appendFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -92,6 +100,53 @@ describe("m02-seal — manifesto e não-vacuidade", () => {
     const result = run(["--dir", dir]);
     expect(result.status).toBe(2);
     expect(result.stderr).toContain("MANIFEST ausente");
+  });
+
+  it("--ancestry sem valor é erro de uso (fail-high, exit 2)", () => {
+    const dir = sealFixture("ancestry-sem-valor", { "SPEC.md": "a\n", "README.md": "b\n" });
+    expect(run(["--dir", dir, "--write"]).status).toBe(0);
+    const result = run(["--dir", dir, "--ancestry"]);
+    expect(result.status).toBe(2);
+    expect(result.stderr).toContain("--ancestry exige um valor");
+  });
+
+  it("--run sem valor é erro de uso (fail-high, exit 2)", () => {
+    const dir = sealFixture("run-sem-valor", { "SPEC.md": "a\n", "README.md": "b\n" });
+    expect(run(["--dir", dir, "--write"]).status).toBe(0);
+    const result = run(["--dir", dir, "--run"]);
+    expect(result.status).toBe(2);
+    expect(result.stderr).toContain("--run exige um valor");
+  });
+
+  it("MANIFEST com path duplicado reprova", () => {
+    const dir = sealFixture("manifesto-duplicado", { "SPEC.md": "a\n", "README.md": "b\n" });
+    expect(run(["--dir", dir, "--write"]).status).toBe(0);
+    const manifestPath = join(dir, "MANIFEST.sha256");
+    const original = readFileSync(manifestPath, "utf8");
+    const primeira = original.split("\n")[0];
+    const path = primeira.slice(66);
+    writeFileSync(manifestPath, `${"0".repeat(64)}  ${path}\n${original}`);
+    const result = run(["--dir", dir]);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("duplicado");
+  });
+
+  it("symlink no selo reprova (não é omitido em silêncio)", () => {
+    const dir = sealFixture("com-symlink", { "SPEC.md": "a\n", "README.md": "b\n" });
+    symlinkSync(join(dir, "SPEC.md"), join(dir, "link.md"));
+    const result = run(["--dir", dir, "--write"]);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("symlink");
+  });
+
+  it("MANIFEST aninhado reprova (só o da raiz do selo é o canônico)", () => {
+    const dir = sealFixture("manifesto-aninhado", { "SPEC.md": "a\n", "README.md": "b\n" });
+    expect(run(["--dir", dir, "--write"]).status).toBe(0);
+    mkdirSync(join(dir, "captures"), { recursive: true });
+    writeFileSync(join(dir, "captures", "MANIFEST.sha256"), "lixo\n");
+    const result = run(["--dir", dir]);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("aninhado");
   });
 });
 
@@ -193,6 +248,26 @@ describe("m02-seal — run@sha (puro)", () => {
             { name: "Configure isolated runtime", conclusion: "success" },
             { name: "Post Run actions/setup-node@x", conclusion: "success" },
             { name: "Stop containers", conclusion: "success" },
+          ],
+        },
+      ],
+    };
+    expect(countApplicableSteps(runJson)).toBe(0);
+  });
+
+  it("install (npm ci/npm install) não conta como check aplicável", () => {
+    const runJson = {
+      databaseId: 7,
+      headSha: commit,
+      conclusion: "success",
+      jobs: [
+        {
+          steps: [
+            {
+              name: "Run npm install --global --ignore-scripts npm@11.14.1",
+              conclusion: "success",
+            },
+            { name: "Run npm ci --ignore-scripts", conclusion: "success" },
           ],
         },
       ],

@@ -29,29 +29,60 @@ export function sha256(contents) {
 
 export function parseArgs(argv) {
   const args = { dir: undefined, write: false, ancestry: undefined, run: undefined };
+  const comValor = (flag, i) => {
+    const value = argv[i];
+    if (!value || value.startsWith("--")) return { error: `${flag} exige um valor` };
+    return { value };
+  };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === "--dir") args.dir = argv[++i];
-    else if (arg === "--write") args.write = true;
-    else if (arg === "--ancestry") args.ancestry = argv[++i];
-    else if (arg === "--run") args.run = argv[++i];
-    else return { error: `argumento desconhecido: ${arg}` };
+    if (arg === "--dir") {
+      const lido = comValor("--dir", ++i);
+      if (lido.error) return lido;
+      args.dir = lido.value;
+    } else if (arg === "--write") args.write = true;
+    else if (arg === "--ancestry") {
+      const lido = comValor("--ancestry", ++i);
+      if (lido.error) return lido;
+      args.ancestry = lido.value;
+    } else if (arg === "--run") {
+      const lido = comValor("--run", ++i);
+      if (lido.error) return lido;
+      args.run = lido.value;
+    } else return { error: `argumento desconhecido: ${arg}` };
   }
   if (!args.dir) return { error: "--dir exige um caminho" };
   return args;
 }
 
-export function discoverFiles(dir) {
-  const out = [];
+export function scanSelo(dir) {
+  const files = [];
+  const problemas = [];
+  const manifestRaiz = join(dir, MANIFEST);
   const visit = (atual) => {
     for (const entry of readdirSync(atual, { withFileTypes: true })) {
       const caminho = join(atual, entry.name);
-      if (entry.isDirectory()) visit(caminho);
-      else if (entry.isFile()) out.push(relative(process.cwd(), caminho).split(sep).join("/"));
+      const rel = relative(process.cwd(), caminho).split(sep).join("/");
+      if (entry.isSymbolicLink()) {
+        problemas.push(`symlink no selo: ${rel}`);
+        continue;
+      }
+      if (entry.isDirectory()) {
+        visit(caminho);
+        continue;
+      }
+      if (entry.name === MANIFEST && caminho !== manifestRaiz) {
+        problemas.push(`MANIFEST aninhado: ${rel}`);
+      }
+      if (entry.isFile()) files.push(rel);
     }
   };
   visit(dir);
-  return out.sort();
+  return { files: files.sort(), problemas };
+}
+
+export function discoverFiles(dir) {
+  return scanSelo(dir).files;
 }
 
 export function parseManifest(text) {
@@ -64,6 +95,7 @@ export function parseManifest(text) {
       falhas.push(`linha de manifesto invalida: "${linha}"`);
       continue;
     }
+    if (entries.has(m[2])) falhas.push(`path duplicado no MANIFEST: ${m[2]}`);
     entries.set(m[2], m[1]);
   }
   return { entries, falhas };
@@ -125,7 +157,7 @@ export function auditAncestry(text, { runAncestor }) {
 }
 
 const INFRA_STEP =
-  /^(Set up job|Initialize containers|Complete job|Post |Run actions\/|Scope guard|Configure |Wait for |Start |Stop |Upload |Download |Cache )/;
+  /^(Set up job|Initialize containers|Complete job|Post |Run actions\/|Run npm (ci|install)\b|Scope guard|Configure |Wait for |Start |Stop |Upload |Download |Cache )/;
 
 export function countApplicableSteps(run) {
   return (run.jobs ?? [])
@@ -162,14 +194,15 @@ function main() {
     return;
   }
   const dir = resolve(process.cwd(), parsed.dir);
-  let discovered;
+  let scan;
   try {
-    discovered = discoverFiles(dir);
+    scan = scanSelo(dir);
   } catch (error) {
     console.error(`m02-seal: diretorio ilegivel em ${parsed.dir}: ${error.message}`);
     process.exitCode = 2;
     return;
   }
+  const discovered = scan.files;
 
   const hashes = new Map();
   for (const file of discovered) {
@@ -196,7 +229,10 @@ function main() {
   }
 
   const selados = discovered.filter((file) => !file.endsWith(`/${MANIFEST}`));
-  const falhas = auditManifest({ discovered: selados, hashes, manifestText });
+  const falhas = [
+    ...scan.problemas,
+    ...auditManifest({ discovered: selados, hashes, manifestText }),
+  ];
 
   if (parsed.ancestry) {
     let texto;

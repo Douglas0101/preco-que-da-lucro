@@ -24,6 +24,8 @@ export declare function parseArgs(argv: string[]): SealArgs;
 
 export declare function discoverFiles(dir: string): string[];
 
+export declare function scanSelo(dir: string): { files: string[]; problemas: string[] };
+
 export declare function parseManifest(text: string): {
   entries: Map<string, string>;
   falhas: string[];

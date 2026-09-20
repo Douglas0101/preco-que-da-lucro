@@ -14,7 +14,15 @@ export function sha256(contents) {
 
 export function aggregateSha256(entries) {
   const linhas = [...entries]
-    .map(({ file, sha256: hash }) => ({ file, hash }))
+    .map(({ file, sha256: hash }) => {
+      if (typeof file !== "string" || /[:\n]/.test(file)) {
+        throw new Error(`nome de arquivo invalido para identidade: ${JSON.stringify(file)}`);
+      }
+      if (typeof hash !== "string" || !/^[0-9a-f]{64}$/.test(hash)) {
+        throw new Error(`sha256 invalido para ${file}`);
+      }
+      return { file, hash };
+    })
     .sort((a, b) => a.file.localeCompare(b.file))
     .map(({ file, hash }) => `${file}:${hash}`)
     .join("\n");

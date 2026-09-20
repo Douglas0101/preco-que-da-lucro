@@ -28,7 +28,7 @@ Oito lacunas medidas no arco R3→R1: (1) o selo era um `selo.sh` ad-hoc por WP,
 | 5   | `scripts/m02-work-package-guard.mjs`                                                       | 16 itens + âncora do KPI                                         |
 | 6   | `docs/evidence/_templates/work-package.md`                                                 | itens 10/15/16, KPI/auto-verificação, apêndices                  |
 | 7   | `AGENTS.md`                                                                                | 16 itens, KPI, U, calibração, `m02-seal`                         |
-| 8   | `src/test/{m02-seal,m02-ci-coverage,m02-work-package-guard,check-bundle-identity}.test.ts` | 44 casos novos                                                   |
+| 8   | `src/test/{m02-seal,m02-ci-coverage,m02-work-package-guard,check-bundle-identity}.test.ts` | 33 casos novos                                                   |
 | 9   | `docs/evidence/seal-kpi-item16-2026-09-20/`                                                | este selo                                                        |
 
 **Não muda:** runtime, schema de banco, migrations, placar (`QUEUE.md` do MAESTRO intocado).
@@ -75,7 +75,7 @@ Descartar a branch `mission/r4-seal-kpi`; nada em `develop` antes do Gate C.
 | 2   | Fronteira nas duas direções     | run heavy aceito × run light no-op reprovado; claim de ancestry verdadeira × invertida                                       |
 | 3   | Identidade, não cardinalidade   | sha256 de conteúdo e hash agregado `arquivo:hash`; cobertura compara **conjuntos** de paths                                  |
 | 4   | Proibido exit-code-only         | os testes asseram mensagem nomeada; `m02-seal` distingue exit 1 (falha) de 2 (uso/IO)                                        |
-| 5   | Proibido sleep fixo             | N/A                                                                                                                          |
+| 5   | Proibido sleep fixo             | N/A — nenhuma espera temporal neste WP                                                                                       |
 | 6   | Sem valor degenerado            | descoberta vazia, manifesto vazio, linha de manifesto inválida e hash divergente reprovam                                    |
 | 7   | Precondição de estado           | fixtures criadas por caso; aceitação usa selos reais e runs reais                                                            |
 | 8   | Sentinela real por cenário      | runs `35532153460`/`35532153466` reais; hashes reais dos selos R1/R3                                                         |

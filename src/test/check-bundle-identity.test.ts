@@ -41,4 +41,10 @@ describe("identidade de conteúdo do bundle", () => {
       aggregateSha256([{ file: "c.js", sha256: hash }]),
     );
   });
+
+  it("nome com ':' ou quebra de linha lança (sem colisão silenciosa no agregado)", () => {
+    const hash = sha256("AAAA");
+    expect(() => aggregateSha256([{ file: "a:b", sha256: hash }])).toThrow();
+    expect(() => aggregateSha256([{ file: "a\nb", sha256: hash }])).toThrow();
+  });
 });

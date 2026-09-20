@@ -59,6 +59,7 @@ export function parseTriggerLists(yaml: string): TriggerLists {
         if (event === "pull_request") result.pullRequestAny = false;
       } else if (/^paths-ignore:/.test(trimmed)) {
         key = "paths-ignore";
+        if (event === "pull_request") result.pullRequestAny = false;
       } else {
         key = null;
       }
@@ -96,14 +97,22 @@ export function auditCoverage(heavyYaml: string, lightYaml: string): string[] {
     );
   }
 
-  const guards: Array<[string, string, RegExp]> = [
-    ["heavy", heavyYaml, /npm run m02:work-package-guard/],
-    ["heavy", heavyYaml, /npm run m02:debts-guard/],
-    ["light", lightYaml, /node scripts\/m02-work-package-guard\.mjs/],
-    ["light", lightYaml, /node scripts\/m02-debts-guard\.mjs/],
+  const checks: Array<[string, string, RegExp, string]> = [
+    ["light", lightYaml, /^\s*run:\s*node scripts\/m02-lockfile-guard\.mjs/m, "m02-lockfile-guard"],
+    [
+      "light",
+      lightYaml,
+      /^\s*run:\s*node scripts\/m02-work-package-guard\.mjs/m,
+      "m02-work-package-guard",
+    ],
+    ["light", lightYaml, /^\s*run:\s*node scripts\/m02-debts-guard\.mjs/m, "m02-debts-guard"],
+    ["light", lightYaml, /^\s*run:\s*node scripts\/m02-secrets-audit\.ts/m, "m02-secrets-audit"],
+    ["light", lightYaml, /npx --yes "prettier@/, "prettier"],
+    ["heavy", heavyYaml, /^\s*- run:\s*npm run m02:work-package-guard/m, "m02:work-package-guard"],
+    ["heavy", heavyYaml, /^\s*- run:\s*npm run m02:debts-guard/m, "m02:debts-guard"],
   ];
-  for (const [lado, texto, padrao] of guards) {
-    if (!padrao.test(texto)) findings.push(`${lado} sem o guard ${padrao.source}`);
+  for (const [lado, texto, padrao, nome] of checks) {
+    if (!padrao.test(texto)) findings.push(`${lado} sem o check ${nome}`);
   }
   return findings;
 }

@@ -39,6 +39,45 @@ describe("cobertura de CI dos dois pipelines", () => {
     expect(findings.join("\n")).toContain("pull_request irrestrito");
   });
 
+  it("heavy com pull_request filtrado por paths-ignore reprova", () => {
+    const heavy = heavyReal.replace(
+      "  pull_request:\n",
+      '  pull_request:\n    paths-ignore:\n      - "src/**"\n',
+    );
+    expect(auditCoverage(heavy, lightReal).join("\n")).toContain("pull_request irrestrito");
+  });
+
+  it("guards só em comentário reprovam (o passo real tem de existir)", () => {
+    const heavyComentado = heavyReal.replace(
+      "      - run: npm run m02:debts-guard",
+      "      # - run: npm run m02:debts-guard",
+    );
+    expect(auditCoverage(heavyComentado, lightReal).join("\n")).toContain("m02:debts-guard");
+    const lightComentado = lightReal.replace(
+      "        run: node scripts/m02-debts-guard.mjs",
+      "        # run: node scripts/m02-debts-guard.mjs",
+    );
+    expect(auditCoverage(heavyReal, lightComentado).join("\n")).toContain("m02-debts-guard");
+  });
+
+  it("light sem lockfile guard, secrets audit ou prettier reprova", () => {
+    const semLockfile = lightReal.replace(
+      "        run: node scripts/m02-lockfile-guard.mjs",
+      "        # run: node scripts/m02-lockfile-guard.mjs",
+    );
+    expect(auditCoverage(heavyReal, semLockfile).join("\n")).toContain("m02-lockfile-guard");
+    const semSecrets = lightReal.replace(
+      "        run: node scripts/m02-secrets-audit.ts",
+      "        # run: node scripts/m02-secrets-audit.ts",
+    );
+    expect(auditCoverage(heavyReal, semSecrets).join("\n")).toContain("m02-secrets-audit");
+    const semPrettier = lightReal.replace(
+      'npx --yes "prettier@${version}" --check "${files[@]}"',
+      "echo skip",
+    );
+    expect(auditCoverage(heavyReal, semPrettier).join("\n")).toContain("prettier");
+  });
+
   it("guards ausentes em qualquer um dos lados reprovam", () => {
     const lightSemDebts = lightReal.replace(/.*m02-debts-guard.*\n/, "");
     expect(auditCoverage(heavyReal, lightSemDebts).join("\n")).toContain("m02-debts-guard");
