@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# Bateria do WP3 (F-D2-depth-pin). Container PG17 efemero em :5438; :5432 nunca e tocado.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+A=.artifacts
+LOG=$A/wp3-verify.log
+# Capturas sem ANSI: o selo versiona estes logs e o veredicto nao pode depender
+# do ambiente de cor de quem executa.
+export NO_COLOR=1
+exec > >(tee "$LOG") 2>&1
+
+PG=wp3-pg
+PORTA=5438
+DB=preco_que_da_lucro_test
+ADMIN="postgresql://postgres:postgres@127.0.0.1:$PORTA/$DB"
+
+echo "branch = $(git branch --show-current)"
+echo "HEAD_SHA = $(git rev-parse HEAD)"
+H9_INICIO=$(ss -ltn 2>/dev/null | grep -c ':5432 ' || true)
+echo "porta 5432 (H-9) tocada? -> $H9_INICIO listener(es)"
+echo
+
+echo "=== 0. container efemero ==="
+docker rm -f "$PG" > /dev/null 2>&1
+docker run -d --name "$PG" -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB="$DB" \
+  -p "127.0.0.1:$PORTA:5432" postgres:17-alpine > $A/wp3-docker-id.txt 2>&1
+DOCKER_RC=$?
+echo "  docker run rc=$DOCKER_RC"
+if [ "$DOCKER_RC" -ne 0 ]; then cat $A/wp3-docker-id.txt; echo "SCRIPT_EXIT=1"; exit 1; fi
+# `pg_isready` responde antes de o POSTGRES_DB terminar de ser criado: a espera
+# tem de ser pela consulta real, e a versao impressa tem de vir dela — um
+# "pronto" presumido ja imprimiu uma linha vazia neste instrumento.
+VERSAO=""
+for i in $(seq 1 30); do
+  VERSAO=$(docker exec "$PG" psql -U postgres -d "$DB" -tAc 'select version()' 2>/dev/null) || true
+  [ -n "$VERSAO" ] && break
+  sleep 1
+done
+echo "  pronto apos ${i}s"
+echo "  $(printf '%s' "$VERSAO" | cut -c1-40)"
+if [ -z "$VERSAO" ]; then
+  echo "  !! FALHA: banco nao respondeu em 30s"
+  docker rm -f "$PG" > /dev/null 2>&1
+  echo "SCRIPT_EXIT=1"
+  exit 1
+fi
+echo
+
+export DATABASE_ADMIN_URL="$ADMIN"
+export DATABASE_URL="$ADMIN"
+export DATABASE_URL_UNPOOLED="$ADMIN"
+export DATABASE_DRIVER=node-postgres
+export EXPECTED_POSTGRES_MAJOR=17
+
+echo "=== 1. o runner com piso, contra o container (os 4 gated deixam de pular) ==="
+npx tsx scripts/db/test-products-fk-conflict.ts > $A/wp3-runner.txt 2>&1
+RUNNER=$?
+echo "  RUNNER_EXIT=$RUNNER"
+grep -E 'passed|skipped|prova de banco|piso' $A/wp3-runner.txt | tail -6 | sed 's/^/    /'
+echo
+
+echo "=== 2. o MESMO runner com o piso acima da contagem (deve REPROVAR) ==="
+RUNNER_ORIG=$(sha256sum scripts/db/test-products-fk-conflict.ts | cut -d' ' -f1)
+cp scripts/db/test-products-fk-conflict.ts $A/runner-bak.ts
+sed -i 's/^const MIN_TOTAL_TESTS = 15;/const MIN_TOTAL_TESTS = 16;/' scripts/db/test-products-fk-conflict.ts
+npx tsx scripts/db/test-products-fk-conflict.ts > $A/wp3-runner-piso.txt 2>&1
+PISO=$?
+cp $A/runner-bak.ts scripts/db/test-products-fk-conflict.ts
+RUNNER_DEVOLVIDO=$(sha256sum scripts/db/test-products-fk-conflict.ts | cut -d' ' -f1)
+echo "  PISO_EXIT=$PISO (esperado != 0)"
+grep -E 'casos suficientes|AssertionError|16' $A/wp3-runner-piso.txt | head -3 | sed 's/^/    /'
+# COMPARA, nao so imprime: um cp que falha deixaria MIN_TOTAL_TESTS=16 em silencio.
+# O restauro tem flag PROPRIA: `PISO=-1` nao podia sinalizar falha porque o
+# veredicto testa `PISO -ne 0` (S6 N3, fail-open).
+RESTAURO=0
+if [ "$RUNNER_ORIG" = "$RUNNER_DEVOLVIDO" ]; then
+  echo "  runner restaurado byte a byte: OK ($(echo "$RUNNER_DEVOLVIDO" | cut -c1-16))"
+else
+  echo "  runner restaurado byte a byte: FALHOU ($RUNNER_ORIG -> $RUNNER_DEVOLVIDO)"
+  RESTAURO=1
+fi
+echo
+
+echo "=== 3. suite do arquivo, direta (sem o runner) ==="
+node node_modules/vitest/vitest.mjs run src/test/products-fk-conflict.test.ts > $A/wp3-vitest.txt 2>&1
+VITEST=$?
+echo "  VITEST_EXIT=$VITEST"
+grep -E 'Test Files|Tests +[0-9]' $A/wp3-vitest.txt | sed 's/^/    /'
+echo
+
+echo "=== 4. matriz determinista SEM regenerar ==="
+npm run m02:matrix:check > $A/wp3-matrix.txt 2>&1
+MATRIX=$?
+echo "  MATRIX_EXIT=$MATRIX"
+tail -1 $A/wp3-matrix.txt | sed 's/^/    /'
+echo
+
+echo "=== 5. a fronteira nao mudou o runtime (ASSERTADO, nao so impresso) ==="
+LIMITE_OK=$(grep -c '^const FK_CAUSE_CHAIN_LIMIT = 4;' src/lib/products.functions.ts || true)
+RUNTIME_DIFF=$(git status --short src/lib/products.functions.ts | wc -l)
+echo "  FK_CAUSE_CHAIN_LIMIT == 4: $LIMITE_OK (esperado 1)"
+echo "  products.functions.ts no diff? $RUNTIME_DIFF (esperado 0)"
+echo
+
+echo "=== 6. limpeza ==="
+docker rm -f "$PG" > /dev/null 2>&1 && echo "  container removido"
+H9_FIM=$(ss -ltn 2>/dev/null | grep -c ':5432 ' || true)
+echo "  porta 5432 (H-9) tocada? -> $H9_FIM listener(es)"
+echo
+echo "RESUMO: RUNNER=$RUNNER PISO=$PISO RESTAURO=$RESTAURO VITEST=$VITEST MATRIX=$MATRIX LIMITE=$LIMITE_OK RUNTIME_DIFF=$RUNTIME_DIFF H9=$H9_INICIO/$H9_FIM"
+if [ "$RUNNER" -eq 0 ] && [ "$PISO" -ne 0 ] && [ "$RESTAURO" -eq 0 ] && [ "$VITEST" -eq 0 ] && [ "$MATRIX" -eq 0 ] && [ "$LIMITE_OK" -eq 1 ] && [ "$RUNTIME_DIFF" -eq 0 ] && [ "$H9_INICIO" -eq 0 ] && [ "$H9_FIM" -eq 0 ]; then
+  echo "BATERIA WP3: OK"
+  echo "VERIFY_EXIT=0"
+else
+  echo "BATERIA WP3: REPROVADA"
+  echo "VERIFY_EXIT=1"
+fi

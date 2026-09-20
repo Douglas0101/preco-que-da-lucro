@@ -1,0 +1,70 @@
+sha256 do impl ANTES: f9a89220622e02f8283889253227f593b07e9a62d026b04ac1240b1c8ee01647
+limite no arquivo:   203:const FK_CAUSE_CHAIN_LIMIT = 4;
+
+=== 1. suite NOVA, limite real (4) — deve PASSAR ===
+  EXIT=0
+     Test Files  1 passed (1)
+          Tests  11 passed | 4 skipped (15)
+
+=== 2. METADE DE BAIXO: limite 3 — a suite NOVA deve REPROVAR no caso depth=3 ===
+  limite agora: 203:const FK_CAUSE_CHAIN_LIMIT = 3;
+  EXIT=1
+    ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+     Test Files  1 failed (1)
+          Tests  1 failed | 10 passed | 4 skipped (15)
+  casos que falharam:
+         × fronteira: um 23503 no último elo inspecionado (depth=3) ainda é encontrado 7ms
+     FAIL  src/test/products-fk-conflict.test.ts > mapeamento FK 23503 → CONFLICT (WP-C4-1) > fronteira: um 23503 no último elo inspecionado (depth=3) ainda é encontrado
+  limite restaurado: 203:const FK_CAUSE_CHAIN_LIMIT = 4;
+
+=== 3. suite ANTIGA (do pai), MESMO limite 3 — deve PASSAR ===
+  casos no arquivo antigo: 13
+  EXIT=0
+     Test Files  1 passed (1)
+          Tests  9 passed | 4 skipped (13)
+
+=== 4. METADE DE CIMA: limite 5 — a suite NOVA deve REPROVAR no caso depth=4 ===
+  limite agora: 203:const FK_CAUSE_CHAIN_LIMIT = 5;
+  EXIT=1
+    ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+     Test Files  1 failed (1)
+          Tests  1 failed | 10 passed | 4 skipped (15)
+  casos que falharam:
+         × fronteira: um 23503 em depth=4 (o primeiro elo fora do limite) é relançado como veio 8ms
+     FAIL  src/test/products-fk-conflict.test.ts > mapeamento FK 23503 → CONFLICT (WP-C4-1) > fronteira: um 23503 em depth=4 (o primeiro elo fora do limite) é relançado como veio
+  limite restaurado: 203:const FK_CAUSE_CHAIN_LIMIT = 4;
+
+=== 5. a suite ANTIGA, MESMO limite 5 — deve PASSAR (nao distinguia) ===
+  EXIT=0
+     Test Files  1 passed (1)
+          Tests  9 passed | 4 skipped (13)
+
+=== 6. restaura o limite e confere byte a byte ===
+  sha256 do impl DEPOIS: f9a89220622e02f8283889253227f593b07e9a62d026b04ac1240b1c8ee01647
+  RESTAURO: OK (byte a byte)
+
+=== 7. nao sobrou sonda no git (ASSERTADO, nao so impresso) ===
+  arquivos de sonda no git status: 0 (esperado 0)
+  --- git status completo ---
+     M scripts/db/test-products-fk-conflict.ts
+     M src/test/products-fk-conflict.test.ts
+    ?? docs/evidence/d2-depth-pin-2026-09-20/
+
+  --- descida (limite 3) ---
+  suite nova verde com limite 4:       1 (esperado 1)
+  suite nova com falhas no limite 3:   1 (esperado >= 1)
+  casos que falharam no limite 3:      1 (esperado 1)
+  a falha e no caso de FRONTEIRA 3:    1 (esperado 1)
+  suite antiga verde com limite 3:     1 (esperado 1)
+  suite antiga NAO falhou:             0 (esperado 0)
+  --- subida (limite 5) ---
+  suite nova com falhas no limite 5:   1 (esperado >= 1)
+  casos que falharam no limite 5:      1 (esperado 1)
+  a falha e no caso de FRONTEIRA 4:    1 (esperado 1)
+  suite antiga verde com limite 5:     1 (esperado 1)
+  suite antiga NAO falhou:             0 (esperado 0)
+  --- integridade ---
+  restauro byte a byte:                OK
+  sondas no git:                       0 (esperado 0)
+  VEREDITO: FRONTEIRA PINADA NAS DUAS DIRECOES - a nova distingue 3 e 5 de 4; a antiga nao distinguia nenhum
+FALSIFICA_EXIT=0
