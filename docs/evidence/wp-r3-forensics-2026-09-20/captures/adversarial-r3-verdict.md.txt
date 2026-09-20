@@ -1,0 +1,81 @@
+# S6 ADVERSARIAL — WP-R3 (forense da citação de CI + item 15 + contract lint + calibração)
+
+**Lane:** adversarial, contexto limpo, read-only. **Alvo:** worktree `.worktree-r3-forensics` (branch `mission/r3-forensics`, base `ad05428`, mudança não comitada). **Método:** leitura direta (`git diff/log/show`, `rg`, `sed`), execução do guard com entradas por `/dev/stdin` (nenhum arquivo criado), `gh run view/list` autenticado, `npm run m02:work-package-guard`, `npx prettier --check`.
+
+---
+
+## Resumo
+
+| Claim | Objeto | Veredicto |
+| --- | --- | --- |
+| **C1** | errata fiel: runs `35512525965`/`35512525992` em `c9d1740`; `35484327532` em `1aad70c` | **CONFIRMED** (com 2 ressalvas de precisão) |
+| **C2** | guard não vacuoso, 15 itens, origens, seções, taxonomia, layout | **CONFIRMED** no que promete; **2 fail-opens** de origem (N1, N2) |
+| **C3** | wiring: `package.json` + `check` + passo no `ci-light` sob scope guard, built-ins | **CONFIRMED** (a lacuna de enforcement em push misto é N4) |
+| **C4** | item 15 no template e no `AGENTS.md`; contagens 15; cadeia do gate bate | **CORRECTED** — a cadeia do `AGENTS.md` **não** bate: omite `m02:matrix:check` (CORR-1) |
+| **C5** | calibração sustenta REJECTED (A/B1) e UNVERIFIABLE (B2); lição do B1 fiel | **CONFIRMED** — capturas sustentam; o *gate* do selo é fraco (N3) e falta proveniência das lanes (N10) |
+| **C6** | escopo, lockfile/src intocados, análise fiel, adendo separado | **CONFIRMED** — escopo e aritmética conferem; ponteiro de captura quebrado (N5), journal fora da branch (N6), DoD prematuro (N7), auto-aplicação do checklist ausente (N8) |
+
+**Contagens: `0 REJECTED · 0 UNVERIFIABLE · 2 CORR · 11 N`.**
+
+**Veredicto:** nenhuma claim central é refutada — a errata, o guard, o wiring e a calibração se sustentam. Porém o WP **não está selável no estado atual**: há 2 CORR e 11 defeitos novos, dois deles materiais (N4 — o contract lint não roda em push misto, inclusive no push deste próprio WP; N8 — o WP não demonstra o checklist de 15 itens que ele institucionaliza). Ação: **corrigir N1–N11 + CORR-1/2 e re-rodar S7/seal**.
+
+---
+
+## C1 — Errata fiel · CONFIRMED
+
+Conferido com `gh` autenticado (não só o log):
+
+| Run | Workflow | `headSha` | Conclusão |
+| --- | --- | --- | --- |
+| `35512525965` | UI stack | `c9d1740cbb9a576876ed0fd83f4e1c8bea4054cb` | success |
+| `35512525992` | CI light (docs/evidence) | `c9d1740cbb…` | success |
+| `35484327532` | UI stack | `1aad70cbcf63de8c8d8a20f7b309df2b6a8ba715` | success |
+
+`git merge-base --is-ancestor 1aad70c c9d1740` = YES; zero runs em `049ebc7`/`a7f1e4a`. Hipótese *paths filter* refutada (a pesada rodou 23/23). **Ressalvas:** (1) o run leve `35512525992` é verde **sem ter executado passo algum** (scope guard pulou os passos: o range incluía `EXECUTION-STATE-PROGRAM.md`, fora de `docs/evidence/**`) — citá-lo como "CI do WP-R2" é vacuoso; a validação real foi a pesada. (2) A citação stale não existe em artefato comitado (`git log --all -S` vazio): o objeto da errata é o relatório/análise.
+
+## C2 — Guard com dentes · CONFIRMED (com N1/N2)
+
+Execuções reais: template real exit 0; cópia "sem item 15" exit 1; origem vazia exit 1; sem tabela exit 1; template truncado 8 falhas; `--template` inexistente exit 1; `--template` sem valor exit 2. Fail-opens encontrados: **N1** origem `N/A` em todas passa; **N2** o guard lia "a última coluna", então coluna extra mascarava a origem vazia.
+
+## C3 — Wiring · CONFIRMED
+
+`package.json` com script e na cadeia do `check`; passo no `ci-light` sob `applicable == 'true'`; guard importa só `node:fs`/`node:path`; node 24.15 sem risco de type-stripping. **Lacuna material:** o pesado (`ui-stack.yml`) não tinha o passo → N4.
+
+## C4 — Item 15 / contagens / cadeia · CORRECTED
+
+Template com 15 itens e apêndice A com origem; `AGENTS.md` com 15 rótulos. **CORR-1:** a cadeia citada no `AGENTS.md` omite `m02:matrix:check` (pré-existente, reeditado no R3). **CORR-2:** "em todo push" superestima a cobertura antes do N4.
+
+## C5 — Calibração · CONFIRMED (com N3/N10)
+
+`calib-a.md` (REJECTED), `calib-b1.md` (REJECTED; lição de desenho: ausência declarada ≠ imensurável), `calib-b2.md` (UNVERIFIABLE). Alcançabilidade sustentada; o gate do selo casava a **palavra** "não REJECTED" na prosa do B2 (N3); capturas sem proveniência (N10).
+
+## C6 — Escopo e fidelidade · CONFIRMED
+
+Exatamente os 4 `M` declarados + 3 não rastreados; `package-lock.json`, `src/**`, `drizzle/**`, `e2e/**` intocados; bundle idêntico com `CHECK_EXIT=0`; prettier ok. Aritmética da análise confere; §15.2 do plano lista 9 tabelas; "6/9" sustentado. Fonte bruta não existe em disco — fidelidade aferida pelos elementos nomeados (limite declarado).
+
+---
+
+## Defeitos NOVOS (N1–N11)
+
+| # | Sev. | Defeito | Evidência | Correção |
+| --- | --- | --- | --- | --- |
+| **N1** | Média | Guard aceita origem **vazia de sentido** (`N/A`, `TBD`, `?`) | stdin 15× `N/A` → exit 0 | Rejeitar degenerados |
+| **N2** | Média | Guard lia a **última** coluna, não a coluna `origem` | 5 colunas (4ª vazia, 5ª `x`) → exit 0 | Parsear header e exigir 4 colunas |
+| **N3** | Média-baixa | Gate da calibração casava prosa ("não REJECTED") | `grep -lc` → 3 nomes | Linha de veredicto por arquivo |
+| **N4** | **Alta** | Contract lint não roda em push misto | `ui-stack.yml` sem o passo; leve pula | Passo no `verify` |
+| **N5** | Média | Ponteiro de captura inexistente no adendo | arquivo real é `ci-binding.log` | Ponteiro corrigido |
+| **N6** | Média | Journal L130/L131 fora da branch | worktree termina em L129 | Comitar no land |
+| **N7** | Média | DoD `[x]` antes do S7/selo existirem | sem `r3-s7.log`/captures | Marcar no fecho |
+| **N8** | **Alta** | WP não demonstrava o checklist que institucionaliza | `SPEC.md` sem checklist | §8 de auto-aplicação |
+| **N9** | Baixa | "sem item 15" apenas renumerava `XX` | diff -w | Remoção real da linha |
+| **N10** | Baixa | Calibração sem proveniência de lane | `calib-*` sem header | Header de método |
+| **N11** | Média | Entradas da falsificação não seladas | `.artifacts/` gitignored | `scratch-*.txt` no selo |
+
+### CORR
+
+- **CORR-1** — `AGENTS.md`: cadeia omite `m02:matrix:check`.
+- **CORR-2** — `AGENTS.md`/`SPEC`: "todo push" superestima a cobertura antes do N4.
+
+---
+
+**Placar S6:** `0 REJECTED · 0 UNVERIFIABLE · 2 CORR · 11 N` — corrigir e re-selar; sem REJECTED, as claims C1–C6 se mantêm com as correções acima.

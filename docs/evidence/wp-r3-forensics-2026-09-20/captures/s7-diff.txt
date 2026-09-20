@@ -1,0 +1,159 @@
+diff --git a/.github/workflows/ci-light.yml b/.github/workflows/ci-light.yml
+index 0ffdb71..878deb9 100644
+--- a/.github/workflows/ci-light.yml
++++ b/.github/workflows/ci-light.yml
+@@ -68,13 +68,17 @@ jobs:
+           echo "applicable=true" >> "$GITHUB_OUTPUT"
+           echo "docs changed: $(wc -l < /tmp/docs.txt)"
+ 
+-      # No install step on purpose: both scripts below import node built-ins
++      # No install step on purpose: the scripts below import node built-ins
+       # only, so plain `node` runs them (type stripping covers the .ts entry).
+       # Evidence: docs/evidence/ci-path-filter-2026-09-13.md § verification.
+       - name: Lockfile guard (fail-closed)
+         if: steps.scope.outputs.applicable == 'true'
+         run: node scripts/m02-lockfile-guard.mjs
+ 
++      - name: Work-package contract guard (fail-closed)
++        if: steps.scope.outputs.applicable == 'true'
++        run: node scripts/m02-work-package-guard.mjs
++
+       - name: Secrets audit (read-only)
+         if: steps.scope.outputs.applicable == 'true'
+         run: node scripts/m02-secrets-audit.ts
+diff --git a/.github/workflows/ui-stack.yml b/.github/workflows/ui-stack.yml
+index c563f9c..b270555 100644
+--- a/.github/workflows/ui-stack.yml
++++ b/.github/workflows/ui-stack.yml
+@@ -65,6 +65,7 @@ jobs:
+           cache: npm
+       - run: npm install --global --ignore-scripts npm@11.14.1
+       - run: npm ci --ignore-scripts
++      - run: npm run m02:work-package-guard
+       - run: npm run m02:matrix:check
+       - run: npm run check:ui-stack
+       - run: npm run check:no-supabase-runtime
+diff --git a/AGENTS.md b/AGENTS.md
+index cae90b8..624fc0f 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -19,11 +19,11 @@
+ 
+ ## Local quality gate (definition of done)
+ 
+-- Before pushing, run `npm run check` and keep it green. It chains `m02:lockfile-guard`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
+-- The CI `verify` job (`.github/workflows/ui-stack.yml`) runs those same gates plus `db:test`, `db:check`, `npm audit --audit-level=high`, and Playwright e2e on chromium/firefox/webkit. A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
++- Before pushing, run `npm run check` and keep it green. It chains `m02:lockfile-guard`, `m02:work-package-guard`, `m02:matrix:check`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
++- The CI `verify` job (`.github/workflows/ui-stack.yml`) runs those same gates plus `db:test`, `db:check`, `npm audit --audit-level=high`, and Playwright e2e on chromium/firefox/webkit; the light job runs `m02:work-package-guard` on docs-only pushes (both pipelines exercise the contract guard). A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
+ - **Two CI pipelines, selected by changed paths:**
+   - **Heavy — `UI stack`** (`.github/workflows/ui-stack.yml`): every pull request, plus pushes to `main`/`develop` whose changed files are **not** all under `docs/evidence/**` (`paths-ignore`).
+-  - **Light — `CI light (docs/evidence)`** (`.github/workflows/ci-light.yml`): pushes and pull requests whose changed files are **all** under `docs/evidence/**` — runs `scripts/m02-lockfile-guard.mjs`, `scripts/m02-secrets-audit.ts` and `prettier --check` on the changed files only. It installs **no** dependencies: both scripts import node built-ins only. A mixed push (code + docs) belongs to the heavy pipeline; the light job's scope guard exits without work instead of failing. The formatter is resolved from the **lockfile** (`package-lock.json`), never from the `package.json` range: a caret range resolved to a different release than `npm ci` installs, so the light pipeline drifted from `npm run format:check` and failed docs-only pushes the repo's own gate accepted.
++  - **Light — `CI light (docs/evidence)`** (`.github/workflows/ci-light.yml`): pushes and pull requests whose changed files are **all** under `docs/evidence/**` — runs `scripts/m02-lockfile-guard.mjs`, `scripts/m02-work-package-guard.mjs`, `scripts/m02-secrets-audit.ts` and `prettier --check` on the changed files only. It installs **no** dependencies: all three scripts import node built-ins only. A mixed push (code + docs) belongs to the heavy pipeline; the light job's scope guard exits without work instead of failing. The formatter is resolved from the **lockfile** (`package-lock.json`), never from the `package.json` range: a caret range resolved to a different release than `npm ci` installs, so the light pipeline drifted from `npm run format:check` and failed docs-only pushes the repo's own gate accepted.
+   - Neither filter applies to code: anything under `src/**`, `scripts/**`, `.github/**` or the manifests always goes through the heavy pipeline.
+ - Never claim work is done with a red gate, and never delete, skip, or loosen a test, lint rule, or budget to force a green.
+ 
+@@ -63,7 +63,7 @@
+ 
+ ## Work packages (contrato de prova)
+ 
+-- Todo work package segue o template `docs/evidence/_templates/work-package.md`: `SPEC.md` (S1) + `README.md`/selo (S5) + `captures/*.txt` + `MANIFEST.sha256`, com o **checklist anti-vacuoso demonstrado item a item** antes do S6 adversarial — 14 itens: controle negativo, fronteira nas duas direções, identidade (não cardinalidade), proibido exit-code-only, proibido sleep fixo, sem valor degenerado na identidade, precondição de estado compartilhado, sentinela real por cenário, fingerprint de revisão, `checked === discovered`, S6 de contexto limpo, falha alta/fail-closed, isolamento de bancada assertado e todo check impresso com gate+captura.
++- Todo work package segue o template `docs/evidence/_templates/work-package.md`: `SPEC.md` (S1) + `README.md`/selo (S5) + `captures/*.txt` + `MANIFEST.sha256`, com o **checklist anti-vacuoso demonstrado item a item** antes do S6 adversarial — 15 itens: controle negativo, fronteira nas duas direções, identidade (não cardinalidade), proibido exit-code-only, proibido sleep fixo, sem valor degenerado na identidade, precondição de estado compartilhado, sentinela real por cenário, fingerprint de revisão, `checked === discovered`, S6 de contexto limpo, falha alta/fail-closed, isolamento de bancada assertado, todo check impresso com gate+captura e **run de CI atado ao commit selado**.
+ - **Taxonomia de veredicto:** **CORR** = *claim* corrigida pelo S6; **N** = defeito novo encontrado (pode existir com `0 CORR`); "correções forçadas" = CORR + N corrigidos. Os dois números vão **nomeados** no journal — contar só CORR subnotifica o custo do S6. Os bounds do SDD (`bound 2`) limitam **rodadas de correção de um WP**, não a quantidade de claims corrigidas num veredicto.
+ - O S6 é lane adversarial de **contexto limpo** com `0 REJECTED`; `UNVERIFIABLE` exige declaração no selo e **não** conta como verificado; os N **corrigidos** ficam na §7 do selo e os **declarados** na §Riscos, nunca omitidos.
+ 
+diff --git a/docs/evidence/_templates/work-package.md b/docs/evidence/_templates/work-package.md
+index 47ea440..f7ccce0 100644
+--- a/docs/evidence/_templates/work-package.md
++++ b/docs/evidence/_templates/work-package.md
+@@ -36,22 +36,23 @@
+ Marque **como cada item foi satisfeito**, com ponteiro (arquivo:linha, captura, hash). Um item não
+ aplicável exige justificativa; "não se aplica" não substitui prova.
+ 
+-| #   | item                                       | como demonstrar                                                                                                                      | origem (S6)                      |
+-| --- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
+-| 1   | **Controle negativo obrigatório**          | a prova central tem um par que **reprova** quando o defeito existe; o par roda os **bytes do pai** ou mutação restaurada por sha256  | WP3 C5/N1; WP5 C2/N1             |
+-| 2   | **Fronteira nas duas direções**            | ao pinar limite/constante, o teste distingue os **dois** lados (descer e subir) e a suíte antiga passa nos dois                      | WP3 C4                           |
+-| 3   | **Identidade, não cardinalidade**          | o veredicto nomeia **o caso** que falhou, ancorado na linha de falha, e exige queda **única**; contagem igual não distingue revisões | WP3 C5/N1; TRILHO C §2.1; WP2 §9 |
+-| 4   | **Proibido exit-code-only**                | verde não se decide só por `exit 0`; exige **zero do sintoma** (ex.: `23503 == 0`, requisição ausente)                               | WP4 C5/N2                        |
+-| 5   | **Proibido sleep fixo como sincronização** | espera por **marcador observável** (ex.: `__reactContainer$`); sem o sinal, a medição **falha alto**                                 | WP5 C2/N1                        |
+-| 6   | **Sem valor degenerado na identidade**     | a asserção compara valor **serializável e distinto** nos dois estados; nada que serialize para `undefined`/constante                 | WP5 C2/N2                        |
+-| 7   | **Precondição de estado compartilhado**    | fases que compartilham estado **assertam** a precondição (container, trigger, linhas semeadas); fase isolada não passa vazio         | WP4 N3                           |
+-| 8   | **Sentinela real por cenário**             | a prova usa dado semeado de fato (id fixo/trigger/linha real) por cenário, não inferência de lista                                   | WP4 C4; WP4 SPEC §5              |
+-| 9   | **Fingerprint de revisão**                 | cada fase fixa `HEAD` + sha256 dos bytes; o RED **asserta** que roda os bytes do pai                                                 | WP4 N5                           |
+-| 10  | **`checked === discovered`**               | o selo declara o conjunto descoberto e o listado; manifesto conferido; sem allowlist de legado                                       | AGENTS.md; TRILHO C §2.1; WP2 §9 |
+-| 11  | **S6 adversarial de contexto limpo**       | veredicto por claims com `0 REJECTED`; `UNVERIFIABLE` exige declaração na §4 e **não** conta como verificado; CORR tratado           | WPs 1–5                          |
+-| 12  | **Falha alta (fail-closed)**               | nenhum `try/catch` compensatório converte erro em sucesso vazio; guards/runner/piso reprovam com mensagem nomeada                    | WP3 N2/N3; INV-013               |
+-| 13  | **Isolamento de bancada assertado**        | `:5432` intocada, container efêmero removido, zero credencial herdada e `origin/main` conferido — **assertado**, não só impresso     | WP3 N4; WP4 N7; WP5 N7           |
+-| 14  | **Todo check impresso tem gate e captura** | exits de scaffold/cleanup viram asserção; as capturas exigidas pelo DoD (gate, bateria, H-9) existem no selo                         | WP4 N4; WP5 N7                   |
++| #   | item                                       | como demonstrar                                                                                                                                                                                                    | origem (S6)                      |
++| --- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
++| 1   | **Controle negativo obrigatório**          | a prova central tem um par que **reprova** quando o defeito existe; o par roda os **bytes do pai** ou mutação restaurada por sha256                                                                                | WP3 C5/N1; WP5 C2/N1             |
++| 2   | **Fronteira nas duas direções**            | ao pinar limite/constante, o teste distingue os **dois** lados (descer e subir) e a suíte antiga passa nos dois                                                                                                    | WP3 C4                           |
++| 3   | **Identidade, não cardinalidade**          | o veredicto nomeia **o caso** que falhou, ancorado na linha de falha, e exige queda **única**; contagem igual não distingue revisões                                                                               | WP3 C5/N1; TRILHO C §2.1; WP2 §9 |
++| 4   | **Proibido exit-code-only**                | verde não se decide só por `exit 0`; exige **zero do sintoma** (ex.: `23503 == 0`, requisição ausente)                                                                                                             | WP4 C5/N2                        |
++| 5   | **Proibido sleep fixo como sincronização** | espera por **marcador observável** (ex.: `__reactContainer$`); sem o sinal, a medição **falha alto**                                                                                                               | WP5 C2/N1                        |
++| 6   | **Sem valor degenerado na identidade**     | a asserção compara valor **serializável e distinto** nos dois estados; nada que serialize para `undefined`/constante                                                                                               | WP5 C2/N2                        |
++| 7   | **Precondição de estado compartilhado**    | fases que compartilham estado **assertam** a precondição (container, trigger, linhas semeadas); fase isolada não passa vazio                                                                                       | WP4 N3                           |
++| 8   | **Sentinela real por cenário**             | a prova usa dado semeado de fato (id fixo/trigger/linha real) por cenário, não inferência de lista                                                                                                                 | WP4 C4; WP4 SPEC §5              |
++| 9   | **Fingerprint de revisão**                 | cada fase fixa `HEAD` + sha256 dos bytes; o RED **asserta** que roda os bytes do pai                                                                                                                               | WP4 N5                           |
++| 10  | **`checked === discovered`**               | o selo declara o conjunto descoberto e o listado; manifesto conferido; sem allowlist de legado                                                                                                                     | AGENTS.md; TRILHO C §2.1; WP2 §9 |
++| 11  | **S6 adversarial de contexto limpo**       | veredicto por claims com `0 REJECTED`; `UNVERIFIABLE` exige declaração na §4 e **não** conta como verificado; CORR tratado                                                                                         | WPs 1–5                          |
++| 12  | **Falha alta (fail-closed)**               | nenhum `try/catch` compensatório converte erro em sucesso vazio; guards/runner/piso reprovam com mensagem nomeada                                                                                                  | WP3 N2/N3; INV-013               |
++| 13  | **Isolamento de bancada assertado**        | `:5432` intocada, container efêmero removido, zero credencial herdada e `origin/main` conferido — **assertado**, não só impresso                                                                                   | WP3 N4; WP4 N7; WP5 N7           |
++| 14  | **Todo check impresso tem gate e captura** | exits de scaffold/cleanup viram asserção; as capturas exigidas pelo DoD (gate, bateria, H-9) existem no selo                                                                                                       | WP4 N4; WP5 N7                   |
++| 15  | **Run de CI atado ao commit selado**       | o run citado tem `headSha` **igual ou descendente** do commit selado; conferido por `gh run list` filtrado por SHA; se o trigger não se aplica, registrar `N/A-trigger <motivo>; último verde = <run> em <commit>` | achado da Fase 0 (WP-R3)         |
+ 
+ ## 4. Taxonomia de veredicto (fixar no journal do land)
+ 
+@@ -83,6 +84,7 @@ aplicável exige justificativa; "não se aplica" não substitui prova.
+ | 12   | WP3: o runner encadeado saía 0 com a prova de banco apagada (F-D2-runner-failopen)                                                                   |
+ | 13   | WP3 N4 (H-9/runtime impressos sem asserção); WP4 N7 (container residual); WP5 N7 (portas sem captura)                                                |
+ | 14   | WP4 N4 (exits do scaffold só ecoados); WP5 N7 (captura de gate/cleanup ausente)                                                                      |
++| 15   | Fase 0 (WP-R3): a célula de CI do WP-R2 citou `35484327532` (de `1aad70c`) como se fosse do land `c9d1740`; run ID é claim e exige identidade        |
+ 
+ ## Apêndice B — layout do selo
+ 
+diff --git a/package.json b/package.json
+index 521f26a..1650ddf 100644
+--- a/package.json
++++ b/package.json
+@@ -35,6 +35,7 @@
+     "m02:boundaries": "tsx scripts/m02-boundaries.ts",
+     "m02:state:check": "tsx scripts/m02-state-check.ts",
+     "m02:lockfile-guard": "node scripts/m02-lockfile-guard.mjs",
++    "m02:work-package-guard": "node scripts/m02-work-package-guard.mjs",
+     "m02:secrets-audit": "tsx scripts/m02-secrets-audit.ts",
+     "m02:readiness": "node scripts/m02-readiness.mjs",
+     "m02:forensic-bundle": "tsx scripts/m02-forensic-bundle.ts",
+@@ -76,7 +77,7 @@
+     "perf:capture": "node scripts/perf/capture-baseline.mjs",
+     "perf:summarize": "node scripts/perf/summarize.mjs",
+     "check:hostinger-runtime": "node scripts/check-hostinger-runtime.mjs",
+-    "check": "npm run m02:lockfile-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle",
++    "check": "npm run m02:lockfile-guard && npm run m02:work-package-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle",
+     "m02:pitr-check": "node scripts/m02-pitr-check.mjs",
+     "m02:neon-spend": "node scripts/m02-neon-spend.mjs",
+     "m02:auth-preflight": "tsx scripts/m02-auth-preflight.ts",
+--- nao rastreados ---
+docs/evidence/analise-avancada-fase0-wpR2-wpR0-2026-09-20.md
+docs/evidence/wp-r3-forensics-2026-09-20/captures/adversarial-r3-verdict.md.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/analise-transcrita.md.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/calib-a.md.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/calib-b1.md.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/calib-b2.md.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/ci-binding.log.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/gate-local.log.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/guard-falsifica.log.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/guard.mjs.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/hashes.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/s7-diff.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/s7-guard.log.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/s7-guard.sh.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/scratch-coluna-extra.md.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/scratch-item15-removido.md.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/scratch-origem-na.md.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/selo.sh.txt
+docs/evidence/wp-r3-forensics-2026-09-20/captures/work-package.md.txt
+docs/evidence/wp-r3-forensics-2026-09-20/MANIFEST.sha256
+docs/evidence/wp-r3-forensics-2026-09-20/README.md
+docs/evidence/wp-r3-forensics-2026-09-20/SPEC.md

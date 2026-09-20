@@ -68,12 +68,16 @@ jobs:
           echo "applicable=true" >> "$GITHUB_OUTPUT"
           echo "docs changed: $(wc -l < /tmp/docs.txt)"
 
-      # No install step on purpose: both scripts below import node built-ins
+      # No install step on purpose: the scripts below import node built-ins
       # only, so plain `node` runs them (type stripping covers the .ts entry).
       # Evidence: docs/evidence/ci-path-filter-2026-09-13.md § verification.
       - name: Lockfile guard (fail-closed)
         if: steps.scope.outputs.applicable == 'true'
         run: node scripts/m02-lockfile-guard.mjs
+
+      - name: Work-package contract guard (fail-closed)
+        if: steps.scope.outputs.applicable == 'true'
+        run: node scripts/m02-work-package-guard.mjs
 
       - name: Secrets audit (read-only)
         if: steps.scope.outputs.applicable == 'true'

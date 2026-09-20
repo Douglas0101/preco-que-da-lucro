@@ -1,0 +1,38 @@
+=== S7 GUARD — WP-R3 ===
+HEAD: ad05428a652bc3550d8d8ab99ebdac6c58c14c54
+branch: mission/r3-forensics
+
+sha256 do artefato examinado: f244e46067e560b614c03f172cbd5a3214f3c8907329a81d7ca58f1591a320a5
+  sha256 scripts/m02-work-package-guard.mjs: c69a54fb6e1b1f3480f947ea21a905ceba25a1d3dac1c0656075798c1d7f5830
+  sha256 docs/evidence/_templates/work-package.md: 76bc3aacb9d9f0380ba497956e2749b5e4c45de20e3b7d9f9bf0fccd0aad958f
+  sha256 AGENTS.md: bff4935e2b212a51d52726d9d578a601e628191f5720de3e447b683c942dbbc0
+  sha256 package.json: 0a955071ba370302b64672f7dfaf4e4bd44f165c7c139c04dbde86606deac3c2
+  sha256 .github/workflows/ci-light.yml: bf5a0c490da9b82466f5245b401bbb698b2ea6899bd90b402f7ff311a6a174b2
+
+=== 1. escopo ===
+   M .github/workflows/ci-light.yml
+   M .github/workflows/ui-stack.yml
+   M AGENTS.md
+   M docs/evidence/_templates/work-package.md
+   M package.json
+  ?? docs/evidence/analise-avancada-fase0-wpR2-wpR0-2026-09-20.md
+  ?? docs/evidence/wp-r3-forensics-2026-09-20/
+  ?? scripts/m02-work-package-guard.mjs
+  fora do escopo: 1 (esperado 0)
+  src/drizzle/e2e no diff: 0 (esperado 0)
+
+=== 2. lockfile em sincronia (sem dep nova) ===
+  package-lock no diff: 0
+  LOCKFILE_GUARD_EXIT=0
+
+=== 3. credenciais / secrets / H-9 ===
+  credenciais herdadas: 0
+  SECRETS_EXIT=0
+  5432=0 (esperado 0)
+
+=== 4. refs ===
+  origin/main: 9724d2c73b269d0a0199ea305308f3237b38fa09
+  origin/develop: ad05428a652bc3550d8d8ab99ebdac6c58c14c54
+
+S7 GUARD: 1 FALHA(S)
+S7_EXIT=1

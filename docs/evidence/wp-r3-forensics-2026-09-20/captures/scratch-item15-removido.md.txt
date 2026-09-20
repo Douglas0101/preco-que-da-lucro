@@ -52,7 +52,6 @@ aplicável exige justificativa; "não se aplica" não substitui prova.
 | 12  | **Falha alta (fail-closed)**               | nenhum `try/catch` compensatório converte erro em sucesso vazio; guards/runner/piso reprovam com mensagem nomeada                                                                                                  | WP3 N2/N3; INV-013               |
 | 13  | **Isolamento de bancada assertado**        | `:5432` intocada, container efêmero removido, zero credencial herdada e `origin/main` conferido — **assertado**, não só impresso                                                                                   | WP3 N4; WP4 N7; WP5 N7           |
 | 14  | **Todo check impresso tem gate e captura** | exits de scaffold/cleanup viram asserção; as capturas exigidas pelo DoD (gate, bateria, H-9) existem no selo                                                                                                       | WP4 N4; WP5 N7                   |
-| 15  | **Run de CI atado ao commit selado**       | o run citado tem `headSha` **igual ou descendente** do commit selado; conferido por `gh run list` filtrado por SHA; se o trigger não se aplica, registrar `N/A-trigger <motivo>; último verde = <run> em <commit>` | achado da Fase 0 (WP-R3)         |
 
 ## 4. Taxonomia de veredicto (fixar no journal do land)
 
@@ -84,7 +83,6 @@ aplicável exige justificativa; "não se aplica" não substitui prova.
 | 12   | WP3: o runner encadeado saía 0 com a prova de banco apagada (F-D2-runner-failopen)                                                                   |
 | 13   | WP3 N4 (H-9/runtime impressos sem asserção); WP4 N7 (container residual); WP5 N7 (portas sem captura)                                                |
 | 14   | WP4 N4 (exits do scaffold só ecoados); WP5 N7 (captura de gate/cleanup ausente)                                                                      |
-| 15   | Fase 0 (WP-R3): a célula de CI do WP-R2 citou `35484327532` (de `1aad70c`) como se fosse do land `c9d1740`; run ID é claim e exige identidade        |
 
 ## Apêndice B — layout do selo
 

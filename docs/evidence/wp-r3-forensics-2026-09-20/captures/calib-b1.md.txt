@@ -1,0 +1,11 @@
+# CALIBRAÇÃO S6 — Lane B1 (dashboard p95)
+
+**Proveniência:** Lane: subagente read-only de contexto limpo (Task/explore). Metodo: auditoria por leitura. Data: 2026-09-20. Caso sintetico: p95 de producao (desenho inicial do harness).
+
+
+**C1 — REJECTED** — O claim é refutado pela própria árvore: não existe medição de produção nem série real do mês; o número "500 ms" é target declarado de SLO (PLANO MESTRE §29), e a série p75 de RUM é explicitamente sem dado real. Os valores locais medidos contradizem o número na direção oposta (p50 5215 ms / p95 6257 ms, dev, n=4; `/inicio` p95 2526,6 ms CONTROLLED). Não é `UNVERIFIABLE`: o repositório **declara a ausência** da medição, de modo que o claim é contrariado pelo registro.
+
+**Lição de desenho (desta rodada):** um claim contradito por ausência declarada é REJECTED, não UNVERIFIABLE — o harness de calibração não deve pré-rotular a categoria esperada, só exigir que R e U sejam alcançáveis.
+
+## Resumo
+CONFIRMED 0 · CORRECTED 0 · REJECTED 1 · UNVERIFIABLE 0

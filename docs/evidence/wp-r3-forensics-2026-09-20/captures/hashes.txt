@@ -1,0 +1,7 @@
+76bc3aacb9d9f0380ba497956e2749b5e4c45de20e3b7d9f9bf0fccd0aad958f  docs/evidence/_templates/work-package.md
+bff4935e2b212a51d52726d9d578a601e628191f5720de3e447b683c942dbbc0  AGENTS.md
+c69a54fb6e1b1f3480f947ea21a905ceba25a1d3dac1c0656075798c1d7f5830  scripts/m02-work-package-guard.mjs
+0a955071ba370302b64672f7dfaf4e4bd44f165c7c139c04dbde86606deac3c2  package.json
+bf5a0c490da9b82466f5245b401bbb698b2ea6899bd90b402f7ff311a6a174b2  .github/workflows/ci-light.yml
+7f38c28970e63ef552f43f0d73c881178439522e72e4095f3f63a0ae4c4ea68e  docs/evidence/analise-avancada-fase0-wpR2-wpR0-2026-09-20.md
+35acfe91a8a1e2ef1ebc7fc5abf2b40cf560ccdd7faff78cac549034a0118c81  docs/evidence/wp-r3-forensics-2026-09-20/SPEC.md
