@@ -2188,3 +2188,20 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L130` (intenção), `L131` (errata) e `L132` (resultado).
 
   Latest state marker parent = `4be7b2a77a08d11f27161b7f373c3a83236db69b`,
+
+### A1 — errata de ancestralidade do WP-R2 (S9 — landado)
+
+- **O que era:** a errata `L131` declarava a cadeia `049ebc7` → `a7f1e4a` → `c9d1740` sem assertar
+  descendência no texto; o item 15 ("igual ou descendente") exigia a relação explícita, e um auditor
+  teria de reconstruir o grafo.
+- **O que foi feito:** `L133` declara `git merge-base --is-ancestor a7f1e4a c9d1740` = exit 0
+  (`a7f1e4a` ⊆ `c9d1740` ⊆ `9659844`); `L134` registra o resultado e o plano aprovado dos
+  acionáveis: WP-R4 (`m02-seal.mjs` + KPI do checklist + item 16), ADR-030/ADR-031 e release após
+  R0b + DBT-01. Ordem: R1 → WP-R4 → R0b.
+- **Prova:** push docs-only `9659844..bb4adec` e `bb4adec..ed6c9d6`; `CI light` `35517649110` e
+  `35517912432` = success (pesada pulada por paths-ignore); `npm run check` exit 0 com bundle
+  idêntico (473230 · 237694); `origin/main` = `9724d2c` intocado.
+- **Placar: inalterado** — 150 D · 23 P · 12 NS · 2 UNV / 187.
+- **Registro no journal:** `L133` (errata) e `L134` (resultado + plano).
+
+  Latest state marker parent = `ed6c9d6f254a0ad6d79c00d67abc82d05cd82f44`,
