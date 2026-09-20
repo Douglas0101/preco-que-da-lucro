@@ -79,6 +79,10 @@ jobs:
         if: steps.scope.outputs.applicable == 'true'
         run: node scripts/m02-work-package-guard.mjs
 
+      - name: Debt registry guard (fail-closed)
+        if: steps.scope.outputs.applicable == 'true'
+        run: node scripts/m02-debts-guard.mjs
+
       - name: Secrets audit (read-only)
         if: steps.scope.outputs.applicable == 'true'
         run: node scripts/m02-secrets-audit.ts
