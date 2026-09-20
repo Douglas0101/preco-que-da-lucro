@@ -2205,3 +2205,18 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L133` (errata) e `L134` (resultado + plano).
 
   Latest state marker parent = `ed6c9d6f254a0ad6d79c00d67abc82d05cd82f44`,
+
+### A1 — verificações de fechamento e escopo S0 do WP-R4 (L135)
+
+- **Cobertura de CI provada com os 3 casos:** `bb4adec@35517649110` (light, docs-only),
+  `ed6c9d6@35517912432` (light, docs-only) e `358f991@35517992920` (heavy; ledger fora de
+  `docs/evidence/**`) — cada SHA com exatamente 1 run. A premissa "ci-light sem paths filter" é
+  **falsa** (`ci-light.yml:8-14` tem `paths: docs/evidence/**`); o contrato correto é a disjunção
+  heavy∪light, agora com linha de **garantia de cobertura** explícita no `AGENTS.md`.
+- **Bundle:** `check-bundle.mjs` publica tamanhos (minified/gzip/brotli), não hashes; sha256 de
+  conteúdo fica candidato do WP-R4 (código ⇒ RED/GREEN próprio).
+- **WP-R4 (S0 — não aberto):** escopo declarado em `L135`; ordem `R1 → R4 → R0b` mantida, com
+  timebox e R0b passando à frente em caso de estouro.
+- **Registro no journal:** `L135`.
+
+  Latest state marker parent = `358f991763277f2a7c85db3009da986e7773dd7a`,
