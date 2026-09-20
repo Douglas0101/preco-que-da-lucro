@@ -2009,4 +2009,58 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Limite declarado do S6:** as correções do veredicto (C5/C10/C11/N4) foram verificadas pela **re-execução da bateria e do gate** sobre os bytes finais, **não** por uma segunda lane adversarial. O ponto que exigia prova — a mudança de comportamento em `enclosingScope` — tem prova por medição: o diff segue vazio e nenhum dos 21 testes mudou de resultado.
 - **Registro no journal:** `L114` (intenção, copiada verbatim do repo principal) e `L115` (resultado) de `docs/evidence/agent-state/PROGRESS.md`.
 
-  Latest state marker parent = `55b0090dd9d2deed2493208e0047e7af4998b0d6`,
+### BLOCO 3 — WP2 F-D1-gate-ux: o gate passa a nomear o que mudou (2026-09-20)
+
+- **Definição:** `docs/evidence/agent-state/QUEUE.md:87`, nascida do veredicto
+  `docs/evidence/agent-state/CLAIMS-INBOX/TRK-D1/F-C5-2-F-C5-3-VERDICT.md` §3 item D5 e §6 item 2. A
+  mensagem do gate era acionável mas não dizia **qual** contador havia movido, sobre um diff de
+  58 164 bytes; o atrito recai sobre quem só acrescentou um teste que importa `@/db`.
+- **Escopo escolhido** entre as duas alternativas do veredicto: a linha em `AGENTS.md` já existia,
+  então faltava a **outra** — a mensagem. Não se mudou o que é contado: `src/test/**` segue contando
+  em `directDatabaseFiles`, porque um teste que importa `@/db` é mesmo um arquivo com acesso direto
+  ao banco e a matriz mede a árvore real.
+- **Desenho:** o descritor mora em módulo próprio (`scripts/lib/m02-matrix-drift.ts`) e não dentro do
+  gerador, porque importar o gerador carrega a varredura pesada de `src/**` no escopo de módulo.
+  Descritor puro, **0 imports**, sem decisão de exit — a string de gatilho continua sendo o critério,
+  e a primeira linha da mensagem segue byte a byte igual à anterior.
+- **Neutralidade:** `m02:matrix:check` passa **sem regenerar** em toda a rodada, e `check:bundle` sai
+  idêntico ao do WP1 e ao do TRILHO C (`473230 minified`, `assets/index-eXg04t5H.js: 237694`).
+- **O defeito de direção**, achado pelo falsificador e não pela suíte: a primeira versão comparava
+  `expected` (árvore) com `actual` (arquivo) e por isso imprimia `9 -> 8` para uma sonda
+  **adicionada**. Os testes não pegaram porque verificavam as strings que o próprio autor escolheu. A
+  correção não foi inverter a saída — foi renomear os lados para o que eles **são** (`fromTree`,
+  `onDisk`): a ambiguidade morava no nome.
+- **O S6 adversarial:** lane `d1d251651a88776bdaf3c9e70d390684a`, sha256
+  `9820581155a8fb15a6e88f98542a6eaccb6a44fd6d8d85c79ae78e0538f38dca`, 10 829 bytes, com C1..C7 e
+  C9..C14 **CONFIRMED**, C8 **CORRECTED**, **0 REJECTED, 0 UNVERIFIABLE**, e nenhum fail-open nas
+  três caçadas abertas.
+- **N1, o achado que importa:** `only the policy overlay differs` era emitido **por eliminação**, sem
+  verificar que a diferença era o overlay, e alcançável por um import **não-DB** acrescentado a um
+  `src/lib/*.functions.ts` existente — o gate reprovava e a mensagem **culpava a política**. Corrigido
+  por `describeResidual` (conteúdo de lista / campos não itemizados / overlay) com dois testes novos.
+- **N3** (caso de teste que não falsificava o que prometia), **N5a** (manifesto gerado de dentro do
+  selo e conferido da raiz — reprovou de verdade, 15 unreadable + 1 mismatch, e o veto fail-closed
+  funcionou) e **N5c** (o falsificador imprimia `NOMEOU CONTADOR` mesmo com a mensagem **invertida**)
+  foram corrigidos. **N2** e **N4** ficaram declarados.
+- **ACHADO DO PRÓPRIO SELO, o mais grave da rodada.** A segunda corrida do selo passou com manifesto
+  **17/17 OK** e mesmo assim estava **ERRADA**: copiava `gate-local-2` e `verify-run1` como canônicos,
+  os dois de **antes** das correções do S6, e o `wp2-s7.log` **nunca era regravado** pelo S7 — o
+  script só imprime em stdout, quem gravava era o `tee` do comando de lançamento. Um manifesto verde
+  sobre a revisão errada é um artefato que **afirma ter verificado** o que não verificou — a classe de
+  defeito que este WP combate, nascida dentro da ferramenta que produz a prova. Corrigido: os logs
+  anteriores levam o sufixo `-antes-do-S6`, o canônico é o da última medição (`fecho-final.log.txt`,
+  `gate-local.log.txt`), o S7 foi re-rodado sobre os bytes finais, e as cinco capturas canônicas
+  foram conferidas **por hash** contra as suas fontes.
+- **E o S7 não conseguia provar que tinha reexaminado**: ele reportava apenas contagens e listas, e
+  por isso saiu **IDÊNTICO** depois das correções — o script de reselo acusou com
+  `IDENTICO ao anterior — suspeito`. Não era falso positivo: contagens iguais não distinguem revisões.
+  Passou a imprimir o **sha256 do artefato examinado** e dos três arquivos do WP. É a **quarta**
+  ocorrência da família **cardinalidade × identidade** nesta rodada: guard do scanner (WP1), gerador
+  do TRILHO C, log velho do selo, guard do S7.
+- **Placar: nenhum crédito.** Correção de defeito fora do denominador de 187 ⇒ segue
+  **150 D · 23 P · 12 NS · 2 UNV = 86,36 % parcial / 80,21 % crua**, e a camada §36–§40 não se move.
+- **Limite declarado:** as correções do S6 foram verificadas pela re-execução da bateria, do gate e
+  do S7 sobre os bytes finais, **não** por uma segunda lane adversarial com contexto limpo.
+- **Registro no journal:** `L117` (resultado) de `docs/evidence/agent-state/PROGRESS.md`.
+
+  Latest state marker parent = `3812febab80f9922d70512ecc3c623d233ecdd2a`,

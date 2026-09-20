@@ -1,0 +1,66 @@
+=== contexto ===
+branch = mission/wp2-gate-ux
+HEAD_SHA = 3812febab80f9922d70512ecc3c623d233ecdd2a
+node = v24.15.0 / npm = 11.14.1
+porta 5432 (H-9) tocada? -> 0 listener(es)
+
+=== 0.5 normaliza formato ANTES de qualquer gate ===
+Checking formatting...
+All matched files use Prettier code style!
+PRETTIER_EXIT=0
+
+=== 1. suite do descritor ===
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  21:01:46
+   Duration  786ms (transform 37ms, setup 92ms, import 24ms, tests 12ms, environment 535ms)
+
+VITEST_EXIT=0
+
+=== 2. suite do scanner (nao pode ter regredido) ===
+
+ Test Files  1 passed (1)
+      Tests  21 passed (21)
+   Start at  21:01:47
+   Duration  2.01s (transform 148ms, setup 95ms, import 304ms, tests 980ms, environment 509ms)
+
+VITEST2_EXIT=0
+
+=== 3. tsc ===
+TSC_EXIT=0
+
+=== 4. matriz neutra (sem regenerar) ===
+
+M-02 matrix is deterministic and up to date.
+MATRIX_EXIT=0
+
+=== 5. falsificacao do gate: dispara, nomeia, limpa ===
+FALSIFICA_EXIT=0
+EXIT_ANTES=0
+GATE_EXIT=1
+  docs/specs/M-02/matrix.generated.yaml:
+    counts.bffModules: 8 -> 9
+      + src/lib/zzz-wp2-probe.functions.ts
+  docs/specs/M-02/matrix.yaml:
+    counts.bffModules: 8 -> 9
+      + src/lib/zzz-wp2-probe.functions.ts
+PRIMEIRA_LINHA: IDENTICA A ANTERIOR
+NOMEOU CONTADOR: counts.bffModules: 8 -> 9 counts.bffModules: 8 -> 9 
+  docs/specs/M-02/matrix.generated.yaml:
+  docs/specs/M-02/matrix.yaml:
+EXIT_DEPOIS=0
+
+=== 6. nenhum arquivo de sonda sobrou ===
+ M scripts/m02-matrix.ts
+?? docs/evidence/d1-gate-ux-2026-09-19/
+?? scripts/lib/m02-matrix-drift.ts
+?? src/test/m02-matrix-drift.test.ts
+
+=== 7. a mensagem diz a direcao certa? (arquivo ADICIONADO aparece como +) ===
+DIRECAO: OK (sonda nova aparece como +)
+CONTADOR: OK (8 -> 9, do disco para a arvore)
+
+RESUMO: PRETTIER=0 VITEST=0 VITEST2=0 TSC=0 MATRIX=0 FALSIFICA=0
+BATERIA WP2: OK
+VERIFY_EXIT=0

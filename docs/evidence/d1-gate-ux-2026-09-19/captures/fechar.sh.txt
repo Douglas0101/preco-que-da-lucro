@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Fecho do WP2: formato dos arquivos do WP -> bateria -> gate local.
+# O selo e um passo separado (zz-wp2-seal.sh), depois deste.
+cd "$(dirname "$0")/.." || exit 1
+
+A=.artifacts
+LOG=$A/wp2-fechar.log
+FAIL=0
+
+exec 3>&1
+exec > "$LOG" 2>&1
+
+ARQUIVOS="scripts/lib/m02-matrix-drift.ts scripts/m02-matrix.ts src/test/m02-matrix-drift.test.ts docs/evidence/d1-gate-ux-2026-09-19/README.md docs/evidence/d1-gate-ux-2026-09-19/SPEC.md"
+
+echo "branch = $(git rev-parse --abbrev-ref HEAD)"
+echo "HEAD_SHA = $(git rev-parse HEAD)"
+echo "porta 5432 (H-9) tocada? -> $(ss -ltnp 2>/dev/null | grep -c ':5432') listener(es)"
+echo
+
+echo "=== 0. prettier --write nos arquivos do WP ==="
+# O pi-lens reformata DEPOIS da escrita: sem este passo o commit captura bytes
+# que o format:check da CI rejeita. Quinta ocorrencia neste projeto.
+npx prettier --write $ARQUIVOS
+echo "PRETTIER_WRITE_EXIT=$?"
+echo
+
+echo "=== 0.1 prettier --check nos mesmos arquivos ==="
+npx prettier --check $ARQUIVOS
+P=$?
+echo "PRETTIER_CHECK_EXIT=$P"
+if [ "$P" -ne 0 ]; then FAIL=1; fi
+echo
+
+echo "=== 1. bateria (sonda + suite + tsc + matriz + falsificador) ==="
+bash $A/zz-wp2-verify.sh
+V=$?
+echo "VERIFY_EXIT=$V"
+if [ "$V" -ne 0 ]; then FAIL=1; fi
+echo
+
+echo "=== 2. gate local (npm run check) ==="
+npm run check > $A/wp2-gate-local-3.log 2>&1
+C=$?
+echo "CHECK_EXIT=$C"
+if [ "$C" -ne 0 ]; then FAIL=1; fi
+tail -25 $A/wp2-gate-local-3.log
+echo
+
+echo "=== 3. H-9 de novo, ao fim ==="
+echo "porta 5432 (H-9) tocada? -> $(ss -ltnp 2>/dev/null | grep -c ':5432') listener(es)"
+echo
+
+echo "RESUMO: PRETTIER=$P VERIFY=$V CHECK=$C"
+if [ "$FAIL" -eq 0 ]; then
+  echo "FECHO WP2: OK"
+else
+  echo "FECHO WP2: REPROVADO"
+fi
+
+tail -70 "$LOG" >&3
+echo "FECHAR_FAIL=$FAIL" >&3
+exit "$FAIL"
