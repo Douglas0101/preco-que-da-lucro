@@ -2128,4 +2128,27 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L123` (intenção) e `L124` (resultado) de
   `docs/evidence/agent-state/PROGRESS.md`.
 
-  Latest state marker parent = `87e245ae124817fd82c39cff72f401351e9cce51`,
+### WP-R2 — checklist anti-vacuoso no template de work package (S9 — landado)
+
+- **O que era:** das 17 correções forçadas pelos S6 dos WPs 3–5 (3 CORR + 14 N), 7 eram defeitos
+  materiais de **identidade do harness** e 0 de código de produto — o S6 virou carga estrutural.
+  Merge `a7f1e4a981b737ae76b6bc4d59538939d1d02057` (parent `1aad70c`), branch
+  `mission/r2-wp-checklist`, commit `049ebc7`.
+- **O que foi feito:** `docs/evidence/_templates/work-package.md` (checklist de **14 itens** com
+  origem rastreada a cada achado S6), seção `## Work packages (contrato de prova)` no `AGENTS.md`
+  (template obrigatório; taxonomia CORR×N; bounds limitam rodadas; `UNVERIFIABLE` não conta como
+  verificado; N corrigidos na §7 e declarados na §Riscos) e selo próprio.
+- **Prova:** rastreabilidade dos 7 defeitos de harness aos itens, com citação dos veredictos
+  selados, e controle positivo nos bytes finais (fronteira bidirecional, sentinela real,
+  `checked === discovered`, 0 R/0 U, isolamento assertado, scaffolds com gate). S6 adversarial
+  (contexto limpo): **5 CONFIRMED · 2 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE**; N1–N9 tratados
+  antes do selo (contagem, rastreabilidade, rótulo, citação refutada, bound, cobertura 12→14,
+  `UNVERIFIABLE`, selo cumprindo o template, clareza de onde N mora). `npm run check` verde;
+  bundle idêntico.
+- **Selo versionado:** `docs/evidence/wp-template-2026-09-20/` (MANIFEST com 11 arquivos).
+- **Placar: nenhum crédito** — contrato de processo fora do denominador de 187 ⇒ segue
+  **150 D · 23 P · 12 NS · 2 UNV = 86,36 % parcial / 80,21 % crua**.
+- **Registro no journal:** `L126` (intenção, reparada antes do commit — declarado) e `L127`
+  (resultado) de `docs/evidence/agent-state/PROGRESS.md`.
+
+  Latest state marker parent = `a7f1e4a981b737ae76b6bc4d59538939d1d02057`,
