@@ -2151,4 +2151,22 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L126` (intenção, reparada antes do commit — declarado) e `L127`
   (resultado) de `docs/evidence/agent-state/PROGRESS.md`.
 
-  Latest state marker parent = `a7f1e4a981b737ae76b6bc4d59538939d1d02057`,
+### WP-R0 — reconciliação do ledger (S9 — landado)
+
+- **O que era:** fórmula do placar sem registro explícito, narrativa CORR×N confusa e lista dos
+  12 NS/UNV sem derivação nominal. Merge
+  `6a0fad95b757ed2316e3797c81d4ccf2b1975e6f` (parent `c9d1740`), branch
+  `mission/r0-ledger-recon`, commit `84853ee`.
+- **O que foi feito:** análise do Bloco 3 persistida com proveniência; fórmula `(D + ½P)/187`;
+  taxonomia CORR×N e errata (3 CORR + 14 N = 17); parser reproduzível que nomeia os 12 NS + 2 UNV
+  com asserção de identidade e a dedup `24.13 ≡ 25.5`; varredura de estado item a item; §41/§42
+  com números correntes.
+- **Prova:** parser com identidade exata e composição `22−9−1=12`; capturas versionadas
+  (`extrai-ns`, `estado-ns`); `npm run check` exit 0 com `CHECK_EXIT=0` assertado no selo; S6
+  adversarial **5 CONFIRMED · 1 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE** (N1–N9 tratados).
+- **Selo versionado:** `docs/evidence/ledger-reconciliation-2026-09-20/` (14 arquivos).
+- **Placar: inalterado de propósito** — promoção do cluster de memória/`25.4` exige re-medição
+  (R0b) com S6 e ratificação MAESTRO ⇒ segue **150 D · 23 P · 12 NS · 2 UNV**.
+- **Registro no journal:** `L128` (intenção) e `L129` (resultado).
+
+  Latest state marker parent = `6a0fad95b757ed2316e3797c81d4ccf2b1975e6f`,
