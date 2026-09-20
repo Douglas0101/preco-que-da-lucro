@@ -1,0 +1,254 @@
+=== revisao examinada ===
+  HEAD: 612c34bc9dfb49945854b29773362f012df07020
+  sha256 src/lib/vercel-analytics.ts: b895151895c0405dd6d88fafbdf5b1860f15de12573f3d695f35a9f56e245785
+  sha256 e2e/analytics-gate.spec.ts:  9b1c58e98c83791e077f1b67bcc7c0c653f607da83b49a817d744ae31e668b6a
+=== container efemero wp5-pg em 127.0.0.1:5439 ===
+  PostgreSQL 17.11 on x86_64-pc-linux-musl
+  migrations ok
+
+> pretest:e2e
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> test:e2e
+> playwright test
+
+[WebServer] .env not found. Continuing without it.
+
+Running 60 tests using 2 workers
+
+  ✓   1 [chromium] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (1.8s)
+[WebServer] (node:654125) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+[WebServer] (Use `node --trace-deprecation ...` to show where the warning was created)
+  ✓   2 [chromium] › e2e/sales-dashboard.spec.ts:200:1 › dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS (3.0s)
+  ✓   3 [chromium] › e2e/sales-dashboard.spec.ts:219:1 › registrar venda pelo formulário aparece em Vendas recentes (2.9s)
+  ✓   5 [chromium] › e2e/ui-stack.spec.ts:49:1 › public UI uses valid composed controls and has no serious a11y violations (2.1s)
+[WebServer] {"timestamp":"2026-09-20T02:14:08.607Z","level":"warn","event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src","violatedDirective":null,"blockedUri":"https://cdn.example/blocked.js","documentUri":"https://preview.invalid/inicio","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":null,"sample":null}
+  ✓   6 [chromium] › e2e/ui-stack.spec.ts:76:1 › the CSP report channel answers 204 for a violation report (18ms)
+  ✓   4 [chromium] › e2e/sales-dashboard.spec.ts:232:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (4.9s)
+[WebServer] 2026-09-20T02:14:11.067Z WARN [Better Auth]: Invalid password
+  ✓   7 [chromium] › e2e/ui-stack.spec.ts:92:1 › authentication controls keep accessible names (2.9s)
+  ✓   8 [chromium] › e2e/ui-stack.spec.ts:119:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (2.7s)
+[WebServer] {"timestamp":"2026-09-20T02:14:14.804Z","level":"error","event":"bff.request_failed","correlationId":"8f47328c-717b-4bc5-94bb-26a513418f99","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+  ✓   9 [chromium] › e2e/ui-stack.spec.ts:138:1 › authorization matrix blocks member mutations with a Better Auth session (3.3s)
+[WebServer] {"timestamp":"2026-09-20T02:14:15.475Z","level":"error","event":"bff.request_failed","correlationId":"f42f053d-bb28-4482-b376-5afe6dea11ed","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+  ✓  10 [chromium] › e2e/ui-stack.spec.ts:159:1 › CSRF rejects a cross-site replay of a server-function mutation (3.1s)
+  ✓  11 [chromium] › e2e/ui-stack.spec.ts:188:1 › authenticated shell uses an HttpOnly session and accessible navigation (5.9s)
+  ✓  12 [chromium] › e2e/ui-stack.spec.ts:239:1 › manual simulation has no fictitious current volume and labels hypothetical results (6.2s)
+  ✓  14 [chromium] › e2e/ui-stack.spec.ts:303:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (2.2s)
+  ✓  13 [chromium] › e2e/ui-stack.spec.ts:270:1 › diagnostic forms prices only from explicit assumptions (4.9s)
+  ✓  16 [firefox] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (3.0s)
+[WebServer] {"timestamp":"2026-09-20T02:14:29.949Z","level":"error","event":"request.failed","correlationId":"1d4917bb-0cf8-4ea4-a502-f9116f2dbad8","code":"INTERNAL_ERROR","method":"GET","pathname":"/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59","durationMs":101,"error":{"name":"Error","message":"aborted"}}
+[WebServer] Error: aborted
+[WebServer]     at abortIncoming (node:_http_server:848:17)
+[WebServer]     at socketOnClose (node:_http_server:842:3)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12) (status 500)
+[WebServer] caused by: Error: aborted
+[WebServer]     at abortIncoming (node:_http_server:848:17)
+[WebServer]     at socketOnClose (node:_http_server:842:3)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12)
+[WebServer] {"timestamp":"2026-09-20T02:14:29.959Z","level":"error","event":"server.ssr_failed","correlationId":"ff874d6c-070f-4004-8564-3e9cf0600b0f","error":{"name":"HTTPError","message":"aborted"}}
+  ✓  15 [chromium] › e2e/ui-stack.spec.ts:332:1 › financial query failure is not rendered as empty or zero data (8.0s)
+  ✓  17 [firefox] › e2e/sales-dashboard.spec.ts:200:1 › dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS (3.1s)
+  ✓  18 [firefox] › e2e/sales-dashboard.spec.ts:219:1 › registrar venda pelo formulário aparece em Vendas recentes (5.1s)
+  ✓  19 [firefox] › e2e/sales-dashboard.spec.ts:232:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (6.3s)
+[WebServer] {"timestamp":"2026-09-20T02:14:39.658Z","level":"warn","event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src","violatedDirective":null,"blockedUri":"https://cdn.example/blocked.js","documentUri":"https://preview.invalid/inicio","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":null,"sample":null}
+  ✓  21 [firefox] › e2e/ui-stack.spec.ts:76:1 › the CSP report channel answers 204 for a violation report (16ms)
+  ✓  20 [firefox] › e2e/ui-stack.spec.ts:49:1 › public UI uses valid composed controls and has no serious a11y violations (2.9s)
+  ✓  22 [firefox] › e2e/ui-stack.spec.ts:92:1 › authentication controls keep accessible names (2.1s)
+[WebServer] 2026-09-20T02:14:43.351Z WARN [Better Auth]: Invalid password
+  ✓  23 [firefox] › e2e/ui-stack.spec.ts:119:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (3.3s)
+[WebServer] {"timestamp":"2026-09-20T02:14:46.171Z","level":"error","event":"bff.request_failed","correlationId":"2d4abfe6-9170-4241-b3e4-d6ab4f9803d0","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+  ✓  24 [firefox] › e2e/ui-stack.spec.ts:138:1 › authorization matrix blocks member mutations with a Better Auth session (4.7s)
+[WebServer] {"timestamp":"2026-09-20T02:14:49.091Z","level":"error","event":"bff.request_failed","correlationId":"51641e87-fa98-4fa5-8a4d-6848611220d9","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+  ✓  25 [firefox] › e2e/ui-stack.spec.ts:159:1 › CSRF rejects a cross-site replay of a server-function mutation (4.2s)
+  ✓  26 [firefox] › e2e/ui-stack.spec.ts:188:1 › authenticated shell uses an HttpOnly session and accessible navigation (8.2s)
+  ✓  27 [firefox] › e2e/ui-stack.spec.ts:239:1 › manual simulation has no fictitious current volume and labels hypothetical results (6.1s)
+  ✓  29 [firefox] › e2e/ui-stack.spec.ts:303:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (2.7s)
+  ✓  28 [firefox] › e2e/ui-stack.spec.ts:270:1 › diagnostic forms prices only from explicit assumptions (7.1s)
+[WebServer] {"timestamp":"2026-09-20T02:15:03.431Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:03.433Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:03.914Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:03.915Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:04.597Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  31 [webkit] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (2.8s)
+[WebServer] {"timestamp":"2026-09-20T02:15:06.783Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:06.784Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:06.840Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:06.844Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  30 [firefox] › e2e/ui-stack.spec.ts:332:1 › financial query failure is not rendered as empty or zero data (8.7s)
+[WebServer] {"timestamp":"2026-09-20T02:15:07.200Z","level":"error","event":"request.failed","correlationId":"f43873ee-1082-4c04-a710-8659566f0ff9","code":"INTERNAL_ERROR","method":"POST","pathname":"/api/vitals","durationMs":9,"error":{"name":"AbortError","message":"This operation was aborted"}}
+[WebServer] AbortError: This operation was aborted
+[WebServer]     at new DOMException (node:internal/per_context/domexception:76:18)
+[WebServer]     at AbortController.abort (node:internal/abort_controller:506:18)
+[WebServer]     at abort (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:316:51)
+[WebServer]     at ServerResponse.<anonymous> (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:320:35)
+[WebServer]     at Object.onceWrapper (node:events:630:28)
+[WebServer]     at ServerResponse.emit (node:events:509:28)
+[WebServer]     at emitCloseNT (node:_http_server:1076:10)
+[WebServer]     at Socket.onServerResponseClose (node:_http_server:289:5)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12) (status 500)
+[WebServer] caused by: AbortError: This operation was aborted
+[WebServer]     at new DOMException (node:internal/per_context/domexception:76:18)
+[WebServer]     at AbortController.abort (node:internal/abort_controller:506:18)
+[WebServer]     at abort (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:316:51)
+[WebServer]     at ServerResponse.<anonymous> (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:320:35)
+[WebServer]     at Object.onceWrapper (node:events:630:28)
+[WebServer]     at ServerResponse.emit (node:events:509:28)
+[WebServer]     at emitCloseNT (node:_http_server:1076:10)
+[WebServer]     at Socket.onServerResponseClose (node:_http_server:289:5)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12)
+[WebServer] {"timestamp":"2026-09-20T02:15:07.203Z","level":"error","event":"server.ssr_failed","correlationId":"cf2a0961-2f52-474f-938d-94f75b35e195","error":{"name":"HTTPError","message":"This operation was aborted"}}
+[WebServer] {"timestamp":"2026-09-20T02:15:08.269Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:08.912Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:08.931Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  32 [webkit] › e2e/sales-dashboard.spec.ts:200:1 › dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS (3.0s)
+[WebServer] {"timestamp":"2026-09-20T02:15:08.957Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:08.958Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:09.645Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:09.646Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:09.710Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:09.711Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:10.516Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:11.565Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:14.025Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:14.732Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:14.735Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:14.792Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:14.793Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  33 [webkit] › e2e/sales-dashboard.spec.ts:219:1 › registrar venda pelo formulário aparece em Vendas recentes (6.9s)
+[WebServer] {"timestamp":"2026-09-20T02:15:15.318Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:15.319Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:15.743Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:15.748Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:16.561Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  34 [webkit] › e2e/sales-dashboard.spec.ts:232:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (8.1s)
+[WebServer] {"timestamp":"2026-09-20T02:15:17.204Z","level":"warn","event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src","violatedDirective":null,"blockedUri":"https://cdn.example/blocked.js","documentUri":"https://preview.invalid/inicio","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":null,"sample":null}
+  ✓  36 [webkit] › e2e/ui-stack.spec.ts:76:1 › the CSP report channel answers 204 for a violation report (14ms)
+[WebServer] {"timestamp":"2026-09-20T02:15:17.445Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:17.631Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:17.633Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:17.708Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:17.709Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  35 [webkit] › e2e/ui-stack.spec.ts:49:1 › public UI uses valid composed controls and has no serious a11y violations (2.9s)
+[WebServer] {"timestamp":"2026-09-20T02:15:18.420Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:18.454Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:18.455Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:18.869Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:18.870Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  37 [webkit] › e2e/ui-stack.spec.ts:92:1 › authentication controls keep accessible names (1.7s)
+[WebServer] 2026-09-20T02:15:19.162Z WARN [Better Auth]: Invalid password
+[WebServer] {"timestamp":"2026-09-20T02:15:19.242Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:19.243Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:19.285Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:19.287Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:19.524Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:19.633Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:19.636Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  38 [webkit] › e2e/ui-stack.spec.ts:119:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (2.0s)
+[WebServer] {"timestamp":"2026-09-20T02:15:20.029Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:20.030Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:20.348Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:20.351Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:20.393Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:20.395Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:20.660Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:20.662Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:20.963Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:20.965Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:21.267Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:21.270Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:21.308Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:21.309Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:21.947Z","level":"error","event":"bff.request_failed","correlationId":"50174735-0df4-47d3-bb16-cccacd061cdd","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+[WebServer] {"timestamp":"2026-09-20T02:15:22.011Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  39 [webkit] › e2e/ui-stack.spec.ts:138:1 › authorization matrix blocks member mutations with a Better Auth session (3.7s)
+[WebServer] {"timestamp":"2026-09-20T02:15:22.890Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:22.902Z","level":"error","event":"bff.request_failed","correlationId":"68631548-8afb-4626-88e7-caf9d4777da5","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+[WebServer] {"timestamp":"2026-09-20T02:15:23.289Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:23.293Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  40 [webkit] › e2e/ui-stack.spec.ts:159:1 › CSRF rejects a cross-site replay of a server-function mutation (3.3s)
+[WebServer] {"timestamp":"2026-09-20T02:15:23.735Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:23.737Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:23.783Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:23.784Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:23.854Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:23.855Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:26.492Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:26.493Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:26.546Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:26.547Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:27.402Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:27.402Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:27.456Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:27.464Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:28.580Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  41 [webkit] › e2e/ui-stack.spec.ts:188:1 › authenticated shell uses an HttpOnly session and accessible navigation (6.4s)
+[WebServer] {"timestamp":"2026-09-20T02:15:29.726Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:29.728Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:29.885Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:29.889Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:31.681Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  42 [webkit] › e2e/ui-stack.spec.ts:239:1 › manual simulation has no fictitious current volume and labels hypothetical results (9.0s)
+[WebServer] {"timestamp":"2026-09-20T02:15:32.937Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:32.943Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:33.042Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:33.049Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:35.833Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:35.834Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  44 [webkit] › e2e/ui-stack.spec.ts:303:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (4.1s)
+  ✓  43 [webkit] › e2e/ui-stack.spec.ts:270:1 › diagnostic forms prices only from explicit assumptions (7.3s)
+[WebServer] {"timestamp":"2026-09-20T02:15:36.953Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:36.957Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:37.048Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:37.051Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  46 [mobile] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (1.4s)
+[WebServer] {"timestamp":"2026-09-20T02:15:40.215Z","level":"warn","event":"rum.web_vitals_rejected","reason":"invalid_json"}
+[WebServer] {"timestamp":"2026-09-20T02:15:40.242Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:40.246Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:40.268Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:40.271Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  47 [mobile] › e2e/sales-dashboard.spec.ts:200:1 › dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS (2.6s)
+[WebServer] {"timestamp":"2026-09-20T02:15:42.307Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:42.308Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:42.361Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:42.368Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:15:44.179Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  48 [mobile] › e2e/sales-dashboard.spec.ts:219:1 › registrar venda pelo formulário aparece em Vendas recentes (2.9s)
+  ✓  45 [webkit] › e2e/ui-stack.spec.ts:332:1 › financial query failure is not rendered as empty or zero data (8.1s)
+  ✓  50 [mobile] › e2e/ui-stack.spec.ts:49:1 › public UI uses valid composed controls and has no serious a11y violations (2.4s)
+[WebServer] {"timestamp":"2026-09-20T02:15:47.984Z","level":"warn","event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src","violatedDirective":null,"blockedUri":"https://cdn.example/blocked.js","documentUri":"https://preview.invalid/inicio","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":null,"sample":null}
+  ✓  51 [mobile] › e2e/ui-stack.spec.ts:76:1 › the CSP report channel answers 204 for a violation report (26ms)
+  ✓  49 [mobile] › e2e/sales-dashboard.spec.ts:232:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (5.2s)
+[WebServer] 2026-09-20T02:15:50.796Z WARN [Better Auth]: Invalid password
+[WebServer] {"timestamp":"2026-09-20T02:15:50.986Z","level":"error","event":"request.failed","correlationId":"dcd390af-346f-439d-ab3d-16aec7c65cbe","code":"INTERNAL_ERROR","method":"GET","pathname":"/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59","durationMs":110,"error":{"name":"Error","message":"aborted"}}
+[WebServer] Error: aborted
+[WebServer]     at abortIncoming (node:_http_server:848:17)
+[WebServer]     at socketOnClose (node:_http_server:842:3)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12) (status 500)
+[WebServer] caused by: Error: aborted
+[WebServer]     at abortIncoming (node:_http_server:848:17)
+[WebServer]     at socketOnClose (node:_http_server:842:3)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12)
+  ✓  52 [mobile] › e2e/ui-stack.spec.ts:92:1 › authentication controls keep accessible names (3.0s)
+[WebServer] {"timestamp":"2026-09-20T02:15:51.002Z","level":"error","event":"server.ssr_failed","correlationId":"f07a2a96-a2bc-4028-9631-469aec8b86e3","error":{"name":"HTTPError","message":"aborted"}}
+  ✓  53 [mobile] › e2e/ui-stack.spec.ts:119:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (2.7s)
+[WebServer] {"timestamp":"2026-09-20T02:15:54.284Z","level":"error","event":"bff.request_failed","correlationId":"3e6487a0-93f1-4e47-a58d-5629edbef7e8","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+  ✓  54 [mobile] › e2e/ui-stack.spec.ts:138:1 › authorization matrix blocks member mutations with a Better Auth session (3.7s)
+[WebServer] {"timestamp":"2026-09-20T02:15:55.330Z","level":"error","event":"bff.request_failed","correlationId":"f65d6e58-fd27-41eb-ba5b-86d27ddb27e3","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+  ✓  55 [mobile] › e2e/ui-stack.spec.ts:159:1 › CSRF rejects a cross-site replay of a server-function mutation (3.3s)
+  ✓  56 [mobile] › e2e/ui-stack.spec.ts:188:1 › authenticated shell uses an HttpOnly session and accessible navigation (5.9s)
+  ✓  57 [mobile] › e2e/ui-stack.spec.ts:239:1 › manual simulation has no fictitious current volume and labels hypothetical results (6.2s)
+  ✓  59 [mobile] › e2e/ui-stack.spec.ts:303:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (2.1s)
+  ✓  58 [mobile] › e2e/ui-stack.spec.ts:270:1 › diagnostic forms prices only from explicit assumptions (4.9s)
+  ✓  60 [mobile] › e2e/ui-stack.spec.ts:332:1 › financial query failure is not rendered as empty or zero data (6.3s)
+
+  60 passed (2.3m)
+PLAYWRIGHT_EXIT=0

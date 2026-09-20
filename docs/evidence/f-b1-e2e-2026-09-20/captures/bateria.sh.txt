@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Bateria do WP5 (F-B1-e2e). Uso: bash .artifacts/zz-wp5-e2e.sh <fase> [filtro]
+# Container PG17 efemero em :5439; :5432 nunca e tocado.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+A=.artifacts
+FASE=${1:-green}
+FILTRO=${2:-}
+PG=wp5-pg
+PORTA=5439
+DB=preco_que_da_lucro_test
+
+export DATABASE_ADMIN_URL="postgresql://postgres:postgres@127.0.0.1:$PORTA/$DB"
+export E2E_DB_RUNTIME_PASSWORD="wp5-runtime-password"
+export DATABASE_URL="postgresql://app_runtime:${E2E_DB_RUNTIME_PASSWORD}@127.0.0.1:$PORTA/$DB"
+export DATABASE_URL_UNPOOLED="$DATABASE_URL"
+export BETTER_AUTH_SECRET="$(openssl rand -hex 32)"
+export BETTER_AUTH_URL="http://127.0.0.1:4173"
+export AUTH_TRUSTED_ORIGINS="http://127.0.0.1:4173"
+export E2E_AUTH_EMAIL="teste@example.test"
+export E2E_AUTH_PASSWORD="wp5-e2e-password"
+export DATABASE_DRIVER=node-postgres
+export EXPECTED_POSTGRES_MAJOR=17
+# O wrapper de hygiene do E2E remove NO_COLOR de propósito: com FORCE_COLOR no
+# ambiente (harness), a convivência emite warning do Node que o gate de warnings
+# do build reprova e o webServer não sobe.
+unset NO_COLOR
+
+LOG=$A/wp5-e2e-$FASE.log
+exec > >(tee "$LOG") 2>&1
+
+if [ "$FASE" = "cleanup" ]; then
+  echo "=== cleanup do WP5 ==="
+  docker rm -f "$PG" > /dev/null 2>&1 && echo "  container $PG removido"
+  echo "  porta 5432 (H-9): $(ss -ltn 2>/dev/null | grep -c ':5432 ' || true) listener(es)"
+  echo "  porta 5439: $(ss -ltn 2>/dev/null | grep -c ':5439 ' || true) listener(es)"
+  echo "  porta 4173: $(ss -ltn 2>/dev/null | grep -c ':4173 ' || true) listener(es)"
+  exit 0
+fi
+
+# `reuseExistingServer` local: se 4173 ja estiver ocupada, o webServer reusa um
+# preview antigo e a medicao vira about-the-wrong-build (S6 N3).
+if ss -ltn 2>/dev/null | grep -q ':4173 '; then
+  echo "FALHA: porta 4173 ocupada — preview antigo poderia ser reusado"; exit 1
+fi
+
+echo "=== revisao examinada ==="
+echo "  HEAD: $(git rev-parse HEAD)"
+echo "  sha256 src/lib/vercel-analytics.ts: $(sha256sum src/lib/vercel-analytics.ts | cut -d' ' -f1)"
+echo "  sha256 e2e/analytics-gate.spec.ts:  $(sha256sum e2e/analytics-gate.spec.ts | cut -d' ' -f1)"
+
+if [ "$FASE" != "reuse" ]; then
+  echo "=== container efemero $PG em 127.0.0.1:$PORTA ==="
+  docker rm -f "$PG" > /dev/null 2>&1
+  docker run -d --name "$PG" -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB="$DB" \
+    -p "127.0.0.1:$PORTA:5432" postgres:17-alpine > "$A/wp5-docker-id.txt" 2>&1
+  for i in $(seq 1 30); do
+    V=$(docker exec "$PG" psql -U postgres -d "$DB" -tAc 'select version()' 2>/dev/null) || true
+    [ -n "$V" ] && break
+    sleep 1
+  done
+  if [ -z "$V" ]; then echo "FALHA: banco nao respondeu"; exit 1; fi
+  echo "  $(echo "$V" | cut -c1-40)"
+  npx tsx scripts/db/migrate.ts > "$A/wp5-migrate.log" 2>&1 || { echo "FALHA: migrate"; exit 1; }
+  echo "  migrations ok"
+fi
+
+if [ -n "$FILTRO" ]; then
+  npm run test:e2e -- "$FILTRO"
+else
+  npm run test:e2e
+fi
+RC=$?
+echo "PLAYWRIGHT_EXIT=$RC"
+exit $RC
