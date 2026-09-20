@@ -1,0 +1,121 @@
+# S6 ADVERSARIAL — F-B1-e2e
+
+**Método (2 linhas):** auditoria 100% read-only do worktree `/home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e` (branch `mission/wp5-analytics-e2e`, HEAD `612c34bc9dfb49945854b29773362f012df07020`): sha256 de todos os alvos, `git status/diff` contra a base, leitura integral da spec, dos dois scripts, dos 7 logs e do selo, e leitura das fontes da invariante e dos bundles instalados (`node_modules/@vercel/analytics/dist/react/index.mjs`, `node_modules/playwright-core/lib/coreBundle.js`, `node_modules/playwright/lib/runner/index.js`).
+**Nada foi executado** (sem npm/playwright/docker); divergências entre artefato e fato estão denunciadas onde aparecem.
+
+Base absoluta de todos os caminhos abaixo: `/home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/`.
+
+**Hashes conferidos (batem com o alvo):**
+`e2e/analytics-gate.spec.ts` = `affe7279…f0a53dc`; `src/lib/vercel-analytics.ts` = `b8951518…e245785`; `.artifacts/zz-wp5-e2e.sh` = `0c9f1ff2…308d0df1`; `.artifacts/zz-wp5-falsifica.sh` = `73d76e11…e088d985`; `.artifacts/wp5-falsifica.log` = `1867068f…2bb50c15`; `.artifacts/wp5-e2e-full.log` = `112dab27…dd303de3`. Não fornecidos no alvo, computados aqui: `wp5-e2e-red.log` = `0b957d2d…c6d6c1bee11`, `wp5-e2e-green.log` = `f8161cae…2ff54819`, `wp5-migrate.log` = `c79338c3…8515840c`, `wp5-docker-id.txt` = `f1b9f7fc…9718f4e5`; `.artifacts/gate-bak.ts` = `b8951518…e245785` (cópia íntegra do gate).
+
+---
+
+## C1 — CONFIRMED
+
+A fonte única é `process.env.VERCEL`, e dela derivam preset **e** gate; a leitura no cliente é guardada por `typeof`; o `__root` só monta quando o gate é verdadeiro.
+
+- `vite.config.ts:7` — `const isVercel = Boolean(process.env.VERCEL);`
+- `vite.config.ts:15` — `nitro: { preset: isVercel ? "vercel" : "node-server" },`
+- `vite.config.ts:67` — `__VERCEL_ANALYTICS_ENABLED__: JSON.stringify(isVercel),` (no mesmo objeto `define`, linhas 65–68).
+- `src/lib/vercel-analytics.ts:16` — `declare const __VERCEL_ANALYTICS_ENABLED__: boolean;`
+- `src/lib/vercel-analytics.ts:18-19` — `export const vercelAnalyticsEnabled =` / `  typeof __VERCEL_ANALYTICS_ENABLED__ === "boolean" && __VERCEL_ANALYTICS_ENABLED__;`
+- `src/routes/__root.tsx:122` — `{vercelAnalyticsEnabled ? <Analytics /> : null}` (dentro de `RootShell`, que é o `shellComponent` em `__root.tsx:105`; import em `:11` e `:17`).
+
+`sha256(src/lib/vercel-analytics.ts)` = `b895151895c0405dd6d88fafbdf5b1860f15de12573f3d695f35a9f56e245785`, idêntico ao alvo e ao `gate-bak.ts`.
+
+---
+
+## C2 — CORRECTED
+
+O núcleo comportamental existe, mas duas peças da descrição não se sustentam: não há **espera de hidratação** (há sleep fixo) e a asserção de `window.va` é **inerte** para o valor real; o teste **passa sem o app montar no cliente**.
+
+O que confere:
+- Listener antes do primeiro `goto`: `e2e/analytics-gate.spec.ts:21-25` instala `page.on("request", …)`; `:27` só então `await page.goto("/")`.
+- Mínimo de requisições: `:38-41` `expect(analisadas.length, "o listener tem de ter visto requisições (instrumentação viva, não vacuidade)").toBeGreaterThan(3);`
+- Filtro correto: `:3` `const INSIGHTS_PREFIX = "/_vercel/insights/";` e `:24` `if (url.pathname.startsWith(INSIGHTS_PREFIX)) insights.push(url.href);`
+- Asserção de rede: `:42` `expect(insights, \`insights requisitados: ${insights.join(", ")}\`).toEqual([]);`
+
+O que corrige:
+- **"Espera de hidratação"**: `:36` é `await page.waitForTimeout(1500);` — tempo fixo, sem sincronizar com nenhum sinal de hidratação (e `:29` `waitForLoadState("load")` é no-op: `goto` já espera `load` por padrão).
+- **Formas de passar sem o app montar**: (i) o heading de `:28` é SSR; (ii) `analisadas.length > 3` é satisfeito por documento/CSS/JS estáticos; (iii) `insights === []` vale porque `Analytics` retorna `null` no SSR nas duas hipóteses de gate; (iv) `window.va` é trivialmente `undefined` antes de qualquer efeito cliente. Ou seja: SSR sem hidratação (JS de entrada quebrado/atrasado) satisfaz 100% das asserções — o teste mede a **rede após hidratar**, não "o app montou".
+- **`window.va` é vacuidade estrutural**: o `@vercel/analytics` define `window.va = function a(...params) {…}` (`node_modules/@vercel/analytics/dist/react/index.mjs:13`) e o React só injeta no `useEffect` (`:181-182`, `inject` em `:88`). `page.evaluate` não devolve funções: o serializador do UtilityScript só preserva funções `__pw_fn_` e o resto cai fora (`node_modules/playwright-core/lib/coreBundle.js:19087`), com `_promiseAwareJsonValueNoThrow` engolindo qualquer erro com `void 0` (fonte embutida do UtilityScript, `coreBundle.js:19118`). Logo `expect(va).toBeUndefined()` (`spec.ts:45`) **nunca falha** para uma função; falharia só para um valor serializável não-`undefined`. O único detector real é a linha 42.
+
+Não há `.only`/`.skip`/`fixme`/`todo` na spec (item detalhado em C5).
+
+---
+
+## C3 — CONFIRMED
+
+- `wp5-e2e-green.log:57-58` — `  4 passed (15.1s)` / `PLAYWRIGHT_EXIT=0`; as 4 linhas são `:23` chromium, `:28` firefox, `:54` webkit, `:55` mobile, todas com `› e2e/analytics-gate.spec.ts:17:1 › o preview node-server nao requisita /_vercel/insights/*`.
+- `wp5-e2e-full.log:19` — `Running 60 tests using 2 workers`; `:289-290` — `  60 passed (2.3m)` / `PLAYWRIGHT_EXIT=0`; contagem simbólica: 60 `✓`, 0 `✘`, 0 `skipped`/`flaky`/`failed` na sumária; 15 títulos únicos × 4 projetos (`[chromium]` 15, `[firefox]` 15, `[webkit]` 15, `[mobile]` 15); a spec nova aparece 1× por projeto (`full.log:24, 41, 89, 251`).
+- Título idêntico ao da spec: `spec.ts:17` `test("o preview node-server nao requisita /_vercel/insights/*", async ({ page }) => {` ≡ título do log.
+- `playwright.config.ts:32-63` define exatamente 4 projetos (chromium/firefox/webkit/mobile).
+
+---
+
+## C4 — CONFIRMED
+
+- Mutação de 1 linha: `zz-wp5-falsifica.sh:19` `sed -i 's|^  typeof __VERCEL_ANALYTICS_ENABLED__ === "boolean" && __VERCEL_ANALYTICS_ENABLED__;|  true;|' "$GATE"`; o log mostra o resultado (`wp5-falsifica.log:4-5`): `  18:export const vercelAnalyticsEnabled =` / `  19-  true;`.
+- `wp5-falsifica.log:8` `RED_EXIT=1 (esperado != 0)`; `:9` `requisicoes ao script de insights no log: 8 (esperado >= 1)`; `:10` traz a requisição real: `Error: insights requisitados: http://127.0.0.1:4173/_vercel/insights/script.js`; `:11` linha 42 reprovada. O `wp5-e2e-red.log` independente tem 8 ocorrências e `4 failed` (`:198`), todas as 4 em `:42` (`:36, 77, 118, 159`), `PLAYWRIGHT_EXIT=1` (`:203`), com sha da gate mutada `b0bc6795…` (`:3`).
+- Restauro: `wp5-falsifica.log:1` sha antes `b895151895c0405dd6d88fafbdf5b1860f15de12573f3d695f35a9f56e245785`; `:14` sha depois idêntico; `:15` `  RESTAURO: OK (byte a byte)`; `:22` `gate modificado no git apos restauro: 0`.
+- Verde pós-restauro: `:18` `GREEN_EXIT=0`; `:19` `requisicoes ao script de insights no log: 0`; `wp5-e2e-green.log` tem 0 ocorrências e 4/4 passed.
+- Veredicto calculado, não ecoado: `zz-wp5-falsifica.sh:53-58` (`if [ "$RED" -ne 0 ] && [ "$REQ" -ge 1 ] && [ "$ORIG" = "$NOVO" ] && [ "$GREEN" -eq 0 ] && [ "$REQ2" -eq 0 ]` → `VEREDITO`/`FALSIFICA_EXIT`), com `:24` `FALSIFICA_EXIT=0`.
+- Estado do worktree **agora**: `sha256(src/lib/vercel-analytics.ts)` = `b8951518…`; `git status --porcelain --untracked-files=all` limpo para o arquivo; `gate-bak.ts` íntegro (`b8951518…`).
+
+Nota adversarial: as "8" são **ocorrências textuais** no log (4 projetos × 2 renderizações: mensagem de erro + diff), não 8 requisições — o número real de requisições é 4. O README diz "ocorrências no log" (`README.md:47`), então o selo está correto; o rótulo do script ("requisicoes") é que é frouxo (N5).
+
+---
+
+## C5 — CONFIRMED (com nota de método)
+
+- `playwright.config.ts:26-27` — `command: "npm run e2e:prepare && npm run build && npm run preview -- --host 127.0.0.1 --port 4173"`, `url: "http://127.0.0.1:4173"`; `:29` `reuseExistingServer: !process.env.CI`.
+- `wp5-e2e-full.log:290` — `PLAYWRIGHT_EXIT=0`; 60 passed sem skips (C3).
+- **Nota de método (não é falha do fato):** o log **não ecoa** o comando `build` + `preview`. O Playwright só imprime stdout do webServer com `stdout:"pipe"` ou `DEBUG=pw:webserver` (`node_modules/playwright/lib/runner/index.js:894-897`); stderr é impresso por padrão (`:898-901`), e é de onde vêm as linhas `[WebServer]` do log. Provas convergentes de que o build+preview **rodou de fato** nessa sessão: (a) as linhas `[WebServer]` só existem para processo lançado pelo runner (servidor reusado não gera prefixo nenhum); (b) `.artifacts/build-warnings.json` — escrito ao fim de cada `npm run build` (`scripts/build.mjs:84,93`) — tem `checkedAt: "2026-09-20T02:00:21.252Z"`, dentro da janela da E1 (primeiro teste em `full.log` às `02:00:30.581Z`), com `releaseChannel:"local"` e `passed:true`.
+- Suítes puladas silenciosamente: grep por `test.skip|describe.skip|test.fixme|test.slow|test.only|\.todo` em `e2e/**` → **nenhuma**; 15 `test(` declarados (1 + 3 + 11) = 15 títulos únicos no log. `forbidOnly` só vale em CI (`playwright.config.ts:9`), mas não existe `.only` no código.
+
+---
+
+## C6 — CONFIRMED
+
+- `git status --porcelain --untracked-files=all` no worktree: apenas `?? docs/evidence/f-b1-e2e-2026-09-20/README.md`, `?? docs/evidence/f-b1-e2e-2026-09-20/SPEC.md`, `?? e2e/analytics-gate.spec.ts`.
+- `git diff --quiet 612c34b -- src vite.config.ts playwright.config.ts package.json package-lock.json` → exit 0 (sem diff); `git diff --stat 612c34b -- .` vazio. `sha256` de `vite.config.ts` (`44fe6c01…`) e `playwright.config.ts` (`09260010…`) livres da mutação/restauro.
+- O scratch `.artifacts/` (`gate-bak.ts`, logs, `e2e-auth.json`, `docker-id.txt`) fica fora do diff por `.gitignore:49` (`.artifacts/`); `test-results/` e `.output/` também são ignorados (`.gitignore:59` e build). Nada de `src/**` no diff commitável.
+
+---
+
+## C7 — CONFIRMED
+
+- Fato-fonte real em `docs/evidence/agent-state/QUEUE.md:82` (linha 82 exata): "nenhum teste força a invariante `preset Nitro ≡ gate do analytics` … assertando **zero** requisições `/_vercel/insights/*`".
+- A remoção da segunda navegação está declarada em `README.md:72` ("a segunda navegação autenticada trazia `NS_BINDING_ABORTED` no Firefox | removida: o `<Analytics />` vive no `__root`…"), e não enfraquece a invariante: `__root.tsx:105` (`shellComponent: RootShell`) com `:122` valem para toda rota, e `e2e/analytics-gate.spec.ts:27` cobre `/` — a mesma árvore raiz. O comentário `spec.ts:31-35` documenta a decisão.
+- Divergência de selo (não do código): `SPEC.md:29-30` e `SPEC.md:62` ainda descrevem a navegação autenticada `/inicio`, que a entrega não faz — vide N4.
+
+---
+
+## Defeitos NOVOS
+
+**N1 — fail-open de hidratação/timing (médio).** `e2e/analytics-gate.spec.ts:36` usa `waitForTimeout(1500)` como única margem; o `<Analytics />` só injeta via `useEffect` do cliente (`node_modules/@vercel/analytics/dist/react/index.mjs:181-182` → `inject` em `:88` → `document.head.appendChild(script)` em `:125`). Se a hidratação (ou o chunk do root) atrasar além da margem, o gate divergente **não** aparece na janela e o teste passa — as asserções de `:42` e `:45` já rodaram e não são reavaliadas. O RED selado (4/4 projetos) prova detecção sob o timing local, mas nada na spec sincroniza com hidratação; em CI com 2 workers e suíte de 60 testes a latência pode crescer. Controle adjacente fraco: `analisadas.length > 3` é contagem global de recursos, não prova que o listener antecedeu o documento (se um refactor mover o listener para depois do `goto`, sub-recursos ainda podem satisfazer >3).
+
+**N2 — a asserção `window.va` é inerte (médio).** `spec.ts:45` `expect(va, "window.va é instalado pelo @vercel/analytics quando ele monta").toBeUndefined();` — `page.evaluate` devolve `undefined` para funções: o ramo de função do serializador injetado só trata `__pw_fn_` (`node_modules/playwright-core/lib/coreBundle.js:19087`) e `_promiseAwareJsonValueNoThrow` retorna `void 0` em qualquer erro (`coreBundle.js:19118`); o `@vercel/analytics` atribui `window.va = function a(...)` (`dist/react/index.mjs:13`). Portanto essa perna nunca falha para o sinal que diz medir. No RED selado, os 4 projetos falham em `:42` antes de chegar a `:45` — ou seja, a falsificação **não** demonstra poder de detecção dessa asserção. README `:70` e SPEC `:30/:64` a apresentam como controle anti-vacuidade; ela não é.
+
+**N3 — `reuseExistingServer: true` local sem guarda de porta (baixo nos artefatos, médio na reprodutibilidade).** `playwright.config.ts:29` reusa qualquer servidor em `:4173` quando `CI` não está setada (os logs selados são de runs locais: reporter `list`, sem `.artifacts/playwright-results.json`, `releaseChannel:"local"`, `commit:null`). `zz-wp5-e2e.sh` não verifica/derruba `:4173`, então um terceiro reproduzindo o selo pode rodar contra build antigo. Nos artefatos o launch fresco está provado (`[WebServer]` de stderr + `build-warnings.json` datado dentro da E1). Na falsificação o veredicto calculado não pode virar CONFIRMED falso: servidor antigo correto ⇒ `RED=0` ⇒ INCONCLUSIVO; servidor antigo mutado ⇒ `GREEN=1`/`REQ2≥1` ⇒ INCONCLUSIVO.
+
+**N4 — selo contraditório (médio).** `SPEC.md:29-30` ("a navegação autenticada e a pública não podem requisitar…"), `SPEC.md:62` ("visita `/` … e `/inicio`…") e `SPEC.md:70` ainda descrevem a segunda navegação removida; o código (`spec.ts:27`) só visita `/` e o README (`:72`) declara a remoção. Faltou atualizar o SPEC. Agravantes de rastreabilidade: os checkboxes do DoD (`SPEC.md:47-54`) permanecem `[ ]` apesar do README declarar conclusão; `README.md:62-63` remete a "Capturas no MANIFEST", mas o selo contém só `README.md` e `SPEC.md` (nenhum MANIFEST), e não existe captura de `npm run check` em `.artifacts/` (só `build-warnings.json` e logs de e2e).
+
+**N5 — "8" não são 8 requisições (baixo).** `zz-wp5-falsifica.sh:30` rotula `REQ` como "requisicoes", mas é `grep -c` textual: 4 requisições × 2 renderizações (mensagem `insights requisitados` + diff da linha 42). `wp5-falsifica.log:9` herda o rótulo; `README.md:47` mitiga ao dizer "ocorrências no log". O veredicto (≥1) não é afetado.
+
+**N6 — spec pública acoplada a auth/PG (baixo).** A spec não usa `storageState`, mas roda sob `global-setup` que exige `E2E_AUTH_EMAIL`/`E2E_AUTH_PASSWORD` e login real em `/api/auth/sign-in/email` contra o PG efêmero (`e2e/global-setup.ts:11-13, 32-34`); qualquer falha de seed/auth vermelha o gate por causa alheia e impede rodar a spec isolada sem banco. Os scripts do selo sempre sobem PG, então os artefatos não foram afetados.
+
+**N7 — lacunas de evidência não executável aqui (baixo).** Itens do DoD sem captura no selo: `npm run check` sobre os bytes finais (`README.md:62`), `:5432` com 0 listeners antes/depois e remoção do container (`SPEC.md:53`; só existe `wp5-docker-id.txt`). Sem rodar docker/npm não há como adjudicar; registro como lacuna declarada, não como fato falso.
+
+**N8 — a invariante é medida em uma única direção (informativo, declarado).** O teste só detecta `gate=true` sob preset `node-server`; não detecta `gate=false` na Vercel (o desligamento silencioso que motiva o WP). Está declarado em `SPEC.md:42-43` e `README.md:69` ("a Vercel real não é executável aqui"), mas "preset ≡ gate" fica provado só de um lado.
+
+**N9 — resíduos de scratch (baixo).** Permanecem no worktree, todos gitignored: `.artifacts/gate-bak.ts` (cópia do gate, bytes corretos, não citado no selo), `.artifacts/e2e-auth.json` (cookie de sessão de teste em claro), `.output/` e `test-results/` (artefatos do RED: screenshots/vídeos/traces das 4 falhas, `test-results/analytics-gate-…`). Sem impacto no diff (C6), mas são instrumentos não selados no diretório.
+
+---
+
+## Resumo
+
+- **C1 CONFIRMED · C2 CORRECTED · C3 CONFIRMED · C4 CONFIRMED · C5 CONFIRMED · C6 CONFIRMED · C7 CONFIRMED**
+- Contagens: **6 CONFIRMED, 1 CORRECTED, 0 REJECTED, 0 UNVERIFIABLE.**
+- Defeitos novos: **N1–N9** (1 médio-alto de detecção — N1; 2 médios de garantia/artefato — N2 e N4; N3 médio apenas para reprodutibilidade; N5–N9 menores/informativos).
+- Veredicto de substância: a invariante é real (C1), a medição é comportamental e o GREEN/RED do selo são honestos quanto ao que mostram (C3/C4/C5); o que **não** se sustenta é a integralidade da anti-vacuidade declarada (N1/N2) e a consistência interna do selo (N4). Nenhum caminho encontrado em que a spec passe com o gate **divergente já hidratado** ou falhe com o gate **correto** além dos riscos de timing/reuse descritos.

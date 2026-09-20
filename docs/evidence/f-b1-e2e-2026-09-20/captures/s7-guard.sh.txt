@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# S7 GUARD do WP5 (F-B1-e2e). Read-only. Grava o proprio log com o sha256 do artefato
+# examinado e ASSERCA o contrato declarado (incluindo o gate restaurado byte a byte).
+set -u
+cd "$(dirname "$0")/.." || exit 1
+A=.artifacts
+LOG=$A/wp5-s7.log
+exec > >(tee "$LOG") 2>&1
+
+FALHAS=0
+
+echo "=== S7 GUARD — WP5 F-B1-e2e ==="
+echo "HEAD: $(git rev-parse HEAD)"
+echo "branch: $(git branch --show-current)"
+echo "data: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+echo
+
+echo "=== IDENTIDADE do que foi examinado (nao cardinalidade) ==="
+DIFF=$A/wp5-s7-diff.txt
+{
+  git diff -- e2e docs
+  echo "--- arquivos nao rastreados ---"
+  git ls-files --others --exclude-standard -- e2e docs | sort | while read -r f; do
+    echo "### $f"
+    cat "$f"
+  done
+} > "$DIFF" 2>/dev/null
+echo "  bytes do artefato examinado: $(wc -c < "$DIFF")"
+echo "  sha256 do artefato examinado: $(sha256sum "$DIFF" | cut -d' ' -f1)"
+for f in e2e/analytics-gate.spec.ts src/lib/vercel-analytics.ts vite.config.ts playwright.config.ts; do
+  echo "  sha256 $f: $(sha256sum "$f" | cut -d' ' -f1)"
+done
+echo
+
+echo "=== 1. arquivos tocados ==="
+git status --short -- e2e docs | sed 's/^/  /'
+FORA=$(git status --short -- e2e docs | grep -vcE 'analytics-gate|f-b1-e2e' || true)
+echo "  fora do escopo declarado: $FORA (esperado 0)"
+[ "$FORA" -eq 0 ] || { echo "  !! FALHA: arquivo fora do escopo"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 2. o gate foi restaurado e o runtime/config intactos (ASSERTADO) ==="
+GATE_SHA=$(sha256sum src/lib/vercel-analytics.ts | cut -d' ' -f1)
+GATE_ESPERADO="b895151895c0405dd6d88fafbdf5b1860f15de12573f3d695f35a9f56e245785"
+echo "  gate == esperado: $([ "$GATE_SHA" = "$GATE_ESPERADO" ] && echo sim || echo NAO) ($GATE_SHA)"
+SRC=$(git status --short -- src vite.config.ts playwright.config.ts package.json package-lock.json | wc -l)
+echo "  src/vite/playwright/manifests no diff: $SRC (esperado 0)"
+[ "$GATE_SHA" = "$GATE_ESPERADO" ] || { echo "  !! FALHA: gate nao restaurado"; FALHAS=$((FALHAS+1)); }
+[ "$SRC" -eq 0 ] || { echo "  !! FALHA: runtime/config no diff"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 3. credenciais herdadas no ambiente ==="
+HERDADAS=$(env | grep -cE '^(NEON_|VERCEL|DATABASE_URL|PG|GH_|GITHUB_|CLOUDFLARE|AWS_|STRIPE)' || true)
+echo "  variaveis de credencial herdadas: $HERDADAS (esperado 0)"
+[ "$HERDADAS" -eq 0 ] || { echo "  !! FALHA: credencial no ambiente"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 4. secrets audit ==="
+npm run m02:secrets-audit > $A/wp5-secrets.txt 2>&1
+SECRETS=$?
+echo "  SECRETS_EXIT=$SECRETS"
+[ "$SECRETS" -eq 0 ] || { echo "  !! FALHA: secrets audit"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 5. varredura do diff por padroes de segredo ==="
+PADROES='postgresql://|postgres://|napi_|sk-|ghp_|eyJ|password|secret|token'
+SUSPEITAS=$(grep -cE "$PADROES" "$DIFF" || true)
+echo "  linhas suspeitas no diff: $SUSPEITAS"
+if [ "$SUSPEITAS" -gt 0 ]; then
+  grep -nE "$PADROES" "$DIFF" | head -10 | sed 's/^/    /'
+fi
+echo
+
+echo "=== 6. H-9 e portas (ASSERTADO) ==="
+H9=$(ss -ltn 2>/dev/null | grep -c ':5432 ' || true)
+P4173=$(ss -ltn 2>/dev/null | grep -c ':4173 ' || true)
+P5439=$(ss -ltn 2>/dev/null | grep -c ':5439 ' || true)
+WP5C=$(docker ps -a --format '{{.Names}}' 2>/dev/null | grep -c 'wp5' || true)
+echo "  5432(H-9)=$H9 4173=$P4173 5439=$P5439 containers wp5=$WP5C (todos esperados 0)"
+[ "$H9" -eq 0 ] && [ "$P4173" -eq 0 ] && [ "$P5439" -eq 0 ] && [ "$WP5C" -eq 0 ] \
+  || { echo "  !! FALHA: porta/container residual"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 7. nenhum push acidental ==="
+echo "  origin/main: $(git rev-parse origin/main)"
+echo "  origin/develop: $(git rev-parse origin/develop)"
+echo "  commits locais a frente de origin/develop nesta branch: $(git rev-list --count origin/develop..HEAD)"
+echo
+
+if [ "$FALHAS" -eq 0 ]; then
+  echo "S7 GUARD: OK (nenhum veto)"
+  echo "S7_EXIT=0"
+else
+  echo "S7 GUARD: $FALHAS FALHA(S) — VETO"
+  echo "S7_EXIT=1"
+fi

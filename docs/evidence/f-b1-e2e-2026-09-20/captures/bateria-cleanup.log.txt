@@ -1,0 +1,5 @@
+=== cleanup do WP5 ===
+  container wp5-pg removido
+  porta 5432 (H-9): 0 listener(es)
+  porta 5439: 0 listener(es)
+  porta 4173: 0 listener(es)
