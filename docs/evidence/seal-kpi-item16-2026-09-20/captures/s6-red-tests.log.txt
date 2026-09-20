@@ -1,0 +1,198 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/check-bundle-identity.test.ts (5 tests | 1 failed) 42ms
+     × nome com ':' ou quebra de linha lança (sem colisão silenciosa no agregado) 8ms
+ ❯ src/test/m02-ci-coverage.test.ts (9 tests | 3 failed) 29ms
+     × heavy com pull_request filtrado por paths-ignore reprova 7ms
+     × guards só em comentário reprovam (o passo real tem de existir) 1ms
+     × light sem lockfile guard, secrets audit ou prettier reprova 1ms
+ ❯ src/test/m02-seal.test.ts (23 tests | 6 failed) 1796ms
+     × --ancestry sem valor é erro de uso (fail-high, exit 2) 133ms
+     × --run sem valor é erro de uso (fail-high, exit 2) 136ms
+     × MANIFEST com path duplicado reprova 120ms
+     × symlink no selo reprova (não é omitido em silêncio) 77ms
+     × MANIFEST aninhado reprova (só o da raiz do selo é o canônico) 78ms
+     × install (npm ci/npm install) não conta como check aplicável 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/check-bundle-identity.test.ts > identidade de conteúdo do bundle > nome com ':' ou quebra de linha lança (sem colisão silenciosa no agregado)
+AssertionError: expected [Function] to throw an error
+ ❯ src/test/check-bundle-identity.test.ts:47:68
+     45|   it("nome com ':' ou quebra de linha lança (sem colisão silenciosa no…
+     46|     const hash = sha256("AAAA");
+     47|     expect(() => aggregateSha256([{ file: "a:b", sha256: hash }])).toT…
+       |                                                                    ^
+     48|     expect(() => aggregateSha256([{ file: "a\nb", sha256: hash }])).to…
+     49|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  src/test/m02-ci-coverage.test.ts > cobertura de CI dos dois pipelines > heavy com pull_request filtrado por paths-ignore reprova
+AssertionError: expected '' to contain 'pull_request irrestrito'
+
+- Expected
++ Received
+
+- pull_request irrestrito
+
+ ❯ src/test/m02-ci-coverage.test.ts:47:56
+     45|       '  pull_request:\n    paths-ignore:\n      - "src/**"\n',
+     46|     );
+     47|     expect(auditCoverage(heavy, lightReal).join("\n")).toContain("pull…
+       |                                                        ^
+     48|   });
+     49|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  src/test/m02-ci-coverage.test.ts > cobertura de CI dos dois pipelines > guards só em comentário reprovam (o passo real tem de existir)
+AssertionError: expected '' to contain 'm02:debts-guard'
+
+- Expected
++ Received
+
+- m02:debts-guard
+
+ ❯ src/test/m02-ci-coverage.test.ts:55:65
+     53|       "      # - run: npm run m02:debts-guard",
+     54|     );
+     55|     expect(auditCoverage(heavyComentado, lightReal).join("\n")).toCont…
+       |                                                                 ^
+     56|     const lightComentado = lightReal.replace(
+     57|       "        run: node scripts/m02-debts-guard.mjs",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  src/test/m02-ci-coverage.test.ts > cobertura de CI dos dois pipelines > light sem lockfile guard, secrets audit ou prettier reprova
+AssertionError: expected '' to contain 'm02-lockfile-guard'
+
+- Expected
++ Received
+
+- m02-lockfile-guard
+
+ ❯ src/test/m02-ci-coverage.test.ts:68:62
+     66|       "        # run: node scripts/m02-lockfile-guard.mjs",
+     67|     );
+     68|     expect(auditCoverage(heavyReal, semLockfile).join("\n")).toContain…
+       |                                                              ^
+     69|     const semSecrets = lightReal.replace(
+     70|       "        run: node scripts/m02-secrets-audit.ts",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  src/test/m02-seal.test.ts > m02-seal — manifesto e não-vacuidade > --ancestry sem valor é erro de uso (fail-high, exit 2)
+AssertionError: expected +0 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 0
+
+ ❯ src/test/m02-seal.test.ts:109:27
+    107|     expect(run(["--dir", dir, "--write"]).status).toBe(0);
+    108|     const result = run(["--dir", dir, "--ancestry"]);
+    109|     expect(result.status).toBe(2);
+       |                           ^
+    110|     expect(result.stderr).toContain("--ancestry exige um valor");
+    111|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  src/test/m02-seal.test.ts > m02-seal — manifesto e não-vacuidade > --run sem valor é erro de uso (fail-high, exit 2)
+AssertionError: expected +0 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 0
+
+ ❯ src/test/m02-seal.test.ts:117:27
+    115|     expect(run(["--dir", dir, "--write"]).status).toBe(0);
+    116|     const result = run(["--dir", dir, "--run"]);
+    117|     expect(result.status).toBe(2);
+       |                           ^
+    118|     expect(result.stderr).toContain("--run exige um valor");
+    119|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  src/test/m02-seal.test.ts > m02-seal — manifesto e não-vacuidade > MANIFEST com path duplicado reprova
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/test/m02-seal.test.ts:133:27
+    131|     );
+    132|     const result = run(["--dir", dir]);
+    133|     expect(result.status).toBe(1);
+       |                           ^
+    134|     expect(result.stderr).toContain("duplicado");
+    135|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  src/test/m02-seal.test.ts > m02-seal — manifesto e não-vacuidade > symlink no selo reprova (não é omitido em silêncio)
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/test/m02-seal.test.ts:141:27
+    139|     symlinkSync(join(dir, "SPEC.md"), join(dir, "link.md"));
+    140|     const result = run(["--dir", dir, "--write"]);
+    141|     expect(result.status).toBe(1);
+       |                           ^
+    142|     expect(result.stderr).toContain("symlink");
+    143|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+ FAIL  src/test/m02-seal.test.ts > m02-seal — manifesto e não-vacuidade > MANIFEST aninhado reprova (só o da raiz do selo é o canônico)
+Error: ENOENT: no such file or directory, open '/tmp/m02-seal-YOkhPz/manifesto-aninhado/captures/MANIFEST.sha256'
+ ❯ src/test/m02-seal.test.ts:148:5
+    146|     const dir = sealFixture("manifesto-aninhado", { "SPEC.md": "a\n", …
+    147|     expect(run(["--dir", dir, "--write"]).status).toBe(0);
+    148|     writeFileSync(join(dir, "captures", "MANIFEST.sha256"), "lixo\n");
+       |     ^
+    149|     const result = run(["--dir", dir]);
+    150|     expect(result.status).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯
+
+ FAIL  src/test/m02-seal.test.ts > m02-seal — run@sha (puro) > install (npm ci/npm install) não conta como check aplicável
+AssertionError: expected 2 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 2
+
+ ❯ src/test/m02-seal.test.ts:274:43
+    272|       ],
+    273|     };
+    274|     expect(countApplicableSteps(runJson)).toBe(0);
+       |                                           ^
+    275|   });
+    276|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯
+
+
+ Test Files  3 failed | 1 passed (4)
+      Tests  10 failed | 34 passed (44)
+   Start at  17:07:05
+   Duration  4.51s (transform 234ms, setup 824ms, import 250ms, tests 2.54s, environment 6.77s)
+
