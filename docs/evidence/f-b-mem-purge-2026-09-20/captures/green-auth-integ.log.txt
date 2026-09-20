@@ -1,0 +1,1 @@
+Better Auth, tenant pessoal, cookie, bcrypt/scrypt, fixação de sessão: OK

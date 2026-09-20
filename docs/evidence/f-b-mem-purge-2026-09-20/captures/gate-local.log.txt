@@ -1,0 +1,596 @@
+
+> check
+> npm run m02:lockfile-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle
+
+
+> m02:lockfile-guard
+> node scripts/m02-lockfile-guard.mjs
+
+{
+  "schema": "m02-lockfile-guard/1",
+  "ok": true,
+  "status": "pass",
+  "generatedAt": "2026-09-20T01:50:03.021Z",
+  "repo": "/home/douglas-souza/preco-que-d-main/.worktree-wp4-mem-purge",
+  "observed": {
+    "spec": "^0.31.10",
+    "lockSpec": "^0.31.10",
+    "lockResolvedVersion": "0.31.10",
+    "lockSha256": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124",
+    "headLockSha256": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124",
+    "installedVersion": "0.31.10"
+  },
+  "checks": [
+    {
+      "id": "package-json-devdep",
+      "status": "pass",
+      "detail": "spec '^0.31.10'"
+    },
+    {
+      "id": "lock-top-spec",
+      "status": "pass",
+      "detail": "lock '^0.31.10'"
+    },
+    {
+      "id": "lock-resolved",
+      "status": "pass",
+      "detail": "resolvido 0.31.10"
+    },
+    {
+      "id": "lock-sha256-head",
+      "status": "pass",
+      "detail": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124"
+    },
+    {
+      "id": "node-modules-installed",
+      "status": "pass",
+      "detail": "instalado 0.31.10"
+    }
+  ],
+  "reasons": [],
+  "hint": "git checkout -- package.json package-lock.json && npm ci --ignore-scripts && npm run m02:lockfile-guard"
+}
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix is deterministic and up to date.
+
+> check:ui-stack
+> node scripts/check-ui-stack.mjs
+
+UI stack check passed: shadcn/Base UI boundary and catalog are clean.
+
+> check:no-supabase-runtime
+> node scripts/check-no-supabase-runtime.mjs
+
+Gate de cutover: runtime sem Supabase e sem token em Web Storage.
+
+> format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> lint
+> eslint .
+
+
+> typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas-souza/preco-que-d-main/.worktree-wp4-mem-purge[39m
+
+ [32m✓[39m src/test/finance.golden.test.ts [2m([22m[2m127 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32m✓[39m src/test/product-contracts.test.ts [2m([22m[2m14 tests[22m[2m | [22m[33m9 skipped[39m[2m)[22m[32m 48[2mms[22m[39m
+[90mstdout[2m | src/test/round-trip-instrumentation.perf-waves.test.ts[2m > [22m[2mT1 perf-waves: instrumentação de round trips por transação (app.context_tx)[2m > [22m[2mignora pools sem connect e não reinstrumenta o mesmo cliente
+[22m[39m{"timestamp":"2026-09-20T01:50:42.750Z","level":"info","event":"app.context_tx","round_trips":2,"outcome":"commit","duration_ms":0}
+
+ [32m✓[39m src/test/round-trip-instrumentation.perf-waves.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 87[2mms[22m[39m
+ [32m✓[39m src/test/perf-summarize.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 782[2mms[22m[39m
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToAcknowledge.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-09-20T01:50:44.965Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":5,"timeToFirstContentMs":5,"timeToFinalMs":5}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToAcknowledge.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-09-20T01:50:44.969Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFirstContent.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-09-20T01:50:44.972Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFirstContent.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-09-20T01:50:44.974Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFinal.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-09-20T01:50:44.976Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFinal.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-09-20T01:50:44.976Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mtool-runner.ts: toolDuration nos três caminhos[2m > [22m[2mfalha: AI_TIMEOUT não é substituído pelo erro da métrica
+[22m[39m{"timestamp":"2026-09-20T01:50:44.993Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mstart.ts: os três caminhos de requestDuration
+[22m[39m{"timestamp":"2026-09-20T01:50:44.995Z","level":"info","event":"request.completed","correlationId":"bc148f38-8655-48ac-8065-a984cfa8ca8b","method":"GET","pathname":"/produtos","status":200,"durationMs":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mstart.ts: os três caminhos de requestDuration
+[22m[39m{"timestamp":"2026-09-20T01:50:44.996Z","level":"error","event":"request.failed","correlationId":"3379ce35-55ea-47db-8102-cb3eb833dd6a","code":"INTERNAL_ERROR","method":"GET","pathname":"/produtos","durationMs":0,"error":{"name":"Error","message":"db exploded"}}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mchat.functions.ts: aiDuration
+[22m[39m{"timestamp":"2026-09-20T01:50:45.000Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mchat-execution.server.ts: as três fases do §29
+[22m[39m{"timestamp":"2026-09-20T01:50:45.002Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mchat-execution.server.ts: as três fases do §29
+[22m[39m{"timestamp":"2026-09-20T01:50:45.002Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mtool-runner.ts: toolDuration nos três caminhos
+[22m[39m{"timestamp":"2026-09-20T01:50:45.004Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+
+ [32m✓[39m src/test/safe-record.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 125[2mms[22m[39m
+ [32m✓[39m src/test/products-fk-conflict.test.ts [2m([22m[2m15 tests[22m[2m | [22m[33m4 skipped[39m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/test/break-even.negative-margin.test.tsx [2m([22m[2m15 tests[22m[2m)[22m[33m 309[2mms[22m[39m
+ [32m✓[39m src/test/calc-explainer.test.tsx [2m([22m[2m12 tests[22m[2m)[22m[33m 2647[2mms[22m[39m
+     [33m[2m✓[22m[39m cada KPI e o destaque de margem têm o próprio «Como calculamos?» [33m 452[2mms[22m[39m
+     [33m[2m✓[22m[39m forecast: mostra as fórmulas do motor e descreve a projeção sem prometer previsão estatística [33m 1194[2mms[22m[39m
+     [33m[2m✓[22m[39m simulação manual: a mesma matemática, com o volume declarado hipotético [33m 603[2mms[22m[39m
+ [32m✓[39m src/test/financial-metrics.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 41[2mms[22m[39m
+ [32m✓[39m src/test/products-read-models.golden.perf-waves.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 48[2mms[22m[39m
+ [32m✓[39m src/test/error-budget.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 45[2mms[22m[39m
+ [32m✓[39m src/test/pg-stat-statements.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2mreserve and settle never write ai_usage.tool_execution_id (column stays NULL)
+[22m[39m{"timestamp":"2026-09-20T01:50:52.979Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2mreserve and settle never write ai_usage.tool_execution_id (column stays NULL)
+[22m[39m{"timestamp":"2026-09-20T01:50:52.984Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2msettle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
+[22m[39m{"timestamp":"2026-09-20T01:50:52.985Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2msettle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
+[22m[39m{"timestamp":"2026-09-20T01:50:52.989Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2msettle with a known cost adds it to the daily estimated_cost total
+[22m[39m{"timestamp":"2026-09-20T01:50:52.997Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2msettle with a known cost adds it to the daily estimated_cost total
+[22m[39m{"timestamp":"2026-09-20T01:50:52.999Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+ [32m✓[39m src/test/ai-estimated-cost.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 49[2mms[22m[39m
+ [32m✓[39m src/test/m02-transaction-sites.test.ts [2m([22m[2m21 tests[22m[2m)[22m[33m 1796[2mms[22m[39m
+     [33m[2m✓[22m[39m importar o gerador não regrava a matriz [33m 1704[2mms[22m[39m
+ [32m✓[39m src/test/finance.properties.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 688[2mms[22m[39m
+[90mstdout[2m | src/test/perf-evidence.test.ts[2m > [22m[2mgate §35 — evidência de performance[2m > [22m[2mT5: na árvore real nenhum artefato é isento (checked === discovered) e o baseline controlado entra
+[22m[39mgate §35: 4 descoberto(s) por caminho, 4 checado(s) contra os 7 rótulos, 0 isento(s)
+
+ [32m✓[39m src/test/perf-evidence.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+ [32m✓[39m src/test/memory-policy.test.ts [2m([22m[2m34 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/backfill-runner.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m src/test/m02-neon-spend.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 146[2mms[22m[39m
+ [32m✓[39m src/test/m02-pitr-check.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 190[2mms[22m[39m
+ [32m✓[39m src/test/memory-import-graph.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 585[2mms[22m[39m
+     [33m[2m✓[22m[39m as raízes do cálculo canônico são derivadas do grafo (conjunto não vazio e fail-closed) [33m 470[2mms[22m[39m
+ [32m✓[39m src/test/cross-tenant-denial.perf-waves.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/test/finance.boundaries.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/csp-report.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m src/test/event-service.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/simulation-volume-source.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 3349[2mms[22m[39m
+     [33m[2m✓[22m[39m expõe o grupo, o rótulo e o estado de cada opção (teclado alcança o radio marcado) [33m 661[2mms[22m[39m
+     [33m[2m✓[22m[39m anuncia a estimativa e bloqueia o salvamento com o motivo declarado [33m 1503[2mms[22m[39m
+     [33m[2m✓[22m[39m não tem violações de acessibilidade com a estimativa selecionada [33m 1167[2mms[22m[39m
+ [32m✓[39m src/test/optimistic-version.repository.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m src/test/slo-ai-baseline-discipline.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/test/m02-matrix-drift.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/tool-runner.persistence.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 41[2mms[22m[39m
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mgrava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+[22m[39m{"timestamp":"2026-09-20T01:51:03.993Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mgrava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+[22m[39m{"timestamp":"2026-09-20T01:51:03.996Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":30000,"outcome":"usage_unknown","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mNÃO libera a reserva e NÃO incrementa os contadores de token
+[22m[39m{"timestamp":"2026-09-20T01:51:03.999Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mNÃO libera a reserva e NÃO incrementa os contadores de token
+[22m[39m{"timestamp":"2026-09-20T01:51:04.000Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":30000,"outcome":"usage_unknown","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-09-20T01:51:04.004Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-09-20T01:51:04.005Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":1612264005,"outcome":"usage_unknown","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-09-20T01:51:04.006Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-09-20T01:51:04.007Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":1612264007,"outcome":"usage_unknown","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-09-20T01:51:04.007Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-09-20T01:51:04.008Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"invalid","durationMs":1612264008,"outcome":"usage_unknown","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mREGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+[22m[39m{"timestamp":"2026-09-20T01:51:04.009Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mREGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+[22m[39m{"timestamp":"2026-09-20T01:51:04.009Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mTokenUsage conhecido usa os valores medidos, não os de options
+[22m[39m{"timestamp":"2026-09-20T01:51:04.012Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mTokenUsage conhecido usa os valores medidos, não os de options
+[22m[39m{"timestamp":"2026-09-20T01:51:04.013Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":155,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mzero explícito conhecido liquida com zero (não confundir com desconhecido)
+[22m[39m{"timestamp":"2026-09-20T01:51:04.016Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mzero explícito conhecido liquida com zero (não confundir com desconhecido)
+[22m[39m{"timestamp":"2026-09-20T01:51:04.016Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":0,"usageUnknownReason":null,"durationMs":1612264016,"outcome":"success","applied":true}
+
+ [32m✓[39m src/test/ai-usage-unknown.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m src/test/observability-spans.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m src/test/dashboard.service.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m src/test/memory-dedup.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m src/test/security-headers.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/test/purchase-price.service.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/test/query-performance.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m src/test/memory-service.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/chat-fsm.server.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/test/route-loading-skeletons.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 844[2mms[22m[39m
+ [32m✓[39m src/test/m02-readiness-snapshot.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m src/test/simulation-race.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 106[2mms[22m[39m
+ [32m✓[39m src/test/m02-snapshot.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 494[2mms[22m[39m
+ [32m✓[39m src/test/m02-v2b.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 191[2mms[22m[39m
+ [32m✓[39m src/test/conversation.service.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mchat sem tool: acknowledge, first_content e final no mesmo round
+[22m[39m{"timestamp":"2026-09-20T01:51:14.521Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mchat com uma tool: acknowledge mede só o primeiro round e first_content == final
+[22m[39m{"timestamp":"2026-09-20T01:51:14.528Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
+
+[90mstdout[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mchat com uma tool: acknowledge mede só o primeiro round e first_content == final
+[22m[39m{"timestamp":"2026-09-20T01:51:14.529Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":2,"timeToAcknowledgeMs":120,"timeToFirstContentMs":320,"timeToFinalMs":320}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mchat com uma tool: acknowledge mede só o primeiro round e first_content == final
+[22m[39m{"timestamp":"2026-09-20T01:51:14.530Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":1}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+[22m[39m{"timestamp":"2026-09-20T01:51:14.533Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+[22m[39m{"timestamp":"2026-09-20T01:51:14.534Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":1}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+[22m[39m{"timestamp":"2026-09-20T01:51:14.535Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":2}
+
+[90mstdout[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+[22m[39m{"timestamp":"2026-09-20T01:51:14.536Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":4,"timeToAcknowledgeMs":10,"timeToFirstContentMs":100,"timeToFinalMs":100}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+[22m[39m{"timestamp":"2026-09-20T01:51:14.536Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":3}
+
+ [32m✓[39m src/test/ai-chat-latency.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+ [32m✓[39m src/test/audit.service.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/test/break-even.parity.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m src/test/ui-stack.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 1087[2mms[22m[39m
+     [33m[2m✓[22m[39m associates its label and changes a controlled Select with the keyboard [33m 483[2mms[22m[39m
+ [32m✓[39m src/test/m02-grant-repair.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m src/test/financial.service.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m src/test/snapshot-idempotency.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/test/chat-markdown.test.tsx [2m([22m[2m24 tests[22m[2m)[22m[32m 116[2mms[22m[39m
+ [32m✓[39m src/test/sales.service.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m src/test/rate-limit-rules.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+[90mstderr[2m | src/test/pricing.service.test.ts[2m > [22m[2mDefaultPricingService[2m > [22m[2mengole falha do snapshot mantendo o output do diagnóstico intacto
+[22m[39m{"timestamp":"2026-09-20T01:51:19.849Z","level":"warn","event":"diagnostic.snapshot_failed","productId":"70000000-0000-4000-8000-000000000001","message":"SNAPSHOT_DOWN"}
+
+ [32m✓[39m src/test/pricing.service.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m src/test/sql-redactor.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/token-usage.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/tool-registry.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m src/test/format.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m src/test/contracts.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 67[2mms[22m[39m
+ [32m✓[39m src/test/simulation.service.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/test/contracts-driver-independence.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 1358[2mms[22m[39m
+     [33m[2m✓[22m[39m compila com @/db/* remapeado para um diretório inexistente [33m 1344[2mms[22m[39m
+ [32m✓[39m src/test/bff-create-update-contract.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m src/test/ai-endpoint.server.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/m02-role-membership.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 5642[2mms[22m[39m
+     [33m[2m✓[22m[39m drill-branch mirando produção → DENY pré-conexão [33m 1103[2mms[22m[39m
+     [33m[2m✓[22m[39m cutover-window fora de janela → DENY pré-conexão (inclusive dry-run) [33m 2319[2mms[22m[39m
+     [33m[2m✓[22m[39m URL malformada/ausente → fail-closed exit 2, sem vazar valor [33m 2214[2mms[22m[39m
+ [32m✓[39m src/test/auth-policy.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 349[2mms[22m[39m
+     [33m[2m✓[22m[39m writes and verifies new passwords with scrypt [33m 316[2mms[22m[39m
+[90mstderr[2m | src/test/chat-rate-limit.test.ts[2m > [22m[2m§20.5: admissão do chat por bucket atômico[2m > [22m[2mrecusa com RATE_LIMIT (429) antes do orçamento e do histórico
+[22m[39m{"timestamp":"2026-09-20T01:51:29.482Z","level":"warn","event":"ai.chat_rate_limited","bucket":"chat","retryAfterSeconds":600}
+
+[90mstdout[2m | src/test/chat-rate-limit.test.ts[2m > [22m[2m§20.5: admissão do chat por bucket atômico[2m > [22m[2msegue o turno quando o bucket aprova
+[22m[39m{"timestamp":"2026-09-20T01:51:29.489Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":2,"timeToFirstContentMs":2,"timeToFinalMs":2}
+
+[90mstderr[2m | src/test/chat-rate-limit.test.ts[2m > [22m[2m§20.5: admissão do chat por bucket atômico[2m > [22m[2msegue o turno quando o bucket aprova
+[22m[39m{"timestamp":"2026-09-20T01:51:29.491Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+ [32m✓[39m src/test/chat-rate-limit.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m src/test/m02-secrets-audit.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m src/test/api-error-contract.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m src/test/migration-classes.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m src/test/finance.required-sales.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/test/financial-values.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/test/api-error-logger.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/test/web-vitals-payload.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/rls-probe-errors.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/m02-purge-fixtures.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/product-completeness.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mlimites do gateway de IA[2m > [22m[2mrepete somente uma falha transitória e limita a duas tentativas
+[22m[39m{"timestamp":"2026-09-20T01:51:34.870Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":133,"outcome":"retry"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mlimites do gateway de IA[2m > [22m[2mrepete somente uma falha transitória e limita a duas tentativas
+[22m[39m{"timestamp":"2026-09-20T01:51:34.877Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":2,"durationMs":4,"outcome":"success"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mlimites do gateway de IA[2m > [22m[2mnão repete quota ou rate limit
+[22m[39m{"timestamp":"2026-09-20T01:51:34.886Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":1,"outcome":"RATE_LIMIT"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mlimites do gateway de IA[2m > [22m[2mpropaga cancelamento como AI_TIMEOUT
+[22m[39m{"timestamp":"2026-09-20T01:51:34.889Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"AI_TIMEOUT"}
+
+ [32m✓[39m src/test/model-gateway.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 161[2mms[22m[39m
+ [32m✓[39m src/test/m02-backup-verify.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m src/test/rls-probe-contract.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 165[2mms[22m[39m
+ [32m✓[39m src/test/break-even.service.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/list-limits.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/test/chat-fsm.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/ai-tool.repository.security.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/test/request-context.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/migration-reconcile.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/test/m02-cutover-t0.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 6336[2mms[22m[39m
+     [33m[2m✓[22m[39m --skip-snapshot não conecta e ainda assim exit 0 com rótulos (smoke de parsing) [33m 6326[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m88 passed[39m[22m[90m (88)[39m
+[2m      Tests [22m [1m[32m873 passed[39m[22m[2m | [22m[33m13 skipped[39m[90m (886)[39m
+[2m   Start at [22m 22:50:40
+[2m   Duration [22m 61.54s[2m (transform 3.59s, setup 11.23s, import 46.21s, tests 28.90s, environment 77.00s)[22m
+
+
+> build
+> node scripts/build.mjs
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 2345 modules transformed.
+rendering chunks...
+computing gzip size...
+.output/public/.vite/manifest.json                   17.05 kB │ gzip:  1.91 kB
+.output/public/assets/styles-o_AGAKHr.css            42.29 kB │ gzip:  8.04 kB
+.output/public/assets/trending-up-D0-z9Y5V.js         0.17 kB │ gzip:  0.17 kB
+.output/public/assets/circle-plus-Ot16J1q7.js         0.20 kB │ gzip:  0.17 kB
+.output/public/assets/message-circle-BtsSYoVG.js      0.24 kB │ gzip:  0.21 kB
+.output/public/assets/triangle-alert-DKmozdSR.js      0.26 kB │ gzip:  0.21 kB
+.output/public/assets/wallet-CM13DWu5.js              0.28 kB │ gzip:  0.20 kB
+.output/public/assets/loading-skeleton-CDy-7ruO.js    0.29 kB │ gzip:  0.21 kB
+.output/public/assets/finance-nMFL6VlT.js             0.32 kB │ gzip:  0.23 kB
+.output/public/assets/tag--pwtrGpU.js                 0.32 kB │ gzip:  0.24 kB
+.output/public/assets/trash-2-CIagGSiV.js             0.32 kB │ gzip:  0.21 kB
+.output/public/assets/scale-DFV9GAd-.js               0.33 kB │ gzip:  0.22 kB
+.output/public/assets/label-DsSsGPVR.js               0.35 kB │ gzip:  0.26 kB
+.output/public/assets/package-mJnzy48B.js             0.37 kB │ gzip:  0.25 kB
+.output/public/assets/useServerFn-DtOC6iJy.js         0.38 kB │ gzip:  0.27 kB
+.output/public/assets/sparkles-Dwseka6l.js            0.49 kB │ gzip:  0.28 kB
+.output/public/assets/input-Bux_7VrY.js               0.66 kB │ gzip:  0.41 kB
+.output/public/assets/calc-explainer-DYetHXYt.js      0.71 kB │ gzip:  0.44 kB
+.output/public/assets/rolldown-runtime-hePW80VL.js    0.71 kB │ gzip:  0.42 kB
+.output/public/assets/badge-CpgyLfKH.js               0.81 kB │ gzip:  0.43 kB
+.output/public/assets/calc-explanation-QEb0suM8.js    1.07 kB │ gzip:  0.43 kB
+.output/public/assets/preload-helper-Czpn1I53.js      1.19 kB │ gzip:  0.67 kB
+.output/public/assets/createLucideIcon-B5H5xK_Q.js    1.24 kB │ gzip:  0.72 kB
+.output/public/assets/skeleton-DCYwDF4Q.js            1.29 kB │ gzip:  0.48 kB
+.output/public/assets/format-RsbuSrg2.js              1.32 kB │ gzip:  0.65 kB
+.output/public/assets/alert-dialog-tzeyIrdI.js        2.21 kB │ gzip:  0.82 kB
+.output/public/assets/react-dom-DnMgFH6B.js           3.59 kB │ gzip:  1.37 kB
+.output/public/assets/routes-CSbz4b3U.js              4.44 kB │ gzip:  1.88 kB
+.output/public/assets/auth-B0NmbgLe.js                5.95 kB │ gzip:  2.41 kB
+.output/public/assets/produtos-DcG9I2mb.js            6.00 kB │ gzip:  2.26 kB
+.output/public/assets/vendas-DlK46JcL.js              6.11 kB │ gzip:  2.27 kB
+.output/public/assets/despesas-B-4ulcjT.js            6.71 kB │ gzip:  2.31 kB
+.output/public/assets/precos-DYVXFCgv.js              7.44 kB │ gzip:  2.94 kB
+.output/public/assets/route-CqgoyHIX.js               7.89 kB │ gzip:  2.86 kB
+.output/public/assets/novo-produto-D7AcBEAl.js        8.22 kB │ gzip:  3.33 kB
+.output/public/assets/inicio-FK1Uvt3A.js              8.57 kB │ gzip:  3.13 kB
+.output/public/assets/web-vitals-viX3FQND.js          8.62 kB │ gzip:  3.22 kB
+.output/public/assets/DialogTrigger-kCAI4vFT.js       9.50 kB │ gzip:  3.39 kB
+.output/public/assets/ponto-equilibrio-CJ3SG5EE.js   10.27 kB │ gzip:  3.51 kB
+.output/public/assets/simulacoes-BYIwLat3.js         14.96 kB │ gzip:  4.92 kB
+.output/public/assets/diagnostico-Bkg4jhV-.js        15.31 kB │ gzip:  4.86 kB
+.output/public/assets/auth-client-DkVMaKOW.js        29.34 kB │ gzip: 11.10 kB
+.output/public/assets/button-CiZwOupE.js             38.70 kB │ gzip: 13.17 kB
+.output/public/assets/composite-C7bqY-9T.js          42.74 kB │ gzip: 14.83 kB
+.output/public/assets/select-CYRjaKew.js             67.69 kB │ gzip: 24.75 kB
+.output/public/assets/query-options-CI0UEwDo.js     125.84 kB │ gzip: 40.65 kB
+.output/public/assets/tanstack-vendor-D1mahD_Y.js   160.39 kB │ gzip: 51.16 kB
+.output/public/assets/index-eXg04t5H.js             237.69 kB │ gzip: 74.10 kB
+
+✓ built in 1.86s
+vite v8.2.2 building ssr environment for production...
+transforming...
+✓ 273 modules transformed.
+rendering chunks...
+computing gzip size...
+node_modules/.nitro/vite/services/ssr/assets/styles-o_AGAKHr.css                        42.29 kB │ gzip:  8.04 kB
+node_modules/.nitro/vite/services/ssr/assets/kysely-adapter-Cj_QZw5p.js                  0.05 kB │ gzip:  0.07 kB
+node_modules/.nitro/vite/services/ssr/assets/server-DIRkEDRV.js                          0.07 kB │ gzip:  0.08 kB
+node_modules/.nitro/vite/services/ssr/assets/session-context-B5Yqyfci.js                 0.15 kB │ gzip:  0.11 kB
+node_modules/.nitro/vite/services/ssr/assets/empty-plugin-adapters-D9UWiqvJ.js           0.22 kB │ gzip:  0.16 kB
+node_modules/.nitro/vite/services/ssr/assets/optimistic-version-MifrSw5n.js              0.40 kB │ gzip:  0.30 kB
+node_modules/.nitro/vite/services/ssr/assets/label-DV8FU6sa.js                           0.42 kB │ gzip:  0.30 kB
+node_modules/.nitro/vite/services/ssr/assets/useServerFn-CrZF2pjq.js                     0.63 kB │ gzip:  0.35 kB
+node_modules/.nitro/vite/services/ssr/assets/input-BRH-q4T-.js                           0.76 kB │ gzip:  0.46 kB
+node_modules/.nitro/vite/services/ssr/assets/createMiddleware-B_4t7rW1.js                0.83 kB │ gzip:  0.32 kB
+node_modules/.nitro/vite/services/ssr/assets/loading-skeleton-WoAvWHYM.js                0.89 kB │ gzip:  0.53 kB
+node_modules/.nitro/vite/services/ssr/assets/badge-V0ZSdmhV.js                           0.98 kB │ gzip:  0.51 kB
+node_modules/.nitro/vite/services/ssr/assets/calc-explainer-CZvPLeWp.js                  1.04 kB │ gzip:  0.59 kB
+node_modules/.nitro/vite/services/ssr/assets/list-limits-BR9ezCSt.js                     1.16 kB │ gzip:  0.69 kB
+node_modules/.nitro/vite/services/ssr/assets/button-CjvnBxIY.js                          1.71 kB │ gzip:  0.76 kB
+node_modules/.nitro/vite/services/ssr/assets/skeleton-B5edokos.js                        1.88 kB │ gzip:  0.56 kB
+node_modules/.nitro/vite/services/ssr/assets/product-read-model.service-Br4MwNKx.js      1.94 kB │ gzip:  0.79 kB
+node_modules/.nitro/vite/services/ssr/assets/calc-explanation-BGVtIlQX.js                2.09 kB │ gzip:  0.85 kB
+node_modules/.nitro/vite/services/ssr/assets/format-Di3yxDKa.js                          2.85 kB │ gzip:  1.12 kB
+node_modules/.nitro/vite/services/ssr/assets/alert-dialog-C8nFhAg9.js                    3.25 kB │ gzip:  0.92 kB
+node_modules/.nitro/vite/services/ssr/assets/calculation-snapshot.service-DwVlshEt.js    3.65 kB │ gzip:  1.41 kB
+node_modules/.nitro/vite/services/ssr/assets/sales.functions-BslyjvwS.js                 3.81 kB │ gzip:  1.48 kB
+node_modules/.nitro/vite/services/ssr/assets/select-aSL6r7Zo.js                          3.91 kB │ gzip:  1.27 kB
+node_modules/.nitro/vite/services/ssr/assets/routes-BXd-UrnF.js                          4.61 kB │ gzip:  1.69 kB
+node_modules/.nitro/vite/services/ssr/assets/financial-values-BaX1B0WJ.js                4.94 kB │ gzip:  1.70 kB
+node_modules/.nitro/vite/services/ssr/assets/purchase-price.service-8ZyCCoia.js          5.21 kB │ gzip:  1.75 kB
+node_modules/.nitro/vite/services/ssr/assets/start-MWLuua5E.js                           5.45 kB │ gzip:  1.78 kB
+node_modules/.nitro/vite/services/ssr/assets/request-context-CSXM9Uud.js                 5.63 kB │ gzip:  1.83 kB
+node_modules/.nitro/vite/services/ssr/assets/financial.functions-CuBDWscL.js             5.83 kB │ gzip:  1.93 kB
+node_modules/.nitro/vite/services/ssr/assets/sales.service-DVpXOn_2.js                   5.84 kB │ gzip:  1.77 kB
+node_modules/.nitro/vite/services/ssr/assets/expenses.functions-CHkiI0Zq.js              5.96 kB │ gzip:  1.79 kB
+node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-CfWELAT-.js      6.47 kB │ gzip:  1.25 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-BkptfIXq.js                            8.98 kB │ gzip:  2.88 kB
+node_modules/.nitro/vite/services/ssr/assets/dashboard.functions-Cp9Gfbhj.js             9.15 kB │ gzip:  3.14 kB
+node_modules/.nitro/vite/services/ssr/assets/produtos-D0pnXaaM.js                        9.49 kB │ gzip:  2.85 kB
+node_modules/.nitro/vite/services/ssr/assets/route-CIhKqhLw.js                           9.57 kB │ gzip:  2.84 kB
+node_modules/.nitro/vite/services/ssr/assets/vendas-DSx9FSUo.js                         10.28 kB │ gzip:  2.88 kB
+node_modules/.nitro/vite/services/ssr/assets/precos-BKgKkCsI.js                         10.44 kB │ gzip:  3.41 kB
+node_modules/.nitro/vite/services/ssr/assets/expense.service-DUJTE4Vp.js                10.69 kB │ gzip:  3.58 kB
+node_modules/.nitro/vite/services/ssr/assets/despesas-DxsNOGt0.js                       11.26 kB │ gzip:  2.98 kB
+node_modules/.nitro/vite/services/ssr/assets/inicio-DVxwpFP3.js                         11.99 kB │ gzip:  3.58 kB
+node_modules/.nitro/vite/services/ssr/assets/diagnostic.functions-B3k7VNyx.js           12.31 kB │ gzip:  3.78 kB
+node_modules/.nitro/vite/services/ssr/assets/novo-produto-kJFI_sxx.js                   12.45 kB │ gzip:  4.03 kB
+node_modules/.nitro/vite/services/ssr/assets/telemetry-BSIpnUy5.js                      15.76 kB │ gzip:  5.37 kB
+node_modules/.nitro/vite/services/ssr/assets/product.repository-D2EFogxd.js             16.54 kB │ gzip:  3.06 kB
+node_modules/.nitro/vite/services/ssr/assets/ponto-equilibrio-CUdUQfJH.js               18.08 kB │ gzip:  4.96 kB
+node_modules/.nitro/vite/services/ssr/assets/query-options-Usc-g7Ae.js                  18.55 kB │ gzip:  5.29 kB
+node_modules/.nitro/vite/services/ssr/assets/financial.service-B85aVJ8l.js              23.90 kB │ gzip:  5.56 kB
+node_modules/.nitro/vite/services/ssr/assets/diagnostico-DgT088AZ.js                    24.09 kB │ gzip:  6.07 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-client-CffLXSrM.js                    26.27 kB │ gzip:  7.56 kB
+node_modules/.nitro/vite/services/ssr/assets/products.functions-Bz9r82dY.js             27.25 kB │ gzip:  6.41 kB
+node_modules/.nitro/vite/services/ssr/assets/simulacoes-Kt7AUrbb.js                     27.35 kB │ gzip:  7.45 kB
+node_modules/.nitro/vite/services/ssr/index.js                                          32.19 kB │ gzip:  9.47 kB
+node_modules/.nitro/vite/services/ssr/assets/router-CzDHQrUx.js                         34.15 kB │ gzip:  9.19 kB
+node_modules/.nitro/vite/services/ssr/assets/chat.functions-Dlz_VHvk.js                 62.35 kB │ gzip: 16.77 kB
+node_modules/.nitro/vite/services/ssr/assets/client.server-Dr4Nv5LD.js                  66.05 kB │ gzip: 15.91 kB
+node_modules/.nitro/vite/services/ssr/assets/server-BMfP5Gxz.js                         75.43 kB │ gzip: 19.97 kB
+node_modules/.nitro/vite/services/ssr/assets/auth.server-C319M7He.js                   367.77 kB │ gzip: 87.58 kB
+
+✓ built in 1.06s
+
+[nitro] ◐ Building [Nitro] (preset: node-server, compatibility: 2026-09-14)
+[nitro] ✔ Generated public .output/public
+vite v8.2.2 building nitro environment for production...
+transforming...
+✓ 3011 modules transformed.
+rendering chunks...
+computing gzip size...
+.output/server/_ssr/server-DIRkEDRV.mjs                          0.09 kB │ gzip:   0.09 kB
+.output/server/_libs/vercel__analytics.mjs                       0.13 kB │ gzip:   0.12 kB
+.output/server/_ssr/session-context-B5Yqyfci.mjs                 0.15 kB │ gzip:   0.12 kB
+.output/server/_ssr/kysely-adapter-Cj_QZw5p.mjs                  0.15 kB │ gzip:   0.12 kB
+.output/server/_ssr/empty-plugin-adapters-D9UWiqvJ.mjs           0.23 kB │ gzip:   0.16 kB
+.output/server/_ssr/optimistic-version-MifrSw5n.mjs              0.49 kB │ gzip:   0.36 kB
+.output/server/_ssr/label-DV8FU6sa.mjs                           0.54 kB │ gzip:   0.33 kB
+.output/server/_chunks/ssr-renderer.mjs                          0.59 kB │ gzip:   0.35 kB
+.output/server/_ssr/useServerFn-CrZF2pjq.mjs                     0.83 kB │ gzip:   0.45 kB
+.output/server/_ssr/input-BRH-q4T-.mjs                           1.00 kB │ gzip:   0.55 kB
+.output/server/_ssr/list-limits-BR9ezCSt.mjs                     1.12 kB │ gzip:   0.68 kB
+.output/server/_ssr/badge-V0ZSdmhV.mjs                           1.13 kB │ gzip:   0.54 kB
+.output/server/_ssr/calc-explainer-CZvPLeWp.mjs                  1.33 kB │ gzip:   0.68 kB
+.output/server/_libs/defu.mjs                                    1.41 kB │ gzip:   0.58 kB
+.output/server/_ssr/calc-explanation-BGVtIlQX.mjs                1.69 kB │ gzip:   0.66 kB
+.output/server/_ssr/product-read-model.service-Br4MwNKx.mjs      1.91 kB │ gzip:   0.81 kB
+.output/server/_runtime.mjs                                      1.92 kB │ gzip:   0.87 kB
+.output/server/_libs/ufo.mjs                                     2.21 kB │ gzip:   0.72 kB
+.output/server/_ssr/format-Di3yxDKa.mjs                          2.92 kB │ gzip:   1.17 kB
+.output/server/_libs/class-variance-authority+clsx.mjs           3.17 kB │ gzip:   1.24 kB
+.output/server/_ssr/calculation-snapshot.service-DwVlshEt.mjs    3.73 kB │ gzip:   1.46 kB
+.output/server/_ssr/alert-dialog-C8nFhAg9.mjs                    3.77 kB │ gzip:   1.00 kB
+.output/server/_libs/better-auth__utils.mjs                      3.80 kB │ gzip:   1.31 kB
+.output/server/_ssr/sales.functions-BslyjvwS.mjs                 3.92 kB │ gzip:   1.54 kB
+.output/server/_ssr/select-aSL6r7Zo.mjs                          4.68 kB │ gzip:   1.37 kB
+.output/server/_ssr/financial-values-BaX1B0WJ.mjs                5.08 kB │ gzip:   1.78 kB
+.output/server/_ssr/purchase-price.service-8ZyCCoia.mjs          5.25 kB │ gzip:   1.80 kB
+.output/server/_ssr/start-MWLuua5E.mjs                           5.39 kB │ gzip:   1.77 kB
+.output/server/_ssr/routes-BXd-UrnF.mjs                          5.43 kB │ gzip:   1.81 kB
+.output/server/_libs/nanostores.mjs                              5.53 kB │ gzip:   1.80 kB
+.output/server/_ssr/request-context-CSXM9Uud.mjs                 5.62 kB │ gzip:   1.85 kB
+.output/server/_ssr/financial.functions-CuBDWscL.mjs             5.79 kB │ gzip:   1.96 kB
+.output/server/_ssr/sales.service-DVpXOn_2.mjs                   5.91 kB │ gzip:   1.84 kB
+.output/server/_ssr/expenses.functions-CHkiI0Zq.mjs              6.05 kB │ gzip:   1.85 kB
+.output/server/_tanstack-start-manifest_v-CfWELAT-.mjs           6.52 kB │ gzip:   1.29 kB
+.output/server/_libs/stablelib__base64.mjs                       6.72 kB │ gzip:   1.75 kB
+.output/server/_ssr/dashboard.functions-Cp9Gfbhj.mjs             9.14 kB │ gzip:   3.17 kB
+.output/server/_libs/tanstack__react-query.mjs                   9.28 kB │ gzip:   2.21 kB
+.output/server/_ssr/auth-BkptfIXq.mjs                           10.25 kB │ gzip:   2.99 kB
+.output/server/_libs/fast-sha256.mjs                            10.45 kB │ gzip:   3.09 kB
+.output/server/_ssr/expense.service-DUJTE4Vp.mjs                10.56 kB │ gzip:   3.59 kB
+.output/server/_ssr/route-CIhKqhLw.mjs                          11.11 kB │ gzip:   2.98 kB
+.output/server/_ssr/produtos-D0pnXaaM.mjs                       11.20 kB │ gzip:   2.98 kB
+.output/server/_ssr/precos-BKgKkCsI.mjs                         11.93 kB │ gzip:   3.54 kB
+.output/server/_ssr/vendas-DSx9FSUo.mjs                         11.98 kB │ gzip:   3.00 kB
+.output/server/_libs/tanstack__history.mjs                      12.05 kB │ gzip:   3.46 kB
+.output/server/_ssr/diagnostic.functions-B3k7VNyx.mjs           12.24 kB │ gzip:   3.81 kB
+.output/server/_ssr/despesas-DxsNOGt0.mjs                       13.31 kB │ gzip:   3.11 kB
+.output/server/_ssr/novo-produto-kJFI_sxx.mjs                   13.83 kB │ gzip:   4.11 kB
+.output/server/_ssr/inicio-DVxwpFP3.mjs                         14.08 kB │ gzip:   3.72 kB
+.output/server/_libs/better-auth__memory-adapter.mjs            14.71 kB │ gzip:   4.12 kB
+.output/server/_ssr/product.repository-D2EFogxd.mjs             16.64 kB │ gzip:   3.13 kB
+.output/server/_libs/lucide-react.mjs                           17.31 kB │ gzip:   3.74 kB
+.output/server/_libs/@better-auth/telemetry+[...].mjs           17.53 kB │ gzip:   4.90 kB
+.output/server/_ssr/query-options-Usc-g7Ae.mjs                  18.25 kB │ gzip:   5.29 kB
+.output/server/_ssr/ponto-equilibrio-CUdUQfJH.mjs               19.80 kB │ gzip:   5.08 kB
+.output/server/index.mjs                                        21.93 kB │ gzip:   6.31 kB
+.output/server/_libs/noble__hashes.mjs                          23.93 kB │ gzip:   7.95 kB
+.output/server/_ssr/financial.service-B85aVJ8l.mjs              23.98 kB │ gzip:   5.62 kB
+.output/server/_libs/h3+srvx.mjs                                27.27 kB │ gzip:   7.19 kB
+.output/server/_ssr/products.functions-Bz9r82dY.mjs             27.28 kB │ gzip:   6.46 kB
+.output/server/_ssr/diagnostico-DgT088AZ.mjs                    27.39 kB │ gzip:   6.19 kB
+.output/server/_ssr/simulacoes-Kt7AUrbb.mjs                     30.59 kB │ gzip:   7.61 kB
+.output/server/_ssr/ssr.mjs                                     32.41 kB │ gzip:   9.58 kB
+.output/server/_libs/bcryptjs.mjs                               32.95 kB │ gzip:  11.20 kB
+.output/server/_libs/jose.mjs                                   33.30 kB │ gzip:   8.03 kB
+.output/server/_libs/resend+standardwebhooks.mjs                44.67 kB │ gzip:   8.63 kB
+.output/server/_libs/noble__ciphers.mjs                         47.40 kB │ gzip:  14.67 kB
+.output/server/_libs/h3-v2+rou3+srvx.mjs                        49.38 kB │ gzip:  13.28 kB
+.output/server/_libs/sonner.mjs                                 53.62 kB │ gzip:  12.11 kB
+.output/server/_libs/decimal.js.mjs                             55.37 kB │ gzip:  15.47 kB
+.output/server/_libs/@better-auth/drizzle-adapter+[...].mjs     60.74 kB │ gzip:  13.66 kB
+.output/server/_ssr/chat.functions-Dlz_VHvk.mjs                 61.73 kB │ gzip:  16.72 kB
+.output/server/_libs/opentelemetry__api.mjs                     63.94 kB │ gzip:  12.28 kB
+.output/server/_ssr/router-CzDHQrUx.mjs                         64.59 kB │ gzip:  17.34 kB
+.output/server/_libs/tanstack__query-core.mjs                   72.84 kB │ gzip:  15.36 kB
+.output/server/_ssr/server-BMfP5Gxz.mjs                         74.72 kB │ gzip:  20.05 kB
+.output/server/_ssr/client.server-Dr4Nv5LD.mjs                  81.46 kB │ gzip:  20.92 kB
+.output/server/_libs/tailwind-merge.mjs                         88.13 kB │ gzip:  15.66 kB
+.output/server/_libs/postal-mime.mjs                            91.46 kB │ gzip:  25.70 kB
+.output/server/_libs/@tanstack/router-core+[...].mjs           122.94 kB │ gzip:  25.89 kB
+.output/server/_libs/neondatabase__serverless.mjs              182.38 kB │ gzip:  51.29 kB
+.output/server/_libs/drizzle-orm.mjs                           305.25 kB │ gzip:  63.96 kB
+.output/server/_ssr/auth.server-C319M7He.mjs                   361.96 kB │ gzip:  86.88 kB
+.output/server/_libs/@base-ui/react+[...].mjs                  375.65 kB │ gzip:  85.63 kB
+.output/server/_libs/@better-auth/kysely-adapter+[...].mjs     498.94 kB │ gzip:  82.92 kB
+.output/server/_libs/@react-email/render+[...].mjs             511.51 kB │ gzip: 151.63 kB
+.output/server/_libs/@tanstack/react-router+[...].mjs          649.49 kB │ gzip: 136.21 kB
+.output/server/_libs/@better-auth/core+[...].mjs               832.76 kB │ gzip: 164.77 kB
+
+✓ built in 788ms
+ℹ Generated .output/nitro.json
+
+[nitro] ✔ You can preview this build using npx vite preview
+
+> check:bundle
+> node scripts/check-bundle.mjs
+
+PASS assets/index-eXg04t5H.js: 237694 minified, 73259 gzip, 63812 Brotli bytes
+Initial graph (9 chunks): 473230 minified, 151054 gzip, 132937 Brotli bytes

@@ -1,0 +1,9 @@
+f7cfb14474979d44e89916b40b410c1fb1afc49bff879a03d20f0e27d2fb01f8  scripts/db/purge-fixtures.ts
+cbdb10f482c13bbf794c4092fb7df10ed7a1f5462d6dd7ea322360896361b781  scripts/e2e/seed-auth.ts
+23d56dc3e75296f268caa578fff79c20104dea58bc4afd1bc00d16b9d248c55b  scripts/db/explain-evidence.ts
+92bf2117f48d9830f914d698388d4e103c291e51f65ca78e52cf7f6881c646f4  scripts/db/test-backfill.ts
+fe04693c9488fefe638ea4c6360b67a37cc1f812285a15f741a5ed4a02798c0c  scripts/db/test-auth-integration.ts
+50eb570fe0455189e05e062312544fef5aa1965b54c4adfcda4e9e8f015b8ca7  scripts/db/test-ai-budget.ts
+b975557d75360574232bc3137d91024df5d10854c231826fb1f2da8a73654b80  .artifacts/zz-wp4-probe.sh
+6a195f75a5acf06910cda9f057b5d686c529ff8d4a9ee7a292c0db787650a4e4  .artifacts/wp4-probe-red.log
+3773859bd0692fa8a5633d29e8be15b3e1fc0c9fc840e489678a3de157121799  .artifacts/wp4-probe-green.log

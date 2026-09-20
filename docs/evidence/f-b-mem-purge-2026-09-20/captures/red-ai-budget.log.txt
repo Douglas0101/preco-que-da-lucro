@@ -1,0 +1,106 @@
+{"timestamp":"2026-09-20T01:47:52.785Z","level":"info","event":"ai.budget_reserved","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","usageId":"52ce5a26-ee51-4f19-9544-7a903b926323","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:52.800Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.806Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.841Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.861Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.877Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.891Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.905Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.924Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.943Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.946Z","level":"info","event":"ai.chat_completed","correlationId":"9fac5219-4f93-45d4-88fb-e5f0f4c7eb5f","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","rounds":1,"timeToAcknowledgeMs":261,"timeToFirstContentMs":271,"timeToFinalMs":271}
+{"timestamp":"2026-09-20T01:47:52.956Z","level":"info","event":"ai.budget_settled","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","usageId":"52ce5a26-ee51-4f19-9544-7a903b926323","budget":100,"real":5,"usageUnknownReason":null,"durationMs":178,"outcome":"success","applied":true}
+{"timestamp":"2026-09-20T01:47:52.959Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.973Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:52.986Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.012Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.028Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.043Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.058Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.073Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.086Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.091Z","level":"warn","event":"ai.budget_rejected","tenantId":"875767ce-f083-4505-8073-5be1294e34b3","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+T1/E1: reserva atômica sob 20 concorrentes: OK
+{"timestamp":"2026-09-20T01:47:53.110Z","level":"info","event":"ai.budget_reserved","tenantId":"ccb0e6eb-9f51-402a-be90-07b731ed206d","usageId":"ca1bca4d-cd4e-4768-a9de-b589528b3018","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:53.114Z","level":"info","event":"ai.budget_settled","tenantId":"ccb0e6eb-9f51-402a-be90-07b731ed206d","usageId":"ca1bca4d-cd4e-4768-a9de-b589528b3018","budget":100,"real":7,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+{"timestamp":"2026-09-20T01:47:53.117Z","level":"info","event":"ai.budget_settled","tenantId":"ccb0e6eb-9f51-402a-be90-07b731ed206d","usageId":"ca1bca4d-cd4e-4768-a9de-b589528b3018","budget":null,"real":7,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+{"timestamp":"2026-09-20T01:47:53.124Z","level":"info","event":"ai.budget_reserved","tenantId":"ccb0e6eb-9f51-402a-be90-07b731ed206d","usageId":"a96d523f-06c2-4a0d-9429-3ca3938c01da","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+{"timestamp":"2026-09-20T01:47:53.128Z","level":"warn","event":"ai.budget_settlement_retry","tenantId":"ccb0e6eb-9f51-402a-be90-07b731ed206d","usageId":"a96d523f-06c2-4a0d-9429-3ca3938c01da","outcome":"success","error":{"name":"Error","message":"simulated_post_commit_failure"}}
+{"timestamp":"2026-09-20T01:47:53.130Z","level":"info","event":"ai.budget_settled","tenantId":"ccb0e6eb-9f51-402a-be90-07b731ed206d","usageId":"a96d523f-06c2-4a0d-9429-3ca3938c01da","budget":null,"real":0,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+T2/E2: settlement exatamente-uma-vez: OK
+{"timestamp":"2026-09-20T01:47:53.152Z","level":"info","event":"ai.budget_reserved","tenantId":"2327ed14-0dbb-4f87-9d10-0508bba9887c","usageId":"8ca5a0cf-de68-4d24-8fdc-5ab598c56e4f","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:53.158Z","level":"info","event":"ai.budget_settled","tenantId":"2327ed14-0dbb-4f87-9d10-0508bba9887c","usageId":"8ca5a0cf-de68-4d24-8fdc-5ab598c56e4f","budget":100,"real":0,"usageUnknownReason":null,"durationMs":4,"outcome":"error_ai_timeout","applied":true}
+T3/E3: timeout liquida a reserva e libera in_flight: OK
+{"timestamp":"2026-09-20T01:47:53.183Z","level":"info","event":"ai.budget_reserved","tenantId":"f790b59b-f5d5-413d-a68a-0f4372724a1c","usageId":"4e16a776-0dd8-4bf0-943d-cfe1755952ef","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:53.188Z","level":"info","event":"ai.budget_settled","tenantId":"f790b59b-f5d5-413d-a68a-0f4372724a1c","usageId":"4e16a776-0dd8-4bf0-943d-cfe1755952ef","budget":100,"real":0,"usageUnknownReason":null,"durationMs":4,"outcome":"error_ai_timeout","applied":true}
+T4/E4: abort liquida a reserva no finally: OK
+{"timestamp":"2026-09-20T01:47:53.212Z","level":"info","event":"ai.budget_reserved","tenantId":"3bb38a45-f224-4254-9205-3c9eda916ce2","usageId":"734fa59f-b920-4d09-a62a-88bad53efe4e","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:53.218Z","level":"info","event":"ai.budget_settled","tenantId":"3bb38a45-f224-4254-9205-3c9eda916ce2","usageId":"734fa59f-b920-4d09-a62a-88bad53efe4e","budget":100,"real":5,"usageUnknownReason":null,"durationMs":7,"outcome":"tool_round","applied":true}
+{"timestamp":"2026-09-20T01:47:53.225Z","level":"info","event":"ai.budget_reserved","tenantId":"3bb38a45-f224-4254-9205-3c9eda916ce2","usageId":"8e369000-30fa-4f9d-a05d-15a39c57ca5c","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+{"timestamp":"2026-09-20T01:47:53.230Z","level":"info","event":"ai.budget_settled","tenantId":"3bb38a45-f224-4254-9205-3c9eda916ce2","usageId":"8e369000-30fa-4f9d-a05d-15a39c57ca5c","budget":100,"real":5,"usageUnknownReason":null,"durationMs":9,"outcome":"tool_round","applied":true}
+{"timestamp":"2026-09-20T01:47:53.235Z","level":"info","event":"ai.budget_reserved","tenantId":"3bb38a45-f224-4254-9205-3c9eda916ce2","usageId":"d455b8d0-65e4-4932-9bfc-ae5f16f7a7cf","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":2}
+{"timestamp":"2026-09-20T01:47:53.240Z","level":"info","event":"ai.chat_completed","correlationId":"7cddc0d8-628a-4590-8977-191bf60065f8","tenantId":"3bb38a45-f224-4254-9205-3c9eda916ce2","rounds":3,"timeToAcknowledgeMs":16,"timeToFirstContentMs":44,"timeToFinalMs":44}
+{"timestamp":"2026-09-20T01:47:53.244Z","level":"info","event":"ai.budget_settled","tenantId":"3bb38a45-f224-4254-9205-3c9eda916ce2","usageId":"d455b8d0-65e4-4932-9bfc-ae5f16f7a7cf","budget":100,"real":5,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+T5/E5: reserva/liquidação independente por tool round: OK
+{"timestamp":"2026-09-20T01:47:53.292Z","level":"info","event":"ai.budget_reserved","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","usageId":"791e7931-f5a3-4b8d-937e-f17e43e9ba2e","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:53.301Z","level":"info","event":"ai.budget_reserved","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","usageId":"f3b3756c-d288-48a9-b5eb-81e422ea7c7c","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:53.306Z","level":"warn","event":"ai.budget_rejected","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.321Z","level":"warn","event":"ai.budget_rejected","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.333Z","level":"warn","event":"ai.budget_rejected","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.343Z","level":"warn","event":"ai.budget_rejected","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.350Z","level":"warn","event":"ai.budget_rejected","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.357Z","level":"warn","event":"ai.budget_rejected","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.672Z","level":"info","event":"ai.chat_completed","correlationId":"713bd2bf-ca77-4dfa-9764-fa7fede51d28","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","rounds":1,"timeToAcknowledgeMs":408,"timeToFirstContentMs":423,"timeToFinalMs":423}
+{"timestamp":"2026-09-20T01:47:53.674Z","level":"info","event":"ai.chat_completed","correlationId":"e5832f3d-3aaf-4ad1-9353-33951424ef5f","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","rounds":1,"timeToAcknowledgeMs":408,"timeToFirstContentMs":424,"timeToFinalMs":424}
+{"timestamp":"2026-09-20T01:47:53.677Z","level":"info","event":"ai.budget_settled","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","usageId":"f3b3756c-d288-48a9-b5eb-81e422ea7c7c","budget":100,"real":5,"usageUnknownReason":null,"durationMs":387,"outcome":"success","applied":true}
+{"timestamp":"2026-09-20T01:47:53.678Z","level":"info","event":"ai.budget_settled","tenantId":"e2b6d4b8-a691-4b8d-89b5-330bec86219d","usageId":"791e7931-f5a3-4b8d-937e-f17e43e9ba2e","budget":100,"real":5,"usageUnknownReason":null,"durationMs":406,"outcome":"success","applied":true}
+T6/E6 metrics: gatewayCalls=2 peakActiveCalls=2 sucessos=2 rejeições=6 tokens_reserved=0 in_flight=0
+T6/E6: limite in-flight sob concorrência: OK
+{"timestamp":"2026-09-20T01:47:53.701Z","level":"info","event":"ai.budget_reserved","tenantId":"3da38a17-6dfe-473f-881c-0fdc7f774653","usageId":"a2dd7746-dacb-4f71-b847-bd9ffebfaead","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:53.706Z","level":"info","event":"ai.chat_completed","correlationId":"0f6db39e-42bc-44cd-9843-b2944dd30fcb","tenantId":"3da38a17-6dfe-473f-881c-0fdc7f774653","rounds":1,"timeToAcknowledgeMs":16,"timeToFirstContentMs":21,"timeToFinalMs":21}
+{"timestamp":"2026-09-20T01:47:53.710Z","level":"info","event":"ai.budget_settled","tenantId":"3da38a17-6dfe-473f-881c-0fdc7f774653","usageId":"a2dd7746-dacb-4f71-b847-bd9ffebfaead","budget":100,"real":5,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+T7/E7: single-shot preservado com contadores coerentes: OK
+{"timestamp":"2026-09-20T01:47:53.721Z","level":"info","event":"ai.budget_reserved","tenantId":"a2334998-9faa-41f6-902e-195d86c93c67","usageId":"0dbfd59f-203d-4dca-9aff-1a5678c23ea9","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:53.728Z","level":"info","event":"ai.budget_expired","tenantId":"a2334998-9faa-41f6-902e-195d86c93c67","usageId":"0dbfd59f-203d-4dca-9aff-1a5678c23ea9","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+{"timestamp":"2026-09-20T01:47:53.728Z","level":"info","event":"ai.budget_reserved","tenantId":"a2334998-9faa-41f6-902e-195d86c93c67","usageId":"9b183d39-8b41-47c4-9ed3-bcebb7d2136c","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+{"timestamp":"2026-09-20T01:47:53.732Z","level":"info","event":"ai.budget_settled","tenantId":"a2334998-9faa-41f6-902e-195d86c93c67","usageId":"9b183d39-8b41-47c4-9ed3-bcebb7d2136c","budget":100,"real":0,"usageUnknownReason":null,"durationMs":1,"outcome":"success","applied":true}
+T8/E8: TTL lazy sweep recupera reserva órfã antes da nova reserva: OK
+{"timestamp":"2026-09-20T01:47:53.745Z","level":"info","event":"ai.budget_reserved","tenantId":"cb74b344-b381-49f0-be81-87f6932cbe1e","usageId":"b0a200cb-bfa2-44d6-b429-183978b602b7","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:53.748Z","level":"info","event":"ai.budget_expired","tenantId":"cb74b344-b381-49f0-be81-87f6932cbe1e","usageId":"b0a200cb-bfa2-44d6-b429-183978b602b7","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+T9/E9: replay do sweep não duplica a correção: OK
+{"timestamp":"2026-09-20T01:47:53.762Z","level":"info","event":"ai.budget_reserved","tenantId":"3a1d23f9-d50a-4c93-8b39-55744c508309","usageId":"15286f47-6fdf-4b15-989f-78c83e0b775d","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-09-20T01:47:53.766Z","level":"warn","event":"ai.budget_rejected","tenantId":"3a1d23f9-d50a-4c93-8b39-55744c508309","budget":100,"kind":"model","roundNo":1,"outcome":"budget_limit"}
+{"timestamp":"2026-09-20T01:47:53.769Z","level":"info","event":"ai.budget_settled","tenantId":"3a1d23f9-d50a-4c93-8b39-55744c508309","usageId":"15286f47-6fdf-4b15-989f-78c83e0b775d","budget":100,"real":7,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+{"timestamp":"2026-09-20T01:47:53.773Z","level":"info","event":"ai.budget_settled","tenantId":"3a1d23f9-d50a-4c93-8b39-55744c508309","usageId":"15286f47-6fdf-4b15-989f-78c83e0b775d","budget":null,"real":7,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+{"timestamp":"2026-09-20T01:47:53.778Z","level":"info","event":"ai.budget_reserved","tenantId":"3a1d23f9-d50a-4c93-8b39-55744c508309","usageId":"91623e3c-0691-4700-a5c4-ddca6633562d","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":2}
+{"timestamp":"2026-09-20T01:47:53.781Z","level":"info","event":"ai.budget_expired","tenantId":"3a1d23f9-d50a-4c93-8b39-55744c508309","usageId":"91623e3c-0691-4700-a5c4-ddca6633562d","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+T10/E10: contrato comum node-postgres + adaptador sem endpoint Neon: OK
+/home/douglas-souza/preco-que-d-main/.worktree-wp4-mem-purge/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+
+error: update or delete on table "tenant_memberships" violates foreign key constraint "ai_memory_access_log_tenant_id_user_id_tenant_memberships_tenan" on table "ai_memory_access_log"
+    at /home/douglas-souza/preco-que-d-main/.worktree-wp4-mem-purge/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async main (/home/douglas-souza/preco-que-d-main/.worktree-wp4-mem-purge/scripts/db/test-ai-budget.ts:786:7)
+    at async <anonymous> (/home/douglas-souza/preco-que-d-main/.worktree-wp4-mem-purge/scripts/db/test-ai-budget.ts:799:1) {
+  length: 498,
+  severity: 'ERROR',
+  code: '23503',
+  detail: 'Key (tenant_id, user_id)=(875767ce-f083-4505-8073-5be1294e34b3, bdeab09a-b656-497b-aeec-04f5a0c3fd6b) is still referenced from table "ai_memory_access_log".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'ai_memory_access_log',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'ai_memory_access_log_tenant_id_user_id_tenant_memberships_tenan',
+  file: 'ri_triggers.c',
+  line: '2612',
+  routine: 'ri_ReportViolation'
+}
+
+Node.js v24.15.0

@@ -1,0 +1,38 @@
+
+> pree2e:prepare
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> e2e:prepare
+> tsx scripts/e2e/seed-auth.ts
+
+/home/douglas-souza/preco-que-d-main/.worktree-wp4-mem-purge/node_modules/pg/lib/client.js:694
+          Error.captureStackTrace(err)
+                ^
+
+error: update or delete on table "tenant_memberships" violates foreign key constraint "ai_memory_access_log_tenant_id_user_id_tenant_memberships_tenan" on table "ai_memory_access_log"
+    at /home/douglas-souza/preco-que-d-main/.worktree-wp4-mem-purge/node_modules/pg/lib/client.js:694:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async main (/home/douglas-souza/preco-que-d-main/.worktree-wp4-mem-purge/scripts/e2e/seed-auth.ts:70:5)
+    at async <anonymous> (/home/douglas-souza/preco-que-d-main/.worktree-wp4-mem-purge/scripts/e2e/seed-auth.ts:187:1) {
+  length: 498,
+  severity: 'ERROR',
+  code: '23503',
+  detail: 'Key (tenant_id, user_id)=(00000000-0000-4000-8000-000000000002, 00000000-0000-4000-8000-000000000001) is still referenced from table "ai_memory_access_log".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'ai_memory_access_log',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'ai_memory_access_log_tenant_id_user_id_tenant_memberships_tenan',
+  file: 'ri_triggers.c',
+  line: '2612',
+  routine: 'ri_ReportViolation'
+}
+
+Node.js v24.15.0

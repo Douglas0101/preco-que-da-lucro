@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# S7 GUARD do WP4 (F-B-mem-purge). Read-only. Grava o proprio log com o sha256 do
+# artefato examinado (licao do WP2/WP3: um guard que so reporta contagens nao prova
+# que examinou) e ASSERCA o contrato que o WP declara.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+A=.artifacts
+LOG=$A/wp4-s7.log
+export NO_COLOR=1
+exec > >(tee "$LOG") 2>&1
+
+FALHAS=0
+
+echo "=== S7 GUARD — WP4 F-B-mem-purge ==="
+echo "HEAD: $(git rev-parse HEAD)"
+echo "branch: $(git branch --show-current)"
+echo "data: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+echo
+
+echo "=== IDENTIDADE do que foi examinado (nao cardinalidade) ==="
+DIFF=$A/wp4-s7-diff.txt
+{
+  git diff -- scripts docs
+  echo "--- arquivos nao rastreados ---"
+  git ls-files --others --exclude-standard -- scripts docs | sort | while read -r f; do
+    echo "### $f"
+    cat "$f"
+  done
+} > "$DIFF" 2>/dev/null
+echo "  bytes do artefato examinado: $(wc -c < "$DIFF")"
+echo "  sha256 do artefato examinado: $(sha256sum "$DIFF" | cut -d' ' -f1)"
+for f in scripts/db/purge-fixtures.ts scripts/e2e/seed-auth.ts scripts/db/explain-evidence.ts \
+         scripts/db/test-backfill.ts scripts/db/test-auth-integration.ts scripts/db/test-ai-budget.ts; do
+  echo "  sha256 $f: $(sha256sum "$f" | cut -d' ' -f1)"
+done
+echo
+
+echo "=== 1. arquivos tocados ==="
+git status --short -- scripts docs | sed 's/^/  /'
+TOCADOS=$(git status --short -- scripts docs | wc -l)
+echo "  total: $TOCADOS"
+FORA=$(git status --short -- scripts docs | grep -vcE 'purge-fixtures|seed-auth|explain-evidence|test-backfill|test-auth-integration|test-ai-budget|f-b-mem-purge' || true)
+echo "  fora do escopo declarado: $FORA (esperado 0)"
+[ "$FORA" -eq 0 ] || { echo "  !! FALHA: arquivo fora do escopo"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 2. runtime/schema/manifests intocados (ASSERTADO) ==="
+SRC=$(git status --short -- src drizzle package.json package-lock.json | wc -l)
+echo "  src/** + drizzle/** + package*.json no diff: $SRC (esperado 0)"
+[ "$SRC" -eq 0 ] || { echo "  !! FALHA: runtime/schema/manifest no diff"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 3. credenciais herdadas no ambiente ==="
+HERDADAS=$(env | grep -cE '^(NEON_|VERCEL|DATABASE_URL|PG|GH_|GITHUB_|CLOUDFLARE|AWS_|STRIPE)' || true)
+echo "  variaveis de credencial herdadas: $HERDADAS (esperado 0)"
+[ "$HERDADAS" -eq 0 ] || { echo "  !! FALHA: credencial no ambiente"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 4. secrets audit ==="
+npm run m02:secrets-audit > $A/wp4-secrets.txt 2>&1
+SECRETS=$?
+echo "  SECRETS_EXIT=$SECRETS"
+[ "$SECRETS" -eq 0 ] || { echo "  !! FALHA: secrets audit"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 5. varredura do diff por padroes de segredo ==="
+PADROES='postgresql://|postgres://|napi_|sk-|ghp_|eyJ|password|secret|token'
+SUSPEITAS=$(grep -cE "$PADROES" "$DIFF" || true)
+echo "  linhas suspeitas no diff: $SUSPEITAS"
+if [ "$SUSPEITAS" -gt 0 ]; then
+  echo "  --- as linhas, para inspecao ---"
+  grep -nE "$PADROES" "$DIFF" | head -10 | sed 's/^/    /'
+fi
+echo
+
+echo "=== 6. H-9 e containers (ASSERTADO) ==="
+H9=$(ss -ltn 2>/dev/null | grep -c ':5432 ' || true)
+WP4C=$(docker ps -a --format '{{.Names}}' 2>/dev/null | grep -c 'wp4' || true)
+echo "  listeners na 5432 (H-9): $H9 (esperado 0)"
+echo "  containers efemeros deste WP: $WP4C (esperado 0)"
+[ "$H9" -eq 0 ] || { echo "  !! FALHA: listener na 5432"; FALHAS=$((FALHAS+1)); }
+[ "$WP4C" -eq 0 ] || { echo "  !! FALHA: container wp4 residual"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 7. nenhum push acidental ==="
+echo "  origin/main: $(git rev-parse origin/main)"
+echo "  origin/develop: $(git rev-parse origin/develop)"
+echo "  commits locais a frente de origin/develop nesta branch: $(git rev-list --count origin/develop..HEAD)"
+echo
+
+if [ "$FALHAS" -eq 0 ]; then
+  echo "S7 GUARD: OK (nenhum veto)"
+  echo "S7_EXIT=0"
+else
+  echo "S7 GUARD: $FALHAS FALHA(S) — VETO"
+  echo "S7_EXIT=1"
+fi

@@ -1,0 +1,181 @@
+#!/usr/bin/env bash
+# Probe RED/GREEN do WP4 (F-B-mem-purge).
+#
+# Para cada um dos 5 caminhos de purga, prova que com a trilha de memoria presente
+# os bytes do PAI falham alto (23503) e os bytes novos concluem exit 0.
+#
+# Tecnicas (SPEC §5):
+#   - pre-semeio por id fixo: seed-auth (0000...0002) e explain-evidence (7000...701)
+#   - trigger de probe em tenant_memberships: test-backfill / test-auth-integration /
+#     test-ai-budget, cujos ids sao aleatorios por execucao
+#
+# Uso: bash .artifacts/zz-wp4-probe.sh red|green
+set -u
+cd "$(dirname "$0")/.." || exit 1
+A=.artifacts
+FASE=${1:-red}
+PG=wp4-pg
+PORTA=5439
+DB=preco_que_da_lucro_test
+ADMIN="postgresql://postgres:postgres@127.0.0.1:$PORTA/$DB"
+
+export DATABASE_ADMIN_URL="$ADMIN"
+export DATABASE_URL="$ADMIN"
+export DATABASE_URL_UNPOOLED="$ADMIN"
+export DATABASE_DRIVER=node-postgres
+export EXPECTED_POSTGRES_MAJOR=17
+export E2E_AUTH_EMAIL="e2e@preco-que-da.test"
+export E2E_AUTH_PASSWORD="probe-password-123"
+export NO_COLOR=1
+
+# Transcript selado da fase: os EXIT= e o RESUMO do probe (stdout) viram
+# evidencia versionavel; sem isto o README citava numeros sem artefato.
+LOG=$A/wp4-probe-$FASE.log
+exec > >(tee "$LOG") 2>&1
+
+log() { echo "[$(date -u +%T)] $*"; }
+
+log "=== revisao examinada nesta fase ==="
+echo "  HEAD: $(git rev-parse HEAD)"
+for f in scripts/db/purge-fixtures.ts scripts/e2e/seed-auth.ts scripts/db/explain-evidence.ts \
+         scripts/db/test-backfill.ts scripts/db/test-auth-integration.ts scripts/db/test-ai-budget.ts; do
+  echo "  sha256 $f: $(sha256sum "$f" | cut -d' ' -f1)"
+done
+if [ "$FASE" = "red" ]; then
+  MUDANCA=$(git status --porcelain -- scripts/db/purge-fixtures.ts scripts/e2e/seed-auth.ts scripts/db/explain-evidence.ts scripts/db/test-backfill.ts scripts/db/test-auth-integration.ts scripts/db/test-ai-budget.ts | wc -l)
+  echo "  arquivos modificados vs HEAD: $MUDANCA (esperado 0 no RED)"
+  [ "$MUDANCA" -eq 0 ] || { echo "FALHA: o RED tem de rodar os bytes do pai (diff vazio)"; exit 1; }
+fi
+
+if [ "$FASE" = "red" ]; then
+  log "=== container efemero $PG em 127.0.0.1:$PORTA ==="
+  docker rm -f "$PG" > /dev/null 2>&1
+  docker run -d --name "$PG" -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB="$DB" \
+    -p "127.0.0.1:$PORTA:5432" postgres:17-alpine > "$A/wp4-docker-id.txt" 2>&1
+  for i in $(seq 1 30); do
+    VERSAO=$(docker exec "$PG" psql -U postgres -d "$DB" -tAc 'select version()' 2>/dev/null) || true
+    [ -n "$VERSAO" ] && break
+    sleep 1
+  done
+  if [ -z "$VERSAO" ]; then echo "FALHA: banco nao respondeu"; exit 1; fi
+  echo "  $VERSAO" | cut -c1-40
+
+  log "=== migrations ==="
+  npx tsx scripts/db/migrate.ts > "$A/wp4-migrate.log" 2>&1
+  MIGRATE_EXIT=$?
+  echo "  MIGRATE_EXIT=$MIGRATE_EXIT"
+  [ "$MIGRATE_EXIT" -eq 0 ] || { echo "FALHA: migrations nao aplicaram"; exit 1; }
+
+  log "=== trigger de probe (memberships -> access_log) ==="
+  docker exec -i "$PG" psql -U postgres -d "$DB" -v ON_ERROR_STOP=1 > "$A/wp4-trigger.log" 2>&1 <<'SQL'
+create or replace function probe_trail() returns trigger language plpgsql as $$
+begin
+  insert into ai_memory_access_log (tenant_id, user_id, action, result)
+  values (new.tenant_id, new.user_id, 'access', 'allowed');
+  return new;
+end $$;
+create trigger probe_trail after insert on tenant_memberships
+for each row execute function probe_trail();
+SQL
+  TRIGGER_EXIT=$?
+  echo "  TRIGGER_EXIT=$TRIGGER_EXIT"
+  [ "$TRIGGER_EXIT" -eq 0 ] || { echo "FALHA: trigger de probe"; exit 1; }
+
+  log "=== pre-semeio da trilha (ids fixos: seed-auth e explain) ==="
+  docker exec -i "$PG" psql -U postgres -d "$DB" -v ON_ERROR_STOP=1 > "$A/wp4-preseed.log" 2>&1 <<'SQL'
+insert into users (id, name, email, email_verified) values
+  ('00000000-0000-4000-8000-000000000001', 'Seed', 'e2e@preco-que-da.test', true),
+  ('70000000-0000-4000-8000-000000000702', 'Explain', 'explain@example.test', true)
+on conflict (id) do nothing;
+insert into tenants (id, name, slug) values
+  ('00000000-0000-4000-8000-000000000002', 'Seed', 'tenant-e2e'),
+  ('70000000-0000-4000-8000-000000000701', 'Explain', 'explain-tenant')
+on conflict (id) do nothing;
+insert into tenant_memberships (tenant_id, user_id, role) values
+  ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000001', 'owner'),
+  ('70000000-0000-4000-8000-000000000701', '70000000-0000-4000-8000-000000000702', 'owner')
+on conflict (tenant_id, user_id) do nothing;
+insert into ai_memories (id, tenant_id, user_id, scope, content, dedup_key, layer, status) values
+  ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-000000000002',
+   '00000000-0000-4000-8000-000000000001', 'tenant', 'memoria seed', 'seed-dedup', 'L2', 'active'),
+  ('70000000-0000-4000-8000-0000000007a1', '70000000-0000-4000-8000-000000000701',
+   '70000000-0000-4000-8000-000000000702', 'tenant', 'memoria explain', 'explain-dedup', 'L2', 'active')
+on conflict do nothing;
+insert into ai_memory_sources (tenant_id, memory_id, source_kind, source_ref, user_id, confidence, captured_at) values
+  ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000000a1',
+   'user', 'probe', '00000000-0000-4000-8000-000000000001', 0.9, now()),
+  ('70000000-0000-4000-8000-000000000701', '70000000-0000-4000-8000-0000000007a1',
+   'user', 'probe', '70000000-0000-4000-8000-000000000702', 0.9, now());
+insert into ai_memory_versions (tenant_id, memory_id, version, content, dedup_key) values
+  ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000000a1', 1, 'memoria seed', 'seed-dedup'),
+  ('70000000-0000-4000-8000-000000000701', '70000000-0000-4000-8000-0000000007a1', 1, 'memoria explain', 'explain-dedup');
+insert into ai_memory_conflicts (tenant_id, memory_id, candidate_content, candidate_dedup_key) values
+  ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000000a1', 'candidato seed', 'seed-cand'),
+  ('70000000-0000-4000-8000-000000000701', '70000000-0000-4000-8000-0000000007a1', 'candidato explain', 'explain-cand');
+SQL
+  PRESEED_EXIT=$?
+  echo "  PRESEED_EXIT=$PRESEED_EXIT"
+  [ "$PRESEED_EXIT" -eq 0 ] || { echo "FALHA: pre-semeio"; exit 1; }
+else
+  # Precondicao do GREEN: o estado tem de ser o do RED. Sem esta checagem, um
+  # GREEN num banco limpo passaria vazio (fail-open, S6 N3).
+  log "=== GREEN: confere a precondicao de estado (o RED tem de ter rodado) ==="
+  docker exec "$PG" psql -U postgres -d "$DB" -tAc "select 1" > /dev/null 2>&1 \
+    || { echo "FALHA: container $PG ausente — o RED nao rodou"; exit 1; }
+  TRIG=$(docker exec "$PG" psql -U postgres -d "$DB" -tAc "select count(*) from pg_trigger where tgname = 'probe_trail'" | tr -d '[:space:]')
+  TRAIL=$(docker exec "$PG" psql -U postgres -d "$DB" -tAc "select count(*) from ai_memory_access_log" | tr -d '[:space:]')
+  echo "  trigger probe_trail: $TRIG (esperado 1)"
+  echo "  linhas de trilha antes do GREEN: $TRAIL (esperado >= 1)"
+  [ "$TRIG" = "1" ] && [ "$TRAIL" -ge 1 ] || { echo "FALHA: precondicao de estado ausente"; exit 1; }
+fi
+
+log "=== FASE $FASE: 5 caminhos ==="
+declare -A EXITS
+
+run() {
+  local nome="$1"; shift
+  local saida="$A/wp4-$FASE-$nome.log"
+  log "--- $nome"
+  ( "$@" ) > "$saida" 2>&1
+  local rc=$?
+  EXITS[$nome]=$rc
+  local fk
+  fk=$(grep -c '23503' "$saida" || true)
+  echo "  $nome EXIT=$rc · ocorrencias de 23503: $fk"
+}
+
+# O teardown do backfill e fase separada (`--phase=teardown`); a suite completa
+# cria as fixtures e o trigger grava a trilha, o teardown e que apaga.
+run_backfill() {
+  npx tsx scripts/db/test-backfill.ts && npx tsx scripts/db/test-backfill.ts --phase=teardown
+}
+
+run seed-auth      npm run e2e:prepare
+run explain        npx tsx scripts/db/explain-evidence.ts
+run backfill       run_backfill
+run auth-integ     npx tsx scripts/db/test-auth-integration.ts
+run ai-budget      npx tsx scripts/db/test-ai-budget.ts
+
+log "=== RESUMO $FASE ==="
+for nome in seed-auth explain backfill auth-integ ai-budget; do
+  fk=$(grep -c '23503' "$A/wp4-$FASE-$nome.log" || true)
+  echo "  $nome: EXIT=${EXITS[$nome]} · 23503=$fk"
+done
+
+if [ "$FASE" = "red" ]; then
+  # No RED esperamos: exit != 0 E 23503 presente em cada caminho.
+  FALHAS=0
+  for nome in seed-auth explain backfill auth-integ ai-budget; do
+    fk=$(grep -c '23503' "$A/wp4-$FASE-$nome.log" || true)
+    [ "${EXITS[$nome]}" -ne 0 ] && [ "$fk" -ge 1 ] || { echo "  !! $nome NAO falhou alto no pai"; FALHAS=$((FALHAS+1)); }
+  done
+  [ "$FALHAS" -eq 0 ] && echo "RED: OK (5/5 falham alto com 23503)" || echo "RED: REPROVADO ($FALHAS)"
+else
+  FALHAS=0
+  for nome in seed-auth explain backfill auth-integ ai-budget; do
+    fk=$(grep -c '23503' "$A/wp4-$FASE-$nome.log" || true)
+    [ "${EXITS[$nome]}" -eq 0 ] && [ "$fk" -eq 0 ] \
+      || { echo "  !! $nome nao concluiu verde sem 23503 (EXIT=${EXITS[$nome]} fk=$fk)"; FALHAS=$((FALHAS+1)); }
+  done
+  [ "$FALHAS" -eq 0 ] && echo "GREEN: OK (5/5 exit 0 sem 23503)" || echo "GREEN: REPROVADO ($FALHAS)"
+fi
