@@ -2063,4 +2063,4 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   do S7 sobre os bytes finais, **não** por uma segunda lane adversarial com contexto limpo.
 - **Registro no journal:** `L117` (resultado) de `docs/evidence/agent-state/PROGRESS.md`.
 
-  Latest state marker parent = `3812febab80f9922d70512ecc3c623d233ecdd2a`,
+  Latest state marker parent = `0334e7d3e77d55ceb607a1d4fd3f3b6470cc0dde`,
