@@ -44,8 +44,55 @@ describe("guard do registry de dívidas (DEBTS.md)", () => {
   it("o registry real passa pelo caminho default e não escreve em stderr", () => {
     const result = runDefault();
     expect(result.stderr).toBe("");
-    expect(result.stdout).toContain("debts guard: OK");
+    expect(result.stdout).toContain("debts guard: OK (12 dividas");
     expect(result.status).toBe(0);
+  });
+
+  it("cabeçalho fora de ordem é reconhecido pelo header, não pela posição", () => {
+    const reordered = [
+      "| origem | id | classe | severidade | closure test | evidência | status |",
+      "| --- | --- | --- | --- | --- | --- | --- |",
+      "| WP4 N1 | DBT-01 | conformidade | alta | canario por store | selo WP4 | ABERTA |",
+    ].join("\n");
+    const result = run(fixture("reordenado.md", `${reordered}\n`));
+    expect(result.stderr).toBe("");
+    expect(result.status).toBe(0);
+  });
+
+  it("segunda tabela canônica no mesmo arquivo reprova", () => {
+    const second =
+      HEADER + "\n| DBT-02 | WP3 N2 | robustez | media | piso do runner | selo WP3 | ABERTA |";
+    const result = run(fixture("duas-tabelas.md", `${HEADER}\n${ROW}\n\n${second}\n`));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("mais de uma tabela canonica");
+  });
+
+  it("id fora do padrão DBT-NN reprova", () => {
+    const row = ROW.replace("DBT-01", "DBT-1");
+    const result = run(fixture("id-padrao.md", `${HEADER}\n${row}\n`));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("fora do padrao DBT-NN");
+  });
+
+  it("linha com contagem de células divergente do header reprova", () => {
+    const row = "| DBT-01 | WP4 N1 | conformidade | alta | canario por store | ABERTA |";
+    const result = run(fixture("celulas.md", `${HEADER}\n${row}\n`));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("6 celulas");
+  });
+
+  it("severidade fora da taxonomia reprova", () => {
+    const row = ROW.replace("| alta |", "| crítica |");
+    const result = run(fixture("severidade.md", `${HEADER}\n${row}\n`));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("severidade fora da taxonomia");
+  });
+
+  it("status fora da taxonomia reprova", () => {
+    const row = ROW.replace("ABERTA", "PRONTA");
+    const result = run(fixture("status.md", `${HEADER}\n${row}\n`));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("status fora da taxonomia");
   });
 
   it("registry vazio reprova (0 = 0 não passa)", () => {

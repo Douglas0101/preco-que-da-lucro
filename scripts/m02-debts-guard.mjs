@@ -63,11 +63,23 @@ function fail(mensagens) {
 
 function validarRegistry(texto, falhas) {
   const linhas = texto.split("\n");
-  const headerIndex = linhas.findIndex((linha) => /^\|\s*id\s*\|/i.test(linha));
-  if (headerIndex === -1) {
-    falhas.push("registry sem linha de cabecalho (| id | ...)");
+  const candidatos = [];
+  for (let i = 0; i < linhas.length; i += 1) {
+    if (!linhas[i].trim().startsWith("|")) continue;
+    const colunas = cells(linhas[i]).map(normalize);
+    if (colunas.includes("id") && colunas.includes("origem")) candidatos.push(i);
+  }
+  if (candidatos.length === 0) {
+    falhas.push("registry sem linha de cabecalho (| id | ... | origem | ...)");
     return 0;
   }
+  if (candidatos.length > 1) {
+    falhas.push(
+      `registry tem mais de uma tabela canonica (linhas ${candidatos.map((i) => i + 1).join(", ")})`,
+    );
+    return 0;
+  }
+  const headerIndex = candidatos[0];
   const colunas = cells(linhas[headerIndex]).map(normalize);
   const indices = {};
   for (const coluna of REQUIRED_COLUMNS) {
