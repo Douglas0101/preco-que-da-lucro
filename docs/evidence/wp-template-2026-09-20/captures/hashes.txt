@@ -1,0 +1,4 @@
+e358638d06d05dd8e7440435806db746b859f778b92ee05d93b784bd6e97548b  docs/evidence/_templates/work-package.md
+26dae6c13ad6daf91cf8b8eb18b713cc19b7326d9b7ed32198189775e6e0e034  AGENTS.md
+f0d9013cc607e6c9c66abf62aed1edb44e7822d5f39ee1003f11cab9ab29b3cd  .artifacts/r2-gate.log
+a5900bb91514c0ad08ec3e4a0ce3478728206eab0e91809474cd47b7204e2d5c  .artifacts/adversarial-r2-verdict.md

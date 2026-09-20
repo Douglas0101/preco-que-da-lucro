@@ -1,0 +1,142 @@
+# S6 ADVERSARIAL — WP-R2
+
+**Método (2 linhas):** auditoria estritamente read-only do worktree `.worktree-r2-wp-checklist` (branch `mission/r2-wp-checklist`, HEAD `aad70cbc…`/`1aad70c`, mudança NÃO COMITADA), com sha256 dos três alvos batendo byte a byte com o declarado (`work-package.md` `5f901796…5567c6`, `AGENTS.md` `6a832b8a…2b0520`, selo `README.md` `a318704c…610b87`), rastreabilidade item a item contra os três veredictos selados dos WPs 3–5 e contra os selos do WP1/WP2/TRILHO C onde o apêndice A cita.
+**Técnica:** nenhum `npm`/`vitest`/`docker` foi executado e nada foi escrito; `sha256sum -c` (leitura) nos três `MANIFEST.sha256` — WP3 16/16, WP4 36/36, WP5 22/22, todos `SUCESSO`. O que não tem lastro no byte selado está denunciado, não presumido.
+
+---
+
+## C1 — CONFIRMED
+
+O template cobre, de fato, o conjunto das seções usadas pelos WPs 3–5 e o layout dos três selos reais.
+
+- **SPEC:** o template §1 exige `Fato-fonte / Problema / Contrato / Mudanças / DoD / Testes / Riscos / Rollback`. Os selos reais usam esse repertório (WP4 `SPEC.md` tem `## 1. Problema`, `## 2. Contrato`, `## 3. Mudanças`, `## 4. DoD`, `## 7. Rollback`; WP5 tem `## 5. Testes`, `## 6. Riscos`, `## 7. Rollback`; WP3 tem `## 1. Problema`, `## 2. Fato-fonte medido`, `## 4. DoD`, `## 5. Testes`, `## 6. Riscos`, `## 7. Rollback`). Nuance: é **consolidação** — WP3 não tem headings dedicados de "Contrato"/"Mudanças" (o conteúdo vive na §2/§7/§8) e WP4 não tem "Testes" dedicado (DoD + §5 "Método de prova (E1)"). Nenhum dos três tem a "tabela de arquivos com sha256" inline que o template §2 passa a exigir; os hashes vivem em `captures/hashes.txt`/prefixos.
+- **README:** os três têm Sumário, Evidência (§3), Riscos (§4), §7 `S6 ADVERSARIAL` preenchida e `MANIFEST.sha256` no diretório; os hashes dos manifests conferem (acima).
+- **Layout (Apêndice B):** `docs/evidence/<slug>-<data>/` com `SPEC.md` + `README.md` + `MANIFEST.sha256` + `captures/` — exatamente a árvore dos três selos (16, 36 e 22 arquivos, `captures/**` toda em `.txt`, batendo `checked === discovered`: nº de linhas do manifesto = nº de arquivos encontrados).
+
+Sem contradição material. O template é um pouco mais estrito (sha256 inline) do que a prática que o originou, mas cobre o que os WPs 3–5 usaram.
+
+---
+
+## C2 — CORRECTED
+
+Os N-itens **nomeados no alvo existem** nos veredictos selados — nenhum foi inventado:
+
+- WP3: `**C5 — CORRECTED**` (a falsificação não era calculada por identidade), `**N1 — Fail-open na identidade da falsificação**`, `**N3 — Fail-open no restauro do runner na bateria**`.
+- WP4: `**C5 — GREEN honesto e não vacuoso — CONFIRMED (com ressalva de selagem)**`, `**N2 — Fail-open do verdict GREEN**`, `**N3 — Fail-open estrutural do GREEN: ausência de precondição**`, `**N5 — O instrumento não fixa a revisão dos bytes**`.
+- WP5: `**C2 — CORRECTED**`, `**N1 — fail-open de hidratação/timing (médio)**`, `**N2 — a asserção `window.va` é inerte (médio)**`.
+
+Mas a rastreabilidade **não é fiel** em quatro pontos concretos:
+
+1. **Item #1 tem duas origens que não se falam.** A tabela §3 do template dá como origem `WP4 C5/N2; WP3 falsificação`; o Apêndice A, linha do item #1, atribui a origem ao **WP5** ("a falsificação só provava detecção se a requisição aparecesse; sem controle negativo, 'o teste detecta' era afirmação"). O WP5 não aparece na origem do #1 em lugar nenhum da §3, e `WP4 C5/N2` é a origem **idêntica** do item #4 ("Proibido exit-code-only").
+2. **Item #2 cita `WP3 N1`, que é o defeito do item #3.** A origem de #2 é `WP3 C4/N1`: C4 é a fronteira (correto), mas N1 é a identidade do grep da falsificação — defeito que o item #3 já reivindica (`WP3 C5/N1; WP2 selo`). O N existe, mas está atribuído a dois itens.
+3. **"Canário de memória" não existe no veredicto do WP4.** Apêndice A, item #8: "WP4: o 23503 do canário de memória é o modelo — a trilha existia de fato, não numa lista". O veredicto do WP4 não usa "canário" em lugar nenhum; o mecanismo provado é **pré-semeio por id fixo + trigger de probe** gravando linha real de `ai_memory_access_log` (WP4 `SPEC.md` §5; veredicto C1/C4). O termo "canário" no repositório pertence ao controle do `test-sql-injection` (`f-b-mem-purge-2026-09-20/captures/db-test.log.txt:32,64`).
+4. **A "contraprova de vacuidade" do README §3 exagera o WP3.** "o item #1 é o que teria pegado a falha de método do WP3 e do WP5 — nos dois, a 'detecção' foi declarada antes de existir um par que reprovasse": no WP3 o par **existia** (nova × antiga, `f2`–`f5`); o que era fail-open era o **critério de identidade** do veredicto (`C5/N1`), não a ausência de par. No WP5 a metade `window.va` realmente não teve par que reprovasse (é `N2`).
+
+Os itens 1–12 estão, cada um, ancorados em algum defeito real (verificado um a um no apêndice A), mas a coluna "origem (S6)" e o Apêndice A não são fiéis entre si nem ao texto dos veredictos. Claim CORRECTED.
+
+---
+
+## C3 — CORRECTED
+
+A **tabela §3** do README tem exatamente **7 linhas**, todas sustentadas pelos veredictos, e nenhuma a mais:
+
+| linha da §3 | veredicto-fonte | correção aplicada no R_b |
+| --- | --- | --- |
+| WP3 identidade da falsificação (N1) | WP3 N1 | WP3 README §7: "âncora na linha `×` + queda **única**" |
+| WP3 restauro com `PISO=-1` (N3) | WP3 N3 | WP3 README §7: "flag `RESTAURO` própria no veredicto" |
+| WP4 `exit==0` (N2) | WP4 N2 | WP4 README §7: "passou a exigir também `23503 == 0` por caminho" |
+| WP4 sem precondição (N3) | WP4 N3 | WP4 README §7: "precondição fail-closed" |
+| WP4 revisão não fixada (N5) | WP4 N5 | WP4 README §7: "fingerprint de `HEAD` + sha256 dos 6 arquivos" |
+| WP5 sleep fixo (N1) | WP5 N1 | WP5 README §7: "marcador `__reactContainer$`" |
+| WP5 `window.va` inerte (N2) | WP5 N2 | WP5 README §7: "`typeof window.va === "undefined"`" |
+
+**Controle positivo:** #2 sustentável (WP3 README §3.1: "suite **antiga** … limite **3** → `9 passed | 4 skipped (13)` … EXIT=0" e idem limite 5; veredicto C4: a antiga era cega em 3–5); #8 sustentável na substância (WP4 SPEC §5 pré-semeio + trigger; veredicto C4 mede 23503 real nos 5), com o rótulo "canário" errado (ver C2/N3 abaixo); #10 sustentável (os três manifestos conferem 16/16, 36/36, 22/22 com `sha256sum -c`); #11 sustentável (WP3 "2 CORRECTED … 0 REJECTED · 0 UNVERIFIABLE"; WP4 "8 CONFIRMED · 0 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE"; WP5 "6 CONFIRMED, 1 CORRECTED, 0 REJECTED, 0 UNVERIFIABLE").
+
+**O que não bate é o número "7 correções forçadas".** A taxonomia do próprio pacote define "correções forçadas" = CORR + N corrigidos; aplicada aos WPs 3–5 e contada nas tabelas de revisão final dos próprios selos:
+
+- WP3: CORR C5+C10 = 2; N corrigidos N1, N3, N4 = 3 → **5**.
+- WP4: CORR 0; N corrigidos N2, N3, N4, N5, N6 = 5 → **5**.
+- WP5: CORR C2 = 1; N corrigidos N1, N2, N3, N4, N5, N7 = 6 → **7**.
+
+Total pela definição: **17**, não 7. O "7" da §3 é um recorte curado de defeitos materiais de harness — legítimo como recorte, falso como "as correções forçadas". Claim CORRECTED.
+
+---
+
+## C4 — CONFIRMED (com ressalvas de contagem)
+
+A taxonomia do template §4 e do AGENTS.md bate com o fato: **N existe com `0 CORR`** e as duas grandezas não se confundem.
+
+- Template §4: "**CORR** = _claim_ do autor corrigida pelo S6 (o claim dizia A, o fato dizia B). Bound 2. / **N** = **defeito novo** encontrado pelo S6, latente ou material (pode existir com `0 CORR`). / **"Correções forçadas"** = CORR + N corrigidos antes do selo."
+- AGENTS.md: "**N** = defeito novo encontrado (pode existir com `0 CORR`); 'correções forçadas' = CORR + N corrigidos. Os dois números vão **nomeados** no journal do land".
+- Fato: WP4 é o caso puro — veredicto "**8 CONFIRMED · 0 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE**" e, mesmo assim, o README §7 corrige N2/N3/N4/N5 (e N6/errata), declarando N1/N7. WP5 tem "**1 CORRECTED (C2)**" + N-itens corrigidos/declarados. A definição, portanto, não subnotifica CORR nem confunde N.
+
+Ressalvas: (i) o "4 N-itens corrigidos" do claim só fecha como **subconjunto instrumental** N2–N5; a tabela do próprio README §7 lista **5** correções de N (N2–N6) e 2 declarados; (ii) o "bound 2" de CORR é contrariado por um dos WPs que o item #11 cita como base — ver N5 abaixo; (iii) a aplicação do termo no selo do WP-R2 ("7 correções forçadas") contradiz a definição — ver N1.
+
+---
+
+## C5 — CONFIRMED
+
+O pointer novo do `AGENTS.md` não contradiz as regras vigentes nem promete enforcement automático.
+
+- **performance-evidence:** o template irmão é descoberto por caminho e enforçado por teste (`src/test/perf-evidence.test.ts`, `SKIPPED_DIRS = { _templates: true, "agent-state": true }`); o template de WP não redefine os 7 rótulos nem é descoberto pelo gate de perf (`_templates/**` fora da varredura). Sem conflito.
+- **`checked === discovered`:** o pointer repete a invariante sem abrir exceção — consistente com "Não existe allowlist de legado".
+- **ADRs:** o pointer não cria obrigação de ADR nem contradiz a sequência `ADR-0XX`; é contrato de processo, não de arquitetura.
+- **journal:** template §Apêndice B e AGENTS.md mantêm `▶` antes / `✔`/`✘` depois; nomear "os dois números" no journal do land é curto e compatível com o formato pointers-only (L120 já usa "8 C · 2 CORR · 0 R · 0 U").
+- **Sem gate automático:** o README §5 declara "o checklist é prosa — não é gate automático | **declarado**: o enforcement é humano/S6"; o `AGENTS.md` não menciona CI/teste para o checklist. A "Regra dura" do template ("um WP sem o checklist demonstrado volta do S6") é enforcement humano/lane, não promessa de automação.
+
+Ressalvas menores (não invalidam): item #11 cita "CORRECTED tratado (bound 2)" apoiado em "WPs 1–5", mas o WP1 tem 3 CORRECTED (ver N5); e a frase "N-itens ficam corrigidos ou declarados na §Riscos do selo" é ambígua — nos três selos os corrigidos ficam na §7 e só os declarados vão à §4/Riscos.
+
+---
+
+## C6 — CONFIRMED
+
+Não há duplicação prejudicial com o template de performance nem com os SPEC-CARDS.
+
+- `performance-evidence.md` é contrato ortogonal (7 rótulos §35 + raw versionado; descoberta `docs/evidence/perf-*/**` e `**/*perf-*.md`; `_templates/**` e `agent-state/**` excluídos). O `work-package.md` não repete os 7 rótulos; cita `checked === discovered` uma única vez, como invariante geral já vigente no `AGENTS.md`.
+- Os SPEC-CARDS (`SPEC-CARDS/WP-1a-backfill-ledger.md` etc.) são cartões de despacho do ciclo NAS-2 (`spec_ref`, aceitação, testes derivados, formato E1/E2, escopo exclusivo por arquivo) e não definem selo/checklist; o template de WP é o contrato de prova do SDD. As regras não se anulam.
+- O README §5 declara a fronteira ("este template é para **work packages** do programa; os outros seguem onde já são enforçados por teste"). Nuance: SPEC-CARDS **não** são enforçados por teste (só perf-evidence é); a redação "os outros seguem onde já são enforçados por teste" supergeneraliza, mas sem duplicação nem conflito.
+
+---
+
+## C7 — CONFIRMED
+
+O diff do worktree toca exatamente os três caminhos, nada de `src/**`, `scripts/**`, `e2e/**` ou manifestos:
+
+```text
+ M AGENTS.md
+?? docs/evidence/_templates/work-package.md
+?? docs/evidence/wp-template-2026-09-20/README.md
+```
+
+`git diff --name-only` = `AGENTS.md` apenas; o diretório do selo contém somente `README.md` (nenhum outro arquivo). Observação de contexto (fora do worktree): o repo principal tem `M docs/evidence/agent-state/PROGRESS.md` com o intent `L126 ▶` do WP-R2 — coerente com o padrão do WP3 ("L119 ▶" no working tree de `develop`, comitado junto do ✔ no land), e não parte do diff desta branch.
+
+---
+
+## Defeitos NOVOS
+
+**N1 — Contagem "7/6/0" sem aritmética fechada e sem o 7º nomeado (README × template × taxonomia).** O README §1 afirma: "Das **7 correções forçadas** pelos S6 dos WPs 3–5, **6 são defeitos de identidade do harness de prova** e **0 são de código de produto: …**" e lista **6** (WP3 N1, WP3 N3, WP4 N2, WP4 N3, WP5 N1, WP5 N2). A tabela §3 tem **7** linhas (a 7ª é WP4 N5) e o template header diz "Origem: as **6** correções de harness que o S6 forçou nos WPs 3–5 (ver apêndice A)". Seis não é sete; o sétimo nunca é nomeado na prosa; e pela definição de "correções forçadas" o total é 17 (3 CORR + 14 N corrigidos, conforme as tabelas de revisão final dos próprios selos). Um documento cuja função é anti-vacuidade carrega a mesma classe de defeito que combate.
+
+**N2 — Rastreabilidade §3 × Apêndice A inconsistente (itens #1 e #2).** Origem de #1 na §3 = `WP4 C5/N2; WP3 falsificação`; Apêndice A atribui #1 ao WP5; e `WP4 C5/N2` já é a origem do item #4. Item #2 cita `WP3 C4/N1`, mas `N1` é o defeito de identidade do item #3. A "contraprova" do README §3 atribui ao WP3 uma falha de ausência de par que o WP3 não teve (o par existia; o critério é que era fail-open). Os C/N citados nos conjuntos nomeados (WP3 C5/N1/N3; WP4 C5/N2/N3/N5; WP5 C2/N1/N2) todos existem — nada inventado —, mas a matriz item×origem não fecha.
+
+**N3 — "Canário de memória"/"canário `23503`" sem lastro.** Apêndice A row 8 e README §3 ("sentinela semeada (WP4 canário `23503`)") batizam o modelo do WP4 de canário. O veredicto do WP4 não usa a palavra; o mecanismo é pré-semeio por id fixo + trigger temporário de probe (WP4 `SPEC.md` §5), e o 23503 é a violação da FK `RESTRICT`, não um valor-canário. O "canário" do repo é o do `test-sql-injection` (`captures/db-test.log.txt:32,64`). Substância sustentável; rótulo errado num artefato de prova.
+
+**N4 — Apêndice A cita um N refutado ("WP1 N3").** A origem do item #10 inclui "WP1 N3; …". O selo do WP1 adjudicou N3 como **FALSO**: "**N3 — "o controle negativo não está na evidência versionada": FALSO.** O `captures/` do selo contém `wp1-diff.ts.txt` (a sonda), `scanner-do-pai.ts.txt` (a revisão pré-fix), `scanner-corrigido.ts.txt` e `sonda-bordas.log.txt`" (`d1-scanner-borders-2026-09-19/README.md:203-207`). Item #10 segue sustentado pelas outras origens (TRILHO C §2.1, "o guard comparava cardinalidade … e não identidade"; WP2 §9, "manifesto verde sobre a revisão errada"), mas a citação é contra o fato. Nota de contexto: o próprio WP2 diz selar o veredicto em `captures/adversarial-wp2-verdict.md.txt` (README §8) e esse arquivo **não existe** no selo nem no `MANIFEST.sha256` — a proveniência do WP2 citada no apêndice não é conferível contra um veredicto selado, só contra a prosa do README.
+
+**N5 — "Bound 2" de CORR contradito pelo WP1 e sem consequência definida.** Template §4 ("Bound 2") e AGENTS.md ("**CORR** = *claim* corrigida pelo S6 (bound 2)") fixam um teto; o item #11 o usa como critério citando "WPs 1–5". O veredicto selado do WP1 traz "**C1, C2, C3, C4, C6, C7, C8, C9 CONFIRMED · C5, C10, C11 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE**" — **3 CORRECTED**. O bound vale para os WPs 3–5 (WP3 = 2, WP5 = 1, WP4 = 0), não para os "WPs 1–5", e nenhum artefato define o que acontece quando o bound é excedido (reabrir S6? reescrever o claim? bloquear o land?). Regra sem consequência é regra frouxa.
+
+**N6 — Lacunas do checklist frente aos defeitos que os próprios WPs pagaram.** Os 12 itens não cobrem: (a) **isolamento/H-9** — `:5432` com 0 listeners e container efêmero removido, exigido nos DoDs (WP4 `SPEC.md` §4; WP5 `SPEC.md` §4) e exatamente a classe do WP3 N4 ("FK/H-9/diff do runtime eram impressos, não assertados" → corrigido) e do WP4 N7 (container `wp4-pg` ainda escutando em `127.0.0.1:5439`); (b) **exit codes de scaffold** — WP4 N4 ("os `EXIT=`/`RESUMO` do probe (stdout) não foram capturados em arquivo nenhum") não é pego por #10 (que trata manifesto/allowlist) nem por #12 (que trata `try/catch` e mensagem nomeada, não "todo check impresso tem gate"); (c) **capturas de gate/cleanup** — WP5 N7 ("itens do DoD sem captura no selo: `npm run check` … `:5432` com 0 listeners") só é coberto por extensão do #10; (d) **secrets/boundaries** (`m02:secrets-audit`, `m02:boundaries`) não aparecem no checklist (gravidade baixa: são gate global do `AGENTS.md`).
+
+**N7 — Item #11 aceita `UNVERIFIABLE`.** O critério do #11 é "veredicto por claims com `0 REJECTED`"; o controle positivo do README exige "`0 REJECTED`/`0 UNVERIFIABLE`" e os três veredictos têm 0 U. Como está escrito, um claim `UNVERIFIABLE` passaria o item sem correção nem declaração, embora a própria seção de riscos do pacote trate "não medido" como passivo.
+
+**N8 — O selo do WP-R2 não cumpre o próprio template.** `docs/evidence/wp-template-2026-09-20/` contém **apenas `README.md`**: não há `SPEC.md`, `captures/` nem `MANIFEST.sha256`, que o Apêndice B do template e o item #10 exigem. O README §4 afirma "`npm run check` exit 0 sobre os bytes finais (captura `gate-local.log.txt`)" — **`gate-local.log.txt` não existe na árvore** (captura citada e ausente). A tabela da §2 não traz sha256, embora o template §2 exija "tabela de arquivos com sha256". E o "Fato-fonte" ("análise do Bloco 3 × Plano Mestre (2026-09-20), achado …") não dá `caminho:linha`, apesar do template §1 exigir "caminho e linha da fila/veredicto que abriu o WP (`QUEUE.md:NN`, veredicto, medição)". Parte pode estar pendente até a selagem pós-S6 (§7 é placeholder declarado), mas, auditados os bytes atuais, o WP que introduz o contrato de prova é o primeiro a não o satisfazer; o intent do journal (`L126`) também repete o "6 de 7".
+
+**N9 — Risco de leitura como gate automático (baixo, declarado).** O template se apresenta como "contrato de prova" e o `AGENTS.md` o torna obrigatório para "Todo work package", enquanto nenhum teste o descobre/enforça. O selo §5 declara que "o enforcement é humano/S6", o que mitiga, mas a frase do `AGENTS.md`—"os N-itens ficam corrigidos ou **declarados** na §Riscos do selo"—pode ser lida como exigir que N corrigidos também morem na §Riscos (nos três selos eles ficam na §7).
+
+---
+
+## Resumo
+
+- **Claims:** C1 **CONFIRMED** · C2 **CORRECTED** · C3 **CORRECTED** · C4 **CONFIRMED** (com ressalvas de contagem) · C5 **CONFIRMED** · C6 **CONFIRMED** · C7 **CONFIRMED**.
+- **Contagens:** **5 CONFIRMED · 2 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE.**
+- **Defeitos NOVOS: 9** — N1 (contagem 6×7×17), N2 (rastreabilidade §3×apêndice), N3 ("canário" sem lastro), N4 (WP1 N3 refutado; e veredicto do WP2 não selado), N5 ("bound 2" contradito pelo WP1), N6 (lacunas: H-9/isolamento, exit codes, capturas), N7 (item #11 aceita UNVERIFIABLE), N8 (o selo não cumpre o próprio template; captura citada inexistente), N9 (risco de leitura como gate automático).
+- **Veredicto material:** os 12 itens têm dentes sobre os 7 defeitos materiais de harness que os originaram (todos confirmados nos veredictos selados, com as correções documentadas nas revisões finais dos WPs 3–5) e o controle positivo é, na substância, sustentável (falsificação bidirecional do WP3; trilha real do WP4; manifestos 16/16, 36/36, 22/22 verificados por hash; três veredictos com 0 R/0 U). O que não se sustenta é a **contabilidade** do próprio pacote (7 ≠ CORR+N corrigidos = 17; 6 + 0 ≠ 7), a **fidelidade** de quatro citações da rastreabilidade, o **rótulo** "canário de memória", o **bound 2** face ao WP1, e o **estado do selo** que introduz o contrato sem cumprir SPEC/MANIFEST/captures. N1, N3, N4 e N8 devem ser corrigidos antes do selo; N5–N7, N9 ficam declarados ou viram errata. Nenhum fail-open do checklist foi encontrado que permita a um WP vacuoso passar **depois** das sete correções mapeadas — as lacunas são de cobertura (N6/N7), não de identidade dos itens existentes.
