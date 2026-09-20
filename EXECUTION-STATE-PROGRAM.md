@@ -2128,4 +2128,4 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L123` (intenção) e `L124` (resultado) de
   `docs/evidence/agent-state/PROGRESS.md`.
 
-  Latest state marker parent = `261e9c69bec3d5ed45f896b1f6cd955ec9562502`,
+  Latest state marker parent = `87e245ae124817fd82c39cff72f401351e9cce51`,
