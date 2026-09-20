@@ -1,0 +1,72 @@
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { afterAll, describe, expect, it } from "vitest";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const script = resolve(root, "scripts/m02-work-package-guard.mjs");
+const templatePath = resolve(root, "docs/evidence/_templates/work-package.md");
+const realTemplate = readFileSync(templatePath, "utf8");
+
+const tmp = mkdtempSync(join(tmpdir(), "wp-guard-"));
+afterAll(() => rmSync(tmp, { recursive: true, force: true }));
+
+function fixture(name: string, content: string): string {
+  const file = join(tmp, name);
+  writeFileSync(file, content);
+  return file;
+}
+
+function run(template?: string) {
+  const args = template === undefined ? [] : ["--template", template];
+  return spawnSync(process.execPath, [script, ...args], {
+    cwd: root,
+    encoding: "utf8",
+    timeout: 30_000,
+  });
+}
+
+describe("guard do contrato de work package (falsificação em CI)", () => {
+  it("o template real passa com 16 itens", () => {
+    const result = run();
+    expect(result.stderr).toBe("");
+    expect(result.stdout).toContain("OK (16 itens");
+    expect(result.status).toBe(0);
+  });
+
+  it("item 16 removido reprova por contagem", () => {
+    const semItem16 = realTemplate.replace(/\n\| 16\s+\|[^\n]*/, "");
+    const result = run(fixture("sem-item16.md", semItem16));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("esperado 16");
+  });
+
+  it("origem degenerada reprova nomeando o item", () => {
+    const degenerate = realTemplate.replace("WP3 C5/N1; WP5 C2/N1", "N/A");
+    const result = run(fixture("origem-na.md", degenerate));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("origem degenerada");
+  });
+
+  it("coluna extra no checklist reprova pela contagem de colunas", () => {
+    const extra = realTemplate.replace(/(\| origem \(S6\)[^|]*\|)/, "$1 extra |");
+    const result = run(fixture("coluna-extra.md", extra));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("5 colunas");
+  });
+
+  it("campo de auto-verificação pré-S6 ausente reprova (KPI)", () => {
+    const semKpi = realTemplate.replace("Auto-verificação pré-S6", "KPIs");
+    const result = run(fixture("sem-kpi.md", semKpi));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("auto-verificacao pre-S6");
+  });
+
+  it("template inexistente sai com erro nomeado (exit 1)", () => {
+    const result = run(join(tmp, "nao-existe.md"));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("template ilegivel");
+  });
+});

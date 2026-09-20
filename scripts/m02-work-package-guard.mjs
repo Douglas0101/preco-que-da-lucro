@@ -14,7 +14,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const DEFAULT_TEMPLATE = "docs/evidence/_templates/work-package.md";
-const EXPECTED_ITEMS = 15;
+const EXPECTED_ITEMS = 16;
 const EXPECTED_CHECKLIST_COLUMNS = 4;
 const ORIGIN_HEADER = /^origem\b/i;
 const DEGENERATE_ORIGIN = /^(n\/?a|tbd|\?+|—|-+|\.+)$/i;
@@ -122,6 +122,10 @@ function main() {
 
   for (const ancora of ["**CORR**", "**N** =", '"Correções forçadas"']) {
     if (!texto.includes(ancora)) falhas.push(`taxonomia sem a ancora ${ancora}`);
+  }
+
+  if (!texto.includes("Auto-verificação pré-S6")) {
+    falhas.push("template sem o campo de auto-verificacao pre-S6 (KPI do checklist)");
   }
 
   for (const componente of ["SPEC.md", "README.md", "MANIFEST.sha256", "captures/"]) {

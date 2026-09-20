@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { brotliCompressSync, constants, gzipSync } from "node:zlib";
+import { aggregateSha256, sha256 } from "./lib/bundle-identity.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = path.join(root, ".output/public");
@@ -32,6 +33,7 @@ async function measure(file) {
     brotliBytes: brotliCompressSync(contents, {
       params: { [constants.BROTLI_PARAM_QUALITY]: 11 },
     }).byteLength,
+    sha256: sha256(contents),
   };
   measurements.set(file, result);
   return result;
@@ -72,6 +74,7 @@ for (const [source, chunk] of entries) {
   const initialGraph = {
     files: initialChunks.map(({ file }) => file).sort(),
     ...sumSizes(initialChunks),
+    sha256: aggregateSha256(initialChunks),
     limitBytes: initialGraphLimitBytes,
   };
 
@@ -87,7 +90,7 @@ for (const [source, chunk] of entries) {
 }
 
 const report = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   commit: process.env.GITHUB_SHA ?? null,
   manifest: path.relative(root, manifestPath),
   budget: {
@@ -103,10 +106,10 @@ await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
 for (const entry of entryReports) {
   const status = entry.passed ? "PASS" : "FAIL";
   console.log(
-    `${status} ${entry.file}: ${entry.minifiedBytes} minified, ${entry.gzipBytes} gzip, ${entry.brotliBytes} Brotli bytes`,
+    `${status} ${entry.file}: ${entry.minifiedBytes} minified, ${entry.gzipBytes} gzip, ${entry.brotliBytes} Brotli bytes, sha256=${entry.sha256.slice(0, 12)}`,
   );
   console.log(
-    `Initial graph (${entry.initialGraph.files.length} chunks): ${entry.initialGraph.minifiedBytes} minified, ${entry.initialGraph.gzipBytes} gzip, ${entry.initialGraph.brotliBytes} Brotli bytes`,
+    `Initial graph (${entry.initialGraph.files.length} chunks): ${entry.initialGraph.minifiedBytes} minified, ${entry.initialGraph.gzipBytes} gzip, ${entry.initialGraph.brotliBytes} Brotli bytes, sha256=${entry.initialGraph.sha256.slice(0, 12)}`,
   );
 }
 
