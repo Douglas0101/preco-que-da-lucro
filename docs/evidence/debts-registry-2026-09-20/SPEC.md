@@ -38,9 +38,9 @@ As dívidas declaradas ao longo dos WPs (WP1–WP5, TRILHO C, WP-R0) vivem apena
 - [x] 12 dívidas com `origem` rastreável a `Lnn`/selo/§ (`DBT-01..12`)
 - [x] guard nos 3 pipelines (`check`, `verify` do ui-stack, `ci-light`)
 - [x] `AGENTS.md` declara o contrato e o caminho do registry
-- [ ] `npm run check` exit 0 com `CHECK_EXIT=0` no log do selo (marcado no fecho)
+- [x] `npm run check` exit 0 com `CHECK_EXIT=0` no log do selo (`captures/gate-local.log.txt`)
 - [x] S6 adversarial de contexto limpo (veredicto verbatim em `captures/`; 8 N tratados)
-- [ ] selo com `MANIFEST.sha256` e `checked === discovered` (marcado no fecho)
+- [x] selo com `MANIFEST.sha256` e `checked === discovered` (gerado e conferido no fecho)
 
 ## 5. Testes (planejados e medidos)
 
