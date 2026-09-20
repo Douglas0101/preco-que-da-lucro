@@ -2083,4 +2083,28 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L119` (intenção) e `L120` (resultado) de
   `docs/evidence/agent-state/PROGRESS.md`.
 
-  Latest state marker parent = `30e5687fa51979f9478bdff0b64ab5dde76e0513`,
+### WP4 — `F-B-mem-purge` (S9 — landado)
+
+- **O que era:** a FK `RESTRICT` de `ai_memory_access_log` para `tenant_memberships` (0019) entrava
+  na cadeia de purga: 5 caminhos apagavam memberships/tenants/users sem a trilha e falhavam alto
+  com 23503 na presença de qualquer linha de memória. Merge
+  `8f6041c9949d6a267b8d6989cadc501a19b64f87` (parent `47d39a9`), branch `mission/wp4-mem-purge`,
+  commit `16a5d22`.
+- **O que foi feito:** ordem FK-safe `access_log → conflicts → versions → sources → memories` em
+  fonte única (`MEMORY_TRAIL_TABLES` em `scripts/db/purge-fixtures.ts`, com
+  `TENANT_SCOPED_TABLES` derivada), aplicada em `seed-auth` (lista canônica), `explain-evidence`
+  (dois pontos), `test-backfill`, `test-auth-integration` e `test-ai-budget`. Sem runtime, schema,
+  migration ou grant.
+- **Prova:** RED 5/5 com 23503 nos bytes do pai e GREEN 5/5 exit 0 nos bytes novos, no mesmo
+  container PG17 (`:5439`), com trilha real (pre-seed por id fixo + trigger de probe para os ids
+  aleatórios); veredicto do probe calculado (GREEN recusa rodar sem a precondição do RED);
+  `db:test` 17 suítes, `check` e `db:check` verdes; bundle idêntico. S6 adversarial (subagente
+  read-only, contexto limpo): **8 CONFIRMED · 0 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE**; N2/N3/N4/N5
+  corrigidos no instrumento, N6 erratado, N1/N7 declarados.
+- **Selo versionado:** `docs/evidence/f-b-mem-purge-2026-09-20/` (MANIFEST com 36 arquivos).
+- **Placar: nenhum crédito** — correção de purga fora do denominador de 187 ⇒ segue
+  **150 D · 23 P · 12 NS · 2 UNV = 86,36 % parcial / 80,21 % crua**.
+- **Registro no journal:** `L121` (intenção) e `L122` (resultado) de
+  `docs/evidence/agent-state/PROGRESS.md`.
+
+  Latest state marker parent = `8f6041c9949d6a267b8d6989cadc501a19b64f87`,
