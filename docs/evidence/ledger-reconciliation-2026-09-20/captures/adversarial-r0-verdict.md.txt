@@ -1,0 +1,153 @@
+# S6 ADVERSARIAL — WP-R0
+
+**Método (2 linhas):** auditoria 100% read-only no worktree `/home/douglas-souza/preco-que-d-main/.worktree-r0-ledger` (branch `mission/r0-ledger-recon`, HEAD = base `c9d1740`, mudança NÃO COMITADA: 2 caminhos untracked + `.artifacts/` ignorado) — `git status/diff/log`, leitura integral dos artefatos, parser reproduzido à mão em `python3` e contagens independentes por `rg`; nenhum teste, `npm`, `docker` ou escrita foi executado.
+**Técnica:** cada claim confrontada com os bytes reais (selos S6 dos WPs 3–5, anexo item a item, §3.1 das transições, supply-chain, ADR-029, MEDICAO/part-E), e toda divergência README × captura × árvore denunciada no lugar onde aparece.
+
+---
+
+## C1 — Fórmula do placar · **CONFIRMED**
+
+Aritmética reproduzida em `python3`: `(150 + 0.5·23)/187 = 0.86363636…` → **86,36%**; `150/187 = 0.80213903…` → **80,21%**; a alternativa `(150+23)/187 = 0.9251…` → 92,51%, ou seja, o README/análise acertam ao dizer que a parcial não é nenhuma das duas contas cruas.
+
+Verbatim do claim (`ledger-reconciliation-2026-09-20/README.md:12,16-17`):
+
+```text
+Crédito parcial = (D + ½·P) / 187.
+(150 + 11,5) / 187 = 161,5 / 187 = 86,3636…%  → 86,36% parcial  ✓
+150 / 187          = 0,802139…                → 80,21% crua     ✓
+```
+
+Placar declarado, conferido nos dois arquivos exigidos:
+
+- `docs/evidence/agent-state/QUEUE.md:4` — `maximizando **crédito verificado** (DONE + ½·PARTIAL, denom. 187)`; `:9` — `**150 D · 23 P · 12 NS · 2 UNV** = **86,36% parcial / 80,21% crua**`; `:117` — `| **pós ciclo 2** (`53b2996`) | **150** | **23** | **12** | **2** | **86,36%** | **80,21%** |`.
+- `EXECUTION-STATE-PROGRAM.md:1607` — `**Placar: 150 D · 23 P · 12 NS · 2 UNV em 187 = 86,36% parcial / 80,21% crua**` (+ idem em :1868, :1885, :1936, :2061, :2082, :2106, :2127, :2150); a régua `DONE + ½·PARTIAL` também está em :1560 e :1573.
+
+NS/UNV contam zero porque a fórmula só usa `D` e `P` — consistente. **Ressalva** (não afeta a conta): a frase do README `:20-21` de que a fórmula "passa a estar escrita aqui e no rodapé da fila" é imprecisa — ela já estava em `QUEUE.md:4` antes da base e a fila não foi tocada (vira **N7**).
+
+---
+
+## C2 — Taxonomia e errata de contagens · **CORRECTED**
+
+A taxonomia bate verbatim com o contrato vigente (`template work-package §4`, `AGENTS.md:67`): `CORR = claim corrigida`, `N = defeito novo (pode existir com 0 CORR)`, `"correções forçadas" = CORR + N corrigidos antes do selo`.
+
+Contagens contra os selos:
+
+| WP | veredicto selado (verbatim) | CORR | N (total) | N corrigidos (selo §7) | N declarados (§4) |
+| -- | -- | -- | -- | -- | -- |
+| 3 | `**2 CORRECTED** (C5, C10) · **0 REJECTED** · **0 UNVERIFIABLE**` · `Defeitos novos: **5**` (`adversarial-wp3-verdict.md.txt:129-130`) | 2 ✓ | N1–N5 ✓ | N1, N3, N4 **e C10/N5** | só N2 |
+| 4 | `**8 CONFIRMED · 0 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE**` · `Defeitos novos: **N1–N7**` (`adversarial-wp4-verdict.md.txt:200-201`) | 0 ✓ | N1–N7 ✓ | N2–N6 ✓ | N1, N7 ✓ |
+| 5 | `**6 CONFIRMED, 1 CORRECTED, 0 REJECTED, 0 UNVERIFIABLE**` · `Defeitos novos: **N1–N9**` (`adversarial-wp5-verdict.md.txt:119-120`) | 1 (C2) ✓ | N1–N9 ✓ | N1–N5, N7 ✓ | N6, N8, N9 ✓ |
+
+Onde a errata **não** bate: a linha do WP3 do README (`:34`) diz `| 3 | 2 (C5, C10) | 3 (N1/N3/N4) | 2 (N2/N5) |`. O selo do WP3 diz o contrário de "N5 declarado" (`d2-depth-pin-2026-09-20/README.md:184,191,193`):
+
+```text
+**Correções aplicadas na revisão final (R_b), todas seladas em `captures/`:**
+| **C10/N5** — README/SPEC contra o fato medido … | errata neste README e seção `## 9. ERRATA` no `SPEC.md`; dados brutos preservados |
+**Declarado, não corrigido:** **N2** (composição do piso do runner) — §4, …
+```
+
+Isto é: N5 está na tabela de **correções aplicadas** (junto do C10), e o único N declarado é N2. A interpretação da casa já usada pelo S6 do WP-R2 foi excluir N5 da contagem de "N corrigidos" (fundido ao C10): `adversarial-r2-verdict.md.txt:57` — `WP3: CORR C5+C10 = 2; N corrigidos N1, N3, N4 = 3 → **5**`; `:61` — `Total pela definição: **17**, não 7`. Logo:
+
+- `3 CORR` ✓ (C5+C10, C2, nada);
+- `14 N corrigidos` e `17` **fecham** apenas sob a interpretação de que N5 é errata do C10; estão corretos para WP4 (N2–N6) e WP5 (N1–N5, N7);
+- **errada é a coluna "N declarados 2 (N2/N5)" do WP3**: N5 não está na §Riscos do selo (`README §4` só declara N2), está na §7 como parte do C10. Se N5 for contado como correção própria (o que a §7 literalmente permite), o total vira **18**, não 17.
+
+WP4 e WP5 conferem integralmente. **CORRECTED**: corrigir a célula do WP3 para `N declarado 1 (N2); N5 = errata do C10` (e manter 17) **ou** subir o total para 18 — não se pode ter as duas coisas.
+
+---
+
+## C3 — Extração NS/UNV (parser + transições + dedup) · **CONFIRMED** (com 1 vício de citação)
+
+O resultado do instrumento é reproduzido no log selado (`.artifacts/r0-extrai.log:4-6`):
+
+```text
+NS finais pre-dedup: 13 ['15.1', '15.2', '15.3', '15.4', '15.5', '15.6', '15.7', '19.6', '21.3', '22.4', '24.13', '25.5', '29.1']
+NS canonicos pos-dedup: 12 ['15.1', '15.2', '15.3', '15.4', '15.5', '15.6', '15.7', '19.6', '21.3', '22.4', '25.5', '29.1']
+UNV finais: 2 ['25.6', '25.7']
+```
+
+**(a) Transições × §3.1.** `TRANSICOES-ROUND-2026-09-15.md §3.1:79-90` lista 12 transições nominais; as 9 que tocam NS são exatamente as do parser (`9.1-ME` NS→P, `16.3`/`23.1`/`23.2`/`28.1`/`28.3` NS→D, `25.4`/`26.7`/`28.2` NS→P); `10.7`, `28.5`, `35` são P→D e corretamente não entram. `25.6`/`25.7` não são transição na rodada da missão — `:72` — `| UNVERIFIABLE→UNVERIFIABLE | 2 | 25.6, 25.7 (D4 mantém) |`; no parser são no-ops (o anexo já os traz `**UNVERIFIABLE**`). O README diz "9 transições" — correto para o efeito sobre NS; o script tem 11 chaves no dicionário (as 9 + 2 no-ops). Sem erro material.
+
+**(b) Dedup × supply-chain.** `supply-chain-classification-2026-09-15.md:14` — `Divergência relevante para leitura do placar: 25.5 e 24.13 são o **mesmo** item (o plano lista Dependency Review em §24 e §25); este documento o classifica uma única vez (25.5).` O parser remove `24.13` e mantém `25.5` (`zz-r0-extrai.sh:19`), exatamente como o documento manda. **Porém a citação do README (`:46`) é `supply-chain…:6,14,23` e a linha 23 é a linha do `25.4`/Dependabot** — não sustenta a dedup; o suporte está em `:6` e `:14` (a linha do `25.5` é a `:24`). → **N4**.
+
+**(c) Regex × coluna.** O parser lê `| item | prev | status |` (`zz-r0-extrai.sh:10`), que é a ordem real da 1ª tabela. Linhas cruas que exercitam cada caso:
+
+- NS→NS — `ANEXO:80`: `| `15.1` | NS | **NS** | high | …` (parser: item=`15.1`, status=`NS`; fica).
+- NS→transição — `ANEXO:129`: `| `23.1` | NS | **NS** | high | …` (parser aplica `23.1→DONE`; sai); idem `:41` `9.1-ME`.
+- UNV — `ANEXO:149`: `| `25.6` | NS | **UNVERIFIABLE** | high | …` (parser captura UNV; prev NS, status UNV).
+
+Contagem independente (a pergunta do N(b)): busca simples acha **34** linhas com `**NS**` e **2** com `**UNVERIFIABLE**`; o parser acha **22 NS + 2 UNV**. Os 12 `**NS**` extras são 11 linhas da 2ª tabela (`P2-02..P2-07`, `ORD-32..35`, `GATE-43`) + 1 menção em prosa (`ANEXO:207`), e a 2ª tabela é explicitamente `Camada §36–§40 + gates + deferidos (89 itens; overlap, não somada ao denominador)` (`ANEXO:203`). Nenhuma linha da 1ª tabela (193/193) escapa ao regex — não há dependência oculta que perca item do denominador.
+
+**Achado do instrumento (N9):** o gate é de cardinalidade, não de identidade — só há `assert len(canon) == 12` e `assert len(unv) == 2` (esta sobre a lista do anexo), e a linha `CONTRAGEM: 12 NS + 2 UNV == placar declarado 150/23/12/2` é `print`, não asserção (`zz-r0-extrai.sh:26-28`). Qualquer conjunto de 9 transições removidas de 22 daria 12; o instrumento não falharia se a identidade dos 12 mudasse — a mesma classe que o checklist anti-vacuoso proíbe.
+
+---
+
+## C4 — Varredura de estado · **CONFIRMED** (estados sustentados na árvore; cobertura da captura é parcial)
+
+Estados do README §3 conferidos item a item na árvore (e, quando existe, contra `.artifacts/r0-estado.log`):
+
+| item | estado declarado | verificação independente |
+| -- | -- | -- |
+| 15.1 | implementado | `src/server/services/memory.service.ts`, `memory.policy.ts`, `src/server/repositories/memory.repository.ts` existem (log :1-3) |
+| 15.2 | 6/9 | `drizzle/0017/0018/0019` criam exatamente `ai_memories`, `ai_memory_sources`, `ai_memory_versions`, `ai_memory_conflicts`, `ai_memory_access_log`, `ai_memory_policies` (log :8-13); `ai_memory_embeddings` ausente; `chat_conversations`/`chat_messages` existem (`drizzle/0000`) — plan §15.2 nomeia `ai_conversations`/`ai_messages`, logo "6/9 por nome exato" é defensável e a ressalva está no próprio texto |
+| 15.3 | implementado | `memory.policy.ts` (módulo puro §15.3), 25 hits de `policy` (log :15) |
+| 15.4 | implementado | `memory.repository.ts` com proveniência, 21 hits de `provenance|sourceKind|inferred` (log :17) |
+| 15.5 | ausente | FTS 0 hits (log :19; `rg` independente 0) |
+| 15.6 | ausente | vetor/pgvector/HNSW 0 hits (log :21; `rg` independente 0) |
+| 15.7 | ausente | não há FTS+vetor para combinar; `retrieval` isolado existe em `memory.policy.ts:165`/"Teto efetivo de retrieval (§15.7/D6)" e em testes — não é retrieval híbrido; sustenta "ausente" |
+| 19.6 | ausente | `src/instrumentation/telemetry.ts` 0 hits de `memory` (log :23) |
+| 21.3 | ausente | `ADR-029 §2.7`: ``**`SERIALIZABLE` e retry de transação são T3** (fora desta rodada)``; `rg` acha só `begin isolation level serializable` em `scripts/migration/source-to-neon.ts:577` (migração, não runtime) e `REPEATABLE READ` em `backup-verify.ts` — não implementa o item |
+| 22.4 | ausente | deletes de `idempotency_records` são só `test-sql-injection.ts:201` e `test-tool-security.ts:56` (log :24-25, 2 hits); `expires_at`/`expires_idx` existem sem sweeper (reciclo in-place em `tool-runner.ts:198-206`) |
+| 25.4 | fechado `9a473a2` | `git merge-base --is-ancestor 9a473a2 HEAD` = OK; `.github/dependabot.yml` existe (log :26-27) |
+| 25.5, 25.6, 25.7 | settings-side/UNV | `supply-chain-classification-2026-09-15.md:24-26,111` (Dependency Review settings; CodeQL/secret scanning dependem da visibilidade — H-2) |
+| 29.1 | ausente | `docs/specs/M-06/spec.md:3` `**Status:** DRAFT`, sem p95-alvo (log :29-32) |
+
+**Ressalva material (vira N6):** a captura `r0-estado.log` **não tem linha** para `21.3`, `15.7`, o estado de `25.5` (só a citação da dedup) e `25.6`/`25.7`, embora o README §6 venda "greps de estado atual **por item**" e a tabela declare os 14. Os estados se sustentam na árvore (verifiquei todos), mas não na captura — a rastreabilidade prometida é parcial. O `ls` do 15.1 também não inclui o repositório e o 22.4 só imprime a contagem (não as linhas), enfraquecendo o lastro das células.
+
+---
+
+## C5 — Sem promoção por inferência · **CONFIRMED** (com 1 imprecisão)
+
+- **Nenhum placar movido.** `git status --short --ignored` no worktree: apenas `?? docs/evidence/analise-avancada-bloco3-plano-mestre-2026-09-20.md`, `?? docs/evidence/ledger-reconciliation-2026-09-20/` e `!! .artifacts/`; `git log c9d1740..HEAD` vazio (HEAD = base); `git diff c9d1740 --name-only` vazio. `QUEUE.md` e `EXECUTION-STATE-PROGRAM.md` **não** foram tocados.
+- **Compromisso explícito:** README `:6` — `docs-only; **nenhum placar é movido por inferência** nesta rodada.`; `:67-72` — `Nada disso é promovido por inferência nesta rodada — a proposta é uma re-medição formal (R0b) … submetida a ratificação antes de mover o placar`; §5 repete. A coluna "closure candidato" diz "ratificar na matriz" (não promove).
+- **Transcrição fiel nos pontos-chave:** fórmula (`analise…:17-19` ↔ README §1), os 6 defeitos de harness (`:35-36` — falsificação que aceitava qualquer falha; restauro com `-1`; GREEN só por exit; sem precondição; sleep fixo; asserção inerte), a sequência de 9 passos (`:97-107`, numerada 1–9) e o veredicto (`:109-118`). O texto persiste até as divergências internas que a errata corrige (ex.: "7 correções forçadas" e "Só o WP3 bate (2 CORR = N1+N3)"), o que é sinal de transcrição e não de curadoria.
+- **Limite declarado:** o original não existe em disco (`analise…:3-6` declara proveniência e que a formatação foi normalizada); a fidelidade literal ao texto da sessão não é auditável read-only — auditei os pontos-chave observáveis e todos passam. Não abato a claim por isso.
+- **As afirmações externas da análise não são usadas como decisão no README:** "OTel logs Stable" e "Neon pooled não suporta SET/LISTEN/PREPARE" (`analise…:62-77`) não aparecem no README; as decisões citadas são internas (ADR-029/T3 para 21.3, verificado; e "ADR-031 (D7)" para 19.6, que **não existe** — vira N5). Porém o README §4 usa números de gate **velhos como se fossem correntes** — vira **N1**.
+
+---
+
+## C6 — Escopo · **CONFIRMED**
+
+`git status --porcelain` = só os dois caminhos untracked sob `docs/evidence/**`; `git diff c9d1740 --name-only` e `git diff --cached --name-only` vazios; nenhum toque em `src/**`, `scripts/**`, `AGENTS.md`, `package.json`/lockfile ou `docs/specs/M-02/matrix*.yaml`. O único extra fora de `docs/evidence` é `.artifacts/` (4 arquivos), que é gitignored (`!! .artifacts/`) — não entra no diff, mas é exatamente o problema do **N2** (a prova bruta não é versionável).
+
+---
+
+## Defeitos NOVOS
+
+**N1 — Números de gate da part-E (2026-09-13) apresentados como estado corrente (material).** README `:76-79`: `` `§41` está satisfeito com ressalvas registradas (Q-010; timeout da IA não propaga ao corpo da tool): **16 D + 1 P de 17 = 97,1%**. `§42` satisfeito com o limite do PITR 6 h (**H-4**)… ``. O `16 D + 1 P = 97,1%` é a tabela da camada P0 da **part-E** (`part-E-medicao.md:84`); a medição vigente de 2026-09-15 é `P0 | 17 | 17 | 0 | 0 | 100,0%` (`MEDICAO-2026-09-15.md:57`) e o `GATE-41` foi recomputado para **DONE** (`trilho-c-recompute…/README` e `PROGRESS L105`). Além disso `§41` tem **11 critérios**, não 17 (o 17 é a camada P0); e `§42` é **PARTIAL** na medição (`MEDICAO:76`), não "satisfeito". Correção antes do selo.
+
+**N2 — Capturas inexistentes e prova bruta gitignored (material, selagem).** README `:95-96` manda rodar `bash captures/extrai-ns.sh.txt` / `bash captures/estado-ns.log.txt`, e `:54` cita "a captura `estado-ns.log.txt`". O diretório do WP contém **apenas `README.md`** (sem `SPEC.md`, sem `captures/`, sem `MANIFEST.sha256`); os instrumentos reais são `.artifacts/zz-r0-*.sh` + `r0-*.log`, cobertos por `.gitignore:3` (`*.log`) e `:49` (`.artifacts/`) — a prova bruta **não entra no commit** e o "Como reproduzir" não roda a partir do clone. É a mesma armadilha já declarada no `PROGRESS L93` e viola o contrato de work package recém-institucionalizado (`SPEC.md` + `captures/*.txt` + `MANIFEST.sha256` + `checked === discovered`). Corrigir (versionar capturas + manifesto + SPEC) ou rebaixar explicitamente o artefato a nota-de-reconhecimento e ajustar os ponteiros.
+
+**N3 — Split corrigido/declarado do WP3 contradiz o selo (material à contagem; base do CORR de C2).** README `:34` — `| 3 | 2 (C5, C10) | 3 (N1/N3/N4) | 2 (N2/N5) |` × `d2-depth-pin…/README §7` que põe `C10/N5` nas "Correções aplicadas" e declara só N2. Corrigir a célula (ou subir para 18 se N5 contar em separado).
+
+**N4 — Citação errada da dedup.** README `:46` cita `supply-chain-classification-2026-09-15.md:6,14,23`; a linha `:23` é a linha do item `25.4` (Dependabot) e não sustenta a dedup; o suporte é `:6` e `:14` (`:24` é a linha do `25.5`).
+
+**N5 — ADR-031 citado como existente.** README `:59` — `ADR-031 (D7) define a ordem do provider`. `docs/adr/` termina no **ADR-029**; `QUEUE.md:131` diz que o D7 "exige **ADR**" e `PROGRESS L126` diz que o ADR-031 "sai como **PROPOSTA**". Reescrever como "ADR-031 (a emitir, D7)" ou "o escopo do ADR-031".
+
+**N6 — Cobertura da captura de estado incompleta (rastreabilidade).** `r0-estado.log` não tem linha para `21.3`, `15.7`, estado de `25.5`, `25.6`, `25.7`; o 15.1 não lista o repositório; o 22.4 só imprime a contagem. Ou adicionar as linhas de grep, ou declarar na §5 que esses estados vêm de ADR/docs (e não da captura), para que "greps por item" não seja lido como cobertura integral.
+
+**N7 — "rodapé da fila" falso.** README `:20-21` — `ela passa a estar escrita aqui e no rodapé da fila`. A fórmula já estava em `QUEUE.md:4` antes da base (conferido em `git show c9d1740:docs/evidence/agent-state/QUEUE.md`), a fila **não** foi tocada, e não está no rodapé (está no objetivo, topo). Reescrever para "a fórmula explícita passa a estar aqui; a fila já a registrava em `QUEUE.md:4`".
+
+**N8 — R0b sem gate explícito (risco de promoção silenciosa).** README `:70-72` promete R0b "submetida a ratificação", mas não define SPEC, dono, critério de aceitação nem fail-closed; a coluna "closure candidato" (`:52-65`) já escreve "ratificar DONE/PARTIAL na matriz"/"ratificar PARTIAL". Mitigação mínima: citar que a régua é MAESTRO-only (`AGENTS.md`) e que R0b é WP próprio com S6 antes de qualquer movimento de placar. **Declarar na §Riscos** se não for corrigido agora.
+
+**N9 — Gate do parser é cardinalidade, não identidade.** `zz-r0-extrai.sh:26-28`: só `assert len(canon) == 12` / `assert len(unv) == 2` (anexo), e a linha que compara com o placar é `print`. Trocar por asserção da **lista canônica esperada** (`15.1..15.7, 19.6, 21.3, 22.4, 25.5, 29.1` + `25.6/25.7`) e da composição `22 − 9 − 1 = 12`; é a lição #3/#6 do próprio checklist anti-vacuoso.
+
+---
+
+## Resumo
+
+- **Claims: 5 CONFIRMED (C1, C3, C4, C5, C6) · 1 CORRECTED (C2) · 0 REJECTED · 0 UNVERIFIABLE.**
+- **CORR:** C2 — a errata acerta taxonomia, CORR (3), N por WP (5/7/9) e o total 17 sob a interpretação do S6 do WP-R2, mas a célula "N declarados 2 (N2/N5)" do WP3 contradiz o selo (N5 foi corrigido junto do C10; só N2 é declarado) — corrigir a célula ou ir a 18.
+- **N corrigidos neste S6 (aplicar na §7 antes do selo):** N1 (gates §41/§42 correntes), N2 (capturas/manifesto/rotas de reprodução), N3 (split WP3), N9 (gate de identidade do parser).
+- **N declarados (mover para a §Riscos se não corrigidos agora):** N4 (citação `:23`), N5 (ADR-031 futuro), N6 (cobertura da captura), N7 ("rodapé da fila"), N8 (gate da R0b — este pede correção de texto, no mínimo citando MAESTRO-only).
+- **Substância:** a fórmula fecha ao dígito, o placar `150/23/12/2 = 86,36%/80,21%` está intacto e intocado, a extração NS/UNV reproduz os 12 canônicos + 2 UNV com rastreio no raw (incluindo a dedup `24.13 ≡ 25.5`), os estados da árvore se confirmam e **nenhuma promoção foi feita por inferência**. Nenhum defeito encontrado invalida a reconciliação; N1/N2/N3/N9 devem ser corrigidos antes de o selo ser usado como prova, e N8 declarado como limite da R0b.

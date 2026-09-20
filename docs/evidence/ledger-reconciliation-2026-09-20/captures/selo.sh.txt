@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Selo do WP-R0. captures/ + *.txt.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+A=.artifacts
+SELO=docs/evidence/ledger-reconciliation-2026-09-20
+CAP=$SELO/captures
+FAIL=0
+echo "=== selo do WP-R0 ==="
+for f in r0-gate.log r0-s7.log adversarial-r0-verdict.md; do
+  [ -f "$A/$f" ] || { echo "  !! FALTA: $A/$f"; FAIL=1; }
+done
+[ "$FAIL" -eq 0 ] || { echo "SELO: REPROVADO"; echo "SEAL_SCRIPT_EXIT=1"; exit 1; }
+GENV=$(grep -c "CHECK_EXIT=0" "$A/r0-gate.log" || true)
+[ "$GENV" -ge 1 ] || { echo "  !! FALHA: gate sem CHECK_EXIT=0"; exit 1; }
+rm -rf "$CAP"; mkdir -p "$CAP"
+cp "$A/r0-gate.log"                    "$CAP/gate-local.log.txt"
+cp "$A/r0-s7.log"                      "$CAP/s7-guard.log.txt"
+cp "$A/zz-r0-s7.sh"                    "$CAP/s7-guard.sh.txt"
+cp "$A/r0-s7-diff.txt"                 "$CAP/s7-diff.txt"
+cp "$A/adversarial-r0-verdict.md"      "$CAP/adversarial-r0-verdict.md.txt"
+cp "$A/zz-r0-extrai.sh"                "$CAP/extrai-ns.sh.txt"
+cp "$A/r0-extrai.log"                  "$CAP/extrai-ns.log.txt"
+cp "$A/zz-r0-estado.sh"                "$CAP/estado-ns.sh.txt"
+cp "$A/r0-estado.log"                  "$CAP/estado-ns.log.txt"
+cp docs/evidence/analise-avancada-bloco3-plano-mestre-2026-09-20.md "$CAP/analise-transcrita.md.txt"
+cp "$A/zz-r0-seal.sh"                  "$CAP/selo.sh.txt"
+: > "$CAP/hashes.txt"; OK=1
+for f in docs/evidence/analise-avancada-bloco3-plano-mestre-2026-09-20.md \
+         docs/evidence/ledger-reconciliation-2026-09-20/README.md \
+         docs/evidence/ledger-reconciliation-2026-09-20/SPEC.md \
+         .artifacts/zz-r0-extrai.sh .artifacts/zz-r0-estado.sh \
+         .artifacts/r0-extrai.log .artifacts/r0-estado.log; do
+  if [ -f "$f" ]; then sha256sum "$f" >> "$CAP/hashes.txt"; else echo "  !! FALTA no hashes: $f"; OK=0; fi
+done
+[ "$OK" -eq 1 ] || FAIL=1
+echo "  arquivos em captures/: $(ls -1 "$CAP" | wc -l)"
+echo "  raw: $(find "$SELO" -path '*/raw/*' -type f | wc -l) · *.log: $(find "$SELO" -name '*.log' -type f | wc -l) · ignorados: $(find "$SELO" -type f -print0 | xargs -0 git check-ignore 2>/dev/null | wc -l)"
+npx prettier --write "$SELO/README.md" "$SELO/SPEC.md" >/dev/null 2>&1
+npx prettier --check "$SELO/README.md" "$SELO/SPEC.md" > "$A/r0-prettier.log" 2>&1
+[ $? -eq 0 ] || { echo "  !! FALHA: prettier"; FAIL=1; }
+rm -f "$SELO/MANIFEST.sha256"
+find "$SELO" -type f ! -name 'MANIFEST.sha256' -print0 | sort -z | xargs -0 sha256sum > "$SELO/MANIFEST.sha256"
+D=$(find "$SELO" -type f ! -name 'MANIFEST.sha256' | wc -l); L=$(wc -l < "$SELO/MANIFEST.sha256")
+echo "  descobertos=$D listados=$L"
+[ "$D" -eq "$L" ] || { echo "  !! FALHA: cardinalidade"; FAIL=1; }
+LC_ALL=C sha256sum -c "$SELO/MANIFEST.sha256" > "$A/r0-manifest-check.txt" 2>&1
+N=$(grep -c ': FAILED$' "$A/r0-manifest-check.txt" || true); echo "  NAO-OK=$N (esperado 0)"; [ "$N" -eq 0 ] || FAIL=1
+FORA=$(grep -cvE "^[0-9a-f]{64}  $SELO/" "$SELO/MANIFEST.sha256" || true); [ "$FORA" -eq 0 ] || { echo "  !! caminho fora do selo"; FAIL=1; }
+if [ "$FAIL" -eq 0 ]; then echo "SELO: OK"; echo "SEAL_SCRIPT_EXIT=0"; else echo "SELO: REPROVADO"; echo "SEAL_SCRIPT_EXIT=1"; fi
