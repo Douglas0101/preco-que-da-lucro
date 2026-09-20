@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# S7 GUARD do WP-R3.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+A=.artifacts; LOG=$A/r3-s7.log; export NO_COLOR=1
+exec > >(tee "$LOG") 2>&1
+FALHAS=0
+echo "=== S7 GUARD — WP-R3 ==="
+echo "HEAD: $(git rev-parse HEAD)"; echo "branch: $(git branch --show-current)"; echo
+DIFF=$A/r3-s7-diff.txt
+{ git diff -- AGENTS.md scripts/m02-work-package-guard.mjs package.json .github docs/evidence/_templates docs/evidence/analise-avancada-fase0-wpR2-wpR0-2026-09-20.md
+  echo "--- nao rastreados ---"
+  git ls-files --others --exclude-standard -- docs | sort; } > "$DIFF" 2>/dev/null
+echo "sha256 do artefato examinado: $(sha256sum "$DIFF" | cut -d' ' -f1)"
+for f in scripts/m02-work-package-guard.mjs docs/evidence/_templates/work-package.md AGENTS.md package.json .github/workflows/ci-light.yml; do
+  echo "  sha256 $f: $(sha256sum "$f" | cut -d' ' -f1)"
+done
+echo
+echo "=== 1. escopo ==="
+git status --short | sed 's/^/  /'
+FORA=$(git status --short | grep -vcE 'AGENTS.md|package.json|scripts/m02-work-package-guard.mjs|scripts/m02-work-package-guard|\.github/workflows/ci-light.yml|docs/evidence/_templates/work-package.md|docs/evidence/analise-avancada-fase0|docs/evidence/wp-r3-forensics' || true)
+echo "  fora do escopo: $FORA (esperado 0)"; [ "$FORA" -eq 0 ] || FALHAS=$((FALHAS+1))
+SRC=$(git status --short -- src drizzle e2e | wc -l)
+echo "  src/drizzle/e2e no diff: $SRC (esperado 0)"; [ "$SRC" -eq 0 ] || FALHAS=$((FALHAS+1))
+echo
+echo "=== 2. lockfile em sincronia (sem dep nova) ==="
+git status --short -- package-lock.json | wc -l | sed 's/^/  package-lock no diff: /'
+npm run m02:lockfile-guard >/dev/null 2>&1; L=$?; echo "  LOCKFILE_GUARD_EXIT=$L"; [ "$L" -eq 0 ] || FALHAS=$((FALHAS+1))
+echo
+echo "=== 3. credenciais / secrets / H-9 ==="
+H=$(env | grep -cE '^(NEON_|VERCEL|DATABASE_URL|PG|GH_|GITHUB_|CLOUDFLARE|AWS_|STRIPE)' || true); echo "  credenciais herdadas: $H"; [ "$H" -eq 0 ] || FALHAS=$((FALHAS+1))
+npm run m02:secrets-audit > $A/r3-secrets.txt 2>&1; S=$?; echo "  SECRETS_EXIT=$S"; [ "$S" -eq 0 ] || FALHAS=$((FALHAS+1))
+H9=$(ss -ltn 2>/dev/null | grep -c ':5432 ' || true); echo "  5432=$H9 (esperado 0)"; [ "$H9" -eq 0 ] || FALHAS=$((FALHAS+1))
+echo
+echo "=== 4. refs ==="; echo "  origin/main: $(git rev-parse origin/main)"; echo "  origin/develop: $(git rev-parse origin/develop)"
+echo
+if [ "$FALHAS" -eq 0 ]; then echo "S7 GUARD: OK"; echo "S7_EXIT=0"; else echo "S7 GUARD: $FALHAS FALHA(S)"; echo "S7_EXIT=1"; fi
