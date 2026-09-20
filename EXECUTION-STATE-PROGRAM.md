@@ -2063,4 +2063,24 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   do S7 sobre os bytes finais, **não** por uma segunda lane adversarial com contexto limpo.
 - **Registro no journal:** `L117` (resultado) de `docs/evidence/agent-state/PROGRESS.md`.
 
-  Latest state marker parent = `0334e7d3e77d55ceb607a1d4fd3f3b6470cc0dde`,
+### WP3 — `F-D2-depth-pin` (S9 — landado)
+
+- **O que era:** a fronteira de profundidade da cadeia de `cause` do mapeamento FK 23503 não
+  estava pinada — a suíte era cega para qualquer limite em 3–5, e a constante poderia ser movida em
+  silêncio. Merge `30e5687fa51979f9478bdff0b64ab5dde76e0513` (parent `524ec54`), branch
+  `mission/wp3-depth-pin`, commit `a7c48a1`.
+- **O que foi feito:** dois casos de fronteira (índice 3 encontrado com CONFLICT/409; índice 4
+  relançado como veio), rótulo `depth=4` → `depth=5`, piso do runner `13 → 15`.
+  `FK_CAUSE_CHAIN_LIMIT` permanece 4.
+- **Prova:** falsificação nas duas direções com o par nova-reprova/antiga-passa (mutação restaurada
+  byte a byte); bateria contra PG17 efêmero (`:5438`) com `15 passed (15)` e piso mutado para 16
+  reprovando; `m02:matrix:check` sem regenerar; bundle idêntico; H-9 intocada. S6 adversarial
+  (subagente read-only de contexto limpo, método declarado): **8 CONFIRMED · 2 CORRECTED ·
+  0 REJECTED · 0 UNVERIFIABLE**; N1/N3 (fail-opens de instrumento) e N4 corrigidos, N2 declarado.
+- **Selo versionado:** `docs/evidence/d2-depth-pin-2026-09-20/` (MANIFEST com 16 arquivos).
+- **Placar: nenhum crédito** — correção de fronteira de teste fora do denominador de 187 ⇒ segue
+  **150 D · 23 P · 12 NS · 2 UNV = 86,36 % parcial / 80,21 % crua**.
+- **Registro no journal:** `L119` (intenção) e `L120` (resultado) de
+  `docs/evidence/agent-state/PROGRESS.md`.
+
+  Latest state marker parent = `30e5687fa51979f9478bdff0b64ab5dde76e0513`,
