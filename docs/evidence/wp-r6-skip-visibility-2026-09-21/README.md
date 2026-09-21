@@ -90,14 +90,68 @@ intocado, `origin/main` intocado.
 | A3  | o `env-guard` já bloqueia remoto no caminho npm ⇒ o alcance do defeito é `npx vitest` direto                       | autor | declarado na §2 do SPEC com a medição (exit 3)      |
 | A4  | primeiro `sed` da mutação do classificador **não aplicou** e o bloco ficou vacuoso                                 | autor | refeito com python e sha256 conferido               |
 
-**KPI — `capturados pelo autor / total`:** 5 capturados pelo autor (A1–A5) + 1 achado **do gate**
-(o falso positivo do contador, §7.2) + achados do S6. O A5 é o mais caro da série: teria quebrado um
-comando de contrato do `AGENTS.md`, e só foi visto porque medi o setup **documentado** em vez de
-supor que "as três URLs" era o caso normal.
+**KPI — `capturados pelo autor / total`:** **5 autor + 1 gate / 16** (≈ 37%).
+
+| canal          | achados | quais                                                                                       |
+| -------------- | ------- | ------------------------------------------------------------------------------------------- |
+| autor (pré-S6) | 5       | A1–A5 — incluindo o A5 (a regressão do `db:test`), o mais caro da série                     |
+| gate mecânico  | 1       | o falso positivo do contador `directDatabaseFiles`                                          |
+| S6 adversarial | 10      | N1–N10 — o S6 **confirmou o A5 independentemente** (N1) e achou 9 que nenhum dos outros viu |
+
+Nenhum canal é superset do outro, e isso agora está medido em **dois WPs seguidos**: no WP-R5 o S6
+achou o falso verde que o gate não via e o gate achou o `.d.mts` que o S6 não viu; aqui o autor achou
+a regressão de contrato e o S6 achou a fronteira de hostname (N8) e o furo de artefato (N4). A série
+`autor × gate × S6` vai para o journal como densidade por canal, não como ponto.
 
 ## 7. S6 ADVERSARIAL
 
-_(preenchido com o veredicto da lane de contexto limpo)_
+**Lane:** subagente de contexto limpo, read-only, instruído a falsificar. Alvo pinado: `edb504c`
+(congelado por `git archive` em `/tmp` — o revisor montou cópias imutáveis em vez de confiar no
+working tree).
+
+### 7.1 Claims × veredicto
+
+| claim                                                      | veredicto     | nota                                                                                                                                  |
+| ---------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| C1 os 13 saem de 2 sítios, por descoberta                  | CONFIRMED     | `grep` independente por 7 mecanismos de skip: exatamente 2 hits; 0 fora de `src/test`                                                 |
+| C2 o fail-open existia sob a semântica antiga              | CONFIRMED     | reproduzido em bytes congelados do pai (`Test Files 1 passed` em A/B/C, `1 failed` em D)                                              |
+| C3 a precondição é tudo-ou-nada e falha alta               | CONFIRMED     | 7 fronteiras testadas pelo revisor, incluindo URL malformada                                                                          |
+| C4 o skip é visível                                        | CONFIRMED     | com a nuance: **2 linhas de rótulo** (uma por arquivo), não 13 nomes por teste                                                        |
+| C5 `isLoopbackUrl` distingue ausente de loopback           | CONFIRMED     | + 8 sondas de hostname que viraram N8                                                                                                 |
+| C6 o CI declara as três em loopback ⇒ transparente         | CONFIRMED     | workflow parseado + helper avaliado sobre os literais                                                                                 |
+| C7 a regra estrita muda exatamente 1 entrada               | CONFIRMED     | réplica do classificador sobre a árvore real: 50→49, perdida só `db-precondition.test.ts`, nenhuma ganha                              |
+| C8 a regra nova ⊆ antiga                                   | CONFIRMED     | 38 sondas, 13 divergem, **todas** antigas-apenas (a nova só remove)                                                                   |
+| C9 a matriz é idêntica à base                              | CONFIRMED     | sha256 `cd885606…` == `git show eb2f498:…`                                                                                            |
+| C10 `npm run check` exit 0                                 | CONFIRMED     | 95 arquivos, 964 passed \| 13 skipped; todos os gates baratos exit 0                                                                  |
+| C11 sem runtime/migration/lockfile; `origin/main` intocado | CONFIRMED     |                                                                                                                                       |
+| C12 o comentário do workflow descreve a semântica nova     | **CORRECTED** | semântica correta, **número errado**: "13/13 e 14/14" — o arquivo FK tem **15** testes (o 13 era anterior ao depth-pin de 2026-09-20) |
+
+### 7.2 Defeitos novos e disposição
+
+| id     | defeito                                                                                                                                               | disposição                                                                                                                                                                                                            |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **N1** | **HIGH** — o `db:test` documentado (par, sem `UNPOOLED`) passava a **falhar alto**; os comentários dos runners ficaram descrevendo a semântica antiga | **corrigido** (achado **independentemente pelo autor** antes do veredicto): `UNPOOLED` opcional + comentários atualizados + **provado com PG17 efêmero** (15/15 e 14/14, 0 skipped)                                   |
+| N2     | `neon-readiness.yml` e `neon-pr-branch.yml` rodam `db:test` com o par **remoto**                                                                      | **declarado**: já eram vermelhos por desenho (ERRATA-5); muda o modo de falha, não o resultado                                                                                                                        |
+| N3     | 4 de 5 capturas tinham `# HEAD=eb2f498` (a **base**) e a de isolamento dizia "(nao commitado)"                                                        | **corrigido**: capturas regeradas no commit que carrega o código                                                                                                                                                      |
+| N4     | `MANIFEST.sha256` ausente no alvo pinado; e o guard **não inspeciona o diretório do WP**                                                              | manifesto existe a partir do selo; o buraco do guard virou **DBT-18**                                                                                                                                                 |
+| N5     | a "lista fechada" do SPEC omitia 4 arquivos entregues                                                                                                 | **corrigido**                                                                                                                                                                                                         |
+| N6     | "13/13" obsoleto (mesma raiz do C12)                                                                                                                  | **corrigido** junto com o C12                                                                                                                                                                                         |
+| N7     | presença por `Boolean`: três valores vazios voltavam ao skip                                                                                          | **corrigido**: presença por `!== undefined`                                                                                                                                                                           |
+| N8     | `127.1`, `LOCALHOST`, `localhost.`, IPv4-mapeado eram recusados ⇒ erro duro onde antes pulava                                                         | **corrigido**: host normalizado + 127/8 + mapeado aceitos; `0.0.0.0` segue recusado (bind-wildcard)                                                                                                                   |
+| N9     | a regra estrita deixa de contar `./db.ts`; fronteira não pinada                                                                                       | **declarado** como **DBT-17**                                                                                                                                                                                         |
+| N10    | **o workspace mutou durante a verificação** (5 arquivos sujos vs o alvo)                                                                              | **lição de processo**: o S6 exige alvo **congelado**. O revisor reagiu corretamente (recongelou por `git archive` e refez tudo), mas o WP gastou uma rodada. Regra adotada: **commitar tudo antes de despachar o S6** |
+
+**Taxonomia:** CORR = **1** (C12) · N = **10** · **N corrigidos = 6** (N1, N3, N5, N6, N7, N8) ·
+**N declarados = 4** (N2, N4→DBT-18, N9→DBT-17, N10→lição) · **correções forçadas = 1 + 6 = 7**.
+`0 REJECTED` e `0 UNVERIFIABLE`.
+
+### 7.3 Nota de método
+
+O N10 é o achado mais instrutivo da lane, e não é sobre o código: **o alvo de uma verificação
+adversarial precisa estar congelado**. Este WP despachou o S6 e continuou commitando — o revisor
+detectou 5 arquivos divergentes do alvo pinado e reconstruiu cópias imutáveis para não medir o
+working tree. Foi o comportamento certo dele; o custo foi meu. A regra que fica: **commit, depois
+despachar** — o journal registra a lição em `L143`.
 
 ## 8. CI e commits
 

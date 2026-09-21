@@ -43,9 +43,10 @@ jobs:
       # `dbPrecondition()` (`src/test/helpers/db-precondition.ts`): **tudo ou nada, e
       # falha alta** — nenhuma das três definidas ⇒ skip nomeado; qualquer uma
       # definida ⇒ as três são exigidas e todas em loopback, senão o arquivo reprova
-      # com erro de precondição, nunca skip silencioso. Declarar as três aqui mantém
-      # os 9 + 4 casos executando (medido 2026-09-21: três em loopback ⇒ 13/13 e
-      # 14/14 executam; qualquer uma remota ⇒ reprova alto).
+      # com erro de precondição, nunca skip silencioso. Declarar as três aqui mantém os
+      # 9 + 4 casos executando (medido 2026-09-21: três em loopback ⇒ 14/14 em
+      # product-contracts e 15/15 em products-fk-conflict; qualquer uma remota ⇒ reprova
+      # alto).
       # A versão anterior deste gate devolvia `true` para valor **ausente**, o que
       # fazia o bloco executar com duas URLs faltando; isso foi substituído de
       # propósito, porque ausência silenciosa era indistinguível de ambiente mal

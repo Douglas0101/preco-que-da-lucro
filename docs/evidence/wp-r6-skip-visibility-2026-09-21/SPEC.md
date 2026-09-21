@@ -57,13 +57,18 @@ ambiente deliberadamente sem banco produziam o mesmo `1 passed` — indistinguí
 
 ## 4. Mudanças (lista fechada)
 
-| arquivo                                             | mudança                                                      |
-| --------------------------------------------------- | ------------------------------------------------------------ |
-| `src/test/helpers/db-precondition.ts`               | **novo** — fonte única da precondição                        |
-| `src/test/product-contracts.test.ts`                | usa o helper; `isLoopbackUrl` e `dbEnabled` locais removidos |
-| `src/test/products-fk-conflict.test.ts`             | idem                                                         |
-| `src/test/db-precondition.test.ts`                  | **novo** — 7 casos, incluindo o booleano invertido           |
-| `docs/evidence/wp-r6-skip-visibility-2026-09-21/**` | SPEC, README, capturas, `MANIFEST.sha256`                    |
+| arquivo                                                                            | mudança                                                         |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `src/test/helpers/db-precondition.ts`                                              | **novo** — fonte única da precondição                           |
+| `src/test/product-contracts.test.ts`                                               | usa o helper; `isLoopbackUrl` e `dbEnabled` locais removidos    |
+| `src/test/products-fk-conflict.test.ts`                                            | idem                                                            |
+| `src/test/db-precondition.test.ts`                                                 | **novo** — booleano invertido, par obrigatório, N7 e N8         |
+| `scripts/lib/m02-database-module.ts`                                               | **novo** — classificador de "módulo de banco", testável isolado |
+| `scripts/m02-matrix.ts`                                                            | passa a importar o classificador (regra estrita)                |
+| `src/test/m02-database-module.test.ts`                                             | **novo** — 5 casos, incluindo o falso positivo                  |
+| `scripts/db/test-product-contracts.ts` · `scripts/db/test-products-fk-conflict.ts` | comentários que descreviam a semântica antiga                   |
+| `.github/workflows/ui-stack.yml`                                                   | comentário do gate alinhado (C12 do S6: 14/14 e 15/15)          |
+| `docs/evidence/wp-r6-skip-visibility-2026-09-21/**`                                | SPEC, README, capturas, `MANIFEST.sha256`                       |
 
 **Não muda:** nenhum código de runtime, nenhuma migration, `package.json` intocado, `:5432` intocado,
 `origin/main` intocado. O comportamento no CI é **inalterado** (lá as três URLs são loopback ⇒
@@ -71,16 +76,16 @@ ambiente deliberadamente sem banco produziam o mesmo `1 passed` — indistinguí
 
 ## 5. DoD
 
-| #   | critério                                                         | prova                                        |
-| --- | ---------------------------------------------------------------- | -------------------------------------------- |
-| 1   | sob a semântica antiga, as 4 configurações dão veredicto ambíguo | captura §mutação: A/B/C todas `1 passed`     |
-| 2   | restaurado, B/C/D falham alto **nomeando** chave e problema      | captura §restaurado                          |
-| 3   | A passa com skip **visível**                                     | linha `db-precondition: N/A-sem-DB`          |
-| 4   | `isLoopbackUrl(undefined) === false` pinado por teste            | `db-precondition.test.ts`                    |
-| 5   | os 13 skips rodam no CI como antes                               | E2 + `ui-stack` verdes; `db:test` inalterado |
-| 6   | `npm run check` exit 0                                           | captura do gate                              |
-| 7   | selo com `checked === discovered`                                | `m02-seal`                                   |
-| 8   | CI verde no commit selado, `run@sha` com ≥ 1 check aplicável     | `gh run list` por SHA                        |
+| #   | critério                                                         | prova                                                                                                                      |
+| --- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 1   | sob a semântica antiga, as 4 configurações dão veredicto ambíguo | captura §mutação: A/B/C todas `1 passed`                                                                                   |
+| 2   | restaurado, B/C/D falham alto **nomeando** chave e problema      | captura §restaurado                                                                                                        |
+| 3   | A passa com skip **visível**                                     | linha `db-precondition: N/A-sem-DB`                                                                                        |
+| 4   | `isLoopbackUrl(undefined) === false` pinado por teste            | `db-precondition.test.ts`                                                                                                  |
+| 5   | os 13 skips rodam no CI e no `db:test` como antes                | E2 + `ui-stack` verdes; **`db:test` provado com PG17 efêmero** no setup documentado (`captures/e2-runner-db-test.log.txt`) |
+| 6   | `npm run check` exit 0                                           | captura do gate                                                                                                            |
+| 7   | selo com `checked === discovered`                                | `m02-seal`                                                                                                                 |
+| 8   | CI verde no commit selado, `run@sha` com ≥ 1 check aplicável     | `gh run list` por SHA                                                                                                      |
 
 ## 6. Testes — RED/GREEN e falsificação
 
@@ -92,12 +97,14 @@ ambiente deliberadamente sem banco produziam o mesmo `1 passed` — indistinguí
 
 ## 7. Riscos
 
-| risco                                                                   | disposição                                                                                                                       |
-| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| O CI parar de rodar os 13 (URLs mal configuradas no job)                | é o comportamento pretendido: falha alta em vez de verde vazio. O job declara as 3 URLs em loopback (`ui-stack.yml`), então roda |
-| `console.log` no topo de arquivo de teste poluir a saída                | é o ponto: visibilidade. A alternativa (`describe.skip` mudo) é o defeito                                                        |
-| Desenvolvedor com `.env` parcial passar a ver erro onde antes via verde | pretendido; a mensagem diz exatamente o que configurar ou remover                                                                |
-| Interação com `npm run db:test` (17 suítes)                             | nenhuma: o encadeamento define as três URLs; comportamento inalterado                                                            |
+| risco                                                                                                                   | disposição                                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| O CI parar de rodar os 13 (URLs mal configuradas no job)                                                                | é o comportamento pretendido: falha alta em vez de verde vazio. O job declara as 3 URLs em loopback (`ui-stack.yml`), então roda                                                                                                                                                                                                                                                                          |
+| `console.log` no topo de arquivo de teste poluir a saída                                                                | é o ponto: visibilidade. A alternativa (`describe.skip` mudo) é o defeito                                                                                                                                                                                                                                                                                                                                 |
+| Desenvolvedor com `.env` parcial passar a ver erro onde antes via verde                                                 | pretendido; a mensagem diz exatamente o que configurar ou remover                                                                                                                                                                                                                                                                                                                                         |
+| Interação com `npm run db:test` (17 suítes)                                                                             | **era uma regressão real** (S6 N1, achada também pelo autor): o runner faz `env: process.env` e exige `numPendingTests === 0`, e o `AGENTS.md` documenta o setup com **duas** URLs. A primeira versão da regra reprovava esse comando de contrato; corrigido antes do selo (`UNPOOLED` opcional) e **provado com PG17 efêmero** — 15/15 e 14/14, 0 skipped, exit 0 (`captures/e2-runner-db-test.log.txt`) |
+| **N2 do S6** — `neon-readiness.yml:169-170` e `neon-pr-branch.yml:303-304` rodam `db:test` com apenas o par, **remoto** | já estavam vermelhos por desenho (ERRATA-5); o modo de falha muda de "runner reprova por pending" para "precondição reprova". Nenhum vermelho novo — declarado, não corrigido                                                                                                                                                                                                                             |
+| **N9 do S6** — a regra estrita deixa de contar `./db.ts` (arquivo, não diretório)                                       | nenhum import assim existe hoje (`grep` = 0), então o diff de 1 entrada é completo; a fronteira não está pinada ⇒ **DBT-17**                                                                                                                                                                                                                                                                              |
 
 ## 8. Rollback
 
