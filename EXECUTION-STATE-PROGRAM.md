@@ -2416,3 +2416,18 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L146` (intenção) e `L147` (resultado).
 
   Latest state marker parent = `9237d01150c9a21e26d60fb540bed1e3d149b4ff`,
+
+### Incidente de plataforma — CI parou de iniciar workflows (declarado, 2026-09-21T14:33Z)
+
+- **Fato:** o push de `d9bc810` gerou `UI stack` `35612966958` e `CI light` `35612966748`, **ambas
+  `failure` com 0 passos** (~3 s). `gh run rerun` → `run_attempt: 2`, **0 passos de novo**. Um push de
+  commit vazio (`5539226`) **não criou execução nenhuma**.
+- **Descartado com comando:** YAML válido nos dois workflows; os **mesmos arquivos** rodaram verdes em
+  `f293368` (30 passos) minutos antes; `actions/permissions` = `enabled:true, allowed_actions:all`.
+- **Conclusão:** bloqueio de **plataforma/conta** — nenhuma mudança de repositório explica "0 passos" e
+  "push sem run".
+- **Estado:** local **verde** (`npm run check` exit 0 · 96 arquivos · 987 passed | 13 skipped; três
+  guardas exit 0; selo OK; marcador válido). **CI dos commits `d9bc810` e `5539226` PENDENTE e não
+  afirmada.** O item 15 do checklist vale até `f293368`.
+
+  Latest state marker parent = `55392269f1feef609803cff5bab4df411d5cf585`,

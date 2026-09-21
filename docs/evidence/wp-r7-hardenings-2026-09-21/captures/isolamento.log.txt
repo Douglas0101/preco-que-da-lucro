@@ -39,3 +39,25 @@ A light já usava `fetch-depth: 0` e por isso ficou verde no mesmo commit.
 (b) a guarda declara e verifica a **precondição de ambiente** — clone raso é `exit 2` nomeado, nunca
 "âncora inexistente". É a **quinta** ocorrência da mesma família na série (a lição do WP-R4 foi
 exatamente um teste que dependia de histórico e passava por vacuidade num clone raso).
+
+## INCIDENTE DE PLATAFORMA DECLARADO — CI parou de iniciar (2026-09-21T14:33Z)
+
+Depois do fix do clone raso (heavy verde em `f293368@35611793799`), o push do commit do marcador
+(`d9bc810`) produziu **duas execuções que falharam no STARTUP, com 0 passos**:
+
+    UI stack   35612966958  failure  d9bc810  0 steps  (~3 s)
+    CI light   35612966748  failure  d9bc810  0 steps  (~3 s)
+
+**Diagnóstico (o que foi descartado, com comando):**
+- **YAML válido** nos dois workflows (`yaml.safe_load` → jobs `verify` e `docs-light` presentes).
+- **Os mesmos arquivos de workflow rodaram verdes minutos antes** no mesmo dia (`f293368`, 30 passos).
+- `actions/permissions` → `{"enabled":true,"allowed_actions":"all"}`.
+- `run_attempt: 2` após `gh run rerun` → **0 passos de novo** (não é transiente de uma tentativa).
+- **Push de um commit vazio (`5539226`) NÃO criou execução nenhuma** — a plataforma parou de iniciar
+  workflows para este repositório.
+
+**Conclusão honesta:** o bloqueio é **de plataforma/conta**, não do repositório — nenhuma mudança de
+código ou de workflow explica "job com 0 passos" e "push sem run". O estado local está verde
+(`npm run check` exit 0 · 96 arquivos · 987 passed | 13 skipped; as três guardas exit 0; selo OK;
+marcador parent-pinned válido), mas **a verificação por CI dos commits `d9bc810` e `5539226` fica
+PENDENTE e não é afirmada**. O item 15 do checklist do selo permanece satisfeito apenas até `f293368`.
