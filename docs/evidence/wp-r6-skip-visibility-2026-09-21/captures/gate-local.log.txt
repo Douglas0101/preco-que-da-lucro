@@ -10,7 +10,7 @@
   "schema": "m02-lockfile-guard/1",
   "ok": true,
   "status": "pass",
-  "generatedAt": "2026-09-21T02:49:56.670Z",
+  "generatedAt": "2026-09-21T02:56:53.803Z",
   "repo": "/home/douglas-souza/preco-que-d-main",
   "observed": {
     "spec": "^0.31.10",
@@ -59,7 +59,7 @@ work-package guard: OK (17 itens, 5 secoes, taxonomia e layout do selo) — docs
 > m02:debts-guard
 > node scripts/m02-debts-guard.mjs
 
-debts guard: OK (15 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md
+debts guard: OK (18 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md
 
 > m02:matrix:check
 > tsx scripts/m02-matrix.ts --check
@@ -100,293 +100,294 @@ All matched files use Prettier code style!
 
  RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
 
-stdout | src/test/product-contracts.test.ts
-db-precondition: N/A-sem-DB: nenhuma das 3 URLs definida (modo local sem banco)
+ ✓ src/test/m02-seal.test.ts (40 tests) 4213ms
+     ✓ claim invertida reprova (objetos existem: o vermelho é da relação, não da ausência)  301ms
+ ✓ src/test/m02-role-membership.test.ts (5 tests) 5356ms
+     ✓ drill-branch mirando produção → DENY pré-conexão  982ms
+     ✓ cutover-window fora de janela → DENY pré-conexão (inclusive dry-run)  2185ms
+     ✓ URL malformada/ausente → fail-closed exit 2, sem vazar valor  2182ms
+ ✓ src/test/m02-cutover-t0.test.ts (2 tests) 8020ms
+     ✓ --skip-snapshot não conecta e ainda assim exit 0 com rótulos (smoke de parsing)  8014ms
+ ✓ src/test/m02-transaction-sites.test.ts (21 tests) 1459ms
+     ✓ importar o gerador não regrava a matriz  1370ms
+ ✓ src/test/simulation-volume-source.test.tsx (7 tests) 3241ms
+     ✓ expõe o grupo, o rótulo e o estado de cada opção (teclado alcança o radio marcado)  551ms
+     ✓ anuncia a estimativa e bloqueia o salvamento com o motivo declarado  1599ms
+     ✓ não tem violações de acessibilidade com a estimativa selecionada  1073ms
+ ✓ src/test/calc-explainer.test.tsx (12 tests) 2542ms
+     ✓ cada KPI e o destaque de margem têm o próprio «Como calculamos?»  575ms
+     ✓ forecast: mostra as fórmulas do motor e descreve a projeção sem prometer previsão estatística  1002ms
+     ✓ simulação manual: a mesma matemática, com o volume declarado hipotético  589ms
+ ✓ src/test/contracts-driver-independence.test.ts (2 tests) 1411ms
+     ✓ compila com @/db/* remapeado para um diretório inexistente  1401ms
+ ✓ src/test/perf-summarize.test.ts (15 tests) 1082ms
+     ✓ CLI com fixture termina com exit 0 e grava o relatório  504ms
+ ✓ src/test/ui-stack.test.tsx (4 tests) 1035ms
+     ✓ renders a semantic button and composes a link without nesting controls  329ms
+     ✓ associates its label and changes a controlled Select with the keyboard  425ms
+ ✓ src/test/m02-debts-guard.test.ts (16 tests) 842ms
+ ✓ src/test/finance.properties.test.ts (9 tests) 802ms
+     ✓ custo unitário maior, todo o resto igual ⇒ margem de contribuição não aumenta  389ms
+ ✓ src/test/memory-import-graph.test.ts (6 tests) 618ms
+     ✓ as raízes do cálculo canônico são derivadas do grafo (conjunto não vazio e fail-closed)  508ms
+ ✓ src/test/m02-work-package-guard.test.ts (9 tests) 594ms
+ ✓ src/test/route-loading-skeletons.test.tsx (5 tests) 862ms
+     ✓ inicio: renders the 4-column KPI grid geometry and the announcement while loading  348ms
+ ✓ src/test/m02-snapshot.test.ts (10 tests) 582ms
+ ✓ src/test/auth-policy.test.ts (8 tests) 449ms
+     ✓ writes and verifies new passwords with scrypt  408ms
+ ✓ src/test/m02-pitr-check.test.ts (18 tests) 266ms
+ ✓ src/test/rls-probe-contract.test.ts (2 tests) 195ms
+ ✓ src/test/break-even.negative-margin.test.tsx (15 tests) 431ms
+ ✓ src/test/m02-neon-spend.test.ts (16 tests) 135ms
+ ✓ src/test/m02-v2b.test.ts (11 tests) 154ms
+ ✓ src/test/chat-markdown.test.tsx (24 tests) 123ms
+ ✓ src/test/contracts.test.ts (11 tests) 64ms
+ ✓ src/test/simulation-race.test.tsx (7 tests) 114ms
+ ✓ src/test/finance.golden.test.ts (127 tests) 63ms
+stdout | src/test/round-trip-instrumentation.perf-waves.test.ts > T1 perf-waves: instrumentação de round trips por transação (app.context_tx) > ignora pools sem connect e não reinstrumenta o mesmo cliente
+{"timestamp":"2026-09-21T02:58:02.323Z","level":"info","event":"app.context_tx","round_trips":2,"outcome":"commit","duration_ms":0}
 
- ✓ src/test/product-contracts.test.ts (14 tests | 9 skipped) 44ms
- ✓ src/test/m02-role-membership.test.ts (5 tests) 5435ms
-     ✓ drill-branch mirando produção → DENY pré-conexão  1202ms
-     ✓ cutover-window fora de janela → DENY pré-conexão (inclusive dry-run)  2169ms
-     ✓ URL malformada/ausente → fail-closed exit 2, sem vazar valor  2058ms
- ✓ src/test/m02-seal.test.ts (40 tests) 4166ms
-     ✓ comando em forma não reconhecida reprova em vez de ser pulado  309ms
- ✓ src/test/m02-cutover-t0.test.ts (2 tests) 8247ms
-     ✓ --skip-snapshot não conecta e ainda assim exit 0 com rótulos (smoke de parsing)  8237ms
- ✓ src/test/m02-transaction-sites.test.ts (21 tests) 1844ms
-     ✓ importar o gerador não regrava a matriz  1766ms
- ✓ src/test/calc-explainer.test.tsx (12 tests) 2503ms
-     ✓ cada KPI e o destaque de margem têm o próprio «Como calculamos?»  453ms
-     ✓ forecast: mostra as fórmulas do motor e descreve a projeção sem prometer previsão estatística  1040ms
-     ✓ simulação manual: a mesma matemática, com o volume declarado hipotético  583ms
- ✓ src/test/simulation-volume-source.test.tsx (7 tests) 3396ms
-     ✓ expõe o grupo, o rótulo e o estado de cada opção (teclado alcança o radio marcado)  754ms
-     ✓ anuncia a estimativa e bloqueia o salvamento com o motivo declarado  1440ms
-     ✓ não tem violações de acessibilidade com a estimativa selecionada  1191ms
- ✓ src/test/contracts-driver-independence.test.ts (2 tests) 1242ms
-     ✓ compila com @/db/* remapeado para um diretório inexistente  1230ms
- ✓ src/test/m02-debts-guard.test.ts (16 tests) 955ms
- ✓ src/test/finance.properties.test.ts (9 tests) 707ms
-     ✓ custo unitário maior, todo o resto igual ⇒ margem de contribuição não aumenta  375ms
- ✓ src/test/ui-stack.test.tsx (4 tests) 1083ms
-     ✓ associates its label and changes a controlled Select with the keyboard  541ms
- ✓ src/test/perf-summarize.test.ts (15 tests) 985ms
-     ✓ CLI com fixture termina com exit 0 e grava o relatório  517ms
- ✓ src/test/m02-snapshot.test.ts (10 tests) 512ms
- ✓ src/test/route-loading-skeletons.test.tsx (5 tests) 923ms
-     ✓ inicio: renders the 4-column KPI grid geometry and the announcement while loading  416ms
- ✓ src/test/m02-work-package-guard.test.ts (9 tests) 535ms
- ✓ src/test/memory-import-graph.test.ts (6 tests) 607ms
-     ✓ as raízes do cálculo canônico são derivadas do grafo (conjunto não vazio e fail-closed)  497ms
- ✓ src/test/auth-policy.test.ts (8 tests) 359ms
-     ✓ writes and verifies new passwords with scrypt  317ms
- ✓ src/test/m02-v2b.test.ts (11 tests) 179ms
- ✓ src/test/rls-probe-contract.test.ts (2 tests) 180ms
- ✓ src/test/break-even.negative-margin.test.tsx (15 tests) 520ms
- ✓ src/test/m02-pitr-check.test.ts (18 tests) 263ms
- ✓ src/test/m02-neon-spend.test.ts (16 tests) 180ms
- ✓ src/test/chat-markdown.test.tsx (24 tests) 126ms
+ ✓ src/test/round-trip-instrumentation.perf-waves.test.ts (26 tests) 114ms
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > repete somente uma falha transitória e limita a duas tentativas
+{"timestamp":"2026-09-21T02:58:03.019Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":92,"outcome":"retry"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > repete somente uma falha transitória e limita a duas tentativas
+{"timestamp":"2026-09-21T02:58:03.030Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":2,"durationMs":7,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > não repete quota ou rate limit
+{"timestamp":"2026-09-21T02:58:03.035Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":1,"outcome":"RATE_LIMIT"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > propaga cancelamento como AI_TIMEOUT
+{"timestamp":"2026-09-21T02:58:03.038Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"AI_TIMEOUT"}
+
+ ✓ src/test/model-gateway.test.ts (3 tests) 119ms
 stdout | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToAcknowledge.record que lança não rejeita o chat
-{"timestamp":"2026-09-21T02:51:05.312Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":2,"timeToFirstContentMs":2,"timeToFinalMs":2}
+{"timestamp":"2026-09-21T02:58:04.042Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":1,"timeToFirstContentMs":2,"timeToFinalMs":2}
 
 stderr | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToAcknowledge.record que lança não rejeita o chat
-{"timestamp":"2026-09-21T02:51:05.313Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+{"timestamp":"2026-09-21T02:58:04.043Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
 
 stdout | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToFirstContent.record que lança não rejeita o chat
-{"timestamp":"2026-09-21T02:51:05.315Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+{"timestamp":"2026-09-21T02:58:04.046Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
 
 stderr | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToFirstContent.record que lança não rejeita o chat
-{"timestamp":"2026-09-21T02:51:05.316Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+{"timestamp":"2026-09-21T02:58:04.047Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
 
 stdout | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToFinal.record que lança não rejeita o chat
-{"timestamp":"2026-09-21T02:51:05.318Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+{"timestamp":"2026-09-21T02:58:04.048Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
 
 stderr | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToFinal.record que lança não rejeita o chat
-{"timestamp":"2026-09-21T02:51:05.318Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+{"timestamp":"2026-09-21T02:58:04.049Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
 
 stderr | src/test/safe-record.test.ts > tool-runner.ts: toolDuration nos três caminhos > falha: AI_TIMEOUT não é substituído pelo erro da métrica
-{"timestamp":"2026-09-21T02:51:05.329Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+{"timestamp":"2026-09-21T02:58:04.060Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
 
 stdout | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > start.ts: os três caminhos de requestDuration
-{"timestamp":"2026-09-21T02:51:05.333Z","level":"info","event":"request.completed","correlationId":"e59a13db-3991-4606-81d4-1a56559f5c20","method":"GET","pathname":"/produtos","status":200,"durationMs":1}
+{"timestamp":"2026-09-21T02:58:04.063Z","level":"info","event":"request.completed","correlationId":"4095652b-49b5-4374-b2e7-890ec30ffbbf","method":"GET","pathname":"/produtos","status":200,"durationMs":1}
 
 stderr | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > start.ts: os três caminhos de requestDuration
-{"timestamp":"2026-09-21T02:51:05.335Z","level":"error","event":"request.failed","correlationId":"d3cf3c6b-9bac-4da3-8cf8-b33facb41479","code":"INTERNAL_ERROR","method":"GET","pathname":"/produtos","durationMs":0,"error":{"name":"Error","message":"db exploded"}}
+{"timestamp":"2026-09-21T02:58:04.064Z","level":"error","event":"request.failed","correlationId":"3f442cea-ab6c-4865-8bac-b151125a1bac","code":"INTERNAL_ERROR","method":"GET","pathname":"/produtos","durationMs":0,"error":{"name":"Error","message":"db exploded"}}
 
 stdout | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > chat.functions.ts: aiDuration
-{"timestamp":"2026-09-21T02:51:05.337Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"success"}
+{"timestamp":"2026-09-21T02:58:04.067Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"success"}
 
 stdout | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > chat-execution.server.ts: as três fases do §29
-{"timestamp":"2026-09-21T02:51:05.338Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+{"timestamp":"2026-09-21T02:58:04.069Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
 
 stderr | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > chat-execution.server.ts: as três fases do §29
-{"timestamp":"2026-09-21T02:51:05.339Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+{"timestamp":"2026-09-21T02:58:04.069Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
 
 stderr | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > tool-runner.ts: toolDuration nos três caminhos
-{"timestamp":"2026-09-21T02:51:05.342Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+{"timestamp":"2026-09-21T02:58:04.072Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
 
- ✓ src/test/safe-record.test.ts (20 tests) 81ms
- ✓ src/test/simulation-race.test.tsx (7 tests) 171ms
- ✓ src/test/products-read-models.golden.perf-waves.test.ts (5 tests) 80ms
- ✓ src/test/finance.golden.test.ts (127 tests) 100ms
-stdout | src/test/round-trip-instrumentation.perf-waves.test.ts > T1 perf-waves: instrumentação de round trips por transação (app.context_tx) > ignora pools sem connect e não reinstrumenta o mesmo cliente
-{"timestamp":"2026-09-21T02:51:08.437Z","level":"info","event":"app.context_tx","round_trips":2,"outcome":"commit","duration_ms":0}
+ ✓ src/test/safe-record.test.ts (20 tests) 85ms
+ ✓ src/test/products-read-models.golden.perf-waves.test.ts (5 tests) 66ms
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat sem tool: acknowledge, first_content e final no mesmo round
+{"timestamp":"2026-09-21T02:58:05.427Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
 
- ✓ src/test/round-trip-instrumentation.perf-waves.test.ts (26 tests) 94ms
-stdout | src/test/products-fk-conflict.test.ts
-db-precondition: N/A-sem-DB: nenhuma das 3 URLs definida (modo local sem banco)
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat com uma tool: acknowledge mede só o primeiro round e first_content == final
+{"timestamp":"2026-09-21T02:58:05.435Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
 
- ✓ src/test/products-fk-conflict.test.ts (15 tests | 4 skipped) 18ms
- ✓ src/test/contracts.test.ts (11 tests) 122ms
- ✓ src/test/error-budget.test.ts (19 tests) 35ms
- ✓ src/test/finance.boundaries.test.ts (16 tests) 16ms
+stdout | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat com uma tool: acknowledge mede só o primeiro round e first_content == final
+{"timestamp":"2026-09-21T02:58:05.436Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":2,"timeToAcknowledgeMs":120,"timeToFirstContentMs":320,"timeToFinalMs":320}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat com uma tool: acknowledge mede só o primeiro round e first_content == final
+{"timestamp":"2026-09-21T02:58:05.437Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":1}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
+{"timestamp":"2026-09-21T02:58:05.439Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
+{"timestamp":"2026-09-21T02:58:05.440Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":1}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
+{"timestamp":"2026-09-21T02:58:05.441Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":2}
+
+stdout | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
+{"timestamp":"2026-09-21T02:58:05.441Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":4,"timeToAcknowledgeMs":10,"timeToFirstContentMs":100,"timeToFinalMs":100}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
+{"timestamp":"2026-09-21T02:58:05.442Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":3}
+
+ ✓ src/test/ai-chat-latency.test.ts (4 tests) 48ms
+ ✓ src/test/migration-classes.test.ts (3 tests) 31ms
+ ✓ src/test/financial-metrics.test.ts (9 tests) 43ms
+ ✓ src/test/tool-runner.persistence.test.ts (11 tests) 53ms
+ ✓ src/test/m02-secrets-audit.test.ts (4 tests) 28ms
+ ✓ src/test/csp-report.test.ts (13 tests) 32ms
+ ✓ src/test/pg-stat-statements.test.ts (11 tests) 28ms
 stdout | src/test/perf-evidence.test.ts > gate §35 — evidência de performance > T5: na árvore real nenhum artefato é isento (checked === discovered) e o baseline controlado entra
 gate §35: 4 descoberto(s) por caminho, 4 checado(s) contra os 7 rótulos, 0 isento(s)
 
- ✓ src/test/perf-evidence.test.ts (8 tests) 38ms
+ ✓ src/test/perf-evidence.test.ts (8 tests) 46ms
+ ✓ src/test/format.test.ts (22 tests) 33ms
+ ✓ src/test/error-budget.test.ts (19 tests) 48ms
+ ✓ src/test/observability-spans.test.ts (10 tests) 41ms
+stdout | src/test/product-contracts.test.ts
+db-precondition: N/A-sem-DB: nenhuma das 3 URLs definida (modo local sem banco)
+
+ ✓ src/test/product-contracts.test.ts (14 tests | 9 skipped) 81ms
+ ✓ src/test/cross-tenant-denial.perf-waves.test.ts (5 tests) 31ms
 stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > reserve and settle never write ai_usage.tool_execution_id (column stays NULL)
-{"timestamp":"2026-09-21T02:51:12.163Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+{"timestamp":"2026-09-21T02:58:13.754Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
 
 stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > reserve and settle never write ai_usage.tool_execution_id (column stays NULL)
-{"timestamp":"2026-09-21T02:51:12.166Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+{"timestamp":"2026-09-21T02:58:13.756Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
 
 stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
-{"timestamp":"2026-09-21T02:51:12.167Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+{"timestamp":"2026-09-21T02:58:13.757Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
 
 stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
-{"timestamp":"2026-09-21T02:51:12.168Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+{"timestamp":"2026-09-21T02:58:13.757Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
 
 stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle with a known cost adds it to the daily estimated_cost total
-{"timestamp":"2026-09-21T02:51:12.170Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+{"timestamp":"2026-09-21T02:58:13.758Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
 
 stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle with a known cost adds it to the daily estimated_cost total
-{"timestamp":"2026-09-21T02:51:12.170Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+{"timestamp":"2026-09-21T02:58:13.759Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
 
- ✓ src/test/ai-estimated-cost.test.ts (18 tests) 31ms
+ ✓ src/test/ai-estimated-cost.test.ts (18 tests) 29ms
+ ✓ src/test/security-headers.test.ts (3 tests) 24ms
+ ✓ src/test/api-error-logger.test.ts (4 tests) 24ms
+ ✓ src/test/simulation.service.test.ts (2 tests) 17ms
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > grava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+{"timestamp":"2026-09-21T02:58:16.250Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > grava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+{"timestamp":"2026-09-21T02:58:16.253Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":30000,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > NÃO libera a reserva e NÃO incrementa os contadores de token
+{"timestamp":"2026-09-21T02:58:16.256Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > NÃO libera a reserva e NÃO incrementa os contadores de token
+{"timestamp":"2026-09-21T02:58:16.257Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":30000,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:58:16.259Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:58:16.260Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":1702696260,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:58:16.263Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:58:16.264Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":1702696264,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:58:16.264Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:58:16.265Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"invalid","durationMs":1702696264,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > REGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+{"timestamp":"2026-09-21T02:58:16.265Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > REGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+{"timestamp":"2026-09-21T02:58:16.267Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > TokenUsage conhecido usa os valores medidos, não os de options
+{"timestamp":"2026-09-21T02:58:16.269Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > TokenUsage conhecido usa os valores medidos, não os de options
+{"timestamp":"2026-09-21T02:58:16.270Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":155,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > zero explícito conhecido liquida com zero (não confundir com desconhecido)
+{"timestamp":"2026-09-21T02:58:16.272Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > zero explícito conhecido liquida com zero (não confundir com desconhecido)
+{"timestamp":"2026-09-21T02:58:16.272Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":0,"usageUnknownReason":null,"durationMs":1702696272,"outcome":"success","applied":true}
+
+ ✓ src/test/ai-usage-unknown.test.ts (6 tests) 28ms
+ ✓ src/test/api-error-contract.test.ts (3 tests) 22ms
  ✓ src/test/m02-grant-repair.test.ts (5 tests) 24ms
-stdout | src/test/model-gateway.test.ts > limites do gateway de IA > repete somente uma falha transitória e limita a duas tentativas
-{"timestamp":"2026-09-21T02:51:12.755Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":71,"outcome":"retry"}
-
-stdout | src/test/model-gateway.test.ts > limites do gateway de IA > repete somente uma falha transitória e limita a duas tentativas
-{"timestamp":"2026-09-21T02:51:12.761Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":2,"durationMs":4,"outcome":"success"}
-
-stdout | src/test/model-gateway.test.ts > limites do gateway de IA > não repete quota ou rate limit
-{"timestamp":"2026-09-21T02:51:12.768Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":1,"outcome":"RATE_LIMIT"}
-
-stdout | src/test/model-gateway.test.ts > limites do gateway de IA > propaga cancelamento como AI_TIMEOUT
-{"timestamp":"2026-09-21T02:51:12.770Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"AI_TIMEOUT"}
-
- ✓ src/test/model-gateway.test.ts (3 tests) 97ms
- ✓ src/test/m02-secrets-audit.test.ts (4 tests) 45ms
- ✓ src/test/tool-runner.persistence.test.ts (11 tests) 50ms
- ✓ src/test/csp-report.test.ts (13 tests) 42ms
- ✓ src/test/financial-metrics.test.ts (9 tests) 58ms
- ✓ src/test/format.test.ts (22 tests) 37ms
- ✓ src/test/slo-ai-baseline-discipline.test.ts (7 tests) 12ms
- ✓ src/test/financial.service.test.ts (5 tests) 13ms
- ✓ src/test/simulation.service.test.ts (2 tests) 28ms
- ✓ src/test/rate-limit-rules.test.ts (9 tests) 13ms
-stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat sem tool: acknowledge, first_content e final no mesmo round
-{"timestamp":"2026-09-21T02:51:18.864Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
-
-stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat com uma tool: acknowledge mede só o primeiro round e first_content == final
-{"timestamp":"2026-09-21T02:51:18.871Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
-
-stdout | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat com uma tool: acknowledge mede só o primeiro round e first_content == final
-{"timestamp":"2026-09-21T02:51:18.872Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":2,"timeToAcknowledgeMs":120,"timeToFirstContentMs":320,"timeToFinalMs":320}
-
-stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat com uma tool: acknowledge mede só o primeiro round e first_content == final
-{"timestamp":"2026-09-21T02:51:18.873Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":1}
-
-stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
-{"timestamp":"2026-09-21T02:51:18.875Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
-
-stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
-{"timestamp":"2026-09-21T02:51:18.877Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":1}
-
-stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
-{"timestamp":"2026-09-21T02:51:18.877Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":2}
-
-stdout | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
-{"timestamp":"2026-09-21T02:51:18.882Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":4,"timeToAcknowledgeMs":10,"timeToFirstContentMs":100,"timeToFinalMs":100}
-
-stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
-{"timestamp":"2026-09-21T02:51:18.882Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":3}
-
- ✓ src/test/ai-chat-latency.test.ts (4 tests) 63ms
- ✓ src/test/memory-policy.test.ts (34 tests) 15ms
- ✓ src/test/migration-classes.test.ts (3 tests) 45ms
- ✓ src/test/security-headers.test.ts (3 tests) 30ms
- ✓ src/test/product-completeness.test.ts (4 tests) 12ms
- ✓ src/test/bff-create-update-contract.test.ts (4 tests) 16ms
+ ✓ src/test/check-bundle-identity.test.ts (5 tests) 30ms
 stderr | src/test/chat-rate-limit.test.ts > §20.5: admissão do chat por bucket atômico > recusa com RATE_LIMIT (429) antes do orçamento e do histórico
-{"timestamp":"2026-09-21T02:51:22.402Z","level":"warn","event":"ai.chat_rate_limited","bucket":"chat","retryAfterSeconds":600}
+{"timestamp":"2026-09-21T02:58:18.821Z","level":"warn","event":"ai.chat_rate_limited","bucket":"chat","retryAfterSeconds":600}
 
 stdout | src/test/chat-rate-limit.test.ts > §20.5: admissão do chat por bucket atômico > segue o turno quando o bucket aprova
-{"timestamp":"2026-09-21T02:51:22.416Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":1,"timeToFirstContentMs":2,"timeToFinalMs":2}
+{"timestamp":"2026-09-21T02:58:18.827Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":1,"timeToFirstContentMs":2,"timeToFinalMs":2}
 
 stderr | src/test/chat-rate-limit.test.ts > §20.5: admissão do chat por bucket atômico > segue o turno quando o bucket aprova
-{"timestamp":"2026-09-21T02:51:22.417Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+{"timestamp":"2026-09-21T02:58:18.827Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
 
- ✓ src/test/chat-rate-limit.test.ts (3 tests) 22ms
- ✓ src/test/dashboard.service.test.ts (6 tests) 20ms
- ✓ src/test/purchase-price.service.test.ts (4 tests) 16ms
- ✓ src/test/sales.service.test.ts (5 tests) 14ms
- ✓ src/test/check-bundle-identity.test.ts (5 tests) 21ms
- ✓ src/test/backfill-runner.test.ts (5 tests) 14ms
- ✓ src/test/tool-registry.test.ts (10 tests) 16ms
- ✓ src/test/web-vitals-payload.test.ts (9 tests) 12ms
- ✓ src/test/m02-matrix-drift.test.ts (12 tests) 14ms
- ✓ src/test/m02-purge-fixtures.test.ts (4 tests) 14ms
- ✓ src/test/query-performance.test.ts (7 tests) 23ms
- ✓ src/test/cross-tenant-denial.perf-waves.test.ts (5 tests) 32ms
- ✓ src/test/optimistic-version.repository.test.ts (8 tests) 11ms
- ✓ src/test/m02-readiness-snapshot.test.ts (11 tests) 21ms
- ✓ src/test/break-even.parity.test.ts (6 tests) 16ms
- ✓ src/test/financial-values.test.ts (5 tests) 15ms
- ✓ src/test/pg-stat-statements.test.ts (11 tests) 40ms
- ✓ src/test/observability-spans.test.ts (10 tests) 37ms
- ✓ src/test/m02-ci-coverage.test.ts (9 tests) 21ms
+ ✓ src/test/chat-rate-limit.test.ts (3 tests) 14ms
+ ✓ src/test/query-performance.test.ts (7 tests) 16ms
+ ✓ src/test/m02-readiness-snapshot.test.ts (11 tests) 20ms
+ ✓ src/test/m02-ci-coverage.test.ts (9 tests) 17ms
+ ✓ src/test/dashboard.service.test.ts (6 tests) 19ms
+ ✓ src/test/finance.required-sales.test.ts (13 tests) 14ms
  ✓ src/test/token-usage.test.ts (8 tests) 17ms
+ ✓ src/test/memory-service.test.ts (16 tests) 12ms
+ ✓ src/test/list-limits.test.ts (3 tests) 7ms
+ ✓ src/test/event-service.test.ts (10 tests) 16ms
+ ✓ src/test/break-even.parity.test.ts (6 tests) 19ms
 stderr | src/test/pricing.service.test.ts > DefaultPricingService > engole falha do snapshot mantendo o output do diagnóstico intacto
-{"timestamp":"2026-09-21T02:51:34.924Z","level":"warn","event":"diagnostic.snapshot_failed","productId":"70000000-0000-4000-8000-000000000001","message":"SNAPSHOT_DOWN"}
+{"timestamp":"2026-09-21T02:58:24.558Z","level":"warn","event":"diagnostic.snapshot_failed","productId":"70000000-0000-4000-8000-000000000001","message":"SNAPSHOT_DOWN"}
 
  ✓ src/test/pricing.service.test.ts (4 tests) 16ms
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > grava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
-{"timestamp":"2026-09-21T02:51:35.036Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > grava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
-{"timestamp":"2026-09-21T02:51:35.039Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":30000,"outcome":"usage_unknown","applied":true}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > NÃO libera a reserva e NÃO incrementa os contadores de token
-{"timestamp":"2026-09-21T02:51:35.042Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > NÃO libera a reserva e NÃO incrementa os contadores de token
-{"timestamp":"2026-09-21T02:51:35.042Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":30000,"outcome":"usage_unknown","applied":true}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
-{"timestamp":"2026-09-21T02:51:35.045Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
-{"timestamp":"2026-09-21T02:51:35.046Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":1702295046,"outcome":"usage_unknown","applied":true}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
-{"timestamp":"2026-09-21T02:51:35.047Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
-{"timestamp":"2026-09-21T02:51:35.047Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":1702295047,"outcome":"usage_unknown","applied":true}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
-{"timestamp":"2026-09-21T02:51:35.048Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
-{"timestamp":"2026-09-21T02:51:35.048Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"invalid","durationMs":1702295048,"outcome":"usage_unknown","applied":true}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > REGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
-{"timestamp":"2026-09-21T02:51:35.049Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > REGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
-{"timestamp":"2026-09-21T02:51:35.050Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > TokenUsage conhecido usa os valores medidos, não os de options
-{"timestamp":"2026-09-21T02:51:35.053Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > TokenUsage conhecido usa os valores medidos, não os de options
-{"timestamp":"2026-09-21T02:51:35.053Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":155,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > zero explícito conhecido liquida com zero (não confundir com desconhecido)
-{"timestamp":"2026-09-21T02:51:35.055Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
-
-stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > zero explícito conhecido liquida com zero (não confundir com desconhecido)
-{"timestamp":"2026-09-21T02:51:35.056Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":0,"usageUnknownReason":null,"durationMs":1702295055,"outcome":"success","applied":true}
-
- ✓ src/test/ai-usage-unknown.test.ts (6 tests) 26ms
- ✓ src/test/ai-endpoint.server.test.ts (7 tests) 11ms
- ✓ src/test/finance.required-sales.test.ts (13 tests) 17ms
- ✓ src/test/snapshot-idempotency.test.ts (5 tests) 8ms
- ✓ src/test/event-service.test.ts (10 tests) 17ms
- ✓ src/test/api-error-logger.test.ts (4 tests) 27ms
- ✓ src/test/api-error-contract.test.ts (3 tests) 24ms
- ✓ src/test/chat-fsm.server.test.ts (14 tests) 13ms
- ✓ src/test/rls-probe-errors.test.ts (4 tests) 8ms
+ ✓ src/test/tool-registry.test.ts (10 tests) 31ms
+ ✓ src/test/finance.boundaries.test.ts (16 tests) 17ms
+ ✓ src/test/bff-create-update-contract.test.ts (4 tests) 17ms
+ ✓ src/test/financial-values.test.ts (5 tests) 18ms
+ ✓ src/test/purchase-price.service.test.ts (4 tests) 18ms
+ ✓ src/test/memory-policy.test.ts (34 tests) 20ms
+ ✓ src/test/m02-matrix-drift.test.ts (12 tests) 22ms
+ ✓ src/test/sales.service.test.ts (5 tests) 19ms
+ ✓ src/test/backfill-runner.test.ts (5 tests) 12ms
+ ✓ src/test/m02-purge-fixtures.test.ts (4 tests) 11ms
+ ✓ src/test/rate-limit-rules.test.ts (9 tests) 10ms
  ✓ src/test/memory-dedup.test.ts (11 tests) 14ms
- ✓ src/test/chat-fsm.test.ts (2 tests) 5ms
- ✓ src/test/sql-redactor.test.ts (11 tests) 11ms
- ✓ src/test/memory-service.test.ts (16 tests) 17ms
- ✓ src/test/break-even.service.test.ts (2 tests) 10ms
- ✓ src/test/conversation.service.test.ts (6 tests) 11ms
- ✓ src/test/m02-backup-verify.test.ts (7 tests) 7ms
- ✓ src/test/audit.service.test.ts (5 tests) 13ms
- ✓ src/test/request-context.test.ts (2 tests) 7ms
- ✓ src/test/db-precondition.test.ts (12 tests) 12ms
- ✓ src/test/ai-tool.repository.security.test.ts (1 test) 5ms
- ✓ src/test/list-limits.test.ts (3 tests) 17ms
- ✓ src/test/m02-database-module.test.ts (5 tests) 4ms
+ ✓ src/test/financial.service.test.ts (5 tests) 20ms
+ ✓ src/test/web-vitals-payload.test.ts (9 tests) 15ms
+ ✓ src/test/chat-fsm.server.test.ts (14 tests) 13ms
+ ✓ src/test/audit.service.test.ts (5 tests) 11ms
+ ✓ src/test/slo-ai-baseline-discipline.test.ts (7 tests) 15ms
+ ✓ src/test/db-precondition.test.ts (12 tests) 11ms
+ ✓ src/test/product-completeness.test.ts (4 tests) 10ms
+ ✓ src/test/sql-redactor.test.ts (11 tests) 12ms
+ ✓ src/test/ai-endpoint.server.test.ts (7 tests) 10ms
+ ✓ src/test/optimistic-version.repository.test.ts (8 tests) 24ms
+ ✓ src/test/conversation.service.test.ts (6 tests) 10ms
+ ✓ src/test/break-even.service.test.ts (2 tests) 12ms
+ ✓ src/test/rls-probe-errors.test.ts (4 tests) 9ms
+ ✓ src/test/m02-database-module.test.ts (5 tests) 7ms
+ ✓ src/test/snapshot-idempotency.test.ts (5 tests) 13ms
+stdout | src/test/products-fk-conflict.test.ts
+db-precondition: N/A-sem-DB: nenhuma das 3 URLs definida (modo local sem banco)
+
+ ✓ src/test/products-fk-conflict.test.ts (15 tests | 4 skipped) 11ms
+ ✓ src/test/m02-backup-verify.test.ts (7 tests) 14ms
+ ✓ src/test/request-context.test.ts (2 tests) 6ms
+ ✓ src/test/ai-tool.repository.security.test.ts (1 test) 4ms
+ ✓ src/test/chat-fsm.test.ts (2 tests) 6ms
  ✓ src/test/migration-reconcile.test.ts (1 test) 3ms
 
  Test Files  95 passed (95)
       Tests  969 passed | 13 skipped (982)
-   Start at  23:50:36
-   Duration  69.79s (transform 3.78s, setup 12.72s, import 50.15s, tests 37.08s, environment 89.11s)
+   Start at  23:57:33
+   Duration  68.59s (transform 3.63s, setup 12.67s, import 47.93s, tests 36.41s, environment 88.89s)
 
 
 > build
@@ -446,7 +447,7 @@ computing gzip size...
 .output/public/assets/tanstack-vendor-D1mahD_Y.js   160.39 kB │ gzip: 51.16 kB
 .output/public/assets/index-oW6bmarj.js             237.69 kB │ gzip: 74.10 kB
 
-✓ built in 1.66s
+✓ built in 1.68s
 vite v8.2.2 building ssr environment for production...
 transforming...
 ✓ 273 modules transformed.
@@ -511,7 +512,7 @@ node_modules/.nitro/vite/services/ssr/assets/client.server-Dr4Nv5LD.js          
 node_modules/.nitro/vite/services/ssr/assets/server-Bhn-cc_Z.js                         75.43 kB │ gzip: 19.97 kB
 node_modules/.nitro/vite/services/ssr/assets/auth.server-Clv0FULM.js                   367.77 kB │ gzip: 87.58 kB
 
-✓ built in 1.13s
+✓ built in 1.10s
 
 [nitro] ◐ Building [Nitro] (preset: node-server, compatibility: 2026-09-15)
 [nitro] ✔ Generated public .output/public
@@ -610,7 +611,7 @@ computing gzip size...
 .output/server/_libs/@tanstack/react-router+[...].mjs          649.49 kB │ gzip: 136.21 kB
 .output/server/_libs/@better-auth/core+[...].mjs               832.76 kB │ gzip: 164.77 kB
 
-✓ built in 878ms
+✓ built in 857ms
 ℹ Generated .output/nitro.json
 
 [nitro] ✔ You can preview this build using npx vite preview
@@ -620,4 +621,3 @@ computing gzip size...
 
 PASS assets/index-oW6bmarj.js: 237694 minified, 73258 gzip, 63718 Brotli bytes, sha256=a67e89b47cb5
 Initial graph (9 chunks): 473230 minified, 151053 gzip, 132843 Brotli bytes, sha256=bfdc8d79ed27
-GATE_EXIT=0

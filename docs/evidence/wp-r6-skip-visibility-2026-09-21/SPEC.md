@@ -68,6 +68,7 @@ ambiente deliberadamente sem banco produziam o mesmo `1 passed` — indistinguí
 | `src/test/m02-database-module.test.ts`                                             | **novo** — 5 casos, incluindo o falso positivo                  |
 | `scripts/db/test-product-contracts.ts` · `scripts/db/test-products-fk-conflict.ts` | comentários que descreviam a semântica antiga                   |
 | `.github/workflows/ui-stack.yml`                                                   | comentário do gate alinhado (C12 do S6: 14/14 e 15/15)          |
+| `docs/evidence/agent-state/DEBTS.md`                                               | abertas pelo S6: **DBT-16**, **DBT-17**, **DBT-18**             |
 | `docs/evidence/wp-r6-skip-visibility-2026-09-21/**`                                | SPEC, README, capturas, `MANIFEST.sha256`                       |
 
 **Não muda:** nenhum código de runtime, nenhuma migration, `package.json` intocado, `:5432` intocado,

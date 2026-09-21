@@ -43,14 +43,22 @@ intocado, `origin/main` intocado.
 
 ## 3. Evidência por fase
 
-| fase                           | captura                                 | número medido                                                                                                                            |
-| ------------------------------ | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Inventário dos 13**          | `captures/inventario-skips.log.txt`     | 2 sítios por descoberta (`grep`); 9 + 4; motivo nomeado; CI declara as 3 em loopback                                                     |
-| **RED (fail-open)**            | `captures/red-fail-open.log.txt`        | sob a semântica antiga **A, B e C todas `1 passed`**; sha256 `e2fa3518…` → `7ee051be…` → restaurado `e2fa3518…`                          |
-| **GREEN**                      | idem                                    | A passa com skip nomeado · B, C, D **falham alto** nomeando chave e problema                                                             |
-| **Falso positivo do contador** | `captures/red-classificador-db.log.txt` | mutação para a regra frouxa → **2 failed** (os casos do falso positivo); sha256 restaurado; matriz **49** entradas, sem o falso positivo |
-| **Gate local**                 | `captures/gate-local.log.txt`           | `npm run check` **exit 0** · 95 arquivos · **964 passed \| 13 skipped** · os 13 **nomeados** na saída                                    |
-| **Isolamento**                 | `captures/isolamento.log.txt`           | `origin/main` = `9724d2c` · `:5432` 0 listeners · 0 migrations · lockfile intocado                                                       |
+| fase                           | captura                                 | número medido                                                                                                                                                     |
+| ------------------------------ | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Inventário dos 13**          | `captures/inventario-skips.log.txt`     | 2 sítios por descoberta (`grep`); 9 + 4; motivo nomeado; CI declara as 3 em loopback                                                                              |
+| **RED (fail-open)**            | `captures/red-fail-open.log.txt`        | sob a semântica antiga **A, B e C todas `1 passed`**; sha256 `e2fa3518…` → `7ee051be…` → restaurado `e2fa3518…`                                                   |
+| **GREEN**                      | idem                                    | A passa com skip nomeado · B, C, D **falham alto** nomeando chave e problema                                                                                      |
+| **Falso positivo do contador** | `captures/red-classificador-db.log.txt` | mutação para a regra frouxa → **2 failed** (os casos do falso positivo); sha256 restaurado; matriz **49** entradas, sem o falso positivo                          |
+| **Gate local**                 | `captures/gate-local.log.txt`           | `npm run check` **exit 0** no commit do selo · 95 arquivos · **969 passed \| 13 skipped** · os 13 **nomeados** na saída (`db-precondition: N/A-sem-DB`, 2 linhas) |
+| **Isolamento**                 | `captures/isolamento.log.txt`           | `origin/main` = `9724d2c` · `:5432` 0 listeners · 0 migrations · lockfile intocado                                                                                |
+
+**Sobre o número de testes:** a contagem é **atada à revisão**, e as três que aparecem neste selo são de
+revisões diferentes — `952` na medição que abriu o WP (§1), `964` na execução **do S6** sobre o alvo
+pinado `edb504c` (§7.1, C10, quando `db-precondition.test.ts` tinha 7 casos) e **`969`** aqui, sobre o
+commit selado, com os 12 casos do arquivo depois de N7/N8. Nenhuma delas é "o número do WP": a única
+canônica é a do gate no commit selado. Uma medição intermediária chegou a registrar `967` a partir de
+um estado de trabalho **não commitado** — o mesmo modo de falha do N10, agora do lado do autor; a
+captura regerada no commit elimina a ambiguidade.
 
 ## 4. Riscos e limites declarados
 
