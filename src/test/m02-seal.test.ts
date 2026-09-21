@@ -12,7 +12,14 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
-import { auditRun, countApplicableSteps, extractAncestryClaims } from "../../scripts/m02-seal.mjs";
+import {
+  auditRun,
+  countApplicableSteps,
+  countAncestryMentions,
+  driftForaDoSelo,
+  extractAncestryClaims,
+  parseStatusZ,
+} from "../../scripts/m02-seal.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const script = resolve(root, "scripts/m02-seal.mjs");
@@ -305,6 +312,111 @@ describe("m02-seal — taxonomia de exit codes na ancestralidade (INV-R5-b)", ()
     const result = runIn(repo, ["--dir", selo, "--ancestry", claim]);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("ancestralidade falsa");
+  });
+});
+
+describe("m02-seal — parser do `status -z` (S6 N1/N2/N6)", () => {
+  it("não cita nem escapa caminho não-ASCII (o porcelain textual citava)", () => {
+    expect(parseStatusZ(" M café.txt\0")).toEqual(["café.txt"]);
+    expect(parseStatusZ(" M com espaço.txt\0")).toEqual(["com espaço.txt"]);
+  });
+
+  it("rename usa o caminho novo e consome o campo do antigo", () => {
+    expect(parseStatusZ("R  new.txt\0old.txt\0?? outro.md\0")).toEqual(["new.txt", "outro.md"]);
+  });
+
+  it("caminho contendo `->` não é truncado", () => {
+    expect(parseStatusZ("?? docs/a -> b.md\0")).toEqual(["docs/a -> b.md"]);
+  });
+
+  it("diretório ancestral colapsado (com barra) não vira deriva", () => {
+    expect(driftForaDoSelo({ porcelain: "?? docs/\0", dir: "docs/evidence/f" })).toEqual([]);
+    expect(driftForaDoSelo({ porcelain: "?? outro/\0", dir: "docs/evidence/f" })).toEqual([
+      "outro/",
+    ]);
+  });
+
+  it("arquivos do próprio selo não são deriva; irmãos são", () => {
+    const porcelain = "?? docs/evidence/f/SPEC.md\0?? docs/evidence/g/SPEC.md\0";
+    expect(driftForaDoSelo({ porcelain, dir: "docs/evidence/f" })).toEqual([
+      "docs/evidence/g/SPEC.md",
+    ]);
+  });
+
+  it("selo em diretório com nome não-ASCII é selável (N1)", () => {
+    const { dir: repo } = makeGitRepo();
+    const selo = "docs/evidence/selô";
+    mkdirSync(join(repo, selo, "captures"), { recursive: true });
+    writeFileSync(join(repo, selo, "SPEC.md"), "# spec\n");
+    writeFileSync(join(repo, selo, "README.md"), "# readme\n");
+    writeFileSync(join(repo, selo, "captures", "nota.txt"), "prova\n");
+    const result = runIn(repo, ["--dir", selo, "--write"]);
+    expect(result.stderr).toBe("");
+    expect(result.status).toBe(0);
+  });
+
+  it("selo em diretório contendo `->` é selável (N2)", () => {
+    const { dir: repo } = makeGitRepo();
+    const selo = "docs/evidence/a -> b";
+    mkdirSync(join(repo, selo, "captures"), { recursive: true });
+    writeFileSync(join(repo, selo, "SPEC.md"), "# spec\n");
+    writeFileSync(join(repo, selo, "README.md"), "# readme\n");
+    const result = runIn(repo, ["--dir", selo, "--write"]);
+    expect(result.stderr).toBe("");
+    expect(result.status).toBe(0);
+  });
+});
+
+describe("m02-seal — ancestralidade não reconhecida não passa em silêncio (S6 N3)", () => {
+  it("claim em hex MAIÚSCULO é verificada, não ignorada", () => {
+    const { repo, selo, first, second } = makeRepoSelo();
+    expect(runIn(repo, ["--dir", selo, "--write"]).status).toBe(0);
+    const claim = join(tmp, "maiuscula.md");
+    writeFileSync(
+      claim,
+      `\`git merge-base --is-ancestor ${first} ${second}\` (verdadeira)\n` +
+        `\`git merge-base --is-ancestor ${second.toUpperCase()} ${first.toUpperCase()}\` (falsa)\n`,
+    );
+    const result = runIn(repo, ["--dir", selo, "--ancestry", claim]);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("ancestralidade falsa");
+  });
+
+  it("comando em forma não reconhecida reprova em vez de ser pulado", () => {
+    const { repo, selo, first, second } = makeRepoSelo();
+    expect(runIn(repo, ["--dir", selo, "--write"]).status).toBe(0);
+    const claim = join(tmp, "forma-nao-reconhecida.md");
+    writeFileSync(
+      claim,
+      `\`git merge-base --is-ancestor ${first} ${second}\` (verdadeira)\n` +
+        "`git merge-base --is-ancestor` (sem argumentos)\n",
+    );
+    const result = runIn(repo, ["--dir", selo, "--ancestry", claim]);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("nao verificada");
+  });
+
+  it("contagem de menções cobre hex maiúsculo e formas não-numéricas", () => {
+    expect(countAncestryMentions("`git merge-base --is-ancestor ABC1234 def5678`")).toBe(1);
+    expect(extractAncestryClaims("`git merge-base --is-ancestor ABC1234 def5678`")).toEqual([
+      { ancestor: "ABC1234", descendant: "def5678" },
+    ]);
+  });
+});
+
+describe("m02-seal — a superfície de tipos acompanha o runtime", () => {
+  it("os exports de runtime e as declarações de m02-seal.d.mts são o mesmo conjunto", async () => {
+    const ns = await import("../../scripts/m02-seal.mjs");
+    const runtime = Object.keys(ns)
+      .filter((chave) => chave !== "default")
+      .sort();
+    const dts = readFileSync(resolve(root, "scripts/m02-seal.d.mts"), "utf8");
+    const declarados = [...dts.matchAll(/^export declare (?:function|const|class) (\w+)/gm)]
+      .map((match) => match[1])
+      .sort();
+    // Duas direções: export sem declaração quebra o `tsc` de quem importa; declaração sem
+    // export é um contrato fantasma. O `.d.mts` é mantido à mão, então precisa desta trava.
+    expect(declarados).toEqual(runtime);
   });
 });
 

@@ -131,9 +131,18 @@ export function auditManifest({ discovered, hashes, manifestText, required = REQ
   return falhas;
 }
 
+/**
+ * Declaracoes de ancestralidade. O argumento e `\S+` (nao `[0-9a-f]{7,40}`) de proposito: com a
+ * classe restrita, uma claim escrita em hex MAIUSCULO (ou como tag/branch/`HEAD~1`) era pulada em
+ * silencio sempre que o documento tivesse outra claim valida — falso verde na ferramenta
+ * anti-vacuidade. `auditAncestry` fecha a porta com `checked === discovered`.
+ */
+const ANCESTRY_CLAIM = /git\s+merge-base\s+--is-ancestor\s+([^\s`]+)\s+([^\s`]+)/g;
+const ANCESTRY_MENTION = /git\s+merge-base\s+--is-ancestor/g;
+
 export function extractAncestryClaims(text) {
   const claims = [];
-  const re = /git merge-base --is-ancestor ([0-9a-f]{7,40}) ([0-9a-f]{7,40})/g;
+  const re = new RegExp(ANCESTRY_CLAIM.source, "g");
   let m = re.exec(text ?? "");
   while (m !== null) {
     claims.push({ ancestor: m[1], descendant: m[2] });
@@ -142,12 +151,23 @@ export function extractAncestryClaims(text) {
   return claims;
 }
 
+export function countAncestryMentions(text) {
+  return ((text ?? "").match(new RegExp(ANCESTRY_MENTION.source, "g")) ?? []).length;
+}
+
 export function auditAncestry(text, { runAncestor }) {
   const claims = extractAncestryClaims(text);
-  if (claims.length === 0) {
-    return ["nenhuma declaracao de ancestralidade encontrada (0 = 0 reprova)"];
-  }
+  const mencoes = countAncestryMentions(text);
   const falhas = [];
+  if (mencoes !== claims.length) {
+    falhas.push(
+      `ancestralidade nao verificada: ${mencoes} comando(s) no texto, ${claims.length} verificavel(is) — forma nao reconhecida nao pode ser ignorada em silencio`,
+    );
+  }
+  if (claims.length === 0) {
+    falhas.push("nenhuma declaracao de ancestralidade encontrada (0 = 0 reprova)");
+    return falhas;
+  }
   for (const { ancestor, descendant } of claims) {
     if (runAncestor(ancestor, descendant) !== 0) {
       falhas.push(`ancestralidade falsa: ${ancestor} nao e ancestral de ${descendant}`);
@@ -208,16 +228,22 @@ function gitAncestor(a, b) {
   );
 }
 
-/** Caminhos de `git status --porcelain` (formato `XY caminho`, com rename `antigo -> novo`). */
-export function parsePorcelain(text) {
-  return (text ?? "")
-    .split("\n")
-    .filter((linha) => linha.trim().length > 0)
-    .map((linha) => {
-      const corpo = linha.slice(3);
-      const destino = corpo.includes(" -> ") ? corpo.split(" -> ")[1] : corpo;
-      return destino.trim().replace(/^"|"$/g, "");
-    });
+/**
+ * Caminhos de `git status --porcelain -z`: entradas NUL-separadas no formato `XY caminho`.
+ * `-z` **nao cita** caminhos (ao contrario do porcelain textual, que emite `"caf\303\251.txt"`)
+ * e, em rename/copia, emite o caminho novo nesta entrada e o antigo no campo seguinte.
+ */
+export function parseStatusZ(text) {
+  const campos = (text ?? "").split("\0").filter((campo) => campo.length > 0);
+  const caminhos = [];
+  for (let i = 0; i < campos.length; i += 1) {
+    const entrada = campos[i];
+    if (entrada.length < 4 || entrada[2] !== " ") continue;
+    const estado = entrada.slice(0, 2);
+    caminhos.push(entrada.slice(3));
+    if (estado[0] === "R" || estado[0] === "C") i += 1; // campo seguinte = caminho antigo
+  }
+  return caminhos;
 }
 
 /**
@@ -227,10 +253,12 @@ export function parsePorcelain(text) {
  */
 export function driftForaDoSelo({ porcelain, dir }) {
   const alvo = dir.replace(/\/+$/, "");
-  const prefixo = `${alvo}/`;
-  return parsePorcelain(porcelain).filter(
-    (caminho) =>
-      caminho !== alvo && !caminho.startsWith(prefixo) && !alvo.startsWith(`${caminho}/`),
+  // Com `-uall` toda entrada e um arquivo, entao nenhum caminho pode ser ancestral do selo; a
+  // comparacao abaixo (com a barra normalizada) e defesa em profundidade para o caso de o
+  // chamador voltar ao porcelain colapsado, que emite `docs/` para um diretorio nao rastreado.
+  const ehAncestral = (caminho) => alvo.startsWith(`${caminho.replace(/\/+$/, "")}/`);
+  return parseStatusZ(porcelain).filter(
+    (caminho) => caminho !== alvo && !caminho.startsWith(`${alvo}/`) && !ehAncestral(caminho),
   );
 }
 
@@ -259,7 +287,7 @@ function main() {
     const raiz = topo.stdout.trim();
     const status = spawnSync(
       "git",
-      ["-C", raiz, "status", "--porcelain", "--untracked-files=all"],
+      ["-C", raiz, "status", "--porcelain", "-z", "--untracked-files=all"],
       {
         encoding: "utf8",
       },

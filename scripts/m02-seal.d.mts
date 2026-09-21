@@ -38,12 +38,20 @@ export declare function auditManifest(input: {
   required?: string[];
 }): string[];
 
+export declare class PreconditionError extends Error {}
+
 export declare function extractAncestryClaims(text: string): SealClaim[];
+
+export declare function countAncestryMentions(text: string): number;
 
 export declare function auditAncestry(
   text: string,
   opts: { runAncestor: (ancestor: string, descendant: string) => number },
 ): string[];
+
+export declare function parseStatusZ(text: string): string[];
+
+export declare function driftForaDoSelo(input: { porcelain: string; dir: string }): string[];
 
 export declare function countApplicableSteps(run: SealRun): number;
 

@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,7 +44,14 @@ describe("guard do registry de dívidas (DEBTS.md)", () => {
   it("o registry real passa pelo caminho default e não escreve em stderr", () => {
     const result = runDefault();
     expect(result.stderr).toBe("");
-    expect(result.stdout).toContain("debts guard: OK (12 dividas");
+    // O número é derivado do próprio registry, não fixado aqui: um literal obrigaria a editar o
+    // teste a cada dívida nova e o deixaria mentir em silêncio se alguém esquecesse.
+    const registry = resolve(root, "docs/evidence/agent-state/DEBTS.md");
+    const linhas = readFileSync(registry, "utf8")
+      .split("\n")
+      .filter((linha) => /^\|\s*DBT-\d+\s*\|/.test(linha)).length;
+    expect(linhas).toBeGreaterThan(0);
+    expect(result.stdout).toContain(`debts guard: OK (${linhas} dividas`);
     expect(result.status).toBe(0);
   });
 
