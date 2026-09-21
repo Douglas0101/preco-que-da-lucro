@@ -61,3 +61,21 @@ código ou de workflow explica "job com 0 passos" e "push sem run". O estado loc
 (`npm run check` exit 0 · 96 arquivos · 987 passed | 13 skipped; as três guardas exit 0; selo OK;
 marcador parent-pinned válido), mas **a verificação por CI dos commits `d9bc810` e `5539226` fica
 PENDENTE e não é afirmada**. O item 15 do checklist do selo permanece satisfeito apenas até `f293368`.
+
+## ADENDO — as execuções voltaram a ser criadas e continuam falhando no startup
+
+Depois do commit do incidente (`8f260f5`) e do reselo (`011c7e3`), a plataforma **voltou a criar**
+execuções — e todas continuam **`failure` com 0 passos em ~3 s**:
+
+    UI stack   35613943429  failure  8f260f5  0 steps
+    CI light   35613943354  failure  8f260f5  0 steps
+    CI light   35613977835  failure  011c7e3  0 steps
+
+Isso **reforça** o diagnóstico de plataforma/conta e **refuta** a leitura de "atraso na criação do
+run": o sintoma é persistente, atinge os dois workflows e não depende do conteúdo do commit (o commit
+vazio `5539226` também falhou). **Decisão de parada:** novos pushes foram interrompidos para não
+acumular execuções vermelhas de causa conhecida.
+
+**Última CI verificada:** heavy `f293368@35611793799` = success (30 passos) · light
+`90d12f9@35611826235` = success. Os commits `d9bc810`, `5539226`, `8f260f5` e `011c7e3` **não têm CI
+verde** e isso está declarado — o estado **local** é verde.
