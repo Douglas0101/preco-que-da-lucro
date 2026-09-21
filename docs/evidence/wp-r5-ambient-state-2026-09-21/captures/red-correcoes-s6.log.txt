@@ -1,0 +1,30 @@
+# Correcoes dirigidas pelo S6 (N1/N2/N3/N6) — reversao ISOMORFICA ao estado pre-fix
+# HEAD=347239d
+
+sha256 ANTES  : eae016b1be1df903895094d53fe601e5aaaeaa59aee560ef7d02fa7ffb787239
+
+mutacoes: parseStatusZ textual + invocacao sem -z + regex restrito sem invariante
+sha256 MUTADO : 2e8a16be8d178f82030cad7a5330a0ba702e590f2b5093a8f2a68f81e7274699
+
+## bateria sob mutacao (esperado: os casos N1/N2/N3/N6 reprovam)
+   FAIL  src/test/m02-seal.test.ts > m02-seal — parser do `status -z` (S6 N1/N2/N6) > não cita nem escapa caminho não-ASCII (o porcelain textual citava)
+   FAIL  src/test/m02-seal.test.ts > m02-seal — parser do `status -z` (S6 N1/N2/N6) > rename usa o caminho novo e consome o campo do antigo
+   FAIL  src/test/m02-seal.test.ts > m02-seal — parser do `status -z` (S6 N1/N2/N6) > caminho contendo `->` não é truncado
+   FAIL  src/test/m02-seal.test.ts > m02-seal — parser do `status -z` (S6 N1/N2/N6) > diretório ancestral colapsado (com barra) não vira deriva
+   FAIL  src/test/m02-seal.test.ts > m02-seal — parser do `status -z` (S6 N1/N2/N6) > arquivos do próprio selo não são deriva; irmãos são
+   FAIL  src/test/m02-seal.test.ts > m02-seal — parser do `status -z` (S6 N1/N2/N6) > selo em diretório com nome não-ASCII é selável (N1)
+   FAIL  src/test/m02-seal.test.ts > m02-seal — parser do `status -z` (S6 N1/N2/N6) > selo em diretório contendo `->` é selável (N2)
+   FAIL  src/test/m02-seal.test.ts > m02-seal — ancestralidade não reconhecida não passa em silêncio (S6 N3) > claim em hex MAIÚSCULO é verificada, não ignorada
+   FAIL  src/test/m02-seal.test.ts > m02-seal — ancestralidade não reconhecida não passa em silêncio (S6 N3) > comando em forma não reconhecida reprova em vez de ser pulado
+   FAIL  src/test/m02-seal.test.ts > m02-seal — ancestralidade não reconhecida não passa em silêncio (S6 N3) > contagem de menções cobre hex maiúsculo e formas não-numéricas
+        Tests  10 failed | 29 passed (39)
+
+sha256 DEPOIS : eae016b1be1df903895094d53fe601e5aaaeaa59aee560ef7d02fa7ffb787239
+RESTAURO OK (sha256 identico)
+
+## bateria restaurada
+        Tests  39 passed (39)
+
+## NOTA DE ISOMORFIA: a mutacao reverte as TRES coisas juntas (parser, invocacao e regex);
+## reverter so o parser deixaria o teste de nome nao-ASCII passando por acidente, porque
+## o blob NUL concatenado ainda comeca com o prefixo do selo. O par so discrimina completo.

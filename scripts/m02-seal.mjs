@@ -131,9 +131,18 @@ export function auditManifest({ discovered, hashes, manifestText, required = REQ
   return falhas;
 }
 
+/**
+ * Declaracoes de ancestralidade. O argumento e `\S+` (nao `[0-9a-f]{7,40}`) de proposito: com a
+ * classe restrita, uma claim escrita em hex MAIUSCULO (ou como tag/branch/`HEAD~1`) era pulada em
+ * silencio sempre que o documento tivesse outra claim valida — falso verde na ferramenta
+ * anti-vacuidade. `auditAncestry` fecha a porta com `checked === discovered`.
+ */
+const ANCESTRY_CLAIM = /git\s+merge-base\s+--is-ancestor\s+([^\s`]+)\s+([^\s`]+)/g;
+const ANCESTRY_MENTION = /git\s+merge-base\s+--is-ancestor/g;
+
 export function extractAncestryClaims(text) {
   const claims = [];
-  const re = /git merge-base --is-ancestor ([0-9a-f]{7,40}) ([0-9a-f]{7,40})/g;
+  const re = new RegExp(ANCESTRY_CLAIM.source, "g");
   let m = re.exec(text ?? "");
   while (m !== null) {
     claims.push({ ancestor: m[1], descendant: m[2] });
@@ -142,12 +151,23 @@ export function extractAncestryClaims(text) {
   return claims;
 }
 
+export function countAncestryMentions(text) {
+  return ((text ?? "").match(new RegExp(ANCESTRY_MENTION.source, "g")) ?? []).length;
+}
+
 export function auditAncestry(text, { runAncestor }) {
   const claims = extractAncestryClaims(text);
-  if (claims.length === 0) {
-    return ["nenhuma declaracao de ancestralidade encontrada (0 = 0 reprova)"];
-  }
+  const mencoes = countAncestryMentions(text);
   const falhas = [];
+  if (mencoes !== claims.length) {
+    falhas.push(
+      `ancestralidade nao verificada: ${mencoes} comando(s) no texto, ${claims.length} verificavel(is) — forma nao reconhecida nao pode ser ignorada em silencio`,
+    );
+  }
+  if (claims.length === 0) {
+    falhas.push("nenhuma declaracao de ancestralidade encontrada (0 = 0 reprova)");
+    return falhas;
+  }
   for (const { ancestor, descendant } of claims) {
     if (runAncestor(ancestor, descendant) !== 0) {
       falhas.push(`ancestralidade falsa: ${ancestor} nao e ancestral de ${descendant}`);
@@ -182,8 +202,64 @@ export function auditRun(run, { commit, isAncestor }) {
   return falhas;
 }
 
+/**
+ * Falha de **precondicao** (nao determinavel), distinta de veredito: nunca vira "nao e ancestral".
+ * O selo sai com exit 2 e mensagem nomeada; exit 1 fica reservado a relacao provada falsa.
+ */
+export class PreconditionError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "PreconditionError";
+  }
+}
+
 function gitAncestor(a, b) {
-  return spawnSync("git", ["merge-base", "--is-ancestor", a, b]).status ?? 1;
+  for (const rev of [a, b]) {
+    const probe = spawnSync("git", ["cat-file", "-e", `${rev}^{commit}`], { encoding: "utf8" });
+    if (probe.status !== 0) {
+      throw new PreconditionError(`revisao nao resolve neste repositorio: ${rev}`);
+    }
+  }
+  const resultado = spawnSync("git", ["merge-base", "--is-ancestor", a, b], { encoding: "utf8" });
+  if (resultado.status === 0) return 0;
+  if (resultado.status === 1) return 1;
+  throw new PreconditionError(
+    `merge-base --is-ancestor ${a} ${b} nao pode ser determinado (exit ${resultado.status ?? "spawn nulo"})`,
+  );
+}
+
+/**
+ * Caminhos de `git status --porcelain -z`: entradas NUL-separadas no formato `XY caminho`.
+ * `-z` **nao cita** caminhos (ao contrario do porcelain textual, que emite `"caf\303\251.txt"`)
+ * e, em rename/copia, emite o caminho novo nesta entrada e o antigo no campo seguinte.
+ */
+export function parseStatusZ(text) {
+  const campos = (text ?? "").split("\0").filter((campo) => campo.length > 0);
+  const caminhos = [];
+  for (let i = 0; i < campos.length; i += 1) {
+    const entrada = campos[i];
+    if (entrada.length < 4 || entrada[2] !== " ") continue;
+    const estado = entrada.slice(0, 2);
+    caminhos.push(entrada.slice(3));
+    if (estado[0] === "R" || estado[0] === "C") i += 1; // campo seguinte = caminho antigo
+  }
+  return caminhos;
+}
+
+/**
+ * Precondicao de estado ambiente: nada derivado **fora** do proprio diretorio do selo.
+ * O selo descobre por filesystem, entao um `.gitignore` derivado no worktree nao aparece em CI
+ * e contamina a medicao local — e exatamente o que este check recusa.
+ */
+export function driftForaDoSelo({ porcelain, dir }) {
+  const alvo = dir.replace(/\/+$/, "");
+  // Com `-uall` toda entrada e um arquivo, entao nenhum caminho pode ser ancestral do selo; a
+  // comparacao abaixo (com a barra normalizada) e defesa em profundidade para o caso de o
+  // chamador voltar ao porcelain colapsado, que emite `docs/` para um diretorio nao rastreado.
+  const ehAncestral = (caminho) => alvo.startsWith(`${caminho.replace(/\/+$/, "")}/`);
+  return parseStatusZ(porcelain).filter(
+    (caminho) => caminho !== alvo && !caminho.startsWith(`${alvo}/`) && !ehAncestral(caminho),
+  );
 }
 
 function main() {
@@ -194,6 +270,44 @@ function main() {
     return;
   }
   const dir = resolve(process.cwd(), parsed.dir);
+
+  // Precondicao de estado ambiente (INV-R5-a): o repositorio e resolvido a partir do **proprio
+  // diretorio do selo** (`git -C <dir>`), nunca do cwd. Ancorar no cwd permitiria contornar o
+  // check invocando de fora do repositorio com caminho absoluto; selo fora de qualquer repo
+  // declara N/A em vez de silenciar.
+  const topo = spawnSync("git", ["-C", dir, "rev-parse", "--show-toplevel"], { encoding: "utf8" });
+  if (topo.error) {
+    console.error(`m02-seal: PRECONDICAO git indisponivel: ${topo.error.message}`);
+    process.exitCode = 2;
+    return;
+  }
+  if (topo.status !== 0) {
+    console.log("m02-seal: precondicao worktree N/A (selo fora do repositorio git)");
+  } else {
+    const raiz = topo.stdout.trim();
+    const status = spawnSync(
+      "git",
+      ["-C", raiz, "status", "--porcelain", "-z", "--untracked-files=all"],
+      {
+        encoding: "utf8",
+      },
+    );
+    if (status.status !== 0) {
+      console.error(`m02-seal: PRECONDICAO git status falhou: ${status.stderr.trim()}`);
+      process.exitCode = 2;
+      return;
+    }
+    const relativo = relative(raiz, dir).split(sep).join("/");
+    const drift = driftForaDoSelo({ porcelain: status.stdout, dir: relativo });
+    if (drift.length > 0) {
+      console.error(
+        `m02-seal: PRECONDICAO worktree derivado fora do selo: ${drift.join(", ")} — commite ou reverta antes de selar`,
+      );
+      process.exitCode = 2;
+      return;
+    }
+  }
+
   let scan;
   try {
     scan = scanSelo(dir);
@@ -284,7 +398,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   try {
     main();
   } catch (error) {
-    console.error(`m02-seal: ERRO ${error.message}`);
+    if (error instanceof PreconditionError) {
+      console.error(`m02-seal: PRECONDICAO ${error.message}`);
+    } else {
+      console.error(`m02-seal: ERRO ${error.message}`);
+    }
     process.exitCode = 2;
   }
 }

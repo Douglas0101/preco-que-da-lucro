@@ -27,6 +27,9 @@
 | DBT-10 | TRILHO C colateral (`L107`)                               | conformidade | alta       | `memory.service`/`memory.repository` com importador de runtime (GATE-43 repousa em código não chamado)                  | `L107`; selo TRILHO C           | ABERTA |
 | DBT-11 | WP1 N1/N2/N5 (`L118`)                                     | robustez     | baixa      | limites latentes do scanner (homônimo de método/campo, `var` function-scoped, import sem nome) com caso de falsificação | selo WP1 §4                     | ABERTA |
 | DBT-12 | WP2 N2/N4 (`L118`)                                        | robustez     | baixa      | limites latentes do gate-ux (linha legada incondicional; `path:line` ruidoso) pinados em teste de contrato              | selo WP2 §5                     | ABERTA |
+| DBT-13 | WP-R5 S6 N7 (`m02-seal.mjs:295,317`)                      | robustez     | média      | verificar um selo com o próprio diretório como cwd (`--dir .`) não pode reprovar por `hash diverge: MANIFEST.sha256`    | selo WP-R5 §7                   | ABERTA |
+| DBT-14 | WP-R5 S6 N9 (`scanSelo` com chaves relativas ao cwd)      | robustez     | média      | o mesmo selo verificado de dois cwd distintos dá o mesmo veredicto (manifesto não depende do diretório de invocação)    | selo WP-R5 §7                   | ABERTA |
+| DBT-15 | WP-R5 S6 N5 (`driftForaDoSelo` com `dir: ""`)             | higiene      | baixa      | `--dir .` na raiz do repo tem semântica definida e testada (recusa explícita como uso inválido, ou deriva vazia)        | selo WP-R5 §7                   | ABERTA |
 
 ## Como adicionar uma dívida
 

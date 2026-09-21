@@ -28,19 +28,42 @@ function run(template?: string) {
   });
 }
 
+/** Substitui a célula "como demonstrar" (3ª) da linha do item 17 do template real. */
+function comDemonstracao(valor: string): string {
+  const linha = realTemplate.split("\n").find((l) => /^\|\s*17\s*\|/.test(l));
+  if (linha === undefined) throw new Error("linha do item 17 ausente no template real");
+  const partes = linha.split("|");
+  partes[3] = ` ${valor} `;
+  return realTemplate.replace(linha, partes.join("|"));
+}
+
 describe("guard do contrato de work package (falsificação em CI)", () => {
-  it("o template real passa com 16 itens", () => {
+  it("o template real passa com 17 itens", () => {
     const result = run();
     expect(result.stderr).toBe("");
-    expect(result.stdout).toContain("OK (16 itens");
+    expect(result.stdout).toContain("OK (17 itens");
     expect(result.status).toBe(0);
   });
 
-  it("item 16 removido reprova por contagem", () => {
-    const semItem16 = realTemplate.replace(/\n\| 16\s+\|[^\n]*/, "");
-    const result = run(fixture("sem-item16.md", semItem16));
+  it("item 17 removido reprova por contagem", () => {
+    const semItem17 = realTemplate.replace(/\n\| 17\s+\|[^\n]*/, "");
+    const result = run(fixture("sem-item17.md", semItem17));
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("esperado 16");
+    expect(result.stderr).toContain("esperado 17");
+  });
+
+  it("demonstração vazia no item 17 reprova (S6 N4 do WP-R5)", () => {
+    const vazia = comDemonstracao("");
+    expect(vazia).not.toBe(realTemplate);
+    const result = run(fixture("demo-vazia.md", vazia));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("demonstracao degenerada ou vazia");
+  });
+
+  it("demonstração de fachada (`aaaa`) no item 17 reprova", () => {
+    const result = run(fixture("demo-fachada.md", comDemonstracao("aaaa")));
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("demonstracao degenerada ou vazia");
   });
 
   it("origem degenerada reprova nomeando o item", () => {

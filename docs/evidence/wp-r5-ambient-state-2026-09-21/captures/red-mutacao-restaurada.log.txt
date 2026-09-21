@@ -1,0 +1,28 @@
+# RED deterministico por mutacao restaurada por sha256 (itens 1 e 9 do checklist)
+# HEAD=125ecd5  arquivo=scripts/m02-seal.mjs
+
+sha256 ANTES  : 0b773b90b2ee951627ce81cf2b971b35b26df0fd36b9e246a55ccd5e5671859b
+
+## mutacao A: gitAncestor volta a colapsar indeterminado em veredito
+## mutacao B: a precondicao de worktree deixa de rodar
+sha256 MUTADO : 6e0a877757961cf62b03a38fe93b2a1c35b30462e38fdb2191010eae8ef3bd2c
+
+## bateria sob mutacao (esperado: os 3 casos novos reprovam)
+   FAIL  src/test/m02-seal.test.ts > m02-seal — precondição de estado ambiente (INV-R5-a) > deriva fora do selo reprova como PRECONDIÇÃO (exit 2), nomeando o caminho
+   FAIL  src/test/m02-seal.test.ts > m02-seal — taxonomia de exit codes na ancestralidade (INV-R5-b) > SHA inexistente é INDETERMINADO (exit 2), nunca veredito
+        Tests  2 failed | 26 passed (28)
+
+## restauro pelos bytes do commit
+sha256 DEPOIS : 0b773b90b2ee951627ce81cf2b971b35b26df0fd36b9e246a55ccd5e5671859b
+RESTAURO OK (sha256 identico)
+
+## bateria restaurada (esperado: 28 passed)
+        Tests  28 passed (28)
+
+## PRECISAO DE INTERPRETACAO (declarada, nao omitida)
+A mutacao B substitui `if (dentroDoRepo)` por `if (false)`, o que faz o ramo `else` rodar
+sempre: a linha "worktree N/A" continua sendo impressa, entao o caso que a exige passa
+trivialmente sob a mutacao. Por isso a mutacao rende 2 falhas, e nao as 3 do RED pre-fix
+(captura red-seal.log.txt), onde o ramo N/A ainda nao existia.
+Os dois casos que reprovam sob mutacao sao exatamente os dois invariantes materiais
+(INV-R5-a e INV-R5-b); nenhum deles passa por degenerescencia.

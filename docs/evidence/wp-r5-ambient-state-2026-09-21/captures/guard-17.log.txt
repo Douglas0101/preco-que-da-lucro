@@ -1,0 +1,30 @@
+# Guard do contrato: 17 itens, forma + piso de nao-vacuidade, nas tres superficies
+# HEAD=347239d
+
+## A. guard no template real
+
+work-package guard: OK (17 itens, 5 secoes, taxonomia e layout do selo) — docs/evidence/_templates/work-package.md
+
+## B. falsificacao 1: item 17 removido
+work-package guard: checklist tem 16 itens; esperado 17
+work-package guard: REPROVADO (1 falha(s))
+EXIT=1
+
+## C. falsificacao 2 (S6 N4): celula de demonstracao VAZIA no item 17
+work-package guard: item 17 com demonstracao degenerada ou vazia (0 < 40): ""
+work-package guard: REPROVADO (1 falha(s))
+EXIT=1
+
+## D. falsificacao 3 (S6 N4): celula de demonstracao de fachada ('aaaa')
+work-package guard: item 17 com demonstracao degenerada ou vazia (4 < 40): "aaaa"
+work-package guard: REPROVADO (1 falha(s))
+EXIT=1
+
+## E. as tres superficies que rodam o guard
+  package.json:38:    "m02:work-package-guard": "node scripts/m02-work-package-guard.mjs",
+  package.json:81:    "check": "npm run m02:lockfile-guard && npm run m02:work-package-guard && npm run m02:debts-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle",
+  ui-stack.yml:68:      - run: npm run m02:work-package-guard
+  ci-light.yml:80:        run: node scripts/m02-work-package-guard.mjs
+
+## F. calibracao do piso: menor celula de demonstracao do template real
+  itens com 4 celulas: 17  menor: 84  mediana: 121  (piso aplicado: 40)

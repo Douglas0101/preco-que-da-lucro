@@ -38,6 +38,13 @@ secrets.json
 *.secret
 *.secrets
 
+# Agent MCP client configs — may embed API tokens
+**/.mcp.json
+.cursor/
+.gemini/
+.kimi/
+.kimi-code/
+
 node_modules
 dist
 dist-ssr
@@ -55,6 +62,10 @@ coverage
 /temp/
 .worktree-*/
 .p0-closeout-docker/
+# Symlink local para o checkout do harness (fora deste repo) — nunca versionar.
+# Sem barra final de proposito: o git nao segue symlink, entao `deepseek-harness/`
+# (dir-only) nao casaria com o link.
+deepseek-harness
 playwright-report
 test-results
 .cache/

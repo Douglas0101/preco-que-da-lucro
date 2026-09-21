@@ -2,7 +2,7 @@
 // Guard do contrato de work package (docs/evidence/_templates/work-package.md).
 //
 // Valida a ESTRUTURA do template: secoes obrigatorias, checklist anti-vacuoso com
-// 16 itens numerados, coluna de origem identificada pelo header (nao "a ultima
+// 17 itens numerados, coluna de origem identificada pelo header (nao "a ultima
 // coluna") e com conteudo rastreavel (nao degenerado), taxonomia CORR x N e o
 // layout do selo. Nao valida prosa nem conteudo de um WP especifico — o
 // enforcement de conteudo e humano/S6 (vide o proprio template).
@@ -14,10 +14,17 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const DEFAULT_TEMPLATE = "docs/evidence/_templates/work-package.md";
-const EXPECTED_ITEMS = 16;
+const EXPECTED_ITEMS = 17;
 const EXPECTED_CHECKLIST_COLUMNS = 4;
 const ORIGIN_HEADER = /^origem\b/i;
 const DEGENERATE_ORIGIN = /^(n\/?a|tbd|\?+|—|-+|\.+)$/i;
+const DEMO_HEADER = /^como demonstrar\b/i;
+const DEGENERATE_DEMO = /^(n\/?a|tbd|\?+|—|-+|\.+)$/i;
+// Piso de nao-vacuidade da coluna de demonstracao (S6 N4 do WP-R5): a celula mais curta do
+// template real tem 84 caracteres e a mediana 121; 40 fica muito abaixo do menor caso legitimo e
+// muito acima de um preenchimento de fachada. E um piso, nao um juizo semantico — vacuidade de
+// conteudo continua sendo objeto do S6.
+const MIN_DEMO_LENGTH = 40;
 const REQUIRED_SECTIONS = [
   "## 1. Seções obrigatórias do SPEC",
   "## 2. Seções obrigatórias do README",
@@ -65,6 +72,11 @@ function validarChecklist(secao, falhas) {
     falhas.push("checklist sem coluna de origem (header 'origem ...')");
     return;
   }
+  const demoIndex = colunas.findIndex((coluna) => DEMO_HEADER.test(coluna));
+  if (demoIndex === -1) {
+    falhas.push("checklist sem coluna de demonstracao (header 'como demonstrar')");
+    return;
+  }
 
   const itens = [];
   for (const linha of linhas) {
@@ -87,6 +99,12 @@ function validarChecklist(secao, falhas) {
     }
     const corpo = item.celulas[1] ?? "";
     if (corpo.length === 0) falhas.push(`item ${item.numero} sem descricao`);
+    const demonstracao = item.celulas[demoIndex] ?? "";
+    if (demonstracao.length < MIN_DEMO_LENGTH || DEGENERATE_DEMO.test(demonstracao)) {
+      falhas.push(
+        `item ${item.numero} com demonstracao degenerada ou vazia (${demonstracao.length} < ${MIN_DEMO_LENGTH}): "${demonstracao.slice(0, 60)}"`,
+      );
+    }
     const origem = item.celulas[origemIndex] ?? "";
     if (origem.length < 4 || DEGENERATE_ORIGIN.test(origem)) {
       falhas.push(`item ${item.numero} com origem degenerada ou vazia: "${origem}"`);

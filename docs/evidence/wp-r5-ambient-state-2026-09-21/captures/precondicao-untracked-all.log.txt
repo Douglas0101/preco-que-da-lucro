@@ -1,0 +1,24 @@
+# Colapso de diretorio nao rastreado e por que -uall e usado (S6 C7, com precisao)
+# HEAD=347239d
+
+## Geometria A — nenhum ancestral do selo esta rastreado (fixture de teste)
+$ git status --porcelain
+?? docs/
+  -> '?? docs/' colapsado: o filtro por prefixo NAO reconhece o proprio selo
+
+$ git status --porcelain --untracked-files=all
+?? docs/evidence/fixture/README.md
+?? docs/evidence/fixture/SPEC.md
+?? docs/evidence/fixture/captures/nota.txt
+  -> arquivo a arquivo: o filtro exclui pelo prefixo do selo
+
+## Geometria B — ancestrais rastreados (repo real, onde docs/ e docs/evidence/ existem)
+$ git status --porcelain
+?? docs/evidence/fixture/
+  -> o colapso para em 'docs/evidence/fixture/', que o filtro por prefixo JA exclui
+
+## PRECISAO (S6 C7): a necessidade de -uall depende da geometria. Ela e obrigatoria na
+## Geometria A (fixture isolada) e dispensavel na Geometria B; o WP a usa sempre porque
+## e a unica forma de a entrada ser sempre um arquivo — o que torna a comparacao de
+## ancestral uma defesa em profundidade, nao a regra. Alem dela, '-z' e o que impede
+## citacao/escape de caminhos nao-ASCII (S6 N1) e o truncamento por ' -> ' (S6 N2).
