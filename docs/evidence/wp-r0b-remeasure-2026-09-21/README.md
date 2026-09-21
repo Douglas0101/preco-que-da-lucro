@@ -204,9 +204,21 @@ dentro do script, composição calculada e assertada, precondição que sai com 
 
 ## 8. CI e commits
 
-| campo             | valor                |
-| ----------------- | -------------------- |
-| base              | `a75a62b`            |
-| land em `develop` | _(preenchido no S7)_ |
-| run@sha           | _(preenchido no S8)_ |
-| `origin/main`     | `9724d2c` — intocado |
+| campo             | valor                                                                                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| base              | `a75a62b`                                                                                                                                                                 |
+| commits do WP     | `3b99a78` (SPEC) · `6e1a5c0` (medição) · `59e2119` (selo) · `d53ef86` (correções do S6 + reselo)                                                                          |
+| land em `develop` | merge `--no-ff` **`cb83811`** (parent `a75a62b`)                                                                                                                          |
+| run@sha           | **`cb83811@35559225054`** — `CI light`, **success**, com os **6 checks aplicáveis** (scope guard, lockfile, contrato de WP, registry de dívidas, secrets audit, prettier) |
+| heavy             | **não disparada**: o land altera só `docs/evidence/**`, e o `paths-ignore` do `ui-stack` pula a pesada — delegação declarada, não omissão                                 |
+| E2 no integrado   | `npm run check` **exit 0** — 95 arquivos, **969 passed \| 13 skipped** (`captures/e2-integrado.log.txt`)                                                                  |
+| `origin/main`     | `9724d2c` — **intocado em todo o arco**                                                                                                                                   |
+| ancestralidade    | `git merge-base --is-ancestor d53ef86 cb83811` → **exit 0**                                                                                                               |
+
+### Regra de parada
+
+Este WP **não toca código**: nenhuma linha de `src/**`, `scripts/**`, `.github/**` ou dos manifestos. O
+land é, portanto, um push só-docs — a **light** roda com os seis checks aplicáveis e a **heavy** é
+pulada por `paths-ignore`. Isso não é no-op: o contrato de work package, o registry de dívidas e o
+lockfile são verificados sobre o próprio selo que este commit carrega. A §8 registra a CI do commit
+substantivo, mas **não** afirma o resultado da execução que a carrega (regra de `L112`).
