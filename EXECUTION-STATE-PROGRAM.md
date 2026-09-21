@@ -2311,4 +2311,4 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Placar: inalterado** — 150 D · 23 P · 12 NS · 2 UNV / 187 (o WP é de processo, não promove item).
 - **Registro no journal:** `L140` (intenção) e `L141` (resultado).
 
-  Latest state marker parent = `c80ea8403d644e6e74f920db3cee8c679760fc26`,
+  Latest state marker parent = `01cec9781fc7ccb186db307cba1f6e66e6744167`,

@@ -23,8 +23,8 @@
 - **Refs:** `develop` = `origin/develop` = **`f5829f6`** (último commit substantivo; o commit deste
   journal é o tip de handoff e altera só docs) · `origin/main` = **`9724d2c`** (SHA do dia-D,
   **intocado** em toda a rodada) · branches `mission/*` preservadas como evidência.
-- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned válido para `f5829f6`
-  (`npm run m02:state:check` no boot 2026-09-21T01:4xZ). Blocos novos: land canônico do WP-R4 +
+- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned avançado no commit deste handoff
+  (`npm run m02:state:check` verde no boot 2026-09-21T02:0xZ; a conferência válida é a do commit que carrega o marcador). Blocos novos: land canônico do WP-R4 +
   janela vermelha + pares `sha@run` e o WP-R5.
 - **Placar vigente:** **150 D · 23 P · 12 NS · 2 UNV / 187** = 86,36% parcial · 80,21% crua —
   **inalterado desde o ciclo 2** (`53b2996`); nenhum dos WPs de processo promove item.
