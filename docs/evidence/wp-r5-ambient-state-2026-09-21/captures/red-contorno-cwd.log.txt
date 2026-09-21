@@ -1,0 +1,17 @@
+# Falsificacao do contorno por cwd — variante ancorada no cwd, restaurada por copia + sha256
+# HEAD=47306e1  arquivo=scripts/m02-seal.mjs
+
+sha256 ANTES  : cf1baa690de1c602cbd212eb17dafb5c0e0b34a714297470d78ddbd58818cfae
+
+variante cwd-anchored aplicada (preserva o ramo N/A para selo fora do repo do cwd)
+sha256 VARIANTE: 884da11c02e378b25c2903856620cd97b003594eced4b05da9caac89e43975e9
+
+## bateria sob a variante: o caso do contorno deve reprovar, e SO ele
+   FAIL  src/test/m02-seal.test.ts > m02-seal — precondição de estado ambiente (INV-R5-a) > ancorar no diretório do selo fecha o contorno por cwd (invocação de fora do repo)
+        Tests  1 failed | 28 passed (29)
+
+sha256 DEPOIS : cf1baa690de1c602cbd212eb17dafb5c0e0b34a714297470d78ddbd58818cfae
+RESTAURO OK (sha256 identico ao pre-variante)
+
+## bateria restaurada
+        Tests  29 passed (29)
