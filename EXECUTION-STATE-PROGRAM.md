@@ -2347,4 +2347,4 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   Este WP fecha a exigência §6.1 (disposição nominal dos 13 skips) e **destrava a abertura do R0b**.
 - **Registro no journal:** `L142` (intenção) e `L143` (resultado).
 
-  Latest state marker parent = `bcb93dea077baf4b4aac890ed7907509a3ce3967`,
+  Latest state marker parent = `4e22d0d0966a5590e1617d5c61d702c5222a0825`,
