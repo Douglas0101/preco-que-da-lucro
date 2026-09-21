@@ -2348,3 +2348,37 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L142` (intenção) e `L143` (resultado).
 
   Latest state marker parent = `7ab3a443bf011fbd507998a5d907bdebc14a3372`,
+
+### WP-R0b — `F-remeasure-187` (re-medição item a item, S9 — landado)
+
+- **O que era:** a régua ratificada manda medir **sub-item por sub-item** — o cluster não é unidade de
+  placar. O bloco sob suspeita era o dos **12 NS + 2 UNV** da camada de 2026-09-15, medidos quando o
+  §15 do plano era quase todo contrato type-only.
+- **O que foi feito:** cada um dos 14 itens foi remedido com **comando e predicado pré-registrados**
+  (cláusula C3), e o instrumento passou por **três versões dentro da mesma rodada**: a v1 achou dois
+  falsos positivos **nela mesma**, a v2 os corrigiu e o **S6 mostrou que a v2 era fail-open na
+  descoberta** (não lia o anexo, não assertava, contava itens de um arquivo em `/tmp` e ainda assim
+  imprimia composição e saía com 0), e a v3 passou a re-derivar os 14 itens **dentro do script**, com
+  asserção de identidade e composição **calculada** das classes emitidas.
+- **Resultado:** **6 dos 14 se moveram, e nenhum promoveu** — `0 DONE · 6 PARTIAL · 8 NS · 0 UNV`.
+  O cluster de memória saiu do zero (6 tabelas migradas, repositório com `search`/`delete`/`export`,
+  policy engine real, suíte de banco na cadeia do `db:test`), mas **nenhum caminho de runtime importa o
+  serviço** — 0 importadores fora de teste, 0 rotas —, e cada item do §15 é conjuntivo. É a mesma
+  sentença do `P2-02` (outbox), aplicada de novo.
+- **Correção de alto valor:** `25.6`/`25.7` deixaram de ser `UNV`: a API do GitHub **responde** o estado
+  dos dois recursos (`403` code scanning não habilitado; `404` secret scanning desabilitado). `UNV` vai
+  a **zero** — ausência verificável nunca foi indeterminável neste programa.
+- **Prova:** `checked === discovered` com asserção de **identidade** da lista (não de cardinalidade);
+  controles negativos no **mesmo predicado** (`dependabot`=1 DONE × `dependency-review`=0 NS); resíduo
+  de bancada do WP-R6 (container `r6-pg2`) **achado e removido** antes do selo; `npm run check` exit 0.
+- **S6 adversarial de contexto limpo:** **14 CONFIRMED · 10 CORRECTED · 1 REJECTED · 0 UNVERIFIABLE**,
+  sem `STOP-THE-LINE`. Três achados ALTOS: a **composição estava errada por um** (o `15.2` mudou de
+  `DONE`→`PARTIAL`, não de `NS`→`PARTIAL`, e todo o KPI herdava o erro), os dois `UNV` deviam ser `NS`,
+  e o instrumento decididor era fail-open. O S6 também **reproduziu os 14 itens com parser próprio** e
+  confirmou que **nenhum caminho de runtime alcança a memória**.
+- **Placar: proposta, não promoção** — `PARTIAL 23→29`, `NS 12→8`, `UNV 2→0`, `DONE 150` inalterado:
+  crédito parcial `86,3636% → 87,9679%` (**+1,6043 p.p.**) e **cru inalterado** em `80,2139%`. O
+  escritor é o MAESTRO; a ratificação é o próximo movimento humano declarado.
+- **Registro no journal:** `L144` (intenção) e `L145` (resultado).
+
+  Latest state marker parent = `9c712dbd214c06ff92822a96ae8adc4535f44407`,
