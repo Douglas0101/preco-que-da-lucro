@@ -1,0 +1,28 @@
+# Isolamento de bancada assertado — WP-R7 · ARVORE=0c62f43f9e43ee4cdd58acc2a0c176dd99b6cea5
+
+## origin/main (deve ser 9724d2c, intocado)
+9724d2c73b269d0a0199ea305308f3237b38fa09
+
+## :5432 — nenhum listener esperado
+listeners em :5432 = 0
+
+## migrations tocadas (deve ser 0)
+drizzle/ sujo = 0
+
+## lockfile: package.json mudou (scripts), o lock NÃO pode mudar
+lockfile sujo = 0
+
+## arquivos tocados pelo WP
+   M .github/workflows/ci-light.yml
+   M .github/workflows/ui-stack.yml
+   M AGENTS.md
+   M docs/evidence/agent-state/DEBTS.md
+   M docs/evidence/agent-state/PROGRESS.md
+   M package.json
+   M scripts/m02-seal.d.mts
+   M scripts/m02-seal.mjs
+   M src/test/m02-seal.test.ts
+  ?? docs/evidence/wp-r7-hardenings-2026-09-21/
+  ?? scripts/generate-seal-dts.mjs
+  ?? scripts/m02-temporal-guard.mjs
+  ?? src/test/m02-temporal-guard.test.ts

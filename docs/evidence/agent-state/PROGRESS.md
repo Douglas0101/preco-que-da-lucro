@@ -17,30 +17,33 @@
 
 ## 1. Estado corrente
 
-- **Fase:** `5 — consolidação` · **Fase 0 do fechamento (R0–R5) FECHADA**; próximo passo canônico =
-  **`WP-R0b`** (re-medição item a item da matriz de 187 + ratificação; escritor do placar é o
-  MAESTRO, exige S6 adversarial e **ratificação antes de qualquer movimento**).
-- **Refs:** `develop` = `origin/develop` = **`f5829f6`** (último commit substantivo; o commit deste
-  journal é o tip de handoff e altera só docs) · `origin/main` = **`9724d2c`** (SHA do dia-D,
-  **intocado** em toda a rodada) · branches `mission/*` preservadas como evidência.
-- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned avançado no commit deste handoff
-  (`npm run m02:state:check` verde no boot 2026-09-21T02:0xZ; a conferência válida é a do commit que carrega o marcador). Blocos novos: land canônico do WP-R4 +
-  janela vermelha + pares `sha@run` e o WP-R5.
-- **Placar vigente:** **150 D · 23 P · 12 NS · 2 UNV / 187** = 86,36% parcial · 80,21% crua —
-  **inalterado desde o ciclo 2** (`53b2996`); nenhum dos WPs de processo promove item.
-- **Árvore:** limpa exceto o commit docs deste boot. Selos do WP-R5 em
-  `docs/evidence/wp-r5-ambient-state-2026-09-21/` (17 arquivos, `checked === discovered`,
-  ancestralidade e `run@sha` verificados).
-- **Gate local:** `npm run check` **exit 0** (93 arquivos · 952 passed | 13 skipped) no HEAD
-  integrado; guard do contrato com **17 itens** nas três superfícies; registry com **15 dívidas**
-  (DBT-13/14/15 declaradas no WP-R5).
-- **CI:** heavy `c80ea84@35551394325` = success (29/29 passos) · light `c80ea84@35581394301` =
-  success (delegada) · light do fecho `f5829f6@35551989699` = success (heavy pulada por
-  `paths-ignore` em push só-docs — comportamento esperado).
+- **Fase:** `5 — consolidação` · **Fase 0 do fechamento (R0–R6) FECHADA e R0b LANDADO**; o placar
+  **foi ratificado pelo MAESTRO em 2026-09-21** e o próximo movimento é o WP-R7 (endurecimentos
+  não-bloqueantes da análise: §6.2 guarda temporal, §6.3/DBT-16 geração do `.d.mts`, §7 regra de
+  elegibilidade no `AGENTS.md`).
+- **Refs:** `develop` = `origin/develop` = **`332da9e`** (fecho do WP-R0b; o tip de handoff altera só
+  docs) · `origin/main` = **`9724d2c`** (SHA do dia-D, **intocado** em toda a rodada) · branches
+  `mission/*` preservadas como evidência.
+- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned validado por
+  `npm run m02:state:check` no commit que o carrega. Blocos novos: land canônico do WP-R4 + janela
+  vermelha + pares `sha@run`, WP-R5, WP-R6 e WP-R0b.
+- **Placar vigente (RATIFICADO):** **150 D · 29 P · 8 NS · 0 UNV / 187** = **87,9679% parcial ·
+  80,2139% crua**. A ratificação segue a proposta do WP-R0b (6 `NS→PARTIAL` com delta nomeado,
+  2 `UNV→NS` porque a API responde o estado dos recursos, **0 promoção a DONE**). `QUEUE.md` ainda
+  carrega o placar anterior: o **escritor é o MAESTRO** e a linha de lá é movimento humano pendente,
+  declarado — não editada por agente.
+- **Árvore:** limpa fora do selo em construção. Selos: WP-R5 (17 arquivos), WP-R6 (9) e WP-R0b (11),
+  todos com `checked === discovered` e ancestralidade verificada.
+- **Gate local:** `npm run check` **exit 0** (95 arquivos · 969 passed | 13 skipped) no HEAD
+  integrado; contrato de WP com **17 itens**; registry com **18 dívidas** (DBT-16 fechada no WP-R7);
+  guardas novas: `m02:temporal-guard` (âncoras e prazos da prosa viva) e `m02:seal-dts:check`.
+- **CI:** WP-R6 heavy `4983c11@35556119568` = success · WP-R6 fecho `3c34fce@35556827999` = success
+  (heavy real, porque o ledger mora na raiz) · WP-R0b `cb83811@35559225054` = light com os 6 checks
+  aplicáveis (heavy pulada por `paths-ignore` em land só-docs — delegação declarada) ·
+  `332da9e@35559344008` heavy = success.
 - **Ambiente:** `:5432` com 0 listeners; watcher `app-live-watch` re-armado em 2026-09-19T15:31:33Z
-  ⇒ caduca ≈ **2026-09-26T15:31Z** (o prazo antigo de 09-21T03:37Z em `REGISTRO-H.md` está
-  **desatualizado** — ver L141). Alvo segue em placeholder PHP (`/ready` → 404): **H-6 não
-  executado**.
+  ⇒ caduca ≈ **2026-09-26T15:31Z** (agora vigiado pelo `m02:temporal-guard`). Alvo segue em
+  placeholder PHP (`/ready` → 404): **H-6 não executado**.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 

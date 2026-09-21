@@ -1,0 +1,33 @@
+# Guarda temporal — RED por mutação da superfície viva, restaurada por sha256
+# ARVORE=0c62f43f9e43ee4cdd58acc2a0c176dd99b6cea5
+# Lição registrada nesta captura: o sha256 antes/depois prova que ALGO mudou, não que a mutação
+#   PRETENDIDA foi aplicada. A primeira tentativa mutou só o prazo (o padrão da âncora não casou
+#   por causa do negrito em volta) e a captura ficou vacuosa em T2 sem que o hash acusasse.
+#   Agora cada mutação é ASSERTADA: o texto mutado tem de estar presente e o original ausente.
+
+sha256 ANTES : 72f1f4bfc7b702af86cc55ef2b249fa8009908e447ad51de081e26225c254d79
+Traceback (most recent call last):
+  File "<stdin>", line 11, in <module>
+AssertionError: mutacao do prazo NAO aplicou
+sha256 MUTADO: 02bbe7252116358dfae2b55c3d11eaa6652846726ec3e40875ea579898acc766
+
+## guarda sob mutação (esperado: exit 1, com T1 e T2 nomeados)
+m02-temporal-guard: superficie viva, as-of 2026-09-21
+  docs/evidence/agent-state/PROGRESS.md [secao-1] — 2 âncora(s), 2 linha(s) com prazo
+  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 1 âncora(s), 0 linha(s) com prazo
+  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [tabela-aberta] — 0 âncora(s), 0 linha(s) com prazo
+  T1 prazo vencido em 2020-01-01T00:00Z (linha 28): ⇒ caduca ≈ **2020-01-01T00:00Z** (agora vigiado pelo `m02:temporal-guard`). Alvo segue em
+  T2 âncora não resolve: `deadbee` (linha 7): - **Refs:** `develop` = `origin/develop` = **`deadbee`** (fecho do WP-R0b; o tip de handoff altera só
+m02-temporal-guard: 2 ancoras/prazos invalidos em 3 superficies
+EXIT=1
+
+sha256 DEPOIS: 72f1f4bfc7b702af86cc55ef2b249fa8009908e447ad51de081e26225c254d79
+RESTAURO OK (sha256 idêntico)
+
+## restaurado
+m02-temporal-guard: superficie viva, as-of 2026-09-21
+  docs/evidence/agent-state/PROGRESS.md [secao-1] — 2 âncora(s), 2 linha(s) com prazo
+  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 1 âncora(s), 0 linha(s) com prazo
+  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [tabela-aberta] — 0 âncora(s), 0 linha(s) com prazo
+m02-temporal-guard: OK (3 superficies vivas, 0 violacao)
+EXIT=0

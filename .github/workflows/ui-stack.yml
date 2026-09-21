@@ -69,6 +69,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run m02:work-package-guard
       - run: npm run m02:debts-guard
+      - run: npm run m02:temporal-guard
       - run: npm run m02:matrix:check
       - run: npm run check:ui-stack
       - run: npm run check:no-supabase-runtime

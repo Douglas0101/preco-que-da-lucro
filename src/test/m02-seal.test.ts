@@ -404,20 +404,58 @@ describe("m02-seal — ancestralidade não reconhecida não passa em silêncio (
   });
 });
 
-describe("m02-seal — a superfície de tipos acompanha o runtime", () => {
+describe("m02-seal — a superfície de tipos é GERADA do módulo (DBT-16)", () => {
   it("os exports de runtime e as declarações de m02-seal.d.mts são o mesmo conjunto", async () => {
     const ns = await import("../../scripts/m02-seal.mjs");
     const runtime = Object.keys(ns)
       .filter((chave) => chave !== "default")
       .sort();
     const dts = readFileSync(resolve(root, "scripts/m02-seal.d.mts"), "utf8");
-    const declarados = [...dts.matchAll(/^export declare (?:function|const|class) (\w+)/gm)]
+    const declarados = [...dts.matchAll(/^export (?:declare )?(?:function|const|class) (\w+)/gm)]
       .map((match) => match[1])
       .sort();
     // Duas direções: export sem declaração quebra o `tsc` de quem importa; declaração sem
-    // export é um contrato fantasma. O `.d.mts` é mantido à mão, então precisa desta trava.
+    // export é um contrato fantasma. O `.d.mts` é gerado, mas o conjunto ainda tem de fechar.
     expect(declarados).toEqual(runtime);
   });
+
+  it("o .d.mts no disco é byte a byte o que o gerador emite", () => {
+    // Esta é a diferença entre vigiar a sincronia e eliminá-la: o WP-R5 comparava os NOMES e
+    // deixava passar um tipo errado; aqui o artefato inteiro é derivado do JSDoc do módulo.
+    const r = spawnSync(
+      process.execPath,
+      [resolve(root, "scripts/generate-seal-dts.mjs"), "--check"],
+      {
+        cwd: root,
+        encoding: "utf8",
+      },
+    );
+    expect(`${r.status}: ${r.stdout}${r.stderr}`).toContain("0: generate-seal-dts");
+    // o gerador invoca `tsc` + `prettier`: 5 s (default) estoura sob a suíte completa
+  }, 60_000);
+
+  it("controle negativo: uma cópia mutada do .d.mts REPROVA a conferência", () => {
+    const original = readFileSync(resolve(root, "scripts/m02-seal.d.mts"), "utf8");
+    const mutado = join(mkdtempSync(join(tmpdir(), "seal-dts-mut-")), "m02-seal.d.mts");
+    writeFileSync(mutado, `${original}\n// linha acrescentada à mão\n`);
+    const r = spawnSync(
+      process.execPath,
+      [resolve(root, "scripts/generate-seal-dts.mjs"), "--check", "--destino", mutado],
+      { cwd: root, encoding: "utf8" },
+    );
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("divergiu do modulo");
+    // e o arquivo versionado segue conferindo: o controle não sujou o artefato
+    const r2 = spawnSync(
+      process.execPath,
+      [resolve(root, "scripts/generate-seal-dts.mjs"), "--check"],
+      {
+        cwd: root,
+        encoding: "utf8",
+      },
+    );
+    expect(r2.status).toBe(0);
+  }, 90_000);
 });
 
 describe("m02-seal — run@sha (puro)", () => {
