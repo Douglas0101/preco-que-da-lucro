@@ -96,6 +96,33 @@ describe("precondição de banco — tudo ou nada, falha alta (WP-R6)", () => {
     expect(isLoopbackUrl("nao-e-url")).toBe(false);
   });
 
+  it("aceita as grafias de loopback que o libpq aceita (S6 N8)", () => {
+    // O hostname do WHATWG preserva a caixa, mantém `127.1` sem expandir, deixa o ponto
+    // final e converte IPv4-mapeado para hex — recusá-las virava erro duro onde antes o
+    // bloco pulava, impedindo rodar a suíte com um banco local válido.
+    expect(isLoopbackUrl("postgresql://u@127.0.0.1:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@127.1:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@127.0.0.2:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@LOCALHOST:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@localhost.:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@[::1]:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@[0:0:0:0:0:0:0:1]:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@[::ffff:127.0.0.1]:5432/x")).toBe(true);
+    // `0.0.0.0` é bind-wildcard, não loopback: recusado de propósito.
+    expect(isLoopbackUrl("postgresql://u@0.0.0.0:5432/x")).toBe(false);
+  });
+
+  it("valor definido e VAZIO é configuração inválida, não ausência (S6 N7)", () => {
+    // Presença por `!== undefined`, não por `Boolean`: um `.env` com as três vazias
+    // reproduzia o estado de skip anterior ao WP.
+    expect(() =>
+      dbPrecondition({ DATABASE_ADMIN_URL: "", DATABASE_URL: "", DATABASE_URL_UNPOOLED: "" }),
+    ).toThrow(/precondicao de banco invalida/);
+    expect(() => dbPrecondition({ DATABASE_ADMIN_URL: "", DATABASE_URL: LOOPBACK })).toThrow(
+      /DATABASE_ADMIN_URL nao aponta para loopback/,
+    );
+  });
+
   it("o par obrigatório e o opcional são explícitos, sem lista implícita", () => {
     expect([...DB_REQUIRED_KEYS]).toEqual(["DATABASE_ADMIN_URL", "DATABASE_URL"]);
     expect([...DB_OPTIONAL_KEYS]).toEqual(["DATABASE_URL_UNPOOLED"]);
