@@ -2262,3 +2262,53 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L138` (intenção) e `L139` (resultado).
 
   Latest state marker parent = `8a981f68d97df6139720402f17f6874084cbc57d`,
+
+### WP-R4 — land canônico e janela vermelha (declaração de 2026-09-21)
+
+- **Cadeia canônica:** `2f407f7` (docs do WP-R1) → **`81cc7ed`** (merge `--no-ff` do WP-R4,
+  **VERMELHO**) → **`8a981f6`** (fix, verde) → `eef2238` (docs + avanço do marcador).
+- **SHA selado canônico = `8a981f6`**: é o commit verde que carrega o fix; o marcador parent-pinned
+  avançado aponta para ele.
+- **Janela vermelha:** de `81cc7ed` (2026-09-20T20:11:57Z) a `8a981f6` (20:27:16Z) = **15 min 19 s**,
+  contendo **exatamente 1 commit** — o próprio fix. **Nenhum outro land na janela.**
+- **Pares `sha@run(conclusion)` da cadeia**, reconsultados por API em 2026-09-21 (não citados de
+  memória):
+
+| sha                     | run           | pipeline     | conclusão                        |
+| ----------------------- | ------------- | ------------ | -------------------------------- |
+| `90976ba` (land R1)     | `35532153460` | UI stack     | success                          |
+| `90976ba`               | `35532153466` | CI light     | success (no-op de push misto)    |
+| `2f407f7` (docs R1)     | `35532869615` | UI stack     | success                          |
+| `2f407f7`               | `35532869632` | CI light     | success                          |
+| **`81cc7ed` (land R4)** | `35534879029` | **UI stack** | **failure — o RED do incidente** |
+| `81cc7ed`               | `35534878954` | CI light     | success (no-op)                  |
+| `8a981f6` (fix)         | `35535596160` | UI stack     | success                          |
+| `eef2238` (tip)         | `35536322147` | UI stack     | success                          |
+| `eef2238`               | `35536322144` | CI light     | success                          |
+
+- **Regra adotada:** todo SHA citado num relato de incidente vem pareado `sha@run(conclusion)`,
+  **incluindo o vermelho** — o run vermelho é o RED do incidente e é evidência, não ruído.
+
+### WP-R5 — `F-ambient-state` (pré-requisito do R0b, S9 — landado)
+
+- **O que era:** a classe de falha que sobrou do Bloco 3 — pressuposto de estado ambiente não
+  declarado (R0 worktree sem `npm ci`, R4 clone raso com negativo vacuoso, `.gitignore` derivado
+  desde 2026-09-20T20:27:41Z sem nunca ser commitado).
+- **O que foi feito:** `.gitignore` versionado com motivação própria; `m02-seal` com precondição de
+  worktree ancorada no **diretório do selo** (não no cwd) e taxonomia **provado × indeterminado**
+  (`exit 2` de precondição ≠ `exit 1` de veredito); leitura de `git status --porcelain -z`; claims de
+  ancestralidade com `checked === discovered`; **item 17** do checklist (16→17) com piso de
+  não-vacuidade da coluna de demonstração; e trava de sincronia entre os exports de runtime e as
+  declarações de `m02-seal.d.mts`.
+- **Prova:** RED pré-fix `3 failed | 25 passed`; mutação isomórfica das correções do S6 `10 failed |
+29 passed` (sha256 restaurado); taxonomia de três vias por medição independente; S6 adversarial de
+  contexto limpo **10 CONFIRMED · 2 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE · 9 N** (6 corrigidos,
+  3 declarados como DBT-13/14/15); selo com 17 arquivos, `checked === discovered`, ancestralidade e
+  `run@sha`; E2 `CHECK_EXIT=0` (952 passed); heavy `c80ea84@35551394325` = success.
+- **Achado do próprio gate:** `scripts/m02-seal.d.mts` é mantido à mão — três exports novos faltavam
+  nele e o `vitest` passava enquanto o `tsc` reprovava. Corrigido **e** mecanizado por teste de
+  sincronia bidirecional.
+- **Placar: inalterado** — 150 D · 23 P · 12 NS · 2 UNV / 187 (o WP é de processo, não promove item).
+- **Registro no journal:** `L140` (intenção) e `L141` (resultado).
+
+  Latest state marker parent = `c80ea8403d644e6e74f920db3cee8c679760fc26`,

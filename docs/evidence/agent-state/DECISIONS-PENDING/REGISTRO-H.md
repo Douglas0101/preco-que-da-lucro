@@ -24,7 +24,7 @@
 
 ## Prioridade recomendada (impacto × custo) — apenas fila aberta
 
-1. **H-6** — 2 min; maior destravamento múltiplo (tráfego + 4 frentes). **Prazo:** antes de ~2026-09-21T03:37Z, quando o detector `app-live-watch` caduca (ver `docs/evidence/reconciliation-2026-09-19/B2-watcher-rearm.md`).
+1. **H-6** — 2 min; maior destravamento múltiplo (tráfego + 4 frentes). **Prazo:** o detector `app-live-watch` foi **re-armado em 2026-09-19T15:31:33Z** (segunda linha do `.arm`) e caduca em **≈2026-09-26T15:31Z** — o prazo anterior de ~2026-09-21T03:37Z referia-se ao arme de 2026-09-14 e **está desatualizado** (corrigido em 2026-09-21; prova: `~/.local/share/pi-fronts/app-live-watch.arm` e o `L141` do journal). Histórico: `docs/evidence/reconciliation-2026-09-19/B2-watcher-rearm.md`.
 2. **H-4** — decisão de billing/exceção; **desbloqueia o release** (263 commits em `develop` que nunca chegam a `main`).
 3. **H-9** — 1–3 min; remove fonte de atrito operacional.
 4. **H-2** — 1 min; destrava as baterias Neon live.
