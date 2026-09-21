@@ -1,0 +1,31 @@
+# Isolamento de bancada assertado — HEAD=eb2f498 base=eb2f498
+
+## origin/main (deve ser 9724d2c, intocado)
+9724d2c73b269d0a0199ea305308f3237b38fa09
+
+## :5432 — nenhum listener esperado
+0
+0
+
+## escopo do diff vs base
+  (nao commitado)  M .github/workflows/ui-stack.yml
+  (nao commitado)  M scripts/m02-matrix.ts
+  (nao commitado)  M src/test/product-contracts.test.ts
+  (nao commitado)  M src/test/products-fk-conflict.test.ts
+  (nao commitado) ?? docs/evidence/wp-r6-skip-visibility-2026-09-21/README.md
+  (nao commitado) ?? docs/evidence/wp-r6-skip-visibility-2026-09-21/SPEC.md
+  (nao commitado) ?? docs/evidence/wp-r6-skip-visibility-2026-09-21/captures/gate-local.log.txt
+  (nao commitado) ?? docs/evidence/wp-r6-skip-visibility-2026-09-21/captures/inventario-skips.log.txt
+  (nao commitado) ?? docs/evidence/wp-r6-skip-visibility-2026-09-21/captures/isolamento.log.txt
+  (nao commitado) ?? docs/evidence/wp-r6-skip-visibility-2026-09-21/captures/red-classificador-db.log.txt
+  (nao commitado) ?? docs/evidence/wp-r6-skip-visibility-2026-09-21/captures/red-fail-open.log.txt
+  (nao commitado) ?? scripts/lib/m02-database-module.ts
+  (nao commitado) ?? src/test/db-precondition.test.ts
+  (nao commitado) ?? src/test/helpers/db-precondition.ts
+  (nao commitado) ?? src/test/m02-database-module.test.ts
+
+## package.json / lockfile tocados?
+0
+
+## migrations tocadas?
+0

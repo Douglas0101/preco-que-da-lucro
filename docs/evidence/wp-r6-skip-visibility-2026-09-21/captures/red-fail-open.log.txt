@@ -1,0 +1,37 @@
+# Fail-open da precondicao de banco — medido nos dois estados, mutacao restaurada por sha256
+# HEAD=eb2f498
+
+sha256 ANTES  : e2fa3518cb95f11995be522ce6fb5a799998440bd5123d02cf4f8a9051d8eb7a
+mutacao APLICADA: semantica anterior restaurada
+sha256 MUTADO : 7ee051beaad9dac5e4e0ba69e61c53d5f97f2145c96794faaacbf8716aabe091
+
+## SOB MUTACAO (semantica antiga): B e C ficam VERDES com o banco ausente
+--- A. sem env ---
+   Test Files  1 passed (1)
+        Tests  5 passed | 9 skipped (14)
+--- B. 3 URLs remotas ---
+   Test Files  1 passed (1)
+        Tests  5 passed | 9 skipped (14)
+--- C. so DATABASE_URL remota ---
+   Test Files  1 passed (1)
+        Tests  5 passed | 9 skipped (14)
+
+sha256 DEPOIS : e2fa3518cb95f11995be522ce6fb5a799998440bd5123d02cf4f8a9051d8eb7a
+RESTAURO OK (sha256 identico)
+
+## RESTAURADO: B e C reprovam alto com precondicao nomeada; A passa com skip visivel
+--- A. sem env ---
+   Test Files  1 passed (1)
+        Tests  5 passed | 9 skipped (14)
+--- B. 3 URLs remotas ---
+   Test Files  1 failed (1)
+        Tests  no tests
+--- C. so DATABASE_URL remota ---
+   Test Files  1 failed (1)
+        Tests  no tests
+--- D. so ADMIN loopback (antes: ECONNREFUSED confuso) ---
+   Test Files  1 failed (1)
+        Tests  no tests
+
+## VISIBILIDADE do skip legitimo
+  db-precondition: N/A-sem-DB: nenhuma das 3 URLs definida (modo local sem banco)

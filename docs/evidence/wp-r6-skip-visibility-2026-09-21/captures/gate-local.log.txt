@@ -1,0 +1,625 @@
+
+> check
+> npm run m02:lockfile-guard && npm run m02:work-package-guard && npm run m02:debts-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle
+
+
+> m02:lockfile-guard
+> node scripts/m02-lockfile-guard.mjs
+
+{
+  "schema": "m02-lockfile-guard/1",
+  "ok": true,
+  "status": "pass",
+  "generatedAt": "2026-09-21T02:31:42.432Z",
+  "repo": "/home/douglas-souza/preco-que-d-main",
+  "observed": {
+    "spec": "^0.31.10",
+    "lockSpec": "^0.31.10",
+    "lockResolvedVersion": "0.31.10",
+    "lockSha256": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124",
+    "headLockSha256": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124",
+    "installedVersion": "0.31.10"
+  },
+  "checks": [
+    {
+      "id": "package-json-devdep",
+      "status": "pass",
+      "detail": "spec '^0.31.10'"
+    },
+    {
+      "id": "lock-top-spec",
+      "status": "pass",
+      "detail": "lock '^0.31.10'"
+    },
+    {
+      "id": "lock-resolved",
+      "status": "pass",
+      "detail": "resolvido 0.31.10"
+    },
+    {
+      "id": "lock-sha256-head",
+      "status": "pass",
+      "detail": "c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124"
+    },
+    {
+      "id": "node-modules-installed",
+      "status": "pass",
+      "detail": "instalado 0.31.10"
+    }
+  ],
+  "reasons": [],
+  "hint": "git checkout -- package.json package-lock.json && npm ci --ignore-scripts && npm run m02:lockfile-guard"
+}
+
+> m02:work-package-guard
+> node scripts/m02-work-package-guard.mjs
+
+work-package guard: OK (17 itens, 5 secoes, taxonomia e layout do selo) — docs/evidence/_templates/work-package.md
+
+> m02:debts-guard
+> node scripts/m02-debts-guard.mjs
+
+debts guard: OK (15 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix is deterministic and up to date.
+
+> check:ui-stack
+> node scripts/check-ui-stack.mjs
+
+UI stack check passed: shadcn/Base UI boundary and catalog are clean.
+
+> check:no-supabase-runtime
+> node scripts/check-no-supabase-runtime.mjs
+
+Gate de cutover: runtime sem Supabase e sem token em Web Storage.
+
+> format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> lint
+> eslint .
+
+
+> typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run
+
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ✓ src/test/m02-seal.test.ts (40 tests) 4251ms
+     ✓ claim invertida reprova (objetos existem: o vermelho é da relação, não da ausência)  372ms
+     ✓ claim em hex MAIÚSCULO é verificada, não ignorada  329ms
+ ✓ src/test/m02-role-membership.test.ts (5 tests) 5493ms
+     ✓ drill-branch mirando produção → DENY pré-conexão  1289ms
+     ✓ cutover-window fora de janela → DENY pré-conexão (inclusive dry-run)  1994ms
+     ✓ URL malformada/ausente → fail-closed exit 2, sem vazar valor  2203ms
+ ✓ src/test/m02-cutover-t0.test.ts (2 tests) 8026ms
+     ✓ --skip-snapshot não conecta e ainda assim exit 0 com rótulos (smoke de parsing)  8017ms
+ ✓ src/test/m02-transaction-sites.test.ts (21 tests) 1446ms
+     ✓ importar o gerador não regrava a matriz  1309ms
+ ✓ src/test/simulation-volume-source.test.tsx (7 tests) 3419ms
+     ✓ expõe o grupo, o rótulo e o estado de cada opção (teclado alcança o radio marcado)  687ms
+     ✓ anuncia a estimativa e bloqueia o salvamento com o motivo declarado  1521ms
+     ✓ não tem violações de acessibilidade com a estimativa selecionada  1198ms
+ ✓ src/test/calc-explainer.test.tsx (12 tests) 2636ms
+     ✓ cada KPI e o destaque de margem têm o próprio «Como calculamos?»  551ms
+     ✓ forecast: mostra as fórmulas do motor e descreve a projeção sem prometer previsão estatística  1125ms
+     ✓ simulação manual: a mesma matemática, com o volume declarado hipotético  584ms
+ ✓ src/test/perf-summarize.test.ts (15 tests) 1030ms
+     ✓ CLI com fixture termina com exit 0 e grava o relatório  466ms
+ ✓ src/test/contracts-driver-independence.test.ts (2 tests) 1385ms
+     ✓ compila com @/db/* remapeado para um diretório inexistente  1378ms
+ ✓ src/test/ui-stack.test.tsx (4 tests) 1006ms
+     ✓ associates its label and changes a controlled Select with the keyboard  454ms
+ ✓ src/test/m02-debts-guard.test.ts (16 tests) 806ms
+ ✓ src/test/finance.properties.test.ts (9 tests) 766ms
+     ✓ custo unitário maior, todo o resto igual ⇒ margem de contribuição não aumenta  343ms
+ ✓ src/test/memory-import-graph.test.ts (6 tests) 656ms
+     ✓ as raízes do cálculo canônico são derivadas do grafo (conjunto não vazio e fail-closed)  564ms
+ ✓ src/test/route-loading-skeletons.test.tsx (5 tests) 1003ms
+     ✓ inicio: renders the 4-column KPI grid geometry and the announcement while loading  375ms
+ ✓ src/test/m02-snapshot.test.ts (10 tests) 490ms
+ ✓ src/test/m02-work-package-guard.test.ts (9 tests) 503ms
+ ✓ src/test/auth-policy.test.ts (8 tests) 369ms
+     ✓ writes and verifies new passwords with scrypt  314ms
+ ✓ src/test/m02-pitr-check.test.ts (18 tests) 207ms
+ ✓ src/test/break-even.negative-margin.test.tsx (15 tests) 536ms
+     ✓ margem negativa: /ponto-equilibrio e /diagnostico concordam  301ms
+ ✓ src/test/rls-probe-contract.test.ts (2 tests) 154ms
+ ✓ src/test/m02-v2b.test.ts (11 tests) 194ms
+ ✓ src/test/m02-neon-spend.test.ts (16 tests) 151ms
+stdout | src/test/round-trip-instrumentation.perf-waves.test.ts > T1 perf-waves: instrumentação de round trips por transação (app.context_tx) > ignora pools sem connect e não reinstrumenta o mesmo cliente
+{"timestamp":"2026-09-21T02:32:47.833Z","level":"info","event":"app.context_tx","round_trips":2,"outcome":"commit","duration_ms":0}
+
+ ✓ src/test/round-trip-instrumentation.perf-waves.test.ts (26 tests) 142ms
+ ✓ src/test/chat-markdown.test.tsx (24 tests) 122ms
+ ✓ src/test/contracts.test.ts (11 tests) 68ms
+ ✓ src/test/simulation-race.test.tsx (7 tests) 122ms
+stdout | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToAcknowledge.record que lança não rejeita o chat
+{"timestamp":"2026-09-21T02:32:51.253Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":2,"timeToFirstContentMs":3,"timeToFinalMs":3}
+
+stderr | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToAcknowledge.record que lança não rejeita o chat
+{"timestamp":"2026-09-21T02:32:51.254Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+stdout | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToFirstContent.record que lança não rejeita o chat
+{"timestamp":"2026-09-21T02:32:51.258Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":1,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+stderr | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToFirstContent.record que lança não rejeita o chat
+{"timestamp":"2026-09-21T02:32:51.259Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+stdout | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToFinal.record que lança não rejeita o chat
+{"timestamp":"2026-09-21T02:32:51.260Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+stderr | src/test/safe-record.test.ts > chat-execution.server.ts: as três fases do §29 não derrubam o chat > aiTimeToFinal.record que lança não rejeita o chat
+{"timestamp":"2026-09-21T02:32:51.261Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+stderr | src/test/safe-record.test.ts > tool-runner.ts: toolDuration nos três caminhos > falha: AI_TIMEOUT não é substituído pelo erro da métrica
+{"timestamp":"2026-09-21T02:32:51.275Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+
+stdout | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > start.ts: os três caminhos de requestDuration
+{"timestamp":"2026-09-21T02:32:51.277Z","level":"info","event":"request.completed","correlationId":"2dbddc34-efb6-4482-9406-908b0f538b54","method":"GET","pathname":"/produtos","status":200,"durationMs":0}
+
+stderr | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > start.ts: os três caminhos de requestDuration
+{"timestamp":"2026-09-21T02:32:51.278Z","level":"error","event":"request.failed","correlationId":"58436500-8338-4ca4-beae-83d4cb181b35","code":"INTERNAL_ERROR","method":"GET","pathname":"/produtos","durationMs":0,"error":{"name":"Error","message":"db exploded"}}
+
+stdout | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > chat.functions.ts: aiDuration
+{"timestamp":"2026-09-21T02:32:51.281Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > chat-execution.server.ts: as três fases do §29
+{"timestamp":"2026-09-21T02:32:51.283Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+stderr | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > chat-execution.server.ts: as três fases do §29
+{"timestamp":"2026-09-21T02:32:51.283Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+stderr | src/test/safe-record.test.ts > args byte-idênticos no caminho saudável (captura sem lançar) > tool-runner.ts: toolDuration nos três caminhos
+{"timestamp":"2026-09-21T02:32:51.286Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+
+ ✓ src/test/safe-record.test.ts (20 tests) 119ms
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > reserve and settle never write ai_usage.tool_execution_id (column stays NULL)
+{"timestamp":"2026-09-21T02:32:51.641Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > reserve and settle never write ai_usage.tool_execution_id (column stays NULL)
+{"timestamp":"2026-09-21T02:32:51.644Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
+{"timestamp":"2026-09-21T02:32:51.645Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
+{"timestamp":"2026-09-21T02:32:51.646Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle with a known cost adds it to the daily estimated_cost total
+{"timestamp":"2026-09-21T02:32:51.648Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle with a known cost adds it to the daily estimated_cost total
+{"timestamp":"2026-09-21T02:32:51.649Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+ ✓ src/test/ai-estimated-cost.test.ts (18 tests) 31ms
+ ✓ src/test/products-read-models.golden.perf-waves.test.ts (5 tests) 64ms
+ ✓ src/test/finance.golden.test.ts (127 tests) 71ms
+stdout | src/test/perf-evidence.test.ts > gate §35 — evidência de performance > T5: na árvore real nenhum artefato é isento (checked === discovered) e o baseline controlado entra
+gate §35: 4 descoberto(s) por caminho, 4 checado(s) contra os 7 rótulos, 0 isento(s)
+
+ ✓ src/test/perf-evidence.test.ts (8 tests) 54ms
+ ✓ src/test/financial-metrics.test.ts (9 tests) 87ms
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat sem tool: acknowledge, first_content e final no mesmo round
+{"timestamp":"2026-09-21T02:32:55.261Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat com uma tool: acknowledge mede só o primeiro round e first_content == final
+{"timestamp":"2026-09-21T02:32:55.268Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
+
+stdout | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat com uma tool: acknowledge mede só o primeiro round e first_content == final
+{"timestamp":"2026-09-21T02:32:55.269Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":2,"timeToAcknowledgeMs":120,"timeToFirstContentMs":320,"timeToFinalMs":320}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > chat com uma tool: acknowledge mede só o primeiro round e first_content == final
+{"timestamp":"2026-09-21T02:32:55.270Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":1}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
+{"timestamp":"2026-09-21T02:32:55.271Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
+{"timestamp":"2026-09-21T02:32:55.273Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":1}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
+{"timestamp":"2026-09-21T02:32:55.273Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":2}
+
+stdout | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
+{"timestamp":"2026-09-21T02:32:55.274Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":4,"timeToAcknowledgeMs":10,"timeToFirstContentMs":100,"timeToFinalMs":100}
+
+stderr | src/test/ai-chat-latency.test.ts > §29: fases de latência do chat não-streaming > independência de round: acknowledge é registrado uma única vez em 4 rounds
+{"timestamp":"2026-09-21T02:32:55.274Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":3}
+
+ ✓ src/test/ai-chat-latency.test.ts (4 tests) 37ms
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > repete somente uma falha transitória e limita a duas tentativas
+{"timestamp":"2026-09-21T02:32:55.375Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":11,"outcome":"retry"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > repete somente uma falha transitória e limita a duas tentativas
+{"timestamp":"2026-09-21T02:32:55.382Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":2,"durationMs":4,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > não repete quota ou rate limit
+{"timestamp":"2026-09-21T02:32:55.387Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":1,"outcome":"RATE_LIMIT"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > propaga cancelamento como AI_TIMEOUT
+{"timestamp":"2026-09-21T02:32:55.390Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"AI_TIMEOUT"}
+
+ ✓ src/test/model-gateway.test.ts (3 tests) 34ms
+ ✓ src/test/financial.service.test.ts (5 tests) 18ms
+ ✓ src/test/format.test.ts (22 tests) 38ms
+ ✓ src/test/tool-runner.persistence.test.ts (11 tests) 42ms
+ ✓ src/test/error-budget.test.ts (19 tests) 44ms
+ ✓ src/test/pg-stat-statements.test.ts (11 tests) 22ms
+ ✓ src/test/migration-classes.test.ts (3 tests) 22ms
+ ✓ src/test/csp-report.test.ts (13 tests) 28ms
+ ✓ src/test/observability-spans.test.ts (10 tests) 28ms
+ ✓ src/test/ai-endpoint.server.test.ts (7 tests) 11ms
+ ✓ src/test/m02-secrets-audit.test.ts (4 tests) 25ms
+ ✓ src/test/cross-tenant-denial.perf-waves.test.ts (5 tests) 23ms
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > grava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+{"timestamp":"2026-09-21T02:33:02.578Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > grava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+{"timestamp":"2026-09-21T02:33:02.581Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":30000,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > NÃO libera a reserva e NÃO incrementa os contadores de token
+{"timestamp":"2026-09-21T02:33:02.589Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > NÃO libera a reserva e NÃO incrementa os contadores de token
+{"timestamp":"2026-09-21T02:33:02.590Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":30000,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:33:02.593Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:33:02.593Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":1701182593,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:33:02.601Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:33:02.601Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":1701182601,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:33:02.602Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-21T02:33:02.604Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"invalid","durationMs":1701182604,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > REGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+{"timestamp":"2026-09-21T02:33:02.607Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > REGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+{"timestamp":"2026-09-21T02:33:02.608Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > TokenUsage conhecido usa os valores medidos, não os de options
+{"timestamp":"2026-09-21T02:33:02.610Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > TokenUsage conhecido usa os valores medidos, não os de options
+{"timestamp":"2026-09-21T02:33:02.612Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":155,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > zero explícito conhecido liquida com zero (não confundir com desconhecido)
+{"timestamp":"2026-09-21T02:33:02.613Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > zero explícito conhecido liquida com zero (não confundir com desconhecido)
+{"timestamp":"2026-09-21T02:33:02.614Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":0,"usageUnknownReason":null,"durationMs":1701182614,"outcome":"success","applied":true}
+
+ ✓ src/test/ai-usage-unknown.test.ts (6 tests) 42ms
+ ✓ src/test/m02-grant-repair.test.ts (5 tests) 26ms
+ ✓ src/test/check-bundle-identity.test.ts (5 tests) 20ms
+ ✓ src/test/bff-create-update-contract.test.ts (4 tests) 16ms
+ ✓ src/test/dashboard.service.test.ts (6 tests) 17ms
+ ✓ src/test/m02-ci-coverage.test.ts (9 tests) 11ms
+ ✓ src/test/api-error-contract.test.ts (3 tests) 17ms
+stdout | src/test/product-contracts.test.ts
+db-precondition: N/A-sem-DB: nenhuma das 3 URLs definida (modo local sem banco)
+
+ ✓ src/test/product-contracts.test.ts (14 tests | 9 skipped) 47ms
+ ✓ src/test/m02-readiness-snapshot.test.ts (11 tests) 20ms
+ ✓ src/test/slo-ai-baseline-discipline.test.ts (7 tests) 13ms
+ ✓ src/test/sql-redactor.test.ts (11 tests) 11ms
+ ✓ src/test/api-error-logger.test.ts (4 tests) 16ms
+ ✓ src/test/security-headers.test.ts (3 tests) 21ms
+ ✓ src/test/query-performance.test.ts (7 tests) 22ms
+stderr | src/test/chat-rate-limit.test.ts > §20.5: admissão do chat por bucket atômico > recusa com RATE_LIMIT (429) antes do orçamento e do histórico
+{"timestamp":"2026-09-21T02:33:10.908Z","level":"warn","event":"ai.chat_rate_limited","bucket":"chat","retryAfterSeconds":600}
+
+stdout | src/test/chat-rate-limit.test.ts > §20.5: admissão do chat por bucket atômico > segue o turno quando o bucket aprova
+{"timestamp":"2026-09-21T02:33:10.915Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":1,"timeToFirstContentMs":2,"timeToFinalMs":2}
+
+stderr | src/test/chat-rate-limit.test.ts > §20.5: admissão do chat por bucket atômico > segue o turno quando o bucket aprova
+{"timestamp":"2026-09-21T02:33:10.916Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+ ✓ src/test/chat-rate-limit.test.ts (3 tests) 15ms
+ ✓ src/test/m02-matrix-drift.test.ts (12 tests) 17ms
+ ✓ src/test/memory-dedup.test.ts (11 tests) 12ms
+stderr | src/test/pricing.service.test.ts > DefaultPricingService > engole falha do snapshot mantendo o output do diagnóstico intacto
+{"timestamp":"2026-09-21T02:33:12.983Z","level":"warn","event":"diagnostic.snapshot_failed","productId":"70000000-0000-4000-8000-000000000001","message":"SNAPSHOT_DOWN"}
+
+ ✓ src/test/pricing.service.test.ts (4 tests) 29ms
+ ✓ src/test/finance.boundaries.test.ts (16 tests) 29ms
+ ✓ src/test/backfill-runner.test.ts (5 tests) 14ms
+ ✓ src/test/optimistic-version.repository.test.ts (8 tests) 20ms
+ ✓ src/test/tool-registry.test.ts (10 tests) 23ms
+ ✓ src/test/purchase-price.service.test.ts (4 tests) 17ms
+ ✓ src/test/financial-values.test.ts (5 tests) 15ms
+ ✓ src/test/simulation.service.test.ts (2 tests) 24ms
+ ✓ src/test/memory-service.test.ts (16 tests) 22ms
+ ✓ src/test/memory-policy.test.ts (34 tests) 17ms
+ ✓ src/test/finance.required-sales.test.ts (13 tests) 12ms
+ ✓ src/test/chat-fsm.server.test.ts (14 tests) 20ms
+ ✓ src/test/token-usage.test.ts (8 tests) 23ms
+ ✓ src/test/break-even.parity.test.ts (6 tests) 25ms
+ ✓ src/test/sales.service.test.ts (5 tests) 14ms
+ ✓ src/test/event-service.test.ts (10 tests) 27ms
+ ✓ src/test/break-even.service.test.ts (2 tests) 10ms
+ ✓ src/test/web-vitals-payload.test.ts (9 tests) 9ms
+ ✓ src/test/conversation.service.test.ts (6 tests) 14ms
+ ✓ src/test/m02-purge-fixtures.test.ts (4 tests) 16ms
+ ✓ src/test/product-completeness.test.ts (4 tests) 10ms
+ ✓ src/test/rate-limit-rules.test.ts (9 tests) 10ms
+ ✓ src/test/m02-backup-verify.test.ts (7 tests) 7ms
+ ✓ src/test/audit.service.test.ts (5 tests) 10ms
+ ✓ src/test/rls-probe-errors.test.ts (4 tests) 8ms
+ ✓ src/test/request-context.test.ts (2 tests) 6ms
+ ✓ src/test/snapshot-idempotency.test.ts (5 tests) 7ms
+stdout | src/test/products-fk-conflict.test.ts
+db-precondition: N/A-sem-DB: nenhuma das 3 URLs definida (modo local sem banco)
+
+ ✓ src/test/products-fk-conflict.test.ts (15 tests | 4 skipped) 15ms
+ ✓ src/test/db-precondition.test.ts (7 tests) 12ms
+ ✓ src/test/ai-tool.repository.security.test.ts (1 test) 8ms
+ ✓ src/test/m02-database-module.test.ts (5 tests) 6ms
+ ✓ src/test/list-limits.test.ts (3 tests) 6ms
+ ✓ src/test/migration-reconcile.test.ts (1 test) 3ms
+ ✓ src/test/chat-fsm.test.ts (2 tests) 4ms
+
+ Test Files  95 passed (95)
+      Tests  964 passed | 13 skipped (977)
+   Start at  23:32:22
+   Duration  67.75s (transform 3.86s, setup 12.33s, import 47.65s, tests 36.62s, environment 87.06s)
+
+
+> build
+> node scripts/build.mjs
+
+vite v8.2.2 building client environment for production...
+transforming...
+✓ 2345 modules transformed.
+rendering chunks...
+computing gzip size...
+.output/public/.vite/manifest.json                   17.00 kB │ gzip:  1.88 kB
+.output/public/assets/styles-BqnPtUyt.css            42.32 kB │ gzip:  8.05 kB
+.output/public/assets/trending-up-D0-z9Y5V.js         0.17 kB │ gzip:  0.17 kB
+.output/public/assets/circle-plus-Ot16J1q7.js         0.20 kB │ gzip:  0.17 kB
+.output/public/assets/message-circle-BtsSYoVG.js      0.24 kB │ gzip:  0.21 kB
+.output/public/assets/triangle-alert-DKmozdSR.js      0.26 kB │ gzip:  0.21 kB
+.output/public/assets/wallet-CM13DWu5.js              0.28 kB │ gzip:  0.20 kB
+.output/public/assets/loading-skeleton-CDy-7ruO.js    0.29 kB │ gzip:  0.21 kB
+.output/public/assets/finance-B8mGadPk.js             0.32 kB │ gzip:  0.23 kB
+.output/public/assets/tag--pwtrGpU.js                 0.32 kB │ gzip:  0.24 kB
+.output/public/assets/trash-2-CIagGSiV.js             0.32 kB │ gzip:  0.21 kB
+.output/public/assets/scale-DFV9GAd-.js               0.33 kB │ gzip:  0.22 kB
+.output/public/assets/label-DsSsGPVR.js               0.35 kB │ gzip:  0.26 kB
+.output/public/assets/package-mJnzy48B.js             0.37 kB │ gzip:  0.25 kB
+.output/public/assets/useServerFn-DtOC6iJy.js         0.38 kB │ gzip:  0.27 kB
+.output/public/assets/sparkles-Dwseka6l.js            0.49 kB │ gzip:  0.28 kB
+.output/public/assets/input-Bux_7VrY.js               0.66 kB │ gzip:  0.41 kB
+.output/public/assets/calc-explainer-DYetHXYt.js      0.71 kB │ gzip:  0.44 kB
+.output/public/assets/rolldown-runtime-hePW80VL.js    0.71 kB │ gzip:  0.42 kB
+.output/public/assets/badge-CpgyLfKH.js               0.81 kB │ gzip:  0.43 kB
+.output/public/assets/calc-explanation-ChhYpeUf.js    1.07 kB │ gzip:  0.43 kB
+.output/public/assets/preload-helper-Czpn1I53.js      1.19 kB │ gzip:  0.67 kB
+.output/public/assets/createLucideIcon-B5H5xK_Q.js    1.24 kB │ gzip:  0.72 kB
+.output/public/assets/skeleton-DCYwDF4Q.js            1.29 kB │ gzip:  0.48 kB
+.output/public/assets/format-BN9VvWTr.js              1.32 kB │ gzip:  0.65 kB
+.output/public/assets/alert-dialog-tzeyIrdI.js        2.21 kB │ gzip:  0.82 kB
+.output/public/assets/react-dom-DnMgFH6B.js           3.59 kB │ gzip:  1.37 kB
+.output/public/assets/routes-C-r2Fwrg.js              4.44 kB │ gzip:  1.88 kB
+.output/public/assets/auth-1LJHeGNb.js                5.95 kB │ gzip:  2.41 kB
+.output/public/assets/produtos-VfNs3qhY.js            6.00 kB │ gzip:  2.26 kB
+.output/public/assets/vendas-DPHLdnHV.js              6.11 kB │ gzip:  2.27 kB
+.output/public/assets/despesas-DxZFq0am.js            6.71 kB │ gzip:  2.30 kB
+.output/public/assets/precos-Cs1Xpsq2.js              7.44 kB │ gzip:  2.94 kB
+.output/public/assets/route-BrngWk65.js               7.89 kB │ gzip:  2.86 kB
+.output/public/assets/novo-produto-BPIBYh2C.js        8.22 kB │ gzip:  3.33 kB
+.output/public/assets/inicio-CeVVB49T.js              8.57 kB │ gzip:  3.13 kB
+.output/public/assets/web-vitals-viX3FQND.js          8.62 kB │ gzip:  3.22 kB
+.output/public/assets/DialogTrigger-kCAI4vFT.js       9.50 kB │ gzip:  3.39 kB
+.output/public/assets/ponto-equilibrio-nS95HoqY.js   10.27 kB │ gzip:  3.51 kB
+.output/public/assets/simulacoes-JFCvNI1F.js         14.96 kB │ gzip:  4.92 kB
+.output/public/assets/diagnostico-pm7E0XGZ.js        15.31 kB │ gzip:  4.86 kB
+.output/public/assets/auth-client-DkVMaKOW.js        29.34 kB │ gzip: 11.10 kB
+.output/public/assets/button-CiZwOupE.js             38.70 kB │ gzip: 13.17 kB
+.output/public/assets/composite-C7bqY-9T.js          42.74 kB │ gzip: 14.83 kB
+.output/public/assets/select-CYRjaKew.js             67.69 kB │ gzip: 24.75 kB
+.output/public/assets/query-options-v-joOFK7.js     125.84 kB │ gzip: 40.65 kB
+.output/public/assets/tanstack-vendor-D1mahD_Y.js   160.39 kB │ gzip: 51.16 kB
+.output/public/assets/index-oW6bmarj.js             237.69 kB │ gzip: 74.10 kB
+
+✓ built in 1.66s
+vite v8.2.2 building ssr environment for production...
+transforming...
+✓ 273 modules transformed.
+rendering chunks...
+computing gzip size...
+node_modules/.nitro/vite/services/ssr/assets/styles-BqnPtUyt.css                        42.32 kB │ gzip:  8.05 kB
+node_modules/.nitro/vite/services/ssr/assets/kysely-adapter-Cj_QZw5p.js                  0.05 kB │ gzip:  0.07 kB
+node_modules/.nitro/vite/services/ssr/assets/server-Clm4KkMU.js                          0.07 kB │ gzip:  0.08 kB
+node_modules/.nitro/vite/services/ssr/assets/session-context-B5fJF42b.js                 0.15 kB │ gzip:  0.11 kB
+node_modules/.nitro/vite/services/ssr/assets/empty-plugin-adapters-D9UWiqvJ.js           0.22 kB │ gzip:  0.16 kB
+node_modules/.nitro/vite/services/ssr/assets/optimistic-version-MifrSw5n.js              0.40 kB │ gzip:  0.30 kB
+node_modules/.nitro/vite/services/ssr/assets/label-DV8FU6sa.js                           0.42 kB │ gzip:  0.30 kB
+node_modules/.nitro/vite/services/ssr/assets/useServerFn-CrZF2pjq.js                     0.63 kB │ gzip:  0.35 kB
+node_modules/.nitro/vite/services/ssr/assets/input-BRH-q4T-.js                           0.76 kB │ gzip:  0.46 kB
+node_modules/.nitro/vite/services/ssr/assets/createMiddleware-B_4t7rW1.js                0.83 kB │ gzip:  0.32 kB
+node_modules/.nitro/vite/services/ssr/assets/loading-skeleton-WoAvWHYM.js                0.89 kB │ gzip:  0.53 kB
+node_modules/.nitro/vite/services/ssr/assets/badge-V0ZSdmhV.js                           0.98 kB │ gzip:  0.51 kB
+node_modules/.nitro/vite/services/ssr/assets/calc-explainer-CZvPLeWp.js                  1.04 kB │ gzip:  0.59 kB
+node_modules/.nitro/vite/services/ssr/assets/list-limits-oIagqv0Z.js                     1.16 kB │ gzip:  0.69 kB
+node_modules/.nitro/vite/services/ssr/assets/button-CjvnBxIY.js                          1.71 kB │ gzip:  0.76 kB
+node_modules/.nitro/vite/services/ssr/assets/skeleton-B5edokos.js                        1.88 kB │ gzip:  0.56 kB
+node_modules/.nitro/vite/services/ssr/assets/product-read-model.service-Br4MwNKx.js      1.94 kB │ gzip:  0.79 kB
+node_modules/.nitro/vite/services/ssr/assets/calc-explanation-BGVtIlQX.js                2.09 kB │ gzip:  0.85 kB
+node_modules/.nitro/vite/services/ssr/assets/format-Di3yxDKa.js                          2.85 kB │ gzip:  1.12 kB
+node_modules/.nitro/vite/services/ssr/assets/alert-dialog-C8nFhAg9.js                    3.25 kB │ gzip:  0.92 kB
+node_modules/.nitro/vite/services/ssr/assets/calculation-snapshot.service-Cc3oOllB.js    3.65 kB │ gzip:  1.41 kB
+node_modules/.nitro/vite/services/ssr/assets/sales.functions-CQrwovlm.js                 3.81 kB │ gzip:  1.48 kB
+node_modules/.nitro/vite/services/ssr/assets/select-aSL6r7Zo.js                          3.91 kB │ gzip:  1.27 kB
+node_modules/.nitro/vite/services/ssr/assets/routes-BfteKPDc.js                          4.61 kB │ gzip:  1.69 kB
+node_modules/.nitro/vite/services/ssr/assets/financial-values-BaX1B0WJ.js                4.94 kB │ gzip:  1.70 kB
+node_modules/.nitro/vite/services/ssr/assets/purchase-price.service-CkMoGwV_.js          5.21 kB │ gzip:  1.75 kB
+node_modules/.nitro/vite/services/ssr/assets/start-jHjnDgLX.js                           5.45 kB │ gzip:  1.78 kB
+node_modules/.nitro/vite/services/ssr/assets/request-context-gGDL5Jmb.js                 5.63 kB │ gzip:  1.83 kB
+node_modules/.nitro/vite/services/ssr/assets/financial.functions-ES5CXQIX.js             5.83 kB │ gzip:  1.93 kB
+node_modules/.nitro/vite/services/ssr/assets/sales.service-DiqOnP4P.js                   5.84 kB │ gzip:  1.77 kB
+node_modules/.nitro/vite/services/ssr/assets/expenses.functions-joo-x1o2.js              5.96 kB │ gzip:  1.79 kB
+node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-BGWbYF2L.js      6.15 kB │ gzip:  1.23 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-BLMUvwzy.js                            8.98 kB │ gzip:  2.88 kB
+node_modules/.nitro/vite/services/ssr/assets/dashboard.functions-BlD-4Hr_.js             9.15 kB │ gzip:  3.13 kB
+node_modules/.nitro/vite/services/ssr/assets/produtos-CuPna41U.js                        9.49 kB │ gzip:  2.85 kB
+node_modules/.nitro/vite/services/ssr/assets/route-DJGr02pD.js                           9.57 kB │ gzip:  2.84 kB
+node_modules/.nitro/vite/services/ssr/assets/vendas-B99mIT4L.js                         10.28 kB │ gzip:  2.88 kB
+node_modules/.nitro/vite/services/ssr/assets/precos-CSmSZIO-.js                         10.44 kB │ gzip:  3.41 kB
+node_modules/.nitro/vite/services/ssr/assets/expense.service-BjQZn-Ko.js                10.69 kB │ gzip:  3.57 kB
+node_modules/.nitro/vite/services/ssr/assets/despesas-CjB2GzLt.js                       11.26 kB │ gzip:  2.99 kB
+node_modules/.nitro/vite/services/ssr/assets/inicio-CGRcQED_.js                         11.99 kB │ gzip:  3.58 kB
+node_modules/.nitro/vite/services/ssr/assets/diagnostic.functions-DnRKSEfA.js           12.31 kB │ gzip:  3.78 kB
+node_modules/.nitro/vite/services/ssr/assets/novo-produto-D8H3Rm22.js                   12.45 kB │ gzip:  4.03 kB
+node_modules/.nitro/vite/services/ssr/assets/telemetry-BSIpnUy5.js                      15.76 kB │ gzip:  5.37 kB
+node_modules/.nitro/vite/services/ssr/assets/product.repository-DDfBhgAY.js             16.54 kB │ gzip:  3.06 kB
+node_modules/.nitro/vite/services/ssr/assets/ponto-equilibrio-BNQUdCT-.js               18.08 kB │ gzip:  4.97 kB
+node_modules/.nitro/vite/services/ssr/assets/query-options-DJ32R_BP.js                  18.55 kB │ gzip:  5.28 kB
+node_modules/.nitro/vite/services/ssr/assets/financial.service-B85aVJ8l.js              23.90 kB │ gzip:  5.56 kB
+node_modules/.nitro/vite/services/ssr/assets/diagnostico-B2CLF_8h.js                    24.09 kB │ gzip:  6.07 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-client-v8C-X7Oh.js                    26.27 kB │ gzip:  7.56 kB
+node_modules/.nitro/vite/services/ssr/assets/products.functions-CZJA6UYh.js             27.25 kB │ gzip:  6.41 kB
+node_modules/.nitro/vite/services/ssr/assets/simulacoes-D0kJYXrJ.js                     27.35 kB │ gzip:  7.45 kB
+node_modules/.nitro/vite/services/ssr/index.js                                          32.19 kB │ gzip:  9.47 kB
+node_modules/.nitro/vite/services/ssr/assets/router-BUZGp2Pb.js                         34.15 kB │ gzip:  9.19 kB
+node_modules/.nitro/vite/services/ssr/assets/chat.functions-CZd8gS4H.js                 62.35 kB │ gzip: 16.77 kB
+node_modules/.nitro/vite/services/ssr/assets/client.server-Dr4Nv5LD.js                  66.05 kB │ gzip: 15.91 kB
+node_modules/.nitro/vite/services/ssr/assets/server-Bhn-cc_Z.js                         75.43 kB │ gzip: 19.97 kB
+node_modules/.nitro/vite/services/ssr/assets/auth.server-Clv0FULM.js                   367.77 kB │ gzip: 87.58 kB
+
+✓ built in 1.11s
+
+[nitro] ◐ Building [Nitro] (preset: node-server, compatibility: 2026-09-15)
+[nitro] ✔ Generated public .output/public
+vite v8.2.2 building nitro environment for production...
+transforming...
+✓ 3011 modules transformed.
+rendering chunks...
+computing gzip size...
+.output/server/_ssr/server-Clm4KkMU.mjs                          0.09 kB │ gzip:   0.09 kB
+.output/server/_libs/vercel__analytics.mjs                       0.13 kB │ gzip:   0.12 kB
+.output/server/_ssr/session-context-B5fJF42b.mjs                 0.15 kB │ gzip:   0.12 kB
+.output/server/_ssr/kysely-adapter-Cj_QZw5p.mjs                  0.15 kB │ gzip:   0.12 kB
+.output/server/_ssr/empty-plugin-adapters-D9UWiqvJ.mjs           0.23 kB │ gzip:   0.16 kB
+.output/server/_ssr/optimistic-version-MifrSw5n.mjs              0.49 kB │ gzip:   0.36 kB
+.output/server/_ssr/label-DV8FU6sa.mjs                           0.54 kB │ gzip:   0.33 kB
+.output/server/_chunks/ssr-renderer.mjs                          0.59 kB │ gzip:   0.35 kB
+.output/server/_ssr/useServerFn-CrZF2pjq.mjs                     0.83 kB │ gzip:   0.45 kB
+.output/server/_ssr/input-BRH-q4T-.mjs                           1.00 kB │ gzip:   0.55 kB
+.output/server/_ssr/list-limits-oIagqv0Z.mjs                     1.12 kB │ gzip:   0.68 kB
+.output/server/_ssr/badge-V0ZSdmhV.mjs                           1.13 kB │ gzip:   0.54 kB
+.output/server/_ssr/calc-explainer-CZvPLeWp.mjs                  1.33 kB │ gzip:   0.68 kB
+.output/server/_libs/defu.mjs                                    1.41 kB │ gzip:   0.58 kB
+.output/server/_ssr/calc-explanation-BGVtIlQX.mjs                1.69 kB │ gzip:   0.66 kB
+.output/server/_ssr/product-read-model.service-Br4MwNKx.mjs      1.91 kB │ gzip:   0.81 kB
+.output/server/_runtime.mjs                                      1.92 kB │ gzip:   0.87 kB
+.output/server/_libs/ufo.mjs                                     2.21 kB │ gzip:   0.72 kB
+.output/server/_ssr/format-Di3yxDKa.mjs                          2.92 kB │ gzip:   1.17 kB
+.output/server/_libs/class-variance-authority+clsx.mjs           3.17 kB │ gzip:   1.24 kB
+.output/server/_ssr/calculation-snapshot.service-Cc3oOllB.mjs    3.73 kB │ gzip:   1.47 kB
+.output/server/_ssr/alert-dialog-C8nFhAg9.mjs                    3.77 kB │ gzip:   1.00 kB
+.output/server/_libs/better-auth__utils.mjs                      3.80 kB │ gzip:   1.31 kB
+.output/server/_ssr/sales.functions-CQrwovlm.mjs                 3.92 kB │ gzip:   1.54 kB
+.output/server/_ssr/select-aSL6r7Zo.mjs                          4.68 kB │ gzip:   1.37 kB
+.output/server/_ssr/financial-values-BaX1B0WJ.mjs                5.08 kB │ gzip:   1.78 kB
+.output/server/_ssr/purchase-price.service-CkMoGwV_.mjs          5.25 kB │ gzip:   1.80 kB
+.output/server/_ssr/start-jHjnDgLX.mjs                           5.39 kB │ gzip:   1.77 kB
+.output/server/_ssr/routes-BfteKPDc.mjs                          5.43 kB │ gzip:   1.81 kB
+.output/server/_libs/nanostores.mjs                              5.53 kB │ gzip:   1.80 kB
+.output/server/_ssr/request-context-gGDL5Jmb.mjs                 5.62 kB │ gzip:   1.85 kB
+.output/server/_ssr/financial.functions-ES5CXQIX.mjs             5.79 kB │ gzip:   1.96 kB
+.output/server/_ssr/sales.service-DiqOnP4P.mjs                   5.91 kB │ gzip:   1.83 kB
+.output/server/_ssr/expenses.functions-joo-x1o2.mjs              6.05 kB │ gzip:   1.85 kB
+.output/server/_tanstack-start-manifest_v-BGWbYF2L.mjs           6.21 kB │ gzip:   1.27 kB
+.output/server/_libs/stablelib__base64.mjs                       6.72 kB │ gzip:   1.75 kB
+.output/server/_ssr/dashboard.functions-BlD-4Hr_.mjs             9.14 kB │ gzip:   3.16 kB
+.output/server/_libs/tanstack__react-query.mjs                   9.28 kB │ gzip:   2.21 kB
+.output/server/_ssr/auth-BLMUvwzy.mjs                           10.25 kB │ gzip:   3.00 kB
+.output/server/_libs/fast-sha256.mjs                            10.45 kB │ gzip:   3.09 kB
+.output/server/_ssr/expense.service-BjQZn-Ko.mjs                10.56 kB │ gzip:   3.59 kB
+.output/server/_ssr/route-DJGr02pD.mjs                          11.11 kB │ gzip:   2.98 kB
+.output/server/_ssr/produtos-CuPna41U.mjs                       11.20 kB │ gzip:   2.99 kB
+.output/server/_ssr/precos-CSmSZIO-.mjs                         11.93 kB │ gzip:   3.54 kB
+.output/server/_ssr/vendas-B99mIT4L.mjs                         11.98 kB │ gzip:   3.00 kB
+.output/server/_libs/tanstack__history.mjs                      12.05 kB │ gzip:   3.46 kB
+.output/server/_ssr/diagnostic.functions-DnRKSEfA.mjs           12.24 kB │ gzip:   3.81 kB
+.output/server/_ssr/despesas-CjB2GzLt.mjs                       13.31 kB │ gzip:   3.11 kB
+.output/server/_ssr/novo-produto-D8H3Rm22.mjs                   13.83 kB │ gzip:   4.11 kB
+.output/server/_ssr/inicio-CGRcQED_.mjs                         14.08 kB │ gzip:   3.72 kB
+.output/server/_libs/better-auth__memory-adapter.mjs            14.71 kB │ gzip:   4.12 kB
+.output/server/_ssr/product.repository-DDfBhgAY.mjs             16.64 kB │ gzip:   3.13 kB
+.output/server/_libs/lucide-react.mjs                           17.31 kB │ gzip:   3.74 kB
+.output/server/_libs/@better-auth/telemetry+[...].mjs           17.53 kB │ gzip:   4.90 kB
+.output/server/_ssr/query-options-DJ32R_BP.mjs                  18.25 kB │ gzip:   5.29 kB
+.output/server/_ssr/ponto-equilibrio-BNQUdCT-.mjs               19.80 kB │ gzip:   5.08 kB
+.output/server/index.mjs                                        21.93 kB │ gzip:   6.31 kB
+.output/server/_libs/noble__hashes.mjs                          23.93 kB │ gzip:   7.95 kB
+.output/server/_ssr/financial.service-B85aVJ8l.mjs              23.98 kB │ gzip:   5.62 kB
+.output/server/_libs/h3+srvx.mjs                                27.27 kB │ gzip:   7.19 kB
+.output/server/_ssr/products.functions-CZJA6UYh.mjs             27.28 kB │ gzip:   6.46 kB
+.output/server/_ssr/diagnostico-B2CLF_8h.mjs                    27.39 kB │ gzip:   6.19 kB
+.output/server/_ssr/simulacoes-D0kJYXrJ.mjs                     30.59 kB │ gzip:   7.61 kB
+.output/server/_ssr/ssr.mjs                                     32.41 kB │ gzip:   9.58 kB
+.output/server/_libs/bcryptjs.mjs                               32.95 kB │ gzip:  11.20 kB
+.output/server/_libs/jose.mjs                                   33.30 kB │ gzip:   8.03 kB
+.output/server/_libs/resend+standardwebhooks.mjs                44.67 kB │ gzip:   8.63 kB
+.output/server/_libs/noble__ciphers.mjs                         47.40 kB │ gzip:  14.67 kB
+.output/server/_libs/h3-v2+rou3+srvx.mjs                        49.38 kB │ gzip:  13.28 kB
+.output/server/_libs/sonner.mjs                                 53.62 kB │ gzip:  12.11 kB
+.output/server/_libs/decimal.js.mjs                             55.37 kB │ gzip:  15.47 kB
+.output/server/_libs/@better-auth/drizzle-adapter+[...].mjs     60.74 kB │ gzip:  13.66 kB
+.output/server/_ssr/chat.functions-CZd8gS4H.mjs                 61.73 kB │ gzip:  16.72 kB
+.output/server/_libs/opentelemetry__api.mjs                     63.94 kB │ gzip:  12.28 kB
+.output/server/_ssr/router-BUZGp2Pb.mjs                         64.59 kB │ gzip:  17.35 kB
+.output/server/_libs/tanstack__query-core.mjs                   72.84 kB │ gzip:  15.36 kB
+.output/server/_ssr/server-Bhn-cc_Z.mjs                         74.72 kB │ gzip:  20.06 kB
+.output/server/_ssr/client.server-Dr4Nv5LD.mjs                  81.46 kB │ gzip:  20.92 kB
+.output/server/_libs/tailwind-merge.mjs                         88.13 kB │ gzip:  15.66 kB
+.output/server/_libs/postal-mime.mjs                            91.46 kB │ gzip:  25.70 kB
+.output/server/_libs/@tanstack/router-core+[...].mjs           122.94 kB │ gzip:  25.89 kB
+.output/server/_libs/neondatabase__serverless.mjs              182.38 kB │ gzip:  51.29 kB
+.output/server/_libs/drizzle-orm.mjs                           305.25 kB │ gzip:  63.96 kB
+.output/server/_ssr/auth.server-Clv0FULM.mjs                   361.96 kB │ gzip:  86.88 kB
+.output/server/_libs/@base-ui/react+[...].mjs                  375.65 kB │ gzip:  85.63 kB
+.output/server/_libs/@better-auth/kysely-adapter+[...].mjs     498.94 kB │ gzip:  82.92 kB
+.output/server/_libs/@react-email/render+[...].mjs             511.44 kB │ gzip: 151.63 kB
+.output/server/_libs/@tanstack/react-router+[...].mjs          649.49 kB │ gzip: 136.21 kB
+.output/server/_libs/@better-auth/core+[...].mjs               832.76 kB │ gzip: 164.77 kB
+
+✓ built in 910ms
+ℹ Generated .output/nitro.json
+
+[nitro] ✔ You can preview this build using npx vite preview
+
+> check:bundle
+> node scripts/check-bundle.mjs
+
+PASS assets/index-oW6bmarj.js: 237694 minified, 73258 gzip, 63718 Brotli bytes, sha256=a67e89b47cb5
+Initial graph (9 chunks): 473230 minified, 151053 gzip, 132843 Brotli bytes, sha256=bfdc8d79ed27
+GATE_EXIT=0

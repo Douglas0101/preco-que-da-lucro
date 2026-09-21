@@ -8,6 +8,7 @@ import { ApplicationError } from "@/lib/api-error";
 import { deleteIngredient, deletePackaging } from "@/lib/products.functions";
 import type { RequestContext } from "@/lib/request-context";
 import { ensureRuntimeRoleMembership, runMigrations } from "../../scripts/db/migrate";
+import { dbPrecondition, skipLabel } from "./helpers/db-precondition";
 
 vi.mock("@tanstack/react-start", () => ({
   createMiddleware: () => ({ server: (handler: unknown) => handler }),
@@ -254,23 +255,10 @@ describe("mapeamento FK 23503 → CONFLICT (WP-C4-1)", () => {
  * Gate fail-closed: qualquer URL fora de loopback (ou a credencial herdada de
  * produção `DATABASE_URL_UNPOOLED`) desabilita o bloco.
  */
-function isLoopbackUrl(value: string | undefined): boolean {
-  if (!value) return true;
-  try {
-    const { hostname } = new URL(value);
-    return hostname === "127.0.0.1" || hostname === "localhost" || hostname === "::1";
-  } catch {
-    return false;
-  }
-}
-
 const adminUrl = process.env.DATABASE_ADMIN_URL;
-const dbEnabled =
-  Boolean(adminUrl) &&
-  isLoopbackUrl(adminUrl) &&
-  isLoopbackUrl(process.env.DATABASE_URL) &&
-  isLoopbackUrl(process.env.DATABASE_URL_UNPOOLED);
-const dbDescribe = dbEnabled ? describe : describe.skip;
+const dbGate = dbPrecondition();
+if (!dbGate.enabled) console.log(skipLabel(dbGate.motivo));
+const dbDescribe = dbGate.enabled ? describe : describe.skip;
 
 dbDescribe("delete de filho com histórico — caminho real do driver (PG efêmero)", () => {
   const pool = new Pool({ connectionString: adminUrl ?? "", max: 2 });

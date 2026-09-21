@@ -39,16 +39,17 @@ jobs:
         postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
       # INV-006 / F-D2-runner-failopen: `src/test/product-contracts.test.ts` e
       # `src/test/products-fk-conflict.test.ts` leem esta terceira URL como
-      # kill-switch contra credencial de produção herdada. O gate é
-      # `isLoopbackUrl`, que devolve `true` para valor **ausente**
-      # (`if (!value) return true`) — logo a ausência faz o bloco **executar**,
-      # não pular — e `false` quando a URL está definida **fora** de loopback,
-      # fechando o bloco e deixando os 4 + 9 casos gated em `pending` — o vitest
-      # sai 0 com prova pulada, mas o runner de `db:test` reprova por isso.
-      # Declarar aqui torna o valor determinístico: o job deixa de depender do que
-      # o ambiente do runner ofereça e os casos de banco sempre têm contra o que
-      # executar (medido 2026-09-19: ausente ⇒ 13/13 e 14/14 executam; remota ⇒
-      # 4 e 9 em `pending`).
+      # kill-switch contra credencial de produção herdada. Desde o WP-R6 o gate é
+      # `dbPrecondition()` (`src/test/helpers/db-precondition.ts`): **tudo ou nada, e
+      # falha alta** — nenhuma das três definidas ⇒ skip nomeado; qualquer uma
+      # definida ⇒ as três são exigidas e todas em loopback, senão o arquivo reprova
+      # com erro de precondição, nunca skip silencioso. Declarar as três aqui mantém
+      # os 9 + 4 casos executando (medido 2026-09-21: três em loopback ⇒ 13/13 e
+      # 14/14 executam; qualquer uma remota ⇒ reprova alto).
+      # A versão anterior deste gate devolvia `true` para valor **ausente**, o que
+      # fazia o bloco executar com duas URLs faltando; isso foi substituído de
+      # propósito, porque ausência silenciosa era indistinguível de ambiente mal
+      # configurado.
       DATABASE_URL_UNPOOLED: >-
         postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test
       DATABASE_DRIVER: node-postgres

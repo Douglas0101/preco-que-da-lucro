@@ -1,0 +1,28 @@
+# Inventario nominal dos 13 skips do E2 (exigencia §6.1 da analise)
+# HEAD=eb2f498
+
+## A. enumeracao por DESCOBERTA (nao por lista): quem chama describe.skip?
+$ grep -rn 'describe.skip\|dbDescribe' src/test/*.ts | grep -v helpers
+  src/test/product-contracts.test.ts:172:const dbDescribe = dbGate.enabled ? describe : describe.skip;
+  src/test/products-fk-conflict.test.ts:261:const dbDescribe = dbGate.enabled ? describe : describe.skip;
+
+## B. quantos testes cada sitio pula
+   ✓ src/test/product-contracts.test.ts (14 tests | 9 skipped) 42ms
+   ✓ src/test/products-fk-conflict.test.ts (15 tests | 4 skipped) 11ms
+
+## C. motivo de cada um (nomeado, nao inferido)
+  db-precondition: N/A-sem-DB: nenhuma das 3 URLs definida (modo local sem banco)
+  db-precondition: N/A-sem-DB: nenhuma das 3 URLs definida (modo local sem banco)
+
+## D. mapeamento para o item 17: a precondicao e declarada E verificada em runtime
+  - declarada: src/test/helpers/db-precondition.ts (DB_ENV_KEYS = as 3 URLs)
+  - verificada: dbPrecondition() lanca quando o ambiente declara banco e a declaracao e invalida
+  - fail-closed: exit != 0 no arquivo; skip so no caso ZERO-URL, que e o unico legitimo
+
+## E. os 13 rodam no CI? (nao sao buraco de cobertura)
+  ui-stack.yml:36:      DATABASE_ADMIN_URL: >-
+  ui-stack.yml:52:      DATABASE_URL_UNPOOLED: >-
+  -> o job declara as 3 em loopback ⇒ dbPrecondition().enabled === true ⇒ os 13 executam
+
+## F. contagem pos-WP-R6 no E2 local
+  964 passed | 13 skipped (977) — os mesmos 13, agora NOMEADOS na saida e com fail-closed no resto
