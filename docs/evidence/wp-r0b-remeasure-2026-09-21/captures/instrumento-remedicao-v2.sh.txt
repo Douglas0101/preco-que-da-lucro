@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+# WP-R0b — instrumento de re-medição, versão 2 (corrigida).
+#
+# POR QUE EXISTE UMA v2 (declarado, nunca retro-datado): a v1 (pré-registrada na SPEC §4) produziu
+# DOIS falsos positivos no próprio instrumento, os dois da mesma família que este programa persegue —
+# "casar substring onde o critério é o token":
+#   FP-A  `grep -i tsquery` casou `tsQuery` do TanStack Router (6 arquivos de rota) → 27 hits que
+#         pareciam FTS e são roteamento. Com fronteira e case-sensitive: 0 hits reais.
+#   FP-B  `grep -i cron` casou "síncrona"/"sincrona" em prosa de teste → 2 hits que pareciam
+#         agendamento e são português.
+# A v2 mantém os MESMOS predicados (a §4 da SPEC não muda) e endurece só a medição: case-sensitive,
+# fronteira de palavra, e separação explícita entre uso em RUNTIME e uso em TESTE — porque quatro
+# itens desta rodada dependem de "existe mas ninguém chama", que contagem bruta não distingue.
+set -u
+cd "$(dirname "$0")/../../../../" || exit 1
+
+RUNTIME="src/server src/lib src/routes src/db src/instrumentation src/components"
+echo "# WP-R0b — re-medição v2 (instrumento corrigido) · HEAD=$(git rev-parse --short HEAD)"
+echo "# descoberta: $(grep -c . /tmp/r0b-itens.txt) itens, vindos do parser do anexo (não de lista digitada)"
+echo "# v1: captures/instrumento-remedicao.sh.txt · v2 corrige FP-A (tsQuery) e FP-B (sincrona)"
+# FP-C (achado AO RODAR a v2, corrigido aqui antes de qualquer commit): contar linhas de um arquivo
+#      sem newline final devolveu 13 para 14 itens — a mesma familia (cardinalidade no lugar de
+#      identidade). A contagem passou a 'grep -c .' e a igualdade real e a assercao len(alvo) == 14
+#      do parser, que ja existia e ja era o criterio.
+echo
+
+echo "## A. Alcance de runtime — a pergunta que decide 4 dos 14 itens"
+echo "memory.service importado fora de teste:      $(grep -rn 'memory\.service' src scripts --include=*.ts | grep -v '^src/test/' | grep -v '^src/server/services/memory.service.ts' | wc -l)"
+echo "memory.repository importado fora de teste:   $(grep -rn 'memory\.repository' src scripts --include=*.ts | grep -v '^src/test/' | grep -v '^src/server/repositories/memory.repository.ts' | grep -v '^scripts/db/test-memory.ts' | grep -vc '^\S*:.*\*')"
+echo "rotas/BFF que mencionam memória:             $(grep -rniE 'memory|memória' src/routes src/lib --include=*.ts --include=*.tsx | grep -v '^\S*:.*\*' | wc -l)"
+echo "  (a linha de products.functions.ts é COMENTÁRIO — conferido por leitura, não por contagem)"
+echo
+
+echo "## B. Itens, um a um (predicado pré-registrado da SPEC §4)"
+p() { printf '%-7s %-9s %s\n' "$1" "$2" "$3"; }
+
+echo "-- 15.1 Memory Service em runtime"
+echo "   service existe:        $(ls src/server/services/memory.service.ts 2>/dev/null | wc -l)"
+echo "   testes do service:     $(grep -rln 'memory.service' src/test | wc -l) arquivo(s)"
+echo "   chamadores runtime:    0  (linha A)"
+p 15.1 PARTIAL "camada existe e é testada; falta entrypoint de runtime"
+
+echo "-- 15.2 tabelas de memória"
+echo "   CREATE TABLE ai_mem*:  $(grep -rhoiE 'create table[^"]*\"ai_mem[a-z_]*\"' drizzle/*.sql | wc -l)"
+echo "   tabelas distintas:     $(grep -rhoiE 'create table[^"]*\"ai_mem[a-z_]*\"' drizzle/*.sql | grep -oE 'ai_mem[a-z_]*' | sort -u | tr '\n' ' ')"
+echo "   repositório:           $(ls src/server/repositories/memory.repository.ts 2>/dev/null | wc -l)"
+echo "   suíte de banco:        $(ls scripts/db/test-memory.ts 2>/dev/null | wc -l) (na cadeia db:test)"
+p 15.2 DONE "schema migrado + repositório + suíte de banco"
+
+echo "-- 15.3 policy engine"
+echo "   evaluateMemoryPolicy:  $(grep -rln 'evaluateMemoryPolicy' src --include=*.ts | grep -v '^src/test/' | tr '\n' ' ')"
+echo "   chamado por:           $(grep -rn 'evaluateMemoryPolicy(' src --include=*.ts | grep -v '^src/test/' | grep -v 'export function' | wc -l) sítio(s) de runtime"
+p 15.3 PARTIAL "engine existe e é exercitado; serviço que o chama não tem entrypoint"
+
+echo "-- 15.4 provenance persistida"
+echo "   ai_memory_sources:     $(grep -c 'ai_memory_sources' drizzle/*.sql | grep -v ':0' | wc -l) migration(ões)"
+echo "   escrita de proveniência: $(grep -cn 'aiMemorySources' src/server/repositories/memory.repository.ts) uso(s) no repositório"
+p 15.4 PARTIAL "persistida no repositório; nada em runtime a produz"
+
+echo "-- 15.5 FTS  (FP-A corrigido)"
+echo "   v1 (i, sem fronteira): $(grep -rniE 'tsquery' src drizzle | wc -l)  <- contava tsQuery do router"
+echo "   v2 (case, fronteira):  $(grep -rnE '\btsquery\b|to_tsquery|tsvector|to_tsvector|USING gin' src drizzle | wc -l)"
+p 15.5 NS "sem FTS: nenhum tsvector/tsquery/GIN em código ou migration"
+
+echo "-- 15.6 embeddings / pgvector"
+echo "   hits: $(grep -rnE 'pgvector|embedding|vector\(' src drizzle package.json | wc -l)"
+p 15.6 NS "sem pgvector, sem embedding, sem ANN (§44 só abre depois do §43)"
+
+echo "-- 15.7 retrieval"
+echo "   search no repositório: $(grep -cE '^  async search\(' src/server/repositories/memory.repository.ts) função(ões)"
+echo "   rota que serve:        $(grep -rniE 'memory' src/routes --include=*.ts --include=*.tsx | wc -l)"
+p 15.7 PARTIAL "retrieval existe no repositório; nenhuma rota o serve"
+
+echo "-- 19.6 medidores de memória"
+echo "   hits: $(grep -rnE 'candidate_count|persisted_count|rejected_count|retrieval_latency|user_correction_rate|conflict_rate' src scripts drizzle package.json .github | wc -l)"
+p 19.6 NS "nenhum medidor emitido; os nomes só existem no plano"
+
+echo "-- 21.3 SERIALIZABLE / 40001 / retry"
+echo "   SERIALIZABLE|40001|serialization_failure: $(grep -rnE '\bSERIALIZABLE\b|40001|serialization_failure' src scripts drizzle | wc -l)"
+echo "   serializationError (falso amigo):         $(grep -rnE 'serializationError' src scripts drizzle | wc -l)  <- helper de serialização de DECIMAL, não falha de PG"
+p 21.3 NS "nível de isolamento e retry ausentes (ADR-029 adia para T3)"
+
+echo "-- 22.4 purga de idempotency_records"
+echo "   usos da tabela em runtime: $(grep -rnE 'idempotencyRecords|idempotency_records' src/server --include=*.ts | wc -l)"
+echo "   funções de purga:          $(grep -rnE 'purgeIdempotency|delete.*from idempotency_records|delete from idempotency_records' src scripts --include=*.ts | grep -v '^src/test' | grep -v 'test-' | wc -l)"
+echo "   agendamento real (v2):     $(grep -rnE '\bcron\b|crontab|pg_cron' src scripts --include=*.ts | wc -l) menção(ões) em comentário de script — nenhuma agenda purga"
+   grep -rnE '\bcron\b|crontab|pg_cron' src scripts --include=*.ts | sed 's/^/     /' | head -4
+p 22.4 NS "tabela usada para idempotência, mas sem purga: só o índice de expiração existe"
+
+echo "-- 25.5 dependency review"
+echo "   hits: $(grep -rn 'dependency-review' .github/ | wc -l)"
+p 25.5 NS "nenhum workflow usa dependency-review-action"
+
+echo "-- 25.6 CodeQL"
+echo "   hits em .github: $(grep -rni 'codeql' .github/ | wc -l)"
+echo "   workflows:       $(ls .github/workflows/ | tr '\n' ' ')"
+p 25.6 UNV "ausência no repo é verificável; a ativação é settings-side (inalcançável daqui) — H-2"
+
+echo "-- 25.7 secret scanning"
+echo "   .github/secret_scanning.yml: $(ls .github/secret_scanning.yml 2>/dev/null | wc -l)"
+echo "   hits 'secret.scanning':      $(grep -rni 'secret.scanning' .github/ | wc -l)"
+p 25.7 UNV "idem 25.6: o arquivo não existe no repo, a ativação é settings-side"
+
+echo "-- 29.1 p95 / SLO"
+echo "   percentil+veredito fora de teste: $(grep -rln 'verdictFor\|percentile' src scripts --include=*.ts --include=*.mjs | grep -v '^src/test/' | tr '\n' ' ')"
+echo "   veredito de requestDuration:      $(grep -rnE 'p95|p99' src/instrumentation src/server src/lib --include=*.ts | wc -l)"
+p 29.1 PARTIAL "percentil e veredito existem para as baselines RUM/IA; falta o p95 de backend contra os alvos do §29"
+
+echo
+echo "## C. CONTROLE NEGATIVO — itens com fato-fonte de fechamento precisam medir DONE no MESMO predicado"
+echo "   25.4 .github/dependabot.yml: $(ls .github/dependabot.yml 2>/dev/null | wc -l)  → DONE (fechado em 9a473a2)"
+echo "   25.4 hits 'dependabot':      $(grep -rn 'dependabot' .github/ | wc -l)"
+echo "   22.1 idempotency em drizzle: $(grep -rnE 'idempotency' drizzle/*.sql | wc -l)  → DONE"
+echo
+echo "## D. Composição (cláusula C2: denominador 187 inalterado)"
+echo "   medidos: 14  ·  proposta: 1 DONE · 5 PARTIAL · 6 NS · 2 UNV"
+echo "   soma das classes do bloco = $((1+5+6+2)) (== 14 itens descobertos)"
+
+echo
+echo "## E. LEITURA DO TEXTO DO PLANO (acrescentada DEPOIS da 1a passada — declarado, nao retro-datado)"
+echo "#  Por que existe: o anexo resume cada item numa linha de evidencia que e uma RECEITA DE MEDICAO,"
+echo "#  nao a definicao do item. Lido o plano, 15.1 e 'Ordem correta', 15.2 lista 9 tabelas e 15.7 e"
+echo "#  'Ranking' com 7 sinais. As tres leituras foram medidas e a mais estrita prevalece (clausula C1)."
+echo
+echo "-- 15.1 'Ordem correta': nao iniciar por embeddings"
+echo "   embeddings no repo (pgvector/embedding/ANN): $(grep -rnE 'pgvector|embedding|vector\(' src drizzle package.json | wc -l)  -> ordem NAO foi violada"
+echo "   Memory Service existe: $(ls src/server/services/memory.service.ts 2>/dev/null | wc -l) · chamadores de runtime: 0"
+p 15.1 PARTIAL "ordem respeitada, servico existe, falta entrypoint (leitura mais estrita das duas)"
+
+echo "-- 15.2 'Tabelas': as 9 do plano, uma a uma"
+for t in ai_conversations ai_messages ai_memories ai_memory_sources ai_memory_versions ai_memory_conflicts ai_memory_embeddings ai_memory_access_log ai_memory_policies; do
+  n=$(grep -rhoiE "create table[^\"]*\"$t\"" drizzle/*.sql | wc -l)
+  printf '     %-24s %s\n' "$t" "$([ "$n" -gt 0 ] && echo EXISTE || echo ausente)"
+done
+echo "   superseded (item 15.2c): chat_conversations=$(grep -rhoiE 'create table[^\"]*\"chat_conversations\"' drizzle/*.sql | wc -l) chat_messages=$(grep -rhoiE 'create table[^\"]*\"chat_messages\"' drizzle/*.sql | wc -l)"
+echo "   ai_memory_embeddings em qualquer lugar: $(grep -rniE 'ai_memory_embeddings' src drizzle | wc -l)"
+p 15.2 PARTIAL "6 de 9 por nome (+2 superseded); falta ai_memory_embeddings (§44)"
+
+echo "-- 15.7 'Ranking': 7 sinais combinados"
+echo "   ordenacao real de search(): $(sed -n '/async search(/,/^  }/p' src/server/repositories/memory.repository.ts | grep -cE 'orderBy') -> $(sed -n '/async search(/,/^  }/p' src/server/repositories/memory.repository.ts | grep -oE 'orderBy\([^)]*\)' | head -1)"
+echo "   filtro de tenant no where:  $(sed -n '/async search(/,/^  }/p' src/server/repositories/memory.repository.ts | grep -cE 'tenantId')"
+echo "   lexical/semantico (ts_rank, similaridade): $(grep -rniE 'ts_rank|similarity|bm25' src/server/repositories/memory.repository.ts | wc -l)"
+echo "   campos de importancia/confianca no schema: importance=$(grep -c importance src/db/schema.ts) confidence=$(grep -c confidence src/db/schema.ts)"
+p 15.7 PARTIAL "tenant + recency presentes; lexical, semantico, importance e confidence ausentes do ranking"
+
+echo
+echo "## F. Composicao final (clausula C2)"
+echo "   0 DONE · 7 PARTIAL · 5 NS · 2 UNV = $((0+7+5+2)) (== 14 itens descobertos)"

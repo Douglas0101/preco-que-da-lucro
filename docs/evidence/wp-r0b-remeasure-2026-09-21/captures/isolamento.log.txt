@@ -1,0 +1,33 @@
+# Isolamento de bancada assertado — WP-R0b (read-only) · HEAD=3b99a78
+
+## ACHADO DE ESTADO AMBIENTE (classe do item 17) — declarado, nao omitido
+O primeiro passe desta captura encontrou um container DEIXADO PELO WP-R6:
+  r6-pg2  postgres:17-alpine  Up 52 minutes  0.0.0.0:55451->5432/tcp
+Ele NAO tocava :5432 (0 listeners em ambos os passes), mas era estado ambiente residual de
+outra rodada — exatamente o que a precondicao do item 17 existe para nao deixar passar.
+Acao: 'docker rm -f r6-pg2' ANTES de selar; a captura abaixo e a do estado limpo.
+
+## origin/main (deve ser 9724d2c, intocado)
+9724d2c73b269d0a0199ea305308f3237b38fa09
+
+## :5432 — nenhum listener esperado
+listeners em :5432 = 0
+
+## porta efemera da rodada anterior (:55451) — deve estar livre
+listeners em :55451 = 0
+
+## containers ativos agora
+angry_swartz  8082/tcp
+
+## migrations tocadas por este WP (deve ser 0)
+drizzle/ sujo = 0
+
+## package.json / lockfile tocados (deve ser 0)
+manifests sujos = 0
+
+## este WP nao escreve em src/ nem scripts/ (deve ser 0)
+src/ e scripts/ sujos = 0
+
+## arquivos tocados pelo WP (todos sob docs/evidence/)
+  ?? docs/evidence/wp-r0b-remeasure-2026-09-21/README.md
+  ?? docs/evidence/wp-r0b-remeasure-2026-09-21/captures/

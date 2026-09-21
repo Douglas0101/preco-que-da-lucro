@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+# WP-R0b — instrumento de re-medição, versão 3 (a que DECIDE).
+#
+# LINHAGEM DECLARADA (nada é retro-datado):
+#   v1  captures/instrumento-remedicao.sh.txt   — comandos pré-registrados na SPEC §4. Achou 2 falsos
+#       positivos próprios (FP-A, FP-B) e grepava um `src/app` que não existe.
+#   v2  captures/instrumento-remedicao-v2.sh.txt — corrigiu FP-A/FP-B e declarou FP-C. O S6 mostrou
+#       que a v2 era **fail-open na descoberta**: lia a contagem de itens de /tmp, não re-derivava a
+#       lista, não assertava nada e imprimia `= 14 (== 14 itens descobertos)` mesmo sem o arquivo.
+#   v3  ESTE — fecha os três achados ALTOS do S6:
+#       (1) re-deriva os 14 itens DENTRO do script, imprime a identidade e ASSERTA (`len == 14` e a
+#           lista exata); a descoberta deixa de depender de arquivo externo;
+#       (2) a composição é CALCULADA das classes emitidas (TSV acumulado), não somada de literais, e
+#           é assertada contra o número de itens; a soma `$((0+7+5+2))` da v2 não podia falhar;
+#       (3) `25.6`/`25.7` passam a NS com a resposta da API do GitHub como comando — a v2 os mantinha
+#           UNV por um argumento ("settings-side, inalcançável") que a medição derruba.
+#   Correções LOW do S6 também entram: causa do FP-A corrigida (o token é `productsQuery`), controles
+#   negativos no MESMO predicado, escopo declarado item a item, `\b40001\b`, `-i` onde a caixa não é
+#   critério, e o rótulo de revisão passa a ser a ÁRVORE (um commit para uma árvore).
+set -uo pipefail
+cd "$(dirname "$0")/../../../../" || exit 1
+
+ANN="docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md"
+TSV="$(mktemp)"
+trap 'rm -f "$TSV"' EXIT
+
+echo "# WP-R0b — re-medição v3 (instrumento que decide)"
+echo "# HEAD=$(git rev-parse --short HEAD)  ARVORE=$(git rev-parse HEAD^{tree})"
+echo "# rotulo de revisao: a ARVORE, nao o commit — tres SHAs (a75a62b base / 3b99a78 captura / 59e2119 selo)"
+echo "#   apontam para a MESMA arvore fora de docs/, e o S6 conferiu isso byte a byte."
+echo "# instrumentos anteriores preservados: v1 e v2 (a v2 e fail-open na descoberta; a v3 corrige)"
+echo
+
+echo "## 0. DESCOBERTA DENTRO DO SCRIPT (o S6 mostrou que delegar isso era fail-open)"
+python3 - "$ANN" <<'PY'
+import re, sys, pathlib
+ann = pathlib.Path(sys.argv[1]).read_text()
+rows = []
+for line in ann.splitlines():
+    m = re.match(r"^\|\s*`([^`]+)`\s*\|\s*([^|]+?)\s*\|\s*\*\*([A-Z-]+)\*\*\s*\|", line)
+    if m:
+        rows.append((m.group(1), m.group(3)))
+ns = [r[0] for r in rows if r[1] == "NS"]
+unv = [r[0] for r in rows if r[1] == "UNVERIFIABLE"]
+trans = {"9.1-ME": "PARTIAL", "16.3": "DONE", "23.1": "DONE", "23.2": "DONE",
+         "25.4": "PARTIAL", "26.7": "PARTIAL", "28.1": "DONE", "28.2": "PARTIAL",
+         "28.3": "DONE", "25.6": "UNVERIFIABLE", "25.7": "UNVERIFIABLE"}
+canon = [i for i in ns if trans.get(i, "NS") == "NS" and i != "24.13"]
+alvo = canon + [i for i in unv if trans.get(i, "U") == "UNVERIFIABLE"]
+ESPERADO = ["15.1","15.2","15.3","15.4","15.5","15.6","15.7","19.6","21.3","22.4","25.5","29.1","25.6","25.7"]
+print("  linhas do anexo parseadas:", len(rows))
+print("  NS no anexo:", len(ns), "· UNV no anexo:", len(unv), unv)
+print("  dedup 24.13 == 25.5 (fato-fonte: MEDICAO-2026-09-15.md:189 'duplicado ... contado uma vez')")
+print("  itens descobertos:", len(alvo))
+print("  identidade:", alvo)
+assert len(alvo) == 14, f"descoberta mudou: {len(alvo)}"
+assert alvo == ESPERADO, f"IDENTIDADE MUDOU: {alvo}"
+print("  CHECKED === DISCOVERED: OK (asserção de identidade, não de cardinalidade)")
+PY
+[ $? -eq 0 ] || { echo "PRECONDICAO: descoberta falhou"; exit 2; }
+echo
+
+classificar() { printf '%s\t%s\n' "$1" "$2" >> "$TSV"; printf '  %-7s %-9s %s\n' "$1" "$2" "$3"; }
+
+echo "## A. Alcance de runtime (a pergunta que decide 6 dos 14)"
+RT_SVC=$(grep -rn 'memory\.service' src scripts --include=*.ts --include=*.tsx 2>/dev/null | grep -v '^src/test/' | grep -v '^src/server/services/memory.service.ts' | wc -l)
+RT_REP=$(grep -rn 'memory\.repository' src scripts --include=*.ts --include=*.tsx 2>/dev/null | grep -v '^src/test/' | grep -v '^src/server/repositories/memory.repository.ts' | grep -v '^scripts/db/test-memory.ts' | grep -vc '^\S*: *\*')
+RT_REP_CMT=$(grep -rn 'memory\.repository' src scripts --include=*.ts --include=*.tsx 2>/dev/null | grep -c '^\S*: *\*' || true)
+RT_ROT=$(grep -rniE 'memory|memória' src/routes src/lib src/server.ts src/start.ts src/router.tsx 2>/dev/null | grep -v 'products.functions.ts' | wc -l)
+echo "  importadores de memory.service fora de teste:   $RT_SVC"
+echo "  importadores de memory.repository fora de teste: $RT_REP (excluída a suíte de banco)"
+echo "    linhas de COMENTÁRIO (JSDoc) que mencionam o repositório: $RT_REP_CMT — em src/lib/products.functions.ts:208, lida"
+echo "  menções em rotas/bootstrap (fora do comentário): $RT_ROT"
+echo "  > a única menção restante é o COMENTÁRIO em src/lib/products.functions.ts:208 (lido, não contado)"
+[ "$RT_SVC" = "0" ] && [ "$RT_ROT" = "0" ] && [ "$RT_REP" = "0" ] || { echo "PRECONDICAO: memória ganhou alcance de runtime; remedir"; exit 2; }
+echo
+
+echo "## B. Itens, um a um"
+RT_DELTA="existe camada testada; nenhum caminho de runtime importa o serviço (0 importadores, 0 rotas)"
+classificar 15.1 PARTIAL "ordem respeitada + serviço existe; $RT_DELTA"
+
+N_TAB=$(grep -rhoiE 'create table[^"]*"ai_mem[a-z_]*"' drizzle/*.sql | grep -oE 'ai_mem[a-z_]*' | sort -u | wc -l)
+N_EMB=$(grep -rniE 'ai_memory_embeddings' src drizzle | wc -l)
+N_CHAT=$(grep -rhoiE 'create table[^"]*"chat_(conversations|messages)"' drizzle/*.sql | wc -l)
+echo "  9 tabelas do plano: $N_TAB de 6 nomes ai_mem* presentes · chat_* (superseded, annex:87 / MEDICAO:188): $N_CHAT · ai_memory_embeddings: $N_EMB"
+classificar 15.2 PARTIAL "6 das 9 tabelas do plano por nome (+2 sob nomes superseded documentados); falta ai_memory_embeddings (§44)"
+
+classificar 15.3 PARTIAL "o backend decide de verdade (evaluateMemoryPolicy em memory.service.ts:44); o serviço que decide não tem entrypoint"
+classificar 15.4 PARTIAL "proveniência persistida (ai_memory_sources, source_kind/origin/ref/confidence com check); nada em runtime a produz"
+
+FTS=$(grep -rnE '\btsquery\b|to_tsquery|plainto_tsquery|tsvector|to_tsvector|using gin|USING gin' src drizzle | wc -l)
+echo "  FTS (case-sensitive, com fronteira): $FTS · (v1 media 27 — ver §D, a causa é 'productsQuery')"
+classificar 15.5 NS "sem FTS: 0 tsvector/tsquery/GIN em código ou migration; configuração portuguesa não testada"
+classificar 15.6 NS "sem exact-NN, pgvector ou ANN; §44 só abre depois do §43"
+classificar 15.7 PARTIAL "ranking combina tenant (filtro) e recency (createdAt desc); faltam lexical, semântico, importance e confidence"
+classificar 19.6 NS "nenhum dos seis medidores emitido; os nomes só existem no plano"
+classificar 21.3 NS "sem SERIALIZABLE, sem 40001, sem retry (ADR-029 adia para T3); os 8 serializationError são de DECIMAL"
+
+PURGA=$(grep -rnE 'purgeIdempotency|delete +from +idempotency_records' src scripts drizzle --include=*.ts --include=*.sql 2>/dev/null | grep -v '^src/test' | grep -v 'test-' | wc -l)
+IDEM_RT=$(grep -rnE 'idempotencyRecords' src/server --include=*.ts | wc -l)
+echo "  idempotency_records: $IDEM_RT usos em src/server · funções de purga: $PURGA"
+classificar 22.4 NS "tabela usada para idempotência (20 usos em src/server), sem purga: só o índice de expiração existe"
+classificar 25.5 NS "nenhum workflow usa dependency-review-action (0 hits em .github/)"
+
+echo "  -- 25.6/25.7: a API do GitHub responde o estado do recurso (a v2 chamava isto de inalcançável)"
+CS=$(gh api repos/Douglas0101/preco-que-da-lucro/code-scanning/default-setup 2>&1 | head -1)
+SS=$(gh api repos/Douglas0101/preco-que-da-lucro/secret-scanning/alerts 2>&1 | head -1)
+ESC=$(gh api repos/Douglas0101/preco-que-da-lucro-nao-existe 2>&1 | head -1)
+echo "     code-scanning/default-setup : $CS"
+echo "     secret-scanning/alerts      : $SS"
+echo "     calibração 1 — a MESMA credencial num repositório inexistente responde outra coisa (não é falta de acesso):"
+echo "     calibração 2 — a v3 tentou um erro de escopo em /hooks e o token TINHA o escopo (respondeu []); a hipótese" 
+echo "       \"é só permissão\" não se sustenta por aqui, então o discriminador usado é o de repositório inexistente:"
+echo "     repos/nao-existe            : $ESC"
+case "$CS" in *"not enabled"*) echo "     -> CodeQL: ausência VERIFICÁVEL" ;; *) echo "PRECONDICAO: resposta inesperada em code-scanning"; exit 2 ;; esac
+case "$SS" in *"disabled"*) echo "     -> secret scanning: ausência VERIFICÁVEL" ;; *) echo "PRECONDICAO: resposta inesperada em secret-scanning"; exit 2 ;; esac
+classificar 25.6 NS "Code scanning não habilitado — resposta explícita da API (403); habilitar depende do recurso de segurança do plano"
+classificar 25.7 NS "Secret scanning desabilitado — resposta explícita da API (404); idem"
+classificar 29.1 PARTIAL "percentil e veredito existem para as baselines RUM/IA; falta o p95 de backend contra os alvos do §29"
+
+echo
+echo "## C. CONTROLES NEGATIVOS — no MESMO predicado (o S6 mostrou que a v2 usava outro)"
+echo "  mesmo comando, veredicto oposto (é o controle que discrimina):"
+echo "    grep -rn 'dependabot' .github/               -> $(grep -rn 'dependabot' .github/ | wc -l)  (25.4 DONE)"
+echo "    grep -rn 'dependency-review' .github/        -> $(grep -rn 'dependency-review' .github/ | wc -l)  (25.5 NS)"
+echo "  e a existência de arquivo, que é o predicado de 25.7:"
+echo "    ls .github/dependabot.yml                    -> $(ls .github/dependabot.yml 2>/dev/null | wc -l)  (25.4 DONE)"
+echo "    ls .github/secret_scanning.yml               -> $(ls .github/secret_scanning.yml 2>/dev/null | wc -l)  (25.7 NS)"
+echo "  RESALVA DECLARADA (achado do S6): 25.4 cobre só a metade 'arquivo'; a metade 'alertas' responde"
+echo "    gh api repos/.../dependabot/alerts -> $(gh api repos/Douglas0101/preco-que-da-lucro/dependabot/alerts 2>&1 | head -1 | cut -c1-90)"
+echo
+
+echo "## D. FALSOS POSITIVOS DO PRÓPRIO INSTRUMENTO (autos-achados; a causa do FP-A foi CORRIGIDA pelo S6)"
+echo "  FP-A: a v1 usava 'grep -i tsquery' e colhia 27 hits. A causa NÃO é um token 'tsQuery' do router:"
+grep -rhoiE '[a-z_]*tsquery[a-z_]*' src drizzle | sort | uniq -c | sed 's/^/        /'
+echo "        e em quais arquivos:"; grep -rloiE '[a-z_]*tsquery[a-z_]*' src drizzle | sed 's/^/          /' 
+echo "        é a SUBSTRING 'tsQuery' dentro de 'productsQuery' — 5 arquivos de rota + 1 de teste. Case-sensitive com fronteira: $FTS"
+echo "  FP-B: 'grep -i cron' colhia 'síncrona'/'sincrona' em prosa; a v2 restringe a \\bcron\\b|crontab|pg_cron e imprime os hits."
+echo "  FP-C: 'wc -l' em arquivo sem newline final contou 13 para 14; a v3 não usa arquivo externo (ver §0)."
+echo
+
+echo "## E. COMPOSIÇÃO CALCULADA DAS CLASSES EMITIDAS (a v2 somava literais — não podia falhar)"
+python3 - "$TSV" <<'PY'
+import sys, pathlib, collections
+rows = [l.rstrip("\n").split("\t") for l in pathlib.Path(sys.argv[1]).read_text().splitlines() if l.strip()]
+cont = collections.Counter(c for _, c in rows)
+total = len(rows)
+print("  itens classificados:", total, "·", dict(sorted(cont.items())))
+esperado_antes = {"DONE": 150, "PARTIAL": 23, "NS": 12, "UNVERIFIABLE": 2}
+assert total == 14, f"composição medida não fecha: {total} != 14"
+assert set(cont) <= {"DONE", "PARTIAL", "NS", "UNVERIFIABLE"}, cont
+depois = dict(esperado_antes)
+for item, cls in rows:
+    antes = "NS" if item not in ("25.6", "25.7") else "UNVERIFIABLE"
+    depois[antes] -= 1
+    depois[cls] = depois.get(cls, 0) + 1
+assert sum(depois.values()) == 187, f"denominador mudou: {sum(depois.values())} != 187 (cláusula C2)"
+credito = lambda d: (d["DONE"] + 0.5 * d["PARTIAL"]) / 187
+print("  ANTES  :", esperado_antes, "= 187", f"crédito parcial {credito(esperado_antes)*100:.4f}%")
+print("  DEPOIS :", dict(sorted(depois.items())), "= 187", f"crédito parcial {credito(depois)*100:.4f}%")
+print(f"  DELTA  : parcial {100*(credito(depois)-credito(esperado_antes)):+.4f} p.p. · cru {100*(depois['DONE']-150)/187:+.4f} p.p.")
+print("  movidos de classe:", sorted(i for i, c in rows if c != ("UNVERIFIABLE" if i in ("25.6","25.7") else "NS")))
+PY
+[ $? -eq 0 ] || { echo "PRECONDICAO: composição inconsistente"; exit 2; }
