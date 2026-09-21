@@ -1,0 +1,23 @@
+# Regressao do db:test fechada com prova: runners no setup DOCUMENTADO (par obrigatorio, sem UNPOOLED)
+# HEAD=5969124 · PG17 efemero em 127.0.0.1:55450 (o :5432 NAO foi tocado)
+
+## ambiente: par obrigatorio definido; UNPOOLED deliberadamente AUSENTE
+   UNPOOLED: ausente (e o setup que o AGENTS.md documenta)
+
+## precondicao avaliada nesse ambiente
+   {"enabled":true}
+
+## runner 1: products-fk-conflict (assere 0 pending)
+        Tests  15 passed (15)
+  prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 15 passed (15), 0 skipped — admin=127.0.0.1:55450
+  RUNNER1_EXIT=0
+
+## runner 2: product-contracts (assere 0 pending)
+        Tests  14 passed (14)
+  prova de banco (src/test/product-contracts.test.ts) contra 127.0.0.1: 14 passed (14), 0 skipped — admin=127.0.0.1:55450
+  RUNNER2_EXIT=0
+
+## e com UNPOOLED REMOTA (kill-switch): o bloco deve reprovar alto
+  Error: precondicao de banco invalida: o ambiente declara banco (DATABASE_ADMIN_URL, DATABASE_URL, DATABASE_URL_UNPOOLED) mas DATABASE_URL_UNPOOLED nao aponta para loopback — configure DATABASE_ADMIN_URL + DATABASE_URL em loopback (e DATABASE_URL_UNPOOLED tambem, se definida) ou nenhuma
+  AssertionError [ERR_ASSERTION]: a prova de banco reprovou (exit 1); ver a saída do vitest acima
+  KILLSWITCH_EXIT=1
