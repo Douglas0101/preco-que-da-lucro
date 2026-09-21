@@ -20,13 +20,39 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 
+/**
+ * @typedef {Object} SealClaim
+ * @property {string} ancestor
+ * @property {string} descendant
+ */
+
+/**
+ * @typedef {Object} SealRun
+ * @property {number} [databaseId]
+ * @property {string} [headSha]
+ * @property {string} [conclusion]
+ * @property {Array<{ steps?: Array<{ name?: string, conclusion?: string }> }>} [jobs]
+ */
+
+/**
+ * @typedef {Object} SealArgs
+ * @property {string} [dir]
+ * @property {boolean} [write]
+ * @property {string} [ancestry]
+ * @property {string} [run]
+ * @property {string} [error]
+ */
+
 const REQUIRED_FILES = ["SPEC.md", "README.md"];
+/** @type {string} */
 const MANIFEST = "MANIFEST.sha256";
 
+/** @param {string | Uint8Array} contents @returns {string} */
 export function sha256(contents) {
   return createHash("sha256").update(contents).digest("hex");
 }
 
+/** @param {string[]} argv @returns {SealArgs} */
 export function parseArgs(argv) {
   const args = { dir: undefined, write: false, ancestry: undefined, run: undefined };
   const comValor = (flag, i) => {
@@ -55,6 +81,7 @@ export function parseArgs(argv) {
   return args;
 }
 
+/** @param {string} dir @returns {{ files: string[], problemas: string[] }} */
 export function scanSelo(dir) {
   const files = [];
   const problemas = [];
@@ -81,10 +108,12 @@ export function scanSelo(dir) {
   return { files: files.sort(), problemas };
 }
 
+/** @param {string} dir @returns {string[]} */
 export function discoverFiles(dir) {
   return scanSelo(dir).files;
 }
 
+/** @param {string} text @returns {{ entries: Map<string, string>, falhas: string[] }} */
 export function parseManifest(text) {
   const entries = new Map();
   const falhas = [];
@@ -101,6 +130,10 @@ export function parseManifest(text) {
   return { entries, falhas };
 }
 
+/**
+ * @param {{ discovered: string[], hashes: Map<string, string>, manifestText: string, required?: string[] }} input
+ * @returns {string[]}
+ */
 export function auditManifest({ discovered, hashes, manifestText, required = REQUIRED_FILES }) {
   const falhas = [];
   if (discovered.length === 0) falhas.push("descoberta vazia: 0 = 0 reprova");
@@ -140,6 +173,7 @@ export function auditManifest({ discovered, hashes, manifestText, required = REQ
 const ANCESTRY_CLAIM = /git\s+merge-base\s+--is-ancestor\s+([^\s`]+)\s+([^\s`]+)/g;
 const ANCESTRY_MENTION = /git\s+merge-base\s+--is-ancestor/g;
 
+/** @param {string} text @returns {SealClaim[]} */
 export function extractAncestryClaims(text) {
   const claims = [];
   const re = new RegExp(ANCESTRY_CLAIM.source, "g");
@@ -151,10 +185,16 @@ export function extractAncestryClaims(text) {
   return claims;
 }
 
+/** @param {string} text @returns {number} */
 export function countAncestryMentions(text) {
   return ((text ?? "").match(new RegExp(ANCESTRY_MENTION.source, "g")) ?? []).length;
 }
 
+/**
+ * @param {string} text
+ * @param {{ runAncestor: (ancestor: string, descendant: string) => number }} opts
+ * @returns {string[]}
+ */
 export function auditAncestry(text, { runAncestor }) {
   const claims = extractAncestryClaims(text);
   const mencoes = countAncestryMentions(text);
@@ -179,12 +219,18 @@ export function auditAncestry(text, { runAncestor }) {
 const INFRA_STEP =
   /^(Set up job|Initialize containers|Complete job|Post |Run actions\/|Run npm (ci|install)\b|Scope guard|Configure |Wait for |Start |Stop |Upload |Download |Cache )/;
 
+/** @param {SealRun} run @returns {number} */
 export function countApplicableSteps(run) {
   return (run.jobs ?? [])
     .flatMap((job) => job.steps ?? [])
     .filter((step) => step.conclusion === "success" && !INFRA_STEP.test(step.name ?? "")).length;
 }
 
+/**
+ * @param {SealRun | null} run
+ * @param {{ commit: string, isAncestor: (ancestor: string, descendant: string) => boolean }} opts
+ * @returns {string[]}
+ */
 export function auditRun(run, { commit, isAncestor }) {
   if (!run) return ["gh run view nao devolveu JSON"];
   const falhas = [];
@@ -233,6 +279,7 @@ function gitAncestor(a, b) {
  * `-z` **nao cita** caminhos (ao contrario do porcelain textual, que emite `"caf\303\251.txt"`)
  * e, em rename/copia, emite o caminho novo nesta entrada e o antigo no campo seguinte.
  */
+/** @param {string} text @returns {string[]} */
 export function parseStatusZ(text) {
   const campos = (text ?? "").split("\0").filter((campo) => campo.length > 0);
   const caminhos = [];
@@ -251,6 +298,7 @@ export function parseStatusZ(text) {
  * O selo descobre por filesystem, entao um `.gitignore` derivado no worktree nao aparece em CI
  * e contamina a medicao local — e exatamente o que este check recusa.
  */
+/** @param {{ porcelain: string, dir: string }} input @returns {string[]} */
 export function driftForaDoSelo({ porcelain, dir }) {
   const alvo = dir.replace(/\/+$/, "");
   // Com `-uall` toda entrada e um arquivo, entao nenhum caminho pode ser ancestral do selo; a

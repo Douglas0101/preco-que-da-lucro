@@ -83,6 +83,9 @@ jobs:
         if: steps.scope.outputs.applicable == 'true'
         run: node scripts/m02-debts-guard.mjs
 
+      - name: Temporal guard (pins and deadlines in live prose)
+        run: node scripts/m02-temporal-guard.mjs
+
       - name: Secrets audit (read-only)
         if: steps.scope.outputs.applicable == 'true'
         run: node scripts/m02-secrets-audit.ts

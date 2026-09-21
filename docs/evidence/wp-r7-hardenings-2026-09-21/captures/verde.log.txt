@@ -1,0 +1,21 @@
+# Estado verde das três guardas derivadas — WP-R7 · ARVORE=7804045ca545fe43f4a7c5c089ad19c8e32f7035
+
+## 1. guarda temporal
+m02-temporal-guard: superficie viva, as-of 2026-09-21
+  docs/evidence/agent-state/PROGRESS.md [secao-1] — 6 âncora(s), 1 linha(s) com prazo vivo
+  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 1 âncora(s), 0 linha(s) com prazo vivo
+  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [fora-do-fechado] — 0 âncora(s), 1 linha(s) com prazo vivo
+m02-temporal-guard: OK (3 superficies vivas, 0 violacao)
+EXIT=0
+
+## 2. declaração de tipos gerada (DBT-16)
+generate-seal-dts: scripts/m02-seal.d.mts confere com o JSDoc de scripts/m02-seal.mjs
+EXIT=0
+
+## 3. registry de dívidas (DBT-16 FECHADA)
+debts guard: OK (18 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md
+EXIT=0
+
+## 4. suítes dos guardas (16 + 42 casos)
+ Test Files  2 passed (2)
+      Tests  58 passed (58)

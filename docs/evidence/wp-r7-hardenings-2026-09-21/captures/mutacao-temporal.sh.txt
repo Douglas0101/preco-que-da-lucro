@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Mutação versionada da superfície viva (S6 N10: a captura precisa de script, não de heredoc solto).
+# Uso: bash mutacao-temporal.sh.txt [aplicar|restaurar]
+# Cada mutação é ASSERTADA: o texto mutado tem de estar presente E o original ausente NO RECORTE
+# (não no arquivo inteiro — a primeira versão assertava no arquivo e falhava por uma ocorrência
+# histórica no journal, o que produziu a captura autocontraditória que o S6 derrubou).
+set -uo pipefail
+cd "$(dirname "$0")/../../../../" || exit 1
+P=docs/evidence/agent-state/PROGRESS.md
+case "${1:-aplicar}" in
+  aplicar)
+    cp "$P" /tmp/r7-progress.bak
+    python3 - <<'PY'
+import re, sys
+from pathlib import Path
+p = Path("docs/evidence/agent-state/PROGRESS.md"); s = p.read_text()
+linhas = s.split("\n")
+i = next(k for k, l in enumerate(linhas) if re.match(r"^##\s+1\.", l))
+j = next((k for k, l in enumerate(linhas) if k > i and re.match(r"^##\s", l)), len(linhas))
+secao = "\n".join(linhas[i:j])
+alvo_sha = re.search(r"`([0-9a-f]{7,40})`(?=\*\* \(fecho do WP-R0b)", secao)
+alvo_prazo = re.search(r"caduca ≈ \*\*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z)\*\*", secao)
+assert alvo_sha, "ancora viva nao encontrada no §1"
+assert alvo_prazo, "prazo vivo nao encontrado no §1"
+nova = secao.replace(alvo_sha.group(1), "deadbee").replace(alvo_prazo.group(1), "2020-01-01T00:00Z")
+assert "deadbee" in nova and alvo_sha.group(1) not in nova, "mutacao da ANCORA nao aplicou"
+assert "2020-01-01T00:00Z" in nova and alvo_prazo.group(1) not in nova, "mutacao do PRAZO nao aplicou"
+linhas[i:j] = nova.split("\n")
+p.write_text("\n".join(linhas))
+print(f"mutacoes APLICADAS e ASSERTADAS no §1: ancora {alvo_sha.group(1)}->deadbee · prazo {alvo_prazo.group(1)}->2020-01-01T00:00Z")
+PY
+    ;;
+  restaurar)
+    cp /tmp/r7-progress.bak "$P" && rm -f /tmp/r7-progress.bak && echo "restaurado"
+    ;;
+esac
