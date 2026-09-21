@@ -35,12 +35,12 @@ commitada. Não é processo externo.
 
 **Impacto medido (não presumido):**
 
-| verificação                                    | comando                                               | resultado                                                                                             |
-| ---------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| padrões que casam arquivo hoje                 | `git check-ignore -v` por padrão                      | `.mcp.json`=0 · `.cursor/`=0 · `.gemini/`=0 · `.kimi/`=0 · `.kimi-code/`=0 · **`deepseek-harness`=1** |
+| verificação                                    | comando                                                             | resultado                                                                                                                                                                                                                                                 |
+| ---------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| padrões que casam arquivo hoje                 | `git check-ignore -v` por padrão                                    | `.mcp.json`=0 · `.cursor/`=0 · `.gemini/`=0 · `.kimi/`=0 · `.kimi-code/`=0 · **`deepseek-harness`=1**                                                                                                                                                     |
 | descoberta das ferramentas de prova é por git? | `git grep -n 'ls-files\|--porcelain' eef2238 -- scripts/ src/test/` | **0 ocorrências na base** — `m02-seal` descobre por `readdirSync` (`scripts/m02-seal.mjs:20,63`). No HEAD deste WP o mesmo grep devolve **2**, e ambas são a **precondição nova** (comentário + a chamada de `git status`), nenhuma usada para descoberta |
-| selos existentes ainda verificam sob a deriva  | `node scripts/m02-seal.mjs --dir <selo>`              | R4 **OK 17 arquivos** · R1 **OK 13 arquivos**                                                         |
-| arquivo selado × arquivo rastreado             | manifesto × `git ls-files --error-unmatch`            | R4 **17/17 rastreados, 0 órfãos** · R1 **13/13, 0 órfãos**                                            |
+| selos existentes ainda verificam sob a deriva  | `node scripts/m02-seal.mjs --dir <selo>`                            | R4 **OK 17 arquivos** · R1 **OK 13 arquivos**                                                                                                                                                                                                             |
+| arquivo selado × arquivo rastreado             | manifesto × `git ls-files --error-unmatch`                          | R4 **17/17 rastreados, 0 órfãos** · R1 **13/13, 0 órfãos**                                                                                                                                                                                                |
 
 **Conclusão:** a deriva **não contaminou** nenhum selo (descoberta é filesystem-based e os
 arquivos selados estão todos rastreados). O risco é **latente e recorrente**, não consumado:
