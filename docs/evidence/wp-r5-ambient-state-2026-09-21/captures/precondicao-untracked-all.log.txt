@@ -1,0 +1,9 @@
+# Por que --untracked-files=all e necessario (colapso de diretorio nao rastreado)
+
+## A. default: colapsa em `?? docs/` -> o filtro do selo NAO reconheceria o proprio diretorio
+?? docs/
+
+## B. --untracked-files=all: lista arquivo a arquivo -> o filtro exclui pelo prefixo do selo
+?? docs/evidence/fixture/README.md
+?? docs/evidence/fixture/SPEC.md
+?? docs/evidence/fixture/captures/nota.txt

@@ -1,0 +1,34 @@
+# Isolamento de bancada assertado — HEAD=b6b0b31 base=eef2238
+
+## origin/main (deve ser 9724d2c, intocado)
+9724d2c73b269d0a0199ea305308f3237b38fa09
+
+## :5432 — nenhum listener esperado
+0
+0
+
+## containers docker (nenhum efemero esperado)
+angry_swartz 8082/tcp
+
+## escopo do diff vs base: nenhum runtime, migration, schema ou manifesto
+  .gitignore
+  AGENTS.md
+  docs/evidence/_templates/work-package.md
+  docs/evidence/wp-r5-ambient-state-2026-09-21/SPEC.md
+  docs/evidence/wp-r5-ambient-state-2026-09-21/captures/gate-local.log.txt
+  docs/evidence/wp-r5-ambient-state-2026-09-21/captures/red-precondicao-real.log.txt
+  docs/evidence/wp-r5-ambient-state-2026-09-21/captures/red-seal.log.txt
+  scripts/m02-seal.mjs
+  scripts/m02-work-package-guard.mjs
+  src/test/m02-seal.test.ts
+  src/test/m02-work-package-guard.test.ts
+
+## package.json / package-lock.json tocados?
+0
+
+## migrations tocadas?
+0
+
+## src/ de runtime tocado? (esperado: só o teste do selo)
+  src/test/m02-seal.test.ts
+  src/test/m02-work-package-guard.test.ts

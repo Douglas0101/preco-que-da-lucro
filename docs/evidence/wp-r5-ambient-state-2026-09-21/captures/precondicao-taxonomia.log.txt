@@ -1,0 +1,17 @@
+# Taxonomia provado x indeterminado — medicao independente do harness de teste
+# Repo descartavel em /tmp/r5-cap, selo dentro dele, HEAD=b6b0b31
+
+repo: FIRST=04a0cf0 SECOND=bf9dca1
+
+## A. revisao INEXISTENTE (indeterminado) -> exigido exit 2
+m02-seal: PRECONDICAO revisao nao resolve neste repositorio: deadbeefdeadbeef
+EXIT=2
+
+## B. relacao PROVADA FALSA, objetos presentes -> exigido exit 1
+m02-seal: ancestralidade falsa: bf9dca157e4a020a444b84cedda264e9fef0d7e3 nao e ancestral de 04a0cf00610a4a1b83b52bf7acf312898b518346
+m02-seal: REPROVADO (1 falha(s))
+EXIT=1
+
+## C. relacao PROVADA VERDADEIRA -> exigido exit 0
+m02-seal: OK (3 arquivos, checked === discovered) — docs/evidence/fixture
+EXIT=0

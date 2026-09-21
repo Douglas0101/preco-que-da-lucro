@@ -1,0 +1,18 @@
+# Escopo da precondicao e ordem (antes de qualquer escrita)
+# HEAD=b6b0b31
+
+## A. selo dentro do repo, deriva presente: PRECONDICAO exit 2 (o selo do R1 nao pode ser selado agora)
+m02-seal: PRECONDICAO worktree derivado fora do selo: docs/evidence/wp-r5-ambient-state-2026-09-21/captures/precondicao-escopo-e-ordem.log.txt, docs/evidence/wp-r5-ambient-state-2026-09-21/captures/precondicao-taxonomia.log.txt, docs/evidence/wp-r5-ambient-state-2026-09-21/captures/precondicao-untracked-all.log.txt — commite ou reverta antes de selar
+EXIT=2
+
+## B. ordem: a precondicao roda ANTES do --write, entao o manifesto do R1 fica intacto
+$ git status --porcelain -uall -- docs/evidence/debts-registry-2026-09-20
+(vazio acima = nenhuma mutacao; a falha de precondicao nao deixa manifesto obsoleto)
+
+## C. o selo REAL nunca toma o ramo N/A (ele vive dentro do repo)
+# contraprova: com a arvore limpa, o mesmo selo do R1 verifica (ver captura separada)
+
+## D. ramo N/A: selo fora de repositorio git declara a precondicao em vez de silenciar
+m02-seal: precondicao worktree N/A (selo fora do repositorio git)
+m02-seal: OK (2 arquivos, checked === discovered) — /tmp/r5-na-fixture
+EXIT=0
