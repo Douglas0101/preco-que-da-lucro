@@ -186,10 +186,24 @@ de reescrito em silêncio.
 
 ## 8. CI e commits
 
-| campo             | valor                                                                 |
-| ----------------- | --------------------------------------------------------------------- |
-| base              | `eef2238`                                                             |
-| commits do WP     | `f986b9c` · `57e0cd5` · `fea7417` · `b6b0b31` · `125ecd5` · `3c6f4ea` |
-| land em `develop` | _(preenchido no S7)_                                                  |
-| run@sha           | _(preenchido no S8)_                                                  |
-| `origin/main`     | `9724d2c` — intocado em todo o arco                                   |
+| campo                                 | valor                                                                                                                                                |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| base                                  | `eef2238`                                                                                                                                            |
+| commits do WP                         | `f986b9c` · `57e0cd5` · `fea7417` · `b6b0b31` · `125ecd5` · `3c6f4ea` · `150aab8` · `47306e1` · `347239d` · `ea2c6af` · `9411135` · `83cfd6d` (selo) |
+| land em `develop`                     | merge `--no-ff` **`500096e`** (parent `eef2238`)                                                                                                     |
+| tip que carrega o **código** sob selo | **`c80ea84`**                                                                                                                                        |
+| run@sha (heavy)                       | **`c80ea84@35551394325`** — `UI stack`, `completed/success`, **29/29 passos success**                                                                |
+| run@sha (light)                       | `c80ea84@35551394301` — `CI light`, success, 7 de 12 passos aplicáveis ⇒ citado como **cobertura delegada ao heavy do mesmo commit**                 |
+| E2 no integrado                       | `npm run check` **exit 0** — 93 arquivos, **952 passed \| 13 skipped** (`captures/e2-integrado.log.txt`)                                             |
+| `origin/main`                         | `9724d2c` — **intocado em todo o arco** (conferido antes do merge, depois do merge e depois do push)                                                 |
+| ancestralidade                        | `git merge-base --is-ancestor 83cfd6d 500096e` → **exit 0** · `git merge-base --is-ancestor 500096e c80ea84` → **exit 0**                            |
+
+### Regra de parada
+
+O commit que **carrega este selo** é posterior a `c80ea84` e altera **apenas** `docs/evidence/**`
+(manifesto e esta seção). Pela garantia de cobertura do `AGENTS.md`, um push só-docs roda a
+**light** e o `paths-ignore` pula a heavy — comportamento esperado, não falha. Por isso o run heavy
+citado é o do último commit que carrega **código** (`c80ea84`), e a relação entre ele e o commit
+selado é **asserida por ancestralidade**, não afirmada em prosa. Este artefato registra a CI de
+todos os commits substantivos, inclusive a do fecho no journal, mas **não** afirma o resultado da
+execução que o carrega (regra declarada em `L112`).
