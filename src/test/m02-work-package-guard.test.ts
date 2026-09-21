@@ -29,18 +29,18 @@ function run(template?: string) {
 }
 
 describe("guard do contrato de work package (falsificação em CI)", () => {
-  it("o template real passa com 16 itens", () => {
+  it("o template real passa com 17 itens", () => {
     const result = run();
     expect(result.stderr).toBe("");
-    expect(result.stdout).toContain("OK (16 itens");
+    expect(result.stdout).toContain("OK (17 itens");
     expect(result.status).toBe(0);
   });
 
-  it("item 16 removido reprova por contagem", () => {
-    const semItem16 = realTemplate.replace(/\n\| 16\s+\|[^\n]*/, "");
-    const result = run(fixture("sem-item16.md", semItem16));
+  it("item 17 removido reprova por contagem", () => {
+    const semItem17 = realTemplate.replace(/\n\| 17\s+\|[^\n]*/, "");
+    const result = run(fixture("sem-item17.md", semItem17));
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("esperado 16");
+    expect(result.stderr).toContain("esperado 17");
   });
 
   it("origem degenerada reprova nomeando o item", () => {

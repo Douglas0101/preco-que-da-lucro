@@ -2,7 +2,7 @@
 // Guard do contrato de work package (docs/evidence/_templates/work-package.md).
 //
 // Valida a ESTRUTURA do template: secoes obrigatorias, checklist anti-vacuoso com
-// 16 itens numerados, coluna de origem identificada pelo header (nao "a ultima
+// 17 itens numerados, coluna de origem identificada pelo header (nao "a ultima
 // coluna") e com conteudo rastreavel (nao degenerado), taxonomia CORR x N e o
 // layout do selo. Nao valida prosa nem conteudo de um WP especifico — o
 // enforcement de conteudo e humano/S6 (vide o proprio template).
@@ -14,7 +14,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const DEFAULT_TEMPLATE = "docs/evidence/_templates/work-package.md";
-const EXPECTED_ITEMS = 16;
+const EXPECTED_ITEMS = 17;
 const EXPECTED_CHECKLIST_COLUMNS = 4;
 const ORIGIN_HEADER = /^origem\b/i;
 const DEGENERATE_ORIGIN = /^(n\/?a|tbd|\?+|—|-+|\.+)$/i;
