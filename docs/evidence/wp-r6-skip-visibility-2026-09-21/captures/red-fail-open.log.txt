@@ -1,47 +1,28 @@
 # Fail-open da precondicao de banco — medido nos dois estados, mutacao restaurada por sha256
-# HEAD=edb504c
+# HEAD=aafb507 (o commit que carrega o codigo medido)
+# Cada caso traz a CAUSA, nao so o exit: 'precondicao' (falha do gate) x 'conexao' (o gate ABRIU e o
+# banco nao existe em :5432) x 'verde' (o gate pulou). Exit sozinho nao distingue os tres.
 
-sha256 ANTES  : 9f975f866cd6b47f8c422467089c04ccc82d559ccda3d7a26f3cc89ab9d6b7a7
+sha256 ANTES  : bfb3a5da2f7dd82dae2e5a2f69ae541f429b159b6ef0ff5fa2acafd0bbf94405
 mutacao APLICADA: semantica anterior restaurada
-sha256 MUTADO : 7df2229dd652bbb460d5647a8ba223541f92cbad6daef49e25e27e4fa2ebfe8e
+sha256 MUTADO : dd617c745c7e352f70518631e8bc6b376971c00e45f3e83480711b827c8c8021
 
-## SOB MUTACAO (semantica antiga): as configuracoes que DECLARAM banco ficam VERDES
---- A. zero URLs ---
-   Test Files  1 passed (1)
-        Tests  5 passed | 9 skipped (14)
---- B. 3 URLs remotas ---
-   Test Files  1 passed (1)
-        Tests  5 passed | 9 skipped (14)
---- C. so DATABASE_URL remota ---
-   Test Files  1 passed (1)
-        Tests  5 passed | 9 skipped (14)
---- H. so UNPOOLED remota ---
-   Test Files  1 passed (1)
-        Tests  5 passed | 9 skipped (14)
+## SOB MUTACAO (semantica antiga)
+  A. zero URLs                                   1 passed (1)   verde (o gate PULOU)
+  B. 3 URLs remotas                              1 passed (1)   verde (o gate PULOU)
+  C. so DATABASE_URL remota                      1 passed (1)   verde (o gate PULOU)
+  H. so UNPOOLED remota                          1 passed (1)   verde (o gate PULOU)
 
-sha256 DEPOIS : 9f975f866cd6b47f8c422467089c04ccc82d559ccda3d7a26f3cc89ab9d6b7a7
+sha256 DEPOIS : bfb3a5da2f7dd82dae2e5a2f69ae541f429b159b6ef0ff5fa2acafd0bbf94405
 RESTAURO OK (sha256 identico)
 
-## RESTAURADO: quem declara banco e invalido reprova alto; o setup documentado RODA
---- A. zero URLs ---
-   Test Files  1 passed (1)
-        Tests  5 passed | 9 skipped (14)
---- B. 3 URLs remotas ---
-   Test Files  1 failed (1)
-        Tests  no tests
---- C. so DATABASE_URL remota ---
-   Test Files  1 failed (1)
-        Tests  no tests
---- D. so ADMIN loopback (par incompleto) ---
-   Test Files  1 failed (1)
-        Tests  no tests
---- H. so UNPOOLED remota ---
-   Test Files  1 failed (1)
-        Tests  no tests
-
-## E. SETUP DOCUMENTADO (ADMIN + URL loopback, SEM UNPOOLED): RODA (nao pula, nao reprova)
-##    medido por avaliacao direta do helper (nao ha PG em :5432 local para a suite completa):
-     {"enabled":true}
+## RESTAURADO
+  A. zero URLs                                   1 passed (1)   verde (o gate PULOU)
+  B. 3 URLs remotas                              1 failed (1)   PRECONDICAO (falha do gate)
+  C. so DATABASE_URL remota                      1 failed (1)   PRECONDICAO (falha do gate)
+  D. so ADMIN loopback (par incompleto)          1 failed (1)   PRECONDICAO (falha do gate)
+  E. DOCUMENTADO (par loopback, sem UNPOOLED)    1 failed (1)   conexao (o gate ABRIU; sem banco em :5432)
+  I. loopback em grafia libpq (127.1) — S6 N8  1 failed (1)   conexao (o gate ABRIU; sem banco em :5432)
 
 ## VISIBILIDADE do skip legitimo
   db-precondition: N/A-sem-DB: nenhuma das 3 URLs definida (modo local sem banco)

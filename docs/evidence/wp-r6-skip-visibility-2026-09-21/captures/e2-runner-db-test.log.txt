@@ -1,5 +1,5 @@
 # Regressao do db:test fechada com prova: runners no setup DOCUMENTADO (par obrigatorio, sem UNPOOLED)
-# HEAD=5969124 · PG17 efemero em 127.0.0.1:55450 (o :5432 NAO foi tocado)
+# HEAD=aafb507 (o commit que carrega o codigo medido)
 
 ## ambiente: par obrigatorio definido; UNPOOLED deliberadamente AUSENTE
    UNPOOLED: ausente (e o setup que o AGENTS.md documenta)

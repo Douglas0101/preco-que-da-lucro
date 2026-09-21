@@ -1,20 +1,18 @@
 # Falso positivo do contador directDatabaseFiles — mutacao restaurada por sha256
-# HEAD=eb2f498
+# HEAD=aafb507 (o commit que carrega o codigo medido)
 
 ## Sintoma original (achado pelo GATE, nao pelo autor nem pelo S6):
   M-02 matrix drift: execute npm run m02:matrix:generate and review the result.
-    counts.directDatabaseFiles: 49 -> 50
-      + src/test/db-precondition.test.ts
+    counts.directDatabaseFiles: 49 -> 50      + src/test/db-precondition.test.ts
   causa: a regra era `/\.\.?\/.*db.*$/` — casa qualquer caminho CONTENDO 'db'.
   `./helpers/db-precondition` e parsing de URL puro, zero banco, e era contado como arquivo de banco.
-  custo medido da correcao: exatamente 1 entrada mudava de classificacao — o falso positivo.
+  custo medido da correcao: exatamente 1 entrada mudava de classificacao (a lista perdida), 0 ganhas — reconferido pelo S6 (C7).
 
 sha256 ANTES  : 31251426bb06d59bd518f1d24a91795017e93e7605ccbe25e0846d0e655ed29c
 mutacao APLICADA: regra frouxa restaurada
-  15:  /^(?:drizzle-orm(?:\/.*)?|@\/db\/.*|\.\.?\/.*db.*)$/.test(moduleName);
 sha256 MUTADO : 8ffe9db2ce745eb8b5db20e74b439096ceb7d6a8db73b923a2ed7c77094b187b
 
-## bateria sob a regra frouxa (esperado: o caso do falso positivo reprova)
+## bateria sob a regra frouxa (esperado: os casos do falso positivo reprovam)
    FAIL  src/test/m02-database-module.test.ts > classificador de módulo de banco da matriz M-02 (WP-R6) > NÃO conta caminho que apenas contém 'db' no nome (o falso positivo do WP-R6)
    FAIL  src/test/m02-database-module.test.ts > classificador de módulo de banco da matriz M-02 (WP-R6) > a fronteira é o segmento: `db` no meio sem ser diretório final não conta
         Tests  2 failed | 3 passed (5)
@@ -28,3 +26,4 @@ RESTAURO OK (sha256 identico)
 ## matriz real com a regra estrita
   entradas: 49
   db-precondition presente? False
+  sha256 da matriz (== base eb2f498): cd8856063866b970...

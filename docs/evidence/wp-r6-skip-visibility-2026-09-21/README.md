@@ -28,11 +28,14 @@ alcançáveis pelo fluxo `npx vitest run <arquivo>`.
 | `src/test/helpers/db-precondition.ts`               | **novo** — fonte única da precondição (tudo ou nada, falha alta)  |
 | `src/test/product-contracts.test.ts`                | usa o helper; `isLoopbackUrl`/`dbEnabled` locais removidos        |
 | `src/test/products-fk-conflict.test.ts`             | idem                                                              |
-| `src/test/db-precondition.test.ts`                  | **novo** — 7 casos, inclui o booleano invertido                   |
+| `src/test/db-precondition.test.ts`                  | **novo** — 12 casos, inclui o booleano invertido                  |
 | `scripts/lib/m02-database-module.ts`                | **novo** — classificador de "módulo de banco" extraído e testável |
 | `scripts/m02-matrix.ts`                             | passa a importar o classificador (regra estrita)                  |
 | `src/test/m02-database-module.test.ts`              | **novo** — 5 casos, inclui o falso positivo                       |
+| `scripts/db/test-product-contracts.ts`              | N1 — comentário de cabeçalho atualizado (`isLoopbackUrl`)         |
+| `scripts/db/test-products-fk-conflict.ts`           | N1 — idem                                                         |
 | `.github/workflows/ui-stack.yml`                    | comentário do gate atualizado para a semântica nova               |
+| `docs/evidence/agent-state/DEBTS.md`                | DBT-16, DBT-17 e DBT-18                                           |
 | `docs/evidence/wp-r6-skip-visibility-2026-09-21/**` | este selo                                                         |
 
 **Não muda:** nenhum código de runtime, nenhuma migration, `package.json` intocado, `:5432`
