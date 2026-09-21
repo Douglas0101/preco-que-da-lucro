@@ -230,6 +230,71 @@ describe("m02-seal — ancestralidade offline (formato do L133)", () => {
   });
 });
 
+/**
+ * Selo **dentro** do repositório git temporário: é a única configuração em que a precondição
+ * de estado ambiente se aplica (o selo real vive em `docs/evidence/**`).
+ */
+function makeRepoSelo() {
+  const { dir, first, second } = makeGitRepo();
+  const selo = "docs/evidence/fixture";
+  mkdirSync(join(dir, selo, "captures"), { recursive: true });
+  writeFileSync(join(dir, selo, "SPEC.md"), "# spec\n");
+  writeFileSync(join(dir, selo, "README.md"), "# readme\n");
+  writeFileSync(join(dir, selo, "captures", "nota.txt"), "prova\n");
+  return { repo: dir, selo, first, second };
+}
+
+describe("m02-seal — precondição de estado ambiente (INV-R5-a)", () => {
+  it("deriva fora do selo reprova como PRECONDIÇÃO (exit 2), nomeando o caminho", () => {
+    const { repo, selo } = makeRepoSelo();
+    appendFileSync(join(repo, "a.txt"), "deriva\n");
+    const result = runIn(repo, ["--dir", selo, "--write"]);
+    expect(result.status).toBe(2);
+    expect(result.stderr).toContain("PRECONDICAO");
+    expect(result.stderr).toContain("a.txt");
+  });
+
+  it("worktree limpo fora do selo passa (o próprio selo não conta como deriva)", () => {
+    const { repo, selo } = makeRepoSelo();
+    const write = runIn(repo, ["--dir", selo, "--write"]);
+    expect(write.stderr).toBe("");
+    expect(write.status).toBe(0);
+    const verify = runIn(repo, ["--dir", selo]);
+    expect(verify.status).toBe(0);
+  });
+
+  it("selo fora do repositório declara a precondição como N/A em vez de silenciar", () => {
+    const { dir: repo } = makeGitRepo();
+    const dir = sealFixture("fora-do-repo", { "SPEC.md": "a\n", "README.md": "b\n" });
+    const result = runIn(repo, ["--dir", dir, "--write"]);
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("worktree N/A");
+  });
+});
+
+describe("m02-seal — taxonomia de exit codes na ancestralidade (INV-R5-b)", () => {
+  it("SHA inexistente é INDETERMINADO (exit 2), nunca veredito", () => {
+    const { repo, selo } = makeRepoSelo();
+    expect(runIn(repo, ["--dir", selo, "--write"]).status).toBe(0);
+    const claim = join(tmp, "indeterminado.md");
+    writeFileSync(claim, "`git merge-base --is-ancestor deadbeefdeadbeef deadbeefdeadbeef`\n");
+    const result = runIn(repo, ["--dir", selo, "--ancestry", claim]);
+    expect(result.status).toBe(2);
+    expect(result.stderr).toContain("PRECONDICAO");
+    expect(result.stderr).not.toContain("ancestralidade falsa");
+  });
+
+  it("não-ancestral com objetos presentes continua veredito (exit 1), não precondição", () => {
+    const { repo, selo, first, second } = makeRepoSelo();
+    expect(runIn(repo, ["--dir", selo, "--write"]).status).toBe(0);
+    const claim = join(tmp, "invertida.md");
+    writeFileSync(claim, `\`git merge-base --is-ancestor ${second} ${first}\`\n`);
+    const result = runIn(repo, ["--dir", selo, "--ancestry", claim]);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("ancestralidade falsa");
+  });
+});
+
 describe("m02-seal — run@sha (puro)", () => {
   const commit = "c9d1740cbb9a576876ed0fd83f4e1c8bea4054cb";
 

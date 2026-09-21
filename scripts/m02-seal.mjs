@@ -182,8 +182,56 @@ export function auditRun(run, { commit, isAncestor }) {
   return falhas;
 }
 
+/**
+ * Falha de **precondicao** (nao determinavel), distinta de veredito: nunca vira "nao e ancestral".
+ * O selo sai com exit 2 e mensagem nomeada; exit 1 fica reservado a relacao provada falsa.
+ */
+export class PreconditionError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "PreconditionError";
+  }
+}
+
 function gitAncestor(a, b) {
-  return spawnSync("git", ["merge-base", "--is-ancestor", a, b]).status ?? 1;
+  for (const rev of [a, b]) {
+    const probe = spawnSync("git", ["cat-file", "-e", `${rev}^{commit}`], { encoding: "utf8" });
+    if (probe.status !== 0) {
+      throw new PreconditionError(`revisao nao resolve neste repositorio: ${rev}`);
+    }
+  }
+  const resultado = spawnSync("git", ["merge-base", "--is-ancestor", a, b], { encoding: "utf8" });
+  if (resultado.status === 0) return 0;
+  if (resultado.status === 1) return 1;
+  throw new PreconditionError(
+    `merge-base --is-ancestor ${a} ${b} nao pode ser determinado (exit ${resultado.status ?? "spawn nulo"})`,
+  );
+}
+
+/** Caminhos de `git status --porcelain` (formato `XY caminho`, com rename `antigo -> novo`). */
+export function parsePorcelain(text) {
+  return (text ?? "")
+    .split("\n")
+    .filter((linha) => linha.trim().length > 0)
+    .map((linha) => {
+      const corpo = linha.slice(3);
+      const destino = corpo.includes(" -> ") ? corpo.split(" -> ")[1] : corpo;
+      return destino.trim().replace(/^"|"$/g, "");
+    });
+}
+
+/**
+ * Precondicao de estado ambiente: nada derivado **fora** do proprio diretorio do selo.
+ * O selo descobre por filesystem, entao um `.gitignore` derivado no worktree nao aparece em CI
+ * e contamina a medicao local — e exatamente o que este check recusa.
+ */
+export function driftForaDoSelo({ porcelain, dir }) {
+  const alvo = dir.replace(/\/+$/, "");
+  const prefixo = `${alvo}/`;
+  return parsePorcelain(porcelain).filter(
+    (caminho) =>
+      caminho !== alvo && !caminho.startsWith(prefixo) && !alvo.startsWith(`${caminho}/`),
+  );
 }
 
 function main() {
@@ -194,6 +242,43 @@ function main() {
     return;
   }
   const dir = resolve(process.cwd(), parsed.dir);
+
+  // Precondicao de estado ambiente (INV-R5-a): aplicavel quando o selo vive dentro de um
+  // repositorio git (o caso real, `docs/evidence/**`); fora dele e declarada como N/A.
+  const topo = spawnSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8" });
+  if (topo.status !== 0) {
+    console.error("m02-seal: PRECONDICAO nao foi possivel determinar o repositorio git");
+    process.exitCode = 2;
+    return;
+  }
+  const raiz = topo.stdout.trim();
+  const dentroDoRepo = dir === raiz || dir.startsWith(`${raiz}${sep}`);
+  if (dentroDoRepo) {
+    const status = spawnSync(
+      "git",
+      ["-C", raiz, "status", "--porcelain", "--untracked-files=all"],
+      {
+        encoding: "utf8",
+      },
+    );
+    if (status.status !== 0) {
+      console.error(`m02-seal: PRECONDICAO git status falhou: ${status.stderr.trim()}`);
+      process.exitCode = 2;
+      return;
+    }
+    const relativo = relative(raiz, dir).split(sep).join("/");
+    const drift = driftForaDoSelo({ porcelain: status.stdout, dir: relativo });
+    if (drift.length > 0) {
+      console.error(
+        `m02-seal: PRECONDICAO worktree derivado fora do selo: ${drift.join(", ")} — commite ou reverta antes de selar`,
+      );
+      process.exitCode = 2;
+      return;
+    }
+  } else {
+    console.log("m02-seal: precondicao worktree N/A (selo fora do repositorio git)");
+  }
+
   let scan;
   try {
     scan = scanSelo(dir);
@@ -284,7 +369,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   try {
     main();
   } catch (error) {
-    console.error(`m02-seal: ERRO ${error.message}`);
+    if (error instanceof PreconditionError) {
+      console.error(`m02-seal: PRECONDICAO ${error.message}`);
+    } else {
+      console.error(`m02-seal: ERRO ${error.message}`);
+    }
     process.exitCode = 2;
   }
 }
