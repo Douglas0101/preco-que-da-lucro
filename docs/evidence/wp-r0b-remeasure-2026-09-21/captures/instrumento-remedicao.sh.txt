@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# WP-R0b — instrumento de re-medição dos 12 NS + 2 UNV (exigência §6.1 cumprida pelo WP-R6).
+# Regra: os itens NÃO são digitados — são DESCOBERTOS pelo parser do anexo (checked === discovered),
+# exatamente como no instrumento do WP-R0 (captures/extrai-ns.sh.txt, reusado por referência).
+# Os comandos e predicados foram pré-registrados na SPEC §4 ANTES desta execução (cláusula C3).
+# Escopo de código: exclui .git/ node_modules/ .output/ e docs/ — contar prosa como implementação
+# é o falso positivo que este WP existe para não repetir.
+set -u
+cd "$(dirname "$0")/../../../../" || exit 1
+CODE="src scripts drizzle package.json .github"
+
+echo "# WP-R0b — re-medição item a item · HEAD=$(git rev-parse --short HEAD)"
+echo "# árvore limpa? $(git status --porcelain | wc -l) arquivo(s) sujo(s)"
+echo
+
+echo "## 0. Descoberta dos itens (parser do anexo, não lista digitada)"
+python3 - <<'PY'
+import re, pathlib
+ann = pathlib.Path("docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md").read_text()
+rows = []
+for line in ann.splitlines():
+    m = re.match(r"^\|\s*`([^`]+)`\s*\|\s*([^|]+?)\s*\|\s*\*\*([A-Z-]+)\*\*\s*\|", line)
+    if m:
+        rows.append((m.group(1), m.group(3)))
+ns = [r[0] for r in rows if r[1] == "NS"]
+unv = [r[0] for r in rows if r[1] == "UNVERIFIABLE"]
+trans = {"9.1-ME": "PARTIAL", "16.3": "DONE", "23.1": "DONE", "23.2": "DONE",
+         "25.4": "PARTIAL", "26.7": "PARTIAL", "28.1": "DONE", "28.2": "PARTIAL",
+         "28.3": "DONE", "25.6": "UNVERIFIABLE", "25.7": "UNVERIFIABLE"}
+canon = [i for i in ns if trans.get(i, "NS") == "NS" and i != "24.13"]
+alvo = canon + [i for i in unv if trans.get(i, "U") == "UNVERIFIABLE"]
+print("itens descobertos:", len(alvo), sorted(alvo, key=lambda s: [int(x) if x.isdigit() else x for x in re.split(r"[.\-]", s)]))
+assert len(alvo) == 14, f"descoberta mudou: {len(alvo)}"
+pathlib.Path("/tmp/r0b-itens.txt").write_text("\n".join(alvo))
+PY
+echo
+
+run() { printf '\n--- %s\n$ %s\n' "$1" "$2"; eval "$2" 2>&1 | head -20; }
+
+echo "## 1.15.1 — Memory Service em runtime"
+run "15.1" "grep -rn 'memory' src/lib src/server src/app --include=*.ts | grep -v '/contracts/' | head -20"
+run "15.1b" "grep -rln 'memory' src/lib src/server src/app --include=*.ts | grep -v '/contracts/' | wc -l"
+
+echo "## 2.15.2 — tabelas de memória"
+run "15.2" "grep -rniE 'create table.*ai_memor' drizzle/ | wc -l"
+run "15.2b" "grep -rniE 'ai_memor' drizzle/ src/db/ | wc -l"
+
+echo "## 3.15.3/15.4 — MemoryPolicy e MemoryProvenance"
+run "15.3" "grep -rnE 'MemoryPolicy|MemoryProvenance' src --include=*.ts | head -20"
+run "15.3b" "grep -rnE 'MemoryPolicy|MemoryProvenance' src --include=*.ts | grep -v 'contracts/' | wc -l"
+
+echo "## 4.15.5 — FTS"
+run "15.5" "grep -rniE 'tsvector|tsquery|to_tsvector|using gin' src drizzle | wc -l"
+
+echo "## 5.15.6 — pgvector / embeddings"
+run "15.6" "grep -rniE 'pgvector|embedding|vector\(' src drizzle package.json | wc -l"
+
+echo "## 6.15.7 — retrieval de memória servindo rota"
+run "15.7" "grep -rnE 'memory' src/server/services src/server/repositories src/lib --include=*.ts | grep -v contracts | wc -l"
+
+echo "## 7.19.6 — medidores de memória"
+run "19.6" "grep -rnE 'candidate_count|persisted_count|rejected_count|retrieval_latency|user_correction_rate|conflict_rate' $CODE | wc -l"
+
+echo "## 8.21.3 — SERIALIZABLE / 40001 / retry"
+run "21.3" "grep -rnE '\bSERIALIZABLE\b|40001|serialization_failure' src scripts drizzle | head -20"
+run "21.3b" "grep -rnE '\bSERIALIZABLE\b|40001|serialization_failure' src scripts drizzle | wc -l"
+run "21.3c" "grep -rnE 'serializationError' src scripts drizzle | wc -l"
+
+echo "## 9.22.4 — purga de idempotency_records"
+run "22.4" "grep -rnE 'idempotency_records' src scripts drizzle | wc -l"
+run "22.4b" "grep -rnE 'idempotency_records' src scripts drizzle | head -12"
+run "22.4c" "grep -rnE 'schedule:|cron|pg_cron' .github/workflows src | wc -l"
+
+echo "## 10.25.5 — dependency review"
+run "25.5" "grep -rn 'dependency-review' .github/ | wc -l"
+
+echo "## 11.25.6 — CodeQL"
+run "25.6" "grep -rni 'codeql' .github/ | wc -l"
+run "25.6b" "ls .github/workflows/"
+
+echo "## 12.25.7 — secret scanning"
+run "25.7" "ls .github/secret_scanning.yml 2>&1"
+run "25.7b" "grep -rni 'secret.scanning' .github/ | wc -l"
+
+echo "## 13.29.1 — p95 / SLO no runtime"
+run "29.1" "grep -rnE 'p95|p99|percentile|SLO|slo_' src scripts drizzle | wc -l"
+run "29.1b" "grep -rnE 'p95|p99|percentile|SLO|slo_' src scripts drizzle | head -12"
+
+echo
+echo "## 14. CONTROLE NEGATIVO — itens com fato-fonte de fechamento (devem medir DONE)"
+run "25.4" "grep -rn 'dependabot' .github/ | wc -l"
+run "25.4b" "ls .github/dependabot.yml 2>&1"
+run "22.1" "grep -rnE 'idempotency' drizzle/*.sql | wc -l"

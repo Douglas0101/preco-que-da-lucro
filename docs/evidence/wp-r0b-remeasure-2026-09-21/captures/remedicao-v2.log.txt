@@ -1,0 +1,113 @@
+# WP-R0b — re-medição v2 (instrumento corrigido) · HEAD=3b99a78
+# descoberta: 14 itens, vindos do parser do anexo (não de lista digitada)
+# v1: captures/instrumento-remedicao.sh.txt · v2 corrige FP-A (tsQuery) e FP-B (sincrona)
+
+## A. Alcance de runtime — a pergunta que decide 4 dos 14 itens
+memory.service importado fora de teste:      0
+memory.repository importado fora de teste:   0
+rotas/BFF que mencionam memória:             0
+  (a linha de products.functions.ts é COMENTÁRIO — conferido por leitura, não por contagem)
+
+## B. Itens, um a um (predicado pré-registrado da SPEC §4)
+-- 15.1 Memory Service em runtime
+   service existe:        1
+   testes do service:     2 arquivo(s)
+   chamadores runtime:    0  (linha A)
+15.1    PARTIAL   camada existe e é testada; falta entrypoint de runtime
+-- 15.2 tabelas de memória
+   CREATE TABLE ai_mem*:  6
+   tabelas distintas:     ai_memories ai_memory_access_log ai_memory_conflicts ai_memory_policies ai_memory_sources ai_memory_versions 
+   repositório:           1
+   suíte de banco:        1 (na cadeia db:test)
+15.2    DONE      schema migrado + repositório + suíte de banco
+-- 15.3 policy engine
+   evaluateMemoryPolicy:  src/server/services/memory.service.ts src/server/services/memory.policy.ts 
+   chamado por:           1 sítio(s) de runtime
+15.3    PARTIAL   engine existe e é exercitado; serviço que o chama não tem entrypoint
+-- 15.4 provenance persistida
+   ai_memory_sources:     3 migration(ões)
+   escrita de proveniência: 11 uso(s) no repositório
+15.4    PARTIAL   persistida no repositório; nada em runtime a produz
+-- 15.5 FTS  (FP-A corrigido)
+   v1 (i, sem fronteira): 27  <- contava tsQuery do router
+   v2 (case, fronteira):  0
+15.5    NS        sem FTS: nenhum tsvector/tsquery/GIN em código ou migration
+-- 15.6 embeddings / pgvector
+   hits: 0
+15.6    NS        sem pgvector, sem embedding, sem ANN (§44 só abre depois do §43)
+-- 15.7 retrieval
+   search no repositório: 1 função(ões)
+   rota que serve:        0
+15.7    PARTIAL   retrieval existe no repositório; nenhuma rota o serve
+-- 19.6 medidores de memória
+   hits: 0
+19.6    NS        nenhum medidor emitido; os nomes só existem no plano
+-- 21.3 SERIALIZABLE / 40001 / retry
+   SERIALIZABLE|40001|serialization_failure: 0
+   serializationError (falso amigo):         8  <- helper de serialização de DECIMAL, não falha de PG
+21.3    NS        nível de isolamento e retry ausentes (ADR-029 adia para T3)
+-- 22.4 purga de idempotency_records
+   usos da tabela em runtime: 20
+   funções de purga:          0
+   agendamento real (v2):     4 menção(ões) em comentário de script — nenhuma agenda purga
+     scripts/db/release-unknown-reservations.ts:8:// colateral de um cron.
+     scripts/db/reconcile-ai-usage.ts:15://     para que devolver orçamento nunca seja um efeito colateral de um cron;
+     scripts/db/reconcile-ai-usage.ts:20:// cron documentado". Não há superfície nova exposta na aplicação.
+     scripts/db/reconcile-ai-usage.ts:334:      // cron. Quem alarma de verdade: o evento estruturado
+22.4    NS        tabela usada para idempotência, mas sem purga: só o índice de expiração existe
+-- 25.5 dependency review
+   hits: 0
+25.5    NS        nenhum workflow usa dependency-review-action
+-- 25.6 CodeQL
+   hits em .github: 0
+   workflows:       ci-light.yml neon-drill-ops.yml neon-pr-branch.yml neon-preview.yml neon-readiness.yml ui-stack.yml 
+25.6    UNV       ausência no repo é verificável; a ativação é settings-side (inalcançável daqui) — H-2
+-- 25.7 secret scanning
+   .github/secret_scanning.yml: 0
+   hits 'secret.scanning':      0
+25.7    UNV       idem 25.6: o arquivo não existe no repo, a ativação é settings-side
+-- 29.1 p95 / SLO
+   percentil+veredito fora de teste: scripts/perf/summarize.mjs scripts/obs/ai-latency-baseline.ts scripts/obs/rum-percentiles.ts 
+   veredito de requestDuration:      0
+29.1    PARTIAL   percentil e veredito existem para as baselines RUM/IA; falta o p95 de backend contra os alvos do §29
+
+## C. CONTROLE NEGATIVO — itens com fato-fonte de fechamento precisam medir DONE no MESMO predicado
+   25.4 .github/dependabot.yml: 1  → DONE (fechado em 9a473a2)
+   25.4 hits 'dependabot':      1
+   22.1 idempotency em drizzle: 14  → DONE
+
+## D. Composição (cláusula C2: denominador 187 inalterado)
+   medidos: 14  ·  proposta: 1 DONE · 5 PARTIAL · 6 NS · 2 UNV
+   soma das classes do bloco = 14 (== 14 itens descobertos)
+
+## E. LEITURA DO TEXTO DO PLANO (acrescentada DEPOIS da 1a passada — declarado, nao retro-datado)
+#  Por que existe: o anexo resume cada item numa linha de evidencia que e uma RECEITA DE MEDICAO,
+#  nao a definicao do item. Lido o plano, 15.1 e 'Ordem correta', 15.2 lista 9 tabelas e 15.7 e
+#  'Ranking' com 7 sinais. As tres leituras foram medidas e a mais estrita prevalece (clausula C1).
+
+-- 15.1 'Ordem correta': nao iniciar por embeddings
+   embeddings no repo (pgvector/embedding/ANN): 0  -> ordem NAO foi violada
+   Memory Service existe: 1 · chamadores de runtime: 0
+15.1    PARTIAL   ordem respeitada, servico existe, falta entrypoint (leitura mais estrita das duas)
+-- 15.2 'Tabelas': as 9 do plano, uma a uma
+     ai_conversations         ausente
+     ai_messages              ausente
+     ai_memories              EXISTE
+     ai_memory_sources        EXISTE
+     ai_memory_versions       EXISTE
+     ai_memory_conflicts      EXISTE
+     ai_memory_embeddings     ausente
+     ai_memory_access_log     EXISTE
+     ai_memory_policies       EXISTE
+   superseded (item 15.2c): chat_conversations=1 chat_messages=1
+   ai_memory_embeddings em qualquer lugar: 0
+15.2    PARTIAL   6 de 9 por nome (+2 superseded); falta ai_memory_embeddings (§44)
+-- 15.7 'Ranking': 7 sinais combinados
+   ordenacao real de search(): 1 -> orderBy(desc(aiMemories.createdAt)
+   filtro de tenant no where:  2
+   lexical/semantico (ts_rank, similaridade): 0
+   campos de importancia/confianca no schema: importance=5 confidence=7
+15.7    PARTIAL   tenant + recency presentes; lexical, semantico, importance e confidence ausentes do ranking
+
+## F. Composicao final (clausula C2)
+   0 DONE · 7 PARTIAL · 5 NS · 2 UNV = 14 (== 14 itens descobertos)

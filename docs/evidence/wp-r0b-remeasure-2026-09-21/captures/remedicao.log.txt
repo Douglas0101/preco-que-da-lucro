@@ -1,0 +1,192 @@
+# WP-R0b — re-medição item a item · HEAD=3b99a78
+# árvore limpa? 1 arquivo(s) sujo(s)
+
+## 0. Descoberta dos itens (parser do anexo, não lista digitada)
+itens descobertos: 14 ['15.1', '15.2', '15.3', '15.4', '15.5', '15.6', '15.7', '19.6', '21.3', '22.4', '25.5', '25.6', '25.7', '29.1']
+
+## 1.15.1 — Memory Service em runtime
+
+--- 15.1
+$ grep -rn 'memory' src/lib src/server src/app --include=*.ts | grep -v '/contracts/' | head -20
+grep: src/app: Arquivo ou diretório inexistente
+src/lib/products.functions.ts:208: * `src/server/repositories/memory.repository.ts`. Devolve a `constraint`
+src/server/repositories/memory.repository.ts:16: * A proveniência é 1:N em `ai_memory_sources` (decisão C): o append grava uma
+src/server/repositories/memory.repository.ts:25: * (SD-C3-5/6). Nenhum `UPDATE`/`DELETE` é emitido contra `ai_memory_versions` —
+src/server/repositories/memory.repository.ts:29: * (TTL por camada, lido de `ai_memory_policies` — nunca de constante), delete
+src/server/repositories/memory.repository.ts:30: * **físico** com autorização por escopo e a trilha `ai_memory_access_log`
+src/server/repositories/memory.repository.ts:150:export function memoryDedupDiscriminator(input: MemoryDedupKeyInput): string {
+src/server/repositories/memory.repository.ts:159:    memoryDedupDiscriminator(input),
+src/server/repositories/memory.repository.ts:243:      message: `source_kind inválido persistido em ai_memory_sources: ${value}`,
+src/server/repositories/memory.repository.ts:291:      message: `status inválido persistido em ai_memory_conflicts: ${value}`,
+src/server/repositories/memory.repository.ts:300:    memoryId: row.memoryId,
+src/server/repositories/memory.repository.ts:315:  memoryIds: readonly string[],
+src/server/repositories/memory.repository.ts:317:  if (memoryIds.length === 0) return new Map();
+src/server/repositories/memory.repository.ts:324:        inArray(aiMemorySources.memoryId, [...memoryIds]),
+src/server/repositories/memory.repository.ts:331:    if (!primary.has(source.memoryId)) primary.set(source.memoryId, source);
+src/server/repositories/memory.repository.ts:344:  memoryId: string,
+src/server/repositories/memory.repository.ts:351:      memoryId,
+src/server/repositories/memory.repository.ts:366:/** TTL da camada lido de `ai_memory_policies` (§15.1/L5, SD-D4-A): a **maior
+src/server/repositories/memory.repository.ts:383:      message: `camada ${layer} sem política de retenção publicada em ai_memory_policies`,
+src/server/repositories/memory.repository.ts:398:    memoryId: string | null;
+
+--- 15.1b
+$ grep -rln 'memory' src/lib src/server src/app --include=*.ts | grep -v '/contracts/' | wc -l
+grep: src/app: Arquivo ou diretório inexistente
+4
+## 2.15.2 — tabelas de memória
+
+--- 15.2
+$ grep -rniE 'create table.*ai_memor' drizzle/ | wc -l
+6
+
+--- 15.2b
+$ grep -rniE 'ai_memor' drizzle/ src/db/ | wc -l
+483
+## 3.15.3/15.4 — MemoryPolicy e MemoryProvenance
+
+--- 15.3
+$ grep -rnE 'MemoryPolicy|MemoryProvenance' src --include=*.ts | head -20
+src/db/schema.ts:1322:export type AiMemoryPolicy = typeof aiMemoryPolicies.$inferSelect;
+src/test/contracts.test.ts:18:    exports: ["MemoryRecord", "MemoryPolicy", "MemoryRepositoryPort"],
+src/test/memory-policy.test.ts:5:  MemoryPolicy,
+src/test/memory-policy.test.ts:6:  MemoryProvenance,
+src/test/memory-policy.test.ts:9:  evaluateMemoryPolicy,
+src/test/memory-policy.test.ts:11:  type MemoryPolicyRejection,
+src/test/memory-policy.test.ts:16:const BASE_POLICY: MemoryPolicy = {
+src/test/memory-policy.test.ts:26:function policy(overrides: Partial<MemoryPolicy> = {}): MemoryPolicy {
+src/test/memory-policy.test.ts:30:function provenance(overrides: Partial<MemoryProvenance> = {}): MemoryProvenance {
+src/test/memory-policy.test.ts:52:  policyUnderTest: MemoryPolicy,
+src/test/memory-policy.test.ts:54:): MemoryPolicyRejection {
+src/test/memory-policy.test.ts:55:  const decision = evaluateMemoryPolicy(policyUnderTest, candidateUnderTest);
+src/test/memory-policy.test.ts:70:describe("evaluateMemoryPolicy — (a) confiança mínima", () => {
+src/test/memory-policy.test.ts:85:    const decision = evaluateMemoryPolicy(
+src/test/memory-policy.test.ts:104:describe("evaluateMemoryPolicy — (b) escopo permitido", () => {
+src/test/memory-policy.test.ts:120:      expect(evaluateMemoryPolicy(policy(), candidate({ scope })).accepted).toBe(true);
+src/test/memory-policy.test.ts:125:describe("evaluateMemoryPolicy — (c) proveniência obrigatória", () => {
+src/test/memory-policy.test.ts:158:    const decision = evaluateMemoryPolicy(
+src/test/memory-policy.test.ts:167:describe("evaluateMemoryPolicy — (d) tamanho máximo de conteúdo", () => {
+src/test/memory-policy.test.ts:183:      evaluateMemoryPolicy(policy({ maxContentLength: 40 }), candidate({ content: "a".repeat(40) }))
+
+--- 15.3b
+$ grep -rnE 'MemoryPolicy|MemoryProvenance' src --include=*.ts | grep -v 'contracts/' | wc -l
+60
+## 4.15.5 — FTS
+
+--- 15.5
+$ grep -rniE 'tsvector|tsquery|to_tsvector|using gin' src drizzle | wc -l
+27
+## 5.15.6 — pgvector / embeddings
+
+--- 15.6
+$ grep -rniE 'pgvector|embedding|vector\(' src drizzle package.json | wc -l
+0
+## 6.15.7 — retrieval de memória servindo rota
+
+--- 15.7
+$ grep -rnE 'memory' src/server/services src/server/repositories src/lib --include=*.ts | grep -v contracts | wc -l
+80
+## 7.19.6 — medidores de memória
+
+--- 19.6
+$ grep -rnE 'candidate_count|persisted_count|rejected_count|retrieval_latency|user_correction_rate|conflict_rate' src scripts drizzle package.json .github | wc -l
+0
+## 8.21.3 — SERIALIZABLE / 40001 / retry
+
+--- 21.3
+$ grep -rnE '\bSERIALIZABLE\b|40001|serialization_failure' src scripts drizzle | head -20
+
+--- 21.3b
+$ grep -rnE '\bSERIALIZABLE\b|40001|serialization_failure' src scripts drizzle | wc -l
+0
+
+--- 21.3c
+$ grep -rnE 'serializationError' src scripts drizzle | wc -l
+8
+## 9.22.4 — purga de idempotency_records
+
+--- 22.4
+$ grep -rnE 'idempotency_records' src scripts drizzle | wc -l
+220
+
+--- 22.4b
+$ grep -rnE 'idempotency_records' src scripts drizzle | head -12
+src/db/schema.ts:682:  "idempotency_records",
+src/db/schema.ts:696:    uniqueIndex("idempotency_records_scope_uidx").on(
+src/db/schema.ts:702:    index("idempotency_records_expires_idx").on(table.expiresAt),
+src/db/schema.ts:708:      "idempotency_records_status_check",
+scripts/db/test-tool-security.ts:56:      `delete from idempotency_records
+scripts/db/test-tool-security.ts:63:      `insert into idempotency_records
+scripts/db/purge-fixtures.ts:50:  "idempotency_records",
+scripts/db/test-sql-injection.ts:201:  await pool.query("delete from idempotency_records where tenant_id = $1", [tenantId]);
+drizzle/0001_p0_runtime_role_and_rls.sql:43:  idempotency_records, tool_executions, ai_daily_budgets
+drizzle/0001_p0_runtime_role_and_rls.sql:194:    'idempotency_records',
+drizzle/rollback/0001_to_0000_down.sql:23:  idempotency_records,
+drizzle/0000_p0_postgres_foundation.sql:83:CREATE TABLE "idempotency_records" (
+grep: erro de escrita: Pipe quebrado
+
+--- 22.4c
+$ grep -rnE 'schedule:|cron|pg_cron' .github/workflows src | wc -l
+2
+## 10.25.5 — dependency review
+
+--- 25.5
+$ grep -rn 'dependency-review' .github/ | wc -l
+0
+## 11.25.6 — CodeQL
+
+--- 25.6
+$ grep -rni 'codeql' .github/ | wc -l
+0
+
+--- 25.6b
+$ ls .github/workflows/
+ci-light.yml
+neon-drill-ops.yml
+neon-pr-branch.yml
+neon-preview.yml
+neon-readiness.yml
+ui-stack.yml
+## 12.25.7 — secret scanning
+
+--- 25.7
+$ ls .github/secret_scanning.yml 2>&1
+ls: não foi possível acessar '.github/secret_scanning.yml': Arquivo ou diretório inexistente
+
+--- 25.7b
+$ grep -rni 'secret.scanning' .github/ | wc -l
+0
+## 13.29.1 — p95 / SLO no runtime
+
+--- 29.1
+$ grep -rnE 'p95|p99|percentile|SLO|slo_' src scripts drizzle | wc -l
+55
+
+--- 29.1b
+$ grep -rnE 'p95|p99|percentile|SLO|slo_' src scripts drizzle | head -12
+src/test/slo-ai-baseline-discipline.test.ts:10:import { verdictFor } from "../../scripts/obs/rum-percentiles";
+src/test/slo-ai-baseline-discipline.test.ts:55:/** Verifica o p75 com a função oficial de `scripts/obs/rum-percentiles.ts`. */
+src/test/perf-summarize.test.ts:8:  percentile,
+src/test/perf-summarize.test.ts:248:describe("percentile (interpolação linear R-7)", () => {
+src/test/perf-summarize.test.ts:250:    expect(percentile([40, 10, 30, 20], 50)).toBe(25);
+src/test/perf-summarize.test.ts:251:    expect(percentile([10, 20, 30, 40], 95)).toBe(38.5);
+src/test/perf-summarize.test.ts:255:    expect(percentile([], 50)).toBeNull();
+src/test/perf-summarize.test.ts:256:    expect(percentile([5], 95)).toBe(5);
+src/test/perf-summarize.test.ts:257:    expect(percentile([Number.NaN, 10, Number.POSITIVE_INFINITY], 50)).toBe(10);
+src/test/perf-summarize.test.ts:267:    expect(inicio?.ready.p95).toBe(138);
+src/test/perf-summarize.test.ts:283:    expect(report.ai.latency.p95).toBe(59);
+src/test/perf-summarize.test.ts:304:    expect(markdown).toContain("1. p50/p95 de rotas internas");
+grep: erro de escrita: Pipe quebrado
+
+## 14. CONTROLE NEGATIVO — itens com fato-fonte de fechamento (devem medir DONE)
+
+--- 25.4
+$ grep -rn 'dependabot' .github/ | wc -l
+1
+
+--- 25.4b
+$ ls .github/dependabot.yml 2>&1
+.github/dependabot.yml
+
+--- 22.1
+$ grep -rnE 'idempotency' drizzle/*.sql | wc -l
+14
