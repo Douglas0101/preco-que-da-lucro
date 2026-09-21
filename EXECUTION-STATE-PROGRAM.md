@@ -2312,3 +2312,39 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L140` (intenção) e `L141` (resultado).
 
   Latest state marker parent = `01cec9781fc7ccb186db307cba1f6e66e6744167`,
+
+### WP-R6 — `F-skip-visibility` (exigência §6.1 da análise antes do R0b, S9 — landado)
+
+- **O que era:** o E2 local reportava `952 passed | 13 skipped` e o skip era o primo do falso verde um
+  nível acima — o teste **não rodava e não reprovava**. A decisão de pular era um **booleano sem
+  motivo**, com `isLoopbackUrl(undefined)` devolvendo **`true`**: um ambiente meio configurado e um
+  ambiente deliberadamente sem banco produziam o mesmo `1 passed`.
+- **O que foi feito:** precondição de banco em **fonte única** (`src/test/helpers/db-precondition.ts`),
+  **tudo ou nada**, que **falha alta nomeando a chave e o problema** e imprime rótulo nomeado no skip
+  legítimo; presença por `!== undefined` (N7) e host normalizado com `127/8` e IPv4-mapeado (N8);
+  classificador de "módulo de banco" extraído para `scripts/lib/m02-database-module.ts` com regra
+  **estrita** (segmento, não substring), fechando o falso positivo que o **gate** achou; comentários
+  dos runners alinhados à semântica nova.
+- **Prova:** RED sob a semântica antiga — **A, B e C todas `1 passed`** (fail-open medido, não
+  argumentado), com a **causa** nomeada por cenário (`verde` × `PRECONDICAO` × `conexao`), porque o
+  exit sozinho não distingue os três; mutações restauradas por **sha256**; inventário dos 13 por
+  **descoberta** (grep em 7 mecanismos de skip, exatamente 2 sítios: 9 + 4); regressão do `db:test`
+  provada com **PG17 efêmero** no setup documentado; E2 `npm run check` **exit 0** (969 passed |
+  13 skipped); heavy `4983c11@35556119568` = success.
+- **S6 adversarial de contexto limpo:** **11 CONFIRMED · 1 CORRECTED (C12) · 0 REJECTED · 0
+  UNVERIFIABLE · 10 N** — 6 corrigidos (N1, N3, N5, N6, N7, N8) e 4 declarados (N2; N4→**DBT-18**;
+  N9→**DBT-17**; N10→lição). **Correções forçadas = 7.** O achado mais caro (**N1**, HIGH) foi a
+  regressão do próprio autor contra o `db:test` documentado — o S6 a confirmou **independentemente**
+  depois de ela já ter sido corrigida.
+- **Achado do GATE (não do S6, não do autor):** o contador `directDatabaseFiles` classificava por
+  `\.\.?\/.*db.*`, que casa qualquer caminho **contendo** `db` — `./helpers/db-precondition` (parsing
+  de URL, zero banco) entrava como arquivo de banco. Corrigido com regra estrita; **custo medido:
+  exatamente 1 entrada** mudava de classificação e nenhuma era ganha. O episódio é a quarta
+  ocorrência da mesma família (enumeração por lista deixa buraco silencioso).
+- **Lição de processo (N10):** o workspace mutou durante a verificação e o S6 recongelou o alvo por
+  `git archive`. Regra adotada: **commitar tudo antes de despachar o S6**.
+- **Placar: inalterado** — 150 D · 23 P · 12 NS · 2 UNV / 187 (o WP é de processo, não promove item).
+  Este WP fecha a exigência §6.1 (disposição nominal dos 13 skips) e **destrava a abertura do R0b**.
+- **Registro no journal:** `L142` (intenção) e `L143` (resultado).
+
+  Latest state marker parent = `bcb93dea077baf4b4aac890ed7907509a3ce3967`,
