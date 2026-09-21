@@ -174,6 +174,7 @@ despachar** — o journal registra a lição em `L143`.
 | commit selado     | **`a1e706a`** — árvore `ba3004a6…`, **idêntica** à do merge (`git rev-parse <sha>^{tree}`)                       |
 | run@sha (heavy)   | **`4983c11@35556119568`** — `UI stack`, `completed/success`                                                      |
 | run@sha (light)   | `4983c11@35556119560` — `CI light`, success, **no-op** declarado (push misto: o job sai sem trabalho, não falha) |
+| fecho do arco     | `3c34fce@35556827999` — `UI stack`, **success**; `3c34fce@35556828004` — `CI light`, success                     |
 | E2 no integrado   | `npm run check` **exit 0** — 95 arquivos, **969 passed \| 13 skipped** (`captures/e2-integrado.log.txt`)         |
 | `origin/main`     | `9724d2c` — **intocado em todo o arco** (conferido antes do merge, depois do merge e depois do push)             |
 | ancestralidade    | `git merge-base --is-ancestor a1e706a 4983c11` → **exit 0**                                                      |
@@ -181,9 +182,16 @@ despachar** — o journal registra a lição em `L143`.
 ### Regra de parada
 
 O commit que **carrega este selo** (manifesto, §3 e esta seção) é posterior a `4983c11` e altera
-**apenas** `docs/evidence/**` — pela garantia de cobertura do `AGENTS.md`, um push só-docs roda a
-**light** e o `paths-ignore` pula a heavy. Por isso o run heavy citado é o do commit que carrega o
-**código** (`4983c11`), e a relação entre ele e o commit selado é **asserida por ancestralidade** —
-e, aqui, também por **igualdade de árvore**, que é mais forte do que a descendência: a CI mediu
-exatamente o conteúdo sob selo. Esta seção registra a CI dos commits substantivos, mas **não** afirma
-o resultado da execução que a carrega (regra declarada em `L112`).
+**apenas** `docs/evidence/**` (`bcb93de`: 3 arquivos, medido) — pela garantia de cobertura do
+`AGENTS.md`, um push só-docs roda a **light** e o `paths-ignore` pula a heavy. Por isso o run heavy
+citado é o do commit que carrega o **código** (`4983c11`), e a relação entre ele e o commit selado é
+**asserida por ancestralidade** — e, aqui, também por **igualdade de árvore**, que é mais forte do
+que a descendência: a CI mediu exatamente o conteúdo sob selo. Esta seção registra a CI dos commits
+substantivos, mas **não** afirma o resultado da execução que a carrega (regra declarada em `L112`).
+
+**Nuance medida, e ela corrige a leitura fácil da regra:** o **fecho do arco** não é só-docs. Os
+commits que gravam o ledger e avançam o marcador tocam `EXECUTION-STATE-PROGRAM.md`, que vive na
+**raiz** — fora do `paths-ignore: docs/evidence/**` —, então o push de fecho `3c34fce` disparou a
+heavy **de verdade** (não no-op) e ela ficou verde. O `bcb93de`, que carrega este §8, é só-docs e por
+isso **não tem run próprio**: subiu em push batelado e a CI rodou no tip. Registrado assim, sem
+inventar run — a mesma convenção da linha `L111`.
