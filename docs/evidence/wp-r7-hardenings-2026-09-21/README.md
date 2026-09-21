@@ -53,13 +53,13 @@ delta nomeado; denominador fixo em 187; fórmula congelada; escritor é o MAESTR
 
 ## 3. Evidência por fase
 
-| fase                  | captura                         | número medido                                                                            |
-| --------------------- | ------------------------------- | ---------------------------------------------------------------------------------------- |
-| **RED temporal**      | `captures/red-temporal.log.txt` | mutação assertada no §1 → **T1 e T2 nomeados**, `EXIT=1`; sha256 restaurado              |
-| **RED declaração**    | `captures/red-seal-dts.log.txt` | tipo trocado à mão → `--check` `EXIT=1` **e** `2 failed \| 40 passed`; sha256 restaurado |
-| **GREEN das guardas** | `captures/verde.log.txt`        | 3 guardas `EXIT=0` · `49 passed` (as duas suítes)                                        |
-| **Gate local**        | `captures/gate-local.log.txt`   | `npm run check` **exit 0**                                                               |
-| **Isolamento**        | `captures/isolamento.log.txt`   | `origin/main` intocado · `:5432` 0 listeners · 0 migrations                              |
+| fase                  | captura                         | número medido                                                                                                                                               |
+| --------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **RED temporal**      | `captures/red-temporal.log.txt` | mutação **versionada** (`mutacao-temporal.sh.txt`) assertada no §1 → **T1 e T2 nomeados** (T2 duas vezes, incluindo `sha@run`), `EXIT=1`; sha256 restaurado |
+| **RED declaração**    | `captures/red-seal-dts.log.txt` | tipo trocado à mão → `--check` `EXIT=1` **e** `2 failed \| 40 passed`; sha256 restaurado                                                                    |
+| **GREEN das guardas** | `captures/verde.log.txt`        | 3 guardas `EXIT=0` · `49 passed` (as duas suítes)                                                                                                           |
+| **Gate local**        | `captures/gate-local.log.txt`   | `npm run check` **exit 0**                                                                                                                                  |
+| **Isolamento**        | `captures/isolamento.log.txt`   | `origin/main` intocado · `:5432` 0 listeners · 0 migrations                                                                                                 |
 
 **Lição de método registrada na própria captura:** a primeira tentativa de mutação **não aplicou** o
 padrão da âncora (o SHA estava entre `**`, e o padrão não o previa) e a captura ficou vacuosa em T2
@@ -69,12 +69,14 @@ aplicada. As capturas passaram a **assertar cada mutação** (texto mutado prese
 
 ## 4. Riscos e limites declarados
 
-| #   | limite                                                                               | por que é aceitável                                                                                        |
-| --- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| L1  | A guarda temporal mede **resolubilidade** da âncora, não **atualidade** da afirmação | atualidade do estado é o marcador parent-pinned (`m02:state:check`); a guarda cobre a classe "não resolve" |
-| L2  | A superfície viva é de **três** documentos nomeados                                  | é declaração explícita, não descoberta por varredura; ampliar é uma linha em `SUPERFICIE`                  |
-| L3  | O gerador do `.d.mts` depende de `tsc` e `prettier` do projeto                       | roda no `vitest` (heavy) e no `--check` local; a light não instala deps e não o executa                    |
-| L4  | `QUEUE.md` continua com o placar anterior                                            | o escritor é o MAESTRO; a divergência está declarada no §1 do `PROGRESS.md`, não corrigida por agente      |
+| #   | limite                                                                                                                               | por que é aceitável                                                                                                                             |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| L1  | A guarda mede **resolubilidade** da âncora, não **atualidade** da afirmação                                                          | atualidade do estado é o marcador parent-pinned (`m02:state:check`); a guarda cobre a classe "não resolve"                                      |
+| L2  | A superfície viva é de **três** documentos nomeados e cobre **~3%** das linhas de prosa do repo (S6 A4: 80 de 2 719)                 | é declaração explícita, não descoberta por varredura; ampliar é uma linha em `SUPERFICIE`                                                       |
+| L3  | **Intenções órfãs não são cobertas** (S6 D2): 16 linhas `▶` sem `✔`/`✘` vivem no journal e são estado vivo pelo protocolo de escrita | o journal fica fora por construção; fechar isso exige recorte por id, que é WP próprio                                                          |
+| L4  | T1 é **cego a tempo verbal** e a isenção de errata é uma janela de ±45 caracteres                                                    | o substantivo `prazo` como marcador reprovava a data de re-arme do watcher; isentar a linha inteira escondia o prazo vivo que ela carrega junto |
+| L5  | O gerador do `.d.mts` depende de `tsc` e `prettier` do projeto                                                                       | roda no `vitest` (heavy) e no `--check` local, **encadeado no `check`**; a light não instala deps e não o executa                               |
+| L6  | `QUEUE.md` continua com o placar anterior                                                                                            | o escritor é o MAESTRO; a divergência está declarada no §1 do `PROGRESS.md`, não corrigida por agente                                           |
 
 ## 5. Checklist anti-vacoso — demonstração item a item
 
@@ -111,7 +113,44 @@ aplicada. As capturas passaram a **assertar cada mutação** (texto mutado prese
 
 ## 7. S6 ADVERSARIAL
 
-_(preenchido no S6 — lane de contexto limpo, alvo congelado)_
+**Lane:** subagente de contexto limpo, read-only, alvo **congelado** por `git archive` em `/tmp/s6-r7`
+no commit `83b7fc5`; `HEAD` conferido no fim — **inalterado**, worktree limpo. Nenhum `STOP-THE-LINE`
+bloqueante (os dois avisos de apresentação estão tratados abaixo).
+
+**Veredicto: 23 CONFIRMED · 6 CORRECTED · 11 REJECTED · 0 UNVERIFIABLE** (40 claims).
+
+### 7.1 O que o S6 derrubou
+
+| #         | achado                                                                                                                                                       | disposição                                                                                                                                                     |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **N1**    | **HIGH** — T1 dava **falso positivo na prática de errata que o próprio repo manda escrever**, e `vence` casava dentro de "con**vence**"                      | corrigido: fronteira de palavra nos marcadores + **isenção por data** (±45 caracteres), não por linha                                                          |
+| **N2**    | **HIGH** — T2 era **cego ao construto que motivou a guarda**: 4 dos 6 tokens do §1 são pares `sha@run` e nenhum era auditado                                 | corrigido: `sha@run` auditado pelo sha à esquerda — a captura mostra T2 disparando **duas vezes**, uma no par                                                  |
+| **N3**    | **HIGH** — id de run **todo-decimal** era lido como âncora e reprovava                                                                                       | corrigido: hex exige **ao menos uma letra**                                                                                                                    |
+| **A3/A5** | **HIGH** — o prazo **vivo** do `REGISTRO-H` (a motivação da §6.2) estava **fora** do recorte                                                                 | corrigido: o recorte passou a "arquivo **menos** a seção `## Fechados`", e a guarda audita a linha (1 prazo vivo)                                              |
+| N4        | cache do resolvedor ignorava `prefixo` ⇒ veredicto dependia da ordem                                                                                         | corrigido: chave `token\|prefixo`                                                                                                                              |
+| N5        | âncora nua rejeitava árvore/blob, contra a própria INV-R7-a — e a convenção do repo carimba **árvore**                                                       | corrigido: resolução aceita qualquer objeto                                                                                                                    |
+| N6        | `2026-13-45` **passava** (rolava para 2027) e `2026-9-1` era invisível                                                                                       | corrigido: validação de data (rollover reprova) e mês/dia com 1 ou 2 dígitos                                                                                   |
+| N7        | `tabela-aberta` degradava para o **arquivo inteiro** se o cabeçalho de fronteira sumisse                                                                     | corrigido: fronteira ausente é **precondição** (`exit 2`)                                                                                                      |
+| N8        | o passo na light é **incondicional**, ao contrário dos irmãos                                                                                                | **declarado por desenho** no `AGENTS.md`: é a única guarda cuja superfície pode ser quebrada por push só-docs                                                  |
+| N9        | `m02:seal-dts:check` não estava encadeado no `check`                                                                                                         | corrigido: encadeado                                                                                                                                           |
+| **N10**   | **a captura RED entregue era autocontraditória**: continha um `AssertionError` que o próprio corpo falsificava, e nenhum script de mutação estava versionado | corrigido: `captures/mutacao-temporal.sh.txt` versionado, asserção feita **no recorte** (§1) e não no arquivo — a captura agora mostra a asserção **passando** |
+| N11       | `invocadoDiretamente` casava **sufixo de basename**                                                                                                          | corrigido: `pathToFileURL(...).href === import.meta.url`                                                                                                       |
+| N12/N13   | contagem impressa imprecisa e janela documentada defasada                                                                                                    | corrigido no texto e no código                                                                                                                                 |
+
+### 7.2 O que o S6 confirmou
+
+O gerador (5 sondas: tipo errado, export novo, JSDoc removido, `import` sem efeito, teste que lê o
+disco em vez de se autocomparar), a presença nos três pipelines, o registro da ratificação e a
+aritmética (`87,9679%`/`80,2139%`), o `MANIFEST` e a taxonomia de exit codes. O S6 **reproduziu a
+mutação da captura byte a byte** (mesmos 4337/4339 B, mesmo sha256) e mediu a cobertura real da
+superfície: **80 de 2 719 linhas (2,94%)** — número que passa a estar declarado na L2.
+
+### 7.3 Nota de método
+
+Os dois achados mais caros (N1, N2) são da mesma família: **a guarda media a coisa errada do jeito
+certo**. N2 é o mais instrutivo — a guarda nasceu por causa de um `run@sha` stale (`L131`) e **não
+enxergava `run@sha`**. Uma ferramenta anti-envelhecimento que não lê o construto que a motivou é
+decoração com teste verde; o S6 só descobriu porque injetou o construto exato do fato-fonte.
 
 ## 8. CI e commits
 

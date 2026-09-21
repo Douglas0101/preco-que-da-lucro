@@ -1,10 +1,10 @@
-# Estado verde das três guardas derivadas — WP-R7 · ARVORE=0c62f43f9e43ee4cdd58acc2a0c176dd99b6cea5
+# Estado verde das três guardas derivadas — WP-R7 · ARVORE=7804045ca545fe43f4a7c5c089ad19c8e32f7035
 
-## 1. guarda temporal (âncoras + prazos da prosa viva)
+## 1. guarda temporal
 m02-temporal-guard: superficie viva, as-of 2026-09-21
-  docs/evidence/agent-state/PROGRESS.md [secao-1] — 2 âncora(s), 2 linha(s) com prazo
-  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 1 âncora(s), 0 linha(s) com prazo
-  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [tabela-aberta] — 0 âncora(s), 0 linha(s) com prazo
+  docs/evidence/agent-state/PROGRESS.md [secao-1] — 6 âncora(s), 1 linha(s) com prazo vivo
+  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 1 âncora(s), 0 linha(s) com prazo vivo
+  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [fora-do-fechado] — 0 âncora(s), 1 linha(s) com prazo vivo
 m02-temporal-guard: OK (3 superficies vivas, 0 violacao)
 EXIT=0
 
@@ -12,11 +12,10 @@ EXIT=0
 generate-seal-dts: scripts/m02-seal.d.mts confere com o JSDoc de scripts/m02-seal.mjs
 EXIT=0
 
-## 3. registry de dívidas (DBT-16 agora FECHADA)
+## 3. registry de dívidas (DBT-16 FECHADA)
 debts guard: OK (18 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md
 EXIT=0
 
-## 4. suíte dos dois guardas
+## 4. suítes dos guardas (16 + 42 casos)
  Test Files  2 passed (2)
-      Tests  49 passed (49)
-EXIT=0
+      Tests  58 passed (58)

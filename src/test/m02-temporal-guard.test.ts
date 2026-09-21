@@ -129,3 +129,101 @@ describe("m02-temporal-guard — âncoras e prazos da superfície viva", () => {
     expect(`${r.stdout}${r.stderr}`).toContain("m02-temporal-guard: OK (3 superficies vivas");
   });
 });
+
+describe("m02-temporal-guard — endurecimentos do S6 do WP-R7", () => {
+  const asOf = new Date("2026-09-21T10:00:00Z");
+  const prazos = (linha: string) => {
+    const r = spawnSync(
+      process.execPath,
+      [
+        "-e",
+        `
+      import(${JSON.stringify(`file://${root}/scripts/m02-temporal-guard.mjs`)}).then(({auditarPrazos}) => {
+        const f = auditarPrazos(${JSON.stringify(linha)}, new Date("2026-09-21T10:00:00Z"));
+        process.stdout.write(f.length === 0 ? "passa" : "REPROVA");
+      });`,
+      ],
+      { encoding: "utf8" },
+    );
+    return r.stdout.trim();
+  };
+
+  it("N1: errata e prazo vivo na MESMA linha — a data viva continua vigiada", () => {
+    expect(
+      prazos(
+        "Prazo: caduca em 2026-09-26T15:31Z — o prazo anterior de 2026-09-21T03:37Z referia-se ao arme de 2026-09-14 e esta desatualizado.",
+      ),
+    ).toBe("passa");
+    expect(prazos("Detector caduca em 2020-01-01.")).toBe("REPROVA");
+  });
+
+  it("N1b: `vence` dentro de `convence` não é marcador (fronteira de palavra)", () => {
+    expect(prazos("A medicao convence: o numero de 2020-01-01 nao mudou.")).toBe("passa");
+  });
+
+  it("N6/B2: data inválida (rollover) reprova em vez de rolar para o futuro", () => {
+    expect(prazos("Detector caduca em 2026-13-45.")).toBe("REPROVA");
+    expect(prazos("Detector caduca em 2026-02-30.")).toBe("REPROVA");
+  });
+
+  it("B3: data sem zero à esquerda é detectada", () => {
+    expect(prazos("Detector caduca em 2026-9-1.")).toBe("REPROVA");
+  });
+
+  it("B7: a SEGUNDA ocorrência de prazo na mesma linha também é vigiada", () => {
+    expect(prazos("O prazo do contrato segue. " + "y".repeat(140) + " Caduca em 2020-01-01.")).toBe(
+      "REPROVA",
+    );
+  });
+
+  it("N3: id de run todo-decimal não é âncora; hex com letra é", () => {
+    const dir = fixture({ ancora: "SEMENTE", prazo: "em 2099-01-01" });
+    const sha = head(dir);
+    const escrever = (token: string) => {
+      writeFileSync(
+        join(dir, "docs/evidence/agent-state/PROGRESS.md"),
+        `# PROGRESS\n\n## 1. Estado corrente\n\n- run \`${token}\` · caduca em 2099-01-01.\n\n## 2. Fim\n`,
+      );
+      return rodar(dir, "2026-09-21");
+    };
+    expect(escrever("35559344008").status).toBe(0);
+    expect(escrever("deadbee").status).toBe(1);
+    expect(escrever(sha).status).toBe(0);
+  });
+
+  it("N2: o par `sha@run` é vigiado pelo sha, e o run sozinho não é âncora", () => {
+    const dir = fixture({ ancora: "SEMENTE", prazo: "em 2099-01-01" });
+    const sha = head(dir);
+    const escrever = (token: string) => {
+      writeFileSync(
+        join(dir, "docs/evidence/agent-state/PROGRESS.md"),
+        `# PROGRESS\n\n## 1. Estado corrente\n\n- ${token} · caduca em 2099-01-01.\n\n## 2. Fim\n`,
+      );
+      return rodar(dir, "2026-09-21");
+    };
+    expect(escrever(`\`${sha}@35559344008\``).status).toBe(0);
+    expect(escrever("`deadbee@35559344008`").status).toBe(1);
+  });
+
+  it("C2: âncora em MAIÚSCULAS é auditada (hex é case-insensitive)", () => {
+    const dir = fixture({ ancora: "SEMENTE", prazo: "em 2099-01-01" });
+    writeFileSync(
+      join(dir, "docs/evidence/agent-state/PROGRESS.md"),
+      "# PROGRESS\n\n## 1. Estado corrente\n\n- commit `DEADBEE` · caduca em 2099-01-01.\n\n## 2. Fim\n",
+    );
+    expect(rodar(dir, "2026-09-21").status).toBe(1);
+  });
+
+  it("N7: sem o cabeçalho de fronteira o recorte é PRECONDIÇÃO, não arquivo inteiro", () => {
+    const dir = fixture({ ancora: "SEMENTE", prazo: "em 2099-01-01" });
+    writeFileSync(
+      join(dir, "docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md"),
+      "# REGISTRO-H\n\n| id | estado |\n| -- | ------ |\n| H-1 | aguardando |\n\n## Encerrados\n\n| id | desfecho |\n| -- | -------- |\n| H-0 | caducou em 2020-01-01 |\n",
+    );
+    const { status, saida } = rodar(dir, "2026-09-21");
+    // a fronteira ausente degradaria o recorte para o arquivo inteiro (e a guarda passaria a
+    // reprovar história); o que importa é a CLASSE — precondição, exit 2 — e não o texto exato
+    expect(status).toBe(2);
+    expect(saida).toContain("precondicao");
+  });
+});

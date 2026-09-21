@@ -1,33 +1,33 @@
-# Guarda temporal — RED por mutação da superfície viva, restaurada por sha256
-# ARVORE=0c62f43f9e43ee4cdd58acc2a0c176dd99b6cea5
-# Lição registrada nesta captura: o sha256 antes/depois prova que ALGO mudou, não que a mutação
-#   PRETENDIDA foi aplicada. A primeira tentativa mutou só o prazo (o padrão da âncora não casou
-#   por causa do negrito em volta) e a captura ficou vacuosa em T2 sem que o hash acusasse.
-#   Agora cada mutação é ASSERTADA: o texto mutado tem de estar presente e o original ausente.
+# Guarda temporal — RED por mutação versionada, restaurada por sha256
+# ARVORE=7804045ca545fe43f4a7c5c089ad19c8e32f7035
+# Script: captures/mutacao-temporal.sh.txt (o S6 N10 exigiu o script no selo, não um heredoc solto).
+# A asserção é feita NO RECORTE (§1), não no arquivo: a primeira versão assertava no arquivo e
+# falhava por uma ocorrência histórica no journal, gerando uma captura autocontraditória.
 
 sha256 ANTES : 72f1f4bfc7b702af86cc55ef2b249fa8009908e447ad51de081e26225c254d79
-Traceback (most recent call last):
-  File "<stdin>", line 11, in <module>
-AssertionError: mutacao do prazo NAO aplicou
-sha256 MUTADO: 02bbe7252116358dfae2b55c3d11eaa6652846726ec3e40875ea579898acc766
+mutacoes APLICADAS e ASSERTADAS no §1: ancora 332da9e->deadbee · prazo 2026-09-26T15:31Z->2020-01-01T00:00Z
+APLICAR_EXIT=0
+sha256 MUTADO: 1f89c5064f19182ae1edfba3b80d7c012d4a7719165c158f7d89e77204f1c83c
 
 ## guarda sob mutação (esperado: exit 1, com T1 e T2 nomeados)
 m02-temporal-guard: superficie viva, as-of 2026-09-21
-  docs/evidence/agent-state/PROGRESS.md [secao-1] — 2 âncora(s), 2 linha(s) com prazo
-  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 1 âncora(s), 0 linha(s) com prazo
-  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [tabela-aberta] — 0 âncora(s), 0 linha(s) com prazo
+  docs/evidence/agent-state/PROGRESS.md [secao-1] — 6 âncora(s), 1 linha(s) com prazo vivo
+  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 1 âncora(s), 0 linha(s) com prazo vivo
+  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [fora-do-fechado] — 0 âncora(s), 1 linha(s) com prazo vivo
   T1 prazo vencido em 2020-01-01T00:00Z (linha 28): ⇒ caduca ≈ **2020-01-01T00:00Z** (agora vigiado pelo `m02:temporal-guard`). Alvo segue em
   T2 âncora não resolve: `deadbee` (linha 7): - **Refs:** `develop` = `origin/develop` = **`deadbee`** (fecho do WP-R0b; o tip de handoff altera só
-m02-temporal-guard: 2 ancoras/prazos invalidos em 3 superficies
+  T2 âncora não resolve: `deadbee` (linha 26): `deadbee@35559344008` heavy = success.
+m02-temporal-guard: 3 ancoras/prazos invalidos em 3 superficies
 EXIT=1
 
+restaurado
 sha256 DEPOIS: 72f1f4bfc7b702af86cc55ef2b249fa8009908e447ad51de081e26225c254d79
 RESTAURO OK (sha256 idêntico)
 
 ## restaurado
 m02-temporal-guard: superficie viva, as-of 2026-09-21
-  docs/evidence/agent-state/PROGRESS.md [secao-1] — 2 âncora(s), 2 linha(s) com prazo
-  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 1 âncora(s), 0 linha(s) com prazo
-  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [tabela-aberta] — 0 âncora(s), 0 linha(s) com prazo
+  docs/evidence/agent-state/PROGRESS.md [secao-1] — 6 âncora(s), 1 linha(s) com prazo vivo
+  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 1 âncora(s), 0 linha(s) com prazo vivo
+  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [fora-do-fechado] — 0 âncora(s), 1 linha(s) com prazo vivo
 m02-temporal-guard: OK (3 superficies vivas, 0 violacao)
 EXIT=0
