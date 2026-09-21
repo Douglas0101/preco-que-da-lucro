@@ -2430,7 +2430,7 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   guardas exit 0; selo OK; marcador válido). **CI dos commits `d9bc810` e `5539226` PENDENTE e não
   afirmada.** O item 15 do checklist vale até `f293368`.
 
-  Latest state marker parent = `55392269f1feef609803cff5bab4df411d5cf585`,
+  Latest state marker parent = `7e719bcb633a1e2164fc2b3c7fd081485e8f2881`,
 
 - **Adendo medido:** as execuções **voltaram a ser criadas** e continuam `failure` com **0 passos**
   (`8f260f5@35613943429` heavy, `8f260f5@35613943354` e `011c7e3@35613977835` light) — o que refuta
