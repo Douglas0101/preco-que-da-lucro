@@ -166,9 +166,24 @@ despachar** — o journal registra a lição em `L143`.
 
 ## 8. CI e commits
 
-| campo             | valor                |
-| ----------------- | -------------------- |
-| base              | `eb2f498`            |
-| land em `develop` | _(preenchido no S7)_ |
-| run@sha           | _(preenchido no S8)_ |
-| `origin/main`     | `9724d2c` — intocado |
+| campo             | valor                                                                                                            |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| base              | `eb2f498`                                                                                                        |
+| commits do WP     | `edb504c` · `44f2612` · `5969124` · `ff29e90` · `b6d87ee` · `aafb507` · `d36f6af` · `3713cc9` · `a1e706a` (selo) |
+| land em `develop` | merge `--no-ff` **`4983c11`** (parent `eb2f498`)                                                                 |
+| commit selado     | **`a1e706a`** — árvore `ba3004a6…`, **idêntica** à do merge (`git rev-parse <sha>^{tree}`)                       |
+| run@sha (heavy)   | **`4983c11@35556119568`** — `UI stack`, `completed/success`                                                      |
+| run@sha (light)   | `4983c11@35556119560` — `CI light`, success, **no-op** declarado (push misto: o job sai sem trabalho, não falha) |
+| E2 no integrado   | `npm run check` **exit 0** — 95 arquivos, **969 passed \| 13 skipped** (`captures/e2-integrado.log.txt`)         |
+| `origin/main`     | `9724d2c` — **intocado em todo o arco** (conferido antes do merge, depois do merge e depois do push)             |
+| ancestralidade    | `git merge-base --is-ancestor a1e706a 4983c11` → **exit 0**                                                      |
+
+### Regra de parada
+
+O commit que **carrega este selo** (manifesto, §3 e esta seção) é posterior a `4983c11` e altera
+**apenas** `docs/evidence/**` — pela garantia de cobertura do `AGENTS.md`, um push só-docs roda a
+**light** e o `paths-ignore` pula a heavy. Por isso o run heavy citado é o do commit que carrega o
+**código** (`4983c11`), e a relação entre ele e o commit selado é **asserida por ancestralidade** —
+e, aqui, também por **igualdade de árvore**, que é mais forte do que a descendência: a CI mediu
+exatamente o conteúdo sob selo. Esta seção registra a CI dos commits substantivos, mas **não** afirma
+o resultado da execução que a carrega (regra declarada em `L112`).
