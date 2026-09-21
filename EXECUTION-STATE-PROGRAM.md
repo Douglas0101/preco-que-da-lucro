@@ -2415,4 +2415,4 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Placar: inalterado por este WP** (é de processo) — o movimento é o do WP-R0b, agora ratificado.
 - **Registro no journal:** `L146` (intenção) e `L147` (resultado).
 
-  Latest state marker parent = `4c2e35d34e76c2d7f6bb215ffac861d1c4944615`,
+  Latest state marker parent = `9237d01150c9a21e26d60fb540bed1e3d149b4ff`,
