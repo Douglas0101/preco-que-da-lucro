@@ -181,6 +181,19 @@ export function auditar(root, asOf) {
     erro.precondicao = true;
     throw erro;
   }
+  // Precondicao de AMBIENTE (item 17): num clone raso as ancoras citadas em prosa nao existem no
+  // repositorio local e a guarda acusaria "nao resolve" quando a causa e o clone. A pesada ficou
+  // vermelha em `4c2e35d` por isso; agora o modo de falha e NOMEADO e a correcao e `fetch-depth: 0`.
+  const raso = spawnSync("git", ["-C", root, "rev-parse", "--is-shallow-repository"], {
+    encoding: "utf8",
+  });
+  if ((raso.stdout ?? "").trim() === "true") {
+    const erro = new Error(
+      "precondicao: clone raso — as ancoras de prosa nao sao resolviveis aqui (use fetch-depth: 0)",
+    );
+    erro.precondicao = true;
+    throw erro;
+  }
   const resolveGit = resolvedorGit(root);
   const falhas = [];
   let auditados = 0;

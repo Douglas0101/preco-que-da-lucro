@@ -26,3 +26,16 @@ lockfile sujo = 0
   ?? scripts/generate-seal-dts.mjs
   ?? scripts/m02-temporal-guard.mjs
   ?? src/test/m02-temporal-guard.test.ts
+
+## INCIDENTE DE CI DECLARADO (a pesada ficou VERMELHA em `4c2e35d`)
+
+A primeira heavy do land reprovou em `npm run m02:temporal-guard` com **7 âncoras "não resolvidas"**
+(`332da9e`, `9724d2c`, `4983c11`, `3c34fce`, `cb83811`, `332da9e`, `9c712dbd…`). **Causa-raiz:** o
+checkout do job `verify` é **raso** (`actions/checkout` sem `fetch-depth`), então os objetos citados na
+prosa não existem no repositório local — a guarda dizia "não resolve" quando a causa era o **clone**.
+A light já usava `fetch-depth: 0` e por isso ficou verde no mesmo commit.
+
+**Correção em duas direções:** (a) o `verify` passa a `fetch-depth: 0` com o motivo no comentário;
+(b) a guarda declara e verifica a **precondição de ambiente** — clone raso é `exit 2` nomeado, nunca
+"âncora inexistente". É a **quinta** ocorrência da mesma família na série (a lição do WP-R4 foi
+exatamente um teste que dependia de histórico e passava por vacuidade num clone raso).

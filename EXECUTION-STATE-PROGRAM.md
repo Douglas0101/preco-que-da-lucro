@@ -2382,3 +2382,37 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 - **Registro no journal:** `L144` (intenção) e `L145` (resultado).
 
   Latest state marker parent = `9c712dbd214c06ff92822a96ae8adc4535f44407`,
+
+### WP-R7 — `F-hardenings` (endurecimentos §6.2/§6.3/§7 + ratificação do placar, S9 — landado)
+
+- **O que era:** três pendências não-bloqueantes da análise de 2026-09-21 e o registro da ratificação
+  do placar re-medido pelo WP-R0b.
+- **O que foi feito:** (a) `scripts/m02-temporal-guard.mjs` — guarda das **âncoras e prazos da prosa
+  viva** (§1 do journal, último bloco do ledger, `REGISTRO-H` menos a seção fechada); (b)
+  `scripts/generate-seal-dts.mjs` — o `m02-seal.d.mts` deixou de ser mantido à mão e passou a ser
+  **gerado** do JSDoc do módulo (`tsc --declaration`), com `--check` encadeado no `check`; (c) a
+  **regra de elegibilidade do placar** no `AGENTS.md`; (d) o §1 do journal com o placar **ratificado**
+  e as refs atuais.
+- **Ratificação (decisão humana de 2026-09-21):** **150 D · 29 P · 8 NS · 0 UNV / 187** =
+  **87,9679% parcial · 80,2139% crua**. `QUEUE.md` ainda carrega o placar anterior: o escritor é o
+  MAESTRO e a linha de lá é movimento humano pendente, declarado — não editado por agente.
+- **S6 adversarial de contexto limpo:** **23 CONFIRMED · 6 CORRECTED · 11 REJECTED · 0 UNVERIFIABLE**
+  (40 claims), sem `STOP-THE-LINE` bloqueante. Quatro achados ALTOS: T1 dava falso positivo na
+  **errata que o repo manda escrever** (e `vence` casava dentro de "convence"); T2 era **cego ao
+  `sha@run`** — o construto que motivou a guarda; id de run todo-decimal era lido como âncora; e o
+  prazo **vivo** do `REGISTRO-H`, que é a motivação da §6.2, estava **fora do recorte**. Mais a
+  captura RED autocontraditória (continha um `AssertionError` que o próprio corpo falsificava, sem
+  script de mutação versionado).
+- **Correções:** fronteira de palavra nos marcadores + isenção de errata **por data**; `sha@run`
+  auditado; hex exige ao menos uma letra; recorte "arquivo menos a seção fechada" com fronteira
+  assertada; validação de data (rollover reprova); cache do resolvedor por `(token, prefixo)`;
+  resolução aceita qualquer objeto; `mutation-temporal.sh.txt` versionado com asserção **no recorte**.
+  O S6 **reproduziu a mutação byte a byte** e mediu a cobertura real: **80 de 2 719 linhas (2,94%)**,
+  agora declarada.
+- **Prova:** RED versionado (`T1` + `T2` duas vezes, incluindo o par `sha@run`) com sha256 restaurado;
+  RED do `.d.mts` por tipo trocado (`--check` e teste reprovam; a trava de nomes do WP-R5 teria
+  passado); GREEN das três guardas; `npm run check` exit 0.
+- **Placar: inalterado por este WP** (é de processo) — o movimento é o do WP-R0b, agora ratificado.
+- **Registro no journal:** `L146` (intenção) e `L147` (resultado).
+
+  Latest state marker parent = `4c2e35d34e76c2d7f6bb215ffac861d1c4944615`,
