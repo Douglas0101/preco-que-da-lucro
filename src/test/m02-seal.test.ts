@@ -270,6 +270,19 @@ describe("m02-seal — precondição de estado ambiente (INV-R5-a)", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("worktree N/A");
   });
+
+  it("ancorar no diretório do selo fecha o contorno por cwd (invocação de fora do repo)", () => {
+    const { repo, selo } = makeRepoSelo();
+    appendFileSync(join(repo, "a.txt"), "deriva\n");
+    const result = spawnSync(process.execPath, [script, "--dir", join(repo, selo), "--write"], {
+      cwd: tmp,
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+    expect(result.status).toBe(2);
+    expect(result.stderr).toContain("PRECONDICAO");
+    expect(result.stderr).toContain("a.txt");
+  });
 });
 
 describe("m02-seal — taxonomia de exit codes na ancestralidade (INV-R5-b)", () => {

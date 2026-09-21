@@ -243,17 +243,20 @@ function main() {
   }
   const dir = resolve(process.cwd(), parsed.dir);
 
-  // Precondicao de estado ambiente (INV-R5-a): aplicavel quando o selo vive dentro de um
-  // repositorio git (o caso real, `docs/evidence/**`); fora dele e declarada como N/A.
-  const topo = spawnSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8" });
-  if (topo.status !== 0) {
-    console.error("m02-seal: PRECONDICAO nao foi possivel determinar o repositorio git");
+  // Precondicao de estado ambiente (INV-R5-a): o repositorio e resolvido a partir do **proprio
+  // diretorio do selo** (`git -C <dir>`), nunca do cwd. Ancorar no cwd permitiria contornar o
+  // check invocando de fora do repositorio com caminho absoluto; selo fora de qualquer repo
+  // declara N/A em vez de silenciar.
+  const topo = spawnSync("git", ["-C", dir, "rev-parse", "--show-toplevel"], { encoding: "utf8" });
+  if (topo.error) {
+    console.error(`m02-seal: PRECONDICAO git indisponivel: ${topo.error.message}`);
     process.exitCode = 2;
     return;
   }
-  const raiz = topo.stdout.trim();
-  const dentroDoRepo = dir === raiz || dir.startsWith(`${raiz}${sep}`);
-  if (dentroDoRepo) {
+  if (topo.status !== 0) {
+    console.log("m02-seal: precondicao worktree N/A (selo fora do repositorio git)");
+  } else {
+    const raiz = topo.stdout.trim();
     const status = spawnSync(
       "git",
       ["-C", raiz, "status", "--porcelain", "--untracked-files=all"],
@@ -275,8 +278,6 @@ function main() {
       process.exitCode = 2;
       return;
     }
-  } else {
-    console.log("m02-seal: precondicao worktree N/A (selo fora do repositorio git)");
   }
 
   let scan;
