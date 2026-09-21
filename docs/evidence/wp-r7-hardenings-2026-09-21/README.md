@@ -154,9 +154,35 @@ decoração com teste verde; o S6 só descobriu porque injetou o construto exato
 
 ## 8. CI e commits
 
-| campo             | valor                |
-| ----------------- | -------------------- |
-| base              | `332da9e`            |
-| land em `develop` | _(preenchido no S7)_ |
-| run@sha           | _(preenchido no S8)_ |
-| `origin/main`     | `9724d2c` — intocado |
+| campo                  | valor                                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| base                   | `332da9e`                                                                                                        |
+| commits do WP          | `c9aeb7c` (guardas + gerador + docs) · `83b7fc5` (selo) · `64da9d6` (correções do S6) · `bccf1bf` (reselo)       |
+| land em `develop`      | merge `--no-ff` **`4c2e35d`** (parent `332da9e`)                                                                 |
+| run@sha (heavy)        | **`f293368@35611793799`** — `UI stack`, **success** (o fix do incidente abaixo)                                  |
+| run@sha (light)        | `90d12f9@35611826235` — `CI light`, success                                                                      |
+| **vermelho declarado** | **`4c2e35d@35611076990`** — `UI stack`, **failure** em `npm run m02:temporal-guard` (7 âncoras "não resolvidas") |
+| E2 no integrado        | `npm run check` **exit 0** — 96 arquivos, **987 passed \| 13 skipped** (`captures/e2-integrado.log.txt`)         |
+| `origin/main`          | `9724d2c` — **intocado em todo o arco**                                                                          |
+| ancestralidade         | `git merge-base --is-ancestor bccf1bf 4c2e35d` → **exit 0**                                                      |
+
+### Incidente de CI declarado
+
+A **primeira** heavy do land ficou **vermelha**. Causa-raiz: o checkout do job `verify` é **raso**
+(`actions/checkout` sem `fetch-depth`), então os objetos citados na prosa **não existem** no
+repositório local e a guarda os reportou como "não resolve" — o modo de falha apontava para a âncora
+quando a causa era o **clone**. A light já usava `fetch-depth: 0` e por isso ficou verde no mesmo
+commit, o que isolou o diagnóstico.
+
+**Correção em duas direções:** o `verify` passou a `fetch-depth: 0` com o motivo no comentário, e a
+guarda passou a declarar a **precondição de ambiente** — clone raso é `exit 2` **nomeado**, nunca
+"âncora inexistente". É a **quinta** ocorrência da mesma família na série: o WP-R4 já tinha apanhado
+de um teste que dependia de histórico e passava por vacuidade em clone raso.
+
+### Regra de parada
+
+Os commits que carregam este selo e a correção tocam `scripts/**`, `.github/**` e o ledger — **não**
+são só-docs, então a heavy roda de verdade neles. O último run heavy verde citado é o do fix
+(`f293368`), e o commit que **carrega esta seção** é posterior: altera **apenas** `docs/evidence/**` e
+o `MANIFEST`, e por isso roda a light. Esta seção registra a CI dos commits substantivos, **incluindo
+a vermelha**, mas **não** afirma o resultado da execução que a carrega (regra de `L112`).
