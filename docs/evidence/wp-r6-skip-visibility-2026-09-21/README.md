@@ -90,8 +90,10 @@ intocado, `origin/main` intocado.
 | A3  | o `env-guard` já bloqueia remoto no caminho npm ⇒ o alcance do defeito é `npx vitest` direto                       | autor | declarado na §2 do SPEC com a medição (exit 3)      |
 | A4  | primeiro `sed` da mutação do classificador **não aplicou** e o bloco ficou vacuoso                                 | autor | refeito com python e sha256 conferido               |
 
-**KPI — `capturados pelo autor / total`:** 4 capturados pelo autor (A1–A4) + 1 achado **do gate**
-(o falso positivo do contador, §7.2) + achados do S6.
+**KPI — `capturados pelo autor / total`:** 5 capturados pelo autor (A1–A5) + 1 achado **do gate**
+(o falso positivo do contador, §7.2) + achados do S6. O A5 é o mais caro da série: teria quebrado um
+comando de contrato do `AGENTS.md`, e só foi visto porque medi o setup **documentado** em vez de
+supor que "as três URLs" era o caso normal.
 
 ## 7. S6 ADVERSARIAL
 

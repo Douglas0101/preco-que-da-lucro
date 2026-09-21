@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { DB_ENV_KEYS, dbPrecondition, isLoopbackUrl, skipLabel } from "./helpers/db-precondition";
+import {
+  DB_ENV_KEYS,
+  DB_OPTIONAL_KEYS,
+  DB_REQUIRED_KEYS,
+  dbPrecondition,
+  isLoopbackUrl,
+  skipLabel,
+} from "./helpers/db-precondition";
 
 const LOOPBACK = "postgres://u:p@127.0.0.1:5432/db";
 const REMOTO = "postgres://u:p@remote.example.com:5432/db";
@@ -23,6 +30,30 @@ describe("precondição de banco — tudo ou nada, falha alta (WP-R6)", () => {
       DATABASE_URL_UNPOOLED: LOOPBACK,
     });
     expect(gate.enabled).toBe(true);
+  });
+
+  it("o setup DOCUMENTADO do `db:test` (par obrigatório, sem UNPOOLED) roda", () => {
+    // `AGENTS.md`: "`npm run db:test` is self-contained ... with DATABASE_URL/DATABASE_ADMIN_URL
+    // pointing at 127.0.0.1:5432". Exigir a terceira URL quebrava esse comando de contrato —
+    // regressão medida e corrigida antes do selo.
+    const gate = dbPrecondition({ DATABASE_ADMIN_URL: LOOPBACK, DATABASE_URL: LOOPBACK });
+    expect(gate.enabled).toBe(true);
+  });
+
+  it("UNPOOLED é opcional, mas definida e remota é kill-switch (reprova)", () => {
+    expect(() =>
+      dbPrecondition({
+        DATABASE_ADMIN_URL: LOOPBACK,
+        DATABASE_URL: LOOPBACK,
+        DATABASE_URL_UNPOOLED: REMOTO,
+      }),
+    ).toThrow(/DATABASE_URL_UNPOOLED nao aponta para loopback/);
+  });
+
+  it("só UNPOOLED definida reprova em vez de pular", () => {
+    expect(() => dbPrecondition({ DATABASE_URL_UNPOOLED: REMOTO })).toThrow(
+      /DATABASE_ADMIN_URL ausente/,
+    );
   });
 
   it("uma URL remota reprova em vez de pular em silêncio (o fail-open do WP-R6)", () => {
@@ -65,7 +96,9 @@ describe("precondição de banco — tudo ou nada, falha alta (WP-R6)", () => {
     expect(isLoopbackUrl("nao-e-url")).toBe(false);
   });
 
-  it("o conjunto de chaves exigidas é o das três URLs, sem lista implícita", () => {
+  it("o par obrigatório e o opcional são explícitos, sem lista implícita", () => {
+    expect([...DB_REQUIRED_KEYS]).toEqual(["DATABASE_ADMIN_URL", "DATABASE_URL"]);
+    expect([...DB_OPTIONAL_KEYS]).toEqual(["DATABASE_URL_UNPOOLED"]);
     expect([...DB_ENV_KEYS]).toEqual([
       "DATABASE_ADMIN_URL",
       "DATABASE_URL",

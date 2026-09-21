@@ -14,7 +14,15 @@
  *                                         senão **erro de precondição** (nunca skip).
  */
 
-export const DB_ENV_KEYS = ["DATABASE_ADMIN_URL", "DATABASE_URL", "DATABASE_URL_UNPOOLED"] as const;
+export const DB_REQUIRED_KEYS = ["DATABASE_ADMIN_URL", "DATABASE_URL"] as const;
+/**
+ * `DATABASE_URL_UNPOOLED` e **opcional**: existe como kill-switch contra credencial de producao
+ * herdada, nao como parte do par que os testes precisam para conectar. Exigi-la quebraria o setup
+ * que o `AGENTS.md` documenta para `npm run db:test` (so `DATABASE_URL` + `DATABASE_ADMIN_URL`) —
+ * regressao medida e corrigida antes do selo. Definida, porem, e validada como as outras.
+ */
+export const DB_OPTIONAL_KEYS = ["DATABASE_URL_UNPOOLED"] as const;
+export const DB_ENV_KEYS = [...DB_REQUIRED_KEYS, ...DB_OPTIONAL_KEYS] as const;
 
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
 
@@ -42,15 +50,15 @@ export function dbPrecondition(env: NodeJS.ProcessEnv = process.env): DbPrecondi
       motivo: `N/A-sem-DB: nenhuma das ${DB_ENV_KEYS.length} URLs definida (modo local sem banco)`,
     };
   }
-  const faltando = DB_ENV_KEYS.filter((chave) => !env[chave]);
+  const faltando = DB_REQUIRED_KEYS.filter((chave) => !env[chave]);
   const naoLoopback = DB_ENV_KEYS.filter((chave) => env[chave] && !isLoopbackUrl(env[chave]));
   const problemas = [
-    ...faltando.map((chave) => `${chave} ausente`),
+    ...faltando.map((chave) => `${chave} ausente (par obrigatorio)`),
     ...naoLoopback.map((chave) => `${chave} nao aponta para loopback`),
   ];
   if (problemas.length > 0) {
     throw new Error(
-      `precondicao de banco invalida: o ambiente declara banco (${presentes.join(", ")}) mas ${problemas.join("; ")} — configure as ${DB_ENV_KEYS.length} URLs em loopback ou nenhuma`,
+      `precondicao de banco invalida: o ambiente declara banco (${presentes.join(", ")}) mas ${problemas.join("; ")} — configure ${DB_REQUIRED_KEYS.join(" + ")} em loopback (e ${DB_OPTIONAL_KEYS.join(", ")} tambem, se definida) ou nenhuma`,
     );
   }
   return { enabled: true };
