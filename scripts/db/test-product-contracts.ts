@@ -7,13 +7,16 @@
 //
 //   1. `DATABASE_ADMIN_URL` ausente (`requireAdminUrl`);
 //   2. o bloco de banco ter sido **pulado**: o resumo do reporter JSON precisa ter
-//      0 testes pendentes. O gate do próprio teste só desabilita o bloco quando uma
-//      das URLs está **definida e fora de loopback** — é o kill-switch contra
-//      credencial de produção herdada, e `isLoopbackUrl` devolve `true` para valor
-//      ausente (`if (!value) return true`), então a ausência da variável faz o bloco
-//      **executar**, não pular. Medido em 2026-09-19 neste worktree:
-//      `DATABASE_URL_UNPOOLED` remoto ⇒ `14 total / 5 passed / 9 pending`;
-//      variável ausente ⇒ `14 total / 14 passed / 0 pending`;
+//      0 testes pendentes. Desde o WP-R6 o gate do teste é `dbPrecondition()`
+//      (`src/test/helpers/db-precondition.ts`): **tudo ou nada, e falha alta** —
+//      nenhuma URL definida ⇒ o bloco pula (e o pending abaixo reprova); qualquer
+//      uma definida ⇒ o par `DATABASE_ADMIN_URL` + `DATABASE_URL` é exigido em
+//      loopback, e `DATABASE_URL_UNPOOLED` é validada se definida (é o kill-switch
+//      contra credencial de produção herdada). A versão anterior devolvia `true`
+//      para valor ausente e por isso o bloco **executava** com uma URL faltando;
+//      aquele comportamento foi substituído de propósito. Medido em 2026-09-21:
+//      par em loopback ⇒ `14 total / 14 passed / 0 pending`; `DATABASE_URL_UNPOOLED`
+//      remota ⇒ reprova alto nomeando a chave;
 //   3. a cardinalidade do arquivo ter encolhido. Um arquivo **sem** casos faz o
 //      vitest sair != 0, e a asserção de status abaixo já reprova antes das demais.
 //      Mas um arquivo com menos casos que o contrato — **todos passando** — sai 0, e

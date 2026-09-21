@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { describeMatrixDrift } from "./lib/m02-matrix-drift";
 import { isEntrypoint, transactionSites } from "./lib/m02-transaction-sites";
+import { isDatabaseModule } from "./lib/m02-database-module";
 
 type Overlay = {
   schemaVersion: number;
@@ -131,9 +132,6 @@ for (const path of files) {
       .filter((value): value is string => value !== null),
   );
 }
-
-const isDatabaseModule = (moduleName: string) =>
-  /^(?:drizzle-orm(?:\/.*)?|@\/db\/.*|\.\.?\/.*db.*)$/.test(moduleName);
 
 function isTypeOnlyImport(node: ts.ImportDeclaration): boolean {
   const clause = node.importClause;

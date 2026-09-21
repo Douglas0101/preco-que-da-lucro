@@ -10,6 +10,7 @@ import type { DatabaseTransaction } from "@/db/client.server";
 import type { RequestContext } from "@/lib/request-context";
 import { productRepository } from "@/server/repositories/product.repository";
 import { ensureRuntimeRoleMembership, runMigrations } from "../../scripts/db/migrate";
+import { dbPrecondition, skipLabel } from "./helpers/db-precondition";
 
 const CONTRACT_PATH = "src/server/contracts/product.contracts.ts";
 
@@ -165,23 +166,10 @@ function rowsOf(result: unknown): Array<Record<string, unknown>> {
   throw new Error("resultado do driver sem linhas");
 }
 
-function isLoopbackUrl(value: string | undefined): boolean {
-  if (!value) return true;
-  try {
-    const { hostname } = new URL(value);
-    return hostname === "127.0.0.1" || hostname === "localhost" || hostname === "::1";
-  } catch {
-    return false;
-  }
-}
-
 const adminUrl = process.env.DATABASE_ADMIN_URL;
-const dbEnabled =
-  Boolean(adminUrl) &&
-  isLoopbackUrl(adminUrl) &&
-  isLoopbackUrl(process.env.DATABASE_URL) &&
-  isLoopbackUrl(process.env.DATABASE_URL_UNPOOLED);
-const dbDescribe = dbEnabled ? describe : describe.skip;
+const dbGate = dbPrecondition();
+if (!dbGate.enabled) console.log(skipLabel(dbGate.motivo));
+const dbDescribe = dbGate.enabled ? describe : describe.skip;
 
 async function seedTenant(
   pool: Pool,
