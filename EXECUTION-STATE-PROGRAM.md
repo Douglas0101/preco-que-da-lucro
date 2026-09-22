@@ -2486,9 +2486,16 @@ stack` em um dia = ~84 min de runner.
     execução; comportamento normal). A prova segue sendo a anotação de billing + os runs de 0 passos.
   - **N4** os itens 10 e 16 do checklist eram claims vacuosas; o item 10 foi **retirado como claim** e o
     item 16 reafirmado com escopo menor (mecanismo novo não é coberto — limite declarado).
-- **Janela sem verificação (9 SHAs, CI bloqueada):** `d9bc810`, `5539226`, `8f260f5`, `011c7e3`,
-  `7e719bc`, `ff4c379`, `4be813c`, `8ecb584`, `9f521ed`. Último verde: `f293368@35611793799` (heavy,
-  30 passos). Nenhum SHA da janela carrega selo; o item 15 do checklist vale até `f293368`.
+- **Janela sem verificação (12 SHAs, CI bloqueada):** `d9bc810`, `5539226`, `8f260f5`, `011c7e3`,
+  `7e719bc`, `ff4c379`, `4be813c`, `8ecb584`, `9f521ed`, `6e9dac9`, `94e49aa`, `398a77c`. Último verde:
+  `f293368@35611793799` (heavy, 30 passos). Nenhum SHA da janela carrega selo; o item 15 do checklist
+  vale até `f293368`.
+- **Push do land (2026-09-22T03:11:45Z) — bloqueio PERSISTE, medido:** `origin/develop` = `398a77c`;
+  `UI stack` `35682256860` e `CI light` `35682256839` terminaram `failure` em ~9 s com **0 passos**, e a
+  anotação do check-run `verify` (id `106601514274`) é a mesma da plataforma, verbatim: _"The job was not
+  started because recent account payments have failed or your spending limit needs to be increased."_
+  São **falhas de precondição**, não veredictos do repositório: não entram como vermelho de código nem
+  como verde. Consequência: a varredura D1/D2 pós-desbloqueio passa a cobrir **12 SHAs**, não 9.
 - **Land (S7):** `develop` avancou por **fast-forward** de `9f521ed` para `94e49aa` (correcoes
   `6e9dac9` + selo `94e49aa`) — a branch e descendente de `develop`, entao o land **nao** cria merge
   commit e **nao** altera a arvore: a CI do commit selado mede exatamente o que esta em `develop`.
