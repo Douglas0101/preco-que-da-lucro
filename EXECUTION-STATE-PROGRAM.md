@@ -2432,6 +2432,21 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 
   Latest state marker parent = `7e719bcb633a1e2164fc2b3c7fd081485e8f2881`,
 
+### Enxugamento do CI/CD por tiers (resposta ao bloqueio de cota, 2026-09-21)
+
+- **Causa, na palavra da plataforma:** _"The job was not started because recent account payments have
+  failed or your spending limit needs to be increased"_ — `check-runs/<id>/annotations`. Não é o
+  repositório: os mesmos workflows rodaram verdes minutos antes e o YAML valida.
+- **Custo medido:** e2e 240 s + vitest 151 s = **68%** de um run de ~9,5 min; 13 execuções da `UI
+stack` em um dia = ~84 min de runner.
+- **Desenho landado (`4be813c`):** tiers por `git diff` (fail-closed), `db:test`/`db:check` só com
+  diff de banco e com pulo **visível**, e2e chromium+mobile no push e a matriz completa no **PR** e no
+  `workflow_dispatch`, `concurrency` cancelando run superseded, `timeout-minutes` 12.
+- **Nada removido, nada afrouxado, nenhum orçamento renegociado.** Projeção: ~570 s ⇒ ~320 s por push
+  comum (−44%) e ~79 min ⇒ ~30-35 min num dia de 13 pushes (−57%). **Projeção declarada, não medida.**
+- **Pendente do MAESTRO:** desbloquear a cota (billing/plano). Sem isso, **nenhum** workflow inicia —
+  nem os antigos, nem os novos. A verificação por CI do desenho novo fica pendente até lá.
+
 - **Adendo medido:** as execuções **voltaram a ser criadas** e continuam `failure` com **0 passos**
   (`8f260f5@35613943429` heavy, `8f260f5@35613943354` e `011c7e3@35613977835` light) — o que refuta
   "atraso na criação do run" e confirma o diagnóstico de plataforma/conta. **Novos pushes foram
