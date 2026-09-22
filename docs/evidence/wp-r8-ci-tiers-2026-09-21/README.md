@@ -1,7 +1,8 @@
 # WP-R8 `F-ci-tiers` — selo
 
-**Data:** 2026-09-21 · **Branch:** `mission/r8-formal` · **Base:** `9f521ed`
-**Head do selo:** §8 · **S6:** lane adversarial de contexto limpo (§7) — **não depende de runner**
+**Data:** 2026-09-21 (selo) · 2026-09-22 (correções do S6) · **Branch:** `mission/r8-formal` · **Base:** `9f521ed`
+**Alvo congelado do S6:** `974426b` (selo inicial) · **correções:** `6e9dac9` · **Head do selo:** §8
+**S6:** lane adversarial de contexto limpo (§7) — **não depende de runner**
 
 ---
 
@@ -153,9 +154,13 @@ anotações pertencer à plataforma.
 
 ## 8. CI e commits
 
-| campo             | valor                                    |
-| ----------------- | ---------------------------------------- |
-| base              | `9f521ed`                                |
-| land em `develop` | _(preenchido no S7)_                     |
-| run@sha           | _(pendente do desbloqueio da cota — L1)_ |
-| `origin/main`     | `9724d2c` — intocado                     |
+| campo                  | valor                                                                                                                                                       |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| base                   | `9f521ed` (o tiering `4be813c` entrou em `develop` antes deste WP; este pacote **formaliza e corrige**, não re-landa o desenho)                             |
+| selo inicial (alvo S6) | `974426b` — 6 arquivos, `MANIFEST.sha256`                                                                                                                   |
+| correções do S6        | `6e9dac9` — N1, N4, N5, N6, N7, N8, N9, N10, N11 + `DBT-19`; 27/27 guardas                                                                                  |
+| land em `develop`      | `fast-forward` para o commit do selo (S7 — `develop` já é ancestral da branch, então o land não cria merge commit e não altera a árvore)                    |
+| run@sha                | **em branco por protocolo** — a cota bloqueia jobs desde 2026-09-21T14:33Z; selo com `run@sha` só depois de existir run (item (c) do protocolo de bloqueio) |
+| último verde aplicável | `f293368@35611793799` (heavy, 30 passos) — o item 15 do checklist vale até esse commit, não além                                                            |
+| janela sem verificação | 9 SHAs enumerados no `EXECUTION-STATE-PROGRAM.md`; nenhum carrega selo                                                                                      |
+| `origin/main`          | `9724d2c` — intocado                                                                                                                                        |
