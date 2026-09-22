@@ -9,14 +9,23 @@ on:
     branches: [main, develop]
     paths-ignore:
       - "docs/evidence/**"
+  # Run completo sob demanda (todos os projetos de browser), para quando a
+  # verificacao por push nao basta e nao ha PR aberto.
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# Um push em rajada cria um run por commit; sem isto cada um consome a cota ate o fim.
+# O grupo e por workflow+ref, entao o run novo cancela o anterior da MESMA ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 12
     services:
       postgres:
         image: postgres:17-alpine
@@ -65,6 +74,44 @@ jobs:
           # um clone raso faz toda ancora citada em §1 parecer inexistente (a pesada ficou VERMELHA
           # em `4c2e35d` exatamente por isso). A light ja usava `fetch-depth: 0`.
           fetch-depth: 0
+      # Escopo por caminho: decide quais tiers caros rodam. Git nativo de proposito — uma action de
+      # terceiro seria mais uma dependencia a pinar por SHA. Em duvida (base desconhecida, primeira
+      # push de uma branch) o escopo devolve `true` para tudo: fail-closed, nunca fail-open.
+      - id: scope
+        name: Escopo (quais tiers caros se aplicam)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            base=""
+          else
+            base="${{ github.event.before }}"
+          fi
+          head="${{ github.sha }}"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            echo "base desconhecida (${base:-vazia}) -> rodando TODOS os tiers"
+            echo "db=true" >> "$GITHUB_OUTPUT"
+            echo "motivo=base-desconhecida" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files="$(git diff --name-only "$base" "$head")"
+          echo "arquivos alterados: $(printf '%s\n' "$files" | grep -c . || true)"
+          # Tiers de banco: schema, migrations, camadas que falam com o banco, runners e manifests.
+          if printf '%s\n' "$files" | grep -qE '^(drizzle/|src/db/|src/server/repositories/|src/server/services/|scripts/db/|package(-lock)?\.json)'; then
+            echo "db=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "db=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Cross-browser: e a fronteira de release. PR (qualquer destino) e dispatch rodam tudo;
+          # push intermediario em `develop` roda chromium+mobile e deixa firefox/webkit para o PR.
+          if [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "crossbrowser=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "crossbrowser=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "motivo=diff-por-caminho" >> "$GITHUB_OUTPUT"
       # actions/setup-node v7.0.0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
@@ -82,8 +129,16 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test
-      - run: npm run db:test
-      - run: npm run db:check
+      # Tier de banco: so roda quando o diff toca schema, migrations, camadas de banco, runners ou
+      # manifests. O passo de "pulado" e explicito de proposito: skip silencioso seria a classe de
+      # falha que este programa persegue desde o WP-R6.
+      - if: steps.scope.outputs.db == 'true'
+        run: npm run db:test
+      - if: steps.scope.outputs.db == 'true'
+        run: npm run db:check
+      - if: steps.scope.outputs.db != 'true'
+        name: Banco — pulado por escopo (nenhum caminho de banco no diff)
+        run: echo "::notice title=db tiers skipped::o diff nao toca drizzle/, src/db/, repositorios, servicos, scripts/db/ nem manifests"
       - name: Configure isolated runtime and E2E credentials
         shell: bash
         run: |
@@ -119,8 +174,21 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 30
-      - run: npx playwright install --with-deps chromium firefox webkit
-      - run: npm run test:e2e
+      - id: browsers
+        name: Navegadores por tier
+        shell: bash
+        run: |
+          if [ "${{ steps.scope.outputs.crossbrowser }}" = "true" ]; then
+            echo "lista=chromium firefox webkit" >> "$GITHUB_OUTPUT"
+            echo "projetos=--project=chromium --project=firefox --project=webkit --project=mobile" >> "$GITHUB_OUTPUT"
+            echo "::notice title=e2e::fronteira de release — 4 projetos (chromium, firefox, webkit, mobile)"
+          else
+            echo "lista=chromium" >> "$GITHUB_OUTPUT"
+            echo "projetos=--project=chromium --project=mobile" >> "$GITHUB_OUTPUT"
+            echo "::notice title=e2e::push intermediario — chromium+mobile; firefox/webkit rodam no PR e no dispatch"
+          fi
+      - run: npx playwright install --with-deps ${{ steps.browsers.outputs.lista }}
+      - run: npx playwright test ${{ steps.browsers.outputs.projetos }}
       - name: Upload browser evidence
         if: always()
         # actions/upload-artifact v7.0.1
