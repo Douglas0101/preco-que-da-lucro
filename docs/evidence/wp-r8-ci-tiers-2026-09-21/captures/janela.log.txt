@@ -1,0 +1,29 @@
+# Janela sem verificacao — WP-R8 · ARVORE=8c2be3ebb61538fd31e287a3d22bfe563e96c6b6
+
+## Ultimo commit com run VERDE
+  f293368  heavy 30 passos · success
+
+## SHAs da janela (0 runs verdes cada) — enumerados por consulta a API, nao de memoria
+  d9bc810  0 run(s) verdes  docs(evidence): advance the parent-pinned state marker
+  5539226  0 run(s) verdes  chore(ci): probe whether the startup failure is transient
+  8f260f5  0 run(s) verdes  docs(evidence): declare the platform incident that stopped
+  011c7e3  0 run(s) verdes  docs(evidence): reseal after the platform incident record
+  7e719bc  0 run(s) verdes  docs(evidence): close the platform incident with the resum
+  ff4c379  0 run(s) verdes  docs(evidence): reseal and advance the marker after the in
+  4be813c  0 run(s) verdes  merge(ci): tier the verify job by changed paths
+  8ecb584  0 run(s) verdes  docs(evidence): journal the CI tiering and the quota block
+  9f521ed  0 run(s) verdes  docs(evidence): advance the parent-pinned state marker
+
+## Causa, pela anotacao da plataforma (nao por inferencia)
+  The job was not started because recent account payments have failed or your
+  spending limit needs to be increased. Please check the 'Billing & plans' section.
+
+## Regra
+  Nenhum SHA da janela foi SELADO. Ao restabelecer: varredura de verificacao (D1+D2) NO TIP
+  antes de qualquer land novo; o tip verde basta porque nenhum SHA intermediario carrega selo.
+
+## Criterio numerico de reversao (pre-comprometido, sem dado para negocia-lo)
+  Mediana do wall-clock dos 5 primeiros pushes NAO-docs dentro de +-15% da projecao de 322 s
+  E zero pulo indevido (todo ::notice de pulo corresponde a diff sem caminho de banco).
+  Fora disso: git revert -m 1 de 4be813c.
+  Onde o numero sai: actions/runs?head_sha= -> updated_at - run_started_at.

@@ -1,0 +1,19 @@
+# Isolamento de bancada assertado — WP-R8 · ARVORE=8c2be3ebb61538fd31e287a3d22bfe563e96c6b6
+
+## origin/main (deve ser 9724d2c, intocado)
+9724d2c73b269d0a0199ea305308f3237b38fa09
+
+## :5432 — nenhum listener esperado
+listeners em :5432 = 0
+
+## migrations tocadas (deve ser 0)
+drizzle/ sujo = 0
+
+## lockfile: o workflow mudou, os manifests NÃO
+manifests sujos = 0
+
+## arquivos tocados pelo WP
+   M .github/workflows/ui-stack.yml
+   M AGENTS.md
+  ?? docs/evidence/wp-r8-ci-tiers-2026-09-21/
+  ?? src/test/m02-ci-tiers.test.ts

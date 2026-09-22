@@ -20,11 +20,16 @@ permissions:
 # O grupo e por workflow+ref, entao o run novo cancela o anterior da MESMA ref.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancelar e para `develop`. A verificacao da fronteira de producao (`main`) nunca e cancelada
+  # por um push posterior: o run de `main` e evidencia de release, nao rascunho de iteracao.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   verify:
     runs-on: ubuntu-latest
+    # A5: 12 min com o pior caso MEDIDO. A soma dos passos e ~9,5 min e o `playwright.config.ts`
+    # tem `retries: 0`, entao o e2e nao dobra por retry — o teto tem ~2,5 min de folga. Reavaliar
+    # com o p95 dos primeiros runs reais (criterio de reversao do WP-R8 §B4).
     timeout-minutes: 12
     services:
       postgres:
@@ -91,8 +96,12 @@ jobs:
           fi
           head="${{ github.sha }}"
           if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
-            echo "base desconhecida (${base:-vazia}) -> rodando TODOS os tiers"
+            echo "base desconhecida (${base:-vazia}) -> rodando TODOS os tiers, incluindo a matriz de browsers"
+            # Os DOIS outputs: a versao anterior dizia "todos os tiers" e emitia so `db`, entao
+            # force-push, primeira push de branch e workflow_dispatch caiam no ramo de chromium-only.
+            # A afirmacao era falsa e o caminho era fail-open — achado do WP-R8.
             echo "db=true" >> "$GITHUB_OUTPUT"
+            echo "crossbrowser=true" >> "$GITHUB_OUTPUT"
             echo "motivo=base-desconhecida" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -132,11 +141,14 @@ jobs:
       # Tier de banco: so roda quando o diff toca schema, migrations, camadas de banco, runners ou
       # manifests. O passo de "pulado" e explicito de proposito: skip silencioso seria a classe de
       # falha que este programa persegue desde o WP-R6.
-      - if: steps.scope.outputs.db == 'true'
+      # POLARIDADE FAIL-CLOSED: `!= 'false'` roda salvo falso EXPLICITO. A versao anterior usava
+      # `== 'true'`, e output vazio (step que engole erro, GITHUB_OUTPUT indisponivel) pulava o tier
+      # em silencio — fail-open pela porta dos outputs, exatamente a classe que o R4/R5/R6 perseguem.
+      - if: steps.scope.outputs.db != 'false'
         run: npm run db:test
-      - if: steps.scope.outputs.db == 'true'
+      - if: steps.scope.outputs.db != 'false'
         run: npm run db:check
-      - if: steps.scope.outputs.db != 'true'
+      - if: steps.scope.outputs.db == 'false'
         name: Banco — pulado por escopo (nenhum caminho de banco no diff)
         run: echo "::notice title=db tiers skipped::o diff nao toca drizzle/, src/db/, repositorios, servicos, scripts/db/ nem manifests"
       - name: Configure isolated runtime and E2E credentials
@@ -178,15 +190,25 @@ jobs:
         name: Navegadores por tier
         shell: bash
         run: |
-          if [ "${{ steps.scope.outputs.crossbrowser }}" = "true" ]; then
-            echo "lista=chromium firefox webkit" >> "$GITHUB_OUTPUT"
-            echo "projetos=--project=chromium --project=firefox --project=webkit --project=mobile" >> "$GITHUB_OUTPUT"
-            echo "::notice title=e2e::fronteira de release — 4 projetos (chromium, firefox, webkit, mobile)"
-          else
+          # Mesma polaridade fail-closed do lado shell: so cai em chromium-only com `false` EXPLICITO.
+          if [ "${{ steps.scope.outputs.crossbrowser }}" = "false" ]; then
             echo "lista=chromium" >> "$GITHUB_OUTPUT"
             echo "projetos=--project=chromium --project=mobile" >> "$GITHUB_OUTPUT"
             echo "::notice title=e2e::push intermediario — chromium+mobile; firefox/webkit rodam no PR e no dispatch"
+          else
+            echo "lista=chromium firefox webkit" >> "$GITHUB_OUTPUT"
+            echo "projetos=--project=chromium --project=firefox --project=webkit --project=mobile" >> "$GITHUB_OUTPUT"
+            echo "::notice title=e2e::fronteira de release — 4 projetos (chromium, firefox, webkit, mobile)"
           fi
+      # A4: cache dos binarios do Playwright (47 s -> ~3 s em cache hit). O SHA abaixo foi resolvido
+      # da API oficial (`repos/actions/cache/git/ref/tags/v4` -> commit 0057852b…), nunca de memoria:
+      # a repo fixa toda action por SHA de 40 e um SHA inventado quebraria a CI inteira.
+      - name: Cache dos navegadores do Playwright
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
       - run: npx playwright install --with-deps ${{ steps.browsers.outputs.lista }}
       - run: npx playwright test ${{ steps.browsers.outputs.projetos }}
       - name: Upload browser evidence

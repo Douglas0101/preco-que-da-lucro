@@ -1,0 +1,39 @@
+# WP-R8 — tiers de CI: polaridade, base desconhecida, cache e o contrato de cobertura
+# ARVORE=8c2be3ebb61538fd31e287a3d22bfe563e96c6b6
+
+## 1. A1 — polaridade das condições (gate não pode usar == 'true')
+   ocorrencias de `== 'true'` em gate: 0
+   `!= 'false'` (fail-closed):           2
+   `== 'false'` (aviso de pulo):          1
+
+## 2. A2 — base desconhecida e dispatch: os DOIS outputs
+   no ramo de base desconhecida:
+                 echo "db=true" >> "$GITHUB_OUTPUT"
+                 echo "crossbrowser=true" >> "$GITHUB_OUTPUT"
+                 echo "motivo=base-desconhecida" >> "$GITHUB_OUTPUT"
+
+## 3. A2b — polaridade do if shell dos browsers
+             if [ "${{ steps.scope.outputs.crossbrowser }}" = "false" ]; then
+               echo "lista=chromium" >> "$GITHUB_OUTPUT"
+               echo "lista=chromium firefox webkit" >> "$GITHUB_OUTPUT"
+
+## 4. A3 — concurrency não cancela main
+   concurrency:
+     group: ${{ github.workflow }}-${{ github.ref }}
+     # Cancelar e para `develop`. A verificacao da fronteira de producao (`main`) nunca e cancelada
+     # por um push posterior: o run de `main` e evidencia de release, nao rascunho de iteracao.
+
+## 5. A4 — SHA do actions/cache resolvido da API OFICIAL (não de memória)
+   $ gh api repos/actions/cache/git/ref/tags/v4 --jq '.object'
+     {"sha":"0057852bfaa89a56745cba8c7296529d2fc39830","type":"commit","url":"https://api.github.com/repos/actions/cache/git/commits/0057852bfaa89a56745cba8c7296529d2fc39830"}
+   fixado no workflow:
+     207:        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+
+## 6. A5 — timeout vs retries (pior caso MEDIDO)
+   playwright.config.ts: retries:0,
+   soma dos passos medida: ~570 s (9,5 min) · timeout-minutes: timeout-minutes:12
+   => pior caso do e2e = 1x 240 s (sem dobra por retry); folga ≈ 2,5 min
+
+## 7. INV-R8-e — contrato de cobertura heavy x light (local, sem billing)
+    Test Files  2 passed (2)
+         Tests  19 passed (19)
