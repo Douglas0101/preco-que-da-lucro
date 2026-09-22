@@ -2496,6 +2496,13 @@ stack` em um dia = ~84 min de runner.
   started because recent account payments have failed or your spending limit needs to be increased."_
   São **falhas de precondição**, não veredictos do repositório: não entram como vermelho de código nem
   como verde. Consequência: a varredura D1/D2 pós-desbloqueio passa a cobrir **12 SHAs**, não 9.
+- **ERRATA / DESVIO DECLARADO (append-only):** houve **um segundo push** (`398a77c..a2f5ff6`, o reseal do
+  selo) contra o que este mesmo bloco declara ("não houve segundo push"). Ele gerou `UI stack`
+  `35682383894` e `CI light` `35682383892`, de novo `failure` bloqueado; o push disparou a heavy porque
+  `f4edb66` toca `EXECUTION-STATE-PROGRAM.md`, **fora** de `docs/evidence/**` (o `paths-ignore` não cobre
+  a raiz do ledger). Nada foi medido com isso, e o desvio fica nomeado em vez de apagado: o commit de
+  fecho do marcador (`fecho local`, não empurrado) encerra a série até a varredura pós-desbloqueio.
+  **Janela atualizada: 13 SHAs** — os 12 anteriores + `a2f5ff6`.
 - **Land (S7):** `develop` avancou por **fast-forward** de `9f521ed` para `94e49aa` (correcoes
   `6e9dac9` + selo `94e49aa`) — a branch e descendente de `develop`, entao o land **nao** cria merge
   commit e **nao** altera a arvore: a CI do commit selado mede exatamente o que esta em `develop`.
@@ -2506,4 +2513,4 @@ stack` em um dia = ~84 min de runner.
   `db=true` **e** `crossbrowser=true`); D2 medir os 5 primeiros pushes não-docs; D3 reverter ou manter
   pelo critério re-centrado (mediana em 361-489 s **e** zero pulo indevido).
 
-  Latest state marker parent = `94e49aaff6b741e7a564fedefe38d2b65e9b13d0`,
+  Latest state marker parent = `a2f5ff67e58ccff9035a972eff4ef171912036ca`,
