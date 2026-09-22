@@ -174,6 +174,27 @@ describe("WP-R8 — o script de escopo real, executado", () => {
     expect(out.crossbrowser).toBe("true");
   });
 
+  it("A2/4.2: base existente mas NÃO-ANCESTRAL (força-push / história reescrita) roda TODOS os tiers", () => {
+    // Porta-b da base desconhecida: `before` EXISTE no repositório (cat-file OK) mas não é ancestral
+    // do head — quem decide é o disjuntor `merge-base --is-ancestor`, não a existência. Sem este
+    // caso, só a porta-a (SHA todo-zeros) estaria executada; as duas portas alimentam o D1.
+    const { dir, base } = repoDeTeste();
+    const git = (args: string[]) => spawnSync("git", ["-C", dir, ...args], { encoding: "utf8" });
+    git(["checkout", "-q", "-b", "historia-reescrita"]);
+    writeFileSync(join(dir, "README.md"), "ramo paralelo\n");
+    git(["add", "-A"]);
+    git(["commit", "-qm", "ramo paralelo"]);
+    const irmao = git(["rev-parse", "HEAD"]).stdout.trim();
+    expect(irmao).toMatch(/^[0-9a-f]{40}$/);
+    git(["checkout", "-q", "-"]);
+    const head = comCommitDe(dir, "src/lib/y.ts", base);
+    const out = rodarEscopo({ dir, base, evento: "push", before: irmao, head });
+    expect(out.__status).toBe("0");
+    expect(out.db).toBe("true");
+    expect(out.crossbrowser).toBe("true");
+    expect(out.motivo).toBe("base-desconhecida");
+  });
+
   it("pull_request usa a base do PR e roda cross-browser", () => {
     const { dir, base } = repoDeTeste();
     const head = comCommitDe(dir, "src/lib/x.ts", base);
