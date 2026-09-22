@@ -2420,8 +2420,11 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
 ### Incidente de plataforma — CI parou de iniciar workflows (declarado, 2026-09-21T14:33Z)
 
 - **Fato:** o push de `d9bc810` gerou `UI stack` `35612966958` e `CI light` `35612966748`, **ambas
-  `failure` com 0 passos** (~3 s). `gh run rerun` → `run_attempt: 2`, **0 passos de novo**. Um push de
-  commit vazio (`5539226`) **não criou execução nenhuma**.
+  `failure` com 0 passos** (~3 s). `gh run rerun` → `run_attempt: 2`, **0 passos de novo**.
+- **Errata (S6 do WP-R8, N9):** `5539226` **não é probatório** para este incidente — o commit mudou
+  **0 arquivos**, e a plataforma suprime execução de push sem diff (comportamento normal, não sintoma de
+  bloqueio). O que sustenta a leitura de _bloqueio de plataforma_ é a **anotação de cota/billing** do
+  check-run e os runs de **0 passos em ~3-4 s** (`d9bc810`, `9f521ed`), nunca o commit vazio.
 - **Descartado com comando:** YAML válido nos dois workflows; os **mesmos arquivos** rodaram verdes em
   `f293368` (30 passos) minutos antes; `actions/permissions` = `enabled:true, allowed_actions:all`.
 - **Conclusão:** bloqueio de **plataforma/conta** — nenhuma mudança de repositório explica "0 passos" e
@@ -2452,3 +2455,42 @@ stack` em um dia = ~84 min de runner.
   "atraso na criação do run" e confirma o diagnóstico de plataforma/conta. **Novos pushes foram
   interrompidos** para não acumular vermelho de causa conhecida. Última CI verificada:
   `f293368@35611793799` (heavy, 30 passos) e `90d12c@`… vide selo §8.
+
+### WP-R8 `F-ci-tiers` — formalização, S6 adversarial e correções forçadas (2026-09-22)
+
+- **Contexto:** o tiering landou em `develop` (`4be813c`) **sem CI** (cota bloqueada) e sem selo. O WP-R8
+  formaliza o registro, roda o S6 adversarial (que **não** depende de runner) e corrige o que ele achou.
+- **S6 adversarial (lane de contexto limpo, alvo congelado no selo `974426b`):** **12 CONFIRMED ·
+  18 CORRECTED · 4 REJECTED (hipóteses de ataque refutadas) · 2 UNVERIFIABLE**. A regra `0 REJECTED` da
+  lane vale para as **claims do registro** (nenhuma caiu em bloco); as 4 refutadas são ataques que não se
+  sustentaram. **Correções forçadas = 18 CORR + 11 N (N1-N11)**, os dois números nomeados.
+- **Correções materiais:**
+  - **N1** `cat-file -e` testa existência, não ancestralidade — base existente mas **não-ancestral**
+    (history reescrita) escapava do fail-closed; a disjunção passa a exigir `merge-base --is-ancestor`.
+  - **N3** o critério numérico de reversão estava centrado em **322 s**, derivado de um modelo de e2e
+    **não medido**. O artefato do próprio run verde dá **124 s** de economia (cortar firefox+webkit), não
+    217 s: os 4 projetos do Playwright rodam **em série** (sem `workers`, runner de 2 núcleos ⇒ 1 worker).
+    **Re-centrado em 425 s, banda 361-489 s**, antes do primeiro push pós-cota: com o centro antigo, um
+    desenho que funciona seria revertido por aritmética (+27% a +34% acima da banda).
+  - **N2** a receita de medição lia **run cancelado** (dois runs por SHA); passa a filtrar
+    `name="UI stack"` + `event=push` + `conclusion=success`, uma amostra por push.
+  - **N5/N6** o `::notice` do tier de banco e o de navegadores passam a ser **derivados** (negação exata
+    do gate; lista/projetos das mesmas variáveis que alimentam install e `playwright test`).
+  - **N7** `AGENTS.md` dizia que o `verify` roda "os mesmos gates" — falso: roda 12 dos 14 scripts; o
+    lugar da verdade passa a ser a **tabela de cobertura por pipeline**. Consequência registrada como
+    **DBT-19**: `m02:boundaries` não roda em gate nenhum (verde medido à mão) e `m02:secrets-audit` só
+    roda na light.
+  - **N8** "~6 min por execução" era média **contaminada** por runs bloqueados de 3-6 s; o número real é
+    **9,7 min** (média de 8 runs verdes, 497-605 s).
+  - **N9** `5539226` **não é probatório** para o incidente de cota (commit vazio ⇒ plataforma suprime
+    execução; comportamento normal). A prova segue sendo a anotação de billing + os runs de 0 passos.
+  - **N4** os itens 10 e 16 do checklist eram claims vacuosas; o item 10 foi **retirado como claim** e o
+    item 16 reafirmado com escopo menor (mecanismo novo não é coberto — limite declarado).
+- **Janela sem verificação (9 SHAs, CI bloqueada):** `d9bc810`, `5539226`, `8f260f5`, `011c7e3`,
+  `7e719bc`, `ff4c379`, `4be813c`, `8ecb584`, `9f521ed`. Último verde: `f293368@35611793799` (heavy,
+  30 passos). Nenhum SHA da janela carrega selo; o item 15 do checklist vale até `f293368`.
+- **Pós-desbloqueio (Parte D, pré-comprometida):** D1 falsificação com `before` irresolúvel (espera-se
+  `db=true` **e** `crossbrowser=true`); D2 medir os 5 primeiros pushes não-docs; D3 reverter ou manter
+  pelo critério re-centrado (mediana em 361-489 s **e** zero pulo indevido).
+
+  Latest state marker parent = `974426bc46dd960b639cfb31170190a09a0c8ff`,

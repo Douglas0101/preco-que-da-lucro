@@ -120,10 +120,19 @@ describe("WP-R8 — polaridade fail-closed das condições de tier", () => {
     const sh = scriptDoStep("browsers");
     expect(sh).toContain('= "false" ]');
     expect(sh).not.toContain('= "true" ]');
-    // a polaridade importa: o ramo do `if` tem de ser o chromium-only
     const ramoIf = sh.slice(sh.indexOf('= "false" ]'), sh.indexOf("else"));
-    expect(ramoIf).toContain("lista=chromium");
-    expect(sh.slice(sh.indexOf("else"))).toContain("chromium firefox webkit");
+    const ramoElse = sh.slice(sh.indexOf("else"));
+    expect(ramoIf).toContain('lista="chromium"');
+    // a asserção é sobre o que ALIMENTA o runner, não sobre a prosa do aviso
+    expect(ramoIf).toContain('projetos="--project=chromium --project=mobile"');
+    expect(ramoElse).toContain("chromium firefox webkit");
+  });
+
+  it("N6: o aviso dos browsers é derivado do que foi escolhido, não prosa fixa", () => {
+    const sh = scriptDoStep("browsers");
+    // o dado tem de ser impresso a partir das MESMAS variáveis que alimentam o GITHUB_OUTPUT
+    expect(sh).toContain('echo "navegadores escolhidos: ${lista} | projetos: ${projetos}"');
+    expect([...sh.matchAll(/lista="[^"]*"/g)].length).toBe(2);
   });
 });
 
@@ -173,7 +182,7 @@ describe("WP-R8 — o script de escopo real, executado", () => {
     expect(out.crossbrowser).toBe("true");
   });
 
-  it("falha de classificação NÃO é silenciosa: git sem repo ⇒ exit ≠ 0", () => {
+  it("sem repositório git o passo cai no ramo fail-closed (roda tudo), não em `pula`", () => {
     const dir = mkdtempSync(join(tmpdir(), "ci-tier-nogit-"));
     temporarios.push(dir);
     const fonte = scriptDoStep("scope")
@@ -190,6 +199,118 @@ describe("WP-R8 — o script de escopo real, executado", () => {
     // sem repositório, `git cat-file` falha -> cai no ramo fail-closed (roda tudo), nunca em "pula"
     expect(r.status).toBe(0);
     expect(readFileSync(join(dir, "github-output"), "utf8")).toContain("crossbrowser=true");
+  });
+});
+
+describe("WP-R8 — guardas semânticas (o S6 mostrou que literais não bastam)", () => {
+  it("N4a: o e2e consome a DECISÃO do passo de browsers, não uma lista literal", () => {
+    const passos = YAML.split("\n");
+    const cmd = passos.filter((l) => /npx playwright test/.test(l)).join("\n");
+    expect(cmd).toContain("steps.browsers.outputs.projetos");
+  });
+
+  it("N4b: os tiers de banco são decididos por `db`, e o passo de escopo vem ANTES deles", () => {
+    const linhas = YAML.split("\n");
+    const iScope = linhas.findIndex((l) => l.trim() === "- id: scope");
+    const iDb = linhas.findIndex((l) => /run: npm run db:test/.test(l));
+    const iNotice = linhas.findIndex((l) => /db tiers skipped/.test(l));
+    expect(iScope).toBeGreaterThan(-1);
+    expect(iDb).toBeGreaterThan(iScope);
+    expect(iNotice).toBeGreaterThan(iDb);
+    // o aviso é a negação EXATA do gate — sem isso, tier e aviso podem divergir em silêncio.
+    // A busca sobe até o `if:` do passo (pode haver comentário entre o `if:` e o `run:`).
+    const ifAcima = (i: number) => {
+      for (let k = i; k > Math.max(0, i - 6); k -= 1)
+        if (/^\s*- if:/.test(linhas[k])) return linhas[k];
+      return "";
+    };
+    expect(ifAcima(iDb)).toContain("steps.scope.outputs.db != 'false'");
+    expect(ifAcima(iNotice)).toContain("steps.scope.outputs.db == 'false'");
+  });
+
+  it("N4c: o grupo de concurrency é por ref (sem isso `develop` cancelaria `main`)", () => {
+    expect(YAML).toMatch(/group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}/);
+  });
+
+  it("N4d: nenhuma expressão `${{ }}` desconhecida sobra no script de escopo", () => {
+    const conhecidas = [
+      "github.event_name",
+      "github.event.pull_request.base.sha",
+      "github.event.before",
+      "github.sha",
+    ];
+    const doScript = [...scriptDoStep("scope").matchAll(/\$\{\{\s*([^}]+?)\s*\}\}/g)].map(
+      (m) => m[1],
+    );
+    expect(doScript.filter((e) => !conhecidas.includes(e))).toEqual([]);
+    // e a lista de conhecidas tem de cobrir TODAS as expressões do script (nada fica sem substituição)
+    expect(new Set(doScript).size).toBeGreaterThan(0);
+  });
+
+  it("N1: a base não-ancestral é fail-closed (ancestralidade, não só existência)", () => {
+    const sh = scriptDoStep("scope");
+    expect(sh).toContain('git merge-base --is-ancestor "$base" "$head"');
+  });
+
+  // N5: o aviso tem de ser a negação ESTRUTURAL do gate, não uma string parecida. Se alguém
+  // estreitar o gate (acrescentar condição, trocar o output) sem mexer no aviso, o aviso passa a
+  // mentir — e um aviso que mente é pior que aviso nenhum. A igualdade é derivada, não literal.
+  it("N5: para cada output de escopo, o aviso é a negação exata do gate que decide o tier", () => {
+    const passos = new Map<string, { cond: string; corpo: string[] }>();
+    const linhas = YAML.split("\n");
+    let atual: string | null = null;
+    for (const l of linhas) {
+      if (/^ {6}- /.test(l)) {
+        atual = l;
+        passos.set(atual, { cond: "", corpo: [] });
+      }
+      if (atual === null) continue;
+      const p = passos.get(atual)!;
+      if (/^\s*- if:/.test(l)) p.cond = l.replace(/^\s*- if:\s*/, "").trim();
+      p.corpo.push(l);
+    }
+
+    const chaves = new Set<string>();
+    for (const { cond } of passos.values())
+      for (const m of cond.matchAll(
+        /steps\.scope\.outputs\.([A-Za-z0-9_-]+)\s*(?:!?==)\s*'false'/g,
+      ))
+        chaves.add(m[1]);
+    expect([...chaves].sort()).toEqual(["db"]); // só `db` é decidido por expressão; `crossbrowser` é shell
+
+    for (const chave of chaves) {
+      const rodam = new Set<string>();
+      const avisam = new Set<string>();
+      for (const { cond, corpo } of passos.values()) {
+        if (!cond.includes(`steps.scope.outputs.${chave}`)) continue;
+        if (corpo.some((l) => l.includes("::notice"))) avisam.add(cond);
+        else if (corpo.some((l) => /^\s*run:/.test(l))) rodam.add(cond);
+      }
+      expect([...rodam]).toHaveLength(1);
+      expect([...avisam]).toHaveLength(1);
+      const [gate] = [...rodam];
+      const [aviso] = [...avisam];
+      // negação exata, derivada do próprio gate (funciona tanto para `!=` quanto para `==`)
+      const negacao = gate.includes("!= 'false'")
+        ? gate.replace("!= 'false'", "== 'false'")
+        : gate.replace("== 'false'", "!= 'false'");
+      expect(aviso).toBe(negacao);
+      expect(gate).toContain("!= 'false'"); // e o gate em si continua fail-closed
+    }
+  });
+
+  it("N6/N10: o aviso de navegadores é derivado da decisão, não uma frase fixa", () => {
+    const sh = scriptDoStep("browsers");
+    // a linha de aviso tem de ser construída a partir das MESMAS variáveis que alimentam o e2e
+    const linhaAviso = sh
+      .split("\n")
+      .filter((l) => l.includes("::notice"))
+      .join("\n");
+    expect(linhaAviso).toContain("${projetos}");
+    expect(linhaAviso).toContain("${lista}");
+    // e não pode voltar a ser prosa literal sobre quais navegadores rodam
+    expect(linhaAviso).not.toMatch(/chromium\+mobile/i);
+    expect(linhaAviso).not.toMatch(/firefox\+webkit/i);
   });
 });
 

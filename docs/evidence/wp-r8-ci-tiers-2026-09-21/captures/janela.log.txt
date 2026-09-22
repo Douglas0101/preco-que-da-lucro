@@ -22,8 +22,39 @@
   Nenhum SHA da janela foi SELADO. Ao restabelecer: varredura de verificacao (D1+D2) NO TIP
   antes de qualquer land novo; o tip verde basta porque nenhum SHA intermediario carrega selo.
 
-## Criterio numerico de reversao (pre-comprometido, sem dado para negocia-lo)
-  Mediana do wall-clock dos 5 primeiros pushes NAO-docs dentro de +-15% da projecao de 322 s
-  E zero pulo indevido (todo ::notice de pulo corresponde a diff sem caminho de banco).
-  Fora disso: git revert -m 1 de 4be813c.
-  Onde o numero sai: actions/runs?head_sha= -> updated_at - run_started_at.
+## Criterio numerico de reversao — RE-CENTRADO pelo S6 (N3), antes do primeiro push pos-cota
+
+### Por que o centro antigo (322 s) estava errado
+O numero vinha de um modelo de e2e "~60 s por projeto" que eu NAO tinha medido. O artefato do proprio
+run verde (`browser-evidence`, 10644862354 -> `.artifacts/playwright-results.json`) da os numeros:
+
+    chromium  15 testes   50,6 s
+    firefox   15 testes   59,7 s
+    mobile    15 testes   50,0 s
+    webkit    15 testes   64,5 s
+    TOTAL     60 testes  224,8 s somados  (span do arquivo 239,7 s)
+
+`workers` nao esta declarado no `playwright.config.ts` => default = metade dos cores; runner de 2
+cores => **1 worker => os 4 projetos rodam em SERIE**. Logo cortar firefox+webkit economiza
+**124,2 s**, nao os ~217 s que o centro antigo exigia. Com o centro antigo, um desenho que funciona
+seria revertido por aritmetica (o S6 mediu: +27% a +34% acima da banda de +-15%).
+
+### Reprojecao (declarada como PROJECAO; a medicao e a Parte D)
+    baseline medido (run 35611793799)                     580 s  (wall; passos somam 575 s)
+    menos tier de banco (db:test 33 + db:check 1)         -34 s
+    menos firefox+webkit (59,7 + 64,5, MEDIDOS)          -124 s
+    mais escopo + browsers + cache (nao medidos)           +3 s
+    = ~425 s   (com a economia do install chromium-only: ~400 s)
+
+### Criterio (pre-comprometido, agora com centro derivado da medicao)
+    Mediana do wall-clock dos 5 primeiros pushes NAO-docs dentro de 361-489 s (+-15% de 425 s)
+    E zero pulo indevido: todo tier que nao roda tem de ter `::notice` correspondente a um diff
+    genuinamente fora da lista de caminhos.
+    Fora disso: `git revert -m 1 4be813c`.
+
+### Receita de medicao (corrigida — o S6 mostrou que a antiga lia run cancelado, N2)
+    gh api "repos/<owner>/<repo>/actions/runs?head_sha=<sha>" \
+      | jq '[.workflow_runs[] | select(.name=="UI stack" and .event=="push"
+                                      and .conclusion=="success")] | .[0]'
+    uma amostra por push; run cancelado NAO entra (AGENTS.md: `cancelled` nao e evidencia);
+    se houver mais de um run para o mesmo SHA, vale o mais recente com `conclusion=success`.

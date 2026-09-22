@@ -20,8 +20,22 @@
 ## Local quality gate (definition of done)
 
 - Before pushing, run `npm run check` and keep it green. It chains `m02:lockfile-guard`, `m02:work-package-guard`, `m02:debts-guard`, `m02:temporal-guard`, `m02:matrix:check`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
-- The CI `verify` job (`.github/workflows/ui-stack.yml`) runs those same gates plus `npm audit --audit-level=high`, and — **em tiers** — `db:test`/`db:check` (diff de banco) e Playwright e2e (chromium+mobile no push, +firefox+webkit no PR); a matriz completa roda em **todo PR** e no `workflow_dispatch`. The light job runs the guards on docs-only pushes (both pipelines exercise the contract guard). A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
-- **Cota de Actions:** o job pesado custa ~6 min de runner por execução, e um push em rajada cria uma execução por commit — sem cobrança por caminho, um dia de trabalho consome a cota do mês. Por isso o `verify` roda em **tiers**, e o `concurrency` cancela o run superseded da mesma ref. **Nenhum teste foi removido, nenhuma regra afrouxada, nenhum orçamento renegociado:** o que mudou foi *onde* cada verificação roda.
+- The CI `verify` job (`.github/workflows/ui-stack.yml`) runs **12 dos 14** scripts da cadeia `check` como passos diretos, mais `npm audit --audit-level=high`, e — **em tiers** — `db:test`/`db:check` (diff de banco) e Playwright e2e (chromium+mobile no push, +firefox+webkit no PR); a matriz completa roda em **todo PR** e no `workflow_dispatch`. A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
+
+  **Cobertura de guardas, por pipeline (não é "os mesmos gates" — é esta tabela; DBT-19):**
+
+  | gate / guarda | `check` local | heavy `verify` | light `ci-light` |
+  | --- | --- | --- | --- |
+  | `m02:work-package-guard`, `m02:debts-guard`, `m02:temporal-guard` | ✔ | ✔ (passo direto) | ✔ (passo direto) |
+  | `m02:lockfile-guard` | ✔ | ✘ — o *drift* é pego por `npm ci --ignore-scripts` (`EUSAGE`); a asserção do pin de `drizzle-kit` **não** roda em push de código | ✔ (passo direto) |
+  | `m02:seal-dts:check` | ✔ | ✘ como passo — coberto **por equivalente** dentro de `npm run test` (`src/test/m02-seal.test.ts` executa `generate-seal-dts.mjs --check` e falha por byte-diff, com controle negativo) | ✘ |
+  | `m02:matrix:check`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, `check:bundle` | ✔ | ✔ (passo direto) | ✘ (só `format:check` nos arquivos alterados) |
+  | `m02:secrets-audit` | ✘ | ✘ | ✔ (passo direto) — um push **só de código** nunca o executa |
+  | `m02:boundaries` | ✘ | ✘ | ✘ — declarado contrato e **não ligado a gate nenhum** (DBT-19) |
+  | `m02:state:check` | ✘ | ✘ | ✘ — é passo do protocolo de boot, roda à mão |
+
+  A tabela é o contrato: um gate que aparece como ✔ tem de estar no encadeamento do pipeline citado, e um ✘ **nomeado** (com o equivalente, quando existe) é limite declarado, não lacuna esquecida.
+- **Cota de Actions:** o job pesado custa **~9,7 min de runner por execução real** (média de 8 execuções verdes medidas: 497-605 s; os 5 runs bloqueados de 3-6 s da cota **não** entram na conta — média contaminada por eles daria ~6 min, que é o número que estava aqui antes), e um push em rajada cria uma execução por commit — sem cobrança por caminho, um dia de trabalho consome a cota do mês. Por isso o `verify` roda em **tiers**, e o `concurrency` cancela o run superseded da mesma ref. **Nenhum teste foi removido, nenhuma regra afrouxada, nenhum orçamento renegociado:** o que mudou foi *onde* cada verificação roda.
 - **Two CI pipelines, selected by changed paths:**
   - **Heavy — `UI stack`** (`.github/workflows/ui-stack.yml`): every pull request, plus pushes to `main`/`develop` whose changed files are **not** all under `docs/evidence/**` (`paths-ignore`). Também aceita `workflow_dispatch` para um run completo sob demanda.
   - **Tiers dentro do `verify`** (escopo por `git diff`, fail-closed — base desconhecida ⇒ tudo roda): **sempre que a heavy é disparada** rodam as guardas, `format:check`, `lint`, `typecheck`, `npm run test`, `build`, `check:bundle` e o audit (o *disparo* é que é filtrado por caminho — docs-only vai para a light); **`db:test`/`db:check`** só quando o diff toca `drizzle/`, `src/db/`, `src/server/repositories/`, `src/server/services/`, `scripts/db/` ou os manifests, e o pulo é **visível** (`::notice`), nunca silencioso; **e2e** roda **chromium+mobile** em push e **firefox+webkit+mobile** em PR e no dispatch. A fronteira de release é o **PR**: todo PR roda a matriz completa.
@@ -47,7 +61,7 @@
 ## Security baseline
 
 - The Content Security Policy in `src/start.ts` is strict (`script-src 'self'`). Never add `'unsafe-inline'` or new hosts without first verifying the package's actual runtime behavior in its published dist and documenting that evidence in the PR. (PR #42 lesson: `@vercel/analytics` injects an external same-origin script via DOM — the strict CSP already covered it, and the proposed relaxation was reverted.)
-- Keep `m02:secrets-audit`, `m02:boundaries`, and the env guard green; they are contract, not decoration.
+- Keep `m02:secrets-audit`, `m02:boundaries`, and the env guard green; they are contract, not decoration — **e hoje dois deles não rodam em gate nenhum em push de código** (`m02:secrets-audit` só na light; `m02:boundaries` em lugar nenhum, DBT-19). Verde medido à mão em 2026-09-22: `m02:boundaries` → *"BFF boundary is clean"*. Declarar contrato e não executá-lo é a lacuna, não a guarda.
 - Never commit secrets: `.env` stays local and gitignored; deployments read from the platform's env store.
 
 ## Deployment contract (Vercel)

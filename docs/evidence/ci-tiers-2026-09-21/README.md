@@ -50,18 +50,24 @@ ref em vez de pagar pelos dois) e `timeout-minutes: 20 → 12` (medido 9,5; cort
 - O escopo é **fail-closed**: base desconhecida (primeira push de branch, force-push, dispatch) ⇒
   todos os tiers rodam.
 
-## 4. Impacto projetado (projeção declarada, **não** medição)
+## 4. Impacto projetado (projeção declarada, **não** medição) — **re-centrada pelo S6 do WP-R8**
 
-| cenário                                     | antes   | depois (projetado)                        |
-| ------------------------------------------- | ------- | ----------------------------------------- |
-| push de código que não toca o tier de banco | ~570 s  | **~320 s** (−44%)                         |
-| push que toca `scripts/db/**` ou manifests  | ~570 s  | **~355 s** (−38%)                         |
-| PR (fronteira de release)                   | ~570 s  | ~570 s (inalterado)                       |
-| dia de trabalho com 13 pushes               | ~79 min | **~30-35 min** (−57%, com o cancelamento) |
+A primeira versão desta tabela dizia "~320 s (−44%)" a partir de um modelo de e2e que eu **não** tinha
+medido. O artefato do próprio run verde desmente o modelo: `playwright-results.json` dá 15 testes por
+projeto e, com `workers` default em runner de 2 cores, os 4 projetos rodam **em série** (chromium
+50,6 s · firefox 59,7 s · mobile 50,0 s · webkit 64,5 s). Cortar firefox+webkit vale **124 s**, não os
+~217 s que 320 s exigia.
 
-**A projeção não foi medida em CI** — a cota bloqueada impede executar o workflow novo. Ela é
-derivada dos tempos por passo do run `35611793799` e do número de projetos de browser; a medição
-fica pendente do desbloqueio do billing.
+| cenário                                     | antes                                                                            | depois (projetado)                                   |
+| ------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| push de código que não toca o tier de banco | ~580 s                                                                           | **~425 s** (−27%); ~400 s com install só do chromium |
+| push que toca `scripts/db/**` ou manifests  | ~580 s                                                                           | **~459 s** (−21%)                                    |
+| PR (fronteira de release)                   | ~580 s                                                                           | ~580 s (inalterado)                                  |
+| dia de trabalho                             | 13 runs, dos quais **8 reais** somando **77,6 min** (média **9,7 min**/run real) | projeção: ~35-40 min para o mesmo trabalho           |
+
+**Continua sendo projeção, não medição** — a cota bloqueada impede executar o workflow novo. O que
+mudou é que o centro agora **sai da medição do artefato**, não de um modelo. O critério de reversão do
+WP-R8 foi re-centrado em 425 s (±15% ⇒ 361-489 s) antes do primeiro push pós-cota.
 
 ## 5. Riscos declarados
 
