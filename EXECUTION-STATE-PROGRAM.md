@@ -2512,5 +2512,44 @@ stack` em um dia = ~84 min de runner.
 - **Pós-desbloqueio (Parte D, pré-comprometida):** D1 falsificação com `before` irresolúvel (espera-se
   `db=true` **e** `crossbrowser=true`); D2 medir os 5 primeiros pushes não-docs; D3 reverter ou manter
   pelo critério re-centrado (mediana em 361-489 s **e** zero pulo indevido).
+- **Parte D — precisões pré-comprometidas (adições da análise avançada do plano R8; ledger vivo,
+  aplicado em 2026-09-22 antes do primeiro push pós-desbloqueio):**
+  - **4.3 — janela corrigida de 13 para 18 SHAs, com prova mecânica.** Comandos desta data:
+    `git log --oneline f293368..HEAD` → 21 commits; para cada um,
+    `gh api repos/Douglas0101/preco-que-da-lucro/commits/<sha>/check-runs` → `90d12f9` tem 2/2 runs
+    verdes (fora da janela), `41e776b` e `e61c9f4` não são pushados (classe separada — seguem na
+    varredura por não-verificados), e **5 pushed com 0 check-runs estavam fora da lista**:
+    `9237d01`, `a95254b`, `4eed127`, `974426b`, `f4edb66`. **Janela = 18 SHAs** (os 13 anteriores +
+    esses 5). Segunda medição, `git show --name-only --format=` por SHA filtrando `MANIFEST`/selos:
+    **8 dos 18 tocam arquivos de selo** (`8f260f5`, `7e719bc`, `011c7e3`, `ff4c379`, `6e9dac9`,
+    `94e49aa`, `a2f5ff6`, `974426b` — sendo `974426b` o commit que **cria** o selo do R8), logo a
+    frase "nenhum SHA da janela foi selado" é **falsa literalmente** e morre aqui por errata
+    append-only (os selos não são reescritos). **O invariante medido, que é o que a varredura
+    precisa: nenhum SHA da janela tem run verde citável** — os 5 pares `sha@run` da janela
+    (`8f260f5@35613943429`, `8f260f5@35613943354`, `011c7e3@35613977835`, `398a77c@35682256860`,
+    `398a77c@35682256839`) são todos precondição falha rotulada (0 passos), e o `run@sha` do selo
+    do R8 está em branco por protocolo. A varredura D1/D2 pós-desbloqueio cobre os **18**.
+  - **4.2 — D1 tem DUAS portas, ambas com caso executado local:** (a) primeira push de branch nova
+    (`before` todo-zeros — caso `A2` já existente) e (b) força-push com história reescrita
+    (`before` existe no repo mas não é ancestral — caso novo `A2/4.2` em
+    `src/test/m02-ci-tiers.test.ts`, que exercita o disjuntor `merge-base --is-ancestor` e não só o
+    `cat-file`). Os runs da branch de teste do D1 ficam fora da amostra B4 pelo filtro abaixo.
+  - **4.4 — amostra B4, receita precisa:** 5 primeiros pushes pós-desbloqueio com `event` igual a
+    `push` (PRs já fora — outra população, matriz cheia), `head_ref` igual a `develop` (branches
+    `mission/*` de teste fora), diff não-docs, uma amostra por push, workflow `UI stack` e
+    conclusão `success` (`cancelled` fora — N2). `updated_at − run_started_at` segue excluindo fila
+    de propósito: mede desenho, não espera.
+  - **4.1 / 4.5 — já satisfeitas no landado, verificadas por identidade nesta data:** fronteira nas
+    duas direções com caso executado (`push com diff comum` emite `db=false` e `crossbrowser=false`
+    explícitos; item 2 do checklist do selo) e SHA do `actions/cache` 0057852b… resolvido da API
+    oficial, pinado no workflow e capturado em `tiers.log.txt` §5 — nenhum selo editado.
+  - **4.6 / 4.7 — follow-through do R0b:** join dos 6 deltas P × `DEBTS.md` → `15.1`/`15.3`/`15.4`
+    cobertos por DBT-10 (família entrypoint de runtime); `15.2`/`15.7`/`29.1` abertos agora como
+    **DBT-20/21/22**; **R0c** (re-medição dos 8 NS com os comandos já pré-registrados no SPEC do
+    R0b + join dos 23 deltas P anteriores à tabela do R0b) agendada no journal; canal dos 10 CORR do
+    R0b = **10/10 S6 · 0 autor · 0 gate**, com a regra de autoria adotada "prosa de medição ⇒ claim
+    por linha com comando".
+  - Análise persistida com o addendo de validação item a item:
+    `docs/evidence/analise-avancada-ci-tiers-wpr8-2026-09-21.md`.
 
   Latest state marker parent = `41e776b85e264565ebcac2abfc62ff8e6ac2b0ce`,
