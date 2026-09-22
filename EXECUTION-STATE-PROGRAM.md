@@ -2430,7 +2430,7 @@ Formato por entrada: `id · módulo · tipo · ref plano · passo · testes · e
   guardas exit 0; selo OK; marcador válido). **CI dos commits `d9bc810` e `5539226` PENDENTE e não
   afirmada.** O item 15 do checklist vale até `f293368`.
 
-  Latest state marker parent = `7e719bcb633a1e2164fc2b3c7fd081485e8f2881`,
+  Latest state marker parent = `8ecb584b32063781fcac38ca5a10e9ae6bb3c44f`,
 
 ### Enxugamento do CI/CD por tiers (resposta ao bloqueio de cota, 2026-09-21)
 
