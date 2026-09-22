@@ -2513,4 +2513,4 @@ stack` em um dia = ~84 min de runner.
   `db=true` **e** `crossbrowser=true`); D2 medir os 5 primeiros pushes não-docs; D3 reverter ou manter
   pelo critério re-centrado (mediana em 361-489 s **e** zero pulo indevido).
 
-  Latest state marker parent = `a2f5ff67e58ccff9035a972eff4ef171912036ca`,
+  Latest state marker parent = `41e776b85e264565ebcac2abfc62ff8e6ac2b0ce`,

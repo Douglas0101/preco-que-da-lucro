@@ -17,32 +17,41 @@
 
 ## 1. Estado corrente
 
-- **Fase:** `5 — consolidação` · **Fase 0 do fechamento (R0–R6) FECHADA e R0b LANDADO**; o placar
-  **foi ratificado pelo MAESTRO em 2026-09-21** e o próximo movimento é o WP-R7 (endurecimentos
-  não-bloqueantes da análise: §6.2 guarda temporal, §6.3/DBT-16 geração do `.d.mts`, §7 regra de
-  elegibilidade no `AGENTS.md`).
-- **Refs:** `develop` = `origin/develop` = **`332da9e`** (fecho do WP-R0b; o tip de handoff altera só
-  docs) · `origin/main` = **`9724d2c`** (SHA do dia-D, **intocado** em toda a rodada) · branches
-  `mission/*` preservadas como evidência.
+- **Fase:** `5 — consolidação` · **Fase 0 do fechamento (R0–R6) FECHADA**, **R0b, R7 e R8 LANDADOS**; o
+  placar **foi ratificado pelo MAESTRO em 2026-09-21**. O próximo movimento é a **varredura
+  pós-desbloqueio de cota (Parte D)**: D1 falsificação do fail-closed com `before` irresolúvel (espera-se
+  `db=true` **e** `crossbrowser=true`), D2 medição dos 5 primeiros pushes não-docs, D3 manter ou
+  `git revert -m 1 4be813c` pelo **critério re-centrado em 425 s (banda 361-489 s)**.
+- **Refs:** `develop` = **`41e776b`** (fecho do marcador do WP-R8) · `origin/develop` = **`a2f5ff6`**
+  (o fecho é local por decisão declarada: todo push sob bloqueio custa cota e não mede nada) ·
+  `origin/main` = **`9724d2c`** (SHA do dia-D, **intocado** em toda a rodada) · branches `mission/*`
+  preservadas como evidência.
 - **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned validado por
-  `npm run m02:state:check` no commit que o carrega. Blocos novos: land canônico do WP-R4 + janela
-  vermelha + pares `sha@run`, WP-R5, WP-R6 e WP-R0b.
+  `npm run m02:state:check` no commit que o carrega (`41e776b`). Blocos novos: land canônico do WP-R4 +
+  janela vermelha + pares `sha@run`, WP-R5, WP-R6, WP-R0b, WP-R7, incidente de plataforma, enxugamento
+  do CI/CD por tiers e **WP-R8 (formalização, S6 adversarial e correções forçadas)**.
 - **Placar vigente (RATIFICADO):** **150 D · 29 P · 8 NS · 0 UNV / 187** = **87,9679% parcial ·
   80,2139% crua**. A ratificação segue a proposta do WP-R0b (6 `NS→PARTIAL` com delta nomeado,
   2 `UNV→NS` porque a API responde o estado dos recursos, **0 promoção a DONE**). `QUEUE.md` ainda
   carrega o placar anterior: o **escritor é o MAESTRO** e a linha de lá é movimento humano pendente,
   declarado — não editada por agente.
-- **Árvore:** limpa fora do selo em construção. Selos: WP-R5 (17 arquivos), WP-R6 (9) e WP-R0b (11),
-  todos com `checked === discovered` e ancestralidade verificada.
-- **Gate local:** `npm run check` **exit 0** (95 arquivos · 969 passed | 13 skipped) no HEAD
-  integrado; contrato de WP com **17 itens**; registry com **18 dívidas** (DBT-16 fechada no WP-R7);
-  guardas novas: `m02:temporal-guard` (âncoras e prazos da prosa viva) e `m02:seal-dts:check`.
-- **CI:** WP-R6 heavy `4983c11@35556119568` = success · WP-R6 fecho `3c34fce@35556827999` = success
-  (heavy real, porque o ledger mora na raiz) · WP-R0b `cb83811@35559225054` = light com os 6 checks
-  aplicáveis (heavy pulada por `paths-ignore` em land só-docs — delegação declarada) ·
-  `332da9e@35559344008` heavy = success.
+- **Árvore:** limpa fora do selo em construção. Selos: WP-R5 (17 arquivos), WP-R6 (9), WP-R0b (11),
+  WP-R7 (9) e **WP-R8 (7)**, todos com `checked === discovered` e ancestralidade verificada.
+- **Gate local:** `npm run check` **exit 0** (97 arquivos · 1005 passed | 13 skipped) no conteúdo
+  landado; contrato de WP com **17 itens**; registry com **19 dívidas** (DBT-16 fechada no WP-R7;
+  **DBT-19** aberta no WP-R8: guardas declaradas contrato que não rodam em push de código); guardas
+  novas: `m02:temporal-guard` (âncoras e prazos da prosa viva), `m02:seal-dts:check` e
+  `src/test/m02-ci-tiers.test.ts` (18 casos, executa o script de escopo extraído do YAML).
+- **CI — BLOQUEADA POR COTA DE PLATAFORMA (precondição de ambiente, item 17 estendido):** desde
+  2026-09-21T14:33Z todo job falha em ~3-9 s com **0 passos** e a anotação verbatim _"The job was not
+  started because recent account payments have failed or your spending limit needs to be increased"_.
+  Último verde aplicável: **`f293368@35611793799`** (heavy, 30 passos) — o item 15 do checklist vale até
+  ele. **Janela sem verificação: 13 SHAs** (`d9bc810`, `5539226`, `8f260f5`, `011c7e3`, `7e719bc`,
+  `ff4c379`, `4be813c`, `8ecb584`, `9f521ed`, `6e9dac9`, `94e49aa`, `398a77c`, `a2f5ff6`), nenhum com
+  selo. O land do WP-R8 disparou `35682256860`/`35682256839` e o reseal `35682383894`/`35682383892` —
+  todos bloqueados, **nenhum citável como `run@sha`**.
 - **Ambiente:** `:5432` com 0 listeners; watcher `app-live-watch` re-armado em 2026-09-19T15:31:33Z
-  ⇒ caduca ≈ **2026-09-26T15:31Z** (agora vigiado pelo `m02:temporal-guard`). Alvo segue em
+  ⇒ caduca ≈ **2026-09-26T15:31Z** (vigiado pelo `m02:temporal-guard`). Alvo segue em
   placeholder PHP (`/ready` → 404): **H-6 não executado**.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
