@@ -2489,8 +2489,14 @@ stack` em um dia = ~84 min de runner.
 - **Janela sem verificação (9 SHAs, CI bloqueada):** `d9bc810`, `5539226`, `8f260f5`, `011c7e3`,
   `7e719bc`, `ff4c379`, `4be813c`, `8ecb584`, `9f521ed`. Último verde: `f293368@35611793799` (heavy,
   30 passos). Nenhum SHA da janela carrega selo; o item 15 do checklist vale até `f293368`.
+- **Land (S7):** `develop` avancou por **fast-forward** de `9f521ed` para `94e49aa` (correcoes
+  `6e9dac9` + selo `94e49aa`) — a branch e descendente de `develop`, entao o land **nao** cria merge
+  commit e **nao** altera a arvore: a CI do commit selado mede exatamente o que esta em `develop`.
+  O rollback do tiering continua sendo `git revert -m 1 4be813c`.
+- **E2 (gate local, sobre o conteudo landado):** `npm run check` **exit 0** — 97 arquivos, 1005 passed
+  | 13 skipped. O gate local e o fallback declarado enquanto a cota bloqueia jobs.
 - **Pós-desbloqueio (Parte D, pré-comprometida):** D1 falsificação com `before` irresolúvel (espera-se
   `db=true` **e** `crossbrowser=true`); D2 medir os 5 primeiros pushes não-docs; D3 reverter ou manter
   pelo critério re-centrado (mediana em 361-489 s **e** zero pulo indevido).
 
-  Latest state marker parent = `6e9dac9`,
+  Latest state marker parent = `94e49aaff6b741e7a564fedefe38d2b65e9b13d0`,
