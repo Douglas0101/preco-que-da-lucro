@@ -2611,4 +2611,4 @@ stack` em um dia = ~84 min de runner.
   a mesma armadilha registrada no ciclo anterior. Decisão de quando pagar esse custo é humana
   (`SDD-20260923-push-publication-policy`, `REQ-02`).
 
-  Latest state marker parent = `86565f017d6e7f58ae864a9b5fc46ec5b01a90aa`,
+  Latest state marker parent = `20cba84100871953ab5377873f8ef2877916feaf`,

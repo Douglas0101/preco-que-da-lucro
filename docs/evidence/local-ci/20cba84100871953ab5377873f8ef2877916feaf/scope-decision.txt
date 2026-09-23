@@ -1,0 +1,1 @@
+diff nao toca drizzle/, src/db/, repositorios, servicos, scripts/db/ nem package.json/package-lock.json -> tier de banco pulado (mesma decisao do CI)
