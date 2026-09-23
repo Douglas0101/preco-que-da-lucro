@@ -1,0 +1,24 @@
+ EXECUTION-STATE-PROGRAM.md                         |  79 +-
+ docs/TODO.md                                       |  40 +
+ docs/evidence/agent-state/DEBTS.md                 |   3 +
+ docs/evidence/agent-state/PROGRESS.md              |  71 +-
+ .../analise-avancada-ci-tiers-wpr8-2026-09-21.md   | 150 ++++
+ .../SDD-20260923-boundary-guard-dbt19/01-spec.md   | 114 +++
+ docs/sdd/SDD-20260923-evidence-policy/01-spec.md   | 100 +++
+ .../SDD-20260923-evidence-policy/02-acceptance.md  |  24 +
+ docs/sdd/SDD-20260923-evidence-policy/03-design.md |  89 ++
+ docs/sdd/SDD-20260923-evidence-policy/04-plan.md   |  25 +
+ docs/sdd/SDD-20260923-evidence-policy/05-risk.md   |  23 +
+ .../06-traceability.md                             |  25 +
+ .../SDD-20260923-ledger-state-marker/01-spec.md    |  94 +++
+ .../02-acceptance.md                               |  23 +
+ .../SDD-20260923-ledger-state-marker/03-design.md  |  94 +++
+ .../SDD-20260923-ledger-state-marker/04-plan.md    |  33 +
+ .../SDD-20260923-ledger-state-marker/05-risk.md    |  26 +
+ .../06-traceability.md                             |  28 +
+ .../sdd/SDD-20260923-local-ci-hardening/01-spec.md | 112 +++
+ .../sdd/SDD-20260923-post-billing-sweep/01-spec.md | 113 +++
+ .../01-spec.md                                     | 116 +++
+ scripts/local-ci.sh                                | 938 +++++++++++++++++++++
+ src/test/m02-ci-tiers.test.ts                      |  21 +
+ 23 files changed, 2320 insertions(+), 21 deletions(-)
