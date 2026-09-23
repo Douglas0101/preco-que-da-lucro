@@ -2610,5 +2610,29 @@ stack` em um dia = ~84 min de runner.
   `scripts/**`, portanto **não** caem no `paths-ignore`: o primeiro push dispara a **heavy** (≈9,7 min) —
   a mesma armadilha registrada no ciclo anterior. Decisão de quando pagar esse custo é humana
   (`SDD-20260923-push-publication-policy`, `REQ-02`).
+- **Item 9 fechado — o tip `20cba84` está selado.** `./scripts/local-ci.sh` no tip: `veredicto=success`,
+  **328 s**, exit 0, cobertura 19/19, `m02:state:check` = `success`, `pendencies` vazio, e2e
+  chromium+mobile verde, tier de banco **pulado por escopo** (mesma decisão do CI). Evidência em
+  `docs/evidence/local-ci/20cba84…/`: 127 arquivos, **85 versionáveis**, 32 logs (todos ignorados) e 10
+  artefatos (todos sob `artifacts/`). O selo versionável — 85 linhas, **0 log, 0 bundle, 0 patch** —
+  **verifica em clone limpo** (85/85), que é o teste que a receita ingênua não passa.
+- **Achado do scan de segredo, revisado e declarado.** `rangeSecretScan = review` com **7 hits**: 6 em
+  `scripts/local-ci.sh` são a credencial **loopback de teste** `postgres:postgres@127.0.0.1`
+  (documentada em `docker-compose.yml` e no `AGENTS.md`) e 1 é o placeholder `<host>` de um teste de
+  regressão no ledger. Os padrões de token (`ghp_`, `gho_`, `xox…`) e de chave (`BEGIN … PRIVATE KEY`,
+  `AKIA…`) deram **0 hits**. Nenhum segredo real.
+- **Item 6 encaminhado — `ADR-030` em PROPOSTA, nada implementado.** `m02:boundaries` e
+  `m02:secrets-audit` continuam **fora** de todo gate; a proposta é encadeá-las no `npm run check` e
+  replicá-las como passos diretos do `verify`, com **caso negativo que falsifique cada uma** (exigência
+  verbatim de DBT-19). **Custo medido (3 execuções cada):** 240/204/197 ms e 1781/1802/1828 ms — total
+  ≈ **2,0 s**, contra e2e 240 s e vitest 151 s que motivaram o tiering. **Precondições verificadas por
+  leitura:** ambas importam só `node:fs`/`node:path`/`node:url` — sem rede, sem banco, sem plataforma; a
+  light já as roda **sem `npm ci`**. **Assimetria de testabilidade medida:** `secrets-audit` exporta
+  `auditSecrets` para fixture (caso negativo limpo), `boundaries` **não aceita raiz** (caso negativo por
+  mutação restaurada por sha256). Nada de `package.json`, `npm run check`, workflow ou `DEBTS.md` foi
+  tocado — o contrato exige aprovação humana.
+- **Pedido ao MAESTRO aberto:** `docs/sdd/SDD-20260923-evidence-policy/MAESTRO-REQUEST-DBT-23.md`
+  registra L1/L2 (contagens "em `measuredAt`"; `manifest.sha256` fora do selo versionável) para eventual
+  `DBT-23`. `DEBTS.md` e `QUEUE.md` têm o MAESTRO como escritor e **não** foram editados.
 
-  Latest state marker parent = `20cba84100871953ab5377873f8ef2877916feaf`,
+  Latest state marker parent = `ab3ef42c19934c6fdd0813ed208b00b460c1ceec`,

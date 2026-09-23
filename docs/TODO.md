@@ -30,12 +30,19 @@
   de CI** ⇒ provável ADR).
 - ☐ **Item 7 — `SDD-20260923-post-billing-sweep`** — SPEC escrita; **bloqueado** pelo billing.
 - ☐ **Item 8 — `SDD-20260923-push-publication-policy`** — SPEC escrita; aguarda aprovação.
-- ☐ **Item 9 — repetir o ciclo para o commit `86565f0`.** A evidência selada cobre `3c088b6`; `86565f0`
-  é metadata + marcador e **não** passou pelo `local-ci`. Rodar `./scripts/local-ci.sh` em `86565f0`
-  quando fizer sentido (custo ~5 min) e decidir se a evidência nova é versionada.
-- ☐ **Item 10 — decidir o destino da evidência de `8683c2d`** (local, layout anterior à política, com
-  `preservation/` não ignorado). Opções: manter local (atual), versionar só o metadata descartando
-  `preservation/`, ou descartar com registro.
+- ☑ **Item 9 — selar o tip `20cba84`.** `local-ci` `verdict=success` em **328 s**, `m02:state:check` =
+  `success`, `pendencies` vazio, e2e verde, tier de banco por escopo. Evidência versionada
+  (`ab3ef42`) e **selo versionável verificado em clone limpo (85/85)**.
+- ☑ **Item 6 (preparação) — DBT-19 via ADR.** `ADR-030` em **PROPOSTA** + SDD completa
+  (REQ-01…REQ-10, AC-01…AC-10, T0…T11, RISK-01…RISK-10). **Custo medido:** ≈2,0 s. **Nada implementado.**
+- ☐ **Item 6 (implementação) — BLOQUEADO por aprovação de contrato.** Destrava T1–T11 do
+  `04-plan.md`. Enquanto não aprovado: `package.json`, `npm run check`, `ui-stack.yml` e `DEBTS.md`
+  permanecem intocados.
+- ☐ **Item 5 — `SDD-20260923-local-ci-hardening`** — SPEC escrita; aguarda aprovação (incorpora L1/L2 e a
+  redução de ruído do scan de segredo: excluir a credencial loopback documentada).
+- ☐ **Item 7 — `SDD-20260923-post-billing-sweep`** — **bloqueado** pelo billing.
+- ☐ **Item 8 — `SDD-20260923-push-publication-policy`** — aguarda aprovação.
+- ☐ **Item 10 — destino da evidência de `8683c2d`** (local, layout anterior à política).
 
 ## Lacunas declaradas no ciclo (candidatas a dívida no registry)
 
