@@ -2580,5 +2580,35 @@ stack` em um dia = ~84 min de runner.
 - **Isolamento.** Sem worktree concorrente, sem migration, sem container de banco (`:5432` intocado — o
   tier de banco segue por escopo), `origin/develop` = `a2f5ff6` **intocado**, `origin/main` = `9724d2c`
   intocado, **nenhum push** e nenhuma chamada de billing. Rollback = `git revert` do commit do ciclo.
+- **Aceite medido (antes × depois).** `m02:state:check` era `exit 1` (`Ledger M-02 desatualizado`) e
+  passou a `state marker is valid`; no `local-ci` a etapa saiu de **`failure`** (rodadas de `8683c2d`)
+  para **`success`**, com `verdict=success` em 311 s e `pendencies` vazio. O ledger é **aditivo**
+  (`+29 −0` pelo `--numstat`), sem `--amend`, `rebase` ou reescrita.
+- **Política de evidência — o que de fato mudou.** Bundle e patches passam a viver sob `artifacts/`,
+  que o **próprio `.gitignore`** exclui (`docs/evidence/**/artifacts/`), de modo que a política é
+  imposta pelas regras do Git e **não** por lista mantida à mão; o manifesto declara
+  `policy=metadata-only`, `gitTrackedLogs=false` (**derivado**, nunca afirmado) e contagens **medidas**;
+  o selo `evidence.git.sha256` cobre só o versionável (**85 arquivos, 0 logs**) e **verifica em clone
+  limpo** (85/85), enquanto o selo integral cobre tudo (128/128). O conjunto commitado é **idêntico**
+  ao conjunto selado — comitar só cinco arquivos de metadata deixaria o selo apontando para 80
+  ausentes, que é a contradição que o ciclo remove.
+- **Controle negativo (o que impede a etapa de ser decorativa).** Seis casos em fixture de git isolado
+  com `.gitignore` **sem** `*.log`: log versionável ⇒ exit 1; bundle/patch **fora** de `artifacts/` ⇒
+  exit 1; bundle **sob** `artifacts/` ⇒ exit 0; árvore vazia ⇒ exit 2. `casos OK: 6 | FALHOS: 0`. Dois
+  defeitos do próprio instrumento foram achados por ele e corrigidos **antes** do commit: leitura de
+  `git check-ignore` quebrado como "nada ignorado" (**porta fail-open**) e regra de artefato cega fora
+  de `artifacts/` (bundle na raiz escaparia).
+- **Lacunas declaradas (não escondidas).** **L1:** as contagens do manifesto valem **em `measuredAt`**,
+  não no fim — delta exato de **3** arquivos criados depois da última medição
+  (`evidence-policy-final.status`, `evidence-git-checksum.log`, `manifest.sha256`):
+  `filesTotal` 125 medido × 128 final, `logsTotal` 32 × 33. **L2:** `manifest.sha256` fica **fora** do
+  selo versionável (criado após o último `generate_git_checksum`; coberto pelo integral; derivável do
+  `manifest.json`). **L3:** os `steps[].log` citados pelo manifesto não existem em clone — consequência
+  **declarada e aceita** da política (`gitTrackedLogs=false`). Abertura de `DBT-23` para L1/L2 é **ação
+  humana** (o registry tem o MAESTRO como escritor).
+- **Nota de arquitetura — o push deste ciclo não é barato.** Os commits tocam a **raiz** do ledger e
+  `scripts/**`, portanto **não** caem no `paths-ignore`: o primeiro push dispara a **heavy** (≈9,7 min) —
+  a mesma armadilha registrada no ciclo anterior. Decisão de quando pagar esse custo é humana
+  (`SDD-20260923-push-publication-policy`, `REQ-02`).
 
-  Latest state marker parent = `3c088b671c6c4825eaa251dcc24743802b329048`,
+  Latest state marker parent = `86565f017d6e7f58ae864a9b5fc46ec5b01a90aa`,
