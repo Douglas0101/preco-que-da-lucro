@@ -2553,3 +2553,32 @@ stack` em um dia = ~84 min de runner.
     `docs/evidence/analise-avancada-ci-tiers-wpr8-2026-09-21.md`.
 
   Latest state marker parent = `41e776b85e264565ebcac2abfc62ff8e6ac2b0ce`,
+
+### Ciclo `SDD-20260923` — dívida do marcador e política de evidência (2026-09-23)
+
+- **O que este bloco corrige.** O marcador parent-pinned acima (`41e776b`) ficou **cinco commits atrás** do
+  HEAD (`8683c2d`) e `npm run m02:state:check` passou a reprovar. Nada o pegou antes porque
+  `m02:state:check` **não pertence a pipeline nenhum** — não está na cadeia `npm run check`, não é passo
+  direto do `verify` do `ui-stack` e não roda na light; é passo **manual** do protocolo de boot. É a
+  terceira ocorrência da mesma família no ledger (`INV-006` e o ciclo de `a0d1f38`, este último já com a
+  lição escrita: _"o marcador é parte do commit, não um passo posterior"_).
+- **Como foi corrigido.** Bloco **aditivo** com o marcador novo — sem `--amend`, sem `rebase`, sem
+  reescrever a linha histórica acima. Cada commit do ciclo carrega a sua própria linha, de modo que o
+  marcador válido acompanha o tip.
+- **Dívida de bookkeeping irmã, medida e declarada.** Um `git add docs/evidence/local-ci/<sha>` versionaria
+  o `manifest.json` — que cita **cada** log por nome (`steps[].log`) — sem versionar **nenhum** dos 58
+  `*.log`, que o `.gitignore` ignora globalmente. A contradição foi fechada por política explícita:
+  **`metadata-only`** no manifesto (`evidence.policy`, `gitTrackedLogs=false`, `localLogsAvailable=true`),
+  selo `evidence.git.sha256` restrito ao conjunto que o Git versiona e etapa `evidence-policy-check`
+  **fail-closed com controle negativo** (verificador que nunca reprova não é verificador).
+- **Cadeia documental.** `docs/sdd/SDD-20260923-ledger-state-marker/` e
+  `docs/sdd/SDD-20260923-evidence-policy/` (conjuntos completos: spec, aceite, design, plano, risco,
+  rastreabilidade); quatro **SPEC-only** aguardando aprovação humana — `local-ci-hardening`,
+  `boundary-guard-dbt19` (fecha a lacuna declarada no `AGENTS.md`: `m02:boundaries` em gate nenhum e
+  `m02:secrets-audit` só na light), `post-billing-sweep` e `push-publication-policy`; fila de execução do
+  agente em `docs/TODO.md`, distinta da `QUEUE.md`, cujo escritor é o MAESTRO.
+- **Isolamento.** Sem worktree concorrente, sem migration, sem container de banco (`:5432` intocado — o
+  tier de banco segue por escopo), `origin/develop` = `a2f5ff6` **intocado**, `origin/main` = `9724d2c`
+  intocado, **nenhum push** e nenhuma chamada de billing. Rollback = `git revert` do commit do ciclo.
+
+  Latest state marker parent = `8683c2dbe46a98eb98be7a734cbc951e00cfa6b5`,
