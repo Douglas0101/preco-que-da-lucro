@@ -2669,5 +2669,23 @@ stack` em um dia = ~84 min de runner.
   rodar com entradas sujas fora de `docs/evidence/local-ci/`, com escape declarado
   `LOCAL_CI_ALLOW_DIRTY=1` — testado contra a árvore suja real, reprovando como esperado. Evidência por
   SHA com rótulo que não corresponde ao conteúdo é pior do que nenhuma evidência.
+- **DBT-19 tecnicamente fechada em `c7e6a55`.** As duas guardas estão no encadeamento do `check` (16
+  membros) **e** como passos diretos do `verify`; a tabela de cobertura, a lista da cadeia, a contagem
+  ("14 dos 16") e a baseline de segurança do `AGENTS.md` foram atualizadas **no mesmo commit**. O
+  veredicto do `m02:secrets-audit` passou a distinguir `2` (precondição/cobertura incompleta), `1`
+  (literal de segredo detectado) e `0` (limpo) — antes ele **detectava** o literal e saía `0`, o que
+  teria produzido **cobertura de segredo apenas aparente**; e o `m02:boundaries` passou a devolver `2`
+  de precondição, distinto do `1` de violação. **Closure test:** `src/test/m02-boundary-gate.test.ts`,
+  6 casos, com o tripwire de dívida invertido conforme a própria instrução. **Custo remedido:** 208 ms e
+  1987 ms (médias de 3), trecho encadeado 2327 ms. **Validação no commit selado:** `npm run check`
+  exit 0 e `local-ci` `verdict=success` (351 s) com **tier de banco executado e verde** e e2e verde.
+- **Falha investigada e refutada, para não virar lenda.** A primeira re-selagem teve e2e vermelho (1 de
+  30: login sem redirecionar), com correlação **exata** ao tier de banco (4 rodadas com `db:test` pulado
+  ⇒ e2e verde; a única com o tier ⇒ e2e vermelho). Experimento controlado com `db:test` **antes** do e2e
+  no mesmo container efêmero deu **30/30 verde**, e a re-selagem seguinte passou com os dois verdes:
+  **transiente** (`retries: 0` no `playwright.config.ts`), não interação entre tiers.
+- **Fechamento de `DBT-19` no registry é ato do MAESTRO** — pedido com closure test em
+  `docs/sdd/SDD-20260923-boundary-guard-dbt19/MAESTRO-REQUEST-DBT-19-CLOSURE.md`. `DEBTS.md` e
+  `QUEUE.md` seguem **intocados**.
 
-  Latest state marker parent = `36c4bded22f93ccc451b0e35ee630b3c71f5819b`,
+  Latest state marker parent = `c7e6a558e0da3abc7e30e36ab698d0119e078b80`,

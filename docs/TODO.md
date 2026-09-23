@@ -35,18 +35,22 @@
   (`ab3ef42`) e **selo versionável verificado em clone limpo (85/85)**.
 - ☑ **Item 6 (preparação) — DBT-19 via ADR.** `ADR-030` em **PROPOSTA** + SDD completa
   (REQ-01…REQ-10, AC-01…AC-10, T0…T11, RISK-01…RISK-10). **Custo medido:** ≈2,0 s. **Nada implementado.**
-- ☐ **Item 6 (implementação) — PARADO ANTES DO ENCADEAMENTO (decisão humana pendente).**
-  A aprovação exigia casos negativos antes do encadeamento; a prova **reprovou para `m02:secrets-audit`**:
-  ele detecta literais de segredo mas sai `0` (o exit code só olha cobertura). Encadeá-lo daria cobertura
-  de segredo **aparente**. `m02:boundaries` **passou** (exit 1 com violação, exit 0 na árvore real).
-  Entregue sem tocar gate: `src/test/m02-boundary-gate.test.ts` (5 casos, 815 ms).
-  **Decisão necessária:** (a) corrigir o exit code do `secrets-audit` para considerar
-  `possible_secret_literals` — altera semântica de guarda compartilhada, fora do não-objetivo do ADR §4;
-  (b) encadear **só** `m02:boundaries` e reescopar a metade de segredos de DBT-19; (c) manter ambas fora
-  do gate e declarar a limitação. Detalhes em `docs/adr/ADR-030-boundary-guard-dbt19.md` §9 (errata).
-- ☐ **Item 6b — correção in-scope identificada e não aplicada:** separar `1` (violação) de `2`
-  (precondição) em `m02:boundaries` — exigido por AC-02 do contrato já aprovado; não aplicado para não
-  editar guarda durante um STOP.
+- ☑ **Item 6 — DBT-19 IMPLEMENTADO e VALIDADO.** Guardas encadeadas no `check` (16 membros) e no
+  `verify`; veredicto do `secrets-audit` corrigido (`2`/`1`/`0`); `AGENTS.md` atualizado no mesmo commit;
+  closure test de **6 casos**; `npm run check` exit 0 e `local-ci` `verdict=success` (351 s) no commit
+  selado `c7e6a55`. Custo remedido: 208 ms + 1987 ms.
+- ☐ **Item 6c — [MAESTRO] fechar `DBT-19` no registry.** Pedido pronto em
+  `docs/sdd/SDD-20260923-boundary-guard-dbt19/MAESTRO-REQUEST-DBT-19-CLOSURE.md` com closure test
+  apontando para `src/test/m02-boundary-gate.test.ts`. Agente não escreve no `DEBTS.md`.
+- ☐ **Item 5 — hardening do `local-ci`** (próxima candidata). Candidatas já **medidas** neste ciclo:
+  (a) ruído do scan de segredo na credencial **loopback documentada** `postgres:postgres@127.0.0.1`
+  (6 dos 7 hits) e no placeholder `<host>`; (b) L1 — contagens do manifesto valem "em `measuredAt`",
+  delta de 3 arquivos; (c) L2 — `manifest.sha256` fora do selo versionável. **Já feito neste ciclo:**
+  precondição que recusa selar com árvore suja fora da evidência (fecha a classe do mislabel).
+- ☐ **Item 5b — flakiness do e2e sob carga.** Uma falha em 30 (`login` sem redirecionar) num total de 6
+  rodadas; a hipótese de interação com o tier de banco foi **refutada** por experimento controlado
+  (30/30 com `db:test` antes). Com `retries: 0`, um transiente custa a rodada inteira — decidir se vale
+  investigar a fundo ou declarar como limite conhecido.
 - ☐ **Item 5 — `SDD-20260923-local-ci-hardening`** — SPEC escrita; aguarda aprovação (incorpora L1/L2 e a
   redução de ruído do scan de segredo: excluir a credencial loopback documentada).
 - ☐ **Item 7 — `SDD-20260923-post-billing-sweep`** — **bloqueado** pelo billing.

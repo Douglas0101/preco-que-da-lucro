@@ -1,0 +1,14 @@
+76a2a6f30b3aeadf87f977b9d184fd3afa587d1ff51afff59ddf81df6fb1354c  ./local-commits-c7e6a55.bundle
+412d45779eeb3ec00e73934f29e786c076b70a9cbbf0e8b9cedb6d2c1d0dd78c  ./patches/0001-docs-evidence-close-the-WP-R8-marker-and-declare-the.patch
+836dc1a972fd841dcd4e79ed9bfaf015ab6edb82006f8d71748c5d4f0d5185e5  ./patches/0002-docs-evidence-refresh-the-session-handoff-for-the-CI.patch
+7f4d285558ba729526c667823111912c059ecca98d5407a3d6e778469cb8b723  ./patches/0003-test-ci-cover-the-rewritten-history-door-of-the-CI-s.patch
+b849f8fdf416766b4b7bb6dddf65ec9f36b88d859afef63035620aba3808b3f3  ./patches/0004-docs-evidence-persist-the-advanced-R8-analysis-and-r.patch
+ffb06c1f24ab89ee77ba24aa4d1e451d08832f9402a4393d560d282e1ec5d1d9  ./patches/0005-docs-evidence-open-the-light-CI-unblock-probe-and-pr.patch
+b8a4b9dd697bffc31c6aa08a0f357da9dfdcb090bdd51372490c94dde4f077b9  ./patches/0006-docs-evidence-record-the-unblock-probe-verdict-billi.patch
+8f32c74133ecaed9790a2e1f56eba0af5be50ecb32598983110bb5d7aad01550  ./patches/0007-docs-sdd-restore-the-ledger-state-marker-and-declare.patch
+2e91d95e764d7bc82451b51f7e6fcec487ae5e7c7a94dde94d9bd476f5134d6d  ./patches/0008-evidence-local-ci-version-the-metadata-only-evidence.patch
+2055330ab3b44826779729b78dd4dcef39543446f2f7297e97fcf74295ca92db  ./patches/0009-docs-sdd-close-the-SDD-20260923-cycle-with-its-evide.patch
+7ed9813e1ef03d6cdb2ced570f60f268f9bd709e2e100c83b9eb743d7f25aff5  ./patches/0010-evidence-local-ci-version-metadata-only-evidence-for.patch
+b4751d288a411d8111abb30093d5eca7293c0c87eec97da2f36d792c96430f21  ./patches/0011-adr-sdd-propose-the-DBT-19-boundary-guard-contract-a.patch
+d6e5303b2a7f718d2c1d3f0fb93e6af33754c1bf0ed5d69c948051422595f1eb  ./patches/0012-test-boundaries-add-the-DBT-19-closure-test-and-stop.patch
+86ca3c578829f8d5f3fe661642bb101c2b71b49cb325877673e155d954047e59  ./patches/0013-ci-guards-chain-m02-boundaries-and-m02-secrets-audit.patch
