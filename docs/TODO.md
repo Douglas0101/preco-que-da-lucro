@@ -35,9 +35,18 @@
   (`ab3ef42`) e **selo versionável verificado em clone limpo (85/85)**.
 - ☑ **Item 6 (preparação) — DBT-19 via ADR.** `ADR-030` em **PROPOSTA** + SDD completa
   (REQ-01…REQ-10, AC-01…AC-10, T0…T11, RISK-01…RISK-10). **Custo medido:** ≈2,0 s. **Nada implementado.**
-- ☐ **Item 6 (implementação) — BLOQUEADO por aprovação de contrato.** Destrava T1–T11 do
-  `04-plan.md`. Enquanto não aprovado: `package.json`, `npm run check`, `ui-stack.yml` e `DEBTS.md`
-  permanecem intocados.
+- ☐ **Item 6 (implementação) — PARADO ANTES DO ENCADEAMENTO (decisão humana pendente).**
+  A aprovação exigia casos negativos antes do encadeamento; a prova **reprovou para `m02:secrets-audit`**:
+  ele detecta literais de segredo mas sai `0` (o exit code só olha cobertura). Encadeá-lo daria cobertura
+  de segredo **aparente**. `m02:boundaries` **passou** (exit 1 com violação, exit 0 na árvore real).
+  Entregue sem tocar gate: `src/test/m02-boundary-gate.test.ts` (5 casos, 815 ms).
+  **Decisão necessária:** (a) corrigir o exit code do `secrets-audit` para considerar
+  `possible_secret_literals` — altera semântica de guarda compartilhada, fora do não-objetivo do ADR §4;
+  (b) encadear **só** `m02:boundaries` e reescopar a metade de segredos de DBT-19; (c) manter ambas fora
+  do gate e declarar a limitação. Detalhes em `docs/adr/ADR-030-boundary-guard-dbt19.md` §9 (errata).
+- ☐ **Item 6b — correção in-scope identificada e não aplicada:** separar `1` (violação) de `2`
+  (precondição) em `m02:boundaries` — exigido por AC-02 do contrato já aprovado; não aplicado para não
+  editar guarda durante um STOP.
 - ☐ **Item 5 — `SDD-20260923-local-ci-hardening`** — SPEC escrita; aguarda aprovação (incorpora L1/L2 e a
   redução de ruído do scan de segredo: excluir a credencial loopback documentada).
 - ☐ **Item 7 — `SDD-20260923-post-billing-sweep`** — **bloqueado** pelo billing.

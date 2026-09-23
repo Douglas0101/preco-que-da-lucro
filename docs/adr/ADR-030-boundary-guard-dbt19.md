@@ -118,3 +118,27 @@ nenhum guard, o revert restaura exatamente o estado atual. Este ADR permanece no
 **Requer aprovação humana/contratual explícita antes de alterar gates.** Enquanto ela não existir, este
 ADR fica em **PROPOSTA** e a implementação **não** é iniciada — nem `package.json`, nem `npm run check`,
 nem workflows, nem `local-ci.sh` em ponto que mude veredicto, nem `DEBTS.md`.
+
+## 9. Errata (2026-09-23, durante a implementação aprovada)
+
+O contrato foi **aprovado** (`APPROVE_ADR_030=yes`) com a condição _"nenhuma guard pode ser adicionada
+sem prova de que sabe reprovar"_. Executados os casos negativos (T1–T5), a prova **reprovou para
+`m02:secrets-audit`** e o encadeamento **não** foi feito. Duas correções ao corpo acima:
+
+1. **§1.5 (assimetria de testabilidade) — superada, para melhor.** O plano previa mutar
+   `docs/specs/M-02/matrix.yaml` e restaurar por sha256 (RISK-02). Como o guard lê **apenas** a matriz e
+   usa `existsSync` nos caminhos de catálogo (sem `readdir`), o caso negativo roda sobre uma **cópia** em
+   `mkdtemp` com placeholders de catálogo: **o repositório real nunca é mutado** e RISK-02 deixa de
+   existir. Evidência: `docs/sdd/SDD-20260923-boundary-guard-dbt19/07-evidence.md`.
+2. **§2 (decisão) — bloqueada por um fato novo e medido.** `m02:secrets-audit` **detecta** literais de
+   segredo (`possible_secret_literals`, três padrões) mas **não reprova por eles**: o bloco `main` decide
+   o exit code apenas por cobertura (`coverage.failures.length ? 2 : 0`). Medido: com um `ghp_…` falso no
+   fixture, o CLI sai **0**. Logo o contrato real da guarda é **mapa de consumidores com cobertura
+   fail-closed** — não um gate de segredo. Encadeá-la como está produziria **cobertura de segredo apenas
+   aparente**, exatamente a classe de defeito que DBT-19 denuncia.
+
+**Consequência:** a decisão A2 fica **pendente de uma escolha humana** entre (a) corrigir o exit code da
+guarda para considerar `possible_secret_literals` — o que **altera a semântica** de uma guarda
+compartilhada e por isso está **fora** do não-objetivo declarado em §4 —, (b) encadear apenas
+`m02:boundaries` (falsificável, provado) e reescopar a metade de segredos de DBT-19, ou (c) manter ambas
+fora do gate e declarar a limitação. **Nada foi implementado em nenhum dos casos.**

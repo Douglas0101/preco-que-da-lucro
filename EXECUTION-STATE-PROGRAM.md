@@ -2634,5 +2634,25 @@ stack` em um dia = ~84 min de runner.
 - **Pedido ao MAESTRO aberto:** `docs/sdd/SDD-20260923-evidence-policy/MAESTRO-REQUEST-DBT-23.md`
   registra L1/L2 (contagens "em `measuredAt`"; `manifest.sha256` fora do selo versionável) para eventual
   `DBT-23`. `DEBTS.md` e `QUEUE.md` têm o MAESTRO como escritor e **não** foram editados.
+- **Contrato do ADR-030 aprovado e NÃO implementado — STOP antes do encadeamento.** A aprovação exigiu
+  casos negativos **antes** do encadeamento, sob a regra "nenhuma guard pode ser adicionada sem prova de
+  que sabe reprovar". A prova **reprovou para `m02:secrets-audit`**: ele **detecta** literais de segredo
+  (`possible_secret_literals`, três padrões) e ainda assim sai **`0`**, porque o bloco `main` decide o
+  exit code **apenas** por cobertura (`coverage.failures.length ? 2 : 0`). Medido em fixture isolado:
+  com `ghp_…` falso presente, o CLI responde `COMPLETE_WITH_LIMITS` e exit **0**. O contrato real da
+  guarda é **mapa de consumidores com cobertura fail-closed** — não um gate de segredo —, o que o teste
+  existente `src/test/m02-secrets-audit.test.ts` já documenta. Encadeá-la como está daria **cobertura de
+  segredo apenas aparente**.
+- **`m02:boundaries` passou na prova:** exit **1** nomeando a violação em fixture com `databasePaths`
+  não-allowlisted, e exit **0** na árvore real (sem falso positivo, com toda a evidência local presente).
+  Gap remanescente: com a matriz ausente ele sai **1** com stack cru, **sem distinguir** precondição de
+  violação (AC-02 pendente).
+- **Entregue sem tocar gate nenhum:** closure test `src/test/m02-boundary-gate.test.ts` (**5 casos,
+  815 ms**), com controle positivo antes da mutação e um **tripwire de dívida** que asserta o exit 0
+  atual do audit e manda inverter a asserção quando a guarda for corrigida. A prova roda sobre **cópia
+  em `mkdtemp`** — o repositório real nunca é mutado (o plano previa mutar `matrix.yaml` e restaurar por
+  sha256; a cópia elimina esse risco).
+- **Intocados, por contrato:** `package.json`, `npm run check`, `ui-stack.yml`, `ci-light.yml`,
+  `AGENTS.md`, as duas guardas, `DEBTS.md` e `QUEUE.md`. **Nada de T6 em diante foi executado.**
 
-  Latest state marker parent = `ab3ef42c19934c6fdd0813ed208b00b460c1ceec`,
+  Latest state marker parent = `f64e254c415035cf49654af7e17ae36d0df4710e`,
