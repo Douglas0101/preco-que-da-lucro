@@ -134,6 +134,11 @@ jobs:
       - run: npm run m02:work-package-guard
       - run: npm run m02:debts-guard
       - run: npm run m02:temporal-guard
+      # DBT-19: as duas guardas abaixo rodavam em gate nenhum (`m02:boundaries`) ou so na light
+      # (`m02:secrets-audit`), entao um push so de codigo nunca as executava. Ambas sao offline,
+      # sem banco e baratas (~2,0 s medidas em 2026-09-23), por isso nao entram em tier.
+      - run: npm run m02:boundaries
+      - run: npm run m02:secrets-audit
       - run: npm run m02:matrix:check
       - run: npm run check:ui-stack
       - run: npm run check:no-supabase-runtime

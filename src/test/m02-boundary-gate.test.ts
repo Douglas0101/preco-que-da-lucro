@@ -28,7 +28,11 @@ afterEach(() => fixtures.splice(0).forEach((dir) => rmSync(dir, { recursive: tru
 
 function runGuard(script: string, cwd: string) {
   const result = spawnSync(TSX, [script], { cwd, encoding: "utf8" });
-  return { status: result.status, out: `${result.stdout ?? ""}${result.stderr ?? ""}` };
+  const stdout = result.stdout ?? "";
+  const stderr = result.stderr ?? "";
+  // stdout e stderr separados de proposito: o CLI imprime o relatorio JSON em stdout e o
+  // diagnostico legivel (arquivo:linha, sem valor) em stderr — concatenar quebraria o JSON.parse.
+  return { status: result.status, stdout, stderr, out: `${stdout}${stderr}` };
 }
 
 /** Cópia mínima: o guard lê apenas a matriz e usa `existsSync` nos caminhos de catálogo. */
@@ -88,13 +92,13 @@ describe("DBT-19 · falsificabilidade das guardas", () => {
     expect(out).toContain("src/not-allowlisted/evil.server.ts");
   });
 
-  it("T4 — m02:boundaries NÃO devolve sucesso com a matriz ausente (fail-closed)", () => {
+  it("T4 — m02:boundaries devolve exit 2 de PRECONDIÇÃO com a matriz ausente", () => {
     const { dir, matrixPath } = boundaryFixture();
     rmSync(matrixPath);
-    const { status } = runGuard(join(dir, "scripts/m02-boundaries.ts"), dir);
-    // Fail-closed: nunca 0. O código exato ainda é 1 (stack cru) e não 2 de precondição —
-    // AC-02 do SDD-20260923-boundary-guard-dbt19 exige a distinção; este caso é o que a mede.
-    expect(status).not.toBe(0);
+    const { status, out } = runGuard(join(dir, "scripts/m02-boundaries.ts"), dir);
+    // Distinto do `1` de violação (T2): precondição não pode ser confundida com boundary violada.
+    expect(status).toBe(2);
+    expect(out).toContain("precondition failed");
   });
 
   it("T5 — m02:secrets-audit DETECTA literal de segredo sem vazar o valor", () => {
@@ -111,11 +115,11 @@ describe("DBT-19 · falsificabilidade das guardas", () => {
     expect(JSON.stringify(report)).not.toContain(fake);
   });
 
-  it("GAP DECLARADO — o CLI do secrets-audit NÃO reprova na presença do literal (exit 0)", () => {
-    // Tripwire de dívida, não comportamento desejado: o audit DETECTA (T5) mas o exit code
-    // ignora `possible_secret_literals` (`scripts/m02-secrets-audit.ts`: `failures.length ? 2 : 0`).
-    // Encadear esta guarda como está daria cobertura de SEGREDO apenas aparente. Quando a guarda
-    // for corrigida para reprovar no literal, INVERTER esta asserção para `toBe(1)`.
+  it("T6 — o CLI do secrets-audit REPROVA na presença do literal (exit 1)", () => {
+    // Tripwire invertido: até 2026-09-23 o exit code ignorava `possible_secret_literals`
+    // (`failures.length ? 2 : 0`) e este caso assertava `0`. A correção aprovada no ciclo
+    // SDD-20260923 (ADR-030 §9) fez o veredicto considerar o literal; a asserção foi invertida
+    // conforme a instrução que o próprio caso carregava.
     const dir = mkdtempSync(join(tmpdir(), "dbt19-audit-cli-"));
     fixtures.push(dir);
     mkdirSync(join(dir, "scripts"), { recursive: true });
@@ -126,8 +130,27 @@ describe("DBT-19 · falsificabilidade das guardas", () => {
     );
     writeFileSync(join(dir, "src/leak.ts"), `const k = "ghp_${"A".repeat(40)}";\n`);
 
-    const { status, out } = runGuard(join(dir, "scripts/m02-secrets-audit.ts"), dir);
-    expect(JSON.parse(out).possible_secret_literals).toHaveLength(1);
-    expect(status).toBe(0);
+    const { status, stdout, stderr } = runGuard(join(dir, "scripts/m02-secrets-audit.ts"), dir);
+    expect(JSON.parse(stdout).possible_secret_literals).toHaveLength(1);
+    expect(status).toBe(1);
+    // Legível sem vazar valor: nomeia arquivo:linha em stderr.
+    expect(stderr).toContain("possible secret literal at src/leak.ts:1");
+    expect(stderr).not.toContain(`ghp_${"A".repeat(40)}`);
+  });
+
+  it("T7 — o CLI do secrets-audit devolve exit 2 de PRECONDIÇÃO com cobertura incompleta", () => {
+    // `2` (precondição) tem de continuar distinto de `1` (violação): cobertura incompleta não é
+    // achado de segredo, é impossibilidade de auditar.
+    const dir = mkdtempSync(join(tmpdir(), "dbt19-audit-pre-"));
+    fixtures.push(dir);
+    mkdirSync(join(dir, "scripts"), { recursive: true });
+    mkdirSync(join(dir, "src"), { recursive: true });
+    writeFileSync(
+      join(dir, "scripts/m02-secrets-audit.ts"),
+      readFileSync(join(ROOT, "scripts/m02-secrets-audit.ts")),
+    );
+    writeFileSync(join(dir, "src/oversize.ts"), "a".repeat(1024 * 1024 + 1));
+
+    expect(runGuard(join(dir, "scripts/m02-secrets-audit.ts"), dir).status).toBe(2);
   });
 });

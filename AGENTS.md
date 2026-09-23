@@ -19,8 +19,8 @@
 
 ## Local quality gate (definition of done)
 
-- Before pushing, run `npm run check` and keep it green. It chains `m02:lockfile-guard`, `m02:work-package-guard`, `m02:debts-guard`, `m02:temporal-guard`, `m02:matrix:check`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
-- The CI `verify` job (`.github/workflows/ui-stack.yml`) runs **12 dos 14** scripts da cadeia `check` como passos diretos, mais `npm audit --audit-level=high`, e — **em tiers** — `db:test`/`db:check` (diff de banco) e Playwright e2e (chromium+mobile no push, +firefox+webkit no PR); a matriz completa roda em **todo PR** e no `workflow_dispatch`. A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
+- Before pushing, run `npm run check` and keep it green. It chains `m02:lockfile-guard`, `m02:work-package-guard`, `m02:debts-guard`, `m02:temporal-guard`, `m02:boundaries`, `m02:secrets-audit`, `m02:seal-dts:check`, `m02:matrix:check`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
+- The CI `verify` job (`.github/workflows/ui-stack.yml`) runs **14 dos 16** scripts da cadeia `check` como passos diretos, mais `npm audit --audit-level=high`, e — **em tiers** — `db:test`/`db:check` (diff de banco) e Playwright e2e (chromium+mobile no push, +firefox+webkit no PR); a matriz completa roda em **todo PR** e no `workflow_dispatch`. A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
 
   **Cobertura de guardas, por pipeline (não é "os mesmos gates" — é esta tabela; DBT-19):**
 
@@ -30,8 +30,8 @@
   | `m02:lockfile-guard` | ✔ | ✘ — o *drift* é pego por `npm ci --ignore-scripts` (`EUSAGE`); a asserção do pin de `drizzle-kit` **não** roda em push de código | ✔ (passo direto) |
   | `m02:seal-dts:check` | ✔ | ✘ como passo — coberto **por equivalente** dentro de `npm run test` (`src/test/m02-seal.test.ts` executa `generate-seal-dts.mjs --check` e falha por byte-diff, com controle negativo) | ✘ |
   | `m02:matrix:check`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, `check:bundle` | ✔ | ✔ (passo direto) | ✘ (só `format:check` nos arquivos alterados) |
-  | `m02:secrets-audit` | ✘ | ✘ | ✔ (passo direto) — um push **só de código** nunca o executa |
-  | `m02:boundaries` | ✘ | ✘ | ✘ — declarado contrato e **não ligado a gate nenhum** (DBT-19) |
+  | `m02:secrets-audit` | ✔ | ✔ (passo direto) | ✔ (passo direto) — **DBT-19 fechado em 2026-09-23**: até então um push **só de código** nunca o executava |
+  | `m02:boundaries` | ✔ | ✔ (passo direto) | ✘ — a light só dispara quando **todos** os arquivos alterados estão sob `docs/evidence/**`, e a matriz (`docs/specs/M-02/`) não muda nesse caso. **DBT-19 fechado em 2026-09-23**: até então não estava ligado a gate nenhum |
   | `m02:state:check` | ✘ | ✘ | ✘ — é passo do protocolo de boot, roda à mão |
 
   A tabela é o contrato: um gate que aparece como ✔ tem de estar no encadeamento do pipeline citado, e um ✘ **nomeado** (com o equivalente, quando existe) é limite declarado, não lacuna esquecida.
@@ -61,7 +61,7 @@
 ## Security baseline
 
 - The Content Security Policy in `src/start.ts` is strict (`script-src 'self'`). Never add `'unsafe-inline'` or new hosts without first verifying the package's actual runtime behavior in its published dist and documenting that evidence in the PR. (PR #42 lesson: `@vercel/analytics` injects an external same-origin script via DOM — the strict CSP already covered it, and the proposed relaxation was reverted.)
-- Keep `m02:secrets-audit`, `m02:boundaries`, and the env guard green; they are contract, not decoration — **e hoje dois deles não rodam em gate nenhum em push de código** (`m02:secrets-audit` só na light; `m02:boundaries` em lugar nenhum, DBT-19). Verde medido à mão em 2026-09-22: `m02:boundaries` → *"BFF boundary is clean"*. Declarar contrato e não executá-lo é a lacuna, não a guarda.
+- Keep `m02:secrets-audit`, `m02:boundaries`, and the env guard green; they are contract, not decoration. **DBT-19 fechado em 2026-09-23:** até então `m02:secrets-audit` rodava só na light e `m02:boundaries` em gate nenhum — um push só de código nunca executava nenhum dos dois. Ambos entraram no encadeamento do `check` e como passos diretos do `verify` (≈2,0 s medidos), e a **primeira** correção de então foi de fundo: o `m02:secrets-audit` **detectava** literais de segredo (`possible_secret_literals`) e ainda assim saía `0`, porque o veredicto olhava apenas a cobertura — encadeá-lo assim daria cobertura de segredo **aparente**. O exit code passou a distinguir `2` (precondição/cobertura incompleta) de `1` (literal detectado), com caso negativo versionado em `src/test/m02-boundary-gate.test.ts`. Verde medido à mão em 2026-09-22: `m02:boundaries` → *"BFF boundary is clean"*. Declarar contrato e não executá-lo é a lacuna, não a guarda.
 - Never commit secrets: `.env` stays local and gitignored; deployments read from the platform's env store.
 
 ## Deployment contract (Vercel)

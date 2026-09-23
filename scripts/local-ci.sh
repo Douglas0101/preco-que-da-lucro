@@ -711,6 +711,20 @@ command -v npm >/dev/null 2>&1 || precondition "npm ausente"
 git rev-parse --verify --quiet "${BASE}^{commit}" >/dev/null || precondition "base ${BASE} nao resolve como commit"
 git merge-base --is-ancestor "$BASE" "$SHA" 2>/dev/null || precondition "base ${BASE} nao e ancestral de ${SHA}"
 
+# Arvore suja FORA da evidencia => a rodada selaria com um SHA que NAO contem o conteudo validado.
+# Aconteceu de fato em 2026-09-23: o `local-ci` rodou com as correcoes do DBT-19 ainda nao commitadas
+# e rotulou a evidencia com o HEAD anterior. A evidencia por SHA e o produto deste instrumento; um
+# rotulo que nao corresponde ao conteudo e pior do que nenhuma evidencia. Escape declarado:
+# `LOCAL_CI_ALLOW_DIRTY=1` (uso consciente, e o `git-status.txt` da rodada registra a sujeira).
+if [ "${LOCAL_CI_ALLOW_DIRTY:-0}" != "1" ]; then
+  DIRTY_OUTSIDE="$(git status --porcelain=v1 | grep -vE '^\?\? docs/evidence/local-ci/' | grep -c . || true)"
+  if [ "$DIRTY_OUTSIDE" -gt 0 ]; then
+    log "PRECONDICAO: ${DIRTY_OUTSIDE} entrada(s) suja(s) fora de docs/evidence/local-ci/ — commite antes de selar"
+    git status --porcelain=v1 | grep -vE '^\?\? docs/evidence/local-ci/' | head -10 >&2
+    precondition "arvore suja fora da evidencia (use LOCAL_CI_ALLOW_DIRTY=1 para forcar, declarando)"
+  fi
+fi
+
 # ---------------------------------------------------------------------------
 # FASE 0 — inspecao e guarda (nada e modificado)
 # ---------------------------------------------------------------------------

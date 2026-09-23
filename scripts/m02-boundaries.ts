@@ -56,7 +56,17 @@ const repositoryRoot = resolve(import.meta.dirname, "..");
 const matrixPath = resolve(repositoryRoot, "docs/specs/M-02/matrix.yaml");
 
 function loadMatrix(): Matrix {
-  return JSON.parse(readFileSync(matrixPath, "utf8")) as Matrix;
+  try {
+    return JSON.parse(readFileSync(matrixPath, "utf8")) as Matrix;
+  } catch (error) {
+    // Precondicao, nao violacao: sem a matriz nao ha o que auditar. Antes desta correcao o erro
+    // subia cru (`node:fs` stack) e o processo saia `1`, indistinguivel de uma boundary violada —
+    // AC-02 do SDD-20260923-boundary-guard-dbt19 exige a distincao (`2` de precondicao).
+    console.error(
+      `M-02 boundary precondition failed: cannot read ${matrixPath.replace(`${repositoryRoot}/`, "")} (${(error as Error).message})`,
+    );
+    process.exit(2);
+  }
 }
 
 function isAllowed(path: string, matrix: Matrix): boolean {

@@ -2654,5 +2654,20 @@ stack` em um dia = ~84 min de runner.
   sha256; a cópia elimina esse risco).
 - **Intocados, por contrato:** `package.json`, `npm run check`, `ui-stack.yml`, `ci-light.yml`,
   `AGENTS.md`, as duas guardas, `DEBTS.md` e `QUEUE.md`. **Nada de T6 em diante foi executado.**
+- **Item 6 retomado sob aprovação — opção (a): corrigir o veredicto do `secrets-audit` e encadear as
+  duas.** O `m02:secrets-audit` passou a distinguir `2` (precondição/cobertura incompleta), `1` (literal
+  de segredo detectado) e `0` (limpo) — antes o veredicto olhava **apenas** a cobertura, então a guarda
+  detectava o literal e saía `0`; e o `m02:boundaries` passou a devolver `2` de **precondição** quando a
+  matriz é ilegível, distinto do `1` de violação (AC-02). As duas entraram no encadeamento do `check` e
+  como passos diretos do `verify`, com a tabela do `AGENTS.md` atualizada no mesmo commit.
+  **Custo remedido (3 execuções):** `boundaries` 208 ms médio e `secrets-audit` 1987 ms médio; trecho
+  encadeado 2327 ms médio. `npm run check` exit 0.
+- **Defeito do próprio instrumento, achado e fechado no caminho.** Uma rodada do `local-ci` executou com
+  a **árvore suja** e selou evidência rotulada com `36c4bde` — um SHA que **não continha** o conteúdo
+  validado. A rodada foi **arquivada** com nota de mislabel declarado (`MISLABEL-DECLARADO.md`, não
+  citável como evidência daquele commit) e o `local-ci` ganhou **precondição** que recusa (exit 2)
+  rodar com entradas sujas fora de `docs/evidence/local-ci/`, com escape declarado
+  `LOCAL_CI_ALLOW_DIRTY=1` — testado contra a árvore suja real, reprovando como esperado. Evidência por
+  SHA com rótulo que não corresponde ao conteúdo é pior do que nenhuma evidência.
 
-  Latest state marker parent = `f64e254c415035cf49654af7e17ae36d0df4710e`,
+  Latest state marker parent = `36c4bded22f93ccc451b0e35ee630b3c71f5819b`,
