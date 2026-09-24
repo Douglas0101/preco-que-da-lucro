@@ -90,8 +90,13 @@
 - ☐ **Achados de observabilidade nomeados e NÃO corrigidos (fora do escopo do ciclo):** `AL-03` da
   allowlist é **prefixo não ancorado** (suprimiria senha hardcoded com host real — provado por sonda);
   o `range-secret-scan` é **consultivo, não gate** (`review` nunca vira falha); `m02:secrets-audit`
-  **exclui `docs/evidence/`** (limite declarado só no JSON); **5 refs `origin/*` obsoletas** e **9 tags
-  `local ci-local/*`** que um `git push --tags` publicaria.
+  **exclui `docs/evidence/`** (limite declarado só no JSON); **5 refs `origin/*` obsoletas** (um push delas
+  **recriaria branch deletada** no GitHub) e **11 tags locais `ci-local/*`** que um `git push --tags`
+  publicaria — o passivo subiu de 9 para 11 porque **`scripts/local-ci.sh` cria a tag por PADRÃO**
+  (`CREATE_TAG="${LOCAL_CI_TAG:-1}"`), embora o cabeçalho do script (linha 32) a documente como
+  opt-in. **Divergência entre a documentação e o comportamento do meu próprio instrumento**, achada
+  por observabilidade independente: o comentário diz "cria tag", o código diz "cria tag a menos que
+  desligado". Nunca usar `--tags`/`--all`/`--follow-tags`; se houver push, refspec explícito.
 
 ## Lacunas declaradas no ciclo (candidatas a dívida no registry)
 
