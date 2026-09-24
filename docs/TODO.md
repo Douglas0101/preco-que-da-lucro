@@ -12,11 +12,24 @@
 - **Ciclo:** `SDD-20260923` — **FECHADO** (itens 1–4 entregues; itens 5–8 especificados).
 - **Refs:** `develop` = `86565f0` (8 commits à frente de `origin/develop`), `origin/develop` = `a2f5ff6`,
   `origin/main` = `9724d2c` (ambos intocados).
-- **Gate:** `m02:state:check` **VERDE**; `./scripts/local-ci.sh` = `verdict=success` (311 s) em `3c088b6`.
+- **Gate:** `m02:state:check` **VERDE**; `./scripts/local-ci.sh` = `verdict=success` (**341 s**) em `1cf2bc3`,
+  com tier de banco **executado** e e2e verde; scan de segredo `hits=0`.
 - **Push:** bloqueado por cota de plataforma. Nenhum push sem aprovação humana explícita.
 
 ## Fila
 
+- ☑ **Item 5 — hardening do `local-ci`.** 14/14 critérios de aceite medidos. Allowlist **declarada**
+  (5 entradas mínimas, todas usadas) + classificador testável (**12 casos negativos**); `manifest.sha256`
+  dentro do selo versionável (L2 fechada); cross-check de contagens (L1 fechada na raiz); escape de
+  árvore suja **registrado** no manifesto e como pendência; diagnóstico de e2e preservado; worktrees
+  inventariadas. **Nenhum gate tocado** (verificado por commit). As quatro voltas do ciclo acharam
+  **cinco defeitos**, quatro deles meus — todos corrigidos, nenhum mascarado.
+- ☐ **Item 5b — flakiness do e2e (limite conhecido).** Decisão humana: `E2E_FLAKE_DECISION=known-limitation`.
+  **Nenhum retry automático** (exigiria ADR). Falha de e2e agora preserva trace/screenshot/vídeo/
+  error-context sob `artifacts/`. Se reaparecer: parar e diagnosticar; abrir SDD específica.
+- ☐ **Item 5c — falha não reproduzida do `format:check`.** Uma rodada acusou o ledger estando ele
+  comprovadamente limpo; não reproduziu em 3 tentativas. Causa provável: **OOM/congelamento** da máquina
+  (reinício bruto no meio). Registrada como não reproduzida, não como defeito.
 - ☑ **Item 1 — corrigir `m02:state:check`.** Bloco aditivo no ledger (`+29 -0`); verde em `3c088b6` e
   mantido em `86565f0`.
 - ☑ **Item 2 — revalidar o novo HEAD.** `local-ci` `success` em 311 s, etapa `m02:state:check` = `success`
