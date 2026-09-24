@@ -274,6 +274,15 @@ const manifest = {
     logsGitIgnored: counts.logsGitIgnored ?? null,
     artifactsTotal: counts.artifactsTotal ?? null,
     artifactsGitIgnored: counts.artifactsGitIgnored ?? null,
+    filesIgnoredOther: counts.filesIgnoredOther ?? null,
+    // Fotografia temporal declarada como tal: as contagens valem em `measuredAt`, nao "no fim".
+    countsAreSnapshotAt: counts.measuredAt || null,
+    // Estado da arvore no momento da selagem. `dirty-escaped` significa que o escape foi usado e que
+    // o headSha NAO corresponde ao conteudo validado — declarado, nunca silenciado (item D do Item 5).
+    treeState: read("tree-state.txt", "unknown"),
+    dirtyEscapeUsed: read("tree-state.txt", "") === "dirty-escaped",
+    dirtyEntriesOutsideEvidence: Number(read("dirty-entries.txt", "0")) || 0,
+    headShaCorrespondsToContent: read("tree-state.txt", "") === "clean",
     gitChecksum: "evidence.git.sha256",
     fullSeal: `${process.env.SHA}.sha256`,
     countsFile: "evidence-counts.json",
@@ -460,6 +469,9 @@ const counts = {
   logsGitIgnored: logsIgnored,
   artifactsTotal: artifacts.length,
   artifactsGitIgnored: artifactsIgnored,
+  // Ignorados que NAO sao log nem artefato: > 0 significa que surgiu uma classe nova de arquivo
+  // ignorado sem ninguem declarar — o chamador registra aviso nominal.
+  filesIgnoredOther: Math.max(0, ignored.size - logsIgnored - artifactsIgnored),
   // Derivado, nunca afirmado: se algum log fosse versionavel, isto seria `true` — e a politica
   // `metadata-only` entao REPROVA logo abaixo, em vez de mentir no manifesto.
   gitTrackedLogs: logs.length !== logsIgnored,
@@ -535,8 +547,8 @@ preserve_commits() {
 }
 
 seal_evidence() {
-  # `manifest.sha256` ANTES do selo integral, para que o proprio selo do manifesto seja coberto.
-  sha256sum "${OUT_DIR}/manifest.json" >"${OUT_DIR}/manifest.sha256" 2>&1 || true
+  # `manifest.sha256` ja foi escrito com o conteudo FINAL antes de gerar o selo versionavel (para ser
+  # coberto por ele — item C do Item 5); aqui resta apenas o selo integral, que cobre tudo.
   ( cd "$OUT_ROOT" && find "${SHA}" -type f -print0 | sort -z | xargs -0 sha256sum ) \
     >"${OUT_ROOT}/${SHA}.sha256" 2>&1 || true
 }
@@ -550,6 +562,10 @@ seal_evidence() {
 # Contradicao => return 1, e quem chama rebaixa o veredicto.
 close_evidence_policy() {
   : >"${OUT_DIR}/evidence-policy-final.log"
+  # Estabiliza o CONJUNTO antes de medir: o conteudo de manifest.sha256 muda depois (passa a selar o
+  # manifesto final), mas a EXISTENCIA dele nao — sem isto a contagem declarada ficaria 1 abaixo do selo
+  # versionavel e o cross-check de contagens acusaria divergencia falsa.
+  [ -f "${OUT_DIR}/manifest.sha256" ] || printf 'pendente\n' >"${OUT_DIR}/manifest.sha256"
   if ! measure_evidence >>"${OUT_DIR}/evidence-policy-final.log" 2>&1; then
     log "ERRO: politica de evidencia violada no fechamento — ver evidence-policy-final.log"
     echo "failure" >"${OUT_DIR}/evidence-policy-final.status"
@@ -571,8 +587,17 @@ close_evidence_policy() {
 
 # Verificacao de conteudo do selo versionavel, depois do manifesto final.
 verify_git_checksum() {
-  local covered
+  local covered declared
   covered="$(wc -l <"${OUT_DIR}/evidence.git.sha256" | tr -d ' ')"
+  # Cross-check de CONTAGENS: o selo versionavel exclui a si mesmo, entao tem de cobrir exatamente
+  # `filesGitTrackable - 1` arquivos. Divergencia = o manifesto declara um mundo que o selo desmente.
+  declared="$(node -e "try{console.log(require('./${OUT_DIR}/manifest.json').evidence.filesGitTrackable)}catch{console.log('')}" 2>/dev/null)"
+  if [ -n "$declared" ] && [ "$covered" -ne "$((declared - 1))" ]; then
+    {
+      echo "VIOLACAO: selo versionavel cobre ${covered} arquivo(s), mas o manifesto declara ${declared} versionaveis (esperado ${covered} = declared - 1)"
+    } >"${OUT_DIR}/evidence-git-checksum.log"
+    return 1
+  fi
   {
     echo "arquivos cobertos: ${covered}"
     if grep -qE '\.log$' "${OUT_DIR}/evidence.git.sha256"; then
@@ -583,7 +608,7 @@ verify_git_checksum() {
       echo "VIOLACAO: selo versionavel cobre apenas ${covered} arquivo(s) — esperado ao menos 5 de metadata"
       return 1
     fi
-    for f in manifest.json REPORT.md steps.tsv adaptations.tsv pendencies.tsv; do
+    for f in manifest.json manifest.sha256 REPORT.md steps.tsv adaptations.tsv pendencies.tsv; do
       if ! grep -q "/${f}\$" "${OUT_DIR}/evidence.git.sha256"; then
         echo "VIOLACAO: ${f} ausente do selo versionavel"
         return 1
@@ -691,7 +716,10 @@ finalize() {
   fi
   generate_manifest_and_report          # pass 3 — consome as contagens finais (C2)
   normalize_evidence || true
-  generate_git_checksum || true         # regerado: cobre o manifesto FINAL, mesmo conjunto de arquivos
+  # Item C: o selo do manifesto recebe o conteudo FINAL e ENTRA no selo versionavel (o conjunto de
+  # arquivos nao muda — so o conteudo —, entao as contagens declaradas continuam exatas).
+  sha256sum "${OUT_DIR}/manifest.json" >"${OUT_DIR}/manifest.sha256" 2>&1 || true
+  generate_git_checksum || true         # cobre manifest.json E manifest.sha256 finais
   if ! verify_git_checksum; then
     [ "$want" = "success" ] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
   fi
@@ -716,13 +744,24 @@ git merge-base --is-ancestor "$BASE" "$SHA" 2>/dev/null || precondition "base ${
 # e rotulou a evidencia com o HEAD anterior. A evidencia por SHA e o produto deste instrumento; um
 # rotulo que nao corresponde ao conteudo e pior do que nenhuma evidencia. Escape declarado:
 # `LOCAL_CI_ALLOW_DIRTY=1` (uso consciente, e o `git-status.txt` da rodada registra a sujeira).
+DIRTY_OUTSIDE="$(git status --porcelain=v1 | grep -vE '^\?\? docs/evidence/local-ci/' | grep -c . || true)"
 if [ "${LOCAL_CI_ALLOW_DIRTY:-0}" != "1" ]; then
-  DIRTY_OUTSIDE="$(git status --porcelain=v1 | grep -vE '^\?\? docs/evidence/local-ci/' | grep -c . || true)"
   if [ "$DIRTY_OUTSIDE" -gt 0 ]; then
     log "PRECONDICAO: ${DIRTY_OUTSIDE} entrada(s) suja(s) fora de docs/evidence/local-ci/ — commite antes de selar"
     git status --porcelain=v1 | grep -vE '^\?\? docs/evidence/local-ci/' | head -10 >&2
     precondition "arvore suja fora da evidencia (use LOCAL_CI_ALLOW_DIRTY=1 para forcar, declarando)"
   fi
+fi
+# Estado da arvore, para o manifesto declarar (nunca silenciar) a divergencia entre o SHA rotulado e o
+# conteudo validado: com o escape usado, a evidencia NAO corresponde ao commit — e isso fica escrito no
+# manifesto E numa pendencia nominal.
+if [ "$DIRTY_OUTSIDE" -gt 0 ]; then
+  printf 'dirty-escaped\n' >"${OUT_DIR}/tree-state.txt"
+  printf '%s\n' "$DIRTY_OUTSIDE" >"${OUT_DIR}/dirty-entries.txt"
+  pendency "tree-state" "evidencia selada com arvore SUJA por escape declarado (LOCAL_CI_ALLOW_DIRTY=1): ${DIRTY_OUTSIDE} entrada(s) fora da evidencia — o headSha NAO corresponde ao conteudo validado"
+else
+  printf 'clean\n' >"${OUT_DIR}/tree-state.txt"
+  printf '0\n' >"${OUT_DIR}/dirty-entries.txt"
 fi
 
 # ---------------------------------------------------------------------------
@@ -768,14 +807,33 @@ fi
 printf 'db=%s\n' "$DB_SCOPE" >"${OUT_DIR}/scope-outputs.txt"
 log "escopo: db=${DB_SCOPE}"
 
-# Scan de segredo no RANGE: escreve apenas arquivo:linha, nunca o conteudo casado.
-PATTERN='(BEGIN [A-Z]+ PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|gho_[A-Za-z0-9]{36}|xox[baprs]-|postgres(ql)?://[^:[:space:]]+:[^@[:space:]]+@)'
+# Scan de segredo no RANGE. O gatilho abaixo e AMPLO de proposito; a supressao de ruido vive na
+# allowlist DECLARADA (`scripts/local-ci-secret-allowlist.json`) e o classificador
+# (`scripts/local-ci-secret-scan.mjs`) avalia os padroes DUROS **antes** dela — uma linha que misture
+# a credencial loopback permitida e um token real continua sendo hit. Nada de conteudo casado entra na
+# evidencia: a saida e `arquivo:linha` e um resumo de contagens.
+# POSIX ERE estrito: `git grep -E` NAO suporta `\b` nem `(?:...)`. A primeira versao deste padrao
+# usava os dois e casava ZERO linhas — indistinguivel de "limpo", ou seja, fail-open. Por isso o
+# teste de vivacidade logo abaixo e obrigatorio: um detector que nao detecta e pior que nenhum.
+PATTERN='(-----BEGIN [A-Z ]*PRIVATE KEY-----|(ghp_|gho_|ghu_|ghs_|ghr_|github_pat_)[A-Za-z0-9_]{20,}|sk-proj-[A-Za-z0-9_-]{20,}|xox[baprs]-|AKIA[0-9A-Z]{16}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|postgres(ql)?://[^:[:space:]]+:[^@[:space:]]+@)'
+# VIVACIDADE: o padrao precisa casar uma amostra sintetica de cada familia. Se nao casar, o scan
+# esta quebrado e a rodada PARA — nunca reporta "clean" por vacuidade.
+for PROBE in "ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" "AKIAQQQQQQQQQQQQQQQQ" "xoxb-111111111111" "-----BEGIN RSA PRIVATE KEY-----" "postgresql://u:p@127.0.0.1:5432/db"; do
+  if ! printf '%s\n' "$PROBE" | grep -qE "$PATTERN"; then
+    precondition "secret scan: padrao nao casa a amostra '${PROBE:0:12}...' (detector quebrado — fail-closed)"
+  fi
+done
 : >"${OUT_DIR}/range-secret-scan.hits"
+: >"${OUT_DIR}/range-secret-scan.summary"
 if [ "$CHANGED_COUNT" -gt 0 ]; then
-  # `git grep <rev>` prefixa a saida com `<rev>:<path>:<linha>:<conteudo>`; por isso os campos
-  # 2 e 3 (path:linha) — o campo 4 (conteudo casado) NUNCA e escrito na evidencia.
+  SCAN_CODE=0
   xargs -a "${OUT_DIR}/changed-files.txt" git grep -nIE "$PATTERN" "$SHA" -- 2>/dev/null |
-    cut -d: -f2,3 | sort -u >"${OUT_DIR}/range-secret-scan.hits" || true
+    node scripts/local-ci-secret-scan.mjs \
+      >"${OUT_DIR}/range-secret-scan.hits" 2>"${OUT_DIR}/range-secret-scan.summary" || SCAN_CODE=$?
+  # Exit 2 = precondicao (allowlist ilegivel/invalida). Fail-closed: nunca vira "nada encontrado".
+  if [ "$SCAN_CODE" -eq 2 ]; then
+    precondition "secret scan: allowlist ilegivel ou invalida — $(cat "${OUT_DIR}/range-secret-scan.summary")"
+  fi
 fi
 if [ -s "${OUT_DIR}/range-secret-scan.hits" ]; then
   echo "review" >"${OUT_DIR}/range-secret-scan.status"
@@ -783,6 +841,7 @@ if [ -s "${OUT_DIR}/range-secret-scan.hits" ]; then
 else
   echo "clean" >"${OUT_DIR}/range-secret-scan.status"
 fi
+log "secret scan: $(cat "${OUT_DIR}/range-secret-scan.summary" 2>/dev/null || echo 'sem registros no range')"
 
 # Pin de npm do CI: VERIFICADO, nunca instalado globalmente.
 npm -v >"${OUT_DIR}/npm-pin.txt"
@@ -904,8 +963,22 @@ else
       "E2E_AUTH_EMAIL=teste@example.test"
       "E2E_AUTH_PASSWORD=$(openssl rand -hex 16)")
     step_conditional "playwright-install" "playwright-e2e (install)" "${E2E_ENV[@]}" npx playwright install chromium
-    step_conditional "playwright-e2e" "playwright-e2e" "${E2E_ENV[@]}" \
-      npx playwright test --project=chromium --project=mobile
+    # Item E do Item 5: em falha, PRESERVAR os artefatos de diagnostico (trace, screenshot, video,
+    # error-context) sob `artifacts/` — gitignored, local, e o que permite investigar em vez de
+    # especular. Nenhum retry automatico foi adicionado: a decisao registrada e `known-limitation`.
+    run_e2e_with_diagnostics() {
+      local code=0
+      "${E2E_ENV[@]}" npx playwright test --project=chromium --project=mobile || code=$?
+      if [ "$code" -ne 0 ]; then
+        mkdir -p "${OUT_DIR}/artifacts/e2e-diagnostics"
+        cp -r test-results "${OUT_DIR}/artifacts/e2e-diagnostics/" 2>/dev/null || true
+        cp -r playwright-report "${OUT_DIR}/artifacts/e2e-diagnostics/" 2>/dev/null || true
+        printf '%s\n' "$code" >"${OUT_DIR}/artifacts/e2e-diagnostics/exit-code.txt"
+        log "e2e falhou (exit=${code}) — diagnostico preservado em artifacts/e2e-diagnostics/ (local, gitignored)"
+      fi
+      return "$code"
+    }
+    step_conditional "playwright-e2e" "playwright-e2e" run_e2e_with_diagnostics
   fi
 fi
 

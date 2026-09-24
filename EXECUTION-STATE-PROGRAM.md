@@ -2687,5 +2687,26 @@ stack` em um dia = ~84 min de runner.
 - **Fechamento de `DBT-19` no registry é ato do MAESTRO** — pedido com closure test em
   `docs/sdd/SDD-20260923-boundary-guard-dbt19/MAESTRO-REQUEST-DBT-19-CLOSURE.md`. `DEBTS.md` e
   `QUEUE.md` seguem **intocados**.
+- **Item 5 (hardening do `local-ci`) aprovado e em execução — nenhum contrato de gate alterado.** Quatro
+  frentes, todas dentro do instrumento: **(A)** o `range-secret-scan` ganhou allowlist **declarada**
+  (`scripts/local-ci-secret-allowlist.json`, 5 entradas mínimas — todas usadas — com padrão literal,
+  escopo de arquivo, motivo, data e autor) e um classificador extraído e **testável**
+  (`scripts/local-ci-secret-scan.mjs`), que avalia os padrões **duros antes** da allowlist: uma linha que
+  misture a credencial loopback permitida e um token real continua sendo hit. **(B)** o manifesto passou a
+  declarar o estado da árvore (`treeState`, `dirtyEscapeUsed`, `headShaCorrespondsToContent`) e a classe
+  `filesIgnoredOther` (ignorados fora de log/artefato), com **cross-check de contagens** contra o selo
+  versionável. **(C)** `manifest.sha256` passou a **entrar** no selo versionável (o conjunto de arquivos é
+  estabilizado antes da medição, então as contagens declaradas seguem exatas). **(D)** o escape
+  `LOCAL_CI_ALLOW_DIRTY=1` passou a ser **registrado** no manifesto e vira **pendência nominal** — nunca
+  silencia a divergência entre `headSha` e conteúdo validado. **(E)** falha de e2e passa a **preservar
+  diagnóstico** (trace/screenshot/vídeo/error-context) sob `artifacts/`, sem retry automático:
+  `known-limitation` declarado. **(F)** worktrees residuais apenas **inventariados**, em
+  `docs/evidence/local-ci/_ops/artifacts/worktree-inventory.md` (local, sob o subtree que o próprio
+  `.gitignore` exclui) — **nenhuma remoção**.
+- **Fail-open introduzido e pego pelo próprio instrumento, no mesmo ciclo.** A primeira versão do padrão
+  novo usava `\b` e `(?:...)`, que **POSIX ERE não suporta**: o `git grep` casava **zero** linhas e o
+  resumo saía `total=0` — indistinguível de "limpo". O padrão foi reescrito em ERE estrito **e** o
+  pipeline ganhou um **teste de vivacidade** obrigatório: o padrão precisa casar uma amostra sintética de
+  cada família, senão a rodada **para** com precondição. Detector que não detecta é pior que nenhum.
 
-  Latest state marker parent = `c7e6a558e0da3abc7e30e36ab698d0119e078b80`,
+  Latest state marker parent = `3b88391d1cee249cd18ef9adca5fd40d9020930b`,
