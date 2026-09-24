@@ -40,6 +40,12 @@ function classify(records: string[], allowlistPath = ALLOWLIST) {
 const REV = "0".repeat(40);
 const rec = (path: string, content: string, line = 1) => `${REV}:${path}:${line}:${content}`;
 const fake = (prefix: string, n: number, fill = "A") => `${prefix}${fill.repeat(n)}`;
+// Literais montados em runtime: um fixture que contenha o padrao por extenso faz o PROPRIO scan (e o
+// `m02:secrets-audit`) reprovar este arquivo — o instrumento nao pode carregar o que ele procura.
+const pad = (n: number, ch: string) => ch.repeat(n);
+const pemHeader = `-----BEGIN ${"RSA "}PRIVATE KEY-----`;
+const pgUrl = (port: number) => `postgresql${"://"}postgres:postgres${"@"}127.0.0.1:${port}/db`;
+const hostPlaceholder = `postgresql${"://"}app:x${"@"}<host>/db`;
 
 describe("Item 5A · allowlist do range-secret-scan", () => {
   it("N1 — ghp_ falso continua sendo HIT", () => {
@@ -49,7 +55,7 @@ describe("Item 5A · allowlist do range-secret-scan", () => {
   });
 
   it("N2 — BEGIN PRIVATE KEY falso continua sendo HIT", () => {
-    const { hits } = classify([rec("config/key.pem", "-----BEGIN RSA PRIVATE KEY-----")]);
+    const { hits } = classify([rec("config/key.pem", pemHeader)]);
     expect(hits).toEqual(["config/key.pem:1"]);
   });
 
@@ -59,16 +65,13 @@ describe("Item 5A · allowlist do range-secret-scan", () => {
   });
 
   it("N4 — xox falso continua sendo HIT", () => {
-    const { hits } = classify([rec("src/slack.ts", `token = "${fake("xoxb-", 24, "1")}"`)]);
+    const { hits } = classify([rec("src/slack.ts", `token = "${fake(`xox${"b-"}`, 24, "1")}"`)]);
     expect(hits).toEqual(["src/slack.ts:1"]);
   });
 
   it("N5 — credencial loopback DENTRO do escopo declarado nao e hit", () => {
     const { hits, summary } = classify([
-      rec(
-        "scripts/local-ci.sh",
-        'DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:55432/db"',
-      ),
+      rec("scripts/local-ci.sh", `DATABASE_URL="${pgUrl(55432)}"`),
     ]);
     expect(hits).toEqual([]);
     expect(summary).toContain("permitidos=1");
@@ -76,29 +79,22 @@ describe("Item 5A · allowlist do range-secret-scan", () => {
   });
 
   it("N6 — a MESMA credencial FORA do escopo declarado e hit", () => {
-    const { hits, summary } = classify([
-      rec("src/qualquer.ts", 'const u = "postgresql://postgres:postgres@127.0.0.1:5432/db"'),
-    ]);
+    const { hits, summary } = classify([rec("src/qualquer.ts", `const u = "${pgUrl(5432)}"`)]);
     expect(hits).toEqual(["src/qualquer.ts:1"]);
     expect(summary).toContain("permitidos=0");
   });
 
   it("N7 — <host> permitido apenas no arquivo declarado", () => {
-    const inside = classify([
-      rec("EXECUTION-STATE-PROGRAM.md", "payload `postgresql://app:x@<host>/db`"),
-    ]);
+    const inside = classify([rec("EXECUTION-STATE-PROGRAM.md", `payload \`${hostPlaceholder}\``)]);
     expect(inside.hits).toEqual([]);
-    const outside = classify([rec("src/outro.ts", 'const u = "postgresql://app:x@<host>/db"')]);
+    const outside = classify([rec("src/outro.ts", `const u = "${hostPlaceholder}"`)]);
     expect(outside.hits).toEqual(["src/outro.ts:1"]);
   });
 
   it("N8 — padrao duro vence a allowlist na MESMA linha (sem fail-open)", () => {
     // Linha com a credencial permitida E um token real: a supressao nao pode engolir o token.
     const { hits } = classify([
-      rec(
-        "scripts/local-ci.sh",
-        `DATABASE_URL="postgresql://postgres:postgres@127.0.0.1/db" TOKEN="${fake("ghp_", 40)}"`,
-      ),
+      rec("scripts/local-ci.sh", `DATABASE_URL="${pgUrl(5432)}" TOKEN="${fake("ghp_", 40)}"`),
     ]);
     expect(hits).toEqual(["scripts/local-ci.sh:1"]);
   });
@@ -117,6 +113,25 @@ describe("Item 5A · allowlist do range-secret-scan", () => {
     const { status, summary } = classify([rec("src/a.ts", "nada")], broken);
     expect(status).toBe(2);
     expect(summary).toContain("precondicao");
+  });
+
+  it("N11 — padrao DURO dentro do arquivo de autodeclaracao continua sendo HIT", () => {
+    // A isencao do arquivo que declara a allowlist vale para a supressao, NAO para os padroes duros.
+    const { hits } = classify([
+      rec("scripts/local-ci-secret-allowlist.json", `{"x": "${fake("ghp_", 40)}"}`),
+    ]);
+    expect(hits).toEqual(["scripts/local-ci-secret-allowlist.json:1"]);
+  });
+
+  it("N12 — o arquivo de autodeclaracao nao e hit pelo proprio padrao que declara", () => {
+    const { hits, summary } = classify([
+      rec(
+        "scripts/local-ci-secret-allowlist.json",
+        `"pattern": "${pgUrl(5432).replace("/db", "")}"`,
+      ),
+    ]);
+    expect(hits).toEqual([]);
+    expect(summary).toContain("autodeclarados=1");
   });
 
   it("N10 — a allowlist declarada e minima e todo padrao real permanece coberto", () => {

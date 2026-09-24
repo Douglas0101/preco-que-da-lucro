@@ -67,10 +67,21 @@ function inScope(path, scope) {
   return scope.endsWith("/") ? path.startsWith(scope) : path === scope;
 }
 
+/**
+ * Arquivo que DECLARA os padroes permitidos: por construcao ele contem os literais, entao passa pelo
+ * classificador sem consultar a allowlist. Isentar por CODIGO — e nao por uma entrada que permitiria a
+ * si mesma — evita allowlist circular.
+ *
+ * NAO e ponto cego: `HARD_PATTERNS` e avaliado antes, entao um token real nesse arquivo continua
+ * sendo hit (N11/N12 em `src/test/local-ci-secret-scan.test.ts`).
+ */
+const SELF_DECLARATION_PATHS = new Set(["scripts/local-ci-secret-allowlist.json"]);
+
 const input = readFileSync(0, "utf8");
 const hits = [];
 const allowedById = new Map();
 let total = 0;
+let selfDeclared = 0;
 
 for (const raw of input.split("\n")) {
   if (raw.trim() === "") continue;
@@ -83,6 +94,13 @@ for (const raw of input.split("\n")) {
   const hard = HARD_PATTERNS.find((pattern) => pattern.re.test(content));
   if (hard) {
     hits.push(`${path}:${line}`);
+    continue;
+  }
+
+  // Autodeclaracao: isento da supressao por allowlist (o arquivo E a allowlist). Passou pelos padroes
+  // duros acima, entao um token real aqui continua sendo hit — nao e ponto cego.
+  if (SELF_DECLARATION_PATHS.has(path)) {
+    selfDeclared += 1;
     continue;
   }
 
@@ -103,5 +121,5 @@ const ids = [...allowedById.entries()]
   .map(([id, n]) => `${id}:${n}`)
   .join(",");
 console.error(
-  `total=${total} permitidos=${total - hits.length} hits=${new Set(hits).size} ids=${ids || "nenhum"}`,
+  `total=${total} permitidos=${total - hits.length - selfDeclared} autodeclarados=${selfDeclared} hits=${new Set(hits).size} ids=${ids || "nenhum"}`,
 );

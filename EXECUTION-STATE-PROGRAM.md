@@ -2708,5 +2708,16 @@ stack` em um dia = ~84 min de runner.
   resumo saía `total=0` — indistinguível de "limpo". O padrão foi reescrito em ERE estrito **e** o
   pipeline ganhou um **teste de vivacidade** obrigatório: o padrão precisa casar uma amostra sintética de
   cada família, senão a rodada **para** com precondição. Detector que não detecta é pior que nenhum.
+- **O instrumento não pode carregar o que ele procura — segunda volta do mesmo ciclo.** A primeira
+  rodada do Item 5 **falhou**, e a falha foi instrutiva: os próprios arquivos novos continham os
+  literais. O probe de vivacidade embutia um `ghp_…` de 40 caracteres literal num script commitado — e
+  o **`m02:secrets-audit` reprovou corretamente**, exatamente a guarda corrigida no ciclo anterior
+  fazendo o seu trabalho. Três classes, três correções distintas: **(i) probe de vivacidade** passou a
+  ser montado em runtime (o fonte quebra as fronteiras com `""` e escape octal no `://`); **(ii)
+  fixtures do teste** idem, por helpers (`pad`, `pemHeader`, `pgUrl`, `hostPlaceholder`); **(iii) o
+  arquivo que DECLARA a allowlist** é isento **por código**, não por uma entrada que permitiria a si
+  mesma — e a isenção **não é ponto cego**, porque `HARD_PATTERNS` é avaliado antes (N11 prova que um
+  token real nesse arquivo continua sendo hit). Resultado medido: **0 literais duros** nos quatro
+  arquivos do instrumento, `m02:secrets-audit` de volta ao verde e **12/12** casos negativos passando.
 
-  Latest state marker parent = `3b88391d1cee249cd18ef9adca5fd40d9020930b`,
+  Latest state marker parent = `caddf97544bbb6a078331c59e841ae3dc7ebb2fe`,

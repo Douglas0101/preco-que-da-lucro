@@ -818,7 +818,18 @@ log "escopo: db=${DB_SCOPE}"
 PATTERN='(-----BEGIN [A-Z ]*PRIVATE KEY-----|(ghp_|gho_|ghu_|ghs_|ghr_|github_pat_)[A-Za-z0-9_]{20,}|sk-proj-[A-Za-z0-9_-]{20,}|xox[baprs]-|AKIA[0-9A-Z]{16}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|postgres(ql)?://[^:[:space:]]+:[^@[:space:]]+@)'
 # VIVACIDADE: o padrao precisa casar uma amostra sintetica de cada familia. Se nao casar, o scan
 # esta quebrado e a rodada PARA — nunca reporta "clean" por vacuidade.
-for PROBE in "ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" "AKIAQQQQQQQQQQQQQQQQ" "xoxb-111111111111" "-----BEGIN RSA PRIVATE KEY-----" "postgresql://u:p@127.0.0.1:5432/db"; do
+#
+# Os probes sao MONTADOS EM RUNTIME: o fonte nao pode conter os literais, senao o proprio scan (e o
+# `m02:secrets-audit`, que roda como etapa) reprova o instrumento por causa do seu autoteste — foi
+# exatamente o que aconteceu em 2026-09-23, quando o probe literal com `ghp_` derrubou a rodada. As
+# fronteiras que o detector procura ficam quebradas no fonte (`""` entre partes, escape octal no `://`).
+pad() { printf '%*s' "$1" '' | tr ' ' "$2"; }
+probe_ghp="ghp_$(pad 40 A)"
+probe_akia="AKIA$(pad 16 Q)"
+probe_xox="xox""b-$(pad 12 1)"
+probe_pem="-----BEGIN ""RSA ""PRIVATE KEY-----"
+probe_pg="postgresql$(printf '\072\057\057')u:p@127.0.0.1:5432/db"
+for PROBE in "$probe_ghp" "$probe_akia" "$probe_xox" "$probe_pem" "$probe_pg"; do
   if ! printf '%s\n' "$PROBE" | grep -qE "$PATTERN"; then
     precondition "secret scan: padrao nao casa a amostra '${PROBE:0:12}...' (detector quebrado — fail-closed)"
   fi
