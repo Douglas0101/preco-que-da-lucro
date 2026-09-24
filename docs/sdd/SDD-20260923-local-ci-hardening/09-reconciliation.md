@@ -131,10 +131,10 @@ evidência e a correção recomendada.
 - **O que é:** a entrada `AL-03` tem `pattern: "postgresql://app_runtime:"`, escopo
   `.github/workflows/ui-stack.yml`. O padrão é um **prefixo**, não a forma benigna completa.
 - **Prova (sonda sintética no classificador, sem mutar o repositório):** uma linha
-  `postgresql://app_runtime:REALPASSWORD123@db.prod.internal:5432/app` **nesse arquivo** é **suprimida**
+  uma URL de banco com **usuario e senha literais e host real** (a sonda exata NAO e reproduzida aqui: uma cadeia com forma de credencial num documento versionado e exatamente o que o scanner deve reprovar, e reproduzi-la para "documentar" o achado seria criar o defeito que ele descreve) **nesse arquivo** é **suprimida**
   (`permitidos=1, hits=0, ids=AL-03:1`); a mesma linha **fora** do escopo é detectada (`hits=1`).
 - **Por que não é exposição:** a única ocorrência atual (`ui-stack.yml:173`) é
-  `postgresql://app_runtime:${runtime_password}@${db_host}` — variável, não segredo. Nada real está
+  uma URL montada em **shell**, com a senha e o host vindo de **variáveis** (`runtime_password` e `db_host`), não de literais — não é segredo. Nada real está
   suprimido **hoje**.
 - **Correção recomendada:** ancorar o padrão em `:${runtime_password}@${db_host}`, que é a forma
   benigna exata. Isso torna a supressão tão estreita quanto a razão declarada já afirma.

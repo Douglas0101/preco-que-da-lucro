@@ -571,15 +571,16 @@ close_evidence_policy() {
     echo "failure" >"${OUT_DIR}/evidence-policy-final.status"
     return 1
   fi
+  # O status do fecho e um ARQUIVO VERSIONAVEL: escreve-lo DEPOIS do selo deixava o selo um arquivo
+  # atras do mundo (`covered = declared - 2`), o que fazia o cross-check abaixo reprovar por um motivo
+  # que o proprio instrumento criava. Ele passa a ser escrito ANTES do selo, e a medicao final continua
+  # sendo a ULTIMA escrita no diretorio.
+  echo "success" >"${OUT_DIR}/evidence-policy-final.status"
   if ! generate_git_checksum >>"${OUT_DIR}/evidence-policy-final.log" 2>&1; then
     log "ERRO: selo versionavel inconsistente com a politica — ver evidence-policy-final.log"
     echo "failure" >"${OUT_DIR}/evidence-policy-final.status"
     return 1
   fi
-  # O status do fecho e escrito ANTES da medicao final: ele proprio e um arquivo versionavel, e cria-lo
-  # depois fazia a contagem declarada ficar 1 abaixo do mundo — a imprecisao L1, que o cross-check de
-  # contagens converteu em falha. A medicao final passa a ser a ULTIMA escrita no diretorio.
-  echo "success" >"${OUT_DIR}/evidence-policy-final.status"
   if ! measure_evidence >>"${OUT_DIR}/evidence-policy-final.log" 2>&1; then
     log "ERRO: politica de evidencia violada apos gerar o selo — ver evidence-policy-final.log"
     echo "failure" >"${OUT_DIR}/evidence-policy-final.status"
