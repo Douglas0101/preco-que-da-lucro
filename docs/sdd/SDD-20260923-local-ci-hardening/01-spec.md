@@ -1,12 +1,16 @@
 # 01 — SPEC · SDD-20260923-local-ci-hardening
 
 - **ID:** `SDD-20260923-local-ci-hardening`
-- **Status:** `SPEC` — **aguardando aprovação humana** (nada implementado neste ciclo)
-- **Data:** 2026-09-23
-- **Nota de estrutura:** este SDD é **spec-only** por decisão de escopo (item 5 do backlog é "criar SDD",
-  não "implementar"). Os conceitos de design/plano/risco/traceabilidade vivem aqui em seções; na
-  promoção para execução, o SDD se expande no conjunto multi-arquivo (`02-acceptance.md` … `08-report.md`),
-  como aconteceu com `SDD-20260923-ledger-state-marker` e `SDD-20260923-evidence-policy`.
+- **Status:** `EXECUTADO (escopo aprovado) — 2026-09-24`. O item 5 foi aprovado sob `APPROVE_ITEM_5=yes`
+  com o escopo **A–F** (ruído do scan, contagens/`measuredAt`, `manifest.sha256` no selo, pré-condição de
+  árvore suja, flake do e2e, inventário de worktrees) e **executado**. **Esta SPEC original não é o
+  mesmo conjunto:** dos seus `REQ-01…REQ-09`, **apenas `REQ-09` foi implementado** e `REQ-06` ficou
+  parcial — os outros sete seguem **abertos** como backlog. O confronto completo está em
+  **`09-reconciliation.md`**, que é a leitura obrigatória antes de usar esta SPEC como se estivesse
+  cumprida.
+- **Data:** 2026-09-23 (spec) · 2026-09-24 (reconciliação)
+- **Nota de estrutura:** este SDD nasceu **spec-only**; na execução expandiu-se no conjunto
+  multi-arquivo (`02-acceptance.md` … `09-reconciliation.md`).
 
 ## 1. Problema
 
