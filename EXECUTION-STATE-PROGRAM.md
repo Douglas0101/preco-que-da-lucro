@@ -2739,3 +2739,12 @@ declara 91 versionaveis`. Investigação: o **selo estava certo** (91 arquivos, 
   passaram a refletir o veredicto real, incluindo rebaixamento dentro do `finalize`.
 
   Latest state marker parent = `e4eed185b61bf441de2e8de93eee23a46ce6ea4b`,
+
+### Release `v0.1.0-mvp` — reconciliação do marcador e validação local (2026-09-24)
+
+- A primeira rodada instrumentada do `local-ci` terminou com `exit 0` e `verdict=success` no conteúdo de `793f8d4992b42264b14c49527e84e1610eaa7dc7`; `db:test`, `db:check`, cadeia `npm run check`, build, bundle, audit, Playwright chromium+mobile e selo versionável passaram.
+- A etapa informativa `m02:state:check` permaneceu vermelha porque o último marker deste ledger era `e4eed185b61bf441de2e8de93eee23a46ce6ea4b`. O log exigia o parent `20b7b0429a1a048f5ded3e564490c28911a77ab0`; a rodada é preservada, mas ainda não é readiness final.
+- Este bloco é uma correção aditiva de estado, sem backdate, squash, amend, reset ou rebase. Ele não declara GitHub Actions, billing, publicação, produção, Vercel, Neon ou Hostinger como inspecionados.
+- O próximo commit contém apenas este bloco e o journal append-only; seu parent será o SHA exato testado acima. Depois ele deverá rodar `m02:state:check` e uma nova rodada completa do `local-ci` antes de qualquer promoção de P0 ou empacotamento.
+
+  Latest state marker parent = `793f8d4992b42264b14c49527e84e1610eaa7dc7`,
