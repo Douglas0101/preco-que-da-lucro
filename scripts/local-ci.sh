@@ -576,12 +576,15 @@ close_evidence_policy() {
     echo "failure" >"${OUT_DIR}/evidence-policy-final.status"
     return 1
   fi
+  # O status do fecho e escrito ANTES da medicao final: ele proprio e um arquivo versionavel, e cria-lo
+  # depois fazia a contagem declarada ficar 1 abaixo do mundo — a imprecisao L1, que o cross-check de
+  # contagens converteu em falha. A medicao final passa a ser a ULTIMA escrita no diretorio.
+  echo "success" >"${OUT_DIR}/evidence-policy-final.status"
   if ! measure_evidence >>"${OUT_DIR}/evidence-policy-final.log" 2>&1; then
     log "ERRO: politica de evidencia violada apos gerar o selo — ver evidence-policy-final.log"
     echo "failure" >"${OUT_DIR}/evidence-policy-final.status"
     return 1
   fi
-  echo "success" >"${OUT_DIR}/evidence-policy-final.status"
   return 0
 }
 
@@ -1046,4 +1049,8 @@ if ! run_step "coverage-assert" "extra" "" coverage_check; then
 fi
 
 finalize "success"
-log "CI local supervisionado concluido: veredicto=success"
+# O veredicto pode ter sido REBAIXADO dentro do `finalize` (deriva de estado, politica de evidencia,
+# cross-check de contagens). A mensagem final e o exit code tem de refletir o veredicto REAL — antes
+# disto o script imprimia "success" fixo e saia 0 mesmo com `result.txt` = failure.
+log "CI local supervisionado concluido: veredicto=${RESULT}"
+[ "$RESULT" = "success" ] || exit 1

@@ -2727,5 +2727,15 @@ stack` em um dia = ~84 min de runner.
   se mudaram, grava pendência nominal `state-drift` e rebaixa o veredicto. A precondição de abertura não
   pega mutação que acontece **depois** dela; esta checagem pega. Lição operacional declarada: **não
   escrever na árvore enquanto o pipeline a valida.**
+- **Quarta volta: o cross-check de contagens pagou-se, e dois defeitos meus caíram junto.** A rodada
+  seguinte rebaixou o veredicto com `VIOLACAO: selo versionavel cobre 91 arquivo(s), mas o manifesto
+declara 91 versionaveis`. Investigação: o **selo estava certo** (91 arquivos, excluindo a si mesmo) e
+  o **declarado** é que ficava 1 abaixo — `evidence-policy-final.status` era escrito **depois** da última
+  medição, então ele próprio (arquivo versionável) não entrava na conta. Era a imprecisão **L1** do
+  ciclo anterior, agora convertida de prosa em **falha de gate** — exatamente o que o cross-check devia
+  fazer. Correção na raiz: o status do fecho passou a ser escrito **antes** da medição final, que virou a
+  última escrita no diretório. **Dois defeitos meus no mesmo episódio:** o script imprimia
+  `veredicto=success` **fixo** e saía **0** mesmo com `result.txt = failure` — mensagem e exit code
+  passaram a refletir o veredicto real, incluindo rebaixamento dentro do `finalize`.
 
-  Latest state marker parent = `ea11037cb24f726ca3350fef83c6a8791b0b3bf4`,
+  Latest state marker parent = `1b54a89c3fe9d4489828bafdbe98eee30e28f2b8`,
