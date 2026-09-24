@@ -1,0 +1,18 @@
+1cf2bc3 fix(local-ci): close the L1 count drift and make the verdict reach the exit code
+1b54a89 fix(local-ci): refuse to seal when the state drifts mid-run
+ea11037 fix(local-ci): stop the instrument from carrying the literals it looks for
+caddf97 chore(local-ci): cut secret-scan noise with a declared allowlist and testable classifier
+3b88391 evidence(local-ci): version the DBT-19 cycle evidence for c7e6a55
+c7e6a55 ci(guards): chain m02:boundaries and m02:secrets-audit into check
+36c4bde test(boundaries): add the DBT-19 closure test and stop before chaining
+f64e254 adr(sdd): propose the DBT-19 boundary guard contract and complete its SDD
+ab3ef42 evidence(local-ci): version metadata-only evidence for 20cba84
+20cba84 docs(sdd): close the SDD-20260923 cycle with its evidence and declared gaps
+86565f0 evidence(local-ci): version the metadata-only evidence for 3c088b6
+3c088b6 docs(sdd): restore the ledger state marker and declare the evidence policy
+8683c2d docs(evidence): record the unblock probe verdict — billing still blocks all jobs
+2edb55b docs(evidence): open the light-CI unblock probe and precommit the engineering push
+db5ec7a docs(evidence): persist the advanced R8 analysis and register its seven plan additions
+4b44ab4 test(ci): cover the rewritten-history door of the CI scope script
+e61c9f4 docs(evidence): refresh the session handoff for the CI tiering state
+41e776b docs(evidence): close the WP-R8 marker and declare the extra push
