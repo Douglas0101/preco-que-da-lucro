@@ -1,7 +1,17 @@
 # ADR-030 — Boundary guard: encadear `m02:boundaries` e `m02:secrets-audit` num gate (DBT-19)
 
 - **ID:** ADR-030 · **Rastro:** `DBT-19` (`docs/evidence/agent-state/DEBTS.md`) ← achado N7 do S6 do WP-R8 · **Data:** 2026-09-23
-- **Estado:** **PROPOSTA — NÃO IMPLEMENTADA.** Requer aprovação humana/contratual antes de alterar qualquer gate. Nenhuma linha de `package.json`, `npm run check`, workflow ou registry foi alterada por este ADR.
+- **Estado:** **IMPLEMENTADA (2026-09-24) — ratificação pendente.** O contrato foi aprovado
+  (`APPROVE_ADR_030=yes`) e implementado no commit **`c7e6a55`**: `package.json` (cadeia `check` 14→16),
+  `.github/workflows/ui-stack.yml` (dois passos diretos), `AGENTS.md` (tabela de cobertura), as duas
+  guardas e o closure test. **ERRATA de estado:** até 2026-09-24 esta linha dizia _"PROPOSTA — NÃO
+  IMPLEMENTADA … Nenhuma linha de `package.json`, `npm run check`, workflow ou registry foi alterada por
+  este ADR"_ — o que passou a ser **falso** quando o commit foi feito. O cabeçalho não foi atualizado
+  junto (defeito meu, apontado por auditoria independente em 2026-09-24) e ficou contradizendo o próprio
+  repositório. O corpo abaixo é preservado como registro do que foi **proposto**; o que foi **feito**
+  está em §9 (errata) e em `docs/sdd/SDD-20260923-boundary-guard-dbt19/08-report.md`.
+  **`DBT-19` NÃO está fechada:** a condição do registry exige, além do caso negativo, que a tabela do
+  `AGENTS.md` bata com os YAMLs **por asserção de teste** — e essa asserção **não existe** (ver §9.3).
 - **Tipo:** contrato de CI (cobertura de gates)
 - **Precedente de forma:** ADR-029 (proposta/draft com implementação pendente de ratificação); `AGENTS.md` § Local quality gate (tabela de cobertura por pipeline)
 
@@ -142,3 +152,40 @@ guarda para considerar `possible_secret_literals` — o que **altera a semântic
 compartilhada e por isso está **fora** do não-objetivo declarado em §4 —, (b) encadear apenas
 `m02:boundaries` (falsificável, provado) e reescopar a metade de segredos de DBT-19, ou (c) manter ambas
 fora do gate e declarar a limitação. **Nada foi implementado em nenhum dos casos.**
+
+## 10. Errata de estado — `DBT-19` **não** está fechada (2026-09-24)
+
+Esta errata corrige um **overclaim meu**, apontado por auditoria independente (agente de observabilidade
+de contrato de gate) e verificado ponto a ponto.
+
+### 10.1 O que eu afirmei
+
+`AGENTS.md` passou a dizer **três vezes** "DBT-19 **fechado** em 2026-09-23", e o journal (`L166`) e o
+ledger declararam "DBT-19 **tecnicamente fechada**".
+
+### 10.2 O que é verdade
+
+| Fato                                                                                            | Estado                                                               |
+| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| As duas guardas estão no encadeamento do `check` (16 membros) e como passos diretos do `verify` | **VERDADE** (commit `c7e6a55`)                                       |
+| Existe caso negativo que as falsifica (`src/test/m02-boundary-gate.test.ts`, 6 casos)           | **VERDADE**                                                          |
+| A tabela de cobertura do `AGENTS.md` **corresponde** aos YAMLs                                  | **VERDADE** — conferido à mão                                        |
+| A tabela corresponde **por asserção de teste** (exigência literal do registry)                  | **FALSO**                                                            |
+| `DBT-19` está fechada no registry                                                               | **FALSO** — `DEBTS.md` diz `ABERTA`, e o fechamento é ato do MAESTRO |
+
+### 10.3 Por que a asserção não existe
+
+`src/test/m02-ci-coverage.test.ts` lê **apenas** os dois YAMLs (`heavyReal`, `lightReal`) — **não lê
+`AGENTS.md` nem `package.json`**. E **nenhum teste pinna a cadeia `check`**: um `grep` de
+`scripts.check`/`m02:lockfile-guard` em `src/test/*.ts` retorna **zero ocorrências**, de modo que um
+gate pode ser **removido** dos 16 membros com **todos os gates verdes**. Essa é a mesma classe de
+defeito que `DBT-19` denuncia — declarar cobertura que nenhuma asserção sustenta.
+
+### 10.4 O que fica devido
+
+1. **Asserção que faça a tabela do `AGENTS.md` bater com os YAMLs por teste** (hoje só conferida à mão).
+2. **Pin da cadeia `check`** — para que remover um gate reprove.
+3. **Fechamento de `DBT-19` pelo MAESTRO**, com a condição de closure cumprida nas **duas** metades.
+
+Os itens 1 e 2 são **código/teste** e foram explicitamente **deferidos** para um ciclo de código por
+decisão humana de 2026-09-24. Este ADR **não** os implementa.

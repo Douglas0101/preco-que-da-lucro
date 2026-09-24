@@ -2738,4 +2738,4 @@ declara 91 versionaveis`. Investigação: o **selo estava certo** (91 arquivos, 
   `veredicto=success` **fixo** e saía **0** mesmo com `result.txt = failure` — mensagem e exit code
   passaram a refletir o veredicto real, incluindo rebaixamento dentro do `finalize`.
 
-  Latest state marker parent = `885635cf81918c0633f8269f38ef256650ad9eb9`,
+  Latest state marker parent = `8fe75f4804302643db2e54f52e1fda97a3412a90`,

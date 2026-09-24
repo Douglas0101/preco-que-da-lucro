@@ -585,6 +585,24 @@ close_evidence_policy() {
     echo "failure" >"${OUT_DIR}/evidence-policy-final.status"
     return 1
   fi
+  # CROSS-CHECK DE CONTAGENS AQUI, nao depois da geracao dos artefatos. O selo versionavel exclui a si
+  # mesmo, entao tem de cobrir `filesGitTrackable - 1`. Antes desta correcao a checagem vivia em
+  # `verify_git_checksum`, que roda DEPOIS de `generate_manifest_and_report` + `manifest.sha256` +
+  # `generate_git_checksum`: quando ela reprovava, o manifesto, o REPORT e o SELO ja estavam gravados
+  # com `success` e NADA os regenerava. Foi assim que a rodada `1b54a89c` ficou com `result.txt=failure`,
+  # `manifest.result=success` e um selo versionavel que nao conferia. Decidir o veredicto ANTES de gerar
+  # e o que impede a contradicao.
+  local covered declared
+  covered="$(wc -l <"${OUT_DIR}/evidence.git.sha256" | tr -d ' ')"
+  declared="$(node -e "try{console.log(require('./${OUT_DIR}/evidence-counts.json').filesGitTrackable)}catch{console.log('')}" 2>/dev/null)"
+  if [ -n "$declared" ] && [ "$covered" -ne "$((declared - 1))" ]; then
+    {
+      echo "VIOLACAO: selo versionavel cobre ${covered} arquivo(s), mas a medicao final declara ${declared} versionaveis (esperado ${covered} = declared - 1)"
+    } >"${OUT_DIR}/evidence-git-checksum.log"
+    log "ERRO: cross-check de contagens reprovou ANTES da geracao — veredicto rebaixado, artefatos sairao coerentes"
+    echo "failure" >"${OUT_DIR}/evidence-policy-final.status"
+    return 1
+  fi
   return 0
 }
 
@@ -738,6 +756,37 @@ finalize() {
   generate_git_checksum || true         # cobre manifest.json E manifest.sha256 finais
   if ! verify_git_checksum; then
     [ "$want" = "success" ] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
+    # REDE DE SEGURANCA (pass 4): se a verificacao reprovar AQUI, os artefatos ja foram gravados com o
+    # veredicto anterior. Sem regenerar, `result.txt` passa a dizer `failure` enquanto `manifest.json`,
+    # `REPORT.md` e o selo versionavel continuam dizendo `success` — a contradicao da rodada `1b54a89c`.
+    # Regenerar TUDO com o veredicto final mantem o selo coerente consigo mesmo.
+    log "verify reprovou apos a geracao — regenerando artefatos com o veredicto final (pass 4)"
+    generate_manifest_and_report || true
+    normalize_evidence || true
+    sha256sum "${OUT_DIR}/manifest.json" >"${OUT_DIR}/manifest.sha256" 2>&1 || true
+    generate_git_checksum || true
+    if ! verify_git_checksum; then
+      # Ainda incoerente depois de regenerar: o instrumento NAO pode terminar em silencio. Registra a
+      # contradicao nominalmente e mantem o veredicto em failure.
+      pendency "evidence-contradiction" "verify_git_checksum ainda reprova apos regeneracao (pass 4): ver evidence-git-checksum.log — artefatos podem contradizer o veredicto"
+      log "ERRO: invariante do selo continua violada apos regeneracao — pendencia nominal registrada"
+    fi
+  fi
+
+  # INVARIANTE FINAL: o veredicto do arquivo e o do manifesto tem de ser o MESMO. E a assercao que a
+  # rodada `1b54a89c` violou sem que nada a pegasse. Reescrever `result.txt` aqui invalidaria o selo
+  # versionavel ja gerado, entao a correcao regenera TUDO na mesma passada.
+  MANIFEST_RESULT="$(node -e "try{console.log(require('./${OUT_DIR}/manifest.json').result)}catch{console.log('')}" 2>/dev/null)"
+  if [ -n "$MANIFEST_RESULT" ] && [ "$MANIFEST_RESULT" != "$RESULT" ]; then
+    pendency "evidence-contradiction" "result.txt='${RESULT}' divergia de manifest.result='${MANIFEST_RESULT}' — regenerado com o veredicto final (failure)"
+    log "ERRO: result.txt ('${RESULT}') divergia de manifest.result ('${MANIFEST_RESULT}') — regenerando artefatos"
+    want="failure"
+    RESULT="$want"
+    echo "$RESULT" >"${OUT_DIR}/result.txt"
+    generate_manifest_and_report || true   # le RESULT do ambiente ⇒ manifesto sai coerente
+    normalize_evidence || true
+    sha256sum "${OUT_DIR}/manifest.json" >"${OUT_DIR}/manifest.sha256" 2>&1 || true
+    generate_git_checksum || true
   fi
 
   seal_evidence
