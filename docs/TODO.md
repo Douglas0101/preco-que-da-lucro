@@ -69,6 +69,29 @@
 - ☐ **Item 7 — `SDD-20260923-post-billing-sweep`** — **bloqueado** pelo billing.
 - ☐ **Item 8 — `SDD-20260923-push-publication-policy`** — aguarda aprovação.
 - ☐ **Item 10 — destino da evidência de `8683c2d`** (local, layout anterior à política).
+- ☑ **Ciclo de reconciliação e documentação (2026-09-24).** Pedido `DBT-23` atualizado com a
+  implementação de L1/L2; spec do Item 5 reconciliada em `09-reconciliation.md` (o escopo **aprovado**
+  não era o da spec original: só `REQ-09` foi implementado, 7 REQ seguem abertos como backlog);
+  SDD `SDD-20260924-e2e-flake-investigation` criada, **corrigindo** a premissa de que a falha só
+  ocorria com `db:test` antes do e2e — **refutada** por experimento controlado (30/30 verde).
+- ☑ **Dois vetos de agentes paralelos, ambos procedentes e resolvidos.** (1) **Evidência:** a rodada
+  `1b54a89c` tinha **selos contraditórios** sobre o próprio veredicto (`result.txt=failure` ×
+  `manifest=success`, selo versionável inválido); causa raiz **viva** no `finalize` (o cross-check
+  rodava **depois** da geração) — corrigida com o cross-check **antes** da geração, pass 4 de
+  regeneração e invariante final `result.txt == manifest.result`, provada por controle negativo que
+  exercita o bloco **extraído do script real**; a rodada histórica foi **declarada**, não reescrita
+  (`10-defect-sealed-verdict.md`). (2) **Contrato:** _overclaim_ meu — `AGENTS.md` afirmava 3× que
+  `DBT-19` fechou enquanto o registry diz `ABERTA`, e o `ADR-030` negava a própria implementação;
+  ambos corrigidos.
+- ☐ **DÍVIDA NOMEADA E DEFERIDA (exige código/teste — decisão humana de 2026-09-24):** (a) asserção que
+  faça a tabela do `AGENTS.md` bater com os YAMLs **por teste**; (b) **pin da cadeia `check`** — hoje um
+  gate pode ser **removido** dos 16 membros com todos os gates verdes. São as **duas metades** que
+  faltam para a condição de fechamento de `DBT-19`.
+- ☐ **Achados de observabilidade nomeados e NÃO corrigidos (fora do escopo do ciclo):** `AL-03` da
+  allowlist é **prefixo não ancorado** (suprimiria senha hardcoded com host real — provado por sonda);
+  o `range-secret-scan` é **consultivo, não gate** (`review` nunca vira falha); `m02:secrets-audit`
+  **exclui `docs/evidence/`** (limite declarado só no JSON); **5 refs `origin/*` obsoletas** e **9 tags
+  `local ci-local/*`** que um `git push --tags` publicaria.
 
 ## Lacunas declaradas no ciclo (candidatas a dívida no registry)
 
