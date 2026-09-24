@@ -67,6 +67,10 @@
 - ☐ **Item 5 — `SDD-20260923-local-ci-hardening`** — SPEC escrita; aguarda aprovação (incorpora L1/L2 e a
   redução de ruído do scan de segredo: excluir a credencial loopback documentada).
 - ☐ **Item 7 — `SDD-20260923-post-billing-sweep`** — **bloqueado** pelo billing.
+- ☐ **Encaminhamento pós-reconciliação — `SDD-20260924-proximos-passos`** (spec pura; **nada implementa**).
+  Traz a pauta do MAESTRO **D1–D8** e 8 itens `NP-01…NP-08`. **Próximo ciclo recomendado: NP-01** — as duas
+  metades da `DBT-19` (asserção tabela×YAML + pin da cadeia `check`), por ser o único defeito aberto que
+  **desarma guardas em silêncio**, com duas análises independentes convergindo. Decisões pendentes: D1–D8.
 - ☐ **Item 8 — `SDD-20260923-push-publication-policy`** — aguarda aprovação.
 - ☐ **Item 10 — destino da evidência de `8683c2d`** (local, layout anterior à política).
 - ☑ **Ciclo de reconciliação e documentação (2026-09-24).** Pedido `DBT-23` atualizado com a
