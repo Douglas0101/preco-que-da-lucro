@@ -2719,5 +2719,13 @@ stack` em um dia = ~84 min de runner.
   mesma — e a isenção **não é ponto cego**, porque `HARD_PATTERNS` é avaliado antes (N11 prova que um
   token real nesse arquivo continua sendo hit). Resultado medido: **0 literais duros** nos quatro
   arquivos do instrumento, `m02:secrets-audit` de volta ao verde e **12/12** casos negativos passando.
+- **Terceira volta do mesmo ciclo — e a classe agora está fechada no instrumento.** A rodada seguinte
+  falhou no `check-chain` porque **eu escrevi arquivos do SDD enquanto o pipeline rodava**: a
+  precondição de abertura viu a árvore limpa, o `format:check` viu os arquivos novos. Mesma classe do
+  mislabel (evidência que não corresponde ao conteúdo validado), agora **detectada e rebaixada**: o
+  `finalize` compara o HEAD e a contagem de entradas sujas do **início** com os do **fim** da rodada e,
+  se mudaram, grava pendência nominal `state-drift` e rebaixa o veredicto. A precondição de abertura não
+  pega mutação que acontece **depois** dela; esta checagem pega. Lição operacional declarada: **não
+  escrever na árvore enquanto o pipeline a valida.**
 
-  Latest state marker parent = `caddf97544bbb6a078331c59e841ae3dc7ebb2fe`,
+  Latest state marker parent = `ea11037cb24f726ca3350fef83c6a8791b0b3bf4`,

@@ -708,6 +708,19 @@ finalize() {
     log "ERRO: bytes finais da evidencia nao estabilizam no prettier"
   fi
 
+  # ESTABILIDADE DO ESTADO: a evidencia so vale para o conteudo que foi validado. Se o HEAD ou a arvore
+  # mudarem DURANTE a rodada, o selo passa a rotular conteudo que nao foi medido — foi o que aconteceu
+  # em 2026-09-23 (arquivos escritos enquanto o pipeline rodava). A precondicao de abertura nao pega
+  # mutacao que acontece DEPOIS dela; esta checagem pega.
+  local head_end dirty_end
+  head_end="$(git rev-parse HEAD)"
+  dirty_end="$(git status --porcelain=v1 | grep -vE '^\?\? docs/evidence/local-ci/' | grep -c . || true)"
+  if [ "$head_end" != "$SHA" ] || [ "$dirty_end" != "$DIRTY_OUTSIDE" ]; then
+    log "ERRO: estado mudou durante a rodada (HEAD ${SHA:0:8}->${head_end:0:8}, sujeira ${DIRTY_OUTSIDE}->${dirty_end}) — evidencia invalida"
+    pendency "state-drift" "o HEAD ou a arvore mudaram durante a rodada (HEAD ${SHA:0:8}->${head_end:0:8}; entradas sujas ${DIRTY_OUTSIDE}->${dirty_end}): a evidencia NAO corresponde ao conteudo validado"
+    [ "$want" = "success" ] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
+  fi
+
   # Politica de evidencia: mede o estado final, gera o selo versionavel e regrava as contagens que o
   # manifesto declara. Contradicao REBAIXA o veredicto — o manifesto nao pode afirmar uma politica
   # que o mundo desmente.
