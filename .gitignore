@@ -141,3 +141,29 @@ Thumbs.db
 
 # Vercel local build output (Build Output API)
 .vercel/
+
+# ========================================
+# ARTEFATOS LOCAIS COM PII (Preservação de Desenvolvimento)
+# ========================================
+# Estes arquivos contêm headers From: com identidade pessoal.
+# São mantidos localmente para uso em desenvolvimento.
+# NÃO devem ser incluídos em snapshots públicos.
+
+# Patches locais (contêm headers de author)
+release/**/*.patch
+docs/evidence/**/*.patch
+*.patch
+
+# Bundles locais (podem conter histórico com PII)
+release/**/*.bundle
+docs/evidence/**/*.bundle
+*.bundle
+_preservation/**/*.bundle
+
+# Diretórios de preservação local
+_preservation/
+release/
+
+# Auditoria raw (relatórios não redigidos)
+docs/auditoria-publicacao/raw/
+docs/auditoria-publicacao/*.redacted.json
