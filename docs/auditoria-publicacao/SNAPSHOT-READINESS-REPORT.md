@@ -4,6 +4,8 @@
 
 2026-09-25
 
+> **SUPERSEDED — relatório pré-triagem.** O estado atual e a contagem efetivo do snapshot estão em `docs/auditoria-publicacao/SNAPSHOT-SANITIZATION-REPORT.md`. Este arquivo é preservado apenas como evidência histórica do primeiro gate; não deve ser usado como readiness atual.
+
 ## Resumo executivo
 
 O snapshot sanitizado local foi criado, mas o scan final encontrou findings no próprio candidato. O status é `CONTAMINATED`; não está pronto para aprovação humana nem para publicação.

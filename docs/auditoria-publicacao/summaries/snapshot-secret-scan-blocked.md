@@ -8,6 +8,8 @@ SNAPSHOT_STATUS=CONTAMINATED
 
 O candidato local não pode ser declarado pronto para publicação.
 
+> **HISTÓRICO — pré-triagem.** O relatório bruto do TruffleHog continha `52` registros, dos quais `3` eram mensagens operacionais/summary sem `DetectorName`; a contagem efetiva era `49` findings. O estado posterior está em `docs/auditoria-publicacao/SNAPSHOT-SANITIZATION-REPORT.md`.
+
 ## Escopo
 
 - Snapshot: `/tmp/preco-public-snapshot-20260925`
