@@ -11,10 +11,10 @@
 
 - `npm ci --no-audit --no-fund`: PASS.
 - `npm run check:public`: PASS; 99 arquivos de teste, 1010 testes aprovados, 13 já marcados como skipped no baseline, build e `check:bundle` aprovados.
-- Gitleaks `v8.18.4`: 0 findings no snapshot final.
-- TruffleHog `v3.97.9`: 0 registros com `DetectorName` no snapshot final.
-- Workflows privados de evidence/Neon foram removidos do snapshot; o workflow público único exige contexto `verify` e executa a cadeia pública.
-- Branch protection: 1 approving review, admins incluidos, resolução de conversa obrigatória, force-push e deleção bloqueados.
+- Gitleaks `v8.18.4`: 0 findings no commit final publicado `b8a40a6` (`/tmp/preco-public-snapshot-audit-raw-20260925/gitleaks-prepub.json`).
+- TruffleHog `v3.97.9`: 0 registros com `DetectorName` no commit final publicado `b8a40a6` (`/tmp/preco-public-snapshot-audit-raw-20260925/trufflehog-prepub.json`).
+- Workflows privados de evidence/Neon foram removidos do snapshot; o workflow público único executa a cadeia pública, e a branch protection exige o contexto `verify`.
+- Branch protection: 1 approving review, admins incluídos, resolução de conversa obrigatória, force-push e deleção bloqueados.
 - Secret scanning e push protection: habilitados.
 
 ## Isolamento
