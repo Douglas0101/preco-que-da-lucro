@@ -15,6 +15,7 @@
 - TruffleHog `v3.97.9`: 0 registros com `DetectorName` no commit final publicado `b8a40a6` (`/tmp/preco-public-snapshot-audit-raw-20260925/trufflehog-prepub.json`).
 - Workflows privados de evidence/Neon foram removidos do snapshot; o workflow público único executa a cadeia pública, e a branch protection exige o contexto `verify`.
 - Branch protection: 1 approving review, admins incluídos, resolução de conversa obrigatória, force-push e deleção bloqueados.
+- Durante a correção do primeiro run público vermelho, a classic branch protection foi removida apenas para permitir o push corretivo direto de `b8a40a6` e foi restaurada na mesma operação; o estado final foi lido da API e está verificado acima.
 - Secret scanning e push protection: habilitados.
 
 ## Isolamento
