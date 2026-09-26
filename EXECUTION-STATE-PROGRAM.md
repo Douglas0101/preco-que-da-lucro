@@ -2739,3 +2739,32 @@ declara 91 versionaveis`. Investigação: o **selo estava certo** (91 arquivos, 
   passaram a refletir o veredicto real, incluindo rebaixamento dentro do `finalize`.
 
   Latest state marker parent = `e4eed185b61bf441de2e8de93eee23a46ce6ea4b`,
+
+## Bloco aditivo — kickoff Fase 0 §5 + Fase 1 §6 P0 (2026-09-25)
+
+O despacho de kickoff pediu F0-03, SEC-001 e FIN-001…FIN-004 como trabalho a iniciar. A
+reconciliação vem primeiro — antes de branch, delegação ou qualquer mutação — provou que **os seis
+itens já estavam implementados, testados e verdes** no tip local de `develop`. Reimplementá-los violaria
+a atomicidade do INV-009 e criaria uma segunda convenção para um contrato vivo. **Nada foi duplicado.**
+
+- **Estado re-derivado, não herdado:** `arquivo:linha` + execução. `MEDICAO-2026-09-24` (S1 = 15/15
+  DONE) foi usado só como correlato. Medido neste ciclo: **99 arquivos, 1.036 testes verdes, 13
+  pulados** (vitest 4.1.11, 68,7 s).
+- **Entregue — a metade que faltava de `DBT-19`:** asserção de que a tabela de cobertura do
+  `AGENTS.md` bate com a cadeia `check` do `package.json` e com os dois workflows. Fail-closed nas
+  duas direções: tabela ausente, marca ilegível, gate declarado e inexistente, gate fora da tabela
+  e passo da cadeia sem cobertura declarada **reprovam**; marca ilegível nunca vira `true`.
+  Doze casos, seis controles negativos. Commits `ceec343` (teste) e `abd5e6d` (evidência).
+  **Prova de vivacidade fora da suíte:** a linha real do `m02:boundaries` na tabela foi mutada para
+  `✘`; a suíte reprovou nomeando o gate e o lado; o arquivo foi restaurado e a suíte voltou a verde.
+- **Registrado, não resolvido:** `DBT-19` **continua ABERTA** — o registry é do MAESTRO, e o que
+  existe agora é a condição de fechamento que faltava, não o veredito.
+- **Limite declarado:** `m02:lockfile-guard` e `typecheck` reprovam por causa do WIP não commitado
+  do usuário, que rebaixa `drizzle-kit` para `0.18.1` (versão sem `defineConfig`, exigida por
+  `drizzle.config.ts`). Os dois arquivos **não** foram tocados; reverter o WIP é decisão do dono.
+  `format:check`, `lint`, `m02:boundaries`, `m02:temporal-guard`, `m02:secrets-audit`,
+  `m02:debts-guard` e `m02:matrix:check` medidos verdes.
+- **Sem push e sem selo `run@sha`:** o CI por push segue bloqueado por cota de plataforma desde
+  2026-09-21, e nenhum run existe para esta branch. Publicar `develop` é decisão do MAESTRO.
+
+  Latest state marker parent = `abd5e6dd898a92c1d64ffa880c1177b1545dd797`,
