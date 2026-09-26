@@ -70,3 +70,39 @@ Roda em `npm run test` (já encadeado no `check`), portanto **executável por ga
 - Não pede push, billing, status no GitHub, `full-logs` ou mudança de visibilidade.
 - Não pede fechamento de `DBT-23` (pedido separado, em `SDD-20260923-evidence-policy/MAESTRO-REQUEST-DBT-23.md`).
 - Não pede ratificação do ADR-030 (decisão humana própria, se desejada).
+
+---
+
+# Complemento — 2026-09-25 — a segunda metade da condição foi entregue
+
+A tabela acima mapeia a condição de fechamento clause a clause. Na data daquele pedido, a última linha
+("tabela do `AGENTS.md` bate com os YAMLs por asserção de teste") estava declarada como cumprida **por
+atualização editorial no mesmo commit** — o que é mais fraco do que a própria cláusula pede. O
+`reconciliacao-plano-mestre-2026-09-24.md` (§6.2) nomeou isso: _"Nenhum teste pinna a cadeia `check` de
+16 gates: um gate pode ser removido com tudo verde. Isso desarma em silêncio qualquer gate do plano que
+dependa dela. É o item mais urgente do próximo ciclo de código."_
+
+**Entregue agora** — a asserção que faltava, por comparação de dados e não por edição de prosa:
+
+| Peça   | Onde                                                                                                                               | O que faz                                                                                                                                                                                                                                                        |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| núcleo | `scripts/lib/m02-ci-coverage.ts` — `parseCoverageTable`, `gateInCheckChain`, `gateInHeavy`, `gateInLight`, `auditDeclaredCoverage` | Lê a tabela do `AGENTS.md`, a cadeia `check` do `package.json` e os dois YAMLs, e compara as três colunas                                                                                                                                                        |
+| teste  | `src/test/m02-ci-coverage.test.ts` — 12 casos, **6 controles negativos**                                                           | Gate acrescentado ao `check` sem entrar na tabela · gate declarado e inexistente · guard removido da heavy · guard removido da light · gate removido do `check` · ✔ virado ✘ na tabela · marca ilegível · guard comentado contando como ausente · tabela ausente |
+
+**Fail-closed nas duas direções:** a tabela que discorda dos fatos reprova, e também a ausência da
+tabela, a marca irreconhecível, o gate fantasma e o passo da cadeia `check` sem cobertura declarada.
+Marca ilegível **não** vira `true` silencioso.
+
+**Prova de vivacidade fora da suíte:** a linha real do `m02:boundaries` na tabela do `AGENTS.md` foi
+mutada de `✔ | ✔ (passo direto)` para `✘`; a suíte reprovou com
+`m02:boundaries (heavy): a tabela declara ✘ e o gate roda ali`; o arquivo foi restaurado
+(`git diff` vazio) e a suíte voltou a 21/21.
+
+Commits `ceec343` (teste) e `abd5e6d` (evidência
+`docs/evidence/p0-fase0-fase1-reconciliacao-2026-09-25.md`), branch
+`feature/p0-financial-security-baseline`.
+
+**Ação requerida do MAESTRO, atualizada:** avaliar o fechamento de `DBT-19` com closure test apontando
+para **os dois** arquivos — `src/test/m02-boundary-gate.test.ts` (falsificabilidade das guardas) **e**
+`src/test/m02-ci-coverage.test.ts` (a tabela não mente). O registry segue intocado; `DBT-19` permanece
+**ABERTA** até a linha ser escrita por quem o escreve.
