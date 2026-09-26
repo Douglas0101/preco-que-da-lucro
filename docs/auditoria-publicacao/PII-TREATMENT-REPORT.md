@@ -16,11 +16,11 @@ Este relatório não declara o repositório pronto para publicação. Scans comp
 
 ## Inventário metadata-only
 
-| Superfície | Total | Rastreado no `origin/develop` | Coberto pelo ignore | Aparece no `git status` |
-|---|---:|---:|---:|---:|
-| `.patch` locais | 421 | 2 | 419 untracked | 0 |
-| Headers `From:` com identidade pessoal sob `docs/evidence/local-ci/` | 399 | não determinados | — | 0 |
-| `.bundle` locais | 22 | 0 | 22 | 0 |
+| Superfície                                                           | Total | Rastreado no `origin/develop` | Coberto pelo ignore | Aparece no `git status` |
+| -------------------------------------------------------------------- | ----: | ----------------------------: | ------------------: | ----------------------: |
+| `.patch` locais                                                      |   421 |                             2 |       419 untracked |                       0 |
+| Headers `From:` com identidade pessoal sob `docs/evidence/local-ci/` |   399 |              não determinados |                   — |                       0 |
+| `.bundle` locais                                                     |    22 |                             0 |                  22 |                       0 |
 
 Os dois patches rastreados são paths de evidência já existentes no remoto. Suas linhas não foram lidas nem classificadas como PII nesta rodada. A contagem histórica de zero patches rastreados foi corrigida por errata append-only no journal; ver `L179`.
 
@@ -37,16 +37,16 @@ O ignore reduz risco de inclusão acidental. Não protege histórico já publica
 
 ## Validações
 
-| Validação | Resultado | Evidência |
-|---|---|---|
-| Patches untracked cobertos pelo ignore | PASS | `419/419` |
-| Bundles cobertos pelo ignore | PASS | `22/22` |
-| Caminhos `.patch`/`.bundle` no status | PASS | `0` |
-| Padrões obrigatórios presentes | PASS | `6/6` |
-| PII em documento de decisão | PASS | `0` matches de email/`From:` |
-| `git diff --check` | PASS | exit `0` |
-| Remoção de artefatos | NÃO EXECUTADA | decisão preserva dados |
-| Push/mutação remota | NÃO EXECUTADA | rota C |
+| Validação                              | Resultado     | Evidência                    |
+| -------------------------------------- | ------------- | ---------------------------- |
+| Patches untracked cobertos pelo ignore | PASS          | `419/419`                    |
+| Bundles cobertos pelo ignore           | PASS          | `22/22`                      |
+| Caminhos `.patch`/`.bundle` no status  | PASS          | `0`                          |
+| Padrões obrigatórios presentes         | PASS          | `6/6`                        |
+| PII em documento de decisão            | PASS          | `0` matches de email/`From:` |
+| `git diff --check`                     | PASS          | exit `0`                     |
+| Remoção de artefatos                   | NÃO EXECUTADA | decisão preserva dados       |
+| Push/mutação remota                    | NÃO EXECUTADA | rota C                       |
 
 ## Observadores de segurança
 

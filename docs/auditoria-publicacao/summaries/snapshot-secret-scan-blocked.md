@@ -21,10 +21,10 @@ O candidato local não pode ser declarado pronto para publicação.
 
 ## Resultados
 
-| Scanner | Findings | Verificados | Regras/detectores |
-|---|---:|---:|---|
-| Gitleaks `v8.18.4` | 6 | 0 | `generic-api-key`: 6 |
-| TruffleHog `v3.97.9` | 52 | 0 | `Postgres`: 46; `URI`: 2; `SonarCloud`: 1 |
+| Scanner              | Findings | Verificados | Regras/detectores                         |
+| -------------------- | -------: | ----------: | ----------------------------------------- |
+| Gitleaks `v8.18.4`   |        6 |           0 | `generic-api-key`: 6                      |
+| TruffleHog `v3.97.9` |       52 |           0 | `Postgres`: 46; `URI`: 2; `SonarCloud`: 1 |
 
 Nenhum valor de segredo foi impresso, copiado para este relatório ou commitado. Relatórios brutos permanecem apenas em `/tmp` e não são versionados.
 

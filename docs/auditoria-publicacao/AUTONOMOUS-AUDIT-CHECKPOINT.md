@@ -15,12 +15,12 @@ Ciclo interrompido por stop condition. A inspeção metadata-only encontrou PII 
 
 ## 3. Patches rastreados
 
-| Métrica | Valor |
-|---|---:|
-| Total rastreado | 2 |
-| PII suspeita | 1 |
-| Segredo suspeito | 0 |
-| Desconhecido | 0 |
+| Métrica          | Valor |
+| ---------------- | ----: |
+| Total rastreado  |     2 |
+| PII suspeita     |     1 |
+| Segredo suspeito |     0 |
+| Desconhecido     |     0 |
 
 - `docs/evidence/incidents/2026-09-19-dependency-drift/package-drift.patch`: `PII_SUSPECT` por uma ocorrência de email; valor não exposto.
 - `docs/evidence/trk-a-wp-b7-2026-09-17/fix.patch`: `CLEAN_PROVAVEL` nesta fase metadata-only.
@@ -28,17 +28,17 @@ Ciclo interrompido por stop condition. A inspeção metadata-only encontrou PII 
 
 ## 4. Metadados de commits
 
-| Métrica | Valor |
-|---|---:|
-| Unique author names | 14 |
-| Unique author emails | 14 |
-| Unique committer names | 15 |
-| Unique committer emails | 15 |
-| Autor noreply | 40 |
-| Committer noreply | 2 |
-| Autor personal-like | 700 |
-| Committer personal-like | 700 |
-| Mensagens sensíveis | 15 |
+| Métrica                 | Valor |
+| ----------------------- | ----: |
+| Unique author names     |    14 |
+| Unique author emails    |    14 |
+| Unique committer names  |    15 |
+| Unique committer emails |    15 |
+| Autor noreply           |    40 |
+| Committer noreply       |     2 |
+| Autor personal-like     |   700 |
+| Committer personal-like |   700 |
+| Mensagens sensíveis     |    15 |
 
 Classificação:
 
@@ -50,13 +50,13 @@ Isso bloqueia a Rota A. Relatório redigido: `summaries/commit-metadata-pii.md`.
 
 ## 5. Scan de segredo
 
-| Método | Executado | Resultado |
-|---|---|---|
-| gitleaks | não | indisponível; não instalado |
-| trufflehog | não | indisponível; não instalado |
-| manual HEAD | não | interrompido pelo stop condition antes do scan |
-| manual histórico | não | bloqueado: 777 commits > limite seguro 500 |
-| arquivos sensíveis | não | não executado após o stop |
+| Método             | Executado | Resultado                                      |
+| ------------------ | --------- | ---------------------------------------------- |
+| gitleaks           | não       | indisponível; não instalado                    |
+| trufflehog         | não       | indisponível; não instalado                    |
+| manual HEAD        | não       | interrompido pelo stop condition antes do scan |
+| manual histórico   | não       | bloqueado: 777 commits > limite seguro 500     |
+| arquivos sensíveis | não       | não executado após o stop                      |
 
 Classificação:
 
@@ -77,11 +77,11 @@ O conteúdo não foi lido após o stop condition.
 
 ## 7. Rotas
 
-| Rota | Status | Justificativa |
-|---|---|---|
-| A — atual público | `BLOCKED` | PII suspect em patch e `COMMIT_METADATA_PII_LIKELY`; scan completo não executado |
-| B — snapshot sanitizado | `NOT_PREPARED` | `PREPARE_PUBLIC_SNAPSHOT=no`; não houve criação de candidato |
-| C — privado | `ACTIVE` | postura segura enquanto os gates estão incompletos |
+| Rota                    | Status         | Justificativa                                                                    |
+| ----------------------- | -------------- | -------------------------------------------------------------------------------- |
+| A — atual público       | `BLOCKED`      | PII suspect em patch e `COMMIT_METADATA_PII_LIKELY`; scan completo não executado |
+| B — snapshot sanitizado | `NOT_PREPARED` | `PREPARE_PUBLIC_SNAPSHOT=no`; não houve criação de candidato                     |
+| C — privado             | `ACTIVE`       | postura segura enquanto os gates estão incompletos                               |
 
 ## 8. Recomendação
 

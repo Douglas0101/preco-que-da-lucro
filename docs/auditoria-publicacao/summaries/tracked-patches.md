@@ -10,10 +10,10 @@
 
 ## Tabela
 
-| Arquivo | Blob | Tamanho | Commit adicionado | From | Emails | Subject | Date | Signed | Secrets | Classificação |
-|---|---|---:|---|---:|---:|---:|---:|---:|---:|---|
-| `docs/evidence/incidents/2026-09-19-dependency-drift/package-drift.patch` | `db193e5439573ec8867f56c535541f3fffa9a322` | 135359 | `1a11ee285cd6c2587f6ad52acaca1ae08529d288` | 0 | 1 | 0 | 0 | 0 | 0 | `PII_SUSPECT` |
-| `docs/evidence/trk-a-wp-b7-2026-09-17/fix.patch` | `c473bad544b9f61ebcdff4da60c2a7694550abba` | 19961 | `93c1d62a7a6cb09a1b45809449618e36e81f15e8` | 0 | 0 | 0 | 0 | 0 | 0 | `CLEAN_PROVAVEL` |
+| Arquivo                                                                   | Blob                                       | Tamanho | Commit adicionado                          | From | Emails | Subject | Date | Signed | Secrets | Classificação    |
+| ------------------------------------------------------------------------- | ------------------------------------------ | ------: | ------------------------------------------ | ---: | -----: | ------: | ---: | -----: | ------: | ---------------- |
+| `docs/evidence/incidents/2026-09-19-dependency-drift/package-drift.patch` | `db193e5439573ec8867f56c535541f3fffa9a322` |  135359 | `1a11ee285cd6c2587f6ad52acaca1ae08529d288` |    0 |      1 |       0 |    0 |      0 |       0 | `PII_SUSPECT`    |
+| `docs/evidence/trk-a-wp-b7-2026-09-17/fix.patch`                          | `c473bad544b9f61ebcdff4da60c2a7694550abba` |   19961 | `93c1d62a7a6cb09a1b45809449618e36e81f15e8` |    0 |      0 |       0 |    0 |      0 |       0 | `CLEAN_PROVAVEL` |
 
 ## Interpretação
 

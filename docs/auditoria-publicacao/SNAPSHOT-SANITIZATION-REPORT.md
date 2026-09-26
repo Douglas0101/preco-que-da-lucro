@@ -18,13 +18,13 @@ Os findings do snapshot foram extraídos e classificados sem imprimir valores. O
 
 ## Classificação dos findings
 
-| Classificação | Gitleaks | TruffleHog | Total | Tratamento |
-|---|---:|---:|---:|---|
-| `REAL_ACTIVE` | 0 | 0 | 0 | Nenhum confirmado |
-| `PLACEHOLDER` | 0 | 12 | 12 | Sanitizados ou template sem credencial |
-| `TEST_DATA` | 6 | 37 | 43 | Evidência removida ou literal de teste sanitizado |
-| `FALSE_POSITIVE` | 0 | 0 | 0 | Nenhum |
-| `UNKNOWN` | 0 | 0 | 0 | Nenhum |
+| Classificação    | Gitleaks | TruffleHog | Total | Tratamento                                        |
+| ---------------- | -------: | ---------: | ----: | ------------------------------------------------- |
+| `REAL_ACTIVE`    |        0 |          0 |     0 | Nenhum confirmado                                 |
+| `PLACEHOLDER`    |        0 |         12 |    12 | Sanitizados ou template sem credencial            |
+| `TEST_DATA`      |        6 |         37 |    43 | Evidência removida ou literal de teste sanitizado |
+| `FALSE_POSITIVE` |        0 |          0 |     0 | Nenhum                                            |
+| `UNKNOWN`        |        0 |          0 |     0 | Nenhum                                            |
 
 A triagem foi feita por path, detector, regra e flags de contexto; nenhum valor de finding foi impresso.
 
@@ -43,10 +43,10 @@ Nenhuma alteração foi feita no código-fonte do repositório original.
 
 ## Rescan
 
-| Scanner | Findings | Status |
-|---|---:|---|
-| Gitleaks `v8.18.4` | 0 | `CLEAN` |
-| TruffleHog `v3.97.9` | 0 | `CLEAN` |
+| Scanner              | Findings | Status  |
+| -------------------- | -------: | ------- |
+| Gitleaks `v8.18.4`   |        0 | `CLEAN` |
+| TruffleHog `v3.97.9` |        0 | `CLEAN` |
 
 ```text
 SNAPSHOT_SCAN_STATUS=CLEAN
@@ -54,11 +54,11 @@ SNAPSHOT_SCAN_STATUS=CLEAN
 
 ## Validação de build
 
-| Step | Resultado | Evidência |
-|---|---|---|
-| `npm ci --no-audit --no-fund` | PASS | exit `0` |
-| `npm run check` | BLOCKED | exit `1` em `m02:work-package-guard` |
-| `npm run build` | PASS | exit `0` |
+| Step                          | Resultado | Evidência                            |
+| ----------------------------- | --------- | ------------------------------------ |
+| `npm ci --no-audit --no-fund` | PASS      | exit `0`                             |
+| `npm run check`               | BLOCKED   | exit `1` em `m02:work-package-guard` |
+| `npm run build`               | PASS      | exit `0`                             |
 
 O guard `m02:work-package-guard` exige um template de work package que foi deliberadamente removido de `docs/evidence/`. O código compilou, mas o gate completo não pode ser declarado verde sem uma decisão sobre um workflow público compatível com a ausência de evidência interna.
 

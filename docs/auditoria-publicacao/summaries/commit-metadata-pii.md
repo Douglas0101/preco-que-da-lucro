@@ -10,17 +10,17 @@ A classificação é `COMMIT_METADATA_PII_LIKELY` porque existem emails únicos 
 
 ## Métricas
 
-| Métrica | Valor |
-|---|---:|
-| Unique author names | 14 |
-| Unique author emails | 14 |
-| Unique committer names | 15 |
-| Unique committer emails | 15 |
-| Author noreply | 40 |
-| Committer noreply | 2 |
-| Author personal-like | 700 |
-| Committer personal-like | 700 |
-| Sensitive commit messages | 15 |
+| Métrica                   | Valor |
+| ------------------------- | ----: |
+| Unique author names       |    14 |
+| Unique author emails      |    14 |
+| Unique committer names    |    15 |
+| Unique committer emails   |    15 |
+| Author noreply            |    40 |
+| Committer noreply         |     2 |
+| Author personal-like      |   700 |
+| Committer personal-like   |   700 |
+| Sensitive commit messages |    15 |
 
 ## Efeito
 

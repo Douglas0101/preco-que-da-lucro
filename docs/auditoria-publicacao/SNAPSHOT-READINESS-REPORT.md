@@ -30,10 +30,10 @@ O snapshot sanitizado local foi criado, mas o scan final encontrou findings no p
 
 ### Scans do original
 
-| Ferramenta | Findings | HEAD findings | Verificados | Classificação |
-|---|---:|---:|---:|---|
-| Gitleaks `v8.18.4` | 8 | 0 | n/a | `SECRET_SUSPECT_HISTORICAL` |
-| TruffleHog `v3.97.9` | 66 | 0 | 0 | `SECRET_SUSPECT_HISTORICAL` |
+| Ferramenta           | Findings | HEAD findings | Verificados | Classificação               |
+| -------------------- | -------: | ------------: | ----------: | --------------------------- |
+| Gitleaks `v8.18.4`   |        8 |             0 |         n/a | `SECRET_SUSPECT_HISTORICAL` |
+| TruffleHog `v3.97.9` |       66 |             0 |           0 | `SECRET_SUSPECT_HISTORICAL` |
 
 ### Patch PII suspect
 

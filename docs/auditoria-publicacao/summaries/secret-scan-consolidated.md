@@ -2,30 +2,30 @@
 
 ## Resumo
 
-| Ferramenta | Executado | Findings | Classificação |
-|---|---|---:|---|
-| Gitleaks `v8.18.4` | sim | 8 | `SECRET_SUSPECT_HISTORICAL` |
-| TruffleHog `v3.97.9` | sim | 66 | `SECRET_SUSPECT_HISTORICAL` |
+| Ferramenta           | Executado | Findings | Classificação               |
+| -------------------- | --------- | -------: | --------------------------- |
+| Gitleaks `v8.18.4`   | sim       |        8 | `SECRET_SUSPECT_HISTORICAL` |
+| TruffleHog `v3.97.9` | sim       |       66 | `SECRET_SUSPECT_HISTORICAL` |
 
 Ambos os scans produziram relatórios brutos apenas em `docs/auditoria-publicacao/raw/`, ignorado pelo Git. Nenhum valor de segredo foi impresso neste relatório.
 
 ## Gitleaks — Rules Summary
 
-| Quantidade | Regra |
-|---:|---|
-| 6 | `generic-api-key` |
-| 1 | `aws-access-token` |
-| 1 | `github-pat` |
+| Quantidade | Regra              |
+| ---------: | ------------------ |
+|          6 | `generic-api-key`  |
+|          1 | `aws-access-token` |
+|          1 | `github-pat`       |
 
 O Gitleaks retornou exit `1`, comportamento esperado quando há findings. O relatório foi parseado com sucesso; houve `0` findings associados ao commit HEAD no momento do scan e `4` paths únicos, sem imprimir paths ou valores.
 
 ## TruffleHog — Detectors Summary
 
-| Quantidade | Detector |
-|---:|---|
-| 60 | `Postgres` |
-| 2 | `URI` |
-| 1 | `SonarCloud` |
+| Quantidade | Detector     |
+| ---------: | ------------ |
+|         60 | `Postgres`   |
+|          2 | `URI`        |
+|          1 | `SonarCloud` |
 
 O TruffleHog retornou exit `0`; o relatório JSON foi parseado com sucesso. Findings verificados: `0`; findings associados ao commit HEAD: `0`; commits distintos: `25`; paths únicos: `35`. Esses números são metadata-only.
 
