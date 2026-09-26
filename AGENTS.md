@@ -19,8 +19,8 @@
 
 ## Local quality gate (definition of done)
 
-- Before pushing, run `npm run check` and keep it green. It chains `m02:lockfile-guard`, `guard:upgrade`, `check:migration-toolchain`, `m02:work-package-guard`, `m02:debts-guard`, `m02:temporal-guard`, `m02:boundaries`, `m02:secrets-audit`, `m02:seal-dts:check`, `m02:matrix:check`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
-- The CI `verify` job (`.github/workflows/ui-stack.yml`) runs **16 dos 18** scripts da cadeia `check` como passos diretos, mais `npm audit --audit-level=high`, e — **em tiers** — `db:test`/`db:check` (diff de banco) e Playwright e2e (chromium+mobile no push, +firefox+webkit no PR); a matriz completa roda em **todo PR** e no `workflow_dispatch`. A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
+- Before pushing, run `npm run check` and keep it green. It chains `m02:lockfile-guard`, `guard:upgrade`, `check:migration-toolchain`, `guard:contracts`, `m02:work-package-guard`, `m02:debts-guard`, `m02:temporal-guard`, `m02:boundaries`, `m02:secrets-audit`, `m02:seal-dts:check`, `m02:matrix:check`, `check:ui-stack`, `check:no-supabase-runtime`, `format:check`, `lint`, `typecheck`, `test`, `build`, and `check:bundle`.
+- The CI `verify` job (`.github/workflows/ui-stack.yml`) runs **17 dos 19** scripts da cadeia `check` como passos diretos, mais `npm audit --audit-level=high`, e — **em tiers** — `db:test`/`db:check` (diff de banco) e Playwright e2e (chromium+mobile no push, +firefox+webkit no PR); a matriz completa roda em **todo PR** e no `workflow_dispatch`. A push that skips the local gate wastes a CI cycle; treat any red as debt, never as noise.
 
   **Cobertura de guardas, por pipeline (não é "os mesmos gates" — é esta tabela; DBT-19):**
 
@@ -34,6 +34,7 @@
   | `m02:boundaries` | ✔ | ✔ (passo direto) | ✘ — a light só dispara quando **todos** os arquivos alterados estão sob `docs/evidence/**`, e a matriz (`docs/specs/M-02/`) não muda nesse caso. **Encadeado em 2026-09-23** (commit `c7e6a55`): até então não estava ligado a gate nenhum |
   | `m02:state:check` | ✘ | ✘ | ✘ — é passo do protocolo de boot, roda à mão |
   | `guard:upgrade`, `check:migration-toolchain` | ✔ | ✔ (passo direto) | ✘ — leem `node_modules` e a versão resolvida do lockfile, e a light não instala dependências por desenho; um push que muda `package.json`/`package-lock.json` nunca é docs-only, então a heavy é sempre disparada e o hole de cobertura é nulo |
+  | `guard:contracts` | ✔ | ✔ (passo direto) | ✘ — igual aos dois anteriores: lê `src/lib` e `scripts/`, e a light não instala dependências; um push que muda qualquer um dos dois nunca é docs-only, então a heavy é sempre disparada |
 
   A tabela é o contrato: um gate que aparece como ✔ tem de estar no encadeamento do pipeline citado, e um ✘ **nomeado** (com o equivalente, quando existe) é limite declarado, não lacuna esquecida.
 - **Cota de Actions:** o job pesado custa **~9,7 min de runner por execução real** (média de 8 execuções verdes medidas: 497-605 s; os 5 runs bloqueados de 3-6 s da cota **não** entram na conta — média contaminada por eles daria ~6 min, que é o número que estava aqui antes), e um push em rajada cria uma execução por commit — sem cobrança por caminho, um dia de trabalho consome a cota do mês. Por isso o `verify` roda em **tiers**, e o `concurrency` cancela o run superseded da mesma ref. **Nenhum teste foi removido, nenhuma regra afrouxada, nenhum orçamento renegociado:** o que mudou foi *onde* cada verificação roda.

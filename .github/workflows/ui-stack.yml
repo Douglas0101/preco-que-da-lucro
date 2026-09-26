@@ -140,6 +140,11 @@ jobs:
       # resolvida do lockfile; offline, sem banco, ~1,3 s medidos.
       - run: npm run guard:upgrade
       - run: npm run check:migration-toolchain
+      # Fase C — contratos de BFF. Offline, sem banco, ~0,4 s medidos. O
+      # `contract-output-coverage` é um PISO declarado em
+      # `scripts/contract-baseline.json`, não uma meta de 100%: a dívida de
+      # contrato de saída (DBT-25) pode diminuir, nunca crescer.
+      - run: npm run guard:contracts
       # DBT-19: as duas guardas abaixo rodavam em gate nenhum (`m02:boundaries`) ou so na light
       # (`m02:secrets-audit`), entao um push so de codigo nunca as executava. Ambas sao offline,
       # sem banco e baratas (~2,0 s medidas em 2026-09-23), por isso nao entram em tier.
