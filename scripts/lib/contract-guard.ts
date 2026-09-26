@@ -688,6 +688,7 @@ function preconditionFail(reason: string, repo: string): never {
       apiErrorText: null,
       aiTools: [],
       toolRegistryText: null,
+      baseline: null,
     }),
     checks: [{ id: "contract-precondition", status: "fail", detail: `[precondição] ${reason}` }],
     status: "precondition",
