@@ -2884,3 +2884,19 @@ a atomicidade do INV-009 e criaria uma segunda convenção para um contrato vivo
   `AGENTS.md` ganhou a linha, e `m02-ci-coverage.test.ts` a exige contra a cadeia e os dois YAMLs.
 
   Latest state marker parent = `24ddc79c7770671abde20c8fbcea54cc029eaa5f`,
+
+### Complemento do bloco da Fase C — o rótulo do check
+
+O check nasceu como `contract-output-coverage` e passou a se chamar **`contract-output-ratchet`**. O
+nome antigo afirmava algo que o check não mede: um check rotulado "coverage" que sai `pass` sobre
+**0%** se lê errado em painel e em leitura apressada, e essa leitura errada é a mesma cobertura
+aparente que a Fase C existe para matar. "Ratchet" nomeia o que ele de fato cobra — a dívida pode
+diminuir, nunca crescer. Métrica, piso e referência a `DBT-25` seguem em `observed` e no detalhe;
+muda só a etiqueta. Risco residual levantado pelo agente da fatia e **decidido aqui**, não
+postergado: é decisão de política com resposta obvia, e a MAESTRO pode reverter se discordar.
+
+O mesmo agente corrigiu a `CONTRACT-POLICY.md`, que afirmava "sai `fail`, nunca `pass`" e
+"0/35, `fail`" — verdade sobre o código como foi escrito e falsa sobre o código como está. Doc que
+mente sobre o arquivo vizinho é o mesmo padrão que a fase combate.
+
+Latest state marker parent = `96a81f4a3663c9d8ac8300052471083298a2691f`,

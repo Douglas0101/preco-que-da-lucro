@@ -284,7 +284,7 @@ const CHECK_ID: Record<Side, string> = {
   [SIDE.schema]: "contract-schema-declared",
   [SIDE.taxonomy]: "contract-error-taxonomy",
   [SIDE.aiTools]: "contract-ai-tool-validation",
-  [SIDE.output]: "contract-output-coverage",
+  [SIDE.output]: "contract-output-ratchet",
 };
 
 const CHECK_ORDER: readonly Side[] = [

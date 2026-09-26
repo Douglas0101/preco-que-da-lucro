@@ -42,22 +42,45 @@ valida com `safeParse` e devolve `{ ok: false, code: "VALIDATION_ERROR" }` em ve
 
 ## O que o guard cobre
 
-| check                         | afirma                                                                      | exit |
-| ----------------------------- | --------------------------------------------------------------------------- | ---- |
-| `contract-discovery`          | ao menos uma server function declarada (descoberta vazia é parser quebrado) | 1    |
-| `contract-input-validated`    | toda função que **recebe entrada** tem `.validator(`                        | 1    |
-| `contract-schema-declared`    | todo `.validator(` nomeia um schema Zod (identificador ou `z.*` inline)     | 1    |
-| `contract-error-taxonomy`     | os 9 códigos do plano §6.9 estão declarados em `api-error.ts`               | 1    |
-| `contract-ai-tool-validation` | o registry usa `safeParse` e toda tool declarada tem `schema:`              | 1    |
-| `contract-output-coverage`    | 100% das funções declaram contrato de saída                                 | 1    |
+| check                         | afirma                                                                                                 | exit |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------ | ---- |
+| `contract-discovery`          | ao menos uma server function declarada (descoberta vazia é parser quebrado)                            | 1    |
+| `contract-input-validated`    | toda função que **recebe entrada** tem `.validator(`                                                   | 1    |
+| `contract-schema-declared`    | todo `.validator(` nomeia um schema Zod (identificador ou `z.*` inline)                                | 1    |
+| `contract-error-taxonomy`     | os 9 códigos do plano §6.9 estão declarados em `api-error.ts`                                          | 1    |
+| `contract-ai-tool-validation` | o registry usa `safeParse` e toda tool declarada tem `schema:`                                         | 1    |
+| `contract-output-ratchet`     | a dívida de contrato de saída **não cresce** (ver [piso declarado](#piso-declarado-e-regra-do-escada)) | 1    |
 
 Mais o `contract-precondition` (exit **2**, nunca `pass`): arquivo ausente ou ilegível, ou parâmetro
 de entrada que o parser não consegue determinar com segurança.
 
+### Piso declarado e a regra da escada
+
+O `contract-output-ratchet` **não** cobra 100% hoje — seria um guard permanentemente vermelho,
+e guard que nunca pode ficar verde acaba desabilitado. Ele cobra que a **dívida não cresça**, contra
+um piso versionado em [`scripts/contract-baseline.json`](../../scripts/contract-baseline.json):
+
+```json
+{ "outputContracts": 0, "serverFunctions": 35, "debt": "DBT-25" }
+```
+
+Três caminhos reprovam, e só eles:
+
+1. **dívida cresce** — uma server function adicionada depois do piso sem schema de saída;
+2. **regressão** — a contagem de contratos cai abaixo do que era no piso (remover função que já
+   tinha contrato regride a dívida);
+3. **piso ausente ou malformado** — isso é **precondição (exit 2)**, nunca um piso zero implícito:
+   um piso inventado daria um verde que ninguém declarou.
+
+Um teste pina o arquivo do piso contra a árvore real, para que o verde não seja de um número
+inventado. **O número absoluto nunca é escondido**: `observed.outputContracts`,
+`observed.outputContractCoverage` e o detalhe do check carregam `0 de 35` em toda execução,
+inclusive quando o check está verde.
+
 ### `skip` no vazio, `pass` nunca no vazio
 
 Quando a descoberta de server functions é zero, `contract-input-validated`,
-`contract-schema-declared` e `contract-output-coverage` saem `skip` com o detalhe
+`contract-schema-declared` e `contract-output-ratchet` saem `skip` com o detalhe
 `inconclusivo: 0 server functions descobertas` — nunca `pass`. `0 de 0` não é aprovação, e um check
 que "passa" no vazio é cobertura aparente, que é exatamente o defeito que a política de dívidas
 (`DBT-19`) já denuncia neste repositório. Quem reprova nesse caso é `contract-discovery`.
@@ -83,8 +106,9 @@ O guard decide pelo que o parser vê: `.validator(` presente, ou `data` no destr
 Hoje **nenhuma** das 35 server functions declaradas em `src/lib/*.functions.ts` publica
 `outputSchema`, `responseSchema` ou `.returns(`. A entrada tem contrato; a saída é um tipo de
 TypeScript que ninguém verifica em runtime. O guard **mede e reporta** esse zero em
-`observed.outputContracts` e `observed.outputContractCoverage`, e o check sai `fail` — nunca `pass`,
-nunca omitido.
+`observed.outputContracts` e `observed.outputContractCoverage` — e o valor vai também no detalhe do
+check, mesmo quando ele está verde. O que o check cobra é que a dívida **não cresça** a partir do
+piso declarado ([acima](#piso-declarado-e-regra-da-escada)); fechar o gap é outro ciclo.
 
 **Por que não é fechado aqui.** Retipar 35 funções é refatoração de outro ciclo: cada handler devolve
 uma forma diferente (`ProductView`, `{ ok: true }`, arrays mapeados, `SimulationView`), e derivar o
@@ -98,12 +122,12 @@ resultado possível e um defeito que este repositório já tem precedente docume
    lado da função — nunca em diretório paralelo;
 2. o schema derivado do tipo de retorno real do handler, para que a asserção seja verdadeira no
    primeiro dia e não vire formulário em branco;
-3. um teste por função que **falsifique** o schema com uma resposta adulterada, para que o check
-   `contract-output-coverage` possa ir a `pass` com 100% por evidência e não por declaração;
+3. um teste por função que **falsifique** o schema com uma resposta adulterada, para que a dívida
+   encolha com evidência e não por declaração;
 4. a mesma coisa para a fronteira do gateway de IA (`src/lib/ai/`), que tem contrato de entrada
    (`toolExecutionOutputSchema`) e hoje não tem contrato de saída equivalente.
 
-Enquanto isso, o check `contract-output-coverage` reprova, e reprovar é o registro honesto.
+Enquanto isso, o check `contract-output-ratchet` reprova, e reprovar é o registro honesto.
 
 ## Relação com o que já existe (não duplica)
 
@@ -133,11 +157,15 @@ ordem:
 
 1. `npm run guard:contracts` — reprova se uma função com entrada ficou sem validator, se um validator
    ficou sem schema, se um código do §6.9 sumiu da taxonomia, se o `safeParse` saiu do registry, se uma
-   tool ficou sem `schema:`, e reporta a cobertura de contrato de saída (hoje `0/35`, `fail`).
+   tool ficou sem `schema:`, se a dívida de contrato de saída **cresceu** além do piso declarado, e
+   carrega o número absoluto da cobertura (`0 de 35` hoje) em `observed` e no detalhe do check.
 2. `npx vitest run src/test/contract-guard.test.ts` — controles negativos do próprio guard.
 3. `npx vitest run src/test/api-error-contract.test.ts src/test/tool-registry.test.ts src/test/bff-create-update-contract.test.ts`
    — comportamento de erro, rejeição de tool e contrato create/update.
 4. `npm run m02:boundaries` — se a mudança alterou a fronteira BFF × banco.
+5. Se o PR **mexe em `scripts/contract-baseline.json`**, isso não é bump de rotina: subir o piso sem
+   digitar as funções que o justificam é exatamente como cobertura aparente entra no repositório. O
+   arquivo só muda junto com schema de saída novo, e a dívida correspondente sai de `DBT-25`.
 
 Razão por dependência:
 
@@ -167,5 +195,7 @@ Formato da finding, o mesmo dos demais guards do repositório:
 ${sujeito} (${lado}): observado ${observado}, esperado ${esperado}
 ```
 
-Hoje o único veredito é `contrato-de-saída (saída)`, com o limite declarado nomeado e o número
-visível: `observado 0 de 35 funções declaram schema de saída`.
+Hoje o guard sai **0** na árvore real, e a única coisa que ele ainda não fecha é o contrato de saída
+(`0 de 35`) — dívida nomeada em `DBT-25`, com o número visível em `observed` mesmo no verde. Os
+vereditos que ainda reprovam são: entrada sem validator, validator sem schema, código do §6.9
+ausente, `safeParse` fora do registry, tool sem `schema:`, e a dívida de saída crescendo.

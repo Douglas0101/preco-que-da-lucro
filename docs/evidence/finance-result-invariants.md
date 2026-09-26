@@ -226,12 +226,16 @@ verde nos 49 casos.
 
 ## 5. O que NÃO foi coberto, e por quê
 
-1. **Contrato de saída das server functions.** Não é escopo deste arquivo e não
-   foi medido aqui. O que se sabe: a entrada é validada com
-   `.validator(...)` e o `throw` é o que `src/lib/api-error.ts` mapeia para
-   `VALIDATION_ERROR`; a **saída** não tem contrato declarado em lugar nenhum do
-   `src/lib/*.functions.ts`. Fechar isso exige retipar as funções — é refatoração
-   de outro ciclo, e a decisão é do MAESTRO.
+1. **Contrato de saída ausente nas server functions do BFF** (medido pelo
+   `contract-guard`: `observed.outputContracts` sobre `observed.serverFunctions`;
+   reproduzir com `npx tsx scripts/lib/contract-guard.ts`, check
+   `contract-output-ratchet`, dívida declarada em `DBT-25`). O gerador é
+   citado, não o literal: o denominador é derivado de um parser e se move a
+   cada server function adicionada, então escrever o número aqui faria esta
+   evidência afirmar algo que ninguém mediu no dia da leitura. Confirmado por
+   execução: cobertura de contrato de saída 0%, com entrada validada em todas
+   as funções que recebem parâmetro. Fechar isso exige retipar as funções — é
+   refatoração de outro ciclo, e a decisão é do MAESTRO.
 2. **`incomplete` vs `invalid` em rotas que não usam o motor financeiro.** As
    propriedades valem para `calculateScenario`, `computeProduct`,
    `computeProductCost` e `calculatePriceFormation`. Qualquer outro produtor de

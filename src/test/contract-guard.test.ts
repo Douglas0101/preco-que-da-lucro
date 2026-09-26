@@ -116,7 +116,7 @@ describe("1. sanidade na árvore real", () => {
     // O verde não pode comer o número: a dívida de saída é 0 e continua escrita.
     expect(report.observed.outputContracts).toBe(0);
     expect(report.observed.outputContractCoverage).toBe(0);
-    const detail = check(input, "contract-output-coverage")?.detail ?? "";
+    const detail = check(input, "contract-output-ratchet")?.detail ?? "";
     expect(detail).toContain(`0 de ${report.observed.serverFunctions}`);
     expect(detail).toContain("dívida declarada em DBT-25");
   });
@@ -154,7 +154,7 @@ describe("2. discovery", () => {
     for (const id of [
       "contract-input-validated",
       "contract-schema-declared",
-      "contract-output-coverage",
+      "contract-output-ratchet",
     ]) {
       expect(report.checks.find((c) => c.id === id)?.status, id).toBe("skip");
     }
@@ -368,7 +368,7 @@ describe("7. contratos de saída (medidos, nunca mascarados)", () => {
     const report = evaluateContractGuard(input);
     expect(report.observed.outputContracts).toBe(0);
     expect(report.observed.outputContractCoverage).toBe(0);
-    expect(check(input, "contract-output-coverage")?.status).toBe("fail");
+    expect(check(input, "contract-output-ratchet")?.status).toBe("fail");
     expect(report.exitCode).toBe(1);
   });
 
@@ -385,7 +385,7 @@ describe("7. contratos de saída (medidos, nunca mascarados)", () => {
     // é do piso declarado (contagem), não da razão — cobertura parcial é
     // aceitável desde que a contagem de contratos não caia abaixo do piso.
     expect(evaluateContractGuard(input).observed.outputContractCoverage).toBe(0.5);
-    expect(check(input, "contract-output-coverage")?.status).toBe("pass");
+    expect(check(input, "contract-output-ratchet")?.status).toBe("pass");
   });
 
   it("cobertura em 100% vira pass — o caminho verde existe e é alcançável", () => {
@@ -394,7 +394,7 @@ describe("7. contratos de saída (medidos, nunca mascarados)", () => {
     expect(report.observed.outputContracts).toBe(2);
     expect(report.observed.outputContractCoverage).toBe(1);
     expect(findingsOn(baseInput(), "saída")).toEqual([]);
-    expect(check(baseInput(), "contract-output-coverage")?.status).toBe("pass");
+    expect(check(baseInput(), "contract-output-ratchet")?.status).toBe("pass");
     expect(report.checks.every((c) => c.status === "pass")).toBe(true);
     expect(report.exitCode).toBe(0);
   });
@@ -478,8 +478,8 @@ describe("9. piso declarado: a dívida pode diminuir, nunca crescer", () => {
     expect(report.status).toBe("pass");
     expect(report.observed.outputContracts).toBe(0);
     // O verde não come o número: quem lê o relatório vê 0 de 35 e a dívida nomeada.
-    expect(check(input, "contract-output-coverage")?.detail).toContain("0 de 35");
-    expect(check(input, "contract-output-coverage")?.detail).toContain("DBT-25");
+    expect(check(input, "contract-output-ratchet")?.detail).toContain("0 de 35");
+    expect(check(input, "contract-output-ratchet")?.detail).toContain("DBT-25");
   });
 
   it("função nova SEM contrato de saída reprova — a dívida cresceu", () => {
