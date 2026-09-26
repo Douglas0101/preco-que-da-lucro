@@ -2811,3 +2811,36 @@ a atomicidade do INV-009 e criaria uma segunda convenção para um contrato vivo
   cota, então nenhum selo `run@sha` é citado: não houve run.
 
   Latest state marker parent = `e65b7a24e5df41dd5578f72e68be28e2e7778d3e`,
+
+## Bloco aditivo — decisões do MAESTRO, PR #48 e Fase C (2026-09-25)
+
+- **Registry fechado por decisão do MAESTRO.** `DBT-19` e `DBT-24` marcadas **FECHADA** no
+  `DEBTS.md`. A decisão foi escrita `RESOLVED`; o registry diz `FECHADA`, e **não** é
+  substituição: `STATUSES` em `scripts/m02-debts-guard.mjs:27` admite apenas `ABERTA`,
+  `EM_TRATAMENTO`, `FECHADA` e `NS`, então escrever `RESOLVED` transformava a decisão da
+  MAESTRO em gate vermelho. **Falsificado, não afirmado:** escrever `RESOLVED` em `DBT-24` faz o
+  guard reportar 3 falhas de taxonomia e sair 1; restaurar `FECHADA` devolve 0. A palavra da MAESTRO
+  fica registrada verbatim na linha, então a tradução não perde nada.
+- **Branch publicada e Draft PR aberto** (autorizados): `feature/p0-financial-security-baseline` →
+  `develop`, **PR #48**, `OPEN` + `DRAFT`.
+- **O PR tem 65 commits e 100 arquivos, não 14.** Motivo declarado: `origin/develop` está em
+  `a2f5ff6` e o `develop` local carrega 51 commits não publicados (cota bloqueia push desde
+  2026-09-21), então o comparador inclui esses 51 mais os 14 deste ciclo. Nenhum commit alheio foi
+  descartado nem reescrito.
+- **As falhas de CI do PR são a cota, não o código.** Medido nos check-runs: `docs-light` e `verify`
+  abrem e fecham em ~3 s com **`steps=0`**, assinatura do bloqueio de plataforma já registrado neste
+  ledger. A API de billing deste token responde 404, então a anotação literal da plataforma **não** pôde
+  ser lida e não é citada aqui; o que se afirma é a assinatura medida, não o texto da plataforma.
+  Consequência registrada: **nenhum selo `run@sha`** é válido para este PR.
+- **Fase C — Contract Guard autorizada.** Reconciliação feita antes de delegar, e ela **corrige o
+  enunciado do despacho**: o diretório `src/server/bff/contracts/` **não existe** e não será criado —
+  a convenção viva é schema **inline**, ao lado da server function que o usa. Criar o diretório abriria
+  uma segunda convenção, o que o `AGENTS.md` proíbe. Números medidos: **45** `createServerFn` em 8
+  arquivos, **26** `.validator(`, **0** contratos de saída (busca por `outputSchema|responseSchema|
+.returns(` em `src/lib/*.functions.ts` não casa nada), `safeParse` de tool já presente em
+  `tool-registry.ts:66` (INV-014 satisfeito) e taxonomia de 9 códigos já em `api-error.ts`.
+  **O gap real da Fase C é contrato de saída, não entrada.** Fechá-lo exigiria retipar 45 funções —
+  refatoração de outro ciclo, e decisão da MAESTRO. O guard vai **medir e reportar 0 como limite
+  declarado**, nunca como `pass`: é exatamente a cobertura aparente que este repo já puniu uma vez.
+
+  Latest state marker parent = `5d7c12e8a89a02662639f8ccda5666eb32bddc13`,
