@@ -116,3 +116,140 @@ export function auditCoverage(heavyYaml: string, lightYaml: string): string[] {
   }
   return findings;
 }
+
+/**
+ * Tabela de cobertura declarada no `AGENTS.md` (uma linha por grupo de gates,
+ * com `✔`/`✘` por pipeline). Ela é a *afirmação* do contrato; a cadeia
+ * `check` do `package.json` e os dois YAMLs são o *fato*. DBT-19 exige que
+ * as duas coisas casem por asserção — sem isto, um gate sai do encadeamento
+ * (ou entra nele sem ser documentado) e tudo continua verde.
+ */
+
+export interface DeclaredCoverage {
+  gates: string[];
+  check: boolean;
+  heavy: boolean;
+  light: boolean;
+}
+
+const TABLE_HEADER = "gate / guarda";
+
+function markOf(cell: string): boolean | null {
+  if (cell.includes("✔")) return true;
+  if (cell.includes("✘")) return false;
+  return null;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Extrai a tabela de cobertura. Linha sem marca reconhecível, sem gates ou com
+ * menos de quatro células vira `null`: o chamador reprova, em vez de assumir
+ * `true` silencioso (fail-closed).
+ */
+export function parseCoverageTable(markdown: string): Array<DeclaredCoverage | null> {
+  const lines = markdown.split("\n");
+  const start = lines.findIndex((l) => l.includes(TABLE_HEADER) && l.trimStart().startsWith("|"));
+  if (start < 0) return [];
+  const rows: Array<DeclaredCoverage | null> = [];
+  for (const line of lines.slice(start + 2)) {
+    if (!line.trimStart().startsWith("|")) break;
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((c) => c.trim());
+    if (cells.length < 4) {
+      rows.push(null);
+      continue;
+    }
+    const gates = [...cells[0]!.matchAll(/`([^`]+)`/g)].map((m) => m[1]!);
+    const marks = [markOf(cells[1]!), markOf(cells[2]!), markOf(cells[3]!)];
+    if (gates.length === 0 || marks.some((m) => m === null)) {
+      rows.push(null);
+      continue;
+    }
+    rows.push({ gates, check: marks[0]!, heavy: marks[1]!, light: marks[2]! });
+  }
+  return rows;
+}
+
+export function gateInCheckChain(gate: string, checkChain: string[]): boolean {
+  return checkChain.includes(`npm run ${gate}`);
+}
+
+/** Passo real da heavy: item de lista `- run:`, nunca comentado. */
+export function gateInHeavy(gate: string, yaml: string): boolean {
+  return new RegExp(`^\\s*-\\s*run:\\s*npm run ${escapeRegExp(gate)}\\s*$`, "m").test(yaml);
+}
+
+/** A light invoca os guards por `node scripts/<kebab>.<ext>`. */
+export function gateInLight(gate: string, yaml: string): boolean {
+  if (new RegExp(`^\\s*run:\\s*npm run ${escapeRegExp(gate)}\\s*$`, "m").test(yaml)) return true;
+  const kebab = escapeRegExp(gate.replace(":", "-"));
+  return new RegExp(`^\\s*run:\\s*node scripts/${kebab}\\.(mjs|ts|mts)\\s*$`, "m").test(yaml);
+}
+
+function stepInvokesGate(step: string, gate: string): boolean {
+  if (step === `npm run ${gate}`) return true;
+  return step.includes(`scripts/${gate.replace(":", "-")}.`);
+}
+
+export interface DeclaredCoverageInput {
+  markdown: string;
+  checkChain: string[];
+  heavyYaml: string;
+  lightYaml: string;
+  scripts: Record<string, string>;
+}
+
+/**
+ * Fail-closed nas duas direções: a tabela que discorda dos fatos reprova, e
+ * também a ausência da tabela, a marca ilegível, o gate declarado que não
+ * existe em `package.json` e o passo da cadeia `check` que a tabela não
+ * declara.
+ */
+export function auditDeclaredCoverage(input: DeclaredCoverageInput): string[] {
+  const findings: string[] = [];
+  const rows = parseCoverageTable(input.markdown);
+  if (rows.length === 0) {
+    findings.push("tabela de cobertura ausente ou vazia no AGENTS.md");
+    return findings;
+  }
+
+  const declared = new Set<string>();
+  rows.forEach((row, index) => {
+    if (row === null) {
+      findings.push(`linha ${index + 1} da tabela: marca ou lista de gates ilegível`);
+      return;
+    }
+    for (const gate of row.gates) {
+      declared.add(gate);
+      if (!Object.hasOwn(input.scripts, gate)) {
+        findings.push(`${gate}: declarado na tabela e ausente de package.json scripts`);
+        continue;
+      }
+      const sides: Array<[string, boolean, boolean]> = [
+        ["check", row.check, gateInCheckChain(gate, input.checkChain)],
+        ["heavy", row.heavy, gateInHeavy(gate, input.heavyYaml)],
+        ["light", row.light, gateInLight(gate, input.lightYaml)],
+      ];
+      for (const [side, marked, present] of sides) {
+        if (marked !== present) {
+          const drift = marked
+            ? "a tabela declara ✔ e o gate não roda ali"
+            : "a tabela declara ✘ e o gate roda ali";
+          findings.push(`${gate} (${side}): ${drift}`);
+        }
+      }
+    }
+  });
+
+  for (const step of input.checkChain) {
+    if (![...declared].some((gate) => stepInvokesGate(step, gate))) {
+      findings.push(`passo da cadeia \`check\` sem cobertura declarada: "${step}"`);
+    }
+  }
+  return findings;
+}
