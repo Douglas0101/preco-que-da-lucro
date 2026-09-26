@@ -2927,4 +2927,4 @@ Latest state marker parent = `96a81f4a3663c9d8ac8300052471083298a2691f`,
   estava vermelho no HEAD `7a84182` exatamente por essa janela encerrada, com o caso "o próprio repo é
   o caso GREEN" de `src/test/m02-temporal-guard.test.ts` reprovando.
 
-Latest state marker parent = `bf66bc34d3c9b637f3ea1b79ba61963ccf3afff1`,
+Latest state marker parent = `8df257833959ffa09171aa0a0b2bc10a24a2318c`,
