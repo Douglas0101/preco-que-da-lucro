@@ -9,6 +9,15 @@
 - **Dívida candidata:** **35 de 35** server functions sem schema de saída. Nenhuma — literalmente
   nenhuma — declara contrato de retorno.
 
+> **ERRATA — ciclo 3 (2026-09-26).** Este documento é o **pedido** da Fase C e o §3 abaixo é a
+> medição **como ela estava no piso 0**; nada aqui foi reescrito. O MAESTRO registrou a dívida como
+> `DBT-25` (`conformidade` / `média`) no registry e autorizou uma **fatia** de 5 funções de dinheiro.
+> Estado atual medido: `outputContracts: 5`, `serverFunctions: 35`, piso `5`, detalhe do check
+> `cobertura de contrato de saída 14,29% (5 de 35); dívida declarada em DBT-25, piso 5 de 35`. As 30
+> funções restantes seguem na dívida, que continua `ABERTA`. Onde este texto disser `0 de 35` ou
+> `piso 0`, leia-se o estado histórico da Fase C, e o número vivo está em
+> `scripts/contract-baseline.json` e em `docs/upgrades/CONTRACT-POLICY.md`.
+
 ## 1. O que a Fase C encontrou
 
 O `guard:contracts` descobre, por parsing de `src/lib/*.functions.ts`:

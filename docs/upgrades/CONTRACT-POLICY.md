@@ -61,7 +61,7 @@ e guard que nunca pode ficar verde acaba desabilitado. Ele cobra que a **dívida
 um piso versionado em [`scripts/contract-baseline.json`](../../scripts/contract-baseline.json):
 
 ```json
-{ "outputContracts": 0, "serverFunctions": 35, "debt": "DBT-25" }
+{ "outputContracts": 5, "serverFunctions": 35, "debt": "DBT-25" }
 ```
 
 Três caminhos reprovam, e só eles:
@@ -74,7 +74,7 @@ Três caminhos reprovam, e só eles:
 
 Um teste pina o arquivo do piso contra a árvore real, para que o verde não seja de um número
 inventado. **O número absoluto nunca é escondido**: `observed.outputContracts`,
-`observed.outputContractCoverage` e o detalhe do check carregam `0 de 35` em toda execução,
+`observed.outputContractCoverage` e o detalhe do check carregam `5 de 35` em toda execução,
 inclusive quando o check está verde.
 
 ### `skip` no vazio, `pass` nunca no vazio
@@ -101,18 +101,38 @@ O guard decide pelo que o parser vê: `.validator(` presente, ou `data` no destr
 
 ## O que o guard NÃO cobre — nomeado, com o número
 
-### Contrato de saída: ausente. Medido: **0 de 35**.
+### Contrato de saída: parcial. Medido: **5 de 35** (eram 0).
 
-Hoje **nenhuma** das 35 server functions declaradas em `src/lib/*.functions.ts` publica
-`outputSchema`, `responseSchema` ou `.returns(`. A entrada tem contrato; a saída é um tipo de
-TypeScript que ninguém verifica em runtime. O guard **mede e reporta** esse zero em
-`observed.outputContracts` e `observed.outputContractCoverage` — e o valor vai também no detalhe do
-check, mesmo quando ele está verde. O que o check cobra é que a dívida **não cresça** a partir do
-piso declarado ([acima](#piso-declarado-e-regra-da-escada)); fechar o gap é outro ciclo.
+No fecho da Fase C, **nenhuma** das 35 server functions declaradas em `src/lib/*.functions.ts`
+publicava `outputSchema`, `responseSchema` ou `.returns(` — era `0 de 35`. No ciclo 3 o MAESTRO
+autorizou uma **fatia** de 5 funções de dinheiro (`listExpenses`, `getTotals`, `runSimulation`,
+`listSimulations`, `listProducts`), o piso subiu para `5` e a dívida segue nomeada em `DBT-25`
+para as 30 restantes. A entrada tem contrato; a saída passou a ter, nessas cinco, verificação em
+runtime. O guard **mede e reporta** o número em `observed.outputContracts` e
+`observed.outputContractCoverage` — e o valor vai também no detalhe do check, mesmo quando ele
+está verde. O que o check cobra é que a dívida **não cresça** a partir do
+piso declarado ([acima](#piso-declarado-e-regra-da-escada)); fechar o gap inteiro é outro ciclo.
 
-**Por que não é fechado aqui.** Retipar 35 funções é refatoração de outro ciclo: cada handler devolve
-uma forma diferente (`ProductView`, `{ ok: true }`, arrays mapeados, `SimulationView`), e derivar o
-schema Zod de cada uma é trabalho de modelagem, não de guard. A decisão é do MAESTRO. O que este
+**Como a fatia é declarada.** Cada uma das cinco declara o schema Zod **inline no próprio arquivo
+da função**, ancorado em tempo de compilação por `satisfies z.ZodType<…>` sobre o tipo de retorno
+real, e o aplica no handler por `outputSchema(schema, sujeito, valor)`
+([`src/lib/output-contract.ts`](../../src/lib/output-contract.ts) — mecanismo único, **sem**
+schemas dentro, para não criar um segundo sítio de declaração). Em violação: log estruturado
+`bff.output_contract_violation` e `throw new ApplicationError("DEPENDENCY_ERROR")` (§6.9 → HTTP 503) — nunca lista vazia, nunca `null` (INV-013).
+
+**Limite declarado deste piso.** O `OUTPUT_CONTRACT_RE` do guard é **textual**: ele reconhece o
+token `outputSchema` no bloco da função. O TanStack instalado (`@tanstack/react-start` 1.168.26)
+**não tem** `.outputSchema()` nem `.returns()` no builder — só `validator`/`inputValidator` —
+então as duas alternativas de cadeia que a regex também aceita descrevem uma API que não existe.
+Consequência honesta: o guard conta a **chamada** do mecanismo, não prova que o schema corresponde
+ao tipo de retorno; quem prova isso é o `satisfies` (compile-time) e os testes negativos por
+função. Os schemas **não** são `.strict()`: chave desconhecida é removida, não reprovada — rejeitar
+arriscaria 503 no caminho do dinheiro por um campo que o tipo fechado diz não existir.
+
+**Por que os 30 restantes não entram aqui.** Retipar as 30 é trabalho de modelagem de outro ciclo:
+cada handler devolve uma forma diferente (`ProductView`, `{ ok: true }`, arrays mapeados,
+`SimulationView`). A decisão de continuar é do MAESTRO, e a fatia existe justamente para que a
+unidade seja aceita sem substância. O que este
 ciclo entrega é a **medição** e a dívida nomeada — esconder o zero seria cobertura aparente, o pior
 resultado possível e um defeito que este repositório já tem precedente documentado de punir (DBT-19).
 
@@ -158,7 +178,7 @@ ordem:
 1. `npm run guard:contracts` — reprova se uma função com entrada ficou sem validator, se um validator
    ficou sem schema, se um código do §6.9 sumiu da taxonomia, se o `safeParse` saiu do registry, se uma
    tool ficou sem `schema:`, se a dívida de contrato de saída **cresceu** além do piso declarado, e
-   carrega o número absoluto da cobertura (`0 de 35` hoje) em `observed` e no detalhe do check.
+   carrega o número absoluto da cobertura (`5 de 35` hoje) em `observed` e no detalhe do check.
 2. `npx vitest run src/test/contract-guard.test.ts` — controles negativos do próprio guard.
 3. `npx vitest run src/test/api-error-contract.test.ts src/test/tool-registry.test.ts src/test/bff-create-update-contract.test.ts`
    — comportamento de erro, rejeição de tool e contrato create/update.
@@ -195,7 +215,8 @@ Formato da finding, o mesmo dos demais guards do repositório:
 ${sujeito} (${lado}): observado ${observado}, esperado ${esperado}
 ```
 
-Hoje o guard sai **0** na árvore real, e a única coisa que ele ainda não fecha é o contrato de saída
-(`0 de 35`) — dívida nomeada em `DBT-25`, com o número visível em `observed` mesmo no verde. Os
+Hoje o guard sai **0** na árvore real, e o que ele ainda não fecha é o contrato de saída das 30
+funções restantes (`5 de 35` desde o ciclo 3) — dívida nomeada em `DBT-25`, com o número visível em
+`observed` mesmo no verde. Os
 vereditos que ainda reprovam são: entrada sem validator, validator sem schema, código do §6.9
 ausente, `safeParse` fora do registry, tool sem `schema:`, e a dívida de saída crescendo.
