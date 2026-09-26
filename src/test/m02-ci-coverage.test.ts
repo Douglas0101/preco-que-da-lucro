@@ -129,11 +129,23 @@ describe("tabela de cobertura do AGENTS.md × cadeia `check` × dois YAMLs", () 
     expect(audit(agentsReal, checkChainReal)).toEqual([]);
   });
 
-  it("a cadeia `check` real tem os 16 gates que a tabela declara", () => {
-    expect(checkChainReal).toHaveLength(16);
-    expect(parseCoverageTable(agentsReal).flatMap((r) => r?.gates ?? [])).toHaveLength(
-      new Set(parseCoverageTable(agentsReal).flatMap((r) => r?.gates ?? [])).size,
-    );
+  it("a cadeia `check` involve exatamente os gates que a tabela marca ✔ em `check`", () => {
+    // Identidade, não cardinalidade: um número fixo aqui envelheceria sozinho e
+    // passaria a mentir assim que um gate novo entrasse na cadeia.
+    const declarados = parseCoverageTable(agentsReal)
+      .filter((row) => row?.check)
+      .flatMap((row) => row?.gates ?? [])
+      .sort();
+    const invocados = checkChainReal
+      .map((step) => /^npm run ([^\s&|]+)$/.exec(step)?.[1] ?? null)
+      .filter((name): name is string => name !== null)
+      .sort();
+    expect(invocados).toEqual(declarados);
+    expect(invocados.length).toBeGreaterThan(0);
+  });
+
+  it("a cadeia `check` não repete passo", () => {
+    expect(new Set(checkChainReal).size).toBe(checkChainReal.length);
   });
 
   it("gate acrescentado ao `check` e ausente da tabela reprova (a outra direção)", () => {
