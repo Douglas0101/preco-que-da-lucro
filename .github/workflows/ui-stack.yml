@@ -134,6 +134,12 @@ jobs:
       - run: npm run m02:work-package-guard
       - run: npm run m02:debts-guard
       - run: npm run m02:temporal-guard
+      # Politica de dependencia (plano de governanca de upgrades/downgrades): a faixa
+      # aprovada vive em `scripts/dependency-policy.json` e e a fonte unica dos tres
+      # guardas. Ficam depois do `npm ci` porque leem `node_modules` e a versao
+      # resolvida do lockfile; offline, sem banco, ~1,3 s medidos.
+      - run: npm run guard:upgrade
+      - run: npm run check:migration-toolchain
       # DBT-19: as duas guardas abaixo rodavam em gate nenhum (`m02:boundaries`) ou so na light
       # (`m02:secrets-audit`), entao um push so de codigo nunca as executava. Ambas sao offline,
       # sem banco e baratas (~2,0 s medidas em 2026-09-23), por isso nao entram em tier.
