@@ -2900,3 +2900,31 @@ O mesmo agente corrigiu a `CONTRACT-POLICY.md`, que afirmava "sai `fail`, nunca 
 mente sobre o arquivo vizinho é o mesmo padrão que a fase combate.
 
 Latest state marker parent = `96a81f4a3663c9d8ac8300052471083298a2691f`,
+
+## Bloco aditivo — ciclo 3 autorizado: `DBT-25`/`DBT-26` no registry, correção do verifier e branch própria (2026-09-26)
+
+- **Fase C (Contract Guard) concluída** — o bloco anterior desta mesma data é a fonte: `guard:contracts`
+  com piso versionado em `scripts/contract-baseline.json`, invariantes do Result Type e varredura de
+  `catch` com inventário pinado, e a cadeia `check` de 18 para 19 gates. Nada aqui reabre aquela entrega.
+- **PR #48 segue `OPEN` + `DRAFT`**, head `feature/p0-financial-security-baseline` → `develop`, com as
+  falhas de check-run causadas pela cota de plataforma (`steps=0`) e **nenhum selo `run@sha`** citável —
+  a assinatura medida está no bloco de 2026-09-25 e não é reescrita aqui.
+- **Ciclo 3 autorizado pelo MAESTRO.** Escopo: (a) registrar `DBT-25` e `DBT-26` no `DEBTS.md`
+  (23 → **25** dívidas); (b) corrigir `DBT-26` no código; (c) executar a fatia autorizada de `DBT-25`
+  (5 contratos de saída + piso do ratchet); (d) publicar `feature/contract-guard-bff` como branch
+  própria. HEAD deste ciclo no momento do registro: `7a84182`.
+- **A taxonomia vem do SDD, não do brief.** `verifyPassword` é cripto pura e **não** acessa banco: a
+  leitura `P0`/`DatabaseError`/`TimeoutError`/`ConfigurationError` foi medida **FALSA** e não entra no
+  registry. `DBT-26` entra como classe `robustez` e severidade `média`; severidade `alta` está
+  descartada por medição, não por preferência.
+- **Cobertura de CI segue bloqueada por cota** (precondição de ambiente, item 17 estendido): os guards
+  locais são o único gate, e a verificação adversarial de contexto limpo (S6) é a lane independente.
+  Nenhum selo novo é cunhado neste bloco.
+- **Perda declarada de cobertura do H-6.** A janela do watcher `app-live-watch` (re-arme de
+  2026-09-19T15:31:33Z, horizonte de 7 dias) terminou em 2026-09-26T15:31Z e o log não recebe poll novo
+  desde 2026-09-24T02:40:59Z (`i=6240`); o re-arme é ação de operador em `$HOME`, fora deste ciclo. A
+  linha de §1 do `PROGRESS.md` carrega o mesmo fato, e é ela que destrava o `m02:temporal-guard` — que
+  estava vermelho no HEAD `7a84182` exatamente por essa janela encerrada, com o caso "o próprio repo é
+  o caso GREEN" de `src/test/m02-temporal-guard.test.ts` reprovando.
+
+Latest state marker parent = `bf66bc34d3c9b637f3ea1b79ba61963ccf3afff1`,
