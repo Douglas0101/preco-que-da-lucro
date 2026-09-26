@@ -2768,3 +2768,46 @@ a atomicidade do INV-009 e criaria uma segunda convenção para um contrato vivo
   2026-09-21, e nenhum run existe para esta branch. Publicar `develop` é decisão do MAESTRO.
 
   Latest state marker parent = `abd5e6dd898a92c1d64ffa880c1177b1545dd797`,
+
+## Bloco aditivo — política de dependências e incidente do `drizzle-kit` (2026-09-25)
+
+- **O incidente.** Um WIP não commitado rebaixou `drizzle-kit` de `^0.31.10` para `^0.18.1`, com o
+  lockfile reescrito em sincronia. A árvore instalava e a maioria dos gates passava; `typecheck` e
+  `m02:lockfile-guard` é que ficaram vermelhos, porque `0.18.1` é anterior ao símbolo `defineConfig`
+  importado por `drizzle.config.ts:1`. Severidade **SEV-2**, classe de mudança **M4 — downgrade**.
+- **Fase A executada e medida.** O WIP foi **isolado** em `wip/drizzle-kit-downgrade-2026-09-25`
+  (commit `944401c`) antes de qualquer reversão — o trabalho do dono está preservado, não descartado.
+  Manifests revertidos, `npm ci --ignore-scripts`, e então medido: lockfile-guard exit 0 com 0 razões,
+  typecheck exit 0, `drizzle-kit check` lendo as 20 migrations, **1.036 testes verdes**, build e bundle
+  verdes.
+- **Causa raiz corrigida na fonte.** A faixa vivia hardcoded dentro do próprio guard
+  (`const SPEC_RE = /^\^0\.31\.\d+$/`) e em mais nenhum lugar amarrado: duas fontes que divergem
+  sozinhas. Agora há **fonte única** em `scripts/dependency-policy.json` (15 pacotes, criticality,
+  faixa e motivo), consumida pelos três guardas. O contrato observável do `m02-lockfile-guard` foi
+  preservado — mesmo schema, mesmos ids de check, mesma flag, mesmos exits.
+- **Prevenção entregue.** `guard:upgrade` (39 casos; 17 reprovam veredito, 5 exigem `skip` em vez de
+  `pass`) e `check:migration-toolchain` (28 casos), com Downgrade Request em
+  `scripts/dependency-approvals/`. Cadeia `check` de **16 para 18** gates; ambos como passo direto do
+  `verify`. Nenhuma dependência nova — a política de dependências não pode ser implementada com uma
+  dependência.
+- **Aprovação não é atalho.** Medido: com o arquivo de aprovação presente o finding de _downgrade_
+  some e o de _spec fora da faixa_ **permanece**. Rebaixar de verdade exige ampliar a faixa na política,
+  em commit visível — que é a revisão que a política existe para forçar.
+- **Falsificação fora da suíte, com mutação e restauração:** o downgrade reproduzido em
+  `package.json` reprovou os dois guardes nomeando pacote, lado, observado e esperado; um arquivo de
+  aprovação indevido foi plantado para provar o ponto acima; o piso da política foi movido para
+  disparar o guard de toolchain sobre dados reais. Árvore restaurada e `npm run check` medido
+  **exit 0** (18 gates, 117 s).
+- **Dois defeitos meus, corrigidos no caminho.** O teste de DBT-19 fixava `toHaveLength(16)` —
+  cardinalidade envelhece sozinha e passou a mentir quando dois gates entraram na cadeia; trocado por
+  igualdade de conjuntos. E `npm run format:check` **já estava vermelho em `develop`** antes deste
+  ciclo (oito relatórios de `docs/auditoria-publicacao/` entraram sem formatação em `a734cb2`),
+  corrigido em `294f660` sem afrouxar regra e sem excluir arquivo.
+- **Limites.** `DEBTS.md` **não** foi editado — o registry é do MAESTRO; o pedido está em
+  `docs/sdd/SDD-20260925-dependency-policy/MAESTRO-REQUEST-DEPENDENCY-DEBT.md` com closure test
+  executável. A light pipeline não roda os dois guardas (leem `node_modules`, e ela não instala
+  dependências por desenho); o buraco é nulo porque push de manifest nunca é docs-only. `db:test` e
+  e2e **não** foram executados (exigem container PG17 e preview). CI por push segue bloqueado por
+  cota, então nenhum selo `run@sha` é citado: não houve run.
+
+  Latest state marker parent = `e65b7a24e5df41dd5578f72e68be28e2e7778d3e`,
