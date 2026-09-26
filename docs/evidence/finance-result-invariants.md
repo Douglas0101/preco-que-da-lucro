@@ -122,19 +122,20 @@ preciso mutar a árvore do repositório.
 **Superfície medida:** 132 arquivos `.ts`/`.tsx` em `src/` (fora de `src/test/`),
 dos quais 44 contêm a palavra `catch`.
 
-**Resultado: 42 achados, em três camadas.**
+**Resultado: 41 achados, em três camadas** (eram 42; um `sucesso-vazio` foi
+corrigido no ciclo 3 — ver §3.1).
 
 | Camada          | Qtd. | Significado                                                                                          |
 | --------------- | ---- | ---------------------------------------------------------------------------------------------------- |
 | `silencioso`    | 4    | corpo vazio depois de remover comentários: não propaga, não registra, não devolve nada               |
-| `sucesso-vazio` | 10   | converte a falha em valor neutro (`null`, `[]`, `{}`, `""`, `0`, `false`)                            |
+| `sucesso-vazio` | 9    | converte a falha em valor neutro (`null`, `[]`, `{}`, `""`, `0`, `false`)                            |
 | `tradutor`      | 28   | converte a falha em sinal explícito (`NaN`, `{status:"invalid"}`, `rejected(...)`, `invalid = true`) |
 
-### 3.1 Achado com consequência — dívida proposta
+### 3.1 Achado com consequência — dívida registrada e CORRIGIDA (`DBT-26`)
 
-**`src/server/auth/password.server.ts` — `catch { return false; }`**
+**`src/server/auth/password.server.ts` — o `catch` que devolvia `false`**
 
-Único `sucesso-vazio` em caminho de dado de servidor. `verifyPassword` converte
+Único `sucesso-vazio` em caminho de dado de servidor. `verifyPassword` convertia
 qualquer exceção de `bcryptjs`/`scrypt` (hash corrompido, algoritmo
 desconhecido, falha de memória, biblioteca ausente) em `false` — indistinguível
 de "senha errada". Na prática: um hash ilegível produz um laço de login sem
@@ -143,10 +144,25 @@ credencial inválida. Não viola INV-013 ao pé da letra (não é sucesso vazio 
 banco), mas é a mesma classe: **falha de infraestrutura disfarçada de veredito
 de negócio**.
 
-Dívida proposta: separar os dois vereditos — `false` só para hash válido com
-senha errada, e sinal explícito de erro para exceção — ou, no mínimo, registrar
-a falha antes de devolver `false`. Mudança de comportamento: **fora do escopo
-desta fase**; reportada aqui e comunicada ao integrador.
+**Fechamento.** A dívida foi registrada como `DBT-26` (`robustez` / `média`) em
+`docs/evidence/agent-state/DEBTS.md` e o MAESTRO autorizou a correção no ciclo 3.
+O veredito do brief original — `P0`, com `DatabaseError`/`TimeoutError`/
+`ConfigurationError` — foi **medido falso** e não entrou no registry: `verifyPassword`
+recebe `{hash, password}` e é cripto pura, **sem acesso a banco**; a superfície real
+de exceção é `Error("Invalid password hash")` (better-auth exige um par `salt:key`),
+`Error("Illegal arguments: …")` do `bcryptjs` e `TypeError` para hash nulo ou senha
+não-string. O `catch` agora classifica e **lança** `PasswordVerificationError`
+(`malformed-input` | `unusable-hash` | `crypto-failure`), registrando sinal com o
+motivo e **sem serializar o hash**; a assinatura pública (`Promise<boolean>`) não
+mudou e o consumidor better-auth em `auth.server.ts:42` segue sem edição. `false`
+passou a significar **apenas** hash válido com senha errada.
+
+**Consequência neste artefato:** o site sai do inventário pinado em
+`src/test/finance.result-invariants.test.ts` (`INVENTARIO_MEDIDO`, `CONTAGENS`) e
+`SUCESSO_VAZIO_EM_DADO` fica vazio. Essa remoção é um **ato consciente com decisão
+registrada** — o registry é fail-closed nas duas direções justamente para exigir isso.
+Os controles negativos da suíte continuam fabricando achados em fixture, então o
+scanner segue provado vivo.
 
 ### 3.2 Achados sem consequência, com justificativa
 

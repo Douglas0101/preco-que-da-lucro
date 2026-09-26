@@ -843,7 +843,6 @@ const INVENTARIO_MEDIDO: string[] = [
   'src/server/auth/auth-policy.ts|tradutor|return { ...entry, verdict: "invalid", detail: policyMessage(error) };',
   'src/server/auth/auth-policy.ts|tradutor|return { ...entry, verdict: "invalid", detail: policyMessage(error) };',
   'src/server/auth/auth-policy.ts|tradutor|return { ...entry, verdict: "invalid", detail: policyMessage(error) };',
-  "src/server/auth/password.server.ts|sucesso-vazio|return false;",
   "src/server/services/dashboard.service.ts|tradutor|fixedExpenseSummary.invalid = true;",
   "src/server/services/dashboard.service.ts|tradutor|invalid = true;",
   'src/server/services/dashboard.service.ts|tradutor|return { status: "invalid" };',
@@ -853,10 +852,23 @@ const INVENTARIO_MEDIDO: string[] = [
   "src/start.ts|tradutor|if (error instanceof Response) {",
 ];
 
-const CONTAGENS = { silencioso: 4, "sucesso-vazio": 10, tradutor: 28 };
+const CONTAGENS = { silencioso: 4, "sucesso-vazio": 9, tradutor: 28 };
 
 /**
- * Sucesso vazio em caminho de dado de servidor — dívida DECLARADA, não verde.
- * Cada item está analisado em `docs/evidence/finance-result-invariants.md`.
+ * Sucesso vazio em caminho de dado de servidor — hoje **ZERO**, por decisão.
+ *
+ * Até o ciclo 3 esta lista continha `src/server/auth/password.server.ts|return false;`:
+ * o `catch` do verifier convertia exceção em `false`. A dívida foi registrada como
+ * **DBT-26** e o MAESTRO autorizou a correção (classe `robustez`, severidade `média`;
+ * o veredito `P0`/`DatabaseError` do brief foi medido falso — `verifyPassword` é
+ * cripto pura e não acessa banco). O site sumiu porque o comportamento mudou **com
+ * decisão registrada**, que é exatamente o que este registry exige para aceitar uma
+ * remoção; a lista fica vazia e passa a afirmar que não há mais nenhum `sucesso-vazio`
+ * em caminho de dado. A análise arquivo a arquivo está em
+ * `docs/evidence/finance-result-invariants.md` §3.1.
+ *
+ * Os controles negativos desta suíte (linhas ~767-776) continuam fabricando achados
+ * em fixture, então o scanner segue provado vivo — esvaziar a lista não desliga a
+ * detecção.
  */
-const SUCESSO_VAZIO_EM_DADO: string[] = ["src/server/auth/password.server.ts|return false;"];
+const SUCESSO_VAZIO_EM_DADO: string[] = [];
