@@ -2844,3 +2844,43 @@ a atomicidade do INV-009 e criaria uma segunda convenção para um contrato vivo
   declarado**, nunca como `pass`: é exatamente a cobertura aparente que este repo já puniu uma vez.
 
   Latest state marker parent = `5d7c12e8a89a02662639f8ccda5666eb32bddc13`,
+
+## Bloco aditivo — Fase C (Contract Guard) concluída (2026-09-25)
+
+- **Enquadramento corrigido antes de construir.** A Fase C foi descrita como consolidar
+  `src/server/bff/contracts/`; esse diretório **não existe** e não foi criado. A convenção viva é
+  schema **inline**, ao lado da server function (`products.functions.ts:355,446,451,457`), e abrir um
+  segundo lugar seria o erro que o `AGENTS.md` proíbe.
+- **Inventário medido:** 35 declarações `= createServerFn(` em 8 arquivos, **26** com entrada e todas
+  com `.validator(`, **9** GET sem parâmetro (legítimos, zero finding), **0** contratos de saída,
+  taxonomia §6.9 9/9 em `api-error.ts`, 10/10 tools com schema + `safeParse`. Correção do meu número:
+  o grep inicial contou 45 menções — 35 declarações + 8 imports + 2 comentários.
+- **O gap real é contrato de saída, e não foi fechado.** Retipar 35 funções muda assinatura de
+  toda a API de servidor; a Fase C é de verificação. O guard rege a dívida por **piso versionado**
+  em `scripts/contract-baseline.json` (0 de 35, `DBT-25`), não por meta de 100% — meta seria
+  vermelho permanente e ninguém roda gate que nunca passa; verde-por-definição seria cobertura
+  aparente. Regra: a dívida pode diminuir, nunca crescer, em **duas** condições independentes.
+- **Falsificado na árvore real, com mutação e restauração:** função nova sem contrato de saída
+  (exit 1, nomeando a contagem); piso elevado acima do real (exit 1, "contrato de saída perdido");
+  `.validator` removido de `getProduct` (exit 1, `products.functions.ts:353`); `AI_QUOTA` removido
+  de `api-error.ts` (exit 1); piso declarado ausente (exit **2**, precondição, nunca piso zero
+  implícito); árvore real no piso (exit 0, com `0 de 35` e `DBT-25` visíveis no detalhe do check).
+- **Lacuna que um teste pegou, não uma revisão:** um piso escrito só como "adicionados >= adicionados"
+  deixa passar **remover** função que já tinha contrato. São duas condições, e a segunda existe.
+- **Varredura de `catch` com inventário pinado.** 49 casos em
+  `finance.result-invariants.test.ts`; acrescentar um `catch` silencioso em `src/lib/format.ts` deixa
+  2 testes vermelhos e restaurar devolve 49/49. Propriedades cobertas: `incomplete` nunca vira
+  `ok`, `invalid` nunca é rebaixado a `incomplete`, warnings propagadas, status estável, `missing`
+  apontando para folha realmente ausente.
+- **Achado de segurança, encontrado e não corrigido:** `src/server/auth/password.server.ts:19`
+  converte qualquer exceção de verifier em `false`, indistinguível de senha errada. **Não é bypass** —
+  falha fechada —, mas mascara erro de infraestrutura como veredito de negócio, que é o que o §1
+  proíbe. Produção intocada; `DBT-26` pedido à MAESTRO.
+- **Defeito meu, no caminho:** o typecheck do agente foi **escopado** (arquivo novo + `finance.ts`) e
+  reportou limpo; o `tsc -p tsconfig.json` da cadeia achou o campo `baseline` faltando no caminho de
+  precondição. Corrigido em `fix(ci)`. Um check estreito que reporta "0 erros" é uma afirmação sobre
+  um escopo, não sobre o código.
+- **Cadeia `check` de 18 para 19 gates**; `verify` com 17 de 19 como passo direto. A tabela do
+  `AGENTS.md` ganhou a linha, e `m02-ci-coverage.test.ts` a exige contra a cadeia e os dois YAMLs.
+
+  Latest state marker parent = `24ddc79c7770671abde20c8fbcea54cc029eaa5f`,
