@@ -98,27 +98,50 @@ describe("1. sanidade na árvore real", () => {
     );
     expect(o.functionsWithoutInput).toBeGreaterThan(0); // os GET sem parâmetro
     expect(o.validators).toBe(o.functionsReceivingInput);
-    expect(o.outputContracts).toBe(0);
-    expect(o.outputContractCoverage).toBe(0);
+    expect(o.outputContracts).toBe(5);
+    expect(o.outputContractCoverage).toBe(5 / 35);
     expect(o.missingErrorCodes).toEqual([]);
     expect(o.aiTools).toBeGreaterThan(0);
     expect(o.aiToolsWithoutSchema).toEqual([]);
     expect(o.toolRegistryUsesSafeParse).toBe(true);
   });
 
-  it("a árvore real está no piso declarado: verde, com o 0 visível e a dívida nomeada", () => {
+  it("a árvore real está no piso declarado: verde, com o 5 visível e a dívida nomeada", () => {
     const input = collectContractInput(process.cwd());
     const report = evaluateContractGuard(input);
 
     expect(report.status).toBe("pass");
     expect(findingsOn(input, "saída")).toEqual([]);
 
-    // O verde não pode comer o número: a dívida de saída é 0 e continua escrita.
-    expect(report.observed.outputContracts).toBe(0);
-    expect(report.observed.outputContractCoverage).toBe(0);
+    // O verde não pode comer o número: a dívida de saída encolheu de 0 para 5
+    // contratos e continua escrita.
+    expect(report.observed.outputContracts).toBe(5);
+    expect(report.observed.outputContractCoverage).toBe(5 / 35);
     const detail = check(input, "contract-output-ratchet")?.detail ?? "";
-    expect(detail).toContain(`0 de ${report.observed.serverFunctions}`);
+    expect(detail).toContain(`5 de ${report.observed.serverFunctions}`);
     expect(detail).toContain("dívida declarada em DBT-25");
+  });
+
+  /**
+   * O número sozinho não diz **quais** funções têm contrato: um crédito
+   * acidental (uma menção em comentário, por exemplo) inflaria a contagem sem
+   * contrato nenhum. Este caso pina a identidade das cinco, não a cardinalidade.
+   */
+  it("as cinco funções com contrato de saída são as nomeadas — contagem não basta", () => {
+    const input = collectContractInput(process.cwd());
+    const contracted = input.functions.filter((fn) => fn.hasOutputContract);
+
+    expect(contracted).toHaveLength(5);
+    expect(contracted.map((fn) => fn.name).sort()).toEqual([
+      "getTotals",
+      "listExpenses",
+      "listProducts",
+      "listSimulations",
+      "runSimulation",
+    ]);
+    for (const fn of contracted) {
+      expect(fn.receivesInput, `${fn.name} indeterminável`).not.toBeNull();
+    }
   });
 
   it("o piso versionado bate com a árvore real — senão o verde é de um número inventado", () => {
@@ -445,7 +468,7 @@ describe("8. parâmetro indeterminável é precondição (exit 2), nunca pass", 
 /**
  * 9. Piso declarado (`scripts/contract-baseline.json`).
  *
- * A dívida de contrato de saída é real e hoje vale 0 de 35. O guard não pode
+ * A dívida de contrato de saída é real e hoje vale 5 de 35. O guard não pode
  * ficar vermelho para sempre (ninguém roda um gate que nunca passa) nem verde
  * por definicao de meta de 100% (seria cobertura aparente). A regra é
  * **"a dívida não cresce"**: toda função adicionada depois do piso precisa vir
