@@ -100,8 +100,11 @@ true`, v1.11.6); login no console Neon executado pelo responsável.
 - Secrets/vars instalados pela integração (apenas nomes exibidos, sem
   valores): `NEON_API_KEY`, `NEON_PROJECT_ID`.
 - Evidência visual sem segredos:
-  [neon-github-card-console-2026-08-23.png](neon-github-card-console-2026-08-23.png)
-  (captura em 2026-08-23 ~13:31 GMT-3).
+  `neon-github-card-console-2026-08-23.png` (captura em 2026-08-23 ~13:31
+  GMT-3). **ERRATA 2026-09-27:** saiu do index antes da virada de visibilidade
+  (mostrava conta, plano, project ID e os _nomes_ dos secrets — sem valores).
+  Permanece no disco local e no histórico; remover do histórico é vetado por
+  `AGENTS.md:4/16`.
 
 ## Pendências bloqueadas (dependem de ação humana)
 

@@ -171,3 +171,11 @@ release/
 # Auditoria raw (relatórios não redigidos)
 docs/auditoria-publicacao/raw/
 docs/auditoria-publicacao/*.redacted.json
+
+# Screenshots de console logado (Neon/Vercel/hPanel) — removidos do index em
+# 2026-09-27 antes da virada de visibilidade. Mostram conta, plano, project/
+# branch ID e "IP restrictions: None set"; nenhum token ou connection string.
+# Os blobs continuam no histórico (reescrever é vetado por AGENTS.md:4/16) —
+# isto é mitigação de árvore, não de histórico.
+docs/evidence/neon-github-card-console-2026-08-23.png
+docs/evidence/infra-recon-2026-09-17/screenshots/
