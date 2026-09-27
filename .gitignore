@@ -21,6 +21,10 @@ skills-lock.json
 .dev.vars*
 
 # Local credentials and provider state
+# Token do SonarCloud (41 B, sem rótulo): gitignored por decisão de 2026-09-27
+# antes da virada de visibilidade — um `git add .` ingênuo o levaria ao
+# histórico público. Nunca commitar.
+Sonar*.txt
 /.aws/
 /.azure/
 /.gcloud/
