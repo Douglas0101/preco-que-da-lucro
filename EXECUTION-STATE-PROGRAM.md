@@ -3055,3 +3055,54 @@ Latest state marker parent = `33596d313ff8fc8f126c85ab3831ec11bdb7eb27`,
   conhecido é vermelho, e um run vermelho é o sintoma, não um veredito.
 
 Latest state marker parent = `775fa01ebb8d21f8d089282a14e06d4172bd68f5`,
+
+## Bloco aditivo — Ciclo 10: censo de bloqueadores e a credencial que o brief não nomeia (2026-09-28)
+
+- **Achado urgente, corrigido, e ele não estava no brief.** `Keys.txt` (316 B) entrou no
+  diretório de trabalho em 2026-09-28 com **quatro credenciais vivas em texto plano** (Neon,
+  Vercel, GitHub PAT, Sonar). Não era rastreado nem commitado, mas **também não era ignorado**,
+  num repositório **público** — a um `git add .` do histórico. É a mesma lacuna que
+  `Sonar*.txt` já cobria desde 2026-09-27, um arquivo ao lado. Corrigido em `7c8cda0`, com a
+  verificação que o limita: nenhum arquivo rastreado contém esses valores no HEAD, nenhum stash
+  os carrega, nenhuma ref contém `Keys.txt`, e uma amostra de 400 commits não contém o token
+  Vercel. **Limite declarado:** as quatro foram coladas num canal de conversa, e isso já é
+  exposição; `gitignore` impede commit, não desfaz o transcript. Rotação no emissor é do dono.
+- **A rotação de `BETTER_AUTH_SECRET` da FASE C10-5 não é executável.** O token Vercel
+  fornecido autentica (`/v2/user` HTTP 200, usuário `douglasultimatesouza-5127`) mas o
+  `defaultTeamId` dele (`team_2NnkSYjw5NRHAFnQFEPSHGmW`) tem **zero projetos**, e
+  `preco-que-da-lucro` responde **404 Project not found** em todos os escopos tentados (sem
+  `teamId`, com o `defaultTeamId`, com o slug `douglasultimatesouza-5127s-projects`); `/v2/teams`
+  é **403**. O projeto não está na conta que o token alcança. **E não há deployment de
+  produção:** `preco-que-da-lucro.vercel.app` responde **`DEPLOYMENT_NOT_FOUND`**, todos os
+  deployments registrados são `Preview –`, e o preview está atrás do SSO da Vercel. Sem
+  aplicação viva, `verify_secret_rotation` — que é o **gate de saída** da fase — não tem alvo, e
+  a rotação produziria um "verificado" que não verifica nada. **Procedimento errado no
+  provedor, também:** o runbook manda escrever o segredo em _"Neon → Variables"_, e **Neon não
+  tem Variables**; `BETTER_AUTH_SECRET` é lido de `process.env`
+  (`src/server/auth/auth-policy.ts:204`, validado em `:206`).
+- **A revogação de `neon-storage.env` já foi feita, e não é Neon.** O ledger registra
+  **SEC-01 FECHADA** em 2026-09-12 por atestação do operador (`EXECUTION-STATE-PROGRAM.md:1321`),
+  enquanto o runbook de 2026-09-28 a trata como pendente — contradição entre dois documentos do
+  mesmo repositório, com o runbook mais novo e errado. E as cinco chaves eram
+  `AWS_ACCESS_KEY_ID`, `AWS_ENDPOINT_URL_S3`, `AWS_REGION`, `AWS_SECRET_ACCESS_KEY`,
+  `OPENAI_API_KEY` (`docs/evidence/pre-a4-2026-09-05/secrets-hygiene.md:13`) — **AWS
+  S3-compatível e OpenAI**, não chaves de API do Neon. A instrução "no console do Neon, localize
+  as chaves `_live_`" aponta para o provedor errado.
+- **`DBT-25` não está em 0/35.** Medido: `contract-output-ratchet` **pass**, _"5 de 35"_, piso
+  versionado em `scripts/contract-baseline.json`. E escalar 5 → 35 agora seria multiplicar um
+  defeito **já refutado** pela S6 do ciclo 3: N-1 (o contrato é aplicado **depois** dos mappers,
+  então a resposta é 500 e não o 503 do contrato) e N-2 (tipo público estreitou em 3 das 5
+  funções, declarado não autorizado e **pendente de ratificação do MAESTRO**). Replicar em 30
+  funções espalharia uma afirmação falsa 30 vezes. A ordem correta é corrigir N-1 e ratificar
+  N-2 **antes** de ampliar.
+- **O que dá para fechar hoje, e é o que este ciclo ataca:** `m02:state:check` como gate,
+  automação do marcador, `DBT-26` → `FECHADA` (falta o selo do closure, não o código), e a
+  **recusa mecânica do segredo comprometido** — o literal de 61 caracteres segue recuperável do
+  histórico publicado (`26a2fdd`, em `scripts/check-hostinger-runtime.mjs`) e satisfaz a
+  validação de ≥ 32 caracteres, então a aplicação o aceitaria; como a rotação é impossível hoje,
+  impedir o **uso** desse valor, por hash e nunca pelo valor, é a única proteção executável
+  agora.
+- **Nenhuma mutação de produção foi executada** e nenhuma credencial nova foi cunhada. Censo em
+  `docs/evidence/ciclo-10-censo-bloqueadores-2026-09-28.md`. Sem push.
+
+Latest state marker parent = `7c8cda018c591ef8282fa3b30f024fe238a8938b`,
