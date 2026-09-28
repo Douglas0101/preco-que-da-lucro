@@ -521,6 +521,8 @@ function localizarRaiz(): string {
     const top = execFileSync("git", ["rev-parse", "--show-toplevel"], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
+      // S4036: resolve "git" so em diretorios fixos e do sistema (precedente: fdc0a17).
+      env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
     }).trim();
     if (top !== "") return top;
   } catch {
@@ -574,6 +576,8 @@ function coletarHeadSpecs(root: string): Record<string, string> {
       encoding: "utf8",
       cwd: root,
       stdio: ["ignore", "pipe", "ignore"],
+      // S4036: resolve "git" so em diretorios fixos e do sistema (precedente: fdc0a17).
+      env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
     });
     return coletarSpecs(JSON.parse(raw));
   } catch {

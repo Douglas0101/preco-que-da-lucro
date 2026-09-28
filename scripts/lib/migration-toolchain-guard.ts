@@ -522,6 +522,8 @@ export async function main(): Promise<never> {
     const top = execFileSync("git", ["rev-parse", "--show-toplevel"], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
+      // S4036: resolve "git" so em diretorios fixos e do sistema (precedente: fdc0a17).
+      env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
     }).trim();
     if (top) root = top;
   } catch {

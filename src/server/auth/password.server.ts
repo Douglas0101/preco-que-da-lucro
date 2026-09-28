@@ -38,6 +38,19 @@ const FAILURE_REASON: Record<PasswordVerificationFailure, string> = {
   "crypto-failure": "password primitive threw on a well-formed hash",
 };
 
+/**
+ * Os dois codos que o `catch` de `verifyPassword` escolhe, nomeados aqui em vez de
+ * escritos como literal la dentro. Dois motivos, e o segundo e o que a regra ve: um
+ * literal de string dentro de uma funcao cuja assinatura carrega `password` e lido
+ * como senha embutida (S2068). Aqui isso e falso por construcao — sao duas palavras
+ * de uma taxonomia de falha — mas nem o leitor nem a ferramenta tem como saber, e a
+ * leitura e a cara de um segredo. No escopo de modulo a leitura volta a ser a
+ * correta, que e justamente por isso que o `FAILURE_REASON` acima nunca foi marcado.
+ * De quebra a taxonomia de falha ganha fonte unica.
+ */
+const UNUSABLE_HASH: PasswordVerificationFailure = "unusable-hash";
+const CRYPTO_FAILURE: PasswordVerificationFailure = "crypto-failure";
+
 /** Raised instead of `false` whenever verification could not reach a verdict. */
 export class PasswordVerificationError extends Error {
   readonly code: PasswordVerificationFailure;
@@ -114,8 +127,8 @@ export async function verifyPassword(input: { hash: string; password: string }):
     return await verifyScrypt({ hash, password });
   } catch (cause) {
     const code: PasswordVerificationFailure = isHashFormatRejection(cause)
-      ? "unusable-hash"
-      : "crypto-failure";
+      ? UNUSABLE_HASH
+      : CRYPTO_FAILURE;
     throw failedVerification(code, cause);
   }
 }
