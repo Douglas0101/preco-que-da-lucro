@@ -33,14 +33,14 @@ aqui **em vez de o código ser esticado para caber nela**.
 **Controles executados (10 PASS · 0 FALHA), com o valor real lido do git e nunca
 impresso:**
 
-| Controle | Resultado |
-| --- | --- |
-| `assertSecretNotCompromised(literal vazado)` | **lança** — recusa subir |
-| mensagem contém o valor ou o digest? | **não** (nenhum dos dois) |
-| mensagem manda rotacionar? | **sim** |
-| uppercase / espaço à esquerda / à direita | os três **não** driblam |
-| `requireAuthSecret` com o literal | **recusa** pela porta do runtime |
-| valor legítimo de 32 e de 48 chars | **passam** (não é falso positivo) |
+| Controle                                     | Resultado                         |
+| -------------------------------------------- | --------------------------------- |
+| `assertSecretNotCompromised(literal vazado)` | **lança** — recusa subir          |
+| mensagem contém o valor ou o digest?         | **não** (nenhum dos dois)         |
+| mensagem manda rotacionar?                   | **sim**                           |
+| uppercase / espaço à esquerda / à direita    | os três **não** driblam           |
+| `requireAuthSecret` com o literal            | **recusa** pela porta do runtime  |
+| valor legítimo de 32 e de 48 chars           | **passam** (não é falso positivo) |
 
 Mais, na suíte: vetor conhecido do NIST para o primitivo (trocar o digest não pode
 tornar a lista letra morta), mecanismo com digests sintéticos, e a lista de
@@ -118,18 +118,18 @@ O mesmo critério mantém `DBT-26` em `ABERTA` desde o ciclo 3, com o código j�
 corrigido. Promover por conta própria seria escrever no registro o que a cerimônia
 ainda não produziu.
 
-Estado: **29 dívidas**, `m02:debts-guard` exit 0.
+Estado: **30 dívidas** (`DBT-27`…`DBT-31`), `m02:debts-guard` exit 0.
 
 ## 3. As tarefas que o brief pedia e não foram executadas
 
-| Fase do brief | Situação | Motivo medido |
-| --- | --- | --- |
-| C10-2 `DBT-26` → `FECHADA` | código pronto desde o ciclo 3 | falta o selo do closure, não código |
-| C10-3 saída 0/35 → 35/35 | **recusado por decisão do dono** | está em 5/35 com piso verde; escalar espalharia N-1 e N-2, e N-2 é estreitamento de tipo **sem ratificação** |
-| C10-4 MCP Action Server | **não construído** | sem alvo (não há projeto Vercel alcançável nem deployment) e sem o que verificar; um servidor que guarda credencial de rotação para um LLM é superfície nova para um propósito vazio |
-| C10-5 rotação | **não executável** | ver §4 |
-| C10-5 revogação | **já feita** | `SEC-01 FECHADA` no ledger em 2026-09-12; as chaves eram AWS/OpenAI, não Neon |
-| C10-6 100 traces | **sem alvo** | não há aplicação rodando gerando tráfego |
+| Fase do brief              | Situação                         | Motivo medido                                                                                                                                                                        |
+| -------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| C10-2 `DBT-26` → `FECHADA` | código pronto desde o ciclo 3    | falta o selo do closure, não código                                                                                                                                                  |
+| C10-3 saída 0/35 → 35/35   | **recusado por decisão do dono** | está em 5/35 com piso verde; escalar espalharia N-1 e N-2, e N-2 é estreitamento de tipo **sem ratificação**                                                                         |
+| C10-4 MCP Action Server    | **não construído**               | sem alvo (não há projeto Vercel alcançável nem deployment) e sem o que verificar; um servidor que guarda credencial de rotação para um LLM é superfície nova para um propósito vazio |
+| C10-5 rotação              | **não executável**               | ver §4                                                                                                                                                                               |
+| C10-5 revogação            | **já feita**                     | `SEC-01 FECHADA` no ledger em 2026-09-12; as chaves eram AWS/OpenAI, não Neon                                                                                                        |
+| C10-6 100 traces           | **sem alvo**                     | não há aplicação rodando gerando tráfego                                                                                                                                             |
 
 ## 4. Por que a rotação não foi executada — três medições independentes
 
@@ -144,7 +144,7 @@ Estado: **29 dívidas**, `m02:debts-guard` exit 0.
    afirmasse rotação verde aqui seria cobertura aparente.
 
 E o procedimento do runbook está errado no provedor: manda escrever o segredo em
-*"Neon → Variables"*, e **Neon não tem Variables** — o valor é lido de
+_"Neon → Variables"_, e **Neon não tem Variables** — o valor é lido de
 `process.env` (`auth-policy.ts:204`).
 
 ## 5. Segurança — declaração necessária
