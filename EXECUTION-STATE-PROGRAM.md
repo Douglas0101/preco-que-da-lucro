@@ -2928,3 +2928,88 @@ Latest state marker parent = `96a81f4a3663c9d8ac8300052471083298a2691f`,
   o caso GREEN" de `src/test/m02-temporal-guard.test.ts` reprovando.
 
 Latest state marker parent = `8df257833959ffa09171aa0a0b2bc10a24a2318c`,
+
+## Bloco aditivo — Ciclo 9: reconciliação do brief "ações autônomas via MCP" e correção do defeito do outbox (2026-09-28)
+
+- **O marcador estava desatualizado e o boot falhou por isso.** `npm run m02:state:check` saiu
+  **1** neste HEAD: o último bloco era o do ciclo 3, com marcador pinado em
+  `8df257833959ffa09171aa0a0b2bc10a24a2318c`, **cinco commits atrás** do HEAD `33596d3`. É a
+  mesma classe já registrada no journal — o marcador é passo do protocolo de boot e não pertence
+  a pipeline nenhum, então nada o reprova até alguém rodar o check à mão. Reconciliado aqui por
+  bloco aditivo, sem reescrever o bloco anterior.
+- **A CI voltou a rodar** (o bloqueio de cota descrito nos blocos anteriores **não** se aplica a
+  este ciclo) e **o PR #49 não está em `CLEAN`**: `mergeStateStatus: UNSTABLE`, porque o job
+  `Branch efêmera · migrate · integração · RLS probe · E2E`, do workflow `Neon PR branch CI`
+  (run `36374487842`), termina em **FAILURE**. O job `verify` do `UI stack` do mesmo PR está
+  **SUCCESS**, o que é coerente: o tier de `db:test` só dispara quando o diff toca a superfície
+  de dados, e é exatamente ele que reprova.
+- **O defeito reprovado é real, mas a causaootnameda no brief está errada.** A falha é
+  `AssertionError: o backoff padrão agenda o futuro` em `scripts/db/test-outbox.ts:702`. O brief
+  a descreveu como "backoff de 1.000 ms competindo com margem de 1 s em runner sob carga" e
+  propôs *fake timers* de vitest, com alternativa de "subir a margem para 5 s". Ambas as
+ ibilidades estão erradas, e por medição:
+  - o arquivo **não** é um teste de vitest — é a suíte `db:test`, `node:assert`, executada contra
+    um Postgres real; não existe `vi` ali, e *fake timers* governam o `Date` do JavaScript, não
+    o `now()` do PostgreSQL, que é de onde o carimbo vem;
+  - a causa não é jitter de agendamento: `available_at` é gravado como
+    `now() + make_interval(...)` e o `now()` do PostgreSQL é o **timestamp de transação**,
+    congelado enquanto a transação vive. A asserção do teste lê a linha **noutra** transação e
+    compara `available_at > now()` — relógio de uma transação contra relógio de outra. A
+    desigualdade só vale se a segunda começar menos de `backoff` depois da primeira. Medido
+    contra o container local: o offset gravado é **1000,9 ms em todas as execuções** (o valor
+    está sempre correto), o predicado é `true` com folga de 12 ms e 220 ms, e vira `false` a
+    partir de 1123 ms; dentro de uma única transação `now()` não deriva (0 ms em 1202 ms de
+    relógio de parede). Não é latência competing com margem: é uma **comparação entre relógios
+    de transações diferentes**, que falha por construção conforme o alvo é mais distante. Por
+    isso passa contra o Postgres local e quebra contra branch efêmera do Neon.
+  - "Subir a margem para 5 s" é **afrouxar a asserção para forçar o verde**, vedado por
+    `AGENTS.md`; e não seria nem confiável (só move acliff de 1 s para 5 s) nem informativo
+    (aceita tanto um backoff de 1 ms quanto de 60 s).
+- **O que foi feito, e por que é endurecimento.** A correção Troca a comparação de relógio por
+  asserção de **offset**: o `available_at` gravado tem de cair na janela
+  `[t_antes + backoff, t_depois + backoff]`, onde os dois limites são leituras do relógio do
+  banco que **cercam** a escrita. A janela alarga com a latência em vez de estreitar, então a
+  asserção vale em qualquer alvo; e ela passa a asseverar o **valor** do backoff, o que a forma
+  anterior não fazia. A propriedade §23 de que o evento não é retomado durante a janela continua
+  provada pelo assert comportamental já existente (`duringBackoff.claimed === 0`), que é imune ao
+  problema porque testa comportamento, não timestamp. A forma defeituosa aparecia em **dois**
+  sítios (`test-outbox.ts:659` e `:702`) e os dois foram corrigidos — enumeração por descoberta,
+  não porxbatedo. **O backoff de produção não foi tocado**: `BACKOFF_BASE_MS` segue 1.000 ms e a
+  evidência não mediu insuficiência dele em cenário algum.
+- **O que não foi feito, e por quê.** O brief pedia um *MCP Action Server* com cinco tools
+  (`rotate_secret`, `revoke_env_var`, `verify_secret_rotation`, `audit_secret_usage`,
+  `check_secret_expiry`) em `src/mcp/action-server.ts`, autenticado por `MCP_AUTH_TOKEN` e com
+  rollback automático, seguido da execução da rotação de `BETTER_AUTH_SECRET` e da revogação
+  das chaves de `neon-storage.env`. Três fatos medidos, não opinativos:
+  1. **As credenciais não existem neste ambiente.** `NEON_API_TOKEN`, `VERCEL_API_TOKEN` e
+     `MCP_AUTH_TOKEN` estão ausentes; o Secret Store do Neon tem escopo `projects&branches` e não
+     expõe operações de variável de ambiente nem de chaves de API. Os `curl` do brief falhariam
+     na primeira chamada.
+  2. **A premissa contradiz uma decisão do dono já versionada.**
+     `docs/runbooks/acoes-manuais-pendentes.md` §2 (commit `33596d3`) existe precisamente para
+     registrar que essas duas ações **não** são executáveis por agente, porque os consoles
+     emissores — não o repositório — são quem detém a credencial, e porque inventar o valor aqui o
+     faria existir em mais um lugar sem tratamento. O brief pede o que aquele runbook proíbe.
+  3. **A ação é destrutiva e atinge usuário.** `BETTER_AUTH_SECRET` assina o cookie de sessão:
+     rotacioná-lo desloga todas as sessões, e o próprio runbook registra que não há rotação sem
+     derrubar sessão. Somado ao `AGENTS.md` (segredos nunca commitados; ambientes lêm do
+     platform store) e ao fato de que a Conexão MCP deste ambiente traz aviso explícito de que
+     ferramenta destrutiva **nunca** é invocada autonomamente, o caminho "LLM dispara rotação de
+     produção com rollback automático" é a forma que mais exige um humano no gatilho, não menos
+     — o rollback automático é justamente o que faz o passo parecer seguro o bastante para
+     disparar sem ninguém olhando.
+     Acresce que o próprio brief ordena SDD **antes** da implementação (§9 no Tarefa 4) e agenda
+     a implementação na Tarefa 2, e que `src/mcp/` seria uma fronteira de confiança nova ao lado
+     do BFF — superfície nova sem `SPEC.md`, sem selo e sem S6, que é o contrato do repo para
+     trabalho assim. Devolvido ao MAESTRO como decisão, com o ADR e a SPEC por escrito antes de
+     qualquer linha de código.
+- **O registry de dívidas não foi usado para|work concluído.** O brief pedia `DBT-32` a
+  `DBT-35` descrevendo correções e execuções **já feitas** (`"teste outbox flaky corrigido"`,
+  `"rotação executada"`). `DEBTS.md` é o registro de dívida **declarada**, com closure test que
+  **reprova** com o defeito presente, e `m02:debts-guard` valida a estrutura; preencher esse
+  sinal com trabalho concluído destrói a função do registro. A entrada aberta aqui é a do defeito
+  de fato medido.
+- **Nenhum `run@sha` é cunhado por este bloco.** O run citado é **vermelho**, e vermelho não é
+  evidência de nada: nem aprovação, nem reprovação permanente. O que ele prova é o defeito.
+
+Latest state marker parent = `33596d313ff8fc8f126c85ab3831ec11bdb7eb27`,
