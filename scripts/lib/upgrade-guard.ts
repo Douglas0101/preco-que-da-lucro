@@ -34,6 +34,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
+import { gitSync } from "./git-exec";
 
 /** Criticidades aceitas pela política. Fora deste conjunto, a entrada é inválida. */
 export const CRITICALIDADES = ["critical", "high", "medium"] as const;
@@ -518,11 +519,10 @@ function precondicao(reason: string, observed: Record<string, unknown>): never {
 
 function localizarRaiz(): string {
   try {
-    const top = execFileSync("git", ["rev-parse", "--show-toplevel"], {
-      encoding: "utf8",
+    // S4036: `git` ja vem resolvido para caminho absoluto de diretorio fixo do
+    // sistema, verificado em runtime — o literal do programa e o que a regra marca.
+    const top = gitSync(["rev-parse", "--show-toplevel"], {
       stdio: ["ignore", "pipe", "ignore"],
-      // S4036: resolve "git" so em diretorios fixos e do sistema (precedente: fdc0a17).
-      env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
     }).trim();
     if (top !== "") return top;
   } catch {
@@ -572,12 +572,9 @@ function coletarResolvidos(lock: unknown): Record<string, string> {
 
 function coletarHeadSpecs(root: string): Record<string, string> {
   try {
-    const raw = execFileSync("git", ["show", "HEAD:package.json"], {
-      encoding: "utf8",
+    const raw = gitSync(["show", "HEAD:package.json"], {
       cwd: root,
       stdio: ["ignore", "pipe", "ignore"],
-      // S4036: resolve "git" so em diretorios fixos e do sistema (precedente: fdc0a17).
-      env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
     });
     return coletarSpecs(JSON.parse(raw));
   } catch {

@@ -1,17 +1,16 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { gitSync } from "./lib/git-exec";
 
 const repositoryRoot = resolve(import.meta.dirname, "..");
 const ledgerPath = resolve(repositoryRoot, "EXECUTION-STATE-PROGRAM.md");
 
 function git(...args: string[]): string {
-  return execFileSync("git", args, {
-    cwd: repositoryRoot,
-    encoding: "utf8",
-    // S4036: resolve "git" only in fixed, system-owned directories.
-    env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
-  }).trim();
+  // S4036: `git` ja vem resolvido para caminho absoluto de diretorio fixo do
+  // sistema. O pin de `PATH` no `env` (fdc0a17) nao satisfazia a regra: ela marca
+  // o literal do programa, nao a variavel — ver `scripts/lib/git-exec.ts`.
+  return gitSync(args, { cwd: repositoryRoot }).trim();
 }
 
 const head = git("rev-parse", "HEAD");

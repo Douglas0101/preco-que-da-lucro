@@ -50,6 +50,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
+import { gitSync } from "./git-exec";
 
 // ---------------------------------------------------------------------------
 // Contrato do plano §6.9
@@ -773,11 +774,10 @@ export function collectContractInput(root: string): ContractGuardInput {
 export async function main(): Promise<never> {
   let root = process.cwd();
   try {
-    const top = execFileSync("git", ["rev-parse", "--show-toplevel"], {
-      encoding: "utf8",
+    // S4036: `git` ja vem resolvido para caminho absoluto de diretorio fixo do
+    // sistema, verificado em runtime — o literal do programa e o que a regra marca.
+    const top = gitSync(["rev-parse", "--show-toplevel"], {
       stdio: ["ignore", "pipe", "ignore"],
-      // S4036: resolve "git" so em diretorios fixos e do sistema (precedente: fdc0a17).
-      env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
     }).trim();
     if (top) root = top;
   } catch {

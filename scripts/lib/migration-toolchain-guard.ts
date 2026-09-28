@@ -35,6 +35,7 @@ import { pathToFileURL } from "node:url";
 
 import type { MigrationClass } from "../db/migration-classes";
 import { MIGRATION_CLASSES, migrationClasses } from "../db/migration-classes";
+import { gitSync } from "./git-exec";
 
 /**
  * Pacote sob política. `drizzle-kit` é `critical` em
@@ -519,11 +520,10 @@ async function loadDrizzleConfig(root: string): Promise<ConfigLoad> {
 export async function main(): Promise<never> {
   let root = process.cwd();
   try {
-    const top = execFileSync("git", ["rev-parse", "--show-toplevel"], {
-      encoding: "utf8",
+    // S4036: `git` ja vem resolvido para caminho absoluto de diretorio fixo do
+    // sistema, verificado em runtime — o literal do programa e o que a regra marca.
+    const top = gitSync(["rev-parse", "--show-toplevel"], {
       stdio: ["ignore", "pipe", "ignore"],
-      // S4036: resolve "git" so em diretorios fixos e do sistema (precedente: fdc0a17).
-      env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
     }).trim();
     if (top) root = top;
   } catch {
