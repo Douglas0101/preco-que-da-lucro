@@ -3054,4 +3054,4 @@ Latest state marker parent = `33596d313ff8fc8f126c85ab3831ec11bdb7eb27`,
   receba este commit e o tier de `db:test` rode de novo. Nenhum selo novo é cunhado: o run
   conhecido é vermelho, e um run vermelho é o sintoma, não um veredito.
 
-Latest state marker parent = `620501e55b3a6f3059e9d09fa6012e3d12eba71f`,
+Latest state marker parent = `aee54c87378a237199f00ab9bffda717c8f112cf`,
