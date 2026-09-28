@@ -115,9 +115,18 @@ for (const raw of input.split("\n")) {
   hits.push(`${path}:${line}`);
 }
 
-for (const hit of [...new Set(hits)].sort()) console.log(hit);
+// S2871: comparador explicito. `localeCompare` e a escolha ja feita no repo para
+// ordenacao de caminho (`m02-matrix.ts`, fdc0a17) e o que este relatorio quer: a
+// lista de hits e lida por gente, nao comparada byte a byte por outra ferramenta.
+for (const hit of [...new Set(hits)].sort((a, b) => a.localeCompare(b))) console.log(hit);
+// `entries()` sem comparador ordena pela **stringificacao do par** (`"AL-01,3"`),
+// nao pelo id — a ordem passa a depender da contagem e de qualquer caractere que
+// ordene antes de `,` (0x2C). Medido: com os ids de hoje (`AL-01`..`AL-05`, so
+// [A-Za-z0-9-]) e contagem de um digito, as duas ordens coincidem, entao hoje nao
+// ha saida visivelmente errada. O que se remove e a dependencia acidental: o
+// `ids=` do resumo passa a ordenar pelo id, que e o que ele afirma ordenar.
 const ids = [...allowedById.entries()]
-  .sort()
+  .sort(([a], [b]) => a.localeCompare(b))
   .map(([id, n]) => `${id}:${n}`)
   .join(",");
 console.error(
