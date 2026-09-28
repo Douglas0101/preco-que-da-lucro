@@ -3013,3 +3013,45 @@ Latest state marker parent = `8df257833959ffa09171aa0a0b2bc10a24a2318c`,
   evidência de nada: nem aprovação, nem reprovação permanente. O que ele prova é o defeito.
 
 Latest state marker parent = `33596d313ff8fc8f126c85ab3831ec11bdb7eb27`,
+
+## Bloco aditivo — fecho do ciclo: defeito do outbox corrigido, com cinco controles (2026-09-28)
+
+- **A correção landing no commit de código.** `available_at > now()` saiu do
+  `readEventState`; no lugar há asserção de **offset** com as duas leituras do relógio do banco
+  **cercando** a escrita, mais uma checagem **comportamental** (`claimed === 0` numa segunda
+  chamada) que prova a propriedade §23 sem depender de relógio. A forma antiga aparecia em **um**
+  SQL consumido por **dois** asserts, e os dois foram corrigidos — por `grep` no arquivo, não por
+  palpite.
+- **`src/` não foi tocado.** `outbox.worker.ts` está byte-idêntico ao HEAD, restaurado por
+  `sha256sum -c` depois das mutações de controle, e `BACKOFF_BASE_MS` continua 1.000 ms: nada
+  mediu insuficiência dele em cenário real, que é a condição que o brief mesmo impunha antes de
+  mexer na política.
+- **Cinco controles executados, não descritos.** (A) 1500 ms injetados entre escrita e leitura ⇒
+  T4 **verde**: a latência que reprovou o job não reprova mais. (B) A checagem comportamental
+  **reprova** quando a janela de 1 s expira de fato ⇒ não é vacuosa. (C) `BACKOFF_BASE_MS` 1.000 →
+  3.000 em produção ⇒ **reprova** com o valor esperado e o encontrado na mensagem. (D) A
+  **mesma** mutação com a forma antiga ⇒ **passa**, exit 0 ⇒ a nova é estritamente mais forte, e
+  3 s ainda seria "maior que agora". (E) Descoberta por `grep` ⇒ um SQL, dois asserts, ambos
+  corrigidos. O controle D é o que fecha o argumento: a forma antiga não tinha como enxergar a
+  mudança.
+- **Um defeito do autor, registrado porque o controle o pegou.** A primeira versão da correção
+  carregava também `available_at > agora` como guarda anti-retry-storm — a **mesma classe de
+  defeito com outro limiar**. Com 1500 ms ela acusava "retry storm" sobre um agendamento
+  correto. Afirmação removida; a propriedade passou a ser provada por comportamento. Fica no
+  registro porque um teste que endurece pode carregar a mesma falha que ele supostamente corrige.
+- **Gate:** `npm run check` **exit 0** (19 gates · 107 arquivos · 1246 passed | 13 skipped);
+  `db:test` completo **exit 0** (17 suítes) contra o container PG17 efêmero; **5 execuções
+  consecutivas** de `test-outbox.ts` com 5/5 em cada. `DBT-27` registrada; `m02:debts-guard`
+  exit 0 com **26** dívidas.
+- **Confirmação do MAESTRO sobre o que o brief pedia.** As Tarefas 2–5 (Action Server com as
+  cinco tools, observabilidade, SDD §9, ADR-032, `AGENTS.md`, e a execução de rotação e
+  revogação) **não foram executadas, por decisão do dono**, e as `DBT-32`…`DBT-35` **não** foram
+  abertas. O motivo está medido no bloco anterior e aqui não se repete: credenciais ausentes,
+  consoles emissores fora do alcance de agente, e rotação de segredo de sessão derruba todos os
+  usuários. O registry de dívidas segue significando dívida **declarada**, com closure test que
+  reprova com o defeito presente.
+- **Sem push e sem merge, por decisão do dono.** O PR #49 permanece `UNSTABLE` até que a branch
+  receba este commit e o tier de `db:test` rode de novo. Nenhum selo novo é cunhado: o run
+  conhecido é vermelho, e um run vermelho é o sintoma, não um veredito.
+
+Latest state marker parent = `620501e55b3a6f3059e9d09fa6012e3d12eba71f`,
