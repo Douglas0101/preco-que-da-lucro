@@ -32,18 +32,39 @@ export const DB_ENV_KEYS = [...DB_REQUIRED_KEYS, ...DB_OPTIONAL_KEYS] as const;
  * banco local valido. `0.0.0.0` continua recusado de proposito: e bind-wildcard, nao
  * loopback.
  */
-export function isLoopbackUrl(value: string | undefined): boolean {
-  if (!value) return false;
-  let host: string;
+/** Host normalizado, ou `null` quando o valor nao e uma URL de banco utilizavel. */
+function hostDe(value: string | undefined): string | null {
+  if (!value) return null;
   try {
-    host = new URL(value).hostname.toLowerCase().replace(/\.$/, "");
+    return new URL(value).hostname.toLowerCase().replace(/\.$/, "");
   } catch {
-    return false;
+    return null;
   }
+}
+
+export function isLoopbackUrl(value: string | undefined): boolean {
+  const host = hostDe(value);
+  if (host === null) return false;
   if (host === "localhost" || host === "[::1]") return true;
   if (/^127(\.\d{1,3}){0,3}$/.test(host)) return true;
   if (/^\[::ffff:7f[0-9a-f]{2}:/.test(host)) return true;
   return false;
+}
+
+/**
+ * Quinta copia do prefixo de producao, junto de `env-guard.mjs:50`,
+ * `m02-cutover-t0.mjs:36`, `m02-role-membership.mjs:27` e `rls-probe.mjs:45`.
+ * Duplicado de proposito: o `env-guard` e pre-hook standalone que roda antes de
+ * qualquer import, entao extrair um modulo compartilhado reordenaria o boot. A
+ * convencao do repo e a copia comentada; este e o lugar que falta no commentario
+ * de cada uma das outras quatro.
+ */
+const PRODUCTION_ENDPOINT_PREFIX = "ep-long-violet-aye9g0bn";
+
+/** Verdadeiro so para o host de producao. URL invalida nao e producao — e invalida. */
+function isProductionUrl(value: string | undefined): boolean {
+  const host = hostDe(value);
+  return host !== null && host.includes(PRODUCTION_ENDPOINT_PREFIX);
 }
 
 export type DbPrecondition = { enabled: true } | { enabled: false; motivo: string };
@@ -66,6 +87,41 @@ export function dbPrecondition(env: NodeJS.ProcessEnv = process.env): DbPrecondi
   const naoLoopback = DB_ENV_KEYS.filter(
     (chave) => env[chave] !== undefined && !isLoopbackUrl(env[chave]),
   );
+
+  // Escape hatch. O predicado e o mesmo do `env-guard.mjs:166` — motivo nao
+  // vazio, nao booleano. O workflow grava uma frase
+  // (`neon-pr-branch.yml:305`: "CI Neon PR branch 48 — integracao em branch
+  // efemera (§26)"), entao comparar com `"true"` nunca casaria; e um predicado
+  // que nao casa e pior que nenhum, porque aparenta estar concedido sem estar.
+  //
+  // O que o override faz e dispensar a exigencia de **loopback** — o banco
+  // remoto e o objeto dele (branch Neon efemera, §26). Ele nao dispensa o par
+  // obrigatorio: "tudo ou nada" continua valendo, e uma configuracao pela metade
+  // com override setado ainda e erro de precondicao, nao um skip silencioso.
+  const motivo = env.ALLOW_REMOTE_DB;
+  const override = typeof motivo === "string" && motivo.trim() !== "";
+  if (override) {
+    const producao = DB_ENV_KEYS.filter((chave) => isProductionUrl(env[chave]));
+    if (producao.length > 0) {
+      throw new Error(
+        `precondicao de banco invalida: ALLOW_REMOTE_DB nao autoriza ${producao.join(", ")} — endpoint de producao e recusado com ou sem override`,
+      );
+    }
+    const invalidas = DB_ENV_KEYS.filter(
+      (chave) => env[chave] !== undefined && hostDe(env[chave]) === null,
+    );
+    const problemas = [
+      ...faltando.map((chave) => `${chave} ausente (par obrigatorio)`),
+      ...invalidas.map((chave) => `${chave} nao e uma URL de banco valida`),
+    ];
+    if (problemas.length > 0) {
+      throw new Error(
+        `precondicao de banco invalida: ALLOW_REMOTE_DB dispensa loopback, nao o par obrigatorio nem uma URL valida — ${problemas.join("; ")}`,
+      );
+    }
+    return { enabled: true };
+  }
+
   const problemas = [
     ...faltando.map((chave) => `${chave} ausente (par obrigatorio)`),
     ...naoLoopback.map((chave) => `${chave} nao aponta para loopback`),
