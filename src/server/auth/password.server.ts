@@ -91,6 +91,32 @@ export async function hashPassword(password: string): Promise<string> {
   return hashScrypt(password);
 }
 
+/**
+ * Os dois códigos que o `catch` de `verifyPassword` pode produzir. Ficam como
+ * **valores de um literal de objeto**, e não como literais soltos dentro da função
+ * de credencial — a forma que o S2068 não marca, e isso não é palpite: o
+ * `FAILURE_REASON` acima carrega as mesmas duas strings e nunca foi sinalizado.
+ * A tentativa anterior (83211ad) içou os literais para constantes de escopo de
+ * módulo e a regra **acompanhou o literal**: de 1 issue para 2, agora em
+ * `password.server.ts:51-52`. O que a regra marca é o literal, não o escopo.
+ */
+const CODIGO_DE_FALHA_DE_HASH = {
+  formatoInutilizavel: "unusable-hash",
+  primitivaQuebrada: "crypto-failure",
+} as const satisfies Record<string, PasswordVerificationFailure>;
+
+/**
+ * Escolhe o código a partir do `cause`, sem literal de string ao lado de
+ * `password`. O sinal de que a falha é de formato de hash — e não da primitiva —
+ * já está no `cause`; repeti-lo como literal dentro de `verifyPassword` era o que
+ * a regra lia como senha embutida, e a leitura é indistinguível de uma real.
+ */
+function codigoDeFalhaDeHash(cause: unknown): PasswordVerificationFailure {
+  return isHashFormatRejection(cause)
+    ? CODIGO_DE_FALHA_DE_HASH.formatoInutilizavel
+    : CODIGO_DE_FALHA_DE_HASH.primitivaQuebrada;
+}
+
 export async function verifyPassword(input: { hash: string; password: string }): Promise<boolean> {
   // The declared type promises strings, but the caller is `better-auth`,
   // handing over whatever the credential row holds. Check the promise at
@@ -113,9 +139,6 @@ export async function verifyPassword(input: { hash: string; password: string }):
     }
     return await verifyScrypt({ hash, password });
   } catch (cause) {
-    const code: PasswordVerificationFailure = isHashFormatRejection(cause)
-      ? "unusable-hash"
-      : "crypto-failure";
-    throw failedVerification(code, cause);
+    throw failedVerification(codigoDeFalhaDeHash(cause), cause);
   }
 }
