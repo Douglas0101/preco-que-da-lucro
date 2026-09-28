@@ -2946,10 +2946,10 @@ Latest state marker parent = `8df257833959ffa09171aa0a0b2bc10a24a2318c`,
 - **O defeito reprovado é real, mas a causaootnameda no brief está errada.** A falha é
   `AssertionError: o backoff padrão agenda o futuro` em `scripts/db/test-outbox.ts:702`. O brief
   a descreveu como "backoff de 1.000 ms competindo com margem de 1 s em runner sob carga" e
-  propôs *fake timers* de vitest, com alternativa de "subir a margem para 5 s". Ambas as
- ibilidades estão erradas, e por medição:
+  propôs _fake timers_ de vitest, com alternativa de "subir a margem para 5 s". Ambas as
+  ibilidades estão erradas, e por medição:
   - o arquivo **não** é um teste de vitest — é a suíte `db:test`, `node:assert`, executada contra
-    um Postgres real; não existe `vi` ali, e *fake timers* governam o `Date` do JavaScript, não
+    um Postgres real; não existe `vi` ali, e _fake timers_ governam o `Date` do JavaScript, não
     o `now()` do PostgreSQL, que é de onde o carimbo vem;
   - a causa não é jitter de agendamento: `available_at` é gravado como
     `now() + make_interval(...)` e o `now()` do PostgreSQL é o **timestamp de transação**,
@@ -2976,7 +2976,7 @@ Latest state marker parent = `8df257833959ffa09171aa0a0b2bc10a24a2318c`,
   sítios (`test-outbox.ts:659` e `:702`) e os dois foram corrigidos — enumeração por descoberta,
   não porxbatedo. **O backoff de produção não foi tocado**: `BACKOFF_BASE_MS` segue 1.000 ms e a
   evidência não mediu insuficiência dele em cenário algum.
-- **O que não foi feito, e por quê.** O brief pedia um *MCP Action Server* com cinco tools
+- **O que não foi feito, e por quê.** O brief pedia um _MCP Action Server_ com cinco tools
   (`rotate_secret`, `revoke_env_var`, `verify_secret_rotation`, `audit_secret_usage`,
   `check_secret_expiry`) em `src/mcp/action-server.ts`, autenticado por `MCP_AUTH_TOKEN` e com
   rollback automático, seguido da execução da rotação de `BETTER_AUTH_SECRET` e da revogação

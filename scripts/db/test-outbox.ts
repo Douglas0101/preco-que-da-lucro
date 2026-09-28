@@ -132,8 +132,8 @@ interface EventState {
   status: string;
   attempts: number;
   lastError: string | null;
-  /** `available_at` no futuro, medido pelo relógio do banco. */
-  scheduledForLater: boolean;
+  /** `available_at` em epoch ms, lido do banco — nunca derivado do relógio do processo. */
+  availableAtMs: number;
   processedAt: Date | null;
 }
 
@@ -142,7 +142,7 @@ async function readEventState(pool: Pool, eventId: string): Promise<EventState> 
     `select status,
             attempts,
             last_error as "lastError",
-            available_at > now() as "scheduledForLater",
+            (extract(epoch from available_at) * 1000)::float8 as "availableAtMs",
             processed_at as "processedAt"
      from outbox_events
      where id = $1`,
@@ -150,7 +150,65 @@ async function readEventState(pool: Pool, eventId: string): Promise<EventState> 
   );
   const row = result.rows[0];
   if (!row) throw new Error(`evento ${eventId} não encontrado`);
-  return row;
+  return { ...row, availableAtMs: Number(row.availableAtMs) };
+}
+
+/**
+ * Relógio do banco em epoch ms, numa transação própria.
+ *
+ * `now()` do PostgreSQL é `transaction_timestamp()`: o valor fica **congelado**
+ * enquanto a transação vive. Duas leituras em transações diferentes são, portanto,
+ * dois relógios diferentes — e a distância entre elas é o tempo de parede que
+ * passou. Toda medição de `available_at` neste arquivo é ancorada nestas leituras
+ * justamente por isso; ver {@link assertBackoffScheduled}.
+ */
+async function dbNowMs(pool: Pool): Promise<number> {
+  const result = await pool.query<{ nowMs: number }>(
+    `select (extract(epoch from now()) * 1000)::float8 as "nowMs"`,
+  );
+  return Number(result.rows[0]?.nowMs);
+}
+
+/**
+ * Prova que a falha agendou o retry para **depois desta tentativa**, com o
+ * backoff que a política manda — sem comparar relógios de transações diferentes.
+ *
+ * A forma anterior (`available_at > now()`, lido noutra transação) só é verdadeira
+ * se a leitura começar menos de `backoff` depois da escrita. Contra o Postgres
+ * local a folga é de milissegundos; contra uma branch efêmera do Neon passa de 1 s
+ * e a asserção quebra **com o valor gravado correto** — foi exatamente o que
+ * reprovou o job de integração do PR #49. Aqui as duas leituras do relógio do banco
+ * **cercam** a escrita, então a janela alarga com a latência em vez de estreitar:
+ *
+ *   t_antes ≤ t_escrita ≤ t_depois   ⇒   available_at ∈ [t_antes + backoff, t_depois + backoff]
+ *
+ * Isso também passa a asseverar o **valor** do backoff, coisa que `> now()` não
+ * fazia: um backoff de 1 ms satisfazia a forma antiga tanto quanto um de 60 s.
+ * A folga de 1 ms absorve só o arredondamento da extração, não latência.
+ *
+ * **Deliberadamente não afirma "available_at > agora".** Essa formulação seria a
+ * mesma classe de defeito outra vez, com outro limiar: mede o valor contra uma
+ * leitura *posterior*, então falha sempre que o teste demorar mais que o backoff a
+ * ler. Verificada na prática: com 1500 ms entre a escrita e a leitura, ela acusava
+ * "retry storm" sobre um agendamento correto. A propriedade §23 de que o evento não
+ * é retomado durante a janela é provada pelo **comportamento** — `claimed === 0`
+ * numa nova chamada do worker — que não depende de relógio.
+ */
+function assertBackoffScheduled(
+  state: EventState,
+  beforeWriteMs: number,
+  afterWriteMs: number,
+  expectedBackoffMs: number,
+  message: string,
+): void {
+  const scheduledOffset = state.availableAtMs - beforeWriteMs;
+  const windowEnd = expectedBackoffMs + (afterWriteMs - beforeWriteMs);
+  assert.ok(
+    scheduledOffset >= expectedBackoffMs - 1 && scheduledOffset <= windowEnd + 1,
+    `${message}: offset agendado ${scheduledOffset.toFixed(1)} ms fora da janela ` +
+      `[${expectedBackoffMs}, ${windowEnd.toFixed(1)}] ms ` +
+      `(backoff ${expectedBackoffMs} ms, escrita cercada por ${(afterWriteMs - beforeWriteMs).toFixed(1)} ms de relógio)`,
+  );
 }
 
 /** Reentrega at-least-once: o evento volta para a fila como pendente. */
@@ -626,11 +684,33 @@ async function t3ConsumerIdempotency(pool: Pool): Promise<void> {
 }
 
 /**
+ * Backoff injetado no T4: janela larga o bastante para que o teste do "dentro do
+ * backoff o evento não é reclamado" não dependa de relógio nenhum.
+ */
+const INJECTED_BACKOFF_MS = 60_000;
+
+/**
+ * Política padrão do §23, afirmada **pelo valor** e não por comparação de
+ * relógio: `OutboxWorker.backoffMs` é `min(BACKOFF_BASE_MS * 2 ** (attempts - 1),
+ * BACKOFF_CAP_MS)`, e na primeira tentativa isso dá a base. Espelha
+ * `BACKOFF_BASE_MS` de `src/server/services/outbox.worker.ts`: mudar a política
+ * de produção tem de fazer este teste **falhar**, que é o que a forma anterior
+ * (`available_at > now()`) não conseguia fazer — ela aceitava 1 ms e 60 s.
+ */
+const DEFAULT_BACKOFF_BASE_MS = 1_000;
+
+/**
  * T4 — falha: `attempts++`, `last_error` e `available_at` futuro; a tentativa
  * seguinte só acontece depois do backoff e o evento para de ser reclamado ao
  * esgotar `maxAttempts` (sem retry infinito). O efeito reprocessado prova que o
  * registro da inbox reverteu junto com o savepoint do handler.
+ *
+ * "Agendado no futuro" é asseverado por **offset** cercado por leituras do relógio
+ * do banco, e o valor do backoff é conferido — não por `available_at > now()`, que
+ * compara o timestamp de duas transações diferentes e quebra conforme o alvo se
+ * afasta. Ver {@link assertBackoffScheduled} para a demonstração do defeito.
  */
+
 async function t4FailureBackoff(pool: Pool): Promise<void> {
   await seedFixtures(pool);
   let handlerRuns = 0;
@@ -643,12 +723,16 @@ async function t4FailureBackoff(pool: Pool): Promise<void> {
       batchSize: 5,
       maxAttempts: 2,
       consumerName: "consumer-failing",
-      backoffMs: () => 60_000,
+      backoffMs: () => INJECTED_BACKOFF_MS,
     },
   );
   const eventId = await appendEvent("t4:1", "ed000000-0000-4000-8000-00000000000d");
 
+  // As duas leituras cercam a escrita: o intervalo entre elas é a janela em que
+  // o `available_at` pode cair, e essa janela só alarga com a latência.
+  const beforeFirstFailureMs = await dbNowMs(pool);
   const first = await worker.runOnce(identityA);
+  const afterFirstFailureMs = await dbNowMs(pool);
   assert.equal(first.claimed, 1);
   assert.equal(first.failed, 1);
   assert.equal(first.processed, 0);
@@ -656,7 +740,13 @@ async function t4FailureBackoff(pool: Pool): Promise<void> {
   assert.equal(afterFirstFailure.status, "failed");
   assert.equal(afterFirstFailure.attempts, 1, "a falha consome uma tentativa");
   assert.equal(afterFirstFailure.lastError, "falha do consumidor");
-  assert.equal(afterFirstFailure.scheduledForLater, true, "o backoff agenda o futuro");
+  assertBackoffScheduled(
+    afterFirstFailure,
+    beforeFirstFailureMs,
+    afterFirstFailureMs,
+    INJECTED_BACKOFF_MS,
+    "o backoff agenda o futuro",
+  );
   assert.equal(afterFirstFailure.processedAt, null);
   assert.equal(handlerRuns, 1);
 
@@ -694,13 +784,28 @@ async function t4FailureBackoff(pool: Pool): Promise<void> {
     { consumerName: "consumer-default-backoff", maxAttempts: 2 },
   );
   const defaultBackoffEventId = await appendEvent("t4:2", "ee000000-0000-4000-8000-00000000000e");
+  const beforeDefaultFailureMs = await dbNowMs(pool);
   const defaultFailure = await defaultBackoffWorker.runOnce(identityA);
+  const afterDefaultFailureMs = await dbNowMs(pool);
   assert.equal(defaultFailure.claimed, 1);
   assert.equal(defaultFailure.failed, 1);
   const defaultBackoffState = await readEventState(pool, defaultBackoffEventId);
   assert.equal(defaultBackoffState.attempts, 1);
-  assert.equal(defaultBackoffState.scheduledForLater, true, "o backoff padrão agenda o futuro");
+  assertBackoffScheduled(
+    defaultBackoffState,
+    beforeDefaultFailureMs,
+    afterDefaultFailureMs,
+    DEFAULT_BACKOFF_BASE_MS,
+    "o backoff padrão agenda o futuro",
+  );
   assert.equal(defaultBackoffState.lastError, "falha padrão");
+
+  // §23 sem relógio: a janela padrão tem de segurar o evento. É o comportamento
+  // que importa (o worker não o retoma), e é imune à latência do banco — a
+  // asserção de offset acima é que mede o valor da janela.
+  const insideDefaultBackoff = await defaultBackoffWorker.runOnce(identityA);
+  assert.equal(insideDefaultBackoff.claimed, 0, "dentro do backoff padrão o evento não é retomado");
+  assert.equal(insideDefaultBackoff.failed, 0);
 
   console.log("T4 falha: attempts++ + available_at futuro + retry limitado por maxAttempts: OK");
 }
