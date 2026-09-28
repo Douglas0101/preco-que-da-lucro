@@ -3091,7 +3091,10 @@ Latest state marker parent = `775fa01ebb8d21f8d089282a14e06d4172bd68f5`,
 - **`DBT-25` não está em 0/35.** Medido: `contract-output-ratchet` **pass**, _"5 de 35"_, piso
   versionado em `scripts/contract-baseline.json`. E escalar 5 → 35 agora seria multiplicar um
   defeito **já refutado** pela S6 do ciclo 3: N-1 (o contrato é aplicado **depois** dos mappers,
-  então a resposta é 500 e não o 503 do contrato) e N-2 (tipo público estreitou em 3 das 5
+  então a resposta é 500 e não o 503 do contrato — **errata medida em 2026-09-28**: o status
+  é 503 nos dois caminhos, `DATABASE_ERROR` em vez de `DEPENDENCY_ERROR`; o defeito é de
+  **código e sinal**, não de número, e o sítio de `products` é o loader, não a projeção) e
+  N-2 (tipo público estreitou em 3 das 5
   funções, declarado não autorizado e **pendente de ratificação do MAESTRO**). Replicar em 30
   funções espalharia uma afirmação falsa 30 vezes. A ordem correta é corrigir N-1 e ratificar
   N-2 **antes** de ampliar.
@@ -3106,3 +3109,81 @@ Latest state marker parent = `775fa01ebb8d21f8d089282a14e06d4172bd68f5`,
   `docs/evidence/ciclo-10-censo-bloqueadores-2026-09-28.md`. Sem push.
 
 Latest state marker parent = `7c8cda018c591ef8282fa3b30f024fe238a8938b`,
+
+## Bloco aditivo — Ciclo 10: N-1, o check de estado como gate, e a recusa do segredo vazado (2026-09-28)
+
+- **N-1 fechado, com duas erratas medidas.** O contrato era validado **depois** do produtor:
+  `outputSchema(schema, subject, rows.map(mapExpense))` avalia o terceiro argumento **antes** da
+  chamada, então um mapeador que lança escapa antes de o contrato existir. **Errata 1:** o registro
+  do ciclo 3 dizia "a resposta é **500**, não o 503 do contrato". Medido no código:
+  `errorCodeFromUnknown` devolve `INTERNAL_ERROR`, `request-context.ts:154` remapeia para
+  `DATABASE_ERROR`, e essa política é **`status: 503`** — o **mesmo status** dos dois caminhos. O
+  defeito é de **código e sinal**: sai `DATABASE_ERROR` onde o contrato promete `DEPENDENCY_ERROR`,
+  o log é `bff.request_failed` em vez de `bff.output_contract_violation`, e a violação de contrato
+  **não era registrada como violação**. **Errata 2:** em `products` os mapeadores rodam dentro de
+  `loadProductReadModels` (linha 390), **não** na projeção da 394 — corrigir a projeção deixaria o
+  defeito de pé exatamente ali. Correção: `produceOutput` compartilhado, que **não**
+  superclassifica (preserva `ApplicationError`, `NOT_FOUND` e `ZodError`; a versão ingênua viraria
+  404 e 400 em 503).
+- **Controles de N-1, falsificados.** Os três testes de sítio **reprovam** com os sítios revertidos
+  para a versão defeituosa (**3 failed** medido) e passam com a correção. O caso de
+  `listSimulations` usa **`SyntaxError`** do `JSON.parse`, deliberadamente não `TypeError`, para
+  falsificar uma correção que só capturasse um dos dois.
+- **`m02:state:check` reescrito e integrado como 20º gate.** A forma antiga exigia que o ledger
+  nomeasse exatamente o parent do HEAD, o que só é satisfazível se **todo** commit reapinar o
+  marcador. Medido sobre 220 commits desta linhagem: folga 1 em **45%**, mediana 2, máxima 20 — ou
+  seja, reprovava **mais da metade** das execuções, e por isso ninguém o rodava. A forma nova é
+  **mais forte**, não mais fraca: passa a exigir **ancestralidade** (antes era comparação de
+  string, que nunca verificava se o SHA era desta linhagem) e uma **folga declarada de 13**
+  commits, calibrada na disciplina que o projeto de fato pratica (93% dos commits). Clone raso vira
+  exit `2`: inverificável de princípio, e acusar violação ali seria mentir sobre a causa. Controles
+  no CLI real: 30 commits atrás ⇒ exit 1 nomeando a folga; marcador de outro branch ⇒ exit 1 "não é
+  ancestral"; SHA fabricado ⇒ exit 1 "não resolve"; clone raso **de verdade** ⇒ exit 2; ledger
+  restaurado por `sha256sum -c`. Entra na cadeia `check`, no `verify` do `ui-stack` e na light
+  **sem** o `if:` de escopo, pela mesma razão do temporal guard: a superfície é o ledger da raiz.
+- **Um bug no auditor de cobertura, achado ao integrar o gate.** `gate.replace(":", "-")` usa
+  padrão de **string** e troca só o **primeiro** dois-pontos: `m02:state:check` virava
+  `m02-state:check`, o passo real nunca era encontrado, e o auditor **acusava o `AGENTS.md` de
+  mentir** — apontando para o documento quando o defeito estava no auditor. Todos os gates
+  anteriores tinham um dois-pontos só, e o ramo nunca havia sido exercitado. Corrigido nos **dois**
+  sítios, com teste de regressão e um caso que garante que um gate de um dois-pontos continua
+  funcionando.
+- **O segredo vazado passa a ser recusado, por hash.** `src/server/auth/compromised-secrets.ts`
+  guarda **SHA-256**, nunca valores: guardar o valor recriaria o segredo no arquivo que existe
+  para neutralizá-lo. Confronto exato, sem prefixo, de propósito — um prefixo curto tornaria a
+  lista um oráculo de confirmação. Dez controles PASS contra o literal real lido do git e **nunca
+  impresso**, incluindo os três bypasses que **não** funcionam (uppercase, espaço à esquerda, à
+  direita), o vetor conhecido do NIST para o primitivo, e a lista de produção pinada — remover a
+  entrada sem rotacionar reprova. **Alcance declarado e corrigido:** `getAuth` é preguiçoso
+  (`auth.server.ts:121-124`), então o guard **não** impede o processo de subir — impede a
+  **construção da instância de autenticação**, e o efeito é fail-closed no primeiro toque em auth.
+  A frase "fails the boot" do commit `d4ce3b0` é mais forte que o código e fica corrigida aqui, em
+  vez de o código ser esticado para caber nela.
+- **Credencial viva a um `git add .` do histórico público, corrigida fora do brief.** `Keys.txt`
+  (316 B, quatro credenciais em texto plano) estava **não-ignorado** num repositório **público**.
+  Corrigido em `7c8cda0`; ver o bloco anterior. **Limite declarado:** as quatro foram coladas em
+  canal de conversa, e isso já é exposição — `gitignore` impede commit, não desfaz transcript. A
+  rotação das quatro no emissor é do dono.
+- **Gate:** `npm run check` **exit 0** com os **20** gates (109 arquivos, **1282 passed** | 13
+  skipped) e `db:test` **exit 0** (17 suítes, incluindo as cinco de segurança). `m02:matrix:generate`
+  revisado: o diff é **só** deslocamento de `line:`, nenhum contador e nenhuma entrada acrescentada
+  ou removida. Ratchet de contratos intacto em **5 de 35** — a correção muda **onde** o contrato
+  fica, não adiciona contrato.
+- **Registry em 29 dívidas** (`DBT-27`…`DBT-30`), `m02:debts-guard` exit 0. **Nenhuma promovida a
+  `FECHADA`**, e isso é deliberado: o registry exige o **selo/WP que executou o closure**, e não
+  houve WP selado neste ciclo. `DBT-28` e `DBT-29` ficam com closure verde e status `ABERTA` — o
+  mesmo critério que mantém `DBT-26` desde o ciclo 3. Promover por conta própria seria escrever no
+  registro o que a cerimônia ainda não produziu.
+- **Não executado, com motivo medido, e nenhum deles por preferência:** a rotação de
+  `BETTER_AUTH_SECRET` (o token Vercel não alcança o projeto — `defaultTeamId` com **zero projetos**,
+  404 em todos os escopos tentados; e **não há deployment de produção**,
+  `DEPLOYMENT_NOT_FOUND`, então `verify_secret_rotation` não tem alvo); o **MCP Action Server**
+  (sem alvo e sem o que verificar — um servidor que guarda credencial de rotação para um LLM é
+  superfície nova para propósito vazio); a matriz de saída **35/35** (recusada por decisão do dono:
+  escalaria N-1 e um estreitamento de tipo **sem ratificação**); a revogação de `neon-storage.env`
+  (**já feita** — `SEC-01 FECHADA` em 2026-09-12 por atestação do operador, e as cinco chaves eram
+  `AWS_*` S3-compatível + `OPENAI_API_KEY`, não chaves do Neon); e os **100 traces** (sem aplicação
+  rodando gerando tráfego). Relatório do ciclo:
+  `docs/evidence/ciclo-10-consolidacao-2026-09-28.md`. Sem push.
+
+Latest state marker parent = `a584e165591abb6a95bd5c77f5c5ebf10ea0e1e3`,

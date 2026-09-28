@@ -104,11 +104,24 @@ desatualizada.
 **E escalar 5 → 35 agora seria multiplicar um defeito conhecido.** A S6 adversarial
 do ciclo 3 refutou a correção do próprio padrão:
 
-- **N-1:** o contrato é aplicado **depois** dos mappers
-  (`expenses.functions.ts:112`, `financial.functions.ts:145`,
-  `products.functions.ts:394`), então um valor que quebra o mapper lança `TypeError`
-  cru e a resposta é **500, não o 503 do contrato**. A afirmação "retorno malformado
-  ⇒ `DEPENDENCY_ERROR`" é falsa para essas formas.
+- **N-1 — com uma errata de número, verificada nesta sessão.** O contrato é
+  aplicado **depois** dos produtores, então um valor que quebra o mapeador lança um
+  erro cru que escapa antes de o contrato existir. **Errata:** o registro do ciclo 3
+  diz "a resposta é **500**, não o 503 do contrato". Medido agora contra o código:
+  `errorCodeFromUnknown` devolve `INTERNAL_ERROR`, e `request-context.ts:154`
+  remapeia para `DATABASE_ERROR`, cuja política é **`status: 503`, `retryable: true`**
+  — o **mesmo status** de `DEPENDENCY_ERROR`. O defeito é real, mas é sobre **código
+  e sinal**, não sobre número: sai `DATABASE_ERROR` ("não foi possível acessar os
+  dados") onde o contrato promete `DEPENDENCY_ERROR` ("um serviço necessário está
+  indisponível"), o evento de log é `bff.request_failed` em vez de
+  `bff.output_contract_violation`, e **a violação de contrato fica invisível em log e
+  métrica**. Nenhuma severidade mudou; a frase que estava errada era o número.
+  Segunda errata no mesmo item: em `products` os mapeadores rodam dentro de
+  `loadProductReadModels` (`products.functions.ts:390`), e **não** na projeção da
+  linha 394 — corrigir só a projeção deixaria o defeito de pé exatamente ali.
+  E o `TypeError` cru só é o desfecho visível em teste unitário, onde
+  `requireDatabaseAuth` não roda; no caminho implantado ele é classificado como
+  `DATABASE_ERROR`.
 - **N-2:** o tipo público de retorno **estreitou em 3 das 5** funções
   (`DecimalString` em `listExpenses`/`listProducts`; `getTotals` deixou de devolver
   `ExpenseTotals`). Foi declarado **não autorizado no brief** e está **pendente de
