@@ -25,6 +25,14 @@ skills-lock.json
 # antes da virada de visibilidade — um `git add .` ingênuo o levaria ao
 # histórico público. Nunca commitar.
 Sonar*.txt
+# `Keys.txt` (316 B, 4 credenciais vivas em texto plano: Neon, Vercel, GitHub
+# PAT, Sonar) entrou no diretório de trabalho em 2026-09-28 e estava a um
+# `git add .` de ir para o histórico de um repositório PÚBLICO. Mesma decisão do
+# Sonar*, mesmo motivo: nada que carregue credencial entra no índice.
+# A regra é por arquivo, de propósito — `*.txt` seria largo demais e cegaria a
+# revisão de texto legítimo.
+Keys.txt
+**/Keys.txt
 /.aws/
 /.azure/
 /.gcloud/
