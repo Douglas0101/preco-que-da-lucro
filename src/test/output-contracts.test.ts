@@ -23,7 +23,8 @@ import { z } from "zod";
 import type { Expense, Simulation } from "@/db/schema";
 import { getTotals, listExpenses } from "@/lib/expenses.functions";
 import { listSimulations, runSimulation } from "@/lib/financial.functions";
-import { outputSchema } from "@/lib/output-contract";
+import { outputSchema, produceOutput } from "@/lib/output-contract";
+import { ApplicationError } from "@/lib/api-error";
 import { listProducts } from "@/lib/products.functions";
 import type { RequestContext } from "@/lib/request-context";
 import type { Product } from "@/server/contracts/product.contracts";
@@ -423,5 +424,91 @@ describe("3. outputSchema — canal de falha do contrato", () => {
       expect(() => outputSchema(listSchema, subject, malformed)).toThrowError();
     }
     expect(outputSchema(listSchema, subject, [])).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 4. N-1: o PRODUTOR pode lançar antes de o contrato existir
+//
+// Os casos da seção 1 alimentam valores que ATRAVESSAM os mapeadores — por isso
+// eles exercitam o `safeParse`, e não o que dá errado antes dele. Aqui a fixture
+// quebra o **mapeador**: `created_at` nulo vira `TypeError` de `.toISOString()`,
+// `params` indefinido vira `SyntaxError` de `JSON.parse(undefined)`. Sem
+// `produceOutput` os dois escapam como erro cru, o `errorCodeFromUnknown` não os
+// reconhece, e a violação de contrato nunca é registrada como violação — que é o
+// defeito N-1, e ele é sobre o **código** e o **sinal**, não sobre o número do
+// status (503 `DATABASE_ERROR` e 503 `DEPENDENCY_ERROR` são o mesmo status).
+// ---------------------------------------------------------------------------
+describe("4. N-1 — falha do produtor é classificada, não escapa crua", () => {
+  it("listExpenses: linha que quebra o mapeador ⇒ DEPENDENCY_ERROR", async () => {
+    mocks.expenseList.mockResolvedValue([expenseRow({ createdAt: null as unknown as Date })]);
+    await expectDependencyError(invoke(listExpenses, CONTEXT));
+  });
+
+  it("listSimulations: `params` indefinido ⇒ SyntaxError do JSON.parse, também classificado", async () => {
+    // Deliberadamente NÃO é TypeError: uma correção que só capturasse TypeError
+    // seria falsificada por este caso.
+    mocks.simulationList.mockResolvedValue([
+      simulationRow({ params: undefined as unknown as Record<string, unknown> }),
+    ]);
+    await expectDependencyError(invoke(listSimulations, CONTEXT));
+  });
+
+  it("listProducts: a fronteira é o loader, onde os mapeadores de fato rodam", async () => {
+    mocks.loadReadModel.mockResolvedValue(
+      readModel([productRow({ createdAt: null as unknown as Date })]),
+    );
+    await expectDependencyError(invoke(listProducts, CONTEXT));
+  });
+
+  it("registra `bff.output_mapping_failed` com o sujeito, em vez de silenciar", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    await expect(
+      produceOutput("teste.mapeador", () => {
+        throw new TypeError("mapeador quebrou");
+      }),
+    ).rejects.toMatchObject({ code: "DEPENDENCY_ERROR", status: 503, retryable: true });
+
+    const record = JSON.parse(String(errorSpy.mock.calls[0]?.[0])) as {
+      event: string;
+      subject: string;
+    };
+    expect(record).toMatchObject({ event: "bff.output_mapping_failed", subject: "teste.mapeador" });
+    errorSpy.mockRestore();
+  });
+
+  it("NÃO superclassifica: código que já existe é preservado", async () => {
+    // O risco da correção ingênua seria virar 503 o que hoje é 404 ou 400.
+    await expect(
+      produceOutput("teste.naoEncontrado", () => {
+        throw new Error("NOT_FOUND");
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+
+    await expect(
+      produceOutput("teste.validacao", () => {
+        throw new z.ZodError([]);
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
+
+    const intencional = new ApplicationError("CONFLICT");
+    await expect(
+      produceOutput("teste.conflito", () => {
+        throw intencional;
+      }),
+    ).rejects.toBe(intencional);
+  });
+
+  it("produtor assíncrono também é coberto (o loader de produtos é async)", async () => {
+    await expect(
+      produceOutput("teste.async", async () => {
+        throw new TypeError("loader assíncrono quebrou");
+      }),
+    ).rejects.toMatchObject({ code: "DEPENDENCY_ERROR" });
+  });
+
+  it("o caminho feliz é transparente: devolve o mesmo valor, sem tocar no schema", async () => {
+    await expect(produceOutput("teste.ok", () => [1, 2, 3])).resolves.toEqual([1, 2, 3]);
+    await expect(produceOutput("teste.okAsync", async () => "valor")).resolves.toBe("valor");
   });
 });

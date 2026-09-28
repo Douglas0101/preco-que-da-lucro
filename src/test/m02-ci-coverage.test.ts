@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   auditCoverage,
   auditDeclaredCoverage,
+  gateInLight,
   parseCoverageTable,
   parseTriggerLists,
 } from "../../scripts/lib/m02-ci-coverage";
@@ -112,6 +113,29 @@ describe("cobertura de CI dos dois pipelines", () => {
       "  push:\n",
     );
     expect(auditCoverage(heavyReal, lightSemPaths).join("\n")).toContain("light sem push.paths");
+  });
+});
+
+describe("detecção de gate na light — nomes com mais de um dois-pontos", () => {
+  it("REGRESSÃO: `m02:state:check` é detectado no YAML real", () => {
+    // O helper fazia `gate.replace(":", "-")`, que com padrão de STRING troca só a
+    // primeira ocorrência: `m02:state:check` virava `m02-state:check`, e o passo
+    // real (`node scripts/m02-state-check.ts`) não era encontrado. O auditor então
+    // acusava o AGENTS.md de mentir — apontando para o documento quando o defeito
+    // estava no auditor. Todos os gates anteriores tinham um dois-pontos só, e por
+    // isso o ramo nunca tinha sido exercitado.
+    expect(gateInLight("m02:state:check", lightReal)).toBe(true);
+  });
+
+  it("a conversão é de TODOS os dois-pontos, e um gate ausente segue ausente", () => {
+    // Forma real dos passos da light: `run:` em linha própria, sob um `- name:`.
+    // (O `- run:` inline é a forma da heavy, e `gateInLight` não a promete.)
+    const comDoisPontos = "        run: node scripts/m02-state-check.ts\n";
+    expect(gateInLight("m02:state:check", comDoisPontos)).toBe(true);
+    expect(gateInLight("m02:nao-existe-gate", comDoisPontos)).toBe(false);
+    // Um gate de um dois-pontos continua funcionando: a correção não pode
+    // consertar um caso quebrando o anterior.
+    expect(gateInLight("m02:debts-guard", lightReal)).toBe(true);
   });
 });
 

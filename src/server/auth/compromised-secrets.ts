@@ -10,10 +10,18 @@ import { createHash } from "node:crypto";
  * dizer que o segredo serve. O valor abaixo está no **histórico publicado** de um
  * repositório que hoje é público, recuperável por qualquer pessoa. A correção real
  * é rotacionar, e rotação é ação de console, não de código — enquanto ela não
- * acontece, o que o código pode fazer é **recusar o uso**: a aplicação não sobe
- * com um segredo que se sabe comprometido. Isso transforma "rotacionar é pendente"
- * numa invariante que não depende de ninguém lembrar, e passa a valer no instante
- * em que a aplicação for implantada.
+ * acontece, o que o código pode fazer é **recusar o uso**.
+ *
+ * **Alcance exato da recusa, medido e não presumido — porque o alcance importa.**
+ * `requireAuthSecret` é chamado por `createAuthInstance` (`auth.server.ts:22`), e
+ * `getAuth` é **preguiçoso** (memoizado no primeiro uso, `auth.server.ts:121-124`).
+ * Logo o guard **não** impede o processo de subir: ele impede que a instância de
+ * autenticação seja **construída**. O efeito é fail-closed na prática — nenhuma
+ * sessão é criada nem verificada com o segredo comprometido, e todo caminho que
+ * toca auth falha alto em vez de servir — mas o momento é o primeiro toque em auth,
+ * não o start. Uma versão anterior deste comentário dizia "a aplicação não sobe",
+ * que é mais do que o código garante; a frase foi corrigida em vez de o código ser
+ * esticado para caber nela.
  *
  * ## Por que hashes e nunca valores
  *

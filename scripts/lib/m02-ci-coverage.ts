@@ -187,13 +187,32 @@ export function gateInHeavy(gate: string, yaml: string): boolean {
 /** A light invoca os guards por `node scripts/<kebab>.<ext>`. */
 export function gateInLight(gate: string, yaml: string): boolean {
   if (new RegExp(`^\\s*run:\\s*npm run ${escapeRegExp(gate)}\\s*$`, "m").test(yaml)) return true;
-  const kebab = escapeRegExp(gate.replace(":", "-"));
+  const kebab = escapeRegExp(kebabDeGate(gate));
   return new RegExp(`^\\s*run:\\s*node scripts/${kebab}\\.(mjs|ts|mts)\\s*$`, "m").test(yaml);
+}
+
+/**
+ * `m02:state:check` → `m02-state-check`, **todos** os dois-pontos.
+ *
+ * `String.prototype.replace` com padrão de **string** troca só a primeira
+ * ocorrência, então `gate.replace(":", "-")` devolvia `m02-state:check` para um
+ * gate de nome com dois dois-pontos — e a guarda passava a procurar
+ * `scripts/m02-state:check.ts`, que não existe. O efeito era o pior possível para
+ * um auditor: ele **não** encontrava o passo real e acusava a tabela de mentir
+ * (`a tabela declara ✔ e o gate não roda ali`), apontando para o documento quando
+ * o defeito estava aqui. Todos os gates anteriores tinham um dois-pontos só, e por
+ * isso o ramo nunca havia sido exercitado.
+ *
+ * Corrigido nos **dois** sítios (`gateInLight` e `stepInvokesGate`), porque a
+ * mesma expressão aparecia nas duas e consertar uma só deixaria a outra cega.
+ */
+function kebabDeGate(gate: string): string {
+  return gate.replaceAll(":", "-");
 }
 
 function stepInvokesGate(step: string, gate: string): boolean {
   if (step === `npm run ${gate}`) return true;
-  return step.includes(`scripts/${gate.replace(":", "-")}.`);
+  return step.includes(`scripts/${kebabDeGate(gate)}.`);
 }
 
 export interface DeclaredCoverageInput {

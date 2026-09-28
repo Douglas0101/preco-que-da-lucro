@@ -7,7 +7,7 @@ import {
   toDecimalString,
 } from "@/lib/financial-values";
 import { optimisticVersionSchema } from "@/lib/optimistic-version";
-import { outputSchema } from "@/lib/output-contract";
+import { outputSchema, produceOutput } from "@/lib/output-contract";
 import type { RequestContext } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 import { expenseService } from "@/server/services/expense.service";
@@ -109,7 +109,11 @@ export const listExpenses = createServerFn({ method: "GET" })
   .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
     const rows = await expenseService.list(context.requestContext);
-    return outputSchema(expensesListOutput, "expenses.listExpenses", rows.map(mapExpense));
+    // O mapeador roda DENTRO de `produceOutput`: fora dele, um `TypeError` de
+    // linha malformada escaparia antes de o contrato existir e nunca seria
+    // registrado como violação de contrato (ver o JSDoc do helper).
+    const view = await produceOutput("expenses.listExpenses", () => rows.map(mapExpense));
+    return outputSchema(expensesListOutput, "expenses.listExpenses", view);
   });
 
 function toExpenseWrite(data: ExpenseFields) {

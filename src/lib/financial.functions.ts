@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { CalculationResult } from "@/lib/finance";
 import { decimalStringSchema } from "@/lib/financial-values";
-import { outputSchema } from "@/lib/output-contract";
+import { outputSchema, produceOutput } from "@/lib/output-contract";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 import {
   runFinancialSimulation,
@@ -142,7 +142,11 @@ export const listSimulations = createServerFn({ method: "GET" })
   .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
     const rows = await simulationService.list(context.requestContext);
-    return outputSchema(simulationsOutput, "financial.listSimulations", rows.map(mapSimulation));
+    // `mapSimulation` pode lançar `SyntaxError` (JSON.parse de `params` indefinido)
+    // ou `TypeError` (data inválida) — os dois fora da taxonomia, os dois presos
+    // aqui para que a falha vire violação de contrato registrada.
+    const view = await produceOutput("financial.listSimulations", () => rows.map(mapSimulation));
+    return outputSchema(simulationsOutput, "financial.listSimulations", view);
   });
 
 export const saveSimulation = createServerFn({ method: "POST" })

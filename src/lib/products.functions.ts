@@ -12,7 +12,7 @@ import {
   toDecimalString,
 } from "@/lib/financial-values";
 import { optimisticVersionSchema } from "@/lib/optimistic-version";
-import { outputSchema } from "@/lib/output-contract";
+import { outputSchema, produceOutput } from "@/lib/output-contract";
 import type { RequestContext } from "@/lib/request-context";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 import type {
@@ -387,12 +387,15 @@ export const listProducts = createServerFn({ method: "GET" })
   .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
     const request = context.requestContext;
-    const rows = await loadProductReadModels(request);
-    return outputSchema(
-      productListOutput,
-      "products.listProducts",
-      rows.map(({ product }) => product),
-    );
+    // A fronteira é `loadProductReadModels`, NÃO a projeção da linha 394: os
+    // mapeadores (`mapProduct`, `mapIngredient`, …) e o cálculo rodam **dentro**
+    // do loader. Envolver só a projeção deixaria o defeito de pé exatamente aqui,
+    // que é o sítio mais fácil de corrigir errado.
+    const products = await produceOutput("products.listProducts", async () => {
+      const rows = await loadProductReadModels(request);
+      return rows.map(({ product }) => product);
+    });
+    return outputSchema(productListOutput, "products.listProducts", products);
   });
 
 export const listProductsWithMetrics = createServerFn({ method: "GET" })
