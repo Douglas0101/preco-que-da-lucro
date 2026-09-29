@@ -33,6 +33,14 @@ Sonar*.txt
 # revisão de texto legítimo.
 Keys.txt
 **/Keys.txt
+
+# Diretório de trabalho do MCP Playwright na raiz: logs de console, snapshots de
+# acessibilidade e screenshots da sessão. Não é evidência curada — a convenção do
+# repo é que captura bruta de computer-user vive SELADA em
+# `docs/evidence/*/playwright-mcp*/**`, com o byte preservado. Na raiz ele é só
+# lixo de ferramenta que um `git add .` levaria ao histórico, junto com qualquer
+# coisa que o navegador tenha logado.
+.playwright-mcp/
 /.aws/
 /.azure/
 /.gcloud/
