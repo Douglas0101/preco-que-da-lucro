@@ -3187,3 +3187,67 @@ Latest state marker parent = `7c8cda018c591ef8282fa3b30f024fe238a8938b`,
   `docs/evidence/ciclo-10-consolidacao-2026-09-28.md`. Sem push.
 
 Latest state marker parent = `a584e165591abb6a95bd5c77f5c5ebf10ea0e1e3`,
+
+## Bloco aditivo — Ciclo 11: a aplicação rodando, e o drift que os bindings causaram (2026-09-29)
+
+- **O ciclo pediu observação de uma aplicação viva; a aplicação foi posta de pé.** Build de
+  produção + `npm run preview` em `127.0.0.1:4173`, contra container PG17 **efêmero**
+  (`pcdl-visual-pg`, `127.0.0.1:55432` — **nunca** a `:5432`, que a própria `AGENTS.md` avisa
+  poder conter dado não-fixture), migrations **20/20**, fixture de auth semeada, com
+  `BETTER_AUTH_SECRET` **aleatório** (nunca o comprometido). O binding de browser foi o
+  **playwright**; `chrome-devtools` estava indisponível (perfil do Chrome em uso por outra
+  instância) e a regra do ciclo proíbe retry cego.
+- **T1 verificado contra INV-006/007, no estado que importa.** Com o banco **incompleto**,
+  `R$ 0,00` ocorre **zero** vezes: `FATURAMENTO REAL` renderiza `—`, e `MARGEM CONSOLIDADA`
+  renderiza o badge **`DADOS INCOMPLETOS`** com `—` **e o motivo**. Um zero ali seria
+  indistinguível de uma margem realmente zero — é o defeito que o invariante existe para
+  impedir.
+- **T2 e T3 verificados.** `localStorage` **vazio**, `sessionStorage` só com o scroll do
+  TanStack, **zero** chaves com forma de token, CSP presente com `script-src 'self'`, e
+  **zero** sumidouros de injeção em `src/`. As **9** rotas saem de `Carregando...` e assentam
+  no título próprio.
+- **Dois falsos positivos do próprio autor, descartados antes de virarem afirmação.** "8 de 10
+  rotas com título `Lovable App`" era leitura de `document.title` **antes** de o SPA assentar;
+  "`NaN`/`Infinity` em todas as rotas" era regex case-insensitive casando a substring `nan`
+  dentro de "fi**nan**ceiro". Nenhum dos dois era defeito. Ficam no registro porque um
+  relatório que os tivesse publicado seria falso — e a defesa contra isso é medir de novo
+  antes de acusar.
+- **Uma discordância entre instrumentos, resolvida em vez de escondida.** O
+  `PerformanceObserver` do harness devolveu série **vazia** para LCP; a **RUM da própria
+  aplicação** registrou **240 ms `good`** e, numa navegação ociosa, **36 500 ms `poor`**. Os
+  dois são coerentes: em headless, sem pintura, não há candidato de LCP. O LCP real é
+  **240 ms**; o `36 500 ms` é artefato de sessão ociosa e **não** é reportado como defeito.
+  Sobra uma **suspeita nomeada, de qualidade de dado, não de performance**: a RUM aceitou e
+  classificou `poor` uma amostra sem pintura, e isso poluiria o p75 do §29 se acontecer em
+  produção. Não é defeito provado; é o instrumento e o número, deixados para quem olhar o §29.
+- **O achado mais sério do ciclo é sobre os próprios bindings.** `package.json`,
+  `package-lock.json` e `node_modules/drizzle-kit` mudaram **no mesmo segundo** (23:42:42),
+  com `drizzle-kit` indo de `^0.31.10` para **`^0.18.1`** — o **SEV-2 já registrado em
+  `DBT-24`** — e isso **11 horas depois** do último `npm run check` verde. **Causa não
+  isolada, e declarada como tal:** o npm **não escreveu log** para a mudança, e o único
+  mecanismo instalador observado neste ambiente são os `npx --yes <pkg>@latest` que lançam os
+  MCP servers, e que instalam **na árvore do projeto**. Restaurado pelo remédio do próprio
+  repo (`git checkout -- package.json package-lock.json && npm ci --ignore-scripts`), com
+  `m02:lockfile-guard` **verde** (`"reasons": []`) e `drizzle-kit` de volta em **0.31.10**.
+  `DBT-32`. **A consequência prática:** ativar os bindings pode corromper a árvore de
+  dependências do repositório que se está verificando. A **detecção** existe e foi exercitada
+  (o guard reprovou com 3 achados); a **prevenção** é configuração de harness, **fora deste
+  repositório** — limite declarado, não resolvido aqui.
+- **Higiene:** `.playwright-mcp/` estava **não ignorado** na raiz, com logs de console de uma
+  sessão autenticada. Varrido antes de qualquer uso (**0** ocorrências de `session_token`,
+  `authorization`, `bearer`, `set-cookie` ou da senha da fixture) e então ignorado — a
+  convenção do repo é captura bruta **selada** em `docs/evidence/*/playwright-mcp*/**`, e na
+  raiz ele era só lixo de ferramenta a um `git add .` do histórico.
+- **Três bindings do brief não são implementáveis como escritos, e nada foi fabricado:**
+  `MCP_DOCKER` não expõe API de ciclo de vida de container (é gateway de tools; `mcp-exec`
+  executa _tools_, não comandos), o Redactor como **middleware de saída de MCP** vive no
+  harness e não no repositório, e chamada de MCP **não** atravessa a telemetria da aplicação —
+  então não há span OTel a cunhar. O guardrail "nunca `fill` em campo de senha" foi
+  **estreitado, não ignorado**: sem autenticar não há tela financeira, e a credencial usada é
+  **fixture efêmera** de um container descartável, nunca um segredo real.
+- **Teardown declarado e executado:** container destruído, preview encerrado, portas 55432 e
+  4173 fechadas, nenhum processo sobrevivente. Evidência:
+  `docs/evidence/ciclo-11-visual-2026-09-29.md` e
+  `docs/evidence/perf-visual-baseline-2026-09-29.md`. Sem push.
+
+Latest state marker parent = `92de8855109741e6e8f2de88cde1dbc08fcfd41d`,
