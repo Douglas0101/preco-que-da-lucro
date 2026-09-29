@@ -3275,3 +3275,32 @@ Latest state marker parent = `92de8855109741e6e8f2de88cde1dbc08fcfd41d`,
 - **Sem push**, por decisão declarada: a fase é local e o brief não pede push.
 
 Latest state marker parent = `82eeb9fb42e3f2917d5d6e0b5a23874f3d3634e1`,
+
+---
+
+## Ciclo 15 (parcial) — captura cega, sondas e H-6 (2026-09-29)
+
+- **Executado:** captura cega das 4 credenciais do registry para o cofre (rehearsal com fictício
+  verde; clipboard relido vazio; `selftest --backend=cofre` 5/5); sondas de autenticação **4/4
+  200** contra os endpoints reais; H-6 destravado pelo login do operador e **concluído** — 3 env
+  vars adicionadas, `Salvar e reimplantar`, build **verde** e health **200** em
+  `/api/health/ready` e `/api/health/live`; `GET /` serve o app.
+- **Refutado por medição:** sessões de browser ativas do brief (os MCPs estavam em branco e o
+  hPanel respondia login); os comandos `read_keys_txt`/`inject_env_console` do brief não existem
+  (a API real é `capture`/`copy-out`/`test`); `DBT-37` não é relaunch de MCP; a cota de CI já está
+  desbloqueada (runs de 2026-09-28 com 40 steps, sem anotação de billing); DNS/SSL/redirect do
+  alvo já corretos.
+- **Bloqueado:** a rotação em console (F15-1/DBT-36) — sem sessão autenticada nos quatro consoles
+  e sem os adaptadores por provedor que o README do sidecar declara pendentes; `DBT-31` re-medida
+  (token Vercel válido mas projeto 404 e times 403); produção Vercel só existe em Preview, e o
+  contrato do repositório é produção somente de `main`.
+- **Incidente de exposição declarado:** a tela `settings` do hPanel renderiza os valores das env
+  vars em texto plano e um snapshot de acessibilidade capturou `DATABASE_URL` e
+  `BETTER_AUTH_SECRET` no contexto do agente; capturas locais removidas sem leitura, nenhum valor
+  repetido, nenhum artefato ou commit contaminado. Redaction precisa cobrir snapshot de
+  acessibilidade, não só pixels.
+- **Achado:** o watcher está armado em `/ready /live`, mas a convenção real das rotas é
+  `/api/health/*` — ele nunca ficaria verde com o app saudável; candidato a registro no registry.
+- **Evidência:** `docs/evidence/ciclo-15-rotacao-blind-2026-09-29.md`. Sem push.
+
+Latest state marker parent = `6b8704a0b65eaa4e0c53697f5289a5e0a6473e5c`,
