@@ -66,21 +66,39 @@ em mais um lugar sem tratamento. Esta seção é para o dono, com o console aber
 
 ---
 
-## 3. Revogação de `neon-storage.env` (SEC-01, pendente desde a auditoria)
+## 3. Revogação de `neon-storage.env` (SEC-01) — **fechada** em 2026-09-12
 
-**Estado:** um blob **órfão** (`25393aac`) contém cinco credenciais com prefixo
-`_live_` (`nak_live_`, `nsk_live_`, `nt_live_`). Provado por quatro vias
-independentes que **não está em nenhuma ref publicada** — logo não foi exposto
-pela virada. O que falta é a prova de que foram **revogadas na origem**; o
-próprio ledger registra "revogação não comprovada".
+> **ERRATA 2026-09-29 (DBT-30).** Esta seção afirmava que a revogação estava
+> **pendente** e mandava fazê-la **no console errado**. As duas afirmações
+> estavam erradas, e a contradição atravessou nove ciclos porque nada no
+> repositório comparava este runbook com o ledger. Corrigido abaixo; o erro fica
+> registrado, porque apagá-lo destruiria a evidência de que ele existiu.
 
-**O que fazer:**
+**Estado:** um blob **órfão** (`25393aac`) continha cinco credenciais, provado
+por quatro vias independentes como **fora de toda ref publicada** — ele não foi
+exposto pela virada. **SEC-01 FECHADA em 2026-09-12** por atestação do operador:
+as cinco credenciais foram revogadas no emissor e o risco residual foi encerrado
+para fins do gate `sec01-fechada` (`EXECUTION-STATE-PROGRAM.md:1321`, registro de
+operador da janela de cutover). Não há revogação pendente.
 
-1. No console do Neon, localizar as chaves de API com prefixo `_live_` e
-   **revogá-las** (ou confirmar que já foram)
-2. Registrar a confirmação com **data e autor**, não com o valor
-3. `git gc --prune=now` no clone local, para que o blob órfão deixe de existir
+**O emissor nunca foi o Neon.** As cinco chaves eram `AWS_ACCESS_KEY_ID`,
+`AWS_ENDPOINT_URL_S3`, `AWS_REGION`, `AWS_SECRET_ACCESS_KEY` e `OPENAI_API_KEY`
+(`docs/evidence/pre-a4-2026-09-05/secrets-hygiene.md:13`) — **AWS S3-compatível e
+OpenAI**. O blob órfão `25393aac` nunca carregou chave de API do Neon, e por
+isso a instrução anterior mandava o operador para o console errado.
+
+**O que ainda resta (higiene local, opcional, sem efeito no git):**
+
+1. `git gc --prune=now` no clone local, para que o blob órfão deixe de existir
    em disco — é higiene, **não** é o que torna a revogação verdadeira
+2. Se a revogação precisar algum dia ser **re-provada**, o caminho é o console do
+   emissor — `AWS` para as quatro chaves `AWS_*`, `OpenAI` para a quinta
+
+A consistência entre este runbook e o ledger é enforçada por
+`src/test/m02-runbook-ledger.test.ts` (closure test de DBT-30): ele lê os três
+documentos, reprova quando o runbook afirmar estado que o ledger contradiz — nos
+**dois** sentidos — e reprova quando o provedor citado não for o emissor das
+chaves.
 
 ---
 
