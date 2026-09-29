@@ -3251,3 +3251,27 @@ Latest state marker parent = `a584e165591abb6a95bd5c77f5c5ebf10ea0e1e3`,
   `docs/evidence/perf-visual-baseline-2026-09-29.md`. Sem push.
 
 Latest state marker parent = `92de8855109741e6e8f2de88cde1dbc08fcfd41d`,
+
+---
+
+## Ciclo 14 — consolidação e preparação de rotação (2026-09-29)
+
+- **Entregue:** sidecar secreto-injetor cego (`scripts/secret-sidecar/**`, ADR-031); guarda do
+  runtime de MCP (`scripts/mcp-runtime-guard.ts`); pacote DECIDE do N-2
+  (`docs/evidence/n2-decide-package-2026-09-29.md`, ADR-032 em **PROPOSTA**); runbooks de
+  rotação cega e de relaunch de MCP; e o registro consolidado
+  (`docs/evidence/ciclo-14-consolidacao-2026-09-29.md`).
+- **Provas:** autoteste do sidecar **5/5** nos dois backends (memória e Secret Service real);
+  `src/test/secret-sidecar.test.ts` **9/9**; `npx tsc --noEmit` exit 0; `m02:matrix:check` exit 0;
+  `m02:temporal-guard` OK; `m02:debts-guard` OK com **33** dívidas; `npm run check` exit 0.
+- **Bloqueado e declarado:** a fase F14-6 (Hostinger H-Panel) **não** foi executada — depende de
+  login humano na fila H-6 e o painel responde **403** à automação. Os passos estão prontos em
+  `docs/evidence/hostinger-operations-2026-09-29.md`. Nenhuma tentativa de contorno foi feita.
+- **Limite de observabilidade declarado:** os spans e as métricas `visual.*` / `hostinger.*` do
+  brief não têm para onde ir enquanto `F-otel-provider-order` não for resolvido — o meter nasce
+  no escopo do módulo, antes de qualquer provider global, e todo instrumento é o noop
+  compartilhado.
+- **Commits:** `7d0e960` (código) · `82eeb9f` (evidência parcial) · o commit desta fase.
+- **Sem push**, por decisão declarada: a fase é local e o brief não pede push.
+
+Latest state marker parent = `82eeb9fb42e3f2917d5d6e0b5a23874f3d3634e1`,

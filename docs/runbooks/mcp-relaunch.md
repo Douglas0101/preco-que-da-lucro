@@ -63,6 +63,20 @@ npm run guard:mcp-runtime            # escopo-repositorio (o que `npm run check`
 npm run guard:mcp-runtime -- --home  # escopo-maquina: a superficie viva
 ```
 
+E a asserção do **passo 6** — a que de fato fecha o mecanismo — tem forma executável:
+
+```bash
+scripts/verify-mcp-relaunch.sh --snapshot /tmp/antes.json   # ANTES de relançar
+# ... relance o cliente (passos 2 a 5) ...
+scripts/verify-mcp-relaunch.sh --verify /tmp/antes.json     # DEPOIS: reprova se a árvore mudou
+```
+
+O script roda as duas guardas acima, confere o cofre e o audit log, e compara o `sha256sum` dos
+dois manifestos contra o snapshot. Ele **não** relança o cliente — isso é o passo humano, porque um
+MCP stdio nasce no processo do cliente e não há recarga a quente. E ele **reporta** o
+escopo-máquina como nota em vez de reprovar a árvore pelo `HOME` de quem o roda: reprovar ali é o
+que faz um gate ser desligado na primeira semana.
+
 Códigos de saída — diferentes de propósito, porque "não consegui olhar" e "olhei e está sujo" não são o mesmo veredito:
 
 | exit | significado                                                                                  |
