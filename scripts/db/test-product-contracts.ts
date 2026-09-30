@@ -1,5 +1,5 @@
-// F-D2-runner-failopen (lado vitest): `src/test/product-contracts.test.ts` tem 14
-// casos, dos quais 9 são gated por banco (`dbDescribe`). Nenhum passo assertava que
+// F-D2-runner-failopen (lado vitest): `src/test/product-contracts.test.ts` tem 15
+// casos, dos quais 10 são gated por banco (`dbDescribe`). Nenhum passo assertava que
 // eles **executaram** — se o gate de loopback fechasse, o arquivo viraria
 // `5 passed | 9 skipped` com exit 0 e `npm run test` seguiria verde sem ter
 // exercitado o banco. Este passo encadeia a prova na suíte de banco e falha alto em
@@ -14,14 +14,17 @@
 //      loopback, e `DATABASE_URL_UNPOOLED` é validada se definida (é o kill-switch
 //      contra credencial de produção herdada). A versão anterior devolvia `true`
 //      para valor ausente e por isso o bloco **executava** com uma URL faltando;
-//      aquele comportamento foi substituído de propósito. Medido em 2026-09-21:
-//      par em loopback ⇒ `14 total / 14 passed / 0 pending`; `DATABASE_URL_UNPOOLED`
-//      remota ⇒ reprova alto nomeando a chave;
+//      aquele comportamento foi substituído de propósito. Medido em 2026-09-21 com
+//      14 casos e reconfirmado em 2026-09-30 com 15: par em loopback ⇒
+//      `15 total / 15 passed / 0 pending`; `DATABASE_URL_UNPOOLED` remota ⇒ reprova
+//      alto nomeando a chave;
 //   3. a cardinalidade do arquivo ter encolhido. Um arquivo **sem** casos faz o
 //      vitest sair != 0, e a asserção de status abaixo já reprova antes das demais.
 //      Mas um arquivo com menos casos que o contrato — **todos passando** — sai 0, e
-//      o passo ficaria verde com a cobertura de banco reduzida em silêncio. Medido:
-//      1 caso que passa ⇒ `1 < 14` e exit 1. É isso que o piso fecha.
+//      o passo ficaria verde com a cobertura de banco reduzida em silêncio (medido
+//      em 2026-09-19, com o piso então em 14: 1 caso que passa ⇒ `1 < 14`, exit 1).
+//      É isso que o piso fecha — e ele acompanha o arquivo: 15 casos desde o
+//      desempate de `list()` por id (2026-09-30).
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -37,10 +40,11 @@ const testFile = "src/test/product-contracts.test.ts";
  * Piso de cardinalidade do arquivo (F-D2-runner-failopen). O runner já reprova
  * quando o vitest sai != 0 — um arquivo sem casos cai aí — mas um arquivo com menos
  * casos que o contrato, **todos passando**, sai 0 e o passo ficaria verde com a
- * cobertura encolhida em silêncio. Medido em 2026-09-19: arquivo com 1 caso que
- * passa ⇒ `1 < 14` e exit 1.
+ * cobertura encolhida em silêncio. Medido em 2026-09-19, com o piso então em 14:
+ * arquivo com 1 caso que passa ⇒ `1 < 14` e exit 1. O piso acompanha o arquivo —
+ * 15 casos desde o desempate de `list()` por id (2026-09-30).
  */
-const MIN_TOTAL_TESTS = 14;
+const MIN_TOTAL_TESTS = 15;
 
 /** Resumo do reporter JSON do vitest (só o que este passo lê). */
 interface VitestSummary {

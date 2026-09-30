@@ -608,4 +608,57 @@ dbDescribe("ProductRepository — operações do port sob app_runtime (PG efême
       ),
     ).rejects.toThrow("NOT_FOUND");
   });
+
+  it("list ordena por recência e desempata por id quando created_at empata", async () => {
+    const tenantId = "c3000000-0000-4000-8000-000000000011";
+    const userId = "c3000000-0000-4000-8000-000000000012";
+    // Inseridas em ordem inversa à de id (23, 21, 22): sob o empate de
+    // `created_at`, a ordem de inserção é a que a leitura devolve **sem** o
+    // desempate — é o controle negativo da asserção final.
+    const tied = [
+      "c3000000-0000-4000-8000-000000000023",
+      "c3000000-0000-4000-8000-000000000021",
+      "c3000000-0000-4000-8000-000000000022",
+    ] as const;
+    const older = "c3000000-0000-4000-8000-000000000031";
+    const newer = "c3000000-0000-4000-8000-000000000032";
+
+    await pool.query("delete from products where tenant_id = $1", [tenantId]);
+    await seedTenant(pool, tenantId, userId, "product-contracts-tie");
+
+    for (const id of tied) {
+      await pool.query(
+        `insert into products (id, tenant_id, user_id, name, current_price, yield_qty, yield_unit, status, version, created_at)
+         values ($1, $2, $3, 'Empate', '10.0000', '1.000000', 'unidade', 'active', 0, timestamptz '2026-01-02T00:00:00Z')`,
+        [id, tenantId, userId],
+      );
+    }
+    for (const [id, stamp] of [
+      [older, "2026-01-01T00:00:00Z"],
+      [newer, "2026-01-03T00:00:00Z"],
+    ] as const) {
+      await pool.query(
+        `insert into products (id, tenant_id, user_id, name, current_price, yield_qty, yield_unit, status, version, created_at)
+         values ($1, $2, $3, 'Recência', '10.0000', '1.000000', 'unidade', 'active', 0, $4::timestamptz)`,
+        [id, tenantId, userId, stamp],
+      );
+    }
+
+    const listed = await asTenant(tenantId, userId, (context) =>
+      productRepository.list(context, {}),
+    );
+
+    // `created_at` segue sendo a chave primária (mais recente primeiro) e o
+    // empate resolve por id crescente. Sem o desempate a leitura devolve a ordem
+    // de inserção (23, 21, 22) e este `toEqual` reprova — foi exatamente esse
+    // caminho que fez `/diagnostico` e `/simulacoes` abrirem no produto errado
+    // quando o seed de e2e passou a inserir dois produtos na mesma transação.
+    expect(listed.map((product) => product.id)).toEqual([
+      newer,
+      "c3000000-0000-4000-8000-000000000021",
+      "c3000000-0000-4000-8000-000000000022",
+      "c3000000-0000-4000-8000-000000000023",
+      older,
+    ]);
+  });
 });
