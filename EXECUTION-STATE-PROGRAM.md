@@ -3345,3 +3345,42 @@ Latest state marker parent = `6b8704a0b65eaa4e0c53697f5289a5e0a6473e5c`,
   ratificações) e o commit desta fase. Sem push ainda nesta linha.
 
 Latest state marker parent = `38041b2c1af9a215b4620f603696ca6f85ba4372`,
+
+---
+
+## Ciclo 18 (fase 2) — o PR #49 entra em `develop`, e a release para em uma pré-condição que o brief não tinha (2026-09-30)
+
+- **PR #49 mergeado em `develop`** — merge commit `ef589cb` —, que era a **base real** do PR. O brief
+  pedia `gh pr merge 49` para promover a `main`; como `develop` não é servido pelo Hostinger, esta fase
+  não teve risco de produção, e por isso pôde ser executada mesmo com a release retida.
+- **Verde medido, e o que não é verde.** `npm run check` exit **0** no HEAD congelado `1f5d25d` (20
+  gates, 113 arquivos, 1356 passed | 14 skipped); `verify` **pass** em 6m34s com a matriz completa do
+  PR (incluindo e2e chromium+firefox+webkit+mobile), `Neon PR branch CI`, `Neon preview boundary` e
+  `docs-light` verdes. O `SonarCloud Code Analysis` segue `failure` e **não** é declarado verde: é o
+  `DBT-40`, com closure test fail-closed, e a promoção a `main` **não pode alegar "verde de ponta a
+  ponta"** enquanto ele estiver aberto.
+- **O bloqueio de release, medido nos dois lados.** O banco de **produção** tem **12** migrations
+  aplicadas (`drizzle.__drizzle_migrations`) e a release carrega **20** \u21d2 **8 pendentes**
+  (`0012`–`0019`), classificadas **6 SAFE + 2 ONLINE_WITH_CARE, 0 BREAKING, 0 DATA_MIGRATION**. No
+  schema de produção (branch `br-snowy-violet-aymcvvvv`): 26 tabelas públicas, **`ai_memories`
+  ausente**, **`dedup_key` ausente** — e o código da release **exige** `ai_memories`
+  (`src/db/schema.ts:1001`). **Produção está vazia** (0 em `users`, `tenants`, `products`, `expenses`,
+  `sales`), o que faz das 8 migrations um expand aditivo de risco baixo — mas não nulo.
+- **Por que a release está retida, e não apenas atrasada.** Se o hPanel auto-deployar em push
+  (capacidade **não medida**), promover `main` serviria código que consulta `ai_memories` contra um
+  schema que não a tem. O caminho sancionado para aplicar as migrations é a **Emenda #3**
+  (`cutover-window`) — o único que abre o hard-deny do `env-guard` contra produção — e exige
+  `ALLOW_REMOTE_DB`, `NEON_MIGRATION_TARGET_KIND=cutover-window` e `NEON_MIGRATION_FREEZE_START/END`
+  dentro da janela declarada no ledger. O `.env` local **não** contém o endpoint de produção, logo a
+  credencial não está nesta máquina: **quem aplica é decisão do MAESTRO**, não do enxame.
+- **Ordem correta da release, quando destravada:** migrations (expand) → merge `develop → main` →
+  tag `v1.0.0` no **merge commit de `main`** → redeploy do Hostinger → validação visual/segurança/
+  performance. A tag tem de ficar em `main`; em `develop` ela não deploya nada.
+- **Rollback documentado e não executado:** `docs/runbooks/rollback-v1.0.0-hostinger.md` (501 linhas),
+  por **revert + redeploy**, nunca force-push. Ele corrige outra premissa do brief — o hPanel **não**
+  tem rollback por commit — e declara os próprios limites: nada foi executado, e auto-deploy em push
+  segue não medido.
+- **Evidência:** `docs/evidence/ciclo-18-merge-deploy-2026-09-30.md`. **Commits desta fase:**
+  `1f5d25d` (o HEAD verificado), `ef589cb` (o merge em `develop`) e o commit deste bloco.
+
+Latest state marker parent = `ef589cbaa87eb56e6c8d2ecb3217fe7221157b13`,
