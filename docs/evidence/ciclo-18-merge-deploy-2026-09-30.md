@@ -139,3 +139,32 @@ varredura obrigatória de **nomes** de env vars e a proibição de snapshotar a 
 - `SonarCloud` **não** é passo da cadeia `check` nem consta da tabela de cobertura do `AGENTS.md`, e
   não há branch protection: o vermelho dele **não** bloqueia merge — bloquear a promoção por ele, ou
   ignorá-lo em silêncio, seriam ambos erros. A escolha foi **declarar**.
+
+---
+
+## 8. O impedimento do SonarCloud: dois problemas, não um
+
+**Primeiro — a cota.** O check do PR de release **não estava reprovando por qualidade: não estava
+rodando**. Cinco tarefas do compute engine falharam com a mesma causa, medida em `/api/ce/activity`:
+
+> _This analysis will make your organization 'douglas0101' reach the maximum allowed lines limit of 50000. Current LOC usage is: 0. LOC count in this analysis: 58226._
+
+`main` tem 35.666 LOC e analisa; a árvore da release tem 58.226 (ts=51.851, js=4.516, shell=1.001,
+yaml=858). A análise abortava antes de inspecionar um arquivo, então o gate não ficava vermelho nem
+verde — **não ficava nada**, e o check aparecia como `cancelled`. Resolvido por decisão do MAESTRO
+(entre quatro caminhos medidos): `src/test/**` e `e2e/**` saem do escopo, registrado em `ADR-034` e
+`DBT-54`. A análise voltou a rodar (`SUCCESS` em 2026-09-30T15:09:32Z).
+
+**Segundo — o que a cota escondia, e é grande.** Com a análise rodando, o gate reprova em **408**
+achados abertos no código novo: 356 `MAINTAINABILITY` (**passa**, rating 1), **71 `RELIABILITY`**
+(rating 4 vs ≤ 1) e **19 `SECURITY`** (rating **5** vs ≤ 1) — **90 bloqueiam**. A última análise do
+`main` é de **2026-09-13** e a release traz **535 commits**, então _todo_ esse código é "código novo"
+e o gate mede a dívida estática acumulada de 2,5 semanas de vários ciclos, não uma regressão desta
+entrega. Distribuição: `scripts/perf` 125, `scripts/db` 73, `scripts` 64, `scripts/lib` 38,
+`scripts/secret-sidecar` 35, `scripts/obs` 28, `docs/evidence/…` 12, `src/**` ~20. Entre os 19 de
+segurança há 2 `BLOCKER` de path traversal e 1 de SSRF em script dentro de evidência selada.
+
+**Decisão do MAESTRO:** liberar a release e quitar o Sonar em **ciclo dedicado** (`DBT-55`), sem
+nunca alegar gate Sonar verde. Justificativa medida: enquanto `main` estiver 535 commits atrás, o
+"código novo" é a release inteira; depois da promoção a análise do `main` re-baselina o período e
+cada PR volta a ter gate significativo.
