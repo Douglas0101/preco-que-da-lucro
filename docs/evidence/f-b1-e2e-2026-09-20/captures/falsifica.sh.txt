@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Falsificacao do WP5 (F-B1-e2e): o gate do analytics forcado a `true` tem de fazer
+# a spec nova REPROVAR com a requisicao ao script de insights; restaurado o byte,
+# a spec volta a passar. Sem o par, "o teste detecta a divergencia" seria afirmacao.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+A=.artifacts
+GATE=src/lib/vercel-analytics.ts
+LOG=$A/wp5-falsifica.log
+unset NO_COLOR
+exec > >(tee "$LOG") 2>&1
+
+ORIG=$(sha256sum "$GATE" | cut -d' ' -f1)
+echo "sha256 do gate ANTES: $ORIG"
+cp "$GATE" "$A/gate-bak.ts"
+
+echo
+echo "=== 1. MUTACAO: gate forcado a true ==="
+sed -i 's|^  typeof __VERCEL_ANALYTICS_ENABLED__ === "boolean" && __VERCEL_ANALYTICS_ENABLED__;|  true;|' "$GATE"
+grep -n 'vercelAnalyticsEnabled' -A1 "$GATE" | sed 's/^/  /'
+MUT=$(sha256sum "$GATE" | cut -d' ' -f1)
+[ "$MUT" != "$ORIG" ] || { echo "FALHA: mutacao nao aplicou"; exit 1; }
+
+echo
+echo "=== 2. spec nova contra o gate mutado — deve REPROVAR com a requisicao ==="
+bash "$A/zz-wp5-e2e.sh" red "e2e/analytics-gate.spec.ts" > /dev/null 2>&1
+RED=$?
+REQ=$(grep -c '/_vercel/insights/script.js' "$A/wp5-e2e-red.log" || true)
+echo "  RED_EXIT=$RED (esperado != 0)"
+echo "  ocorrencias textuais de /_vercel/insights/script.js no log: $REQ (esperado >= 1)"
+grep -a 'insights requisitados' "$A/wp5-e2e-red.log" | head -2 | sed 's/\x1b\[[0-9;]*m//g' | sed 's/^/    /'
+
+echo
+echo "=== 3. restaura o gate e confere byte a byte ==="
+cp "$A/gate-bak.ts" "$GATE"
+NOVO=$(sha256sum "$GATE" | cut -d' ' -f1)
+echo "  sha256 DEPOIS: $NOVO"
+[ "$ORIG" = "$NOVO" ] && echo "  RESTAURO: OK (byte a byte)" || echo "  RESTAURO: FALHOU"
+
+echo
+echo "=== 4. spec nova com o byte restaurado — deve PASSAR ==="
+bash "$A/zz-wp5-e2e.sh" green "e2e/analytics-gate.spec.ts" > /dev/null 2>&1
+GREEN=$?
+REQ2=$(grep -c '/_vercel/insights/script.js' "$A/wp5-e2e-green.log" || true)
+echo "  GREEN_EXIT=$GREEN (esperado 0)"
+echo "  ocorrencias textuais de /_vercel/insights/script.js no log: $REQ2 (esperado 0)"
+
+echo
+echo "  --- integridade ---"
+SOBRAS=$(git status --short -- "$GATE" | wc -l)
+echo "  gate modificado no git apos restauro: $SOBRAS (esperado 0)"
+
+if [ "$RED" -ne 0 ] && [ "$REQ" -ge 1 ] && [ "$ORIG" = "$NOVO" ] && [ "$GREEN" -eq 0 ] && [ "$REQ2" -eq 0 ]; then
+  echo "  VEREDITO: INVARIANTE MEDIDA - o gate divergente faz a spec reprovar na requisicao; restaurado, ela passa"
+  echo "FALSIFICA_EXIT=0"
+else
+  echo "  VEREDITO: INCONCLUSIVO - ver as saidas acima"
+  echo "FALSIFICA_EXIT=1"
+fi

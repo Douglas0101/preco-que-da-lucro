@@ -1,0 +1,7 @@
+480cde677ded74e1a099a9ac126678cb7fd1b8aa6aa1040be1bcbaaea72c68d2  package.json
+70ea606490bc70a435aabe7fb4e9e1c46a0137bce4265a2229e04dd80b7c6877  package-lock.json
+fabf608517a7f21d5bf290cfb2b33d99c8083098eab046495db07fd6438a5a9c  docs/evidence/incidents/2026-09-19-dependency-drift/package-drift.patch
+
+# pós-restauração (2026-09-19T16:11Z)
+5001c1012d2d7282358b962c8e296a2e1cdf4f85fc2bd6ee1add3f2a54cdceb7  package.json
+c8c6e472a67dd5d4464992c1607428ebbf5eb60dc2d7e9482bb9e7d1a3de8124  package-lock.json

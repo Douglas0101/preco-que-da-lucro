@@ -1,17 +1,23 @@
 import { createHash } from "node:crypto";
 import { and, eq } from "drizzle-orm";
-import { auditEvents, idempotencyRecords, toolExecutions } from "@/db/schema";
+import type { DatabaseTransaction } from "@/db/client.server";
+import { idempotencyRecords, toolExecutions } from "@/db/schema";
 import type { ApiErrorCode } from "@/lib/api-error";
 import { errorCodeFromUnknown } from "@/lib/api-error";
 import type { RequestContext } from "@/lib/request-context";
 import { logJson } from "@/lib/structured-logger";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import { recordSafely } from "@/instrumentation/safe-record";
+import { auditService } from "@/server/services/audit.service";
+import { USER_RATE_LIMIT_RULES, userRateLimitKey } from "@/server/auth/rate-limit-rules.server";
+import { consumeRateLimitInTransaction } from "@/server/auth/rate-limit-storage.server";
 import {
   TOOL_REGISTRY,
   toolExecutionOutputSchema,
   type PreparedTool,
   type ToolExecutionOutput,
 } from "./tool-registry";
+import { sanitizeToolInput } from "./tool-payload";
 
 export type ToolRunResult =
   | { ok: true; output: ToolExecutionOutput; replayed: boolean }
@@ -32,7 +38,13 @@ function inputHash(value: unknown): string {
   return createHash("sha256").update(canonicalize(value)).digest("hex");
 }
 
-function sanitizeJson(value: unknown, depth = 0): unknown {
+/** Recursive JSON shape this normaliser can emit. Naming it keeps the contract
+ * explicit instead of `unknown`; the `toolExecutionOutputSchema` parse at the call
+ * site stays the single source of truth for the domain type. */
+type SanitizedJson =
+  string | number | boolean | null | SanitizedJson[] | { [key: string]: SanitizedJson };
+
+function sanitizeJson(value: unknown, depth = 0): SanitizedJson {
   if (depth > 8) return null;
   if (typeof value === "string") {
     return Array.from(value)
@@ -73,36 +85,44 @@ function publicFailure(code: ApiErrorCode): ToolRunResult {
   return { ok: false, code, replayed: false };
 }
 
+interface ToolExecutionTrace {
+  input: Record<string, unknown> | null;
+  toolCallId?: string;
+  usageId?: string;
+}
+
 async function persistRejected(
   context: RequestContext,
   toolName: string,
   hash: string,
   code: ApiErrorCode,
   startedAt: number,
+  trace: ToolExecutionTrace,
 ): Promise<void> {
+  const tx = context.transaction as DatabaseTransaction;
   const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
-  await context.transaction.insert(toolExecutions).values({
+  await tx.insert(toolExecutions).values({
     tenantId: context.tenantId,
     userId: context.userId,
     correlationId: context.correlationId,
     toolName,
     inputHash: hash,
+    input: trace.input,
+    toolCallId: trace.toolCallId ?? null,
+    usageId: trace.usageId ?? null,
     status: "failed",
     durationMs,
     errorCode: code,
     completedAt: new Date(),
   });
-  await context.transaction.insert(auditEvents).values({
-    tenantId: context.tenantId,
-    userId: context.userId,
-    correlationId: context.correlationId,
+  await auditService.append(context, {
     eventType: "ai.tool.rejected",
     resourceType: "tool",
     resourceId: toolName,
     safeMetadata: { code, inputHash: hash, durationMs },
   });
   applicationMetrics.toolExecutions.add(1, { tool: toolName, status: "rejected", code });
-  applicationMetrics.toolDuration.record(durationMs, { tool: toolName, status: "rejected" });
+  recordSafely(applicationMetrics.toolDuration, durationMs, { tool: toolName, status: "rejected" });
 }
 
 type PreparedToolSuccess = Extract<PreparedTool, { ok: true }>;
@@ -112,28 +132,36 @@ async function prepareToolRequest(
   name: string,
   rawArguments: string,
   startedAt: number,
-): Promise<{ hash: string; prepared: PreparedToolSuccess } | { failure: ToolRunResult }> {
+  trace: Pick<ToolExecutionTrace, "toolCallId" | "usageId">,
+): Promise<
+  | { hash: string; input: Record<string, unknown> | null; prepared: PreparedToolSuccess }
+  | { failure: ToolRunResult }
+> {
   let rawInput: unknown;
   try {
     rawInput = JSON.parse(rawArguments || "{}");
   } catch {
     const hash = inputHash(rawArguments);
-    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt);
+    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt, {
+      input: null,
+      ...trace,
+    });
     return { failure: publicFailure("VALIDATION_ERROR") };
   }
 
   const hash = inputHash(rawInput);
+  const input = sanitizeToolInput(rawInput);
   const definition = TOOL_REGISTRY.get(name);
   if (!definition) {
-    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt);
+    await persistRejected(context, name, hash, "VALIDATION_ERROR", startedAt, { input, ...trace });
     return { failure: publicFailure("VALIDATION_ERROR") };
   }
   const prepared = definition.prepare(context, rawInput);
   if (!prepared.ok) {
-    await persistRejected(context, name, hash, prepared.code, startedAt);
+    await persistRejected(context, name, hash, prepared.code, startedAt, { input, ...trace });
     return { failure: publicFailure(prepared.code) };
   }
-  return { hash, prepared };
+  return { hash, input, prepared };
 }
 
 async function resolveExistingClaim(
@@ -142,7 +170,8 @@ async function resolveExistingClaim(
   idempotencyKey: string,
   hash: string,
 ): Promise<ToolRunResult | { claimId: string } | null> {
-  const [existing] = await context.transaction
+  const tx = context.transaction as DatabaseTransaction;
+  const [existing] = await tx
     .select()
     .from(idempotencyRecords)
     .where(
@@ -156,7 +185,7 @@ async function resolveExistingClaim(
     .limit(1);
   if (!existing) return null;
   if (existing.expiresAt <= new Date()) {
-    await context.transaction
+    await tx
       .update(idempotencyRecords)
       .set({
         requestHash: hash,
@@ -187,6 +216,8 @@ export async function runRegisteredTool(options: {
   name: string;
   rawArguments: string;
   idempotencyKey: string;
+  toolCallId?: string;
+  usageId?: string;
   allowedToolNames?: readonly string[];
   requireConfirmation?: boolean;
   confirmed?: boolean;
@@ -196,26 +227,49 @@ export async function runRegisteredTool(options: {
     name,
     rawArguments,
     idempotencyKey,
+    toolCallId,
+    usageId,
     allowedToolNames,
     requireConfirmation = false,
     confirmed = false,
   } = options;
+  const tx = context.transaction as DatabaseTransaction;
   const startedAt = performance.now();
-  const preparedRequest = await prepareToolRequest(context, name, rawArguments, startedAt);
+  const trace = { toolCallId, usageId };
+  const preparedRequest = await prepareToolRequest(context, name, rawArguments, startedAt, trace);
   if ("failure" in preparedRequest) return preparedRequest.failure;
-  const { hash, prepared } = preparedRequest;
+  const { hash, input, prepared } = preparedRequest;
 
   if (allowedToolNames && !allowedToolNames.includes(name)) {
-    await persistRejected(context, name, hash, "AUTHORIZATION_ERROR", startedAt);
+    await persistRejected(context, name, hash, "AUTHORIZATION_ERROR", startedAt, {
+      input,
+      ...trace,
+    });
     return publicFailure("AUTHORIZATION_ERROR");
   }
   if (requireConfirmation && !confirmed) {
-    await persistRejected(context, name, hash, "AUTHORIZATION_ERROR", startedAt);
+    await persistRejected(context, name, hash, "AUTHORIZATION_ERROR", startedAt, {
+      input,
+      ...trace,
+    });
     return publicFailure("AUTHORIZATION_ERROR");
   }
 
+  // Admission (§20.5) after Zod+AuthZ and before the idempotency claim: a
+  // denied call must not occupy the (tenant, user, operation, key) row, or the
+  // retry would replay it as if it had been accepted.
+  const admission = await consumeRateLimitInTransaction(
+    tx,
+    userRateLimitKey("tool", context.userId),
+    USER_RATE_LIMIT_RULES.tool,
+  );
+  if (!admission.allowed) {
+    await persistRejected(context, name, hash, "RATE_LIMIT", startedAt, { input, ...trace });
+    return publicFailure("RATE_LIMIT");
+  }
+
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1_000);
-  let claimed = await context.transaction
+  let claimed = await tx
     .insert(idempotencyRecords)
     .values({
       tenantId: context.tenantId,
@@ -239,7 +293,7 @@ export async function runRegisteredTool(options: {
   }
 
   if (!claimed[0]) {
-    claimed = await context.transaction
+    claimed = await tx
       .insert(idempotencyRecords)
       .values({
         tenantId: context.tenantId,
@@ -259,7 +313,7 @@ export async function runRegisteredTool(options: {
     }
   }
 
-  const [execution] = await context.transaction
+  const [execution] = await tx
     .insert(toolExecutions)
     .values({
       tenantId: context.tenantId,
@@ -267,6 +321,9 @@ export async function runRegisteredTool(options: {
       correlationId: context.correlationId,
       toolName: name,
       inputHash: hash,
+      input: sanitizeToolInput(prepared.input),
+      toolCallId: toolCallId ?? null,
+      usageId: usageId ?? null,
       status: "pending",
       idempotencyKey,
     })
@@ -287,25 +344,22 @@ export async function runRegisteredTool(options: {
     const output = sanitizeToolOutput(rawOutput);
     if (!output) throw new Error("DEPENDENCY_ERROR");
     const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
-    await context.transaction
+    await tx
       .update(toolExecutions)
       .set({ status: "succeeded", durationMs, safeResult: output, completedAt: new Date() })
       .where(eq(toolExecutions.id, execution.id));
-    await context.transaction
+    await tx
       .update(idempotencyRecords)
       .set({ status: "succeeded", response: output, updatedAt: new Date() })
       .where(eq(idempotencyRecords.id, claimed[0].id));
-    await context.transaction.insert(auditEvents).values({
-      tenantId: context.tenantId,
-      userId: context.userId,
-      correlationId: context.correlationId,
+    await auditService.append(context, {
       eventType: "ai.tool.succeeded",
       resourceType: "tool",
       resourceId: name,
       safeMetadata: { durationMs, replayed: false },
     });
     applicationMetrics.toolExecutions.add(1, { tool: name, status: "succeeded" });
-    applicationMetrics.toolDuration.record(durationMs, { tool: name, status: "succeeded" });
+    recordSafely(applicationMetrics.toolDuration, durationMs, { tool: name, status: "succeeded" });
     return { ok: true, output, replayed: false };
   } catch (error) {
     const mapped = errorCodeFromUnknown(error);
@@ -315,7 +369,7 @@ export async function runRegisteredTool(options: {
         ? "DATABASE_ERROR"
         : mapped;
     const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
-    await context.transaction
+    await tx
       .update(toolExecutions)
       .set({
         status: code === "AI_TIMEOUT" ? "cancelled" : "failed",
@@ -324,14 +378,11 @@ export async function runRegisteredTool(options: {
         completedAt: new Date(),
       })
       .where(eq(toolExecutions.id, execution.id));
-    await context.transaction
+    await tx
       .update(idempotencyRecords)
       .set({ status: "failed", errorCode: code, updatedAt: new Date() })
       .where(eq(idempotencyRecords.id, claimed[0].id));
-    await context.transaction.insert(auditEvents).values({
-      tenantId: context.tenantId,
-      userId: context.userId,
-      correlationId: context.correlationId,
+    await auditService.append(context, {
       eventType: code === "AI_TIMEOUT" ? "ai.tool.cancelled" : "ai.tool.failed",
       resourceType: "tool",
       resourceId: name,
@@ -339,7 +390,7 @@ export async function runRegisteredTool(options: {
     });
     const status = code === "AI_TIMEOUT" ? "cancelled" : "failed";
     applicationMetrics.toolExecutions.add(1, { tool: name, status, code });
-    applicationMetrics.toolDuration.record(durationMs, { tool: name, status });
+    recordSafely(applicationMetrics.toolDuration, durationMs, { tool: name, status });
     logJson("warn", "ai.tool_failed", {
       correlationId: context.correlationId,
       toolName: name,

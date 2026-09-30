@@ -68,12 +68,31 @@ jobs:
           echo "applicable=true" >> "$GITHUB_OUTPUT"
           echo "docs changed: $(wc -l < /tmp/docs.txt)"
 
-      # No install step on purpose: both scripts below import node built-ins
+      # No install step on purpose: the scripts below import node built-ins
       # only, so plain `node` runs them (type stripping covers the .ts entry).
       # Evidence: docs/evidence/ci-path-filter-2026-09-13.md § verification.
       - name: Lockfile guard (fail-closed)
         if: steps.scope.outputs.applicable == 'true'
         run: node scripts/m02-lockfile-guard.mjs
+
+      - name: Work-package contract guard (fail-closed)
+        if: steps.scope.outputs.applicable == 'true'
+        run: node scripts/m02-work-package-guard.mjs
+
+      - name: Debt registry guard (fail-closed)
+        if: steps.scope.outputs.applicable == 'true'
+        run: node scripts/m02-debts-guard.mjs
+
+      - name: Temporal guard (pins and deadlines in live prose)
+        run: node scripts/m02-temporal-guard.mjs
+
+      # Sem `if:` de escopo, pelo mesmo motivo do temporal guard acima: a
+      # superficie deste check E o ledger da raiz, que e exatamente o que um push
+      # docs-only toca. Escopá-lo para `applicable == true` deixaria o ledger sem
+      # guarda justamente no pipeline que existe para ele. Offline, sem
+      # `node_modules` (importa so builtins), roda com o type-stripping do Node.
+      - name: Ledger state marker (ancestry and freshness)
+        run: node scripts/m02-state-check.ts
 
       - name: Secrets audit (read-only)
         if: steps.scope.outputs.applicable == 'true'
@@ -89,11 +108,15 @@ jobs:
             echo "no pretty-printable files changed"
             exit 0
           fi
-          # Pinned formatter resolved from package.json: the light pipeline
-          # cannot drift away from `npm run format:check`.
+          # Formatter resolved from the lockfile, not from the package.json
+          # range: `npm ci` (the heavy pipeline and every developer) installs
+          # the locked version, and a caret range such as `^3.7.3` resolves to
+          # a different release than the one the gate actually runs. Reading the
+          # range here made the light pipeline drift away from
+          # `npm run format:check` and fail docs-only pushes whose files the
+          # repo's own gate accepts (markdown table spacing changed in 3.9).
           version="$(
-            node -p "require('./package.json').devDependencies.prettier"
+            node -p "require('./package-lock.json').packages['node_modules/prettier'].version"
           )"
-          version="${version//[^0-9.]/}"
           printf 'prettier@%s on %s file(s)\n' "${version}" "${#files[@]}"
           npx --yes "prettier@${version}" --check "${files[@]}"

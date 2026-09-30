@@ -1,0 +1,218 @@
+import { describe, expect, it } from "vitest";
+import {
+  DB_ENV_KEYS,
+  DB_OPTIONAL_KEYS,
+  DB_REQUIRED_KEYS,
+  dbPrecondition,
+  isLoopbackUrl,
+  skipLabel,
+} from "./helpers/db-precondition";
+
+const LOOPBACK = "postgres://u:p@127.0.0.1:5432/db";
+const REMOTO = "postgres://u:p@remote.example.com:5432/db";
+
+function env(parcial: Partial<Record<(typeof DB_ENV_KEYS)[number], string>>): NodeJS.ProcessEnv {
+  return { ...parcial } as NodeJS.ProcessEnv;
+}
+
+describe("precondição de banco — tudo ou nada, falha alta (WP-R6)", () => {
+  it("sem nenhuma URL: desabilitado, com motivo nomeado", () => {
+    const gate = dbPrecondition(env({}));
+    expect(gate.enabled).toBe(false);
+    expect(gate.enabled === false && gate.motivo).toContain("N/A-sem-DB");
+    expect(skipLabel("x")).toBe("db-precondition: x");
+  });
+
+  it("as três URLs em loopback: habilitado", () => {
+    const gate = dbPrecondition({
+      DATABASE_ADMIN_URL: LOOPBACK,
+      DATABASE_URL: LOOPBACK,
+      DATABASE_URL_UNPOOLED: LOOPBACK,
+    });
+    expect(gate.enabled).toBe(true);
+  });
+
+  it("o setup DOCUMENTADO do `db:test` (par obrigatório, sem UNPOOLED) roda", () => {
+    // `AGENTS.md`: "`npm run db:test` is self-contained ... with DATABASE_URL/DATABASE_ADMIN_URL
+    // pointing at 127.0.0.1:5432". Exigir a terceira URL quebrava esse comando de contrato —
+    // regressão medida e corrigida antes do selo.
+    const gate = dbPrecondition({ DATABASE_ADMIN_URL: LOOPBACK, DATABASE_URL: LOOPBACK });
+    expect(gate.enabled).toBe(true);
+  });
+
+  it("UNPOOLED é opcional, mas definida e remota é kill-switch (reprova)", () => {
+    expect(() =>
+      dbPrecondition({
+        DATABASE_ADMIN_URL: LOOPBACK,
+        DATABASE_URL: LOOPBACK,
+        DATABASE_URL_UNPOOLED: REMOTO,
+      }),
+    ).toThrow(/DATABASE_URL_UNPOOLED nao aponta para loopback/);
+  });
+
+  it("só UNPOOLED definida reprova em vez de pular", () => {
+    expect(() => dbPrecondition({ DATABASE_URL_UNPOOLED: REMOTO })).toThrow(
+      /DATABASE_ADMIN_URL ausente/,
+    );
+  });
+
+  it("uma URL remota reprova em vez de pular em silêncio (o fail-open do WP-R6)", () => {
+    expect(() =>
+      dbPrecondition({
+        DATABASE_ADMIN_URL: LOOPBACK,
+        DATABASE_URL: REMOTO,
+        DATABASE_URL_UNPOOLED: LOOPBACK,
+      }),
+    ).toThrow(/nao aponta para loopback/);
+  });
+
+  it("configuração parcial reprova nomeando a chave ausente", () => {
+    expect(() => dbPrecondition({ DATABASE_ADMIN_URL: LOOPBACK })).toThrow(/DATABASE_URL ausente/);
+    expect(() => dbPrecondition({ DATABASE_URL: REMOTO })).toThrow(/DATABASE_ADMIN_URL ausente/);
+  });
+
+  it("o motivo nomeia as chaves declaradas e o problema, não só um booleano", () => {
+    try {
+      dbPrecondition({ DATABASE_URL: REMOTO });
+      throw new Error("deveria ter lançado");
+    } catch (error) {
+      const mensagem = (error as Error).message;
+      expect(mensagem).toContain("DATABASE_URL");
+      expect(mensagem).toContain("nao aponta para loopback");
+      expect(mensagem).toContain("ou nenhuma");
+    }
+  });
+
+  it("isLoopbackUrl distingue ausente de loopback (o booleano invertido do defeito)", () => {
+    // A versão anterior devolvia `true` para `undefined`, o que fazia a expressão
+    // `Boolean(admin) && isLoopback(admin) && isLoopback(undefined) && ...` valer `true`
+    // com duas URLs ausentes.
+    expect(isLoopbackUrl(undefined)).toBe(false);
+    expect(isLoopbackUrl("")).toBe(false);
+    expect(isLoopbackUrl(LOOPBACK)).toBe(true);
+    expect(isLoopbackUrl("postgres://u:p@localhost:5432/db")).toBe(true);
+    expect(isLoopbackUrl("postgres://u:p@[::1]:5432/db")).toBe(true);
+    expect(isLoopbackUrl(REMOTO)).toBe(false);
+    expect(isLoopbackUrl("nao-e-url")).toBe(false);
+  });
+
+  it("aceita as grafias de loopback que o libpq aceita (S6 N8)", () => {
+    // O hostname do WHATWG preserva a caixa, mantém `127.1` sem expandir, deixa o ponto
+    // final e converte IPv4-mapeado para hex — recusá-las virava erro duro onde antes o
+    // bloco pulava, impedindo rodar a suíte com um banco local válido.
+    expect(isLoopbackUrl("postgresql://u@127.0.0.1:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@127.1:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@127.0.0.2:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@LOCALHOST:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@localhost.:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@[::1]:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@[0:0:0:0:0:0:0:1]:5432/x")).toBe(true);
+    expect(isLoopbackUrl("postgresql://u@[::ffff:127.0.0.1]:5432/x")).toBe(true);
+    // `0.0.0.0` é bind-wildcard, não loopback: recusado de propósito.
+    expect(isLoopbackUrl("postgresql://u@0.0.0.0:5432/x")).toBe(false);
+  });
+
+  it("valor definido e VAZIO é configuração inválida, não ausência (S6 N7)", () => {
+    // Presença por `!== undefined`, não por `Boolean`: um `.env` com as três vazias
+    // reproduzia o estado de skip anterior ao WP.
+    expect(() =>
+      dbPrecondition({ DATABASE_ADMIN_URL: "", DATABASE_URL: "", DATABASE_URL_UNPOOLED: "" }),
+    ).toThrow(/precondicao de banco invalida/);
+    expect(() => dbPrecondition({ DATABASE_ADMIN_URL: "", DATABASE_URL: LOOPBACK })).toThrow(
+      /DATABASE_ADMIN_URL nao aponta para loopback/,
+    );
+  });
+
+  it("o par obrigatório e o opcional são explícitos, sem lista implícita", () => {
+    expect([...DB_REQUIRED_KEYS]).toEqual(["DATABASE_ADMIN_URL", "DATABASE_URL"]);
+    expect([...DB_OPTIONAL_KEYS]).toEqual(["DATABASE_URL_UNPOOLED"]);
+    expect([...DB_ENV_KEYS]).toEqual([
+      "DATABASE_ADMIN_URL",
+      "DATABASE_URL",
+      "DATABASE_URL_UNPOOLED",
+    ]);
+  });
+});
+
+/**
+ * O escape hatch `ALLOW_REMOTE_DB` (defeito 2 do Ciclo 8).
+ *
+ * O job "Branch efemera" do `neon-pr-branch.yml` aponta `DATABASE_ADMIN_URL` e
+ * `DATABASE_URL` para a branch Neon efemera e grava um **motivo** em
+ * `ALLOW_REMOTE_DB`. A precondicao, endurecida em `edb504c` (2026-09-20) para
+ * "tudo ou nada e falha alta", exigia loopback incondicionalmente e nao conhecia
+ * o override — as duas pecas nunca foram exercitadas juntas, porque o job parou
+ * de rodar em 2026-09-13 e o bloqueio de cobranca impediu qualquer run depois
+ * de 20/09. O CI reprovava com "precondicao de banco invalida" em ambos os PRs.
+ */
+const PRODUCAO = "postgresql://u:p@ep-long-violet-aye9g0bn.c-5.us-east-2.aws.neon.tech/db";
+const MOTIVO = "CI Neon PR branch 48 — integração em branch efêmera (§26)";
+
+describe("precondição de banco — escape hatch ALLOW_REMOTE_DB", () => {
+  it("remoto COM motivo: habilitado (o caso que o CI de fato executa)", () => {
+    const gate = dbPrecondition({
+      DATABASE_ADMIN_URL: REMOTO,
+      DATABASE_URL: REMOTO,
+      ALLOW_REMOTE_DB: MOTIVO,
+    });
+    expect(gate.enabled).toBe(true);
+  });
+
+  it('o predicado é motivo não-vazio, não `=== "true"` (env-guard.mjs:166)', () => {
+    // O workflow grava uma frase. Um predicado booleano jamais casaria com ela, e
+    // um predicado que não casa é pior que nenhum: parece concessionado e não é.
+    expect(
+      dbPrecondition({ DATABASE_ADMIN_URL: REMOTO, DATABASE_URL: REMOTO, ALLOW_REMOTE_DB: "true" })
+        .enabled,
+    ).toBe(true);
+    // E os três quase-vazios têm de continuar negando — string vazia é "definido
+    // e inválido" pela mesma regra N7 que já valia para as URLs.
+    for (const vazio of ["", "   "]) {
+      expect(() =>
+        dbPrecondition({
+          DATABASE_ADMIN_URL: REMOTO,
+          DATABASE_URL: REMOTO,
+          ALLOW_REMOTE_DB: vazio,
+        }),
+      ).toThrow(/nao aponta para loopback/);
+    }
+  });
+
+  it("PRODUÇÃO é recusada COM override — e este é o controle de não-vacuidade", () => {
+    // Sem esta asserção, o teste anterior passaria também se o override fosse um
+    // `return` incondicional, que é exatamente o buraco que ele não pode ser.
+    expect(() =>
+      dbPrecondition({
+        DATABASE_ADMIN_URL: PRODUCAO,
+        DATABASE_URL: PRODUCAO,
+        ALLOW_REMOTE_DB: MOTIVO,
+      }),
+    ).toThrow(/ALLOW_REMOTE_DB nao autoriza/);
+  });
+
+  it("o override dispensa loopback, não o par obrigatório (tudo ou nada continua)", () => {
+    expect(() => dbPrecondition({ DATABASE_URL: REMOTO, ALLOW_REMOTE_DB: MOTIVO })).toThrow(
+      /DATABASE_ADMIN_URL ausente/,
+    );
+  });
+
+  it("o override não transforma URL inválida em URL válida", () => {
+    expect(() =>
+      dbPrecondition({
+        DATABASE_ADMIN_URL: REMOTO,
+        DATABASE_URL: "nao-e-url",
+        ALLOW_REMOTE_DB: MOTIVO,
+      }),
+    ).toThrow(/nao e uma URL de banco valida/);
+  });
+
+  it("loopback continua habilitado com override setado (o override não regride)", () => {
+    expect(
+      dbPrecondition({
+        DATABASE_ADMIN_URL: LOOPBACK,
+        DATABASE_URL: LOOPBACK,
+        ALLOW_REMOTE_DB: MOTIVO,
+      }).enabled,
+    ).toBe(true);
+  });
+});

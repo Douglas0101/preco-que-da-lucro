@@ -162,7 +162,14 @@ describe("createDebounceScheduler (guarda de geração do T5)", () => {
 describe("buildSimulationInput (unknown ≠ zero, INV-006/009)", () => {
   it("campo viro vira null, nunca zero; vírgula é normalizada", () => {
     const input = buildSimulationInput(
-      { productId: "p1", price: "12,50", unitCost: "", fixed: "100,00", volume: "" },
+      {
+        productId: "p1",
+        price: "12,50",
+        unitCost: "",
+        fixed: "100,00",
+        volume: "",
+        volumeSource: "manual_simulation",
+      },
       null,
     );
     expect(input).toEqual({
@@ -190,7 +197,14 @@ describe("buildSimulationInput (unknown ≠ zero, INV-006/009)", () => {
       fees: [{ percentage: 2.99 }],
     } satisfies ProductBaseline;
     const input = buildSimulationInput(
-      { productId: "p1", price: "10", unitCost: "4", fixed: "100", volume: "20" },
+      {
+        productId: "p1",
+        price: "10",
+        unitCost: "4",
+        fixed: "100",
+        volume: "20",
+        volumeSource: "manual_simulation",
+      },
       base,
     );
     expect(input.taxRate).toBe("8");

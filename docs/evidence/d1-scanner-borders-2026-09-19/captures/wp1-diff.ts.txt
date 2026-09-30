@@ -1,0 +1,179 @@
+/**
+ * Sonda de bordas do WP1 (`F-D1-scanner-borders`) — read-only, gitignored.
+ *
+ * Responde a duas perguntas, cada uma com uma medida independente:
+ *
+ *  A. **A árvore real muda?** Compara a lista *completa* de transaction sites do
+ *     scanner do PAI (`.artifacts/scanner-parent.ts`, sha256
+ *     `d60ad757a757f41daaab1302a591fe30a4623c383ab8c453a0ba9913141b8659`) com a do
+ *     scanner corrigido, sobre todos os arquivos de `src/**` (o próprio scanner
+ *     exclui `src/test/**`). Se o diff for vazio, a correção é **neutra em
+ *     contagem** e `matrix.yaml` não se move.
+ *
+ *  B. **A correção faz diferença observável?** Roda os dois scanners sobre uma
+ *     bateria sintética das quatro bordas. Sem isto, "diff vazio" seria
+ *     indistinguível de "não corrigi nada".
+ *
+ * Não escreve nada. Uso:  npx tsx .artifacts/wp1-diff.ts   (cwd = worktree)
+ */
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
+
+import { transactionSites as parentSites } from "./scanner-parent";
+import { transactionSites as fixedSites } from "../scripts/lib/m02-transaction-sites";
+
+type Site = {
+  path: string;
+  line: number;
+  expression: string;
+  classification: string;
+};
+type Source = { path: string; source: string };
+
+function walk(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir).sort()) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) out.push(...walk(full));
+    else if (/\.tsx?$/.test(entry)) out.push(full);
+  }
+  return out;
+}
+
+function key(site: Site): string {
+  return `${site.path}:${site.line}:${site.expression}:${site.classification}`;
+}
+
+function describe(sites: readonly Site[]): string {
+  return sites.map((s) => `    L${s.line} ${s.classification}  ${s.expression}`).join("\n");
+}
+
+// ── A. a árvore real ────────────────────────────────────────────────────────
+const root = process.cwd();
+const files = walk(join(root, "src")).filter(
+  (file) => !relative(root, file).startsWith("src/test/"),
+);
+const sources: Source[] = files.map((file) => ({
+  path: relative(root, file),
+  source: readFileSync(file, "utf8"),
+}));
+
+const before = parentSites(sources) as Site[];
+const after = fixedSites(sources) as Site[];
+
+const sortedBefore = before.map(key).sort();
+const sortedAfter = after.map(key).sort();
+
+const onlyBefore = sortedBefore.filter((k) => !sortedAfter.includes(k));
+const onlyAfter = sortedAfter.filter((k) => !sortedBefore.includes(k));
+
+console.log("=== A. ARVORE REAL (src/**, sem src/test/**) ===");
+console.log(`arquivos varridos: ${files.length}`);
+console.log(`scanner do PAI : ${before.length} sites`);
+console.log(`scanner CORRIGIDO: ${after.length} sites`);
+console.log(`so no pai      : ${onlyBefore.length}`);
+console.log(`so no corrigido: ${onlyAfter.length}`);
+for (const k of onlyBefore) console.log(`  - ${k}`);
+for (const k of onlyAfter) console.log(`  + ${k}`);
+console.log(
+  onlyBefore.length === 0 && onlyAfter.length === 0
+    ? "VEREDITO A: diff VAZIO -> correcao neutra em contagem"
+    : "VEREDITO A: diff NAO VAZIO -> a correcao move contagem",
+);
+
+// ── B. bateria sintética ────────────────────────────────────────────────────
+const REPO = "src/server/repositories/inventory.repository.ts";
+const AUTH = "src/server/auth/membership.service.ts";
+
+const CASES: { name: string; path: string; lines: string[] }[] = [
+  {
+    name: "b1 sombreamento por bloco aninhado",
+    path: REPO,
+    lines: [
+      "export async function save(context: RequestContext) {",
+      "  const tx = context.transaction as DatabaseTransaction;",
+      "  await tx.a();",
+      "  {",
+      "    const tx = local;",
+      "    await tx.b();",
+      "  }",
+      "  await tx.c();",
+      "}",
+    ],
+  },
+  {
+    name: "b2 sombreamento por cabecalho de for",
+    path: REPO,
+    lines: [
+      "export async function save(context: RequestContext, xs: Other[]) {",
+      "  const tx = context.transaction as DatabaseTransaction;",
+      "  for (const tx of xs) { tx.run(); }",
+      "  try { await tx.select(); } catch (tx) { tx.report(); }",
+      "}",
+    ],
+  },
+  {
+    name: "b3 referencia ao alias em posicao de tipo",
+    path: REPO,
+    lines: [
+      "export async function save(context: RequestContext) {",
+      "  const tx = context.transaction as DatabaseTransaction;",
+      "  type Handle = typeof tx;",
+      "  return tx.select();",
+      "}",
+    ],
+  },
+  {
+    name: "b4 handle a ESQUERDA da coalescencia",
+    path: AUTH,
+    lines: [
+      "export function pick(context: RequestContext, fallback: Executor) {",
+      "  return context.transaction ?? fallback;",
+      "}",
+    ],
+  },
+  {
+    name: "b5 handle a DIREITA da coalescencia (regressao)",
+    path: REPO,
+    lines: [
+      "export function append(executor: Executor, context: RequestContext) {",
+      "  return run(executor ?? context.transaction);",
+      "}",
+    ],
+  },
+  {
+    name: "b6 operador de atribuicao (??=)",
+    path: "src/server/services/event.service.ts",
+    lines: [
+      "export function append(executor?: Executor) {",
+      "  executor ??= context.transaction;",
+      "  return executor.insert(audit);",
+      "}",
+    ],
+  },
+];
+
+console.log("\n=== B. BATERIA SINTETICA DAS BORDAS ===");
+let divergencias = 0;
+for (const probe of CASES) {
+  const caseSources: Source[] = [{ path: probe.path, source: probe.lines.join("\n") }];
+  const p = parentSites(caseSources) as Site[];
+  const f = fixedSites(caseSources) as Site[];
+  const mudou = p.map(key).sort().join("|") !== f.map(key).sort().join("|");
+  if (mudou) divergencias += 1;
+  console.log(`\n--- ${probe.name} [${mudou ? "DIVERGE" : "igual"}] ---`);
+  console.log("  pai:");
+  console.log(describe(p) || "    (nenhum site)");
+  console.log("  corrigido:");
+  console.log(describe(f) || "    (nenhum site)");
+}
+console.log(
+  `\nVEREDITO B: ${divergencias} de ${CASES.length} casos divergem entre pai e corrigido`,
+);
+
+process.exitCode = onlyBefore.length === 0 && onlyAfter.length === 0 && divergencias > 0 ? 0 : 1;
+console.log(
+  onlyBefore.length === 0 && onlyAfter.length === 0 && divergencias > 0
+    ? "SONDA OK: neutra na arvore E observavel na bateria"
+    : "SONDA FALHOU: ver os vereditos A e B acima",
+);

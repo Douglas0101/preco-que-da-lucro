@@ -1,0 +1,26 @@
+# Escopo da precondicao e ordem (antes de qualquer escrita)
+# HEAD=347239d
+
+## A. selo dentro do repo com deriva presente: PRECONDICAO exit 2
+m02-seal: PRECONDICAO worktree derivado fora do selo: docs/evidence/agent-state/DEBTS.md, docs/evidence/wp-r5-ambient-state-2026-09-21/README.md, docs/evidence/wp-r5-ambient-state-2026-09-21/SPEC.md, docs/evidence/wp-r5-ambient-state-2026-09-21/captures/gate-local.log.txt, docs/evidence/wp-r5-ambient-state-2026-09-21/captures/guard-17.log.txt, docs/evidence/wp-r5-ambient-state-2026-09-21/captures/precondicao-escopo-e-ordem.log.txt, scripts/m02-seal.mjs, scripts/m02-work-package-guard.mjs, src/test/m02-seal.test.ts, src/test/m02-work-package-guard.test.ts, docs/evidence/wp-r5-ambient-state-2026-09-21/captures/red-correcoes-s6.log.txt — commite ou reverta antes de selar
+EXIT=2
+
+## B. ordem: a precondicao roda ANTES do --write; o manifesto do R1 fica intacto
+$ git status --porcelain -uall -- docs/evidence/debts-registry-2026-09-20
+(vazio acima = nenhuma mutacao; falha de precondicao nao deixa manifesto obsoleto)
+
+## C. o selo REAL nunca toma o ramo N/A — nem quando o cwd e OUTRO repositorio
+$ cd /home/douglas-souza/deepseek-harness && node <repo>/scripts/m02-seal.mjs --dir <repo>/docs/evidence/debts-registry-2026-09-20
+m02-seal: PRECONDICAO worktree derivado fora do selo: docs/evidence/agent-state/DEBTS.md, docs/evidence/wp-r5-ambient-state-2026-09-21/README.md, docs/evidence/wp-r5-ambient-state-2026-09-21/SPEC.md, docs/evidence/wp-r5-ambient-state-2026-09-21/captures/gate-local.log.txt, docs/evidence/wp-r5-ambient-state-2026-09-21/captures/guard-17.log.txt, docs/evidence/wp-r5-ambient-state-2026-09-21/captures/precondicao-escopo-e-ordem.log.txt, scripts/m02-seal.mjs, scripts/m02-work-package-guard.mjs, src/test/m02-seal.test.ts, src/test/m02-work-package-guard.test.ts, docs/evidence/wp-r5-ambient-state-2026-09-21/captures/red-correcoes-s6.log.txt — commite ou reverta antes de selar
+  -> nenhuma linha 'worktree N/A' acima: a ancora e o diretorio do selo, nao o cwd
+
+## D. ERRATA DECLARADA (S6 N8): a versao anterior desta captura, escrita em 47306e1,
+##    afirmava que 'o selo REAL nunca toma o ramo N/A'. Isso era FALSO em b6b0b31, onde a
+##    ancora era o cwd: o revisor adversarial reproduziu o selo real imprimindo a linha N/A
+##    ao ser invocado de outro repositorio. O texto fica corrigido aqui (append-only: a
+##    versao errada nao e reescrita em silencio, e declarada).
+
+## E. ramo N/A: selo fora de QUALQUER repositorio declara a precondicao
+m02-seal: precondicao worktree N/A (selo fora do repositorio git)
+m02-seal: OK (2 arquivos, checked === discovered) — /tmp/r5-na-fixture
+EXIT=0

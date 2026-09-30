@@ -1,0 +1,341 @@
+verify	Run npm run db:test	﻿2026-09-19T16:55:16.4342188Z ##[group]Run npm run db:test
+verify	Run npm run db:test	2026-09-19T16:55:16.4342526Z ^[[36;1mnpm run db:test^[[0m
+verify	Run npm run db:test	2026-09-19T16:55:16.4378297Z shell: /usr/bin/bash -e {0}
+verify	Run npm run db:test	2026-09-19T16:55:16.4378569Z env:
+verify	Run npm run db:test	2026-09-19T16:55:16.4378794Z   BUILD_RELEASE_CHANNEL: pre-beta-internal
+verify	Run npm run db:test	2026-09-19T16:55:16.4379391Z   DATABASE_ADMIN_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+verify	Run npm run db:test	2026-09-19T16:55:16.4380224Z   DATABASE_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+verify	Run npm run db:test	2026-09-19T16:55:16.4380836Z   DATABASE_URL_UNPOOLED: ***127.0.0.1:5432/preco_que_da_lucro_test
+verify	Run npm run db:test	2026-09-19T16:55:16.4381291Z   DATABASE_DRIVER: node-postgres
+verify	Run npm run db:test	2026-09-19T16:55:16.4381775Z   EXPECTED_POSTGRES_MAJOR: 17
+verify	Run npm run db:test	2026-09-19T16:55:16.4382166Z   BETTER_AUTH_URL: http://127.0.0.1:4173
+verify	Run npm run db:test	2026-09-19T16:55:16.4397012Z   AUTH_TRUSTED_ORIGINS: http://127.0.0.1:4173
+verify	Run npm run db:test	2026-09-19T16:55:16.4397602Z   E2E_AUTH_EMAIL: teste@example.test
+verify	Run npm run db:test	2026-09-19T16:55:16.4398047Z ##[endgroup]
+verify	Run npm run db:test	2026-09-19T16:55:16.5515332Z 
+verify	Run npm run db:test	2026-09-19T16:55:16.5530898Z > predb:test
+verify	Run npm run db:test	2026-09-19T16:55:16.5532003Z > node --env-file-if-exists=.env scripts/env-guard.mjs
+verify	Run npm run db:test	2026-09-19T16:55:16.5532965Z 
+verify	Run npm run db:test	2026-09-19T16:55:16.5583584Z .env not found. Continuing without it.
+verify	Run npm run db:test	2026-09-19T16:55:16.5823400Z 
+verify	Run npm run db:test	2026-09-19T16:55:16.5824039Z > db:test
+verify	Run npm run db:test	2026-09-19T16:55:16.5829818Z > tsx scripts/db/check-migration-classes.ts && tsx scripts/db/test-migrations.ts && tsx scripts/db/test-concurrency.ts && tsx scripts/db/test-auth-integration.ts && tsx scripts/db/test-oauth-boundary.ts && tsx scripts/db/test-tool-security.ts && tsx scripts/db/test-sql-injection.ts && tsx scripts/db/test-chat-semantics.ts && tsx scripts/db/test-ai-budget.ts && tsx scripts/db/test-rum-persistence.ts && tsx scripts/db/test-rate-limit-burst.ts && tsx scripts/db/test-outbox.ts && tsx scripts/db/test-backfill.ts && tsx scripts/db/test-memory.ts && tsx scripts/db/test-products-fk-conflict.ts && tsx scripts/db/test-product-contracts.ts
+verify	Run npm run db:test	2026-09-19T16:55:16.5835381Z 
+verify	Run npm run db:test	2026-09-19T16:55:16.7931266Z ✔ 20/20 classificadas
+verify	Run npm run db:test	2026-09-19T16:55:20.0047304Z PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+verify	Run npm run db:test	2026-09-19T16:55:20.9942321Z T2 CAS: produto e despesa com 1 update OK + 1 CONFLICT por burst + version incrementada: OK
+verify	Run npm run db:test	2026-09-19T16:55:23.5282560Z Better Auth, tenant pessoal, cookie, bcrypt/scrypt, fixação de sessão: OK
+verify	Run npm run db:test	2026-09-19T16:55:25.1263449Z ^[[2m2026-09-19T16:55:25.124Z^[[0m ^[[31mERROR^[[0m ^[[1m[Better Auth]:^[[0m Invalid origin: https://evil.example
+verify	Run npm run db:test	2026-09-19T16:55:25.1437486Z AUTH-005 A+B: boundary OAuth (state, PKCE, redirect, scopes, origem): OK
+verify	Run npm run db:test	2026-09-19T16:55:26.3522733Z {"timestamp":"2026-09-19T16:55:26.349Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"set_yield","code":"NOT_FOUND","error":{"name":"Error","message":"NOT_FOUND"}}
+verify	Run npm run db:test	2026-09-19T16:55:26.3641846Z Tool registry: validação, AuthZ, idempotência, auditoria e isolamento: OK
+verify	Run npm run db:test	2026-09-19T16:55:29.5755266Z {
+verify	Run npm run db:test	2026-09-19T16:55:29.5756124Z   "check": "db:test-sql-injection",
+verify	Run npm run db:test	2026-09-19T16:55:29.5757028Z   "engine": "postgres",
+verify	Run npm run db:test	2026-09-19T16:55:29.5757770Z   "payloads": 6,
+verify	Run npm run db:test	2026-09-19T16:55:29.5758385Z   "paths": [
+verify	Run npm run db:test	2026-09-19T16:55:29.5759027Z     "create_product",
+verify	Run npm run db:test	2026-09-19T16:55:29.5761993Z     "DrizzleProductRepository.save"
+verify	Run npm run db:test	2026-09-19T16:55:29.5762658Z   ],
+verify	Run npm run db:test	2026-09-19T16:55:29.5763425Z   "products_table_exists": true,
+verify	Run npm run db:test	2026-09-19T16:55:29.5763905Z   "pwned_exact_rows": 0,
+verify	Run npm run db:test	2026-09-19T16:55:29.5764351Z   "reports": [
+verify	Run npm run db:test	2026-09-19T16:55:29.5764735Z     {
+verify	Run npm run db:test	2026-09-19T16:55:29.5765119Z       "payload": "' OR '1'='1",
+verify	Run npm run db:test	2026-09-19T16:55:29.5765579Z       "control_potent": true,
+verify	Run npm run db:test	2026-09-19T16:55:29.5766689Z       "control_evidence": "tautologia selecionou 1 linha(s) do canário; com $1, 0",
+verify	Run npm run db:test	2026-09-19T16:55:29.5767758Z       "tool_duration_ms": 18,
+verify	Run npm run db:test	2026-09-19T16:55:29.5768249Z       "repository_duration_ms": 2,
+verify	Run npm run db:test	2026-09-19T16:55:29.5768741Z       "stored_rows_byte_identical": 2
+verify	Run npm run db:test	2026-09-19T16:55:29.5769168Z     },
+verify	Run npm run db:test	2026-09-19T16:55:29.5769469Z     {
+verify	Run npm run db:test	2026-09-19T16:55:29.5769904Z       "payload": "x'); DROP TABLE products; --",
+verify	Run npm run db:test	2026-09-19T16:55:29.5774075Z       "control_potent": true,
+verify	Run npm run db:test	2026-09-19T16:55:29.5775905Z       "control_evidence": "concatenação aceitou o payload e abortou: cannot drop table products because other objects depend on it",
+verify	Run npm run db:test	2026-09-19T16:55:29.5777043Z       "tool_duration_ms": 9,
+verify	Run npm run db:test	2026-09-19T16:55:29.5777591Z       "repository_duration_ms": 1,
+verify	Run npm run db:test	2026-09-19T16:55:29.5778171Z       "stored_rows_byte_identical": 2
+verify	Run npm run db:test	2026-09-19T16:55:29.5778662Z     },
+verify	Run npm run db:test	2026-09-19T16:55:29.5779021Z     {
+verify	Run npm run db:test	2026-09-19T16:55:29.5779557Z       "payload": "1; SELECT pg_sleep(2); --",
+verify	Run npm run db:test	2026-09-19T16:55:29.5780383Z       "control_potent": true,
+verify	Run npm run db:test	2026-09-19T16:55:29.5784225Z       "control_evidence": "pg_sleep(2) concatenado bloqueou por 2003ms",
+verify	Run npm run db:test	2026-09-19T16:55:29.5785050Z       "tool_duration_ms": 9,
+verify	Run npm run db:test	2026-09-19T16:55:29.5785655Z       "repository_duration_ms": 1,
+verify	Run npm run db:test	2026-09-19T16:55:29.5786206Z       "stored_rows_byte_identical": 2
+verify	Run npm run db:test	2026-09-19T16:55:29.5786661Z     },
+verify	Run npm run db:test	2026-09-19T16:55:29.5786980Z     {
+verify	Run npm run db:test	2026-09-19T16:55:29.5787759Z       "payload": "'); UPDATE products SET name='pwned' WHERE '1'='1'; --",
+verify	Run npm run db:test	2026-09-19T16:55:29.5791667Z       "control_potent": true,
+verify	Run npm run db:test	2026-09-19T16:55:29.5792746Z       "control_evidence": "concatenação alterou 5 linha(s) de products para 'pwned'",
+verify	Run npm run db:test	2026-09-19T16:55:29.5793649Z       "tool_duration_ms": 9,
+verify	Run npm run db:test	2026-09-19T16:55:29.5794191Z       "repository_duration_ms": 1,
+verify	Run npm run db:test	2026-09-19T16:55:29.5794797Z       "stored_rows_byte_identical": 2
+verify	Run npm run db:test	2026-09-19T16:55:29.5795303Z     },
+verify	Run npm run db:test	2026-09-19T16:55:29.5795688Z     {
+verify	Run npm run db:test	2026-09-19T16:55:29.5796112Z       "payload": "{\"$ne\":null}",
+verify	Run npm run db:test	2026-09-19T16:55:29.5796724Z       "control_potent": false,
+verify	Run npm run db:test	2026-09-19T16:55:29.5797982Z       "control_evidence": "operador NoSQL é literal inerte em SQL; canário permaneceu intacto",
+verify	Run npm run db:test	2026-09-19T16:55:29.5798962Z       "tool_duration_ms": 8,
+verify	Run npm run db:test	2026-09-19T16:55:29.5799593Z       "repository_duration_ms": 1,
+verify	Run npm run db:test	2026-09-19T16:55:29.5800448Z       "stored_rows_byte_identical": 2
+verify	Run npm run db:test	2026-09-19T16:55:29.5801031Z     },
+verify	Run npm run db:test	2026-09-19T16:55:29.5801405Z     {
+verify	Run npm run db:test	2026-09-19T16:55:29.5802004Z       "payload": "%'); COPY (SELECT '') TO PROGRAM 'true'; --",
+verify	Run npm run db:test	2026-09-19T16:55:29.5802734Z       "control_potent": true,
+verify	Run npm run db:test	2026-09-19T16:55:29.5804042Z       "control_evidence": "concatenação executou INSERT e COPY ... TO PROGRAM 'true' sem erro (papel admin)",
+verify	Run npm run db:test	2026-09-19T16:55:29.5805090Z       "tool_duration_ms": 10,
+verify	Run npm run db:test	2026-09-19T16:55:29.5805706Z       "repository_duration_ms": 1,
+verify	Run npm run db:test	2026-09-19T16:55:29.5806317Z       "stored_rows_byte_identical": 2
+verify	Run npm run db:test	2026-09-19T16:55:29.5806853Z     }
+verify	Run npm run db:test	2026-09-19T16:55:29.5807225Z   ]
+verify	Run npm run db:test	2026-09-19T16:55:29.5807580Z }
+verify	Run npm run db:test	2026-09-19T16:55:29.5808622Z SQL injection adversarial: parametrização resiste aos 6 payloads, 0 mutações: OK
+verify	Run npm run db:test	2026-09-19T16:55:30.7622603Z Chat GET é somente leitura; criação fica restrita a POST: OK
+verify	Run npm run db:test	2026-09-19T16:55:31.9913209Z {"timestamp":"2026-09-19T16:55:31.988Z","level":"info","event":"ai.budget_reserved","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","usageId":"c7d880dc-8cc3-4162-9892-003897e6a85b","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.0422332Z {"timestamp":"2026-09-19T16:55:32.040Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.1002423Z {"timestamp":"2026-09-19T16:55:32.098Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.1246906Z {"timestamp":"2026-09-19T16:55:32.124Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.1476798Z {"timestamp":"2026-09-19T16:55:32.145Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.1572709Z {"timestamp":"2026-09-19T16:55:32.155Z","level":"info","event":"ai.chat_completed","correlationId":"73f05f62-0f61-4e73-bc69-dd6001719fa8","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","rounds":1,"timeToAcknowledgeMs":296,"timeToFirstContentMs":310,"timeToFinalMs":310}
+verify	Run npm run db:test	2026-09-19T16:55:32.1651077Z {"timestamp":"2026-09-19T16:55:32.164Z","level":"info","event":"ai.budget_settled","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","usageId":"c7d880dc-8cc3-4162-9892-003897e6a85b","budget":100,"real":5,"usageUnknownReason":null,"durationMs":190,"outcome":"success","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.1662631Z {"timestamp":"2026-09-19T16:55:32.165Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.1690344Z {"timestamp":"2026-09-19T16:55:32.168Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.1964786Z {"timestamp":"2026-09-19T16:55:32.196Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.2102128Z {"timestamp":"2026-09-19T16:55:32.209Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.2253240Z {"timestamp":"2026-09-19T16:55:32.224Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.2401730Z {"timestamp":"2026-09-19T16:55:32.239Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.2547803Z {"timestamp":"2026-09-19T16:55:32.253Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.2705190Z {"timestamp":"2026-09-19T16:55:32.269Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.3020824Z {"timestamp":"2026-09-19T16:55:32.301Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.3168054Z {"timestamp":"2026-09-19T16:55:32.316Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.3317331Z {"timestamp":"2026-09-19T16:55:32.331Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.3436030Z {"timestamp":"2026-09-19T16:55:32.343Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.3633002Z {"timestamp":"2026-09-19T16:55:32.362Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.3737455Z {"timestamp":"2026-09-19T16:55:32.373Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.3780566Z {"timestamp":"2026-09-19T16:55:32.377Z","level":"warn","event":"ai.budget_rejected","tenantId":"cdf17a1d-4b58-4ab2-83fb-9532a5a2337a","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.3825997Z T1/E1: reserva atômica sob 20 concorrentes: OK
+verify	Run npm run db:test	2026-09-19T16:55:32.3896840Z {"timestamp":"2026-09-19T16:55:32.389Z","level":"info","event":"ai.budget_reserved","tenantId":"c1983c0d-06b3-471c-abdd-219349ddbf34","usageId":"8371379b-a0bc-4dbe-887c-dc8acdc9790d","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.3927293Z {"timestamp":"2026-09-19T16:55:32.392Z","level":"info","event":"ai.budget_settled","tenantId":"c1983c0d-06b3-471c-abdd-219349ddbf34","usageId":"8371379b-a0bc-4dbe-887c-dc8acdc9790d","budget":100,"real":7,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.3952673Z {"timestamp":"2026-09-19T16:55:32.394Z","level":"info","event":"ai.budget_settled","tenantId":"c1983c0d-06b3-471c-abdd-219349ddbf34","usageId":"8371379b-a0bc-4dbe-887c-dc8acdc9790d","budget":null,"real":7,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+verify	Run npm run db:test	2026-09-19T16:55:32.3994520Z {"timestamp":"2026-09-19T16:55:32.399Z","level":"info","event":"ai.budget_reserved","tenantId":"c1983c0d-06b3-471c-abdd-219349ddbf34","usageId":"2326c546-ac09-4fd7-8fb0-0c899fc53c14","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+verify	Run npm run db:test	2026-09-19T16:55:32.4031230Z {"timestamp":"2026-09-19T16:55:32.402Z","level":"warn","event":"ai.budget_settlement_retry","tenantId":"c1983c0d-06b3-471c-abdd-219349ddbf34","usageId":"2326c546-ac09-4fd7-8fb0-0c899fc53c14","outcome":"success","error":{"name":"Error","message":"simulated_post_commit_failure"}}
+verify	Run npm run db:test	2026-09-19T16:55:32.4047501Z {"timestamp":"2026-09-19T16:55:32.404Z","level":"info","event":"ai.budget_settled","tenantId":"c1983c0d-06b3-471c-abdd-219349ddbf34","usageId":"2326c546-ac09-4fd7-8fb0-0c899fc53c14","budget":null,"real":0,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+verify	Run npm run db:test	2026-09-19T16:55:32.4049732Z T2/E2: settlement exatamente-uma-vez: OK
+verify	Run npm run db:test	2026-09-19T16:55:32.4168889Z {"timestamp":"2026-09-19T16:55:32.416Z","level":"info","event":"ai.budget_reserved","tenantId":"cb1eeaf5-fa16-4c10-abed-36accf38f4a4","usageId":"b415c5ff-b5f2-4d59-ac4c-08b3a00018db","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.4197456Z {"timestamp":"2026-09-19T16:55:32.419Z","level":"info","event":"ai.budget_settled","tenantId":"cb1eeaf5-fa16-4c10-abed-36accf38f4a4","usageId":"b415c5ff-b5f2-4d59-ac4c-08b3a00018db","budget":100,"real":0,"usageUnknownReason":null,"durationMs":3,"outcome":"error_ai_timeout","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.4223326Z T3/E3: timeout liquida a reserva e libera in_flight: OK
+verify	Run npm run db:test	2026-09-19T16:55:32.4380993Z {"timestamp":"2026-09-19T16:55:32.437Z","level":"info","event":"ai.budget_reserved","tenantId":"db7fbc9b-76ba-41f6-80b5-6e09790c24df","usageId":"b26a870d-cdc5-4143-a006-984cef2d9775","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.4405445Z {"timestamp":"2026-09-19T16:55:32.440Z","level":"info","event":"ai.budget_settled","tenantId":"db7fbc9b-76ba-41f6-80b5-6e09790c24df","usageId":"b26a870d-cdc5-4143-a006-984cef2d9775","budget":100,"real":0,"usageUnknownReason":null,"durationMs":3,"outcome":"error_ai_timeout","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.4426118Z T4/E4: abort liquida a reserva no finally: OK
+verify	Run npm run db:test	2026-09-19T16:55:32.4541410Z {"timestamp":"2026-09-19T16:55:32.453Z","level":"info","event":"ai.budget_reserved","tenantId":"c198273e-a65f-4aa4-ac6c-1a4a02dc6974","usageId":"71097176-9b65-4551-906c-c71e54222500","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.4579070Z {"timestamp":"2026-09-19T16:55:32.457Z","level":"info","event":"ai.budget_settled","tenantId":"c198273e-a65f-4aa4-ac6c-1a4a02dc6974","usageId":"71097176-9b65-4551-906c-c71e54222500","budget":100,"real":5,"usageUnknownReason":null,"durationMs":5,"outcome":"tool_round","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.4611403Z {"timestamp":"2026-09-19T16:55:32.460Z","level":"info","event":"ai.budget_reserved","tenantId":"c198273e-a65f-4aa4-ac6c-1a4a02dc6974","usageId":"9a92bf3e-8533-4214-951e-0048ad951a78","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+verify	Run npm run db:test	2026-09-19T16:55:32.4645044Z {"timestamp":"2026-09-19T16:55:32.464Z","level":"info","event":"ai.budget_settled","tenantId":"c198273e-a65f-4aa4-ac6c-1a4a02dc6974","usageId":"9a92bf3e-8533-4214-951e-0048ad951a78","budget":100,"real":5,"usageUnknownReason":null,"durationMs":4,"outcome":"tool_round","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.4675424Z {"timestamp":"2026-09-19T16:55:32.467Z","level":"info","event":"ai.budget_reserved","tenantId":"c198273e-a65f-4aa4-ac6c-1a4a02dc6974","usageId":"723978f8-6901-4a80-9b46-dd4565179d8d","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":2}
+verify	Run npm run db:test	2026-09-19T16:55:32.4703134Z {"timestamp":"2026-09-19T16:55:32.469Z","level":"info","event":"ai.chat_completed","correlationId":"b6206c3b-c0a6-46f1-9ce8-72f41a66ddcb","tenantId":"c198273e-a65f-4aa4-ac6c-1a4a02dc6974","rounds":3,"timeToAcknowledgeMs":10,"timeToFirstContentMs":26,"timeToFinalMs":26}
+verify	Run npm run db:test	2026-09-19T16:55:32.4728641Z {"timestamp":"2026-09-19T16:55:32.472Z","level":"info","event":"ai.budget_settled","tenantId":"c198273e-a65f-4aa4-ac6c-1a4a02dc6974","usageId":"723978f8-6901-4a80-9b46-dd4565179d8d","budget":100,"real":5,"usageUnknownReason":null,"durationMs":5,"outcome":"success","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.4735876Z T5/E5: reserva/liquidação independente por tool round: OK
+verify	Run npm run db:test	2026-09-19T16:55:32.4973486Z {"timestamp":"2026-09-19T16:55:32.496Z","level":"info","event":"ai.budget_reserved","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","usageId":"53357186-a97d-4153-82de-efcbcd98ffe9","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.5080294Z {"timestamp":"2026-09-19T16:55:32.506Z","level":"info","event":"ai.budget_reserved","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","usageId":"a57bca35-9585-422a-86c5-ac9d4d0c2533","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.5092304Z {"timestamp":"2026-09-19T16:55:32.508Z","level":"warn","event":"ai.budget_rejected","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.5169725Z {"timestamp":"2026-09-19T16:55:32.516Z","level":"warn","event":"ai.budget_rejected","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.5300438Z {"timestamp":"2026-09-19T16:55:32.529Z","level":"warn","event":"ai.budget_rejected","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.5362111Z {"timestamp":"2026-09-19T16:55:32.535Z","level":"warn","event":"ai.budget_rejected","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.5443155Z {"timestamp":"2026-09-19T16:55:32.542Z","level":"warn","event":"ai.budget_rejected","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.5472126Z {"timestamp":"2026-09-19T16:55:32.546Z","level":"warn","event":"ai.budget_rejected","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","budget":100,"kind":"model","roundNo":0,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.8521760Z {"timestamp":"2026-09-19T16:55:32.851Z","level":"info","event":"ai.chat_completed","correlationId":"d951e722-e299-45cf-bdce-4b579ad0bbe7","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","rounds":1,"timeToAcknowledgeMs":371,"timeToFirstContentMs":376,"timeToFinalMs":376}
+verify	Run npm run db:test	2026-09-19T16:55:32.8539315Z {"timestamp":"2026-09-19T16:55:32.852Z","level":"info","event":"ai.chat_completed","correlationId":"d88c981d-0d37-4653-ada5-90cc07dd78fc","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","rounds":1,"timeToAcknowledgeMs":372,"timeToFirstContentMs":377,"timeToFinalMs":377}
+verify	Run npm run db:test	2026-09-19T16:55:32.8560340Z {"timestamp":"2026-09-19T16:55:32.855Z","level":"info","event":"ai.budget_settled","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","usageId":"53357186-a97d-4153-82de-efcbcd98ffe9","budget":100,"real":5,"usageUnknownReason":null,"durationMs":360,"outcome":"success","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.8571542Z {"timestamp":"2026-09-19T16:55:32.856Z","level":"info","event":"ai.budget_settled","tenantId":"7d8ab07f-c594-401f-a125-98d8ebc03d8b","usageId":"a57bca35-9585-422a-86c5-ac9d4d0c2533","budget":100,"real":5,"usageUnknownReason":null,"durationMs":358,"outcome":"success","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.8581268Z T6/E6 metrics: gatewayCalls=2 peakActiveCalls=2 sucessos=2 rejeições=6 tokens_reserved=0 in_flight=0
+verify	Run npm run db:test	2026-09-19T16:55:32.8582516Z T6/E6: limite in-flight sob concorrência: OK
+verify	Run npm run db:test	2026-09-19T16:55:32.8715196Z {"timestamp":"2026-09-19T16:55:32.871Z","level":"info","event":"ai.budget_reserved","tenantId":"3bfe4c22-b61b-4778-bbe7-f747c0d9ee8b","usageId":"98e862f0-bfd7-4753-9837-702bc4fe63bd","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.8742820Z {"timestamp":"2026-09-19T16:55:32.873Z","level":"info","event":"ai.chat_completed","correlationId":"7fbcf73a-1409-49b7-befd-5aca77d9fd8b","tenantId":"3bfe4c22-b61b-4778-bbe7-f747c0d9ee8b","rounds":1,"timeToAcknowledgeMs":11,"timeToFirstContentMs":13,"timeToFinalMs":13}
+verify	Run npm run db:test	2026-09-19T16:55:32.8768641Z {"timestamp":"2026-09-19T16:55:32.876Z","level":"info","event":"ai.budget_settled","tenantId":"3bfe4c22-b61b-4778-bbe7-f747c0d9ee8b","usageId":"98e862f0-bfd7-4753-9837-702bc4fe63bd","budget":100,"real":5,"usageUnknownReason":null,"durationMs":6,"outcome":"success","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.8773005Z T7/E7: single-shot preservado com contadores coerentes: OK
+verify	Run npm run db:test	2026-09-19T16:55:32.8834028Z {"timestamp":"2026-09-19T16:55:32.882Z","level":"info","event":"ai.budget_reserved","tenantId":"e471492d-cac7-4808-b85f-21ca1849426b","usageId":"17f15ca6-f3f9-44d5-85bd-32fa3fd5b824","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.8870376Z {"timestamp":"2026-09-19T16:55:32.886Z","level":"info","event":"ai.budget_expired","tenantId":"e471492d-cac7-4808-b85f-21ca1849426b","usageId":"17f15ca6-f3f9-44d5-85bd-32fa3fd5b824","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+verify	Run npm run db:test	2026-09-19T16:55:32.8872828Z {"timestamp":"2026-09-19T16:55:32.886Z","level":"info","event":"ai.budget_reserved","tenantId":"e471492d-cac7-4808-b85f-21ca1849426b","usageId":"6877f341-da19-4f22-afd1-224a15312cb6","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":1}
+verify	Run npm run db:test	2026-09-19T16:55:32.8905642Z {"timestamp":"2026-09-19T16:55:32.889Z","level":"info","event":"ai.budget_settled","tenantId":"e471492d-cac7-4808-b85f-21ca1849426b","usageId":"6877f341-da19-4f22-afd1-224a15312cb6","budget":100,"real":0,"usageUnknownReason":null,"durationMs":1,"outcome":"success","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.8922388Z T8/E8: TTL lazy sweep recupera reserva órfã antes da nova reserva: OK
+verify	Run npm run db:test	2026-09-19T16:55:32.8983063Z {"timestamp":"2026-09-19T16:55:32.897Z","level":"info","event":"ai.budget_reserved","tenantId":"e1b53ef9-0ffc-4aa1-8f97-0563309f9623","usageId":"8a8bd25f-c1b0-4c7a-8e99-7f7200813fef","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.9005836Z {"timestamp":"2026-09-19T16:55:32.900Z","level":"info","event":"ai.budget_expired","tenantId":"e1b53ef9-0ffc-4aa1-8f97-0563309f9623","usageId":"8a8bd25f-c1b0-4c7a-8e99-7f7200813fef","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+verify	Run npm run db:test	2026-09-19T16:55:32.9028645Z T9/E9: replay do sweep não duplica a correção: OK
+verify	Run npm run db:test	2026-09-19T16:55:32.9081380Z {"timestamp":"2026-09-19T16:55:32.907Z","level":"info","event":"ai.budget_reserved","tenantId":"ca6f3414-3d58-4c66-ba99-cdd9f84b8f79","usageId":"cd7fed3a-0048-4a29-99aa-69d9a809a539","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+verify	Run npm run db:test	2026-09-19T16:55:32.9103476Z {"timestamp":"2026-09-19T16:55:32.910Z","level":"warn","event":"ai.budget_rejected","tenantId":"ca6f3414-3d58-4c66-ba99-cdd9f84b8f79","budget":100,"kind":"model","roundNo":1,"outcome":"budget_limit"}
+verify	Run npm run db:test	2026-09-19T16:55:32.9156423Z {"timestamp":"2026-09-19T16:55:32.915Z","level":"info","event":"ai.budget_settled","tenantId":"ca6f3414-3d58-4c66-ba99-cdd9f84b8f79","usageId":"cd7fed3a-0048-4a29-99aa-69d9a809a539","budget":100,"real":7,"usageUnknownReason":null,"durationMs":10,"outcome":"success","applied":true}
+verify	Run npm run db:test	2026-09-19T16:55:32.9173600Z {"timestamp":"2026-09-19T16:55:32.916Z","level":"info","event":"ai.budget_settled","tenantId":"ca6f3414-3d58-4c66-ba99-cdd9f84b8f79","usageId":"cd7fed3a-0048-4a29-99aa-69d9a809a539","budget":null,"real":7,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+verify	Run npm run db:test	2026-09-19T16:55:32.9207537Z {"timestamp":"2026-09-19T16:55:32.920Z","level":"info","event":"ai.budget_reserved","tenantId":"ca6f3414-3d58-4c66-ba99-cdd9f84b8f79","usageId":"2d6f2356-5cc2-4611-8ced-4712583579a9","budget":100,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":2}
+verify	Run npm run db:test	2026-09-19T16:55:32.9229092Z {"timestamp":"2026-09-19T16:55:32.922Z","level":"info","event":"ai.budget_expired","tenantId":"ca6f3414-3d58-4c66-ba99-cdd9f84b8f79","usageId":"2d6f2356-5cc2-4611-8ced-4712583579a9","budget":100,"real":0,"durationMs":121000,"outcome":"ttl_expired"}
+verify	Run npm run db:test	2026-09-19T16:55:32.9248504Z T10/E10: contrato comum node-postgres + adaptador sem endpoint Neon: OK
+verify	Run npm run db:test	2026-09-19T16:55:32.9700514Z T1–T10: suíte local de orçamento concluída
+verify	Run npm run db:test	2026-09-19T16:55:34.0850231Z {"timestamp":"2026-09-19T16:55:34.083Z","level":"info","event":"rum.web_vitals","id":"v1-1712345678901-123456789","name":"LCP","value":1234.5,"rating":"good","delta":12.3,"navigationType":"navigate"}
+verify	Run npm run db:test	2026-09-19T16:55:34.0869886Z {"timestamp":"2026-09-19T16:55:34.086Z","level":"info","event":"rum.web_vitals","id":"v1-1712345678901-123456789","name":"LCP","value":1234.5,"rating":"good","delta":12.3,"navigationType":"navigate"}
+verify	Run npm run db:test	2026-09-19T16:55:34.0872835Z {"timestamp":"2026-09-19T16:55:34.086Z","level":"warn","event":"rum.web_vitals_persist_failed","name":"LCP","error":{"name":"Error","message":"forced db failure"}}
+verify	Run npm run db:test	2026-09-19T16:55:34.0881289Z {"timestamp":"2026-09-19T16:55:34.087Z","level":"info","event":"rum.web_vitals","id":"v1-1712345678901-123456789","name":"LCP","value":1234.5,"rating":"good","delta":12.3,"navigationType":"navigate"}
+verify	Run npm run db:test	2026-09-19T16:55:34.0891133Z {"timestamp":"2026-09-19T16:55:34.088Z","level":"warn","event":"rum.web_vitals_rejected","reason":"invalid_payload"}
+verify	Run npm run db:test	2026-09-19T16:55:34.0895603Z {"timestamp":"2026-09-19T16:55:34.089Z","level":"warn","event":"rum.web_vitals_rejected","reason":"payload_too_large"}
+verify	Run npm run db:test	2026-09-19T16:55:34.1457968Z RUM persistence: insert best-effort + grant app_runtime INSERT (0014): OK
+verify	Run npm run db:test	2026-09-19T16:55:35.3341976Z chat: 20 admitidas / 5 recusadas (max=20, janela=600s, concorrência=25, instâncias=2), contador=20, retryAfter=601–601s
+verify	Run npm run db:test	2026-09-19T16:55:35.5762094Z tool: 40 admitidas / 10 recusadas (max=40, janela=600s, concorrência=50, instâncias=2), contador=40, retryAfter=600–601s
+verify	Run npm run db:test	2026-09-19T16:55:35.5765701Z {
+verify	Run npm run db:test	2026-09-19T16:55:35.5766805Z   "script": "scripts/db/test-rate-limit-burst.ts",
+verify	Run npm run db:test	2026-09-19T16:55:35.5767859Z   "buckets": [
+verify	Run npm run db:test	2026-09-19T16:55:35.5768616Z     {
+verify	Run npm run db:test	2026-09-19T16:55:35.5769309Z       "bucket": "chat",
+verify	Run npm run db:test	2026-09-19T16:55:35.5770597Z       "key": "chat|79000000-0000-4000-8000-00000000000a",
+verify	Run npm run db:test	2026-09-19T16:55:35.5771532Z       "rule": {
+verify	Run npm run db:test	2026-09-19T16:55:35.5772275Z         "window": 600,
+verify	Run npm run db:test	2026-09-19T16:55:35.5773028Z         "max": 20
+verify	Run npm run db:test	2026-09-19T16:55:35.5773738Z       },
+verify	Run npm run db:test	2026-09-19T16:55:35.5774463Z       "concurrency": 25,
+verify	Run npm run db:test	2026-09-19T16:55:35.5775244Z       "instances": 2,
+verify	Run npm run db:test	2026-09-19T16:55:35.5775979Z       "allowed": 20,
+verify	Run npm run db:test	2026-09-19T16:55:35.5777129Z       "denied": 5,
+verify	Run npm run db:test	2026-09-19T16:55:35.5777890Z       "retryAfterSeconds": [
+verify	Run npm run db:test	2026-09-19T16:55:35.5778762Z         601,
+verify	Run npm run db:test	2026-09-19T16:55:35.5790926Z         601,
+verify	Run npm run db:test	2026-09-19T16:55:35.5804959Z         601,
+verify	Run npm run db:test	2026-09-19T16:55:35.5823023Z         601,
+verify	Run npm run db:test	2026-09-19T16:55:35.5841913Z         601
+verify	Run npm run db:test	2026-09-19T16:55:35.5843071Z       ],
+verify	Run npm run db:test	2026-09-19T16:55:35.5843466Z       "persistedCount": 20,
+verify	Run npm run db:test	2026-09-19T16:55:35.5843906Z       "counterRows": 1
+verify	Run npm run db:test	2026-09-19T16:55:35.5844679Z     },
+verify	Run npm run db:test	2026-09-19T16:55:35.5845053Z     {
+verify	Run npm run db:test	2026-09-19T16:55:35.5845495Z       "bucket": "tool",
+verify	Run npm run db:test	2026-09-19T16:55:35.5846174Z       "key": "tool|79000000-0000-4000-8000-00000000000b",
+verify	Run npm run db:test	2026-09-19T16:55:35.5846959Z       "rule": {
+verify	Run npm run db:test	2026-09-19T16:55:35.5847470Z         "window": 600,
+verify	Run npm run db:test	2026-09-19T16:55:35.5848020Z         "max": 40
+verify	Run npm run db:test	2026-09-19T16:55:35.5848412Z       },
+verify	Run npm run db:test	2026-09-19T16:55:35.5848835Z       "concurrency": 50,
+verify	Run npm run db:test	2026-09-19T16:55:35.5849230Z       "instances": 2,
+verify	Run npm run db:test	2026-09-19T16:55:35.5849653Z       "allowed": 40,
+verify	Run npm run db:test	2026-09-19T16:55:35.5850535Z       "denied": 10,
+verify	Run npm run db:test	2026-09-19T16:55:35.5850965Z       "retryAfterSeconds": [
+verify	Run npm run db:test	2026-09-19T16:55:35.5851698Z         600,
+verify	Run npm run db:test	2026-09-19T16:55:35.5852135Z         601,
+verify	Run npm run db:test	2026-09-19T16:55:35.5852633Z         601,
+verify	Run npm run db:test	2026-09-19T16:55:35.5853096Z         600,
+verify	Run npm run db:test	2026-09-19T16:55:35.5853583Z         600,
+verify	Run npm run db:test	2026-09-19T16:55:35.5854056Z         600,
+verify	Run npm run db:test	2026-09-19T16:55:35.5854525Z         600,
+verify	Run npm run db:test	2026-09-19T16:55:35.5855088Z         600,
+verify	Run npm run db:test	2026-09-19T16:55:35.5855390Z         600,
+verify	Run npm run db:test	2026-09-19T16:55:35.5855771Z         600
+verify	Run npm run db:test	2026-09-19T16:55:35.5856153Z       ],
+verify	Run npm run db:test	2026-09-19T16:55:35.5856546Z       "persistedCount": 40,
+verify	Run npm run db:test	2026-09-19T16:55:35.5857080Z       "counterRows": 1
+verify	Run npm run db:test	2026-09-19T16:55:35.5857551Z     }
+verify	Run npm run db:test	2026-09-19T16:55:35.5857966Z   ]
+verify	Run npm run db:test	2026-09-19T16:55:35.5858347Z }
+verify	Run npm run db:test	2026-09-19T16:55:35.5859466Z T20.5: buckets de chat/tool são atômicos sob concorrência distribuída: OK
+verify	Run npm run db:test	2026-09-19T16:55:36.7971781Z T1 atomicidade: rollback do domínio sem evento órfão + falha do evento sem despesa: OK
+verify	Run npm run db:test	2026-09-19T16:55:36.8647582Z   71235c01-4b24-464b-86e8-f7983d6592bb → worker=worker-1 · efeitos=1
+verify	Run npm run db:test	2026-09-19T16:55:36.8667696Z   156579e4-b098-4980-8df3-2e0a2d7dc9e4 → worker=worker-1 · efeitos=1
+verify	Run npm run db:test	2026-09-19T16:55:36.8680760Z   58d50ec6-ad04-461a-8a6e-1549230cd26d → worker=worker-2 · efeitos=1
+verify	Run npm run db:test	2026-09-19T16:55:36.8698883Z   83cb9eea-e543-48a3-b6f9-497a13b314ea → worker=worker-2 · efeitos=1
+verify	Run npm run db:test	2026-09-19T16:55:36.8719658Z   inbox: 156579e4-b098-4980-8df3-2e0a2d7dc9e4 ← consumer-1
+verify	Run npm run db:test	2026-09-19T16:55:36.8735870Z   inbox: 58d50ec6-ad04-461a-8a6e-1549230cd26d ← consumer-2
+verify	Run npm run db:test	2026-09-19T16:55:36.8746305Z   inbox: 71235c01-4b24-464b-86e8-f7983d6592bb ← consumer-1
+verify	Run npm run db:test	2026-09-19T16:55:36.8781490Z   inbox: 83cb9eea-e543-48a3-b6f9-497a13b314ea ← consumer-2
+verify	Run npm run db:test	2026-09-19T16:55:36.8811314Z T2 claim concorrente: 2 workers com SKIP LOCKED dividem o lote sem repetir: OK
+verify	Run npm run db:test	2026-09-19T16:55:36.9134281Z   64d2f216-a979-4020-a2d9-24ba10986f2a → efeito consumer-idempotent=1 após 3 entregas · consumer-other=1
+verify	Run npm run db:test	2026-09-19T16:55:36.9137903Z T3 idempotência: mesmo evento 2× ⇒ 1 efeito (inbox persistida por consumidor): OK
+verify	Run npm run db:test	2026-09-19T16:55:36.9445289Z T4 falha: attempts++ + available_at futuro + retry limitado por maxAttempts: OK
+verify	Run npm run db:test	2026-09-19T16:55:36.9691659Z T5 isolamento: RLS por tenant sob app_runtime + WITH CHECK do append cruzado: OK
+verify	Run npm run db:test	2026-09-19T16:55:36.9693545Z Outbox §23 (23.1 + 23.2): atomicidade, claim concorrente, idempotência: OK
+verify	Run npm run db:test	2026-09-19T16:55:37.8726499Z 
+verify	Run npm run db:test	2026-09-19T16:55:37.8731752Z == T1 — SIGKILL no meio do run (10 linhas, batchSize=3, rate-limit 4/50ms) ==
+verify	Run npm run db:test	2026-09-19T16:55:37.8877437Z   estado (antes): linhas=10 derivadas=0 max_apply_count=0 linhas_duplicadas=0 marcadores=0 checkpoint=ausente
+verify	Run npm run db:test	2026-09-19T16:55:38.5401120Z   [filho] run backfill-demo:attempt-1 batchSize=3 · SIGKILL após processar a linha 4
+verify	Run npm run db:test	2026-09-19T16:55:38.6499701Z     [batch lote 1] linhas=3 lidas=3 aplicadas=3 duplicadas=0 erros=0 cursor=d03 versão=1 taxa=3000.0/s checkpoint=em curso
+verify	Run npm run db:test	2026-09-19T16:55:38.6746754Z   [pai] filho: status=null signal=SIGKILL (morte real no meio do run)
+verify	Run npm run db:test	2026-09-19T16:55:38.6794375Z   estado (após o SIGKILL): linhas=10 derivadas=4 max_apply_count=1 linhas_duplicadas=0 marcadores=4 checkpoint=d03/lotes=1/lidas=3/aplicadas=3/dup=0/erros=0/v=1/em curso
+verify	Run npm run db:test	2026-09-19T16:55:38.6820821Z   -- retomada (mesmo runKey) --
+verify	Run npm run db:test	2026-09-19T16:55:38.6962839Z     [batch lote 1] linhas=3 lidas=3 aplicadas=2 duplicadas=1 erros=0 cursor=d06 versão=2 taxa=3000.0/s checkpoint=em curso
+verify	Run npm run db:test	2026-09-19T16:55:38.7054447Z     [batch lote 2] linhas=3 lidas=6 aplicadas=5 duplicadas=1 erros=0 cursor=d09 versão=3 taxa=120.0/s checkpoint=em curso
+verify	Run npm run db:test	2026-09-19T16:55:38.7097438Z     [completed lote 3] linhas=1 lidas=7 aplicadas=6 duplicadas=1 erros=0 cursor=d10 versão=4 taxa=140.0/s checkpoint=concluído
+verify	Run npm run db:test	2026-09-19T16:55:38.7127628Z   retomada: lotes=3 lidas=7 aplicadas=6 duplicadas=1 erros=0 taxa=140.0/s esperas=1(50ms) checkpoint=d10/concluído versão=4 retomada=true duração=50ms
+verify	Run npm run db:test	2026-09-19T16:55:38.7146842Z   estado (após a retomada): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=9/dup=1/erros=0/v=4/concluído
+verify	Run npm run db:test	2026-09-19T16:55:38.7148871Z   -- T4: 2ª tentativa completa (checkpoint novo, mesma workKey) --
+verify	Run npm run db:test	2026-09-19T16:55:38.7266619Z     [batch lote 1] linhas=3 lidas=3 aplicadas=0 duplicadas=3 erros=0 cursor=d03 versão=1 taxa=3000.0/s checkpoint=em curso
+verify	Run npm run db:test	2026-09-19T16:55:38.7351875Z     [batch lote 2] linhas=3 lidas=6 aplicadas=0 duplicadas=6 erros=0 cursor=d06 versão=2 taxa=120.0/s checkpoint=em curso
+verify	Run npm run db:test	2026-09-19T16:55:38.7402378Z     [batch lote 3] linhas=3 lidas=9 aplicadas=0 duplicadas=9 erros=0 cursor=d09 versão=3 taxa=90.0/s checkpoint=em curso
+verify	Run npm run db:test	2026-09-19T16:55:38.7420949Z     [completed lote 4] linhas=1 lidas=10 aplicadas=0 duplicadas=10 erros=0 cursor=d10 versão=4 taxa=100.0/s checkpoint=concluído
+verify	Run npm run db:test	2026-09-19T16:55:38.7441989Z   2ª tentativa: lotes=4 lidas=10 aplicadas=0 duplicadas=10 erros=0 taxa=100.0/s esperas=2(100ms) checkpoint=d10/concluído versão=4 retomada=false duração=100ms
+verify	Run npm run db:test	2026-09-19T16:55:38.7472027Z   estado (após a 2ª tentativa): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=0/dup=10/erros=0/v=4/concluído
+verify	Run npm run db:test	2026-09-19T16:55:38.7488285Z 
+verify	Run npm run db:test	2026-09-19T16:55:38.7496899Z == T3 — erro real do Postgres (22012) no meio do lote: aborta, checkpoint no lote anterior, retoma ==
+verify	Run npm run db:test	2026-09-19T16:55:38.7544961Z   estado (antes): linhas=4 derivadas=0 max_apply_count=0 linhas_duplicadas=0 marcadores=0 checkpoint=ausente
+verify	Run npm run db:test	2026-09-19T16:55:38.7620677Z     [batch lote 1] linhas=2 lidas=2 aplicadas=2 duplicadas=0 erros=0 cursor=d02 versão=1 taxa=285.7/s checkpoint=em curso
+verify	Run npm run db:test	2026-09-19T16:55:38.7666517Z   abortado: lotes=2 lidas=4 aplicadas=3 duplicadas=0 erros=1 taxa=333.3/s esperas=0(0ms) checkpoint=d02/em curso versão=1 retomada=false duração=12ms
+verify	Run npm run db:test	2026-09-19T16:55:38.7685149Z   estado (após o abort): linhas=4 derivadas=3 max_apply_count=1 linhas_duplicadas=0 marcadores=3 checkpoint=d02/lotes=1/lidas=2/aplicadas=2/dup=0/erros=0/v=1/em curso
+verify	Run npm run db:test	2026-09-19T16:55:38.7764444Z     [batch lote 1] linhas=2 lidas=2 aplicadas=1 duplicadas=1 erros=0 cursor=d04 versão=2 taxa=400.0/s checkpoint=em curso
+verify	Run npm run db:test	2026-09-19T16:55:38.7779027Z     [completed lote 1] linhas=0 lidas=2 aplicadas=1 duplicadas=1 erros=0 cursor=d04 versão=3 taxa=333.3/s checkpoint=concluído
+verify	Run npm run db:test	2026-09-19T16:55:38.7781941Z   retomada: lotes=1 lidas=2 aplicadas=1 duplicadas=1 erros=0 taxa=333.3/s esperas=0(0ms) checkpoint=d04/concluído versão=3 retomada=true duração=6ms
+verify	Run npm run db:test	2026-09-19T16:55:38.7814521Z   estado (final): linhas=4 derivadas=4 max_apply_count=1 linhas_duplicadas=0 marcadores=4 checkpoint=d04/lotes=3/lidas=4/aplicadas=3/dup=1/erros=0/v=3/concluído
+verify	Run npm run db:test	2026-09-19T16:55:38.7816879Z 
+verify	Run npm run db:test	2026-09-19T16:55:38.7820048Z == T2 — contenção CAS: 2 workers no mesmo runKey (mesma versão de partida) ==
+verify	Run npm run db:test	2026-09-19T16:55:38.8067081Z     [worker 2 lote 1] lidas=3 aplicadas=3 duplicadas=0 v=1
+verify	Run npm run db:test	2026-09-19T16:55:38.8135002Z     [worker 2 lote 2] lidas=6 aplicadas=6 duplicadas=0 v=2
+verify	Run npm run db:test	2026-09-19T16:55:38.8189537Z     [worker 2 lote 3] lidas=9 aplicadas=9 duplicadas=0 v=3
+verify	Run npm run db:test	2026-09-19T16:55:38.8217419Z     [worker 2 lote 4] lidas=10 aplicadas=10 duplicadas=0 v=4
+verify	Run npm run db:test	2026-09-19T16:55:38.8222285Z   perdedor: backfill-runner: checkpoint de "backfill-demo:contention" está em outra versão (CAS esperava a versão 0); outro runner avançou primeiro — este run foi descartado sem sobrescrever nada
+verify	Run npm run db:test	2026-09-19T16:55:38.8227470Z   vencedor: lotes=4 lidas=10 aplicadas=10 duplicadas=0 erros=0 taxa=303.0/s esperas=0(0ms) checkpoint=d10/concluído versão=4 retomada=false duração=33ms
+verify	Run npm run db:test	2026-09-19T16:55:38.8252498Z   estado (após a contenção): linhas=10 derivadas=10 max_apply_count=1 linhas_duplicadas=0 marcadores=10 checkpoint=d10/lotes=4/lidas=10/aplicadas=10/dup=0/erros=0/v=4/concluído
+verify	Run npm run db:test	2026-09-19T16:55:38.8257061Z   checkpoint do vencedor: aplicadas=10 duplicadas=0 (repartição depende da corrida)
+verify	Run npm run db:test	2026-09-19T16:55:38.8260370Z 
+verify	Run npm run db:test	2026-09-19T16:55:38.8260882Z == T5 — RLS/grants do ledger sob app_runtime (NOSUPERUSER/NOBYPASSRLS) ==
+verify	Run npm run db:test	2026-09-19T16:55:38.8412362Z T5 isolamento: RLS por tenant no ledger + WITH CHECK da escrita cruzada: OK
+verify	Run npm run db:test	2026-09-19T16:55:38.8430519Z 
+verify	Run npm run db:test	2026-09-19T16:55:38.8432230Z Backfill §28 (28.1 lote · 28.2 checkpoint+CAS · 28.3 rate-limit · 28.4 idempotência · 28.5 observabilidade): OK
+verify	Run npm run db:test	2026-09-19T16:55:40.0362529Z T1 isolamento: busca de B = 0 linhas sob RLS + append forjado recusado por WITH CHECK (42501): OK
+verify	Run npm run db:test	2026-09-19T16:55:40.1595790Z T2 proveniência: search devolve a fonte mais antiga; órfã/sem origem impossíveis (23503/23514): OK
+verify	Run npm run db:test	2026-09-19T16:55:40.1948921Z T3 atomicidade: rollback e falha cruzadas entre memória e despesa deixam zero linhas: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.2371834Z T4 delete: só o tenant corrente apaga, cascata na fonte, false para id inexistente e de terceiro: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.2437658Z T5 classificação: 20/20 classificadas · 0017_past_gideon = SAFE/empty + down: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.3012835Z D3/T1 dedup: 2ª gravação idêntica = duplicated:true + contagem inalterada (memória/fonte/versão): OK
+verify	Run npm run db:test	2026-09-19T16:55:40.3503792Z D3/T2 revisão: versão incremental arquivada, anterior byte a byte inalterada, head atualizado: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.3897850Z D3/T3 conflito: registrado e visível só no tenant, ativo byte a byte intacto, search só do ativo: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.4362294Z D3/T4 delete × expurgo: recusa sem apagar + expurgo transacional (rollback devolve tudo): OK
+verify	Run npm run db:test	2026-09-19T16:55:40.4565854Z D3/T5 concorrência: 2 sessões no mesmo conteúdo ⇒ 1 linha ativa (índice único parcial): OK
+verify	Run npm run db:test	2026-09-19T16:55:40.4884790Z D3/T6 isolamento: mesmo conteúdo em 2 tenants = 2 linhas (B não vê A) + discriminador de conversa: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.5641919Z D3/T7 imutabilidade: UPDATE negado (42501) e DELETE concedido com alcance limitado por RLS em ai_memory_versions + grants/RLS: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.5707993Z D3/T8 classificação: 20/20 classificadas · 0018_polite_living_tribunal = SAFE/empty + down: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.6131741Z D3/T9 revisão × colisão de chave: ApplicationError/CONFLICT com rollback sem rastro + revisão legítima: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.6557453Z (node:5367) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+verify	Run npm run db:test	2026-09-19T16:55:40.6564090Z (Use `node --trace-deprecation ...` to show where the warning was created)
+verify	Run npm run db:test	2026-09-19T16:55:40.6785924Z D4/T1 export: conjunto exato do tenant com fontes+versões, recortes por camada/escopo e AUTHORIZATION_ERROR sem has_tenant_access: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.7309454Z D4/T2 auditoria: allow/refused/not_found por chamada, recusa de escopo pessoal com controle positivo, trilha tenant-scoped e sem conteúdo: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.7872046Z D4/T3 TTL: janela por camada vinda da policy versionada, expiração idempotente e tenant-scoped, retrieval sem vencida e falha alta sem policy: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.8342109Z D4/T6 privilégios: trilha append-only medida (42501), WITH CHECK e CHECKs de vocabulário, políticas globais com SELECT+INSERT: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.8397599Z D4/T5 classificação: 20/20 classificadas · 0019_tiresome_robin_chapel = ONLINE_WITH_CARE/empty + idempotent + down: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.9206108Z D4/T4 migration: cadeia 20/20 do zero + up→down→up da 0019 com dado preservado e políticas re-semeadas: OK
+verify	Run npm run db:test	2026-09-19T16:55:40.9244528Z Memória §43/D2+D3+D4 (persistência, proveniência, tenant, dedup, versões, conflitos, delete/export, TTL): OK
+verify	Run npm run db:test	2026-09-19T16:55:42.0979827Z 
+verify	Run npm run db:test	2026-09-19T16:55:42.1001942Z ^[[1m^[[30m^[[46m RUN ^[[49m^[[39m^[[22m ^[[36mv4.1.11 ^[[39m^[[90m/home/runner/work/preco-que-da-lucro/preco-que-da-lucro^[[39m
+verify	Run npm run db:test	2026-09-19T16:55:42.1020956Z 
+verify	Run npm run db:test	2026-09-19T16:55:44.4775549Z  ^[[32m✓^[[39m src/test/products-fk-conflict.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m)^[[22m^[[32m 104^[[2mms^[[22m^[[39m
+verify	Run npm run db:test	2026-09-19T16:55:44.4830742Z 
+verify	Run npm run db:test	2026-09-19T16:55:44.4837905Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify	Run npm run db:test	2026-09-19T16:55:44.4839305Z ^[[2m      Tests ^[[22m ^[[1m^[[32m13 passed^[[39m^[[22m^[[90m (13)^[[39m
+verify	Run npm run db:test	2026-09-19T16:55:44.4841497Z ^[[2m   Start at ^[[22m 16:55:42
+verify	Run npm run db:test	2026-09-19T16:55:44.4843067Z ^[[2m   Duration ^[[22m 2.37s^[[2m (transform 319ms, setup 125ms, import 1.32s, tests 104ms, environment 673ms)^[[22m
+verify	Run npm run db:test	2026-09-19T16:55:44.4844134Z 
+verify	Run npm run db:test	2026-09-19T16:55:44.4871867Z JSON report written to /tmp/trk-d2-fk-qsDnxH/summary.json
+verify	Run npm run db:test	2026-09-19T16:55:44.5262569Z prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 13 passed (13), 0 skipped — admin=127.0.0.1:5432
+verify	Run npm run db:test	2026-09-19T16:55:45.7991976Z 
+verify	Run npm run db:test	2026-09-19T16:55:45.7996468Z ^[[1m^[[30m^[[46m RUN ^[[49m^[[39m^[[22m ^[[36mv4.1.11 ^[[39m^[[90m/home/runner/work/preco-que-da-lucro/preco-que-da-lucro^[[39m
+verify	Run npm run db:test	2026-09-19T16:55:45.7997707Z 
+verify	Run npm run db:test	2026-09-19T16:55:48.0077721Z  ^[[32m✓^[[39m src/test/product-contracts.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[32m 269^[[2mms^[[22m^[[39m
+verify	Run npm run db:test	2026-09-19T16:55:48.0131873Z 
+verify	Run npm run db:test	2026-09-19T16:55:48.0141880Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify	Run npm run db:test	2026-09-19T16:55:48.0143260Z ^[[2m      Tests ^[[22m ^[[1m^[[32m14 passed^[[39m^[[22m^[[90m (14)^[[39m
+verify	Run npm run db:test	2026-09-19T16:55:48.0144497Z ^[[2m   Start at ^[[22m 16:55:45
+verify	Run npm run db:test	2026-09-19T16:55:48.0145988Z ^[[2m   Duration ^[[22m 2.20s^[[2m (transform 257ms, setup 124ms, import 999ms, tests 269ms, environment 673ms)^[[22m
+verify	Run npm run db:test	2026-09-19T16:55:48.0146990Z 
+verify	Run npm run db:test	2026-09-19T16:55:48.0182593Z JSON report written to /tmp/trk-d2-pc-ptWfrr/summary.json
+verify	Run npm run db:test	2026-09-19T16:55:48.0590668Z prova de banco (src/test/product-contracts.test.ts) contra 127.0.0.1: 14 passed (14), 0 skipped — admin=127.0.0.1:5432

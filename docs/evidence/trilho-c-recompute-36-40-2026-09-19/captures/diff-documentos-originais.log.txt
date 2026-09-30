@@ -1,0 +1,5 @@
+# TRILHO C — o que mudou nos dois documentos de origem da camada
+# data: 2026-09-19T20:35:12Z
+# base: HEAD antes do commit documental
+
+

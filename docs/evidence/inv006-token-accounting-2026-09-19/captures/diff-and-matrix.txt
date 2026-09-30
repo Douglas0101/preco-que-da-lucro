@@ -1,0 +1,38 @@
+### git status --porcelain
+ M docs/specs/M-02/matrix.generated.yaml
+ M docs/specs/M-02/matrix.yaml
+ M src/instrumentation/telemetry.ts
+ M src/lib/ai/budget-ledger.server.ts
+ M src/lib/chat-execution.server.ts
+?? src/lib/ai/token-usage.ts
+?? src/test/ai-usage-unknown.test.ts
+?? src/test/token-usage.test.ts
+
+### git diff --stat (tracked)
+ docs/specs/M-02/matrix.generated.yaml |   7 ++-
+ docs/specs/M-02/matrix.yaml           |   7 ++-
+ src/instrumentation/telemetry.ts      |   1 +
+ src/lib/ai/budget-ledger.server.ts    | 101 +++++++++++++++++++++++++++-------
+ src/lib/chat-execution.server.ts      |  43 +++++++++++----
+ 5 files changed, 123 insertions(+), 36 deletions(-)
+
+### new files
+?? src/lib/ai/token-usage.ts
+?? src/test/ai-usage-unknown.test.ts
+?? src/test/token-usage.test.ts
+
+### matrix drift caused by this WP (expected: directDatabaseFiles 48 -> 49)
+-    "directDatabaseFiles": 48
++    "directDatabaseFiles": 49
+-      "line": 126,
++      "line": 128,
+-      "line": 138,
++      "line": 140,
++    "src/test/ai-usage-unknown.test.ts",
+-    "directDatabaseFiles": 48
++    "directDatabaseFiles": 49
+-      "line": 126,
++      "line": 128,
+-      "line": 138,
++      "line": 140,
++    "src/test/ai-usage-unknown.test.ts",

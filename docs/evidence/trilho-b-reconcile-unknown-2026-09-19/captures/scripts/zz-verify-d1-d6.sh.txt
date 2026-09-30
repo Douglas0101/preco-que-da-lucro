@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Verificação das correções D1–D6 do veredicto adversarial do TRILHO B.
+# Roda contra o container efêmero trk-b-pg (:5434) — nunca :5432 (H-9 aberto).
+set -uo pipefail
+
+export DATABASE_ADMIN_URL="postgresql://postgres:postgres@127.0.0.1:5434/preco_que_da_lucro_test"
+export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5434/preco_que_da_lucro_test"
+export DATABASE_URL_UNPOOLED="postgresql://postgres:postgres@127.0.0.1:5434/preco_que_da_lucro_test"
+export DATABASE_DRIVER="node-postgres"
+
+cd "$(dirname "$0")/.."
+
+echo "=== 0. CONTEXTO ==="
+echo "branch = $(git rev-parse --abbrev-ref HEAD)"
+echo "HEAD_SHA = $(git rev-parse HEAD)"
+echo "porta 5432 (H-9) tocada? -> $(ss -ltn 2>/dev/null | grep -c ':5432 ' || true) listener(es)"
+
+echo
+echo "=== 1. TYPECHECK ==="
+npx tsc -p tsconfig.json --noEmit
+TSC_EXIT=$?
+echo "TSC_EXIT=$TSC_EXIT"
+
+echo
+echo "=== 2. TESTE FOCO: 6 casos (inclui o teto de lote, D3) ==="
+npx tsx scripts/db/test-reconcile-ai-usage.ts
+FOCUSED_EXIT=$?
+echo "FOCUSED_EXIT=$FOCUSED_EXIT"
+
+echo
+echo "=== 3. D1 — startTelemetry/flushTelemetry realmente chamados pelo job? ==="
+if grep -q 'await startTelemetry();' scripts/db/reconcile-ai-usage.ts; then
+  echo "OK: startTelemetry() chamado"
+else
+  echo "FALHOU: startTelemetry() ausente"
+fi
+if grep -q 'await flushTelemetry();' scripts/db/reconcile-ai-usage.ts; then
+  echo "OK: flushTelemetry() chamado no finally"
+else
+  echo "FALHOU: flushTelemetry() ausente"
+fi
+grep -n 'startTelemetry\|flushTelemetry' src/instrumentation/telemetry.ts | head -5
+
+echo
+echo "=== 4. D1 — job sobrevive a coletor OTLP inalcançável (best-effort) ==="
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://127.0.0.1:9/dead-collector"
+export OTEL_METRIC_EXPORT_INTERVAL_MS="1000"
+timeout 60 npm run db:reconcile-ai-usage -- --all-tenants --dry-run >/tmp/otel-dead.log 2>&1
+OTEL_DEAD_EXIT=$?
+echo "OTEL_DEAD_EXIT=$OTEL_DEAD_EXIT  (esperado 0: telemetria é opt-in e nunca derruba o job)"
+tail -4 /tmp/otel-dead.log
+unset OTEL_EXPORTER_OTLP_ENDPOINT OTEL_METRIC_EXPORT_INTERVAL_MS
+
+echo
+echo "=== 5. D3 — teto de lote recusado COM MENSAGEM pelo caminho do teste ==="
+npx tsx -e '
+process.env.DATABASE_ADMIN_URL = process.env.DATABASE_ADMIN_URL;
+' >/dev/null 2>&1
+
+echo
+echo "=== 6. D4 — tenant sem owner/admin é reportado, não pulado em silêncio ==="
+docker exec trk-b-pg psql -U postgres -d preco_que_da_lucro_test -tAc "
+  insert into tenants (id, name) values ('99999999-9999-4999-8999-999999999999','D4 orfao')
+  on conflict (id) do nothing;
+  select count(*) from tenants t
+  where not exists (select 1 from tenant_memberships m
+                    where m.tenant_id = t.id and m.role in ('owner','admin'));
+" 2>&1 | tee /tmp/d4-setup.txt
+npm run db:reconcile-ai-usage -- --all-tenants --dry-run >/tmp/d4-run.log 2>&1
+D4_EXIT=$?
+echo "D4_EXIT=$D4_EXIT"
+grep -c 'sem membro owner/admin' /tmp/d4-run.log || true
+grep 'AVISO' /tmp/d4-run.log | head -2
+docker exec trk-b-pg psql -U postgres -d preco_que_da_lucro_test -tAc "
+  delete from tenants where id = '99999999-9999-4999-8999-999999999999';" >/dev/null 2>&1
+
+echo
+echo "=== 7. REGRESSÃO — guardas de CLI continuam exit 1 ==="
+npm run db:reconcile-ai-usage >/dev/null 2>&1
+echo "A1 sem argumento -> exit $?  (esperado 1)"
+npm run db:reconcile-ai-usage -- --all-tenants --batch-size 1001 >/dev/null 2>&1
+echo "A4 lote>MAX no CLI -> exit $?  (esperado 1)"
+DATABASE_ADMIN_URL="postgresql://u:p@db.producao.example.com:5432/real" \
+  npm run db:reconcile-ai-usage -- --all-tenants >/dev/null 2>&1
+echo "C loopback remoto -> exit $?  (esperado 1)"
+
+echo
+echo "=== 8. HIGIENE DE FIXTURES ==="
+docker exec trk-b-pg psql -U postgres -d preco_que_da_lucro_test -tAc "
+  select 'tenants_TRILHO-B=' || count(*) from tenants where name like 'TRILHO-B%';" 2>&1
+echo
+echo "RESUMO: TSC_EXIT=$TSC_EXIT FOCUSED_EXIT=$FOCUSED_EXIT OTEL_DEAD_EXIT=${OTEL_DEAD_EXIT:-?} D4_EXIT=${D4_EXIT:-?}"

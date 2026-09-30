@@ -12,3 +12,21 @@ export const AUTH_RATE_LIMIT_RULES = {
 } as const;
 
 export type AuthRateLimitRules = typeof AUTH_RATE_LIMIT_RULES;
+
+// Buckets keyed by the acting user and consumed by our own code (not by Better
+// Auth): the key is `<bucket>|<userId>`, so one user cannot spend another's
+// budget and every instance shares the same counter.
+export const USER_RATE_LIMIT_RULES = {
+  // Chat turns per user per 10 minutes. The effective max stays configurable
+  // through AI_CHAT_LIMIT_PER_10_MINUTES (default: this value); ADR-021 item 7.
+  chat: { window: 600, max: 20 },
+  // Tool executions per user per 10 minutes. One turn may run several tools
+  // (up to AI_MAX_TOOL_ROUNDS rounds), so the bucket is wider than the chat one.
+  tool: { window: 600, max: 40 },
+} as const;
+
+export type UserRateLimitBucket = keyof typeof USER_RATE_LIMIT_RULES;
+
+export function userRateLimitKey(bucket: UserRateLimitBucket, userId: string): string {
+  return `${bucket}|${userId}`;
+}

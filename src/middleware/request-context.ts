@@ -9,6 +9,7 @@ import {
   type DatabaseTransaction,
 } from "@/db/client.server";
 import { tenantMemberships } from "@/db/schema";
+import { withSpan } from "@/instrumentation/telemetry";
 import { apiErrorResponse, errorCodeFromUnknown } from "@/lib/api-error";
 import { bindTransactionContext, type RequestIdentity } from "@/lib/request-context";
 import { logJson } from "@/lib/structured-logger";
@@ -49,9 +50,26 @@ function getCorrelationId(context: unknown): string {
   return uuid.safeParse(value).success ? String(value) : crypto.randomUUID();
 }
 
+export function withBffSpan<T>(
+  middleware: "requireDatabaseIdentity" | "requireDatabaseAuth",
+  correlationId: string,
+  operation: () => Promise<T>,
+): Promise<T> {
+  return withSpan(
+    "bff.request",
+    {
+      "app.bff.middleware": middleware,
+      "app.correlation_id": correlationId,
+    },
+    operation,
+  );
+}
+
 async function authenticateRequest(options: {
   context: unknown;
-  signal: AbortSignal;
+  // O dispatch HTTP de server function declara `signal`, mas não o injeta em
+  // runtime; o fallback é o signal real da Request do adapter (nunca undefined).
+  signal: AbortSignal | undefined;
 }): Promise<RequestIdentity> {
   const request = getRequest();
   const correlationId = getCorrelationId(options.context);
@@ -67,7 +85,7 @@ async function authenticateRequest(options: {
     tenantId: membership.tenantId,
     roles: [membership.role],
     correlationId,
-    signal: options.signal,
+    signal: options.signal ?? request.signal,
   };
 }
 
@@ -75,15 +93,17 @@ async function authenticateRequest(options: {
 export const requireDatabaseIdentity = createMiddleware({ type: "function" }).server(
   async ({ context, next, signal }) => {
     const correlationId = getCorrelationId(context);
-    try {
-      const identity = await authenticateRequest({ context, signal });
-      return next({ context: { requestIdentity: identity } });
-    } catch (error) {
-      if (error instanceof Response) throw error;
-      const code = errorCodeFromUnknown(error);
-      logJson("error", "bff.identity_failed", { correlationId, code, error });
-      throw apiErrorResponse(code === "INTERNAL_ERROR" ? "DATABASE_ERROR" : code, correlationId);
-    }
+    return withBffSpan("requireDatabaseIdentity", correlationId, async () => {
+      try {
+        const identity = await authenticateRequest({ context, signal });
+        return next({ context: { requestIdentity: identity } });
+      } catch (error) {
+        if (error instanceof Response) throw error;
+        const code = errorCodeFromUnknown(error);
+        logJson("error", "bff.identity_failed", { correlationId, code, error });
+        throw apiErrorResponse(code === "INTERNAL_ERROR" ? "DATABASE_ERROR" : code, correlationId);
+      }
+    });
   },
 );
 
@@ -93,44 +113,46 @@ export const requireDatabaseIdentity = createMiddleware({ type: "function" }).se
 export const requireDatabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ context, next, signal }) => {
     const correlationId = getCorrelationId(context);
-    try {
-      const request = getRequest();
-      const session = await getAuth().api.getSession({
-        headers: request.headers,
-        query: { disableCookieCache: true },
-      });
-      if (!session) throw apiErrorResponse("AUTHENTICATION_ERROR", correlationId);
-      const requestedTenantId = request.headers.get("x-tenant-id");
-      if (requestedTenantId && !uuid.safeParse(requestedTenantId).success) {
-        throw apiErrorResponse("AUTHORIZATION_ERROR", correlationId);
+    return withBffSpan("requireDatabaseAuth", correlationId, async () => {
+      try {
+        const request = getRequest();
+        const session = await getAuth().api.getSession({
+          headers: request.headers,
+          query: { disableCookieCache: true },
+        });
+        if (!session) throw apiErrorResponse("AUTHENTICATION_ERROR", correlationId);
+        const requestedTenantId = request.headers.get("x-tenant-id");
+        if (requestedTenantId && !uuid.safeParse(requestedTenantId).success) {
+          throw apiErrorResponse("AUTHORIZATION_ERROR", correlationId);
+        }
+        return await withResolvedTenantTransaction(
+          session.user.id,
+          (transaction) => selectMembership(transaction, session.user.id, requestedTenantId),
+          (transaction, membership) =>
+            next({
+              context: {
+                requestContext: bindTransactionContext(
+                  {
+                    userId: session.user.id,
+                    tenantId: membership.tenantId,
+                    roles: [membership.role],
+                    correlationId,
+                    signal: signal ?? request.signal,
+                  },
+                  transaction,
+                ),
+              },
+            }),
+        );
+      } catch (error) {
+        if (error instanceof Response) throw error;
+        if (error instanceof TenantMembershipDeniedError) {
+          throw apiErrorResponse("AUTHORIZATION_ERROR", correlationId);
+        }
+        const code = errorCodeFromUnknown(error);
+        logJson("error", "bff.request_failed", { correlationId, code, error });
+        throw apiErrorResponse(code === "INTERNAL_ERROR" ? "DATABASE_ERROR" : code, correlationId);
       }
-      return await withResolvedTenantTransaction(
-        session.user.id,
-        (transaction) => selectMembership(transaction, session.user.id, requestedTenantId),
-        (transaction, membership) =>
-          next({
-            context: {
-              requestContext: bindTransactionContext(
-                {
-                  userId: session.user.id,
-                  tenantId: membership.tenantId,
-                  roles: [membership.role],
-                  correlationId,
-                  signal,
-                },
-                transaction,
-              ),
-            },
-          }),
-      );
-    } catch (error) {
-      if (error instanceof Response) throw error;
-      if (error instanceof TenantMembershipDeniedError) {
-        throw apiErrorResponse("AUTHORIZATION_ERROR", correlationId);
-      }
-      const code = errorCodeFromUnknown(error);
-      logJson("error", "bff.request_failed", { correlationId, code, error });
-      throw apiErrorResponse(code === "INTERNAL_ERROR" ? "DATABASE_ERROR" : code, correlationId);
-    }
+    });
   },
 );

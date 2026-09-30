@@ -1,0 +1,27 @@
+- generic [active] [ref=f25e1]:
+  - generic [ref=f25e4]:
+    - banner [ref=f25e5]:
+      - link "Preço que Dá Lucro" [ref=f25e6] [cursor=pointer]:
+        - /url: /inicio
+      - button "Abrir menu de navegação" [ref=f25e12] [cursor=pointer]
+    - main [ref=f25e14]:
+      - generic [ref=f25e16]:
+        - generic [ref=f25e17]:
+          - generic [ref=f25e18]:
+            - heading "Meus Produtos" [level=1] [ref=f25e19]
+            - paragraph [ref=f25e20]: 1 produto cadastrado
+          - generic [ref=f25e21]:
+            - button "Preços de compra" [ref=f25e22] [cursor=pointer]
+            - button "Novo produto" [ref=f25e23] [cursor=pointer]
+        - generic [ref=f25e26]:
+          - generic [ref=f25e32]:
+            - generic [ref=f25e33]:
+              - generic [ref=f25e34]: Produto de teste
+              - generic [ref=f25e35]: REAL
+            - generic [ref=f25e36]:
+              - text: "Custo: R$ 10,00 · Preço: R$ 20,00 ·"
+              - generic [ref=f25e37]: "Margem: 35,00%"
+          - generic [ref=f25e38]:
+            - button "Ver" [ref=f25e39] [cursor=pointer]
+            - button "Excluir Produto de teste" [ref=f25e40] [cursor=pointer]
+  - region "Notifications alt+T"

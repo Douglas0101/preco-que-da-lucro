@@ -1,0 +1,10 @@
+
+> predb:migrate
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> db:migrate
+> tsx scripts/db/migrate.ts
+
+Migrations PostgreSQL aplicadas com sucesso.
+E2_MIGRATE_EXIT=0

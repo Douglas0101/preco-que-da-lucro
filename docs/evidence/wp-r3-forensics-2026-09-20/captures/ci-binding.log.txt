@@ -1,0 +1,6 @@
+== runs em c9d1740 ==
+35512525992 CI light (docs/evidence) c9d1740cbb9a576876ed0fd83f4e1c8bea4054cb completed/success 2026-09-20T13:06:18Z
+35512525965 UI stack c9d1740cbb9a576876ed0fd83f4e1c8bea4054cb completed/success 2026-09-20T13:06:18Z
+
+== run stale 35484327532 ==
+headSha=1aad70cbcf63de8c8d8a20f7b309df2b6a8ba715 completed/success 2026-09-20T02:34:12Z

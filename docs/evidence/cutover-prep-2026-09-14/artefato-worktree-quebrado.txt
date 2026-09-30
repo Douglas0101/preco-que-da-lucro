@@ -1,0 +1,12 @@
+# Artefato Nitro node-server construído NO WORKTREE (node_modules por symlink) — captura bruta 2026-09-14
+# Build: npm run build (exit 1 pelo gate de warning pré-existente; artefato emitido)
+# Sonda: curl nas rotas do conjunto canônico contra http://127.0.0.1:<porta>
+# Rotas:
+  GET /api/health/live         -> 500
+  GET /api/health/ready        -> 500
+  GET /api/auth/get-session    -> 500
+  POST /api/auth/sign-in/email -> 500
+# Log de boot/erro do servidor (linhas de erro, recortadas):
+  "level":"error","event":"server.entry_failed","correlationId":"7ad796c8-2823-4038-a5c6-892d1525281e","error":{"name":"TypeError","message":"createCsrfMiddleware is not a function"}}
+  "level":"error","event":"server.entry_failed","correlationId":"88d01cf8-4209-455a-9d3d-c9c94a9575a5","error":{"name":"TypeError","message":"createCsrfMiddleware is not a function"}}
+# padroes_de_segredo_no_log=0 (esperado 0)

@@ -1,0 +1,16 @@
+683c94a3ea3ebb37d982c4174112c7f9d56051afb525ddab89eeb6515cbf7853  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/README.md
+dc647ac9f31b31796b9c90f4fc9e2129c0dc83759be88cbdfe9f28bb9898c93a  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/SPEC.md
+1e9122a7da42bdfa91d3a0ee3f013424261147edf6ee6174127c710af3bb6ace  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/bateria-1-reprovada.log.txt
+45feda07596525b589d04536b8bef5446caed099e33000ac46d8f565cb6f0d50  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/correcoes-d1-d6-1a-corrida.log.txt
+3dfdd82143c91ad095ed27415b503f48d003e9d011d31dddbe18e92148ae9866  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/d10-gauge-agregado.log.txt
+28f735afdc8aed52b853e7e3655f04db77f572ecc1dff2169bd9e719f7ef2e54  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/e2e-clis.log.txt
+f7bd351df13d75e1c05742597b1ca20ffb8c8017a74b5dc2ffd74bf0d5993c55  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/guardas.log.txt
+b8d9a925e20cb61b8cd0f5fb0c044d632807e7664868bea9a0822f7b90eaddcd  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/scripts/zz-bateria-final-b2.sh.txt
+e80430bf516834d819f7aea470d8a2530e5bfc4bf36071b205917a3e02c3fe85  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/scripts/zz-bateria-final-b3.sh.txt
+cd2df6c0d6015c1622e6fc2e35c192fdcc840fd4e313e640a2fbc3907caee355  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/scripts/zz-d10-proof.sh.txt
+46072902d0472efc04e99b9f1ef9a800d3afa6933e59b8ca3bb6fd4208957b96  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/scripts/zz-seal-manifest-b.sh.txt
+5465652f02f1e94f95663d6b56f5ceb680188bf66ea77e34f4d78e9e29d310f4  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/scripts/zz-verify-d1-d6.sh.txt
+4488ae549c003ab2447ebcbe57d810f71fc3073fe319e05420e30d513de1eee5  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/sonda-d4-controle-positivo.log.txt
+34622474e316c567b17dbfa18fc669344602d041dbb14d19c6bde3a08aecad91  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/trilho-b-bateria-final-2.log.txt
+0891a9082d0b0a75993abc629a965f04066db9c91ece48b144ec57087c129e35  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/trilho-b-bateria-final-3.log.txt
+ae73eec8dfe5b74d6f9bac141d27b8f3a7e0d85bb516668482548265e5a10a54  docs/evidence/trilho-b-reconcile-unknown-2026-09-19/captures/trilho-b-bateria-final.log.txt

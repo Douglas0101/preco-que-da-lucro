@@ -10,9 +10,8 @@
         "path": "src/server/services/product.service.ts"
       },
       "PricingService": {
-        "status": "consolidated",
-        "path": "src/server/services/purchase-price.service.ts",
-        "note": "implementação shipada consolida pricing em purchase-price.service.ts; serviço dedicado permanece alvo M02-2"
+        "status": "implemented",
+        "path": "src/server/services/pricing.service.ts"
       },
       "ExpenseService": {
         "status": "implemented",
@@ -28,24 +27,20 @@
         "path": "src/server/services/diagnostic.service.ts"
       },
       "ConversationService": {
-        "status": "consolidated",
-        "path": "src/lib/chat-data.ts",
-        "note": "persistência de conversas shipada em chat-data.ts; serviço dedicado permanece alvo M02-3"
+        "status": "implemented",
+        "path": "src/server/services/conversation.service.ts"
       },
       "MemoryService": {
-        "status": "contract-only",
-        "path": "src/server/contracts/memory.contracts.ts",
-        "target": "M-05"
+        "status": "implemented",
+        "path": "src/server/services/memory.service.ts"
       },
       "AuditService": {
-        "status": "consolidated",
-        "path": "src/lib/ai/tool-runner.ts",
-        "note": "audit-append shipado no tool runner; serviço dedicado permanece alvo M-04"
+        "status": "implemented",
+        "path": "src/server/services/audit.service.ts"
       },
       "EventService": {
-        "status": "contract-only",
-        "path": "src/server/contracts/event.contracts.ts",
-        "target": "M-04"
+        "status": "implemented",
+        "path": "src/server/services/event.service.ts"
       }
     },
     "repositories": {
@@ -81,29 +76,29 @@
         "status": "implemented",
         "path": "src/server/repositories/simulation.repository.ts"
       },
+      "DashboardRepository": {
+        "status": "implemented",
+        "path": "src/server/repositories/dashboard.repository.ts"
+      },
       "ConversationRepository": {
-        "status": "consolidated",
-        "path": "src/lib/chat-execution.server.ts",
-        "note": "escrita de mensagens shipada no executor de chat; repositório dedicado permanece alvo M02-3"
+        "status": "implemented",
+        "path": "src/server/repositories/conversation.repository.ts"
       },
       "MemoryRepository": {
-        "status": "contract-only",
-        "path": "src/server/contracts/memory.contracts.ts",
-        "target": "M-05"
+        "status": "implemented",
+        "path": "src/server/repositories/memory.repository.ts"
       },
       "CalculationSnapshotRepository": {
         "status": "implemented",
         "path": "src/server/repositories/calculation-snapshot.repository.ts"
       },
       "AuditRepository": {
-        "status": "consolidated",
-        "path": "src/server/repositories/ai-tool.repository.ts",
-        "note": "trilha de auditoria shipada em tool_executions via ai-tool.repository.ts; repositório dedicado permanece alvo M-04"
+        "status": "implemented",
+        "path": "src/server/repositories/audit.repository.ts"
       },
       "EventRepository": {
-        "status": "contract-only",
-        "path": "src/server/contracts/event.contracts.ts",
-        "target": "M-04"
+        "status": "implemented",
+        "path": "src/server/repositories/outbox.repository.ts"
       }
     }
   },
@@ -134,11 +129,6 @@
       "id": "transient-ai-modules",
       "pathPrefix": "src/lib/ai/",
       "reason": "TRANSITÓRIO (2026-09-05): budget-ledger é a arquitetura de referência H-001; unidades transacionais em transactionPolicies; migração ao catálogo-alvo permanece backlog M02-3/M-04"
-    },
-    {
-      "id": "transient-chat-data",
-      "pathPrefix": "src/lib/chat-data.ts",
-      "reason": "TRANSITÓRIO (2026-09-05): persistência de conversas shipada (leitura); alvo M02-3"
     },
     {
       "id": "transient-chat-execution",
@@ -194,11 +184,11 @@
     },
     "src/lib/dashboard.functions.ts": {
       "service": "DashboardService",
-      "repository": "DashboardReadRepository",
+      "repository": "DashboardRepository",
       "targetPhase": "M02-4"
     },
     "src/lib/diagnostic.functions.ts": {
-      "service": "DiagnosticService",
+      "service": "DiagnosticService/PricingService",
       "repository": "ProductReadRepository + ExpenseRepository",
       "targetPhase": "M02-4"
     },
@@ -224,6 +214,8 @@
       "listProductsWithMetrics": { "service": "ProductService", "repository": "ProductCatalogRepository" },
       "getProduct": { "service": "ProductService", "repository": "ProductCatalogRepository" },
       "upsertProduct": { "service": "ProductService", "repository": "ProductRepository" },
+      "createProduct": { "service": "ProductService", "repository": "ProductRepository" },
+      "updateProduct": { "service": "ProductService", "repository": "ProductRepository" },
       "archiveProduct": { "service": "ProductService", "repository": "ProductRepository" },
       "deleteProduct": { "service": "ProductService", "repository": "ProductRepository" },
       "upsertIngredient": { "service": "ProductService", "repository": "ProductCatalogRepository" },
@@ -236,6 +228,14 @@
       "getProductMetrics": { "service": "ProductService", "repository": "ProductCatalogRepository" },
       "listPurchasePrices": { "service": "PricingService", "repository": "ProductCatalogRepository" },
       "updatePurchasePrice": { "service": "PricingService", "repository": "PriceRepository" }
+    },
+    "src/lib/expenses.functions.ts": {
+      "listExpenses": { "service": "ExpenseService", "repository": "ExpenseRepository" },
+      "createExpense": { "service": "ExpenseService", "repository": "ExpenseRepository" },
+      "updateExpense": { "service": "ExpenseService", "repository": "ExpenseRepository" },
+      "upsertExpense": { "service": "ExpenseService", "repository": "ExpenseRepository" },
+      "deleteExpense": { "service": "ExpenseService", "repository": "ExpenseRepository" },
+      "getTotals": { "service": "ExpenseService", "repository": "ExpenseRepository" }
     },
     "src/lib/chat.functions.ts": {
       "getChatHistory": {
@@ -281,7 +281,7 @@
         {
           "id": "chat-reservation-history",
           "boundary": "tenant-transaction",
-          "evidence": "src/server/services/conversation.service.ts:95-124"
+          "evidence": "src/lib/chat-execution.server.ts:93-128"
         },
         {
           "id": "model-round-reserve",

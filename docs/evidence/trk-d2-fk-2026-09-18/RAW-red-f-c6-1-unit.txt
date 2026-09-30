@@ -1,0 +1,53 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-trk-d2
+
+ ❯ src/test/products-fk-conflict.test.ts (13 tests | 1 failed | 4 skipped) 21ms
+     × F-C6-1: 23503 de FK alheia não herda a mensagem de histórico 11ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/products-fk-conflict.test.ts > mapeamento FK 23503 → CONFLICT (WP-C4-1) > F-C6-1: 23503 de FK alheia não herda a mensagem de histórico
+AssertionError: expected ApplicationError: O registro possui histó… { …(3) } to match object { code: 'CONFLICT', status: 409, …(2) }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "cause": DrizzleQueryError {
+-     "message": "Failed query: delete from \"product_ingredients\" where \"id\" = $1
+- params: c4100000-0000-4000-8000-000000000004",
+-     "cause": error {
+-       "message": "update or delete on table \"product_ingredients\" violates foreign key constraint \"another_table_tenant_id_ingredient_id_fk\" on table \"purchase_price_history\"",
+-       "length": 0,
+-       "name": "error",
+-       "code": "23503",
+-       "constraint": "another_table_tenant_id_ingredient_id_fk",
+-     },
+-     "query": "delete from \"product_ingredients\" where \"id\" = $1",
+-     "params": [
+-       "c4100000-0000-4000-8000-000000000004",
+-     ],
+-   },
++ ApplicationError {
+    "code": "CONFLICT",
+-   "message": "O registro está referenciado por outros registros e não pode ser removido.",
+    "status": 409,
+  }
+
+ ❯ src/test/products-fk-conflict.test.ts:156:19
+    154|     );
+    155|     expect(error).toBeInstanceOf(ApplicationError);
+    156|     expect(error).toMatchObject({
+       |                   ^
+    157|       code: "CONFLICT",
+    158|       status: 409,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed | 4 skipped (13)
+   Start at  00:39:14
+   Duration  1.75s (transform 231ms, setup 96ms, import 1.01s, tests 21ms, environment 518ms)
+

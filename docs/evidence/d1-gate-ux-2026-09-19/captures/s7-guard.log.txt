@@ -1,0 +1,67 @@
+=== identidade ===
+HEAD: 3812febab80f9922d70512ecc3c623d233ecdd2a
+branch: mission/wp2-gate-ux
+base deste worktree: 59fd6113b000de489ff81d1505b9ff3605e2894c
+
+=== H-9: producao intocada ===
+listeners na 5432 (H-9): 0
+containers efemeros deste WP: 0
+
+=== fronteira de arquivos: so o que o WP declara ===
+ M scripts/m02-matrix.ts
+?? docs/evidence/d1-gate-ux-2026-09-19/
+?? scripts/lib/m02-matrix-drift.ts
+?? src/test/m02-matrix-drift.test.ts
+--- tocados ---
+docs/evidence/d1-gate-ux-2026-09-19/
+scripts/lib/m02-matrix-drift.ts
+scripts/m02-matrix.ts
+src/test/m02-matrix-drift.test.ts
+--- esperados ---
+docs/evidence/d1-gate-ux-2026-09-19/
+scripts/lib/m02-matrix-drift.ts
+scripts/m02-matrix.ts
+src/test/m02-matrix-drift.test.ts
+
+=== credenciais herdadas ===
+variaveis de credencial herdadas: 0
+  DATABASE_URL = (ausente)
+  DATABASE_ADMIN_URL = (ausente)
+  DATABASE_URL_UNPOOLED = (ausente)
+
+=== secret audit ===
+      ],
+      "classification": "consumer"
+    }
+  ]
+}
+SECRETS_EXIT=0
+
+=== varredura GROSSA de segredo no diff (medida, nao conclusiva) ===
+linhas suspeitas no diff: 0
+
+=== IDENTIDADE do que foi examinado (nao cardinalidade) ===
+sha256 do artefato examinado: d14c1810568665e5a9c72ed10a7aad04f180510ab468e73dfd0eebcda02ae8b5
+bytes examinados: 18213
+sha256 scripts/m02-matrix.ts: e023411d3577dc48fe14ed8018be561ac985e7b4113646a84edeca98bf87e24d
+sha256 scripts/lib/m02-matrix-drift.ts: 252ba9778b7c9a581bc07060fdd84b8ccb1996a82056977b9c651ed8cd535b23
+sha256 src/test/m02-matrix-drift.test.ts: 402e2a0a6871447d74feaa4d230c54747d1c750b0f538ae0900af0869b0fdc48
+
+=== o gate nao faz I/O no descritor? ===
+(nenhum import)
+imports do descritor: 0
+
+=== o gerador ainda escreve so no --generate? ===
+6:import { isEntrypoint, transactionSites } from "./lib/m02-transaction-sites";
+337:function writeOutputs(outputs: ReturnType<typeof buildMatrix>) {
+343:function checkOutputs(outputs: ReturnType<typeof buildMatrix>) {
+368:if (isEntrypoint(import.meta.url, process.argv[1])) {
+370:  if (process.argv.includes("--check")) checkOutputs(outputs);
+371:  else writeOutputs(outputs);
+
+=== o descritor decide exit code? ===
+OK: nenhum process.exit no descritor
+
+=== VEREDITO ===
+S7: GUARD OK — sem veto. Recusas declaradas: nenhuma
+S7_EXIT=0

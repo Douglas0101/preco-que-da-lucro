@@ -1,0 +1,20 @@
+import { describe, expect, it } from "vitest";
+
+describe("hunt todo", () => {
+  it("real", () => {
+    expect(1).toBe(1);
+  });
+  it.todo("gated 1");
+  it.todo("gated 2");
+  it.todo("gated 3");
+  it.todo("gated 4");
+  it.todo("gated 5");
+  it.todo("gated 6");
+  it.todo("gated 7");
+  it.todo("gated 8");
+  it.todo("gated 9");
+  it.todo("gated 10");
+  it.todo("gated 11");
+  it.todo("gated 12");
+  it.todo("gated 13");
+});

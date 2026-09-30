@@ -1,0 +1,96 @@
+=== 0. contexto ===
+branch   : mission/wp1-scanner-borders
+HEAD_SHA : 55b0090dd9d2deed2493208e0047e7af4998b0d6
+node     : v24.15.0
+npm      : 11.14.1
+typescript: 5.9.3
+porta 5432 (H-9) tocada? -> 0 listener(es)
+
+=== 0.5 normalizacao de formato dos arquivos novos ===
+normalizados (ou ja em estilo)
+
+=== 1. sonda de bordas: diff da arvore real + bateria sintetica ===
+=== A. ARVORE REAL (src/**, sem src/test/**) ===
+arquivos varridos: 132
+scanner do PAI : 113 sites
+scanner CORRIGIDO: 113 sites
+so no pai      : 0
+so no corrigido: 0
+VEREDITO A: diff VAZIO -> correcao neutra em contagem
+
+=== B. BATERIA SINTETICA DAS BORDAS ===
+
+--- b1 sombreamento por bloco aninhado [DIVERGE] ---
+  pai:
+    L3 repository-fallback  context.transaction
+    L6 repository-fallback  context.transaction
+    L8 repository-fallback  context.transaction
+  corrigido:
+    L3 repository-fallback  context.transaction
+    L8 repository-fallback  context.transaction
+
+--- b2 sombreamento por cabecalho de for [DIVERGE] ---
+  pai:
+    L3 repository-fallback  context.transaction
+    L4 repository-fallback  context.transaction
+  corrigido:
+    L4 repository-fallback  context.transaction
+
+--- b3 referencia ao alias em posicao de tipo [DIVERGE] ---
+  pai:
+    L3 repository-fallback  context.transaction
+    L4 repository-fallback  context.transaction
+  corrigido:
+    L4 repository-fallback  context.transaction
+
+--- b4 handle a ESQUERDA da coalescencia [DIVERGE] ---
+  pai:
+    L2 repository-fallback  context.transaction
+  corrigido:
+    L2 auth-allowlist  context.transaction
+
+--- b5 handle a DIREITA da coalescencia (regressao) [igual] ---
+  pai:
+    L2 repository-fallback  context.transaction
+  corrigido:
+    L2 repository-fallback  context.transaction
+
+--- b6 operador de atribuicao (??=) [DIVERGE] ---
+  pai:
+    L2 compatibility-facade  context.transaction
+  corrigido:
+    L2 repository-fallback  context.transaction
+
+VEREDITO B: 5 de 6 casos divergem entre pai e corrigido
+SONDA OK: neutra na arvore E observavel na bateria
+SONDA_EXIT=0
+
+=== 2. suite do scanner ===
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-wp1-scanner
+
+
+ Test Files  1 passed (1)
+      Tests  21 passed (21)
+   Start at  20:44:07
+   Duration  2.16s (transform 175ms, setup 104ms, import 333ms, tests 1.05s, environment 554ms)
+
+VITEST_EXIT=0
+
+=== 3. determinismo da matriz (deve passar SEM regenerar) ===
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix is deterministic and up to date.
+MATRIX_EXIT=0
+
+=== 4. tipos e estilo nos arquivos tocados ===
+TSC_EXIT=0
+Checking formatting...
+All matched files use Prettier code style!
+PRETTIER_EXIT=0
+
+=== RESUMO ===
+SONDA=0 VITEST=0 MATRIX=0 TSC=0 PRETTIER=0
+BATERIA WP1: OK

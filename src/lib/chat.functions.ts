@@ -1,19 +1,15 @@
-import { and, asc, eq } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { withTenantTransaction } from "@/db/client.server";
-import { chatConversations, chatMessages } from "@/db/schema";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import { recordSafely } from "@/instrumentation/safe-record";
 import { assertGatewayEndpoint } from "@/lib/ai-endpoint.server";
 import { ApplicationError } from "@/lib/api-error";
-import {
-  createTenantTransaction,
-  getConversation,
-  getOrCreateConversation,
-  numberSetting,
-} from "@/lib/chat-data";
+import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
 import { executeSendChatMessage } from "@/lib/chat-execution.server";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
+import { conversationService } from "@/server/services/conversation.service";
+import { logJson } from "@/lib/structured-logger";
 import { requireDatabaseIdentity } from "@/middleware/request-context";
 
 const inTenantTransaction = createTenantTransaction(withTenantTransaction);
@@ -189,8 +185,9 @@ async function runModelAttempt({
 }>): Promise<GatewayResponse | null> {
   const signal = AbortSignal.any([requestSignal, AbortSignal.timeout(timeoutMs)]);
   const attemptStartedAt = performance.now();
+  let outcome = "error";
   try {
-    return await fetchModelAttempt({
+    const response = await fetchModelAttempt({
       apiKey,
       endpoint,
       model,
@@ -201,19 +198,36 @@ async function runModelAttempt({
       attempt,
       attempts,
     });
+    outcome = response === null ? "retry" : "success";
+    return response;
   } catch (error) {
-    if (error instanceof ApplicationError) throw error;
+    if (error instanceof ApplicationError) {
+      outcome = error.code;
+      throw error;
+    }
     if (signal.aborted) {
+      outcome = "AI_TIMEOUT";
       applicationMetrics.aiTimeouts.add(1);
       throw new ApplicationError("AI_TIMEOUT", { cause: error });
     }
-    if (attempt >= attempts) throw new ApplicationError("DEPENDENCY_ERROR", { cause: error });
+    if (attempt >= attempts) {
+      outcome = "DEPENDENCY_ERROR";
+      throw new ApplicationError("DEPENDENCY_ERROR", { cause: error });
+    }
     await delay(retryDelayMs(attempt), requestSignal);
+    outcome = "retry";
     return null;
   } finally {
-    applicationMetrics.aiDuration.record(performance.now() - attemptStartedAt, {
+    const elapsedMs = performance.now() - attemptStartedAt;
+    recordSafely(applicationMetrics.aiDuration, elapsedMs, {
       model,
       attempt,
+    });
+    logJson("info", "ai.model_attempt", {
+      model,
+      attempt,
+      durationMs: Math.round(elapsedMs),
+      outcome,
     });
   }
 }
@@ -255,7 +269,7 @@ export const getChatHistory = createServerFn({ method: "GET" })
   .middleware([requireDatabaseIdentity])
   .handler(async ({ context }) =>
     inTenantTransaction(context.requestIdentity, async (request) => {
-      const conversation = await getConversation(request);
+      const conversation = await conversationService.findForUser(request);
       if (!conversation) {
         return {
           messages: [],
@@ -268,25 +282,13 @@ export const getChatHistory = createServerFn({ method: "GET" })
           },
         };
       }
-      const messages = await request.transaction
-        .select({
-          id: chatMessages.id,
-          role: chatMessages.role,
-          content: chatMessages.content,
-          created_at: chatMessages.createdAt,
-        })
-        .from(chatMessages)
-        .where(
-          and(
-            eq(chatMessages.tenantId, request.tenantId),
-            eq(chatMessages.conversationId, conversation.id),
-          ),
-        )
-        .orderBy(asc(chatMessages.createdAt));
+      const messages = await conversationService.listMessages(request, conversation.id);
       return {
         messages: messages.map((message) => ({
-          ...message,
-          created_at: message.created_at.toISOString(),
+          id: message.id,
+          role: message.role,
+          content: message.content,
+          created_at: message.createdAt.toISOString(),
         })),
         currentProductId: conversation.currentProductId,
         conversationState: conversation.conversationState,
@@ -312,7 +314,7 @@ export const createChatConversation = createServerFn({ method: "POST" })
   .middleware([requireDatabaseIdentity])
   .handler(async ({ context }) =>
     inTenantTransaction(context.requestIdentity, async (request) => {
-      const conversation = await getOrCreateConversation(request);
+      const conversation = await conversationService.getOrCreate(request);
       return {
         id: conversation.id,
         currentProductId: conversation.currentProductId,
@@ -324,31 +326,16 @@ export const clearChatHistory = createServerFn({ method: "POST" })
   .middleware([requireDatabaseIdentity])
   .handler(async ({ context }) =>
     inTenantTransaction(context.requestIdentity, async (request) => {
-      const conversation = await getOrCreateConversation(request);
-      await request.transaction
-        .delete(chatMessages)
-        .where(
-          and(
-            eq(chatMessages.tenantId, request.tenantId),
-            eq(chatMessages.conversationId, conversation.id),
-          ),
-        );
-      await request.transaction
-        .update(chatConversations)
-        .set({
-          currentProductId: null,
-          confirmedState: {},
-          conversationState: "idle",
-          stateUpdatedAt: new Date(),
-          resetAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(chatConversations.tenantId, request.tenantId),
-            eq(chatConversations.id, conversation.id),
-          ),
-        );
+      const conversation = await conversationService.getOrCreate(request);
+      await conversationService.deleteMessages(request, conversation.id);
+      await conversationService.updateConversation(request, conversation.id, {
+        currentProductId: null,
+        confirmedState: {},
+        conversationState: "idle",
+        stateUpdatedAt: new Date(),
+        resetAt: new Date(),
+        updatedAt: new Date(),
+      });
       return { ok: true as const };
     }),
   );
@@ -360,8 +347,4 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     executeSendChatMessage(data, context.requestIdentity, { modelCaller: callModel }),
   );
 
-export {
-  callModel as callModelForTests,
-  getConversation as getConversationForTests,
-  retryDelayMs as retryDelayMsForTests,
-};
+export { callModel as callModelForTests, retryDelayMs as retryDelayMsForTests };

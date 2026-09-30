@@ -1,0 +1,264 @@
+{
+  "check": "obs:pool-activity",
+  "read_only": true,
+  "generated_at": "2026-09-14T02:49:15.768Z",
+  "environment": {
+    "host": "127.0.0.1",
+    "database": "preco_que_da_lucro_test",
+    "driver": "node-postgres",
+    "local_only": true
+  },
+  "duration_ms": 4000,
+  "interval_ms": 250,
+  "max_connections": 100,
+  "samples": [
+    {
+      "elapsed_ms": 8,
+      "total": 3,
+      "active": 1,
+      "idle": 2,
+      "idle_in_transaction": 0,
+      "waiting": 1,
+      "states": {
+        "idle": 2,
+        "active": 1
+      },
+      "wait_events": {
+        "Client/ClientRead": 2,
+        "Timeout/PgSleep": 1
+      }
+    },
+    {
+      "elapsed_ms": 254,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 504,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 754,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 1004,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 1254,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 1504,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 1755,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 2005,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 2255,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 2505,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 2755,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 3004,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 3265,
+      "total": 3,
+      "active": 2,
+      "idle": 1,
+      "idle_in_transaction": 0,
+      "waiting": 2,
+      "states": {
+        "active": 2,
+        "idle": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 2,
+        "Client/ClientRead": 1
+      }
+    },
+    {
+      "elapsed_ms": 3505,
+      "total": 1,
+      "active": 1,
+      "idle": 0,
+      "idle_in_transaction": 0,
+      "waiting": 1,
+      "states": {
+        "active": 1
+      },
+      "wait_events": {
+        "Timeout/PgSleep": 1
+      }
+    },
+    {
+      "elapsed_ms": 3754,
+      "total": 0,
+      "active": 0,
+      "idle": 0,
+      "idle_in_transaction": 0,
+      "waiting": 0,
+      "states": {},
+      "wait_events": {}
+    }
+  ]
+}

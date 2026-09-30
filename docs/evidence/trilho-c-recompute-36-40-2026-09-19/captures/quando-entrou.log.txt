@@ -1,0 +1,51 @@
+== quando cada artefato entrou (ultimo commit que o tocou) ==
+drizzle/0015_curved_riptide.sql                      342a188 2026-09-15T02:05:06-03:00 feat(outbox): persist the domain event in the same transaction (23.1)
+drizzle/0016_slim_imperial_guard.sql                 1800252 2026-09-16T00:14:40-03:00 feat(backfill): persist the ledger with a versioned CAS checkpoint (28.2 + 2
+drizzle/0017_past_gideon.sql                         82acf93 2026-09-16T00:56:39-03:00 feat(memory): persist memory with provenance and tenant isolation (MEM-D2)
+drizzle/0018_polite_living_tribunal.sql              8c97651 2026-09-17T00:24:59-03:00 feat(memory): dedup key, version history and conflict registry (D3)
+drizzle/0019_tiresome_robin_chapel.sql               6b38580 2026-09-17T23:43:08-03:00 feat(mem): MEM-D4 — delete/export + access log + TTL L1–L5 (§43)
+src/server/services/memory.service.ts                9e910cc 2026-09-16T00:14:33-03:00 feat(memory): serviço de memória e policy engine do degrau D1 (sem persist
+src/server/services/event.service.ts                 da910e5 2026-09-16T00:51:04-03:00 feat(services): EventService runtime over the M-04 port — expense.service 
+src/server/services/memory.policy.ts                 c3e5972 2026-09-16T01:06:41-03:00 chore(format): prettier the memory files before the cycle-2 E2 gate
+src/server/repositories/memory.repository.ts         cbef82e 2026-09-17T23:56:41-03:00 docs(evidence): land the memory delete and export work package
+src/server/repositories/outbox.repository.ts         8ff51b7 2026-09-17T12:34:46-03:00 refactor(context): type the transaction handle behind a driver-neutral port
+scripts/db/test-memory.ts                            6b38580 2026-09-17T23:43:08-03:00 feat(mem): MEM-D4 — delete/export + access log + TTL L1–L5 (§43)
+scripts/db/test-outbox.ts                            1946a20 2026-09-15T02:20:12-03:00 chore(format): prettier the mission artifacts before the integration gate
+scripts/db/backfill-runner.ts                        1800252 2026-09-16T00:14:40-03:00 feat(backfill): persist the ledger with a versioned CAS checkpoint (28.2 + 2
+scripts/obs/pg-stat-statements.ts                    bc74e5f 2026-09-15T03:02:46-03:00 fix(obs): mede o SQL real do app e não vaza texto cru no pg_stat_statements
+src/test/pg-stat-statements.test.ts                  bc74e5f 2026-09-15T03:02:46-03:00 fix(obs): mede o SQL real do app e não vaza texto cru no pg_stat_statements
+
+== esses arquivos existem em 53b2996 (base do placar)? ==
+  PRESENTE  drizzle/0017_past_gideon.sql
+  PRESENTE  src/server/services/memory.service.ts
+  PRESENTE  src/server/services/event.service.ts
+  PRESENTE  src/server/repositories/memory.repository.ts
+  PRESENTE  src/server/repositories/outbox.repository.ts
+  PRESENTE  scripts/db/test-memory.ts
+  PRESENTE  scripts/obs/pg-stat-statements.ts
+
+== quando 53b2996 e 724594c foram commitados ==
+53b2996 2026-09-16T01:09:32-03:00 docs(evidence): close NAS-2 cycle 2 — 86.36% partial, ledgered after E2
+724594c 2026-09-15T00:54:23-03:00 docs(evidence): close Ondas 3 and 4 — L41 journal entry and worktree cleanup
+
+== GIN em memory.repository.ts ==
+14: * representação lexical (FTS/GIN) é D5.
+
+== tabelas ai_memory_* / ai_memories no schema ==
+40:/** Ações auditadas em `ai_memory_access_log` (§15.4/D4): retrieval, eliminação
+987: * plano (`ai_memories`/`ai_memory_sources`); `chat_*` permanece como
+990: * servir de alvo da FK composta de `ai_memory_sources` — o padrão §34 de
+1001:  "ai_memories",
+1017:     * `ai_memory_policies`. `L2` (episódica) é o default **declarado** do
+1032:    /** Alvo da FK composta de `ai_memory_sources`: precisa ser **constraint**
+1035:    unique("ai_memories_tenant_id_id_uidx").on(table.tenantId, table.id),
+1041:    uniqueIndex("ai_memories_tenant_dedup_key_active_uidx")
+1045:    index("ai_memories_tenant_status_created_idx").on(
+1054:    check("ai_memories_scope_check", sql`${table.scope} in ('tenant', 'user', 'conversation')`),
+1055:    check("ai_memories_content_check", sql`${table.content} <> ''`),
+1058:     * para carregar o estado — o rastro é a linha de `ai_memory_access_log`) e
+
+== RLS nas tabelas de memoria (migration 0017/0018/0019) ==
+drizzle/0019_tiresome_robin_chapel.sql:2
+drizzle/0017_past_gideon.sql:4
+drizzle/0018_polite_living_tribunal.sql:4

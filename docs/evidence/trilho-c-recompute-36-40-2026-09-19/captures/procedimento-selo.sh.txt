@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# TRILHO C — selo: capturas finais + manifesto sha256 verificado.
+set -uo pipefail
+export LC_ALL=C
+cd /home/douglas-souza/preco-que-d-main
+
+SEAL=docs/evidence/trilho-c-recompute-36-40-2026-09-19
+CAP=$SEAL/captures
+mkdir -p "$CAP"
+
+echo "== 1. log do gerador da camada recomputada =="
+{
+  echo "# TRILHO C — gerador da camada recomputada (NAO mede nada: aplica overrides declarados)"
+  echo "# comando: python3 .artifacts/zz-trilho-c-recompute.py"
+  echo "# data: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+  echo
+  python3 .artifacts/zz-trilho-c-recompute.py 2>&1
+  echo "EXIT=$?"
+} > "$CAP/recompute-camada.log.txt"
+tail -3 "$CAP/recompute-camada.log.txt"
+
+echo
+echo "== 2. diff dos dois documentos originais (antes/depois do aviso) =="
+{
+  echo "# TRILHO C — o que mudou nos dois documentos de origem da camada"
+  echo "# data: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+  echo "# base: HEAD antes do commit documental"
+  echo
+  git diff --stat -- docs/evidence/plan-recap-2026-09-15/ 2>&1
+  echo
+  git diff -- docs/evidence/plan-recap-2026-09-15/MEDICAO-2026-09-15.md \
+             docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md 2>&1
+} > "$CAP/diff-documentos-originais.log.txt"
+wc -l < "$CAP/diff-documentos-originais.log.txt"
+
+echo
+echo "== 3. armadilhas de .gitignore (raw/ e *.log) =="
+for f in $(find "$SEAL" -type f | sort); do
+  if git check-ignore -q "$f"; then echo "IGNORADO-PELO-GIT: $f"; fi
+done
+echo "arquivos em raw/: $(find "$SEAL" -type d -name raw | wc -l)"
+echo "arquivos *.log (nao .log.txt): $(find "$SEAL" -type f -name '*.log' | wc -l)"
+
+echo
+echo "== 3.4 instrumentos de verificacao versionados no selo (D12) =="
+# Critica estrutural do S6: a verificacao mecanica era autorada pela mesma sessao que fez as
+# afirmacoes, e os scripts viviam so em .artifacts/ (scratch gitignored) -- logo a adjudicacao
+# dos overrides nao era re-executavel a partir do commit. Aqui eles passam a ser selados com
+# sufixo .txt (extensao que nem o ESLint nem o prettier processam, e que o .gitignore nao engole).
+cp .artifacts/zz-trilho-c-recompute.py "$CAP/recompute-camada.py.txt"
+cp .artifacts/zz-verify-36-40-v2.py     "$CAP/verifica-mecanica.py.txt"
+cp .artifacts/zz-verifica-camada.py     "$CAP/verifica-camada.py.txt"
+cp .artifacts/zz-verifica-vinculo.py    "$CAP/verifica-vinculo.py.txt"
+cp .artifacts/zz-trilho-c-seal.sh       "$CAP/procedimento-selo.sh.txt"
+cp .artifacts/zz-colhe-transcript.py    "$CAP/colhe-transcript.py.txt"
+ls -1 "$CAP"/*.py.txt "$CAP"/*.sh.txt | sed "s|^$CAP/||"
+
+echo
+echo "== 3.5 prettier nos artefatos do selo e nos docs tocados =="
+# O gerador escreve as linhas SEM padding; o prettier alinha as colunas das tabelas.
+# Sem este passo o manifesto selaria bytes que o format:check da CI rejeita.
+npx prettier --write "$SEAL"/*.md \
+  EXECUTION-STATE-PROGRAM.md \
+  docs/evidence/agent-state/PROGRESS.md \
+  docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md \
+  docs/evidence/plan-recap-2026-09-15/MEDICAO-2026-09-15.md 2>&1 | tail -8
+npx prettier --check "$SEAL"/*.md EXECUTION-STATE-PROGRAM.md \
+  docs/evidence/agent-state/PROGRESS.md \
+  docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md \
+  docs/evidence/plan-recap-2026-09-15/MEDICAO-2026-09-15.md 2>&1 | tail -2
+echo "PRETTIER_CHECK_EXIT=$?"
+
+echo
+echo "== 3.6 verificacao independente da camada (identidade, nao cardinalidade) =="
+{
+  echo "# TRILHO C — verificacao independente da camada recomputada"
+  echo "# comando: python3 .artifacts/zz-verifica-camada.py"
+  echo "# data: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+  echo "# a prova que importa: o numero de linhas com celulas diferentes da origem"
+  echo "# tem de bater com o numero de overrides DECLARADOS (19 = 3 status + 16 evidencias)."
+  echo
+  python3 .artifacts/zz-verifica-camada.py 2>&1
+  echo "EXIT=$?"
+} > "$CAP/verificacao-independente.log.txt"
+tail -12 "$CAP/verificacao-independente.log.txt"
+
+echo
+echo "== 4. manifesto sha256 =="
+rm -f "$SEAL/MANIFEST.sha256"
+find "$SEAL" -type f ! -name 'MANIFEST.sha256' -print0 | sort -z | xargs -0 sha256sum > "$SEAL/MANIFEST.sha256"
+DISC=$(find "$SEAL" -type f ! -name 'MANIFEST.sha256' | wc -l)
+LIST=$(wc -l < "$SEAL/MANIFEST.sha256")
+echo "descobertos=$DISC listados=$LIST"
+if [ "$DISC" != "$LIST" ]; then echo "checked === discovered: FALHOU"; exit 2; fi
+echo "checked === discovered: OK"
+# O manifesto carrega caminhos relativos à RAIZ do repo: a conferência roda da raiz.
+echo -n "OK=" && sha256sum -c "$SEAL/MANIFEST.sha256" 2>&1 | grep -c ': OK$'
+echo -n "NAO-OK=" && sha256sum -c "$SEAL/MANIFEST.sha256" 2>&1 | grep -vc ': OK$'
+du -sh "$SEAL"

@@ -1,0 +1,2 @@
+import { defineConfig } from "vitest/config";
+export default defineConfig({ test: { environment: "node", include: [".artifacts/s6-one.test.ts", ".artifacts/s6-five.test.ts"] } });

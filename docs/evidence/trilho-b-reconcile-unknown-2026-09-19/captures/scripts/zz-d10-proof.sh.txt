@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd /home/douglas-souza/preco-que-d-main/.worktree-b-reconcile
+
+export DATABASE_ADMIN_URL="postgresql://postgres:postgres@127.0.0.1:5434/preco_que_da_lucro_test"
+export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5434/preco_que_da_lucro_test"
+export DATABASE_DRIVER=node-postgres
+unset DATABASE_URL_UNPOOLED || true
+
+TEN_A='aaaaaaaa-0000-4000-8000-000000000001'
+TEN_B='bbbbbbbb-0000-4000-8000-000000000002'
+TEN_C='cccccccc-0000-4000-8000-000000000003'
+USR_A='aaaaaaaa-0000-4000-8000-00000000000a'
+USR_B='bbbbbbbb-0000-4000-8000-00000000000b'
+USR_C='cccccccc-0000-4000-8000-00000000000c'
+
+fk() { docker exec -i trk-b-pg psql -U postgres -d preco_que_da_lucro_test -qAt -c "$1"; }
+
+echo "=== D10 — prova do gauge publicado UMA vez com o MÁXIMO agregado ==="
+echo "Ordem de iteração do CLI é 'order by t.id': A(aaaa) < B(bbbb) < C(cccc)."
+echo "A tem backlog de ~9h · B NÃO tem candidato algum · C tem backlog de ~7h."
+echo "MÁXIMO agregado esperado = A (~32,4M ms). Last-write-wins daria C (~25,2M ms)."
+echo
+
+echo "--- limpeza prévia ---"
+fk "delete from ai_usage where tenant_id in ('$TEN_A','$TEN_B','$TEN_C');" >/dev/null
+fk "delete from tenant_memberships where tenant_id in ('$TEN_A','$TEN_B','$TEN_C');" >/dev/null
+fk "delete from tenants where id in ('$TEN_A','$TEN_B','$TEN_C');" >/dev/null
+fk "delete from users where id in ('$USR_A','$USR_B','$USR_C');" >/dev/null
+
+echo "--- fixture ---"
+fk "
+insert into users (id, name, email) values
+  ('$USR_A','D10 A','d10-a@example.test'),
+  ('$USR_B','D10 B','d10-b@example.test'),
+  ('$USR_C','D10 C','d10-c@example.test');
+insert into tenants (id, name, slug) values
+  ('$TEN_A','D10 tenant A','d10-tenant-a'),
+  ('$TEN_B','D10 tenant B','d10-tenant-b'),
+  ('$TEN_C','D10 tenant C','d10-tenant-c');
+insert into tenant_memberships (tenant_id, user_id, role) values
+  ('$TEN_A','$USR_A','owner'),
+  ('$TEN_B','$USR_B','owner'),
+  ('$TEN_C','$USR_C','owner');
+insert into ai_usage (tenant_id, kind, budget_tokens, status, settled_at, outcome) values
+  ('$TEN_A','chat',100,'settled', now() - interval '9 hours','usage_unknown'),
+  ('$TEN_C','chat',100,'settled', now() - interval '7 hours','usage_unknown');
+" && echo "fixture inserida"
+
+echo
+echo "--- estado inicial (A=9h, B=nenhum, C=7h — ambos acima do corte de 6h) ---"
+fk "select tenant_id||' | '||coalesce(outcome,'-')||' | settled_at='||coalesce(settled_at::text,'-') from ai_usage where tenant_id in ('$TEN_A','$TEN_B','$TEN_C') order by tenant_id;"
+
+echo
+echo "--- dry-run: idades por tenant, na ordem de iteração ---"
+npm run db:reconcile-ai-usage -- --all-tenants --dry-run 2>&1 | grep -E "tenant=(aaaa|bbbb|cccc)|TRILHO-B reconciliação" || true
+
+echo
+echo "--- aplicado ---"
+set +e
+APPLIED_OUT=$(npm run db:reconcile-ai-usage -- --all-tenants 2>&1)
+JOB_EXIT=$?
+set -e
+echo "$APPLIED_OUT" | grep -E "tenant=(aaaa|bbbb|cccc)|TRILHO-B reconciliação|AVISO" || true
+echo "JOB_EXIT=$JOB_EXIT"
+
+echo
+echo "--- estado final ---"
+fk "select tenant_id||' | '||coalesce(outcome,'-')||' | real_tokens='||coalesce(real_tokens::text,'NULL') from ai_usage where tenant_id in ('$TEN_A','$TEN_B','$TEN_C') order by tenant_id;"
+
+echo
+echo "--- PROVA ESTRUTURAL: sítios de publicação do gauge ---"
+echo "budget-ledger.server.ts (biblioteca, per-tenant) referencia o gauge?"
+if grep -q 'reportReconciliationOldestAge' src/lib/ai/budget-ledger.server.ts; then
+  echo "  SIM — a biblioteca ainda publica por tenant (D10 NÃO corrigido)"
+else
+  echo "  NAO — a biblioteca não publica mais (D10 corrigido do lado do per-tenant)"
+fi
+echo "chamadas em scripts/db/reconcile-ai-usage.ts:"
+grep -n 'reportReconciliationOldestAge(' scripts/db/reconcile-ai-usage.ts
+
+echo
+echo "--- limpeza final ---"
+fk "delete from ai_usage where tenant_id in ('$TEN_A','$TEN_B','$TEN_C');" >/dev/null
+fk "delete from tenant_memberships where tenant_id in ('$TEN_A','$TEN_B','$TEN_C');" >/dev/null
+fk "delete from tenants where id in ('$TEN_A','$TEN_B','$TEN_C');" >/dev/null
+fk "delete from users where id in ('$USR_A','$USR_B','$USR_C');" >/dev/null
+echo "fixtures restantes D10: $(fk "select count(*) from tenants where slug like 'd10-tenant-%';")"

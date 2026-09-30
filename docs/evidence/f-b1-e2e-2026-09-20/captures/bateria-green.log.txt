@@ -1,0 +1,70 @@
+=== revisao examinada ===
+  HEAD: 612c34bc9dfb49945854b29773362f012df07020
+  sha256 src/lib/vercel-analytics.ts: b895151895c0405dd6d88fafbdf5b1860f15de12573f3d695f35a9f56e245785
+  sha256 e2e/analytics-gate.spec.ts:  9b1c58e98c83791e077f1b67bcc7c0c653f607da83b49a817d744ae31e668b6a
+=== container efemero wp5-pg em 127.0.0.1:5439 ===
+  PostgreSQL 17.11 on x86_64-pc-linux-musl
+  migrations ok
+
+> pretest:e2e
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> test:e2e
+> playwright test e2e/analytics-gate.spec.ts
+
+[WebServer] .env not found. Continuing without it.
+
+Running 4 tests using 2 workers
+
+[WebServer] (node:653135) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+[WebServer] (Use `node --trace-deprecation ...` to show where the warning was created)
+[WebServer] {"timestamp":"2026-09-20T02:13:40.366Z","level":"error","event":"request.failed","correlationId":"c3d15193-f6db-47d8-ac08-74399b1677e0","code":"INTERNAL_ERROR","method":"GET","pathname":"/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59","durationMs":76,"error":{"name":"Error","message":"aborted"}}
+[WebServer] Error: aborted
+[WebServer]     at abortIncoming (node:_http_server:848:17)
+[WebServer]     at socketOnClose (node:_http_server:842:3)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12) (status 500)
+[WebServer] caused by: Error: aborted
+[WebServer]     at abortIncoming (node:_http_server:848:17)
+[WebServer]     at socketOnClose (node:_http_server:842:3)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12)
+[WebServer] {"timestamp":"2026-09-20T02:13:40.377Z","level":"error","event":"server.ssr_failed","correlationId":"7fe0142b-40d9-4ba5-9c58-27df02a968cd","error":{"name":"HTTPError","message":"aborted"}}
+  ✓  1 [chromium] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (1.6s)
+  ✓  2 [firefox] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (2.8s)
+[WebServer] {"timestamp":"2026-09-20T02:13:42.195Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:13:42.199Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:13:42.414Z","level":"error","event":"request.failed","correlationId":"a5650f33-1994-4bf6-9bf3-f4b2ba1ffebd","code":"INTERNAL_ERROR","method":"POST","pathname":"/api/vitals","durationMs":6,"error":{"name":"AbortError","message":"This operation was aborted"}}
+[WebServer] AbortError: This operation was aborted
+[WebServer]     at new DOMException (node:internal/per_context/domexception:76:18)
+[WebServer]     at AbortController.abort (node:internal/abort_controller:506:18)
+[WebServer]     at abort (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:316:51)
+[WebServer]     at ServerResponse.<anonymous> (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:320:35)
+[WebServer]     at Object.onceWrapper (node:events:630:28)
+[WebServer]     at ServerResponse.emit (node:events:509:28)
+[WebServer]     at emitCloseNT (node:_http_server:1076:10)
+[WebServer]     at Socket.onServerResponseClose (node:_http_server:289:5)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12) (status 500)
+[WebServer] caused by: AbortError: This operation was aborted
+[WebServer]     at new DOMException (node:internal/per_context/domexception:76:18)
+[WebServer]     at AbortController.abort (node:internal/abort_controller:506:18)
+[WebServer]     at abort (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:316:51)
+[WebServer]     at ServerResponse.<anonymous> (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:320:35)
+[WebServer]     at Object.onceWrapper (node:events:630:28)
+[WebServer]     at ServerResponse.emit (node:events:509:28)
+[WebServer]     at emitCloseNT (node:_http_server:1076:10)
+[WebServer]     at Socket.onServerResponseClose (node:_http_server:289:5)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12)
+[WebServer] {"timestamp":"2026-09-20T02:13:42.417Z","level":"error","event":"server.ssr_failed","correlationId":"051b5b51-dc31-48c8-95bd-82546656024e","error":{"name":"HTTPError","message":"This operation was aborted"}}
+[WebServer] {"timestamp":"2026-09-20T02:13:42.600Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:13:42.603Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:13:43.416Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✓  3 [webkit] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (2.5s)
+  ✓  4 [mobile] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (1.3s)
+
+  4 passed (12.7s)
+PLAYWRIGHT_EXIT=0

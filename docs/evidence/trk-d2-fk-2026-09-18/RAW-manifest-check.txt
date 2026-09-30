@@ -1,0 +1,19 @@
+$ cd docs/evidence/trk-d2-fk-2026-09-18 && sha256sum -c manifest.sha256
+probe-real-driver-error-shape.ts: OK
+RAW-control-failclosed-no-admin-url.txt: OK
+RAW-control-failclosed-remote-url.txt: OK
+RAW-green-f-c6-1-db.txt: OK
+RAW-green-f-c6-1-unit.txt: OK
+RAW-green-f-c6-2-dbtest.txt: OK
+RAW-green-f-c6-2-runner.txt: OK
+RAW-green-npm-test-without-url.txt: OK
+RAW-matrix-drift-check.txt: OK
+RAW-matrix-drift-diff.txt: OK
+RAW-pg-constraint-names.txt: OK
+RAW-real-driver-error-shape.txt: OK
+RAW-red-f-c6-1-unit.txt: OK
+RAW-red-f-c6-2-parent-dbtest-wiring.txt: OK
+RAW-red-f-c6-2-parent-silent-skip.txt: OK
+RAW-static-gates.txt: OK
+README.md: OK
+exit=0

@@ -1,0 +1,10 @@
+import { spawnSync } from "node:child_process";
+const REPO = "/home/douglas-souza/preco-que-d-main/.worktree-a-failopen";
+const DEAD = "postgresql://postgres:postgres@127.0.0.1:59999/preco_que_da_lucro_test";
+const env = { ...process.env, DATABASE_ADMIN_URL: DEAD, DATABASE_URL: DEAD, DATABASE_URL_UNPOOLED: "postgresql://postgres:pw@ep-remote-prod.neon.tech:5432/neondb", DATABASE_DRIVER: "node-postgres" };
+const t0 = Date.now();
+const r = spawnSync(process.execPath, ["node_modules/.bin/tsx", "scripts/db/test-products-fk-conflict.ts"], { cwd: REPO, env, encoding: "utf8", maxBuffer: 100 * 1024 * 1024 });
+const lines = ((r.stdout || "") + (r.stderr || "")).split("\n").map((s) => s.trim()).filter(Boolean);
+console.log("C5-noconn: admin=DETACHED port 59999, unpooled=remote  exit=" + String(r.status) + "  ms=" + String(Date.now() - t0));
+console.log("any ECONNREFUSED/ENOTFOUND/connect error in output:", /ECONNREFUSED|ENOTFOUND|getaddrinfo|connect/i.test(lines.join("\n")));
+for (const s of lines.filter((l) => /Tests |AssertionError/.test(l)).slice(-2)) console.log("   | " + s);

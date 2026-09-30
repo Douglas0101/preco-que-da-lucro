@@ -9,7 +9,9 @@ import {
   type TransactionManager,
 } from "@/db/client.server";
 import { toDecimalString } from "@/lib/financial-values";
+import { applicationMetrics } from "@/instrumentation/telemetry";
 import { logJson } from "@/lib/structured-logger";
+import { type TokenUsage, type TokenUsageUnknownReason } from "@/lib/ai/token-usage";
 
 export const DEFAULT_BUDGET_CONFIG = {
   dailyModelCallLimit: 500,
@@ -59,6 +61,16 @@ export interface SettleOptions {
   costStatus?: "known" | "unknown" | "invalid";
 }
 
+/**
+ * What a settlement is allowed to assert about token usage (INV-006).
+ *
+ * A plain `number` keeps every pre-existing call site working unchanged. A
+ * `TokenUsage` carries the gateway classification: only `{ kind: "known" }`
+ * produces counts; `{ kind: "unknown" }` is persisted as such instead of being
+ * coerced into a zero that was never measured.
+ */
+export type SettlementUsage = number | TokenUsage;
+
 export interface ModelTokenPrice {
   inputPerMillion: number;
   outputPerMillion: number;
@@ -99,6 +111,57 @@ export interface SweepResult {
   usageIds: readonly string[];
 }
 
+/**
+ * TRILHO B — reconciliação dos eventos `usage_unknown`.
+ *
+ * O varredor de reservas só alcança `status='reserved'`; um evento que chegou a
+ * `settle` sem medição fica em `status='settled'` + `outcome='usage_unknown'` e
+ * nunca é revisitado, retendo `tokens_reserved` indefinidamente. Este caminho
+ * fecha essa lacuna **sem liberar a reserva**: ele torna o estado persistido e
+ * auditável, e a liberação continua sendo uma decisão humana em comando próprio.
+ */
+export interface ReconcileUnknownOptions {
+  /** Idade mínima desde `settled_at` para tratar a linha (ms). */
+  minAgeMs?: number;
+  /** Teto de linhas tratadas em uma execução. */
+  batchSize?: number;
+  now?: Date;
+}
+
+export interface ReconcileUnknownResult {
+  /** Linhas candidatas dentro do corte de idade. */
+  scannedCount: number;
+  /** Linhas efetivamente marcadas nesta execução (CAS ganho). */
+  failedCount: number;
+  /** `usage_id`s marcados **nesta** execução — vazio em replay. */
+  usageIds: readonly string[];
+  /** Idade do candidato mais antigo visto, ou `null` quando não houve candidato. */
+  oldestAgeMs: number | null;
+}
+
+/** Rótulo persistido em `ai_usage.outcome` quando não há como medir o uso real. */
+export const RECONCILIATION_FAILED_OUTCOME = "reconciliation_failed";
+
+/**
+ * Rótulo gravado pelo **comando humano** de liberação. Deliberadamente **não** é
+ * `reconciled`: nada foi reconciliado — a medição continua impossível e
+ * `real_tokens` continua `NULL`. O rótulo diz o que de fato aconteceu: a reserva
+ * foi devolvida sem que o consumo tenha sido medido.
+ */
+export const RESERVATION_RELEASED_OUTCOME = "reservation_released";
+
+export interface ReleaseUnknownResult {
+  /** `false` quando o CAS não encontrou a linha (replay, ou outro executor venceu). */
+  applied: boolean;
+  usageId: string;
+  /** Tokens devolvidos a `tokens_reserved`, ou `null` quando `applied` é `false`. */
+  releasedTokens: number | null;
+}
+
+export const DEFAULT_RECONCILE_MIN_AGE_MS = 6 * 60 * 60 * 1000;
+export const DEFAULT_RECONCILE_BATCH_SIZE = 100;
+export const MAX_RECONCILE_BATCH_SIZE = 1_000;
+
 export interface BudgetLedger {
   reserveChatInTransaction(
     transaction: DatabaseTransaction,
@@ -112,11 +175,25 @@ export interface BudgetLedger {
   ): Promise<ReserveResult>;
   settle(
     usageId: string,
-    realTokens: number,
+    usage: SettlementUsage,
     outcome: string,
     options?: SettleOptions,
   ): Promise<SettlementResult>;
   sweepOrphans(tenantId: string, options?: SweepOptions): Promise<SweepResult>;
+  reconcileUnknownUsage(
+    tenantId: string,
+    options?: ReconcileUnknownOptions,
+  ): Promise<ReconcileUnknownResult>;
+  /**
+   * Devolve a reserva retida de **um** evento `reconciliation_failed`. É o passo
+   * que a decisão humana reservou para comando explícito: nunca é chamado pelo
+   * job de reconciliação. `real_tokens` permanece `NULL`.
+   */
+  releaseUnknownReservation(
+    tenantId: string,
+    usageId: string,
+    options?: { now?: Date },
+  ): Promise<ReleaseUnknownResult>;
 }
 
 export interface BudgetLedgerDependencies {
@@ -374,6 +451,41 @@ function tokenBreakdown(
   return { inputTokens, outputTokens };
 }
 
+type ResolvedSettlement =
+  | {
+      kind: "known";
+      realTokens: number;
+      breakdown: { inputTokens: number; outputTokens: number };
+    }
+  | { kind: "unknown"; reason: TokenUsageUnknownReason };
+
+/**
+ * Normalises a settlement input into counts we can defend (INV-006).
+ *
+ * A numeric input is treated as an already-known measurement (legacy call sites).
+ * A `TokenUsage` is honoured as classified: `unknown` never fabricates a breakdown.
+ */
+function resolveSettlementUsage(
+  usage: SettlementUsage,
+  options: SettleOptions,
+): ResolvedSettlement {
+  if (typeof usage === "number") {
+    return { kind: "known", realTokens: usage, breakdown: tokenBreakdown(usage, options) };
+  }
+  if (usage.kind === "unknown") return { kind: "unknown", reason: usage.reason };
+
+  const realTokens = usage.inputTokens + usage.outputTokens;
+  return {
+    kind: "known",
+    realTokens,
+    breakdown: tokenBreakdown(realTokens, {
+      ...options,
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    }),
+  };
+}
+
 interface BudgetCostSetters {
   /** Known decimal string to add to ai_daily_budgets.estimated_cost, or null. */
   costIncrement: string | null;
@@ -494,6 +606,138 @@ function logExpired(tenantId: string, now: Date, result: SweepInTransactionResul
       outcome: "ttl_expired",
     });
   }
+}
+
+interface UnknownUsageRow {
+  usageId: string;
+  budgetTokens: number;
+  settledAt: Date | string;
+}
+
+interface ReconcileInTransactionResult {
+  scannedCount: number;
+  oldestAgeMs: number | null;
+  failed: readonly UnknownUsageRow[];
+}
+
+async function reconcileUnknownInTransaction(
+  transaction: DatabaseTransaction,
+  tenantId: string,
+  now: Date,
+  minAgeMs: number,
+  batchSize: number,
+): Promise<ReconcileInTransactionResult> {
+  const cutoff = new Date(now.getTime() - minAgeMs);
+  const candidateResult = await transaction.execute(sql`
+    select
+      usage_id::text as "usageId",
+      budget_tokens as "budgetTokens",
+      settled_at as "settledAt"
+    from ai_usage
+    where tenant_id = ${tenantId}
+      and status = 'settled'
+      and outcome = 'usage_unknown'
+      and settled_at is not null
+      and settled_at < ${cutoff}
+    order by settled_at asc
+    limit ${batchSize}
+  `);
+  const candidates = rows<UnknownUsageRow>(candidateResult).map((row) => ({
+    usageId: String(row.usageId),
+    budgetTokens: asInteger(row.budgetTokens, "budgetTokens"),
+    settledAt: row.settledAt as Date | string,
+  }));
+  if (candidates.length === 0) return { scannedCount: 0, oldestAgeMs: null, failed: [] };
+
+  let oldestAgeMs = 0;
+  const failed: UnknownUsageRow[] = [];
+  for (const candidate of candidates) {
+    const age = durationMs(now, candidate.settledAt);
+    if (age > oldestAgeMs) oldestAgeMs = age;
+    // INV-009 — compare-and-set pela identidade do evento. `returning` vazio
+    // significa que outro executor (ou o comando humano de liberação) já tratou
+    // esta linha: o replay é no-op e nunca duplica efeito. O `status` continua
+    // `settled` e `real_tokens` continua nulo — nada aqui inventa um número.
+    const claimedResult = await transaction.execute(sql`
+      update ai_usage
+      set outcome = ${RECONCILIATION_FAILED_OUTCOME}
+      where usage_id = ${candidate.usageId}
+        and tenant_id = ${tenantId}
+        and status = 'settled'
+        and outcome = 'usage_unknown'
+      returning usage_id::text as "usageId"
+    `);
+    if (rows(claimedResult).length !== 1) continue;
+    failed.push(candidate);
+  }
+  return { scannedCount: candidates.length, oldestAgeMs, failed };
+}
+
+async function releaseUnknownInTransaction(
+  transaction: DatabaseTransaction,
+  tenantId: string,
+  usageId: string,
+  now: Date,
+): Promise<ReleaseUnknownResult> {
+  // INV-009 — o CAS é o que torna o comando humano seguro de repetir: um replay
+  // não encontra mais `reconciliation_failed` e devolve `applied: false` sem
+  // tocar no contador.
+  const claimedResult = await transaction.execute(sql`
+    update ai_usage
+    set outcome = ${RESERVATION_RELEASED_OUTCOME}
+    where usage_id = ${usageId}
+      and tenant_id = ${tenantId}
+      and status = 'settled'
+      and outcome = ${RECONCILIATION_FAILED_OUTCOME}
+    returning budget_tokens as "budgetTokens", reserved_at as "reservedAt"
+  `);
+  const [claimed] = rows<ClaimedRow>(claimedResult);
+  if (!claimed) return { applied: false, usageId, releasedTokens: null };
+
+  const budgetTokens = asInteger(claimed.budgetTokens, "budgetTokens");
+  const usageDate = utcDate(claimed.reservedAt);
+  // Só `tokens_reserved` volta: `in_flight` já foi decrementado no `settle`, e
+  // `real_tokens` continua `NULL` — devolver a reserva não mede o consumo.
+  const countersResult = await transaction.execute(sql`
+    update ai_daily_budgets
+    set
+      tokens_reserved = tokens_reserved - ${budgetTokens},
+      updated_at = ${now}
+    where tenant_id = ${tenantId}
+      and usage_date = ${usageDate}
+    returning tokens_reserved as "tokensReserved"
+  `);
+  if (rows(countersResult).length !== 1) {
+    throw new Error("A liberação não encontrou o contador diário correspondente");
+  }
+  return { applied: true, usageId, releasedTokens: budgetTokens };
+}
+
+function logReconciliationFailed(
+  tenantId: string,
+  now: Date,
+  result: ReconcileInTransactionResult,
+): void {
+  for (const row of result.failed) {
+    applicationMetrics.aiReconciliationTotal.add(1, { outcome: RECONCILIATION_FAILED_OUTCOME });
+    applicationMetrics.aiReconciliationFailed.add(1, { outcome: RECONCILIATION_FAILED_OUTCOME });
+    logJson("warn", "ai.reconciliation_failed", {
+      tenantId,
+      usageId: row.usageId,
+      budget: row.budgetTokens,
+      real: null,
+      durationMs: durationMs(now, row.settledAt),
+      outcome: RECONCILIATION_FAILED_OUTCOME,
+      reason: "gateway_retrieval_unavailable",
+    });
+  }
+  // O gauge NÃO é publicado aqui de propósito. Esta função roda uma vez por
+  // tenant (o CLI itera tenants) e o gauge é last-write-wins: cada escrita apaga
+  // a anterior. Publicar por tenant fazia um tenant posterior SEM candidatos
+  // gravar 0 e apagar a idade de backlog de um tenant anterior — defeito D10,
+  // regressão introduzida pela correção do D2. Quem publica é o chamador, uma
+  // única vez, com o MÁXIMO da corrida inteira. Os counters acima ficam: são
+  // por evento e somam corretamente entre tenants.
 }
 
 export function createBudgetLedger(dependencies: BudgetLedgerDependencies): BudgetLedger {
@@ -625,14 +869,18 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
       return transactionResult.reservation;
     },
 
-    async settle(usageId, realTokens, outcome, options = {}): Promise<SettlementResult> {
+    async settle(usageId, usage, outcome, options = {}): Promise<SettlementResult> {
       assertText("usageId", usageId);
       assertText("outcome", outcome);
       const now = options.now ?? clock.now();
       assertDate(now, "now");
-      const breakdown = tokenBreakdown(realTokens, options);
+      const settlement = resolveSettlementUsage(usage, options);
       const toolCalls = options.toolCalls ?? 0;
       assertNonNegativeInteger("toolCalls", toolCalls);
+      // The column already carries reasons (`ttl_expired`, `chat_limit`, `budget_limit`),
+      // so an unknown measurement is recorded as a reason rather than as a flow result.
+      // The flow outcome travels in the structured event below, so nothing is lost.
+      const persistedOutcome = settlement.kind === "unknown" ? "usage_unknown" : outcome;
 
       const applySettlement = () =>
         transactionRunner.run(
@@ -643,8 +891,8 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
               set
                 status = 'settled',
                 settled_at = ${now},
-                real_tokens = ${realTokens},
-                outcome = ${outcome},
+                real_tokens = ${settlement.kind === "known" ? settlement.realTokens : null},
+                outcome = ${persistedOutcome},
                 estimated_cost = ${options.estimatedCost ?? null},
                 cost_status = ${options.costStatus ?? "unknown"}
               where usage_id = ${usageId}
@@ -657,20 +905,32 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
 
             const budgetTokens = asInteger(claimed.budgetTokens, "budgetTokens");
             const usageDate = utcDate(claimed.reservedAt);
+            // Known usage: release the reservation and add the measured counts.
+            // Unknown usage (INV-006): the call is no longer in flight, but the reserved
+            // tokens stay held — releasing them would assert a consumption of zero that
+            // was never measured, which is exactly what hid usage from the daily ceiling.
+            // Retaining the reservation errs on the safe side (over-estimate) and the
+            // `ai.usage_unknown` event keeps the leak visible for reconciliation.
+            const counterUpdates =
+              settlement.kind === "known"
+                ? [
+                    sql`tokens_reserved = tokens_reserved - ${budgetTokens}`,
+                    sql`in_flight = in_flight - 1`,
+                    sql`input_tokens = input_tokens + ${settlement.breakdown.inputTokens}`,
+                    sql`output_tokens = output_tokens + ${settlement.breakdown.outputTokens}`,
+                    sql`tool_call_count = tool_call_count + ${toolCalls}`,
+                    budgetCostSetterSql(options),
+                    sql`updated_at = ${now}`,
+                  ]
+                : [
+                    sql`in_flight = in_flight - 1`,
+                    sql`tool_call_count = tool_call_count + ${toolCalls}`,
+                    budgetCostSetterSql(options),
+                    sql`updated_at = ${now}`,
+                  ];
             const countersResult = await transaction.execute(sql`
               update ai_daily_budgets
-              set ${sql.join(
-                [
-                  sql`tokens_reserved = tokens_reserved - ${budgetTokens}`,
-                  sql`in_flight = in_flight - 1`,
-                  sql`input_tokens = input_tokens + ${breakdown.inputTokens}`,
-                  sql`output_tokens = output_tokens + ${breakdown.outputTokens}`,
-                  sql`tool_call_count = tool_call_count + ${toolCalls}`,
-                  budgetCostSetterSql(options),
-                  sql`updated_at = ${now}`,
-                ],
-                sql`, `,
-              )}
+              set ${sql.join(counterUpdates, sql`, `)}
               where tenant_id = ${dependencies.identity.tenantId}
                 and usage_date = ${usageDate}
               returning tokens_reserved as "tokensReserved", in_flight as "inFlight"
@@ -707,9 +967,10 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
         tenantId: dependencies.identity.tenantId,
         usageId,
         budget: result.budgetTokens,
-        real: realTokens,
+        real: settlement.kind === "known" ? settlement.realTokens : null,
+        usageUnknownReason: settlement.kind === "unknown" ? settlement.reason : null,
         durationMs: result.durationMs,
-        outcome,
+        outcome: persistedOutcome,
         applied: result.applied,
       });
       return result;
@@ -724,6 +985,58 @@ export function createBudgetLedger(dependencies: BudgetLedgerDependencies): Budg
       );
       logExpired(tenantId, now, result);
       return { expiredCount: result.expiredCount, usageIds: result.usageIds };
+    },
+
+    async reconcileUnknownUsage(tenantId, options = {}): Promise<ReconcileUnknownResult> {
+      assertIdentityTenant(dependencies.identity, tenantId);
+      const now = options.now ?? clock.now();
+      assertDate(now, "now");
+      const minAgeMs = options.minAgeMs ?? DEFAULT_RECONCILE_MIN_AGE_MS;
+      // Um lote de 0 trataria nada e ainda assim sairia com sucesso — o mesmo
+      // fail-open silencioso que o TRILHO A fechou. `assertPositiveInteger` recusa.
+      // O teto é recusado, e não aparado: o CLI já rejeita `> MAX`, e um clamp
+      // silencioso aqui daria dois contratos para a mesma opção (defeito D3).
+      const batchSize = options.batchSize ?? DEFAULT_RECONCILE_BATCH_SIZE;
+      assertNonNegativeInteger("minAgeMs", minAgeMs);
+      assertPositiveInteger("batchSize", batchSize);
+      if (batchSize > MAX_RECONCILE_BATCH_SIZE) {
+        throw new RangeError(`${MAX_RECONCILE_BATCH_SIZE} é o teto de batchSize`);
+      }
+      const result = await transactionRunner.run(dependencies.identity, (transaction) =>
+        reconcileUnknownInTransaction(transaction, tenantId, now, minAgeMs, batchSize),
+      );
+      logReconciliationFailed(tenantId, now, result);
+      return {
+        scannedCount: result.scannedCount,
+        failedCount: result.failed.length,
+        usageIds: result.failed.map((row) => row.usageId),
+        oldestAgeMs: result.oldestAgeMs,
+      };
+    },
+
+    async releaseUnknownReservation(
+      tenantId,
+      usageId,
+      options = {},
+    ): Promise<ReleaseUnknownResult> {
+      assertIdentityTenant(dependencies.identity, tenantId);
+      assertText("usageId", usageId);
+      const now = options.now ?? clock.now();
+      assertDate(now, "now");
+      const result = await transactionRunner.run(dependencies.identity, (transaction) =>
+        releaseUnknownInTransaction(transaction, tenantId, usageId, now),
+      );
+      if (result.applied) {
+        logJson("warn", "ai.reservation_released", {
+          tenantId,
+          usageId,
+          budget: result.releasedTokens,
+          real: null,
+          outcome: RESERVATION_RELEASED_OUTCOME,
+          actor: dependencies.identity.userId,
+        });
+      }
+      return result;
     },
   };
 }

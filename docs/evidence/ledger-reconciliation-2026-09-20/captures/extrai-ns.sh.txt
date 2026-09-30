@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Extracao nominal dos NS/UNV do anexo (2026-09-15) + transicoes da rodada + dedup 24/25.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+python3 - <<'PY'
+import re, pathlib
+ann = pathlib.Path("docs/evidence/plan-recap-2026-09-15/ANEXO-ITENS-2026-09-15.md").read_text()
+rows = []
+for line in ann.splitlines():
+    m = re.match(r"^\|\s*`([^`]+)`\s*\|\s*([^|]+?)\s*\|\s*\*\*([A-Z-]+)\*\*\s*\|", line)
+    if m:
+        rows.append((m.group(1), m.group(2).strip(), m.group(3)))
+ns = [r[0] for r in rows if r[2] == "NS"]
+unv = [r[0] for r in rows if r[2] == "UNVERIFIABLE"]
+trans = {"9.1-ME": "PARTIAL", "16.3": "DONE", "23.1": "DONE", "23.2": "DONE",
+         "25.4": "PARTIAL", "26.7": "PARTIAL", "28.1": "DONE", "28.2": "PARTIAL",
+         "28.3": "DONE", "25.6": "UNVERIFIABLE", "25.7": "UNVERIFIABLE"}
+final_ns = [i for i in ns if trans.get(i, "NS") == "NS"]
+canon = [i for i in final_ns if i != "24.13"]  # 25.5 == 24.13 (Dependency Review), contado uma vez
+print("linhas parseadas:", len(rows))
+print("NS no anexo:", len(ns))
+print("UNV no anexo:", len(unv), unv)
+print("NS finais pre-dedup:", len(final_ns), sorted(final_ns, key=lambda s: [int(x) if x.isdigit() else x for x in re.split(r"[.\-]", s)]))
+print("NS canonicos pos-dedup:", len(canon), sorted(canon, key=lambda s: [int(x) if x.isdigit() else x for x in re.split(r"[.\-]", s)]))
+print("UNV finais:", len([i for i in unv if trans.get(i, 'U') == 'UNVERIFIABLE']), unv)
+esperado = ["15.1","15.2","15.3","15.4","15.5","15.6","15.7","19.6","21.3","22.4","25.5","29.1"]
+assert canon == esperado, f"identidade dos NS mudou: {canon}"
+assert unv == ["25.6","25.7"], f"UNV mudou: {unv}"
+assert len(ns) - 9 - 1 == 12, f"composicao nao fecha: {len(ns)} - 9 - 1 != 12"
+print("CONTRAGEM: 12 NS + 2 UNV == placar declarado 150/23/12/2")
+PY

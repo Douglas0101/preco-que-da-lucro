@@ -1,0 +1,9 @@
+# CALIBRAÇÃO S6 — Lane B2 (CodeQL)
+
+**Proveniência:** Lane: subagente read-only de contexto limpo (Task/explore). Metodo: auditoria por leitura. Data: 2026-09-20. Caso sintetico: CodeQL/settings-side (H-2).
+
+
+**C1 — UNVERIFIABLE** — O checkout não contém artefato de CodeQL (`.github/` tem apenas `dependabot.yml` e 6 workflows; `grep -ri 'codeql'` → 0 hits), mas isso prova só ausência de artefato, não do recurso: o _default setup_ vive em settings do GitHub. O item `25.6` é misto (público → `codeql.yml` versionado; privado → licença GitHub Code Security) e a variável decisiva — a visibilidade do repositório — **não é mensurável read-only** (H-2 aberto; sem token/CLI). Sem medição positiva (não CONFIRMED) e sem poder refutar o default setup (não REJECTED), o próprio repositório sela `25.6` como UNVERIFIABLE.
+
+## Resumo
+CONFIRMED 0 · CORRECTED 0 · REJECTED 0 · UNVERIFIABLE 1

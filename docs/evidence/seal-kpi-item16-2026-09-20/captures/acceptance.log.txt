@@ -1,0 +1,22 @@
+== bundle com sha256 (do gate) ==
+PASS assets/index-oW6bmarj.js: 237694 minified, 73258 gzip, 63718 Brotli bytes, sha256=a67e89b47cb5
+Initial graph (9 chunks): 473230 minified, 151053 gzip, 132843 Brotli bytes, sha256=bfdc8d79ed27
+== m02-seal: selo real do WP-R1 ==
+m02-seal: OK (13 arquivos, checked === discovered) — docs/evidence/debts-registry-2026-09-20
+SEAL_R1_EXIT=0
+== m02-seal: selo real do WP-R3 ==
+m02-seal: OK (20 arquivos, checked === discovered) — docs/evidence/wp-r3-forensics-2026-09-20
+SEAL_R3_EXIT=0
+== m02-seal: ancestralidade offline (L133 no journal) ==
+m02-seal: OK (13 arquivos, checked === discovered) — docs/evidence/debts-registry-2026-09-20
+ANCESTRY_EXIT=0
+== m02-seal: run@sha heavy substantivo (esperado OK) ==
+m02-seal: OK (13 arquivos, checked === discovered) — docs/evidence/debts-registry-2026-09-20
+RUN_HEAVY_EXIT=0
+== m02-seal: run@sha light no-op (esperado REPROVADO) ==
+m02-seal: run sem check aplicavel (no-op): cite como delegacao ao heavy do mesmo commit
+m02-seal: REPROVADO (1 falha(s))
+RUN_LIGHT_EXIT=1
+== m02-seal: flag sem valor (fail-high) ==
+m02-seal: --run exige um valor
+RUN_SEM_VALOR_EXIT=2

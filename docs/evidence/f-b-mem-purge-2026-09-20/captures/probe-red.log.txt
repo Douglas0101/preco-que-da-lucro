@@ -1,0 +1,35 @@
+[01:47:41] === revisao examinada nesta fase ===
+  HEAD: 47d39a936f12961a2ff9922de5e1a319f49c8ea0
+  sha256 scripts/db/purge-fixtures.ts: 202a441a6e3844e4f96eb65e23d260a07b6db21763a666126eb53e389dde283b
+  sha256 scripts/e2e/seed-auth.ts: 9e740c78a9818d0f050e1c2ef237b166faeff24e6d95143f32c28f2b16c9128d
+  sha256 scripts/db/explain-evidence.ts: ddfa749af84cd430ccbc24264b36b44adf3995036a2560b63872ce00b11604ba
+  sha256 scripts/db/test-backfill.ts: aee4232c17d48c88cbada047958be8ba3256527015ec77a9b0df371d50698170
+  sha256 scripts/db/test-auth-integration.ts: ee55a9cccde244524c59eca3673d3b4dd2f2afbcc405a6303358c83be1f693c9
+  sha256 scripts/db/test-ai-budget.ts: fad5932636f4ecc2b28aba5c561e47098b01876c6087f775ea57e0791a7916ce
+  arquivos modificados vs HEAD: 0 (esperado 0 no RED)
+[01:47:41] === container efemero wp4-pg em 127.0.0.1:5439 ===
+  PostgreSQL 17.11 on x86_64-pc-linux-mu
+[01:47:44] === migrations ===
+  MIGRATE_EXIT=0
+[01:47:45] === trigger de probe (memberships -> access_log) ===
+  TRIGGER_EXIT=0
+[01:47:45] === pre-semeio da trilha (ids fixos: seed-auth e explain) ===
+  PRESEED_EXIT=0
+[01:47:45] === FASE red: 5 caminhos ===
+[01:47:45] --- seed-auth
+  seed-auth EXIT=1 · ocorrencias de 23503: 1
+[01:47:46] --- explain
+  explain EXIT=1 · ocorrencias de 23503: 1
+[01:47:46] --- backfill
+  backfill EXIT=1 · ocorrencias de 23503: 1
+[01:47:49] --- auth-integ
+  auth-integ EXIT=1 · ocorrencias de 23503: 1
+[01:47:51] --- ai-budget
+  ai-budget EXIT=1 · ocorrencias de 23503: 1
+[01:47:53] === RESUMO red ===
+  seed-auth: EXIT=1 · 23503=1
+  explain: EXIT=1 · 23503=1
+  backfill: EXIT=1 · 23503=1
+  auth-integ: EXIT=1 · 23503=1
+  ai-budget: EXIT=1 · 23503=1
+RED: OK (5/5 falham alto com 23503)

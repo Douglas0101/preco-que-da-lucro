@@ -14,6 +14,8 @@ import { brl, num, pct } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { CalcExplainer } from "@/components/ui/calc-explainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -185,9 +187,7 @@ function Diagnostico() {
         </p>
       </div>
 
-      {loadStatus === "loading" && (
-        <output className="text-muted-foreground">Carregando produtos e despesas...</output>
-      )}
+      {loadStatus === "loading" && <DiagnosticoSkeleton />}
       {loadStatus === "error" && (
         <RemoteErrorState
           message="Não foi possível carregar os dados do diagnóstico."
@@ -482,6 +482,56 @@ function Diagnostico() {
   );
 }
 
+function DiagnosticoSkeleton() {
+  return (
+    <LoadingSkeleton className="space-y-6">
+      <div>
+        <Skeleton className="h-9 w-64 max-w-full" />
+        <Skeleton className="mt-2 h-6 w-80 max-w-full" />
+      </div>
+      <Card>
+        <CardContent className="max-w-md p-5">
+          <Skeleton className="h-9 w-full" />
+        </CardContent>
+      </Card>
+      <DiagnosticoDataSkeleton />
+    </LoadingSkeleton>
+  );
+}
+
+function DiagnosticoDataSkeleton() {
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-5 w-64 max-w-full" />
+          <Skeleton className="h-5 w-72 max-w-full" />
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          {[0, 1].map((field) => (
+            <div key={field} className="space-y-2">
+              <Skeleton className="h-5 w-56 max-w-full" />
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-4 w-72 max-w-full" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {[0, 1, 2, 3, 4].map((kpi) => (
+          <Card key={kpi}>
+            <CardContent className="p-5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="mt-1 h-7 w-24" />
+              <Skeleton className="mt-1 h-4 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </>
+  );
+}
+
 function ProductState({
   status,
   errorReference,
@@ -492,6 +542,13 @@ function ProductState({
         message="Não foi possível carregar os dados do produto."
         reference={errorReference}
       />
+    );
+  }
+  if (status === "loading") {
+    return (
+      <LoadingSkeleton className="space-y-6">
+        <DiagnosticoDataSkeleton />
+      </LoadingSkeleton>
     );
   }
   return (

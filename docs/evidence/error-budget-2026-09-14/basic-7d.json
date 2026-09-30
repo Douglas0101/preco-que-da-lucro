@@ -1,0 +1,123 @@
+{
+  "generatedAt": "2026-09-14T03:38:10.488Z",
+  "source": "src/test/fixtures/error-budget/basic-7d.jsonl",
+  "window": {
+    "token": "7d",
+    "ms": 604800000,
+    "start": "2026-09-06T11:59:00.000Z",
+    "end": "2026-09-13T11:59:00.000Z"
+  },
+  "parsed": {
+    "lines": 19,
+    "parsed": 19,
+    "skipped": 0
+  },
+  "requests": {
+    "total": 11,
+    "completed": 4,
+    "failed": 7,
+    "chat": 3,
+    "healthy": 3
+  },
+  "minimumRequests": 100,
+  "baseline": null,
+  "classes": [
+    {
+      "id": "financial_critical",
+      "label": "Financeiro crítico (`app.financial.states{state=invalid}` em caminho do usuário)",
+      "signal": "linhas `app.financial.states` com `state=invalid`",
+      "basisLabel": "sinais de métrica",
+      "basis": 2,
+      "consumption": 0,
+      "toleranceDisplay": "0 (zero estrutural)",
+      "verdict": "OK",
+      "detail": "0 estado(s) `invalid` em 2 sinal(is) de métrica"
+    },
+    {
+      "id": "ai_transient",
+      "label": "IA transitória (`AI_TIMEOUT`/`DEPENDENCY_ERROR` de chat + `app.ai.timeouts`)",
+      "signal": "`request.failed` de chat e métrica `app.ai.timeouts`",
+      "basisLabel": "requisições de chat",
+      "basis": 3,
+      "consumption": 2,
+      "toleranceDisplay": "candidata 1% em 7d (não ratificada)",
+      "verdict": "DRAFT",
+      "detail": "2 falha(s) de envelope · métrica `app.ai.timeouts` = 1 (consumo = max)"
+    },
+    {
+      "id": "server_fault",
+      "label": "Falha de servidor/dependência (`DATABASE_ERROR`/`INTERNAL_ERROR`/5xx)",
+      "signal": "`request.failed` e `request.completed` com status ≥ 500",
+      "basisLabel": "requests totais",
+      "basis": 11,
+      "consumption": 4,
+      "toleranceDisplay": "0 (zero estrutural, revisível no baseline)",
+      "verdict": "EXHAUSTED",
+      "detail": "4 falha(s) de servidor/dependência"
+    }
+  ],
+  "codes": [
+    {
+      "code": "AI_TIMEOUT",
+      "bucket": "ai_transient",
+      "count": 1
+    },
+    {
+      "code": "DEPENDENCY_ERROR",
+      "bucket": "ai_transient",
+      "count": 1
+    },
+    {
+      "code": "DATABASE_ERROR",
+      "bucket": "server_fault",
+      "count": 1
+    },
+    {
+      "code": "DEPENDENCY_ERROR",
+      "bucket": "server_fault",
+      "count": 1
+    },
+    {
+      "code": "HTTP_5XX",
+      "bucket": "server_fault",
+      "count": 1
+    },
+    {
+      "code": "INTERNAL_ERROR",
+      "bucket": "server_fault",
+      "count": 1
+    }
+  ],
+  "excluded": [
+    {
+      "code": "AI_QUOTA",
+      "count": 1
+    },
+    {
+      "code": "HTTP_4XX",
+      "count": 1
+    },
+    {
+      "code": "VALIDATION_ERROR",
+      "count": 1
+    }
+  ],
+  "monitored": [
+    {
+      "code": "FINANCIAL_STATE_INCOMPLETE",
+      "count": 1
+    },
+    {
+      "code": "AI_TIMEOUT_METRIC",
+      "count": 1
+    }
+  ],
+  "aiMetricTimeouts": 1,
+  "financialSignals": 2,
+  "verdict": "FAIL",
+  "exitCode": 1,
+  "notes": [
+    "Tolerância de IA transitória (1% em 7d) é candidata: ratificação só em Q-020 com baseline M-06; nenhum rótulo CONTROLADO antes disso.",
+    "Consumo de IA usa o máximo entre falhas de envelope e `app.ai.timeouts` para não subcontabilizar abortos."
+  ]
+}

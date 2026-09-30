@@ -1,0 +1,6 @@
+
+> check:bundle
+> node scripts/check-bundle.mjs
+
+PASS assets/index-79FGcCpK.js: 237694 minified, 73257 gzip, 63672 Brotli bytes
+Initial graph (9 chunks): 473230 minified, 151052 gzip, 132797 Brotli bytes

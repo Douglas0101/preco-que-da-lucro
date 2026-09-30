@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# TRILHO C — db:test (17 suites) num container PG17 EFEMERO e VIRGEM.
+# Licoes aplicadas: container exige POSTGRES_PASSWORD (senao sai 1 e ainda
+# imprime id), o laco de prontidao precisa de contador (senao container morto
+# vira "17 suites falharam" tres camadas abaixo da causa).
+set -uo pipefail
+export LC_ALL=C
+cd /home/douglas-souza/preco-que-d-main
+
+NAME=trk-c-pg
+PORT=5436
+PASS=postgres
+DB=preco_que_da_lucro_test
+
+# 5435 ja estava alocado por trk-land-pg. O `docker run -d` que falha em rede deixa um
+# container DANGLING com o nome pedido — remover antes de tentar de novo.
+docker rm -f "$NAME" >/dev/null 2>&1
+
+if ss -ltn 2>/dev/null | grep -q ":$PORT "; then
+  echo "FALHA: a porta $PORT ja esta em uso"
+  exit 1
+fi
+
+echo "# TRILHO C — db:test em container PG17 efemero"
+echo "# data: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+echo "# HEAD: $(git rev-parse HEAD)"
+echo "# branch: $(git rev-parse --abbrev-ref HEAD)"
+
+docker rm -f "$NAME" >/dev/null 2>&1
+
+echo
+echo "== subindo container $NAME em 127.0.0.1:$PORT =="
+STDOUT=$(docker run -d --name "$NAME" \
+  -e POSTGRES_PASSWORD="$PASS" \
+  -e POSTGRES_DB="$DB" \
+  -p "127.0.0.1:$PORT:5432" \
+  postgres:17-alpine 2>&1)
+RC=$?
+echo "docker run rc=$RC id=${STDOUT:0:12}"
+if [ "$RC" != "0" ]; then echo "FALHA ao criar o container: $STDOUT"; exit 1; fi
+
+echo
+echo "== aguardando prontidao (max 40 tentativas de 1s) =="
+READY=0
+for i in $(seq 1 40); do
+  if docker exec "$NAME" pg_isready -U postgres -d "$DB" >/dev/null 2>&1; then
+    READY=1; echo "pronto apos ${i}s"; break
+  fi
+  if [ "$(docker inspect -f '{{.State.Running}}' "$NAME" 2>/dev/null)" != "true" ]; then
+    echo "FALHA: container morreu antes de ficar pronto"; docker logs "$NAME" 2>&1 | tail -20; exit 1
+  fi
+  sleep 1
+done
+if [ "$READY" != "1" ]; then
+  echo "FALHA: nao ficou pronto em 40s"; docker logs "$NAME" 2>&1 | tail -20; exit 1
+fi
+
+echo
+echo "== versao e H-9 =="
+docker exec "$NAME" psql -U postgres -d "$DB" -tAc "select version();"
+echo -n "porta 5432 (H-9) tocada? -> "
+ss -ltn 2>/dev/null | grep -c ':5432 ' || echo "0"
+
+echo
+echo "== npm run db:test =="
+export DATABASE_URL="postgresql://postgres:$PASS@127.0.0.1:$PORT/$DB"
+export DATABASE_ADMIN_URL="$DATABASE_URL"
+export DATABASE_URL_UNPOOLED="$DATABASE_URL"
+export DATABASE_DRIVER=node-postgres
+export EXPECTED_POSTGRES_MAJOR=17
+npm run db:test 2>&1
+echo "DBTEST_EXIT=$?"
+
+echo
+echo "== higiene =="
+docker exec "$NAME" psql -U postgres -d "$DB" -tAc \
+  "select 'tenants='||count(*) from tenants" 2>&1
+docker exec "$NAME" psql -U postgres -d "$DB" -tAc \
+  "select 'ai_usage_orfaos='||count(*) from ai_usage" 2>&1
+
+echo
+echo "== derrubando o container =="
+docker rm -f "$NAME" >/dev/null 2>&1 && echo "removido"

@@ -1,0 +1,19 @@
+- generic [active] [ref=f18e1]:
+  - generic [ref=f18e4]:
+    - banner [ref=f18e5]:
+      - link "Preço que Dá Lucro" [ref=f18e6] [cursor=pointer]:
+        - /url: /inicio
+      - button "Abrir menu de navegação" [ref=f18e12] [cursor=pointer]
+    - main [ref=f18e14]:
+      - generic [ref=f18e16]:
+        - generic [ref=f18e17]:
+          - generic [ref=f18e18]:
+            - heading "Meus Produtos" [level=1] [ref=f18e19]
+            - paragraph [ref=f18e20]: 0 produtos cadastrados
+          - generic [ref=f18e21]:
+            - button "Preços de compra" [ref=f18e22] [cursor=pointer]
+            - button "Novo produto" [ref=f18e23] [cursor=pointer]
+        - generic [ref=f18e25]:
+          - generic [ref=f18e31]: Você ainda não tem produtos
+          - button "Cadastrar primeiro produto" [ref=f18e32] [cursor=pointer]
+  - region "Notifications alt+T"

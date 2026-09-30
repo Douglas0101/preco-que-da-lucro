@@ -1,0 +1,2 @@
+Captura concluída: 81 context_tx, 0 ai.model_attempt, 6 lacuna(s).
+/home/douglas-souza/preco-que-d-main/.worktree-onda3-skeleton/docs/evidence/ux-financeira-2026-09-14/meta.json

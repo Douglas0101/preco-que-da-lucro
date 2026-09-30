@@ -1,0 +1,23 @@
+# .d.mts GERADO — RED por edição à mão, restaurado por sha256 (DBT-16)
+# ARVORE=0c62f43f9e43ee4cdd58acc2a0c176dd99b6cea5
+
+sha256 ANTES : 98de5c8d58b564b6d732d6738a149e9f701b824e66ae61ab006f629394b894de
+mutação APLICADA e ASSERTADA: o tipo de retorno virou `number` (compila, mente)
+sha256 MUTADO: aa3b2edbea78ee58cea36c507636aba50868e20ef5b2b14d954aa5968a58e752
+
+## conferência sob mutação (esperado: exit 1) — o WP-R5 media os NOMES e teria passado aqui
+generate-seal-dts: scripts/m02-seal.d.mts divergiu do modulo (4337 B no disco, 4339 B gerados).
+Rode: node scripts/generate-seal-dts.mjs --write
+EXIT=1
+
+## o teste de geração também reprova (é o que roda no gate)
+       × o .d.mts no disco é byte a byte o que o gerador emite 1265ms
+  ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+        Tests  2 failed | 40 passed (42)
+
+sha256 DEPOIS: 98de5c8d58b564b6d732d6738a149e9f701b824e66ae61ab006f629394b894de
+RESTAURO OK (sha256 idêntico)
+
+## restaurado
+generate-seal-dts: scripts/m02-seal.d.mts confere com o JSDoc de scripts/m02-seal.mjs
+EXIT=0

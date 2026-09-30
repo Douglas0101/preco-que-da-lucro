@@ -1,0 +1,41 @@
+=== S7 GUARD — WP5 F-B1-e2e ===
+HEAD: 612c34bc9dfb49945854b29773362f012df07020
+branch: mission/wp5-analytics-e2e
+data: 2026-09-20T02:21:23Z
+
+=== IDENTIDADE do que foi examinado (nao cardinalidade) ===
+  bytes do artefato examinado: 19525
+  sha256 do artefato examinado: 26e5180a7ff216212175c1b88cb1f4b5f18d2726758b7853678b8662e99cad4d
+  sha256 e2e/analytics-gate.spec.ts: 9b1c58e98c83791e077f1b67bcc7c0c653f607da83b49a817d744ae31e668b6a
+  sha256 src/lib/vercel-analytics.ts: b895151895c0405dd6d88fafbdf5b1860f15de12573f3d695f35a9f56e245785
+  sha256 vite.config.ts: 44fe6c011710584e364472f2f79e9bd2a02f01f2adfbff33f7ea9f0e70469c74
+  sha256 playwright.config.ts: 09260010bf27e36ed65663c9dff7cd7c8b5598f4089d87661582cb6cc9b6c798
+
+=== 1. arquivos tocados ===
+  ?? docs/evidence/f-b1-e2e-2026-09-20/
+  ?? e2e/analytics-gate.spec.ts
+  fora do escopo declarado: 0 (esperado 0)
+
+=== 2. o gate foi restaurado e o runtime/config intactos (ASSERTADO) ===
+  gate == esperado: sim (b895151895c0405dd6d88fafbdf5b1860f15de12573f3d695f35a9f56e245785)
+  src/vite/playwright/manifests no diff: 0 (esperado 0)
+
+=== 3. credenciais herdadas no ambiente ===
+  variaveis de credencial herdadas: 0 (esperado 0)
+
+=== 4. secrets audit ===
+  SECRETS_EXIT=0
+
+=== 5. varredura do diff por padroes de segredo ===
+  linhas suspeitas no diff: 0
+
+=== 6. H-9 e portas (ASSERTADO) ===
+  5432(H-9)=0 4173=0 5439=0 containers wp5=0 (todos esperados 0)
+
+=== 7. nenhum push acidental ===
+  origin/main: 9724d2c73b269d0a0199ea305308f3237b38fa09
+  origin/develop: 612c34bc9dfb49945854b29773362f012df07020
+  commits locais a frente de origin/develop nesta branch: 0
+
+S7 GUARD: OK (nenhum veto)
+S7_EXIT=0

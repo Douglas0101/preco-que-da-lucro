@@ -1,0 +1,666 @@
+Run npm run format:check	﻿2026-09-19T19:48:39.7712997Z ##[group]Run npm run format:check
+Run npm run format:check	2026-09-19T19:48:39.7713302Z ^[[36;1mnpm run format:check^[[0m
+Run npm run format:check	2026-09-19T19:48:39.7754480Z shell: /usr/bin/bash -e {0}
+Run npm run format:check	2026-09-19T19:48:39.7754731Z env:
+Run npm run format:check	2026-09-19T19:48:39.7754939Z   BUILD_RELEASE_CHANNEL: pre-beta-internal
+Run npm run format:check	2026-09-19T19:48:39.7755554Z   DATABASE_ADMIN_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run format:check	2026-09-19T19:48:39.7756022Z   DATABASE_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run format:check	2026-09-19T19:48:39.7756487Z   DATABASE_URL_UNPOOLED: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run format:check	2026-09-19T19:48:39.7756804Z   DATABASE_DRIVER: node-postgres
+Run npm run format:check	2026-09-19T19:48:39.7757044Z   EXPECTED_POSTGRES_MAJOR: 17
+Run npm run format:check	2026-09-19T19:48:39.7757286Z   BETTER_AUTH_URL: http://127.0.0.1:4173
+Run npm run format:check	2026-09-19T19:48:39.7757555Z   AUTH_TRUSTED_ORIGINS: http://127.0.0.1:4173
+Run npm run format:check	2026-09-19T19:48:39.7757821Z   E2E_AUTH_EMAIL: teste@example.test
+Run npm run format:check	2026-09-19T19:48:39.7758056Z ##[endgroup]
+Run npm run format:check	2026-09-19T19:48:39.8529428Z 
+Run npm run format:check	2026-09-19T19:48:39.8530611Z > format:check
+Run npm run format:check	2026-09-19T19:48:39.8531161Z > prettier --check .
+Run npm run format:check	2026-09-19T19:48:39.8531507Z 
+Run npm run format:check	2026-09-19T19:48:39.9116773Z Checking formatting...
+Run npm run format:check	2026-09-19T19:48:52.4818947Z All matched files use Prettier code style!
+Run npm run typecheck	﻿2026-09-19T19:48:52.5227120Z ##[group]Run npm run typecheck
+Run npm run typecheck	2026-09-19T19:48:52.5227576Z ^[[36;1mnpm run typecheck^[[0m
+Run npm run typecheck	2026-09-19T19:48:52.5259439Z shell: /usr/bin/bash -e {0}
+Run npm run typecheck	2026-09-19T19:48:52.5259651Z env:
+Run npm run typecheck	2026-09-19T19:48:52.5259897Z   BUILD_RELEASE_CHANNEL: pre-beta-internal
+Run npm run typecheck	2026-09-19T19:48:52.5272943Z   DATABASE_ADMIN_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run typecheck	2026-09-19T19:48:52.5273403Z   DATABASE_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run typecheck	2026-09-19T19:48:52.5273829Z   DATABASE_URL_UNPOOLED: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run typecheck	2026-09-19T19:48:52.5274120Z   DATABASE_DRIVER: node-postgres
+Run npm run typecheck	2026-09-19T19:48:52.5274328Z   EXPECTED_POSTGRES_MAJOR: 17
+Run npm run typecheck	2026-09-19T19:48:52.5274545Z   BETTER_AUTH_URL: http://127.0.0.1:4173
+Run npm run typecheck	2026-09-19T19:48:52.5274784Z   AUTH_TRUSTED_ORIGINS: http://127.0.0.1:4173
+Run npm run typecheck	2026-09-19T19:48:52.5275022Z   E2E_AUTH_EMAIL: teste@example.test
+Run npm run typecheck	2026-09-19T19:48:52.5275170Z ##[endgroup]
+Run npm run typecheck	2026-09-19T19:48:52.5941373Z 
+Run npm run typecheck	2026-09-19T19:48:52.5942353Z > typecheck
+Run npm run typecheck	2026-09-19T19:48:52.5942870Z > tsc -p tsconfig.json --noEmit
+Run npm run typecheck	2026-09-19T19:48:52.5943291Z 
+Run npm run lint	﻿2026-09-19T19:49:00.4206151Z ##[group]Run npm run lint
+Run npm run lint	2026-09-19T19:49:00.4206434Z ^[[36;1mnpm run lint^[[0m
+Run npm run lint	2026-09-19T19:49:00.4243782Z shell: /usr/bin/bash -e {0}
+Run npm run lint	2026-09-19T19:49:00.4244019Z env:
+Run npm run lint	2026-09-19T19:49:00.4244168Z   BUILD_RELEASE_CHANNEL: pre-beta-internal
+Run npm run lint	2026-09-19T19:49:00.4244548Z   DATABASE_ADMIN_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run lint	2026-09-19T19:49:00.4244826Z   DATABASE_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run lint	2026-09-19T19:49:00.4245097Z   DATABASE_URL_UNPOOLED: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run lint	2026-09-19T19:49:00.4245288Z   DATABASE_DRIVER: node-postgres
+Run npm run lint	2026-09-19T19:49:00.4245434Z   EXPECTED_POSTGRES_MAJOR: 17
+Run npm run lint	2026-09-19T19:49:00.4245583Z   BETTER_AUTH_URL: http://127.0.0.1:4173
+Run npm run lint	2026-09-19T19:49:00.4245746Z   AUTH_TRUSTED_ORIGINS: http://127.0.0.1:4173
+Run npm run lint	2026-09-19T19:49:00.4245910Z   E2E_AUTH_EMAIL: teste@example.test
+Run npm run lint	2026-09-19T19:49:00.4246052Z ##[endgroup]
+Run npm run lint	2026-09-19T19:49:00.4910777Z 
+Run npm run lint	2026-09-19T19:49:00.4911597Z > lint
+Run npm run lint	2026-09-19T19:49:00.4912036Z > eslint .
+Run npm run lint	2026-09-19T19:49:00.4912315Z 
+Run npm run test	﻿2026-09-19T19:49:10.2071859Z ##[group]Run npm run test
+Run npm run test	2026-09-19T19:49:10.2072139Z ^[[36;1mnpm run test^[[0m
+Run npm run test	2026-09-19T19:49:10.2110408Z shell: /usr/bin/bash -e {0}
+Run npm run test	2026-09-19T19:49:10.2110649Z env:
+Run npm run test	2026-09-19T19:49:10.2110848Z   BUILD_RELEASE_CHANNEL: pre-beta-internal
+Run npm run test	2026-09-19T19:49:10.2111388Z   DATABASE_ADMIN_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run test	2026-09-19T19:49:10.2111815Z   DATABASE_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run test	2026-09-19T19:49:10.2112241Z   DATABASE_URL_UNPOOLED: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run test	2026-09-19T19:49:10.2112540Z   DATABASE_DRIVER: node-postgres
+Run npm run test	2026-09-19T19:49:10.2112761Z   EXPECTED_POSTGRES_MAJOR: 17
+Run npm run test	2026-09-19T19:49:10.2113009Z   BETTER_AUTH_URL: http://127.0.0.1:4173
+Run npm run test	2026-09-19T19:49:10.2113256Z   AUTH_TRUSTED_ORIGINS: http://127.0.0.1:4173
+Run npm run test	2026-09-19T19:49:10.2113507Z   E2E_AUTH_EMAIL: teste@example.test
+Run npm run test	2026-09-19T19:49:10.2113724Z ##[endgroup]
+Run npm run test	2026-09-19T19:49:10.2812760Z 
+Run npm run test	2026-09-19T19:49:10.2813606Z > pretest
+Run npm run test	2026-09-19T19:49:10.2814427Z > node --env-file-if-exists=.env scripts/env-guard.mjs
+Run npm run test	2026-09-19T19:49:10.2814837Z 
+Run npm run test	2026-09-19T19:49:10.2867329Z .env not found. Continuing without it.
+Run npm run test	2026-09-19T19:49:10.3030607Z 
+Run npm run test	2026-09-19T19:49:10.3031495Z > test
+Run npm run test	2026-09-19T19:49:10.3037439Z > vitest run
+Run npm run test	2026-09-19T19:49:10.3037803Z 
+Run npm run test	2026-09-19T19:49:10.5219849Z 
+Run npm run test	2026-09-19T19:49:10.5239306Z ^[[1m^[[30m^[[46m RUN ^[[49m^[[39m^[[22m ^[[36mv4.1.11 ^[[39m^[[90m/home/runner/work/preco-que-da-lucro/preco-que-da-lucro^[[39m
+Run npm run test	2026-09-19T19:49:10.5255488Z 
+Run npm run test	2026-09-19T19:49:11.2301727Z  ^[[32m✓^[[39m src/test/finance.golden.test.ts ^[[2m(^[[22m^[[2m127 tests^[[22m^[[2m)^[[22m^[[32m 21^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:12.2016805Z ^[[90mstdout^[[2m | src/test/round-trip-instrumentation.perf-waves.test.ts^[[2m > ^[[22m^[[2mT1 perf-waves: instrumentação de round trips por transação (app.context_tx)^[[2m > ^[[22m^[[2mignora pools sem connect e não reinstrumenta o mesmo cliente
+Run npm run test	2026-09-19T19:49:12.2019230Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:12.200Z","level":"info","event":"app.context_tx","round_trips":2,"outcome":"commit","duration_ms":0}
+Run npm run test	2026-09-19T19:49:12.2020413Z 
+Run npm run test	2026-09-19T19:49:12.2406279Z  ^[[32m✓^[[39m src/test/round-trip-instrumentation.perf-waves.test.ts ^[[2m(^[[22m^[[2m26 tests^[[22m^[[2m)^[[22m^[[32m 47^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:13.7599818Z  ^[[32m✓^[[39m src/test/product-contracts.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[33m 517^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:15.0373712Z ^[[90mstdout^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat^[[2m > ^[[22m^[[2maiTimeToAcknowledge.record que lança não rejeita o chat
+Run npm run test	2026-09-19T19:49:15.0379215Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.036Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":1,"timeToFirstContentMs":1,"timeToFinalMs":1}
+Run npm run test	2026-09-19T19:49:15.0381752Z 
+Run npm run test	2026-09-19T19:49:15.0388355Z ^[[90mstderr^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat^[[2m > ^[[22m^[[2maiTimeToAcknowledge.record que lança não rejeita o chat
+Run npm run test	2026-09-19T19:49:15.0399061Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.036Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+Run npm run test	2026-09-19T19:49:15.0400670Z ^[[90mstdout^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat^[[2m > ^[[22m^[[2maiTimeToFirstContent.record que lança não rejeita o chat
+Run npm run test	2026-09-19T19:49:15.0402271Z 
+Run npm run test	2026-09-19T19:49:15.0403452Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.038Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+Run npm run test	2026-09-19T19:49:15.0405360Z ^[[90mstderr^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat^[[2m > ^[[22m^[[2maiTimeToFirstContent.record que lança não rejeita o chat
+Run npm run test	2026-09-19T19:49:15.0406506Z 
+Run npm run test	2026-09-19T19:49:15.0407652Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.038Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+Run npm run test	2026-09-19T19:49:15.0409090Z ^[[90mstdout^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat^[[2m > ^[[22m^[[2maiTimeToFinal.record que lança não rejeita o chat
+Run npm run test	2026-09-19T19:49:15.0411016Z 
+Run npm run test	2026-09-19T19:49:15.0412163Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.038Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+Run npm run test	2026-09-19T19:49:15.0422487Z ^[[90mstderr^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat^[[2m > ^[[22m^[[2maiTimeToFinal.record que lança não rejeita o chat
+Run npm run test	2026-09-19T19:49:15.0423051Z 
+Run npm run test	2026-09-19T19:49:15.0424181Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.039Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+Run npm run test	2026-09-19T19:49:15.0424951Z 
+Run npm run test	2026-09-19T19:49:15.0457600Z ^[[90mstderr^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2mtool-runner.ts: toolDuration nos três caminhos^[[2m > ^[[22m^[[2mfalha: AI_TIMEOUT não é substituído pelo erro da métrica
+Run npm run test	2026-09-19T19:49:15.0460541Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.045Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+Run npm run test	2026-09-19T19:49:15.0462914Z 
+Run npm run test	2026-09-19T19:49:15.0465972Z ^[[90mstdout^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mstart.ts: os três caminhos de requestDuration
+Run npm run test	2026-09-19T19:49:15.0468937Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.046Z","level":"info","event":"request.completed","correlationId":"33dbceb1-85bc-4ffd-b652-ed6949db3cf6","method":"GET","pathname":"/produtos","status":200,"durationMs":0}
+Run npm run test	2026-09-19T19:49:15.0469752Z 
+Run npm run test	2026-09-19T19:49:15.0478788Z ^[[90mstderr^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mstart.ts: os três caminhos de requestDuration
+Run npm run test	2026-09-19T19:49:15.0480792Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.047Z","level":"error","event":"request.failed","correlationId":"12bad712-af28-443d-93fd-839f43a8f9a5","code":"INTERNAL_ERROR","method":"GET","pathname":"/produtos","durationMs":0,"error":{"name":"Error","message":"db exploded"}}
+Run npm run test	2026-09-19T19:49:15.0481726Z 
+Run npm run test	2026-09-19T19:49:15.0487403Z ^[[90mstdout^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mchat.functions.ts: aiDuration
+Run npm run test	2026-09-19T19:49:15.0489707Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.048Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"success"}
+Run npm run test	2026-09-19T19:49:15.0490571Z 
+Run npm run test	2026-09-19T19:49:15.0496214Z ^[[90mstdout^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mchat-execution.server.ts: as três fases do §29
+Run npm run test	2026-09-19T19:49:15.0497706Z ^[[90mstderr^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mchat-execution.server.ts: as três fases do §29
+Run npm run test	2026-09-19T19:49:15.0499293Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.049Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+Run npm run test	2026-09-19T19:49:15.0501549Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.049Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+Run npm run test	2026-09-19T19:49:15.0526663Z 
+Run npm run test	2026-09-19T19:49:15.0535378Z ^[[90mstderr^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mtool-runner.ts: toolDuration nos três caminhos
+Run npm run test	2026-09-19T19:49:15.0535911Z 
+Run npm run test	2026-09-19T19:49:15.0539477Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:15.051Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+Run npm run test	2026-09-19T19:49:15.0540621Z 
+Run npm run test	2026-09-19T19:49:15.0716441Z  ^[[32m✓^[[39m src/test/safe-record.test.ts ^[[2m(^[[22m^[[2m20 tests^[[22m^[[2m)^[[22m^[[32m 38^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:16.0149405Z  ^[[32m✓^[[39m src/test/perf-summarize.test.ts ^[[2m(^[[22m^[[2m15 tests^[[22m^[[2m)^[[22m^[[33m 389^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:19.1623809Z  ^[[32m✓^[[39m src/test/calc-explainer.test.tsx ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[33m 1516^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:19.1641116Z      ^[[33m^[[2m✓^[[22m^[[39m forecast: mostra as fórmulas do motor e descreve a projeção sem prometer previsão estatística ^[[33m 675^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:19.1641999Z      ^[[33m^[[2m✓^[[22m^[[39m simulação manual: a mesma matemática, com o volume declarado hipotético ^[[33m 471^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:20.6539566Z  ^[[32m✓^[[39m src/test/break-even.negative-margin.test.tsx ^[[2m(^[[22m^[[2m15 tests^[[22m^[[2m)^[[22m^[[32m 177^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:21.7851682Z  ^[[32m✓^[[39m src/test/financial-metrics.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 17^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:22.9485577Z  ^[[32m✓^[[39m src/test/products-fk-conflict.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m)^[[22m^[[32m 54^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:24.0774068Z  ^[[32m✓^[[39m src/test/products-read-models.golden.perf-waves.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 23^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:24.6182840Z  ^[[32m✓^[[39m src/test/error-budget.test.ts ^[[2m(^[[22m^[[2m19 tests^[[22m^[[2m)^[[22m^[[32m 15^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:25.5165301Z ^[[90mstdout^[[2m | src/test/ai-estimated-cost.test.ts^[[2m > ^[[22m^[[2mbudget ledger contract (R3 reservation + INV-006)^[[2m > ^[[22m^[[2mreserve and settle never write ai_usage.tool_execution_id (column stays NULL)
+Run npm run test	2026-09-19T19:49:25.5167843Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:25.515Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:25.5170991Z 
+Run npm run test	2026-09-19T19:49:25.5172082Z ^[[90mstdout^[[2m | src/test/ai-estimated-cost.test.ts^[[2m > ^[[22m^[[2mbudget ledger contract (R3 reservation + INV-006)^[[2m > ^[[22m^[[2mreserve and settle never write ai_usage.tool_execution_id (column stays NULL)
+Run npm run test	2026-09-19T19:49:25.5173733Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:25.516Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+Run npm run test	2026-09-19T19:49:25.5174533Z 
+Run npm run test	2026-09-19T19:49:25.5182704Z ^[[90mstdout^[[2m | src/test/ai-estimated-cost.test.ts^[[2m > ^[[22m^[[2mbudget ledger contract (R3 reservation + INV-006)^[[2m > ^[[22m^[[2msettle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
+Run npm run test	2026-09-19T19:49:25.5186123Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:25.517Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:25.5186961Z 
+Run npm run test	2026-09-19T19:49:25.5188730Z ^[[90mstdout^[[2m | src/test/ai-estimated-cost.test.ts^[[2m > ^[[22m^[[2mbudget ledger contract (R3 reservation + INV-006)^[[2m > ^[[22m^[[2msettle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
+Run npm run test	2026-09-19T19:49:25.5199919Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:25.518Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+Run npm run test	2026-09-19T19:49:25.5202184Z 
+Run npm run test	2026-09-19T19:49:25.5203187Z ^[[90mstdout^[[2m | src/test/ai-estimated-cost.test.ts^[[2m > ^[[22m^[[2mbudget ledger contract (R3 reservation + INV-006)^[[2m > ^[[22m^[[2msettle with a known cost adds it to the daily estimated_cost total
+Run npm run test	2026-09-19T19:49:25.5205295Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:25.519Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:25.5206059Z 
+Run npm run test	2026-09-19T19:49:25.5211627Z ^[[90mstdout^[[2m | src/test/ai-estimated-cost.test.ts^[[2m > ^[[22m^[[2mbudget ledger contract (R3 reservation + INV-006)^[[2m > ^[[22m^[[2msettle with a known cost adds it to the daily estimated_cost total
+Run npm run test	2026-09-19T19:49:25.5213244Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:25.519Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+Run npm run test	2026-09-19T19:49:25.5214013Z 
+Run npm run test	2026-09-19T19:49:25.5214617Z  ^[[32m✓^[[39m src/test/ai-estimated-cost.test.ts ^[[2m(^[[22m^[[2m18 tests^[[22m^[[2m)^[[22m^[[32m 15^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:26.0735624Z  ^[[32m✓^[[39m src/test/pg-stat-statements.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[32m 11^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:26.9186649Z  ^[[32m✓^[[39m src/test/finance.properties.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 280^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:27.4595411Z ^[[90mstdout^[[2m | src/test/perf-evidence.test.ts^[[2m > ^[[22m^[[2mgate §35 — evidência de performance^[[2m > ^[[22m^[[2mT5: na árvore real nenhum artefato é isento (checked === discovered) e o baseline controlado entra
+Run npm run test	2026-09-19T19:49:27.4626698Z ^[[22m^[[39mgate §35: 4 descoberto(s) por caminho, 4 checado(s) contra os 7 rótulos, 0 isento(s)
+Run npm run test	2026-09-19T19:49:27.4630516Z 
+Run npm run test	2026-09-19T19:49:27.4648673Z  ^[[32m✓^[[39m src/test/perf-evidence.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[32m 16^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:28.0155031Z  ^[[32m✓^[[39m src/test/memory-policy.test.ts ^[[2m(^[[22m^[[2m34 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:28.5249159Z  ^[[32m✓^[[39m src/test/backfill-runner.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:29.1135949Z  ^[[32m✓^[[39m src/test/m02-neon-spend.test.ts ^[[2m(^[[22m^[[2m16 tests^[[22m^[[2m)^[[22m^[[32m 73^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:32.5068057Z  ^[[32m✓^[[39m src/test/simulation-volume-source.test.tsx ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 2025^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:32.5073537Z      ^[[33m^[[2m✓^[[22m^[[39m anuncia a estimativa e bloqueia o salvamento com o motivo declarado ^[[33m 1068^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:32.5093327Z      ^[[33m^[[2m✓^[[22m^[[39m não tem violações de acessibilidade com a estimativa selecionada ^[[33m 696^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:33.1214463Z  ^[[32m✓^[[39m src/test/m02-pitr-check.test.ts ^[[2m(^[[22m^[[2m18 tests^[[22m^[[2m)^[[22m^[[32m 93^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:34.0602036Z  ^[[32m✓^[[39m src/test/memory-import-graph.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[32m 263^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:35.0026590Z  ^[[32m✓^[[39m src/test/cross-tenant-denial.perf-waves.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 9^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:35.5307800Z  ^[[32m✓^[[39m src/test/finance.boundaries.test.ts ^[[2m(^[[22m^[[2m16 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:36.1360633Z  ^[[32m✓^[[39m src/test/csp-report.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m)^[[22m^[[32m 14^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:36.9908853Z  ^[[32m✓^[[39m src/test/event-service.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:37.8826303Z  ^[[32m✓^[[39m src/test/optimistic-version.repository.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:38.4496757Z  ^[[32m✓^[[39m src/test/slo-ai-baseline-discipline.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:39.3624289Z  ^[[32m✓^[[39m src/test/tool-runner.persistence.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[32m 16^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:40.2588551Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mgrava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+Run npm run test	2026-09-19T19:49:40.2590567Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.257Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:40.2593355Z 
+Run npm run test	2026-09-19T19:49:40.2594369Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mgrava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+Run npm run test	2026-09-19T19:49:40.2595317Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.258Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":30000,"outcome":"usage_unknown","applied":true}
+Run npm run test	2026-09-19T19:49:40.2595743Z 
+Run npm run test	2026-09-19T19:49:40.2609134Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mNÃO libera a reserva e NÃO incrementa os contadores de token
+Run npm run test	2026-09-19T19:49:40.2611856Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.260Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:40.2613257Z 
+Run npm run test	2026-09-19T19:49:40.2614166Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mNÃO libera a reserva e NÃO incrementa os contadores de token
+Run npm run test	2026-09-19T19:49:40.2615850Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.260Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":30000,"outcome":"usage_unknown","applied":true}
+Run npm run test	2026-09-19T19:49:40.2617353Z 
+Run npm run test	2026-09-19T19:49:40.2622416Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+Run npm run test	2026-09-19T19:49:40.2630385Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.261Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:40.2634353Z 
+Run npm run test	2026-09-19T19:49:40.2635383Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+Run npm run test	2026-09-19T19:49:40.2638087Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.262Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":1590580262,"outcome":"usage_unknown","applied":true}
+Run npm run test	2026-09-19T19:49:40.2640348Z 
+Run npm run test	2026-09-19T19:49:40.2641378Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+Run npm run test	2026-09-19T19:49:40.2647049Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.262Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:40.2652823Z 
+Run npm run test	2026-09-19T19:49:40.2653868Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+Run npm run test	2026-09-19T19:49:40.2656246Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.262Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":1590580262,"outcome":"usage_unknown","applied":true}
+Run npm run test	2026-09-19T19:49:40.2657906Z 
+Run npm run test	2026-09-19T19:49:40.2658863Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+Run npm run test	2026-09-19T19:49:40.2661374Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.263Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:40.2662151Z 
+Run npm run test	2026-09-19T19:49:40.2663109Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+Run npm run test	2026-09-19T19:49:40.2665480Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.263Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"invalid","durationMs":1590580263,"outcome":"usage_unknown","applied":true}
+Run npm run test	2026-09-19T19:49:40.2666782Z 
+Run npm run test	2026-09-19T19:49:40.2667848Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mREGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+Run npm run test	2026-09-19T19:49:40.2671729Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.263Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:40.2697758Z 
+Run npm run test	2026-09-19T19:49:40.2699383Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mREGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+Run npm run test	2026-09-19T19:49:40.2701523Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.263Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+Run npm run test	2026-09-19T19:49:40.2702476Z 
+Run npm run test	2026-09-19T19:49:40.2703544Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mTokenUsage conhecido usa os valores medidos, não os de options
+Run npm run test	2026-09-19T19:49:40.2705454Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.264Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:40.2706311Z 
+Run npm run test	2026-09-19T19:49:40.2707363Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mTokenUsage conhecido usa os valores medidos, não os de options
+Run npm run test	2026-09-19T19:49:40.2709328Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.264Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":155,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+Run npm run test	2026-09-19T19:49:40.2710389Z 
+Run npm run test	2026-09-19T19:49:40.2711439Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mzero explícito conhecido liquida com zero (não confundir com desconhecido)
+Run npm run test	2026-09-19T19:49:40.2713175Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.265Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+Run npm run test	2026-09-19T19:49:40.2714240Z 
+Run npm run test	2026-09-19T19:49:40.2715284Z ^[[90mstdout^[[2m | src/test/ai-usage-unknown.test.ts^[[2m > ^[[22m^[[2msettle — uso desconhecido (INV-006, variante B)^[[2m > ^[[22m^[[2mzero explícito conhecido liquida com zero (não confundir com desconhecido)
+Run npm run test	2026-09-19T19:49:40.2717269Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:40.265Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":0,"usageUnknownReason":null,"durationMs":1590580265,"outcome":"success","applied":true}
+Run npm run test	2026-09-19T19:49:40.2718004Z 
+Run npm run test	2026-09-19T19:49:40.2718520Z  ^[[32m✓^[[39m src/test/ai-usage-unknown.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[32m 11^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:41.7114086Z  ^[[32m✓^[[39m src/test/m02-transaction-sites.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[33m 763^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:41.7121613Z      ^[[33m^[[2m✓^[[22m^[[39m importar o gerador não regrava a matriz ^[[33m 740^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:42.8694575Z  ^[[32m✓^[[39m src/test/observability-spans.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[32m 14^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:43.7110888Z  ^[[32m✓^[[39m src/test/dashboard.service.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:44.5811539Z  ^[[32m✓^[[39m src/test/memory-dedup.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[32m 5^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:45.1386345Z  ^[[32m✓^[[39m src/test/security-headers.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:45.9939334Z  ^[[32m✓^[[39m src/test/purchase-price.service.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:47.0962254Z  ^[[32m✓^[[39m src/test/query-performance.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:48.8171309Z  ^[[32m✓^[[39m src/test/route-loading-skeletons.test.tsx ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 329^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:49.3673851Z  ^[[32m✓^[[39m src/test/memory-service.test.ts ^[[2m(^[[22m^[[2m16 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:50.1941919Z  ^[[32m✓^[[39m src/test/chat-fsm.server.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:51.5987723Z  ^[[32m✓^[[39m src/test/simulation-race.test.tsx ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 79^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:52.1265509Z  ^[[32m✓^[[39m src/test/m02-readiness-snapshot.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[32m 10^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:52.8720580Z  ^[[32m✓^[[39m src/test/m02-snapshot.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[32m 212^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:53.7248549Z  ^[[32m✓^[[39m src/test/conversation.service.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[32m 5^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:54.3540739Z  ^[[32m✓^[[39m src/test/m02-v2b.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[32m 82^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:55.2623163Z ^[[90mstderr^[[2m | src/test/ai-chat-latency.test.ts^[[2m > ^[[22m^[[2m§29: fases de latência do chat não-streaming^[[2m > ^[[22m^[[2mchat sem tool: acknowledge, first_content e final no mesmo round
+Run npm run test	2026-09-19T19:49:55.2625197Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:55.260Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+Run npm run test	2026-09-19T19:49:55.2628990Z 
+Run npm run test	2026-09-19T19:49:55.2650573Z ^[[90mstderr^[[2m | src/test/ai-chat-latency.test.ts^[[2m > ^[[22m^[[2m§29: fases de latência do chat não-streaming^[[2m > ^[[22m^[[2mchat com uma tool: acknowledge mede só o primeiro round e first_content == final
+Run npm run test	2026-09-19T19:49:55.2655546Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:55.264Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
+Run npm run test	2026-09-19T19:49:55.2657581Z ^[[90mstdout^[[2m | src/test/ai-chat-latency.test.ts^[[2m > ^[[22m^[[2m§29: fases de latência do chat não-streaming^[[2m > ^[[22m^[[2mchat com uma tool: acknowledge mede só o primeiro round e first_content == final
+Run npm run test	2026-09-19T19:49:55.2660715Z 
+Run npm run test	2026-09-19T19:49:55.2661956Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:55.265Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":2,"timeToAcknowledgeMs":120,"timeToFirstContentMs":320,"timeToFinalMs":320}
+Run npm run test	2026-09-19T19:49:55.2664442Z ^[[90mstderr^[[2m | src/test/ai-chat-latency.test.ts^[[2m > ^[[22m^[[2m§29: fases de latência do chat não-streaming^[[2m > ^[[22m^[[2mchat com uma tool: acknowledge mede só o primeiro round e first_content == final
+Run npm run test	2026-09-19T19:49:55.2665017Z 
+Run npm run test	2026-09-19T19:49:55.2666133Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:55.265Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":1}
+Run npm run test	2026-09-19T19:49:55.2667281Z 
+Run npm run test	2026-09-19T19:49:55.2670840Z ^[[90mstderr^[[2m | src/test/ai-chat-latency.test.ts^[[2m > ^[[22m^[[2m§29: fases de latência do chat não-streaming^[[2m > ^[[22m^[[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+Run npm run test	2026-09-19T19:49:55.2674326Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:55.266Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
+Run npm run test	2026-09-19T19:49:55.2684714Z ^[[90mstdout^[[2m | src/test/ai-chat-latency.test.ts^[[2m > ^[[22m^[[2m§29: fases de latência do chat não-streaming^[[2m > ^[[22m^[[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+Run npm run test	2026-09-19T19:49:55.2686642Z 
+Run npm run test	2026-09-19T19:49:55.2687787Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:55.267Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":4,"timeToAcknowledgeMs":10,"timeToFirstContentMs":100,"timeToFinalMs":100}
+Run npm run test	2026-09-19T19:49:55.2689949Z ^[[90mstderr^[[2m | src/test/ai-chat-latency.test.ts^[[2m > ^[[22m^[[2m§29: fases de latência do chat não-streaming^[[2m > ^[[22m^[[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+Run npm run test	2026-09-19T19:49:55.2690673Z 
+Run npm run test	2026-09-19T19:49:55.2691817Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:55.266Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":1}
+Run npm run test	2026-09-19T19:49:55.2692591Z 
+Run npm run test	2026-09-19T19:49:55.2693510Z ^[[90mstderr^[[2m | src/test/ai-chat-latency.test.ts^[[2m > ^[[22m^[[2m§29: fases de latência do chat não-streaming^[[2m > ^[[22m^[[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+Run npm run test	2026-09-19T19:49:55.2695110Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:55.267Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":2}
+Run npm run test	2026-09-19T19:49:55.2695888Z 
+Run npm run test	2026-09-19T19:49:55.2696788Z ^[[90mstderr^[[2m | src/test/ai-chat-latency.test.ts^[[2m > ^[[22m^[[2m§29: fases de latência do chat não-streaming^[[2m > ^[[22m^[[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+Run npm run test	2026-09-19T19:49:55.2698312Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:49:55.267Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":3}
+Run npm run test	2026-09-19T19:49:55.2699047Z 
+Run npm run test	2026-09-19T19:49:55.2750066Z  ^[[32m✓^[[39m src/test/ai-chat-latency.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 19^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:56.4695902Z  ^[[32m✓^[[39m src/test/ui-stack.test.tsx ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 421^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:57.3345284Z  ^[[32m✓^[[39m src/test/audit.service.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 5^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:57.9142396Z  ^[[32m✓^[[39m src/test/break-even.parity.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:58.4869294Z  ^[[32m✓^[[39m src/test/m02-grant-repair.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 10^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:59.2978891Z  ^[[32m✓^[[39m src/test/snapshot-idempotency.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 3^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:49:59.8800911Z  ^[[32m✓^[[39m src/test/financial.service.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:00.4678417Z  ^[[32m✓^[[39m src/test/chat-markdown.test.tsx ^[[2m(^[[22m^[[2m24 tests^[[22m^[[2m)^[[22m^[[32m 45^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:01.3132737Z  ^[[32m✓^[[39m src/test/sales.service.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:02.2047697Z ^[[90mstderr^[[2m | src/test/pricing.service.test.ts^[[2m > ^[[22m^[[2mDefaultPricingService^[[2m > ^[[22m^[[2mengole falha do snapshot mantendo o output do diagnóstico intacto
+Run npm run test	2026-09-19T19:50:02.2057381Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:50:02.203Z","level":"warn","event":"diagnostic.snapshot_failed","productId":"70000000-0000-4000-8000-000000000001","message":"SNAPSHOT_DOWN"}
+Run npm run test	2026-09-19T19:50:02.2058340Z  ^[[32m✓^[[39m src/test/pricing.service.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:02.2060549Z 
+Run npm run test	2026-09-19T19:50:02.7760421Z  ^[[32m✓^[[39m src/test/rate-limit-rules.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 5^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:03.3067396Z  ^[[32m✓^[[39m src/test/sql-redactor.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[32m 5^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:04.1376132Z  ^[[32m✓^[[39m src/test/tool-registry.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:04.7045709Z  ^[[32m✓^[[39m src/test/token-usage.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:05.2853092Z  ^[[32m✓^[[39m src/test/format.test.ts ^[[2m(^[[22m^[[2m22 tests^[[22m^[[2m)^[[22m^[[32m 14^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:08.7656666Z  ^[[32m✓^[[39m src/test/m02-role-membership.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 2615^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:08.7657794Z      ^[[33m^[[2m✓^[[22m^[[39m drill-branch mirando produção → DENY pré-conexão ^[[33m 569^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:08.7658682Z      ^[[33m^[[2m✓^[[22m^[[39m cutover-window fora de janela → DENY pré-conexão (inclusive dry-run) ^[[33m 1037^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:08.7659514Z      ^[[33m^[[2m✓^[[22m^[[39m URL malformada/ausente → fail-closed exit 2, sem vazar valor ^[[33m 1004^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:09.4625472Z  ^[[32m✓^[[39m src/test/contracts.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[32m 24^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:10.3326481Z  ^[[32m✓^[[39m src/test/simulation.service.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:11.6452408Z  ^[[32m✓^[[39m src/test/contracts-driver-independence.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[33m 636^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:11.6453675Z      ^[[33m^[[2m✓^[[22m^[[39m compila com @/db/* remapeado para um diretório inexistente ^[[33m 626^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:12.7938882Z  ^[[32m✓^[[39m src/test/bff-create-update-contract.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 11^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:13.3217008Z  ^[[32m✓^[[39m src/test/ai-endpoint.server.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 4^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:13.9813508Z  ^[[32m✓^[[39m src/test/auth-policy.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[32m 133^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:14.8722748Z ^[[90mstderr^[[2m | src/test/chat-rate-limit.test.ts^[[2m > ^[[22m^[[2m§20.5: admissão do chat por bucket atômico^[[2m > ^[[22m^[[2mrecusa com RATE_LIMIT (429) antes do orçamento e do histórico
+Run npm run test	2026-09-19T19:50:14.8725931Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:50:14.870Z","level":"warn","event":"ai.chat_rate_limited","bucket":"chat","retryAfterSeconds":600}
+Run npm run test	2026-09-19T19:50:14.8727099Z 
+Run npm run test	2026-09-19T19:50:14.8746545Z ^[[90mstdout^[[2m | src/test/chat-rate-limit.test.ts^[[2m > ^[[22m^[[2m§20.5: admissão do chat por bucket atômico^[[2m > ^[[22m^[[2msegue o turno quando o bucket aprova
+Run npm run test	2026-09-19T19:50:14.8750550Z ^[[90mstderr^[[2m | src/test/chat-rate-limit.test.ts^[[2m > ^[[22m^[[2m§20.5: admissão do chat por bucket atômico^[[2m > ^[[22m^[[2msegue o turno quando o bucket aprova
+Run npm run test	2026-09-19T19:50:14.8752139Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:50:14.874Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":1,"timeToFirstContentMs":1,"timeToFinalMs":1}
+Run npm run test	2026-09-19T19:50:14.8755208Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:50:14.874Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+Run npm run test	2026-09-19T19:50:14.8755852Z 
+Run npm run test	2026-09-19T19:50:14.8756542Z 
+Run npm run test	2026-09-19T19:50:14.8763935Z  ^[[32m✓^[[39m src/test/chat-rate-limit.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:15.4089577Z  ^[[32m✓^[[39m src/test/m02-secrets-audit.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 11^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:15.9459923Z  ^[[32m✓^[[39m src/test/api-error-contract.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:16.4905086Z  ^[[32m✓^[[39m src/test/migration-classes.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 11^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:17.0447777Z  ^[[32m✓^[[39m src/test/finance.required-sales.test.ts ^[[2m(^[[22m^[[2m13 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:17.5983655Z  ^[[32m✓^[[39m src/test/financial-values.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:18.1531511Z  ^[[32m✓^[[39m src/test/api-error-logger.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:18.6967773Z  ^[[32m✓^[[39m src/test/web-vitals-payload.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:19.2277635Z  ^[[32m✓^[[39m src/test/rls-probe-errors.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 3^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:20.4741911Z ^[[90mstdout^[[2m | src/test/model-gateway.test.ts^[[2m > ^[[22m^[[2mlimites do gateway de IA^[[2m > ^[[22m^[[2mrepete somente uma falha transitória e limita a duas tentativas
+Run npm run test	2026-09-19T19:50:20.4743618Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:50:20.472Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":139,"outcome":"retry"}
+Run npm run test	2026-09-19T19:50:20.4744262Z 
+Run npm run test	2026-09-19T19:50:20.4762245Z ^[[90mstdout^[[2m | src/test/model-gateway.test.ts^[[2m > ^[[22m^[[2mlimites do gateway de IA^[[2m > ^[[22m^[[2mrepete somente uma falha transitória e limita a duas tentativas
+Run npm run test	2026-09-19T19:50:20.4763626Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:50:20.475Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":2,"durationMs":2,"outcome":"success"}
+Run npm run test	2026-09-19T19:50:20.4764314Z 
+Run npm run test	2026-09-19T19:50:20.4788516Z ^[[90mstdout^[[2m | src/test/model-gateway.test.ts^[[2m > ^[[22m^[[2mlimites do gateway de IA^[[2m > ^[[22m^[[2mnão repete quota ou rate limit
+Run npm run test	2026-09-19T19:50:20.4791102Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:50:20.478Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"RATE_LIMIT"}
+Run npm run test	2026-09-19T19:50:20.4791753Z 
+Run npm run test	2026-09-19T19:50:20.4799234Z ^[[90mstdout^[[2m | src/test/model-gateway.test.ts^[[2m > ^[[22m^[[2mlimites do gateway de IA^[[2m > ^[[22m^[[2mpropaga cancelamento como AI_TIMEOUT
+Run npm run test	2026-09-19T19:50:20.4801426Z ^[[22m^[[39m{"timestamp":"2026-09-19T19:50:20.479Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"AI_TIMEOUT"}
+Run npm run test	2026-09-19T19:50:20.4802067Z 
+Run npm run test	2026-09-19T19:50:20.4812304Z  ^[[32m✓^[[39m src/test/model-gateway.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 150^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:21.0476886Z  ^[[32m✓^[[39m src/test/product-completeness.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 4^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:21.5655165Z  ^[[32m✓^[[39m src/test/m02-purge-fixtures.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 5^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:22.1226198Z  ^[[32m✓^[[39m src/test/m02-backup-verify.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 3^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:26.1076334Z  ^[[32m✓^[[39m src/test/m02-cutover-t0.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[33m 3455^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:26.1101463Z      ^[[33m^[[2m✓^[[22m^[[39m --skip-snapshot não conecta e ainda assim exit 0 com rótulos (smoke de parsing) ^[[33m 3453^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:26.6705281Z  ^[[32m✓^[[39m src/test/rls-probe-contract.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 78^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:27.2372592Z  ^[[32m✓^[[39m src/test/break-even.service.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 4^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:27.7323347Z  ^[[32m✓^[[39m src/test/list-limits.test.ts ^[[2m(^[[22m^[[2m3 tests^[[22m^[[2m)^[[22m^[[32m 3^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:28.2578778Z  ^[[32m✓^[[39m src/test/chat-fsm.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 2^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:28.7751424Z  ^[[32m✓^[[39m src/test/ai-tool.repository.security.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 2^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:29.3034453Z  ^[[32m✓^[[39m src/test/request-context.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[32m 3^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:29.8137772Z  ^[[32m✓^[[39m src/test/migration-reconcile.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 2^[[2mms^[[22m^[[39m
+Run npm run test	2026-09-19T19:50:29.8185052Z 
+Run npm run test	2026-09-19T19:50:29.8195961Z ^[[2m Test Files ^[[22m ^[[1m^[[32m87 passed^[[39m^[[22m^[[90m (87)^[[39m
+Run npm run test	2026-09-19T19:50:29.8196471Z ^[[2m      Tests ^[[22m ^[[1m^[[32m865 passed^[[39m^[[22m^[[90m (865)^[[39m
+Run npm run test	2026-09-19T19:50:29.8196833Z ^[[2m   Start at ^[[22m 19:49:10
+Run npm run test	2026-09-19T19:50:29.8197523Z ^[[2m   Duration ^[[22m 79.28s^[[2m (transform 1.30s, setup 4.79s, import 19.31s, tests 15.00s, environment 32.45s)^[[22m
+Run npm run test	2026-09-19T19:50:29.8201036Z 
+Configure isolated runtime and E2E credentials	﻿2026-09-19T19:50:52.9433115Z ##[group]Run runtime_password="$(openssl rand -hex 24)"
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9433508Z ^[[36;1mruntime_password="$(openssl rand -hex 24)"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9433811Z ^[[36;1mauth_secret="$(openssl rand -hex 32)"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9434097Z ^[[36;1mauth_password="$(openssl rand -base64 24 | tr -d '\n')"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9434404Z ^[[36;1mdb_host="127.0.0.1:5432/preco_que_da_lucro_test"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9434687Z ^[[36;1mecho "::add-mask::${runtime_password}"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9434934Z ^[[36;1mecho "::add-mask::${auth_secret}"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9435183Z ^[[36;1mecho "::add-mask::${auth_password}"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9435414Z ^[[36;1m{^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9435712Z ^[[36;1m  runtime_url="postgresql://app_runtime:${runtime_password}@${db_host}"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9436080Z ^[[36;1m  echo "DATABASE_URL=${runtime_url}"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9436368Z ^[[36;1m  echo "E2E_DB_RUNTIME_PASSWORD=${runtime_password}"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9436659Z ^[[36;1m  echo "BETTER_AUTH_SECRET=${auth_secret}"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9436954Z ^[[36;1m  echo "E2E_AUTH_PASSWORD=${auth_password}"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9437384Z ^[[36;1m} >> "$GITHUB_ENV"^[[0m
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9493682Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9494000Z env:
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9494196Z   BUILD_RELEASE_CHANNEL: pre-beta-internal
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9494713Z   DATABASE_ADMIN_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9495128Z   DATABASE_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9495562Z   DATABASE_URL_UNPOOLED: ***127.0.0.1:5432/preco_que_da_lucro_test
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9495859Z   DATABASE_DRIVER: node-postgres
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9496090Z   EXPECTED_POSTGRES_MAJOR: 17
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9496318Z   BETTER_AUTH_URL: http://127.0.0.1:4173
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9496578Z   AUTH_TRUSTED_ORIGINS: http://127.0.0.1:4173
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9496833Z   E2E_AUTH_EMAIL: teste@example.test
+Configure isolated runtime and E2E credentials	2026-09-19T19:50:52.9497050Z ##[endgroup]
+Audit dependencies	﻿2026-09-19T19:50:57.3769024Z ##[group]Run npm audit --audit-level=high
+Audit dependencies	2026-09-19T19:50:57.3769347Z ^[[36;1mnpm audit --audit-level=high^[[0m
+Audit dependencies	2026-09-19T19:50:57.3809481Z shell: /usr/bin/bash -e {0}
+Audit dependencies	2026-09-19T19:50:57.3809717Z env:
+Audit dependencies	2026-09-19T19:50:57.3809914Z   BUILD_RELEASE_CHANNEL: pre-beta-internal
+Audit dependencies	2026-09-19T19:50:57.3810595Z   DATABASE_ADMIN_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Audit dependencies	2026-09-19T19:50:57.3811216Z   DATABASE_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Audit dependencies	2026-09-19T19:50:57.3811671Z   DATABASE_URL_UNPOOLED: ***127.0.0.1:5432/preco_que_da_lucro_test
+Audit dependencies	2026-09-19T19:50:57.3811988Z   DATABASE_DRIVER: node-postgres
+Audit dependencies	2026-09-19T19:50:57.3812225Z   EXPECTED_POSTGRES_MAJOR: 17
+Audit dependencies	2026-09-19T19:50:57.3812469Z   BETTER_AUTH_URL: http://127.0.0.1:4173
+Audit dependencies	2026-09-19T19:50:57.3812736Z   AUTH_TRUSTED_ORIGINS: http://127.0.0.1:4173
+Audit dependencies	2026-09-19T19:50:57.3813004Z   E2E_AUTH_EMAIL: teste@example.test
+Audit dependencies	2026-09-19T19:50:57.3813344Z   E2E_DB_RUNTIME_PASSWORD: ***
+Audit dependencies	2026-09-19T19:50:57.3813689Z   BETTER_AUTH_SECRET: ***
+Audit dependencies	2026-09-19T19:50:57.3813959Z   E2E_AUTH_PASSWORD: ***
+Audit dependencies	2026-09-19T19:50:57.3814166Z ##[endgroup]
+Audit dependencies	2026-09-19T19:50:57.7758940Z # npm audit report
+Audit dependencies	2026-09-19T19:50:57.7759427Z 
+Audit dependencies	2026-09-19T19:50:57.7759867Z esbuild  <=0.24.2
+Audit dependencies	2026-09-19T19:50:57.7760462Z Severity: moderate
+Audit dependencies	2026-09-19T19:50:57.7761247Z esbuild enables any website to send any requests to the development server and read the response - https://github.com/advisories/GHSA-67mh-4wv8-2f99
+Audit dependencies	2026-09-19T19:50:57.7762044Z fix available via `npm audit fix --force`
+Audit dependencies	2026-09-19T19:50:57.7762563Z Will install drizzle-kit@0.18.1, which is a breaking change
+Audit dependencies	2026-09-19T19:50:57.7763090Z node_modules/@esbuild-kit/core-utils/node_modules/esbuild
+Audit dependencies	2026-09-19T19:50:57.7764769Z   @esbuild-kit/core-utils  *
+Audit dependencies	2026-09-19T19:50:57.7765221Z   Depends on vulnerable versions of esbuild
+Audit dependencies	2026-09-19T19:50:57.7765668Z   node_modules/@esbuild-kit/core-utils
+Audit dependencies	2026-09-19T19:50:57.7766084Z     @esbuild-kit/esm-loader  *
+Audit dependencies	2026-09-19T19:50:57.7766535Z     Depends on vulnerable versions of @esbuild-kit/core-utils
+Audit dependencies	2026-09-19T19:50:57.7767023Z     node_modules/@esbuild-kit/esm-loader
+Audit dependencies	2026-09-19T19:50:57.7767419Z       drizzle-kit  0.19.0 - 1.0.0-beta.1-fd8bfcc
+Audit dependencies	2026-09-19T19:50:57.7767873Z       Depends on vulnerable versions of @esbuild-kit/esm-loader
+Audit dependencies	2026-09-19T19:50:57.7768299Z       node_modules/drizzle-kit
+Audit dependencies	2026-09-19T19:50:57.7768577Z 
+Audit dependencies	2026-09-19T19:50:57.7769031Z 4 moderate severity vulnerabilities
+Audit dependencies	2026-09-19T19:50:57.7769317Z 
+Audit dependencies	2026-09-19T19:50:57.7769608Z To address all issues (including breaking changes), run:
+Audit dependencies	2026-09-19T19:50:57.7769994Z   npm audit fix --force
+Run npm run test:e2e	﻿2026-09-19T19:52:24.6496100Z ##[group]Run npm run test:e2e
+Run npm run test:e2e	2026-09-19T19:52:24.6496295Z ^[[36;1mnpm run test:e2e^[[0m
+Run npm run test:e2e	2026-09-19T19:52:24.6525667Z shell: /usr/bin/bash -e {0}
+Run npm run test:e2e	2026-09-19T19:52:24.6525823Z env:
+Run npm run test:e2e	2026-09-19T19:52:24.6525958Z   BUILD_RELEASE_CHANNEL: pre-beta-internal
+Run npm run test:e2e	2026-09-19T19:52:24.6526291Z   DATABASE_ADMIN_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run test:e2e	2026-09-19T19:52:24.6526668Z   DATABASE_URL: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run test:e2e	2026-09-19T19:52:24.6526955Z   DATABASE_URL_UNPOOLED: ***127.0.0.1:5432/preco_que_da_lucro_test
+Run npm run test:e2e	2026-09-19T19:52:24.6527154Z   DATABASE_DRIVER: node-postgres
+Run npm run test:e2e	2026-09-19T19:52:24.6527310Z   EXPECTED_POSTGRES_MAJOR: 17
+Run npm run test:e2e	2026-09-19T19:52:24.6527470Z   BETTER_AUTH_URL: http://127.0.0.1:4173
+Run npm run test:e2e	2026-09-19T19:52:24.6527644Z   AUTH_TRUSTED_ORIGINS: http://127.0.0.1:4173
+Run npm run test:e2e	2026-09-19T19:52:24.6527827Z   E2E_AUTH_EMAIL: teste@example.test
+Run npm run test:e2e	2026-09-19T19:52:24.6528048Z   E2E_DB_RUNTIME_PASSWORD: ***
+Run npm run test:e2e	2026-09-19T19:52:24.6528277Z   BETTER_AUTH_SECRET: ***
+Run npm run test:e2e	2026-09-19T19:52:24.6528442Z   E2E_AUTH_PASSWORD: ***
+Run npm run test:e2e	2026-09-19T19:52:24.6528592Z ##[endgroup]
+Run npm run test:e2e	2026-09-19T19:52:24.7204373Z 
+Run npm run test:e2e	2026-09-19T19:52:24.7205171Z > pretest:e2e
+Run npm run test:e2e	2026-09-19T19:52:24.7205773Z > node --env-file-if-exists=.env scripts/env-guard.mjs
+Run npm run test:e2e	2026-09-19T19:52:24.7206200Z 
+Run npm run test:e2e	2026-09-19T19:52:24.7259287Z .env not found. Continuing without it.
+Run npm run test:e2e	2026-09-19T19:52:24.7438200Z 
+Run npm run test:e2e	2026-09-19T19:52:24.7439113Z > test:e2e
+Run npm run test:e2e	2026-09-19T19:52:24.7439615Z > playwright test
+Run npm run test:e2e	2026-09-19T19:52:24.7439883Z 
+Run npm run test:e2e	2026-09-19T19:52:25.3000967Z [WebServer] .env not found. Continuing without it.
+Run npm run test:e2e	2026-09-19T19:52:31.4671080Z 
+Run npm run test:e2e	2026-09-19T19:52:31.4710488Z Running 56 tests using 1 worker
+Run npm run test:e2e	2026-09-19T19:52:31.4711047Z 
+Run npm run test:e2e	2026-09-19T19:52:33.1054199Z [WebServer] (node:8837) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+Run npm run test:e2e	2026-09-19T19:52:33.1057299Z [WebServer] (Use `node --trace-deprecation ...` to show where the warning was created)
+Run npm run test:e2e	2026-09-19T19:52:34.0114377Z   ✓   1 [chromium] › e2e/sales-dashboard.spec.ts:200:1 › dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS (1.9s)
+Run npm run test:e2e	2026-09-19T19:52:36.2151337Z   ✓   2 [chromium] › e2e/sales-dashboard.spec.ts:219:1 › registrar venda pelo formulário aparece em Vendas recentes (2.2s)
+Run npm run test:e2e	2026-09-19T19:52:39.9273438Z   ✓   3 [chromium] › e2e/sales-dashboard.spec.ts:232:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (3.7s)
+Run npm run test:e2e	2026-09-19T19:52:41.1924911Z   ✓   4 [chromium] › e2e/ui-stack.spec.ts:49:1 › public UI uses valid composed controls and has no serious a11y violations (1.2s)
+Run npm run test:e2e	2026-09-19T19:52:41.2009274Z [WebServer] {"timestamp":"2026-09-19T19:52:41.200Z","level":"warn","event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src","violatedDirective":null,"blockedUri":"https://cdn.example/blocked.js","documentUri":"https://preview.invalid/inicio","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":null,"sample":null}
+Run npm run test:e2e	2026-09-19T19:52:41.2081368Z   ✓   5 [chromium] › e2e/ui-stack.spec.ts:76:1 › the CSP report channel answers 204 for a violation report (7ms)
+Run npm run test:e2e	2026-09-19T19:52:43.0021818Z   ✓   6 [chromium] › e2e/ui-stack.spec.ts:92:1 › authentication controls keep accessible names (1.8s)
+Run npm run test:e2e	2026-09-19T19:52:43.6852099Z [WebServer] 2026-09-19T19:52:43.683Z WARN [Better Auth]: Invalid password
+Run npm run test:e2e	2026-09-19T19:52:44.4925218Z [WebServer] {"timestamp":"2026-09-19T19:52:44.486Z","level":"error","event":"request.failed","correlationId":"94f21409-41fa-4861-975b-14d54fb91a57","code":"INTERNAL_ERROR","method":"GET","pathname":"/api/auth/get-session","durationMs":143,"error":{"name":"Error","message":"aborted"}}
+Run npm run test:e2e	2026-09-19T19:52:44.4931223Z [WebServer] Error: aborted
+Run npm run test:e2e	2026-09-19T19:52:44.4934701Z [WebServer]     at abortIncoming (node:_http_server:848:17)
+Run npm run test:e2e	2026-09-19T19:52:44.4953981Z [WebServer]     at socketOnClose (node:_http_server:842:3)
+Run npm run test:e2e	2026-09-19T19:52:44.4954756Z   ✓   7 [chromium] › e2e/ui-stack.spec.ts:119:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (1.5s)
+Run npm run test:e2e	2026-09-19T19:52:44.4955566Z [WebServer]     at Socket.emit (node:events:521:24)
+Run npm run test:e2e	2026-09-19T19:52:44.4956011Z [WebServer]     at TCP.<anonymous> (node:net:350:12) (status 500)
+Run npm run test:e2e	2026-09-19T19:52:44.4956348Z [WebServer] caused by: Error: aborted
+Run npm run test:e2e	2026-09-19T19:52:44.4956723Z [WebServer]     at abortIncoming (node:_http_server:848:17)
+Run npm run test:e2e	2026-09-19T19:52:44.4957102Z [WebServer]     at socketOnClose (node:_http_server:842:3)
+Run npm run test:e2e	2026-09-19T19:52:44.4959660Z [WebServer]     at Socket.emit (node:events:521:24)
+Run npm run test:e2e	2026-09-19T19:52:44.4960578Z [WebServer]     at TCP.<anonymous> (node:net:350:12)
+Run npm run test:e2e	2026-09-19T19:52:44.4961550Z [WebServer] {"timestamp":"2026-09-19T19:52:44.492Z","level":"error","event":"server.ssr_failed","correlationId":"2632104b-50de-4b8d-81f0-f65ea2669491","error":{"name":"HTTPError","message":"aborted"}}
+Run npm run test:e2e	2026-09-19T19:52:46.8072771Z [WebServer] {"timestamp":"2026-09-19T19:52:46.805Z","level":"error","event":"bff.request_failed","correlationId":"14127274-8f27-4444-8742-3a141e850ef4","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+Run npm run test:e2e	2026-09-19T19:52:46.9320560Z   ✓   8 [chromium] › e2e/ui-stack.spec.ts:138:1 › authorization matrix blocks member mutations with a Better Auth session (2.4s)
+Run npm run test:e2e	2026-09-19T19:52:49.0567183Z [WebServer] {"timestamp":"2026-09-19T19:52:49.054Z","level":"error","event":"bff.request_failed","correlationId":"529a3002-37d9-4471-8747-d1013299254a","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+Run npm run test:e2e	2026-09-19T19:52:49.1996497Z   ✓   9 [chromium] › e2e/ui-stack.spec.ts:159:1 › CSRF rejects a cross-site replay of a server-function mutation (2.3s)
+Run npm run test:e2e	2026-09-19T19:52:53.2193705Z   ✓  10 [chromium] › e2e/ui-stack.spec.ts:188:1 › authenticated shell uses an HttpOnly session and accessible navigation (4.0s)
+Run npm run test:e2e	2026-09-19T19:52:57.9841827Z   ✓  11 [chromium] › e2e/ui-stack.spec.ts:239:1 › manual simulation has no fictitious current volume and labels hypothetical results (4.8s)
+Run npm run test:e2e	2026-09-19T19:53:01.7998774Z   ✓  12 [chromium] › e2e/ui-stack.spec.ts:270:1 › diagnostic forms prices only from explicit assumptions (3.8s)
+Run npm run test:e2e	2026-09-19T19:53:03.5201637Z   ✓  13 [chromium] › e2e/ui-stack.spec.ts:303:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (1.7s)
+Run npm run test:e2e	2026-09-19T19:53:09.0912517Z   ✓  14 [chromium] › e2e/ui-stack.spec.ts:332:1 › financial query failure is not rendered as empty or zero data (5.6s)
+Run npm run test:e2e	2026-09-19T19:53:12.4914553Z   ✓  15 [firefox] › e2e/sales-dashboard.spec.ts:200:1 › dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS (2.5s)
+Run npm run test:e2e	2026-09-19T19:53:14.9057297Z   ✓  16 [firefox] › e2e/sales-dashboard.spec.ts:219:1 › registrar venda pelo formulário aparece em Vendas recentes (2.4s)
+Run npm run test:e2e	2026-09-19T19:53:19.2221213Z   ✓  17 [firefox] › e2e/sales-dashboard.spec.ts:232:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (4.3s)
+Run npm run test:e2e	2026-09-19T19:53:20.9886813Z   ✓  18 [firefox] › e2e/ui-stack.spec.ts:49:1 › public UI uses valid composed controls and has no serious a11y violations (1.7s)
+Run npm run test:e2e	2026-09-19T19:53:21.0079244Z [WebServer] {"timestamp":"2026-09-19T19:53:21.006Z","level":"warn","event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src","violatedDirective":null,"blockedUri":"https://cdn.example/blocked.js","documentUri":"https://preview.invalid/inicio","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":null,"sample":null}
+Run npm run test:e2e	2026-09-19T19:53:21.0146827Z   ✓  19 [firefox] › e2e/ui-stack.spec.ts:76:1 › the CSP report channel answers 204 for a violation report (17ms)
+Run npm run test:e2e	2026-09-19T19:53:22.3181902Z   ✓  20 [firefox] › e2e/ui-stack.spec.ts:92:1 › authentication controls keep accessible names (1.3s)
+Run npm run test:e2e	2026-09-19T19:53:23.2178515Z [WebServer] 2026-09-19T19:53:23.217Z WARN [Better Auth]: Invalid password
+Run npm run test:e2e	2026-09-19T19:53:24.2674380Z   ✓  21 [firefox] › e2e/ui-stack.spec.ts:119:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (1.9s)
+Run npm run test:e2e	2026-09-19T19:53:24.2792356Z [WebServer] {"timestamp":"2026-09-19T19:53:24.278Z","level":"error","event":"request.failed","correlationId":"513f87a9-4c9b-4f0f-b48c-6082f96b6411","code":"INTERNAL_ERROR","method":"GET","pathname":"/api/auth/get-session","durationMs":133,"error":{"name":"Error","message":"aborted"}}
+Run npm run test:e2e	2026-09-19T19:53:24.2807982Z [WebServer] Error: aborted
+Run npm run test:e2e	2026-09-19T19:53:24.2815413Z [WebServer]     at abortIncoming (node:_http_server:848:17)
+Run npm run test:e2e	2026-09-19T19:53:24.2816012Z [WebServer]     at socketOnClose (node:_http_server:842:3)
+Run npm run test:e2e	2026-09-19T19:53:24.2816505Z [WebServer]     at Socket.emit (node:events:521:24)
+Run npm run test:e2e	2026-09-19T19:53:24.2817008Z [WebServer]     at TCP.<anonymous> (node:net:350:12) (status 500)
+Run npm run test:e2e	2026-09-19T19:53:24.2817480Z [WebServer] caused by: Error: aborted
+Run npm run test:e2e	2026-09-19T19:53:24.2817961Z [WebServer]     at abortIncoming (node:_http_server:848:17)
+Run npm run test:e2e	2026-09-19T19:53:24.2818451Z [WebServer]     at socketOnClose (node:_http_server:842:3)
+Run npm run test:e2e	2026-09-19T19:53:24.2818941Z [WebServer]     at Socket.emit (node:events:521:24)
+Run npm run test:e2e	2026-09-19T19:53:24.2819404Z [WebServer]     at TCP.<anonymous> (node:net:350:12)
+Run npm run test:e2e	2026-09-19T19:53:24.2820602Z [WebServer] {"timestamp":"2026-09-19T19:53:24.281Z","level":"error","event":"server.ssr_failed","correlationId":"73d7e5eb-e118-430c-9d8a-fabcab33bbe0","error":{"name":"HTTPError","message":"aborted"}}
+Run npm run test:e2e	2026-09-19T19:53:27.7545811Z [WebServer] {"timestamp":"2026-09-19T19:53:27.752Z","level":"error","event":"bff.request_failed","correlationId":"ea7f5c9b-3211-471c-8a39-2ef88fa24525","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+Run npm run test:e2e	2026-09-19T19:53:27.8721861Z   ✓  22 [firefox] › e2e/ui-stack.spec.ts:138:1 › authorization matrix blocks member mutations with a Better Auth session (3.6s)
+Run npm run test:e2e	2026-09-19T19:53:30.5146506Z [WebServer] {"timestamp":"2026-09-19T19:53:30.512Z","level":"error","event":"bff.request_failed","correlationId":"54d95aee-fb2f-4c9a-b7e8-7fd71feaeb6a","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+Run npm run test:e2e	2026-09-19T19:53:30.6348081Z   ✓  23 [firefox] › e2e/ui-stack.spec.ts:159:1 › CSRF rejects a cross-site replay of a server-function mutation (2.8s)
+Run npm run test:e2e	2026-09-19T19:53:35.4875090Z   ✓  24 [firefox] › e2e/ui-stack.spec.ts:188:1 › authenticated shell uses an HttpOnly session and accessible navigation (4.8s)
+Run npm run test:e2e	2026-09-19T19:53:41.0006483Z   ✓  25 [firefox] › e2e/ui-stack.spec.ts:239:1 › manual simulation has no fictitious current volume and labels hypothetical results (5.5s)
+Run npm run test:e2e	2026-09-19T19:53:45.4528342Z   ✓  26 [firefox] › e2e/ui-stack.spec.ts:270:1 › diagnostic forms prices only from explicit assumptions (4.4s)
+Run npm run test:e2e	2026-09-19T19:53:47.0904446Z   ✓  27 [firefox] › e2e/ui-stack.spec.ts:303:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (1.6s)
+Run npm run test:e2e	2026-09-19T19:53:53.1952803Z   ✓  28 [firefox] › e2e/ui-stack.spec.ts:332:1 › financial query failure is not rendered as empty or zero data (6.1s)
+Run npm run test:e2e	2026-09-19T19:53:53.3705569Z [WebServer] {"timestamp":"2026-09-19T19:53:53.369Z","level":"error","event":"request.failed","correlationId":"bdc910fe-6b90-462a-9465-70d34f873963","code":"INTERNAL_ERROR","method":"POST","pathname":"/api/vitals","durationMs":4,"error":{"name":"AbortError","message":"This operation was aborted"}}
+Run npm run test:e2e	2026-09-19T19:53:53.3778070Z [WebServer] AbortError: This operation was aborted
+Run npm run test:e2e	2026-09-19T19:53:53.3821020Z [WebServer]     at new DOMException (node:internal/per_context/domexception:76:18)
+Run npm run test:e2e	2026-09-19T19:53:53.3834906Z [WebServer]     at AbortController.abort (node:internal/abort_controller:506:18)
+Run npm run test:e2e	2026-09-19T19:53:53.3837814Z [WebServer]     at abort (file:///home/runner/work/preco-que-da-lucro/preco-que-da-lucro/node_modules/srvx/dist/adapters/node.mjs:316:51)
+Run npm run test:e2e	2026-09-19T19:53:53.3838887Z [WebServer]     at ServerResponse.<anonymous> (file:///home/runner/work/preco-que-da-lucro/preco-que-da-lucro/node_modules/srvx/dist/adapters/node.mjs:320:35)
+Run npm run test:e2e	2026-09-19T19:53:53.3840773Z [WebServer]     at Object.onceWrapper (node:events:630:28)
+Run npm run test:e2e	2026-09-19T19:53:53.3841367Z [WebServer]     at ServerResponse.emit (node:events:509:28)
+Run npm run test:e2e	2026-09-19T19:53:53.3841763Z [WebServer]     at emitCloseNT (node:_http_server:1076:10)
+Run npm run test:e2e	2026-09-19T19:53:53.3842198Z [WebServer]     at Socket.onServerResponseClose (node:_http_server:289:5)
+Run npm run test:e2e	2026-09-19T19:53:53.3842566Z [WebServer]     at Socket.emit (node:events:521:24)
+Run npm run test:e2e	2026-09-19T19:53:53.3842963Z [WebServer]     at TCP.<anonymous> (node:net:350:12) (status 500)
+Run npm run test:e2e	2026-09-19T19:53:53.3843361Z [WebServer] caused by: AbortError: This operation was aborted
+Run npm run test:e2e	2026-09-19T19:53:53.3843831Z [WebServer]     at new DOMException (node:internal/per_context/domexception:76:18)
+Run npm run test:e2e	2026-09-19T19:53:53.3844299Z [WebServer]     at AbortController.abort (node:internal/abort_controller:506:18)
+Run npm run test:e2e	2026-09-19T19:53:53.3844890Z [WebServer]     at abort (file:///home/runner/work/preco-que-da-lucro/preco-que-da-lucro/node_modules/srvx/dist/adapters/node.mjs:316:51)
+Run npm run test:e2e	2026-09-19T19:53:53.3845611Z [WebServer]     at ServerResponse.<anonymous> (file:///home/runner/work/preco-que-da-lucro/preco-que-da-lucro/node_modules/srvx/dist/adapters/node.mjs:320:35)
+Run npm run test:e2e	2026-09-19T19:53:53.3846131Z [WebServer]     at Object.onceWrapper (node:events:630:28)
+Run npm run test:e2e	2026-09-19T19:53:53.3846518Z [WebServer]     at ServerResponse.emit (node:events:509:28)
+Run npm run test:e2e	2026-09-19T19:53:53.3846899Z [WebServer]     at emitCloseNT (node:_http_server:1076:10)
+Run npm run test:e2e	2026-09-19T19:53:53.3847325Z [WebServer]     at Socket.onServerResponseClose (node:_http_server:289:5)
+Run npm run test:e2e	2026-09-19T19:53:53.3847686Z [WebServer]     at Socket.emit (node:events:521:24)
+Run npm run test:e2e	2026-09-19T19:53:53.3848042Z [WebServer]     at TCP.<anonymous> (node:net:350:12)
+Run npm run test:e2e	2026-09-19T19:53:53.3848729Z [WebServer] {"timestamp":"2026-09-19T19:53:53.376Z","level":"error","event":"server.ssr_failed","correlationId":"8a5f542a-1760-4781-b398-df721301e014","error":{"name":"HTTPError","message":"This operation was aborted"}}
+Run npm run test:e2e	2026-09-19T19:54:00.7936282Z [WebServer] {"timestamp":"2026-09-19T19:54:00.792Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:00.7953344Z [WebServer] {"timestamp":"2026-09-19T19:54:00.794Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:00.8907731Z [WebServer] {"timestamp":"2026-09-19T19:54:00.888Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:00.8909061Z [WebServer] {"timestamp":"2026-09-19T19:54:00.890Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:01.9514647Z [WebServer] {"timestamp":"2026-09-19T19:54:01.947Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:02.2147697Z   ✓  29 [webkit] › e2e/sales-dashboard.spec.ts:200:1 › dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS (7.7s)
+Run npm run test:e2e	2026-09-19T19:54:02.8547671Z [WebServer] {"timestamp":"2026-09-19T19:54:02.851Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:02.8555014Z [WebServer] {"timestamp":"2026-09-19T19:54:02.854Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:02.9138275Z [WebServer] {"timestamp":"2026-09-19T19:54:02.913Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:02.9220798Z [WebServer] {"timestamp":"2026-09-19T19:54:02.914Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:05.1432929Z [WebServer] {"timestamp":"2026-09-19T19:54:05.141Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:07.4891746Z [WebServer] {"timestamp":"2026-09-19T19:54:07.485Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:07.7565268Z   ✓  30 [webkit] › e2e/sales-dashboard.spec.ts:219:1 › registrar venda pelo formulário aparece em Vendas recentes (5.5s)
+Run npm run test:e2e	2026-09-19T19:54:08.3988096Z [WebServer] {"timestamp":"2026-09-19T19:54:08.398Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:08.4001272Z [WebServer] {"timestamp":"2026-09-19T19:54:08.399Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:08.4432214Z [WebServer] {"timestamp":"2026-09-19T19:54:08.442Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:08.4451933Z [WebServer] {"timestamp":"2026-09-19T19:54:08.442Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:09.6759256Z [WebServer] {"timestamp":"2026-09-19T19:54:09.674Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:11.4882791Z [WebServer] {"timestamp":"2026-09-19T19:54:11.486Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:11.4941421Z [WebServer] {"timestamp":"2026-09-19T19:54:11.487Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:11.5101438Z [WebServer] {"timestamp":"2026-09-19T19:54:11.509Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:11.5183357Z [WebServer] {"timestamp":"2026-09-19T19:54:11.518Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:12.6702662Z [WebServer] {"timestamp":"2026-09-19T19:54:12.669Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:12.9896361Z   ✓  31 [webkit] › e2e/sales-dashboard.spec.ts:232:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (5.2s)
+Run npm run test:e2e	2026-09-19T19:54:13.5995932Z [WebServer] {"timestamp":"2026-09-19T19:54:13.599Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:13.6007646Z [WebServer] {"timestamp":"2026-09-19T19:54:13.600Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:13.6632542Z [WebServer] {"timestamp":"2026-09-19T19:54:13.662Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:13.6664592Z [WebServer] {"timestamp":"2026-09-19T19:54:13.664Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:14.4914351Z [WebServer] {"timestamp":"2026-09-19T19:54:14.489Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:14.6343552Z   ✓  32 [webkit] › e2e/ui-stack.spec.ts:49:1 › public UI uses valid composed controls and has no serious a11y violations (1.6s)
+Run npm run test:e2e	2026-09-19T19:54:14.6472598Z [WebServer] {"timestamp":"2026-09-19T19:54:14.646Z","level":"warn","event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src","violatedDirective":null,"blockedUri":"https://cdn.example/blocked.js","documentUri":"https://preview.invalid/inicio","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":null,"sample":null}
+Run npm run test:e2e	2026-09-19T19:54:14.6593507Z   ✓  33 [webkit] › e2e/ui-stack.spec.ts:76:1 › the CSP report channel answers 204 for a violation report (12ms)
+Run npm run test:e2e	2026-09-19T19:54:15.0117440Z [WebServer] {"timestamp":"2026-09-19T19:54:15.003Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:15.0191519Z [WebServer] {"timestamp":"2026-09-19T19:54:15.012Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:15.0444300Z [WebServer] {"timestamp":"2026-09-19T19:54:15.040Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:15.0445998Z [WebServer] {"timestamp":"2026-09-19T19:54:15.041Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:15.3178129Z [WebServer] {"timestamp":"2026-09-19T19:54:15.317Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:15.5585606Z   ✓  34 [webkit] › e2e/ui-stack.spec.ts:92:1 › authentication controls keep accessible names (887ms)
+Run npm run test:e2e	2026-09-19T19:54:15.8981071Z [WebServer] {"timestamp":"2026-09-19T19:54:15.897Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:15.9001093Z [WebServer] {"timestamp":"2026-09-19T19:54:15.898Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:15.9645057Z [WebServer] {"timestamp":"2026-09-19T19:54:15.963Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:15.9712394Z [WebServer] {"timestamp":"2026-09-19T19:54:15.967Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:16.1140470Z [WebServer] 2026-09-19T19:54:16.113Z WARN [Better Auth]: Invalid password
+Run npm run test:e2e	2026-09-19T19:54:16.1781645Z [WebServer] {"timestamp":"2026-09-19T19:54:16.175Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:16.1801103Z [WebServer] {"timestamp":"2026-09-19T19:54:16.175Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:16.2068372Z [WebServer] {"timestamp":"2026-09-19T19:54:16.204Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:16.2106470Z [WebServer] {"timestamp":"2026-09-19T19:54:16.206Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:16.3589299Z [WebServer] {"timestamp":"2026-09-19T19:54:16.354Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:16.6039121Z   ✓  35 [webkit] › e2e/ui-stack.spec.ts:119:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (1.0s)
+Run npm run test:e2e	2026-09-19T19:54:16.8912646Z [WebServer] {"timestamp":"2026-09-19T19:54:16.890Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:16.8937670Z [WebServer] {"timestamp":"2026-09-19T19:54:16.892Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:16.9631656Z [WebServer] {"timestamp":"2026-09-19T19:54:16.960Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:16.9656701Z [WebServer] {"timestamp":"2026-09-19T19:54:16.963Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:17.1672542Z [WebServer] {"timestamp":"2026-09-19T19:54:17.164Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:17.1711288Z [WebServer] {"timestamp":"2026-09-19T19:54:17.170Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:17.2331819Z [WebServer] {"timestamp":"2026-09-19T19:54:17.230Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:17.2391549Z [WebServer] {"timestamp":"2026-09-19T19:54:17.237Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:18.2612788Z [WebServer] {"timestamp":"2026-09-19T19:54:18.259Z","level":"error","event":"bff.request_failed","correlationId":"d446ed52-379b-4909-a3c7-3d4b531877aa","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+Run npm run test:e2e	2026-09-19T19:54:18.2887070Z [WebServer] {"timestamp":"2026-09-19T19:54:18.282Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:18.5356184Z   ✓  36 [webkit] › e2e/ui-stack.spec.ts:138:1 › authorization matrix blocks member mutations with a Better Auth session (1.9s)
+Run npm run test:e2e	2026-09-19T19:54:18.9125787Z [WebServer] {"timestamp":"2026-09-19T19:54:18.911Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:18.9158532Z [WebServer] {"timestamp":"2026-09-19T19:54:18.913Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:18.9776696Z [WebServer] {"timestamp":"2026-09-19T19:54:18.976Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:18.9805646Z [WebServer] {"timestamp":"2026-09-19T19:54:18.980Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:19.1876631Z [WebServer] {"timestamp":"2026-09-19T19:54:19.183Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:19.1921449Z [WebServer] {"timestamp":"2026-09-19T19:54:19.190Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:19.2105361Z [WebServer] {"timestamp":"2026-09-19T19:54:19.208Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:19.2143466Z [WebServer] {"timestamp":"2026-09-19T19:54:19.211Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:20.2680006Z [WebServer] {"timestamp":"2026-09-19T19:54:20.266Z","level":"error","event":"bff.request_failed","correlationId":"5b3078ed-7d0e-4153-9dc6-2455af04f922","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+Run npm run test:e2e	2026-09-19T19:54:20.3034345Z [WebServer] {"timestamp":"2026-09-19T19:54:20.299Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:20.5882085Z   ✓  37 [webkit] › e2e/ui-stack.spec.ts:159:1 › CSRF rejects a cross-site replay of a server-function mutation (2.0s)
+Run npm run test:e2e	2026-09-19T19:54:20.9153872Z [WebServer] {"timestamp":"2026-09-19T19:54:20.914Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:20.9168339Z [WebServer] {"timestamp":"2026-09-19T19:54:20.915Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:20.9902150Z [WebServer] {"timestamp":"2026-09-19T19:54:20.987Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:20.9942803Z [WebServer] {"timestamp":"2026-09-19T19:54:20.990Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:22.2982075Z [WebServer] {"timestamp":"2026-09-19T19:54:22.295Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:22.3036096Z [WebServer] {"timestamp":"2026-09-19T19:54:22.296Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:22.3270982Z [WebServer] {"timestamp":"2026-09-19T19:54:22.325Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:22.3293154Z [WebServer] {"timestamp":"2026-09-19T19:54:22.326Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:22.9841648Z [WebServer] {"timestamp":"2026-09-19T19:54:22.980Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:22.9875117Z [WebServer] {"timestamp":"2026-09-19T19:54:22.986Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:23.0086627Z [WebServer] {"timestamp":"2026-09-19T19:54:23.005Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:23.0105100Z [WebServer] {"timestamp":"2026-09-19T19:54:23.007Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:23.9127279Z [WebServer] {"timestamp":"2026-09-19T19:54:23.911Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:24.1194873Z   ✓  38 [webkit] › e2e/ui-stack.spec.ts:188:1 › authenticated shell uses an HttpOnly session and accessible navigation (3.5s)
+Run npm run test:e2e	2026-09-19T19:54:24.4430963Z [WebServer] {"timestamp":"2026-09-19T19:54:24.442Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:24.4504827Z [WebServer] {"timestamp":"2026-09-19T19:54:24.443Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:24.4745293Z [WebServer] {"timestamp":"2026-09-19T19:54:24.471Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:24.4769023Z [WebServer] {"timestamp":"2026-09-19T19:54:24.473Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:29.3882019Z [WebServer] {"timestamp":"2026-09-19T19:54:29.386Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:29.7957792Z   ✓  39 [webkit] › e2e/ui-stack.spec.ts:239:1 › manual simulation has no fictitious current volume and labels hypothetical results (5.7s)
+Run npm run test:e2e	2026-09-19T19:54:30.1162746Z [WebServer] {"timestamp":"2026-09-19T19:54:30.115Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:30.1179958Z [WebServer] {"timestamp":"2026-09-19T19:54:30.115Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:30.1689906Z [WebServer] {"timestamp":"2026-09-19T19:54:30.163Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:30.1703763Z [WebServer] {"timestamp":"2026-09-19T19:54:30.164Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:34.0816317Z [WebServer] {"timestamp":"2026-09-19T19:54:34.080Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:34.4234135Z   ✓  40 [webkit] › e2e/ui-stack.spec.ts:270:1 › diagnostic forms prices only from explicit assumptions (4.6s)
+Run npm run test:e2e	2026-09-19T19:54:34.8236586Z [WebServer] {"timestamp":"2026-09-19T19:54:34.823Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:34.8263425Z [WebServer] {"timestamp":"2026-09-19T19:54:34.824Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:34.8614337Z [WebServer] {"timestamp":"2026-09-19T19:54:34.859Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:34.8654480Z [WebServer] {"timestamp":"2026-09-19T19:54:34.864Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:36.1113751Z [WebServer] {"timestamp":"2026-09-19T19:54:36.108Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:36.4572361Z   ✓  41 [webkit] › e2e/ui-stack.spec.ts:303:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (2.0s)
+Run npm run test:e2e	2026-09-19T19:54:36.7937184Z [WebServer] {"timestamp":"2026-09-19T19:54:36.790Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:36.7977675Z [WebServer] {"timestamp":"2026-09-19T19:54:36.790Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:36.8465023Z [WebServer] {"timestamp":"2026-09-19T19:54:36.846Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:36.8527744Z [WebServer] {"timestamp":"2026-09-19T19:54:36.852Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:38.5192039Z [WebServer] {"timestamp":"2026-09-19T19:54:38.511Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:38.5196026Z [WebServer] {"timestamp":"2026-09-19T19:54:38.516Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:38.5649281Z [WebServer] {"timestamp":"2026-09-19T19:54:38.555Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:38.5650843Z [WebServer] {"timestamp":"2026-09-19T19:54:38.560Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:40.0287912Z [WebServer] {"timestamp":"2026-09-19T19:54:40.025Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:40.0361362Z [WebServer] {"timestamp":"2026-09-19T19:54:40.033Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:40.0542786Z [WebServer] {"timestamp":"2026-09-19T19:54:40.053Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:40.0571825Z [WebServer] {"timestamp":"2026-09-19T19:54:40.055Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:41.4703170Z [WebServer] {"timestamp":"2026-09-19T19:54:41.467Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+Run npm run test:e2e	2026-09-19T19:54:41.6297591Z   ✓  42 [webkit] › e2e/ui-stack.spec.ts:332:1 › financial query failure is not rendered as empty or zero data (5.2s)
+Run npm run test:e2e	2026-09-19T19:54:44.0410306Z   ✓  43 [mobile] › e2e/sales-dashboard.spec.ts:200:1 › dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS (1.9s)
+Run npm run test:e2e	2026-09-19T19:54:46.0828827Z   ✓  44 [mobile] › e2e/sales-dashboard.spec.ts:219:1 › registrar venda pelo formulário aparece em Vendas recentes (2.0s)
+Run npm run test:e2e	2026-09-19T19:54:49.6001836Z   ✓  45 [mobile] › e2e/sales-dashboard.spec.ts:232:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (3.5s)
+Run npm run test:e2e	2026-09-19T19:54:50.8712784Z   ✓  46 [mobile] › e2e/ui-stack.spec.ts:49:1 › public UI uses valid composed controls and has no serious a11y violations (1.2s)
+Run npm run test:e2e	2026-09-19T19:54:50.8792015Z [WebServer] {"timestamp":"2026-09-19T19:54:50.878Z","level":"warn","event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src","violatedDirective":null,"blockedUri":"https://cdn.example/blocked.js","documentUri":"https://preview.invalid/inicio","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":null,"sample":null}
+Run npm run test:e2e	2026-09-19T19:54:50.8869308Z   ✓  47 [mobile] › e2e/ui-stack.spec.ts:76:1 › the CSP report channel answers 204 for a violation report (7ms)
+Run npm run test:e2e	2026-09-19T19:54:52.6110762Z   ✓  48 [mobile] › e2e/ui-stack.spec.ts:92:1 › authentication controls keep accessible names (1.7s)
+Run npm run test:e2e	2026-09-19T19:54:53.2271045Z [WebServer] 2026-09-19T19:54:53.226Z WARN [Better Auth]: Invalid password
+Run npm run test:e2e	2026-09-19T19:54:54.0364103Z   ✓  49 [mobile] › e2e/ui-stack.spec.ts:119:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (1.4s)
+Run npm run test:e2e	2026-09-19T19:54:56.1202769Z [WebServer] {"timestamp":"2026-09-19T19:54:56.118Z","level":"error","event":"bff.request_failed","correlationId":"a0379562-c1c9-40e1-926e-51b9f0283d16","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+Run npm run test:e2e	2026-09-19T19:54:56.3173539Z   ✓  50 [mobile] › e2e/ui-stack.spec.ts:138:1 › authorization matrix blocks member mutations with a Better Auth session (2.3s)
+Run npm run test:e2e	2026-09-19T19:54:58.4047398Z [WebServer] {"timestamp":"2026-09-19T19:54:58.403Z","level":"error","event":"bff.request_failed","correlationId":"7aa5f1b0-675c-4143-8753-ba6bc6d6fc23","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+Run npm run test:e2e	2026-09-19T19:54:58.6030775Z   ✓  51 [mobile] › e2e/ui-stack.spec.ts:159:1 › CSRF rejects a cross-site replay of a server-function mutation (2.3s)
+Run npm run test:e2e	2026-09-19T19:55:02.7602251Z   ✓  52 [mobile] › e2e/ui-stack.spec.ts:188:1 › authenticated shell uses an HttpOnly session and accessible navigation (4.1s)
+Run npm run test:e2e	2026-09-19T19:55:07.4741211Z   ✓  53 [mobile] › e2e/ui-stack.spec.ts:239:1 › manual simulation has no fictitious current volume and labels hypothetical results (4.7s)
+Run npm run test:e2e	2026-09-19T19:55:11.2963090Z   ✓  54 [mobile] › e2e/ui-stack.spec.ts:270:1 › diagnostic forms prices only from explicit assumptions (3.8s)
+Run npm run test:e2e	2026-09-19T19:55:13.0386872Z   ✓  55 [mobile] › e2e/ui-stack.spec.ts:303:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (1.7s)
+Run npm run test:e2e	2026-09-19T19:55:18.4466715Z   ✓  56 [mobile] › e2e/ui-stack.spec.ts:332:1 › financial query failure is not rendered as empty or zero data (5.4s)
+Run npm run test:e2e	2026-09-19T19:55:18.5209880Z 
+Run npm run test:e2e	2026-09-19T19:55:18.5227140Z   56 passed (2.9m)

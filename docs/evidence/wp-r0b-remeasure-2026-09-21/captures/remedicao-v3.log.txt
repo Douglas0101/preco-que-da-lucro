@@ -1,0 +1,79 @@
+# WP-R0b — re-medição v3 (instrumento que decide)
+# HEAD=59e2119  ARVORE=424f43b166d5a78870967c058eb2d976e9386c8d
+# rotulo de revisao: a ARVORE, nao o commit — tres SHAs (a75a62b base / 3b99a78 captura / 59e2119 selo)
+#   apontam para a MESMA arvore fora de docs/, e o S6 conferiu isso byte a byte.
+# instrumentos anteriores preservados: v1 e v2 (a v2 e fail-open na descoberta; a v3 corrige)
+
+## 0. DESCOBERTA DENTRO DO SCRIPT (o S6 mostrou que delegar isso era fail-open)
+  linhas do anexo parseadas: 193
+  NS no anexo: 22 · UNV no anexo: 2 ['25.6', '25.7']
+  dedup 24.13 == 25.5 (fato-fonte: MEDICAO-2026-09-15.md:189 'duplicado ... contado uma vez')
+  itens descobertos: 14
+  identidade: ['15.1', '15.2', '15.3', '15.4', '15.5', '15.6', '15.7', '19.6', '21.3', '22.4', '25.5', '29.1', '25.6', '25.7']
+  CHECKED === DISCOVERED: OK (asserção de identidade, não de cardinalidade)
+
+## A. Alcance de runtime (a pergunta que decide 6 dos 14)
+  importadores de memory.service fora de teste:   0
+  importadores de memory.repository fora de teste: 0 (excluída a suíte de banco)
+    linhas de COMENTÁRIO (JSDoc) que mencionam o repositório: 1 — em src/lib/products.functions.ts:208, lida
+  menções em rotas/bootstrap (fora do comentário): 0
+  > a única menção restante é o COMENTÁRIO em src/lib/products.functions.ts:208 (lido, não contado)
+
+## B. Itens, um a um
+  15.1    PARTIAL   ordem respeitada + serviço existe; existe camada testada; nenhum caminho de runtime importa o serviço (0 importadores, 0 rotas)
+  9 tabelas do plano: 6 de 6 nomes ai_mem* presentes · chat_* (superseded, annex:87 / MEDICAO:188): 2 · ai_memory_embeddings: 0
+  15.2    PARTIAL   6 das 9 tabelas do plano por nome (+2 sob nomes superseded documentados); falta ai_memory_embeddings (§44)
+  15.3    PARTIAL   o backend decide de verdade (evaluateMemoryPolicy em memory.service.ts:44); o serviço que decide não tem entrypoint
+  15.4    PARTIAL   proveniência persistida (ai_memory_sources, source_kind/origin/ref/confidence com check); nada em runtime a produz
+  FTS (case-sensitive, com fronteira): 0 · (v1 media 27 — ver §D, a causa é 'productsQuery')
+  15.5    NS        sem FTS: 0 tsvector/tsquery/GIN em código ou migration; configuração portuguesa não testada
+  15.6    NS        sem exact-NN, pgvector ou ANN; §44 só abre depois do §43
+  15.7    PARTIAL   ranking combina tenant (filtro) e recency (createdAt desc); faltam lexical, semântico, importance e confidence
+  19.6    NS        nenhum dos seis medidores emitido; os nomes só existem no plano
+  21.3    NS        sem SERIALIZABLE, sem 40001, sem retry (ADR-029 adia para T3); os 8 serializationError são de DECIMAL
+  idempotency_records: 20 usos em src/server · funções de purga: 0
+  22.4    NS        tabela usada para idempotência (20 usos em src/server), sem purga: só o índice de expiração existe
+  25.5    NS        nenhum workflow usa dependency-review-action (0 hits em .github/)
+  -- 25.6/25.7: a API do GitHub responde o estado do recurso (a v2 chamava isto de inalcançável)
+     code-scanning/default-setup : {"message":"Code scanning is not enabled for this repository. Please enable code scanning in the repository settings.","documentation_url":"https://docs.github.com/rest/code-scanning/code-scanning#get-a-code-scanning-default-setup-configuration","status":"403"}gh: Code scanning is not enabled for this repository. Please enable code scanning in the repository settings. (HTTP 403)
+     secret-scanning/alerts      : {"message":"Secret scanning is disabled on this repository.","documentation_url":"https://docs.github.com/rest/secret-scanning/secret-scanning#list-secret-scanning-alerts-for-a-repository","status":"404"}gh: Secret scanning is disabled on this repository. (HTTP 404)
+     calibração 1 — a MESMA credencial num repositório inexistente responde outra coisa (não é falta de acesso):
+     calibração 2 — a v3 tentou um erro de escopo em /hooks e o token TINHA o escopo (respondeu []); a hipótese
+       "é só permissão" não se sustenta por aqui, então o discriminador usado é o de repositório inexistente:
+     repos/nao-existe            : {"message":"Not Found","documentation_url":"https://docs.github.com/rest/repos/repos#get-a-repository","status":"404"}gh: Not Found (HTTP 404)
+     -> CodeQL: ausência VERIFICÁVEL
+     -> secret scanning: ausência VERIFICÁVEL
+  25.6    NS        Code scanning não habilitado — resposta explícita da API (403); habilitar depende do recurso de segurança do plano
+  25.7    NS        Secret scanning desabilitado — resposta explícita da API (404); idem
+  29.1    PARTIAL   percentil e veredito existem para as baselines RUM/IA; falta o p95 de backend contra os alvos do §29
+
+## C. CONTROLES NEGATIVOS — no MESMO predicado (o S6 mostrou que a v2 usava outro)
+  mesmo comando, veredicto oposto (é o controle que discrimina):
+    grep -rn 'dependabot' .github/               -> 1  (25.4 DONE)
+    grep -rn 'dependency-review' .github/        -> 0  (25.5 NS)
+  e a existência de arquivo, que é o predicado de 25.7:
+    ls .github/dependabot.yml                    -> 1  (25.4 DONE)
+    ls .github/secret_scanning.yml               -> 0  (25.7 NS)
+  RESALVA DECLARADA (achado do S6): 25.4 cobre só a metade 'arquivo'; a metade 'alertas' responde
+    gh api repos/.../dependabot/alerts -> {"message":"Dependabot alerts are disabled for this repository.","documentation_url":"http
+
+## D. FALSOS POSITIVOS DO PRÓPRIO INSTRUMENTO (autos-achados; a causa do FP-A foi CORRIGIDA pelo S6)
+  FP-A: a v1 usava 'grep -i tsquery' e colhia 27 hits. A causa NÃO é um token 'tsQuery' do router:
+             27 productsQuery
+        e em quais arquivos:
+          src/routes/_authenticated/produtos.tsx
+          src/routes/_authenticated/diagnostico.tsx
+          src/routes/_authenticated/ponto-equilibrio.tsx
+          src/routes/_authenticated/vendas.tsx
+          src/routes/_authenticated/simulacoes.tsx
+          src/test/finance.boundaries.test.ts
+        é a SUBSTRING 'tsQuery' dentro de 'productsQuery' — 5 arquivos de rota + 1 de teste. Case-sensitive com fronteira: 0
+  FP-B: 'grep -i cron' colhia 'síncrona'/'sincrona' em prosa; a v2 restringe a \bcron\b|crontab|pg_cron e imprime os hits.
+  FP-C: 'wc -l' em arquivo sem newline final contou 13 para 14; a v3 não usa arquivo externo (ver §0).
+
+## E. COMPOSIÇÃO CALCULADA DAS CLASSES EMITIDAS (a v2 somava literais — não podia falhar)
+  itens classificados: 14 · {'NS': 8, 'PARTIAL': 6}
+  ANTES  : {'DONE': 150, 'PARTIAL': 23, 'NS': 12, 'UNVERIFIABLE': 2} = 187 crédito parcial 86.3636%
+  DEPOIS : {'DONE': 150, 'NS': 8, 'PARTIAL': 29, 'UNVERIFIABLE': 0} = 187 crédito parcial 87.9679%
+  DELTA  : parcial +1.6043 p.p. · cru +0.0000 p.p.
+  movidos de classe: ['15.1', '15.2', '15.3', '15.4', '15.7', '25.6', '25.7', '29.1']

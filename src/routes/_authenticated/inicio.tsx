@@ -4,9 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { dashboardSummaryQueryOptions } from "@/lib/query-options";
 import type { DashboardPeriod } from "@/lib/dashboard.functions";
 import { brl, pct } from "@/lib/format";
+import { CONTRIBUTION_MARGIN_PCT_FORMULA } from "@/lib/calc-explanation";
 import { Badge } from "@/components/ui/badge";
+import { CalcExplainer } from "@/components/ui/calc-explainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertTriangle,
   Package,
@@ -33,13 +37,15 @@ export const Route = createFileRoute("/_authenticated/inicio")({
   // Prefetch não-bloqueante do summary (T2): mesmo queryKey/options de
   // query-options.ts; erro é deglutido aqui para que o useQuery do componente
   // continue exibindo o estado de erro com retry, como hoje.
-  // Dynamic import: mantém query-options (+ *.functions/zod) FORA do grafo
-  // inicial (orçamento de bundle §17.7) — loaders não são code-split.
+  // Dynamic import — e não o símbolo estático do topo: o import do topo serve o
+  // componente, que é code-split, e o plugin do router o apaga do módulo de
+  // referência. Só o dinâmico mantém query-options (+ *.functions/zod) FORA do
+  // grafo inicial (orçamento de bundle §17.7) — loaders não são code-split.
   loader: async ({ context }) => {
     const { dashboardSummaryQueryOptions } = await import("@/lib/query-options");
     return context.queryClient.ensureQueryData(dashboardSummaryQueryOptions()).catch(() => null);
   },
-  pendingComponent: () => <output className="text-muted-foreground">Carregando...</output>,
+  pendingComponent: InicioSkeleton,
   component: Inicio,
 });
 
@@ -73,7 +79,7 @@ function Inicio() {
   );
 
   if (loadStatus === "loading") {
-    return <output className="text-muted-foreground">Carregando...</output>;
+    return <InicioSkeleton />;
   }
 
   if (loadStatus === "error") {
@@ -154,11 +160,34 @@ function Inicio() {
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard icon={Package} label="Produtos" value={String(metrics.productCount)} />
+        <MetricCard
+          icon={Package}
+          label="Produtos"
+          value={String(metrics.productCount)}
+          explain={
+            <p>
+              Contagem direta dos produtos cadastrados na sua conta. É um dado cadastral: nenhum
+              volume de vendas é presumido e o período selecionado não muda este número.
+            </p>
+          }
+        />
         <MetricCard
           icon={Wallet}
           label="Despesas fixas cadastradas"
           value={brl(metrics.fixedExpenses)}
+          explain={
+            <>
+              <p>
+                <span className="font-medium">Fórmula:</span> soma das despesas cadastradas com tipo
+                «fixa».
+              </p>
+              <p>
+                Despesas variáveis ficam de fora: elas dependem do quanto você vende. Uma despesa
+                com valor inválido deixa este indicador indisponível e acende o card de erro no topo
+                da página.
+              </p>
+            </>
+          }
         />
         {metrics.sales.count > 0 ? (
           <MetricCard
@@ -166,6 +195,18 @@ function Inicio() {
             label="Faturamento real"
             value={brl(metrics.sales.revenue)}
             description={`${metrics.sales.count} venda(s) no período selecionado.`}
+            explain={
+              <>
+                <p>
+                  <span className="font-medium">Fórmula:</span> soma das vendas registradas no
+                  período selecionado (mês, trimestre ou ano).
+                </p>
+                <p>
+                  Só entram vendas já registradas: nenhum volume é presumido, projetado ou estimado
+                  neste número.
+                </p>
+              </>
+            }
           />
         ) : (
           <MetricCard
@@ -173,6 +214,13 @@ function Inicio() {
             label="Faturamento real"
             value="—"
             description="Nenhuma venda real registrada."
+            explain={
+              <p>
+                Sem vendas registradas no período selecionado não há o que somar: o card mostra «—»
+                em vez de presumir um volume. Vendas da simulação e estimativas não entram neste
+                total.
+              </p>
+            }
           />
         )}
         <MetricCard
@@ -180,6 +228,14 @@ function Inicio() {
           label="Margem consolidada"
           value="—"
           description="Registre vendas reais para calcular o mix real de vendas."
+          explain={
+            <p>
+              A margem consolidada é a margem de contribuição ponderada pelo mix real de vendas —
+              quantas unidades de <span className="font-medium">cada</span> produto foram vendidas,
+              não apenas o faturamento total. Sem esse mix qualquer número seria um chute, por isso
+              o card fica indisponível em vez de exibir uma margem média dos produtos cadastrados.
+            </p>
+          }
           badge={
             <Badge
               variant="outline"
@@ -207,6 +263,19 @@ function Inicio() {
                 Comparação limitada aos produtos com dados completos.
               </div>
             )}
+            <CalcExplainer className="mt-3">
+              <p>
+                O destaque é o produto com a <span className="font-medium">maior</span> margem de
+                contribuição unitária em %, entre os que têm dados completos. Produtos com dados
+                incompletos ficam fora da comparação; em caso de empate permanece o primeiro produto
+                avaliado.
+              </p>
+              <p>
+                <span className="font-medium">Fórmula:</span> {CONTRIBUTION_MARGIN_PCT_FORMULA} — a
+                margem de contribuição unitária é preço − custo unitário − custo variável unitário
+                (imposto e taxas percentuais).
+              </p>
+            </CalcExplainer>
           </CardContent>
         </Card>
       )}
@@ -240,18 +309,54 @@ function Inicio() {
   );
 }
 
+function InicioSkeleton() {
+  return (
+    <LoadingSkeleton className="space-y-6">
+      <div>
+        <Skeleton className="h-9 w-48" />
+        <Skeleton className="mt-2 h-6 w-80 max-w-full" />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {[0, 1, 2].map((period) => (
+          <Skeleton key={period} className="h-9 w-24" />
+        ))}
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((card) => (
+          <Card key={card}>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+              </div>
+              <Skeleton className="mt-2 h-8 w-24" />
+              <Skeleton className="mt-1 h-4 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <Skeleton className="h-9 w-36" />
+        <Skeleton className="h-9 w-44" />
+      </div>
+    </LoadingSkeleton>
+  );
+}
+
 function MetricCard({
   icon: Icon,
   label,
   value,
   description,
   badge,
+  explain,
 }: Readonly<{
   icon: typeof Package;
   label: string;
   value: string;
   description?: string;
   badge?: ReactNode;
+  explain?: ReactNode;
 }>) {
   return (
     <Card>
@@ -269,6 +374,7 @@ function MetricCard({
         </div>
         <div className="mt-2 text-2xl font-black">{value}</div>
         {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
+        {explain && <CalcExplainer className="mt-3">{explain}</CalcExplainer>}
       </CardContent>
     </Card>
   );

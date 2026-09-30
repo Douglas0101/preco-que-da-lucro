@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { AUTH_RATE_LIMIT_RULES } from "@/server/auth/rate-limit-rules.server";
+import {
+  AUTH_RATE_LIMIT_RULES,
+  USER_RATE_LIMIT_RULES,
+  userRateLimitKey,
+} from "@/server/auth/rate-limit-rules.server";
 
 /** Mirrors Better Auth's default special rules (api/rate-limiter) for comparison. */
 const DEFAULT_SPECIAL_RULES: Array<{
@@ -72,5 +76,33 @@ describe("AUTH_RATE_LIMIT_RULES", () => {
     expect(matcher.test("/forget-password")).toBe(true);
     expect(matcher.test("/forget-password/callback")).toBe(true);
     expect(forgetPattern.max).toBe(3);
+  });
+});
+
+describe("USER_RATE_LIMIT_RULES (§20.5)", () => {
+  it("aplica 20 turnos de chat e 40 execuções de tool por 10 min", () => {
+    expect(USER_RATE_LIMIT_RULES.chat).toEqual({ window: 600, max: 20 });
+    expect(USER_RATE_LIMIT_RULES.tool).toEqual({ window: 600, max: 40 });
+  });
+
+  it("o bucket de tool é mais largo que o de chat, que abre várias rodadas", () => {
+    expect(USER_RATE_LIMIT_RULES.tool.window).toBe(USER_RATE_LIMIT_RULES.chat.window);
+    expect(USER_RATE_LIMIT_RULES.tool.max).toBeGreaterThan(USER_RATE_LIMIT_RULES.chat.max);
+  });
+
+  it("a chave isola operação e usuário", () => {
+    expect(userRateLimitKey("chat", "user-1")).toBe("chat|user-1");
+    expect(userRateLimitKey("tool", "user-1")).toBe("tool|user-1");
+    expect(userRateLimitKey("chat", "user-2")).not.toBe(userRateLimitKey("chat", "user-1"));
+    expect(userRateLimitKey("tool", "user-1")).not.toBe(userRateLimitKey("chat", "user-1"));
+  });
+
+  it("todas as regras têm janela positiva e limite positivo", () => {
+    for (const [bucket, rule] of Object.entries(USER_RATE_LIMIT_RULES)) {
+      expect(rule.window, bucket).toBeGreaterThan(0);
+      expect(rule.max, bucket).toBeGreaterThan(0);
+      expect(Number.isFinite(rule.window), bucket).toBe(true);
+      expect(Number.isFinite(rule.max), bucket).toBe(true);
+    }
   });
 });

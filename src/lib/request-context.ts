@@ -1,4 +1,4 @@
-import type { DatabaseTransaction } from "@/db/client.server";
+import type { TransactionExecutor } from "@/server/contracts/transaction.contracts";
 import { ApplicationError } from "@/lib/api-error";
 
 export interface RequestIdentity {
@@ -13,14 +13,16 @@ export interface RequestIdentity {
  * user come from the authenticated membership; a body/header is never the
  * source of authority for either value. */
 export interface TransactionContext extends RequestIdentity {
-  transaction: DatabaseTransaction;
+  /** Handle neutro de driver (§9.2): o adapter o estreita para o tipo do
+   * driver onde executa SQL. */
+  transaction: TransactionExecutor;
 }
 
 export type RequestContext = TransactionContext;
 
 export function bindTransactionContext(
   identity: RequestIdentity,
-  transaction: DatabaseTransaction,
+  transaction: TransactionExecutor,
 ): TransactionContext {
   return { ...identity, transaction };
 }

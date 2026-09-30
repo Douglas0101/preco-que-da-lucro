@@ -1,0 +1,20 @@
+# Os selos existentes nao foram contaminados pela deriva do .gitignore
+# HEAD=b6b0b31  base=eef2238
+
+## A. a descoberta do m02-seal e por filesystem, nao por git
+  20:import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+  63:    for (const entry of readdirSync(atual, { withFileTypes: true })) {
+  ocorrencias de ls-files|--porcelain NA BASE eef2238 : 0
+  ocorrencias no HEAD deste WP                        : 2  (as duas sao a precondicao nova, nao descoberta)
+    scripts/m02-seal.mjs:211:/** Caminhos de `git status --porcelain` (formato `XY caminho`, com rename `antigo -> novo`). */
+    scripts/m02-seal.mjs:259:      ["-C", raiz, "status", "--porcelain", "--untracked-files=all"],
+
+## B. os dois selos verificam a partir de arvore LIMPA (worktree temporario em HEAD)
+m02-seal: OK (17 arquivos, checked === discovered) — docs/evidence/seal-kpi-item16-2026-09-20
+  EXIT=0
+m02-seal: OK (13 arquivos, checked === discovered) — docs/evidence/debts-registry-2026-09-20
+  EXIT=0
+
+## C. conferencia cruzada: arquivo selado x arquivo rastreado (0 orfaos esperado)
+  docs/evidence/seal-kpi-item16-2026-09-20: checked=17 orfaos=0
+  docs/evidence/debts-registry-2026-09-20: checked=13 orfaos=0

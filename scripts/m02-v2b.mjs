@@ -6,7 +6,8 @@
 //
 // Contrato:
 //   npm run m02:v2b -- --plan   → imprime o DAG de passos SEM conectar (exit 0
-//                                  sempre, credenciais ou não).
+//                                  sempre, credenciais ou não; única exceção é
+//                                  journal do Drizzle ilegível, erro de repo).
 //   npm run m02:v2b             → executa. Sem SUPABASE_MIGRATION_DATABASE_URL
 //                                  → exit 3 COM orientação (dono humano D2)
 //                                  ANTES de qualquer conexão/spawn de rede.
@@ -26,10 +27,25 @@ import { Client } from "pg";
 
 const GUARD_FILE = "docs/specs/M-02/emenda-2026-09-07-env-guard.md";
 const DEFAULT_PROJECT_ID = "damp-forest-57346541";
+// NORMA §12.4 (modelo de branch: production → develop → preview/pr-<n>): este
+// default aponta para production (`br-snowy-violet-aymcvvvv`, read-only) porque
+// o V2b é o ensaio aposentado de cutover e copia o primeiro elo da cadeia — a
+// cópia é descartável e o parent nunca é alvo de escrita. A escolha do parent é
+// parâmetro explícito: `NEON_PARENT_BRANCH_ID` (ver main()) tem precedência, e
+// qualquer execução nova deve passá-lo (ex.: o id da branch develop,
+// `br-small-hill-aymcu14y`) em vez de herdar este default. O workflow §12.4
+// (`neon-pr-branch.yml`) aplica a mesma norma via `github.base_ref`.
 const DEFAULT_PARENT_BRANCH_ID = "br-snowy-violet-aymcvvvv"; // production (id, não nome)
 const DB_NAME = "neondb";
 const ROLE_NAME = "neondb_owner";
-const EXPECTED_JOURNAL_COUNT = 12;
+/**
+ * Contagem esperada de migrations: **derivada** (ver `expectedJournalCount()`)
+ * do journal do Drizzle — a fonte canônica que o migrator consome. Hardcode
+ * neste ponto envelhece e quebra o ensaio fail-closed: `0015` exigiu o reparo em
+ * `ed29d4b` e `0016` (WP-1a) quebrou de novo o passo `migrate`.
+ */
+const JOURNAL_PATH = "drizzle/meta/_journal.json";
+const ROOT_DIR = resolve(fileURLToPath(import.meta.url), "..", "..");
 const MIGRATION_MOTIVO = "V2b CUTOVER-PREP: carga legacy em branch de drill efêmera";
 const RETRY_LIMIT = 1; // regra da rodada: SEM loop de retry > 1
 const NPM_CLI = resolve(
@@ -49,7 +65,7 @@ const COMMAND_PATHS = {
 function usage() {
   return [
     "uso: npm run m02:v2b -- [--plan]",
-    "  --plan  imprime o DAG de passos sem conectar (exit 0 sempre)",
+    "  --plan  imprime o DAG de passos sem conectar (exit 0 sempre; sem credencial não falha — só journal do Drizzle ilegível)",
     "  (sem flag) executa a janela V2b; exige SUPABASE_MIGRATION_DATABASE_URL",
     "            (read-only legacy, dono humano D2) no ambiente",
   ].join("\n");
@@ -82,6 +98,35 @@ function logLine(payload) {
 }
 
 /**
+ * Contagem esperada de migrations do drill = entradas do journal do Drizzle,
+ * LIDAS em tempo de execução (`drizzle/meta/_journal.json`). Derivar é o que
+ * impede o drill de ficar preso a um número velho quando uma migration entra.
+ *
+ * Fail-closed: journal ausente, ilegível ou sem entradas é erro explícito com o
+ * caminho no texto — nunca "0 esperado" e nunca passe silencioso. O default de
+ * `rootDir` sai da posição do próprio módulo (`scripts/`), então funciona
+ * independente do cwd de quem chamou.
+ */
+function expectedJournalCount(rootDir = ROOT_DIR) {
+  const path = resolve(rootDir, JOURNAL_PATH);
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(path, "utf8"));
+  } catch (error) {
+    throw new Error(
+      `journal do Drizzle ilegível em ${JOURNAL_PATH} (${safeError(error)}); rode da raiz do repo`,
+    );
+  }
+  const count = Array.isArray(parsed?.entries) ? parsed.entries.length : 0;
+  if (!Number.isInteger(count) || count <= 0) {
+    throw new Error(
+      `journal do Drizzle sem entradas em ${JOURNAL_PATH} (esperado >= 1; journal vazio ou malformado)`,
+    );
+  }
+  return count;
+}
+
+/**
  * Preflight PRÉ-CONEXÃO: valida credencial e ferramentas locais SEM abrir
  * socket e SEM invocar nenhum comando de rede. Retorna a lista de ausências.
  */
@@ -107,6 +152,7 @@ function preflightGuidance(missing) {
 
 /** DAG exibido por --plan e executado por run. Comandos nunca contêm URLs. */
 function buildPlan(ctx) {
+  const journalCount = expectedJournalCount();
   return [
     {
       id: "preflight",
@@ -126,7 +172,7 @@ function buildPlan(ctx) {
     {
       id: "migrate",
       what: "npm run db:migrate contra DIRECT da branch com NEON_MIGRATION_TARGET_KIND=drill-branch + ALLOW_REMOTE_DB (motivo logado; emenda #2 — produção intocável)",
-      expected: `journal __drizzle_migrations = ${EXPECTED_JOURNAL_COUNT} (12/12 pós-migrate)`,
+      expected: `journal __drizzle_migrations = ${journalCount} (${journalCount}/${journalCount} pós-migrate)`,
       on_fail: "fail → cleanup always() → exit 1 (sem retry > 1)",
     },
     {
@@ -442,6 +488,10 @@ async function main() {
     return;
   }
   mkdirSync(resolve(rootDir, ctx.outDir), { recursive: true });
+  // Fail-closed ANTES de criar qualquer recurso remoto: a contagem esperada sai
+  // do journal versionado, então um journal ausente/ilegível não gasta branch de
+  // drill (e a mensagem diz exatamente o que ler).
+  const expectedJournal = expectedJournalCount(rootDir);
   const tmpDir = `/tmp/v2b-${date}`;
   mkdirSync(tmpDir, { recursive: true });
 
@@ -528,9 +578,9 @@ async function main() {
         throw new Error(`db:migrate exit ${result.code} (guard/hook ou migration falhou)`);
       }
       const journal = await queryJournalCount(branchUrl);
-      if (journal !== EXPECTED_JOURNAL_COUNT) {
+      if (journal !== expectedJournal) {
         throw new Error(
-          `journal ${journal} ≠ ${EXPECTED_JOURNAL_COUNT} esperado (12/12 pós-migrate)`,
+          `journal ${journal} ≠ ${expectedJournal} esperado (${JOURNAL_PATH}: ${expectedJournal}/${expectedJournal} pós-migrate)`,
         );
       }
       return { log: { journal_count: journal, kind: "drill-branch", motivo: MIGRATION_MOTIVO } };
@@ -819,4 +869,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { parseArgs, preflight, preflightGuidance, buildPlan, maskUrl, utcDate };
+export {
+  parseArgs,
+  preflight,
+  preflightGuidance,
+  buildPlan,
+  maskUrl,
+  utcDate,
+  expectedJournalCount,
+};

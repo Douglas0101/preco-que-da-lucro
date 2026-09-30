@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# LAND do TRILHO B — gate local completo (db:test + vitest com DB) contra container VIRGEM.
+set -o pipefail
+cd /home/douglas-souza/preco-que-d-main
+
+LOG=.artifacts/land-b-gate.log
+: > "$LOG"
+
+echo "== 1. container efêmero VIRGEM ==" | tee -a "$LOG"
+docker rm -f trk-land-pg >/dev/null 2>&1 || true
+docker run -d --name trk-land-pg \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=preco_que_da_lucro_test \
+  -p 127.0.0.1:5435:5432 postgres:17-alpine >>"$LOG" 2>&1
+ready=0
+for i in $(seq 1 30); do
+  if docker exec trk-land-pg pg_isready -U postgres >/dev/null 2>&1; then ready=1; break; fi
+  sleep 1
+done
+if [ "$ready" != 1 ]; then
+  echo "FALHA DE HARNESS: o container nao ficou pronto em 30s — parando." | tee -a "$LOG"
+  docker logs trk-land-pg 2>&1 | tail -6 | tee -a "$LOG"
+  exit 9
+fi
+docker exec trk-land-pg psql -U postgres -tAc 'select version();' | tee -a "$LOG"
+
+echo "== 2. H-9: :5432 intocado? ==" | tee -a "$LOG"
+echo "porta 5432 (H-9) tocada? -> $(ss -ltn 2>/dev/null | awk '$4 ~ /:5432$/ {c++} END {print c+0}') listener(es)" | tee -a "$LOG"
+
+echo "== 3. git ==" | tee -a "$LOG"
+echo "branch = $(git rev-parse --abbrev-ref HEAD)" | tee -a "$LOG"
+echo "HEAD_SHA = $(git rev-parse HEAD)" | tee -a "$LOG"
+git status --porcelain | tee -a "$LOG"
+
+echo "== 4. db:test (17 suítes) ==" | tee -a "$LOG"
+DATABASE_ADMIN_URL='postgresql://postgres:postgres@127.0.0.1:5435/preco_que_da_lucro_test' \
+DATABASE_URL='postgresql://postgres:postgres@127.0.0.1:5435/preco_que_da_lucro_test' \
+DATABASE_URL_UNPOOLED='postgresql://postgres:postgres@127.0.0.1:5435/preco_que_da_lucro_test' \
+DATABASE_DRIVER=node-postgres \
+  npm run db:test >>"$LOG" 2>&1
+echo "DBTEST_EXIT=$?" | tee -a "$LOG"
+
+echo "== 5. vitest COM o banco (nada deve pular) ==" | tee -a "$LOG"
+DATABASE_ADMIN_URL='postgresql://postgres:postgres@127.0.0.1:5435/preco_que_da_lucro_test' \
+DATABASE_URL='postgresql://postgres:postgres@127.0.0.1:5435/preco_que_da_lucro_test' \
+DATABASE_URL_UNPOOLED='postgresql://postgres:postgres@127.0.0.1:5435/preco_que_da_lucro_test' \
+DATABASE_DRIVER=node-postgres \
+  npm run test >>"$LOG" 2>&1
+echo "TEST_EXIT=$?" | tee -a "$LOG"
+
+echo "== 6. provas de banco no log ==" | tee -a "$LOG"
+grep -n 'passed (.*), 0 skipped\|Tests  \|Test Files \|TRILHO-B' "$LOG" | tail -12 | tee -a "$LOG"
+
+echo "== 7. higiene: nada deixado no container ==" | tee -a "$LOG"
+docker exec trk-land-pg psql -U postgres -d preco_que_da_lucro_test -tAc \
+  "select 'tenants=' || count(*) from tenants;" | tee -a "$LOG"
+
+echo "== 8. auditoria ==" | tee -a "$LOG"
+npm audit --audit-level=high >>"$LOG" 2>&1
+echo "AUDIT_EXIT=$?" | tee -a "$LOG"
+
+echo "== BATTERY_DONE ==" | tee -a "$LOG"
+tail -3 "$LOG"

@@ -1,0 +1,1 @@
+Migrations PostgreSQL aplicadas com sucesso.

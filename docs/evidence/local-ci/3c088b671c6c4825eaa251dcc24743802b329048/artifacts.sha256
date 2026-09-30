@@ -1,0 +1,8 @@
+fa8ebcaabd8bb587df27a93f262b19ff0f73d8f17fff161752e6eeedc5d0fc8a  ./local-commits-3c088b6.bundle
+834baaedafdc3042750a25088982a7e5b6e2ee02ab5f0ab25a45420416fe0cd4  ./patches/0001-docs-evidence-close-the-WP-R8-marker-and-declare-the.patch
+c659b9a401ac262927165f6d6645022d589e07a9b5d3040b6a50e26a224b55b1  ./patches/0002-docs-evidence-refresh-the-session-handoff-for-the-CI.patch
+670fb3b758383389c90fc989444a5d8c35b415b31950cf3ea6f9a15d25cc3a14  ./patches/0003-test-ci-cover-the-rewritten-history-door-of-the-CI-s.patch
+b21dece6e3c0dba743b5c57516e38837f66fe70006b213ff0bf2331320ebdea4  ./patches/0004-docs-evidence-persist-the-advanced-R8-analysis-and-r.patch
+6731af6ccf0ef562e092fb5624929fdfa959ddf443d39436adc84eb318d7c3fa  ./patches/0005-docs-evidence-open-the-light-CI-unblock-probe-and-pr.patch
+58dc405489e0987219e9343eff41ae67466f3c149926e5fa272bbaf2244aabfc  ./patches/0006-docs-evidence-record-the-unblock-probe-verdict-billi.patch
+a15072050c448e20bb818576e1a65d6f7aac68f3fb1ab9a4ea90f8ae92c9d92a  ./patches/0007-docs-sdd-restore-the-ledger-state-marker-and-declare.patch

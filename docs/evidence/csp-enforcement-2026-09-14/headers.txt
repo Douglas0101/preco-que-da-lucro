@@ -1,0 +1,54 @@
+# CSP headers — O23 / plano §20.1
+# before: base 6132325 (src/lib/security-headers.ts sem canal de coleta)
+# after:  ops/onda3-csp (report-uri + report-to + reporting-endpoints)
+# captura (verbatim): npx tsx -e "import { securityHeaders } from '<worktree>/src/lib/security-headers.ts'; ..."
+#   bloco [report-only]: process.env.CSP_ENFORCE ausente
+#   bloco [enforce]:     process.env.CSP_ENFORCE="true"
+# NODE_ENV nao era "production" nas duas capturas: strict-transport-security fica fora dos dois lados (delta zero).
+
+=== BEFORE ===
+
+[report-only mode]
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+
+[enforce mode]
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+content-security-policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:
+
+=== AFTER ===
+
+[report-only mode]
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+reporting-endpoints: csp-endpoint="/api/csp-report"
+
+[enforce mode]
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+reporting-endpoints: csp-endpoint="/api/csp-report"
+content-security-policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+
+=== PROVA: diretivas de fonte ===
+# politica sem as duas diretivas de relatorio, antes vs. depois
+# comando: grep -h "^content-security-policy" <bloco> | sed "s/^[^:]*: //" | sed "s/; report-uri [^;]*; report-to csp-endpoint$//"
+
+[before]
+default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:
+
+[after]
+default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:
+
+[diff before after]
+(vazio: nenhuma diretiva de fonte adicionada ou removida)
+
+[diretivas por politica]
+10 diretivas
+10 diretivas

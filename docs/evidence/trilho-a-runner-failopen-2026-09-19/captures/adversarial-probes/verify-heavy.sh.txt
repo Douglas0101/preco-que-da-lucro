@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# S4 VERIFY (pesada) do trilho A — dentro do worktree, contra PG17 efêmero :5433.
+set -u
+export DATABASE_ADMIN_URL="postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test"
+export DATABASE_URL="$DATABASE_ADMIN_URL"
+export DATABASE_URL_UNPOOLED="$DATABASE_ADMIN_URL"
+export DATABASE_DRIVER=node-postgres
+export EXPECTED_POSTGRES_MAJOR=17
+
+echo "############ npm run db:test ############"
+npm run db:test 2>&1 | tail -30
+echo "DBTEST_EXIT=${PIPESTATUS[0]}"
+
+echo
+echo "############ npm run check ############"
+npm run check 2>&1 | tail -35
+echo "CHECK_EXIT=${PIPESTATUS[0]}"

@@ -1,0 +1,131 @@
+# S6 ADVERSARIAL — F-D2-depth-pin
+
+Método: auditoria read-only no worktree `mission/wp3-depth-pin` (base `524ec54`), conferindo os três hashes congelados por `sha256sum`, refazendo a aritmética da cadeia de `cause` à mão e reconstruindo a suíte do pai por `git show HEAD:...` — nenhum teste, `npm`, `docker` ou escrita foi executado.
+Confronto de cada claim com código, logs e artefatos reais; o que não tem lastro no byte selado foi declarado como divergência, não presumido.
+
+**C1 — CONFIRMED** — Os dois casos existem e medem a fronteira oposta, sem vacuidade.
+`src/test/products-fk-conflict.test.ts:184-185`:
+```ts
+  it("fronteira: um 23503 no último elo inspecionado (depth=3) ainda é encontrado", async () => {
+    const deep = wrapCause(drizzleWrappedError("23503", HISTORY_INGREDIENT_FK), 2);
+```
+`:194-199`:
+```ts
+    expect(error).toMatchObject({
+      code: "CONFLICT",
+      status: 409,
+      cause: deep,
+      message: HISTORY_MESSAGE,
+    });
+```
+`:202-206`:
+```ts
+  it("fronteira: um 23503 em depth=4 (o primeiro elo fora do limite) é relançado como veio", async () => {
+    const deep = wrapCause(drizzleWrappedError("23503", HISTORY_INGREDIENT_FK), 3);
+    await expect(
+      invokeDelete(deleteIngredient, INGREDIENT, contextFor(failingDeleteTransaction(deep))),
+    ).rejects.toBe(deep);
+```
+Não são vacuamente verdadeiros: `.artifacts/wp3-falsifica.log:16` registra `× fronteira: um 23503 no último elo inspecionado (depth=3) ainda é encontrado 10ms` com limite 3, e `:33` registra `× fronteira: um 23503 em depth=4 (o primeiro elo fora do limite) é relançado como veio 8ms` com limite 5; `.artifacts/f4.txt` mostra que o caso depth=4 recebeu `ApplicationError` (não `deep`), provando que o `rejects.toBe` é sensível. O caso depth=3 também tem �码 `cause: deep` e mensagem, não só `code` — a via genérica de 23503 cairia em `FOREIGN_KEY_MESSAGE`.
+
+**C2 — CONFIRMED** — A aritmética declarada confere com o código.
+`src/test/products-fk-conflict.test.ts:105-111`:
+```ts
+function wrapCause(error: unknown, count: number): unknown {
+  let current = error;
+  for (let index = 0; index < count; index += 1) {
+    current = Object.assign(new Error(`wrapper ${index + 1}`), { cause: current });
+  }
+  return current;
+}
+```
+`src/test/products-fk-conflict.test.ts:81-87`:
+```ts
+  driverError.code = code;
+  if (constraint !== undefined) driverError.constraint = constraint;
+  return new DrizzleQueryError(
+    'delete from "product_ingredients" where "id" = $1',
+    [INGREDIENT],
+    driverError,
+  );
+```
+`node_modules/drizzle-orm/errors.js:10-20` confirma que `DrizzleQueryError` só guarda `query`, `params` e `cause` (sem `code`). Logo o `DatabaseError` com `code = '23503'` está no índice 1 do erro base, e `wrapCause(..., n)` o empurra para `n+1`. O laço `src/lib/products.functions.ts:213` (`for (let depth = 0; depth < FK_CAUSE_CHAIN_LIMIT; depth += 1)`) com limite 4 inspeciona índices 0..3; portanto os casos medem índice 3 (encontrado) e índice 4 (não olhado), respectivamente.
+
+**C3 — CONFIRMED** — O caso antigo foi renomeado para o que mede e continua medindo o mesmo índice.
+`git show HEAD:src/test/products-fk-conflict.test.ts` linha 184: `it("profundidade: um 23503 em depth=4 fica fora do limite e é relançado como veio"` com `wrapCause(drizzleWrappedError("23503", HISTORY_INGREDIENT_FK), 4)` (índice 5). No arquivo novo, `src/test/products-fk-conflict.test.ts:209-210`:
+```ts
+  it("profundidade: um 23503 em depth=5 fica bem fora do limite e é relançado como veio", async () => {
+    const deep = wrapCause(drizzleWrappedError("23503", HISTORY_INGREDIENT_FK), 4);
+```
+Mesmo `wrapCause(...,4)`, mesmo índice 5, rótulo corrigido; o diff não altera mais nada nesse caso.
+
+**C4 — CONFIRMED** — O pai era cego em 3, 4 e 5; a nova distingue nas duas direções.
+A suíte do pai (9 casos no `describe` de unidade; 13 no arquivo) só tem SQLSTATE em índices 1 (três casos), 2 (`:165`, `depth=2`) e 5 (caso antigo `:184`), com expectativas "achado" para 1/2 e "não achado" para 5; como o índice `i` é achado sse `limite ≥ i+1`, ela fica verde exactamente para limite ∈ {3,4,5} e vermelha em ≤2 e ≥6. Medições: `.artifacts/f2.txt` com limite 3 → `Tests  1 failed | 10 passed | 4 skipped (15)` falhando em `× fronteira: ... (depth=3) ...`; `.artifacts/f4.txt` com limite 5 → `Tests  1 failed | 10 passed | 4 skipped (15)` falhando em `× fronteira: ... depth=4 ...`; `.artifacts/f3.txt` e `.artifacts/f5.txt` (pai, limites 3 e 5) → `Tests  9 passed | 4 skipped (13)`, EXIT=0. `.artifacts/wp3-falsifica.log:67` fecha: `VEREDITO: FRONTEIRA PINADA NAS DUAS DIRECOES - a nova distingue 3 e 5 de 4; a antiga nao distinguia nenhum`.
+
+**C5 — CORRECTED** — O log bate com f1..f5 (segunda metade verdadeira), mas o veredicto NÃO é calculado por identidade do caso que falha: o grep de nome não está ancorado na falha, então qualquer caso que falhe satisfaz o critério desde que o nome da fronteira apareça em qualquer lugar da saída (e ele aparece, como `✓`, na listagem do reporter quando o arquivo tem falha).
+`zz-wp3-falsifica.sh:102-103`:
+```bash
+FALHOU2=$(grep -cE 'Tests +.*failed' $A/f2.txt)
+NOME2=$(grep -c 'fronteira: um 23503 no último elo inspecionado (depth=3) ainda é encontrado' $A/f2.txt)
+```
+`:126-129`:
+```bash
+if [ "$EXIT1" -eq 1 ] && [ "$FALHOU2" -ge 1 ] && [ "$NOME2" -ge 1 ] && \
+   [ "$EXIT3" -eq 1 ] && [ "$NAO_FALHOU3" -eq 0 ] && \
+   [ "$FALHOU4" -ge 1 ] && [ "$NOME4" -ge 1 ] && \
+```
+Em `f2.txt` o reporter lista todos os testes: `✓ deletePackaging usa o mesmo mapeamento (constraint de embalagem) 1ms` e `✓ fronteira: um 23503 em depth=4 ... 1ms` aparecem mesmo sem falhar; o teste que falhou tem 2 ocorrências (linha `×` + linha `FAIL`) — o limiar `≥ 1` seria satisfeito por um caso apenas `✓`. A contagem 2 do log (`a falha e no caso de FRONTEIRA 3: 2`) não é evidência de identidade. O que salva a corrida selada é o próprio `f2/f4`, que mostram a asserção da fronteira falhando com a linha `src/test/products-fk-conflict.test.ts:194`/`:206`; a corrida registrada bate byte a byte com os resumos de `f1` (`Tests  11 passed | 4 skipped (15)`), `f2`, `f3`, `f4` e `f5`, com EXITs 0/1/0/1/0 consistentes.
+
+**C6 — CONFIRMED** — `scripts/db/test-products-fk-conflict.ts:45` traz `const MIN_TOTAL_TESTS = 15;` (o pai tinha 13 na linha 40: `git show HEAD:scripts/db/test-products-fk-conflict.ts` → `40:const MIN_TOTAL_TESTS = 13;`). Tem dentes: `.artifacts/wp3-runner-piso.txt` termina em `AssertionError [ERR_ASSERTION]: a prova de banco não produziu casos suficientes: 15 < 16 — ... (fail-open, F-D2-runner-failopen)` após `Tests  15 passed (15)`. E foi restaurado byte a byte: `.artifacts/wp3-verify.log` → `runner restaurado byte a byte: OK (95fa85766eb1c275)`; `.artifacts/runner-bak.ts` e o arquivo atual têm ambos `95fa85766eb1c275897e5652a3e30e3fe2122e0584990fc64ad2b132c56ce2eb`, o mesmo hash declarado congelado.
+
+**C7 — CONFIRMED** — `src/lib/products.functions.ts:203` continua `const FK_CAUSE_CHAIN_LIMIT = 4;` (grep do repositório não acha outra cópia). O sha do runtime é `f9a89220622e02f8283889253227f593b07e9a62d026b04ac1240b1c8ee01647` e `git status --short src/lib/products.functions.ts` sai vazio; `.artifacts/wp3-verify.log` registra `products.functions.ts aparece no diff? 0 (esperado 0)` e `.artifacts/wp3-s7.log` idem. O `git status --porcelain` do worktree lista apenas `M scripts/db/test-products-fk-conflict.ts`, `M src/test/products-fk-conflict.test.ts` e `?? docs/evidence/d2-depth-pin-2026-09-20/`.
+
+**C8 — CONFIRMED** — Números conferem: `.artifacts/f1.txt` → `Tests  11 passed | 4 skipped (15)` (sem DB, os 4 gated pulam); `.artifacts/wp3-runner.txt` e `wp3-verify.log` → `Tests  15 passed (15)` e `prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 15 passed (15), 0 skipped — admin=127.0.0.1:5438`; `.artifacts/wp3-matrix.txt` → `M-02 matrix is deterministic and up to date.` (o passo é `m02:matrix:check`, read-only, e o `git status` não mostra matriz alterada); `.artifacts/wp3-verify.log` mostra `porta 5432 (H-9) tocada? -> 0 listener(es)` no início e no fim. O container foi `postgres:17-alpine`, `PostgreSQL 17.11`, `docker run rc=0`, `pronto apos 3s`.
+
+**C9 — CONFIRMED** — As duas correções são de instrumento e não tocam asserção de produto. `zz-wp3-falsifica.sh:22` e `zz-wp3-verify.sh:9`:
+```bash
+export NO_COLOR=1
+```
+Isso só estabiliza os greps de texto puro; nenhuma expectativa do teste muda. A espera real está em `zz-wp3-verify.sh:33-45`:
+```bash
+for i in $(seq 1 30); do
+  VERSAO=$(docker exec "$PG" psql -U postgres -d "$DB" -tAc 'select version()' 2>/dev/null) || true
+  [ -n "$VERSAO" ] && break
+  sleep 1
+done
+...
+if [ -z "$VERSAO" ]; then
+  echo "  !! FALHA: banco nao respondeu em 30s"
+```
+com saída fail-closed; o diff do arquivo de teste não mexe em nenhum corpo de asserção existente (só adiciona 2 casos e renomeia 1).
+
+**C10 — CORRECTED** — O README não inventa medições, mas diverge do selado em pontos concretos:
+1. A citação do veredicto em `README.md:67-73` não existe em nenhum byte do log. `README.md:73` diz `VEREDITO: FRONTEIRA PINADA - a nova distingue 3 de 4, a antiga nao distinguia`, enquanto `wp3-falsifica.log:67` diz `VEREDITO: FRONTEIRA PINADA NAS DUAS DIRECOES - a nova distingue 3 e 5 de 4; a antiga nao distinguia nenhum`; `README.md:70` ( `a falha e no caso de FRONTEIRA:` ) também difere de `wp3-falsifica.log:56` ( `a falha e no caso de FRONTEIRA 3:` ).
+2. A tabela §3.1 (`README.md:58-62`) descreve a falsificação em UMA direção: omite as duas corridas com limite 5 que o script executa (`=== 4. METADE DE CIMA ...` e `=== 5. a suite ANTIGA, MESMO limite 5 ...`), presentes em `wp3-falsifica.log:26-40` e em `f4/f5`. O próprio script diz que medir só a descida seria "leitura de codigo, nao prova" (`zz-wp3-falsifica.sh:5-7`).
+3. `README.md:15` diz que a suíte era indiferente "entre um limite de 3 e um limite de 4"; o medido é indiferença em {3,4,5}, como prova o próprio `f5` (pai verde com limite 5).
+4. `README.md:45` cita `scripts/db/test-products-fk-conflict.ts:40`, mas na entrega `MIN_TOTAL_TESTS` está na linha 45 (a linha 40 é a posição do pai).
+5. `README.md:122` afirma journal `L119 ▶`/`L120 ✔` "gravado em develop"; `develop` == `HEAD` == `524ec54` e `docs/evidence/agent-state/PROGRESS.md` termina em `L118` (248 linhas) — `grep 'L119\|L120'` não retorna nada. A afirmação não tem lastro neste estado.
+6. `README.md:141` (`_(preenchido após o veredicto)_`) é placeholder declarado — não mente, mas o §7 não está preenchido.
+7. O que confere: as 3 linhas da tabela §3.1 batem com `f1/f2/f3`; a §3.2 bate com `wp3-runner.txt`, `wp3-runner-piso.txt`, `wp3-vitest.txt`, `wp3-matrix.txt` e `wp3-verify.log` (incl. `15 passed (15)`, piso 16, `dest 127.0.0.1:5438`, restauro `f9a892...`); e o bundle citado no DoD do `SPEC.md:113` (`473230` / `assets/index-eXg04t5H.js: 237694`) bate com `wp3-gate.log:330-331`: `PASS assets/index-eXg04t5H.js: 237694 minified, 73259 gzip, 63812 Brotli bytes` e `Initial graph (9 chunks): 473230 minified, 151054 gzip, 132937 Brotli bytes`.
+
+Divergências do `SPEC.md` (mesmo selo): `SPEC.md:74-78` afirma que com limite 5 o índice 5 é achado (`| 5 | sim | **sim** | vermelha |`) e `SPEC.md:80` repete (`O limite só começa a ser sentido em 5`); o `f5` mede o contrário (`Tests  9 passed | 4 skipped (13)`, EXIT=0), pois o laço com limite 5 inspeciona 0..4 e só encontraria o índice 5 com limite 6. E `SPEC.md:146` diz `o diff é de um único arquivo de teste` quando o diff tem 2 arquivos (teste + runner), contradizendo o §8 do próprio SPEC e a §5 do README.
+
+## Defeitos NOVOS
+
+**N1 — Fail-open na identidade da falsificação (material, latente).** `zz-wp3-falsifica.sh:103` e `:107` usam `grep -c '<nome>'` no arquivo inteiro; o reporter lista nomes de testes que PASSARAM com `✓` (vide `f2.txt`: `✓ fronteira: um 23503 em depth=4 ...`), de modo que `NOME2 ≥ 1`/`NOME4 ≥ 1` não prova que o caso de fronteira foi o que caiu — qualquer falha alheia com a fronteira verde satisfaria `FALHOU2 ≥ 1 && NOME2 ≥ 1`. O comentário `:100-101` afirma "IDENTIDADE, nao cardinalidade"; a implementação entrega presença de nome + existência de falha. Correção mínima: contar apenas linhas de falha (`^ FAIL .*<nome>` ou `^\s*× <nome>`), como já se faz em `falhas()`.
+
+**N2 — Fail-open de composição no piso do runner.** `scripts/db/test-products-fk-conflict.ts:87-102` garante `numTotalTests ≥ 15` e `numPendingTests === 0`, mas não que existam casos de banco: apagar os 4 casos gated e compensar com 4 casos puros mantém 15/15 passed, 0 skipped e o passo verde — exactamente a classe que o runner existe para fechar. O próprio `QUEUE.md:85` propunha a alternativa "(ou ≥ 4 casos de banco)" que não foi implementada.
+
+**N3 — Fail-open no restauro do runner na bateria (material, latente).** `zz-wp3-verify.sh:76` sinaliza restauro falho com `PISO=-1`, mas o veredicto em `:104` testa `[ "$PISO" -ne 0 ]` — e `-1` também é `-ne 0`. Um `cp` de restauro que falhasse deixaria o runner com `MIN_TOTAL_TESTS = 16` e ainda assim imprimiria `BATERIA WP3: OK` / `VERIFY_EXIT=0`. O instrumento irmão (`zz-wp3-falsifica.sh:88-90`) é fail-closed no mesmo cenário (compara sha e reprova); a assimetria é o defeito.
+
+**N4 — Checagens impressas mas não assertadas.** `zz-wp3-verify.sh:94-97` imprime a constante, o diff do runtime; `:19`/`:101` imprime listeners na 5432; `:103-110` só gateia `RUNNER/PISO/VITEST/MATRIX`. Um runtime sujo ou um listener em 5432 aparece no log com `VERIFY_EXIT=0`. O mesmo vale para `zz-wp3-s7.sh` (só incrementa `FALHAS` para escopo/credenciais/secrets; `FK_CAUSE_CHAIN_LIMIT` e "runtime no diff" são ilustrativos, `:57-83`). Aqui isso não mascarou nada — `git status` e o sha do runtime conferem —, mas o veto automático não cobre o contrato que o WP declara.
+
+**N5 — Documento do selo contra o fato medido.** `SPEC.md:74-78`/`:80` fazem afirmação factualmente falsa sobre o limite 5 (ver C10), e `SPEC.md:146` subconta o diff; `README.md:73` cita veredicto que não existe no log. É a mesma família "documento que mente" que o WP combate; o dado bruto (`f5`, `log:67`) está preservado, então o selo é auditável, mas a prosa precisa de errata antes do land.
+
+Observação (não numerada): o diretório do selo contém apenas `README.md` e `SPEC.md`; `zz-wp3-seal.sh` (presente em `.artifacts`, não listado no alvo) espera produzir `captures/` + `MANIFEST.sha256` e incluir o veredicto adversarial — estado coerente com "selo ainda não montado", não com o selo final daquele script.
+
+## Resumo
+
+- Claims: **8 CONFIRMED** (C1, C2, C3, C4, C6, C7, C8, C9) · **2 CORRECTED** (C5, C10) · **0 REJECTED** · **0 UNVERIFIABLE**.
+- Defeitos novos: **5** — N1 e N3 são fail-opens materiais dos instrumentos (identidade da falsificação e restauro do runner), N2 é fail-open residual do piso (composição), N4 é gate incompleto de checagens impressas, N5 é divergência documental do selo.
+- Veredicto material: os bytes congelados batem (`febe27fa…`, `95fa8576…`, `f9a89220…`), o runtime não está no diff, a fronteira está comportamentalmente pinada nas duas direções (f2 cai em depth=3, f4 cai em depth=4, pai verde em 3 e 5) e o piso 13→15 foi exercitado com dentes e restaurado byte a byte. Nenhum defeito encontrado invalida a prova de fronteira em si; N1/N2/N3 devem ser corrigidos antes de reutilizar os instrumentos como gate.

@@ -5,6 +5,7 @@ import { Pool } from "pg";
 import * as schema from "../../src/db/schema";
 import { runRegisteredTool } from "../../src/lib/ai/tool-runner";
 import type { RequestContext } from "../../src/lib/request-context";
+import { userRateLimitKey } from "../../src/server/auth/rate-limit-rules.server";
 import { ensureRuntimeRoleMembership, requireAdminUrl } from "./migrate";
 
 const userId = "71000000-0000-4000-8000-000000000001";
@@ -13,12 +14,17 @@ const otherUserId = "73000000-0000-4000-8000-000000000003";
 const otherTenantId = "74000000-0000-4000-8000-000000000004";
 const otherProductId = "75000000-0000-4000-8000-000000000005";
 const correlationId = "76000000-0000-4000-8000-000000000006";
+const usageId = "78000000-0000-4000-8000-000000000008";
 
 async function main(): Promise<void> {
   const pool = new Pool({ connectionString: requireAdminUrl(), max: 2 });
   const database = drizzle({ client: pool, schema });
   try {
     await ensureRuntimeRoleMembership(pool);
+    // §20.5: as 12 chamadas deste script consomem o bucket `tool|<userId>`
+    // (40/10 min) com userId fixo; sem limpar, a 5ª execução dentro da mesma
+    // janela seria recusada com RATE_LIMIT em vez de exercitar o runner.
+    await pool.query(`delete from rate_limits where key = $1`, [userRateLimitKey("tool", userId)]);
     await pool.query(
       `insert into users (id, name, email, email_verified) values
         ($1, 'Tool User', 'tool-user@example.test', true),
@@ -77,6 +83,10 @@ async function main(): Promise<void> {
         roles: ["owner"],
         correlationId,
         signal: new AbortController().signal,
+        // SAFETY: the harness drives a real RLS-scoped driver transaction (the GUCs
+        // are set just above) and the app's `RequestContext.transaction` is an opaque
+        // handle, so the cast is the boundary between the raw driver type and that
+        // handle. The runner only issues queries through it.
         transaction: transaction as unknown as RequestContext["transaction"],
       };
 
@@ -85,6 +95,8 @@ async function main(): Promise<void> {
         name: "create_product",
         rawArguments: JSON.stringify({ name: "Bolo auditável" }),
         idempotencyKey: "conversation:call-create",
+        toolCallId: "call-create-product",
+        usageId,
       });
       assert.equal(first.ok, true);
       assert.equal(first.replayed, false);
@@ -94,6 +106,8 @@ async function main(): Promise<void> {
         name: "create_product",
         rawArguments: JSON.stringify({ name: "Bolo auditável" }),
         idempotencyKey: "conversation:call-create",
+        toolCallId: "call-create-product",
+        usageId,
       });
       assert.equal(replay.ok, true);
       assert.equal(replay.replayed, true);
@@ -173,6 +187,42 @@ async function main(): Promise<void> {
         replayed: false,
       });
 
+      const unknownTool = await runRegisteredTool({
+        context,
+        name: "tool_desconhecida",
+        rawArguments: JSON.stringify({
+          name: "x",
+          authorization: "Bearer super-secret",
+          api_key: "chave-secreta",
+          cookie: "session=abc",
+        }),
+        idempotencyKey: "conversation:call-unknown",
+        toolCallId: "call-unknown",
+        usageId,
+      });
+      assert.deepEqual(unknownTool, { ok: false, code: "VALIDATION_ERROR", replayed: false });
+
+      const invalidJson = await runRegisteredTool({
+        context,
+        name: "create_product",
+        rawArguments: "{não-é-json",
+        idempotencyKey: "conversation:call-invalid-json",
+        toolCallId: "call-invalid-json",
+        usageId,
+      });
+      assert.deepEqual(invalidJson, { ok: false, code: "VALIDATION_ERROR", replayed: false });
+
+      const loneSurrogate = await runRegisteredTool({
+        context,
+        name: "create_product",
+        rawArguments: '{"name":"Bolo \\ud83d solto"}',
+        idempotencyKey: "conversation:call-lone-surrogate",
+        toolCallId: "call-lone-surrogate",
+        usageId,
+      });
+      assert.equal(loneSurrogate.ok, true);
+      assert.equal(loneSurrogate.replayed, false);
+
       const crossTenant = await runRegisteredTool({
         context,
         name: "set_yield",
@@ -201,12 +251,91 @@ async function main(): Promise<void> {
       "select count(*)::text as count from tool_executions where tenant_id = $1",
       [tenantId],
     );
-    assert.equal(executions.rows[0]?.count, "7", "execuções e rejeições devem ser auditadas");
+    assert.equal(executions.rows[0]?.count, "10", "execuções e rejeições devem ser auditadas");
     const rejectedAudit = await pool.query<{ count: string }>(
       "select count(*)::text as count from audit_events where tenant_id = $1 and event_type = 'ai.tool.rejected'",
       [tenantId],
     );
-    assert.equal(rejectedAudit.rows[0]?.count, "4", "rejeições devem gerar audit_event");
+    assert.equal(rejectedAudit.rows[0]?.count, "6", "rejeições devem gerar audit_event");
+
+    const persistedExecution = await pool.query<{
+      tool_call_id: string | null;
+      usage_id: string | null;
+      input: Record<string, unknown> | null;
+    }>(
+      `select tool_call_id, usage_id, input
+       from tool_executions
+       where tenant_id = $1 and tool_call_id = 'call-create-product'`,
+      [tenantId],
+    );
+    assert.equal(persistedExecution.rows[0]?.tool_call_id, "call-create-product");
+    assert.equal(persistedExecution.rows[0]?.usage_id, usageId);
+    assert.deepEqual(
+      persistedExecution.rows[0]?.input,
+      { name: "Bolo auditável" },
+      "input validado deve ser persistido no tool_executions",
+    );
+
+    const redactedExecution = await pool.query<{ input: Record<string, unknown> | null }>(
+      "select input from tool_executions where tenant_id = $1 and tool_call_id = 'call-unknown'",
+      [tenantId],
+    );
+    assert.deepEqual(
+      redactedExecution.rows[0]?.input,
+      {
+        name: "x",
+        authorization: "[REDACTED]",
+        api_key: "[REDACTED]",
+        cookie: "[REDACTED]",
+      },
+      "rejeição deve persistir input com chaves sensíveis redigidas",
+    );
+
+    const invalidInputExecution = await pool.query<{ input: Record<string, unknown> | null }>(
+      "select input from tool_executions where tenant_id = $1 and tool_call_id = 'call-invalid-json'",
+      [tenantId],
+    );
+    assert.equal(
+      invalidInputExecution.rows[0]?.input,
+      null,
+      "JSON inválido deve persistir input null",
+    );
+
+    const surrogateExecution = await pool.query<{ input: Record<string, unknown> | null }>(
+      "select input from tool_executions where tenant_id = $1 and tool_call_id = 'call-lone-surrogate'",
+      [tenantId],
+    );
+    assert.deepEqual(
+      surrogateExecution.rows[0]?.input,
+      { name: "Bolo  solto" },
+      "escape lone surrogate deve ser removido antes do insert jsonb",
+    );
+
+    const sensitiveKeys = await pool.query<{ count: string }>(
+      `select count(*)::text as count
+       from tool_executions, jsonb_each_text(input) as entry(key, value)
+       where tenant_id = $1
+         and lower(regexp_replace(entry.key, '[^a-zA-Z0-9]', '', 'g')) in
+             ('authorization', 'cookie', 'token', 'secret', 'password', 'apikey')
+         and entry.value <> '[REDACTED]'`,
+      [tenantId],
+    );
+    assert.equal(
+      sensitiveKeys.rows[0]?.count,
+      "0",
+      "chave sensível persistida deve estar redigida com [REDACTED]",
+    );
+
+    const rawSecrets = await pool.query<{ count: string }>(
+      `select count(*)::text as count
+       from tool_executions
+       where tenant_id = $1
+         and (input::text like '%super-secret%'
+           or input::text like '%chave-secreta%'
+           or input::text like '%session=abc%')`,
+      [tenantId],
+    );
+    assert.equal(rawSecrets.rows[0]?.count, "0", "nenhum valor secreto cru pode ser persistido");
   } finally {
     await pool.end();
   }

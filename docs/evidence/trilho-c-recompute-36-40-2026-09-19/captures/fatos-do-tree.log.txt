@@ -1,0 +1,164 @@
+== 1. migrations (drizzle/*.sql) ==
+0000_p0_postgres_foundation.sql
+0001_p0_runtime_role_and_rls.sql
+0002_rate_limit_database.sql
+0003_curvy_firebrand.sql
+0004_giant_nocturne.sql
+0005_ai_tool_call_count.sql
+0006_loud_lockjaw.sql
+0007_add_accounts_issuer.sql
+0008_workable_professor_monster.sql
+0009_military_gertrude_yorkes.sql
+0010_backfill_accounts_issuer.sql
+0011_auth_rls_normalization.sql
+0012_youthful_stellaris.sql
+0013_robust_cammi.sql
+0014_mighty_veda.sql
+0015_curved_riptide.sql
+0016_slim_imperial_guard.sql
+0017_past_gideon.sql
+0018_polite_living_tribunal.sql
+0019_tiresome_robin_chapel.sql
+
+== 2. rollbacks ==
+0012_to_0011_down.sql
+0013_to_0012_down.sql
+0014_to_0013_down.sql
+0015_to_0014_down.sql
+0016_to_0015_down.sql
+0017_to_0016_down.sql
+0018_to_0017_down.sql
+0019_to_0018_down.sql
+
+== 3. journal idx/tag (ultimos 8) ==
+total entradas: 20
+  idx=12 tag=0012_youthful_stellaris
+  idx=13 tag=0013_robust_cammi
+  idx=14 tag=0014_mighty_veda
+  idx=15 tag=0015_curved_riptide
+  idx=16 tag=0016_slim_imperial_guard
+  idx=17 tag=0017_past_gideon
+  idx=18 tag=0018_polite_living_tribunal
+  idx=19 tag=0019_tiresome_robin_chapel
+
+== 4. src/server/services ==
+audit.service.ts
+break-even.service.ts
+calculation-snapshot.service.ts
+conversation.service.ts
+dashboard.service.ts
+diagnostic.service.ts
+event.service.ts
+expense.service.ts
+financial.service.ts
+memory.policy.ts
+memory.service.ts
+outbox.worker.ts
+pricing.service.ts
+product-completeness.ts
+product-detail.service.ts
+product-read-model.service.ts
+product.service.ts
+purchase-price.service.ts
+sales.service.ts
+simulation.service.ts
+
+== 5. src/server/repositories ==
+ai-tool.repository.ts
+audit.repository.ts
+calculation-snapshot.repository.ts
+conversation.repository.ts
+dashboard.repository.ts
+expense.repository.ts
+memory.repository.ts
+outbox.repository.ts
+product.repository.ts
+purchase-price.repository.ts
+sales.repository.ts
+simulation.repository.ts
+
+== 6. src/server/contracts ==
+event.contracts.ts
+memory.contracts.ts
+product.contracts.ts
+transaction.contracts.ts
+
+== 7. scripts/db ==
+backfill-ledger.ts
+backfill-runner.ts
+backup-verify.ts
+check-migration-classes.ts
+explain-evidence.ts
+grant-repair.ts
+migrate.ts
+migration-classes.ts
+purge-fixtures.ts
+reconcile-ai-usage.ts
+release-unknown-reservations.ts
+test-ai-budget.ts
+test-ai-usage-unknown.ts
+test-auth-integration.ts
+test-backfill.ts
+test-chat-semantics.ts
+test-concurrency.ts
+test-memory.ts
+test-migrations.ts
+test-oauth-boundary.ts
+test-outbox.ts
+test-product-contracts.ts
+test-products-fk-conflict.ts
+test-rate-limit-burst.ts
+test-reconcile-ai-usage.ts
+test-rum-persistence.ts
+test-sql-injection.ts
+test-tool-security.ts
+
+== 8. scripts/obs ==
+ai-latency-baseline.ts
+baseline-regime.ts
+error-budget.ts
+pg-stat-statements.ts
+pool-activity.ts
+rum-percentiles.ts
+
+== 9. tsvector/to_tsvector/to_tsquery (quem e onde) ==
+
+== 10. rrf / hybrid ==
+
+== 11. vector/embedding/pgvector/hnsw ==
+
+== 12. provenance ==
+scripts/db/test-memory.ts:173:    provenance: {
+scripts/db/test-memory.ts:401:        provenance: {
+scripts/db/test-memory.ts:413:    record.provenance,
+scripts/db/test-memory.ts:435:    found[0]?.provenance,
+scripts/db/test-memory.ts:436:    record.provenance,
+scripts/db/test-memory.ts:454:    withTwoSources[0]?.provenance?.sourceId,
+scripts/db/test-memory.ts:943:        provenance: undefined,
+scripts/db/test-memory.ts:975:        provenance: undefined,
+scripts/db/test-memory.ts:1055:      provenance: {
+scripts/db/test-memory.ts:1103:    secondRevision.provenance?.sourceId,
+
+== 13. rotas com memoria ==
+
+== 14. package.json: scripts db:* e test ==
+  check = npm run m02:lockfile-guard && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle
+  db:check = drizzle-kit check
+  db:classify:check = tsx scripts/db/check-migration-classes.ts
+  db:down = docker compose down
+  db:generate = drizzle-kit generate
+  db:migrate = tsx scripts/db/migrate.ts
+  db:purge-fixtures = tsx scripts/db/purge-fixtures.ts
+  db:reconcile-ai-usage = tsx scripts/db/reconcile-ai-usage.ts
+  db:release-unknown-reservations = tsx scripts/db/release-unknown-reservations.ts
+  db:test = tsx scripts/db/check-migration-classes.ts && tsx scripts/db/test-migrations.ts && tsx scripts/db/test-concurrency.ts && tsx scripts/db/test-auth-integration.ts && tsx scripts/db/test-oauth-boundary.ts && tsx scripts/db/test-tool-security.ts && tsx scripts/db/test-sql-injection.ts && tsx scripts/db/test-chat-semantics.ts && tsx scripts/db/test-ai-budget.ts && tsx scripts/db/test-rum-persistence.ts 
+  db:up = docker compose up -d --wait
+  test = vitest run
+  test:e2e = playwright test
+
+== 15. migrations novas (0015..) tema ==
+  drizzle/0015_curved_riptide.sql :: CREATE TABLE "outbox_consumptions" ( 	"consumer_name" text NOT NULL, 	"event_id" uuid NOT NULL, 
+  drizzle/0016_slim_imperial_guard.sql :: CREATE TABLE "backfill_checkpoints" ( 	"tenant_id" uuid NOT NULL, 	"run_key" text NOT NULL, 
+  drizzle/0017_past_gideon.sql :: -- §43/§15.2 — memória persistente (alvo M-05, degrau D2). As tabelas novas usam -- os nomes do plano (`ai_*`); a implementação vigente de conv
+  drizzle/0018_polite_living_tribunal.sql :: CREATE TABLE "ai_memory_conflicts" ( 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL, 	"tenant_id" uuid NOT NULL, 
+  drizzle/0019_tiresome_robin_chapel.sql :: CREATE TABLE "ai_memory_access_log" ( 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL, 	"tenant_id" uuid NOT NULL, 

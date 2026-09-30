@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Gera o MANIFEST.sha256 do selo do TRILHO B e prova o invariante checked === discovered.
+set -uo pipefail
+export LC_ALL=C   # sem isto o sha256sum -c imprime "SUCESSO" em vez de "OK" e o grep mente
+cd "$(dirname "$0")/.."
+SEAL=docs/evidence/trilho-b-reconcile-unknown-2026-09-19
+
+npx prettier --write "$SEAL/README.md" "$SEAL/SPEC.md" >/dev/null 2>&1
+echo "prettier nos .md do selo: exit $?"
+
+rm -f "$SEAL/MANIFEST.sha256"
+find "$SEAL" -type f ! -name 'MANIFEST.sha256' -print0 | sort -z | xargs -0 sha256sum > "$SEAL/MANIFEST.sha256"
+
+DISCOVERED=$(find "$SEAL" -type f ! -name 'MANIFEST.sha256' | wc -l)
+CHECKED=$(wc -l < "$SEAL/MANIFEST.sha256")
+echo "discovered = $DISCOVERED"
+echo "checked    = $CHECKED"
+if [ "$DISCOVERED" -eq "$CHECKED" ]; then echo "INVARIANTE checked === discovered: OK"; else echo "INVARIANTE VIOLADO"; exit 1; fi
+
+OK=$(sha256sum -c "$SEAL/MANIFEST.sha256" 2>&1 | grep -c ': OK')
+BAD=$(sha256sum -c "$SEAL/MANIFEST.sha256" 2>&1 | grep -v ': OK' | grep -c . || true)
+echo "sha256sum -c (do root do repo, onde o manifesto foi gerado) OK = $OK"
+echo "linhas não-OK = $BAD"
+if [ "$BAD" -ne 0 ]; then sha256sum -c "$SEAL/MANIFEST.sha256" 2>&1 | grep -v ': OK'; exit 1; fi
+
+echo "tamanho do selo: $(du -sh "$SEAL" | cut -f1)"
+echo "verificáveis em clone? $(find "$SEAL" -type f -print0 | xargs -0 git check-ignore -v 2>/dev/null | wc -l) ignorado(s) pelo git"

@@ -1,0 +1,7 @@
+$ env -u DATABASE_URL_UNPOOLED DATABASE_ADMIN_URL=…127.0.0.1:55470… DATABASE_URL=…127.0.0.1:55470… npx tsx docs/evidence/trk-d2-fk-2026-09-18/probe-real-driver-error-shape.ts
+
+{"kind":"ingredient","depth":0,"ctor":"DrizzleQueryError","code":null,"constraint":null,"constraintLength":null,"table":null,"schema":null}
+{"kind":"ingredient","depth":1,"ctor":"DatabaseError","code":"23503","constraint":"purchase_price_history_tenant_id_ingredient_id_product_ingredie","constraintLength":63,"table":"purchase_price_history","schema":"public"}
+{"kind":"packaging","depth":0,"ctor":"DrizzleQueryError","code":null,"constraint":null,"constraintLength":null,"table":null,"schema":null}
+{"kind":"packaging","depth":1,"ctor":"DatabaseError","code":"23503","constraint":"purchase_price_history_tenant_id_packaging_id_product_packaging","constraintLength":63,"table":"purchase_price_history","schema":"public"}
+EXIT=0

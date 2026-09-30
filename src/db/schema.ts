@@ -4,6 +4,7 @@ import {
   bigint,
   check,
   date,
+  doublePrecision,
   foreignKey,
   index,
   integer,
@@ -30,6 +31,23 @@ const tenantIdentity = {
 
 export const productStatusValues = ["draft", "incomplete", "ready", "active", "archived"] as const;
 export type ProductStatus = (typeof productStatusValues)[number];
+
+/** Camadas **persistidas** de memória (§15.2 da V7 / §13 do ARQ). L0 (working)
+ * fica **fora**: não é persistido, então não há linha para expirar (H-12). */
+export const memoryLayerValues = ["L1", "L2", "L3", "L4", "L5"] as const;
+export type MemoryLayer = (typeof memoryLayerValues)[number];
+
+/** Ações auditadas em `ai_memory_access_log` (§15.4/D4): retrieval, eliminação
+ * e portabilidade. */
+export const memoryAccessActionValues = ["access", "delete", "export"] as const;
+export type MemoryAccessAction = (typeof memoryAccessActionValues)[number];
+
+/** Resultado de uma operação auditada: `not_found` cobre o id inexistente **e**
+ * o de outro tenant (a RLS torna os dois indistinguíveis — não há oráculo de
+ * existência) e `refused` é a recusa por política (histórico presente ou
+ * memória de escopo pessoal de outro autor). */
+export const memoryAccessResultValues = ["allowed", "not_found", "refused"] as const;
+export type MemoryAccessResult = (typeof memoryAccessResultValues)[number];
 
 const money = (name: string) => numeric(name, { precision: 19, scale: 4 });
 const quantity = (name: string) => numeric(name, { precision: 24, scale: 6 });
@@ -202,6 +220,7 @@ export const products = pgTable(
     taxRate: percent("tax_rate"),
     isDemo: boolean("is_demo").notNull().default(false),
     notes: text("notes"),
+    version: integer("version").notNull().default(0),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     ...timestamps,
   },
@@ -226,6 +245,7 @@ export const products = pgTable(
       "products_status_check",
       sql`${table.status} in ('draft', 'incomplete', 'ready', 'active', 'archived')`,
     ),
+    check("products_version_check", sql`${table.version} >= 0`),
   ],
 );
 
@@ -375,6 +395,7 @@ export const expenses = pgTable(
     periodicity: text("periodicity").notNull().default("mensal"),
     isDemo: boolean("is_demo").notNull().default(false),
     notes: text("notes"),
+    version: integer("version").notNull().default(0),
     ...timestamps,
   },
   (table) => [
@@ -386,6 +407,7 @@ export const expenses = pgTable(
     }).onDelete("restrict"),
     check("expenses_amount_check", sql`${table.amount} >= 0`),
     check("expenses_type_check", sql`${table.type} in ('fixa', 'variavel')`),
+    check("expenses_version_check", sql`${table.version} >= 0`),
   ],
 );
 
@@ -702,6 +724,9 @@ export const toolExecutions = pgTable(
     safeResult: jsonb("safe_result").$type<Record<string, unknown>>(),
     errorCode: text("error_code"),
     idempotencyKey: text("idempotency_key"),
+    toolCallId: text("tool_call_id"),
+    input: jsonb("input").$type<Record<string, unknown>>(),
+    usageId: uuid("usage_id"),
     estimatedCost: money("estimated_cost"),
     costStatus: text("cost_status").notNull().default("unknown"),
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
@@ -715,6 +740,7 @@ export const toolExecutions = pgTable(
       table.idempotencyKey,
     ),
     index("tool_executions_tenant_started_idx").on(table.tenantId, table.startedAt),
+    index("tool_executions_tenant_usage_idx").on(table.tenantId, table.usageId),
     check(
       "tool_executions_cost_status_check",
       sql`${table.costStatus} in ('known', 'unknown', 'invalid')`,
@@ -818,6 +844,463 @@ export const auditEvents = pgTable(
   ],
 );
 
+/** Série de Web Vitals (RUM) persistida para agregação p75 (§17.8).
+ * Sem tenant_id e sem RLS por design: é métrica de performance do browser,
+ * sem PII; a ingestão é best-effort (INSERT-only para app_runtime) e a
+ * leitura fica restrita ao operador (DATABASE_ADMIN_URL, local-only). */
+export const rumVitals = pgTable(
+  "rum_vitals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    metricId: text("metric_id").notNull(),
+    name: text("name").notNull(),
+    value: doublePrecision("value").notNull(),
+    rating: text("rating").notNull(),
+    delta: doublePrecision("delta").notNull(),
+    navigationType: text("navigation_type"),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("rum_vitals_name_received_at_idx").on(table.name, table.receivedAt)],
+);
+
+/** §23 — outbox transacional. O evento é inserido na MESMA transação da
+ * mutação de domínio (`withTenantTransaction`) e drenado por worker idempotente
+ * (23.2). `idempotency_key` é única por tenant: repetir o append devolve o
+ * evento existente (`duplicate: true`) em vez de duplicar a linha. */
+export const outboxEvents = pgTable(
+  "outbox_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(),
+    aggregateType: text("aggregate_type").notNull(),
+    aggregateId: text("aggregate_id").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    status: text("status").notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    /** Próxima tentativa permitida; o backoff de falha empurra este instante. */
+    availableAt: timestamp("available_at", { withTimezone: true }).notNull().defaultNow(),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("outbox_events_tenant_idempotency_uidx").on(table.tenantId, table.idempotencyKey),
+    /** Índice do claim: filtra por tenant + fila de pendentes por vencimento. */
+    index("outbox_events_claim_idx").on(
+      table.tenantId,
+      table.status,
+      table.availableAt,
+      table.createdAt,
+    ),
+    check(
+      "outbox_events_status_check",
+      sql`${table.status} in ('pending', 'processing', 'processed', 'failed')`,
+    ),
+    check("outbox_events_attempts_check", sql`${table.attempts} >= 0`),
+    check(
+      "outbox_events_identity_check",
+      sql`${table.eventType} <> '' and ${table.aggregateType} <> '' and ${table.aggregateId} <> '' and ${table.idempotencyKey} <> ''`,
+    ),
+  ],
+);
+
+/** Inbox do consumidor (23.2): a entrega é at-least-once, então a chave
+ * (consumer, event) é o que garante 1 efeito por evento mesmo com reentrega. É
+ * gravada na MESMA transação do efeito do handler. */
+export const outboxConsumptions = pgTable(
+  "outbox_consumptions",
+  {
+    consumerName: text("consumer_name").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => outboxEvents.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.consumerName, table.eventId] })],
+);
+
+/** §28.2 — checkpoint do backfill: uma linha por TENTATIVA (`runKey`) do trabalho
+ * lógico (`workKey`). `version` é o token do CAS: o store só grava quando a
+ * versão persistida é exatamente a anterior, então dois runners no mesmo
+ * `runKey` nunca se sobrescrevem em silêncio — o perdedor recebe conflito. */
+export const backfillCheckpoints = pgTable(
+  "backfill_checkpoints",
+  {
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    runKey: text("run_key").notNull(),
+    cursor: text("cursor"),
+    completed: boolean("completed").notNull().default(false),
+    batches: integer("batches").notNull().default(0),
+    rowsScanned: integer("rows_scanned").notNull().default(0),
+    rowsApplied: integer("rows_applied").notNull().default(0),
+    rowsDuplicate: integer("rows_duplicate").notNull().default(0),
+    errors: integer("errors").notNull().default(0),
+    version: integer("version").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.tenantId, table.runKey] }),
+    check("backfill_checkpoints_identity_check", sql`${table.runKey} <> ''`),
+    check("backfill_checkpoints_version_check", sql`${table.version} >= 0`),
+    check(
+      "backfill_checkpoints_counters_check",
+      sql`${table.batches} >= 0 and ${table.rowsScanned} >= 0 and ${table.rowsApplied} >= 0 and ${table.rowsDuplicate} >= 0 and ${table.errors} >= 0`,
+    ),
+  ],
+);
+
+/** §28.4 — marcador de idempotência: a chave é derivada da LINHA (não da
+ * tentativa), então reexecutar o mesmo trabalho em outra tentativa não reaplica
+ * o efeito. É gravado na MESMA transação do efeito (`applyWorkItemOnce`). */
+export const backfillWorkItems = pgTable(
+  "backfill_work_items",
+  {
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    workKey: text("work_key").notNull(),
+    runKey: text("run_key").notNull(),
+    rowKey: text("row_key").notNull(),
+    appliedAt: timestamp("applied_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.tenantId, table.workKey] }),
+    index("backfill_work_items_tenant_run_key_idx").on(table.tenantId, table.runKey),
+    check(
+      "backfill_work_items_identity_check",
+      sql`${table.workKey} <> '' and ${table.rowKey} <> '' and ${table.runKey} <> ''`,
+    ),
+  ],
+);
+
+/** §43/§15.2 — memória persistente (alvo M-05, degrau D2). Os nomes são os do
+ * plano (`ai_memories`/`ai_memory_sources`); `chat_*` permanece como
+ * implementação vigente do §15.2-conversas (decisão A do STEWARD: alias
+ * canônico, sem renomeação de tabela em uso). `(tenant_id, id)` é único para
+ * servir de alvo da FK composta de `ai_memory_sources` — o padrão §34 de
+ * `chat_conversations`/`chat_messages`.
+ *
+ * `user_id` é o autor da gravação (não o tenant): a FK composta para
+ * `tenant_memberships` impede memória atribuída a quem não é membro e dá a
+ * âncora por usuário que D4 exige para delete/export. `confidence` é a cópia de
+ * retrieval da confiança declarada na proveniência (nula quando a policy não
+ * exige proveniência e o candidato foi gravado sem fonte) e `importance` usa
+ * `0` como neutro documentado — o read model `MemoryRecord.importance` é
+ * numérico. */
+export const aiMemories = pgTable(
+  "ai_memories",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(),
+    scope: text("scope").notNull(),
+    content: text("content").notNull(),
+    /** Chave determinística de dedup (§15.6/D3, SD-C3-1): sha256 hex de
+     * `scope ‖ 0x1f ‖ discriminador ‖ 0x1f ‖ conteúdo normalizado`. O
+     * discriminador impede que dois usuários com o mesmo texto colapsem numa
+     * linha só; a normalização (NFC + trim + colapso de espaços internos) não
+     * toca maiúsculas/minúsculas. */
+    dedupKey: text("dedup_key").notNull(),
+    /** Camada da memória (§15.2/§13): é ela que seleciona o TTL em
+     * `ai_memory_policies`. `L2` (episódica) é o default **declarado** do
+     * append atual (observações de conversa/tool); L0 não é persistido. */
+    layer: text("layer").notNull().default("L2"),
+    /** Fim da validade, derivado da policy da camada **na gravação** (`null` =
+     * sem expiração: L4 acompanha a entidade referenciada e L5 é versionada).
+     * É a coluna do expirador e o segundo filtro do retrieval (defesa em
+     * profundidade enquanto o expirador não rodou). */
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    importance: doublePrecision("importance").notNull().default(0),
+    confidence: doublePrecision("confidence"),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    /** Alvo da FK composta de `ai_memory_sources`: precisa ser **constraint**
+     * (não índice) para existir antes dos `ALTER TABLE ... ADD FOREIGN KEY` do
+     * arquivo gerado — mesmo padrão de `chat_conversations`. */
+    unique("ai_memories_tenant_id_id_uidx").on(table.tenantId, table.id),
+    /** Dedup do D3 (§15.6/SD-C3-2): **único parcial** — o mesmo conteúdo só
+     * colide entre memórias **ativas** do mesmo tenant; uma memória substituída
+     * (`status='superseded'`) não bloqueia a gravação de um ativo novo. É o
+     * índice que resolve a concorrência do append (`ON CONFLICT … DO NOTHING`,
+     * SD-C3-10, sem advisory lock). */
+    uniqueIndex("ai_memories_tenant_dedup_key_active_uidx")
+      .on(table.tenantId, table.dedupKey)
+      .where(sql`${table.status} = 'active'`),
+    /** Índice do retrieval lexical de D5/D6: tenant primeiro (§15.8). */
+    index("ai_memories_tenant_status_created_idx").on(
+      table.tenantId,
+      table.status,
+      table.createdAt,
+    ),
+    foreignKey({
+      columns: [table.tenantId, table.userId],
+      foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
+    }).onDelete("cascade"),
+    check("ai_memories_scope_check", sql`${table.scope} in ('tenant', 'user', 'conversation')`),
+    check("ai_memories_content_check", sql`${table.content} <> ''`),
+    /** Vocabulário de estados do Apêndice C (§15.6/D4): `expired` entra com o
+     * TTL. `deleted` **não** entra porque o delete é físico (a linha não existe
+     * para carregar o estado — o rastro é a linha de `ai_memory_access_log`) e
+     * `rejected` nunca é persistido (a policy de D1 recusa o candidato antes da
+     * gravação). */
+    check("ai_memories_status_check", sql`${table.status} in ('active', 'superseded', 'expired')`),
+    check("ai_memories_layer_check", sql`${table.layer} in ('L1', 'L2', 'L3', 'L4', 'L5')`),
+    check(
+      "ai_memories_importance_check",
+      sql`${table.importance} >= 0 and ${table.importance} <= 1`,
+    ),
+    check(
+      "ai_memories_confidence_check",
+      sql`${table.confidence} is null or (${table.confidence} >= 0 and ${table.confidence} <= 1)`,
+    ),
+  ],
+);
+
+/** §15.4 — proveniência 1:N de uma memória (decisão C do STEWARD): as origens
+ * conhecidas viram FKs **opcionais** (FK composta com coluna nula não é
+ * verificada — MATCH SIMPLE), em vez do `sourceId` polimórfico do contrato.
+ * `source_ref` preserva o rótulo opaco do produtor quando existe; o CHECK
+ * `origin_check` exige que ao menos uma origem identifique a fonte, senão a
+ * linha seria proveniência decorativa. `ON DELETE cascade` nas origens: origem
+ * removida não deixa referência pendurada; `(tenant_id, memory_id)` em cascata
+ * garante que apagar a memória não deixa fonte órfã. */
+export const aiMemorySources = pgTable(
+  "ai_memory_sources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    memoryId: uuid("memory_id").notNull(),
+    sourceKind: text("source_kind").notNull(),
+    sourceRef: text("source_ref"),
+    conversationId: uuid("conversation_id"),
+    messageId: uuid("message_id"),
+    productId: uuid("product_id"),
+    simulationId: uuid("simulation_id"),
+    userId: text("user_id"),
+    inferred: boolean("inferred").notNull().default(false),
+    confidence: doublePrecision("confidence").notNull(),
+    capturedAt: timestamp("captured_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("ai_memory_sources_tenant_memory_idx").on(table.tenantId, table.memoryId),
+    foreignKey({
+      columns: [table.tenantId, table.memoryId],
+      foreignColumns: [aiMemories.tenantId, aiMemories.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.conversationId],
+      foreignColumns: [chatConversations.tenantId, chatConversations.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.messageId],
+      foreignColumns: [chatMessages.tenantId, chatMessages.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.productId],
+      foreignColumns: [products.tenantId, products.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.simulationId],
+      foreignColumns: [simulations.tenantId, simulations.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.userId],
+      foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
+    }).onDelete("cascade"),
+    check(
+      "ai_memory_sources_kind_check",
+      sql`${table.sourceKind} in ('user', 'tool', 'model', 'import')`,
+    ),
+    check(
+      "ai_memory_sources_confidence_check",
+      sql`${table.confidence} >= 0 and ${table.confidence} <= 1`,
+    ),
+    check(
+      "ai_memory_sources_ref_check",
+      sql`${table.sourceRef} is null or ${table.sourceRef} <> ''`,
+    ),
+    check(
+      "ai_memory_sources_origin_check",
+      sql`${table.sourceRef} is not null or ${table.conversationId} is not null or ${table.messageId} is not null or ${table.productId} is not null or ${table.simulationId} is not null or ${table.userId} is not null`,
+    ),
+  ],
+);
+
+/** §15.6/D3 — histórico imutável de uma memória (`ai_memory_versions`, SD-C3-3).
+ *
+ * A revisão arquiva o estado **substituído** antes de atualizar o head
+ * (`ai_memories`) in-place: a linha gravada guarda `content`/`dedup_key` da
+ * versão anterior, então o histórico inteiro é reconstruível (versões em ordem
+ * de `version` + head). Nenhum `UPDATE`/`DELETE` é concedido a `app_runtime`
+ * (SD-C3-4) — a imutabilidade é estrutural, não disciplina de código.
+ *
+ * A FK composta `(tenant_id, memory_id) → ai_memories(tenant_id, id)` é
+ * **ON DELETE RESTRICT**: sem histórico, o delete do D2 continua valendo; com
+ * histórico, o banco recusa a remoção do head e o expurgo passa a ser o caminho
+ * explícito (SD-C3-9). */
+export const aiMemoryVersions = pgTable(
+  "ai_memory_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    memoryId: uuid("memory_id").notNull(),
+    /** Índice do estado arquivado na memória (1, 2, …), nunca reutilizado. */
+    version: integer("version").notNull(),
+    content: text("content").notNull(),
+    dedupKey: text("dedup_key").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    /** Alvo da FK composta de futuras tabelas e chave de leitura do histórico
+     * (`listVersions` ordena por `version` dentro da memória). */
+    unique("ai_memory_versions_tenant_memory_version_uidx").on(
+      table.tenantId,
+      table.memoryId,
+      table.version,
+    ),
+    foreignKey({
+      columns: [table.tenantId, table.memoryId],
+      foreignColumns: [aiMemories.tenantId, aiMemories.id],
+    }).onDelete("restrict"),
+    check("ai_memory_versions_version_check", sql`${table.version} > 0`),
+    check("ai_memory_versions_content_check", sql`${table.content} <> ''`),
+  ],
+);
+
+/** §15.6/D3 — registro de conflito (`ai_memory_conflicts`, SD-C3-6).
+ *
+ * D3 **não** julga contradição semântica (SD-C3-5): o policy/service registra o
+ * candidato contraditório com `recordConflict()` e o ativo **nunca** é
+ * sobrescrito — esta tabela só acrescenta linhas, e o ciclo de vida
+ * (`open → dismissed|resolved`) é do serviço. A FK composta também é
+ * **ON DELETE RESTRICT**, pelo mesmo motivo do histórico. */
+export const aiMemoryConflicts = pgTable(
+  "ai_memory_conflicts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    memoryId: uuid("memory_id").notNull(),
+    candidateContent: text("candidate_content").notNull(),
+    candidateDedupKey: text("candidate_dedup_key").notNull(),
+    status: text("status").notNull().default("open"),
+    detectedAt: timestamp("detected_at", { withTimezone: true }).notNull().defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("ai_memory_conflicts_tenant_memory_idx").on(table.tenantId, table.memoryId),
+    index("ai_memory_conflicts_tenant_status_idx").on(table.tenantId, table.status),
+    foreignKey({
+      columns: [table.tenantId, table.memoryId],
+      foreignColumns: [aiMemories.tenantId, aiMemories.id],
+    }).onDelete("restrict"),
+    check(
+      "ai_memory_conflicts_status_check",
+      sql`${table.status} in ('open', 'dismissed', 'resolved')`,
+    ),
+    check("ai_memory_conflicts_content_check", sql`${table.candidateContent} <> ''`),
+  ],
+);
+
+/** §15.1/L5 + §15.4 — política de retenção **versionada** por camada
+ * (`ai_memory_policies`, SD-D4-A/H-12). Tabela **global** (não há `tenant_id`:
+ * retenção é política do sistema, não do tenant) e **append-only por
+ * privilégio**: `app_runtime` recebe `SELECT`+`INSERT` — publicar uma política
+ * nova é um INSERT (versão maior), nunca um UPDATE; reverter é publicar de novo
+ * a versão anterior. O backend lê `max(version)` por camada, então **nenhum TTL
+ * vive em constante de código nem em SQL**: os valores são linhas (defaults
+ * aprovados no H-12: L1 30 d · L2 180 d · L3 365 d · L4 acompanha a entidade
+ * referenciada · L5 sem TTL, ambos `null`). */
+export const aiMemoryPolicies = pgTable(
+  "ai_memory_policies",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    layer: text("layer").notNull(),
+    version: integer("version").notNull(),
+    /** Segundos até a expiração; `null` = retenção indefinida. */
+    ttlSeconds: integer("ttl_seconds"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique("ai_memory_policies_layer_version_uidx").on(table.layer, table.version),
+    check("ai_memory_policies_layer_check", sql`${table.layer} in ('L1', 'L2', 'L3', 'L4', 'L5')`),
+    check("ai_memory_policies_version_check", sql`${table.version} > 0`),
+    check(
+      "ai_memory_policies_ttl_check",
+      sql`${table.ttlSeconds} is null or ${table.ttlSeconds} > 0`,
+    ),
+  ],
+);
+
+/** §43/§15.4 — trilha de auditoria da memória (`ai_memory_access_log`, D4):
+ * registra **acesso, delete e export** com quem (`user_id`), quando
+ * (`created_at`), o quê (`action`, `memory_id`, `row_count`) e o resultado.
+ *
+ * Sem `content` e sem o texto da consulta por desenho (o log não é superfície
+ * de dado pessoal — o gap report exige "nenhuma linha contém content"). Sem FK
+ * para `ai_memories`: a trilha tem de **sobreviver** ao delete físico que ela
+ * audita (uma FK em cascata apagaria o próprio rastro; `RESTRICT` impediria o
+ * delete). A âncora de tenant é a FK composta para `tenant_memberships`, no
+ * molde de `audit_events` (`0000:274`), e a role de runtime recebe
+ * `SELECT`+`INSERT` — sem `UPDATE`/`DELETE`, a imutabilidade da trilha é
+ * privilégio, não disciplina de código. */
+export const aiMemoryAccessLog = pgTable(
+  "ai_memory_access_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ...tenantIdentity,
+    action: text("action").notNull(),
+    /** Alvo único (delete); `null` em operação de conjunto (access/export). */
+    memoryId: uuid("memory_id"),
+    result: text("result").notNull(),
+    /** Linhas afetadas/devolvidas: 1 no delete efetivo, N no access/export. */
+    rowCount: integer("row_count").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("ai_memory_access_log_tenant_action_created_idx").on(
+      table.tenantId,
+      table.action,
+      table.createdAt,
+    ),
+    index("ai_memory_access_log_tenant_memory_idx").on(table.tenantId, table.memoryId),
+    foreignKey({
+      columns: [table.tenantId, table.userId],
+      foreignColumns: [tenantMemberships.tenantId, tenantMemberships.userId],
+    }).onDelete("restrict"),
+    check(
+      "ai_memory_access_log_action_check",
+      sql`${table.action} in ('access', 'delete', 'export')`,
+    ),
+    check(
+      "ai_memory_access_log_result_check",
+      sql`${table.result} in ('allowed', 'not_found', 'refused')`,
+    ),
+    check("ai_memory_access_log_row_count_check", sql`${table.rowCount} >= 0`),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type Tenant = typeof tenants.$inferSelect;
 export type TenantMembership = typeof tenantMemberships.$inferSelect;
@@ -828,3 +1311,13 @@ export type Sale = typeof sales.$inferSelect;
 export type SaleItem = typeof salesItems.$inferSelect;
 export type Simulation = typeof simulations.$inferSelect;
 export type CalculationSnapshot = typeof calculationSnapshots.$inferSelect;
+export type OutboxEvent = typeof outboxEvents.$inferSelect;
+export type OutboxConsumption = typeof outboxConsumptions.$inferSelect;
+export type BackfillCheckpointRecord = typeof backfillCheckpoints.$inferSelect;
+export type BackfillWorkItem = typeof backfillWorkItems.$inferSelect;
+export type AiMemory = typeof aiMemories.$inferSelect;
+export type AiMemorySource = typeof aiMemorySources.$inferSelect;
+export type AiMemoryVersion = typeof aiMemoryVersions.$inferSelect;
+export type AiMemoryConflict = typeof aiMemoryConflicts.$inferSelect;
+export type AiMemoryPolicy = typeof aiMemoryPolicies.$inferSelect;
+export type AiMemoryAccessLog = typeof aiMemoryAccessLog.$inferSelect;

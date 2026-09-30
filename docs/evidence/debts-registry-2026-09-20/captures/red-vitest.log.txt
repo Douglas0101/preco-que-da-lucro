@@ -1,0 +1,356 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/m02-debts-guard.test.ts (10 tests | 10 failed) 286ms
+     × o registry real passa pelo caminho default e não escreve em stderr 34ms
+     × registry vazio reprova (0 = 0 não passa) 29ms
+     × closure test ausente exige status NS (regra da casa) 29ms
+     × closure test ausente com status NS passa 28ms
+     × closure presente com status NS reprova (a fronteira na outra direção) 30ms
+     × coluna obrigatória ausente reprova pelo nome 26ms
+     × origem degenerada reprova 26ms
+     × id duplicado reprova 27ms
+     × classe fora da taxonomia reprova 28ms
+     × registry ilegível sai com erro alto (exit 2) 26ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > o registry real passa pelo caminho default e não escreve em stderr
+AssertionError: expected 'node:internal/modules/cjs/loader:1479…' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ node:internal/modules/cjs/loader:1479
++   throw err;
++   ^
++
++ Error: Cannot find module '/home/douglas-souza/preco-que-d-main/scripts/m02-debts-guard.mjs'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
++     at Module._load (node:internal/modules/cjs/loader:1262:25)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++
++ Node.js v24.15.0
++
+
+ ❯ src/test/m02-debts-guard.test.ts:46:27
+     44|   it("o registry real passa pelo caminho default e não escreve em stde…
+     45|     const result = runDefault();
+     46|     expect(result.stderr).toBe("");
+       |                           ^
+     47|     expect(result.stdout).toContain("debts guard: OK");
+     48|     expect(result.status).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > registry vazio reprova (0 = 0 não passa)
+AssertionError: expected 'node:internal/modules/cjs/loader:1479…' to contain 'registry vazio'
+
+- Expected
++ Received
+
+- registry vazio
++ node:internal/modules/cjs/loader:1479
++   throw err;
++   ^
++
++ Error: Cannot find module '/home/douglas-souza/preco-que-d-main/scripts/m02-debts-guard.mjs'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
++     at Module._load (node:internal/modules/cjs/loader:1262:25)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++
++ Node.js v24.15.0
++
+
+ ❯ src/test/m02-debts-guard.test.ts:54:27
+     52|     const result = run(fixture("vazio.md", `# Registry\n\n${HEADER}\n`…
+     53|     expect(result.status).toBe(1);
+     54|     expect(result.stderr).toContain("registry vazio");
+       |                           ^
+     55|   });
+     56|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > closure test ausente exige status NS (regra da casa)
+AssertionError: expected 'node:internal/modules/cjs/loader:1479…' to contain 'status NS'
+
+- Expected
++ Received
+
+- status NS
++ node:internal/modules/cjs/loader:1479
++   throw err;
++   ^
++
++ Error: Cannot find module '/home/douglas-souza/preco-que-d-main/scripts/m02-debts-guard.mjs'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
++     at Module._load (node:internal/modules/cjs/loader:1262:25)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++
++ Node.js v24.15.0
++
+
+ ❯ src/test/m02-debts-guard.test.ts:62:27
+     60|     const result = run(fixture("sem-closure.md", `${HEADER}\n${semClos…
+     61|     expect(result.status).toBe(1);
+     62|     expect(result.stderr).toContain("status NS");
+       |                           ^
+     63|   });
+     64|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > closure test ausente com status NS passa
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/test/m02-debts-guard.test.ts:68:27
+     66|     const semClosure = "| DBT-01 | WP4 N1 | conformidade | alta | N/A …
+     67|     const result = run(fixture("sem-closure-ns.md", `${HEADER}\n${semC…
+     68|     expect(result.status).toBe(0);
+       |                           ^
+     69|     expect(result.stdout).toContain("debts guard: OK");
+     70|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > closure presente com status NS reprova (a fronteira na outra direção)
+AssertionError: expected 'node:internal/modules/cjs/loader:1479…' to contain 'closure test presente'
+
+- Expected
++ Received
+
+- closure test presente
++ node:internal/modules/cjs/loader:1479
++   throw err;
++   ^
++
++ Error: Cannot find module '/home/douglas-souza/preco-que-d-main/scripts/m02-debts-guard.mjs'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
++     at Module._load (node:internal/modules/cjs/loader:1262:25)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++
++ Node.js v24.15.0
++
+
+ ❯ src/test/m02-debts-guard.test.ts:76:27
+     74|     const result = run(fixture("closure-ns.md", `${HEADER}\n${row}\n`)…
+     75|     expect(result.status).toBe(1);
+     76|     expect(result.stderr).toContain("closure test presente");
+       |                           ^
+     77|   });
+     78|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > coluna obrigatória ausente reprova pelo nome
+AssertionError: expected 'node:internal/modules/cjs/loader:1479…' to contain 'evidencia'
+
+- Expected
++ Received
+
+- evidencia
++ node:internal/modules/cjs/loader:1479
++   throw err;
++   ^
++
++ Error: Cannot find module '/home/douglas-souza/preco-que-d-main/scripts/m02-debts-guard.mjs'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
++     at Module._load (node:internal/modules/cjs/loader:1262:25)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++
++ Node.js v24.15.0
++
+
+ ❯ src/test/m02-debts-guard.test.ts:87:27
+     85|     const result = run(fixture("sem-coluna.md", `${semEvidencia}\n`));
+     86|     expect(result.status).toBe(1);
+     87|     expect(result.stderr).toContain("evidencia");
+       |                           ^
+     88|   });
+     89|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > origem degenerada reprova
+AssertionError: expected 'node:internal/modules/cjs/loader:1479…' to contain 'origem degenerada'
+
+- Expected
++ Received
+
+- origem degenerada
++ node:internal/modules/cjs/loader:1479
++   throw err;
++   ^
++
++ Error: Cannot find module '/home/douglas-souza/preco-que-d-main/scripts/m02-debts-guard.mjs'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
++     at Module._load (node:internal/modules/cjs/loader:1262:25)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++
++ Node.js v24.15.0
++
+
+ ❯ src/test/m02-debts-guard.test.ts:94:27
+     92|     const result = run(fixture("origem-degenerada.md", `${HEADER}\n${r…
+     93|     expect(result.status).toBe(1);
+     94|     expect(result.stderr).toContain("origem degenerada");
+       |                           ^
+     95|   });
+     96|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > id duplicado reprova
+AssertionError: expected 'node:internal/modules/cjs/loader:1479…' to contain 'duplicado'
+
+- Expected
++ Received
+
+- duplicado
++ node:internal/modules/cjs/loader:1479
++   throw err;
++   ^
++
++ Error: Cannot find module '/home/douglas-souza/preco-que-d-main/scripts/m02-debts-guard.mjs'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
++     at Module._load (node:internal/modules/cjs/loader:1262:25)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++
++ Node.js v24.15.0
++
+
+ ❯ src/test/m02-debts-guard.test.ts:100:27
+     98|     const result = run(fixture("duplicado.md", `${HEADER}\n${ROW}\n${R…
+     99|     expect(result.status).toBe(1);
+    100|     expect(result.stderr).toContain("duplicado");
+       |                           ^
+    101|   });
+    102|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > classe fora da taxonomia reprova
+AssertionError: expected 'node:internal/modules/cjs/loader:1479…' to contain 'classe'
+
+- Expected
++ Received
+
+- classe
++ node:internal/modules/cjs/loader:1479
++   throw err;
++   ^
++
++ Error: Cannot find module '/home/douglas-souza/preco-que-d-main/scripts/m02-debts-guard.mjs'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
++     at Module._load (node:internal/modules/cjs/loader:1262:25)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++
++ Node.js v24.15.0
++
+
+ ❯ src/test/m02-debts-guard.test.ts:107:27
+    105|     const result = run(fixture("classe.md", `${HEADER}\n${row}\n`));
+    106|     expect(result.status).toBe(1);
+    107|     expect(result.stderr).toContain("classe");
+       |                           ^
+    108|   });
+    109|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯
+
+ FAIL  src/test/m02-debts-guard.test.ts > guard do registry de dívidas (DEBTS.md) > registry ilegível sai com erro alto (exit 2)
+AssertionError: expected 1 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ src/test/m02-debts-guard.test.ts:112:27
+    110|   it("registry ilegível sai com erro alto (exit 2)", () => {
+    111|     const result = run(join(tmp, "nao-existe.md"));
+    112|     expect(result.status).toBe(2);
+       |                           ^
+    113|     expect(result.stderr).toContain("registry ilegivel");
+    114|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  10 failed (10)
+   Start at  16:07:10
+   Duration  1.08s (transform 33ms, setup 105ms, import 19ms, tests 286ms, environment 546ms)
+

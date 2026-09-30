@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import type { DatabaseTransaction } from "@/db/client.server";
 import { sessions, tenantMemberships } from "@/db/schema";
 import type { RequestContext } from "@/lib/request-context";
 
@@ -13,7 +14,10 @@ export async function changeTenantMembershipRole(
     throw new Error("AUTHORIZATION_ERROR");
   }
 
-  const changed = await context.transaction
+  // §9.2 — adapter estreita o handle neutro do contexto para a transação do
+  // driver; o `RequestContext` que os serviços recebem segue driver-agnostic.
+  const tx = context.transaction as DatabaseTransaction;
+  const changed = await tx
     .update(tenantMemberships)
     .set({ role, updatedAt: new Date() })
     .where(
@@ -28,5 +32,5 @@ export async function changeTenantMembershipRole(
 
   // Roles are part of authorization context, so no session issued with the
   // previous role may survive the change.
-  await context.transaction.delete(sessions).where(eq(sessions.userId, targetUserId));
+  await tx.delete(sessions).where(eq(sessions.userId, targetUserId));
 }

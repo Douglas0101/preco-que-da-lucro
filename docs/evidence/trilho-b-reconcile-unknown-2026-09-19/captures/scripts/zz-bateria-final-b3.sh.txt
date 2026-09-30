@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Bateria final do TRILHO B — pós-correções D8/D9/D10 (veredicto adversarial v3).
+# Container efêmero trk-b-pg (:5434). Nunca :5432 (H-9 aberto).
+set -uo pipefail
+
+export DATABASE_ADMIN_URL="postgresql://postgres:postgres@127.0.0.1:5434/preco_que_da_lucro_test"
+export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5434/preco_que_da_lucro_test"
+export DATABASE_URL_UNPOOLED="postgresql://postgres:postgres@127.0.0.1:5434/preco_que_da_lucro_test"
+export DATABASE_DRIVER="node-postgres"
+unset OTEL_EXPORTER_OTLP_ENDPOINT OTEL_METRIC_EXPORT_INTERVAL_MS 2>/dev/null || true
+
+cd "$(dirname "$0")/.."
+
+echo "=== CONTEXTO ==="
+echo "branch = $(git rev-parse --abbrev-ref HEAD)"
+echo "HEAD_SHA = $(git rev-parse HEAD)"
+echo "postgres = $(docker exec trk-b-pg postgres --version 2>&1)"
+echo "porta 5432 (H-9) tocada? -> $(ss -ltn 2>/dev/null | grep -c ':5432 ' || true) listener(es)"
+echo "OTEL_EXPORTER_OTLP_ENDPOINT definida? -> ${OTEL_EXPORTER_OTLP_ENDPOINT:-<nao definida>}"
+
+echo
+echo "=== 0. PROVA ESTRUTURAL D9/D10 ==="
+echo "-- D9: single-flight do shutdown --"
+grep -n 'shutdownPromise' src/instrumentation/telemetry.ts
+echo "-- D10: sítios de publicação do gauge --"
+echo "biblioteca (per-tenant) referencia o gauge? $(grep -c 'reportReconciliationOldestAge' src/lib/ai/budget-ledger.server.ts) ocorrência(s)"
+echo "CLI: $(grep -c 'reportReconciliationOldestAge(' scripts/db/reconcile-ai-usage.ts) chamada(s)"
+grep -n 'reportReconciliationOldestAge(' scripts/db/reconcile-ai-usage.ts
+echo "-- D8: nenhuma afirmação de que a métrica sai com o endpoint OTLP --"
+echo "ocorrências de 'quando \`OTEL_EXPORTER_OTLP_ENDPOINT\` está definida' em docs/runbooks: $(grep -rc 'OTEL_EXPORTER_OTLP_ENDPOINT` está definida' docs/runbooks/reconcile-ai-usage.md || true)"
+
+echo
+echo "=== 1. DB:TEST — cadeia completa (17 suites) ==="
+npm run db:test
+DBTEST_EXIT=$?
+echo "DBTEST_EXIT=$DBTEST_EXIT"
+
+echo
+echo "=== 2. NPM RUN CHECK — gate integral ==="
+npm run check
+CHECK_EXIT=$?
+echo "CHECK_EXIT=$CHECK_EXIT"
+
+echo
+echo "=== 3. PROVA ESPECIFICA NO CONTAINER VIRGEM ==="
+docker exec trk-b-pg psql -U postgres -d preco_que_da_lucro_test -tAc "
+  select 'tenants_TRILHO-B=' || count(*) from tenants where name like 'TRILHO-B%';
+  select 'ai_usage_orfaos=' || count(*) from ai_usage a
+    where not exists (select 1 from tenants t where t.id = a.tenant_id);
+" 2>&1
+
+echo
+echo "=== 4. ARVORE ==="
+git status --short
+
+echo
+echo "RESUMO: DBTEST_EXIT=$DBTEST_EXIT CHECK_EXIT=$CHECK_EXIT"

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# S4 VERIFY do trilho A — roda DENTRO do worktree, contra o PG17 efêmero em :5433.
+set -u
+ADMIN="postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test"
+
+echo "=== V1: o workflow continua YAML válido (prettier parseia) ==="
+npx --no-install prettier --check .github/workflows/ui-stack.yml
+echo "V1_EXIT=$?"
+
+echo
+echo "=== V2: a chave entrou no bloco env: do job? ==="
+grep -n 'DATABASE_URL_UNPOOLED' .github/workflows/ui-stack.yml
+
+echo
+echo "=== V3: FALSIFICAÇÃO do guard de cardinalidade (arquivo sem casos) ==="
+printf '// sonda: arquivo sem casos\n' > src/test/zz-empty-probe.test.ts
+sed 's|const testFile = "src/test/products-fk-conflict.test.ts";|const testFile = "src/test/zz-empty-probe.test.ts";|' \
+  scripts/db/test-products-fk-conflict.ts > scripts/db/zz-guard-probe.ts
+grep -n 'zz-empty-probe' scripts/db/zz-guard-probe.ts | head -2
+env -u DATABASE_URL_UNPOOLED \
+  DATABASE_ADMIN_URL="$ADMIN" DATABASE_URL="$ADMIN" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/zz-guard-probe.ts 2>&1 | grep -E 'AssertionError|não produziu casos|Error' | head -3
+echo "V3_EXIT_ESPERADO_1=${PIPESTATUS[0]}"
+rm -f src/test/zz-empty-probe.test.ts scripts/db/zz-guard-probe.ts
+
+echo
+echo "=== V4: o runner normal segue verde no caminho feliz ==="
+env -u DATABASE_URL_UNPOOLED \
+  DATABASE_ADMIN_URL="$ADMIN" DATABASE_URL="$ADMIN" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/test-products-fk-conflict.ts 2>&1 | tail -2
+echo "V4_EXIT=${PIPESTATUS[0]}"
+
+echo
+echo "=== V5: o runner normal REPROVA com o bloco pulado (kill-switch remoto) ==="
+DATABASE_URL_UNPOOLED="postgresql://postgres:postgres@remoto.example.com:5432/x" \
+  DATABASE_ADMIN_URL="$ADMIN" DATABASE_URL="$ADMIN" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/test-products-fk-conflict.ts >/dev/null 2>&1
+echo "V5_EXIT_ESPERADO_1=$?"

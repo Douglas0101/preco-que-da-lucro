@@ -1,0 +1,78 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-inv006
+
+ ✓ src/test/token-usage.test.ts (8 tests) 14ms
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > grava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+{"timestamp":"2026-09-19T14:30:07.783Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > grava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+{"timestamp":"2026-09-19T14:30:07.785Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":30000,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > NÃO libera a reserva e NÃO incrementa os contadores de token
+{"timestamp":"2026-09-19T14:30:07.787Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > NÃO libera a reserva e NÃO incrementa os contadores de token
+{"timestamp":"2026-09-19T14:30:07.788Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":30000,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-19T14:30:07.789Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-19T14:30:07.790Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":1571407790,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-19T14:30:07.790Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-19T14:30:07.791Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":1571407791,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-19T14:30:07.791Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > distinguishes 'absent', 'partial' and 'invalid' without asserting counts
+{"timestamp":"2026-09-19T14:30:07.791Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"invalid","durationMs":1571407791,"outcome":"usage_unknown","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > REGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+{"timestamp":"2026-09-19T14:30:07.792Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > REGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+{"timestamp":"2026-09-19T14:30:07.792Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > TokenUsage conhecido usa os valores medidos, não os de options
+{"timestamp":"2026-09-19T14:30:07.793Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > TokenUsage conhecido usa os valores medidos, não os de options
+{"timestamp":"2026-09-19T14:30:07.793Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":155,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > zero explícito conhecido liquida com zero (não confundir com desconhecido)
+{"timestamp":"2026-09-19T14:30:07.795Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-usage-unknown.test.ts > settle — uso desconhecido (INV-006, variante B) > zero explícito conhecido liquida com zero (não confundir com desconhecido)
+{"timestamp":"2026-09-19T14:30:07.795Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":0,"usageUnknownReason":null,"durationMs":1571407795,"outcome":"success","applied":true}
+
+ ✓ src/test/ai-usage-unknown.test.ts (6 tests) 19ms
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > reserve and settle never write ai_usage.tool_execution_id (column stays NULL)
+{"timestamp":"2026-09-19T14:30:07.802Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > reserve and settle never write ai_usage.tool_execution_id (column stays NULL)
+{"timestamp":"2026-09-19T14:30:07.804Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
+{"timestamp":"2026-09-19T14:30:07.805Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
+{"timestamp":"2026-09-19T14:30:07.806Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle with a known cost adds it to the daily estimated_cost total
+{"timestamp":"2026-09-19T14:30:07.807Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+stdout | src/test/ai-estimated-cost.test.ts > budget ledger contract (R3 reservation + INV-006) > settle with a known cost adds it to the daily estimated_cost total
+{"timestamp":"2026-09-19T14:30:07.807Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+ ✓ src/test/ai-estimated-cost.test.ts (18 tests) 27ms
+
+ Test Files  3 passed (3)
+      Tests  32 passed (32)
+   Start at  11:30:05
+   Duration  2.34s (transform 449ms, setup 511ms, import 1.93s, tests 59ms, environment 3.18s)
+

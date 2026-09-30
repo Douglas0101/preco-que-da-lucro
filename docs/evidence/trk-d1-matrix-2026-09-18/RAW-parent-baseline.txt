@@ -1,0 +1,41 @@
+$ cd /tmp/trkd1-red   # copia limpa do PAI (git archive 759330f), sem os arquivos desta trilha
+$ sha256sum scripts/m02-matrix.ts
+913d83b047e59d0b3a94ff23b54be44545e76ef6f17ef5845967a70af872520b  scripts/m02-matrix.ts
+$ env -u DATABASE_URL_UNPOOLED npx tsx scripts/m02-matrix.ts
+EXIT=0
+$ jq .counts docs/specs/M-02/matrix.generated.yaml
+{
+  "bffModules": 8,
+  "createServerFnDeclarations": 35,
+  "concreteOperations": 36,
+  "apiRoutes": 5,
+  "transactionSites": 91,
+  "directDatabaseFiles": 48
+}
+$ jq -r ".transactionSites | group_by(.path)[] | \"\(.[0].path) \(length)\"" docs/specs/M-02/matrix.generated.yaml
+src/lib/ai/tool-registry.ts 9
+src/lib/ai/tool-runner.ts 3
+src/lib/chat-execution.server.ts 1
+src/server/auth/membership.service.ts 1
+src/server/contracts/transaction.contracts.ts 1
+src/server/repositories/ai-tool.repository.ts 6
+src/server/repositories/audit.repository.ts 1
+src/server/repositories/calculation-snapshot.repository.ts 2
+src/server/repositories/conversation.repository.ts 8
+src/server/repositories/dashboard.repository.ts 1
+src/server/repositories/expense.repository.ts 4
+src/server/repositories/memory.repository.ts 11
+src/server/repositories/outbox.repository.ts 6
+src/server/repositories/product.repository.ts 19
+src/server/repositories/purchase-price.repository.ts 2
+src/server/repositories/sales.repository.ts 4
+src/server/repositories/simulation.repository.ts 2
+src/server/services/event.service.ts 3
+src/server/services/expense.service.ts 1
+src/server/services/outbox.worker.ts 1
+src/test/event-service.test.ts 4
+src/test/product-contracts.test.ts 1
+$ jq -r ".transactionSites | group_by(.classification)[] | \"\(.[0].classification) \(length)\"" docs/specs/M-02/matrix.generated.yaml
+auth-allowlist 1
+compatibility-facade 24
+repository-fallback 66

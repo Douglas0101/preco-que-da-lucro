@@ -1,0 +1,118 @@
+branch = mission/wp2-gate-ux
+HEAD_SHA = 3812febab80f9922d70512ecc3c623d233ecdd2a
+porta 5432 (H-9) tocada? -> 0 listener(es)
+
+=== 0. prettier --write nos arquivos do WP ===
+scripts/lib/m02-matrix-drift.ts 127ms (unchanged)
+scripts/m02-matrix.ts 112ms (unchanged)
+src/test/m02-matrix-drift.test.ts 31ms (unchanged)
+docs/evidence/d1-gate-ux-2026-09-19/README.md 148ms
+docs/evidence/d1-gate-ux-2026-09-19/SPEC.md 44ms (unchanged)
+PRETTIER_WRITE_EXIT=0
+
+=== 0.1 prettier --check nos mesmos arquivos ===
+Checking formatting...
+All matched files use Prettier code style!
+PRETTIER_CHECK_EXIT=0
+
+=== 1. bateria (sonda + suite + tsc + matriz + falsificador) ===
+=== contexto ===
+branch = mission/wp2-gate-ux
+HEAD_SHA = 3812febab80f9922d70512ecc3c623d233ecdd2a
+node = v24.15.0 / npm = 11.14.1
+porta 5432 (H-9) tocada? -> 0 listener(es)
+
+=== 0.5 normaliza formato ANTES de qualquer gate ===
+Checking formatting...
+All matched files use Prettier code style!
+PRETTIER_EXIT=0
+
+=== 1. suite do descritor ===
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  21:11:07
+   Duration  793ms (transform 45ms, setup 88ms, import 34ms, tests 16ms, environment 541ms)
+
+VITEST_EXIT=0
+
+=== 2. suite do scanner (nao pode ter regredido) ===
+
+ Test Files  1 passed (1)
+      Tests  21 passed (21)
+   Start at  21:11:08
+   Duration  2.15s (transform 157ms, setup 95ms, import 318ms, tests 1.10s, environment 511ms)
+
+VITEST2_EXIT=0
+
+=== 3. tsc ===
+TSC_EXIT=0
+
+=== 4. matriz neutra (sem regenerar) ===
+
+M-02 matrix is deterministic and up to date.
+MATRIX_EXIT=0
+
+=== 5. falsificacao do gate: dispara, nomeia, limpa ===
+FALSIFICA_EXIT=0
+EXIT_ANTES=0
+GATE_EXIT=1
+  docs/specs/M-02/matrix.generated.yaml:
+    counts.bffModules: 8 -> 9
+      + src/lib/zzz-wp2-probe.functions.ts
+  docs/specs/M-02/matrix.yaml:
+    counts.bffModules: 8 -> 9
+      + src/lib/zzz-wp2-probe.functions.ts
+PRIMEIRA_LINHA: IDENTICA A ANTERIOR
+NOMEOU CONTADOR: counts.bffModules: 8 -> 9 counts.bffModules: 8 -> 9 
+  docs/specs/M-02/matrix.generated.yaml:
+  docs/specs/M-02/matrix.yaml:
+EXIT_DEPOIS=0
+
+=== 6. nenhum arquivo de sonda sobrou ===
+ M scripts/m02-matrix.ts
+?? docs/evidence/d1-gate-ux-2026-09-19/
+?? scripts/lib/m02-matrix-drift.ts
+?? src/test/m02-matrix-drift.test.ts
+
+=== 7. a mensagem diz a direcao certa? (arquivo ADICIONADO aparece como +) ===
+DIRECAO: OK (sonda nova aparece como +)
+CONTADOR: OK (8 -> 9, do disco para a arvore)
+
+RESUMO: PRETTIER=0 VITEST=0 VITEST2=0 TSC=0 MATRIX=0 FALSIFICA=0
+BATERIA WP2: OK
+VERIFY_EXIT=0
+
+=== 2. gate local (npm run check) ===
+CHECK_EXIT=0
+.output/server/_libs/tanstack__query-core.mjs                   72.84 kB │ gzip:  15.36 kB
+.output/server/_ssr/server-C1JemiKD.mjs                         74.72 kB │ gzip:  20.05 kB
+.output/server/_ssr/client.server-Dr4Nv5LD.mjs                  81.46 kB │ gzip:  20.92 kB
+.output/server/_libs/tailwind-merge.mjs                         88.13 kB │ gzip:  15.66 kB
+.output/server/_libs/postal-mime.mjs                            91.46 kB │ gzip:  25.70 kB
+.output/server/_libs/@tanstack/router-core+[...].mjs           122.94 kB │ gzip:  25.89 kB
+.output/server/_libs/neondatabase__serverless.mjs              182.38 kB │ gzip:  51.29 kB
+.output/server/_libs/drizzle-orm.mjs                           305.25 kB │ gzip:  63.96 kB
+.output/server/_ssr/auth.server-CBhfjgtm.mjs                   361.96 kB │ gzip:  86.88 kB
+.output/server/_libs/@base-ui/react+[...].mjs                  375.65 kB │ gzip:  85.63 kB
+.output/server/_libs/@better-auth/kysely-adapter+[...].mjs     498.94 kB │ gzip:  82.92 kB
+.output/server/_libs/@react-email/render+[...].mjs             511.51 kB │ gzip: 151.63 kB
+.output/server/_libs/@tanstack/react-router+[...].mjs          649.49 kB │ gzip: 136.21 kB
+.output/server/_libs/@better-auth/core+[...].mjs               832.76 kB │ gzip: 164.77 kB
+
+✓ built in 637ms
+ℹ Generated .output/nitro.json
+
+[nitro] ✔ You can preview this build using npx vite preview
+
+> check:bundle
+> node scripts/check-bundle.mjs
+
+PASS assets/index-eXg04t5H.js: 237694 minified, 73259 gzip, 63812 Brotli bytes
+Initial graph (9 chunks): 473230 minified, 151054 gzip, 132937 Brotli bytes
+
+=== 3. H-9 de novo, ao fim ===
+porta 5432 (H-9) tocada? -> 0 listener(es)
+
+RESUMO: PRETTIER=0 VERIFY=0 CHECK=0
+FECHO WP2: OK

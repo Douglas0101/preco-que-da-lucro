@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# S7 GUARD do WP-R0. Read-only; grava o proprio log com o sha256 do artefato examinado.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+A=.artifacts
+LOG=$A/r0-s7.log
+export NO_COLOR=1
+exec > >(tee "$LOG") 2>&1
+FALHAS=0
+echo "=== S7 GUARD — WP-R0 reconciliacao do ledger ==="
+echo "HEAD: $(git rev-parse HEAD)"; echo "branch: $(git branch --show-current)"; echo "data: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; echo
+DIFF=$A/r0-s7-diff.txt
+{
+  git diff -- docs
+  echo "--- nao rastreados ---"
+  git ls-files --others --exclude-standard -- docs | sort | while read -r f; do echo "### $f"; wc -c "$f"; done
+} > "$DIFF" 2>/dev/null
+echo "sha256 do artefato examinado: $(sha256sum "$DIFF" | cut -d' ' -f1)"
+for f in docs/evidence/analise-avancada-bloco3-plano-mestre-2026-09-20.md \
+         docs/evidence/ledger-reconciliation-2026-09-20/README.md \
+         docs/evidence/ledger-reconciliation-2026-09-20/SPEC.md; do
+  echo "  sha256 $f: $(sha256sum "$f" | cut -d' ' -f1)"
+done
+echo
+echo "=== 1. escopo ==="
+git status --short -- docs | sed 's/^/  /'
+FORA=$(git status --short -- docs | grep -vcE 'analise-avancada-bloco3|ledger-reconciliation-2026-09-20' || true)
+echo "  fora do escopo: $FORA (esperado 0)"; [ "$FORA" -eq 0 ] || FALHAS=$((FALHAS+1))
+COD=$(git status --short -- src scripts e2e drizzle package.json package-lock.json AGENTS.md | wc -l)
+echo "  codigo/AGENTS/manifests no diff: $COD (esperado 0)"; [ "$COD" -eq 0 ] || FALHAS=$((FALHAS+1))
+echo
+echo "=== 2. placar intocado (ASSERTADO) ==="
+for f in docs/evidence/agent-state/QUEUE.md EXECUTION-STATE-PROGRAM.md; do
+  N=$(git diff --name-only -- "$f" | wc -l); echo "  $f no diff: $N (esperado 0)"; [ "$N" -eq 0 ] || FALHAS=$((FALHAS+1))
+done
+echo
+echo "=== 3. credenciais herdadas ==="
+H=$(env | grep -cE '^(NEON_|VERCEL|DATABASE_URL|PG|GH_|GITHUB_|CLOUDFLARE|AWS_|STRIPE)' || true)
+echo "  $H (esperado 0)"; [ "$H" -eq 0 ] || FALHAS=$((FALHAS+1))
+echo
+echo "=== 4. secrets audit ==="
+npm run m02:secrets-audit > $A/r0-secrets.txt 2>&1; S=$?
+echo "  SECRETS_EXIT=$S"; [ "$S" -eq 0 ] || FALHAS=$((FALHAS+1))
+echo
+echo "=== 5. H-9 ==="
+H9=$(ss -ltn 2>/dev/null | grep -c ':5432 ' || true); echo "  5432=$H9 (esperado 0)"; [ "$H9" -eq 0 ] || FALHAS=$((FALHAS+1))
+echo
+echo "=== 6. refs ==="
+echo "  origin/main: $(git rev-parse origin/main)"; echo "  origin/develop: $(git rev-parse origin/develop)"
+echo
+if [ "$FALHAS" -eq 0 ]; then echo "S7 GUARD: OK"; echo "S7_EXIT=0"; else echo "S7 GUARD: $FALHAS FALHA(S)"; echo "S7_EXIT=1"; fi

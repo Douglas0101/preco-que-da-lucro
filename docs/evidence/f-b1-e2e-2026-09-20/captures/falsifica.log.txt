@@ -1,0 +1,24 @@
+sha256 do gate ANTES: b895151895c0405dd6d88fafbdf5b1860f15de12573f3d695f35a9f56e245785
+
+=== 1. MUTACAO: gate forcado a true ===
+  18:export const vercelAnalyticsEnabled =
+  19-  true;
+
+=== 2. spec nova contra o gate mutado — deve REPROVAR com a requisicao ===
+  RED_EXIT=1 (esperado != 0)
+  ocorrencias textuais de /_vercel/insights/script.js no log: 8 (esperado >= 1)
+        Error: insights requisitados: http://127.0.0.1:4173/_vercel/insights/script.js
+        > 65 |   expect(insights, `insights requisitados: ${insights.join(", ")}`).toEqual([]);
+
+=== 3. restaura o gate e confere byte a byte ===
+  sha256 DEPOIS: b895151895c0405dd6d88fafbdf5b1860f15de12573f3d695f35a9f56e245785
+  RESTAURO: OK (byte a byte)
+
+=== 4. spec nova com o byte restaurado — deve PASSAR ===
+  GREEN_EXIT=0 (esperado 0)
+  ocorrencias textuais de /_vercel/insights/script.js no log: 0 (esperado 0)
+
+  --- integridade ---
+  gate modificado no git apos restauro: 0 (esperado 0)
+  VEREDITO: INVARIANTE MEDIDA - o gate divergente faz a spec reprovar na requisicao; restaurado, ela passa
+FALSIFICA_EXIT=0

@@ -1,0 +1,449 @@
+diff --git a/scripts/db/explain-evidence.ts b/scripts/db/explain-evidence.ts
+index 190c669..7169642 100644
+--- a/scripts/db/explain-evidence.ts
++++ b/scripts/db/explain-evidence.ts
+@@ -13,6 +13,7 @@
+ import { mkdir, writeFile } from "node:fs/promises";
+ import { resolve } from "node:path";
+ import { Client } from "pg";
++import { MEMORY_TRAIL_TABLES } from "./purge-fixtures";
+ 
+ const adminUrl = process.env.DATABASE_ADMIN_URL;
+ if (!adminUrl) throw new Error("DATABASE_ADMIN_URL é obrigatória");
+@@ -64,6 +65,10 @@ async function main(): Promise<void> {
+ 
+   // ---------------------------------------------------------------- seed
+   await client.query("begin");
++  for (const table of MEMORY_TRAIL_TABLES) {
++    // pi-lens-ignore: no-sql-in-code
++    await client.query(`delete from ${table} where tenant_id = $1`, [tenantId]);
++  }
+   await client.query(`delete from users where id = $1`, [userId]);
+   await client.query(`delete from tenants where id = $1`, [tenantId]);
+   await client.query(
+@@ -216,6 +221,10 @@ ${afterPlan}
+   await client.query(`delete from product_ingredients where tenant_id = $1`, [tenantId]);
+   await client.query(`delete from expenses where tenant_id = $1`, [tenantId]);
+   await client.query(`delete from products where tenant_id = $1`, [tenantId]);
++  for (const table of MEMORY_TRAIL_TABLES) {
++    // pi-lens-ignore: no-sql-in-code
++    await client.query(`delete from ${table} where tenant_id = $1`, [tenantId]);
++  }
+   await client.query(`delete from tenant_memberships where tenant_id = $1`, [tenantId]);
+   await client.query(`delete from tenants where id = $1`, [tenantId]);
+   await client.query(`delete from users where id = $1`, [userId]);
+diff --git a/scripts/db/purge-fixtures.ts b/scripts/db/purge-fixtures.ts
+index 099c697..e5d70a4 100644
+--- a/scripts/db/purge-fixtures.ts
++++ b/scripts/db/purge-fixtures.ts
+@@ -22,13 +22,24 @@ export function isFixtureEmail(email: string): boolean {
+   return email.trim().toLowerCase().endsWith(FIXTURE_EMAIL_DOMAIN);
+ }
+ 
+-/** Tabelas tenant-scoped, filhos antes dos pais (espelha scripts/e2e/seed-auth.ts). */
+-export const TENANT_SCOPED_TABLES = [
++/**
++ * Trilha de memória (`ai_memory_*`), filhos antes do pai. É a ordem FK-safe para
++ * apagar a trilha antes de `tenant_memberships`/`tenants`: `ai_memory_access_log`
++ * é `ON DELETE RESTRICT` para memberships (migration 0019), então sem esta
++ * limpeza qualquer purga de membro falha alto com 23503. Exportada para os
++ * purgadores que mantêm lista própria (E2E, EXPLAIN e suítes de banco).
++ */
++export const MEMORY_TRAIL_TABLES = [
+   "ai_memory_access_log",
+   "ai_memory_conflicts",
+   "ai_memory_versions",
+   "ai_memory_sources",
+   "ai_memories",
++] as const;
++
++/** Tabelas tenant-scoped, filhos antes dos pais (espelha scripts/e2e/seed-auth.ts). */
++export const TENANT_SCOPED_TABLES = [
++  ...MEMORY_TRAIL_TABLES,
+   "backfill_work_items",
+   "backfill_checkpoints",
+   "outbox_consumptions",
+diff --git a/scripts/db/test-ai-budget.ts b/scripts/db/test-ai-budget.ts
+index cafb9e2..3f61a71 100644
+--- a/scripts/db/test-ai-budget.ts
++++ b/scripts/db/test-ai-budget.ts
+@@ -26,6 +26,7 @@ import {
+ } from "../../src/lib/chat-execution.server";
+ import type { RequestIdentity } from "../../src/lib/request-context";
+ import { requireAdminUrl } from "./migrate";
++import { MEMORY_TRAIL_TABLES } from "./purge-fixtures";
+ 
+ const BASE_CONFIG: BudgetLedgerConfig = {
+   dailyModelCallLimit: 100,
+@@ -783,6 +784,10 @@ async function main(): Promise<void> {
+     const tenantIds = createdFixtures.map((fixture) => fixture.tenantId);
+     const userIds = createdFixtures.map((fixture) => fixture.userId);
+     if (tenantIds.length > 0) {
++      for (const table of MEMORY_TRAIL_TABLES) {
++        // pi-lens-ignore: no-sql-in-code
++        await pool.query(`delete from ${table} where tenant_id = any($1::uuid[])`, [tenantIds]);
++      }
+       await pool.query("delete from tenants where id = any($1::uuid[])", [tenantIds]);
+       await pool.query("delete from users where id = any($1::text[])", [userIds]);
+     }
+diff --git a/scripts/db/test-auth-integration.ts b/scripts/db/test-auth-integration.ts
+index c3a32eb..fbea9ec 100644
+--- a/scripts/db/test-auth-integration.ts
++++ b/scripts/db/test-auth-integration.ts
+@@ -12,6 +12,7 @@ import {
+   type TransactionalEmailAdapter,
+ } from "../../src/server/email/email-adapter.server";
+ import { requireAdminUrl } from "./migrate";
++import { MEMORY_TRAIL_TABLES } from "./purge-fixtures";
+ 
+ // TEST-NET (RFC 5737) addresses keep the Better Auth rate-limit buckets fully
+ // owned by this script. Every request carries an explicit x-forwarded-for so
+@@ -54,6 +55,20 @@ async function cleanupFixtures(admin: Client): Promise<void> {
+   await admin.query(`delete from verifications where identifier = any($1::text[])`, [
+     [...TEST_EMAILS],
+   ]);
++  // A trilha de memória precede o delete de users: `ai_memory_access_log` é
++  // RESTRICT para memberships e bloquearia o cascade users -> memberships.
++  for (const table of MEMORY_TRAIL_TABLES) {
++    // pi-lens-ignore: no-sql-in-code
++    await admin.query(
++      `delete from ${table}
++        where tenant_id in (
++          select m.tenant_id from tenant_memberships m
++          join users u on u.id = m.user_id
++          where u.email = any($1::text[]) or u.id = $2
++        )`,
++      [[...TEST_EMAILS], LEGACY_USER_ID],
++    );
++  }
+   // users cascades to accounts, sessions, tenant_memberships and profiles.
+   await admin.query(`delete from users where email = any($1::text[])`, [[...TEST_EMAILS]]);
+   await admin.query("delete from users where id = $1", [LEGACY_USER_ID]);
+diff --git a/scripts/db/test-backfill.ts b/scripts/db/test-backfill.ts
+index 6977afc..f39e591 100644
+--- a/scripts/db/test-backfill.ts
++++ b/scripts/db/test-backfill.ts
+@@ -48,6 +48,7 @@ import {
+ } from "./backfill-runner";
+ import { applyWorkItemOnce, createPostgresCheckpointStore } from "./backfill-ledger";
+ import { requireAdminUrl, runMigrations } from "./migrate";
++import { MEMORY_TRAIL_TABLES } from "./purge-fixtures";
+ 
+ const WORK_KEY = "backfill-demo.derived_amount:v1";
+ const MAIN_RUN_KEY = "backfill-demo:attempt-1";
+@@ -749,6 +750,10 @@ async function teardown(): Promise<void> {
+     // O ledger é schema-managed: o teardown remove apenas a fixture local e os
+     // tenants de laboratório (o cascade leva as linhas do ledger).
+     await pool.query("drop table if exists backfill_demo_rows");
++    for (const table of MEMORY_TRAIL_TABLES) {
++      // pi-lens-ignore: no-sql-in-code
++      await pool.query(`delete from ${table} where tenant_id in ($1, $2)`, [TENANT_A, TENANT_B]);
++    }
+     await pool.query("delete from tenants where id in ($1, $2)", [TENANT_A, TENANT_B]);
+     await pool.query("delete from users where id in ($1, $2)", [USER_A, USER_B]);
+     console.log("Fixtures do backfill removidas.");
+diff --git a/scripts/e2e/seed-auth.ts b/scripts/e2e/seed-auth.ts
+index 447ba7e..b01adbe 100644
+--- a/scripts/e2e/seed-auth.ts
++++ b/scripts/e2e/seed-auth.ts
+@@ -1,6 +1,7 @@
+ import { Client } from "pg";
+ import { hashPassword } from "../../src/server/auth/password.server";
+ import { requireAdminUrl, runMigrations } from "../db/migrate";
++import { TENANT_SCOPED_TABLES } from "../db/purge-fixtures";
+ 
+ const userId = "00000000-0000-4000-8000-000000000001";
+ const memberUserId = "00000000-0000-4000-8000-000000000003";
+@@ -41,27 +42,9 @@ async function main(): Promise<void> {
+       );
+     }
+ 
+-    for (const table of [
+-      "chat_messages",
+-      "chat_conversations",
+-      "tool_executions",
+-      "idempotency_records",
+-      "audit_events",
+-      "ai_daily_budgets",
+-      "ai_usage",
+-      "calculation_snapshots",
+-      "sales_items",
+-      "sales",
+-      "simulations",
+-      "purchase_price_history",
+-      "market_prices",
+-      "sales_fees",
+-      "product_packaging",
+-      "product_ingredients",
+-      "expenses",
+-      "products",
+-      "profiles",
+-    ]) {
++    // Lista canônica (scripts/db/purge-fixtures.ts): cobre a trilha de memória
++    // (`ai_memory_access_log` é RESTRICT para memberships) e outbox/backfill.
++    for (const table of TENANT_SCOPED_TABLES) {
+       // SQL deliberado: lista FIXA de tabelas (sem input externo) + tenant parametrizado;
+       // seeder de fixture não usa ORM para limpeza multi-tabela.
+       // pi-lens-ignore: no-sql-in-code
+--- arquivos nao rastreados ---
+### docs/evidence/f-b-mem-purge-2026-09-20/README.md
+# WP4 `F-B-mem-purge` — a trilha de memória na cadeia de purga
+
+**Work package:** `F-B-mem-purge` (Bloco 3, quarto na ordem canônica)
+**Fato-fonte:** `docs/evidence/agent-state/QUEUE.md:89`
+**Base:** `47d39a936f12961a2ff9922de5e1a319f49c8ea0` (develop pós-WP3)
+**Branch:** `mission/wp4-mem-purge`
+
+---
+
+## 1. Sumário
+
+A migration 0019 deu à trilha de auditoria de memória uma FK composta
+`ai_memory_access_log(tenant_id, user_id) → tenant_memberships(tenant_id, user_id) ON DELETE RESTRICT`
+— `RESTRICT` **de propósito**: apagar a membership não pode apagar a prova de que houve acesso.
+Cinco caminhos de purga de fixture apagavam `tenant_memberships`/`tenants`/`users` **sem apagar a
+trilha antes**, então qualquer linha de memória derrubava o E2E, o probe de EXPLAIN e as suítes de
+banco com **23503** — alto, nunca silencioso, mas quebrando a cadeia.
+
+O WP põe a trilha na cadeia de purga, com a **ordem FK-safe** (`access_log` → `conflicts` →
+`versions` → `sources` → `memories`) vinda de uma **fonte única** (`MEMORY_TRAIL_TABLES` em
+`scripts/db/purge-fixtures.ts`), em vez de listas inline duplicadas. Nada de runtime, schema ou
+grant muda; nada de `try/catch` compensatório — a falha continua alta.
+
+## 2. O que muda
+
+| #   | arquivo                               | mudança                                                                                          |
+| --- | ------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| 1   | `scripts/db/purge-fixtures.ts`        | exporta `MEMORY_TRAIL_TABLES` (as 5, ordem FK-safe); `TENANT_SCOPED_TABLES` passa a derivar dela |
+| 2   | `scripts/e2e/seed-auth.ts`            | usa a lista canônica em vez da inline (que esquecia a memória, o outbox e o backfill)            |
+| 3   | `scripts/db/explain-evidence.ts`      | loop da trilha por `tenant_id` nos **dois** pontos (seed `:67` e cleanup `:215`)                 |
+| 4   | `scripts/db/test-backfill.ts`         | loop da trilha por `tenant_id in ($1,$2)` antes do delete de `tenants` no teardown               |
+| 5   | `scripts/db/test-auth-integration.ts` | loop por tenant dos users de teste (join por e-mail/legacy) antes do delete de `users`           |
+| 6   | `scripts/db/test-ai-budget.ts`        | loop da trilha por `tenant_id = any($1)` antes do delete de `tenants` no finally                 |
+
+## 3. Evidência
+
+Container efêmero `wp4-pg` em `127.0.0.1:5439`, PostgreSQL **17.11**, migrations aplicadas uma vez.
+O probe (`zz-wp4-probe.sh`) usa duas técnicas declaradas — pré-semeio por id fixo (`seed-auth`,
+`explain`) e um **trigger de probe** em `tenant_memberships` que grava a linha de access log para
+os ids aleatórios (`backfill`, `auth-integration`, `ai-budget`) — e roda os **mesmos** 5 caminhos
+contra o mesmo estado nas duas fases.
+
+### 3.1 RED — bytes do pai (`47d39a9`), 5/5 falham alto com 23503
+
+| caminho            | execução                                      | resultado       | violação                                                       |
+| ------------------ | --------------------------------------------- | --------------- | -------------------------------------------------------------- |
+| `seed-auth`        | `npm run e2e:prepare`                         | `EXIT=1`, 23503 | `ai_memory_access_log_..._tenant_memberships_tenan` (RESTRICT) |
+| `explain`          | `npx tsx scripts/db/explain-evidence.ts`      | `EXIT=1`, 23503 | idem                                                           |
+| `backfill`         | suite completa + `--phase=teardown`           | `EXIT=1`, 23503 | idem                                                           |
+| `auth-integration` | `npx tsx scripts/db/test-auth-integration.ts` | `EXIT=1`, 23503 | idem                                                           |
+| `ai-budget`        | `npx tsx scripts/db/test-ai-budget.ts`        | `EXIT=1`, 23503 | idem                                                           |
+
+O nome truncado em 63 bytes (`..._tenan`) é o esperado com `NAMEDATALEN=64`; o erro nomeia a
+constraint e a tabela, e o exit code prova que nada foi engolido.
+
+### 3.2 GREEN — bytes novos, 5/5 concluem exit 0
+
+| caminho            | resultado                         |
+| ------------------ | --------------------------------- |
+| `seed-auth`        | `EXIT=0` · 0 ocorrências de 23503 |
+| `explain`          | `EXIT=0` · 0 ocorrências de 23503 |
+| `backfill`         | `EXIT=0` · 0 ocorrências de 23503 |
+| `auth-integration` | `EXIT=0` · 0 ocorrências de 23503 |
+| `ai-budget`        | `EXIT=0` · 0 ocorrências de 23503 |
+
+O `explain` roda a história completa (seed de 2000 produtos, os 3 planos) e o cleanup; o artefato
+`docs/evidence/explain-critical-queries-<dia>.md` que ele gera **como efeito colateral do probe foi
+removido** antes do commit — é saída de outra ferramenta, medida contra o banco de probe, e não
+pertence a este selo.
+
+### 3.3 O que a prova cobre, e o que não cobre
+
+- Cobre a condição real: as duas fases partem do **mesmo** banco com a trilha completa (access log,
+  memória, fonte, versão e conflito), não de listas em memória.
+- O trigger de probe é scaffold (vive só no container, aparece no `wp4-trigger.log`, não entra em
+  commit) e **não substitui a migração**: ele reproduz o estado que a migration 0019 permite.
+- Não cobre o `scripts/db/purge-fixtures.ts` além da exportação: ele já estava na ordem correta e o
+  comportamento da sequência de deletes é o mesmo.
+- A revisão de cada fase fica fixada no transcript (`wp4-probe-red.log` / `wp4-probe-green.log`):
+  `HEAD`, sha256 dos 6 arquivos e — no RED — a asserção de **diff vazio** contra o pai. Os bytes
+  examinados não são inferidos pelo relógio do diretório (correção do S6 N5).
+- O GREEN **recusa rodar** sem a precondição do RED (container presente, trigger `probe_trail`
+  instalado e ≥ 1 linha de trilha) e exige `exit 0` **e** zero ocorrências de 23503 por caminho
+  (correções do S6 N2/N3). Os exits de migrations/trigger/pre-semeio são assertados (N4).
+
+### 3.4 Estático
+
+`npm run typecheck` exit 0 e `npm run lint` exit 0 sobre os bytes finais. `npm run check` e
+`npm run db:test` (17 suítes) rodam no fecho do selo; as capturas entram no MANIFEST.
+
+## 4. Riscos e limites declarados
+
+| item                                                                                                                          | situação                                                                                                                                                                                                                                                                                                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| o trigger de probe cria trilha que o produto não criaria sozinho                                                              | declarado: é a condição que o WP precisa suportar; os ids reais não são pré-semeáveis e o mecanismo é auditável                                                                                                                                                                                                                                       |
+| uma migration futura pode acrescentar outro `RESTRICT` sem purga                                                              | a falha é 23503 persistido (nunca sucesso vazio); a cadeia `db:test` da CI é o guard                                                                                                                                                                                                                                                                  |
+| `explain-evidence.ts` gera um `.md` a cada execução                                                                           | declarado; o artefato do probe foi removido e a remoção está registrada aqui                                                                                                                                                                                                                                                                          |
+| **N1 (declarado, do S6):** há caminhos de purga **fora dos 5** que ainda apagam memberships/tenants/users sem a trilha        | latentes, sem caso vivo: nenhum deles é alcançado pelo único escritor de `ai_memory_access_log` (`memory.repository.ts`). Candidatos: `test-sql-injection.ts:204`, `test-ai-usage-unknown.ts:238`, `test-reconcile-ai-usage.ts:396`, `rls-probe.mjs:621`, `e2e/sales-dashboard.spec.ts:82` (purgeTenant). O WP fica no escopo da fila (`QUEUE.md:89`) |
+| **N7 (declarado, do S6):** o GREEN limpa apenas os próprios tenants; fixtures do RED (ids aleatórios) sobrevivem no container | não afeta as execuções seguintes (cada caminho varre o próprio escopo) e o container é descartado no fecho; `GREEN 5/5` prova o cleanup dos 5 caminhos, não "banco limpo"                                                                                                                                                                             |
+| `.artifacts/` fora do `ignores` do ESLint 9 flat config                                                                       | segue declarado (WP1/WP2/WP3); as capturas do selo usam `.txt`                                                                                                                                                                                                                                                                                        |
+
+## 5. Arquivos tocados
+
+Os 6 da §2 (sha256 na captura `hashes.txt`) + este selo. Nenhum arquivo de `src/**`, `drizzle/**`,
+`docs/specs/**` ou manifest.
+
+## 6. Como reproduzir
+
+```bash
+# sobe container, aplica migrations, trigger e pre-semeio; roda o PAI e espera 23503 nos 5
+bash .artifacts/zz-wp4-probe.sh red
+
+# com os bytes novos e o mesmo estado, espera exit 0 nos 5
+bash .artifacts/zz-wp4-probe.sh green
+```
+
+## 7. S6 ADVERSARIAL
+
+**Revisão auditada (R_a):** os 6 arquivos com os sha256 da captura `hashes.txt`; instrumento
+`zz-wp4-probe.sh` (`540a0924…`); logs RED/GREEN desta rodada. **Método:** auditoria read-only por
+**subagente de contexto limpo** (substituição declarada da lane `.pi/delegate`, indisponível como
+ferramenta nesta retomada); veredicto selado verbatim em `captures/adversarial-wp4-verdict.md.txt`.
+
+**Veredicto:** **8 CONFIRMED · 0 CORRECTED · 0 REJECTED · 0 UNVERIFIABLE**. O fato-fonte (FK
+`RESTRICT` da 0019 + os 5 pais sem a trilha) está provado byte a byte; a ordem de
+`MEMORY_TRAIL_TABLES` cobre todas as arestas `RESTRICT`; os 5 sítios estão na posição e no escopo
+certos; o RED é dos **bytes do pai** (forense por stack trace — cada frame aponta para uma linha que
+só existe no pai) e o GREEN é não vacuoso.
+
+**Defeitos novos e tratamento:**
+
+| achado                                                                                                | tratamento                                                                                |
+| ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **N2** — o veredicto GREEN decidia só por `exit==0`                                                   | passou a exigir também `23503 == 0` por caminho                                           |
+| **N3** — GREEN sem precondição de estado (poderia passar vazio)                                       | precondição fail-closed: container presente, trigger `probe_trail` e ≥ 1 linha de trilha  |
+| **N4** — exits do scaffold ecoados; stdout do probe não selado                                        | exits assertados e **transcript por fase** (`wp4-probe-<fase>.log`) via `tee`             |
+| **N5** — o instrumento não fixava a revisão dos bytes                                                 | fingerprint de `HEAD` + sha256 dos 6 arquivos no transcript; o RED **asserta diff vazio** |
+| **N6** — divergências README/SPEC (4 planos × 3; linha do explain; backfill sob pré-semeio; capturas) | corrigidas neste README e na ERRATA do SPEC                                               |
+| **N1** — caminhos de purga residuais fora dos 5                                                       | **declarado** na §4 (latentes, sem caso vivo)                                             |
+| **N7** — sobreviventes do RED no container após o GREEN                                               | **declarado** na §4; o container é descartado no fecho (E2)                               |
+
+**Revisão final (R_b):** os instrumentos mudaram depois do veredicto; RED e GREEN foram
+re-executados do zero com o instrumento final (stash do fix no RED, pop para o GREEN) e os
+transcripts selados. As correções **não tocam nenhuma asserção de produto**: são do probe e da prosa.
+### docs/evidence/f-b-mem-purge-2026-09-20/SPEC.md
+# SPEC — WP4 `F-B-mem-purge`
+
+**Work package:** `F-B-mem-purge` (Bloco 3, quarto na ordem canônica)
+**Fato-fonte:** `docs/evidence/agent-state/QUEUE.md:89`
+**Base:** `47d39a936f12961a2ff9922de5e1a319f49c8ea0` (develop pós-WP3)
+**Branch:** `mission/wp4-mem-purge` · worktree `.worktree-wp4-mem-purge`
+
+---
+
+## 1. Problema
+
+A migration 0019 criou `ai_memory_access_log` com FK composta
+`(tenant_id, user_id) → tenant_memberships(tenant_id, user_id) ON DELETE RESTRICT`. A trilha é
+**append-only por privilégio** (o `app_runtime` só tem `SELECT`/`INSERT`) e o `RESTRICT` é
+intencional: apagar a membership não pode apagar a prova de que houve acesso a memória.
+
+O efeito colateral é na **purga de fixture**. Cinco caminhos apagam `tenant_memberships`/`tenants`/
+`users` (direta ou por cascade) sem apagar a trilha antes:
+
+| caminho                               | onde                              | o que apaga hoje (sem a trilha)              |
+| ------------------------------------- | --------------------------------- | -------------------------------------------- |
+| `scripts/e2e/seed-auth.ts`            | lista fixa de tabelas, `:55-70`   | `tenant_memberships` → `tenants` → `users`   |
+| `scripts/db/explain-evidence.ts`      | seed `:67-68`, cleanup `:215-221` | `tenant_memberships`/`tenants`/`users`       |
+| `scripts/db/test-backfill.ts`         | teardown `:752-753`               | `tenants` (cascade p/ memberships) → `users` |
+| `scripts/db/test-auth-integration.ts` | `cleanupFixtures` `:58-63`        | `users` (cascade p/ memberships) → `tenants` |
+| `scripts/db/test-ai-budget.ts`        | finally `:786-787`                | `tenants` (cascade p/ memberships) → `users` |
+
+Com **qualquer linha de memória** para o tenant (access log, memória, versão, conflito ou fonte), a
+cadeia bate no `RESTRICT` e o caminho inteiro falha com **23503** — alto, nunca silencioso, mas
+quebrando o E2E, o probe de EXPLAIN e as suítes de DB. O `scripts/db/purge-fixtures.ts` (purga de
+produção) **já está correto**: é o único que lista a trilha, e na ordem FK-safe.
+
+## 2. Contrato
+
+- **Ordem da trilha**: `ai_memory_access_log` → `ai_memory_conflicts` → `ai_memory_versions` →
+  `ai_memory_sources` → `ai_memories`. Razão medida no schema:
+  - `access_log` é `RESTRICT` para memberships ⇒ sai antes de qualquer delete de memberships;
+  - `conflicts` e `versions` são `RESTRICT` para `ai_memories` ⇒ saem antes das memórias;
+  - `sources` é `CASCADE` para memórias, mas sai explicitamente para o delete ser determinístico;
+  - `ai_memories`/`sources` cascateiam de memberships, mas não podem depender do cascade por causa
+    dos filhos `RESTRICT`.
+- **Fonte única**: a ordem vive em `scripts/db/purge-fixtures.ts` como `MEMORY_TRAIL_TABLES`,
+  exportada; `TENANT_SCOPED_TABLES` passa a ser derivada dela. Decisão humana
+  (ask_user_question): **reuso**, não listas inline duplicadas.
+- **Nada de novo em runtime/schema**: sem migration, sem mudança de grant, sem tocar a trilha em
+  produção. O WP é a purga dos caminhos de fixture.
+- **Falha continua alta**: se uma migration futura acrescentar outro `RESTRICT` sem atualizar a
+  purga, o erro é 23503 persistido — nunca um sucesso vazio. O WP não instala `try/catch` nenhum.
+
+## 3. Mudanças
+
+1. `scripts/db/purge-fixtures.ts` — extrai `MEMORY_TRAIL_TABLES` (as 5, na ordem acima) e deriva
+   `TENANT_SCOPED_TABLES` dela. Comportamento do purger inalterado (mesma sequência de tabelas).
+2. `scripts/e2e/seed-auth.ts` — importa `TENANT_SCOPED_TABLES` e substitui a lista inline. Ganho
+   colateral: a limpeza do E2E passa a cobrir também `outbox_*` e `backfill_*`, que a lista inline
+   esquecia (mesmo tenant de fixture).
+3. `scripts/db/explain-evidence.ts` — loop da trilha por `tenant_id` **nos dois** pontos (seed e
+   cleanup), antes de membros/tenant/users.
+4. `scripts/db/test-backfill.ts` — loop da trilha por `tenant_id in ($1,$2)` antes do delete de
+   `tenants` no teardown.
+5. `scripts/db/test-auth-integration.ts` — loop da trilha por
+   `tenant_id in (select tenant_id from tenant_memberships m join users u ... where u.email = any($1) or u.id = $2)`
+   antes do delete de `users` (o cascade users → memberships é o que bate no `RESTRICT`).
+6. `scripts/db/test-ai-budget.ts` — loop da trilha por `tenant_id = any($1::uuid[])` antes do delete
+   de `tenants` no finally.
+
+## 4. DoD
+
+- [ ] para cada um dos 5 caminhos, a prova **RED → GREEN**: com a trilha presente, os bytes do pai
+      falham com **23503** (nunca em silêncio) e os bytes novos concluem exit 0
+- [ ] prova com **linha real** de memória: o access log e a memória existem de fato no banco do
+      probe (não é inferência de lista)
+- [ ] `npm run db:test` completo (17 suítes) verde contra container PG17 efêmero
+- [ ] `npm run check` exit 0 nos bytes finais
+- [ ] `m02:matrix:check` determinista sem regenerar quando aplicável
+- [ ] `origin/main` intocado; `:5432` (H-9) com 0 listeners antes e depois; container efêmero
+      removido no fim
+- [ ] transcripts por fase com `HEAD` + sha256 dos 6 arquivos; RED com diff vazio; GREEN com
+      precondição de estado e `23503 == 0`
+- [ ] nenhum runtime (`src/**`), schema (`drizzle/**`) ou migration tocado no diff
+
+## 5. Método de prova (E1)
+
+Container `wp4-pg` PG17 efêmero em porta livre (`127.0.0.1:54xx`), migrations aplicadas uma vez.
+Sem ids determinísticos em dois caminhos, o probe usa **duas técnicas declaradas**:
+
+- **Pré-semeio por id fixo** (`seed-auth`, `explain-evidence`): as fixtures usam ids constantes no
+  código; o probe cria users/tenants/memberships + trilha completa (access log, memória, fonte,
+  versão, conflito) antes de rodar o caminho.
+- **Trigger de probe** (`test-backfill`, `test-auth-integration`, `test-ai-budget`): como os ids são
+  aleatórios por execução (ou as fixtures nascem dentro da suíte), o probe instala um trigger
+  temporário em `tenant_memberships` (depois do insert, grava uma linha de access log) — a condição
+  que o WP precisa suportar. O trigger é scaffold de probe: vive só no container efêmero, aparece na
+  captura e não entra em commit.
+
+Cada fase **fixa a revisão** no transcript (`wp4-probe-<fase>.log`: `HEAD`, sha256 dos 6 arquivos);
+o RED asserta **diff vazio** contra o pai. O GREEN **recusa rodar** sem a precondição do RED
+(container, trigger e ≥ 1 linha de trilha) e exige `exit 0` **e** zero 23503 por caminho — sem isso
+um GREEN num banco limpo passaria vazio.
+
+A prova RED roda os **bytes do pai** (`git show HEAD^:<arquivo>` em cópia de scratch) e a GREEN os
+bytes novos, contra o mesmo container e a mesma fixture.
+
+## 6. Fora de escopo
+
+- `ai_memory_policies` (global, sem RLS, sem escritor) — `F-B-mem-policies`, decisão de política.
+- `scripts/db/purge-fixtures.ts` já está correto; só ganha a exportação canônica.
+- `scripts/db/test-memory.ts` já purga a própria trilha; não é tocado.
+- N2 do WP3 (composição do piso do runner) permanece declarado.
+- Nada de `try/catch` compensatório: a falha alta é o contrato.
+
+## 7. Rollback
+
+Descartar a branch e o worktree. Sem migration, sem schema, sem runtime: o diff é `scripts/**` +
+este selo. Nada fica em `develop` antes do Gate C.

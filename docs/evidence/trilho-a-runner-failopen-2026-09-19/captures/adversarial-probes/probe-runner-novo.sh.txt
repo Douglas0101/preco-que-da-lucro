@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Sonda rápida do runner NOVO (test-product-contracts.ts). Roda no worktree, :5433.
+set -u
+ADMIN="postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test"
+
+echo "=== G1: caminho feliz, variavel AUSENTE (executa, nao pula) ==="
+env -u DATABASE_URL_UNPOOLED \
+  DATABASE_ADMIN_URL="$ADMIN" DATABASE_URL="$ADMIN" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/test-product-contracts.ts 2>&1 | tail -2
+echo "G1_EXIT=${PIPESTATUS[0]}"
+
+echo
+echo "=== G2: kill-switch REMOTO reprova (fail-closed contra skip) ==="
+DATABASE_URL_UNPOOLED="postgresql://postgres:postgres@remoto.example.com:5432/x" \
+  DATABASE_ADMIN_URL="$ADMIN" DATABASE_URL="$ADMIN" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/test-product-contracts.ts 2>&1 | grep -E 'pulada|pendentes' | head -3
+echo "G2_EXIT_ESPERADO_1=${PIPESTATUS[0]}"
+
+echo
+echo "=== G3: piso de cardinalidade DISPARA com 1 caso em vez de 14 ==="
+cat > src/test/zz-short-pc.test.ts <<'EOF'
+import { describe, expect, it } from "vitest";
+
+describe("sonda curta", () => {
+  it("passa", () => {
+    expect(1).toBe(1);
+  });
+});
+EOF
+sed 's|const testFile = "src/test/product-contracts.test.ts";|const testFile = "src/test/zz-short-pc.test.ts";|' \
+  scripts/db/test-product-contracts.ts > scripts/db/zz-short-pc.ts
+env -u DATABASE_URL_UNPOOLED \
+  DATABASE_ADMIN_URL="$ADMIN" DATABASE_URL="$ADMIN" DATABASE_DRIVER=node-postgres \
+  node node_modules/.bin/tsx scripts/db/zz-short-pc.ts 2>&1 | grep -E 'nao produziu casos|não produziu casos' | head -1
+echo "G3_EXIT_ESPERADO_1=${PIPESTATUS[0]}"
+rm -f src/test/zz-short-pc.test.ts scripts/db/zz-short-pc.ts
+
+echo
+echo "=== G4: a cadeia db:test agora tem 16 passos ==="
+node -e "const s=require('./package.json').scripts['db:test'];const n=s.split('&&').length;console.log('passos='+n);console.log(s.split('&&').slice(-2).map(x=>x.trim()).join(' | '))"
+
+echo
+echo "=== G5: residuo? ==="
+git status --porcelain --untracked-files=all

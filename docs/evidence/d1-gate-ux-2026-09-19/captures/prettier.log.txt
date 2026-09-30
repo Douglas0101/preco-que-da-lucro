@@ -1,0 +1,4 @@
+scripts/lib/m02-matrix-drift.ts 108ms
+scripts/m02-matrix.ts 95ms
+src/test/m02-matrix-drift.test.ts 42ms (unchanged)
+PRETTIER_EXIT=0

@@ -1,0 +1,51 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e68]:
+    - banner [ref=e69]:
+      - link "Preço que Dá Lucro" [ref=e70] [cursor=pointer]:
+        - /url: /inicio
+      - button "Abrir menu de navegação" [ref=e76] [cursor=pointer]
+    - main [ref=e78]:
+      - generic [ref=e80]:
+        - generic [ref=e81]:
+          - heading "Olá! 👋" [level=1] [ref=e82]
+          - paragraph [ref=e83]: Resumo dos dados cadastrados e das vendas reais, sem presumir volume.
+        - group "Período do faturamento" [ref=e84]:
+          - button "Mês" [pressed] [ref=e85] [cursor=pointer]
+          - button "Trimestre" [ref=e86] [cursor=pointer]
+          - button "Ano" [ref=e87] [cursor=pointer]
+        - generic [ref=e88]:
+          - generic [ref=e90]:
+            - generic [ref=e91]: Produtos
+            - generic [ref=e99]: "1"
+            - group [ref=e100]:
+              - generic "Como calculamos?" [ref=e101] [cursor=pointer]
+          - generic [ref=e103]:
+            - generic [ref=e104]: Despesas fixas cadastradas
+            - generic [ref=e111]: R$ 600,00
+            - group [ref=e112]:
+              - generic "Como calculamos?" [ref=e113] [cursor=pointer]
+          - generic [ref=e115]:
+            - generic [ref=e116]: Faturamento real
+            - generic [ref=e124]: —
+            - paragraph [ref=e125]: Nenhuma venda real registrada.
+            - group [ref=e126]:
+              - generic "Como calculamos?" [ref=e127] [cursor=pointer]
+          - generic [ref=e129]:
+            - generic [ref=e131]:
+              - generic [ref=e132]: Margem consolidada
+              - generic "Faltam vendas reais registradas para calcular a margem consolidada." [ref=e133]: DADOS INCOMPLETOS
+            - generic [ref=e138]: —
+            - paragraph [ref=e139]: Registre vendas reais para calcular o mix real de vendas.
+            - group [ref=e140]:
+              - generic "Como calculamos?" [ref=e141] [cursor=pointer]
+        - generic [ref=e142]:
+          - generic [ref=e143]: 🏆 Maior margem unitária calculável
+          - generic [ref=e145]:
+            - generic [ref=e146]: Produto de teste
+            - generic [ref=e147]: "Margem de contribuição unitária: 35,00%"
+            - group [ref=e148]:
+              - generic "Como calculamos?" [ref=e149] [cursor=pointer]
+        - generic [ref=e150]:
+          - button "Novo produto" [ref=e151] [cursor=pointer]
+          - button "Ver diagnóstico completo" [ref=e152] [cursor=pointer]
+  - region "Notifications alt+T"

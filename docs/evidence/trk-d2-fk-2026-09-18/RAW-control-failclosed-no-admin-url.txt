@@ -1,0 +1,12 @@
+$ env -u DATABASE_ADMIN_URL -u DATABASE_URL -u DATABASE_URL_UNPOOLED npx tsx scripts/db/test-products-fk-conflict.ts
+/home/douglas-souza/preco-que-d-main/.worktree-trk-d2/scripts/db/migrate.ts:9
+    throw new Error("DATABASE_ADMIN_URL é obrigatória para migrations");
+          ^
+
+Error: DATABASE_ADMIN_URL é obrigatória para migrations
+    at requireAdminUrl (/home/douglas-souza/preco-que-d-main/.worktree-trk-d2/scripts/db/migrate.ts:9:11)
+    at main (/home/douglas-souza/preco-que-d-main/.worktree-trk-d2/scripts/db/test-products-fk-conflict.ts:38:20)
+    at <anonymous> (/home/douglas-souza/preco-que-d-main/.worktree-trk-d2/scripts/db/test-products-fk-conflict.ts:86:7)
+
+Node.js v24.15.0
+EXIT=1

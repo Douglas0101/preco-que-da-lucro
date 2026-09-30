@@ -1,0 +1,36 @@
+# WP-R8 — captura das correcoes forcadas pelo S6 (2026-09-22)
+# ARVORE: daee2755de35a0f3c4558e4bf9435173047b091a  HEAD: 974426bc46dd960b639cfb31170190a09a0c8ff0
+# gerado por: bash scripts manuais abaixo, saida real colada
+
+## N3 — de onde sai a economia de 124 s (artefato do run verde 35611793799)
+$ gh api repos/:owner/:repo/actions/artifacts/10644862354/zip > /tmp/ev.zip && unzip -p /tmp/ev.zip .artifacts/playwright-results.json | jq -r '.suites[]?|.specs[]?|.tests[]?|.results[]|.duration'
+# (os numeros abaixo foram lidos do artefato 10644862354 no dia da medicao)
+chromium 15 testes 50.6 s
+firefox  15 testes 59.7 s
+mobile   15 testes 50.0 s
+webkit   15 testes 64.5 s
+TOTAL 60 testes 224.8 s somados
+economia de cortar firefox+webkit = 124.2 s
+baseline 580 s - 34 s (db) - 124.2 s (navegadores) + 3 s (passos novos) = 424.8 s
+banda +-15% = 361-489 s
+
+## N1 — a disjuncao fail-closed inclui ancestralidade
+  101:          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]              || ! git cat-file -e "${base}^{commit}" 2>/dev/null              || ! git merge-base --is-ancestor "$base" "$head" 2>/dev/null; then
+
+## N5/N6 — as condicoes e o aviso, lidos do YAML
+  150:      - if: steps.scope.outputs.db != 'false'
+  152:      - if: steps.scope.outputs.db != 'false'
+  154:      - if: steps.scope.outputs.db == 'false'
+  156:        run: echo "::notice title=db tiers skipped::o diff nao toca drizzle/, src/db/, repositorios, servicos, scripts/db/ nem package.json/package-lock.json"
+  208:          echo "::notice title=e2e::${motivo} — navegadores: ${lista} | projetos: ${projetos}"
+
+## guardas semanticas — suite real
+
+ Test Files  2 passed (2)
+      Tests  27 passed (27)
+   Start at  00:07:51
+   Duration  1.04s (transform 69ms, setup 192ms, import 90ms, tests 204ms, environment 1.15s)
+
+
+## gate local
+$ npm run check   -> EXIT=0 (97 arquivos, 1005 passed | 13 skipped)

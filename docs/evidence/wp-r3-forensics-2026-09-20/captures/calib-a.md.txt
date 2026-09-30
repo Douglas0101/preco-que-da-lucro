@@ -1,0 +1,15 @@
+# CALIBRAÇÃO S6 — Lane A (claim falso)
+
+**Proveniência:** Lane: subagente read-only de contexto limpo (Task/explore). Metodo: auditoria por leitura, sem execucao de testes. Data: 2026-09-20. Caso sintetico: mecanismo de outbox.
+
+
+**C1 — REJECTED** — O consumidor de outbox não usa `LISTEN/NOTIFY`; ele consome por varredura/claim (pull) com `FOR UPDATE SKIP LOCKED`. A única ocorrência de `LISTEN`/`NOTIFY` em `src/**` é uma lista de verbos SQL para redação de telemetria, não um mecanismo.
+
+- `src/server/services/outbox.worker.ts:123-127` — `const claimed = await this.store.claimPending(context, { batchSize, maxAttempts }, tx);`
+- `src/server/repositories/outbox.repository.ts:9-10` — `O claim usa FOR UPDATE SKIP LOCKED limitado por batchSize: dois workers concorrentes particionam a fila sem bloquear e sem processar o mesmo evento`
+- `src/server/repositories/outbox.repository.ts:142-149` — `SELECT ... FOR UPDATE SKIP LOCKED` seguido de `UPDATE outbox_events SET status = 'processing'`
+- `src/instrumentation/sql-redactor.ts:47,52,67` — `"LISTEN",` / `"NOTIFY",` / `"UNLISTEN",` são verbos de redação, não chamadas
+- `drizzle/**` — 0 hits de `pg_notify`/`CREATE TRIGGER`
+
+## Resumo
+CONFIRMED 0 · CORRECTED 0 · REJECTED 1 · UNVERIFIABLE 0

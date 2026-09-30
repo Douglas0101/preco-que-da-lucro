@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-trk-d2
+
+ ✓ src/test/products-fk-conflict.test.ts (13 tests) 98ms
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  00:40:08
+   Duration  1.78s (transform 237ms, setup 92ms, import 989ms, tests 98ms, environment 488ms)
+
+JSON report written to /tmp/trk-d2-fk-eNGkFU/summary.json
+prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 13 passed (13), 0 skipped — admin=127.0.0.1:55470

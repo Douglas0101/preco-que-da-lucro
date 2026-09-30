@@ -5,9 +5,11 @@ import {
   calculateBreakEvenUnits,
   calculateContributionMargin,
   calculatePriceFormation,
+  calculateScenario,
   calculateVariableCost,
   sumFiniteNumbers,
   type FeeRow,
+  type ScenarioInput,
 } from "@/lib/finance";
 import { toDecimalString } from "@/lib/financial-values";
 
@@ -28,6 +30,53 @@ function validRatesArbitrary() {
 }
 
 const nonNegativeMoney = fc.double({ min: 0, max: 10_000, noNaN: true });
+
+/**
+ * Cenário válido do motor (`calculateScenario`): preço > 0, custo e despesas
+ * fixas ≥ 0, volume ≥ 0 com origem de volume informada
+ * (`manual_simulation`/`forecast`) e imposto + taxas somando < 100%.
+ * Compartilhado pelas propriedades P1 (custo↑) e P3 (volume↑) para que ambas
+ * exercitem o mesmo domínio do motor, sem re-derivar aritmética no teste.
+ */
+interface ScenarioRates {
+  taxRate: number;
+  fees: FeeRow[];
+}
+
+interface ScenarioParts {
+  price: number;
+  unitCost: number;
+  fixedExpenses: number;
+  volume: number;
+  volumeSource: "manual_simulation" | "forecast";
+  rates: ScenarioRates;
+}
+
+const validScenarioArbitrary = fc.record({
+  price: fc.double({ min: 0.01, max: 5_000, noNaN: true }),
+  unitCost: nonNegativeMoney,
+  fixedExpenses: nonNegativeMoney,
+  volume: fc.double({ min: 0.01, max: 1_000_000, noNaN: true }),
+  volumeSource: fc.constantFrom("manual_simulation" as const, "forecast" as const),
+  rates: validRatesArbitrary(),
+});
+
+/** Monta a entrada de `calculateScenario` a partir das partes geradas. */
+function scenarioInput(
+  parts: ScenarioParts,
+  overrides: Partial<Pick<ScenarioInput, "price" | "unitCost" | "fixedExpenses" | "volume">> = {},
+): ScenarioInput {
+  return {
+    price: parts.price,
+    unitCost: parts.unitCost,
+    taxRate: parts.rates.taxRate,
+    fees: parts.rates.fees,
+    fixedExpenses: parts.fixedExpenses,
+    volume: parts.volume,
+    volumeSource: parts.volumeSource,
+    ...overrides,
+  };
+}
 
 describe("propriedades do motor financeiro (fast-check)", () => {
   it("preço mínimo é finito, não negativo e cobre o custo modelado", () => {
@@ -212,5 +261,42 @@ describe("propriedades do motor financeiro (fast-check)", () => {
       },
     );
     fc.assert(property);
+  });
+
+  it("custo unitário maior, todo o resto igual ⇒ margem de contribuição não aumenta", () => {
+    const property = fc.property(
+      fc.tuple(validScenarioArbitrary, fc.double({ min: 0.01, max: 10_000, noNaN: true })),
+      ([parts, extraUnitCost]) => {
+        const base = calculateScenario(scenarioInput(parts));
+        const higher = calculateScenario(
+          scenarioInput(parts, { unitCost: parts.unitCost + extraUnitCost }),
+        );
+        // Result Type: `incomplete`/`invalid` não têm ordem definida contra
+        // `ok`; só comparamos quando AMBOS os lados são `ok`. Caso contrário o
+        // par é descartado — nunca tratado como margem zero.
+        if (base.status !== "ok" || higher.status !== "ok") return;
+        expect(higher.value.contributionMargin).toBeLessThanOrEqual(
+          base.value.contributionMargin + 1e-9,
+        );
+      },
+    );
+    fc.assert(property, { numRuns: 1000 });
+  });
+
+  it("volume maior, todo o resto igual ⇒ receita não diminui", () => {
+    const property = fc.property(
+      fc.tuple(validScenarioArbitrary, fc.double({ min: 0.01, max: 1_000_000, noNaN: true })),
+      ([parts, extraVolume]) => {
+        const base = calculateScenario(scenarioInput(parts));
+        const higher = calculateScenario(
+          scenarioInput(parts, { volume: parts.volume + extraVolume }),
+        );
+        // Result Type: o par é descartado quando qualquer lado não é `ok`;
+        // receita ausente (`incomplete`) não é receita zero.
+        if (base.status !== "ok" || higher.status !== "ok") return;
+        expect(higher.value.revenue).toBeGreaterThanOrEqual(base.value.revenue - 1e-9);
+      },
+    );
+    fc.assert(property, { numRuns: 1000 });
   });
 });

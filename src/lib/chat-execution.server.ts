@@ -1,6 +1,4 @@
-import { and, asc, count, eq, gte } from "drizzle-orm";
 import { withTenantTransaction } from "@/db/client.server";
-import { chatConversations, chatMessages } from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
 import {
   budgetConfigFromEnv,
@@ -8,7 +6,10 @@ import {
   estimateModelCost,
   type BudgetLedger,
   type BudgetLedgerConfig,
+  type EstimatedCostResult,
+  type SettlementUsage,
 } from "@/lib/ai/budget-ledger.server";
+import { parseAiUsage, type TokenUsage } from "@/lib/ai/token-usage";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
 import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
 import { runRegisteredTool } from "@/lib/ai/tool-runner";
@@ -20,14 +21,20 @@ import {
   type ConversationEvent,
   type ConversationState,
 } from "@/lib/chat-fsm.server";
-import { applicationMetrics } from "@/instrumentation/telemetry";
-import {
-  createTenantTransaction,
-  getOrCreateConversation,
-  numberSetting,
-  validateCurrentProduct,
-} from "@/lib/chat-data";
+import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import type { DatabaseTransaction } from "@/db/client.server";
+import { recordSafely } from "@/instrumentation/safe-record";
+import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
 import type { RequestContext, RequestIdentity } from "@/lib/request-context";
+import {
+  conversationService as defaultConversationService,
+  type ConversationService,
+} from "@/server/services/conversation.service";
+import { USER_RATE_LIMIT_RULES, userRateLimitKey } from "@/server/auth/rate-limit-rules.server";
+import {
+  consumeRateLimitInTransaction,
+  type RateLimitRule,
+} from "@/server/auth/rate-limit-storage.server";
 import { logJson } from "@/lib/structured-logger";
 
 interface GatewayMessage {
@@ -87,60 +94,64 @@ export interface ChatExecutionDependencies {
   budgetLedger?: BudgetLedger;
   budgetConfig?: Partial<BudgetLedgerConfig>;
   toolRunner?: ToolRunner;
+  conversationService?: ConversationService;
 }
 
-const CHAT_LIMIT_WINDOW_MS = 10 * 60 * 1_000;
 const inTenantTransaction = createTenantTransaction(withTenantTransaction);
+
+/**
+ * Chat bucket (§20.5). The window comes from USER_RATE_LIMIT_RULES; the max
+ * stays operator-tunable through AI_CHAT_LIMIT_PER_10_MINUTES (default 20), the
+ * same variable that drove the previous count of persisted user messages.
+ */
+export function chatRateLimitRule(): RateLimitRule {
+  return {
+    window: USER_RATE_LIMIT_RULES.chat.window,
+    max: numberSetting("AI_CHAT_LIMIT_PER_10_MINUTES", USER_RATE_LIMIT_RULES.chat.max, 1, 1_000),
+  };
+}
 
 async function reserveChatAndLoadHistory(
   context: RequestContext,
   budgetLedger: BudgetLedger,
+  conversationService: ConversationService,
   message: string,
   requestedProductId: string | null,
 ) {
-  const [recent] = await context.transaction
-    .select({ value: count() })
-    .from(chatMessages)
-    .where(
-      and(
-        eq(chatMessages.tenantId, context.tenantId),
-        eq(chatMessages.userId, context.userId),
-        eq(chatMessages.role, "user"),
-        gte(chatMessages.createdAt, new Date(Date.now() - CHAT_LIMIT_WINDOW_MS)),
-      ),
-    );
-  const chatLimit = numberSetting("AI_CHAT_LIMIT_PER_10_MINUTES", 20, 1, 1_000);
-  if ((recent?.value ?? 0) >= chatLimit) throw new ApplicationError("RATE_LIMIT");
-
-  const chatReserved = await budgetLedger.reserveChatInTransaction(
-    context.transaction,
-    context.tenantId,
+  // §9.2 — o handle neutro do contexto é estreitado aqui: rate limit e
+  // orçamento são APIs de adapter (transação do driver).
+  const tx = context.transaction as DatabaseTransaction;
+  // Admission (§20.5) before any side effect of the turn: the bucket is atomic
+  // and shared by every instance, unlike the previous count of persisted user
+  // messages, which two concurrent turns could both pass. Denied turns burn no
+  // AI quota because this runs before the budget reservation.
+  const admission = await consumeRateLimitInTransaction(
+    tx,
+    userRateLimitKey("chat", context.userId),
+    chatRateLimitRule(),
   );
+  if (!admission.allowed) {
+    logJson("warn", "ai.chat_rate_limited", {
+      bucket: "chat",
+      retryAfterSeconds: admission.retryAfter,
+    });
+    throw new ApplicationError("RATE_LIMIT");
+  }
+
+  const chatReserved = await budgetLedger.reserveChatInTransaction(tx, context.tenantId);
   if (!chatReserved) throw new ApplicationError("AI_QUOTA");
 
-  const conversation = await getOrCreateConversation(context);
-  const currentProductId = await validateCurrentProduct(
+  const conversation = await conversationService.getOrCreate(context);
+  const currentProductId = await conversationService.validateProduct(
     context,
     requestedProductId ?? conversation.currentProductId,
   );
-  await context.transaction.insert(chatMessages).values({
+  await conversationService.appendMessage(context, {
     conversationId: conversation.id,
-    tenantId: context.tenantId,
-    userId: context.userId,
     role: "user",
     content: message,
   });
-  const history = await context.transaction
-    .select({ role: chatMessages.role, content: chatMessages.content })
-    .from(chatMessages)
-    .where(
-      and(
-        eq(chatMessages.tenantId, context.tenantId),
-        eq(chatMessages.conversationId, conversation.id),
-      ),
-    )
-    .orderBy(asc(chatMessages.createdAt))
-    .limit(60);
+  const history = await conversationService.listMessages(context, conversation.id, { limit: 60 });
   const conversationState: ConversationState = isConversationState(conversation.conversationState)
     ? conversation.conversationState
     : "idle";
@@ -158,6 +169,36 @@ interface ChatState {
   currentProductId: string | null;
   history: Array<{ role: string; content: string }>;
   conversationState: ConversationState;
+}
+
+/**
+ * §29: fases da latência do chat não-streaming, medidas desde o aceite da
+ * mensagem do usuário (`startedAt`) até: primeira resposta do gateway
+ * (`time_to_acknowledge`, mesmo que seja tool call), primeiro conteúdo
+ * (`time_to_first_content`) e resposta final (`time_to_final`). Sem streaming,
+ * conteúdo e final chegam na mesma resposta do gateway; os dois histogramas
+ * permanecem separados para receber streaming sem renomear série.
+ */
+interface ChatLatencyTracker {
+  startedAt: number;
+  acknowledgedAt: number | null;
+}
+
+function createChatLatencyTracker(startedAt: number): ChatLatencyTracker {
+  return { startedAt, acknowledgedAt: null };
+}
+
+/** Registra uma única vez o primeiro modelo retornado pelo gateway. */
+function acknowledgeGatewayResponse(latency: ChatLatencyTracker): void {
+  if (latency.acknowledgedAt !== null) return;
+  latency.acknowledgedAt = performance.now();
+  recordSafely(applicationMetrics.aiTimeToAcknowledge, latency.acknowledgedAt - latency.startedAt);
+}
+
+function timeToAcknowledgeMs(latency: ChatLatencyTracker): number | null {
+  return latency.acknowledgedAt === null
+    ? null
+    : Math.round(latency.acknowledgedAt - latency.startedAt);
 }
 
 type RoundResult =
@@ -181,65 +222,46 @@ function buildInitialMessages(state: ChatState): GatewayMessage[] {
 }
 
 async function persistAssistantMessage(
+  conversationService: ConversationService,
   identity: RequestIdentity,
   state: ChatState,
   currentProductId: string | null,
   content: string,
 ): Promise<void> {
   await inTenantTransaction(identity, async (request) => {
-    const [saved] = await request.transaction
-      .insert(chatMessages)
-      .values({
-        conversationId: state.conversation.id,
-        tenantId: request.tenantId,
-        userId: request.userId,
-        role: "assistant",
-        content,
-        metadata: { currentProductId },
-      })
-      .returning({ id: chatMessages.id });
-    await request.transaction
-      .update(chatConversations)
-      .set({
+    const saved = await conversationService.appendMessage(request, {
+      conversationId: state.conversation.id,
+      role: "assistant",
+      content,
+      metadata: { currentProductId },
+    });
+    await conversationService.updateConversation(request, state.conversation.id, {
+      currentProductId,
+      confirmedState: {
         currentProductId,
-        confirmedState: {
-          currentProductId,
-          lastAssistantMessageId: saved?.id ?? null,
-          lastConfirmedAt: new Date().toISOString(),
-        },
-        conversationState: state.conversationState,
-        stateUpdatedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(chatConversations.tenantId, request.tenantId),
-          eq(chatConversations.id, state.conversation.id),
-        ),
-      );
+        lastAssistantMessageId: saved?.id ?? null,
+        lastConfirmedAt: new Date().toISOString(),
+      },
+      conversationState: state.conversationState,
+      stateUpdatedAt: new Date(),
+      updatedAt: new Date(),
+    });
   });
 }
 
 async function persistConversationState(
+  conversationService: ConversationService,
   identity: RequestIdentity,
   conversationId: string,
   conversationState: ConversationState,
   metadata?: Record<string, unknown>,
 ): Promise<void> {
   await inTenantTransaction(identity, async (request) => {
-    await request.transaction
-      .update(chatConversations)
-      .set({
-        conversationState,
-        stateUpdatedAt: new Date(),
-        ...(metadata === undefined ? {} : { stateMetadata: metadata }),
-      })
-      .where(
-        and(
-          eq(chatConversations.tenantId, request.tenantId),
-          eq(chatConversations.id, conversationId),
-        ),
-      );
+    await conversationService.updateConversation(request, conversationId, {
+      conversationState,
+      stateUpdatedAt: new Date(),
+      ...(metadata === undefined ? {} : { stateMetadata: metadata }),
+    });
   });
 }
 
@@ -248,6 +270,7 @@ async function persistConversationState(
  * it differs, and never throws for invalid transitions (returns state as-is).
  */
 async function transitionConversation(
+  conversationService: ConversationService,
   identity: RequestIdentity,
   conversationId: string,
   state: ConversationState,
@@ -261,7 +284,7 @@ async function transitionConversation(
   const next = transitionConversationState(state, event);
   applicationMetrics.conversationStateTransitions.add(1, { from: state, to: next });
   if (persist && next !== state) {
-    await persistConversationState(identity, conversationId, next);
+    await persistConversationState(conversationService, identity, conversationId, next);
   }
   return next;
 }
@@ -304,6 +327,7 @@ async function runToolCall(
   conversationId: string,
   toolCall: GatewayToolCall,
   toolRunner: ToolRunner,
+  usageId: string,
 ): Promise<ToolResult> {
   return inTenantTransaction(identity, (request) =>
     toolRunner({
@@ -311,6 +335,8 @@ async function runToolCall(
       name: toolCall.function.name,
       rawArguments: toolCall.function.arguments,
       idempotencyKey: `${conversationId}:${toolCall.id}`,
+      toolCallId: toolCall.id,
+      usageId,
     }),
   );
 }
@@ -322,10 +348,17 @@ async function appendToolCalls(
   currentProductId: string | null,
   toolCalls: GatewayToolCall[],
   toolRunner: ToolRunner,
+  usageId: string,
 ): Promise<string | null> {
   let nextProductId = currentProductId;
   for (const toolCall of toolCalls) {
-    const toolResult = await runToolCall(identity, state.conversation.id, toolCall, toolRunner);
+    const toolResult = await runToolCall(
+      identity,
+      state.conversation.id,
+      toolCall,
+      toolRunner,
+      usageId,
+    );
     if (toolResult.ok && toolResult.output.state?.currentProductId) {
       nextProductId = toolResult.output.state.currentProductId;
     }
@@ -342,6 +375,9 @@ async function handleModelResponse(
   currentProductId: string | null,
   round: number,
   toolRunner: ToolRunner,
+  conversationService: ConversationService,
+  usageId: string,
+  latency: ChatLatencyTracker,
 ): Promise<RoundResult> {
   const modelMessage = modelResponse.choices[0]!.message;
   const toolCalls = modelMessage.tool_calls;
@@ -358,8 +394,10 @@ async function handleModelResponse(
       currentProductId,
       toolCalls,
       toolRunner,
+      usageId,
     );
     state.conversationState = await transitionConversation(
+      conversationService,
       identity,
       state.conversation.id,
       state.conversationState,
@@ -371,17 +409,28 @@ async function handleModelResponse(
   const content = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
   if (!content) throw new ApplicationError("DEPENDENCY_ERROR");
   state.conversationState = await transitionConversation(
+    conversationService,
     identity,
     state.conversation.id,
     state.conversationState,
     "FINAL",
     false,
   );
-  await persistAssistantMessage(identity, state, currentProductId, content);
+  await persistAssistantMessage(conversationService, identity, state, currentProductId, content);
+  // Sem streaming, o primeiro conteúdo e o final são a mesma resposta: os dois
+  // registros saem daqui e devem permanecer iguais até existir streaming.
+  const completedAt = performance.now();
+  const timeToFirstContentMs = completedAt - latency.startedAt;
+  const timeToFinalMs = timeToFirstContentMs;
+  recordSafely(applicationMetrics.aiTimeToFirstContent, timeToFirstContentMs);
+  recordSafely(applicationMetrics.aiTimeToFinal, timeToFinalMs);
   logJson("info", "ai.chat_completed", {
     correlationId: identity.correlationId,
     tenantId: identity.tenantId,
     rounds: round + 1,
+    timeToAcknowledgeMs: timeToAcknowledgeMs(latency),
+    timeToFirstContentMs: Math.round(timeToFirstContentMs),
+    timeToFinalMs: Math.round(timeToFinalMs),
   });
   return { kind: "complete", content, currentProductId };
 }
@@ -397,6 +446,8 @@ async function executeReservedRound({
   round,
   modelCaller,
   toolRunner,
+  conversationService,
+  latency,
 }: {
   budgetLedger: BudgetLedger;
   budgetConfig: BudgetLedgerConfig;
@@ -408,6 +459,8 @@ async function executeReservedRound({
   round: number;
   modelCaller: ModelCaller;
   toolRunner: ToolRunner;
+  conversationService: ConversationService;
+  latency: ChatLatencyTracker;
 }): Promise<RoundResult> {
   // reserveAtomic performs the lazy tenant sweep in the same transaction as the
   // conditional counter update. No gateway call can happen before this point.
@@ -418,9 +471,11 @@ async function executeReservedRound({
   );
   if (reservationResult.status !== "reserved") throw new ApplicationError("AI_QUOTA");
 
-  let inputTokens = 0;
-  let outputTokens = 0;
-  let realTokens = 0;
+  // `null` significa que **nenhuma resposta foi recebida** (a chamada falhou antes de
+  // medir). Isso NÃO é "uso desconhecido": sem resposta não há medição a classificar, e
+  // o contrato legado da falha continua valendo (libera a reserva, registra o outcome do
+  // erro). `TokenUsage` só é atribuído depois que o gateway respondeu.
+  let usage: TokenUsage | null = null;
   let toolCallsCount = 0;
   let modelName: string | null = null;
   let outcome = "error";
@@ -431,10 +486,11 @@ async function executeReservedRound({
       gatewayToolsForState(currentProductId),
       requestSignal,
     );
+    acknowledgeGatewayResponse(latency);
     modelName = (modelResponse as { model?: string }).model ?? null;
-    inputTokens = modelResponse.usage?.prompt_tokens ?? 0;
-    outputTokens = modelResponse.usage?.completion_tokens ?? 0;
-    realTokens = inputTokens + outputTokens;
+    // INV-006: absence of `usage` is unknown, never zero. The gateway envelope is
+    // external input, so the classification happens once, here, and travels typed.
+    usage = parseAiUsage((modelResponse as { usage?: unknown }).usage);
     toolCallsCount = modelResponse.choices[0]!.message.tool_calls?.length ?? 0;
     const result = await handleModelResponse(
       modelResponse,
@@ -444,6 +500,9 @@ async function executeReservedRound({
       currentProductId,
       round,
       toolRunner,
+      conversationService,
+      reservationResult.usageId,
+      latency,
     );
     outcome = result.kind === "continue" ? "tool_round" : "success";
     return result;
@@ -451,15 +510,44 @@ async function executeReservedRound({
     outcome = settlementOutcome(error);
     throw error;
   } finally {
-    const est = estimateModelCost(modelName, inputTokens, outputTokens);
-    await budgetLedger.settle(reservationResult.usageId, realTokens, outcome, {
-      inputTokens,
-      outputTokens,
+    // Sem resposta do gateway (`usage === null`) não há medição a classificar: preserva-se
+    // o contrato legado da falha — liquida com zero, libera a reserva e registra o outcome
+    // do erro. "Uso desconhecido" fica reservado ao caso em que o gateway **respondeu** e o
+    // `usage` não era utilizável (ausente/parcial/inválido).
+    const settlementUsage: SettlementUsage = usage ?? 0;
+    const est: EstimatedCostResult =
+      usage?.kind === "known"
+        ? estimateModelCost(modelName, usage.inputTokens, usage.outputTokens)
+        : usage === null
+          ? // Caminho de falha: o estimador é alimentado com zero exatamente como antes
+            // desta mudança, para não alterar as métricas de custo de chamadas que falharam.
+            estimateModelCost(modelName, 0, 0)
+          : // Resposta recebida sem medição confiável: nenhum custo é afirmado.
+            { cost: null, status: "unknown" };
+    await budgetLedger.settle(reservationResult.usageId, settlementUsage, outcome, {
+      ...(usage?.kind === "known"
+        ? { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens }
+        : {}),
       toolCalls: toolCallsCount,
-      estimatedCost: est.status === "known" ? est.cost : null,
+      estimatedCost: est.cost,
       costStatus: est.status,
     });
+    if (usage?.kind === "unknown") {
+      // Auditable alarm: the state is persisted (real_tokens NULL + outcome
+      // 'usage_unknown'), so this event is not the only trace of the unknown.
+      logJson("warn", "ai.usage_unknown", {
+        tenantId: identity.tenantId,
+        usageId: reservationResult.usageId,
+        reason: usage.reason,
+        flowOutcome: outcome,
+        model: modelName,
+        round,
+      });
+    }
     try {
+      if (usage?.kind === "unknown") {
+        applicationMetrics.aiUsageUnknownTotal.add(1, { reason: usage.reason });
+      }
       if (est.status === "known") {
         applicationMetrics.aiEstimatedCostTotal.add(1, {
           model: modelName ?? "unknown",
@@ -480,9 +568,13 @@ export async function executeSendChatMessage(
   identity: RequestIdentity,
   dependencies: ChatExecutionDependencies,
 ) {
+  // t0 do §29: aceite da mensagem, antes de qualquer I/O (rate limit, histórico,
+  // reserva de orçamento) — é a latência que o usuário percebe.
+  const latency = createChatLatencyTracker(performance.now());
   const budgetConfig = { ...budgetConfigFromEnv(), ...dependencies.budgetConfig };
   const budgetLedger =
     dependencies.budgetLedger ?? createBudgetLedger({ identity, config: budgetConfig });
+  const conversationService = dependencies.conversationService ?? defaultConversationService;
   const baseToolRunner = dependencies.toolRunner ?? runRegisteredTool;
   const requestTimeoutMs = numberSetting("AI_REQUEST_TIMEOUT_MS", 60_000, 1_000, 60_000);
   const requestSignal = AbortSignal.any([identity.signal, AbortSignal.timeout(requestTimeoutMs)]);
@@ -493,6 +585,7 @@ export async function executeSendChatMessage(
     reserveChatAndLoadHistory(
       request,
       budgetLedger,
+      conversationService,
       data.message,
       data.currentProductId === undefined ? null : data.currentProductId,
     ),
@@ -513,33 +606,57 @@ export async function executeSendChatMessage(
   const maxToolRounds = numberSetting("AI_MAX_TOOL_ROUNDS", 8, 1, 8);
   try {
     state.conversationState = await transitionConversation(
+      conversationService,
       identity,
       state.conversation.id,
       state.conversationState,
       "SUBMIT",
     );
-    for (let round = 0; round < maxToolRounds; round += 1) {
-      if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
-      const result = await executeReservedRound({
-        budgetLedger,
-        budgetConfig,
-        identity,
-        messages,
-        requestSignal,
-        state,
-        currentProductId,
-        round,
-        modelCaller: dependencies.modelCaller,
-        toolRunner,
-      });
-      currentProductId = result.currentProductId;
-      if (result.kind === "complete") return result;
-    }
+    return await withSpan(
+      "ai.chat.send",
+      { "app.ai.max_rounds": maxToolRounds },
+      async (sendSpan) => {
+        for (let round = 0; round < maxToolRounds; round += 1) {
+          if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT");
+          const result = await withSpan(
+            "ai.chat.round",
+            { "app.ai.round_no": round },
+            async (roundSpan) => {
+              const roundResult = await executeReservedRound({
+                budgetLedger,
+                budgetConfig,
+                identity,
+                messages,
+                requestSignal,
+                state,
+                currentProductId,
+                round,
+                modelCaller: dependencies.modelCaller,
+                toolRunner,
+                conversationService,
+                latency,
+              });
+              roundSpan.setAttribute(
+                "app.ai.outcome",
+                roundResult.kind === "continue" ? "tool_round" : "success",
+              );
+              return roundResult;
+            },
+          );
+          currentProductId = result.currentProductId;
+          if (result.kind === "complete") {
+            sendSpan.setAttribute("app.ai.outcome", "success");
+            return result;
+          }
+        }
 
-    throw new ApplicationError("DEPENDENCY_ERROR");
+        throw new ApplicationError("DEPENDENCY_ERROR");
+      },
+    );
   } catch (error) {
     try {
       await transitionConversation(
+        conversationService,
         identity,
         state.conversation.id,
         state.conversationState,
@@ -550,4 +667,8 @@ export async function executeSendChatMessage(
     }
     throw error;
   }
+}
+
+export function getConversationForTests(context: RequestContext) {
+  return defaultConversationService.findForUser(context);
 }

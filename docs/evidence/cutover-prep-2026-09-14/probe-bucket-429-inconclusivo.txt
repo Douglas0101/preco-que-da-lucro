@@ -1,0 +1,49 @@
+# 429 mascara o veredito de origem → INCONCLUSIVO (exit 2), nunca PASS/FAIL — captura bruta 2026-09-14
+# Mesmo artefato e mesmo comando do probe canônico, executado DUAS vezes seguidas com o MESMO --bucket-ip:
+#   1a execução (bucket vazio)  -> PASS, exit 0   -> probe-bucket-a (resumo abaixo)
+#   2a execução (bucket cheio)  -> INCONCLUSIVO, exit 2
+# Isto prova (a) que o bucket /sign-in/email é 5/min por IP e é chaveado pelo x-forwarded-for, e
+# (b) que o script não converte 429 em PASS nem em FAIL.
+
+--- 1a execução: contagem por id ---
+warm-up                 INFO  GET /api/health/live paga o TTFF a frio (não é asserção)
+live                    PASS  GET /api/health/live → 200 e corpo esperado (3 amostra(s))
+ready                   PASS  GET /api/health/ready → 200 e corpo esperado (3 amostra(s))
+get-session             PASS  GET /api/auth/get-session → 200 e corpo `null` (prova só que a instância subiu)
+origem-positiva         PASS  POST /api/auth/sign-in/email com Origin canônico → ≠403 (sem este PASS o controle negativo não vale)
+origem-negativa         PASS  POST /api/auth/sign-in/email com Origin não confiável → 403
+origem-negativa-cookie  PASS  POST /api/auth/sign-in/email com Origin não confiável e cookie → 403 (caminho `useCookies` do validateOrigin)
+origem-positiva-cookie  PASS  POST /api/auth/sign-in/email com Origin canônico e cookie → ≠403 (par do controle negativo com cookie)
+origem-ausente          INFO  POST sem Origin nem cookie → INFO, não asserção (o veredito depende dos headers Sec-Fetch-* do cliente)
+get-session: NÃO discrimina a troca de auth (origin check retorna cedo em GET/HEAD/OPTIONS).
+
+--- 2a execução (bruta) ---
+m02-canonical-probe — §13.6 conjunto canônico + controle de origem
+alvo: http://127.0.0.1:35003 (origem canônica do probe: http://127.0.0.1:35003)
+limite por requisição: 3000 ms · amostras de live/ready: 3
+latências abaixo são LOCAIS/CONTROLADAS — não são números de produção
+
+warm-up                 INFO  GET /api/health/live paga o TTFF a frio (não é asserção)
+                              observado: status=200 latencia_ms=28
+live                    PASS  GET /api/health/live → 200 e corpo esperado (3 amostra(s))
+                              observado: status=200 body={"status":"ok"} latencias_ms=[4, 3, 3]
+ready                   PASS  GET /api/health/ready → 200 e corpo esperado (3 amostra(s))
+                              observado: status=200 body={"status":"ready","dependencies":{"postgres":"ok"}} latencias_ms=[30, 6, 4]
+get-session             PASS  GET /api/auth/get-session → 200 e corpo `null` (prova só que a instância subiu)
+                              observado: status=200 body=null latencia_ms=35
+origem-positiva         INCONCLUSIVO  POST /api/auth/sign-in/email com Origin canônico → ≠403 (sem este PASS o controle negativo não vale)
+                              observado: status=429 body={"message":"Too many requests. Please try again later."} cookies=[(nenhum)] latencia_ms=11 — 429 do bucket /sign-in/email (5/min por IP): veredito de origem MASCARADO — aguarde a janela e re-execute
+origem-negativa         INCONCLUSIVO  POST /api/auth/sign-in/email com Origin não confiável → 403
+                              observado: status=429 body={"message":"Too many requests. Please try again later."} cookies=[(nenhum)] latencia_ms=6 — 429 do bucket /sign-in/email (5/min por IP): veredito de origem MASCARADO — aguarde a janela e re-execute
+origem-negativa-cookie  INCONCLUSIVO  POST /api/auth/sign-in/email com Origin não confiável e cookie → 403 (caminho `useCookies` do validateOrigin)
+                              observado: status=429 body={"message":"Too many requests. Please try again later."} cookies=[(nenhum)] latencia_ms=6 — 429 do bucket /sign-in/email (5/min por IP): veredito de origem MASCARADO — aguarde a janela e re-execute
+origem-positiva-cookie  INCONCLUSIVO  POST /api/auth/sign-in/email com Origin canônico e cookie → ≠403 (par do controle negativo com cookie)
+                              observado: status=429 body={"message":"Too many requests. Please try again later."} cookies=[(nenhum)] latencia_ms=6 — 429 do bucket /sign-in/email (5/min por IP): veredito de origem MASCARADO — aguarde a janela e re-execute
+origem-ausente          INFO  POST sem Origin nem cookie → INFO, não asserção (o veredito depende dos headers Sec-Fetch-* do cliente)
+                              observado: status=429 body={"message":"Too many requests. Please try again later."}
+
+get-session: NÃO discrimina a troca de auth (origin check retorna cedo em GET/HEAD/OPTIONS).
+troca de auth: NÃO CARIMBADA por este probe — exige a asserção (c1) do host do link de reset
+de senha, emitida por e-mail controlado no canônico (dia-d §1.6-c1/c2).
+custo do conjunto: 5 POSTs em /sign-in/email — bucket 5/min por IP (isolado em 198.51.100.28).
+RESULTADO: INCONCLUSIVO — a origem NÃO foi provada nesta execução (429 mascarou).

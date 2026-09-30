@@ -1,0 +1,50 @@
+=== 0. arvore limpa: check deve passar ===
+M-02 matrix is deterministic and up to date.
+EXIT_ANTES=0
+
+=== 1. planta a sonda (src/lib/zzz-wp2-probe.functions.ts) ===
+criado: 1 linha(s)
+
+=== 2. check DEVE disparar, e a mensagem DEVE nomear o contador ===
+GATE_EXIT=1
+--- stderr (a mensagem do gate) ---
+M-02 matrix drift: execute npm run m02:matrix:generate and review the result.
+  docs/specs/M-02/matrix.generated.yaml:
+    counts.bffModules: 8 -> 9
+    bffs: 8 -> 9 (1 added, 0 removed)
+      + src/lib/zzz-wp2-probe.functions.ts
+  docs/specs/M-02/matrix.yaml:
+    counts.bffModules: 8 -> 9
+    bffs: 8 -> 9 (1 added, 0 removed)
+      + src/lib/zzz-wp2-probe.functions.ts
+
+=== 3. a primeira linha continua byte a byte a de antes? ===
+PRIMEIRA_LINHA: IDENTICA A ANTERIOR
+
+=== 4. nomeia contador OU lista? ===
+NOMEOU CONTADOR: counts.bffModules: 8 -> 9 counts.bffModules: 8 -> 9 
+NOMEOU LISTA:     bffs: 8 -> 9 (1 added, 0 removed)     bffs: 8 -> 9 (1 added, 0 removed) 
+
+ENTRADA: OK (a sonda nova aparece como +)
+DIRECAO: OK (disco 8 -> arvore 9)
+
+=== 5. diz em qual arquivo? ===
+  docs/specs/M-02/matrix.generated.yaml:
+  docs/specs/M-02/matrix.yaml:
+
+=== 6. tamanho da mensagem vs tamanho do diff que ela substitui ===
+linhas da mensagem: 9
+bytes de matrix.yaml: 58164
+
+=== 7. limpa a sonda e revalida ===
+removido: src/lib/zzz-wp2-probe.functions.ts
+M-02 matrix is deterministic and up to date.
+EXIT_DEPOIS=0
+
+=== 8. a sonda nao sobrou no git? ===
+ M scripts/m02-matrix.ts
+?? docs/evidence/d1-gate-ux-2026-09-19/
+?? scripts/lib/m02-matrix-drift.ts
+?? src/test/m02-matrix-drift.test.ts
+
+FALSIFICA_EXIT=0

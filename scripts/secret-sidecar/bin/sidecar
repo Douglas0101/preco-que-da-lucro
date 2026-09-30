@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+#
+# Lancador do sidecar secreto-injetor.
+#
+# Ele e um lancador, e nao a implementacao, por uma razao verificavel: o caminho de instalacao
+# do brief (`~/.mcp-runtime/secret-sidecar/`) **nao e um repositorio git**. Codigo que so existe
+# fora de um clone nao pode ser conferido por clone, e um cofre que nao pode ser conferido e
+# uma promessa. Entao o codigo vive versionado em `scripts/secret-sidecar/`, e o que fica em
+# `~/.mcp-runtime/` e um symlink para este arquivo.
+#
+# Códigos de saída: os do proprio sidecar (0 sucesso, 1 veredicto, 2 precondicao).
+
+set -eu
+
+alvo="$(readlink -f "$0")"
+repo="${SIDECAR_REPO:-$(cd "$(dirname "$alvo")/../../.." && pwd)}"
+
+if [ ! -f "$repo/scripts/secret-sidecar/cli.ts" ]; then
+  printf 'sidecar: precondicao falhou — nao encontrei %s\n' \
+    "$repo/scripts/secret-sidecar/cli.ts" >&2
+  exit 2
+fi
+
+cd "$repo"
+exec npx --no-install tsx scripts/secret-sidecar/cli.ts "$@"

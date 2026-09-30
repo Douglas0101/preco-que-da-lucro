@@ -1,0 +1,7 @@
+
+> db:up
+> docker compose up -d --wait
+
+ Container preco-que-da-lucro-postgres Creating 
+ service:postgres:1 Error response from daemon: Conflict. The container name "/preco-que-da-lucro-postgres" is already in use by container "c254d14525d06aa4ef37452b4d1f645d031603c3c9401992bcc0f8fdb72a82aa". You have to remove (or rename) that container to be able to reuse that name. 
+Error response from daemon: Conflict. The container name "/preco-que-da-lucro-postgres" is already in use by container "c254d14525d06aa4ef37452b4d1f645d031603c3c9401992bcc0f8fdb72a82aa". You have to remove (or rename) that container to be able to reuse that name.

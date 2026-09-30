@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+# S7 GUARD do WP3 (F-D2-depth-pin). Read-only. Grava o proprio log (licao do WP2: um S7 que
+# so imprime em stdout pode ser capturado de uma revisao anterior).
+set -u
+cd "$(dirname "$0")/.." || exit 1
+A=.artifacts
+LOG=$A/wp3-s7.log
+exec > >(tee "$LOG") 2>&1
+
+FALHAS=0
+
+echo "=== S7 GUARD — WP3 F-D2-depth-pin ==="
+echo "HEAD: $(git rev-parse HEAD)"
+echo "branch: $(git branch --show-current)"
+echo "data: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+echo
+
+echo "=== IDENTIDADE do que foi examinado (nao cardinalidade) ==="
+DIFF=$A/wp3-s7-diff.txt
+{
+  git diff -- src scripts docs
+  echo "--- arquivos nao rastreados ---"
+  git ls-files --others --exclude-standard -- src scripts docs | sort | while read -r f; do
+    echo "### $f"
+    cat "$f"
+  done
+} > "$DIFF" 2>/dev/null
+echo "  bytes do artefato examinado: $(wc -c < "$DIFF")"
+echo "  sha256 do artefato examinado: $(sha256sum "$DIFF" | cut -d' ' -f1)"
+for f in src/test/products-fk-conflict.test.ts scripts/db/test-products-fk-conflict.ts \
+         src/lib/products.functions.ts; do
+  echo "  sha256 $f: $(sha256sum "$f" | cut -d' ' -f1)"
+done
+echo
+
+echo "=== 1. arquivos tocados ==="
+git status --short -- src scripts docs | sed 's/^/  /'
+TOCADOS=$(git status --short -- src scripts docs | wc -l)
+echo "  total: $TOCADOS"
+FORA=$(git status --short -- src scripts docs | grep -vcE 'products-fk-conflict|d2-depth-pin' || true)
+echo "  fora do escopo declarado: $FORA (esperado 0)"
+[ "$FORA" -eq 0 ] || { echo "  !! FALHA: arquivo fora do escopo"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 2. o runtime nao foi tocado (ASSERTADO) ==="
+LIMITE=$(grep -c '^const FK_CAUSE_CHAIN_LIMIT = 4;' src/lib/products.functions.ts || true)
+RUNTIME=$(git status --short src/lib/products.functions.ts | wc -l)
+echo "  FK_CAUSE_CHAIN_LIMIT == 4: $LIMITE (esperado 1)"
+echo "  products.functions.ts no diff? $RUNTIME (esperado 0)"
+[ "$LIMITE" -eq 1 ] || { echo "  !! FALHA: limite != 4"; FALHAS=$((FALHAS+1)); }
+[ "$RUNTIME" -eq 0 ] || { echo "  !! FALHA: runtime no diff"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 3. credenciais herdadas no ambiente ==="
+HERDADAS=$(env | grep -cE '^(NEON_|VERCEL|DATABASE_URL|PG|GH_|GITHUB_|CLOUDFLARE|AWS_|STRIPE)' || true)
+echo "  variaveis de credencial herdadas: $HERDADAS (esperado 0)"
+[ "$HERDADAS" -eq 0 ] || { echo "  !! FALHA: credencial no ambiente"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 4. secrets audit ==="
+npm run m02:secrets-audit > $A/wp3-secrets.txt 2>&1
+SECRETS=$?
+echo "  SECRETS_EXIT=$SECRETS"
+[ "$SECRETS" -eq 0 ] || { echo "  !! FALHA: secrets audit"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 5. varredura do diff por padroes de segredo ==="
+PADROES='postgresql://|postgres://|napi_|sk-|ghp_|eyJ|password|secret|token'
+SUSPEITAS=$(grep -cE "$PADROES" "$DIFF" || true)
+echo "  linhas suspeitas no diff: $SUSPEITAS"
+if [ "$SUSPEITAS" -gt 0 ]; then
+  echo "  --- as linhas, para inspecao (o termo 'token' aparece em SyntaxKind) ---"
+  grep -nE "$PADROES" "$DIFF" | head -10 | sed 's/^/    /'
+fi
+echo
+
+echo "=== 6. H-9 e containers (ASSERTADO) ==="
+H9=$(ss -ltn 2>/dev/null | grep -c ':5432 ' || true)
+WP3C=$(docker ps -a --format '{{.Names}}' 2>/dev/null | grep -c 'wp3' || true)
+echo "  listeners na 5432 (H-9): $H9 (esperado 0)"
+echo "  containers efemeros deste WP: $WP3C (esperado 0)"
+[ "$H9" -eq 0 ] || { echo "  !! FALHA: listener na 5432"; FALHAS=$((FALHAS+1)); }
+[ "$WP3C" -eq 0 ] || { echo "  !! FALHA: container wp3 residual"; FALHAS=$((FALHAS+1)); }
+echo
+
+echo "=== 7. nenhum push acidental ==="
+echo "  origin/main: $(git rev-parse origin/main)"
+echo "  origin/develop: $(git rev-parse origin/develop)"
+echo "  commits locais a frente de origin/develop nesta branch: $(git rev-list --count origin/develop..HEAD)"
+echo
+
+if [ "$FALHAS" -eq 0 ]; then
+  echo "S7 GUARD: OK (nenhum veto)"
+  echo "S7_EXIT=0"
+else
+  echo "S7 GUARD: $FALHAS FALHA(S) — VETO"
+  echo "S7_EXIT=1"
+fi

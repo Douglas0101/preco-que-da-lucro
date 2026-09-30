@@ -12,14 +12,13 @@ Clientes AI podem importar clientes HTTP externos, mas não DB/schema.
 ## Estado transitório aprovado (2026-09-05)
 
 A regra normativa acima permanece o **alvo** das fases M02-2/3/4. O código
-shipado pelas waves PERF/FIN + wave1 diverge dela em 11 arestas BFF→DB, agora
+shipado pelas waves PERF/FIN + wave1 diverge dela em arestas BFF→DB, agora
 cobertas por exceções `transient-*` no `matrix.overlay.yaml`, cada uma com razão
 e fase-alvo de migração:
 
 | Exceção overlay                    | Caminho                                         | Razão                                                                              |
 | ---------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `transient-ai-modules`             | `src/lib/ai/**`                                 | budget-ledger = arquitetura de referência H-001; unidades em `transactionPolicies` |
-| `transient-chat-data`              | `src/lib/chat-data.ts`                          | leitura de conversas shipada; alvo M02-3                                           |
 | `transient-chat-execution`         | `src/lib/chat-execution.server.ts`              | unidades compostas de `sendChatMessage` (ADR-026); alvo M02-3                      |
 | `transient-bff-chat-self`          | `src/lib/chat.functions.ts`                     | histórico de conversa na tenant tx; alvo M02-3                                     |
 | `transient-bff-products-self`      | `src/lib/products.functions.ts`                 | read-model UNION na tenant tx (wave PERF); alvo M02-2                              |

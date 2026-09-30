@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# S7 do WP-R1: escopo do diff, isolamento de bancada e refs, assertados.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+BASE=6d9b22f
+FAIL=0
+echo "=== S7 do WP-R1 ==="
+echo "HEAD: $(git rev-parse HEAD)"
+echo "base: $BASE"
+echo "--- escopo do diff ---"
+git diff --name-only "$BASE"..HEAD | sed 's/^/  /'
+ALLOWED='^(AGENTS\.md|package\.json|\.github/workflows/(ui-stack|ci-light)\.yml|scripts/m02-debts-guard\.mjs|src/test/m02-debts-guard\.test\.ts|docs/evidence/agent-state/(DEBTS|PROGRESS)\.md|docs/evidence/debts-registry-2026-09-20/)'
+FORA=$(git diff --name-only "$BASE"..HEAD | grep -vE "$ALLOWED" || true)
+if [ -z "$FORA" ]; then echo "ESCOPO_OK"; else echo "!! FORA DO ESCOPO:"; echo "$FORA"; FAIL=1; fi
+echo "--- runtime/migrations/placar intocados ---"
+RUNTIME=$(git diff --name-only "$BASE"..HEAD -- src/lib src/server src/db src/instrumentation drizzle scripts/db package-lock.json docs/evidence/agent-state/QUEUE.md EXECUTION-STATE-PROGRAM.md docs/specs/M-02 | wc -l)
+echo "  caminhos runtime/placar=$RUNTIME"
+if [ "$RUNTIME" -eq 0 ]; then echo "RUNTIME_OK"; else echo "!! runtime/placar tocado"; FAIL=1; fi
+echo "--- symlink deepseek-harness nao versionado ---"
+if git ls-files --error-unmatch deepseek-harness >/dev/null 2>&1; then echo "!! versionado"; FAIL=1; else echo "SYMLINK_OK"; fi
+echo "--- credenciais herdadas ---"
+ENVCRED=$(env | grep -icE 'NEON|DATABASE_URL|VERCEL_TOKEN|_TOKEN=|SECRET' || true)
+echo "  env credenciais=$ENVCRED"
+if [ "$ENVCRED" -eq 0 ]; then echo "CRED_OK"; else echo "!! credencial no ambiente"; FAIL=1; fi
+echo "--- :5432 ---"
+L=$(ss -ltn 2>/dev/null | grep -c ':5432 ' || true)
+echo "  listeners :5432=$L"
+if [ "$L" -eq 0 ]; then echo "H9_OK"; else echo "!! :5432 com listener"; FAIL=1; fi
+echo "--- origin/main ---"
+OM=$(git rev-parse --short origin/main)
+echo "  origin/main=$OM"
+if [ "$OM" = "9724d2c" ]; then echo "MAIN_OK"; else echo "!! main mudou"; FAIL=1; fi
+echo "--- hashes dos arquivos do WP ---"
+sha256sum scripts/m02-debts-guard.mjs src/test/m02-debts-guard.test.ts \
+  docs/evidence/agent-state/DEBTS.md docs/evidence/debts-registry-2026-09-20/SPEC.md \
+  AGENTS.md package.json .github/workflows/ui-stack.yml .github/workflows/ci-light.yml
+if [ "$FAIL" -eq 0 ]; then echo "S7: OK"; echo "S7_EXIT=0"; else echo "S7: REPROVADO"; echo "S7_EXIT=1"; fi

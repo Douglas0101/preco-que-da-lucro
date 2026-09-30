@@ -1,0 +1,37 @@
+$ cd /tmp/trkb-red   # worktree --detach em 648c029 (pai), com o test-memory.ts D4 copiado
+$ git -C /tmp/trkb-red rev-parse HEAD
+648c0291c8f0262c20cc8edfa38e90268936bd00
+$ env -u DATABASE_URL_UNPOOLED DATABASE_ADMIN_URL=<container trk-b-pg / pqdl_trk_b_red> DATABASE_URL=<idem> npx tsx scripts/db/test-memory.ts
+/home/douglas-souza/preco-que-d-main/.worktree-trk-b/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+
+error: relation "ai_memory_access_log" does not exist
+    at /home/douglas-souza/preco-que-d-main/.worktree-trk-b/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async resetMemory (/tmp/trkb-red/scripts/db/test-memory.ts:196:3)
+    at async seedFixtures (/tmp/trkb-red/scripts/db/test-memory.ts:239:3)
+    at async t1TenantIsolation (/tmp/trkb-red/scripts/db/test-memory.ts:306:3)
+    at async main (/tmp/trkb-red/scripts/db/test-memory.ts:2889:5)
+    at async <anonymous> (/tmp/trkb-red/scripts/db/test-memory.ts:2919:1) {
+  length: 119,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '13',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+
+Node.js v24.15.0
+EXIT=1

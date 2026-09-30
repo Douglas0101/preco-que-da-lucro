@@ -1,0 +1,11 @@
+$ docker exec trk-d2-pg psql -U postgres -d preco_que_da_lucro_test -t -A -c "select conname, length(conname) from pg_constraint where contype='f' and confrelid in ('product_ingredients'::regclass,'product_packaging'::regclass);"
+
+purchase_price_history_tenant_id_ingredient_id_product_ingredie|63
+purchase_price_history_tenant_id_packaging_id_product_packaging|63
+
+# migration literal (drizzle/0004_giant_nocturne.sql:31-32) — 82 e 79 bytes, cortados em 63 pelo NAMEDATALEN:
+82 purchase_price_history_tenant_id_ingredient_id_product_ingredients_tenant_id_id_fk
+79 purchase_price_history_tenant_id_packaging_id_product_packaging_tenant_id_id_fk
+35 purchase_price_history_target_check
+22 sales_net_amount_check
+35 sales_items_total_amount_math_check

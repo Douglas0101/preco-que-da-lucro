@@ -1,0 +1,239 @@
+=== revisao examinada ===
+  HEAD: 612c34bc9dfb49945854b29773362f012df07020
+  sha256 src/lib/vercel-analytics.ts: b0bc6795fa55d656d914a6360cd1cd40d1a0c629631e3fe3c760d307ccd9667e
+  sha256 e2e/analytics-gate.spec.ts:  9b1c58e98c83791e077f1b67bcc7c0c653f607da83b49a817d744ae31e668b6a
+=== container efemero wp5-pg em 127.0.0.1:5439 ===
+  PostgreSQL 17.11 on x86_64-pc-linux-musl
+  migrations ok
+
+> pretest:e2e
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> test:e2e
+> playwright test e2e/analytics-gate.spec.ts
+
+[WebServer] .env not found. Continuing without it.
+
+Running 4 tests using 2 workers
+
+[WebServer] (node:652314) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+[WebServer] (Use `node --trace-deprecation ...` to show where the warning was created)
+[WebServer] {"timestamp":"2026-09-20T02:13:23.043Z","level":"error","event":"request.failed","correlationId":"06284498-5412-4a2d-ba41-a28859c2f9c0","code":"INTERNAL_ERROR","method":"GET","pathname":"/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59","durationMs":102,"error":{"name":"Error","message":"aborted"}}
+[WebServer] Error: aborted
+[WebServer]     at abortIncoming (node:_http_server:848:17)
+[WebServer]     at socketOnClose (node:_http_server:842:3)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12) (status 500)
+[WebServer] caused by: Error: aborted
+[WebServer]     at abortIncoming (node:_http_server:848:17)
+[WebServer]     at socketOnClose (node:_http_server:842:3)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12)
+[WebServer] {"timestamp":"2026-09-20T02:13:23.046Z","level":"error","event":"server.ssr_failed","correlationId":"48f74545-aa5a-4f5d-b6da-2f51d101cf97","error":{"name":"HTTPError","message":"aborted"}}
+  ✘  1 [chromium] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (1.5s)
+[WebServer] {"timestamp":"2026-09-20T02:13:24.854Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:13:24.859Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:13:25.358Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:13:25.362Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+[WebServer] {"timestamp":"2026-09-20T02:13:25.664Z","level":"error","event":"request.failed","correlationId":"06f83f26-76cb-4869-9c8f-fe1abc4041a6","code":"INTERNAL_ERROR","method":"POST","pathname":"/api/vitals","durationMs":5,"error":{"name":"AbortError","message":"This operation was aborted"}}
+[WebServer] AbortError: This operation was aborted
+[WebServer]     at new DOMException (node:internal/per_context/domexception:76:18)
+[WebServer]     at AbortController.abort (node:internal/abort_controller:506:18)
+[WebServer]     at abort (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:316:51)
+[WebServer]     at ServerResponse.<anonymous> (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:320:35)
+[WebServer]     at Object.onceWrapper (node:events:630:28)
+[WebServer]     at ServerResponse.emit (node:events:509:28)
+[WebServer]     at emitCloseNT (node:_http_server:1076:10)
+[WebServer]     at Socket.onServerResponseClose (node:_http_server:289:5)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12) (status 500)
+[WebServer] caused by: AbortError: This operation was aborted
+[WebServer]     at new DOMException (node:internal/per_context/domexception:76:18)
+[WebServer]     at AbortController.abort (node:internal/abort_controller:506:18)
+[WebServer]     at abort (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:316:51)
+[WebServer]     at ServerResponse.<anonymous> (file:///home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/node_modules/srvx/dist/adapters/node.mjs:320:35)
+[WebServer]     at Object.onceWrapper (node:events:630:28)
+[WebServer]     at ServerResponse.emit (node:events:509:28)
+[WebServer]     at emitCloseNT (node:_http_server:1076:10)
+[WebServer]     at Socket.onServerResponseClose (node:_http_server:289:5)
+[WebServer]     at Socket.emit (node:events:521:24)
+[WebServer]     at TCP.<anonymous> (node:net:350:12)
+[WebServer] {"timestamp":"2026-09-20T02:13:25.668Z","level":"error","event":"server.ssr_failed","correlationId":"50603b93-2377-412c-860e-f277c81a2398","error":{"name":"HTTPError","message":"This operation was aborted"}}
+[WebServer] {"timestamp":"2026-09-20T02:13:25.769Z","level":"warn","event":"csp.report_rejected","reason":"invalid_payload"}
+  ✘  2 [firefox] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (3.0s)
+  ✘  3 [webkit] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (2.8s)
+  ✘  4 [mobile] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (1.1s)
+
+
+  1) [chromium] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* 
+
+    Error: insights requisitados: http://127.0.0.1:4173/_vercel/insights/script.js
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "http://127.0.0.1:4173/_vercel/insights/script.js",
+    + ]
+
+      63 |     "o listener tem de ter visto o documento (instalado antes do goto)",
+      64 |   ).toBeGreaterThan(0);
+    > 65 |   expect(insights, `insights requisitados: ${insights.join(", ")}`).toEqual([]);
+         |                                                                     ^
+      66 |
+      67 |   // `typeof` devolve string: a asserção é serializável (uma função não é — S6 N2).
+      68 |   const vaType = await page.evaluate(() => typeof (window as unknown as { va?: unknown }).va);
+        at /home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/e2e/analytics-gate.spec.ts:65:69
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [firefox] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* 
+
+    Error: insights requisitados: http://127.0.0.1:4173/_vercel/insights/script.js
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "http://127.0.0.1:4173/_vercel/insights/script.js",
+    + ]
+
+      63 |     "o listener tem de ter visto o documento (instalado antes do goto)",
+      64 |   ).toBeGreaterThan(0);
+    > 65 |   expect(insights, `insights requisitados: ${insights.join(", ")}`).toEqual([]);
+         |                                                                     ^
+      66 |
+      67 |   // `typeof` devolve string: a asserção é serializável (uma função não é — S6 N2).
+      68 |   const vaType = await page.evaluate(() => typeof (window as unknown as { va?: unknown }).va);
+        at /home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/e2e/analytics-gate.spec.ts:65:69
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--firefox/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--firefox/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--firefox/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [webkit] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* 
+
+    Error: insights requisitados: http://127.0.0.1:4173/_vercel/insights/script.js
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "http://127.0.0.1:4173/_vercel/insights/script.js",
+    + ]
+
+      63 |     "o listener tem de ter visto o documento (instalado antes do goto)",
+      64 |   ).toBeGreaterThan(0);
+    > 65 |   expect(insights, `insights requisitados: ${insights.join(", ")}`).toEqual([]);
+         |                                                                     ^
+      66 |
+      67 |   // `typeof` devolve string: a asserção é serializável (uma função não é — S6 N2).
+      68 |   const vaType = await page.evaluate(() => typeof (window as unknown as { va?: unknown }).va);
+        at /home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/e2e/analytics-gate.spec.ts:65:69
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--webkit/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--webkit/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--webkit/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [mobile] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* 
+
+    Error: insights requisitados: http://127.0.0.1:4173/_vercel/insights/script.js
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "http://127.0.0.1:4173/_vercel/insights/script.js",
+    + ]
+
+      63 |     "o listener tem de ter visto o documento (instalado antes do goto)",
+      64 |   ).toBeGreaterThan(0);
+    > 65 |   expect(insights, `insights requisitados: ${insights.join(", ")}`).toEqual([]);
+         |                                                                     ^
+      66 |
+      67 |   // `typeof` devolve string: a asserção é serializável (uma função não é — S6 N2).
+      68 |   const vaType = await page.evaluate(() => typeof (window as unknown as { va?: unknown }).va);
+        at /home/douglas-souza/preco-que-d-main/.worktree-wp5-analytics-e2e/e2e/analytics-gate.spec.ts:65:69
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--mobile/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--mobile/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/analytics-gate-o-preview-n-ddc6b--requisita-vercel-insights--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [chromium] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* 
+    [firefox] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* 
+    [webkit] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* 
+    [mobile] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* 
+PLAYWRIGHT_EXIT=1

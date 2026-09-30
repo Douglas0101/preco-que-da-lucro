@@ -1,0 +1,99 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/m02-seal.test.ts (28 tests | 3 failed) 1537ms
+     ✓ selo real (SPEC + README + capturas) gera e verifica o manifesto 80ms
+     ✓ descoberta vazia reprova (0 = 0) 33ms
+     ✓ selo sem SPEC.md reprova 33ms
+     ✓ hash divergente reprova nomeando o arquivo 74ms
+     ✓ MANIFEST citando arquivo ausente reprova 73ms
+     ✓ diretório ilegível sai com erro alto (exit 2) 33ms
+     ✓ sem MANIFEST e sem --write sai com erro alto (exit 2) 35ms
+     ✓ --ancestry sem valor é erro de uso (fail-high, exit 2) 72ms
+     ✓ --run sem valor é erro de uso (fail-high, exit 2) 78ms
+     ✓ MANIFEST com path duplicado reprova 75ms
+     ✓ symlink no selo reprova (não é omitido em silêncio) 42ms
+     ✓ MANIFEST aninhado reprova (só o da raiz do selo é o canônico) 75ms
+     ✓ claim verdadeira passa e é reconhecida 119ms
+     ✓ claim invertida reprova (objetos existem: o vermelho é da relação, não da ausência) 112ms
+     ✓ arquivo sem nenhuma claim reprova (0 = 0) 105ms
+     ✓ extrai todas as claims do texto 1ms
+     × deriva fora do selo reprova como PRECONDIÇÃO (exit 2), nomeando o caminho 78ms
+     ✓ worktree limpo fora do selo passa (o próprio selo não conta como deriva) 109ms
+     × selo fora do repositório declara a precondição como N/A em vez de silenciar 78ms
+     × SHA inexistente é INDETERMINADO (exit 2), nunca veredito 110ms
+     ✓ não-ancestral com objetos presentes continua veredito (exit 1), não precondição 114ms
+     ✓ run no-op (todos os passos skipped) reprova como delegação 0ms
+     ✓ run real da light no-op (scope guard success + checks skipped) reprova 1ms
+     ✓ passos de infraestrutura não contam como check aplicável 0ms
+     ✓ install (npm ci/npm install) não conta como check aplicável 0ms
+     ✓ run substantivo (≥1 passo success) e headSha descendente passa 0ms
+     ✓ conclusion diferente de success reprova 0ms
+     ✓ headSha nem igual nem descendente reprova 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/m02-seal.test.ts > m02-seal — precondição de estado ambiente (INV-R5-a) > deriva fora do selo reprova como PRECONDIÇÃO (exit 2), nomeando o caminho
+AssertionError: expected +0 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 0
+
+ ❯ src/test/m02-seal.test.ts:252:27
+    250|     appendFileSync(join(repo, "a.txt"), "deriva\n");
+    251|     const result = runIn(repo, ["--dir", selo, "--write"]);
+    252|     expect(result.status).toBe(2);
+       |                           ^
+    253|     expect(result.stderr).toContain("PRECONDICAO");
+    254|     expect(result.stderr).toContain("a.txt");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/test/m02-seal.test.ts > m02-seal — precondição de estado ambiente (INV-R5-a) > selo fora do repositório declara a precondição como N/A em vez de silenciar
+AssertionError: expected 'm02-seal: OK (2 arquivos, checked ===…' to contain 'worktree N/A'
+
+- Expected
++ Received
+
+- worktree N/A
++ m02-seal: OK (2 arquivos, checked === discovered) — /tmp/m02-seal-Sbgbca/fora-do-repo
++
+
+ ❯ src/test/m02-seal.test.ts:271:27
+    269|     const result = runIn(repo, ["--dir", dir, "--write"]);
+    270|     expect(result.status).toBe(0);
+    271|     expect(result.stdout).toContain("worktree N/A");
+       |                           ^
+    272|   });
+    273| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/test/m02-seal.test.ts > m02-seal — taxonomia de exit codes na ancestralidade (INV-R5-b) > SHA inexistente é INDETERMINADO (exit 2), nunca veredito
+AssertionError: expected 1 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ src/test/m02-seal.test.ts:282:27
+    280|     writeFileSync(claim, "`git merge-base --is-ancestor deadbeefdeadbe…
+    281|     const result = runIn(repo, ["--dir", selo, "--ancestry", claim]);
+    282|     expect(result.status).toBe(2);
+       |                           ^
+    283|     expect(result.stderr).toContain("PRECONDICAO");
+    284|     expect(result.stderr).not.toContain("ancestralidade falsa");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 25 passed (28)
+   Start at  22:00:44
+   Duration  2.34s (transform 62ms, setup 104ms, import 46ms, tests 1.54s, environment 514ms)
+

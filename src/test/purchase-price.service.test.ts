@@ -16,12 +16,21 @@ import { contextWithRole } from "./helpers/request-context";
 
 class FakePurchasePriceRepository implements PurchasePriceRepository {
   lastInput: PurchasePriceHistoryWrite | undefined;
+  events: string[] = [];
 
   async append(_context: RequestContext, input: PurchasePriceHistoryWrite) {
+    this.events.push("append");
     this.lastInput = input;
     return {
       id: "70000000-0000-4000-8000-000000000007",
     } as PurchasePriceHistory;
+  }
+
+  async lock(
+    _context: RequestContext,
+    _input: { kind: PurchasePriceHistoryWrite["kind"]; subjectId: string },
+  ): Promise<void> {
+    this.events.push("lock");
   }
 }
 
@@ -107,6 +116,53 @@ describe("PurchasePriceService", () => {
     await expect(
       service.append(contextWithRole("member"), { ...input, quantity: "1" }),
     ).rejects.toThrow("Você não pode realizar esta ação.");
+  });
+
+  it("adquire o advisory lock ANTES do UPDATE da linha base (lock ordering)", async () => {
+    const events: string[] = [];
+    const repository: PurchasePriceRepository = {
+      async append() {
+        events.push("append");
+        return { id: "70000000-0000-4000-8000-000000000007" } as PurchasePriceHistory;
+      },
+      async lock() {
+        events.push("lock");
+      },
+    };
+    const transaction = {
+      update: (_table: unknown) => {
+        events.push("update");
+        return {
+          set: (_values: Record<string, unknown>) => ({
+            where: (_predicate: unknown) => ({
+              returning: async () => [
+                {
+                  id: "80000000-0000-4000-8000-000000000008",
+                  packagePrice: "12.3000",
+                  priceUpdatedAt: new Date("2026-08-15T12:00:00.000Z"),
+                },
+              ],
+            }),
+          }),
+        };
+      },
+    };
+    const context = {
+      ...contextWithRole("owner"),
+      transaction: transaction as unknown as RequestContext["transaction"],
+    };
+    const service = new DefaultPurchasePriceService(repository);
+
+    const result = await service.update(context, {
+      kind: "ingredient",
+      subjectId: "80000000-0000-4000-8000-000000000008",
+      price: "12.3",
+      quantity: "1",
+      unit: "kg",
+    });
+
+    expect(events).toEqual(["lock", "update", "append"]);
+    expect(result.historyId).toBe("70000000-0000-4000-8000-000000000007");
   });
 });
 

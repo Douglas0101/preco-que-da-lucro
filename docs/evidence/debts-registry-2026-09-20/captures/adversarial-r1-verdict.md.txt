@@ -1,0 +1,120 @@
+# Veredicto adversarial — WP-R1 (S6, lane read-only de contexto limpo)
+
+**Método:** subagente de contexto limpo, sem histórico do autor; auditoria read-only do branch
+`mission/r1-debts` (revisão auditada `775883e`, base `6d9b22f`) com sondas próprias em
+`/tmp/opencode/`; nenhum arquivo do repositório foi escrito pela lane. Veredicto verbatim abaixo.
+**Ciclo S5 (correções):** os 8 achados (N1–N8) foram tratados no commit `00de832`; a revisão final
+selada é a que contém este arquivo, com o RED dirigido (`captures/s6-red-vitest.log.txt`) e o GREEN
+`16/16` (`captures/s6-green-vitest.log.txt`).
+
+---
+
+# S6 adversarial — WP-R1 (registry de dívidas + guard)
+
+**Estado medido:** HEAD `775883e` · base `6d9b22f` · branch `mission/r1-debts` · `git status --short` → `?? deepseek-harness` (único untracked). Lane read-only; todas as sondas em `/tmp/opencode/`.
+
+---
+
+## 1. Tabela de veredicto
+
+| #       | Claim                                                                          | Veredicto     | Evidência (comando + saída)                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------- | ------------------------------------------------------------------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **C1**  | Guard lê colunas pelo header (não por posição) e nomeia a coluna ausente       | **CORRECTED** | `node guard --registry a8b_id_first_reordered.md` → `debts guard: OK (1 dividas…)` (colunas fora de ordem, `id` primeiro: passa). Mas `a8_reordered_header` (id por último) → `registry sem linha de cabecalho` — ver N5. `d9_column_missing_status` → `registry sem a coluna obrigatoria "status"`; `a9` → `…"closure test"`; T6 → `…"evidencia"`                                                                           |
+| **C2**  | Vazio/duplicado/degenerado reprovam                                            | **CONFIRMED** | `vazio` → `registry vazio: nenhuma divida declarada (0 = 0 reprova)` exit 1; `T8_dup` → `id duplicado: DBT-01` exit 1; probes `d1_*` (`N/A`, `TBD`, `?`, `.`, `—`, `-`, `n/a`) todas exit 1 `origem degenerada ou vazia`; `d2` evidência, `d3` classe, `d4` severidade, `d5` status idem. Exceção intencional: closure degenerada + `NS` passa (`a5`, `a6` exit 0; T4)                                                             |
+| **C3**  | "Sem closure ⇒ NS" nas duas direções                                           | **CONFIRMED** | T3 `—`+`ABERTA` → `sem closure test exige status NS (recebido "ABERTA")` exit 1; T5 closure+`NS` → `closure test presente e status NS (nao contavel)` exit 1; T4 `N/A`+`NS` → `OK` exit 0; `b1/b2` (`N/A`/`—` + `FECHADA`) → `…exige status NS (recebido "FECHADA")` exit 1                                                                                                                                                    |
+| **C4**  | Node-only, roda no leve sem instalar deps, wiring nas 3 superfícies            | **CONFIRMED** | `rg "^import" scripts/m02-debts-guard.mjs` → só `node:fs`/`node:path`; `rg "npm ci\|npm install" .github/workflows/ci-light.yml` → só um comentário (linha 101), nenhum install; `cd /tmp && node …/m02-debts-guard.mjs --registry …` → `OK (12 dividas…)` exit 0; wiring: `package.json:39` + `:81`, `ui-stack.yml:69` (job `verify`, linha 17), `ci-light.yml:82-84`, `AGENTS.md:22,26,66`                                     |
+| **C5**  | Registry real passa, 12 dívidas, `origem` rastreável nas amostras              | **CONFIRMED** (com 2 notas de proveniência — N8) | `node scripts/m02-debts-guard.mjs` → `OK (12 dividas…)` exit 0. Amostras conferidas verbatim: `L118` = "WP1 N1 N2 N5 e WP2 N2 N4 … declarados por ora"; selos WP1 (`README.md:217-219`), WP2 (`:203-204`), WP3 (`d2-depth-pin:138`), WP4 (`f-b-mem-purge:98-99`), WP5 (`f-b1-e2e:75,81-82`), WP-R3 (`:87`); `L107` (file-line 237) = `P2-02 NS->PARTIAL` + colateral `memory.service`/`memory.repository`/`outbox.worker` 0 importadores; `ledger-reconciliation/README.md:57` (`15.5 … DBT-07`), `:62` (`22.4 … DBT-08`), `:93` (`DEBTS.md` entra no WP-R1 com `DBT-01..08`); `L126` = `DEBTS.md` é do MAESTRO + ordem Fase 0. **Nota:** o _caminho_ `docs/evidence/agent-state/DEBTS.md` é decidido em `L136`, não em L126/README:93 |
+| **C6**  | Os 10 testes falham quando o guard é mutado/ausente                            | **CORRECTED** | Ausente: `.artifacts/r1-red.log` = `10 tests \| 10 failed`, todas por `Cannot find module '…/m02-debts-guard.mjs'`. Mutado: matriz própria (§3) — 4 grupos de regra deletados e a suíte continua **10/10 verde** (N2)                                                                                                                                                                                                         |
+| **C7**  | Diff não toca runtime/migrations/`QUEUE.md`/placar e não versiona o symlink    | **CONFIRMED** | `git diff --stat 6d9b22f..HEAD -- src/ drizzle/ scripts/db/ QUEUE.md package-lock.json` → só `src/test/m02-debts-guard.test.ts` (114+); `git diff … package-lock.json` vazio; `git show --stat HEAD` → 8 arquivos, nenhum runtime/migration; `git ls-files deepseek-harness` vazio; `git status --short` → `?? deepseek-harness`                                                                                              |
+| **C8**  | _(minha)_ Toda regra do guard tem caso de falsificação dedicado                | **REJECTED**  | Removi status-taxonomy, severidade-taxonomy, ID-pattern e cell-count do guard → `./node_modules/.bin/vitest run --root /tmp/opencode/repo` → `Test Files 1 passed (1) / Tests 10 passed (10)` (N2)                                                                                                                                                                                                                           |
+| **C9**  | _(minha)_ A contagem de 12 dívidas está pinada por teste                       | **REJECTED**  | Reduzi `DEBTS.md` (cópia) a 1 dívida → `Tests 10 passed (10)`; o teste real só assere `stdout toContain("debts guard: OK")` e `stderr === ""` (`src/test/m02-debts-guard.test.ts:44-49`) — não assere `12 dividas` (N3)                                                                                                                                                                                                       |
+| **C10** | _(minha)_ SPEC DoD/§8 corresponde ao estado do branch                          | **REJECTED**  | `git ls-tree -r HEAD --name-only docs/evidence/debts-registry-2026-09-20/` → só `SPEC.md`; não existem `captures/`, `README.md` (selo) nem `MANIFEST.sha256`; `.artifacts/*.log` são gitignored (`.gitignore:49`) e não há `CHECK_EXIT` no `r1-check-e1.log` (N1)                                                                                                                                                             |
+| **C11** | _(minha)_ `AGENTS.md` coerente com o passo novo do leve                        | **REJECTED**  | `AGENTS.md:26` lista **4** scripts (`lockfile`, `work-package`, `debts`, `secrets-audit`) e conclui: `It installs **no** dependencies: all three scripts import node built-ins only` — o cardinal "three" ficou stale (N7)                                                                                                                                                                                                   |
+
+**Contagem de veredicto: 5 CONFIRMED · 2 CORRECTED · 4 REJECTED · 0 UNVERIFIABLE.**
+
+---
+
+## 2. Achados N (defeitos novos)
+
+| ID      | Local                                                                  | O que mede                                                                                                                                                                                                                                                                                                          | Severidade                | Origem               |
+| ------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | -------------------- |
+| **N1**  | `SPEC.md:30,36-43,78-91`                                               | DoD marca `[x]` para S6 (`:42`), selo/`MANIFEST.sha256` (`:43`) e `CHECK_EXIT=0` no log do selo (`:41`); nenhum existe no HEAD. O RED/GREEN só existe em `.artifacts/` gitignored, não nos `captures/` prometidos. **3 itens `[x]` são falsos no momento da selagem deste veredicto**                                        | **material**              | introduzido por este WP |
+| **N2**  | `scripts/m02-debts-guard.mjs:29,94-97,109-118` × `src/test/…test.ts`   | ID-pattern, cell-count, taxonomia de status e de severidade podem ser **deletados** sem nenhum teste reprovar (mutação dupla verificada: `Tests 10 passed (10)`). O guard pinado é ~6 de 10 grupos de regra                                                                                                            | **material** (prova)      | introduzido por este WP |
+| **N3**  | `src/test/m02-debts-guard.test.ts:44-49`                               | `12 dividas` do registry real não é asserido; registry reduzido a 1 dívida continua 10/10 verde. `SPEC.md:49` promete "exit 0, '12 dividas'" no caso real                                                                                                                                                             | **material** (prova)      | introduzido por este WP |
+| **N4**  | `scripts/m02-debts-guard.mjs:66,83`                                    | O parser ancora no **primeiro** `\| id \|` do arquivo e para na primeira linha não-`\|`: uma segunda tabela após linha em branco é **ignorada** (`c1` → `OK (1 dividas…)` com lixo na 2ª tabela) e uma tabela-exemplo antes do registry gera `registry vazio` falso (`c3`, mesmo com dívida canônica abaixo)         | baixa                     | introduzido por este WP |
+| **N5**  | `scripts/m02-debts-guard.mjs:66`                                       | Descoberta do header é **posicional**: exige `id` como primeira célula (`/^\|\s*id\s*\|/`). Header com `id` em outra posição → `registry sem linha de cabecalho`, contradizendo o comentário `lidas pelo header (nao pela posicao)` e o §2 do SPEC. Falha fechada, mensagem imprecisa                                                                                                  | baixa                     | introduzido por este WP |
+| **N6**  | `docs/evidence/agent-state/DEBTS.md:38` × `m02-debts-guard.mjs:115-118` | `EM_TRATAMENTO exige WP aberto` é regra escrita no registry, **não enforçada**: `a2_em_tratamento_sem_wp` → `OK (1 dividas…)` exit 0                                                                                                                                                                                  | baixa                     | introduzido por este WP |
+| **N7**  | `AGENTS.md:26`                                                         | "all three scripts import node built-ins only" após o WP passar a listar 4 scripts no leve (o WP adicionou o 4º). Contrato textual stale                                                                                                                                                                            | baixa                     | introduzido por este WP |
+| **N8**  | `DEBTS.md:18` (DBT-01) e `:21` (DBT-04)                                | Duas cláusulas de closure não têm fato-fonte nomeado: "retenção×PITR/LGPD no doc" (sustentada a um salto por `ledger:57` "DBT-01 policy" + `analise-avancada-fase0…:47-51`) e "controle negativo pinado em CI permanente" (`analise-avancada-bloco3…:102`); a coluna `origem` cita só `L122`/`L124`. Nenhuma das duas é falsa; a proveniência é indireta                            | baixa                     | introduzido por este WP |
+
+**Passa e é aceitável (declarado, não conta como N):** closure de 1 palavra `"x"` e `origem "aaaa"` (`a1` exit 0), `DBT-99` (`a3` exit 0), coluna extra consistente (`a4` exit 0), severidade incoerente com classe (`a7` exit 0) — o guard declara nas linhas 6-7 que "não julga o mérito da dívida"; o SPEC §6 registra o mesmo limite. Fica o registro de que o piso de `origem` (4 chars) e a ausência de piso para `closure` tornam esses casos aceitos por desenho.
+
+---
+
+## 3. Probes — saída verbatim (recorte)
+
+**Matriz de mutação** (guard copiado para `/tmp`, fixtures exatas do teste; `pass` = teste não pega):
+
+```
+mutação | T2 T3 T4 T5 T6 T7 T8 T9 T10
+M_STATUS_taxonomy_removed    | pass pass pass pass pass pass pass pass pass  (testes que pegam: 0/8)
+M_SEVERIDADE_taxonomy_removed| pass pass pass pass pass pass pass pass pass  (testes que pegam: 0/8)
+M_ID_pattern_removed         | pass pass pass pass pass pass pass pass pass  (testes que pegam: 0/8)
+M_CELLCOUNT_removed          | pass pass pass pass pass pass pass pass pass  (testes que pegam: 0/8)
+M_CLOSURE_present_NS_removed | pass pass pass FAIL pass pass pass pass pass  (1/8)
+M_CLOSURE_missing_NS_removed | pass FAIL pass pass pass pass pass pass pass  (1/8)
+M_DEGENERATE_neutered        | pass FAIL FAIL pass pass pass pass pass pass  (2/8)
+M_REGISTRY_EMPTY_removed     | FAIL pass pass pass pass pass pass pass pass  (1/8)
+M_DUPLICATE_removed          | pass pass pass pass pass pass FAIL pass pass  (1/8)
+M_FILE_ERROR_high_exit_removed | pass pass pass pass pass pass pass pass FAIL (1/8)
+```
+
+**Suíte real contra guard mutado** (cópia fiel em `/tmp/opencode/repo`, `node_modules` symlinkado):
+
+```
+$ node -e '…remove status/severidade/ID-pattern/cell-count…' && ./node_modules/.bin/vitest run --root /tmp/opencode/repo
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+```
+
+**Registry real com 11 dívidas a menos:** `Tests 10 passed (10)`.
+
+**Parser:**
+
+```
+### c1_second_table_after_blank
+  exit=0  stdout="debts guard: OK (1 dividas, taxonomia e regra de closure) — …"
+### c3_example_table_first
+  exit=1  stderr="debts guard: registry vazio: nenhuma divida declarada (0 = 0 reprova) | …"
+### a8_reordered_header (id por último)
+  exit=1  stderr="debts guard: registry sem linha de cabecalho (| id | ...) | …"
+```
+
+---
+
+## 4. O que foi aceito como verdadeiro e não foi tocado
+
+- `src/test/m02-debts-guard.test.ts` assere **mensagem nomeada** e exit code (não só exit code); li os 10 `it` — não há `toContain` genérico que casaria por acidente nas fixtures usadas.
+- O guard não versiona `/tmp` como evidência; `MANIFEST.sha256`, `README` e `captures/` simplesmente **não existem** no branch (N1).
+- Diff do WP: 9 arquivos (`SPEC`, `DEBTS`, `PROGRESS`, 2 workflows, `AGENTS`, `package.json`, guard, teste); zero runtime/migrations/`QUEUE.md`/lockfile.
+
+---
+
+## 5. Contagem final
+
+**5 CONFIRMED · 2 CORRECTED · 4 REJECTED · 0 UNVERIFIABLE · 8 achados (2 materiais, 6 de baixa severidade).**
+
+---
+
+## 6. Tratamento dos achados (S5 → selo)
+
+| achado | tratamento aplicado (commit `00de832`)                                                                                     |
+| ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| N1     | DoD do SPEC destravado para S6/selo/`CHECK_EXIT` (marcados só no fecho); capturas RED/GREEN/gate seladas em `captures/`      |
+| N2     | 4 casos novos de regressão (id fora do padrão, células divergentes, severidade e status fora da taxonomia): 16/16 verde      |
+| N3     | o caso real agora assere `debts guard: OK (12 dividas`                                                                      |
+| N4/N5  | header achado pelo **nome** (qualquer ordem) e **mais de uma tabela canônica** reprovam; 2 casos novos (10 e 11)             |
+| N6     | `EM_TRATAMENTO` declarado como convenção editorial, não regra de máquina, no registry e no SPEC §6                          |
+| N7     | `AGENTS.md` sem cardinal stale ("the scripts import node built-ins only")                                                   |
+| N8     | `origem` de DBT-01 ganhou `análise Fase 0 §5`; DBT-04 ganhou `análise Bloco 3 §3`                                           |

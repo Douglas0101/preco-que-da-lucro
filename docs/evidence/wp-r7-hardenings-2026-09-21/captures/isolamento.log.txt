@@ -1,0 +1,81 @@
+# Isolamento de bancada assertado — WP-R7 · ARVORE=0c62f43f9e43ee4cdd58acc2a0c176dd99b6cea5
+
+## origin/main (deve ser 9724d2c, intocado)
+9724d2c73b269d0a0199ea305308f3237b38fa09
+
+## :5432 — nenhum listener esperado
+listeners em :5432 = 0
+
+## migrations tocadas (deve ser 0)
+drizzle/ sujo = 0
+
+## lockfile: package.json mudou (scripts), o lock NÃO pode mudar
+lockfile sujo = 0
+
+## arquivos tocados pelo WP
+   M .github/workflows/ci-light.yml
+   M .github/workflows/ui-stack.yml
+   M AGENTS.md
+   M docs/evidence/agent-state/DEBTS.md
+   M docs/evidence/agent-state/PROGRESS.md
+   M package.json
+   M scripts/m02-seal.d.mts
+   M scripts/m02-seal.mjs
+   M src/test/m02-seal.test.ts
+  ?? docs/evidence/wp-r7-hardenings-2026-09-21/
+  ?? scripts/generate-seal-dts.mjs
+  ?? scripts/m02-temporal-guard.mjs
+  ?? src/test/m02-temporal-guard.test.ts
+
+## INCIDENTE DE CI DECLARADO (a pesada ficou VERMELHA em `4c2e35d`)
+
+A primeira heavy do land reprovou em `npm run m02:temporal-guard` com **7 âncoras "não resolvidas"**
+(`332da9e`, `9724d2c`, `4983c11`, `3c34fce`, `cb83811`, `332da9e`, `9c712dbd…`). **Causa-raiz:** o
+checkout do job `verify` é **raso** (`actions/checkout` sem `fetch-depth`), então os objetos citados na
+prosa não existem no repositório local — a guarda dizia "não resolve" quando a causa era o **clone**.
+A light já usava `fetch-depth: 0` e por isso ficou verde no mesmo commit.
+
+**Correção em duas direções:** (a) o `verify` passa a `fetch-depth: 0` com o motivo no comentário;
+(b) a guarda declara e verifica a **precondição de ambiente** — clone raso é `exit 2` nomeado, nunca
+"âncora inexistente". É a **quinta** ocorrência da mesma família na série (a lição do WP-R4 foi
+exatamente um teste que dependia de histórico e passava por vacuidade num clone raso).
+
+## INCIDENTE DE PLATAFORMA DECLARADO — CI parou de iniciar (2026-09-21T14:33Z)
+
+Depois do fix do clone raso (heavy verde em `f293368@35611793799`), o push do commit do marcador
+(`d9bc810`) produziu **duas execuções que falharam no STARTUP, com 0 passos**:
+
+    UI stack   35612966958  failure  d9bc810  0 steps  (~3 s)
+    CI light   35612966748  failure  d9bc810  0 steps  (~3 s)
+
+**Diagnóstico (o que foi descartado, com comando):**
+- **YAML válido** nos dois workflows (`yaml.safe_load` → jobs `verify` e `docs-light` presentes).
+- **Os mesmos arquivos de workflow rodaram verdes minutos antes** no mesmo dia (`f293368`, 30 passos).
+- `actions/permissions` → `{"enabled":true,"allowed_actions":"all"}`.
+- `run_attempt: 2` após `gh run rerun` → **0 passos de novo** (não é transiente de uma tentativa).
+- **Push de um commit vazio (`5539226`) NÃO criou execução nenhuma** — a plataforma parou de iniciar
+  workflows para este repositório.
+
+**Conclusão honesta:** o bloqueio é **de plataforma/conta**, não do repositório — nenhuma mudança de
+código ou de workflow explica "job com 0 passos" e "push sem run". O estado local está verde
+(`npm run check` exit 0 · 96 arquivos · 987 passed | 13 skipped; as três guardas exit 0; selo OK;
+marcador parent-pinned válido), mas **a verificação por CI dos commits `d9bc810` e `5539226` fica
+PENDENTE e não é afirmada**. O item 15 do checklist do selo permanece satisfeito apenas até `f293368`.
+
+## ADENDO — as execuções voltaram a ser criadas e continuam falhando no startup
+
+Depois do commit do incidente (`8f260f5`) e do reselo (`011c7e3`), a plataforma **voltou a criar**
+execuções — e todas continuam **`failure` com 0 passos em ~3 s**:
+
+    UI stack   35613943429  failure  8f260f5  0 steps
+    CI light   35613943354  failure  8f260f5  0 steps
+    CI light   35613977835  failure  011c7e3  0 steps
+
+Isso **reforça** o diagnóstico de plataforma/conta e **refuta** a leitura de "atraso na criação do
+run": o sintoma é persistente, atinge os dois workflows e não depende do conteúdo do commit (o commit
+vazio `5539226` também falhou). **Decisão de parada:** novos pushes foram interrompidos para não
+acumular execuções vermelhas de causa conhecida.
+
+**Última CI verificada:** heavy `f293368@35611793799` = success (30 passos) · light
+`90d12f9@35611826235` = success. Os commits `d9bc810`, `5539226`, `8f260f5` e `011c7e3` **não têm CI
+verde** e isso está declarado — o estado **local** é verde.

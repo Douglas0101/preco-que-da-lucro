@@ -1,0 +1,2 @@
+import { describe, it } from "vitest";
+throw new Error("boom na coleta");

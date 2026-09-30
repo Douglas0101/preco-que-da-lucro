@@ -1,0 +1,3 @@
+10839b31d5aa6d45b40127c52ecb037f10f7e8cc7ead7445fcf011cc3b2b362c  package.json
+0f50a1315c4e03c7e4228598d806be8d3089ace6eef42c5c7276bfdd9b992d49  package-lock.json
+160775ad0cffc16b4ea82501dfa817c85bc02a9b3f3cf0cce9873abe6c113449  docs/evidence/incidents/2026-09-29-dependency-drift/package-drift-occurrence-05.patch

@@ -7,11 +7,11 @@
   },
   "counts": {
     "bffModules": 8,
-    "createServerFnDeclarations": 28,
-    "concreteOperations": 32,
-    "apiRoutes": 4,
-    "transactionSites": 99,
-    "directDatabaseFiles": 34
+    "createServerFnDeclarations": 35,
+    "concreteOperations": 36,
+    "apiRoutes": 5,
+    "transactionSites": 113,
+    "directDatabaseFiles": 49
   },
   "bffs": [
     {
@@ -55,7 +55,7 @@
       "operations": [
         {
           "name": "getChatHistory",
-          "line": 254,
+          "line": 268,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -63,7 +63,7 @@
         },
         {
           "name": "createChatConversation",
-          "line": 311,
+          "line": 313,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -71,7 +71,7 @@
         },
         {
           "name": "clearChatHistory",
-          "line": 323,
+          "line": 325,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -79,7 +79,7 @@
         },
         {
           "name": "sendChatMessage",
-          "line": 356,
+          "line": 343,
           "declaration": "createServerFn",
           "service": "ConversationService/ChatExecution",
           "repository": "ConversationRepository + BudgetRepository + AiToolRepository + AuditRepository",
@@ -88,16 +88,17 @@
       ],
       "imports": [
         "@/db/client.server",
-        "@/db/schema",
+        "@/instrumentation/safe-record",
         "@/instrumentation/telemetry",
         "@/lib/ai-endpoint.server",
         "@/lib/ai/tool-registry",
         "@/lib/api-error",
-        "@/lib/chat-data",
         "@/lib/chat-execution.server",
+        "@/lib/structured-logger",
+        "@/lib/tenant-transaction",
         "@/middleware/request-context",
+        "@/server/services/conversation.service",
         "@tanstack/react-start",
-        "drizzle-orm",
         "zod"
       ],
       "reachesDatabase": true,
@@ -107,15 +108,16 @@
         "src/lib/ai/budget-ledger.server.ts",
         "src/lib/ai/tool-registry.ts",
         "src/lib/ai/tool-runner.ts",
-        "src/lib/chat-data.ts",
         "src/lib/chat-execution.server.ts",
         "src/lib/chat.functions.ts",
         "src/middleware/request-context.ts",
         "src/server/auth/auth.server.ts",
         "src/server/auth/rate-limit-storage.server.ts",
         "src/server/auth/tenant-bootstrap.server.ts",
-        "src/server/repositories/purchase-price.repository.ts",
-        "src/server/services/purchase-price.service.ts"
+        "src/server/repositories/audit.repository.ts",
+        "src/server/repositories/conversation.repository.ts",
+        "src/server/repositories/product.repository.ts",
+        "src/server/repositories/purchase-price.repository.ts"
       ]
     },
     {
@@ -127,7 +129,7 @@
           "line": 18,
           "declaration": "createServerFn",
           "service": "DashboardService",
-          "repository": "DashboardReadRepository",
+          "repository": "DashboardRepository",
           "atomicity": "per-request"
         }
       ],
@@ -157,7 +159,7 @@
           "name": "getDiagnostic",
           "line": 19,
           "declaration": "createServerFn",
-          "service": "DiagnosticService",
+          "service": "DiagnosticService/PricingService",
           "repository": "ProductReadRepository + ExpenseRepository",
           "atomicity": "per-request"
         }
@@ -179,7 +181,8 @@
         "src/server/auth/tenant-bootstrap.server.ts",
         "src/server/repositories/calculation-snapshot.repository.ts",
         "src/server/repositories/expense.repository.ts",
-        "src/server/services/product-detail.service.ts"
+        "src/server/repositories/outbox.repository.ts",
+        "src/server/repositories/product.repository.ts"
       ]
     },
     {
@@ -188,7 +191,23 @@
       "operations": [
         {
           "name": "listExpenses",
-          "line": 36,
+          "line": 108,
+          "declaration": "createServerFn",
+          "service": "ExpenseService",
+          "repository": "ExpenseRepository",
+          "atomicity": "per-request"
+        },
+        {
+          "name": "createExpense",
+          "line": 147,
+          "declaration": "createServerFn",
+          "service": "ExpenseService",
+          "repository": "ExpenseRepository",
+          "atomicity": "per-request"
+        },
+        {
+          "name": "updateExpense",
+          "line": 152,
           "declaration": "createServerFn",
           "service": "ExpenseService",
           "repository": "ExpenseRepository",
@@ -196,7 +215,7 @@
         },
         {
           "name": "upsertExpense",
-          "line": 43,
+          "line": 158,
           "declaration": "createServerFn",
           "service": "ExpenseService",
           "repository": "ExpenseRepository",
@@ -204,7 +223,7 @@
         },
         {
           "name": "deleteExpense",
-          "line": 60,
+          "line": 167,
           "declaration": "createServerFn",
           "service": "ExpenseService",
           "repository": "ExpenseRepository",
@@ -212,7 +231,7 @@
         },
         {
           "name": "getTotals",
-          "line": 69,
+          "line": 176,
           "declaration": "createServerFn",
           "service": "ExpenseService",
           "repository": "ExpenseRepository",
@@ -222,6 +241,9 @@
       "imports": [
         "@/db/schema",
         "@/lib/financial-values",
+        "@/lib/optimistic-version",
+        "@/lib/output-contract",
+        "@/lib/request-context",
         "@/middleware/request-context",
         "@/server/services/expense.service",
         "@tanstack/react-start",
@@ -236,7 +258,8 @@
         "src/server/auth/auth.server.ts",
         "src/server/auth/rate-limit-storage.server.ts",
         "src/server/auth/tenant-bootstrap.server.ts",
-        "src/server/repositories/expense.repository.ts"
+        "src/server/repositories/expense.repository.ts",
+        "src/server/repositories/outbox.repository.ts"
       ]
     },
     {
@@ -245,7 +268,7 @@
       "operations": [
         {
           "name": "runSimulation",
-          "line": 19,
+          "line": 111,
           "declaration": "createServerFn",
           "service": "SimulationService",
           "repository": "SimulationRepository",
@@ -253,7 +276,7 @@
         },
         {
           "name": "listSimulations",
-          "line": 47,
+          "line": 149,
           "declaration": "createServerFn",
           "service": "SimulationService",
           "repository": "SimulationRepository",
@@ -261,7 +284,7 @@
         },
         {
           "name": "saveSimulation",
-          "line": 54,
+          "line": 160,
           "declaration": "createServerFn",
           "service": "SimulationService",
           "repository": "SimulationRepository",
@@ -269,6 +292,9 @@
         }
       ],
       "imports": [
+        "@/lib/finance",
+        "@/lib/financial-values",
+        "@/lib/output-contract",
         "@/middleware/request-context",
         "@/server/services/financial.service",
         "@/server/services/simulation.service",
@@ -293,7 +319,7 @@
       "operations": [
         {
           "name": "listProducts",
-          "line": 491,
+          "line": 386,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -301,7 +327,7 @@
         },
         {
           "name": "listProductsWithMetrics",
-          "line": 499,
+          "line": 401,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -309,15 +335,31 @@
         },
         {
           "name": "getProduct",
-          "line": 505,
+          "line": 407,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
           "atomicity": "per-operation"
         },
         {
+          "name": "createProduct",
+          "line": 498,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "updateProduct",
+          "line": 503,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductRepository",
+          "atomicity": "per-operation"
+        },
+        {
           "name": "upsertProduct",
-          "line": 529,
+          "line": 509,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -325,7 +367,7 @@
         },
         {
           "name": "archiveProduct",
-          "line": 546,
+          "line": 518,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -333,7 +375,7 @@
         },
         {
           "name": "deleteProduct",
-          "line": 556,
+          "line": 528,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -341,7 +383,7 @@
         },
         {
           "name": "upsertIngredient",
-          "line": 589,
+          "line": 561,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -349,15 +391,15 @@
         },
         {
           "name": "deleteIngredient",
-          "line": 666,
-          "declaration": "alias",
+          "line": 622,
+          "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
           "atomicity": "per-operation"
         },
         {
           "name": "upsertPackaging",
-          "line": 676,
+          "line": 637,
           "declaration": "createServerFn",
           "service": "ProductService/PricingService",
           "repository": "ProductCatalogRepository + PriceRepository",
@@ -365,15 +407,15 @@
         },
         {
           "name": "deletePackaging",
-          "line": 713,
-          "declaration": "alias",
+          "line": 662,
+          "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
           "atomicity": "per-operation"
         },
         {
           "name": "upsertFee",
-          "line": 722,
+          "line": 676,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -381,15 +423,15 @@
         },
         {
           "name": "deleteFee",
-          "line": 747,
-          "declaration": "alias",
+          "line": 690,
+          "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
           "atomicity": "per-operation"
         },
         {
           "name": "setMarketPrice",
-          "line": 756,
+          "line": 702,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "MarketPriceRepository",
@@ -397,7 +439,7 @@
         },
         {
           "name": "getProductMetrics",
-          "line": 777,
+          "line": 716,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -405,7 +447,7 @@
         },
         {
           "name": "listPurchasePrices",
-          "line": 789,
+          "line": 728,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -413,7 +455,7 @@
         },
         {
           "name": "updatePurchasePrice",
-          "line": 824,
+          "line": 739,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "PriceRepository",
@@ -421,34 +463,31 @@
         }
       ],
       "imports": [
-        "@/db/schema",
-        "@/instrumentation/telemetry",
         "@/lib/api-error",
         "@/lib/finance",
         "@/lib/financial-values",
-        "@/lib/list-limits",
+        "@/lib/optimistic-version",
+        "@/lib/output-contract",
         "@/lib/request-context",
         "@/middleware/request-context",
+        "@/server/contracts/product.contracts",
         "@/server/services/product-read-model.service",
         "@/server/services/product.service",
         "@/server/services/purchase-price.service",
         "@tanstack/react-start",
         "decimal.js",
-        "drizzle-orm",
         "zod"
       ],
       "reachesDatabase": true,
       "databasePaths": [
         "src/db/client.server.ts",
         "src/db/schema.ts",
-        "src/lib/products.functions.ts",
         "src/middleware/request-context.ts",
         "src/server/auth/auth.server.ts",
         "src/server/auth/rate-limit-storage.server.ts",
         "src/server/auth/tenant-bootstrap.server.ts",
         "src/server/repositories/product.repository.ts",
-        "src/server/repositories/purchase-price.repository.ts",
-        "src/server/services/purchase-price.service.ts"
+        "src/server/repositories/purchase-price.repository.ts"
       ]
     },
     {
@@ -512,6 +551,18 @@
       ]
     },
     {
+      "path": "src/routes/api/csp-report.ts",
+      "kind": "route",
+      "operations": [],
+      "imports": [
+        "@/lib/csp-report-payload",
+        "@/lib/structured-logger",
+        "@tanstack/react-router"
+      ],
+      "reachesDatabase": false,
+      "databasePaths": []
+    },
+    {
       "path": "src/routes/api/health/live.ts",
       "kind": "route",
       "operations": [],
@@ -543,78 +594,78 @@
       "kind": "route",
       "operations": [],
       "imports": [
+        "@/db/client.server",
+        "@/db/schema",
         "@/lib/structured-logger",
         "@/lib/web-vitals-payload",
         "@tanstack/react-router"
       ],
-      "reachesDatabase": false,
-      "databasePaths": []
+      "reachesDatabase": true,
+      "databasePaths": [
+        "src/db/client.server.ts",
+        "src/db/schema.ts",
+        "src/routes/api/vitals.ts"
+      ]
     }
   ],
   "transactionSites": [
     {
       "path": "src/lib/ai/tool-registry.ts",
-      "line": 86,
+      "line": 91,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-registry.ts",
-      "line": 100,
+      "line": 106,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-registry.ts",
-      "line": 129,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-registry.ts",
-      "line": 170,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-registry.ts",
-      "line": 195,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-registry.ts",
-      "line": 229,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-registry.ts",
-      "line": 249,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-registry.ts",
-      "line": 274,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-registry.ts",
-      "line": 299,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-runner.ts",
-      "line": 84,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-runner.ts",
       "line": 136,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/ai/tool-registry.ts",
+      "line": 178,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/ai/tool-registry.ts",
+      "line": 205,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/ai/tool-registry.ts",
+      "line": 240,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/ai/tool-registry.ts",
+      "line": 262,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/ai/tool-registry.ts",
+      "line": 296,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/ai/tool-registry.ts",
+      "line": 322,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/ai/tool-runner.ts",
+      "line": 104,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
@@ -626,289 +677,97 @@
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 190,
+      "line": 188,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 218,
+      "line": 262,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/ai/tool-runner.ts",
-      "line": 222,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-runner.ts",
-      "line": 226,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-runner.ts",
-      "line": 242,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-runner.ts",
-      "line": 246,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/ai/tool-runner.ts",
-      "line": 250,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-data.ts",
-      "line": 46,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-data.ts",
-      "line": 61,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-data.ts",
-      "line": 82,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 101,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 116,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 126,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 133,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 190,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 201,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat-execution.server.ts",
-      "line": 230,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat.functions.ts",
-      "line": 271,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat.functions.ts",
-      "line": 328,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/chat.functions.ts",
-      "line": 336,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 169,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 170,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 180,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 190,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 195,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
       "line": 272,
-      "expression": "request.transaction",
+      "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
-      "path": "src/lib/products.functions.ts",
-      "line": 314,
-      "expression": "request.transaction",
+      "path": "src/lib/ai/tool-runner.ts",
+      "line": 296,
+      "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
-      "path": "src/lib/products.functions.ts",
+      "path": "src/lib/ai/tool-runner.ts",
+      "line": 316,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/ai/tool-runner.ts",
+      "line": 347,
+      "expression": "context.transaction",
+      "classification": "compatibility-facade"
+    },
+    {
+      "path": "src/lib/ai/tool-runner.ts",
       "line": 351,
-      "expression": "request.transaction",
+      "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
-      "path": "src/lib/products.functions.ts",
-      "line": 382,
-      "expression": "request.transaction",
+      "path": "src/lib/ai/tool-runner.ts",
+      "line": 372,
+      "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
-      "path": "src/lib/products.functions.ts",
-      "line": 416,
-      "expression": "request.transaction",
+      "path": "src/lib/ai/tool-runner.ts",
+      "line": 381,
+      "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
-      "path": "src/lib/products.functions.ts",
-      "line": 433,
-      "expression": "request.transaction",
+      "path": "src/lib/chat-execution.server.ts",
+      "line": 129,
+      "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
-      "path": "src/lib/products.functions.ts",
-      "line": 612,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 622,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 648,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 693,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 700,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 737,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 742,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 762,
-      "expression": "request.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/lib/products.functions.ts",
-      "line": 793,
-      "expression": "request.transaction",
+      "path": "src/lib/chat-execution.server.ts",
+      "line": 141,
+      "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/server/auth/membership.service.ts",
-      "line": 16,
+      "line": 20,
       "expression": "context.transaction",
       "classification": "auth-allowlist"
     },
     {
       "path": "src/server/auth/membership.service.ts",
-      "line": 31,
+      "line": 35,
       "expression": "context.transaction",
       "classification": "auth-allowlist"
     },
     {
       "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 22,
+      "line": 67,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 40,
+      "line": 89,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 64,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 84,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 106,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 116,
+      "line": 114,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -920,231 +779,513 @@
     },
     {
       "path": "src/server/repositories/ai-tool.repository.ts",
-      "line": 145,
+      "line": 161,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 171,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 191,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/ai-tool.repository.ts",
+      "line": 201,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/audit.repository.ts",
+      "line": 23,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/calculation-snapshot.repository.ts",
-      "line": 26,
+      "line": 30,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/calculation-snapshot.repository.ts",
-      "line": 44,
+      "line": 48,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/calculation-snapshot.repository.ts",
-      "line": 69,
+      "line": 73,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 60,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 76,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 98,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 118,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 137,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 157,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 170,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/conversation.repository.ts",
+      "line": 182,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/dashboard.repository.ts",
-      "line": 18,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/dashboard.repository.ts",
-      "line": 26,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/dashboard.repository.ts",
-      "line": 32,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/dashboard.repository.ts",
-      "line": 43,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/dashboard.repository.ts",
-      "line": 54,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/dashboard.repository.ts",
-      "line": 62,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/expense.repository.ts",
-      "line": 31,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/expense.repository.ts",
-      "line": 51,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/expense.repository.ts",
-      "line": 56,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/expense.repository.ts",
-      "line": 66,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/expense.repository.ts",
-      "line": 74,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/product.repository.ts",
-      "line": 31,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/product.repository.ts",
       "line": 39,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
-      "path": "src/server/repositories/product.repository.ts",
-      "line": 59,
+      "path": "src/server/repositories/dashboard.repository.ts",
+      "line": 47,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
-      "path": "src/server/repositories/product.repository.ts",
+      "path": "src/server/repositories/dashboard.repository.ts",
+      "line": 53,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/dashboard.repository.ts",
       "line": 64,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
+      "path": "src/server/repositories/dashboard.repository.ts",
+      "line": 75,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/dashboard.repository.ts",
+      "line": 86,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/expense.repository.ts",
+      "line": 37,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/expense.repository.ts",
+      "line": 58,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/expense.repository.ts",
+      "line": 67,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/expense.repository.ts",
+      "line": 80,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/expense.repository.ts",
+      "line": 90,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/expense.repository.ts",
+      "line": 99,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 532,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 618,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 731,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 781,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 814,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 848,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 920,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 1046,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 1110,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/memory.repository.ts",
+      "line": 1137,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 77,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 121,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 171,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 188,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/outbox.repository.ts",
+      "line": 208,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 78,
+      "line": 97,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 140,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 178,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 210,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 245,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 289,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 304,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 325,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 338,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 351,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 361,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 371,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 379,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 389,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 399,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 404,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 424,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 448,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 495,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 505,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 523,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 530,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 546,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 551,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 558,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 576,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 588,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 615,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/purchase-price.repository.ts",
-      "line": 36,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/purchase-price.repository.ts",
-      "line": 50,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/purchase-price.repository.ts",
-      "line": 59,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/sales.repository.ts",
       "line": 52,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
-      "path": "src/server/repositories/sales.repository.ts",
-      "line": 65,
+      "path": "src/server/repositories/purchase-price.repository.ts",
+      "line": 71,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/purchase-price.repository.ts",
+      "line": 80,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 88,
+      "line": 56,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 96,
+      "line": 69,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 116,
+      "line": 93,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 124,
+      "line": 102,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/sales.repository.ts",
+      "line": 123,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/sales.repository.ts",
+      "line": 131,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/simulation.repository.ts",
-      "line": 22,
+      "line": 26,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/simulation.repository.ts",
-      "line": 31,
+      "line": 36,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
-      "path": "src/server/services/product-detail.service.ts",
+      "path": "src/server/services/event.service.ts",
+      "line": 38,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/services/event.service.ts",
       "line": 45,
       "expression": "context.transaction",
-      "classification": "compatibility-facade"
+      "classification": "repository-fallback"
     },
     {
-      "path": "src/server/services/product-detail.service.ts",
-      "line": 53,
+      "path": "src/server/services/outbox.worker.ts",
+      "line": 118,
       "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/server/services/product-detail.service.ts",
-      "line": 63,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/server/services/product-detail.service.ts",
-      "line": 73,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/server/services/product-detail.service.ts",
-      "line": 78,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/server/services/purchase-price.service.ts",
-      "line": 76,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
-    },
-    {
-      "path": "src/server/services/purchase-price.service.ts",
-      "line": 112,
-      "expression": "context.transaction",
-      "classification": "compatibility-facade"
+      "classification": "repository-fallback"
     }
   ],
   "directDatabaseFiles": [
@@ -1153,34 +1294,49 @@
     "src/lib/ai/budget-ledger.server.ts",
     "src/lib/ai/tool-registry.ts",
     "src/lib/ai/tool-runner.ts",
-    "src/lib/chat-data.ts",
     "src/lib/chat-execution.server.ts",
     "src/lib/chat.functions.ts",
     "src/lib/expenses.functions.ts",
-    "src/lib/products.functions.ts",
     "src/middleware/request-context.ts",
     "src/routes/api/health/ready.ts",
+    "src/routes/api/vitals.ts",
     "src/server/auth/auth.server.ts",
     "src/server/auth/membership.service.ts",
     "src/server/auth/rate-limit-storage.server.ts",
     "src/server/auth/tenant-bootstrap.server.ts",
     "src/server/repositories/ai-tool.repository.ts",
+    "src/server/repositories/audit.repository.ts",
     "src/server/repositories/calculation-snapshot.repository.ts",
+    "src/server/repositories/conversation.repository.ts",
     "src/server/repositories/dashboard.repository.ts",
     "src/server/repositories/expense.repository.ts",
+    "src/server/repositories/memory.repository.ts",
+    "src/server/repositories/outbox.repository.ts",
     "src/server/repositories/product.repository.ts",
     "src/server/repositories/purchase-price.repository.ts",
     "src/server/repositories/sales.repository.ts",
     "src/server/repositories/simulation.repository.ts",
-    "src/server/services/product-detail.service.ts",
-    "src/server/services/purchase-price.service.ts",
+    "src/server/services/outbox.worker.ts",
     "src/test/ai-estimated-cost.test.ts",
+    "src/test/ai-usage-unknown.test.ts",
+    "src/test/audit.service.test.ts",
+    "src/test/backfill-runner.test.ts",
+    "src/test/break-even.negative-margin.test.tsx",
     "src/test/cross-tenant-denial.perf-waves.test.ts",
+    "src/test/financial-metrics.test.ts",
+    "src/test/helpers/chat-execution-fakes.ts",
+    "src/test/helpers/tool-runner-fakes.ts",
     "src/test/m02-backup-verify.test.ts",
     "src/test/m02-grant-repair.test.ts",
     "src/test/m02-purge-fixtures.test.ts",
+    "src/test/migration-classes.test.ts",
+    "src/test/optimistic-version.repository.test.ts",
+    "src/test/product-contracts.test.ts",
+    "src/test/products-fk-conflict.test.ts",
     "src/test/products-read-models.golden.perf-waves.test.ts",
     "src/test/purchase-price.service.test.ts",
-    "src/test/round-trip-instrumentation.perf-waves.test.ts"
+    "src/test/round-trip-instrumentation.perf-waves.test.ts",
+    "src/test/safe-record.test.ts",
+    "src/test/tool-runner.persistence.test.ts"
   ]
 }

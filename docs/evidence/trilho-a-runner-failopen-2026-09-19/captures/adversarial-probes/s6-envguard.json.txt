@@ -1,0 +1,6 @@
+{
+  "DATABASE_ADMIN_URL": "postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test",
+  "DATABASE_URL": "postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test",
+  "DATABASE_URL_UNPOOLED": "postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test",
+  "DATABASE_DRIVER": "node-postgres"
+}

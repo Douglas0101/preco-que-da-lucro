@@ -1,0 +1,23 @@
+# Defeito achado pelo GATE (nao pelo S6): export novo sem atualizar a declaracao manual
+# HEAD=347239d
+
+## sintoma original (antes da correcao): o gate reprovou no typecheck
+src/test/m02-seal.test.ts(18,3): error TS2305: Module '"../../scripts/m02-seal.mjs"' has no exported member 'countAncestryMentions'.
+src/test/m02-seal.test.ts(19,3): error TS2305: ... 'driftForaDoSelo'.
+src/test/m02-seal.test.ts(21,3): error TS2305: ... 'parseStatusZ'.
+causa: 'scripts/m02-seal.d.mts' e mantido A MAO e o tsc o usa no lugar de inferir do .mjs;
+vitest passava (esbuild nao usa a declaracao) e so o typecheck via o buraco.
+
+sha256 ANTES  : 2e854fc65d8921fca749700fb7a1e94e9b71b3aa1f88648a7db9c5eb27347c3f
+sha256 MUTADO : 45734f44491bfe110c6176cc1997e7d84a2ee17e44844f0b986e8ec3ce6326ca   (declaracao removida)
+
+## bateria sob mutacao: a trava de sincronia deve reprovar
+   FAIL  src/test/m02-seal.test.ts > m02-seal — a superfície de tipos acompanha o runtime > os exports de runtime e as declarações de m02-seal.d.mts são o mesmo conjunto
+        Tests  1 failed | 39 passed (40)
+
+sha256 DEPOIS : 2e854fc65d8921fca749700fb7a1e94e9b71b3aa1f88648a7db9c5eb27347c3f
+RESTAURO OK (sha256 identico)
+
+## typecheck e bateria restaurados
+  typecheck EXIT=0
+        Tests  40 passed (40)

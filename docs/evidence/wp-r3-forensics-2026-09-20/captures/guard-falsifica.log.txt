@@ -1,0 +1,22 @@
+=== 1. template real ===
+$ node scripts/m02-work-package-guard.mjs
+work-package guard: OK (15 itens, 5 secoes, taxonomia e layout do selo) — docs/evidence/_templates/work-package.md
+REAL_RC=0
+
+=== 2. item 15 removido (contagem) ===
+$ --template .artifacts/template-sem-item15.md
+work-package guard: checklist tem 14 itens; esperado 15
+work-package guard: REPROVADO (1 falha(s))
+SEM15_RC=1
+
+=== 3. origem degenerada (N/A em todos) ===
+work-package guard: item 1 com origem degenerada ou vazia: "N/A"
+NA_RC=1
+
+=== 4. coluna extra (mascara a origem) ===
+work-package guard: OK (15 itens, 5 secoes, taxonomia e layout do selo) — .artifacts/template-coluna-extra.md
+EXTRA_RC=0
+
+=== 5. template inexistente ===
+work-package guard: template ilegivel em /nonexistent/template.md: ENOENT: no such file or directory, open '/nonexistent/template.md'
+INEXISTENTE_RC=1

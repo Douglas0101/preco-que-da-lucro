@@ -7,10 +7,11 @@
 
 ### Registro de revisão deste artefato
 
-| Versão | Data       | Mudança                                                                                                                                                                                                                                                                                                          |
-| ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| v1     | 2026-09-12 | Redigido em **modo LIMITAÇÃO DECLARADA**: sem ferramenta web no runtime do subagente, nenhum número oficial de plano/preço foi afirmado; campos reservados ao DOC-FIRST do parent.                                                                                                                               |
-| v2     | 2026-09-12 | **DOC-FIRST fechado pelo orquestrador via web** (mesma data). Números oficiais de planos/preços/janela de histórico e a semântica de restore do PITR foram incorporados com URL de origem; **GAP-DOC encerrado** (§2.2). O runtime do subagente permaneceu sem web — nenhuma URL foi buscada por este subagente. |
+| Versão | Data       | Mudança                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1     | 2026-09-12 | Redigido em **modo LIMITAÇÃO DECLARADA**: sem ferramenta web no runtime do subagente, nenhum número oficial de plano/preço foi afirmado; campos reservados ao DOC-FIRST do parent.                                                                                                                                                                                                                                                                                                                               |
+| v2     | 2026-09-12 | **DOC-FIRST fechado pelo orquestrador via web** (mesma data). Números oficiais de planos/preços/janela de histórico e a semântica de restore do PITR foram incorporados com URL de origem; **GAP-DOC encerrado** (§2.2). O runtime do subagente permaneceu sem web — nenhuma URL foi buscada por este subagente.                                                                                                                                                                                                 |
+| v3     | 2026-09-14 | **Endpoints oficiais + verificação automatizada** (§12): forma das chamadas de leitura e de escrita com classe de evidência **por linha**, nomes explicitamente marcados **TO-CONFIRM** quando não confirmáveis sem chave, scripts `scripts/m02-pitr-check.mjs` / `scripts/m02-neon-spend.mjs` e operações `pitr-status` / `spend-status` em `.github/workflows/neon-drill-ops.yml`. Onda 4, operador O25, base `6132325`. Sem `NEON_API_KEY` no ambiente — a chamada live permanece **NÃO VERIFICADA** (§12.6). |
 
 **Legenda de classes de evidência:**
 
@@ -280,9 +281,70 @@ H_break-even = 3 × 60 / (4,3 × R)  minutos por semana
 3. **Fechar residuais 6.4/6.8–6.10/6.12–6.14** antes de operar com tráfego; 6.13 (teto de gasto) é o principal controle do risco de custo variável.
 4. **Atualizar o runbook A4/A5** com a semântica destrutiva do PITR (§5.6): PITR como último recurso com aprovação; restore isolado permanece via snapshot + branch (`m02:backup-verify`).
 5. **Manter no fechamento o enunciado correto:** upgrade fecha a cláusula PITR do SDD §16.6; **não** fecha NFR-RES-004 (imutabilidade/independência) nem NFR-RES-005 (restore isolado comprovando Auth/RLS).
+6. **Verificar com instrumento, não com painel (v3, §12):** `node scripts/m02-pitr-check.mjs` (janela vs §16.6) e a operação manual `pitr-status`; o verde de `pitr-status` pós-H-4 é a evidência anexável ao fechamento de BAK-01b. Guardrails de gasto hoje preparáveis em `docs/evidence/neon-spending-guardrails-2026-09-14.md`.
+
+---
+
+## 12. Endpoints oficiais e verificação automatizada (v3, 2026-09-14)
+
+**Rodada:** Onda 4, operador O25, base `6132325` · **Ambiente:** sem `NEON_API_KEY` (H-2) — nenhuma chamada live foi feita nesta rodada.
+**Regra desta seção:** cada linha tem classe de evidência; nome de parâmetro que este runtime **não** confirma é escrito como **TO-CONFIRM** — nunca afirmado como fato. Nenhum nome foi inventado para preencher lacuna.
+
+### 12.1 Ler a janela vigente (usado por `scripts/m02-pitr-check.mjs`)
+
+| Item                 | Forma                                                       | Classe de evidência                                                                                                                                              |
+| -------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Base da API          | `https://console.neon.tech/api/v2`                          | [LOCAL-VERIFICADO] — `NEON_API_BASE` em `.github/workflows/neon-drill-ops.yml` e `.github/workflows/neon-pr-branch.yml`                                          |
+| Autenticação         | header `Authorization: Bearer <NEON_API_KEY>`               | [LOCAL-VERIFICADO] — uso idêntico nos dois workflows acima                                                                                                       |
+| Chamada de leitura   | `GET {NEON_API_BASE}/projects/{project_id}`                 | [LOCAL-VERIFICADO (plano §12.6)] + [INFERÊNCIA] sobre a mesma base/paths já usados no repo; a **execução live é TO-CONFIRM** (sem chave aqui)                    |
+| Campo medido         | `project.history_retention_seconds` — inteiro, **segundos** | [MEDIDO-ORQUESTRADOR] `21600` = 6 h (§1.2); [LOCAL-VERIFICADO (plano §12.6)] como campo de inventário                                                            |
+| Envelope da resposta | `{ project: { … } }` **ou** objeto plano                    | **TO-CONFIRM** — por isso o leitor aceita os dois e devolve `DESCONHECIDO` (exit 2, fail-closed) quando o campo não é inteiro positivo, em vez de presumir forma |
+
+### 12.2 Definir a janela — passo humano pós-H-4 (não executado por nenhum script)
+
+| Item                 | Forma / valor                                                                                | Classe de evidência                                                                                                                              |
+| -------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Chamada de escrita   | `PATCH {NEON_API_BASE}/projects/{project_id}` com corpo contendo `history_retention_seconds` | [LOCAL-VERIFICADO (plano §13.7)] — **nenhum PATCH de projeto existe no repo**; a execução live é **TO-CONFIRM**                                  |
+| Envelope do corpo    | —                                                                                            | **TO-CONFIRM** (`{project:{…}}` vs plano) — o memo não afirma                                                                                    |
+| Máximo por plano     | Launch **7 d** · Scale **30 d** (default de plano pago = **1 d**)                            | [DOC-FIRST-ORQUESTRADOR] (§3)                                                                                                                    |
+| Exceder o teto       | —                                                                                            | **TO-CONFIRM** — erro HTTP, clamp ou operação assíncrona: não verificável sem chave; **não** descrever o comportamento em runbook antes de medir |
+| Sincronia da mudança | —                                                                                            | **TO-CONFIRM** — se a mudança é imediata ou exige polling de operação                                                                            |
+| Escopo da janela     | org / projeto / branch                                                                       | **RESIDUAL** — campo 6.4 segue aberto                                                                                                            |
+
+Nenhum parâmetro além de `history_retention_seconds` é citado: qualquer outro nome (corpo de operação, identificador de janela, campo de operação assíncrona) permanece **explicitamente fora** deste memo até ser observado.
+
+### 12.3 Instrumento de verificação (novo nesta v3)
+
+| Artefato                               | Papel                                                                                                                                                                                                                             |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/m02-pitr-check.mjs`           | `GET` do projeto → janela medida; compara com `--min-sec` (default `604800` = 7 d, SDD §16.6). Exit `0` PASS **ou** SKIP rotulado · `1` FAIL (BAK-01b aberto) · `2` INCOMPLETE (fail-closed). **Somente GET: nunca emite PATCH.** |
+| `scripts/m02-neon-spend.mjs`           | §12.6 — inventário read-only (`GET` projeto + `GET .../branches`) com saída **somente hostnames** (sem URL de conexão, chave, token ou id).                                                                                       |
+| `.github/workflows/neon-drill-ops.yml` | operações manuais `pitr-status` e `spend-status`: rodam os scripts acima com `NEON_API_KEY` só em GitHub Secrets, publicam `pitr-status.json`/`spend-status.json` como artefato do run e uma linha no resumo.                     |
+
+Sem `NEON_API_KEY`/`NEON_PROJECT_ID` os scripts **PULAM COM RÓTULO** (exit `0`), a saída declara `live_call: false` e "NENHUMA chamada live foi feita" — skip **não** é evidência de conformidade (nem de violação).
+
+### 12.4 Restrições duras do drill de PITR (repetir em qualquer descrição do drill)
+
+1. **O drill NUNCA toca a produção.** O PITR restaura **apenas branches raiz** e **SOBRESCREVE a branch restaurada** [DOC-FIRST-ORQUESTRADOR] (§5.6): logo o ensaio usa **projeto/branch descartável** e a produção nunca é alvo de restore.
+2. **PITR não é restore isolado** e não substitui o dump externo verificado (`m02:snapshot` + `m02:backup-verify`, NFR-RES-005) nem o snapshot < 24 h do gate `m02:readiness`.
+3. **Rollback pós-tráfego é snapshot/PITR, nunca down-migration.** `drizzle/rollback/0010_to_0009_down.sql` permanece **LOCKED** (guarda fail-closed; `scripts/db/migration-classes.ts`), e o runbook A4/A5 já fixa "nunca `0010_to_0009_down.sql` com contas presentes".
+4. **Não descrever como conformidade** o drill nem a exceção P9: o fechamento de BAK-01b é `history_retention_seconds ≥ 604800` **medido** + dump externo mantido.
+
+### 12.5 Como o fechamento de BAK-01b fica verificável
+
+1. H-4 contrata o plano e **configura a janela** (passo humano, §12.2 — o default pago é 1 d).
+2. Rodar a operação manual `pitr-status`: **run verde = janela medida e ≥ 7 d**; o JSON do artefato (`pitr-status.json`) é a prova anexável, com `history_retention_seconds` e `min_seconds` explícitos.
+3. Anexar o artefato ao fechamento e manter o dump externo (§5.3) — o PITR **não** o substitui.
+
+### 12.6 Residual desta v3 (declarado, não resolvido)
+
+- **Chamada live NÃO VERIFICADA:** sem `NEON_API_KEY` neste ambiente (H-2), a forma real da resposta de `GET /projects/{id}` e o comportamento de `PATCH` (§12.2) permanecem **TO-CONFIRM**; o que foi provado é a lógica (testes unitários com `fetch` mockado + caminho de skip executado de verdade).
+- **Confirmação do envelope e do teto:** só com chave + plano pago (H-4).
+- **Janela vigente:** o valor `21600` continua sendo o medido antes desta rodada (§1.2) — esta v3 **não** re-mediu nada.
+- **Alias de npm:** `m02:pitr-check` / `m02:neon-spend` **foram** adicionados a `package.json` — ação de **manifest do supervisor** na integração (o arquivo tem dono declarado e não pertence à lane do operador). Na branch do operador eles **não** existiam; a afirmação original de que faltavam era verdadeira lá e tornou-se falsa no merge. Invocação equivalente: `npm run m02:pitr-check` ou `node scripts/m02-pitr-check.mjs`.
 
 ---
 
 ## Coordenação com o supervisor
 
-Cronologia da rodada: (i) bloqueio de capacidade reportado — runtime do subagente sem ferramentas web, com a regra DOC-FIRST permanente em vigor; (ii) supervisor autorizou **modo LIMITAÇÃO DECLARADA** (v1, sem citação/URL inventada); (iii) o orquestrador **fechou o DOC-FIRST via web** e repassou planos, preços, janelas e a semântica de restore com URLs de origem; (iv) este memo foi atualizado para **v2**, incorporando os números com atribuição explícita (`[DOC-FIRST-ORQUESTRADOR]`) e encerrando o GAP-DOC. Nenhuma citação foi inventada em nenhuma das duas versões, e nenhum secret ou valor de env foi impresso (apenas nomes de variáveis e estados).
+Cronologia da rodada: (i) bloqueio de capacidade reportado — runtime do subagente sem ferramentas web, com a regra DOC-FIRST permanente em vigor; (ii) supervisor autorizou **modo LIMITAÇÃO DECLARADA** (v1, sem citação/URL inventada); (iii) o orquestrador **fechou o DOC-FIRST via web** e repassou planos, preços, janelas e a semântica de restore com URLs de origem; (iv) este memo foi atualizado para **v2**, incorporando os números com atribuição explícita (`[DOC-FIRST-ORQUESTRADOR]`) e encerrando o GAP-DOC; (v) **v3** (2026-09-14, Onda 4/O25) acrescentou §12 — endpoints com classe de evidência por linha, campos TO-CONFIRM em vez de nomes inventados, scripts de verificação e as operações manuais `pitr-status`/`spend-status`, sem nenhuma medição live. Nenhuma citação foi inventada em nenhuma das versões, e nenhum secret ou valor de env foi impresso (apenas nomes de variáveis e estados).

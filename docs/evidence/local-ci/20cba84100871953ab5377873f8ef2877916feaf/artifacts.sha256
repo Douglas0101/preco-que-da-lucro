@@ -1,0 +1,10 @@
+e58407ed2aea76c4a6e3325d4846c9ce3d97fa62284a5c18d2fe14d4ea75080b  ./local-commits-20cba84.bundle
+418b79557bdda0bc67412fc0d412f1c7c260de6aff6c18544e47bba4a78cd992  ./patches/0001-docs-evidence-close-the-WP-R8-marker-and-declare-the.patch
+167be6624e79965119483938f77390045401a3a5f678b66c1147ecde178d41f4  ./patches/0002-docs-evidence-refresh-the-session-handoff-for-the-CI.patch
+1661f87077d7a728f731048e2c77c89ce0f1b348337bb416a915bf0886dcc4d9  ./patches/0003-test-ci-cover-the-rewritten-history-door-of-the-CI-s.patch
+971f2b588e8e62edacca3fb9cba17c888f646fbfb0afec310ab9ccf216d5bbe8  ./patches/0004-docs-evidence-persist-the-advanced-R8-analysis-and-r.patch
+36011cb3476a7018090ff91f9fcbc9d1561cc4d18664ce057380c972594ec952  ./patches/0005-docs-evidence-open-the-light-CI-unblock-probe-and-pr.patch
+497cffdad0569837a52d3bbd771cdf513e7524286b7a37b5ccb8eb072918dc62  ./patches/0006-docs-evidence-record-the-unblock-probe-verdict-billi.patch
+08a11f42d7f85130382299d96d670e9fa487be3eb6957b1e035b392450e63839  ./patches/0007-docs-sdd-restore-the-ledger-state-marker-and-declare.patch
+ecc7eebe72a8455f3e10ef7dfc437a466a38a10fffae8057b161ec31894251eb  ./patches/0008-evidence-local-ci-version-the-metadata-only-evidence.patch
+7c4191d3375c0a6bcbec870c29c26f7e662145962df5e49ffb76906c4f022b9d  ./patches/0009-docs-sdd-close-the-SDD-20260923-cycle-with-its-evide.patch

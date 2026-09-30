@@ -1,0 +1,33 @@
+import { spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+const REPO = "/home/douglas-souza/preco-que-d-main/.worktree-a-failopen";
+const ART = REPO + "/.artifacts";
+const LOCAL = "postgresql://postgres:postgres@127.0.0.1:5433/preco_que_da_lucro_test";
+writeFileSync(ART + "/s6-empty.test.ts", "// sonda: arquivo sem casos\n");
+writeFileSync(ART + "/s6-throw.test.ts", 'import { describe, it } from "vitest";\nthrow new Error("boom na coleta");\n');
+writeFileSync(ART + "/s6-vitest4.config.ts", ['import { defineConfig } from "vitest/config";', "", 'export default defineConfig({ test: { environment: "node", include: [".artifacts/s6-empty.test.ts", ".artifacts/s6-throw.test.ts"] } });', ""].join("\n"));
+const src = readFileSync(REPO + "/scripts/db/test-product-contracts.ts", "utf8");
+function build(name, target) {
+  let out = src;
+  const reps = [
+    ['const testFile = "src/test/product-contracts.test.ts";', 'const testFile = "' + target + '";'],
+    ['const repoRoot = fileURLToPath(new URL("../..", import.meta.url));', 'const repoRoot = "' + REPO + '";'],
+    ['import { requireAdminUrl } from "./migrate";', 'import { requireAdminUrl } from "../scripts/db/migrate";'],
+    ['"--reporter=default",', '"--config", ".artifacts/s6-vitest4.config.ts", "--reporter=default",'],
+    ['const scratch = mkdtempSync(join(tmpdir(), "trk-d2-pc-"));', 'const scratch = mkdtempSync(join(tmpdir(), "trk-d2-pc-"));'],
+  ];
+  for (const r of reps) out = out.replace(r[0], r[1]);
+  writeFileSync(ART + "/" + name, out);
+  return ART + "/" + name;
+}
+function run(label, script) {
+  const env = { ...process.env, DATABASE_ADMIN_URL: LOCAL, DATABASE_URL: LOCAL, DATABASE_DRIVER: "node-postgres" };
+  delete env.DATABASE_URL_UNPOOLED;
+  delete env.DATABASE_URL_UNPOOLED;
+  const r = spawnSync(process.execPath, ["node_modules/.bin/tsx", script], { cwd: REPO, env, encoding: "utf8", maxBuffer: 100 * 1024 * 1024 });
+  const lines = ((r.stdout || "") + (r.stderr || "")).split("\n").map((s) => s.trim()).filter(Boolean);
+  console.log("### " + label + "  exit=" + String(r.status));
+  for (const s of lines.filter((l) => /AssertionError|No test|boom|Tests |Error/.test(l)).slice(-3)) console.log("   | " + s);
+}
+run("HUNT-C empty test file (no cases)", build("s6-run-empty.ts", ".artifacts/s6-empty.test.ts"));
+run("HUNT-D file throws during collection", build("s6-run-throw.ts", ".artifacts/s6-throw.test.ts"));

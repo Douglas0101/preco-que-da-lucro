@@ -1,0 +1,14 @@
+== npm run typecheck (tsc -p tsconfig.json --noEmit) ==
+
+> typecheck
+> tsc -p tsconfig.json --noEmit
+
+typecheck_exit=0
+
+== npx eslint on changed files ==
+eslint_exit=0
+
+== npx prettier --check on changed files ==
+Checking formatting...
+All matched files use Prettier code style!
+prettier_exit=0

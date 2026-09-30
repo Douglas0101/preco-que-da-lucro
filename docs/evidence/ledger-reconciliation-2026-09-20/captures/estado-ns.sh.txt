@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Estado atual de cada candidato NS/UNV (leitura de arvore) — WP-R0.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+echo "== 15.1 service+policy =="; ls src/server/services/memory.service.ts src/server/services/memory.policy.ts 2>/dev/null || echo "ausente"
+echo "== 15.2 tabelas ai_* =="; ls drizzle/0017*.sql drizzle/0018*.sql drizzle/0019*.sql 2>/dev/null; rg -o 'CREATE TABLE "ai_memor[a-z_]*"' drizzle/*.sql | sort -u
+echo "== 15.3 policy =="; rg -c 'policy' src/server/services/memory.policy.ts
+echo "== 15.4 proveniencia =="; rg -c 'provenance|sourceKind|inferred' src/server/repositories/memory.repository.ts
+echo "== 15.5 FTS =="; rg -l 'tsvector|to_tsvector|tsquery' src/ drizzle/ 2>/dev/null | wc -l
+echo "== 15.6 vetor =="; rg -l 'pgvector|embedding|hnsw' src/ drizzle/ package.json 2>/dev/null | wc -l
+echo "== 19.6 metricas de memoria =="; rg -o 'memory[A-Za-z]*' src/instrumentation/telemetry.ts | sort -u | wc -l
+echo "== 22.4 purge idempotencia (testes nao contam) =="; rg -n 'delete from idempotency_records' scripts/ src/ | wc -l
+echo "== 25.4 dependabot =="; git log -1 --format='%h %ad %s' --date=short -- .github/dependabot.yml
+echo "== 25.5/24.13 dedup =="; rg -n '25.5.*24.13|mesmo item' docs/evidence/supply-chain-classification-2026-09-15.md | head -2
+echo "== 29.1 M-06 =="; rg -n 'DRAFT' docs/specs/M-06/spec.md | head -1
+echo "== 21.3 T3 =="; rg -n 'SERIALIZABLE.*T3|T3' docs/adr/ADR-029-concurrency-t2-optimistic-version.md | head -2; rg -n 'serializable' src/ scripts/ --glob '!*.test.*' | wc -l
+echo "== 15.7 retrieval =="; rg -n 'retrieval' src/server/services/memory.policy.ts src/server/services/memory.service.ts 2>/dev/null | wc -l
+echo "== 25.5 estado =="; sed -n '24p' docs/evidence/supply-chain-classification-2026-09-15.md | cut -c1-120
+echo "== 25.6/25.7 estado =="; sed -n '25,26p' docs/evidence/supply-chain-classification-2026-09-15.md | cut -c1-120

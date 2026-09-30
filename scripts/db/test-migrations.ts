@@ -404,6 +404,118 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     { table_name: "simulations", column_name: "scenario_type" },
   ]);
 
+  // 0013 (T2): products e expenses ganham version integer NOT NULL DEFAULT 0
+  // com CHECK version >= 0.
+  const versionColumns = await client.query<{
+    table_name: string;
+    column_name: string;
+    data_type: string;
+    is_nullable: string;
+    column_default: string | null;
+  }>(
+    `select table_name, column_name, data_type, is_nullable, column_default
+     from information_schema.columns
+     where table_schema = 'public'
+       and table_name in ('products', 'expenses')
+       and column_name = 'version'
+     order by table_name`,
+  );
+  assert.deepEqual(versionColumns.rows, [
+    {
+      table_name: "expenses",
+      column_name: "version",
+      data_type: "integer",
+      is_nullable: "NO",
+      column_default: "0",
+    },
+    {
+      table_name: "products",
+      column_name: "version",
+      data_type: "integer",
+      is_nullable: "NO",
+      column_default: "0",
+    },
+  ]);
+
+  const versionChecks = await client.query<{ conname: string }>(
+    `select conname
+     from pg_constraint
+     where conrelid in ('public.products'::regclass, 'public.expenses'::regclass)
+       and conname in ('products_version_check', 'expenses_version_check')
+     order by conname`,
+  );
+  assert.deepEqual(
+    versionChecks.rows.map((row) => row.conname),
+    ["expenses_version_check", "products_version_check"],
+    "0013 deve criar CHECK version >= 0 nas duas tabelas",
+  );
+
+  await assert.rejects(
+    client.query("update products set version = -1 where id = $1", [productA]),
+    (error: unknown) =>
+      typeof error === "object" && error !== null && "code" in error && error.code === "23514",
+    "CHECK version >= 0 deve rejeitar contador negativo",
+  );
+
+  // 0014 (RUM): série append-only sem tenant/RLS; app_runtime INSERT-only.
+  const rumVitals = await client.query<{
+    column_name: string;
+    data_type: string;
+    is_nullable: string;
+  }>(
+    `select column_name, data_type, is_nullable
+     from information_schema.columns
+     where table_schema = 'public' and table_name = 'rum_vitals'
+     order by ordinal_position`,
+  );
+  assert.deepEqual(rumVitals.rows, [
+    { column_name: "id", data_type: "uuid", is_nullable: "NO" },
+    { column_name: "metric_id", data_type: "text", is_nullable: "NO" },
+    { column_name: "name", data_type: "text", is_nullable: "NO" },
+    { column_name: "value", data_type: "double precision", is_nullable: "NO" },
+    { column_name: "rating", data_type: "text", is_nullable: "NO" },
+    { column_name: "delta", data_type: "double precision", is_nullable: "NO" },
+    { column_name: "navigation_type", data_type: "text", is_nullable: "YES" },
+    { column_name: "received_at", data_type: "timestamp with time zone", is_nullable: "NO" },
+  ]);
+
+  const rumVitalsPrivileges = await client.query<{
+    insert: boolean;
+    select: boolean;
+    update: boolean;
+    delete: boolean;
+    publicInsert: boolean;
+    rowSecurity: boolean;
+    tenantColumn: string | null;
+  }>(
+    `select
+       has_table_privilege('app_runtime', 'public.rum_vitals', 'insert') as "insert",
+       has_table_privilege('app_runtime', 'public.rum_vitals', 'select') as "select",
+       has_table_privilege('app_runtime', 'public.rum_vitals', 'update') as "update",
+       has_table_privilege('app_runtime', 'public.rum_vitals', 'delete') as "delete",
+       has_table_privilege('public', 'public.rum_vitals', 'insert') as "publicInsert",
+       c.relrowsecurity as "rowSecurity",
+       (select column_name from information_schema.columns
+         where table_schema = 'public' and table_name = 'rum_vitals'
+           and column_name = 'tenant_id') as "tenantColumn"
+     from pg_class c
+     join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relname = 'rum_vitals'`,
+  );
+  assert.deepEqual(
+    rumVitalsPrivileges.rows[0],
+    {
+      insert: true,
+      select: false,
+      update: false,
+      delete: false,
+      publicInsert: false,
+      rowSecurity: false,
+      tenantColumn: null,
+    },
+    "0014 deve manter rum_vitals INSERT-only para app_runtime, sem RLS e sem tenant_id",
+  );
+
   await assert.rejects(
     client.query(
       `insert into products (tenant_id, user_id, name, tax_rate)
@@ -617,8 +729,16 @@ async function assertPurchasePriceConcurrency(adminUrl: string): Promise<void> {
   }
 }
 
-// Downs que levam a chain 0011→0003, na ordem de aplicação (mais nova primeiro).
+// Downs que levam a chain 0019→0003, na ordem de aplicação (mais nova primeiro).
 const DOWNS_TIP_TO_0003 = [
+  "0019_to_0018_down.sql",
+  "0018_to_0017_down.sql",
+  "0017_to_0016_down.sql",
+  "0016_to_0015_down.sql",
+  "0015_to_0014_down.sql",
+  "0014_to_0013_down.sql",
+  "0013_to_0012_down.sql",
+  "0012_to_0011_down.sql",
   "0011_to_0010_down.sql",
   "0010_to_0009_down.sql",
   "0009_to_0008_down.sql",
@@ -738,10 +858,11 @@ async function assertUpgradeFrom0003(adminUrl: string, client: Client): Promise<
 }
 
 async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Client): Promise<void> {
-  // Completa a cobertura da cadeia de rollback: além de 0011→0003, aplica
-  // 0003→0002 e o novo 0002→0001, deixando o banco no estado da migration
-  // 0001 com o journal reduzido a 0000/0001 (10 arquivos aplicados = 10 linhas
-  // removidas em applyDowns).
+  // Completa a cobertura da cadeia de rollback: além de 0019→0003, aplica
+  // 0003→0002 e o novo 0002→0001, deixando o banco no estado da migration 0001
+  // com o journal reduzido a 0000/0001 — uma linha do journal por arquivo
+  // aplicado (`applyDowns` deriva o número de `downFiles.length`; nenhum total é
+  // escrito à mão, então acrescentar down à lista não envelhece este comentário).
   await applyDowns(client, [
     ...DOWNS_TIP_TO_0003,
     "0003_to_0002_down.sql",
@@ -772,13 +893,13 @@ async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Clie
   const idempotentAgain = await readFile(resolve("drizzle/rollback/0002_to_0001_down.sql"), "utf8");
   await client.query(idempotentAgain);
 
-  // Replay completo 0002→0011: valida reprodutibilidade de 0002 e 0003.
+  // Replay completo 0002→0019: valida reprodutibilidade de 0002 e 0003.
   await runMigrations(adminUrl);
 
   const replayedJournal = await client.query<{ count: string }>(
     "select count(*)::text as count from drizzle.__drizzle_migrations",
   );
-  assert.equal(replayedJournal.rows[0]?.count, "12", "replay deve restaurar o journal completo");
+  assert.equal(replayedJournal.rows[0]?.count, "20", "replay deve restaurar o journal completo");
 
   const restored = await client.query<{
     rateLimits: boolean;

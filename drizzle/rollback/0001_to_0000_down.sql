@@ -7,6 +7,16 @@ DROP SCHEMA IF EXISTS drizzle CASCADE;
 DROP TABLE IF EXISTS ai_usage CASCADE;
 
 DROP TABLE IF EXISTS
+  ai_memory_access_log,
+  ai_memory_policies,
+  ai_memory_conflicts,
+  ai_memory_versions,
+  ai_memory_sources,
+  ai_memories,
+  backfill_checkpoints,
+  backfill_work_items,
+  outbox_consumptions,
+  outbox_events,
   audit_events,
   ai_daily_budgets,
   tool_executions,
@@ -26,6 +36,7 @@ DROP TABLE IF EXISTS
   profiles,
   products,
   rate_limits,
+  rum_vitals,
   tenant_memberships,
   tenants,
   verifications,

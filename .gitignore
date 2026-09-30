@@ -21,6 +21,26 @@ skills-lock.json
 .dev.vars*
 
 # Local credentials and provider state
+# Token do SonarCloud (41 B, sem rótulo): gitignored por decisão de 2026-09-27
+# antes da virada de visibilidade — um `git add .` ingênuo o levaria ao
+# histórico público. Nunca commitar.
+Sonar*.txt
+# `Keys.txt` (316 B, 4 credenciais vivas em texto plano: Neon, Vercel, GitHub
+# PAT, Sonar) entrou no diretório de trabalho em 2026-09-28 e estava a um
+# `git add .` de ir para o histórico de um repositório PÚBLICO. Mesma decisão do
+# Sonar*, mesmo motivo: nada que carregue credencial entra no índice.
+# A regra é por arquivo, de propósito — `*.txt` seria largo demais e cegaria a
+# revisão de texto legítimo.
+Keys.txt
+**/Keys.txt
+
+# Diretório de trabalho do MCP Playwright na raiz: logs de console, snapshots de
+# acessibilidade e screenshots da sessão. Não é evidência curada — a convenção do
+# repo é que captura bruta de computer-user vive SELADA em
+# `docs/evidence/*/playwright-mcp*/**`, com o byte preservado. Na raiz ele é só
+# lixo de ferramenta que um `git add .` levaria ao histórico, junto com qualquer
+# coisa que o navegador tenha logado.
+.playwright-mcp/
 /.aws/
 /.azure/
 /.gcloud/
@@ -37,6 +57,13 @@ secrets.json
 *.token
 *.secret
 *.secrets
+
+# Agent MCP client configs — may embed API tokens
+**/.mcp.json
+.cursor/
+.gemini/
+.kimi/
+.kimi-code/
 
 node_modules
 dist
@@ -55,6 +82,10 @@ coverage
 /temp/
 .worktree-*/
 .p0-closeout-docker/
+# Symlink local para o checkout do harness (fora deste repo) — nunca versionar.
+# Sem barra final de proposito: o git nao segue symlink, entao `deepseek-harness/`
+# (dir-only) nao casaria com o link.
+deepseek-harness
 playwright-report
 test-results
 .cache/
@@ -130,3 +161,42 @@ Thumbs.db
 
 # Vercel local build output (Build Output API)
 .vercel/
+
+# ========================================
+# ARTEFATOS LOCAIS COM PII (Preservação de Desenvolvimento)
+# ========================================
+# Estes arquivos contêm headers From: com identidade pessoal.
+# São mantidos localmente para uso em desenvolvimento.
+# NÃO devem ser incluídos em snapshots públicos.
+
+# Patches locais (contêm headers de author)
+release/**/*.patch
+docs/evidence/**/*.patch
+*.patch
+
+# Bundles locais (podem conter histórico com PII)
+release/**/*.bundle
+docs/evidence/**/*.bundle
+*.bundle
+_preservation/**/*.bundle
+
+# Diretórios de preservação local
+_preservation/
+release/
+
+# Auditoria raw (relatórios não redigidos)
+docs/auditoria-publicacao/raw/
+docs/auditoria-publicacao/*.redacted.json
+
+# Screenshots de console logado (Neon/Vercel/hPanel) — removidos do index em
+# 2026-09-27 antes da virada de visibilidade. Mostram conta, plano, project/
+# branch ID e "IP restrictions: None set"; nenhum token ou connection string.
+# Os blobs continuam no histórico (reescrever é vetado por AGENTS.md:4/16) —
+# isto é mitigação de árvore, não de histórico.
+docs/evidence/neon-github-card-console-2026-08-23.png
+docs/evidence/infra-recon-2026-09-17/screenshots/
+
+# Artefatos visuais brutos do gate Computer User Observability (ADR-033): saída de
+# execução — redigida antes de escrever, mas ainda assim não é fonte versionada.
+# Vão como artifacts de CI (.github/workflows/ui-stack.yml, browser-evidence).
+docs/evidence/visual/

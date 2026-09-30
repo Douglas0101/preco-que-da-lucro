@@ -1,0 +1,40 @@
+branch = mission/wp3-depth-pin
+HEAD_SHA = 524ec542d069f04132342ca276b1809468b0e75c
+porta 5432 (H-9) tocada? -> 0 listener(es)
+
+=== 0. container efemero ===
+  docker run rc=0
+  pronto apos 3s
+  PostgreSQL 17.11 on x86_64-pc-linux-musl
+
+=== 1. o runner com piso, contra o container (os 4 gated deixam de pular) ===
+  RUNNER_EXIT=0
+     Test Files  1 passed (1)
+          Tests  15 passed (15)
+    prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 15 passed (15), 0 skipped — admin=127.0.0.1:5438
+
+=== 2. o MESMO runner com o piso acima da contagem (deve REPROVAR) ===
+  PISO_EXIT=1 (esperado != 0)
+    AssertionError [ERR_ASSERTION]: a prova de banco não produziu casos suficientes: 15 < 16 — um arquivo com menos casos que o contrato, todos passando, sairia 0 e deixaria o passo verde com a cobertura de banco encolhida em silêncio (fail-open, F-D2-runner-failopen)
+  runner restaurado byte a byte: OK (95fa85766eb1c275)
+
+=== 3. suite do arquivo, direta (sem o runner) ===
+  VITEST_EXIT=0
+     Test Files  1 passed (1)
+          Tests  15 passed (15)
+
+=== 4. matriz determinista SEM regenerar ===
+  MATRIX_EXIT=0
+    M-02 matrix is deterministic and up to date.
+
+=== 5. a fronteira nao mudou o runtime (ASSERTADO, nao so impresso) ===
+  FK_CAUSE_CHAIN_LIMIT == 4: 1 (esperado 1)
+  products.functions.ts no diff? 0 (esperado 0)
+
+=== 6. limpeza ===
+  container removido
+  porta 5432 (H-9) tocada? -> 0 listener(es)
+
+RESUMO: RUNNER=0 PISO=1 RESTAURO=0 VITEST=0 MATRIX=0 LIMITE=1 RUNTIME_DIFF=0 H9=0/0
+BATERIA WP3: OK
+VERIFY_EXIT=0

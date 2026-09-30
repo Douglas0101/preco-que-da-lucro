@@ -2,7 +2,6 @@ import Decimal from "decimal.js";
 import { logJson } from "@/lib/structured-logger";
 import {
   calculateBreakEvenUnits,
-  calculatePriceFormation,
   computeProductCost,
   type BreakEvenResult,
   type CalculationResult,
@@ -18,6 +17,7 @@ import {
   deriveSnapshotIdempotencyKey,
 } from "@/server/services/calculation-snapshot.service";
 import { FINANCE_ENGINE_VERSION } from "@/server/services/financial.service";
+import { pricingService } from "@/server/services/pricing.service";
 import { loadProductFinancialDetail } from "@/server/services/product-detail.service";
 
 export interface DiagnosticInput {
@@ -189,7 +189,7 @@ export async function getDiagnostic(
     currentPrice,
     detail.market?.avgPrice ?? null,
   );
-  const priceFormation = calculatePriceFormation({
+  const priceFormation = pricingService.calculatePriceFormationFor({
     directUnitCost:
       cost.status === "ok" ? cost.value.unitCost : cost.status === "invalid" ? Number.NaN : null,
     nonPercentageVariableUnitCost: input.nonPercentageVariableUnitCost,
@@ -214,7 +214,6 @@ export async function getDiagnostic(
     engineVersion: FINANCE_ENGINE_VERSION,
   };
 
-  applicationMetrics.financialStates.add(1, { state: currentResult.status });
   applicationMetrics.diagnosticCalculationTotal.add(1, { status: currentResult.status });
   await recordDiagnosticSnapshots(context, input, view);
   return view;
@@ -231,6 +230,15 @@ async function recordDiagnosticSnapshots(
     targetContributionRate: input.targetContributionRate,
     marketAvgPrice: view.market?.avgPrice ?? null,
   };
+  // SAFETY: `JSON.parse(JSON.stringify(...))` cannot throw here. `view` is a fresh
+  // object literal assembled in `getDiagnostic` whose leaves are primitives, flat
+  // records of primitives and arrays of those (financial-engine results, `fees`
+  // rows, a nullable market record) - none of them can reference `view` itself, so
+  // `JSON.stringify` cannot encounter a cycle, and the string it produces is by
+  // construction valid JSON for `JSON.parse`. The deep clone exists to drop
+  // `undefined` leaves before the snapshot payload is hashed. If a non-JSON-safe
+  // value (e.g. a circular reference or a BigInt) is ever added to `view`, this
+  // assumption breaks and the call must be wrapped in try/catch.
   const outputs: Record<string, unknown> = JSON.parse(
     JSON.stringify({
       cost: view.cost,
@@ -246,38 +254,30 @@ async function recordDiagnosticSnapshots(
   // Chave deterministica derivada do helper unico (WS-03 / §22): replay da
   // mesma analise converge no mesmo registro (UNIQUE) — nunca duplica, e a
   // entidade (productId) faz parte da chave.
-  const snapshotKey = (calculationType: string) =>
-    deriveSnapshotIdempotencyKey({
-      calculationType,
-      entityType: "product",
-      entityId: input.productId,
-      engineVersion: FINANCE_ENGINE_VERSION,
-      inputs,
-    });
   try {
     await calculationSnapshotService.append(context, {
       entityType: "product",
       entityId: input.productId,
       calculationType: "diagnostic",
-      idempotencyKey: snapshotKey("diagnostic"),
+      idempotencyKey: deriveSnapshotIdempotencyKey({
+        calculationType: "diagnostic",
+        entityType: "product",
+        entityId: input.productId,
+        engineVersion: FINANCE_ENGINE_VERSION,
+        inputs,
+      }),
       inputs,
       outputs,
       engineVersion: FINANCE_ENGINE_VERSION,
     });
     applicationMetrics.snapshotCreatedTotal.add(1, { type: "diagnostic" });
-    await calculationSnapshotService.append(context, {
-      entityType: "product",
-      entityId: input.productId,
-      calculationType: "pricing",
-      idempotencyKey: snapshotKey("pricing"),
-      inputs,
-      outputs: JSON.parse(JSON.stringify({ priceFormation: view.priceFormation })) as Record<
-        string,
-        unknown
-      >,
-      engineVersion: FINANCE_ENGINE_VERSION,
+    await pricingService.appendPricingSnapshot(context, {
+      productId: input.productId,
+      nonPercentageVariableUnitCost: input.nonPercentageVariableUnitCost,
+      targetContributionRate: input.targetContributionRate,
+      marketAvgPrice: view.market?.avgPrice ?? null,
+      priceFormation: view.priceFormation,
     });
-    applicationMetrics.snapshotCreatedTotal.add(1, { type: "pricing" });
   } catch (error) {
     applicationMetrics.snapshotFailureTotal.add(1, { type: "diagnostic" });
     logJson("warn", "diagnostic.snapshot_failed", {

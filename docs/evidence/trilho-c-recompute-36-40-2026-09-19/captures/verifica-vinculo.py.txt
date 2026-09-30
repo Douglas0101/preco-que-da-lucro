@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+"""TRILHO C — vinculo commit <-> selo: todo caminho do MANIFEST confere no commit."""
+import hashlib
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SEAL = "docs/evidence/trilho-c-recompute-36-40-2026-09-19"
+SHA = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+manifest = (ROOT / SEAL / "MANIFEST.sha256").read_text(encoding="utf-8").splitlines()
+
+ok = bad = 0
+for line in manifest:
+    digest, path = line.split("  ", 1)
+    blob = subprocess.run(["git", "show", f"{SHA}:{path}"], cwd=ROOT, capture_output=True)
+    if blob.returncode != 0:
+        print(f"  AUSENTE NO COMMIT: {path}")
+        bad += 1
+        continue
+    got = hashlib.sha256(blob.stdout).hexdigest()
+    if got == digest:
+        ok += 1
+    else:
+        print(f"  DIVERGE: {path}\n    manifesto={digest}\n    commit   ={got}")
+        bad += 1
+
+print(f"commit {SHA[:7]}  manifestos={len(manifest)}  conferem={ok}  divergem={bad}")
+print(f"VINCULO COMMIT <-> SELO: {'OK' if bad == 0 and ok == len(manifest) else 'FALHOU'}")
+sys.exit(0 if bad == 0 and ok == len(manifest) else 1)

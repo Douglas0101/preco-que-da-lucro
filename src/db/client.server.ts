@@ -6,7 +6,16 @@ import { Pool as NodePostgresPool } from "pg";
 import * as schema from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
 import { logJson } from "@/lib/structured-logger";
-import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
+import { normalizeSqlOperation, redactSqlText } from "@/instrumentation/sql-redactor";
+import { recordSafely } from "@/instrumentation/safe-record";
+import {
+  applicationMetrics,
+  endSpanWithResult,
+  registerPoolSnapshotSource,
+  startDatabaseQuerySpan,
+  withSpan,
+  type DatabasePoolSnapshot,
+} from "@/instrumentation/telemetry";
 
 function createNeonDatabase(connectionString: string) {
   // Teto explícito; 901 max_connections medidos no plano (Fase 0.3); default 10 preserva o comportamento atual.
@@ -14,7 +23,7 @@ function createNeonDatabase(connectionString: string) {
     connectionString,
     max: Number(process.env.DATABASE_POOL_MAX ?? "10"),
   });
-  instrumentPoolRoundTrips(pool);
+  instrumentPoolRoundTrips(pool, "neon-serverless");
   return drizzleNeon({ client: pool, schema });
 }
 
@@ -65,7 +74,16 @@ function createDatabase() {
       connectionString,
       max: Number(process.env.DATABASE_POOL_MAX ?? "10"),
     });
-    instrumentPoolRoundTrips(pool);
+    instrumentPoolRoundTrips(pool, "node-postgres");
+    // SAFETY: both driver branches of `createDatabase` must expose the same
+    // operations the locally-declared `Database` interface requires (the query
+    // surface used by repositories plus `transaction`). The node-postgres
+    // drizzle instance does satisfy them, but TypeScript cannot unify the two
+    // driver-specific factory return types with that hand-written interface, so
+    // this cast is the single place where cross-driver structural compatibility
+    // is asserted. FRAGILE: if a repository starts using an operation that only
+    // one driver provides, this cast would hide the divergence until runtime -
+    // the two driver paths are the guard.
     return drizzleNodePostgres({ client: pool, schema }) as unknown as Database;
   }
   if (driver !== "neon-serverless") {
@@ -98,7 +116,7 @@ export async function withTenantTransaction<T>(
   try {
     return await withSpan(
       "db.tenant_transaction",
-      { "db.system": "postgresql", "app.tenant_id": identity.tenantId },
+      { "db.system.name": "postgresql", "app.tenant_id": identity.tenantId },
       () =>
         getDatabase().transaction(async (transaction) => {
           await transaction.execute(sql`
@@ -112,7 +130,7 @@ export async function withTenantTransaction<T>(
         }),
     );
   } finally {
-    applicationMetrics.dbDuration.record(performance.now() - startedAt);
+    recordTransactionDuration(performance.now() - startedAt);
   }
 }
 
@@ -131,7 +149,7 @@ export async function withResolvedTenantTransaction<T>(
 ): Promise<T> {
   const startedAt = performance.now();
   try {
-    return await withSpan("db.tenant_transaction", { "db.system": "postgresql" }, (span) =>
+    return await withSpan("db.tenant_transaction", { "db.system.name": "postgresql" }, (span) =>
       getDatabase().transaction(async (transaction) => {
         await transaction.execute(sql`select set_config('app.current_user_id', ${userId}, true)`);
         const membership = await resolveMembership(transaction);
@@ -146,7 +164,7 @@ export async function withResolvedTenantTransaction<T>(
       }),
     );
   } finally {
-    applicationMetrics.dbDuration.record(performance.now() - startedAt);
+    recordTransactionDuration(performance.now() - startedAt);
   }
 }
 
@@ -158,6 +176,17 @@ export const transactionManager: TransactionManager = {
 };
 
 const instrumentedClients = new WeakSet<object>();
+const instrumentedPools = new WeakMap<object, InstrumentedPool>();
+
+type PoolClientHooks = {
+  onTransactionBegin?: () => void;
+  onTransactionEnd?: () => void;
+};
+
+export interface InstrumentedPool {
+  read(): DatabasePoolSnapshot;
+  unregister(): void;
+}
 
 function statementText(statement: unknown): string | undefined {
   if (typeof statement === "string") return statement;
@@ -185,7 +214,40 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
   );
 }
 
-function instrumentClientRoundTrips(client: unknown): void {
+/** Span por query com semconv PostgreSQL; `values` nunca é anexado. */
+function createQuerySpan(statement: unknown) {
+  const text = statementText(statement);
+  const operation = normalizeSqlOperation(text);
+  const redacted = text === undefined ? undefined : redactSqlText(text);
+  return { span: startDatabaseQuerySpan(operation, redacted), operation };
+}
+
+/** Métrica de query: um `record` que lança nunca pode rejeitar uma query que
+ * já teve sucesso nem pular o callback do usuário (mesma regra defensiva dos
+ * observables do pool em `telemetry.ts`). */
+function recordQueryDuration(operation: string, durationMs: number): void {
+  recordSafely(applicationMetrics.dbQueryDuration, durationMs, {
+    "db.operation.name": operation,
+    "db.system.name": "postgresql",
+  });
+}
+
+/** Métrica de duração de `db.tenant_transaction`: um `record` que lança no
+ * `finally` não pode rejeitar uma transação já commitada nem substituir o erro
+ * real (inclusive `TenantMembershipDeniedError`). */
+function recordTransactionDuration(durationMs: number): void {
+  recordSafely(applicationMetrics.dbDuration, durationMs);
+}
+
+/** Métrica de espera por cliente do pool: o `pg-pool` invoca o callback de
+ * `connect` sem try/catch, então um `record` que lança viraria
+ * `uncaughtException` e deixaria o cliente preso fora do pool — a query nunca
+ * assenta e o pool esgota. */
+function recordPoolWait(durationMs: number, driver: string): void {
+  recordSafely(applicationMetrics.dbPoolWaitTime, durationMs, { driver });
+}
+
+function instrumentClientRoundTrips(client: unknown, hooks: PoolClientHooks = {}): void {
   const target = client as { query?: (...queryArgs: unknown[]) => unknown } | null;
   if (!target || typeof target.query !== "function" || instrumentedClients.has(target)) {
     return;
@@ -199,8 +261,20 @@ function instrumentClientRoundTrips(client: unknown): void {
     if (boundary === "begin") {
       roundTrips = 0;
       transactionStartedAt = performance.now();
+      hooks.onTransactionBegin?.();
     }
     roundTrips += 1;
+
+    const queryStartedAt = performance.now();
+    const querySpan = boundary ? undefined : createQuerySpan(queryArgs[0]);
+    let spanFinalized = false;
+    const finalizeSpan = (error?: unknown) => {
+      if (!querySpan || spanFinalized) return;
+      spanFinalized = true;
+      recordQueryDuration(querySpan.operation, performance.now() - queryStartedAt);
+      endSpanWithResult(querySpan.span, error);
+    };
+
     const isEndingBoundary = boundary === "commit" || boundary === "rollback";
     let finalized = false;
     const finalize = (error?: unknown) => {
@@ -215,54 +289,147 @@ function instrumentClientRoundTrips(client: unknown): void {
       });
       roundTrips = 0;
       transactionStartedAt = 0;
+      hooks.onTransactionEnd?.();
     };
 
-    const callbackIndex = isEndingBoundary
-      ? queryArgs.findIndex((argument) => typeof argument === "function")
-      : -1;
+    const callbackIndex = queryArgs.findIndex((argument) => typeof argument === "function");
     if (callbackIndex >= 0) {
       const callback = queryArgs[callbackIndex] as (...callbackArgs: unknown[]) => unknown;
       queryArgs[callbackIndex] = (...callbackArgs: unknown[]) => {
-        finalize(callbackArgs[0]);
+        const callbackError = callbackArgs[0] ?? undefined;
+        finalize(callbackError);
+        finalizeSpan(callbackError);
         return callback(...callbackArgs);
       };
     }
 
     try {
       const result = originalQuery(...queryArgs);
-      if (isEndingBoundary && callbackIndex < 0 && isThenable(result)) {
+      if (callbackIndex < 0 && isThenable(result)) {
         return result.then(
           (value) => {
             finalize();
+            finalizeSpan();
             return value;
           },
           (error) => {
             finalize(error);
+            finalizeSpan(error);
             throw error;
           },
         );
       }
-      if (isEndingBoundary && callbackIndex < 0) finalize();
+      if (callbackIndex < 0) {
+        finalize();
+        finalizeSpan();
+      }
       return result;
     } catch (error) {
       finalize(error);
+      finalizeSpan(error);
       throw error;
     }
   };
 }
 
+function readPoolCount(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function resolvePoolDriver(driver?: string): string {
+  if (driver === "neon-serverless" || driver === "node-postgres") return driver;
+  return process.env.DATABASE_DRIVER === "node-postgres" ? "node-postgres" : "neon-serverless";
+}
+
 /** Counts real round trips per transaction and emits an `app.context_tx` log
- * line on commit/rollback (S1-PERF-TX RT instrumentation, zero dependencies). */
-export function instrumentPoolRoundTrips(pool: unknown): void {
-  const poolLike = pool as { connect?: (...connectArgs: unknown[]) => unknown } | null;
-  if (!poolLike || typeof poolLike.connect !== "function") return;
-  const originalConnect = poolLike.connect.bind(pool);
-  poolLike.connect = (...connectArgs: unknown[]) => {
-    const connected = originalConnect(...connectArgs);
-    if (!(connected instanceof Promise)) return connected;
-    return connected.then((client) => {
-      instrumentClientRoundTrips(client);
-      return client;
-    });
+ * line on commit/rollback (S1-PERF-TX RT instrumentation, zero dependencies).
+ * Também expõe snapshot do pool (§16.7) e spans por query (§19.3) nos dois
+ * caminhos de aquisição de cliente: promise (`pool.connect()`) e callback
+ * (`pool.connect(cb)` — o caminho que `pool.query` usa e que devolve
+ * `undefined`). */
+export function instrumentPoolRoundTrips(
+  pool: unknown,
+  driver?: string,
+): InstrumentedPool | undefined {
+  const poolLike = pool as
+    | ({
+        connect?: (...connectArgs: unknown[]) => unknown;
+      } & {
+        totalCount?: unknown;
+        idleCount?: unknown;
+        waitingCount?: unknown;
+        options?: { max?: unknown };
+      })
+    | null;
+  if (!poolLike || typeof poolLike.connect !== "function") return undefined;
+  const existing = instrumentedPools.get(poolLike);
+  if (existing) return existing;
+
+  const driverLabel = resolvePoolDriver(driver);
+  let inFlightTransactions = 0;
+  const snapshotSource = (): DatabasePoolSnapshot => {
+    const total = readPoolCount(poolLike.totalCount);
+    const idle = readPoolCount(poolLike.idleCount);
+    return {
+      driver: driverLabel,
+      used: Math.max(total - idle, 0),
+      idle,
+      waiting: readPoolCount(poolLike.waitingCount),
+      max: readPoolCount(poolLike.options?.max),
+      inFlightTransactions,
+    };
   };
+  const handle: InstrumentedPool = {
+    read: snapshotSource,
+    unregister: registerPoolSnapshotSource(snapshotSource),
+  };
+  instrumentedPools.set(poolLike, handle);
+
+  const originalConnect = poolLike.connect.bind(poolLike);
+  const clientHooks: PoolClientHooks = {
+    onTransactionBegin: () => {
+      inFlightTransactions += 1;
+    },
+    onTransactionEnd: () => {
+      inFlightTransactions = Math.max(0, inFlightTransactions - 1);
+    },
+  };
+  poolLike.connect = (...connectArgs: unknown[]) => {
+    const startedAt = performance.now();
+    let waitRecorded = false;
+    const recordWait = () => {
+      if (waitRecorded) return;
+      waitRecorded = true;
+      recordPoolWait(performance.now() - startedAt, driverLabel);
+    };
+    const callbackIndex = connectArgs.findIndex((argument) => typeof argument === "function");
+    if (callbackIndex >= 0) {
+      const callback = connectArgs[callbackIndex] as (...callbackArgs: unknown[]) => unknown;
+      connectArgs[callbackIndex] = (...callbackArgs: unknown[]) => {
+        recordWait();
+        // `pg-pool` adquire o cliente de `pool.query` por este caminho e devolve
+        // `undefined` (node_modules/pg-pool/index.js:190,449); sem instrumentar
+        // aqui, toda query fora de transação (rate limiter, health, vitals, auth)
+        // ficaria sem span. O `instrumentedClients` WeakSet garante um único
+        // wrapper por cliente, então o caminho promise abaixo nunca duplica.
+        if (!callbackArgs[0]) instrumentClientRoundTrips(callbackArgs[1], clientHooks);
+        return callback(...callbackArgs);
+      };
+    }
+    const connected = originalConnect(...connectArgs);
+    if (!isThenable(connected)) return connected;
+    return connected.then(
+      (client) => {
+        recordWait();
+        instrumentClientRoundTrips(client, clientHooks);
+        return client;
+      },
+      (error) => {
+        recordWait();
+        throw error;
+      },
+    );
+  };
+
+  return handle;
 }

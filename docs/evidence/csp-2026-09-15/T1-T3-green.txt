@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main/.worktree-mB3
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  01:50:17
+   Duration  1.08s (transform 80ms, setup 166ms, import 127ms, tests 12ms, environment 649ms)
+

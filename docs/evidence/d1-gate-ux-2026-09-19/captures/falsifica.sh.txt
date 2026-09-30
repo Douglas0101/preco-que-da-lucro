@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# Falsificacao do WP2: o gate TEM que disparar, e a mensagem TEM que nomear o
+# contador. Uma mensagem que so aparece em teste unitario nao prova a fiacao.
+set -u
+cd "$(dirname "$0")/.." || exit 1
+
+PROBE="src/lib/zzz-wp2-probe.functions.ts"
+FALSIFICA_FAIL=0
+
+echo "=== 0. arvore limpa: check deve passar ==="
+npx tsx scripts/m02-matrix.ts --check 2>&1 | tail -3
+echo "EXIT_ANTES=${PIPESTATUS[0]}"
+
+echo
+echo "=== 1. planta a sonda ($PROBE) ==="
+cat > "$PROBE" <<'EOF'
+export const zzzWp2Probe = 1;
+EOF
+echo "criado: $(wc -l < "$PROBE") linha(s)"
+
+echo
+echo "=== 2. check DEVE disparar, e a mensagem DEVE nomear o contador ==="
+npx tsx scripts/m02-matrix.ts --check > /tmp/wp2-gate-out.txt 2> /tmp/wp2-gate-err.txt
+GATE_EXIT=$?
+echo "GATE_EXIT=$GATE_EXIT"
+echo "--- stderr (a mensagem do gate) ---"
+cat /tmp/wp2-gate-err.txt
+
+echo
+echo "=== 3. a primeira linha continua byte a byte a de antes? ==="
+FIRST=$(head -1 /tmp/wp2-gate-err.txt)
+if [ "$FIRST" = "M-02 matrix drift: execute npm run m02:matrix:generate and review the result." ]; then
+  echo "PRIMEIRA_LINHA: IDENTICA A ANTERIOR"
+else
+  echo "PRIMEIRA_LINHA: MUDOU -> [$FIRST]"
+fi
+
+echo
+echo "=== 4. nomeia contador OU lista? ==="
+if grep -qE 'counts\.[a-zA-Z]+: .* -> ' /tmp/wp2-gate-err.txt; then
+  echo "NOMEOU CONTADOR: $(grep -oE 'counts\.[a-zA-Z]+: .* -> .*' /tmp/wp2-gate-err.txt | head -3 | tr '\n' ' | ')"
+else
+  echo "NAO NOMEOU CONTADOR"
+fi
+if grep -qE '^    [a-zA-Z]+: [0-9]+ -> [0-9]+ \([0-9]+ added, [0-9]+ removed\)' /tmp/wp2-gate-err.txt; then
+  echo "NOMEOU LISTA: $(grep -oE '^    [a-zA-Z]+: [0-9]+ -> [0-9]+ \([0-9]+ added, [0-9]+ removed\)' /tmp/wp2-gate-err.txt | head -3 | tr '\n' ' | ')"
+else
+  echo "NAO NOMEOU LISTA"
+fi
+
+echo
+if grep -qE '^      \+ src/lib/zzz-wp2-probe\.functions\.ts$' /tmp/wp2-gate-err.txt; then
+  echo "ENTRADA: OK (a sonda nova aparece como +)"
+else
+  echo "ENTRADA: ERRADA — a sonda nova nao aparece como +"
+  FALSIFICA_FAIL=1
+fi
+if grep -qE 'counts\.bffModules: 8 -> 9$' /tmp/wp2-gate-err.txt; then
+  echo "DIRECAO: OK (disco 8 -> arvore 9)"
+else
+  echo "DIRECAO: ERRADA"
+  FALSIFICA_FAIL=1
+fi
+if grep -qE 'counts\.bffModules: 9 -> 8' /tmp/wp2-gate-err.txt; then
+  echo "DIRECAO INVERTIDA: a mensagem responde o contrario da pergunta"
+  FALSIFICA_FAIL=1
+fi
+
+echo
+echo "=== 5. diz em qual arquivo? ==="
+grep -E '^  docs/specs/M-02/' /tmp/wp2-gate-err.txt || echo "(nenhuma linha de arquivo)"
+
+echo
+echo "=== 6. tamanho da mensagem vs tamanho do diff que ela substitui ==="
+echo "linhas da mensagem: $(wc -l < /tmp/wp2-gate-err.txt)"
+echo "bytes de matrix.yaml: $(wc -c < docs/specs/M-02/matrix.yaml)"
+
+echo
+echo "=== 7. limpa a sonda e revalida ==="
+rm -f "$PROBE"
+echo "removido: $PROBE"
+npx tsx scripts/m02-matrix.ts --check 2>&1 | tail -3
+echo "EXIT_DEPOIS=${PIPESTATUS[0]}"
+
+echo
+echo "=== 8. a sonda nao sobrou no git? ==="
+git status --short
+
+if [ "$FALSIFICA_FAIL" -eq 0 ]; then
+  echo
+  echo "FALSIFICA_EXIT=0"
+else
+  echo
+  echo "FALSIFICA_EXIT=1 (asserção de entrada/direção reprovada)"
+fi
+exit "$FALSIFICA_FAIL"

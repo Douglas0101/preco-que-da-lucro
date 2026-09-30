@@ -1,0 +1,63 @@
+All checks complete. Final adversarial report.
+
+---
+
+## C2: CONFIRMED — no §41 condition found unsatisfiable; three flagged probes all hold, one with a caveat
+
+- **XSS test is real DOM-based regression, not a DOMPurify comment.** `src/test/chat-markdown.test.tsx:31-33` asserts for six payloads `expect(container.querySelector("script")).toBeNull(); expect(container.querySelector("img")).toBeNull();` + `:47` `expect(container.textContent).toContain(payload);` (inert text) + `:43` no `on*` attributes. The file never mentions DOMPurify; the `dangerouslySetInnerHTML` canary at `:51` is explicitly labeled supplementary (`chat-markdown.test.tsx:53-54` — `// Canário: ... A prova real são os testes DOM-based acima`). Condition 1 holds.
+- **localStorage (cond. 8): holds on substance, but the e2e assertion is weaker than the table implies.** My own grep for `localStorage` in `src/` → **0 matches** (so no application code can write it). The e2e check at `e2e/ui-stack.spec.ts:236` is only `expect(storageKeys.filter((key) => /token|session|auth/i.test(key))).toEqual([]);` — **key-name-only, value-blind, and vacuously green on empty storage**; it cannot see a sensitive value under a non-matching key. The condition survives because of the zero-hit grep plus the HttpOnly cookie assertions at `:229-231` (`expect(sessionCookie?.httpOnly).toBe(true);`).
+- **AI timeout is on the only AI path.** The gateway is called from exactly one place — `src/lib/chat.functions.ts:243` (`process.env.AI_GATEWAY_URL ?? "https://ai.gateway.lovable.dev/v1/chat/completions"`) — and only `chat.functions.ts:347` feeds it (`executeSendChatMessage(data, context.requestIdentity, { modelCaller: callModel })`). Inside, `chat-execution.server.ts:580` — `const requestSignal = AbortSignal.any([identity.signal, AbortSignal.timeout(requestTimeoutMs)]);` — is checked at `:582` and every round (`:620 if (requestSignal.aborted) throw new ApplicationError("AI_TIMEOUT")`) and propagated to `:630`, with a second bound at the fetch (`chat.functions.ts:186 const signal = AbortSignal.any([requestSignal, AbortSignal.timeout(timeoutMs)])`). Condition 10 holds on every path that exists.
+- Other conditions re-checked where free: cond. 4 is live-proven by e2e (`e2e/ui-stack.spec.ts:240-243` empty volume, `toHaveCount(0)` for "Cenário atual"/"Diferença vs. atual"); cond. 9 by `e2e/ui-stack.spec.ts:218-224` (message expected before and after `page.reload()`); cond. 11 ("CI verde") rests on cited run IDs (`camada-36-40-recomputada.md:105`: `UI stack run 35465442629 (commit 9be9956) e run 35461588021 (commit f06c6d8), ambos success`) which are **external artifacts, not re-derivable read-only** — not falsified, but not independently verified by me.
+
+## C3: CONFIRMED — "6 of 7" holds; the borderline is declared, not concealed
+
+- **FTS (the 7th) is genuinely absent**: the only search is `src/server/repositories/memory.repository.ts:866` — ``: sql`position(lower(${text}) in lower(${aiMemories.content})) > 0` `` — an unanchored substring, no lexical representation.
+- **Delete/export are real code, not facade stubs**: delete repeats the scope authorization inside the DELETE predicate (`memory.repository.ts:1019` — ``sql`app_private.has_tenant_owner_access(${context.tenantId}::uuid)` ``) and audits every outcome; export fails closed (`memory.repository.ts:1058-1061` — `if (access.rows[0]?.allowed !== true) { throw new ApplicationError("AUTHORIZATION_ERROR"` ...`) and returns sources + versions per memory.
+- **Tenant isolation is demonstrated in the schema, not just asserted**: `CREATE POLICY tenant_isolation ON "ai_memories" TO app_runtime` (`drizzle/0017_past_gideon.sql:69`), `ai_memory_sources` (`:76`), `ai_memory_versions` (`0018_polite_living_tribunal.sql:54`), `ai_memory_conflicts` (`:61`), `ai_memory_access_log` (`0019_tiresome_robin_chapel.sql:44`).
+- **"Memory Service pronto" is the admitted borderline**: `src/server/services/memory.service.ts:2` — `* Memory Service — degrau D1: candidato → decisão, **sem persistência**.` — the artifact discloses this (`camada-36-40-recomputada.md:104` — "A condição 2 é limítrofe"), and since §43 is **not** passed (PARTIAL) and §43's own "Só então embeddings" keeps `P2-05/P2-06/GATE-44` blocked, counting a borderline condition inside a non-passing gate is not over-credit.
+
+## C4: CONFIRMED — NS is right, and stronger than the claim
+
+Repo-wide search for `websearch_to_tsquery|plainto_tsquery|pg_trgm|similarity(|unaccent|portuguese|tsvector|tsquery` → **zero hits in `src/`, `drizzle/`, `scripts/`** (only docs prose). The single `GIN` occurrence is a comment — `src/server/repositories/memory.repository.ts:14` — `* representação lexical (FTS/GIN) é D5.` — and no `USING gin` index exists in `drizzle/` (only `USING btree`). No lexical mechanism exists; "NS" stands.
+
+## C5: CONFIRMED — no memory UI/route; NS is the conservative side
+
+Case-insensitive `memor|memór|memory` in `src/routes/` and `src/components/` → **no matches at all**. The plan does define item 7 as just the label `7. central de memória;` inside §38 "Prioridades P2" (plan, §38 list after line 2063), with no expansion anywhere — the artifact's interpretation (management surface) is declared as an assumption (`camada-36-40-recomputada.md:59` — "o Plano Mestre **não expande** o item 7") and keeping NS under-credits, if anything.
+
+## C6: CONFIRMED — GATE-44 as NA is right
+
+`pgvector|hnsw|embedding` → 0 hits in `src/`, `drizzle/`, and `scripts/`; `ai_memory_embeddings` → not present in `src/db/schema.ts` (no matches). With no `memory rows`, p95, CPU, recall or latency to register, §44's five registrations cannot exist; NA is defensible and the correction (the original grep wrongly bundled `pg_stat_statements`, which does exist) is accurate.
+
+## C7: CONFIRMED — 8 is correct; the 8 that changed are named
+
+The capture `captures/verificacao-mecanica-camada-v2.log.txt` states `grep = 18 · grep_ok = 8 · grep_quebrada = 8`, and my independent re-runs corroborate both halves:
+- **Still holding (8):** `P0-13` (`localStorage` in src → 0, my grep), `P2-05`/`ORD-34` (`pgvector|hnsw|embedding` → 0 in src/drizzle/scripts, my grep), `ORD-33` (tsvector family → 0), `DEF-02`/`DEF-03`/`DEF-04`/`DEF-05` (cashflow/DRE/whatsapp/marketplace hits only in `docs/**`, none in src/drizzle/scripts).
+- **Changed (8):** `P0-01` (expected 1, measured 2 files), `P2-04` (GIN comment), `P2-06` and `ORD-35` (`retrieval` in 9 prose files), `P2-07` and `ORD-32` (`memory/memória` in 4/3 files), `GATE-43` (17 files), `GATE-44` (`pg_stat_statements` exists — 2 files). Two further greps (`P2-02`, `DEF-01`) carry no declared expectation and are excluded from both counts. So "18 → 8 confirmed" is accurate, with the caveat that only 7 of the 18 were literal zero-hit declarations that broke (P0-01 expected 1, not 0).
+
+## C8: CONFIRMED — all three evidence corrections hold
+
+- **P1-15**: `drizzle/meta/_journal.json` has exactly 20 tags, `0000_p0_postgres_foundation` … `0019_tiresome_robin_chapel` (`_journal.json:142`), and `drizzle/*.sql` is exactly 20 files (`0000`–`0019`); the original "idx 0..14, último `0014_mighty_veda`" is indeed stale.
+- **P1-03**: `src/server/repositories/` contains exactly **12** `.ts` files (ai-tool, audit, calculation-snapshot, conversation, dashboard, expense, memory, outbox, product, purchase-price, sales, simulation); the original "10 arquivos" is wrong.
+- **P2-10**: `scripts/obs/pg-stat-statements.ts` is a real collector, not a stub — it imports `pg`, queries the extension (`:126` — `from pg_stat_statements`), redacts SQL (`import { normalizeSqlOperation, redactSqlText }`), refuses non-loopback hosts, and writes versioned evidence (`docs/evidence/pg-stat-statements/`); "faltam pg_stat_statements" is falsified.
+
+## C9: CONFIRMED — 89 rows, unique/contiguous ids, 69 DONE · 10 PARTIAL · 9 NS · 1 NA
+
+I read the entire table and counted independently: `P0-01..17` (17), `P1-01..15` (15), `P2-01..10` (10), `ORD-01..38` (38), `GATE-41..44` (4), `DEF-01..05` (5) = **89 unique, contiguous ids**; status tally **69 DONE · 10 PARTIAL · 9 NS · 1 NA** (DONE: 17 P0 + 13 P1 + 3 P2 + 30 ORD + GATE-41 + 5 DEF). With the established `P2-02` demotion, the current counts become **68 DONE · 11 PARTIAL · 9 NS · 1 NA** — the committed table still prints `P2-02` as **DONE** (`camada-36-40-recomputada.md:55`, `**PROMOVIDO NS→DONE**`), which is the one row already known to be wrong.
+
+## C10: CONFIRMED (no unsupported promotion found) — with two named residuals
+
+No status promotion or evidence correction beyond the established `P2-02` is unsupported by the tree; the recompute errs conservative where it can (`GATE-42` downgraded PARTIAL, `P2-03`/`ORD-32` kept NS despite the artifact existing, `GATE-44` kept NA, `P1-14`/`ORD-28` kept PARTIAL). The outbox failure-mode was hunted elsewhere:
+1. **Memory delete/export (GATE-43 cond. 6) is code with no runtime consumer** — grepping `memoryRepository|MemoryRepository|memory.repository` in `src/` finds only the interface (`src/server/contracts/memory.contracts.ts:215`), the implementation itself and its comment, plus tests (`src/test/contracts.test.ts:92`); no route/BFF imports it. Same "artifact exists, nothing calls it" shape as the outbox — but it does **not** inflate a status (P2-03/ORD-32 stay NS, §43 stays PARTIAL), so it is a declared-scope residual, not over-credit.
+2. **`P2-08` (DONE) predates and does not cross-reference the D7 noop-metrics finding** it helps prove: the same module-scope meter (`src/instrumentation/telemetry.ts:12`) that forced D7 registration under `ORD-36`/`P2-10` also makes this item's metric instruments inert; its note declares only the weaker "sem coletor OTLP local" gap. No promotion changed hands here, but the D7 cross-reference is missing on this row.
+3. `ORD-27` and `ORD-29` are explicitly marked artifact-only in their own rows ("fato externo (artefato), não re-derivável read-only" / "artefato-only: não re-executei nem li integralmente os raws") — disclosed, not smuggled.
+
+---
+
+## FALHAS ENGOLIDAS COMO SUCESSO
+
+Places where the deliverable's evidence cannot distinguish success from absence:
+
+1. **`e2e/ui-stack.spec.ts:232-236`** — the storage assertion filters **key names only** (`/token|session|auth/i`) and is vacuously true on empty storage; a sensitive value under a non-matching key passes identically to no value at all. (The §41 condition survives only thanks to the separate zero-hit grep + HttpOnly cookie checks — the e2e assertion by itself proves nothing.)
+2. **§41 cond. 11 "CI verde"** — the evidence is two run IDs at two commits (`camada-36-40-recomputada.md:105`); a green run at a different commit/ref is indistinguishable from the claimed one without external CI access. External artifact, unverifiable read-only.
+3. **GATE-43 cond. 6 (delete/export)** — the only executor is `scripts/db/test-memory.ts` and unit tests; from the tree alone, "implemented and authorized" and "would ever be called in production" are indistinguishable (no runtime importer of `memory.repository` in `src/`).
+4. **The recompute's own machine-check evidence** (`captures/*.log.txt`, generated by `.artifacts/zz-verify-36-40-v2.py`, an uncommitted scratch file) is authored by the same session that produced the claims; the table itself concedes the generator "não mede nada" (`camada-36-40-recomputada.md:15-17`) — the only in-tree trace of the 18-override adjudication is the table's own prose, and the original v1 defect (line-index parsing) shows the instrument already produced a silently wrong table once. The strengthened identity guard is declared; it is not independently re-runnable from the commit (the `.artifacts/` scripts are not in the versioned seal).

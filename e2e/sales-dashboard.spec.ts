@@ -173,7 +173,14 @@ test.beforeEach(async ({ context, salesSession }) => {
 });
 
 function metricCard(page: Page, label: string) {
-  return page.locator("div.grid.gap-4 > div.bg-card").filter({ hasText: label });
+  // O rótulo é renderizado como nó próprio. `hasText` (substring, case-insensitive)
+  // casaria também cards cujo *explain* menciona o mesmo termo — ex.: o card de
+  // margem consolidada explica "quantas unidades de cada produto foram vendidas",
+  // e o filtro por "Produtos" resolvia 2 elementos (strict mode violation).
+  // Ancorar no texto exato mantém a asserção e remove a ambiguidade.
+  return page.locator("div.grid.gap-4 > div.bg-card").filter({
+    has: page.getByText(label, { exact: true }),
+  });
 }
 
 async function registerSaleViaForm(page: Page, tenant: SalesTenant): Promise<void> {
