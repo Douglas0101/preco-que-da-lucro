@@ -1,0 +1,20 @@
+3c088b6 docs(sdd): restore the ledger state marker and declare the evidence policy
+8683c2d docs(evidence): record the unblock probe verdict — billing still blocks all jobs
+2edb55b docs(evidence): open the light-CI unblock probe and precommit the engineering push
+db5ec7a docs(evidence): persist the advanced R8 analysis and register its seven plan additions
+4b44ab4 test(ci): cover the rewritten-history door of the CI scope script
+e61c9f4 docs(evidence): refresh the session handoff for the CI tiering state
+41e776b docs(evidence): close the WP-R8 marker and declare the extra push
+a2f5ff6 docs(evidence): reseal the WP-R8 record with the blocked landing runs
+f4edb66 docs(evidence): record the persisted quota block on the landed commit
+398a77c docs(evidence): land the WP-R8 record and advance the state marker
+94e49aa docs(evidence): reseal the WP-R8 record after the S6 corrections
+6e9dac9 fix(ci): close the fail-open paths and the false claims the S6 found
+974426b docs(evidence): seal the WP-R8 CI tier record
+4eed127 fix(ci): close the fail-open paths the tiering opened
+9f521ed docs(evidence): advance the parent-pinned state marker
+8ecb584 docs(evidence): journal the CI tiering and the quota block
+4be813c merge(ci): tier the verify job by changed paths
+a95254b ci: tier the verify job by changed paths instead of paying for everything
+ff4c379 docs(evidence): reseal and advance the marker after the incident record
+7e719bc docs(evidence): close the platform incident with the resumed runs

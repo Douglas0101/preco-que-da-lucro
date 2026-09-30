@@ -223,7 +223,18 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   try {
     const report = auditSecrets(resolve(import.meta.dirname, ".."), readCiNames());
     console.log(JSON.stringify(report, null, 2));
-    process.exitCode = report.coverage.failures.length ? 2 : 0;
+    // Veredicto: `2` = precondicao (cobertura incompleta), `1` = violacao (literal de segredo
+    // detectado), `0` = limpo. Ate 2026-09-23 o exit code olhava APENAS a cobertura, entao a guarda
+    // detectava o literal em `possible_secret_literals` e ainda assim saia `0` — encadea-la assim
+    // daria cobertura de segredo apenas aparente (achado do ciclo SDD-20260923, ADR-030 §9).
+    if (report.coverage.failures.length) process.exitCode = 2;
+    else if (report.possible_secret_literals.length) process.exitCode = 1;
+    else process.exitCode = 0;
+    // Legibilidade sem vazar valor: nomeia onde reprovou (arquivo:linha), nunca o conteudo.
+    for (const literal of report.possible_secret_literals)
+      console.error(
+        `m02-secrets-audit: possible secret literal at ${literal.path}:${literal.line} (${literal.kind})`,
+      );
   } catch {
     console.error(
       JSON.stringify({

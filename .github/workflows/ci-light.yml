@@ -86,6 +86,14 @@ jobs:
       - name: Temporal guard (pins and deadlines in live prose)
         run: node scripts/m02-temporal-guard.mjs
 
+      # Sem `if:` de escopo, pelo mesmo motivo do temporal guard acima: a
+      # superficie deste check E o ledger da raiz, que e exatamente o que um push
+      # docs-only toca. Escopá-lo para `applicable == true` deixaria o ledger sem
+      # guarda justamente no pipeline que existe para ele. Offline, sem
+      # `node_modules` (importa so builtins), roda com o type-stripping do Node.
+      - name: Ledger state marker (ancestry and freshness)
+        run: node scripts/m02-state-check.ts
+
       - name: Secrets audit (read-only)
         if: steps.scope.outputs.applicable == 'true'
         run: node scripts/m02-secrets-audit.ts

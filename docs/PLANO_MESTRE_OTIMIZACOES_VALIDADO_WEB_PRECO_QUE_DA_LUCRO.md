@@ -1499,6 +1499,13 @@ avaliados no percentil 75.
 Fonte:
 <https://web.dev/articles/vitals>
 
+Qualidade visual (Computer User Observability — §19.7):
+
+- visual.assertion.pass_rate >= 99%;
+- visual.anomaly.detected == 0;
+- badges de estado presentes em 100% dos KPIs críticos;
+- zero NaN/Infinity exibidos como R$ 0,00.
+
 ---
 
 # 18. FASE 13 — UX financeira
@@ -1628,6 +1635,76 @@ Fonte:
 - retrieval_latency;
 - user_correction_rate;
 - conflict_rate.
+
+# 19.7 Computer User Observability
+
+Captura visual contínua do comportamento real do sistema através da UI, correlacionada com
+traces OTel e com o `x-correlation-id` da request.
+
+Objetivo:
+Validar que o comportamento percebido pelo usuário (UI) corresponde ao comportamento real do
+sistema (backend), detectando:
+
+- NaN/Infinity exibidos como R$ 0,00 (violação INV-007);
+- dados incompletos exibidos como factuais (violação INV-006);
+- ausência de badges de estado (REAL/SIMULAÇÃO/DADOS INCOMPLETOS);
+- anomalias visuais (CLS > 0,1, literais `NaN`/`Infinity` visíveis);
+- inconsistências entre teste-verde e UI-errada;
+- vazamento de segredo na árvore de acessibilidade (lição do incidente hPanel L239).
+
+Componentes (arquitetura decidida no ADR-033):
+
+1. Perception — captura Playwright em `e2e/visual/` (screenshot com `mask`,
+   `locator.ariaSnapshot()`, snapshot de DOM) + helpers puros em
+   `src/lib/observability/visual-perception.ts`.
+2. Redaction (V6) — `src/lib/observability/visual-redaction.ts`: scrub de segredos e PII no
+   texto de a11y e DOM + remoção de chunks de texto do PNG, **antes** de qualquer persistência
+   (fail-closed).
+3. Verification (V5) — `src/lib/observability/visual-verification.ts`: assertions puras
+   (badge presente/ausente, incompleto exibido como fallback, NaN nunca como zero, CLS abaixo
+   do limite, isolamento de tenant).
+4. Correlation (V7) — `src/lib/observability/visual-correlation.ts`: par
+   screenshot.hash ↔ `x-correlation-id` e emissão das métricas `visual.*` com **resolução
+   tardia do meter** (nunca em escopo de módulo — `F-otel-provider-order`).
+
+Métricas visuais:
+
+- visual.assertion.pass_rate (counter)
+- visual.assertion.failure_rate (counter, by failure_type)
+- visual.redaction.applied (counter)
+- visual.screenshot.latency_ms (histogram)
+- visual.anomaly.detected (counter, by anomaly_type)
+
+Integração com OTel (span e métricas são noop sem provider registrado — limite declarado):
+
+```text
+span: visual_agent.iteration
+  attributes:
+    screenshot.before_hash: <sha256>
+    screenshot.after_hash: <sha256>
+    assertion.outcome: success|fail
+    assertion.failure_type: <tipo se falha>
+    redactions_applied: <count>
+    correlation_id: <id do ciclo/request>
+```
+
+Gate de qualidade visual (tier e2e, `npm run test:visual`):
+
+- assertion visual verde em todas as telas críticas;
+- zero anomalias visuais (NaN como zero, dados incompletos como factuais);
+- badges de estado presentes e corretos;
+- CLS < 0,1 (alinhado com §17.8 RUM).
+
+Testes visuais obrigatórios (§32 Security + §33 Financial):
+
+- XSS não executa visualmente;
+- NaN/Infinity nunca exibidos como R$ 0,00;
+- dados incompletos exibidos como "—" ou "Erro de cálculo";
+- badges REAL/SIMULAÇÃO/DADOS INCOMPLETOS presentes;
+- tenant A não vê dados de Tenant B (INV-008).
+
+Evidência: `docs/evidence/visual/<timestamp>-<sha256>.{png,a11y.json,dom.json}`, redigida antes
+da escrita. Limites e alternativas: `docs/adr/ADR-033-computer-user-observability.md`.
 
 ---
 
@@ -1953,34 +2030,34 @@ Aplicação não deve bloquear request principal.
 
 # 32. Security testing matrix
 
-| Cenário                 | Resultado esperado |
-| ----------------------- | ------------------ |
-| XSS em resposta IA      | não executa        |
-| chamada direta sem auth | 401                |
-| tenant A acessa B       | 403/zero rows      |
-| tool inválida           | validation error   |
-| SQL injection em string | parametrizado      |
-| CSRF cross-site         | bloqueado          |
-| replay mutation         | idempotente        |
-| token em localStorage   | inexistente        |
-| session fixation        | sessão rotacionada |
-| rate abuse AI           | 429/limit          |
+| Cenário                 | Resultado esperado | Validação visual                                 |
+| ----------------------- | ------------------ | ------------------------------------------------ |
+| XSS em resposta IA      | não executa        | screenshot sem elementos maliciosos renderizados |
+| chamada direta sem auth | 401                | UI exibe tela de login/erro                      |
+| tenant A acessa B       | 403/zero rows      | UI não exibe dados de outro tenant               |
+| tool inválida           | validation error   | UI exibe mensagem de erro clara                  |
+| SQL injection em string | parametrizado      | UI não exibe dados sensíveis                     |
+| CSRF cross-site         | bloqueado          | UI não executa ação não autorizada               |
+| replay mutation         | idempotente        | UI não duplica entidade                          |
+| token em localStorage   | inexistente        | DevTools Application > Local Storage vazio       |
+| session fixation        | sessão rotacionada | UI mantém sessão válida                          |
+| rate abuse AI           | 429/limit          | UI exibe mensagem de quota excedida              |
 
 ---
 
 # 33. Financial regression matrix
 
-| Caso                | Esperado                     |
-| ------------------- | ---------------------------- |
-| package price null  | incomplete                   |
-| unit incompatible   | incomplete/invalid           |
-| yield null          | incomplete                   |
-| tax null            | incomplete quando necessária |
-| contribution <= 0   | break-even não atingível     |
-| required units 10.1 | 11                           |
-| volume unknown      | não chamar real              |
-| markup arbitrário   | inexistente                  |
-| NaN                 | nunca formatado como zero    |
+| Caso                | Esperado                     | Validação visual                         |
+| ------------------- | ---------------------------- | ---------------------------------------- |
+| package price null  | incomplete                   | UI exibe "—" ou "Dados incompletos"      |
+| unit incompatible   | incomplete/invalid           | UI exibe "Erro de cálculo"               |
+| yield null          | incomplete                   | UI exibe "—"                             |
+| tax null            | incomplete quando necessária | UI exibe "—"                             |
+| contribution <= 0   | break-even não atingível     | UI exibe "Não atingível"                 |
+| required units 10.1 | 11                           | UI exibe "11 unidades" (ceil discreto)   |
+| volume unknown      | não chamar real              | UI não exibe badge "REAL"                |
+| markup arbitrário   | inexistente                  | UI exibe cálculo explícito               |
+| NaN                 | nunca formatado como zero    | UI exibe "Erro de cálculo" (não R$ 0,00) |
 
 ---
 
@@ -2213,13 +2290,22 @@ Somente indexar approximate search se necessário.
 Toda mudança crítica precisa:
 
 - código;
-- testes;
+- testes unitários;
+- testes de integração;
+- validação visual (Computer User Observability — §19.7);
 - erro explícito;
-- observabilidade;
+- observabilidade (OTel traces + metrics);
 - documentação;
 - rollback;
 - CI verde;
 - nenhuma regressão conhecida.
+
+Validação visual obrigatória:
+
+- assertion visual verde nas telas afetadas (`npm run test:visual`, tier e2e);
+- zero anomalias visuais (NaN como zero, dados incompletos como factuais);
+- badges de estado presentes e corretos;
+- screenshots redigidas (segredos, PII) em `docs/evidence/visual/`.
 
 ---
 
@@ -2246,6 +2332,14 @@ Toda mudança crítica precisa:
 - N+1 count;
 - bundle size;
 - Web Vitals.
+
+## Qualidade Visual (Computer User Observability)
+
+- visual.assertion.pass_rate;
+- visual.anomaly.detected;
+- visual.redaction.applied;
+- visual.screenshot.latency_ms;
+- badge.presence_rate (badges de estado presentes).
 
 ## Financeiro
 

@@ -108,6 +108,23 @@ async function main(): Promise<void> {
        values ($1, $2, $3, 'Produto de teste', '20.0000', '10.000000', 'unidade', '0.100000')`,
       [productId, tenantId, userId],
     );
+    // Segundo produto SEM rendimento (yield_qty nulo): a completude vira
+    // "incomplete", o estado que a suíte visual verifica em /produtos
+    // (badge DADOS INCOMPLETOS + "Custo: —", nunca R$ 0,00).
+    //
+    // `created_at` explícito e mais antigo que o do produto completo: os dois
+    // inserts rodam na MESMA transação, então ambos receberiam o mesmo `now()`
+    // e `order by created_at desc` (product.repository) empataria — e é
+    // `products[0]` que /diagnostico e /simulacoes escolhem como produto padrão.
+    // Com o empate, a simulação e o diagnóstico abriam no produto incompleto e
+    // as specs de e2e que esperam valores calculados falhavam de forma
+    // intermitente (medido: 2 falhas em chromium+firefox no run 36665795825).
+    await client.query(
+      `insert into products
+         (id, tenant_id, user_id, name, current_price, yield_qty, yield_unit, tax_rate, created_at)
+       values ('00000000-0000-4000-8000-000000000016', $1, $2, 'Produto incompleto E2E', '15.0000', null, 'unidade', '0.100000', now() - interval '1 hour')`,
+      [tenantId, userId],
+    );
     await client.query(
       `insert into product_packaging
          (id, product_id, tenant_id, user_id, name, package_price, units_per_package, price_updated_at)

@@ -133,3 +133,86 @@ describe("precondição de banco — tudo ou nada, falha alta (WP-R6)", () => {
     ]);
   });
 });
+
+/**
+ * O escape hatch `ALLOW_REMOTE_DB` (defeito 2 do Ciclo 8).
+ *
+ * O job "Branch efemera" do `neon-pr-branch.yml` aponta `DATABASE_ADMIN_URL` e
+ * `DATABASE_URL` para a branch Neon efemera e grava um **motivo** em
+ * `ALLOW_REMOTE_DB`. A precondicao, endurecida em `edb504c` (2026-09-20) para
+ * "tudo ou nada e falha alta", exigia loopback incondicionalmente e nao conhecia
+ * o override — as duas pecas nunca foram exercitadas juntas, porque o job parou
+ * de rodar em 2026-09-13 e o bloqueio de cobranca impediu qualquer run depois
+ * de 20/09. O CI reprovava com "precondicao de banco invalida" em ambos os PRs.
+ */
+const PRODUCAO = "postgresql://u:p@ep-long-violet-aye9g0bn.c-5.us-east-2.aws.neon.tech/db";
+const MOTIVO = "CI Neon PR branch 48 — integração em branch efêmera (§26)";
+
+describe("precondição de banco — escape hatch ALLOW_REMOTE_DB", () => {
+  it("remoto COM motivo: habilitado (o caso que o CI de fato executa)", () => {
+    const gate = dbPrecondition({
+      DATABASE_ADMIN_URL: REMOTO,
+      DATABASE_URL: REMOTO,
+      ALLOW_REMOTE_DB: MOTIVO,
+    });
+    expect(gate.enabled).toBe(true);
+  });
+
+  it('o predicado é motivo não-vazio, não `=== "true"` (env-guard.mjs:166)', () => {
+    // O workflow grava uma frase. Um predicado booleano jamais casaria com ela, e
+    // um predicado que não casa é pior que nenhum: parece concessionado e não é.
+    expect(
+      dbPrecondition({ DATABASE_ADMIN_URL: REMOTO, DATABASE_URL: REMOTO, ALLOW_REMOTE_DB: "true" })
+        .enabled,
+    ).toBe(true);
+    // E os três quase-vazios têm de continuar negando — string vazia é "definido
+    // e inválido" pela mesma regra N7 que já valia para as URLs.
+    for (const vazio of ["", "   "]) {
+      expect(() =>
+        dbPrecondition({
+          DATABASE_ADMIN_URL: REMOTO,
+          DATABASE_URL: REMOTO,
+          ALLOW_REMOTE_DB: vazio,
+        }),
+      ).toThrow(/nao aponta para loopback/);
+    }
+  });
+
+  it("PRODUÇÃO é recusada COM override — e este é o controle de não-vacuidade", () => {
+    // Sem esta asserção, o teste anterior passaria também se o override fosse um
+    // `return` incondicional, que é exatamente o buraco que ele não pode ser.
+    expect(() =>
+      dbPrecondition({
+        DATABASE_ADMIN_URL: PRODUCAO,
+        DATABASE_URL: PRODUCAO,
+        ALLOW_REMOTE_DB: MOTIVO,
+      }),
+    ).toThrow(/ALLOW_REMOTE_DB nao autoriza/);
+  });
+
+  it("o override dispensa loopback, não o par obrigatório (tudo ou nada continua)", () => {
+    expect(() => dbPrecondition({ DATABASE_URL: REMOTO, ALLOW_REMOTE_DB: MOTIVO })).toThrow(
+      /DATABASE_ADMIN_URL ausente/,
+    );
+  });
+
+  it("o override não transforma URL inválida em URL válida", () => {
+    expect(() =>
+      dbPrecondition({
+        DATABASE_ADMIN_URL: REMOTO,
+        DATABASE_URL: "nao-e-url",
+        ALLOW_REMOTE_DB: MOTIVO,
+      }),
+    ).toThrow(/nao e uma URL de banco valida/);
+  });
+
+  it("loopback continua habilitado com override setado (o override não regride)", () => {
+    expect(
+      dbPrecondition({
+        DATABASE_ADMIN_URL: LOOPBACK,
+        DATABASE_URL: LOOPBACK,
+        ALLOW_REMOTE_DB: MOTIVO,
+      }).enabled,
+    ).toBe(true);
+  });
+});

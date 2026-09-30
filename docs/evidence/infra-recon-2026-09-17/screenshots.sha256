@@ -1,3 +1,12 @@
+# ERRATA 2026-09-27 — remoção pré-publicação
+# Estes 5 PNGs saíram do index antes da virada de visibilidade do repositório.
+# Mostravam console autenticado (conta, plano Free, project/branch ID, "IP
+# restrictions: None set") — conferidos sem token ou connection string. Nenhum
+# gate, teste ou script lê estes bytes; apenas este selo os referenciava.
+#
+# Os hashes abaixo continuam válidos: os arquivos permanecem no disco local.
+# Os blobs NÃO foram removidos do histórico — reescrever história publicada é
+# vetado por AGENTS.md:4/16. Isto é mitigação de árvore, não de histórico.
 70c16da0f47d1bb40b8aa611745a54126b5ce38fe3d45f532740b823d97478f5  hpanel-turnstile-headed.png
 f1d883fdf7676ccc0e5c7de7df2b07c65396d93445102bdac24f5963197043ba  neon-overview.png
 d1b0cae1a7ff9814ed8e980adcfd175b05a42b169a228f29939d2c6cb356eb04  neon-projects.png

@@ -1,0 +1,5 @@
+pwd: /home/douglas-souza/preco-que-d-main
+v24.15.0
+npm 11.14.1
+git version 2.43.0
+docker Docker version 29.8.1, build 4a63305

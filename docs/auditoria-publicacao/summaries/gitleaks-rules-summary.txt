@@ -1,0 +1,3 @@
+6	generic-api-key
+1	aws-access-token
+1	github-pat

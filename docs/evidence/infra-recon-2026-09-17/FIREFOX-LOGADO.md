@@ -51,6 +51,11 @@
 
 ## 5. Evidência
 
+> **ERRATA 2026-09-27:** os 5 PNGs citados abaixo saíram do index antes da
+> virada de visibilidade do repositório. Continuam no disco local e **no
+> histórico** (reescrever é vetado por `AGENTS.md:4/16`) — a remoção é de
+> árvore, não de histórico. Nenhum gate os lê. Ver `screenshots.sha256`.
+
 Capturas em `screenshots/` (apenas UI de dashboard; conferidas sem token/connection string):
 `neon-projects.png` (lista/uso), `neon-overview.png` (branch/plano/projeto), `neon-settings.png` (retenção de 6 h e Postgres 17),
 `vercel-retry.png` (error boundary do SPA — prova do bloqueio), `hpanel-headed.png` (Turnstile em modo headed).

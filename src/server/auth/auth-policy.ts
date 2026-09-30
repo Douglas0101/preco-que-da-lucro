@@ -1,3 +1,5 @@
+import { assertSecretNotCompromised } from "./compromised-secrets";
+
 export interface AuthRuntimePolicy {
   baseURL?: string;
   trustedOrigins: string[];
@@ -205,7 +207,10 @@ export function requireAuthSecret(
   if (!secret || secret.length < 32) {
     throw new Error("BETTER_AUTH_SECRET deve ter pelo menos 32 caracteres");
   }
-  return secret;
+  // Tamanho não é procedência: um valor vazado de 61 caracteres atende ao mínimo.
+  // Ver `compromised-secrets.ts` para a lista e para o porquê de ela guardar
+  // hashes em vez de valores.
+  return assertSecretNotCompromised(secret);
 }
 
 export function resolveGoogleCredentials(

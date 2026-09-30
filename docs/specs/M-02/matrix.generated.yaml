@@ -191,7 +191,7 @@
       "operations": [
         {
           "name": "listExpenses",
-          "line": 71,
+          "line": 108,
           "declaration": "createServerFn",
           "service": "ExpenseService",
           "repository": "ExpenseRepository",
@@ -199,7 +199,7 @@
         },
         {
           "name": "createExpense",
-          "line": 106,
+          "line": 147,
           "declaration": "createServerFn",
           "service": "ExpenseService",
           "repository": "ExpenseRepository",
@@ -207,7 +207,7 @@
         },
         {
           "name": "updateExpense",
-          "line": 111,
+          "line": 152,
           "declaration": "createServerFn",
           "service": "ExpenseService",
           "repository": "ExpenseRepository",
@@ -215,7 +215,7 @@
         },
         {
           "name": "upsertExpense",
-          "line": 117,
+          "line": 158,
           "declaration": "createServerFn",
           "service": "ExpenseService",
           "repository": "ExpenseRepository",
@@ -223,7 +223,7 @@
         },
         {
           "name": "deleteExpense",
-          "line": 126,
+          "line": 167,
           "declaration": "createServerFn",
           "service": "ExpenseService",
           "repository": "ExpenseRepository",
@@ -231,7 +231,7 @@
         },
         {
           "name": "getTotals",
-          "line": 135,
+          "line": 176,
           "declaration": "createServerFn",
           "service": "ExpenseService",
           "repository": "ExpenseRepository",
@@ -242,6 +242,7 @@
         "@/db/schema",
         "@/lib/financial-values",
         "@/lib/optimistic-version",
+        "@/lib/output-contract",
         "@/lib/request-context",
         "@/middleware/request-context",
         "@/server/services/expense.service",
@@ -267,7 +268,7 @@
       "operations": [
         {
           "name": "runSimulation",
-          "line": 19,
+          "line": 111,
           "declaration": "createServerFn",
           "service": "SimulationService",
           "repository": "SimulationRepository",
@@ -275,7 +276,7 @@
         },
         {
           "name": "listSimulations",
-          "line": 47,
+          "line": 141,
           "declaration": "createServerFn",
           "service": "SimulationService",
           "repository": "SimulationRepository",
@@ -283,7 +284,7 @@
         },
         {
           "name": "saveSimulation",
-          "line": 54,
+          "line": 152,
           "declaration": "createServerFn",
           "service": "SimulationService",
           "repository": "SimulationRepository",
@@ -291,6 +292,9 @@
         }
       ],
       "imports": [
+        "@/lib/finance",
+        "@/lib/financial-values",
+        "@/lib/output-contract",
         "@/middleware/request-context",
         "@/server/services/financial.service",
         "@/server/services/simulation.service",
@@ -315,7 +319,7 @@
       "operations": [
         {
           "name": "listProducts",
-          "line": 339,
+          "line": 386,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -323,7 +327,7 @@
         },
         {
           "name": "listProductsWithMetrics",
-          "line": 347,
+          "line": 401,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -331,7 +335,7 @@
         },
         {
           "name": "getProduct",
-          "line": 353,
+          "line": 407,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -339,7 +343,7 @@
         },
         {
           "name": "createProduct",
-          "line": 444,
+          "line": 498,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -347,7 +351,7 @@
         },
         {
           "name": "updateProduct",
-          "line": 449,
+          "line": 503,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -355,7 +359,7 @@
         },
         {
           "name": "upsertProduct",
-          "line": 455,
+          "line": 509,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -363,7 +367,7 @@
         },
         {
           "name": "archiveProduct",
-          "line": 464,
+          "line": 518,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -371,7 +375,7 @@
         },
         {
           "name": "deleteProduct",
-          "line": 474,
+          "line": 528,
           "declaration": "alias",
           "service": "ProductService",
           "repository": "ProductRepository",
@@ -379,7 +383,7 @@
         },
         {
           "name": "upsertIngredient",
-          "line": 507,
+          "line": 561,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -387,7 +391,7 @@
         },
         {
           "name": "deleteIngredient",
-          "line": 568,
+          "line": 622,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -395,7 +399,7 @@
         },
         {
           "name": "upsertPackaging",
-          "line": 583,
+          "line": 637,
           "declaration": "createServerFn",
           "service": "ProductService/PricingService",
           "repository": "ProductCatalogRepository + PriceRepository",
@@ -403,38 +407,6 @@
         },
         {
           "name": "deletePackaging",
-          "line": 608,
-          "declaration": "createServerFn",
-          "service": "ProductService",
-          "repository": "ProductCatalogRepository",
-          "atomicity": "per-operation"
-        },
-        {
-          "name": "upsertFee",
-          "line": 622,
-          "declaration": "createServerFn",
-          "service": "PricingService",
-          "repository": "ProductCatalogRepository",
-          "atomicity": "per-operation"
-        },
-        {
-          "name": "deleteFee",
-          "line": 636,
-          "declaration": "createServerFn",
-          "service": "ProductService",
-          "repository": "ProductCatalogRepository",
-          "atomicity": "per-operation"
-        },
-        {
-          "name": "setMarketPrice",
-          "line": 648,
-          "declaration": "createServerFn",
-          "service": "PricingService",
-          "repository": "MarketPriceRepository",
-          "atomicity": "per-operation"
-        },
-        {
-          "name": "getProductMetrics",
           "line": 662,
           "declaration": "createServerFn",
           "service": "ProductService",
@@ -442,8 +414,40 @@
           "atomicity": "per-operation"
         },
         {
+          "name": "upsertFee",
+          "line": 676,
+          "declaration": "createServerFn",
+          "service": "PricingService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "deleteFee",
+          "line": 690,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "setMarketPrice",
+          "line": 702,
+          "declaration": "createServerFn",
+          "service": "PricingService",
+          "repository": "MarketPriceRepository",
+          "atomicity": "per-operation"
+        },
+        {
+          "name": "getProductMetrics",
+          "line": 716,
+          "declaration": "createServerFn",
+          "service": "ProductService",
+          "repository": "ProductCatalogRepository",
+          "atomicity": "per-operation"
+        },
+        {
           "name": "listPurchasePrices",
-          "line": 674,
+          "line": 728,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -451,7 +455,7 @@
         },
         {
           "name": "updatePurchasePrice",
-          "line": 685,
+          "line": 739,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "PriceRepository",
@@ -463,6 +467,7 @@
         "@/lib/finance",
         "@/lib/financial-values",
         "@/lib/optimistic-version",
+        "@/lib/output-contract",
         "@/lib/request-context",
         "@/middleware/request-context",
         "@/server/contracts/product.contracts",
@@ -1062,97 +1067,91 @@
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 288,
+      "line": 289,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 297,
+      "line": 304,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 318,
+      "line": 325,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 331,
+      "line": 338,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 344,
+      "line": 351,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 354,
+      "line": 361,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 364,
+      "line": 371,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 372,
+      "line": 379,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 382,
+      "line": 389,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 392,
+      "line": 399,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 397,
+      "line": 404,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 417,
+      "line": 424,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 441,
+      "line": 448,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 488,
+      "line": 495,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 498,
-      "expression": "context.transaction",
-      "classification": "repository-fallback"
-    },
-    {
-      "path": "src/server/repositories/product.repository.ts",
-      "line": 516,
+      "line": 505,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -1164,13 +1163,13 @@
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 539,
+      "line": 530,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 544,
+      "line": 546,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -1182,19 +1181,25 @@
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 569,
+      "line": 558,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 581,
+      "line": 576,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/product.repository.ts",
-      "line": 608,
+      "line": 588,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/product.repository.ts",
+      "line": 615,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },

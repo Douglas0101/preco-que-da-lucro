@@ -1,0 +1,29 @@
+npm-pin-verified	success	extra	
+npm-ci	success	required	npm ci
+m02:lockfile-guard	success	required	m02:lockfile-guard
+m02:work-package-guard	success	required	m02:work-package-guard
+m02:debts-guard	success	required	m02:debts-guard
+m02:temporal-guard	success	required	m02:temporal-guard
+m02:seal-dts:check	success	required	m02:seal-dts:check
+m02:matrix:check	success	required	m02:matrix:check
+check:ui-stack	success	required	check:ui-stack
+check:no-supabase-runtime	success	required	check:no-supabase-runtime
+m02:secrets-audit	success	required	m02:secrets-audit
+m02:boundaries	success	required	m02:boundaries
+m02:state:check	success	informational	m02:state:check
+format:check	success	required	format:check
+typecheck	success	required	typecheck
+lint	success	required	lint
+test	success	required	test
+build	success	required	build
+check:bundle	success	required	check:bundle
+audit	success	required	npm-audit
+check-chain	success	required	npm run check (agregado)
+db:test	success	conditional	db:test
+db:check	success	conditional	db:check
+playwright-install	success	conditional	playwright-e2e (install)
+playwright-e2e	success	conditional	playwright-e2e
+evidence-policy-check	success	extra	
+coverage-assert	success	extra	
+preserve-bundle	success	extra	
+preserve-patches	success	extra	

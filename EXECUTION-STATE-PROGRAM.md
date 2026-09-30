@@ -2496,6 +2496,13 @@ stack` em um dia = ~84 min de runner.
   started because recent account payments have failed or your spending limit needs to be increased."_
   São **falhas de precondição**, não veredictos do repositório: não entram como vermelho de código nem
   como verde. Consequência: a varredura D1/D2 pós-desbloqueio passa a cobrir **12 SHAs**, não 9.
+- **ERRATA / DESVIO DECLARADO (append-only):** houve **um segundo push** (`398a77c..a2f5ff6`, o reseal do
+  selo) contra o que este mesmo bloco declara ("não houve segundo push"). Ele gerou `UI stack`
+  `35682383894` e `CI light` `35682383892`, de novo `failure` bloqueado; o push disparou a heavy porque
+  `f4edb66` toca `EXECUTION-STATE-PROGRAM.md`, **fora** de `docs/evidence/**` (o `paths-ignore` não cobre
+  a raiz do ledger). Nada foi medido com isso, e o desvio fica nomeado em vez de apagado: o commit de
+  fecho do marcador (`fecho local`, não empurrado) encerra a série até a varredura pós-desbloqueio.
+  **Janela atualizada: 13 SHAs** — os 12 anteriores + `a2f5ff6`.
 - **Land (S7):** `develop` avancou por **fast-forward** de `9f521ed` para `94e49aa` (correcoes
   `6e9dac9` + selo `94e49aa`) — a branch e descendente de `develop`, entao o land **nao** cria merge
   commit e **nao** altera a arvore: a CI do commit selado mede exatamente o que esta em `develop`.
@@ -2505,5 +2512,836 @@ stack` em um dia = ~84 min de runner.
 - **Pós-desbloqueio (Parte D, pré-comprometida):** D1 falsificação com `before` irresolúvel (espera-se
   `db=true` **e** `crossbrowser=true`); D2 medir os 5 primeiros pushes não-docs; D3 reverter ou manter
   pelo critério re-centrado (mediana em 361-489 s **e** zero pulo indevido).
+- **Parte D — precisões pré-comprometidas (adições da análise avançada do plano R8; ledger vivo,
+  aplicado em 2026-09-22 antes do primeiro push pós-desbloqueio):**
+  - **4.3 — janela corrigida de 13 para 18 SHAs, com prova mecânica.** Comandos desta data:
+    `git log --oneline f293368..HEAD` → 21 commits; para cada um,
+    `gh api repos/Douglas0101/preco-que-da-lucro/commits/<sha>/check-runs` → `90d12f9` tem 2/2 runs
+    verdes (fora da janela), `41e776b` e `e61c9f4` não são pushados (classe separada — seguem na
+    varredura por não-verificados), e **5 pushed com 0 check-runs estavam fora da lista**:
+    `9237d01`, `a95254b`, `4eed127`, `974426b`, `f4edb66`. **Janela = 18 SHAs** (os 13 anteriores +
+    esses 5). Segunda medição, `git show --name-only --format=` por SHA filtrando `MANIFEST`/selos:
+    **8 dos 18 tocam arquivos de selo** (`8f260f5`, `7e719bc`, `011c7e3`, `ff4c379`, `6e9dac9`,
+    `94e49aa`, `a2f5ff6`, `974426b` — sendo `974426b` o commit que **cria** o selo do R8), logo a
+    frase "nenhum SHA da janela foi selado" é **falsa literalmente** e morre aqui por errata
+    append-only (os selos não são reescritos). **O invariante medido, que é o que a varredura
+    precisa: nenhum SHA da janela tem run verde citável** — os 5 pares `sha@run` da janela
+    (`8f260f5@35613943429`, `8f260f5@35613943354`, `011c7e3@35613977835`, `398a77c@35682256860`,
+    `398a77c@35682256839`) são todos precondição falha rotulada (0 passos), e o `run@sha` do selo
+    do R8 está em branco por protocolo. A varredura D1/D2 pós-desbloqueio cobre os **18**.
+  - **4.2 — D1 tem DUAS portas, ambas com caso executado local:** (a) primeira push de branch nova
+    (`before` todo-zeros — caso `A2` já existente) e (b) força-push com história reescrita
+    (`before` existe no repo mas não é ancestral — caso novo `A2/4.2` em
+    `src/test/m02-ci-tiers.test.ts`, que exercita o disjuntor `merge-base --is-ancestor` e não só o
+    `cat-file`). Os runs da branch de teste do D1 ficam fora da amostra B4 pelo filtro abaixo.
+  - **4.4 — amostra B4, receita precisa:** 5 primeiros pushes pós-desbloqueio com `event` igual a
+    `push` (PRs já fora — outra população, matriz cheia), `head_ref` igual a `develop` (branches
+    `mission/*` de teste fora), diff não-docs, uma amostra por push, workflow `UI stack` e
+    conclusão `success` (`cancelled` fora — N2). `updated_at − run_started_at` segue excluindo fila
+    de propósito: mede desenho, não espera.
+  - **4.1 / 4.5 — já satisfeitas no landado, verificadas por identidade nesta data:** fronteira nas
+    duas direções com caso executado (`push com diff comum` emite `db=false` e `crossbrowser=false`
+    explícitos; item 2 do checklist do selo) e SHA do `actions/cache` 0057852b… resolvido da API
+    oficial, pinado no workflow e capturado em `tiers.log.txt` §5 — nenhum selo editado.
+  - **4.6 / 4.7 — follow-through do R0b:** join dos 6 deltas P × `DEBTS.md` → `15.1`/`15.3`/`15.4`
+    cobertos por DBT-10 (família entrypoint de runtime); `15.2`/`15.7`/`29.1` abertos agora como
+    **DBT-20/21/22**; **R0c** (re-medição dos 8 NS com os comandos já pré-registrados no SPEC do
+    R0b + join dos 23 deltas P anteriores à tabela do R0b) agendada no journal; canal dos 10 CORR do
+    R0b = **10/10 S6 · 0 autor · 0 gate**, com a regra de autoria adotada "prosa de medição ⇒ claim
+    por linha com comando".
+  - Análise persistida com o addendo de validação item a item:
+    `docs/evidence/analise-avancada-ci-tiers-wpr8-2026-09-21.md`.
 
-  Latest state marker parent = `94e49aaff6b741e7a564fedefe38d2b65e9b13d0`,
+  Latest state marker parent = `41e776b85e264565ebcac2abfc62ff8e6ac2b0ce`,
+
+### Ciclo `SDD-20260923` — dívida do marcador e política de evidência (2026-09-23)
+
+- **O que este bloco corrige.** O marcador parent-pinned acima (`41e776b`) ficou **cinco commits atrás** do
+  HEAD (`8683c2d`) e `npm run m02:state:check` passou a reprovar. Nada o pegou antes porque
+  `m02:state:check` **não pertence a pipeline nenhum** — não está na cadeia `npm run check`, não é passo
+  direto do `verify` do `ui-stack` e não roda na light; é passo **manual** do protocolo de boot. É a
+  terceira ocorrência da mesma família no ledger (`INV-006` e o ciclo de `a0d1f38`, este último já com a
+  lição escrita: _"o marcador é parte do commit, não um passo posterior"_).
+- **Como foi corrigido.** Bloco **aditivo** com o marcador novo — sem `--amend`, sem `rebase`, sem
+  reescrever a linha histórica acima. Cada commit do ciclo carrega a sua própria linha, de modo que o
+  marcador válido acompanha o tip.
+- **Dívida de bookkeeping irmã, medida e declarada.** Um `git add docs/evidence/local-ci/<sha>` versionaria
+  o `manifest.json` — que cita **cada** log por nome (`steps[].log`) — sem versionar **nenhum** dos 58
+  `*.log`, que o `.gitignore` ignora globalmente. A contradição foi fechada por política explícita:
+  **`metadata-only`** no manifesto (`evidence.policy`, `gitTrackedLogs=false`, `localLogsAvailable=true`),
+  selo `evidence.git.sha256` restrito ao conjunto que o Git versiona e etapa `evidence-policy-check`
+  **fail-closed com controle negativo** (verificador que nunca reprova não é verificador).
+- **Cadeia documental.** `docs/sdd/SDD-20260923-ledger-state-marker/` e
+  `docs/sdd/SDD-20260923-evidence-policy/` (conjuntos completos: spec, aceite, design, plano, risco,
+  rastreabilidade); quatro **SPEC-only** aguardando aprovação humana — `local-ci-hardening`,
+  `boundary-guard-dbt19` (fecha a lacuna declarada no `AGENTS.md`: `m02:boundaries` em gate nenhum e
+  `m02:secrets-audit` só na light), `post-billing-sweep` e `push-publication-policy`; fila de execução do
+  agente em `docs/TODO.md`, distinta da `QUEUE.md`, cujo escritor é o MAESTRO.
+- **Isolamento.** Sem worktree concorrente, sem migration, sem container de banco (`:5432` intocado — o
+  tier de banco segue por escopo), `origin/develop` = `a2f5ff6` **intocado**, `origin/main` = `9724d2c`
+  intocado, **nenhum push** e nenhuma chamada de billing. Rollback = `git revert` do commit do ciclo.
+- **Aceite medido (antes × depois).** `m02:state:check` era `exit 1` (`Ledger M-02 desatualizado`) e
+  passou a `state marker is valid`; no `local-ci` a etapa saiu de **`failure`** (rodadas de `8683c2d`)
+  para **`success`**, com `verdict=success` em 311 s e `pendencies` vazio. O ledger é **aditivo**
+  (`+29 −0` pelo `--numstat`), sem `--amend`, `rebase` ou reescrita.
+- **Política de evidência — o que de fato mudou.** Bundle e patches passam a viver sob `artifacts/`,
+  que o **próprio `.gitignore`** exclui (`docs/evidence/**/artifacts/`), de modo que a política é
+  imposta pelas regras do Git e **não** por lista mantida à mão; o manifesto declara
+  `policy=metadata-only`, `gitTrackedLogs=false` (**derivado**, nunca afirmado) e contagens **medidas**;
+  o selo `evidence.git.sha256` cobre só o versionável (**85 arquivos, 0 logs**) e **verifica em clone
+  limpo** (85/85), enquanto o selo integral cobre tudo (128/128). O conjunto commitado é **idêntico**
+  ao conjunto selado — comitar só cinco arquivos de metadata deixaria o selo apontando para 80
+  ausentes, que é a contradição que o ciclo remove.
+- **Controle negativo (o que impede a etapa de ser decorativa).** Seis casos em fixture de git isolado
+  com `.gitignore` **sem** `*.log`: log versionável ⇒ exit 1; bundle/patch **fora** de `artifacts/` ⇒
+  exit 1; bundle **sob** `artifacts/` ⇒ exit 0; árvore vazia ⇒ exit 2. `casos OK: 6 | FALHOS: 0`. Dois
+  defeitos do próprio instrumento foram achados por ele e corrigidos **antes** do commit: leitura de
+  `git check-ignore` quebrado como "nada ignorado" (**porta fail-open**) e regra de artefato cega fora
+  de `artifacts/` (bundle na raiz escaparia).
+- **Lacunas declaradas (não escondidas).** **L1:** as contagens do manifesto valem **em `measuredAt`**,
+  não no fim — delta exato de **3** arquivos criados depois da última medição
+  (`evidence-policy-final.status`, `evidence-git-checksum.log`, `manifest.sha256`):
+  `filesTotal` 125 medido × 128 final, `logsTotal` 32 × 33. **L2:** `manifest.sha256` fica **fora** do
+  selo versionável (criado após o último `generate_git_checksum`; coberto pelo integral; derivável do
+  `manifest.json`). **L3:** os `steps[].log` citados pelo manifesto não existem em clone — consequência
+  **declarada e aceita** da política (`gitTrackedLogs=false`). Abertura de `DBT-23` para L1/L2 é **ação
+  humana** (o registry tem o MAESTRO como escritor).
+- **Nota de arquitetura — o push deste ciclo não é barato.** Os commits tocam a **raiz** do ledger e
+  `scripts/**`, portanto **não** caem no `paths-ignore`: o primeiro push dispara a **heavy** (≈9,7 min) —
+  a mesma armadilha registrada no ciclo anterior. Decisão de quando pagar esse custo é humana
+  (`SDD-20260923-push-publication-policy`, `REQ-02`).
+- **Item 9 fechado — o tip `20cba84` está selado.** `./scripts/local-ci.sh` no tip: `veredicto=success`,
+  **328 s**, exit 0, cobertura 19/19, `m02:state:check` = `success`, `pendencies` vazio, e2e
+  chromium+mobile verde, tier de banco **pulado por escopo** (mesma decisão do CI). Evidência em
+  `docs/evidence/local-ci/20cba84…/`: 127 arquivos, **85 versionáveis**, 32 logs (todos ignorados) e 10
+  artefatos (todos sob `artifacts/`). O selo versionável — 85 linhas, **0 log, 0 bundle, 0 patch** —
+  **verifica em clone limpo** (85/85), que é o teste que a receita ingênua não passa.
+- **Achado do scan de segredo, revisado e declarado.** `rangeSecretScan = review` com **7 hits**: 6 em
+  `scripts/local-ci.sh` são a credencial **loopback de teste** `postgres:postgres@127.0.0.1`
+  (documentada em `docker-compose.yml` e no `AGENTS.md`) e 1 é o placeholder `<host>` de um teste de
+  regressão no ledger. Os padrões de token (`ghp_`, `gho_`, `xox…`) e de chave (`BEGIN … PRIVATE KEY`,
+  `AKIA…`) deram **0 hits**. Nenhum segredo real.
+- **Item 6 encaminhado — `ADR-030` em PROPOSTA, nada implementado.** `m02:boundaries` e
+  `m02:secrets-audit` continuam **fora** de todo gate; a proposta é encadeá-las no `npm run check` e
+  replicá-las como passos diretos do `verify`, com **caso negativo que falsifique cada uma** (exigência
+  verbatim de DBT-19). **Custo medido (3 execuções cada):** 240/204/197 ms e 1781/1802/1828 ms — total
+  ≈ **2,0 s**, contra e2e 240 s e vitest 151 s que motivaram o tiering. **Precondições verificadas por
+  leitura:** ambas importam só `node:fs`/`node:path`/`node:url` — sem rede, sem banco, sem plataforma; a
+  light já as roda **sem `npm ci`**. **Assimetria de testabilidade medida:** `secrets-audit` exporta
+  `auditSecrets` para fixture (caso negativo limpo), `boundaries` **não aceita raiz** (caso negativo por
+  mutação restaurada por sha256). Nada de `package.json`, `npm run check`, workflow ou `DEBTS.md` foi
+  tocado — o contrato exige aprovação humana.
+- **Pedido ao MAESTRO aberto:** `docs/sdd/SDD-20260923-evidence-policy/MAESTRO-REQUEST-DBT-23.md`
+  registra L1/L2 (contagens "em `measuredAt`"; `manifest.sha256` fora do selo versionável) para eventual
+  `DBT-23`. `DEBTS.md` e `QUEUE.md` têm o MAESTRO como escritor e **não** foram editados.
+- **Contrato do ADR-030 aprovado e NÃO implementado — STOP antes do encadeamento.** A aprovação exigiu
+  casos negativos **antes** do encadeamento, sob a regra "nenhuma guard pode ser adicionada sem prova de
+  que sabe reprovar". A prova **reprovou para `m02:secrets-audit`**: ele **detecta** literais de segredo
+  (`possible_secret_literals`, três padrões) e ainda assim sai **`0`**, porque o bloco `main` decide o
+  exit code **apenas** por cobertura (`coverage.failures.length ? 2 : 0`). Medido em fixture isolado:
+  com `ghp_…` falso presente, o CLI responde `COMPLETE_WITH_LIMITS` e exit **0**. O contrato real da
+  guarda é **mapa de consumidores com cobertura fail-closed** — não um gate de segredo —, o que o teste
+  existente `src/test/m02-secrets-audit.test.ts` já documenta. Encadeá-la como está daria **cobertura de
+  segredo apenas aparente**.
+- **`m02:boundaries` passou na prova:** exit **1** nomeando a violação em fixture com `databasePaths`
+  não-allowlisted, e exit **0** na árvore real (sem falso positivo, com toda a evidência local presente).
+  Gap remanescente: com a matriz ausente ele sai **1** com stack cru, **sem distinguir** precondição de
+  violação (AC-02 pendente).
+- **Entregue sem tocar gate nenhum:** closure test `src/test/m02-boundary-gate.test.ts` (**5 casos,
+  815 ms**), com controle positivo antes da mutação e um **tripwire de dívida** que asserta o exit 0
+  atual do audit e manda inverter a asserção quando a guarda for corrigida. A prova roda sobre **cópia
+  em `mkdtemp`** — o repositório real nunca é mutado (o plano previa mutar `matrix.yaml` e restaurar por
+  sha256; a cópia elimina esse risco).
+- **Intocados, por contrato:** `package.json`, `npm run check`, `ui-stack.yml`, `ci-light.yml`,
+  `AGENTS.md`, as duas guardas, `DEBTS.md` e `QUEUE.md`. **Nada de T6 em diante foi executado.**
+- **Item 6 retomado sob aprovação — opção (a): corrigir o veredicto do `secrets-audit` e encadear as
+  duas.** O `m02:secrets-audit` passou a distinguir `2` (precondição/cobertura incompleta), `1` (literal
+  de segredo detectado) e `0` (limpo) — antes o veredicto olhava **apenas** a cobertura, então a guarda
+  detectava o literal e saía `0`; e o `m02:boundaries` passou a devolver `2` de **precondição** quando a
+  matriz é ilegível, distinto do `1` de violação (AC-02). As duas entraram no encadeamento do `check` e
+  como passos diretos do `verify`, com a tabela do `AGENTS.md` atualizada no mesmo commit.
+  **Custo remedido (3 execuções):** `boundaries` 208 ms médio e `secrets-audit` 1987 ms médio; trecho
+  encadeado 2327 ms médio. `npm run check` exit 0.
+- **Defeito do próprio instrumento, achado e fechado no caminho.** Uma rodada do `local-ci` executou com
+  a **árvore suja** e selou evidência rotulada com `36c4bde` — um SHA que **não continha** o conteúdo
+  validado. A rodada foi **arquivada** com nota de mislabel declarado (`MISLABEL-DECLARADO.md`, não
+  citável como evidência daquele commit) e o `local-ci` ganhou **precondição** que recusa (exit 2)
+  rodar com entradas sujas fora de `docs/evidence/local-ci/`, com escape declarado
+  `LOCAL_CI_ALLOW_DIRTY=1` — testado contra a árvore suja real, reprovando como esperado. Evidência por
+  SHA com rótulo que não corresponde ao conteúdo é pior do que nenhuma evidência.
+- **DBT-19 tecnicamente fechada em `c7e6a55`.** As duas guardas estão no encadeamento do `check` (16
+  membros) **e** como passos diretos do `verify`; a tabela de cobertura, a lista da cadeia, a contagem
+  ("14 dos 16") e a baseline de segurança do `AGENTS.md` foram atualizadas **no mesmo commit**. O
+  veredicto do `m02:secrets-audit` passou a distinguir `2` (precondição/cobertura incompleta), `1`
+  (literal de segredo detectado) e `0` (limpo) — antes ele **detectava** o literal e saía `0`, o que
+  teria produzido **cobertura de segredo apenas aparente**; e o `m02:boundaries` passou a devolver `2`
+  de precondição, distinto do `1` de violação. **Closure test:** `src/test/m02-boundary-gate.test.ts`,
+  6 casos, com o tripwire de dívida invertido conforme a própria instrução. **Custo remedido:** 208 ms e
+  1987 ms (médias de 3), trecho encadeado 2327 ms. **Validação no commit selado:** `npm run check`
+  exit 0 e `local-ci` `verdict=success` (351 s) com **tier de banco executado e verde** e e2e verde.
+- **Falha investigada e refutada, para não virar lenda.** A primeira re-selagem teve e2e vermelho (1 de
+  30: login sem redirecionar), com correlação **exata** ao tier de banco (4 rodadas com `db:test` pulado
+  ⇒ e2e verde; a única com o tier ⇒ e2e vermelho). Experimento controlado com `db:test` **antes** do e2e
+  no mesmo container efêmero deu **30/30 verde**, e a re-selagem seguinte passou com os dois verdes:
+  **transiente** (`retries: 0` no `playwright.config.ts`), não interação entre tiers.
+- **Fechamento de `DBT-19` no registry é ato do MAESTRO** — pedido com closure test em
+  `docs/sdd/SDD-20260923-boundary-guard-dbt19/MAESTRO-REQUEST-DBT-19-CLOSURE.md`. `DEBTS.md` e
+  `QUEUE.md` seguem **intocados**.
+- **Item 5 (hardening do `local-ci`) aprovado e em execução — nenhum contrato de gate alterado.** Quatro
+  frentes, todas dentro do instrumento: **(A)** o `range-secret-scan` ganhou allowlist **declarada**
+  (`scripts/local-ci-secret-allowlist.json`, 5 entradas mínimas — todas usadas — com padrão literal,
+  escopo de arquivo, motivo, data e autor) e um classificador extraído e **testável**
+  (`scripts/local-ci-secret-scan.mjs`), que avalia os padrões **duros antes** da allowlist: uma linha que
+  misture a credencial loopback permitida e um token real continua sendo hit. **(B)** o manifesto passou a
+  declarar o estado da árvore (`treeState`, `dirtyEscapeUsed`, `headShaCorrespondsToContent`) e a classe
+  `filesIgnoredOther` (ignorados fora de log/artefato), com **cross-check de contagens** contra o selo
+  versionável. **(C)** `manifest.sha256` passou a **entrar** no selo versionável (o conjunto de arquivos é
+  estabilizado antes da medição, então as contagens declaradas seguem exatas). **(D)** o escape
+  `LOCAL_CI_ALLOW_DIRTY=1` passou a ser **registrado** no manifesto e vira **pendência nominal** — nunca
+  silencia a divergência entre `headSha` e conteúdo validado. **(E)** falha de e2e passa a **preservar
+  diagnóstico** (trace/screenshot/vídeo/error-context) sob `artifacts/`, sem retry automático:
+  `known-limitation` declarado. **(F)** worktrees residuais apenas **inventariados**, em
+  `docs/evidence/local-ci/_ops/artifacts/worktree-inventory.md` (local, sob o subtree que o próprio
+  `.gitignore` exclui) — **nenhuma remoção**.
+- **Fail-open introduzido e pego pelo próprio instrumento, no mesmo ciclo.** A primeira versão do padrão
+  novo usava `\b` e `(?:...)`, que **POSIX ERE não suporta**: o `git grep` casava **zero** linhas e o
+  resumo saía `total=0` — indistinguível de "limpo". O padrão foi reescrito em ERE estrito **e** o
+  pipeline ganhou um **teste de vivacidade** obrigatório: o padrão precisa casar uma amostra sintética de
+  cada família, senão a rodada **para** com precondição. Detector que não detecta é pior que nenhum.
+- **O instrumento não pode carregar o que ele procura — segunda volta do mesmo ciclo.** A primeira
+  rodada do Item 5 **falhou**, e a falha foi instrutiva: os próprios arquivos novos continham os
+  literais. O probe de vivacidade embutia um `ghp_…` de 40 caracteres literal num script commitado — e
+  o **`m02:secrets-audit` reprovou corretamente**, exatamente a guarda corrigida no ciclo anterior
+  fazendo o seu trabalho. Três classes, três correções distintas: **(i) probe de vivacidade** passou a
+  ser montado em runtime (o fonte quebra as fronteiras com `""` e escape octal no `://`); **(ii)
+  fixtures do teste** idem, por helpers (`pad`, `pemHeader`, `pgUrl`, `hostPlaceholder`); **(iii) o
+  arquivo que DECLARA a allowlist** é isento **por código**, não por uma entrada que permitiria a si
+  mesma — e a isenção **não é ponto cego**, porque `HARD_PATTERNS` é avaliado antes (N11 prova que um
+  token real nesse arquivo continua sendo hit). Resultado medido: **0 literais duros** nos quatro
+  arquivos do instrumento, `m02:secrets-audit` de volta ao verde e **12/12** casos negativos passando.
+- **Terceira volta do mesmo ciclo — e a classe agora está fechada no instrumento.** A rodada seguinte
+  falhou no `check-chain` porque **eu escrevi arquivos do SDD enquanto o pipeline rodava**: a
+  precondição de abertura viu a árvore limpa, o `format:check` viu os arquivos novos. Mesma classe do
+  mislabel (evidência que não corresponde ao conteúdo validado), agora **detectada e rebaixada**: o
+  `finalize` compara o HEAD e a contagem de entradas sujas do **início** com os do **fim** da rodada e,
+  se mudaram, grava pendência nominal `state-drift` e rebaixa o veredicto. A precondição de abertura não
+  pega mutação que acontece **depois** dela; esta checagem pega. Lição operacional declarada: **não
+  escrever na árvore enquanto o pipeline a valida.**
+- **Quarta volta: o cross-check de contagens pagou-se, e dois defeitos meus caíram junto.** A rodada
+  seguinte rebaixou o veredicto com `VIOLACAO: selo versionavel cobre 91 arquivo(s), mas o manifesto
+declara 91 versionaveis`. Investigação: o **selo estava certo** (91 arquivos, excluindo a si mesmo) e
+  o **declarado** é que ficava 1 abaixo — `evidence-policy-final.status` era escrito **depois** da última
+  medição, então ele próprio (arquivo versionável) não entrava na conta. Era a imprecisão **L1** do
+  ciclo anterior, agora convertida de prosa em **falha de gate** — exatamente o que o cross-check devia
+  fazer. Correção na raiz: o status do fecho passou a ser escrito **antes** da medição final, que virou a
+  última escrita no diretório. **Dois defeitos meus no mesmo episódio:** o script imprimia
+  `veredicto=success` **fixo** e saía **0** mesmo com `result.txt = failure` — mensagem e exit code
+  passaram a refletir o veredicto real, incluindo rebaixamento dentro do `finalize`.
+
+  Latest state marker parent = `e4eed185b61bf441de2e8de93eee23a46ce6ea4b`,
+
+## Bloco aditivo — kickoff Fase 0 §5 + Fase 1 §6 P0 (2026-09-25)
+
+O despacho de kickoff pediu F0-03, SEC-001 e FIN-001…FIN-004 como trabalho a iniciar. A
+reconciliação vem primeiro — antes de branch, delegação ou qualquer mutação — provou que **os seis
+itens já estavam implementados, testados e verdes** no tip local de `develop`. Reimplementá-los violaria
+a atomicidade do INV-009 e criaria uma segunda convenção para um contrato vivo. **Nada foi duplicado.**
+
+- **Estado re-derivado, não herdado:** `arquivo:linha` + execução. `MEDICAO-2026-09-24` (S1 = 15/15
+  DONE) foi usado só como correlato. Medido neste ciclo: **99 arquivos, 1.036 testes verdes, 13
+  pulados** (vitest 4.1.11, 68,7 s).
+- **Entregue — a metade que faltava de `DBT-19`:** asserção de que a tabela de cobertura do
+  `AGENTS.md` bate com a cadeia `check` do `package.json` e com os dois workflows. Fail-closed nas
+  duas direções: tabela ausente, marca ilegível, gate declarado e inexistente, gate fora da tabela
+  e passo da cadeia sem cobertura declarada **reprovam**; marca ilegível nunca vira `true`.
+  Doze casos, seis controles negativos. Commits `ceec343` (teste) e `abd5e6d` (evidência).
+  **Prova de vivacidade fora da suíte:** a linha real do `m02:boundaries` na tabela foi mutada para
+  `✘`; a suíte reprovou nomeando o gate e o lado; o arquivo foi restaurado e a suíte voltou a verde.
+- **Registrado, não resolvido:** `DBT-19` **continua ABERTA** — o registry é do MAESTRO, e o que
+  existe agora é a condição de fechamento que faltava, não o veredito.
+- **Limite declarado:** `m02:lockfile-guard` e `typecheck` reprovam por causa do WIP não commitado
+  do usuário, que rebaixa `drizzle-kit` para `0.18.1` (versão sem `defineConfig`, exigida por
+  `drizzle.config.ts`). Os dois arquivos **não** foram tocados; reverter o WIP é decisão do dono.
+  `format:check`, `lint`, `m02:boundaries`, `m02:temporal-guard`, `m02:secrets-audit`,
+  `m02:debts-guard` e `m02:matrix:check` medidos verdes.
+- **Sem push e sem selo `run@sha`:** o CI por push segue bloqueado por cota de plataforma desde
+  2026-09-21, e nenhum run existe para esta branch. Publicar `develop` é decisão do MAESTRO.
+
+  Latest state marker parent = `abd5e6dd898a92c1d64ffa880c1177b1545dd797`,
+
+## Bloco aditivo — política de dependências e incidente do `drizzle-kit` (2026-09-25)
+
+- **O incidente.** Um WIP não commitado rebaixou `drizzle-kit` de `^0.31.10` para `^0.18.1`, com o
+  lockfile reescrito em sincronia. A árvore instalava e a maioria dos gates passava; `typecheck` e
+  `m02:lockfile-guard` é que ficaram vermelhos, porque `0.18.1` é anterior ao símbolo `defineConfig`
+  importado por `drizzle.config.ts:1`. Severidade **SEV-2**, classe de mudança **M4 — downgrade**.
+- **Fase A executada e medida.** O WIP foi **isolado** em `wip/drizzle-kit-downgrade-2026-09-25`
+  (commit `944401c`) antes de qualquer reversão — o trabalho do dono está preservado, não descartado.
+  Manifests revertidos, `npm ci --ignore-scripts`, e então medido: lockfile-guard exit 0 com 0 razões,
+  typecheck exit 0, `drizzle-kit check` lendo as 20 migrations, **1.036 testes verdes**, build e bundle
+  verdes.
+- **Causa raiz corrigida na fonte.** A faixa vivia hardcoded dentro do próprio guard
+  (`const SPEC_RE = /^\^0\.31\.\d+$/`) e em mais nenhum lugar amarrado: duas fontes que divergem
+  sozinhas. Agora há **fonte única** em `scripts/dependency-policy.json` (15 pacotes, criticality,
+  faixa e motivo), consumida pelos três guardas. O contrato observável do `m02-lockfile-guard` foi
+  preservado — mesmo schema, mesmos ids de check, mesma flag, mesmos exits.
+- **Prevenção entregue.** `guard:upgrade` (39 casos; 17 reprovam veredito, 5 exigem `skip` em vez de
+  `pass`) e `check:migration-toolchain` (28 casos), com Downgrade Request em
+  `scripts/dependency-approvals/`. Cadeia `check` de **16 para 18** gates; ambos como passo direto do
+  `verify`. Nenhuma dependência nova — a política de dependências não pode ser implementada com uma
+  dependência.
+- **Aprovação não é atalho.** Medido: com o arquivo de aprovação presente o finding de _downgrade_
+  some e o de _spec fora da faixa_ **permanece**. Rebaixar de verdade exige ampliar a faixa na política,
+  em commit visível — que é a revisão que a política existe para forçar.
+- **Falsificação fora da suíte, com mutação e restauração:** o downgrade reproduzido em
+  `package.json` reprovou os dois guardes nomeando pacote, lado, observado e esperado; um arquivo de
+  aprovação indevido foi plantado para provar o ponto acima; o piso da política foi movido para
+  disparar o guard de toolchain sobre dados reais. Árvore restaurada e `npm run check` medido
+  **exit 0** (18 gates, 117 s).
+- **Dois defeitos meus, corrigidos no caminho.** O teste de DBT-19 fixava `toHaveLength(16)` —
+  cardinalidade envelhece sozinha e passou a mentir quando dois gates entraram na cadeia; trocado por
+  igualdade de conjuntos. E `npm run format:check` **já estava vermelho em `develop`** antes deste
+  ciclo (oito relatórios de `docs/auditoria-publicacao/` entraram sem formatação em `a734cb2`),
+  corrigido em `294f660` sem afrouxar regra e sem excluir arquivo.
+- **Limites.** `DEBTS.md` **não** foi editado — o registry é do MAESTRO; o pedido está em
+  `docs/sdd/SDD-20260925-dependency-policy/MAESTRO-REQUEST-DEPENDENCY-DEBT.md` com closure test
+  executável. A light pipeline não roda os dois guardas (leem `node_modules`, e ela não instala
+  dependências por desenho); o buraco é nulo porque push de manifest nunca é docs-only. `db:test` e
+  e2e **não** foram executados (exigem container PG17 e preview). CI por push segue bloqueado por
+  cota, então nenhum selo `run@sha` é citado: não houve run.
+
+  Latest state marker parent = `e65b7a24e5df41dd5578f72e68be28e2e7778d3e`,
+
+## Bloco aditivo — decisões do MAESTRO, PR #48 e Fase C (2026-09-25)
+
+- **Registry fechado por decisão do MAESTRO.** `DBT-19` e `DBT-24` marcadas **FECHADA** no
+  `DEBTS.md`. A decisão foi escrita `RESOLVED`; o registry diz `FECHADA`, e **não** é
+  substituição: `STATUSES` em `scripts/m02-debts-guard.mjs:27` admite apenas `ABERTA`,
+  `EM_TRATAMENTO`, `FECHADA` e `NS`, então escrever `RESOLVED` transformava a decisão da
+  MAESTRO em gate vermelho. **Falsificado, não afirmado:** escrever `RESOLVED` em `DBT-24` faz o
+  guard reportar 3 falhas de taxonomia e sair 1; restaurar `FECHADA` devolve 0. A palavra da MAESTRO
+  fica registrada verbatim na linha, então a tradução não perde nada.
+- **Branch publicada e Draft PR aberto** (autorizados): `feature/p0-financial-security-baseline` →
+  `develop`, **PR #48**, `OPEN` + `DRAFT`.
+- **O PR tem 65 commits e 100 arquivos, não 14.** Motivo declarado: `origin/develop` está em
+  `a2f5ff6` e o `develop` local carrega 51 commits não publicados (cota bloqueia push desde
+  2026-09-21), então o comparador inclui esses 51 mais os 14 deste ciclo. Nenhum commit alheio foi
+  descartado nem reescrito.
+- **As falhas de CI do PR são a cota, não o código.** Medido nos check-runs: `docs-light` e `verify`
+  abrem e fecham em ~3 s com **`steps=0`**, assinatura do bloqueio de plataforma já registrado neste
+  ledger. A API de billing deste token responde 404, então a anotação literal da plataforma **não** pôde
+  ser lida e não é citada aqui; o que se afirma é a assinatura medida, não o texto da plataforma.
+  Consequência registrada: **nenhum selo `run@sha`** é válido para este PR.
+- **Fase C — Contract Guard autorizada.** Reconciliação feita antes de delegar, e ela **corrige o
+  enunciado do despacho**: o diretório `src/server/bff/contracts/` **não existe** e não será criado —
+  a convenção viva é schema **inline**, ao lado da server function que o usa. Criar o diretório abriria
+  uma segunda convenção, o que o `AGENTS.md` proíbe. Números medidos: **45** `createServerFn` em 8
+  arquivos, **26** `.validator(`, **0** contratos de saída (busca por `outputSchema|responseSchema|
+.returns(` em `src/lib/*.functions.ts` não casa nada), `safeParse` de tool já presente em
+  `tool-registry.ts:66` (INV-014 satisfeito) e taxonomia de 9 códigos já em `api-error.ts`.
+  **O gap real da Fase C é contrato de saída, não entrada.** Fechá-lo exigiria retipar 45 funções —
+  refatoração de outro ciclo, e decisão da MAESTRO. O guard vai **medir e reportar 0 como limite
+  declarado**, nunca como `pass`: é exatamente a cobertura aparente que este repo já puniu uma vez.
+
+  Latest state marker parent = `5d7c12e8a89a02662639f8ccda5666eb32bddc13`,
+
+## Bloco aditivo — Fase C (Contract Guard) concluída (2026-09-25)
+
+- **Enquadramento corrigido antes de construir.** A Fase C foi descrita como consolidar
+  `src/server/bff/contracts/`; esse diretório **não existe** e não foi criado. A convenção viva é
+  schema **inline**, ao lado da server function (`products.functions.ts:355,446,451,457`), e abrir um
+  segundo lugar seria o erro que o `AGENTS.md` proíbe.
+- **Inventário medido:** 35 declarações `= createServerFn(` em 8 arquivos, **26** com entrada e todas
+  com `.validator(`, **9** GET sem parâmetro (legítimos, zero finding), **0** contratos de saída,
+  taxonomia §6.9 9/9 em `api-error.ts`, 10/10 tools com schema + `safeParse`. Correção do meu número:
+  o grep inicial contou 45 menções — 35 declarações + 8 imports + 2 comentários.
+- **O gap real é contrato de saída, e não foi fechado.** Retipar 35 funções muda assinatura de
+  toda a API de servidor; a Fase C é de verificação. O guard rege a dívida por **piso versionado**
+  em `scripts/contract-baseline.json` (0 de 35, `DBT-25`), não por meta de 100% — meta seria
+  vermelho permanente e ninguém roda gate que nunca passa; verde-por-definição seria cobertura
+  aparente. Regra: a dívida pode diminuir, nunca crescer, em **duas** condições independentes.
+- **Falsificado na árvore real, com mutação e restauração:** função nova sem contrato de saída
+  (exit 1, nomeando a contagem); piso elevado acima do real (exit 1, "contrato de saída perdido");
+  `.validator` removido de `getProduct` (exit 1, `products.functions.ts:353`); `AI_QUOTA` removido
+  de `api-error.ts` (exit 1); piso declarado ausente (exit **2**, precondição, nunca piso zero
+  implícito); árvore real no piso (exit 0, com `0 de 35` e `DBT-25` visíveis no detalhe do check).
+- **Lacuna que um teste pegou, não uma revisão:** um piso escrito só como "adicionados >= adicionados"
+  deixa passar **remover** função que já tinha contrato. São duas condições, e a segunda existe.
+- **Varredura de `catch` com inventário pinado.** 49 casos em
+  `finance.result-invariants.test.ts`; acrescentar um `catch` silencioso em `src/lib/format.ts` deixa
+  2 testes vermelhos e restaurar devolve 49/49. Propriedades cobertas: `incomplete` nunca vira
+  `ok`, `invalid` nunca é rebaixado a `incomplete`, warnings propagadas, status estável, `missing`
+  apontando para folha realmente ausente.
+- **Achado de segurança, encontrado e não corrigido:** `src/server/auth/password.server.ts:19`
+  converte qualquer exceção de verifier em `false`, indistinguível de senha errada. **Não é bypass** —
+  falha fechada —, mas mascara erro de infraestrutura como veredito de negócio, que é o que o §1
+  proíbe. Produção intocada; `DBT-26` pedido à MAESTRO.
+- **Defeito meu, no caminho:** o typecheck do agente foi **escopado** (arquivo novo + `finance.ts`) e
+  reportou limpo; o `tsc -p tsconfig.json` da cadeia achou o campo `baseline` faltando no caminho de
+  precondição. Corrigido em `fix(ci)`. Um check estreito que reporta "0 erros" é uma afirmação sobre
+  um escopo, não sobre o código.
+- **Cadeia `check` de 18 para 19 gates**; `verify` com 17 de 19 como passo direto. A tabela do
+  `AGENTS.md` ganhou a linha, e `m02-ci-coverage.test.ts` a exige contra a cadeia e os dois YAMLs.
+
+  Latest state marker parent = `24ddc79c7770671abde20c8fbcea54cc029eaa5f`,
+
+### Complemento do bloco da Fase C — o rótulo do check
+
+O check nasceu como `contract-output-coverage` e passou a se chamar **`contract-output-ratchet`**. O
+nome antigo afirmava algo que o check não mede: um check rotulado "coverage" que sai `pass` sobre
+**0%** se lê errado em painel e em leitura apressada, e essa leitura errada é a mesma cobertura
+aparente que a Fase C existe para matar. "Ratchet" nomeia o que ele de fato cobra — a dívida pode
+diminuir, nunca crescer. Métrica, piso e referência a `DBT-25` seguem em `observed` e no detalhe;
+muda só a etiqueta. Risco residual levantado pelo agente da fatia e **decidido aqui**, não
+postergado: é decisão de política com resposta obvia, e a MAESTRO pode reverter se discordar.
+
+O mesmo agente corrigiu a `CONTRACT-POLICY.md`, que afirmava "sai `fail`, nunca `pass`" e
+"0/35, `fail`" — verdade sobre o código como foi escrito e falsa sobre o código como está. Doc que
+mente sobre o arquivo vizinho é o mesmo padrão que a fase combate.
+
+Latest state marker parent = `96a81f4a3663c9d8ac8300052471083298a2691f`,
+
+## Bloco aditivo — ciclo 3 autorizado: `DBT-25`/`DBT-26` no registry, correção do verifier e branch própria (2026-09-26)
+
+- **Fase C (Contract Guard) concluída** — o bloco anterior desta mesma data é a fonte: `guard:contracts`
+  com piso versionado em `scripts/contract-baseline.json`, invariantes do Result Type e varredura de
+  `catch` com inventário pinado, e a cadeia `check` de 18 para 19 gates. Nada aqui reabre aquela entrega.
+- **PR #48 segue `OPEN` + `DRAFT`**, head `feature/p0-financial-security-baseline` → `develop`, com as
+  falhas de check-run causadas pela cota de plataforma (`steps=0`) e **nenhum selo `run@sha`** citável —
+  a assinatura medida está no bloco de 2026-09-25 e não é reescrita aqui.
+- **Ciclo 3 autorizado pelo MAESTRO.** Escopo: (a) registrar `DBT-25` e `DBT-26` no `DEBTS.md`
+  (23 → **25** dívidas); (b) corrigir `DBT-26` no código; (c) executar a fatia autorizada de `DBT-25`
+  (5 contratos de saída + piso do ratchet); (d) publicar `feature/contract-guard-bff` como branch
+  própria. HEAD deste ciclo no momento do registro: `7a84182`.
+- **A taxonomia vem do SDD, não do brief.** `verifyPassword` é cripto pura e **não** acessa banco: a
+  leitura `P0`/`DatabaseError`/`TimeoutError`/`ConfigurationError` foi medida **FALSA** e não entra no
+  registry. `DBT-26` entra como classe `robustez` e severidade `média`; severidade `alta` está
+  descartada por medição, não por preferência.
+- **Cobertura de CI segue bloqueada por cota** (precondição de ambiente, item 17 estendido): os guards
+  locais são o único gate, e a verificação adversarial de contexto limpo (S6) é a lane independente.
+  Nenhum selo novo é cunhado neste bloco.
+- **Perda declarada de cobertura do H-6.** A janela do watcher `app-live-watch` (re-arme de
+  2026-09-19T15:31:33Z, horizonte de 7 dias) terminou em 2026-09-26T15:31Z e o log não recebe poll novo
+  desde 2026-09-24T02:40:59Z (`i=6240`); o re-arme é ação de operador em `$HOME`, fora deste ciclo. A
+  linha de §1 do `PROGRESS.md` carrega o mesmo fato, e é ela que destrava o `m02:temporal-guard` — que
+  estava vermelho no HEAD `7a84182` exatamente por essa janela encerrada, com o caso "o próprio repo é
+  o caso GREEN" de `src/test/m02-temporal-guard.test.ts` reprovando.
+
+Latest state marker parent = `8df257833959ffa09171aa0a0b2bc10a24a2318c`,
+
+## Bloco aditivo — Ciclo 9: reconciliação do brief "ações autônomas via MCP" e correção do defeito do outbox (2026-09-28)
+
+- **O marcador estava desatualizado e o boot falhou por isso.** `npm run m02:state:check` saiu
+  **1** neste HEAD: o último bloco era o do ciclo 3, com marcador pinado em
+  `8df257833959ffa09171aa0a0b2bc10a24a2318c`, **cinco commits atrás** do HEAD `33596d3`. É a
+  mesma classe já registrada no journal — o marcador é passo do protocolo de boot e não pertence
+  a pipeline nenhum, então nada o reprova até alguém rodar o check à mão. Reconciliado aqui por
+  bloco aditivo, sem reescrever o bloco anterior.
+- **A CI voltou a rodar** (o bloqueio de cota descrito nos blocos anteriores **não** se aplica a
+  este ciclo) e **o PR #49 não está em `CLEAN`**: `mergeStateStatus: UNSTABLE`, porque o job
+  `Branch efêmera · migrate · integração · RLS probe · E2E`, do workflow `Neon PR branch CI`
+  (run `36374487842`), termina em **FAILURE**. O job `verify` do `UI stack` do mesmo PR está
+  **SUCCESS**, o que é coerente: o tier de `db:test` só dispara quando o diff toca a superfície
+  de dados, e é exatamente ele que reprova.
+- **O defeito reprovado é real, mas a causaootnameda no brief está errada.** A falha é
+  `AssertionError: o backoff padrão agenda o futuro` em `scripts/db/test-outbox.ts:702`. O brief
+  a descreveu como "backoff de 1.000 ms competindo com margem de 1 s em runner sob carga" e
+  propôs _fake timers_ de vitest, com alternativa de "subir a margem para 5 s". Ambas as
+  ibilidades estão erradas, e por medição:
+  - o arquivo **não** é um teste de vitest — é a suíte `db:test`, `node:assert`, executada contra
+    um Postgres real; não existe `vi` ali, e _fake timers_ governam o `Date` do JavaScript, não
+    o `now()` do PostgreSQL, que é de onde o carimbo vem;
+  - a causa não é jitter de agendamento: `available_at` é gravado como
+    `now() + make_interval(...)` e o `now()` do PostgreSQL é o **timestamp de transação**,
+    congelado enquanto a transação vive. A asserção do teste lê a linha **noutra** transação e
+    compara `available_at > now()` — relógio de uma transação contra relógio de outra. A
+    desigualdade só vale se a segunda começar menos de `backoff` depois da primeira. Medido
+    contra o container local: o offset gravado é **1000,9 ms em todas as execuções** (o valor
+    está sempre correto), o predicado é `true` com folga de 12 ms e 220 ms, e vira `false` a
+    partir de 1123 ms; dentro de uma única transação `now()` não deriva (0 ms em 1202 ms de
+    relógio de parede). Não é latência competing com margem: é uma **comparação entre relógios
+    de transações diferentes**, que falha por construção conforme o alvo é mais distante. Por
+    isso passa contra o Postgres local e quebra contra branch efêmera do Neon.
+  - "Subir a margem para 5 s" é **afrouxar a asserção para forçar o verde**, vedado por
+    `AGENTS.md`; e não seria nem confiável (só move acliff de 1 s para 5 s) nem informativo
+    (aceita tanto um backoff de 1 ms quanto de 60 s).
+- **O que foi feito, e por que é endurecimento.** A correção Troca a comparação de relógio por
+  asserção de **offset**: o `available_at` gravado tem de cair na janela
+  `[t_antes + backoff, t_depois + backoff]`, onde os dois limites são leituras do relógio do
+  banco que **cercam** a escrita. A janela alarga com a latência em vez de estreitar, então a
+  asserção vale em qualquer alvo; e ela passa a asseverar o **valor** do backoff, o que a forma
+  anterior não fazia. A propriedade §23 de que o evento não é retomado durante a janela continua
+  provada pelo assert comportamental já existente (`duringBackoff.claimed === 0`), que é imune ao
+  problema porque testa comportamento, não timestamp. A forma defeituosa aparecia em **dois**
+  sítios (`test-outbox.ts:659` e `:702`) e os dois foram corrigidos — enumeração por descoberta,
+  não porxbatedo. **O backoff de produção não foi tocado**: `BACKOFF_BASE_MS` segue 1.000 ms e a
+  evidência não mediu insuficiência dele em cenário algum.
+- **O que não foi feito, e por quê.** O brief pedia um _MCP Action Server_ com cinco tools
+  (`rotate_secret`, `revoke_env_var`, `verify_secret_rotation`, `audit_secret_usage`,
+  `check_secret_expiry`) em `src/mcp/action-server.ts`, autenticado por `MCP_AUTH_TOKEN` e com
+  rollback automático, seguido da execução da rotação de `BETTER_AUTH_SECRET` e da revogação
+  das chaves de `neon-storage.env`. Três fatos medidos, não opinativos:
+  1. **As credenciais não existem neste ambiente.** `NEON_API_TOKEN`, `VERCEL_API_TOKEN` e
+     `MCP_AUTH_TOKEN` estão ausentes; o Secret Store do Neon tem escopo `projects&branches` e não
+     expõe operações de variável de ambiente nem de chaves de API. Os `curl` do brief falhariam
+     na primeira chamada.
+  2. **A premissa contradiz uma decisão do dono já versionada.**
+     `docs/runbooks/acoes-manuais-pendentes.md` §2 (commit `33596d3`) existe precisamente para
+     registrar que essas duas ações **não** são executáveis por agente, porque os consoles
+     emissores — não o repositório — são quem detém a credencial, e porque inventar o valor aqui o
+     faria existir em mais um lugar sem tratamento. O brief pede o que aquele runbook proíbe.
+  3. **A ação é destrutiva e atinge usuário.** `BETTER_AUTH_SECRET` assina o cookie de sessão:
+     rotacioná-lo desloga todas as sessões, e o próprio runbook registra que não há rotação sem
+     derrubar sessão. Somado ao `AGENTS.md` (segredos nunca commitados; ambientes lêm do
+     platform store) e ao fato de que a Conexão MCP deste ambiente traz aviso explícito de que
+     ferramenta destrutiva **nunca** é invocada autonomamente, o caminho "LLM dispara rotação de
+     produção com rollback automático" é a forma que mais exige um humano no gatilho, não menos
+     — o rollback automático é justamente o que faz o passo parecer seguro o bastante para
+     disparar sem ninguém olhando.
+     Acresce que o próprio brief ordena SDD **antes** da implementação (§9 no Tarefa 4) e agenda
+     a implementação na Tarefa 2, e que `src/mcp/` seria uma fronteira de confiança nova ao lado
+     do BFF — superfície nova sem `SPEC.md`, sem selo e sem S6, que é o contrato do repo para
+     trabalho assim. Devolvido ao MAESTRO como decisão, com o ADR e a SPEC por escrito antes de
+     qualquer linha de código.
+- **O registry de dívidas não foi usado para|work concluído.** O brief pedia `DBT-32` a
+  `DBT-35` descrevendo correções e execuções **já feitas** (`"teste outbox flaky corrigido"`,
+  `"rotação executada"`). `DEBTS.md` é o registro de dívida **declarada**, com closure test que
+  **reprova** com o defeito presente, e `m02:debts-guard` valida a estrutura; preencher esse
+  sinal com trabalho concluído destrói a função do registro. A entrada aberta aqui é a do defeito
+  de fato medido.
+- **Nenhum `run@sha` é cunhado por este bloco.** O run citado é **vermelho**, e vermelho não é
+  evidência de nada: nem aprovação, nem reprovação permanente. O que ele prova é o defeito.
+
+Latest state marker parent = `33596d313ff8fc8f126c85ab3831ec11bdb7eb27`,
+
+## Bloco aditivo — fecho do ciclo: defeito do outbox corrigido, com cinco controles (2026-09-28)
+
+- **A correção landing no commit de código.** `available_at > now()` saiu do
+  `readEventState`; no lugar há asserção de **offset** com as duas leituras do relógio do banco
+  **cercando** a escrita, mais uma checagem **comportamental** (`claimed === 0` numa segunda
+  chamada) que prova a propriedade §23 sem depender de relógio. A forma antiga aparecia em **um**
+  SQL consumido por **dois** asserts, e os dois foram corrigidos — por `grep` no arquivo, não por
+  palpite.
+- **`src/` não foi tocado.** `outbox.worker.ts` está byte-idêntico ao HEAD, restaurado por
+  `sha256sum -c` depois das mutações de controle, e `BACKOFF_BASE_MS` continua 1.000 ms: nada
+  mediu insuficiência dele em cenário real, que é a condição que o brief mesmo impunha antes de
+  mexer na política.
+- **Cinco controles executados, não descritos.** (A) 1500 ms injetados entre escrita e leitura ⇒
+  T4 **verde**: a latência que reprovou o job não reprova mais. (B) A checagem comportamental
+  **reprova** quando a janela de 1 s expira de fato ⇒ não é vacuosa. (C) `BACKOFF_BASE_MS` 1.000 →
+  3.000 em produção ⇒ **reprova** com o valor esperado e o encontrado na mensagem. (D) A
+  **mesma** mutação com a forma antiga ⇒ **passa**, exit 0 ⇒ a nova é estritamente mais forte, e
+  3 s ainda seria "maior que agora". (E) Descoberta por `grep` ⇒ um SQL, dois asserts, ambos
+  corrigidos. O controle D é o que fecha o argumento: a forma antiga não tinha como enxergar a
+  mudança.
+- **Um defeito do autor, registrado porque o controle o pegou.** A primeira versão da correção
+  carregava também `available_at > agora` como guarda anti-retry-storm — a **mesma classe de
+  defeito com outro limiar**. Com 1500 ms ela acusava "retry storm" sobre um agendamento
+  correto. Afirmação removida; a propriedade passou a ser provada por comportamento. Fica no
+  registro porque um teste que endurece pode carregar a mesma falha que ele supostamente corrige.
+- **Gate:** `npm run check` **exit 0** (19 gates · 107 arquivos · 1246 passed | 13 skipped);
+  `db:test` completo **exit 0** (17 suítes) contra o container PG17 efêmero; **5 execuções
+  consecutivas** de `test-outbox.ts` com 5/5 em cada. `DBT-27` registrada; `m02:debts-guard`
+  exit 0 com **26** dívidas.
+- **Confirmação do MAESTRO sobre o que o brief pedia.** As Tarefas 2–5 (Action Server com as
+  cinco tools, observabilidade, SDD §9, ADR-032, `AGENTS.md`, e a execução de rotação e
+  revogação) **não foram executadas, por decisão do dono**, e as `DBT-32`…`DBT-35` **não** foram
+  abertas. O motivo está medido no bloco anterior e aqui não se repete: credenciais ausentes,
+  consoles emissores fora do alcance de agente, e rotação de segredo de sessão derruba todos os
+  usuários. O registry de dívidas segue significando dívida **declarada**, com closure test que
+  reprova com o defeito presente.
+- **Sem push e sem merge, por decisão do dono.** O PR #49 permanece `UNSTABLE` até que a branch
+  receba este commit e o tier de `db:test` rode de novo. Nenhum selo novo é cunhado: o run
+  conhecido é vermelho, e um run vermelho é o sintoma, não um veredito.
+
+Latest state marker parent = `775fa01ebb8d21f8d089282a14e06d4172bd68f5`,
+
+## Bloco aditivo — Ciclo 10: censo de bloqueadores e a credencial que o brief não nomeia (2026-09-28)
+
+- **Achado urgente, corrigido, e ele não estava no brief.** `Keys.txt` (316 B) entrou no
+  diretório de trabalho em 2026-09-28 com **quatro credenciais vivas em texto plano** (Neon,
+  Vercel, GitHub PAT, Sonar). Não era rastreado nem commitado, mas **também não era ignorado**,
+  num repositório **público** — a um `git add .` do histórico. É a mesma lacuna que
+  `Sonar*.txt` já cobria desde 2026-09-27, um arquivo ao lado. Corrigido em `7c8cda0`, com a
+  verificação que o limita: nenhum arquivo rastreado contém esses valores no HEAD, nenhum stash
+  os carrega, nenhuma ref contém `Keys.txt`, e uma amostra de 400 commits não contém o token
+  Vercel. **Limite declarado:** as quatro foram coladas num canal de conversa, e isso já é
+  exposição; `gitignore` impede commit, não desfaz o transcript. Rotação no emissor é do dono.
+- **A rotação de `BETTER_AUTH_SECRET` da FASE C10-5 não é executável.** O token Vercel
+  fornecido autentica (`/v2/user` HTTP 200, usuário `douglasultimatesouza-5127`) mas o
+  `defaultTeamId` dele (`team_2NnkSYjw5NRHAFnQFEPSHGmW`) tem **zero projetos**, e
+  `preco-que-da-lucro` responde **404 Project not found** em todos os escopos tentados (sem
+  `teamId`, com o `defaultTeamId`, com o slug `douglasultimatesouza-5127s-projects`); `/v2/teams`
+  é **403**. O projeto não está na conta que o token alcança. **E não há deployment de
+  produção:** `preco-que-da-lucro.vercel.app` responde **`DEPLOYMENT_NOT_FOUND`**, todos os
+  deployments registrados são `Preview –`, e o preview está atrás do SSO da Vercel. Sem
+  aplicação viva, `verify_secret_rotation` — que é o **gate de saída** da fase — não tem alvo, e
+  a rotação produziria um "verificado" que não verifica nada. **Procedimento errado no
+  provedor, também:** o runbook manda escrever o segredo em _"Neon → Variables"_, e **Neon não
+  tem Variables**; `BETTER_AUTH_SECRET` é lido de `process.env`
+  (`src/server/auth/auth-policy.ts:204`, validado em `:206`).
+- **A revogação de `neon-storage.env` já foi feita, e não é Neon.** O ledger registra
+  **SEC-01 FECHADA** em 2026-09-12 por atestação do operador (`EXECUTION-STATE-PROGRAM.md:1321`),
+  enquanto o runbook de 2026-09-28 a trata como pendente — contradição entre dois documentos do
+  mesmo repositório, com o runbook mais novo e errado. E as cinco chaves eram
+  `AWS_ACCESS_KEY_ID`, `AWS_ENDPOINT_URL_S3`, `AWS_REGION`, `AWS_SECRET_ACCESS_KEY`,
+  `OPENAI_API_KEY` (`docs/evidence/pre-a4-2026-09-05/secrets-hygiene.md:13`) — **AWS
+  S3-compatível e OpenAI**, não chaves de API do Neon. A instrução "no console do Neon, localize
+  as chaves `_live_`" aponta para o provedor errado.
+- **`DBT-25` não está em 0/35.** Medido: `contract-output-ratchet` **pass**, _"5 de 35"_, piso
+  versionado em `scripts/contract-baseline.json`. E escalar 5 → 35 agora seria multiplicar um
+  defeito **já refutado** pela S6 do ciclo 3: N-1 (o contrato é aplicado **depois** dos mappers,
+  então a resposta é 500 e não o 503 do contrato — **errata medida em 2026-09-28**: o status
+  é 503 nos dois caminhos, `DATABASE_ERROR` em vez de `DEPENDENCY_ERROR`; o defeito é de
+  **código e sinal**, não de número, e o sítio de `products` é o loader, não a projeção) e
+  N-2 (tipo público estreitou em 3 das 5
+  funções, declarado não autorizado e **pendente de ratificação do MAESTRO**). Replicar em 30
+  funções espalharia uma afirmação falsa 30 vezes. A ordem correta é corrigir N-1 e ratificar
+  N-2 **antes** de ampliar.
+- **O que dá para fechar hoje, e é o que este ciclo ataca:** `m02:state:check` como gate,
+  automação do marcador, `DBT-26` → `FECHADA` (falta o selo do closure, não o código), e a
+  **recusa mecânica do segredo comprometido** — o literal de 61 caracteres segue recuperável do
+  histórico publicado (`26a2fdd`, em `scripts/check-hostinger-runtime.mjs`) e satisfaz a
+  validação de ≥ 32 caracteres, então a aplicação o aceitaria; como a rotação é impossível hoje,
+  impedir o **uso** desse valor, por hash e nunca pelo valor, é a única proteção executável
+  agora.
+- **Nenhuma mutação de produção foi executada** e nenhuma credencial nova foi cunhada. Censo em
+  `docs/evidence/ciclo-10-censo-bloqueadores-2026-09-28.md`. Sem push.
+
+Latest state marker parent = `7c8cda018c591ef8282fa3b30f024fe238a8938b`,
+
+## Bloco aditivo — Ciclo 10: N-1, o check de estado como gate, e a recusa do segredo vazado (2026-09-28)
+
+- **N-1 fechado, com duas erratas medidas.** O contrato era validado **depois** do produtor:
+  `outputSchema(schema, subject, rows.map(mapExpense))` avalia o terceiro argumento **antes** da
+  chamada, então um mapeador que lança escapa antes de o contrato existir. **Errata 1:** o registro
+  do ciclo 3 dizia "a resposta é **500**, não o 503 do contrato". Medido no código:
+  `errorCodeFromUnknown` devolve `INTERNAL_ERROR`, `request-context.ts:154` remapeia para
+  `DATABASE_ERROR`, e essa política é **`status: 503`** — o **mesmo status** dos dois caminhos. O
+  defeito é de **código e sinal**: sai `DATABASE_ERROR` onde o contrato promete `DEPENDENCY_ERROR`,
+  o log é `bff.request_failed` em vez de `bff.output_contract_violation`, e a violação de contrato
+  **não era registrada como violação**. **Errata 2:** em `products` os mapeadores rodam dentro de
+  `loadProductReadModels` (linha 390), **não** na projeção da 394 — corrigir a projeção deixaria o
+  defeito de pé exatamente ali. Correção: `produceOutput` compartilhado, que **não**
+  superclassifica (preserva `ApplicationError`, `NOT_FOUND` e `ZodError`; a versão ingênua viraria
+  404 e 400 em 503).
+- **Controles de N-1, falsificados.** Os três testes de sítio **reprovam** com os sítios revertidos
+  para a versão defeituosa (**3 failed** medido) e passam com a correção. O caso de
+  `listSimulations` usa **`SyntaxError`** do `JSON.parse`, deliberadamente não `TypeError`, para
+  falsificar uma correção que só capturasse um dos dois.
+- **`m02:state:check` reescrito e integrado como 20º gate.** A forma antiga exigia que o ledger
+  nomeasse exatamente o parent do HEAD, o que só é satisfazível se **todo** commit reapinar o
+  marcador. Medido sobre 220 commits desta linhagem: folga 1 em **45%**, mediana 2, máxima 20 — ou
+  seja, reprovava **mais da metade** das execuções, e por isso ninguém o rodava. A forma nova é
+  **mais forte**, não mais fraca: passa a exigir **ancestralidade** (antes era comparação de
+  string, que nunca verificava se o SHA era desta linhagem) e uma **folga declarada de 13**
+  commits, calibrada na disciplina que o projeto de fato pratica (93% dos commits). Clone raso vira
+  exit `2`: inverificável de princípio, e acusar violação ali seria mentir sobre a causa. Controles
+  no CLI real: 30 commits atrás ⇒ exit 1 nomeando a folga; marcador de outro branch ⇒ exit 1 "não é
+  ancestral"; SHA fabricado ⇒ exit 1 "não resolve"; clone raso **de verdade** ⇒ exit 2; ledger
+  restaurado por `sha256sum -c`. Entra na cadeia `check`, no `verify` do `ui-stack` e na light
+  **sem** o `if:` de escopo, pela mesma razão do temporal guard: a superfície é o ledger da raiz.
+- **Um bug no auditor de cobertura, achado ao integrar o gate.** `gate.replace(":", "-")` usa
+  padrão de **string** e troca só o **primeiro** dois-pontos: `m02:state:check` virava
+  `m02-state:check`, o passo real nunca era encontrado, e o auditor **acusava o `AGENTS.md` de
+  mentir** — apontando para o documento quando o defeito estava no auditor. Todos os gates
+  anteriores tinham um dois-pontos só, e o ramo nunca havia sido exercitado. Corrigido nos **dois**
+  sítios, com teste de regressão e um caso que garante que um gate de um dois-pontos continua
+  funcionando.
+- **O segredo vazado passa a ser recusado, por hash.** `src/server/auth/compromised-secrets.ts`
+  guarda **SHA-256**, nunca valores: guardar o valor recriaria o segredo no arquivo que existe
+  para neutralizá-lo. Confronto exato, sem prefixo, de propósito — um prefixo curto tornaria a
+  lista um oráculo de confirmação. Dez controles PASS contra o literal real lido do git e **nunca
+  impresso**, incluindo os três bypasses que **não** funcionam (uppercase, espaço à esquerda, à
+  direita), o vetor conhecido do NIST para o primitivo, e a lista de produção pinada — remover a
+  entrada sem rotacionar reprova. **Alcance declarado e corrigido:** `getAuth` é preguiçoso
+  (`auth.server.ts:121-124`), então o guard **não** impede o processo de subir — impede a
+  **construção da instância de autenticação**, e o efeito é fail-closed no primeiro toque em auth.
+  A frase "fails the boot" do commit `d4ce3b0` é mais forte que o código e fica corrigida aqui, em
+  vez de o código ser esticado para caber nela.
+- **Credencial viva a um `git add .` do histórico público, corrigida fora do brief.** `Keys.txt`
+  (316 B, quatro credenciais em texto plano) estava **não-ignorado** num repositório **público**.
+  Corrigido em `7c8cda0`; ver o bloco anterior. **Limite declarado:** as quatro foram coladas em
+  canal de conversa, e isso já é exposição — `gitignore` impede commit, não desfaz transcript. A
+  rotação das quatro no emissor é do dono.
+- **Gate:** `npm run check` **exit 0** com os **20** gates (109 arquivos, **1282 passed** | 13
+  skipped) e `db:test` **exit 0** (17 suítes, incluindo as cinco de segurança). `m02:matrix:generate`
+  revisado: o diff é **só** deslocamento de `line:`, nenhum contador e nenhuma entrada acrescentada
+  ou removida. Ratchet de contratos intacto em **5 de 35** — a correção muda **onde** o contrato
+  fica, não adiciona contrato.
+- **Registry em 29 dívidas** (`DBT-27`…`DBT-30`), `m02:debts-guard` exit 0. **Nenhuma promovida a
+  `FECHADA`**, e isso é deliberado: o registry exige o **selo/WP que executou o closure**, e não
+  houve WP selado neste ciclo. `DBT-28` e `DBT-29` ficam com closure verde e status `ABERTA` — o
+  mesmo critério que mantém `DBT-26` desde o ciclo 3. Promover por conta própria seria escrever no
+  registro o que a cerimônia ainda não produziu.
+- **Não executado, com motivo medido, e nenhum deles por preferência:** a rotação de
+  `BETTER_AUTH_SECRET` (o token Vercel não alcança o projeto — `defaultTeamId` com **zero projetos**,
+  404 em todos os escopos tentados; e **não há deployment de produção**,
+  `DEPLOYMENT_NOT_FOUND`, então `verify_secret_rotation` não tem alvo); o **MCP Action Server**
+  (sem alvo e sem o que verificar — um servidor que guarda credencial de rotação para um LLM é
+  superfície nova para propósito vazio); a matriz de saída **35/35** (recusada por decisão do dono:
+  escalaria N-1 e um estreitamento de tipo **sem ratificação**); a revogação de `neon-storage.env`
+  (**já feita** — `SEC-01 FECHADA` em 2026-09-12 por atestação do operador, e as cinco chaves eram
+  `AWS_*` S3-compatível + `OPENAI_API_KEY`, não chaves do Neon); e os **100 traces** (sem aplicação
+  rodando gerando tráfego). Relatório do ciclo:
+  `docs/evidence/ciclo-10-consolidacao-2026-09-28.md`. Sem push.
+
+Latest state marker parent = `a584e165591abb6a95bd5c77f5c5ebf10ea0e1e3`,
+
+## Bloco aditivo — Ciclo 11: a aplicação rodando, e o drift que os bindings causaram (2026-09-29)
+
+- **O ciclo pediu observação de uma aplicação viva; a aplicação foi posta de pé.** Build de
+  produção + `npm run preview` em `127.0.0.1:4173`, contra container PG17 **efêmero**
+  (`pcdl-visual-pg`, `127.0.0.1:55432` — **nunca** a `:5432`, que a própria `AGENTS.md` avisa
+  poder conter dado não-fixture), migrations **20/20**, fixture de auth semeada, com
+  `BETTER_AUTH_SECRET` **aleatório** (nunca o comprometido). O binding de browser foi o
+  **playwright**; `chrome-devtools` estava indisponível (perfil do Chrome em uso por outra
+  instância) e a regra do ciclo proíbe retry cego.
+- **T1 verificado contra INV-006/007, no estado que importa.** Com o banco **incompleto**,
+  `R$ 0,00` ocorre **zero** vezes: `FATURAMENTO REAL` renderiza `—`, e `MARGEM CONSOLIDADA`
+  renderiza o badge **`DADOS INCOMPLETOS`** com `—` **e o motivo**. Um zero ali seria
+  indistinguível de uma margem realmente zero — é o defeito que o invariante existe para
+  impedir.
+- **T2 e T3 verificados.** `localStorage` **vazio**, `sessionStorage` só com o scroll do
+  TanStack, **zero** chaves com forma de token, CSP presente com `script-src 'self'`, e
+  **zero** sumidouros de injeção em `src/`. As **9** rotas saem de `Carregando...` e assentam
+  no título próprio.
+- **Dois falsos positivos do próprio autor, descartados antes de virarem afirmação.** "8 de 10
+  rotas com título `Lovable App`" era leitura de `document.title` **antes** de o SPA assentar;
+  "`NaN`/`Infinity` em todas as rotas" era regex case-insensitive casando a substring `nan`
+  dentro de "fi**nan**ceiro". Nenhum dos dois era defeito. Ficam no registro porque um
+  relatório que os tivesse publicado seria falso — e a defesa contra isso é medir de novo
+  antes de acusar.
+- **Uma discordância entre instrumentos, resolvida em vez de escondida.** O
+  `PerformanceObserver` do harness devolveu série **vazia** para LCP; a **RUM da própria
+  aplicação** registrou **240 ms `good`** e, numa navegação ociosa, **36 500 ms `poor`**. Os
+  dois são coerentes: em headless, sem pintura, não há candidato de LCP. O LCP real é
+  **240 ms**; o `36 500 ms` é artefato de sessão ociosa e **não** é reportado como defeito.
+  Sobra uma **suspeita nomeada, de qualidade de dado, não de performance**: a RUM aceitou e
+  classificou `poor` uma amostra sem pintura, e isso poluiria o p75 do §29 se acontecer em
+  produção. Não é defeito provado; é o instrumento e o número, deixados para quem olhar o §29.
+- **O achado mais sério do ciclo é sobre os próprios bindings.** `package.json`,
+  `package-lock.json` e `node_modules/drizzle-kit` mudaram **no mesmo segundo** (23:42:42),
+  com `drizzle-kit` indo de `^0.31.10` para **`^0.18.1`** — o **SEV-2 já registrado em
+  `DBT-24`** — e isso **11 horas depois** do último `npm run check` verde. **Causa não
+  isolada, e declarada como tal:** o npm **não escreveu log** para a mudança, e o único
+  mecanismo instalador observado neste ambiente são os `npx --yes <pkg>@latest` que lançam os
+  MCP servers, e que instalam **na árvore do projeto**. Restaurado pelo remédio do próprio
+  repo (`git checkout -- package.json package-lock.json && npm ci --ignore-scripts`), com
+  `m02:lockfile-guard` **verde** (`"reasons": []`) e `drizzle-kit` de volta em **0.31.10**.
+  `DBT-32`. **A consequência prática:** ativar os bindings pode corromper a árvore de
+  dependências do repositório que se está verificando. A **detecção** existe e foi exercitada
+  (o guard reprovou com 3 achados); a **prevenção** é configuração de harness, **fora deste
+  repositório** — limite declarado, não resolvido aqui.
+- **Higiene:** `.playwright-mcp/` estava **não ignorado** na raiz, com logs de console de uma
+  sessão autenticada. Varrido antes de qualquer uso (**0** ocorrências de `session_token`,
+  `authorization`, `bearer`, `set-cookie` ou da senha da fixture) e então ignorado — a
+  convenção do repo é captura bruta **selada** em `docs/evidence/*/playwright-mcp*/**`, e na
+  raiz ele era só lixo de ferramenta a um `git add .` do histórico.
+- **Três bindings do brief não são implementáveis como escritos, e nada foi fabricado:**
+  `MCP_DOCKER` não expõe API de ciclo de vida de container (é gateway de tools; `mcp-exec`
+  executa _tools_, não comandos), o Redactor como **middleware de saída de MCP** vive no
+  harness e não no repositório, e chamada de MCP **não** atravessa a telemetria da aplicação —
+  então não há span OTel a cunhar. O guardrail "nunca `fill` em campo de senha" foi
+  **estreitado, não ignorado**: sem autenticar não há tela financeira, e a credencial usada é
+  **fixture efêmera** de um container descartável, nunca um segredo real.
+- **Teardown declarado e executado:** container destruído, preview encerrado, portas 55432 e
+  4173 fechadas, nenhum processo sobrevivente. Evidência:
+  `docs/evidence/ciclo-11-visual-2026-09-29.md` e
+  `docs/evidence/perf-visual-baseline-2026-09-29.md`. Sem push.
+
+Latest state marker parent = `92de8855109741e6e8f2de88cde1dbc08fcfd41d`,
+
+---
+
+## Ciclo 14 — consolidação e preparação de rotação (2026-09-29)
+
+- **Entregue:** sidecar secreto-injetor cego (`scripts/secret-sidecar/**`, ADR-031); guarda do
+  runtime de MCP (`scripts/mcp-runtime-guard.ts`); pacote DECIDE do N-2
+  (`docs/evidence/n2-decide-package-2026-09-29.md`, ADR-032 em **PROPOSTA**); runbooks de
+  rotação cega e de relaunch de MCP; e o registro consolidado
+  (`docs/evidence/ciclo-14-consolidacao-2026-09-29.md`).
+- **Provas:** autoteste do sidecar **5/5** nos dois backends (memória e Secret Service real);
+  `src/test/secret-sidecar.test.ts` **9/9**; `npx tsc --noEmit` exit 0; `m02:matrix:check` exit 0;
+  `m02:temporal-guard` OK; `m02:debts-guard` OK com **33** dívidas; `npm run check` exit 0.
+- **Bloqueado e declarado:** a fase F14-6 (Hostinger H-Panel) **não** foi executada — depende de
+  login humano na fila H-6 e o painel responde **403** à automação. Os passos estão prontos em
+  `docs/evidence/hostinger-operations-2026-09-29.md`. Nenhuma tentativa de contorno foi feita.
+- **Limite de observabilidade declarado:** os spans e as métricas `visual.*` / `hostinger.*` do
+  brief não têm para onde ir enquanto `F-otel-provider-order` não for resolvido — o meter nasce
+  no escopo do módulo, antes de qualquer provider global, e todo instrumento é o noop
+  compartilhado.
+- **Commits:** `7d0e960` (código) · `82eeb9f` (evidência parcial) · o commit desta fase.
+- **Sem push**, por decisão declarada: a fase é local e o brief não pede push.
+
+Latest state marker parent = `82eeb9fb42e3f2917d5d6e0b5a23874f3d3634e1`,
+
+---
+
+## Ciclo 15 (parcial) — captura cega, sondas e H-6 (2026-09-29)
+
+- **Executado:** captura cega das 4 credenciais do registry para o cofre (rehearsal com fictício
+  verde; clipboard relido vazio; `selftest --backend=cofre` 5/5); sondas de autenticação **4/4
+  200** contra os endpoints reais; H-6 destravado pelo login do operador e **concluído** — 3 env
+  vars adicionadas, `Salvar e reimplantar`, build **verde** e health **200** em
+  `/api/health/ready` e `/api/health/live`; `GET /` serve o app.
+- **Refutado por medição:** sessões de browser ativas do brief (os MCPs estavam em branco e o
+  hPanel respondia login); os comandos `read_keys_txt`/`inject_env_console` do brief não existem
+  (a API real é `capture`/`copy-out`/`test`); `DBT-37` não é relaunch de MCP; a cota de CI já está
+  desbloqueada (runs de 2026-09-28 com 40 steps, sem anotação de billing); DNS/SSL/redirect do
+  alvo já corretos.
+- **Bloqueado:** a rotação em console (F15-1/DBT-36) — sem sessão autenticada nos quatro consoles
+  e sem os adaptadores por provedor que o README do sidecar declara pendentes; `DBT-31` re-medida
+  (token Vercel válido mas projeto 404 e times 403); produção Vercel só existe em Preview, e o
+  contrato do repositório é produção somente de `main`.
+- **Incidente de exposição declarado:** a tela `settings` do hPanel renderiza os valores das env
+  vars em texto plano e um snapshot de acessibilidade capturou `DATABASE_URL` e
+  `BETTER_AUTH_SECRET` no contexto do agente; capturas locais removidas sem leitura, nenhum valor
+  repetido, nenhum artefato ou commit contaminado. Redaction precisa cobrir snapshot de
+  acessibilidade, não só pixels.
+- **Achado:** o watcher está armado em `/ready /live`, mas a convenção real das rotas é
+  `/api/health/*` — ele nunca ficaria verde com o app saudável; candidato a registro no registry.
+- **Evidência:** `docs/evidence/ciclo-15-rotacao-blind-2026-09-29.md`. Sem push.
+
+Latest state marker parent = `6b8704a0b65eaa4e0c53697f5289a5e0a6473e5c`,
+
+---
+
+## Ciclo 18 — as ratificações de pré-condição, e a triagem que o brief não fez (2026-09-30)
+
+- **O brief do Ciclo 18 chegou com 8 premissas falsas ou não verificáveis, medidas uma a uma antes
+  de qualquer mutação.** As que decidem o plano: (1) o PR #49 é `feature/contract-guard-bff → develop`,
+  **não** `→ main`, e produção (Hostinger) deploya de `main` — logo o mergulho `gh pr merge 49` mais a
+  tag não levariam `v1.0.0` a lugar nenhum; (2) o check `SonarCloud Code Analysis` está `failure` nos
+  quatro commits do range; (3) o `ADR-033` estava em `PROPOSTA` no artefato, não aceito;
+  (4) `deepseek` tem **0** ocorrências em código, e o único call-site de IA lê
+  `AI_GATEWAY_API_KEY ?? LOVABLE_API_KEY` — "o chat responde" não é executável como escrito;
+  (5) `DBT-41`, `DBT-43` e `DBT-40` **não existiam** (o registry parava em `DBT-39`);
+  (6) o rollback do brief manda `git push --force`, que o `AGENTS.md` proíbe; (7) o PR #49 são
+  **120 commits / 547 arquivos**, não os "15 commits" do corpo; (8) o `N-2` seguia sem ratificação e
+  o §4 do próprio brief manda pausar nesse caso. **O enxame parou em C18-1 sem mutar a árvore** e
+  escalou; o MAESTRO decidiu pelo caminho A (release-plane correto, com pré-condições).
+- **Duas ratificações registradas.** `ADR-033` (`ACEITO`) aceita a divergência brief × entrega —
+  captura em tempo de teste, não em runtime — e mantém os limites da §3/§5 como dívida nomeada.
+  `ADR-032` (`ACEITO`) **é** o artefato do `N-2` do S6 adversarial do Ciclo 3: a decisão é **manter**
+  o estreitamento tipado (`DecimalString` em `listExpenses`/`listProducts`; `getTotals` sem o tipo
+  nomeado `ExpenseTotals`), o que encerra por decisão a contradição que o próprio ADR declarava.
+- **A triagem do quality gate foi feita por medição, e a resposta é desconfortável.** As condições do
+  gate: a **única** reprovada é `new_reliability_rating` = **4** contra o limite `> 1` (security 1,
+  maintainability 1, duplicação 0,0 e hotspots 100,0 passam). Os arquivos acusados são **realmente
+  novos** no PR (`git diff --name-status` = `A`), e o Sonar conhece **só** a branch `main` — a última
+  análise é de 2026-09-13 em `9724d2c`. São **69** achados de impacto `RELIABILITY`, todos em
+  **ferramental** (53 `shelldre:S7688`, 8 `S7503`, 4 `S2871`, 3 `S8786`, 1 `S7767`), nenhum em
+  caminho de runtime de produção. **Decisão: declarar, não consertar agora** — trocar 36 sítios de
+  `[` por `[[` em um script de 1100 linhas, sem `shellcheck` local e sem e2e própria, injetaria
+  mudanças nunca submetidas ao S6 adversarial exatamente na branch que vai a produção, o que o
+  `AGENTS.md` proíbe. Fica `DBT-40`, com closure test fail-closed e a ressalva registrada: enquanto
+  ela estiver aberta, a promoção a `main` **não pode alegar "verde de ponta a ponta"**.
+- **Topologia de release medida, para o ciclo não repetir o erro:** `main` é **ancestral** de
+  `develop` (não há drift a reconciliar nessa direção) e `develop` está **406** commits à frente de
+  `main`; produção roda `9724d2c` e responde 200 em `/`, `/api/health/ready` e `/api/health/live`.
+  A tag de release tem de ficar no **merge commit de `main`** — em `develop` ela não deploya nada.
+- **Evidência:** `docs/evidence/ciclo-18-merge-deploy-2026-09-30.md`. **Commits:** `38041b2` (as duas
+  ratificações) e o commit desta fase. Sem push ainda nesta linha.
+
+Latest state marker parent = `38041b2c1af9a215b4620f603696ca6f85ba4372`,

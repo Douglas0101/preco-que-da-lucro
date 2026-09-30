@@ -134,6 +134,32 @@ jobs:
       - run: npm run m02:work-package-guard
       - run: npm run m02:debts-guard
       - run: npm run m02:temporal-guard
+      # O check de estado do ledger rodava em lugar nenhum (passo de boot, sem
+      # pipeline), entao ninguem era reprovado quando ele ficava vermelho — e ele
+      # ficava vermelho na maioria das execucoes, porque exigia um re-pin por
+      # commit. Reescrito com orcamento declarado de folga e ancestralidade
+      # verificada (ver o comentario de `scripts/m02-state-check.ts`), agora entra
+      # aqui: e offline, nao le `node_modules` e roda em milissegundos. Precisa de
+      # `fetch-depth: 0` (o job ja usa) porque resolve o marcador contra o git.
+      - run: npm run m02:state:check
+      # Politica de dependencia (plano de governanca de upgrades/downgrades): a faixa
+      # aprovada vive em `scripts/dependency-policy.json` e e a fonte unica dos tres
+      # guardas. Ficam depois do `npm ci` porque leem `node_modules` e a versao
+      # resolvida do lockfile; offline, sem banco, ~1,3 s medidos.
+      - run: npm run guard:upgrade
+      - run: npm run check:migration-toolchain
+      # Fase C — contratos de BFF. Offline, sem banco, ~0,4 s medidos. O check
+      # se chama `contract-output-ratchet` e nao `coverage` de proposito: ele
+      # cobra um PISO declarado em `scripts/contract-baseline.json` (a divida
+      # pode diminuir, nunca crescer), nao uma meta de 100%. Rotular um check
+      # "coverage" e deixa-lo verde sobre 0% e a cobertura aparente que esta
+      # fase existe para matar. A divida esta nomeada em DBT-25.
+      - run: npm run guard:contracts
+      # DBT-19: as duas guardas abaixo rodavam em gate nenhum (`m02:boundaries`) ou so na light
+      # (`m02:secrets-audit`), entao um push so de codigo nunca as executava. Ambas sao offline,
+      # sem banco e baratas (~2,0 s medidas em 2026-09-23), por isso nao entram em tier.
+      - run: npm run m02:boundaries
+      - run: npm run m02:secrets-audit
       - run: npm run m02:matrix:check
       - run: npm run check:ui-stack
       - run: npm run check:no-supabase-runtime
@@ -220,6 +246,9 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: playwright-${{ runner.os }}-
       - run: npx playwright install --with-deps ${{ steps.browsers.outputs.lista }}
+      # O tier e2e carrega a suíte visual (`npm run test:visual` localmente).
+      # A spec vive em e2e/visual/ e o testDir a descobre: sem passo próprio,
+      # que pagaria build+server de novo no orçamento de 12 min (ADR-033).
       - run: npx playwright test ${{ steps.browsers.outputs.projetos }}
       - name: Upload browser evidence
         if: always()
@@ -231,6 +260,7 @@ jobs:
             .artifacts/playwright-results.json
             playwright-report
             test-results
+            docs/evidence/visual
           if-no-files-found: warn
           include-hidden-files: true
           retention-days: 30

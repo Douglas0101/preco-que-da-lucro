@@ -285,11 +285,18 @@ export class DrizzleProductRepository implements ProductRepository {
     const predicates = [eq(products.tenantId, context.tenantId)];
     if (!query.includeArchived) predicates.push(isNull(products.archivedAt));
 
-    return tx
-      .select()
-      .from(products)
-      .where(and(...predicates))
-      .orderBy(desc(products.createdAt));
+    return (
+      tx
+        .select()
+        .from(products)
+        .where(and(...predicates))
+        // `created_at` sozinho não ordena: dois produtos inseridos na mesma
+        // transação (seed, importação em lote) compartilham o mesmo `now()` e a
+        // ordem entre eles fica indefinida — e é `products[0]` que /diagnostico e
+        // /simulacoes escolhem como produto padrão. O desempate por `id` torna a
+        // seleção determinística sem mudar a semântica (mais recente primeiro).
+        .orderBy(desc(products.createdAt), asc(products.id))
+    );
   }
 
   async findById(context: RequestContext, id: string): Promise<Product | null> {

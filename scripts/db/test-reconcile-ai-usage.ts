@@ -37,6 +37,7 @@ import {
 } from "../../src/lib/ai/budget-ledger.server";
 import type { RequestIdentity } from "../../src/lib/request-context";
 import { requireAdminUrl } from "./migrate";
+import { exigirAlvoDeBanco as assertLoopback } from "../lib/db-target";
 
 const BASE_CONFIG: BudgetLedgerConfig = {
   dailyModelCallLimit: 100,
@@ -67,21 +68,6 @@ interface UsageRow {
 }
 
 const createdFixtures: Fixture[] = [];
-
-function assertLoopback(label: string, value: string | undefined): void {
-  if (value === undefined) return;
-  let hostname: string;
-  try {
-    hostname = new URL(value).hostname;
-  } catch {
-    throw new Error(`${label} não é uma URL válida — recusando por segurança`);
-  }
-  if (hostname !== "127.0.0.1" && hostname !== "localhost" && hostname !== "::1") {
-    throw new Error(
-      `${label} aponta para "${hostname}", não para loopback — recusando rodar contra host remoto`,
-    );
-  }
-}
 
 function utcDay(now = new Date()): string {
   return now.toISOString().slice(0, 10);
