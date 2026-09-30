@@ -3304,3 +3304,44 @@ Latest state marker parent = `82eeb9fb42e3f2917d5d6e0b5a23874f3d3634e1`,
 - **Evidência:** `docs/evidence/ciclo-15-rotacao-blind-2026-09-29.md`. Sem push.
 
 Latest state marker parent = `6b8704a0b65eaa4e0c53697f5289a5e0a6473e5c`,
+
+---
+
+## Ciclo 18 — as ratificações de pré-condição, e a triagem que o brief não fez (2026-09-30)
+
+- **O brief do Ciclo 18 chegou com 8 premissas falsas ou não verificáveis, medidas uma a uma antes
+  de qualquer mutação.** As que decidem o plano: (1) o PR #49 é `feature/contract-guard-bff → develop`,
+  **não** `→ main`, e produção (Hostinger) deploya de `main` — logo o mergulho `gh pr merge 49` mais a
+  tag não levariam `v1.0.0` a lugar nenhum; (2) o check `SonarCloud Code Analysis` está `failure` nos
+  quatro commits do range; (3) o `ADR-033` estava em `PROPOSTA` no artefato, não aceito;
+  (4) `deepseek` tem **0** ocorrências em código, e o único call-site de IA lê
+  `AI_GATEWAY_API_KEY ?? LOVABLE_API_KEY` — "o chat responde" não é executável como escrito;
+  (5) `DBT-41`, `DBT-43` e `DBT-40` **não existiam** (o registry parava em `DBT-39`);
+  (6) o rollback do brief manda `git push --force`, que o `AGENTS.md` proíbe; (7) o PR #49 são
+  **120 commits / 547 arquivos**, não os "15 commits" do corpo; (8) o `N-2` seguia sem ratificação e
+  o §4 do próprio brief manda pausar nesse caso. **O enxame parou em C18-1 sem mutar a árvore** e
+  escalou; o MAESTRO decidiu pelo caminho A (release-plane correto, com pré-condições).
+- **Duas ratificações registradas.** `ADR-033` (`ACEITO`) aceita a divergência brief × entrega —
+  captura em tempo de teste, não em runtime — e mantém os limites da §3/§5 como dívida nomeada.
+  `ADR-032` (`ACEITO`) **é** o artefato do `N-2` do S6 adversarial do Ciclo 3: a decisão é **manter**
+  o estreitamento tipado (`DecimalString` em `listExpenses`/`listProducts`; `getTotals` sem o tipo
+  nomeado `ExpenseTotals`), o que encerra por decisão a contradição que o próprio ADR declarava.
+- **A triagem do quality gate foi feita por medição, e a resposta é desconfortável.** As condições do
+  gate: a **única** reprovada é `new_reliability_rating` = **4** contra o limite `> 1` (security 1,
+  maintainability 1, duplicação 0,0 e hotspots 100,0 passam). Os arquivos acusados são **realmente
+  novos** no PR (`git diff --name-status` = `A`), e o Sonar conhece **só** a branch `main` — a última
+  análise é de 2026-09-13 em `9724d2c`. São **69** achados de impacto `RELIABILITY`, todos em
+  **ferramental** (53 `shelldre:S7688`, 8 `S7503`, 4 `S2871`, 3 `S8786`, 1 `S7767`), nenhum em
+  caminho de runtime de produção. **Decisão: declarar, não consertar agora** — trocar 36 sítios de
+  `[` por `[[` em um script de 1100 linhas, sem `shellcheck` local e sem e2e própria, injetaria
+  mudanças nunca submetidas ao S6 adversarial exatamente na branch que vai a produção, o que o
+  `AGENTS.md` proíbe. Fica `DBT-40`, com closure test fail-closed e a ressalva registrada: enquanto
+  ela estiver aberta, a promoção a `main` **não pode alegar "verde de ponta a ponta"**.
+- **Topologia de release medida, para o ciclo não repetir o erro:** `main` é **ancestral** de
+  `develop` (não há drift a reconciliar nessa direção) e `develop` está **406** commits à frente de
+  `main`; produção roda `9724d2c` e responde 200 em `/`, `/api/health/ready` e `/api/health/live`.
+  A tag de release tem de ficar no **merge commit de `main`** — em `develop` ela não deploya nada.
+- **Evidência:** `docs/evidence/ciclo-18-merge-deploy-2026-09-30.md`. **Commits:** `38041b2` (as duas
+  ratificações) e o commit desta fase. Sem push ainda nesta linha.
+
+Latest state marker parent = `38041b2c1af9a215b4620f603696ca6f85ba4372`,
