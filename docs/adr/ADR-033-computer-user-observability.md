@@ -1,9 +1,11 @@
 # ADR-033 — Computer User Observability em tempo de teste (Playwright)
 
 - **ID:** ADR-033 · **Rastro:** Ciclo 17.1 / F17.1-1..6 · **Data:** 2026-09-30
-- **Estado:** **PROPOSTA** — aguarda ratificação do MAESTRO. As quatro decisões de forma
-  foram fixadas pelo operador em 2026-09-30 (implementar tudo; captura em tempo de teste;
-  `test:visual` no tier e2e; ciclo leve + ADR) e a implementação segue junto desta proposta.
+- **Estado:** **ACEITO** — ratificado pelo MAESTRO em 2026-09-30 (Ciclo 18, caminho A). As
+  quatro decisões de forma foram fixadas pelo operador em 2026-09-30 (implementar tudo; captura
+  em tempo de teste; `test:visual` no tier e2e; ciclo leve + ADR) e a implementação segue junto
+  desta proposta. A ratificação **aceita a divergência declarada** brief × entrega (runtime ×
+  tempo de teste) e **não** fecha os limites das §3/§5, que permanecem dívida aberta e nomeada.
 - **Tipo:** observabilidade / contrato de evidência
 - **Precedente de forma:** `ADR-030-boundary-guard-dbt19.md`, `ADR-032-decimal-string-wire-canonico.md`
 
@@ -110,7 +112,12 @@ passo de e2e do `ui-stack.yml`, declarado. E o export de métricas continua bloq
 `F-otel-provider-order`: a emissão correta está no código, o que falta é o provider global no
 boot, que é mudança de outro WP.
 
-**Dívida declarada.** Enquanto este ADR estiver em `PROPOSTA`, a implementação e o brief
-divergem por desenho: o brief descreve runtime, a entrega é tempo de teste. Ratificar mantém a
-divergência documentada; reverter implica recompor captura de browser em produção, que a
-arquitetura atual não comporta.
+**Dívida declarada.** A ratificação de 2026-09-30 (Ciclo 18) **encerra a pendência de
+ratificação** e aceita, como consequência, a divergência brief × entrega (o brief descreve
+runtime; a entrega é tempo de teste). O que a ratificação **não** fecha, e segue aberto e
+nomeado: (a) `F-otel-provider-order` — as métricas de aplicação nascem noop, então o export
+`visual.*` para Prometheus/Grafana continua indisponível; (b) `test:visual` roda no tier e2e e
+**não** em todo commit local; (c) o quality gate do SonarCloud sobre o código novo desta
+linhagem (`new_reliability_rating` = **D**), registrado em `DEBTS.md` como **DBT-40** no Ciclo 18
+— sem ele a promoção a `main` não pode alegar "verde de ponta a ponta". Reverter o ADR
+implicaria recompor captura de browser em produção, que a arquitetura atual não comporta.

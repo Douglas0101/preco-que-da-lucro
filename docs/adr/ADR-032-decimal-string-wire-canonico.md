@@ -1,8 +1,11 @@
 # ADR-032 — `DecimalString` como wire canônico
 
 - **ID:** ADR-032 · **Rastro:** Ciclo 14 / F14-3 (pacote DECIDE de N-2) · **Data:** 2026-09-29
-- **Estado:** **PROPOSTA** — aguarda ratificação do MAESTRO (R4 da matriz de autorização).
-  A implementação **já está no código** e verde; o que falta é a decisão, não a execução.
+- **Estado:** **ACEITO** — ratificado pelo MAESTRO em 2026-09-30 (Ciclo 18, caminho A; era o
+  `R4` da matriz de autorização e o desfecho de `N-2` do S6 adversarial do Ciclo 3). A
+  implementação **já estava no código** e verde; faltava a decisão, e ela foi tomada no sentido
+  de **manter** o estreitamento tipado. A dívida de prosa que este ADR declarava (documentação
+  afirmando o contrário do código) fica **encerrada por decisão**, não por reescrita silenciosa.
 - **Tipo:** contrato de API / formato de wire
 - **Precedente de forma:** `ADR-029-concurrency-t2-optimistic-version.md`, `ADR-030-boundary-guard-dbt19.md`
 
@@ -80,7 +83,13 @@ retorno de `getTotals` deixa de ser o tipo nomeado `ExpenseTotals` e passa a ser
 inferido de `expenseTotalsOutput` — o que é uma perda de expressividade nominal que este ADR
 aceita em troca de o schema ser a fonte da verdade.
 
-**Dívida declarada.** Enquanto este ADR estiver em `PROPOSTA`, a documentação afirma o
-contrário do que o código faz: três assinaturas públicas **mudaram** e o registro do Ciclo 3
-disse que nenhuma mudou. Ratificar corrige isso por decisão; reverter corrige pelo outro
-lado. O statu quo silencioso é o único desfecho que deixa a afirmação falsa de pé.
+**Dívida declarada.** A ratificação de 2026-09-30 (Ciclo 18) encerra a contradição que este ADR
+nomeava: a documentação **não** afirma mais o contrário do código — três assinaturas públicas
+mudaram e o registro do Ciclo 3 disse que nenhuma mudou, e a decisão foi **manter a mudança**,
+com a errata do S6 de pé (`PROGRESS.md:406`, `L214`). O desfecho rejeitado era o statu quo
+silencioso, único que deixaria a afirmação falsa valendo. Permanecem abertos, e não são
+resolvidos por esta ratificação: (a) a perda de expressividade nominal em `getTotals`
+(§5, aceita em troca do schema como fonte da verdade); (b) a ampliação de cobertura que a
+pendência bloqueava — o `C10-3` segue em **5/35**, e subir o piso agora é trabalho do próximo
+ciclo, não efeito automático desta decisão; (c) nenhum consumidor quebra (`tsc` global exit 0),
+mas consumidores **novos** precisam tratar o valor como string.
