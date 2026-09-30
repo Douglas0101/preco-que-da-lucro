@@ -149,6 +149,22 @@ export function variant(signature: string, value: DBusValue): Variant {
   return { signature, value };
 }
 
+/**
+ * Coerção ToInt32 explícita, sem operador bitwise (a S7767 marca `value | 0`).
+ *
+ * Não é `Math.trunc` puro, e a diferença é deliberada: na coerção ToInt32, NaN e ±Infinity
+ * viram 0 e |valor| ≥ 2^31 **envolve** módulo 2^32 em vez de estourar. `Math.trunc` sozinho
+ * mudaria o byte escrito nesses dois casos — e é byte de protocolo, não arredondamento de
+ * exibição. O `%` de ponto flutuante é exato (fmod), então a redução não arredonda.
+ */
+function toInt32(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  const resto = Math.trunc(value) % 4294967296;
+  if (resto >= 2147483648) return resto - 4294967296;
+  if (resto < -2147483648) return resto + 4294967296;
+  return resto;
+}
+
 class Writer {
   private buf: Buffer;
   private pos = 0;
@@ -201,7 +217,7 @@ class Writer {
   i32(value: number): void {
     this.align(4);
     this.ensure(4);
-    this.buf.writeInt32LE(value | 0, this.pos);
+    this.buf.writeInt32LE(toInt32(value), this.pos);
     this.pos += 4;
   }
 

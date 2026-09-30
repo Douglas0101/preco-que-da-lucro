@@ -65,13 +65,13 @@ PG_STARTED=0
 # `_archive/<sha>-<utc>/`. Misturar duas rodadas no mesmo diretorio produziria um conjunto
 # incoerente (status de uma rodada + logs de outra) — e a rodada que falhou tambem e evidencia.
 ARCHIVED_FROM=""
-if [ -d "$OUT_DIR" ] && [ -n "$(ls -A "$OUT_DIR" 2>/dev/null)" ]; then
+if [[ -d "$OUT_DIR" ]] && [[ -n "$(ls -A "$OUT_DIR" 2>/dev/null)" ]]; then
   ARCHIVED_FROM="${OUT_ROOT}/_archive/${SHA}-$(date -u +%Y%m%dT%H%M%SZ)"
   mkdir -p "$(dirname "$ARCHIVED_FROM")"
   mv "$OUT_DIR" "$ARCHIVED_FROM"
   # O selo da rodada anterior vive FORA do diretorio arquivado; move junto para o arquivo
   # nao passar a apontar para o selo da rodada nova.
-  if [ -f "${OUT_ROOT}/${SHA}.sha256" ]; then
+  if [[ -f "${OUT_ROOT}/${SHA}.sha256" ]]; then
     mv "${OUT_ROOT}/${SHA}.sha256" "${ARCHIVED_FROM}/"
   fi
 fi
@@ -83,7 +83,7 @@ PEND_TSV="${OUT_DIR}/pendencies.tsv"
 : >"$STEPS_TSV"
 : >"$ADAPT_TSV"
 : >"$PEND_TSV"
-if [ -n "$ARCHIVED_FROM" ]; then
+if [[ -n "$ARCHIVED_FROM" ]]; then
   printf '%s\n' "$ARCHIVED_FROM" >"${OUT_DIR}/previous-run-archived.txt"
 fi
 log() { printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
@@ -387,7 +387,7 @@ NODE
 }
 
 normalize_evidence() {
-  [ -x node_modules/.bin/prettier ] || return 0
+  [[ -x node_modules/.bin/prettier ]] || return 0
   node_modules/.bin/prettier --write "${OUT_DIR}/manifest.json" "${OUT_DIR}/REPORT.md" \
     >"${OUT_DIR}/prettier-normalize.log" 2>&1 || return 1
   node_modules/.bin/prettier --check "${OUT_DIR}/manifest.json" "${OUT_DIR}/REPORT.md" \
@@ -565,7 +565,7 @@ close_evidence_policy() {
   # Estabiliza o CONJUNTO antes de medir: o conteudo de manifest.sha256 muda depois (passa a selar o
   # manifesto final), mas a EXISTENCIA dele nao — sem isto a contagem declarada ficaria 1 abaixo do selo
   # versionavel e o cross-check de contagens acusaria divergencia falsa.
-  [ -f "${OUT_DIR}/manifest.sha256" ] || printf 'pendente\n' >"${OUT_DIR}/manifest.sha256"
+  [[ -f "${OUT_DIR}/manifest.sha256" ]] || printf 'pendente\n' >"${OUT_DIR}/manifest.sha256"
   if ! measure_evidence >>"${OUT_DIR}/evidence-policy-final.log" 2>&1; then
     log "ERRO: politica de evidencia violada no fechamento — ver evidence-policy-final.log"
     echo "failure" >"${OUT_DIR}/evidence-policy-final.status"
@@ -596,7 +596,7 @@ close_evidence_policy() {
   local covered declared
   covered="$(wc -l <"${OUT_DIR}/evidence.git.sha256" | tr -d ' ')"
   declared="$(node -e "try{console.log(require('./${OUT_DIR}/evidence-counts.json').filesGitTrackable)}catch{console.log('')}" 2>/dev/null)"
-  if [ -n "$declared" ] && [ "$covered" -ne "$((declared - 1))" ]; then
+  if [[ -n "$declared" ]] && [[ "$covered" -ne "$((declared - 1))" ]]; then
     {
       echo "VIOLACAO: selo versionavel cobre ${covered} arquivo(s), mas a medicao final declara ${declared} versionaveis (esperado ${covered} = declared - 1)"
     } >"${OUT_DIR}/evidence-git-checksum.log"
@@ -614,7 +614,7 @@ verify_git_checksum() {
   # Cross-check de CONTAGENS: o selo versionavel exclui a si mesmo, entao tem de cobrir exatamente
   # `filesGitTrackable - 1` arquivos. Divergencia = o manifesto declara um mundo que o selo desmente.
   declared="$(node -e "try{console.log(require('./${OUT_DIR}/manifest.json').evidence.filesGitTrackable)}catch{console.log('')}" 2>/dev/null)"
-  if [ -n "$declared" ] && [ "$covered" -ne "$((declared - 1))" ]; then
+  if [[ -n "$declared" ]] && [[ "$covered" -ne "$((declared - 1))" ]]; then
     {
       echo "VIOLACAO: selo versionavel cobre ${covered} arquivo(s), mas o manifesto declara ${declared} versionaveis (esperado ${covered} = declared - 1)"
     } >"${OUT_DIR}/evidence-git-checksum.log"
@@ -626,7 +626,7 @@ verify_git_checksum() {
       echo "VIOLACAO: selo versionavel contem *.log sob politica metadata-only"
       return 1
     fi
-    if [ "$covered" -lt 5 ]; then
+    if [[ "$covered" -lt 5 ]]; then
       echo "VIOLACAO: selo versionavel cobre apenas ${covered} arquivo(s) — esperado ao menos 5 de metadata"
       return 1
     fi
@@ -646,7 +646,7 @@ verify_git_checksum() {
 # Pos-processamento: tag local e status GitHub (ambos nunca remotos)
 # ---------------------------------------------------------------------------
 postprocess_local_tag() {
-  if [ "$CREATE_TAG" = "1" ]; then
+  if [[ "$CREATE_TAG" = "1" ]]; then
     if git rev-parse -q --verify "refs/tags/ci-local/${SHORT_SHA}" >/dev/null 2>&1; then
       echo "exists" >"${OUT_DIR}/local-tag.status"
     elif git tag -a "ci-local/${SHORT_SHA}" -m "CI local supervisionado ${SHA} (${RESULT})" \
@@ -665,7 +665,7 @@ postprocess_local_tag() {
 postprocess_github_status() {
   local repo state
   repo="$(git remote get-url origin | sed -E 's#.*github\.com[:/]([^/]+/[^/.]+)(\.git)?$#\1#')"
-  state="$([ "$RESULT" = "success" ] && echo success || echo failure)"
+  state="$([[ "$RESULT" = "success" ]] && echo success || echo failure)"
   {
     echo "# Dry-run — NADA foi postado. Para postar: LOCAL_CI_POST_STATUS=1 LOCAL_CI_APPROVED=1"
     echo "# Contexto sempre distinguivel do CI oficial: local-ci/supervised"
@@ -675,7 +675,7 @@ postprocess_github_status() {
     echo "  -f description='CI local supervisionado (nao e o CI oficial)'"
   } >"${OUT_DIR}/github-status.dry-run.sh"
 
-  if [ "$POST_STATUS" = "1" ] && [ "${LOCAL_CI_APPROVED:-0}" = "1" ]; then
+  if [[ "$POST_STATUS" = "1" ]] && [[ "${LOCAL_CI_APPROVED:-0}" = "1" ]]; then
     if gh api -X POST "repos/${repo}/statuses/${SHA}" \
       -f state="$state" -f context="local-ci/supervised" \
       -f description="CI local supervisionado (nao e o CI oficial)" \
@@ -693,18 +693,18 @@ postprocess_github_status() {
 # finalize — idempotente; chamado no sucesso, na falha e no trap
 # ---------------------------------------------------------------------------
 finalize() {
-  [ "$FINALIZED" -eq 1 ] && return 0
+  [[ "$FINALIZED" -eq 1 ]] && return 0
   FINALIZED=1
   local want="$1"
   FINISHED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   local elapsed=$(( $(date +%s) - STARTED_EPOCH ))
 
-  if [ "$PG_STARTED" -eq 1 ]; then
+  if [[ "$PG_STARTED" -eq 1 ]]; then
     docker rm -f "$PG_NAME" >/dev/null 2>&1 && log "container efemero ${PG_NAME} removido" || true
     PG_STARTED=0
   fi
 
-  preserve_commits || { log "preservacao (bundle/patches) falhou"; [ "$want" = "success" ] && want="failure"; }
+  preserve_commits || { log "preservacao (bundle/patches) falhou"; [[ "$want" = "success" ]] && want="failure"; }
   RESULT="$want"
   echo "$RESULT" >"${OUT_DIR}/result.txt"
   printf '%s\n' "$FINISHED_AT" >"${OUT_DIR}/finished-at.txt"
@@ -719,7 +719,7 @@ finalize() {
   else
     echo "failure" >"${OUT_DIR}/prettier-normalize.status"
     log "ERRO: evidencia nao normalizou no prettier — ver prettier-normalize.log"
-    [ "$want" = "success" ] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
+    [[ "$want" = "success" ]] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
   fi
   generate_manifest_and_report          # pass 2 — inclui o pos-processamento
   normalize_evidence || true            # re-normaliza a pass 2 (idempotente)
@@ -737,17 +737,17 @@ finalize() {
   local head_end dirty_end
   head_end="$(git rev-parse HEAD)"
   dirty_end="$(git status --porcelain=v1 | grep -vE '^\?\? docs/evidence/local-ci/' | grep -c . || true)"
-  if [ "$head_end" != "$SHA" ] || [ "$dirty_end" != "$DIRTY_OUTSIDE" ]; then
+  if [[ "$head_end" != "$SHA" ]] || [[ "$dirty_end" != "$DIRTY_OUTSIDE" ]]; then
     log "ERRO: estado mudou durante a rodada (HEAD ${SHA:0:8}->${head_end:0:8}, sujeira ${DIRTY_OUTSIDE}->${dirty_end}) — evidencia invalida"
     pendency "state-drift" "o HEAD ou a arvore mudaram durante a rodada (HEAD ${SHA:0:8}->${head_end:0:8}; entradas sujas ${DIRTY_OUTSIDE}->${dirty_end}): a evidencia NAO corresponde ao conteudo validado"
-    [ "$want" = "success" ] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
+    [[ "$want" = "success" ]] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
   fi
 
   # Politica de evidencia: mede o estado final, gera o selo versionavel e regrava as contagens que o
   # manifesto declara. Contradicao REBAIXA o veredicto — o manifesto nao pode afirmar uma politica
   # que o mundo desmente.
   if ! close_evidence_policy; then
-    [ "$want" = "success" ] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
+    [[ "$want" = "success" ]] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
   fi
   generate_manifest_and_report          # pass 3 — consome as contagens finais (C2)
   normalize_evidence || true
@@ -756,7 +756,7 @@ finalize() {
   sha256sum "${OUT_DIR}/manifest.json" >"${OUT_DIR}/manifest.sha256" 2>&1 || true
   generate_git_checksum || true         # cobre manifest.json E manifest.sha256 finais
   if ! verify_git_checksum; then
-    [ "$want" = "success" ] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
+    [[ "$want" = "success" ]] && { want="failure"; RESULT="$want"; echo "$RESULT" >"${OUT_DIR}/result.txt"; }
     # REDE DE SEGURANCA (pass 4): se a verificacao reprovar AQUI, os artefatos ja foram gravados com o
     # veredicto anterior. Sem regenerar, `result.txt` passa a dizer `failure` enquanto `manifest.json`,
     # `REPORT.md` e o selo versionavel continuam dizendo `success` — a contradicao da rodada `1b54a89c`.
@@ -778,7 +778,7 @@ finalize() {
   # rodada `1b54a89c` violou sem que nada a pegasse. Reescrever `result.txt` aqui invalidaria o selo
   # versionavel ja gerado, entao a correcao regenera TUDO na mesma passada.
   MANIFEST_RESULT="$(node -e "try{console.log(require('./${OUT_DIR}/manifest.json').result)}catch{console.log('')}" 2>/dev/null)"
-  if [ -n "$MANIFEST_RESULT" ] && [ "$MANIFEST_RESULT" != "$RESULT" ]; then
+  if [[ -n "$MANIFEST_RESULT" ]] && [[ "$MANIFEST_RESULT" != "$RESULT" ]]; then
     pendency "evidence-contradiction" "result.txt='${RESULT}' divergia de manifest.result='${MANIFEST_RESULT}' — regenerado com o veredicto final (failure)"
     log "ERRO: result.txt ('${RESULT}') divergia de manifest.result ('${MANIFEST_RESULT}') — regenerando artefatos"
     want="failure"
@@ -794,7 +794,7 @@ finalize() {
   log "veredicto=${RESULT} duracao=${elapsed}s evidencia=${OUT_DIR}"
 }
 
-trap 'code=$?; if [ "$FINALIZED" -eq 0 ]; then log "falha inesperada (exit ${code}) na linha ${LINENO}"; finalize "failure"; fi; exit $code' ERR
+trap 'code=$?; if [[ "$FINALIZED" -eq 0 ]]; then log "falha inesperada (exit ${code}) na linha ${LINENO}"; finalize "failure"; fi; exit $code' ERR
 
 # ---------------------------------------------------------------------------
 # Precondicoes (exit 2) — antes de qualquer escrita
@@ -811,8 +811,8 @@ git merge-base --is-ancestor "$BASE" "$SHA" 2>/dev/null || precondition "base ${
 # rotulo que nao corresponde ao conteudo e pior do que nenhuma evidencia. Escape declarado:
 # `LOCAL_CI_ALLOW_DIRTY=1` (uso consciente, e o `git-status.txt` da rodada registra a sujeira).
 DIRTY_OUTSIDE="$(git status --porcelain=v1 | grep -vE '^\?\? docs/evidence/local-ci/' | grep -c . || true)"
-if [ "${LOCAL_CI_ALLOW_DIRTY:-0}" != "1" ]; then
-  if [ "$DIRTY_OUTSIDE" -gt 0 ]; then
+if [[ "${LOCAL_CI_ALLOW_DIRTY:-0}" != "1" ]]; then
+  if [[ "$DIRTY_OUTSIDE" -gt 0 ]]; then
     log "PRECONDICAO: ${DIRTY_OUTSIDE} entrada(s) suja(s) fora de docs/evidence/local-ci/ — commite antes de selar"
     git status --porcelain=v1 | grep -vE '^\?\? docs/evidence/local-ci/' | head -10 >&2
     precondition "arvore suja fora da evidencia (use LOCAL_CI_ALLOW_DIRTY=1 para forcar, declarando)"
@@ -821,7 +821,7 @@ fi
 # Estado da arvore, para o manifesto declarar (nunca silenciar) a divergencia entre o SHA rotulado e o
 # conteudo validado: com o escape usado, a evidencia NAO corresponde ao commit — e isso fica escrito no
 # manifesto E numa pendencia nominal.
-if [ "$DIRTY_OUTSIDE" -gt 0 ]; then
+if [[ "$DIRTY_OUTSIDE" -gt 0 ]]; then
   printf 'dirty-escaped\n' >"${OUT_DIR}/tree-state.txt"
   printf '%s\n' "$DIRTY_OUTSIDE" >"${OUT_DIR}/dirty-entries.txt"
   pendency "tree-state" "evidencia selada com arvore SUJA por escape declarado (LOCAL_CI_ALLOW_DIRTY=1): ${DIRTY_OUTSIDE} entrada(s) fora da evidencia — o headSha NAO corresponde ao conteudo validado"
@@ -861,7 +861,7 @@ log "arquivos alterados no range: ${CHANGED_COUNT}"
 # Escopo por caminho — mesma regex e MESMA polaridade fail-closed do workflow heavy
 # ---------------------------------------------------------------------------
 DB_SCOPE="false"
-if [ "$CHANGED_COUNT" -eq 0 ]; then
+if [[ "$CHANGED_COUNT" -eq 0 ]]; then
   DB_SCOPE="true"
   printf 'range sem diff util -> tier de banco habilitado (fail-closed)\n' >"${OUT_DIR}/scope-decision.txt"
 elif grep -qE '^(drizzle/|src/db/|src/server/repositories/|src/server/services/|scripts/db/|package(-lock)?\.json)' "${OUT_DIR}/changed-files.txt"; then
@@ -902,17 +902,17 @@ for PROBE in "$probe_ghp" "$probe_akia" "$probe_xox" "$probe_pem" "$probe_pg"; d
 done
 : >"${OUT_DIR}/range-secret-scan.hits"
 : >"${OUT_DIR}/range-secret-scan.summary"
-if [ "$CHANGED_COUNT" -gt 0 ]; then
+if [[ "$CHANGED_COUNT" -gt 0 ]]; then
   SCAN_CODE=0
   xargs -a "${OUT_DIR}/changed-files.txt" git grep -nIE "$PATTERN" "$SHA" -- 2>/dev/null |
     node scripts/local-ci-secret-scan.mjs \
       >"${OUT_DIR}/range-secret-scan.hits" 2>"${OUT_DIR}/range-secret-scan.summary" || SCAN_CODE=$?
   # Exit 2 = precondicao (allowlist ilegivel/invalida). Fail-closed: nunca vira "nada encontrado".
-  if [ "$SCAN_CODE" -eq 2 ]; then
+  if [[ "$SCAN_CODE" -eq 2 ]]; then
     precondition "secret scan: allowlist ilegivel ou invalida — $(cat "${OUT_DIR}/range-secret-scan.summary")"
   fi
 fi
-if [ -s "${OUT_DIR}/range-secret-scan.hits" ]; then
+if [[ -s "${OUT_DIR}/range-secret-scan.hits" ]]; then
   echo "review" >"${OUT_DIR}/range-secret-scan.status"
   log "ATENCAO: possivel segredo no range — ${OUT_DIR}/range-secret-scan.hits (arquivo:linha, sem conteudo)"
 else
@@ -922,7 +922,7 @@ log "secret scan: $(cat "${OUT_DIR}/range-secret-scan.summary" 2>/dev/null || ec
 
 # Pin de npm do CI: VERIFICADO, nunca instalado globalmente.
 npm -v >"${OUT_DIR}/npm-pin.txt"
-if [ "$(cat "${OUT_DIR}/npm-pin.txt")" = "$NPM_PIN" ]; then
+if [[ "$(cat "${OUT_DIR}/npm-pin.txt")" = "$NPM_PIN" ]]; then
   record_step "npm-pin-verified" "success" "extra" ""
   log "pin de npm satisfeito (${NPM_PIN}) — nenhuma instalacao global executada"
 else
@@ -960,7 +960,7 @@ step_required "check:bundle" "check:bundle" npm run check:bundle
 step_required "audit" "npm-audit" npm audit --audit-level=high
 
 # Fallback declarado (AGENTS.md § Protocolo de bloqueio de CI): a cadeia `check` inteira.
-if [ "$AGGREGATE_CHECK" = "1" ]; then
+if [[ "$AGGREGATE_CHECK" = "1" ]]; then
   step_required "check-chain" "npm run check (agregado)" npm run check
 else
   mark_skipped "check-chain" "LOCAL_CI_AGGREGATE_CHECK=0 — cadeia coberta passo a passo" "npm run check (agregado)"
@@ -994,7 +994,7 @@ DB_ENV=(env
   "EXPECTED_POSTGRES_MAJOR=17"
   "BUILD_RELEASE_CHANNEL=pre-beta-internal")
 
-if [ "$DB_TIER" = "skip" ] || { [ "$DB_TIER" = "auto" ] && [ "$DB_SCOPE" = "false" ]; }; then
+if [[ "$DB_TIER" = "skip" ]] || { [[ "$DB_TIER" = "auto" ]] && [[ "$DB_SCOPE" = "false" ]]; }; then
   mark_skipped "db:test" "$(cat "${OUT_DIR}/scope-decision.txt")" "db:test"
   mark_skipped "db:check" "$(cat "${OUT_DIR}/scope-decision.txt")" "db:check"
 elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1 && start_ephemeral_pg; then
@@ -1009,13 +1009,13 @@ fi
 # ---------------------------------------------------------------------------
 # Tier de e2e — push => chromium+mobile, como o CI
 # ---------------------------------------------------------------------------
-if [ "$E2E_TIER" = "skip" ]; then
+if [[ "$E2E_TIER" = "skip" ]]; then
   mark_skipped "playwright-e2e" "LOCAL_CI_E2E_TIER=skip" "playwright-e2e"
 elif ! command -v docker >/dev/null 2>&1 || ! docker info >/dev/null 2>&1; then
   mark_blocked "playwright-e2e" "precondicao ausente: docker indisponivel para o banco de e2e"
 else
-  [ "$PG_STARTED" -eq 1 ] || start_ephemeral_pg || true
-  if [ "$PG_STARTED" -ne 1 ]; then
+  [[ "$PG_STARTED" -eq 1 ]] || start_ephemeral_pg || true
+  if [[ "$PG_STARTED" -ne 1 ]]; then
     mark_blocked "playwright-e2e" "precondicao ausente: banco efemero nao subiu"
   else
     adapt "ephemeral-pg-e2e" "e2e roda contra PG17 EFEMERO em 127.0.0.1:${PG_PORT}, com segredos efemeros gerados na hora"
@@ -1046,7 +1046,7 @@ else
     run_e2e_with_diagnostics() {
       local code=0
       "${E2E_ENV[@]}" npx playwright test --project=chromium --project=mobile || code=$?
-      if [ "$code" -ne 0 ]; then
+      if [[ "$code" -ne 0 ]]; then
         mkdir -p "${OUT_DIR}/artifacts/e2e-diagnostics"
         cp -r test-results "${OUT_DIR}/artifacts/e2e-diagnostics/" 2>/dev/null || true
         cp -r playwright-report "${OUT_DIR}/artifacts/e2e-diagnostics/" 2>/dev/null || true
@@ -1103,4 +1103,4 @@ finalize "success"
 # cross-check de contagens). A mensagem final e o exit code tem de refletir o veredicto REAL — antes
 # disto o script imprimia "success" fixo e saia 0 mesmo com `result.txt` = failure.
 log "CI local supervisionado concluido: veredicto=${RESULT}"
-[ "$RESULT" = "success" ] || exit 1
+[[ "$RESULT" = "success" ]] || exit 1

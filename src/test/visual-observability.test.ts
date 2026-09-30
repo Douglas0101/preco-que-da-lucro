@@ -161,6 +161,26 @@ describe("visual-redaction", () => {
     expect(result.applied).toBeGreaterThanOrEqual(3);
   });
 
+  it("detector de e-mail: corpus válido intacto e a fronteira do estreitamento declarada (S8786)", () => {
+    // Positivo: endereços válidos continuam integralmente redigidos depois da reescrita do padrão.
+    for (const endereco of [
+      "foo.bar@example.com",
+      "a.b+tag@sub.dominio.example.org",
+      "douglas@empresa.com.br",
+      "x@y.co",
+    ]) {
+      const r = redactText(`contato ${endereco} fim`, {});
+      expect(r.value).not.toContain(endereco);
+      expect(r.value).toContain("[REDACTED:email]");
+    }
+    // Fronteira: quatro formas que o padrão antigo casava e que NÃO são endereço válido
+    // (RFC 5321/5322 — rótulo vazio ou começando/terminando em hífen) deixam de casar.
+    // A asserção existe para o estreitamento ser **visível**, nunca silencioso.
+    for (const malformado of ["a@-foo.com", "a@foo-.com", "a@..com", "a@foo..bar.com"]) {
+      expect(redactText(`contato ${malformado} fim`, {}).value).toContain(malformado);
+    }
+  });
+
   it("findSecretLeaks denuncia o tipo sem expor o valor; assertNoSecretLeaks falha fechado", () => {
     const env = { DATABASE_URL: RAW_SECRET };
     expect(findSecretLeaks("nada aqui", env)).toEqual([]);

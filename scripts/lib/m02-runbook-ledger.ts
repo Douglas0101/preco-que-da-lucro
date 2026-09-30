@@ -185,7 +185,11 @@ export function issuersOf(keyNames: string[]): { issuers: string[]; unknown: str
     if (rule) issuers.add(rule.issuer);
     else unknown.push(name);
   }
-  return { issuers: [...issuers].sort(), unknown };
+  // Comparador por code unit UTF-16: é a MESMA ordem do `sort()` sem argumento (a
+  // especificação compara as strings com `<`/`>`, não por locale). Existe porque `sort()`
+  // sem comparador é o achado S2871; `localeCompare` NÃO serve — ordenaria por locale,
+  // que é outra ordem, e trocaria a semântica em silêncio.
+  return { issuers: [...issuers].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)), unknown };
 }
 
 export function auditRunbookLedger(input: RunbookLedgerInput): RunbookLedgerAudit {

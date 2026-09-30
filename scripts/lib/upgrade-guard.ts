@@ -107,10 +107,16 @@ export function compareVersions(a: string, b: string): -1 | 0 | 1 {
  * Extrai a versão base de uma spec (`^0.31.10`, `~1.2.3`, `1.2.3`, `>=1.2.3`, `1.2.3 - 2.3.4`)
  * usando a MENOR versão declarada — é o piso que o autor realmente pinou. Pre-release é ignorado.
  * Devolve `null` quando não há versão reconhecível (`workspace:*`, `latest`, `*`, `file:../x`).
+ *
+ * O `(?<!\d)` não muda o conjunto casado — muda o custo. `\d+\.\d+\.\d+` só pode começar no
+ * **início** de uma sequência de dígitos: começando no meio dela, `\d+` para no mesmo ponto e o
+ * `\.` seguinte falha, então toda posição interna era percorrida só para falhar — O(n) divisões
+ * por posição de início, exatamente o backtracking super-linear que a S8786 marca. Com o
+ * lookbehind, cada sequência é tentada uma vez (prova diferencial: regex antiga × nova).
  */
 export function parseBaseVersion(spec: string): string | null {
   if (typeof spec !== "string") return null;
-  const matches = spec.match(/\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/g);
+  const matches = spec.match(/(?<!\d)\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/g);
   if (!matches) return null;
   let menor: string | null = null;
   for (const match of matches) {

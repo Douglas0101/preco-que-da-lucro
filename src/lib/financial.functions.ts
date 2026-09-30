@@ -111,9 +111,17 @@ const simulationsOutput = z.array(simulationOutput);
 export const runSimulation = createServerFn({ method: "POST" })
   .middleware([requireDatabaseAuth])
   .validator((input: unknown) => simulationParamsSchema.parse(input))
-  .handler(async ({ data }) =>
-    outputSchema(scenarioResultOutput, "financial.runSimulation", runFinancialSimulation(data)),
-  );
+  .handler(async ({ data }) => {
+    // `async` preservado de propósito: `outputSchema` **lança** em violação de contrato
+    // (§6.9 → HTTP 503) e remover o `async` transformaria esse throw em exceção **síncrona**,
+    // em vez de rejeição de promise, numa rota de dinheiro. O `await` explícito satisfaz S7503
+    // sem tocar na semântica de erro.
+    return await outputSchema(
+      scenarioResultOutput,
+      "financial.runSimulation",
+      runFinancialSimulation(data),
+    );
+  });
 
 const persistedSimulationInput = z
   .object({

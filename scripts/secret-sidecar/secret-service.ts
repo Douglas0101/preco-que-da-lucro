@@ -278,7 +278,8 @@ export class SecretServiceKeychain implements Keychain {
           }
         }
       }
-      return refs.sort();
+      // Comparador por code unit UTF-16: MESMA ordem do `sort()` sem argumento (S2871).
+      return refs.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
     } catch (error) {
       throw classify(error);
     }

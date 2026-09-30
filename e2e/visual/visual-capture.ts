@@ -58,7 +58,7 @@ export function readCorrelationId(response: Response | null): string | null {
  * snapshot irrestrito vira um dump enorme que ninguém lê.
  */
 export async function captureDomSnapshot(page: Page): Promise<DomNodeSnapshot> {
-  return page.evaluate(
+  return await page.evaluate(
     (limits) => {
       const walk = (element: Element, depth: number): DomNodeSnapshot => {
         const attributes: Record<string, string> = {};

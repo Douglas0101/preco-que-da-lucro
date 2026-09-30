@@ -57,7 +57,7 @@ case "${1:-}" in
     exit 2
     ;;
 esac
-if [ "$modo" != estatico ] && [ -z "$arquivo" ]; then
+if [[ "$modo" != estatico ]] && [[ -z "$arquivo" ]]; then
   printf 'precondicao: --%s exige um caminho de arquivo\n' "$modo" >&2
   exit 2
 fi
@@ -68,19 +68,19 @@ cd "$RAIZ" || {
 }
 
 echo "== 1/5 pre-condicoes =="
-if [ -x "$SIDECAR" ]; then
+if [[ -x "$SIDECAR" ]]; then
   ok "lancador do sidecar executavel"
 else
   falta "lancador do sidecar ausente ou nao executavel: $SIDECAR"
 fi
 manifestos_ok=1
 for m in "${MANIFESTOS[@]}"; do
-  [ -f "$m" ] || {
+  [[ -f "$m" ]] || {
     falta "manifesto ausente: $m"
     manifestos_ok=0
   }
 done
-[ "$manifestos_ok" -eq 1 ] && ok "manifestos presentes"
+[[ "$manifestos_ok" -eq 1 ]] && ok "manifestos presentes"
 
 echo "== 2/5 sidecar: cofre ($BACKEND) =="
 saida_health="$("$SIDECAR" health --backend="$BACKEND" 2>&1)"
@@ -131,16 +131,16 @@ case "$codigo_home" in
   *) ruim "guard:mcp-runtime --home inesperado (exit $codigo_home)" ;;
 esac
 
-if [ "$modo" != estatico ]; then
+if [[ "$modo" != estatico ]]; then
   echo "== manifestos (a assercao que fecha o mecanismo) =="
-  if [ "$modo" = snapshot ]; then
+  if [[ "$modo" = snapshot ]]; then
     if sha256sum "${MANIFESTOS[@]}" >"$arquivo"; then
       ok "estado ANTES gravado em $arquivo"
     else
       falta "nao foi possivel gravar o snapshot em $arquivo"
     fi
   else
-    if [ ! -f "$arquivo" ]; then
+    if [[ ! -f "$arquivo" ]]; then
       falta "snapshot ausente: $arquivo — grave com --snapshot ANTES de relancar"
     elif diff <(sha256sum "${MANIFESTOS[@]}") "$arquivo" >/dev/null; then
       ok "manifestos IDENTICOS ao estado anterior — o relancamento nao reescreveu a arvore"
@@ -152,11 +152,11 @@ if [ "$modo" != estatico ]; then
 fi
 
 echo
-if [ "$VEREDITO" -ne 0 ]; then
+if [[ "$VEREDITO" -ne 0 ]]; then
   printf 'veredicto: REPROVADO\n'
   exit 1
 fi
-if [ "$PRECONDICAO" -ne 0 ]; then
+if [[ "$PRECONDICAO" -ne 0 ]]; then
   printf 'veredicto: PRECONDICAO NAO SATISFEITA (nao e reprovacao)\n'
   exit 2
 fi

@@ -44,9 +44,18 @@ function compareVersions(a, b) {
   return 0;
 }
 
-/** Menor versão declarada por uma spec (`^1.2.3`, `~1.2.3`, `1.2.3` → `1.2.3`). */
+/**
+ * Menor versão declarada por uma spec (`^1.2.3`, `~1.2.3`, `1.2.3` → `1.2.3`).
+ *
+ * O `(?<!\d)` não muda o match — muda o custo. `\d+\.\d+\.\d+` só pode começar no
+ * **início** de uma sequência de dígitos: começando no meio dela, `\d+` para no mesmo
+ * ponto e o `\.` seguinte falha, então toda posição interna era percorrida só para
+ * falhar — O(n) divisões por posição de início, o backtracking super-linear que a S8786
+ * marca. Com o lookbehind, cada sequência é tentada uma vez. O conjunto casado é o
+ * mesmo, incluindo os grupos 1..3 (prova diferencial: regex antiga × nova).
+ */
 function baseVersion(spec) {
-  const found = /(\d+)\.(\d+)\.(\d+)/.exec(String(spec));
+  const found = /(?<!\d)(\d+)\.(\d+)\.(\d+)/.exec(String(spec));
   return found ? `${found[1]}.${found[2]}.${found[3]}` : null;
 }
 

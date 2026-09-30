@@ -112,7 +112,10 @@ async function cenarioGenerateRestore(opcoes: OpcoesAutoteste): Promise<Cenario>
   for (let i = 1; i <= 5; i += 1) {
     const ref = `ficticio-gerado-${i}`;
     const alvo = await sidecar.generate(ref, 32);
-    const campos = Object.keys(alvo).sort().join(",");
+    // Comparador por code unit UTF-16: MESMA ordem do `sort()` sem argumento (S2871).
+    const campos = Object.keys(alvo)
+      .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+      .join(",");
     if (campos !== "ref,sha256") {
       return fail(
         id,

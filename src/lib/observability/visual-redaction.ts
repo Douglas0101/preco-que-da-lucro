@@ -97,7 +97,16 @@ const DETECTORS: readonly Detector[] = [
   },
   {
     kind: "email",
-    pattern: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g,
+    // Forma canônica, sem quantificador ambíguo: cada rótulo do domínio começa **e termina** em
+    // alfanumérico, e o `.` é separador — nunca corpo. O padrão anterior
+    // (`[A-Za-z0-9.-]+\.[A-Za-z]{2,}`) tinha `.` dentro da classe **e** exigia um `.` logo depois,
+    // então o motor explorava O(n) divisões por posição de início (S8786: backtracking
+    // super-linear sobre a árvore a11y, que é exatamente a superfície medida no L239).
+    // **Estreitamento deliberado e visível:** quatro formas malformadas que o padrão antigo casava
+    // deixam de casar — rótulo iniciado em `-` (`a@-foo.com`), terminado em `-` (`a@foo-.com`) e
+    // rótulo vazio (`a@..com`, `a@foo..bar.com`). Nenhuma delas é endereço válido (RFC 5321/5322)
+    // e o corpus válido é idêntico; a fronteira tem teste nos dois sentidos.
+    pattern: /[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}/g,
     replacement: "[REDACTED:email]",
   },
   {

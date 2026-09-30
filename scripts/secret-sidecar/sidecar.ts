@@ -241,13 +241,13 @@ export class SecretSidecar {
    * processo vivo, e o CLI que sai antes do TTL deixa o valor na área de transferência —
    * por isso o `clear` do CLI é explícito e o runbook manda usá-lo.
    */
-  private async scheduleWipe(
+  private scheduleWipe(
     clipboard: Clipboard,
     ref: string,
     sha256: string,
     ttlMs: number,
   ): Promise<Record<string, never>> {
-    if (ttlMs <= 0) return {};
+    if (ttlMs <= 0) return Promise.resolve({});
     const timer = setTimeout(() => {
       void clipboard
         .wipe()
@@ -259,7 +259,7 @@ export class SecretSidecar {
         );
     }, ttlMs);
     timer.unref();
-    return {};
+    return Promise.resolve({});
   }
 
   /**

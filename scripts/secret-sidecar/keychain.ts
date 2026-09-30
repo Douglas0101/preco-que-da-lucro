@@ -56,22 +56,29 @@ export class MemoryKeychain implements Keychain {
   readonly kind = "memoria";
   private readonly items = new Map<string, Uint8Array>();
 
-  async put(ref: string, secret: Uint8Array): Promise<void> {
+  put(ref: string, secret: Uint8Array): Promise<void> {
     this.items.set(ref, Uint8Array.from(secret));
+    return Promise.resolve();
   }
 
-  async get(ref: string): Promise<Uint8Array> {
+  get(ref: string): Promise<Uint8Array> {
     const found = this.items.get(ref);
-    if (!found) throw new KeychainError("missing", `segredo ausente no cofre: ${ref}`);
-    return Uint8Array.from(found);
+    // `Promise.reject`, não `throw` sincrono: sem o `async`, um `throw` aqui deixaria de ser
+    // rejeição e quebraria quem chama `.catch()` sem `await`. O contrato é o mesmo.
+    if (!found) {
+      return Promise.reject(new KeychainError("missing", `segredo ausente no cofre: ${ref}`));
+    }
+    return Promise.resolve(Uint8Array.from(found));
   }
 
-  async delete(ref: string): Promise<void> {
+  delete(ref: string): Promise<void> {
     this.items.delete(ref);
+    return Promise.resolve();
   }
 
-  async list(): Promise<string[]> {
-    return [...this.items.keys()].sort();
+  list(): Promise<string[]> {
+    // Comparador por code unit UTF-16: MESMA ordem do `sort()` sem argumento (S2871).
+    return Promise.resolve([...this.items.keys()].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)));
   }
 }
 

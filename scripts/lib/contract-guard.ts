@@ -771,7 +771,7 @@ export function collectContractInput(root: string): ContractGuardInput {
   };
 }
 
-export async function main(): Promise<never> {
+export function main(): Promise<never> {
   let root = process.cwd();
   try {
     // S4036: `git` ja vem resolvido para caminho absoluto de diretorio fixo do
@@ -791,7 +791,9 @@ export async function main(): Promise<never> {
     preconditionFail(`leitura de ${FUNCTIONS_DIR}/*.functions.ts falhou`, root);
   }
 
-  emit(evaluateContractGuard(collectContractInput(root)));
+  // `emit` termina em `process.exit`, logo é `never`: o `return` existe para o tipo público
+  // continuar `Promise<never>` sem o `async` (S7503 — o corpo não tem `await` algum).
+  return emit(evaluateContractGuard(collectContractInput(root)));
 }
 
 const entrypoint = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : "";
