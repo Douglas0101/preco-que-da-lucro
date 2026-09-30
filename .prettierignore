@@ -19,6 +19,10 @@ docs/evidence/security-scan/**
 # like the security scans, never formatter-mutated.
 docs/evidence/*/playwright-mcp*/**
 
+# Raw artifacts of the Computer User Observability gate (ADR-033): run output
+# (redacted before writing), sealed like the QA-BROWSER captures.
+docs/evidence/visual/**
+
 # Platform-managed generated sources
 AGENTS.md
 src/integrations/lovable/index.ts

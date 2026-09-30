@@ -195,3 +195,8 @@ docs/auditoria-publicacao/*.redacted.json
 # isto é mitigação de árvore, não de histórico.
 docs/evidence/neon-github-card-console-2026-08-23.png
 docs/evidence/infra-recon-2026-09-17/screenshots/
+
+# Artefatos visuais brutos do gate Computer User Observability (ADR-033): saída de
+# execução — redigida antes de escrever, mas ainda assim não é fonte versionada.
+# Vão como artifacts de CI (.github/workflows/ui-stack.yml, browser-evidence).
+docs/evidence/visual/

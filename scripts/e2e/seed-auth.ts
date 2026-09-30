@@ -108,6 +108,15 @@ async function main(): Promise<void> {
        values ($1, $2, $3, 'Produto de teste', '20.0000', '10.000000', 'unidade', '0.100000')`,
       [productId, tenantId, userId],
     );
+    // Segundo produto SEM rendimento (yield_qty nulo): a completude vira
+    // "incomplete", o estado que a suíte visual verifica em /produtos
+    // (badge DADOS INCOMPLETOS + "Custo: —", nunca R$ 0,00).
+    await client.query(
+      `insert into products
+         (id, tenant_id, user_id, name, current_price, yield_qty, yield_unit, tax_rate)
+       values ('00000000-0000-4000-8000-000000000016', $1, $2, 'Produto incompleto E2E', '15.0000', null, 'unidade', '0.100000')`,
+      [tenantId, userId],
+    );
     await client.query(
       `insert into product_packaging
          (id, product_id, tenant_id, user_id, name, package_price, units_per_package, price_updated_at)

@@ -246,6 +246,9 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: playwright-${{ runner.os }}-
       - run: npx playwright install --with-deps ${{ steps.browsers.outputs.lista }}
+      # O tier e2e carrega a suíte visual (`npm run test:visual` localmente).
+      # A spec vive em e2e/visual/ e o testDir a descobre: sem passo próprio,
+      # que pagaria build+server de novo no orçamento de 12 min (ADR-033).
       - run: npx playwright test ${{ steps.browsers.outputs.projetos }}
       - name: Upload browser evidence
         if: always()
@@ -257,6 +260,7 @@ jobs:
             .artifacts/playwright-results.json
             playwright-report
             test-results
+            docs/evidence/visual
           if-no-files-found: warn
           include-hidden-files: true
           retention-days: 30
