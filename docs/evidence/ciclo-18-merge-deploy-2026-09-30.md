@@ -41,7 +41,7 @@ ordenação `f9b4c3e` presente; produção no ar.
 | **CI do PR no HEAD novo** | `verify` **pass** 6m34s (matriz completa, e2e chromium+firefox+webkit+mobile), `Neon PR branch CI` **pass**, `Neon preview boundary` **pass**, `docs-light` ×2 **pass**, preview Vercel **pass**. |
 | **C18-2** merge           | PR #49 mergeado em `develop` — merge commit **`ef589cb`**.                                                                                                                                        |
 | **Marcador de estado**    | Estava **válido** no merge (o marcador viajou dentro da branch mergeada; distância 3, folga 1/13). Re-pinado a `ef589cb` por higiene — commit **`145de07`**.                                      |
-| **Release PR**            | Aberto como **#50** (`develop → main`). **Não mergeado.**                                                                                                                                         |
+| **Release PR**            | Aberto como **#50** (`develop → main`). **Não mergeado.** CI do candidato **verde**: `verify` **pass** 6m49s e `Branch efêmera · migrate · integração · RLS probe · E2E` **pass** 5m31s.          |
 | **C18-3/4/5**             | **Retidas.** Ver §3.                                                                                                                                                                              |
 
 ---
@@ -130,8 +130,12 @@ varredura obrigatória de **nomes** de env vars e a proibição de snapshotar a 
 
 - **O deploy não foi executado** e nada aqui sugere o contrário. `v1.0.0` **não existe**: há 14 tags
   (13 `ci-local/*` e `v0.1.0-rc1`).
-- A CI do PR de release (#50) roda sobre 526 commits e não estava concluída quando este registro foi
-  escrito.
+- A CI do PR de release (#50) **concluiu verde** sobre os 526 commits do candidato: `verify` **pass**
+  6m49s e `Branch efêmera · migrate · integração · RLS probe · E2E` **pass** 5m31s. O segundo job
+  **aplicou as 8 migrations numa branch Neon efêmera** e rodou integração e RLS probe contra ela — o
+  que é evidência de que as migrations `0012`–`0019` migram limpo e que a aplicação funciona sobre o
+  schema resultante. **Isso não é a produção:** a branch efêmera nasce de `production` e é descartada,
+  e o que falta continua sendo aplicar as 8 no banco de produção.
 - `SonarCloud` **não** é passo da cadeia `check` nem consta da tabela de cobertura do `AGENTS.md`, e
   não há branch protection: o vermelho dele **não** bloqueia merge — bloquear a promoção por ele, ou
   ignorá-lo em silêncio, seriam ambos erros. A escolha foi **declarar**.
