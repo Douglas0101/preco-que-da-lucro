@@ -104,3 +104,7 @@ Marcadores: somente presença/mtime, sem valores:
   }
 ]
 ```
+
+## ADR corretivo
+
+ADR-038-espelho-conservador-de-cobertura.md é PROPOSTA documental. D0 A permanece ratificada, mas agregado por arquivo não prova ganho em unidades new e a ordem do thaw não foi reconciliada. Via B é evolução pendente dentro da DBT-64, sem extensão de perímetro. Sem implementação de espelho, sem required check novo e sem mudança de update/bypass.

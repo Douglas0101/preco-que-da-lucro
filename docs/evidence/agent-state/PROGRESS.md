@@ -558,3 +558,19 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | id   | UTC                  | par | descrição (ponteiro)                                                                                                                          |
 | ---- | -------------------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | L318 | 2026-10-01T22:53:10Z | ▶   | Commit B C25 (5 arquivos, selo sha256); publicar junto com f7 apenas depois do check completo do HEAD final; manter main imóvel e sem bypass. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                                |
+| ---- | -------------------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L319 | 2026-10-01T22:55:36Z | ✔   | B commit 916d573b49f19b106140572c1dad0ea3ec9772a6 criado com 5 arquivos/selo; publicação ainda pendente. Enumeração de untracked por diretório foi substituída por NUL-safe --untracked-files=all antes do stage; nenhum arquivo inesperado entrou. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                   |
+| ---- | -------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L320 | 2026-10-01T22:55:36Z | ▶   | Registrar ADR-038 PROPOSTA: D0 A ratificada, contrato do espelho ainda insuficiente por unidade e freeze circular; via B pendente fora do perímetro. Apenas proposta documental/revisão, nenhum job de deploy ou alteração de ruleset. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                  |
+| ---- | -------------------- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L321 | 2026-10-01T22:55:37Z | ✔   | ADR-038 PROPOSTA registra controle de falso positivo, requisitos de unidade/baseline, sequência circular e Via B pendente. Nenhuma implantação/required check/thaw; docs/evidence/ciclo-25/README.md. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                      |
+| ---- | -------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L322 | 2026-10-01T22:55:37Z | ▶   | Commit da proposta corretiva em lote 4 com selo; após check completo, publicar B+proposta e f7 em um push develop; observar somente os runs automáticos, sem re-run de V. |
