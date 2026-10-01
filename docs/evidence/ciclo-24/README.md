@@ -39,3 +39,13 @@ Grupos de version updates React/react-dom/types e TanStack Router/Start/plugin, 
 P2 reutiliza o workflow_dispatch de neon-drill-ops, com operação exercise-provisioning e confirm=true. O código versionado de develop executará o pin 6.4.0 do PR #52; outputs branch_id/db_url são checados sem exibir valores, identidade é conferida por GET (nome exclusivo run/attempt, parent não nulo, não primary/default), expires-at +24h, cleanup always do ID validado e pós-delete GET 404. Ref aceita apenas main/develop. Não foi disparado: exercício com secrets e integração do PR #52 seguem para Ciclo 25. Rerun de Dependabot não substitui esse canal.
 
 DBT-65 e DBT-67 permanecem ABERTAS; preparação de infraestrutura não é closure dos PRs vermelhos nem prova de provisionamento remoto.
+
+## M2 — autoridade e leitura sem token no agente
+
+O conector Sonar expôs os valores overall lines_to_cover=4797, uncovered_lines=1744, coverage=63,4 e ncloc=20256; para new_lines_to_cover/new_uncovered_lines/new_coverage devolveu apenas o nome do campo. A ausência de value no conector não é zero e não autoriza promover overall para new. O gate, por outra API, confirmou new_coverage=63,2.
+
+Medição bruta preparada no runner: scripts/sonar/main-baseline.mjs lê Web API com SONAR_TOKEN já em Actions; identifica main por SHA, exige análise única e atual, consulta gate por analysisId, lê value/period/periods e reconfirma SHA/analysisId ao final. Registra new_lines, uncovered, conditions e percentuais; nenhum valor de credencial é exibido. Campo ausente continua null e produz precondição 2, nunca aprovação. Nenhum scanner local executado. A execução CI e o alvo novo ainda não foram medidos.
+
+A preparação P foi feita enquanto se aguardava a observação I, porque não depende de promoção ou do 80%. Os PRs vermelhos não foram corrigidos ou mergeados.
+
+ERRATA E3: lote inicial da medição M2 tinha seis arquivos. Antes de qualquer publicação, somente esse último commit privado foi reagrupado em dois lotes (4 e 3 arquivos) por índice temporário e compare-and-swap da ref; sem alteração de bytes de código, sem reset da worktree e sem reescrever qualquer commit publicado. Orçamento passa a 11/13 na linhagem do ciclo; mantém dois commits para observação/encerramento.
