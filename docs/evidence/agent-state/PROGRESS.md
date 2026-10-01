@@ -451,3 +451,8 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                            |
 | ---- | -------------------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | L281 | 2026-10-01T20:53:36Z | ▶   | Reparar padding Markdown das duas linhas DBT-61/62 e do bloco novo L274–L280; conteúdo histórico intacto. ERRATA E2: check de formatação do commit B3 reprovou; não é pronto para push. Novo commit, sem amend. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                      |
+| ---- | -------------------- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L282 | 2026-10-01T20:53:38Z | ✔   | Reparação E2 2307b65; formatação/diff/selo PASS. 4/13 commits, 0 novos runs.                                                                                                              |
+| L283 | 2026-10-01T20:53:38Z | ▶   | I1/I4: acrescentar espera do CE no workflow; ADR-037 aceita D0 A, sem bypass ativo; contrato AGENTS. Controle negativo remoto e equivalência PR/main ainda PENDENTES; sem closure DBT-64. |

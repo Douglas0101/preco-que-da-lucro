@@ -113,6 +113,8 @@ jobs:
             -Dsonar.exclusions='src/test/**' \
             -Dsonar.scm.provider=git \
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.qualitygate.timeout=300 \
             "${ATRIBUICAO[@]}" 2>&1 | tee /tmp/scanner.log
 
       - name: Conferir que a cobertura foi CONSUMIDA
