@@ -21,6 +21,7 @@ updates:
   # npm: package.json + package-lock.json na raiz (único manifest do repo).
   - package-ecosystem: npm
     directory: "/"
+    target-branch: develop
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
@@ -29,6 +30,7 @@ updates:
   # e o action.yml/action.yaml da raiz.
   - package-ecosystem: github-actions
     directory: "/"
+    target-branch: develop
     schedule:
       interval: weekly
     open-pull-requests-limit: 3

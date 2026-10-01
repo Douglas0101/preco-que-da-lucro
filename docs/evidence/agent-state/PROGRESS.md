@@ -456,3 +456,13 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | ---- | -------------------- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | L282 | 2026-10-01T20:53:38Z | ✔   | Reparação E2 2307b65; formatação/diff/selo PASS. 4/13 commits, 0 novos runs.                                                                                                              |
 | L283 | 2026-10-01T20:53:38Z | ▶   | I1/I4: acrescentar espera do CE no workflow; ADR-037 aceita D0 A, sem bypass ativo; contrato AGENTS. Controle negativo remoto e equivalência PR/main ainda PENDENTES; sem closure DBT-64. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                 |
+| ---- | -------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| L284 | 2026-10-01T20:56:26Z | ✔   | I1 preparado em 1df9c18; wait=true + timeout=300, ADR-037 e contrato; 47 testes focados PASS; controle CE remoto pendente. 5/13 commits.                                                                                             |
+| L285 | 2026-10-01T20:56:26Z | ▶   | I2: criar ruleset C24-main-release-gates ativo em refs/heads/main, PR obrigatório, merge commit, verify e scan + cobertura da app 15368, base atualizada, sem bypass. Captura imediata em ciclo-24/ruleset.*.json; não alterar main. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                          |
+| ---- | -------------------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L286 | 2026-10-01T20:57:38Z | ✔   | I2: ruleset 24333849 ativo, main, 4 regras efetivas, bypass vazio. Captura consolidada ruleset.json. ERRATA L284: teste focado mediu 38, não 47. Rejeição de push direto ainda não observada. |
+| L287 | 2026-10-01T20:57:38Z | ▶   | I3: Dependabot version updates target-branch develop nos dois ecossistemas; atualizar ADR-017 para ruleset medido. 7 PRs existentes mantidos em main. Commit de 5 arquivos e selo, sem merge. |
