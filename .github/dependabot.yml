@@ -25,6 +25,21 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      react-runtime-and-types:
+        patterns:
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+      tanstack-router-start:
+        patterns:
+          - "@tanstack/react-router"
+          - "@tanstack/react-start"
+          - "@tanstack/react-start-*"
+          - "@tanstack/router-*"
+          - "@tanstack/start-*"
+          - "@tanstack/history"
 
   # github-actions: `directory: "/"` faz o Dependabot varrer /.github/workflows
   # e o action.yml/action.yaml da raiz.

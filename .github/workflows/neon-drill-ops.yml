@@ -23,6 +23,7 @@ on:
         options:
           - list-branches
           - create-drill-branch
+          - exercise-provisioning
           - delete-branch
           - snapshot-list
           - snapshot-create
@@ -84,6 +85,9 @@ jobs:
             delete-branch)
               [[ "$CONFIRM" == "true" ]] || { echo "delete-branch exige confirm=true." >&2; exit 1; }
               [[ -n "$BRANCH_ID" ]] || { echo "delete-branch exige branch_id." >&2; exit 1; }
+              ;;
+            exercise-provisioning)
+              [[ "$CONFIRM" == "true" ]] || { echo "exercise-provisioning exige confirm=true (criação e cleanup de cópia efêmera)." >&2; exit 1; }
               ;;
             create-drill-branch)
               [[ -n "$DRILL_BRANCH_NAME" ]] || { echo "create-drill-branch exige drill_branch_name." >&2; exit 1; }
@@ -213,6 +217,68 @@ jobs:
           [[ -n "$DRILL_BRANCH_ID" ]] || { echo "branch_id não retornado." >&2; exit 1; }
           echo "drill_branch_id=$DRILL_BRANCH_ID"
           echo "- Drill branch criado: $DRILL_BRANCH_NAME (id no log privado)" >> "$GITHUB_STEP_SUMMARY"
+
+      # C24/DBT-67: dispatch possui Secrets de Actions; rerun de Dependabot não muda privilégio.
+      # Pin candidato do PR #52; não muda a action 6.3.1 dos outros exercícios.
+      - name: Exercise provisioning candidate 6.4.0
+        if: inputs.operation == 'exercise-provisioning'
+        id: exercise
+        uses: neondatabase/create-branch-action@72ed4f69a12b6be9c16aebfad893f6a21e9aba8b # 6.4.0
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          parent_branch: production
+          branch_name: c24-probe-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Validate candidate outputs and isolated identity
+        if: inputs.operation == 'exercise-provisioning'
+        id: exercise-proof
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          BRANCH_ID: ${{ steps.exercise.outputs.branch_id }}
+          DB_URL: ${{ steps.exercise.outputs.db_url }}
+          EXPECTED_NAME: c24-probe-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from 'node:fs';
+          const { NEON_API_KEY, NEON_PROJECT_ID, BRANCH_ID, DB_URL, EXPECTED_NAME } = process.env;
+          if (!BRANCH_ID || !DB_URL) throw new Error('candidate outputs ausentes: branch_id/db_url');
+          const target = `https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches/${BRANCH_ID}`;
+          const headers = { Authorization: `Bearer ${NEON_API_KEY}` };
+          const response = await fetch(target, { headers });
+          if (!response.ok) throw new Error(`identity GET HTTP ${response.status}`);
+          const { branch } = await response.json();
+          if (branch?.id !== BRANCH_ID || branch?.name !== EXPECTED_NAME || !branch?.parent_id || branch?.primary === true || branch?.default === true) {
+            throw new Error('candidate identity não é a cópia isolada esperada; cleanup não autorizado');
+          }
+          appendFileSync(process.env.GITHUB_OUTPUT, 'cleanup_allowed=true\n');
+          const expires_at = new Date(Date.now() + 24 * 3600e3).toISOString();
+          const expiry = await fetch(target, { method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ branch: { expires_at } }) });
+          if (!expiry.ok) throw new Error(`expires-at PATCH HTTP ${expiry.status}`);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, '- Candidate 6.4.0: outputs branch_id/db_url presentes; identidade isolada confirmada; prazo +24h. Nenhuma URL/chave exibida.\n');
+          NODE
+
+      - name: Cleanup candidate always
+        if: always() && inputs.operation == 'exercise-provisioning' && steps.exercise-proof.outputs.cleanup_allowed == 'true'
+        uses: neondatabase/delete-branch-action@4468d825d5a88ef4012f1705a82f02ec3072f776 # v3.2.1
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          branch: ${{ steps.exercise.outputs.branch_id }}
+
+      - name: Prove candidate cleanup
+        if: always() && inputs.operation == 'exercise-provisioning' && steps.exercise-proof.outputs.cleanup_allowed == 'true'
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          BRANCH_ID: ${{ steps.exercise.outputs.branch_id }}
+        run: |
+          set -euo pipefail
+          HTTP_CODE="$(curl -s -o /dev/null -w '%{http_code}' "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID" -H "Authorization: Bearer $NEON_API_KEY")"
+          [[ "$HTTP_CODE" == "404" ]] || { echo "cleanup não provado: GET HTTP $HTTP_CODE" >&2; exit 1; }
+          echo "- Candidate 6.4.0: cleanup confirmado por GET 404." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Delete branch
         if: inputs.operation == 'delete-branch'

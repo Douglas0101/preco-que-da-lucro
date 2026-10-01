@@ -27,3 +27,15 @@ DBT-61: which-analysis tem detector puro positivo/negativo de desvio, e o workfl
 B3 é o terceiro commit local do ciclo. Registry: 50 (41 ABERTA, 8 FECHADA, 1 EM_TRATAMENTO). D1 80%, D2 gatilho 45k LOC, D3 develop→main, D4 Via A, D5 toggle desconhecido não bloqueante e ADR-036 preservados.
 
 ERRATA E2: o check explícito de Prettier no commit B3 retornou 1; o comando de lote não interrompeu o commit. O gate completo B1 precedeu esse delta documental. Corrigido em commit novo, sem amend: somente padding das linhas alteradas DBT-61/62 e tabela criada neste ciclo; pares e texto do journal não foram reescritos. Rechecagem de formatação obrigatória antes de push.
+
+## Au — DBT-66
+
+Commit da8d8b67d3b6f99ede54ce720aa203d366753c85; 34 testes focados PASS. Remover somente o bloco condicional em memória preserva flag e upload, mas auditSonarPipeline devolve “recusa lcov ausente ou vazio”. Fixtures shell observadas: ausente exit 1, vazio exit 1, válido exit 0. As seis guardas atuais têm remoção individual, incluindo espera do CE. DBT-66 FECHADA; selo Au por revisão.
+
+## P — preparação independente de promoção
+
+Grupos de version updates React/react-dom/types e TanStack Router/Start/plugin, target develop. Nenhum manifest ou lockfile da aplicação mudou.
+
+P2 reutiliza o workflow_dispatch de neon-drill-ops, com operação exercise-provisioning e confirm=true. O código versionado de develop executará o pin 6.4.0 do PR #52; outputs branch_id/db_url são checados sem exibir valores, identidade é conferida por GET (nome exclusivo run/attempt, parent não nulo, não primary/default), expires-at +24h, cleanup always do ID validado e pós-delete GET 404. Ref aceita apenas main/develop. Não foi disparado: exercício com secrets e integração do PR #52 seguem para Ciclo 25. Rerun de Dependabot não substitui esse canal.
+
+DBT-65 e DBT-67 permanecem ABERTAS; preparação de infraestrutura não é closure dos PRs vermelhos nem prova de provisionamento remoto.
