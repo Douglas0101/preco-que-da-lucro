@@ -112,7 +112,21 @@ jobs:
             -Dsonar.sources=src \
             -Dsonar.exclusions='src/test/**' \
             -Dsonar.scm.provider=git \
-            "${ATRIBUICAO[@]}"
+            "${ATRIBUICAO[@]}" 2>&1 | tee /tmp/scanner.log
+
+      - name: Conferir que a cobertura foi CONSUMIDA
+        # O passo anterior confere que o lcov **existe**; este confere que o scanner o **consumiu**.
+        # A diferença foi medida no Ciclo 22: removendo `sonar.javascript.lcov.reportPaths`, o
+        # workflow passava **8/8** enquanto o sensor de cobertura **não rodava** — verde com 0 % em
+        # silêncio, que é exatamente o modo de falha do `DBT-57` renascendo. Um guard que olha o
+        # arquivo não vê o relatório que ninguém leu.
+        run: |
+          set -euo pipefail
+          if ! grep -q "Sensor JavaScript/TypeScript Coverage" /tmp/scanner.log; then
+            echo "::error::o scanner NAO consumiu o relatorio de cobertura — o analyze mediria 0% em silencio (DBT-57)"
+            exit 1
+          fi
+          echo "sensor de cobertura: rodou (o relatorio foi consumido)"
 
       - name: Guardar o lcov como artefato
         if: always()
