@@ -53,6 +53,7 @@
 
 ## Dependency discipline
 
+- `guard:upgrade` também valida as famílias **resolvidas** no lockfile (`scripts/lib/dependency-family-guard.ts`): React/react-dom com versão exata igual; types na mesma linha major.minor; Router/Start/plugin pelas dependências exatas publicadas de react-router/router-core e sem cópias aninhadas divergentes. Negativos vêm dos lockfiles dos PRs #56/#53 por SHA; grupos do Dependabot não substituem esta guarda. O canal manual do DBT-67 reutiliza `neon-drill-ops` com `operation=exercise-provisioning`, ref main/develop, `confirm=true`, action candidata pinada, identidade isolada, expires-at, cleanup always e GET 404; execução real só no Ciclo 25.
 - Every `package.json` change ships with a synchronized `package-lock.json` in the same commit. CI installs with `npm ci --ignore-scripts` and hard-fails (`EUSAGE`) on lockfile drift — this exact mismatch broke PR #42's install step.
 - Do not assume a library is available because it is common: confirm it in `package.json`/lockfile first, and match the version and idiom already in use.
 
