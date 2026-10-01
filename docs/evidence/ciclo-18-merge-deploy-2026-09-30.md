@@ -168,3 +168,49 @@ segurança há 2 `BLOCKER` de path traversal e 1 de SSRF em script dentro de evi
 nunca alegar gate Sonar verde. Justificativa medida: enquanto `main` estiver 535 commits atrás, o
 "código novo" é a release inteira; depois da promoção a análise do `main` re-baselina o período e
 cada PR volta a ter gate significativo.
+
+---
+
+## 9. Deploy e validação pós-deploy — o que foi medido, e o que não pôde ser
+
+**O deploy aconteceu, e a capacidade antes desconhecida foi medida.** O brief e o runbook de
+rollback declaravam "auto-deploy em push: **não medido**". Agora está medido: o Hostinger
+**auto-deploya** ao receber o merge em `main`.
+
+| prova                  | antes                       | depois                          |
+| ---------------------- | --------------------------- | ------------------------------- |
+| sha256 do HTML servido | `2429cc97f9c336df`          | `0c48a02b8272c34f`              |
+| bundle principal       | `/assets/index-BfoIlnr6.js` | **`/assets/index-oW6bmarj.js`** |
+
+E o bundle servido é **exatamente o artefato que o gate local mediu** (`npm run check`:
+`PASS assets/index-oW6bmarj.js … sha256=a67e89b47cb5`). A Vercel também construiu um deployment de
+**Production** a partir do merge commit `fd9449f`.
+
+**Saúde:** `/` **200**, `/api/health/ready` **200**, `/api/health/live` **200**.
+
+**§32 — segurança (medida):** `content-security-policy-report-only` com política estrita
+(`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, `form-action 'self'`),
+`content-security-policy: upgrade-insecure-requests`, `strict-transport-security: max-age=31536000;
+includeSubDomains`, `x-content-type-options: nosniff`, `referrer-policy: strict-origin-when-cross-origin`,
+`permissions-policy` com câmera/microfone/geolocalização/pagamento negados. `http → https` = **301**.
+`localStorage` e `sessionStorage` **vazios**. Rota protegida `/inicio` → **`/auth?redirect=%2Finicio`**.
+Uma chamada de server function **sem sessão** devolve **401** — rejeição correta, não defeito.
+
+**§29 — latência (5 amostras por rota):** `/` 1,32 s na primeira (fria) e 0,30–0,81 s depois;
+`/api/health/live` 0,15–0,55 s; `/api/health/ready` 1,17 s na primeira (fria, o Neon acordando) e
+~0,30 s depois. Em regime, dentro dos alvos; a **primeira** amostra é partida a frio e está
+declarada, não escondida.
+
+**ADR-033 — observabilidade visual: parcial, e o limite é duro.** Na superfície pública: **0**
+`NaN`, **0** `Infinity`, **0** `R$ 0,00`. Os badges (REAL/SIMULAÇÃO/DADOS INCOMPLETOS) e as
+asserções de INV-006/007/008 vivem na **área autenticada**, e a produção tem **zero usuários**
+(medido: 0 em `users`, `tenants`, `sessions`) — **não há conta com que entrar**, então essa
+superfície não é validável em produção hoje. O chat também não responde: o app lê
+`AI_GATEWAY_API_KEY ?? LOVABLE_API_KEY` e o Hostinger não tem nenhuma das duas (`L241`), então
+`sendChatMessage` devolve `DEPENDENCY_ERROR`. **Nenhuma das duas coisas é regressão desta release**,
+e nenhuma é declarada validada.
+
+**Limites declarados desta validação:** não houve sessão autenticada (não existe conta); a
+observabilidade visual da ADR-033 foi validada **no tier de e2e do CI**, não em produção; e o
+redeploy no hPanel **não foi necessário** — o auto-deploy fez o trabalho, o que também significa que
+o procedimento manual do runbook de rollback segue **não executado**.

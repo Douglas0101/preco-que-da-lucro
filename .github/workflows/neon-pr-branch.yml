@@ -24,6 +24,16 @@ name: Neon PR branch CI
 # PR) e persiste artefato + resumo em forma de comentário. Sem NEON_API_KEY o
 # passo PULA COM RÓTULO (nunca fail silencioso) e o CI permanece verde.
 #
+# §12.5 (veredito, DBT-56): o veredito NÃO é mais "o diff saiu vazio?". Ele é de
+# NÍVEL DE MIGRATION: `scripts/db/schema-diff-verdict.ts` lê o conjunto de hashes
+# de `drizzle.__drizzle_migrations` na branch do PR e em production e decide
+# pelos journals. Diff vazio com journals IGUAIS é o estado esperado da ordem
+# expand-antes-de-promover (produção já migrada) e é `consistente`; diff vazio
+# com produção ATRÁS é `INCONSISTENTE`; journal vazio ou leitura falha em
+# qualquer ponta é `INCONSISTENTE` com o motivo nomeado (fail-closed, nunca
+# igualdade inferida de uma leitura que não aconteceu). A lista de arquivos do
+# PR qualifica a mensagem, não decide o veredito.
+#
 # §12.5 (ciclo de vida) + §26: fechado o provisionamento/migração/seed, o job
 # roda o E2E (Playwright, mesma invocation do ui-stack.yml) contra a branch
 # efêmera; o delete da branch segue no job `cleanup` com `always()`.
@@ -146,7 +156,7 @@ jobs:
           export ALLOW_REMOTE_DB="CI Neon PR branch ${{ github.event.pull_request.number }} — migrations em cópia efêmera (§26)"
           npm run db:migrate
 
-      - name: Schema diff §12.5 (compare_schema da branch do PR vs produção)
+      - name: Schema diff §12.5 (compare_schema + veredito por nível de migration)
         id: schema_diff
         env:
           BRANCH_ID: ${{ steps.create.outputs.branch_id }}
@@ -181,6 +191,20 @@ jobs:
           fi
           export DRIZZLE_TOUCHED
 
+          # O veredito é de NÍVEL DE MIGRATION (DBT-56), não de vazio/não-vazio:
+          # `scripts/db/schema-diff-verdict.ts` lê `drizzle.__drizzle_migrations`
+          # nos dois lados e decide. Diff vazio com journals IGUAIS é o estado
+          # esperado da ordem expand-antes-de-promover — o predicado antigo o
+          # pintava de INCONSISTENTE. O passo só fala com `compare_schema` (para
+          # o artefato bruto) e entrega o corpo ao módulo; o exit code e o
+          # `summary` saem de lá.
+          #
+          # ALLOW_REMOTE_DB: a leitura da branch efêmera é remota e sancionada
+          # (§26, cópia descartável) — motivo não-vazio, nunca presumido.
+          export ALLOW_REMOTE_DB="CI Neon PR branch $PR_NUMBER — schema diff read-only na branch efêmera e na baseline de produção (§12.5)"
+          export BRANCH_DIRECT_URL_FILE="$RUNNER_TEMP/branch_direct_url"
+          export COMPARE_SCHEMA_BODY_FILE="$ARTIFACT_DIR/compare-schema-response.json"
+
           node --input-type=module <<'NODE'
           import { appendFileSync, writeFileSync } from "node:fs";
 
@@ -190,7 +214,6 @@ jobs:
           const headBranch = process.env.BRANCH_ID;
           const baseName = process.env.BASE_BRANCH;
           const dbName = process.env.DB_NAME;
-          const touched = process.env.DRIZZLE_TOUCHED;
           const request = (path) =>
             fetch(`${apiBase}${path}`, {
               headers: { Authorization: `Bearer ${process.env.NEON_API_KEY}` },
@@ -231,59 +254,9 @@ jobs:
             process.stderr.write(`compare_schema falhou: HTTP ${response.status}\n`);
             process.exit(1);
           }
-
-          // Predicado de vazio deliberadamente defensivo: a forma exata do corpo
-          // de compare_schema só é confirmável com a chave (H-2), então o corpo
-          // bruto é persistido e o vazio é reconhecido por contenção recursiva.
-          const isEmpty = (value) => {
-            if (value === null || value === undefined) return true;
-            if (typeof value === "string") {
-              const text = value.trim();
-              return text === "" || text === "{}" || text === "[]";
-            }
-            if (Array.isArray(value)) return value.every(isEmpty);
-            if (typeof value === "object")
-              return Object.keys(value).every((key) => isEmpty(value[key]));
-            return false;
-          };
-          let parsed = null;
-          let parseError = null;
-          try {
-            parsed = JSON.parse(body);
-          } catch (error) {
-            parseError = error.message;
-          }
-          const empty = parseError === null && isEmpty(parsed);
-          const bytes = Buffer.byteLength(body);
-
-          const reading =
-            touched === "yes"
-              ? empty
-                ? "INCONSISTENTE: o PR mexe em drizzle/** mas o diff saiu vazio — checar journal/migrations da branch"
-                : "consistente: mudança de schema do PR visível contra produção"
-              : touched === "no"
-                ? empty
-                  ? "consistente: diff vazio (PR não mexe em drizzle/**)"
-                  : "diff não vazio em PR sem drizzle/**: atribuível a migrations de develop ainda não promovidas a produção (staleness develop×produção, §12.4 passo 1), não ao PR"
-                : "indeterminado: lista de arquivos do PR indisponível";
-
-          const lines = [
-            "### Schema diff §12.5 — branch do PR vs produção",
-            "",
-            `- head: ${headBranch} · base: ${baseName} (${baseBranchId}) · db_name: ${dbName}`,
-            `- PR mexe em drizzle/**: ${touched}`,
-            `- compare_schema: ${empty ? "VAZIO (nenhuma mudança de schema)" : `não vazio (${bytes} B)`}`,
-            `- leitura: ${reading}`,
-            `- artefato: schema-diff.md + compare-schema-response.json (retenção 7 d)`,
-            "- produção intocada: comparação read-only; a branch do PR é descartável (§12.5 always()).",
-          ];
-          if (parseError !== null) lines.push(`- aviso: corpo não-JSON persistido (${parseError})`);
-          const block = `${lines.join("\n")}\n`;
-          writeFileSync(`${dir}/schema-diff.md`, block);
-          appendFileSync(process.env.GITHUB_OUTPUT, `summary=${empty ? "vazio" : `nao-vazio (${bytes} B)`}\n`);
-          appendFileSync(process.env.GITHUB_STEP_SUMMARY, block);
-          process.stdout.write(block);
           NODE
+
+          npx tsx scripts/db/schema-diff-verdict.ts
 
       - name: Upload schema diff §12.5
         if: always()

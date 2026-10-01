@@ -1,0 +1,9 @@
+{
+  "completed_at": "2026-09-30T21:10:14Z",
+  "conclusion": "failure",
+  "details_url": "https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro\u0026pullRequest=50",
+  "id": 110099550817,
+  "name": "SonarCloud Code Analysis",
+  "started_at": "2026-09-30T21:09:03Z",
+  "summary": "Failed conditions  \n![](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/common/failed.svg '') [E Security Rating on New Code](https://sonarcloud.io/project/issues?id=Douglas0101_preco-que-da-lucro\u0026pullRequest=50\u0026issueStatuses=OPEN,CONFIRMED\u0026sinceLeakPeriod=true) (required ≥ A)  \n![](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/common/failed.svg '') [D Reliability Rating on New Code](https://sonarcloud.io/project/issues?id=Douglas0101_preco-que-da-lucro\u0026pullRequest=50\u0026issueStatuses=OPEN,CONFIRMED\u0026sinceLeakPeriod=true) (required ≥ A)  \n  \n[See analysis details on SonarQube Cloud](https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro\u0026pullRequest=50)\n\n##   \n![](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/common/light_bulb.svg '') Catch issues before they fail your Quality Gate with our IDE extension ![](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/common/sonarlint.svg '') [SonarQube for IDE](https://www.sonarsource.com/products/sonarlint/features/connected-mode/?referrer=pull-request)\n\n"
+}

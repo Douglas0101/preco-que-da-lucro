@@ -1,10 +1,12 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   auditCoverage,
   auditDeclaredCoverage,
+  auditSonarPipeline,
+  auditWorkflowDiscovery,
   gateInLight,
   parseCoverageTable,
   parseTriggerLists,
@@ -239,5 +241,93 @@ describe("tabela de cobertura do AGENTS.md × cadeia `check` × dois YAMLs", () 
     const semBoundaries = agentsReal.replace(/`m02:boundaries` \| ✔ \| ✔ \(passo direto\) \|/, "|");
     const findings = audit(semBoundaries, checkChainReal).join("\n");
     expect(findings.length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * `DBT-62` — **`checked === discovered`**.
+ *
+ * O contrato acima cobre dois pipelines, e o `sonar.yml` era **invisível**: nem
+ * a tabela nem `auditCoverage` o conheciam, então um pipeline inteiro escapava
+ * com o gate verde. A invariante que faltava é de descoberta.
+ */
+
+const workflowsDir = resolve(root, ".github/workflows");
+const descobertos = readdirSync(workflowsDir)
+  .filter((f) => f.endsWith(".yml"))
+  .sort();
+const sonarReal = readFileSync(resolve(workflowsDir, "sonar.yml"), "utf8");
+
+/** Cobertos por asserção: os dois filtros de push/PR e o pipeline de análise. */
+const COBERTOS = ["ci-light.yml", "sonar.yml", "ui-stack.yml"];
+
+/** Fora do contrato **com motivo nomeado** — o contrato é sobre filtro de push/PR. */
+const FORA_DO_CONTRATO: Record<string, string> = {
+  "neon-drill-ops.yml": "exercício de drill de banco, disparo manual; não filtra push/PR",
+  "neon-pr-branch.yml": "branch efêmera de PR do Neon; o próprio workflow é a superfície de guarda",
+  "neon-preview.yml": "preview do Neon; guarda própria de credencial",
+  "neon-readiness.yml": "prontidão do Neon; disparo manual",
+};
+
+describe("DBT-62 · o contrato enxerga TODO workflow descoberto", () => {
+  it("os workflows reais estão todos declarados (checked === discovered)", () => {
+    expect(
+      auditWorkflowDiscovery({
+        discovered: descobertos,
+        covered: COBERTOS,
+        outOfContract: FORA_DO_CONTRATO,
+      }),
+    ).toEqual([]);
+  });
+
+  it("NEG — workflow novo, sem declaração, reprova (era a lacuna do DBT-62)", () => {
+    const findings = auditWorkflowDiscovery({
+      discovered: [...descobertos, "pipeline-novo.yml"],
+      covered: COBERTOS,
+      outOfContract: FORA_DO_CONTRATO,
+    });
+    expect(findings.join("\n")).toContain("pipeline-novo.yml");
+  });
+
+  it("NEG — workflow declarado e ausente do disco reprova (prosa que ninguém confere)", () => {
+    const findings = auditWorkflowDiscovery({
+      discovered: descobertos.filter((f) => f !== "sonar.yml"),
+      covered: COBERTOS,
+      outOfContract: FORA_DO_CONTRATO,
+    });
+    expect(findings.join("\n")).toContain("sonar.yml");
+  });
+
+  it("NEG — fora do contrato sem motivo reprova", () => {
+    const findings = auditWorkflowDiscovery({
+      discovered: descobertos,
+      covered: COBERTOS,
+      outOfContract: { ...FORA_DO_CONTRATO, "outro.yml": "   " },
+    });
+    expect(findings.join("\n")).toContain("sem motivo");
+  });
+});
+
+describe("DBT-62 · claims do pipeline Sonar", () => {
+  it("o sonar.yml real satisfaz todas as claims", () => {
+    expect(auditSonarPipeline(sonarReal)).toEqual([]);
+  });
+
+  it("NEG — cada claim removida reprova (uma por vez, com a mutação verificada)", () => {
+    const mutacoes: Array<[string, string]> = [
+      ["roda a suíte com cobertura", "npm run test:coverage"],
+      ["envia o relatório ao scanner", "-Dsonar.javascript.lcov.reportPaths=coverage/lcov.info"],
+      ["observa que o sensor rodou", "Sensor JavaScript/TypeScript Coverage"],
+      ["atribui a análise a PR", "-Dsonar.pullrequest.key="],
+    ];
+    for (const [claim, trecho] of mutacoes) {
+      const mutado = sonarReal.replaceAll(trecho, "");
+      // A mutação tem de ter alterado o arquivo — senão o teste passaria por não ter mutado nada,
+      // que é o modo vacuoso que o Ciclo 22 pegou duas vezes.
+      expect(mutado, `${claim}: a mutação não alterou o arquivo`).not.toBe(sonarReal);
+      expect(auditSonarPipeline(mutado).join("\n"), `${claim}: a mutação não reprovou`).not.toBe(
+        "",
+      );
+    }
   });
 });

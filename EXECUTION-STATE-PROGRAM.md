@@ -3384,3 +3384,39 @@ Latest state marker parent = `38041b2c1af9a215b4620f603696ca6f85ba4372`,
   `1f5d25d` (o HEAD verificado), `ef589cb` (o merge em `develop`) e o commit deste bloco.
 
 Latest state marker parent = `ef589cbaa87eb56e6c8d2ecb3217fe7221157b13`,
+
+---
+
+## Ciclo 22 — SonarCloud: cota, atribuição e o filtro que faltava (2026-10-01)
+
+- **A cota NÃO está dissolvida.** O repositório é público, mas **não tem `LICENSE`** e o
+  `README.md:127` declara "Repositório privado. Todos os direitos reservados." O programa OSS do
+  SonarCloud exige **público com licença OSI**; sem ela a cota de 50.000 LOC segue ativa, com as cinco
+  recusas já medidas. A via que dissolve a cota sem pagar e sem recortar é **um arquivo `LICENSE`** —
+  decisão de negócio, registrada em `ADR-035` §6 e **não decidida**.
+- **`new_coverage` saiu de 0 para 63,3** e o gate passou a ter veredito real: 6 condições avaliadas,
+  **5 OK**, e a única reprovada é o limiar de cobertura. Em **linhas**: `lines_to_cover` 4.797,
+  `uncovered_lines` 1.742 — faltam cobrir **782 linhas** para 80 %. A decisão do `DBT-57` deixa de
+  ser "quanto trabalho é?" e passa a ser um número.
+- **O enigma do 63,3 % foi resolvido, e revelou um defeito.** A análise de id 12c3d53a é de
+  `revision 2d73fa3` (commit de `develop`) **arquivada sob `main`**, e `develop` aparecia como
+  "nunca analisada": o scanner rodava **sem atribuição**, então toda análise de qualquer branch era
+  gravada como `main` e a árvore de `develop` sobrescrevia a de `main` (`DBT-61`).
+- **A medição corrigiu o remédio do `DBT-61`.** Atribuir a `sonar.branch.name=develop` **não** resolve:
+  o CE processa (`SUCCESS`, `branch: develop`) mas o dado fica **inacessível** — `403 Organization is
+not allowed to access data from non main branches`. Ou seja, a análise existiria e não seria
+  consultável, o que é **pior** que o defeito. Remédio correto, medido: o push do workflow passa a ser
+  **só `main`** e a atribuição explícita (`sonar.pullrequest.*`) existe **para PR**, que é a
+  superfície que o plano gratuito expõe.
+- **O gatilho `pull_request` foi exercitado** (PR descartável #58, para `develop` — `origin/main` não
+  tem `sonar.yml`): `SonarCloud (scanner + cobertura)` rodou e passou. O exercício **veio depois** do
+  fix de propósito: uma PR sem `sonar.pullrequest.*` produziria verde com a atribuição errada.
+- **O filtro de segredo era a lacuna real, não o classificador.** `sqa_`/`squ_` faltavam no
+  `PATTERN` do `git grep` (`local-ci.sh:884`) — o classificador recebe linhas **já filtradas**, então
+  marcar o prefixo só nele era inerte. O primeiro teste escrito passava **com o defeito presente** e
+  foi removido; o controle negativo é o que o pegou.
+- **Evidência:** `docs/evidence/ciclo-22-fase0.md`, `ciclo-22-fase1.md`, `ciclo-22-fase4.md`,
+  `ciclo-22-dbt57-data.md`. **Commits:** `a58f17d`, `20bb24a`, `97297b8`, `7f934f5`, `7e8b056`,
+  `1c3a10c` e o commit deste bloco.
+
+Latest state marker parent = `1c3a10c36023d82c06b1245a39fce7df8dc3df42`,

@@ -272,3 +272,73 @@ export function auditDeclaredCoverage(input: DeclaredCoverageInput): string[] {
   }
   return findings;
 }
+
+/**
+ * `DBT-62` — **`checked === discovered`**.
+ *
+ * O contrato acima cobre dois pipelines. Quando um terceiro aparece
+ * (`.github/workflows/sonar.yml`, Ciclo 21), ele é **invisível**: nem a tabela
+ * nem `auditCoverage` o conhecem, e o gate fica verde enquanto um pipeline
+ * inteiro escapa. A invariante que faltava é de **descoberta**, não de
+ * conteúdo: todo workflow no disco tem de estar ou coberto, ou declarado fora
+ * do contrato **com motivo**.
+ *
+ * Fail-closed nas **duas** direções: workflow no disco que ninguém declara
+ * reprova (a lacuna do `DBT-62`), e workflow declarado que não existe no disco
+ * também — senão a declaração vira prosa que ninguém confere.
+ */
+export interface WorkflowDiscoveryInput {
+  /** Nomes de arquivo descobertos em `.github/workflows/`. */
+  discovered: string[];
+  /** Workflows que o contrato conhece e cobre por asserção. */
+  covered: string[];
+  /** Workflows declaradamente fora do contrato, com o motivo nomeado. */
+  outOfContract: Record<string, string>;
+}
+
+export function auditWorkflowDiscovery(input: WorkflowDiscoveryInput): string[] {
+  const findings: string[] = [];
+  const known = new Set([...input.covered, ...Object.keys(input.outOfContract)]);
+
+  for (const workflow of input.discovered) {
+    if (!known.has(workflow)) {
+      findings.push(`workflow descoberto sem cobertura declarada: ${workflow}`);
+    }
+  }
+  for (const workflow of known) {
+    if (!input.discovered.includes(workflow)) {
+      findings.push(`workflow declarado e ausente do disco: ${workflow}`);
+    }
+  }
+  for (const [workflow, motivo] of Object.entries(input.outOfContract)) {
+    if (motivo.trim().length === 0) {
+      findings.push(`${workflow}: declarado fora do contrato sem motivo`);
+    }
+  }
+  return findings;
+}
+
+/**
+ * Claims do pipeline Sonar (`.github/workflows/sonar.yml`).
+ *
+ * Cada uma é um passo que **existe por causa de um defeito medido** — não são
+ * passos decorativos: a suíte produz o lcov, a conferência recusa relatório
+ * ausente, o scanner recebe o caminho do relatório, o guard observa que o sensor
+ * de cobertura **rodou** (o `tee` existe porque remover a propriedade deixava o
+ * workflow verde 8/8 com 0 % silencioso — `DBT-57` renascendo), e a atribuição de
+ * PR existe porque sem ela a análise da PR é gravada como `main` (`DBT-61`).
+ */
+export function auditSonarPipeline(yaml: string): string[] {
+  const findings: string[] = [];
+  const claims: Array<[string, RegExp]> = [
+    ["roda a suíte com cobertura", /npm run test:coverage/],
+    ["recusa lcov ausente ou vazio", /coverage\/lcov\.info/],
+    ["envia o relatório ao scanner", /sonar\.javascript\.lcov\.reportPaths=coverage\/lcov\.info/],
+    ["observa que o sensor de cobertura rodou", /Sensor JavaScript\/TypeScript Coverage/],
+    ["atribui a análise a pull request", /sonar\.pullrequest\.key/],
+  ];
+  for (const [claim, padrao] of claims) {
+    if (!padrao.test(yaml)) findings.push(`sonar.yml sem a claim: ${claim}`);
+  }
+  return findings;
+}

@@ -125,7 +125,7 @@ export function auditSecrets(root: string, ciNames: string[] = []) {
         content.split("\n").forEach((line, index) => {
           if (
             /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(line) ||
-            /\b(?:ghp_|github_pat_|sk-proj-)[A-Za-z0-9_-]{20,}/.test(line) ||
+            /\b(?:ghp_|github_pat_|sk-proj-|squ_|sqa_)[A-Za-z0-9_-]{20,}/.test(line) ||
             /\bAKIA[A-Z0-9]{16}\b/.test(line)
           )
             literalCandidates.push({

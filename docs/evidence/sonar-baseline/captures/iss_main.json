@@ -1,0 +1,48 @@
+{
+  "total": 250,
+  "facets": [
+    {
+      "property": "severities",
+      "values": [
+        {
+          "val": "MINOR",
+          "count": 131
+        },
+        {
+          "val": "MAJOR",
+          "count": 82
+        },
+        {
+          "val": "CRITICAL",
+          "count": 36
+        },
+        {
+          "val": "BLOCKER",
+          "count": 1
+        },
+        {
+          "val": "INFO",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "property": "types",
+      "values": [
+        {
+          "val": "CODE_SMELL",
+          "count": 237
+        },
+        {
+          "val": "VULNERABILITY",
+          "count": 7
+        },
+        {
+          "val": "BUG",
+          "count": 6
+        }
+      ]
+    }
+  ],
+  "note": "issue rows omitted: they carry author PII (login/email); aggregates are authoritative"
+}

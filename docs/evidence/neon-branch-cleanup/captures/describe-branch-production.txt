@@ -1,0 +1,606 @@
+Branch Details: 
+Name: production
+ID: br-snowy-violet-aymcvvvv
+Parent Branch: undefined
+Default: true
+Protected: No
+
+Created By: Douglas
+Created: 8/17/2026
+Updated: 9/30/2026
+
+Compute Usage: 7406 seconds
+Written Data: 0 bytes
+Data Transfer: 19620403 bytes
+
+Console Link: https://console.neon.tech/app/projects/damp-forest-57346541/branches/br-snowy-violet-aymcvvvv
+
+
+Database Structure:
+[
+  [],
+  [
+    {
+      "tree_structure": ":file_folder: postgres (DATABASE)"
+    },
+    {
+      "tree_structure": ":file_folder: neondb (DATABASE)"
+    },
+    {
+      "tree_structure": "    └── :open_file_folder: app_private (SCHEMA)"
+    },
+    {
+      "tree_structure": "            └── :zap: current_tenant_id (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: current_user_id (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: has_tenant_access (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: has_tenant_owner_access (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: validate_sale_totals (FUNCTION)"
+    },
+    {
+      "tree_structure": "    └── :open_file_folder: auth (SCHEMA)"
+    },
+    {
+      "tree_structure": "            └── :zap: init (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: jwt (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: jwt_session_init (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: organization (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: organization_id (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: session (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: uid (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :zap: user_id (FUNCTION)"
+    },
+    {
+      "tree_structure": "    └── :open_file_folder: drizzle (SCHEMA)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: __drizzle_migrations (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :1234: __drizzle_migrations_id_seq (SEQUENCE)"
+    },
+    {
+      "tree_structure": "            └── :mag: __drizzle_migrations_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "    └── :open_file_folder: neon_auth (SCHEMA)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: account (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: account_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: account_userId_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: invitation (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: invitation_email_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: invitation_organizationId_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: invitation_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: jwks (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: jwks_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: member (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: member_organizationId_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: member_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: member_userId_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: organization (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: organization_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: organization_slug_key (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: organization_slug_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: project_config (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: project_config_endpoint_id_key (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: project_config_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: session (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: session_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: session_token_key (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: session_userId_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: user (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: user_email_key (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: user_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: verification (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: verification_identifier_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: verification_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "    └── :open_file_folder: public (SCHEMA)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: accounts (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: accounts_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: accounts_provider_account_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: accounts_user_id_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: ai_daily_budgets (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_daily_budgets_tenant_id_usage_date_pk (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: ai_memories (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memories_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memories_tenant_dedup_key_active_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memories_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memories_tenant_status_created_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: ai_memory_access_log (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_access_log_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_access_log_tenant_action_created_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_access_log_tenant_memory_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: ai_memory_conflicts (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_conflicts_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_conflicts_tenant_memory_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_conflicts_tenant_status_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: ai_memory_policies (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_policies_layer_version_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_policies_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: ai_memory_sources (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_sources_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_sources_tenant_memory_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: ai_memory_versions (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_versions_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_memory_versions_tenant_memory_version_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: ai_usage (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_usage_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: ai_usage_tenant_status_reserved_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: audit_events (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: audit_events_correlation_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: audit_events_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: audit_events_tenant_created_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: backfill_checkpoints (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: backfill_checkpoints_tenant_id_run_key_pk (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: backfill_work_items (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: backfill_work_items_tenant_id_work_key_pk (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: backfill_work_items_tenant_run_key_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: calculation_snapshots (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: calculation_snapshots_idempotency_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: calculation_snapshots_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: calculation_snapshots_tenant_entity_created_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: calculation_snapshots_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: chat_conversations (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: chat_conversations_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: chat_conversations_tenant_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: chat_conversations_tenant_user_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: chat_messages (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: chat_messages_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: chat_messages_tenant_conversation_created_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: chat_messages_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: expenses (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: expenses_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: expenses_tenant_created_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: expenses_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: idempotency_records (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: idempotency_records_expires_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: idempotency_records_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: idempotency_records_scope_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: market_prices (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: market_prices_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: market_prices_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: market_prices_tenant_product_created_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: outbox_consumptions (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: outbox_consumptions_consumer_name_event_id_pk (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: outbox_events (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: outbox_events_claim_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: outbox_events_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: outbox_events_tenant_idempotency_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: product_ingredients (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: product_ingredients_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: product_ingredients_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: product_ingredients_tenant_product_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: product_packaging (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: product_packaging_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: product_packaging_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: product_packaging_tenant_product_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: products (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: products_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: products_tenant_active_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: products_tenant_created_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: products_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: profiles (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: profiles_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: profiles_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: purchase_price_history (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: purchase_price_history_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: purchase_price_history_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: purchase_price_history_tenant_ingredient_valid_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: purchase_price_history_tenant_packaging_valid_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: purchase_price_history_tenant_subject_valid_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: rate_limits (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: rate_limits_key_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: rate_limits_last_request_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: rate_limits_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: rum_vitals (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: rum_vitals_name_received_at_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: rum_vitals_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: sales (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: sales_fees (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: sales_fees_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sales_fees_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sales_fees_tenant_product_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: sales_items (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: sales_items_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sales_items_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sales_items_tenant_product_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sales_items_tenant_sale_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sales_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sales_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sales_tenant_occurred_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: sessions (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: sessions_expires_at_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sessions_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sessions_token_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: sessions_user_id_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :zap: show_db_tree (FUNCTION)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: simulations (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: simulations_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: simulations_tenant_created_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: simulations_tenant_id_id_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: tenant_memberships (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: tenant_memberships_tenant_id_user_id_pk (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: tenant_memberships_user_id_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: tenants (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: tenants_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: tenants_slug_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: tool_executions (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: tool_executions_idempotency_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: tool_executions_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: tool_executions_tenant_started_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: tool_executions_tenant_usage_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: users (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: users_email_uidx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: users_pkey (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :bar_chart: verifications (TABLE)"
+    },
+    {
+      "tree_structure": "            └── :mag: verifications_expires_at_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: verifications_identifier_idx (INDEX)"
+    },
+    {
+      "tree_structure": "            └── :mag: verifications_pkey (INDEX)"
+    }
+  ]
+]

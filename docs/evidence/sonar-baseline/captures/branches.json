@@ -1,0 +1,23 @@
+{
+  "branches": [
+    {
+      "name": "main",
+      "isMain": true,
+      "type": "LONG",
+      "status": {
+        "bugs": 2,
+        "vulnerabilities": 5,
+        "codeSmells": 198
+      },
+      "analysisDate": "2026-09-13T03:19:58+0000",
+      "commit": {
+        "sha": "9724d2c73b269d0a0199ea305308f3237b38fa09",
+        "date": "2026-09-13T03:19:48+0000",
+        "message": "Merge pull request #47 from Douglas0101/develop"
+      },
+      "branchId": "eee0548b-f524-49a4-9623-b4a2d65c5a17",
+      "branchUuidV1": "AZ_ATOVPAlBTlTcLC30K"
+    }
+  ],
+  "note": "author blocks removed (GitHub login/avatar = PII); SHA, dates and analysis ids kept"
+}
