@@ -17,14 +17,16 @@
 
 ## 1. Estado corrente
 
-- **Fase:** Ciclo 24 / Fase B; D0 **Opção A ratificada** pelo MAESTRO; imposição remota ainda não executada.
-- **Refs medidas em 2026-10-01:** `origin/main=d4b9395`, `origin/develop=48ffb6b`. Bancada `c24/gates-coverage` em worktree `ciclo-24-gates`: back-merge local de main em `de82dc9`; main é ancestral (0 main-only). Publicação de develop pendente do gate final local.
-- **Gate local:** `env -u NO_COLOR npm run check` PASS na bancada com drizzle-kit 0.31.10; 116 suítes, 1397 passed/14 skipped. A árvore original preserva package/lock/node_modules 0.18.1 e suas 3 guardas FAIL; custódia em `docs/evidence/ciclo-24/wip-custody.json`.
-- **CI:** cota desbloqueada por observação: verify do SHA de main executou e passou (run `36879749959`). Sonar main **ERROR**: new_coverage 63,2, limiar 80; não é CI integralmente verde. Proteção de main/develop ausente e 0 rulesets, medidos.
-- **Registry:** 50 dívidas; DBT-62 FECHADA por descoberta e negativos observados; DBT-61 ABERTA: detector existe, closure legada exige análise acessível de develop e não foi satisfeita. DBT-64/65/66/67 ABERTAS; DBT-36 EM_TRATAMENTO / Via A, sem sinal de rotação.
-- **Placar ratificado:** 150 D · 29 P · 8 NS · 0 UNV / 187 (87,9679% parcial; 80,2139% crua). Nenhuma promoção feita pelo agente.
-- **Watchers:** último sinal app-live-watch em 2026-09-30T01:14:03Z, /ready=404; arm em 2026-09-28T02:25:11Z. Disponibilidade atual sem prova; não rearmado.
-- **Evidência e orçamento:** `docs/evidence/ciclo-24/README.md`; 2/13 commits até o merge, 0 novos runs. Selos por revisão git; WIP original preservado.
+- **Fase:** Ciclo 24 escalado por ERRATA E4/E5; Fases I/80 interrompidas na premissa medida. D0 Opção A ratificada e contenção ativa; próxima ação é reconciliar desenho de imposição e alvo antes de promoção. Handoff: `docs/evidence/ciclo-24/README.md`.
+- **Refs medidas em 2026-10-01:** `origin/main=d4b9395`, `origin/develop=0b59423`; PR #60 develop→main ABERTA/BLOCKED. Main é ancestral de develop (0 main-only); 12 commits publicados na linhagem do ciclo, commit 13 exclusivamente documental/local. Bancada `c24/gates-coverage` / worktree `ciclo-24-gates`.
+- **Gate local:** `env -u NO_COLOR npm run check` PASS no SHA `0b59423`, drizzle-kit 0.31.10, 117 suítes, 1411 passed/14 skipped. Original mantém HEAD `48ffb6b` e WIP 0.18.1; 929 hashes de custódia sem diferenças. Selos históricos: 42 hashes/11 revisões PASS.
+- **Imposição:** ruleset `24333849` ativo em main; required verify/scan da Actions, base atualizada, bypass vazio, update freeze adicional. Push GH013 e merge normal HTTP 405 recusados; main inalterada. Owner MAESTRO; janela ADR-037 até 2026-10-02T02:59:59Z, sem expiração automática/bypass. DBT-64 ABERTA: gate PR OK não comprova gate main.
+- **Medição Sonar:** main ERROR 63,2, new lines 1904/690 descobertas e conditions 1091/411 descobertas. Alvo de linhas isolado 310; alvo agregado 502 unidades de cobertura. PR #60 OK com 4 condições e cobertura ausente; métricas da PR indisponíveis, nunca zero. Fonte: `docs/evidence/ciclo-24/README.md`.
+- **CI:** push UI stack PASS; scan PR PASS após espera CE. Verify PR CANCELLED por limite de 12 min na instalação de navegadores, E2E skipped; Neon PR FAILURE HTTP 422 na criação, descarte sem prova. Preview Vercel metadata FAILURE, causa UNVERIFIED. 6 runs observados; sem re-run nem novo push documental.
+- **Registry:** 51 dívidas: 41 ABERTA, 9 FECHADA, 1 EM_TRATAMENTO. DBT-62/66 FECHADAS; DBT-57/61/64/65/67 ABERTAS; DBT-68 timeout novo ABERTA. DBT-36 Via A sem sinal de rotação.
+- **Placar ratificado:** 150 D · 29 P · 8 NS · 0 UNV / 187 (87,9679% parcial; 80,2139% crua). Nenhuma promoção pelo agente.
+- **Watchers:** último sinal app-live-watch 2026-09-30T01:14:03Z, /ready=404; arm 2026-09-28T02:25:11Z. Disponibilidade atual sem prova; não rearmado.
+- **Selos e limite:** `docs/evidence/ciclo-24/fase-final.manifest.sha256` aplicado à revisão documental final; antigos conferidos por revisão de criação. 13/13 commits no encerramento; arquivos da original preservados. Artefato remoto: PR #60; nenhum deploy de produção do ciclo.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -490,3 +492,59 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | ---- | -------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | L295 | 2026-10-01T21:19:06Z | ✔   | E3 reagrupado localmente em 827c21a/6d90e2f; lotes 4/3 e selos PASS; worktree clean. 11/13 commits, nenhum publicado, original preservado.                                                                                                                               |
 | L296 | 2026-10-01T21:19:06Z | ▶   | Check pré-push reprovou lint: 4 no-regex-spaces na guarda/probe Au. Corrigir apenas quantificadores de espaços (mesma semântica), preservar regras, novo selo; reexecutar cadeia completa antes de qualquer push. Commit 12 reservado à correção, 13 à observação final. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                                                                   |
+| ---- | -------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L297 | 2026-10-01T21:24:20Z | ✔   | Correção 0b59423; npm run check completo PASS no SHA 0b59423 (117 suítes, 1411 passed/14 skipped, build/bundle PASS). Log /tmp/ciclo24-prepush-check-final.log; 12/13 commits.                                                                                                         |
+| L298 | 2026-10-01T21:24:20Z | ▶   | Publicar HEAD 0b59423 em develop por fast-forward; abrir PR develop→main para observação; executar controle negativo de push direto para main sob ruleset 24333849. Sem merge. Resultado imediato em /tmp/ciclo24-remote-observation.json e journal; captura sanitizada no fechamento. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                  |
+| ---- | -------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| L299 | 2026-10-01T21:24:23Z | ✔   | develop publicado @ 0b59423; main ainda d4b9395. Push ff; sem WIP original e sem force. Captura /tmp/ciclo24-remote-observation.json. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                       |
+| ---- | -------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L300 | 2026-10-01T21:24:25Z | ✔   | Push direto main REJEITADO por GH013: PR obrigatória e 2 checks esperados; SHA main d4b9395 confirmado inalterado. Negativo observado, não exit-code-only. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                  |
+| ---- | -------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L301 | 2026-10-01T21:25:19Z | ✔   | PR #60 develop→main aberta e anexada; head 0b59423; CI iniciado. Sem merge. Main d4b9395 protegido, push direto GH013 observado.                                                                                                      |
+| L302 | 2026-10-01T21:25:19Z | ▶   | Medir M1 npm run test:coverage na bancada green enquanto se observa CI/M2/CE remoto; nenhuma escrita de testes de produção antes da medição autoritativa new_*. Capturas locais em /tmp/ciclo24-m1-coverage.log e coverage/lcov.info. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                                                                                      |
+| ---- | -------------------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L303 | 2026-10-01T21:31:57Z | ✔   | M1 PASS (9122 LF/5992 LH; 65,68%); M2 bruto por main d4b9395/analysis 1dc2baf9: new 1904 linhas/690 descobertas, 1091 condições/411 descobertas. Gap line-only 310; combinado 502 unidades. Snapshot /tmp/ciclo24-main-baseline-observed.json.                                                            |
+| L304 | 2026-10-01T21:31:57Z | ✘   | ERRATA E4/E5: PR #60 scanner esperou CE e PASSOU; gate PR OK sem condição de coverage, main ERROR 63,2. Required checks PR não impõem 80% em main. M3: denominadores local/new/overall distintos; fórmula só linhas não fecha gate combinado. Fases I e 80 interrompidas; DBT-64/57 ABERTAS.              |
+| L305 | 2026-10-01T21:31:57Z | ▶   | D0 A: acrescentar regra update (update_allows_fetch_and_merge=false) ao ruleset 24333849, sem bypass, para congelar efetivamente todas as atualizações de main após a premissa cair. Não mergear nem publicar main; owner MAESTRO, janela do ADR-037. Captura imediata /tmp/ciclo24-freeze-observed.json. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                  |
+| ---- | -------------------- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L306 | 2026-10-01T21:31:59Z | ✔   | Main congelada: regra update efetiva no ruleset 24333849, bypass vazio, main segue d4b9395. D0 A preservada; imposição completa/80 escaladas, sem prova de gate ERROR no scanner ou publicação verde. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                     |
+| ---- | -------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L307 | 2026-10-01T21:41:13Z | ▶   | Controle de merge da PR #60 pelo endpoint normal, sem bypass; update ativo e bypass vazio verificados imediatamente antes. Prova: docs/evidence/ciclo-24/README.md; main não deve mover. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                              |
+| ---- | -------------------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L308 | 2026-10-01T21:41:15Z | ✔   | Merge normal da PR #60 recusado; main permaneceu d4b9395. Controle prova congelamento/bloqueio agregado, não equivalência de cobertura PR/main; docs/evidence/ciclo-24/README.md. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                        |
+| ---- | -------------------- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L309 | 2026-10-01T21:44:13Z | ▶   | Atualizar descrição da PR #60 com resultados medidos, ERROR main versus OK PR, congelamento update e impedimentos verify/Neon; sem merge, re-run ou bypass. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                           |
+| ---- | -------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| L310 | 2026-10-01T21:44:15Z | ✔   | PR #60 atualizada com gate divergente, freeze sem bypass, verify cancelado por 12 min, Neon 422 e gap 502 unidades; merge permanece bloqueado. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                           |
+| ---- | -------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L311 | 2026-10-01T21:44:15Z | ▶   | Encerrar Ciclo 24 no commit 13/13: reconciliar README, registry, AGENTS e §1 de PROGRESS; registrar DBT-68 timeout da instalação e selar os quatro arquivos. Último commit documental local, sem novo push/CI. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                         |
+| ---- | -------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L312 | 2026-10-01T21:51:48Z | ✔   | README/AGENTS/registry/§1 reconciliados; registry 51 (41 abertas, 9 fechadas, 1 em tratamento). Guards documental/temporal/state, Prettier e diff PASS; histórico append-only e 929 custódias preservados; docs/evidence/ciclo-24/README.md. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                        |
+| ---- | -------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L313 | 2026-10-01T21:51:48Z | ▶   | Commit final 13/13 de cinco arquivos com fase-final.manifest.sha256; sem push ou novo CI. Depois conferir selo/HEAD limpo/count=13 e acrescentar resultado/pointer no PROGRESS da árvore original, preservando a revisão selada da bancada. |
