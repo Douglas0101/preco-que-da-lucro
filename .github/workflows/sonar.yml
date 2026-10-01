@@ -69,6 +69,26 @@ jobs:
             echo "::error::SONAR_TOKEN ausente — configure o secret do repositório"
             exit 1
           fi
+
+          # DBT-61: sem atribuição explícita, o scanner grava TODA análise como `main` — a árvore de
+          # `develop` sobrescrevia a análise de `main` e o "código novo" do gate era medido contra um
+          # histórico que não era o da branch analisada. Medido antes do fix: análise de `revision
+          # 2d73fa3` (commit de develop) arquivada sob `main`, e `develop` como "nunca analisada".
+          #
+          # O ramo importa: uma PR sem `sonar.pullrequest.*` produziria análise de branch gravada como
+          # `main` de novo — verde com a atribuição errada, que é o defeito renascendo.
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            ATRIBUICAO=(
+              "-Dsonar.pullrequest.key=${{ github.event.pull_request.number }}"
+              "-Dsonar.pullrequest.branch=${{ github.head_ref }}"
+              "-Dsonar.pullrequest.base=${{ github.base_ref }}"
+            )
+            echo "atribuicao: pull request #${{ github.event.pull_request.number }} (${{ github.head_ref }} -> ${{ github.base_ref }})"
+          else
+            ATRIBUICAO=("-Dsonar.branch.name=${GITHUB_REF_NAME}")
+            echo "atribuicao: branch ${GITHUB_REF_NAME}"
+          fi
+
           docker run --rm \
             -e SONAR_TOKEN \
             -v "$PWD:/usr/src" \
@@ -79,7 +99,8 @@ jobs:
             -Dsonar.sources=src \
             -Dsonar.exclusions='src/test/**' \
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-            -Dsonar.scm.provider=git
+            -Dsonar.scm.provider=git \
+            "${ATRIBUICAO[@]}"
 
       - name: Guardar o lcov como artefato
         if: always()
