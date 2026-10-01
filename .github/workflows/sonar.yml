@@ -1,0 +1,91 @@
+name: SonarCloud (scanner + cobertura)
+
+# Por que este workflow existe: a *Automatic Analysis* do SonarCloud analisa o repositório, mas
+# **não aceita relatório de cobertura** — ela não roda ferramenta externa. Enquanto ela era o único
+# caminho, o gate media `new_coverage` = 0 e reprovava (`DBT-57`). O `sonar-scanner` aceita o
+# relatório, então a cobertura passa a ser medida aqui.
+#
+# Correção de premissa, medida: `DBT-57` fala em `sonar.coverageReportPaths`, mas essa propriedade
+# espera o **formato genérico de cobertura do SonarQube (XML)** — não lcov. Para lcov em JS/TS a
+# propriedade correta é `sonar.javascript.lcov.reportPaths`, e é ela que este workflow usa.
+#
+# Escopo (`DBT-58`): `sonar.sources=src`. `scripts/**` está fora porque a organização está na cota
+# de 50.000 LOC do plano gratuito e `scripts/` sozinho tem 34.972 LOC. O limite é declarado em
+# `ADR-034`/`ADR-035` — não é uma escolha de qualidade.
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - "docs/evidence/**"
+  workflow_dispatch:
+
+concurrency:
+  group: sonar-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: scan + cobertura
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # O scanner precisa do histórico: sem profundidade suficiente ele não resolve o SCM e o
+          # log traz "No SCM system was detected", o que degrada a atribuição de autoria.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar (como o CI instala)
+        run: npm ci --ignore-scripts
+
+      - name: Suíte com cobertura (lcov)
+        run: npm run test:coverage
+
+      - name: Conferir o relatório antes de enviar
+        run: |
+          set -euo pipefail
+          if [ ! -s coverage/lcov.info ]; then
+            echo "::error::coverage/lcov.info ausente ou vazio — o analyze mediria 0% de novo"
+            exit 1
+          fi
+          echo "lcov.info: $(wc -c < coverage/lcov.info) bytes"
+
+      - name: sonar-scanner
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SONAR_TOKEN:-}" ]; then
+            echo "::error::SONAR_TOKEN ausente — configure o secret do repositório"
+            exit 1
+          fi
+          docker run --rm \
+            -e SONAR_TOKEN \
+            -v "$PWD:/usr/src" \
+            sonarsource/sonar-scanner-cli:latest \
+            -Dsonar.projectKey=Douglas0101_preco-que-da-lucro \
+            -Dsonar.organization=douglas0101 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.sources=src \
+            -Dsonar.exclusions='src/test/**' \
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.scm.provider=git
+
+      - name: Guardar o lcov como artefato
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: warn
+          retention-days: 7
