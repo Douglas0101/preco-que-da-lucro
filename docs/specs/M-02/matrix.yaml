@@ -11,7 +11,7 @@
     "concreteOperations": 36,
     "apiRoutes": 5,
     "transactionSites": 113,
-    "directDatabaseFiles": 49
+    "directDatabaseFiles": 50
   },
   "bffs": [
     {
@@ -1337,6 +1337,7 @@
     "src/test/purchase-price.service.test.ts",
     "src/test/round-trip-instrumentation.perf-waves.test.ts",
     "src/test/safe-record.test.ts",
+    "src/test/schema-diff-verdict.test.ts",
     "src/test/tool-runner.persistence.test.ts"
   ],
   "policy": {

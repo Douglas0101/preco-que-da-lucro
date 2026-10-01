@@ -1,0 +1,753 @@
+{
+  "pullRequests": [
+    {
+      "key": "57",
+      "title": "chore(deps): bump @vercel/analytics from 1.6.1 to 2.0.1",
+      "branch": "dependabot/npm_and_yarn/vercel/analytics-2.0.1",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-30T21:50:44+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/57",
+      "target": "main",
+      "commit": {
+        "sha": "8285312dda617b51788ef1c0b3c10965e917db95",
+        "date": "2026-09-30T21:50:34+0000",
+        "message": "chore(deps): bump @vercel/analytics from 1.6.1 to 2.0.1"
+      },
+      "pullRequestUuidV1": "AaD0TFt5ALKOXMPHu_DG",
+      "pullRequestId": "c4346377-8c29-4e15-a23d-27e0fcd32df6"
+    },
+    {
+      "key": "56",
+      "title": "chore(deps): bump react and @types/react",
+      "branch": "dependabot/npm_and_yarn/multi-7f19880bf6",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-30T21:50:43+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/56",
+      "target": "main",
+      "commit": {
+        "sha": "1aabc679c0bcafbb04756d93bf91b58e2a122840",
+        "date": "2026-09-30T21:50:32+0000",
+        "message": "chore(deps): bump react and @types/react"
+      },
+      "pullRequestUuidV1": "AaD0TFjRkj6CGoBn7uU3",
+      "pullRequestId": "21e76004-5395-44fa-81a4-d025f6fcebc7"
+    },
+    {
+      "key": "55",
+      "title": "chore(deps): bump tailwind-merge from 3.6.0 to 3.7.0",
+      "branch": "dependabot/npm_and_yarn/tailwind-merge-3.7.0",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-30T21:50:34+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/55",
+      "target": "main",
+      "commit": {
+        "sha": "1070bb98b32fb97a956f6d7bca82d6aadfd65d27",
+        "date": "2026-09-30T21:50:19+0000",
+        "message": "chore(deps): bump tailwind-merge from 3.6.0 to 3.7.0"
+      },
+      "pullRequestUuidV1": "AaD0TCvblYM0-fElM9qp",
+      "pullRequestId": "2acbacb3-a4d3-4afd-b73c-9abb8e13fa50"
+    },
+    {
+      "key": "54",
+      "title": "chore(deps-dev): bump @testing-library/user-event from 14.6.6 to 14.6.7",
+      "branch": "dependabot/npm_and_yarn/testing-library/user-event-14.6.7",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-30T21:50:28+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/54",
+      "target": "main",
+      "commit": {
+        "sha": "4d42135545b717968c6ae272a77bc275ef0704f1",
+        "date": "2026-09-30T21:50:16+0000",
+        "message": "chore(deps-dev): bump @testing-library/user-event from 14.6.6 to 14.6.7"
+      },
+      "pullRequestUuidV1": "AaD0TBczlYM0-fElM9qR",
+      "pullRequestId": "07ccea9d-305b-44b1-9c65-d988d48a6386"
+    },
+    {
+      "key": "53",
+      "title": "chore(deps): bump @tanstack/react-router from 1.170.32 to 1.170.40",
+      "branch": "dependabot/npm_and_yarn/tanstack/react-router-1.170.40",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-30T21:50:23+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/53",
+      "target": "main",
+      "commit": {
+        "sha": "b2ae9d5dcdb4872b5be61a3c4f5f195ac9f69bd9",
+        "date": "2026-09-30T21:50:12+0000",
+        "message": "chore(deps): bump @tanstack/react-router from 1.170.32 to 1.170.40"
+      },
+      "pullRequestUuidV1": "AaD0TAqhALKOXMPHu_CY",
+      "pullRequestId": "cf6b1873-bf8d-4560-a35f-5c04e7cec82c"
+    },
+    {
+      "key": "52",
+      "title": "chore(deps): bump neondatabase/create-branch-action from 6.3.1 to 6.4.0",
+      "branch": "dependabot/github_actions/neondatabase/create-branch-action-6.4.0",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "ERROR",
+        "bugs": 0,
+        "vulnerabilities": 2,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-30T21:50:12+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/52",
+      "target": "main",
+      "commit": {
+        "sha": "f39f4751b2d97083fad8b89c410f604081cc049d",
+        "date": "2026-09-30T21:50:03+0000",
+        "message": "chore(deps): bump neondatabase/create-branch-action from 6.3.1 to 6.4.0"
+      },
+      "pullRequestUuidV1": "AaD0S-BGlYM0-fElM9pY",
+      "pullRequestId": "7194d23d-0383-4d70-a047-28d516299154"
+    },
+    {
+      "key": "51",
+      "title": "chore(deps): bump actions/cache from 4.3.0 to 6.1.0",
+      "branch": "dependabot/github_actions/actions/cache-6.1.0",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-30T21:50:08+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/51",
+      "target": "main",
+      "commit": {
+        "sha": "d08b7621bba0dc18d4fc5f939ccc0cdeefa28763",
+        "date": "2026-09-30T21:49:57+0000",
+        "message": "chore(deps): bump actions/cache from 4.3.0 to 6.1.0"
+      },
+      "pullRequestUuidV1": "AaD0S8ncnW7s-NNcKvvo",
+      "pullRequestId": "c455f621-9f04-4b0c-83f7-1a1b93870bf3"
+    },
+    {
+      "key": "50",
+      "title": "release: v1.0.0 \u2014 promove develop para main (Ciclo 18)",
+      "branch": "develop",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "ERROR",
+        "bugs": 15,
+        "vulnerabilities": 19,
+        "codeSmells": 374
+      },
+      "analysisDate": "2026-09-30T21:09:03+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/50",
+      "target": "main",
+      "commit": {
+        "sha": "98d1b93e14b4e181e5a3a6ddb55cba75ad65069e",
+        "date": "2026-09-30T21:08:51+0000",
+        "message": "docs(evidence): register DBT-56 - the schema-diff check misreads an already-migrated production"
+      },
+      "pullRequestUuidV1": "AaDwv5wyw9J6DS7cHRdU",
+      "pullRequestId": "58e3bbe6-fb26-4b41-9f1e-10fb6b21c276"
+    },
+    {
+      "key": "49",
+      "title": "feat(contracts)+fix(auth): ciclo 3 \u2014 DBT-25 (contrato de sa\u00edda, piso 5 de 35) e DBT-26 (verifier n\u00e3o mascara mais exce\u00e7\u00e3o)",
+      "branch": "feature/contract-guard-bff",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "ERROR",
+        "bugs": 4,
+        "vulnerabilities": 0,
+        "codeSmells": 146
+      },
+      "analysisDate": "2026-09-30T05:05:15+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/49",
+      "target": "develop",
+      "commit": {
+        "sha": "1f5d25dd542689a092b57facf552ff0b0ae96025",
+        "date": "2026-09-30T05:02:11+0000",
+        "message": "docs(runbooks): add the v1.0.0 Hostinger rollback plan (revert + redeploy)"
+      },
+      "pullRequestUuidV1": "AaDfbJa61PD4uXWxBLQr",
+      "pullRequestId": "e8b83f8c-63a3-4012-b47f-67370705d6bc"
+    },
+    {
+      "key": "48",
+      "title": "feat(financial,security,deps): Fase 0 \u00a75 + Fase 1 \u00a76 P0 reconciliados, governan\u00e7a de depend\u00eancias e chain pinning",
+      "branch": "feature/p0-financial-security-baseline",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "ERROR",
+        "bugs": 2,
+        "vulnerabilities": 3,
+        "codeSmells": 69
+      },
+      "analysisDate": "2026-09-26T03:52:28+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/48",
+      "target": "develop",
+      "commit": {
+        "sha": "5d7c12e8a89a02662639f8ccda5666eb32bddc13",
+        "date": "2026-09-26T03:51:22+0000",
+        "message": "docs(debts): close DBT-19 and DBT-24 by MAESTRO decision"
+      },
+      "pullRequestUuidV1": "AaDb171L1PD4uXWxA8uA",
+      "pullRequestId": "af9b39ee-37ec-499e-9757-b4a863924c97"
+    },
+    {
+      "key": "47",
+      "title": "release: port P0 (finance/erro/logging/IA) + CI leve + journal de agente",
+      "branch": "develop",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "ERROR",
+        "bugs": 0,
+        "vulnerabilities": 2,
+        "codeSmells": 4
+      },
+      "analysisDate": "2026-09-13T03:11:58+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/47",
+      "target": "main",
+      "commit": {
+        "sha": "0734ed9681270b78563a066f10872ea5e9cdb616",
+        "date": "2026-09-13T03:11:42+0000",
+        "message": "Merge pull request #46 from Douglas0101/feat/p0-port"
+      },
+      "pullRequestUuidV1": "AaCYv_o4NDuEZXv0EU1Z",
+      "pullRequestId": "3d0c354a-185a-4c6b-9049-707de5582a33"
+    },
+    {
+      "key": "46",
+      "title": "feat(p0): port sem\u00e2ntico do lote P0 de 2026-08-19 para a base atual",
+      "branch": "feat/p0-port",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 3
+      },
+      "analysisDate": "2026-09-13T03:04:00+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/46",
+      "target": "develop",
+      "commit": {
+        "sha": "4bd4a76581396b1446ed1cf5db47a7fe92466441",
+        "date": "2026-09-13T03:03:47+0000",
+        "message": "fix(ssr): extract securityHeaders to a neutral module (breaks start<->server cycle)"
+      },
+      "pullRequestUuidV1": "AaCYrZ7tMANoSYHk3a2N",
+      "pullRequestId": "ae0e24eb-2d3b-4189-bd66-e2a5f5c88032"
+    },
+    {
+      "key": "45",
+      "title": "ci(github): CI leve para docs/evidence + pesado preservado (filtro por caminho)",
+      "branch": "chore/ci-path-filter",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-13T02:42:37+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/45",
+      "target": "develop",
+      "commit": {
+        "sha": "4400b637921335724fbd28204526451826bff96f",
+        "date": "2026-09-13T02:42:24+0000",
+        "message": "Merge remote-tracking branch 'origin/develop' into chore/ci-path-filter"
+      },
+      "pullRequestUuidV1": "AaCYpM46emvNpZvEaD_4",
+      "pullRequestId": "70eca37a-02de-4a8b-b1ca-fbf4c8efd039"
+    },
+    {
+      "key": "44",
+      "title": "release: cutover T-0 (migration 0011 12/12) + tooling/evidence",
+      "branch": "develop",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-12T03:07:52+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/44",
+      "target": "main",
+      "commit": {
+        "sha": "c080586c9dda2cbbe57e742447fc778c4a3128ca",
+        "date": "2026-09-12T02:49:18+0000",
+        "message": "docs(m02): restore state marker after autofix and note dependency drift"
+      },
+      "pullRequestUuidV1": "AaCTleVHemvNpZvEZxgB",
+      "pullRequestId": "f4939865-8bc7-40e7-a112-514da8bbf2ef"
+    },
+    {
+      "key": "43",
+      "title": "fix(db): reconcile auth-table RLS drift with migration 0011",
+      "branch": "develop",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-11T03:04:11+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/43",
+      "target": "main",
+      "commit": {
+        "sha": "47ffeb8c2146198f18906efab455880afa884455",
+        "date": "2026-09-11T03:04:03+0000",
+        "message": "fix(ci): compare journal count dynamically and seal 0011 evidence"
+      },
+      "pullRequestUuidV1": "AaCLoF1cx-o20qdEbSpF",
+      "pullRequestId": "73c0fa1a-3677-4a0f-b5c8-08b4e330bb5b"
+    },
+    {
+      "key": "42",
+      "title": "Install Vercel Web Analytics with docs",
+      "branch": "vercel/install-vercel-web-analytics-w-vd9z0a",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-10T02:49:33+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/42",
+      "target": "main",
+      "commit": {
+        "sha": "477da8acaf4047ba4daa5ce9382df6d9c1205798",
+        "date": "2026-09-10T02:49:21+0000",
+        "message": "chore(ci): retrigger PR checks after forensic Vercel project removal"
+      },
+      "pullRequestUuidV1": "AaCDduA29uiDzF2op9Iv",
+      "pullRequestId": "0858c484-1ec5-4a78-9189-7708cb91ef48"
+    },
+    {
+      "key": "41",
+      "title": "docs(evidence): publish reviewed evidence records",
+      "branch": "codex/evidence-2026-09-08",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-09T03:37:55+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/41",
+      "target": "develop",
+      "commit": {
+        "sha": "012f607ef1c19e8284d5e69c3112089d7c63c8d0",
+        "date": "2026-09-09T03:37:46+0000",
+        "message": "docs(evidence): record provider decision and operational gates"
+      },
+      "pullRequestUuidV1": "AaCC-4ved2o-mDgyyIKf",
+      "pullRequestId": "4c0fe673-926f-402f-96b8-7191291532ea"
+    },
+    {
+      "key": "40",
+      "title": "feat(m02): publish forensic and database safety controls",
+      "branch": "develop",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 122
+      },
+      "analysisDate": "2026-09-08T18:56:20+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/40",
+      "target": "main",
+      "commit": {
+        "sha": "168bcf191f1335e05d8d5ec2618cefb9feb091ce",
+        "date": "2026-09-08T18:56:07+0000",
+        "message": "fix(security): expose bundle path guard control flow"
+      },
+      "pullRequestUuidV1": "AaB_tJKAtDITuq0fJgvH",
+      "pullRequestId": "5b462553-cc1a-46ea-9ab4-466a8e9d310b"
+    },
+    {
+      "key": "39",
+      "title": "chore(security): align repository hygiene for release",
+      "branch": "develop",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-08T05:13:22+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/39",
+      "target": "main",
+      "commit": {
+        "sha": "6ab01bc938747b52e4cbede2a903b5a99d18b286",
+        "date": "2026-09-08T05:01:37+0000",
+        "message": "chore(security): harden local artifact ignore policy"
+      },
+      "pullRequestUuidV1": "AaB_b1oywxI8gzvsMtal",
+      "pullRequestId": "b72e98b2-84ba-4059-9280-d660e6c80368"
+    },
+    {
+      "key": "38",
+      "title": "release: pr\u00e9-A4 burn-down (PRs #35 #36 #37)",
+      "branch": "develop",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 10
+      },
+      "analysisDate": "2026-09-06T04:02:52+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/38",
+      "target": "main",
+      "commit": {
+        "sha": "499ae31d385edb872c725c15f3aca1b6938f5de0",
+        "date": "2026-09-06T03:58:30+0000",
+        "message": "chore(ledger): linha em branco antes do header PR-3 (prettier)"
+      },
+      "pullRequestUuidV1": "AaB04hHLysLIlhLif4ic",
+      "pullRequestId": "f22c4236-5e72-481c-9bb2-a163b5cd4515"
+    },
+    {
+      "key": "37",
+      "title": "docs(pre-a4): runbooks A4/hPanel/A5 + ADR-027 + freeze + consolidado",
+      "branch": "chore/pre-a4-runbooks-a4",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-06T03:47:50+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/37",
+      "target": "develop",
+      "commit": {
+        "sha": "849e828530f755f8bf8b0cfc0e887f924b920671",
+        "date": "2026-09-06T03:47:26+0000",
+        "message": "docs(pre-a4): runbooks A4/hPanel/A5 + ADR-027 storage + freeze M02-D-009 + consolidado"
+      },
+      "pullRequestUuidV1": "AaB01E2ZbMgFd3KsTFRx",
+      "pullRequestId": "3e4b7b3a-bd0d-47c5-b70e-9ce4a1378162"
+    },
+    {
+      "key": "36",
+      "title": "docs(pre-a4): re-auditoria de segredos + errata M02-D-006 + memo G1",
+      "branch": "chore/pre-a4-security-g1",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-06T03:46:18+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/36",
+      "target": "develop",
+      "commit": {
+        "sha": "b589eb6ec5c1d843ba4a01f735f9d34820c1d234",
+        "date": "2026-09-06T03:45:42+0000",
+        "message": "docs(pre-a4): re-auditoria de segredos + errata M02-D-006 + memo G1 M02-D-008"
+      },
+      "pullRequestUuidV1": "AaB00ubPBlKrDa6g_Gdg",
+      "pullRequestId": "bcf96d8a-c402-4656-9762-52a319cfb6a2"
+    },
+    {
+      "key": "35",
+      "title": "feat(db01): publica purge de fixtures + guard 0010 recalibrada + smoke re-baselineado",
+      "branch": "chore/pre-a4-db01-purge-guard",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 1
+      },
+      "analysisDate": "2026-09-06T03:45:11+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/35",
+      "target": "develop",
+      "commit": {
+        "sha": "9a7ff462bc953f87b59212a33e6bb2de97e65b44",
+        "date": "2026-09-06T03:44:47+0000",
+        "message": "feat(db01): purge fixtures publication + guard 0010 recalibrated + smoke re-baselined"
+      },
+      "pullRequestUuidV1": "AaB00eSmysLIlhLif4V6",
+      "pullRequestId": "4d80dd69-9d85-4a3a-833d-128b405a432a"
+    },
+    {
+      "key": "34",
+      "title": "fix(m02): proteger rollback e ferramentas ap\u00f3s purge DB-01",
+      "branch": "fix/pre-a4-guard-safety",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "ERROR",
+        "bugs": 3,
+        "vulnerabilities": 0,
+        "codeSmells": 4
+      },
+      "analysisDate": "2026-09-06T03:08:09+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/34",
+      "target": "develop",
+      "commit": {
+        "sha": "b2a0724981d5fbf57c50b7cd98232b9d0f3d24a6",
+        "date": "2026-09-06T03:07:58+0000",
+        "message": "docs(m02): pin post-purge evidence and remaining gates"
+      },
+      "pullRequestUuidV1": "AaB0r_6XKbaNl224kKXY",
+      "pullRequestId": "8f1d5c80-7613-4086-a1d4-6ba2d7cf789e"
+    },
+    {
+      "key": "31",
+      "title": "chore(security): DB-02 \u2014 remo\u00e7\u00e3o de neon-storage.env, m02:secrets-audit, SEC-01",
+      "branch": "chore/pre-a4-security-hygiene",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 7
+      },
+      "analysisDate": "2026-09-06T01:34:57+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/31",
+      "target": "develop",
+      "commit": {
+        "sha": "711842aa74a4c86ea022cbec76e546ef907746f8",
+        "date": "2026-09-06T01:34:43+0000",
+        "message": "Merge remote-tracking branch 'origin/develop' into chore/pre-a4-security-hygiene"
+      },
+      "pullRequestUuidV1": "AaBzLNiWR348sxUkOPcJ",
+      "pullRequestId": "597e6f7b-e47a-4646-8e84-771ce14ed733"
+    },
+    {
+      "key": "33",
+      "title": "test(finance): corrige flake da propriedade de margem (filtro sem \u03a3fees)",
+      "branch": "fix/finance-properties-flake",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-06T01:22:36+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/33",
+      "target": "develop",
+      "commit": {
+        "sha": "e26753f3927e1571b1688577ff069de42698af1f",
+        "date": "2026-09-06T01:22:21+0000",
+        "message": "test(finance): filtro da propriedade de margem inclui \u03a3fees (flake CI)"
+      },
+      "pullRequestUuidV1": "AaB0T1ibR348sxUkOUQc",
+      "pullRequestId": "a946bb7f-1ea2-4cd2-9380-b84acfe0be6a"
+    },
+    {
+      "key": "32",
+      "title": "fix(backup): restore nativo reconciliado; BAK-01 operacional permanece aberta",
+      "branch": "chore/pre-a4-backup-restore",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 1
+      },
+      "analysisDate": "2026-09-05T22:50:09+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/32",
+      "target": "develop",
+      "commit": {
+        "sha": "eb95f24d93fbbdaff4773d79ced90964d32bc10d",
+        "date": "2026-09-05T22:50:00+0000",
+        "message": "docs(program): pin native restore evidence and retain BAK-01 operational gate"
+      },
+      "pullRequestUuidV1": "AaBzT-dHysLIlhLifyV1",
+      "pullRequestId": "2f585579-abc0-43a6-b30d-322a14d57f71"
+    },
+    {
+      "key": "30",
+      "title": "ci(neon): workflow de drill-ops para branches ef\u00eameras (A1/A4 tooling)",
+      "branch": "chore/neon-drill-ops-workflow",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-05T20:15:08+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/30",
+      "target": "develop",
+      "commit": {
+        "sha": "613862079d8fa451c97fa86e8fe118b8afa761b5",
+        "date": "2026-09-05T20:14:56+0000",
+        "message": "ci(neon): substitui curl com credencial em CLI por node fetch (hotspot Sonar linha 97)"
+      },
+      "pullRequestUuidV1": "AaBzI12Gg6Fhx6Sn151K",
+      "pullRequestId": "a9ab5b72-5b17-411b-a361-886dd4f5e70c"
+    },
+    {
+      "key": "29",
+      "title": "docs(m02): auditoria substrato Supabase\u2192Neon \u2014 veredito, emendas SDD, smoke, runbook A5",
+      "branch": "audit/substrato-2026-09-05",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 1
+      },
+      "analysisDate": "2026-09-05T19:07:06+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/29",
+      "target": "develop",
+      "commit": {
+        "sha": "d73ac0841795edd27bc79ab2dda45eb40ac4d8d2",
+        "date": "2026-09-05T19:05:43+0000",
+        "message": "docs(program): auditoria substrato 2026-09-05 \u2014 veredito A/B, DB-01/DB-02, M02-D-006..008, BLOCKER-EXT-01"
+      },
+      "pullRequestUuidV1": "AaBy95PEZi_iUeoHXfw0",
+      "pullRequestId": "8771962f-af94-4b26-99b6-71c975c4e07f"
+    },
+    {
+      "key": "28",
+      "title": "Release: M-02 boundaries gate por categoria + guarda do rollback 0010",
+      "branch": "develop",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-05T17:12:59+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/28",
+      "target": "main",
+      "commit": {
+        "sha": "6c33fc72357eb4481d9ef81ad7747f38e9a8b652",
+        "date": "2026-09-05T17:00:36+0000",
+        "message": "fix(m02): boundaries gate por categoria \u2014 policies/catalog reais, exce\u00e7\u00f5es transit\u00f3rias, guarda down 0010"
+      },
+      "pullRequestUuidV1": "AaByjxVXBlKrDa6g-9HN",
+      "pullRequestId": "8b40bb23-de72-4a49-88cb-88bbefff2c73"
+    },
+    {
+      "key": "27",
+      "title": "Release: fechamento do Sonar Quality Gate (fix PR #25 \u2014 S3516/S4036/S2871 + exclus\u00e3o drizzle/**)",
+      "branch": "develop",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-05T02:19:21+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/27",
+      "target": "main",
+      "commit": {
+        "sha": "0bab6b7cc6fcf02d371ed7b9d7aec928ae6d22c3",
+        "date": "2026-09-05T02:10:42+0000",
+        "message": "Merge pull request #26 from Douglas0101/fix/sonar-pr25-quality-gate"
+      },
+      "pullRequestUuidV1": "AaBvXPLYZe2HR5N6gO9c",
+      "pullRequestId": "40efcf90-7f9e-4e51-b928-a460ed64a047"
+    },
+    {
+      "key": "26",
+      "title": "fix(sonar): fechar Quality Gate do PR #25 (Reliability D / Security B)",
+      "branch": "fix/sonar-pr25-quality-gate",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "OK",
+        "bugs": 0,
+        "vulnerabilities": 0,
+        "codeSmells": 0
+      },
+      "analysisDate": "2026-09-04T04:07:47+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/26",
+      "target": "develop",
+      "commit": {
+        "sha": "fdc0a17e8daaa73c549bf27098a95e622f5987f9",
+        "date": "2026-09-04T04:06:46+0000",
+        "message": "fix(sonar): close PR #25 quality gate \u2014 S3516, S4036, S2871, complexity, drizzle exclusion"
+      },
+      "pullRequestUuidV1": "AaBqmd404NYFd2BhRk0U",
+      "pullRequestId": "b8150755-67af-45f5-83ee-0200f613e4ff"
+    },
+    {
+      "key": "25",
+      "title": "Release: wave1 + fechamento P1 (WS-01..07, S1\u2013S7, B1/B2) \u2014 migrations j\u00e1 aplicadas em produ\u00e7\u00e3o",
+      "branch": "develop",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "ERROR",
+        "bugs": 4,
+        "vulnerabilities": 1,
+        "codeSmells": 29
+      },
+      "analysisDate": "2026-09-04T02:46:48+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/25",
+      "target": "main",
+      "commit": {
+        "sha": "f4679bdfeec7c9e45041be7fa8e8cdd51a5044f2",
+        "date": "2026-09-04T02:46:20+0000",
+        "message": "docs: release readiness develop-to-main and record A3/A4 migration state"
+      },
+      "pullRequestUuidV1": "AaBqT7bjvKP_vj-JDyeZ",
+      "pullRequestId": "46ac3858-fd23-441a-b6ac-bc670a179426"
+    },
+    {
+      "key": "24",
+      "title": "wave1: fechamento P1 (WS-01..07) + ressalvas S1\u2013S7 + estabiliza\u00e7\u00e3o B1/B2",
+      "branch": "codex/wave1-neon-native",
+      "base": "main",
+      "status": {
+        "qualityGateStatus": "ERROR",
+        "bugs": 4,
+        "vulnerabilities": 1,
+        "codeSmells": 29
+      },
+      "analysisDate": "2026-09-03T04:33:46+0000",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/24",
+      "target": "develop",
+      "commit": {
+        "sha": "b8fcb0b1e71f4918fce6a77dfa28596e8c3a7cf4",
+        "date": "2026-09-03T04:33:35+0000",
+        "message": "docs(ledger): record A1/A2 publication state and Sonar pending triage"
+      },
+      "pullRequestUuidV1": "AaBlgjjiFnl3H-Yv0L8R",
+      "pullRequestId": "4f64f865-32f1-42cd-b908-32cede8386e6"
+    }
+  ],
+  "note": "author blocks removed (GitHub login/avatar = PII); SHA, dates and analysis ids kept; contributor logins removed"
+}

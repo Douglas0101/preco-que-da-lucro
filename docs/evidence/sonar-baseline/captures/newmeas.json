@@ -1,0 +1,12 @@
+{
+  "component": {
+    "id": "AZ_ATOVPAlBTlTcLC30K",
+    "key": "Douglas0101_preco-que-da-lucro",
+    "name": "preco-que-da-lucro",
+    "qualifier": "TRK",
+    "measures": [
+      { "metric": "ncloc", "value": "35666" },
+      { "metric": "violations", "value": "205", "bestValue": false }
+    ]
+  }
+}

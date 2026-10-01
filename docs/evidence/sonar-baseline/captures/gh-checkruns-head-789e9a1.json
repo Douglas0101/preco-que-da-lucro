@@ -1,0 +1,18 @@
+{
+  "commit": "789e9a1",
+  "runs": [
+    {
+      "completed_at": "2026-09-30T22:06:22Z",
+      "conclusion": "success",
+      "name": "Vercel Preview Comments",
+      "output_title": "✅ No unresolved feedback"
+    },
+    {
+      "completed_at": "2026-09-30T22:06:21Z",
+      "conclusion": "success",
+      "name": "docs-light",
+      "output_title": null
+    }
+  ],
+  "total": 2
+}

@@ -1,0 +1,38 @@
+{
+  "component": {
+    "id": "AaDwv5wyw9J6DS7cHRdU",
+    "key": "Douglas0101_preco-que-da-lucro",
+    "name": "preco-que-da-lucro",
+    "qualifier": "TRK",
+    "measures": [
+      {
+        "metric": "new_violations",
+        "periods": [{ "index": 1, "value": "408", "bestValue": false }]
+      },
+      {
+        "metric": "new_reliability_rating",
+        "periods": [{ "index": 1, "value": "4.0", "bestValue": false }]
+      },
+      { "metric": "ncloc", "value": "40181" },
+      { "metric": "violations", "value": "408", "bestValue": false },
+      {
+        "metric": "new_security_rating",
+        "periods": [{ "index": 1, "value": "5.0", "bestValue": false }]
+      },
+      {
+        "metric": "new_maintainability_rating",
+        "periods": [{ "index": 1, "value": "1.0", "bestValue": true }]
+      },
+      {
+        "metric": "new_security_hotspots_reviewed",
+        "periods": [{ "index": 1, "value": "100.0", "bestValue": true }]
+      },
+      {
+        "metric": "new_duplicated_lines_density",
+        "periods": [{ "index": 1, "value": "2.684955493944258", "bestValue": false }]
+      },
+      { "metric": "new_bugs", "periods": [{ "index": 1, "value": "15", "bestValue": false }] }
+    ],
+    "pullRequest": "50"
+  }
+}

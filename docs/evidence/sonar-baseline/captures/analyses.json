@@ -1,0 +1,99 @@
+{
+  "paging": { "pageIndex": 1, "pageSize": 100, "total": 9 },
+  "analyses": [
+    {
+      "key": "8ddc102a-9680-400f-8aa5-8dda4d8ae925",
+      "date": "2026-09-13T03:19:58+0000",
+      "events": [{ "key": "AaCYyDpakcuVuZeQhtaQ", "category": "VERSION", "name": "not provided" }],
+      "projectVersion": "not provided",
+      "manualNewCodePeriodBaseline": false,
+      "revision": "9724d2c73b269d0a0199ea305308f3237b38fa09"
+    },
+    {
+      "key": "43921279-d02f-45bb-8d67-445e945a4c36",
+      "date": "2026-09-12T03:15:50+0000",
+      "events": [],
+      "projectVersion": "not provided",
+      "manualNewCodePeriodBaseline": false,
+      "revision": "ef2110e7315e568348d083c944ea6cc65778f646"
+    },
+    {
+      "key": "d35bbd2a-c99c-45b0-8056-2b19d613da3d",
+      "date": "2026-09-11T03:16:49+0000",
+      "events": [],
+      "projectVersion": "not provided",
+      "manualNewCodePeriodBaseline": false,
+      "revision": "e6da2479b7bd82b8a91fd2ab006bc9226f4c9dca"
+    },
+    {
+      "key": "1f9f1a9b-d99a-4c11-9106-4058599bdece",
+      "date": "2026-09-10T02:58:35+0000",
+      "events": [
+        {
+          "key": "AaCJQW7TMcv5-WxY05I3",
+          "category": "QUALITY_PROFILE",
+          "name": "Changes in \u0027Sonar way comprehensive\u0027 (js)"
+        },
+        {
+          "key": "AaCJQW7TMcv5-WxY05I2",
+          "category": "QUALITY_PROFILE",
+          "name": "Changes in \u0027Sonar way comprehensive\u0027 (ts)"
+        }
+      ],
+      "projectVersion": "not provided",
+      "manualNewCodePeriodBaseline": false,
+      "revision": "c2c84f64580e861de1f6b0235e1e5b770a2c54c0"
+    },
+    {
+      "key": "68c9fa2e-e8ec-4a1b-ad10-79288a376b72",
+      "date": "2026-09-08T05:42:43+0000",
+      "events": [],
+      "projectVersion": "not provided",
+      "manualNewCodePeriodBaseline": false,
+      "revision": "ff28d45e6fcc0b7f2d1198dc2b42611f7b85c15d"
+    },
+    {
+      "key": "8ccdc2ba-3f55-443d-8976-21b43cb214c1",
+      "date": "2026-09-06T04:15:08+0000",
+      "events": [],
+      "projectVersion": "not provided",
+      "manualNewCodePeriodBaseline": false,
+      "revision": "ac2e8341bc416d0834a3fa22355416ba63b1d98e"
+    },
+    {
+      "key": "3a72eefe-480c-4d60-a686-4153566926ac",
+      "date": "2026-09-05T02:52:52+0000",
+      "events": [],
+      "projectVersion": "not provided",
+      "manualNewCodePeriodBaseline": false,
+      "revision": "b1f946883a106668a5cf1d67ec8d7ec5d48810a2"
+    },
+    {
+      "key": "7cb72399-4cdf-4990-a236-4aee6804e570",
+      "date": "2026-08-23T16:01:25+0000",
+      "events": [
+        {
+          "key": "AaAvW6dGmR300CbmwM_h",
+          "category": "QUALITY_PROFILE",
+          "name": "Changes in \u0027Sonar way comprehensive\u0027 (js)"
+        },
+        {
+          "key": "AaAvW6dGmR300CbmwM_g",
+          "category": "QUALITY_PROFILE",
+          "name": "Changes in \u0027Sonar way comprehensive\u0027 (css)"
+        }
+      ],
+      "projectVersion": "not provided",
+      "manualNewCodePeriodBaseline": false,
+      "revision": "6f6baca13759be930bfbebffb818a4ac08088651"
+    },
+    {
+      "key": "e5c26e2a-cb26-4800-8796-f5d6affc0ae4",
+      "date": "2026-08-02T04:32:06+0000",
+      "events": [],
+      "projectVersion": "not provided",
+      "manualNewCodePeriodBaseline": false,
+      "revision": "d9a9a0d845f9221a918cfebd89f132faf262767a"
+    }
+  ]
+}
