@@ -16,7 +16,17 @@ name: SonarCloud (scanner + cobertura)
 on:
   pull_request:
   push:
-    branches: [main, develop]
+    # Só `main`. Medido em 2026-10-01: o plano gratuito **não expõe dado de branch não-main** —
+    # `api/measures/component?branch=develop` devolve **403** `Organization is not allowed to access
+    # data from non main branches`, mesmo com a tarefa do CE em `SUCCESS` e `branch: develop`.
+    #
+    # A consequência corrige o desenho anterior deste workflow: analisar um push de `develop`
+    # produzia (a) com atribuição a `develop`, uma análise processada e **inacessível** — pior que o
+    # defeito, porque o gate deixa de ter resultado; (b) sem atribuição, uma análise **gravada como
+    # `main`** que sobrescrevia a de `main` (`DBT-61`). No plano gratuito, o push de `develop` não tem
+    # superfície acessível, então o scanner não roda nele — e o caminho que importa passa a ser a
+    # **PR**, que o plano gratuito suporta.
+    branches: [main]
     paths-ignore:
       - "docs/evidence/**"
   workflow_dispatch:
@@ -70,10 +80,13 @@ jobs:
             exit 1
           fi
 
-          # DBT-61: sem atribuição explícita, o scanner grava TODA análise como `main` — a árvore de
-          # `develop` sobrescrevia a análise de `main` e o "código novo" do gate era medido contra um
-          # histórico que não era o da branch analisada. Medido antes do fix: análise de `revision
-          # 2d73fa3` (commit de develop) arquivada sob `main`, e `develop` como "nunca analisada".
+          # DBT-61 + a medição que corrigiu este desenho. O defeito: sem atribuição explícita, o
+          # scanner gravava TODA análise como `main` — medido que a análise de `revision 2d73fa3`
+          # (commit de develop) ficou sob `main`, e `develop` aparecia como "nunca analisada".
+          #
+          # Mas atribuir a branch também não serve no plano gratuito: o CE processa e o dado fica
+          # inacessível (403, medido). Por isso o push é só de `main` (onde o padrão já é `main`) e a
+          # atribuição explícita existe **para PR**, que é a superfície que o plano gratuito expõe.
           #
           # O ramo importa: uma PR sem `sonar.pullrequest.*` produziria análise de branch gravada como
           # `main` de novo — verde com a atribuição errada, que é o defeito renascendo.
@@ -85,8 +98,8 @@ jobs:
             )
             echo "atribuicao: pull request #${{ github.event.pull_request.number }} (${{ github.head_ref }} -> ${{ github.base_ref }})"
           else
-            ATRIBUICAO=("-Dsonar.branch.name=${GITHUB_REF_NAME}")
-            echo "atribuicao: branch ${GITHUB_REF_NAME}"
+            ATRIBUICAO=()
+            echo "atribuicao: branch principal (padrão) — push de ${GITHUB_REF_NAME}"
           fi
 
           docker run --rm \
