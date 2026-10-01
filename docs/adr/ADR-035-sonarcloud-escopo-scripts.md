@@ -184,3 +184,30 @@ alvo.
 ser a do Sonar). `DBT-54` está fechada e a exclusão dela segue vigente e declarada. `DBT-57` é a
 condição vermelha corrente e **não** se confunde com esta. Enquanto `DBT-58` estiver aberta,
 nenhum documento pode afirmar que o repositório tem análise estática completa.
+
+---
+
+## 6. Emenda — Ciclo 22: a terceira via medida (licença OSI)
+
+O §4 registrou duas vias de fechamento (subir o plano ou reduzir LOC reais de `scripts/**`). Falta
+uma, e ela é a única que alcança o objetivo **sem recortar escopo e sem pagar**:
+
+| via                                             | o que faz                                                                                                                                                         | custo                                                      | decisão                          |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | -------------------------------- |
+| (a) subir o plano                               | devolve `scripts/**` ao gate com o escopo completo                                                                                                                | recorrente, em dinheiro                                    | MAESTRO                          |
+| (b) reduzir LOC de `scripts/**`                 | devolve `scripts/**` ao gate sem pagar                                                                                                                            | refactor grande (≈ 8.836 LOC / 25,3 %)                     | MAESTRO                          |
+| **(c) licenciar o repositório com licença OSI** | o programa OSS do SonarCloud **dissolve a cota de 50k** para repositório **público com licença OSI**; `scripts/**` volta inteiro e nada mais precisa ser excluído | **zero** — mas abre o código-fonte de um produto comercial | **MAESTRO (decisão de negócio)** |
+
+**Fato medido que sustenta (c):** o repositório `Douglas0101/preco-que-da-lucro` é **público**, mas
+**não tem `LICENSE`** e o `README.md:127` declara _"Repositório privado. Todos os direitos
+reservados."_. Público sem licença OSI **não** é elegível ao programa OSS — a cota de 50.000 LOC
+segue **ativa**, com as cinco recusas medidas que este ADR documenta. A distância entre "free com
+cota" e "free sem cota" é, literalmente, um arquivo `LICENSE` com MIT ou Apache-2.0.
+
+**Controle negativo de (c):** licenciar **sem** tornar o repositório público não move nada (o
+programa exige público **e** OSI); tornar público **sem** licença OSI também não move nada — é o
+estado atual, medido. As duas condições são necessárias, e nenhuma das duas foi executada.
+
+**Por que esta emenda não decide:** abrir o código de um produto comercial é decisão de negócio, e
+`DBT-60` registra que a visibilidade atual já diverge do que o README declara. As três vias ficam
+registradas com o mesmo status: **abertas, aguardando o MAESTRO**.

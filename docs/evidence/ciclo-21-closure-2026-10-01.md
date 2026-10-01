@@ -110,3 +110,30 @@ configuração versionada.
 - O gatilho de `pull_request` do workflow novo **não foi exercitado** (não há PR aberto).
 - `ADR-035` está em `PROPOSTA`; `DBT-58` e `DBT-57` seguem **ABERTAS** no registry.
 - As duas escaladas não são falhas de execução: são decisões que o protocolo reserva ao MAESTRO.
+
+---
+
+## ERRATA — Ciclo 22 (2026-10-01)
+
+Três correções ao que este documento afirmou. Nenhuma delas muda o que foi **medido**; todas mudam
+o que foi **inferido**.
+
+**(a) "CI falha com a Automatic Analysis ligada" era citação de doc apresentada como predição.**
+O §3.3 afirmou que a Automatic Analysis e o scanner "convivem", com base no run `36807917872` — mas a
+frase de apoio veio da documentação oficial, que declara que CI-based analysis _deve_ desligá-la. A
+medição mostrou **não-falha**, não "coexistência declarada". A diferença importa: o run prova que
+_naquele_ evento não houve colisão; **não** prova o estado do toggle, nem que não haverá colisão em
+outro evento. O `DBT-59` foi reescrito para nomear o desconhecido.
+
+**(b) A atribuição "o valor efetivo é o default da organização" (`sonar-baseline-2026-09-30.md:236-239`)
+é inválida.** Ela foi inferida de `GET /api/settings/values` devolver `{"settings":[]}` para
+`sonar.leak.period`. Medido no Ciclo 22: `sonar.leak.period` **não aparece** em
+`GET /api/settings/list_definitions` — **258 definições, nenhuma contendo "leak"**. Ou seja, a
+resposta vazia **não** é oráculo de validade da chave: a chave simplesmente não é exposta por essa
+API. O correto é "não legível por esta API", não "default da organização".
+
+**(c) O tratamento do `DBT-57` como "decidir o _new code period_" já estava consumido no Ciclo 20.**
+A janela de 30 dias foi o que derrubou os 408 achados para 24
+(`docs/evidence/sonar-dbt55-unblock-2026-09-30.md:86`). O que resta no `DBT-57` é o **limiar de
+cobertura** (`63,3` contra `80`), não o período — e o denominador real por linhas é o que a Fase 4 do
+Ciclo 22 entrega (`docs/evidence/ciclo-22-dbt57-data.md`).
