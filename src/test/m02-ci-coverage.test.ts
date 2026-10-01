@@ -367,8 +367,7 @@ describe("DBT-66 · a recusa é executável, não uma menção ao path", () => {
   );
 
   it("remove só o bloco condicional; flag e upload preservados não mascaram ausência", () => {
-    const conditional =
-      /          if \[ ! -s coverage\/lcov\.info \]; then\n[\s\S]*?          fi\n/;
+    const conditional = / {10}if \[ ! -s coverage\/lcov\.info \]; then\n[\s\S]*? {10}fi\n/;
     const removed = sonarReal.match(conditional)?.[0];
     expect(removed).toBeDefined();
     const mutant = sonarReal.replace(conditional, "");

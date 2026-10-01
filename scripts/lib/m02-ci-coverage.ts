@@ -334,13 +334,13 @@ export function sonarStepRun(yaml: string, name: string): string | null {
   const start = lines.findIndex((line) => line.trim() === `- name: ${name}`);
   if (start < 0) return null;
   let end = start + 1;
-  while (end < lines.length && !/^      - /.test(lines[end]!)) end += 1;
+  while (end < lines.length && !/^ {6}- /.test(lines[end]!)) end += 1;
   const step = lines.slice(start + 1, end);
-  const run = step.findIndex((line) => /^        run: \|\s*$/.test(line));
+  const run = step.findIndex((line) => /^ {8}run: \|\s*$/.test(line));
   if (run < 0) return null;
   return step
     .slice(run + 1)
-    .map((line) => line.replace(/^          /, ""))
+    .map((line) => line.replace(/^ {10}/, ""))
     .join("\n");
 }
 
