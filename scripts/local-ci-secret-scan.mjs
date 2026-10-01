@@ -28,6 +28,7 @@ const HARD_PATTERNS = [
   { id: "private-key", re: /-----BEGIN (?:RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----/ },
   { id: "github-pat", re: /\b(?:ghp_|gho_|ghu_|ghs_|ghr_|github_pat_)[A-Za-z0-9_]{20,}/ },
   { id: "openai-key", re: /\bsk-proj-[A-Za-z0-9_-]{20,}/ },
+  { id: "sonar-token", re: /\b(?:squ_|sqa_)[A-Za-z0-9]{20,}/ },
   { id: "slack-token", re: /\bxox[baprs]-[A-Za-z0-9-]{10,}/ },
   { id: "aws-akid", re: /\bAKIA[0-9A-Z]{16}\b/ },
   { id: "jwt-like", re: /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/ },
