@@ -25,3 +25,5 @@ DBT-61: which-analysis tem detector puro positivo/negativo de desvio, e o workfl
 §1 de PROGRESS foi reconciliada; a história append-only permaneceu íntegra. Placar ratificado 150 D, 29 P, 8 NS, 0 UNV / 187, sem promoção do agente.
 
 B3 é o terceiro commit local do ciclo. Registry: 50 (41 ABERTA, 8 FECHADA, 1 EM_TRATAMENTO). D1 80%, D2 gatilho 45k LOC, D3 develop→main, D4 Via A, D5 toggle desconhecido não bloqueante e ADR-036 preservados.
+
+ERRATA E2: o check explícito de Prettier no commit B3 retornou 1; o comando de lote não interrompeu o commit. O gate completo B1 precedeu esse delta documental. Corrigido em commit novo, sem amend: somente padding das linhas alteradas DBT-61/62 e tabela criada neste ciclo; pares e texto do journal não foram reescritos. Rechecagem de formatação obrigatória antes de push.
