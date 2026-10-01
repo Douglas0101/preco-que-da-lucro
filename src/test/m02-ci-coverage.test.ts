@@ -1,4 +1,6 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -10,6 +12,7 @@ import {
   gateInLight,
   parseCoverageTable,
   parseTriggerLists,
+  sonarStepRun,
 } from "../../scripts/lib/m02-ci-coverage";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -313,9 +316,14 @@ describe("DBT-62 · claims do pipeline Sonar", () => {
     expect(auditSonarPipeline(sonarReal)).toEqual([]);
   });
 
-  it("NEG — cada claim removida reprova (uma por vez, com a mutação verificada)", () => {
+  it("NEG — uma remoção por guarda, preservando as outras guardas", () => {
     const mutacoes: Array<[string, string]> = [
       ["roda a suíte com cobertura", "npm run test:coverage"],
+      [
+        "recusa lcov ausente ou vazio",
+        'if [ ! -s coverage/lcov.info ]; then\n            echo "::error::coverage/lcov.info ausente ou vazio — o analyze mediria 0% de novo"\n            exit 1\n          fi',
+      ],
+      ["espera o Quality Gate", "-Dsonar.qualitygate.wait=true"],
       ["envia o relatório ao scanner", "-Dsonar.javascript.lcov.reportPaths=coverage/lcov.info"],
       ["observa que o sensor rodou", "Sensor JavaScript/TypeScript Coverage"],
       ["atribui a análise a PR", "-Dsonar.pullrequest.key="],
@@ -329,5 +337,46 @@ describe("DBT-62 · claims do pipeline Sonar", () => {
         "",
       );
     }
+  });
+});
+
+describe("DBT-66 · a recusa é executável, não uma menção ao path", () => {
+  const guard = sonarStepRun(sonarReal, "Conferir o relatório antes de enviar");
+
+  it.each(["ausente", "vazio", "válido"] as const)(
+    "fixture LCOV %s decide pelo arquivo",
+    (state) => {
+      expect(guard).not.toBeNull();
+      const directory = mkdtempSync(resolve(tmpdir(), "sonar-lcov-"));
+      try {
+        if (state !== "ausente") {
+          mkdirSync(resolve(directory, "coverage"));
+          writeFileSync(
+            resolve(directory, "coverage/lcov.info"),
+            state === "vazio" ? "" : "TN:\nSF:src/fixture.ts\nDA:1,1\nLF:1\nLH:1\nend_of_record\n",
+          );
+        }
+        const result = spawnSync("bash", ["-c", guard!], { cwd: directory, encoding: "utf8" });
+        expect(result.error).toBeUndefined();
+        expect(result.status).toBe(state === "válido" ? 0 : 1);
+        expect(result.stdout).toContain(state === "válido" ? "bytes" : "ausente ou vazio");
+      } finally {
+        rmSync(directory, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it("remove só o bloco condicional; flag e upload preservados não mascaram ausência", () => {
+    const conditional =
+      /          if \[ ! -s coverage\/lcov\.info \]; then\n[\s\S]*?          fi\n/;
+    const removed = sonarReal.match(conditional)?.[0];
+    expect(removed).toBeDefined();
+    const mutant = sonarReal.replace(conditional, "");
+    expect(mutant).not.toBe(sonarReal);
+    expect(mutant).toContain("sonar.javascript.lcov.reportPaths=coverage/lcov.info");
+    expect(mutant).toContain("path: coverage/lcov.info");
+    expect(auditSonarPipeline(mutant)).toContain(
+      "sonar.yml sem a claim: recusa lcov ausente ou vazio",
+    );
   });
 });
