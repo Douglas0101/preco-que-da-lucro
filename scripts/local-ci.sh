@@ -945,6 +945,10 @@ step_required "m02:debts-guard" "m02:debts-guard" npm run m02:debts-guard
 step_required "m02:temporal-guard" "m02:temporal-guard" npm run m02:temporal-guard
 step_required "m02:seal-dts:check" "m02:seal-dts:check" npm run m02:seal-dts:check
 step_required "m02:matrix:check" "m02:matrix:check" npm run m02:matrix:check
+# DBT-62 / C1.4: o caminho do lcov é declarado em três lugares (propriedades, workflow e
+# `test:coverage`). Divergir é silencioso — o analyze mede 0% sem nada falhar (DBT-57). Este passo
+# confere a DECLARAÇÃO, não a existência do arquivo: a suíte com cobertura roda no CI, não aqui.
+step_required "sonar:lcov-path" "sonar:lcov-path" npm run sonar:lcov-path
 step_required "check:ui-stack" "check:ui-stack" npm run check:ui-stack
 step_required "check:no-supabase-runtime" "check:no-supabase-runtime" npm run check:no-supabase-runtime
 step_required "m02:secrets-audit" "m02:secrets-audit" npm run m02:secrets-audit
