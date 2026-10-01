@@ -55,6 +55,12 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Medir baseline main (M2, leitura por SHA)
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sonar/main-baseline.mjs
+
       - name: Instalar (como o CI instala)
         run: npm ci --ignore-scripts
 
