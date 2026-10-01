@@ -3420,3 +3420,11 @@ not allowed to access data from non main branches`. Ou seja, a análise existiri
   `1c3a10c` e o commit deste bloco.
 
 Latest state marker parent = `1c3a10c36023d82c06b1245a39fce7df8dc3df42`,
+
+## Bloco aditivo — Ciclo 24: base e reconciliação do registry (2026-10-01)
+
+D0 Opção A ratificada pelo MAESTRO; execução remota pendente. Base da bancada: back-merge local de main no commit `de82dc99941fe8fa4c5d3617716581f321b3c6be`, sem rewrite de histórico. `npm run check` PASS em 0.31.10; árvore original 0.18.1 preservada em custódia.
+
+DBT-62 FECHADA com descoberta real de 7 workflows e negativos por identidade; DBT-61 permanece ABERTA porque detector não satisfaz a closure legada de branch não-main acessível. ERRATA: registry 50, não 49; cota Actions desbloqueada por run real, Sonar main ERROR (63,2 < 80). Prova: `docs/evidence/ciclo-24/README.md`. Nenhuma promoção do placar.
+
+Latest state marker parent = `de82dc99941fe8fa4c5d3617716581f321b3c6be`,

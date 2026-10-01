@@ -17,72 +17,14 @@
 
 ## 1. Estado corrente
 
-- **Fase:** `5 — consolidação` · **Fase 0 do fechamento (R0–R6) FECHADA**, **R0b, R7 e R8 LANDADOS**; o
-  placar **foi ratificado pelo MAESTRO em 2026-09-21**. O próximo movimento é a **varredura
-  pós-desbloqueio de cota (Parte D)**: D1 falsificação do fail-closed pelas **duas portas** — (a) `before`
-  todo-zeros e (b) `before` existente mas não-ancestral, ambos com caso executado local e esperando
-  `db=true` **e** `crossbrowser=true`; D2 medição dos 5 primeiros pushes não-docs com a amostra precisa
-  do ledger (Parte D: `event=push`, `head_ref=develop`, `mission/*` fora); D3 manter ou
-  `git revert -m 1 4be813c` pelo **critério re-centrado em 425 s (banda 361-489 s)**; e **R0c** na
-  sequência — re-medição dos 8 NS (comandos pré-registrados no SPEC do R0b) + join dos 23 deltas P
-  anteriores ao R0b.
-- **Refs:** `develop` (local) = tip do ciclo `SDD-20260923` (base `8683c2d`, não-pushado) — à frente de `origin/develop`
-  (`41e776b` e `e61c9f4`, não-pushados, ambos incluídos na varredura pós-desbloqueio); o commit desta
-  rodada fica à frente por construção · `origin/develop` = **`a2f5ff6`**
-  (push sob bloqueio custa cota e não mede nada — decisão declarada) ·
-  `origin/main` = **`9724d2c`** (SHA do dia-D, **intocado** em toda a rodada) · branches `mission/*`
-  preservadas como evidência.
-- **Ledger:** `EXECUTION-STATE-PROGRAM.md`, marcador parent-pinned validado por
-  `npm run m02:state:check` no commit que o carrega. **Dívida de protocolo do ciclo `SDD-20260923`:** o
-  último marcador estava em `41e776b` — **cinco commits atrás** do HEAD — e ninguém reprovou porque
-  `m02:state:check` **não pertence a pipeline nenhum** (é passo do protocolo de boot); corrigido por bloco
-  aditivo, sem reescrever história. Blocos novos: land canônico do WP-R4 +
-  janela vermelha + pares `sha@run`, WP-R5, WP-R6, WP-R0b, WP-R7, incidente de plataforma, enxugamento
-  do CI/CD por tiers e **WP-R8 (formalização, S6 adversarial e correções forçadas)**.
-- **Placar vigente (RATIFICADO):** **150 D · 29 P · 8 NS · 0 UNV / 187** = **87,9679% parcial ·
-  80,2139% crua**. A ratificação segue a proposta do WP-R0b (6 `NS→PARTIAL` com delta nomeado,
-  2 `UNV→NS` porque a API responde o estado dos recursos, **0 promoção a DONE**). `QUEUE.md` ainda
-  carrega o placar anterior: o **escritor é o MAESTRO** e a linha de lá é movimento humano pendente,
-  declarado — não editada por agente.
-- **Árvore:** limpa fora do selo em construção. Selos: WP-R5 (17 arquivos), WP-R6 (9), WP-R0b (11),
-  WP-R7 (9) e **WP-R8 (7)**, todos com `checked === discovered` e ancestralidade verificada.
-- **Gate local:** `npm run check` **exit 0** (97 arquivos · 1005 passed | 13 skipped) no conteúdo
-  landado; contrato de WP com **17 itens**; registry com **19 dívidas** (DBT-16 fechada no WP-R7;
-  **DBT-19** aberta no WP-R8: guardas declaradas contrato que não rodam em push de código;
-  **25 dívidas desde o ciclo 3**, com a abertura de `DBT-25` e `DBT-26`); guardas
-  novas: `m02:temporal-guard` (âncoras e prazos da prosa viva), `m02:seal-dts:check` e
-  `src/test/m02-ci-tiers.test.ts` (18 casos, executa o script de escopo extraído do YAML).
-- **CI local supervisionado (substituto temporário enquanto a cota bloqueia):** `./scripts/local-ci.sh`
-  espelha os **dois** workflows mais as guardas que nenhum deles executa; evidência por SHA em
-  `docs/evidence/local-ci/<sha>/` com manifesto `local-ci/v1`, cobertura `checked === discovered`,
-  **política `metadata-only`** (nenhum `*.log`, bundle ou patch versionado) e selo verificável
-  (`sha256sum -c`). Cadeia SDD do ciclo: `docs/sdd/SDD-20260923-*` e fila do agente em `docs/TODO.md`.
-- **CI — BLOQUEADA POR COTA DE PLATAFORMA (precondição de ambiente, item 17 estendido):** desde
-  2026-09-21T14:33Z todo job falha em ~3-9 s com **0 passos** e a anotação verbatim _"The job was not
-  started because recent account payments have failed or your spending limit needs to be increased"_.
-  Último verde aplicável: **`f293368@35611793799`** (heavy, 30 passos) — o item 15 do checklist vale até
-  ele. **Janela sem verificação: 18 SHAs** (medida por API em 2026-09-22; errata de `L155` — os 13 antes
-  declarados `d9bc810`, `5539226`, `8f260f5`, `011c7e3`, `7e719bc`, `ff4c379`, `4be813c`, `8ecb584`,
-  `9f521ed`, `6e9dac9`, `94e49aa`, `398a77c`, `a2f5ff6` + 5 pushed com 0 check-runs esquecidos:
-  `9237d01`, `a95254b`, `4eed127`, `974426b`, `f4edb66`), **nenhum com run verde citável**; a antiga
-  frase "nenhum com selo" é falsa (8 dos 18 tocam arquivos de selo — correção no ledger, Parte D).
-  `41e776b` e `e61c9f4` não são pushados: classe separada, seguem na varredura. O land do WP-R8 disparou
-  `35682256860`/`35682256839` e o reseal `35682383894`/`35682383892` —
-  todos bloqueados, **nenhum citável como `run@sha`**.
-- **Ciclo 3 (2026-09-26) — a janela cresceu por duas publicações autorizadas.** O push da branch do
-  PR #48 (`a2f5ff6..5d7c12e`) levou **65 commits** e o push desta branch leva os **8** da Fase C
-  (`5d7c12e..7a84182`) mais os do ciclo 3. Nenhum tem run verde citável: o único check-run de
-  `5d7c12e` que conclui `success` é o `Vercel Preview Comments`, que **não é gate de código** e por
-  isso não serve de delegação para o item 15. Reprodução: `git rev-list --count a2f5ff6..5d7c12e`
-  = 65 e `git rev-list --count 5d7c12e..HEAD` = 8 antes dos commits deste ciclo. A varredura
-  pós-desbloqueio (Parte D) passa a cobrir também estes SHAs.
-- **Ambiente:** `:5432` com 0 listeners; watcher `app-live-watch` re-armado em 2026-09-19T15:31:33Z com
-  horizonte de 7 dias que **terminou** em **2026-09-26T15:31Z** — a vigília está **PERDIDA**: o log não
-  recebe poll novo desde 2026-09-24T02:40:59Z (`i=6240`, `/ready` http=404) e o mtime do arquivo é o
-  daquele mesmo poll, então não houve escrita depois dele. Re-arme é ação de operador (`setsid` em
-  `$HOME`), **não executada por este ciclo**; `pgrep` não decide aqui porque este sandbox roda com PID
-  namespace próprio e não vê processo do host. Alvo segue em placeholder PHP (`/ready` → 404):
-  **H-6 não executado**.
+- **Fase:** Ciclo 24 / Fase B; D0 **Opção A ratificada** pelo MAESTRO; imposição remota ainda não executada.
+- **Refs medidas em 2026-10-01:** `origin/main=d4b9395`, `origin/develop=48ffb6b`. Bancada `c24/gates-coverage` em worktree `ciclo-24-gates`: back-merge local de main em `de82dc9`; main é ancestral (0 main-only). Publicação de develop pendente do gate final local.
+- **Gate local:** `env -u NO_COLOR npm run check` PASS na bancada com drizzle-kit 0.31.10; 116 suítes, 1397 passed/14 skipped. A árvore original preserva package/lock/node_modules 0.18.1 e suas 3 guardas FAIL; custódia em `docs/evidence/ciclo-24/wip-custody.json`.
+- **CI:** cota desbloqueada por observação: verify do SHA de main executou e passou (run `36879749959`). Sonar main **ERROR**: new_coverage 63,2, limiar 80; não é CI integralmente verde. Proteção de main/develop ausente e 0 rulesets, medidos.
+- **Registry:** 50 dívidas; DBT-62 FECHADA por descoberta e negativos observados; DBT-61 ABERTA: detector existe, closure legada exige análise acessível de develop e não foi satisfeita. DBT-64/65/66/67 ABERTAS; DBT-36 EM_TRATAMENTO / Via A, sem sinal de rotação.
+- **Placar ratificado:** 150 D · 29 P · 8 NS · 0 UNV / 187 (87,9679% parcial; 80,2139% crua). Nenhuma promoção feita pelo agente.
+- **Watchers:** último sinal app-live-watch em 2026-09-30T01:14:03Z, /ready=404; arm em 2026-09-28T02:25:11Z. Disponibilidade atual sem prova; não rearmado.
+- **Evidência e orçamento:** `docs/evidence/ciclo-24/README.md`; 2/13 commits até o merge, 0 novos runs. Selos por revisão git; WIP original preservado.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -499,3 +441,7 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | id | UTC | par | descrição (ponteiro) |
 | --- | --- | --- | --- |
 | L274 | 2026-10-01T20:45:39Z | ▶ | B1/B2.1: gate completo local PASS; commit por allowlist do handoff documental (5 arquivos com selo), branch c24/gates-coverage; sem push. Evidência: docs/evidence/ciclo-24/wip-custody.json e fase-b1.manifest.sha256. |
+| L275 | 2026-10-01T20:45:39Z | ✔ | B1/B2.1: 0d33250 (5 arquivos, selo fase-b1.manifest.sha256 verificado); npm run check PASS, 116 suítes, 1397 passed/14 skipped. WIP original 0.18.1 preservado; bancada 0.31.10. |
+| L276 | 2026-10-01T20:45:39Z | ▶ | B2.2: merge local de origin/main d4b9395 na branch c24/gates-coverage; preservar histórico, sem push e sem release. Verificar ancestralidade de main antes do próximo gate. |
+| L277 | 2026-10-01T20:48:06Z | ✔ | B2.2: merge local de82dc9; origin/main é ancestral; divergência local 0 main-only / 4 develop-only; 2/13 commits, 0 CI. Sem alteração de código/deps no merge. |
+| L278 | 2026-10-01T20:48:06Z | ▶ | B3: fechar somente DBT-62 com controles observados; DBT-61 segue ABERTA com ERRATA da closure legada; atualizar §1 vivo e marcador ancestral no ledger. Write-set: DEBTS, PROGRESS, EXECUTION-STATE-PROGRAM, ciclo-24/README e selo B3; sem push. |
