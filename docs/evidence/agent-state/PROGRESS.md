@@ -17,14 +17,15 @@
 
 ## 1. Estado corrente
 
-- **Fase:** C25 D0 A ratificada; B documental em preparação/publicação conjunta do f7c4b9a. V suspensa pela ERRATA: cache de browsers já teve hit, gargalo observado em APT. E/80 não iniciadas; delta por arquivo e sequência do freeze exigem reconciliação. Handoff: `docs/evidence/ciclo-25/README.md`.
-- **Refs medidas:** main `d4b9395`, develop remoto `0b59423`, bancada `f7c4b9a`; PR #60 aberta/BLOCKED. Publicação do f7 e lote B pendente do check pré-push; sem alteração da release.
-- **Gate:** check completo de f7 PASS nesta sessão, 117 suítes/1411 passed/14 skipped. Sonar main reconfirmado ERROR 63,2; denominador 2995/gap 502 são snapshot C24, baseline C25 em unidades ainda não medida no runner.
-- **Imposição:** ruleset `24333849` ativo, update e bypass vazio; nenhum thaw. ERRATA da data: janela ADR-037 ainda vigente ao boot 2026-10-01T22:37:49Z, teto 2026-10-02T02:59:59Z. Gate verde como precondição de thaw e merge bloqueado formam sequência circular.
-- **Registry:** 51: 41 ABERTA, 9 FECHADA, 1 EM_TRATAMENTO. DBT-61 closure reenquadrada para main/PR, mas CLI não demonstra PR; permanece ABERTA. DBT-57 recebeu piso anti-janela-vazia; DBT-64/68 abertas com limites medidos. DBT-36 Via A sem sinal.
-- **Placar:** 150 D · 29 P · 8 NS · 0 UNV / 187, legenda no registry; sem promoção.
-- **Custódia:** original HEAD `48ffb6b`, WIP preservado; custódia C24 e selos conferidos por revisão, não contra journal aditivo. Watchers: metadata nominal reconcilia sem rearme ou claim de runtime.
-- **Orçamento:** C25 0/13 antes do primeiro commit; publicação única planejada, sem rerun manual de V. Selos em `docs/evidence/ciclo-25/` por revisão git.
+- **Fase:** C25 escalado por ERRATA V1 e sequência circular V3; D0 A ratificada, espelho não implementado. B: f7 e dois lotes C25 publicados, closure DBT-61 reenquadrada/ABERTA, legenda no registry. Handoff final local: `docs/evidence/ciclo-25/README.md`.
+- **Refs medidas:** main `d4b9395` imóvel, develop remoto `0b78acb`; PR #60 aberta/BLOCKED no mesmo candidato. f7 é ancestral do remote. Commit 3 C25 será somente documental/local; sem novo push/CI.
+- **Gates:** check completo do candidato PASS 117/1411/14; 6 runs (5 success, Neon failure). Verify PR completo SUCCESS em 417 s, install 40 s, E2E chromium/firefox/webkit/mobile executaram. Ambos os runs comparados tinham cache, não há claim de fix. DBT-68 permanece ABERTA pela causa/solução não demonstrada.
+- **Sonar M1:** leitura fresca runner 2026-10-01T22:59:49.985Z da análise main identificada; 2995 totais/1894 cobertas/gap502/piso1498, gate ERROR 63,2. PR scanner PASSED após CE e API OK/4 condições sem cobertura. LCOV CI auxiliar não equivale à máscara de unidades new; 0 lotes de cobertura C25.
+- **Neon/preview:** 422 repetido, corpo detalhado não capturado; Delete skipped, descarte sem prova. Preview FAILURE precede 422 e vínculo/configuração externa não verificados. Sem diagnóstico de causa por inferência, exercício manual ou UI Vercel.
+- **Imposição:** ruleset `24333849` ativo, update e bypass=[] mantidos; nenhum thaw/merge/deploy de produção. Janela ADR-037 até 2026-10-02T02:59:59Z ainda vigente no encerramento, sem autorrenovação/remoção. ADR-038 PROPOSTA publicada, não ratifica sequência corretiva nem Via B.
+- **Registry/placar:** 51 = 41 ABERTA + 9 FECHADA + 1 EM_TRATAMENTO; sem closure nova. DBT-57/61/64/67/68 ABERTAS; DBT-36 Via A sem sinal. 150 D · 29 P · 8 NS · 0 UNV / 187, legenda no registry, sem promoção.
+- **Custódia:** original HEAD `48ffb6b`/WIP preservados; selos antigos por revisão; original journal receberá ponteiro final aditivo. Watchers apenas metadata, sem rearme/prova de runtime.
+- **Orçamento:** C25 3/13 no encerramento (2 publicados, 3º handoff local), 6 runs/1 push, sem rerun. Retomada preserva esses commits gastos e exige reconciliar a fase antes de alterações.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -574,3 +575,31 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                      |
 | ---- | -------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | L322 | 2026-10-01T22:55:37Z | ▶   | Commit da proposta corretiva em lote 4 com selo; após check completo, publicar B+proposta e f7 em um push develop; observar somente os runs automáticos, sem re-run de V. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                                                                          |
+| ---- | -------------------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L323 | 2026-10-01T23:00:23Z | ✔   | Push develop 0b78acb concluído (inclui f7 e C25 B/ADR); main d4b9395 inalterada. Check pré-push do candidato PASS 117/1411/14. Assert imediato de head da PR encontrou propagação pendente; não repetir push. /tmp/ciclo25-remote-observation.json; captura será incorporada ao README final. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                |
+| ---- | -------------------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L324 | 2026-10-01T23:00:23Z | ✔   | PR #60 reconfirmada no novo head 0b78acb após propagação; aberta, sem merge. Runs automáticos em observação; V/E/80 seguem suspensas/não iniciadas. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                               |
+| ---- | -------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L325 | 2026-10-01T23:12:02Z | ▶   | Capturar resultados finais dos 6 runs/M1/LCOV CI e atualizar descrição da PR #60; depois handoff local C25 com selo. Verify PR verde observado; não atribuir a fix de cache inexistente. Sem merge/thaw/re-run; dados sanitizados. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                                                      |
+| ---- | -------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L326 | 2026-10-01T23:14:00Z | ✔   | 6 runs finais: 5 success/Neon failure; verify PR completo verde (install 40 s, job 417 s). Baseline main fresca 2995/1894/gap502/piso1498. PR #60 descrição reconciliada; LCOV CI escopo exclui src/test, não equivale ao recorte main. Nenhuma closure nova ou promoção. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                                        |
+| ---- | -------------------- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L327 | 2026-10-01T23:14:00Z | ▶   | Encerrar C25 por escalada medida em commit 3/13 local de registry/journal/README/selo. Registrar verify liberado nesta revisão, causa cache refutada, Neon 422 sem corpo detalhado, unidade/ordem de thaw pendentes; sem novo push/CI ou mutação do freeze. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                     |
+| ---- | -------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L328 | 2026-10-01T23:22:32Z | ✔   | Handoff C25/registry/live §1 reconciliados; guards/fmt/diff PASS, 14 selos/53 hashes e 929 custódias sem diferenças. API final: main d4b9395, develop/PR 0b78acb, freeze ativo/bypass vazio. Relatório docs/evidence/ciclo-25/README.md. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                               |
+| ---- | -------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L329 | 2026-10-01T23:22:32Z | ▶   | Commit final local C25 3/13 (4 arquivos, selo sha256); reconferir worktree limpa, state e selo após commit e registrar resultado/pointer no journal original. Sem novo push ou CI. |
