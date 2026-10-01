@@ -17,16 +17,14 @@
 
 ## 1. Estado corrente
 
-- **Fase:** Ciclo 24 escalado por ERRATA E4/E5; Fases I/80 interrompidas na premissa medida. D0 Opção A ratificada e contenção ativa; próxima ação é reconciliar desenho de imposição e alvo antes de promoção. Handoff: `docs/evidence/ciclo-24/README.md`.
-- **Refs medidas em 2026-10-01:** `origin/main=d4b9395`, `origin/develop=0b59423`; PR #60 develop→main ABERTA/BLOCKED. Main é ancestral de develop (0 main-only); 12 commits publicados na linhagem do ciclo, commit 13 exclusivamente documental/local. Bancada `c24/gates-coverage` / worktree `ciclo-24-gates`.
-- **Gate local:** `env -u NO_COLOR npm run check` PASS no SHA `0b59423`, drizzle-kit 0.31.10, 117 suítes, 1411 passed/14 skipped. Original mantém HEAD `48ffb6b` e WIP 0.18.1; 929 hashes de custódia sem diferenças. Selos históricos: 42 hashes/11 revisões PASS.
-- **Imposição:** ruleset `24333849` ativo em main; required verify/scan da Actions, base atualizada, bypass vazio, update freeze adicional. Push GH013 e merge normal HTTP 405 recusados; main inalterada. Owner MAESTRO; janela ADR-037 até 2026-10-02T02:59:59Z, sem expiração automática/bypass. DBT-64 ABERTA: gate PR OK não comprova gate main.
-- **Medição Sonar:** main ERROR 63,2, new lines 1904/690 descobertas e conditions 1091/411 descobertas. Alvo de linhas isolado 310; alvo agregado 502 unidades de cobertura. PR #60 OK com 4 condições e cobertura ausente; métricas da PR indisponíveis, nunca zero. Fonte: `docs/evidence/ciclo-24/README.md`.
-- **CI:** push UI stack PASS; scan PR PASS após espera CE. Verify PR CANCELLED por limite de 12 min na instalação de navegadores, E2E skipped; Neon PR FAILURE HTTP 422 na criação, descarte sem prova. Preview Vercel metadata FAILURE, causa UNVERIFIED. 6 runs observados; sem re-run nem novo push documental.
-- **Registry:** 51 dívidas: 41 ABERTA, 9 FECHADA, 1 EM_TRATAMENTO. DBT-62/66 FECHADAS; DBT-57/61/64/65/67 ABERTAS; DBT-68 timeout novo ABERTA. DBT-36 Via A sem sinal de rotação.
-- **Placar ratificado:** 150 D · 29 P · 8 NS · 0 UNV / 187 (87,9679% parcial; 80,2139% crua). Nenhuma promoção pelo agente.
-- **Watchers:** último sinal app-live-watch 2026-09-30T01:14:03Z, /ready=404; arm 2026-09-28T02:25:11Z. Disponibilidade atual sem prova; não rearmado.
-- **Selos e limite:** `docs/evidence/ciclo-24/fase-final.manifest.sha256` aplicado à revisão documental final; antigos conferidos por revisão de criação. 13/13 commits no encerramento; arquivos da original preservados. Artefato remoto: PR #60; nenhum deploy de produção do ciclo.
+- **Fase:** C25 D0 A ratificada; B documental em preparação/publicação conjunta do f7c4b9a. V suspensa pela ERRATA: cache de browsers já teve hit, gargalo observado em APT. E/80 não iniciadas; delta por arquivo e sequência do freeze exigem reconciliação. Handoff: `docs/evidence/ciclo-25/README.md`.
+- **Refs medidas:** main `d4b9395`, develop remoto `0b59423`, bancada `f7c4b9a`; PR #60 aberta/BLOCKED. Publicação do f7 e lote B pendente do check pré-push; sem alteração da release.
+- **Gate:** check completo de f7 PASS nesta sessão, 117 suítes/1411 passed/14 skipped. Sonar main reconfirmado ERROR 63,2; denominador 2995/gap 502 são snapshot C24, baseline C25 em unidades ainda não medida no runner.
+- **Imposição:** ruleset `24333849` ativo, update e bypass vazio; nenhum thaw. ERRATA da data: janela ADR-037 ainda vigente ao boot 2026-10-01T22:37:49Z, teto 2026-10-02T02:59:59Z. Gate verde como precondição de thaw e merge bloqueado formam sequência circular.
+- **Registry:** 51: 41 ABERTA, 9 FECHADA, 1 EM_TRATAMENTO. DBT-61 closure reenquadrada para main/PR, mas CLI não demonstra PR; permanece ABERTA. DBT-57 recebeu piso anti-janela-vazia; DBT-64/68 abertas com limites medidos. DBT-36 Via A sem sinal.
+- **Placar:** 150 D · 29 P · 8 NS · 0 UNV / 187, legenda no registry; sem promoção.
+- **Custódia:** original HEAD `48ffb6b`, WIP preservado; custódia C24 e selos conferidos por revisão, não contra journal aditivo. Watchers: metadata nominal reconcilia sem rearme ou claim de runtime.
+- **Orçamento:** C25 0/13 antes do primeiro commit; publicação única planejada, sem rerun manual de V. Selos em `docs/evidence/ciclo-25/` por revisão git.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -548,3 +546,15 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                        |
 | ---- | -------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | L313 | 2026-10-01T21:51:48Z | ▶   | Commit final 13/13 de cinco arquivos com fase-final.manifest.sha256; sem push ou novo CI. Depois conferir selo/HEAD limpo/count=13 e acrescentar resultado/pointer no PROGRESS da árvore original, preservando a revisão selada da bancada. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                                                                                                                                   |
+| ---- | -------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L316 | 2026-10-01T22:49:32Z | ▶   | C25 B: reenquadrar closure DBT-61, adicionar legenda D/P/NS/UNV, atualizar ponteiros e parent marker para f7c4b9a; sem fechar dívida por código ausente. Registrar ERRATA cache hit, janela vigente, delta por arquivo insuficiente e ciclo do freeze. Selo por revisão; f7 será publicado junto ao lote B após check. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                                                 |
+| ---- | -------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L317 | 2026-10-01T22:53:10Z | ✔   | B closure/legenda/marker preparados; debts/temporal/state/format/diff PASS; which-analysis 8 testes PASS, não prova PR. Nenhuma nova closure. docs/evidence/ciclo-25/README.md e selo B por revisão. |
+
+| id   | UTC                  | par | descrição (ponteiro)                                                                                                                          |
+| ---- | -------------------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| L318 | 2026-10-01T22:53:10Z | ▶   | Commit B C25 (5 arquivos, selo sha256); publicar junto com f7 apenas depois do check completo do HEAD final; manter main imóvel e sem bypass. |

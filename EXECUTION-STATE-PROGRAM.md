@@ -3428,3 +3428,13 @@ D0 Opção A ratificada pelo MAESTRO; execução remota pendente. Base da bancad
 DBT-62 FECHADA com descoberta real de 7 workflows e negativos por identidade; DBT-61 permanece ABERTA porque detector não satisfaz a closure legada de branch não-main acessível. ERRATA: registry 50, não 49; cota Actions desbloqueada por run real, Sonar main ERROR (63,2 < 80). Prova: `docs/evidence/ciclo-24/README.md`. Nenhuma promoção do placar.
 
 Latest state marker parent = `de82dc99941fe8fa4c5d3617716581f321b3c6be`,
+
+## Bloco aditivo — Ciclo 25: base e ERRATAs de imposição (2026-10-01)
+
+D0 A ratificada pelo prompt. Base herdada f7c4b9a, check completo PASS nesta sessão (117 suítes, 1411 passed, 14 skipped); WIP original preservado. Publicação do handoff e deste lote depende do gate pré-push. Main d4b9395 está congelada com ruleset 24333849, update ativo e bypass vazio.
+
+ERRATA: a janela não estava expirada no boot; teto 2026-10-02T02:59:59Z. Cache Playwright já existente/hit; log de dependências APT refuta o fix proposto V1. V suspensa. Espelho de delta por arquivo admite falso positivo no controle em memória e o thaw condicionado ao gate pós-merge forma ciclo. E/80 não iniciadas e nenhuma dívida promovida por hipótese.
+
+DBT-61 reenquadrada main/PR, ainda ABERTA por ausência verificável de suporte PR no CLI; legenda do placar no registry. DBT-57 exige cobertura, piso de denominador e unidades pagas contra baseline. Evidência: docs/evidence/ciclo-25/README.md.
+
+Latest state marker parent = `f7c4b9a8bedb3fe49ed4d5a774559156087d66a0`,
