@@ -53,6 +53,8 @@
 
 ## Dependency discipline
 
+- **TanStack security floor (2026-10-02):** `@tanstack/react-start` must resolve to `>=1.168.60` and `@tanstack/start-server-core` to `>=1.169.39` (GHSA-qx66-fv34-fjm8 / CVE-2026-102989). Keep Start, Router and router-plugin on compatible published pins; the resolved-family guard remains required. Vercel rejected the vulnerable 1.168.49 before build. Do not enable the vendor bypass variable; upgrade and validate the preview instead. The root Start minimum is enforced by `scripts/dependency-policy.json`.
+
 - `guard:upgrade` também valida as famílias **resolvidas** no lockfile (`scripts/lib/dependency-family-guard.ts`): React/react-dom com versão exata igual; types na mesma linha major.minor; Router/Start/plugin pelas dependências exatas publicadas de react-router/router-core e sem cópias aninhadas divergentes. Negativos vêm dos lockfiles dos PRs #56/#53 por SHA; grupos do Dependabot não substituem esta guarda. O canal manual do DBT-67 reutiliza `neon-drill-ops` com `operation=exercise-provisioning`, ref main/develop, `confirm=true`, action candidata pinada, identidade isolada, expires-at, cleanup always e GET 404; execução real só no Ciclo 25.
 - Every `package.json` change ships with a synchronized `package-lock.json` in the same commit. CI installs with `npm ci --ignore-scripts` and hard-fails (`EUSAGE`) on lockfile drift — this exact mismatch broke PR #42's install step.
 - Do not assume a library is available because it is common: confirm it in `package.json`/lockfile first, and match the version and idiom already in use.
