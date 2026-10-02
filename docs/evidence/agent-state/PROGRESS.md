@@ -17,14 +17,15 @@
 
 ## 1. Estado corrente
 
-- **Fase:** reparo Neon autorizado: vercel-dev excluída e capacidade10→9 observada; exercício6.4.0 e rerunPR60 completos SUCCESS. DBT-67 FECHADA por evidência; DBT-71 cleanup falsoverde corrigida localmente, validação remota pendente. D0/80/ViaA preservados.
-- **Refs:** main `d4b9395` imóvel; develop remoto `5dc7a76`, PR60 OPEN/BLOCKED. Handoff12 local `4de923c`; último commit13 será workflow+AGENTS+DEBTS+journal+selo (5arquivos). Evidência operacional adicional LOCAL: `docs/evidence/neon-repair-2026-10-01/README.md` e `captures/operations.txt`.
-- **Gates:** check anterior5dc7a76 PASS118suítes/1420PASS/14skipped; novo check completo exigido antes do push do patch. Cleanup local9controles PASS, mutação403→verde rejeitada antes de rede. Workflow carrega4fixtures404/403/200/000.
-- **Neon:** dispatch36957951345/6.4.0 SUCCESS outputs/identidade/cleanupGET404; rerun36955216205/attempt2 branch-ci110685563961 SUCCESS e cleanup110687735272 Delete executado/GET404 em comentário5944897319. IDs br-proud-block-aybq3nav e br-young-frost-ay4wl4f1 ausentes; inventário9. Production/develop/Hostinger preservados, nenhuma credencial no fluxo.
-- **Preview/produção:** Vercel conhecida5NK5LAeM8BdbNurUBLheZWSTTz7N Ready19s/5dc7a76; DBT-70 identidade adicional pendente. Ambos alvos de produção no main antigo; login realNO-VERDICT/PITR6h versus7d pendentes.
-- **Imposição:** main2995/1894/gap502/piso1498/gate63,2 ERROR na última análise identificada. Ruleset24333849/update/bypass=[] mantidos. ERRATA: janelaADR-037 EXPIRADA em2026-10-02T02:59:59Z; vencimento não remove ruleset e não autoriza release. Espelho não implementado/ADR-038 PROPOSTA.
-- **Registry/placar:**54 =42 ABERTA +10 FECHADA +2 EM_TRATAMENTO (36/71). DBT-67 FECHADA; 71 pendente de CI. Placar150D29P8NS0UNV/187, sem promoção do agente.
-- **Custódia/orçamento:** original HEAD48ffb6b/WIP932 preservados.12/13 commits gastos,13º restrito ao patch e fontes de governança; artefatos operacionais adicionais permanecem LOCAL para não exceder13. Próximo push publica12+13, sem main/thaw; revalidar todos os checks e cleanup do novoSHA.
+- **Fase:** Ciclo26 autorizado em execução. Publicação manual Vercel+Hostinger; seis credenciais antes da release; PITR gerenciado7d por contratação humana. C01 governança em validação. Sem thaw/merge/deploy.
+- **Refs:** GitHub somente main `d4b9395` congelada/update/bypass=[] e develop `24b8e42`; PR60 OPEN/BLOCKED. Duas branches permanentes Neon production/develop; temporáriasCI TTL24h+GET404+ausência independente, sem testesproduction.
+- **Publicação:** L404 projeto Vercel conhecido desconectado de Git; L406 Hostinger auto-deployment desativado, revisão atuald4b93953. DBT-70 outro receptor Vercel inconclusivo; DBT-72 integração Neon/previews não encerrada.
+- **Runtime/auth:** Hostingerready503/session500 e passwordauthenticationfailed observados anteriormente, DBT-73 aberta. Handoff humano DATABASE_URL pooledproduction/app_runtime pendente. ERRATA C26-E1: BETTER_AUTH_URL/AUTH_TRUSTED_ORIGINS presentes na segunda página; nenhuma adição salva, valores/aplicação não verificados. Vercel conhecida ready200/sessionnull na leitura anterior; login real não provado.
+- **Gates:** check24b PASS118suítes/1420PASS/14skipped. UI PR36960490066 SUCCESS412s/quatro projetos; push36960485683 SUCCESS256s. SonarPR36960490023 CEOK sem condiçãocoverage; não prova80main. Neon36960490016/24b branch-ci+cleanup SUCCESS com protocolos/GET404/identidade; DBT-71 FECHADA reconciliada.
+- **Cobertura:** última leitura runner2026-10-02T03:30:50Z da análise1dc2baf9/d4:2995unidades/1894cobertas/gap502/piso1498/63,2ERROR. Baseline precisa nova leitura para C26; espelho por unidade não construído. ADR-038 aceita para execução C26; aceitação não fechaDBT-64.
+- **Segurança:** TanStack corrigido no candidato, produção antiga. ERRATA C26-E2: referênciaGHSA/CVE de DBT-69 não confirmada(404). esbuild transitivo0.18.20/audit moderado DBT-74 aberto; PITR7d/restore DBT-75 aberto. DBT-36 ViaA exige seis rotações reais; HTTP200público/403isolado não servem como prova.
+- **Registry/placar:** registry local58; status são medidos, placar150D29P8NS0UNV/187 sem promoção pelo agente. Fontes: DEBTS.md, docs/evidence/ciclo-26/, journal L401 em diante.
+- **Custódia/orçamento:** WIP original preservado; checkpoint C25 anterior validado13/13 e copiado byte a byte para /home/douglas-souza/.codex/artifacts/ciclo-26/checkpoint-c25/. Sucessores alterados C26 não substituem o selo anterior. C25 terminou13/13; C26 inicia0/13, reservando merge/back-merge/documentaçãofinal dentro do teto. Sem watchers correspondentes observados no boot. Reutilizar bancada ciclo-24-gates; original48ffb6b fora do write-set.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -696,3 +697,72 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | L377 | 2026-10-02T03:16:40.384759+00:00 | ▶ | Corrigir somente semântica cleanup em neon-pr-branch.yml:404 único confirmado;200 falha1;403/000/branch_idausente NO-VERDICT2. Quatro fixtures do classificador executadas no próprio passo; negativos locais extraídos do YAML. Atualizar AGENTS/DEBTS/journal+selo, commit13/13 (5arquivos); artefatos operacionais adicionais permanecem LOCAL por orçamento, check antes de push, observar novoCI e GET404 real. |
 
 | L378 | 2026-10-02T03:22:58.388865+00:00 | ✔ | Patch cleanup local verificado por8cenários404/403/200/000/401/500/rede/IDausente + mutação403→verde:9PASS, curl/gh mockados e ausência de rede. AGENTS/registry atualizados:67FECHADA,71EM_TRATAMENTO. Quatrofixtures versionadas no próprio passo. Documentos operacionais adicionais LOCAL, último commit13/13 ainda a validar/publicar. |
+
+| L379 | 2026-10-02T03:25:32.659115+00:00 | ✔ | Commit13/13 24b8e42adad1d9da2232e009c5c6a158d70dd21f criado com5arquivos, código/AGENTS/registry/journal/selo. npm run check em execução; sem push atéPASS. Artefatos operacionais adicionais LOCAL, nenhum commit14. Selos ancorados noGit, resultado póscommit append-only. |
+
+| L380 | 2026-10-02T03:30:30.073386+00:00 | ✔ | npm run check no HEAD24b8e42 PASS:118suítes/1420PASS/14skipped, lint/typecheck/build/bundle PASS, state13/13. Manifesto de código4arquivos conferido contra revisãoGit24b8e42; journal póscommit LOCAL nomeado. |
+| L381 | 2026-10-02T03:30:30.073386+00:00 | ▶ | Publicar por fast-forward somente HEAD24b8e42 em develop, incluindo handoff12 e patch13; observar CI e cleanup estrito no novoSHA. Nenhum commit14/main/thaw/bypass ou segredo no fluxo. |
+
+| L382 | 2026-10-02T03:31:00.113971+00:00 | ✔ | Push fast-forward develop5dc7a76→24b8e42 executado, handoff12+patch13 publicados. Novo CI em observação; êxito do push não é veredito de checks/cleanup. Main permanece fora da mutação. |
+
+| L383 | 2026-10-02T03:37:32.867741+00:00 | ✔ | Sonar36960490023 CEOK análise939cf96e-5ab2-4c72-bbd2-8e55f72e4fa7/PR60, runnermergea28c2b8 cujos parentsmain+24b8 confirmados. Coverage ausente naPR, não equivale a80main. Baseline relida03:30:50Z:analysis1dc2baf9/main d4,2995/1894/gap502/piso1498/ERROR63,2. Verify push36960485683 SUCCESS256s. Custódia932/0e9selos31fontesPASS. |
+| L384 | 2026-10-02T03:37:32.867741+00:00 | ▶ | Após novosCI/cleanup, reconciliar registry71/journal e relatório operacionalLOCAL com selos novos; atualizar corpoPR60 para remover bloqueioNeon obsoleto e citar vereditos reais. Nenhum commit14, main/thaw ou regeneração de selo anterior. |
+
+| L385 | 2026-10-02T03:41:39.297609+00:00 | ✔ | NovoSHA24b8:6workflows SUCCESS, UI PR36960490066 verify412s/4projetos/install36s; Neon36960490016 branch-ci110692893019 SUCCESS379s e cleanup110694400079 SUCCESS12s. Fixtureprotocol guard observado03:37:43.652Z (não echo do script), comentário5945155222 confirmaGET404 para br-morning-hall-ayn0ogrl. Inventário independente9/IDausente/production+develop+Hostinger preservados. |
+| L386 | 2026-10-02T03:41:39.297609+00:00 | ▶ | Reconciliar DBT-71 como FECHADA LOCAL por9negativos + positivo remoto24b8/GET404/identidadeausente; registry/journal pósCI e relatório/selo operacional ficamLOCAL até próximo ciclo por limite13/13. Atualizar corpoPR60 com provas e releaseBLOCKED vigente. |
+
+| L387 | 2026-10-02T03:45:02.070543+00:00 | ✔ | Registry71 reconciliado FECHADA LOCAL após prova remota24b, total54=42ABERTA+11FECHADA+1EM_TRATAMENTO. Git24b retém estágio EM_TRATAMENTO histórico; sem commit14. §1 atualizado e relatório operacional preparado; validação documental/selo final seguintes. |
+
+| L388 | 2026-10-02T03:45:50.577652+00:00 | ✔ | CorpoPR60 atualizado e conteúdo relido confere com texto preparado; antigo bloqueioNeon removido, novas provas24b/CE/cleanup e limitesrelease nomeados. Head24b8/OPEN/BLOCKED, sem merge/thaw. Relatório/registry71/journalLOCAL em validação final. |
+
+| L389 | 2026-10-02T04:34:02.654046+00:00 | ▶ | Nova ordem humana:develop único canal engenharia/main PR final com circuito completo; excluir demaisbranches. Medição10Git e10Neon, production≠main; pergunta de escopo pendente. Preparar inventário/backupGit porSHA e atualizar somente políticaAGENTS (original explícitamente autorizado +worktree); nenhuma exclusãoNeon adicional antes de resposta. C25código13/13 encerrado, alterações governança/documentaisLOCAL separadas. |
+
+| L390 | 2026-10-02T04:36:47.669481+00:00 | ▶ | Respostahumana explícita autorizaGitHub+Neon:manterdevelop/main e develop/production. BackupGit8refs verificado em /home/douglas-souza/.codex/artifacts/two-branch-policy-2026-10-02/github-eight-branches.bundle; excluir8refsGit e cópiasNeon não permanentes (incluiHostingerantiga), registrando cada mutação. Preservar IDsproduction/develop e PR60; circuitosCI temporários mantêmisolamento+cleanup comprovado. |
+
+| L391 | 2026-10-02T04:37:57.195636+00:00 | ✔ | ExclusãoGit8branches autorizadas completa com backupbundle verificado e ausência observada a cada mutação; inventáriofinalsomente main/develop, SHAs preservados. PRs abertas reconciliadas em /tmp/two-branch-Git-after.json; Neon seguinte com IDspermanentes preservados. |
+
+| L392 | 2026-10-02T04:41:23.418197+00:00 | ▶ | Git+Neon inventários2/2 observados após limpeza autorizada. Criar regraGitcreation para refs fora develop/main, bypassvazio; preservar ruleset24333849/mainfreeze. AtualizarAGENTSpolítica explícita emoriginal+worktree e registrarpostCI/governançaLOCAL semcommit14. |
+
+| L393 | 2026-10-02T04:43:43.107170+00:00 | ✔ | AGENTSoriginal+worktree atualizados na seçãoBranching por ordemhumana:develop único canal/main PRfinal circuito completo, Git2permanentes/ruleset24347682, Neon2permanentes/CItemporárioTTL+cleanup. OriginalAGENTS é única nova alteração autorizada fora do WIP932. PolíticaLOCAL, semcommit14; mainfreeze preservado. |
+
+| L394 | 2026-10-02T04:57:54.795817+00:00 | ▶ | Conciliar handoff/registry/relatório com autorizaçãoGit+Neon2branches; registrar limitação verificável do controle de preview persistente sem desligamento presumido. Atualizar descriçãoPR60 com inventário atual. Somente documentaçãoLOCAL, semcommit14; preservar histórico e selosGit. |
+
+| L395 | 2026-10-02T05:01:19.737143+00:00 | ✔ | Conciliaçãofinal:Git2refs/Neon2IDs e IAB2Branches+VercelReady24b observados; somentePR60OPEN/BLOCKED, PRs51–57CLOSED semmerge. Rulesets24333849/24347682 ativos/bypassvazio;6workflows24b SUCCESS. PRbody atualizado e readbackhash7911da4ff6d3a8f3bf16e86e4343eb9dd23cbb925e896dc4d86e4defce4e5eb3. Custódia932/0diff eAGENTSoriginalautorizado;9selosGit/31filesPASS, backupGitshaPASS. Guardasdocs55/state13/13/temporal/prettier/diffPASS. DBT72ABERTA, registry55/43A11F1T, placarinalterado. Finalizar selooperacionalLOCAL; semcommit14/main/thaw. docs/evidence/neon-repair-2026-10-01/README.md/captures/final-reconciliation.json. |
+
+| L396 | 2026-10-02T05:03:07.956373+00:00 | ▶ | Após exclusõesNeon, revalidar endpoints públicos live/ready/get-session nos alvosVercel+Hostinger conhecidos porHTTPGET anônimo; somente saída sanitizada, semcookies/credenciais e sem atribuir identidadeDB ou login real. Captura post-cleanup-runtime.json antes do selooperacional. |
+
+| L397 | 2026-10-02T05:04:07.980668+00:00 | ✘ | ERRATApós-limpeza:Hostingerready503/postgresunavailable e sessãoHTTP500 às05:03Z, antesready200 às00:58Z; Vercelready200/sessionnull. FechamentoinfraPARADO; nexo combranchremovida NÃO provado. Captura post-cleanup-runtime.json; inspecionarhPanelconfiguração/logsnominais porIAB, semsegredos. |
+
+| L398 | 2026-10-02T05:11:09.891521+00:00 | ▶ | CausaimediataHostinger confirmada emlogs:passwordauthenticationfailed, main/d4b93953. ViaA/D4handoff humanoDATABASE_URL pooledproduction solicitado; tela pronta, valoresnãolidos, nenhumredeploy. DBT73ALTA/ABERTA, registry56/44A11F1T, closureinfraBLOCKED. Handoffhostinger-connection-handoff.md/captures/Hostinger-auth-cause.json; aguardar confirmação do operador e então revalidar. |
+
+| L399 | 2026-10-02T05:15:02.837868+00:00 | ▶ | AtualizarPR60 comERRATAHostingerready503/auth500 e handshakeViaA pendente; corrigir classeDBT73 para robustez conforme taxonomia, sem mudar closure/status. Finalizar checkpoint documentalLOCAL selado, registrando bloqueio humano e semdeploy/main/thaw/commit14. |
+
+| L400 | 2026-10-02T05:19:10.623607+00:00 | ✔ | CheckpointLOCAL preparado:registry56/44A11F1T, debts/temporal/state13/13/prettier/diffPASS; CI24b6runsSUCCESS; Git+Neon2permanentes observadas e mainfreeze preservado. ERRATAHostingerready503/session500/authenticationfailed mantémDBT73ABERTA e handshakehumanoViaA pendente. PRbodyERRATA relida comhashdbecc25d1e2a54c247bf543953381a533b19e36a4297fc80ac565d7b22f78e38. Capturacheckpoint-hostinger-pending.json+hpaneltabhandoff. SelooperacionalLOCAL emitido após esta linha; nenhumdeploy/main/thaw/commit14. Próximo boot reconcilia ação humana antes de retestar/agir. |
+
+| L401 | 2026-10-02T12:02:34.494494+00:00 | ▶ | C26 autorizado: preservar snapshot byte a byte do checkpoint C25 validado antes de novas edições; reconciliar publicação/credenciais/banco e implementar em develop com teto13 incluindo merges. Evidência: docs/evidence/ciclo-26/; WIP original fora do write-set. |
+
+| L402 | 2026-10-02T12:02:34.494494+00:00 | ✔ | C25 snapshot13files preservado em custódia externa; HEAD24b/PR60blocked/main d4 reconciliados, nenhum watcher observado. C26 aberto,0/13commits. Próxima ação: suspensão GitVercel e deploy automáticoHostinger, só configuração; ViaA permanece humana. |
+
+| L403 | 2026-10-02T12:07:49.347250+00:00 | ▶ | C26: suspender conexão Git do projeto Vercel douglasultimatesouza-5127s-projects/preco-que-da-lucro. Autorização: publicação manual escolhida no plano; preserva deployments e aliases. Antes: Connected Git Repository Douglas0101/preco-que-da-lucro, sem deploy hooks. |
+
+| L404 | 2026-10-02T12:08:23.167205+00:00 | ✔ | Vercel projeto conhecido: conexão Git removida; painel confirma This Project is not connected to a Git repository. Deploy hooks indisponíveis sem conexão; configuração preservada segundo diálogo. Outra equipe continua não reconciliada (DBT-70), sem claim de suspensão global. |
+
+| L405 | 2026-10-02T12:09:18.038139+00:00 | ▶ | C26: desligar implantação automática Hostinger darkgray-pony-545965.hostingersite.com; controle observado ativado com opção Desligue a implantação automática. Preservar runtime main/d4 e vínculo manual. |
+
+| L406 | 2026-10-02T12:09:42.806041+00:00 | ✔ | Hostinger auto-deployment desligado: tooltip desativada + opção Ative o auto-deployment observados, implantação atual continua d4b93953. Vercel conhecida e Hostinger suspensas; outra equipe DBT-70 ainda bloqueia claim global. |
+
+| L407 | 2026-10-02T12:10:33.999786+00:00 | ▶ | C26: configurar BETTER_AUTH_URL com origem HTTPS pública da aplicação Hostinger; valor é URL pública, não credencial. Código exige a variável em produção e a base entra em trustedOrigins sem wildcard. Não reiniciar/publicar antes de tratar DATABASE_URL. |
+
+| L408 | 2026-10-02T12:11:19.912485+00:00 | ✘ | ERRATA C26-E1: premissa BETTER_AUTH_URL ausente refutada pelo formulário chave já existe e pela segunda página: BETTER_AUTH_URL/AUTH_TRUSTED_ORIGINS presentes. Adição cancelada sem salvamento; fase URL interrompida. Valor/aplicação no processo não verificados; presença não prova validade. DATABASE_URL continua aguardando ViaA. |
+
+| L409 | 2026-10-02T12:14:03.618280+00:00 | ▶ | C26 C01: publicar governança já autorizada e reconciliar decisões: AGENTS/DEBTS/ledger/PROGRESS/ADR-038 (5 arquivos). Pin do ledger no parent24b, sem aumentar folga13. Registro inclui ERRATA de env paginada e suspensão observada; nenhuma closure operacional presumida. |
+
+| L410 | 2026-10-02T12:17:04.895377+00:00 | ✘ | C01 check: guardas verdes, format recusou3capturas JSON operacionais preexistentes. Bytes selados preservados; corrigir descoberta do formatador com3exclusões nominais em .prettierignore, sem formatar capturas. C01 será AGENTS/DEBTS/ledger/PROGRESS/.prettierignore (5); ADR-038 integra próximo marco. |
+
+| L411 | 2026-10-02T12:18:38.250949+00:00 | ✘ | DBT-70 escalada: GitHub24b deployment6800627567 tem2statuses success em equipes distintas; equipe adicional douglas-dias-de-souzas-projects novamente Not Found na sessão delegada. Sem controle desse receptor, suspensão global não provada. Não usar token/conta alternativa para contornar acesso; prosseguir correções repo independentes. |
+
+| L412 | 2026-10-02T12:22:50.419613+00:00 | ▶ | ERRATA C26-E3: Neon inventário atual3, não2. Nova preview persistente br-holy-art-ayedfbrc/tailwind-merge-3.7.0 criada05:07:57Z/creation_sourcevercel, activity/write0. Fase de prevenção STOP/DBT-72 aberta. Reconciliar excluindo somente esta cópia dentro da ordem humana explícita GitHub+Neon manter develop/main e develop/production; permanentes preservadas. |
+
+| L413 | 2026-10-02T12:23:36.718612+00:00 | ✔ | Cópia extra br-holy-art-ayedfbrc removida sob ordem de duas permanentes; consulta de computes da identidade devolveHTTP404/branch not found e inventário API lista somente production/develop comIDsesperados. Política de retenção reconciliada agora; prevençãoDBT-72 continua aberta, criação anterior atribuída a creation_sourcevercel sem equipe presumida. |
+
+| L414 | 2026-10-02T12:24:05.111986+00:00 | ✔ | C01 gate completo PASS (check-c01-r3.log; 118suítes/1420passed/14skipped, lint/typecheck/build/bundle). Registry58descoberto integralmente após reposicionar2linhas no corpo canônico, sem alterar guarda. Commit documental5paths; selo sha256 externoC01 preserva bytes deste marco. C26 1/13 após commit, remoto ainda24b, sem novaCI neste marco. |

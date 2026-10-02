@@ -3438,3 +3438,25 @@ ERRATA: a janela não estava expirada no boot; teto 2026-10-02T02:59:59Z. Cache 
 DBT-61 reenquadrada main/PR, ainda ABERTA por ausência verificável de suporte PR no CLI; legenda do placar no registry. DBT-57 exige cobertura, piso de denominador e unidades pagas contra baseline. Evidência: docs/evidence/ciclo-25/README.md.
 
 Latest state marker parent = `f7c4b9a8bedb3fe49ed4d5a774559156087d66a0`,
+
+## Bloco aditivo — Ciclo 26: publicação condicionada e custódia (2026-10-02)
+
+Plano de recuperação autorizado pelo MAESTRO: publicação manual em Vercel e Hostinger,
+rotação das seis credenciais antes da release, PITR gerenciado de sete dias com contratação
+humana e suspensão da integração Git Vercel. O limite é 13 novos commits, incluindo merge de
+release e back-merge; não se reutiliza a cota 13/13 do Ciclo 25.
+
+Checkpoint operacional C25 validado 13/13 e preservado byte a byte em custódia externa
+antes de editar seus sucessores. Main permanece d4b9395; update freeze e bypass vazio.
+Conexão Git do projeto Vercel conhecido removida e Hostinger automático desativado,
+com observação imediata L404/L406. Destino adicional Vercel permanece não reconciliado.
+
+ERRATA C26-E1: BETTER_AUTH_URL e AUTH_TRUSTED_ORIGINS existem na segunda página de
+variáveis Hostinger; a tentativa de adição foi cancelada sem salvar. Valores e aplicação
+ao processo não foram verificados. Troca de DATABASE_URL requer entrada humana/Via A;
+ready503 e sessão500 anteriores continuam bloqueadores, sem nova release presumida.
+
+Evidência: docs/evidence/ciclo-26/; custódia externa indicada em PROGRESS.md.
+Nenhum incremento no placar, closure de cobertura, thaw, merge ou deploy.
+
+Latest state marker parent = `24b8e42adad1d9da2232e009c5c6a158d70dd21f`,
