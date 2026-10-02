@@ -1,3 +1,6 @@
+# C26: automatic version PR creation disabled; engineering applies updates in develop.
+# Security alerts are enabled; automatic security PRs are disabled in GitHub settings.
+# Groups document coupled families; current main config changes only at final release.
 # Dependabot — atualizações de VERSÃO (version updates) deste repositório.
 # Plano Mestre §25 ("Adicionar quando disponível: Dependabot") ·
 # docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md.
@@ -24,7 +27,7 @@ updates:
     target-branch: develop
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     groups:
       react-runtime-and-types:
         patterns:
@@ -48,4 +51,4 @@ updates:
     target-branch: develop
     schedule:
       interval: weekly
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0

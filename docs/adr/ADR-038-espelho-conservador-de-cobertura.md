@@ -1,10 +1,37 @@
 # ADR-038 — Espelho conservador de cobertura e sequência de promoção
 
-- **Estado:** PROPOSTA — D0 Opção A foi ratificada no prompt do Ciclo 25; esta especificação corretiva e a sequência de thaw ainda exigem reconciliação.
+- **Estado:** ACEITA para execução do Ciclo 26 por autorização do plano. A ponte continua sujeita à prova por unidade; aceitação da arquitetura não fecha DBT-64.
 - **Data:** 2026-10-01.
 - **Owner:** MAESTRO.
 - **Dívida:** DBT-64; dependências DBT-57, DBT-61 e DBT-68.
-- **Perímetro:** repositório, GitHub Actions e API Sonar com credenciais somente no runner; computer use continua restrito a sonarcloud.io por ADR-036.
+- **Perímetro C26:** repositório, GitHub Actions/API Sonar e painéis delegados GitHub, Neon, Vercel e Hostinger, conforme autorização humana posterior à ADR-036. Via A continua obrigatória; credenciais entram/submetem-se pelo humano e não pelo agente. Contratação de PITR exige ação humana.
+
+## Reconciliação ratificada no Ciclo 26
+
+O MAESTRO escolheu publicar manualmente em Vercel **e** Hostinger, suspender toda
+integração Git Vercel (incluindo previews), rotacionar as seis credenciais expostas
+antes da release e contratar PITR gerenciado de sete dias. O plano foi autorizado
+para implementação em 2026-10-02. As seções seguintes conservam a evidência do C25;
+seus limites temporais são históricos e não equivalem a estado atual.
+
+A sequência corrigida exige suspensão observada de **todos** os receptores automáticos,
+checks atuais da PR com contexto exclusivo da matriz completa, espelho por unidade e
+precondições de banco/runtime/segredos. Somente então o MAESTRO abre uma janela explícita
+de até 30 minutos para remover **apenas** `update` do ruleset 24333849, mantendo PR,
+base atualizada, required checks e bypass vazio. Merge por merge commit; recolocar
+`update` imediatamente. A confirmação da alteração de segurança ocorre na ação.
+
+O push de main com wait=true precisa produzir gate real >=80, denominador >= piso
+e unidades pagas contra M1. Comparar projeção com real: erro >2 p.p. exige ERRATA
+e suspensão. Gate real vermelho impede publicação em ambos os provedores, mesmo
+se o espelho tiver aprovado. Publicação manual usa a revisão imutável aprovada;
+main volta imediatamente para develop por merge, sem rebase/squash/force push.
+
+Esta ordem remove a circularidade de V3 sem afirmar que o gate da PR mede main.
+A defesa de publicação é a suspensão observada mais autorização da revisão real;
+deploy-no-workflow continua evolução futura, sem credenciais novas improvisadas.
+L404/L406 observam suspensão do projeto Vercel conhecido e Hostinger; DBT-70
+continua aberta enquanto o receptor da outra equipe não for reconciliado.
 
 ## Problema observado
 
@@ -50,3 +77,35 @@ Neon 422 e preview FAILURE têm hipótese de cascata, ainda não comprovada por 
 Evidência: docs/evidence/ciclo-25/README.md, fase-b.manifest.sha256 e fase-adr.manifest.sha256 por revisão. Nenhum S6, closure de DBT-64, check espelho ou publicação verde é declarado.
 
 Fontes: [Qualidade e recortes do Sonar](https://docs.sonarsource.com/sonarqube-cloud/standards/managing-quality-gates/introduction-to-quality-gates), [Definições de métricas](https://docs.sonarsource.com/sonarqube-cloud/managing-your-projects/metric-definitions), [Web API Sonar](https://docs.sonarsource.com/sonarqube-cloud/appendices/web-api), [Regras do GitHub](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets).
+
+## Marco C26 de implementação e limites atuais
+
+C03 mantém doze minutos no verify e acrescenta preparação de navegadores/pacotes
+Linux em job próprio de doze minutos. Os dois tempos contam no custo total. O kit
+verifica SHA de checkout, lockfile, Playwright e ImageOS/ImageVersion, hashes e
+presença/versão dos pacotes instalados. O contexto da matriz completa é verify-release;
+verify de push não o substitui. A evidência remota ainda será medida no SHA publicado.
+
+C04 implementa motor de unidades e controles contra o falso positivo de linhas
+antigas do mesmo arquivo, perdas e mappings desconhecidos. O job main-coverage-mirror
+emite NO-VERDICT enquanto o adapter autenticado por unidade não for demonstrado.
+Métricas agregadas frescas produzem gap/piso, mas não identidade de condição. O
+catálogo API consultado expõe sources raw/scm/show, sem prova de uma superfície de
+cobertura por unidade; consultas públicas404 não provam ausência de análise. A fase
+E de imposição de cobertura permanece interrompida por essa precondição, DBT-64 aberta.
+Aceitar um snapshot por hash também não valida a origem de seu mapeamento.
+
+Vercel conhecida teve Git desconectado e Hostinger auto-deployment desativado.
+Segundo receptor Vercel segue sem acesso delegado. Neon teve uma terceira cópia
+persistente criada por vercel e novamente reconciliada para duas permanentes; a
+prevenção dessa criação permanece aberta. Não há claim de suspensão global.
+
+Os probes de rotação agora distinguem identidade protegida, status bruto e
+NO-VERDICT. A emissão de tokens é no provedor humano, não geração arbitrária de
+API keys. Dois autotestes reais travaram no clipboard; somente os cinco refs
+fictícios novos foram eliminados, preservando os cinco operacionais. DBT-36 e DBT-76
+bloqueiam release. PITR sete dias e restore isolado continuam pendentes de contratação.
+
+A antiga referência de vulnerabilidade TanStack não foi confirmada por fonte
+primária; o piso corrigido e a recusa do provedor são fatos distintos da identificação
+CVE/GHSA. Nenhum congelamento foi levantado e nenhum deploy executado no C26.
