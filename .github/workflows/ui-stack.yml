@@ -306,6 +306,9 @@ jobs:
           shopt -s nullglob
           archives=("$PWD"/.artifacts/browser-kit/debs/*.deb)
           if [ "${#archives[@]}" -gt 0 ]; then
+            # --no-download also refuses acquiring a local archive outside the APT cache.
+            # Only copy payloads whose revision and hashes passed the kit verification above.
+            sudo cp "${archives[@]}" /var/cache/apt/archives/
             sudo apt-get --no-download --no-remove install -y --no-install-recommends "${archives[@]}"
           fi
           mkdir -p "$HOME/.cache"

@@ -15,8 +15,8 @@ CI Neon é recurso temporário TTL24h, descarte por identidade e GET404 independ
 Bancada reutilizada: ciclo-24-gates. C25 snapshot13/13 preservado em
 `/home/douglas-souza/.codex/artifacts/ciclo-26/checkpoint-c25/` antes dos sucessores.
 WIP original permanece fora do write-set, salvo AGENTS explicitamente autorizado.
-Teto C26 treze commits, incluindo release/backmerge/docfinal; C01–C05 locais e C06
-este marco. Commits e byte manifests ficam em `.../ciclo-26/seals/`, sem substituir
+Teto C26 treze commits, incluindo release/backmerge/docfinal; C01–C07 publicados em develop c9ae2d2; C08 probe e C09 correção APT
+compõem o lote seguinte, nove commits após integração. Commits e byte manifests ficam em `.../ciclo-26/seals/`, sem substituir
 o selo C25. A presença de hash não declara closure operacional ou S6 do ciclo.
 
 ## Mudanças e evidência
@@ -24,19 +24,20 @@ o selo C25. A presença de hash não declara closure operacional ou S6 do ciclo.
 | Frente                  | Implementado/observado                                                                                             | Limite de closure                                                                                |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
 | Publicação              | Vercel conhecida Git removido; Hostinger auto-deployment off, journalL404/L406                                     | Segundo receptor Vercel sem acesso, DBT-70; nenhuma suspensão global afirmada                    |
-| Neon                    | Terceira cópia vercel surgida apóscleanup removida por ordem humana; GET404+API/UI duas identidades                | Prevenção da recriação DBT-72 ainda aberta                                                       |
+| Neon                    | Terceira cópia vercel surgida apóscleanup removida por ordem humana; GET404+API/UI duas identidades                | C07CI exercise/cleanupSUCCESS, GET404+inventárioindependente; prevençãoDBT-72 aberta             |
 | Vulnerabilidade esbuild | C02 override sócore-utils→0.28.2,23entradas antigas removidas, npmci11.14.1/audit0                                 | Produção mantém main antigo; exploração via fluxo normal app não demonstrada                     |
 | Toolchain/banco         | Drizzle0.31.10 mantido,defineConfig20migrations,17dbsuítes PG17isolado PASS; container removido                    | Não prova migração/role/env do runtime remoto                                                    |
-| CI navegadores          | C03 prerequisite12min, kit SHA/lock/Playwright/ImageOS/ImageVersion/hashes; verify12min offlineAPT+matriz completa | Execução remota atual ainda pendente; tempo total inclui ambos jobs                              |
-| Cobertura               | C04 motor porunidade e negativos; baseline linhas+conditions+gap+piso                                              | Adapter autenticado de unidades não demonstrado; check operacional NO-VERDICT, DBT-57/64 abertas |
+| CI navegadores          | C03 prerequisite12min, kit SHA/lock/Playwright/ImageOS/ImageVersion/hashes; verify12min offlineAPT+matriz completa | Preparo atual159sSUCCESS, identityPASS; verify155s falhouAPT100; C09 corrige cache antes repetir |
+| Cobertura               | C04 motor porunidade e negativos; baseline linhas+conditions+gap+piso                                              | Baseline atual2995/1894/gap502/piso1498; APIprobe autenticado ainda pendente, NO-VERDICT         |
 | Credenciais             | C05 probes protegidos seisprovedores, corpo descartado,rawstatus+identidade+NO-VERDICT                             | Dois selftests reais wl-paste5s falharam; zero chaves reais rotacionadas, DBT-36/76              |
 | Alertas/dependências    | AlertasGitHub PUT/GET204; securityupdates disabled; limitesversionPR0 no candidato                                 | Configdefaultmain sómuda na release; rulesetduasbranches impede criação agora                    |
 | Runtime/PITR            | Hostingerready503/session500/authenticationfailed medidos; PITRFree6h, modalplano parahumano                       | DATABASE_URL ViaA,7dcontratados/observados e restoreisolado pendentes                            |
 
 C02 final check:119suítes/1426PASS/14skipped; os17dbtests rodaram separadamente sem
 skip contraPG17efêmero. C03 check:120suítes/1441PASS/14skipped. C04 foco49PASS;
-C05 foco13PASS/typecheckPASS. O gate final do conjunto e o run@SHA serão anexados
-após observação; estes números não são aprovação de produção.
+C05 foco13PASS/typecheckPASS. C07 final121suítes/1460PASS/14skipped; C08 final122suítes/1471PASS/14skipped.
+CI C07 UI37015774446FAIL porAPT, Sonar37015774340CEPRok/espelhoNO-VERDICT,
+Neon37015774934SUCCESScomdescarteprovado; estes números não são aprovação de produção.
 
 Esbuild: prova antiga0.18.20 concediaACAO* a Origin arbitrária/null. Instalada0.28.2
 não concedeACAO; Host estrangeiro403 sem sentinela, localhost200 legítimo; transforms
@@ -50,8 +51,8 @@ confirmados no candidato. Isso não é S6 de todo o ciclo. Relatório gerenciado
 - metric: duração prep/verify/instalação offline e matriz de quatro projetos, por run@SHA.
 - before: PR60job110591560363 install21:27:39–21:37:19/cancel12min; cache hit existiu, E2E não iniciou.
 - change: job prepare-browsers12min; kit com identidade, hashes, pacotes e instalação offline no verify12min.
-- after: pending — nenhum tempo remoto novo inventado; local120suítes/1441PASS é outra superfície.
-- result: LOCAL-VERIFIED da estrutura/negativos, REMOTE-UNOBSERVED no marco.
+- after: C07PR37015774446@c9ae2d2: preparo159sSUCCESS; verify155sFAIL/APT100. Identidade/hashPASS. BancadaUbuntu24.04 mostra100 antescache,0 depois; C09runner ainda pendente.
+- result: falha remota observada e causa reproduzida; correçãoLOCAL-VERIFIED do mecanismoAPT; closureDBT-68 ainda aberta até matrizPRcompleta.
 - decision: manter orçamento, testes e três browsers/quatroprojetos; fechar somente por execução atual completa.
 
 ## ERRATA e bloqueios
@@ -59,7 +60,9 @@ confirmados no candidato. Isso não é S6 de todo o ciclo. Relatório gerenciado
 - E1: variáveis auth estavam na segunda página Hostinger; adição duplicada cancelada. Presença não prova valor aplicado.
 - E2: referência GHSA-qx66-fv34-fjm8/CVE-2026-102989 não confirmada por fonte primária404; achado do provedor e piso de versão são fatos distintos.
 - E3: inventário Neon virou3, criação_sourcevercel; retornar2 não prova prevenção.
-- Ponte: agregado porarquivo pode dar falsoverde cobrindo linhas antigas. Motor impede; falta adapter autenticado. Último M1histórico2995/1894/gap502/piso1498/63,2ERROR precisa leitura runner fresca.
+- E4: L431 transcreveu1462testes, log mede1460; corrigido emL432 semalterartestes.
+- E5: transportar arquivos verificados não basta ao --no-download; copiá-los ao cacheAPT permite aquisição local, controle100→0.
+- Ponte: agregado porarquivo pode dar falsoverde cobrindo linhas antigas. Motor impede; falta adapter autenticado. M1runnerfresco2026-10-02T13:54:18Z: main d4b9395, análise1dc2baf9,2995/1894/gap502/piso1498/63,2387ERROR; CEPR89e5511cOKsemcoveragecondition.
 - ViaA: cofre abriu com5refs operacionais, clipboard detectado não respondia. Dois exits1brutos por wl-paste5s; somente5refs fictícios gerados removidos por identidade. Não considerar saída vazia ou rotação concluída.
 
 ## Gate de promoção
@@ -82,13 +85,13 @@ Qualquer pending/cancelled/missing/NO-VERDICT mantém NO-GO.
 6. Valores não degenerados: sources/identidades/métricas vazias recusadas.
 7. Estado compartilhado: PG17 isolado; fixtures clipboard falharam e faseinterrompida.
 8. Sentinelas: pública sintética esbuild e IDs reais de recursos, semsegredo.
-9. Revisão fingerprint: seals porcommit; CI atual pendente.
+9. Revisão fingerprint: seals porcommit; C07 runs vinculados aoSHA e PRmerge5184747, semclosureUIvermelha.
 10. Descoberta completa: registry, workflows, kitpayload; vazios/mismatch recusados.
 11. Contexto limpo: revisão sófindingC02; S6 do ciclo não realizado.
 12. Falha alta: mapping/metadata/kit/clipboard não viram verde.
 13. Isolamento: PG17 loopbackporta38743 sem volumes, removido; produção nunca fixture.
 14. Capturas/gates: journal aponta logs/selos e escopo; não cite run novo inexistente.
-15. Run@SHA: pendente até publicar e observar checks aplicáveis, cancelled não prova.
+15. Run@SHA: C07 publicado e checks aplicáveis observados; Neon e CEPR passam, verifyAPT falha, espelhoNO-VERDICT; nenhum cancelled usado como prova.
 16. Multi-sítio: dois receptores Vercel descobertos; o inacessível bloqueia suspensão global.
 17. Estado ambiente: lock==HEAD exige commitlocal antescheck; clipboardnão medido bloqueou rotação.
 
