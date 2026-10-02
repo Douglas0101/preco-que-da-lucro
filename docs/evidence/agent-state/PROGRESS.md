@@ -17,15 +17,15 @@
 
 ## 1. Estado corrente
 
-- **Fase:** C25 escalado por ERRATA V1 e sequência circular V3; D0 A ratificada, espelho não implementado. B: f7 e dois lotes C25 publicados, closure DBT-61 reenquadrada/ABERTA, legenda no registry. Handoff final local: `docs/evidence/ciclo-25/README.md`.
-- **Refs medidas:** main `d4b9395` imóvel, develop remoto `0b78acb`; PR #60 aberta/BLOCKED no mesmo candidato. f7 é ancestral do remote. Commit 3 C25 será somente documental/local; sem novo push/CI.
-- **Gates:** check completo do candidato PASS 117/1411/14; 6 runs (5 success, Neon failure). Verify PR completo SUCCESS em 417 s, install 40 s, E2E chromium/firefox/webkit/mobile executaram. Ambos os runs comparados tinham cache, não há claim de fix. DBT-68 permanece ABERTA pela causa/solução não demonstrada.
-- **Sonar M1:** leitura fresca runner 2026-10-01T22:59:49.985Z da análise main identificada; 2995 totais/1894 cobertas/gap502/piso1498, gate ERROR 63,2. PR scanner PASSED após CE e API OK/4 condições sem cobertura. LCOV CI auxiliar não equivale à máscara de unidades new; 0 lotes de cobertura C25.
-- **Neon/preview:** 422 repetido, corpo detalhado não capturado; Delete skipped, descarte sem prova. Preview FAILURE precede 422 e vínculo/configuração externa não verificados. Sem diagnóstico de causa por inferência, exercício manual ou UI Vercel.
-- **Imposição:** ruleset `24333849` ativo, update e bypass=[] mantidos; nenhum thaw/merge/deploy de produção. Janela ADR-037 até 2026-10-02T02:59:59Z ainda vigente no encerramento, sem autorrenovação/remoção. ADR-038 PROPOSTA publicada, não ratifica sequência corretiva nem Via B.
-- **Registry/placar:** 51 = 41 ABERTA + 9 FECHADA + 1 EM_TRATAMENTO; sem closure nova. DBT-57/61/64/67/68 ABERTAS; DBT-36 Via A sem sinal. 150 D · 29 P · 8 NS · 0 UNV / 187, legenda no registry, sem promoção.
-- **Custódia:** original HEAD `48ffb6b`/WIP preservados; selos antigos por revisão; original journal receberá ponteiro final aditivo. Watchers apenas metadata, sem rearme/prova de runtime.
-- **Orçamento:** C25 3/13 no encerramento (2 publicados, 3º handoff local), 6 runs/1 push, sem rerun. Retomada preserva esses commits gastos e exige reconciliar a fase antes de alterações.
+- **Fase:** reconciliação de infraestrutura autorizada por pedido humano @browser; ADR-036 §8 registra extensão desta sessão. C25 conserva ERRATA V1/V3 e D0 A; espelho não implementado. Artefato: `docs/evidence/infra-2026-10-02/README.md`.
+- **Refs:** main `d4b9395` congelada, develop remoto `0b78acb`, PR #60 OPEN/BLOCKED. Handoff C25 `e62702c` local; fix TanStack `05307b4` local. Nenhum push nesta retomada até check completo.
+- **Correção local:** Start 1.168.60 / Router 1.170.41 / plugin 1.168.42 / server-core 1.169.39; manifests, piso da política e AGENTS sincronizados e selados. Guard e negativo PASS; audit 0 high/critical. Full check ainda pendente.
+- **Neon/preview:** capacidade 10/10 confirmada por HTTP 422 branches limit exceeded em probe isolado sem compute; nenhuma branch criada. Exclusão específica de vercel-dev aguarda autorização. Preview Vercel falhou pelo advisory GHSA-qx66-fv34-fjm8; hipótese de cascata Neon refutada para essa falha.
+- **Produção/logins:** Vercel e Hostinger no SHA main antigo respondem live/ready 200, postgres ok, sessão anônima null e login renderizado; Vercel /inicio redireciona anônimo a /auth. Login autenticado não exercido. SonarCloud aguarda login humano; outros provedores com sessão delegada. CSP Vercel report-only, Hostinger também enforced.
+- **Sonar/imposição:** M1 anterior 2995 unidades / 1894 cobertas / gap502 / piso1498, gate 63,2; não revalidado nesta retomada. Ruleset `24333849`, update/bypass=[] e freeze preservados; ADR-038 segue PROPOSTA. Janela ADR-037 até 2026-10-02T02:59:59Z, sem autorrenovação.
+- **Registry/placar:** 52 = 42 ABERTA + 9 FECHADA + 1 EM_TRATAMENTO; DBT-69 nova, produção vulnerável sem closure. DBT-57/61/64/67/68 permanecem ABERTAS. 150 D · 29 P · 8 NS · 0 UNV / 187, sem promoção.
+- **Custódia:** checkout original `48ffb6b`, 932 paths sujos pré-existentes, baseline de hashes em /tmp/infra-20261002-custody.json. Watcher última metadata 2026-09-30T01:14:03Z, sem rearme/prova de supervisão.
+- **Orçamento:** C25 4/13 commits gastos (3 herdados + fix local 05307b4); próximo lote documental será 5/13. Runs anteriores 6; novo push condicionado ao check.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -603,3 +603,15 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | id   | UTC                  | par | descrição (ponteiro)                                                                                                                                                               |
 | ---- | -------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | L329 | 2026-10-01T23:22:32Z | ▶   | Commit final local C25 3/13 (4 arquivos, selo sha256); reconferir worktree limpa, state e selo após commit e registrar resultado/pointer no journal original. Sem novo push ou CI. |
+
+| L330 | 2026-10-02T00:49:42.154844+00:00 | ▶ | INFRA-20261002: pedido humano amplia browser para GitHub/Vercel/Hostinger/Neon/Sonar, sem valores de credencial; reconciliar conexões, runtime, preview/422 e corrigir causas provadas. Freeze/80/Via A/WIP preservados. Artefato: docs/evidence/infra-2026-10-02/README.md. |
+
+| L331 | 2026-10-02T00:54:08.441033+00:00 | ▶ | Correção da causa de preview: atualizar família TanStack para react-start 1.168.60/router 1.170.41/plugin 1.168.42 (pins publicados compatíveis), sincronizar manifests, elevar piso de política e documentar AGENTS. GHSA-qx66-fv34-fjm8; nenhum bypass de vulnerabilidade, src/ intocado. |
+
+| L332 | 2026-10-02T00:58:40.102755+00:00 | ▶ | Diagnóstico de capacidade Neon: uma chamada create_branch para infra-capacity-probe-20261002, parent develop br-small-hill-aymcu14y, no_compute=true; sem URI/credencial no agente e sem escrita nas branches existentes. Se rejeitar, registrar resposta; se criar, preservar até cleanup autorizado. |
+
+| L333 | 2026-10-02T00:58:40.837438+00:00 | ✔ | Capacidade: probe executado; resultado da API foi capturado no transcript e será incorporado ao artefato infra. Nenhuma repetição automática, próximo passo depende do estado medido. |
+
+| L334 | 2026-10-02T01:06:57.089907+00:00 | ✔ | Correção TanStack commitada em 05307b4: 5 arquivos com selo dependency-fix.manifest.sha256; pisos 1.168.60/1.169.39, guards e negativo em memória PASS, audit 0 high/critical. Capacidade Neon comprovada por HTTP 422 branches limit exceeded; nenhuma branch criada. |
+
+| L335 | 2026-10-02T01:06:57.089917+00:00 | ▶ | Registrar extensão humana de perímetro ADR-036, nova DBT-69 e causa nominal DBT-67; atualizar handoff e selo em lote documental de 5 arquivos. Em seguida check completo antes de qualquer push; sem thaw/merge/main ou credenciais. |
