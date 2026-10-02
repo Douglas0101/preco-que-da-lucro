@@ -40,6 +40,7 @@ permissions:
 
 jobs:
   scan:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     name: scan + cobertura
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -177,4 +178,35 @@ jobs:
             ${{ runner.temp }}/c24-main-baseline.json
             ${{ runner.temp }}/c25-gate-readout.json
           if-no-files-found: warn
+          retention-days: 7
+
+  main-coverage-mirror:
+    name: main-coverage-mirror
+    if: always() && github.event_name == 'pull_request'
+    needs: scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Read authoritative main units at the current SHA
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sonar/main-baseline.mjs
+      - name: Require individually mapped new-code units before granting coverage credit
+        run: node scripts/sonar/gate-mirror.ts
+      - name: Preserve the measured gap and precondition verdict
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: main-mirror-verdict
+          path: |
+            ${{ runner.temp }}/c24-main-baseline.json
+            ${{ runner.temp }}/c26-main-mirror.json
+          if-no-files-found: error
           retention-days: 7

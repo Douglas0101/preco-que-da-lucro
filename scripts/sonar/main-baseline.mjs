@@ -1,5 +1,6 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
+import { authoritativeUnits } from "./gate-mirror.ts";
 
 // Read-only CI measurement: credentials come from the runner's Secret store and are never emitted.
 const project = "Douglas0101_preco-que-da-lucro";
@@ -69,19 +70,22 @@ try {
     metrics.new_lines_to_cover > 0 &&
     Number.isInteger(metrics.new_uncovered_lines) &&
     metrics.new_uncovered_lines >= 0;
+  const units = authoritativeUnits(metrics);
   const report = {
-    schema: "ciclo24-main-baseline/1",
+    schema: "main-baseline/2",
     observedAt: new Date().toISOString(),
     mainSha: sha,
     analysisId: analysis.key,
     analysisDate: analysis.date,
     gate: status.projectStatus ?? null,
     metrics,
+    units,
+    period: response.period ?? response.periods ?? null,
     lineOnlyGapTo80: hasLineTarget
       ? Math.max(0, metrics.new_uncovered_lines - Math.floor(metrics.new_lines_to_cover * 0.2))
       : null,
     nullSemantics:
-      "valor ausente/ilegível é NO-VERDICT; overall não substitui new; gap só de linhas não inclui conditions",
+      "valor ausente/ilegível é NO-VERDICT; overall não substitui new; unidades são linhas + condições; snapshot por unidade ainda precisa de adapter validado",
   };
   const file = path.join(process.env.RUNNER_TEMP ?? ".", "c24-main-baseline.json");
   writeFileSync(file, `${JSON.stringify(report, null, 2)}\n`);
