@@ -17,15 +17,15 @@
 
 ## 1. Estado corrente
 
-- **Fase:** infraestrutura autorizada por pedido humano @browser, extensão ADR-036 §8. TanStack corrigido em develop e preview Ready; leitor do CE implementado localmente, execução remota pendente. C25 conserva D0 A e ERRATA V1/V3; espelho não implementado.
-- **Refs:** main `d4b9395` imóvel; develop remoto `f27de2d`, PR60 OPEN/BLOCKED. Novo leitor local `27681df`, próximo lote documental; nenhum release/merge/ruleset alterado. Artefato: `docs/evidence/infra-2026-10-02/README.md`.
+- **Fase:** infraestrutura autorizada por pedido humano @browser, extensão ADR-036 §8. TanStack corrigido em develop e preview Ready; leitor do CE exercido remotamente com NO-VERDICT por precondição de escrita; fase de leitura suspensa até correção. C25 conserva D0 A e ERRATA V1/V3; espelho não implementado.
+- **Refs:** main `d4b9395` imóvel; develop remoto `f27de2d`, PR60 OPEN/BLOCKED. Leitor `27681df` e evidência `9a7c52a` publicados; metadata em /tmp falhou, correção de precondição em andamento; nenhum release/merge/ruleset alterado. Artefato: `docs/evidence/infra-2026-10-02/README.md`.
 - **Gates f27:** check completo PASS 117 suítes / 1411 testes / 14 skipped; verify PR 36950531373 SUCCESS 414 s, install 36 s e 4 projetos E2E; verify push SUCCESS. Lights PASS. Sonar 36950531332 CE FAILED real; leitor por taskId/analysisId será publicado para nomear condições.
 - **Preview/Neon:** DPYoGLvxjnnFCxW4vrAmaUR7Wd4w Ready 23 s, f27de2d; causa TanStack corrigida. Neon 10/10 confirmado por 422 branches limit exceeded; novo run 36950531344 422/create, Delete skipped. Exclusão vercel-dev aguarda autorização, sem exercício/closure DBT-67. Readiness da preview NO-VERDICT por proteção/delegação, login anônimo renderiza/redirect.
 - **Produção/logins:** Vercel e Hostinger no main antigo live/ready 200, postgres ok, sessão null e /inicio→/auth. Login autenticado não exercido. SonarCloud aguarda login humano; demais provedores delegados. CSP Vercel report-only, Hostinger também enforced.
 - **Main M1 renovada:** runner 2026-10-02T01:21:31.151Z: análise main anterior nomeada, 2995 unidades / 1894 cobertas / gap502 / piso1498, gate63,2 ERROR. Ruleset 24333849/update/bypass=[] mantidos; ADR-038 PROPOSTA. Janela ADR-037 até 2026-10-02T02:59:59Z, sem autorrenovação.
 - **Registry/placar:** 52 = 42 ABERTA + 9 FECHADA + 1 EM_TRATAMENTO; DBT-69 corrigida em candidato/preview, produção aberta. DBT-57/61/64/67/68 permanecem ABERTAS. 150 D · 29 P · 8 NS · 0 UNV / 187, sem promoção.
 - **Custódia:** original HEAD/WIP 932 caminhos conferidos sem divergência. Watcher última metadata 2026-09-30T01:14:03Z, sem prova de supervisão ativa.
-- **Orçamento:** C25 8/13 gastos (3 herdados + 5 desta retomada); lote documental seguinte 9/13. Push desta retomada 1 / 6 runs observados (4 success, Sonar/Neon failure); novo push condicionado ao check.
+- **Orçamento:** C25 9/13 gastos (3 herdados + 6 desta retomada); correção filesystem seguinte 10/13. Dois pushes nesta retomada; reader remoto NO-VERDICT, uma tentativa sem progresso. Próximo push condicionado ao check.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -641,3 +641,13 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | L347 | 2026-10-02T01:43:24.775768+00:00 | ✔ | Readout CE commitado 27681df (8/13), 9 testes próprios + contratos 62/62 PASS, typecheck PASS; metadata scanner medido /tmp dentro container, compartilhamento explícito adicionado. Verify f27 PR SUCCESS/414s, push SUCCESS; preview Ready23s. Baseline main fresca gap502, gate63,2. |
 
 | L348 | 2026-10-02T01:43:24.775784+00:00 | ▶ | Lote documental 9/13 com registry/handoff/selo, seguido de check completo no HEAD limpo. Se verde, publicar readout e evidência em develop e observar gate por análise CE; nenhuma alteração main/produção ou credenciais. |
+
+| L349 | 2026-10-02T01:49:33.617218+00:00 | ✔ | Check completo do readout+evidência no HEAD 9a7c52a limpo PASS: 118 suítes/1420 PASS/14 skipped; typecheck/lint/build/bundle verdes. Novo gate observacional mantém origin/task/analysis/nulo e mantém lcov original. /tmp/infra-20261002-readout-check.log. |
+
+| L350 | 2026-10-02T01:49:33.617234+00:00 | ▶ | Push normal de HEAD 9a7c52a para develop, fast-forward a partir de f27de2d, dois commits (8/9 C25). Observar task CE por analysisId e checks da nova revisão; nenhum thaw/main ou credencial. |
+
+| L351 | 2026-10-02T01:49:44.090231+00:00 | ✔ | Push develop f27de2d→9a7c52a concluído exit0; reader e evidência publicados, candidato local verificado. Main/ruleset/produção preservados. Observar novos runs/deployment no mesmo SHA. |
+
+| L352 | 2026-10-02T01:58:11.248039+00:00 | ✘ | ERRATA readout remoto 36952775117/9a7c52a: scanner upload realizado, mas dump metadata em /tmp/sonar-report-task.txt falhou AccessDeniedException; reader NO-VERDICT/exit2, não gate ERROR. Fase de leitura suspensa por precondição. Baseline main e artifact NoVerdict preservados; nenhum falso fechamento. |
+
+| L353 | 2026-10-02T01:58:11.248426+00:00 | ▶ | Corrigir metadata bind para /sonar-metadata/report-task.txt (parent sem sticky), preflight de escrita no UID real do container e leitura nominal protected_regular; nenhum ajuste de sysctl. Hipótese baseada no controle negativo observado e docs kernel; 1ª tentativa remota sem progresso. Commit10 com workflow/evidência/journal/selo, check antes do push. |

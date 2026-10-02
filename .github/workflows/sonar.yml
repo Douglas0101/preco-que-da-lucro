@@ -114,10 +114,18 @@ jobs:
           : > .scannerwork/report-task.txt
           chmod 666 .scannerwork/report-task.txt
 
+          # Preflight no mesmo UID do scanner: /tmp é sticky e recusa O_CREAT em arquivo de
+          # outro dono (protected_regular), mesmo com modo 666. O mount fica em parent próprio.
+          docker run --rm \
+            -v "$PWD/.scannerwork/report-task.txt:/sonar-metadata/report-task.txt" \
+            --entrypoint sh sonarsource/sonar-scanner-cli:latest \
+            -c 'set -eu; printf "metadata container_uid="; id -u; printf "protected_regular="; cat /proc/sys/fs/protected_regular; stat -c "metadata owner=%u mode=%a" /sonar-metadata/report-task.txt; printf "preflight\n" > /sonar-metadata/report-task.txt'
+          : > .scannerwork/report-task.txt
+
           docker run --rm \
             -e SONAR_TOKEN \
             -v "$PWD:/usr/src" \
-            -v "$PWD/.scannerwork/report-task.txt:/tmp/sonar-report-task.txt" \
+            -v "$PWD/.scannerwork/report-task.txt:/sonar-metadata/report-task.txt" \
             sonarsource/sonar-scanner-cli:latest \
             -Dsonar.projectKey=Douglas0101_preco-que-da-lucro \
             -Dsonar.organization=douglas0101 \
@@ -126,7 +134,7 @@ jobs:
             -Dsonar.exclusions='src/test/**' \
             -Dsonar.scm.provider=git \
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-            -Dsonar.scanner.metadataFilePath=/tmp/sonar-report-task.txt \
+            -Dsonar.scanner.metadataFilePath=/sonar-metadata/report-task.txt \
             -Dsonar.qualitygate.wait=true \
             -Dsonar.qualitygate.timeout=300 \
             "${ATRIBUICAO[@]}" 2>&1 | tee /tmp/scanner.log
