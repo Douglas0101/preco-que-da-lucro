@@ -50,7 +50,7 @@
       "criticality": "critical",
       "min": "1.168.60",
       "max": "1.99.99",
-      "reason": "server functions, cookies e CSP; piso corrigido GHSA-qx66-fv34-fjm8 (CVE-2026-102989), verificado em 2026-10-02"
+      "reason": "server functions, cookies e CSP; piso 1.168.60 por recusa observada do provedor Vercel; ERRATA C26-E2: referência GHSA/CVE anterior não confirmada em fonte primária"
     },
     {
       "name": "@tanstack/react-router",
