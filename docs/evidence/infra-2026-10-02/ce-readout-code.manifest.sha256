@@ -1,0 +1,4 @@
+0492da101d2b4d0bb375ca28121cd0fb4ed8817816b8d38feafa435aee8ea2e1  .github/workflows/sonar.yml
+15cd30843d22e5514cf2ec4b448731f5a9ac30fd2945957423c0739b797df29a  AGENTS.md
+0482d6b897e093a3ca037a1bdef6ba5c62dd3c32a15fcf9f35f7517536f6048f  scripts/sonar/gate-readout.ts
+afbc34101705ac565de26992d94f8a40bfecae2d6a071b27ca7e0d2661ef588b  src/test/sonar-gate-readout.test.ts

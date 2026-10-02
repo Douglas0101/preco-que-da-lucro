@@ -108,9 +108,16 @@ jobs:
             echo "atribuicao: branch principal (padrão) — push de ${GITHUB_REF_NAME}"
           fi
 
+          # O scanner escreve seu working dir em /tmp dentro do container, fora do volume.
+          # Compartilhar somente o metadata file (sem credenciais), não o relatório inteiro.
+          mkdir -p .scannerwork
+          : > .scannerwork/report-task.txt
+          chmod 666 .scannerwork/report-task.txt
+
           docker run --rm \
             -e SONAR_TOKEN \
             -v "$PWD:/usr/src" \
+            -v "$PWD/.scannerwork/report-task.txt:/tmp/sonar-report-task.txt" \
             sonarsource/sonar-scanner-cli:latest \
             -Dsonar.projectKey=Douglas0101_preco-que-da-lucro \
             -Dsonar.organization=douglas0101 \
@@ -119,6 +126,7 @@ jobs:
             -Dsonar.exclusions='src/test/**' \
             -Dsonar.scm.provider=git \
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.scanner.metadataFilePath=/tmp/sonar-report-task.txt \
             -Dsonar.qualitygate.wait=true \
             -Dsonar.qualitygate.timeout=300 \
             "${ATRIBUICAO[@]}" 2>&1 | tee /tmp/scanner.log
@@ -137,11 +145,28 @@ jobs:
           fi
           echo "sensor de cobertura: rodou (o relatorio foi consumido)"
 
+      - name: Nomear veredito do CE desta análise (sem token no log)
+        if: always()
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: npx --no-install tsx scripts/sonar/gate-readout.ts
+
       - name: Guardar o lcov como artefato
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: coverage-lcov
           path: coverage/lcov.info
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Guardar o veredito do CE e a baseline (sem credenciais)
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: sonar-gate-readout
+          path: |
+            ${{ runner.temp }}/c24-main-baseline.json
+            ${{ runner.temp }}/c25-gate-readout.json
           if-no-files-found: warn
           retention-days: 7
