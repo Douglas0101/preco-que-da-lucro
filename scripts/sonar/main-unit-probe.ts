@@ -23,7 +23,13 @@ export function coverageMetadata(payload: unknown) {
   if (!record(payload) || !Array.isArray(payload.sources))
     throw new Error("source rows unavailable");
   const seen = new Set<number>();
-  const rows = payload.sources.map((value) => {
+  const rows = payload.sources.map((source) => {
+    // sources/show uses [line, highlighted source]. The line identity is valid,
+    // but this representation supplies no new-code or coverage counts.
+    const value =
+      Array.isArray(source) && source.length === 2 && typeof source[1] === "string"
+        ? { line: source[0] }
+        : source;
     if (
       !record(value) ||
       !Number.isInteger(value.line) ||
@@ -177,6 +183,9 @@ async function main() {
     );
     report.metadata = coverageMetadata(result);
     await assertIdentity();
+    const metadata = report.metadata as ReturnType<typeof coverageMetadata>;
+    if (!metadata.hasNewMarkers || !metadata.hasCoverageCounts)
+      throw new Error("source identities are available, but new-code/coverage metadata is absent");
     report.reason =
       "capability observed; complete source/instrumentation/condition mapping still required";
     console.log(`C26_UNIT_CAPABILITY ${JSON.stringify(report)}`);

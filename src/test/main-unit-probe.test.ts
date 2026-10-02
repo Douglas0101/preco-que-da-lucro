@@ -48,10 +48,20 @@ describe("Authenticated Sonar unit capability probe", () => {
   it.each([
     {},
     { sources: [] },
-    { sources: [[1, "code"]] },
+    { sources: [[1, "code", "unexpected"]] },
     { sources: [{ line: 1 }, { line: 1 }] },
   ])("rejects missing, empty and ambiguous source identities", (payload) => {
     expect(() => coverageMetadata(payload)).toThrow();
+  });
+  it("recognizes advertised show tuples without inventing coverage or retaining source", () => {
+    const data = coverageMetadata({ sources: [[17, "CODE_SECRET_SENTINEL"]] });
+    expect(data).toEqual({
+      count: 1,
+      hasNewMarkers: false,
+      hasCoverageCounts: false,
+      rows: [{ line: 17, isNew: null, lineHits: null, conditions: null, coveredConditions: null }],
+    });
+    expect(JSON.stringify(data)).not.toContain("SENTINEL");
   });
   it.each([
     { line: 1, isNew: "true" },
