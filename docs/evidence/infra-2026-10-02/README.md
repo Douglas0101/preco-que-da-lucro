@@ -269,3 +269,29 @@ As leituras de integração e Sonar usam timestamp de registro posterior do resu
 A segunda execução completa passou typecheck e 116/117 suítes (1410 testes PASS / 14 skipped); a única falha era uma expectativa legada do teste da política: aceitar Start 1.168.26, agora abaixo do piso. A fixture mantém os controles de major coringa e passou a rejeitar explicitamente 1.168.26/1.168.49, aceitando a corrigida 1.168.60. Nenhuma guarda foi afrouxada. Execução focada: 39/39 PASS. Terceira execução completa será feita antes do push; nova falha de causa não resolvida suspende a publicação.
 
 PRs abertos reconsultados: #60 bloqueada por Neon/preview e contenção; #56 verify/scan vermelhos, #53 verify vermelho, #52 Sonar externo vermelho e provisionamento skipped; #51/#54/#55/#57 com checks anteriores verdes e base BEHIND. São oito PRs, sete Dependabot. Nenhum merge/rebase/rewrite executado; os checks antigos não são revalidação da família corrigida. #53 propõe Router 1.170.40, abaixo do novo candidato 1.170.41, portanto requer reconciliação da atualização já feita antes de qualquer promoção.
+
+## Publicação da correção em develop — revisão f27de2d
+
+Push fast-forward `0b78acb → f27de2ddc180600dcfaeaca2f56d43d8c0e95b2e`, após gate completo verde no HEAD limpo. Cinco commits enviados incluem o handoff documental herdado e quatro desta retomada. Produção main d4b9395 não se moveu. Custódia: 932 caminhos originais verificados por sha256, zero divergências, HEAD original preservado.
+
+| Superfície     | Evidência no mesmo SHA                                | Veredito observado                                                                  |
+| -------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Local          | npm run check, 117 suítes / 1411 PASS / 14 skipped    | PASS; typecheck/lint/build/bundle verdes                                            |
+| UI stack PR    | run 36950531373, job 110662254608, 01:21:23–01:28:17Z | SUCCESS, 414 s; install 36 s; 4 projetos E2E executados                             |
+| UI stack push  | run 36950527753                                       | SUCCESS                                                                             |
+| CI light       | runs 36950531439 / 36950527777                        | SUCCESS                                                                             |
+| Vercel preview | DPYoGLvxjnnFCxW4vrAmaUR7Wd4w, 01:21:44Z, f27de2d      | Ready em 23 s; bloqueio vulnerável corrigido                                        |
+| Neon           | run 36950531344, create job 110662275877              | HTTP 422; Delete skipped no cleanup 110662331995; sem closure                       |
+| Sonar          | run 36950531332                                       | scanner enviado/processado, CE QUALITY GATE STATUS FAILED; condições ainda a nomear |
+
+A preview `https://preco-que-da-lucro-puni5ruwu.vercel.app` mostrou no browser o redirecionamento anônimo de /inicio para /auth em 2026-10-02T01:40:18.268Z. Probes HTTP sem sessão delegada foram redirecionados a vercel.com/login (200 HTML), portanto não são respostas dos endpoints de health da aplicação. Sem bypass da proteção. Browser bloqueou navegação direta a /api/health/ready com ERR_BLOCKED_BY_CLIENT; readiness da preview permanece NO-VERDICT, distinto de Ready do deploy.
+
+## Baseline de main renovada pelo runner
+
+Leitura 2026-10-02T01:21:31.151Z, análise `1dc2baf9-b289-42f4-b2ca-dd7b662b3679` de 2026-10-01T14:53:36Z no SHA main d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9. API fresca lê a análise armazenada; não prova reprocessamento da janela desde essa análise. Gate ERROR, única condição new_coverage 63,2. Linhas 1904/690 descobertas e condições 1091/411 descobertas: 2995 totais, 1894 cobertas, gap 502 para 80%, piso 1498. A correção de preview não paga esse déficit automaticamente.
+
+## Observabilidade do gate — commit local 27681df
+
+Nova leitura somente no runner: `scripts/sonar/gate-readout.ts` nomeia o veredito pelo ceTaskId/analysisId deste scanner, valida origem sonarcloud.io, projeto e identidade e registra condições sem segredo. Valores ausentes preservados como null, gate ausente/ilegível produz NO-VERDICT/exit2, ERROR exit1, OK exit0. Nove testes de identidade/origem/nulo e os contratos de CI/tier passaram: 62/62; typecheck PASS.
+
+Medição venceu a premissa de filesystem: log do scanner mostrou working dir `/tmp/.scannerwork` dentro do container, fora do volume. Workflow agora compartilha somente report-task.txt vazio antes do scan e grava metadata nele, de modo que o leitor não use uma análise anterior. Upload lcov original mantido; baseline/readout em artefato separado. Pipeline mantém wait=true e nenhum gate é relaxado. Novo push depende de check completo; condições e execução remota desse leitor ainda pendentes.

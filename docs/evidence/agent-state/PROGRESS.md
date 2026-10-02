@@ -17,15 +17,15 @@
 
 ## 1. Estado corrente
 
-- **Fase:** reconciliação de infraestrutura autorizada por pedido humano @browser; ADR-036 §8 registra extensão desta sessão. C25 conserva ERRATA V1/V3 e D0 A; espelho não implementado. Artefato: `docs/evidence/infra-2026-10-02/README.md`.
-- **Refs:** main `d4b9395` congelada, develop remoto `0b78acb`, PR #60 OPEN/BLOCKED. Handoff C25 `e62702c` local; fix TanStack `05307b4` local. Nenhum push nesta retomada até check completo.
-- **Correção local:** Start 1.168.60 / Router 1.170.41 / plugin 1.168.42 / server-core 1.169.39; manifests, piso da política e AGENTS sincronizados e selados. Guard e negativo PASS; audit 0 high/critical. Full check parou no typecheck TS2322; assinatura ajustada ao tipo oficial, typecheck agora PASS. Segunda execução: 116 suítes PASS / uma fixture de piso legado FAIL; fixture corrigida e controle focado 39/39 PASS. Terceira completa pendente.
-- **Neon/preview:** capacidade 10/10 confirmada por HTTP 422 branches limit exceeded em probe isolado sem compute; nenhuma branch criada. Exclusão específica de vercel-dev aguarda autorização. Preview Vercel falhou pelo advisory GHSA-qx66-fv34-fjm8; hipótese de cascata Neon refutada para essa falha.
-- **Produção/logins:** Vercel e Hostinger no SHA main antigo respondem live/ready 200, postgres ok, sessão anônima null e login renderizado; Vercel /inicio redireciona anônimo a /auth. Login autenticado não exercido. SonarCloud aguarda login humano; outros provedores com sessão delegada. CSP Vercel report-only, Hostinger também enforced.
-- **Sonar/imposição:** M1 anterior 2995 unidades / 1894 cobertas / gap502 / piso1498, gate 63,2; não revalidado nesta retomada. Ruleset `24333849`, update/bypass=[] e freeze preservados; ADR-038 segue PROPOSTA. Janela ADR-037 até 2026-10-02T02:59:59Z, sem autorrenovação.
-- **Registry/placar:** 52 = 42 ABERTA + 9 FECHADA + 1 EM_TRATAMENTO; DBT-69 nova, produção vulnerável sem closure. DBT-57/61/64/67/68 permanecem ABERTAS. 150 D · 29 P · 8 NS · 0 UNV / 187, sem promoção.
-- **Custódia:** checkout original `48ffb6b`, 932 paths sujos pré-existentes, baseline de hashes em /tmp/infra-20261002-custody.json. Watcher última metadata 2026-09-30T01:14:03Z, sem rearme/prova de supervisão.
-- **Orçamento:** C25 6/13 commits gastos (3 herdados + fix 05307b4 + reconciliação 0d6e960 + tipos a19b858); próximo lote de fixture será 7/13. Runs anteriores 6; novo push condicionado ao check.
+- **Fase:** infraestrutura autorizada por pedido humano @browser, extensão ADR-036 §8. TanStack corrigido em develop e preview Ready; leitor do CE implementado localmente, execução remota pendente. C25 conserva D0 A e ERRATA V1/V3; espelho não implementado.
+- **Refs:** main `d4b9395` imóvel; develop remoto `f27de2d`, PR60 OPEN/BLOCKED. Novo leitor local `27681df`, próximo lote documental; nenhum release/merge/ruleset alterado. Artefato: `docs/evidence/infra-2026-10-02/README.md`.
+- **Gates f27:** check completo PASS 117 suítes / 1411 testes / 14 skipped; verify PR 36950531373 SUCCESS 414 s, install 36 s e 4 projetos E2E; verify push SUCCESS. Lights PASS. Sonar 36950531332 CE FAILED real; leitor por taskId/analysisId será publicado para nomear condições.
+- **Preview/Neon:** DPYoGLvxjnnFCxW4vrAmaUR7Wd4w Ready 23 s, f27de2d; causa TanStack corrigida. Neon 10/10 confirmado por 422 branches limit exceeded; novo run 36950531344 422/create, Delete skipped. Exclusão vercel-dev aguarda autorização, sem exercício/closure DBT-67. Readiness da preview NO-VERDICT por proteção/delegação, login anônimo renderiza/redirect.
+- **Produção/logins:** Vercel e Hostinger no main antigo live/ready 200, postgres ok, sessão null e /inicio→/auth. Login autenticado não exercido. SonarCloud aguarda login humano; demais provedores delegados. CSP Vercel report-only, Hostinger também enforced.
+- **Main M1 renovada:** runner 2026-10-02T01:21:31.151Z: análise main anterior nomeada, 2995 unidades / 1894 cobertas / gap502 / piso1498, gate63,2 ERROR. Ruleset 24333849/update/bypass=[] mantidos; ADR-038 PROPOSTA. Janela ADR-037 até 2026-10-02T02:59:59Z, sem autorrenovação.
+- **Registry/placar:** 52 = 42 ABERTA + 9 FECHADA + 1 EM_TRATAMENTO; DBT-69 corrigida em candidato/preview, produção aberta. DBT-57/61/64/67/68 permanecem ABERTAS. 150 D · 29 P · 8 NS · 0 UNV / 187, sem promoção.
+- **Custódia:** original HEAD/WIP 932 caminhos conferidos sem divergência. Watcher última metadata 2026-09-30T01:14:03Z, sem prova de supervisão ativa.
+- **Orçamento:** C25 8/13 gastos (3 herdados + 5 desta retomada); lote documental seguinte 9/13. Push desta retomada 1 / 6 runs observados (4 success, Sonar/Neon failure); novo push condicionado ao check.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -627,3 +627,17 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | L340 | 2026-10-02T01:16:47.975296+00:00 | ✔ | Segundo check encerrou com 116 suítes PASS, 1 falha de fixture de política (1410 PASS/14 skipped); após fixture atualizada, upgrade-guard 39/39 PASS. Versões vulneráveis rejeitadas, piso preservado. Causa distinta do typecheck anterior, progresso medido; nenhum push. |
 
 | L341 | 2026-10-02T01:16:47.975313+00:00 | ▶ | Commit de fixture+evidência+selo (4 arquivos, 7/13 C25), seguido de check completo. Se verde, publicar commits validados em develop com refs e pré-condições reconciliadas, observar CI e preview no mesmo SHA; main/ruleset intactos. |
+
+| L342 | 2026-10-02T01:21:13.591036+00:00 | ✔ | Check completo PASS no f27de2d limpo: 117 suítes, 1411 PASS/14 skipped; lint/typecheck/build/bundle verdes. Origem de produção main d4b9395 imóvel; original HEAD/WIP 932 caminhos conferidos byte a byte, 0 alterações. /tmp/infra-20261002-check-attestation.json e check-final.log. |
+
+| L343 | 2026-10-02T01:21:13.591044+00:00 | ▶ | Publicar exatamente f27de2ddc180600dcfaeaca2f56d43d8c0e95b2e em origin/develop, fast-forward de 0b78acb: 5 commits incluem handoff herdado + 4 lotes desta retomada. Local gate verde, sem force/main/ruleset/credenciais. Observar CI e Vercel da nova revisão; resultado imediato no journal. |
+
+| L344 | 2026-10-02T01:21:25.313181+00:00 | ✔ | Push fast-forward origin/develop 0b78acb→f27de2d concluído exit 0; candidato local verificado publicado. Nenhum push main, mudança de ruleset ou deploy de produção. Reconciliar headSha/run/deployment da PR60 antes de emitir veredito remoto. |
+
+| L345 | 2026-10-02T01:30:35.626331+00:00 | ✔ | Preview f27de2d Ready (DPYoGLvxjnnFCxW4vrAmaUR7Wd4w, 23 s); Neon run 36950531344 422/create e Delete skipped. Sonar run 36950531332 falhou após CE em QUALITY GATE STATUS FAILED, suíte e import de cobertura rodaram. API pública de PR devolveu 404, sem inferir inexistência; condições precisam de leitura autenticada no runner. Verify PR em E2E. |
+
+| L346 | 2026-10-02T01:30:35.626344+00:00 | ▶ | Acrescentar readout do gate por ceTaskId/analysisId do scanner, com token apenas no runner, saída sanitizada e controles negativos de origem/identidade/nulo. Registrar artefato e atualizar contrato AGENTS; sem scanner local, sem relaxar gate. Lote 8 C25, até 5 arquivos. |
+
+| L347 | 2026-10-02T01:43:24.775768+00:00 | ✔ | Readout CE commitado 27681df (8/13), 9 testes próprios + contratos 62/62 PASS, typecheck PASS; metadata scanner medido /tmp dentro container, compartilhamento explícito adicionado. Verify f27 PR SUCCESS/414s, push SUCCESS; preview Ready23s. Baseline main fresca gap502, gate63,2. |
+
+| L348 | 2026-10-02T01:43:24.775784+00:00 | ▶ | Lote documental 9/13 com registry/handoff/selo, seguido de check completo no HEAD limpo. Se verde, publicar readout e evidência em develop e observar gate por análise CE; nenhuma alteração main/produção ou credenciais. |
