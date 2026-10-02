@@ -223,7 +223,7 @@ Exclusão de vercel-dev br-raspy-wildflower-ay41jd97 foi preparada e está pende
 | preco-que-da-lucro-sage.vercel.app     | 200 ok | 200 ready / ok   | 200 null       | presente | report-only            |
 | darkgray-pony-545965.hostingersite.com | 200 ok | 200 ready / ok   | 200 null       | presente | enforced e report-only |
 
-Vercel `/inicio` no browser sem sessão redirecionou a `/auth?redirect=%2Finicio`; formulário de email/senha/Google visível. Não foram fornecidas credenciais nem executados login, signup ou recuperação de senha. A aplicação usa Better Auth próprio e adapter Drizzle; não confundir com Neon Auth gerenciado. Readiness prova acesso ao Postgres, não a identidade da branch usada nem isolamento de tenants.
+Vercel e Hostinger `/inicio` no browser sem sessão redirecionaram a `/auth?redirect=%2Finicio`; formulário de email/senha/Google visível. Não foram fornecidas credenciais nem executados login, signup ou recuperação de senha. A aplicação usa Better Auth próprio e adapter Drizzle; não confundir com Neon Auth gerenciado. Readiness prova acesso ao Postgres, não a identidade da branch usada nem isolamento de tenants.
 
 ERRATA de medição: o primeiro probe usou lookup case-sensitive e leu HSTS da Hostinger como ausente. A repetição com `HTTPMessage.get` confirmou o header; não houve alteração no alvo. Retenção Neon medida em 21600 s (6 h), production sem proteção e snapshot schedule vazio: estes metadados não provam ausência de backups externos. Backup diário do painel Hostinger não comprova backup do Postgres Neon.
 
@@ -244,3 +244,24 @@ DBT-69 aberta até release segura e verificação da versão real em produção.
 DBT-67 causa de capacidade agora nomeada, mas fechamento ainda exige criação → outputs → cleanup com branch_id observado. A branch arquivada vercel-dev só será excluída após confirmação humana explícita. DBT-68 não é promovida por um run verde anterior; o cache já existia, e lentidão APT foi o fato medido.
 
 Registry 52 = 42 abertas + 9 fechadas + 1 em tratamento. Placar ratificado 150 D / 29 P / 8 NS / 0 UNV de 187; D todos os subitens provados, P delta faltante, NS não iniciado, UNV inverificável de princípio. Nenhuma promoção nesta reconciliação.
+
+## ERRATA de compatibilidade e estabilidade
+
+O primeiro `npm run check` da família corrigida parou em `typecheck`: TS2322 no `errorComponent` da rota raiz. O Router atualizado recebe `ErrorComponentProps`, cujo `error` é `unknown`; o callback local exigia `Error`. Não houve push com esse gate vermelho. Ajuste mínimo: importar o tipo oficial e usá-lo na assinatura existente; somente dois trechos de tipo mudam, sem comportamento ou refatoração. `reportLovableError` já recebe `unknown`. `npm run typecheck` após ajuste PASS. O check completo será repetido antes do push.
+
+Neon production recebeu diagnósticos somente leitura `stalled-queries` e `replication-slots`: zero consultas ativas por mais de 30 s; dois slots físicos, lag observado 0 e 3248 bytes. Sem extensão, SQL de escrita ou leitura de dados de usuários. É uma amostra de saúde, não garantia de disponibilidade contínua ou capacidade de restore.
+
+## Timeline de browser (UTC; nenhuma mutação externa)
+
+| ts                                                    | superfície / URL                                                                                                                         | ação                          | resultado                                           |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------------------------------- |
+| 2026-10-02T00:48:50.376Z                              | https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro                                                                | Ler projeto vinculado ao repo | Production Ready d4b9395; preview PR60 Error        |
+| 2026-10-02T00:51:12.556Z                              | https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/8wUJ19L3tr38aNaidmx4KGKoo3v6                                   | Ler build logs                | Recusa TanStack vulnerável, 3 s                     |
+| 2026-10-02T00:54:42.120Z                              | https://hpanel.hostinger.com/websites/darkgray-pony-545965.hostingersite.com                                                             | Ler dashboard                 | Deploy automático main d4b93953; Nitro/Node24.x     |
+| 2026-10-02T01:00:00.219Z                              | https://hpanel.hostinger.com/websites/darkgray-pony-545965.hostingersite.com/hosting-security/vulnerabilities?redirectLocation=side_menu | Ler achados nominais          | Dois altos withdrawn, um moderado                   |
+| 2026-10-02T01:13:17.430682+00:00 (registro posterior) | https://vercel.com/douglasultimatesouza-5127s-projects/~/integrations/neon/icfg_eDeLFTSX3j7fPem6tn88RkGS                                 | Ler instalação                | Integração Previews presente; sem mudança de acesso |
+| 2026-10-02T01:07:03.996Z                              | https://preco-que-da-lucro-sage.vercel.app/inicio                                                                                        | Navegar anônimo               | Redirect /auth, login visível                       |
+| 2026-10-02T01:09:28.667Z                              | https://darkgray-pony-545965.hostingersite.com/inicio                                                                                    | Navegar anônimo               | Redirect /auth, login visível                       |
+| 2026-10-02T01:13:17.430682+00:00 (registro posterior) | https://sonarcloud.io                                                                                                                    | Ler aba delegada              | Sessão não autenticada, humano solicitado           |
+
+As leituras de integração e Sonar usam timestamp de registro posterior do resultado; a hora de captura não foi guardada. Os demais timestamps vêm da captura. Os selos são verificados contra a revisão que os publicou; alterações posteriores de journal/relatório não substituem silenciosamente selos anteriores.
