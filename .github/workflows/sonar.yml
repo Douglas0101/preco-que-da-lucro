@@ -198,7 +198,13 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/sonar/main-baseline.mjs
+      - name: Observe authenticated source unit capabilities without exposing source or tokens
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sonar/main-unit-probe.ts
       - name: Require individually mapped new-code units before granting coverage credit
+        if: always()
         run: node scripts/sonar/gate-mirror.ts
       - name: Preserve the measured gap and precondition verdict
         if: always()
@@ -208,5 +214,6 @@ jobs:
           path: |
             ${{ runner.temp }}/c24-main-baseline.json
             ${{ runner.temp }}/c26-main-mirror.json
+            ${{ runner.temp }}/c26-main-unit-probe.json
           if-no-files-found: error
           retention-days: 7
