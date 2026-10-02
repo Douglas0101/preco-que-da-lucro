@@ -19,13 +19,13 @@
 
 - **Fase:** reconciliação de infraestrutura autorizada por pedido humano @browser; ADR-036 §8 registra extensão desta sessão. C25 conserva ERRATA V1/V3 e D0 A; espelho não implementado. Artefato: `docs/evidence/infra-2026-10-02/README.md`.
 - **Refs:** main `d4b9395` congelada, develop remoto `0b78acb`, PR #60 OPEN/BLOCKED. Handoff C25 `e62702c` local; fix TanStack `05307b4` local. Nenhum push nesta retomada até check completo.
-- **Correção local:** Start 1.168.60 / Router 1.170.41 / plugin 1.168.42 / server-core 1.169.39; manifests, piso da política e AGENTS sincronizados e selados. Guard e negativo PASS; audit 0 high/critical. Full check parou no typecheck TS2322; assinatura ajustada ao tipo oficial, typecheck agora PASS. Repetição completa pendente.
+- **Correção local:** Start 1.168.60 / Router 1.170.41 / plugin 1.168.42 / server-core 1.169.39; manifests, piso da política e AGENTS sincronizados e selados. Guard e negativo PASS; audit 0 high/critical. Full check parou no typecheck TS2322; assinatura ajustada ao tipo oficial, typecheck agora PASS. Segunda execução: 116 suítes PASS / uma fixture de piso legado FAIL; fixture corrigida e controle focado 39/39 PASS. Terceira completa pendente.
 - **Neon/preview:** capacidade 10/10 confirmada por HTTP 422 branches limit exceeded em probe isolado sem compute; nenhuma branch criada. Exclusão específica de vercel-dev aguarda autorização. Preview Vercel falhou pelo advisory GHSA-qx66-fv34-fjm8; hipótese de cascata Neon refutada para essa falha.
 - **Produção/logins:** Vercel e Hostinger no SHA main antigo respondem live/ready 200, postgres ok, sessão anônima null e login renderizado; Vercel /inicio redireciona anônimo a /auth. Login autenticado não exercido. SonarCloud aguarda login humano; outros provedores com sessão delegada. CSP Vercel report-only, Hostinger também enforced.
 - **Sonar/imposição:** M1 anterior 2995 unidades / 1894 cobertas / gap502 / piso1498, gate 63,2; não revalidado nesta retomada. Ruleset `24333849`, update/bypass=[] e freeze preservados; ADR-038 segue PROPOSTA. Janela ADR-037 até 2026-10-02T02:59:59Z, sem autorrenovação.
 - **Registry/placar:** 52 = 42 ABERTA + 9 FECHADA + 1 EM_TRATAMENTO; DBT-69 nova, produção vulnerável sem closure. DBT-57/61/64/67/68 permanecem ABERTAS. 150 D · 29 P · 8 NS · 0 UNV / 187, sem promoção.
 - **Custódia:** checkout original `48ffb6b`, 932 paths sujos pré-existentes, baseline de hashes em /tmp/infra-20261002-custody.json. Watcher última metadata 2026-09-30T01:14:03Z, sem rearme/prova de supervisão.
-- **Orçamento:** C25 5/13 commits gastos (3 herdados + fix 05307b4 + reconciliação 0d6e960); próximo ajuste de tipos será 6/13. Runs anteriores 6; novo push condicionado ao check.
+- **Orçamento:** C25 6/13 commits gastos (3 herdados + fix 05307b4 + reconciliação 0d6e960 + tipos a19b858); próximo lote de fixture será 7/13. Runs anteriores 6; novo push condicionado ao check.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -621,3 +621,9 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | L337 | 2026-10-02T01:11:07.071707+00:00 | ▶ | ERRATA da compatibilidade: adaptar somente assinatura ErrorComponent ao tipo exportado ErrorComponentProps; nenhum fluxo/refatoração. Typecheck antes de commit e, se PASS, repetir check completo com a família corrigida. Selo por revisão e lote de 4 arquivos; preservação do freeze/WIP. |
 
 | L338 | 2026-10-02T01:12:42.286822+00:00 | ✔ | Ajuste mínimo de tipo ErrorComponentProps verificado: typecheck PASS; reportLovableError já aceita unknown. Diagnósticos Neon read-only: stalled queries 0, slots físicos com lag 0/3248 B. Sem dados de usuários, extensão ou escrita remota. Commit de 4 arquivos seguido de novo check completo, sem push pré-verificação. |
+
+| L339 | 2026-10-02T01:16:02.477890+00:00 | ▶ | Segundo check passou typecheck e chegou à suíte; upgrade-guard.test.ts ainda esperava aceitação de 1.168.26, abaixo do piso de segurança novo. Corrigir a fixture para manter o contrato major coringa e afirmar rejeição 1.168.26/1.168.49 e aceitação 1.168.60. Sem afrouxar política, remover teste ou push; aguardar término da suíte para reconciliar demais falhas. |
+
+| L340 | 2026-10-02T01:16:47.975296+00:00 | ✔ | Segundo check encerrou com 116 suítes PASS, 1 falha de fixture de política (1410 PASS/14 skipped); após fixture atualizada, upgrade-guard 39/39 PASS. Versões vulneráveis rejeitadas, piso preservado. Causa distinta do typecheck anterior, progresso medido; nenhum push. |
+
+| L341 | 2026-10-02T01:16:47.975313+00:00 | ▶ | Commit de fixture+evidência+selo (4 arquivos, 7/13 C25), seguido de check completo. Se verde, publicar commits validados em develop com refs e pré-condições reconciliadas, observar CI e preview no mesmo SHA; main/ruleset intactos. |
