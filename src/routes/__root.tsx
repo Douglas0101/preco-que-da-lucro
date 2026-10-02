@@ -40,7 +40,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: ErrorComponentProps) {
+function ErrorComponent({ error, reset }: Readonly<ErrorComponentProps>) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {

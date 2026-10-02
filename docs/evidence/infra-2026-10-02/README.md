@@ -303,3 +303,13 @@ Revisão 9a7c52a, Sonar run 36952775117: a suíte/cobertura e upload de análise
 Correção limitada de filesystem: mount do mesmo arquivo em `/sonar-metadata/report-task.txt`, parent fora de /tmp sticky; preflight de escrita com o UID real do container, sem credencial, antes do scanner. Depois do preflight o arquivo é truncado novamente para não transportar dados de um passo anterior. Hipótese técnica: proteção Linux `protected_regular` recusa O_CREAT de arquivo de outro dono em diretório sticky apesar de chmod666. Fonte primária: https://www.kernel.org/doc/html/latest/admin-guide/sysctl/fs.html#protected-regular. UID/owner/sysctl serão medidos no runner; não declarar confirmação por memória. Nenhum sysctl será alterado.
 
 Fase de leitura suspensa até precondição validada; primeira tentativa remota sem progresso. Segunda tentativa sem execução válida implica escala, não novo loop. Budget corrente 9/13; correção será commit10/13. Produção/main/freeze continuam preservados.
+
+## Leitor validado remotamente — c614d47
+
+Run Sonar 36953950278, observedAt 2026-10-02T02:07:50.882Z: ceTaskId AaD6XgZQfXlyolPGOB_O, analysisId 41dd29c9-350a-4d60-8fc3-b8b1e305bda4, pullRequest60. Branch/branchType ausentes preservados como null. GITHUB_SHA do runner 7205d1dfb4e777a66595d269575d05113f61737a é a revisão de merge sintética da PR; headSha do run é c614d47. Não confundir essas identidades.
+
+Preflight mediu container UID1000, metadata owner1001/mode666, protected_regular2; parent fora do /tmp eliminou AccessDenied e o arquivo foi persistido. A hipótese de proteção sticky é consistente com a medição e a documentação kernel, sem alterar controles. Controle negativo: primeiro run leitor NO-VERDICT/exit2; positivo de leitura: novo run retorna gate ERROR/exit1 por veredito legítimo, conditions nomeadas. O job vermelho agora é gate, não precondição.
+
+Condição única reprovada: new_maintainability_rating = 2 (B), exige1 (A). Cobertura NÃO está entre as cinco condições da PR; new reliability/security1, duplicação0, hotspots100. Main continua com condição de cobertura63,2; esta medição não substitui o gate main.
+
+GitHub app check110673354414 tem uma anotação, `src/routes/__root.tsx` linha43, título “Mark the props of the component as read-only.” Issue AaD6NklsnZOlAiOiyPLc no recorte PR60. Correção restrita: Readonly<ErrorComponentProps>, sem alterar corpo, suprimir regra ou varrer achados gerais. Será commit11, com check e validação CE antes de qualquer veredito verde.

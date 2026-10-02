@@ -17,15 +17,15 @@
 
 ## 1. Estado corrente
 
-- **Fase:** infraestrutura autorizada por pedido humano @browser, extensão ADR-036 §8. TanStack corrigido em develop e preview Ready; leitor do CE exercido remotamente com NO-VERDICT por precondição de escrita; fase de leitura suspensa até correção. C25 conserva D0 A e ERRATA V1/V3; espelho não implementado.
-- **Refs:** main `d4b9395` imóvel; develop remoto `f27de2d`, PR60 OPEN/BLOCKED. Leitor `27681df` e evidência `9a7c52a` publicados; metadata em /tmp falhou, correção de precondição em andamento; nenhum release/merge/ruleset alterado. Artefato: `docs/evidence/infra-2026-10-02/README.md`.
-- **Gates f27:** check completo PASS 117 suítes / 1411 testes / 14 skipped; verify PR 36950531373 SUCCESS 414 s, install 36 s e 4 projetos E2E; verify push SUCCESS. Lights PASS. Sonar 36950531332 CE FAILED real; leitor por taskId/analysisId será publicado para nomear condições.
-- **Preview/Neon:** DPYoGLvxjnnFCxW4vrAmaUR7Wd4w Ready 23 s, f27de2d; causa TanStack corrigida. Neon 10/10 confirmado por 422 branches limit exceeded; novo run 36950531344 422/create, Delete skipped. Exclusão vercel-dev aguarda autorização, sem exercício/closure DBT-67. Readiness da preview NO-VERDICT por proteção/delegação, login anônimo renderiza/redirect.
-- **Produção/logins:** Vercel e Hostinger no main antigo live/ready 200, postgres ok, sessão null e /inicio→/auth. Login autenticado não exercido. SonarCloud aguarda login humano; demais provedores delegados. CSP Vercel report-only, Hostinger também enforced.
-- **Main M1 renovada:** runner 2026-10-02T01:21:31.151Z: análise main anterior nomeada, 2995 unidades / 1894 cobertas / gap502 / piso1498, gate63,2 ERROR. Ruleset 24333849/update/bypass=[] mantidos; ADR-038 PROPOSTA. Janela ADR-037 até 2026-10-02T02:59:59Z, sem autorrenovação.
-- **Registry/placar:** 52 = 42 ABERTA + 9 FECHADA + 1 EM_TRATAMENTO; DBT-69 corrigida em candidato/preview, produção aberta. DBT-57/61/64/67/68 permanecem ABERTAS. 150 D · 29 P · 8 NS · 0 UNV / 187, sem promoção.
-- **Custódia:** original HEAD/WIP 932 caminhos conferidos sem divergência. Watcher última metadata 2026-09-30T01:14:03Z, sem prova de supervisão ativa.
-- **Orçamento:** C25 9/13 gastos (3 herdados + 6 desta retomada); correção filesystem seguinte 10/13. Dois pushes nesta retomada; reader remoto NO-VERDICT, uma tentativa sem progresso. Próximo push condicionado ao check.
+- **Fase:** infraestrutura autorizada @browser / ADR-036 §8. TanStack corrigido em develop/preview, reader CE validado remotamente; apontamento único de props readonly corrigido localmente, check/CE seguintes pendentes. C25 preserva D0 A, ERRATA V1/V3; espelho não implementado.
+- **Refs:** main `d4b9395` imóvel; develop remoto `c614d47`, PR60 OPEN/BLOCKED. Próximo commit11 será correção Readonly + evidência. Artefato: `docs/evidence/infra-2026-10-02/README.md`.
+- **Gates:** check completo c614 PASS 118 suítes/1420 PASS/14 skipped. Verify f27 e 9a7 SUCCESS; verify c614 em observação. Sonar c614 run36953950278 ERROR real por Maintainability B; uma annotation __root.tsx43 exige props readonly. Reader por CEtask/analysisId nomeou o veredito; coverage ausente na PR.
+- **Preview/Neon:** TanStack bloqueado foi corrigido, preview f27 Ready23s; revisões seguintes em observação. Neon10/10 confirmado por 422 branches limit exceeded, novos create422/Delete skipped. Exclusão vercel-dev aguarda autorização; DBT-67 sem exercício/closure. Preview /inicio→/auth; health sem sessão recebe proteção Vercel, NO-VERDICT.
+- **Produção/logins:** ambos alvos no main antigo, live/ready200/postgresok/sessão null e /inicio→/auth. Login autenticado não exercido. Sonar UI aguarda humano, outros provedores delegados. CSP Vercel report-only, Hostinger também enforced. PITR6h abaixo contrato7d, H-4 pendente.
+- **Imposição/M1:** baseline main renovada no runner9a7: análise1dc2baf9 no SHA main, 2995 unidades/1894 cobertas/gap502/piso1498/gate63,2 ERROR. Ruleset24333849/update/bypass=[] preservados, ADR-038 PROPOSTA. Janela ADR-037 até 2026-10-02T02:59:59Z, sem autorrenovação.
+- **Registry/placar:** 52 = 42 ABERTA + 9 FECHADA + 1 EM_TRATAMENTO; DBT-69 candidato corrigido, produção aberta. DBT-57/61/64/67/68 ABERTAS. 150 D · 29 P · 8 NS · 0 UNV / 187, sem promoção.
+- **Custódia:** original HEAD/WIP932 caminhos conferidos sem divergência; nenhum valor de credencial. Watcher última metadata2026-09-30T01:14:03Z, sem prova de supervisão ativa.
+- **Orçamento:** C25 10/13 gastos (3 herdados + 7 desta retomada); correção readonly11/13. Três pushes nesta retomada, 18 runs criados; reader teve controle negativo e positivo reais. Próximo push exige check.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -651,3 +651,13 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | L352 | 2026-10-02T01:58:11.248039+00:00 | ✘ | ERRATA readout remoto 36952775117/9a7c52a: scanner upload realizado, mas dump metadata em /tmp/sonar-report-task.txt falhou AccessDeniedException; reader NO-VERDICT/exit2, não gate ERROR. Fase de leitura suspensa por precondição. Baseline main e artifact NoVerdict preservados; nenhum falso fechamento. |
 
 | L353 | 2026-10-02T01:58:11.248426+00:00 | ▶ | Corrigir metadata bind para /sonar-metadata/report-task.txt (parent sem sticky), preflight de escrita no UID real do container e leitura nominal protected_regular; nenhum ajuste de sysctl. Hipótese baseada no controle negativo observado e docs kernel; 1ª tentativa remota sem progresso. Commit10 com workflow/evidência/journal/selo, check antes do push. |
+
+| L354 | 2026-10-02T02:04:43.635788+00:00 | ✔ | Check completo PASS no c614d47 limpo: 118 suítes/1420 PASS/14 skipped, lint/typecheck/build/bundle verdes. Fix filesystem selado; Nova execução remota será 2ª tentativa do readout após controle negativo 9a7c52a. /tmp/infra-20261002-metadata-check.log. |
+
+| L355 | 2026-10-02T02:04:43.635799+00:00 | ▶ | Publicar c614d47 (commit10/13) em develop fast-forward de 9a7c52a; observar preflight UID/owner/protected_regular, task CE e gate. Se sem progresso, escalar sem 3ª tentativa. Main/ruleset/produção preservados. |
+
+| L356 | 2026-10-02T02:04:52.910803+00:00 | ✔ | Push develop 9a7c52a→c614d47 concluído exit0; segunda tentativa do leitor agora em CI. Nenhuma alteração main/ruleset/credenciais. |
+
+| L357 | 2026-10-02T02:13:35.091600+00:00 | ✔ | Readout remoto c614d47/36953950278 funcionou: task AaD6XgZQfXlyolPGOB_O, analysis41dd29c9-350a-4d60-8fc3-b8b1e305bda4, PR60, ERROR por new_maintainability_rating2. Coverage ausente, E4 persiste. Preflight UID1000/owner1001/mode666/protected_regular2, metadata fora/tmp persistiu. GitHub annotation110673354414: único apontamento __root.tsx43 props read-only. |
+
+| L358 | 2026-10-02T02:13:35.091613+00:00 | ▶ | Corrigir somente tipo dos props RootError para Readonly<ErrorComponentProps>, conforme anotação exata da PR; nenhuma supressão, regra ou refatoração. Commit11/13 src+README+journal+selo, check completo antes de push; observar Maintainability A e gate real PR pelo CE. Main80 e Neon continuam barreiras independentes. |
