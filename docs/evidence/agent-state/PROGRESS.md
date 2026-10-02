@@ -17,15 +17,15 @@
 
 ## 1. Estado corrente
 
-- **Fase:** infraestrutura autorizada @browser / ADR-036 §8. TanStack corrigido em develop/preview, reader CE validado remotamente; apontamento único de props readonly corrigido localmente, check/CE seguintes pendentes. C25 preserva D0 A, ERRATA V1/V3; espelho não implementado.
-- **Refs:** main `d4b9395` imóvel; develop remoto `c614d47`, PR60 OPEN/BLOCKED. Próximo commit11 será correção Readonly + evidência. Artefato: `docs/evidence/infra-2026-10-02/README.md`.
-- **Gates:** check completo c614 PASS 118 suítes/1420 PASS/14 skipped. Verify f27 e 9a7 SUCCESS; verify c614 em observação. Sonar c614 run36953950278 ERROR real por Maintainability B; uma annotation __root.tsx43 exige props readonly. Reader por CEtask/analysisId nomeou o veredito; coverage ausente na PR.
-- **Preview/Neon:** TanStack bloqueado foi corrigido, preview f27 Ready23s; revisões seguintes em observação. Neon10/10 confirmado por 422 branches limit exceeded, novos create422/Delete skipped. Exclusão vercel-dev aguarda autorização; DBT-67 sem exercício/closure. Preview /inicio→/auth; health sem sessão recebe proteção Vercel, NO-VERDICT.
-- **Produção/logins:** ambos alvos no main antigo, live/ready200/postgresok/sessão null e /inicio→/auth. Login autenticado não exercido. Sonar UI aguarda humano, outros provedores delegados. CSP Vercel report-only, Hostinger também enforced. PITR6h abaixo contrato7d, H-4 pendente.
-- **Imposição/M1:** baseline main renovada no runner9a7: análise1dc2baf9 no SHA main, 2995 unidades/1894 cobertas/gap502/piso1498/gate63,2 ERROR. Ruleset24333849/update/bypass=[] preservados, ADR-038 PROPOSTA. Janela ADR-037 até 2026-10-02T02:59:59Z, sem autorrenovação.
-- **Registry/placar:** 52 = 42 ABERTA + 9 FECHADA + 1 EM_TRATAMENTO; DBT-69 candidato corrigido, produção aberta. DBT-57/61/64/67/68 ABERTAS. 150 D · 29 P · 8 NS · 0 UNV / 187, sem promoção.
-- **Custódia:** original HEAD/WIP932 caminhos conferidos sem divergência; nenhum valor de credencial. Watcher última metadata2026-09-30T01:14:03Z, sem prova de supervisão ativa.
-- **Orçamento:** C25 10/13 gastos (3 herdados + 7 desta retomada); correção readonly11/13. Três pushes nesta retomada, 18 runs criados; reader teve controle negativo e positivo reais. Próximo push exige check.
+- **Fase:** correções de infraestrutura publicadas em develop; produção BLOCKED, não promovida. Autorização @browser / ADR-036 §8; D0 A e ERRATAs preservadas, ADR-038 PROPOSTA/espelho não implementado.
+- **Refs:** main `d4b9395` imóvel; develop remoto `5dc7a76`, PR60 OPEN/BLOCKED. Handoff documental final commit12/13 LOCAL. Artefato `docs/evidence/infra-2026-10-02/README.md`, captura `final-observed.json` e selo `final-handoff.manifest.sha256`.
+- **Gates:** check completo 5dc7a76 PASS118 suítes/1420 PASS/14 skipped; verify PR36955216211 SUCCESS411s, push36955212939 SUCCESS; quatro projetos E2E. Sonar36955216199 CE OK, Maintainability A, coverage ausente na PR. Reader por task/analysisId validado sem credencial no fluxo.
+- **Preview/Neon:** projeto conhecido preview5NK5LAeM8BdbNurUBLheZWSTTz7N Ready19s/5dc7a76. GitHub registra também equipe/projeto adicional, DBT-70 ABERTA. Neon10/10/422 branches limit exceeded; create36955216205 FAIL/Delete skipped. Exclusão vercel-dev aguarda autorização; DBT-67 sem exercício/closure.
+- **Produção/logins:** ambos alvos no main antigo; live/ready200/postgresok/sessionnull e /inicio→/auth observados. Login autenticado NO-VERDICT, Sonar UI aguarda humano. CSP Vercel report-only; Hostinger enforced. PITR6h abaixo contrato7d, H-4 pendente.
+- **Imposição/M1:** baseline runner5dc 2026-10-02T02:21:19.603Z lê análise main1dc2baf9:2995 unidades/1894 cobertas/gap502/piso1498/gate63,2 ERROR. API fresca não reprocessa janela. Ruleset24333849/update/bypass=[] preservados. Janela ADR-037 até 2026-10-02T02:59:59Z, sem autorrenovação; vencimento não remove contenção.
+- **Registry/placar:**53 =43 ABERTA +9 FECHADA +1 EM_TRATAMENTO; DBT-57/61/64/67/68/69/70 ABERTAS. DBT-36 Via A EM_TRATAMENTO.150 D ·29 P ·8 NS ·0 UNV /187, sem promoção.
+- **Custódia:** original HEAD48ffb6b/WIP932 caminhos reconferidos com zero divergência;8 selos/27 arquivos verificados nas revisões publicadas. Nenhum valor de credencial; watcher sem prova de supervisão ativa.
+- **Orçamento:**12/13 após handoff final (3 herdados +9 desta retomada); quatro pushes/24 runs nesta retomada,30 runs C25. Develop remoto testado5dc7a76; handoff final permanece LOCAL sem novo CI. Próxima execução reconcilia refs/artifacts/autorizações antes de agir.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -661,3 +661,16 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | L357 | 2026-10-02T02:13:35.091600+00:00 | ✔ | Readout remoto c614d47/36953950278 funcionou: task AaD6XgZQfXlyolPGOB_O, analysis41dd29c9-350a-4d60-8fc3-b8b1e305bda4, PR60, ERROR por new_maintainability_rating2. Coverage ausente, E4 persiste. Preflight UID1000/owner1001/mode666/protected_regular2, metadata fora/tmp persistiu. GitHub annotation110673354414: único apontamento __root.tsx43 props read-only. |
 
 | L358 | 2026-10-02T02:13:35.091613+00:00 | ▶ | Corrigir somente tipo dos props RootError para Readonly<ErrorComponentProps>, conforme anotação exata da PR; nenhuma supressão, regra ou refatoração. Commit11/13 src+README+journal+selo, check completo antes de push; observar Maintainability A e gate real PR pelo CE. Main80 e Neon continuam barreiras independentes. |
+
+| L359 | 2026-10-02T02:20:58.151944+00:00 | ✔ | Check completo PASS no 5dc7a76 limpo: 118 suítes/1420 PASS/14 skipped, typecheck/lint/build/bundle verdes. Correção readonly estática conforme apontamento único; sem redução de testes/regra. /tmp/infra-20261002-readonly-check.log. |
+
+| L360 | 2026-10-02T02:20:58.151954+00:00 | ▶ | Publicar exatamente 5dc7a76 em develop fast-forward de c614d47; observar verify/CE/preview do mesmo SHA. Commit11/13; main/80/freeze/ViaA preservados. |
+
+| L361 | 2026-10-02T02:21:08.826055+00:00 | ✔ | Push develop c614d47→5dc7a76 concluído exit0, candidato readonly verificado publicado. Nenhuma alteração main/ruleset/produção/credenciais. Verificação remota em andamento. |
+
+| L362 | 2026-10-02T02:32:47.911428+00:00 | ✔ | Candidato 5dc7a76 REMOTE-OBSERVED: verify PR36955216211 SUCCESS411s e push36955212939 SUCCESS; Sonar36955216199 CE taskAaD6bQCCV0x5EWx5pesi/analysisa3d68c30-ace3-4a91-832e-3ed6a39452db OK, Maintainability A, coverage ausente na PR. Baseline main2995/1894/gap502; Neon36955216205 create422/Delete skipped. |
+| L363 | 2026-10-02T02:32:47.911428+00:00 | ▶ | Atualizar título/descrição da PR60 para implementação final e evidência do candidato; escrever relatório final/registry DBT-70 identidade dupla Vercel/journal/captura sanitizada/selo (5 arquivos, commit12/13 documental LOCAL). Main/ruleset/produção e WIP preservados. Nenhuma exclusão Neon sem autorização. |
+
+| L364 | 2026-10-02T02:37:09.711741+00:00 | ✔ | PR60 título/descrição atualizados para implementação final, head5dc7a76 OPEN/BLOCKED confirmado. Vercel projeto conhecido Ready19s/5dc7a76; GitHub tem dois status/equipes no mesmo deployment6799767613, DBT-70 registrada sem remover integração. Custódia932/0 e8selos/27arquivos PASS; capturas/registry/handoff escritos, produção/main preservados. |
+
+| L365 | 2026-10-02T02:40:00.554726+00:00 | ✔ | Validação documental final PASS: debts guard53, temporal guard3superfícies/0violação, state11/13, prettier4arquivos e diffcheck limpos. Handoff final (commit12/13) será LOCAL; selo ancorado na revisão Git, resultado do commit registrado após mutação no journal sem regenerar selos anteriores. Nenhum novo push/CI. |

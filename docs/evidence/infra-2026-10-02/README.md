@@ -1,6 +1,6 @@
 # Infraestrutura — reconciliação e correções 2026-10-02
 
-Status: EM EXECUÇÃO. Pedido humano direto autoriza análise e correções das conexões nos provedores já ligados ao projeto; uso de uma única sessão Chrome. ADR-036 permanece aplicável aos guardrails de credenciais/sessão; esta sessão amplia o perímetro para Vercel, GitHub, Hostinger e Neon. Freeze de main, limiar 80 e Via A continuam.
+Status: CORREÇÕES PUBLICADAS EM DEVELOP; PRODUÇÃO BLOQUEADA. Pedido humano direto autoriza análise e correções das conexões nos provedores já ligados ao projeto; uso de uma única sessão Chrome. ADR-036 permanece aplicável aos guardrails de credenciais/sessão; esta sessão amplia o perímetro para Vercel, GitHub, Hostinger e Neon. Freeze de main, limiar 80 e Via A continuam.
 
 Boot: worktree e62702c limpo, state guard PASS folga 3/13; original 48ffb6b com WIP preservado. Main d4b9395, develop 0b78acb, PR60 OPEN/BLOCKED. Watcher app-live sem poll posterior a 2026-09-30T01:14:03Z; não equivale a supervisão ativa.
 
@@ -313,3 +313,45 @@ Preflight mediu container UID1000, metadata owner1001/mode666, protected_regular
 Condição única reprovada: new_maintainability_rating = 2 (B), exige1 (A). Cobertura NÃO está entre as cinco condições da PR; new reliability/security1, duplicação0, hotspots100. Main continua com condição de cobertura63,2; esta medição não substitui o gate main.
 
 GitHub app check110673354414 tem uma anotação, `src/routes/__root.tsx` linha43, título “Mark the props of the component as read-only.” Issue AaD6NklsnZOlAiOiyPLc no recorte PR60. Correção restrita: Readonly<ErrorComponentProps>, sem alterar corpo, suprimir regra ou varrer achados gerais. Será commit11, com check e validação CE antes de qualquer veredito verde.
+
+## Encerramento medido — candidato 5dc7a76
+
+Correções publicadas e validadas em develop; PR60 permanece OPEN/BLOCKED. Main e os dois alvos de produção continuam na revisão d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9. Fonte estruturada: `final-observed.json`. Nenhuma promoção, bypass, alteração de DNS/credenciais, reescrita de história ou exclusão Neon aconteceu.
+
+| Superfície                  | Evidência da revisão 5dc7a76                                                           | Resultado                                                              |
+| --------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Local                       | npm run check no HEAD limpo; 118 suítes, 1420 PASS, 14 skipped                         | PASS, lint/typecheck/build/bundle verdes                               |
+| Verify PR                   | run36955216211/job110676577445, 02:21:07–02:27:58Z                                     | SUCCESS, 411 s, quatro projetos E2E; install49 s, E2E151 s             |
+| Verify push                 | run36955212939/job110676566713                                                         | SUCCESS                                                                |
+| Sonar PR                    | run36955216199; taskAaD6bQCCV0x5EWx5pesi, analysisa3d68c30-ace3-4a91-832e-3ed6a39452db | CE OK; Maintainability A; cinco condições, cobertura ausente           |
+| Vercel do projeto conhecido | deployment5NK5LAeM8BdbNurUBLheZWSTTz7N, develop/5dc7a76                                | Ready, 19 s; preview opm0r12i9                                         |
+| Neon PR                     | run36955216205, create110676620862, cleanup110676695507                                | create FAILURE/422; Delete skipped; cleanup job SUCCESS não é descarte |
+| CI light                    | runs36955216201/36955212956                                                            | SUCCESS                                                                |
+
+O runner usa a revisão sintética de merge d24946b5804720325bfd4f7ab340a1cd821fde74; o headSha do run é 5dc7a76. O leitor nomeia a análise desta PR, sem colapsar identidades nem transformar campo ausente em zero. Esse resultado corrige a causa de Maintainability B e demonstra o leitor; não é fechamento da DBT-61 via which-analysis.ts, nem da imposição de cobertura de main.
+
+Baseline main recebida em 2026-10-02T02:21:19.603Z: mesma análise armazenada1dc2baf9-b289-42f4-b2ca-dd7b662b3679, 1904 linhas/690 descobertas e 1091 condições/411 descobertas = 2995 unidades/1894 cobertas. Gate ERROR63,2; déficit502 para 80%; piso anti-janela-vazia1498. API fresca não significa janela reprocessada. Nenhum lote de testes de aplicação/unidades pagas foi creditado nesta retomada. Espelho por agregado já falsificado no Ciclo25; unidade precisa de identidade e baseline comparável, ADR-038 PROPOSTA. Main verde antes de retirar update continua ordem circular: escalar contrato de promoção, sem improvisar bypass.
+
+## Identidade dupla Vercel — DBT-70
+
+GitHub deployment6799767613, mesmo SHA5dc7a76, tem dois status success: 02:21:25Z aponta a `https://preco-que-da-lucro-opm0r12i9.vercel.app`, confirmado no projeto conhecido; 02:21:31Z aponta a `https://preco-que-da-lucro-addd9c1at-douglas-dias-de-souzas-projects.vercel.app`. O check público usa equipe douglas-dias-de-souzas-projects e deployment2eJoyYPxKqgovYRGA3XxiQUSGT1B; painel devolveu Not Found na sessão delegada atual. Projeto conhecido possui outro deployment5NK5LAeM8BdbNurUBLheZWSTTz7N. Dois alvos estão nomeados; não presumir alias, renomeação, equivalência ou ausência de um deles. Necessária reconciliação do proprietário/equipe/projeto/alias e associação Git antes de corrigir ou desligar a integração adicional. Nenhuma integração foi removida.
+
+ERRATA: check Vercel SUCCESS isolado não identifica o projeto que serve o alias de produção. O Ready da preview foi confirmado diretamente no projeto de produção por Source/SHA. A hipótese preview←Neon422 foi refutada para a falha medida: build recusado por versão TanStack vulnerável, e preview agora Ready enquanto criação Neon continua422. Não generalizar esse resultado à conectividade DB/login da preview.
+
+## Produção, recuperação e decisões pendentes
+
+Os probes de produção documentados acima retornaram live200, ready200/postgresok e get-session200/null; browser anônimo redirecionou /inicio para /auth nos dois alvos. Login autenticado e versão corrigida servida em produção continuam sem prova. O gate de main permanece vermelho e o lockfile de main ainda contém o pacote vulnerável. DBT-69 permanece ABERTA até release permitida e validação do runtime. Readiness pontual não demonstra estabilidade prolongada.
+
+Neon é Free com limite10/10 e PITR21600s/6h, sem native snapshot schedule; o contrato mínimo604800s/7d de H-4 segue pendente. O probe único devolveu branches limit exceeded e não criou branch. Exclusão somente de vercel-dev/br-raspy-wildflower-ay41jd97 foi solicitada e não autorizada até a medição. Não repetir criação sem espaço. Após liberação autorizada: dispatch neon-drill-ops.yml operation=exercise-provisioning confirm=true na develop; observar criação, outputs, branch_id e descarte, depois revalidar PR. Sem isso DBT-67 não fecha.
+
+DBT-68 permanece aberta: o cache já existia e foi hit até no timeout; os runs atuais completaram a matriz e instalação49 s versus580 s do cancelado, mas não comprovam correção da causa APT/rede. DBT-36 permanece EM_TRATAMENTO Via A, sem handshake novo. CSP Vercel report-only e Hostinger enforced foram observados, sem flexibilizar/alterar política. Watcher não tem sinal fresco nem prova de supervisão ativa. UI Sonar segue aguardando autenticação humana; a leitura CE autenticada permaneceu dentro do runner com token fora do fluxo.
+
+Ruleset24333849 reconsultado: active, update, strict verify/scan e bypass=[]; PR60 BLOCKED. Contenção ADR-037 ainda vigente na medição de 02:34Z até 2026-10-02T02:59:59Z, sem autorrenovação. Vencimento não remove ruleset nem autoriza release vermelha. Via B deployment dentro do workflow não foi ratificada/configurada; a autorização @browser para investigação dos provedores não redefine D0 nem impõe ordem de deploy na Vercel.
+
+## Custódia, orçamento e gate de saída
+
+Original HEAD48ffb6bb8106c78781416ffd49fa8a906985f174 e932 caminhos conferidos novamente por sha256: zero divergências. Oito selos publicados/27 arquivos conferidos contra as respectivas revisões Git: PASS. Nenhum selo anterior foi regenerado sobre conteúdo posterior. Correções publicadas exigiram check completo antes de cada um dos quatro pushes, criando24 runs nesta retomada/30 no Ciclo25; acima da estimativa4–6 por correções independentes e controles negativos observados, sem custo de runner público. Nenhum teste, browser, limite ou regra foi removido.
+
+Orçamento final:12/13 commits, três herdados e nove desta retomada, sendo o12º handoff documental LOCAL; develop remoto permanece no candidato5dc7a76 validado. Não há novo push documental/CI. Registry53 =43 ABERTA +9 FECHADA +1 EM_TRATAMENTO. Placar150 D ·29 P ·8 NS ·0 UNV /187, legenda no registry, sem promoção do agente. DBT-57/61/64/67/68/69/70 ABERTAS, estados verdadeiros e testes de fechamento nomeados.
+
+Gate final: correção de preview/dependência e leitura CE REMOTE-OBSERVED; produção/liberação BLOCKED por main80/espelho/ordem de promoção, Neon BLOCKED por capacidade+autorização, login autenticado NO-VERDICT e identidade adicional Vercel pendente. Gap502 e demais pendências escalados com estado medido; nenhum fechamento por gate de PR verde. Próxima execução reconcilia refs/artefatos antes de agir e preserva o commit documental local.
