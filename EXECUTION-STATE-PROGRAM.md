@@ -3460,3 +3460,22 @@ Evidência: docs/evidence/ciclo-26/; custódia externa indicada em PROGRESS.md.
 Nenhum incremento no placar, closure de cobertura, thaw, merge ou deploy.
 
 Latest state marker parent = `24b8e42adad1d9da2232e009c5c6a158d70dd21f`,
+
+## Bloco aditivo — Ciclo 27: Hostinger principal e recuperação independente (2026-10-02)
+
+O MAESTRO autorizou implementar o plano e fazer merge em main após resolver as
+operações. Hostinger é o destino principal de diretrizprecifica.com; Vercel recebe
+a mesma publicação manual aprovada. Backup independente: S3 em conta segregada,
+criptografado e Object Lock por35dias; contratação/credenciais seguem humanas.
+
+Novo teto13commits, com três reservados para release/back-merge/fechamento. C26
+encerrou13/13 sem promover main; seu último journal e DBT79LOCAL são reconciliados
+neste marco. ViaA e a janela humana30min continuam; todos os gates atuais devem
+passar antes de remover somente update, mergecommit e refreeze imediato.
+
+Bridge E8 continua escalada até nova evidência unitária primária. PITR6h, seis
+rotações não verificadas, Hostinger503 e domínioHTML são bloqueadores medidos.
+RPO15min/RTO4h e sete diasPITR exigem provas; backup diário não prova RPO15min.
+Evidência de execução: .codex/artifacts/ciclo-27/; WIP preservado.
+
+Latest state marker parent = `e589d51dc8b73ea24ac6a35106f62723e5b74927`,

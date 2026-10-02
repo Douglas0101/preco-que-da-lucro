@@ -73,3 +73,20 @@ recursostemporários. Selar artefatos,registryeHANDOFF comrun@SHA e limites nome
 Rollback de aplicação seleciona revisão anteriormente aprovada e configuração
 compatível. Migrationcontractdown/higiene não rodam em produção como teste; recovery
 segue restoreisolado/PITR e gate humano de dados, mantendo produção/default estáveis.
+
+## 5. C27 — destino principal e recuperação
+
+ADR039: Hostinger é o destino principal; Vercel permanece publicação manual do
+mesmo SHA aprovado. Reconciliar o site atual do domínio e o runtime Node antes
+de alterar roteamento. APIsHTML200 reprovam; live,ready,sessionJSON e login/tenant
+são evidências distintas. Reparar configuração existente não é uma nova release.
+
+S3 independente em conta segregada, criptografia, versionamento e ObjectLock
+Compliance35dias; o humano configura credenciais/contratação. PITR7d observado
+e restoreisolado/RPO15min/RTO4h medidos continuam gates; backupdiário sozinho
+não demonstra RPO15min. Primeiro backup/restore precedem promoção; rotina diária
+usa revisão aprovada e monitora ausência de backup.
+
+Merge final expressamente autorizado após operações resolvidas. Preserve a
+janela humana30min da seção2 e registre resultados atuais por SHA. Novo ciclo
+limita13commits com três reservados; não se acrescenta commit14 ao C26.
