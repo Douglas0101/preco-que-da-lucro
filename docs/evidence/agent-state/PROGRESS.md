@@ -915,3 +915,9 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | L487 | 2026-10-02T23:24:25.285955+00:00 | ✔ | C27 marco documental preparado nos5paths declarados; autorização/Hostingerprincipal/S3segregado/mergecondicionado registrados. Marcadorparent e589d51 preserva folga13, não altera orçamento da guarda. SPEC/README/boot em .codex/artifacts/ciclo-27; nenhuma mutação plataforma/produção/credencial. Validação local antes de commit/push ainda pendente. |
 
 | L488 | 2026-10-02T23:32:06.778279+00:00 | ▶ | C27 C01: check-c01.log integral PASS (guardas, lint/typecheck, unidade, build/bundle). Commit documental em cinco paths e selo de custodia por sha256; C26 reconciliado sem closure nova e sem publicacao. Sem push neste marco. |
+
+| L489 | 2026-10-02T23:34:03.873362+00:00 | ✔ | C27 C01 78bae0e7415e68ba093a7d71ca910edaf1cdfc9b LOCAL,1/13; cinco paths e selo externo seals/C01/MANIFEST.sha256 conferidos contra Git. Check integral PASS; nenhum push/main/platform mutation. PITR atual API21600s/Free; painel pronto para humano contratar7d. |
+
+| L490 | 2026-10-02T23:34:03.873381+00:00 | ▶ | C27 C02 DBT79: cache do kit completo (browsers+APT), identidade imutavel imagem/arquitetura/lock/Playwright/formato e atestacao nova SHA/run/attempt/manifest. Cache exato, hit verifica antes de instalar offline; miss prepara, captura e sela. Controls: recurso corrompido, pacote sem payload, revisao/run antigo, imagem diferente. Cinco paths: script,test,workflow,AGENTS,journal; nenhuma reducao de matriz/budgets. |
+
+| L491 | 2026-10-02T23:42:18.613865+00:00 | ▶ | C27 C02 check-c02.log integral PASS; kit-focused73PASS inclui dpkg-deb real com filename enganoso e CLIcheckout positivo/negativo. Commit cinco paths e selo sourceGit;2/13. DBT79 continua aberta ate cachehit exato+matrizPR observados. Nenhum dado de producao/limite/matriz alterado. |
