@@ -57,6 +57,13 @@ revisão, build/runtime e domíniosobservados, semsecretvalues. Nunca publicar t
 ConfirmarDBready/session e login/tenant aplicáveis semfixtures emprodução. HTTP200
 público/sessionnull não são login nem garantia de conexão/isolamento.
 
+Conferir também o domínio aprovado por identidade de projeto e revisão. As rotas
+`/api/health/live`, `/api/health/ready` e `/api/auth/get-session` precisam responder
+JSON do backend; readiness exige banco disponível. HTML com status200, sobretudo
+quando idêntico ao home, bloqueia esse gate de runtime (DBT-78). Não alterar DNS
+nem atribuir a causa a um provedor antes de reconciliar o destino e a autoridade de
+cutover. Sessão anônima JSONnull continua separada de login autenticado e isolamento.
+
 ## 4. Pós-promoção e recuperação
 
 Mainàfrente exige merge main→develop imediato, sem rebase/squash/forcepush.
