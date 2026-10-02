@@ -388,29 +388,45 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
+          # HTTP 403 é falta de acesso, nunca prova de ausência. O classificador
+          # mantém veredito (1) distinto de precondição/NO-VERDICT (2).
+          cleanup_verdict() {
+            case "$1" in
+              404) printf 'confirmado (GET pós-delete = HTTP 404)'; return 0 ;;
+              200) printf 'NAO-CONFIRMADO — branch ainda existe (HTTP 200)'; return 1 ;;
+              *) printf 'NAO-CONFIRMADO — leitura inconclusiva (HTTP %s)' "$1"; return 2 ;;
+            esac
+          }
+          # Guardas de protocolo, sem rede: regressão em código OU rótulo reprova.
+          for fixture in '404:0:confirmado' '403:2:NAO-CONFIRMADO' '200:1:NAO-CONFIRMADO' '000:2:NAO-CONFIRMADO'; do
+            IFS=: read -r response expected_code expected_label <<< "$fixture"
+            observed_code=0
+            observed_label="$(cleanup_verdict "$response")" || observed_code=$?
+            if [[ "$observed_code" != "$expected_code" || "$observed_label" != "$expected_label"* ]]; then
+              echo "cleanup protocol guard falhou para HTTP $response" >&2
+              exit 1
+            fi
+          done
+          echo 'cleanup protocol guard: 404/403/200/000 PASS'
+          CLEANUP_CODE=0
           if [ -n "$BRANCH_ID" ]; then
             # `curl -f` sai 22 em HTTP >= 400 e, sob `pipefail`, derruba o
-            # pipeline justamente no caso 404/403 que confirma o delete — o
-            # ramo "confirmado" ficava inalcançável. O código HTTP é capturado
-            # e comparado explicitamente; falha de rede vira 000 e cai em
-            # NAO-CONFIRMADO (nunca confirma por omissão).
+            # pipeline no próprio 404 que confirma o delete. Falha de rede
+            # vira 000 e reprova como NO-VERDICT, sem falso verde.
             HTTP_CODE="$(curl -s -o /dev/null -w '%{http_code}' \
               "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID" \
-              -H "Authorization: Bearer $NEON_API_KEY" || echo 000)"
-            case "$HTTP_CODE" in
-              404|403) DELETED="confirmado (GET pós-delete = HTTP $HTTP_CODE)" ;;
-              200) DELETED="NAO-CONFIRMADO — GET pós-delete ainda responde 200 (checar Neon console)" ;;
-              *) DELETED="NAO-CONFIRMADO — GET pós-delete respondeu HTTP $HTTP_CODE (checar Neon console)" ;;
-            esac
+              -H "Authorization: Bearer $NEON_API_KEY")" || HTTP_CODE=000
+            DELETED="$(cleanup_verdict "$HTTP_CODE")" || CLEANUP_CODE=$?
           else
-            DELETED="n/a (branch nunca chegou a ser criada)"
+            DELETED="NAO-EXECUTADO — branch_id ausente; sem prova de criação ou descarte"
+            CLEANUP_CODE=2
           fi
           {
             echo "## Neon PR branch CI — resultado"
             echo
             echo "- jobs: \`$CI_RESULT\` · sonda RLS (H-07, seeded sintético marcador \`@preco-que-da.test\`): \`${PROBE_RESULT:-n/a}\`"
             echo "- Schema diff §12.5 vs produção: \`${SCHEMA_DIFF:-n/a}\`"
-            echo "- Branch efêmera \`$BRANCH_ID\`: deletada — $DELETED (§12.5 always())"
+            echo "- Branch efêmera \`${BRANCH_ID:-não identificada}\`: cleanup — $DELETED (§12.5 always())"
             echo "- Migrations/integração executados contra cópia isolada de production @ HEAD; produção nunca foi alvo."
           } >> "$GITHUB_STEP_SUMMARY"
           gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$(cat <<EOF
@@ -422,3 +438,4 @@ jobs:
           - Produção intocada (caminho drill-branch, Emenda #2; hard-deny de produção permanece).
           EOF
           )" || echo "aviso: comentário do PR falhou (permissão?) — resultado permanece no summary"
+          exit "$CLEANUP_CODE"

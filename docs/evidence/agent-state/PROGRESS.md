@@ -17,15 +17,14 @@
 
 ## 1. Estado corrente
 
-- **Fase:** correções de infraestrutura publicadas em develop; produção BLOCKED, não promovida. Autorização @browser / ADR-036 §8; D0 A e ERRATAs preservadas, ADR-038 PROPOSTA/espelho não implementado.
-- **Refs:** main `d4b9395` imóvel; develop remoto `5dc7a76`, PR60 OPEN/BLOCKED. Handoff documental final commit12/13 LOCAL. Artefato `docs/evidence/infra-2026-10-02/README.md`, captura `final-observed.json` e selo `final-handoff.manifest.sha256`.
-- **Gates:** check completo 5dc7a76 PASS118 suítes/1420 PASS/14 skipped; verify PR36955216211 SUCCESS411s, push36955212939 SUCCESS; quatro projetos E2E. Sonar36955216199 CE OK, Maintainability A, coverage ausente na PR. Reader por task/analysisId validado sem credencial no fluxo.
-- **Preview/Neon:** projeto conhecido preview5NK5LAeM8BdbNurUBLheZWSTTz7N Ready19s/5dc7a76. GitHub registra também equipe/projeto adicional, DBT-70 ABERTA. Neon10/10/422 branches limit exceeded; create36955216205 FAIL/Delete skipped. Exclusão vercel-dev aguarda autorização; DBT-67 sem exercício/closure.
-- **Produção/logins:** ambos alvos no main antigo; live/ready200/postgresok/sessionnull e /inicio→/auth observados. Login autenticado NO-VERDICT, Sonar UI aguarda humano. CSP Vercel report-only; Hostinger enforced. PITR6h abaixo contrato7d, H-4 pendente.
-- **Imposição/M1:** baseline runner5dc 2026-10-02T02:21:19.603Z lê análise main1dc2baf9:2995 unidades/1894 cobertas/gap502/piso1498/gate63,2 ERROR. API fresca não reprocessa janela. Ruleset24333849/update/bypass=[] preservados. Janela ADR-037 até 2026-10-02T02:59:59Z, sem autorrenovação; vencimento não remove contenção.
-- **Registry/placar:**53 =43 ABERTA +9 FECHADA +1 EM_TRATAMENTO; DBT-57/61/64/67/68/69/70 ABERTAS. DBT-36 Via A EM_TRATAMENTO.150 D ·29 P ·8 NS ·0 UNV /187, sem promoção.
-- **Custódia:** original HEAD48ffb6b/WIP932 caminhos reconferidos com zero divergência;8 selos/27 arquivos verificados nas revisões publicadas. Nenhum valor de credencial; watcher sem prova de supervisão ativa.
-- **Orçamento:**12/13 após handoff final (3 herdados +9 desta retomada); quatro pushes/24 runs nesta retomada,30 runs C25. Develop remoto testado5dc7a76; handoff final permanece LOCAL sem novo CI. Próxima execução reconcilia refs/artifacts/autorizações antes de agir.
+- **Fase:** reparo Neon autorizado: vercel-dev excluída e capacidade10→9 observada; exercício6.4.0 e rerunPR60 completos SUCCESS. DBT-67 FECHADA por evidência; DBT-71 cleanup falsoverde corrigida localmente, validação remota pendente. D0/80/ViaA preservados.
+- **Refs:** main `d4b9395` imóvel; develop remoto `5dc7a76`, PR60 OPEN/BLOCKED. Handoff12 local `4de923c`; último commit13 será workflow+AGENTS+DEBTS+journal+selo (5arquivos). Evidência operacional adicional LOCAL: `docs/evidence/neon-repair-2026-10-01/README.md` e `captures/operations.txt`.
+- **Gates:** check anterior5dc7a76 PASS118suítes/1420PASS/14skipped; novo check completo exigido antes do push do patch. Cleanup local9controles PASS, mutação403→verde rejeitada antes de rede. Workflow carrega4fixtures404/403/200/000.
+- **Neon:** dispatch36957951345/6.4.0 SUCCESS outputs/identidade/cleanupGET404; rerun36955216205/attempt2 branch-ci110685563961 SUCCESS e cleanup110687735272 Delete executado/GET404 em comentário5944897319. IDs br-proud-block-aybq3nav e br-young-frost-ay4wl4f1 ausentes; inventário9. Production/develop/Hostinger preservados, nenhuma credencial no fluxo.
+- **Preview/produção:** Vercel conhecida5NK5LAeM8BdbNurUBLheZWSTTz7N Ready19s/5dc7a76; DBT-70 identidade adicional pendente. Ambos alvos de produção no main antigo; login realNO-VERDICT/PITR6h versus7d pendentes.
+- **Imposição:** main2995/1894/gap502/piso1498/gate63,2 ERROR na última análise identificada. Ruleset24333849/update/bypass=[] mantidos. ERRATA: janelaADR-037 EXPIRADA em2026-10-02T02:59:59Z; vencimento não remove ruleset e não autoriza release. Espelho não implementado/ADR-038 PROPOSTA.
+- **Registry/placar:**54 =42 ABERTA +10 FECHADA +2 EM_TRATAMENTO (36/71). DBT-67 FECHADA; 71 pendente de CI. Placar150D29P8NS0UNV/187, sem promoção do agente.
+- **Custódia/orçamento:** original HEAD48ffb6b/WIP932 preservados.12/13 commits gastos,13º restrito ao patch e fontes de governança; artefatos operacionais adicionais permanecem LOCAL para não exceder13. Próximo push publica12+13, sem main/thaw; revalidar todos os checks e cleanup do novoSHA.
 
 ## 2. Log intenção/resultado (append-only; **id maior = mais recente**)
 
@@ -674,3 +673,26 @@ ou corpo de placeholder, e exige confirmação em segunda leitura.
 | L364 | 2026-10-02T02:37:09.711741+00:00 | ✔ | PR60 título/descrição atualizados para implementação final, head5dc7a76 OPEN/BLOCKED confirmado. Vercel projeto conhecido Ready19s/5dc7a76; GitHub tem dois status/equipes no mesmo deployment6799767613, DBT-70 registrada sem remover integração. Custódia932/0 e8selos/27arquivos PASS; capturas/registry/handoff escritos, produção/main preservados. |
 
 | L365 | 2026-10-02T02:40:00.554726+00:00 | ✔ | Validação documental final PASS: debts guard53, temporal guard3superfícies/0violação, state11/13, prettier4arquivos e diffcheck limpos. Handoff final (commit12/13) será LOCAL; selo ancorado na revisão Git, resultado do commit registrado após mutação no journal sem regenerar selos anteriores. Nenhum novo push/CI. |
+
+| L366 | 2026-10-02T02:41:24.325398+00:00 | ✔ | Commit12/13 LOCAL 4de923caeb805166fa5f1e0503b6962a55ca971e concluiu handoff documental de5arquivos; selo final4arquivos verificado contra essa revisão Git. Develop remoto5dc7a76 permanece candidato testado; nenhum push/CI adicional. Linha póscommit é único journal dirty conhecido, não altera os selos ancorados; original/WIP preservados. |
+
+| L367 | 2026-10-02T02:55:21.269649+00:00 | ▶ | Pedido humano corrigir run36955216205/job110676620862: exclusão somente de vercel-dev/br-raspy-wildflower-ay41jd97 explicitamente AUTORIZADA via resposta estruturada. Inventário atual10branches; branch arquivada33595392B, sem filhos; preservar production/develop/Hostinger. Excluir via plugin Neon, registrar resposta imediata e recontar; depois dispatch exercise-provisioning6.4.0 e rerun PR60 com cleanup observado. Nenhum main/thaw/valor de credencial. |
+
+| L368 | 2026-10-02T02:56:02.139297+00:00 | ✔ | Exclusão autorizada somente vercel-dev/br-raspy-wildflower-ay41jd97: plugin Neon devolveu null sem isError; resposta capturada imediatamente em docs/evidence/neon-repair-2026-10-01/captures/operations.txt. Ausência/capacidade ainda serão medidas, não inferidas do retorno. |
+
+| L369 | 2026-10-02T02:56:51.045956+00:00 | ✔ | Listagem Neon após exclusão:9branches, vercel-dev ausente por ID; production/develop/preview-hpanel-2026-09-12 presentes. Vaga liberada OBSERVADA. Operações/captura sanitizada em docs/evidence/neon-repair-2026-10-01/captures/operations.txt. |
+| L370 | 2026-10-02T02:56:51.045956+00:00 | ▶ | Dispatch neon-drill-ops.yml em develop5dc7a76, operation=exercise-provisioning confirm=true. Criar somente cópia efêmera identificada c24-probe-run-attempt, validar outputs/identidade, cleanup com GET404; secrets exclusivamente no runner. Observar término antes de rerun NeonPR60 para não disputar a única vaga. |
+
+| L371 | 2026-10-02T02:57:27.413356+00:00 | ✔ | Dispatch aceito run36957951345/Neon drill ops, develop5dc7a76; exercício6.4.0 em observação, sem declarar criação/cleanup pelo aceite. Captura imediata em neon-repair-2026-10-01/captures/operations.txt. |
+
+| L372 | 2026-10-02T02:59:10.747956+00:00 | ✔ | Dispatch36957951345/job110685044021 SUCCESS: action6.4.0 criou cópia, outputs/identidade PASS, Cleanup candidate always executado e Prove candidate cleanup(GET404) PASS. Inventário independente9branches/nenhum c24-probe-36957951345; production/develop/Hostinger preservados. Fonte do404 é asserção executada, não echo do script. |
+| L373 | 2026-10-02T02:59:10.747956+00:00 | ▶ | Rerun somente failed jobs do Neon run36955216205, mesmo head5dc7a76, após vaga livre confirmada. Observar creation/migrate/schema-diff/integration/RLS/E2E e cleanup por branch_id/GET404; nenhum rerun de Dependabot, push ou elevação de segredo. |
+
+| L374 | 2026-10-02T03:00:14.916458+00:00 | ✔ | Rerun36955216205 aceito para failed jobs/dependents, mesmo candidato5dc7a76; execução observada separadamente do aceite. Nenhum novo commit/push nem alteração main. Captura imediata em neon-repair-2026-10-01/captures/operations.txt. |
+
+| L375 | 2026-10-02T03:07:33.226180+00:00 | ▶ | Validar controles locais do bloco executável fork/secret e semântica do cleanup (403 não é ausência), com fixtures isoladas e curl/gh mockados: zero rede/segredo/produção. Registrar negativos por observação sem alterar YAML/testes, enquanto E2E remoto executa. Prazo ADR-037 agora expirado; ruleset persiste sem thaw. |
+
+| L376 | 2026-10-02T03:16:40.384759+00:00 | ✔ | Rerun36955216205/attempt2 SUCCESS: branch-ci110685563961 02:59:16–03:08:28Z, cleanup110687735272 03:08:31–03:08:48Z com Delete executado; inventário9branches/pr60 IDausente. Guardas locais same-repo/fork/secret-absent PASS. Negativos cleanup403/200/000 expuseram falso verde e403 chamado confirmado — ERRATA/DBT-71; nenhuma prova inferida dessa semântica. |
+| L377 | 2026-10-02T03:16:40.384759+00:00 | ▶ | Corrigir somente semântica cleanup em neon-pr-branch.yml:404 único confirmado;200 falha1;403/000/branch_idausente NO-VERDICT2. Quatro fixtures do classificador executadas no próprio passo; negativos locais extraídos do YAML. Atualizar AGENTS/DEBTS/journal+selo, commit13/13 (5arquivos); artefatos operacionais adicionais permanecem LOCAL por orçamento, check antes de push, observar novoCI e GET404 real. |
+
+| L378 | 2026-10-02T03:22:58.388865+00:00 | ✔ | Patch cleanup local verificado por8cenários404/403/200/000/401/500/rede/IDausente + mutação403→verde:9PASS, curl/gh mockados e ausência de rede. AGENTS/registry atualizados:67FECHADA,71EM_TRATAMENTO. Quatrofixtures versionadas no próprio passo. Documentos operacionais adicionais LOCAL, último commit13/13 ainda a validar/publicar. |
