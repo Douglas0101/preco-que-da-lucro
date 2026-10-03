@@ -1,153 +1,141 @@
-# C27 — implementação, evidência e promoção pendente
+# C27 — implementação preparada e promoção bloqueada
 
-Estado: **NO-GO para merge/publicação**. O merge final develop → main foi
-expressamente autorizado pelo MAESTRO **após** resolver as operações e os gates.
-Esta autorização preserva o circuito de ADR-017/038/039, o freeze e os checks.
-Nenhuma promoção, contratação, rotação ou configuração de credencial é inferida
-da entrega do código.
+**NO-GO para merge/publicação.** A autorização para merge final é condicionada às
+operações resolvidas e a evidências atuais do circuito completo. Main continua
+congelada; nenhum positivo local ou Sonar de PR sem coverage substitui esse gate.
 
-## Revisões e custódia
+## Revisões, orçamento e custódia
 
-Último código publicado em develop: ec2785d0d0dee7de9b5b00d56ab8c1e3aecd0670.
-Main permanece d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9. PR #60 aberta e BLOCKED.
-Somente develop/main estão publicados no GitHub; rulesets24333849/24347682 mantidos.
-O checkout original48ffb6b e seu WIP foram preservados. Selos C01–C05 são custódia
-de bytes Git, não aprovação S6 ou readiness de produção.
+Remote observado antes do novo lote: develop4bd512c6a5ff0e4d2973f7208da26c3d93f800ef,
+main d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9; PR60 OPEN/BLOCKED. Git publica
+somente develop/main. Ruleset24333849: PR, checks verify-release/scan + cobertura/
+main-coverage-mirror, base atualizada, updatefreeze e bypass vazio. Ruleset24347682
+conserva duas branches. WIP original48ffb6b e neon-repair preservados.
 
-| Lote | Commit                                   | Resultado implementado                                                              |
-| ---- | ---------------------------------------- | ----------------------------------------------------------------------------------- |
-| C01  | 78bae0e7415e68ba093a7d71ca910edaf1cdfc9b | ADR039: Hostinger principal, Vercel manual e recuperação S3 independente            |
-| C02  | 1b1754d645d3cbfde6b46bc55478163c8e606f5e | Cache do kit completo de browsers/debs com identidade e atestação nova por execução |
-| C03  | ccef6e55eb44e6db7bb09682526d00d2fb2f55d2 | Readiness Neon com identidade, TTL24h e descarte404/ausência independente           |
-| C04  | 57889d762f45a61397e38c6e24acfa4d93db8160 | Probes exigem JSON real; monitor retém incidentes; HTML200 reprova                  |
-| C05  | ec2785d0d0dee7de9b5b00d56ab8c1e3aecd0670 | Backup AES256GCM, validação de versão/checksum/retenção S3 e recibos de falha       |
+| Lote    | Revisão                                    | Entrega                                                                                             |
+| ------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| C01–C06 | 78bae0e → 4bd512c6                         | ADR039, kit de browsers, readiness Neon, runtime JSON, backup cifrado e evidência                   |
+| C07     | 715a6be43113779562545234af9fdb13abe936cf   | ADR040: executor segregado, snapshots5min e âncora diária                                           |
+| C08     | f27fffbfee3793577dba5ec8e083668d49b3e9c3   | Inventário GCM vinculado ao dump; prazo absoluto para AWS                                           |
+| C09     | 1b9322f8d14918eb7a06530d3b5f34ab4c36875b   | Ciclo, par durável, lock, idade e units; collector nativo não demonstrado                           |
+| C10     | de4370539d39de5d4ec05223be75b73aee14a397   | DeepSeek exclusivamente Web, credencial por emissor/destino, ferramentas compatíveis e matrizes M02 |
+| C11     | marco documental atual (identidade em Git) | Runbook, registry, recibos e handoff desta continuação                                              |
 
-C01–C05 somam cinco commits publicados. Esta consolidação é o lote documental
-C06, que contará somente após commit e publicação observados. Teto C27:13,
-incluindo três reservados para merge/back-merge/fechamento. C26 ficou13/13.
-Placar humano150D/29P/8NS/0UNV de187 inalterado; S6 C27 NOT-STARTED.
+Dez commits consumidos/seis publicados antes deste marco; C11 levará a11/13.
+C11 usa o fechamento documental previsto, sem engenharia extra; dois slots ficam
+reservados para promoção/back-merge. Selos SHA256 C07/C08/C09revisado/C10 conferem oito entradas
+cada, porém **não são S6 formal**. Registry63 e placar MAESTRO150D/29P/8NS/0UNV
+sobre187 permanecem; nenhum closure foi promovido por inferência.
 
-## CI e banco observados
+## Validação local e CI por revisão
 
-O check local C05 passou:125 suítes,1545 testes aprovados,14 skipped.
-Os controles específicos somam73 para o kit,27 para Neon,14 para runtime e27 para
-backup. Os skipped locais não substituem testes de banco ou a matriz de release.
+C09 check integral PASS126suítes1575passed14skipped; 21 testes do ciclo na versão inicial; versão corrigida25 e36 do
+inventário/cifra. C10gateway18 testes PASS, com negativos de credencial,
+endpoint, redirect, configuração/limite, custo desconhecido e rodada de ferramenta.
+Gate integral final PASS126suítes1594passed14skipped; 46JS públicos com
+zero hits do canário fictício e zero referência à variável DEEPSEEK_API_KEY. Nenhum limite, teste, navegador ou exceção de warning foi
+relaxado. Audit atual0vulnerabilidades/744deps; o alerta esbuild na defaultmain é
+uma superfície distinta e continua pendente até promoção/reavaliação.
 
-Na PR #60, UI run37084295303/attempt1 avaliou o head ec2785d0 e o checkout de
-merge51792c5e57775d72f262222f3e12450bc42fdb39: produtor67s, verify-release414s,
-ambos SUCCESS. O artifact registra76 E2E em chromium/firefox/webkit/mobile,
-zero skipped/unexpected/flaky. Estes dois SHAs têm papéis diferentes.
-Cache hit exato do kitv2 foi observado no run anterior37082909883, com produtor88s
-e verify419s; não houve redução de navegadores, testes ou timeout12min.
+Última CI terminal publicada C06@4bd512c6: UI PR37087401662 SUCCESS,
+producer66s/verify-release346s; checkout virtual2e207ccd155ac527982f288d28230fb729d59c3a,
+76 E2E nos quatro projetos, zero skipped/unexpected/flaky. Push37087399768 SUCCESS.
+Neon PR37087401755 SUCCESS; br-cool-base-ay19aj2c GET404 e ausência independente.
+Sonar37087401630 scannerSUCCESS/CE009221c0 OK **sem condição coverage**;
+main-coverage-mirror FAIL/NO-VERDICT. Estes resultados pertencem aC06, não ao lote
+novo. CI do novo head será observada separadamente; pending/cancelled/missing bloqueiam.
 
-Neon PR run37084295335 SUCCESS: integração/RLS/E2E e cleanup SUCCESS. Depois do
-terminal, a cópia br-withered-mode-ayjjp017 respondeu GET404 e não apareceu no
-inventário independente. O readiness dispatch37080532930, no SHA ccef6e55,
-exercitou17 suítes DB numa **cópia de develop**; cleanup também teve404 e ausência
-por ID/nome. O legado ficou skipped por falta de origem configurada, não quitado.
-Esses positivos não preparam, por inferência, a develop permanente.
+Novo ensaio readiness37093942014@4bd512c6 SUCCESS:17suítesDB/drift numa cópia
+br-snowy-feather-aywq49ha de develop, TTL24h, cleanupGET404 e ausência independente
+porID/nome. Legacy ficou skipped por falta de origem configurada; não foi quitado.
+Isso não bootstrapou a develop permanente, cujo último catálogo tinha0public,
+9neon_auth e journal/app_runtime ausentes. Produção não foi alvo de teste.
 
-ERRATA C27-Neon: a integração Vercel criou br-snowy-term-ay5634m3 às00:24:52Z,
-uma preview Dependabot sem TTL. A branch foi excluída sob a autorização humana
-anterior de manter apenas develop/production. DELETE null não foi aceito como
-prova: GET404 e listagem completa confirmaram ausência por ID/nome e preservação
-de production/default br-snowy-violet-aymcvvvv e develop br-small-hill-aymcu14y.
-A prevenção de recriação continua aberta em DBT-72.
+## Conexões e integrações operacionais
 
-A instalação Vercel icfg_eDeLFTSX3j7fPem6tn88RkGS possui acesso All Projects e
-webhooks de Deployments/Projects. A edição de acesso foi cancelada sem salvar.
-Seu formulário de remoção exige reconhecimento dos termos de encerramento e
-remoção da conta conectada, e informa zero recursos Neon instalados. Nenhum aceite
-ou remoção de integração foi feito. A segunda equipe permanece sem acesso
-verificado; a origem de todos os receptores ainda não foi reconciliada.
-O aviso Neon sobre Disconnect declara efeito limitado às variáveis automáticas;
-a documentação descreve parada de previews. Essa diferença é um limite nomeado,
-não prova de suspensão global. Painéis mantidos para handoff humano.
+Hostinger: o operador respondeu **Ainda pendente** para DATABASE_URL pooled de
+production/app_runtime salva e processo reiniciado. Não reclassificar a conexão
+como corrigida. Os últimos probes anônimos medidos em02:02Z foram:
 
-## Cobertura e produção
+| Alvo                    | live     | ready             | sessão       | Limite                                |
+| ----------------------- | -------- | ----------------- | ------------ | ------------------------------------- |
+| Vercel sage             | 200 JSON | 200 JSON/Postgres | 200 JSONnull | Login/tenant/revisão não demonstrados |
+| Hostinger darkgray-pony | 200 JSON | 503 JSON          | 500 HTML     | Conexão e autenticação pendentes      |
+| diretrizprecifica.com   | 200 HTML | 200 HTML          | 200 HTML     | APIs não chegam ao contrato JSON      |
 
-Leitura do runner em2026-10-03T01:02:21Z: main analysis
-1dc2baf9-b289-42f4-b2ca-dd7b662b3679,2995 unidades/1894 cobertas,
-63,2387%, gap502, piso1498. Gate ERROR apenas em new_coverage<80.
-O CE da PR5853ff89-2868-483a-8763-285ecc4c17d5 retornou OK **sem condição de
-cobertura**. Main-coverage-mirror permanece NO-VERDICT: identidade por unidade
-não disponível no probe autenticado. E8 mantém duas implementações sem prova
-suficiente; uma terceira exige nova evidência primária. Sem crédito por agregado,
-sem redução do escopo, sem gate artificialmente verde.
+Nenhum DNS, login de produção, cutover ou observação24h foi executado. Endpoint
+nominal PG17 medido pelo servidor: production ep-long-violet-aye9g0bn e develop
+ep-wandering-glitter-ayzrgv28, mesmo projeto damp-forest-57346541/neondb. Isso
+não prova configuração efetiva do web nem fornece credencial de backup dedicada.
 
-Probes anônimos somente GET, em2026-10-03T01:33Z:
+ERRATAE9: a Vercel recriou br-rough-dust-ay3mpgwy, preview da antiga branch
+Dependabot tailwind-merge3.7.0, em03:35:24Z/semTTL. Antes da tentativa de limpeza,
+GET/inventário mostraram3branches, previewdefaultfalse/primaryfalse/written0.
+DELETE e GET posterior foram recusados HTTP401 pelo conector. **Não há GET404**.
+Console independente carregado depois mostrou2Branches/productionDefault e
+develop(parentproduction), nomepreviewausente. A UI demonstra nomes nesse ponto;
+não identifica autoria da exclusão nem substitui ausênciaAPIporID. Cleanup permanece
+NO-VERDICT até restabelecer autenticação e reconciliar. ERRATA L557 corrigida emL558:
+resposta de erro não é lista vazia observada.
 
-| Alvo                                   | live     | ready               | sessão anônima | Veredito limitado                                                 |
-| -------------------------------------- | -------- | ------------------- | -------------- | ----------------------------------------------------------------- |
-| preco-que-da-lucro-sage.vercel.app     | 200 JSON | 200 JSON/Postgresok | 200 JSONnull   | Saúde das três rotas observada; login/tenant/revisão não provados |
-| darkgray-pony-545965.hostingersite.com | 200 JSON | 503 JSON            | 500 HTML       | Runtime ativo, conexão/autenticação falhando                      |
-| diretrizprecifica.com                  | 200 HTML | 200 HTML            | 200 HTML       | Rotas da API não chegam ao contrato JSON                          |
+Instalação Vercel icfg_eDeLFTSX3j7fPem6tn88RkGS: AllProjects, um projeto visível
+no diálogo de seleção, webhooksDeployment/Project. Formulário cancelado sem salvar.
+Segunda equipe ainda sem identidade/acesso verificados; suspensão global não provada.
+Aceite de encerramento/remoção de conta conectada fica no handoff humano. DBT72aberta.
 
-No canônico os três corpos têm7956bytes e o mesmo SHA256
-b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c.
-Os logs Hostinger mostram password authentication failed para neondb_owner;
-a causa imediata é autenticação. Endpoint/senha efetivamente configurados e o
-nexo com a exclusão anterior não foram provados. DATABASE_URL pooled/production/
-app_runtime aguarda entrada e submissão humanas ViaA; DATABASE_ADMIN_URL fica
-fora do processo web. Nenhum segredo, POST de login, fixture ou DDL foi enviado
-à produção. Catálogo read-only confirma app_runtime LOGIN sem super/bypassRLS;
-existência do papel não prova que o runtime o usa.
+DeepSeek: o MAESTRO confirmou **somente o sistema Web**. Código preparado usa
+DEEPSEEK_API_KEY só no endpoint HTTPS exato e modelo canônico, sem fallback de
+outro emissor/redirect; thinkingdisabled conserva tools no histórico atual.
+Output<=8192 e<=reserva configurada; ledger, quotas, retries e timeout preservados.
+Precifica-Chat/tracking50733d78-6756-4666-9f32-355224176848 é identidade nominal,
+sem leitura de chave. Emissão/entrada/consumidor real/revogação permanecem ViaA.
+As seis rotações não foram demonstradas, e Codex não foi configurado como consumidor.
 
-Nenhum DNS/cutover foi feito; observação24h não começou e nenhuma amostra isolada
-substitui esse período. As três falhas para abrir incidente são consecutivas na
-mesma observação persistida, não uma contagem retrospectiva de probes avulsos.
+## Cobertura, recuperação e critérios pendentes
 
-## Recuperação: alcance e ERRATA do ensaio
+Última análise main1dc2baf9-b289-42f4-b2ca-dd7b662b3679:
+2995unidades/1894cobertas/63,2387%/gap502/piso1498. Janela viva exige releitura antes
+do próximo lote. UI autenticada tem indicadores por linha, mas catálogoapi/sources
+não demonstrou mapa completo de novo código/condições/SHA/hashes. AdapterE8 segue
+NO-VERDICT, sem terceira implementação especulativa e **zero créditos validados**.
+DBT57/64 permanecem abertas. Piso, pagamento nominal e erro<=2pp continuam exigidos.
 
-Ferramentas C05: GCM autenticado, arquivos privados, recusa a corrupção/chave
-errada, conta S3 distinta, Versioning/Compliance35d, HEAD/checksum e retenção da
-versão retornada. Testes de S3 são mocks; nenhum bucket/STS/upload real foi usado.
-PUT único até4GiB é limite declarado, não suporte multipart implícito.
+BackupC08/C09: inventário GCM separado vincula metadata/dumpSHA e preservaENC1;
+ciclo verifica conta/bucket/qualificação/versões, guarda lock em falha e só atualiza
+latest após ambos objetos duráveis. Status usa snapshotAt: WARN600s/INCIDENT>900s,
+eventos append-only. Qualificação exige ARN da VM AWS segregada e recusa outra branch Neon como alvo de perda do provedor. A correção de C09 foi feita somente antes de publicar, preservando commit/selo/bundle original. Units apenas preparadas, paths ocultos por sandbox recusados;
+nenhum timer ativado. FixtureS3 não prova operaçãoAWS.
 
-O ensaio inicial falhou antes do SQL; sua revisão chegou ao restore mas falhou
-na comparação sem preservar o diff. Esses recibos ficaram imutáveis. Um diagnóstico
-separado preservou os inventários e mediu43 diferenças exclusivamente em
-grants.table_catalog, pois origem e destino tinham nomes de banco diferentes.
-PostgreSQL define table_catalog como o database corrente; o comparador estava
-comparando identidades intencionalmente distintas.
+Ensaio collectorPG17C09 interrompido em duas precondiçõesDocker: porta não anunciada
+e createdb recusado. Dump nativo com writerconcorrente não iniciou; causa SQLr2
+exata não preservada. Recursos efetivamente criados descartados/ausência conferida.
+**ESCALADO/NO-VERDICT**, sem terceira tentativa cega. O ensaio local qualificado
+anteriorC05 (dump/GCM/restore/seis tabelas/roles/grants/RLS e negativoREVOKESELECT)
+continua restrito à fixture, sem escrita concorrente e sem RPO de produção.
 
-A revisão qualificada usou o mesmo nome fixture em **dois clusters distintos**,
-sem remover campos do comparador: dumpcustomPG17→sealGCM→open autenticado→
-pg_restore--exit-on-error, seis tabelas em public/drizzle/neon_auth e respectivos
-hashes, journals, ownership, grants, roles/policies preservados. TenantA/B positivo
-e negativo cruzado passaram; runtime não leu tabelaAuth sem grant. REVOKESELECT
-foi detectado no inventário; a reposição voltou ao estado original. Ambos os
-containers foram removidos e sua ausência conferida. LOCAL-FIXTURE-PASS,
-validação3,064s/ensaio8,162s; RPO/RTO de produção continuam null.
+PITR7d solicitado autonomamente: HTTP400requested604800/max21600, retenção efetiva
+continua6h. Nenhum upgrade/contratação/histórico retroativo. AWS interna do Neon
+é custódia do provedor; não é a conta AWS segregada exigida. Conta/bucket/região/
+prefixo/VM/chave operacionais não fornecidos. S3 real, Compliance35d porversão,
+restore externo, perda do provedor/conta principal e RPO<=15min/RTO<=4h não provados.
+DBT75/80/BAK01 abertas; formalS6contextolimpo NOT-STARTED.
 
-Isto não demonstra login BetterAuth real, dados/catálogo de produção, PITR,
-restauração a partir do S3, custódia independente da chave ou perda da conta
-principal. Backup diário não prova RPO15min. DBT-75/80 e BAK-01 permanecem abertas.
+## Gates para retomar operação
 
-## Próximos gates, em ordem
+1. ViaA Hostinger: salvar pooledproduction/app_runtime e reiniciar; identificar
+   revisão, medir JSONlive/ready/session e login/leitura autorizada/logout.
+2. Restabelecer conectorNeon, reconciliar previewporID/GET404 e todos receptores;
+   interromper recriação persistente antes de afirmar duas branches permanentes.
+3. Reensaiar collector nativo após diagnóstico de bancada, configurar recuperação
+   externa segregada e PITR permitido; ativação só depois de dois cenários medidos.
+4. Bootstrap develop permanente após ensaio, sem seed/purga/rollback/suíte destrutiva;
+   concluir seis rotações/consumidores pela ViaA, incluindo WebDeepSeek.
+5. Demonstrar mapping Sonar e pagar déficit re-medido em unidades; formalS6 e
+   checks atuais da PR precisam fechar sem rejeições ou resultados inconclusivos.
+6. Somente então janela30min MAESTRO: mergecommit, refreeze, CErealmain>=80/piso/
+   créditos/erroespelho, back-merge, SHAaprovado nos dois destinos e canônicoJSON/login.
+   Observação24h efetivamente medida é posterior, não inferida desta implementação.
 
-1. Humano recupera a conexão Hostinger ViaA; medir ready/session e depois
-   login/isolamento da revisão existente, sem fixtures de produção.
-2. Reconciliar a equipe adicional e o efeito efetivo da integração antes de
-   aceitar encerramento/remover receptores. Exigir prova de não recriação.
-3. Completar seis rotações, PITR7d humano e S3 segregado; primeiro
-   dump/upload/restore com RPO/RTO e custódia independentes observados.
-4. Preparar develop permanente após ensaio e preservação de neon_auth; a cópia
-   temporária verde não autoriza reset nem afirma esse gate concluído.
-5. Obter mapping unitário Sonar com evidência primária; pagar unidades até80,
-   observar bloqueio e positivo do espelho, com erro<=2pp e piso1498.
-6. Com todos os checks atuais e operações verdes, MAESTRO abre janela30min,
-   mergecommit develop→main, refreeze imediato, CE real main>=80, publicação
-   manual do SHA aprovado nos dois destinos e back-merge main→develop.
-7. Conferir canônico por projeto/revisão e JSON, login/tenant, recuperação e
-   estabilidade24h; produzir o fechamento com evidência de cada superfície.
-
-Ponteiros: receipts.json, docs/runbooks/neon-readiness.md,
-docs/runbooks/independent-recovery.md, docs/runbooks/conditional-publication.md e
-PROGRESS L486–L519. Custódia privada: .codex/artifacts/ciclo-27/; contém fixtures
-e chaves sintéticas privadas, que não pertencem ao commit.
-
-Fontes primárias:
-[PostgreSQL17 role_table_grants](https://www.postgresql.org/docs/17/infoschema-role-table-grants.html),
-[Neon Previews Integration](https://neon.com/docs/guides/neon-managed-vercel-integration),
-[Vercel permissions/access](https://vercel.com/docs/integrations/install-an-integration/manage-integrations-reference).
+Ponteiros: receipts.json, PROGRESSL529–L561, runbooks/deepseek-web.md,
+runbooks/independent-recovery.md, ADR040 e custódia privada
+.codex/artifacts/ciclo-27/continuation-2026-10-03/captures.

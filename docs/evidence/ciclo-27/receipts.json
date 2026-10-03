@@ -1,12 +1,12 @@
 {
   "schema": "c27-implementation-status/1",
-  "observedAt": "2026-10-03T01:40:13.847807+00:00",
+  "observedAt": "2026-10-03T05:14:08.513796+00:00",
   "verdict": "NO-GO",
-  "lastCodeRevision": "ec2785d0d0dee7de9b5b00d56ab8c1e3aecd0670",
+  "lastCodeRevision": "4bd512c6a5ff0e4d2973f7208da26c3d93f800ef",
   "mainRevision": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
-  "publishedCommitsBeforeThisMilestone": 5,
+  "publishedCommitsBeforeThisMilestone": 6,
   "budget": 13,
-  "reservedReleaseCommits": 3,
+  "reservedReleaseCommits": 2,
   "localQualityC05": {
     "suitesPassed": 125,
     "testsPassed": 1545,
@@ -368,5 +368,97 @@
       "relativePath": "local-recovery-qualified/result.json",
       "sha256": "ef2da286a843d0ca45072323362c29705cf3fba16f1345260a17996135017785"
     }
-  ]
+  ],
+  "continuation": {
+    "schema": "c27-continuation/1",
+    "committedBeforeC10": 9,
+    "plannedAfterDocumentaryMilestone": 11,
+    "localCommits": {
+      "C07": "715a6be43113779562545234af9fdb13abe936cf",
+      "C08": "f27fffbfee3793577dba5ec8e083668d49b3e9c3",
+      "C09": "1b9322f8d14918eb7a06530d3b5f34ab4c36875b",
+      "C10": "de4370539d39de5d4ec05223be75b73aee14a397"
+    },
+    "localQualityFinal": {
+      "state": "PASS",
+      "testFiles": 126,
+      "testsPassed": 1594,
+      "testsSkipped": 14,
+      "gatewayTests": 18,
+      "cycleTests": 25,
+      "qualityLogSha256": "7a37ac5de4d9c0276bca67ad718bdd5f350e0e1a72f9135c2e507d12e45f40d1"
+    },
+    "publicBundleBoundary": {
+      "schema": "deepseek-server-boundary/1",
+      "observedAt": "2026-10-03T05:08:35.635333+00:00",
+      "checkExit": 0,
+      "checkedPublicJs": 46,
+      "canaryHits": 0,
+      "serverVariableHits": 0,
+      "actualProviderKey": false,
+      "realApiCall": false,
+      "verdict": "PASS"
+    },
+    "npmAudit": {
+      "vulnerabilities": 0,
+      "dependencies": 744
+    },
+    "readiness": {
+      "runId": 37093942014,
+      "revision": "4bd512c6a5ff0e4d2973f7208da26c3d93f800ef",
+      "conclusion": "SUCCESS",
+      "dbSuites": 17,
+      "temporaryId": "br-snowy-feather-aywq49ha",
+      "cleanupGet404": true,
+      "independentAbsence": true,
+      "permanentDevelopPrepared": false
+    },
+    "preview": {
+      "id": "br-rough-dust-ay3mpgwy",
+      "creationSource": "vercel",
+      "deleteStatus": 401,
+      "get404Proved": false,
+      "uiNames": ["production", "develop"],
+      "uiAbsenceByName": true,
+      "apiCleanup": "NO-VERDICT",
+      "integrationSuspension": "NOT-PROVED"
+    },
+    "pitrAttempt": {
+      "requestedSeconds": 604800,
+      "httpStatus": 400,
+      "maximumSeconds": 21600,
+      "actualSeconds": 21600,
+      "contracting": false
+    },
+    "nativeCollectorDrill": {
+      "attempts": 2,
+      "dumpStarted": false,
+      "result": "NO-VERDICT",
+      "decision": "ESCALATED",
+      "resourcesCreated": [2, 1],
+      "createdResourcesRemoved": true,
+      "concurrentWriterSnapshotProved": false
+    },
+    "deepseekWeb": {
+      "scope": "Web server only",
+      "model": "deepseek-flash",
+      "secretEnvName": "DEEPSEEK_API_KEY",
+      "authenticatedProviderConsumer": "NOT-STARTED",
+      "rotationProved": false,
+      "credentialValueCaptured": false,
+      "codexConfigured": false
+    },
+    "newHeadCi": "NOT-STARTED",
+    "formalS6": "NOT-STARTED",
+    "qualificationRevision": {
+      "originalCommit": "8dddbbfc2fd3c381ffd998b9172347d393bf4d0b",
+      "originalSealPreserved": true,
+      "originalBundleVerified": true,
+      "publishedHistoryRewritten": false,
+      "restoreTarget": "EC2 ARN in recovery account and approved region",
+      "neonProviderRestoreRefused": true,
+      "correctedRevision": "1b9322f8d14918eb7a06530d3b5f34ab4c36875b"
+    },
+    "committedBeforeDocumentaryMilestone": 10
+  }
 }
