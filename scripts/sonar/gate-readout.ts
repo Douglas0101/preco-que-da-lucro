@@ -39,6 +39,7 @@ type CeTask = {
   pullRequest?: string;
   analysisRevision?: string;
   revision?: string;
+  scannerContext?: string;
 };
 type Condition = {
   metricKey?: string;
@@ -49,12 +50,42 @@ type Condition = {
 };
 type Gate = { status?: string; conditions?: Condition[]; ignoredConditions?: boolean };
 
-export function scannerRevision(context: unknown) {
+function scannerProperty(context: unknown, key: string) {
   if (typeof context !== "string") throw new Error("scanner revision unavailable");
-  const revisions = context.split(/\r?\n/).filter((line) => /^sonar\.scm\.revision=/.test(line));
-  if (revisions.length !== 1 || !/^sonar\.scm\.revision=[a-f0-9]{40}$/.test(revisions[0]))
+  const values = context
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*(?:- )?/, ""))
+    .filter((line) => line.startsWith(`${key}=`))
+    .map((line) => line.slice(key.length + 1));
+  if (values.length > 1) throw new Error("scanner revision unavailable or ambiguous");
+  return values[0];
+}
+
+export function scannerRevision(context: unknown) {
+  const revision = scannerProperty(context, "sonar.scm.revision");
+  if (!revision || !/^[a-f0-9]{40}$/.test(revision))
     throw new Error("scanner revision unavailable or ambiguous");
-  return revisions[0].split("=")[1];
+  return revision;
+}
+
+export async function providerTask(
+  taskRef: { id: string; url: string },
+  api: <T>(url: string) => Promise<T>,
+) {
+  const url = new URL(taskRef.url);
+  if (
+    url.origin !== origin ||
+    url.pathname !== "/api/ce/task" ||
+    url.searchParams.get("id") !== taskRef.id ||
+    url.username ||
+    url.password
+  )
+    throw new Error("origem/caminho/identidade do CE divergente");
+  url.searchParams.set("additionalFields", "scannerContext");
+  const response = await api<{ task?: CeTask }>(url.href);
+  if (!response.task || response.task.id !== taskRef.id)
+    throw new Error("CE task unavailable or divergent");
+  return response.task;
 }
 
 export function analysisIdentity(
@@ -64,12 +95,32 @@ export function analysisIdentity(
 ) {
   if (!/^[a-f0-9]{40}$/.test(expected.revision) || revision !== expected.revision)
     throw new Error("provider analysis revision differs from checkout");
+  const context = task.scannerContext;
+  const contextRevision = context === undefined ? undefined : scannerRevision(context);
+  if (contextRevision !== undefined && contextRevision !== revision)
+    throw new Error("provider analysis revision differs from scanner context");
+  const contextPr =
+    context === undefined ? undefined : scannerProperty(context, "sonar.pullrequest.key");
+  const contextBranch =
+    context === undefined
+      ? undefined
+      : scannerProperty(
+          context,
+          expected.pullRequest ? "sonar.pullrequest.branch" : "sonar.branch.name",
+        );
+  const branch = task.branch ?? contextBranch;
+  if (task.branch && contextBranch && task.branch !== contextBranch)
+    throw new Error("provider PR/branch differs from scanner context");
   if (expected.pullRequest) {
-    if (task.pullRequest !== expected.pullRequest || task.branch !== expected.branch)
+    if (
+      task.pullRequest !== expected.pullRequest ||
+      branch !== expected.branch ||
+      (context !== undefined && contextPr !== task.pullRequest)
+    )
       throw new Error("provider PR/branch differs from expected surface");
-  } else if (expected.branch !== "main" || task.pullRequest || task.branch !== "main")
+  } else if (expected.branch !== "main" || task.pullRequest || contextPr || branch !== "main")
     throw new Error("provider main surface unavailable or divergent");
-  return { revision, branch: task.branch, pullRequest: task.pullRequest ?? null };
+  return { revision, branch, pullRequest: task.pullRequest ?? null };
 }
 
 export function ceVerdict(task: CeTask | undefined, gate: Gate | undefined, taskId: string) {
@@ -121,22 +172,13 @@ async function main() {
         throw new Error(`Web API ${new URL(url).pathname}: HTTP ${response.status}`);
       return response.json() as Promise<T>;
     }
-    const before = await api<{ task?: CeTask }>(taskRef.url);
-    const analysisId = before.task?.analysisId;
+    const task = await providerTask(taskRef, api);
+    const analysisId = task.analysisId;
     if (!analysisId) throw new Error("analysisId ausente: NO-VERDICT");
-    const directRevision = before.task?.analysisRevision ?? before.task?.revision;
-    const revision =
-      directRevision ??
-      scannerRevision(
-        (
-          await api<{ context?: string }>(
-            `${origin}/api/ce/scanner_context?taskId=${encodeURIComponent(taskRef.id)}`,
-          )
-        ).context,
-      );
-    if (!before.task) throw new Error("CE task unavailable");
+    const directRevision = task.analysisRevision ?? task.revision;
+    const revision = directRevision ?? scannerRevision(task.scannerContext);
     const identity = analysisIdentity(
-      before.task,
+      task,
       {
         revision: checkoutSha,
         branch: process.env.EXPECTED_BRANCH ?? "",
@@ -147,7 +189,7 @@ async function main() {
     const response = await api<{ projectStatus?: Gate }>(
       `${origin}/api/qualitygates/project_status?analysisId=${encodeURIComponent(analysisId)}`,
     );
-    const verdict = ceVerdict(before.task, response.projectStatus, taskRef.id);
+    const verdict = ceVerdict(task, response.projectStatus, taskRef.id);
     const report = {
       schema: "c25-ce-gate-readout/1",
       observedAt: new Date().toISOString(),

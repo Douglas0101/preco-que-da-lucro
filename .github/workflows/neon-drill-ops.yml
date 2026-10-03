@@ -38,7 +38,7 @@ on:
         required: false
         type: string
       confirm:
-        description: "Confirmação obrigatória para delete-branch e snapshot-create"
+        description: "Confirmação obrigatória para exercise-provisioning, delete-branch e snapshot-create"
         required: true
         default: false
         type: boolean

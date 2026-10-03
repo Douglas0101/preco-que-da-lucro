@@ -107,8 +107,8 @@ jobs:
             )
             echo "atribuicao: pull request #${{ github.event.pull_request.number }} (${{ github.head_ref }} -> ${{ github.base_ref }})"
           else
-            ATRIBUICAO=()
-            echo "atribuicao: branch principal (padrão) — push de ${GITHUB_REF_NAME}"
+            ATRIBUICAO=("-Dsonar.branch.name=main")
+            echo "atribuicao: branch principal main — push de ${GITHUB_REF_NAME}"
           fi
 
           # O scanner escreve seu working dir em /tmp dentro do container, fora do volume.

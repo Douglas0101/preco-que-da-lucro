@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   analysisIdentity,
   ceVerdict,
+  providerTask,
   scannerRevision,
   scannerTask,
 } from "../../scripts/sonar/gate-readout";
@@ -44,6 +45,41 @@ describe("provider revision and analysis surface", () => {
     ])
       expect(() => scannerRevision(text)).toThrow();
   });
+  it("uses the provider scanner properties when a PR task omits its branch", () => {
+    const scannerContext = `Scanner properties:\n  - sonar.scm.revision=${revision}\n  - sonar.pullrequest.key=60\n  - sonar.pullrequest.branch=develop\n  - secret=PRIVATE_SENTINEL\n`;
+    const result = analysisIdentity({ pullRequest: "60", scannerContext }, expected, revision);
+    expect(result).toEqual({ revision, branch: "develop", pullRequest: "60" });
+    expect(JSON.stringify(result)).not.toContain("PRIVATE_SENTINEL");
+    for (const context of [
+      scannerContext.replace("key=60", "key=61"),
+      scannerContext.replace("branch=develop", "branch=main"),
+      scannerContext.replace(revision, "b".repeat(40)),
+      `${scannerContext}sonar.pullrequest.branch=develop\n`,
+      scannerContext.replace("  - sonar.pullrequest.branch=develop\n", ""),
+    ])
+      expect(() =>
+        analysisIdentity({ pullRequest: "60", scannerContext: context }, expected, revision),
+      ).toThrow();
+    expect(() =>
+      analysisIdentity({ branch: "main", pullRequest: "60", scannerContext }, expected, revision),
+    ).toThrow();
+  });
+  it("requires an explicit provider main identity and rejects PR contamination", () => {
+    const scannerContext = `sonar.scm.revision=${revision}\nsonar.branch.name=main\n`;
+    expect(analysisIdentity({ scannerContext }, { revision, branch: "main" }, revision)).toEqual({
+      revision,
+      branch: "main",
+      pullRequest: null,
+    });
+    for (const context of [
+      `sonar.scm.revision=${revision}\n`,
+      scannerContext.replace("name=main", "name=develop"),
+      `${scannerContext}sonar.pullrequest.key=60\n`,
+    ])
+      expect(() =>
+        analysisIdentity({ scannerContext: context }, { revision, branch: "main" }, revision),
+      ).toThrow();
+  });
 });
 
 const taskId = "ce-readout-fixture-60";
@@ -56,6 +92,34 @@ const gate = {
     { metricKey: "new_coverage", status: "ERROR", comparator: "LT", errorThreshold: "80" },
   ],
 };
+
+describe("CE optional scanner context API contract", () => {
+  it("requests context on the same CE task and never invents a separate endpoint", async () => {
+    const requested: string[] = [];
+    const fixture = { ...task, scannerContext: "secret=PRIVATE_SENTINEL" };
+    const result = await providerTask(scannerTask(reportTask), async <T>(url: string) => {
+      requested.push(url);
+      return { task: fixture } as T;
+    });
+    expect(requested).toEqual([
+      `https://sonarcloud.io/api/ce/task?id=${taskId}&additionalFields=scannerContext`,
+    ]);
+    expect(result).toEqual(fixture);
+  });
+  it("rejects a different task and refuses a credential-bearing request to a different origin", async () => {
+    const requested: string[] = [];
+    const read = async <T>(url: string) => {
+      requested.push(url);
+      return { task: { ...task, id: "other-task" } } as T;
+    };
+    await expect(providerTask(scannerTask(reportTask), read)).rejects.toThrow("CE task");
+    requested.length = 0;
+    await expect(
+      providerTask({ id: taskId, url: `https://example.invalid/api/ce/task?id=${taskId}` }, read),
+    ).rejects.toThrow("origem");
+    expect(requested).toEqual([]);
+  });
+});
 
 describe("identidade e origem do task produzido pelo scanner", () => {
   it("aceita somente o task do projeto na origem SonarCloud", () => {
