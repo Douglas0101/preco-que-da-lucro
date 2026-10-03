@@ -156,3 +156,74 @@ Fontes primárias:
 [S3 Object Lock](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html),
 [PUT condicional/checksum/retention](https://docs.aws.amazon.com/cli/latest/reference/s3api/put-object.html),
 [HEAD por versão](https://docs.aws.amazon.com/cli/latest/reference/s3api/head-object.html).
+
+## Ciclo implementado e units preparadas — C09
+
+`node scripts/ci/backup-cycle.ts run --config /etc/pqdl-backup/config.json` executa
+um ciclo qualificado. `status` com o mesmo argumento avalia a idade do recibo;
+`units` prepara arquivos em `<stateDirectory>/units`, sem instalar/habilitar timer.
+Não executar `run` na estação com credencial de produção nem inventar qualificação.
+
+Configuração privada `backup-cycle-config/1`: `recovery` segue ADR039; `source`
+contém `projectId`, `branchId`, `endpointId`, `database`, `role`, `revision`,
+`keyId`, `requiredSchemas` e `exclusionLedger` nominal. Exigir public/drizzle/neon_auth,
+ledger realmente descoberto e papel dedicado de backup (app_runtime/admin recusados).
+Paths absolutos normalizados: `keyFile`, `qualificationFile`, `stateDirectory`,
+`codeDirectory`, `nodeExecutable`, `environmentFile`. Instalar o código aprovado em
+/opt, fora de /home; criar usuário pqdl-backup e diretórios privados700, arquivos600.
+As units recusam caminhos em /home, /root, /tmp, /var/tmp e /run/user: ProtectHome
+e PrivateTmp tornam esses locais incompatíveis com a execução isolada do serviço.
+Nenhuma contratação, usuário IAM ou grant SQL é criado pelo script.
+
+No EnvironmentFile privado, o operador configura somente PGHOST direto, PGUSER
+nominal de backup, PGDATABASE, PGPORT5432 e PGPASSFILE privado. Senha não é argumento;
+PGPASSWORD é recusado. A origem deve conferir neon.project_id/branch_id/endpoint_id,
+PG17 e transação READ ONLY. pg_dump17 conserva owners/ACL e compartilha o snapshot
+exportado com o inventário. Node usa TLS com validação; libpq usa verify-full.
+Role administrativa e DATABASE_ADMIN_URL continuam fora do processo web.
+
+A descoberta inclui todos os schemas não internos, tabelas/materialized views,
+catálogo de roles/memberships sem passwords, ownership/ACL direto do pg_catalog,
+colunas, tipos, policies, constraints, índices, functions, triggers e journal.
+A ACL direta evita depender da visão filtrada por papel de information_schema.
+Valores de sequence pertencem ao dump; foreign tables/large objects são recusados
+por falta de inventário qualificado específico. Banco restaurado precisa do mesmo
+nome para comparar campos de catálogo, em cluster/branch isolado distinto.
+Roles/database grants globais e serviço Auth exigem custódia e ensaio próprios.
+
+Qualificação privada `backup-qualification/1`: phase=EXTERNAL-RESTORE-VERIFIED,
+`source` e `recovery` idênticos ao config; completedAt UTC de no máximo30dias,
+evidenceSha256 do conjunto de evidências; cycleSeconds>0 e<300; `versions`
+com os dois recibos LOCKED-CIPHERTEXT-VERIFIED. `scenarios.providerLoss` e
+`scenarios.mainAccountLoss` exigem restoreTarget isolado, rpoSeconds0–900,
+rtoSeconds>0–14400, e checks PASS: inventory/authLogin/journal/ownership/grants/
+rls/exclusionLedger/independentKey/revision. Esses campos são resultados de um
+ensaio externo observado, não uma autorização fabricável por fixture local.
+O runner revalida conta/bucket e as versões do ensaio antes de coletar.
+`restoreTarget` identifica a VM do ensaio por ARN EC2, na conta de recuperação e
+região aprovadas. Outra branch Neon, conta principal, região diferente ou ID de
+VM ausente são recusados. O ARN não prova o ensaio sozinho: isolamento do banco,
+inventário, Auth e perda de acesso precisam das evidências externas completas.
+
+Dump é enviado/verificado primeiro; o inventário cifrado inclui o recibo dessa
+versão e o hash do plaintext, para reconstruir o par após perder a VM. Somente
+após verificar também o inventário surge DURABLE/latest.json. Recibos são fsync
+append-only; latest é pointer atômico. Após sucesso, remover somente os quatro
+arquivos temporários gerados, mantendo recibos. Falha preserva lock/custódia;
+não apagar lock/repetir upload até reconciliar INTENT, key e VersionId.
+
+A primeira coleta durável de cada data UTC ancora o diário. Instalação/ativação
+systemd e alarme fora da VM são etapas operacionais pendentes. `status` retorna
+0 HEALTHY,1 WARN,2 INCIDENT/UNKNOWN e conserva eventos em incidents.jsonl;
+um positivo posterior não remove eventos nem resolve o incidente. Conectar
+esse contrato ao monitor independente e verificar falha da VM/timer nesse monitor.
+
+Ensaio do collector nativo C09: duas tentativas interrompidas antes do dump por
+precondições da bancada Docker (porta não anunciada e criação de database recusada).
+Todos os recursos efetivamente criados foram descartados e a ausência conferida;
+a segunda tentativa criou apenas um dos dois containers previstos. A causa SQL
+exata não foi preservada, portanto continua NO-VERDICT. O ensaio está escalado:
+testes de ciclo/GCM/S3-fixture não comprovam a execução do collector PG17 com
+escrita concorrente. Não ativar rotina contínua com essa lacuna. Capturas privadas
+snapshot-drill-precondition-r1.json e snapshot-drill-cleanup-r1.json/cleanup.json
+em .codex/artifacts/ciclo-27/continuation-2026-10-03/captures.

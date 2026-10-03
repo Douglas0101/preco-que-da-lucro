@@ -95,6 +95,8 @@
 
 ## Independent recovery
 
+- `scripts/ci/backup-cycle.ts run|status|units --config <private-file>` implements ADR-040: direct PG17 READ ONLY/exported snapshot, discovered schemas/ACL/roles/ledger inventory, paired S3 custody and exclusive persistent failure lock. Operational runs/units require current external qualification for both loss scenarios; units are generated only, never enabled. `status` latches age events in append-only receipts. Foreign tables/large objects require a separate qualified path and are refused. See `docs/runbooks/independent-recovery.md` for protected config/env contracts.
+
 - The native recovery CLI adds `seal-inventory`/`open-inventory`: PQDLINV1 authenticates the envelope kind plus metadata, pairs the inventory with the dump plaintext checksum, and publishes JSON only after GCM verification. Existing PQDLENC1 custom archives remain supported. AWS calls accept the remaining absolute-cycle budget and reject exhausted/invalid budgets before invocation.
 
 - ADR-040 extends ADR-039 with five-minute encrypted snapshots plus a daily UTC anchor, on a segregated AWS VM. Preparation is authorized; timer activation requires the current complete external restore qualification, measured cycle <300s, RPO<=15min/RTO<=4h, and custody independent of Neon/the primary account. Local fixtures do not authorize activation.
