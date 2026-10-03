@@ -140,8 +140,25 @@ async function fetchModelAttempt({
     () =>
       fetch(endpoint, {
         method: "POST",
+        redirect: "error",
         headers: { Authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-        body: JSON.stringify({ model, messages, tools, tool_choice: "auto" }),
+        body: JSON.stringify({
+          model,
+          messages,
+          tools,
+          tool_choice: "auto",
+          ...(endpoint.hostname === "api.deepseek.com"
+            ? {
+                // The existing history does not retain reasoning_content. Explicit
+                // non-thinking mode keeps native tool round-trips compatible.
+                thinking: { type: "disabled" },
+                max_tokens: Math.min(
+                  8192,
+                  numberSetting("AI_CONSERVATIVE_TOKEN_BUDGET", 8192, 1, 1_000_000),
+                ),
+              }
+            : {}),
+        }),
         signal,
       }),
   );
@@ -237,14 +254,29 @@ async function callModel(
   tools: GatewayTool[],
   requestSignal: AbortSignal,
 ): Promise<GatewayResponse> {
-  const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new ApplicationError("DEPENDENCY_ERROR");
   const endpoint =
     process.env.AI_GATEWAY_URL ?? "https://ai.gateway.lovable.dev/v1/chat/completions";
   // Guard anti-SSRF na origem (G-SEC #10-13): o URL validado é o único que
   // alcança o fetch nos retries, cobrindo todas as instâncias com um check.
   const gatewayEndpoint = assertGatewayEndpoint(endpoint);
-  const model = process.env.AI_MODEL ?? "google/gemini-3.6-flash";
+  const deepseek = gatewayEndpoint.hostname === "api.deepseek.com";
+  const model = process.env.AI_MODEL ?? (deepseek ? "deepseek-flash" : "google/gemini-3.6-flash");
+  if (
+    deepseek &&
+    (gatewayEndpoint.origin !== "https://api.deepseek.com" ||
+      gatewayEndpoint.pathname !== "/chat/completions" ||
+      gatewayEndpoint.username ||
+      gatewayEndpoint.password ||
+      gatewayEndpoint.search ||
+      gatewayEndpoint.hash ||
+      model !== "deepseek-flash")
+  )
+    throw new ApplicationError("DEPENDENCY_ERROR");
+  // A provider-specific credential may never fall back to another issuer's key.
+  const apiKey = deepseek
+    ? process.env.DEEPSEEK_API_KEY
+    : (process.env.AI_GATEWAY_API_KEY ?? process.env.LOVABLE_API_KEY);
+  if (!apiKey || apiKey.trim() !== apiKey) throw new ApplicationError("DEPENDENCY_ERROR");
   const attempts = numberSetting("AI_MODEL_MAX_ATTEMPTS", 2, 1, 2);
   const timeoutMs = numberSetting("AI_MODEL_TIMEOUT_MS", 30_000, 1_000, 30_000);
 
