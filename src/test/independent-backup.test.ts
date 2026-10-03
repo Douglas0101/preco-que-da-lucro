@@ -19,13 +19,18 @@ import {
   fingerprint,
   metadata,
   openDump,
+  openInventory,
+  privateJson,
   recoveryConfig,
   sealDump,
+  sealInventory,
   uploadEncrypted,
   type AwsCall,
   type BackupMetadata,
   type UploadReceipt,
 } from "../../scripts/lib/independent-backup";
+
+import { awsCli } from "../../scripts/ci/independent-backup";
 
 const roots: string[] = [];
 const fixture = () => {
@@ -329,5 +334,84 @@ describe("immutable S3 custody", () => {
     }
     expect(output).toContain("no raw secret/error exposed");
     expect(output).not.toContain(" at ");
+  });
+});
+
+describe("Authenticated inventory paired with the custom archive", () => {
+  function manifest(f: ReturnType<typeof fixture>, changes: Record<string, unknown> = {}) {
+    const path = join(f.root, "inventory.json");
+    writeFileSync(
+      path,
+      JSON.stringify({
+        schema: "independent-inventory/1",
+        meta: f.meta,
+        dumpSha256: "a".repeat(64),
+        inventory: { schemas: ["public", "drizzle", "neon_auth"], roles: [] },
+        ...changes,
+      }),
+      { mode: 0o600 },
+    );
+    return path;
+  }
+  it("roundtrips a separate authenticated manifest with exact archive binding", async () => {
+    const f = fixture(),
+      input = manifest(f);
+    const sealed = await sealInventory(input, f.key, f.meta, join(f.root, "sealed"));
+    expect(readFileSync(sealed.file).subarray(0, 8).toString()).toBe("PQDLINV1");
+    const opened = await openInventory(sealed.file, f.key, join(f.root, "opened"));
+    expect(privateJson(opened.file)).toEqual(privateJson(input));
+    await expect(openDump(sealed.file, f.key, join(f.root, "wrong-kind"))).rejects.toThrow(
+      "type mismatch",
+    );
+  });
+  it.each([
+    { meta: { backupId: "wrong" } },
+    { dumpSha256: "0".repeat(64) },
+    { schema: "other" },
+    { secret: "fixture-only" },
+  ])("refuses incomplete or extra binding fields %#", async (change) => {
+    const f = fixture();
+    await expect(
+      sealInventory(manifest(f, change), f.key, f.meta, join(f.root, "sealed")),
+    ).rejects.toThrow();
+  });
+  it("does not pair an inventory from another valid backup UUID", async () => {
+    const f = fixture();
+    await expect(
+      sealInventory(
+        manifest(f, { meta: { ...f.meta, backupId: randomUUID() } }),
+        f.key,
+        f.meta,
+        join(f.root, "sealed"),
+      ),
+    ).rejects.toThrow("binding mismatch");
+  });
+  it("never publishes an inventory after wrong-key or ciphertext corruption", async () => {
+    const f = fixture(),
+      sealed = await sealInventory(manifest(f), f.key, f.meta, join(f.root, "sealed"));
+    const badKey = join(f.root, "wrong-key");
+    writeFileSync(badKey, randomBytes(32), { mode: 0o600 });
+    await expect(openInventory(sealed.file, badKey, join(f.root, "opened"))).rejects.toThrow();
+    expect(readdirSync(join(f.root, "opened"))).toEqual([]);
+    const bytes = readFileSync(sealed.file);
+    bytes[bytes.length - 20] ^= 1;
+    writeFileSync(sealed.file, bytes);
+    await expect(openInventory(sealed.file, f.key, join(f.root, "corrupt"))).rejects.toThrow();
+    expect(readdirSync(join(f.root, "corrupt"))).toEqual([]);
+  });
+  it("authenticates the inventory envelope kind itself", async () => {
+    const f = fixture(),
+      sealed = await sealInventory(manifest(f), f.key, f.meta, join(f.root, "sealed"));
+    const bytes = readFileSync(sealed.file);
+    Buffer.from("PQDLENC1").copy(bytes);
+    writeFileSync(sealed.file, bytes);
+    await expect(openDump(sealed.file, f.key, join(f.root, "opened"))).rejects.toThrow();
+    expect(readdirSync(join(f.root, "opened"))).toEqual([]);
+  });
+  it("refuses invalid/exhausted AWS per-operation budgets before invocation", async () => {
+    for (const value of [0, -1, Number.NaN, Number.POSITIVE_INFINITY, 300001])
+      await expect(
+        awsCli("us-east-1", () => value)("sts", "get-caller-identity", []),
+      ).rejects.toThrow("AWS operation unavailable");
   });
 });

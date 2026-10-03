@@ -7,17 +7,22 @@ import {
   bucketPreflight,
   metadata,
   openDump,
+  openInventory,
   recoveryConfig,
   sealDump,
+  sealInventory,
   uploadEncrypted,
   type AwsCall,
 } from "../lib/independent-backup.ts";
 
-export function awsCli(region: string): AwsCall {
+export function awsCli(region: string, remainingMs = () => 300000): AwsCall {
   return async (service, operation, args) => {
     const env: NodeJS.ProcessEnv = { ...process.env, AWS_PAGER: "", AWS_CLI_AUTO_PROMPT: "off" };
     for (const name of Object.keys(env)) if (name.startsWith("AWS_ENDPOINT_URL")) delete env[name];
     try {
+      const budget = Math.floor(remainingMs());
+      if (!Number.isSafeInteger(budget) || budget <= 0 || budget > 300000)
+        throw new Error("AWS deadline exhausted");
       const result = execFileSync(
         "aws",
         [
@@ -40,7 +45,7 @@ export function awsCli(region: string): AwsCall {
         {
           env,
           stdio: ["ignore", "pipe", "pipe"],
-          timeout: 300000,
+          timeout: budget,
           maxBuffer: 65536,
           encoding: "utf8",
         },
@@ -70,8 +75,9 @@ async function main() {
     return v;
   };
   const json = (name: string) => JSON.parse(readFileSync(required(name), "utf8")) as unknown;
-  if (operation === "seal") {
-    const result = await sealDump(
+  if (operation === "seal" || operation === "seal-inventory") {
+    const seal = operation === "seal" ? sealDump : sealInventory;
+    const result = await seal(
       required("--input"),
       required("--key-file"),
       metadata(json("--metadata")),
@@ -83,8 +89,9 @@ async function main() {
       { mode: 0o600, flag: "wx" },
     );
     console.log("ENCRYPTED-LOCAL; snapshot and restore not proved");
-  } else if (operation === "open") {
-    await openDump(required("--input"), required("--key-file"), required("--directory"));
+  } else if (operation === "open" || operation === "open-inventory") {
+    const open = operation === "open" ? openDump : openInventory;
+    await open(required("--input"), required("--key-file"), required("--directory"));
     console.log("AUTHENTICATED-LOCAL; isolated database restore not proved");
   } else if (operation === "preflight" || operation === "upload") {
     const config = recoveryConfig(json("--config")),
@@ -103,7 +110,10 @@ async function main() {
       await uploadEncrypted(required("--input"), config, aws, record);
       console.log("LOCKED-CIPHERTEXT-VERIFIED; isolated restore and RPO/RTO not proved");
     }
-  } else throw new Error("usage: seal|open|preflight|upload with explicit file arguments");
+  } else
+    throw new Error(
+      "usage: seal|seal-inventory|open|open-inventory|preflight|upload with explicit file arguments",
+    );
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {

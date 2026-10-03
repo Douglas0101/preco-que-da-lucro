@@ -95,6 +95,8 @@
 
 ## Independent recovery
 
+- The native recovery CLI adds `seal-inventory`/`open-inventory`: PQDLINV1 authenticates the envelope kind plus metadata, pairs the inventory with the dump plaintext checksum, and publishes JSON only after GCM verification. Existing PQDLENC1 custom archives remain supported. AWS calls accept the remaining absolute-cycle budget and reject exhausted/invalid budgets before invocation.
+
 - ADR-040 extends ADR-039 with five-minute encrypted snapshots plus a daily UTC anchor, on a segregated AWS VM. Preparation is authorized; timer activation requires the current complete external restore qualification, measured cycle <300s, RPO<=15min/RTO<=4h, and custody independent of Neon/the primary account. Local fixtures do not authorize activation.
 - Both dump and encrypted full inventory must have verified S3 versions/checksums/Compliance>=35days before a durable receipt advances. Use snapshotAt for age: WARN>=600s, INCIDENT>900s; missing state/clock rollback is unknown. No overlap, automatic upload retry, or queue; preserve uncertain attempts for reconciliation. The existing production test denylist remains absolute.
 

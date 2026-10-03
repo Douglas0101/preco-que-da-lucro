@@ -14,6 +14,7 @@ import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 
 const MAGIC = Buffer.from("PQDLENC1");
+const INVENTORY_MAGIC = Buffer.from("PQDLINV1");
 const DAY = 86400000;
 export interface BackupMetadata {
   schema: "independent-backup/1";
@@ -81,17 +82,20 @@ function readAt(fd: number, length: number, at: number) {
   return out;
 }
 function header(fd: number) {
-  if (!readAt(fd, 8, 0).equals(MAGIC)) throw new Error("unsupported backup envelope");
+  const magic = readAt(fd, 8, 0);
+  const isInventory = magic.equals(INVENTORY_MAGIC);
+  if (!isInventory && !magic.equals(MAGIC)) throw new Error("unsupported backup envelope");
   const length = readAt(fd, 4, 8).readUInt32BE();
   if (length < 2 || length > 4096) throw new Error("invalid envelope header length");
-  const aad = readAt(fd, length, 12);
-  const meta = metadata(JSON.parse(aad.toString("utf8")));
+  const encoded = readAt(fd, length, 12);
+  const meta = metadata(JSON.parse(encoded.toString("utf8")));
+  const aad = isInventory ? Buffer.concat([magic, encoded]) : encoded;
   const iv = readAt(fd, 12, 12 + length);
   const size = fstatSync(fd).size;
   const start = 24 + length,
     end = size - 17;
   if (end - start < 4) throw new Error("empty/truncated encrypted dump");
-  return { meta, aad, iv, start, end, tag: readAt(fd, 16, size - 16) };
+  return { meta, aad, iv, start, end, isInventory, tag: readAt(fd, 16, size - 16) };
 }
 export async function fingerprint(path: string) {
   const fd = privateFd(path);
@@ -112,28 +116,82 @@ export function inspectEnvelope(path: string) {
     closeSync(fd);
   }
 }
+export function privateJson(path: string): unknown {
+  const fd = privateFd(path);
+  try {
+    if (fstatSync(fd).size > 64 * 1024 ** 2) throw new Error("private JSON exceeds 64MiB limit");
+    return JSON.parse(readFileSync(fd, "utf8"));
+  } finally {
+    closeSync(fd);
+  }
+}
+export interface InventoryPayload {
+  schema: "independent-inventory/1";
+  meta: BackupMetadata;
+  dumpSha256: string;
+  inventory: Record<string, unknown>;
+}
+export function inventoryPayload(value: unknown, expected: BackupMetadata): InventoryPayload {
+  const v = object(value);
+  const actual = metadata(v.meta);
+  if (
+    v.schema !== "independent-inventory/1" ||
+    !/^[a-f0-9]{64}$/.test(String(v.dumpSha256)) ||
+    /^0+$/.test(String(v.dumpSha256)) ||
+    Object.keys(v).sort().join() !== ["schema", "meta", "dumpSha256", "inventory"].sort().join() ||
+    Object.keys(expected).some(
+      (k) => actual[k as keyof BackupMetadata] !== expected[k as keyof BackupMetadata],
+    )
+  )
+    throw new Error("inventory/archive identity binding mismatch");
+  object(v.inventory);
+  return v as unknown as InventoryPayload;
+}
+export async function sealInventory(
+  input: string,
+  keyPath: string,
+  meta: BackupMetadata,
+  directory: string,
+) {
+  inventoryPayload(privateJson(input), metadata(meta));
+  return sealPayload(input, keyPath, meta, directory, true);
+}
 export async function sealDump(
   input: string,
   keyPath: string,
   meta: BackupMetadata,
   directory: string,
 ) {
+  return sealPayload(input, keyPath, meta, directory, false);
+}
+async function sealPayload(
+  input: string,
+  keyPath: string,
+  meta: BackupMetadata,
+  directory: string,
+  isInventory: boolean,
+) {
   metadata(meta);
   let fd: number | undefined, secret: Buffer | undefined;
   try {
     fd = privateFd(input);
     secret = key(keyPath);
-    if (!readAt(fd, 5, 0).equals(Buffer.from("PGDMP")))
+    if (!isInventory && !readAt(fd, 5, 0).equals(Buffer.from("PGDMP")))
       throw new Error("custom PostgreSQL archive required");
     await mkdir(directory, { mode: 0o700 }); // New custody directory; existing output is a precondition failure.
-    const output = join(directory, "backup.pqdl"),
-      aad = Buffer.from(JSON.stringify(meta));
+    const output = join(directory, isInventory ? "inventory.pqdl" : "backup.pqdl"),
+      encoded = Buffer.from(JSON.stringify(meta)),
+      magic = isInventory ? INVENTORY_MAGIC : MAGIC,
+      aad = isInventory ? Buffer.concat([magic, encoded]) : encoded;
     const length = Buffer.alloc(4);
-    length.writeUInt32BE(aad.length);
+    length.writeUInt32BE(encoded.length);
     const iv = randomBytes(12),
       cipher = createCipheriv("aes-256-gcm", secret, iv);
     cipher.setAAD(aad);
-    await appendFile(output, Buffer.concat([MAGIC, length, aad, iv]), { mode: 0o600, flag: "wx" });
+    await appendFile(output, Buffer.concat([magic, length, encoded, iv]), {
+      mode: 0o600,
+      flag: "wx",
+    });
     try {
       await pipeline(
         createReadStream(input, { fd, autoClose: false }),
@@ -157,12 +215,24 @@ export async function sealDump(
   }
 }
 export async function openDump(input: string, keyPath: string, directory: string) {
+  return openPayload(input, keyPath, directory, false);
+}
+export async function openInventory(input: string, keyPath: string, directory: string) {
+  return openPayload(input, keyPath, directory, true);
+}
+async function openPayload(
+  input: string,
+  keyPath: string,
+  directory: string,
+  isInventory: boolean,
+) {
   let fd: number | undefined, secret: Buffer | undefined;
   let partial: string | undefined;
   try {
     fd = privateFd(input);
     secret = key(keyPath);
     const h = header(fd);
+    if (h.isInventory !== isInventory) throw new Error("backup envelope payload type mismatch");
     await mkdir(directory, { mode: 0o700 });
     partial = join(directory, "unauthenticated.partial");
     const decipher = createDecipheriv("aes-256-gcm", secret, h.iv);
@@ -176,12 +246,13 @@ export async function openDump(input: string, keyPath: string, directory: string
     );
     const checkFd = privateFd(partial);
     try {
-      if (!readAt(checkFd, 5, 0).equals(Buffer.from("PGDMP")))
+      if (!isInventory && !readAt(checkFd, 5, 0).equals(Buffer.from("PGDMP")))
         throw new Error("authenticated payload is not a custom archive");
     } finally {
       closeSync(checkFd);
     }
-    const output = join(directory, "verified.pgc");
+    if (isInventory) inventoryPayload(privateJson(partial), h.meta);
+    const output = join(directory, isInventory ? "verified-inventory.json" : "verified.pgc");
     await link(partial, output); // Atomic no-overwrite publication after authentication.
     await rm(partial);
     partial = undefined;
