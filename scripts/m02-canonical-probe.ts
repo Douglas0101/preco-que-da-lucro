@@ -1,7 +1,8 @@
 // m02-canonical-probe.ts — §13.6 (preparação do cutover): o CONJUNTO canônico de probes
 // (live → ready → get-session) mais o par de controle de origem (positivo/negativo).
-// SOMENTE LEITURA: GET nas health routes, get-session e POST de sign-in com credencial
-// inexistente para exercitar o origin check. Não escreve arquivo, não muta dado.
+// GET nas health routes e get-session; os POSTs de sign-in com credencial inexistente
+// exercitam origin check e podem registrar tentativas/rate limit no backend.
+// O monitor somente leitura fica em scripts/ci/runtime-monitor.ts, sem esses POSTs.
 //
 // Por que o conjunto e não o `get-session` isolado (dia-d §1.6, correção S-TEC P1):
 // `GET /api/auth/get-session` retorna 200 com corpo `null` em QUALQUER host, porque o
@@ -23,6 +24,8 @@
 // Exit codes: 0 = PASS · 1 = FAIL de asserção · 2 = INCONCLUSIVO (alvo inalcançável ou 429
 // mascarando o veredito de origem) ou uso inválido.
 // As latências medidas aqui são LOCAIS/CONTROLADAS — nunca rotular como produção.
+
+import { classifyRuntime } from "./lib/runtime-health.ts";
 
 interface Note {
   id: string;
@@ -112,24 +115,32 @@ async function request(
   return { response, body, elapsedMs: Math.round(performance.now() - started) };
 }
 
-async function getCheck(args: ProbeArgs, id: string, path: string, notes: Note[]): Promise<void> {
+async function getCheck(
+  args: ProbeArgs,
+  id: "live" | "ready",
+  path: string,
+  notes: Note[],
+): Promise<void> {
   const latencies: number[] = [];
-  let lastStatus = 0;
-  let lastBody = "";
-  for (let sample = 1; sample <= args.samples; sample += 1) {
+  let evidence: ReturnType<typeof classifyRuntime> | undefined;
+  let valid = true;
+  for (let sample = 1; sample <= args.samples; sample++) {
     const { response, body, elapsedMs } = await request(args, path);
     latencies.push(elapsedMs);
-    lastStatus = response.status;
-    lastBody = body;
-    if (response.status !== 200) break;
+    evidence = classifyRuntime(
+      id,
+      response.status,
+      response.headers.get("content-type") ?? "",
+      body,
+    );
+    valid &&= evidence.verdict === "PASS";
+    if (!valid) break;
   }
-  const expectedBody = id === "live" ? /"status"\s*:\s*"ok"/ : /"postgres"\s*:\s*"ok"/;
-  const ok = lastStatus === 200 && expectedBody.test(lastBody);
   notes.push({
     id,
-    expectation: `GET ${path} → 200 e corpo esperado (${args.samples} amostra(s))`,
-    observed: `status=${lastStatus} body=${summariseBody(lastBody)} latencias_ms=[${latencies.join(", ")}]`,
-    status: ok ? "PASS" : "FAIL",
+    expectation: `GET ${path} → JSON do contrato em TODAS as ${args.samples} amostra(s)`,
+    observed: `status=${evidence?.http} reason=${evidence?.reason} body_sha256=${evidence?.bodySha256} latencias_ms=[${latencies.join(", ")}]`,
+    status: valid && evidence ? "PASS" : "FAIL",
   });
 }
 
@@ -212,12 +223,17 @@ try {
   await getCheck(args, "ready", "/api/health/ready", notes);
 
   const session = await request(args, "/api/auth/get-session");
-  const sessionBody = session.body.trim();
+  const sessionResult = classifyRuntime(
+    "session",
+    session.response.status,
+    session.response.headers.get("content-type") ?? "",
+    session.body,
+  );
   notes.push({
     id: "get-session",
     expectation: "GET /api/auth/get-session → 200 e corpo `null` (prova só que a instância subiu)",
-    observed: `status=${session.response.status} body=${summariseBody(sessionBody)} latencia_ms=${session.elapsedMs}`,
-    status: session.response.status === 200 && sessionBody === "null" ? "PASS" : "FAIL",
+    observed: `status=${session.response.status} reason=${sessionResult.reason} body_sha256=${sessionResult.bodySha256} latencia_ms=${session.elapsedMs}`,
+    status: sessionResult.verdict,
   });
 
   await signInProbe(
