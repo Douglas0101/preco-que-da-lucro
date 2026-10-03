@@ -9,8 +9,9 @@ bucket e entrada/submissão das credenciais e chaves ficam com o humano Via A.
 
 Usar Node24 e AWS CLI v2 oficial, PostgreSQL17 `pg_dump`/`pg_restore`/`psql`
 e bancada de restore isolada. Ferramenta ausente é precondição, nunca prova.
-AWS CLI e clientes PostgreSQL não estavam disponíveis na estação em2026-10-03;
-nenhuma instalação, upload ou dump real foi realizado por esta implementação.
+AWS CLI e clientes PostgreSQL não estavam disponíveis como executáveis da estação
+em2026-10-03. O ensaio local abaixo usou clientes de uma imagem Docker PG17
+oficial com digest fixado; nenhum upload ou dump de dados reais foi executado.
 O candidato deve passar `npm run check` antes de execução operacional.
 
 O JSON de configuração contém somente `bucket`, `region`, `primaryAccountId`,
@@ -89,6 +90,29 @@ PITR7d observado. Agendar a coleta diária na conta segregada apenas após prime
 dump+upload+restore completos e alertar backup ausente. Repetir teste de perda da
 conta principal/chave recuperada sem dependência dela. Sem agendamento ou drill
 observado, registrar NOT-STARTED/BLOCKED, não DONE.
+
+## Ensaio local medido C27
+
+Custódia privada em .codex/artifacts/ciclo-27/local-recovery-qualified/result.json.
+Dois containers novos PG17, network=none e sem portas publicadas, tinham dados
+sintéticos em seis tabelas public/drizzle/neon_auth. Dumpcustom real da fixture,
+GCM/open com bytes iguais e pg_restore--exit-on-error passaram; ownership/grants,
+journal, hashes, roles/policies e isolamentoRLS foram comparados. TenantA/B
+positivo/negativo, leituraAuth negada ao runtime e REVOKESELECT detectado/reposto
+passaram. Os dois IDs foram descartados e sua ausência conferida.
+
+ERRATA do harness: a primeira comparação usava databases source e restore e
+serializava table_catalog dos grants. Diagnóstico separado preservou o diff:
+43 diferenças só nesse campo. A revisão usou database fixture nos dois clusters
+distintos, sem excluir campo nem afrouxar o comparador. Recibos anteriores
+permanecem preservados, incluindo a primeira falha de precondição e a revisão
+que não capturou o inventário antes de falhar.
+
+LOCAL-FIXTURE-PASS: validação3,064s, ensaio8,162s. Esses tempos não são RTO de
+produção. Não houve escrita durante o dump; não há medição RPO de produção.
+Este positivo não cobre BetterAuth real, restore do S3, PITR7d, custódia da
+chave no cofre segregado, agendamento diário ou cenário de perda do provedor.
+DBT-75/80 e BAK-01 continuam abertas até esses controles observados.
 
 Fontes primárias:
 [pg_dump17](https://www.postgresql.org/docs/17/app-pgdump.html),
