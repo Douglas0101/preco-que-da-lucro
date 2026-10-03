@@ -1,11 +1,34 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import {
+  ApiPrecondition,
+  apiReader,
+  permitsSourceFallback,
+  type RequestObservation,
+} from "./api.ts";
 
 type RecordValue = Record<string, unknown>;
 const record = (v: unknown): v is RecordValue =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 const nonnegative = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0;
+
+export async function sourceMetadata(get: ReturnType<typeof apiReader>, key: string) {
+  const params = new URLSearchParams({ key, branch: "main", from: "1", to: "500" });
+  try {
+    return {
+      endpoint: "sources/lines",
+      metadata: coverageMetadata(await get("sonar", `sources/lines?${params}`)),
+    };
+  } catch (error) {
+    if (!permitsSourceFallback(error)) throw error;
+    params.delete("branch");
+    return {
+      endpoint: "sources/show",
+      metadata: coverageMetadata(await get("sonar", `sources/show?${params}`)),
+    };
+  }
+}
 
 export function sourceActions(payload: unknown): string[] {
   if (!record(payload) || !Array.isArray(payload.webServices))
@@ -17,15 +40,42 @@ export function sourceActions(payload: unknown): string[] {
   );
 }
 
-// Source code, SCM authors and arbitrary response strings are deliberately discarded.
-// This is a capability probe of one file, never a complete denominator or a coverage credit.
+// The catalog is incomplete even when authenticated. It is an observation,
+// never the authority to skip the measured sources/lines capability.
+export async function optionalSourceCatalog(get: ReturnType<typeof apiReader>) {
+  try {
+    return {
+      actions: sourceActions(await get("sonar", "webservices/list?include_internals=true")),
+      available: true,
+    };
+  } catch (error) {
+    if (error instanceof ApiPrecondition && [401, 403, 429].includes(error.status ?? 0))
+      throw error;
+    return { actions: [], available: false };
+  }
+}
+
+const COVERAGE_COUNT_FIELDS = [
+  "lineHits",
+  "conditions",
+  "coveredConditions",
+  "utLineHits",
+  "utConditions",
+  "utCoveredConditions",
+] as const;
+
+// Source code, SCM revisions/dates and arbitrary response strings are deliberately
+// discarded. This is a capability probe of one file, never a complete denominator or a
+// coverage credit. Measured row shapes: sources/show returns [line, highlighted source]
+// tuples; the undocumented sources/lines (the service the SonarCloud code viewer calls,
+// absent from webservices/list even with include_internals) returns per-line objects
+// carrying isNew plus lineHits/conditions/coveredConditions and their ut* unit-test
+// counterparts. Line identity is valid in both; neither is a complete denominator.
 export function coverageMetadata(payload: unknown) {
   if (!record(payload) || !Array.isArray(payload.sources))
     throw new Error("source rows unavailable");
   const seen = new Set<number>();
   const rows = payload.sources.map((source) => {
-    // sources/show uses [line, highlighted source]. The line identity is valid,
-    // but this representation supplies no new-code or coverage counts.
     const value =
       Array.isArray(source) && source.length === 2 && typeof source[1] === "string"
         ? { line: source[0] }
@@ -39,23 +89,34 @@ export function coverageMetadata(payload: unknown) {
       throw new Error("source line identity unavailable");
     const line = value.line as number;
     seen.add(line);
-    for (const key of ["lineHits", "conditions", "coveredConditions"])
+    for (const key of COVERAGE_COUNT_FIELDS)
       if (value[key] !== undefined && !nonnegative(value[key]))
         throw new Error("invalid source coverage count");
     if (value.isNew !== undefined && typeof value.isNew !== "boolean")
       throw new Error("invalid new-code marker");
-    if (
-      typeof value.conditions === "number" &&
-      typeof value.coveredConditions === "number" &&
-      value.coveredConditions > value.conditions
-    )
-      throw new Error("inconsistent source condition counts");
+    if (value.duplicated !== undefined && typeof value.duplicated !== "boolean")
+      throw new Error("invalid duplication marker");
+    for (const [total, covered] of [
+      ["conditions", "coveredConditions"],
+      ["utConditions", "utCoveredConditions"],
+    ] as const)
+      if (
+        typeof value[total] === "number" &&
+        typeof value[covered] === "number" &&
+        value[covered] > value[total]
+      )
+        throw new Error("inconsistent source condition counts");
     return {
       line,
       isNew: typeof value.isNew === "boolean" ? value.isNew : null,
       lineHits: nonnegative(value.lineHits) ? value.lineHits : null,
       conditions: nonnegative(value.conditions) ? value.conditions : null,
       coveredConditions: nonnegative(value.coveredConditions) ? value.coveredConditions : null,
+      utLineHits: nonnegative(value.utLineHits) ? value.utLineHits : null,
+      utConditions: nonnegative(value.utConditions) ? value.utConditions : null,
+      utCoveredConditions: nonnegative(value.utCoveredConditions)
+        ? value.utCoveredConditions
+        : null,
     };
   });
   if (rows.length === 0) throw new Error("empty source discovery");
@@ -63,7 +124,9 @@ export function coverageMetadata(payload: unknown) {
     rows,
     count: rows.length,
     hasNewMarkers: rows.some((r) => r.isNew !== null),
-    hasCoverageCounts: rows.some((r) => r.lineHits !== null || r.conditions !== null),
+    hasCoverageCounts: rows.some(
+      (r) => r.lineHits !== null || r.conditions !== null || r.utLineHits !== null,
+    ),
   };
 }
 
@@ -99,33 +162,10 @@ async function main() {
     const baseline = JSON.parse(readFileSync(resolve(root, "c24-main-baseline.json"), "utf8"));
     report.mainSha = baseline.mainSha;
     report.analysisId = baseline.analysisId;
-    async function get(origin: "sonar" | "github", endpoint: string) {
-      const base = origin === "sonar" ? "https://sonarcloud.io/api/" : "https://api.github.com/";
-      const started = Date.now();
-      const response = await fetch(new URL(endpoint, base), {
-        headers: {
-          Authorization: `Bearer ${origin === "sonar" ? sonarToken : githubToken}`,
-          Accept: "application/json",
-        },
-        redirect: "error",
-        signal: AbortSignal.timeout(15000),
-      });
-      requests.push({
-        origin,
-        path: endpoint.split("?")[0],
-        status: response.status,
-        latencyMs: Date.now() - started,
-      });
-      if (!response.ok)
-        throw new Error(`${origin} ${endpoint.split("?")[0]} HTTP ${response.status}`);
-      const body = await response.text();
-      if (body.length > 2_000_000) throw new Error("API payload exceeds probe limit");
-      try {
-        return JSON.parse(body);
-      } catch {
-        throw new Error("API response is not JSON");
-      }
-    }
+    const get = apiReader(
+      { sonar: sonarToken, github: githubToken },
+      requests as unknown as RequestObservation[],
+    );
     async function assertIdentity() {
       const ref = await get("github", "repos/Douglas0101/preco-que-da-lucro/branches/main");
       const analyses = await get(
@@ -139,11 +179,10 @@ async function main() {
         throw new Error("main SHA/analysis changed during unit probe");
     }
     await assertIdentity();
-    const catalog = await get("sonar", "webservices/list?include_internals=true");
-    const actions = sourceActions(catalog);
+    const catalog = await optionalSourceCatalog(get);
+    const actions = catalog.actions;
+    report.catalogAvailable = catalog.available;
     report.sourceActions = actions;
-    const action = actions.includes("lines") ? "lines" : actions.includes("show") ? "show" : null;
-    if (!action) throw new Error("catalog advertises no source row endpoint");
     const tree = await get(
       "sonar",
       "measures/component_tree?component=Douglas0101_preco-que-da-lucro&branch=main&qualifiers=FIL&metricKeys=new_lines_to_cover,new_uncovered_lines,new_conditions_to_cover,new_uncovered_conditions&ps=500&p=1",
@@ -176,12 +215,13 @@ async function main() {
         "new_uncovered_conditions",
       ].map((key) => [key, metric(selected, key)]),
     );
-    report.endpoint = `sources/${action}`;
-    const result = await get(
-      "sonar",
-      `sources/${action}?${new URLSearchParams({ key: String(selected.key), branch: "main", from: "1", to: "500" })}`,
-    );
-    report.metadata = coverageMetadata(result);
+    // Measured 2026-10-03: webservices/list advertises only raw/scm/show, yet the
+    // undocumented sources/lines exists and is what the SonarCloud code viewer itself
+    // calls. Try lines first, catalog or not; show remains the observed fallback. A
+    // lines failure is recorded in `requests` before the fallback, so absence of the
+    // per-line service is measured, never presumed.
+    report.catalogAdvertisedLines = actions.includes("lines");
+    Object.assign(report, await sourceMetadata(get, String(selected.key)));
     await assertIdentity();
     const metadata = report.metadata as ReturnType<typeof coverageMetadata>;
     if (!metadata.hasNewMarkers || !metadata.hasCoverageCounts)
@@ -193,7 +233,7 @@ async function main() {
     // Network errors can contain data supplied by a remote service. Never emit their message.
     const safe =
       error instanceof Error &&
-      /^(SONAR_TOKEN|main SHA|catalog |file discovery|no eligible|source |invalid |inconsistent |empty |API |sonar [a-z_]+\/|github repos\/)/.test(
+      /^(SONAR_TOKEN|main SHA|catalog |file discovery|no eligible|source |invalid |inconsistent |empty |API )/.test(
         error.message,
       )
         ? error.message

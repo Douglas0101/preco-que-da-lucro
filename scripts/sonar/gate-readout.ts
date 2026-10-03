@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { execFileSync } from "node:child_process";
 
 const project = "Douglas0101_preco-que-da-lucro";
 const origin = "https://sonarcloud.io";
@@ -36,6 +37,8 @@ type CeTask = {
   branch?: string;
   branchType?: string;
   pullRequest?: string;
+  analysisRevision?: string;
+  revision?: string;
 };
 type Condition = {
   metricKey?: string;
@@ -45,6 +48,29 @@ type Condition = {
   actualValue?: string;
 };
 type Gate = { status?: string; conditions?: Condition[]; ignoredConditions?: boolean };
+
+export function scannerRevision(context: unknown) {
+  if (typeof context !== "string") throw new Error("scanner revision unavailable");
+  const revisions = context.split(/\r?\n/).filter((line) => /^sonar\.scm\.revision=/.test(line));
+  if (revisions.length !== 1 || !/^sonar\.scm\.revision=[a-f0-9]{40}$/.test(revisions[0]))
+    throw new Error("scanner revision unavailable or ambiguous");
+  return revisions[0].split("=")[1];
+}
+
+export function analysisIdentity(
+  task: CeTask,
+  expected: { revision: string; branch: string; pullRequest?: string },
+  revision: string,
+) {
+  if (!/^[a-f0-9]{40}$/.test(expected.revision) || revision !== expected.revision)
+    throw new Error("provider analysis revision differs from checkout");
+  if (expected.pullRequest) {
+    if (task.pullRequest !== expected.pullRequest || task.branch !== expected.branch)
+      throw new Error("provider PR/branch differs from expected surface");
+  } else if (expected.branch !== "main" || task.pullRequest || task.branch !== "main")
+    throw new Error("provider main surface unavailable or divergent");
+  return { revision, branch: task.branch, pullRequest: task.pullRequest ?? null };
+}
 
 export function ceVerdict(task: CeTask | undefined, gate: Gate | undefined, taskId: string) {
   if (
@@ -84,10 +110,12 @@ async function main() {
     const token = process.env.SONAR_TOKEN;
     if (!token) throw new Error("SONAR_TOKEN ausente (somente nome)");
     const taskRef = scannerTask(readFileSync(".scannerwork/report-task.txt", "utf8"));
+    const checkoutSha = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
     async function api<T>(url: string): Promise<T> {
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(15000),
+        redirect: "error",
       });
       if (!response.ok)
         throw new Error(`Web API ${new URL(url).pathname}: HTTP ${response.status}`);
@@ -96,6 +124,26 @@ async function main() {
     const before = await api<{ task?: CeTask }>(taskRef.url);
     const analysisId = before.task?.analysisId;
     if (!analysisId) throw new Error("analysisId ausente: NO-VERDICT");
+    const directRevision = before.task?.analysisRevision ?? before.task?.revision;
+    const revision =
+      directRevision ??
+      scannerRevision(
+        (
+          await api<{ context?: string }>(
+            `${origin}/api/ce/scanner_context?taskId=${encodeURIComponent(taskRef.id)}`,
+          )
+        ).context,
+      );
+    if (!before.task) throw new Error("CE task unavailable");
+    const identity = analysisIdentity(
+      before.task,
+      {
+        revision: checkoutSha,
+        branch: process.env.EXPECTED_BRANCH ?? "",
+        pullRequest: process.env.EXPECTED_PR || undefined,
+      },
+      revision,
+    );
     const response = await api<{ projectStatus?: Gate }>(
       `${origin}/api/qualitygates/project_status?analysisId=${encodeURIComponent(analysisId)}`,
     );
@@ -104,6 +152,8 @@ async function main() {
       schema: "c25-ce-gate-readout/1",
       observedAt: new Date().toISOString(),
       runnerSha: process.env.GITHUB_SHA ?? null,
+      checkoutSha,
+      providerIdentity: identity,
       ...verdict,
       nullSemantics: "métrica ausente é null; gate de PR não equivale ao de main",
     };
@@ -115,7 +165,13 @@ async function main() {
       schema: "c25-ce-gate-readout/1",
       observedAt: new Date().toISOString(),
       status: "NO-VERDICT",
-      reason: error instanceof Error ? error.message : "resposta ilegível",
+      reason:
+        error instanceof Error &&
+        /^(CE |gate |condição |projeto\/|report-task |origem\/|analysisId |SONAR_TOKEN |Web API |scanner revision |provider )/.test(
+          error.message,
+        )
+          ? error.message
+          : "readout unavailable; no raw remote error persisted",
     };
     writeFileSync(file, `${JSON.stringify(report, null, 2)}\n`);
     console.error(`C25_CE_GATE ${JSON.stringify(report)}`);

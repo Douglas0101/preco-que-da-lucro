@@ -1,0 +1,35 @@
+[
+  {
+    "pass": 1,
+    "exit": 0,
+    "seconds": 131.007,
+    "suites": 452,
+    "tests": 1613,
+    "passed": 1599,
+    "pending": 14,
+    "failed": 0,
+    "success": true
+  },
+  {
+    "pass": 2,
+    "exit": 0,
+    "seconds": 130.928,
+    "suites": 452,
+    "tests": 1613,
+    "passed": 1599,
+    "pending": 14,
+    "failed": 0,
+    "success": true
+  },
+  {
+    "pass": 3,
+    "exit": 0,
+    "seconds": 130.339,
+    "suites": 452,
+    "tests": 1613,
+    "passed": 1599,
+    "pending": 14,
+    "failed": 0,
+    "success": true
+  }
+]

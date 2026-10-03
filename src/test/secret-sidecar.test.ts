@@ -225,6 +225,27 @@ describe("sidecar secreto-injetor", () => {
     expect(exitCodeFor(relatorio)).toBe(0);
   });
 
+  it("preserva refs existentes e remove somente o namespace ficticio, mesmo com cenario reprovado", async () => {
+    const cofre = new MemoryKeychain();
+    const original = Buffer.from("OPERATOR_SENTINEL");
+    await cofre.put("ficticio-gerado-0", original);
+    expect((await autoteste(cofre)).outcome).toBe("pass");
+    expect(await cofre.list()).toEqual(["ficticio-gerado-0"]);
+    expect(await cofre.get("ficticio-gerado-0")).toEqual(Uint8Array.from(original));
+    await writeFile(join(raiz, "plantado.txt"), `${MARCA_FICTICIA}planta\n`);
+    expect((await autoteste(cofre)).outcome).toBe("fail");
+    expect(await cofre.list()).toEqual(["ficticio-gerado-0"]);
+    expect(await cofre.get("ficticio-gerado-0")).toEqual(Uint8Array.from(original));
+  });
+
+  it("recusa PASS quando o cleanup do namespace falha", async () => {
+    const cofre = new MemoryKeychain();
+    const indisponivel = new FaultInjectingKeychain(cofre, ["delete"]);
+    await expect(autoteste(indisponivel)).rejects.toBeInstanceOf(KeychainError);
+    expect((await cofre.list()).length).toBeGreaterThan(0);
+    expect((await cofre.list()).every((ref) => ref.startsWith("selftest-"))).toBe(true);
+  });
+
   it("controle negativo: valor plantado sob a raiz reprova a varredura de audit", async () => {
     // Sem esta prova, "5 valores ausentes e 5 hashes presentes" seria compatível com uma
     // varredura que não varre nada — o mesmo verde, e nenhuma medição.

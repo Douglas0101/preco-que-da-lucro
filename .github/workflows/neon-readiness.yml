@@ -48,8 +48,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     outputs:
-      branch_id: ${{ steps.neon.outputs.branch_id }}
-      created: ${{ steps.neon.outputs.created }}
+      branch_id: ${{ steps.adopt.outputs.branch_id || steps.neon.outputs.branch_id }}
+      created: ${{ steps.adopt.outputs.created || steps.neon.outputs.created }}
       started_at: ${{ steps.resource.outputs.started_at }}
       expires_at: ${{ steps.resource.outputs.expires_at }}
     env:
@@ -165,7 +165,7 @@ jobs:
 
       - name: Create disposable Neon readiness branch
         id: neon
-        uses: neondatabase/create-branch-action@fb620d43d4c565abaf088b848a4e28e5c4ea4d9c # 6.3.1
+        uses: neondatabase/create-branch-action@72ed4f69a12b6be9c16aebfad893f6a21e9aba8b # 6.4.0
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           api_key: ${{ secrets.NEON_API_KEY }}
@@ -178,6 +178,8 @@ jobs:
           role: ${{ vars.NEON_ADMIN_ROLE || 'neondb_owner' }}
 
       - name: Verify new resource ownership, parent and expiry before tests
+        id: adopt
+        if: always() && steps.resource.outputs.started_at != ''
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
@@ -185,7 +187,7 @@ jobs:
           BRANCH_CREATED: ${{ steps.neon.outputs.created }}
           RESOURCE_STARTED_AT: ${{ steps.resource.outputs.started_at }}
           RESOURCE_EXPIRES_AT: ${{ steps.resource.outputs.expires_at }}
-        run: node scripts/ci/neon-resource.ts created
+        run: node scripts/ci/neon-resource.ts adopt
 
       - name: Prove direct and pooled connection URLs
         env:

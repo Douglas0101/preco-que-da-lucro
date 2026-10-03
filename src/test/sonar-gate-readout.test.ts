@@ -1,5 +1,50 @@
 import { describe, expect, it } from "vitest";
-import { ceVerdict, scannerTask } from "../../scripts/sonar/gate-readout";
+import {
+  analysisIdentity,
+  ceVerdict,
+  scannerRevision,
+  scannerTask,
+} from "../../scripts/sonar/gate-readout";
+
+describe("provider revision and analysis surface", () => {
+  const revision = "a".repeat(40);
+  const expected = { revision, branch: "develop", pullRequest: "60" };
+  const provider = { branch: "develop", pullRequest: "60" };
+  it("accepts the exact provider revision and PR surface", () => {
+    expect(analysisIdentity(provider, expected, revision)).toEqual({
+      revision,
+      branch: "develop",
+      pullRequest: "60",
+    });
+  });
+  it("cannot use a runner SHA in place of missing, stale or wrong provider evidence", () => {
+    for (const sha of ["", "b".repeat(40)])
+      expect(() => analysisIdentity(provider, expected, sha)).toThrow("revision");
+    expect(() => analysisIdentity({ ...provider, pullRequest: "61" }, expected, revision)).toThrow(
+      "PR/branch",
+    );
+    expect(() => analysisIdentity({ ...provider, branch: "main" }, expected, revision)).toThrow(
+      "PR/branch",
+    );
+  });
+  it("requires a main analysis for a main push", () => {
+    expect(
+      analysisIdentity({ branch: "main" }, { revision, branch: "main" }, revision).pullRequest,
+    ).toBeNull();
+    expect(() => analysisIdentity(provider, { revision, branch: "main" }, revision)).toThrow();
+  });
+  it("extracts only one exact revision without persisting scanner context", () => {
+    expect(scannerRevision(`secret=PRIVATE_SENTINEL\nsonar.scm.revision=${revision}\n`)).toBe(
+      revision,
+    );
+    for (const text of [
+      "",
+      "sonar.scm.revision=short",
+      `sonar.scm.revision=${revision}\nsonar.scm.revision=${revision}`,
+    ])
+      expect(() => scannerRevision(text)).toThrow();
+  });
+});
 
 const taskId = "ce-readout-fixture-60";
 const project = "Douglas0101_preco-que-da-lucro";

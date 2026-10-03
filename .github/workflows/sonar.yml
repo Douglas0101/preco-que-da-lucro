@@ -37,6 +37,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   scan:
@@ -53,10 +54,11 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Medir baseline main (M2, leitura por SHA)
+        if: github.event_name == 'pull_request'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
@@ -134,6 +136,7 @@ jobs:
             -Dsonar.sources=src \
             -Dsonar.exclusions='src/test/**' \
             -Dsonar.scm.provider=git \
+            "-Dsonar.scm.revision=$(git rev-parse HEAD)" \
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
             -Dsonar.scanner.metadataFilePath=/sonar-metadata/report-task.txt \
             -Dsonar.qualitygate.wait=true \
@@ -158,14 +161,29 @@ jobs:
         if: always()
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          EXPECTED_PR: ${{ github.event.pull_request.number }}
+          EXPECTED_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: npx --no-install tsx scripts/sonar/gate-readout.ts
+
+      - name: Medir main somente após a análise do push
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sonar/main-baseline.mjs
+
+      - name: Seal scanner LCOV provenance
+        if: always()
+        run: node scripts/sonar/lcov-provenance.ts
 
       - name: Guardar o lcov como artefato
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: coverage-lcov
-          path: coverage/lcov.info
+          path: |
+            coverage/lcov.info
+            coverage/lcov-provenance.json
           if-no-files-found: warn
           retention-days: 7
 
@@ -192,7 +210,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: 24
+          node-version-file: .nvmrc
       - name: Read authoritative main units at the current SHA
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -203,8 +221,54 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/sonar/main-unit-probe.ts
+      - name: Download candidate scanner LCOV
+        if: always()
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: coverage-lcov
+          path: .artifacts/mirror/candidate-lcov
+      - name: Download candidate CE identity
+        if: always()
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: sonar-gate-readout
+          path: .artifacts/mirror/candidate-gate
+      - name: Locate original main scanner run by immutable SHA
+        if: always()
+        id: main-origin
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sonar/main-origin-run.ts
+      - name: Download original main scanner LCOV candidate
+        if: always() && steps.main-origin.outputs.run_id != ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: coverage-lcov
+          path: .artifacts/mirror/main-lcov
+          run-id: ${{ steps.main-origin.outputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: Map all main units only with original scanner provenance
+        if: always()
+        id: main-units
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SONAR_MAIN_LCOV: .artifacts/mirror/main-lcov/lcov.info
+          SONAR_MAIN_LCOV_PROVENANCE: .artifacts/mirror/main-lcov/lcov-provenance.json
+        run: node scripts/sonar/main-unit-adapter.ts
       - name: Require individually mapped new-code units before granting coverage credit
         if: always()
+        env:
+          SONAR_MAIN_UNIT_SNAPSHOT: ${{ runner.temp }}/c28-main-unit-snapshot.json
+          SONAR_MAIN_UNIT_SNAPSHOT_SHA256: ${{ steps.main-units.outputs.snapshot_sha256 }}
+          SONAR_MAIN_UNIT_ADAPTER_REPORT: ${{ runner.temp }}/c28-main-unit-adapter.json
+          SONAR_MAIN_LCOV: .artifacts/mirror/main-lcov/lcov.info
+          SONAR_MAIN_LCOV_PROVENANCE: .artifacts/mirror/main-lcov/lcov-provenance.json
+          SONAR_CANDIDATE_LCOV: .artifacts/mirror/candidate-lcov/lcov.info
+          SONAR_CANDIDATE_LCOV_PROVENANCE: .artifacts/mirror/candidate-lcov/lcov-provenance.json
+          SONAR_CANDIDATE_GATE_REPORT: .artifacts/mirror/candidate-gate/c25-gate-readout.json
+          EXPECTED_PR: ${{ github.event.pull_request.number }}
+          EXPECTED_BRANCH: ${{ github.head_ref }}
         run: node scripts/sonar/gate-mirror.ts
       - name: Preserve the measured gap and precondition verdict
         if: always()
@@ -215,5 +279,8 @@ jobs:
             ${{ runner.temp }}/c24-main-baseline.json
             ${{ runner.temp }}/c26-main-mirror.json
             ${{ runner.temp }}/c26-main-unit-probe.json
+            ${{ runner.temp }}/c28-main-unit-adapter.json
+            ${{ runner.temp }}/c28-main-unit-snapshot.json
+            ${{ runner.temp }}/c28-main-origin-run.json
           if-no-files-found: error
           retention-days: 7

@@ -1,0 +1,3 @@
+Command: repository DBusClient.connect/Hello/ListNames; native gdbus ListNames, no GetSecret.
+Observed: nativeSecretServiceRegistered=true; nodeHandshake=PASS; secretServiceRegistered=true.
+No names, bus address or key values persisted. Browser helper historical failure is not this result.

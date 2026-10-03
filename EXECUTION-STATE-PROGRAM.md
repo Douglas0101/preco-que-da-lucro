@@ -3479,3 +3479,16 @@ RPO15min/RTO4h e sete diasPITR exigem provas; backup diário não prova RPO15min
 Evidência de execução: .codex/artifacts/ciclo-27/; WIP preservado.
 
 Latest state marker parent = `e589d51dc8b73ea24ac6a35106f62723e5b74927`,
+
+## Bloco aditivo — Ciclo 28: correções pendentes e gates de release (2026-10-03)
+
+Plano detalhado autorizado para implementação. C27 permanece 11/13 com duas reservas;
+C28 abre teto13, dez engenharia e três reservados. Custódia principal e parser staged
+preservadas; os journals divergentes são reconciliados por namespace em custódia externa.
+
+Nenhum resultado local substitui CI, mapeamento autenticado, runtime ou recuperação.
+Release/main continuam condicionados aos gates e à janela humana30min, com Via A
+para credenciais e confirmação na ação de alteração de proteção.
+Evidência: docs/evidence/ciclo-28/SPEC.md; PROGRESS L580 em diante.
+
+Latest state marker parent = `66898f0d738717ecbf52cda1384017a0cc23e859`,

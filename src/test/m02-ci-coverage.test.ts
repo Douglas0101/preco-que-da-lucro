@@ -316,6 +316,23 @@ describe("DBT-62 · claims do pipeline Sonar", () => {
     expect(auditSonarPipeline(sonarReal)).toEqual([]);
   });
 
+  it("recusa o defeito original: baseline incondicional antes de scanner em main", () => {
+    const mutant = sonarReal.replace("        if: github.event_name == 'pull_request'\n", "");
+    expect(mutant).not.toBe(sonarReal);
+    expect(auditSonarPipeline(mutant).join("\n")).toContain("exclusiva de PR");
+  });
+  it("recusa main sem leitura posterior do CE ou sem identidade do provider", () => {
+    for (const text of [
+      "Medir main somente após a análise do push",
+      "EXPECTED_PR:",
+      "sonar.scm.revision=$(git rev-parse HEAD)",
+    ]) {
+      const mutant = sonarReal.replace(text, "removed");
+      expect(mutant).not.toBe(sonarReal);
+      expect(auditSonarPipeline(mutant)).not.toEqual([]);
+    }
+  });
+
   it("NEG — uma remoção por guarda, preservando as outras guardas", () => {
     const mutacoes: Array<[string, string]> = [
       ["roda a suíte com cobertura", "npm run test:coverage"],
@@ -373,7 +390,7 @@ describe("DBT-66 · a recusa é executável, não uma menção ao path", () => {
     const mutant = sonarReal.replace(conditional, "");
     expect(mutant).not.toBe(sonarReal);
     expect(mutant).toContain("sonar.javascript.lcov.reportPaths=coverage/lcov.info");
-    expect(mutant).toContain("path: coverage/lcov.info");
+    expect(mutant).toMatch(/path: \|\s+coverage\/lcov\.info/);
     expect(auditSonarPipeline(mutant)).toContain(
       "sonar.yml sem a claim: recusa lcov ausente ou vazio",
     );

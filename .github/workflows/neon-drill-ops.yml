@@ -100,8 +100,8 @@ jobs:
             *) echo "Operação não suportada." >&2; exit 1 ;;
           esac
 
-      - name: Checkout (só para as leituras §13.7/§12.6)
-        if: inputs.operation == 'pitr-status' || inputs.operation == 'spend-status'
+      - name: Checkout for reads and managed provisioning
+        if: inputs.operation == 'pitr-status' || inputs.operation == 'spend-status' || inputs.operation == 'exercise-provisioning'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -218,8 +218,21 @@ jobs:
           echo "drill_branch_id=$DRILL_BRANCH_ID"
           echo "- Drill branch criado: $DRILL_BRANCH_NAME (id no log privado)" >> "$GITHUB_STEP_SUMMARY"
 
-      # C24/DBT-67: dispatch possui Secrets de Actions; rerun de Dependabot não muda privilégio.
-      # Pin candidato do PR #52; não muda a action 6.3.1 dos outros exercícios.
+      - name: Node for managed provisioning
+        if: inputs.operation == 'exercise-provisioning'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+
+      - name: Plan provisioning before creation
+        if: inputs.operation == 'exercise-provisioning'
+        id: resource
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          RESOURCE_PURPOSE: provisioning
+        run: node scripts/ci/neon-resource.ts prepare
+
       - name: Exercise provisioning candidate 6.4.0
         if: inputs.operation == 'exercise-provisioning'
         id: exercise
@@ -228,57 +241,56 @@ jobs:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           api_key: ${{ secrets.NEON_API_KEY }}
           parent_branch: production
-          branch_name: c24-probe-${{ github.run_id }}-${{ github.run_attempt }}
+          branch_name: ${{ steps.resource.outputs.branch_name }}
+          expires_at: ${{ steps.resource.outputs.expires_at }}
 
-      - name: Validate candidate outputs and isolated identity
+      - name: Adopt ownership and expiry independently of connection outputs
+        if: always() && inputs.operation == 'exercise-provisioning' && steps.resource.outputs.started_at != ''
+        id: adopt
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          RESOURCE_PURPOSE: provisioning
+          RESOURCE_STARTED_AT: ${{ steps.resource.outputs.started_at }}
+          RESOURCE_EXPIRES_AT: ${{ steps.resource.outputs.expires_at }}
+          BRANCH_ID: ${{ steps.exercise.outputs.branch_id }}
+          BRANCH_CREATED: ${{ steps.exercise.outputs.created }}
+        run: node scripts/ci/neon-resource.ts adopt
+
+      - name: Validate candidate connection outputs against the owned endpoint
         if: inputs.operation == 'exercise-provisioning'
-        id: exercise-proof
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
-          BRANCH_ID: ${{ steps.exercise.outputs.branch_id }}
-          DB_URL: ${{ steps.exercise.outputs.db_url }}
-          EXPECTED_NAME: c24-probe-${{ github.run_id }}-${{ github.run_attempt }}
-        run: |
-          set -euo pipefail
-          node --input-type=module <<'NODE'
-          import { appendFileSync } from 'node:fs';
-          const { NEON_API_KEY, NEON_PROJECT_ID, BRANCH_ID, DB_URL, EXPECTED_NAME } = process.env;
-          if (!BRANCH_ID || !DB_URL) throw new Error('candidate outputs ausentes: branch_id/db_url');
-          const target = `https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches/${BRANCH_ID}`;
-          const headers = { Authorization: `Bearer ${NEON_API_KEY}` };
-          const response = await fetch(target, { headers });
-          if (!response.ok) throw new Error(`identity GET HTTP ${response.status}`);
-          const { branch } = await response.json();
-          if (branch?.id !== BRANCH_ID || branch?.name !== EXPECTED_NAME || !branch?.parent_id || branch?.primary === true || branch?.default === true) {
-            throw new Error('candidate identity não é a cópia isolada esperada; cleanup não autorizado');
-          }
-          appendFileSync(process.env.GITHUB_OUTPUT, 'cleanup_allowed=true\n');
-          const expires_at = new Date(Date.now() + 24 * 3600e3).toISOString();
-          const expiry = await fetch(target, { method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ branch: { expires_at } }) });
-          if (!expiry.ok) throw new Error(`expires-at PATCH HTTP ${expiry.status}`);
-          appendFileSync(process.env.GITHUB_STEP_SUMMARY, '- Candidate 6.4.0: outputs branch_id/db_url presentes; identidade isolada confirmada; prazo +24h. Nenhuma URL/chave exibida.\n');
-          NODE
+          RESOURCE_PURPOSE: provisioning
+          RESOURCE_STARTED_AT: ${{ steps.resource.outputs.started_at }}
+          RESOURCE_EXPIRES_AT: ${{ steps.resource.outputs.expires_at }}
+          BRANCH_ID: ${{ steps.adopt.outputs.branch_id }}
+          BRANCH_CREATED: ${{ steps.adopt.outputs.created }}
+          DATABASE_ADMIN_URL: ${{ steps.exercise.outputs.db_url }}
+          DATABASE_URL: ${{ steps.exercise.outputs.db_url_pooled }}
+        run: node scripts/ci/neon-resource.ts connections
 
-      - name: Cleanup candidate always
-        if: always() && inputs.operation == 'exercise-provisioning' && steps.exercise-proof.outputs.cleanup_allowed == 'true'
-        uses: neondatabase/delete-branch-action@4468d825d5a88ef4012f1705a82f02ec3072f776 # v3.2.1
+      - name: Cleanup candidate always by the prepared identity
+        if: always() && inputs.operation == 'exercise-provisioning' && steps.resource.outputs.started_at != ''
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          RESOURCE_PURPOSE: provisioning
+          RESOURCE_STARTED_AT: ${{ steps.resource.outputs.started_at }}
+          RESOURCE_EXPIRES_AT: ${{ steps.resource.outputs.expires_at }}
+          BRANCH_ID: ${{ steps.adopt.outputs.branch_id || steps.exercise.outputs.branch_id }}
+          BRANCH_CREATED: ${{ steps.adopt.outputs.created || steps.exercise.outputs.created }}
+        run: node scripts/ci/neon-resource.ts cleanup
+
+      - name: Preserve provisioning and independent cleanup proof
+        if: always() && inputs.operation == 'exercise-provisioning' && steps.resource.outputs.started_at != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          project_id: ${{ vars.NEON_PROJECT_ID }}
-          api_key: ${{ secrets.NEON_API_KEY }}
-          branch: ${{ steps.exercise.outputs.branch_id }}
-
-      - name: Prove candidate cleanup
-        if: always() && inputs.operation == 'exercise-provisioning' && steps.exercise-proof.outputs.cleanup_allowed == 'true'
-        env:
-          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
-          BRANCH_ID: ${{ steps.exercise.outputs.branch_id }}
-        run: |
-          set -euo pipefail
-          HTTP_CODE="$(curl -s -o /dev/null -w '%{http_code}' "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID" -H "Authorization: Bearer $NEON_API_KEY")"
-          [[ "$HTTP_CODE" == "404" ]] || { echo "cleanup não provado: GET HTTP $HTTP_CODE" >&2; exit 1; }
-          echo "- Candidate 6.4.0: cleanup confirmado por GET 404." >> "$GITHUB_STEP_SUMMARY"
+          name: neon-provisioning-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .artifacts/neon-provisioning
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Delete branch
         if: inputs.operation == 'delete-branch'

@@ -61,6 +61,16 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
     expect(Date.parse(plan.expiresAt) - Date.parse(plan.startedAt)).toBe(24 * 3600000);
     expect(plan.parentId).toBe(DEVELOP_ID);
   });
+  it("permits a production parent only for the explicit provisioning purpose, never as target", () => {
+    const drill = resourcePlan({ ...env, RESOURCE_PURPOSE: "provisioning" }, now);
+    expect(drill.parentId).toBe(PRODUCTION_ID);
+    expect(drill.name).toBe("provisioning/develop-1234-2");
+    expect(() => new NeonResources({ ...plan, parentId: PRODUCTION_ID }, "key")).toThrow();
+    expect(() => resourcePlan({ ...env, RESOURCE_PURPOSE: "unknown" }, now)).toThrow();
+    expect(() =>
+      assertTemporary({ ...temp(), id: PRODUCTION_ID }, drill, PRODUCTION_ID, "true", now),
+    ).toThrow();
+  });
   it.each(["GITHUB_REF", "NEON_PROJECT_ID", "GITHUB_SHA", "GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT"])(
     "rejects a missing or wrong %s before use",
     (key) => {
@@ -173,16 +183,72 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
     }
   });
   it("a missing output is not exercise closure and does not hide an orphan", async () => {
-    const absent = mock([{ body: inventory() }]);
+    const absent = mock([{ body: inventory() }, { body: inventory() }]);
     expect(
       (await new NeonResources(plan, "test-key", absent.impl).cleanup("", "", now)).phase,
     ).toBe("no-resource-observed");
     expect(absent.calls.every((call) => call.method === "GET")).toBe(true);
-    const orphan = mock([{ body: inventory([...permanent, temp()]) }]);
-    await expect(
-      new NeonResources(plan, "test-key", orphan.impl).cleanup("", "", now),
-    ).rejects.toThrow("resource exists");
-    expect(orphan.calls.every((call) => call.method === "GET")).toBe(true);
+    const orphan = mock([
+      { body: inventory([...permanent, { ...temp(), expires_at: undefined }]) },
+      { body: { branch: temp() } },
+      { status: 404 },
+      { body: inventory() },
+    ]);
+    const proof = await new NeonResources(plan, "test-key", orphan.impl).cleanup("", "", now);
+    expect(proof.branchId).toBe(id);
+    expect(proof.phase).toBe("discarded-verified");
+    expect(orphan.calls.map((call) => call.method)).toEqual(["GET", "DELETE", "GET", "GET"]);
+  });
+  it("missing connection outputs and expiry do not prevent discarding a proven owned resource", async () => {
+    const f = mock([
+      { body: { branch: { ...temp(), expires_at: undefined } } },
+      { status: 204 },
+      { status: 404 },
+      { body: inventory() },
+    ]);
+    const api = new NeonResources(plan, "test-key", f.impl);
+    await expect(api.connections(id, "true", "", "", now)).rejects.toThrow("outputs");
+    expect(f.calls).toHaveLength(0);
+    expect((await api.cleanup(id, "true", now)).absentByIdAndName).toBe(true);
+  });
+  it("adopts an owned orphan and measures expiry again after PATCH, without DB_URL", async () => {
+    const f = mock([
+      { body: inventory([...permanent, { ...temp(), expires_at: undefined }]) },
+      { body: {} },
+      { body: { branch: temp() } },
+    ]);
+    expect((await new NeonResources(plan, "test-key", f.impl).adopt("", "", now)).phase).toBe(
+      "created-verified",
+    );
+    expect(f.calls.map((call) => call.method)).toEqual(["GET", "PATCH", "GET"]);
+  });
+  it("an expiry PATCH failure is red, while cleanup remains possible", async () => {
+    const missing = { ...temp(), expires_at: undefined };
+    const f = mock([
+      { body: { branch: missing } },
+      { status: 422 },
+      { body: { branch: missing } },
+      { status: 204 },
+      { status: 404 },
+      { body: inventory() },
+    ]);
+    const api = new NeonResources(plan, "test-key", f.impl);
+    await expect(api.adopt(id, "true", now)).rejects.toThrow("HTTP 422");
+    expect((await api.cleanup(id, "true", now)).phase).toBe("discarded-verified");
+  });
+  it("recovering lost output cannot delete ambiguous, wrong-parent or preexisting identities", async () => {
+    for (const branches of [
+      [...permanent, temp(), { ...temp(), id: "br-another-id" }],
+      [...permanent, { ...temp(), parent_id: PRODUCTION_ID }],
+      [...permanent, { ...temp(), created_at: "2026-10-02T20:00:00Z" }],
+      [...permanent, { ...temp(), default: true }],
+    ]) {
+      const f = mock([{ body: inventory(branches) }]);
+      await expect(
+        new NeonResources(plan, "test-key", f.impl).cleanup("", "", now),
+      ).rejects.toThrow();
+      expect(f.calls.every((call) => call.method === "GET")).toBe(true);
+    }
   });
   it("fails closed for malformed/truncated/cyclic inventory and HTML404", async () => {
     for (const body of [{}, { branches: permanent }, { branches: [], pagination: null }]) {
@@ -217,7 +283,7 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
     const yaml = readFileSync(".github/workflows/neon-readiness.yml", "utf8");
     expect(yaml).toContain("parent_branch: develop");
     expect(yaml).toContain("expires_at: ${{ steps.resource.outputs.expires_at }}");
-    expect(yaml).toContain("node scripts/ci/neon-resource.ts created");
+    expect(yaml).toContain("node scripts/ci/neon-resource.ts adopt");
     expect(yaml).toContain("BRANCH_CREATED:");
     const cleanup = yaml.slice(yaml.indexOf("  cleanup:"));
     expect(cleanup).toContain("needs: readiness");
@@ -229,6 +295,32 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
     expect(yaml).toContain("DATABASE_DRIVER: node-postgres");
     for (const action of yaml.matchAll(/uses: ([^\s]+)@([^\s]+)/g))
       expect(action[2]).toMatch(/^[a-f0-9]{40}$/);
+  });
+  it("the provisioning workflow plans before creation and cleans independently of DB_URL and adopt success", () => {
+    const yaml = readFileSync(".github/workflows/neon-drill-ops.yml", "utf8");
+    const names = [
+      "Plan provisioning before creation",
+      "Exercise provisioning candidate 6.4.0",
+      "Adopt ownership and expiry independently of connection outputs",
+      "Validate candidate connection outputs against the owned endpoint",
+      "Cleanup candidate always by the prepared identity",
+    ];
+    const indexes = names.map((name) => yaml.indexOf(`- name: ${name}`));
+    expect(indexes.every((index) => index >= 0)).toBe(true);
+    expect([...indexes].sort((a, b) => a - b)).toEqual(indexes);
+    const block = (name: string) =>
+      yaml.slice(yaml.indexOf(`      - name: ${name}`)).split(/\n {6}- (?:name|uses):/)[0];
+    for (const name of [names[2], names[4]]) {
+      const step = block(name);
+      expect(step).toContain(
+        "if: always() && inputs.operation == 'exercise-provisioning' && steps.resource.outputs.started_at != ''",
+      );
+      expect(step).not.toMatch(/DB_URL|DATABASE_|cleanup_allowed|success\(\)/);
+      expect(step).toContain("RESOURCE_PURPOSE: provisioning");
+    }
+    expect(block(names[1])).toContain("expires_at: ${{ steps.resource.outputs.expires_at }}");
+    expect(block(names[4])).toContain("node scripts/ci/neon-resource.ts cleanup");
+    expect(block(names[3])).toContain("node scripts/ci/neon-resource.ts connections");
   });
 });
 

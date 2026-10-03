@@ -227,3 +227,31 @@ testes de ciclo/GCM/S3-fixture não comprovam a execução do collector PG17 com
 escrita concorrente. Não ativar rotina contínua com essa lacuna. Capturas privadas
 snapshot-drill-precondition-r1.json e snapshot-drill-cleanup-r1.json/cleanup.json
 em .codex/artifacts/ciclo-27/continuation-2026-10-03/captures.
+
+## Collector local observado — C28
+
+ERRATA da precondição anterior: a execução do collector foi demonstrada em dois
+clusters novos PostgreSQL17, ambos com database `fixture`. Reproduzir com
+`node scripts/ci/rehearse-postgres-snapshot.ts /private/c28-fixture-new`.
+O harness exige daemon Docker local, imagem PG17 fixada, labels por UUID, bridge
+própria e portas aleatórias publicadas somente em127.0.0.1, nunca5432 no host.
+O postmaster definitivo precisa ser PID1 antes de SQL. Docker Desktop tem outro
+kernel: um socket Unix montado da VM não atende o processo Node do host. Rede
+Docker `internal` também não publica a porta; essas precondições foram medidas,
+com saídas preservadas, antes da correção da bancada.
+
+O ensaio executa `postgresSnapshot`, exporta um snapshot READ ONLY e usa o mesmo
+snapshot no inventário e no pg_dump custom. Um escritor insere a quarta linha
+após o snapshot; source termina com quatro produtos, enquanto o arquivo e o
+restore conservam três. As seis tabelas descobertas e sete superfícies
+(identidade, schemas, tabelas, journal, catálogo, roles e memberships) coincidem.
+Identidade errada e falta de SELECT falham antes do dump; ACL removida produz
+diferença no catálogo. Cleanup confere cada ID de container e rede por identidade,
+inclusive quando a precondição funcional de porta falha.
+
+Resultado observado: LOCAL-FIXTURE-PASS,5701ms, em
+`docs/evidence/ciclo-28/captures/collector.txt`. Valores, roles e GUCs Neon são
+sintéticos; o papel BYPASSRLS é criado somente na fixture. Este resultado propõe
+fechar a lacuna do collector local, conservando aberta a qualificação externa
+do ADR040/DBT80. Nenhum login Auth real, upload S3, timer, RPO/RTO operacional
+ou independência da conta/chave foi demonstrado.

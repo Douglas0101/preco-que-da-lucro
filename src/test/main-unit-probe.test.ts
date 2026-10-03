@@ -42,8 +42,64 @@ describe("Authenticated Sonar unit capability probe", () => {
       count: 1,
       hasNewMarkers: false,
       hasCoverageCounts: false,
-      rows: [{ line: 1, isNew: null, lineHits: null, conditions: null, coveredConditions: null }],
+      rows: [
+        {
+          line: 1,
+          isNew: null,
+          lineHits: null,
+          conditions: null,
+          coveredConditions: null,
+          utLineHits: null,
+          utConditions: null,
+          utCoveredConditions: null,
+        },
+      ],
     });
+  });
+  it("parses the measured sources/lines row shape and discards source and SCM strings", () => {
+    const report = coverageMetadata({
+      sources: [
+        {
+          line: 14,
+          code: '<span class="k">if</span> (a) {',
+          scmRevision: "e342f83695212fa744f2ff5e0462edc6438d5655",
+          scmDate: "2026-09-10T07:18:23+0000",
+          utLineHits: 1,
+          lineHits: 1,
+          duplicated: false,
+          isNew: true,
+        },
+        { line: 15, code: "PLAIN_SOURCE_SENTINEL", isNew: false },
+      ],
+    });
+    expect(report).toMatchObject({
+      count: 2,
+      hasNewMarkers: true,
+      hasCoverageCounts: true,
+      rows: [
+        {
+          line: 14,
+          isNew: true,
+          lineHits: 1,
+          conditions: null,
+          coveredConditions: null,
+          utLineHits: 1,
+          utConditions: null,
+          utCoveredConditions: null,
+        },
+        {
+          line: 15,
+          isNew: false,
+          lineHits: null,
+          conditions: null,
+          coveredConditions: null,
+          utLineHits: null,
+          utConditions: null,
+          utCoveredConditions: null,
+        },
+      ],
+    });
+    expect(JSON.stringify(report)).not.toMatch(/SENTINEL|scmRevision|scmDate|duplicated|code/);
   });
   it.each([
     {},
@@ -59,16 +115,37 @@ describe("Authenticated Sonar unit capability probe", () => {
       count: 1,
       hasNewMarkers: false,
       hasCoverageCounts: false,
-      rows: [{ line: 17, isNew: null, lineHits: null, conditions: null, coveredConditions: null }],
+      rows: [
+        {
+          line: 17,
+          isNew: null,
+          lineHits: null,
+          conditions: null,
+          coveredConditions: null,
+          utLineHits: null,
+          utConditions: null,
+          utCoveredConditions: null,
+        },
+      ],
     });
     expect(JSON.stringify(data)).not.toContain("SENTINEL");
   });
   it.each([
     { line: 1, isNew: "true" },
     { line: 1, lineHits: -1 },
+    { line: 1, utLineHits: -3 },
+    { line: 1, duplicated: "false" },
     { line: 1, conditions: null },
     { line: 1, conditions: 1, coveredConditions: 2 },
+    { line: 1, utConditions: 2, utCoveredConditions: 3 },
   ])("rejects degenerate or inconsistent unit metadata", (row) => {
     expect(() => coverageMetadata({ sources: [row] })).toThrow();
+  });
+  it("unit-test counters alone demonstrate coverage capability", () => {
+    const report = coverageMetadata({
+      sources: [{ line: 9, utLineHits: 0, utConditions: 1, utCoveredConditions: 0, isNew: true }],
+    });
+    expect(report.hasCoverageCounts).toBe(true);
+    expect(report.hasNewMarkers).toBe(true);
   });
 });

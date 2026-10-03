@@ -1,0 +1,27 @@
+LOCAL-VERIFIED code/config/test write-set, base 66898f0d738717ecbf52cda1384017a0cc23e859.
+140199fbd262f385b87694812d887687d7ac089c8cb6dc95640582b91e13edb3  /tmp/pqd-develop/.github/workflows/neon-drill-ops.yml
+4de8cc491315eb033e80c1217a968f89d6546d689a209e05b542edba996d69f0  /tmp/pqd-develop/.github/workflows/neon-readiness.yml
+e3805c79305762535a00914aaecacbd6586559e1d5439b19f8a0e2f52254b944  /tmp/pqd-develop/.github/workflows/sonar.yml
+73fb1b615e2043a933be1c0895cde4358036acc28d785692509b822aa53c761f  /tmp/pqd-develop/.nvmrc
+737fa500f87373f61eb7301f5accd1ddf6c9835fe0fa50196f00c6f88ae8e119  /tmp/pqd-develop/scripts/ci/neon-resource.ts
+77524d4dd691f050481200a6f23c96f84ca740fbe99d111baee144c081bcaf02  /tmp/pqd-develop/scripts/ci/rehearse-postgres-snapshot.ts
+e6b7e6fc9d53239ecbeae01389111bffa33fa4b78a4c6efd1ae8182a4d77bd33  /tmp/pqd-develop/scripts/lib/m02-ci-coverage.ts
+613945912980211f301ce40b64fec3f3936a48ad311bdae9bb9ff0a377b49460  /tmp/pqd-develop/scripts/secret-sidecar/selftest.ts
+2b6f8cc6e5b6269afe99d39937971243c7462d95103f6c9203a0e3df1db17da1  /tmp/pqd-develop/scripts/sonar/api.ts
+345537fe465c6dfa56e36a27493ea5fc5f33715b0f7860d03b51934075297e5a  /tmp/pqd-develop/scripts/sonar/gate-mirror.ts
+24b3490fc2f940ae641932b35fad780f1d32d5263ffb37acdb41ec054d4dfea7  /tmp/pqd-develop/scripts/sonar/gate-readout.ts
+bda01602622b32bd3314725c264065c4c64b09936900b81cb1deaad1dc3bbbb0  /tmp/pqd-develop/scripts/sonar/lcov-provenance.ts
+a746908a8afe0434101fe18ec237237ed86d7296d85ca975959d127affbc8980  /tmp/pqd-develop/scripts/sonar/main-baseline.mjs
+3942bf7d3b8a8c7888a7319690e19e23eb61b893e351e07689f8cc73575f0ba6  /tmp/pqd-develop/scripts/sonar/main-origin-run.ts
+1777d033ef4e5cd77a02c06e36ae6a921408d09d0b7bbb0b46701fc3ad654828  /tmp/pqd-develop/scripts/sonar/main-unit-adapter.ts
+98a134419e438e73318945bf09a4cc018d2a473764e4f3c0bbf9c5bb4fa50a62  /tmp/pqd-develop/scripts/sonar/main-unit-probe.ts
+3c49e18b7a74d52c74cbef785544434836fb5c9066a3208f5f2c45e3e04c24c5  /tmp/pqd-develop/scripts/sonar/mirror-runner.ts
+dad0ecf1fcf78b6b7351daed8292527e42c85c71cac3cbc1d78a5d3a62e34c00  /tmp/pqd-develop/scripts/sonar/unit-mirror.ts
+7978f34fbab92f9a05e79c9119dccc769eb880f56426c3a90ae55d00dde560c9  /tmp/pqd-develop/src/test/m02-ci-coverage.test.ts
+d1d531a9e33201d3d529bc0a330bf0f8c37922babed2d7c4d7ed1b6487e6349e  /tmp/pqd-develop/src/test/main-unit-adapter.test.ts
+ed06601ab4fa13023361944f75e02404e3526da51505c02cad6a36e7df838f11  /tmp/pqd-develop/src/test/main-unit-probe.test.ts
+70aa0da23daf2a9ea0804da7c2ac8336ad69dead85d37382e24ee3964bda58cb  /tmp/pqd-develop/src/test/neon-resource.test.ts
+ec543055333fdfb81d65af5d977f89a6e677a5de32eeb05e64aba0e82bc3741d  /tmp/pqd-develop/src/test/secret-sidecar.test.ts
+b4f1ccee3dbc89f032758ef733f7e4ed6a756b1c5365525b99b223f04dc9ac8c  /tmp/pqd-develop/src/test/sonar-api.test.ts
+6b026d904b54b6b4df921c37792142f8613fd4b98173775653ff94c10111003c  /tmp/pqd-develop/src/test/sonar-gate-readout.test.ts
+cea02ff2652fa325da3f9abdf4ee4d8f32c88282546261f10f59bd593a1feb72  /tmp/pqd-develop/vitest.config.ts

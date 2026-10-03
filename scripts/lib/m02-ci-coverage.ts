@@ -368,5 +368,39 @@ export function auditSonarPipeline(yaml: string): string[] {
   if (scanner === null || !/^\s*-Dsonar\.qualitygate\.wait=true\s+\\\s*$/m.test(scanner)) {
     findings.push("sonar.yml sem a claim: espera o veredito do Quality Gate");
   }
+  const step = (name: string) => {
+    const lines = yaml.split("\n");
+    const index = lines.findIndex((line) => line.trim() === `- name: ${name}`);
+    let end = index + 1;
+    while (end < lines.length && !/^ {6}- /.test(lines[end]!)) end++;
+    return { index, text: index < 0 ? "" : lines.slice(index, end).join("\n") };
+  };
+  const before = step("Medir baseline main (M2, leitura por SHA)");
+  const scan = step("sonar-scanner");
+  const ce = step("Nomear veredito do CE desta análise (sem token no log)");
+  const after = step("Medir main somente após a análise do push");
+  if (
+    before.index < 0 ||
+    before.index >= scan.index ||
+    !/^ {8}if: github\.event_name == 'pull_request'\s*$/m.test(before.text) ||
+    !/run: node scripts\/sonar\/main-baseline\.mjs/.test(before.text)
+  )
+    findings.push("sonar.yml: baseline anterior ao scanner deve ser exclusiva de PR");
+  if (
+    after.index < 0 ||
+    ce.index <= scan.index ||
+    after.index <= ce.index ||
+    !/^ {8}if: always\(\) && github\.ref == 'refs\/heads\/main' && github\.event_name != 'pull_request'\s*$/m.test(
+      after.text,
+    ) ||
+    !/run: node scripts\/sonar\/main-baseline\.mjs/.test(after.text)
+  )
+    findings.push("sonar.yml: push main exige scanner, CE e baseline posterior nesta ordem");
+  if (
+    !/sonar\.scm\.revision=\$\(git rev-parse HEAD\)/.test(scan.text) ||
+    !/EXPECTED_PR:/.test(ce.text) ||
+    !/EXPECTED_BRANCH:/.test(ce.text)
+  )
+    findings.push("sonar.yml: CE deve conferir revisão do provider e superfície esperada");
   return findings;
 }

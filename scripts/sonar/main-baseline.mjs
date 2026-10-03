@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { authoritativeUnits } from "./gate-mirror.ts";
+import { apiReader } from "./api.ts";
 
 // Read-only CI measurement: credentials come from the runner's Secret store and are never emitted.
 const project = "Douglas0101_preco-que-da-lucro";
@@ -24,22 +25,16 @@ if (!sonarToken || !githubToken) {
   console.error("precondicao: SONAR_TOKEN/GITHUB_TOKEN ausentes (somente nomes)");
   process.exit(2);
 }
-async function get(url, token) {
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-    signal: AbortSignal.timeout(15000),
-  });
-  if (!response.ok) throw new Error(`GET ${new URL(url).pathname}: HTTP ${response.status}`);
-  return response.json();
-}
+const requests = [];
+const get = apiReader({ github: githubToken, sonar: sonarToken }, requests);
 async function mainSha() {
-  const result = await get(`https://api.github.com/repos/${repository}/branches/main`, githubToken);
+  const result = await get("github", `repos/${repository}/branches/main`);
   const sha = result.commit?.sha;
   if (typeof sha !== "string" || !/^[a-f0-9]{40}$/.test(sha))
     throw new Error("main SHA ausente/ilegível");
   return sha;
 }
-const sonar = (endpoint) => get(`https://sonarcloud.io/api/${endpoint}`, sonarToken);
+const sonar = (endpoint) => get("sonar", endpoint);
 try {
   const sha = await mainSha();
   const analyses = await sonar(`project_analyses/search?project=${project}&branch=main&ps=100`);
@@ -80,7 +75,13 @@ try {
     gate: status.projectStatus ?? null,
     metrics,
     units,
-    period: response.period ?? response.periods ?? null,
+    period:
+      status.projectStatus?.period ??
+      status.projectStatus?.periods ??
+      response.period ??
+      response.periods ??
+      null,
+    requests,
     lineOnlyGapTo80: hasLineTarget
       ? Math.max(0, metrics.new_uncovered_lines - Math.floor(metrics.new_lines_to_cover * 0.2))
       : null,
@@ -91,7 +92,19 @@ try {
   writeFileSync(file, `${JSON.stringify(report, null, 2)}\n`);
   console.log(`C24_MAIN_BASELINE ${JSON.stringify(report)}`);
   if (!hasLineTarget) throw new Error("new line target ausente/inaplicável: NO-VERDICT");
-} catch (error) {
-  console.error(`precondicao: ${error instanceof Error ? error.message : "API ilegível"}`);
+} catch {
+  const failure = {
+    schema: "main-baseline/2",
+    verdict: "NO-VERDICT",
+    observedAt: new Date().toISOString(),
+    reason:
+      "Baseline identity/metadata/transport precondition failed; raw provider bodies withheld.",
+    requests,
+  };
+  writeFileSync(
+    path.join(process.env.RUNNER_TEMP ?? ".", "c24-main-baseline.json"),
+    JSON.stringify(failure, null, 2) + "\n",
+  );
+  console.error("precondicao: baseline NO-VERDICT; detalhes sanitizados no artefato");
   process.exitCode = 2;
 }
