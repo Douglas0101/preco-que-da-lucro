@@ -1,0 +1,10 @@
+LOCAL-VERIFIED npm run check
+Root execution in /tmp/pqd-develop; session41986 completed exit0.
+Log: /home/douglas-souza/.codex/artifacts/ciclo-28/check-doc-consolidation-r2.log
+SHA256: b9d7580ad3cfc1494b389631ad39dc8afa5a532e12413cb2cfb7c0ff8b417c23
+Test Files  128 passed (128)
+Tests  1640 passed | 14 skipped (1654)
+Duration  130.47s (transform 2.03s, setup 9.54s, import 24.39s, tests 26.59s, environment 57.58s)
+PASS assets/index-DpDZQbhM.js: 236756 minified, 72938 gzip, 63554 Brotli bytes, sha256=da167b8d0072
+Initial graph (9 chunks): 471694 minified, 151429 gzip, 133449 Brotli bytes, sha256=4e736703b18c
+Subsequent seal metadata/journal/receipt updates receive format/state/temporal/manifest checks separately; source code remains6fcba0d.

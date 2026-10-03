@@ -1,0 +1,4 @@
+Documentary gate r1: exit1 at format:check.
+Generated resume-provisioning/readout JSON formatted with repository Prettier.
+Downloaded drill JSON bytes preserved by renaming own captures to *.txt, matching the work-package capture convention. No ignore, test, lint, threshold or timeout changed.
+Original log: /home/douglas-souza/.codex/artifacts/ciclo-28/check-doc-consolidation.log

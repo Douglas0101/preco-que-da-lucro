@@ -1,0 +1,24 @@
+{
+  "schema": "neon-resource/1",
+  "plan": {
+    "purpose": "provisioning",
+    "projectId": "damp-forest-57346541",
+    "parentId": "br-snowy-violet-aymcvvvv",
+    "name": "provisioning/develop-37152161806-1",
+    "sourceSha": "482e5771398506f261bace605e1b627aa7267147",
+    "runId": "37152161806",
+    "runAttempt": "1",
+    "startedAt": "2026-10-03T20:36:57.169Z",
+    "expiresAt": "2026-10-04T20:36:57Z"
+  },
+  "phase": "discarded-verified",
+  "branchId": "br-sweet-bonus-ayf7s78f",
+  "created": true,
+  "deletePerformed": true,
+  "getStatus": 404,
+  "absentByIdAndName": true,
+  "permanentIds": [
+    "br-small-hill-aymcu14y",
+    "br-snowy-violet-aymcvvvv"
+  ]
+}

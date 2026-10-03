@@ -1,0 +1,7 @@
+{
+  "schema": "neon-resource/1",
+  "phase": "connection-identity-verified",
+  "branchId": "br-sweet-bonus-ayf7s78f",
+  "directAndPooled": true,
+  "hostname": "ep-nameless-surf-ayjspacb.c-5.us-east-2.aws.neon.tech"
+}

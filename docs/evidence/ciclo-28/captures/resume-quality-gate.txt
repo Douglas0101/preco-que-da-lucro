@@ -1,0 +1,5 @@
+Fork full gate log locally inspected: /tmp/check-c28.log
+SHA256 1e5d3868f237fa7762b245b947d8c3876b58273df40d2b89dee54cbbc7420dc0
+Source repair bytes are identical to committed6fcba0d for all four source/config files; see resume-source-hashes.
+Observed log: 128 files,1640PASS14skip1654total; build and bundle final PASS. Fork reported exit0. Root also passed focused3files86tests and state/temporal before the normal commit.
+A new full local gate for this documentary write-set will be captured separately; no inherited CI credit for its SHA.

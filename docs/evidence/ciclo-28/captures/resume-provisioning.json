@@ -1,0 +1,36 @@
+{
+  "schema": "c28-resume-provisioning/1",
+  "recordedAt": "2026-10-03T23:10:26.762908+00:00",
+  "runId": "37152161806",
+  "runAttempt": "1",
+  "sourceSha": "482e5771398506f261bace605e1b627aa7267147",
+  "n1RunStatus": "SUCCESS",
+  "durationSeconds": 20,
+  "artifactName": "neon-provisioning-37152161806-1",
+  "artifactId": "11284192495",
+  "providerArchiveDigest": "4892fcd48af9b7b22605e337f1bef16eb0b0fbb9dbc514138bb9436c7192cf02",
+  "archiveDigestLocallyVerified": false,
+  "attestationClass": "WORKFLOW-ATTESTED, sanitized files locally checked",
+  "ownedBranchId": "br-sweet-bonus-ayf7s78f",
+  "created": true,
+  "deletePerformed": true,
+  "getStatus": 404,
+  "absentByIdAndName": true,
+  "expiresAt": "2026-10-04T20:36:57Z",
+  "ttlNativeToCandidate": "NOT-PROVED: adoption may PATCH expiry",
+  "permanentIdsMeaning": "required permanent identities, not complete remaining inventory",
+  "currentN1Inventory": {
+    "names": ["production", "develop", "preview/dependabot/npm_and_yarn/tailwind-merge-3.7.0"],
+    "default": "production",
+    "residualBranchId": "br-snowy-cake-ayyl3tdt",
+    "residualIdMethod": "visible branch title click and resulting overview URL",
+    "residualCreatedBy": "Vercel",
+    "residualParentName": "production"
+  },
+  "firstDispatch": "37151473740 rejected confirm=false before checkout/create",
+  "gaps": [
+    "No raw GET404 body/timestamp or paginated API pages preserved",
+    "No SQL/auth/RLS/restore/RPO/RTO measurement in this provisioning drill",
+    "Vercel generator removal and residual deletion remain pending owner-session access"
+  ]
+}
