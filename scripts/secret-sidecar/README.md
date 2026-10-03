@@ -49,10 +49,11 @@ restore_from_keychain(ref)         → { sha256 }             prova recuperabili
 delete(ref) / list() / health()
 ```
 
-`kind` é `"http"` (GET com `Authorization: Bearer <valor>`; `401` x `200`) ou `"db"` (sonda de
-autenticação real via `pg`; `28P01`/`28000` → `401`, `3D000` → `404`, inalcançável → `0`). É
-esse par `401`→`200` que dá ao closure test do `DBT-36` um veredicto medido em vez de
-declarado.
+`kind` é `"http"` (GET com `Authorization: Bearer <valor>`) ou `"db"` (sonda de
+autenticação real via `pg`; `28P01`/`28000` → `401`, `3D000` → `404`, inalcançável → `0`).
+O método legado registra transporte e status bruto. O par `401`→`200` sozinho não
+fecha `DBT-36`: a rotação exige identidade protegida do provedor, funcionamento dos
+consumidores e evidência da revogação. Use `test-provider` e o runbook de rotação.
 
 `generate` produz **ASCII por construção** — `base64url` de `bytes` bytes de entropia, não
 bytes crus. Não é estética: um valor binário em `Authorization: Bearer <valor>` faz o `fetch`
@@ -62,12 +63,12 @@ do base64 comum são tratados como separador por alguns campos de console.
 ## CLI
 
 ```bash
-sidecar generate vercel_token --bytes=32
+sidecar generate segredo_aplicacao --bytes=32 # apenas segredos definidos pela aplicação; API keys são emitidas no provedor
 sidecar capture vercel_token            # depois de clicar "copiar" no console
 sidecar copy-out vercel_token --ttl-ms=30000
 sidecar clear
-sidecar test vercel_token --kind=http --target=https://api.vercel.com/v2/user
-sidecar denylist vercel_token <sha256_old> <sha256_new>
+sidecar test-provider vercel_token --provider=vercel --identity=<project_id>
+sidecar denylist vercel-antigo <sha256_old> <sha256_new>
 sidecar selftest
 sidecar verify
 ```
@@ -154,5 +155,20 @@ ASCII, nunca reais):
 - O transporte D-Bus implementa apenas `unix:path=` de sessão, e não negocia `SCM_RIGHTS`.
 - `inject_env_console` entrega a um host da allowlist; os adaptadores por provedor (o formato
   exato de cada console) são do Ciclo 15.
-- `denylist_update` prova que a aposentadoria foi **registrada**, não que o provedor
-  invalidou o valor antigo — isso é o que `test_endpoint` mede depois.
+- `denylist_update` prova que a aposentadoria foi **registrada**. A invalidação exige
+  evidência do provedor e uma sonda protegida; status bruto de `test_endpoint` não
+  demonstra revogação por si só.
+
+## C26: seis provedores e evidência de autenticação
+
+O catálogo `ROTATION_PROVIDERS` contém Neon, Vercel, Sonar, Context7, DeepSeek e
+GitHub. `test-provider <ref> --provider=<nome> --identity=<metadado>` usa somente
+endpoint HTTPS fixo, recusa redirects e não persiste/devolve corpo. Compara resposta
+anônima/protegida, preserva rawstatus e distingue identidade autenticada, rejeição e
+NO-VERDICT. HTTP403 ou HTTP200 público não fecha revogação.
+
+As identidades Context7/DeepSeek ainda não têm contrato validado no probe e retornam
+NO-VERDICT. Nenhuma emissão arbitrária de token API é feita por generate. Entrada,
+submissão e revogação no console continuam humanas ViaA. Cinco cenários reais nos
+dois backends são pré-condição; detecção do clipboard/cofre não prova o circuito.
+Procedimento atual: docs/runbooks/secret-rotation-blind.md.

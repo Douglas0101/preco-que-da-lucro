@@ -1,0 +1,6 @@
+PASS        generate-e-restore: 5 refs gerados, recuperados pelo hash e distintos entre si
+PASS        area-de-transferencia: captura conferida, limpeza provada vazia e saida cega identica (71 bytes)
+PASS        fail-closed-no-cofre: 6 operacoes abortadas e nenhum ref gravado
+PASS        sonda-401-200-e-denylist: 401 do valor antigo e 200 do novo em 127.0.0.1:39945; par gravado e divergencia recusada
+PASS        audit-sem-valor: 2 arquivo(s) varridos, 5 valores ausentes e 5 hashes presentes
+{"comando":"selftest","outcome":"pass","cenarios":5}

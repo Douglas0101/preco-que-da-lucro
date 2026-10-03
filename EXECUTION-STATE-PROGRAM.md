@@ -3420,3 +3420,75 @@ not allowed to access data from non main branches`. Ou seja, a análise existiri
   `1c3a10c` e o commit deste bloco.
 
 Latest state marker parent = `1c3a10c36023d82c06b1245a39fce7df8dc3df42`,
+
+## Bloco aditivo — Ciclo 24: base e reconciliação do registry (2026-10-01)
+
+D0 Opção A ratificada pelo MAESTRO; execução remota pendente. Base da bancada: back-merge local de main no commit `de82dc99941fe8fa4c5d3617716581f321b3c6be`, sem rewrite de histórico. `npm run check` PASS em 0.31.10; árvore original 0.18.1 preservada em custódia.
+
+DBT-62 FECHADA com descoberta real de 7 workflows e negativos por identidade; DBT-61 permanece ABERTA porque detector não satisfaz a closure legada de branch não-main acessível. ERRATA: registry 50, não 49; cota Actions desbloqueada por run real, Sonar main ERROR (63,2 < 80). Prova: `docs/evidence/ciclo-24/README.md`. Nenhuma promoção do placar.
+
+Latest state marker parent = `de82dc99941fe8fa4c5d3617716581f321b3c6be`,
+
+## Bloco aditivo — Ciclo 25: base e ERRATAs de imposição (2026-10-01)
+
+D0 A ratificada pelo prompt. Base herdada f7c4b9a, check completo PASS nesta sessão (117 suítes, 1411 passed, 14 skipped); WIP original preservado. Publicação do handoff e deste lote depende do gate pré-push. Main d4b9395 está congelada com ruleset 24333849, update ativo e bypass vazio.
+
+ERRATA: a janela não estava expirada no boot; teto 2026-10-02T02:59:59Z. Cache Playwright já existente/hit; log de dependências APT refuta o fix proposto V1. V suspensa. Espelho de delta por arquivo admite falso positivo no controle em memória e o thaw condicionado ao gate pós-merge forma ciclo. E/80 não iniciadas e nenhuma dívida promovida por hipótese.
+
+DBT-61 reenquadrada main/PR, ainda ABERTA por ausência verificável de suporte PR no CLI; legenda do placar no registry. DBT-57 exige cobertura, piso de denominador e unidades pagas contra baseline. Evidência: docs/evidence/ciclo-25/README.md.
+
+Latest state marker parent = `f7c4b9a8bedb3fe49ed4d5a774559156087d66a0`,
+
+## Bloco aditivo — Ciclo 26: publicação condicionada e custódia (2026-10-02)
+
+Plano de recuperação autorizado pelo MAESTRO: publicação manual em Vercel e Hostinger,
+rotação das seis credenciais antes da release, PITR gerenciado de sete dias com contratação
+humana e suspensão da integração Git Vercel. O limite é 13 novos commits, incluindo merge de
+release e back-merge; não se reutiliza a cota 13/13 do Ciclo 25.
+
+Checkpoint operacional C25 validado 13/13 e preservado byte a byte em custódia externa
+antes de editar seus sucessores. Main permanece d4b9395; update freeze e bypass vazio.
+Conexão Git do projeto Vercel conhecido removida e Hostinger automático desativado,
+com observação imediata L404/L406. Destino adicional Vercel permanece não reconciliado.
+
+ERRATA C26-E1: BETTER_AUTH_URL e AUTH_TRUSTED_ORIGINS existem na segunda página de
+variáveis Hostinger; a tentativa de adição foi cancelada sem salvar. Valores e aplicação
+ao processo não foram verificados. Troca de DATABASE_URL requer entrada humana/Via A;
+ready503 e sessão500 anteriores continuam bloqueadores, sem nova release presumida.
+
+Evidência: docs/evidence/ciclo-26/; custódia externa indicada em PROGRESS.md.
+Nenhum incremento no placar, closure de cobertura, thaw, merge ou deploy.
+
+Latest state marker parent = `24b8e42adad1d9da2232e009c5c6a158d70dd21f`,
+
+## Bloco aditivo — Ciclo 27: Hostinger principal e recuperação independente (2026-10-02)
+
+O MAESTRO autorizou implementar o plano e fazer merge em main após resolver as
+operações. Hostinger é o destino principal de diretrizprecifica.com; Vercel recebe
+a mesma publicação manual aprovada. Backup independente: S3 em conta segregada,
+criptografado e Object Lock por35dias; contratação/credenciais seguem humanas.
+
+Novo teto13commits, com três reservados para release/back-merge/fechamento. C26
+encerrou13/13 sem promover main; seu último journal e DBT79LOCAL são reconciliados
+neste marco. ViaA e a janela humana30min continuam; todos os gates atuais devem
+passar antes de remover somente update, mergecommit e refreeze imediato.
+
+Bridge E8 continua escalada até nova evidência unitária primária. PITR6h, seis
+rotações não verificadas, Hostinger503 e domínioHTML são bloqueadores medidos.
+RPO15min/RTO4h e sete diasPITR exigem provas; backup diário não prova RPO15min.
+Evidência de execução: .codex/artifacts/ciclo-27/; WIP preservado.
+
+Latest state marker parent = `e589d51dc8b73ea24ac6a35106f62723e5b74927`,
+
+## Bloco aditivo — Ciclo 28: correções pendentes e gates de release (2026-10-03)
+
+Plano detalhado autorizado para implementação. C27 permanece 11/13 com duas reservas;
+C28 abre teto13, dez engenharia e três reservados. Custódia principal e parser staged
+preservadas; os journals divergentes são reconciliados por namespace em custódia externa.
+
+Nenhum resultado local substitui CI, mapeamento autenticado, runtime ou recuperação.
+Release/main continuam condicionados aos gates e à janela humana30min, com Via A
+para credenciais e confirmação na ação de alteração de proteção.
+Evidência: docs/evidence/ciclo-28/SPEC.md; PROGRESS L580 em diante.
+
+Latest state marker parent = `66898f0d738717ecbf52cda1384017a0cc23e859`,

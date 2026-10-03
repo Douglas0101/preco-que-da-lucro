@@ -8,6 +8,9 @@ export default defineConfig({
     },
   },
   test: {
+    // Local fork/jsdom workers have crashed without test failures on this bench.
+    // Serial files are the measured mitigation; CI keeps its existing parallelism.
+    fileParallelism: process.env.CI === "true" || process.env.CI === "1",
     environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./src/test/setup.ts"],

@@ -1,150 +1,95 @@
-# Runbook — rotação cega de credenciais (Ciclo 15)
+# Runbook — rotação cega das seis credenciais (Ciclo 26)
 
-Este runbook é o procedimento de **rotação das quatro credenciais** (`Keys.txt`: Neon, Vercel,
-GitHub PAT, Sonar) de modo que **nenhum valor de segredo entre no contexto de um agente** — nem
-em trace, nem em screenshot, nem em log. O mecanismo é o sidecar do **ADR-031**; a dívida que
-ele fecha é a **DBT-36**.
+DBT-36 abrange **Neon API, Vercel API, Sonar, Context7, DeepSeek e GitHub PAT**.
+Via A (ADR-031): valores ficam no cofre/clipboard do operador; o agente recebe apenas
+refs, hashes, status bruto e identidade conferida. A rotação precisa terminar antes
+da release. GitHub PAT é o último, para manter o canal de engenharia disponível.
 
-## Por que isto existe
+## Pré-condições
 
-A rotação normal exige _ver_ o valor para digitá-lo. Um agente que leu a credencial para
-digitá-la já a leu: o valor passa pela tela, pelo screenshot e pela janela de contexto. Os
-Ciclos 10–13 recusaram a rotação justamente por isso. O sidecar inverte a direção: o valor vive
-no chaveiro do SO e na área de transferência, e o que o agente vê é **`ref` e `sha256`**.
-
-## Pré-condições (todas verificáveis, nenhuma presumida)
-
-```bash
-# 1. Tripwire do repositório
-git status --porcelain          # tem de estar vazio
-npm run m02:lockfile-guard      # tem de sair 0
-
-# 2. O lançador existe e é executável
-test -x ~/.mcp-runtime/secret-sidecar/bin/sidecar || exit 1
-
-# 3. O mecanismo está verde com fictícios ANTES de tocar em qualquer valor real
-~/.mcp-runtime/secret-sidecar/bin/sidecar selftest --backend=cofre
-
-# 4. O cofre está vazio (nenhum ref de trabalho pendente)
-~/.mcp-runtime/secret-sidecar/bin/sidecar list --backend=cofre
-```
-
-O passo 3 é obrigatório e não é cerimônia: se o autoteste falhar, o sidecar **não** é um canal
-confiável para um valor real, e a rotação para aqui. **Se a pré-condição falhar, o produto da
-rotação seria um valor que ninguém pode afirmar ter sido guardado.**
-
-O passo 4 evita que um ref de uma sessão anterior seja sobrescrito por engano.
-
-## Procedimento (por credencial, uma de cada vez)
-
-A ordem importa: **o valor novo é estabelecido antes de o antigo ser aposentado.** Rotacionar
-sem ter o novo funcionando é tirar a chave antes de ter a outra.
-
-### 1. Guardar o valor antigo no cofre (para poder sondá-lo depois)
-
-Copie o valor antigo de `Keys.txt` para a área de transferência **manualmente** e, em seguida:
+1. Registrar a revisão e o write-set; preservar WIP fora dele. Rodar `npm run check`.
+2. Executar os cinco cenários fictícios com os backends memória **e** Secret Service.
+   Ausência de clipboard/cofre é precondição `2`, nunca evidência verde.
+3. Enumerar refs já existentes; não sobrescrever ref operacional. Os fictícios não
+   são credenciais do provedor e não provam que qualquer chave real foi rotacionada.
+4. Mapear consumidores por **nome**: Actions/MCP/cofre/plataformas, identidade do
+   recurso, permissões atuais e nome/ID da chave no console. Não ampliar escopo.
 
 ```bash
-~/.mcp-runtime/secret-sidecar/bin/sidecar capture <credencial>-antigo
+npx tsx scripts/secret-sidecar/cli.ts selftest --backend=memoria --root=<bancada>
+npx tsx scripts/secret-sidecar/cli.ts selftest --backend=cofre --root=<bancada>
+npx tsx scripts/secret-sidecar/cli.ts list --backend=cofre
 ```
 
-O comando guarda no chaveiro, **limpa a área de transferência** e prova que ela ficou vazia.
-Imprime `{sha256, ref}` — nunca o valor.
+O autoteste preserva e restaura o clipboard em memória no `finally`. Nenhum valor
+real é argumento de linha de comando. A captura do console não passa por screenshot.
 
-### 2. Gerar o valor novo dentro do sidecar
+## Ordem por credencial
+
+1. O humano copia a credencial antiga para o clipboard e executa `capture <nome>-antigo`.
+2. O humano **emite uma nova chave no provedor**, com permissões/consumidores iguais.
+   `generate` serve para segredos que a aplicação aceita definir; não fabrica tokens
+   API de Neon/Vercel/GitHub/Sonar/Context7/DeepSeek. Capturar a chave emitida em
+   `capture <nome>-novo`, registrar hashes distintos e identidade da emissão.
+3. O humano atualiza cada consumidor através do console/cofre. Entrada, confirmação
+   e submissão de credenciais são humanas conforme a política de browser e Via A.
+4. Executar o consumidor aplicável com a nova chave e o probe protegido. Confirmar
+   recurso/identidade/escopo; somente então revogar a antiga no console do provedor.
+5. Registrar o ID/estado de revogação do provedor, testar a antiga novamente e
+   conservar o **status bruto**. Uma revogação sem prova fica pendente.
+6. Registrar denylist pelo ref **antigo existente** e remover esse ref do cofre.
 
 ```bash
-~/.mcp-runtime/secret-sidecar/bin/sidecar generate <credencial>-novo --bytes=32
+npx tsx scripts/secret-sidecar/cli.ts capture <nome>-antigo
+npx tsx scripts/secret-sidecar/cli.ts capture <nome>-novo
+npx tsx scripts/secret-sidecar/cli.ts test-provider <nome>-novo --provider=<provedor> --identity=<metadado-publico>
+# Depois de nova chave + consumidores observados, revogar no console humano.
+npx tsx scripts/secret-sidecar/cli.ts test-provider <nome>-antigo --provider=<provedor> --identity=<metadado-publico>
+npx tsx scripts/secret-sidecar/cli.ts denylist <nome>-antigo <sha256_old> <sha256_new>
+npx tsx scripts/secret-sidecar/cli.ts delete <nome>-antigo
+npx tsx scripts/secret-sidecar/cli.ts verify
 ```
 
-`--bytes` é **entropia**, não comprimento: a saída é `base64url` (ASCII), para que o valor
-atravesse um cabeçalho `Authorization: Bearer` e qualquer campo de console.
+## Probes e limites declarados
 
-### 3. Entregar o valor novo ao console do provedor
+O novo comando usa somente HTTPS em endpoints fixos, recusa redirects, lê o corpo
+somente transitoriamente e nunca o persiste/devolve. Ele compara uma chamada
+anônima com a autenticada. `0` exige identidade protegida conferida; `1` indica
+recusa de autenticação; `2` indica `NO-VERDICT`/precondição. Um `403` pode ser falta
+de permissão, e `200` de uma superfície pública não prova autenticação.
 
-```bash
-~/.mcp-runtime/secret-sidecar/bin/sidecar copy-out <credencial>-novo --ttl-ms=60000
-```
+| Provedor | Probe protegido                 | Identidade esperada / limite                                                                                         |
+| -------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Neon     | `/api/v2/projects/<project-id>` | ID exato do projeto                                                                                                  |
+| Vercel   | `/v9/projects/<prj-id>`         | ID opaco exato; repetir o consumidor para cada equipe aplicável                                                      |
+| Sonar    | `/api/user_tokens/search`       | Nome emitido presente no catálogo protegido do usuário; autenticação do token e consumidor Actions também observados |
+| Context7 | `/api/v2/policies`              | Contrato de identidade da conta/key ainda não medido: `NO-VERDICT`, mesmo com `200`                                  |
+| DeepSeek | `/user/balance`                 | Resposta não prova identidade da conta/key: `NO-VERDICT`; saldo nunca registrado                                     |
+| GitHub   | `/user`                         | Login esperado e exercício dos escopos reais do consumidor; por último                                               |
 
-O valor vai para a área de transferência e é **limpo automaticamente** ao fim do TTL, com a
-limpeza verificada antes de o processo terminar. Cole no console do provedor dentro da janela.
+Os dois limites de identidade são bloqueadores nomeados de DBT-36. Antes da closure,
+medir um endpoint/atestado do emissor que vincule a chave ao owner/escopo e acrescentar
+a validação específica. Não adivinhar schema de resposta nem fabricar par `200/401`.
+O comando legado `test --kind=http|db` conserva status bruto e o autoteste local;
+ele sozinho **não** fecha rotação. Para banco, `28P01/28000` são recusas medidas,
+separadas dos códigos de transporte, catálogo ausente e autorização.
 
-> **Ponto de toque humano (ATTEST):** se o provedor pedir 2FA, **um toque** do operador. O
-> agente não contorna 2FA em nenhuma hipótese — é o item 2 do §7 do brief.
+Fontes: [Context7 API e políticas](https://context7.com/docs/api-guide),
+[DeepSeek balance](https://api-docs.deepseek.com/api/get-user-balance),
+[Web API Sonar](https://docs.sonarsource.com/sonarqube-cloud/advanced-setup/web-api).
 
-### 4. Verificar que o valor novo autentica e o antigo não
+## Closure, rollback e custódia
 
-```bash
-~/.mcp-runtime/secret-sidecar/bin/sidecar test <credencial>-novo --kind=http --target=<endpoint>
-~/.mcp-runtime/secret-sidecar/bin/sidecar test <credencial>-antigo --kind=http --target=<endpoint>
-```
+Fechar DBT-36 exige os fictícios verdes nos dois backends e, para **cada uma das seis**:
+identidade/escopo do emissor, nova chave autenticada, consumidores atualizados,
+revogação da antiga comprovada no provedor e probe, hashes/denylist e remoção do
+ref antigo. Ausência de um item mantém a dívida `EM_TRATAMENTO`.
 
-Esperado: **`200` no novo e `401` no antigo**. É este par que o closure test da DBT-36 exige.
-Para uma credencial de banco use `--kind=db --target='postgres://usuario:{secret}@host/db'` — o
-`{secret}` é substituído no processo, e a sonda mapeia `28P01`/`28000` para `401`.
+Se a nova falhar antes da revogação, conservar a antiga e corrigir/reemitir a nova
+com o humano. Depois da revogação, recuperação exige chave emitida válida; devolver
+a antiga ao consumidor não restaura uma chave revogada. Falha de limpeza do
+clipboard interrompe a sequência e exige limpeza humana.
 
-Se o novo **não** autenticar (não-200), **pare e reverta no console do provedor**: o valor novo
-não foi aceito e o antigo ainda pode estar ativo. Não prossiga para o passo 5.
-
-### 5. Aposentar o valor antigo na denylist
-
-```bash
-~/.mcp-runtime/secret-sidecar/bin/sidecar denylist <credencial> <sha256_old> <sha256_new>
-```
-
-Os dois hashes vêm das saídas dos passos 1 e 2. O comando **recusa** se `sha256_old` divergir do
-hash atual do cofre — a denylist não registra rotação que não ocorreu.
-
-### 6. Remover o valor antigo do cofre
-
-```bash
-~/.mcp-runtime/secret-sidecar/bin/sidecar delete <credencial>-antigo
-```
-
-## Verificação (pós-condições)
-
-```bash
-# O audit não contém valor nenhum, e nenhuma linha está malformada
-~/.mcp-runtime/secret-sidecar/bin/sidecar verify
-
-# O cofre só contém os refs novos
-~/.mcp-runtime/secret-sidecar/bin/sidecar list --backend=cofre
-
-# O tripwire continua limpo: a rotação não tocou no repositório
-git status --porcelain
-```
-
-E a varredura de segredo do próprio repositório:
-
-```bash
-npm run m02:secrets-audit
-```
-
-**Critério de fechamento da DBT-36:** o sidecar verde com fictícios **e** `test_endpoint`
-devolvendo `200` no valor novo e `401` no antigo, contra os endpoints reais, para as quatro
-credenciais.
-
-## Rollback
-
-- **Valor novo recusado pelo provedor** → reverter no console do provedor (o antigo continua
-  válido) e `delete <credencial>-novo` do cofre. Nada foi aposentado.
-- **Falha depois de o valor novo estar ativo** → `restore_from_keychain` devolve o `sha256`
-  para conferir qual valor está no cofre; o valor em si se recupera no console do provedor, não
-  pelo sidecar.
-- **A limpeza da área de transferência falhar** → o erro nomeia as duas metades (`valor
-guardado, mas a area de transferencia nao foi limpa`); limpe manualmente e **não** trate como
-  concluído.
-
-## Proibições
-
-1. **Nunca** passar um valor de segredo como argumento da CLI. Não existe `put` por desenho: um
-   argumento aparece em `ps`, no histórico do shell e no journal do systemd.
-2. **Nunca** registrar o valor em trace, log, commit ou comentário. O audit aceita apenas
-   `string | number` em `detail`, e `auditRecord()` é a única porta.
-3. **Nunca** copiar da área de transferência para lugar nenhum além de `capture`. O caminho é
-   `capture → cofre → copy-out → console`.
-4. **Nunca** contornar 2FA nem interagir com console de credencial além do necessário para
-   colar o valor novo. O 2FA é um toque humano.
-5. **Nunca** usar valor real no `--selftest`. O autoteste opera com
-   `FICTICIO-NAO-E-SEGREDO-` e falha se achar um valor em claro — usar um real ali poluiria o
-   chaveiro e a própria busca.
+Nunca enviar valores em chat, argv, logs, commit, screenshot, conexão URL ou corpo
+do relatório. Rodar `npm run m02:secrets-audit`, conferir audit/ref list e registrar
+cada intenção/resultado no journal com nomes e hashes, preservando WIP e selos anteriores.

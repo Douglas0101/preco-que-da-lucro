@@ -35,6 +35,7 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 import { gitSync } from "./git-exec";
+import { auditDependencyFamilies } from "./dependency-family-guard";
 
 /** Criticidades aceitas pela política. Fora deste conjunto, a entrada é inválida. */
 export const CRITICALIDADES = ["critical", "high", "medium"] as const;
@@ -660,7 +661,16 @@ export function runCli(cwd: string = process.cwd()): 0 | 1 | 2 {
       approvals: coletarAprovacoes(path.join(root, approvalDirOf(policy))),
     };
     const final = runAudit(input);
-    const reasons = final.findings.filter(isBlockingFinding);
+    const familyFindings = auditDependencyFamilies(lock, input.specs);
+    final.checks.push({
+      id: "dependency-families",
+      status: familyFindings.length === 0 ? "pass" : "fail",
+      detail:
+        familyFindings.length === 0
+          ? "pares resolvidos React e contratos compartilhados TanStack conferidos"
+          : familyFindings.join(" | "),
+    });
+    const reasons = [...final.findings.filter(isBlockingFinding), ...familyFindings];
     const informative = final.findings.filter((achado) => !isBlockingFinding(achado));
     const observed = {
       policySchema: asRecord(policy)?.schema ?? null,

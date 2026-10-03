@@ -1,0 +1,4 @@
+Vercel owner team: douglas-dias-de-souzas-projects (USER-REPORTED).
+Current session: team not listed; project returns 404 (REMOTE-OBSERVED).
+AWS: IAM sign-in required; account, bucket, custody region and approved cost remain UNVERIFIED.
+No login credential, cookie, token, OAuth query or private contact persisted.

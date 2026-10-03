@@ -328,11 +328,26 @@ export function auditWorkflowDiscovery(input: WorkflowDiscoveryInput): string[] 
  * workflow verde 8/8 com 0 % silencioso — `DBT-57` renascendo), e a atribuição de
  * PR existe porque sem ela a análise da PR é gravada como `main` (`DBT-61`).
  */
+/** Executable run body of a named Sonar step; comments and other steps do not satisfy a guard. */
+export function sonarStepRun(yaml: string, name: string): string | null {
+  const lines = yaml.split("\n");
+  const start = lines.findIndex((line) => line.trim() === `- name: ${name}`);
+  if (start < 0) return null;
+  let end = start + 1;
+  while (end < lines.length && !/^ {6}- /.test(lines[end]!)) end += 1;
+  const step = lines.slice(start + 1, end);
+  const run = step.findIndex((line) => /^ {8}run: \|\s*$/.test(line));
+  if (run < 0) return null;
+  return step
+    .slice(run + 1)
+    .map((line) => line.replace(/^ {10}/, ""))
+    .join("\n");
+}
+
 export function auditSonarPipeline(yaml: string): string[] {
   const findings: string[] = [];
   const claims: Array<[string, RegExp]> = [
     ["roda a suíte com cobertura", /npm run test:coverage/],
-    ["recusa lcov ausente ou vazio", /coverage\/lcov\.info/],
     ["envia o relatório ao scanner", /sonar\.javascript\.lcov\.reportPaths=coverage\/lcov\.info/],
     ["observa que o sensor de cobertura rodou", /Sensor JavaScript\/TypeScript Coverage/],
     ["atribui a análise a pull request", /sonar\.pullrequest\.key/],
@@ -340,5 +355,52 @@ export function auditSonarPipeline(yaml: string): string[] {
   for (const [claim, padrao] of claims) {
     if (!padrao.test(yaml)) findings.push(`sonar.yml sem a claim: ${claim}`);
   }
+  const lcovGuard = sonarStepRun(yaml, "Conferir o relatório antes de enviar");
+  if (
+    lcovGuard === null ||
+    !/if\s+\[\s+!\s+-s\s+coverage\/lcov\.info\s+\];\s*then[\s\S]*?\bexit\s+1\b[\s\S]*?\bfi\b/.test(
+      lcovGuard,
+    )
+  ) {
+    findings.push("sonar.yml sem a claim: recusa lcov ausente ou vazio");
+  }
+  const scanner = sonarStepRun(yaml, "sonar-scanner");
+  if (scanner === null || !/^\s*-Dsonar\.qualitygate\.wait=true\s+\\\s*$/m.test(scanner)) {
+    findings.push("sonar.yml sem a claim: espera o veredito do Quality Gate");
+  }
+  const step = (name: string) => {
+    const lines = yaml.split("\n");
+    const index = lines.findIndex((line) => line.trim() === `- name: ${name}`);
+    let end = index + 1;
+    while (end < lines.length && !/^ {6}- /.test(lines[end]!)) end++;
+    return { index, text: index < 0 ? "" : lines.slice(index, end).join("\n") };
+  };
+  const before = step("Medir baseline main (M2, leitura por SHA)");
+  const scan = step("sonar-scanner");
+  const ce = step("Nomear veredito do CE desta análise (sem token no log)");
+  const after = step("Medir main somente após a análise do push");
+  if (
+    before.index < 0 ||
+    before.index >= scan.index ||
+    !/^ {8}if: github\.event_name == 'pull_request'\s*$/m.test(before.text) ||
+    !/run: node scripts\/sonar\/main-baseline\.mjs/.test(before.text)
+  )
+    findings.push("sonar.yml: baseline anterior ao scanner deve ser exclusiva de PR");
+  if (
+    after.index < 0 ||
+    ce.index <= scan.index ||
+    after.index <= ce.index ||
+    !/^ {8}if: always\(\) && github\.ref == 'refs\/heads\/main' && github\.event_name != 'pull_request'\s*$/m.test(
+      after.text,
+    ) ||
+    !/run: node scripts\/sonar\/main-baseline\.mjs/.test(after.text)
+  )
+    findings.push("sonar.yml: push main exige scanner, CE e baseline posterior nesta ordem");
+  if (
+    !/sonar\.scm\.revision=\$\(git rev-parse HEAD\)/.test(scan.text) ||
+    !/EXPECTED_PR:/.test(ce.text) ||
+    !/EXPECTED_BRANCH:/.test(ce.text)
+  )
+    findings.push("sonar.yml: CE deve conferir revisão do provider e superfície esperada");
   return findings;
 }
