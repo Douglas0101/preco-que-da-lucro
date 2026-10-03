@@ -93,6 +93,11 @@
 - Previews build per branch/PR; production deploys only from `main`.
 - **Ciclo 26 — publication is manual and conditional:** the authorized plan suspends the Vercel Git connection and Hostinger automatic deployment. The known Vercel project is disconnected and Hostinger auto-deployment is disabled (journal L404/L406). Before any release, reconcile every additional Vercel destination; an inaccessible team is an unresolved publication receiver. Publish the exact approved `main` SHA to both targets only after its real Compute Engine gate, denominator floor, paid coverage units and applicable runtime checks pass. A Git merge is not a database merge or permission to deploy. Preview deployment is also manual during the suspension. Credentials are entered and submitted by the human operator under Via A; never copy their values into the agent context.
 
+## Independent recovery
+
+- ADR-040 extends ADR-039 with five-minute encrypted snapshots plus a daily UTC anchor, on a segregated AWS VM. Preparation is authorized; timer activation requires the current complete external restore qualification, measured cycle <300s, RPO<=15min/RTO<=4h, and custody independent of Neon/the primary account. Local fixtures do not authorize activation.
+- Both dump and encrypted full inventory must have verified S3 versions/checksums/Compliance>=35days before a durable receipt advances. Use snapshotAt for age: WARN>=600s, INCIDENT>900s; missing state/clock rollback is unknown. No overlap, automatic upload retry, or queue; preserve uncertain attempts for reconciliation. The existing production test denylist remains absolute.
+
 ## Decisions and evidence
 
 - Architectural changes require a new ADR in `docs/adr/`, following the `ADR-0XX-kebab.md` sequence (latest: ADR-029, **proposta/draft** — implementação já mergeada (migration 0013 + CAS + lock ordering) com ratificação pendente em **H-8**; último ratificado: **ADR-026**. ADR-027 e ADR-028 também seguem `PROPOSTA`). Read the relevant ADRs before touching an architected area.

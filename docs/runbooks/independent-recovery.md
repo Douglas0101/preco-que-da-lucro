@@ -91,6 +91,43 @@ dump+upload+restore completos e alertar backup ausente. Repetir teste de perda d
 conta principal/chave recuperada sem dependência dela. Sem agendamento ou drill
 observado, registrar NOT-STARTED/BLOCKED, não DONE.
 
+## Executor frequente — preparação ADR-040
+
+O plano de 2026-10-03 adiciona snapshots de cinco minutos ao diário. A VM deve
+estar na conta AWS segregada e região do bucket, com Ubuntu24.04 x86, disco
+cifrado, um executor e Session Manager sem inbound SSH. t3.small é capacidade
+inicial sujeita a custo aprovado e benchmark; não há VM ou bucket identificado
+nesta sessão. Não usar object storage interno do Neon como recuperação independente.
+
+A implementação C08 será executada somente após qualificação externa atual.
+Não instalar timer a partir do ensaio sintético abaixo. Exigir Node24, AWS CLIv2
+oficial e clientes PG17 com versões capturadas. O ciclo usa conexão direta,
+papel nominal de backup, PGPASSFILE privado e TLS verify-full; env/recibos só
+carregam nomes e identidades. DATABASE_ADMIN_URL permanece fora do processo web.
+
+Antes da qualificação, executar a cadeia manual ADR-039 e recuperar as versões
+registradas; comparar também schemas Auth/ledger e roles/memberships sem passwords.
+O comparador public/drizzle não satisfaz descoberta completa. Medir o ciclo
+até ambos os uploads verificados <300s, impacto/egress/custo de 288 snapshots/dia,
+RPO<=15min e RTO<=4h em cada cenário, incluindo perda da conta principal e login.
+A chave precisa de custódia própria recuperável e a conta não depende do Neon.
+
+O timer preparado não será habilitado automaticamente. Kalender de cinco minutos,
+oneshot e lock exclusivo recusam overlap; Persistent=false não acumula eventos
+perdidos. Diretório/recibos são privados, append-only e exclusivos por backupId.
+Upload incerto preserva INTENT/versão, exige reconciliação, nunca retry cego.
+O primeiro par durável de cada data UTC ancora também o diário de35dias.
+
+Alertar pela idade do snapshot recuperável, não pela idade do job: WARN>=600s,
+INCIDENT>900s. Sem recibo durável ou com clock rollback, UNKNOWN/BLOCKED. Ao
+registrar incidente, manter sua disposição mesmo após um snapshot saudável.
+Um monitor independente deve observar falha de timer/VM; não depender do executor
+que deixou de funcionar para anunciar sua própria ausência.
+
+PITR7d foi solicitado autonomamente em2026-10-03. A API recusou HTTP400:
+requested604800/max21600. A retenção continua seis horas; plano permitido e custo
+são precondições. A configuração nova, quando possível, não cria histórico retroativo.
+
 ## Ensaio local medido C27
 
 Custódia privada em .codex/artifacts/ciclo-27/local-recovery-qualified/result.json.
