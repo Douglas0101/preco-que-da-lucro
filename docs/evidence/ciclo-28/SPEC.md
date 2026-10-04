@@ -73,3 +73,19 @@ custódia original íntegra e manifest estrito. DoD externo: CI/CE/mapping/matri
 runtime/rotações/recuperação e S6 independentes. Rollback por commit novo em develop;
 WIP e receipts conservados. Não creditar coverage main sem LCOV/provider unitário
 original e selos de revisão/fonte/instrumentação/período.
+
+### Retomada do lote 2 (2026-10-04)
+
+Pagamento local test-only de tool-runner com registry/schema públicos reais,
+INV-014/§14.3 e idempotência §14.4/INV-009 separadas. Reparo da verificação E2E
+DBT-63 por prontidão/sessão/UI/URL observáveis e negativo que suprime endereço,
+sem aumento de timeout/retry. Claims locais/CI/main permanecem separadas.
+Write-set adicional: src/test/tool-runner.validation.test.ts, e2e/helpers/authentication.ts,
+e2e/authentication-gate.spec.ts, e2e/ui-stack.spec.ts, e2e/sales-dashboard.spec.ts,
+registry/journal e recibos ciclo-28. Nenhuma fonte de aplicação, dependência,
+bootstrap, proteção, deploy ou main entra no write-set. DBT-83 é defeito
+preexistente declarado com PG17 real/rollback; este lote não o remedia.
+
+Catálogos derivados necessários ao novo teste: docs/specs/M-02/matrix.generated.yaml
+e docs/specs/M-02/matrix.yaml, gerados pela ferramenta canônica e revisados
+sem exceção de descoberta.

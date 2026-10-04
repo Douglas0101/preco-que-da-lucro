@@ -218,3 +218,69 @@ NOT-STARTED. O inventário nominal N1 agora mostra somente production/develop
 em `captures/payment-neon-inventory.txt`; isso não prova prevenção de recriação
 ou os bytes da operação DELETE relatada por outra lane. L625–L633 são handoffs históricos preservados nesta fase;
 observações do operador fora desta lane não recebem verificação remota implícita.
+
+## 10. Lote 2 — validação runtime das tools e sincronização da autenticação
+
+Base reconciliada `8881a2f4a3ec2e510b1c66f2824ec7651db2988d`, com os testes
+de budget-ledger já publicados. O push UI passou, mas UI PR37174318956 e
+Neon37174318949 tiveram75PASS/1FAIL no mesmo teste de autenticação, em mobile e
+chromium respectivamente. Sonar37174318899 teve scan SUCCESS e mirror
+NO-VERDICT exit2. Esses runs não são checks do reparo atual. A limpeza Neon
+atesta GET404 da identidade br-restless-unit-aya6lx8y; o inventário N1 atualizado
+mostrou nominalmente production(default) e develop, sem a branch do run.
+
+A nova suíte tool-runner usa runner, registry e schemas reais para as dez tools:
+INV-014/§14.3 do Plano Mestre. Os negativos verificam o código e os efeitos,
+com ausência de admissão/claim/executor quando a validação recusa o payload.
+Idempotência/replay/retry são medidos separadamente sob §14.4/INV-009. Defaults
+da fake são vazios; rotas SQL e writes usam identidade de tabela, não sucesso
+universal. A revisão alvo independente passou78/78 no hash final. O delta de
+cobertura é local; o alvo humano de55 unidades elegíveis não é crédito main.
+Medição integral e hashes estão em captures/tool-validation-coverage.txt e
+captures/tool-validation-source-hashes.txt.
+
+A revisão limitada corrigiu a fixture de expiração: o positivo é uma claim
+pending semeada sem execução anterior, sem inferir persistência após crash. O
+negativo respeita UNIQUE por tenant/user/tool/key e os controles variam cada
+coluna; chave NULL é distinta. O defeito preexistente DBT-83 fica ABERTA: uma
+claim expirada com execução anterior colide no novo INSERT, antes do try do
+runner. O probe PG17.11 real reproduziu23505 com a constraint exata, preservou
+a execução anterior, não criou produto sentinela/auditoria de sucesso e desfez
+todo seed por rollback, verificando ausência das identidades próprias. Fonte e
+schema não foram alterados para pagar cobertura. Parecer e probe sanitizado em
+captures/tool-validation-reviews.txt e captures/tool-validation-probe.txt.
+
+O helper E2E espera o GET de sessão iniciado pelo documento novo depois da
+navegação do frame principal. O efeito real de Auth ocorre após React anexar os
+handlers; uma resposta antiga não estabelece prontidão. Depois do POST200,
+o gate verifica sessão real pela identidade submetida, heading privado e URL
+por asserção de estado. O negativo preserva login/sessão/renderização e suprime
+somente a atualização de endereço para/inicio; exige a rejeição específica da
+URL. Foram20PASS em cinco repetições chromium/mobile, com timeout5s preservado.
+A reprodução de submit nativo antes da hidratação mostrou zero chamadas de
+sign-in e retorno para/auth; é suporte local à hipótese, sem atribuir causa
+exclusiva aos runs anteriores cujo trace não foi recuperado.
+
+O primeiro ensaio repetido consumiu os mesmos buckets e recebeu429; a quota
+real5/minuto não foi alterada. Os IPs do negativo são próprios e distintos.
+Vendas agora usa uma faixa determinística separada, com três sign-ins/projeto,
+sem sorteio que possa colidir com UI/setup. Os dois helpers antigos também
+pararam de colocar corpo autenticado em mensagens de assert. DBT-63/84/85
+ficam EM_TRATAMENTO até matriz remota atual. A matriz local teve61PASS e19FAIL
+no setup de page do WebKit, antes de qualquer ação da aplicação; o probe sem
+app também falhou em newPage, exit2. Esse limite de ambiente não autoriza
+pular WebKit: a matriz CI completa do novo SHA é obrigatória. Recibos em
+captures/auth-gate-local.txt e captures/auth-gate-reviews.txt.
+
+O registry guard detectou que os três novos registros estavam fora da tabela
+canônica; foram movidos para dentro, mantendo conteúdo e guardas. A primeira
+cadeia DB recusou rollback de issuer porque a bancada já tinha fixtures de
+contas; a reexecução usa outro PG17tmpfs novo, sem essas fixtures. Os resultados
+finais da cobertura, cadeia DB e check integral estão em
+captures/tool-validation-local-gate.txt. npm audit atual retornou total0; DBT-39
+é registro histórico aberto, não um aviso moderate observado neste candidato.
+
+Os dois reviews são limitados e não substituem S6 integral, que segue
+NOTSTARTED. O milestone de engenharia usa o sexto commit de C28, total6/13,
+com reservas de promoção/back-merge preservadas. Main permanece congelada;
+bootstrap do mirror, Via A e decisões do MAESTRO continuam pendentes.

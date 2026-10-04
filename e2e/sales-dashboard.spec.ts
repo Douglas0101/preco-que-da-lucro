@@ -125,12 +125,19 @@ interface SalesSession {
   cookies: Parameters<BrowserContext["addCookies"]>[0][number][];
 }
 
-// O rate-limit do Better Auth (/sign-in/email: 5/min por IP+path) é a única
-// razão para escolher IPs aleatórios do bloco TEST-NET-2 reservado a testes:
-// cada login isolado ganha um bucket próprio, sem competir com os buckets por
-// project da suíte ui-stack (198.51.100.10-.14) nem com re-execuções locais.
-function signInBucketIp(): string {
-  return `198.51.100.${1 + Math.floor(Math.random() * 250)}`;
+// Dedicated TEST-NET-3 fixture buckets cannot randomly collide with the
+// ui-stack/global-setup/redirect-control TEST-NET-2 buckets. Three sales sign-ins
+// per project stay within the unchanged five-per-minute Better Auth rule.
+function signInBucketIp(projectName: string): string {
+  const ips: Record<string, string> = {
+    chromium: "203.0.113.1",
+    firefox: "203.0.113.2",
+    webkit: "203.0.113.3",
+    mobile: "203.0.113.4",
+  };
+  const ip = ips[projectName];
+  if (!ip) throw new Error("Sales fixture requires a documented project IP");
+  return ip;
 }
 
 const test = base.extend<{ salesSession: SalesSession }>({
@@ -146,14 +153,14 @@ const test = base.extend<{ salesSession: SalesSession }>({
         extraHTTPHeaders: {
           origin: baseURL,
           "sec-fetch-site": "same-origin",
-          "x-forwarded-for": signInBucketIp(),
+          "x-forwarded-for": signInBucketIp(testInfo.project.name),
         },
       });
       try {
         const response = await api.post("/api/auth/sign-in/email", {
           data: { email: tenant.email, password: tenant.password },
         });
-        expect(response.ok(), await response.text()).toBe(true);
+        expect(response.status(), "The sales fixture's Better Auth sign-in must succeed").toBe(200);
         await proceed({ tenant, cookies: (await api.storageState()).cookies });
       } finally {
         await api.dispose();

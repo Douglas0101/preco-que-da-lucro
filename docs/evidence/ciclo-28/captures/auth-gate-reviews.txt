@@ -1,0 +1,69 @@
+# Review limitado de DBT-63 — autenticação E2E
+
+Data da medição inicial: 2026-10-04 04:08:44 UTC. Atualizado após releitura dos deltas de ui-stack e vendas nesta mesma revisão.
+Checkout lido: `/tmp/pqd-develop`.
+HEAD observado: `8881a2f4a3ec2e510b1c66f2824ec7651db2988d`.
+
+**Veredito:** nenhuma falha nova bloqueante identificada no delta atual de autenticação. A corrida concreta encontrada na primeira versão do helper e os dois limites preexistentes do entorno foram corrigidos nos arquivos posteriormente relidos. Este parecer é leitura adversarial limitada de código; **S6 integral permanece NOTSTARTED** e DBT-63 não é promovida nem fechada por este artefato.
+
+## Escopo e autoridade
+
+Li `AGENTS.md`, somente a linha DBT-63 de `docs/evidence/agent-state/DEBTS.md`, os três arquivos E2E inicialmente indicados, mais o delta dirigido de `e2e/sales-dashboard.spec.ts`, `src/routes/auth.tsx`, `playwright.config.ts` e as regras/configuração de rate-limit do Better Auth. As leituras adicionais foram dirigidas por referências concretas: setup E2E, sign-ins de vendas, cliente e provider de sessão, layout autenticado e trechos dos pacotes instalados de Better Auth, Playwright e TanStack History. Não li SPEC/README/capturas privadas do autor, PROGRESS ou a narrativa de implementação. O parecer não usa memória histórica.
+
+O checkout está sujo: o delta E2E revisado não coincide com o HEAD. Por isso a identidade do review são os hashes do conteúdo atual dos três arquivos solicitados e do delta adicional de vendas, além do HEAD base. Não editei o checkout, código, journal, Git/index, banco ou provedor. Não executei `npm run check`, E2E, build, teste de banco ou chamadas externas. Minha única escrita é este parecer, com modo `0600`.
+
+A linha DBT-63 exige estado de sessão autenticada e URL, pelo menos cinco execuções positivas consecutivas, negativo que suprima redirecionamento, e preservação do timeout. Execuções comunicadas pelo autor não substituem medição independente neste review. O autor continua responsável pela evidência de execução e pelo circuito aplicável.
+
+## Identidade dos três arquivos revisados
+
+Comando executado nesta revisão: `sha256sum e2e/ui-stack.spec.ts e2e/helpers/authentication.ts e2e/authentication-gate.spec.ts`.
+
+| Arquivo | SHA-256 atual |
+| --- | --- |
+| `e2e/ui-stack.spec.ts` | `591eeb6bcb792358b80e2cd830165a663aa622f12131637e1b7f7b05eca7ad8f` |
+| `e2e/helpers/authentication.ts` | `20970d80ef817f0cfb9eb54b2b1a45d586fe14f0a1d0fa50927b4e6c49a1b78b` |
+| `e2e/authentication-gate.spec.ts` | `c124a7a9c5be12b83a0a110fb8cf1f270701cc7216f69b09d5ba58dd77c59260` |
+
+Hash adicional do delta de vendas posteriormente relido: `ab6ccef5a8aeb32e082b03ecde4929377afb0447aba5e8e784f5d648667cea77` para `e2e/sales-dashboard.spec.ts`. A primeira leitura de ui-stack tinha hash `160deec39b76ef848d50b05fcf3e507e2462041ce78733e6dedfb0330455dbc7`; o assert do helper antigo foi alterado entre as duas medições, conforme diff relido.
+
+`git diff --exit-code -- src/routes/auth.tsx src/server/auth/auth.server.ts src/server/auth/rate-limit-rules.server.ts playwright.config.ts` retornou `0`, sem diff. Portanto essas superfícies de aplicação, regra e configuração estavam iguais ao HEAD durante a leitura.
+
+## Avaliação do gate atual
+
+1. **Autenticação e identidade reais:** `authentication.ts:43-50` exige um POST de UI para `/api/auth/sign-in/email` com status `200`. Em `:52-66`, `page.request.get('/api/auth/get-session')` consulta o servidor; o assert exige sessão não nula e e-mail do usuário igual à identidade submetida. A implementação instalada de Playwright confirma que a API do BrowserContext lê e atualiza os mesmos cookies do contexto (`playwright-core/lib/coreBundle.js:26198-26239`). Não há mock de login, sessão ou corpo no positivo/negativo. A checagem prova a identidade da fixture nesta bancada; não mede autorização entre tenants nem produção.
+
+2. **Estado de UI e URL:** `authentication.ts:67` exige o heading `Olá! 👋`; em `:70-72`, o pathname tem de ser `/inicio`. Não há aprovação baseada apenas no HTTP de login ou na existência de cookie. O assert final de URL é síncrono após o marcador de UI.
+
+3. **Contrato de hidratação:** `src/routes/auth.tsx:121-129` faz a consulta de sessão no `useEffect`, após o commit de React que anexa os handlers do formulário. O helper atual acompanha `framenavigated` no frame principal para `/auth`, captura o Request GET posterior a esse evento e aceita somente a Response desse Request (`authentication.ts:11-35`). Os listeners são removidos no `finally` (`:36-39`). Isso resolve o caso concreto de uma resposta pendente do documento anterior. O contrato é razoável para o código atual de `/auth`; se o aplicativo retirar/mover essa consulta, o helper deverá ser revisto, pois essa é sua condição observável de prontidão.
+
+4. **Negativo não vacuoso:** `authentication-gate.spec.ts:22-29` intercepta somente `pushState`/`replaceState` cujo destino é `/inicio`. Preserva rede, credenciais, sessão e renderização. `:32-39` exige especificamente a rejeição `Authenticated navigation must end at /inicio`, a URL `/auth` e o heading autenticado visível. Um login rejeitado ou timeout do heading não satisfaz essa mensagem. O TanStack History instalado mantém uma localização lógica otimista antes de executar a History API (`@tanstack/history/src/index.ts:398-424`); isso explica por que a shell pode renderizar enquanto a atualização do endereço fica suprimida. O mutante exercita a falha de atualização de endereço após login, não uma substituição completa de `navigate` por no-op.
+
+5. **Timeout e gates:** a espera inicial e a resposta de sign-in continuam em `5_000` ms. O heading usa a espera de locator padrão; não há sleep fixo, retry de login ou ampliação de orçamento. O teste de controles acessíveis continua usando o helper no mesmo ramo `browserName === 'chromium'` (`ui-stack.spec.ts:111`, que também abrange o projeto mobile com Chromium). Configuração e regras de rate-limit não foram afrouxadas.
+
+6. **IPs e rate-limit do novo controle:** os IPs negativos `.21-.24` são distintos entre os quatro projetos e dos IPs fixos `.10-.14` usados pelo setup e projetos. O limite continua habilitado, armazenado em banco e em cinco sign-ins por 60 s (`auth.server.ts:87-97`; `rate-limit-rules.server.ts:5`). O Better Auth instalado usa `x-forwarded-for` e chave `IP|path` (`@better-auth/core/dist/utils/ip.mjs:194-238`; `better-auth/dist/api/rate-limiter/index.mjs:234-269`). A API `page.request` conserva os headers do BrowserContext, não o override da página: o GET de sessão do negativo permanece no IP do projeto, mas é outro bucket de endpoint; o POST da UI usa o IP negativo. Isso não consome sign-in do projeto pelo novo GET. O delta de vendas atual usa `203.0.113.1-.4`, explicitamente disjuntos dos IPs de setup/projetos/negativos, e contém três sign-ins por projeto em uma execução completa. As quotas continuam sendo estado compartilhado do banco: repetição de bancada exige estado inicial conhecido; este parecer não certifica quotas limpas entre execuções.
+
+7. **Mensagens do delta:** os novos asserts expõem apenas nomes de variáveis, status HTTP, booleano de identidade, heading e pathname. Não interpolam senha, cookie, token ou corpo de resposta. A leitura do corpo de sessão permanece em memória para produzir o booleano. O parecer não certifica redação dos traces/videos existentes no Playwright; esse armazenamento não foi alterado pelo patch.
+
+## Achado concreto corrigido durante o review
+
+**[P2] R1 — resposta da página anterior podia estabelecer prontidão da nova página.** A primeira versão (`authentication.ts:11-18`, SHA-256 `d20e70f544c00b24dafb1e4948dd60545757a7b79f4feb62d023020ccd1843ad`) aceitava qualquer Response GET com pathname `/api/auth/get-session`, antes de `page.goto('/auth')`. O caller de controles acessíveis já vinha de `/auth`, e o próprio Auth emite esse GET. Portanto o filtro não distinguia uma resposta antiga ainda pendente de uma consulta iniciada após a nova navegação. Isso poderia liberar a interação com o novo HTML antes dos handlers estarem anexados.
+
+Correção solicitada: vincular a prontidão ao request iniciado após a navegação do frame principal e comparar a identidade da resposta, sem aumentar timeout ou tocar no app. A versão atual relida faz essa atribuição em `:11-35` e remove os listeners em `:36-39`. **Estado: corrigido por inspeção de código; execução da versão final cabe ao autor.** A medida inicial e final dos hashes foi executada nesta revisão.
+
+## Achados preexistentes corrigidos no entorno E2E
+
+**[P3] L1 — faixa aleatória de vendas não excluía os IPs fixos.** Na primeira leitura, `e2e/sales-dashboard.spec.ts:133` retornava um endereço entre `198.51.100.1` e `.250`. A faixa incluía `.10-.14` e `.21-.24`; o comentário antigo que declarava ausência de competição com os IPs fixos não era garantido pelo código. O orçamento por IP e endpoint permitia compartilhamento entre fixtures. Não observei HTTP `429` nesta revisão e não atribuo falha de execução a esse ponto.
+
+Correção posteriormente relida: `sales-dashboard.spec.ts:131-141` associa o nome exato de cada projeto a `203.0.113.1-.4` e recusa projeto ausente; `:156` usa esse endereço no sign-in. Há três testes de vendas por projeto, abaixo do limite cinco em uma execução completa. A faixa atual é disjunta dos IPs fixos da matriz, setup e negativo. **Estado: corrigido por inspeção no delta atual.** Quotas de execuções anteriores no mesmo banco continuam exigindo precondição de bancada; não se deve simular limpeza ou elevar a regra para repetir.
+
+**[P2] L2 — dois helpers antigos passavam corpo de login para mensagem de assert.** Na primeira leitura, `ui-stack.spec.ts:37` e o helper de vendas usavam `expect(response.ok(), await response.text()).toBe(true)`. No Better Auth instalado `1.7.2`, `dist/api/routes/sign-in.mjs:364-369` devolve `token` e `user` no corpo de um sign-in bem-sucedido. A mensagem de assert recebia assim conteúdo autenticado bruto. Não li nem capturei valores reais.
+
+Correção posteriormente relida: `ui-stack.spec.ts:37` e `sales-dashboard.spec.ts:163` usam mensagem estática e `response.status() === 200`, sem corpo de resposta. O status exato mantém ou fortalece o critério anterior de `ok()`. **Estado: corrigido por inspeção nos dois sites identificados.** Esta conclusão é sobre mensagens desses sites, não uma certificação de redação de todos os traces da suíte.
+
+O autor fez essas correções. Minha única escrita continuou sendo este parecer. Os achados não são apresentados como regressões criadas pelo patch; surgiram de leituras dirigidas do entorno de autenticação. Os três achados deste review (R1, L1, L2) estão corrigidos por inspeção; nenhum ficou aberto no conteúdo final ancorado acima. A taxonomia e contagem formal de S6 não foram aplicadas porque o S6 integral permanece NOTSTARTED.
+
+## O que falta para conclusão operacional
+
+- Evidência executada da versão final com os hashes acima, incluindo pelo menos cinco positivos consecutivos e o negativo específico nos projetos aplicáveis.
+- Os gates locais e a matriz CI exigidos pelo repositório, com revisão exata e checks aplicáveis.
+- Um S6 integral separado, com contexto limpo, checklist e selo quando a fase o exigir. Este arquivo não é selo S6 nem verdict de release.

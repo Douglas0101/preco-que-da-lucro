@@ -1,0 +1,32 @@
+{
+  "class": "LOCAL-VERIFIED / local precondition failure, separate from CI",
+  "head": "8881a2f4a3ec2e510b1c66f2824ec7651db2988d",
+  "repeatedAuth": {
+    "projects": [
+      "chromium",
+      "mobile"
+    ],
+    "repeatEach": 5,
+    "cases": 20,
+    "passed": 20,
+    "defaultAssertionMilliseconds": 5000,
+    "logSha256": "ada70844601e403d56eea6c3f859aec9b5bdd10b71cd40d82ea9a3d90eed023d"
+  },
+  "matrix": {
+    "cases": 80,
+    "passed": 61,
+    "failed": 19,
+    "failureStage": "WebKit page fixture setup before application action",
+    "logSha256": "ce552f3dd45ae6bed8b3537b6e935aa0d2e50a18d935e40424f715a8caf7ffbb"
+  },
+  "independentWebkitPrecondition": {
+    "verdict": "PRECONDITION-FAILED",
+    "stage": "newPage",
+    "errorType": "Error",
+    "message": "newPage precondition timeout"
+  },
+  "dbt63": "EM_TRATAMENTO pending current CI",
+  "rateLimit": "unchanged five sign-ins/minute/IP/path",
+  "env": "names only, fixture values excluded",
+  "s6": "NOTSTARTED integral; bounded reviews only"
+}

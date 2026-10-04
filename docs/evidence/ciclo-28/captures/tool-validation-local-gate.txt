@@ -1,0 +1,8 @@
+LOCAL-VERIFIED prior to publication
+Full coverage exit0:129 suites,1761PASS,14skip,1775total.
+full-coverage-r2.log sha256=3a1a40788dda8644e6370b461183c0afa331f541cb92635eb67b80a77d52dfe6
+DB chain exit0,17 commands, fresh owned PG17tmpfs no prior auth fixture; db-test-r2.log sha256=6f0aaff667623246e820e94b8337a34726d06d466063a520b3ef7193e288a9a8
+npm run check integral exit0: guards/catalog/format/lint/types,129suites1761PASS14skip,build/bundle PASS.
+full-check-r2.log sha256=46423e13c44a99c2a8eb0c71e11c5b289b69026b1480d099abfe114868ba7f22
+Catalog drift resolved by canonical generation50→51, no exception; docs/specs/M-02/matrix.generated.yaml and matrix.yaml both include the new test.
+Local matrix61PASS/19WebKit page-setup failures; no local WebKit verdict. CI required.

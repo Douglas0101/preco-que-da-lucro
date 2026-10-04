@@ -1,0 +1,1 @@
+{"verdict":"LOCAL-VERIFIED preexisting defect","postgres":"17.11","constraint":{"code":"23505","constraint":"tool_executions_idempotency_uidx"},"oldExecutionPreserved":true,"sentinelProductAbsent":true,"successAuditAbsent":true,"ownedTenantAbsentAfterRollback":true,"ownedUserAbsentAfterRollback":true,"rollback":true}
