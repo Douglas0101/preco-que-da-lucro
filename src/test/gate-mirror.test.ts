@@ -105,6 +105,49 @@ describe("Conservative main coverage mirror by eligible unit", () => {
   it("does not treat unknown branch data as uncovered/covered", () => {
     expect(() => mirror(fixture(), lcov(), lcov(1, "-"), identity())).toThrow("mapping");
   });
+  it("keeps an uncovered line without DA uncovered on both sides and credits only a measured hit", () => {
+    const missingUncoveredLine = lcov().replace("DA:4,0\n", "");
+    expect(mirror(fixture(), missingUncoveredLine, missingUncoveredLine, identity())).toMatchObject(
+      {
+        pass: false,
+        covered: 3,
+        paid: [],
+        lost: [],
+        gap: 1,
+      },
+    );
+    expect(mirror(fixture(), missingUncoveredLine, lcov(1), identity())).toMatchObject({
+      pass: true,
+      covered: 4,
+      paid: [`${file}:4:line`],
+      lost: [],
+    });
+    expect(mirror(fixture(), lcov(), missingUncoveredLine, identity())).toMatchObject({
+      pass: false,
+      covered: 3,
+      paid: [],
+      lost: [],
+    });
+  });
+  it("rejects covered lines without DA in the baseline or candidate", () => {
+    const missingCoveredLine = lcov().replace("DA:1,1\n", "");
+    expect(() => mirror(fixture(), missingCoveredLine, lcov(1), identity())).toThrow(
+      `coverage mapping unavailable: ${file}:1:line`,
+    );
+    expect(() => mirror(fixture(), lcov(), missingCoveredLine, identity())).toThrow(
+      `coverage mapping unavailable: ${file}:1:line`,
+    );
+  });
+  it("rejects absent BRDA even when the baseline condition was uncovered", () => {
+    const missingCondition = lcov(1).replace("BRDA:5,0,0,0\n", "");
+    expect(() => mirror(fixture(), lcov(), missingCondition, identity())).toThrow(
+      `coverage mapping unavailable: ${file}:5:0,0`,
+    );
+    const missingBaselineCondition = lcov().replace("BRDA:5,0,0,0\n", "");
+    expect(() => mirror(fixture(), missingBaselineCondition, lcov(1), identity())).toThrow(
+      `coverage mapping unavailable: ${file}:5:0,0`,
+    );
+  });
   it.each(["mainSha", "analysisId", "instrumentation"] as const)("rejects changed %s", (key) => {
     const c = identity();
     c[key] = "changed";

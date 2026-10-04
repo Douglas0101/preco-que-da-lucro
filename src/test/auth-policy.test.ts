@@ -1,6 +1,8 @@
 import { hashSync } from "bcryptjs";
 import { describe, expect, it, vi } from "vitest";
 import {
+  authEnvPresence,
+  describeAuthEnv,
   requireAuthSecret,
   resolveAuthPolicy,
   resolveGoogleCredentials,
@@ -53,6 +55,164 @@ describe("Better Auth policy", () => {
   it("requires a sufficiently strong server secret", () => {
     expect(() => requireAuthSecret({ BETTER_AUTH_SECRET: "short" })).toThrow(/32/);
     expect(requireAuthSecret({ BETTER_AUTH_SECRET: "x".repeat(32) })).toHaveLength(32);
+  });
+});
+
+// Valores de fixture compostos por fragmentos: sentinelas de teste, nunca credenciais reais.
+const strongSecret = ["preflight", "secret", "0123456789", "abcdef", "0123456789"].join("-");
+
+describe("pré-voo de ambiente de autenticação (§13.6)", () => {
+  const entry = (env: ReturnType<typeof describeAuthEnv>, name: string) =>
+    env.find((item) => item.name === name);
+
+  it("classifica presença sem tratar vazio como presente", () => {
+    expect(authEnvPresence(undefined)).toBe("absent");
+    expect(authEnvPresence("   ")).toBe("empty");
+    expect(authEnvPresence("valor")).toBe("present");
+  });
+
+  it("declara tudo ok em produção com origens e par Google completos", () => {
+    const env = describeAuthEnv({
+      NODE_ENV: "production",
+      BETTER_AUTH_URL: "https://app.example.com",
+      AUTH_TRUSTED_ORIGINS: "https://a.example.com, https://b.example.com",
+      BETTER_AUTH_SECRET: strongSecret,
+      GOOGLE_CLIENT_ID: ["client", "id"].join("-"),
+      GOOGLE_CLIENT_SECRET: ["client", "secret"].join("-"),
+    });
+    expect(env.find((item) => item.name === "BETTER_AUTH_URL")).toMatchObject({
+      presence: "present",
+      requirement: "required-in-production",
+      verdict: "ok",
+      detail: "origem aceita pela política",
+    });
+    expect(entry(env, "AUTH_TRUSTED_ORIGINS")).toMatchObject({
+      presence: "present",
+      requirement: "optional",
+      verdict: "ok",
+      detail: "2 origem(ns) válida(s)",
+    });
+    expect(entry(env, "BETTER_AUTH_SECRET")).toMatchObject({
+      presence: "present",
+      requirement: "required",
+      verdict: "ok",
+      detail: "mínimo de 32 caracteres atendido",
+    });
+    for (const name of ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"]) {
+      expect(entry(env, name)).toMatchObject({
+        presence: "present",
+        requirement: "optional-pair",
+        verdict: "ok",
+        detail: "par completo (id e segredo presentes)",
+      });
+    }
+  });
+
+  it("exige BETTER_AUTH_URL em produção e a trata como não configurada fora dela", () => {
+    const production = describeAuthEnv({
+      NODE_ENV: "production",
+      BETTER_AUTH_SECRET: strongSecret,
+    });
+    expect(entry(production, "BETTER_AUTH_URL")).toMatchObject({
+      presence: "absent",
+      verdict: "missing",
+      detail: "obrigatória em produção",
+    });
+    const local = describeAuthEnv({ NODE_ENV: "development" });
+    expect(entry(local, "BETTER_AUTH_URL")).toMatchObject({
+      presence: "absent",
+      verdict: "not-configured",
+      detail: "ausente fora de produção",
+    });
+  });
+
+  it("repudia origem inválida com a mensagem nomeada da política", () => {
+    const env = describeAuthEnv({
+      NODE_ENV: "production",
+      BETTER_AUTH_URL: "http://app.example.com",
+      BETTER_AUTH_SECRET: strongSecret,
+    });
+    expect(entry(env, "BETTER_AUTH_URL")).toMatchObject({
+      presence: "present",
+      verdict: "invalid",
+      detail: "BETTER_AUTH_URL deve usar HTTPS fora do ambiente local",
+    });
+    const withPath = describeAuthEnv({
+      NODE_ENV: "production",
+      BETTER_AUTH_URL: "https://app.example.com/app",
+      BETTER_AUTH_SECRET: strongSecret,
+    });
+    expect(entry(withPath, "BETTER_AUTH_URL")).toMatchObject({
+      verdict: "invalid",
+      detail: "BETTER_AUTH_URL deve conter somente a origem, sem path, credencial ou query",
+    });
+  });
+
+  it("aceita origem local HTTP e recusa lista de origens com item inválido", () => {
+    const env = describeAuthEnv({
+      BETTER_AUTH_URL: "http://localhost:3000",
+      AUTH_TRUSTED_ORIGINS: "https://a.example.com,notaurl",
+    });
+    expect(entry(env, "BETTER_AUTH_URL")).toMatchObject({ verdict: "ok" });
+    expect(entry(env, "AUTH_TRUSTED_ORIGINS")).toMatchObject({
+      presence: "present",
+      verdict: "invalid",
+      detail: "AUTH_TRUSTED_ORIGINS contém uma URL inválida",
+    });
+  });
+
+  it("trata lista de origens vazia como não configurada, não como ok", () => {
+    const env = describeAuthEnv({ AUTH_TRUSTED_ORIGINS: "  ,  " });
+    expect(entry(env, "AUTH_TRUSTED_ORIGINS")).toMatchObject({
+      presence: "present",
+      verdict: "not-configured",
+      detail: "lista vazia; baseURL entra automaticamente",
+    });
+  });
+
+  it("distingue segredo ausente de segredo curto", () => {
+    const missing = describeAuthEnv({ NODE_ENV: "production" });
+    expect(entry(missing, "BETTER_AUTH_SECRET")).toMatchObject({
+      presence: "absent",
+      verdict: "missing",
+      detail: "obrigatória",
+    });
+    const empty = describeAuthEnv({ BETTER_AUTH_SECRET: "   " });
+    expect(entry(empty, "BETTER_AUTH_SECRET")).toMatchObject({
+      presence: "empty",
+      verdict: "missing",
+      detail: "obrigatória",
+    });
+    const short = describeAuthEnv({ BETTER_AUTH_SECRET: "curto" });
+    expect(entry(short, "BETTER_AUTH_SECRET")).toMatchObject({
+      presence: "present",
+      verdict: "invalid",
+      detail: "BETTER_AUTH_SECRET deve ter pelo menos 32 caracteres",
+    });
+  });
+
+  it("marca o par Google como incompleto só com metade e desativado sem nenhum", () => {
+    const half = describeAuthEnv({ GOOGLE_CLIENT_ID: ["client", "id"].join("-") });
+    expect(entry(half, "GOOGLE_CLIENT_ID")).toMatchObject({
+      presence: "present",
+      requirement: "optional-pair",
+      verdict: "incomplete",
+      detail: "GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET devem ser configurados juntos",
+    });
+    expect(entry(half, "GOOGLE_CLIENT_SECRET")).toMatchObject({
+      presence: "absent",
+      requirement: "optional-pair",
+      verdict: "incomplete",
+      detail: "GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET devem ser configurados juntos",
+    });
+    const absent = describeAuthEnv({});
+    for (const name of ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"]) {
+      expect(entry(absent, name)).toMatchObject({
+        presence: "absent",
+        verdict: "not-configured",
+        detail: "provider Google desativado",
+      });
+    }
   });
 });
 

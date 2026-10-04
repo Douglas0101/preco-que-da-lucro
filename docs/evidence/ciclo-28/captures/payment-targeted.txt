@@ -1,0 +1,13 @@
+Derived transcript excerpt; raw private bytes unchanged.
+Command: npx vitest run src/test/gate-mirror.test.ts src/test/main-unit-adapter.test.ts src/test/auth-policy.test.ts
+Observed exit: 0
+Raw private file: /home/douglas-souza/.codex/artifacts/ciclo-28/payment/targeted-after-fix-r2.txt
+Raw SHA256: 90c74069fbd33d8be23393f05fcf6b8ad1d07895cce2f21baa1f00ce7b779c44
+
+RUN  v4.1.11 /tmp/pqd-develop
+
+
+ Test Files  3 passed (3)
+      Tests  43 passed (43)
+   Start at  22:51:25
+   Duration  3.39s (transform 271ms, setup 316ms, import 352ms, tests 652ms, environment 1.66s)

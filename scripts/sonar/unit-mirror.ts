@@ -147,11 +147,21 @@ export function mirror(
     const id = unitId(unit);
     if (seen.has(id)) throw new Error("duplicated eligible unit");
     seen.add(id);
-    if (before.get(id) !== unit.covered || typeof after.get(id) !== "boolean")
+    // Medido no lcov real (auth-policy.ts 116/117/192): o v8 emite BRDA sem DA para
+    // linhas que o Sonar conta como executáveis — para unidade já não coberta, ausência
+    // de DA é estado natural (sem crédito). Perda medida (false) contabiliza como lost;
+    // dados ausentes em unidade coberta e branch desconhecido ('-') continuam reprovando.
+    const uncoveredLine = unit.branch === undefined && !unit.covered;
+    const beforeState = before.get(id),
+      afterState = after.get(id);
+    if (
+      (beforeState !== unit.covered && !(uncoveredLine && beforeState === undefined)) ||
+      (typeof afterState !== "boolean" && !(uncoveredLine && afterState === undefined))
+    )
       throw new Error(`coverage mapping unavailable: ${id}`);
     baselineCovered += Number(unit.covered);
-    if (!unit.covered && after.get(id)) paid.push(id);
-    if (unit.covered && !after.get(id)) lost.push(id);
+    if (!unit.covered && afterState === true) paid.push(id);
+    if (unit.covered && afterState === false) lost.push(id);
   }
   if (baselineCovered !== snapshot.covered)
     throw new Error("baseline numerator disagrees with Sonar");

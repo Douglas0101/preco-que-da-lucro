@@ -1,0 +1,51 @@
+Derived transcript excerpt; raw private bytes unchanged.
+Command: npx vitest run src/test/gate-mirror.test.ts
+Observed exit: 1
+Raw private file: /home/douglas-souza/.codex/artifacts/ciclo-28/payment/gate-mirror-before-fix.txt
+Raw SHA256: e5800858e544521fac19f8917de1a6276870d3887dee1aef20551a5061bfc3bd
+
+RUN  v4.1.11 /tmp/pqd-develop
+
+ ❯ src/test/gate-mirror.test.ts (18 tests | 2 failed) 19ms
+     × keeps an uncovered line without DA uncovered on both sides and credits only a measured hit 7ms
+     × rejects absent BRDA even when the baseline condition was uncovered 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > keeps an uncovered line without DA uncovered on both sides and credits only a measured hit
+Error: coverage mapping unavailable: src/lib/example.ts:4:line
+ ❯ mirror scripts/sonar/unit-mirror.ts:160:13
+    158|       (!unit.covered && afterState === null)
+    159|     )
+    160|       throw new Error(`coverage mapping unavailable: ${id}`);
+       |             ^
+    161|     baselineCovered += Number(unit.covered);
+    162|     if (!unit.covered && after.get(id)) paid.push(id);
+ ❯ src/test/gate-mirror.test.ts:110:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > rejects absent BRDA even when the baseline condition was uncovered
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ src/test/gate-mirror.test.ts:141:75
+    139|   it("rejects absent BRDA even when the baseline condition was uncover…
+    140|     const missingCondition = lcov(1).replace("BRDA:5,0,0,0\n", "");
+    141|     expect(() => mirror(fixture(), lcov(), missingCondition, identity(…
+       |                                                                           ^
+    142|       `coverage mapping unavailable: ${file}:5:0,0`,
+    143|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 16 passed (18)
+   Start at  22:49:46
+   Duration  828ms (transform 103ms, setup 100ms, import 106ms, tests 19ms, environment 488ms)

@@ -173,3 +173,48 @@ confirmou Show resolved em cada identidade; nenhuma mensagem/comentário foi env
 O merge continua bloqueado por mirror e protected ref. Recibo em
 `captures/resume-review-threads.json`. Gate local desta consolidação:128suítes,
 1640PASS14skip, exit0; `captures/resume-doc-quality-gate.txt`.
+
+## 9. Lote 1 — publicação dos testes e ausência de DA
+
+Base reconciliada desta fase: develop `ba9c2c2b5357a588bee0ea62f3886110b1d75f9d`,
+main `d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9`, PR60 aberta. O lote preparado
+acrescentou oito testes da superfície pública describeAuthEnv e um caso do adapter.
+Os resultados anteriores de CI não são checks deste lote; nova execução é exigida
+depois de publicar. C28 passa de3 para4/13 neste marco de engenharia; duas reservas
+de promoção/back-merge permanecem disponíveis.
+
+A revisão independente limitada rejeitou dois pontos do patch staged original:
+o adapter aceitava uma linha Sonar não coberta sem DA, mas o mirror ainda recusava
+essa unidade; e o mirror aceitava uma condição baseline não coberta sem BRDA no
+candidato. O segundo caso produzia PASS80% com identidade incompleta. O controle
+do autor reproduziu ambas as falhas antes da correção. A exceção foi restringida,
+nos dois lados do mirror, a unidade de linha já declarada não coberta pela baseline.
+DA ausente não gera ganho; pagamento exige hit medido. DA de unidade coberta
+ausente, BRDA ausente e BRDA desconhecida continuam reprovando, e perda medida
+continua subtraindo. Três novos casos do mirror e o caminho adapter→mirror cobrem
+essa fronteira. Não houve alteração de limiar, freshness, fonte, instrumentação,
+período, denominador, required check ou proteção de main.
+
+O alvo deste lote é auth-policy.ts. A medição integral de cobertura passou:
+128suítes,1652PASS/14skip/1666total. No arquivo overall,61/62DA e66/68BRDA
+estão cobertos; esse conjunto inclui unidades antigas e não é o recorte new
+do Sonar. Registro exato e hashes em `captures/payment-coverage.txt`. O relato do operador em L630 descreve
+62/65 unidades locais e uma estimativa residual440; isso não é crédito validado
+do espelho. O déficit autoritativo de main continua502 até mapping/provenance
+completos e veredito atual. O bootstrap permanece decisão pendente do MAESTRO.
+
+O primeiro ensaio integral de cobertura falhou em uma expectativa de fixture
+do novo negativo e na construção de um pacote Debian: umask077 do agente criou
+o diretório de controle com700. A expectativa foi corrigida preservando a unidade
+baseline não coberta, e o ensaio seguinte usa umask022 com logs privados0600.
+Nenhuma regra ou teste foi removido. O check integral passou nos bytes finais:
+128suítes,1652PASS/14skip/1666total, build e bundle PASS. Comando e hash do log
+em `captures/payment-quality-gate.txt`. A custódia principal conservou934arquivos
+sem alteração, perda ou novo untracked; a bancada é o único checkout mutado.
+Os controles e os reviews limitados estão em `captures/payment-negative-control.txt`,
+`captures/payment-targeted.txt` e `captures/payment-reviews.txt`. Os hashes finais
+de fonte estão em `captures/payment-source-hashes.txt`; S6 integral continua
+NOT-STARTED. O inventário nominal N1 agora mostra somente production/develop
+em `captures/payment-neon-inventory.txt`; isso não prova prevenção de recriação
+ou os bytes da operação DELETE relatada por outra lane. L625–L633 são handoffs históricos preservados nesta fase;
+observações do operador fora desta lane não recebem verificação remota implícita.

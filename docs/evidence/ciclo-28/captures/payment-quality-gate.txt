@@ -1,0 +1,14 @@
+Command: umask 022; npm run check
+Exit: 0 (PTY completion observed by root)
+Class: LOCAL-VERIFIED; remote CI of new publication not yet observed.
+Full private log: /home/douglas-souza/.codex/artifacts/ciclo-28/payment/check-local.txt
+SHA256: 6e506e7f644098116e469ce684616161f98d676f837830b06adbe17be301da41
+Preconditions: non-shallow isolated /tmp/pqd-develop at ba9c2c2, Node v24.21.0, npm11.19.0, declared code/test/doc WIP; logs0600/directory0700, test fixture umask022.
+All scripts in check chain completed; no test, guard, threshold, timeout or budget removed.
+All matched files use Prettier code style!
+ Test Files  128 passed (128)
+      Tests  1652 passed | 14 skipped (1666)
+   Duration  131.58s (transform 2.07s, setup 9.65s, import 24.46s, tests 26.86s, environment 58.30s)
+PASS assets/index-DpDZQbhM.js: 236756 minified, 72938 gzip, 63554 Brotli bytes, sha256=da167b8d0072
+Initial graph (9 chunks): 471694 minified, 151429 gzip, 133449 Brotli bytes, sha256=4e736703b18c
+Primary custody: 934 files checked, 0 changed/missing, 0 added/removed untracked; separate private receipt primary-custody-recheck.json.

@@ -13,6 +13,7 @@ import { coverageMetadata } from "../../scripts/sonar/main-unit-probe";
 import { instrumentationFingerprint, scannerProvenance } from "../../scripts/sonar/lcov-provenance";
 import { evaluateMirrorArtifacts } from "../../scripts/sonar/mirror-runner";
 import { selectMainOriginRun } from "../../scripts/sonar/main-origin-run";
+import { mirror } from "../../scripts/sonar/unit-mirror";
 import type { apiReader } from "../../scripts/sonar/api";
 
 const file = "src/lib/example.ts",
@@ -116,6 +117,90 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       pass: false,
       lost: [`${file}:1:line`],
     });
+  });
+  it("treats a Sonar-executable uncovered line without original DA as uncovered and refuses a covered one", () => {
+    // Caso medido no lcov real (auth-policy.ts 116/117/192): o v8 emite BRDA sem DA para
+    // linhas que o Sonar conta como executáveis não cobertas. A unidade mapeia como não
+    // coberta; a mesma ausência sob linha declarada COBERTA segue reprovando.
+    const orphanMetrics = {
+      new_lines_to_cover: 5,
+      new_uncovered_lines: 2,
+      new_conditions_to_cover: 1,
+      new_uncovered_conditions: 1,
+      new_coverage: 50,
+    };
+    const orphanBaseline = { ...baseline, metrics: orphanMetrics };
+    const orphanLcov = `TN:\nSF:${file}\nDA:1,1\nDA:2,1\nDA:3,1\nDA:4,0\nDA:6,1\nBRDA:5,0,0,0\nend_of_record\n`;
+    const orphanOrigin = scannerProvenance(
+      revision,
+      orphanLcov,
+      gate(),
+      "Sensor JavaScript/TypeScript Coverage",
+      instrumentation,
+      () => source,
+      orphanBaseline,
+    );
+    const rows = (lineSevenHits: number) =>
+      coverageMetadata({
+        sources: [
+          ...[1, 2, 3, 4].map((line) => ({
+            line,
+            isNew: true,
+            lineHits: line < 4 ? 1 : line === 4 ? 0 : lineSevenHits,
+          })),
+          { line: 5, isNew: true, conditions: 1, coveredConditions: 0 },
+          { line: 6, isNew: false, lineHits: 1 },
+          { line: 7, isNew: true, lineHits: lineSevenHits },
+        ],
+      }).rows;
+    const snapshot = mapMainUnits(
+      orphanBaseline,
+      orphanOrigin,
+      orphanLcov,
+      [{ path: file, key: `project:${file}`, metrics: orphanMetrics, rows: rows(0) }],
+      () => ({ hash: source }),
+    );
+    expect(snapshot.units.filter((unit) => unit.line === 7)).toEqual([
+      { file, line: 7, covered: false },
+    ]);
+    const identity = { ...snapshot, now };
+    expect(mirror(snapshot, orphanLcov, orphanLcov, identity)).toMatchObject({
+      pass: false,
+      covered: 3,
+      paid: [],
+      lost: [],
+      gap: 2,
+    });
+    const candidateWithMeasuredHit = orphanLcov.replace("end_of_record", "DA:7,1\nend_of_record");
+    expect(mirror(snapshot, orphanLcov, candidateWithMeasuredHit, identity)).toMatchObject({
+      pass: false,
+      covered: 4,
+      paid: [`${file}:7:line`],
+      lost: [],
+      gap: 1,
+    });
+    const coveredMetrics = {
+      ...orphanMetrics,
+      new_uncovered_lines: 1,
+      new_coverage: 66.66666666666667,
+    };
+    expect(() =>
+      mapMainUnits(
+        { ...orphanBaseline, metrics: coveredMetrics },
+        scannerProvenance(
+          revision,
+          orphanLcov,
+          gate(),
+          "Sensor JavaScript/TypeScript Coverage",
+          instrumentation,
+          () => source,
+          { ...orphanBaseline, metrics: coveredMetrics },
+        ),
+        orphanLcov,
+        [{ path: file, key: `project:${file}`, metrics: coveredMetrics, rows: rows(1) }],
+        () => ({ hash: source }),
+      ),
+    ).toThrow("original line coverage disagrees with provider");
   });
   it("does not promote numeric branch totals without original individual identities", () => {
     for (const text of [

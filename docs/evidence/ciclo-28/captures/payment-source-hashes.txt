@@ -1,0 +1,7 @@
+Source fingerprint before local gates; no application or instrumentation source changed in this lote.
+4810b13cd75ba3616424a96c74e4061783b5f700e75ca296edbf78861dd4e7af  scripts/sonar/main-unit-adapter.ts
+832a38993c266ded147946dc4e3ea2f9d00aed4afeac146927f8c90a1618b108  scripts/sonar/unit-mirror.ts
+97312071e2bf2c1ff0cabc2e0df6cdc36c718d16f5babba35a15d3aadd0647d3  src/test/auth-policy.test.ts
+be4b2a228d7a43bb02552516fe9bf211c4be5706f32bffb92b46d8d1917e4a9f  src/test/main-unit-adapter.test.ts
+87086eb231d75398fbfa6ac44009fcd82d4c6161802966145e984abfb172363b  src/test/gate-mirror.test.ts
+auth-policy application source equals frozen main; sha256=8382a2097c16b1909c6a6bb3656c1ee83cd6562359da288ab5227446765271b3

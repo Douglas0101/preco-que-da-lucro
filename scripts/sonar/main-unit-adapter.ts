@@ -240,7 +240,11 @@ export function mapMainUnits(
       const lineId = `${file.path}:${row.line}:line`;
       const lineHits = row.lineHits ?? row.utLineHits;
       if (lineHits !== null) {
-        if (original.get(lineId) !== lineHits > 0)
+        // Medido no lcov real (auth-policy.ts 116/117/192): o v8 emite BRDA sem DA para
+        // linhas que o Sonar conta como executáveis. Ausência de DA só equivale a não
+        // coberto quando o provedor também declara a linha não coberta; linha declarada
+        // coberta com DA ausente segue reprovando.
+        if ((original.get(lineId) ?? false) !== lineHits > 0)
           throw new Error("original line coverage disagrees with provider");
         units.push({ file: file.path, line: row.line, covered: lineHits > 0 });
       } else if (original.has(lineId)) throw new Error("provider line coverage absent");
