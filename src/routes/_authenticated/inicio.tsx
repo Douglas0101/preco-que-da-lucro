@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardSummaryQueryOptions } from "@/lib/query-options";
+import { isDashboardSummaryValid } from "@/lib/dashboard-summary-guard";
 import type { DashboardPeriod } from "@/lib/dashboard.functions";
 import { brl, pct } from "@/lib/format";
 import { CONTRIBUTION_MARGIN_PCT_FORMULA } from "@/lib/calc-explanation";
@@ -73,16 +74,17 @@ function Inicio() {
   const summaryQuery = useQuery(dashboardSummaryQueryOptions(period));
   const loadStatus = loadStatusFor(summaryQuery);
   const metrics = summaryQuery.data as Metrics | undefined;
+  const hasInvalidPayload = metrics !== undefined && !isDashboardSummaryValid(metrics);
   const errorReference = useMemo(
-    () => (summaryQuery.isError ? createErrorReference("DASH") : null),
-    [summaryQuery.isError],
+    () => (summaryQuery.isError || hasInvalidPayload ? createErrorReference("DASH") : null),
+    [summaryQuery.isError, hasInvalidPayload],
   );
 
   if (loadStatus === "loading") {
     return <InicioSkeleton />;
   }
 
-  if (loadStatus === "error") {
+  if (loadStatus === "error" || hasInvalidPayload) {
     return (
       <Card role="alert" className="border-destructive/40">
         <CardContent className="space-y-3 p-5">
@@ -92,7 +94,7 @@ function Inicio() {
               Referência de atendimento: {errorReference}
             </p>
           )}
-          <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+          <Button type="button" variant="outline" onClick={() => void summaryQuery.refetch()}>
             Tentar novamente
           </Button>
         </CardContent>

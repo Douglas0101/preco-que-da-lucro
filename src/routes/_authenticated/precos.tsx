@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { updatePurchasePrice } from "@/lib/products.functions";
+import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import { purchasePricesQueryOptions } from "@/lib/query-options";
 import { toDecimalString } from "@/lib/financial-values";
 import { brl, decimalInput, qty } from "@/lib/format";
@@ -141,15 +142,17 @@ function Precos() {
     setSavingId(item.id);
     try {
       const packagePrice = toDecimalString(raw, 4);
-      const res = await save({
-        data: {
-          id: item.id,
-          kind: item.kind,
-          package_price: packagePrice,
-          package_qty: toDecimalString(item.package_qty, 6),
-          package_unit: item.package_unit,
-        },
-      });
+      const res = await unwrapServerFn(
+        save({
+          data: {
+            id: item.id,
+            kind: item.kind,
+            package_price: packagePrice,
+            package_qty: toDecimalString(item.package_qty, 6),
+            package_unit: item.package_unit,
+          },
+        }),
+      );
       setItems((prev) =>
         prev.map((i) =>
           i.id === item.id

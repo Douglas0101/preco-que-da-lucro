@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteExpense, listExpenses, upsertExpense } from "@/lib/expenses.functions";
+import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import { sumFiniteNumbers } from "@/lib/finance";
 import { toDecimalString, type DecimalString } from "@/lib/financial-values";
 import { expensesQueryOptions } from "@/lib/query-options";
@@ -91,7 +92,7 @@ function Despesas() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const saveExpenseMutation = useMutation({
-    mutationFn: (data: ExpenseMutationInput) => upsertExpense({ data }),
+    mutationFn: (data: ExpenseMutationInput) => unwrapServerFn(upsertExpense({ data })),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["expenses"] }),
@@ -103,7 +104,7 @@ function Despesas() {
     onError: () => toast.error("Não foi possível salvar a despesa"),
   });
   const deleteExpenseMutation = useMutation({
-    mutationFn: (id: string) => deleteExpense({ data: { id } }),
+    mutationFn: (id: string) => unwrapServerFn(deleteExpense({ data: { id } })),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["expenses"] }),

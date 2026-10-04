@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { sendChatMessage, clearChatHistory } from "@/lib/chat.functions";
+import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import { chatHistoryQueryOptions } from "@/lib/query-options";
 import { renderChatMarkdown } from "@/lib/chat-markdown";
 import { Button } from "@/components/ui/button";
@@ -101,7 +102,7 @@ function NovoProduto() {
     setMessages((m) => [...m, { role: "user", content: text }]);
     setChatState((state) => transitionChatState(state, { type: "SUBMIT" }));
     try {
-      const res = await send({ data: { message: text, currentProductId } });
+      const res = await unwrapServerFn(send({ data: { message: text, currentProductId } }));
       setMessages((m) => [...m, { role: "assistant", content: res.content }]);
       if (res.currentProductId) setCurrentProductId(res.currentProductId);
       await queryClient.invalidateQueries({ queryKey: ["chat", "history"] });
@@ -118,7 +119,7 @@ function NovoProduto() {
 
   async function reset() {
     try {
-      await clear();
+      await unwrapServerFn(clear());
       await queryClient.invalidateQueries({ queryKey: ["chat", "history"] });
       setMessages([
         {

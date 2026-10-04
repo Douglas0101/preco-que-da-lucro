@@ -9,6 +9,7 @@ import {
   listProducts,
 } from "@/lib/products.functions";
 import { listSales } from "@/lib/sales.functions";
+import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import {
   AGGREGATE_STALE_TIME,
   OPERATIONAL_STALE_TIME,
@@ -62,7 +63,7 @@ export const queryKeys = {
 export function productsWithMetricsQueryOptions() {
   return queryOptions({
     queryKey: queryKeys.productsWithMetrics(),
-    queryFn: () => listProductsWithMetrics(),
+    queryFn: () => unwrapServerFn(listProductsWithMetrics()),
     ...authenticatedQueryPolicy,
     staleTime: OPERATIONAL_STALE_TIME,
   });
@@ -71,7 +72,7 @@ export function productsWithMetricsQueryOptions() {
 export function expensesQueryOptions() {
   return queryOptions({
     queryKey: queryKeys.expenses(),
-    queryFn: () => listExpenses(),
+    queryFn: () => unwrapServerFn(listExpenses()),
     ...authenticatedQueryPolicy,
     staleTime: OPERATIONAL_STALE_TIME,
   });
@@ -80,7 +81,7 @@ export function expensesQueryOptions() {
 export function dashboardSummaryQueryOptions(period: DashboardPeriod = "month") {
   return queryOptions({
     queryKey: queryKeys.dashboardSummary(period),
-    queryFn: () => getDashboardSummary({ data: { period } }),
+    queryFn: () => unwrapServerFn(getDashboardSummary({ data: { period } })),
     ...authenticatedQueryPolicy,
     staleTime: AGGREGATE_STALE_TIME,
   });
@@ -89,7 +90,7 @@ export function dashboardSummaryQueryOptions(period: DashboardPeriod = "month") 
 export function productsListQueryOptions() {
   return queryOptions({
     queryKey: queryKeys.productsList(),
-    queryFn: () => listProducts(),
+    queryFn: () => unwrapServerFn(listProducts()),
     ...authenticatedQueryPolicy,
     staleTime: OPERATIONAL_STALE_TIME,
   });
@@ -98,7 +99,7 @@ export function productsListQueryOptions() {
 export function salesListQueryOptions() {
   return queryOptions({
     queryKey: queryKeys.salesList(),
-    queryFn: () => listSales(),
+    queryFn: () => unwrapServerFn(listSales()),
     ...authenticatedQueryPolicy,
     staleTime: OPERATIONAL_STALE_TIME,
   });
@@ -107,7 +108,7 @@ export function salesListQueryOptions() {
 export function purchasePricesQueryOptions() {
   return queryOptions({
     queryKey: queryKeys.purchasePrices(),
-    queryFn: () => listPurchasePrices(),
+    queryFn: () => unwrapServerFn(listPurchasePrices()),
     ...authenticatedQueryPolicy,
     staleTime: OPERATIONAL_STALE_TIME,
   });
@@ -116,7 +117,7 @@ export function purchasePricesQueryOptions() {
 export function chatHistoryQueryOptions() {
   return queryOptions({
     queryKey: queryKeys.chatHistory(),
-    queryFn: () => getChatHistory(),
+    queryFn: () => unwrapServerFn(getChatHistory()),
     ...authenticatedQueryPolicy,
     staleTime: REALTIME_STALE_TIME,
   });
@@ -125,7 +126,7 @@ export function chatHistoryQueryOptions() {
 export function financialSimulationQueryOptions(input: FinancialSimulationInput) {
   return queryOptions({
     queryKey: queryKeys.financialSimulation(input),
-    queryFn: () => runSimulation({ data: input }),
+    queryFn: () => unwrapServerFn(runSimulation({ data: input })),
     ...authenticatedQueryPolicy,
     staleTime: OPERATIONAL_STALE_TIME,
   });
@@ -134,7 +135,7 @@ export function financialSimulationQueryOptions(input: FinancialSimulationInput)
 export function savedSimulationsQueryOptions() {
   return queryOptions({
     queryKey: queryKeys.savedSimulations(),
-    queryFn: () => listSimulations(),
+    queryFn: () => unwrapServerFn(listSimulations()),
     ...authenticatedQueryPolicy,
     staleTime: OPERATIONAL_STALE_TIME,
   });
