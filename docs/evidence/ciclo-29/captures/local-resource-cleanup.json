@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-05T03:25:04.965211+00:00",
+  "retiredRuntimePid": 365067,
+  "runtimeAbsent": true,
+  "containerId": "e0f9abcb99318eb3801ef09fa64101b253870d5938a7e562b568d9b53b800bd2",
+  "ownershipLabelsVerified": true,
+  "containerInspectExit": 1,
+  "independentContainerListAbsent": true,
+  "reviewRuntimePid": 364175,
+  "reviewDatabasePort": 41921,
+  "reviewPreserved": true,
+  "authStateRetainedPrivately": true
+}

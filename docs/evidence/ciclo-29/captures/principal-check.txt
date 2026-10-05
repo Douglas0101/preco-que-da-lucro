@@ -1,0 +1,12 @@
+gate: primary77
+command: npm run check
+revision: 8977ec514a00614a615c5155b193a973bf7b48cd
+source-log-sha256: 065366c0e787e3104e7f85c9591e9f79f9fb69710844f469e2bc435e5af3b043
+exit:0
+database: owned loopback fixture, same target runtime/admin; provider values not read; dotenv preserved
+observable-readout:
+ Test Files  132 passed (132)
+      Tests  1803 passed (1803)
+   Duration  159.39s (transform 3.33s, setup 11.28s, import 31.19s, tests 32.81s, environment 68.95s)
+PASS assets/index-BVbV81Tl.js: 238766 minified, 73644 gzip, 64165 Brotli bytes, sha256=232eab50fb0a
+Initial graph (9 chunks): 473712 minified, 152150 gzip, 134126 Brotli bytes, sha256=fab60a575df7

@@ -12,8 +12,8 @@ F3 está LOCAL-VERIFIED: check integral131suítes/1785PASS18skips condicionais,
 cadeia completa18etapas de banco, quatro casos de margem nomeados sem skips,
 db:check e validação UI3.4. Matriz local60/60 em Chromium/Firefox/mobile, zero
 skips/flaky; WebKit não cria página local na precondição. O veredito local
-não cobre a matriz de quatro projetos. F4 ainda exige instalação/check no
-principal, commit/push e CI atual pelo SHA, registrados em complemento.
+não cobre a matriz de quatro projetos. F4 local concluiu instalação/check no principal, conforme §9; publicação e
+CI atual pelo SHA ainda são registrados no complemento da integração.
 
 Custódia do principal: zero tracked modificados e928untracked, com inventário
 SHA256 privado60-principal-custody.json. SPEC registra o write-set. Fingerprints
@@ -147,3 +147,28 @@ PASS,1785testesPASS18skips condicionais,build e bundlePASS.
 funcionais e60casos E2E permanecem ligados a esses mesmos bytes de aplicação.
 O principal será avançado apenas por fast-forward e ainda exige npmci/check
 antes do push. CI atual e veredito S6 continuam pendentes neste marco.
+
+## 9. F4 — instalação e circuito do principal
+
+O commit normal `8977ec514a00614a615c5155b193a973bf7b48cd` integra F2/F3 e a
+migração documental do QA anterior; o principal develop recebeu55f3ddf e8977ec5
+por fast-forward. Custódia928/928untracked preservada sem mudança de bytes.
+`captures/principal-install.txt`:npmci621instalados/622auditados,zero vulnerabilidades.
+`captures/principal-check.txt`:132suítes e1803/1803testesPASS,zero skips,build/bundle
+PASS,contra fixture PG17própria com papel runtime separado. Env de produção
+não foi alvo; o arquivo .env do principal permaneceu intacto e valores de
+provedor não foram lidos/transmitidos.
+
+O journal exigiu uma segunda passagem do mesmo Prettier3.9.6 para estabilizar
+dois escapes Markdown após o append;74/75pararam no formatter,sem teste vermelho.
+A igualdade byte a byte após reformatar foi assertada antes do check77GREEN.
+Nenhum pin,teste,skip,limiar,budget ou regra foi alterado.
+
+`captures/local-resource-cleanup.json` confirma término do runtime4174 e
+ausência do PGpróprio38173 por inspeção nominal e inventário independente.
+A bancada de revisão4173/41921 e150arquivos visuais em bytes originais
+permanecem acessíveis. O estado de autenticação da matriz foi movido para
+custódia privada com modo0600,fora da área de fonte. Publicação é somente
+develop; main continua congelada. O source fingerprint37 é idêntico ao do
+check77 e dos gates funcionais; alterações deste marco são documentação.
+CI atual e S6 formal ainda são precondições separadas de release.
