@@ -69,6 +69,24 @@ ativa no runtime. Não ler/copiar o valor existente para o agente.
 4. Com conta legítima, executar uma conversa e uma rodada de ferramenta; conferir
    resposta, tenant autorizado, uso medido e estimativa persistida. Observar
    timeout/rate limit sem retry cego e ausência de secrets em logs/artefatos.
+   O passo é executável por gate, contra bancada isolada:
+
+   ```bash
+   npx --no-install esbuild scripts/qa/deepseek-live-chat-gate.mjs --bundle \
+     --platform=node --packages=external --format=esm \
+     --outfile=.artifacts/qa-deepseek-live-chat-gate.mjs
+   node .artifacts/qa-deepseek-live-chat-gate.mjs http://127.0.0.1:4174 <evidenceDir>
+   ```
+
+   O gate afirma os quatro turnos com resposta **real** (nunca a mensagem
+   controlada), a serialização do compositor, a conversa `completed`, o produto
+   com preço **e** rendimento e alíquota **ausente** (nunca zero), as ferramentas
+   `succeeded` e todo `ai_usage` liquidado com **custo conhecido**. Exit `1` é
+   veredicto (resposta não real ou estado não persistido), `2` é precondição —
+   entre elas a **presença** de `DEEPSEEK_API_KEY` no ambiente da bancada,
+   verificada só pelo nome: o valor nunca é lido. Ele envia quatro turnos e cria
+   produto de fixture: use bancada descartável, nunca produção.
+
 5. Somente após o consumidor novo funcionar, o operador revoga a chave antiga.
    Registrar ID/estado de revogação e status bruto do probe protegido. HTTP 200
    isolado, console autenticado ou saldo visível não fecha uma rotação.
@@ -90,3 +108,12 @@ O build deve demonstrar que o canário fictício de `DEEPSEEK_API_KEY` e a refer
 Chamada real faturável, emissão/revogação, login/tenant do runtime publicado e
 teste operacional de custo continuam pendentes. Testes locais/CI sem a chave
 operacional não são evidência de integração autenticada em produção.
+
+O gate do passo 4 **foi exercitado** contra bancada isolada com a chave do
+operador: quatro turnos reais, sete ferramentas `succeeded` e custo conhecido
+somado (US$ 0,0232 na janela medida). Os dois controles fecham o verde por
+ausência: bancada **sem** a chave sai `2` sem tocar em nada, e chave canária
+inválida — nunca credencial real — sai `1` com os quatro turnos no ramo
+controlado. O que segue pendente é o **runtime publicado**: a entrada da
+credencial no runtime Web permanece Via A e a publicação aguarda o circuito de
+release.
