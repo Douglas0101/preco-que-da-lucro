@@ -14,6 +14,10 @@ export default tseslint.config(
       ".vinxi",
       "playwright-report",
       "test-results",
+      // Run output: bundles de gates (scripts/qa/*) e capturas ficam aqui, fora do
+      // versionamento e já ignorados pelo Prettier. Um bundle deixado em
+      // `.artifacts/` reprovava o `lint` por formatação de artefato gerado.
+      ".artifacts",
       ".worktree-*",
       ".p0-closeout-docker",
     ],

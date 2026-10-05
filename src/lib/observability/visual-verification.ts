@@ -24,7 +24,9 @@ export type VisualFailureType =
   | "incomplete-not-displayed"
   | "cls-above-threshold"
   | "tenant-leak"
-  | "redaction-leak";
+  | "redaction-leak"
+  | "chat-outcome-missing"
+  | "chat-outcome-fabricated";
 
 export interface AssertionOk {
   ok: true;
@@ -183,6 +185,45 @@ export function assertNoSecretLeak(text: string): AssertionResult {
   const leaks = findSecretLeaks(text);
   if (leaks.length === 0) return ok(assertion);
   return fail(assertion, "redaction-leak", `resíduo: ${leaks.join(", ")}`);
+}
+
+/** Figuras visíveis que exigem dado: `R$ 0,00`, `R$ 1.234,56`, `35,00%`. */
+const VISIBLE_FIGURE = /(?:R\$\s*\d[\d.]*(?:,\d{1,2})?|\d[\d.]*(?:,\d{1,2})?\s*%)/g;
+
+/**
+ * Desfecho do chat tem de ser honesto (§19.7; DBT-86/DBT-88). Dois ramos, e os
+ * dois são afirmados sem inventar um terceiro:
+ *
+ * - **Provedor indisponível**: a bolha mostra a mensagem controlada
+ *   (`controlledMessage`, derivada de `apiError("DEPENDENCY_ERROR")` pelo
+ *   chamador — nunca uma cópia da string) e **nenhum valor financeiro**: sem
+ *   dado não há número para exibir, então `R$ 0,00` ali é invenção.
+ * - **Provedor vivo**: a bolha é uma resposta real, não vazia e sem o aviso.
+ *
+ * Em ambos, token não finito reprova (INV-007) e bolha vazia reprova: um chat
+ * que não responde e não avisa é sucesso vazio, não engajamento.
+ */
+export function assertChatOutcomeHonest(text: string, controlledMessage: string): AssertionResult {
+  const assertion = "chat-outcome-honest";
+  const nonFinite = findNonFiniteTokens(text);
+  if (nonFinite.length > 0)
+    return fail(
+      assertion,
+      "nan-rendered",
+      `tokens não finitos na resposta: ${nonFinite.join(", ")}`,
+    );
+  const visible = text.trim();
+  if (visible.length === 0)
+    return fail(assertion, "chat-outcome-missing", "bolha do assistente sem conteúdo");
+  if (!visible.includes(controlledMessage)) return ok(assertion);
+  const figures = visible.match(VISIBLE_FIGURE);
+  if (figures && figures.length > 0)
+    return fail(
+      assertion,
+      "chat-outcome-fabricated",
+      `provedor indisponível com figura exibida: ${figures.join(", ")}`,
+    );
+  return ok(assertion);
 }
 
 export interface AssertionSummary {

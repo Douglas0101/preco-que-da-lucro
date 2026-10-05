@@ -17,6 +17,7 @@ import {
   SimpleSpanProcessor,
 } from "@opentelemetry/sdk-trace-base";
 import { brl, num } from "@/lib/format";
+import { apiError } from "@/lib/api-error";
 import {
   assertNoSecretLeaks,
   findSecretLeaks,
@@ -39,6 +40,7 @@ import {
   assertTenantIsolation,
   findNonFiniteTokens,
   summarizeResults,
+  assertChatOutcomeHonest,
 } from "@/lib/observability/visual-verification";
 import {
   buildRedactedCapture,
@@ -61,6 +63,7 @@ import {
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const EMAIL = "foo.bar@example.com";
 const RAW_SECRET = "supersecretvalue123";
+const CORRELATION_ID = "3f1c1c1e-6f5b-4a2c-9d0e-1b2a3c4d5e6f";
 
 function pngChunk(type: string, data: Buffer): Buffer {
   const header = Buffer.alloc(4);
@@ -306,6 +309,41 @@ describe("visual-verification", () => {
     } finally {
       delete process.env.VISUAL_TEST_SECRET;
     }
+  });
+
+  it("assertChatOutcomeHonest aceita os dois desfechos honestos", () => {
+    const controlled = apiError("DEPENDENCY_ERROR", CORRELATION_ID).message;
+    // Provedor indisponível: aviso controlado, sem valor nenhum na tela.
+    const unavailable = assertChatOutcomeHonest(`⚠️ ${controlled}`, controlled);
+    expect(unavailable.ok).toBe(true);
+    // Provedor vivo: resposta real, sem o aviso.
+    const live = assertChatOutcomeHonest(
+      "Entendi: R$ 4,00 de massa e R$ 6,00 de queijo. Quantas pizzas a receita rende?",
+      controlled,
+    );
+    expect(live.ok).toBe(true);
+  });
+
+  it("assertChatOutcomeHonest reprova indisponibilidade com valor fabricado", () => {
+    const controlled = apiError("DEPENDENCY_ERROR", CORRELATION_ID).message;
+    for (const fabricated of [
+      `⚠️ ${controlled} Custo: R$ 0,00`,
+      `⚠️ ${controlled} Margem 35,00%`,
+    ]) {
+      const result = assertChatOutcomeHonest(fabricated, controlled);
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.failureType).toBe("chat-outcome-fabricated");
+    }
+  });
+
+  it("assertChatOutcomeHonest falha fechado no degenerado", () => {
+    const controlled = apiError("DEPENDENCY_ERROR", CORRELATION_ID).message;
+    const empty = assertChatOutcomeHonest("   ", controlled);
+    expect(empty.ok).toBe(false);
+    if (!empty.ok) expect(empty.failureType).toBe("chat-outcome-missing");
+    const nonFinite = assertChatOutcomeHonest("seu custo é NaN por unidade", controlled);
+    expect(nonFinite.ok).toBe(false);
+    if (!nonFinite.ok) expect(nonFinite.failureType).toBe("nan-rendered");
   });
 
   it("summarizeResults conta por tipo, não só cardinalidade", () => {
