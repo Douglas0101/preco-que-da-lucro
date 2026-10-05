@@ -370,6 +370,12 @@ class FakeSalesService implements SalesService {
     return "0.0000";
   }
 
+  async itemSummaryForPeriod(): Promise<
+    Array<{ productId: string; quantity: string; totalAmount: string }>
+  > {
+    return [];
+  }
+
   async summaryForPeriod(): Promise<SalesSummary> {
     return { revenue: "0.0000", count: 0 };
   }

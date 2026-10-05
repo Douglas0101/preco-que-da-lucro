@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-10-04T15:51:42.481Z",
+  "fixed": "650",
+  "desiredProfit": "350",
+  "contributionUnit": "7",
+  "rawUnits": "142.857142857142857",
+  "discreteUnits": "143",
+  "rawRevenue": "2857.14",
+  "formula": "(650+350)/7; ceil for whole-unit sales",
+  "scope": "within registered cost assumptions; periodic variable200 not allocated"
+}

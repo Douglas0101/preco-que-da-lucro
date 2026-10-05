@@ -1,0 +1,12 @@
+{
+  "registeredBeforeSubmit": "2026-10-04T15:47:06.876Z",
+  "observedDateControl": "2026-09-15",
+  "alreadyPersistedCurrentSales": "50+30=80",
+  "nextHistoricalSale": "3*10=30",
+  "expected": {
+    "month": "80.00",
+    "quarter": "80.00",
+    "year": "110.00"
+  },
+  "reason": "Preserve mistaken disposable current-date fixture and record real dates; no hidden deletion"
+}

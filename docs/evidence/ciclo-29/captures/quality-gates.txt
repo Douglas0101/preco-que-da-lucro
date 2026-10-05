@@ -1,0 +1,12 @@
+C29 engineering evidence, source parent55f3ddf, release basee3a5507
+F0/F1/F2: prior receipts retained, historical; phase1 commit exists.
+F3 margin negative controls:3 old-formula failures, corrected focused33PASS.
+F3 check35:131 test files PASS,1785PASS18conditionalSKIP; current final F4 check pending.
+DB36:18 chained commands PASS, dashboard margin4 exact case identities PASS0SKIP. DBcheck37PASS.
+Session42:2 named flows GREEN, no runtime crashes.
+Select59:30 named assertions PASS (original26 plus4 premise identities).
+Geometry51:9 pages x4 named breakpoints=36PASS,zero offenders.
+Margin57:12 exact scenario identities PASS,11 redacted trios,zero client errors,owned fixture cleanup proven.
+Matrix55:60PASS0SKIP0UNEXPECTED0FLAKY,Chromium/Firefox/mobile. WebKit46PRECONDITION; no four-project LOCAL verdict.
+Principal npmci/fullcheck and current remote CI remain pending at this checkpoint.
+S6 formalNOT-STARTED,ADR041PROPOSTA,releaseNO-GO.

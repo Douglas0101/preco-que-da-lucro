@@ -157,10 +157,14 @@ function Vendas() {
             <CardTitle className="text-base">Registrar venda</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={submit} className="grid max-w-2xl gap-4 md:grid-cols-2">
+            <form onSubmit={submit} className="grid max-w-2xl gap-4 [&>*]:min-w-0 md:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="venda-produto">Produto</Label>
-                <Select value={selectedProductId} onValueChange={setProductId}>
+                <Select
+                  value={selectedProductId}
+                  onValueChange={setProductId}
+                  items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
+                >
                   <SelectTrigger id="venda-produto">
                     <SelectValue placeholder="Escolha um produto" />
                   </SelectTrigger>

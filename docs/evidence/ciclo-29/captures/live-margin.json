@@ -1,0 +1,191 @@
+{
+  "at": "2026-10-05T02:45:31.421Z",
+  "verdict": "GREEN",
+  "cases": [
+    {
+      "name": "empty-with-product-and-foreign-sales",
+      "expected": "/Registre vendas reais/",
+      "actual": "MARGEM CONSOLIDADA\nDADOS INCOMPLETOS\n—\n\nRegistre vendas reais para calcular o mix real de vendas.\n\nComo calculamos?",
+      "ok": true
+    },
+    {
+      "name": "actual-price-40-vs-catalog-25",
+      "expected": "/62,50/",
+      "actual": "MARGEM CONSOLIDADA\n62,50%\n\nMargem sobre o faturamento real (1 venda(s) no período).\n\nComo calculamos?",
+      "ok": true
+    },
+    {
+      "name": "month-excludes-previous-month",
+      "expected": "/62,50/",
+      "actual": "MARGEM CONSOLIDADA\n62,50%\n\nMargem sobre o faturamento real (1 venda(s) no período).\n\nComo calculamos?",
+      "ok": true
+    },
+    {
+      "name": "year-includes-previous-month",
+      "expected": "/53,33/",
+      "actual": "MARGEM CONSOLIDADA\n53,33%\n\nMargem sobre o faturamento real (2 venda(s) no período).\n\nComo calculamos?",
+      "ok": true
+    },
+    {
+      "name": "mixed-sale-with-unknown-cost",
+      "expected": "/1 produto\\(s\\) vendido\\(s\\) sem custo calculável/",
+      "actual": "MARGEM CONSOLIDADA\nDADOS INCOMPLETOS\n—\n\n1 produto(s) vendido(s) sem custo calculável; a margem exige o custo de tudo que foi vendido.\n\nComo calculamos?",
+      "ok": true
+    },
+    {
+      "name": "restored-calculable-month",
+      "expected": "/62,50/",
+      "actual": "MARGEM CONSOLIDADA\n62,50%\n\nMargem sobre o faturamento real (1 venda(s) no período).\n\nComo calculamos?",
+      "ok": true
+    },
+    {
+      "name": "controlled-summary-error-retry",
+      "expected": "/62,50/",
+      "actual": "MARGEM CONSOLIDADA\n62,50%\n\nMargem sobre o faturamento real (1 venda(s) no período).\n\nComo calculamos?",
+      "ok": true
+    },
+    {
+      "name": "logout-protected-route-login-B",
+      "expected": "/88,90/",
+      "actual": "MARGEM CONSOLIDADA\n88,90%\n\nMargem sobre o faturamento real (1 venda(s) no período).\n\nComo calculamos?",
+      "ok": true
+    },
+    {
+      "name": "tenant-B-visible-and-A-absent",
+      "ok": true,
+      "tenantId": "cc449fca-6fe8-407c-9e84-dab0f69fda6e"
+    },
+    {
+      "name": "login-back-to-A-without-B-cache",
+      "expected": "/62,50/",
+      "actual": "MARGEM CONSOLIDADA\n62,50%\n\nMargem sobre o faturamento real (1 venda(s) no período).\n\nComo calculamos?",
+      "ok": true
+    },
+    {
+      "name": "actual-loss-below-cost",
+      "expected": "/-130,00/",
+      "actual": "MARGEM CONSOLIDADA\n-130,00%\n\nMargem sobre o faturamento real (1 venda(s) no período).\n\nComo calculamos?",
+      "ok": true
+    },
+    {
+      "name": "recorded-sale-with-zero-revenue",
+      "expected": "/faturamento real do período é zero/",
+      "actual": "MARGEM CONSOLIDADA\nDADOS INCOMPLETOS\n—\n\nO faturamento real do período é zero; a margem consolidada exige faturamento.\n\nComo calculamos?",
+      "ok": true
+    }
+  ],
+  "captures": [
+    {
+      "name": "empty-with-product-and-foreign-sales",
+      "png": "docs/evidence/visual/2026-10-05T02-45-20-797Z-9eabf24f1bf197b3fc438af46d8899295355c24259402460c35a4b5f20ab14fe.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-20-797Z-9eabf24f1bf197b3fc438af46d8899295355c24259402460c35a4b5f20ab14fe.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-20-797Z-9eabf24f1bf197b3fc438af46d8899295355c24259402460c35a4b5f20ab14fe.dom.json",
+      "label": "empty-with-product-and-foreign-sales",
+      "timestamp": "2026-10-05T02-45-20-797Z",
+      "hash": "9eabf24f1bf197b3fc438af46d8899295355c24259402460c35a4b5f20ab14fe",
+      "correlationId": null
+    },
+    {
+      "name": "actual-price-40-vs-catalog-25",
+      "png": "docs/evidence/visual/2026-10-05T02-45-21-909Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-21-909Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-21-909Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.dom.json",
+      "label": "actual-price-40-vs-catalog-25",
+      "timestamp": "2026-10-05T02-45-21-909Z",
+      "hash": "0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d",
+      "correlationId": null
+    },
+    {
+      "name": "month-excludes-previous-month",
+      "png": "docs/evidence/visual/2026-10-05T02-45-23-032Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-23-032Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-23-032Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.dom.json",
+      "label": "month-excludes-previous-month",
+      "timestamp": "2026-10-05T02-45-23-032Z",
+      "hash": "0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d",
+      "correlationId": null
+    },
+    {
+      "name": "year-includes-previous-month",
+      "png": "docs/evidence/visual/2026-10-05T02-45-23-415Z-bb3c497e804c554c23499fcee185cb3007fab9e88d5bfa9c516826afba3b2518.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-23-415Z-bb3c497e804c554c23499fcee185cb3007fab9e88d5bfa9c516826afba3b2518.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-23-415Z-bb3c497e804c554c23499fcee185cb3007fab9e88d5bfa9c516826afba3b2518.dom.json",
+      "label": "year-includes-previous-month",
+      "timestamp": "2026-10-05T02-45-23-415Z",
+      "hash": "bb3c497e804c554c23499fcee185cb3007fab9e88d5bfa9c516826afba3b2518",
+      "correlationId": null
+    },
+    {
+      "name": "mixed-sale-with-unknown-cost",
+      "png": "docs/evidence/visual/2026-10-05T02-45-24-489Z-1c0afc5475c453938b05a0c99a35d9f7f8a24391891ea093b37f3744c5003114.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-24-489Z-1c0afc5475c453938b05a0c99a35d9f7f8a24391891ea093b37f3744c5003114.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-24-489Z-1c0afc5475c453938b05a0c99a35d9f7f8a24391891ea093b37f3744c5003114.dom.json",
+      "label": "mixed-sale-with-unknown-cost",
+      "timestamp": "2026-10-05T02-45-24-489Z",
+      "hash": "1c0afc5475c453938b05a0c99a35d9f7f8a24391891ea093b37f3744c5003114",
+      "correlationId": null
+    },
+    {
+      "name": "restored-calculable-month",
+      "png": "docs/evidence/visual/2026-10-05T02-45-25-514Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-25-514Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-25-514Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.dom.json",
+      "label": "restored-calculable-month",
+      "timestamp": "2026-10-05T02-45-25-514Z",
+      "hash": "006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5",
+      "correlationId": null
+    },
+    {
+      "name": "controlled-summary-error-retry",
+      "png": "docs/evidence/visual/2026-10-05T02-45-26-732Z-c5967b6d8cbe8629a2ae8531e700f9832e4bc91edb6019d18bd93617f27cdafc.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-26-732Z-c5967b6d8cbe8629a2ae8531e700f9832e4bc91edb6019d18bd93617f27cdafc.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-26-732Z-c5967b6d8cbe8629a2ae8531e700f9832e4bc91edb6019d18bd93617f27cdafc.dom.json",
+      "label": "controlled-summary-error-retry",
+      "timestamp": "2026-10-05T02-45-26-732Z",
+      "hash": "c5967b6d8cbe8629a2ae8531e700f9832e4bc91edb6019d18bd93617f27cdafc",
+      "correlationId": null
+    },
+    {
+      "name": "logout-protected-route-login-B",
+      "png": "docs/evidence/visual/2026-10-05T02-45-27-477Z-c45190d261e3ecffbcbe6d6bf0c92663d9df852dc161db0771c2d464f4be3498.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-27-477Z-c45190d261e3ecffbcbe6d6bf0c92663d9df852dc161db0771c2d464f4be3498.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-27-477Z-c45190d261e3ecffbcbe6d6bf0c92663d9df852dc161db0771c2d464f4be3498.dom.json",
+      "label": "logout-protected-route-login-B",
+      "timestamp": "2026-10-05T02-45-27-477Z",
+      "hash": "c45190d261e3ecffbcbe6d6bf0c92663d9df852dc161db0771c2d464f4be3498",
+      "correlationId": null
+    },
+    {
+      "name": "login-back-to-A-without-B-cache",
+      "png": "docs/evidence/visual/2026-10-05T02-45-29-240Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-29-240Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-29-240Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.dom.json",
+      "label": "login-back-to-A-without-B-cache",
+      "timestamp": "2026-10-05T02-45-29-240Z",
+      "hash": "006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5",
+      "correlationId": null
+    },
+    {
+      "name": "actual-loss-below-cost",
+      "png": "docs/evidence/visual/2026-10-05T02-45-30-277Z-cfbc08b7b69d27178f3e44c609ce741d732c5cb8be36042357f3307e5c4b0d54.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-30-277Z-cfbc08b7b69d27178f3e44c609ce741d732c5cb8be36042357f3307e5c4b0d54.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-30-277Z-cfbc08b7b69d27178f3e44c609ce741d732c5cb8be36042357f3307e5c4b0d54.dom.json",
+      "label": "actual-loss-below-cost",
+      "timestamp": "2026-10-05T02-45-30-277Z",
+      "hash": "cfbc08b7b69d27178f3e44c609ce741d732c5cb8be36042357f3307e5c4b0d54",
+      "correlationId": null
+    },
+    {
+      "name": "recorded-sale-with-zero-revenue",
+      "png": "docs/evidence/visual/2026-10-05T02-45-31-325Z-8a24b19db2e876c642402e0c756cc3d33d016e070b1fc64969e26b49b207977a.png",
+      "a11y": "docs/evidence/visual/2026-10-05T02-45-31-325Z-8a24b19db2e876c642402e0c756cc3d33d016e070b1fc64969e26b49b207977a.a11y.json",
+      "dom": "docs/evidence/visual/2026-10-05T02-45-31-325Z-8a24b19db2e876c642402e0c756cc3d33d016e070b1fc64969e26b49b207977a.dom.json",
+      "label": "recorded-sale-with-zero-revenue",
+      "timestamp": "2026-10-05T02-45-31-325Z",
+      "hash": "8a24b19db2e876c642402e0c756cc3d33d016e070b1fc64969e26b49b207977a",
+      "correlationId": null
+    }
+  ],
+  "errors": [],
+  "cleanup": "owned identities independently absent"
+}

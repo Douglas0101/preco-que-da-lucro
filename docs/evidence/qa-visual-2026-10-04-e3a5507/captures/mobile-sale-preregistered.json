@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-10-04T16:00:37.110Z",
+  "quantity": "1",
+  "unitPriceInput": "12,50",
+  "expectedTotal": "12.50",
+  "channel": "QA movel decimal",
+  "expectedPeriodTotalsAfterSubmit": {
+    "month": "122.50",
+    "quarter": "122.50",
+    "year": "152.50"
+  },
+  "scope": "synthetic owned fixture"
+}

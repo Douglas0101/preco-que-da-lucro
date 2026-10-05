@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-05T02:37:38.312Z",
+  "checks": [
+    {
+      "name": "chromium",
+      "status": "PASS",
+      "sentinel": "browser-precondition"
+    },
+    {
+      "name": "firefox",
+      "status": "PASS",
+      "sentinel": "browser-precondition"
+    },
+    {
+      "name": "webkit",
+      "status": "PRECONDITION",
+      "error": "newPage precondition exceeded 12s"
+    }
+  ]
+}

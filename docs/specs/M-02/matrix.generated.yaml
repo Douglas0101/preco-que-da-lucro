@@ -10,8 +10,8 @@
     "createServerFnDeclarations": 35,
     "concreteOperations": 36,
     "apiRoutes": 5,
-    "transactionSites": 113,
-    "directDatabaseFiles": 51
+    "transactionSites": 114,
+    "directDatabaseFiles": 52
   },
   "bffs": [
     {
@@ -126,7 +126,7 @@
       "operations": [
         {
           "name": "getDashboardSummary",
-          "line": 18,
+          "line": 19,
           "declaration": "createServerFn",
           "service": "DashboardService",
           "repository": "DashboardRepository",
@@ -1223,25 +1223,25 @@
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 56,
+      "line": 64,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 69,
+      "line": 77,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 93,
+      "line": 101,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 102,
+      "line": 110,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -1253,7 +1253,13 @@
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 131,
+      "line": 146,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/sales.repository.ts",
+      "line": 154,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -1323,6 +1329,7 @@
     "src/test/backfill-runner.test.ts",
     "src/test/break-even.negative-margin.test.tsx",
     "src/test/cross-tenant-denial.perf-waves.test.ts",
+    "src/test/dashboard-consolidated-margin.db.test.ts",
     "src/test/financial-metrics.test.ts",
     "src/test/helpers/chat-execution-fakes.ts",
     "src/test/helpers/tool-runner-fakes.ts",

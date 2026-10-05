@@ -241,7 +241,11 @@ function PontoView({
         <CardContent className="grid gap-4 p-5 md:grid-cols-2">
           <div className="space-y-1">
             <Label htmlFor="ponto-equilibrio-produto">Produto</Label>
-            <Select value={productId} onValueChange={onProductChange}>
+            <Select
+              value={productId}
+              onValueChange={onProductChange}
+              items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
+            >
               <SelectTrigger id="ponto-equilibrio-produto">
                 <SelectValue placeholder="Escolha um produto" />
               </SelectTrigger>

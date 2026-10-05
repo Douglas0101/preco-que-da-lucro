@@ -253,6 +253,11 @@ test("venda registrada aparece no faturamento real nos períodos Mês e Ano", as
   await expect(revenue).toContainText(VALOR_VENDA);
   await expect(revenue).toContainText("1 venda(s) no período selecionado.");
   await expect(metricCard(page, "Produtos")).toContainText("1");
+  // Preço real25 diverge do catálogo20; sem custo e taxa10%, contribuição45/50=90%.
+  // O oracle não reutiliza o helper de cálculo da aplicação.
+  const margin = metricCard(page, "Margem consolidada");
+  await expect(margin).toContainText(/90,00\s?%/);
+  await expect(margin).not.toContainText("DADOS INCOMPLETOS");
 
   await periodGroup.getByRole("button", { name: "Ano", exact: true }).click();
   await expect(periodGroup.getByRole("button", { name: "Ano", exact: true })).toHaveAttribute(
@@ -261,4 +266,5 @@ test("venda registrada aparece no faturamento real nos períodos Mês e Ano", as
   );
   await expect(revenue).toContainText(VALOR_VENDA);
   await expect(revenue).toContainText("1 venda(s) no período selecionado.");
+  await expect(margin).toContainText(/90,00\s?%/);
 });

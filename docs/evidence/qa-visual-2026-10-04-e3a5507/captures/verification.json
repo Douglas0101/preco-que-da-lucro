@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-10-04T16:10:06.769Z",
+  "sourceFilesChecked": 140,
+  "sourceFilesChanged": 0,
+  "triosChecked": 39,
+  "rawFilesChecked": 117,
+  "rawFilesDiscovered": 117,
+  "secretResidues": 0,
+  "correlationIds": "null, not observed",
+  "salesChecked": 5,
+  "sums": {
+    "month": "122.5000",
+    "quarter": "122.5000",
+    "year": "152.5000"
+  },
+  "simulationOracle": "1000 revenue / 500 result / 9 break-even units",
+  "expenseTotals": {
+    "fixed": "650.0000",
+    "variable": "200.0000"
+  },
+  "verdict": "PASS for integrity and arithmetic only; application findings remain OPEN"
+}

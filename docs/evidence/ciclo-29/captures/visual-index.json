@@ -1,0 +1,200 @@
+[
+  {
+    "scenario": "empty-with-product-and-foreign-sales",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-20-797Z-9eabf24f1bf197b3fc438af46d8899295355c24259402460c35a4b5f20ab14fe.png",
+    "sha256": "9eabf24f1bf197b3fc438af46d8899295355c24259402460c35a4b5f20ab14fe"
+  },
+  {
+    "scenario": "empty-with-product-and-foreign-sales",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-20-797Z-9eabf24f1bf197b3fc438af46d8899295355c24259402460c35a4b5f20ab14fe.a11y.json",
+    "sha256": "7737ae743d434db87010b2ec678ea4f6d12d83b5483434d1b437632a7e16eafd"
+  },
+  {
+    "scenario": "empty-with-product-and-foreign-sales",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-20-797Z-9eabf24f1bf197b3fc438af46d8899295355c24259402460c35a4b5f20ab14fe.dom.json",
+    "sha256": "4e8934a80260e4fddb53e0fa9af60cf4297bceaf392071df7f1ae2d50d184e34"
+  },
+  {
+    "scenario": "actual-price-40-vs-catalog-25",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-21-909Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.png",
+    "sha256": "0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d"
+  },
+  {
+    "scenario": "actual-price-40-vs-catalog-25",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-21-909Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.a11y.json",
+    "sha256": "0c918b75949b04ebb7859dc2b11ae745c2a490d104dd58b67d24e0787c76510f"
+  },
+  {
+    "scenario": "actual-price-40-vs-catalog-25",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-21-909Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.dom.json",
+    "sha256": "51adff7d741ab3e8c0f924c5725aec9ce8e86076d39e9de5ff0b94c7bd784ee1"
+  },
+  {
+    "scenario": "month-excludes-previous-month",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-23-032Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.png",
+    "sha256": "0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d"
+  },
+  {
+    "scenario": "month-excludes-previous-month",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-23-032Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.a11y.json",
+    "sha256": "67d185cceeea69e4e1b3f3b2fe89c99a38e6da9dbbf8bce02469c8dd1706171d"
+  },
+  {
+    "scenario": "month-excludes-previous-month",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-23-032Z-0b47a8bd32ccf221092f0f5424b4971329119af3eb3bf0d23e72f51a1541c91d.dom.json",
+    "sha256": "b2da2420bf158f44c35fb69c509ea5604a8c5cc4d4292ff46157628b093a289e"
+  },
+  {
+    "scenario": "year-includes-previous-month",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-23-415Z-bb3c497e804c554c23499fcee185cb3007fab9e88d5bfa9c516826afba3b2518.png",
+    "sha256": "bb3c497e804c554c23499fcee185cb3007fab9e88d5bfa9c516826afba3b2518"
+  },
+  {
+    "scenario": "year-includes-previous-month",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-23-415Z-bb3c497e804c554c23499fcee185cb3007fab9e88d5bfa9c516826afba3b2518.a11y.json",
+    "sha256": "8a824845fa2fbc534315c66b6ee9d1f1beea63ed4bced4bca870035e76fbc872"
+  },
+  {
+    "scenario": "year-includes-previous-month",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-23-415Z-bb3c497e804c554c23499fcee185cb3007fab9e88d5bfa9c516826afba3b2518.dom.json",
+    "sha256": "aa6703d4cfa2cdec0811c7f6237fa595f197a149f9e1369ca712705950386b11"
+  },
+  {
+    "scenario": "mixed-sale-with-unknown-cost",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-24-489Z-1c0afc5475c453938b05a0c99a35d9f7f8a24391891ea093b37f3744c5003114.png",
+    "sha256": "1c0afc5475c453938b05a0c99a35d9f7f8a24391891ea093b37f3744c5003114"
+  },
+  {
+    "scenario": "mixed-sale-with-unknown-cost",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-24-489Z-1c0afc5475c453938b05a0c99a35d9f7f8a24391891ea093b37f3744c5003114.a11y.json",
+    "sha256": "dc4f52df37d3d3408f00f37af83c1b9164efaa023bc8f148af7cfd828da2bb06"
+  },
+  {
+    "scenario": "mixed-sale-with-unknown-cost",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-24-489Z-1c0afc5475c453938b05a0c99a35d9f7f8a24391891ea093b37f3744c5003114.dom.json",
+    "sha256": "b4acfa63cab20ec1003ac3758ce2d0ca5d38371880ccd0b2c12a87c0b24b202c"
+  },
+  {
+    "scenario": "restored-calculable-month",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-25-514Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.png",
+    "sha256": "006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5"
+  },
+  {
+    "scenario": "restored-calculable-month",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-25-514Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.a11y.json",
+    "sha256": "0e2b8872fdadd31e25640d72c95bd3893241a63d54a0c7ac95a8a95d60601134"
+  },
+  {
+    "scenario": "restored-calculable-month",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-25-514Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.dom.json",
+    "sha256": "5e1ff70074410323385ab89ccce7e252e711bc58badc4e058c8f358dc5c997e7"
+  },
+  {
+    "scenario": "controlled-summary-error-retry",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-26-732Z-c5967b6d8cbe8629a2ae8531e700f9832e4bc91edb6019d18bd93617f27cdafc.png",
+    "sha256": "c5967b6d8cbe8629a2ae8531e700f9832e4bc91edb6019d18bd93617f27cdafc"
+  },
+  {
+    "scenario": "controlled-summary-error-retry",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-26-732Z-c5967b6d8cbe8629a2ae8531e700f9832e4bc91edb6019d18bd93617f27cdafc.a11y.json",
+    "sha256": "8bd266391fde788503d698a1fb3aad38077bff8dbeb532add4f272171f008020"
+  },
+  {
+    "scenario": "controlled-summary-error-retry",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-26-732Z-c5967b6d8cbe8629a2ae8531e700f9832e4bc91edb6019d18bd93617f27cdafc.dom.json",
+    "sha256": "a1b49ca3b6f18d9f0e6651f8f5157c906825b8b97c5145003de7a1a5ff902829"
+  },
+  {
+    "scenario": "logout-protected-route-login-B",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-27-477Z-c45190d261e3ecffbcbe6d6bf0c92663d9df852dc161db0771c2d464f4be3498.png",
+    "sha256": "c45190d261e3ecffbcbe6d6bf0c92663d9df852dc161db0771c2d464f4be3498"
+  },
+  {
+    "scenario": "logout-protected-route-login-B",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-27-477Z-c45190d261e3ecffbcbe6d6bf0c92663d9df852dc161db0771c2d464f4be3498.a11y.json",
+    "sha256": "a8226b2a8e46e7afb5ee215bf9dafde97da5d6cc3a655b31942dab5d80186947"
+  },
+  {
+    "scenario": "logout-protected-route-login-B",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-27-477Z-c45190d261e3ecffbcbe6d6bf0c92663d9df852dc161db0771c2d464f4be3498.dom.json",
+    "sha256": "2bd220935e1485b98b1ca36575a6878fd293be54b0069678911b8ec75aeca5b4"
+  },
+  {
+    "scenario": "login-back-to-A-without-B-cache",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-29-240Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.png",
+    "sha256": "006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5"
+  },
+  {
+    "scenario": "login-back-to-A-without-B-cache",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-29-240Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.a11y.json",
+    "sha256": "43643bf97d67aa1de1ae859e8b9cd70f889b7aa2f89b5311f4a354a0d96fc68b"
+  },
+  {
+    "scenario": "login-back-to-A-without-B-cache",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-29-240Z-006f8d7a97aa9586dacb9df034e3ff63725efcf513021168adcb65df4b4d39e5.dom.json",
+    "sha256": "2e56f00e79954457a15330342f8ed75103c3ca434676950cc4898a4ede20598a"
+  },
+  {
+    "scenario": "actual-loss-below-cost",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-30-277Z-cfbc08b7b69d27178f3e44c609ce741d732c5cb8be36042357f3307e5c4b0d54.png",
+    "sha256": "cfbc08b7b69d27178f3e44c609ce741d732c5cb8be36042357f3307e5c4b0d54"
+  },
+  {
+    "scenario": "actual-loss-below-cost",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-30-277Z-cfbc08b7b69d27178f3e44c609ce741d732c5cb8be36042357f3307e5c4b0d54.a11y.json",
+    "sha256": "c1b7e8db371aa270ffbd0e3833b67f65273ed24d62ef43263d8f0657d9e1b31f"
+  },
+  {
+    "scenario": "actual-loss-below-cost",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-30-277Z-cfbc08b7b69d27178f3e44c609ce741d732c5cb8be36042357f3307e5c4b0d54.dom.json",
+    "sha256": "cf6bca4c812989edd6aeabe22b4a9cee836a5a2f4d69e06b1ab9260386291e9f"
+  },
+  {
+    "scenario": "recorded-sale-with-zero-revenue",
+    "kind": "png",
+    "path": "docs/evidence/visual/2026-10-05T02-45-31-325Z-8a24b19db2e876c642402e0c756cc3d33d016e070b1fc64969e26b49b207977a.png",
+    "sha256": "8a24b19db2e876c642402e0c756cc3d33d016e070b1fc64969e26b49b207977a"
+  },
+  {
+    "scenario": "recorded-sale-with-zero-revenue",
+    "kind": "a11y",
+    "path": "docs/evidence/visual/2026-10-05T02-45-31-325Z-8a24b19db2e876c642402e0c756cc3d33d016e070b1fc64969e26b49b207977a.a11y.json",
+    "sha256": "2d8e5c72d24778758e5497aef004a968c2017e7166ec3e1d3f9c5b3edbbac47b"
+  },
+  {
+    "scenario": "recorded-sale-with-zero-revenue",
+    "kind": "dom",
+    "path": "docs/evidence/visual/2026-10-05T02-45-31-325Z-8a24b19db2e876c642402e0c756cc3d33d016e070b1fc64969e26b49b207977a.dom.json",
+    "sha256": "a6e1ea4405e1b969608cacb2504a0f0e7ec36450427cc34ca7bcdec77bbbb4e9"
+  }
+]

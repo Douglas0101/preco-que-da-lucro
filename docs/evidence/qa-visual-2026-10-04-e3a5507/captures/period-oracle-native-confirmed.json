@@ -1,0 +1,12 @@
+{
+  "registeredBeforeSubmit": "2026-10-04T15:48:36.513Z",
+  "dateAfterOtherFields": "2026-09-15",
+  "currentFixtures": "50+30+30=110",
+  "historicalNext": "3*10=30",
+  "expected": {
+    "month": "110.00",
+    "quarter": "110.00",
+    "year": "140.00"
+  },
+  "adapterPrecondition": "CUA date fill did not update retained React state; documented native AX setValue retained through other field changes; no app defect inferred"
+}

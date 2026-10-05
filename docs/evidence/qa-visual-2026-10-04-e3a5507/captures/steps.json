@@ -1,0 +1,268 @@
+[
+  {
+    "id": "V01",
+    "result": "PASS",
+    "details": "Synthetic owner login reached /inicio; auth button pending state then authenticated shell.",
+    "timestamp": "2026-10-04T15:38:14.427Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  },
+  {
+    "id": "V02",
+    "result": "PASS",
+    "details": "Zero fixture sales: faturamento —, no real revenue invented; consolidated margin DADOS INCOMPLETOS; two products, fixed600, best margin35.00%. Geometry {\"width\":1350,\"height\":880,\"clientWidth\":1335,\"scrollWidth\":1345,\"overflow\":true}",
+    "timestamp": "2026-10-04T15:38:14.429Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  },
+  {
+    "id": "V03",
+    "result": "PASS",
+    "details": "Complete product displays REAL, cost10, price20, margin35%; incomplete product displays DADOS INCOMPLETOS and cost/margin —, not0.00. Screenshot and redacted DOM evidence.",
+    "timestamp": "2026-10-04T15:38:54.697Z",
+    "url": "http://127.0.0.1:4173/produtos"
+  },
+  {
+    "id": "V07-positive",
+    "result": "PASS",
+    "details": "Known packaging unitcost10, manual additional2, tax10%+fee5%, target20%: minimum14.12, target18.46, market18; scope and unallocated periodic-expense warnings visible; baseline breakeven86 units.",
+    "timestamp": "2026-10-04T15:40:21.884Z",
+    "url": "http://127.0.0.1:4173/diagnostico?produto=00000000-0000-4000-8000-000000000010"
+  },
+  {
+    "id": "V07-negative",
+    "result": "PASS",
+    "details": "Target90% plus rates15% triggers calculation alert; target output withheld, minimum14.12 remains independently valid.",
+    "timestamp": "2026-10-04T15:40:56.778Z",
+    "url": "http://127.0.0.1:4173/diagnostico?produto=00000000-0000-4000-8000-000000000010"
+  },
+  {
+    "id": "V07-positive",
+    "result": "PASS",
+    "details": "After state-based wait for actual calculation output: minimum14.12, target18.46, market18; matches preregistered Decimal oracle. Initial pre-debounce screenshots explicitly not calculation verdict.",
+    "timestamp": "2026-10-04T15:40:57.661Z",
+    "url": "http://127.0.0.1:4173/diagnostico?produto=00000000-0000-4000-8000-000000000010"
+  },
+  {
+    "id": "V06-calculation",
+    "result": "PASS",
+    "details": "Explicit price20,cost5,fixed100,volume50,rates15%: revenue1000, contribution12/60%, operatingResult500; output matches independent Decimal preregistration; SIMULAÇÃO label and scope warnings visible.",
+    "timestamp": "2026-10-04T15:41:52.889Z",
+    "url": "http://127.0.0.1:4173/simulacoes"
+  },
+  {
+    "id": "V06-forecast",
+    "result": "PASS",
+    "details": "Selecting Estimativa changes badge/volume field; saveEnabled=false with aria-describedby=simulacao-origem-nao-persistivel and explicit v2 reason.",
+    "timestamp": "2026-10-04T15:42:17.705Z",
+    "url": "http://127.0.0.1:4173/simulacoes"
+  },
+  {
+    "id": "V06-save",
+    "result": "PASS",
+    "details": "Actual button submit completed; saved list QA visual50units appears.",
+    "timestamp": "2026-10-04T15:42:35.461Z",
+    "url": "http://127.0.0.1:4173/simulacoes"
+  },
+  {
+    "id": "V06-persistence",
+    "result": "PASS",
+    "details": "Saved hypothesis identity/name and revenue1000/result500 persist after full reload; editor resets and volume remains unknown, saved results labeled SIMULAÇÃO.",
+    "timestamp": "2026-10-04T15:42:36.698Z",
+    "url": "http://127.0.0.1:4173/simulacoes"
+  },
+  {
+    "id": "V08-negative",
+    "result": "PASS",
+    "details": "Quantity0 submit rejected; DB count0 before positive sale (db-after-simulation.json). Toast content in capture; no phantom sale.",
+    "timestamp": "2026-10-04T15:44:01.407Z",
+    "url": "http://127.0.0.1:4173/vendas"
+  },
+  {
+    "id": "V08-positive",
+    "result": "PASS",
+    "details": "Synthetic sale by actual UI click: product complete, qty2, unitPrice25, date2026-10-04, channelQA visual, rowtotal50 and success toast; form quantity/price reset.",
+    "timestamp": "2026-10-04T15:44:14.129Z",
+    "url": "http://127.0.0.1:4173/vendas"
+  },
+  {
+    "id": "V08-reload",
+    "result": "PASS",
+    "details": "Same product/quantity/price/channel/date/total visible after full reload.",
+    "timestamp": "2026-10-04T15:44:15.018Z",
+    "url": "http://127.0.0.1:4173/vendas"
+  },
+  {
+    "id": "V09-first-revenue",
+    "result": "PASS",
+    "details": "Month shows factual50/count1 after sale; saved simulation1000 excluded. Consolidated margin stays — with incorrect register-sales guidance: recorded finding, not PASS for margin.",
+    "timestamp": "2026-10-04T15:46:01.378Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  },
+  {
+    "id": "V09-period-fixture",
+    "result": "PASS",
+    "details": "Real UI date input+submit adds Sep15 quantity3 price10 total30 and distinct channel; row visible.",
+    "timestamp": "2026-10-04T15:46:03.864Z",
+    "url": "http://127.0.0.1:4173/vendas"
+  },
+  {
+    "id": "V09-date-precondition",
+    "result": "FAIL",
+    "details": "Attempted date fill Sep15 did not change actual displayed date; submitted second disposable fixture sale on Oct4 instead. Month80/count2 is correct for persisted dates, not evidence of period bug. Reconcile input and DB before period verdict.",
+    "timestamp": "2026-10-04T15:46:34.417Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  },
+  {
+    "id": "V09-native-date",
+    "result": "PASS",
+    "details": "AX setValue -> other fields -> dateSep15 retained -> submit -> actualSep15 row30; current-date adapter probe fixtures preserved; final oracle110/110/140.",
+    "timestamp": "2026-10-04T15:48:37.538Z",
+    "url": "http://127.0.0.1:4173/vendas"
+  },
+  {
+    "id": "V09-quarter",
+    "result": "PASS",
+    "details": "Trimestre selected and factual110/count3; Sep15 sale excluded from Oct-Dec.",
+    "timestamp": "2026-10-04T15:49:01.100Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  },
+  {
+    "id": "V09-year",
+    "result": "PASS",
+    "details": "Ano selected, factual140/count4: current110 plus Sep15 historical30. Month and quarter110/count3 exclude historical sale.",
+    "timestamp": "2026-10-04T15:49:21.477Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  },
+  {
+    "id": "V05-cost-write",
+    "result": "PASS",
+    "details": "Actual UI update package price100->120 persisted and current value120 displayed; fixturepackage units10.",
+    "timestamp": "2026-10-04T15:50:19.408Z",
+    "url": "http://127.0.0.1:4173/precos"
+  },
+  {
+    "id": "V05-recalculation",
+    "result": "PASS",
+    "details": "Product cost12 and margin25% match oracle after package120/10; price20,rates15%.",
+    "timestamp": "2026-10-04T15:50:20.771Z",
+    "url": "http://127.0.0.1:4173/produtos"
+  },
+  {
+    "id": "V05-restored",
+    "result": "PASS",
+    "details": "Package price restored100 by same UI flow; no app source changed.",
+    "timestamp": "2026-10-04T15:50:22.255Z",
+    "url": "http://127.0.0.1:4173/precos"
+  },
+  {
+    "id": "V04-expense",
+    "result": "PASS",
+    "details": "Blank expense submit controlled rejection; positive name/amount50/defaultfixa creates named expense, fixed total650 and variable200. Real UI submit; synthetic record retained.",
+    "timestamp": "2026-10-04T15:51:02.152Z",
+    "url": "http://127.0.0.1:4173/despesas"
+  },
+  {
+    "id": "V05-break-even",
+    "result": "PASS",
+    "details": "Fixed650/currentprice20/unitcost10/rates15% => contribution7, ceil(650/7)=93 units and raw-based revenue1857.14; UI shows raw92.86 and discrete93.",
+    "timestamp": "2026-10-04T15:51:42.479Z",
+    "url": "http://127.0.0.1:4173/ponto-equilibrio"
+  },
+  {
+    "id": "V05-profit-goal",
+    "result": "PASS",
+    "details": "Actual UI143 unidades and revenue2860=143*20; raw142.857 would give2857.14. Preregistered raw/discrete distinction retained; assertion locator initially expected abbreviation un. while UI uses unidades, no app failure. Goal within declared cost assumptions.",
+    "timestamp": "2026-10-04T15:52:15.535Z",
+    "url": "http://127.0.0.1:4173/ponto-equilibrio"
+  },
+  {
+    "id": "V04-product-navigation",
+    "result": "PASS",
+    "details": "Product-list Ver and chat Ver produto both navigate to intended product diagnosis URL; observed navigation, no modal claimed. Restored fixture assistant message visible.",
+    "timestamp": "2026-10-04T15:52:54.210Z",
+    "url": "http://127.0.0.1:4173/diagnostico?produto=00000000-0000-4000-8000-000000000010"
+  },
+  {
+    "id": "V04-chat-degraded",
+    "result": "PASS-LIMITED",
+    "details": "No provider key in owned runtime: submit shows necessary-service-unavailable, textarea re-enabled, no product creation success claimed. Recomeçar opens permanent-delete warning; Cancelar preserves fixture history.",
+    "timestamp": "2026-10-04T15:53:45.410Z",
+    "url": "http://127.0.0.1:4173/novo-produto"
+  },
+  {
+    "id": "V12",
+    "result": "PASS",
+    "details": "Actual Sair -> auth; unauthenticated /inicio navigation returns auth, no tenant UI visible. No cookies/token values inspected.",
+    "timestamp": "2026-10-04T15:53:47.219Z",
+    "url": "http://127.0.0.1:4173/auth?redirect=%2Finicio"
+  },
+  {
+    "id": "V10-initial-navigation",
+    "result": "FAIL",
+    "details": "TenantB login accepted but /inicio rendering crashed with TypeError undefined sales.count; Try again did not recover. Redacted console error and screenshot captured. Root cause not yet proven.",
+    "timestamp": "2026-10-04T15:56:32.550Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  },
+  {
+    "id": "V10-B-reload-recovery",
+    "result": "PASS-LIMITED",
+    "details": "Full browser reload recovered B dashboard; built-in Try again previously failed. B product1/fixed0/no sales/ownmarker100% observed; cache/transition cause remains inference.",
+    "timestamp": "2026-10-04T15:57:26.387Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  },
+  {
+    "id": "V10-B-positive",
+    "result": "PASS",
+    "details": "Own marker visible; AComplete and AIncomplete DOM counts0 in B list. Database product210/tenant202/user201 owner identity verified.",
+    "timestamp": "2026-10-04T15:57:27.778Z",
+    "url": "http://127.0.0.1:4173/produtos"
+  },
+  {
+    "id": "V10-A-negative",
+    "result": "PASS",
+    "details": "A owner list has its two fixture identities; foreignB marker DOMcount0 while positiveB control and DB identity exist. Scope nominal UI visibility only, not complete RLS certification.",
+    "timestamp": "2026-10-04T15:58:16.420Z",
+    "url": "http://127.0.0.1:4173/produtos"
+  },
+  {
+    "id": "V07-switch",
+    "result": "PASS",
+    "details": "Two actual named A options, foreignB marker0. Manual2/20 cleared after selecting incomplete product; no prior assumptions silently carried across identity. Trigger still shows UUID: finding.",
+    "timestamp": "2026-10-04T15:59:00.405Z",
+    "url": "http://127.0.0.1:4173/diagnostico"
+  },
+  {
+    "id": "V11-mobile-operation",
+    "result": "PASS",
+    "details": "390x844 actual menu->Vendas, fill qty1/unitPrice12,50/channelQA movel decimal, button submits and persisted rowtotal12.50/count5 appears. Responsive form has13px horizontal overflow, separate finding.",
+    "timestamp": "2026-10-04T16:00:37.950Z",
+    "url": "http://127.0.0.1:4173/vendas"
+  },
+  {
+    "id": "V11-mobile-menu",
+    "result": "PASS",
+    "details": "Menu opened by pointer before navigation; Enter opens via accessible keyboard, Escape closes. Initial drawer screenshot sampled transition; settled capture separately identified. 390x844 CSS viewport only, not separate mobile engine.",
+    "timestamp": "2026-10-04T16:02:29.154Z",
+    "url": "http://127.0.0.1:4173/vendas"
+  },
+  {
+    "id": "handoff",
+    "result": "LOCAL-VERIFIED",
+    "details": "Temporary viewport reset; N1 tab10 authenticatedA dashboard current month122.50/fixed650, local loopback preview4173 remains active for user review. Owned fixture DB only; no app/provider source edits.",
+    "timestamp": "2026-10-04T16:02:30.552Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  },
+  {
+    "id": "V09-final-total",
+    "result": "PASS",
+    "details": "After mobile decimal sale: Ano152.50/count5; previous month122.50/count4, difference exactly actual Sep15 sale30. Independent SQL final reconciliation follows.",
+    "timestamp": "2026-10-04T16:07:25.319Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  },
+  {
+    "id": "V09-return-month",
+    "result": "PASS",
+    "details": "Final preview returned to month122.50/count4; viewport reset to default.",
+    "timestamp": "2026-10-04T16:07:43.522Z",
+    "url": "http://127.0.0.1:4173/inicio"
+  }
+]

@@ -1,0 +1,182 @@
+{
+  "timestamp": "2026-10-04T18:25:00.341Z",
+  "report": {
+    "benchUrl": "http://127.0.0.1:4173",
+    "verdict": "RED",
+    "pages": 18,
+    "failures": 2,
+    "results": [
+      {
+        "page": "/inicio",
+        "breakpoint": "desktop",
+        "ok": false,
+        "offenders": [
+          {
+            "tag": "HTML",
+            "cls": "",
+            "clientWidth": 1350,
+            "scrollWidth": 1357,
+            "overflow": 7
+          },
+          {
+            "tag": "MAIN",
+            "cls": "min-w-0 flex-1",
+            "clientWidth": 1062,
+            "scrollWidth": 1069,
+            "overflow": 7
+          },
+          {
+            "tag": "DIV",
+            "cls": "grid gap-4 md:grid-cols-2 lg:grid-cols-4",
+            "clientWidth": 998,
+            "scrollWidth": 1037,
+            "overflow": 39
+          },
+          {
+            "tag": "DIV",
+            "cls": "rounded-xl border bg-card text-card-foreground shadow",
+            "clientWidth": 236,
+            "scrollWidth": 275,
+            "overflow": 39
+          }
+        ],
+        "shots": [
+          "/home/douglas-souza/.codex/artifacts/ciclo-29/dbt-89/01-baseline-red.d/desktop-inicio-offender-0.png",
+          "/home/douglas-souza/.codex/artifacts/ciclo-29/dbt-89/01-baseline-red.d/desktop-inicio-offender-1.png",
+          "/home/douglas-souza/.codex/artifacts/ciclo-29/dbt-89/01-baseline-red.d/desktop-inicio-offender-2.png",
+          "/home/douglas-souza/.codex/artifacts/ciclo-29/dbt-89/01-baseline-red.d/desktop-inicio-full.png"
+        ]
+      },
+      {
+        "page": "/produtos",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/novo-produto",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/precos",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/despesas",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/vendas",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/ponto-equilibrio",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/simulacoes",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/diagnostico",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/inicio",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/produtos",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/novo-produto",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/precos",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/despesas",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/vendas",
+        "breakpoint": "mobile",
+        "ok": false,
+        "offenders": [
+          {
+            "tag": "FORM",
+            "cls": "grid max-w-2xl gap-4 md:grid-cols-2",
+            "clientWidth": 308,
+            "scrollWidth": 310,
+            "overflow": 2
+          }
+        ],
+        "shots": [
+          "/home/douglas-souza/.codex/artifacts/ciclo-29/dbt-89/01-baseline-red.d/mobile-vendas-offender-0.png",
+          "/home/douglas-souza/.codex/artifacts/ciclo-29/dbt-89/01-baseline-red.d/mobile-vendas-full.png"
+        ]
+      },
+      {
+        "page": "/ponto-equilibrio",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/simulacoes",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/diagnostico",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      }
+    ]
+  }
+}

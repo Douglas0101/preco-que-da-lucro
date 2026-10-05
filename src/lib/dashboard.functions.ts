@@ -3,10 +3,11 @@ import { z } from "zod";
 import { requireDatabaseAuth } from "@/middleware/request-context";
 import {
   getDashboardSummary as getDashboardSummaryService,
+  type ConsolidatedMargin,
   type DashboardPeriod,
 } from "@/server/services/dashboard.service";
 
-export type { DashboardPeriod };
+export type { ConsolidatedMargin, DashboardPeriod };
 
 const dashboardInput = z
   .object({

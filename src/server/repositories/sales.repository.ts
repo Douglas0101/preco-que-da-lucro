@@ -26,6 +26,13 @@ export interface SalesSummary {
   count: number;
 }
 
+/** Per-product factual totals within a period (DBT-88 consolidated margin). */
+export interface SaleItemSummaryRow {
+  productId: string;
+  quantity: string;
+  totalAmount: string;
+}
+
 export interface SaleListRow {
   sale: Sale;
   items: Array<{
@@ -42,6 +49,7 @@ export interface SalesRepository {
   create(context: RequestContext, input: SaleWrite): Promise<{ sale: Sale; items: SaleItem[] }>;
   revenue(context: RequestContext, range?: { from?: Date; to?: Date }): Promise<string>;
   summaryForPeriod(context: RequestContext, from: Date): Promise<SalesSummary>;
+  itemSummaryForPeriod(context: RequestContext, from: Date): Promise<SaleItemSummaryRow[]>;
   list(
     context: RequestContext,
     range: { from?: Date; to?: Date; limit?: number },
@@ -108,6 +116,21 @@ export class DrizzleSalesRepository implements SalesRepository {
       .where(and(eq(sales.tenantId, context.tenantId), gte(sales.occurredAt, from)));
     if (!row) throw new Error("DATABASE_ERROR");
     return { revenue: row.revenue, count: row.count };
+  }
+
+  async itemSummaryForPeriod(context: RequestContext, from: Date): Promise<SaleItemSummaryRow[]> {
+    const tx = context.transaction as DatabaseTransaction;
+    const rows = await tx
+      .select({
+        productId: salesItems.productId,
+        quantity: sql<string>`sum(${salesItems.quantity})::text`,
+        totalAmount: sql<string>`sum(${salesItems.totalAmount})::text`,
+      })
+      .from(salesItems)
+      .innerJoin(sales, eq(salesItems.saleId, sales.id))
+      .where(and(eq(salesItems.tenantId, context.tenantId), gte(sales.occurredAt, from)))
+      .groupBy(salesItems.productId);
+    return rows;
   }
 
   async list(

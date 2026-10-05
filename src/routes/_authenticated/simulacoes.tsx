@@ -405,7 +405,11 @@ function Simulacoes() {
           <CardContent className="p-5">
             <div className="max-w-md space-y-1">
               <Label htmlFor="simulacoes-produto">Produto</Label>
-              <Select value={selectedProductId} onValueChange={setProductId}>
+              <Select
+                value={selectedProductId}
+                onValueChange={setProductId}
+                items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
+              >
                 <SelectTrigger id="simulacoes-produto">
                   <SelectValue placeholder="Escolha um produto" />
                 </SelectTrigger>

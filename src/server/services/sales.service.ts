@@ -23,6 +23,10 @@ export interface SalesService {
   create(context: RequestContext, input: SaleDraft): ReturnType<SalesRepository["create"]>;
   revenue(context: RequestContext, range?: { from?: Date; to?: Date }): Promise<string>;
   summaryForPeriod(context: RequestContext, from: Date): Promise<SalesSummary>;
+  itemSummaryForPeriod(
+    context: RequestContext,
+    from: Date,
+  ): ReturnType<SalesRepository["itemSummaryForPeriod"]>;
   list(
     context: RequestContext,
     range?: { from?: Date; to?: Date; limit?: number },
@@ -87,6 +91,10 @@ export class DefaultSalesService implements SalesService {
 
   summaryForPeriod(context: RequestContext, from: Date): Promise<SalesSummary> {
     return this.repository.summaryForPeriod(context, from);
+  }
+
+  itemSummaryForPeriod(context: RequestContext, from: Date) {
+    return this.repository.itemSummaryForPeriod(context, from);
   }
 
   list(

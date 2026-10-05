@@ -15,6 +15,8 @@ import { chromium } from "playwright";
 import {
   assertLoopbackBench,
   loginIfNeeded,
+  waitForRouteReady,
+  persistBenchScreenshot,
   logoutViaUi,
   readBenchFixtureCredentials,
 } from "./bench-lib.mjs";
@@ -68,25 +70,22 @@ async function runScenario(browser, name, { preLogout }) {
 
   try {
     await page.goto(`${baseUrl}/inicio`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1200);
     await loginIfNeeded(page, baseUrl, creds);
     await page.waitForURL("**/inicio**", { timeout: 20000 });
-    await page.waitForTimeout(2000);
+    await waitForRouteReady(page);
 
     if (preLogout) {
       // With the defect present the first login also crashes the dashboard;
       // a full reload recovers it (ciclo-28 observation) so the UI logout and
       // the protected-route second pass can proceed.
       await page.reload({ waitUntil: "domcontentloaded" });
-      await page.waitForTimeout(1500);
       await logoutViaUi(page);
       // Second pass: protected route without a session (fresh 401 prefetch),
       // then login again — the ciclo-28 transition A/B with one fixture account.
       await page.goto(`${baseUrl}/inicio`, { waitUntil: "domcontentloaded" });
-      await page.waitForTimeout(1200);
       await loginIfNeeded(page, baseUrl, creds);
       await page.waitForURL("**/inicio**", { timeout: 20000 });
-      await page.waitForTimeout(2000);
+      await waitForRouteReady(page);
     }
 
     const crash = errors.filter((e) => CRASH_SIGNATURE.test(e.message));
@@ -112,7 +111,7 @@ async function runScenario(browser, name, { preLogout }) {
     if (evidenceDir && result.verdict === "RED") {
       mkdirSync(evidenceDir, { recursive: true });
       const shot = join(evidenceDir, `screenshot-${name}.png`);
-      await page.screenshot({ path: shot, fullPage: false });
+      await persistBenchScreenshot(page, shot);
       result.screenshots.push(shot);
     }
   } catch (error) {
@@ -126,7 +125,7 @@ async function runScenario(browser, name, { preLogout }) {
   return result;
 }
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({ args: ["--disable-dev-shm-usage"] });
 const results = [];
 try {
   results.push(await runScenario(browser, "fresh-unauthenticated-login", { preLogout: false }));

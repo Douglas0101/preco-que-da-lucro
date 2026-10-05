@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-10-04T16:15:55.632211+00:00",
+  "status": "RUNNING_FOR_USER_REVIEW",
+  "url": "http://127.0.0.1:4173/inicio",
+  "browserId": "2",
+  "tabId": "10",
+  "viewportOverride": "RESET",
+  "server": {
+    "pid": 270480,
+    "startTicks": "8953585",
+    "command": "node .output/server/index.mjs",
+    "envNames": [
+      "AUTH_TRUSTED_ORIGINS",
+      "BETTER_AUTH_SECRET",
+      "BETTER_AUTH_URL",
+      "BUILD_RELEASE_CHANNEL",
+      "DATABASE_ADMIN_URL",
+      "DATABASE_DRIVER",
+      "DATABASE_URL",
+      "E2E_AUTH_EMAIL",
+      "E2E_AUTH_PASSWORD",
+      "E2E_DB_RUNTIME_PASSWORD",
+      "HOME",
+      "HOST",
+      "LANG",
+      "LC_ALL",
+      "LOGNAME",
+      "NITRO_HOST",
+      "NITRO_PORT",
+      "NODE_ENV",
+      "PATH",
+      "PLAYWRIGHT_BASE_URL",
+      "PORT",
+      "PYTHONDONTWRITEBYTECODE",
+      "SHELL",
+      "TERM",
+      "TZ",
+      "USER"
+    ],
+    "providerKeysPresent": false
+  },
+  "database": {
+    "name": "/pqd-c28-visual-qa",
+    "fullId": "545b0ed2cf4a1b1bc8f3be904e6cead46b4d279c3cf75fd7c2806b22b27035d6",
+    "owner": "c28-visual-qa",
+    "running": true,
+    "loopbackPort": 41921,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=512m"
+    },
+    "fixtureOnly": true
+  },
+  "captureAdapterFingerprints": {
+    "jpeg-to-png.mjs": "5c195cf777a5f402b4b676ba31396733743e24d08f98c995e8b7d37ef7c3537c",
+    "jpeg-to-png.bundle.mjs": "b27a944807b66c47fd6530676bf81983b4dc2294771ff07398b4223c8e5446fb",
+    "visual-perception-cua.bundle.mjs": "b4204a06cc59f18fc25281e8f35d64d4b0975045de93ada5d3cb0f3d0158ef69",
+    "run-local.py": "8f6e2f6d08ac71605772afad392cd605968f634874e6cf948939918dbb573273"
+  },
+  "custody": "Owned local resources deliberately kept for requested user inspection. No automatic expiry/cleanup claim."
+}

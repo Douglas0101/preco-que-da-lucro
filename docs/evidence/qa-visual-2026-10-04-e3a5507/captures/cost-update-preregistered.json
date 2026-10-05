@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-10-04T15:49:58.143Z",
+  "packaging": {
+    "beforePackagePrice": "100",
+    "afterPackagePrice": "120",
+    "packageUnits": "10",
+    "expectedUnitCost": "12.00"
+  },
+  "product": {
+    "price": "20",
+    "rates": "15%",
+    "expectedContribution": "5.00",
+    "expectedContributionPercent": "25.00",
+    "fixed": "600",
+    "expectedBreakEvenUnits": "120"
+  },
+  "restorePackagePrice": "100",
+  "scope": "owned synthetic product only"
+}

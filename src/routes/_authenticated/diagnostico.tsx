@@ -209,7 +209,11 @@ function Diagnostico() {
             <Label htmlFor="diagnostico-produto" className="sr-only">
               Produto para diagnóstico
             </Label>
-            <Select value={selectedProductId} onValueChange={setProductId}>
+            <Select
+              value={selectedProductId}
+              onValueChange={setProductId}
+              items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
+            >
               <SelectTrigger id="diagnostico-produto">
                 <SelectValue placeholder="Escolha um produto" />
               </SelectTrigger>

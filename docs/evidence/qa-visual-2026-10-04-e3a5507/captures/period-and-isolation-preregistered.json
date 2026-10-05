@@ -1,0 +1,23 @@
+{
+  "registeredBeforeMutation": "2026-10-04T15:45:44.680058+00:00",
+  "historicalSale": {
+    "date": "2026-09-15",
+    "quantity": "3",
+    "unitPrice": "10",
+    "total": "30.00",
+    "channel": "QA periodo anterior"
+  },
+  "expectedDashboard": {
+    "monthOct": "50.00",
+    "quarterOctDec": "50.00",
+    "year2026": "80.00",
+    "sourceContract": "dashboard.service.ts periodStart: calendar month, current quarter, year; sales net_amount sum"
+  },
+  "tenantB": {
+    "userId": "00000000-0000-4000-8000-000000000201",
+    "tenantId": "00000000-0000-4000-8000-000000000202",
+    "productId": "00000000-0000-4000-8000-000000000210",
+    "marker": "PRODUTO-OUTRO-TENANT-C28-VISUAL",
+    "expected": "B own positive-control product visible; A product list and options exclude marker"
+  }
+}

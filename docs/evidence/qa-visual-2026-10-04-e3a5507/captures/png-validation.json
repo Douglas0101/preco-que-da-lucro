@@ -1,0 +1,11 @@
+{
+  "pngDecoded": 39,
+  "dimensions": {
+    "(1350, 880)": 15,
+    "(1327, 865)": 5,
+    "(1335, 870)": 14,
+    "(375, 812)": 3,
+    "(390, 844)": 2
+  },
+  "validation": "PNG CRC/chunks and full pixel decode; JPEG-to-PNG adapter input conversion only"
+}

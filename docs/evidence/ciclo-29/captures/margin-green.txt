@@ -1,0 +1,21 @@
+gate: margin-green.txt
+command: npx vitest run src/test/dashboard.service.test.ts src/test/dashboard-summary-guard.test.ts src/test/calc-explainer.test.tsx
+private-source-sha256: ee439968898b80ccc1506ce3cfe6a6987e7912c1e77755fbce7d6758f19a2ca8
+classification: LOCAL-VERIFIED (sanitized derivative; original retained)
+
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/dashboard.service.test.ts src/test/calc-explainer.test.tsx src/test/dashboard-summary-guard.test.ts
+
+
+ RUN  v4.1.11 /tmp/pqd-develop
+
+
+ Test Files  3 passed (3)
+      Tests  33 passed (33)
+   Start at  23:10:38
+   Duration  6.18s (transform 637ms, setup 294ms, import 2.08s, tests 1.90s, environment 1.53s)

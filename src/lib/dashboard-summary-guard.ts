@@ -9,6 +9,16 @@ import type { DashboardPeriod } from "@/lib/dashboard.functions";
  * anything else routes to the screen's error state. Extend this function —
  * never the render branch — when `DashboardSummary` grows fields (DBT-88).
  */
+export type ConsolidatedMarginShape =
+  | { state: "ok"; valuePct: string; valueAmount: string }
+  | { state: "empty" }
+  | {
+      state: "incomplete";
+      incompleteProductCount: number;
+      zeroRevenue: boolean;
+      salesMismatch?: true;
+    };
+
 export interface DashboardSummaryShape {
   productCount: number;
   fixedExpenses: string | null;
@@ -18,6 +28,29 @@ export interface DashboardSummaryShape {
   alerts: string[];
   period: DashboardPeriod;
   sales: { revenue: string; count: number };
+  consolidatedMargin: ConsolidatedMarginShape;
+}
+
+function isConsolidatedMarginValid(value: unknown): value is ConsolidatedMarginShape {
+  if (typeof value !== "object" || value === null) return false;
+  const margin = value as Partial<ConsolidatedMarginShape>;
+  if (margin.state === "empty") return true;
+  if (margin.state === "ok") {
+    return [margin.valuePct, margin.valueAmount].every(
+      (item) =>
+        typeof item === "string" && /^-?\d+(\.\d+)?$/.test(item) && Number.isFinite(Number(item)),
+    );
+  }
+  if (margin.state === "incomplete") {
+    return (
+      typeof margin.incompleteProductCount === "number" &&
+      Number.isSafeInteger(margin.incompleteProductCount) &&
+      margin.incompleteProductCount >= 0 &&
+      typeof margin.zeroRevenue === "boolean" &&
+      (margin.salesMismatch === undefined || margin.salesMismatch === true)
+    );
+  }
+  return false;
 }
 
 export function isDashboardSummaryValid(metrics: unknown): metrics is DashboardSummaryShape {
@@ -38,6 +71,7 @@ export function isDashboardSummaryValid(metrics: unknown): metrics is DashboardS
   if (typeof candidate.sales !== "object" || candidate.sales === null) return false;
   if (typeof candidate.sales.count !== "number") return false;
   if (typeof candidate.sales.revenue !== "string") return false;
+  if (!isConsolidatedMarginValid(candidate.consolidatedMargin)) return false;
   if (candidate.bestProduct !== null) {
     if (typeof candidate.bestProduct !== "object") return false;
     if (typeof candidate.bestProduct.name !== "string") return false;

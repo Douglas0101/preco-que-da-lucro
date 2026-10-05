@@ -32,7 +32,7 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
-      className={cn("line-clamp-1", className)}
+      className={cn("min-w-0 line-clamp-1", className)}
       {...props}
     />
   );

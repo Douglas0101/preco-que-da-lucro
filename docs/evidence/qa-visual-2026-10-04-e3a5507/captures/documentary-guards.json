@@ -1,0 +1,42 @@
+{
+  "scope": "LOCAL-VERIFIED documentary checks; does not seal application or formal S6",
+  "commands": [
+    "node scripts/m02-work-package-guard.mjs",
+    "node scripts/m02-debts-guard.mjs",
+    "node scripts/m02-temporal-guard.mjs",
+    "npm run m02:state:check",
+    "prettier --check on the explicit QA metadata, README, SPEC, DEBTS and PROGRESS; git diff --check"
+  ],
+  "results": [
+    {
+      "gate": "work-package",
+      "exitCode": 0,
+      "output": "work-package guard: OK (17 itens, 5 secoes, taxonomia e layout do selo) — docs/evidence/_templates/work-package.md\n"
+    },
+    {
+      "gate": "debts",
+      "exitCode": 0,
+      "output": "debts guard: OK (72 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md\n"
+    },
+    {
+      "gate": "temporal",
+      "exitCode": 0,
+      "output": "m02-temporal-guard: superficie viva, as-of 2026-10-04\n  docs/evidence/agent-state/PROGRESS.md [secao-1] — 4 âncora(s), 0 linha(s) com prazo vivo\n  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 42 âncora(s), 1 linha(s) com prazo vivo\n  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [fora-do-fechado] — 0 âncora(s), 1 linha(s) com prazo vivo\nm02-temporal-guard: OK (3 superficies vivas, 0 violacao)\n"
+    },
+    {
+      "gate": "state",
+      "exitCode": 0,
+      "output": "\n> m02:state:check\n> tsx scripts/m02-state-check.ts\n\nM-02 ancestral state marker is valid for HEAD e3a5507cf5d0a7beb10d383a9f44c1e1537aa05c (folga 6/13 commits).\nWorktree: dirty (preservado e auditável).\nExternal state: not inspected by this local check.\n"
+    },
+    {
+      "gate": "format-and-diff",
+      "exitCode": 0,
+      "output": "Checking formatting...\nAll matched files use Prettier code style!\n"
+    }
+  ],
+  "limits": [
+    "work-package guard validates the template contract, not a formal S5 QA seal",
+    "Application findings DBT-86 through DBT-89 remain open",
+    "No new full application gate, remote CI or formal S6 in this QA milestone"
+  ]
+}

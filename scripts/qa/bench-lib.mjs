@@ -2,7 +2,8 @@
 // Runs against a local loopback bench. Fixture credentials are read from the
 // bench server process environment and are never printed, logged or persisted.
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
+import { redactPng } from "../../src/lib/observability/visual-redaction.ts";
 
 const ALLOWED_HOST = /^127\.0\.0\.1$/;
 
@@ -30,45 +31,102 @@ export function readBenchFixtureCredentials(benchUrl) {
   const port = url.port || "80";
   const pid = pidListeningOn(port);
   if (!pid) return { pid: null, email: undefined, password: undefined };
+  return { pid, ...readBenchEnv(pid) };
+}
+
+/** Reads named variables from the bench server process environment. */
+export function readBenchEnv(pid, names) {
   const env = readFileSync(`/proc/${pid}/environ`, "utf8").split("\0");
   const read = (name) => {
     const hit = env.find((entry) => entry.startsWith(`${name}=`));
     return hit ? hit.slice(name.length + 1) : undefined;
   };
-  return { pid, email: read("E2E_AUTH_EMAIL"), password: read("E2E_AUTH_PASSWORD") };
+  if (Array.isArray(names)) return Object.fromEntries(names.map((name) => [name, read(name)]));
+  return {
+    email: read("E2E_AUTH_EMAIL"),
+    password: read("E2E_AUTH_PASSWORD"),
+    databaseUrl: read("DATABASE_URL"),
+  };
 }
 
 export async function loginIfNeeded(page, baseUrl, creds) {
-  await page.waitForTimeout(800);
-  if (!new URL(page.url()).pathname.startsWith("/auth")) return false;
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#email") !== null ||
+      [...document.querySelectorAll("button")].some(
+        (button) => button.textContent?.trim() === "Sair",
+      ),
+    null,
+    { timeout: 15000 },
+  );
+  if ((await page.locator("#email").count()) === 0) return false;
+  await page.waitForURL((url) => url.pathname === "/auth", { timeout: 10000 });
   if (!creds.email || !creds.password)
     throw new Error("fixture credentials unavailable from bench env");
-  // Sign-in is rate limited to 5 attempts per minute per IP (rate-limit-rules
-  // .server.ts); a gate run must tolerate a 429 by waiting out the window. The
-  // whole fill+submit is retried: a pending SPA redirect can land between fill
-  // and click and wipe the fields on slower runs.
-  const attempts = 4;
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    await page.locator("#email").waitFor({ state: "visible", timeout: 10000 });
-    await page.fill("#email", creds.email);
-    await page.fill("#password", creds.password);
-    await page.click("button[type=submit]");
-    try {
-      await page.waitForURL("**/inicio**", { timeout: 10000 });
-      return true;
-    } catch {
-      const body = await page.evaluate(() => document.body.innerText);
-      const rateLimited = /Muitas solicita/i.test(body);
-      if (
-        attempt === attempts ||
-        (!rateLimited && !new URL(page.url()).pathname.startsWith("/auth"))
-      ) {
-        throw new Error("sign-in did not complete");
-      }
-      if (rateLimited) await page.waitForTimeout(25000);
+  const redirectTarget = new URL(page.url()).searchParams.get("redirect") ?? "/inicio";
+  // A fresh document's session lookup establishes React hydration. Old
+  // responses or SSR-visible fields cannot authorize a native form submit.
+  let committed = false;
+  let hydrationRequest;
+  const onNavigation = (frame) => {
+    if (frame === page.mainFrame()) committed = true;
+  };
+  const onRequest = (request) => {
+    if (
+      committed &&
+      request.frame() === page.mainFrame() &&
+      new URL(request.url()).pathname === "/api/auth/get-session" &&
+      request.method() === "GET"
+    ) {
+      hydrationRequest ??= request;
     }
+  };
+  page.on("framenavigated", onNavigation);
+  page.on("request", onRequest);
+  const ready = page.waitForResponse((response) => response.request() === hydrationRequest, {
+    timeout: 10000,
+  });
+  try {
+    await page.reload({ waitUntil: "domcontentloaded" });
+    if ((await ready).status() !== 200) throw new Error("fixture client session lookup rejected");
+  } finally {
+    page.off("framenavigated", onNavigation);
+    page.off("request", onRequest);
   }
-  throw new Error("sign-in did not complete");
+  await page.locator("#email").fill(creds.email);
+  await page.locator("#password").fill(creds.password);
+  const submitted = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/api/auth/sign-in/email" &&
+      response.request().method() === "POST",
+    { timeout: 10000 },
+  );
+  await page.click("button[type=submit]");
+  const status = (await submitted).status();
+  if (status !== 200) throw new Error(`fixture sign-in rejected (HTTP ${status})`);
+  await page.waitForURL(`**${redirectTarget}**`, { timeout: 10000 });
+  return true;
+}
+
+export async function waitForRouteReady(page) {
+  await page.waitForFunction(
+    () =>
+      document.querySelector("main") !== null &&
+      (location.pathname !== "/inicio" ||
+        /margem consolidada|Não foi possível carregar/i.test(document.body.innerText)) &&
+      ![...document.querySelectorAll('[role="status"]')].some((node) =>
+        /Carregando/.test(node.textContent ?? ""),
+      ),
+    null,
+    { timeout: 15000 },
+  );
+}
+
+export async function persistBenchScreenshot(page, path, element = page) {
+  const buffer = await element.screenshot({
+    mask: [page.locator('input[type="password"], input[type="email"]')],
+  });
+  writeFileSync(path, redactPng(buffer).value);
 }
 
 export async function logoutViaUi(page) {
