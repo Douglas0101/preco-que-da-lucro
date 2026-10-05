@@ -23,7 +23,27 @@ interface GatewayMessage {
 
 interface GatewayToolCall {
   id: string;
+  type?: "function";
   function: { name: string; arguments: string };
+}
+
+/**
+ * O desserializador do destino nativo exige `type: "function"` em cada item de
+ * `tool_calls` quando o histórico do assistente volta na rodada seguinte. A
+ * OpenAI tolera a ausência; o DeepSeek responde HTTP 422
+ * (`messages[6]: missing field 'type'`) e derruba a rodada — medido no Ciclo 29
+ * na primeira conversa viva. Normalizar no limite do fetch mantém o contrato do
+ * provedor em um único ponto, em vez de depender de cada chamador.
+ */
+function normalizeToolCallTypes(messages: GatewayMessage[]): GatewayMessage[] {
+  return messages.map((message) =>
+    message.tool_calls
+      ? {
+          ...message,
+          tool_calls: message.tool_calls.map((call) => ({ ...call, type: "function" as const })),
+        }
+      : message,
+  );
 }
 
 const gatewayResponseSchema = z.object({
@@ -37,6 +57,7 @@ const gatewayResponseSchema = z.object({
             .array(
               z.object({
                 id: z.string().min(1),
+                type: z.literal("function").optional(),
                 function: z.object({
                   name: z.string().min(1),
                   arguments: z.string(),
@@ -107,6 +128,36 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
 
 type GatewayResponse = z.output<typeof gatewayResponseSchema>;
 
+/**
+ * Campos de `error.type`/`error.message` do corpo de erro, por varredura de
+ * texto: um `JSON.parse` em `try/catch` devolveria valor neutro num caminho de
+ * dado (INV-013) e um corpo não-JSON ainda precisa virar detalhe auditável.
+ */
+function upstreamErrorFields(raw: string): string[] {
+  const fields: string[] = [];
+  for (const match of raw.matchAll(/"(\w+)"\s*:\s*"((?:[^"\\]|\\.){1,400})"/g))
+    if (match[1] === "type" || match[1] === "message") fields.push(match[2] ?? "");
+  return fields.filter((field) => field.length > 0);
+}
+
+/**
+ * Detalhe limitado da recusa do provedor. Sem ele, uma rejeição 4xx do gateway
+ * vira `DEPENDENCY_ERROR` sem causa registrada — medido no Ciclo 29: a rodada 1
+ * com ferramentas falhava em ~750 ms desde que o zod descartava o `type` das
+ * tool_calls e o motivo era descartado dentro do fetch. Carrega apenas o corpo
+ * limitado, nunca cabeçalhos; a própria chave é removida antes de logar e o
+ * redator do logger cobre o resto. Falha de leitura do corpo propaga para o
+ * retry/DEPENDENCY_ERROR do chamador em vez de virar sucesso vazio.
+ */
+async function readUpstreamErrorDetail(response: Response, apiKey: string): Promise<string | null> {
+  const raw = await response.text();
+  if (raw.length === 0) return null;
+  const fields = upstreamErrorFields(raw);
+  const detail = (fields.length > 0 ? fields.join(": ") : raw).replace(/\s+/g, " ").trim();
+  const withoutKey = apiKey.length >= 8 ? detail.split(apiKey).join("[REDACTED]") : detail;
+  return withoutKey.slice(0, 240) || null;
+}
+
 type ModelCaller = (
   messages: GatewayMessage[],
   tools: GatewayTool[],
@@ -144,7 +195,7 @@ async function fetchModelAttempt({
         headers: { Authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
         body: JSON.stringify({
           model,
-          messages,
+          messages: normalizeToolCallTypes(messages),
           tools,
           tool_choice: "auto",
           ...(endpoint.hostname === "api.deepseek.com"
@@ -172,10 +223,27 @@ async function fetchModelAttempt({
       await delay(retryDelayMs(attempt), requestSignal);
       return null;
     }
+    // Recusa definitiva do provedor: preserva status e motivo (limitados e
+    // redigidos) antes de descartar o corpo — sem isto a causa não é auditável.
+    logJson("warn", "ai.model_rejected", {
+      model,
+      attempt,
+      status: response.status,
+      detail: await readUpstreamErrorDetail(response, apiKey),
+    });
     throw new ApplicationError("DEPENDENCY_ERROR");
   }
   const parsed = gatewayResponseSchema.safeParse(await response.json());
-  if (!parsed.success) throw new ApplicationError("DEPENDENCY_ERROR");
+  if (!parsed.success) {
+    logJson("warn", "ai.model_unparsable", {
+      model,
+      attempt,
+      issues: parsed.error.issues
+        .slice(0, 5)
+        .map((issue) => `${issue.path.join(".") || "(root)"}:${issue.code}`),
+    });
+    throw new ApplicationError("DEPENDENCY_ERROR");
+  }
   return parsed.data;
 }
 

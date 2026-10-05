@@ -96,7 +96,21 @@ describe("DeepSeek restrito ao servidor Web", () => {
       { role: "tool" as const, content: "fixture autorizada", tool_call_id: tool.id },
     ];
     await callModelForTests(next, GATEWAY_TOOLS, new AbortController().signal);
-    expect(request(f, 1).body.messages).toEqual(next);
+    // O histórico volta na rodada seguinte com `type` explícito em cada
+    // tool_call: sem o campo o destino nativo responde 422
+    // (`messages[N]: missing field 'type'`) e a rodada com ferramenta morre.
+    const sent = request(f, 1).body.messages as Array<{
+      role: string;
+      tool_calls?: Array<{ id: string; type?: string; function: { name: string } }>;
+    }>;
+    expect(sent).toHaveLength(next.length);
+    expect(sent.at(-2)).toEqual({
+      role: "assistant",
+      content: "",
+      tool_calls: [{ ...tool, type: "function" }],
+    });
+    expect(sent.at(-1)).toEqual(next.at(-1));
+    expect(sent.at(-2)!.tool_calls!.every((call) => call.type === "function")).toBe(true);
     expect(request(f, 1).body.thinking).toEqual({ type: "disabled" });
     expect(request(f, 1).body).not.toHaveProperty("reasoning_content");
   });
@@ -242,5 +256,97 @@ describe("limites do gateway de IA", () => {
       code: "AI_TIMEOUT",
       retryable: true,
     });
+  });
+});
+
+describe("diagnóstico da recusa do provedor", () => {
+  interface WarnRecord {
+    event?: string;
+    status?: number;
+    model?: string;
+    detail?: string;
+    issues?: string[];
+  }
+
+  function nativeDeepSeek(): string {
+    const key = crypto.randomUUID();
+    vi.stubEnv("DEEPSEEK_API_KEY", key);
+    vi.stubEnv("AI_GATEWAY_URL", "https://api.deepseek.com/chat/completions");
+    return key;
+  }
+
+  function warnRecords(warn: { mock: { calls: unknown[][] } }): WarnRecord[] {
+    return warn.mock.calls.map((call) => JSON.parse(String(call[0])) as WarnRecord);
+  }
+
+  it("registra status e motivo do 4xx em vez de descartar a causa", async () => {
+    nativeDeepSeek();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockResolvedValue(
+        Response.json(
+          {
+            error: {
+              type: "invalid_request_error",
+              message: "The reasoning_content in the thinking mode must be passed back",
+            },
+          },
+          { status: 400 },
+        ),
+      ),
+    );
+
+    await expect(
+      callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal),
+    ).rejects.toMatchObject({ code: "DEPENDENCY_ERROR" });
+
+    const record = warnRecords(warn).find((entry) => entry.event === "ai.model_rejected");
+    expect(record).toBeDefined();
+    expect(record?.status).toBe(400);
+    expect(record?.model).toBe("deepseek-flash");
+    expect(String(record?.detail)).toContain("invalid_request_error");
+    expect(String(record?.detail)).toContain("reasoning_content");
+    warn.mockRestore();
+  });
+
+  it("nunca registra a própria chave no detalhe do erro", async () => {
+    const key = nativeDeepSeek();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(
+          Response.json(
+            { error: { type: "invalid_request_error", message: `rejected credential ${key}` } },
+            { status: 401 },
+          ),
+        ),
+    );
+
+    await expect(
+      callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal),
+    ).rejects.toMatchObject({ code: "DEPENDENCY_ERROR" });
+
+    const logged = warn.mock.calls.map((call) => String(call[0])).join("\n");
+    expect(logged).not.toContain(key);
+    expect(logged).toContain("[REDACTED]");
+    warn.mockRestore();
+  });
+
+  it("registra resposta fora do contrato como não interpretável", async () => {
+    nativeDeepSeek();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(Response.json({ choices: [] })));
+
+    await expect(
+      callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal),
+    ).rejects.toMatchObject({ code: "DEPENDENCY_ERROR" });
+
+    const record = warnRecords(warn).find((entry) => entry.event === "ai.model_unparsable");
+    expect(record).toBeDefined();
+    expect(record?.issues?.length).toBeGreaterThan(0);
+    warn.mockRestore();
   });
 });

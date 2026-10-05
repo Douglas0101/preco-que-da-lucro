@@ -46,6 +46,8 @@ interface GatewayMessage {
 
 interface GatewayToolCall {
   id: string;
+  /** Exigido pelo destino nativo ao devolver o histórico (ver chat.functions). */
+  type?: "function";
   function: { name: string; arguments: string };
 }
 
@@ -72,6 +74,7 @@ REGRAS INEGOCIÁVEIS:
 8) É vedado inventar, arredondar ou somar valores não fornecidos pelo usuário ou pelo motor financeiro; exiba o valor recebido sem alterar o número.
 
 FLUXO: create_product; add_ingredients; set_ingredient_cost para cada ingrediente; set_yield; add_packaging; set_price_and_tax; add_fee; set_market_price; finish_product.
+Em set_yield, "yield_unit" aceita somente as unidades do sistema (massa, volume, contagem ou medida caseira) — nunca uma palavra da receita. Se o usuário disser "rende 1 pizza", registre "unidade"; inventar a unidade faz a ferramenta recusar o rendimento e o produto ficar incompleto.
 Ao explicar, use "vale investigar", "os dados indicam" e "pode ser interessante simular". Não afirme que um preço está certo ou errado sem contexto.`;
 
 export interface SendChatMessageInput {

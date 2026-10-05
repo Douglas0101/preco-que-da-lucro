@@ -200,3 +200,6 @@ docs/evidence/infra-recon-2026-09-17/screenshots/
 # execução — redigida antes de escrever, mas ainda assim não é fonte versionada.
 # Vão como artifacts de CI (.github/workflows/ui-stack.yml, browser-evidence).
 docs/evidence/visual/
+
+## Chave DeepSeek local (Via A) — nunca versionar.
+API-DeepSeek*.txt
