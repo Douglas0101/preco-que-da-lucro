@@ -1,0 +1,24 @@
+{
+  "version": "1.11.0",
+  "patched": true,
+  "executedShell": false,
+  "normalQuoting": "PASS",
+  "results": [
+    {
+      "terminator": "\"\\n\"",
+      "rejected": true
+    },
+    {
+      "terminator": "\"\\r\"",
+      "rejected": true
+    },
+    {
+      "terminator": "\" \"",
+      "rejected": true
+    },
+    {
+      "terminator": "\" \"",
+      "rejected": true
+    }
+  ]
+}

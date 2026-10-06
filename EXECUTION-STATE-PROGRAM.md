@@ -3492,3 +3492,15 @@ para credenciais e confirmação na ação de alteração de proteção.
 Evidência: docs/evidence/ciclo-28/SPEC.md; PROGRESS L580 em diante.
 
 Latest state marker parent = `9d11e77b9476e9704ded58c1ccb72c96ae9a9f68`,
+
+## Bloco aditivo — correção do audit no redeployment crítico (2026-10-06)
+
+A revisão local 7ebe24cbdd2684f1d668a7f708bd047a59e94122 atualiza apenas a entrada
+transitiva shell-quote para 1.11.0. O check completo passou na bancada isolada;
+18 casos DB condicionais não executados são limite explícito do gate local.
+O novo marcador registra esta validação e não altera cotas, autorização de release,
+freeze de main ou obrigações SDD. CI, preview e produção têm evidência própria.
+
+Evidência: docs/evidence/redeployment-critical-2026-10-06/; PROGRESS L733–L737.
+
+Latest state marker parent = `7ebe24cbdd2684f1d668a7f708bd047a59e94122`,

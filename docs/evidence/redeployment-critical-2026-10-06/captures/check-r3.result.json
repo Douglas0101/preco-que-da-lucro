@@ -1,0 +1,9 @@
+{
+  "command": "npm run check",
+  "head": "7ebe24cbdd2684f1d668a7f708bd047a59e94122",
+  "exitCode": 1,
+  "startedAt": "2026-10-06T19:04:07.759999+00:00",
+  "endedAt": "2026-10-06T19:04:09.120642+00:00",
+  "log": "/tmp/pqd-critical-redeployment-20261006-check-r3.log",
+  "scope": "isolated worktree; no runtime environment files or provider credentials supplied"
+}

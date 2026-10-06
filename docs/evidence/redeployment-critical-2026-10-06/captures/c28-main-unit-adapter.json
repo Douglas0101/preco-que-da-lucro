@@ -1,0 +1,7 @@
+{
+  "schema": "main-unit-adapter/1",
+  "verdict": "NO-VERDICT",
+  "reason": "Complete authenticated metadata and original scanner LCOV provenance are required; no aggregate fallback.",
+  "requiredNames": ["SONAR_MAIN_LCOV", "SONAR_MAIN_LCOV_PROVENANCE", "SONAR_TOKEN", "GITHUB_TOKEN"],
+  "requests": []
+}

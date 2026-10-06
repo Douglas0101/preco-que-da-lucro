@@ -1,0 +1,217 @@
+{
+  "retrievedAt": "2026-10-06 18:56:36 UTC",
+  "evidenceClass": "REMOTE-OBSERVED",
+  "refs": {
+    "develop": "97a23bfb85f5b57ea42f5ca774c61374855f872e",
+    "main": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9"
+  },
+  "pr": {
+    "baseRefName": "main",
+    "baseRefOid": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+    "headRefName": "develop",
+    "headRefOid": "97a23bfb85f5b57ea42f5ca774c61374855f872e",
+    "mergeStateStatus": "BLOCKED",
+    "number": 60,
+    "reviewDecision": "",
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T15:16:18Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37485966269/job/112345912824",
+        "name": "docs-light",
+        "startedAt": "2026-10-06T15:15:49Z",
+        "status": "COMPLETED",
+        "workflowName": "CI light (docs/evidence)"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T15:16:07Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37485957835/job/112345882574",
+        "name": "docs-light",
+        "startedAt": "2026-10-06T15:15:46Z",
+        "status": "COMPLETED",
+        "workflowName": "CI light (docs/evidence)"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T15:15:54Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37485966163/job/112345912729",
+        "name": "Fork-guard + presença de segredo",
+        "startedAt": "2026-10-06T15:15:49Z",
+        "status": "COMPLETED",
+        "workflowName": "Neon PR branch CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T15:19:31Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37485966372/job/112345913622",
+        "name": "scan + cobertura",
+        "startedAt": "2026-10-06T15:15:50Z",
+        "status": "COMPLETED",
+        "workflowName": "SonarCloud (scanner + cobertura)"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T15:17:48Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37485966338/job/112346303864",
+        "name": "prepare browsers and Linux packages",
+        "startedAt": "2026-10-06T15:16:35Z",
+        "status": "COMPLETED",
+        "workflowName": "UI stack"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T15:16:34Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37485966163/job/112345978697",
+        "name": "Branch efêmera · migrate · integração · RLS probe · E2E",
+        "startedAt": "2026-10-06T15:15:57Z",
+        "status": "COMPLETED",
+        "workflowName": "Neon PR branch CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T15:20:05Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37485966372/job/112347847625",
+        "name": "main-coverage-mirror",
+        "startedAt": "2026-10-06T15:19:34Z",
+        "status": "COMPLETED",
+        "workflowName": "SonarCloud (scanner + cobertura)"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T15:22:25Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37485966338/job/112346954753",
+        "name": "verify-release",
+        "startedAt": "2026-10-06T15:18:28Z",
+        "status": "COMPLETED",
+        "workflowName": "UI stack"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T15:16:54Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37485966163/job/112346326625",
+        "name": "Cleanup always() com prova (§12.5)",
+        "startedAt": "2026-10-06T15:16:38Z",
+        "status": "COMPLETED",
+        "workflowName": "Neon PR branch CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T15:19:22Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro&pullRequest=60",
+        "name": "SonarCloud Code Analysis",
+        "startedAt": "2026-10-06T15:18:36Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "title": "fix(release): enforce current gates, isolate Web AI and prepare independent recovery",
+    "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/60"
+  },
+  "ruleset": {
+    "bypass_actors": [],
+    "conditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": ["refs/heads/main"]
+      }
+    },
+    "enforcement": "active",
+    "id": 24333849,
+    "name": "C24-main-release-gates",
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "parameters": {
+          "allowed_merge_methods": ["merge"],
+          "dismiss_stale_reviews_on_push": true,
+          "require_code_owner_review": false,
+          "require_extra_approval_for_unattributed_changes": true,
+          "require_last_push_approval": false,
+          "required_approving_review_count": 0,
+          "required_review_thread_resolution": true,
+          "required_reviewers": []
+        },
+        "type": "pull_request"
+      },
+      {
+        "parameters": {
+          "do_not_enforce_on_create": false,
+          "required_status_checks": [
+            {
+              "context": "verify-release",
+              "integration_id": 15368
+            },
+            {
+              "context": "scan + cobertura",
+              "integration_id": 15368
+            },
+            {
+              "context": "main-coverage-mirror",
+              "integration_id": 15368
+            }
+          ],
+          "strict_required_status_checks_policy": true
+        },
+        "type": "required_status_checks"
+      },
+      {
+        "type": "update"
+      }
+    ]
+  },
+  "neon": {
+    "projectId": "damp-forest-57346541",
+    "branches": [
+      {
+        "id": "br-snowy-violet-aymcvvvv",
+        "name": "production",
+        "parent_id": null,
+        "default": true
+      },
+      {
+        "id": "br-small-hill-aymcu14y",
+        "name": "develop",
+        "parent_id": "br-snowy-violet-aymcvvvv",
+        "default": false
+      }
+    ],
+    "developSchema": {
+      "serverVersionNum": 170011,
+      "publicTables": 37,
+      "appliedMigrations": 20,
+      "distinctHashes": 20
+    }
+  },
+  "vercel": {
+    "teamId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+    "projectId": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+    "observedPreview": {
+      "id": "dpl_FjFGGUbzRcG8BLKL8ikSjo4Hcfv9",
+      "commit": "38bd3764c344bdc37a1462430f172260920a247f",
+      "target": "preview",
+      "state": "READY"
+    },
+    "production": {
+      "commit": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+      "observedDeployment": "DHsbjECXDyQ5fajQQPvXrT5Rz7eL"
+    },
+    "connector": "403 for requested team; browser authenticated"
+  }
+}

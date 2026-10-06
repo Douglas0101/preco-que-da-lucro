@@ -1,0 +1,15 @@
+{
+  "schema": "main-origin-run/1",
+  "verdict": "CANDIDATE-ONLY",
+  "mainSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+  "analysisId": "1dc2baf9-b289-42f4-b2ca-dd7b662b3679",
+  "runId": 36879749754,
+  "requests": [
+    {
+      "origin": "github",
+      "path": "/repos/Douglas0101/preco-que-da-lucro/actions/runs",
+      "status": 200,
+      "latencyMs": 441
+    }
+  ]
+}
