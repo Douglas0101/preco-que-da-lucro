@@ -1,0 +1,35 @@
+# turno real de chat apos o deployment dpl_FjFGGUbzRcG8BLKL8ikSjo4Hcfv9 (sha 38bd376)
+# navegador real, sessao autenticada do operador — capturado em 2026-10-06
+url: https://preco-que-da-luc-git-53d0a3-douglasultimatesouza-5127s-projects.vercel.app/novo-produto
+title: Novo Produto · Preço que Dá Lucro
+conversa:
+ - Olá
+ - Quero cadastrar um bolo de cenoura
+ - Quero cadastrar um bolo de cenoura
+ - Quero cadastrar um bolo de cenoura que vendo a 25 reais
+ - Olá! Que bom ter você por aqui. 😊
+ - Vamos cadastrar o seu 
+ - bolo de cenoura
+ -  com calma, um passo de cada vez.
+ - Primeiro, só para confirmar: o nome do produto que vamos cadastrar é 
+ - "Bolo de cenoura"
+ - . Posso registrar assim?
+
+# runtime do deployment NOVO (excerto literal de get_runtime_logs, since=20m):
+2026-10-06T15:12:48.897Z ai.budget_reserved  budget=64000 real=0 outcome=reserved
+2026-10-06T15:12:50.053Z ai.model_attempt    model=deepseek-flash attempt=1 durationMs=1155 outcome=success
+2026-10-06T15:12:50.122Z ai.chat_completed   correlationId=4f752902-6e69-455b-b8c0-5cf2d6a727d3 rounds=1 timeToFinalMs=1528
+2026-10-06T15:12:50.187Z ai.budget_settled   real=986 outcome=success applied=true
+
+# contraste (deployment ANTIGO dpl_CJydCmNNQYFoXELpbQd9d2w5s8m8, 14:59:41Z):
+ai.budget_settled real=0 outcome=error_dependency_error
+Traceback (most recent call last):
+  File "<string>", line 3, in <module>
+    d = json.load(sys.stdin)['data']
+        ~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'data'
+
+# correlacao usuario -> evento (a mensagem do consultor veio do turno real):
+# chat_completed correlationId=4f752902-6e69-455b-b8c0-5cf2d6a727d3, x-correlation-id do POST observado:
+# status do POST: 200
+# requestId: 722353.130

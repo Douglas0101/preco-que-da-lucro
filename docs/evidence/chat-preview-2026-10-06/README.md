@@ -67,7 +67,16 @@ production+preview original foi **preservado**; produção não foi tocada.
 | `check-green.txt`             | cadeia `npm run check` verde no commit selado                              |
 | `live-chat-after.txt`         | turno real de chat ponta a ponta após o novo deployment                    |
 
-## 5. Limites declarados
+## 5. Resultado medido (antes × depois, mesma rota e mesmo tenant)
+
+| sinal                                         | antes (`dpl_CJydCmNNQYFoXELpbQd9d2w5s8m8`)    | depois (`dpl_FjFGGUbzRcG8BLKL8ikSjo4Hcfv9`)     |
+| --------------------------------------------- | --------------------------------------------- | ----------------------------------------------- |
+| `ai.model_attempt`                            | ausente (falha antes do `fetch`)              | `deepseek-flash` **success**, 1155 ms           |
+| `ai.chat_completed`                           | ausente                                       | `rounds=1`, `timeToFinalMs=1528`                |
+| `ai.budget_settled`                           | `real=0`, `error_dependency_error`            | `real=986`, **success**, `applied=true`         |
+| conversa (navegador real, sessão do operador) | `⚠️ AI gateway endpoint recusado pelo guard…` | resposta real do consultor, produto a confirmar |
+
+## 6. Limites declarados
 
 - **Produção não foi verificada nem alterada** nesta rodada: o registro compartilhado
   `AI_GATEWAY_URL` de produção segue vazio, e o runtime publicado (Hostinger) exige decisão
