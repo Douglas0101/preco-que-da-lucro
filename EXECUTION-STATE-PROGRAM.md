@@ -3491,4 +3491,4 @@ Release/main continuam condicionados aos gates e à janela humana30min, com Via 
 para credenciais e confirmação na ação de alteração de proteção.
 Evidência: docs/evidence/ciclo-28/SPEC.md; PROGRESS L580 em diante.
 
-Latest state marker parent = `66898f0d738717ecbf52cda1384017a0cc23e859`,
+Latest state marker parent = `9d11e77b9476e9704ded58c1ccb72c96ae9a9f68`,
