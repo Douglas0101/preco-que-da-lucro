@@ -1,0 +1,85 @@
+**Veredito final: REJECTED para fechamento da garantia de proveniência numérica.** Os bytes finais corrigem N1, N2 e N4, mas N3 permanece parcialmente aberto: a projeção de Markdown usada para reconhecer fontes do usuário não corresponde à renderização literal dessas mensagens na tela. Isso permite autorizar, retornar e persistir um número que só surgiu após a remoção de marcadores entre seus dígitos.
+
+A revisão foi somente leitura, sobre `develop`, HEAD `cafde4e8689a97bd6983490f965ca14f377c2e38`. Não editei arquivos, não executei build/gate completo concorrente, não acessei navegador, banco, provedor, `.env`, `DeepSeek-API.txt` ou ambientes de processos. Os probes de execução usaram ambiente sintético limpo e dependências injetadas, sem conexão externa.
+
+A contagem fica separada:
+
+- **N cumulativo = 4:** N1, N2 e N4 corrigidos e confirmados; **N3 parcialmente corrigido, com residual material P2**. O residual pertence ao defeito de projeção de N3, sem criar um quinto ID.
+- **CORR da rodada final = 2, documentais:** alcance do claim de fail-closed/gramática qualificado; auto-inclusão transitória do manifesto corrigida e auditada novamente. Esses ajustes não substituem a correção de N3.
+- **REJECTED = 1 grupo de claims:** equivalência da projeção com o texto exibido e consequente garantia de fonte explícita do usuário.
+- A rodada 1 permanece historicamente **REJECTED, N=3, CORR=0**. Seu parecer não foi convertido em aprovação.
+
+O residual reproduzível está em [financial-output-grounding.ts:59](/home/douglas-souza/preco-que-d-main/src/lib/ai/financial-output-grounding.ts:59) e na aplicação desse mesmo parser à fonte `user` em [financial-output-grounding.ts:113](/home/douglas-souza/preco-que-d-main/src/lib/ai/financial-output-grounding.ts:113). A tela usa `{content}` literal para o usuário em [novo-produto.tsx:242](/home/douglas-souza/preco-que-d-main/src/routes/_authenticated/novo-produto.tsx:242); apenas a resposta do assistente passa pelo renderer de Markdown.
+
+| Fonte do usuário, exibida literalmente na UI | Projeção fabricada pelo helper | Resposta aceita |
+| --- | --- | --- |
+| `Custo informado R$ 1**0**,00.` | `Custo informado R$ 10,00.` | `Custo R$ 10,00.` |
+| `Custo informado **R$ 1**0,00.` | `Custo informado R$ 10,00.` | `Custo R$ 10,00.` |
+| `Margem informada 3**0**%.` | `Margem informada 30%.` | `Margem 30%.` |
+
+O probe de renderização com React confirmou que as mensagens do usuário conservam os asteriscos. O probe do helper confirmou `blocked=false` nos três casos. Dois casos foram também executados em `executeSendChatMessage`: **R$ 10,00 e 30% foram tanto retornados quanto enviados ao `appendMessage` do assistente**. Cada execução fez uma única chamada injetada e manteve uma única liquidação `success`, com uso conhecido de 20 tokens de entrada e 10 de saída. O custo desse ambiente sintético permaneceu desconhecido, como esperado pela ausência de configuração de preços.
+
+A integração aplica o guard antes da persistência, em [chat-execution.server.ts:413](/home/douglas-souza/preco-que-d-main/src/lib/chat-execution.server.ts:413), e persiste `grounded.content` em [chat-execution.server.ts:430](/home/douglas-souza/preco-que-d-main/src/lib/chat-execution.server.ts:430). Portanto, o residual é uma concessão indevida de fonte pelo parser; não é uma rota que contorna o ponto de validação. Está dentro do contrato de proveniência numérica: o numeral 10/30 é construído pela transformação da fonte, sem depender da semântica de uma frase ou de autorização de mutação.
+
+Os veredictos por claim são:
+
+| Claim | Veredito | Evidência e alcance |
+| --- | --- | --- |
+| A soma observada de R$ 4 + R$ 6 não autoriza R$ 10 sem resultado de ferramenta | **LOCAL-VERIFIED** | Helper e fluxo injetado bloqueiam a soma e persistem a orientação segura. |
+| Valores explícitos contíguos do usuário passam, preservando moeda, percentual, centavos e zero informado | **LOCAL-VERIFIED** | Controles com 4/6/30, 1.234,56, 0,50, 0,5% e zero explícito; quantidade/data não concedem moeda. |
+| N1: sinal antes/depois da moeda e sinal dos campos de ferramenta | **CORRIGIDO** | Alterações de sinal em ambas as direções bloqueadas; negativos legítimos aceitos. |
+| N2: BRL, real/reais e por cento | **CORRIGIDO** | Ausência bloqueada e equivalência com R$/% aceita. |
+| N3: caracteres literais não fabricam um número | **PARCIAL / REJECTED** | `1*0` e `1_0` foram corrigidos. Marcadores pareados entre dígitos ainda fabricam fonte nas mensagens literais do usuário. |
+| Projeção do candidato corresponde ao renderer do assistente | **LOCAL-VERIFIED** | Parser compartilhado preserva literais e remove somente negrito pareado; conferência de renderização realizada. |
+| N4: NaN/Infinity recebem a mesma projeção do restante da validação | **CORRIGIDO** | Bold parcial, zero-width e NFKC bloqueados no helper e no fluxo, antes de persistir. |
+| `,5%` e `R$ ,50` são recusados sem virar 5/50 | **LOCAL-VERIFIED** | Controles negativos, inclusive com fonte legítima de 5%; 0,5% e R$ 0,50 continuam passando. |
+| Somente campos financeiros registrados de ferramentas bem-sucedidas dão crédito | **LOCAL-VERIFIED** | `ok:true` e campos registrados aceitos; ferramenta recusada, JSON inválido e quantidades não dão crédito. |
+| Sistema e respostas anteriores do assistente não dão crédito | **LOCAL-VERIFIED** | Controles negativos independentes. |
+| Bloqueio conserva persistência segura e liquidação do consumo | **LOCAL-VERIFIED para casos bloqueados** | Resposta persistida igual à orientação retornada; settle único; uso conhecido/ausente preservado. O residual de N3 passa indevidamente pelo guard. |
+| O pacote final possui integridade estrita | **LOCAL-VERIFIED** | Releitura atual: 38 arquivos descobertos, 38 entradas, `failures=[]`, manifesto raiz excluído. |
+| Chrome/readback/gate documentam QA local do build final | **EVIDÊNCIA LOCAL CAPTURADA, conferida** | Capturas e logs consistentes; não repeti essas operações externas durante a revisão. |
+| O pacote prova CI, land, release ou produção | **NÃO ALEGADO / NÃO VERIFICADO** | O patch não está publicado e não há run aplicável. Isso não impede avaliar o código local nem autoriza fechamento formal. |
+
+Após o reparo N4, os probes isolados anteriores ao achado residual confirmaram 34 controles do helper e sete execuções do fluxo, sem skips. Os dois probes adicionais do fluxo produziram a contraprova de N3 acima. A bateria existente não cobre essa distinção entre a renderização de `user` e `assistant`.
+
+O checklist de 17 itens foi confrontado com o pacote e o código:
+
+| Item | Resultado da revisão |
+| --- | --- |
+| 1. Controle negativo | RED do pai preservado, com sintomas nomeados e positivo de controle. |
+| 2. Duas direções | Centavos, percentuais e sinais possuem controles em ambas as direções. |
+| 3. Identidade | Produto/conversa identificados; persistência confrontada com retorno. |
+| 4. Sintoma observável | Assertivas vão além do exit code: conteúdo, bloqueio, persistência e settle. |
+| 5. Marcador observável | Capturas de QA usam estado de mensagem/compositor; não são aprovadas por sleep fixo. |
+| 6. Identidade não degenerada | Produto específico e valores distintos 4/6/30. |
+| 7. Estado compartilhado | Script de readback revisado, com par de URLs qualificado e transação READ ONLY; não executado por este revisor. |
+| 8. Sentinela por cenário | Readbacks usam o produto exato; probes locais isolam fonte/candidato. |
+| 9. Fingerprint | Cinco hashes atuais calculados e comparados com `source-fingerprints-final.txt`. |
+| 10. Descoberta | Manifesto atual passa 38/38; controles em memória rejeitam vazio, identidade divergente, bytes alterados e duplicação. |
+| 11. S6 limpo | Rejeição inicial preservada; este relatório encerra a revisão dos bytes atuais com residual explícito. |
+| 12. Fail-closed | **REJECTED para a fonte do usuário no residual de N3.** As demais fronteiras registradas testadas passam. |
+| 13. Isolamento | Probes executados com ambiente sintético e dependências injetadas; bancada externa não foi acessada. |
+| 14. Capturas de gates | RED/GREEN e gates falhos/verdes preservados, sem transformar r2/r3 em resultado final. |
+| 15. CI por revisão | Ausente e declarado; QA local não substitui selo formal. |
+| 16. Sites | Saída/persistência/helper/renderer enumerados. A distinção da bolha literal do usuário precisa entrar na análise de fontes de N3. |
+| 17. Ambiente | HEAD/branch atuais conferidos; bancada deliberadamente dirty e ausência de selo de árvore limpa declaradas. |
+
+O log r4 registra **133 arquivos e 1868 testes aprovados**, sem testes skipped, além de build e bundle aprovados. Seu SHA256 atual é `427eca5bafc8aa77eaa369f9b4f7f9e76af0600de3a78e2da437853a3a4443de`. O relato de exit 0 pertence à execução do agente principal; minha confirmação independente foi a leitura desse log e dos fingerprints, sem reexecutar o gate.
+
+O readback final capturado conserva o produto único `01e3b94a-91f4-42f8-9ddb-651f370d1187`, ingredientes 4 e 6, preço 30, rendimento 1 unidade, MEI e `tax_rate=null`; sete ferramentas bem-sucedidas, um único `create_product`, produto `draft` e conversa `completed`. O trecho final registra sete pares de mensagens e doze usage IDs liquidados com custo conhecido. USD 0,0369 é estimativa configurada do ledger, não fatura do provedor. As capturas r3 de cinco pares/dez usos continuam históricas. A captura final do Chrome sustenta o bloqueio real de não-finito e o resumo positivo, mas não exercita a fonte fragmentada de N3.
+
+Os cinco fingerprints atuais, calculados nesta sessão, são:
+
+```text
+6fd7320d69e52bb352f0c17795b281663ed8c50c8f5aac3ca754b466b57bc5cb  src/lib/ai/financial-output-grounding.ts
+6cf4478ac092e13cdc8c2679f3b34a941a22f8a3939fb6da7ff2cb21fa5d360b  src/lib/chat-execution.server.ts
+f0a166fd276d065ff305c2973f13131f5906cb4caf3016a2dd2d2fd959f60047  src/lib/chat-markdown-parser.ts
+fd45255d00cd5d109f3a3958ef563e01252ff765272e5a49c44e23cd9680cd21  src/lib/chat-markdown.tsx
+82704dcc664235a7b39816155fcef4dd8d609929efd064f30a4d36ca7a55401c  src/test/chat-financial-grounding.test.ts
+```
+
+O manifesto auditado neste instante tem SHA256 `9bcb65d29bb223ab265dd4405036d1f6386284fa36aa26e5829a405a4dc9aed1`. A adição deste relatório e qualquer atualização documental exigem nova geração e releitura do manifesto; este hash identifica o pacote anterior à incorporação do relatório.
+
+O reparo necessário para N3 é usar a projeção correspondente ao papel da mensagem: o candidato deve acompanhar o renderer do assistente; a fonte do usuário deve acompanhar o texto literal exibido. As regressões devem exigir bloqueio para os fragmentos acima no helper e no fluxo, mantendo controles positivos de fontes contíguas e respostas com negrito. Como a segunda rodada de correção foi consumida, este parecer não autoriza uma terceira rodada nem declara o WP fechado.
+
+Continuam explícitos os limites de semântica, associação de valores a produtos, autorização de mutação, recorte do histórico e formatos fora das notações registradas. Nenhum deles cobre o residual encontrado. O README deve conservar o status de revisão rejeitada/pendente para esse contrato e qualificar “quatro reparos confirmados” para **três confirmados e um parcial**, sem apagar N1–N4 ou os gates anteriores.

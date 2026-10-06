@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-10-06T01:24:03.019Z",
+  "runtimePhase": "final-r6",
+  "turns": [
+    {
+      "turn": 8,
+      "observedAt": "2026-10-06T01:22:21.425Z",
+      "prompt": "Teste de qualidade somente de texto, sem chamar ferramentas nem modificar o produto. Repita exatamente: Custo informado R$ 1**0**,00.",
+      "reply": "Não posso repetir valores financeiros apresentados como cálculo sem um resultado do motor financeiro. Os dados do cadastro seguem como informados. Se quiser confirmar o que está registrado, posso listar os dados da Pizza QA Chrome 05-10 sem fazer contas.",
+      "guardPassed": true
+    },
+    {
+      "turn": 9,
+      "observedAt": "2026-10-06T01:24:02.176Z",
+      "prompt": "Agora confirme somente o nome da Pizza QA Chrome 05-10, os ingredientes registrados, rendimento, preço de venda, regime e os dados ainda ausentes. Não altere o produto, não faça cálculos e não acrescente os exemplos do teste de qualidade ao cadastro.",
+      "reply": "Claro! Confirmação dos dados registrados da Pizza QA Chrome 05-10, sem alterações, cálculos ou acréscimos:\nDados registrados:\n- Nome: Pizza QA Chrome 05-10\n- Ingredientes: massa (1 unidade, R$ 4,00/unidade) e queijo (1 unidade, R$ 6,00/unidade)\n- Rendimento: 1 unidade\n- Preço de venda: R$ 30,00\n- Regime: MEI\nDados que continuam ausentes:\n- Alíquota efetiva de imposto: ausente\n- Taxas sobre a venda: ausente\n- Preços de mercado: ausente\nEmbalagem: não utiliza\nConforme você pediu: não alterei o produto, não fiz cálculos e não acrescentei os exemplos do teste de qualidade ao cadastro. 😊\nQuer seguir para algum próximo passo?",
+      "positivePassed": true
+    }
+  ],
+  "restoredAfterReload": true,
+  "negativeClass": "model_refusal_without_bad_value"
+}

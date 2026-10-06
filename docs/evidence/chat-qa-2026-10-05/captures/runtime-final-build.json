@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-10-06T00:43:45Z",
+  "previousPid": 523840,
+  "currentPid": 533174,
+  "readyStatus": 200,
+  "providerConfigPreserved": true,
+  "providerValueObserved": false,
+  "databaseLoopbackPort": 41922,
+  "sourceFingerprintCapture": "source-fingerprints-final.txt"
+}

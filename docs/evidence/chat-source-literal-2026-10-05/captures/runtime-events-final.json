@@ -1,0 +1,6 @@
+{
+  "observedAt": "2026-10-06T01:28:29Z",
+  "guardEventCount": 0,
+  "events": [],
+  "negativeClass": "provider refusal in final-r6; no proof of real guard firing in this phase; deterministic integration tests exercise the guard"
+}

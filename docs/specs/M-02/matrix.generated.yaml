@@ -731,13 +731,13 @@
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 132,
+      "line": 133,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 144,
+      "line": 145,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },

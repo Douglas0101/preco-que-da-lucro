@@ -1,0 +1,17 @@
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/chat-financial-grounding.test.ts
+
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  21:06:10
+   Duration  1.78s (transform 365ms, setup 124ms, import 969ms, tests 19ms, environment 547ms)
+

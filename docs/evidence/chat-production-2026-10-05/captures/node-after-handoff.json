@@ -1,0 +1,28 @@
+{
+  "observedAt": "2026-10-06T02:05:31.418601+00:00",
+  "scope": "One bounded anonymous GET recheck after operator said they would confer configuration; no cookies or credential values; no configuration applied assumed",
+  "observations": [
+    {
+      "url": "https://darkgray-pony-545965.hostingersite.com/api/health/ready",
+      "httpStatus": 503,
+      "curlExit": 0,
+      "contentType": "application/json",
+      "bytes": 64,
+      "sha256": "0a47f8870ddd261e4e80c6cda6707db80dca3aa9e795e62eaf9b6d468faca656",
+      "applicationBody": {
+        "status": "not_ready",
+        "dependencies": {
+          "postgres": "unavailable"
+        }
+      }
+    },
+    {
+      "url": "https://darkgray-pony-545965.hostingersite.com/api/auth/get-session",
+      "httpStatus": 500,
+      "curlExit": 0,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 1312,
+      "sha256": "7bda1ad24ab9d11b6b7039b1296d95982eee5cd6812224564749812b040c010a"
+    }
+  ]
+}

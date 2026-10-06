@@ -1,0 +1,92 @@
+PRECONDITION develop/HEAD exact; fixture pair loopback41922; provider config absent; current source fingerprints asserted.
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+stdout | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Custo informado R$ 1**0**,00. / Custo R$ 1,00.
+{"timestamp":"2026-10-06T01:08:41.712Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+stderr | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Custo informado R$ 1**0**,00. / Custo R$ 1,00.
+{"timestamp":"2026-10-06T01:08:41.712Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+stdout | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Custo informado **R$ 1**0,00. / Custo R$ 1,00.
+{"timestamp":"2026-10-06T01:08:41.714Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+stderr | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Custo informado **R$ 1**0,00. / Custo R$ 1,00.
+{"timestamp":"2026-10-06T01:08:41.714Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+stdout | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Margem informada 3**0%. / Margem 0%.
+{"timestamp":"2026-10-06T01:08:41.715Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+stderr | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Margem informada 3**0%. / Margem 0%.
+{"timestamp":"2026-10-06T01:08:41.715Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+ ❯ src/test/chat-financial-grounding.test.ts (74 tests | 6 failed) 43ms
+     × fonte Custo informado R$ 1**0**,00. / resposta Custo R$ 1,00. / bloqueio true 5ms
+     × fonte Custo informado **R$ 1**0,00. / resposta Custo R$ 1,00. / bloqueio true 1ms
+     × fonte Margem informada 3**0%. / resposta Margem 0%. / bloqueio true 1ms
+     × não persiste a variação S6: Custo informado R$ 1**0**,00. / Custo R$ 1,00. 2ms
+     × não persiste a variação S6: Custo informado **R$ 1**0,00. / Custo R$ 1,00. 1ms
+     × não persiste a variação S6: Margem informada 3**0%. / Margem 0%. 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/chat-financial-grounding.test.ts > fronteiras numéricas da resposta financeira > fonte Custo informado R$ 1**0**,00. / resposta Custo R$ 1,00. / bloqueio true
+ FAIL  src/test/chat-financial-grounding.test.ts > fronteiras numéricas da resposta financeira > fonte Custo informado **R$ 1**0,00. / resposta Custo R$ 1,00. / bloqueio true
+ FAIL  src/test/chat-financial-grounding.test.ts > fronteiras numéricas da resposta financeira > fonte Margem informada 3**0%. / resposta Margem 0%. / bloqueio true
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/test/chat-financial-grounding.test.ts:66:68
+     64|     ["Taxa 5%", "Taxa ,5%.", true],
+     65|   ])("fonte %s / resposta %s / bloqueio %s", (source, content, blocked…
+     66|     expect(groundFinancialOutput(content, [user(source)]).blocked).toB…
+       |                                                                    ^
+     67|   });
+     68|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Custo informado R$ 1**0**,00. / Custo R$ 1,00.
+ FAIL  src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Custo informado **R$ 1**0,00. / Custo R$ 1,00.
+AssertionError: expected 'Custo R$ 1,00.' to contain 'motor financeiro'
+
+Expected: "motor financeiro"
+Received: "Custo R$ 1,00."
+
+ ❯ src/test/chat-financial-grounding.test.ts:191:28
+    189|   ])("não persiste a variação S6: %s / %s", async (source, modelText) …
+    190|     const { result, persisted, settled } = await answer(source, modelT…
+    191|     expect(result.content).toContain("motor financeiro");
+       |                            ^
+    192|     expect(result.content).not.toBe(modelText);
+    193|     const assistant = persisted.mock.calls.find(([, input]) => input.r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Margem informada 3**0%. / Margem 0%.
+AssertionError: expected 'Margem 0%.' to contain 'motor financeiro'
+
+Expected: "motor financeiro"
+Received: "Margem 0%."
+
+ ❯ src/test/chat-financial-grounding.test.ts:191:28
+    189|   ])("não persiste a variação S6: %s / %s", async (source, modelText) …
+    190|     const { result, persisted, settled } = await answer(source, modelT…
+    191|     expect(result.content).toContain("motor financeiro");
+       |                            ^
+    192|     expect(result.content).not.toBe(modelText);
+    193|     const assistant = persisted.mock.calls.find(([, input]) => input.r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  6 failed | 177 passed (183)
+   Start at  22:08:35
+   Duration  5.80s (transform 452ms, setup 406ms, import 1.75s, tests 744ms, environment 2.36s)
+

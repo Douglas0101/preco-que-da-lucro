@@ -1,0 +1,10 @@
+PRECONDITION develop/HEAD exact; fixture pair loopback41922; provider config absent; current source fingerprints asserted.
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+
+ Test Files  5 passed (5)
+      Tests  183 passed (183)
+   Start at  22:09:34
+   Duration  5.91s (transform 479ms, setup 392ms, import 1.87s, tests 737ms, environment 2.36s)
+

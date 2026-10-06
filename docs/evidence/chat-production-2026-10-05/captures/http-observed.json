@@ -1,0 +1,110 @@
+{
+  "observedAt": "2026-10-06T01:24:02Z",
+  "anonymousGetOnly": true,
+  "rawBodiesPersisted": false,
+  "probes": [
+    {
+      "url": "https://diretrizprecifica.com/",
+      "observedAt": "2026-10-06T01:23:41Z",
+      "status": 200,
+      "finalUrl": "https://diretrizprecifica.com/",
+      "contentType": "text/html",
+      "bodySha256": "b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c",
+      "bytes": 7956,
+      "seconds": 0.425,
+      "setCookiePresent": false,
+      "server": "hcdn",
+      "poweredBy": "Hostinger Horizons",
+      "bodyKind": "html",
+      "title": ""
+    },
+    {
+      "url": "https://diretrizprecifica.com/api/health/live",
+      "observedAt": "2026-10-06T01:23:41Z",
+      "status": 200,
+      "finalUrl": "https://diretrizprecifica.com/api/health/live",
+      "contentType": "text/html",
+      "bodySha256": "b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c",
+      "bytes": 7956,
+      "seconds": 0.424,
+      "setCookiePresent": false,
+      "server": "hcdn",
+      "poweredBy": "Hostinger Horizons",
+      "bodyKind": "html",
+      "title": ""
+    },
+    {
+      "url": "https://diretrizprecifica.com/api/health/ready",
+      "observedAt": "2026-10-06T01:23:41Z",
+      "status": 200,
+      "finalUrl": "https://diretrizprecifica.com/api/health/ready",
+      "contentType": "text/html",
+      "bodySha256": "b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c",
+      "bytes": 7956,
+      "seconds": 0.421,
+      "setCookiePresent": false,
+      "server": "hcdn",
+      "poweredBy": "Hostinger Horizons",
+      "bodyKind": "html",
+      "title": ""
+    },
+    {
+      "url": "https://diretrizprecifica.com/api/auth/get-session",
+      "observedAt": "2026-10-06T01:23:42Z",
+      "status": 200,
+      "finalUrl": "https://diretrizprecifica.com/api/auth/get-session",
+      "contentType": "text/html",
+      "bodySha256": "b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c",
+      "bytes": 7956,
+      "seconds": 0.612,
+      "setCookiePresent": false,
+      "server": "hcdn",
+      "poweredBy": "Hostinger Horizons",
+      "bodyKind": "html",
+      "title": ""
+    },
+    {
+      "url": "https://darkgray-pony-545965.hostingersite.com/",
+      "transport": "failed",
+      "errorType": "TimeoutError",
+      "seconds": 20.339
+    },
+    {
+      "url": "https://darkgray-pony-545965.hostingersite.com/api/health/live",
+      "transport": "failed",
+      "errorType": "TimeoutError",
+      "seconds": 20.335
+    },
+    {
+      "url": "https://darkgray-pony-545965.hostingersite.com/api/health/ready",
+      "observedAt": "2026-10-06T01:23:43Z",
+      "status": "not_ready",
+      "finalUrl": "https://darkgray-pony-545965.hostingersite.com/api/health/ready",
+      "contentType": "application/json",
+      "bodySha256": "0a47f8870ddd261e4e80c6cda6707db80dca3aa9e795e62eaf9b6d468faca656",
+      "bytes": 64,
+      "seconds": 1.924,
+      "setCookiePresent": false,
+      "server": "hcdn",
+      "poweredBy": null,
+      "bodyKind": "json",
+      "isNull": false,
+      "fields": ["status", "dependencies"]
+    },
+    {
+      "url": "https://darkgray-pony-545965.hostingersite.com/api/auth/get-session",
+      "observedAt": "2026-10-06T01:23:43Z",
+      "status": 500,
+      "finalUrl": "https://darkgray-pony-545965.hostingersite.com/api/auth/get-session",
+      "contentType": "text/html; charset=utf-8",
+      "bodySha256": "7bda1ad24ab9d11b6b7039b1296d95982eee5cd6812224564749812b040c010a",
+      "bytes": 1312,
+      "seconds": 1.736,
+      "setCookiePresent": false,
+      "server": "hcdn",
+      "poweredBy": null,
+      "bodyKind": "html",
+      "title": "This page didn't load"
+    }
+  ]
+}

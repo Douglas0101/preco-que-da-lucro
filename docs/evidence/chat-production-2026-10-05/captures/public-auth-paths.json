@@ -1,0 +1,25 @@
+{
+  "observedAt": "2026-10-06T01:32:07.942Z",
+  "publicSourceUrl": "https://diretrizprecifica.com/assets/index-Uk3Eix_8.js",
+  "methodsGetter": "get baseCollectionPath(){return\"/api/collections/\"+encodeURIComponent(this.collectionIdOrName)}get isSuperusers(){return this.collectionIdOrName==\"_superusers\"||this.collectionIdOrName==\"_pbc_277",
+  "paths": [
+    "baseCollectionPath+\"/records\"}get baseCollectionPath(){return\"/api/collections/\"+encodeURIComponent(this.collectionIdOrName)}get isSuperus",
+    "baseCollectionPath+\"/auth-methods\",t)}async authWithPassword(t,i,o){let a",
+    "baseCollectionPath+\"/auth-with-password\",o)",
+    "baseCollectionPath+\"/auth-with-oauth2\",p).then((m=>this.authResponse(m)))}authWithOAuth2(...t){if(t.length>1||typeof t?.[0]==\"string\")retu",
+    "baseCollectionPath+\"/auth-refresh\",o).then((a=>this.authResponse(a)))}async requestPasswordReset(t,i,o){let a={method:\"POST\",body:{email:t",
+    "baseCollectionPath+\"/request-password-reset\",a).then((()=>!0))}async confirmPasswordReset(t,i,o,a,u){let c={method:\"POST\",body:{token:t,pa",
+    "baseCollectionPath+\"/confirm-password-reset\",c).then((()=>!0))}async requestVerification(t,i,o){let a={method:\"POST\",body:{email:t}}",
+    "baseCollectionPath+\"/request-verification\",a).then((()=>!0))}async confirmVerification(t,i,o){let a={method:\"POST\",body:{token:t}}",
+    "baseCollectionPath+\"/confirm-verification\",a).then((()=>{const u=qr(t),c=this.client.authStore.record",
+    "baseCollectionPath+\"/request-email-change\",a).then((()=>!0))}async confirmEmailChange(t,i,o,a){let u={method:\"POST\",body:{token:t,password",
+    "baseCollectionPath+\"/confirm-email-change\",u).then((()=>{const c=qr(t),d=this.client.authStore.record",
+    "baseCollectionPath+\"/request-otp\",i)}async authWithOTP(t,i,o){return o=Object.assign({method:\"POST\",body:{otpId:t,password:i}},o),this.cli",
+    "baseCollectionPath+\"/auth-with-otp\",o).then((a=>this.authResponse(a)))}async impersonate(t,i,o){(o=Object.assign({method:\"POST\",body:{dura",
+    "baseCollectionPath+\"/impersonate/\"+encodeURIComponent(t),o)",
+    "api/collections\"}async import(t,i=!1,o){return o=Object.assign({method:\"PUT\",body:{collections:t,deleteMissing:i}},o),this.client.send(",
+    "api/collections/\"+encodeURIComponent(this.collectionIdOrName)+\"/records\"}",
+    "api/collections/\"+encodeURIComponent(this.collectionIdOrName)+\"/records/\"+encodeURIComponent(t)}",
+    "hcgi/platform\",st=new Bg(pS),$g=S.createContext(null),hS=({children:n})=>{const[t,i]=S.useState(st.authStore.record)"
+  ]
+}

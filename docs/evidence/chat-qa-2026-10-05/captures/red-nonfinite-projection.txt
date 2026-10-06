@@ -1,0 +1,87 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+stdout | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Sem custo informado / Custo R$ **Na**N.
+{"timestamp":"2026-10-06T00:36:46.977Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+stderr | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Sem custo informado / Custo R$ **Na**N.
+{"timestamp":"2026-10-06T00:36:46.977Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+stdout | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Sem margem informada / Margem **Infi**nity%.
+{"timestamp":"2026-10-06T00:36:46.979Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+stderr | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Sem margem informada / Margem **Infi**nity%.
+{"timestamp":"2026-10-06T00:36:46.979Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+ ❯ src/test/chat-financial-grounding.test.ts (58 tests | 7 failed) 34ms
+     × recusa valor inválido sem derrubar o chat: Custo R$ **Na**N. 5ms
+     × recusa valor inválido sem derrubar o chat: Margem **Infi**nity%. 1ms
+     × recusa valor inválido sem derrubar o chat: Custo R$ N​aN. 1ms
+     × recusa valor inválido sem derrubar o chat: Custo Ｒ＄ ＮａＮ. 1ms
+     × recusa valor inválido sem derrubar o chat: Custo R$ ,50. 0ms
+     × não persiste a variação S6: Sem custo informado / Custo R$ **Na**N. 2ms
+     × não persiste a variação S6: Sem margem informada / Margem **Infi**nity%. 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/chat-financial-grounding.test.ts > fronteiras numéricas da resposta financeira > recusa valor inválido sem derrubar o chat: Custo R$ **Na**N.
+ FAIL  src/test/chat-financial-grounding.test.ts > fronteiras numéricas da resposta financeira > recusa valor inválido sem derrubar o chat: Margem **Infi**nity%.
+ FAIL  src/test/chat-financial-grounding.test.ts > fronteiras numéricas da resposta financeira > recusa valor inválido sem derrubar o chat: Custo R$ N​aN.
+ FAIL  src/test/chat-financial-grounding.test.ts > fronteiras numéricas da resposta financeira > recusa valor inválido sem derrubar o chat: Custo Ｒ＄ ＮａＮ.
+ FAIL  src/test/chat-financial-grounding.test.ts > fronteiras numéricas da resposta financeira > recusa valor inválido sem derrubar o chat: Custo R$ ,50.
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/test/chat-financial-grounding.test.ts:104:58
+    102|     "recusa valor inválido sem derrubar o chat: %s",
+    103|     (content) => {
+    104|       expect(groundFinancialOutput(content, []).blocked).toBe(true);
+       |                                                          ^
+    105|     },
+    106|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Sem custo informado / Custo R$ **Na**N.
+AssertionError: expected 'Custo R$ **Na**N.' to contain 'motor financeiro'
+
+Expected: "motor financeiro"
+Received: "Custo R$ **Na**N."
+
+ ❯ src/test/chat-financial-grounding.test.ts:179:28
+    177|   ])("não persiste a variação S6: %s / %s", async (source, modelText) …
+    178|     const { result, persisted, settled } = await answer(source, modelT…
+    179|     expect(result.content).toContain("motor financeiro");
+       |                            ^
+    180|     expect(result.content).not.toBe(modelText);
+    181|     const assistant = persisted.mock.calls.find(([, input]) => input.r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não persiste a variação S6: Sem margem informada / Margem **Infi**nity%.
+AssertionError: expected 'Margem **Infi**nity%.' to contain 'motor financeiro'
+
+Expected: "motor financeiro"
+Received: "Margem **Infi**nity%."
+
+ ❯ src/test/chat-financial-grounding.test.ts:179:28
+    177|   ])("não persiste a variação S6: %s / %s", async (source, modelText) …
+    178|     const { result, persisted, settled } = await answer(source, modelT…
+    179|     expect(result.content).toContain("motor financeiro");
+       |                            ^
+    180|     expect(result.content).not.toBe(modelText);
+    181|     const assistant = persisted.mock.calls.find(([, input]) => input.r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 51 passed (58)
+   Start at  21:36:45
+   Duration  1.58s (transform 308ms, setup 115ms, import 807ms, tests 34ms, environment 482ms)
+

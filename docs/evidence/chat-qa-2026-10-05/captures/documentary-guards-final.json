@@ -1,0 +1,27 @@
+[
+  {
+    "gate": "m02:work-package-guard",
+    "exit": 0,
+    "output": "\n> m02:work-package-guard\n> node scripts/m02-work-package-guard.mjs\n\nwork-package guard: OK (17 itens, 5 secoes, taxonomia e layout do selo) \u2014 docs/evidence/_templates/work-package.md\n"
+  },
+  {
+    "gate": "m02:debts-guard",
+    "exit": 0,
+    "output": "\n> m02:debts-guard\n> node scripts/m02-debts-guard.mjs\n\ndebts guard: OK (76 dividas, taxonomia e regra de closure) \u2014 docs/evidence/agent-state/DEBTS.md\n"
+  },
+  {
+    "gate": "m02:temporal-guard",
+    "exit": 0,
+    "output": "\n> m02:temporal-guard\n> node scripts/m02-temporal-guard.mjs\n\nm02-temporal-guard: superficie viva, as-of 2026-10-06\n  docs/evidence/agent-state/PROGRESS.md [secao-1] \u2014 4 \u00e2ncora(s), 0 linha(s) com prazo vivo\n  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] \u2014 42 \u00e2ncora(s), 1 linha(s) com prazo vivo\n  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [fora-do-fechado] \u2014 0 \u00e2ncora(s), 1 linha(s) com prazo vivo\nm02-temporal-guard: OK (3 superficies vivas, 0 violacao)\n"
+  },
+  {
+    "gate": "m02:state:check",
+    "exit": 0,
+    "output": "\n> m02:state:check\n> tsx scripts/m02-state-check.ts\n\nM-02 ancestral state marker is valid for HEAD cafde4e8689a97bd6983490f965ca14f377c2e38 (folga 12/13 commits).\nWorktree: dirty (preservado e audit\u00e1vel).\nExternal state: not inspected by this local check.\n"
+  },
+  {
+    "gate": "m02:matrix:check",
+    "exit": 0,
+    "output": "\n> m02:matrix:check\n> tsx scripts/m02-matrix.ts --check\n\nM-02 matrix is deterministic and up to date.\n"
+  }
+]

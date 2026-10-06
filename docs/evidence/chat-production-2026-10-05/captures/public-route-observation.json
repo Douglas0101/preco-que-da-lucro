@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-10-06T01:29:42.871Z",
+  "sourceUrl": "https://diretrizprecifica.com/assets/index-Uk3Eix_8.js",
+  "routes": ["*", "/"],
+  "relevant": [
+    "i.signal=a.signal}return i}getHeader(t,i){t=t||{},i=i.toLowerCase();for(let o in t)if(o.toLowerCase()==i)return t[o];return null}}const pS=\"/hcgi/platform\",st=new Bg(pS),$g=S.createContext(null),hS=({children:n})=>{const[t,i]=S.useState(st.authStore.record);S.useEffect(()=>st.authStore.onChange((a,u)=>i(u)),[]);const o=S.useMemo(()=>({use",
+    "l}return i}getHeader(t,i){t=t||{},i=i.toLowerCase();for(let o in t)if(o.toLowerCase()==i)return t[o];return null}}const pS=\"/hcgi/platform\",st=new Bg(pS),$g=S.createContext(null),hS=({children:n})=>{const[t,i]=S.useState(st.authStore.record);S.useEffect(()=>st.authStore.onChange((a,u)=>i(u)),[]);const o=S.useMemo(()=>({user:t,isAuthed:st.",
+    ").authWithPassword(a,u)),logout:()=>st.authStore.clear()}),[t]);return g.jsx($g.Provider,{value:o,children:n})},qg=()=>S.useContext($g),mS=\"/hcgi/api\",Hg={fetch:async(n,t={})=>await window.fetch(mS+n,t)},Wg=()=>({Authorization:`Bearer ${st.authStore.token}`});async function gS(){const n=await Hg.fetch(\"/ecommerce/subscriptions\",{headers:W",
+    "ildren:\"Planos e assinatura\"})}),g.jsx(\"li\",{children:g.jsx(Ve,{to:po,className:\"transition-colors hover:text-foreground\",children:\"Área do assinante\"})})]})]}),g.jsxs(\"div\",{children:[g.jsx(\"p\",{className:\"text-xs font-semibold uppercase tracking-[0.2em] text-primary\",children:\"Contato\"}),g.jsxs(\"ul\",{className:\"mt-4 space-y-3 text-sm te",
+    "elar quando quiser?\",answer:\"Sim. Não há fidelidade: você gerencia ou cancela a sua assinatura a qualquer momento, diretamente pela área do assinante.\"},{question:\"Como falo com a Diretriz?\",answer:\"Pelo telefone [REDACTED:phone] ou pelo Instagram @diretrizconsultoriafinanceira. O e-mail oficial será divulgado em breve.\"}];function gg(){re",
+    "\",{className:\"gold-hairline w-10\"}),g.jsx(\"p\",{className:\"text-xs font-semibold uppercase tracking-[0.24em] text-primary\",children:\"Área do assinante\"})]}),g.jsx(\"h1\",{className:\"mt-5 font-display text-3xl font-extrabold tracking-tight sm:text-4xl\",children:\"Minha assinatura\"}),g.jsx(\"p\",{className:\"mt-3 text-muted-foreground\",children:\"C"
+  ],
+  "scope": "public route/source declarations only; not runtime session or account contents"
+}

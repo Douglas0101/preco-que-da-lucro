@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-06T01:26:57Z",
+  "sourceUrl": "https://diretrizprecifica.com/assets/index-Uk3Eix_8.js",
+  "byteSha256": "77b0e6b1197b9cc803acf7ea7badf052da278170af0fe46e8d7e13c1f0f89aee",
+  "bytes": 452380,
+  "flags": {
+    "supabase_client": false,
+    "better_auth": false,
+    "deepseek_name": false,
+    "tanstack_start": false,
+    "local_storage": true,
+    "chat_route": false
+  },
+  "publicOrigins": [],
+  "tokensOrRawSourcePersisted": false,
+  "limits": "flags identify public bundle markers, not authentication or chat success"
+}

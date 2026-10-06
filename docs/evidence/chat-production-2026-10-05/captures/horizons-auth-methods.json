@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-10-06T01:32:56.708Z",
+  "url": "https://diretrizprecifica.com/hcgi/platform/api/collections/users/auth-methods",
+  "httpStatus": 200,
+  "contentType": "application/json",
+  "anonymousGetOnly": true,
+  "credentialsReadOrSubmitted": false,
+  "fields": [
+    "password",
+    "oauth2",
+    "mfa",
+    "otp",
+    "authProviders",
+    "usernamePassword",
+    "emailPassword"
+  ],
+  "passwordEnabled": true,
+  "otpEnabled": false,
+  "mfaEnabled": false,
+  "oauthProviders": [],
+  "code": null
+}

@@ -1,0 +1,10 @@
+Provider credentials and provider overrides absent from test process; fixture DB pair inherited privately.
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+
+ Test Files  5 passed (5)
+      Tests  159 passed (159)
+   Start at  21:20:55
+   Duration  6.81s (transform 516ms, setup 481ms, import 2.15s, tests 790ms, environment 2.75s)
+

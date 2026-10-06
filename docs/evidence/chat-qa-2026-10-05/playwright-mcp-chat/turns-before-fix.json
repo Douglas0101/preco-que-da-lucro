@@ -1,0 +1,20 @@
+{
+  "startedAt": "2026-10-05T23:58:23.792Z",
+  "turns": [
+    {
+      "turn": 1,
+      "seconds": 22.6,
+      "reply": "Entendi! Você já tem a pizza margherita cadastrada e agora quer cadastrar um novo produto chamado Pizza QA Chrome 05-10. Vamos confirmar os dados antes de salvar:\n- Produto: Pizza QA Chrome 05-10\n- Ingredientes: massa (1 unidade, R$ 4,00/unidade) e queijo (1 unidade, R$ 6,00/unidade)\n- Rendimento: 1 unidade\n- Preço de venda: R$ 30,00\n- Regime: MEI\n- Alíquota de imposto: não informada (ausente)\n- Embalagem: não utiliza\n- Taxas sobre a venda: não informadas\n- Preços de mercado: não informados\nEstá tudo correto assim? Se sim, é só me confirmar e eu registro o produto. 😊"
+    },
+    {
+      "turn": 2,
+      "elapsedUntilObservationSeconds": 12,
+      "reply": "Tudo pronto! O produto Pizza QA Chrome 05-10 foi cadastrado e finalizado com sucesso. ✅\nResumo final:\n- Produto: Pizza QA Chrome 05-10\n- Ingredientes: massa (1 unidade, R$ 4,00/unidade) e queijo (1 unidade, R$ 6,00/unidade)\n- Rendimento: 1 unidade\n- Preço de venda: R$ 30,00\n- Regime: MEI\n- Alíquota de imposto: não informada (ausente)\n- Embalagem: não utiliza\n- Taxas sobre a venda: não informadas\n- Preços de mercado: não informados\nAs informações que você não forneceu continuaram registradas como ausentes — nada foi inventado nem tratado como zero.\nPróximos passos possíveis:\n1. Simular cenários de preço — pode ser interessante investigar como ficam seus resultados com o que já temos.\n2. Informar taxas sobre a venda — se você paga cartão ou delivery, vale registrar para a análise ficar mais fiel.\n3. Registrar preços de mercado — se souber por quanto a concorrência vende, isso ajuda a comparar cenários.\nQuer seguir por algum desses caminhos? 😊🍕"
+    },
+    {
+      "turn": 3,
+      "elapsedUntilObservationSeconds": 38,
+      "reply": "Boa pergunta! Vou ser bem transparente com você. 😊\nNão, eu não posso afirmar uma margem de lucro real desse produto. E explico o porquê.\nA margem de lucro real depende de todos os \"descontos\" que incidem sobre a venda. Sem eles, qualquer número seria incompleto — e eu não trabalho com achismo nem com valores inventados.\nO que falta para uma conclusão completa:\n1. Alíquota efetiva de imposto — você é MEI, mas não informou a alíquota efetiva. Sem ela, não sei quanto da venda vai para imposto.\n2. Taxas sobre a venda — se você paga cartão, aplicativo de delivery ou similares, essas taxas percentuais também saem do valor da venda. Como não foram informadas, ficam ausentes.\n3. Preços de mercado — não são obrigatórios para a margem, mas ajudam a contextualizar se o preço de R$ 30,00 está competitivo.\nO que eu *posso* dizer com o que já temos: o cadastro tem os custos dos ingredientes (massa R$ 4,00 + queijo R$ 6,00 = R$ 10,00 por unidade). Isso é apenas o custo direto dos ingredientes — ainda não é margem, porque faltam imposto e taxas.\nImportante: conforme você pediu, não alterei o cadastro e não preenchi nenhum campo com zero. A alíquota e as taxas continuam registradas como ausentes.\nSe quiser, posso simular cenários de preço deixando explícito que imposto e taxas estão ausentes — assim você vê o efeito apenas do que já é conhecido, sem tirar conclusões indevidas. Quer seguir por aí? 😊"
+    }
+  ]
+}

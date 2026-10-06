@@ -1,0 +1,14 @@
+src/lib/chat-execution.server.ts:14:import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
+src/lib/chat-execution.server.ts:15:import { groundFinancialOutput } from "@/lib/ai/financial-output-grounding";
+src/lib/chat-execution.server.ts:238:      role: "assistant",
+src/lib/chat-execution.server.ts:390:      role: "assistant",
+src/lib/chat-execution.server.ts:413:  const sanitized = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
+src/lib/chat-execution.server.ts:415:  const grounded = groundFinancialOutput(sanitized, messages);
+src/lib/ai/financial-output-grounding.ts:2:import { visibleChatMarkdownText } from "@/lib/chat-markdown-parser";
+src/lib/ai/financial-output-grounding.ts:62:  const visibleText = visibleChatMarkdownText(text)
+src/lib/ai/financial-output-grounding.ts:106:export function groundFinancialOutput(content: string, messages: readonly SourceMessage[]) {
+src/lib/chat-markdown-parser.ts:2:export function parseChatMarkdownLine(line: string) {
+src/lib/chat-markdown-parser.ts:9:export function visibleChatMarkdownText(text: string): string {
+src/lib/chat-markdown-parser.ts:13:      parseChatMarkdownLine(line)
+src/lib/chat-markdown.tsx:2:import { parseChatMarkdownLine } from "@/lib/chat-markdown-parser";
+src/lib/chat-markdown.tsx:23:  return parseChatMarkdownLine(line).map((part) => {

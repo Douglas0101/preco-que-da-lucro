@@ -1,0 +1,37 @@
+[
+  {
+    "timestamp": "2026-10-06T00:28:11.771Z",
+    "event": "ai.model_attempt",
+    "level": "info",
+    "model": "deepseek-flash",
+    "outcome": "success",
+    "durationMs": 2712
+  },
+  {
+    "timestamp": "2026-10-06T00:28:11.774Z",
+    "event": "ai.financial_output_blocked",
+    "level": "warn",
+    "unsupportedCount": 1,
+    "correlationId": "23c2f55a-c69f-4701-aea2-62afc983a6f8"
+  },
+  {
+    "timestamp": "2026-10-06T00:28:11.784Z",
+    "event": "ai.chat_completed",
+    "level": "info",
+    "correlationId": "23c2f55a-c69f-4701-aea2-62afc983a6f8"
+  },
+  {
+    "timestamp": "2026-10-06T00:28:37.333Z",
+    "event": "ai.model_attempt",
+    "level": "info",
+    "model": "deepseek-flash",
+    "outcome": "success",
+    "durationMs": 1857
+  },
+  {
+    "timestamp": "2026-10-06T00:28:37.340Z",
+    "event": "ai.chat_completed",
+    "level": "info",
+    "correlationId": "af73402f-c34b-482c-a491-4c7b9966f4b8"
+  }
+]

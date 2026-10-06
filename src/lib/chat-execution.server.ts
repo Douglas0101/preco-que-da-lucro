@@ -12,6 +12,7 @@ import {
 import { parseAiUsage, type TokenUsage } from "@/lib/ai/token-usage";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
 import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
+import { groundFinancialOutput } from "@/lib/ai/financial-output-grounding";
 import { runRegisteredTool } from "@/lib/ai/tool-runner";
 import {
   FSM_STATE_TOOL_ALLOWLIST,
@@ -409,8 +410,15 @@ async function handleModelResponse(
     return { kind: "continue", currentProductId: nextProductId };
   }
 
-  const content = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
-  if (!content) throw new ApplicationError("DEPENDENCY_ERROR");
+  const sanitized = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
+  if (!sanitized) throw new ApplicationError("DEPENDENCY_ERROR");
+  const grounded = groundFinancialOutput(sanitized, messages);
+  const content = grounded.content;
+  if (grounded.blocked)
+    logJson("warn", "ai.financial_output_blocked", {
+      correlationId: identity.correlationId,
+      unsupportedCount: grounded.unsupportedCount,
+    });
   state.conversationState = await transitionConversation(
     conversationService,
     identity,
