@@ -1,0 +1,48 @@
+{
+  "coletadoEm": "2026-10-06T03:1xZ (14 chaves) e 2026-10-06T03:2xZ (15 chaves)",
+  "alvo": "darkgray-pony-545965.hostingersite.com",
+  "fonte": "GET /api/wh-api/api/hapi/v1/accounts/u624951889/vhosts/darkgray-pony-545965.hostingersite.com/nodejs/builds/settings/env",
+  "metodo": "somente nomes, comprimentos e booleanos; nenhum valor de variavel foi lido ou registrado",
+  "totalAntes": 14,
+  "totalDepois": 15,
+  "nomes": [
+    "AI_CHAT_LIMIT_PER_10_MINUTES",
+    "AI_DAILY_CHAT_LIMIT_PER_TENANT",
+    "AI_GATEWAY_URL",
+    "AI_MAX_TOOL_ROUNDS",
+    "AI_MODEL",
+    "AI_MODEL_MAX_ATTEMPTS",
+    "AI_MODEL_TIMEOUT_MS",
+    "AI_REQUEST_TIMEOUT_MS",
+    "AUTH_TRUSTED_ORIGINS",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "DATABASE_DRIVER",
+    "DATABASE_URL",
+    "DEEPSEEK_API_KEY",
+    "NPM_CONFIG_ENGINE_STRICT"
+  ],
+  "databaseUrlAposCorrecao": {
+    "host": "ep-long-violet-aye9g0bn-pooler.c-5.us-east-2.aws.neon.tech",
+    "usuario": "neondb_owner",
+    "banco": "neondb",
+    "comprimento": 148,
+    "parametros": "channel_binding=require&sslmode=require"
+  },
+  "databaseUrlAntesDaCorrecao": {
+    "host": "ep-lively-recipe-ayuct9gp-pooler.c-5.us-east-2.aws.neon.tech",
+    "usuario": "neondb_owner",
+    "banco": "neondb",
+    "comprimento": 150,
+    "parametros": "channel_binding=require&sslmode=require"
+  },
+  "deepseekApiKey": {
+    "presentePorNome": true,
+    "lidaPeloBuildPublicado": false,
+    "referenciasNoCommitPublicadoD4b93953": 0,
+    "referenciasNoDevelopCafde4e": 2,
+    "credentialQueOBuildPublicadoLe": "AI_GATEWAY_API_KEY ?? LOVABLE_API_KEY (chat.functions.ts:240 do commit publicado)",
+    "aiGatewayApiKeyPresente": false,
+    "lovableApiKeyPresente": false
+  }
+}

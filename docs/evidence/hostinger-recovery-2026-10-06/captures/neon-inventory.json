@@ -1,0 +1,47 @@
+{
+  "coletadoEm": "2026-10-06T03:2xZ",
+  "fonte": "Neon API via MCP autenticado (metadados apenas)",
+  "projeto": {
+    "id": "damp-forest-57346541",
+    "nome": "preco-que-da-lucro-g3-pg17",
+    "pgVersion": 17
+  },
+  "branches": [
+    { "id": "br-snowy-violet-aymcvvvv", "nome": "production", "estado": "ready", "default": true },
+    {
+      "id": "br-small-hill-aymcu14y",
+      "nome": "develop",
+      "estado": "ready",
+      "observacao": "estava arquivada desde 2026-10-04; unarchived em 2026-10-06T02:22:59Z"
+    },
+    {
+      "id": "br-silent-unit-ay1ixu13",
+      "nome": "preview/dependabot/npm_and_yarn/tailwind-merge-3.7.0",
+      "estado": "ready"
+    }
+  ],
+  "endpoints": [
+    { "id": "ep-long-violet-aye9g0bn", "branch": "br-snowy-violet-aymcvvvv", "pooledHost": true },
+    {
+      "id": "ep-wandering-glitter-ayzrgv28",
+      "branch": "br-small-hill-aymcu14y",
+      "pooledHost": true
+    },
+    { "id": "ep-delicate-queen-aysz28lq", "branch": "br-silent-unit-ay1ixu13", "pooledHost": true }
+  ],
+  "endpointConfiguradoNoAppAntesDaCorrecao": {
+    "id": "ep-lively-recipe-ayuct9gp",
+    "existeHoje": false,
+    "branchDeOrigem": "br-blue-silence-ayj9erkh",
+    "evidenciaDaOrigem": "docs/evidence/infra-2026-10-02/README.md:195 (inventario Neon daquele dia)"
+  },
+  "rolesProduction": [
+    { "nome": "neondb_owner", "autenticacao": "password", "updatedAt": "2026-09-12T02:44:44Z" },
+    { "nome": "app_runtime", "autenticacao": "no_login" },
+    { "nome": "authenticator", "autenticacao": "password" }
+  ],
+  "observacoes": [
+    "Nenhuma operacao de reset de senha de role nas ultimas 100 operacoes do projeto.",
+    "O role neondb_owner pode logar, nao expira, e o banco neondb existe: o defeito estava no endereco configurado no app, nao no banco."
+  ]
+}

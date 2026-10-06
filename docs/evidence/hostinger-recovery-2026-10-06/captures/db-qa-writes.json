@@ -1,0 +1,41 @@
+{
+  "coletadoEm": "2026-10-06T03:21-03:25Z",
+  "branch": "br-snowy-violet-aymcvvvv (production)",
+  "autorizacao": "o operador autorizou explicitamente criar uma conta de QA em producao; o desvio do contrato 'production data is never a test target' fica declarado e restrito ao tenant de QA",
+  "usuario": {
+    "id": "Igpo7gEqTnkjC3reJtKK0ks182ZmV8I8",
+    "email": "qa.manual.20261006@example.com",
+    "nome": "QA Manual",
+    "email_verified_antes": false,
+    "email_verified_depois": true,
+    "criadoEm": "2026-10-06T03:21:01.560Z",
+    "credencial": { "contas": 1, "comSenha": 1 }
+  },
+  "tenant": {
+    "id": "5e114ba9-6c7a-4b35-bc3b-8e1a8c801100",
+    "nome": "QA Manual",
+    "slug": "personal-Igpo7gEqTnkjC3reJtKK0ks182ZmV8I8",
+    "kind": "personal",
+    "papel": "owner",
+    "criadoEm": "2026-10-06T03:21:02.101Z"
+  },
+  "escritaDeProdutoVerificada": {
+    "tabela": "expenses",
+    "id": "8edb5815-58af-4dd4-8bb5-f71e10735b50",
+    "tenant_id": "5e114ba9-6c7a-4b35-bc3b-8e1a8c801100",
+    "user_id": "Igpo7gEqTnkjC3reJtKK0ks182ZmV8I8",
+    "name": "Aluguel do ponto (QA)",
+    "category": "Outros",
+    "amount": "1500.0000",
+    "type": "fixa",
+    "periodicity": "mensal",
+    "is_demo": false,
+    "criadoEm": "2026-10-06T03:25:34.062Z",
+    "entradaNaUI": "1500,00 digitado na mascara; gravado como 1500.0000",
+    "conclusao": "CRUD, atribuicao de tenant/usuario e conversao monetaria corretos"
+  },
+  "limpeza": {
+    "estado": "PENDENTE por decisao do operador (opcao escolhida: manter a conta de QA ativa)",
+    "escopoSeApagar": ["expenses 1", "tenant_memberships 1", "tenants 1", "accounts 1", "users 1"]
+  }
+}
