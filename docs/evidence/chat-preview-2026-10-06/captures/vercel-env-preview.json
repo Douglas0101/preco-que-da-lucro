@@ -1,0 +1,40 @@
+{
+  "leitura": "create_project_env (Vercel MCP) — metadados devolvidos, sem valor de segredo",
+  "teamId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+  "projectId": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+  "failed": [],
+  "created": [
+    {
+      "id": "rYwOWdsomqH97E3J",
+      "key": "AI_GATEWAY_URL",
+      "value": "https://api.deepseek.com/chat/completions",
+      "type": "plain",
+      "target": ["preview"],
+      "gitBranch": "develop",
+      "comentario": "Endpoint DeepSeek do consumidor Web (docs/runbooks/deepseek-web.md); override de preview/develop porque o registro compartilhado esta definido e vazio"
+    },
+    {
+      "id": "a78aC93iTn72zPr3",
+      "key": "AI_MODEL",
+      "value": "deepseek-flash",
+      "type": "plain",
+      "target": ["preview"],
+      "gitBranch": "develop",
+      "comentario": "Modelo nao-thinking do consumidor Web (docs/runbooks/deepseek-web.md)"
+    }
+  ],
+  "nao_tocado": [
+    {
+      "key": "AI_GATEWAY_URL",
+      "id": "MRVEv4GtTHNQtbMq",
+      "target": ["production", "preview"],
+      "observacao": "registro compartilhado original preservado; segue definido e vazio (producao exige decisao propria)"
+    },
+    {
+      "key": "DEEPSEEK_API_KEY",
+      "id": "wMf48ITJ2QDbDVFD",
+      "target": ["preview"],
+      "observacao": "credencial gravada pelo operador por Via A; valor nunca lido pelo agente"
+    }
+  ]
+}

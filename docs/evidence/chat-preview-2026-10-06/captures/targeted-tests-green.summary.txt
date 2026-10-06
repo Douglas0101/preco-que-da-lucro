@@ -1,0 +1,5 @@
+ ✓ src/test/model-gateway.test.ts (25 tests) 214ms
+ ✓ src/test/wire-safe-error.server.test.ts (4 tests) 15ms
+ ✓ src/test/ai-endpoint.server.test.ts (7 tests) 41ms
+ Test Files  3 passed (3)
+      Tests  36 passed (36)

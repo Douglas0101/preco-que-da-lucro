@@ -1,0 +1,3 @@
+POST status: 200
+responseBody:
+{'t': 10, 'i': 0, 'p': {'k': ['result', 'error', 'context'], 'v': [{'t': 2, 's': 1}, {'t': 25, 'i': 1, 's': {'message': {'t': 1, 's': 'AI gateway endpoint recusado pelo guard (https público obrigatório): URL inválida: '}}, 'c': '$TSR/Error'}, {'t': 10, 'i': 2, 'p': {'k': [], 'v': []}, 'o': 0}]}, 'o': 0}

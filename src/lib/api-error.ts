@@ -96,6 +96,19 @@ export function apiError(code: ApiErrorCode, correlationId: string): ApiError {
   return { code, message: policy.message, retryable: policy.retryable, correlationId };
 }
 
+/**
+ * Mensagem pública de um código: a única que pode cruzar a rede.
+ *
+ * `ApplicationError` aceita um `message` próprio para diagnóstico interno
+ * (host do gateway, nome de contrato, tabela), e o framework serializa esse
+ * texto para o navegador — medido no preview `dpl_CJydCmNNQYFoXELpbQd9d2w5s8m8`,
+ * em que o guard anti-SSRF apareceu como mensagem do consultor no chat. Quem
+ * traduz erro para o usuário usa esta função, nunca `error.message` direto.
+ */
+export function apiErrorMessage(code: ApiErrorCode): string {
+  return ERROR_POLICY[code].message;
+}
+
 export function errorCodeFromUnknown(error: unknown): ApiErrorCode {
   if (error instanceof ZodError) return "VALIDATION_ERROR";
   if (error instanceof ApplicationError) return error.code;

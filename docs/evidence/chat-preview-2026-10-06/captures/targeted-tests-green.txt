@@ -1,0 +1,81 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > usa a chave do emissor certo, modo compatível e uso medido
+{"timestamp":"2026-10-06T15:00:04.386Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":5,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > conserva as chamadas e os resultados das ferramentas na rodada seguinte
+{"timestamp":"2026-10-06T15:00:04.406Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > conserva as chamadas e os resultados das ferramentas na rodada seguinte
+{"timestamp":"2026-10-06T15:00:04.407Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stderr | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > não reaproveita credenciais de outros provedores quando falta a chave DeepSeek
+{"timestamp":"2026-10-06T15:00:04.419Z","level":"error","event":"ai.credential_unusable","provider":"deepseek","host":"api.deepseek.com","reason":"absent"}
+
+stderr | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > não envia a chave DeepSeek a outro hostname nem ativa o protocolo nativo ali
+{"timestamp":"2026-10-06T15:00:04.422Z","level":"error","event":"ai.credential_unusable","provider":"gateway","host":"api.deepseek.com.example.org","reason":"absent"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > não envia a chave DeepSeek a outro hostname nem ativa o protocolo nativo ali
+{"timestamp":"2026-10-06T15:00:04.423Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stderr | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > recusa modelo de outro protocolo e credencial com whitespace
+{"timestamp":"2026-10-06T15:00:04.428Z","level":"error","event":"ai.credential_unusable","provider":"deepseek","host":"api.deepseek.com","reason":"absent"}
+
+stderr | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > respeita a reserva de tokens existente e não segue redirecionamento
+{"timestamp":"2026-10-06T15:00:04.430Z","level":"warn","event":"ai.model_rejected","model":"deepseek-flash","attempt":1,"status":307,"detail":null}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > respeita a reserva de tokens existente e não segue redirecionamento
+{"timestamp":"2026-10-06T15:00:04.431Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"DEPENDENCY_ERROR"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > mantém teto de saída dentro do ledger com configuração NaN
+{"timestamp":"2026-10-06T15:00:04.433Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > mantém teto de saída dentro do ledger com configuração 1000001
+{"timestamp":"2026-10-06T15:00:04.435Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > mantém teto de saída dentro do ledger com configuração 1
+{"timestamp":"2026-10-06T15:00:04.436Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > mantém teto de saída dentro do ledger com configuração 1000000
+{"timestamp":"2026-10-06T15:00:04.437Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > repete somente uma falha transitória e limita a duas tentativas
+{"timestamp":"2026-10-06T15:00:04.552Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":112,"outcome":"retry"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > repete somente uma falha transitória e limita a duas tentativas
+{"timestamp":"2026-10-06T15:00:04.553Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":2,"durationMs":1,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > não repete quota ou rate limit
+{"timestamp":"2026-10-06T15:00:04.558Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"RATE_LIMIT"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > propaga cancelamento como AI_TIMEOUT
+{"timestamp":"2026-10-06T15:00:04.560Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"AI_TIMEOUT"}
+
+stdout | src/test/model-gateway.test.ts > diagnóstico da recusa do provedor > registra status e motivo do 4xx em vez de descartar a causa
+{"timestamp":"2026-10-06T15:00:04.565Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"DEPENDENCY_ERROR"}
+
+stdout | src/test/model-gateway.test.ts > diagnóstico da recusa do provedor > nunca registra a própria chave no detalhe do erro
+{"timestamp":"2026-10-06T15:00:04.570Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"DEPENDENCY_ERROR"}
+
+stdout | src/test/model-gateway.test.ts > diagnóstico da recusa do provedor > registra resposta fora do contrato como não interpretável
+{"timestamp":"2026-10-06T15:00:04.575Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"DEPENDENCY_ERROR"}
+
+stdout | src/test/model-gateway.test.ts > variável definida e vazia conta como ausente > cai no endpoint default documentado quando AI_GATEWAY_URL está vazia
+{"timestamp":"2026-10-06T15:00:04.579Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > variável definida e vazia conta como ausente > trata só-espaços como ausente, não como endpoint
+{"timestamp":"2026-10-06T15:00:04.581Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > variável definida e vazia conta como ausente > usa deepseek-flash quando AI_MODEL está vazia no destino nativo
+{"timestamp":"2026-10-06T15:00:04.582Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+ ✓ src/test/model-gateway.test.ts (25 tests) 214ms
+ ✓ src/test/wire-safe-error.server.test.ts (4 tests) 15ms
+ ✓ src/test/ai-endpoint.server.test.ts (7 tests) 41ms
+
+ Test Files  3 passed (3)
+      Tests  36 passed (36)
+   Start at  11:59:59
+   Duration  11.43s (transform 869ms, setup 813ms, import 3.85s, tests 270ms, environment 5.32s)
+

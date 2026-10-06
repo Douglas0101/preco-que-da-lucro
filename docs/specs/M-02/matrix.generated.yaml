@@ -55,7 +55,7 @@
       "operations": [
         {
           "name": "getChatHistory",
-          "line": 368,
+          "line": 382,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -63,7 +63,7 @@
         },
         {
           "name": "createChatConversation",
-          "line": 413,
+          "line": 427,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -71,7 +71,7 @@
         },
         {
           "name": "clearChatHistory",
-          "line": 425,
+          "line": 439,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -79,7 +79,7 @@
         },
         {
           "name": "sendChatMessage",
-          "line": 443,
+          "line": 457,
           "declaration": "createServerFn",
           "service": "ConversationService/ChatExecution",
           "repository": "ConversationRepository + BudgetRepository + AiToolRepository + AuditRepository",
@@ -94,8 +94,10 @@
         "@/lib/ai/tool-registry",
         "@/lib/api-error",
         "@/lib/chat-execution.server",
+        "@/lib/env.server",
         "@/lib/structured-logger",
         "@/lib/tenant-transaction",
+        "@/lib/wire-safe-error.server",
         "@/middleware/request-context",
         "@/server/services/conversation.service",
         "@tanstack/react-start",

@@ -350,3 +350,59 @@ describe("diagnóstico da recusa do provedor", () => {
     warn.mockRestore();
   });
 });
+
+describe("variável definida e vazia conta como ausente", () => {
+  function request(mock: ReturnType<typeof vi.fn<typeof fetch>>, index = 0) {
+    const [url, options] = mock.mock.calls[index]!;
+    return { url: String(url), options: options!, body: JSON.parse(options!.body as string) };
+  }
+
+  it("cai no endpoint default documentado quando AI_GATEWAY_URL está vazia", async () => {
+    const key = crypto.randomUUID();
+    vi.stubEnv("AI_GATEWAY_URL", "");
+    vi.stubEnv("AI_GATEWAY_API_KEY", key);
+    const f = vi.fn<typeof fetch>().mockResolvedValue(successResponse());
+    vi.stubGlobal("fetch", f);
+    await expect(
+      callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal),
+    ).resolves.toMatchObject({ choices: [{ message: { content: "Tudo bem" } }] });
+    expect(request(f).url).toBe("https://ai.gateway.lovable.dev/v1/chat/completions");
+    expect(request(f).options.headers).toMatchObject({ Authorization: `Bearer ${key}` });
+  });
+
+  it("trata só-espaços como ausente, não como endpoint", async () => {
+    vi.stubEnv("AI_GATEWAY_URL", "   ");
+    vi.stubEnv("AI_GATEWAY_API_KEY", crypto.randomUUID());
+    const f = vi.fn<typeof fetch>().mockResolvedValue(successResponse());
+    vi.stubGlobal("fetch", f);
+    await callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal);
+    expect(request(f).url).toBe("https://ai.gateway.lovable.dev/v1/chat/completions");
+  });
+
+  it("usa deepseek-flash quando AI_MODEL está vazia no destino nativo", async () => {
+    vi.stubEnv("DEEPSEEK_API_KEY", crypto.randomUUID());
+    vi.stubEnv("AI_GATEWAY_URL", "https://api.deepseek.com/chat/completions");
+    vi.stubEnv("AI_MODEL", "");
+    const f = vi.fn<typeof fetch>().mockResolvedValue(successResponse());
+    vi.stubGlobal("fetch", f);
+    await callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal);
+    expect(request(f).body.model).toBe("deepseek-flash");
+  });
+
+  it("credencial vazia falha alto e nomeada, sem trocar de emissor", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.stubEnv("AI_GATEWAY_URL", "https://api.deepseek.com/chat/completions");
+    vi.stubEnv("DEEPSEEK_API_KEY", "");
+    vi.stubEnv("AI_GATEWAY_API_KEY", crypto.randomUUID());
+    const f = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", f);
+    await expect(
+      callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal),
+    ).rejects.toMatchObject({ code: "DEPENDENCY_ERROR" });
+    expect(f).not.toHaveBeenCalled();
+    const logged = errorSpy.mock.calls.map((call) => String(call[0])).join("\n");
+    expect(logged).toContain("ai.credential_unusable");
+    expect(logged).toContain("deepseek");
+    errorSpy.mockRestore();
+  });
+});

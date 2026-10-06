@@ -5,6 +5,8 @@ import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import { recordSafely } from "@/instrumentation/safe-record";
 import { assertGatewayEndpoint } from "@/lib/ai-endpoint.server";
 import { ApplicationError } from "@/lib/api-error";
+import { readEnv } from "@/lib/env.server";
+import { withWireSafeErrors } from "@/lib/wire-safe-error.server";
 import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
 import { executeSendChatMessage } from "@/lib/chat-execution.server";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
@@ -322,13 +324,16 @@ async function callModel(
   tools: GatewayTool[],
   requestSignal: AbortSignal,
 ): Promise<GatewayResponse> {
+  // `readEnv`, não `??`: a plataforma define a variável como string vazia
+  // quando o registro existe e nunca foi preenchido, e `"" ?? default` devolve
+  // `""` — o guard recusava a URL vazia e derrubava todo turno antes do fetch.
   const endpoint =
-    process.env.AI_GATEWAY_URL ?? "https://ai.gateway.lovable.dev/v1/chat/completions";
+    readEnv("AI_GATEWAY_URL") ?? "https://ai.gateway.lovable.dev/v1/chat/completions";
   // Guard anti-SSRF na origem (G-SEC #10-13): o URL validado é o único que
   // alcança o fetch nos retries, cobrindo todas as instâncias com um check.
   const gatewayEndpoint = assertGatewayEndpoint(endpoint);
   const deepseek = gatewayEndpoint.hostname === "api.deepseek.com";
-  const model = process.env.AI_MODEL ?? (deepseek ? "deepseek-flash" : "google/gemini-3.6-flash");
+  const model = readEnv("AI_MODEL") ?? (deepseek ? "deepseek-flash" : "google/gemini-3.6-flash");
   if (
     deepseek &&
     (gatewayEndpoint.origin !== "https://api.deepseek.com" ||
@@ -342,9 +347,18 @@ async function callModel(
     throw new ApplicationError("DEPENDENCY_ERROR");
   // A provider-specific credential may never fall back to another issuer's key.
   const apiKey = deepseek
-    ? process.env.DEEPSEEK_API_KEY
-    : (process.env.AI_GATEWAY_API_KEY ?? process.env.LOVABLE_API_KEY);
-  if (!apiKey || apiKey.trim() !== apiKey) throw new ApplicationError("DEPENDENCY_ERROR");
+    ? readEnv("DEEPSEEK_API_KEY")
+    : (readEnv("AI_GATEWAY_API_KEY") ?? readEnv("LOVABLE_API_KEY"));
+  if (!apiKey || apiKey.trim() !== apiKey) {
+    // Sem o nome do provedor o operador não distingue "credencial ausente" de
+    // "provedor recusou" no log. O detalhe é do servidor, nunca da resposta.
+    logJson("error", "ai.credential_unusable", {
+      provider: deepseek ? "deepseek" : "gateway",
+      host: gatewayEndpoint.hostname,
+      reason: apiKey === undefined ? "absent" : "padded",
+    });
+    throw new ApplicationError("DEPENDENCY_ERROR");
+  }
   const attempts = numberSetting("AI_MODEL_MAX_ATTEMPTS", 2, 1, 2);
   const timeoutMs = numberSetting("AI_MODEL_TIMEOUT_MS", 30_000, 1_000, 30_000);
 
@@ -444,7 +458,11 @@ export const sendChatMessage = createServerFn({ method: "POST" })
   .middleware([requireDatabaseIdentity])
   .validator((input: unknown) => sendInput.parse(input))
   .handler(async ({ data, context }) =>
-    executeSendChatMessage(data, context.requestIdentity, { modelCaller: callModel }),
+    // A UI de chat renderiza `error.message` como fala do consultor
+    // (`novo-produto.tsx`): só a mensagem de política cruza esta fronteira.
+    withWireSafeErrors(context.requestIdentity.correlationId, () =>
+      executeSendChatMessage(data, context.requestIdentity, { modelCaller: callModel }),
+    ),
   );
 
 export { callModel as callModelForTests, retryDelayMs as retryDelayMsForTests };
