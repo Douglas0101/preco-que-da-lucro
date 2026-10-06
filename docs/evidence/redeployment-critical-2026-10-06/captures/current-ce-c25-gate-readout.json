@@ -1,0 +1,65 @@
+{
+  "schema": "c25-ce-gate-readout/1",
+  "observedAt": "2026-10-06T19:16:15.087Z",
+  "runnerSha": "0465deb3a4b86deab1910467714b7a6458402a06",
+  "checkoutSha": "0465deb3a4b86deab1910467714b7a6458402a06",
+  "providerIdentity": {
+    "revision": "0465deb3a4b86deab1910467714b7a6458402a06",
+    "branch": "develop",
+    "pullRequest": "60"
+  },
+  "ceTaskId": "AaESpPqXlaAcVppxm02j",
+  "analysisId": "f6679872-30ee-4953-a5df-e7894d3e424a",
+  "surface": {
+    "branch": null,
+    "branchType": null,
+    "pullRequest": "60"
+  },
+  "status": "OK",
+  "ignoredConditions": false,
+  "conditions": [
+    {
+      "metric": "new_reliability_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_security_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_maintainability_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_coverage",
+      "status": "OK",
+      "comparator": "LT",
+      "threshold": "80",
+      "actual": "87.6"
+    },
+    {
+      "metric": "new_duplicated_lines_density",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "3",
+      "actual": "0.0"
+    },
+    {
+      "metric": "new_security_hotspots_reviewed",
+      "status": "OK",
+      "comparator": "LT",
+      "threshold": "100",
+      "actual": "100.0"
+    }
+  ],
+  "nullSemantics": "métrica ausente é null; gate de PR não equivale ao de main"
+}

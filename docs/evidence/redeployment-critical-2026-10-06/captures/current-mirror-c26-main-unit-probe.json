@@ -1,0 +1,772 @@
+{
+  "schema": "main-unit-probe/1",
+  "observedAt": "2026-10-06T19:16:36.312Z",
+  "verdict": "NO-VERDICT",
+  "scope": "one-file capability probe; no unit credit",
+  "requests": [
+    {
+      "origin": "github",
+      "path": "/repos/Douglas0101/preco-que-da-lucro/branches/main",
+      "status": 200,
+      "latencyMs": 399
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/project_analyses/search",
+      "status": 200,
+      "latencyMs": 425
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/webservices/list",
+      "status": 200,
+      "latencyMs": 294
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/measures/component_tree",
+      "status": 200,
+      "latencyMs": 321
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 503
+    },
+    {
+      "origin": "github",
+      "path": "/repos/Douglas0101/preco-que-da-lucro/branches/main",
+      "status": 200,
+      "latencyMs": 256
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/project_analyses/search",
+      "status": 200,
+      "latencyMs": 165
+    }
+  ],
+  "mainSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+  "analysisId": "1dc2baf9-b289-42f4-b2ca-dd7b662b3679",
+  "catalogAvailable": true,
+  "sourceActions": ["raw", "scm", "show"],
+  "selection": "first file with a measured nonempty new-line target; not a coverage ranking",
+  "selectedFile": "src/lib/ai-endpoint.server.ts",
+  "fileMetrics": {
+    "new_lines_to_cover": 26,
+    "new_uncovered_lines": 1,
+    "new_conditions_to_cover": 28,
+    "new_uncovered_conditions": 3
+  },
+  "catalogAdvertisedLines": false,
+  "endpoint": "sources/lines",
+  "metadata": {
+    "rows": [
+      {
+        "line": 1,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 2,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 3,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 4,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 5,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 6,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 7,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 8,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 9,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 10,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 11,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 12,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 13,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 14,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 15,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 2,
+        "coveredConditions": 2,
+        "utLineHits": 1,
+        "utConditions": 2,
+        "utCoveredConditions": 2
+      },
+      {
+        "line": 16,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 2,
+        "coveredConditions": 2,
+        "utLineHits": 1,
+        "utConditions": 2,
+        "utCoveredConditions": 2
+      },
+      {
+        "line": 17,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 18,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 19,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 20,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 21,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 22,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 23,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 24,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 25,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 26,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 27,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 28,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 29,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 30,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 31,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 32,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 33,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 34,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 35,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 36,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 37,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 38,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 39,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 40,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 41,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 42,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 43,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 2,
+        "coveredConditions": 2,
+        "utLineHits": 1,
+        "utConditions": 2,
+        "utCoveredConditions": 2
+      },
+      {
+        "line": 44,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 2,
+        "coveredConditions": 1,
+        "utLineHits": 1,
+        "utConditions": 2,
+        "utCoveredConditions": 1
+      },
+      {
+        "line": 45,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 46,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 47,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 48,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 4,
+        "coveredConditions": 4,
+        "utLineHits": 1,
+        "utConditions": 4,
+        "utCoveredConditions": 4
+      },
+      {
+        "line": 49,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 2,
+        "coveredConditions": 1,
+        "utLineHits": 1,
+        "utConditions": 2,
+        "utCoveredConditions": 1
+      },
+      {
+        "line": 50,
+        "isNew": true,
+        "lineHits": 0,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 0,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 51,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 52,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 2,
+        "coveredConditions": 2,
+        "utLineHits": 1,
+        "utConditions": 2,
+        "utCoveredConditions": 2
+      },
+      {
+        "line": 53,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 54,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 55,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 2,
+        "coveredConditions": 2,
+        "utLineHits": 1,
+        "utConditions": 2,
+        "utCoveredConditions": 2
+      },
+      {
+        "line": 56,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 57,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 58,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 2,
+        "coveredConditions": 1,
+        "utLineHits": 1,
+        "utConditions": 2,
+        "utCoveredConditions": 1
+      },
+      {
+        "line": 59,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 4,
+        "coveredConditions": 4,
+        "utLineHits": 1,
+        "utConditions": 4,
+        "utCoveredConditions": 4
+      },
+      {
+        "line": 60,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 61,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 62,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 2,
+        "coveredConditions": 2,
+        "utLineHits": 1,
+        "utConditions": 2,
+        "utCoveredConditions": 2
+      },
+      {
+        "line": 63,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 64,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 65,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": 2,
+        "coveredConditions": 2,
+        "utLineHits": 1,
+        "utConditions": 2,
+        "utCoveredConditions": 2
+      },
+      {
+        "line": 66,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 67,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 68,
+        "isNew": true,
+        "lineHits": 1,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": 1,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 69,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      },
+      {
+        "line": 70,
+        "isNew": true,
+        "lineHits": null,
+        "conditions": null,
+        "coveredConditions": null,
+        "utLineHits": null,
+        "utConditions": null,
+        "utCoveredConditions": null
+      }
+    ],
+    "count": 70,
+    "hasNewMarkers": true,
+    "hasCoverageCounts": true
+  },
+  "reason": "capability observed; complete source/instrumentation/condition mapping still required"
+}

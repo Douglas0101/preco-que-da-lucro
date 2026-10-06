@@ -6,17 +6,17 @@ Fontes: [TanStack](https://github.com/TanStack/router/security/advisories/GHSA-q
 
 ## Evidência e resultado por fase
 
-| Fase               | Resultado                                                              | Evidência                                                                     |
-| ------------------ | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| TanStack           | develop resolve Start 1.168.60/core 1.169.39; main continua em d4b9395 | package-lock.json; captures/remote-baseline.json                              |
-| Audit RED          | 1 crítica: shell-quote 1.10.0                                          | captures/npm-audit-red.json                                                   |
-| Controle RED       | quatro terminadores após comment são aceitos; shell não executado      | captures/shell-quote-red.json                                                 |
-| Audit GREEN        | zero vulnerabilidades                                                  | captures/npm-audit-green.json                                                 |
-| Controle GREEN     | quatro terminadores recusados com TypeError; quoting normal PASS       | captures/shell-quote-green.json                                               |
-| Gate local         | PASS: exit 0; 133 suítes / 1873 testes; 18 skips DB condicionais       | captures/check-r4.result.json e check-r4.log.txt                              |
-| Publicação develop | gate local PASS; integração e push pendentes                           | journal L733/L734                                                             |
-| Preview            | revisão anterior 38bd376 READY; novo deployment pendente               | captura Vercel e journal L732                                                 |
-| Release            | NO-GO                                                                  | PR #60: verify-release, Neon CI e main-coverage-mirror reprovados no baseline |
+| Fase               | Resultado                                                              | Evidência                                                                 |
+| ------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| TanStack           | develop resolve Start 1.168.60/core 1.169.39; main continua em d4b9395 | package-lock.json; captures/remote-baseline.json                          |
+| Audit RED          | 1 crítica: shell-quote 1.10.0                                          | captures/npm-audit-red.json                                               |
+| Controle RED       | quatro terminadores após comment são aceitos; shell não executado      | captures/shell-quote-red.json                                             |
+| Audit GREEN        | zero vulnerabilidades                                                  | captures/npm-audit-green.json                                             |
+| Controle GREEN     | quatro terminadores recusados com TypeError; quoting normal PASS       | captures/shell-quote-green.json                                           |
+| Gate local         | PASS: exit 0; 133 suítes / 1873 testes; 18 skips DB condicionais       | captures/check-r4.result.json e check-r4.log.txt                          |
+| Publicação develop | Publicado: ce9bd44 (dependência 7ebe24c + evidência)                   | journal L733–L739                                                         |
+| Preview            | READY em 36 s: ce9bd44 / Preview develop                               | captures/preview-deployment.json; playwright-mcp-preview/vercel-ready.jpg |
+| Release            | NO-GO                                                                  | PR #60 BLOCKED: UI PASS; Neon FAIL e mirror NO-VERDICT                    |
 
 ## Passos corretivos, dependências e critérios
 
@@ -47,7 +47,7 @@ Fontes: [TanStack](https://github.com/TanStack/router/security/advisories/GHSA-q
 | 12  | Fail-closed          | audit crítico bloqueia; mirror e rollback continuam com seu veredito           |
 | 13  | Isolamento           | worktree gerenciado destacado, sem env de runtime nem dado de produção         |
 | 14  | Gates/capturas       | RED/GREEN nominados; check registrado com saída e resultado                    |
-| 15  | CI por SHA           | pendente de push; o run anterior é baseline, nunca prova do novo commit        |
+| 15  | CI por SHA           | SHA ce9bd44: verify-release attempt 2 PASS, 84/84; push PASS, 42/42            |
 | 16  | Multi-sítio          | lockfile/package.json/família TanStack conferidos; diff precisa ser única      |
 | 17  | Ambiente             | npm ci real na bancada; deep clone, ausência de .env e hash do pai verificados |
 
@@ -55,8 +55,62 @@ KPI do autor: três bloqueios encontrados antes de qualquer publicação de prod
 
 ## S6 ADVERSARIAL
 
-NOT-STARTED. Correção operacional pontual; nenhum fechamento de fase ou da release declarado. DBT-99 permanece aberta até a validação remota exigida.
+NOT-STARTED. Correção operacional pontual; nenhum fechamento de fase ou da release declarado. DBT-99 tem correção técnica validada local/remotamente; permanece ABERTA porque S6 formal não foi executado.
 
 ## Riscos e limites declarados
 
 Preview READY e observação de schema são evidências parciais. Não há autorização para contornar os gates, remover dados herdados, afrouxar rollback, transmitir credenciais ou publicar main vermelho. O conector Vercel retornou403 para a equipe; o navegador já autenticado é a superfície disponível para a operação manual solicitada. O plano detalha a mudança de produção antes de qualquer eventual confirmação final.
+
+## Resultado do deployment e limites do runtime
+
+O Preview manual `dpl_CzhQ5BmcW1ZPadxH36TKhYy75iQd` terminou Ready em 36 s no
+SHA `ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff`, branch `develop`. A prova visual
+mostra ambiente, Source e build; o alias compartilhável foi associado à revisão.
+
+Os GETs anônimos dos três endpoints retornaram proteção Vercel Authentication
+HTTP 401. Isso não é falha de dependência nem prova do contrato da aplicação.
+No Chrome, a navegação direta ao health foi bloqueada por `ERR_BLOCKED_BY_CLIENT`.
+Após reload, a sessão antiga abriu o login da aplicação; a entrada/submissão das
+credenciais foi solicitada ao operador pela Via A, conforme AGENTS.md:96.
+Health, login renovado e isolamento de tenant permanecem sem veredito nesta leitura.
+
+## Precondição do kit Playwright
+
+No attempt 1 do run PR `37517386599`, a preparação usou Ubuntu 24.04
+`20261004.327.1`, e o verify-release recebeu `20260927.320.1`. A guarda recusou
+o kit por `imageVersion mismatch` (exit 2), antes de executar Playwright.
+Unidades 1891/1891, db:test, db:check, build, bundle e audit passaram neste
+attempt, mas o job não passou. Uma repetição do workflow inteiro gerou atestação nova e passou todas as
+verificações no mesmo SHA: attempt 2 SUCCESS, 84/84 casos Playwright.
+A identidade e os orçamentos foram preservados; nenhum verde foi atribuído ao
+Playwright ausente. O attempt 2 usou 20260927.320.1 nos dois jobs: preparação 175 s e
+verify-release 349 s, ambos abaixo de 720 s. O verde desta execução não altera
+o bloqueio independente do Neon, do mirror ou dos pré-requisitos de release.
+
+## Estado final reconciliado
+
+- **LOCAL-VERIFIED:** atualização mínima do lockfile; audit zero; quatro controles
+  RED→GREEN; check completo na bancada. Os 18 skips DB locais foram declarados.
+- **REMOTE-OBSERVED:** push UI `37517379242` SUCCESS, 1891/1891 unidades,
+  db:test/db:check e 42/42 Playwright. PR UI `37517386599`, attempt 2 SUCCESS,
+  1891/1891 unidades, db:test/db:check e 84/84 Playwright nos quatro projetos.
+- **REMOTE-OBSERVED:** CE da PR `37517386392` OK, new_coverage 87.6%; esse
+  percentual pertence à PR. O job main-coverage-mirror segue NO-VERDICT/exit 2.
+- **REMOTE-OBSERVED:** Neon `37517386580` FAIL na DBT-96; branch temporária
+  br-falling-mode-aympazjg descartada com recibo GET 404 e ausência independente
+  no inventário atual de duas branches permanentes.
+- **REMOTE-OBSERVED:** um segundo Preview da conexão Git já existente,
+  `dpl_DjYNWE33zo7J2RBAZ6AQiEpcLg2k`, ficou Ready em 30 s no mesmo ce9bd44 e
+  recebeu o alias. Os dois deployments foram reconciliados no mesmo projeto,
+  branch e ambiente. A prova do alias atual está em playwright-mcp-preview/.
+- **NO-VERDICT:** health autenticado, novo login e isolamento de tenant no preview
+  aguardam a operação Via A. Não foram atribuídos a um status Ready ou a um 401
+  da proteção Vercel.
+- **NO-GO:** main permanece d4b9395, PR #60 BLOCKED, ruleset 24333849 com update
+  ativo e bypass vazio. Main observado em 63.2387%, 2995 unidades, 1894 cobertas,
+  gap de 502 até 80%; proveniência completa por unidade ainda não disponível.
+
+O checkpoint final de recibos é local, em develop, sem novo push de documentação
+que reiniciaria os checks da PR. A revisão publicada e servida continua ce9bd44.
+O worktree de validação foi arquivado com snapshot recuperável; os 931 arquivos
+preexistentes da custódia foram reconferidos sem alteração. S6 NOT-STARTED.

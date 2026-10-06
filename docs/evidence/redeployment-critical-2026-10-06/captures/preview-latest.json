@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-10-06T19:37:41.260990+00:00",
+  "surface": "authenticated Chrome Vercel dashboard; target discovered from exact-SHA GitHub check",
+  "deploymentId": "dpl_DjYNWE33zo7J2RBAZ6AQiEpcLg2k",
+  "dashboardUrl": "https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/DjYNWE33zo7J2RBAZ6AQiEpcLg2k",
+  "environment": "Preview",
+  "branch": "develop",
+  "sha": "ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff",
+  "status": "Ready",
+  "buildSeconds": 30,
+  "deploymentUrl": "https://preco-que-da-lucro-ofet3vjzt.vercel.app/",
+  "aliasUrl": "https://preco-que-da-luc-git-53d0a3-douglasultimatesouza-5127s-projects.vercel.app/",
+  "reconciliation": "second deployment from pre-existing Git connection; same team/project, Preview and SHA as manual deployment; no provider setting changed"
+}

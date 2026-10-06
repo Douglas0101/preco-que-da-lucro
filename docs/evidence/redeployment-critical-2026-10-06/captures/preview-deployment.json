@@ -1,0 +1,19 @@
+{
+  "observedAt": "2026-10-06T19:25:06.963895+00:00",
+  "surface": "authenticated Chrome Vercel dashboard; manual Create Preview Deployment",
+  "teamId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+  "projectId": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+  "deploymentId": "dpl_CzhQ5BmcW1ZPadxH36TKhYy75iQd",
+  "dashboardUrl": "https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/CzhQ5BmcW1ZPadxH36TKhYy75iQd",
+  "environment": "Preview",
+  "branch": "develop",
+  "sha": "ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff",
+  "status": "Ready",
+  "buildSeconds": 36,
+  "deploymentUrl": "https://preco-que-da-lucro-flscvpwsn.vercel.app/",
+  "aliasUrl": "https://preco-que-da-luc-git-53d0a3-douglasultimatesouza-5127s-projects.vercel.app/",
+  "gitConnection": "dashboard says Connected 14h ago; not changed by this task",
+  "runtimeAuth": "reload of existing operator app session redirected to /auth?redirect=%2Finicio; operator Via A requested",
+  "browserHealth": "Chrome ERR_BLOCKED_BY_CLIENT on direct /api/health/live navigation; no protection setting changed",
+  "productionVerdict": "NO-GO"
+}

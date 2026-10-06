@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-10-06T19:25:06.963895+00:00",
+  "projectId": "damp-forest-57346541",
+  "runId": 37517386580,
+  "sha": "ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff",
+  "ephemeralBranchId": "br-falling-mode-aympazjg",
+  "cleanupJobId": 112454081075,
+  "cleanupJob": "success",
+  "ciReceipt": "confirmed GET after delete HTTP 404",
+  "ciReceiptUrl": "https://github.com/Douglas0101/preco-que-da-lucro/pull/60#issuecomment-6023652032",
+  "independentObservation": "Neon list_branches MCP returned exactly production and develop after run",
+  "presentBranchIds": ["br-snowy-violet-aymcvvvv", "br-small-hill-aymcu14y"],
+  "deletedBranchAbsent": true,
+  "agentDatabaseMutation": false
+}

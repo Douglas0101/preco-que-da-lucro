@@ -1,0 +1,67 @@
+prepare browsers and Linux packages	Set up job	2026-10-06T19:13:54.3681443Z Version: 20260901.588
+prepare browsers and Linux packages	Set up job	2026-10-06T19:13:54.3698225Z Version: 20260927.320.1
+prepare browsers and Linux packages	Run npm ci --ignore-scripts	2026-10-06T19:14:15.5386754Z found 0 vulnerabilities
+verify	Set up job	2026-10-06T19:16:21.6436580Z Version: 20260901.588
+verify	Set up job	2026-10-06T19:16:21.6446309Z Version: 20260927.320.1
+verify	Run npm ci --ignore-scripts	2026-10-06T19:17:01.4805192Z found 0 vulnerabilities
+verify	Run npm run m02:secrets-audit	2026-10-06T19:17:06.1946916Z         "path": "docs/evidence/d1-gate-ux-2026-09-19/captures/suite-m02-matrix-drift.ts.txt",
+verify	Run npm run m02:secrets-audit	2026-10-06T19:17:06.1960975Z         "path": "docs/evidence/d1-scanner-borders-2026-09-19/captures/suite-scanner.log.txt",
+verify	Run npm run m02:secrets-audit	2026-10-06T19:17:06.1961631Z         "path": "docs/evidence/d1-scanner-borders-2026-09-19/captures/suite-scanner.ts.txt",
+verify	Run npm run m02:secrets-audit	2026-10-06T19:17:06.1974745Z         "path": "docs/evidence/d2-depth-pin-2026-09-20/captures/suite-products-fk-conflict.ts.txt",
+verify	Run npm run m02:secrets-audit	2026-10-06T19:17:06.2621386Z         "path": "docs/evidence/trk-a-wp-b7-2026-09-17/scoped-suite.txt",
+verify	Run npm run test	2026-10-06T19:19:31.9496560Z ^[[2m Test Files ^[[22m ^[[1m^[[32m134 passed^[[39m^[[22m^[[90m (134)^[[39m
+verify	Run npm run test	2026-10-06T19:19:31.9509657Z ^[[2m      Tests ^[[22m ^[[1m^[[32m1891 passed^[[39m^[[22m^[[90m (1891)^[[39m
+verify	Run npm run db:test	2026-10-06T19:19:35.2806746Z PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+verify	Run npm run db:test	2026-10-06T19:19:56.5578637Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify	Run npm run db:test	2026-10-06T19:19:56.5580181Z ^[[2m      Tests ^[[22m ^[[1m^[[32m15 passed^[[39m^[[22m^[[90m (15)^[[39m
+verify	Run npm run db:test	2026-10-06T19:19:56.6077780Z prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 15 passed (15), 0 skipped — admin=127.0.0.1:5432
+verify	Run npm run db:test	2026-10-06T19:19:59.7010720Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify	Run npm run db:test	2026-10-06T19:19:59.7011960Z ^[[2m      Tests ^[[22m ^[[1m^[[32m15 passed^[[39m^[[22m^[[90m (15)^[[39m
+verify	Run npm run db:test	2026-10-06T19:19:59.7478877Z prova de banco (src/test/product-contracts.test.ts) contra 127.0.0.1: 15 passed (15), 0 skipped — admin=127.0.0.1:5432
+verify	Run npm run db:test	2026-10-06T19:20:04.4842865Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify	Run npm run db:test	2026-10-06T19:20:04.4844374Z ^[[2m      Tests ^[[22m ^[[1m^[[32m4 passed^[[39m^[[22m^[[90m (4)^[[39m
+verify	Run npm run db:test	2026-10-06T19:20:04.5181413Z prova de banco (src/test/dashboard-consolidated-margin.db.test.ts) contra 127.0.0.1: 4 passed (4), 0 skipped — admin=127.0.0.1:5432
+verify	Audit dependencies	2026-10-06T19:20:11.7947784Z found 0 vulnerabilities
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:21:59.2432749Z   ✓   1 [chromium] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (1.7s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:00.1693983Z   ✓   2 [chromium] › e2e/authentication-gate.spec.ts:4:1 › authentication gate rejects a suppressed post-login redirect (2.6s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:01.7373608Z   ✓   3 [chromium] › e2e/sales-dashboard.spec.ts:207:1 › dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS (2.3s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:03.1173715Z   ✓   4 [chromium] › e2e/sales-dashboard.spec.ts:226:1 › registrar venda pelo formulário aparece em Vendas recentes (2.9s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:05.2023157Z   ✓   6 [chromium] › e2e/ui-stack.spec.ts:44:1 › public UI uses valid composed controls and has no serious a11y violations (2.0s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:05.2330327Z   ✓   7 [chromium] › e2e/ui-stack.spec.ts:71:1 › the CSP report channel answers 204 for a violation report (15ms)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:06.4403627Z   ✓   5 [chromium] › e2e/sales-dashboard.spec.ts:239:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (4.7s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:08.7960177Z   ✓   9 [chromium] › e2e/ui-stack.spec.ts:114:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (2.3s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:08.8694768Z   ✓   8 [chromium] › e2e/ui-stack.spec.ts:87:1 › authentication controls keep accessible names (3.6s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:11.7507671Z   ✓  10 [chromium] › e2e/ui-stack.spec.ts:133:1 › authorization matrix blocks member mutations with a Better Auth session (2.9s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:12.2822661Z   ✓  11 [chromium] › e2e/ui-stack.spec.ts:154:1 › CSRF rejects a cross-site replay of a server-function mutation (3.4s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:17.5735531Z   ✓  12 [chromium] › e2e/ui-stack.spec.ts:183:1 › authenticated shell uses an HttpOnly session and accessible navigation (5.8s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:18.2075700Z   ✓  13 [chromium] › e2e/ui-stack.spec.ts:234:1 › manual simulation has no fictitious current volume and labels hypothetical results (5.9s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:20.3218601Z   ✓  15 [chromium] › e2e/ui-stack.spec.ts:298:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (2.1s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:22.3066157Z   ✓  14 [chromium] › e2e/ui-stack.spec.ts:265:1 › diagnostic forms prices only from explicit assumptions (4.7s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:24.7276891Z   ✓  17 [chromium] › e2e/visual/visual-observability.spec.ts:82:1 › produtos: estado REAL rotulado e células numéricas em estado ok (2.3s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:27.1431617Z   ✓  18 [chromium] › e2e/visual/visual-observability.spec.ts:95:1 › produto sem rendimento exibe DADOS INCOMPLETOS e nunca zero factual (2.4s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:27.9219045Z   ✓  16 [chromium] › e2e/ui-stack.spec.ts:327:1 › financial query failure is not rendered as empty or zero data (7.6s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:29.8597962Z   ✓  19 [chromium] › e2e/visual/visual-observability.spec.ts:110:1 › CLS fica abaixo de 0,1 quando a engine expõe layout-shift (2.7s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:30.1182927Z   ✓  20 [chromium] › e2e/visual/visual-observability.spec.ts:124:1 › artefato persistido está redigido, selado e correlacionado (2.0s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:32.1738581Z   ✓  22 [mobile] › e2e/analytics-gate.spec.ts:21:1 › o preview node-server nao requisita /_vercel/insights/* (1.3s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:32.7293321Z   ✓  21 [chromium] › e2e/visual/visual-observability.spec.ts:167:1 › chat: desfecho honesto e sem estado travado (2.9s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:34.2195954Z   ✓  23 [mobile] › e2e/authentication-gate.spec.ts:4:1 › authentication gate rejects a suppressed post-login redirect (2.0s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:36.2043389Z   ✓  24 [mobile] › e2e/sales-dashboard.spec.ts:207:1 › dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS (2.6s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:37.0401031Z   ✓  25 [mobile] › e2e/sales-dashboard.spec.ts:226:1 › registrar venda pelo formulário aparece em Vendas recentes (2.7s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:39.2722029Z   ✓  27 [mobile] › e2e/ui-stack.spec.ts:44:1 › public UI uses valid composed controls and has no serious a11y violations (2.1s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:39.3167591Z   ✓  28 [mobile] › e2e/ui-stack.spec.ts:71:1 › the CSP report channel answers 204 for a violation report (28ms)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:41.0062062Z   ✓  26 [mobile] › e2e/sales-dashboard.spec.ts:239:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (4.8s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:43.0089839Z   ✓  29 [mobile] › e2e/ui-stack.spec.ts:87:1 › authentication controls keep accessible names (3.7s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:43.0385610Z   ✓  30 [mobile] › e2e/ui-stack.spec.ts:114:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (1.9s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:46.0543219Z   ✓  31 [mobile] › e2e/ui-stack.spec.ts:133:1 › authorization matrix blocks member mutations with a Better Auth session (3.0s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:46.6407130Z   ✓  32 [mobile] › e2e/ui-stack.spec.ts:154:1 › CSRF rejects a cross-site replay of a server-function mutation (3.6s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:51.5775883Z   ✓  33 [mobile] › e2e/ui-stack.spec.ts:183:1 › authenticated shell uses an HttpOnly session and accessible navigation (5.5s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:52.6229468Z   ✓  34 [mobile] › e2e/ui-stack.spec.ts:234:1 › manual simulation has no fictitious current volume and labels hypothetical results (6.0s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:54.6668643Z   ✓  36 [mobile] › e2e/ui-stack.spec.ts:298:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (2.0s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:56.3515633Z   ✓  35 [mobile] › e2e/ui-stack.spec.ts:265:1 › diagnostic forms prices only from explicit assumptions (4.8s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:22:58.7702426Z   ✓  38 [mobile] › e2e/visual/visual-observability.spec.ts:82:1 › produtos: estado REAL rotulado e células numéricas em estado ok (2.3s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:23:01.3256970Z   ✓  39 [mobile] › e2e/visual/visual-observability.spec.ts:95:1 › produto sem rendimento exibe DADOS INCOMPLETOS e nunca zero factual (2.5s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:23:01.9267306Z   ✓  37 [mobile] › e2e/ui-stack.spec.ts:327:1 › financial query failure is not rendered as empty or zero data (7.2s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:23:04.1022525Z   ✓  41 [mobile] › e2e/visual/visual-observability.spec.ts:124:1 › artefato persistido está redigido, selado e correlacionado (2.1s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:23:04.2663475Z   ✓  40 [mobile] › e2e/visual/visual-observability.spec.ts:110:1 › CLS fica abaixo de 0,1 quando a engine expõe layout-shift (2.9s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:23:06.4723106Z   ✓  42 [mobile] › e2e/visual/visual-observability.spec.ts:167:1 › chat: desfecho honesto e sem estado travado (2.4s)
+verify	Run npx playwright test --project=chromium --project=mobile	2026-10-06T19:23:06.5564036Z   42 passed (1.3m)
