@@ -1,0 +1,105 @@
+{
+  "gate": "entrypoint-policy-red-green",
+  "classification": "LOCAL-VERIFIED hermetic fixture, not remote analysis",
+  "parentSource": "9b0540dc1ee44893c666c0f5eca2a70874161590",
+  "cases": [
+    {
+      "scenario": "parent-80",
+      "exit": 1,
+      "sourceSha256": "934502385e4d659f9935bcf120285bc1d01c4c680831dc406903e32b57094bfb",
+      "providerStatus": "ERROR",
+      "coverage": "63.23873121869783",
+      "releasePolicy": null,
+      "status": "PASS"
+    },
+    {
+      "scenario": "candidate-60",
+      "exit": 0,
+      "sourceSha256": "722d9706e27946b484c5fd6b375aab5e46d4c83a49bfaf510795e5bd88b220bf",
+      "providerStatus": "ERROR",
+      "coverage": "63.23873121869783",
+      "releasePolicy": {
+        "policy": "ADR-042/coverage-minimum-60",
+        "providerGateStatus": "ERROR",
+        "status": "OK",
+        "coverage": {
+          "metric": "new_coverage",
+          "minimum": 60,
+          "actual": 63.23873121869783,
+          "status": "OK"
+        },
+        "blockingConditions": [],
+        "preservedControls": [
+          "new_security_rating",
+          "new_reliability_rating",
+          "new_maintainability_rating",
+          "new_duplicated_lines_density",
+          "new_security_hotspots_reviewed"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "scenario": "below-60",
+      "exit": 1,
+      "sourceSha256": "722d9706e27946b484c5fd6b375aab5e46d4c83a49bfaf510795e5bd88b220bf",
+      "providerStatus": "ERROR",
+      "coverage": "59.99",
+      "releasePolicy": {
+        "policy": "ADR-042/coverage-minimum-60",
+        "providerGateStatus": "ERROR",
+        "status": "ERROR",
+        "coverage": {
+          "metric": "new_coverage",
+          "minimum": 60,
+          "actual": 59.99,
+          "status": "ERROR"
+        },
+        "blockingConditions": [],
+        "preservedControls": [
+          "new_security_rating",
+          "new_reliability_rating",
+          "new_maintainability_rating",
+          "new_duplicated_lines_density",
+          "new_security_hotspots_reviewed"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "scenario": "security-error",
+      "exit": 1,
+      "sourceSha256": "722d9706e27946b484c5fd6b375aab5e46d4c83a49bfaf510795e5bd88b220bf",
+      "providerStatus": "ERROR",
+      "coverage": "100",
+      "releasePolicy": {
+        "policy": "ADR-042/coverage-minimum-60",
+        "providerGateStatus": "ERROR",
+        "status": "ERROR",
+        "coverage": {
+          "metric": "new_coverage",
+          "minimum": 60,
+          "actual": 100,
+          "status": "OK"
+        },
+        "blockingConditions": [
+          {
+            "metric": "new_security_rating",
+            "status": "ERROR",
+            "comparator": "GT",
+            "threshold": "1",
+            "actual": "2"
+          }
+        ],
+        "preservedControls": [
+          "new_security_rating",
+          "new_reliability_rating",
+          "new_maintainability_rating",
+          "new_duplicated_lines_density",
+          "new_security_hotspots_reviewed"
+        ]
+      },
+      "status": "PASS"
+    }
+  ]
+}

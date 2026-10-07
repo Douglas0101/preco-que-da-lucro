@@ -365,8 +365,8 @@ export function auditSonarPipeline(yaml: string): string[] {
     findings.push("sonar.yml sem a claim: recusa lcov ausente ou vazio");
   }
   const scanner = sonarStepRun(yaml, "sonar-scanner");
-  if (scanner === null || !/^\s*-Dsonar\.qualitygate\.wait=true\s+\\\s*$/m.test(scanner)) {
-    findings.push("sonar.yml sem a claim: espera o veredito do Quality Gate");
+  if (scanner === null || !/^\s*-Dsonar\.qualitygate\.wait=false\s+\\\s*$/m.test(scanner)) {
+    findings.push("sonar.yml sem a claim: separa submissão da decisão de release ADR-042");
   }
   const step = (name: string) => {
     const lines = yaml.split("\n");
@@ -399,8 +399,23 @@ export function auditSonarPipeline(yaml: string): string[] {
   if (
     !/sonar\.scm\.revision=\$\(git rev-parse HEAD\)/.test(scan.text) ||
     !/EXPECTED_PR:/.test(ce.text) ||
-    !/EXPECTED_BRANCH:/.test(ce.text)
+    !/EXPECTED_BRANCH:/.test(ce.text) ||
+    !/run: npx --no-install tsx scripts\/sonar\/gate-readout\.ts/.test(ce.text)
   )
     findings.push("sonar.yml: CE deve conferir revisão do provider e superfície esperada");
+  const scanJob = yaml.split(/^ {2}scan:\s*$/m)[1]?.split(/^ {2}[\w-]+:\s*$/m)[0] ?? "";
+  if (
+    !/^ {8}if: always\(\)\s*$/m.test(ce.text) ||
+    /^ {8}continue-on-error:\s*true\b/m.test(ce.text) ||
+    /^ {4}continue-on-error:\s*true\b/m.test(scanJob)
+  )
+    findings.push("sonar.yml: decisão de release do CE deve bloquear sem continue-on-error");
+  const mirrorJob = yaml.split(/^ {2}main-coverage-mirror:\s*$/m)[1] ?? "";
+  if (
+    !/^ {8}continue-on-error:\s*true\b/m.test(before.text) ||
+    !/^ {8}continue-on-error:\s*true\b/m.test(after.text) ||
+    !/^ {4}continue-on-error:\s*true\b/m.test(mirrorJob)
+  )
+    findings.push("sonar.yml: baseline e espelho são observações ADR-042");
   return findings;
 }

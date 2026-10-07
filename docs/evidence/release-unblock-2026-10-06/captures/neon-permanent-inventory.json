@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-10-07T01:14:30.747Z",
+  "evidenceClass": "REMOTE-OBSERVED",
+  "source": "neon_list_branches",
+  "projectId": "damp-forest-57346541",
+  "branches": [
+    {
+      "id": "br-snowy-violet-aymcvvvv",
+      "name": "production",
+      "parent_id": null,
+      "default": true,
+      "init_source": "parent-data"
+    },
+    {
+      "id": "br-small-hill-aymcu14y",
+      "name": "develop",
+      "parent_id": "br-snowy-violet-aymcvvvv",
+      "default": false,
+      "init_source": "parent-data"
+    }
+  ]
+}

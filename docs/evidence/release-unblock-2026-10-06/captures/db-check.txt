@@ -1,0 +1,12 @@
+
+> predb:check
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+.env not found. Continuing without it.
+
+> db:check
+> drizzle-kit check
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/douglas-souza/.codex/worktrees/critical-redeploy/preco-que-d-main/drizzle.config.ts'
+Everything's fine 🐶🔥

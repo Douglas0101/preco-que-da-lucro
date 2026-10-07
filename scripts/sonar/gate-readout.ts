@@ -88,6 +88,34 @@ export async function providerTask(
   return response.task;
 }
 
+export async function completedProviderTask(
+  taskRef: { id: string; url: string },
+  api: <T>(url: string) => Promise<T>,
+  options: {
+    timeoutMs?: number;
+    now?: () => number;
+    pause?: (milliseconds: number) => Promise<void>;
+  } = {},
+) {
+  const timeoutMs = options.timeoutMs ?? 300_000;
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0 || timeoutMs > 300_000)
+    throw new Error("CE orçamento inválido: NO-VERDICT");
+  const now = options.now ?? (() => performance.now());
+  const pause = options.pause ?? ((ms) => new Promise<void>((done) => setTimeout(done, ms)));
+  const started = now();
+  for (let attempts = 0; attempts <= Math.ceil(timeoutMs / 2000); attempts++) {
+    const task = await providerTask(taskRef, api);
+    const elapsed = now() - started;
+    if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed >= timeoutMs)
+      throw new Error("CE prazo de conclusão esgotado: NO-VERDICT");
+    if (task.status === "SUCCESS") return task;
+    if (task.status !== "PENDING" && task.status !== "IN_PROGRESS")
+      throw new Error("CE falhou ou retornou estado desconhecido: NO-VERDICT");
+    await pause(Math.min(2000, timeoutMs - elapsed));
+  }
+  throw new Error("CE limite de observações esgotado: NO-VERDICT");
+}
+
 export function analysisIdentity(
   task: CeTask,
   expected: { revision: string; branch: string; pullRequest?: string },
@@ -155,6 +183,79 @@ export function ceVerdict(task: CeTask | undefined, gate: Gate | undefined, task
   };
 }
 
+/** ADR-042: only the coverage minimum changes; preserve the provider's raw verdict. */
+export function releaseVerdict(verdict: ReturnType<typeof ceVerdict>) {
+  const controls = new Map([
+    ["new_security_rating", { comparator: "GT", threshold: "1" }],
+    ["new_reliability_rating", { comparator: "GT", threshold: "1" }],
+    ["new_maintainability_rating", { comparator: "GT", threshold: "1" }],
+    ["new_duplicated_lines_density", { comparator: "GT", threshold: "3" }],
+    ["new_security_hotspots_reviewed", { comparator: "LT", threshold: "100" }],
+  ]);
+  const byMetric = new Map(verdict.conditions.map((condition) => [condition.metric, condition]));
+  if (
+    byMetric.size !== verdict.conditions.length ||
+    verdict.ignoredConditions !== false ||
+    verdict.conditions.some((condition) => !["OK", "ERROR"].includes(condition.status ?? ""))
+  )
+    throw new Error("gate condições duplicadas, ignoradas ou inconclusivas: NO-VERDICT");
+  for (const [metric, expected] of controls) {
+    const condition = byMetric.get(metric);
+    if (
+      !condition ||
+      condition.comparator !== expected.comparator ||
+      condition.threshold !== expected.threshold ||
+      condition.actual === null ||
+      !/^\d+(?:\.\d+)?$/.test(condition.actual)
+    )
+      throw new Error("gate controle obrigatório ausente ou alterado: NO-VERDICT");
+    const actual = Number(condition.actual);
+    const limit = Number(expected.threshold);
+    const failed = expected.comparator === "GT" ? actual > limit : actual < limit;
+    const isRating = metric.endsWith("_rating");
+    if (
+      !Number.isFinite(actual) ||
+      (isRating ? !Number.isInteger(actual) || actual < 1 || actual > 5 : actual > 100) ||
+      (condition.status === "ERROR") !== failed
+    )
+      throw new Error("gate controle obrigatório tem valor/status inconsistente: NO-VERDICT");
+  }
+  const coverage = byMetric.get("new_coverage");
+  if (
+    !coverage ||
+    coverage.comparator !== "LT" ||
+    coverage.threshold === null ||
+    !/^\d+(?:\.\d+)?$/.test(coverage.threshold) ||
+    Number(coverage.threshold) <= 0 ||
+    Number(coverage.threshold) > 100 ||
+    coverage.actual === null ||
+    coverage.actual.trim() === "" ||
+    !/^\d+(?:\.\d+)?$/.test(coverage.actual)
+  )
+    throw new Error("gate new_coverage ausente ou ilegível: NO-VERDICT");
+  const actual = Number(coverage.actual);
+  if (actual < 0 || actual > 100) throw new Error("gate new_coverage fora do domínio: NO-VERDICT");
+  if ((coverage.status === "ERROR") !== actual < Number(coverage.threshold))
+    throw new Error("gate new_coverage tem valor/status inconsistente: NO-VERDICT");
+  const errors = verdict.conditions.filter((condition) => condition.status === "ERROR");
+  if ((verdict.status === "ERROR") !== errors.length > 0)
+    throw new Error("gate status diverge das condições: NO-VERDICT");
+  const blocking = errors.filter((condition) => condition.metric !== "new_coverage");
+  return {
+    policy: "ADR-042/coverage-minimum-60",
+    providerGateStatus: verdict.status,
+    status: actual >= 60 && blocking.length === 0 ? "OK" : "ERROR",
+    coverage: {
+      metric: "new_coverage",
+      minimum: 60,
+      actual,
+      status: actual >= 60 ? "OK" : "ERROR",
+    },
+    blockingConditions: blocking,
+    preservedControls: [...controls.keys()],
+  };
+}
+
 async function main() {
   const file = resolve(process.env.RUNNER_TEMP ?? ".", "c25-gate-readout.json");
   try {
@@ -162,17 +263,20 @@ async function main() {
     if (!token) throw new Error("SONAR_TOKEN ausente (somente nome)");
     const taskRef = scannerTask(readFileSync(".scannerwork/report-task.txt", "utf8"));
     const checkoutSha = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+    const deadline = performance.now() + 300_000;
     async function api<T>(url: string): Promise<T> {
+      const remaining = deadline - performance.now();
+      if (remaining <= 0) throw new Error("CE prazo de conclusão esgotado: NO-VERDICT");
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(Math.max(1, Math.ceil(Math.min(15000, remaining)))),
         redirect: "error",
       });
       if (!response.ok)
         throw new Error(`Web API ${new URL(url).pathname}: HTTP ${response.status}`);
       return response.json() as Promise<T>;
     }
-    const task = await providerTask(taskRef, api);
+    const task = await completedProviderTask(taskRef, api);
     const analysisId = task.analysisId;
     if (!analysisId) throw new Error("analysisId ausente: NO-VERDICT");
     const directRevision = task.analysisRevision ?? task.revision;
@@ -190,6 +294,7 @@ async function main() {
       `${origin}/api/qualitygates/project_status?analysisId=${encodeURIComponent(analysisId)}`,
     );
     const verdict = ceVerdict(task, response.projectStatus, taskRef.id);
+    const releasePolicy = releaseVerdict(verdict);
     const report = {
       schema: "c25-ce-gate-readout/1",
       observedAt: new Date().toISOString(),
@@ -197,11 +302,12 @@ async function main() {
       checkoutSha,
       providerIdentity: identity,
       ...verdict,
+      releasePolicy,
       nullSemantics: "métrica ausente é null; gate de PR não equivale ao de main",
     };
     writeFileSync(file, `${JSON.stringify(report, null, 2)}\n`);
     console.log(`C25_CE_GATE ${JSON.stringify(report)}`);
-    process.exitCode = verdict.status === "OK" ? 0 : 1;
+    process.exitCode = releasePolicy.status === "OK" ? 0 : 1;
   } catch (error) {
     const report = {
       schema: "c25-ce-gate-readout/1",

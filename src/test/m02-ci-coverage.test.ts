@@ -316,6 +316,32 @@ describe("DBT-62 · claims do pipeline Sonar", () => {
     expect(auditSonarPipeline(sonarReal)).toEqual([]);
   });
 
+  it("não admite decisão de release do CE opcional ou substituída por submissão", () => {
+    const mutants = [
+      sonarReal.replace(
+        "      - name: Nomear veredito do CE desta análise (sem token no log)",
+        "      - name: Nomear veredito do CE desta análise (sem token no log)\n        continue-on-error: true",
+      ),
+      sonarReal.replace("  scan:\n", "  scan:\n    continue-on-error: true\n"),
+      sonarReal.replace(
+        "run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+        "run: echo submitted",
+      ),
+    ];
+    for (const mutant of mutants) {
+      expect(mutant).not.toBe(sonarReal);
+      expect(auditSonarPipeline(mutant).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("distingue observação de baseline/espelho da decisão obrigatória do CE", () => {
+    const mutant = sonarReal.replaceAll(/continue-on-error: true[^\n]*\n/g, "");
+    expect(mutant).not.toBe(sonarReal);
+    expect(auditSonarPipeline(mutant)).toContain(
+      "sonar.yml: baseline e espelho são observações ADR-042",
+    );
+  });
+
   it("recusa o defeito original: baseline incondicional antes de scanner em main", () => {
     const mutant = sonarReal.replace("        if: github.event_name == 'pull_request'\n", "");
     expect(mutant).not.toBe(sonarReal);
@@ -340,7 +366,7 @@ describe("DBT-62 · claims do pipeline Sonar", () => {
         "recusa lcov ausente ou vazio",
         'if [ ! -s coverage/lcov.info ]; then\n            echo "::error::coverage/lcov.info ausente ou vazio — o analyze mediria 0% de novo"\n            exit 1\n          fi',
       ],
-      ["espera o Quality Gate", "-Dsonar.qualitygate.wait=true"],
+      ["separa submissão da decisão de release", "-Dsonar.qualitygate.wait=false"],
       ["envia o relatório ao scanner", "-Dsonar.javascript.lcov.reportPaths=coverage/lcov.info"],
       ["observa que o sensor rodou", "Sensor JavaScript/TypeScript Coverage"],
       ["atribui a análise a PR", "-Dsonar.pullrequest.key="],

@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   analysisIdentity,
   ceVerdict,
+  completedProviderTask,
   providerTask,
+  releaseVerdict,
   scannerRevision,
   scannerTask,
 } from "../../scripts/sonar/gate-readout";
@@ -79,6 +81,231 @@ describe("provider revision and analysis surface", () => {
       expect(() =>
         analysisIdentity({ scannerContext: context }, { revision, branch: "main" }, revision),
       ).toThrow();
+  });
+});
+
+describe("ADR-042: minimum coverage 60 with preserved provider evidence", () => {
+  const controls = [
+    ["new_security_rating", "GT", "1", "1"],
+    ["new_reliability_rating", "GT", "1", "1"],
+    ["new_maintainability_rating", "GT", "1", "1"],
+    ["new_duplicated_lines_density", "GT", "3", "0.0"],
+    ["new_security_hotspots_reviewed", "LT", "100", "100.0"],
+  ];
+  function fixture(coverage: string, threshold = "80") {
+    const status = Number(coverage) < Number(threshold) ? "ERROR" : "OK";
+    return ceVerdict(
+      task,
+      {
+        status,
+        ignoredConditions: false,
+        conditions: [
+          ...controls.map(([metricKey, comparator, errorThreshold, actualValue]) => ({
+            metricKey,
+            comparator,
+            errorThreshold,
+            actualValue,
+            status: "OK",
+          })),
+          {
+            metricKey: "new_coverage",
+            comparator: "LT",
+            errorThreshold: threshold,
+            actualValue: coverage,
+            status,
+          },
+        ],
+      },
+      taskId,
+    );
+  }
+  it.each(["60", "63.23873121869783", "79.9", "80", "100"])(
+    "accepts measured %s and retains the original provider verdict",
+    (value) => {
+      const raw = fixture(value);
+      const original = JSON.stringify(raw);
+      const result = releaseVerdict(raw);
+      expect(result.status).toBe("OK");
+      expect(result.providerGateStatus).toBe(Number(value) < 80 ? "ERROR" : "OK");
+      expect(result.coverage).toMatchObject({ actual: Number(value), minimum: 60 });
+      expect(JSON.stringify(raw)).toBe(original);
+    },
+  );
+  it.each(["0", "59.99"])("blocks measured %s below the mandatory floor", (value) => {
+    expect(releaseVerdict(fixture(value)).status).toBe("ERROR");
+  });
+  it("also accepts an already updated provider threshold", () => {
+    expect(releaseVerdict(fixture("60", "60")).status).toBe("OK");
+  });
+  it.each(controls)("still blocks a failure of %s", (metric, comparator) => {
+    const raw = fixture("100");
+    const condition = raw.conditions.find((entry) => entry.metric === metric)!;
+    condition.actual = comparator === "GT" ? (metric.endsWith("_rating") ? "2" : "4") : "99";
+    condition.status = "ERROR";
+    raw.status = "ERROR";
+    expect(releaseVerdict(raw)).toMatchObject({ status: "ERROR", blockingConditions: [condition] });
+  });
+  it("retains failures of additional provider controls", () => {
+    const raw = fixture("100");
+    raw.status = "ERROR";
+    raw.conditions.push({
+      metric: "future_security_control",
+      status: "ERROR",
+      comparator: "GT",
+      threshold: "0",
+      actual: "1",
+    });
+    expect(releaseVerdict(raw).status).toBe("ERROR");
+  });
+  it.each([null, "", " ", "NaN", "-1", "101", "Infinity", "60abc"])(
+    "refuses missing or invalid coverage %s",
+    (value) => {
+      const raw = fixture("60");
+      raw.conditions.at(-1)!.actual = value;
+      expect(() => releaseVerdict(raw)).toThrow("NO-VERDICT");
+    },
+  );
+  it("requires every preserved control, with its original comparator and threshold", () => {
+    for (const [metric, comparator] of controls) {
+      const failedActual = comparator === "GT" ? (metric.endsWith("_rating") ? "2" : "4") : "99";
+      for (const patch of [
+        null,
+        { comparator: comparator === "LT" ? "GT" : "LT" },
+        { threshold: "999" },
+        { actual: "" },
+        { actual: "NaN" },
+        { actual: "999" },
+        { status: "NONE" },
+        { actual: failedActual, status: "OK" },
+      ]) {
+        const raw = fixture("60");
+        const condition = raw.conditions.find((entry) => entry.metric === metric)!;
+        if (patch === null) raw.conditions = raw.conditions.filter((entry) => entry !== condition);
+        else Object.assign(condition, patch);
+        expect(() => releaseVerdict(raw)).toThrow("NO-VERDICT");
+      }
+    }
+  });
+  it("refuses ignored, duplicate, absent and contradictory evidence", () => {
+    for (const mutate of [
+      (raw: ReturnType<typeof fixture>) => {
+        raw.ignoredConditions = true;
+      },
+      (raw: ReturnType<typeof fixture>) => {
+        raw.ignoredConditions = null;
+      },
+      (raw: ReturnType<typeof fixture>) => {
+        raw.conditions.push(raw.conditions[0]);
+      },
+      (raw: ReturnType<typeof fixture>) => {
+        raw.conditions.pop();
+      },
+      (raw: ReturnType<typeof fixture>) => {
+        raw.status = "OK";
+      },
+      (raw: ReturnType<typeof fixture>) => {
+        raw.conditions.at(-1)!.status = "OK";
+      },
+      (raw: ReturnType<typeof fixture>) => {
+        raw.conditions.at(-1)!.threshold = "0";
+      },
+    ]) {
+      const raw = fixture("60");
+      mutate(raw);
+      expect(() => releaseVerdict(raw)).toThrow("NO-VERDICT");
+    }
+    const noErrors = fixture("100");
+    noErrors.status = "ERROR";
+    expect(() => releaseVerdict(noErrors)).toThrow("NO-VERDICT");
+  });
+});
+
+describe("bounded completion of the exact Compute Engine task", () => {
+  it("waits through pending states without replacing task identity", async () => {
+    let time = 0;
+    const pending = ["PENDING", "IN_PROGRESS", "SUCCESS"];
+    const requested: string[] = [];
+    const result = await completedProviderTask(
+      scannerTask(reportTask),
+      async <T>(url: string) => {
+        requested.push(url);
+        return { task: { ...task, status: pending.shift() } } as T;
+      },
+      {
+        now: () => time,
+        pause: async (ms) => {
+          time += ms;
+        },
+      },
+    );
+    expect(result.status).toBe("SUCCESS");
+    expect(time).toBe(4000);
+    expect(new Set(requested)).toEqual(
+      new Set([`https://sonarcloud.io/api/ce/task?id=${taskId}&additionalFields=scannerContext`]),
+    );
+  });
+  it.each(["FAILED", "CANCELED", "NONE", undefined])("refuses %s", async (status) => {
+    await expect(
+      completedProviderTask(
+        scannerTask(reportTask),
+        async <T>() => ({ task: { ...task, status } }) as T,
+      ),
+    ).rejects.toThrow("NO-VERDICT");
+  });
+  it("refuses both persistent pending and late success at the deadline", async () => {
+    for (const status of ["PENDING", "SUCCESS"]) {
+      let time = 0;
+      await expect(
+        completedProviderTask(
+          scannerTask(reportTask),
+          async <T>() => {
+            time += 300_000;
+            return { task: { ...task, status } } as T;
+          },
+          { now: () => time },
+        ),
+      ).rejects.toThrow("prazo");
+    }
+  });
+  it("bounds observations even if the clock stalls and refuses backwards time", async () => {
+    let calls = 0;
+    await expect(
+      completedProviderTask(
+        scannerTask(reportTask),
+        async <T>() => {
+          calls++;
+          return { task: { ...task, status: "PENDING" } } as T;
+        },
+        { timeoutMs: 4000, now: () => 1, pause: async () => {} },
+      ),
+    ).rejects.toThrow("limite");
+    expect(calls).toBe(3);
+    let time = 1;
+    await expect(
+      completedProviderTask(
+        scannerTask(reportTask),
+        async <T>() => {
+          time = 0;
+          return { task } as T;
+        },
+        { now: () => time },
+      ),
+    ).rejects.toThrow("prazo");
+  });
+  it("refuses an invalid budget before reading any provider state", async () => {
+    let calls = 0;
+    for (const timeoutMs of [0, -1, NaN, Infinity, 300001])
+      await expect(
+        completedProviderTask(
+          scannerTask(reportTask),
+          async <T>() => {
+            calls++;
+            return { task } as T;
+          },
+          { timeoutMs },
+        ),
+      ).rejects.toThrow("orçamento");
+    expect(calls).toBe(0);
   });
 });
 

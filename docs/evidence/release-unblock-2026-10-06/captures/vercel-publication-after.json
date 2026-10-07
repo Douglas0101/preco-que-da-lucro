@@ -1,0 +1,9 @@
+{
+  "projectId": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+  "autoAssignCustomDomains": false,
+  "evidence": "REMOTE-OBSERVED authenticated production environment checkbox0 and manual promotion notice after API PATCH",
+  "currentProduction": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+  "currentSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+  "observedAt": "2026-10-07T01:06:03+00:00",
+  "screenshot": "docs/evidence/visual/20261007-vercel-promotion-held-af0ccef1f81c84555a1944ef9a1cf69925759aa4200f5340ce4310691e825bc7.jpg"
+}

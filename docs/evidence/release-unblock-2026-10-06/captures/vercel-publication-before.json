@@ -1,0 +1,9 @@
+{
+  "projectId": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+  "autoAssignCustomDomains": true,
+  "branch": "main",
+  "evidence": "REMOTE-OBSERVED authenticated Vercel production environment checkbox value1",
+  "currentProduction": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+  "currentSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+  "observedAt": "2026-10-07T01:03:12+00:00"
+}
