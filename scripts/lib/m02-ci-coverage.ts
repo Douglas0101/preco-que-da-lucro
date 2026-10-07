@@ -406,16 +406,52 @@ export function auditSonarPipeline(yaml: string): string[] {
   const scanJob = yaml.split(/^ {2}scan:\s*$/m)[1]?.split(/^ {2}[\w-]+:\s*$/m)[0] ?? "";
   if (
     !/^ {8}if: always\(\)\s*$/m.test(ce.text) ||
-    /^ {8}continue-on-error:\s*true\b/m.test(ce.text) ||
-    /^ {4}continue-on-error:\s*true\b/m.test(scanJob)
+    // S6-R2/N02: qualquer forma de continue-on-error (literal ou expressão)
+    // torna a decisão de release opcional; comandos que engolem erro idem.
+    /continue-on-error:/m.test(ce.text) ||
+    /^ {4}continue-on-error:/m.test(scanJob) ||
+    /\|\|\s*true\b|set\s+\+e\b|set\s+\+o\s+errexit\b/.test(ce.text)
   )
     findings.push("sonar.yml: decisão de release do CE deve bloquear sem continue-on-error");
-  const mirrorJob = yaml.split(/^ {2}main-coverage-mirror:\s*$/m)[1] ?? "";
+  if (
+    !/^ {8}shell: bash\s*$/m.test(ce.text) ||
+    !/^ {10}BASH_ENV: ['"]['"]\s*$/m.test(ce.text) ||
+    ce.text
+      .split("\n")
+      .some((line) => line.includes("shell:") && !/\bshell:\s*bash(?:\s|$)/.test(line))
+  )
+    findings.push("sonar.yml: passo do CE fixa shell bash e BASH_ENV vazio");
+  const mirrorJob =
+    yaml.split(/^ {2}main-coverage-mirror:\s*$/m)[1]?.split(/^ {2}[\w-]+:\s*$/m)[0] ?? "";
   if (
     !/^ {8}continue-on-error:\s*true\b/m.test(before.text) ||
-    !/^ {8}continue-on-error:\s*true\b/m.test(after.text) ||
-    !/^ {4}continue-on-error:\s*true\b/m.test(mirrorJob)
+    !/^ {8}continue-on-error:\s*true\b/m.test(after.text)
   )
     findings.push("sonar.yml: baseline e espelho são observações ADR-042");
+  if (
+    !mirrorJob ||
+    /^\s*continue-on-error:/m.test(mirrorJob) ||
+    /\|\|\s*true\b|set\s+\+e\b|set\s+\+o\s+errexit\b/.test(mirrorJob) ||
+    !/^ {8}shell: bash\s*$/m.test(mirrorJob) ||
+    !/^ {6}BASH_ENV: ['"]['"]\s*$/m.test(mirrorJob)
+  )
+    findings.push("sonar.yml: espelho observacional não pode ocultar falhas de execução");
+  for (const kind of ["adapter", "mirror"]) {
+    const command = new RegExp(
+      `^ {8}run: node scripts/sonar/mirror-observation\\.ts ${kind}\\s*$`,
+      "m",
+    );
+    if (!command.test(mirrorJob))
+      findings.push(
+        `sonar.yml: observação ${kind} exige classificador de evidência e código bruto`,
+      );
+  }
+  for (const receipt of [
+    "c29-main-unit-adapter-observation.json",
+    "c29-main-mirror-observation.json",
+  ]) {
+    if (!mirrorJob.includes(`\${{ runner.temp }}/${receipt}`))
+      findings.push(`sonar.yml: espelho deve preservar recibo observacional ${receipt}`);
+  }
   return findings;
 }

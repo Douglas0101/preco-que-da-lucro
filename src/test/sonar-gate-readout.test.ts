@@ -4,6 +4,8 @@ import {
   ceVerdict,
   completedProviderTask,
   providerTask,
+  readoutOutputFile,
+  readoutReport,
   releaseVerdict,
   scannerRevision,
   scannerTask,
@@ -306,6 +308,48 @@ describe("bounded completion of the exact Compute Engine task", () => {
         ),
       ).rejects.toThrow("orçamento");
     expect(calls).toBe(0);
+  });
+});
+
+describe("S6-R2/N03: o relatório NO-VERDICT preserva a observação validada do provedor", () => {
+  const observedAt = "2026-10-07T03:00:00.000Z";
+  const identity = { revision: "a".repeat(40), branch: "develop", pullRequest: "60" };
+  it("conserva identidade e veredito do provedor quando a releasePolicy fica inconclusiva", () => {
+    const verdict = ceVerdict(task, gate, taskId);
+    const report = readoutReport(
+      new Error("gate controle obrigatório ausente ou alterado: NO-VERDICT"),
+      { identity, verdict, observedAt },
+    );
+    expect(report.status).toBe("NO-VERDICT");
+    expect(report.providerObservation).toEqual(verdict);
+    expect(report.providerIdentity).toEqual(identity);
+  });
+  it("sem observação validada o relatório não inventa evidência", () => {
+    const report = readoutReport(
+      new Error("CE falhou ou retornou estado desconhecido: NO-VERDICT"),
+      {
+        observedAt,
+      },
+    );
+    expect(report.providerObservation).toBeUndefined();
+    expect(report.providerIdentity).toBeUndefined();
+    expect(report.reason).toContain("NO-VERDICT");
+  });
+  it("erro remoto bruto não é persistido; texto desconhecido vira razão genérica", () => {
+    expect(readoutReport(new Error("fetch failed: secret=synthetic"), { observedAt }).reason).toBe(
+      "readout unavailable; no raw remote error persisted",
+    );
+  });
+});
+
+describe("S6 hardening: caminho de saída confinado ao diretório temporário do runner", () => {
+  it("fixa o nome constante dentro de um RUNNER_TEMP absoluto e sem traversal", () => {
+    expect(readoutOutputFile({ RUNNER_TEMP: "/tmp/runner" })).toBe(
+      "/tmp/runner/c25-gate-readout.json",
+    );
+    for (const env of [{}, { RUNNER_TEMP: "" }, { RUNNER_TEMP: "relative/tmp" }])
+      expect(() => readoutOutputFile(env)).toThrow("output");
+    expect(() => readoutOutputFile({ RUNNER_TEMP: "/tmp/../escape" })).toThrow("escaped");
   });
 });
 

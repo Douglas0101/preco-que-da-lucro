@@ -1,0 +1,97 @@
+$ npx --no-install vitest run src/test/neon-fixture-provision.test.ts src/test/neon-fixture.test.ts src/test/neon-resource.test.ts src/test/main-unit-adapter.test.ts src/test/gate-mirror.test.ts src/test/sonar-gate-readout.test.ts src/test/m02-ci-coverage.test.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas-souza/preco-que-d-main[39m
+
+ [31m❯[39m src/test/main-unit-adapter.test.ts [2m([22m[2m10 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 5252[2mms[22m[39m
+     [32m✓[39m accepts only coherent documented observations, never a release verdict[32m 34[2mms[22m[39m
+     [32m✓[39m maps condition IDs from the ORIGINAL consumed LCOV and reconciles provider counts[32m 18[2mms[22m[39m
+     [32m✓[39m treats a Sonar-executable uncovered line without original DA as uncovered and refuses a covered one[32m 10[2mms[22m[39m
+     [32m✓[39m does not promote numeric branch totals without original individual identities[32m 1[2mms[22m[39m
+     [32m✓[39m missing new-code markers, ambiguous aliases, duplicate files and changed source cannot map[32m 9[2mms[22m[39m
+     [32m✓[39m sealed bytes, exact period, expected PR, sensor, source and instrumentation are required[32m 16[2mms[22m[39m
+     [32m✓[39m enumerates pages and checks every source line against immutable Git line count[32m 6[2mms[22m[39m
+     [32m✓[39m rejects changed totals and duplicate file identities across component pages[32m 1[2mms[22m[39m
+     [32m✓[39m selecting a completed immutable main run never substitutes a PR/develop artifact[32m 1[2mms[22m[39m
+[31m     [31m×[31m runs the real bare-Node CLI in its own Git fixture: PASS=0, FAIL=1, NO-VERDICT=2[39m[33m 5141[2mms[22m[39m
+ [32m✓[39m src/test/m02-ci-coverage.test.ts [2m([22m[2m39 tests[22m[2m)[22m[32m 143[2mms[22m[39m
+ [32m✓[39m src/test/neon-resource.test.ts [2m([22m[2m34 tests[22m[2m)[22m[32m 137[2mms[22m[39m
+ [31m❯[39m src/test/neon-fixture-provision.test.ts [2m([22m[2m33 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 84[2mms[22m[39m
+     [32m✓[39m plans a root schema-only copy with an explicit source id and a 24h TTL[32m 4[2mms[22m[39m
+     [32m✓[39m refuses an unverifiable run context {"GITHUB_REPOSITORY":"foreign/fork"}[32m 1[2mms[22m[39m
+     [32m✓[39m refuses an unverifiable run context {"GITHUB_EVENT_NAME":"push"}[32m 0[2mms[22m[39m
+     [32m✓[39m refuses an unverifiable run context {"GITHUB_BASE_REF":"preview"}[32m 0[2mms[22m[39m
+     [32m✓[39m refuses an unverifiable run context {"NEON_PROJECT_ID":"different"}[32m 0[2mms[22m[39m
+     [32m✓[39m refuses an unverifiable run context {"PR_NUMBER":"0"}[32m 0[2mms[22m[39m
+     [32m✓[39m refuses an unverifiable run context {"GITHUB_RUN_ID":""}[32m 0[2mms[22m[39m
+     [32m✓[39m refuses an unverifiable run context {"GITHUB_RUN_ATTEMPT":"x"}[32m 0[2mms[22m[39m
+     [32m✓[39m refuses an unverifiable run context {}[32m 4[2mms[22m[39m
+     [32m✓[39m pins the explicit 5432 port and keeps an sslmode-only query[32m 1[2mms[22m[39m
+     [32m✓[39m refuses a foreign port[32m 0[2mms[22m[39m
+     [32m✓[39m refuses a destination-altering query host[32m 0[2mms[22m[39m
+     [32m✓[39m refuses a query port override[32m 0[2mms[22m[39m
+     [32m✓[39m refuses a non-sslmode parameter[32m 0[2mms[22m[39m
+     [32m✓[39m refuses an insecure sslmode[32m 0[2mms[22m[39m
+     [32m✓[39m refuses a pooler host requested as direct[32m 0[2mms[22m[39m
+     [32m✓[39m refuses a direct host requested as pooled[32m 0[2mms[22m[39m
+[31m     [31m×[31m creates schema-only once, hands the branch id to cleanup before compute, and writes masked private URIs[39m[32m 28[2mms[22m[39m
+     [32m✓[39m a create refusal (HTTP 412) is observed as status plus code, with no retry and no output[32m 6[2mms[22m[39m
+     [32m✓[39m retains HTTP412 without leaking an untrusted refusal {"contentType":"text/html","rawBody":"<html>credential-not-for-output</html>"}[32m 3[2mms[22m[39m
+     [32m✓[39m retains HTTP412 without leaking an untrusted refusal {"rawBody":"{credential-not-for-output"}[32m 3[2mms[22m[39m
+     [32m✓[39m retains HTTP412 without leaking an untrusted refusal {"body":{"code":"credential-not-for-output:invalid","message":"secret-message"}}[32m 3[2mms[22m[39m
+     [32m✓[39m retains HTTP412 without leaking an untrusted refusal {"body":{"code":"schema_only_not_allowed","message":"secret-message"}}[32m 1[2mms[22m[39m
+     [32m✓[39m never exposes an API key echoed as an otherwise valid provider code[32m 2[2mms[22m[39m
+     [32m✓[39m never hands cleanup a permanent or unverified provider identity br-small-hill-aymcu14y[32m 1[2mms[22m[39m
+     [32m✓[39m never hands cleanup a permanent or unverified provider identity br-snowy-violet-aymcvvvv[32m 4[2mms[22m[39m
+     [32m✓[39m never hands cleanup a permanent or unverified provider identity unverified[32m 1[2mms[22m[39m
+     [32m✓[39m the branch id reaches cleanup even when readiness or the pooled URI fails afterwards[32m 8[2mms[22m[39m
+     [32m✓[39m masks a received malformed credential URI before validation can fail[32m 2[2mms[22m[39m
+     [32m✓[39m a value echoed by a failing layer is redacted before the reason is persisted[32m 1[2mms[22m[39m
+     [32m✓[39m redacts a previously received SQL password from structured provider codes[32m 1[2mms[22m[39m
+     [32m✓[39m refuses endpoints that do not bind exactly one read_write host of the branch[32m 3[2mms[22m[39m
+     [32m✓[39m masks on arrival and scrubs every known value from any later text[32m 0[2mms[22m[39m
+ [32m✓[39m src/test/sonar-gate-readout.test.ts [2m([22m[2m53 tests[22m[2m)[22m[32m 64[2mms[22m[39m
+ [32m✓[39m src/test/gate-mirror.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m src/test/neon-fixture.test.ts [2m([22m[2m34 tests[22m[2m)[22m[32m 49[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/test/main-unit-adapter.test.ts[2m > [22mcomplete unit adapter, original scanner provenance and conservative CLI decision[2m > [22mruns the real bare-Node CLI in its own Git fixture: PASS=0, FAIL=1, NO-VERDICT=2
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m src/test/main-unit-adapter.test.ts:[2m389:3[22m[39m
+    [90m387|[39m     expect(() => selectMainOriginRun([run, { ...run, id: 13 }], revisi…
+    [90m388|[39m   })[33m;[39m
+    [90m389|[39m   it("runs the real bare-Node CLI in its own Git fixture: PASS=0, FAIL…
+    [90m   |[39m   [31m^[39m
+    [90m390|[39m     const directory = mkdtempSync(resolve(tmpdir(), "mirror-cli-fixtur…
+    [90m391|[39m     [35mtry[39m {
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/test/neon-fixture-provision.test.ts[2m > [22mREST provisioning with masked credentials and sanitized refusals[2m > [22mcreates schema-only once, hands the branch id to cleanup before compute, and writes masked private URIs
+[31m[1mAssertionError[22m: expected 5 to be 6 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 6[39m
+[31m+ 5[39m
+
+[36m [2m❯[22m src/test/neon-fixture-provision.test.ts:[2m222:31[22m[39m
+    [90m220|[39m     for (const captured of events.filter((event) => !event.includes(":…
+    [90m221|[39m       [34mexpect[39m(captured)[33m.[39mnot[33m.[39m[34mtoContain[39m(fixtureSecret)[33m;[39m
+    [90m222|[39m     [34mexpect[39m(maskEvents[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m6[39m)[33m;[39m
+    [90m   |[39m                               [31m^[39m
+    [90m223|[39m     expect(files.get("neon-pr-provision.json")).not.toContain(fixtureS…
+    [90m224|[39m     [34mexpect[39m(files[33m.[39m[35mget[39m([32m"branch_direct_url"[39m))[33m.[39m[34mtoContain[39m(fixtureSecret)[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m219 passed[39m[22m[90m (221)[39m
+[2m   Start at [22m 01:37:32
+[2m   Duration [22m 24.26s[2m (transform 1.82s, setup 2.07s, import 2.13s, tests 5.76s, environment 11.53s)[22m
+
+
+exit=1

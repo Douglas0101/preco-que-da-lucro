@@ -125,6 +125,43 @@ export function assertOwnedResource(branch: Branch, plan: ResourcePlan, id: stri
   )
     throw new Error("temporary branch expiry/creation time is not verified");
 }
+/** Records every secret the run has seen and scrubs them before persistence. */
+export class MaskedSecrets {
+  private readonly values = new Set<string>();
+  /** Emits the workflow mask command and remembers the value for redaction. */
+  mask(value: string): string {
+    if (!value || this.values.has(value)) return "";
+    this.values.add(value);
+    const data = value.replaceAll("%", "%25").replaceAll("\r", "%0D").replaceAll("\n", "%0A");
+    return `::add-mask::${data}\n`;
+  }
+  redact(text: string): string {
+    let result = text;
+    for (const value of this.values) result = result.replaceAll(value, "[redacted]");
+    return result;
+  }
+}
+
+/**
+ * S6-R2/N01-residual: a URI is only usable when its effective destination
+ * cannot be moved by the runner (explicit 5432, sslmode-only query) and its
+ * endpoint kind matches the request.
+ */
+export function pinConnection(uri: string, pooled: boolean): string {
+  const url = new URL(uri);
+  if (
+    !["postgres:", "postgresql:"].includes(url.protocol) ||
+    (url.port && url.port !== "5432") ||
+    [...url.searchParams.keys()].some((key) => key !== "sslmode") ||
+    (url.searchParams.get("sslmode") &&
+      !["require", "verify-ca", "verify-full"].includes(url.searchParams.get("sslmode") ?? "")) ||
+    pooled !== url.hostname.includes("-pooler.")
+  )
+    throw new Error("fixture connection URI is not a verifiable Neon SQL endpoint");
+  url.port = "5432";
+  if (!url.searchParams.get("sslmode")) url.searchParams.set("sslmode", "require");
+  return url.href;
+}
 export function assertConnectionPair(admin: string, pooled: string) {
   const direct = new URL(admin),
     runtime = new URL(pooled);
@@ -143,6 +180,15 @@ export function assertConnectionPair(admin: string, pooled: string) {
     !direct.username ||
     !direct.password ||
     direct.pathname === "/" ||
+    // S6-R2/N01-residual: PGPORT (and every other ambient default) can only
+    // move the effective destination when the URI omits the port, and the
+    // driver honors destination-altering query parameters from the URI itself.
+    // The pair is only trusted with an explicit 5432 and a sslmode-only query.
+    direct.port !== "5432" ||
+    runtime.port !== "5432" ||
+    [direct, runtime].some((url) =>
+      [...url.searchParams.keys()].some((key) => key !== "sslmode"),
+    ) ||
     [direct, runtime].some(
       (url) =>
         !["require", "verify-ca", "verify-full"].includes(url.searchParams.get("sslmode") ?? ""),
@@ -298,6 +344,8 @@ export class NeonResources {
   }
   async connections(id: string, ownership: string, admin: string, pooled: string, now: Date) {
     if (!admin || !pooled) throw new Error("resource connection outputs unavailable");
+    admin = pinConnection(admin, false);
+    pooled = pinConnection(pooled, true);
     assertConnectionPair(admin, pooled);
     await this.created(id, ownership, now);
     const { status, body } = await this.request(`branches/${encodeURIComponent(id)}/endpoints`);

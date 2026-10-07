@@ -164,6 +164,12 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           EXPECTED_PR: ${{ github.event.pull_request.number }}
           EXPECTED_BRANCH: ${{ github.head_ref || github.ref_name }}
+          # S6-R2/N02: BASH_ENV vazio impede que uma variável de repo/org injete
+          # código no shell não interativo do passo que nomeia a release.
+          BASH_ENV: ""
+        # S6-R2/N02: shell fixo — um shell customizado poderia engolir o exit
+        # code que decide a release; `bash` no runner é `bash -eo pipefail`.
+        shell: bash
         run: npx --no-install tsx scripts/sonar/gate-readout.ts
 
       - name: Medir main somente após a análise do push
@@ -204,9 +210,13 @@ jobs:
     name: main-coverage-mirror
     if: always() && github.event_name == 'pull_request'
     needs: scan
-    continue-on-error: true # ADR-042: projection is advisory; real CE coverage >=60 is mandatory.
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    env:
+      BASH_ENV: ""
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -258,8 +268,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SONAR_MAIN_LCOV: .artifacts/mirror/main-lcov/lcov.info
           SONAR_MAIN_LCOV_PROVENANCE: .artifacts/mirror/main-lcov/lcov-provenance.json
-        run: node scripts/sonar/main-unit-adapter.ts
-      - name: Require individually mapped new-code units before granting coverage credit
+        run: node scripts/sonar/mirror-observation.ts adapter
+      - name: Observe the conservative mirror without granting main approval
         if: always()
         env:
           SONAR_MAIN_UNIT_SNAPSHOT: ${{ runner.temp }}/c28-main-unit-snapshot.json
@@ -272,7 +282,7 @@ jobs:
           SONAR_CANDIDATE_GATE_REPORT: .artifacts/mirror/candidate-gate/c25-gate-readout.json
           EXPECTED_PR: ${{ github.event.pull_request.number }}
           EXPECTED_BRANCH: ${{ github.head_ref }}
-        run: node scripts/sonar/gate-mirror.ts
+        run: node scripts/sonar/mirror-observation.ts mirror
       - name: Preserve the measured gap and precondition verdict
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -285,5 +295,7 @@ jobs:
             ${{ runner.temp }}/c28-main-unit-adapter.json
             ${{ runner.temp }}/c28-main-unit-snapshot.json
             ${{ runner.temp }}/c28-main-origin-run.json
+            ${{ runner.temp }}/c29-main-unit-adapter-observation.json
+            ${{ runner.temp }}/c29-main-mirror-observation.json
           if-no-files-found: error
           retention-days: 7

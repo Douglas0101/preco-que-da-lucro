@@ -1,0 +1,7 @@
+{
+  "overall_correctness": "correct",
+  "explanation": "R3 re-review of current bytes (read-only; no network/build/tests). Both prior findings are closed in the reviewed source; C1–C4 all ACCEPTED.\n\nC3 — ACCEPTED (closure verified at .github/workflows/neon-readiness.yml:192-289). The prove step now receives NEON_API_KEY/NEON_PROJECT_ID, BRANCH_ID/BRANCH_CREATED from steps.adopt and RESOURCE_STARTED_AT/RESOURCE_EXPIRES_AT from steps.resource (:194-201); raw action URIs feed only this step (:200-201) and the only export is the canonical GITHUB_ENV append (:286-287) — no later raw overrides (verified by grep across the workflow). Execution order in the heredoc: mask raws → pinConnection both → mask canonicals/passwords/decoded → resourcePlan(process.env, now) + new NeonResources(plan, key).connec…
+  "confidence": 0.86
+}
+
+[Some lines truncated to 768 chars]

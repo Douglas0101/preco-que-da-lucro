@@ -1,0 +1,17 @@
+Actual repository CLI after mask correction; fixture context numbers do not identify a new GitHub run.
+$ npx --no-install tsx scripts/ci/provision-neon-fixture.ts
+{
+  "exit": 0,
+  "sourceSha256": "adbc5eab02b5f63528c36eda7528a6acc3fb541c63748b838648aec1e0c29c3d",
+  "report": {
+    "schema": "neon-pr-provision/1",
+    "phase": "connection-verified",
+    "branchId": "br-ci-smoke-20261007",
+    "initSource": "schema-only",
+    "expiresAt": "2026-10-08T05:05:38Z"
+  },
+  "privateUrisMode": "0600",
+  "explicitPort": 5432,
+  "network": "intercepted-no-remote-operation",
+  "maskCommandLines": 6
+}

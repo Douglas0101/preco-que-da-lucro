@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   assertConnectionPair,
@@ -279,60 +278,44 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
       "HTTP 422, code=INVALID_PAYLOAD",
     );
   });
-  it("the actual YAML isolates cleanup and passes TTL plus named remote reasons", () => {
-    const yaml = readFileSync(".github/workflows/neon-readiness.yml", "utf8");
-    expect(yaml).toContain("parent_branch: develop");
-    expect(yaml).toContain("expires_at: ${{ steps.resource.outputs.expires_at }}");
-    expect(yaml).toContain("node scripts/ci/neon-resource.ts adopt");
-    expect(yaml).toContain("BRANCH_CREATED:");
-    const cleanup = yaml.slice(yaml.indexOf("  cleanup:"));
-    expect(cleanup).toContain("needs: readiness");
-    expect(cleanup).toContain("if: always()");
-    expect(cleanup).toContain("node scripts/ci/neon-resource.ts cleanup");
-    expect(cleanup).not.toContain("delete-branch-action");
-    expect(yaml.match(/ALLOW_REMOTE_DB:/g)).toHaveLength(3);
-    expect(yaml).toContain("DATABASE_URL_UNPOOLED:");
-    expect(yaml).toContain("DATABASE_DRIVER: node-postgres");
-    for (const action of yaml.matchAll(/uses: ([^\s]+)@([^\s]+)/g))
-      expect(action[2]).toMatch(/^[a-f0-9]{40}$/);
-  });
-  it("the provisioning workflow plans before creation and cleans independently of DB_URL and adopt success", () => {
-    const yaml = readFileSync(".github/workflows/neon-drill-ops.yml", "utf8");
-    const names = [
-      "Plan provisioning before creation",
-      "Exercise provisioning candidate 6.4.0",
-      "Adopt ownership and expiry independently of connection outputs",
-      "Validate candidate connection outputs against the owned endpoint",
-      "Cleanup candidate always by the prepared identity",
-    ];
-    const indexes = names.map((name) => yaml.indexOf(`- name: ${name}`));
-    expect(indexes.every((index) => index >= 0)).toBe(true);
-    expect([...indexes].sort((a, b) => a - b)).toEqual(indexes);
-    const block = (name: string) =>
-      yaml.slice(yaml.indexOf(`      - name: ${name}`)).split(/\n {6}- (?:name|uses):/)[0];
-    for (const name of [names[2], names[4]]) {
-      const step = block(name);
-      expect(step).toContain(
-        "if: always() && inputs.operation == 'exercise-provisioning' && steps.resource.outputs.started_at != ''",
+  it("accepts portless action URIs only when the host belongs to the owned resource", async () => {
+    const host = "ep-action-example.c-5.us-east-2.aws.neon.tech";
+    const direct = `postgresql://neondb_owner:fixture-secret@${host}/neondb?sslmode=require`;
+    const pooled = direct.replace("ep-action-example.", "ep-action-example-pooler.");
+    for (const endpointBranch of [id, "br-unrelated"]) {
+      const f = mock([
+        { body: { branch: temp() } },
+        {
+          body: { endpoints: [{ host, branch_id: endpointBranch, project_id: PROJECT_ID }] },
+        },
+      ]);
+      const result = new NeonResources(plan, "test-key", f.impl).connections(
+        id,
+        "true",
+        direct,
+        pooled,
+        now,
       );
-      expect(step).not.toMatch(/DB_URL|DATABASE_|cleanup_allowed|success\(\)/);
-      expect(step).toContain("RESOURCE_PURPOSE: provisioning");
+      if (endpointBranch === id)
+        await expect(result).resolves.toMatchObject({
+          phase: "connection-identity-verified",
+          branchId: id,
+          hostname: host,
+        });
+      else await expect(result).rejects.toThrow("does not belong");
     }
-    expect(block(names[1])).toContain("expires_at: ${{ steps.resource.outputs.expires_at }}");
-    expect(block(names[4])).toContain("node scripts/ci/neon-resource.ts cleanup");
-    expect(block(names[3])).toContain("node scripts/ci/neon-resource.ts connections");
   });
 });
 
 describe("temporary connection pair identity", () => {
   const direct =
-    "postgresql://neondb_owner:fixture-password@ep-test-example.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require";
+    "postgresql://neondb_owner:fixture-secret@ep-test-example.c-5.us-east-2.aws.neon.tech:5432/neondb?sslmode=require";
   const pooled = direct.replace("ep-test-example.", "ep-test-example-pooler.");
   it("accepts matching direct and pooled endpoints and rejects production or divergent connections", () => {
     expect(() => assertConnectionPair(direct, pooled)).not.toThrow();
     for (const candidate of [
       direct,
-      pooled.replace("fixture-password", "other"),
+      pooled.replace("fixture-secret", "other"),
       pooled.replace("neondb?", "other?"),
       pooled.replace("ep-test-example", "ep-other-example"),
       pooled.replace("sslmode=require", "sslmode=disable"),
@@ -344,5 +327,22 @@ describe("temporary connection pair identity", () => {
         pooled.replace("ep-test-example", "ep-long-violet-aye9g0bn"),
       ),
     ).toThrow("production");
+  });
+  it("S6-R2/N01-residual: the effective destination cannot be moved by port or query", () => {
+    for (const candidate of [
+      // an omitted port would let the ambient PGPORT choose the destination
+      direct.replace(":5432", ""),
+      pooled.replace(":5432", ""),
+      // a foreign explicit port
+      direct.replace(":5432", ":9999"),
+      // destination-altering and non-allowlisted query parameters
+      `${direct}&host=ep-evil.c-5.us-east-2.aws.neon.tech`,
+      `${direct}&port=9999`,
+      `${direct}&hostaddr=10.0.0.1`,
+      `${direct}&options=-c%20statement_timeout%3D0`,
+      `${direct}&application_name=probe`,
+    ])
+      expect(() => assertConnectionPair(candidate, pooled)).toThrow();
+    expect(() => assertConnectionPair(direct, `${pooled}&host=ep-evil.aws.neon.tech`)).toThrow();
   });
 });

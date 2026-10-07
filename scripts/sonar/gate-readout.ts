@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { basename, dirname, isAbsolute, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 
 const project = "Douglas0101_preco-que-da-lucro";
@@ -256,9 +256,81 @@ export function releaseVerdict(verdict: ReturnType<typeof ceVerdict>) {
   };
 }
 
+type Readout = {
+  identity?: ReturnType<typeof analysisIdentity>;
+  verdict?: ReturnType<typeof ceVerdict>;
+};
+
+/**
+ * S6-R2/N03: a observação validada do provedor (identidade + veredito bruto do
+ * CE) é preservada no relatório mesmo quando a releasePolicy fica NO-VERDICT —
+ * a ausência de veredito de release nunca apaga a evidência que já passou pela
+ * verificação de identidade.
+ */
+export function readoutReport(
+  error: unknown,
+  observed: Readout & { observedAt: string },
+): {
+  schema: string;
+  observedAt: string;
+  status: string;
+  reason: string;
+  providerIdentity?: ReturnType<typeof analysisIdentity>;
+  providerObservation?: ReturnType<typeof ceVerdict>;
+} {
+  return {
+    schema: "c25-ce-gate-readout/1",
+    observedAt: observed.observedAt,
+    status: "NO-VERDICT",
+    reason:
+      error instanceof Error &&
+      /^(CE |gate |condição |projeto\/|report-task |origem\/|analysisId |SONAR_TOKEN |Web API |scanner revision |provider )/.test(
+        error.message,
+      )
+        ? error.message
+        : "readout unavailable; no raw remote error persisted",
+    ...(observed.identity ? { providerIdentity: observed.identity } : {}),
+    ...(observed.verdict ? { providerObservation: observed.verdict } : {}),
+  };
+}
+
+/** The readout report is pinned to a constant name inside the runner temp directory. */
+export function readoutOutputFile(env: NodeJS.ProcessEnv): string {
+  const tempDir = env.RUNNER_TEMP;
+  if (!tempDir || !isAbsolute(tempDir)) throw new Error("readout output directory unavailable");
+  if (/\.\.(?:\/|\\)/.test(tempDir) || tempDir.includes("\0"))
+    throw new Error("readout output path escaped the runner temp directory");
+  const resolved = resolve(tempDir, "c25-gate-readout.json");
+  if (dirname(resolved) !== resolve(tempDir) || basename(resolved) !== "c25-gate-readout.json")
+    throw new Error("readout output path escaped the runner temp directory");
+  return resolved;
+}
+
+/**
+ * S6 hardening: the report is only ever written after a write-time recheck —
+ * normalized absolute path, no ".." segment, no NUL byte, confined to the
+ * resolved runner temp directory. Without a valid path the report exists only
+ * in the runner log.
+ */
+function persistReport(path: string | undefined, report: object): void {
+  const tempDir = process.env.RUNNER_TEMP;
+  if (
+    !path ||
+    !tempDir ||
+    !isAbsolute(tempDir) ||
+    /\.\.(?:\/|\\)/.test(path) ||
+    path.includes("\0") ||
+    dirname(path) !== resolve(tempDir)
+  )
+    return;
+  writeFileSync(path, `${JSON.stringify(report, null, 2)}\n`);
+}
+
 async function main() {
-  const file = resolve(process.env.RUNNER_TEMP ?? ".", "c25-gate-readout.json");
+  const observed: Readout = {};
+  let file: string | undefined;
   try {
+    file = readoutOutputFile(process.env);
     const token = process.env.SONAR_TOKEN;
     if (!token) throw new Error("SONAR_TOKEN ausente (somente nome)");
     const taskRef = scannerTask(readFileSync(".scannerwork/report-task.txt", "utf8"));
@@ -290,10 +362,12 @@ async function main() {
       },
       revision,
     );
+    observed.identity = identity;
     const response = await api<{ projectStatus?: Gate }>(
       `${origin}/api/qualitygates/project_status?analysisId=${encodeURIComponent(analysisId)}`,
     );
     const verdict = ceVerdict(task, response.projectStatus, taskRef.id);
+    observed.verdict = verdict;
     const releasePolicy = releaseVerdict(verdict);
     const report = {
       schema: "c25-ce-gate-readout/1",
@@ -305,23 +379,12 @@ async function main() {
       releasePolicy,
       nullSemantics: "métrica ausente é null; gate de PR não equivale ao de main",
     };
-    writeFileSync(file, `${JSON.stringify(report, null, 2)}\n`);
+    persistReport(file, report);
     console.log(`C25_CE_GATE ${JSON.stringify(report)}`);
     process.exitCode = releasePolicy.status === "OK" ? 0 : 1;
   } catch (error) {
-    const report = {
-      schema: "c25-ce-gate-readout/1",
-      observedAt: new Date().toISOString(),
-      status: "NO-VERDICT",
-      reason:
-        error instanceof Error &&
-        /^(CE |gate |condição |projeto\/|report-task |origem\/|analysisId |SONAR_TOKEN |Web API |scanner revision |provider )/.test(
-          error.message,
-        )
-          ? error.message
-          : "readout unavailable; no raw remote error persisted",
-    };
-    writeFileSync(file, `${JSON.stringify(report, null, 2)}\n`);
+    const report = readoutReport(error, { ...observed, observedAt: new Date().toISOString() });
+    persistReport(file, report);
     console.error(`C25_CE_GATE ${JSON.stringify(report)}`);
     process.exitCode = 2;
   }

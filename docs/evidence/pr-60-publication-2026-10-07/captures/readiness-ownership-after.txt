@@ -1,0 +1,237 @@
+GREEN: actual workflow script with real pg constructor; API and DB transports isolated. Foreign endpoint/API failure/destination query fail before pg connect or environment export; valid owned pair records branch-bound proof before PostgreSQL17 parsing.
+[
+  {
+    "case": "canonical",
+    "exit": 0,
+    "environmentKeys": [
+      "DATABASE_ADMIN_URL",
+      "DATABASE_URL",
+      "DATABASE_URL_UNPOOLED"
+    ],
+    "environmentMode": "0o600",
+    "trace": [
+      {
+        "phase": "api",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-readiness-owned-smoke"
+      },
+      {
+        "phase": "api",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-readiness-owned-smoke/endpoints"
+      },
+      {
+        "phase": "connect",
+        "host": "ep-readiness-smoke.c-5.us-east-2.aws.neon.tech",
+        "port": 5432
+      },
+      {
+        "phase": "end"
+      },
+      {
+        "phase": "connect",
+        "host": "ep-readiness-smoke-pooler.c-5.us-east-2.aws.neon.tech",
+        "port": 5432
+      },
+      {
+        "phase": "end"
+      }
+    ],
+    "scriptSha256": "f359749389df9e3377021e7d1b5e97f8aadddf66e9bdfe49a3bb1d2041cdfc60",
+    "stderr": "(node:979312) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.\nIn the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.\n\nTo prepare for this change:\n- If you want the current behavior, explicitly use 'sslmode=verify-full'\n- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'\n\nSee https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+    "noRealAPIorDB": true,
+    "caseDir": "/tmp/pqd-pr60-readiness-vki80q0_/canonical-f3597493-gq2gs1gu"
+  },
+  {
+    "case": "foreign-endpoint",
+    "exit": 1,
+    "environmentKeys": [],
+    "environmentMode": "0o664",
+    "trace": [
+      {
+        "phase": "api",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-readiness-owned-smoke"
+      },
+      {
+        "phase": "api",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-readiness-owned-smoke/endpoints"
+      }
+    ],
+    "scriptSha256": "f359749389df9e3377021e7d1b5e97f8aadddf66e9bdfe49a3bb1d2041cdfc60",
+    "stderr": "file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:365\n      throw new Error(\"resource connection endpoint does not belong to the owned branch\");\n            ^\n\nError: resource connection endpoint does not belong to the owned branch\n    at NeonResources.connections (file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:365:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async file:///home/douglas-souza/preco-que-d-main/[eval1]:17:18\n\nNode.js v24.21.0\n",
+    "noRealAPIorDB": true,
+    "caseDir": "/tmp/pqd-pr60-readiness-vki80q0_/foreign-endpoint-f3597493-rv492far"
+  },
+  {
+    "case": "api-unavailable",
+    "exit": 1,
+    "environmentKeys": [],
+    "environmentMode": "0o664",
+    "trace": [
+      {
+        "phase": "api",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-readiness-owned-smoke"
+      }
+    ],
+    "scriptSha256": "f359749389df9e3377021e7d1b5e97f8aadddf66e9bdfe49a3bb1d2041cdfc60",
+    "stderr": "file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:246\n      throw new Error(`resource API ${method} HTTP ${response.status}, code=${code}`);\n            ^\n\nError: resource API GET HTTP 503, code=UNCLASSIFIED\n    at NeonResources.request (file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:246:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async NeonResources.created (file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:300:30)\n    at async NeonResources.connections (file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:350:5)\n    at async file:///home/douglas-souza/preco-que-d-main/[eval1]:17:18\n\nNode.js v24.21.0\n",
+    "noRealAPIorDB": true,
+    "caseDir": "/tmp/pqd-pr60-readiness-vki80q0_/api-unavailable-f3597493-5yjclulj"
+  },
+  {
+    "case": "destination-query",
+    "exit": 1,
+    "environmentKeys": [],
+    "environmentMode": "0o664",
+    "trace": [],
+    "scriptSha256": "f359749389df9e3377021e7d1b5e97f8aadddf66e9bdfe49a3bb1d2041cdfc60",
+    "stderr": "file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:160\n    throw new Error(\"fixture connection URI is not a verifiable Neon SQL endpoint\");\n          ^\n\nError: fixture connection URI is not a verifiable Neon SQL endpoint\n    at pinConnection (file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:160:11)\n    at file:///home/douglas-souza/preco-que-d-main/[eval1]:8:16\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n\nNode.js v24.21.0\n",
+    "noRealAPIorDB": true,
+    "caseDir": "/tmp/pqd-pr60-readiness-vki80q0_/destination-query-f3597493-ad2e7ol0"
+  },
+  {
+    "case": "wrong-major",
+    "exit": 1,
+    "environmentKeys": [],
+    "environmentMode": "0o664",
+    "trace": [
+      {
+        "phase": "api",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-readiness-owned-smoke"
+      },
+      {
+        "phase": "api",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-readiness-owned-smoke/endpoints"
+      },
+      {
+        "phase": "connect",
+        "host": "ep-readiness-smoke.c-5.us-east-2.aws.neon.tech",
+        "port": 5432
+      },
+      {
+        "phase": "end"
+      }
+    ],
+    "scriptSha256": "f359749389df9e3377021e7d1b5e97f8aadddf66e9bdfe49a3bb1d2041cdfc60",
+    "stderr": "file:///home/douglas-souza/preco-que-d-main/[eval1]:49\n      throw new Error(`${kind} connection returned PostgreSQL ${postgresMajor}; expected ${expectedMajor}`);\n            ^\n\nError: direct connection returned PostgreSQL 16; expected 17\n    at file:///home/douglas-souza/preco-que-d-main/[eval1]:49:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n\nNode.js v24.21.0\n",
+    "noRealAPIorDB": true,
+    "caseDir": "/tmp/pqd-pr60-readiness-vki80q0_/wrong-major-f3597493-9tjxb5qv"
+  }
+]
+
+EXTRACTED SCRIPT
+set -euo pipefail
+[[ -n "$DATABASE_ADMIN_URL" ]] || { echo "Neon readiness blocked: direct URL was not returned." >&2; exit 1; }
+[[ -n "$DATABASE_URL" ]] || { echo "Neon readiness blocked: pooled URL was not returned." >&2; exit 1; }
+[[ "$DATABASE_ADMIN_URL" != "$DATABASE_URL" ]] || {
+  echo "Neon readiness blocked: direct and pooled URLs are not separated." >&2
+  exit 1
+}
+
+mkdir -p "$(dirname "$EVIDENCE_PATH")"
+chmod 700 "$(dirname "$EVIDENCE_PATH")"
+
+node --input-type=module <<'NODE'
+import { appendFile, chmod, writeFile } from "node:fs/promises";
+import { Client } from "pg";
+import { MaskedSecrets, NeonResources, pinConnection, resourcePlan } from "./scripts/ci/neon-resource.ts";
+
+const secrets = new MaskedSecrets();
+for (const raw of [process.env.DATABASE_ADMIN_URL, process.env.DATABASE_URL])
+  process.stdout.write(secrets.mask(raw));
+const direct = pinConnection(process.env.DATABASE_ADMIN_URL, false);
+const pooled = pinConnection(process.env.DATABASE_URL, true);
+for (const uri of [direct, pooled]) {
+  process.stdout.write(secrets.mask(uri));
+  const password = new URL(uri).password;
+  process.stdout.write(secrets.mask(password));
+  process.stdout.write(secrets.mask(decodeURIComponent(password)));
+}
+const now = new Date();
+const resource = await new NeonResources(
+  resourcePlan(process.env, now),
+  process.env.NEON_API_KEY ?? "",
+).connections(
+  process.env.BRANCH_ID ?? "",
+  process.env.BRANCH_CREATED ?? "",
+  direct,
+  pooled,
+  now,
+);
+
+const expectedMajor = Number(process.env.EXPECTED_POSTGRES_MAJOR);
+const connections = [
+  ["direct", direct],
+  ["pooled", pooled],
+];
+const evidence = {
+  generatedAt: new Date().toISOString(),
+  resource,
+  direct: { connected: false },
+  pooled: { connected: false },
+};
+
+for (const [kind, connectionString] of connections) {
+  const client = new Client({ connectionString });
+  try {
+    await client.connect();
+    const result = await client.query(
+      "select current_database() as database, current_user as user, current_setting('server_version_num')::int as version_num",
+    );
+    const postgresMajor = Math.floor(Number(result.rows[0]?.version_num) / 10000);
+    if (postgresMajor !== expectedMajor) {
+      throw new Error(`${kind} connection returned PostgreSQL ${postgresMajor}; expected ${expectedMajor}`);
+    }
+    evidence[kind] = {
+      connected: true,
+      database: result.rows[0]?.database ?? null,
+      user: result.rows[0]?.user ?? null,
+      postgresMajor,
+    };
+    console.log(`${kind}: connected on PostgreSQL ${postgresMajor}`);
+  } finally {
+    await client.end();
+  }
+}
+
+await writeFile(
+  process.env.EVIDENCE_PATH,
+  `${JSON.stringify(evidence, null, 2)}\n`,
+  { mode: 0o600 },
+);
+await chmod(process.env.GITHUB_ENV, 0o600);
+await appendFile(
+  process.env.GITHUB_ENV,
+  `DATABASE_ADMIN_URL=${direct}\nDATABASE_URL=${pooled}\nDATABASE_URL_UNPOOLED=${direct}\n`,
+);
+NODE
+
+
+TRANSPORT PRELOAD
+import assert from 'node:assert/strict';
+import { appendFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+const require = createRequire('/home/douglas-souza/preco-que-d-main/package.json');
+const { Client } = require('pg');
+const trace = (value) => appendFileSync(process.env.READINESS_SMOKE_TRACE, JSON.stringify(value) + '\n');
+globalThis.fetch = async (input, init = {}) => {
+  const u = new URL(input);
+  assert.equal(u.origin, 'https://console.neon.tech');
+  assert.equal(init.method, 'GET');
+  trace({ phase:'api', path:u.pathname });
+  const branch = process.env.BRANCH_ID;
+  const root = `/api/v2/projects/damp-forest-57346541/branches/${branch}`;
+  if (process.env.READINESS_SMOKE_CASE === 'api-unavailable') return new Response('{}', {status:503,headers:{'Content-Type':'application/json'}});
+  if (u.pathname === root) return new Response(JSON.stringify({branch:{id:branch,project_id:'damp-forest-57346541',parent_id:'br-small-hill-aymcu14y',name:`readiness/develop-${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT}`,default:false,created_at:process.env.RESOURCE_STARTED_AT,expires_at:process.env.RESOURCE_EXPIRES_AT}}), {status:200,headers:{'Content-Type':'application/json'}});
+  if (u.pathname === root+'/endpoints') return new Response(JSON.stringify({endpoints:[{host:process.env.READINESS_SMOKE_CASE === 'foreign-endpoint'?'ep-owned-resource.c-5.us-east-2.aws.neon.tech':'ep-readiness-smoke.c-5.us-east-2.aws.neon.tech',branch_id:branch,project_id:'damp-forest-57346541',type:'read_write',disabled:false}]}), {status:200,headers:{'Content-Type':'application/json'}});
+  throw new Error('Unapproved API path in isolated readiness smoke');
+};
+Client.prototype.connect = async function () {
+  const p = this.connectionParameters;
+  assert.equal(p.port,5432); assert.equal(p.database,'neondb'); assert.equal(p.user,'neondb_owner'); assert.equal(p.password,'fixture-only');
+  assert.match(p.host,/^ep-readiness-smoke(?:-pooler)?\.c-5\.us-east-2\.aws\.neon\.tech$/);
+  trace({phase:'connect',host:p.host,port:p.port});
+};
+Client.prototype.query = async function(sql) {
+  assert.ok(sql.includes("current_setting('server_version_num')"));
+  return {rows:[{database:'neondb',user:'neondb_owner',version_num:Number(process.env.READINESS_SMOKE_MAJOR)*10000}]};
+};
+Client.prototype.end = async function() { trace({phase:'end'}); };

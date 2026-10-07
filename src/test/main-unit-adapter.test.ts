@@ -13,7 +13,8 @@ import { coverageMetadata } from "../../scripts/sonar/main-unit-probe";
 import { instrumentationFingerprint, scannerProvenance } from "../../scripts/sonar/lcov-provenance";
 import { evaluateMirrorArtifacts } from "../../scripts/sonar/mirror-runner";
 import { selectMainOriginRun } from "../../scripts/sonar/main-origin-run";
-import { mirror } from "../../scripts/sonar/unit-mirror";
+import { authoritativeUnits, mirror } from "../../scripts/sonar/unit-mirror";
+import { classifyMirrorObservation } from "../../scripts/sonar/mirror-observation";
 import type { apiReader } from "../../scripts/sonar/api";
 
 const file = "src/lib/example.ts",
@@ -98,6 +99,45 @@ function input(candidate = lcov(1)) {
   };
 }
 describe("complete unit adapter, original scanner provenance and conservative CLI decision", () => {
+  it("accepts only coherent documented observations, never a release verdict", () => {
+    const historical = {
+      schema: "main-unit-adapter/1",
+      verdict: "NO-VERDICT",
+      reasonCode: "ORIGINAL_PROVENANCE_UNAVAILABLE",
+      reason: "Original scanner provenance was not published.",
+      mainSha: revision,
+      analysisId: baseline.analysisId,
+      requests: [],
+    };
+    expect(classifyMirrorObservation("adapter", historical, 2)).toBe("NO-VERDICT");
+    for (const status of [0, 1, 3, null])
+      expect(() => classifyMirrorObservation("adapter", historical, status)).toThrow();
+    for (const patch of [
+      { schema: "unknown" },
+      { mainSha: null },
+      { requests: null },
+      { reasonCode: "EXECUTION_OR_UNCLASSIFIED" },
+      { verdict: "PASS" },
+    ])
+      expect(() => classifyMirrorObservation("adapter", { ...historical, ...patch }, 2)).toThrow();
+    for (const candidate of [lcov(), lcov(1)]) {
+      const result = evaluateMirrorArtifacts(input(candidate));
+      const report = {
+        schema: "main-mirror/2",
+        mainSha: revision,
+        analysisId: baseline.analysisId,
+        target: authoritativeUnits(baseline.metrics),
+        verdict: result.pass ? "PASS" : "FAIL",
+        result,
+      };
+      expect(classifyMirrorObservation("mirror", report, result.pass ? 0 : 1)).toBe(report.verdict);
+      expect(() => classifyMirrorObservation("mirror", report, result.pass ? 1 : 0)).toThrow();
+      expect(() =>
+        classifyMirrorObservation("mirror", { ...report, result: { ...result, covered: 99 } }, 0),
+      ).toThrow();
+    }
+    expect(() => classifyMirrorObservation("mirror", null, 0)).toThrow();
+  });
   it("maps condition IDs from the ORIGINAL consumed LCOV and reconciles provider counts", () => {
     const snapshot = input().snapshot;
     expect(snapshot.units).toHaveLength(5);
@@ -346,7 +386,13 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       expect(() => selectMainOriginRun([{ ...run, ...patch }], revision)).toThrow();
     expect(() => selectMainOriginRun([run, { ...run, id: 13 }], revision)).toThrow("ambiguous");
   });
-  it("runs the real bare-Node CLI in its own Git fixture: PASS=0, FAIL=1, NO-VERDICT=2", () => {
+  it.each([
+    "direct-contract",
+    "historical-absence",
+    "corrupt-candidate",
+    "corrupt-main-sidecar",
+    "missing-main-lcov",
+  ] as const)("runs the real bare-Node CLI in its own Git fixture: %s", (scenario) => {
     const directory = mkdtempSync(resolve(tmpdir(), "mirror-cli-fixture-"));
     try {
       mkdirSync(resolve(directory, "src/lib"), { recursive: true });
@@ -442,33 +488,124 @@ describe("complete unit adapter, original scanner provenance and conservative CL
         SONAR_CANDIDATE_LCOV_PROVENANCE: resolve(directory, "candidate-origin.json"),
         SONAR_CANDIDATE_GATE_REPORT: save("gate.json", g("develop", "60")),
       };
-      save("c24-main-baseline.json", b);
+      save("c24-main-baseline.json", { schema: "main-baseline/2", ...b });
       const command = resolve("scripts/sonar/gate-mirror.ts");
-      for (const [candidate, status, verdict] of [
-        [lcov(1), 0, "PASS"],
-        [lcov(), 1, "FAIL"],
-      ] as const) {
-        save("candidate.lcov", candidate);
-        save("candidate-origin.json", p(candidate, "develop", "60"));
+      if (scenario === "direct-contract") {
+        for (const [candidate, status, verdict] of [
+          [lcov(1), 0, "PASS"],
+          [lcov(), 1, "FAIL"],
+        ] as const) {
+          save("candidate.lcov", candidate);
+          save("candidate-origin.json", p(candidate, "develop", "60"));
+          const result = spawnSync(process.execPath, [command], {
+            cwd: directory,
+            env,
+            encoding: "utf8",
+          });
+          expect(result.status, result.stderr).toBe(status);
+          expect(
+            JSON.parse(readFileSync(resolve(directory, "c26-main-mirror.json"), "utf8")).verdict,
+          ).toBe(verdict);
+        }
         const result = spawnSync(process.execPath, [command], {
           cwd: directory,
-          env,
+          env: { ...env, SONAR_MAIN_UNIT_SNAPSHOT_SHA256: "" },
           encoding: "utf8",
         });
-        expect(result.status, result.stderr).toBe(status);
+        expect(result.status).toBe(2);
         expect(
           JSON.parse(readFileSync(resolve(directory, "c26-main-mirror.json"), "utf8")).verdict,
-        ).toBe(verdict);
+        ).toBe("NO-VERDICT");
+        return;
       }
-      const result = spawnSync(process.execPath, [command], {
-        cwd: directory,
-        env: { ...env, SONAR_MAIN_UNIT_SNAPSHOT_SHA256: "" },
-        encoding: "utf8",
-      });
-      expect(result.status).toBe(2);
+      save("candidate.lcov", lcov());
+      save("candidate-origin.json", p(lcov(), "develop", "60"));
+
+      // Exercise the real producer and advisory entrypoints with no external transport.
+      rmSync(env.SONAR_MAIN_LCOV_PROVENANCE);
+      const advisoryEnv = {
+        ...env,
+        SONAR_TOKEN: "fixture-not-a-credential",
+        GITHUB_TOKEN: "fixture-not-a-credential",
+        SONAR_MAIN_UNIT_ADAPTER_REPORT: resolve(directory, "c28-main-unit-adapter.json"),
+        SONAR_CANDIDATE_GATE_REPORT: save("gate.json", {
+          schema: "c25-ce-gate-readout/1",
+          status: "ERROR",
+          ...g("develop", "60"),
+        }),
+        GITHUB_STEP_SUMMARY: resolve(directory, "summary.md"),
+        GITHUB_OUTPUT: resolve(directory, "outputs.txt"),
+      };
+      const advisoryCommand = resolve("scripts/sonar/mirror-observation.ts");
+      const runObservation = (kind: "adapter" | "mirror") =>
+        spawnSync(process.execPath, [advisoryCommand, kind], {
+          cwd: directory,
+          env: advisoryEnv,
+          encoding: "utf8",
+        });
+      if (scenario === "corrupt-main-sidecar") {
+        save("main-origin.json", "{broken");
+        const observed = runObservation("adapter");
+        expect(observed.status, observed.stderr).toBe(1);
+        expect(
+          JSON.parse(readFileSync(resolve(directory, "c28-main-unit-adapter.json"), "utf8")),
+        ).toMatchObject({
+          verdict: "NO-VERDICT",
+          reasonCode: "EXECUTION_OR_UNCLASSIFIED",
+        });
+        return;
+      }
+      if (scenario === "missing-main-lcov") {
+        rmSync(env.SONAR_MAIN_LCOV);
+        const observed = runObservation("adapter");
+        expect(observed.status, observed.stderr).toBe(1);
+        expect(
+          JSON.parse(
+            readFileSync(resolve(directory, "c29-main-unit-adapter-observation.json"), "utf8"),
+          ),
+        ).toMatchObject({
+          rawExitCode: 2,
+          rawStatus: "NO-VERDICT",
+          observation: null,
+          outcome: "FAILURE",
+        });
+        return;
+      }
+      const adapter = runObservation("adapter");
+      expect(adapter.status, adapter.stderr).toBe(0);
+      if (scenario === "corrupt-candidate") save("candidate-origin.json", {});
+      const observed = runObservation("mirror");
+      expect(observed.status, observed.stderr).toBe(scenario === "corrupt-candidate" ? 1 : 0);
       expect(
-        JSON.parse(readFileSync(resolve(directory, "c26-main-mirror.json"), "utf8")).verdict,
-      ).toBe("NO-VERDICT");
+        JSON.parse(readFileSync(resolve(directory, "c29-main-mirror-observation.json"), "utf8")),
+      ).toMatchObject({
+        rawExitCode: 2,
+        rawStatus: "NO-VERDICT",
+        observation: scenario === "corrupt-candidate" ? null : "NO-VERDICT",
+        outcome: scenario === "corrupt-candidate" ? "FAILURE" : "INFORMATIONAL",
+        approvesMain: false,
+      });
+      if (scenario === "historical-absence") {
+        expect(
+          JSON.parse(
+            readFileSync(resolve(directory, "c29-main-unit-adapter-observation.json"), "utf8"),
+          ),
+        ).toMatchObject({
+          rawExitCode: 2,
+          rawStatus: "NO-VERDICT",
+          observation: "NO-VERDICT",
+          outcome: "INFORMATIONAL",
+          approvesMain: false,
+        });
+        expect(readFileSync(advisoryEnv.GITHUB_STEP_SUMMARY, "utf8")).toContain("NO-VERDICT");
+        expect(
+          JSON.parse(readFileSync(resolve(directory, "c26-main-mirror.json"), "utf8")),
+        ).toMatchObject({
+          verdict: "NO-VERDICT",
+          reasonCode: "ORIGINAL_PROVENANCE_UNAVAILABLE",
+          target: { covered: 3 },
+        });
+      }
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }

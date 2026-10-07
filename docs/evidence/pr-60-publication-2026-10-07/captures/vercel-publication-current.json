@@ -1,0 +1,16 @@
+{
+  "httpStatus": 200,
+  "id": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+  "name": "preco-que-da-lucro",
+  "accountId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+  "autoAssignCustomDomains": false,
+  "link": {
+    "type": "github",
+    "org": "Douglas0101",
+    "repo": "preco-que-da-lucro",
+    "productionBranch": "main"
+  },
+  "observedAt": "2026-10-07T13:28:29.836771+00:00",
+  "credentialsRead": false,
+  "configurationChanged": false
+}

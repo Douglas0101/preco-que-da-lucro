@@ -1,32 +1,18 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
-import { authoritativeUnits, mirror } from "./unit-mirror.ts";
-import { provenance, sha256, type UnitSnapshot } from "./main-unit-adapter.ts";
+import { authoritativeUnits, lcovUnits, mirror } from "./unit-mirror.ts";
+import {
+  OriginalProvenanceUnavailable,
+  readMainScannerOrigin,
+  provenance,
+  sha256,
+  type UnitSnapshot,
+  type LcovProvenance,
+} from "./main-unit-adapter.ts";
 import { instrumentationFingerprint } from "./lcov-provenance.ts";
 
-export function evaluateMirrorArtifacts(input: {
-  baseline: {
-    mainSha: string;
-    analysisId: string;
-    metrics: Record<string, number | null>;
-    period: unknown;
-  };
-  snapshot: UnitSnapshot;
-  adapter: {
-    schema: string;
-    verdict: string;
-    mainSha: string;
-    analysisId: string;
-    metadataDigest: string;
-    snapshotSha256: string;
-  };
-  snapshotBytes: string;
-  snapshotDigest: string;
-  mainLcov: string;
-  mainOrigin: unknown;
-  candidateLcov: string;
-  candidateOrigin: unknown;
+interface CandidateMirrorIdentity {
   candidateGate: {
     analysisId: string;
     ceTaskId: string;
@@ -36,9 +22,51 @@ export function evaluateMirrorArtifacts(input: {
   expectedBranch: string;
   expectedPr: string;
   instrumentation: string;
-  sourceHash: (path: string) => string;
-  now: string;
-}) {
+}
+
+function assertCandidateIdentity(candidate: LcovProvenance, input: CandidateMirrorIdentity) {
+  if (
+    candidate.revision !== input.checkoutSha ||
+    candidate.branch !== input.expectedBranch ||
+    candidate.pullRequest !== input.expectedPr ||
+    !/^[1-9][0-9]*$/.test(input.expectedPr) ||
+    candidate.instrumentation !== input.instrumentation ||
+    input.candidateGate.analysisId !== candidate.analysisId ||
+    input.candidateGate.ceTaskId !== candidate.taskId ||
+    input.candidateGate.providerIdentity?.revision !== candidate.revision ||
+    input.candidateGate.providerIdentity?.branch !== candidate.branch ||
+    input.candidateGate.providerIdentity?.pullRequest !== candidate.pullRequest
+  )
+    throw new Error("original/candidate scanner LCOV provenance differs");
+}
+
+export function evaluateMirrorArtifacts(
+  input: CandidateMirrorIdentity & {
+    baseline: {
+      mainSha: string;
+      analysisId: string;
+      metrics: Record<string, number | null>;
+      period: unknown;
+    };
+    snapshot: UnitSnapshot;
+    adapter: {
+      schema: string;
+      verdict: string;
+      mainSha: string;
+      analysisId: string;
+      metadataDigest: string;
+      snapshotSha256: string;
+    };
+    snapshotBytes: string;
+    snapshotDigest: string;
+    mainLcov: string;
+    mainOrigin: unknown;
+    candidateLcov: string;
+    candidateOrigin: unknown;
+    sourceHash: (path: string) => string;
+    now: string;
+  },
+) {
   const { snapshot: s, baseline: b, adapter: a } = input;
   const target = authoritativeUnits(b.metrics);
   if (
@@ -63,6 +91,7 @@ export function evaluateMirrorArtifacts(input: {
     throw new Error("snapshot/adapter/authoritative baseline identity differs");
   const before = provenance(input.mainOrigin, input.mainLcov),
     after = provenance(input.candidateOrigin, input.candidateLcov);
+  assertCandidateIdentity(after, input);
   if (
     before.revision !== b.mainSha ||
     before.analysisId !== b.analysisId ||
@@ -72,17 +101,7 @@ export function evaluateMirrorArtifacts(input: {
     JSON.stringify(before.mainUnits) !== JSON.stringify(target) ||
     s.baselineLcovSha256 !== before.lcovSha256 ||
     before.instrumentation !== s.instrumentation ||
-    after.revision !== input.checkoutSha ||
-    after.branch !== input.expectedBranch ||
-    after.pullRequest !== input.expectedPr ||
-    !/^[1-9][0-9]*$/.test(input.expectedPr) ||
-    after.instrumentation !== input.instrumentation ||
-    after.instrumentation !== s.instrumentation ||
-    input.candidateGate.analysisId !== after.analysisId ||
-    input.candidateGate.ceTaskId !== after.taskId ||
-    input.candidateGate.providerIdentity?.revision !== after.revision ||
-    input.candidateGate.providerIdentity?.branch !== after.branch ||
-    input.candidateGate.providerIdentity?.pullRequest !== after.pullRequest
+    after.instrumentation !== s.instrumentation
   )
     throw new Error("original/candidate scanner LCOV provenance differs");
   const files = [...new Set(s.units.map((unit) => unit.file))].sort();
@@ -133,6 +152,51 @@ export function runMirrorCli() {
   try {
     baseline = JSON.parse(readFileSync(resolve(root, "c24-main-baseline.json"), "utf8"));
     target = authoritativeUnits(baseline!.metrics as Record<string, number | null>);
+    const adapter = env.SONAR_MAIN_UNIT_ADAPTER_REPORT
+      ? JSON.parse(readFileSync(env.SONAR_MAIN_UNIT_ADAPTER_REPORT, "utf8"))
+      : null;
+    if (adapter?.reasonCode === "ORIGINAL_PROVENANCE_UNAVAILABLE") {
+      if (
+        adapter.schema !== "main-unit-adapter/1" ||
+        adapter.verdict !== "NO-VERDICT" ||
+        baseline?.schema !== "main-baseline/2" ||
+        !/^[a-f0-9]{40}$/.test(String(baseline.mainSha)) ||
+        !baseline.analysisId ||
+        baseline.period == null ||
+        adapter.mainSha !== baseline.mainSha ||
+        adapter.analysisId !== baseline.analysisId ||
+        names
+          .filter((name) => !name.startsWith("SONAR_MAIN_UNIT_SNAPSHOT"))
+          .some((name) => !env[name])
+      )
+        throw new Error("historical provenance observation identity differs");
+      // Absence of historical provenance never excuses missing/corrupt candidate evidence.
+      const candidateLcov = readFileSync(env.SONAR_CANDIDATE_LCOV!, "utf8");
+      lcovUnits(candidateLcov);
+      const candidate = provenance(
+        JSON.parse(readFileSync(env.SONAR_CANDIDATE_LCOV_PROVENANCE!, "utf8")),
+        candidateLcov,
+      );
+      const gate = JSON.parse(readFileSync(env.SONAR_CANDIDATE_GATE_REPORT!, "utf8"));
+      assertCandidateIdentity(candidate, {
+        candidateGate: gate,
+        checkoutSha: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
+        expectedBranch: env.EXPECTED_BRANCH!,
+        expectedPr: env.EXPECTED_PR!,
+        instrumentation: instrumentationFingerprint(),
+      });
+      if (
+        gate.schema !== "c25-ce-gate-readout/1" ||
+        !["OK", "ERROR"].includes(gate.status) ||
+        Object.entries(candidate.sourceHashes).some(
+          ([path, hash]) => sha256(readFileSync(resolve(path))) !== hash,
+        )
+      )
+        throw new Error("candidate provenance evidence differs");
+      // Recheck the actual downloaded LCOV and ENOENT, rather than trusting an adapter label.
+      readMainScannerOrigin(env.SONAR_MAIN_LCOV!, env.SONAR_MAIN_LCOV_PROVENANCE!);
+      throw new Error("historical provenance absence no longer holds");
+    }
     if (names.some((name) => !env[name])) throw new Error("unit input precondition absent");
     const snapshotBytes = readFileSync(env.SONAR_MAIN_UNIT_SNAPSHOT!, "utf8");
     const json = (name: string) => JSON.parse(readFileSync(env[name]!, "utf8"));
@@ -174,7 +238,7 @@ export function runMirrorCli() {
       `MAIN_MIRROR ${verdict}: eligible=${result.total}, covered=${result.covered}, paid=${result.paid.length}, lost=${result.lost.length}, gap=${result.gap}`,
     );
     process.exitCode = result.pass ? 0 : 1;
-  } catch {
+  } catch (error) {
     writeFileSync(
       reportPath,
       JSON.stringify(
@@ -184,6 +248,10 @@ export function runMirrorCli() {
           analysisId: baseline?.analysisId ?? null,
           target,
           verdict: "NO-VERDICT",
+          reasonCode:
+            error instanceof OriginalProvenanceUnavailable
+              ? "ORIGINAL_PROVENANCE_UNAVAILABLE"
+              : "EXECUTION_OR_UNCLASSIFIED",
           reason:
             "Complete sealed per-unit mapping and original/candidate scanner provenance are required.",
           missingNames: names.filter((name) => !env[name]),

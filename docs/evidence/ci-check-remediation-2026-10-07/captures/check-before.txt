@@ -1,0 +1,308 @@
+
+> check
+> npm run m02:lockfile-guard && npm run guard:upgrade && npm run check:migration-toolchain && npm run guard:contracts && npm run m02:work-package-guard && npm run m02:debts-guard && npm run m02:temporal-guard && npm run m02:state:check && npm run m02:boundaries && npm run m02:secrets-audit && npm run guard:mcp-runtime && npm run m02:seal-dts:check && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle
+
+
+> m02:lockfile-guard
+> node scripts/m02-lockfile-guard.mjs
+
+{
+  "schema": "m02-lockfile-guard/1",
+  "ok": true,
+  "status": "pass",
+  "generatedAt": "2026-10-07T04:58:14.489Z",
+  "repo": "/home/douglas-souza/preco-que-d-main",
+  "observed": {
+    "policyRange": {
+      "package": "drizzle-kit",
+      "min": "0.31.0",
+      "max": "0.31.99",
+      "criticality": "critical"
+    },
+    "spec": "^0.31.10",
+    "lockSpec": "^0.31.10",
+    "lockResolvedVersion": "0.31.10",
+    "lockSha256": "7e4837436a8566d7e8c0ae30dcc272f77a7870b23b945d76c56688d5a9141676",
+    "headLockSha256": "7e4837436a8566d7e8c0ae30dcc272f77a7870b23b945d76c56688d5a9141676",
+    "installedVersion": "0.31.10"
+  },
+  "checks": [
+    {
+      "id": "dependency-policy",
+      "status": "pass",
+      "detail": "drizzle-kit aprovado em 0.31.0 → 0.31.99"
+    },
+    {
+      "id": "package-json-devdep",
+      "status": "pass",
+      "detail": "spec '^0.31.10'"
+    },
+    {
+      "id": "lock-top-spec",
+      "status": "pass",
+      "detail": "lock '^0.31.10'"
+    },
+    {
+      "id": "lock-resolved",
+      "status": "pass",
+      "detail": "resolvido 0.31.10"
+    },
+    {
+      "id": "lock-sha256-head",
+      "status": "pass",
+      "detail": "7e4837436a8566d7e8c0ae30dcc272f77a7870b23b945d76c56688d5a9141676"
+    },
+    {
+      "id": "node-modules-installed",
+      "status": "pass",
+      "detail": "instalado 0.31.10"
+    }
+  ],
+  "reasons": [],
+  "hint": "git checkout -- package.json package-lock.json && npm ci --ignore-scripts && npm run m02:lockfile-guard"
+}
+
+> guard:upgrade
+> tsx scripts/lib/upgrade-guard.ts
+
+{
+  "schema": "upgrade-guard/1",
+  "ok": true,
+  "status": "pass",
+  "generatedAt": "2026-10-07T04:58:14.838Z",
+  "repo": "/home/douglas-souza/preco-que-d-main",
+  "observed": {
+    "policySchema": "dependency-policy/1",
+    "policyPackages": 15,
+    "approvalsDir": "scripts/dependency-approvals",
+    "approvals": 0,
+    "specs": 67,
+    "lockResolved": 744,
+    "installed": 15,
+    "headSpecs": 67
+  },
+  "checks": [
+    {
+      "id": "policy-schema",
+      "status": "pass",
+      "detail": "schema dependency-policy/1"
+    },
+    {
+      "id": "policy-entry[0]",
+      "status": "pass",
+      "detail": "drizzle-kit (entrada): critical em 0.31.0..0.31.99"
+    },
+    {
+      "id": "policy-entry[1]",
+      "status": "pass",
+      "detail": "drizzle-orm (entrada): critical em 0.45.0..0.45.99"
+    },
+    {
+      "id": "policy-entry[2]",
+      "status": "pass",
+      "detail": "pg (entrada): critical em 8.23.0..8.99.99"
+    },
+    {
+      "id": "policy-entry[3]",
+      "status": "pass",
+      "detail": "@neondatabase/serverless (entrada): critical em 1.1.0..1.99.99"
+    },
+    {
+      "id": "policy-entry[4]",
+      "status": "pass",
+      "detail": "zod (entrada): critical em 4.4.0..4.99.99"
+    },
+    {
+      "id": "policy-entry[5]",
+      "status": "pass",
+      "detail": "decimal.js (entrada): critical em 10.6.0..10.6.99"
+    },
+    {
+      "id": "policy-entry[6]",
+      "status": "pass",
+      "detail": "@tanstack/react-start (entrada): critical em 1.168.60..1.99.99"
+    },
+    {
+      "id": "policy-entry[7]",
+      "status": "pass",
+      "detail": "@tanstack/react-router (entrada): critical em 1.170.0..1.99.99"
+    },
+    {
+      "id": "policy-entry[8]",
+      "status": "pass",
+      "detail": "@tanstack/react-query (entrada): high em 5.101.0..5.99.99"
+    },
+    {
+      "id": "policy-entry[9]",
+      "status": "pass",
+      "detail": "react (entrada): critical em 19.2.0..19.99.99"
+    },
+    {
+      "id": "policy-entry[10]",
+      "status": "pass",
+      "detail": "react-dom (entrada): critical em 19.2.0..19.99.99"
+    },
+    {
+      "id": "policy-entry[11]",
+      "status": "pass",
+      "detail": "better-auth (entrada): critical em 1.6.0..1.99.99"
+    },
+    {
+      "id": "policy-entry[12]",
+      "status": "pass",
+      "detail": "vite (entrada): high em 8.0.0..8.99.99"
+    },
+    {
+      "id": "policy-entry[13]",
+      "status": "pass",
+      "detail": "typescript (entrada): medium em 5.8.0..5.99.99"
+    },
+    {
+      "id": "policy-entry[14]",
+      "status": "pass",
+      "detail": "vitest (entrada): medium em 4.1.0..4.99.99"
+    },
+    {
+      "id": "spec:drizzle-kit",
+      "status": "pass",
+      "detail": "drizzle-kit (spec): ^0.31.10 => 0.31.10 em 0.31.0 <= versão <= 0.31.99"
+    },
+    {
+      "id": "lock:drizzle-kit",
+      "status": "pass",
+      "detail": "drizzle-kit (lockfile): 0.31.10 em 0.31.0 <= versão <= 0.31.99"
+    },
+    {
+      "id": "installed:drizzle-kit",
+      "status": "pass",
+      "detail": "drizzle-kit (node_modules): 0.31.10 em 0.31.0 <= versão <= 0.31.99"
+    },
+    {
+      "id": "downgrade:drizzle-kit",
+      "status": "pass",
+      "detail": "drizzle-kit (downgrade): observado 0.31.10 a partir de 0.31.10, esperado >= 0.31.10"
+    },
+    {
+      "id": "spec:drizzle-orm",
+      "status": "pass",
+      "detail": "drizzle-orm (spec): ^0.45.2 => 0.45.2 em 0.45.0 <= versão <= 0.45.99"
+    },
+    {
+      "id": "lock:drizzle-orm",
+      "status": "pass",
+      "detail": "drizzle-orm (lockfile): 0.45.2 em 0.45.0 <= versão <= 0.45.99"
+    },
+    {
+      "id": "installed:drizzle-orm",
+      "status": "pass",
+      "detail": "drizzle-orm (node_modules): 0.45.2 em 0.45.0 <= versão <= 0.45.99"
+    },
+    {
+      "id": "downgrade:drizzle-orm",
+      "status": "pass",
+      "detail": "drizzle-orm (downgrade): observado 0.45.2 a partir de 0.45.2, esperado >= 0.45.2"
+    },
+    {
+      "id": "spec:pg",
+      "status": "pass",
+      "detail": "pg (spec): ^8.23.0 => 8.23.0 em 8.23.0 <= versão <= 8.99.99"
+    },
+    {
+      "id": "lock:pg",
+      "status": "pass",
+      "detail": "pg (lockfile): 8.23.0 em 8.23.0 <= versão <= 8.99.99"
+    },
+    {
+      "id": "installed:pg",
+      "status": "pass",
+      "detail": "pg (node_modules): 8.23.0 em 8.23.0 <= versão <= 8.99.99"
+    },
+    {
+      "id": "downgrade:pg",
+      "status": "pass",
+      "detail": "pg (downgrade): observado 8.23.0 a partir de 8.23.0, esperado >= 8.23.0"
+    },
+    {
+      "id": "spec:@neondatabase/serverless",
+      "status": "pass",
+      "detail": "@neondatabase/serverless (spec): ^1.1.0 => 1.1.0 em 1.1.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "lock:@neondatabase/serverless",
+      "status": "pass",
+      "detail": "@neondatabase/serverless (lockfile): 1.1.0 em 1.1.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "installed:@neondatabase/serverless",
+      "status": "pass",
+      "detail": "@neondatabase/serverless (node_modules): 1.1.0 em 1.1.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "downgrade:@neondatabase/serverless",
+      "status": "pass",
+      "detail": "@neondatabase/serverless (downgrade): observado 1.1.0 a partir de 1.1.0, esperado >= 1.1.0"
+    },
+    {
+      "id": "spec:zod",
+      "status": "pass",
+      "detail": "zod (spec): ^4.4.3 => 4.4.3 em 4.4.0 <= versão <= 4.99.99"
+    },
+    {
+      "id": "lock:zod",
+      "status": "pass",
+      "detail": "zod (lockfile): 4.6.5 em 4.4.0 <= versão <= 4.99.99"
+    },
+    {
+      "id": "installed:zod",
+      "status": "pass",
+      "detail": "zod (node_modules): 4.6.5 em 4.4.0 <= versão <= 4.99.99"
+    },
+    {
+      "id": "downgrade:zod",
+      "status": "pass",
+      "detail": "zod (downgrade): observado 4.4.3 a partir de 4.4.3, esperado >= 4.4.3"
+    },
+    {
+      "id": "spec:decimal.js",
+      "status": "pass",
+      "detail": "decimal.js (spec): 10.6.0 => 10.6.0 em 10.6.0 <= versão <= 10.6.99"
+    },
+    {
+      "id": "lock:decimal.js",
+      "status": "pass",
+      "detail": "decimal.js (lockfile): 10.6.0 em 10.6.0 <= versão <= 10.6.99"
+    },
+    {
+      "id": "installed:decimal.js",
+      "status": "pass",
+      "detail": "decimal.js (node_modules): 10.6.0 em 10.6.0 <= versão <= 10.6.99"
+    },
+    {
+      "id": "downgrade:decimal.js",
+      "status": "pass",
+      "detail": "decimal.js (downgrade): observado 10.6.0 a partir de 10.6.0, esperado >= 10.6.0"
+    },
+    {
+      "id": "spec:@tanstack/react-start",
+      "status": "pass",
+      "detail": "@tanstack/react-start (spec): 1.168.60 => 1.168.60 em 1.168.60 <= versão <= 1.99.99"
+    },
+    {
+      "id": "lock:@tanstack/react-start",
+      "status": "pass",
+      "detail": "@tanstack/react-start (lockfile): 1.168.60 em 1.168.60 <= versão <= 1.99.99"
+    },
+    {
+      "id": "installed:@tanstack/react-start",
+      "status": "pass",
+      "detail": "@tanstack/react-start (node_modules): 1.168.60 em 1.168.60 <= versão <= 1.99.99"
+    },
+    {
+…
+    },
+…
+  ],
+…
+}
+
+[Showing lines 1-300 of 650. Use :301 to continue]

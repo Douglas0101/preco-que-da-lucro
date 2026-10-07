@@ -1,0 +1,27 @@
+{
+  "overall_correctness": "incorrect",
+  "explanation": "R3 SOURCE review of current worktree bytes (read-only; no checks run). Classifications:\n\nC1 — ACCEPTED (worktree bytes). neon-pr-branch.yml:118-119 runs `npm ci --ignore-scripts` before `npx --no-install tsx scripts/ci/provision-neon-fixture.ts` at :133 (tsx is a devDependency in package.json). provision-neon-fixture.ts performs exactly one POST /branches (:155-166) with explicit parent_id main→PRODUCTION_ID / develop→DEVELOP_ID guarded by precondition on GITHUB_BASE_REF ∈ {main,develop} (:34-50; only origin/develop and origin/main exist), init_source \"schema-only\" (:161), expires_at = now+24h floored to seconds (:48-50), endpoints [{type:\"read_write\"}] (:164); the only loop is GET readiness polling (:179-186); failure returns NO-VERD…
+  "confidence": 0.78,
+  "findings": [
+    {
+      "title": "Bind readiness connection pair to the adopted branch endpoint",
+      "body": "The readiness \"Prove direct and pooled connection URLs\" step validates internal pair consistency (pinConnection + assertConnectionPair), non-production host and a live PostgreSQL 17 connect, but it receives only DATABASE_ADMIN_URL/DATABASE_URL and never queries GET /branches/{BRANCH_ID}/endpoints, so nothing proves steps.neon.outputs.db_url/db_url_pooled belong to the branch verified by the adopt step. If create-branch-action returned a consistent direct/pooled pair for a different branch of the same project, every readiness check would pass and db:test, db:check and the optional legacy migration would run against a non-owned branch undetected (production remains excluded by the host check). The PR fixture (prepare-neon-fixture.ts:62-71) and…
+      "priority": 2,
+      "confidence": 0.8,
+      "file_path": ".github/workflows/neon-readiness.yml",
+      "line_start": 218,
+      "line_end": 226
+    },
+    {
+      "title": "Stage worktree bytes and refresh SPEC fingerprints before publication",
+      "body": "The reviewed worktree bytes differ from the staged index for 6 of the 7 modified target sources, and neon-readiness.yml is modified only in the worktree (index == HEAD). The prior staged candidate breaks three of the claims under review: it runs `npx --no-install tsx scripts/ci/provision-neon-fixture.ts` (index line 126) before `npm ci --ignore-scripts` (index line 129), so provisioning fails with tsx not installed (C1); its \"Prova de cleanup\" step has no `if: always()` (index lines 380-381), so the proof does not execute after a delete failure (C4); and its readiness workflow still passes raw `steps.neon.outputs.db_url` step-level overrides (HEAD state), so the canonical-only export guarantee (C3) does not hold. Additionally docs/evidence/r…
+      "priority": 1,
+      "confidence": 0.9,
+      "file_path": ".github/workflows/neon-pr-branch.yml",
+      "line_start": 118,
+      "line_end": 127
+    }
+  ]
+}
+
+[Some lines truncated to 768 chars]

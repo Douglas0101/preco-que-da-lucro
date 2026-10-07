@@ -1,0 +1,164 @@
+Actual Bash/Node Prove step extracted from current readiness YAML. Real pg driver parses normalized URIs with ambient PGPORT6543/PGHOSTambient.invalid; only connect/query/end transport methods intercepted. No remote DB tests or API operations.
+[
+  {
+    "case": "canonical",
+    "exit": 0,
+    "environmentKeys": [
+      "DATABASE_ADMIN_URL",
+      "DATABASE_URL",
+      "DATABASE_URL_UNPOOLED"
+    ],
+    "environmentMode": "0o600",
+    "driverTrace": [
+      {
+        "phase": "connect",
+        "host": "ep-readiness-smoke.c-5.us-east-2.aws.neon.tech",
+        "port": 5432,
+        "database": "neondb"
+      },
+      {
+        "phase": "end"
+      },
+      {
+        "phase": "connect",
+        "host": "ep-readiness-smoke-pooler.c-5.us-east-2.aws.neon.tech",
+        "port": 5432,
+        "database": "neondb"
+      },
+      {
+        "phase": "end"
+      }
+    ],
+    "actualDriver": "pg Client constructor/connectionParameters; network methods intercepted",
+    "scriptSha256": "1a14e453bcebcf4903541f73a99cae69250ed6f0f2ef9c3ea53b4f15fad52f6c"
+  },
+  {
+    "case": "destination-query",
+    "exit": 1,
+    "environmentKeys": [],
+    "environmentMode": "0o664",
+    "driverTrace": [],
+    "actualDriver": "pg Client constructor/connectionParameters; network methods intercepted",
+    "scriptSha256": "1a14e453bcebcf4903541f73a99cae69250ed6f0f2ef9c3ea53b4f15fad52f6c"
+  },
+  {
+    "case": "wrong-major",
+    "exit": 1,
+    "environmentKeys": [],
+    "environmentMode": "0o664",
+    "driverTrace": [
+      {
+        "phase": "connect",
+        "host": "ep-readiness-smoke.c-5.us-east-2.aws.neon.tech",
+        "port": 5432,
+        "database": "neondb"
+      },
+      {
+        "phase": "end"
+      }
+    ],
+    "actualDriver": "pg Client constructor/connectionParameters; network methods intercepted",
+    "scriptSha256": "1a14e453bcebcf4903541f73a99cae69250ed6f0f2ef9c3ea53b4f15fad52f6c"
+  }
+]
+
+EXTRACTED SCRIPT
+set -euo pipefail
+[[ -n "$DATABASE_ADMIN_URL" ]] || { echo "Neon readiness blocked: direct URL was not returned." >&2; exit 1; }
+[[ -n "$DATABASE_URL" ]] || { echo "Neon readiness blocked: pooled URL was not returned." >&2; exit 1; }
+[[ "$DATABASE_ADMIN_URL" != "$DATABASE_URL" ]] || {
+  echo "Neon readiness blocked: direct and pooled URLs are not separated." >&2
+  exit 1
+}
+
+mkdir -p "$(dirname "$EVIDENCE_PATH")"
+chmod 700 "$(dirname "$EVIDENCE_PATH")"
+
+node --input-type=module <<'NODE'
+import { appendFile, chmod, writeFile } from "node:fs/promises";
+import { Client } from "pg";
+import { assertConnectionPair, MaskedSecrets, pinConnection } from "./scripts/ci/neon-resource.ts";
+
+const secrets = new MaskedSecrets();
+for (const raw of [process.env.DATABASE_ADMIN_URL, process.env.DATABASE_URL])
+  process.stdout.write(secrets.mask(raw));
+const direct = pinConnection(process.env.DATABASE_ADMIN_URL, false);
+const pooled = pinConnection(process.env.DATABASE_URL, true);
+for (const uri of [direct, pooled]) {
+  process.stdout.write(secrets.mask(uri));
+  const password = new URL(uri).password;
+  process.stdout.write(secrets.mask(password));
+  process.stdout.write(secrets.mask(decodeURIComponent(password)));
+}
+assertConnectionPair(direct, pooled);
+
+const expectedMajor = Number(process.env.EXPECTED_POSTGRES_MAJOR);
+const connections = [
+  ["direct", direct],
+  ["pooled", pooled],
+];
+const evidence = {
+  generatedAt: new Date().toISOString(),
+  direct: { connected: false },
+  pooled: { connected: false },
+};
+
+for (const [kind, connectionString] of connections) {
+  const client = new Client({ connectionString });
+  try {
+    await client.connect();
+    const result = await client.query(
+      "select current_database() as database, current_user as user, current_setting('server_version_num')::int as version_num",
+    );
+    const postgresMajor = Math.floor(Number(result.rows[0]?.version_num) / 10000);
+    if (postgresMajor !== expectedMajor) {
+      throw new Error(`${kind} connection returned PostgreSQL ${postgresMajor}; expected ${expectedMajor}`);
+    }
+    evidence[kind] = {
+      connected: true,
+      database: result.rows[0]?.database ?? null,
+      user: result.rows[0]?.user ?? null,
+      postgresMajor,
+    };
+    console.log(`${kind}: connected on PostgreSQL ${postgresMajor}`);
+  } finally {
+    await client.end();
+  }
+}
+
+await writeFile(
+  process.env.EVIDENCE_PATH,
+  `${JSON.stringify(evidence, null, 2)}\n`,
+  { mode: 0o600 },
+);
+await chmod(process.env.GITHUB_ENV, 0o600);
+await appendFile(
+  process.env.GITHUB_ENV,
+  `DATABASE_ADMIN_URL=${direct}\nDATABASE_URL=${pooled}\nDATABASE_URL_UNPOOLED=${direct}\n`,
+);
+NODE
+
+
+TRANSPORT PRELOAD
+import assert from 'node:assert/strict';
+import { appendFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+const require = createRequire('/home/douglas-souza/preco-que-d-main/package.json');
+const { Client } = require('pg');
+globalThis.fetch = async () => { throw new Error('External transport prohibited in readiness smoke'); };
+Client.prototype.connect = async function () {
+  const params = this.connectionParameters;
+  assert.equal(params.port, 5432);
+  assert.equal(params.database, 'neondb');
+  assert.equal(params.user, 'neondb_owner');
+  assert.equal(params.password, 'fixture-only');
+  assert.match(params.host, /^ep-readiness-smoke(?:-pooler)?\.c-5\.us-east-2\.aws\.neon\.tech$/);
+  appendFileSync(process.env.READINESS_SMOKE_TRACE, JSON.stringify({ phase: 'connect', host: params.host, port: params.port, database: params.database }) + '\n');
+};
+Client.prototype.query = async function (sql) {
+  assert.ok(sql.includes("current_setting('server_version_num')"));
+  return { rows: [{ database: 'neondb', user: 'neondb_owner', version_num: Number(process.env.READINESS_SMOKE_MAJOR) * 10000 }] };
+};
+Client.prototype.end = async function () {
+  appendFileSync(process.env.READINESS_SMOKE_TRACE, JSON.stringify({ phase: 'end' }) + '\n');
+};

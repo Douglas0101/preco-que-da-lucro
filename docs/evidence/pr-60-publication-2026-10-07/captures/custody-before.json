@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-10-07T13:26:24.899438+00:00",
+  "preservedOutsideCommit": {
+    ".zcodeignore": "8b972e2c49af7ed243539909d58c3115dce7e2c54327386bbec4f098b7354082",
+    "docs/evidence/ciclo-29/README.md": "bdc17f28045ee20ba948c5d11f3798e759f2a964913f0bbdf071c68561184724",
+    "docs/evidence/ciclo-29/MANIFEST.sha256": "64673deac93f0f4b070f66bbf32feb524871fe1339cd880b1b360168b38509d0",
+    "docs/evidence/ciclo-29/captures/remote-ci-observed.json": "e5d1fee8d8aab8fc926fc042140318bdf56f34924b217c7708444642b0130fcf"
+  },
+  "localCiCustody": "docs/evidence/local-ci/** untouched",
+  "publishedDevelop": "1ff8a7749c05854bafe0c62cb6dd2e07b0be724c",
+  "publishedMain": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+  "stagedPriorCandidate": "19 explicitly reconciled paths; integrate current working bytes only for authorized paths",
+  "historyRewritingAuthorized": false
+}

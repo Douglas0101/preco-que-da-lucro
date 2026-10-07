@@ -71,6 +71,22 @@ export function provenance(value: unknown, lcov: string): LcovProvenance {
   return value as unknown as LcovProvenance;
 }
 
+export class OriginalProvenanceUnavailable extends Error {}
+
+export function readMainScannerOrigin(lcovPath: string, provenancePath: string) {
+  const lcov = readFileSync(lcovPath, "utf8");
+  lcovUnits(lcov); // A missing/corrupt LCOV is infrastructure failure, not historical absence.
+  let bytes: string;
+  try {
+    bytes = readFileSync(provenancePath, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT")
+      throw new OriginalProvenanceUnavailable("Original scanner provenance was not published.");
+    throw error;
+  }
+  return { lcov, origin: provenance(JSON.parse(bytes), lcov) };
+}
+
 // Hash immutable Git bytes locally; never persist source or highlighted API code.
 export function gitSource(revision: string, path: string, cwd = process.cwd()) {
   if (!/^[a-f0-9]{40}$/.test(revision) || !sourcePath(path))
@@ -308,13 +324,23 @@ async function main() {
   const root = process.env.RUNNER_TEMP ?? ".";
   const reportPath = resolve(root, "c28-main-unit-adapter.json");
   const requests: RequestObservation[] = [];
+  let baseline: Record<string, unknown> | null = null;
   try {
     const paths = [process.env.SONAR_MAIN_LCOV, process.env.SONAR_MAIN_LCOV_PROVENANCE];
     if (paths.some((path) => !path) || !process.env.SONAR_TOKEN || !process.env.GITHUB_TOKEN)
       throw new Error("original main LCOV/provenance or credential names unavailable");
-    const baseline = JSON.parse(readFileSync(resolve(root, "c24-main-baseline.json"), "utf8"));
-    const lcov = readFileSync(paths[0]!, "utf8"),
-      origin = provenance(JSON.parse(readFileSync(paths[1]!, "utf8")), lcov);
+    baseline = JSON.parse(readFileSync(resolve(root, "c24-main-baseline.json"), "utf8"));
+    if (
+      baseline?.schema !== "main-baseline/2" ||
+      !/^[a-f0-9]{40}$/.test(String(baseline.mainSha)) ||
+      typeof baseline.analysisId !== "string" ||
+      !baseline.analysisId ||
+      baseline.period == null
+    )
+      throw new Error("authoritative baseline identity unavailable");
+    authoritativeUnits(baseline.metrics as Record<string, number | null>);
+    const measured = baseline;
+    const { lcov, origin } = readMainScannerOrigin(paths[0]!, paths[1]!);
     const get = apiReader(
       { sonar: process.env.SONAR_TOKEN, github: process.env.GITHUB_TOKEN },
       requests,
@@ -326,16 +352,22 @@ async function main() {
         "project_analyses/search?project=Douglas0101_preco-que-da-lucro&branch=main&ps=1",
       );
       if (
-        ref.commit?.sha !== baseline.mainSha ||
-        analyses.analyses?.[0]?.key !== baseline.analysisId ||
-        analyses.analyses?.[0]?.revision !== baseline.mainSha
+        ref.commit?.sha !== measured.mainSha ||
+        analyses.analyses?.[0]?.key !== measured.analysisId ||
+        analyses.analyses?.[0]?.revision !== measured.mainSha
       )
         throw new Error("main changed during authenticated unit discovery");
     };
     await assertIdentity();
-    const source = (path: string) => gitSource(baseline.mainSha, path);
+    const source = (path: string) => gitSource(measured.mainSha as string, path);
     const files = await collectMetadata(get, "Douglas0101_preco-que-da-lucro", source);
-    const snapshot = mapMainUnits(baseline, origin, lcov, files, source);
+    const snapshot = mapMainUnits(
+      baseline as unknown as Parameters<typeof mapMainUnits>[0],
+      origin,
+      lcov,
+      files,
+      source,
+    );
     await assertIdentity();
     const snapshotPath = resolve(root, "c28-main-unit-snapshot.json"),
       bytes = JSON.stringify(snapshot, null, 2) + "\n";
@@ -359,13 +391,19 @@ async function main() {
     );
     if (process.env.GITHUB_OUTPUT)
       appendFileSync(process.env.GITHUB_OUTPUT, `snapshot_sha256=${sha256(bytes)}\n`);
-  } catch {
+  } catch (error) {
     writeFileSync(
       reportPath,
       JSON.stringify(
         {
           schema: "main-unit-adapter/1",
           verdict: "NO-VERDICT",
+          reasonCode:
+            error instanceof OriginalProvenanceUnavailable
+              ? "ORIGINAL_PROVENANCE_UNAVAILABLE"
+              : "EXECUTION_OR_UNCLASSIFIED",
+          mainSha: baseline?.mainSha ?? null,
+          analysisId: baseline?.analysisId ?? null,
           reason:
             "Complete authenticated metadata and original scanner LCOV provenance are required; no aggregate fallback.",
           requiredNames: [

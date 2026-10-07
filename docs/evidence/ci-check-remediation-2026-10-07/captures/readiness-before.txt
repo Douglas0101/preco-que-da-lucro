@@ -1,0 +1,66 @@
+$ npx --no-install vitest run src/test/neon-resource.test.ts -t accepts portless action URIs
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas-souza/preco-que-d-main[39m
+
+ [31m❯[39m src/test/neon-resource.test.ts [2m([22m[2m33 tests[22m[2m | [22m[31m1 failed[39m[2m | [22m[33m32 skipped[39m[2m)[22m[32m 10[2mms[22m[39m
+     [2m[90m↓[39m[22m plans an expiring resource by run AND attempt, without another permanent channel
+     [2m[90m↓[39m[22m permits a production parent only for the explicit provisioning purpose, never as target
+     [2m[90m↓[39m[22m rejects a missing or wrong GITHUB_REF before use
+     [2m[90m↓[39m[22m rejects a missing or wrong NEON_PROJECT_ID before use
+     [2m[90m↓[39m[22m rejects a missing or wrong GITHUB_SHA before use
+     [2m[90m↓[39m[22m rejects a missing or wrong GITHUB_RUN_ID before use
+     [2m[90m↓[39m[22m rejects a missing or wrong GITHUB_RUN_ATTEMPT before use
+     [2m[90m↓[39m[22m rejects production refs, stale start times and changed expiry identity
+     [2m[90m↓[39m[22m requires permanent identity and default, not just a cardinality of two
+     [2m[90m↓[39m[22m refuses reusing a preexisting resource of the same run name
+     [2m[90m↓[39m[22m refuses a changed temporary id
+     [2m[90m↓[39m[22m refuses a changed temporary name
+     [2m[90m↓[39m[22m refuses a changed temporary parent_id
+     [2m[90m↓[39m[22m refuses a changed temporary project_id
+     [2m[90m↓[39m[22m refuses a changed temporary default
+     [2m[90m↓[39m[22m refuses a changed temporary expires_at
+     [2m[90m↓[39m[22m refuses a changed temporary created_at
+     [2m[90m↓[39m[22m refuses missing ownership and BOTH permanent IDs
+     [2m[90m↓[39m[22m observes identity before DELETE, GET404 afterward, and independent paginated absence
+     [2m[90m↓[39m[22m makes no DELETE when the returned ID is production or a reused resource
+     [2m[90m↓[39m[22m rejects a DELETE reply that identifies a different branch
+     [2m[90m↓[39m[22m does not treat DELETE success as disposal when GET still finds it
+     [2m[90m↓[39m[22m rejects a same-name replacement and a missing permanent branch after deletion
+     [2m[90m↓[39m[22m a missing output is not exercise closure and does not hide an orphan
+     [2m[90m↓[39m[22m missing connection outputs and expiry do not prevent discarding a proven owned resource
+     [2m[90m↓[39m[22m adopts an owned orphan and measures expiry again after PATCH, without DB_URL
+     [2m[90m↓[39m[22m an expiry PATCH failure is red, while cleanup remains possible
+     [2m[90m↓[39m[22m recovering lost output cannot delete ambiguous, wrong-parent or preexisting identities
+     [2m[90m↓[39m[22m fails closed for malformed/truncated/cyclic inventory and HTML404
+     [2m[90m↓[39m[22m 422 is an observed status/code and never inferred as auth/quota or echoed raw
+[31m     [31m×[31m accepts portless action URIs only when the host belongs to the owned resource[39m[32m 8[2mms[22m[39m
+     [2m[90m↓[39m[22m accepts matching direct and pooled endpoints and rejects production or divergent connections
+     [2m[90m↓[39m[22m S6-R2/N01-residual: the effective destination cannot be moved by port or query
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/test/neon-resource.test.ts[2m > [22mrun-scoped Neon readiness resource lifecycle[2m > [22maccepts portless action URIs only when the host belongs to the owned resource
+[31m[1mAssertionError[22m: promise rejected "Error: temporary direct/pooled connection…" instead of resolving[39m
+[36m [2m❯[22m src/test/neon-resource.test.ts:[2m300:29[22m[39m
+    [90m298|[39m       )[33m;[39m
+    [90m299|[39m       [35mif[39m (endpointBranch [33m===[39m id)
+    [90m300|[39m         [35mawait[39m [34mexpect[39m(result)[33m.[39mresolves[33m.[39m[34mtoMatchObject[39m({
+    [90m   |[39m                             [31m^[39m
+    [90m301|[39m           phase[33m:[39m [32m"connection-identity-verified"[39m[33m,[39m
+    [90m302|[39m           branchId[33m:[39m id[33m,[39m
+
+[31m[1mCaused by: Error[22m: temporary direct/pooled connection identity differs or targets production[39m
+[36m [2m❯[22m assertConnectionPair scripts/ci/neon-resource.ts:[2m160:11[22m[39m
+[90m [2m❯[22m NeonResources.connections scripts/ci/neon-resource.ts:[2m310:5[22m[39m
+[90m [2m❯[22m src/test/neon-resource.test.ts:[2m292:66[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[33m32 skipped[39m[90m (33)[39m
+[2m   Start at [22m 02:18:08
+[2m   Duration [22m 788ms[2m (transform 97ms, setup 109ms, import 89ms, tests 10ms, environment 469ms)[22m
+
+
+exit=1

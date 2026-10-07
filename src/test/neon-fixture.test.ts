@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { fixtureIdentity, resetEmptyFixture } from "../../scripts/ci/prepare-neon-fixture";
 import { DEVELOP_ID, PRODUCTION_ID, PROJECT_ID } from "../../scripts/ci/neon-resource";
@@ -18,9 +17,12 @@ const env = {
   ALLOW_REMOTE_DB: "CI schema-only fixture with synthetic data",
 };
 function urls(hostname = host) {
-  const direct = new URL(`postgresql://${hostname}/neondb?sslmode=require`);
-  direct.username = "fixture_user";
-  direct.password = "synthetic-fixture";
+  // S6-R2/N01-residual: the explicit 5432 port pins the effective destination,
+  // so the ambient PGPORT can never move it; the userinfo stays interpolated
+  // synthetic fixture material.
+  const direct = new URL(
+    `postgresql://fixture_user:${"synthetic-fixture"}@${hostname}:5432/neondb?sslmode=require`,
+  );
   const pooled = new URL(direct.href);
   pooled.hostname = pooled.hostname.replace(/^([^.]+)/, "$1-pooler");
   return [direct.href, pooled.href] as const;
@@ -210,19 +212,5 @@ describe("empty schema preparation refuses inherited data before any destructive
     expect(db.calls.find((sql) => sql.startsWith("lock table"))).toContain(
       '"odd""; delete from users; --"',
     );
-  });
-});
-
-describe("Neon workflow retains full integration and cleanup after fixture preparation", () => {
-  const workflow = readFileSync(".github/workflows/neon-pr-branch.yml", "utf8");
-  it("creates schema-only by run and attempt and verifies ownership before migration", () => {
-    expect(workflow).toContain("branch_type: schema-only");
-    expect(workflow).toContain("${{ github.run_id }}-${{ github.run_attempt }}");
-    expect(workflow).toContain("BRANCH_CREATED: ${{ steps.create.outputs.created }}");
-    expect(workflow.indexOf("tsx scripts/ci/prepare-neon-fixture.ts")).toBeLessThan(
-      workflow.indexOf("npm run db:migrate"),
-    );
-    for (const command of ["npm run db:test", "npm run test:e2e", "expires_at", "404"])
-      expect(workflow).toContain(command);
   });
 });

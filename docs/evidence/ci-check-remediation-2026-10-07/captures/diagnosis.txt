@@ -1,0 +1,37 @@
+Transcrição de fatos observados durante a reconciliação L753; não é stdout bruto nem novo run.
+
+PR #60 head: 1ff8a7749c05854bafe0c62cb6dd2e07b0be724c
+Main observado: d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9
+Pedido: 9 checks bem-sucedidos / 3 falhando.
+
+Neon run37556250921 / branch job112583080589:
+2026-10-07T01:16:34Z; neondatabase/create-branch-action@fb620d43d4c565abaf088b848a4e28e5c4ea4d9c;
+parent production; branch_type schema-only; branch_name pr-60-37556250921-1.
+Trecho literal: ##[error]Failed to create branch. AxiosError: Request failed with status code 412
+Nenhum branch_id entregue; migrations, integração, RLS e E2E não executados.
+
+Cleanup job112583146689:
+BRANCH_ID vazio; CI_RESULT=failure; RLS/schema_diff vazios.
+Trechos literais: cleanup protocol guard: 404/403/200/000 PASS
+Process completed with exit code 2
+Summary afirmava execução de migrations/integração embora criação falhasse.
+
+Sonar run37556250974:
+scan+coverage job112583047916 success; mirror job112583966478 failure.
+Artefato main: run36879749754 / artifact11170691973, LCOV sem lcov-provenance.json.
+Adapter/mirror exit2: NO-VERDICT: complete per-unit mapping/provenance unavailable or inconsistent
+Job continue-on-error não removeu o check vermelho.
+
+Inventário Neon atual somente leitura, project damp-forest-57346541:
+production br-snowy-violet-aymcvvvv root/default ready;
+develop br-small-hill-aymcu14y ready;
+lista completa com duas identidades permanentes.
+owner.branches_limit=10; subscription_type=free_v3; PostgreSQL17.
+list_operations limit20 não retornou evidência antes do timeout30s.
+Esses fatos não provam o estado na hora da recusa nem sua causa. Não atribuir quota/plano/permissão.
+
+Fonte oficial: https://neon.com/api_spec/release/v2.json
+POST sem endpoints não cria compute. Endpoints read_write explícitos no POST corrigem a falha local subsequente, não provam aceitação real da criação.
+Fonte de política: docs/adr/ADR-042-cobertura-minima-60-publicacao.md
+Espelho conserva observações brutas e não aprova main; CE real >=60% continua obrigatório.
+Nenhuma criação/deleção remota, rerun, push ou publicação neste diagnóstico.

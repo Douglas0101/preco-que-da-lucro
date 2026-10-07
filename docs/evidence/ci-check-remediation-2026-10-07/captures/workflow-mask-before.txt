@@ -1,0 +1,73 @@
+$ npx --no-install vitest run src/test/neon-fixture-provision.test.ts -t escapes workflow-command delimiters
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas-souza/preco-que-d-main[39m
+
+ [31m❯[39m src/test/neon-fixture-provision.test.ts [2m([22m[2m34 tests[22m[2m | [22m[31m1 failed[39m[2m | [22m[33m33 skipped[39m[2m)[22m[32m 22[2mms[22m[39m
+     [2m[90m↓[39m[22m plans a root schema-only copy with an explicit source id and a 24h TTL
+     [2m[90m↓[39m[22m refuses an unverifiable run context {"GITHUB_REPOSITORY":"foreign/fork"}
+     [2m[90m↓[39m[22m refuses an unverifiable run context {"GITHUB_EVENT_NAME":"push"}
+     [2m[90m↓[39m[22m refuses an unverifiable run context {"GITHUB_BASE_REF":"preview"}
+     [2m[90m↓[39m[22m refuses an unverifiable run context {"NEON_PROJECT_ID":"different"}
+     [2m[90m↓[39m[22m refuses an unverifiable run context {"PR_NUMBER":"0"}
+     [2m[90m↓[39m[22m refuses an unverifiable run context {"GITHUB_RUN_ID":""}
+     [2m[90m↓[39m[22m refuses an unverifiable run context {"GITHUB_RUN_ATTEMPT":"x"}
+     [2m[90m↓[39m[22m refuses an unverifiable run context {}
+     [2m[90m↓[39m[22m pins the explicit 5432 port and keeps an sslmode-only query
+     [2m[90m↓[39m[22m refuses a foreign port
+     [2m[90m↓[39m[22m refuses a destination-altering query host
+     [2m[90m↓[39m[22m refuses a query port override
+     [2m[90m↓[39m[22m refuses a non-sslmode parameter
+     [2m[90m↓[39m[22m refuses an insecure sslmode
+     [2m[90m↓[39m[22m refuses a pooler host requested as direct
+     [2m[90m↓[39m[22m refuses a direct host requested as pooled
+     [2m[90m↓[39m[22m creates schema-only once, hands the branch id to cleanup before compute, and writes masked private URIs
+     [2m[90m↓[39m[22m a create refusal (HTTP 412) is observed as status plus code, with no retry and no output
+     [2m[90m↓[39m[22m retains HTTP412 without leaking an untrusted refusal {"contentType":"text/html","rawBody":"<html>credential-not-for-output</html>"}
+     [2m[90m↓[39m[22m retains HTTP412 without leaking an untrusted refusal {"rawBody":"{credential-not-for-output"}
+     [2m[90m↓[39m[22m retains HTTP412 without leaking an untrusted refusal {"body":{"code":"credential-not-for-output:invalid","message":"secret-message"}}
+     [2m[90m↓[39m[22m retains HTTP412 without leaking an untrusted refusal {"body":{"code":"schema_only_not_allowed","message":"secret-message"}}
+     [2m[90m↓[39m[22m never exposes an API key echoed as an otherwise valid provider code
+     [2m[90m↓[39m[22m never hands cleanup a permanent or unverified provider identity br-small-hill-aymcu14y
+     [2m[90m↓[39m[22m never hands cleanup a permanent or unverified provider identity br-snowy-violet-aymcvvvv
+     [2m[90m↓[39m[22m never hands cleanup a permanent or unverified provider identity unverified
+     [2m[90m↓[39m[22m the branch id reaches cleanup even when readiness or the pooled URI fails afterwards
+     [2m[90m↓[39m[22m masks a received malformed credential URI before validation can fail
+     [2m[90m↓[39m[22m a value echoed by a failing layer is redacted before the reason is persisted
+     [2m[90m↓[39m[22m redacts a previously received SQL password from structured provider codes
+     [2m[90m↓[39m[22m refuses endpoints that do not bind exactly one read_write host of the branch
+     [2m[90m↓[39m[22m masks on arrival and scrubs every known value from any later text
+[31m     [31m×[31m escapes workflow-command delimiters while retaining the original redaction identity[39m[32m 20[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/test/neon-fixture-provision.test.ts[2m > [22mMaskedSecrets redaction ledger[2m > [22mescapes workflow-command delimiters while retaining the original redaction identity
+[31m[1mAssertionError[22m: expected '::add-mask::sql%0A-password\r\n::erro…' not to contain '\r'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 
+[39m
+[31m+ ::add-mask::sql%0A-password
+[39m
+[31m+ ::error::untrusted-provider-value[39m
+[31m+[39m
+
+[36m [2m❯[22m src/test/neon-fixture-provision.test.ts:[2m415:25[22m[39m
+    [90m413|[39m     const secret = "sql%0A-password\r\n::error::untrusted-provider-val…
+    [90m414|[39m     [35mconst[39m command [33m=[39m ledger[33m.[39m[34mmask[39m(secret)[33m;[39m
+    [90m415|[39m     [34mexpect[39m(command)[33m.[39mnot[33m.[39m[34mtoContain[39m([32m"\r"[39m)[33m;[39m
+    [90m   |[39m                         [31m^[39m
+    [90m416|[39m     [34mexpect[39m(command[33m.[39m[34msplit[39m([32m"\n"[39m)[33m.[39m[34mfilter[39m([33mBoolean[39m))[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+    [90m417|[39m     [35mconst[39m decoded [33m=[39m command
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[33m33 skipped[39m[90m (34)[39m
+[2m   Start at [22m 01:48:00
+[2m   Duration [22m 1.17s[2m (transform 149ms, setup 134ms, import 148ms, tests 22ms, environment 714ms)[22m
+
+
+exit=1

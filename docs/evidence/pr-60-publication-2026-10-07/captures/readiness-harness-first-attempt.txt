@@ -1,0 +1,16 @@
+Harness error, not product regression: Response fixture lacked application/json Content-Type; shared API client correctly refused it before SQL/export.
+{
+  "case": "canonical",
+  "exit": 1,
+  "environmentKeys": [],
+  "environmentMode": "0o664",
+  "trace": [
+    {
+      "phase": "api",
+      "path": "/api/v2/projects/damp-forest-57346541/branches/br-readiness-owned-smoke"
+    }
+  ],
+  "scriptSha256": "f359749389df9e3377021e7d1b5e97f8aadddf66e9bdfe49a3bb1d2041cdfc60",
+  "stderr": "/etc/bash.bashrc: linha 7: PS1: vari\u00e1vel n\u00e3o associada\nfile:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:232\n        throw new Error(\"resource API returned non-JSON\");\n              ^\n\nError: resource API returned non-JSON\n    at NeonResources.request (file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:232:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async NeonResources.created (file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:300:30)\n    at async NeonResources.connections (file:///home/douglas-souza/preco-que-d-main/scripts/ci/neon-resource.ts:350:5)\n    at async file:///home/douglas-souza/preco-que-d-main/[eval1]:17:18\n\nNode.js v24.21.0\n",
+  "noRealAPIorDB": true
+}

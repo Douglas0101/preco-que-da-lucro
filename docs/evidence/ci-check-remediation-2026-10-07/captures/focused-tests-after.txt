@@ -1,0 +1,23 @@
+$ npx --no-install vitest run src/test/neon-fixture-provision.test.ts src/test/neon-fixture.test.ts src/test/neon-resource.test.ts src/test/main-unit-adapter.test.ts src/test/gate-mirror.test.ts src/test/sonar-gate-readout.test.ts src/test/m02-ci-coverage.test.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas-souza/preco-que-d-main[39m
+
+ [32m✓[39m src/test/main-unit-adapter.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 2089[2mms[22m[39m
+     [33m[2m✓[22m[39m runs the real bare-Node CLI in its own Git fixture: direct-contract [33m 387[2mms[22m[39m
+     [33m[2m✓[22m[39m runs the real bare-Node CLI in its own Git fixture: historical-absence [33m 514[2mms[22m[39m
+     [33m[2m✓[22m[39m runs the real bare-Node CLI in its own Git fixture: corrupt-candidate [33m 546[2mms[22m[39m
+     [33m[2m✓[22m[39m runs the real bare-Node CLI in its own Git fixture: missing-main-lcov [33m 320[2mms[22m[39m
+ [32m✓[39m src/test/neon-fixture-provision.test.ts [2m([22m[2m33 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m src/test/m02-ci-coverage.test.ts [2m([22m[2m39 tests[22m[2m)[22m[32m 68[2mms[22m[39m
+ [32m✓[39m src/test/neon-resource.test.ts [2m([22m[2m34 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m src/test/sonar-gate-readout.test.ts [2m([22m[2m53 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32m✓[39m src/test/neon-fixture.test.ts [2m([22m[2m34 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m src/test/gate-mirror.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[32m225 passed[39m[22m[90m (225)[39m
+[2m   Start at [22m 01:45:40
+[2m   Duration [22m 8.80s[2m (transform 466ms, setup 799ms, import 571ms, tests 2.28s, environment 4.18s)[22m
+
+
+exit=0

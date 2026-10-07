@@ -1,0 +1,5 @@
+ESM entrypoint matches the real workflow. The earlier -e CJS harness rejected a top-level-await import; that harness failure is retained separately, not a product failure.
+$ npx --no-install tsx /tmp/pqd-ci-check-smoke-wtd5bfi8/workflow-mask-smoke.mts
+{"command":"::add-mask::fixture%250A%0D%0A::error::not-a-credential\n","injectedCommand":false,"originalRedactionIdentity":true}
+
+exit=0

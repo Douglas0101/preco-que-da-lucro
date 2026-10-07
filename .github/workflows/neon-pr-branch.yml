@@ -100,6 +100,10 @@ jobs:
       branch_id: ${{ steps.create.outputs.branch_id }}
       probe_result: ${{ steps.probe.outputs.result }}
       schema_diff: ${{ steps.schema_diff.outputs.summary }}
+      fixture_result: ${{ steps.fixture.outcome }}
+      migrate_result: ${{ steps.migrate.outcome }}
+      integration_result: ${{ steps.integration.outcome }}
+      e2e_result: ${{ steps.e2e.outcome }}
     env:
       NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
       NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID || 'damp-forest-57346541' }}
@@ -111,45 +115,25 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - name: Create ephemeral schema-only branch (source production for main, develop otherwise)
-        id: create
-        uses: neondatabase/create-branch-action@fb620d43d4c565abaf088b848a4e28e5c4ea4d9c # 6.3.1
-        with:
-          project_id: ${{ vars.NEON_PROJECT_ID || 'damp-forest-57346541' }}
-          api_key: ${{ secrets.NEON_API_KEY }}
-          # §12.4: PRs de release (base main) copiam production; os demais copiam
-          # develop, para que a cópia reflita o schema de desenvolvimento em vez
-          # de uma produção possivelmente defasada.
-          parent_branch: ${{ github.base_ref == 'main' && 'production' || 'develop' }}
-          branch_type: schema-only
-          branch_name: pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Rede de segurança §12.5 (expires-at +24h) + URIs da branch em RUNNER_TEMP
-        env:
-          BRANCH_ID: ${{ steps.create.outputs.branch_id }}
-          DB_URL: ${{ steps.create.outputs.db_url }}
-        run: |
-          set -euo pipefail
-          EXPIRES=$(node -e 'const t=Date.now()+24*3600e3;console.log(new Date(t).toISOString().replace(/\.\d{3}Z$/,"Z"))')
-          curl -sf -X PATCH "$NEON_API_BASE/projects/$NEON_PROJECT_ID/branches/$BRANCH_ID" \
-            -H "Authorization: Bearer $NEON_API_KEY" -H "Content-Type: application/json" \
-            -d "{\"branch\":{\"expires_at\":\"$EXPIRES\"}}" > /dev/null
-          printf '%s' "$DB_URL" > "$RUNNER_TEMP/branch_direct_url"
-          chmod 600 "$RUNNER_TEMP/branch_direct_url"
-          node --input-type=module -e '
-            import { readFileSync, writeFileSync } from "node:fs";
-            const direct = readFileSync(`${process.env.RUNNER_TEMP}/branch_direct_url`, "utf8");
-            const url = new URL(direct);
-            const ep = url.hostname.split(".")[0];
-            url.hostname = url.hostname.replace(`${ep}.`, `${ep}-pooler.`);
-            writeFileSync(`${process.env.RUNNER_TEMP}/branch_pooled_url`, url.toString(), { mode: 0o600 });
-            console.log(JSON.stringify({ step: "pooled-url", direct_host: ep, pooled_host: url.hostname }));
-          '
-
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
+      - name: Create ephemeral schema-only branch via REST (source production for main, develop otherwise)
+        id: create
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        # S6-R2/N04: provisionamento pela API REST oficial em vez do wrapper de
+        # action — a recusa (ex.: HTTP 412) aparece com status/código sanitizado,
+        # cada URI é mascarada na chegada (::add-mask::) e valores já conhecidos
+        # são redigidos antes de qualquer log; o TTL de 24h vai no próprio POST e
+        # o branch_id é entregue ao cleanup antes de qualquer espera por compute.
+        # §12.4: PRs de release (base main) copiam production; os demais copiam
+        # develop, para que a cópia reflita o schema de desenvolvimento em vez
+        # de uma produção possivelmente defasada.
+        run: npx --no-install tsx scripts/ci/provision-neon-fixture.ts
+
       - name: Verify fresh schema-only identity and prepare an empty migration fixture
+        id: fixture
         env:
           BRANCH_ID: ${{ steps.create.outputs.branch_id }}
           BRANCH_CREATED: ${{ steps.create.outputs.created }}
@@ -162,11 +146,14 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: neon-pr-fixture-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/neon-pr-fixture.json
+          path: |
+            ${{ runner.temp }}/neon-pr-provision.json
+            ${{ runner.temp }}/neon-pr-fixture.json
           if-no-files-found: warn
           retention-days: 7
 
       - name: Migrations via DIRECT da branch (drill-branch, complete source chain)
+        id: migrate
         run: |
           set -euo pipefail
           export DATABASE_ADMIN_URL="$(cat "$RUNNER_TEMP/branch_direct_url")"
@@ -289,6 +276,7 @@ jobs:
           retention-days: 7
 
       - name: Integração (suites db:test) contra a branch
+        id: integration
         run: |
           set -euo pipefail
           export DATABASE_ADMIN_URL="$(cat "$RUNNER_TEMP/branch_direct_url")"
@@ -340,6 +328,7 @@ jobs:
       # segue sendo a NEON_API_KEY já entregue ao job — PR de fork nunca chega
       # aqui (fork-guard do job `gate`).
       - name: E2E Playwright contra a branch efêmera (§12.5 · §26.7)
+        id: e2e
         run: |
           set -euo pipefail
           runtime_password="$(openssl rand -hex 24)"
@@ -389,6 +378,7 @@ jobs:
       NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID || 'damp-forest-57346541' }}
     steps:
       - name: Delete branch efêmera
+        id: delete
         if: needs.branch-ci.outputs.branch_id != ''
         uses: neondatabase/delete-branch-action@4468d825d5a88ef4012f1705a82f02ec3072f776 # v3.2.1
         with:
@@ -397,11 +387,17 @@ jobs:
           branch: ${{ needs.branch-ci.outputs.branch_id }}
 
       - name: Prova de cleanup + comentário no PR
+        if: always()
         env:
           BRANCH_ID: ${{ needs.branch-ci.outputs.branch_id }}
           PROBE_RESULT: ${{ needs.branch-ci.outputs.probe_result }}
           SCHEMA_DIFF: ${{ needs.branch-ci.outputs.schema_diff }}
           CI_RESULT: ${{ needs.branch-ci.result }}
+          FIXTURE_RESULT: ${{ needs.branch-ci.outputs.fixture_result }}
+          MIGRATE_RESULT: ${{ needs.branch-ci.outputs.migrate_result }}
+          INTEGRATION_RESULT: ${{ needs.branch-ci.outputs.integration_result }}
+          E2E_RESULT: ${{ needs.branch-ci.outputs.e2e_result }}
+          DELETE_RESULT: ${{ steps.delete.outcome }}
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
@@ -445,7 +441,9 @@ jobs:
             echo "- jobs: \`$CI_RESULT\` · sonda RLS (H-07, seeded sintético marcador \`@preco-que-da.test\`): \`${PROBE_RESULT:-n/a}\`"
             echo "- Schema diff §12.5 vs produção: \`${SCHEMA_DIFF:-n/a}\`"
             echo "- Branch efêmera \`${BRANCH_ID:-não identificada}\`: cleanup — $DELETED (§12.5 always())"
-            echo "- Migrations/integração executados contra cópia isolada de production @ HEAD; produção nunca foi alvo."
+            echo "- Etapas observadas: fixture \`${FIXTURE_RESULT:-n/a}\` · migrations \`${MIGRATE_RESULT:-n/a}\` · integração \`${INTEGRATION_RESULT:-n/a}\` · E2E \`${E2E_RESULT:-n/a}\`."
+            echo "- Delete: \`${DELETE_RESULT:-n/a}\`; somente GET pós-delete HTTP 404 confirma descarte."
+            echo "- Alvo autorizado: branch efêmera schema-only; nenhum sucesso de etapa é presumido a partir do resultado do job."
           } >> "$GITHUB_STEP_SUMMARY"
           gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$(cat <<EOF
           ### Neon PR branch CI
@@ -453,6 +451,8 @@ jobs:
           - Sonda RLS adversarial (H-07): \`${PROBE_RESULT:-n/a}\`
           - Schema diff §12.5 vs produção (parent do PR): \`${SCHEMA_DIFF:-n/a}\`
           - Branch efêmera: \`$BRANCH_ID\` — cleanup: $DELETED
+          - Etapas observadas: fixture \`${FIXTURE_RESULT:-n/a}\` · migrations \`${MIGRATE_RESULT:-n/a}\` · integração \`${INTEGRATION_RESULT:-n/a}\` · E2E \`${E2E_RESULT:-n/a}\`
+          - Delete: \`${DELETE_RESULT:-n/a}\`; prova de descarte independente pelo GET pós-delete.
           - Produção intocada (caminho drill-branch, Emenda #2; hard-deny de produção permanece).
           EOF
           )" || echo "aviso: comentário do PR falhou (permissão?) — resultado permanece no summary"

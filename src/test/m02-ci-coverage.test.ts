@@ -334,12 +334,64 @@ describe("DBT-62 · claims do pipeline Sonar", () => {
     }
   });
 
+  it("S6-R2/N02: recusa continue-on-error por expressão, shell customizado, BASH_ENV injetável e erro engolido", () => {
+    const mutants: Array<[string, string, string]> = [
+      [
+        "expressão",
+        "run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+        "continue-on-error: ${{ failure() }}\n        run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+      ],
+      [
+        "shell",
+        "run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+        "shell: pwsh\n        run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+      ],
+      ["BASH_ENV", 'BASH_ENV: ""', "BASH_ENV: ${{ vars.BASH_ENV }}"],
+      [
+        "erro engolido",
+        "run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+        "run: npx --no-install tsx scripts/sonar/gate-readout.ts || true",
+      ],
+    ];
+    for (const [label, from, to] of mutants) {
+      const mutant = sonarReal.replace(from, to);
+      expect(mutant, label).not.toBe(sonarReal);
+      const findings = auditSonarPipeline(mutant).join("\n");
+      expect(findings, label).toContain("sonar.yml");
+      if (label === "shell" || label === "BASH_ENV")
+        expect(findings, label).toContain("passo do CE fixa");
+    }
+  });
+
   it("distingue observação de baseline/espelho da decisão obrigatória do CE", () => {
     const mutant = sonarReal.replaceAll(/continue-on-error: true[^\n]*\n/g, "");
     expect(mutant).not.toBe(sonarReal);
     expect(auditSonarPipeline(mutant)).toContain(
       "sonar.yml: baseline e espelho são observações ADR-042",
     );
+    const invalidObservations = [
+      sonarReal.replace(
+        "run: node scripts/sonar/mirror-observation.ts adapter",
+        "run: node scripts/sonar/main-unit-adapter.ts",
+      ),
+      sonarReal.replace(
+        "run: node scripts/sonar/mirror-observation.ts mirror",
+        "run: node scripts/sonar/gate-mirror.ts",
+      ),
+      sonarReal.replace(
+        "  main-coverage-mirror:\n",
+        "  main-coverage-mirror:\n    continue-on-error: true\n",
+      ),
+      sonarReal.replace(
+        "run: node scripts/sonar/mirror-observation.ts mirror",
+        "run: node scripts/sonar/mirror-observation.ts mirror || true",
+      ),
+      sonarReal.replace("c29-main-mirror-observation.json", "discarded-observation.json"),
+    ];
+    for (const observation of invalidObservations) {
+      expect(observation).not.toBe(sonarReal);
+      expect(auditSonarPipeline(observation)).not.toEqual([]);
+    }
   });
 
   it("recusa o defeito original: baseline incondicional antes de scanner em main", () => {
