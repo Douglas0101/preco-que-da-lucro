@@ -8,13 +8,14 @@ const host = "ep-fixture-example.c-2.us-east-2.aws.neon.tech";
 const env = {
   GITHUB_REPOSITORY: "Douglas0101/preco-que-da-lucro",
   GITHUB_EVENT_NAME: "pull_request",
+  GITHUB_BASE_REF: "main",
   GITHUB_RUN_ID: "123",
   GITHUB_RUN_ATTEMPT: "2",
   PR_NUMBER: "60",
   NEON_PROJECT_ID: PROJECT_ID,
   BRANCH_ID: id,
   BRANCH_CREATED: "true",
-  ALLOW_REMOTE_DB: "CI schema-only fixture with synthetic data",
+  ALLOW_REMOTE_DB: "CI parent-schema child fixture with synthetic data",
 };
 function urls(hostname = host) {
   // S6-R2/N01-residual: the explicit 5432 port pins the effective destination,
@@ -35,7 +36,8 @@ const branch = () => ({
     default: false,
     protected: false,
     current_state: "ready",
-    init_source: "schema-only",
+    init_source: "parent-schema",
+    parent_id: PRODUCTION_ID,
     created_at: new Date(now).toISOString(),
     expires_at: new Date(now + 24 * 3600_000).toISOString(),
   },
@@ -54,12 +56,19 @@ const endpoints = () => ({
 });
 
 describe("Neon PR fixture ownership and endpoint binding", () => {
-  it("accepts one newly created schema-only root bound to the exact run, attempt and endpoint", () => {
+  it("accepts a parent-schema child bound to the exact run, attempt, parent and endpoint", () => {
     expect(fixtureIdentity(branch(), endpoints(), ...urls(), env, now)).toMatchObject({
       branchId: id,
       branchName: "pr-60-123-2",
-      initSource: "schema-only",
+      initSource: "parent-schema",
     });
+  });
+  it("accepts a develop-base child whose explicit parent is develop", () => {
+    const body = branch();
+    body.branch.parent_id = DEVELOP_ID;
+    expect(
+      fixtureIdentity(body, endpoints(), ...urls(), { ...env, GITHUB_BASE_REF: "develop" }, now),
+    ).toMatchObject({ branchId: id, initSource: "parent-schema" });
   });
   it.each([DEVELOP_ID, PRODUCTION_ID])(
     "refuses permanent branch %s even with remote override",
@@ -90,6 +99,9 @@ describe("Neon PR fixture ownership and endpoint binding", () => {
     { GITHUB_REPOSITORY: "foreign/fork" },
     { GITHUB_EVENT_NAME: "push" },
     { NEON_PROJECT_ID: "different" },
+    { GITHUB_BASE_REF: "" },
+    { GITHUB_BASE_REF: "preview" },
+    { GITHUB_BASE_REF: undefined },
     { GITHUB_RUN_ID: "" },
   ])("refuses reused or different run context %j", (patch) => {
     expect(() =>
@@ -97,9 +109,10 @@ describe("Neon PR fixture ownership and endpoint binding", () => {
     ).toThrow();
   });
   it.each([
-    { parent_id: PRODUCTION_ID },
+    { parent_id: null },
+    { parent_id: DEVELOP_ID },
+    { init_source: "schema-only" },
     { init_source: "parent-data" },
-    { init_source: "parent-schema" },
     { default: true },
     { protected: true },
     { current_state: "init" },
@@ -201,6 +214,20 @@ describe("empty schema preparation refuses inherited data before any destructive
   ])("preserves data and rolls back on incomplete or nonempty inventory %j", async (options) => {
     const db = database(options);
     await expect(resetEmptyFixture(db)).rejects.toThrow();
+    expect(db.calls.some((sql) => /^(drop|truncate|delete|create) /i.test(sql))).toBe(false);
+    expect(db.calls.at(-1)).toBe("rollback");
+  });
+  it("accepts the managed neon_auth schema of a parent-schema copy when empty", async () => {
+    const db = database({ schemas: ["app_private", "drizzle", "neon_auth", "public"] });
+    expect(await resetEmptyFixture(db)).toEqual({
+      discoveredTables: 2,
+      checkedTables: 2,
+      rowsErased: 0,
+    });
+  });
+  it("refuses an unknown copied schema before any destructive SQL", async () => {
+    const db = database({ schemas: ["public", "legacy_web"] });
+    await expect(resetEmptyFixture(db)).rejects.toThrow("unexpected or incomplete");
     expect(db.calls.some((sql) => /^(drop|truncate|delete|create) /i.test(sql))).toBe(false);
     expect(db.calls.at(-1)).toBe("rollback");
   });

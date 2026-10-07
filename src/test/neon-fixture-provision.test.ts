@@ -112,8 +112,8 @@ function mock(
   return { calls, events, files, run };
 }
 
-describe("schema-only fixture provisioning plan", () => {
-  it("plans a root schema-only copy with an explicit source id and a 24h TTL", () => {
+describe("parent-schema child fixture provisioning plan", () => {
+  it("plans a parent-schema child copy with an explicit source id and a 24h TTL", () => {
     const plan = provisionPlan(env, new Date(now));
     expect(plan).toEqual({
       projectId: PROJECT_ID,
@@ -162,7 +162,7 @@ describe("URI pinning closes the effective-destination residual", () => {
 });
 
 describe("REST provisioning with masked credentials and sanitized refusals", () => {
-  it("creates schema-only once, hands the branch id to cleanup before compute, and writes masked private URIs", async () => {
+  it("creates the parent-schema child once, hands the branch id to cleanup before compute, and writes masked private URIs", async () => {
     const { calls, events, files, run } = mock([
       { body: { branch: { id: branchId } } },
       { body: branchBody("init") },
@@ -177,7 +177,7 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
       branch: {
         name: "pr-60-123-2",
         parent_id: DEVELOP_ID,
-        init_source: "schema-only",
+        init_source: "parent-schema",
         expires_at: "2026-10-08T02:00:00Z",
       },
       endpoints: [{ type: "read_write" }],
@@ -211,7 +211,7 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
     expect(report).toMatchObject({
       phase: "connection-verified",
       branchId,
-      initSource: "schema-only",
+      initSource: "parent-schema",
     });
     // O payload de ::add-mask:: usa escape do protocolo Actions; os demais
     // eventos não podem conter credenciais recebidas.

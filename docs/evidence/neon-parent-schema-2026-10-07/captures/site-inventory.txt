@@ -1,0 +1,41 @@
+# Site inventory (RS-16): enumeração por descoberta
+# Command: grep -rn 'init_source\|schema-only\|schema_only\|parent-schema' scripts/ci src/test .github/workflows/neon-pr-branch.yml AGENTS.md docs/adr/ADR-042-cobertura-minima-60-publicacao.md
+
+scripts/ci/provision-neon-fixture.ts:17:// persisted. The fixture is a schema-only CHILD (parent-schema): schema copied
+scripts/ci/provision-neon-fixture.ts:45:  // copy develop's. The created branch is a schema-only CHILD (parent-schema):
+scripts/ci/provision-neon-fixture.ts:163:          init_source: "parent-schema",
+scripts/ci/provision-neon-fixture.ts:263:          initSource: "parent-schema",
+scripts/ci/provision-neon-fixture.ts:296:                        "Provider precondition refused. Check project access, parent-schema copy allowance and branch-expiration support; the HTTP status alone does not identify the cause. No retry or data-copy fallback was attempted.",
+scripts/ci/prepare-neon-fixture.ts:48:    branch.init_source !== "parent-schema" ||
+scripts/ci/prepare-neon-fixture.ts:58:    throw new Error("fixture schema-only child/parent/expiry/freshness identity differs");
+scripts/ci/prepare-neon-fixture.ts:76:    initSource: "parent-schema",
+scripts/ci/prepare-neon-fixture.ts:85:// appears in a parent-schema copy; it is verified empty like every other copied
+scripts/ci/prepare-neon-fixture.ts:90:/** Only a freshly verified parent-schema child may call this function. Never erase rows. */
+src/test/neon-fixture.test.ts:18:  ALLOW_REMOTE_DB: "CI parent-schema child fixture with synthetic data",
+src/test/neon-fixture.test.ts:39:    init_source: "parent-schema",
+src/test/neon-fixture.test.ts:59:  it("accepts a parent-schema child bound to the exact run, attempt, parent and endpoint", () => {
+src/test/neon-fixture.test.ts:63:      initSource: "parent-schema",
+src/test/neon-fixture.test.ts:71:    ).toMatchObject({ branchId: id, initSource: "parent-schema" });
+src/test/neon-fixture.test.ts:114:    { init_source: "schema-only" },
+src/test/neon-fixture.test.ts:115:    { init_source: "parent-data" },
+src/test/neon-fixture.test.ts:220:  it("accepts the managed neon_auth schema of a parent-schema copy when empty", async () => {
+src/test/neon-fixture-provision.test.ts:115:describe("parent-schema child fixture provisioning plan", () => {
+src/test/neon-fixture-provision.test.ts:116:  it("plans a parent-schema child copy with an explicit source id and a 24h TTL", () => {
+src/test/neon-fixture-provision.test.ts:165:  it("creates the parent-schema child once, hands the branch id to cleanup before compute, and writes masked private URIs", async () => {
+src/test/neon-fixture-provision.test.ts:180:        init_source: "parent-schema",
+src/test/neon-fixture-provision.test.ts:214:      initSource: "parent-schema",
+.github/workflows/neon-pr-branch.yml:4:# ganha uma branch Neon efêmera schema-only — CHILD `parent-schema` (schema
+.github/workflows/neon-pr-branch.yml:122:      - name: Create ephemeral schema-only child via REST (parent-schema; source production for main, develop otherwise)
+.github/workflows/neon-pr-branch.yml:133:        # de uma produção possivelmente defasada. A cópia é `parent-schema`
+.github/workflows/neon-pr-branch.yml:138:      - name: Verify fresh schema-only child (parent-schema) identity and prepare an empty migration fixture
+.github/workflows/neon-pr-branch.yml:144:          ALLOW_REMOTE_DB: CI Neon parent-schema child PR fixture; schema only, no production or develop data
+.github/workflows/neon-pr-branch.yml:449:            echo "- Alvo autorizado: branch efêmera parent-schema child (schema sem linhas); nenhum sucesso de etapa é presumido a partir do resultado do job."
+AGENTS.md:55:  - **Provisionamento da fixture Neon de PR (S6-R2):** `.github/workflows/neon-pr-branch.yml` cria a cópia pela **API REST oficial** (`scripts/ci/provision-neon-fixture.ts`), não por wrapper de action: `init_source: "parent-schema"` (a branch criada é **CHILD** de pai explícito — `production` para PRs de release (base main), `develop` nos demais — com o schema copiado sem linhas herdadas; a cópia ROOT schema-only é recusada pelo provedor em projetos com papéis SQL-created de *legacy web access* como `app_runtime`, HTTP 412 observado nas runs `37556250921`/`37634147956` e no diagnóstico de console de 2026-10-07, request `bba50fbd-1e38-49d7-a52b-084e5b6e95ed`, evidência em `docs/evidence/neon-parent-schema-2026-10-07/`) e **TTL de 24h dentro do próprio POST** (rede de segurança quando o `branch_id` não chega ao cleanup). O `branch_id` é entregue ao job de cleanup **antes** de qualquer espera por compute/URI; sem retry que caia em cópia de dados. Cada URI recebe `::add-mask::` **na chegada** (antes de qualquer arquivo privado em `RUNNER_TEMP`, modo 0600), e todo valor já conhecido é redigido da mensagem de erro **antes** de ser persistido; recusas do provedor expõem somente status/código (ex.: HTTP 412), nunca corpo bruto. As URIs são fixadas com **porta 5432 explícita e query somente-sslmode** — o destino efetivo do driver não pode ser movido por `PGPORT` ou por parâmetros de query (`host`, `hostaddr`, `port`, `options`), e `assertConnectionPair` recusa o par sem essas propriedades.
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:24:Uma cópia comum de production herdou uma conta real e o rollback de teste recusou apagá-la. O CI passa a criar uma raiz schema-only por PR, run e attempt, com prazo de 24 horas. Antes de preparar o fixture, confirma init_source=schema-only, criação nova, identidade não permanente, endpoint correspondente, prazo e inventário vazio. Toda tabela é bloqueada e verificada; registros, relações externas, grandes objetos ou inventário desconhecido abortam sem apagar dados. Somente schemas copiados e vazios são reconstruídos. As migrations aplicadas geram o ledger verdadeiro. Todas as 18 suítes, RLS, matriz Playwright e descarte always com GET 404 permanecem obrigatórios.
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:43:## Emenda — implementação do fixture (2026-10-07): `init_source` parent-schema
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:45:O §CI Neon e isolamento exige uma raiz schema-only por PR, run e attempt. A implementação
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:46:(`scripts/ci/provision-neon-fixture.ts`) usava `init_source: "schema-only"`, que cria uma branch
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:48:SQL-created de _legacy web access_ (`app_runtime`) não comportam branches root schema-only — HTTP
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:53:`docs/evidence/neon-parent-schema-2026-10-07/`.
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:55:**Substituto:** `init_source: "parent-schema"` — branch **CHILD** de pai explícito (`production`
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:62:Auth, presente na `develop`) aparece na cópia schema-only, é verificado vazio como os demais e é

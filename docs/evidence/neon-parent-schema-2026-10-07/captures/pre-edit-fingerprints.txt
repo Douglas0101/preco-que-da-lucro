@@ -1,0 +1,9 @@
+# Pre-edit fingerprints (HEAD 7b59cf807fb9eded939c7c2679c3677c4048d107), reproduced from git objects
+# Generated: git show HEAD:<path> | sha256sum
+b574f8fd1a4fc699e6bcfccd05dfc59346f005d90c9c97148c61d170b8f3f934  scripts/ci/provision-neon-fixture.ts
+1a5f1a6f1638424c8bbbaf0f469b9327008851f484e7b90310821d8c457106b7  scripts/ci/prepare-neon-fixture.ts
+1e62ab945b3ad0319d09bb61f44dfde9ba65e5ef8f41027a52a5a476bdefb454  src/test/neon-fixture.test.ts
+153c1bdd8dffbe6e200546d128c2a54ada3ba788b18b12f3775ff1065e0b88c0  src/test/neon-fixture-provision.test.ts
+d5300fb9015c0fb3ff05ced20b6dac155ccc84ec0bb36a3933d7282ca9ab18be  .github/workflows/neon-pr-branch.yml
+7ae20d8a98d1285519a8337254e3cfdbc7ca852e2199cdb85769b0e5fa821f42  AGENTS.md
+bedd274eede571d14485370abf7c834b7fba0bae48674e849154bc11ded59751  docs/adr/ADR-042-cobertura-minima-60-publicacao.md

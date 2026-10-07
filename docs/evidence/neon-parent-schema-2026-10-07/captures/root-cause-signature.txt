@@ -1,0 +1,35 @@
+# Root-cause signature (derived from the evidence supplied with the task; no new remote call)
+# Date: 2026-10-07 (session). Kind: paraphrase/derivation, not a fresh provider query.
+
+Observed refusal (given evidence):
+- CI run 37556250921 (action wrapper path): branch creation refused, HTTP 412.
+- CI run 37634147956 (REST path): POST /projects/damp-forest-57346541/branches refused, HTTP 412,
+  provider code not exposed -> UNCLASSIFIED (no branch_id emitted; cleanup exit 2, no absence proof).
+- Console diagnostic 2026-10-07: one isolated POST with init_source="schema-only" also refused,
+  HTTP 412, request id bba50fbd-1e38-49d7-a52b-084e5b6e95ed. No branch was created; a following
+  GET confirmed only the two permanent branches.
+
+Exact provider message (given, 93 characters):
+  project with a legacy web access role do not support schema-only branches; role:"app_runtime"
+
+Length proof of the role identity:
+- fixed part with both quotes ('...role:"<role>"') = 82 chars; the role name is the only variable.
+- 82 + len("app_runtime") = 82 + 11 = 93 (matches the observed length).
+- among the project's SQL-created roles (app_runtime, anonymous, authenticated): anonymous gives
+  82 + 9 = 91, authenticated gives 82 + 13 = 95. Only app_runtime yields 93.
+
+Root cause (adopted, already diagnosed and not re-litigated):
+- The ephemeral fixture was requested as init_source="schema-only", which creates a ROOT branch.
+- This Neon project carries SQL-created no-login "legacy web access" roles; the provider refuses
+  root schema-only branch creation for such projects (HTTP 412), before any compute/TTL handling.
+- Fix: request init_source="parent-schema" (CHILD of an explicit parent: production for base main,
+  develop otherwise), copying schema without rows.
+
+Read-only provider state supplied (2026-10-07, console read; NOT re-queried here):
+- plan: free; branches: production (root, default) + develop (child); archived: 0;
+- no create operation was ever scheduled for the failed attempts (the refusal is a precondition
+  rejection, not an async operation failure).
+
+Limits:
+- Provider acceptance of init_source="parent-schema" is only provable by the upcoming CI run.
+  This package contains no remote creation proof; that is a declared pending limit in README.md.

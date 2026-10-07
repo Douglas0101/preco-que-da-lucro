@@ -25,6 +25,7 @@ export function fixtureIdentity(
   if (
     env.GITHUB_REPOSITORY !== "Douglas0101/preco-que-da-lucro" ||
     env.GITHUB_EVENT_NAME !== "pull_request" ||
+    !["main", "develop"].includes(env.GITHUB_BASE_REF ?? "") ||
     env.NEON_PROJECT_ID !== PROJECT_ID ||
     env.BRANCH_CREATED !== "true" ||
     numeric.some((value) => !/^[1-9][0-9]*$/.test(value ?? "")) ||
@@ -43,8 +44,8 @@ export function fixtureIdentity(
     branch.name !== name ||
     branch.default !== false ||
     branch.protected !== false ||
-    branch.parent_id != null ||
-    branch.init_source !== "schema-only" ||
+    branch.parent_id !== (env.GITHUB_BASE_REF === "main" ? PRODUCTION_ID : DEVELOP_ID) ||
+    branch.init_source !== "parent-schema" ||
     branch.current_state !== "ready" ||
     !Number.isFinite(now) ||
     !Number.isFinite(created) ||
@@ -54,7 +55,7 @@ export function fixtureIdentity(
     expiry <= now ||
     expiry - created > 24 * 3600_000 + 120_000
   )
-    throw new Error("fixture schema-only root/expiry/freshness identity differs");
+    throw new Error("fixture schema-only child/parent/expiry/freshness identity differs");
   const endpoints =
     record(endpointBody) && Array.isArray(endpointBody.endpoints) ? endpointBody.endpoints : [];
   const direct = new URL(admin);
@@ -72,7 +73,7 @@ export function fixtureIdentity(
   return {
     branchId: id,
     branchName: name,
-    initSource: "schema-only",
+    initSource: "parent-schema",
     expiresAt: branch.expires_at,
   };
 }
@@ -80,10 +81,13 @@ export function fixtureIdentity(
 interface FixtureDatabase {
   query(text: string): Promise<{ rows: RecordValue[] }>;
 }
-const allowedSchemas = ["app_private", "drizzle", "public"];
+// neon_auth is Neon Auth's managed schema (present on the develop branch) and
+// appears in a parent-schema copy; it is verified empty like every other copied
+// schema and rebuilt away on the disposable fixture.
+const allowedSchemas = ["app_private", "drizzle", "neon_auth", "public"];
 const quoted = (value: string) => `"${value.replaceAll('"', '""')}"`;
 
-/** Only a freshly verified schema-only root may call this function. Never erase rows. */
+/** Only a freshly verified parent-schema child may call this function. Never erase rows. */
 export async function resetEmptyFixture(db: FixtureDatabase) {
   await db.query("begin");
   try {

@@ -14,7 +14,8 @@ import {
 // instead of the action wrapper, so a refusal (e.g. HTTP 412) surfaces its
 // status and code sanitized. Every URI is masked the moment it arrives and any
 // value already known is redacted from a failure before it is logged or
-// persisted. The fixture is schema-only: no retry ever falls back to data.
+// persisted. The fixture is a schema-only CHILD (parent-schema): schema copied
+// without rows; no retry ever falls back to data.
 
 const apiBase = "https://console.neon.tech/api/v2";
 const repository = "Douglas0101/preco-que-da-lucro";
@@ -41,7 +42,8 @@ export function provisionPlan(env: NodeJS.ProcessEnv, now = new Date()): Provisi
   )
     throw new Error("fixture provisioning precondition failed");
   // §12.4: release PRs (base main) copy the production structure; the others
-  // copy develop's. The created branch is a schema-only ROOT either way.
+  // copy develop's. The created branch is a schema-only CHILD (parent-schema):
+  // schema copied without rows; no retry ever falls back to data.
   return {
     projectId: PROJECT_ID,
     parentId: env.GITHUB_BASE_REF === "main" ? PRODUCTION_ID : DEVELOP_ID,
@@ -158,7 +160,7 @@ export async function provision(
         branch: {
           name: plan.branchName,
           parent_id: plan.parentId,
-          init_source: "schema-only",
+          init_source: "parent-schema",
           expires_at: plan.expiresAt,
         },
         endpoints: [{ type: "read_write" }],
@@ -258,7 +260,7 @@ export async function provision(
           schema: "neon-pr-provision/1",
           phase: "connection-verified",
           branchId,
-          initSource: "schema-only",
+          initSource: "parent-schema",
           expiresAt: plan.expiresAt,
         },
         null,
@@ -291,7 +293,7 @@ export async function provision(
                 ...(error.status === 412
                   ? {
                       nextStep:
-                        "Provider precondition refused. Check project access, schema-only root allowance and branch-expiration support; the HTTP status alone does not identify the cause. No retry or data-copy fallback was attempted.",
+                        "Provider precondition refused. Check project access, parent-schema copy allowance and branch-expiration support; the HTTP status alone does not identify the cause. No retry or data-copy fallback was attempted.",
                     }
                   : {}),
               }

@@ -37,3 +37,32 @@ Reverter por commits ordinários, restaurar o payload anterior do ruleset e susp
 - scripts/sonar/gate-readout.ts e src/test/sonar-gate-readout.test.ts.
 - .github/workflows/sonar.yml e guardas de contrato de CI.
 - scripts/ci/prepare-neon-fixture.ts e src/test/neon-fixture.test.ts.
+
+---
+
+## Emenda — implementação do fixture (2026-10-07): `init_source` parent-schema
+
+O §CI Neon e isolamento exige uma raiz schema-only por PR, run e attempt. A implementação
+(`scripts/ci/provision-neon-fixture.ts`) usava `init_source: "schema-only"`, que cria uma branch
+**ROOT** sem linhagem. O provedor recusa essa criação no projeto `damp-forest-57346541`: papéis
+SQL-created de _legacy web access_ (`app_runtime`) não comportam branches root schema-only — HTTP
+412 observado nas runs `37556250921` e `37634147956` e no diagnóstico de console de 2026-10-07
+(request `bba50fbd-1e38-49d7-a52b-084e5b6e95ed`); a leitura read-only de 2026-10-07 confirma
+somente as duas branches permanentes (`production` root/default, `develop` child) e nenhuma
+operação de criação agendada para as tentativas recusadas. Evidência:
+`docs/evidence/neon-parent-schema-2026-10-07/`.
+
+**Substituto:** `init_source: "parent-schema"` — branch **CHILD** de pai explícito (`production`
+para base `main`, `develop` nos demais), com o schema copiado **sem linhas herdadas**. A
+substituição preserva todas as invariantes desta decisão: identidade verificada (pai explícito por
+base, criação nova, não-permanente), endpoint correspondente, prazo de 24h, inventário vazio
+(nenhuma linha, nenhum grande objeto, nenhum schema desconhecido), reconstrução apenas de schemas
+copiados e vazios, migrations reais que geram o ledger verdadeiro, as 18 suítes, a sonda RLS, a
+matriz Playwright e o descarte `always()` com GET 404. O `neon_auth` (schema gerenciado do Neon
+Auth, presente na `develop`) aparece na cópia schema-only, é verificado vazio como os demais e é
+reconstruído no fixture descartável.
+
+Esta emenda é de **implementação**: não altera a decisão de cobertura mínima de 60%
+(`new_coverage >= 60%`), nem qualquer condição de segurança, confiabilidade ou manutenibilidade
+desta ADR. A aceitação do provedor só é demonstrável pelo CI corrente (run real) — limite
+declarado no pacote de evidências; nenhuma prova remota é inferida localmente.

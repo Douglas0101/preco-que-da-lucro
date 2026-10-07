@@ -1,0 +1,9 @@
+# Post-edit fingerprints
+# Generated: sha256sum <paths> at 7b59cf807fb9eded939c7c2679c3677c4048d107 + worktree
+6aad527d173c34f0acf028fd486ad01d156a29e03085557bafe964961c17fdaf  scripts/ci/provision-neon-fixture.ts
+61552ffed98eea2b4b14a069d7291609761947fde162e9f419e2cf7590859827  scripts/ci/prepare-neon-fixture.ts
+14c0a01b094905c01934a88376c0ed7d26a70f39b9f80e5b786a3365c30d46c4  src/test/neon-fixture.test.ts
+429a554f97cd64ff80ccb24a63015d082eb3148b1e13f477ee17fc0ae49c5c08  src/test/neon-fixture-provision.test.ts
+619430f9efde42f1e7dfa40c1de68615d128097deb31f9e39d90d582db8a1afe  .github/workflows/neon-pr-branch.yml
+1195c3a18c34fad830a53dcab4b62ba9de391089f83437e8ec4bb32bf780eafa  AGENTS.md
+4f51953d4b3a805e639440384fac73f9817821fe4b28d5fd79e170f3fee139e8  docs/adr/ADR-042-cobertura-minima-60-publicacao.md
