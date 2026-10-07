@@ -27,7 +27,8 @@ de um pai explícito com o schema copiado sem linhas.
 2. `fixtureIdentity()` exige `env.GITHUB_BASE_REF` exatamente `main` ou `develop` (fail-closed), e
    `branch.parent_id` igual ao pai do base (`PRODUCTION_ID` para main, `DEVELOP_ID` para develop) e
    `branch.init_source === "parent-schema"`; qualquer divergência lança.
-3. `resetEmptyFixture()` aceita o schema gerenciado `neon_auth` (presente na cópia da `develop`),
+3. `resetEmptyFixture()` aceita os schemas gerenciados `neon_auth` (Neon Auth) e `pgrst`
+   (PostgREST, vazio nas duas permanentes — `captures/schema-inventory-permanent-branches.txt`),
    verifica que toda tabela descoberta está vazia e reconstrói apenas schemas copiados e vazios;
    schema desconhecido continua abortando antes de qualquer SQL destrutivo.
 4. Todo o restante permanece byte-comportamental: TTL de 24h no POST, `branch_id` no
@@ -39,7 +40,7 @@ de um pai explícito com o schema copiado sem linhas.
 - `scripts/ci/provision-neon-fixture.ts` — payload `init_source`, comentários, `initSource` do
   relatório, `nextStep` do HTTP 412.
 - `scripts/ci/prepare-neon-fixture.ts` — precondição `GITHUB_BASE_REF`, identidade pai/filho,
-  `allowedSchemas` com `neon_auth`, docstring e mensagem de erro.
+  `allowedSchemas` com `neon_auth` e `pgrst` (correção pré-push), docstring e mensagem de erro.
 - `.github/workflows/neon-pr-branch.yml` — somente nomes/comentários/rotulos (nenhuma lógica).
 - `AGENTS.md`, `docs/adr/ADR-042-cobertura-minima-60-publicacao.md` — contrato e emenda.
 - `src/test/neon-fixture.test.ts`, `src/test/neon-fixture-provision.test.ts` — testes RED→GREEN.
@@ -50,14 +51,16 @@ credencial, nenhuma branch permanente.
 
 ## DoD
 
-| critério                                                          | prova                                                              |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Testes focados GREEN com os novos contratos                       | `captures/green-focused-tests.txt` (75/75)                         |
-| Controle negativo: os mesmos testes reprovam nos bytes anteriores | `captures/red-focused-tests.txt` (5 falhas / 70)                   |
-| Gate local completo verde                                         | `captures/check-final.txt` (exit 0)                                |
-| Matriz M-02 inalterada ou regenerada                              | `captures/matrix-check.txt`                                        |
-| Fingerprints antes/depois                                         | `captures/pre-edit-fingerprints.txt`, `post-edit-fingerprints.txt` |
-| Aceitação do provedor                                             | PENDENTE — somente o CI real após push (limite declarado)          |
+| critério                                                          | prova                                                                                     |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Testes focados GREEN com os novos contratos                       | `captures/green-focused-tests.txt` (75/75)                                                |
+| Controle negativo: os mesmos testes reprovam nos bytes anteriores | `captures/red-focused-tests.txt` (5 falhas / 70)                                          |
+| Gate local completo verde                                         | `captures/check-final.txt` (exit 0)                                                       |
+| Matriz M-02 inalterada ou regenerada                              | `captures/matrix-check.txt`                                                               |
+| Fingerprints antes/depois                                         | `captures/pre-edit-fingerprints.txt`, `post-edit-fingerprints.txt`                        |
+| `pgrst` vazio aceito e desconhecido ainda recusado                | `captures/pgrst-red-focused-tests.txt` (1 falha), `pgrst-green-focused-tests.txt` (76/76) |
+| Inventário read-only das permanentes                              | `captures/schema-inventory-permanent-branches.txt`                                        |
+| Aceitação do provedor                                             | PENDENTE — somente o CI real após push (limite declarado)                                 |
 
 ## Testes (RED/GREEN)
 
@@ -65,6 +68,8 @@ credencial, nenhuma branch permanente.
   `parent_id: PRODUCTION_ID`, rejeições novas, `neon_auth` aceito), rodados contra a implementação
   inalterada — 5 falhas.
 - GREEN: mesmos testes contra a implementação nova — 75/75.
+- Correção pré-push do `pgrst`: RED 1 falha/75 contra a allowlist sem `pgrst`; GREEN 76/76 com a
+  allowlist nova (`captures/pgrst-*`).
 - Falsificação: aceitação continua exigindo pai exato por base (`parent_id: null`,
   `DEVELOP_ID` com base main, `schema-only`, `parent-data` reprovam) e `GITHUB_BASE_REF`
   ausente/inválido reprova; `resetEmptyFixture` continua recusando schema desconhecido.

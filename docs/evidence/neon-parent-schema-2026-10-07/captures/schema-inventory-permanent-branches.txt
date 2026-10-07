@@ -1,0 +1,31 @@
+READ-ONLY provider schema inventory - permanent Neon branches
+===============================================================
+Executed: 2026-10-07, console session. READ-ONLY: GET requests only; no branch,
+schema, role, data or credential was created, altered or deleted.
+
+Endpoint: GET /branches/{branch_id}/schema?db_name=neondb (Neon Console API v2)
+
+Branches inventoried (the only two permanent branches):
+  production  br-snowy-violet-aymcvvvv
+  develop     br-small-hill-aymcu14y
+
+Both permanent branches expose a byte-identical schema dump:
+  sqlLen 120852, sha256 ac44d329... (truncated in this projection)
+
+Schema inventory (5 schemas), name -> table count:
+  app_private   0
+  drizzle       1  (__drizzle_migrations)
+  neon_auth     9  (account, invitation, jwks, member, organization,
+                    project_config, session, user, verification)
+  pgrst         0
+  public       37  (individual names not enumerated in this projection)
+
+Consequence for the PR fixture (verified against worktree code):
+  a parent-schema copy contains pgrst. With the pre-correction allowlist
+  ["app_private","drizzle","neon_auth","public"], resetEmptyFixture throws
+  "fixture discovered an unexpected or incomplete schema inventory" and the
+  CI fixture step would fail before any destructive SQL.
+Correction (this session): pgrst added to allowedSchemas; like every copied
+  schema it is verified empty and rebuilt away on the disposable fixture;
+  unknown schemas remain fail-closed. RED/GREEN in
+  pgrst-red-focused-tests.txt and pgrst-green-focused-tests.txt.

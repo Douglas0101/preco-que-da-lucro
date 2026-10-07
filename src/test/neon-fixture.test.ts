@@ -225,6 +225,14 @@ describe("empty schema preparation refuses inherited data before any destructive
       rowsErased: 0,
     });
   });
+  it("accepts the managed pgrst schema of a parent-schema copy when empty", async () => {
+    const db = database({ schemas: ["app_private", "drizzle", "neon_auth", "pgrst", "public"] });
+    expect(await resetEmptyFixture(db)).toEqual({
+      discoveredTables: 2,
+      checkedTables: 2,
+      rowsErased: 0,
+    });
+  });
   it("refuses an unknown copied schema before any destructive SQL", async () => {
     const db = database({ schemas: ["public", "legacy_web"] });
     await expect(resetEmptyFixture(db)).rejects.toThrow("unexpected or incomplete");

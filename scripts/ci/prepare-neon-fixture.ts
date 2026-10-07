@@ -81,10 +81,11 @@ export function fixtureIdentity(
 interface FixtureDatabase {
   query(text: string): Promise<{ rows: RecordValue[] }>;
 }
-// neon_auth is Neon Auth's managed schema (present on the develop branch) and
-// appears in a parent-schema copy; it is verified empty like every other copied
-// schema and rebuilt away on the disposable fixture.
-const allowedSchemas = ["app_private", "drizzle", "neon_auth", "public"];
+// neon_auth is Neon Auth's managed schema (present on the develop branch); pgrst
+// is PostgREST's managed schema (empty on both permanent branches). Both appear
+// in a parent-schema copy and, like every copied schema, are verified empty and
+// rebuilt away on the disposable fixture; unknown schemas remain fail-closed.
+const allowedSchemas = ["app_private", "drizzle", "neon_auth", "pgrst", "public"];
 const quoted = (value: string) => `"${value.replaceAll('"', '""')}"`;
 
 /** Only a freshly verified parent-schema child may call this function. Never erase rows. */

@@ -12,35 +12,42 @@ explícito — `production` para base `main`, `develop` nos demais — schema co
 endurece a verificação de identidade no preparador: base ref exatamente `main`/`develop`, pai exato
 por base e `init_source === "parent-schema"`. O schema gerenciado `neon_auth`, presente na cópia da
 `develop`, passa a ser aceito na reconstrução somente após verificação de vazio, como qualquer
-outro schema copiado.
+outro schema copiado. O mesmo vale para `pgrst` (schema gerenciado do PostgREST, vazio nas duas
+permanentes): o inventário read-only `captures/schema-inventory-permanent-branches.txt` mostrou que
+sem ele o `resetEmptyFixture` reprovaria a cópia real — correção RED→GREEN pré-push nesta sessão.
 
 ## Arquivos e sha256 (pós-edição)
 
 | arquivo                                            | sha256 (captures/post-edit-fingerprints.txt) |
 | -------------------------------------------------- | -------------------------------------------- |
 | scripts/ci/provision-neon-fixture.ts               | 6aad527d173c34f0acf028fd486ad01d156a29e0…    |
-| scripts/ci/prepare-neon-fixture.ts                 | 61552ffed98eea2b4b14a069d7291609761947fd…    |
-| src/test/neon-fixture.test.ts                      | 14c0a01b094905c01934a88376c0ed7d26a70f39…    |
+| scripts/ci/prepare-neon-fixture.ts                 | 2a3dd3e2c8b849d98cfef942f2c65752b1f8c722…    |
+| src/test/neon-fixture.test.ts                      | 3a4ef13d3d14af76f4f4d19672f719766ab86895…    |
 | src/test/neon-fixture-provision.test.ts            | 429a554f97cd64ff80ccb24a63015d082eb3148b…    |
 | .github/workflows/neon-pr-branch.yml               | 619430f9efde42f1e7dfa40c1de68615d128097d…    |
 | AGENTS.md                                          | 1195c3a18c34fad830a53dcab4b62ba9de391089…    |
 | docs/adr/ADR-042-cobertura-minima-60-publicacao.md | 4f51953d4b3a805e639440384fac73f9817821fe…    |
 
 Os hashes completos e os pré-edição estão em `captures/pre-edit-fingerprints.txt` e
-`captures/post-edit-fingerprints.txt`.
+`captures/post-edit-fingerprints.txt`. Nota (correção `pgrst`, pré-push): os sha256 de
+`prepare-neon-fixture.ts` e `neon-fixture.test.ts` na tabela são os **atuais**, pós-correção; os
+demais continuam os do fingerprint pós-edição original.
 
 ## Evidência por fase
 
-| fase                                | comando / artefato                                                                                                             | resultado medido                                                                                                                                                                                                                                                    |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| RED (controle negativo)             | `npx vitest run src/test/neon-fixture.test.ts src/test/neon-fixture-provision.test.ts` sobre os bytes do HEAD                  | **5 falhas / 70 passam** — `captures/red-focused-tests.txt`                                                                                                                                                                                                         |
-| GREEN                               | mesmo comando sobre a implementação nova                                                                                       | **75/75 passam**, exit 0 — `captures/green-focused-tests.txt`                                                                                                                                                                                                       |
-| Assinatura da causa                 | derivação da mensagem de 93 caracteres + estado read-only dado                                                                 | `captures/root-cause-signature.txt`                                                                                                                                                                                                                                 |
-| Inventário de sítios (RS-16)        | `grep -rn` por `init_source`/`schema-only` nas superfícies vivas                                                               | `captures/site-inventory.txt`                                                                                                                                                                                                                                       |
-| Matriz M-02                         | `npm run m02:matrix:check`                                                                                                     | `captures/matrix-check.txt`                                                                                                                                                                                                                                         |
-| Gate local (bancada limpa)          | `npm run check` em worktree destacada no commit pai com **exatamente** os arquivos do commit (sem a custódia untracked alheia) | **exit 0**: 135 suítes passed/1 skipped, **1992 testes passed**/18 skipped, lint/typecheck/build PASS, bundle `0822615921bd` inalterado — `captures/check-final.txt`                                                                                                |     |
-| Gate local (worktree compartilhada) | `npm run check` na worktree principal                                                                                          | vermelho **somente** no `format:check`, por 45 arquivos untracked de custódia alheia (`docs/evidence/pr-60-publication-2026-10-07/**`), todos fora do write-set — `captures/check-main-worktree.txt`; classificado, não corrigido por não pertencer a esta custódia |
-| Aceitação do provedor               | run real do workflow após o push                                                                                               | **PENDENTE — só o CI pode provar**                                                                                                                                                                                                                                  |
+| fase                                 | comando / artefato                                                                                                             | resultado medido                                                                                                                                                                                                                                                    |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RED (controle negativo)              | `npx vitest run src/test/neon-fixture.test.ts src/test/neon-fixture-provision.test.ts` sobre os bytes do HEAD                  | **5 falhas / 70 passam** — `captures/red-focused-tests.txt`                                                                                                                                                                                                         |
+| GREEN                                | mesmo comando sobre a implementação nova                                                                                       | **75/75 passam**, exit 0 — `captures/green-focused-tests.txt`                                                                                                                                                                                                       |
+| Assinatura da causa                  | derivação da mensagem de 93 caracteres + estado read-only dado                                                                 | `captures/root-cause-signature.txt`                                                                                                                                                                                                                                 |
+| Inventário de sítios (RS-16)         | `grep -rn` por `init_source`/`schema-only` nas superfícies vivas                                                               | `captures/site-inventory.txt`                                                                                                                                                                                                                                       |
+| Matriz M-02                          | `npm run m02:matrix:check`                                                                                                     | `captures/matrix-check.txt`                                                                                                                                                                                                                                         |
+| RED `pgrst` (correção pré-push)      | `npx vitest run src/test/neon-fixture.test.ts src/test/neon-fixture-provision.test.ts` sem `pgrst` na allowlist                | **1 falha / 75 passam** — `captures/pgrst-red-focused-tests.txt`                                                                                                                                                                                                    |
+| GREEN `pgrst` (correção pré-push)    | mesmo comando com `pgrst` allowlistado                                                                                         | **76/76 passam**, exit 0 — `captures/pgrst-green-focused-tests.txt`                                                                                                                                                                                                 |
+| Inventário read-only das permanentes | console `GET /branches/{id}/schema?db_name=neondb` nas duas permanentes                                                        | dump byte-idêntico (sqlLen 120852); 5 schemas; `pgrst` 0 tabelas — `captures/schema-inventory-permanent-branches.txt`                                                                                                                                               |
+| Gate local (bancada limpa)           | `npm run check` em worktree destacada no commit pai com **exatamente** os arquivos do commit (sem a custódia untracked alheia) | **exit 0**: 135 suítes passed/1 skipped, **1992 testes passed**/18 skipped, lint/typecheck/build PASS, bundle `0822615921bd` inalterado — `captures/check-final.txt`                                                                                                |     |
+| Gate local (worktree compartilhada)  | `npm run check` na worktree principal                                                                                          | vermelho **somente** no `format:check`, por 45 arquivos untracked de custódia alheia (`docs/evidence/pr-60-publication-2026-10-07/**`), todos fora do write-set — `captures/check-main-worktree.txt`; classificado, não corrigido por não pertencer a esta custódia |
+| Aceitação do provedor                | run real do workflow após o push                                                                                               | **PENDENTE — só o CI pode provar**                                                                                                                                                                                                                                  |
 
 ## Checklist anti-vacuoso (17 itens — demonstração honesta)
 
@@ -72,9 +79,10 @@ declarados como não cobertos, nunca como verdes.
 
 - **Aceitação do provedor não provada localmente.** `init_source: "parent-schema"` só é provado
   aceito por um run real; até lá, `DBT-96` permanece ABERTA.
-- **`neon_auth` no inventário.** A cópia `parent-schema` da `develop` inclui o schema gerenciado;
-  a suíte local cobre a aceitação/rejeição no fake-DB, mas o inventário real (tabelas vazias,
-  kinds suportados) só aparece no CI.
+- **`neon_auth`/`pgrst` no inventário.** A cópia `parent-schema` inclui os schemas gerenciados
+  (`neon_auth`, `pgrst`, ambos vazios na projeção read-only das permanentes); a suíte local cobre a
+  aceitação/rejeição no fake-DB, mas o inventário real de tabelas (vazio, kinds suportados) só
+  aparece no CI.
 - **Fechamento de `DBT-96` inalterado:** exige CI atual com 18 suítes, RLS, matriz Playwright
   completa e GET 404 de cleanup, mais inventário independente somente `develop`/`production`.
 - **A worktree compartilhada está vermelha no `format:check` por custódia alheia**: os 45 arquivos que o
