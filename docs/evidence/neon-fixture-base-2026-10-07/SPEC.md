@@ -111,8 +111,9 @@ construção do `Client` (inferência declarada: falha em `connect()`). Refiname
   `drizzle`, `public`); `neon_auth`/`pgrst` permanecem copiados, verificados-vazios e devolvidos em
   `keptSchemas` — nunca derrubados.
 - Contrato 5 acrescenta: o provisionador só lê URIs após branch **e** endpoint `read_write`
-  estarem `ready`; o `prepare` projeta `phase`/`code` sanitizados no refusal e grava artefato de
-  falha quando inexistente.
+  conectável (`active`/`idle`; o enum de endpoint é `init`/`active`/`idle` e não tem `ready`); o
+  `prepare` projeta `phase`/`code` sanitizados no refusal e grava artefato de falha quando
+  inexistente.
 - DoD: as capturas vigentes desta onda são `captures/endpoint-readiness-red.txt` (2 falhas / 36 em
   38), `captures/endpoint-readiness-green.txt` (38/38), `captures/prepare-refusal-red.txt` (16
   falhas / 37 em 53), `captures/prepare-refusal-green.txt` (53/53) e `captures/check-local.txt`

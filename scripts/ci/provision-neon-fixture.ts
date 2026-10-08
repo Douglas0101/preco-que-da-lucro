@@ -221,7 +221,9 @@ export async function provision(
     phase = "waiting-ready";
     // Readiness includes the read_write ENDPOINT, not only the branch: a
     // freshly created endpoint may still be `init` when the branch reports
-    // `ready`, and a connect() against it fails before any SQL runs.
+    // `ready`, and a connect() against it fails before any SQL runs. Endpoint
+    // states are init/active/idle (EndpointState in the Neon API) — there is no
+    // `ready`; `idle` is suspended but accepts connections and wakes on connect.
     const deadline = now() + readyDeadlineMs;
     let host = "";
     for (;;) {
@@ -237,7 +239,10 @@ export async function provision(
         branch.branch.id === branchId &&
         branch.branch.current_state === "ready";
       const endpoint = verifiedReadWriteEndpoint(endpoints, branchId, plan.projectId);
-      if (branchReady && record(endpoint) && endpoint.current_state === "ready") {
+      const endpointReady =
+        record(endpoint) &&
+        (endpoint.current_state === "active" || endpoint.current_state === "idle");
+      if (branchReady && endpointReady) {
         host = String(endpoint.host);
         break;
       }

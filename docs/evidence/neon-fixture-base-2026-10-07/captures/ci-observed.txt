@@ -207,3 +207,11 @@ mergeable: MERGEABLE · mergeStateStatus: BLOCKED · headRefOid: 2875382b2702c21
 - A membership de papéis (neondb_owner × neon_auth/neon_service) não é observável pelas leituras read-only autorizadas; o candidato DROP SCHEMA é hipótese com evidência estrutural, não veredito.
 - init_source real do filho é registrado no artefato (parent-data) e foi validado ao vivo antes da recusa; o valor não sobrevive ao delete fora do artefato.
 - Este arquivo é observação bruta de CI (WIP, não commitado); a aceitação completa do DBT-96 (18 suítes/RLS/matriz/GET 404 de dados) segue pendente.
+
+== Run 37731806892 (Neon PR, head 8f083a0, 2026-10-08) ==
+- Provisionamento: POST `parent-data` da base aceito — branch br-wispy-haze-aylpmbjn, TTL 24h; branch_id entregue ao cleanup antes de qualquer espera por compute/URI.
+- Readiness: deadline de 150 s esgotado às 05:22:42Z (início 05:20:10Z) porque o predicado novo exigia `endpoint.current_state === "ready"`; o enum real de EndpointState é `init`/`active`/`idle` (spec v2:158), sem `ready`.
+- Artefato neon-pr-provision.json (baixado): fase `waiting-ready`, verdict NO-VERDICT, reason "fixture provisioning readiness deadline exhausted", branchId br-wispy-haze-aylpmbjn.
+- Jobs: Fork-guard success; Branch efêmera failure (exit 2); Cleanup always() success — DELETE + GET pós-delete 404.
+- Consequência: fixture/migrations/18 suítes/RLS/schema-diff/journal/E2E `skipped`; DBT-96 segue ABERTA.
+- Corrigendum: predicado `active`/`idle` (idle acorda ao conectar) + caso de teste de idle; RED 6/39 → GREEN 39/39 (capturas endpoint-vocabulary-red/green).

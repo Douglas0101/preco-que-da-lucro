@@ -117,8 +117,9 @@ ocorreu 0,52 s após a construção do `Client`, tempo consistente apenas com fa
 `client.connect()` (inferência declarada; o caminho SQL exigiria ≥61 viagens de rede).
 
 1. **Readiness inclui o endpoint.** O loop de espera do provisionador passa a exigir, além de
-   `branch.current_state === "ready"`, o endpoint `read_write` correspondente com
-   `current_state === "ready"` (mesmos predicados de branch/projeto/tipo/disabled/host), antes de
+   `branch.current_state === "ready"`, o endpoint `read_write` correspondente com estado
+   conectável (`active`/`idle` — o enum real é `init`/`active`/`idle`, sem `ready`; `idle` acorda ao
+   conectar) sob os mesmos predicados de branch/projeto/tipo/disabled/host, antes de
    ler qualquer URI — um endpoint recém-criado pode seguir em `init` quando a branch já reporta
    `ready`.
 2. **Drop-set migracional.** `resetEmptyFixture` deixa de derrubar **todos** os schemas
