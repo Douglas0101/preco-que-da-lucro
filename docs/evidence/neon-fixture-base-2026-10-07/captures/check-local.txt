@@ -10,7 +10,7 @@
   "schema": "m02-lockfile-guard/1",
   "ok": true,
   "status": "pass",
-  "generatedAt": "2026-10-08T05:58:23.464Z",
+  "generatedAt": "2026-10-08T06:08:52.652Z",
   "repo": "/tmp/pqd-debug-check",
   "observed": {
     "policyRange": {
@@ -69,7 +69,7 @@
   "schema": "upgrade-guard/1",
   "ok": true,
   "status": "pass",
-  "generatedAt": "2026-10-08T05:58:23.900Z",
+  "generatedAt": "2026-10-08T06:08:52.948Z",
   "repo": "/tmp/pqd-debug-check",
   "observed": {
     "policySchema": "dependency-policy/1",
@@ -480,7 +480,7 @@
   "schema": "migration-toolchain-guard/1",
   "ok": true,
   "status": "pass",
-  "generatedAt": "2026-10-08T05:58:24.316Z",
+  "generatedAt": "2026-10-08T06:08:53.337Z",
   "repo": "/tmp/pqd-debug-check",
   "observed": {
     "repo": "/tmp/pqd-debug-check",
@@ -552,7 +552,7 @@
   "schema": "contract-guard/1",
   "ok": true,
   "status": "pass",
-  "generatedAt": "2026-10-08T05:58:24.707Z",
+  "generatedAt": "2026-10-08T06:08:53.638Z",
   "repo": "/tmp/pqd-debug-check",
   "observed": {
     "repo": "/tmp/pqd-debug-check",
@@ -660,7 +660,7 @@ m02-temporal-guard: OK (3 superficies vivas, 0 violacao)
 > m02:state:check
 > tsx scripts/m02-state-check.ts
 
-M-02 ancestral state marker is valid for HEAD 45a4b3742353254b254cb70e201b840d3103cd04 (folga 3/13 commits).
+M-02 ancestral state marker is valid for HEAD 6b128a23562d45a87215fd046470fef7af9c25f5 (folga 5/13 commits).
 Worktree: clean.
 External state: not inspected by this local check.
 
@@ -675,8 +675,8 @@ M-02 BFF boundary is clean: all database reachability is allowlisted or reposito
 {
   "check": "m02:secrets-audit",
   "read_only": true,
-  "started_at": "2026-10-08T05:58:25.925Z",
-  "finished_at": "2026-10-08T05:58:27.435Z",
+  "started_at": "2026-10-08T06:08:54.867Z",
+  "finished_at": "2026-10-08T06:08:56.449Z",
   "result": "COMPLETE_WITH_LIMITS",
   "limits": "Lexical consumer map; does not prove credential liveness or absence of manual/external consumers. Never authorizes revocation. Env values are discarded; CI metadata contains names only. Evidence, private/vendor directories, tests and symlinks are excluded.",
   "coverage": {
@@ -5211,6 +5211,14 @@ M-02 BFF boundary is clean: all database reachability is allowlisted or reposito
         "reason": "evidence-auditor-or-test-not-consumer"
       },
       {
+        "path": "docs/evidence/neon-fixture-base-2026-10-07/captures/role-owned-green.txt",
+        "reason": "evidence-auditor-or-test-not-consumer"
+      },
+      {
+        "path": "docs/evidence/neon-fixture-base-2026-10-07/captures/role-owned-red.txt",
+        "reason": "evidence-auditor-or-test-not-consumer"
+      },
+      {
         "path": "docs/evidence/neon-fixture-base-2026-10-07/captures/schema-inventory-green.txt",
         "reason": "evidence-auditor-or-test-not-consumer"
       },
@@ -9322,8 +9330,8 @@ All matched files use Prettier code style!
 
  Test Files  135 passed | 1 skipped (136)
       Tests  2013 passed | 18 skipped (2031)
-   Start at  02:59:38
-   Duration  160.57s (transform 3.57s, setup 11.17s, import 31.39s, tests 34.45s, environment 68.31s)
+   Start at  03:09:54
+   Duration  160.90s (transform 3.44s, setup 10.99s, import 31.71s, tests 34.27s, environment 68.49s)
 
 
 > build
@@ -9383,7 +9391,7 @@ computing gzip size...
 .output/public/assets/tanstack-vendor-B0dT_-Hx.js   159.80 kB │ gzip: 51.91 kB
 .output/public/assets/index-U02xqsXA.js             238.76 kB │ gzip: 74.49 kB
 
-✓ built in 2.01s
+✓ built in 2.00s
 vite v8.2.2 building ssr environment for production...
 transforming...
 ✓ 283 modules transformed.
@@ -9450,7 +9458,7 @@ node_modules/.nitro/vite/services/ssr/assets/chat.functions-B1GAb_9A.js         
 node_modules/.nitro/vite/services/ssr/assets/server-DUt-KqfJ.js                         82.40 kB │ gzip: 21.80 kB
 node_modules/.nitro/vite/services/ssr/assets/auth.server-BLfu_fDR.js                   375.01 kB │ gzip: 90.71 kB
 
-✓ built in 1.27s
+✓ built in 1.18s
 
 [nitro] ◐ Building [Nitro] (preset: node-server, compatibility: 2026-10-03)
 [nitro] ✔ Generated public .output/public
@@ -9518,7 +9526,7 @@ computing gzip size...
 .output/server/_ssr/inicio-zOgDc55V.mjs                         18.26 kB │ gzip:   4.69 kB
 .output/server/_ssr/ponto-equilibrio-VrPW1EWf.mjs               19.89 kB │ gzip:   5.11 kB
 .output/server/_ssr/query-options-C4flldZS.mjs                  20.20 kB │ gzip:   6.15 kB
-.output/server/index.mjs                                        21.93 kB │ gzip:   6.31 kB
+.output/server/index.mjs                                        21.93 kB │ gzip:   6.30 kB
 .output/server/_libs/noble__hashes.mjs                          23.93 kB │ gzip:   7.95 kB
 .output/server/_ssr/financial.service-BqVUCqx3.mjs              23.98 kB │ gzip:   5.63 kB
 .output/server/_libs/h3+srvx.mjs                                27.27 kB │ gzip:   7.19 kB
@@ -9551,7 +9559,7 @@ computing gzip size...
 .output/server/_libs/@tanstack/react-router+[...].mjs          751.47 kB │ gzip: 158.16 kB
 .output/server/_libs/@better-auth/core+[...].mjs               851.01 kB │ gzip: 169.62 kB
 
-✓ built in 913ms
+✓ built in 821ms
 ℹ Generated .output/nitro.json
 
 [nitro] ✔ You can preview this build using npx vite preview

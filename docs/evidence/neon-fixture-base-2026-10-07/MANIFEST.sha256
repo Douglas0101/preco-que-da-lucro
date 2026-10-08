@@ -4,7 +4,7 @@ abf0cbcda1249f854ee6ca55cef266df11dd724dc6b01a854a1526f77154217a  docs/evidence/
 8a80904e4c90edf596d25accc37578c030c12338c6e9cdac4bcefdc3a7078f6b  docs/evidence/neon-fixture-base-2026-10-07/captures/baseline-inventory-after.json
 e5d3fe92966d04d6d66f04bd851b284ffe0d6be8fc8a2b03b3b2711ad1ae8931  docs/evidence/neon-fixture-base-2026-10-07/captures/baseline-inventory-before.json
 2c6a680522b4ad3c12c85dba39c3a27cbd9c04ae75f7d5405b7c42eefe99b530  docs/evidence/neon-fixture-base-2026-10-07/captures/base-schema-inventory.txt
-4733894eb4dc3c3b074b1e40edee49ab70f6ed04bd5b50865d6d7fabe9abbf59  docs/evidence/neon-fixture-base-2026-10-07/captures/check-local.txt
+74f7035ba9b2085feab4d6510f87303f5a477dc1b1f62b61940e4b4677aefc78  docs/evidence/neon-fixture-base-2026-10-07/captures/check-local.txt
 772afb504b5e8fe93afc61a0f3141dfb4a6769aff86428407432c37b78e15e84  docs/evidence/neon-fixture-base-2026-10-07/captures/ci-observed.txt
 916c19ffa45d8a300dc4fd3e637d7f332a16ec375b456db6cfb846d181912653  docs/evidence/neon-fixture-base-2026-10-07/captures/endpoint-readiness-green.txt
 3f4761a458086b4c3679a6724d338a1cc11a22b9468df29e6e2c4d4ad2154ac7  docs/evidence/neon-fixture-base-2026-10-07/captures/endpoint-readiness-red.txt
@@ -27,5 +27,5 @@ bb61e9241358aa3a809835b63aba02418e54aafba7d3207a4d67fe37cc35433f  docs/evidence/
 677699bb32cb7b44cd3e1415af63feb182ab7e404bbc49a2c3106e3119fa858f  docs/evidence/neon-fixture-base-2026-10-07/captures/source-hashes.txt
 fb907e7e051e8099d6f9891c2b59f472f810daa9b99f053c32dc8e26a5bdaa11  docs/evidence/neon-fixture-base-2026-10-07/captures/uri-pinning-green.txt
 2a4d6ba9264cac6646365ebe81deb50166d4c07a354d3f304c4a53aa83ef801e  docs/evidence/neon-fixture-base-2026-10-07/captures/uri-pinning-red.txt
-98519c7a9b56b6ea5f7a2c6d318ea97f3edcd4d46cd9d1e4ec321a7ca7b17782  docs/evidence/neon-fixture-base-2026-10-07/README.md
+c0301cabf789ea6f6226752959b2ce1d0f95c8b6661841788cfde8ae235a7a87  docs/evidence/neon-fixture-base-2026-10-07/README.md
 f9e012449528416ab4301681ed7f2334a7d2d986f4e12c47d61a11f1245ceb48  docs/evidence/neon-fixture-base-2026-10-07/SPEC.md
