@@ -81,6 +81,14 @@ describe("guard do registry de dívidas (DEBTS.md)", () => {
     expect(result.stderr).toContain("fora do padrao DBT-NN");
   });
 
+  it("id com tres digitos e aceito pelo padrao DBT-NN+", () => {
+    const row = ROW.replace("DBT-01", "DBT-100");
+    const result = run(fixture("id-tres-digitos.md", `${HEADER}\n${row}\n`));
+    expect(result.stderr).toBe("");
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("debts guard: OK (1 dividas");
+  });
+
   it("linha com contagem de células divergente do header reprova", () => {
     const row = "| DBT-01 | WP4 N1 | conformidade | alta | canario por store | ABERTA |";
     const result = run(fixture("celulas.md", `${HEADER}\n${row}\n`));
