@@ -3504,3 +3504,20 @@ freeze de main ou obrigações SDD. CI, preview e produção têm evidência pr�
 Evidência: docs/evidence/redeployment-critical-2026-10-06/; PROGRESS L733–L737.
 
 Latest state marker parent = `7ebe24cbdd2684f1d668a7f708bd047a59e94122`,
+
+## Bloco aditivo — correções do fixture Neon do PR #60 (2026-10-08)
+
+Correção crítica do CI de PR do Neon: o provisionador espera o endpoint `read_write` com
+estado conectável real (`active`/`idle`; o enum é `init`/`active`/`idle`, sem `ready`), o
+`prepare` projeta `phase`/`code` sanitizados no refusal e grava artefato de falha, o
+`resetEmptyFixture` derruba apenas o subconjunto migracional (`app_private`/`drizzle`/`public`)
+e mantém os schemas não-migracionais verificados-vazios — incluindo o sexto schema `auth`
+(owner `cloud_admin`, vazio) descoberto em leitura read-only da base. Re-pin prescrito pelo
+próprio `m02:state:check` após a folga de 13 commits ser esgotada pelas correções da onda.
+
+A aceitação real do provedor segue exigindo o CI corrente (18 suítes, RLS, matriz Playwright
+completa, GET 404 e inventário independente das três permanentes) e `DBT-96` permanece aberta.
+
+Evidência: docs/evidence/neon-fixture-base-2026-10-07/; PROGRESS L779–L782.
+
+Latest state marker parent = `4a266e1d4d3bdf09ba2561885a96c885a9806e0a`,
