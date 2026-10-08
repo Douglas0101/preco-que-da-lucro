@@ -1,0 +1,14 @@
+SONAR RUN RED — m02-transaction-sites under coverage (runner 37736400690, head eafcf2c, 2026-10-08)
+The entrypoint-guard test imports scripts/m02-matrix; the module eagerly parsed every source
+file through the v8-instrumented TypeScript compiler, exceeding the 5s test timeout. The same
+test also failed in run 37634148409-era context and passed in others — load-sensitive.
+
+Verbatim runner excerpt:
+scan + cobertura	Suíte com cobertura (lcov)	2026-10-08T06:14:06.7374433Z ^[[31m     ^[[31m×^[[31m importar o gerador não regrava a matriz^[[39m^[[33m 5025^[[2mms^[[22m^[[39m
+scan + cobertura	Suíte com cobertura (lcov)	2026-10-08T06:15:12.8852421Z ^[[31m⎯⎯⎯⎯⎯⎯⎯^[[39m^[[1m^[[41m Failed Tests 1 ^[[49m^[[22m^[[31m⎯⎯⎯⎯⎯⎯⎯^[[39m
+scan + cobertura	Suíte com cobertura (lcov)	2026-10-08T06:15:12.8854540Z ^[[41m^[[1m FAIL ^[[22m^[[49m src/test/m02-transaction-sites.test.ts^[[2m > ^[[22mguarda de entrypoint de scripts/m02-matrix.ts^[[2m > ^[[22mimportar o gerador não regrava a matriz
+scan + cobertura	Suíte com cobertura (lcov)	2026-10-08T06:15:12.8859632Z ^[[31m^[[1mError^[[22m: Test timed out in 5000ms.
+scan + cobertura	Suíte com cobertura (lcov)	2026-10-08T06:15:12.8927455Z     ^[[90m355|^[[39m   ^[[34mit^[[39m(^[[32m"importar o gerador não regrava a matriz"^[[39m^[[33m,^[[39m ^[[35masync^[[39m () ^[[33m=>^[[39m {
+scan + cobertura	Suíte com cobertura (lcov)	2026-10-08T06:15:12.8938319Z ^[[2m Test Files ^[[22m ^[[1m^[[31m1 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m134 passed^[[39m^[[22m^[[2m | ^[[22m^[[33m1 skipped^[[39m^[[90m (136)^[[39m
+scan + cobertura	Suíte com cobertura (lcov)	2026-10-08T06:15:12.8965509Z ^[[2m      Tests ^[[22m ^[[1m^[[31m1 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m2012 passed^[[39m^[[22m^[[2m | ^[[22m^[[33m18 skipped^[[39m^[[90m (2031)^[[39m
+scan + cobertura	Suíte com cobertura (lcov)	2026-10-08T06:15:12.9021180Z ##[error]Error: Test timed out in 5000ms.

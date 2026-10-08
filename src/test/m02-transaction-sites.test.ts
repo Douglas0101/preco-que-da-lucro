@@ -363,7 +363,9 @@ describe("guarda de entrypoint de scripts/m02-matrix.ts", () => {
 
     // Import dinâmico deliberado: o teste mede o efeito colateral da carga do
     // módulo e um import estático seria içado para antes do snapshot.
-    await import("../../scripts/m02-matrix");
+    const generator = await import("../../scripts/m02-matrix");
+    // The lazy compiler must not be loaded just by importing the module.
+    expect(generator.compilerLoaded()).toBe(false);
 
     for (const [index, path] of matrixFiles.entries()) {
       expect(readFileSync(path)).toEqual(before[index].bytes);

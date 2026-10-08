@@ -234,3 +234,8 @@ mergeable: MERGEABLE · mergeStateStatus: BLOCKED · headRefOid: 2875382b2702c21
 - Provisionamento/readiness/URIs/`connect()`/preparação: verdes; o `drop role if exists "app_runtime"` recusou com SQLSTATE **2BP01** (dependent_objects_still_exist) — o papel ainda detinha o CONNECT de banco concedido pela 0001 (o privilégio sobrevive ao drop dos schemas).
 - Corrigendum: `drop owned by "app_runtime"` antes do `drop role` (DROP OWNED revoga privilégios no banco corrente e em objetos compartilhados, conforme docs PG17; `neondb_owner` tem admin_option e é membro do papel); RED 1/55 → GREEN 128/128 (capturas role-owned-red/green).
 - Jobs: Fork-guard success; Branch efêmera failure (exit 2); Cleanup always() success — DELETE + GET pós-delete 404.
+
+== Run Sonar 37736400690 (head eafcf2c, 2026-10-08) ==
+- `scan + cobertura` e `main-coverage-mirror`: FAILURE — a suíte com cobertura estourou o timeout de 5000ms em `m02-transaction-sites.test.ts > importar o gerador não regrava a matriz` (o import do gerador parseava todo o `src/**` no nível do módulo pelo compilador TypeScript instrumentado; o mesmo teste falhou em um run irmão e passou em outro — sensível a carga).
+- Sem LCOV emitido, o gate do CE e o mirror classificaram NO-VERDICT (cascata), não por regressão de código.
+- Corrigendum: `scripts/m02-matrix.ts` passa a adiar o parse (`compiler()`, `parsedFiles()`, `databaseFiles()`, `importGraph()` preguiçosos) e o teste pina o estado com `compilerLoaded() === false` após o import; cobertura focada 21/21 em 1,67s (capturas coverage-import-red/green).

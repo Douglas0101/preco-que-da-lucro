@@ -1,7 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, extname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import ts from "typescript";
+import type ts from "typescript";
 import { describeMatrixDrift } from "./lib/m02-matrix-drift";
 import { isEntrypoint, transactionSites } from "./lib/m02-transaction-sites";
 import { isDatabaseModule } from "./lib/m02-database-module";
@@ -57,6 +58,24 @@ const overlayPath = resolve(specRoot, "matrix.overlay.yaml");
 const generatedPath = resolve(specRoot, "matrix.generated.yaml");
 const matrixPath = resolve(specRoot, "matrix.yaml");
 
+const requireFromHere = createRequire(import.meta.url);
+let typescriptModule: typeof import("typescript") | undefined;
+
+/**
+ * The TypeScript compiler is loaded on first use: importing this module (the
+ * entrypoint-guard test imports it under v8 coverage) must stay cheap — the
+ * compiler's instrumentation alone can push the import past the test timeout.
+ */
+function compiler(): typeof import("typescript") {
+  typescriptModule ??= requireFromHere("typescript") as typeof import("typescript");
+  return typescriptModule;
+}
+
+/** Test-visible state: whether the lazy compiler has been loaded. */
+export function compilerLoaded(): boolean {
+  return typescriptModule !== undefined;
+}
+
 function sourceFiles(directory: string): string[] {
   const files: string[] = [];
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -93,44 +112,68 @@ function resolveModule(fromFile: string, moduleName: string): string | null {
 }
 
 function parseFile(path: string): ts.SourceFile {
-  return ts.createSourceFile(path, readFileSync(path, "utf8"), ts.ScriptTarget.Latest, true);
+  return compiler().createSourceFile(
+    path,
+    readFileSync(path, "utf8"),
+    compiler().ScriptTarget.Latest,
+    true,
+  );
 }
 
-const parsedFiles = new Map(files.map((path) => [path, parseFile(path)]));
+let parsedFilesCache: Map<string, ts.SourceFile> | undefined;
+
+/**
+ * Parsing every source file is deferred to first use: the entrypoint-guard
+ * test imports this module under v8 coverage, and an eager module-level parse
+ * (through the instrumented compiler) can exceed the test timeout. Generation
+ * and `--check` still parse the full tree on their first access.
+ */
+function parsedFiles(): Map<string, ts.SourceFile> {
+  parsedFilesCache ??= new Map(files.map((path) => [path, parseFile(path)]));
+  return parsedFilesCache;
+}
 
 function importsOf(path: string): string[] {
-  const source = parsedFiles.get(path);
+  const source = parsedFiles().get(path);
   if (!source) return [];
   const imports = new Set<string>();
   const visit = (node: ts.Node) => {
-    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+    if (compiler().isImportDeclaration(node) && compiler().isStringLiteral(node.moduleSpecifier)) {
       imports.add(node.moduleSpecifier.text);
     }
     if (
-      ts.isExportDeclaration(node) &&
+      compiler().isExportDeclaration(node) &&
       node.moduleSpecifier &&
-      ts.isStringLiteral(node.moduleSpecifier)
+      compiler().isStringLiteral(node.moduleSpecifier)
     ) {
       imports.add(node.moduleSpecifier.text);
     }
-    if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+    if (
+      compiler().isCallExpression(node) &&
+      node.expression.kind === compiler().SyntaxKind.ImportKeyword
+    ) {
       const argument = node.arguments[0];
-      if (argument && ts.isStringLiteral(argument)) imports.add(argument.text);
+      if (argument && compiler().isStringLiteral(argument)) imports.add(argument.text);
     }
-    ts.forEachChild(node, visit);
+    compiler().forEachChild(node, visit);
   };
   visit(source);
   return [...imports].sort((a, b) => a.localeCompare(b));
 }
 
-const importGraph = new Map<string, string[]>();
-for (const path of files) {
-  importGraph.set(
-    path,
-    importsOf(path)
-      .map((moduleName) => resolveModule(path, moduleName))
-      .filter((value): value is string => value !== null),
+let importGraphCache: Map<string, string[]> | undefined;
+
+/** Deferred like `parsedFiles()`: importing the module must not parse sources. */
+function importGraph(): Map<string, string[]> {
+  importGraphCache ??= new Map(
+    files.map((path) => [
+      path,
+      importsOf(path)
+        .map((moduleName) => resolveModule(path, moduleName))
+        .filter((value): value is string => value !== null),
+    ]),
   );
+  return importGraphCache;
 }
 
 function isTypeOnlyImport(node: ts.ImportDeclaration): boolean {
@@ -138,7 +181,7 @@ function isTypeOnlyImport(node: ts.ImportDeclaration): boolean {
   return (
     clause?.isTypeOnly === true ||
     (clause?.namedBindings !== undefined &&
-      ts.isNamedImports(clause.namedBindings) &&
+      compiler().isNamedImports(clause.namedBindings) &&
       clause.namedBindings.elements.length > 0 &&
       clause.namedBindings.elements.every((element) => element.isTypeOnly))
   );
@@ -146,32 +189,42 @@ function isTypeOnlyImport(node: ts.ImportDeclaration): boolean {
 
 function hasDatabaseImport(path: string): boolean {
   if (path.startsWith(`${sourceRoot}/db/`)) return true;
-  const source = parsedFiles.get(path);
+  const source = parsedFiles().get(path);
   if (!source) return false;
   let found = false;
   const visit = (node: ts.Node) => {
     if (found) return;
-    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+    if (compiler().isImportDeclaration(node) && compiler().isStringLiteral(node.moduleSpecifier)) {
       if (!isTypeOnlyImport(node) && isDatabaseModule(node.moduleSpecifier.text)) found = true;
     }
     if (
-      ts.isExportDeclaration(node) &&
+      compiler().isExportDeclaration(node) &&
       node.moduleSpecifier &&
-      ts.isStringLiteral(node.moduleSpecifier)
+      compiler().isStringLiteral(node.moduleSpecifier)
     ) {
       if (isDatabaseModule(node.moduleSpecifier.text)) found = true;
     }
-    if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+    if (
+      compiler().isCallExpression(node) &&
+      node.expression.kind === compiler().SyntaxKind.ImportKeyword
+    ) {
       const argument = node.arguments[0];
-      if (argument && ts.isStringLiteral(argument) && isDatabaseModule(argument.text)) found = true;
+      if (argument && compiler().isStringLiteral(argument) && isDatabaseModule(argument.text))
+        found = true;
     }
-    ts.forEachChild(node, visit);
+    compiler().forEachChild(node, visit);
   };
   visit(source);
   return found;
 }
 
-const databaseFiles = new Set(files.filter(hasDatabaseImport));
+let databaseFilesCache: Set<string> | undefined;
+
+/** Deferred like `parsedFiles()`: importing the module must not parse sources. */
+function databaseFiles(): Set<string> {
+  databaseFilesCache ??= new Set(files.filter(hasDatabaseImport));
+  return databaseFilesCache;
+}
 
 function reachableDatabasePaths(entry: string): string[] {
   const visited = new Set<string>();
@@ -179,8 +232,8 @@ function reachableDatabasePaths(entry: string): string[] {
   const visit = (path: string) => {
     if (visited.has(path)) return;
     visited.add(path);
-    if (databaseFiles.has(path)) found.add(normalizedPath(path));
-    for (const imported of importGraph.get(path) ?? []) visit(imported);
+    if (databaseFiles().has(path)) found.add(normalizedPath(path));
+    for (const imported of importGraph().get(path) ?? []) visit(imported);
   };
   visit(entry);
   return [...found].sort((a, b) => a.localeCompare(b));
@@ -191,7 +244,10 @@ function lineAt(source: ts.SourceFile, position: number): number {
 }
 
 function isExported(node: ts.VariableStatement): boolean {
-  return node.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) ?? false;
+  return (
+    node.modifiers?.some((modifier) => modifier.kind === compiler().SyntaxKind.ExportKeyword) ??
+    false
+  );
 }
 
 function classifyServerFunction(text: string): "createServerFn" | "alias" | null {
@@ -205,7 +261,7 @@ function collectOperation(
   declaration: ts.VariableDeclaration,
   operations: SourceEntry["operations"],
 ): void {
-  if (!ts.isIdentifier(declaration.name) || !declaration.initializer) return;
+  if (!compiler().isIdentifier(declaration.name) || !declaration.initializer) return;
   const kind = classifyServerFunction(declaration.initializer.getText(source));
   if (kind) {
     operations.push({
@@ -217,16 +273,16 @@ function collectOperation(
 }
 
 function serverFunctionOperations(path: string): SourceEntry["operations"] {
-  const source = parsedFiles.get(path);
+  const source = parsedFiles().get(path);
   if (!source) return [];
   const operations: SourceEntry["operations"] = [];
   const visit = (node: ts.Node) => {
-    if (ts.isVariableStatement(node) && isExported(node)) {
+    if (compiler().isVariableStatement(node) && isExported(node)) {
       for (const declaration of node.declarationList.declarations) {
         collectOperation(source, declaration, operations);
       }
     }
-    ts.forEachChild(node, visit);
+    compiler().forEachChild(node, visit);
   };
   visit(source);
   return operations;
@@ -310,12 +366,14 @@ function buildMatrix() {
       ),
       apiRoutes: routeEntries.length,
       transactionSites: transactions.length,
-      directDatabaseFiles: databaseFiles.size,
+      directDatabaseFiles: databaseFiles().size,
     },
     bffs: functionEntries,
     routes: routeEntries,
     transactionSites: transactions,
-    directDatabaseFiles: [...databaseFiles].map(normalizedPath).sort((a, b) => a.localeCompare(b)),
+    directDatabaseFiles: [...databaseFiles()]
+      .map(normalizedPath)
+      .sort((a, b) => a.localeCompare(b)),
   };
   return {
     generated,
