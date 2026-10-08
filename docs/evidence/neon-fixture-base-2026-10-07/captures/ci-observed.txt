@@ -229,3 +229,8 @@ mergeable: MERGEABLE · mergeStateStatus: BLOCKED · headRefOid: 2875382b2702c21
 - Causa raiz (fonte PG17 `user.c` + leitura read-only da base): o check `!superuser() && dissuper` é INCONDICIONAL à mudança; `neondb_owner` não é superuser e `app_runtime` copiado já existe, então o ELSE nunca pode rodar nesta branch (bancos novos usam o CREATE). `neondb_owner` tem `admin_option` sobre `app_runtime` (grantor `cloud_admin`).
 - Jobs: Fork-guard success; Branch efêmera failure (exit 1); Cleanup always() success — DELETE + GET pós-delete 404.
 - Corrigendum: `resetEmptyFixture` derruba o papel migracional (`drop role if exists "app_runtime"`) após os schemas e antes de `create schema public`, para a 0001 recriá-lo pelo caminho CREATE; papéis de provedor/legado intocados; RED 1/55 → GREEN 128/128 (capturas role-drop-red/green; causa em `role-alter-precondition.txt`).
+
+== Run 37735482485 (Neon PR, head de7f987, 2026-10-08) ==
+- Provisionamento/readiness/URIs/`connect()`/preparação: verdes; o `drop role if exists "app_runtime"` recusou com SQLSTATE **2BP01** (dependent_objects_still_exist) — o papel ainda detinha o CONNECT de banco concedido pela 0001 (o privilégio sobrevive ao drop dos schemas).
+- Corrigendum: `drop owned by "app_runtime"` antes do `drop role` (DROP OWNED revoga privilégios no banco corrente e em objetos compartilhados, conforme docs PG17; `neondb_owner` tem admin_option e é membro do papel); RED 1/55 → GREEN 128/128 (capturas role-owned-red/green).
+- Jobs: Fork-guard success; Branch efêmera failure (exit 2); Cleanup always() success — DELETE + GET pós-delete 404.

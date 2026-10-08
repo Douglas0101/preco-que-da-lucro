@@ -111,9 +111,11 @@ construção do `Client` (inferência declarada: falha em `connect()`). Refiname
   `drizzle`, `public`); os demais schemas da base — `auth` (owner `cloud_admin`, vazio),
   `neon_auth` e `pgrst` — permanecem copiados, verificados-vazios e devolvidos em `keptSchemas` —
   nunca derrubados. O **papel** migracional `app_runtime` (criado pela 0001) é derrubado após os
-  schemas e antes de `create schema public`, para a cadeia recriá-lo pelo caminho CREATE — o
-  `ALTER ROLE ... NOSUPERUSER` do ELSE é recusado a qualquer executor não-superuser pelo PG17
-  (check incondicional `dissuper`), e `neondb_owner` não é superuser; papéis de provedor/legado
+  schemas e antes de `create schema public` (`drop owned by` e então `drop role if exists`), para
+  a cadeia recriá-lo pelo caminho CREATE — o `ALTER ROLE ... NOSUPERUSER` do ELSE é recusado a
+  qualquer executor não-superuser pelo PG17 (check incondicional `dissuper`), e um `drop role`
+  puro falha com `2BP01` enquanto o papel mantiver privilégios (o CONNECT de banco da 0001
+  sobrevive ao drop dos schemas); `neondb_owner` não é superuser; papéis de provedor/legado
   (`authenticator`/`anonymous`/`authenticated`) permanecem intocados.
 - Contrato 5 acrescenta: o provisionador só lê URIs após branch **e** endpoint `read_write`
   conectável (`active`/`idle`; o enum de endpoint é `init`/`active`/`idle` e não tem `ready`); o

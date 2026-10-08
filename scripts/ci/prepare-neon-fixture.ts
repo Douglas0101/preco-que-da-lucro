@@ -166,8 +166,12 @@ export async function resetEmptyFixture(db: FixtureDatabase) {
     // schemas. The ELSE path cannot run on this branch: PostgreSQL refuses
     // `ALTER ROLE ... NOSUPERUSER` for any non-superuser executor even when the
     // attribute does not change (user.c, dissuper check), and neondb_owner is
-    // not superuser. Only this migration-owned role is dropped; provider and
-    // legacy roles (authenticator/anonymous/authenticated) stay untouched.
+    // not superuser. A bare DROP ROLE fails with SQLSTATE 2BP01 while the role
+    // still holds privileges (the database-level CONNECT granted by 0001), so
+    // DROP OWNED BY revokes them first. Only this migration-owned role is
+    // dropped; provider and legacy roles (authenticator/anonymous/authenticated)
+    // stay untouched.
+    await db.query('drop owned by "app_runtime"');
     await db.query('drop role if exists "app_runtime"');
     await db.query("create schema public");
     await db.query("commit");

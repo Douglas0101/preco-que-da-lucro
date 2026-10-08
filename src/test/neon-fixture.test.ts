@@ -281,14 +281,16 @@ describe("empty schema preparation refuses inherited data before any destructive
   it("drops the migration-owned role so the chain recreates it through its CREATE path", async () => {
     const db = database();
     await resetEmptyFixture(db);
-    expect(db.calls.filter((sql) => sql.startsWith("drop role"))).toEqual([
-      'drop role if exists "app_runtime"',
-    ]);
+    expect(
+      db.calls.filter((sql) => sql.startsWith("drop owned") || sql.startsWith("drop role")),
+    ).toEqual(['drop owned by "app_runtime"', 'drop role if exists "app_runtime"']);
     const firstSchemaDrop = db.calls.findIndex((sql) => sql.startsWith("drop schema"));
+    const ownedDrop = db.calls.findIndex((sql) => sql.startsWith("drop owned"));
     const roleDrop = db.calls.findIndex((sql) => sql.startsWith("drop role"));
     const createPublic = db.calls.findIndex((sql) => sql.startsWith("create schema public"));
     expect(firstSchemaDrop).toBeGreaterThan(-1);
-    expect(roleDrop).toBeGreaterThan(firstSchemaDrop);
+    expect(ownedDrop).toBeGreaterThan(firstSchemaDrop);
+    expect(roleDrop).toBeGreaterThan(ownedDrop);
     expect(roleDrop).toBeLessThan(createPublic);
   });
   it("accepts the provider-owned auth schema of the zero-row copy when empty, keeping it", async () => {

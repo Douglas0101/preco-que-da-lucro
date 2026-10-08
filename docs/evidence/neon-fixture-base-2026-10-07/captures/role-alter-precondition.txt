@@ -36,3 +36,12 @@ Fix: `resetEmptyFixture` drops the migration-owned role (`drop role if exists "a
 after the migration-owned schema drops and before `create schema public`, so 0001 recreates
 it through its CREATE path. Provider/legacy roles stay untouched. RED 1/55 -> GREEN 128/128
 (captures role-drop-red/green).
+
+FOLLOW-UP (run 37735482485, head de7f987): the bare `drop role` refused with SQLSTATE 2BP01
+(dependent_objects_still_exist) because the role still held the database-level CONNECT granted
+by 0001 (schemas were dropped, the database privilege survives). The preparation now runs
+`drop owned by "app_runtime"` first — DROP OWNED BY revokes privileges on objects in the
+current database and on shared objects (databases/tablespaces), per the PG17 docs — and then
+`drop role if exists`. neondb_owner satisfies both paths: it holds admin_option on the role
+(grantor cloud_admin) and is a member of it. RED 1/55 -> GREEN 128/128 (captures
+role-owned-red/green).
