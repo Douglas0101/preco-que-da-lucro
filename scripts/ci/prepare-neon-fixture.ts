@@ -161,6 +161,14 @@ export async function resetEmptyFixture(db: FixtureDatabase) {
       )
       .sort();
     for (const name of dropped) await db.query(`drop schema ${quoted(String(name))} cascade`);
+    // The migration chain owns `app_runtime` (0001) and recreates it through its
+    // CREATE path, so the copied role is dropped here like the migration-owned
+    // schemas. The ELSE path cannot run on this branch: PostgreSQL refuses
+    // `ALTER ROLE ... NOSUPERUSER` for any non-superuser executor even when the
+    // attribute does not change (user.c, dissuper check), and neondb_owner is
+    // not superuser. Only this migration-owned role is dropped; provider and
+    // legacy roles (authenticator/anonymous/authenticated) stay untouched.
+    await db.query('drop role if exists "app_runtime"');
     await db.query("create schema public");
     await db.query("commit");
     return {

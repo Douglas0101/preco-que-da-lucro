@@ -1,0 +1,38 @@
+ROLE ALTER PRECONDITION — ROOT CAUSE OF THE MIGRATION REFUSAL (2026-10-08)
+=========================================================================
+run: 37734308321 (Neon PR branch CI, head b02bf24)
+failing step: "Migrations via DIRECT da branch (drill-branch, complete source chain)" — exit 1
+failing statement (inside migration 0001's DO block, ELSE path):
+  ALTER ROLE app_runtime NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;
+error: permission denied to alter role
+  detail: Only roles with the SUPERUSER attribute may change the SUPERUSER attribute.
+  code: 42501 · routine: AlterRole · file: user.c
+
+PostgreSQL 17 semantics (REL_17_STABLE src/backend/commands/user.c, verified):
+  if (!superuser() && authform->rolsuper)  -> "...may alter roles with the SUPERUSER attribute."
+  if (!superuser() && dissuper)            -> "...may change the SUPERUSER attribute."   <- observed
+  The `dissuper` check is UNCONDITIONAL on change: naming the SUPERUSER attribute in
+  ALTER ROLE (even NOSUPERUSER) fails for any non-superuser executor, regardless of the
+  current value. neondb_owner is not superuser, so 0001's ELSE path can never run on this
+  branch; fresh databases take the IF NOT EXISTS -> CREATE ROLE path, which is why the
+  chain always passed before (the fixture strategy is the first to re-run the chain on a
+  branch whose roles were copied).
+
+Read-only state of the base (br-wandering-sky-ayxm5e5s, console SQL editor):
+  app_runtime attributes: rolsuper f · rolreplication f · rolbypassrls f · rolcreaterole f
+    · rolcreatedb f · rolcanlogin t · rolinherit f   (already NOSUPERUSER — irrelevant to the check)
+  pg_auth_members for app_runtime:
+    (app_runtime, neondb_owner, admin_option=t, inherit=f, set=f, grantor=cloud_admin)
+    (app_runtime, neondb_owner, admin=f, inherit=t, set=t, grantor=neondb_owner)
+  -> neondb_owner HOLDS ADMIN OPTION on app_runtime (granted by cloud_admin), so the role
+     can be dropped by the fixture preparation.
+
+Migration-chain survey: `ALTER ROLE` appears exactly once in the whole chain (0001's ELSE
+path); `app_runtime` is the only role created by a migration (0001). `anonymous`,
+`authenticated` and `authenticator` are legacy/provider roles with no executable reference
+in any migration.
+
+Fix: `resetEmptyFixture` drops the migration-owned role (`drop role if exists "app_runtime"`)
+after the migration-owned schema drops and before `create schema public`, so 0001 recreates
+it through its CREATE path. Provider/legacy roles stay untouched. RED 1/55 -> GREEN 128/128
+(captures role-drop-red/green).

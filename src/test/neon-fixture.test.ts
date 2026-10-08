@@ -278,6 +278,19 @@ describe("empty schema preparation refuses inherited data before any destructive
         .some((sql) => sql.includes("pgrst") || sql.includes("neon_auth")),
     ).toBe(false);
   });
+  it("drops the migration-owned role so the chain recreates it through its CREATE path", async () => {
+    const db = database();
+    await resetEmptyFixture(db);
+    expect(db.calls.filter((sql) => sql.startsWith("drop role"))).toEqual([
+      'drop role if exists "app_runtime"',
+    ]);
+    const firstSchemaDrop = db.calls.findIndex((sql) => sql.startsWith("drop schema"));
+    const roleDrop = db.calls.findIndex((sql) => sql.startsWith("drop role"));
+    const createPublic = db.calls.findIndex((sql) => sql.startsWith("create schema public"));
+    expect(firstSchemaDrop).toBeGreaterThan(-1);
+    expect(roleDrop).toBeGreaterThan(firstSchemaDrop);
+    expect(roleDrop).toBeLessThan(createPublic);
+  });
   it("accepts the provider-owned auth schema of the zero-row copy when empty, keeping it", async () => {
     const db = database({
       schemas: ["app_private", "auth", "drizzle", "neon_auth", "pgrst", "public"],

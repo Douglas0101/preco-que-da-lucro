@@ -110,7 +110,11 @@ construção do `Client` (inferência declarada: falha em `connect()`). Refiname
 - Contrato 4 (reconstrução): o drop set é exatamente o subconjunto migracional (`app_private`,
   `drizzle`, `public`); os demais schemas da base — `auth` (owner `cloud_admin`, vazio),
   `neon_auth` e `pgrst` — permanecem copiados, verificados-vazios e devolvidos em `keptSchemas` —
-  nunca derrubados.
+  nunca derrubados. O **papel** migracional `app_runtime` (criado pela 0001) é derrubado após os
+  schemas e antes de `create schema public`, para a cadeia recriá-lo pelo caminho CREATE — o
+  `ALTER ROLE ... NOSUPERUSER` do ELSE é recusado a qualquer executor não-superuser pelo PG17
+  (check incondicional `dissuper`), e `neondb_owner` não é superuser; papéis de provedor/legado
+  (`authenticator`/`anonymous`/`authenticated`) permanecem intocados.
 - Contrato 5 acrescenta: o provisionador só lê URIs após branch **e** endpoint `read_write`
   conectável (`active`/`idle`; o enum de endpoint é `init`/`active`/`idle` e não tem `ready`); o
   `prepare` projeta `phase`/`code` sanitizados no refusal e grava artefato de falha quando

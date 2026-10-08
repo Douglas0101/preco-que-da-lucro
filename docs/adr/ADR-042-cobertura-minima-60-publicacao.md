@@ -129,6 +129,11 @@ ocorreu 0,52 s após a construção do `Client`, tempo consistente apenas com fa
    permanecem, verificados-vazios como todas as demais tabelas e devolvidos em `keptSchemas` — o
    `DROP` de schema gerido por `neondb_owner` era hazard latente de SQLSTATE `42501`, e a
    permanência também mantém o schema diff §12.5 limpo. Schema desconhecido continua fail-closed.
+   O papel migracional `app_runtime` (único papel criado pela cadeia, na 0001) é derrubado no
+   mesmo ponto do rebuild (`drop role if exists`, após os schemas): o ELSE `ALTER ROLE ...
+NOSUPERUSER` é recusado a qualquer executor não-superuser pelo PostgreSQL 17 (check
+   incondicional `dissuper` em `user.c`) e `neondb_owner` não é superuser — sem o drop, a cadeia
+   nunca passaria pelo caminho CREATE na fixture. Papéis de provedor/legado permanecem intocados.
 3. **Refusal projetado.** O catch do `prepare` deixa de ser mudo: projeta uma única linha
    sanitizada com `phase` (`identity`/`connect`/`prepare`/`persist`) e `code` (SQLSTATE/errno
    validado por `[0-9A-Z_]{5,12}`) e grava artefato de falha `neon-pr-fixture.json` (NO-VERDICT)

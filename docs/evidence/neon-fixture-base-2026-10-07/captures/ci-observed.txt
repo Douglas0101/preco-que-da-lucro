@@ -222,3 +222,10 @@ mergeable: MERGEABLE · mergeStateStatus: BLOCKED · headRefOid: 2875382b2702c21
 - Causa raiz (leitura read-only da base via console SQL editor): a base tem SEIS schemas — `app_private`, `auth` (owner `cloud_admin`, vazio), `drizzle`, `neon_auth`, `pgrst`, `public` — e `auth` não estava na allowlist do `resetEmptyFixture` (47 tabelas r, 0 linhas, 0 LOs; captura `base-schema-inventory.txt`).
 - Jobs: Fork-guard success; Branch efêmera failure (exit 2); Cleanup always() success — DELETE + GET pós-delete 404.
 - Corrigendum: `auth` adicionado à allowlist (mantido, verificado-vazio como `neon_auth`/`pgrst`; nunca derrubado — owner é o control plane); caso de teste novo; RED 1/54 → GREEN 127/127 nas três suítes focadas (capturas schema-inventory-red/green).
+
+== Run 37734308321 (Neon PR, head b02bf24, 2026-10-08) ==
+- Provisionamento, readiness branch+endpoint, URIs, `connect()` e preparação da fixture: TODOS VERDES (o `auth` na allowlist resolveu o guard; a cadeia avançou até as migrations pela primeira vez).
+- Migrations: FAILURE exit 1 em 0001 — `ALTER ROLE app_runtime NOSUPERUSER ...` (ELSE do DO block) recusado com SQLSTATE 42501: "Only roles with the SUPERUSER attribute may change the SUPERUSER attribute."
+- Causa raiz (fonte PG17 `user.c` + leitura read-only da base): o check `!superuser() && dissuper` é INCONDICIONAL à mudança; `neondb_owner` não é superuser e `app_runtime` copiado já existe, então o ELSE nunca pode rodar nesta branch (bancos novos usam o CREATE). `neondb_owner` tem `admin_option` sobre `app_runtime` (grantor `cloud_admin`).
+- Jobs: Fork-guard success; Branch efêmera failure (exit 1); Cleanup always() success — DELETE + GET pós-delete 404.
+- Corrigendum: `resetEmptyFixture` derruba o papel migracional (`drop role if exists "app_runtime"`) após os schemas e antes de `create schema public`, para a 0001 recriá-lo pelo caminho CREATE; papéis de provedor/legado intocados; RED 1/55 → GREEN 128/128 (capturas role-drop-red/green; causa em `role-alter-precondition.txt`).
