@@ -1,0 +1,159 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/neon-fixture-provision.test.ts (36 tests | 4 failed) 37ms
+     × pins the explicit 5432 port and keeps the validated sslmode/channel_binding query 5ms
+     × creates the zero-row parent-data child once, hands the branch id to cleanup before compute, and writes masked private URIs 10ms
+     × a value echoed by a failing layer is redacted before the reason is persisted 3ms
+     × redacts a previously received SQL password from structured provider codes 1ms
+ ❯ src/test/neon-resource.test.ts (34 tests | 2 failed) 29ms
+     × accepts portless action URIs only when the host belongs to the owned resource 5ms
+     × accepts matching direct and pooled endpoints and rejects production or divergent connections 2ms
+ ❯ src/test/neon-fixture.test.ts (40 tests | 2 failed) 26ms
+     × accepts a zero-row parent-data child of the empty base bound to the exact run and endpoint 6ms
+     × does not infer connection ownership from an ID or matching table counts 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > URI pinning closes the effective-destination residual > pins the explicit 5432 port and keeps the validated sslmode/channel_binding query
+Error: fixture connection URI is not a verifiable Neon SQL endpoint
+ ❯ pinConnection scripts/ci/neon-resource.ts:167:11
+    165|     pooled !== url.hostname.includes("-pooler.")
+    166|   )
+    167|     throw new Error("fixture connection URI is not a verifiable Neon S…
+       |           ^
+    168|   url.port = "5432";
+    169|   if (!url.searchParams.get("sslmode")) url.searchParams.set("sslmode"…
+ ❯ src/test/neon-fixture-provision.test.ts:147:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > creates the zero-row parent-data child once, hands the branch id to cleanup before compute, and writes masked private URIs
+AssertionError: expected { verdict: 'NO-VERDICT', …(1) } to deeply equal { verdict: 'OK', …(1) }
+
+- Expected
++ Received
+
+  {
+    "branchId": "br-fixture-example",
+-   "verdict": "OK",
++   "verdict": "NO-VERDICT",
+  }
+
+ ❯ src/test/neon-fixture-provision.test.ts:189:24
+    187|       { body: { uri: uri(true) } },
+    188|     ]);
+    189|     await expect(run()).resolves.toEqual({ verdict: "OK", branchId });
+       |                        ^
+    190|     expect(calls[0].method).toBe("POST");
+    191|     expect(JSON.parse(calls[0].body!)).toEqual({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > a value echoed by a failing layer is redacted before the reason is persisted
+AssertionError: expected 'fixture connection URI is not a verif…' to contain '[redacted]'
+
+Expected: "[redacted]"
+Received: "fixture connection URI is not a verifiable Neon SQL endpoint"
+
+ ❯ src/test/neon-fixture-provision.test.ts:376:27
+    374|     await expect(run()).resolves.toMatchObject({ verdict: "NO-VERDICT"…
+    375|     const report = JSON.parse(files.get("neon-pr-provision.json")!);
+    376|     expect(report.reason).toContain("[redacted]");
+       |                           ^
+    377|     expect(report.reason).not.toContain(fixtureSecret);
+    378|     expect(events.filter((event) => event.startsWith("stderr:")).join(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > redacts a previously received SQL password from structured provider codes
+AssertionError: expected undefined to be '[redacted]' // Object.is equality
+
+- Expected:
+"[redacted]"
+
++ Received:
+undefined
+
+ ❯ src/test/neon-fixture-provision.test.ts:391:75
+    389|     ]);
+    390|     await expect(run()).resolves.toMatchObject({ verdict: "NO-VERDICT"…
+    391|     expect(JSON.parse(files.get("neon-pr-provision.json")!).providerCo…
+       |                                                                           ^
+    392|     expect(files.get("neon-pr-provision.json")).not.toContain(fixtureS…
+    393|     expect(events.filter((event) => !event.includes("::add-mask::")).j…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > Neon PR fixture ownership and endpoint binding > accepts a zero-row parent-data child of the empty base bound to the exact run and endpoint
+Error: temporary direct/pooled connection identity differs or targets production
+ ❯ assertConnectionPair scripts/ci/neon-resource.ts:204:11
+    202|     )
+    203|   )
+    204|     throw new Error("temporary direct/pooled connection identity diffe…
+       |           ^
+    205| }
+    206| export class NeonResources {
+ ❯ fixtureIdentity scripts/ci/prepare-neon-fixture.ts:28:3
+ ❯ src/test/neon-fixture.test.ts:67:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > Neon PR fixture ownership and endpoint binding > does not infer connection ownership from an ID or matching table counts
+AssertionError: expected [Function] to throw error including 'endpoint' but got 'temporary direct/pooled connection id…'
+
+Expected: "endpoint"
+Received: "temporary direct/pooled connection identity differs or targets production"
+
+ ❯ src/test/neon-fixture.test.ts:137:74
+    135|       const body = endpoints();
+    136|       Object.assign(body.endpoints[0], patch);
+    137|       expect(() => fixtureIdentity(branch(), body, ...urls(), env, now…
+       |                                                                          ^
+    138|     }
+    139|     expect(() => fixtureIdentity(branch(), { endpoints: [] }, ...urls(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > accepts portless action URIs only when the host belongs to the owned resource
+AssertionError: promise rejected "Error: fixture connection URI is not a ve…" instead of resolving
+ ❯ src/test/neon-resource.test.ts:337:29
+    335|       );
+    336|       if (endpointBranch === id)
+    337|         await expect(result).resolves.toMatchObject({
+       |                             ^
+    338|           phase: "connection-identity-verified",
+    339|           branchId: id,
+
+Caused by: Error: fixture connection URI is not a verifiable Neon SQL endpoint
+ ❯ pinConnection scripts/ci/neon-resource.ts:167:11
+ ❯ NeonResources.connections scripts/ci/neon-resource.ts:354:13
+ ❯ src/test/neon-resource.test.ts:329:66
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  src/test/neon-resource.test.ts > temporary connection pair identity > accepts matching direct and pooled endpoints and rejects production or divergent connections
+AssertionError: expected [Function] to not throw an error but 'Error: temporary direct/pooled connec…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"Error: temporary direct/pooled connection identity differs or targets production"
+
+ ❯ src/test/neon-resource.test.ts:352:60
+    350|   const pooled = direct.replace("ep-test-example.", "ep-test-example-p…
+    351|   it("accepts matching direct and pooled endpoints and rejects product…
+    352|     expect(() => assertConnectionPair(direct, pooled)).not.toThrow();
+       |                                                            ^
+    353|     for (const candidate of [
+    354|       direct,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  8 failed | 102 passed (110)
+   Start at  23:50:38
+   Duration  2.82s (transform 204ms, setup 334ms, import 239ms, tests 92ms, environment 1.76s)
+

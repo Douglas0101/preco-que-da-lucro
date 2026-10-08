@@ -317,7 +317,7 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
   });
   it("accepts portless action URIs only when the host belongs to the owned resource", async () => {
     const host = "ep-action-example.c-5.us-east-2.aws.neon.tech";
-    const direct = `postgresql://neondb_owner:fixture-secret@${host}/neondb?sslmode=require`;
+    const direct = `postgresql://neondb_owner:fixture-secret@${host}/neondb?sslmode=require&channel_binding=require`;
     const pooled = direct.replace("ep-action-example.", "ep-action-example-pooler.");
     for (const endpointBranch of [id, "br-unrelated"]) {
       const f = mock([
@@ -346,7 +346,7 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
 
 describe("temporary connection pair identity", () => {
   const direct =
-    "postgresql://neondb_owner:fixture-secret@ep-test-example.c-5.us-east-2.aws.neon.tech:5432/neondb?sslmode=require";
+    "postgresql://neondb_owner:fixture-secret@ep-test-example.c-5.us-east-2.aws.neon.tech:5432/neondb?sslmode=require&channel_binding=require";
   const pooled = direct.replace("ep-test-example.", "ep-test-example-pooler.");
   it("accepts matching direct and pooled endpoints and rejects production or divergent connections", () => {
     expect(() => assertConnectionPair(direct, pooled)).not.toThrow();
@@ -356,6 +356,8 @@ describe("temporary connection pair identity", () => {
       pooled.replace("neondb?", "other?"),
       pooled.replace("ep-test-example", "ep-other-example"),
       pooled.replace("sslmode=require", "sslmode=disable"),
+      pooled.replace("channel_binding=require", "channel_binding=none"),
+      `${pooled}&host=ep-evil.aws.neon.tech`,
     ])
       expect(() => assertConnectionPair(direct, candidate)).toThrow();
     expect(() =>
@@ -378,6 +380,8 @@ describe("temporary connection pair identity", () => {
       `${direct}&hostaddr=10.0.0.1`,
       `${direct}&options=-c%20statement_timeout%3D0`,
       `${direct}&application_name=probe`,
+      // an invalid channel_binding value is not on the allowlist
+      direct.replace("channel_binding=require", "channel_binding=none"),
     ])
       expect(() => assertConnectionPair(candidate, pooled)).toThrow();
     expect(() => assertConnectionPair(direct, `${pooled}&host=ep-evil.aws.neon.tech`)).toThrow();

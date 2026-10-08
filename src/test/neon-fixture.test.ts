@@ -24,10 +24,12 @@ const env = {
 };
 function urls(hostname = host) {
   // S6-R2/N01-residual: the explicit 5432 port pins the effective destination,
-  // so the ambient PGPORT can never move it; the userinfo stays interpolated
-  // synthetic fixture material.
+  // so the ambient PGPORT can never move it; the query carries only the
+  // validated provider parameters (sslmode/channel_binding), never a
+  // destination mover; the userinfo stays interpolated synthetic fixture
+  // material.
   const direct = new URL(
-    `postgresql://fixture_user:${"synthetic-fixture"}@${hostname}:5432/neondb?sslmode=require`,
+    `postgresql://fixture_user:${"synthetic-fixture"}@${hostname}:5432/neondb?sslmode=require&channel_binding=require`,
   );
   const pooled = new URL(direct.href);
   pooled.hostname = pooled.hostname.replace(/^([^.]+)/, "$1-pooler");

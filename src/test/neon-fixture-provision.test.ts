@@ -33,6 +33,7 @@ function uri(pooled: boolean) {
     : "ep-fixture-example.c-2.us-east-2.aws.neon.tech";
   const value = new URL(`postgresql://neondb_owner:${fixtureSecret}@${host}/neondb`);
   value.searchParams.set("sslmode", "require");
+  value.searchParams.set("channel_binding", "require");
   return value.href;
 }
 function directHostBody() {
@@ -142,20 +143,40 @@ describe("zero-row parent-data fixture provisioning plan from the empty base", (
 });
 
 describe("URI pinning closes the effective-destination residual", () => {
-  it("pins the explicit 5432 port and keeps an sslmode-only query", () => {
-    const pinned = pinConnection(uri(false), false);
-    expect(new URL(pinned).port).toBe("5432");
-    expect(new URL(pinConnection(uri(true), true)).port).toBe("5432");
+  it("pins the explicit 5432 port and keeps the validated sslmode/channel_binding query", () => {
+    const pinned = new URL(pinConnection(uri(false), false));
+    expect(pinned.port).toBe("5432");
+    expect(pinned.searchParams.get("sslmode")).toBe("require");
+    expect(pinned.searchParams.get("channel_binding")).toBe("require");
+    const pooledPinned = new URL(pinConnection(uri(true), true));
+    expect(pooledPinned.port).toBe("5432");
+    expect(pooledPinned.searchParams.get("channel_binding")).toBe("require");
     const noPort = new URL(uri(false));
     noPort.port = "";
     expect(new URL(pinConnection(noPort.href, false)).port).toBe("5432");
+    for (const channelBinding of ["require", "prefer", "disable"]) {
+      const candidate = uri(false).replace(
+        "channel_binding=require",
+        `channel_binding=${channelBinding}`,
+      );
+      expect(() => pinConnection(candidate, false)).not.toThrow();
+    }
   });
   it.each([
     ["a foreign port", uri(false).replace(".tech/", ".tech:9999/"), false],
     ["a destination-altering query host", `${uri(false)}&host=ep-evil.aws.neon.tech`, false],
     ["a query port override", `${uri(false)}&port=9999`, false],
-    ["a non-sslmode parameter", `${uri(false)}&application_name=probe`, false],
+    [
+      "a parameter outside the {sslmode, channel_binding} allowlist",
+      `${uri(false)}&application_name=probe`,
+      false,
+    ],
     ["an insecure sslmode", uri(false).replace("sslmode=require", "sslmode=disable"), false],
+    [
+      "an invalid channel_binding",
+      uri(false).replace("channel_binding=require", "channel_binding=weird"),
+      false,
+    ],
     ["a pooler host requested as direct", uri(true), false],
     ["a direct host requested as pooled", uri(false), true],
   ])("refuses %s", (_label, candidate, pooled) => {

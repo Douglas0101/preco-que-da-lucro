@@ -150,18 +150,37 @@ export class MaskedSecrets {
 }
 
 /**
+ * Destination safety: the only query parameters accepted are the two the
+ * provider itself emits — sslmode and channel_binding — each with a validated
+ * value. Both are TLS/authentication parameters; neither can move the
+ * effective destination, unlike host, hostaddr, port, options, or any unknown
+ * key, all of which are rejected.
+ */
+const allowedSslModes = ["require", "verify-ca", "verify-full"];
+const allowedChannelBindings = ["require", "prefer", "disable"];
+function connectionQueryIsVerifiable(url: URL): boolean {
+  for (const [key, value] of url.searchParams) {
+    if (key === "sslmode") {
+      if (!allowedSslModes.includes(value)) return false;
+    } else if (key === "channel_binding") {
+      if (!allowedChannelBindings.includes(value)) return false;
+    } else return false;
+  }
+  return true;
+}
+/**
  * S6-R2/N01-residual: a URI is only usable when its effective destination
- * cannot be moved by the runner (explicit 5432, sslmode-only query) and its
- * endpoint kind matches the request.
+ * cannot be moved by the runner (explicit 5432 + query restricted to the
+ * validated {sslmode, channel_binding} allowlist, no destination mover) and
+ * its endpoint kind matches the request. An existing channel_binding is kept
+ * as received; it is never added or rewritten here.
  */
 export function pinConnection(uri: string, pooled: boolean): string {
   const url = new URL(uri);
   if (
     !["postgres:", "postgresql:"].includes(url.protocol) ||
     (url.port && url.port !== "5432") ||
-    [...url.searchParams.keys()].some((key) => key !== "sslmode") ||
-    (url.searchParams.get("sslmode") &&
-      !["require", "verify-ca", "verify-full"].includes(url.searchParams.get("sslmode") ?? "")) ||
+    !connectionQueryIsVerifiable(url) ||
     pooled !== url.hostname.includes("-pooler.")
   )
     throw new Error("fixture connection URI is not a verifiable Neon SQL endpoint");
@@ -190,12 +209,12 @@ export function assertConnectionPair(admin: string, pooled: string) {
     // S6-R2/N01-residual: PGPORT (and every other ambient default) can only
     // move the effective destination when the URI omits the port, and the
     // driver honors destination-altering query parameters from the URI itself.
-    // The pair is only trusted with an explicit 5432 and a sslmode-only query.
+    // The pair is only trusted with an explicit 5432 and a query restricted to
+    // the validated {sslmode, channel_binding} allowlist (TLS/auth parameters;
+    // host, hostaddr, port, options and unknown keys are rejected).
     direct.port !== "5432" ||
     runtime.port !== "5432" ||
-    [direct, runtime].some((url) =>
-      [...url.searchParams.keys()].some((key) => key !== "sslmode"),
-    ) ||
+    [direct, runtime].some((url) => !connectionQueryIsVerifiable(url)) ||
     [direct, runtime].some(
       (url) =>
         !["require", "verify-ca", "verify-full"].includes(url.searchParams.get("sslmode") ?? ""),
