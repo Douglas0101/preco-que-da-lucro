@@ -1,0 +1,17 @@
+{
+  "schema": "release-local-quality-gate/1",
+  "command": "npm run check",
+  "root": "/tmp/kilo/pr60-release-20261008/worktree",
+  "headSha": "ce7a26eeaca97e63415587c378d091dd3f78541f",
+  "startedAt": "2026-10-08T17:19:38.257854+00:00",
+  "completedAt": "2026-10-08T17:23:08.707670+00:00",
+  "durationSeconds": 210.439,
+  "exitCode": 0,
+  "trackedDiffSha256Before": "afcb2c7820a64b722109a6dd7975849610ff61dcffc1fded53c6f7b9b8dae735",
+  "trackedDiffSha256After": "afcb2c7820a64b722109a6dd7975849610ff61dcffc1fded53c6f7b9b8dae735",
+  "trackedDiffStable": true,
+  "logSha256": "f3a8af21f9b6b4b082155395ae0e443c005020afc8f46138bb6bc8a4e0b33666",
+  "logPath": "/tmp/kilo/pr60-release-20261008/worktree/docs/evidence/pr-60-publication-2026-10-07/captures/check-release-gate.txt",
+  "runtimeCredentialsInherited": false,
+  "databaseUrlConfigured": false
+}
