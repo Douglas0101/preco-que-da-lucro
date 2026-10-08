@@ -72,6 +72,36 @@ class ProviderRefusal extends Error {
   }
 }
 
+const endpointHostPattern = /^ep-[a-z0-9-]+(?:\.c-[0-9]+)?\.[a-z0-9-]+\.aws\.neon\.tech$/;
+
+/**
+ * The single read_write endpoint of the branch, under the same predicates as the
+ * former reading-endpoints step (branch/project/type/disabled and the host
+ * shape), or null when none verifies. The caller additionally gates on
+ * `current_state === "ready"`.
+ */
+function verifiedReadWriteEndpoint(endpoints: unknown, branchId: string, projectId: string) {
+  const candidates =
+    record(endpoints) && Array.isArray(endpoints.endpoints)
+      ? endpoints.endpoints.filter(
+          (endpoint) =>
+            record(endpoint) &&
+            endpoint.branch_id === branchId &&
+            endpoint.project_id === projectId &&
+            endpoint.type === "read_write" &&
+            endpoint.disabled === false,
+        )
+      : [];
+  if (
+    candidates.length !== 1 ||
+    typeof candidates[0].host !== "string" ||
+    !endpointHostPattern.test(candidates[0].host) ||
+    candidates[0].host.includes("-pooler.")
+  )
+    return null;
+  return candidates[0];
+}
+
 export class ProviderApi {
   constructor(
     private readonly apiKey: string,
@@ -189,41 +219,30 @@ export async function provision(
     // compute or URIs; the TTL from the POST is the last-resort expiry.
     io.appendOutput(`branch_id=${branchId}\ncreated=true\n`);
     phase = "waiting-ready";
+    // Readiness includes the read_write ENDPOINT, not only the branch: a
+    // freshly created endpoint may still be `init` when the branch reports
+    // `ready`, and a connect() against it fails before any SQL runs.
     const deadline = now() + readyDeadlineMs;
+    let host = "";
     for (;;) {
       if (!Number.isFinite(now()) || now() > deadline)
         throw new Error("fixture provisioning readiness deadline exhausted");
-      const body = await api.request(`/branches/${encodeURIComponent(branchId)}`);
-      if (
-        record(body) &&
-        record(body.branch) &&
-        body.branch.id === branchId &&
-        body.branch.current_state === "ready"
-      )
+      const [branch, endpoints] = await Promise.all([
+        api.request(`/branches/${encodeURIComponent(branchId)}`),
+        api.request(`/branches/${encodeURIComponent(branchId)}/endpoints`),
+      ]);
+      const branchReady =
+        record(branch) &&
+        record(branch.branch) &&
+        branch.branch.id === branchId &&
+        branch.branch.current_state === "ready";
+      const endpoint = verifiedReadWriteEndpoint(endpoints, branchId, plan.projectId);
+      if (branchReady && record(endpoint) && endpoint.current_state === "ready") {
+        host = String(endpoint.host);
         break;
+      }
       await pause(2000);
     }
-    phase = "reading-endpoints";
-    const endpoints = await api.request(`/branches/${encodeURIComponent(branchId)}/endpoints`);
-    const directHost =
-      record(endpoints) && Array.isArray(endpoints.endpoints)
-        ? endpoints.endpoints.filter(
-            (endpoint) =>
-              record(endpoint) &&
-              endpoint.branch_id === branchId &&
-              endpoint.project_id === plan.projectId &&
-              endpoint.type === "read_write" &&
-              endpoint.disabled === false,
-          )
-        : [];
-    if (
-      directHost.length !== 1 ||
-      typeof directHost[0].host !== "string" ||
-      !/^ep-[a-z0-9-]+(?:\.c-[0-9]+)?\.[a-z0-9-]+\.aws\.neon\.tech$/.test(directHost[0].host) ||
-      directHost[0].host.includes("-pooler.")
-    )
-      throw new Error("fixture provisioning endpoint identity is not verified");
-    const host = directHost[0].host;
     async function connectionUri(pooled: boolean) {
       const params = new URLSearchParams({
         branch_id: branchId,

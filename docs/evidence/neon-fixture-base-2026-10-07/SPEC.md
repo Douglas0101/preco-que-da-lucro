@@ -98,3 +98,23 @@ existente.
 Reverter por commit ordinário: `git revert <sha>` restaura o mecanismo `parent-schema` (recusado
 pelo provedor) e os testes anteriores. A base `ci-fixture-base` não é mutada por este commit; um
 descarte da base seria ato humano separado (o id está em todas as guardas de permanentes).
+
+---
+
+## Errata — 2026-10-08
+
+O run `37722430962` (head `2875382b`) levou o provisionamento e a identidade do filho `parent-data`
+até `connection-verified`; a recusa seguinte ocorreu na preparação da fixture, 0,52 s após a
+construção do `Client` (inferência declarada: falha em `connect()`). Refinamentos:
+
+- Contrato 4 (reconstrução): o drop set é exatamente o subconjunto migracional (`app_private`,
+  `drizzle`, `public`); `neon_auth`/`pgrst` permanecem copiados, verificados-vazios e devolvidos em
+  `keptSchemas` — nunca derrubados.
+- Contrato 5 acrescenta: o provisionador só lê URIs após branch **e** endpoint `read_write`
+  estarem `ready`; o `prepare` projeta `phase`/`code` sanitizados no refusal e grava artefato de
+  falha quando inexistente.
+- DoD: as capturas vigentes desta onda são `captures/endpoint-readiness-red.txt` (2 falhas / 36 em
+  38), `captures/endpoint-readiness-green.txt` (38/38), `captures/prepare-refusal-red.txt` (16
+  falhas / 37 em 53), `captures/prepare-refusal-green.txt` (53/53) e `captures/check-local.txt`
+  renovada (exit 0). O restante do DoD (manifesto, matriz, aceitação do CI) permanece como
+  declarado.

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { fixtureIdentity, resetEmptyFixture } from "../../scripts/ci/prepare-neon-fixture";
+import {
+  fixtureIdentity,
+  refusalProjection,
+  resetEmptyFixture,
+} from "../../scripts/ci/prepare-neon-fixture";
 import {
   DEVELOP_ID,
   FIXTURE_BASE_ID,
@@ -182,12 +186,13 @@ describe("empty schema preparation refuses inherited data before any destructive
       },
     };
   }
-  it("checks every discovered table while locked and rebuilds only the empty schemas", async () => {
+  it("checks every discovered table while locked and rebuilds the migration-owned schemas", async () => {
     const db = database();
     expect(await resetEmptyFixture(db)).toEqual({
       discoveredTables: 2,
       checkedTables: 2,
       rowsErased: 0,
+      keptSchemas: [],
     });
     const lock = db.calls.findIndex((sql) => sql.startsWith("lock table"));
     const reads = db.calls
@@ -196,6 +201,36 @@ describe("empty schema preparation refuses inherited data before any destructive
     const firstDrop = db.calls.findIndex((sql) => sql.startsWith("drop schema"));
     expect(lock).toBeGreaterThan(0);
     expect(reads).toHaveLength(3);
+    expect(reads.every((index) => index > lock && index < firstDrop)).toBe(true);
+    expect(db.calls.at(-1)).toBe("commit");
+  });
+  it("drops exactly the migration-owned schemas in discovered order and keeps the managed ones", async () => {
+    const db = database({
+      schemas: ["app_private", "drizzle", "neon_auth", "pgrst", "public"],
+      tables: [
+        { schema: "public", name: "accounts", kind: "r" },
+        { schema: "drizzle", name: "__drizzle_migrations", kind: "r" },
+        { schema: "neon_auth", name: "users", kind: "r" },
+      ],
+    });
+    expect(await resetEmptyFixture(db)).toEqual({
+      discoveredTables: 3,
+      checkedTables: 3,
+      rowsErased: 0,
+      keptSchemas: ["neon_auth", "pgrst"],
+    });
+    const drops = db.calls.filter((sql) => sql.startsWith("drop schema"));
+    expect(drops).toEqual([
+      'drop schema "app_private" cascade',
+      'drop schema "drizzle" cascade',
+      'drop schema "public" cascade',
+    ]);
+    const lock = db.calls.findIndex((sql) => sql.startsWith("lock table"));
+    const reads = db.calls
+      .map((sql, index) => (sql.startsWith("select exists") ? index : -1))
+      .filter((index) => index >= 0);
+    const firstDrop = db.calls.findIndex((sql) => sql.startsWith("drop schema"));
+    expect(reads).toHaveLength(4);
     expect(reads.every((index) => index > lock && index < firstDrop)).toBe(true);
     expect(db.calls.at(-1)).toBe("commit");
   });
@@ -215,21 +250,33 @@ describe("empty schema preparation refuses inherited data before any destructive
     expect(db.calls.some((sql) => /^(drop|truncate|delete|create) /i.test(sql))).toBe(false);
     expect(db.calls.at(-1)).toBe("rollback");
   });
-  it("accepts the managed neon_auth schema of the zero-row copy when empty", async () => {
+  it("accepts the managed neon_auth schema of the zero-row copy when empty, keeping it", async () => {
     const db = database({ schemas: ["app_private", "drizzle", "neon_auth", "public"] });
     expect(await resetEmptyFixture(db)).toEqual({
       discoveredTables: 2,
       checkedTables: 2,
       rowsErased: 0,
+      keptSchemas: ["neon_auth"],
     });
+    expect(
+      db.calls
+        .filter((sql) => sql.startsWith("drop schema"))
+        .some((sql) => sql.includes("neon_auth")),
+    ).toBe(false);
   });
-  it("accepts the managed pgrst schema of the zero-row copy when empty", async () => {
+  it("accepts the managed pgrst schema of the zero-row copy when empty, keeping it", async () => {
     const db = database({ schemas: ["app_private", "drizzle", "neon_auth", "pgrst", "public"] });
     expect(await resetEmptyFixture(db)).toEqual({
       discoveredTables: 2,
       checkedTables: 2,
       rowsErased: 0,
+      keptSchemas: ["neon_auth", "pgrst"],
     });
+    expect(
+      db.calls
+        .filter((sql) => sql.startsWith("drop schema"))
+        .some((sql) => sql.includes("pgrst") || sql.includes("neon_auth")),
+    ).toBe(false);
   });
   it("refuses an unknown copied schema before any destructive SQL", async () => {
     const db = database({ schemas: ["public", "legacy_web"] });
@@ -244,6 +291,55 @@ describe("empty schema preparation refuses inherited data before any destructive
     await resetEmptyFixture(db);
     expect(db.calls.find((sql) => sql.startsWith("lock table"))).toContain(
       '"odd""; delete from users; --"',
+    );
+  });
+});
+
+describe("sanitized refusal projection of the preparation step", () => {
+  it("projects an identity-phase plain error with no error content at all", () => {
+    const projection = refusalProjection("identity", new Error("password=hunter2"));
+    expect(projection).toBe(
+      "Neon fixture refused: phase=identity, code=none; no credentials logged",
+    );
+    expect(projection).not.toContain("password");
+    expect(projection).not.toContain("hunter2");
+  });
+  it("projects a validated SQLSTATE from a pg-shaped error", () => {
+    expect(
+      refusalProjection("prepare", {
+        code: "42501",
+        message: "must be owner of schema neon_auth",
+      }),
+    ).toBe("Neon fixture refused: phase=prepare, code=42501; no credentials logged");
+  });
+  it("projects a node errno code from a connect-phase failure", () => {
+    expect(refusalProjection("connect", { code: "ENOTFOUND" })).toBe(
+      "Neon fixture refused: phase=connect, code=ENOTFOUND; no credentials logged",
+    );
+    expect(refusalProjection("connect", { code: "ECONNREFUSED" })).toBe(
+      "Neon fixture refused: phase=connect, code=ECONNREFUSED; no credentials logged",
+    );
+  });
+  it.each([
+    "42501'",
+    "postgres://u:p@h/x",
+    "lower_case",
+    "4250",
+    "425011234567890123456789",
+    "",
+    42,
+    undefined,
+  ])("never projects a credential-looking or invalid code %j", (code) => {
+    expect(
+      refusalProjection("connect", { code, message: "must be owner of schema neon_auth" }),
+    ).toBe("Neon fixture refused: phase=connect, code=none; no credentials logged");
+  });
+  it("projects a non-object error without throwing", () => {
+    expect(refusalProjection("prepare", "raw-string")).toBe(
+      "Neon fixture refused: phase=prepare, code=none; no credentials logged",
+    );
+    expect(refusalProjection("prepare", null)).toBe(
+      "Neon fixture refused: phase=prepare, code=none; no credentials logged",
     );
   });
 });

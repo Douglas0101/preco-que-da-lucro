@@ -36,7 +36,7 @@ function uri(pooled: boolean) {
   value.searchParams.set("channel_binding", "require");
   return value.href;
 }
-function directHostBody() {
+function endpointBody(currentState: string) {
   return {
     endpoints: [
       {
@@ -45,6 +45,7 @@ function directHostBody() {
         project_id: PROJECT_ID,
         type: "read_write",
         disabled: false,
+        current_state: currentState,
       },
     ],
   };
@@ -189,8 +190,9 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
     const { calls, events, files, run } = mock([
       { body: { branch: { id: branchId } } },
       { body: branchBody("init") },
+      { body: endpointBody("init") },
       { body: branchBody("ready") },
-      { body: directHostBody() },
+      { body: endpointBody("ready") },
       { body: { uri: uri(false) } },
       { body: { uri: uri(true) } },
     ]);
@@ -316,13 +318,11 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
     },
   );
   it("the branch id reaches cleanup even when readiness or the pooled URI fails afterwards", async () => {
+    const stuckBranch = Array.from({ length: 200 }, (_, i) =>
+      i % 2 === 0 ? branchBody("init") : endpointBody("init"),
+    ).map((body) => ({ body }));
     for (const responses of [
-      [
-        { body: { branch: { id: branchId } } },
-        { body: branchBody("init") },
-        { body: branchBody("init") },
-        { body: branchBody("init") },
-      ],
+      [{ body: { branch: { id: branchId } } }, ...stuckBranch],
       [
         { body: { branch: { id: branchId } } },
         { body: branchBody("ready") },
@@ -331,7 +331,7 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
       [
         { body: { branch: { id: branchId } } },
         { body: branchBody("ready") },
-        { body: directHostBody() },
+        { body: endpointBody("ready") },
         { body: { uri: uri(false) } },
         { status: 500, body: { code: "INTERNAL" } },
       ],
@@ -345,11 +345,54 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
       });
     }
   });
+  it("keeps polling while the read_write endpoint is still initializing and then proceeds", async () => {
+    const { calls, events, files, run } = mock([
+      { body: { branch: { id: branchId } } },
+      { body: branchBody("ready") },
+      { body: endpointBody("init") },
+      { body: branchBody("ready") },
+      { body: endpointBody("init") },
+      { body: branchBody("ready") },
+      { body: endpointBody("ready") },
+      { body: { uri: uri(false) } },
+      { body: { uri: uri(true) } },
+    ]);
+    await expect(run()).resolves.toEqual({ verdict: "OK", branchId });
+    const endpointPolls = calls.filter((call) => call.url.includes("/endpoints"));
+    expect(endpointPolls).toHaveLength(3);
+    expect(JSON.parse(files.get("neon-pr-provision.json")!)).toMatchObject({
+      phase: "connection-verified",
+      branchId,
+      initSource: "parent-data",
+    });
+    expect(events.some((event) => event.startsWith("write:branch_direct_url"))).toBe(true);
+  });
+  it("times out at the deadline when the endpoint never becomes ready, writing no URI", async () => {
+    const responses = [
+      { body: { branch: { id: branchId } } },
+      ...Array.from(
+        { length: 200 },
+        (_, i) =>
+          ({ body: i % 2 === 0 ? branchBody("ready") : endpointBody("init") }) as {
+            body: unknown;
+          },
+      ),
+    ];
+    const { calls, events, files, run } = mock(responses);
+    await expect(run()).resolves.toMatchObject({ verdict: "NO-VERDICT", branchId });
+    const report = JSON.parse(files.get("neon-pr-provision.json")!);
+    expect(report.phase).toBe("waiting-ready");
+    expect(report.reason).toContain("readiness deadline exhausted");
+    expect(Object.keys(files)).not.toContain("branch_direct_url");
+    expect(Object.keys(files)).not.toContain("branch_pooled_url");
+    expect(calls.some((call) => call.url.includes("/connection_uri"))).toBe(false);
+    expect(events.some((event) => event.includes("branch_id=br-fixture-example"))).toBe(true);
+  });
   it("masks a received malformed credential URI before validation can fail", async () => {
     const { events, files, run } = mock([
       { body: { branch: { id: branchId } } },
       { body: branchBody("ready") },
-      { body: directHostBody() },
+      { body: endpointBody("ready") },
       { body: { uri: `malformed-${fixtureSecret}` } },
     ]);
     await expect(run()).resolves.toMatchObject({ verdict: "NO-VERDICT", branchId });
@@ -366,7 +409,7 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
       [
         { body: { branch: { id: branchId } } },
         { body: branchBody("ready") },
-        { body: directHostBody() },
+        { body: endpointBody("ready") },
         { body: { uri: uri(false) } },
         { body: { uri: uri(true) } },
       ],
@@ -391,7 +434,7 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
     const { events, files, run } = mock([
       { body: { branch: { id: branchId } } },
       { body: branchBody("ready") },
-      { body: directHostBody() },
+      { body: endpointBody("ready") },
       { body: { uri: uri(false) } },
       { status: 412, body: { code: fixtureSecret } },
     ]);
@@ -405,9 +448,9 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
   it("refuses endpoints that do not bind exactly one read_write host of the branch", async () => {
     for (const endpoints of [
       { endpoints: [] },
-      { endpoints: [{ ...directHostBody().endpoints[0], branch_id: "br-other" }] },
-      { endpoints: [{ ...directHostBody().endpoints[0], type: "read_only" }] },
-      { endpoints: [directHostBody().endpoints[0], directHostBody().endpoints[0]] },
+      { endpoints: [{ ...endpointBody("ready").endpoints[0], branch_id: "br-other" }] },
+      { endpoints: [{ ...endpointBody("ready").endpoints[0], type: "read_only" }] },
+      { endpoints: [endpointBody("ready").endpoints[0], endpointBody("ready").endpoints[0]] },
       {},
     ]) {
       const { run } = mock([

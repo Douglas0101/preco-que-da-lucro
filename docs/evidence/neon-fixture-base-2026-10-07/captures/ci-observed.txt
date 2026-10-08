@@ -104,3 +104,106 @@ mergeable: MERGEABLE · mergeStateStatus: BLOCKED · headRefOid: 2b8aa7f85204a9e
 - O predicado exato de pinConnection que recusou a URI direta é inobservável (URI mascarada por ::add-mask:: e nunca persistida; artefato grava apenas fase/veredito/reason).
 - init_source real do filho não é observável após o delete; a aceitação do POST parent-data é evidenciada pela existência da branch criada (tabela do cleanup, ready, TTL 24h) e pelo caminho de código, não por campo persistido.
 - Este arquivo é observação bruta de CI (WIP, não commitado); não substitui a aceitação completa exigida pelo DBT-96 (18 suítes/RLS/matriz/GET 404 de dados seguem pendentes).
+
+== Observação 2 — push do fix da URI (head 2875382b2702c21391cb024f97a35593b9b8eef6) ==
+observado em: 2026-10-08T03:33:04Z (sessão verificadora/publicadora; push develop 2b8aa7f..2875382; leituras read-only; nenhuma mutação Neon; aba própria aberta e fechada)
+nota: runs de pull_request testam o merge ref 634c17170067c90957329957a27212b0f8b94c62 (= head + main d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9).
+pré-push local (worktree == commit nos caminhos do commit): focados 110/110 PASS em 3 arquivos (npx vitest run src/test/neon-resource.test.ts src/test/neon-fixture.test.ts src/test/neon-fixture-provision.test.ts); prettier --check OK nos arquivos do commit; m02:temporal-guard OK (3 superfícies, 0 violação); head resolve como objeto git (commit).
+
+== Runs no novo SHA (gh run list) ==
+| run         | evento       | janela                    | jobs |
+| 37722427373 | push         | 03:22:42→03:29:48 (7m06s) | prepare browsers success · verify success |
+| 37722427340 | push         | 03:22:42→03:22:57 (15s)   | docs-light success |
+| 37722430962 | pull_request | 03:22:45→03:23:40 (55s)   | Fork-guard success · Branch efêmera failure (passo 6) · Cleanup success |
+| 37722430932 | pull_request | 03:22:45→03:22:57 (12s)   | docs-light success |
+| 37722430911 | pull_request | 03:22:45→03:26:01 (3m16s) | scan + cobertura success · main-coverage-mirror success |
+| 37722430918 | pull_request | 03:22:45→03:28:13 (5m28s) | prepare browsers success · verify-release failure (precondição do kit) |
+
+== Neon 37722430962 — passos do job "Branch efêmera · migrate · integração · RLS probe · E2E" ==
+1-4 Set up job / checkout / setup-node / Install dependencies: success
+5 "Create ephemeral zero-row child via REST (parent-data from the empty ci-fixture-base)": SUCCESS (primeira vez que o provisionamento passa)
+6 "Verify fresh zero-row child (parent-data from ci-fixture-base) identity and prepare an empty migration fixture": FAILURE (exit 2)
+7 "Upload fixture identity and zero-row preparation proof": success (1 arquivo — neon-pr-provision.json, 300 bytes)
+8 Migrations via DIRECT da branch: skipped · 9 Schema diff §12.5: skipped · 10 Upload schema diff §12.5: success (aviso "No files were found") · 11 Integração (18 suítes db:test): skipped · 12 Seed sintético + sonda RLS adversarial (H-07): skipped · 13 Prova de journal: skipped · 14 E2E Playwright (§12.5 §26.7): skipped
+
+== Neon 37722430962 — artefato neon-pr-provision.json (verbatim) ==
+{
+  "schema": "neon-pr-provision/1",
+  "phase": "connection-verified",
+  "branchId": "br-spring-unit-aymc6bxf",
+  "initSource": "parent-data",
+  "expiresAt": "2026-10-09T03:23:18Z"
+}
+(neon-pr-fixture.json NÃO produzido — o passo 6 recusou antes de gravar; discoveredTables/checkedTables/rowsErased = N/A.)
+
+== Neon 37722430962 — linhas exatas da recusa (verbatim; o passo mascara valores na chegada) ==
+2026-10-08T03:23:21.6307460Z ##[group]Run npx --no-install tsx scripts/ci/prepare-neon-fixture.ts
+2026-10-08T03:23:22.3604936Z (node:2510) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+2026-10-08T03:23:22.8813068Z Neon fixture refused: identity, empty inventory or preparation failed; no credentials logged
+2026-10-08T03:23:22.9448176Z ##[error]Process completed with exit code 2.
+
+== discriminação do passo 6 (o que É observável) ==
+- A recusa do commit anterior (run 37709862820, fase reading-direct-uri, "fixture connection URI is not a verifiable Neon SQL endpoint") NÃO reaparece: o artefato de provisionamento avança até connection-verified com initSource parent-data.
+- O warning do pg-connection-string (03:23:22.360Z) só é emitido ao construir o Client pg com a URI direta; db-target.ts não tem imports e neon-resource.ts importa apenas node:fs/node:path/node:child_process/node:url — logo o processo alcançou prepare-neon-fixture.ts linha 188 (new Client). Consequência: exigirAlvoDeBanco (DIRECT+pooled), assertConnectionPair estrito (5432 explícito, par direto/pooled com mesmos credenciais/path, sslmode validado, allowlist {sslmode, channel_binding}) e TODOS os checks de identidade do filho (id/nome pr-60-<run>-<attempt>/pai ci-fixture-base/init_source parent-data/current_state ready/frescor/expiry/TTL/endpoint read_write) PASSARAM.
+- Repro local do mesmo warning com URI sintética de forma {sslmode=require, channel_binding=require} (pg 8.23.0): o construtor NÃO lança; host/porta 5432 preservados. Teste: node -e com new Client({connectionString:"postgresql://…?sslmode=require&channel_binding=require"}) — "constructed ok".
+- Probe read-only da base (WebBridge, console autenticado, fetch relativo; GET /api/v2/projects/damp-forest-57346541/branches/br-wandering-sky-ayxm5e5s/schema?db_name=neondb, projeção estrutural sem URI/segredo): schemas app_private→neondb_owner, drizzle→neondb_owner, neon_auth→neon_auth, pgrst→neon_service, public sem ALTER OWNER no dump; 47 CREATE TABLE (drizzle 1, neon_auth 9, public 37), 0 matview, 0 foreign table, 0 view; sequências não entram na query de relkinds.
+- Candidato determinístico exposto pelo probe (NÃO provado): resetEmptyFixture dropa TODOS os schemas com DROP SCHEMA … CASCADE como neondb_owner, e neon_auth/pgrst são de papéis distintos (neon_auth/neon_service); a membership de neondb_owner nesses papéis não é observável pelas leituras autorizadas. Alternativa igualmente não provada: falha imediata de conexão (compute do filho criado ~4s antes).
+
+== Neon 37722430962 — cleanup (job "Cleanup always() com prova (§12.5)", success) ==
+BRANCH_ID: br-spring-unit-aymc6bxf · DELETE_RESULT: success · cleanup protocol guard: 404/403/200/000 PASS · CLEANUP_CODE=0 ⇒ GET pós-delete real = HTTP 404 (descarte confirmado)
+comentário publicado: https://github.com/Douglas0101/preco-que-da-lucro/pull/60#issuecomment-6051517256
+
+== Comentário de summary neon (github-actions[bot], 2026-10-08T03:23:37Z, id 6051517256) — campos ==
+### Neon PR branch CI
+- Resultado dos jobs: `failure`
+- Sonda RLS adversarial (H-07): `n/a`
+- Schema diff §12.5 vs produção (baseline read-only): `n/a`
+- Branch efêmera: `br-spring-unit-aymc6bxf` — cleanup: confirmado (GET pós-delete = HTTP 404)
+- Etapas observadas: fixture `failure` · migrations `skipped` · integração `skipped` · E2E `skipped`
+- Delete: `success`; prova de descarte independente pelo GET pós-delete.
+- Produção intocada (caminho drill-branch, Emenda #2; hard-deny de produção permanece).
+
+== Inventário independente (WebBridge, página autenticada do console, fetch relativo) ==
+origem: https://console.neon.tech · /app/projects/damp-forest-57346541/branches
+GET /api/v2/projects/damp-forest-57346541/branches → HTTP 200 (total 3):
+- br-snowy-violet-aymcvvvv · production · default=true · ready
+- br-wandering-sky-ayxm5e5s · ci-fixture-base · default=false · parent=br-snowy-violet-aymcvvvv · ready
+- br-small-hill-aymcu14y · develop · default=false · parent=br-snowy-violet-aymcvvvv · ready
+GET /api/v2/projects/damp-forest-57346541/branches/count → HTTP 200 {"count":3}
+Conclusão: exatamente 3 branches (produção, develop e a base permanente); NENHUM resíduo pr-60-37722430962-*; descarte do filho confirmado independentemente. Aba própria fechada (close_tab; sessão sem abas restantes; abas do usuário intocadas).
+
+== UI stack push 37722427373 — success (a precondição imageVersion do push NÃO repetiu) ==
+prepare browsers success · verify success (run 7m06s). Nenhum rerun necessário nem executado.
+
+== UI stack PR 37722430918 — failure conhecida (precondição, não teste) ==
+passo "Verify kit identity and install Linux packages offline":
+2026-10-08T03:28:08.5763290Z precondition: kit identity mismatch: imageVersion
+2026-10-08T03:28:08.5898088Z ##[error]Process completed with exit code 2.
+Discriminação: kit atestado pelo prepare do próprio run em imageVersion 20260927.320.1; verify-release rodou em imagem diferente (rollout de imagem do runner); exit 2 antes de instalar o kit; "Run npx playwright test …" skipped. A instrução desta sessão autorizava UM rerun apenas se o verify de PUSH falhasse exatamente nessa precondição — o push passou, então NENHUM rerun foi feito.
+
+== SonarCloud PR 37722430911 — success ==
+scan + cobertura: success; main-coverage-mirror: success (observação; approvesMain=false). Comentário sonarqubecloud[bot] id 6051537486 (2026-10-08T03:25:34Z): Quality Gate passed · 17 New issues · 0 Security Hotspots · 87.6% Coverage on New Code · 0.0% Duplication on New Code.
+
+== Check-runs do commit 2875382b2702c21391cb024f97a35593b9b8eef6 (gh api; 12 no total; 2 vermelhos) ==
+| nome | status | conclusão |
+| main-coverage-mirror | completed | success |
+| SonarCloud Code Analysis | completed | success |
+| verify-release | completed | failure |
+| verify | completed | success |
+| Cleanup always() com prova (§12.5) | completed | success |
+| Branch efêmera · migrate · integração · RLS probe · E2E | completed | failure |
+| Fork-guard + presença de segredo | completed | success |
+| scan + cobertura | completed | success |
+| prepare browsers and Linux packages | completed | success |
+| docs-light | completed | success |
+| prepare browsers and Linux packages | completed | success |
+| docs-light | completed | success |
+
+== PR #60 (gh pr view) ==
+mergeable: MERGEABLE · mergeStateStatus: BLOCKED · headRefOid: 2875382b2702c21391cb024f97a35593b9b8eef6 · state: OPEN
+
+== Limites declarados ==
+- O sub-passo exato da recusa do passo 6 (client.connect versus resetEmptyFixture) é inobservável: a catch é sanitizada por desenho ("no credentials logged").
+- A membership de papéis (neondb_owner × neon_auth/neon_service) não é observável pelas leituras read-only autorizadas; o candidato DROP SCHEMA é hipótese com evidência estrutural, não veredito.
+- init_source real do filho é registrado no artefato (parent-data) e foi validado ao vivo antes da recusa; o valor não sobrevive ao delete fora do artefato.
+- Este arquivo é observação bruta de CI (WIP, não commitado); a aceitação completa do DBT-96 (18 suítes/RLS/matriz/GET 404 de dados) segue pendente.

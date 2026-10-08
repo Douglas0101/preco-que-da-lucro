@@ -1,0 +1,53 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/neon-fixture-provision.test.ts (38 tests | 2 failed) 58ms
+     × keeps polling while the read_write endpoint is still initializing and then proceeds 13ms
+     × times out at the deadline when the endpoint never becomes ready, writing no URI 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > keeps polling while the read_write endpoint is still initializing and then proceeds
+AssertionError: expected { verdict: 'NO-VERDICT', …(1) } to deeply equal { verdict: 'OK', …(1) }
+
+- Expected
++ Received
+
+  {
+    "branchId": "br-fixture-example",
+-   "verdict": "OK",
++   "verdict": "NO-VERDICT",
+  }
+
+ ❯ src/test/neon-fixture-provision.test.ts:360:24
+    358|       { body: { uri: uri(true) } },
+    359|     ]);
+    360|     await expect(run()).resolves.toEqual({ verdict: "OK", branchId });
+       |                        ^
+    361|     const endpointPolls = calls.filter((call) => call.url.includes("/e…
+    362|     expect(endpointPolls).toHaveLength(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > times out at the deadline when the endpoint never becomes ready, writing no URI
+AssertionError: expected 'reading-direct-uri' to be 'waiting-ready' // Object.is equality
+
+Expected: "waiting-ready"
+Received: "reading-direct-uri"
+
+ ❯ src/test/neon-fixture-provision.test.ts:384:26
+    382|     await expect(run()).resolves.toMatchObject({ verdict: "NO-VERDICT"…
+    383|     const report = JSON.parse(files.get("neon-pr-provision.json")!);
+    384|     expect(report.phase).toBe("waiting-ready");
+       |                          ^
+    385|     expect(report.reason).toContain("readiness deadline exhausted");
+    386|     expect(Object.keys(files)).not.toContain("branch_direct_url");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 36 passed (38)
+   Start at  01:50:21
+   Duration  1.11s (transform 134ms, setup 149ms, import 117ms, tests 58ms, environment 628ms)
+

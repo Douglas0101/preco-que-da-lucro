@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Client } from "pg";
@@ -86,11 +86,14 @@ export function fixtureIdentity(
 interface FixtureDatabase {
   query(text: string): Promise<{ rows: RecordValue[] }>;
 }
-// neon_auth is Neon Auth's managed schema; pgrst is PostgREST's managed schema.
-// Both appear empty in the copy from the empty `ci-fixture-base` and, like every
-// copied schema, are verified empty and rebuilt away on the disposable fixture;
-// unknown schemas remain fail-closed.
+// The drop set is exactly the schemas the migration chain creates/rebuilds.
+// Neon-managed `neon_auth` and `pgrst` are verified empty like every table but
+// are NOT dropped: ownership of a managed schema belongs to the provider (a
+// neondb_owner DROP on it is a SQLSTATE 42501 hazard), and nothing in the
+// drill, db suites, RLS probe or E2E references them — keeping them also keeps
+// the schema-diff baseline clean. Unknown schemas still fail closed.
 const allowedSchemas = ["app_private", "drizzle", "neon_auth", "pgrst", "public"];
+const migrationOwnedSchemas = ["app_private", "drizzle", "public"];
 const quoted = (value: string) => `"${value.replaceAll('"', '""')}"`;
 
 /** Only a freshly verified zero-row parent-data child of the empty base may call this function. Never erase rows. */
@@ -145,24 +148,61 @@ export async function resetEmptyFixture(db: FixtureDatabase) {
     );
     if (largeObjects.rows.length !== 1 || largeObjects.rows[0].populated !== false)
       throw new Error("fixture contains large objects or inventory is not verified");
-    // Drop only the verified empty copied schemas. This rebuilds a genuine migration
-    // ledger from the source migrations, instead of inventing applied ledger rows.
-    for (const name of names) await db.query(`drop schema ${quoted(String(name))} cascade`);
+    // Drop only the verified empty schemas the migration chain owns, so the
+    // rebuild starts from the real migration ledger; managed schemas stay.
+    const dropped = names.filter(
+      (name): name is string => typeof name === "string" && migrationOwnedSchemas.includes(name),
+    );
+    const keptSchemas = names
+      .filter(
+        (name): name is string => typeof name === "string" && !migrationOwnedSchemas.includes(name),
+      )
+      .sort();
+    for (const name of dropped) await db.query(`drop schema ${quoted(String(name))} cascade`);
     await db.query("create schema public");
     await db.query("commit");
-    return { discoveredTables: relations.length, checkedTables: relations.length, rowsErased: 0 };
+    return {
+      discoveredTables: relations.length,
+      checkedTables: relations.length,
+      rowsErased: 0,
+      keptSchemas,
+    };
   } catch (error) {
     await db.query("rollback");
     throw error;
   }
 }
 
+const refusalCodePattern = /^[0-9A-Z_]{5,12}$/;
+
+/**
+ * The validated code projection of a refusal: a pg SQLSTATE or node errno
+ * (`error.code`) when it fits the pattern, otherwise absent. Any other error
+ * content — messages, provider bodies, credential material — is never surfaced.
+ */
+export function refusalCode(error: unknown): string | undefined {
+  return record(error) && typeof error.code === "string" && refusalCodePattern.test(error.code)
+    ? error.code
+    : undefined;
+}
+
+/**
+ * The single sanitized refusal line. The phase discriminates connect failures
+ * from SQL failures and identity throws; nothing else from the error is logged.
+ */
+export function refusalProjection(phase: string, error: unknown): string {
+  return `Neon fixture refused: phase=${phase}, code=${refusalCode(error) ?? "none"}; no credentials logged`;
+}
+
 async function main() {
   let client: Client | undefined;
+  let phase = "identity";
+  let artifact: string | undefined;
   try {
     const env = process.env;
     if (!env.RUNNER_TEMP || !env.NEON_API_KEY)
       throw new Error("fixture CI credentials/context absent");
+    artifact = resolve(env.RUNNER_TEMP, "neon-pr-fixture.json");
     const admin = readFileSync(resolve(env.RUNNER_TEMP, "branch_direct_url"), "utf8");
     const pooled = readFileSync(resolve(env.RUNNER_TEMP, "branch_pooled_url"), "utf8");
     const id = env.BRANCH_ID ?? "";
@@ -185,19 +225,43 @@ async function main() {
       read(`branches/${id}/endpoints`),
     ]);
     const identity = fixtureIdentity(branch, endpoints, admin, pooled, env);
+    phase = "connect";
+    // A fresh endpoint can still be initializing here; a connect failure now
+    // carries its own phase instead of collapsing into the generic refusal.
     client = new Client({ connectionString: admin, connectionTimeoutMillis: 15_000 });
     await client.connect();
+    phase = "prepare";
     const result = { schema: "neon-pr-fixture/1", identity, ...(await resetEmptyFixture(client)) };
+    phase = "persist";
     writeFileSync(
       resolve(env.RUNNER_TEMP, "neon-pr-fixture.json"),
       JSON.stringify(result, null, 2) + "\n",
     );
     console.log(JSON.stringify(result));
-  } catch {
-    // PG errors and provider bodies can contain credential or account values.
-    console.error(
-      "Neon fixture refused: identity, empty inventory or preparation failed; no credentials logged",
-    );
+  } catch (error) {
+    // PG errors and provider bodies can contain credential or account values;
+    // the refusal line carries only the phase and a validated code projection.
+    console.error(refusalProjection(phase, error));
+    if (artifact && !existsSync(artifact)) {
+      try {
+        const code = refusalCode(error);
+        writeFileSync(
+          artifact,
+          `${JSON.stringify(
+            {
+              schema: "neon-pr-fixture/1",
+              phase,
+              verdict: "NO-VERDICT",
+              ...(code ? { code } : {}),
+            },
+            null,
+            2,
+          )}\n`,
+        );
+      } catch {
+        // An artifact-write failure must not mask the original refusal.
+      }
+    }
     process.exitCode = 2;
   } finally {
     await client?.end();

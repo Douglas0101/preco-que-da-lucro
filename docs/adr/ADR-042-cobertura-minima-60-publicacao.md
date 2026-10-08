@@ -105,3 +105,35 @@ Esta emenda é de **implementação**: não altera a decisão de cobertura míni
 (`new_coverage >= 60%`), nem qualquer condição de segurança, confiabilidade ou manutenibilidade
 desta ADR. A aceitação do provedor permanece um limite declarado, demonstrável apenas pelo CI
 corrente; nenhuma prova remota é inferida localmente.
+
+---
+
+## Emenda 2a — 2026-10-08: readiness do endpoint, drop-set migracional e refusal projetado
+
+Refinamentos de implementação sobre a Emenda 2, após o run `37722430962` (PR #60, head
+`2875382b`): o provisionamento e a identidade do filho `parent-data` passaram até
+`connection-verified`, e a preparação da fixture recusou em seguida (exit 2 sanitizado) — a recusa
+ocorreu 0,52 s após a construção do `Client`, tempo consistente apenas com falha em
+`client.connect()` (inferência declarada; o caminho SQL exigiria ≥61 viagens de rede).
+
+1. **Readiness inclui o endpoint.** O loop de espera do provisionador passa a exigir, além de
+   `branch.current_state === "ready"`, o endpoint `read_write` correspondente com
+   `current_state === "ready"` (mesmos predicados de branch/projeto/tipo/disabled/host), antes de
+   ler qualquer URI — um endpoint recém-criado pode seguir em `init` quando a branch já reporta
+   `ready`.
+2. **Drop-set migracional.** `resetEmptyFixture` deixa de derrubar **todos** os schemas
+   descobertos: o drop passa a ser exatamente os schemas que a cadeia de migrations cria/rebuilda
+   (`app_private`, `drizzle`, `public`). Os schemas geridos pelo provedor (`neon_auth`, `pgrst`)
+   permanecem, verificados-vazios como todas as demais tabelas e devolvidos em `keptSchemas` — o
+   `DROP` de schema gerido por `neondb_owner` era hazard latente de SQLSTATE `42501`, e a
+   permanência também mantém o schema diff §12.5 limpo. Schema desconhecido continua fail-closed.
+3. **Refusal projetado.** O catch do `prepare` deixa de ser mudo: projeta uma única linha
+   sanitizada com `phase` (`identity`/`connect`/`prepare`/`persist`) e `code` (SQLSTATE/errno
+   validado por `[0-9A-Z_]{5,12}`) e grava artefato de falha `neon-pr-fixture.json` (NO-VERDICT)
+   quando inexistente — sem nunca expor mensagem, corpo do provedor ou credencial.
+
+Nenhum invariante muda: inventário vazio verificado antes de qualquer SQL destrutivo, identidade
+explícita, TTL 24h no POST, `branch_id` antes de compute/URI, migrations reais gerando o ledger,
+as 18 suítes, a sonda RLS, a matriz Playwright e o cleanup `always()` com GET 404. A decisão de
+cobertura mínima (60%) permanece intocada; a aceitação do provedor segue um limite declarado,
+demonstrável apenas pelo CI corrente.
