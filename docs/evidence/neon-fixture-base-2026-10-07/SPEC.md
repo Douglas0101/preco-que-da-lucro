@@ -108,8 +108,9 @@ até `connection-verified`; a recusa seguinte ocorreu na preparação da fixture
 construção do `Client` (inferência declarada: falha em `connect()`). Refinamentos:
 
 - Contrato 4 (reconstrução): o drop set é exatamente o subconjunto migracional (`app_private`,
-  `drizzle`, `public`); `neon_auth`/`pgrst` permanecem copiados, verificados-vazios e devolvidos em
-  `keptSchemas` — nunca derrubados.
+  `drizzle`, `public`); os demais schemas da base — `auth` (owner `cloud_admin`, vazio),
+  `neon_auth` e `pgrst` — permanecem copiados, verificados-vazios e devolvidos em `keptSchemas` —
+  nunca derrubados.
 - Contrato 5 acrescenta: o provisionador só lê URIs após branch **e** endpoint `read_write`
   conectável (`active`/`idle`; o enum de endpoint é `init`/`active`/`idle` e não tem `ready`); o
   `prepare` projeta `phase`/`code` sanitizados no refusal e grava artefato de falha quando

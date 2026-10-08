@@ -1,0 +1,27 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/neon-fixture.test.ts (54 tests | 1 failed) 22ms
+     × accepts the provider-owned auth schema of the zero-row copy when empty, keeping it 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/neon-fixture.test.ts > empty schema preparation refuses inherited data before any destructive SQL > accepts the provider-owned auth schema of the zero-row copy when empty, keeping it
+Error: fixture discovered an unexpected or incomplete schema inventory
+ ❯ resetEmptyFixture scripts/ci/prepare-neon-fixture.ts:115:13
+    113|       new Set(names).size !== names.length
+    114|     )
+    115|       throw new Error("fixture discovered an unexpected or incomplete …
+       |             ^
+    116|     const tables = await db.query(`
+    117|       select n.nspname as schema, c.relname as name, c.relkind as kind
+ ❯ src/test/neon-fixture.test.ts:285:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 53 passed (54)
+   Start at  02:41:17
+   Duration  1.15s (transform 114ms, setup 183ms, import 118ms, tests 22ms, environment 711ms)
+

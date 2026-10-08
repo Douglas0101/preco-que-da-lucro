@@ -3,8 +3,9 @@ b15352e0faef89f281c066b215e1a9f2062e48b44f19104d5112f81b5800d53d  docs/evidence/
 abf0cbcda1249f854ee6ca55cef266df11dd724dc6b01a854a1526f77154217a  docs/evidence/neon-fixture-base-2026-10-07/captures/baseline-emptiness-before.txt
 8a80904e4c90edf596d25accc37578c030c12338c6e9cdac4bcefdc3a7078f6b  docs/evidence/neon-fixture-base-2026-10-07/captures/baseline-inventory-after.json
 e5d3fe92966d04d6d66f04bd851b284ffe0d6be8fc8a2b03b3b2711ad1ae8931  docs/evidence/neon-fixture-base-2026-10-07/captures/baseline-inventory-before.json
+2c6a680522b4ad3c12c85dba39c3a27cbd9c04ae75f7d5405b7c42eefe99b530  docs/evidence/neon-fixture-base-2026-10-07/captures/base-schema-inventory.txt
 71c04398816fac03bdc89527eac4ccc2e6eb93de8b766e20ea49a0846d5547c9  docs/evidence/neon-fixture-base-2026-10-07/captures/check-local.txt
-72ac465c911f8e442d983e118520f4764e259210f9a4ddfd2b6449825e33e808  docs/evidence/neon-fixture-base-2026-10-07/captures/ci-observed.txt
+b8d9a185de4fef52b8b808594974deb737f17081b4d97fa08feaa2645d4eb17f  docs/evidence/neon-fixture-base-2026-10-07/captures/ci-observed.txt
 916c19ffa45d8a300dc4fd3e637d7f332a16ec375b456db6cfb846d181912653  docs/evidence/neon-fixture-base-2026-10-07/captures/endpoint-readiness-green.txt
 3f4761a458086b4c3679a6724d338a1cc11a22b9468df29e6e2c4d4ad2154ac7  docs/evidence/neon-fixture-base-2026-10-07/captures/endpoint-readiness-red.txt
 5c6e3d5ed8a116ddca631a360d530854b62503843fd26f08a52ef9676fc81911  docs/evidence/neon-fixture-base-2026-10-07/captures/endpoint-vocabulary-green.txt
@@ -15,9 +16,11 @@ f1e3f78c5d31a7c3a76b1c229b96a5d01350de35e313169db1e373cb32f71b87  docs/evidence/
 6f46fdd8f27b5891e8618586ba7b1f10e2b8edb5751125cc504aa3a52176bd31  docs/evidence/neon-fixture-base-2026-10-07/captures/prepare-refusal-green.txt
 343c46baa604584f427b5f84bd277094ffa5b4c07733c4af1fce46666b11e550  docs/evidence/neon-fixture-base-2026-10-07/captures/prepare-refusal-red.txt
 a07f6ea738c79bca88e982048a41a6099dcc7fff6e7e637971e077899deb357a  docs/evidence/neon-fixture-base-2026-10-07/captures/provider-connection-uri-shape.txt
+3a95a06c1f78bac6b650e8e2b6272d0d9468ce405da9728a6a5f834b2d254723  docs/evidence/neon-fixture-base-2026-10-07/captures/schema-inventory-green.txt
+a3d9b40fadf57b778f1a2d9400434a9d17b86309013cb0a93c5ae8a562500856  docs/evidence/neon-fixture-base-2026-10-07/captures/schema-inventory-red.txt
 bb61e9241358aa3a809835b63aba02418e54aafba7d3207a4d67fe37cc35433f  docs/evidence/neon-fixture-base-2026-10-07/captures/site-inventory.txt
 677699bb32cb7b44cd3e1415af63feb182ab7e404bbc49a2c3106e3119fa858f  docs/evidence/neon-fixture-base-2026-10-07/captures/source-hashes.txt
 fb907e7e051e8099d6f9891c2b59f472f810daa9b99f053c32dc8e26a5bdaa11  docs/evidence/neon-fixture-base-2026-10-07/captures/uri-pinning-green.txt
 2a4d6ba9264cac6646365ebe81deb50166d4c07a354d3f304c4a53aa83ef801e  docs/evidence/neon-fixture-base-2026-10-07/captures/uri-pinning-red.txt
-f30d4fea6658e25bc153999da94cac09a1d94e77696f3632f113be5a54885e89  docs/evidence/neon-fixture-base-2026-10-07/README.md
-f1a59f72831de218a9c5d46fd99db3f485809fc50dc843bec115e39b45f82268  docs/evidence/neon-fixture-base-2026-10-07/SPEC.md
+02fd2963c08ba38df73040bff9ec97ee5713021d1fc19145b7f43ac15bfeef59  docs/evidence/neon-fixture-base-2026-10-07/README.md
+5c37a053e23407eb396d45c027bcb31ad40459fe1931254e447a219a434430b5  docs/evidence/neon-fixture-base-2026-10-07/SPEC.md

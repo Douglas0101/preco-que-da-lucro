@@ -1,0 +1,37 @@
+NEON FIXTURE-BASE SCHEMA INVENTORY — READ-ONLY (2026-10-08)
+============================================================
+captured_at_utc: 2026-10-08T05:58:00Z
+project_id: damp-forest-57346541
+branch (target): br-wandering-sky-ayxm5e5s (ci-fixture-base)
+surface: Neon Console SQL editor (authenticated session), read-only SELECTs only; no mutation
+
+branch binding (in-band): query result `branch_binding = br-wandering-sky-ayxm5e5s` and `total_tables = 47`
+  (the "branch info and table count in specific schemas" query from the prior session's history)
+
+1) Full schema enumeration (the exact guard query of resetEmptyFixture):
+   select nspname from pg_namespace where nspname <> 'information_schema' and nspname !~ '^pg_' order by 1;
+   -> 6 rows: app_private, auth, drizzle, neon_auth, pgrst, public
+
+2) Table-like objects by schema/kind (pg_class, relkind in ('r','p','m','f')):
+   -> drizzle r 1 · neon_auth r 9 · public r 37
+   -> app_private / auth / pgrst: zero objects; no matviews ('m'), no foreign tables ('f')
+
+3) Owners and CREATE privilege (neondb_owner context):
+   app_private  neondb_owner       can_create t
+   auth         cloud_admin        can_create f   <- provider-owned, empty, sixth schema
+   drizzle      neondb_owner       can_create t
+   neon_auth    neon_auth          can_create t
+   pgrst        neon_service       can_create f
+   public       pg_database_owner  can_create t
+
+4) Populated rows (exact count over r/p in the six schemas):
+   populated_tables = 0 · total_rows = 0 · large objects = 0
+
+Consequence: run 37732861624 (head 28ec7bb) fixture preparation refused at
+`phase=prepare, code=none` because `auth` was not in allowedSchemas — the guard
+"fixture discovered an unexpected or incomplete schema inventory" (plain Error, no SQLSTATE).
+
+Fix: add `auth` to allowedSchemas (kept, verified empty like neon_auth/pgrst; never dropped —
+its owner is the control plane and nothing in the drill rebuilds it).
+
+No mutation performed in these reads; no credentials or URIs captured.

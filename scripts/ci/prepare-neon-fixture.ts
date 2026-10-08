@@ -87,12 +87,14 @@ interface FixtureDatabase {
   query(text: string): Promise<{ rows: RecordValue[] }>;
 }
 // The drop set is exactly the schemas the migration chain creates/rebuilds.
-// Neon-managed `neon_auth` and `pgrst` are verified empty like every table but
-// are NOT dropped: ownership of a managed schema belongs to the provider (a
-// neondb_owner DROP on it is a SQLSTATE 42501 hazard), and nothing in the
-// drill, db suites, RLS probe or E2E references them — keeping them also keeps
-// the schema-diff baseline clean. Unknown schemas still fail closed.
-const allowedSchemas = ["app_private", "drizzle", "neon_auth", "pgrst", "public"];
+// Neon-managed `neon_auth` and `pgrst`, plus the provider-owned empty `auth`
+// schema (owner cloud_admin; observed on the base as the sixth schema with zero
+// tables), are verified empty like every table but are NOT dropped: ownership
+// of a managed schema belongs to the provider (a neondb_owner DROP on it is a
+// SQLSTATE 42501 hazard), and nothing in the drill, db suites, RLS probe or E2E
+// references them — keeping them also keeps the schema-diff baseline clean.
+// Unknown schemas still fail closed.
+const allowedSchemas = ["app_private", "auth", "drizzle", "neon_auth", "pgrst", "public"];
 const migrationOwnedSchemas = ["app_private", "drizzle", "public"];
 const quoted = (value: string) => `"${value.replaceAll('"', '""')}"`;
 

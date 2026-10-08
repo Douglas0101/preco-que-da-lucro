@@ -278,6 +278,22 @@ describe("empty schema preparation refuses inherited data before any destructive
         .some((sql) => sql.includes("pgrst") || sql.includes("neon_auth")),
     ).toBe(false);
   });
+  it("accepts the provider-owned auth schema of the zero-row copy when empty, keeping it", async () => {
+    const db = database({
+      schemas: ["app_private", "auth", "drizzle", "neon_auth", "pgrst", "public"],
+    });
+    expect(await resetEmptyFixture(db)).toEqual({
+      discoveredTables: 2,
+      checkedTables: 2,
+      rowsErased: 0,
+      keptSchemas: ["auth", "neon_auth", "pgrst"],
+    });
+    expect(
+      db.calls
+        .filter((sql) => sql.startsWith("drop schema"))
+        .some((sql) => sql.includes("auth") || sql.includes("pgrst") || sql.includes("neon_auth")),
+    ).toBe(false);
+  });
   it("refuses an unknown copied schema before any destructive SQL", async () => {
     const db = database({ schemas: ["public", "legacy_web"] });
     await expect(resetEmptyFixture(db)).rejects.toThrow("unexpected or incomplete");

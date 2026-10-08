@@ -215,3 +215,10 @@ mergeable: MERGEABLE · mergeStateStatus: BLOCKED · headRefOid: 2875382b2702c21
 - Jobs: Fork-guard success; Branch efêmera failure (exit 2); Cleanup always() success — DELETE + GET pós-delete 404.
 - Consequência: fixture/migrations/18 suítes/RLS/schema-diff/journal/E2E `skipped`; DBT-96 segue ABERTA.
 - Corrigendum: predicado `active`/`idle` (idle acorda ao conectar) + caso de teste de idle; RED 6/39 → GREEN 39/39 (capturas endpoint-vocabulary-red/green).
+
+== Run 37732861624 (Neon PR, head 28ec7bb, 2026-10-08) ==
+- Provisionamento: POST `parent-data` aceito; readiness branch+endpoint (`active`/`idle`) passou; URIs direta/pooled fixadas e `connection-verified`; branch efêmera criada e entregue ao cleanup.
+- Fixture prep: `connect()` PASSOU (fase avançou até `prepare`) — o fix do readiness resolveu a falha de conexão de 0,52 s; a recusa veio do guard de inventário de schemas: `Neon fixture refused: phase=prepare, code=none`.
+- Causa raiz (leitura read-only da base via console SQL editor): a base tem SEIS schemas — `app_private`, `auth` (owner `cloud_admin`, vazio), `drizzle`, `neon_auth`, `pgrst`, `public` — e `auth` não estava na allowlist do `resetEmptyFixture` (47 tabelas r, 0 linhas, 0 LOs; captura `base-schema-inventory.txt`).
+- Jobs: Fork-guard success; Branch efêmera failure (exit 2); Cleanup always() success — DELETE + GET pós-delete 404.
+- Corrigendum: `auth` adicionado à allowlist (mantido, verificado-vazio como `neon_auth`/`pgrst`; nunca derrubado — owner é o control plane); caso de teste novo; RED 1/54 → GREEN 127/127 nas três suítes focadas (capturas schema-inventory-red/green).

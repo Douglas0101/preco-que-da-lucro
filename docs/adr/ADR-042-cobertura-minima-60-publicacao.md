@@ -124,7 +124,8 @@ ocorreu 0,52 s após a construção do `Client`, tempo consistente apenas com fa
    `ready`.
 2. **Drop-set migracional.** `resetEmptyFixture` deixa de derrubar **todos** os schemas
    descobertos: o drop passa a ser exatamente os schemas que a cadeia de migrations cria/rebuilda
-   (`app_private`, `drizzle`, `public`). Os schemas geridos pelo provedor (`neon_auth`, `pgrst`)
+   (`app_private`, `drizzle`, `public`). Os demais schemas da base — `neon_auth`, `pgrst` e o
+   `auth` de owner `cloud_admin` (vazio; observado como sexto schema em 2026-10-08) —
    permanecem, verificados-vazios como todas as demais tabelas e devolvidos em `keptSchemas` — o
    `DROP` de schema gerido por `neondb_owner` era hazard latente de SQLSTATE `42501`, e a
    permanência também mantém o schema diff §12.5 limpo. Schema desconhecido continua fail-closed.
