@@ -1,7 +1,6 @@
-88aca8d7c898ca2f92fcbe4e1664a201391d81fd934752a69d8fc673f54e1104  docs/evidence/neon-parent-schema-2026-10-07/README.md
-c21b066e39cb164b5ade0c1e93b651f9e7a0b694df9c656e226fbba64f5574ee  docs/evidence/neon-parent-schema-2026-10-07/SPEC.md
 6c2073430b60d8a5d18aa94cdbfb7e0dd94dfc84fe0bf61c0b8efdfd5fdd983e  docs/evidence/neon-parent-schema-2026-10-07/captures/check-final.txt
 9b0cbd22e0058fe962681ddb00c2ad48260c168f70396047dc4fae16d35cbd71  docs/evidence/neon-parent-schema-2026-10-07/captures/check-main-worktree.txt
+b0bdb0effe715079508287e0759f9cdabbf344bc3aed4005d7a5dc5dc694bf6e  docs/evidence/neon-parent-schema-2026-10-07/captures/ci-observed.txt
 a66527f3f707c58273604d2cedbeb63ecb0ca33d3cefe0f3b2f2b19a1d976adf  docs/evidence/neon-parent-schema-2026-10-07/captures/green-focused-tests.txt
 f1e3f78c5d31a7c3a76b1c229b96a5d01350de35e313169db1e373cb32f71b87  docs/evidence/neon-parent-schema-2026-10-07/captures/matrix-check.txt
 a9cec0cb09b05f262f758ddc97bbe297e9a8abbdc78fc2491cc60f70d343928b  docs/evidence/neon-parent-schema-2026-10-07/captures/pgrst-green-focused-tests.txt
@@ -12,3 +11,5 @@ e1ff38d25a530ab06a4c4a831890c7f6628d858691e75a485aa73dc4b20d4f2d  docs/evidence/
 bcf13dffbbe3907799064f0ac50e1d010c55861848c6789f28193108925bf11f  docs/evidence/neon-parent-schema-2026-10-07/captures/root-cause-signature.txt
 6fe4d8f0a4419b5dbb602e7b052a2acc20499fbfd3617240947865962196d319  docs/evidence/neon-parent-schema-2026-10-07/captures/schema-inventory-permanent-branches.txt
 afc7cff3cd7165e94e25211f01c407bf6e909d497df63c6f8de4316ac837b0a8  docs/evidence/neon-parent-schema-2026-10-07/captures/site-inventory.txt
+09d82fb517b2d664dd367693430a2cc78de7c57933ce8a44781575d6c4578045  docs/evidence/neon-parent-schema-2026-10-07/README.md
+c21b066e39cb164b5ade0c1e93b651f9e7a0b694df9c656e226fbba64f5574ee  docs/evidence/neon-parent-schema-2026-10-07/SPEC.md

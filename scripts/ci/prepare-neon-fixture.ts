@@ -3,7 +3,13 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Client } from "pg";
 import { exigirAlvoDeBanco } from "../lib/db-target";
-import { assertConnectionPair, DEVELOP_ID, PRODUCTION_ID, PROJECT_ID } from "./neon-resource";
+import {
+  assertConnectionPair,
+  DEVELOP_ID,
+  FIXTURE_BASE_ID,
+  PRODUCTION_ID,
+  PROJECT_ID,
+} from "./neon-resource";
 
 type RecordValue = Record<string, unknown>;
 const record = (value: unknown): value is RecordValue =>
@@ -25,12 +31,11 @@ export function fixtureIdentity(
   if (
     env.GITHUB_REPOSITORY !== "Douglas0101/preco-que-da-lucro" ||
     env.GITHUB_EVENT_NAME !== "pull_request" ||
-    !["main", "develop"].includes(env.GITHUB_BASE_REF ?? "") ||
     env.NEON_PROJECT_ID !== PROJECT_ID ||
     env.BRANCH_CREATED !== "true" ||
     numeric.some((value) => !/^[1-9][0-9]*$/.test(value ?? "")) ||
     !/^br-[a-z0-9-]+$/.test(id) ||
-    [DEVELOP_ID, PRODUCTION_ID].includes(id)
+    [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(id)
   )
     throw new Error("fixture run/project/creation identity is not verified");
   const name = `pr-${env.PR_NUMBER}-${env.GITHUB_RUN_ID}-${env.GITHUB_RUN_ATTEMPT}`;
@@ -44,8 +49,8 @@ export function fixtureIdentity(
     branch.name !== name ||
     branch.default !== false ||
     branch.protected !== false ||
-    branch.parent_id !== (env.GITHUB_BASE_REF === "main" ? PRODUCTION_ID : DEVELOP_ID) ||
-    branch.init_source !== "parent-schema" ||
+    branch.parent_id !== FIXTURE_BASE_ID ||
+    branch.init_source !== "parent-data" ||
     branch.current_state !== "ready" ||
     !Number.isFinite(now) ||
     !Number.isFinite(created) ||
@@ -55,7 +60,7 @@ export function fixtureIdentity(
     expiry <= now ||
     expiry - created > 24 * 3600_000 + 120_000
   )
-    throw new Error("fixture schema-only child/parent/expiry/freshness identity differs");
+    throw new Error("fixture zero-row child/parent/expiry/freshness identity differs");
   const endpoints =
     record(endpointBody) && Array.isArray(endpointBody.endpoints) ? endpointBody.endpoints : [];
   const direct = new URL(admin);
@@ -73,7 +78,7 @@ export function fixtureIdentity(
   return {
     branchId: id,
     branchName: name,
-    initSource: "parent-schema",
+    initSource: "parent-data",
     expiresAt: branch.expires_at,
   };
 }
@@ -81,14 +86,14 @@ export function fixtureIdentity(
 interface FixtureDatabase {
   query(text: string): Promise<{ rows: RecordValue[] }>;
 }
-// neon_auth is Neon Auth's managed schema (present on the develop branch); pgrst
-// is PostgREST's managed schema (empty on both permanent branches). Both appear
-// in a parent-schema copy and, like every copied schema, are verified empty and
-// rebuilt away on the disposable fixture; unknown schemas remain fail-closed.
+// neon_auth is Neon Auth's managed schema; pgrst is PostgREST's managed schema.
+// Both appear empty in the copy from the empty `ci-fixture-base` and, like every
+// copied schema, are verified empty and rebuilt away on the disposable fixture;
+// unknown schemas remain fail-closed.
 const allowedSchemas = ["app_private", "drizzle", "neon_auth", "pgrst", "public"];
 const quoted = (value: string) => `"${value.replaceAll('"', '""')}"`;
 
-/** Only a freshly verified parent-schema child may call this function. Never erase rows. */
+/** Only a freshly verified zero-row parent-data child of the empty base may call this function. Never erase rows. */
 export async function resetEmptyFixture(db: FixtureDatabase) {
   await db.query("begin");
   try {

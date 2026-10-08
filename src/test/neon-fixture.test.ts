@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { fixtureIdentity, resetEmptyFixture } from "../../scripts/ci/prepare-neon-fixture";
-import { DEVELOP_ID, PRODUCTION_ID, PROJECT_ID } from "../../scripts/ci/neon-resource";
+import {
+  DEVELOP_ID,
+  FIXTURE_BASE_ID,
+  PRODUCTION_ID,
+  PROJECT_ID,
+} from "../../scripts/ci/neon-resource";
 
 const now = Date.parse("2026-10-07T00:50:00Z");
 const id = "br-fixture-example";
@@ -15,7 +20,7 @@ const env = {
   NEON_PROJECT_ID: PROJECT_ID,
   BRANCH_ID: id,
   BRANCH_CREATED: "true",
-  ALLOW_REMOTE_DB: "CI parent-schema child fixture with synthetic data",
+  ALLOW_REMOTE_DB: "CI parent-data child fixture sourced from the empty ci-fixture-base",
 };
 function urls(hostname = host) {
   // S6-R2/N01-residual: the explicit 5432 port pins the effective destination,
@@ -36,8 +41,8 @@ const branch = () => ({
     default: false,
     protected: false,
     current_state: "ready",
-    init_source: "parent-schema",
-    parent_id: PRODUCTION_ID,
+    init_source: "parent-data",
+    parent_id: FIXTURE_BASE_ID,
     created_at: new Date(now).toISOString(),
     expires_at: new Date(now + 24 * 3600_000).toISOString(),
   },
@@ -56,21 +61,14 @@ const endpoints = () => ({
 });
 
 describe("Neon PR fixture ownership and endpoint binding", () => {
-  it("accepts a parent-schema child bound to the exact run, attempt, parent and endpoint", () => {
+  it("accepts a zero-row parent-data child of the empty base bound to the exact run and endpoint", () => {
     expect(fixtureIdentity(branch(), endpoints(), ...urls(), env, now)).toMatchObject({
       branchId: id,
       branchName: "pr-60-123-2",
-      initSource: "parent-schema",
+      initSource: "parent-data",
     });
   });
-  it("accepts a develop-base child whose explicit parent is develop", () => {
-    const body = branch();
-    body.branch.parent_id = DEVELOP_ID;
-    expect(
-      fixtureIdentity(body, endpoints(), ...urls(), { ...env, GITHUB_BASE_REF: "develop" }, now),
-    ).toMatchObject({ branchId: id, initSource: "parent-schema" });
-  });
-  it.each([DEVELOP_ID, PRODUCTION_ID])(
+  it.each([DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID])(
     "refuses permanent branch %s even with remote override",
     (branchId) => {
       expect(() =>
@@ -99,9 +97,6 @@ describe("Neon PR fixture ownership and endpoint binding", () => {
     { GITHUB_REPOSITORY: "foreign/fork" },
     { GITHUB_EVENT_NAME: "push" },
     { NEON_PROJECT_ID: "different" },
-    { GITHUB_BASE_REF: "" },
-    { GITHUB_BASE_REF: "preview" },
-    { GITHUB_BASE_REF: undefined },
     { GITHUB_RUN_ID: "" },
   ])("refuses reused or different run context %j", (patch) => {
     expect(() =>
@@ -110,9 +105,10 @@ describe("Neon PR fixture ownership and endpoint binding", () => {
   });
   it.each([
     { parent_id: null },
+    { parent_id: PRODUCTION_ID },
     { parent_id: DEVELOP_ID },
     { init_source: "schema-only" },
-    { init_source: "parent-data" },
+    { init_source: "parent-schema" },
     { default: true },
     { protected: true },
     { current_state: "init" },
@@ -217,7 +213,7 @@ describe("empty schema preparation refuses inherited data before any destructive
     expect(db.calls.some((sql) => /^(drop|truncate|delete|create) /i.test(sql))).toBe(false);
     expect(db.calls.at(-1)).toBe("rollback");
   });
-  it("accepts the managed neon_auth schema of a parent-schema copy when empty", async () => {
+  it("accepts the managed neon_auth schema of the zero-row copy when empty", async () => {
     const db = database({ schemas: ["app_private", "drizzle", "neon_auth", "public"] });
     expect(await resetEmptyFixture(db)).toEqual({
       discoveredTables: 2,
@@ -225,7 +221,7 @@ describe("empty schema preparation refuses inherited data before any destructive
       rowsErased: 0,
     });
   });
-  it("accepts the managed pgrst schema of a parent-schema copy when empty", async () => {
+  it("accepts the managed pgrst schema of the zero-row copy when empty", async () => {
     const db = database({ schemas: ["app_private", "drizzle", "neon_auth", "pgrst", "public"] });
     expect(await resetEmptyFixture(db)).toEqual({
       discoveredTables: 2,

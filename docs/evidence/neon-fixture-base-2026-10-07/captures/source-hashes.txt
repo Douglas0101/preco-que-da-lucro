@@ -1,0 +1,17 @@
+NEON FIXTURE-BASE — SOURCE/BYTES HASHES
+======================================
+revision (pre-edit): HEAD = f986fb05c0a60ca37d5887b3cab95550a72b0731
+working tree (post-edit): 2026-10-07 (implementacao final parent-data)
+
+path                                                       sha256(HEAD blob) sha256(worktree)
+scripts/ci/neon-resource.ts                                46c7e30ec366d505228033f8918c7b156bc1c9a7ff2d36adf301dd2d1a38e49b 51a2030b1a2a44922515bf204d9798eb10771367ab13b7a5b57c5ca5c1cdf83a
+scripts/ci/provision-neon-fixture.ts                       6aad527d173c34f0acf028fd486ad01d156a29e03085557bafe964961c17fdaf 5f66cb5ab10386f59e532a26b45bb30eadedb0448338d9f4c8743cb4a249c8be
+scripts/ci/prepare-neon-fixture.ts                         2a3dd3e2c8b849d98cfef942f2c65752b1f8c722e437a84906c7c128a2841244 cffd6cfdeea62cf778cf0805cfb47798d1c2c80688991aa277838657f70ed2b1
+.github/workflows/neon-pr-branch.yml                       619430f9efde42f1e7dfa40c1de68615d128097deb31f9e39d90d582db8a1afe e10520ffb4a03a8dbaf7838c7c39ca54e04c41d01e582bf842a3973ff456d80b
+AGENTS.md                                                  1195c3a18c34fad830a53dcab4b62ba9de391089f83437e8ec4bb32bf780eafa a0e83878e80d2b5179fc4782953dff6b85c108741bb6636dfa98225e91fb7f4e
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md         4f51953d4b3a805e639440384fac73f9817821fe4b28d5fd79e170f3fee139e8 fa828a6a1a7fca5e5893a36f9bf5f51e187cd1b80ae0a9386147869a4e667fe6
+src/test/neon-resource.test.ts                             b3b18897ae177d4e8a42d586473ee19fbeec687a1bcaa3c11fd671baba349a1d 1e30b306596d09dd0999304bd442e2137eb86d1331cbed165f47d7f02643da87
+src/test/neon-fixture.test.ts                              3a4ef13d3d14af76f4f4d19672f719766ab868957372a805ff1111f6e7ff62d6 5d8155ecb764fa6597984d3f0bdf6eb8fc6f953a65f312f27d5a6d46f084922f
+src/test/neon-fixture-provision.test.ts                    429a554f97cd64ff80ccb24a63015d082eb3148b1e13f477ee17fc0ae49c5c08 02f07363cf86036c3e04f10ad235ef2130900ea5daaf83b17e1b431b8a6a713e
+
+note: pre-edit column = bytes of the RED control (HEAD f986fb05); post-edit column = bytes tested GREEN and checked by the clean-worktree gate.

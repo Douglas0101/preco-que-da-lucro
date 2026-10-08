@@ -1,0 +1,13 @@
+b15352e0faef89f281c066b215e1a9f2062e48b44f19104d5112f81b5800d53d  docs/evidence/neon-fixture-base-2026-10-07/captures/baseline-create.json
+595b28dfa3715562c107036f1031fc80e97510eb27569d19586a0d2df960e2bb  docs/evidence/neon-fixture-base-2026-10-07/captures/baseline-emptiness-after.txt
+abf0cbcda1249f854ee6ca55cef266df11dd724dc6b01a854a1526f77154217a  docs/evidence/neon-fixture-base-2026-10-07/captures/baseline-emptiness-before.txt
+8a80904e4c90edf596d25accc37578c030c12338c6e9cdac4bcefdc3a7078f6b  docs/evidence/neon-fixture-base-2026-10-07/captures/baseline-inventory-after.json
+e5d3fe92966d04d6d66f04bd851b284ffe0d6be8fc8a2b03b3b2711ad1ae8931  docs/evidence/neon-fixture-base-2026-10-07/captures/baseline-inventory-before.json
+67a458f6fc275a8e5d3130dd8da984e34d011c1241d167da372e71f092aecf37  docs/evidence/neon-fixture-base-2026-10-07/captures/check-local.txt
+19bd98e5f6709e2d2a95ea4182fc41dd35e93f1ca70882d202eda36091ec500b  docs/evidence/neon-fixture-base-2026-10-07/captures/focused-tests-green.txt
+003e2917878b1015a0bbfdece9250f5dd50d9bebc4c4cb2cfe8aad073fdc771a  docs/evidence/neon-fixture-base-2026-10-07/captures/focused-tests-red.txt
+f1e3f78c5d31a7c3a76b1c229b96a5d01350de35e313169db1e373cb32f71b87  docs/evidence/neon-fixture-base-2026-10-07/captures/matrix-check.txt
+bb61e9241358aa3a809835b63aba02418e54aafba7d3207a4d67fe37cc35433f  docs/evidence/neon-fixture-base-2026-10-07/captures/site-inventory.txt
+677699bb32cb7b44cd3e1415af63feb182ab7e404bbc49a2c3106e3119fa858f  docs/evidence/neon-fixture-base-2026-10-07/captures/source-hashes.txt
+58e6fa9757c89ee2b9bedbfed3d166b60a6a29cc1d430297fcb57f13edd55a23  docs/evidence/neon-fixture-base-2026-10-07/README.md
+52d8734e3a233a55875c39fb71645bdc8d2eaf3185d4408a6fca75538cd040fe  docs/evidence/neon-fixture-base-2026-10-07/SPEC.md

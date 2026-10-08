@@ -1,0 +1,23 @@
+{
+  "captured_at_utc": "2026-10-07T23:35:12Z",
+  "source": "console.neon.tech same-origin fetch GET /api/v2/projects/damp-forest-57346541/branches",
+  "project_id": "damp-forest-57346541",
+  "http_status": 200,
+  "branch_count": 2,
+  "branches": [
+    {
+      "id": "br-snowy-violet-aymcvvvv",
+      "name": "production",
+      "default": true,
+      "current_state": "ready"
+    },
+    {
+      "id": "br-small-hill-aymcu14y",
+      "name": "develop",
+      "default": false,
+      "parent_id": "br-snowy-violet-aymcvvvv",
+      "current_state": "ready"
+    }
+  ],
+  "ci_fixture_base_exists": false
+}

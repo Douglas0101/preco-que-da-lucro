@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   assertConnectionPair,
+  assertOwnedResource,
   assertPermanentInventory,
   assertTemporary,
   DEVELOP_ID,
+  FIXTURE_BASE_ID,
   NeonResources,
   PRODUCTION_ID,
   PROJECT_ID,
@@ -25,6 +27,7 @@ const id = "br-disposable-example";
 const permanent: Branch[] = [
   { id: DEVELOP_ID, name: "develop", project_id: PROJECT_ID, default: false },
   { id: PRODUCTION_ID, name: "production", project_id: PROJECT_ID, default: true },
+  { id: FIXTURE_BASE_ID, name: "ci-fixture-base", project_id: PROJECT_ID, default: false },
 ];
 const temp = (): Branch => ({
   id,
@@ -85,15 +88,30 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
       resourcePlan({ ...env, RESOURCE_EXPIRES_AT: "2026-10-03T22:00:00Z" }, now),
     ).toThrow();
   });
-  it("requires permanent identity and default, not just a cardinality of two", () => {
+  it("requires permanent identity and default for develop, production and the empty fixture base", () => {
     expect(() => assertPermanentInventory(permanent)).not.toThrow();
     expect(() =>
-      assertPermanentInventory([{ ...permanent[0], id: "br-other" }, permanent[1]]),
+      assertPermanentInventory([{ ...permanent[0], id: "br-other" }, permanent[1], permanent[2]]),
     ).toThrow();
     expect(() =>
-      assertPermanentInventory([permanent[0], { ...permanent[1], default: false }]),
+      assertPermanentInventory([permanent[0], { ...permanent[1], default: false }, permanent[2]]),
+    ).toThrow();
+    expect(() => assertPermanentInventory(permanent.slice(0, 2))).toThrow();
+    expect(() =>
+      assertPermanentInventory([permanent[0], permanent[1], { ...permanent[2], name: "fixture" }]),
+    ).toThrow();
+    expect(() =>
+      assertPermanentInventory([permanent[0], permanent[1], { ...permanent[2], default: true }]),
+    ).toThrow();
+    expect(() =>
+      assertPermanentInventory([
+        permanent[0],
+        permanent[1],
+        { ...permanent[2], project_id: "other-project" },
+      ]),
     ).toThrow();
     expect(() => assertPermanentInventory([...permanent, permanent[0]])).toThrow("duplicated");
+    expect(() => assertPermanentInventory([...permanent, permanent[2]])).toThrow("duplicated");
   });
   it("refuses reusing a preexisting resource of the same run name", async () => {
     const { impl } = mock([{ body: inventory([...permanent, temp()]) }]);
@@ -113,12 +131,25 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
     const branch = { ...temp(), [key]: key === "default" ? true : "different" };
     expect(() => assertTemporary(branch, plan, id, "true", now)).toThrow();
   });
-  it("refuses missing ownership and BOTH permanent IDs", () => {
+  it("refuses missing ownership and every permanent ID, including the fixture base", () => {
     expect(() => assertTemporary(temp(), plan, id, "false", now)).toThrow("ownership");
-    for (const permanentId of [DEVELOP_ID, PRODUCTION_ID])
+    for (const permanentId of [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID])
       expect(() =>
         assertTemporary({ ...temp(), id: permanentId }, plan, permanentId, "true", now),
       ).toThrow("non-production");
+    expect(() =>
+      assertOwnedResource({ ...temp(), id: FIXTURE_BASE_ID }, plan, FIXTURE_BASE_ID, now),
+    ).toThrow("non-production");
+  });
+  it("reports the empty fixture base among the permanent ids it must never delete", async () => {
+    const expected = [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID];
+    const prepared = mock([{ body: inventory() }]);
+    const report = await new NeonResources(plan, "test-key", prepared.impl).prepare();
+    expect(report.permanentIds).toEqual(expected);
+    const absent = mock([{ body: inventory() }, { body: inventory() }]);
+    const proof = await new NeonResources(plan, "test-key", absent.impl).cleanup("", "", now);
+    expect(proof.phase).toBe("no-resource-observed");
+    expect(proof.permanentIds).toEqual(expected);
   });
   it("observes identity before DELETE, GET404 afterward, and independent paginated absence", async () => {
     const { impl, calls } = mock([
@@ -126,20 +157,22 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
       { body: { branch: temp() } },
       { status: 404, body: { code: "BRANCH_NOT_FOUND" } },
       { body: inventory([permanent[0]], "page-two") },
-      { body: inventory([permanent[1]]) },
+      { body: inventory([permanent[1], permanent[2]]) },
     ]);
     const proof = await new NeonResources(plan, "test-key", impl).cleanup(id, "true", now);
     expect(proof.phase).toBe("discarded-verified");
     expect(proof.getStatus).toBe(404);
     expect(proof.absentByIdAndName).toBe(true);
+    expect(proof.permanentIds).toEqual([DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID]);
     expect(calls.map((call) => call.method)).toEqual(["GET", "DELETE", "GET", "GET", "GET"]);
     expect(calls[0].url).toBe(calls[1].url);
     expect(calls[2].url).toBe(calls[1].url);
     expect(calls[4].url).toContain("cursor=page-two");
   });
-  it("makes no DELETE when the returned ID is production or a reused resource", async () => {
+  it("makes no DELETE when the returned ID is permanent (production or the fixture base) or reused", async () => {
     for (const [branch, ownership] of [
       [permanent[1], "true"],
+      [permanent[2], "true"],
       [temp(), "false"],
     ] as const) {
       const { impl, calls } = mock([{ body: { branch } }]);
@@ -169,7 +202,11 @@ describe("run-scoped Neon readiness resource lifecycle", () => {
     ).rejects.toThrow("GET 404");
   });
   it("rejects a same-name replacement and a missing permanent branch after deletion", async () => {
-    for (const branches of [[...permanent, { ...temp(), id: "br-replacement" }], [permanent[0]]]) {
+    for (const branches of [
+      [...permanent, { ...temp(), id: "br-replacement" }],
+      [permanent[0]],
+      [permanent[0], permanent[1]],
+    ]) {
       const { impl } = mock([
         { body: { branch: temp() } },
         { body: { branch: temp() } },

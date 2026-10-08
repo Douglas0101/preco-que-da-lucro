@@ -1,8 +1,9 @@
 name: Neon PR branch CI
 
 # PLANO_MESTRE §26 (item 28 da ordem prática §40): todo PR do próprio repo
-# ganha uma branch Neon efêmera schema-only — CHILD `parent-schema` (schema
-# copiado do pai sem registros herdados), migrations via
+# ganha uma branch Neon efêmera de zero linhas — CHILD `parent-data` da branch
+# permanente vazia `ci-fixture-base` (schema copiado da base sem registros
+# herdados), migrations via
 # DIRECT obtida em runtime, integração, sonda RLS adversarial contra o DIRECT
 # da branch e cleanup `always()` com prova. NUNCA usa o DATABASE_URL/secret de
 # produção: a única credencial remota é a NEON_API_KEY (escopo branch), e a
@@ -17,9 +18,9 @@ name: Neon PR branch CI
 # NEON_API_KEY ausente no repo: skip gracioso ROTULADO (gatilho da rodada),
 # nunca fail silencioso.
 #
-# §12.4 (modelo de branch): production → develop → preview/pr-<n>. PRs contra
-# `main` (caminho de release) copiam production; os demais copiam develop. O
-# parent é expressão explícita sobre github.base_ref, nunca default implícito.
+# §12.4 (modelo de branch): production → develop → preview/pr-<n>. A fixture do
+# PR copia a base vazia permanente `ci-fixture-base` (parent-data), nunca dados;
+# o parent é explícito no POST e não depende do base_ref.
 # §12.5 (schema diff): após as migrations, `compare_schema` compara a branch do
 # PR com production (baseline read-only, a branch já carrega as migrations do
 # PR) e persiste artefato + resumo em forma de comentário. Sem NEON_API_KEY o
@@ -119,7 +120,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      - name: Create ephemeral schema-only child via REST (parent-schema; source production for main, develop otherwise)
+      - name: Create ephemeral zero-row child via REST (parent-data from the empty ci-fixture-base)
         id: create
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -128,20 +129,19 @@ jobs:
         # cada URI é mascarada na chegada (::add-mask::) e valores já conhecidos
         # são redigidos antes de qualquer log; o TTL de 24h vai no próprio POST e
         # o branch_id é entregue ao cleanup antes de qualquer espera por compute.
-        # §12.4: PRs de release (base main) copiam production; os demais copiam
-        # develop, para que a cópia reflita o schema de desenvolvimento em vez
-        # de uma produção possivelmente defasada. A cópia é `parent-schema`
-        # (CHILD do pai explícito): schema sem linhas herdadas — nunca cópia de
-        # dados, nunca retry para dados.
+        # §12.4: a cópia é `parent-data` de `ci-fixture-base` (CHILD da base
+        # vazia permanente): schema sem linhas herdadas — nunca cópia de dados,
+        # nunca retry para dados. O provedor recusa toda cópia de schema neste
+        # projeto (HTTP 412 em `schema-only` e `parent-schema`).
         run: npx --no-install tsx scripts/ci/provision-neon-fixture.ts
 
-      - name: Verify fresh schema-only child (parent-schema) identity and prepare an empty migration fixture
+      - name: Verify fresh zero-row child (parent-data from ci-fixture-base) identity and prepare an empty migration fixture
         id: fixture
         env:
           BRANCH_ID: ${{ steps.create.outputs.branch_id }}
           BRANCH_CREATED: ${{ steps.create.outputs.created }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          ALLOW_REMOTE_DB: CI Neon parent-schema child PR fixture; schema only, no production or develop data
+          ALLOW_REMOTE_DB: CI Neon parent-data child PR fixture sourced from the empty ci-fixture-base; zero inherited rows, no production or develop data
         run: npx --no-install tsx scripts/ci/prepare-neon-fixture.ts
 
       - name: Upload fixture identity and zero-row preparation proof
@@ -446,13 +446,13 @@ jobs:
             echo "- Branch efêmera \`${BRANCH_ID:-não identificada}\`: cleanup — $DELETED (§12.5 always())"
             echo "- Etapas observadas: fixture \`${FIXTURE_RESULT:-n/a}\` · migrations \`${MIGRATE_RESULT:-n/a}\` · integração \`${INTEGRATION_RESULT:-n/a}\` · E2E \`${E2E_RESULT:-n/a}\`."
             echo "- Delete: \`${DELETE_RESULT:-n/a}\`; somente GET pós-delete HTTP 404 confirma descarte."
-            echo "- Alvo autorizado: branch efêmera parent-schema child (schema sem linhas); nenhum sucesso de etapa é presumido a partir do resultado do job."
+            echo "- Alvo autorizado: branch efêmera parent-data child da base vazia ci-fixture-base (zero linhas herdadas); nenhum sucesso de etapa é presumido a partir do resultado do job."
           } >> "$GITHUB_STEP_SUMMARY"
           gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$(cat <<EOF
           ### Neon PR branch CI
           - Resultado dos jobs: \`$CI_RESULT\`
           - Sonda RLS adversarial (H-07): \`${PROBE_RESULT:-n/a}\`
-          - Schema diff §12.5 vs produção (parent do PR): \`${SCHEMA_DIFF:-n/a}\`
+          - Schema diff §12.5 vs produção (baseline read-only): \`${SCHEMA_DIFF:-n/a}\`
           - Branch efêmera: \`$BRANCH_ID\` — cleanup: $DELETED
           - Etapas observadas: fixture \`${FIXTURE_RESULT:-n/a}\` · migrations \`${MIGRATE_RESULT:-n/a}\` · integração \`${INTEGRATION_RESULT:-n/a}\` · E2E \`${E2E_RESULT:-n/a}\`
           - Delete: \`${DELETE_RESULT:-n/a}\`; prova de descarte independente pelo GET pós-delete.

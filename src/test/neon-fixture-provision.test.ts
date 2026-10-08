@@ -6,6 +6,7 @@ import {
 } from "../../scripts/ci/provision-neon-fixture";
 import {
   DEVELOP_ID,
+  FIXTURE_BASE_ID,
   MaskedSecrets,
   pinConnection,
   PRODUCTION_ID,
@@ -112,18 +113,19 @@ function mock(
   return { calls, events, files, run };
 }
 
-describe("parent-schema child fixture provisioning plan", () => {
-  it("plans a parent-schema child copy with an explicit source id and a 24h TTL", () => {
+describe("zero-row parent-data fixture provisioning plan from the empty base", () => {
+  it("plans a parent-data child of the permanent empty base with a 24h TTL", () => {
     const plan = provisionPlan(env, new Date(now));
     expect(plan).toEqual({
       projectId: PROJECT_ID,
-      parentId: DEVELOP_ID,
+      parentId: FIXTURE_BASE_ID,
       branchName: "pr-60-123-2",
       expiresAt: "2026-10-08T02:00:00Z",
     });
-    expect(provisionPlan({ ...env, GITHUB_BASE_REF: "main" }, new Date(now)).parentId).toBe(
-      PRODUCTION_ID,
-    );
+    for (const GITHUB_BASE_REF of ["main", "develop"])
+      expect(provisionPlan({ ...env, GITHUB_BASE_REF }, new Date(now)).parentId).toBe(
+        FIXTURE_BASE_ID,
+      );
   });
   it.each([
     { GITHUB_REPOSITORY: "foreign/fork" },
@@ -162,7 +164,7 @@ describe("URI pinning closes the effective-destination residual", () => {
 });
 
 describe("REST provisioning with masked credentials and sanitized refusals", () => {
-  it("creates the parent-schema child once, hands the branch id to cleanup before compute, and writes masked private URIs", async () => {
+  it("creates the zero-row parent-data child once, hands the branch id to cleanup before compute, and writes masked private URIs", async () => {
     const { calls, events, files, run } = mock([
       { body: { branch: { id: branchId } } },
       { body: branchBody("init") },
@@ -176,8 +178,8 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
     expect(JSON.parse(calls[0].body!)).toEqual({
       branch: {
         name: "pr-60-123-2",
-        parent_id: DEVELOP_ID,
-        init_source: "parent-schema",
+        parent_id: FIXTURE_BASE_ID,
+        init_source: "parent-data",
         expires_at: "2026-10-08T02:00:00Z",
       },
       endpoints: [{ type: "read_write" }],
@@ -211,7 +213,7 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
     expect(report).toMatchObject({
       phase: "connection-verified",
       branchId,
-      initSource: "parent-schema",
+      initSource: "parent-data",
     });
     // O payload de ::add-mask:: usa escape do protocolo Actions; os demais
     // eventos não podem conter credenciais recebidas.
@@ -283,7 +285,7 @@ describe("REST provisioning with masked credentials and sanitized refusals", () 
     );
     expect(files.get("neon-pr-provision.json")).not.toContain(apiKey);
   });
-  it.each([DEVELOP_ID, PRODUCTION_ID, "unverified"])(
+  it.each([DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID, "unverified"])(
     "never hands cleanup a permanent or unverified provider identity %s",
     async (id) => {
       const { events, files, run } = mock([{ body: { branch: { id } } }]);

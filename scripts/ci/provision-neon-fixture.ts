@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   DEVELOP_ID,
+  FIXTURE_BASE_ID,
   MaskedSecrets,
   pinConnection,
   PRODUCTION_ID,
@@ -14,8 +15,14 @@ import {
 // instead of the action wrapper, so a refusal (e.g. HTTP 412) surfaces its
 // status and code sanitized. Every URI is masked the moment it arrives and any
 // value already known is redacted from a failure before it is logged or
-// persisted. The fixture is a schema-only CHILD (parent-schema): schema copied
-// without rows; no retry ever falls back to data.
+// persisted. The fixture is a zero-row CHILD (parent-data) of the permanent
+// empty `ci-fixture-base` branch: the copy carries the schema with no inherited
+// rows. The base was created once as a parent-data child of production and
+// emptied once (15 populated tables / 162 rows -> 0/0, no large objects;
+// docs/evidence/neon-fixture-base-2026-10-07/); it is a fixture source only and
+// no commit may turn it into a development branch. The provider refuses every
+// schema copy in this project (HTTP 412 on `schema-only` and `parent-schema`),
+// so no retry ever falls back to a data copy.
 
 const apiBase = "https://console.neon.tech/api/v2";
 const repository = "Douglas0101/preco-que-da-lucro";
@@ -41,12 +48,14 @@ export function provisionPlan(env: NodeJS.ProcessEnv, now = new Date()): Provisi
     numeric.some((value) => !/^[1-9][0-9]*$/.test(value ?? ""))
   )
     throw new Error("fixture provisioning precondition failed");
-  // §12.4: release PRs (base main) copy the production structure; the others
-  // copy develop's. The created branch is a schema-only CHILD (parent-schema):
-  // schema copied without rows; no retry ever falls back to data.
+  // The parent is always the permanent empty `ci-fixture-base`: the created
+  // branch is a zero-row CHILD (parent-data) whose schema is copied without
+  // inherited rows. The base-ref precondition above is retained (release only
+  // from main/develop), but parent identity no longer depends on it; no retry
+  // ever falls back to a data copy.
   return {
     projectId: PROJECT_ID,
-    parentId: env.GITHUB_BASE_REF === "main" ? PRODUCTION_ID : DEVELOP_ID,
+    parentId: FIXTURE_BASE_ID,
     branchName: `pr-${env.PR_NUMBER}-${env.GITHUB_RUN_ID}-${env.GITHUB_RUN_ATTEMPT}`,
     expiresAt: new Date(Math.floor((now.getTime() + 24 * 3600_000) / 1000) * 1000)
       .toISOString()
@@ -160,7 +169,7 @@ export async function provision(
         branch: {
           name: plan.branchName,
           parent_id: plan.parentId,
-          init_source: "parent-schema",
+          init_source: "parent-data",
           expires_at: plan.expiresAt,
         },
         endpoints: [{ type: "read_write" }],
@@ -170,7 +179,10 @@ export async function provision(
       record(created) && record(created.branch) && typeof created.branch.id === "string"
         ? created.branch.id
         : "";
-    if (!/^br-[a-z0-9-]+$/.test(createdId) || [DEVELOP_ID, PRODUCTION_ID].includes(createdId))
+    if (
+      !/^br-[a-z0-9-]+$/.test(createdId) ||
+      [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(createdId)
+    )
       throw new Error("fixture provisioning did not return a verified disposable branch id");
     branchId = createdId;
     // The disposable identity reaches the cleanup job before anything waits on
@@ -260,7 +272,7 @@ export async function provision(
           schema: "neon-pr-provision/1",
           phase: "connection-verified",
           branchId,
-          initSource: "parent-schema",
+          initSource: "parent-data",
           expiresAt: plan.expiresAt,
         },
         null,
@@ -293,7 +305,7 @@ export async function provision(
                 ...(error.status === 412
                   ? {
                       nextStep:
-                        "Provider precondition refused. Check project access, parent-schema copy allowance and branch-expiration support; the HTTP status alone does not identify the cause. No retry or data-copy fallback was attempted.",
+                        "Provider precondition refused. Check project access, parent-data copy allowance and branch-expiration support; the HTTP status alone does not identify the cause. No retry or data-copy fallback was attempted.",
                     }
                   : {}),
               }

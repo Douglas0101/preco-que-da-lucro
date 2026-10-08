@@ -66,3 +66,42 @@ Esta emenda é de **implementação**: não altera a decisão de cobertura míni
 (`new_coverage >= 60%`), nem qualquer condição de segurança, confiabilidade ou manutenibilidade
 desta ADR. A aceitação do provedor só é demonstrável pelo CI corrente (run real) — limite
 declarado no pacote de evidências; nenhuma prova remota é inferida localmente.
+
+**ERRATA (2026-10-07):** a hipótese `parent-schema` desta emenda foi falsificada pelo run de CI
+`37700582228` (HTTP 412, nenhuma branch criada) — o mecanismo final é o da **Emenda 2** abaixo.
+
+---
+
+## Emenda 2 — 2026-10-07: fixture por base vazia permanente (parent-data)
+
+O mecanismo da emenda anterior (`init_source: "parent-schema"`, child de `production`/`develop`)
+foi **falsificado pelo CI real**: o run `37700582228` (PR #60, head `f986fb05`) recusou o POST
+`parent-schema` com HTTP 412 e **nenhuma branch foi criada** (artefato `neon-pr-provision.json`,
+fase `creating`, `NO-VERDICT`, sem `branchId`). Combinado às recusas anteriores de `schema-only`
+(runs `37556250921`/`37634147956` e request de console `bba50fbd-1e38-49d7-a52b-084e5b6e95ed`),
+a limitação do provedor cobre **todas as cópias de schema** deste projeto, por causa dos papéis
+SQL-created de _legacy web access_ (`app_runtime`, `anonymous`, `authenticated`).
+
+**Decisão do dono:** autorizar uma base de fixture permanente e vazia — branch `ci-fixture-base`
+(`br-wandering-sky-ayxm5e5s`), criada uma única vez como filha `parent-data` de `production`,
+default false, sem expiração, e esvaziada uma única vez: BEFORE 15 tabelas populadas / 162 linhas
+→ AFTER 0 / 0, 0 grandes objetos, com prova in-band `neon.branch_id`; evidência em
+`docs/evidence/neon-fixture-base-2026-10-07/`. A base é fonte de fixture de zero linhas: **nunca**
+canal de desenvolvimento, **nunca** alvo de teste e **nunca** descartável pelo cleanup (id
+presente em todas as guardas/reportes de permanentes). Passa a ser a **terceira branch
+permanente**, ao lado de `develop` e `production`.
+
+**Mecanismo final:** cada PR cria um filho `init_source: "parent-data"` da base vazia (zero linhas
+herdadas), com TTL de 24h no próprio POST e `branch_id` entregue ao cleanup antes de qualquer
+espera por compute/URI; nenhum retry cai em cópia de dados. Todas as invariantes desta ADR
+permanecem: identidade explícita (projeto, pai, nome, default, criação nova, não-permanente),
+endpoint correspondente, inventário vazio verificado antes de reconstruir (schemas `app_private`,
+`drizzle`, `neon_auth`, `pgrst`, `public` — todos presentes e vazios na base), schema diff vs
+`production`, migrations reais gerando o ledger verdadeiro, as 18 suítes, a sonda RLS, a matriz
+Playwright completa e o descarte `always()` com GET 404. O fechamento de `DBT-96` continua
+exigindo essa execução real de CI com todos os estágios verdes.
+
+Esta emenda é de **implementação**: não altera a decisão de cobertura mínima de 60%
+(`new_coverage >= 60%`), nem qualquer condição de segurança, confiabilidade ou manutenibilidade
+desta ADR. A aceitação do provedor permanece um limite declarado, demonstrável apenas pelo CI
+corrente; nenhuma prova remota é inferida localmente.

@@ -1,0 +1,31 @@
+{
+  "captured_at_utc": "2026-10-07T23:35:37Z",
+  "source": "console.neon.tech same-origin fetch POST /api/v2/projects/damp-forest-57346541/branches",
+  "project_id": "damp-forest-57346541",
+  "request_body_branch": {
+    "name": "ci-fixture-base",
+    "parent_id": "br-snowy-violet-aymcvvvv",
+    "init_source": "parent-data"
+  },
+  "request_body_endpoints": [{ "type": "read_write" }],
+  "request_body_expires_at": null,
+  "http_status": 201,
+  "branch": {
+    "id": "br-wandering-sky-ayxm5e5s",
+    "name": "ci-fixture-base",
+    "parent_id": "br-snowy-violet-aymcvvvv",
+    "init_source": "parent-data",
+    "default": false,
+    "protected": false,
+    "current_state": "init",
+    "created_at": "2026-10-07T23:35:37Z"
+  },
+  "endpoints": [
+    {
+      "id": "ep-delicate-sky-ayivte12",
+      "host": "ep-delicate-sky-ayivte12.c-5.us-east-2.aws.neon.tech",
+      "type": "read_write"
+    }
+  ],
+  "note": "No connection_uris/passwords captured or persisted."
+}

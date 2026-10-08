@@ -6,6 +6,12 @@ import { pathToFileURL } from "node:url";
 export const PROJECT_ID = "damp-forest-57346541";
 export const DEVELOP_ID = "br-small-hill-aymcu14y";
 export const PRODUCTION_ID = "br-snowy-violet-aymcvvvv";
+// Permanent zero-row fixture source: created once as a parent-data child of
+// production and emptied once (15 populated tables / 162 rows -> 0/0, no large
+// objects, in-band neon.branch_id proof). Never a development channel, never a
+// test target and never deletable by cleanup: PR fixtures are parent-data
+// children of this branch, so a schema copy never inherits rows.
+export const FIXTURE_BASE_ID = "br-wandering-sky-ayxm5e5s";
 const apiBase = "https://console.neon.tech/api/v2";
 export interface ResourcePlan {
   purpose: "readiness" | "provisioning";
@@ -74,6 +80,7 @@ export function assertPermanentInventory(branches: Branch[]) {
   for (const [id, name, isDefault] of [
     [DEVELOP_ID, "develop", false],
     [PRODUCTION_ID, "production", true],
+    [FIXTURE_BASE_ID, "ci-fixture-base", false],
   ] as const) {
     const found = branches.filter((branch) => branch.id === id);
     if (
@@ -107,7 +114,7 @@ export function assertTemporary(
 // Cleanup cannot depend on expiry having succeeded: an owned branch with a
 // missing expiry is precisely a resource that must still be discarded.
 export function assertOwnedResource(branch: Branch, plan: ResourcePlan, id: string, now: Date) {
-  if (!/^br-[a-z0-9-]+$/.test(id) || [DEVELOP_ID, PRODUCTION_ID].includes(id))
+  if (!/^br-[a-z0-9-]+$/.test(id) || [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(id))
     throw new Error("resource non-production identity is not verified");
   if (
     branch.id !== id ||
@@ -293,7 +300,7 @@ export class NeonResources {
       schema: "neon-resource/1",
       plan: this.plan,
       phase: "planned",
-      permanentIds: [DEVELOP_ID, PRODUCTION_ID],
+      permanentIds: [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID],
     };
   }
   async created(id: string, ownership: string, now: Date) {
@@ -312,7 +319,7 @@ export class NeonResources {
   private async discover(id: string, ownership: string, now: Date): Promise<Branch | null> {
     if (ownership === "false") throw new Error("resource ownership is reused; cleanup escalated");
     if (id) {
-      if (ownership !== "true" || [DEVELOP_ID, PRODUCTION_ID].includes(id))
+      if (ownership !== "true" || [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(id))
         throw new Error("resource ownership or non-production identity is not verified");
       const { status, body } = await this.request(`branches/${encodeURIComponent(id)}`);
       if (status === 404) return null;
@@ -383,7 +390,7 @@ export class NeonResources {
         phase: "no-resource-observed",
         created: false,
         deletePerformed: false,
-        permanentIds: [DEVELOP_ID, PRODUCTION_ID],
+        permanentIds: [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID],
         absentByIdAndName: true,
         ...(id ? { getStatus: 404, branchId: id } : {}),
       };
@@ -410,7 +417,7 @@ export class NeonResources {
       deletePerformed: true,
       getStatus: 404,
       absentByIdAndName: true,
-      permanentIds: [DEVELOP_ID, PRODUCTION_ID],
+      permanentIds: [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID],
     };
   }
 }

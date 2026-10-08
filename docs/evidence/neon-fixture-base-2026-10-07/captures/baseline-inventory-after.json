@@ -1,0 +1,30 @@
+{
+  "captured_at_utc": "2026-10-07T23:54:16Z",
+  "source": "console.neon.tech same-origin fetch GET /api/v2/projects/damp-forest-57346541/branches",
+  "project_id": "damp-forest-57346541",
+  "http_status": 200,
+  "branch_count": 3,
+  "branches": [
+    {
+      "id": "br-wandering-sky-ayxm5e5s",
+      "name": "ci-fixture-base",
+      "default": false,
+      "parent_id": "br-snowy-violet-aymcvvvv",
+      "current_state": "ready"
+    },
+    {
+      "id": "br-snowy-violet-aymcvvvv",
+      "name": "production",
+      "default": true,
+      "current_state": "ready"
+    },
+    {
+      "id": "br-small-hill-aymcu14y",
+      "name": "develop",
+      "default": false,
+      "parent_id": "br-snowy-violet-aymcvvvv",
+      "current_state": "ready"
+    }
+  ],
+  "note": "Exactly the two pre-existing permanent branches plus the authorized ci-fixture-base. No other branches. No settings, endpoints, branches or data other than the authorized one-time emptying were touched."
+}
