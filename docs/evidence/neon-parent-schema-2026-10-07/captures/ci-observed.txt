@@ -1,0 +1,139 @@
+CI OBSERVED — PR #60, fix fixture Neon parent-schema
+head:    f986fb05c0a60ca37d5887b3cab95550a72b0731 (branch develop -> base main; merge check-out 937a0db83adf0b38b0a92c1dff720d2542b41d6c)
+repo:    Douglas0101/preco-que-da-lucro
+observer: sessão observadora de CI, 2026-10-07 23:10–23:27 UTC; somente leitura via gh + GET no console Neon
+          (Kimi WebBridge, credentials:'include'); nenhuma mutação de repositório/história/Neon/credenciais.
+PR #60:  state=OPEN, mergeable=MERGEABLE, mergeStateStatus=BLOCKED, headRefOid=f986fb05c0a60ca37d5887b3cab95550a72b0731
+
+== RUNS ==
+evento pull_request, attempt 1, head f986fb05…:
+  37700582228  neon-pr-branch.yml   failure   23:09:12Z -> 23:09:46Z  (34 s)
+  37700582240  ui-stack.yml (PR)    failure   23:09:12Z -> 23:14:14Z  (302 s)
+  37700582306  sonar.yml (PR)       failure   23:09:12Z -> 23:11:46Z  (154 s)
+evento push, mesmo head:
+  37700577270  ui-stack.yml (push)  success   23:09:09Z -> 23:14:26Z  (317 s)
+  37700577110  ci-light.yml (push)  success   23:09:09Z -> 23:09:24Z  (15 s)
+
+== NEON RUN 37700582228 — JOBS ==
+Fork-guard + presença de segredo                                    success  (23:09:15Z -> 23:09:18Z)
+Branch efêmera · migrate · integração · RLS probe · E2E            failure  (23:09:20Z -> 23:09:38Z)
+Cleanup always() com prova (§12.5)                                  failure  (23:09:41Z -> 23:09:45Z)
+
+steps do job "Branch efêmera…" (não-success):
+  4  Install dependencies                                                        success (npm ci --ignore-scripts; 621 packages)
+  5  Create ephemeral schema-only child via REST (parent-schema; source production for main, develop otherwise)  FAILURE
+  6  Verify fresh schema-only child (parent-schema) identity and prepare an empty migration fixture              skipped
+  7  Upload fixture identity and zero-row preparation proof                       success (1 file, 441 B, artifact neon-pr-fixture-37700582228-1)
+  8  Migrations via DIRECT da branch (drill-branch, complete source chain)        skipped
+  9  Schema diff §12.5 (compare_schema + veredito por nível de migration)         skipped
+ 10  Upload schema diff §12.5                                                     success (warning: nenhum arquivo em .artifacts/neon-pr-branch)
+ 11  Integração (suites db:test) contra a branch                                  skipped
+ 12  Seed sintético + sonda RLS adversarial contra o DIRECT da branch (H-07)      skipped
+ 13  Prova de journal (read-only)                                                 skipped
+ 14  E2E Playwright contra a branch efêmera (§12.5 · §26.7)                       skipped
+
+steps do job "Cleanup always() com prova (§12.5)":
+  2  Delete branch efêmera                       skipped
+  3  Prova de cleanup + comentário no PR         FAILURE (exit 2; NO-VERDICT — branch_id ausente)
+  4  Complete job                                success
+
+== ARTIFACT PROJECTION ==
+neon-pr-fixture-37700582228-1/neon-pr-provision.json (verbatim):
+{
+  "schema": "neon-pr-provision/1",
+  "phase": "creating",
+  "verdict": "NO-VERDICT",
+  "providerStatus": 412,
+  "providerCode": "UNCLASSIFIED",
+  "nextStep": "Provider precondition refused. Check project access, parent-schema copy allowance and branch-expiration support; the HTTP status alone does not identify the cause. No retry or data-copy fallback was attempted.",
+  "reason": "fixture provisioning HTTP 412, code=UNCLASSIFIED"
+}
+branchId: AUSENTE no artefato. initSource: AUSENTE no registro de falha (o schema do relatório de
+sucesso é que carrega initSource); o valor ENVIADO foi "parent-schema" — configurado em
+scripts/ci/provision-neon-fixture.ts no head (init_source:"parent-schema", parent_id = production
+para base main / develop caso contrário) e no nome do passo do workflow.
+neon-pr-fixture.json: AUSENTE — o pré-condicionamento falhou antes do preparo da fixture
+(o upload registra "1 file uploaded", somente o provision JSON).
+
+== LOG EXCERPTS (verbatim, sanitizado; segredos mascarados pelo runner como ***) ==
+job Branch efêmera…, passo 5:
+  npx --no-install tsx scripts/ci/provision-neon-fixture.ts
+  Neon fixture provisioning refused: fixture provisioning HTTP 412, code=UNCLASSIFIED
+  ##[error]Process completed with exit code 2.
+job Cleanup…, passo 3 (env e veredito):
+  BRANCH_ID: (vazio) · CI_RESULT: failure · FIXTURE_RESULT: skipped · MIGRATE_RESULT: skipped
+  INTEGRATION_RESULT: skipped · E2E_RESULT: skipped · DELETE_RESULT: skipped
+  cleanup protocol guard: 404/403/200/000 PASS
+  DELETED="NAO-EXECUTADO — branch_id ausente; sem prova de criação ou descarte" ; exit 2
+  comentário publicado: https://github.com/Douglas0101/preco-que-da-lucro/pull/60#issuecomment-6048698392
+
+== PR COMMENT (mais novo github-actions, id 6048698392, 2026-10-07T23:09:44Z) ==
+### Neon PR branch CI
+- Resultado dos jobs: `failure`
+- Sonda RLS adversarial (H-07): `n/a`
+- Schema diff §12.5 vs produção (parent do PR): `n/a`
+- Branch efêmera: `` — cleanup: NAO-EXECUTADO — branch_id ausente; sem prova de criação ou descarte
+- Etapas observadas: fixture `skipped` · migrations `skipped` · integração `skipped` · E2E `skipped`
+- Delete: `skipped`; prova de descarte independente pelo GET pós-delete.
+- Produção intocada (caminho drill-branch, Emenda #2; hard-deny de produção permanece).
+
+== UI PR RUN 37700582240 ==
+verify-release: FAILURE no passo "Verify kit identity and install Linux packages offline":
+  precondition: kit identity mismatch: imageVersion
+  ##[error]Process completed with exit code 2.
+Consequência: Playwright não executado; upload avisou "No files were found with the provided path:
+.artifacts/playwright-results.json / playwright-report / test-results / docs/evidence/visual".
+prepare browsers and Linux packages: success. push run 37700577270 (verify): success no mesmo SHA.
+Artefato browser-kit-37700582240-1-937a0db… presente (624.553.110 B), mas recusado pela verificação
+de identidade do passo acima (precondição, exit 2).
+
+== SONAR PR RUN 37700582306 ==
+scan + cobertura (FAILURE):
+  passo "Suíte com cobertura (lcov)": Test Files 1 failed | 134 passed | 1 skipped (136);
+    Tests 1 failed | 1992 passed | 18 skipped (2011)
+    FAIL src/test/m02-transaction-sites.test.ts > guarda de entrypoint de scripts/m02-matrix.ts > importar o gerador não regrava a matriz
+    Error: Test timed out in 5000ms.   (src/test/m02-transaction-sites.test.ts:355:3)
+  passo "Nomear veredito do CE desta análise (sem token no log)":
+    C25_CE_GATE {"schema":"c25-ce-gate-readout/1","observedAt":"2026-10-07T23:11:26.996Z","status":"NO-VERDICT","reason":"readout unavailable; no raw remote error persisted"}  (exit 2)
+  passo "Seal scanner LCOV provenance":
+    NO-VERDICT: scanner LCOV provenance could not be established (no raw inputs emitted)  (exit 2)
+  passo "Guardar o lcov como artefato":
+    ##[warning]No files were found with the provided path: coverage/lcov.info coverage/lcov-provenance.json. No artifacts will be uploaded.
+main-coverage-mirror (FAILURE):
+  "Download candidate scanner LCOV": ##[error]Unable to download artifact(s): Artifact not found for name: coverage-lcov
+  "Observe the conservative mirror without granting main approval":
+    NO-VERDICT: complete per-unit mapping/provenance unavailable or inconsistent
+    ##[error]Mirror observation execution/evidence failed; inspect preserved raw reports.
+    ### Main coverage mirror: EXECUTION/EVIDENCE FAILURE ; raw status: NO-VERDICT; raw exit: 2 ; exit 1
+artefatos presentes do run: main-mirror-verdict (4.547 B), sonar-gate-readout (1.404 B); coverage-lcov AUSENTE.
+
+== INDEPENDENT INVENTORY (Kimi WebBridge, console.neon.tech; leitura, credentials:'include') ==
+GET /api/v2/projects/damp-forest-57346541/branches        -> HTTP 200
+GET /api/v2/projects/damp-forest-57346541/branches/count  -> HTTP 200 {"count":2}
+projeção (verbatim):
+{"statusBranches":200,"branches":[{"id":"br-small-hill-aymcu14y","name":"develop","state":"ready","default":false},{"id":"br-snowy-violet-aymcvvvv","name":"production","state":"ready","default":true}],"statusCount":200,"count":{"count":2}}
+Confirmado: exatamente 2 branches (production + develop); nenhuma branch pr-60-37700582228-*; nenhuma
+branch inesperada. Aba aberta somente para esta leitura e fechada em seguida; nenhuma mutação.
+
+== CHECK RUNS no head f986fb05… (todos completed) ==
+main-coverage-mirror                        failure
+verify-release                              failure
+verify                                      success
+Cleanup always() com prova (§12.5)          failure
+Branch efêmera · migrate · integração · RLS probe · E2E  failure
+docs-light                                  success   (pull_request)
+scan + cobertura                            failure
+Fork-guard + presença de segredo            success
+prepare browsers and Linux packages         success   (pull_request)
+prepare browsers and Linux packages         success   (push)
+docs-light                                  success   (push)
+Vermelhos no SHA: 5 (Branch efêmera, Cleanup, scan + cobertura, main-coverage-mirror, verify-release).
+Verdes: verify (push), docs-light x2, Fork-guard, prepare browsers x2. PR #60 permanece BLOCKED.
+
+== VERDICT ==
+O fix parent-schema NÃO obteve aceitação do provedor neste run: o POST de criação de branch foi
+recusado com HTTP 412/code=UNCLASSIFIED (mesmo status da rota ROOT schema-only anterior), sem
+branch_id, com fixture/migrations/schema diff/suítes/RLS/journal/E2E pulados e cleanup NO-VERDICT.
+DBT-96 permanece ABERTA. UI PR falhou na precondição do kit (imageVersion mismatch, exit 2) e Sonar
+PR falhou por timeout de 1 teste na suíte de cobertura, com CE/proveniência NO-VERDICT e mirror sem
+artefato (EXECUTION/EVIDENCE FAILURE bloqueante). Nenhum fix foi tentado por esta sessão.

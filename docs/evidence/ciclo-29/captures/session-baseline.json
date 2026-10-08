@@ -1,0 +1,99 @@
+{
+  "timestamp": "2026-10-04T18:23:19.352Z",
+  "report": {
+    "benchUrl": "http://127.0.0.1:4173",
+    "verdict": "RED",
+    "scenarios": [
+      {
+        "scenario": "fresh-unauthenticated-login",
+        "clientErrors": [
+          {
+            "kind": "console",
+            "message": "Failed to load resource: the server responded with a status of 401 ()"
+          },
+          {
+            "kind": "console",
+            "message": "TypeError: Cannot read properties of undefined (reading 'count')\n    at D (http://127.0.0.1:4173/assets/inicio-D11vMURS.js:1:4046)\n    at wo (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:47497)\n    at gc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:69943)\n    at Nc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:80201)\n    at Mu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:115530)\n    at ku (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114613)\n    at Ou (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114452)\n    at gu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:110981)\n    at ld (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:122948)\n    at id (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:121509)"
+          },
+          {
+            "kind": "console",
+            "message": "TypeError: Cannot read properties of undefined (reading 'count')\n    at D (http://127.0.0.1:4173/assets/inicio-D11vMURS.js:1:4046)\n    at wo (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:47497)\n    at gc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:69943)\n    at Nc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:80201)\n    at Mu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:115530)\n    at ku (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114613)\n    at Ou (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114452)\n    at gu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:111324)\n    at ld (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:122948)\n    at id (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:121509)"
+          },
+          {
+            "kind": "console",
+            "message": "TypeError: Cannot read properties of undefined (reading 'count')\n    at D (http://127.0.0.1:4173/assets/inicio-D11vMURS.js:1:4046)\n    at wo (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:47497)\n    at gc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:69943)\n    at Nc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:80201)\n    at Mu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:115530)\n    at ku (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114613)\n    at Ou (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114452)\n    at gu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:111324)\n    at ld (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:122948)\n    at id (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:121509)"
+          }
+        ],
+        "serverFnCalls": [
+          {
+            "status": 401
+          }
+        ],
+        "screenshots": [
+          "/home/douglas-souza/.codex/artifacts/ciclo-29/dbt-86/01-baseline-red.d/screenshot-fresh-unauthenticated-login.png"
+        ],
+        "bodyExcerpt": "This page didn't load | Something went wrong on our end. You can try refreshing or head back home. | Try again | Go home",
+        "dashboardRendered": false,
+        "controlledError": false,
+        "crashCount": 3,
+        "verdict": "RED"
+      },
+      {
+        "scenario": "logout-protected-route-relogin",
+        "clientErrors": [
+          {
+            "kind": "console",
+            "message": "Failed to load resource: the server responded with a status of 401 ()"
+          },
+          {
+            "kind": "console",
+            "message": "TypeError: Cannot read properties of undefined (reading 'count')\n    at D (http://127.0.0.1:4173/assets/inicio-D11vMURS.js:1:4046)\n    at wo (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:47497)\n    at gc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:69943)\n    at Nc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:80201)\n    at Mu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:115530)\n    at ku (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114613)\n    at Ou (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114452)\n    at gu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:110981)\n    at ld (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:122948)\n    at id (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:121509)"
+          },
+          {
+            "kind": "console",
+            "message": "TypeError: Cannot read properties of undefined (reading 'count')\n    at D (http://127.0.0.1:4173/assets/inicio-D11vMURS.js:1:4046)\n    at wo (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:47497)\n    at gc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:69943)\n    at Nc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:80201)\n    at Mu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:115530)\n    at ku (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114613)\n    at Ou (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114452)\n    at gu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:111324)\n    at ld (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:122948)\n    at id (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:121509)"
+          },
+          {
+            "kind": "console",
+            "message": "TypeError: Cannot read properties of undefined (reading 'count')\n    at D (http://127.0.0.1:4173/assets/inicio-D11vMURS.js:1:4046)\n    at wo (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:47497)\n    at gc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:69943)\n    at Nc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:80201)\n    at Mu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:115530)\n    at ku (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114613)\n    at Ou (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114452)\n    at gu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:111324)\n    at ld (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:122948)\n    at id (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:121509)"
+          },
+          {
+            "kind": "console",
+            "message": "Failed to load resource: the server responded with a status of 401 ()"
+          },
+          {
+            "kind": "console",
+            "message": "TypeError: Cannot read properties of undefined (reading 'count')\n    at D (http://127.0.0.1:4173/assets/inicio-D11vMURS.js:1:4046)\n    at wo (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:47497)\n    at gc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:69943)\n    at Nc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:80201)\n    at Mu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:115530)\n    at ku (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114613)\n    at Ou (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114452)\n    at gu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:110981)\n    at ld (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:122948)\n    at id (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:121509)"
+          },
+          {
+            "kind": "console",
+            "message": "TypeError: Cannot read properties of undefined (reading 'count')\n    at D (http://127.0.0.1:4173/assets/inicio-D11vMURS.js:1:4046)\n    at wo (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:47497)\n    at gc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:69943)\n    at Nc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:80201)\n    at Mu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:115530)\n    at ku (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114613)\n    at Ou (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114452)\n    at gu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:111324)\n    at ld (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:122948)\n    at id (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:121509)"
+          },
+          {
+            "kind": "console",
+            "message": "TypeError: Cannot read properties of undefined (reading 'count')\n    at D (http://127.0.0.1:4173/assets/inicio-D11vMURS.js:1:4046)\n    at wo (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:47497)\n    at gc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:69943)\n    at Nc (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:80201)\n    at Mu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:115530)\n    at ku (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114613)\n    at Ou (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:114452)\n    at gu (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:111324)\n    at ld (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:122948)\n    at id (http://127.0.0.1:4173/assets/index-DpDZQbhM.js:9:121509)"
+          }
+        ],
+        "serverFnCalls": [
+          {
+            "status": 401
+          },
+          {
+            "status": 200
+          },
+          {
+            "status": 401
+          }
+        ],
+        "screenshots": [
+          "/home/douglas-souza/.codex/artifacts/ciclo-29/dbt-86/01-baseline-red.d/screenshot-logout-protected-route-relogin.png"
+        ],
+        "bodyExcerpt": "This page didn't load | Something went wrong on our end. You can try refreshing or head back home. | Try again | Go home",
+        "dashboardRendered": false,
+        "controlledError": false,
+        "crashCount": 6,
+        "verdict": "RED"
+      }
+    ]
+  }
+}

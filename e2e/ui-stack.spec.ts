@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { loginWithUI } from "./helpers/authentication";
 
 const authEmail = process.env.E2E_AUTH_EMAIL ?? "";
 const authPassword = process.env.E2E_AUTH_PASSWORD ?? "";
@@ -33,17 +34,11 @@ async function signInWithBetterAuth(page: Page, email: string, password: string)
     headers: { origin, "sec-fetch-site": "same-origin" },
     data: { email, password },
   });
-  expect(response.ok(), await response.text()).toBe(true);
+  expect(response.status(), "The fixture's Better Auth sign-in must succeed").toBe(200);
 }
 
 async function login(page: Page): Promise<void> {
-  expect(authEmail, "E2E_AUTH_EMAIL deve estar configurada").not.toBe("");
-  expect(authPassword, "E2E_AUTH_PASSWORD deve estar configurada").not.toBe("");
-  await page.goto("/auth");
-  await page.getByLabel("E-mail").fill(authEmail);
-  await page.getByLabel("Senha").fill(authPassword);
-  await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  await expect(page).toHaveURL(/\/inicio$/);
+  await loginWithUI(page, { email: authEmail, password: authPassword });
 }
 
 test("public UI uses valid composed controls and has no serious a11y violations", async ({

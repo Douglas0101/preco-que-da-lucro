@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-05T02:38:09.131Z",
+  "results": [
+    {
+      "tenantId": "1a4129cd-30be-48fe-a45c-87d4032383b9",
+      "allScopedTablesEmpty": true,
+      "absent": true
+    },
+    {
+      "tenantId": "94286388-e9c3-420f-abd1-51ffff2fc8ab",
+      "allScopedTablesEmpty": true,
+      "absent": true
+    }
+  ]
+}

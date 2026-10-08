@@ -1,0 +1,23 @@
+NEON PROVIDER CONNECTION-URI SHAPE — read-only probe projection (WebBridge, aba autenticada do console)
+observado em: 2026-10-07 23:14–23:17 (local) durante o diagnóstico do run 37709862820 (PR #60, head 2b8aa7f)
+endpoint consultado (relativo, na página autenticada): GET /api/v2/projects/damp-forest-57346541/connection_uri?branch_id=br-wandering-sky-ayxm5e5s&database_name=neondb&role_name=neondb_owner&pooled=false|true
+read-only: nenhuma mutação Neon; nenhum commit/push; a aba aberta nesta sessão foi fechada (sessão sem abas restantes; abas do usuário intocadas).
+projeção estrutural apenas: NENHUMA URI, hostname, usuário, senha ou token foi retornado, persistido ou copiado para este arquivo; o hostname é reduzido à classe e `hasUsername`/`hasPassword` são booleanos.
+
+Call 1 — pooled=false (HTTP 200, projeção verbatim):
+{"pooled":false,"status":200,"hasUri":true,"protocol":"postgresql:","port":null,"hostnameClass":"non-pooler-ep","pathname":"/neondb","hasUsername":true,"hasPassword":true,"queryKeys":["channel_binding","sslmode"],"queryValues":{"sslmode":"require","channel_binding":"require","options":null,"application_name":null,"target_session_attrs":null,"connect_timeout":null,"host":null,"hostaddr":null,"port":null},"queryKeyCount":2,"poolerInHostname":false}
+
+Call 2 — pooled=true (HTTP 200, projeção verbatim):
+{"pooled":true,"status":200,"hasUri":true,"protocol":"postgresql:","port":null,"hostnameClass":"pooler-ep","pathname":"/neondb","hasUsername":true,"hasPassword":true,"queryKeys":["channel_binding","sslmode"],"queryValues":{"sslmode":"require","channel_binding":"require","options":null,"application_name":null,"target_session_attrs":null,"connect_timeout":null,"host":null,"hostaddr":null,"port":null},"queryKeyCount":2,"poolerInHostname":true}
+
+Leitura (diagnóstico que motivou o fix):
+- A API anexa de forma incondicional `channel_binding=require` ao lado de `sslmode=require` — exatamente 2 chaves de query em ambas as variantes (pooled=false e pooled=true).
+- Porta ausente (o cliente fixa explicitamente 5432); nenhum parâmetro movedor de destino presente (`host`, `hostaddr`, `port`, `options`, `application_name` todos null).
+- Classes de hostname observadas: non-pooler-ep (pooled=false) e pooler-ep (pooled=true) — o predicado de pooler do validador passava.
+- Predicado que recusava no run real (fase `reading-direct-uri`, artefato NO-VERDICT exit 2): a chave extra `channel_binding` na allowlist query-somente-sslmode de `pinConnection`; protocolo, porta, valor de `sslmode` e classe de host passavam.
+
+Corroboração documental (exemplos oficiais do provedor com o mesmo par de query):
+- https://neon.com/docs/connect/choose-connection — exemplos pooled e direct: `...?sslmode=require&channel_binding=require`
+- https://neon.com/docs/connect/connect-from-any-app — mesma conexão canônica com `sslmode=require&channel_binding=require`
+
+Limite declarado: este probe prova a forma da URI devolvida pela API para esta base/fonte, não a aceitação do CI corrigido (nenhum run destes bytes novos existe; ver README).

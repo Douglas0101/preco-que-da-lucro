@@ -1,0 +1,4 @@
+verify-release	Verify kit identity and install Linux packages offline	2026-10-06T19:20:24.1665069Z   E2E_AUTH_PASSWORD: ***
+verify-release	Verify kit identity and install Linux packages offline	2026-10-06T19:20:24.1665635Z ##[endgroup]
+verify-release	Verify kit identity and install Linux packages offline	2026-10-06T19:20:24.9635016Z precondition: kit identity mismatch: imageVersion
+verify-release	Verify kit identity and install Linux packages offline	2026-10-06T19:20:24.9785709Z ##[error]Process completed with exit code 2.

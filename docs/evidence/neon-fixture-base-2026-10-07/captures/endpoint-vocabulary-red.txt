@@ -1,0 +1,136 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/neon-fixture-provision.test.ts (39 tests | 6 failed) 54ms
+     × creates the zero-row parent-data child once, hands the branch id to cleanup before compute, and writes masked private URIs 13ms
+     × keeps polling while the read_write endpoint is still initializing and then proceeds 1ms
+     × accepts an idle endpoint (suspended compute) as ready, since it wakes on connect 1ms
+     × masks a received malformed credential URI before validation can fail 1ms
+     × a value echoed by a failing layer is redacted before the reason is persisted 2ms
+     × redacts a previously received SQL password from structured provider codes 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > creates the zero-row parent-data child once, hands the branch id to cleanup before compute, and writes masked private URIs
+AssertionError: expected { verdict: 'NO-VERDICT', …(1) } to deeply equal { verdict: 'OK', …(1) }
+
+- Expected
++ Received
+
+  {
+    "branchId": "br-fixture-example",
+-   "verdict": "OK",
++   "verdict": "NO-VERDICT",
+  }
+
+ ❯ src/test/neon-fixture-provision.test.ts:199:24
+    197|       { body: { uri: uri(true) } },
+    198|     ]);
+    199|     await expect(run()).resolves.toEqual({ verdict: "OK", branchId });
+       |                        ^
+    200|     expect(calls[0].method).toBe("POST");
+    201|     expect(JSON.parse(calls[0].body!)).toEqual({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > keeps polling while the read_write endpoint is still initializing and then proceeds
+AssertionError: expected { verdict: 'NO-VERDICT', …(1) } to deeply equal { verdict: 'OK', …(1) }
+
+- Expected
++ Received
+
+  {
+    "branchId": "br-fixture-example",
+-   "verdict": "OK",
++   "verdict": "NO-VERDICT",
+  }
+
+ ❯ src/test/neon-fixture-provision.test.ts:360:24
+    358|       { body: { uri: uri(true) } },
+    359|     ]);
+    360|     await expect(run()).resolves.toEqual({ verdict: "OK", branchId });
+       |                        ^
+    361|     const endpointPolls = calls.filter((call) => call.url.includes("/e…
+    362|     expect(endpointPolls).toHaveLength(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > accepts an idle endpoint (suspended compute) as ready, since it wakes on connect
+AssertionError: expected { verdict: 'NO-VERDICT', …(1) } to deeply equal { verdict: 'OK', …(1) }
+
+- Expected
++ Received
+
+  {
+    "branchId": "br-fixture-example",
+-   "verdict": "OK",
++   "verdict": "NO-VERDICT",
+  }
+
+ ❯ src/test/neon-fixture-provision.test.ts:378:24
+    376|       { body: { uri: uri(true) } },
+    377|     ]);
+    378|     await expect(run()).resolves.toEqual({ verdict: "OK", branchId });
+       |                        ^
+    379|     expect(calls.filter((call) => call.url.includes("/endpoints"))).to…
+    380|     expect(JSON.parse(files.get("neon-pr-provision.json")!)).toMatchOb…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > masks a received malformed credential URI before validation can fail
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/test/neon-fixture-provision.test.ts:415:94
+    413|     ]);
+    414|     await expect(run()).resolves.toMatchObject({ verdict: "NO-VERDICT"…
+    415|     expect(events.some((event) => event.includes(`::add-mask::malforme…
+       |                                                                                              ^
+    416|       true,
+    417|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > a value echoed by a failing layer is redacted before the reason is persisted
+AssertionError: expected 'fixture provisioning request failed w…' to contain '[redacted]'
+
+Expected: "[redacted]"
+Received: "fixture provisioning request failed without a provider response"
+
+ ❯ src/test/neon-fixture-provision.test.ts:443:27
+    441|     await expect(run()).resolves.toMatchObject({ verdict: "NO-VERDICT"…
+    442|     const report = JSON.parse(files.get("neon-pr-provision.json")!);
+    443|     expect(report.reason).toContain("[redacted]");
+       |                           ^
+    444|     expect(report.reason).not.toContain(fixtureSecret);
+    445|     expect(events.filter((event) => event.startsWith("stderr:")).join(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > redacts a previously received SQL password from structured provider codes
+AssertionError: expected 'synthetic-fixture' to be '[redacted]' // Object.is equality
+
+Expected: "[redacted]"
+Received: "synthetic-fixture"
+
+ ❯ src/test/neon-fixture-provision.test.ts:458:75
+    456|     ]);
+    457|     await expect(run()).resolves.toMatchObject({ verdict: "NO-VERDICT"…
+    458|     expect(JSON.parse(files.get("neon-pr-provision.json")!).providerCo…
+       |                                                                           ^
+    459|     expect(files.get("neon-pr-provision.json")).not.toContain(fixtureS…
+    460|     expect(events.filter((event) => !event.includes("::add-mask::")).j…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 33 passed (39)
+   Start at  02:25:42
+   Duration  1.16s (transform 111ms, setup 150ms, import 114ms, tests 54ms, environment 725ms)
+

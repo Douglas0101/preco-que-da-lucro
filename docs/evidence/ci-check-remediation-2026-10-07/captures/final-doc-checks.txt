@@ -1,0 +1,39 @@
+Verificação posterior ao gate completo; alterações finais somente de documentação e journal.
+O gate completo está em captures/check.txt. Nenhuma execução remota de CI é atribuída a estas alterações locais.
+
+$ npx --no-install prettier --write docs/evidence/ci-check-remediation-2026-10-07/README.md docs/evidence/agent-state/PROGRESS.md
+
+docs/evidence/ci-check-remediation-2026-10-07/README.md 90ms
+docs/evidence/agent-state/PROGRESS.md 1118ms (unchanged)
+
+$ npx --no-install prettier --check docs/evidence/ci-check-remediation-2026-10-07/README.md docs/evidence/ci-check-remediation-2026-10-07/SPEC.md docs/evidence/agent-state/PROGRESS.md docs/evidence/agent-state/DEBTS.md
+
+Checking formatting...
+All matched files use Prettier code style!
+
+$ npm run m02:temporal-guard
+
+> m02:temporal-guard
+> node scripts/m02-temporal-guard.mjs
+
+m02-temporal-guard: superficie viva, as-of 2026-10-07
+  docs/evidence/agent-state/PROGRESS.md [secao-1] — 7 âncora(s), 0 linha(s) com prazo vivo
+  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 43 âncora(s), 1 linha(s) com prazo vivo
+  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [fora-do-fechado] — 0 âncora(s), 1 linha(s) com prazo vivo
+m02-temporal-guard: OK (3 superficies vivas, 0 violacao)
+
+$ npm run m02:state:check
+
+> m02:state:check
+> tsx scripts/m02-state-check.ts
+
+M-02 ancestral state marker is valid for HEAD 1ff8a7749c05854bafe0c62cb6dd2e07b0be724c (folga 3/13 commits).
+Worktree: dirty (preservado e auditável).
+External state: not inspected by this local check.
+
+$ npm run m02:debts-guard
+
+> m02:debts-guard
+> node scripts/m02-debts-guard.mjs
+
+debts guard: OK (82 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md

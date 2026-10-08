@@ -1,0 +1,82 @@
+# R1 — review adversarial limitado de tool-runner.validation.test.ts
+
+Veredicto: **INV-014/recusas LOCAL-VERIFIED; 1 CORR de fixture e 1 N preexistente no aplicativo, pela mesma cadeia causal de expiração. NOT-S6 integral.** Nenhum arquivo do projeto, Git, journal, índice ou coverage foi alterado pelo revisor. Não houve acesso a DB/provider. O identificador DBT-83 foi atribuído pelo coordenador depois da descoberta independente.
+
+## Identidade e evidência
+
+- Checkout: `/tmp/pqd-develop`.
+- HEAD executado e rechecado: `8881a2f4a3ec2e510b1c66f2824ec7651db2988d`.
+- Runner SHA256: `bc7a91a0997079bced8788d969c38ef7cb8d6c6b62c9907d571e5424f5c173dd`.
+- Arquivo revisado SHA256: `e2aea7cbb924083f83290177179201d38c40f9a9207235c5e51fd34c08957b04`.
+- Registry SHA256: `5061078e1a6d5218a8fd9ca7879d43a1cbea82ddcadf1075d200b945474cc536`.
+- Schema SHA256: `a5ea07e9430e806a94474fe58cb933f2b2d0ea25c638a1becfad15cd71b65ae2`.
+- Suíte executada: `env -u DATABASE_URL -u DATABASE_ADMIN_URL -u DEEPSEEK_API_KEY -u OPENAI_API_KEY -u NODE_OPTIONS ./node_modules/.bin/vitest run src/test/tool-runner.validation.test.ts --no-cache --configLoader runner --reporter verbose`.
+- Resultado observado: **1 arquivo, 72 testes passaram, exit 0**, duração reportada 1,88 s. As mensagens `ai.tool_failed` foram os cenários negativos esperados. Não executei fullcheck, DB, coverage ou provider.
+
+O contexto do autor, PROGRESS e outros handoffs não foram lidos antes de formular o veredicto. O corpus de julgamento foi AGENTS.md, Plano Mestre INV-014/§6.10/§14.3–14.5, teste, runner, registry/schemas e os adapters chamados. A reconciliação inicial registrou WIP preexistente; os hashes e o status foram rechecados após a suíte.
+
+## Findings concretos
+
+**[P2 / CORR fixture] A fixture de expiração falha em representar o histórico que seu status implica.** Em `src/test/tool-runner.validation.test.ts:529–562`, o cenário monta uma claim expirada com `status: "failed"` (537), programa um novo `toolExecutions` via `successfulExecution` (534) e exige sucesso (545), sem representar uma execução anterior com a mesma tupla. No runner, uma claim é marcada `failed` após existir execução (316–330, 364–384). A bancada ignora a unicidade real, então o verde não sustenta reexecução bem-sucedida de uma claim expirada que conserva seu histórico de execução.
+
+Correção limitada ao teste: separar explicitamente (a) claim órfã `pending` sem execução anterior, cujo ramo scriptado pode chegar ao sucesso; e (b) claim `failed`/`succeeded` expirada com execução anterior da mesma identidade. No negativo, aplicar a restrição de identidade `tenantId,userId,toolName,idempotencyKey` e simular o erro de driver `23505` ao segundo INSERT. Não usar um erro genérico só para cobrir o catch; esta falha ocorre antes dele. Identificar o sucesso como cenário órfão, não como prova de reciclagem de histórico real. A identidade de claim já é bem verificada pelos dois predicates `[claimId]` (555–559).
+
+**[P2 / N aplicativo preexistente, DBT-83] Reutilizar a claim expirada pode violar a UNIQUE de tool_executions e escapar do resultado controlado.** `src/lib/ai/tool-runner.ts:187–199` reseta a claim expirada; `316–330` insere outra execução com a mesma chave, antes do `try` iniciado em 333. `src/db/schema.ts:736–740` declara UNIQUE `(tenant_id,user_id,tool_name,idempotency_key)`; `drizzle/0000_p0_postgres_foundation.sql:327` cria essa restrição, e a busca pelas migrations não encontrou remoção. Se há execução anterior, o novo INSERT conflita e o runner rejeita sua Promise em vez de retornar replay ou conflito controlado de §14.4. A expiração também precede o teste de hash/response, logo um resultado anterior `succeeded` não chega ao replay nesse caso.
+
+Esse achado é **verificação estática local da cadeia código + constraint**, não um erro PG17 observado por este revisor. O caminho de reprodução foi enviado ao coordenador para um probe isolado com rollback. A mudança funcional requer decisão fora do write-set deste lote: resolver a execução anterior antes de admitir nova execução (resultado anterior/conflito controlado conforme contrato), ou introduzir uma identidade de geração coerente e ratificada. Não afrouxar a UNIQUE ou apagar histórico para forçar verde. `scripts/db/test-tool-security.ts:63–68,127–134` semeia apenas claim órfã `pending`, portanto seu cenário positivo não cobre o histórico que dispara a colisão.
+
+## Claims aceitas no escopo
+
+1. **Schemas reais e descoberta não vazia:** o teste não substitui `prepare`, registry ou Zod. Cada fixture entra por `runRegisteredTool`; `defineTool.prepare` realmente chama `schema.safeParse` (registry:65–74). O catálogo negativo exige registry não vazio e igualdade de nomes (teste:233–235); o positivo exige o mesmo catálogo (286–287). Há fixture negativa e controle positivo para cada uma das 10 tools reais. Os JSONs malformados exercitam parse; os demais dados inválidos exercitam schemas, sem tratar a falha de parse como prova de Zod.
+2. **Sem recusa universal vacuosa:** os controles válidos de cada tool chegam ao SQL real de admissão e retornam RATE_LIMIT, distinto de VALIDATION_ERROR (290–302). Owner/admin admitidos executam `create_product`, e o teste confere o input trimado e a remoção do campo extra no INSERT real de domínio (361–397).
+3. **Recusas antes de efeitos autorizados:** `expectRejected` exige exatamente inserts em `[toolExecutions,auditEvents]`, ausência de claim/leitura/update e status/error/audit corretos (138–162). Cada recusa de parse/schema/role/allowlist/confirmação exige statements vazios. Isso detecta execução de domínio inclusive fora de products pela comparação global dos inserts e updates. RATE_LIMIT é separado, com os três statements em rateLimits e sem claim/domain mutation.
+4. **Identidade da bancada:** Map por identidade das tabelas, IDs separados para produto/claim/execução, default sem linhas e roteamento de execute que só admite o UPDATE de rateLimits (25–90). Não há fallback genérico de admissão bem-sucedida. Os predicates do replay incluem tenant/user/operation/key reais (423–435). A bancada não avalia semântica completa de WHERE, constraints, locking, concorrência ou RLS.
+5. **Idempotência separada de validação:** describe próprio §14.4/INV-009 (415) e cenários de conflito, replay, ausência/race, expiração e resultado corrompido; não são rotulados como prova de input INV-014. O achado de expiração permanece separado da aprovação das recusas.
+6. **Output e falha controlada:** sanitizer e output schema reais são chamados. O replay inválido é JSON estruturalmente válido porém contrato inválido; o overflow usa `JSON.parse` real. Falhas de execução e AbortSignal já abortado conferem estados/audit e ausência de sucesso vazio, com sinal real e sem sleep fixo.
+
+## Limites que devem acompanhar qualquer selo
+
+- 72/72 é uma suíte alvo, não fullcheck, CI, matriz PR, DB/RLS, provider ou release. Não autoriza promoção no placar ou main.
+- Os controles positivos das 10 schemas param na admissão negada; execução completa positiva foi observada só para create_product. Isso basta para provar a presença de validação por tool no escopo do teste, mas não fecha todos os services.
+- O describe §14.3 de falhas verifica transições/audit; não demonstra sozinho todos os campos exigidos por §14.3 em todas as fases. Trace de toolCallId/usageId é assertado nas recusas inválidas; idempotencyKey e output/duration de todas as execuções não são um closure integral aqui.
+- UUID inválido vindo de uma coluna UUID e INSERT RETURNING sem linha são injeções defensivas do driver na bancada, não ocorrências demonstradas de PostgreSQL saudável. A fixture não pode justificar claim de que são estados usuais do banco.
+- Os ramos de tipos JS não JSON (function/symbol/undefined) no fallback do sanitizer não precisam de mocks artificiais para inflar coverage; justificar por fonte/reachability e manter a ausência de prova declarada. O schema de output sempre é uma barreira real, porém tipos emitidos pelo registry/banco restringem seus estados alcançáveis.
+
+A correção das fixtures e o registro explícito de DBT-83 podem tornar este R1 declarável mantendo o appSourceHash. Uma reavaliação deve prender o novo hash do teste, comprovar a tupla do negativo e executar novamente a suíte alvo. Este parecer não edita nem encerra a dívida do aplicativo.
+
+
+## R2 — reavaliação do amendment 1800e29c
+
+Snapshot reavaliado: SHA256 `1800e29c88269e6b96f2661055c3388b03d97be71933b1a7533d6536aafd5857`, HEAD `8881a2f4a3ec2e510b1c66f2824ec7651db2988d`. Runner rechecado e preservado em SHA256 `bc7a91a0997079bced8788d969c38ef7cb8d6c6b62c9907d571e5424f5c173dd`. A seção R1 acima permanece íntegra como histórico do hash anterior.
+
+**Veredicto R2 intermediário: correção funcional da fixture aceita; 1 CORR documental restante, 0 N adicionais.** DBT-83 permanece o mesmo N preexistente e deve ficar ABERTA. Review limitado, NOT-S6 integral.
+
+A suíte alvo foi reexecutada independentemente: `env -u DATABASE_URL -u DATABASE_ADMIN_URL -u DEEPSEEK_API_KEY -u OPENAI_API_KEY -u NODE_OPTIONS ./node_modules/.bin/vitest run src/test/tool-runner.validation.test.ts --no-cache --configLoader runner --reporter dot`. Resultado observado: **1 arquivo, 77 testes passaram, exit 0**, duração reportada 1,49 s. O hash foi rechecado após o run e ainda era o deste snapshot. O resultado do autor não foi usado como prova.
+
+As seguintes alterações foram confirmadas por código e execução local:
+
+- `ValidationTransaction.insert` (45–64) impõe a restrição somente para a identidade real de `toolExecutions`, pela igualdade de todos os quatro campos `tenantId,userId,toolName,idempotencyKey`. O erro contém `code: "23505"` e `constraint: "tool_executions_idempotency_uidx"`. A presença de uma linha qualquer não é suficiente para conflitar.
+- `values[field] != null && values[field] === existing[field]` (52) evita conflito quando algum campo inserido é NULL/undefined; uma linha anterior com NULL também não iguala o valor não nulo do runner. Isso está correto por leitura da condição. Os quatro controles positivos atuais são não nulos; um positivo com `idempotencyKey:null` anterior foi recomendado para executar a declaração NULL-distinct em um estado possível das recusas, que não preenchem essa chave.
+- O positivo de expiração está agora preso a `status:"pending"` e ausência assertada de execução anterior (550–587). Preserva a identidade da claim nos predicates, a atualização de prazo e a execução de domínio explícita.
+- O negativo (604–641) semeia uma execução anterior com a mesma tupla e exige rejeição da Promise com `23505`/constraint real. Confere a tentativa de INSERT, ausência de domínio/audit/updates de execução, preservação da linha anterior e não consumo da sentinela de rows de products. Isso captura o ponto antes do catch real. Não demonstra transação PostgreSQL ou durabilidade.
+- O comentário do negativo (611–614) declara explicitamente que listas da fake registram apenas tentativas e que rollback real está fora da bancada. Nenhum estado dessas listas foi apresentado como estado durável.
+- Os quatro controles positivos (643–680) alteram individualmente tenant, user, toolName e key e exigem output real, produto inserido, audit de sucesso e segunda identidade de execução. Demonstram que cada componente da tupla distingue identidades, em vez de um guard vacuoso por cardinalidade.
+
+**CORR documental ainda necessária em 556–557:** a descrição atribui o estado órfão a um “crash after the claim but BEFORE the first tool_executions INSERT”. O runner usa o mesmo `context.transaction` tanto no INSERT de claim quanto no INSERT de execução (`tool-runner.ts:236,272–284,316–330`). Uma queda dentro de uma transação não demonstra claim durável sem execução; a bancada tampouco simula commit/rollback. Trocar essa origem por “seeded/scripted orphan pending fixture without a previous execution”, limitando a claim ao estado semeado. A fixture `pending` órfã é um estado de banco permitido e pode testar o ramo, sem atribuir uma origem operacional não demonstrada.
+
+Não houve mutação do projeto, Git, journal, índice ou coverage pelo revisor, nem acesso a DB/provider. A evidência `23505` desta R2 é o modelo explícito da UNIQUE na fake, combinado com fonte/schema/migration, não uma observação PG17 real. A revisão final deve anexar o novo hash após a correção documental e o controle NULL, preservando estes snapshots e DBT-83 ABERTA.
+
+
+### R2 — fechamento no hash c0d6ed9e
+
+**Veredicto final do arquivo de teste: 0 REJECTED no escopo revisado. CORR do R1 e CORR documental intermediária resolvidas; 0 N novos.** O N preexistente do aplicativo identificado como DBT-83 continua sem correção e requer status ABERTA; a aprovação deste teste não o encerra. NOT-S6 integral.
+
+SHA256 revisado e rechecado após a execução: `c0d6ed9ec9c3399fe7b556d3beb6e9a219b4cf7ce462dab4e10475d9dbe181be`. HEAD confirmado `8881a2f4a3ec2e510b1c66f2824ec7651db2988d`; runner SHA256 ainda `bc7a91a0997079bced8788d969c38ef7cb8d6c6b62c9907d571e5424f5c173dd`.
+
+O comentário `src/test/tool-runner.validation.test.ts:556–558` agora prende o positivo a uma fixture órfã semeada/scriptada e recusa inferir que uma queda transacional criaria esse estado. O negativo (604–641) conserva a identidade UNIQUE, o fingerprint `23505`/constraint, a sentinela de não execução de domínio e a declaração de que rollback real está fora da fake.
+
+A tabela de controles por identidade (646–651) agora contém os quatro componentes diferentes individualmente e um quinto caso com `idempotencyKey:null` anterior. Esse caso conserva tenant/user/toolName e verifica, por execução real do runner contra a fake, o output, as duas identidades de execução, a escrita de produto, a conclusão da claim e o audit (653–682). A igualdade completa continua conflitando; a linha anterior com NULL não conflita. A condição 52 também trata NULL/undefined inserido como distinto por leitura; o runner normal insere uma chave string, então o caso executado com chave anterior NULL é o controle relevante sem fabricar input fora de seu contrato.
+
+Reexecução independente do mesmo comando alvo do R2 intermediário, com `--no-cache --configLoader runner --reporter dot`: **1 arquivo, 78 testes passaram, exit 0**, duração reportada 1,37 s. Os hashes foram rechecados e não mudaram. Releitura do restante do arquivo manteve as recusas reais, os catálogos positivos/negativos, efeitos e asserts de replay já aceitos. Nenhum resultado de lint, formatter, coverage ou probe externo narrado pelo autor/coordenador foi usado como evidência deste revisor.
+
+A prova é LOCAL-VERIFIED para fonte/schema e execução em bancada isolada. `23505` foi emitido pela implementação explícita da UNIQUE na fake; este revisor não acessou PostgreSQL nem observou rollback real, RLS, concorrência ou durabilidade. Permanecem todos os limites do R1 e do R2 intermediário para §14.3 integral, fullcheck/CI/release e ramos defensivos. As duas seções históricas foram preservadas byte a byte; o arquivo permanece privado em 0600.

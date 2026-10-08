@@ -1,0 +1,22 @@
+src/routes/_authenticated/novo-produto.tsx:8:import { renderChatMarkdown } from "@/lib/chat-markdown";
+src/routes/_authenticated/novo-produto.tsx:72:      if (message.role === "user" || message.role === "assistant") {
+src/routes/_authenticated/novo-produto.tsx:137:  return (
+src/routes/_authenticated/novo-produto.tsx:242:  if (role === "user") {
+src/routes/_authenticated/novo-produto.tsx:243:    return (
+src/routes/_authenticated/novo-produto.tsx:254:  return (
+src/routes/_authenticated/novo-produto.tsx:260:        {renderChatMarkdown(content)}
+src/lib/ai/financial-output-grounding.ts:59:function financialVisibleText(text: string, role: "user" | "assistant"): string {
+src/lib/ai/financial-output-grounding.ts:69:function textFigures(text: string, role: "user" | "assistant"): Figures {
+src/lib/ai/financial-output-grounding.ts:71:  const visibleText = financialVisibleText(text, role);
+src/lib/ai/financial-output-grounding.ts:111:export function groundFinancialOutput(content: string, messages: readonly SourceMessage[]) {
+src/lib/ai/financial-output-grounding.ts:114:    if (message.role === "user") {
+src/lib/ai/financial-output-grounding.ts:115:      const source = textFigures(message.content, "user");
+src/lib/ai/financial-output-grounding.ts:129:  const candidate = textFigures(content, "assistant");
+src/lib/ai/financial-output-grounding.ts:134:  const nonFinite = /\b(?:NaN|Infinity)\b|∞/i.test(financialVisibleText(content, "assistant"));
+src/lib/chat-execution.server.ts:15:import { groundFinancialOutput } from "@/lib/ai/financial-output-grounding";
+src/lib/chat-execution.server.ts:153:  await conversationService.appendMessage(context, {
+src/lib/chat-execution.server.ts:221:    if (message.role === "user" || message.role === "assistant" || message.role === "system") {
+src/lib/chat-execution.server.ts:236:    const saved = await conversationService.appendMessage(request, {
+src/lib/chat-execution.server.ts:415:  const grounded = groundFinancialOutput(sanitized, messages);
+src/lib/chat-execution.server.ts:416:  const content = grounded.content;
+src/lib/chat-markdown.tsx:12:export function renderChatMarkdown(text: string): ReactNode[] {

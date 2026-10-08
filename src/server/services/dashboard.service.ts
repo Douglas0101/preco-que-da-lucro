@@ -14,7 +14,25 @@ import { salesService, type SalesService } from "@/server/services/sales.service
 
 export type DashboardPeriod = "month" | "quarter" | "year";
 
+/**
+ * Consolidated contribution margin over the period's REAL sales mix (DBT-88).
+ * `ok` carries the margin on net revenue and in currency; `empty` means zero
+ * real sales in the period; `incomplete` means the margin cannot be honestly
+ * computed — some sold product has no calculable unit cost, or the revenue
+ * base is zero — and never falls back to a partial or fictitious number.
+ */
+export type ConsolidatedMargin =
+  | { state: "ok"; valuePct: string; valueAmount: string }
+  | { state: "empty" }
+  | {
+      state: "incomplete";
+      incompleteProductCount: number;
+      zeroRevenue: boolean;
+      salesMismatch?: true;
+    };
+
 export interface DashboardSummary {
+  consolidatedMargin: ConsolidatedMargin;
   productCount: number;
   fixedExpenses: string | null;
   bestProduct: { name: string; cmPct: string } | null;
@@ -104,6 +122,8 @@ type ProductAnalysis =
   | {
       status: "ok";
       best: { name: string; cmPct: string };
+      unitCost: string;
+      taxAndFeeRate: Decimal;
       alerts: string[];
     };
 
@@ -130,8 +150,10 @@ function analyzeProduct(input: DashboardInputs, product: DashboardProduct): Prod
   if (calculation.metrics.status === "incomplete") return { status: "incomplete" };
 
   let cmPct: string;
+  let unitCost: string;
   try {
     cmPct = toDecimalString(calculation.metrics.value.contributionMarginPct, 6);
+    unitCost = toDecimalString(calculation.metrics.value.unitCost, 6);
   } catch {
     return { status: "invalid" };
   }
@@ -147,8 +169,13 @@ function analyzeProduct(input: DashboardInputs, product: DashboardProduct): Prod
   ) {
     alerts.push(`"${product.name}": margem de contribuição baixa.`);
   }
-  return { status: "ok", best: { name: product.name, cmPct }, alerts };
+  const taxAndFeeRate = input.feeRows
+    .filter((row) => row.productId === product.id)
+    .reduce((sum, row) => sum.plus(row.percentage ?? "0"), new Decimal(product.taxRate ?? "0"));
+  return { status: "ok", best: { name: product.name, cmPct }, unitCost, taxAndFeeRate, alerts };
 }
+
+type ProductSaleCosts = { unitCost: Decimal; taxAndFeeRate: Decimal };
 
 /**
  * Calculates one server-side, set-based dashboard read model.  The browser
@@ -167,6 +194,7 @@ export class DefaultDashboardService implements DashboardService {
     period: DashboardPeriod = "month",
   ): Promise<DashboardSummary> {
     const input = await this.repository.loadInputs(context);
+    const from = periodStart(period);
     const fixedExpenseSummary = sumFixedExpenses(input.expenseRows);
     const startedAt = Date.now();
     const salesSummary = await withSpan(
@@ -177,7 +205,7 @@ export class DefaultDashboardService implements DashboardService {
         "app.dashboard.period": period,
       },
       async (span) => {
-        const summary = await this.sales.summaryForPeriod(context, periodStart(period));
+        const summary = await this.sales.summaryForPeriod(context, from);
         span.setAttribute("app.sales.count", summary.count);
         return summary;
       },
@@ -188,6 +216,7 @@ export class DefaultDashboardService implements DashboardService {
     let invalidProductCount = 0;
     let incompleteProductCount = 0;
     const alerts: string[] = [];
+    const costsByProduct = new Map<string, ProductSaleCosts>();
 
     for (const product of input.productRows) {
       const analysis = analyzeProduct(input, product);
@@ -199,6 +228,10 @@ export class DefaultDashboardService implements DashboardService {
         incompleteProductCount += 1;
         continue;
       }
+      costsByProduct.set(product.id, {
+        unitCost: new Decimal(analysis.unitCost),
+        taxAndFeeRate: analysis.taxAndFeeRate,
+      });
       if (!bestProduct || new Decimal(analysis.best.cmPct).gt(bestProduct.cmPct)) {
         bestProduct = analysis.best;
       }
@@ -219,7 +252,14 @@ export class DefaultDashboardService implements DashboardService {
       }
     }
     const finalHasInvalidCalculation = invalidProductCount > 0 || fixedExpenseSummary.invalid;
+    const consolidatedMargin = await this.consolidatedMarginFor(
+      context,
+      from,
+      salesSummary,
+      costsByProduct,
+    );
     return {
+      consolidatedMargin,
       productCount: input.productRows.length,
       fixedExpenses: fixedExpensesValue,
       bestProduct: finalHasInvalidCalculation ? null : bestProduct,
@@ -231,6 +271,62 @@ export class DefaultDashboardService implements DashboardService {
         revenue: salesSummary.revenue,
         count: salesSummary.count,
       },
+    };
+  }
+
+  /**
+   * Three honest states, never a partial margin (DBT-88 closure contract):
+   * zero real sales -> `empty`; any sold product without a calculable unit
+   * cost, or a zero revenue base -> `incomplete` with the true cause flags;
+   * otherwise the mix-weighted margin on net revenue in Decimal.
+   */
+  private async consolidatedMarginFor(
+    context: RequestContext,
+    from: Date,
+    salesSummary: { revenue: string; count: number },
+    costsByProduct: Map<string, ProductSaleCosts>,
+  ): Promise<ConsolidatedMargin> {
+    if (salesSummary.count === 0) return { state: "empty" };
+    const itemSummary = await this.sales.itemSummaryForPeriod(context, from);
+    // Sold products without a read-model margin — explicitly invalid/incomplete
+    // ones and products absent from the cadastral set (e.g. archived after the
+    // sale) are equally without a calculable unit cost.
+    const unknownCostCount = itemSummary.filter((row) => !costsByProduct.has(row.productId)).length;
+    const revenue = new Decimal(salesSummary.revenue);
+    const zeroRevenue = revenue.isZero();
+    if (unknownCostCount > 0 || zeroRevenue) {
+      return {
+        state: "incomplete",
+        incompleteProductCount: unknownCostCount,
+        zeroRevenue,
+      };
+    }
+    // Net adjustments lack a per-product fiscal allocation. A missing or
+    // concurrently changed item aggregate also cannot prove a real margin.
+    // Report the reconciliation gap instead of inventing a partial result.
+    const itemRevenue = itemSummary.reduce((sum, row) => sum.plus(row.totalAmount), new Decimal(0));
+    if (itemSummary.length === 0 || !itemRevenue.eq(revenue)) {
+      return {
+        state: "incomplete",
+        incompleteProductCount: 0,
+        zeroRevenue: false,
+        salesMismatch: true,
+      };
+    }
+    let marginTotal = new Decimal(0);
+    for (const row of itemSummary) {
+      const costs = costsByProduct.get(row.productId)!;
+      const actualRevenue = new Decimal(row.totalAmount);
+      marginTotal = marginTotal.plus(
+        actualRevenue
+          .minus(new Decimal(row.quantity).mul(costs.unitCost))
+          .minus(actualRevenue.mul(costs.taxAndFeeRate)),
+      );
+    }
+    return {
+      state: "ok",
+      valuePct: toDecimalString(marginTotal.div(revenue).mul(100), 4),
+      valueAmount: toDecimalString(marginTotal, 4),
     };
   }
 }

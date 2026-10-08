@@ -1,0 +1,39 @@
+{
+  "coletadoEm": "2026-10-06T03:17Z",
+  "fonte": "GET /api/wh-api/api/hapi/v1/accounts/u624951889/vhosts/darkgray-pony-545965.hostingersite.com/nodejs/builds",
+  "builds": [
+    {
+      "criado": "2026-10-06T03:16:11Z",
+      "terminado": "2026-10-06T03:16:46Z",
+      "duracaoSegundos": 35,
+      "status": "completed",
+      "origem": "previous deployment source (rebuild do mesmo codigo main d4b93953)"
+    },
+    {
+      "criado": "2026-10-01T14:52:06Z",
+      "terminado": "2026-10-01T14:52:49Z",
+      "status": "completed"
+    },
+    {
+      "criado": "2026-09-30T21:49:22Z",
+      "terminado": "2026-09-30T21:50:36Z",
+      "status": "completed"
+    },
+    {
+      "criado": "2026-09-29T14:31:24Z",
+      "terminado": "2026-09-29T14:32:01Z",
+      "status": "completed"
+    },
+    {
+      "criado": "2026-09-13T03:19:53Z",
+      "status": "failed",
+      "observacao": "EBADENGINE anterior ao remedio NPM_CONFIG_ENGINE_STRICT=false"
+    }
+  ],
+  "logDoBuildObservadoPeloOperador": {
+    "nodeDoBuilder": "v24.6.0",
+    "enginesExigido": ">=24.15.0",
+    "efeito": "EBADENGINE emitido como warning, nao como erro, porque NPM_CONFIG_ENGINE_STRICT=false esta presente",
+    "resultado": "instalacao concluida e build completed"
+  }
+}

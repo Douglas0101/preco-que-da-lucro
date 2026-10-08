@@ -1,0 +1,162 @@
+{
+  "timestamp": "2026-10-05T02:46:31.987Z",
+  "report": {
+    "benchUrl": "http://127.0.0.1:4173",
+    "verdict": "GREEN",
+    "checkCount": 30,
+    "failures": 0,
+    "checks": [
+      {
+        "where": "/vendas@desktop initial-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/vendas@desktop change-name",
+        "ok": true,
+        "detail": "Produto incompleto E2E"
+      },
+      {
+        "where": "/vendas@desktop reload-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/diagnostico@desktop initial-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/diagnostico@desktop change-name",
+        "ok": true,
+        "detail": "Produto incompleto E2E"
+      },
+      {
+        "where": "/diagnostico@desktop reload-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/simulacoes@desktop initial-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/simulacoes@desktop change-name",
+        "ok": true,
+        "detail": "Produto incompleto E2E"
+      },
+      {
+        "where": "/simulacoes@desktop reload-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/ponto-equilibrio@desktop initial-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/ponto-equilibrio@desktop change-name",
+        "ok": true,
+        "detail": "Produto incompleto E2E"
+      },
+      {
+        "where": "/ponto-equilibrio@desktop reload-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "diagnostico@desktop premises-identity",
+        "ok": true,
+        "detail": "both premises cleared"
+      },
+      {
+        "where": "simulacoes@desktop premises-identity",
+        "ok": true,
+        "detail": "new price20, previous volume absent"
+      },
+      {
+        "where": "/vendas@mobile initial-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/vendas@mobile change-name",
+        "ok": true,
+        "detail": "Produto incompleto E2E"
+      },
+      {
+        "where": "/vendas@mobile reload-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/diagnostico@mobile initial-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/diagnostico@mobile change-name",
+        "ok": true,
+        "detail": "Produto incompleto E2E"
+      },
+      {
+        "where": "/diagnostico@mobile reload-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/simulacoes@mobile initial-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/simulacoes@mobile change-name",
+        "ok": true,
+        "detail": "Produto incompleto E2E"
+      },
+      {
+        "where": "/simulacoes@mobile reload-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/ponto-equilibrio@mobile initial-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "/ponto-equilibrio@mobile change-name",
+        "ok": true,
+        "detail": "Produto incompleto E2E"
+      },
+      {
+        "where": "/ponto-equilibrio@mobile reload-name",
+        "ok": true,
+        "detail": "Produto de nome deliberadamente longo para provar contencao "
+      },
+      {
+        "where": "diagnostico@mobile premises-identity",
+        "ok": true,
+        "detail": "both premises cleared"
+      },
+      {
+        "where": "simulacoes@mobile premises-identity",
+        "ok": true,
+        "detail": "new price20, previous volume absent"
+      },
+      {
+        "where": "vendas@desktop payload-uuid",
+        "ok": true,
+        "detail": "selected=Produto de nome delibera payloadCaptured=true"
+      },
+      {
+        "where": "vendas@390 long-name-containment",
+        "ok": true,
+        "detail": "sw=308 cw=308"
+      }
+    ],
+    "longNameMarker": "Produto de nome deliberadamente longo para provar contencao de largura do seletor movel do formulario de vendas ciclo29"
+  }
+}

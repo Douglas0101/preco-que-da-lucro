@@ -1,0 +1,6 @@
+Uninstalled checkout; npx --no-install tsx scripts/ci/after-provision.ts; npm offline prevents external requests.
+npm error code ENOTCACHED
+npm error request to https://registry.npmjs.org/tsx failed: cache mode is 'only-if-cached' but no cached response is available.
+npm error A complete log of this run can be found in: /tmp/pqd-ci-check-smoke-wtd5bfi8/cold-npm-cache/_logs/2026-10-07T04_41_17_142Z-debug-0.log
+
+exit=1; provisioning did not run

@@ -1,0 +1,17 @@
+NEON FIXTURE-BASE EMPTINESS — BEFORE
+=====================================
+captured_at_utc: 2026-10-07T23:52:33Z
+project_id: damp-forest-57346541
+branch_id (target): br-wandering-sky-ayxm5e5s  (name: ci-fixture-base)
+console_url: https://console.neon.tech/app/projects/damp-forest-57346541/branches/br-wandering-sky-ayxm5e5s/sql-editor?database=neondb
+branch binding evidence (in-band): SELECT row from pg_settings probe -> neon.branch_id = br-wandering-sky-ayxm5e5s (executed 2026-10-07T23:51:37Z, history success:true)
+network binding evidence: GET /api/v2/projects/damp-forest-57346541/branches/br-wandering-sky-ayxm5e5s/roles/neondb_owner/reveal_password (200) and GET .../branches/br-wandering-sky-ayxm5e5s/databases (200) immediately before execution
+
+query:
+select count(*)::int as populated_tables, coalesce(sum(rows),0)::bigint as total_rows from (select (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from %I.%I', n.nspname, c.relname), false, true, '')))[1]::text::bigint as rows from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind in ('r','p') and n.nspname in ('public','drizzle','neon_auth','app_private','pgrst')) t where rows > 0;
+
+output (verbatim from SQL editor result grid):
+populated_tables  total_rows
+15                162
+
+raw panel text: "Connected (1 query) / 476ms / 1 row / # populated_tables total_rows / 1 15 162"

@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-10-04T15:34:01.044221+00:00",
+  "sha": "e3a5507cf5d0a7beb10d383a9f44c1e1537aa05c",
+  "serverPid": 270480,
+  "serverPort": 4173,
+  "loopbackOnly": true,
+  "dbContainer": "pqd-c28-visual-qa",
+  "dbContainerId": "545b0ed2cf4a1b1bc8f3be904e6cead46b4d279c3cf75fd7c2806b22b27035d6",
+  "dbPort": 41921,
+  "prepareExit": 0,
+  "fixture": "synthetic",
+  "captureAdapter": "CUA N1 browser2 plus unchanged visual-perception module with private fixture env shim",
+  "credentials": "private, never emitted",
+  "correlationId": null
+}

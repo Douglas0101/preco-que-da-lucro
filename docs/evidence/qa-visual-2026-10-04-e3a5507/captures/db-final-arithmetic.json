@@ -1,0 +1,170 @@
+{
+  "timestamp": "2026-10-04T16:10:06.769Z",
+  "source": "Independent read-only SQL against owned synthetic PG17",
+  "sales": [
+    {
+      "id": "6cd4b185-71f9-4944-b1b9-e5d0069f6a1e",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "occurred_at": "2026-10-04T12:00:00.000Z",
+      "channel": "QA movel decimal",
+      "gross_amount": "12.5000",
+      "net_amount": "12.5000",
+      "item_id": "d0089dd6-12cd-4779-ae63-912d0a726059",
+      "product_id": "00000000-0000-4000-8000-000000000010",
+      "quantity": "1.000000",
+      "unit_price": "12.5000",
+      "total_amount": "12.5000"
+    },
+    {
+      "id": "50bffd3a-6601-4385-b75b-5455fac4312c",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "occurred_at": "2026-10-04T12:00:00.000Z",
+      "channel": "QA setembro confirmado",
+      "gross_amount": "30.0000",
+      "net_amount": "30.0000",
+      "item_id": "fc8b3e23-353e-443a-9bbd-b9ab8d7c3048",
+      "product_id": "00000000-0000-4000-8000-000000000010",
+      "quantity": "3.000000",
+      "unit_price": "10.0000",
+      "total_amount": "30.0000"
+    },
+    {
+      "id": "5000f5d9-8c88-49a3-a206-8358b689802f",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "occurred_at": "2026-10-04T12:00:00.000Z",
+      "channel": "QA periodo anterior",
+      "gross_amount": "30.0000",
+      "net_amount": "30.0000",
+      "item_id": "c4258e72-62a9-45c6-bb2c-c139fc379cee",
+      "product_id": "00000000-0000-4000-8000-000000000010",
+      "quantity": "3.000000",
+      "unit_price": "10.0000",
+      "total_amount": "30.0000"
+    },
+    {
+      "id": "a48c9ff0-d7c5-4670-91f9-03163f84804d",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "occurred_at": "2026-10-04T12:00:00.000Z",
+      "channel": "QA visual",
+      "gross_amount": "50.0000",
+      "net_amount": "50.0000",
+      "item_id": "2f4d2c54-fbdd-45ff-8440-2039e044d858",
+      "product_id": "00000000-0000-4000-8000-000000000010",
+      "quantity": "2.000000",
+      "unit_price": "25.0000",
+      "total_amount": "50.0000"
+    },
+    {
+      "id": "ea8a0737-f964-4ce8-99bd-fed7cfb803db",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "occurred_at": "2026-09-15T12:00:00.000Z",
+      "channel": "QA setembro via controle nativo",
+      "gross_amount": "30.0000",
+      "net_amount": "30.0000",
+      "item_id": "547748f8-57bc-4cde-b555-1d7bc78db3e6",
+      "product_id": "00000000-0000-4000-8000-000000000010",
+      "quantity": "3.000000",
+      "unit_price": "10.0000",
+      "total_amount": "30.0000"
+    }
+  ],
+  "sums": {
+    "month": "122.5000",
+    "quarter": "122.5000",
+    "year": "152.5000"
+  },
+  "simulation": [
+    {
+      "id": "2cb33bdf-e7cb-464f-b1c7-ce7eeda24d31",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "name": "QA visual 50 unidades",
+      "scenario_type": "manual_simulation",
+      "params": {
+        "fees": [
+          {
+            "percentage": "5"
+          }
+        ],
+        "price": "20.00",
+        "volume": "50",
+        "taxRate": "10",
+        "unitCost": "5",
+        "volumeSource": "manual_simulation",
+        "fixedExpenses": "100"
+      },
+      "result": {
+        "value": {
+          "price": "20.0000",
+          "result": "500.0000",
+          "volume": "50.000000",
+          "revenue": "1000.0000",
+          "unitCost": "5.0000",
+          "resultSign": "positive",
+          "variableCost": "3.0000",
+          "volumeSource": "manual_simulation",
+          "totalVariable": "400.0000",
+          "breakEvenUnits": {
+            "status": "reachable",
+            "rawUnits": "8.333333",
+            "unitMode": "discrete",
+            "roundedUnits": "9.000000"
+          },
+          "breakEvenRevenue": "166.6667",
+          "totalContribution": "600.0000",
+          "contributionMargin": "12.0000",
+          "contributionMarginPct": "60.000000"
+        },
+        "status": "ok",
+        "warnings": []
+      }
+    }
+  ],
+  "packaging": [
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "package_price": "100.0000",
+      "units_per_package": "10.000000"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "00000000-0000-4000-8000-000000000014",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "name": "Despesas fixas",
+      "amount": "600.0000",
+      "type": "fixa",
+      "category": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000015",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "name": "Despesas variáveis",
+      "amount": "200.0000",
+      "type": "variavel",
+      "category": null
+    },
+    {
+      "id": "e71bc977-ad7d-4f32-bdeb-114b236725b4",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "name": "QA despesa fixa 50",
+      "amount": "50.0000",
+      "type": "fixa",
+      "category": "Outros"
+    }
+  ],
+  "expenseTotals": {
+    "fixed": "650.0000",
+    "variable": "200.0000"
+  },
+  "foreignTenantIdentity": [
+    {
+      "id": "00000000-0000-4000-8000-000000000210",
+      "name": "PRODUTO-OUTRO-TENANT-C28-VISUAL",
+      "tenant_id": "00000000-0000-4000-8000-000000000202",
+      "user_id": "00000000-0000-4000-8000-000000000201",
+      "role": "owner"
+    }
+  ]
+}

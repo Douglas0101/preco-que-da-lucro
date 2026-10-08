@@ -1,0 +1,32 @@
+RED: foreign endpoint pair reached both pg connections and canonical environment export without any ownership API check. Actual workflow script; real pg constructor, isolated transports.
+{
+  "case": "foreign-endpoint",
+  "exit": 0,
+  "environmentKeys": [
+    "DATABASE_ADMIN_URL",
+    "DATABASE_URL",
+    "DATABASE_URL_UNPOOLED"
+  ],
+  "environmentMode": "0o600",
+  "trace": [
+    {
+      "phase": "connect",
+      "host": "ep-readiness-smoke.c-5.us-east-2.aws.neon.tech",
+      "port": 5432
+    },
+    {
+      "phase": "end"
+    },
+    {
+      "phase": "connect",
+      "host": "ep-readiness-smoke-pooler.c-5.us-east-2.aws.neon.tech",
+      "port": 5432
+    },
+    {
+      "phase": "end"
+    }
+  ],
+  "scriptSha256": "1a14e453bcebcf4903541f73a99cae69250ed6f0f2ef9c3ea53b4f15fad52f6c",
+  "stderr": "/etc/bash.bashrc: linha 7: PS1: vari\u00e1vel n\u00e3o associada\n(node:978146) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.\nIn the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.\n\nTo prepare for this change:\n- If you want the current behavior, explicitly use 'sslmode=verify-full'\n- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'\n\nSee https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+  "noRealAPIorDB": true
+}

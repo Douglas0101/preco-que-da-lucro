@@ -1,0 +1,14 @@
+{
+  "node": "v24.21.0",
+  "npm": "11.19.0",
+  "cpus": 4,
+  "declaredNode": "24.21.0",
+  "localFileParallelism": false,
+  "ciFileParallelism": "CI=true or CI=1",
+  "cause": "undetermined",
+  "packages": {
+    "vitest": "4.1.11",
+    "jsdom": "30.0.1",
+    "@vitest/coverage-v8": "4.1.11"
+  }
+}

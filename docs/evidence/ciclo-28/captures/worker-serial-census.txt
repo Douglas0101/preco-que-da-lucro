@@ -1,0 +1,32 @@
+[
+  {
+    "pass": 1,
+    "files": 126,
+    "total": 1613,
+    "passed": 1599,
+    "skipped": 14,
+    "failed": 0,
+    "runtimeErrors": null,
+    "success": true
+  },
+  {
+    "pass": 2,
+    "files": 126,
+    "total": 1613,
+    "passed": 1599,
+    "skipped": 14,
+    "failed": 0,
+    "runtimeErrors": null,
+    "success": true
+  },
+  {
+    "pass": 3,
+    "files": 126,
+    "total": 1613,
+    "passed": 1599,
+    "skipped": 14,
+    "failed": 0,
+    "runtimeErrors": null,
+    "success": true
+  }
+]

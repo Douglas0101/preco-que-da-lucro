@@ -1,0 +1,14 @@
+Actual repository TSX CLI after helpers moved to shared module. All transport intercepted, no real API/DB.
+{
+  "exit": 0,
+  "report": {
+    "schema": "neon-pr-provision/1",
+    "phase": "connection-verified",
+    "branchId": "br-ci-smoke-20261007",
+    "initSource": "schema-only",
+    "expiresAt": "2026-10-08T05:26:56Z"
+  },
+  "privateUriMode": "0600",
+  "sharedSourceSha256": "46c7e30ec366d505228033f8918c7b156bc1c9a7ff2d36adf301dd2d1a38e49b",
+  "provisionSourceSha256": "b574f8fd1a4fc699e6bcfccd05dfc59346f005d90c9c97148c61d170b8f3f934"
+}

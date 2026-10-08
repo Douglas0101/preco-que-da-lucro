@@ -1,0 +1,35 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/neon-fixture.test.ts (55 tests | 1 failed) 23ms
+     × drops the migration-owned role so the chain recreates it through its CREATE path 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/neon-fixture.test.ts > empty schema preparation refuses inherited data before any destructive SQL > drops the migration-owned role so the chain recreates it through its CREATE path
+AssertionError: expected [ 'drop role if exists "app_runtime"' ] to deeply equal [ 'drop owned by "app_runtime"', …(1) ]
+
+- Expected
++ Received
+
+  [
+-   "drop owned by \"app_runtime\"",
+    "drop role if exists \"app_runtime\"",
+  ]
+
+ ❯ src/test/neon-fixture.test.ts:286:7
+    284|     expect(
+    285|       db.calls.filter((sql) => sql.startsWith("drop owned") || sql.sta…
+    286|     ).toEqual(['drop owned by "app_runtime"', 'drop role if exists "ap…
+       |       ^
+    287|     const firstSchemaDrop = db.calls.findIndex((sql) => sql.startsWith…
+    288|     const ownedDrop = db.calls.findIndex((sql) => sql.startsWith("drop…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 54 passed (55)
+   Start at  03:05:42
+   Duration  1.20s (transform 106ms, setup 164ms, import 103ms, tests 23ms, environment 779ms)
+

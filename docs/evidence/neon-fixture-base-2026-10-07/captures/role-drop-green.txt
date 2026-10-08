@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+
+ Test Files  3 passed (3)
+      Tests  128 passed (128)
+   Start at  02:56:19
+   Duration  2.54s (transform 188ms, setup 276ms, import 200ms, tests 132ms, environment 1.57s)
+

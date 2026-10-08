@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-10-04T15:45:45.035Z",
+  "source": "Owned local PG17 administrative fixture seed",
+  "rows": [
+    {
+      "id": "00000000-0000-4000-8000-000000000210",
+      "name": "PRODUTO-OUTRO-TENANT-C28-VISUAL",
+      "tenant_id": "00000000-0000-4000-8000-000000000202",
+      "user_id": "00000000-0000-4000-8000-000000000201",
+      "role": "owner"
+    }
+  ]
+}

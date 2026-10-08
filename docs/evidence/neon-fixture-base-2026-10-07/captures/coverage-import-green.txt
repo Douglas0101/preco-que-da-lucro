@@ -1,0 +1,18 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+      Coverage enabled with v8
+
+
+ Test Files  1 passed (1)
+      Tests  21 passed (21)
+   Start at  03:54:50
+   Duration  1.67s (transform 229ms, setup 113ms, import 345ms, tests 489ms, environment 461ms)
+
+ % Coverage report from v8
+
+=============================== Coverage summary ===============================
+Statements   : 38.53% ( 173/449 )
+Branches     : 41.75% ( 157/376 )
+Functions    : 35.16% ( 32/91 )
+Lines        : 38.75% ( 143/369 )
+================================================================================

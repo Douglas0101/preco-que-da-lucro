@@ -1,0 +1,140 @@
+Temporary isolated transports/harnesses; all credential-like values are synthetic, not live secrets.
+
+PATH /tmp/pqd-ci-check-smoke-wtd5bfi8/neon-fetch-fixture.mjs SHA256 77d16c12beba3dd65b32702b4ea4fe810885500739531ff8f8272d575ff42a63
+import assert from 'node:assert/strict';
+import { appendFileSync } from 'node:fs';
+
+const branchId = 'br-ci-smoke-20261007';
+const host = 'ep-ci-smoke.c-2.us-east-2.aws.neon.tech';
+const secret = 'synthetic-smoke-password';
+let computeRequested = false;
+const response = (body, status = 200) => new Response(JSON.stringify(body), {
+  status,
+  headers: { 'content-type': 'application/json' },
+});
+
+globalThis.fetch = async (input, init = {}) => {
+  const url = new URL(input);
+  assert.equal(url.origin, 'https://console.neon.tech');
+  assert.ok(url.pathname.startsWith('/api/v2/projects/damp-forest-57346541/'));
+  const path = url.pathname.replace('/api/v2/projects/damp-forest-57346541', '');
+  const body = init.body ? JSON.parse(init.body) : undefined;
+  appendFileSync(process.env.NEON_SMOKE_TRACE, JSON.stringify({ method: init.method ?? 'GET', path, ...(body ? { body } : {}) }) + '\n');
+  if (path === '/branches' && init.method === 'POST') {
+    assert.equal(body.branch.init_source, 'schema-only');
+    assert.equal(body.branch.parent_id, 'br-snowy-violet-aymcvvvv');
+    const ttl = Date.parse(body.branch.expires_at) - Date.now();
+    assert.ok(ttl > 86300000 && ttl <= 86400000);
+    computeRequested = body.endpoints?.[0]?.type === 'read_write';
+    if (process.env.NEON_SMOKE_SCENARIO === 'refused') {
+      return response({ code: 'schema_only_not_allowed', message: `never persist ${secret}` }, 412);
+    }
+    return response({ branch: { id: branchId } });
+  }
+  if (path === `/branches/${branchId}`) {
+    return response({ branch: { id: branchId, current_state: 'ready' } });
+  }
+  if (path === `/branches/${branchId}/endpoints`) {
+    if (process.env.NEON_SMOKE_SCENARIO === 'endpoint-failure') return response({ code: 'unavailable' }, 503);
+    return response({ endpoints: computeRequested ? [{ branch_id: branchId, project_id: 'damp-forest-57346541', type: 'read_write', disabled: false, host }] : [] });
+  }
+  if (path === '/connection_uri') {
+    assert.equal(url.searchParams.get('branch_id'), branchId);
+    assert.equal(url.searchParams.get('database_name'), 'neondb');
+    assert.equal(url.searchParams.get('role_name'), 'neondb_owner');
+    const pooled = url.searchParams.get('pooled') === 'true';
+    if (pooled && process.env.NEON_SMOKE_SCENARIO === 'pooled-failure') return response({ code: secret, message: 'untrusted-provider-body' }, 503);
+    return response({ uri: `postgresql://neondb_owner:${secret}@${pooled ? host.replace('ep-ci-smoke.', 'ep-ci-smoke-pooler.') : host}/neondb?sslmode=require` });
+  }
+  throw new Error('Unexpected fixture request; no external transport permitted');
+};
+
+
+PATH /tmp/pqd-ci-check-smoke-wtd5bfi8/sonar-cli-smoke.mjs SHA256 4c34a1ede6903f0e705568c31df0ff5f6bac60c055f6cb5121cd386d220c569b
+import assert from 'node:assert/strict';
+import { mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { spawnSync, execFileSync } from 'node:child_process';
+import { sha256 } from '/home/douglas-souza/preco-que-d-main/scripts/sonar/main-unit-adapter.ts';
+import { instrumentationFingerprint, scannerProvenance } from '/home/douglas-souza/preco-que-d-main/scripts/sonar/lcov-provenance.ts';
+
+const directory = process.env.SONAR_SMOKE_ROOT;
+mkdirSync(resolve(directory, 'src/lib'), { recursive: true });
+const save = (name, value) => {
+  const path = resolve(directory, name);
+  writeFileSync(path, typeof value === 'string' ? value : JSON.stringify(value));
+  return path;
+};
+save('src/lib/smoke.ts', '// isolated CLI smoke source\n');
+save('vitest.config.ts', '// isolated smoke instrumentation\n');
+save('package.json', { scripts: { 'test:coverage': 'vitest run --coverage' } });
+save('package-lock.json', { packages: Object.fromEntries(['vitest', '@vitest/coverage-v8', 'jsdom'].map(name => [`node_modules/${name}`, { version: 'isolated-smoke' }])) });
+execFileSync('git', ['init', '--initial-branch=develop', '--quiet'], { cwd: directory });
+execFileSync('git', ['add', 'src/lib/smoke.ts', 'vitest.config.ts', 'package.json', 'package-lock.json'], { cwd: directory });
+execFileSync('git', ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '--quiet', '-m', 'isolated smoke fixture'], { cwd: directory });
+const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: directory, encoding: 'utf8' }).trim();
+const lcov = 'TN:\nSF:src/lib/smoke.ts\nDA:1,1\nDA:2,1\nDA:3,1\nDA:4,0\nBRDA:5,0,0,0\nend_of_record\n';
+const baseline = { schema: 'main-baseline/2', mainSha: revision, analysisId: 'main-smoke-analysis', observedAt: new Date().toISOString(), period: { mode: 'previous_version', parameter: 'smoke', date: '2026-10-01T00:00:00Z' }, metrics: { new_lines_to_cover: 4, new_uncovered_lines: 1, new_conditions_to_cover: 1, new_uncovered_conditions: 1, new_coverage: 60 } };
+save('c24-main-baseline.json', baseline);
+const gate = { schema: 'c25-ce-gate-readout/1', status: 'ERROR', analysisId: 'pr-smoke-analysis', ceTaskId: 'pr-smoke-task', providerIdentity: { revision, branch: 'develop', pullRequest: '60' } };
+const candidateOrigin = scannerProvenance(revision, lcov, gate, 'Sensor JavaScript/TypeScript Coverage', instrumentationFingerprint(directory), () => sha256(readFileSync(resolve(directory, 'src/lib/smoke.ts'))));
+const env = { ...process.env, RUNNER_TEMP: directory, SONAR_TOKEN: 'fixture-not-a-credential', GITHUB_TOKEN: 'fixture-not-a-credential', EXPECTED_PR: '60', EXPECTED_BRANCH: 'develop', SONAR_MAIN_LCOV: save('main.lcov', lcov), SONAR_MAIN_LCOV_PROVENANCE: resolve(directory, 'absent-main-origin.json'), SONAR_MAIN_UNIT_ADAPTER_REPORT: resolve(directory, 'c28-main-unit-adapter.json'), SONAR_CANDIDATE_LCOV: save('candidate.lcov', lcov), SONAR_CANDIDATE_LCOV_PROVENANCE: save('candidate-origin.json', candidateOrigin), SONAR_CANDIDATE_GATE_REPORT: save('gate.json', gate), GITHUB_STEP_SUMMARY: resolve(directory, 'summary.md'), GITHUB_OUTPUT: resolve(directory, 'outputs.txt') };
+const records = [];
+const run = (caseName, script, args, expected, receiptName) => {
+  const result = spawnSync(process.execPath, [resolve('/home/douglas-souza/preco-que-d-main/scripts/sonar', script), ...args], { cwd: directory, env, encoding: 'utf8' });
+  assert.equal(result.status, expected, result.stderr);
+  const receipt = receiptName ? JSON.parse(readFileSync(resolve(directory, receiptName), 'utf8')) : null;
+  if (receipt) {
+    assert.equal(receipt.rawExitCode, 2);
+    assert.equal(receipt.rawStatus, 'NO-VERDICT');
+    assert.equal(receipt.approvesMain, false);
+    assert.equal(receipt.outcome, expected === 0 ? 'INFORMATIONAL' : 'FAILURE');
+  }
+  records.push({ case: caseName, exit: result.status, receipt });
+};
+run('raw-adapter-remains-no-verdict', 'main-unit-adapter.ts', [], 2);
+run('advisory-adapter-known-absence', 'mirror-observation.ts', ['adapter'], 0, 'c29-main-unit-adapter-observation.json');
+run('advisory-mirror-known-absence', 'mirror-observation.ts', ['mirror'], 0, 'c29-main-mirror-observation.json');
+const rawMirror = JSON.parse(readFileSync(resolve(directory, 'c26-main-mirror.json'), 'utf8'));
+assert.equal(rawMirror.reasonCode, 'ORIGINAL_PROVENANCE_UNAVAILABLE');
+assert.equal(rawMirror.target.covered, 3);
+assert.ok(readFileSync(env.GITHUB_STEP_SUMMARY, 'utf8').includes('NO-VERDICT'));
+save('candidate-origin.json', {});
+run('corrupt-candidate-is-failure', 'mirror-observation.ts', ['mirror'], 1, 'c29-main-mirror-observation.json');
+save('candidate-origin.json', candidateOrigin);
+save('absent-main-origin.json', '{broken');
+run('corrupt-main-sidecar-is-failure', 'mirror-observation.ts', ['adapter'], 1, 'c29-main-unit-adapter-observation.json');
+rmSync(env.SONAR_MAIN_LCOV);
+run('missing-main-lcov-is-failure', 'mirror-observation.ts', ['adapter'], 1, 'c29-main-unit-adapter-observation.json');
+console.log('SONAR_CLI_SMOKE ' + JSON.stringify(records));
+
+
+PATH /tmp/pqd-ci-check-smoke-wtd5bfi8/no-external-fetch.mjs SHA256 161bc5f23ada230bfc503448fa2eb31c489fd01a00371bc2d8d4a341f6d98123
+globalThis.fetch = async () => { throw new Error('External transport prohibited in isolated smoke'); };
+
+
+PATH /tmp/pqd-ci-check-smoke-wtd5bfi8/workflow-mask-smoke.mts SHA256 55659accc0485cb0011837ef73b3a5dcb7a33e12e4f393dba3208d3684f7b460
+import assert from 'node:assert/strict';
+import { MaskedSecrets } from '/home/douglas-souza/preco-que-d-main/scripts/ci/provision-neon-fixture.ts';
+const ledger = new MaskedSecrets();
+const value = 'fixture%0A\r\n::error::not-a-credential';
+const command = ledger.mask(value);
+assert.equal(command.split('\n').filter(Boolean).length, 1);
+assert.equal(command.includes('\r'), false);
+const decoded = command.trimEnd().slice('::add-mask::'.length).replaceAll('%0D', '\r').replaceAll('%0A', '\n').replaceAll('%25', '%');
+assert.equal(decoded, value);
+assert.equal(ledger.redact('echo: ' + value), 'echo: [redacted]');
+console.log(JSON.stringify({command, injectedCommand: false, originalRedactionIdentity: true}));
+
+
+PATH /tmp/pqd-ci-check-smoke-wtd5bfi8/cleanup-bin/curl SHA256 fb673ccde6bd44314e94c6e56369eb3c1b744d8008436f39388077033d6cdf0f
+#!/bin/sh
+printf "%s\n" "$FIXTURE_HTTP"
+printf "GET-called\n" >> "$FIXTURE_TRACE"
+exit "${FIXTURE_CURL_EXIT:-0}"
+
+
+PATH /tmp/pqd-ci-check-smoke-wtd5bfi8/cleanup-bin/gh SHA256 5a335a1fc4a8f0df14c5a85277ef1df9273f499f028315fa2e6c96d013eb6be7
+#!/bin/sh
+printf "comment-called\n" >> "$FIXTURE_TRACE"
+exit 0

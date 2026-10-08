@@ -1,0 +1,102 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/neon-fixture-provision.test.ts (34 tests | 1 failed) 33ms
+     × creates the parent-schema child once, hands the branch id to cleanup before compute, and writes masked private URIs 12ms
+ ❯ src/test/neon-fixture.test.ts (41 tests | 4 failed) 24ms
+     × accepts a parent-schema child bound to the exact run, attempt, parent and endpoint 5ms
+     × accepts a develop-base child whose explicit parent is develop 1ms
+     × does not infer connection ownership from an ID or matching table counts 3ms
+     × accepts the managed neon_auth schema of a parent-schema copy when empty 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > creates the parent-schema child once, hands the branch id to cleanup before compute, and writes masked private URIs
+AssertionError: expected { branch: { …(4) }, …(1) } to deeply equal { branch: { …(4) }, …(1) }
+
+- Expected
++ Received
+
+@@ -1,9 +1,9 @@
+  {
+    "branch": {
+      "expires_at": "2026-10-08T02:00:00Z",
+-     "init_source": "parent-schema",
++     "init_source": "schema-only",
+      "name": "pr-60-123-2",
+      "parent_id": "br-small-hill-aymcu14y",
+    },
+    "endpoints": [
+      {
+
+ ❯ src/test/neon-fixture-provision.test.ts:176:40
+    174|     await expect(run()).resolves.toEqual({ verdict: "OK", branchId });
+    175|     expect(calls[0].method).toBe("POST");
+    176|     expect(JSON.parse(calls[0].body!)).toEqual({
+       |                                        ^
+    177|       branch: {
+    178|         name: "pr-60-123-2",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > Neon PR fixture ownership and endpoint binding > accepts a parent-schema child bound to the exact run, attempt, parent and endpoint
+Error: fixture schema-only root/expiry/freshness identity differs
+ ❯ fixtureIdentity scripts/ci/prepare-neon-fixture.ts:57:11
+     55|     expiry - created > 24 * 3600_000 + 120_000
+     56|   )
+     57|     throw new Error("fixture schema-only root/expiry/freshness identit…
+       |           ^
+     58|   const endpoints =
+     59|     record(endpointBody) && Array.isArray(endpointBody.endpoints) ? en…
+ ❯ src/test/neon-fixture.test.ts:60:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > Neon PR fixture ownership and endpoint binding > accepts a develop-base child whose explicit parent is develop
+Error: fixture schema-only root/expiry/freshness identity differs
+ ❯ fixtureIdentity scripts/ci/prepare-neon-fixture.ts:57:11
+     55|     expiry - created > 24 * 3600_000 + 120_000
+     56|   )
+     57|     throw new Error("fixture schema-only root/expiry/freshness identit…
+       |           ^
+     58|   const endpoints =
+     59|     record(endpointBody) && Array.isArray(endpointBody.endpoints) ? en…
+ ❯ src/test/neon-fixture.test.ts:70:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > Neon PR fixture ownership and endpoint binding > does not infer connection ownership from an ID or matching table counts
+AssertionError: expected [Function] to throw error including 'endpoint' but got 'fixture schema-only root/expiry/fresh…'
+
+Expected: "endpoint"
+Received: "fixture schema-only root/expiry/freshness identity differs"
+
+ ❯ src/test/neon-fixture.test.ts:139:74
+    137|       const body = endpoints();
+    138|       Object.assign(body.endpoints[0], patch);
+    139|       expect(() => fixtureIdentity(branch(), body, ...urls(), env, now…
+       |                                                                          ^
+    140|     }
+    141|     expect(() => fixtureIdentity(branch(), { endpoints: [] }, ...urls(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > empty schema preparation refuses inherited data before any destructive SQL > accepts the managed neon_auth schema of a parent-schema copy when empty
+Error: fixture discovered an unexpected or incomplete schema inventory
+ ❯ resetEmptyFixture scripts/ci/prepare-neon-fixture.ts:102:13
+    100|       new Set(names).size !== names.length
+    101|     )
+    102|       throw new Error("fixture discovered an unexpected or incomplete …
+       |             ^
+    103|     const tables = await db.query(`
+    104|       select n.nspname as schema, c.relname as name, c.relkind as kind
+ ❯ src/test/neon-fixture.test.ts:222:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  5 failed | 70 passed (75)
+   Start at  19:43:33
+   Duration  1.98s (transform 230ms, setup 243ms, import 238ms, tests 57ms, environment 1.19s)
+

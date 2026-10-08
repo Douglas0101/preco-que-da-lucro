@@ -1,0 +1,27 @@
+{
+  "schema": "c28-review-thread-reconciliation/1",
+  "recordedAt": "2026-10-03T23:19:49.996467+00:00",
+  "evidenceClass": "REMOTE-OBSERVED",
+  "sourceSha": "6fcba0d1f0be3aec6683d738553deee7177bdc8b",
+  "pr": "60",
+  "threads": [
+    {
+      "id": "2820999532",
+      "path": "scripts/sonar/main-baseline.mjs",
+      "status": "RESOLVED",
+      "observedSignal": "Show resolved in exact thread container",
+      "proof": "PR-only baseline before scanner; main baseline after CE in sonar.yml; src/test/m02-ci-coverage.test.ts negative control for original defect"
+    },
+    {
+      "id": "2820999536",
+      "path": ".github/workflows/neon-drill-ops.yml",
+      "status": "RESOLVED",
+      "observedSignal": "Show resolved in exact thread container",
+      "proof": "Cleanup always with prepared identity independently of connection outputs/adoption success; src/test/neon-resource.test.ts checks actual YAML and resource identity"
+    }
+  ],
+  "commentSubmitted": false,
+  "mergePerformed": false,
+  "remainingUiBlock": "Cannot update this protected ref; required main-coverage-mirror still failing",
+  "screenshot": "/home/douglas-souza/.codex/artifacts/ciclo-28/pr-review-threads-resolved.png"
+}

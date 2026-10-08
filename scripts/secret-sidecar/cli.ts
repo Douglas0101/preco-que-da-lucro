@@ -21,7 +21,12 @@ import { ClipboardError, detectClipboard, type Clipboard } from "./clipboard.ts"
 import { KeychainError, MemoryKeychain, type Keychain } from "./keychain.ts";
 import { exitCodeFor, runSelftest } from "./selftest.ts";
 import { SecretServiceKeychain } from "./secret-service.ts";
-import { SecretSidecar, SidecarError } from "./sidecar.ts";
+import {
+  SecretSidecar,
+  SidecarError,
+  ROTATION_PROVIDERS,
+  type RotationProvider,
+} from "./sidecar.ts";
 
 const USO = `sidecar <comando> [flags]
 
@@ -37,7 +42,9 @@ Cofre e area de transferencia:
 Entrega e verificacao:
   inject <ref> <url> --confirm       entrega o valor a um host da allowlist
   test <ref> --kind=http|db --target=<alvo>
-                                     sonda de autenticacao; 401 x 200
+                                     status bruto; nao prova closure de provedor
+  test-provider <ref> --provider=<nome> --identity=<metadado>
+                                     probe protegido, sem body/valores no output
   denylist <ref> <sha256_old> <sha256_new>
                                      registra a aposentadoria de um valor
 
@@ -48,6 +55,7 @@ Diagnostico:
 
 Flags: --backend=cofre|memoria  --root=<dir>  --audit=<arquivo>  --denylist=<arquivo>
        --bytes=<n>  --ttl-ms=<ms>  --kind=http|db  --target=<alvo>  --confirm
+       --provider=neon|vercel|sonar|context7|deepseek|github  --identity=<metadado>
 
 Nenhum subcomando aceita valor de segredo como argumento, por desenho.`;
 
@@ -311,6 +319,20 @@ async function despachar(argv: string[], recursos: Recursos): Promise<number> {
         })),
       });
       return 0;
+    }
+    case "test-provider": {
+      const ref = exigirRef(posicionais);
+      const provider = flagTexto(flags, "provider") as RotationProvider;
+      if (!ROTATION_PROVIDERS.includes(provider))
+        throw new SidecarError("precondicao", "provider ausente/invalido");
+      const identity = flagTexto(flags, "identity") ?? "";
+      const result = await sidecar.test_provider(ref, provider, identity);
+      emitir({ comando, ref, ...result });
+      return result.authentication === "authenticated" && result.identity_match
+        ? 0
+        : result.authentication === "rejected"
+          ? 1
+          : 2;
     }
     case "test": {
       const ref = exigirRef(posicionais);

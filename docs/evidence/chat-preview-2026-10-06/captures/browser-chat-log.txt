@@ -1,0 +1,7 @@
+# repro viva do defeito (navegador real, sessao do operador) — capturada em 2026-10-06
+url: https://preco-que-da-luc-git-53d0a3-douglasultimatesouza-5127s-projects.vercel.app/novo-produto
+chat log:
+ - Olá
+ - Quero cadastrar um bolo de cenoura
+ - Quero cadastrar um bolo de cenoura
+ - ⚠️ AI gateway endpoint recusado pelo guard (https público obrigatório): URL inválida: 

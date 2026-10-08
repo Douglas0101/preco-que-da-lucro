@@ -31,3 +31,9 @@ src/integrations/supabase/auth-middleware.ts
 src/integrations/supabase/client.server.ts
 src/integrations/supabase/client.ts
 src/integrations/supabase/types.ts
+
+# C25 operational raw captures: byte-sealed before the C26 successor edits.
+# Exact paths only; source/evidence Markdown and other JSON remain discoverable.
+docs/evidence/neon-repair-2026-10-01/captures/checkpoint-hostinger-pending.json
+docs/evidence/neon-repair-2026-10-01/captures/final-reconciliation.json
+docs/evidence/neon-repair-2026-10-01/captures/post-cleanup-runtime.json

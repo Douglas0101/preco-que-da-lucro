@@ -10,8 +10,8 @@
     "createServerFnDeclarations": 35,
     "concreteOperations": 36,
     "apiRoutes": 5,
-    "transactionSites": 113,
-    "directDatabaseFiles": 50
+    "transactionSites": 114,
+    "directDatabaseFiles": 52
   },
   "bffs": [
     {
@@ -55,7 +55,7 @@
       "operations": [
         {
           "name": "getChatHistory",
-          "line": 268,
+          "line": 382,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -63,7 +63,7 @@
         },
         {
           "name": "createChatConversation",
-          "line": 313,
+          "line": 427,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -71,7 +71,7 @@
         },
         {
           "name": "clearChatHistory",
-          "line": 325,
+          "line": 439,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -79,7 +79,7 @@
         },
         {
           "name": "sendChatMessage",
-          "line": 343,
+          "line": 457,
           "declaration": "createServerFn",
           "service": "ConversationService/ChatExecution",
           "repository": "ConversationRepository + BudgetRepository + AiToolRepository + AuditRepository",
@@ -94,8 +94,10 @@
         "@/lib/ai/tool-registry",
         "@/lib/api-error",
         "@/lib/chat-execution.server",
+        "@/lib/env.server",
         "@/lib/structured-logger",
         "@/lib/tenant-transaction",
+        "@/lib/wire-safe-error.server",
         "@/middleware/request-context",
         "@/server/services/conversation.service",
         "@tanstack/react-start",
@@ -126,7 +128,7 @@
       "operations": [
         {
           "name": "getDashboardSummary",
-          "line": 18,
+          "line": 19,
           "declaration": "createServerFn",
           "service": "DashboardService",
           "repository": "DashboardRepository",
@@ -731,13 +733,13 @@
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 129,
+      "line": 133,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 141,
+      "line": 145,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
@@ -1223,25 +1225,25 @@
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 56,
+      "line": 64,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 69,
+      "line": 77,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 93,
+      "line": 101,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 102,
+      "line": 110,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -1253,7 +1255,13 @@
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 131,
+      "line": 146,
+      "expression": "context.transaction",
+      "classification": "repository-fallback"
+    },
+    {
+      "path": "src/server/repositories/sales.repository.ts",
+      "line": 154,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -1323,6 +1331,7 @@
     "src/test/backfill-runner.test.ts",
     "src/test/break-even.negative-margin.test.tsx",
     "src/test/cross-tenant-denial.perf-waves.test.ts",
+    "src/test/dashboard-consolidated-margin.db.test.ts",
     "src/test/financial-metrics.test.ts",
     "src/test/helpers/chat-execution-fakes.ts",
     "src/test/helpers/tool-runner-fakes.ts",
@@ -1338,7 +1347,8 @@
     "src/test/round-trip-instrumentation.perf-waves.test.ts",
     "src/test/safe-record.test.ts",
     "src/test/schema-diff-verdict.test.ts",
-    "src/test/tool-runner.persistence.test.ts"
+    "src/test/tool-runner.persistence.test.ts",
+    "src/test/tool-runner.validation.test.ts"
   ],
   "policy": {
     "schemaVersion": 1,

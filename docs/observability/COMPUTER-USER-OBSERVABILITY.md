@@ -86,13 +86,35 @@ O span `visual_agent.iteration` carrega `screenshot.before_hash`,
 
 `failure_type` é o vocabulário fechado de V5: `badge-missing`,
 `badge-unexpected`, `nan-rendered`, `invalid-as-zero`, `incomplete-not-displayed`,
-`cls-above-threshold`, `tenant-leak`, `redaction-leak`.
+`cls-above-threshold`, `tenant-leak`, `redaction-leak`, `chat-outcome-missing`,
+`chat-outcome-fabricated`.
 
 ### Gates
 
 - `npm run test:visual` — suíte Playwright da camada visual. Roda na **camada de
   e2e** (browser + app servido), não na cadeia `check`; no CI ela pega carona no
   passo `npx playwright test` já existente, em todos os projetos da matriz.
+- `scripts/qa/chat-honesty-gate.mjs` — gate do chat, no idioma dos gates do
+  Ciclo 29. Afirma o desfecho honesto do assistente nos **dois** mundos: com
+  provedor configurado (`branch=live`) ou sem provedor (`branch=controlled`, a
+  mensagem controlada derivada de `apiError("DEPENDENCY_ERROR")` e **nenhuma
+  figura** na tela), mais a ausência de estado travado. O controle negativo é
+  interno: seis fixtures provam que a predicação reprova fabricação (`R$ 0,00`,
+  `35,00%`), bolha vazia e token não finito; fixture com veredicto trocado nunca
+  vira `GREEN`. Exit `1` é violação, `2` é precondição (bancada/credenciais).
+
+  ```bash
+  npx --no-install esbuild scripts/qa/chat-honesty-gate.mjs --bundle \
+    --platform=node --packages=external --format=esm \
+    --outfile=.artifacts/qa-chat-honesty-gate.mjs
+  node .artifacts/qa-chat-honesty-gate.mjs http://127.0.0.1:4174 <evidenceDir>
+  ```
+
+  Ele envia **um** turno de chat na bancada; com provedor vivo o modelo pode
+  chamar ferramentas e alterar dados de fixture — use bancada descartável. O
+  cenário equivalente vive em `e2e/visual/visual-observability.spec.ts` e roda na
+  matriz de PR, onde o CI não tem provedor (ramo controlado).
+
 - Assertion visual verde nas telas críticas, zero anomalias, badges de estado
   presentes e CLS < 0,1 (alinhado a §17.8 RUM).
 
@@ -124,6 +146,11 @@ precisa do `set -a && . ./.env && set +a`. Sem ele o `webServer` morre em
 - **INV-008** — isolamento de tenant: `assertTenantIsolation` reprova marcador
   estrangeiro visível; lista de marcadores vazia também reprova (fail-closed).
 - Badge de estado presente e correto (`REAL` / `DADOS INCOMPLETOS`).
+- **Chat** (`assertChatOutcomeHonest`) — o desfecho é honesto: ou a mensagem
+  controlada de indisponibilidade **sem nenhuma figura** visível (sem dado não há
+  número, e `R$ 0,00` ali é invenção), ou uma resposta real vazia de aviso; bolha
+  vazia e token não finito reprovam em qualquer ramo. A mensagem controlada é
+  lida de `apiError("DEPENDENCY_ERROR")`, nunca copiada.
 
 ## Como adicionar uma assertion
 

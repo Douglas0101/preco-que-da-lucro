@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-10-04T15:43:46.955Z",
+  "simulations": [
+    {
+      "id": "2cb33bdf-e7cb-464f-b1c7-ce7eeda24d31",
+      "tenant_id": "00000000-0000-4000-8000-000000000002",
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "name": "QA visual 50 unidades",
+      "scenario_type": "manual_simulation",
+      "params": {
+        "fees": [
+          {
+            "percentage": "5"
+          }
+        ],
+        "price": "20.00",
+        "volume": "50",
+        "taxRate": "10",
+        "unitCost": "5",
+        "volumeSource": "manual_simulation",
+        "fixedExpenses": "100"
+      },
+      "result": {
+        "value": {
+          "price": "20.0000",
+          "result": "500.0000",
+          "volume": "50.000000",
+          "revenue": "1000.0000",
+          "unitCost": "5.0000",
+          "resultSign": "positive",
+          "variableCost": "3.0000",
+          "volumeSource": "manual_simulation",
+          "totalVariable": "400.0000",
+          "breakEvenUnits": {
+            "status": "reachable",
+            "rawUnits": "8.333333",
+            "unitMode": "discrete",
+            "roundedUnits": "9.000000"
+          },
+          "breakEvenRevenue": "166.6667",
+          "totalContribution": "600.0000",
+          "contributionMargin": "12.0000",
+          "contributionMarginPct": "60.000000"
+        },
+        "status": "ok",
+        "warnings": []
+      }
+    }
+  ],
+  "salesBeforePositive": 0
+}

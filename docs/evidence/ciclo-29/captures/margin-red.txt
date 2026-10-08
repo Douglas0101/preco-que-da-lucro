@@ -1,0 +1,102 @@
+gate: margin-red.txt
+command: npx vitest run src/test/dashboard.service.test.ts src/test/dashboard-summary-guard.test.ts
+private-source-sha256: 335b0e98a3ec247f77ff312c4499a2c86922e99fcc4a30a579e852e14f18007e
+classification: LOCAL-VERIFIED (sanitized derivative; original retained)
+
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/dashboard.service.test.ts src/test/calc-explainer.test.tsx
+
+
+ RUN  v4.1.11 /tmp/pqd-develop
+
+ ❯ src/test/dashboard.service.test.ts (14 tests | 3 failed) 36ms
+     × usa preço efetivamente vendido e taxas sobre a receita, sem reusar preço de catálogo 9ms
+     × preserva contribuição negativa de vendas abaixo do custo, sem fabricar zero 2ms
+     × desconto sem alocação fiscal ou agregado sem itens produz motivo verdadeiro 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/dashboard.service.test.ts > margem consolidada (DBT-88) > usa preço efetivamente vendido e taxas sobre a receita, sem reusar preço de catálogo
+AssertionError: expected { state: 'ok', …(2) } to deeply equal { state: 'ok', …(2) }
+
+- Expected
++ Received
+
+  {
+    "state": "ok",
+-   "valueAmount": "50.0000",
+-   "valuePct": "62.5000",
++   "valueAmount": "23.0000",
++   "valuePct": "28.7500",
+  }
+
+ ❯ src/test/dashboard.service.test.ts:285:40
+    283|     const summary = await service.getSummary(contextWithRole("owner"));
+    284|     // 2×40 vendidos: 80 − 2×11 de custo − 80×0.1 de imposto = 50; 62.…
+    285|     expect(summary.consolidatedMargin).toEqual({
+       |                                        ^
+    286|       state: "ok",
+    287|       valuePct: "62.5000",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/test/dashboard.service.test.ts > margem consolidada (DBT-88) > preserva contribuição negativa de vendas abaixo do custo, sem fabricar zero
+AssertionError: expected { state: 'ok', …(2) } to deeply equal { state: 'ok', …(2) }
+
+- Expected
++ Received
+
+  {
+    "state": "ok",
+-   "valueAmount": "-13.0000",
+-   "valuePct": "-130.0000",
++   "valueAmount": "23.0000",
++   "valuePct": "230.0000",
+  }
+
+ ❯ src/test/dashboard.service.test.ts:301:40
+    299|     const summary = await service.getSummary(contextWithRole("owner"));
+    300|     // 10 − 22 de custo − 1 de imposto = −13; −130%.
+    301|     expect(summary.consolidatedMargin).toEqual({
+       |                                        ^
+    302|       state: "ok",
+    303|       valuePct: "-130.0000",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/test/dashboard.service.test.ts > margem consolidada (DBT-88) > desconto sem alocação fiscal ou agregado sem itens produz motivo verdadeiro
+AssertionError: expected { state: 'ok', …(2) } to deeply equal { state: 'incomplete', …(3) }
+
+- Expected
++ Received
+
+  {
+-   "incompleteProductCount": 0,
+-   "salesMismatch": true,
+-   "state": "incomplete",
+-   "zeroRevenue": false,
++   "state": "ok",
++   "valueAmount": "23.0000",
++   "valuePct": "51.1111",
+  }
+
+ ❯ src/test/dashboard.service.test.ts:318:87
+    316|         new FakeSalesService({ revenue: "45.0000", count: 1 }, items),
+    317|       );
+    318|       expect((await service.getSummary(contextWithRole("owner"))).cons…
+       |                                                                                       ^
+    319|         state: "incomplete",
+    320|         incompleteProductCount: 0,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  3 failed | 23 passed (26)
+   Start at  23:09:25
+   Duration  5.36s (transform 650ms, setup 235ms, import 2.15s, tests 1.72s, environment 1.04s)

@@ -1,0 +1,9 @@
+{
+  "observedAt": "2026-10-06T01:28:01.506Z",
+  "sourceUrl": "https://diretrizprecifica.com/assets/index-Uk3Eix_8.js",
+  "keys": [],
+  "snippets": [
+    "eSet(this.storageKey,{token:t,record:i}),super.save(t,i)}clear(){this._storageRemove(this.storageKey),super.clear()}_storageGet(t){if(typeof window<\"u\"&&window?.localStorage){const i=window.localStorage.getItem(t)||\"\";try{return JSON.parse(i)}catch{return i}}return this.storageFallback[t]}_storageSet(t,i){if(typeof window<\"u\"&&window?.localStorage){let o=i;typeof i!=\"string\"&&(o=JSON.stringify(i)),window.localStorage.setItem(t,o)}else this.storageFallback[t]=i}_storageRemove(t){typeof window<\"u\"",
+    "try{return JSON.parse(i)}catch{return i}}return this.storageFallback[t]}_storageSet(t,i){if(typeof window<\"u\"&&window?.localStorage){let o=i;typeof i!=\"string\"&&(o=JSON.stringify(i)),window.localStorage.setItem(t,o)}else this.storageFallback[t]=i}_storageRemove(t){typeof window<\"u\"&&window?.localStorage&&window.localStorage?.removeItem(t),delete this.storageFallback[t]}_bindStorageEvent(){typeof window<\"u\"&&window?.localStorage&&window.addEventListener&&window.addEventListener(\"storage\",(t=>{if("
+  ]
+}

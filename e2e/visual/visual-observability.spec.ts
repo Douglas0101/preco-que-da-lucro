@@ -17,11 +17,13 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 
+import { apiError } from "../../src/lib/api-error";
 import { correlateWithTrace } from "../../src/lib/observability/visual-correlation";
 import { findSecretLeaks } from "../../src/lib/observability/visual-redaction";
 import {
   assertBadgeAbsent,
   assertBadgePresent,
+  assertChatOutcomeHonest,
   assertCLSBelowThreshold,
   assertIncompleteDisplayed,
   assertNoNaNasZero,
@@ -153,4 +155,42 @@ test("artefato persistido está redigido, selado e correlacionado", async ({ pag
   expect(correlation.correlationId).toBe(scenario.correlationId);
   // Contrato de honestidade: sem span ativo no processo de teste, traceId é nulo.
   expect(correlation.traceId).toBeNull();
+});
+
+/**
+ * Chat (§19.7; DBT-86/DBT-88). O desfecho é honesto nos dois mundos: com
+ * provedor configurado vem resposta real; sem provedor vem a mensagem
+ * controlada — e, nesse ramo, NENHUMA figura, porque a tela não tem dado algum.
+ * O cenário não força um dos ramos: ele afirma o que cada um exige, e o
+ * controle negativo da predicação vive no teste unitário do módulo V5.
+ */
+test("chat: desfecho honesto e sem estado travado", async ({ page }) => {
+  await captureVisualScenario(page, `chat-honesty-${test.info().project.name}`, "/novo-produto");
+
+  const input = page.getByPlaceholder("Escreva sua resposta...");
+  await expect(input).toBeVisible();
+  const bubbles = page.locator('[role="log"] > div.flex.items-start:not(.justify-end)');
+  await expect(bubbles.first()).toBeVisible();
+  const before = await bubbles.count();
+
+  await input.fill("Olá! Pode me explicar como funciona o cadastro de produto?");
+  await page.getByRole("button", { name: "Enviar" }).click();
+  await expect(bubbles.nth(before)).toBeVisible({ timeout: 90_000 });
+
+  const reply = await bubbles.nth(before).innerText();
+  const controlledMessage = apiError(
+    "DEPENDENCY_ERROR",
+    "00000000-0000-4000-8000-000000000000",
+  ).message;
+  expectOk(assertChatOutcomeHonest(reply, controlledMessage));
+
+  // Fim do estado de carregamento: com texto, o envio volta a habilitar (o campo
+  // vazio desabilita por desenho, então a sonda é o próprio texto).
+  await input.fill("sonda de estado");
+  await expect(page.getByRole("button", { name: "Enviar" })).toBeEnabled();
+  await input.fill("");
+  test.info().annotations.push({
+    type: "chat-branch",
+    description: reply.includes(controlledMessage) ? "controlled" : "live",
+  });
 });

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { getDiagnostic } from "@/lib/diagnostic.functions";
+import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import { expensesQueryOptions, productsListQueryOptions } from "@/lib/query-options";
 import type {
   BreakEvenResult,
@@ -122,19 +123,21 @@ function Diagnostico() {
       debouncedAssumptions.targetContributionRate,
     ],
     queryFn: () =>
-      getDiagnostic({
-        data: {
-          product_id: selectedProductId,
-          non_percentage_variable_unit_cost:
-            parseOptionalNumber(debouncedAssumptions.nonPercentageVariableUnitCost) == null
-              ? null
-              : toApiDecimal(debouncedAssumptions.nonPercentageVariableUnitCost),
-          target_contribution_rate:
-            parseOptionalNumber(debouncedAssumptions.targetContributionRate) == null
-              ? null
-              : toApiDecimal(debouncedAssumptions.targetContributionRate),
-        },
-      }),
+      unwrapServerFn(
+        getDiagnostic({
+          data: {
+            product_id: selectedProductId,
+            non_percentage_variable_unit_cost:
+              parseOptionalNumber(debouncedAssumptions.nonPercentageVariableUnitCost) == null
+                ? null
+                : toApiDecimal(debouncedAssumptions.nonPercentageVariableUnitCost),
+            target_contribution_rate:
+              parseOptionalNumber(debouncedAssumptions.targetContributionRate) == null
+                ? null
+                : toApiDecimal(debouncedAssumptions.targetContributionRate),
+          },
+        }),
+      ),
     enabled: loadStatus === "ready" && selectedProductId !== "",
     retry: false,
     staleTime: 30_000,
@@ -206,7 +209,11 @@ function Diagnostico() {
             <Label htmlFor="diagnostico-produto" className="sr-only">
               Produto para diagnóstico
             </Label>
-            <Select value={selectedProductId} onValueChange={setProductId}>
+            <Select
+              value={selectedProductId}
+              onValueChange={setProductId}
+              items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
+            >
               <SelectTrigger id="diagnostico-produto">
                 <SelectValue placeholder="Escolha um produto" />
               </SelectTrigger>

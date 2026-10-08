@@ -1,0 +1,39 @@
+NEON FIXTURE-BASE EMPTINESS — AFTER
+====================================
+captured_at_utc: 2026-10-07T23:54:41Z
+project_id: damp-forest-57346541
+branch_id (target): br-wandering-sky-ayxm5e5s  (name: ci-fixture-base)
+console_url: https://console.neon.tech/app/projects/damp-forest-57346541/branches/br-wandering-sky-ayxm5e5s/sql-editor?database=neondb
+
+one-time emptying statement (executed 2026-10-07T23:53:04Z, single statement):
+do $$ declare r record; begin for r in select format('%I.%I', n.nspname, c.relname) as t from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind in ('r','p') and n.nspname in ('public','drizzle','neon_auth','app_private','pgrst') loop execute 'truncate table ' || r.t || ' cascade'; end loop; end $$;
+result (verbatim from SQL editor panel): "Connected (1 query) / 855ms / No result / Statement executed successfully"
+
+large objects check (executed 2026-10-07T23:53:23Z):
+select count(*)::int as large_objects from pg_largeobject_metadata;
+output (verbatim):
+large_objects
+0
+(no lo_unlink needed; pg_largeobject_metadata already empty, lo_unlink NOT executed)
+
+AFTER count (same exact query as BEFORE, executed 2026-10-07T23:53:38Z):
+select count(*)::int as populated_tables, coalesce(sum(rows),0)::bigint as total_rows from (select (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from %I.%I', n.nspname, c.relname), false, true, '')))[1]::text::bigint as rows from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind in ('r','p') and n.nspname in ('public','drizzle','neon_auth','app_private','pgrst')) t where rows > 0;
+output (verbatim from SQL editor result grid):
+populated_tables  total_rows
+0                 0
+raw panel text: "Connected (1 query) / 166ms / 1 row / # populated_tables total_rows / 1 0 0"
+
+branch binding evidence for the truncation run:
+- The SQL editor session persisted on the same connected postgres session across the truncation; the branch selector showed "ci-fixture-base" immediately before the truncation run (checked 2026-10-07T23:52:33Z).
+- In-band GUC check after truncation (executed 2026-10-07T23:53:57Z): select current_setting('neon.branch_id', true) as branch_id, current_database() as db, current_user as role;
+  output: branch_id = br-wandering-sky-ayxm5e5s | db = neondb | role = neondb_owner
+- Connection bootstrap captured on the network (same console session): GET /api/v2/projects/damp-forest-57346541/branches/br-wandering-sky-ayxm5e5s/roles/neondb_owner/reveal_password (200). The request path carries the baseline branch id (NOT production/develop); its response body was NOT read or persisted (password).
+- Console query history (authenticated same-origin API, fetched 2026-10-07T23:54Z) shows, all success:true:
+  23:44:04Z  select 1;
+  23:51:37Z  select name, setting from pg_settings where name like 'neon%' order by name;  (129 rows)
+  23:52:11Z  BEFORE count  -> 15 populated / 162 rows
+  23:53:04Z  do $$ ... truncate ... $$  (one-time emptying)
+  23:53:23Z  select count(*)::int as large_objects from pg_largeobject_metadata;  -> 0
+  23:53:38Z  AFTER count   -> 0 populated / 0 rows
+  23:53:57Z  select current_setting('neon.branch_id', true) ...  -> br-wandering-sky-ayxm5e5s
+- Network capture diff around the emptying runs (WebBridge capture, ids 1105938.805-1105938.825): only console query/history POSTs (201), query_name_generate and telemetry; no branch mutation calls, no reveal_password re-fetch (session reused).

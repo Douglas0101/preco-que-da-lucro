@@ -1,0 +1,22 @@
+R3SonarPublication — revisão independente de fonte, contexto novo; sem checks/build/tests/lint/formatter.
+Resultado recebido: overall_correctness=correct, confidence=0.88; C5 ACCEPTED, C6 ACCEPTED, C7 ACCEPTED, C8 ACCEPTED; nenhum achado.
+Evidências citadas pelo revisor: scripts/sonar/gate-readout.ts:17-28,124-151,154-163,187-262,270-326,384-390; .github/workflows/sonar.yml:161-173; scripts/lib/m02-ci-coverage.ts:409-456; src/test/m02-ci-coverage.test.ts:319-475; scripts/sonar/mirror-runner.ts:196-198; scripts/sonar/mirror-observation.ts:99-144; scripts/lib/m02-ci-coverage.ts:299-326.
+A primeira resposta dizia conter hashes sem os listar. Complemento efetivamente recebido via mensagem do revisor: uma medição sha256sum dos 11 alvos e seis dependências abaixo. Não atribuir evidência não entregue ao primeiro relatório.
+
+affc3a3ced842dddb169f43392207197616326da3deb6fbbdf334041869ebec3  .github/workflows/sonar.yml
+c1173147f49a29ca5d0d419f9dbe42f58f30746ee750279b39f0884ce18123f3  scripts/sonar/gate-readout.ts
+7661c3696c30da11c52f987346f9e43b1512384b2372f6b51d72da95958a8272  scripts/sonar/main-unit-adapter.ts
+1cd8a8a1ce8bf0f94cd83781c1d80cad5cbc96466c841e531ea53e719b81c190  scripts/sonar/mirror-runner.ts
+59649ab074c751d49fc03f5bc15566f9adf562a98a3279e25cbe70c9f52a2360  scripts/sonar/mirror-observation.ts
+832a38993c266ded147946dc4e3ea2f9d00aed4afeac146927f8c90a1618b108  scripts/sonar/unit-mirror.ts
+0dff6a95a61112cbfb4c7065d50f3082536b5b30a737992b40d5f144424296b5  scripts/lib/m02-ci-coverage.ts
+46ff247ca844db11cdcaafbfd16cc32fa4e9ce913e32acb7e8521ced0095cd92  src/test/sonar-gate-readout.test.ts
+7ea20cf108cf8d554b3c0ca438a5d244591f1881abfff8830c91a93af194ee4c  src/test/main-unit-adapter.test.ts
+87086eb231d75398fbfa6ac44009fcd82d4c6161802966145e984abfb172363b  src/test/gate-mirror.test.ts
+440746bf27ed7002c72d76a610a2e05065088d9cacc02542ff73a16c2afe20c8  src/test/m02-ci-coverage.test.ts
+345537fe465c6dfa56e36a27493ea5fc5f33715b0f7860d03b51934075297e5a  scripts/sonar/gate-mirror.ts
+3942bf7d3b8a8c7888a7319690e19e23eb61b893e351e07689f8cc73575f0ba6  scripts/sonar/main-origin-run.ts
+a746908a8afe0434101fe18ec237237ed86d7296d85ca975959d127affbc8980  scripts/sonar/main-baseline.mjs
+2b6f8cc6e5b6269afe99d39937971243c7462d95103f6c9203a0e3df1db17da1  scripts/sonar/api.ts
+98a134419e438e73318945bf09a4cc018d2a473764e4f3c0bbf9c5bb4fa50a62  scripts/sonar/main-unit-probe.ts
+bda01602622b32bd3314725c264065c4c64b09936900b81cb1deaad1dc3bbbb0  scripts/sonar/lcov-provenance.ts

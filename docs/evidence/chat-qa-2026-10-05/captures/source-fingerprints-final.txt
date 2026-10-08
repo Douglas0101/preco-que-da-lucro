@@ -1,0 +1,5 @@
+6fd7320d69e52bb352f0c17795b281663ed8c50c8f5aac3ca754b466b57bc5cb  src/lib/ai/financial-output-grounding.ts
+6cf4478ac092e13cdc8c2679f3b34a941a22f8a3939fb6da7ff2cb21fa5d360b  src/lib/chat-execution.server.ts
+f0a166fd276d065ff305c2973f13131f5906cb4caf3016a2dd2d2fd959f60047  src/lib/chat-markdown-parser.ts
+fd45255d00cd5d109f3a3958ef563e01252ff765272e5a49c44e23cd9680cd21  src/lib/chat-markdown.tsx
+82704dcc664235a7b39816155fcef4dd8d609929efd064f30a4d36ca7a55401c  src/test/chat-financial-grounding.test.ts

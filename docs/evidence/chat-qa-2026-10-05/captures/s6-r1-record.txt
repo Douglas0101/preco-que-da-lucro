@@ -1,0 +1,12 @@
+Registro pelo principal do relato concluído pelo revisor /root/chat_s6_review, iniciado com fork_turns=none.
+Veredito recebido: REJECTED; N=3; CORR=0.
+N1 P1: sinal antes de R$ é descartado; fonte R$10 aceita -R$10 e fonte de tool amount=-10 recusa a forma legítima -R$10. O fluxo de executeSendChatMessage retornou e persistiu o sinal incorreto.
+N2 P1: BRL, singular real e por cento são notações explícitas comuns não reconhecidas. Fonte sem custo permitiu BRL10 / 1real; fonte sem taxa permitiu 2,5porcento. Formas equivalentes legítimas também foram recusadas.
+N3 P2: remoção indiscriminada de marcadores inventa número. Fonte R$1*0,00 ou R$1_0,00 autoriza R$10 apesar de o renderer preservar esses caracteres. O renderer suporta somente pares ** na mesma linha.
+Controles observados pelo revisor: soma sem fonte bloqueada; valores brasileiros e percentuais com fonte aceitos; campo financeiro de tool aceita valor; liquidação de ledger uma vez preservada e tokens medidos pelo dublê mantidos. Probes sem provedor, banco real ou browser.
+Fingerprints recebidos para a rodada 1:
+financial-output-grounding.ts c363098354c03ab377d2da922e3832065861317068087a2697f7006ba88e86ea
+chat-execution.server.ts 6cf4478ac092e13cdc8c2679f3b34a941a22f8a3939fb6da7ff2cb21fa5d360b
+chat-financial-grounding.test.ts c41b07bfb84b919f74c89b3aca0e4f08f44b4d9da0b7da9fa6a4a9741e386
+SPEC.md 2bf5f6a2d1d05ec71fa1e8e740809d00f465c1cf19c5ac0139fbd23a1358bb81
+O relato da rodada 1 não é apresentado como aceito. Reparo e nova revisão requeridos.

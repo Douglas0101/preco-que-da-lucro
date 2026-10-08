@@ -1,0 +1,81 @@
+**Veredito final do S6: 0 REJECTED para o contrato local do WP sucessor, após o segundo reparo.** O residual de projeção de N3 e a concessão parcial encontrada como N1 estão corrigidos nos bytes atuais. A revisão confirma fonte literal de `user`, projeção do candidato pelo renderer, bloqueio antes do retorno e append, controles positivos contíguos e uma única liquidação por chamada.
+
+Esta revisão retomada conseguiu executar os probes e a conferência documental. A interrupção por limite externo permanece como evento histórico em `captures/s6-interrupted.txt`. O WP original continua **terminal REJECTED, N cumulativo = 4, CORR = 2**, para os seus próprios bytes; suas duas rodadas não foram reabertas.
+
+As contagens do sucessor ficam separadas:
+
+- **N novo nesta confirmação final = 0.**
+- **CORR nesta confirmação final = 0.**
+- **N cumulativo do sucessor = 1:** N1, concessão parcial de token financeiro malformado, **corrigido e confirmado independentemente** no segundo reparo.
+- **CORR cumulativo do sucessor = 0.**
+- **Correções forçadas pelo S6 = 1:** N1.
+- **KPI de prevenção do sucessor = 0/1**, preservado. O defeito conhecido que originou o sucessor não vira achado prevenido pelo autor.
+- **REJECTED pendentes no contrato local = 0.** CI, publicação e fechamento formal das dívidas continuam pendentes.
+
+A revisão foi somente leitura, sobre `develop`, HEAD `cafde4e8689a97bd6983490f965ca14f377c2e38`, com WIP declarado e preservado. Os probes usaram ambiente sintético contendo apenas `PATH`, imports explicitamente permitidos, módulos atuais transpilados em memória e dependências injetadas. Não executei build, gate completo, browser, banco, provedor ou o script de readback; não li `.env`, `DeepSeek-API.txt` nem ambientes de processos.
+
+A contraprova de N1 nos bytes da primeira rodada foi concreta: as fontes `Custo informado R$ 1**0**,00.` e `Custo informado **R$ 1**0,00.` concederam `Custo R$ 1,00.`. Quatro execuções, abrangendo uso conhecido e ausente para cada fonte, retornaram e passaram esse valor ao append do assistente. A liquidação permaneceu única. Portanto, o defeito estava na concessão de fonte pelo parser.
+
+Nos bytes finais, os padrões em [financial-output-grounding.ts:25](/home/douglas-souza/preco-que-d-main/src/lib/ai/financial-output-grounding.ts:25) consomem sequências de marcadores literais entre dígitos como parte do token. A canonicalização rejeita esse token; os marcadores permanecem presentes e a normalização de pontuação permanece limitada. A seleção de papel em [financial-output-grounding.ts:61](/home/douglas-souza/preco-que-d-main/src/lib/ai/financial-output-grounding.ts:61) corresponde à tela: a bolha do usuário apresenta `{content}` literal em [novo-produto.tsx:242](/home/douglas-souza/preco-que-d-main/src/routes/_authenticated/novo-produto.tsx:242), e o candidato acompanha o parser usado por [chat-markdown.tsx:23](/home/douglas-souza/preco-que-d-main/src/lib/chat-markdown.tsx:23).
+
+| Claim | Veredito | Evidência e alcance |
+| --- | --- | --- |
+| A fonte `user` conserva os marcadores exibidos literalmente | **LOCAL-VERIFIED** | Seleção de papel inspecionada; três probes de renderização com React conservam `**` na fonte. |
+| Os três fragmentos originais não autorizam 10/30 | **LOCAL-VERIFIED** | Helper e fluxo bloqueiam `R$ 1**0**,00 → R$ 10,00`, `**R$ 1**0,00 → R$ 10,00` e `3**0**% → 30%`. |
+| N1: token monetário malformado não concede prefixo 1 | **CORRIGIDO / LOCAL-VERIFIED** | Os dois fragmentos monetários agora produzem a orientação segura no helper, retorno e append, com uso conhecido e ausente. |
+| N1: `3**0%` não concede sufixo 0% | **CORRIGIDO / LOCAL-VERIFIED** | Helper e fluxo bloqueiam 0%; o fragmento com fechador `3**0**%` também continua bloqueado para 0%. |
+| Fontes contíguas legítimas continuam válidas | **LOCAL-VERIFIED** | Controles com 4, 30, centavos, zero explícito, sinais, BRL/reais/por cento e `**R$ 4,00**` passam. |
+| O candidato acompanha a projeção do renderer | **LOCAL-VERIFIED** | Texto extraído dos nós do renderer confrontado com o parser compartilhado. Bold integral e entre dígitos passa quando a fonte contígua correspondente existe. |
+| Bloqueio ocorre antes de retornar e persistir | **LOCAL-VERIFIED** | 34 fluxos injetados confrontam retorno e único append assistant. O guard é aplicado em [chat-execution.server.ts:415](/home/douglas-souza/preco-que-d-main/src/lib/chat-execution.server.ts:415), antes da persistência. |
+| Uso conhecido/ausente conserva settle único | **LOCAL-VERIFIED no fluxo sintético** | Cada fluxo fez uma chamada ao modelo, uma reserva e um settle. Uso conhecido manteve 20 tokens de entrada e 10 de saída; ausência permaneceu `{kind:"unknown", reason:"absent"}`, sem contagens fabricadas. |
+| GREEN e gate final correspondem ao reparo | **CAPTURADO PELO PRINCIPAL / CONFERIDO** | GREEN final registra 183/183 em cinco arquivos. O log r6 percorre a cadeia até `check:bundle`, com 133/133 arquivos, 1883/1883 testes, build e bundle aprovados. O exit 0 foi comunicado pelo principal; minha confirmação foi a leitura da captura e dos fingerprints. |
+| QA real demonstra bloqueio do guard nesta fase | **NÃO ALEGADO** | O negativo real foi recusa espontânea do modelo; `runtime-events-final.json` registra zero eventos do guard. O bloqueio do helper é demonstrado pelos probes determinísticos. |
+| Chrome/readback documentam continuidade e preservação do cadastro local | **EVIDÊNCIA LOCAL CAPTURADA, CONFERIDA** | Screenshot, turnos e readback são consistentes: nove pares de mensagens, resumo restaurado após reload, produto único, sete ferramentas e 14 usage IDs liquidados com uso conhecido. Não repeti essas operações. |
+| O pacote atual possui integridade estrita | **LOCAL-VERIFIED** | Descoberta fresca 23/23, sem falhas, seguida de `sha256sum -c`. |
+| O pacote prova CI, land, release ou produção | **NÃO VERIFICADO / NÃO ALEGADO** | A revisão local e os readbacks capturados mantêm esse limite; DBT-93, DBT-94 e DBT-95 continuam ABERTAS. |
+
+A confirmação final executou **83 controles do helper/renderização e 34 fluxos injetados**, todos aprovados. Os fluxos abrangem 17 cenários, cada um com uso conhecido e ausente. Além dos negativos registrados, os controles exercitam marcadores simples, repetidos e mistos nos padrões monetários e percentuais modificados.
+
+A calibração ficou em uma série separada, com mutações exclusivamente em memória. Reintroduzir a projeção de Markdown na fonte `user` reproduziu três concessões indevidas de 10/30. Reintroduzir o consumo antigo de um único marcador reproduziu as três concessões parciais de prefixo/sufixo. Esses controles não contam como rejeições dos bytes finais.
+
+O estimador de custo foi injetado como desconhecido nos probes; eles confirmam a passagem correta do uso ao settle e sua unicidade, sem comprovar preço ou débito do provedor. No readback capturado, USD `0.0435` é a estimativa configurada do ledger, conforme declarado pelo pacote.
+
+O checklist aplicável foi confrontado item a item:
+
+| # | Resultado da revisão |
+| --- | --- |
+| 1. Controle negativo | **Demonstrado.** RED original e RED de N1 preservados; calibrações independentes reproduzem as concessões. |
+| 2. Fronteira nas duas direções | **Demonstrado.** Fragmentos, prefixos e sufixos bloqueados; fontes contíguas e respostas bold aceitas. |
+| 3. Identidade | **Demonstrado.** Cada fonte/candidato é nomeado; append confrontado com retorno; produto exato confrontado no readback. |
+| 4. Proibido exit-code-only | **Demonstrado.** Assertivas verificam conteúdo, bloqueio, append, chamadas, reservas, uso e settle. |
+| 5. Proibido sleep fixo | **Aplicável e conferido nas capturas.** Readiness HTTP 200, estado de mensagem/compositor e restauração após reload documentados. |
+| 6. Identidade não degenerada | **Demonstrado.** Valores distintos 1/0/10/30/4 e identidade específica do produto. |
+| 7. Estado compartilhado | **Conferido no script e captura.** Par de URLs qualificado para loopback 41922 e `BEGIN READ ONLY`; script não executado pelo revisor. |
+| 8. Sentinela por cenário | **Demonstrado.** Probes isolam fonte/candidato; readback usa produto e conversa específicos. |
+| 9. Fingerprint de revisão | **Demonstrado.** Cinco hashes atuais conferidos antes/depois dos probes; hashes das rodadas anteriores preservados. |
+| 10. `checked === discovered` | **Demonstrado para o pacote.** 23 descobertos/23 entradas; controles em memória rejeitam vazio, duplicação, identidade divergente, hash alterado e auto-inclusão. |
+| 11. S6 de contexto limpo | **Concluído para o contrato local.** N1 e interrupção anterior preservados; confirmação final independente agora concluída. |
+| 12. Fail-closed | **Demonstrado nos casos registrados.** Token malformado não concede valor unido, prefixo ou sufixo; uso ausente permanece desconhecido. |
+| 13. Isolamento de bancada | **Demonstrado nos probes; capturas externas conferidas.** Ambiente sintético sem configurações herdadas; bancada 4174/41922 documentada pelo principal. |
+| 14. Checks com gate e captura | **Conferido.** RED/GREEN/r5/r6/readiness/Chrome/readback preservados; o parecer registra os probes independentes. |
+| 15. CI atado ao commit | **NÃO VERIFICADO, declarado.** Sem claim de selo formal de land ou release. |
+| 16. Descoberta multi-sítio | **Conferida por enumeração atual.** Fonte literal, candidato, parser, renderer, guard final e append localizados por `rg`. A revisão cobre os sítios atuais. |
+| 17. Precondição de ambiente | **Demonstrada no recorte.** Branch/HEAD e fingerprints atuais; imports permitidos e ambiente sintético assertados; dirty WIP declarado. O pacote conserva a precondição externa que interrompeu a tentativa anterior. |
+
+O readback capturado conserva o produto `01e3b94a-91f4-42f8-9ddb-651f370d1187`, ingredientes com custos 4 e 6, preço `30.0000`, rendimento de uma unidade, MEI e `tax_rate=null`. Há sete ferramentas bem-sucedidas, um único `create_product`, 14 usage IDs distintos e nove mensagens de cada papel. A screenshot final é compatível com o resumo registrado e com a recusa do pedido fragmentado.
+
+Os cinco fingerprints atuais, calculados e conferidos nesta revisão, são:
+
+```text
+f04dafac7191e70070d31230f5323017d8979c9655593a35c35551ed0f08b37b  src/lib/ai/financial-output-grounding.ts
+6cf4478ac092e13cdc8c2679f3b34a941a22f8a3939fb6da7ff2cb21fa5d360b  src/lib/chat-execution.server.ts
+f0a166fd276d065ff305c2973f13131f5906cb4caf3016a2dd2d2fd959f60047  src/lib/chat-markdown-parser.ts
+fd45255d00cd5d109f3a3958ef563e01252ff765272e5a49c44e23cd9680cd21  src/lib/chat-markdown.tsx
+0a8957452e016ff9c440ed8507f06e5d75305bd184ba52f4f53a64e5204beaa8  src/test/chat-financial-grounding.test.ts
+```
+
+A captura r6 conferida tem SHA256 `e1aaa9093add4b46294bffa07a19dcf78918c7dde19c4d6d118f0a07fee0d84c`. O manifesto auditado, com 23 entradas e `failures=[]`, tem SHA256 `ab431445646c97f3418aa848262576cc61836cd8820ac55ee0c6564bfa9272b2`.
+
+Esse último hash identifica o pacote **antes da incorporação deste parecer**. O principal deve conservar a interrupção como evento histórico, atualizar o status da confirmação final, incorporar o relatório bruto e gerar/conferir novamente o manifesto. Nenhum arquivo foi editado por este revisor.
+
+Permanecem os limites declarados de gramática registrada, recorte de histórico, semântica, associação de valores a produtos e autorização de mutação. A confirmação local do reparo não altera o status formal das dívidas nem o parecer terminal do WP original.

@@ -15,7 +15,7 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuditLog, SEM_VALOR } from "../../scripts/secret-sidecar/audit";
 import { ClipboardError, type Clipboard } from "../../scripts/secret-sidecar/clipboard";
 import {
@@ -30,7 +30,13 @@ import {
   runSelftest,
   type RelatorioAutoteste,
 } from "../../scripts/secret-sidecar/selftest";
-import { SecretSidecar, SidecarError } from "../../scripts/secret-sidecar/sidecar";
+import {
+  SecretSidecar,
+  SidecarError,
+  ROTATION_PROVIDERS,
+  classifyProviderProbe,
+  providerEndpoint,
+} from "../../scripts/secret-sidecar/sidecar";
 
 const CENARIOS = [
   "generate-e-restore",
@@ -128,6 +134,86 @@ describe("sidecar secreto-injetor", () => {
     });
   }
 
+  it("catalogs all six exposed providers and refuses arbitrary credential destinations", () => {
+    expect(ROTATION_PROVIDERS).toEqual([
+      "neon",
+      "vercel",
+      "sonar",
+      "context7",
+      "deepseek",
+      "github",
+    ]);
+    for (const provider of ROTATION_PROVIDERS)
+      expect(new URL(providerEndpoint(provider, "metadata-id")).protocol).toBe("https:");
+    expect(() => providerEndpoint("unknown" as never, "id")).toThrow();
+    expect(() => providerEndpoint("neon", "https://evil.invalid")).toThrow();
+  });
+  it("public HTTP200, wrong identity,403,429 and missing payload do not prove authentication or revocation", () => {
+    for (const [status, body, anonymous] of [
+      [200, { login: "Douglas0101" }, 200],
+      [200, { login: "another" }, 401],
+      [403, {}, 401],
+      [429, {}, 401],
+      [0, null, 0],
+      [200, null, 401],
+    ] as const)
+      expect(
+        classifyProviderProbe("github", "Douglas0101", status, body, anonymous).authentication,
+      ).toBe("NO-VERDICT");
+    expect(classifyProviderProbe("github", "Douglas0101", 401, {}, 401).authentication).toBe(
+      "rejected",
+    );
+  });
+  it("requires the protected provider-specific identity in the response", () => {
+    expect(
+      classifyProviderProbe("github", "Douglas0101", 200, { login: "Douglas0101" }, 401)
+        .identity_match,
+    ).toBe(true);
+    expect(
+      classifyProviderProbe("neon", "project-id", 200, { project: { id: "project-id" } }, 401)
+        .identity_match,
+    ).toBe(true);
+    expect(
+      classifyProviderProbe("vercel", "prj_id", 200, { id: "prj_id" }, 403).identity_match,
+    ).toBe(true);
+    expect(
+      classifyProviderProbe("sonar", "C26-token", 200, { userTokens: [{ name: "C26-token" }] }, 401)
+        .identity_match,
+    ).toBe(true);
+    for (const provider of ["context7", "deepseek"] as const)
+      expect(
+        classifyProviderProbe(provider, "metadata-id", 200, { is_available: true }, 401)
+          .authentication,
+      ).toBe("NO-VERDICT");
+  });
+  it("keeps raw status and hash without returning/persisting provider body or following redirects", async () => {
+    const sidecar = bancada();
+    await sidecar.generate("ficticio-provider", 32);
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response("{}", { status: 401 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ login: "Douglas0101", private: "BODY_SENTINEL" }), {
+          status: 200,
+        }),
+      );
+    try {
+      const result = await sidecar.test_provider("ficticio-provider", "github", "Douglas0101");
+      expect(result).toMatchObject({
+        status: 200,
+        anonymous_status: 401,
+        authentication: "authenticated",
+        identity_match: true,
+      });
+      expect(JSON.stringify(result)).not.toContain("BODY_SENTINEL");
+      expect(await readFile(caminhos().auditPath, "utf8")).not.toContain("BODY_SENTINEL");
+      expect(fetchMock.mock.calls[0][1]?.redirect).toBe("error");
+      expect(fetchMock.mock.calls[1][1]?.redirect).toBe("error");
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
   it("roda os cinco cenarios e todos passam", async () => {
     const relatorio: RelatorioAutoteste = await autoteste();
 
@@ -137,6 +223,27 @@ describe("sidecar secreto-injetor", () => {
     }
     expect(relatorio.outcome).toBe("pass");
     expect(exitCodeFor(relatorio)).toBe(0);
+  });
+
+  it("preserva refs existentes e remove somente o namespace ficticio, mesmo com cenario reprovado", async () => {
+    const cofre = new MemoryKeychain();
+    const original = Buffer.from("OPERATOR_SENTINEL");
+    await cofre.put("ficticio-gerado-0", original);
+    expect((await autoteste(cofre)).outcome).toBe("pass");
+    expect(await cofre.list()).toEqual(["ficticio-gerado-0"]);
+    expect(await cofre.get("ficticio-gerado-0")).toEqual(Uint8Array.from(original));
+    await writeFile(join(raiz, "plantado.txt"), `${MARCA_FICTICIA}planta\n`);
+    expect((await autoteste(cofre)).outcome).toBe("fail");
+    expect(await cofre.list()).toEqual(["ficticio-gerado-0"]);
+    expect(await cofre.get("ficticio-gerado-0")).toEqual(Uint8Array.from(original));
+  });
+
+  it("recusa PASS quando o cleanup do namespace falha", async () => {
+    const cofre = new MemoryKeychain();
+    const indisponivel = new FaultInjectingKeychain(cofre, ["delete"]);
+    await expect(autoteste(indisponivel)).rejects.toBeInstanceOf(KeychainError);
+    expect((await cofre.list()).length).toBeGreaterThan(0);
+    expect((await cofre.list()).every((ref) => ref.startsWith("selftest-"))).toBe(true);
   });
 
   it("controle negativo: valor plantado sob a raiz reprova a varredura de audit", async () => {

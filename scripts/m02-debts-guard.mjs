@@ -26,7 +26,7 @@ const CLASSES = new Set(["conformidade", "robustez", "higiene"]);
 const SEVERITIES = new Set(["alta", "media", "baixa"]);
 const STATUSES = new Set(["ABERTA", "EM_TRATAMENTO", "FECHADA", "NS"]);
 const DEGENERATE = /^(n\/?a|tbd|\?+|—|-+|\.+)$/i;
-const ID_PATTERN = /^DBT-\d{2}$/;
+const ID_PATTERN = /^DBT-\d{2,}$/;
 
 function normalize(value) {
   return value
@@ -98,7 +98,7 @@ function validarRegistry(texto, falhas) {
     dividas += 1;
     const id = celulas[indices.id] ?? "";
     if (!ID_PATTERN.test(id)) {
-      falhas.push(`linha com id fora do padrao DBT-NN: "${id}"`);
+      falhas.push(`linha com id fora do padrao DBT-NN (2+ digitos): "${id}"`);
       continue;
     }
     if (ids.has(id)) falhas.push(`id duplicado: ${id}`);

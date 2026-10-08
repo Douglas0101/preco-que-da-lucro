@@ -1,0 +1,120 @@
+prepare browsers and Linux packages	Set up job	2026-10-06T19:23:04.8444387Z Version: 20260901.588
+prepare browsers and Linux packages	Set up job	2026-10-06T19:23:04.8453936Z Version: 20260927.320.1
+prepare browsers and Linux packages	Run npm ci --ignore-scripts	2026-10-06T19:23:27.4534923Z found 0 vulnerabilities
+prepare browsers and Linux packages	Prepare all browsers and retain offline Linux packages	2026-10-06T19:24:35.2706422Z Downloading WebKit 26.5 (playwright webkit v2336) from https://cdn.playwright.dev/dbazure/download/playwright/builds/webkit/2336/webkit-ubuntu-24.04.zip
+prepare browsers and Linux packages	Prepare all browsers and retain offline Linux packages	2026-10-06T19:24:38.8978249Z WebKit 26.5 (playwright webkit v2336) downloaded to /home/runner/.cache/ms-playwright/webkit-2336
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:47.3812170Z Uploaded bytes 8388608
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:47.4705679Z Uploaded bytes 16777216
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:47.5253345Z Uploaded bytes 25165824
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:47.5413488Z Uploaded bytes 33554432
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:47.7134975Z Uploaded bytes 41943040
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:47.7989775Z Uploaded bytes 50331648
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:47.8306040Z Uploaded bytes 58720256
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:47.8862567Z Uploaded bytes 67108864
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.0384060Z Uploaded bytes 75497472
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.1475089Z Uploaded bytes 83886080
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.1805800Z Uploaded bytes 92274688
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.2367924Z Uploaded bytes 100663296
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.3294908Z Uploaded bytes 109051904
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.4479802Z Uploaded bytes 117440512
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.4557041Z Uploaded bytes 125829120
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.5463977Z Uploaded bytes 134217728
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.6475139Z Uploaded bytes 142606336
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.7495822Z Uploaded bytes 150994944
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.7841394Z Uploaded bytes 159383552
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.8899567Z Uploaded bytes 167772160
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:48.9283217Z Uploaded bytes 176160768
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.0894977Z Uploaded bytes 184549376
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.1003862Z Uploaded bytes 192937984
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.1946779Z Uploaded bytes 201326592
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.3166437Z Uploaded bytes 209715200
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.3877565Z Uploaded bytes 218103808
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.5133134Z Uploaded bytes 226492416
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.5210991Z Uploaded bytes 234881024
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.6143096Z Uploaded bytes 243269632
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.6781134Z Uploaded bytes 251658240
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.8280659Z Uploaded bytes 260046848
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.8479365Z Uploaded bytes 268435456
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.9467247Z Uploaded bytes 276824064
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:49.9839364Z Uploaded bytes 285212672
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.1538238Z Uploaded bytes 293601280
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.1690703Z Uploaded bytes 301989888
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.2594295Z Uploaded bytes 310378496
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.3828093Z Uploaded bytes 318767104
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.4499272Z Uploaded bytes 327155712
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.5091236Z Uploaded bytes 335544320
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.6294897Z Uploaded bytes 343932928
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.7390676Z Uploaded bytes 352321536
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.7841075Z Uploaded bytes 360710144
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.9077875Z Uploaded bytes 369098752
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:50.9796751Z Uploaded bytes 377487360
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:51.0223798Z Uploaded bytes 385875968
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:51.0736925Z Uploaded bytes 394264576
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:51.2623509Z Uploaded bytes 402653184
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:51.3916802Z Uploaded bytes 411041792
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:51.4223536Z Uploaded bytes 419430400
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:51.4296140Z Uploaded bytes 427819008
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:51.6983285Z Uploaded bytes 436207616
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:51.7146419Z Uploaded bytes 444596224
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:51.7915610Z Uploaded bytes 452984832
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:51.7998274Z Uploaded bytes 461373440
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.0224110Z Uploaded bytes 469762048
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.0419156Z Uploaded bytes 478150656
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.0748916Z Uploaded bytes 486539264
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.1048913Z Uploaded bytes 494927872
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.3321806Z Uploaded bytes 503316480
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.3708987Z Uploaded bytes 511705088
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.4334132Z Uploaded bytes 520093696
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.4448074Z Uploaded bytes 528482304
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.6417989Z Uploaded bytes 536870912
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.6778383Z Uploaded bytes 545259520
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.7495728Z Uploaded bytes 553648128
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.7589576Z Uploaded bytes 562036736
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:52.9947063Z Uploaded bytes 570425344
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:53.0689928Z Uploaded bytes 578813952
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:53.0913994Z Uploaded bytes 587202560
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:53.0977338Z Uploaded bytes 595591168
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:53.3562088Z Uploaded bytes 603979776
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:53.3758299Z Uploaded bytes 612368384
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:53.3779897Z Uploaded bytes 620756992
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:53.4288701Z Uploaded bytes 629145600
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:53.7756300Z Uploaded bytes 635622180
+prepare browsers and Linux packages	Upload prepared browsers and Linux packages	2026-10-06T19:25:54.3276424Z Artifact browser-kit-37517386599-2-0465deb3a4b86deab1910467714b7a6458402a06 has been successfully uploaded! Final size is 635622180 bytes. Artifact ID is 11438267947
+verify-release	Set up job	2026-10-06T19:26:01.9431996Z Version: 20260901.588
+verify-release	Set up job	2026-10-06T19:26:01.9438137Z Version: 20260927.320.1
+verify-release	Run npm ci --ignore-scripts	2026-10-06T19:26:31.5202125Z found 0 vulnerabilities
+verify-release	Run npm run test	2026-10-06T19:27:19.2097282Z ^[[90mstdout^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mstart.ts: os três caminhos de requestDuration
+verify-release	Run npm run test	2026-10-06T19:27:19.2113212Z ^[[90mstderr^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mstart.ts: os três caminhos de requestDuration
+verify-release	Run npm run test	2026-10-06T19:27:19.2126598Z ^[[90mstdout^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mchat.functions.ts: aiDuration
+verify-release	Run npm run test	2026-10-06T19:27:19.2142294Z ^[[90mstdout^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mchat-execution.server.ts: as três fases do §29
+verify-release	Run npm run test	2026-10-06T19:27:19.2143982Z ^[[90mstderr^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mchat-execution.server.ts: as três fases do §29
+verify-release	Run npm run test	2026-10-06T19:27:19.2167846Z ^[[90mstderr^[[2m | src/test/safe-record.test.ts^[[2m > ^[[22m^[[2margs byte-idênticos no caminho saudável (captura sem lançar)^[[2m > ^[[22m^[[2mtool-runner.ts: toolDuration nos três caminhos
+verify-release	Run npm run test	2026-10-06T19:27:23.6407319Z      ^[[33m^[[2m✓^[[22m^[[39m o .d.mts no disco é byte a byte o que o gerador emite ^[[33m 1494^[[2mms^[[22m^[[39m
+verify-release	Run npm run test	2026-10-06T19:28:12.2049396Z ^[[2m Test Files ^[[22m ^[[1m^[[32m134 passed^[[39m^[[22m^[[90m (134)^[[39m
+verify-release	Run npm run test	2026-10-06T19:28:12.2058572Z ^[[2m      Tests ^[[22m ^[[1m^[[32m1891 passed^[[39m^[[22m^[[90m (1891)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:28:14.4034051Z PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+verify-release	Run npm run db:test	2026-10-06T19:28:21.0225889Z       "stored_rows_byte_identical": 2
+verify-release	Run npm run db:test	2026-10-06T19:28:21.0228961Z       "stored_rows_byte_identical": 2
+verify-release	Run npm run db:test	2026-10-06T19:28:21.0230964Z       "stored_rows_byte_identical": 2
+verify-release	Run npm run db:test	2026-10-06T19:28:21.0233311Z       "stored_rows_byte_identical": 2
+verify-release	Run npm run db:test	2026-10-06T19:28:21.0235850Z       "stored_rows_byte_identical": 2
+verify-release	Run npm run db:test	2026-10-06T19:28:21.0238426Z       "stored_rows_byte_identical": 2
+verify-release	Run npm run db:test	2026-10-06T19:28:27.4391662Z D3/T2 revisão: versão incremental arquivada, anterior byte a byte inalterada, head atualizado: OK
+verify-release	Run npm run db:test	2026-10-06T19:28:27.4661526Z D3/T3 conflito: registrado e visível só no tenant, ativo byte a byte intacto, search só do ativo: OK
+verify-release	Run npm run db:test	2026-10-06T19:28:30.0202516Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:28:30.0203371Z ^[[2m      Tests ^[[22m ^[[1m^[[32m15 passed^[[39m^[[22m^[[90m (15)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:28:30.0509435Z prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 15 passed (15), 0 skipped — admin=127.0.0.1:5432
+verify-release	Run npm run db:test	2026-10-06T19:28:32.1291967Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:28:32.1292606Z ^[[2m      Tests ^[[22m ^[[1m^[[32m15 passed^[[39m^[[22m^[[90m (15)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:28:32.1578306Z prova de banco (src/test/product-contracts.test.ts) contra 127.0.0.1: 15 passed (15), 0 skipped — admin=127.0.0.1:5432
+verify-release	Run npm run db:test	2026-10-06T19:28:35.3140986Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:28:35.3141641Z ^[[2m      Tests ^[[22m ^[[1m^[[32m4 passed^[[39m^[[22m^[[90m (4)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:28:35.3348792Z prova de banco (src/test/dashboard-consolidated-margin.db.test.ts) contra 127.0.0.1: 4 passed (4), 0 skipped — admin=127.0.0.1:5432
+verify-release	Run npm run check:bundle	2026-10-06T19:28:40.0858303Z PASS assets/index-U02xqsXA.js: 238766 minified, 73643 gzip, 64140 Brotli bytes, sha256=0822615921bd
+verify-release	Run npm run check:bundle	2026-10-06T19:28:40.0859114Z Initial graph (9 chunks): 473712 minified, 152149 gzip, 134101 Brotli bytes, sha256=92777536b443
+verify-release	Audit dependencies	2026-10-06T19:28:40.5195054Z found 0 vulnerabilities
+verify-release	Upload bundle evidence	2026-10-06T19:28:41.0923660Z Uploaded bytes 3316
+verify-release	Upload bundle evidence	2026-10-06T19:28:41.4319943Z Artifact bundle-evidence-0465deb3a4b86deab1910467714b7a6458402a06 has been successfully uploaded! Final size is 3316 bytes. Artifact ID is 11438611470
+verify-release	Run npx playwright test --project=chromium --project=firefox --project=webkit --project=mobile	2026-10-06T19:31:46.1456641Z   84 passed (2.1m)
+verify-release	Upload browser evidence	2026-10-06T19:31:47.2355885Z Uploaded bytes 3319803
+verify-release	Upload browser evidence	2026-10-06T19:31:47.6526676Z Artifact browser-evidence-0465deb3a4b86deab1910467714b7a6458402a06 has been successfully uploaded! Final size is 3319803 bytes. Artifact ID is 11438906758

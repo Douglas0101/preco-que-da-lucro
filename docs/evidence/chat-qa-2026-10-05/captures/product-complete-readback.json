@@ -1,0 +1,13 @@
+{
+  "observedAt": "2026-10-06T00:21:44.421Z",
+  "targetQualified": true,
+  "product": {
+    "id": "01e3b94a-91f4-42f8-9ddb-651f370d1187",
+    "name": "Pizza QA Chrome 05-10",
+    "current_price": "30.0000",
+    "yield_qty": "1.000000",
+    "yield_unit": "unidade",
+    "tax_rate": null,
+    "tax_regime": "MEI"
+  }
+}

@@ -1,0 +1,465 @@
+{
+  "schema": "infra-remote-final/1",
+  "recordedAt": "2026-10-02T02:37:09.711741+00:00",
+  "candidate": "5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b",
+  "pr": {
+    "baseRefOid": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+    "headRefOid": "5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b",
+    "mergeStateStatus": "BLOCKED",
+    "state": "OPEN",
+    "title": "fix(ci): enforce release checks and restore safe TanStack previews",
+    "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/60"
+  },
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 36955216199,
+      "event": "pull_request",
+      "headSha": "5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b",
+      "name": "SonarCloud (scanner + cobertura)",
+      "status": "completed",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/36955216199"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 36955216211,
+      "event": "pull_request",
+      "headSha": "5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b",
+      "name": "UI stack",
+      "status": "completed",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/36955216211"
+    },
+    {
+      "conclusion": "failure",
+      "databaseId": 36955216205,
+      "event": "pull_request",
+      "headSha": "5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b",
+      "name": "Neon PR branch CI",
+      "status": "completed",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/36955216205"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 36955216201,
+      "event": "pull_request",
+      "headSha": "5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b",
+      "name": "CI light (docs/evidence)",
+      "status": "completed",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/36955216201"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 36955212939,
+      "event": "push",
+      "headSha": "5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b",
+      "name": "UI stack",
+      "status": "completed",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/36955212939"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 36955212956,
+      "event": "push",
+      "headSha": "5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b",
+      "name": "CI light (docs/evidence)",
+      "status": "completed",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/36955212956"
+    }
+  ],
+  "verify": {
+    "jobId": 110676577445,
+    "startedAt": "2026-10-02T02:21:07Z",
+    "completedAt": "2026-10-02T02:27:58Z",
+    "conclusion": "success",
+    "steps": [
+      {
+        "completedAt": "2026-10-02T02:24:22Z",
+        "conclusion": "success",
+        "name": "Run npm run db:test",
+        "number": 24,
+        "startedAt": "2026-10-02T02:23:54Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-02T02:24:23Z",
+        "conclusion": "success",
+        "name": "Run npm run db:check",
+        "number": 25,
+        "startedAt": "2026-10-02T02:24:22Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-02T02:24:35Z",
+        "conclusion": "success",
+        "name": "Cache dos navegadores do Playwright",
+        "number": 33,
+        "startedAt": "2026-10-02T02:24:30Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-02T02:25:24Z",
+        "conclusion": "success",
+        "name": "Run npx playwright install --with-deps chromium firefox webkit",
+        "number": 34,
+        "startedAt": "2026-10-02T02:24:35Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-02T02:27:55Z",
+        "conclusion": "success",
+        "name": "Run npx playwright test --project=chromium --project=firefox --project=webkit --project=mobile",
+        "number": 35,
+        "startedAt": "2026-10-02T02:25:24Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-02T02:27:56Z",
+        "conclusion": "success",
+        "name": "Post Cache dos navegadores do Playwright",
+        "number": 69,
+        "startedAt": "2026-10-02T02:27:56Z",
+        "status": "completed"
+      }
+    ]
+  },
+  "sonarPr": {
+    "schema": "c25-ce-gate-readout/1",
+    "observedAt": "2026-10-02T02:24:12.995Z",
+    "runnerSha": "d24946b5804720325bfd4f7ab340a1cd821fde74",
+    "ceTaskId": "AaD6bQCCV0x5EWx5pesi",
+    "analysisId": "a3d68c30-ace3-4a91-832e-3ed6a39452db",
+    "surface": {
+      "branch": null,
+      "branchType": null,
+      "pullRequest": "60"
+    },
+    "status": "OK",
+    "ignoredConditions": false,
+    "conditions": [
+      {
+        "metric": "new_reliability_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "threshold": "1",
+        "actual": "1"
+      },
+      {
+        "metric": "new_security_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "threshold": "1",
+        "actual": "1"
+      },
+      {
+        "metric": "new_maintainability_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "threshold": "1",
+        "actual": "1"
+      },
+      {
+        "metric": "new_duplicated_lines_density",
+        "status": "OK",
+        "comparator": "GT",
+        "threshold": "3",
+        "actual": "0.0"
+      },
+      {
+        "metric": "new_security_hotspots_reviewed",
+        "status": "OK",
+        "comparator": "LT",
+        "threshold": "100",
+        "actual": "100.0"
+      }
+    ],
+    "nullSemantics": "métrica ausente é null; gate de PR não equivale ao de main"
+  },
+  "sonarMain": {
+    "schema": "ciclo24-main-baseline/1",
+    "observedAt": "2026-10-02T02:21:19.603Z",
+    "mainSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+    "analysisId": "1dc2baf9-b289-42f4-b2ca-dd7b662b3679",
+    "analysisDate": "2026-10-01T14:53:36+0000",
+    "gate": {
+      "status": "ERROR",
+      "conditions": [
+        {
+          "status": "OK",
+          "metricKey": "new_reliability_rating",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "1",
+          "actualValue": "1"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_security_rating",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "1",
+          "actualValue": "1"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_maintainability_rating",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "1",
+          "actualValue": "1"
+        },
+        {
+          "status": "ERROR",
+          "metricKey": "new_coverage",
+          "comparator": "LT",
+          "periodIndex": 1,
+          "errorThreshold": "80",
+          "actualValue": "63.2"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_duplicated_lines_density",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "3",
+          "actualValue": "1.1"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_security_hotspots_reviewed",
+          "comparator": "LT",
+          "periodIndex": 1,
+          "errorThreshold": "100",
+          "actualValue": "100.0"
+        }
+      ],
+      "periods": [
+        {
+          "index": 1,
+          "mode": "days",
+          "date": "2026-09-05T02:52:52+0000",
+          "parameter": "30"
+        }
+      ],
+      "ignoredConditions": false
+    },
+    "metrics": {
+      "new_lines_to_cover": 1904,
+      "new_uncovered_lines": 690,
+      "new_conditions_to_cover": 1091,
+      "new_uncovered_conditions": 411,
+      "new_coverage": 63.23873121869783,
+      "new_line_coverage": 63.760504201680675,
+      "new_branch_coverage": 62.32813932172319,
+      "lines_to_cover": 4797,
+      "uncovered_lines": 1744,
+      "coverage": 63.4,
+      "ncloc": 20256
+    },
+    "lineOnlyGapTo80": 310,
+    "nullSemantics": "valor ausente/ilegível é NO-VERDICT; overall não substitui new; gap só de linhas não inclui conditions"
+  },
+  "neon": {
+    "branchCount": 10,
+    "branchLimit": 10,
+    "controlledProbeResponse": "[HTTP 422] branches limit exceeded",
+    "deletionAuthorized": false,
+    "deletionCandidate": {
+      "id": "br-raspy-wildflower-ay41jd97",
+      "name": "vercel-dev",
+      "state": "archived"
+    },
+    "jobs": [
+      {
+        "id": 110676577908,
+        "name": "Fork-guard + presença de segredo",
+        "conclusion": "success",
+        "steps": []
+      },
+      {
+        "id": 110676620862,
+        "name": "Branch efêmera · migrate · integração · RLS probe · E2E",
+        "conclusion": "failure",
+        "steps": [
+          {
+            "name": "Create ephemeral branch pr-<num> (§12.4 parent production para main, develop para os demais)",
+            "conclusion": "failure"
+          }
+        ]
+      },
+      {
+        "id": 110676695507,
+        "name": "Cleanup always() com prova (§12.5)",
+        "conclusion": "success",
+        "steps": [
+          {
+            "name": "Delete branch efêmera",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "Prova de cleanup + comentário no PR",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ]
+  },
+  "ruleset": {
+    "id": 24333849,
+    "enforcement": "active",
+    "conditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": ["refs/heads/main"]
+      }
+    },
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "pull_request",
+        "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": true,
+          "required_reviewers": [],
+          "require_code_owner_review": false,
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": true,
+          "require_extra_approval_for_unattributed_changes": true,
+          "allowed_merge_methods": ["merge"]
+        }
+      },
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "strict_required_status_checks_policy": true,
+          "do_not_enforce_on_create": false,
+          "required_status_checks": [
+            {
+              "context": "verify",
+              "integration_id": 15368
+            },
+            {
+              "context": "scan + cobertura",
+              "integration_id": 15368
+            }
+          ]
+        }
+      },
+      {
+        "type": "update"
+      }
+    ],
+    "bypassActors": [],
+    "currentUserCanBypass": "never"
+  },
+  "vercel": {
+    "browserRecordTime": "2026-10-02T02:34:03.595Z",
+    "knownProject": "douglasultimatesouza-5127s-projects/preco-que-da-lucro",
+    "productionDeploymentId": "DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+    "productionSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+    "previewDeploymentId": "5NK5LAeM8BdbNurUBLheZWSTTz7N",
+    "previewSha": "5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b",
+    "previewStatus": "Ready",
+    "durationSeconds": 19,
+    "previewUrl": "https://preco-que-da-lucro-opm0r12i9.vercel.app",
+    "githubDeploymentId": 6799767613,
+    "githubStatuses": [
+      {
+        "state": "success",
+        "createdAt": "2026-10-02T02:21:31Z",
+        "environmentUrl": "https://preco-que-da-lucro-addd9c1at-douglas-dias-de-souzas-projects.vercel.app",
+        "logUrl": "https://preco-que-da-lucro-addd9c1at-douglas-dias-de-souzas-projects.vercel.app"
+      },
+      {
+        "state": "success",
+        "createdAt": "2026-10-02T02:21:25Z",
+        "environmentUrl": "https://preco-que-da-lucro-opm0r12i9.vercel.app",
+        "logUrl": "https://preco-que-da-lucro-opm0r12i9.vercel.app"
+      }
+    ],
+    "otherProjectDashboardVerdict": "Not Found under delegated session; not proven to be the same project"
+  },
+  "originalCustody": {
+    "observedAt": "2026-10-02T02:33:32.849788+00:00",
+    "head": "48ffb6bb8106c78781416ffd49fa8a906985f174",
+    "headUnchanged": true,
+    "pathsChecked": 932,
+    "changedCount": 0
+  },
+  "publishedSealIntegrity": {
+    "observedAt": "2026-10-02T02:33:32.834188+00:00",
+    "manifests": [
+      {
+        "manifest": "docs/evidence/infra-2026-10-02/ce-readout-code.manifest.sha256",
+        "revision": "27681df716216a15ed2709c0f75c509358efcde1",
+        "checked": 4,
+        "status": "PASS"
+      },
+      {
+        "manifest": "docs/evidence/infra-2026-10-02/dependency-fix.manifest.sha256",
+        "revision": "05307b4ca1dac5c94cdf42ee805d80794e8620cb",
+        "checked": 4,
+        "status": "PASS"
+      },
+      {
+        "manifest": "docs/evidence/infra-2026-10-02/metadata-permission.manifest.sha256",
+        "revision": "c614d47b239435c51bc94035804fde9fec309b0b",
+        "checked": 3,
+        "status": "PASS"
+      },
+      {
+        "manifest": "docs/evidence/infra-2026-10-02/readonly-props.manifest.sha256",
+        "revision": "5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b",
+        "checked": 3,
+        "status": "PASS"
+      },
+      {
+        "manifest": "docs/evidence/infra-2026-10-02/reconciliation.manifest.sha256",
+        "revision": "0d6e9601ba07e47c6e0b84fb4dbe0e011c08933c",
+        "checked": 4,
+        "status": "PASS"
+      },
+      {
+        "manifest": "docs/evidence/infra-2026-10-02/remote-reconciliation.manifest.sha256",
+        "revision": "9a7c52a8c73ef13fae59592056fd6aee4836707e",
+        "checked": 3,
+        "status": "PASS"
+      },
+      {
+        "manifest": "docs/evidence/infra-2026-10-02/security-floor-fixture.manifest.sha256",
+        "revision": "f27de2ddc180600dcfaeaca2f56d43d8c0e95b2e",
+        "checked": 3,
+        "status": "PASS"
+      },
+      {
+        "manifest": "docs/evidence/infra-2026-10-02/type-compatibility.manifest.sha256",
+        "revision": "a19b85825cfacc6f98d8b567d778e1fef4cee595",
+        "checked": 3,
+        "status": "PASS"
+      }
+    ],
+    "totalFiles": 27
+  },
+  "budget": {
+    "commitsBeforeFinalDocument": 11,
+    "finalDocumentCommitNumber": 12,
+    "commitLimit": 13,
+    "commitsInherited": 3,
+    "pushesThisRequest": 4,
+    "newWorkflowRunsThisRequest": 24,
+    "workflowRunsCycle25": 30
+  },
+  "limitations": [
+    "no production release",
+    "no main coverage closure",
+    "authenticated application login not exercised",
+    "no Neon deletion without human authorization",
+    "no mirror added; ADR-038 remains proposal",
+    "second Vercel project identity unresolved",
+    "PITR remains six hours versus seven-day contract"
+  ]
+}

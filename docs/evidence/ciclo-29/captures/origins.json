@@ -1,0 +1,86 @@
+[
+  {
+    "output": "session-gate.json",
+    "privateSource": "dbt-86/08-current-session-gate-r2/steps.json",
+    "sourceSha256": "3251225f350e9e401909f91d1bd9a0bf4df00220e205eeb39700d5b449d18eac",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "live-margin.json",
+    "privateSource": "dbt-88/live-3.4-sealed/steps.json",
+    "sourceSha256": "ff0ee29f26cd8a03089bb2303a276a672e1e783104386a050ad6a74c848dd276",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "select-identity.json",
+    "privateSource": "dbt-87/closure-identity/steps.json",
+    "sourceSha256": "974825ba21a53911961219136934415c43c754c13b72cac3c9cf27774c9c0815",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "geometry-frontiers.json",
+    "privateSource": "dbt-89/final-frontiers/steps.json",
+    "sourceSha256": "2169605fb246f800fa5928cc3fd7f58b21b32e4466d53061f7e96d01c867d5cb",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "browser-preconditions.json",
+    "privateSource": "gates/46-browser-preconditions.json",
+    "sourceSha256": "c7b3ed75a2dca3bc557f29cdd466a900a1eafed4ac18c48ef58d87485f5235db",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "bootstrap-cleanup.json",
+    "privateSource": "gates/49-bootstrap-cleanup.json",
+    "sourceSha256": "ca4feba598eec383c57b26689dc1501fe3b104127d04c36cf9bca6f9166c3f72",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "geometry-baseline.json",
+    "privateSource": "dbt-89/01-baseline-red.d/steps.json",
+    "sourceSha256": "6f51c95ef2d1406c911175984f17dffad61c7bf108cfd81a55b0e6e013247128",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "session-baseline.json",
+    "privateSource": "dbt-86/01-baseline-red.d/steps.json",
+    "sourceSha256": "b9d9645a80af75959539146f05ce9d27eaf5c53723c2c875aea3d25e22950096",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "margin-red.txt",
+    "privateSource": "gates/31-margin-actual-price-red.log",
+    "sourceSha256": "335b0e98a3ec247f77ff312c4499a2c86922e99fcc4a30a579e852e14f18007e",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "margin-green.txt",
+    "privateSource": "gates/32-margin-actual-price-green.log",
+    "sourceSha256": "ee439968898b80ccc1506ce3cfe6a6987e7912c1e77755fbce7d6758f19a2ca8",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "check-fase3.txt",
+    "privateSource": "gates/35-check-fase3-final.log",
+    "sourceSha256": "91187cdf227e041a5979548d7aa77b771e4229e8ccf240668b6615a7c3fc2606",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "database-full.txt",
+    "privateSource": "gates/36-db-full.log",
+    "sourceSha256": "e75148c080f2cf4e52f4c871a4f6aeff2042a9f8f62796f9125bdbb2b3b1224e",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "database-check.txt",
+    "privateSource": "gates/37-db-check.log",
+    "sourceSha256": "beb5a716d80fd71312f189162b9fe89cc5dabb561d6bc986936c2b71a040cd31",
+    "kind": "sanitized derivative"
+  },
+  {
+    "output": "matrix-local.txt",
+    "privateSource": "gates/55-matrix-local.log",
+    "sourceSha256": "9f6ba6199f03f7a2fbc3ac0732a014c571a78160f6d5097e2cc5b1af2eff7de3",
+    "kind": "sanitized derivative"
+  }
+]

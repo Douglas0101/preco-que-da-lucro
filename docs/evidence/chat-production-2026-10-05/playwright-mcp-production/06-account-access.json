@@ -1,0 +1,7 @@
+{
+  "observedAt": "2026-10-06T01:51:08.033Z",
+  "url": "https://diretrizprecifica.com/login",
+  "scope": "Public account form opened only; no fields filled or account submitted",
+  "snapshot": "- link \"Voltar para a página inicial\":\n  - /url: /\n  - text: Voltar para a página inicial\n- img \"Diretriz Consultoria Financeira\"\n- heading \"Crie sua conta\" [level=1]\n- paragraph: Cadastre-se para assinar o Diretriz Precifica.\n- button \"Entrar\"\n- button \"Criar conta\" [active]\n- text: Nome\n- textbox \"Nome\":\n  - /placeholder: Seu nome\n- text: E-mail\n- textbox \"E-mail\":\n  - /placeholder: [REDACTED:email]\n- text: Senha\n- textbox \"Senha\":\n  - /placeholder: Mínimo de 10 caracteres\n- text: Confirmar senha\n- textbox \"Confirmar senha\":\n  - /placeholder: Repita a senha\n- button \"Criar conta e continuar\"",
+  "credentials": "No confirmed production QA credentials available in this task; local fixture credentials are not production access"
+}

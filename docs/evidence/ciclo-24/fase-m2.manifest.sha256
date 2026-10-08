@@ -1,0 +1,5 @@
+292c2ab18cff157613a5e7ff72329a21b7f5807aabac3bbb919ee9d03bcf6bb6  scripts/sonar/main-baseline.mjs
+e22f9ab2baa810165aa241c9607eadc32a4873595fa5c9e32206bb3172c6695c  .github/workflows/sonar.yml
+8d1739e49e63738779415caa616c529e2a56491323ffcec8853634237bfb3b38  AGENTS.md
+acd0758bf72fe2c0679e0d472073a2e4f656eaefa0d54a91576a1e77ddee9256  docs/evidence/agent-state/PROGRESS.md
+a22437a85f77494c8c6ed197216a84348691476466a2204a1330893f731169e6  docs/evidence/ciclo-24/README.md

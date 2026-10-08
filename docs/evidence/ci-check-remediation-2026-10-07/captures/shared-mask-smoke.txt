@@ -1,0 +1,4 @@
+Actual bare Node ESM import from shared neon-resource.ts, after clean cutover.
+{"command":"::add-mask::fixture%250A%0D%0A::error::not-a-credential\n","injectedCommand":false,"originalRedactionIdentity":true}
+
+exit=0

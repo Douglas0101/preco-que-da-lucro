@@ -16,7 +16,7 @@
  * poluir exatamente o ambiente que ele existe para proteger.
  */
 
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
@@ -361,13 +361,52 @@ function agregar(cenarios: Cenario[]): Resultado {
 }
 
 export async function runSelftest(opcoes: OpcoesAutoteste): Promise<RelatorioAutoteste> {
+  // Never replace an operator's similarly named item. Track attempted writes as
+  // well: a provider can persist an item before reporting an uncertain result.
+  const prefix = `selftest-${randomUUID()}-`,
+    owned = new Set<string>();
+  if ((await opcoes.keychain.list()).some((ref) => ref.startsWith(prefix)))
+    throw new KeychainError("failure", "namespace de autoteste ja existe");
+  const scoped: Keychain = {
+    kind: opcoes.keychain.kind,
+    put: async (ref, value) => {
+      owned.add(prefix + ref);
+      await opcoes.keychain.put(prefix + ref, value);
+    },
+    get: (ref) => opcoes.keychain.get(prefix + ref),
+    delete: (ref) => opcoes.keychain.delete(prefix + ref),
+    list: async () =>
+      (await opcoes.keychain.list())
+        .filter((ref) => ref.startsWith(prefix))
+        .map((ref) => ref.slice(prefix.length)),
+  };
+  const isolated = { ...opcoes, keychain: scoped };
   const cenarios: Cenario[] = [];
-  cenarios.push(await cenarioGenerateRestore(opcoes));
-  cenarios.push(await cenarioAreaDeTransferencia(opcoes));
-  cenarios.push(await cenarioFailClosed(opcoes));
-  cenarios.push(await cenarioSondaEDenylist(opcoes));
-  // Por ultimo: este e o unico cenario que depende do que os anteriores escreveram no audit.
-  cenarios.push(await cenarioAuditSemValor(opcoes));
+  let failure: unknown = null;
+  try {
+    cenarios.push(await cenarioGenerateRestore(isolated));
+    cenarios.push(await cenarioAreaDeTransferencia(isolated));
+    cenarios.push(await cenarioFailClosed(isolated));
+    cenarios.push(await cenarioSondaEDenylist(isolated));
+    // Por ultimo: depende do que os anteriores escreveram no audit.
+    cenarios.push(await cenarioAuditSemValor(isolated));
+  } catch (error) {
+    failure = error;
+  }
+  for (const ref of owned) {
+    try {
+      await opcoes.keychain.delete(ref);
+    } catch (error) {
+      failure = error;
+    }
+  }
+  try {
+    if ((await opcoes.keychain.list()).some((ref) => ref.startsWith(prefix)))
+      throw new KeychainError("failure", "cleanup nominal do autoteste incompleto");
+  } catch (error) {
+    failure = error;
+  }
+  if (failure) throw failure;
   return { cenarios, outcome: agregar(cenarios) };
 }
 

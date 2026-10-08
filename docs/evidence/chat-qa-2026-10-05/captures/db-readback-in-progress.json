@@ -1,0 +1,146 @@
+{
+  "observedAt": "2026-10-06T00:00:01.821Z",
+  "startedAt": "2026-10-05T23:58:23.792Z",
+  "targetQualified": true,
+  "configuredDeepSeekEndpoint": true,
+  "configuredDeepSeekModel": true,
+  "product": [
+    {
+      "id": "01e3b94a-91f4-42f8-9ddb-651f370d1187",
+      "name": "Pizza QA Chrome 05-10",
+      "current_price": "30.0000",
+      "yield_qty": "1.000000",
+      "yield_unit": "unidade",
+      "tax_rate": null,
+      "created_at": "2026-10-05T23:59:05.300Z"
+    }
+  ],
+  "conversation": [
+    {
+      "id": "00000000-0000-4000-8000-000000000020",
+      "conversation_state": "completed",
+      "current_product_id": "01e3b94a-91f4-42f8-9ddb-651f370d1187"
+    }
+  ],
+  "tools": [
+    {
+      "tool_name": "create_product",
+      "status": "succeeded",
+      "duration_ms": 11,
+      "error_code": null
+    },
+    {
+      "tool_name": "add_ingredients",
+      "status": "succeeded",
+      "duration_ms": 8,
+      "error_code": null
+    },
+    {
+      "tool_name": "set_yield",
+      "status": "succeeded",
+      "duration_ms": 9,
+      "error_code": null
+    },
+    {
+      "tool_name": "set_ingredient_cost",
+      "status": "succeeded",
+      "duration_ms": 28,
+      "error_code": null
+    },
+    {
+      "tool_name": "set_ingredient_cost",
+      "status": "succeeded",
+      "duration_ms": 12,
+      "error_code": null
+    },
+    {
+      "tool_name": "set_price_and_tax",
+      "status": "succeeded",
+      "duration_ms": 5,
+      "error_code": null
+    },
+    {
+      "tool_name": "finish_product",
+      "status": "succeeded",
+      "duration_ms": 5,
+      "error_code": null
+    }
+  ],
+  "usage": [
+    {
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 8567,
+      "estimated_cost": "0.0028",
+      "outcome": "success",
+      "round_no": 0
+    },
+    {
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 8674,
+      "estimated_cost": "0.0027",
+      "outcome": "tool_round",
+      "round_no": 0
+    },
+    {
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 8977,
+      "estimated_cost": "0.0029",
+      "outcome": "tool_round",
+      "round_no": 1
+    },
+    {
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 9353,
+      "estimated_cost": "0.0030",
+      "outcome": "tool_round",
+      "round_no": 2
+    },
+    {
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 9616,
+      "estimated_cost": "0.0030",
+      "outcome": "tool_round",
+      "round_no": 3
+    },
+    {
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 9744,
+      "estimated_cost": "0.0030",
+      "outcome": "tool_round",
+      "round_no": 4
+    },
+    {
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 10125,
+      "estimated_cost": "0.0033",
+      "outcome": "success",
+      "round_no": 5
+    },
+    {
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 9431,
+      "estimated_cost": "0.0032",
+      "outcome": "success",
+      "round_no": 0
+    }
+  ],
+  "messages": [
+    {
+      "role": "assistant",
+      "count": 3
+    },
+    {
+      "role": "user",
+      "count": 3
+    }
+  ],
+  "estimatedCost": 0.0239
+}

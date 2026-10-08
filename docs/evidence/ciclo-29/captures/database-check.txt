@@ -1,0 +1,16 @@
+gate: database-check.txt
+command: npm run db:check (own fresh PG17/38173)
+private-source-sha256: beb5a716d80fd71312f189162b9fe89cc5dabb561d6bc986936c2b71a040cd31
+classification: LOCAL-VERIFIED (sanitized derivative; original retained)
+
+
+> predb:check
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> db:check
+> drizzle-kit check
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/tmp/pqd-develop/drizzle.config.ts'
+Everything's fine 🐶🔥

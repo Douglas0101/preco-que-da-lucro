@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-10-06T00:27:13Z",
+  "previousPid": 440165,
+  "currentPid": 523840,
+  "baseUrl": "http://127.0.0.1:4174",
+  "readyStatus": 200,
+  "providerConfigPreserved": true,
+  "providerValueObserved": false,
+  "databaseLoopbackPort": 41922,
+  "sameHistory": true
+}

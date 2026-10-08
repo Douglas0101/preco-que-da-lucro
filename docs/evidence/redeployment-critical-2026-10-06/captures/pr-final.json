@@ -1,0 +1,146 @@
+{
+  "observedAt": "2026-10-06T19:34:09.162978+00:00",
+  "baseRefOid": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+  "headRefOid": "ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff",
+  "mergeStateStatus": "BLOCKED",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:14:12Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386419/job/112453699616",
+      "name": "docs-light",
+      "startedAt": "2026-10-06T19:14:01Z",
+      "status": "COMPLETED",
+      "workflowName": "CI light (docs/evidence)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:14:01Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517379387/job/112453676237",
+      "name": "docs-light",
+      "startedAt": "2026-10-06T19:13:53Z",
+      "status": "COMPLETED",
+      "workflowName": "CI light (docs/evidence)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:14:04Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386580/job/112453700909",
+      "name": "Fork-guard + presen\u00e7a de segredo",
+      "startedAt": "2026-10-06T19:14:01Z",
+      "status": "COMPLETED",
+      "workflowName": "Neon PR branch CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:16:19Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386392/job/112453699707",
+      "name": "scan + cobertura",
+      "startedAt": "2026-10-06T19:13:56Z",
+      "status": "COMPLETED",
+      "workflowName": "SonarCloud (scanner + cobertura)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:25:57Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386599/job/112457630250",
+      "name": "prepare browsers and Linux packages",
+      "startedAt": "2026-10-06T19:23:02Z",
+      "status": "COMPLETED",
+      "workflowName": "UI stack"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:16:17Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517379242/job/112453675730",
+      "name": "prepare browsers and Linux packages",
+      "startedAt": "2026-10-06T19:13:53Z",
+      "status": "COMPLETED",
+      "workflowName": "UI stack"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:14:46Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386580/job/112453773462",
+      "name": "Branch ef\u00eamera \u00b7 migrate \u00b7 integra\u00e7\u00e3o \u00b7 RLS probe \u00b7 E2E",
+      "startedAt": "2026-10-06T19:14:07Z",
+      "status": "COMPLETED",
+      "workflowName": "Neon PR branch CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:16:46Z",
+      "conclusion": "FAILURE",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386392/job/112454766590",
+      "name": "main-coverage-mirror",
+      "startedAt": "2026-10-06T19:16:23Z",
+      "status": "COMPLETED",
+      "workflowName": "SonarCloud (scanner + cobertura)"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:23:12Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517379242/job/112454747921",
+      "name": "verify",
+      "startedAt": "2026-10-06T19:16:20Z",
+      "status": "COMPLETED",
+      "workflowName": "UI stack"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:31:50Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386599/job/112458898032",
+      "name": "verify-release",
+      "startedAt": "2026-10-06T19:26:01Z",
+      "status": "COMPLETED",
+      "workflowName": "UI stack"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:15:03Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386580/job/112454081075",
+      "name": "Cleanup always() com prova (\u00a712.5)",
+      "startedAt": "2026-10-06T19:14:49Z",
+      "status": "COMPLETED",
+      "workflowName": "Neon PR branch CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:16:09Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro&pullRequest=60",
+      "name": "SonarCloud Code Analysis",
+      "startedAt": "2026-10-06T19:15:34Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-06T19:17:16Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://vercel.com/github",
+      "name": "Vercel Preview Comments",
+      "startedAt": "2026-10-06T19:17:16Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "StatusContext",
+      "context": "Vercel \u2013 preco-que-da-lucro",
+      "startedAt": "2026-10-06T19:17:13Z",
+      "state": "SUCCESS",
+      "targetUrl": "https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/DjYNWE33zo7J2RBAZ6AQiEpcLg2k"
+    }
+  ],
+  "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/60"
+}

@@ -1,4 +1,6 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -10,6 +12,7 @@ import {
   gateInLight,
   parseCoverageTable,
   parseTriggerLists,
+  sonarStepRun,
 } from "../../scripts/lib/m02-ci-coverage";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -313,9 +316,109 @@ describe("DBT-62 · claims do pipeline Sonar", () => {
     expect(auditSonarPipeline(sonarReal)).toEqual([]);
   });
 
-  it("NEG — cada claim removida reprova (uma por vez, com a mutação verificada)", () => {
+  it("não admite decisão de release do CE opcional ou substituída por submissão", () => {
+    const mutants = [
+      sonarReal.replace(
+        "      - name: Nomear veredito do CE desta análise (sem token no log)",
+        "      - name: Nomear veredito do CE desta análise (sem token no log)\n        continue-on-error: true",
+      ),
+      sonarReal.replace("  scan:\n", "  scan:\n    continue-on-error: true\n"),
+      sonarReal.replace(
+        "run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+        "run: echo submitted",
+      ),
+    ];
+    for (const mutant of mutants) {
+      expect(mutant).not.toBe(sonarReal);
+      expect(auditSonarPipeline(mutant).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("S6-R2/N02: recusa continue-on-error por expressão, shell customizado, BASH_ENV injetável e erro engolido", () => {
+    const mutants: Array<[string, string, string]> = [
+      [
+        "expressão",
+        "run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+        "continue-on-error: ${{ failure() }}\n        run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+      ],
+      [
+        "shell",
+        "run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+        "shell: pwsh\n        run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+      ],
+      ["BASH_ENV", 'BASH_ENV: ""', "BASH_ENV: ${{ vars.BASH_ENV }}"],
+      [
+        "erro engolido",
+        "run: npx --no-install tsx scripts/sonar/gate-readout.ts",
+        "run: npx --no-install tsx scripts/sonar/gate-readout.ts || true",
+      ],
+    ];
+    for (const [label, from, to] of mutants) {
+      const mutant = sonarReal.replace(from, to);
+      expect(mutant, label).not.toBe(sonarReal);
+      const findings = auditSonarPipeline(mutant).join("\n");
+      expect(findings, label).toContain("sonar.yml");
+      if (label === "shell" || label === "BASH_ENV")
+        expect(findings, label).toContain("passo do CE fixa");
+    }
+  });
+
+  it("distingue observação de baseline/espelho da decisão obrigatória do CE", () => {
+    const mutant = sonarReal.replaceAll(/continue-on-error: true[^\n]*\n/g, "");
+    expect(mutant).not.toBe(sonarReal);
+    expect(auditSonarPipeline(mutant)).toContain(
+      "sonar.yml: baseline e espelho são observações ADR-042",
+    );
+    const invalidObservations = [
+      sonarReal.replace(
+        "run: node scripts/sonar/mirror-observation.ts adapter",
+        "run: node scripts/sonar/main-unit-adapter.ts",
+      ),
+      sonarReal.replace(
+        "run: node scripts/sonar/mirror-observation.ts mirror",
+        "run: node scripts/sonar/gate-mirror.ts",
+      ),
+      sonarReal.replace(
+        "  main-coverage-mirror:\n",
+        "  main-coverage-mirror:\n    continue-on-error: true\n",
+      ),
+      sonarReal.replace(
+        "run: node scripts/sonar/mirror-observation.ts mirror",
+        "run: node scripts/sonar/mirror-observation.ts mirror || true",
+      ),
+      sonarReal.replace("c29-main-mirror-observation.json", "discarded-observation.json"),
+    ];
+    for (const observation of invalidObservations) {
+      expect(observation).not.toBe(sonarReal);
+      expect(auditSonarPipeline(observation)).not.toEqual([]);
+    }
+  });
+
+  it("recusa o defeito original: baseline incondicional antes de scanner em main", () => {
+    const mutant = sonarReal.replace("        if: github.event_name == 'pull_request'\n", "");
+    expect(mutant).not.toBe(sonarReal);
+    expect(auditSonarPipeline(mutant).join("\n")).toContain("exclusiva de PR");
+  });
+  it("recusa main sem leitura posterior do CE ou sem identidade do provider", () => {
+    for (const text of [
+      "Medir main somente após a análise do push",
+      "EXPECTED_PR:",
+      "sonar.scm.revision=$(git rev-parse HEAD)",
+    ]) {
+      const mutant = sonarReal.replace(text, "removed");
+      expect(mutant).not.toBe(sonarReal);
+      expect(auditSonarPipeline(mutant)).not.toEqual([]);
+    }
+  });
+
+  it("NEG — uma remoção por guarda, preservando as outras guardas", () => {
     const mutacoes: Array<[string, string]> = [
       ["roda a suíte com cobertura", "npm run test:coverage"],
+      [
+        "recusa lcov ausente ou vazio",
+        'if [ ! -s coverage/lcov.info ]; then\n            echo "::error::coverage/lcov.info ausente ou vazio — o analyze mediria 0% de novo"\n            exit 1\n          fi',
+      ],
+      ["separa submissão da decisão de release", "-Dsonar.qualitygate.wait=false"],
       ["envia o relatório ao scanner", "-Dsonar.javascript.lcov.reportPaths=coverage/lcov.info"],
       ["observa que o sensor rodou", "Sensor JavaScript/TypeScript Coverage"],
       ["atribui a análise a PR", "-Dsonar.pullrequest.key="],
@@ -329,5 +432,45 @@ describe("DBT-62 · claims do pipeline Sonar", () => {
         "",
       );
     }
+  });
+});
+
+describe("DBT-66 · a recusa é executável, não uma menção ao path", () => {
+  const guard = sonarStepRun(sonarReal, "Conferir o relatório antes de enviar");
+
+  it.each(["ausente", "vazio", "válido"] as const)(
+    "fixture LCOV %s decide pelo arquivo",
+    (state) => {
+      expect(guard).not.toBeNull();
+      const directory = mkdtempSync(resolve(tmpdir(), "sonar-lcov-"));
+      try {
+        if (state !== "ausente") {
+          mkdirSync(resolve(directory, "coverage"));
+          writeFileSync(
+            resolve(directory, "coverage/lcov.info"),
+            state === "vazio" ? "" : "TN:\nSF:src/fixture.ts\nDA:1,1\nLF:1\nLH:1\nend_of_record\n",
+          );
+        }
+        const result = spawnSync("bash", ["-c", guard!], { cwd: directory, encoding: "utf8" });
+        expect(result.error).toBeUndefined();
+        expect(result.status).toBe(state === "válido" ? 0 : 1);
+        expect(result.stdout).toContain(state === "válido" ? "bytes" : "ausente ou vazio");
+      } finally {
+        rmSync(directory, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it("remove só o bloco condicional; flag e upload preservados não mascaram ausência", () => {
+    const conditional = / {10}if \[ ! -s coverage\/lcov\.info \]; then\n[\s\S]*? {10}fi\n/;
+    const removed = sonarReal.match(conditional)?.[0];
+    expect(removed).toBeDefined();
+    const mutant = sonarReal.replace(conditional, "");
+    expect(mutant).not.toBe(sonarReal);
+    expect(mutant).toContain("sonar.javascript.lcov.reportPaths=coverage/lcov.info");
+    expect(mutant).toMatch(/path: \|\s+coverage\/lcov\.info/);
+    expect(auditSonarPipeline(mutant)).toContain(
+      "sonar.yml sem a claim: recusa lcov ausente ou vazio",
+    );
   });
 });

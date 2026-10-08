@@ -1,0 +1,9 @@
+{
+  "runId": 37517386599,
+  "sha": "ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff",
+  "attempt": 2,
+  "status": "in_progress",
+  "reason": "previous preparation imageVersion 20261004.327.1 differs from verify imageVersion 20260927.320.1",
+  "retryBound": 1,
+  "retryScope": "entire workflow; fresh per-attempt attestation; no guard or timeout change"
+}

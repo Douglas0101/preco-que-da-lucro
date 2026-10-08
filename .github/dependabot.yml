@@ -1,3 +1,6 @@
+# C26: automatic version PR creation disabled; engineering applies updates in develop.
+# Security alerts are enabled; automatic security PRs are disabled in GitHub settings.
+# Groups document coupled families; current main config changes only at final release.
 # Dependabot — atualizações de VERSÃO (version updates) deste repositório.
 # Plano Mestre §25 ("Adicionar quando disponível: Dependabot") ·
 # docs/PLANO_MESTRE_OTIMIZACOES_VALIDADO_WEB_PRECO_QUE_DA_LUCRO.md.
@@ -21,14 +24,31 @@ updates:
   # npm: package.json + package-lock.json na raiz (único manifest do repo).
   - package-ecosystem: npm
     directory: "/"
+    target-branch: develop
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
+    groups:
+      react-runtime-and-types:
+        patterns:
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+      tanstack-router-start:
+        patterns:
+          - "@tanstack/react-router"
+          - "@tanstack/react-start"
+          - "@tanstack/react-start-*"
+          - "@tanstack/router-*"
+          - "@tanstack/start-*"
+          - "@tanstack/history"
 
   # github-actions: `directory: "/"` faz o Dependabot varrer /.github/workflows
   # e o action.yml/action.yaml da raiz.
   - package-ecosystem: github-actions
     directory: "/"
+    target-branch: develop
     schedule:
       interval: weekly
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0

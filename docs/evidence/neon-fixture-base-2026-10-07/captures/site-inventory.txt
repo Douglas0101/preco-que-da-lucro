@@ -1,0 +1,95 @@
+SITE INVENTORY — fixture base / permanent-id guards (2026-10-07)
+=================================================================
+
+# 1. FIXTURE_BASE_ID sites (scripts + tests)
+scripts/ci/provision-neon-fixture.ts:6:  FIXTURE_BASE_ID,
+scripts/ci/provision-neon-fixture.ts:58:    parentId: FIXTURE_BASE_ID,
+scripts/ci/provision-neon-fixture.ts:184:      [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(createdId)
+scripts/ci/prepare-neon-fixture.ts:9:  FIXTURE_BASE_ID,
+scripts/ci/prepare-neon-fixture.ts:38:    [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(id)
+scripts/ci/prepare-neon-fixture.ts:52:    branch.parent_id !== FIXTURE_BASE_ID ||
+scripts/ci/neon-resource.ts:14:export const FIXTURE_BASE_ID = "br-wandering-sky-ayxm5e5s";
+scripts/ci/neon-resource.ts:83:    [FIXTURE_BASE_ID, "ci-fixture-base", false],
+scripts/ci/neon-resource.ts:117:  if (!/^br-[a-z0-9-]+$/.test(id) || [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(id))
+scripts/ci/neon-resource.ts:303:      permanentIds: [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID],
+scripts/ci/neon-resource.ts:322:      if (ownership !== "true" || [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(id))
+scripts/ci/neon-resource.ts:393:        permanentIds: [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID],
+scripts/ci/neon-resource.ts:420:      permanentIds: [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID],
+src/test/neon-resource.test.ts:8:  FIXTURE_BASE_ID,
+src/test/neon-resource.test.ts:30:  { id: FIXTURE_BASE_ID, name: "ci-fixture-base", project_id: PROJECT_ID, default: false },
+src/test/neon-resource.test.ts:136:    for (const permanentId of [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID])
+src/test/neon-resource.test.ts:141:      assertOwnedResource({ ...temp(), id: FIXTURE_BASE_ID }, plan, FIXTURE_BASE_ID, now),
+src/test/neon-resource.test.ts:145:    const expected = [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID];
+src/test/neon-resource.test.ts:166:    expect(proof.permanentIds).toEqual([DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID]);
+src/test/neon-fixture.test.ts:5:  FIXTURE_BASE_ID,
+src/test/neon-fixture.test.ts:45:    parent_id: FIXTURE_BASE_ID,
+src/test/neon-fixture.test.ts:71:  it.each([DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID])(
+src/test/neon-fixture-provision.test.ts:9:  FIXTURE_BASE_ID,
+src/test/neon-fixture-provision.test.ts:121:      parentId: FIXTURE_BASE_ID,
+src/test/neon-fixture-provision.test.ts:127:        FIXTURE_BASE_ID,
+src/test/neon-fixture-provision.test.ts:181:        parent_id: FIXTURE_BASE_ID,
+src/test/neon-fixture-provision.test.ts:288:  it.each([DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID, "unverified"])(
+
+# 2. permanent-id guard lists [DEVELOP_ID, PRODUCTION_ID, ...]
+scripts/ci/provision-neon-fixture.ts:184:      [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(createdId)
+scripts/ci/prepare-neon-fixture.ts:38:    [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(id)
+scripts/ci/neon-resource.ts:117:  if (!/^br-[a-z0-9-]+$/.test(id) || [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(id))
+scripts/ci/neon-resource.ts:303:      permanentIds: [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID],
+scripts/ci/neon-resource.ts:322:      if (ownership !== "true" || [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID].includes(id))
+scripts/ci/neon-resource.ts:393:        permanentIds: [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID],
+scripts/ci/neon-resource.ts:420:      permanentIds: [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID],
+src/test/neon-resource.test.ts:136:    for (const permanentId of [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID])
+src/test/neon-resource.test.ts:145:    const expected = [DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID];
+src/test/neon-resource.test.ts:166:    expect(proof.permanentIds).toEqual([DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID]);
+src/test/neon-fixture.test.ts:71:  it.each([DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID])(
+src/test/neon-fixture-provision.test.ts:288:  it.each([DEVELOP_ID, PRODUCTION_ID, FIXTURE_BASE_ID, "unverified"])(
+
+# 3. init_source sites (live surfaces)
+scripts/ci/provision-neon-fixture.ts:172:          init_source: "parent-data",
+scripts/ci/prepare-neon-fixture.ts:53:    branch.init_source !== "parent-data" ||
+src/test/neon-fixture.test.ts:44:    init_source: "parent-data",
+src/test/neon-fixture.test.ts:110:    { init_source: "schema-only" },
+src/test/neon-fixture.test.ts:111:    { init_source: "parent-schema" },
+src/test/neon-fixture-provision.test.ts:182:        init_source: "parent-data",
+AGENTS.md:17:- **Three permanent Neon branches only:** `develop` (`br-small-hill-aymcu14y`), `production` (`br-snowy-violet-aymcvvvv`, default) and the empty CI fixture source `ci-fixture-base` (`br-wandering-sky-ayxm5e5s`, `init_source: "parent-data"`, default false, no expiry). The base was created once as a `parent-data` child of `production` and emptied once with zero-row verification (15 populated tables / 162 rows → 0 / 0, no large objects; in-band `neon.branch_id` proof in `docs/evidence/neon-fixture-base-2026-10-07/`); its rows are never used. It is a zero-row fixture source only — never a development channel, never a test target, and never deletable by cleanup (its id is in every permanent guard and report). PR fixtures are zero-row `parent-data` children of it. Do not retain per-feature or per-Dependabot preview databases. Isolated CI copies are temporary execution resources: identify them by run, set the 24-hour expiry, and discard them after the tests with GET 404 proof and independent identity/absence verification. They are not additional development channels. Production data is never a test target. The old Hostinger preview and other persistent preview copies were removed under the explicit two-service cleanup authorization on 2026-10-02.
+AGENTS.md:55:  - **Provisionamento da fixture Neon de PR (S6-R2):** `.github/workflows/neon-pr-branch.yml` cria a cópia pela **API REST oficial** (`scripts/ci/provision-neon-fixture.ts`), não por wrapper de action: `init_source: "parent-data"` — a branch criada é **CHILD de zero linhas** da base vazia permanente `ci-fixture-base` (`br-wandering-sky-ayxm5e5s`), criada uma vez como filha `parent-data` de `production` e esvaziada uma vez (15 tabelas populadas / 162 linhas → 0 / 0, sem grandes objetos; evidência em `docs/evidence/neon-fixture-base-2026-10-07/`). O provedor recusa **toda cópia de schema** neste projeto (`schema-only` ROOT e `parent-schema` CHILD) por causa de papéis SQL-created de *legacy web access* como `app_runtime`: HTTP 412 observado nas runs `37556250921`/`37634147956`/`37700582228` e no diagnóstico de console de 2026-10-07, request `bba50fbd-1e38-49d7-a52b-084e5b6e95ed` — por isso o mecanismo final copia da base vazia e nenhum retry cai em cópia de dados. A base nunca vira canal de desenvolvimento nem alvo de teste, e o cleanup nunca pode apagá-la (id presente em todas as guardas/reportes de permanentes) e **TTL de 24h dentro do próprio POST** (rede de segurança quando o `branch_id` não chega ao cleanup). O `branch_id` é entregue ao job de cleanup **antes** de qualquer espera por compute/URI; sem retry que caia em cópia de dados. Cada URI recebe `::add-mask::` **na chegada** (antes de qualquer arquivo privado em `RUNNER_TEMP`, modo 0600), e todo valor já conhecido é redigido da mensagem de erro **antes** de ser persistido; recusas do provedor expõem somente status/código (ex.: HTTP 412), nunca corpo bruto. As URIs são fixadas com **porta 5432 explícita e query somente-sslmode** — o destino efetivo do driver não pode ser movido por `PGPORT` ou por parâmetros de query (`host`, `hostaddr`, `port`, `options`), e `assertConnectionPair` recusa o par sem essas propriedades.
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:24:Uma cópia comum de production herdou uma conta real e o rollback de teste recusou apagá-la. O CI passa a criar uma raiz schema-only por PR, run e attempt, com prazo de 24 horas. Antes de preparar o fixture, confirma init_source=schema-only, criação nova, identidade não permanente, endpoint correspondente, prazo e inventário vazio. Toda tabela é bloqueada e verificada; registros, relações externas, grandes objetos ou inventário desconhecido abortam sem apagar dados. Somente schemas copiados e vazios são reconstruídos. As migrations aplicadas geram o ledger verdadeiro. Todas as 18 suítes, RLS, matriz Playwright e descarte always com GET 404 permanecem obrigatórios.
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:43:## Emenda — implementação do fixture (2026-10-07): `init_source` parent-schema
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:46:(`scripts/ci/provision-neon-fixture.ts`) usava `init_source: "schema-only"`, que cria uma branch
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:55:**Substituto:** `init_source: "parent-schema"` — branch **CHILD** de pai explícito (`production`
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:77:O mecanismo da emenda anterior (`init_source: "parent-schema"`, child de `production`/`develop`)
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:94:**Mecanismo final:** cada PR cria um filho `init_source: "parent-data"` da base vazia (zero linhas
+
+# 4. parent-schema mentions (historical/refusal contexts only)
+scripts/ci/provision-neon-fixture.ts:24:// schema copy in this project (HTTP 412 on `schema-only` and `parent-schema`),
+src/test/neon-fixture.test.ts:111:    { init_source: "parent-schema" },
+src/test/neon-fixture.test.ts:216:  it("accepts the managed neon_auth schema of a parent-schema copy when empty", async () => {
+src/test/neon-fixture.test.ts:224:  it("accepts the managed pgrst schema of a parent-schema copy when empty", async () => {
+.github/workflows/neon-pr-branch.yml:135:        # projeto (HTTP 412 em `schema-only` e `parent-schema`).
+AGENTS.md:55:  - **Provisionamento da fixture Neon de PR (S6-R2):** `.github/workflows/neon-pr-branch.yml` cria a cópia pela **API REST oficial** (`scripts/ci/provision-neon-fixture.ts`), não por wrapper de action: `init_source: "parent-data"` — a branch criada é **CHILD de zero linhas** da base vazia permanente `ci-fixture-base` (`br-wandering-sky-ayxm5e5s`), criada uma vez como filha `parent-data` de `production` e esvaziada uma vez (15 tabelas populadas / 162 linhas → 0 / 0, sem grandes objetos; evidência em `docs/evidence/neon-fixture-base-2026-10-07/`). O provedor recusa **toda cópia de schema** neste projeto (`schema-only` ROOT e `parent-schema` CHILD) por causa de papéis SQL-created de *legacy web access* como `app_runtime`: HTTP 412 observado nas runs `37556250921`/`37634147956`/`37700582228` e no diagnóstico de console de 2026-10-07, request `bba50fbd-1e38-49d7-a52b-084e5b6e95ed` — por isso o mecanismo final copia da base vazia e nenhum retry cai em cópia de dados. A base nunca vira canal de desenvolvimento nem alvo de teste, e o cleanup nunca pode apagá-la (id presente em todas as guardas/reportes de permanentes) e **TTL de 24h dentro do próprio POST** (rede de segurança quando o `branch_id` não chega ao cleanup). O `branch_id` é entregue ao job de cleanup **antes** de qualquer espera por compute/URI; sem retry que caia em cópia de dados. Cada URI recebe `::add-mask::` **na chegada** (antes de qualquer arquivo privado em `RUNNER_TEMP`, modo 0600), e todo valor já conhecido é redigido da mensagem de erro **antes** de ser persistido; recusas do provedor expõem somente status/código (ex.: HTTP 412), nunca corpo bruto. As URIs são fixadas com **porta 5432 explícita e query somente-sslmode** — o destino efetivo do driver não pode ser movido por `PGPORT` ou por parâmetros de query (`host`, `hostaddr`, `port`, `options`), e `assertConnectionPair` recusa o par sem essas propriedades.
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:43:## Emenda — implementação do fixture (2026-10-07): `init_source` parent-schema
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:53:`docs/evidence/neon-parent-schema-2026-10-07/`.
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:55:**Substituto:** `init_source: "parent-schema"` — branch **CHILD** de pai explícito (`production`
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:70:**ERRATA (2026-10-07):** a hipótese `parent-schema` desta emenda foi falsificada pelo run de CI
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:77:O mecanismo da emenda anterior (`init_source: "parent-schema"`, child de `production`/`develop`)
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:79:`parent-schema` com HTTP 412 e **nenhuma branch foi criada** (artefato `neon-pr-provision.json`,
+
+# 5. base id/name sites
+scripts/ci/provision-neon-fixture.ts:19:// empty `ci-fixture-base` branch: the copy carries the schema with no inherited
+scripts/ci/provision-neon-fixture.ts:51:  // The parent is always the permanent empty `ci-fixture-base`: the created
+scripts/ci/prepare-neon-fixture.ts:90:// Both appear empty in the copy from the empty `ci-fixture-base` and, like every
+scripts/ci/neon-resource.ts:14:export const FIXTURE_BASE_ID = "br-wandering-sky-ayxm5e5s";
+scripts/ci/neon-resource.ts:83:    [FIXTURE_BASE_ID, "ci-fixture-base", false],
+src/test/neon-resource.test.ts:30:  { id: FIXTURE_BASE_ID, name: "ci-fixture-base", project_id: PROJECT_ID, default: false },
+src/test/neon-fixture.test.ts:23:  ALLOW_REMOTE_DB: "CI parent-data child fixture sourced from the empty ci-fixture-base",
+.github/workflows/neon-pr-branch.yml:5:# permanente vazia `ci-fixture-base` (schema copiado da base sem registros
+.github/workflows/neon-pr-branch.yml:22:# PR copia a base vazia permanente `ci-fixture-base` (parent-data), nunca dados;
+.github/workflows/neon-pr-branch.yml:123:      - name: Create ephemeral zero-row child via REST (parent-data from the empty ci-fixture-base)
+.github/workflows/neon-pr-branch.yml:132:        # §12.4: a cópia é `parent-data` de `ci-fixture-base` (CHILD da base
+.github/workflows/neon-pr-branch.yml:138:      - name: Verify fresh zero-row child (parent-data from ci-fixture-base) identity and prepare an empty migration fixture
+.github/workflows/neon-pr-branch.yml:144:          ALLOW_REMOTE_DB: CI Neon parent-data child PR fixture sourced from the empty ci-fixture-base; zero inherited rows, no production or develop data
+.github/workflows/neon-pr-branch.yml:449:            echo "- Alvo autorizado: branch efêmera parent-data child da base vazia ci-fixture-base (zero linhas herdadas); nenhum sucesso de etapa é presumido a partir do resultado do job."
+AGENTS.md:17:- **Three permanent Neon branches only:** `develop` (`br-small-hill-aymcu14y`), `production` (`br-snowy-violet-aymcvvvv`, default) and the empty CI fixture source `ci-fixture-base` (`br-wandering-sky-ayxm5e5s`, `init_source: "parent-data"`, default false, no expiry). The base was created once as a `parent-data` child of `production` and emptied once with zero-row verification (15 populated tables / 162 rows → 0 / 0, no large objects; in-band `neon.branch_id` proof in `docs/evidence/neon-fixture-base-2026-10-07/`); its rows are never used. It is a zero-row fixture source only — never a development channel, never a test target, and never deletable by cleanup (its id is in every permanent guard and report). PR fixtures are zero-row `parent-data` children of it. Do not retain per-feature or per-Dependabot preview databases. Isolated CI copies are temporary execution resources: identify them by run, set the 24-hour expiry, and discard them after the tests with GET 404 proof and independent identity/absence verification. They are not additional development channels. Production data is never a test target. The old Hostinger preview and other persistent preview copies were removed under the explicit two-service cleanup authorization on 2026-10-02.
+AGENTS.md:55:  - **Provisionamento da fixture Neon de PR (S6-R2):** `.github/workflows/neon-pr-branch.yml` cria a cópia pela **API REST oficial** (`scripts/ci/provision-neon-fixture.ts`), não por wrapper de action: `init_source: "parent-data"` — a branch criada é **CHILD de zero linhas** da base vazia permanente `ci-fixture-base` (`br-wandering-sky-ayxm5e5s`), criada uma vez como filha `parent-data` de `production` e esvaziada uma vez (15 tabelas populadas / 162 linhas → 0 / 0, sem grandes objetos; evidência em `docs/evidence/neon-fixture-base-2026-10-07/`). O provedor recusa **toda cópia de schema** neste projeto (`schema-only` ROOT e `parent-schema` CHILD) por causa de papéis SQL-created de *legacy web access* como `app_runtime`: HTTP 412 observado nas runs `37556250921`/`37634147956`/`37700582228` e no diagnóstico de console de 2026-10-07, request `bba50fbd-1e38-49d7-a52b-084e5b6e95ed` — por isso o mecanismo final copia da base vazia e nenhum retry cai em cópia de dados. A base nunca vira canal de desenvolvimento nem alvo de teste, e o cleanup nunca pode apagá-la (id presente em todas as guardas/reportes de permanentes) e **TTL de 24h dentro do próprio POST** (rede de segurança quando o `branch_id` não chega ao cleanup). O `branch_id` é entregue ao job de cleanup **antes** de qualquer espera por compute/URI; sem retry que caia em cópia de dados. Cada URI recebe `::add-mask::` **na chegada** (antes de qualquer arquivo privado em `RUNNER_TEMP`, modo 0600), e todo valor já conhecido é redigido da mensagem de erro **antes** de ser persistido; recusas do provedor expõem somente status/código (ex.: HTTP 412), nunca corpo bruto. As URIs são fixadas com **porta 5432 explícita e query somente-sslmode** — o destino efetivo do driver não pode ser movido por `PGPORT` ou por parâmetros de query (`host`, `hostaddr`, `port`, `options`), e `assertConnectionPair` recusa o par sem essas propriedades.
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:85:**Decisão do dono:** autorizar uma base de fixture permanente e vazia — branch `ci-fixture-base`
+docs/adr/ADR-042-cobertura-minima-60-publicacao.md:86:(`br-wandering-sky-ayxm5e5s`), criada uma única vez como filha `parent-data` de `production`,

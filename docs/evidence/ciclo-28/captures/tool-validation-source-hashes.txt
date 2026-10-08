@@ -1,0 +1,8 @@
+LOCAL-VERIFIED fingerprints; immutable app sources and final reviewed tests
+bc7a91a0997079bced8788d969c38ef7cb8d6c6b62c9907d571e5424f5c173dd  src/lib/ai/tool-runner.ts
+c167f2b9a72100a1c19849fd22040c89ce39e6ce35bd217a339f7d4a530da973  src/lib/ai/budget-ledger.server.ts
+c0d6ed9ec9c3399fe7b556d3beb6e9a219b4cf7ce462dab4e10475d9dbe181be  src/test/tool-runner.validation.test.ts
+20970d80ef817f0cfb9eb54b2b1a45d586fe14f0a1d0fa50927b4e6c49a1b78b  e2e/helpers/authentication.ts
+c124a7a9c5be12b83a0a110fb8cf1f270701cc7216f69b09d5ba58dd77c59260  e2e/authentication-gate.spec.ts
+591eeb6bcb792358b80e2cd830165a663aa622f12131637e1b7f7b05eca7ad8f  e2e/ui-stack.spec.ts
+ab6ccef5a8aeb32e082b03ecde4929377afb0447aba5e8e784f5d648667cea77  e2e/sales-dashboard.spec.ts

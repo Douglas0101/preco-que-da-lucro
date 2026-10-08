@@ -37,9 +37,11 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   scan:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     name: scan + cobertura
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -52,8 +54,16 @@ jobs:
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
+
+      - name: Medir baseline main (M2, leitura por SHA)
+        if: github.event_name == 'pull_request'
+        continue-on-error: true # ADR-042: observation; the actual CE remains mandatory.
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sonar/main-baseline.mjs
 
       - name: Instalar (como o CI instala)
         run: npm ci --ignore-scripts
@@ -98,13 +108,28 @@ jobs:
             )
             echo "atribuicao: pull request #${{ github.event.pull_request.number }} (${{ github.head_ref }} -> ${{ github.base_ref }})"
           else
-            ATRIBUICAO=()
-            echo "atribuicao: branch principal (padrão) — push de ${GITHUB_REF_NAME}"
+            ATRIBUICAO=("-Dsonar.branch.name=main")
+            echo "atribuicao: branch principal main — push de ${GITHUB_REF_NAME}"
           fi
+
+          # O scanner escreve seu working dir em /tmp dentro do container, fora do volume.
+          # Compartilhar somente o metadata file (sem credenciais), não o relatório inteiro.
+          mkdir -p .scannerwork
+          : > .scannerwork/report-task.txt
+          chmod 666 .scannerwork/report-task.txt
+
+          # Preflight no mesmo UID do scanner: /tmp é sticky e recusa O_CREAT em arquivo de
+          # outro dono (protected_regular), mesmo com modo 666. O mount fica em parent próprio.
+          docker run --rm \
+            -v "$PWD/.scannerwork/report-task.txt:/sonar-metadata/report-task.txt" \
+            --entrypoint sh sonarsource/sonar-scanner-cli:latest \
+            -c 'set -eu; printf "metadata container_uid="; id -u; printf "protected_regular="; cat /proc/sys/fs/protected_regular; stat -c "metadata owner=%u mode=%a" /sonar-metadata/report-task.txt; printf "preflight\n" > /sonar-metadata/report-task.txt'
+          : > .scannerwork/report-task.txt
 
           docker run --rm \
             -e SONAR_TOKEN \
             -v "$PWD:/usr/src" \
+            -v "$PWD/.scannerwork/report-task.txt:/sonar-metadata/report-task.txt" \
             sonarsource/sonar-scanner-cli:latest \
             -Dsonar.projectKey=Douglas0101_preco-que-da-lucro \
             -Dsonar.organization=douglas0101 \
@@ -112,7 +137,11 @@ jobs:
             -Dsonar.sources=src \
             -Dsonar.exclusions='src/test/**' \
             -Dsonar.scm.provider=git \
+            "-Dsonar.scm.revision=$(git rev-parse HEAD)" \
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.scanner.metadataFilePath=/sonar-metadata/report-task.txt \
+            -Dsonar.qualitygate.wait=false \
+            -Dsonar.qualitygate.timeout=300 \
             "${ATRIBUICAO[@]}" 2>&1 | tee /tmp/scanner.log
 
       - name: Conferir que a cobertura foi CONSUMIDA
@@ -129,11 +158,144 @@ jobs:
           fi
           echo "sensor de cobertura: rodou (o relatorio foi consumido)"
 
+      - name: Nomear veredito do CE desta análise (sem token no log)
+        if: always()
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          EXPECTED_PR: ${{ github.event.pull_request.number }}
+          EXPECTED_BRANCH: ${{ github.head_ref || github.ref_name }}
+          # S6-R2/N02: BASH_ENV vazio impede que uma variável de repo/org injete
+          # código no shell não interativo do passo que nomeia a release.
+          BASH_ENV: ""
+        # S6-R2/N02: shell fixo — um shell customizado poderia engolir o exit
+        # code que decide a release; `bash` no runner é `bash -eo pipefail`.
+        shell: bash
+        run: npx --no-install tsx scripts/sonar/gate-readout.ts
+
+      - name: Medir main somente após a análise do push
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        continue-on-error: true # Keep the raw baseline without a second release veto.
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sonar/main-baseline.mjs
+
+      - name: Seal scanner LCOV provenance
+        if: always()
+        run: node scripts/sonar/lcov-provenance.ts
+
       - name: Guardar o lcov como artefato
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: coverage-lcov
-          path: coverage/lcov.info
+          path: |
+            coverage/lcov.info
+            coverage/lcov-provenance.json
           if-no-files-found: warn
+          retention-days: 7
+
+      - name: Guardar o veredito do CE e a baseline (sem credenciais)
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: sonar-gate-readout
+          path: |
+            ${{ runner.temp }}/c24-main-baseline.json
+            ${{ runner.temp }}/c25-gate-readout.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  main-coverage-mirror:
+    name: main-coverage-mirror
+    if: always() && github.event_name == 'pull_request'
+    needs: scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      BASH_ENV: ""
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+      - name: Read authoritative main units at the current SHA
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sonar/main-baseline.mjs
+      - name: Observe authenticated source unit capabilities without exposing source or tokens
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sonar/main-unit-probe.ts
+      - name: Download candidate scanner LCOV
+        if: always()
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: coverage-lcov
+          path: .artifacts/mirror/candidate-lcov
+      - name: Download candidate CE identity
+        if: always()
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: sonar-gate-readout
+          path: .artifacts/mirror/candidate-gate
+      - name: Locate original main scanner run by immutable SHA
+        if: always()
+        id: main-origin
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/sonar/main-origin-run.ts
+      - name: Download original main scanner LCOV candidate
+        if: always() && steps.main-origin.outputs.run_id != ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: coverage-lcov
+          path: .artifacts/mirror/main-lcov
+          run-id: ${{ steps.main-origin.outputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: Map all main units only with original scanner provenance
+        if: always()
+        id: main-units
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SONAR_MAIN_LCOV: .artifacts/mirror/main-lcov/lcov.info
+          SONAR_MAIN_LCOV_PROVENANCE: .artifacts/mirror/main-lcov/lcov-provenance.json
+        run: node scripts/sonar/mirror-observation.ts adapter
+      - name: Observe the conservative mirror without granting main approval
+        if: always()
+        env:
+          SONAR_MAIN_UNIT_SNAPSHOT: ${{ runner.temp }}/c28-main-unit-snapshot.json
+          SONAR_MAIN_UNIT_SNAPSHOT_SHA256: ${{ steps.main-units.outputs.snapshot_sha256 }}
+          SONAR_MAIN_UNIT_ADAPTER_REPORT: ${{ runner.temp }}/c28-main-unit-adapter.json
+          SONAR_MAIN_LCOV: .artifacts/mirror/main-lcov/lcov.info
+          SONAR_MAIN_LCOV_PROVENANCE: .artifacts/mirror/main-lcov/lcov-provenance.json
+          SONAR_CANDIDATE_LCOV: .artifacts/mirror/candidate-lcov/lcov.info
+          SONAR_CANDIDATE_LCOV_PROVENANCE: .artifacts/mirror/candidate-lcov/lcov-provenance.json
+          SONAR_CANDIDATE_GATE_REPORT: .artifacts/mirror/candidate-gate/c25-gate-readout.json
+          EXPECTED_PR: ${{ github.event.pull_request.number }}
+          EXPECTED_BRANCH: ${{ github.head_ref }}
+        run: node scripts/sonar/mirror-observation.ts mirror
+      - name: Preserve the measured gap and precondition verdict
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: main-mirror-verdict
+          path: |
+            ${{ runner.temp }}/c24-main-baseline.json
+            ${{ runner.temp }}/c26-main-mirror.json
+            ${{ runner.temp }}/c26-main-unit-probe.json
+            ${{ runner.temp }}/c28-main-unit-adapter.json
+            ${{ runner.temp }}/c28-main-unit-snapshot.json
+            ${{ runner.temp }}/c28-main-origin-run.json
+            ${{ runner.temp }}/c29-main-unit-adapter-observation.json
+            ${{ runner.temp }}/c29-main-mirror-observation.json
+          if-no-files-found: error
           retention-days: 7

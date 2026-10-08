@@ -1,0 +1,30 @@
+$ npx vitest run src/test/neon-fixture.test.ts src/test/neon-fixture-provision.test.ts
+# executed 2026-10-07T23:00:54Z against unchanged prepare-neon-fixture.ts (pgrst absent from allowlist)
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/neon-fixture.test.ts (42 tests | 1 failed) 18ms
+     × accepts the managed pgrst schema of a parent-schema copy when empty 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/neon-fixture.test.ts > empty schema preparation refuses inherited data before any destructive SQL > accepts the managed pgrst schema of a parent-schema copy when empty
+Error: fixture discovered an unexpected or incomplete schema inventory
+ ❯ resetEmptyFixture scripts/ci/prepare-neon-fixture.ts:106:13
+    104|       new Set(names).size !== names.length
+    105|     )
+    106|       throw new Error("fixture discovered an unexpected or incomplete …
+       |             ^
+    107|     const tables = await db.query(`
+    108|       select n.nspname as schema, c.relname as name, c.relkind as kind
+ ❯ src/test/neon-fixture.test.ts:230:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 75 passed (76)
+   Start at  20:00:55
+   Duration  1.72s (transform 148ms, setup 202ms, import 166ms, tests 43ms, environment 1.06s)
+
+exit=1

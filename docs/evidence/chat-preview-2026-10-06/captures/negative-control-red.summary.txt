@@ -1,0 +1,6 @@
+     × cai no endpoint default documentado quando AI_GATEWAY_URL está vazia 12ms
+     × trata só-espaços como ausente, não como endpoint 1ms
+     × usa deepseek-flash quando AI_MODEL está vazia no destino nativo 1ms
+     × credencial vazia falha alto e nomeada, sem trocar de emissor 3ms
+ Test Files  1 failed (1)
+      Tests  4 failed | 21 passed (25)

@@ -1,0 +1,167 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > usa a chave do emissor certo, modo compatível e uso medido
+{"timestamp":"2026-10-06T15:00:16.481Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":6,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > conserva as chamadas e os resultados das ferramentas na rodada seguinte
+{"timestamp":"2026-10-06T15:00:16.503Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":6,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > conserva as chamadas e os resultados das ferramentas na rodada seguinte
+{"timestamp":"2026-10-06T15:00:16.505Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > não envia a chave DeepSeek a outro hostname nem ativa o protocolo nativo ali
+{"timestamp":"2026-10-06T15:00:16.513Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stderr | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > respeita a reserva de tokens existente e não segue redirecionamento
+{"timestamp":"2026-10-06T15:00:16.525Z","level":"warn","event":"ai.model_rejected","model":"deepseek-flash","attempt":1,"status":307,"detail":null}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > respeita a reserva de tokens existente e não segue redirecionamento
+{"timestamp":"2026-10-06T15:00:16.528Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":3,"outcome":"DEPENDENCY_ERROR"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > mantém teto de saída dentro do ledger com configuração NaN
+{"timestamp":"2026-10-06T15:00:16.533Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > mantém teto de saída dentro do ledger com configuração 1000001
+{"timestamp":"2026-10-06T15:00:16.535Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > mantém teto de saída dentro do ledger com configuração 1
+{"timestamp":"2026-10-06T15:00:16.539Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > DeepSeek restrito ao servidor Web > mantém teto de saída dentro do ledger com configuração 1000000
+{"timestamp":"2026-10-06T15:00:16.542Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > repete somente uma falha transitória e limita a duas tentativas
+{"timestamp":"2026-10-06T15:00:16.550Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":6,"outcome":"retry"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > repete somente uma falha transitória e limita a duas tentativas
+{"timestamp":"2026-10-06T15:00:16.551Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":2,"durationMs":0,"outcome":"success"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > não repete quota ou rate limit
+{"timestamp":"2026-10-06T15:00:16.552Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"RATE_LIMIT"}
+
+stdout | src/test/model-gateway.test.ts > limites do gateway de IA > propaga cancelamento como AI_TIMEOUT
+{"timestamp":"2026-10-06T15:00:16.554Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":1,"outcome":"AI_TIMEOUT"}
+
+stdout | src/test/model-gateway.test.ts > diagnóstico da recusa do provedor > registra status e motivo do 4xx em vez de descartar a causa
+{"timestamp":"2026-10-06T15:00:16.557Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"DEPENDENCY_ERROR"}
+
+stdout | src/test/model-gateway.test.ts > diagnóstico da recusa do provedor > nunca registra a própria chave no detalhe do erro
+{"timestamp":"2026-10-06T15:00:16.560Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"DEPENDENCY_ERROR"}
+
+stdout | src/test/model-gateway.test.ts > diagnóstico da recusa do provedor > registra resposta fora do contrato como não interpretável
+{"timestamp":"2026-10-06T15:00:16.563Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":2,"outcome":"DEPENDENCY_ERROR"}
+
+ ❯ src/test/model-gateway.test.ts (25 tests | 4 failed) 144ms
+     ✓ usa a chave do emissor certo, modo compatível e uso medido 46ms
+     ✓ conserva as chamadas e os resultados das ferramentas na rodada seguinte 12ms
+     ✓ não reaproveita credenciais de outros provedores quando falta a chave DeepSeek 2ms
+     ✓ não envia a chave DeepSeek a outro hostname nem ativa o protocolo nativo ali 5ms
+     ✓ recusa desvio de destino nativo antes de enviar: https://api.deepseek.com/other 1ms
+     ✓ recusa desvio de destino nativo antes de enviar: https://api.deepseek.com:444/chat/completions 1ms
+     ✓ recusa desvio de destino nativo antes de enviar: https://operator@api.deepseek.com/chat/completions 1ms
+     ✓ recusa desvio de destino nativo antes de enviar: https://api.deepseek.com/chat/completions?debug=true 1ms
+     ✓ recusa desvio de destino nativo antes de enviar: https://api.deepseek.com/chat/completions#fragment 1ms
+     ✓ recusa modelo de outro protocolo e credencial com whitespace 3ms
+     ✓ respeita a reserva de tokens existente e não segue redirecionamento 9ms
+     ✓ mantém teto de saída dentro do ledger com configuração NaN 3ms
+     ✓ mantém teto de saída dentro do ledger com configuração 1000001 2ms
+     ✓ mantém teto de saída dentro do ledger com configuração 1 4ms
+     ✓ mantém teto de saída dentro do ledger com configuração 1000000 3ms
+     ✓ repete somente uma falha transitória e limita a duas tentativas 8ms
+     ✓ não repete quota ou rate limit 1ms
+     ✓ propaga cancelamento como AI_TIMEOUT 2ms
+     ✓ registra status e motivo do 4xx em vez de descartar a causa 4ms
+     ✓ nunca registra a própria chave no detalhe do erro 3ms
+     ✓ registra resposta fora do contrato como não interpretável 3ms
+     × cai no endpoint default documentado quando AI_GATEWAY_URL está vazia 12ms
+     × trata só-espaços como ausente, não como endpoint 1ms
+     × usa deepseek-flash quando AI_MODEL está vazia no destino nativo 1ms
+     × credencial vazia falha alto e nomeada, sem trocar de emissor 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/model-gateway.test.ts > variável definida e vazia conta como ausente > cai no endpoint default documentado quando AI_GATEWAY_URL está vazia
+AssertionError: promise rejected "ApplicationError: AI gateway endpoint rec… { …(3) }" instead of resolving
+ ❯ src/test/model-gateway.test.ts:368:6
+    366|     await expect(
+    367|       callModelForTests(messages, GATEWAY_TOOLS, new AbortController()…
+    368|     ).resolves.toMatchObject({ choices: [{ message: { content: "Tudo b…
+       |      ^
+    369|     expect(request(f).url).toBe("https://ai.gateway.lovable.dev/v1/cha…
+    370|     expect(request(f).options.headers).toMatchObject({ Authorization: …
+
+Caused by: ApplicationError: AI gateway endpoint recusado pelo guard (https público obrigatório): URL inválida: 
+ ❯ assertGatewayEndpoint src/lib/ai-endpoint.server.ts:38:11
+ ❯ callModel src/lib/chat.functions.ts:329:27
+ ❯ src/test/model-gateway.test.ts:367:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'DEPENDENCY_ERROR', retryable: true, status: 503 }
+Caused by: TypeError: Invalid URL
+ ❯ assertGatewayEndpoint src/lib/ai-endpoint.server.ts:36:11
+ ❯ callModel src/lib/chat.functions.ts:329:27
+ ❯ src/test/model-gateway.test.ts:367:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_INVALID_URL', input: '' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/test/model-gateway.test.ts > variável definida e vazia conta como ausente > trata só-espaços como ausente, não como endpoint
+ApplicationError: AI gateway endpoint recusado pelo guard (https público obrigatório): URL inválida:    
+ ❯ assertGatewayEndpoint src/lib/ai-endpoint.server.ts:38:11
+     36|     url = new URL(endpoint);
+     37|   } catch (error) {
+     38|     throw new ApplicationError("DEPENDENCY_ERROR", {
+       |           ^
+     39|       message: `${GUARD_REJECTION_PREFIX} URL inválida: ${endpoint}`,
+     40|       cause: error,
+ ❯ callModel src/lib/chat.functions.ts:329:27
+ ❯ src/test/model-gateway.test.ts:378:11
+
+Caused by: TypeError: Invalid URL
+ ❯ assertGatewayEndpoint src/lib/ai-endpoint.server.ts:36:11
+ ❯ callModel src/lib/chat.functions.ts:329:27
+ ❯ src/test/model-gateway.test.ts:378:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_INVALID_URL', input: '   ' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/test/model-gateway.test.ts > variável definida e vazia conta como ausente > usa deepseek-flash quando AI_MODEL está vazia no destino nativo
+ApplicationError: Um serviço necessário está indisponível.
+ ❯ callModel src/lib/chat.functions.ts:342:11
+    340|       model !== "deepseek-flash")
+    341|   )
+    342|     throw new ApplicationError("DEPENDENCY_ERROR");
+       |           ^
+    343|   // A provider-specific credential may never fall back to another iss…
+    344|   const apiKey = deepseek
+ ❯ src/test/model-gateway.test.ts:388:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/test/model-gateway.test.ts > variável definida e vazia conta como ausente > credencial vazia falha alto e nomeada, sem trocar de emissor
+AssertionError: expected '' to contain 'ai.credential_unusable'
+
+- Expected
++ Received
+
+- ai.credential_unusable
+
+ ❯ src/test/model-gateway.test.ts:404:20
+    402|     expect(f).not.toHaveBeenCalled();
+    403|     const logged = errorSpy.mock.calls.map((call) => String(call[0])).…
+    404|     expect(logged).toContain("ai.credential_unusable");
+       |                    ^
+    405|     expect(logged).toContain("deepseek");
+    406|     errorSpy.mockRestore();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 21 passed (25)
+   Start at  12:00:11
+   Duration  4.67s (transform 714ms, setup 158ms, import 2.45s, tests 144ms, environment 1.68s)
+

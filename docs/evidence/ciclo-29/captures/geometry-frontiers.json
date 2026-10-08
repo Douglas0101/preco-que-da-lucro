@@ -1,0 +1,263 @@
+{
+  "timestamp": "2026-10-05T02:38:57.866Z",
+  "report": {
+    "benchUrl": "http://127.0.0.1:4173",
+    "verdict": "GREEN",
+    "pages": 36,
+    "failures": 0,
+    "results": [
+      {
+        "page": "/inicio",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/produtos",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/novo-produto",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/precos",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/despesas",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/vendas",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/ponto-equilibrio",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/simulacoes",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/diagnostico",
+        "breakpoint": "desktop",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/inicio",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/produtos",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/novo-produto",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/precos",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/despesas",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/vendas",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/ponto-equilibrio",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/simulacoes",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/diagnostico",
+        "breakpoint": "mobile",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/inicio",
+        "breakpoint": "md-below",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/produtos",
+        "breakpoint": "md-below",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/novo-produto",
+        "breakpoint": "md-below",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/precos",
+        "breakpoint": "md-below",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/despesas",
+        "breakpoint": "md-below",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/vendas",
+        "breakpoint": "md-below",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/ponto-equilibrio",
+        "breakpoint": "md-below",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/simulacoes",
+        "breakpoint": "md-below",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/diagnostico",
+        "breakpoint": "md-below",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/inicio",
+        "breakpoint": "md-at",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/produtos",
+        "breakpoint": "md-at",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/novo-produto",
+        "breakpoint": "md-at",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/precos",
+        "breakpoint": "md-at",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/despesas",
+        "breakpoint": "md-at",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/vendas",
+        "breakpoint": "md-at",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/ponto-equilibrio",
+        "breakpoint": "md-at",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/simulacoes",
+        "breakpoint": "md-at",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      },
+      {
+        "page": "/diagnostico",
+        "breakpoint": "md-at",
+        "ok": true,
+        "offenders": [],
+        "shots": []
+      }
+    ]
+  }
+}

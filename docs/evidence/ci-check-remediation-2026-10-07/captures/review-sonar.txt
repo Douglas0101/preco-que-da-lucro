@@ -1,0 +1,7 @@
+{
+  "overall_correctness": "correct",
+  "explanation": "Nenhum defeito material encontrado nos alvos revisados. Evidência por traçado estático (nenhuma execução — congelamento do pai após o primeiro focused run): (1) Falso-verde via exit coerente com identidade inconsistente: classifyMirrorObservation (scripts/sonar/mirror-observation.ts:13-90) só classifica raw 0→MAPPED/PASS, 1→FAIL, 2→NO-VERDICT com reasonCode exato ORIGINAL_PROVENANCE_UNAVAILABLE; qualquer divergência de exit/verdict/schema/mainSha/target/result lança → observation null → exit 1 (linhas 117-121, 146, 153), e nenhuma trilha transforma erro em exit 0. (2) Label vs realidade: o ramo ORIGINAL_PROVENANCE_UNAVAILABLE em mirror-runner.ts:158-201 não confia no rótulo do adapter — relê os arquivos reais (readMainScannerOrigin na linha…
+  "confidence": 0.8
+}
+
+[Some lines truncated to 768 chars]

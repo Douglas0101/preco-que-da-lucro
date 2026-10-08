@@ -1,0 +1,6 @@
+{
+  "registeredId": "DBT-99",
+  "discovered": 82,
+  "checked": 82,
+  "guardOutput": "debts guard: OK (82 dividas, taxonomia e regra de closure) \u2014 docs/evidence/agent-state/DEBTS.md"
+}

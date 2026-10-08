@@ -12,6 +12,7 @@ import {
 import { parseAiUsage, type TokenUsage } from "@/lib/ai/token-usage";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
 import { sanitizeAiOutput } from "@/lib/ai/output-sanitizer";
+import { groundFinancialOutput } from "@/lib/ai/financial-output-grounding";
 import { runRegisteredTool } from "@/lib/ai/tool-runner";
 import {
   FSM_STATE_TOOL_ALLOWLIST,
@@ -46,6 +47,8 @@ interface GatewayMessage {
 
 interface GatewayToolCall {
   id: string;
+  /** Exigido pelo destino nativo ao devolver o histórico (ver chat.functions). */
+  type?: "function";
   function: { name: string; arguments: string };
 }
 
@@ -72,6 +75,7 @@ REGRAS INEGOCIÁVEIS:
 8) É vedado inventar, arredondar ou somar valores não fornecidos pelo usuário ou pelo motor financeiro; exiba o valor recebido sem alterar o número.
 
 FLUXO: create_product; add_ingredients; set_ingredient_cost para cada ingrediente; set_yield; add_packaging; set_price_and_tax; add_fee; set_market_price; finish_product.
+Em set_yield, "yield_unit" aceita somente as unidades do sistema (massa, volume, contagem ou medida caseira) — nunca uma palavra da receita. Se o usuário disser "rende 1 pizza", registre "unidade"; inventar a unidade faz a ferramenta recusar o rendimento e o produto ficar incompleto.
 Ao explicar, use "vale investigar", "os dados indicam" e "pode ser interessante simular". Não afirme que um preço está certo ou errado sem contexto.`;
 
 export interface SendChatMessageInput {
@@ -406,8 +410,15 @@ async function handleModelResponse(
     return { kind: "continue", currentProductId: nextProductId };
   }
 
-  const content = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
-  if (!content) throw new ApplicationError("DEPENDENCY_ERROR");
+  const sanitized = modelMessage.content ? sanitizeAiOutput(modelMessage.content) : "";
+  if (!sanitized) throw new ApplicationError("DEPENDENCY_ERROR");
+  const grounded = groundFinancialOutput(sanitized, messages);
+  const content = grounded.content;
+  if (grounded.blocked)
+    logJson("warn", "ai.financial_output_blocked", {
+      correlationId: identity.correlationId,
+      unsupportedCount: grounded.unsupportedCount,
+    });
   state.conversationState = await transitionConversation(
     conversationService,
     identity,

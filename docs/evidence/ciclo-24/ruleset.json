@@ -1,0 +1,167 @@
+{
+  "schema": "ciclo24-ruleset/1",
+  "observedAt": "2026-10-01T20:57:38Z",
+  "request": {
+    "name": "C24-main-release-gates",
+    "target": "branch",
+    "enforcement": "active",
+    "bypass_actors": [],
+    "conditions": {
+      "ref_name": {
+        "include": ["refs/heads/main"],
+        "exclude": []
+      }
+    },
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "pull_request",
+        "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": true,
+          "require_code_owner_review": false,
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": true,
+          "allowed_merge_methods": ["merge"]
+        }
+      },
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "required_status_checks": [
+            {
+              "context": "verify",
+              "integration_id": 15368
+            },
+            {
+              "context": "scan + cobertura",
+              "integration_id": 15368
+            }
+          ],
+          "strict_required_status_checks_policy": true,
+          "do_not_enforce_on_create": false
+        }
+      }
+    ]
+  },
+  "created": {
+    "id": 24333849,
+    "name": "C24-main-release-gates",
+    "target": "branch",
+    "source_type": "Repository",
+    "source": "Douglas0101/preco-que-da-lucro",
+    "enforcement": "active",
+    "conditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": ["refs/heads/main"]
+      }
+    },
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "pull_request",
+        "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": true,
+          "required_reviewers": [],
+          "require_code_owner_review": false,
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": true,
+          "require_extra_approval_for_unattributed_changes": true,
+          "allowed_merge_methods": ["merge"]
+        }
+      },
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "strict_required_status_checks_policy": true,
+          "do_not_enforce_on_create": false,
+          "required_status_checks": [
+            {
+              "context": "verify",
+              "integration_id": 15368
+            },
+            {
+              "context": "scan + cobertura",
+              "integration_id": 15368
+            }
+          ]
+        }
+      }
+    ],
+    "node_id": "RRS_lACqUmVwb3NpdG9yec5Oqd2QzgFzThk",
+    "created_at": "2026-10-01T17:56:27.008-03:00",
+    "updated_at": "2026-10-01T17:56:27.171-03:00",
+    "bypass_actors": [],
+    "current_user_can_bypass": "never",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/Douglas0101/preco-que-da-lucro/rulesets/24333849"
+      },
+      "html": {
+        "href": "https://github.com/Douglas0101/preco-que-da-lucro/rules/24333849"
+      }
+    }
+  },
+  "effective": [
+    {
+      "type": "deletion",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Douglas0101/preco-que-da-lucro",
+      "ruleset_id": 24333849
+    },
+    {
+      "type": "non_fast_forward",
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Douglas0101/preco-que-da-lucro",
+      "ruleset_id": 24333849
+    },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": true,
+        "required_reviewers": [],
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": true,
+        "require_extra_approval_for_unattributed_changes": true,
+        "allowed_merge_methods": ["merge"]
+      },
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Douglas0101/preco-que-da-lucro",
+      "ruleset_id": 24333849
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": false,
+        "required_status_checks": [
+          {
+            "context": "verify",
+            "integration_id": 15368
+          },
+          {
+            "context": "scan + cobertura",
+            "integration_id": 15368
+          }
+        ]
+      },
+      "ruleset_source_type": "Repository",
+      "ruleset_source": "Douglas0101/preco-que-da-lucro",
+      "ruleset_id": 24333849
+    }
+  ]
+}

@@ -101,3 +101,24 @@ sustenta**.
 - Se a sessão delegada expirar no meio de uma ação irreversível, **escala** — não improvisa re-login,
   porque a senha não entra no fluxo em nenhuma hipótese.
 - Enquanto a `DBT-36` não fechar, ela permanece `EM_TRATAMENTO` — sem custo e sem bloquear o ciclo.
+
+---
+
+## 8. Extensão humana para esta sessão — 2026-10-02
+
+O pedido direto do MAESTRO, “@browser analise toda a infraestrutura detalhada para corrigir as
+conexões, produção e estabilidade, logins abertos e utilize todo o contexto para as correções”,
+autoriza nesta sessão a inspeção e as correções dos provedores vinculados ao projeto: GitHub,
+Vercel, Neon e Hostinger, além do SonarCloud. Esta autorização é específica ao trabalho registrado
+em `docs/evidence/infra-2026-10-02/README.md`; não se estende automaticamente a sessões futuras.
+
+O pedido de usar os logins abertos autoriza a sessão Chrome delegada existente, identificada como
+“🔎 Infraestrutura e estabilidade”, com abas somente dos provedores do projeto. Para esta sessão,
+essa instrução humana supera o requisito anterior de perfil separado do guardrail 1. As demais
+finalidades do perfil não são inspecionadas. Os guardrails 2–6 e a Via A permanecem: nenhuma senha,
+token ou URL de conexão entra no fluxo; páginas que exibem valores são evitadas; exclusões
+irreversíveis exigem a confirmação concreta; ações recebem timeline; o veredito vem do estado.
+
+A extensão de browser não altera o contrato de release. O freeze de `main`, o limiar de cobertura
+80%, a exigência de CI e a proibição de bypass continuam. Configurar publicação verde ainda exige
+a sequência de promoção reconciliada do ADR-038; inspecionar o painel não ratifica essa proposta.

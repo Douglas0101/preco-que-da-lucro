@@ -1,0 +1,40 @@
+# Runtime errors — excerto da resposta de `get_runtime_errors` (Vercel MCP)
+
+- projeto: `prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q` (`preco-que-da-lucro`)
+- time: `team_2NnkSYjw5NRHAFnQFEPSHGmW`
+- janela: `since=24h`, leitura em 2026-10-06T14:45Z
+- este arquivo é um **excerto literal** (grupos nomeados) da resposta da ferramenta; a leitura
+  completa é reproduzível com os mesmos parâmetros.
+
+## Grupo 1 — e-mail de autenticação sem adapter (bloqueia cadastro novo)
+
+```
+count=5 users=2 routes=/__server
+first=2026-10-06T09:51:51.000Z last=2026-10-06T14:37:41.000Z
+lastDeployment=dpl_CJydCmNNQYFoXELpbQd9d2w5s8m8
+ERROR [Better Auth]: Failed to run background task: Error: RESEND_API_KEY e AUTH_EMAIL_FROM são obrigatórias para e-mails de autenticação
+    at getEmailAdapter (file:///var/task/_ssr/auth.server-D6fDMS4J.mjs:9278:30)
+    at Object.sendVerificationEmail (file:///var/task/_ssr/auth.server-D6fDMS4J.mjs:9556:11)
+```
+
+## Grupo 2 — turno de chat sem configuração de provedor (o incidente)
+
+O turno falha **antes** de qualquer `fetch`: o orçamento é reservado e liquidado sem consumo.
+
+```
+POST /_serverFn/abb0f390d0d9d5c002c238029f7d6ac7eceb5f795c2ff0103d4fb2cfd687a422
+2026-10-06T14:44:11.184Z ai.budget_reserved  tenantId=b03e9f0e-… kind=model roundNo=0 outcome=reserved
+2026-10-06T14:44:11.251Z ai.budget_settled   tenantId=b03e9f0e-… budget=64000 real=0
+                                             outcome=error_dependency_error applied=true durationMs=95
+2026-10-06T14:44:11.303Z request.completed    status=200 durationMs=495
+```
+
+`real=0` e `durationMs=95` são o discriminador: não houve round-trip ao provedor — a falha é local,
+de configuração, não do provedor nem de rede.
+
+## Histórico encerrado (não confundir com a causa atual)
+
+Os grupos de `insert into "rate_limits"` (`INTERNAL_ERROR`, 04:59–06:29Z) são **anteriores** ao
+provisionamento do schema na branch `develop` (L725) e não reaparecem depois dele; o grupo
+`Provider not found … provider: 'google'` é clique humano em login social não configurado;
+`Invalid origin: https://evil.example` é o controle negativo da própria verificação (L727).

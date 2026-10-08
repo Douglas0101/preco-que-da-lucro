@@ -5,6 +5,7 @@ import axe from "axe-core";
 import Decimal from "decimal.js";
 import { describe, expect, it, vi } from "vitest";
 import type { ReactElement, ReactNode } from "react";
+import type { ConsolidatedMargin } from "@/lib/dashboard.functions";
 
 // Neutraliza os server fns no grafo de import das rotas (mesma estratégia de
 // simulation-volume-source.test.tsx): a simulação segue pelo motor real e o
@@ -52,6 +53,11 @@ const dashboard = vi.hoisted(() => ({
     alerts: [],
     period: "month",
     sales: { revenue: "4800.0000", count: 12 },
+    consolidatedMargin: {
+      state: "ok",
+      valuePct: "50.0000",
+      valueAmount: "2400.0000",
+    } as ConsolidatedMargin,
   },
 }));
 
@@ -243,7 +249,12 @@ describe("/inicio — explicação nos quatro KPIs e no destaque de margem (§18
   });
 
   it("sem vendas no período explica o «—» em vez de mostrar margem inventada", async () => {
-    dashboard.summary = { ...dashboard.summary, sales: { revenue: "0.0000", count: 0 } };
+    const original = dashboard.summary;
+    dashboard.summary = {
+      ...dashboard.summary,
+      sales: { revenue: "0.0000", count: 0 },
+      consolidatedMargin: { state: "empty" },
+    };
     try {
       const view = renderWithQueryClient(<Inicio />);
       await screen.findByText("Bolo de cenoura");
@@ -251,9 +262,10 @@ describe("/inicio — explicação nos quatro KPIs e no destaque de margem (§18
       const text = normalizedText(view.container);
       expect(text).toContain("Sem vendas registradas no período selecionado");
       expect(text).toContain("Vendas da simulação e estimativas não entram neste total.");
+      expect(text).toContain("Sem vendas registradas no período não há mix para ponderar");
       expect(explainerSummaries(view.container)).toHaveLength(5);
     } finally {
-      dashboard.summary = { ...dashboard.summary, sales: { revenue: "4800.0000", count: 12 } };
+      dashboard.summary = original;
     }
   });
 });

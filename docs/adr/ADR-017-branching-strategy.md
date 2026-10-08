@@ -18,11 +18,12 @@ Esclarecimento de 2026-08-07: não existe conexão ativa com o Lovable. O projet
 - `develop` é a branch de trabalho diário: desenvolvimento, engenharia e cibersegurança. Commits diretos são permitidos e todo push dispara a workflow `ui-stack` completa.
 - `main` é a branch de release e permanece a default do repositório. Recebe conteúdo exclusivamente via PR `develop → main` com CI verde. Não há conexão ativa com o Lovable; se uma conexão for estabelecida no futuro, `main` é a branch a conectar.
 - Nenhuma branch publicada sofre force-push, rebase ou amend de commits já enviados, conforme a restrição Lovable em `AGENTS.md`.
-- A proteção formal de branch (reviews obrigatórias, checks obrigatórios) permanece pendente de GitHub Pro ou repositório público; até lá, CI verde no PR é exigida por convenção registrada neste ADR.
+- **Imposição em 2026-10-01 (Ciclo 24):** repositório público; ruleset `C24-main-release-gates` (`24333849`) ativo em main, sem bypass, PR obrigatório, base atualizada e required checks `verify` e `scan + cobertura` da app GitHub Actions (`15368`). Só merge commit; exclusão e force-push proibidos. Evidência: `docs/evidence/ciclo-24/ruleset.json`. A espera do CE no scanner foi preparada em develop (ADR-037); promoção para main e controle negativo remoto ainda pendentes. A regra de checks não demonstra, sozinha, equivalência de gate entre PR e main; DBT-64 permanece aberta.
+- Dependabot version updates nascem em `develop` (`target-branch` nos ecossistemas npm e github-actions). Security updates seguem o comportamento próprio da plataforma; os sete PRs anteriores continuam em main até a decisão do Ciclo 25.
 
 ## Consequências
 
 - `.github/workflows/ui-stack.yml` dispara em push para `main` e `develop` e em todo `pull_request`.
 - Os gates de release da SDD (checkout limpo, SHA rastreável, artifacts, rollback) continuam valendo para `main` inalterados.
 - Sem conexão Lovable ativa, nenhum push sincroniza com editor externo. Caso uma conexão seja estabelecida no futuro, somente `main` sincronizaria; trabalho em `develop` permaneceria fora do editor até o merge via PR.
-- Reavaliar a default branch e a proteção formal quando houver GitHub Pro, repositório público ou uma eventual conexão Lovable (DSO-023).
+- Reavaliar a imposição e seus controles observados no fechamento da DBT-64; a default branch continua main (DSO-023).

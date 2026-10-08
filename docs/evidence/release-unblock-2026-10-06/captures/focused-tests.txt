@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/douglas-souza/.codex/worktrees/critical-redeploy/preco-que-d-main
+
+
+ Test Files  3 passed (3)
+      Tests  122 passed (122)
+   Start at  22:05:03
+   Duration  2.38s (transform 188ms, setup 313ms, import 218ms, tests 82ms, environment 1.45s)
+

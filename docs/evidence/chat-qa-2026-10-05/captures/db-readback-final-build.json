@@ -1,0 +1,201 @@
+{
+  "observedAt": "2026-10-06T00:45:31.886Z",
+  "targetQualified": true,
+  "runtimePid": 533174,
+  "product": {
+    "id": "01e3b94a-91f4-42f8-9ddb-651f370d1187",
+    "name": "Pizza QA Chrome 05-10",
+    "status": "draft",
+    "current_price": "30.0000",
+    "yield_qty": "1.000000",
+    "yield_unit": "unidade",
+    "tax_regime": "MEI",
+    "tax_rate": null
+  },
+  "ingredients": [
+    {
+      "id": "fe413acf-e349-4cfa-837a-fad75d5ac32c",
+      "name": "massa",
+      "used_qty": "1.000000",
+      "used_unit": "unidade",
+      "package_price": "4.0000",
+      "package_qty": "1.000000",
+      "package_unit": "unidade"
+    },
+    {
+      "id": "66c81e1f-f959-4fc5-a672-47371edad6f4",
+      "name": "queijo",
+      "used_qty": "1.000000",
+      "used_unit": "unidade",
+      "package_price": "6.0000",
+      "package_qty": "1.000000",
+      "package_unit": "unidade"
+    }
+  ],
+  "absent": {
+    "product_packaging": 0,
+    "sales_fees": 0,
+    "market_prices": 0
+  },
+  "duplicateProductIds": ["01e3b94a-91f4-42f8-9ddb-651f370d1187"],
+  "conversation": {
+    "id": "00000000-0000-4000-8000-000000000020",
+    "conversation_state": "completed",
+    "current_product_id": "01e3b94a-91f4-42f8-9ddb-651f370d1187"
+  },
+  "tools": [
+    {
+      "tool_name": "create_product",
+      "status": "succeeded",
+      "error_code": null
+    },
+    {
+      "tool_name": "add_ingredients",
+      "status": "succeeded",
+      "error_code": null
+    },
+    {
+      "tool_name": "set_yield",
+      "status": "succeeded",
+      "error_code": null
+    },
+    {
+      "tool_name": "set_ingredient_cost",
+      "status": "succeeded",
+      "error_code": null
+    },
+    {
+      "tool_name": "set_ingredient_cost",
+      "status": "succeeded",
+      "error_code": null
+    },
+    {
+      "tool_name": "set_price_and_tax",
+      "status": "succeeded",
+      "error_code": null
+    },
+    {
+      "tool_name": "finish_product",
+      "status": "succeeded",
+      "error_code": null
+    }
+  ],
+  "usage": [
+    {
+      "usage_id": "cb6d5a86-c729-4092-ba1a-40f7d1fc854e",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 8567,
+      "estimated_cost": "0.0028",
+      "outcome": "success",
+      "round_no": 0
+    },
+    {
+      "usage_id": "efffbdfb-aa51-4296-9316-535bc666ec13",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 8674,
+      "estimated_cost": "0.0027",
+      "outcome": "tool_round",
+      "round_no": 0
+    },
+    {
+      "usage_id": "f901cef5-8732-454b-b554-af05586798d6",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 8977,
+      "estimated_cost": "0.0029",
+      "outcome": "tool_round",
+      "round_no": 1
+    },
+    {
+      "usage_id": "e6d7301a-ffdc-432d-aa76-3198c43312a1",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 9353,
+      "estimated_cost": "0.0030",
+      "outcome": "tool_round",
+      "round_no": 2
+    },
+    {
+      "usage_id": "827ea2e0-411c-4ea1-b75a-4d68bfdb9170",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 9616,
+      "estimated_cost": "0.0030",
+      "outcome": "tool_round",
+      "round_no": 3
+    },
+    {
+      "usage_id": "a025fd62-2f20-48fa-88cc-3f0380dadc68",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 9744,
+      "estimated_cost": "0.0030",
+      "outcome": "tool_round",
+      "round_no": 4
+    },
+    {
+      "usage_id": "4f7192c5-1a43-4c48-8c81-6ef490f9510b",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 10125,
+      "estimated_cost": "0.0033",
+      "outcome": "success",
+      "round_no": 5
+    },
+    {
+      "usage_id": "b9fdf0f5-d584-4bf5-bff4-2a7de1b6c091",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 9431,
+      "estimated_cost": "0.0032",
+      "outcome": "success",
+      "round_no": 0
+    },
+    {
+      "usage_id": "879f02bc-98f1-40e0-a33b-07a9ce952386",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 9900,
+      "estimated_cost": "0.0033",
+      "outcome": "success",
+      "round_no": 0
+    },
+    {
+      "usage_id": "d0d5d0e3-271e-4248-a54a-6afb26078321",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 9861,
+      "estimated_cost": "0.0032",
+      "outcome": "success",
+      "round_no": 0
+    },
+    {
+      "usage_id": "545d835a-b98d-4406-bab1-cafb61ca2b98",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 10108,
+      "estimated_cost": "0.0032",
+      "outcome": "success",
+      "round_no": 0
+    },
+    {
+      "usage_id": "a21748e9-7ffa-4dc5-a9fb-ce3d5732d1c7",
+      "status": "settled",
+      "cost_status": "known",
+      "real_tokens": 10254,
+      "estimated_cost": "0.0033",
+      "outcome": "success",
+      "round_no": 0
+    }
+  ],
+  "estimatedCostUsd": "0.0369",
+  "messages": {
+    "user": 7,
+    "assistant": 7,
+    "guardReplyPersisted": true,
+    "summaryReplyPersisted": true,
+    "finalBuild": true
+  }
+}

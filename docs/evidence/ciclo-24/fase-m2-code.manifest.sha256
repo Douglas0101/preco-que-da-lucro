@@ -1,0 +1,3 @@
+292c2ab18cff157613a5e7ff72329a21b7f5807aabac3bbb919ee9d03bcf6bb6  scripts/sonar/main-baseline.mjs
+e22f9ab2baa810165aa241c9607eadc32a4873595fa5c9e32206bb3172c6695c  .github/workflows/sonar.yml
+8d1739e49e63738779415caa616c529e2a56491323ffcec8853634237bfb3b38  AGENTS.md

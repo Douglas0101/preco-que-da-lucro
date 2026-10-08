@@ -1,0 +1,102 @@
+{
+  "schema": "pr60-release-reconciliation/1",
+  "observedAt": "2026-10-08T16:58:20Z",
+  "repository": "Douglas0101/preco-que-da-lucro",
+  "pullRequest": 60,
+  "headSha": "ce7a26eeaca97e63415587c378d091dd3f78541f",
+  "mainSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+  "testedMergeSha": "e6b3ac11e9e945cdd0ab06cd814fbfbcbb9beee2",
+  "testedMergeParentsVerified": true,
+  "successfulChecks": 12,
+  "failedChecks": 0,
+  "pendingChecks": 0,
+  "uiPrRun": 37740987681,
+  "sonarPrRun": 37740987791,
+  "neonPrRun": 37740987656,
+  "playwright": {
+    "passed": 84,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "projects": ["chromium", "firefox", "webkit", "mobile"]
+  },
+  "cePr": {
+    "taskId": "AaEaVBKClmmniFITq_4k",
+    "analysisId": "38354c39-29e7-4e87-90f2-fafb22df2058",
+    "providerRevision": "e6b3ac11e9e945cdd0ab06cd814fbfbcbb9beee2",
+    "providerGateStatus": "OK",
+    "releasePolicyStatus": "OK",
+    "newCoverage": 87.6,
+    "approvesNewMain": false
+  },
+  "mainBaseline": {
+    "analysisId": "1dc2baf9-b289-42f4-b2ca-dd7b662b3679",
+    "analysisDate": "2026-10-01T14:53:36+0000",
+    "revision": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+    "newCoverage": 63.23873121869783,
+    "providerGateStatus": "ERROR",
+    "failedProviderThreshold": 80,
+    "approvesNewMain": false
+  },
+  "mirror": {
+    "rawExitCode": 2,
+    "rawStatus": "NO-VERDICT",
+    "outcome": "INFORMATIONAL",
+    "approvesMain": false
+  },
+  "rulesetBefore": {
+    "id": 24333849,
+    "enforcement": "active",
+    "updateFreezePresent": true,
+    "requiredChecks": ["verify-release", "scan + cobertura", "main-coverage-mirror"],
+    "bypassActors": []
+  },
+  "authorization": {
+    "receivedAt": "2026-10-08T16:55:57Z",
+    "request": "Pode fazer o push e o Merge detalhados",
+    "policy": "ADR-042",
+    "permittedProtectionDelta": ["remove update", "remove required main-coverage-mirror"],
+    "publicationRequiresRealMainCe": true,
+    "credentialsRemainViaA": true
+  },
+  "neon": {
+    "projectId": "damp-forest-57346541",
+    "permanentIds": [
+      "br-small-hill-aymcu14y",
+      "br-snowy-violet-aymcvvvv",
+      "br-wandering-sky-ayxm5e5s"
+    ],
+    "inventoryComplete": true,
+    "fixtureBranchId": "br-twilight-river-ayb0xbah",
+    "fixtureJournalCount": 20,
+    "productionJournalCount": 20,
+    "repositoryJournalCount": 20,
+    "journalHashesAndOrderEqual": true,
+    "nonMigrationSchemaDriftBytes": 16329,
+    "migrationReplayRequired": false,
+    "productionWrites": false
+  },
+  "vercelBefore": {
+    "teamId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+    "projectId": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+    "productionAlias": "preco-que-da-lucro-sage.vercel.app",
+    "aliasDeploymentId": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+    "target": "production",
+    "state": "READY",
+    "sha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+    "failedHistoricalRedeployId": "dpl_4vNYvd5xcXRBjVRyRcp9Fri7mhxz",
+    "failedHistoricalRedeployCode": "BLOCKED_PACKAGE"
+  },
+  "custody": {
+    "baselineTrackedDirtyFiles": 7,
+    "fingerprintedForeignFiles": 1013,
+    "foreignWipInWriteSet": false,
+    "runtimeEnvironmentFilesCopied": false
+  },
+  "limits": [
+    "PR coverage does not approve a future main revision.",
+    "The nonempty Neon schema diff is declared drift outside the migration chain, not a pending migration.",
+    "Hostinger, credential rotation and independent recovery remain separately qualified.",
+    "A local no-database check does not prove integration or RLS; the current full PR circuit is mandatory."
+  ]
+}

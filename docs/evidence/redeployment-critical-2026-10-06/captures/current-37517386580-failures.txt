@@ -1,0 +1,2 @@
+Branch efêmera · migrate · integração · RLS probe · E2E	Integração (suites db:test) contra a branch	2026-10-06T19:14:44.1231538Z error: rollback 0010 BLOQUEADO: 1 conta(s) presentes. Após o purge DB-01 toda conta é tráfego real; rollback de issuer somente via restore de snapshot (BAK-01).
+Branch efêmera · migrate · integração · RLS probe · E2E	Integração (suites db:test) contra a branch	2026-10-06T19:14:44.1510972Z ##[error]Process completed with exit code 1.

@@ -1,0 +1,8 @@
+{
+  "containerId": "d1bc1d2b5ba258ac5c7cc493d50ab080bdc229996e06333464754a3670be27d4",
+  "imageAndLabelVerified": true,
+  "containerAbsent": true,
+  "networkId": "d70ea59613d886b7aeb9e7d4080a90be1af0f4cfde6e175f038a70debb57825f",
+  "networkAbsent": true,
+  "verdict": "CLEANUP-VERIFIED"
+}

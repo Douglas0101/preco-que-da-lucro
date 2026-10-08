@@ -1,0 +1,22 @@
+prepare browsers and Linux packages	Set up job	2026-10-06T19:14:02.2968588Z ##[group]Runner Image Provisioner
+prepare browsers and Linux packages	Set up job	2026-10-06T19:14:02.2969593Z Version: 20261002.596
+prepare browsers and Linux packages	Set up job	2026-10-06T19:14:02.2974815Z ##[group]Runner Image
+prepare browsers and Linux packages	Set up job	2026-10-06T19:14:02.2975225Z Image: ubuntu-24.04
+prepare browsers and Linux packages	Set up job	2026-10-06T19:14:02.2975577Z Version: 20261004.327.1
+prepare browsers and Linux packages	Run npm ci --ignore-scripts	2026-10-06T19:14:15.9912380Z found 0 vulnerabilities
+verify-release	Set up job	2026-10-06T19:16:03.4307973Z ##[group]Runner Image Provisioner
+verify-release	Set up job	2026-10-06T19:16:03.4309583Z Version: 20260901.588
+verify-release	Set up job	2026-10-06T19:16:03.4318574Z ##[group]Runner Image
+verify-release	Set up job	2026-10-06T19:16:03.4319258Z Image: ubuntu-24.04
+verify-release	Set up job	2026-10-06T19:16:03.4319953Z Version: 20260927.320.1
+verify-release	Run npm ci --ignore-scripts	2026-10-06T19:16:38.1675921Z found 0 vulnerabilities
+verify-release	Run npm run test	2026-10-06T19:19:08.6444597Z ^[[2m Test Files ^[[22m ^[[1m^[[32m134 passed^[[39m^[[22m^[[90m (134)^[[39m
+verify-release	Run npm run test	2026-10-06T19:19:08.6454712Z ^[[2m      Tests ^[[22m ^[[1m^[[32m1891 passed^[[39m^[[22m^[[90m (1891)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:19:33.0514803Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:19:33.0516095Z ^[[2m      Tests ^[[22m ^[[1m^[[32m15 passed^[[39m^[[22m^[[90m (15)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:19:36.1245145Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:19:36.1246808Z ^[[2m      Tests ^[[22m ^[[1m^[[32m15 passed^[[39m^[[22m^[[90m (15)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:19:40.8319757Z ^[[2m Test Files ^[[22m ^[[1m^[[32m1 passed^[[39m^[[22m^[[90m (1)^[[39m
+verify-release	Run npm run db:test	2026-10-06T19:19:40.8320804Z ^[[2m      Tests ^[[22m ^[[1m^[[32m4 passed^[[39m^[[22m^[[90m (4)^[[39m
+verify-release	Audit dependencies	2026-10-06T19:19:48.1698152Z found 0 vulnerabilities
+verify-release	Verify kit identity and install Linux packages offline	2026-10-06T19:20:24.9635016Z precondition: kit identity mismatch: imageVersion

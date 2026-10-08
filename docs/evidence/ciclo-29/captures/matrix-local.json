@@ -1,0 +1,797 @@
+{
+  "at": "2026-10-05T02:42:38.925Z",
+  "stats": {
+    "startTime": "2026-10-05T02:42:38.925Z",
+    "duration": 109363.947,
+    "expected": 60,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "executedProjects": ["chromium", "firefox", "mobile"],
+  "unexecutedProject": "webkit",
+  "sourceJsonSha256": "a2edb1b87fcf4c746cdcd0fce0f896d99f1e7302a1c89b2a2e7abc2d51ca17c5",
+  "results": [
+    {
+      "project": "chromium",
+      "title": "o preview node-server nao requisita /_vercel/insights/*",
+      "file": "analytics-gate.spec.ts",
+      "line": 21,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1470
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "o preview node-server nao requisita /_vercel/insights/*",
+      "file": "analytics-gate.spec.ts",
+      "line": 21,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 4680
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "o preview node-server nao requisita /_vercel/insights/*",
+      "file": "analytics-gate.spec.ts",
+      "line": 21,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1079
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "authentication gate rejects a suppressed post-login redirect",
+      "file": "authentication-gate.spec.ts",
+      "line": 4,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2417
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "authentication gate rejects a suppressed post-login redirect",
+      "file": "authentication-gate.spec.ts",
+      "line": 4,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7207
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "authentication gate rejects a suppressed post-login redirect",
+      "file": "authentication-gate.spec.ts",
+      "line": 4,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1370
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS",
+      "file": "sales-dashboard.spec.ts",
+      "line": 207,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2511
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "registrar venda pelo formulário aparece em Vendas recentes",
+      "file": "sales-dashboard.spec.ts",
+      "line": 226,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 3200
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "venda registrada aparece no faturamento real nos períodos Mês e Ano",
+      "file": "sales-dashboard.spec.ts",
+      "line": 239,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 5921
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS",
+      "file": "sales-dashboard.spec.ts",
+      "line": 207,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 4137
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "registrar venda pelo formulário aparece em Vendas recentes",
+      "file": "sales-dashboard.spec.ts",
+      "line": 226,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 4443
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "venda registrada aparece no faturamento real nos períodos Mês e Ano",
+      "file": "sales-dashboard.spec.ts",
+      "line": 239,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 5847
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS",
+      "file": "sales-dashboard.spec.ts",
+      "line": 207,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2048
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "registrar venda pelo formulário aparece em Vendas recentes",
+      "file": "sales-dashboard.spec.ts",
+      "line": 226,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2224
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "venda registrada aparece no faturamento real nos períodos Mês e Ano",
+      "file": "sales-dashboard.spec.ts",
+      "line": 239,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 3941
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "public UI uses valid composed controls and has no serious a11y violations",
+      "file": "ui-stack.spec.ts",
+      "line": 44,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 4348
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "the CSP report channel answers 204 for a violation report",
+      "file": "ui-stack.spec.ts",
+      "line": 71,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 21
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "authentication controls keep accessible names",
+      "file": "ui-stack.spec.ts",
+      "line": 87,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2906
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "authentication matrix rejects invalid Better Auth credentials and protects routes",
+      "file": "ui-stack.spec.ts",
+      "line": 114,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1438
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "authorization matrix blocks member mutations with a Better Auth session",
+      "file": "ui-stack.spec.ts",
+      "line": 133,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2835
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "CSRF rejects a cross-site replay of a server-function mutation",
+      "file": "ui-stack.spec.ts",
+      "line": 154,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 3879
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "authenticated shell uses an HttpOnly session and accessible navigation",
+      "file": "ui-stack.spec.ts",
+      "line": 183,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9276
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "manual simulation has no fictitious current volume and labels hypothetical results",
+      "file": "ui-stack.spec.ts",
+      "line": 234,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9971
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "diagnostic forms prices only from explicit assumptions",
+      "file": "ui-stack.spec.ts",
+      "line": 265,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7313
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "chat HTTP dispatch survives a missing framework signal (BUG-CHAT)",
+      "file": "ui-stack.spec.ts",
+      "line": 298,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2835
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "financial query failure is not rendered as empty or zero data",
+      "file": "ui-stack.spec.ts",
+      "line": 327,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 8353
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "public UI uses valid composed controls and has no serious a11y violations",
+      "file": "ui-stack.spec.ts",
+      "line": 44,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2347
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "the CSP report channel answers 204 for a violation report",
+      "file": "ui-stack.spec.ts",
+      "line": 71,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 33
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "authentication controls keep accessible names",
+      "file": "ui-stack.spec.ts",
+      "line": 87,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1716
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "authentication matrix rejects invalid Better Auth credentials and protects routes",
+      "file": "ui-stack.spec.ts",
+      "line": 114,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1968
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "authorization matrix blocks member mutations with a Better Auth session",
+      "file": "ui-stack.spec.ts",
+      "line": 133,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2877
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "CSRF rejects a cross-site replay of a server-function mutation",
+      "file": "ui-stack.spec.ts",
+      "line": 154,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2994
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "authenticated shell uses an HttpOnly session and accessible navigation",
+      "file": "ui-stack.spec.ts",
+      "line": 183,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 5905
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "manual simulation has no fictitious current volume and labels hypothetical results",
+      "file": "ui-stack.spec.ts",
+      "line": 234,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7135
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "diagnostic forms prices only from explicit assumptions",
+      "file": "ui-stack.spec.ts",
+      "line": 265,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 6444
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "chat HTTP dispatch survives a missing framework signal (BUG-CHAT)",
+      "file": "ui-stack.spec.ts",
+      "line": 298,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2857
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "financial query failure is not rendered as empty or zero data",
+      "file": "ui-stack.spec.ts",
+      "line": 327,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 7887
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "public UI uses valid composed controls and has no serious a11y violations",
+      "file": "ui-stack.spec.ts",
+      "line": 44,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1533
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "the CSP report channel answers 204 for a violation report",
+      "file": "ui-stack.spec.ts",
+      "line": 71,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 9
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "authentication controls keep accessible names",
+      "file": "ui-stack.spec.ts",
+      "line": 87,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2154
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "authentication matrix rejects invalid Better Auth credentials and protects routes",
+      "file": "ui-stack.spec.ts",
+      "line": 114,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1252
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "authorization matrix blocks member mutations with a Better Auth session",
+      "file": "ui-stack.spec.ts",
+      "line": 133,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2023
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "CSRF rejects a cross-site replay of a server-function mutation",
+      "file": "ui-stack.spec.ts",
+      "line": 154,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2111
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "authenticated shell uses an HttpOnly session and accessible navigation",
+      "file": "ui-stack.spec.ts",
+      "line": 183,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 3700
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "manual simulation has no fictitious current volume and labels hypothetical results",
+      "file": "ui-stack.spec.ts",
+      "line": 234,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 5373
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "diagnostic forms prices only from explicit assumptions",
+      "file": "ui-stack.spec.ts",
+      "line": 265,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 4269
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "chat HTTP dispatch survives a missing framework signal (BUG-CHAT)",
+      "file": "ui-stack.spec.ts",
+      "line": 298,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1692
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "financial query failure is not rendered as empty or zero data",
+      "file": "ui-stack.spec.ts",
+      "line": 327,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 5564
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "produtos: estado REAL rotulado e células numéricas em estado ok",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 80,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2324
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "produto sem rendimento exibe DADOS INCOMPLETOS e nunca zero factual",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 93,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2409
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "CLS fica abaixo de 0,1 quando a engine expõe layout-shift",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 108,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2457
+        }
+      ]
+    },
+    {
+      "project": "chromium",
+      "title": "artefato persistido está redigido, selado e correlacionado",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 122,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2161
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "produtos: estado REAL rotulado e células numéricas em estado ok",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 80,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2075
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "produto sem rendimento exibe DADOS INCOMPLETOS e nunca zero factual",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 93,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2264
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "CLS fica abaixo de 0,1 quando a engine expõe layout-shift",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 108,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 3267
+        }
+      ]
+    },
+    {
+      "project": "firefox",
+      "title": "artefato persistido está redigido, selado e correlacionado",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 122,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2136
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "produtos: estado REAL rotulado e células numéricas em estado ok",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 80,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1780
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "produto sem rendimento exibe DADOS INCOMPLETOS e nunca zero factual",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 93,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1594
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "CLS fica abaixo de 0,1 quando a engine expõe layout-shift",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 108,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1940
+        }
+      ]
+    },
+    {
+      "project": "mobile",
+      "title": "artefato persistido está redigido, selado e correlacionado",
+      "file": "visual/visual-observability.spec.ts",
+      "line": 122,
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1354
+        }
+      ]
+    }
+  ],
+  "limit": "WebKit local newPage precondition unmet; full current PR matrix required"
+}

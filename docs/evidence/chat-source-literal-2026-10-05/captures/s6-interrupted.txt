@@ -1,0 +1,7 @@
+Relato terminal recebido do revisor /root/chat_source_literal_review:
+
+Agent errored: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at Oct 6th, 2026 1:55 AM.
+
+This agent's turn failed. If you still need this agent, use the available collaboration tools to give it another task.
+
+Classificação do principal: revisão final interrompida por precondição externa. Não é aprovação, rejeição técnica dos bytes r6 nem confirmação independente do reparo2. N1 e os probes r5 permanecem preservados; gate r6/QA são evidência executada pelo principal.

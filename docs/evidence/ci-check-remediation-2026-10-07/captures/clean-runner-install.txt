@@ -1,0 +1,9 @@
+$ npm ci --ignore-scripts --offline --no-audit --no-fund (isolated scratch checkout; audit remains in full repo gate)
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.hirok.io
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.hirok.io
+npm warn deprecated tsconfck@3.1.6: unmaintained
+npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 621 packages in 8s
+
+exit=0

@@ -1,0 +1,5 @@
+{
+  "observedAt": "2026-10-06T01:26:24.267Z",
+  "url": "https://diretrizprecifica.com/login",
+  "snapshot": "- link \"Voltar para a página inicial\":\n  - /url: /\n  - text: Voltar para a página inicial\n- img \"Diretriz Consultoria Financeira\"\n- heading \"Acesse sua conta\" [level=1]\n- paragraph: Entre para gerenciar sua assinatura do Diretriz Precifica.\n- button \"Entrar\"\n- button \"Criar conta\"\n- text: E-mail\n- textbox \"E-mail\":\n  - /placeholder: [REDACTED:email]\n- text: Senha\n- textbox \"Senha\":\n  - /placeholder: Sua senha\n- button \"Entrar\""
+}

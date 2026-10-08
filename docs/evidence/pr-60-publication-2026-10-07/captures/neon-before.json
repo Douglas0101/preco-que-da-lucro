@@ -1,0 +1,31 @@
+{
+  "observedAt": "2026-10-07T13:37:09.906241+00:00",
+  "source": "Neon MCP list_branches all pages + describe_project; read-only",
+  "projectId": "damp-forest-57346541",
+  "pgVersion": 17,
+  "plan": "free_v3",
+  "branchesLimit": 10,
+  "defaultEndpointSettings": {
+    "autoscaling_limit_min_cu": 0.25,
+    "autoscaling_limit_max_cu": 2,
+    "suspend_timeout_seconds": 0
+  },
+  "branches": [
+    {
+      "id": "br-snowy-violet-aymcvvvv",
+      "name": "production",
+      "default": true,
+      "state": "ready"
+    },
+    {
+      "id": "br-small-hill-aymcu14y",
+      "name": "develop",
+      "default": false,
+      "state": "ready"
+    }
+  ],
+  "historical412Cause": "unknown",
+  "creationPerformed": false,
+  "secretsPresentByName": ["NEON_API_KEY", "SONAR_TOKEN"],
+  "githubProjectVariable": "damp-forest-57346541"
+}

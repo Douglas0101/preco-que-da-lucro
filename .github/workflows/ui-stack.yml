@@ -25,8 +25,79 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  prepare-browsers:
+    name: prepare browsers and Linux packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    outputs:
+      artifact: ${{ steps.kit.outputs.artifact }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install --global --ignore-scripts npm@11.14.1
+      - run: npm ci --ignore-scripts
+      - id: resource-key
+        name: Identify the complete resource and its verifier
+        run: node scripts/ci/playwright-kit.ts key
+      - id: resource-cache
+        name: Restore browsers and offline Linux packages for this exact toolchain
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .artifacts/browser-kit/resource
+          key: ${{ steps.resource-key.outputs.key }}
+      - name: Prepare all browsers and retain offline Linux packages
+        if: steps.resource-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dpkg-query -W -f='${binary:Package}\t${Version}\n' > "$RUNNER_TEMP/packages-before.tsv"
+          printf '%s\n' 'APT::Keep-Downloaded-Packages "true";' 'Binary::apt::APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99-playwright-retain > /dev/null
+          npx playwright install --with-deps chromium firefox webkit
+          dpkg-query -W -f='${binary:Package}\t${Version}\n' > "$RUNNER_TEMP/packages-after.tsv"
+          mkdir -p .artifacts/browser-kit/resource
+          tar -czf .artifacts/browser-kit/resource/browsers.tar.gz -C "$HOME/.cache" ms-playwright
+          node scripts/ci/playwright-kit.ts capture .artifacts/browser-kit "$RUNNER_TEMP/packages-before.tsv" "$RUNNER_TEMP/packages-after.tsv"
+      - name: Validate the restored kit and install without network
+        if: steps.resource-cache.outputs.cache-hit == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/ci/playwright-kit.ts verify-resource .artifacts/browser-kit
+          shopt -s nullglob
+          archives=("$PWD"/.artifacts/browser-kit/resource/debs/*.deb)
+          if [ "${#archives[@]}" -gt 0 ]; then
+            sudo cp "${archives[@]}" /var/cache/apt/archives/
+            sudo apt-get --no-download --no-remove install -y --no-install-recommends "${archives[@]}"
+          fi
+          mkdir -p "$HOME/.cache"
+          tar -xzf .artifacts/browser-kit/resource/browsers.tar.gz -C "$HOME/.cache"
+      - name: Assert installed versions and attest this revision and run attempt
+        run: node scripts/ci/playwright-kit.ts attest .artifacts/browser-kit
+      - name: Save the validated complete resource on a cache miss
+        if: steps.resource-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .artifacts/browser-kit/resource
+          key: ${{ steps.resource-key.outputs.key }}
+      - id: kit
+        name: Name the prepared resource by revision and run attempt
+        run: echo "artifact=browser-kit-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+      - name: Upload prepared browsers and Linux packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ${{ steps.kit.outputs.artifact }}
+          path: .artifacts/browser-kit
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
   verify:
-    runs-on: ubuntu-latest
+    name: ${{ github.event_name == 'push' && 'verify' || 'verify-release' }}
+    needs: prepare-browsers
+    runs-on: ubuntu-24.04
     # A5: 12 min com o pior caso MEDIDO. A soma dos passos e ~9,5 min e o `playwright.config.ts`
     # tem `retries: 0`, entao o e2e nao dobra por retry — o teto tem ~2,5 min de folga. Reavaliar
     # com o p95 dos primeiros runs reais (criterio de reversao do WP-R8 §B4).
@@ -236,16 +307,29 @@ jobs:
           echo "projetos=${projetos}" >> "$GITHUB_OUTPUT"
           # espelho verificavel do aviso: o que foi escolhido, impresso como dado (nao como prosa)
           echo "navegadores escolhidos: ${lista} | projetos: ${projetos}"
-      # A4: cache dos binarios do Playwright (47 s -> ~3 s em cache hit). O SHA abaixo foi resolvido
-      # da API oficial (`repos/actions/cache/git/ref/tags/v4` -> commit 0057852b…), nunca de memoria:
-      # a repo fixa toda action por SHA de 40 e um SHA inventado quebraria a CI inteira.
-      - name: Cache dos navegadores do Playwright
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      # DBT-68: binary cache hit did not avoid the APT network timeout. Network
+      # preparation on a cache miss lives in the prerequisite job; verify requires this run's attestation.
+      - name: Download prepared browser resources
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: playwright-${{ runner.os }}-
-      - run: npx playwright install --with-deps ${{ steps.browsers.outputs.lista }}
+          name: ${{ needs.prepare-browsers.outputs.artifact }}
+          path: .artifacts/browser-kit
+      - name: Verify kit identity and install Linux packages offline
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/ci/playwright-kit.ts verify .artifacts/browser-kit
+          shopt -s nullglob
+          archives=("$PWD"/.artifacts/browser-kit/resource/debs/*.deb)
+          if [ "${#archives[@]}" -gt 0 ]; then
+            # --no-download also refuses acquiring a local archive outside the APT cache.
+            # Only copy payloads whose revision and hashes passed the kit verification above.
+            sudo cp "${archives[@]}" /var/cache/apt/archives/
+            sudo apt-get --no-download --no-remove install -y --no-install-recommends "${archives[@]}"
+          fi
+          mkdir -p "$HOME/.cache"
+          tar -xzf .artifacts/browser-kit/resource/browsers.tar.gz -C "$HOME/.cache"
+          node scripts/ci/playwright-kit.ts installed .artifacts/browser-kit
       # O tier e2e carrega a suíte visual (`npm run test:visual` localmente).
       # A spec vive em e2e/visual/ e o testDir a descobre: sem passo próprio,
       # que pagaria build+server de novo no orçamento de 12 min (ADR-033).

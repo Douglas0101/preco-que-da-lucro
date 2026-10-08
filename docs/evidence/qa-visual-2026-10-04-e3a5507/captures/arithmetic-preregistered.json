@@ -1,0 +1,45 @@
+{
+  "registeredBeforeInput": "2026-10-04T15:39:40.334276+00:00",
+  "arithmeticImplementation": "Python stdlib decimal, independent of application finance functions",
+  "diagnostic": {
+    "fixturePackaging": {
+      "packagePrice": "100",
+      "packageUnits": "10",
+      "unitCost": "10"
+    },
+    "taxRate": "0.10",
+    "salesFeeRate": "0.05",
+    "additionalUnitCost": "2",
+    "targetContributionRate": "0.20",
+    "minimum": "14.12",
+    "targetPrice": "18.46",
+    "marketReference": "18.00",
+    "negative": "target90% plus fees15% invalid; no numerical result"
+  },
+  "simulation": {
+    "price": "20",
+    "unitDirectCost": "5",
+    "fixed": "100",
+    "volume": "50",
+    "taxRate": "0.10",
+    "salesFeeRate": "0.05",
+    "revenue": "1000.00",
+    "unitVariableCost": "8.00",
+    "contributionUnit": "12.00",
+    "contributionPercent": "60.00",
+    "variableTotal": "400.00",
+    "expensesTotal": "500.00",
+    "operatingResult": "500.00",
+    "breakEvenRaw": "8.333333333333333333333333333",
+    "breakEvenDiscrete": "9"
+  },
+  "sale": {
+    "quantity": "2",
+    "unitPrice": "25",
+    "gross": "50.00",
+    "netWhenOmitted": "50.00",
+    "contributionUnitUsingFixture": "11.25",
+    "contributionPercentUsingFixture": "45.00",
+    "fixedExpenseNotSubtractedFromContribution": true
+  }
+}

@@ -1,0 +1,41 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { sha256, scanSelo, auditManifest, MANIFEST } from "./scripts/m02-seal.mjs";
+
+const dir = process.argv[2];
+const mode = process.argv[3];
+assert.ok(dir && (mode === "generate" || mode === "verify"));
+const manifestPath = `${dir}/${MANIFEST}`;
+const scan = scanSelo(dir);
+assert.deepEqual(scan.problemas, []);
+const discovered = scan.files.filter((path) => path !== manifestPath);
+const hashes = new Map(discovered.map((path) => [path, sha256(readFileSync(path))]));
+const generated = discovered.map((path) => `${hashes.get(path)}  ${path}`).join("\n") + "\n";
+const manifestText = mode === "verify" ? readFileSync(manifestPath, "utf8") : generated;
+assert.deepEqual(auditManifest({ discovered, hashes, manifestText }), []);
+
+const empty = auditManifest({ discovered: [], hashes: new Map(), manifestText: "" });
+assert.ok(empty.includes("descoberta vazia: 0 = 0 reprova"));
+const readme = `${dir}/README.md`;
+assert.ok(hashes.has(readme));
+const changedHashes = new Map(hashes);
+changedHashes.set(readme, sha256("altered source bytes"));
+assert.ok(auditManifest({ discovered, hashes: changedHashes, manifestText }).includes(`hash diverge: ${readme}`));
+const unexpected = `${dir}/unexpected-file.txt`;
+const extraHashes = new Map(hashes);
+extraHashes.set(unexpected, sha256("unexpected file"));
+assert.ok(auditManifest({ discovered: [...discovered, unexpected], hashes: extraHashes, manifestText }).includes(`descoberto fora do MANIFEST: ${unexpected}`));
+const missing = auditManifest({ discovered: discovered.filter((path) => path !== readme), hashes, manifestText });
+assert.ok(missing.includes(`MANIFEST cita arquivo ausente: ${readme}`));
+assert.ok(missing.includes("selo sem README.md"));
+
+console.log(JSON.stringify({
+  mode,
+  discovered: discovered.length,
+  checked: hashes.size,
+  manifestSha256: sha256(manifestText),
+  integrity: "PASS",
+  negatives: ["empty discovery rejected", "source hash change rejected", "unlisted file rejected", "missing required file rejected"],
+  formalS6: false,
+  ...(mode === "generate" ? { manifestText } : {}),
+}));

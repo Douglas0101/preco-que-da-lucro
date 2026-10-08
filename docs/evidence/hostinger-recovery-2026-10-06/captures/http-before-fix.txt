@@ -1,0 +1,17 @@
+# Transcricao dos probes do alvo publicado ANTES da correcao (2026-10-06T02:1x-02:27Z)
+# Classe: transcricao do log da sessao atual; a condicao nao e reproduzivel depois da correcao.
+# Formato original: curl -sS -o /tmp/x -w '%{http_code} %{content_type}' --max-time 20 <url>
+
+/api/health/live         200 application/json {"status":"ok"}
+/api/health/ready        503 application/json {"status":"not_ready","dependencies":{"postgres":"unavailable"}}
+/api/auth/get-session    500 text/html; charset=utf-8 <!doctype html>...<title>This page didn't load</title>
+POST sign-in (invalida)  500 text/html; charset=utf-8 <!doctype html>...<title>This page didn't load</title>
+/auth                    200 text/html; charset=utf-8 <title>Entrar · Preco que Da Lucro</title>
+
+# Logs estruturados do runtime (hPanel, JSON por linha), amostras literais observadas:
+{"timestamp":"2026-10-06T02:27:26.361Z","level":"error","event":"request.failed","correlationId":"57a15efd-e9b6-4cda-9268-e144b33f3b72","code":"INTERNAL_ERROR","method":"GET","pathname":"/api/auth/get-session","durationMs":878,"error":{"name":"error","message":"password authentication failed for user 'neondb_owner'"}}
+{"timestamp":"2026-10-06T02:27:30.364Z","level":"error","event":"health.readiness_failed","dependency":"postgres","error":{"name":"Error","message":"Failed query: select 1 as ready\nparams: "}}
+
+# Journal do repositorio ja registrava o mesmo estado antes desta sessao:
+# docs/evidence/agent-state/PROGRESS.md L494 (2026-10-03T00:00:19Z): "Hostinger ready503/session500"
+# docs/evidence/agent-state/PROGRESS.md L475 (2026-10-02T20:03:28Z): "nao direcionar dominio ao runtime ready503"

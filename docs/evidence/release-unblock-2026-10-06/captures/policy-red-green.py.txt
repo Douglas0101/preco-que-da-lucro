@@ -1,0 +1,29 @@
+from pathlib import Path
+import json, os, subprocess, tempfile, hashlib
+bench=Path('/home/douglas-souza/.codex/worktrees/critical-redeploy/preco-que-d-main')
+old=subprocess.check_output(['git','show','9b0540dc1ee44893c666c0f5eca2a70874161590:scripts/sonar/gate-readout.ts'],cwd=bench)
+new=(bench/'scripts/sonar/gate-readout.ts').read_bytes()
+results=[]
+for label,source,coverage,security,expected_exit in [('parent-80',old,'63.23873121869783','1',1),('candidate-60',new,'63.23873121869783','1',0),('below-60',new,'59.99','1',1),('security-error',new,'100','2',1)]:
+ root=Path(tempfile.mkdtemp(prefix='pqd-ce-policy-'))
+ (root/'scripts/sonar').mkdir(parents=True);(root/'.scannerwork').mkdir();(root/'artifacts').mkdir()
+ (root/'scripts/sonar/gate-readout.ts').write_bytes(source)
+ (root/'package.json').write_text('{"type":"module"}')
+ subprocess.run(['git','init','--quiet'],cwd=root,check=True)
+ subprocess.run(['git','-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','--allow-empty','-m','hermetic policy fixture'],cwd=root,check=True,stdout=subprocess.DEVNULL)
+ sha=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
+ (root/'.scannerwork/report-task.txt').write_text('projectKey=Douglas0101_preco-que-da-lucro\nceTaskId=hermetic-task\nceTaskUrl=https://sonarcloud.io/api/ce/task?id=hermetic-task\n')
+ controls=[('new_reliability_rating','GT','1','1'),('new_security_rating','GT','1',security),('new_maintainability_rating','GT','1','1'),('new_coverage','LT','80',coverage),('new_duplicated_lines_density','GT','3','0.0'),('new_security_hotspots_reviewed','LT','100','100.0')]
+ conditions=[dict(metricKey=m,comparator=c,errorThreshold=t,actualValue=a,status='ERROR' if (float(a)>float(t) if c=='GT' else float(a)<float(t)) else 'OK') for m,c,t,a in controls]
+ payload={'task':{'id':'hermetic-task','componentKey':'Douglas0101_preco-que-da-lucro','status':'SUCCESS','analysisId':'hermetic-analysis','branch':'main','revision':sha},'projectStatus':{'status':'ERROR' if any(c['status']=='ERROR' for c in conditions) else 'OK','ignoredConditions':False,'conditions':conditions}}
+ (root/'mock.mjs').write_text('const fixture='+json.dumps(payload)+'; globalThis.fetch=async (url)=>{ const u=new URL(url); if(u.origin!=="https://sonarcloud.io"||!["/api/ce/task","/api/qualitygates/project_status"].includes(u.pathname))throw Error("unexpected hermetic request"); return {ok:true,status:200,json:async()=>u.pathname==="/api/ce/task"?{task:fixture.task}:{projectStatus:fixture.projectStatus}};};')
+ env={**os.environ,'NODE_OPTIONS':'--import='+str(root/'mock.mjs'),'RUNNER_TEMP':str(root/'artifacts'),'SONAR_TOKEN':'synthetic-fixture-token','EXPECTED_BRANCH':'main','EXPECTED_PR':'','GITHUB_SHA':sha}
+ process=subprocess.run([str(bench/'node_modules/.bin/tsx'),'scripts/sonar/gate-readout.ts'],cwd=root,env=env,capture_output=True,text=True)
+ report=json.loads((root/'artifacts/c25-gate-readout.json').read_text())
+ assert process.returncode==expected_exit,(label,process.returncode,process.stderr)
+ assert report['status']=='ERROR',report
+ assert next(c['actual'] for c in report['conditions'] if c['metric']=='new_coverage')==coverage
+ if label=='candidate-60':assert report['releasePolicy']['status']=='OK' and report['releasePolicy']['providerGateStatus']=='ERROR'
+ if label in ['below-60','security-error']:assert report['releasePolicy']['status']=='ERROR'
+ results.append({'scenario':label,'exit':process.returncode,'sourceSha256':hashlib.sha256(source).hexdigest(),'providerStatus':report['status'],'coverage':coverage,'releasePolicy':report.get('releasePolicy'),'status':'PASS'})
+print(json.dumps({'gate':'entrypoint-policy-red-green','classification':'LOCAL-VERIFIED hermetic fixture, not remote analysis','parentSource':'9b0540dc1ee44893c666c0f5eca2a70874161590','cases':results},indent=2))

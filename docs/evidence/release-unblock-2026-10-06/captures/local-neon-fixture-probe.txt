@@ -1,0 +1,2 @@
+NEGATIVE: existing rollback and new fixture guard both refuse one account; identity and issuer preserved
+{"gate":"local-neon-empty-fixture","postgresMajor":17,"target":"fresh loopback:41923","helperSha256":"1a5f1a6f1638424c8bbbaf0f469b9327008851f484e7b90310821d8c457106b7","discoveredTables":38,"checkedTables":38,"rowsErased":0,"status":"PASS","limitation":"local PG17 function proof; remote API and schema-only creation remain separate CI evidence"}

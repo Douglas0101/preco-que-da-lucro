@@ -1,0 +1,13 @@
+classification=STATIC-TRIAGE
+supplied=63
+normalized=63
+confirmed=0
+not_actionable=62
+needs_review=1
+policy=SECURITY.md not found for 16 affected paths
+revision=66898f0d738717ecbf52cda1384017a0cc23e859
+results=/home/douglas-souza/.codex/state/plugins/codex-security/scans/pqd-develop/artifacts-8bdaed2e400f4bf449ae7640a6b9e723b11921b9eb04b73e42eb80714e5d5d8a/findings/c28-triage-results.json
+sha256=e323b565cd65c719518f6fd2688ab862dd965ce0e28af4965524ba28d703ba78
+input_scan=inconclusive/partial
+no_runtime_during_triage=true
+review_item=triage-037 (legacy sidecar destination boundary)

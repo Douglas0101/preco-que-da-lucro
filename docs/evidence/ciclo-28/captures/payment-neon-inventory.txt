@@ -1,0 +1,4 @@
+ObservedAt=2026-10-04T01:57:50.932285+00:00
+Source=N1 existing browser2/tab3, console project damp-forest-57346541 branches grid
+REMOTE-OBSERVED: row names production(default), develop; exactly these named rows, not count-only.
+No resource mutation performed by this lane. Operator L633 reports delete/GET404 of residual br-snowy-cake-ayyl3tdt; raw DELETE/GET404 not independently observed here. Cause/recreation prevention remains pending owner Vercel access.

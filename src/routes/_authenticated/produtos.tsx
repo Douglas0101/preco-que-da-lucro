@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteProduct } from "@/lib/products.functions";
+import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import { productsWithMetricsQueryOptions } from "@/lib/query-options";
 import { brl, pct } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,7 @@ function Produtos() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const productsQuery = useQuery(productsWithMetricsQueryOptions());
   const archiveProductMutation = useMutation({
-    mutationFn: (id: string) => deleteProduct({ data: { id } }),
+    mutationFn: (id: string) => unwrapServerFn(deleteProduct({ data: { id } })),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["products", "with-metrics"] }),

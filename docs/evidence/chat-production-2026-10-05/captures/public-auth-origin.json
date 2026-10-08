@@ -1,0 +1,29 @@
+{
+  "observedAt": "2026-10-06T01:28:29.221Z",
+  "sourceUrl": "https://diretrizprecifica.com/assets/index-Uk3Eix_8.js",
+  "origins": [
+    "http://fb.me",
+    "http://localhost",
+    "http://www.w3.org",
+    "https://api-ecommerce.hostinger.com",
+    "https://github.com",
+    "https://horizons-cdn.hostinger.com",
+    "https://images.hostinger.com",
+    "https://instagram.com",
+    "https://pocketbase.io",
+    "https://reactjs.org",
+    "https://reactrouter.com"
+  ],
+  "sdkFlags": {
+    "pocketbase": true,
+    "authWithPassword": true,
+    "chat": false
+  },
+  "identitySnippets": [
+    "n,i),Object.assign({},t,{token:t?.token||\"\",record:i})}async listAuthMethods(t){return t=Object.assign({method:\"GET\",fields:\"mfa,otp,password,oauth2\"},t),this.client.send(this.baseCollectionPath+\"/auth-methods\",t)}async authWithPassword(t,i,o){let a;o=Object.assign({method:\"POST\",body:{identity:t,password:i}},o),this.isSuperusers&&(a=o.autoRefreshThreshold,delete o.autoRefreshThreshold,o.autoRefresh||bu(this.client));let u=await this.client.send(this.baseCollectionPath+\"/auth-with-password\",o);return u=this.authResponse(u),a&&this.isS",
+    " L in A)if(L.toLowerCase()==\"authorization\"&&C==A[L]&&d.authStore.token){A[L]=d.authStore.token;break}return E.headers=A,v?v(j,E):{url:j,sendOptions:E}}})(this.client,a,(()=>this.authRefresh({autoRefresh:!0})),(()=>this.authWithPassword(t,i,Object.assign({autoRefresh:!0},o)))),u}async authWithOAuth2Code(t,i,o,a,u,c,d){let p={method:\"POST\",body:{provider:t,code:i,codeVerifier:o,redirectURL:a,createData:u}};return p=In(\"This form of authWithOAuth2Code(provider, code, codeVerifier, redirectURL, createData?, body?, query?) is deprecated. ",
+    "ull),hS=({children:n})=>{const[t,i]=S.useState(st.authStore.record);S.useEffect(()=>st.authStore.onChange((a,u)=>i(u)),[]);const o=S.useMemo(()=>({user:t,isAuthed:st.authStore.isValid,login:(a,u)=>st.collection(\"users\").authWithPassword(a,u),signup:async(a,u,c={})=>(await st.collection(\"users\").create({email:a,password:u,passwordConfirm:u,...c}),st.collection(\"users\").authWithPassword(a,u)),logout:()=>st.authStore.clear()}),[t]);return g.jsx($g.Provider,{value:o,children:n})},qg=()=>S.useContext($g),mS=\"/hcgi/api\",Hg={fetch:async(n,t=",
+    ":t,isAuthed:st.authStore.isValid,login:(a,u)=>st.collection(\"users\").authWithPassword(a,u),signup:async(a,u,c={})=>(await st.collection(\"users\").create({email:a,password:u,passwordConfirm:u,...c}),st.collection(\"users\").authWithPassword(a,u)),logout:()=>st.authStore.clear()}),[t]);return g.jsx($g.Provider,{value:o,children:n})},qg=()=>S.useContext($g),mS=\"/hcgi/api\",Hg={fetch:async(n,t={})=>await window.fetch(mS+n,t)},Wg=()=>({Authorization:`Bearer ${st.authStore.token}`});async function gS(){const n=await Hg.fetch(\"/ecommerce/subscri"
+  ],
+  "scope": "public source only; no session, storage or credentials read"
+}

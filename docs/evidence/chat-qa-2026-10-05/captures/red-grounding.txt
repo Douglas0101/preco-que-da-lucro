@@ -1,0 +1,90 @@
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/chat-financial-grounding.test.ts
+
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+stdout | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > bloqueia a soma real observada no Chrome, preservando a liquidação da chamada
+{"timestamp":"2026-10-06T00:05:08.789Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":2,"timeToFirstContentMs":2,"timeToFinalMs":2}
+
+stderr | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > bloqueia a soma real observada no Chrome, preservando a liquidação da chamada
+{"timestamp":"2026-10-06T00:05:08.790Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+stdout | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não transforma taxa ausente em percentual zero
+{"timestamp":"2026-10-06T00:05:08.798Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+stderr | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não transforma taxa ausente em percentual zero
+{"timestamp":"2026-10-06T00:05:08.798Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+stdout | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > uma resposta antiga do próprio modelo não autoriza valor sem fonte
+{"timestamp":"2026-10-06T00:05:08.800Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+stderr | src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > uma resposta antiga do próprio modelo não autoriza valor sem fonte
+{"timestamp":"2026-10-06T00:05:08.801Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+ ❯ src/test/chat-financial-grounding.test.ts (4 tests | 3 failed) 18ms
+     × bloqueia a soma real observada no Chrome, preservando a liquidação da chamada 10ms
+     × não transforma taxa ausente em percentual zero 2ms
+     × uma resposta antiga do próprio modelo não autoriza valor sem fonte 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > bloqueia a soma real observada no Chrome, preservando a liquidação da chamada
+AssertionError: expected 'Os ingredientes custam R$ 4,00 + R$ 6…' not to contain 'R$ 10,00'
+
+Expected: "R$ 10,00"
+Received: "Os ingredientes custam R$ 4,00 + R$ 6,00 = R$ 10,00 por unidade."
+
+ ❯ src/test/chat-financial-grounding.test.ts:44:32
+     42|       "Os ingredientes custam R$ 4,00 + R$ 6,00 = R$ 10,00 por unidade…
+     43|     );
+     44|     expect(result.content).not.toContain("R$ 10,00");
+       |                                ^
+     45|     expect(result.content).toContain("motor financeiro");
+     46|     const assistant = persisted.mock.calls.find(([, input]) => input.r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > não transforma taxa ausente em percentual zero
+AssertionError: expected 'Sua taxa é 0%.' not to contain '0%'
+
+Expected: "0%"
+Received: "Sua taxa é 0%."
+
+ ❯ src/test/chat-financial-grounding.test.ts:59:32
+     57|   it("não transforma taxa ausente em percentual zero", async () => {
+     58|     const { result } = await answer("Não informei minha taxa.", "Sua t…
+     59|     expect(result.content).not.toContain("0%");
+       |                                ^
+     60|     expect(result.content).toContain("motor financeiro");
+     61|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/test/chat-financial-grounding.test.ts > chat: valores financeiros com fonte antes de persistir > uma resposta antiga do próprio modelo não autoriza valor sem fonte
+AssertionError: expected 'Custo R$ 10,00.' not to contain 'R$ 10,00'
+
+Expected: "R$ 10,00"
+Received: "Custo R$ 10,00."
+
+ ❯ src/test/chat-financial-grounding.test.ts:69:32
+     67|       "Custo R$ 10,00.",
+     68|     );
+     69|     expect(result.content).not.toContain("R$ 10,00");
+       |                                ^
+     70|   });
+     71| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  21:05:07
+   Duration  1.80s (transform 390ms, setup 122ms, import 958ms, tests 18ms, environment 574ms)
+

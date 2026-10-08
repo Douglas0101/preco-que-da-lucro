@@ -1,0 +1,1489 @@
+{
+  "observedAt": "2026-10-06T19:37:41.260990+00:00",
+  "uiPrAttempt": 2,
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 37517386599,
+      "event": "pull_request",
+      "headSha": "ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff",
+      "jobs": [
+        {
+          "completedAt": "2026-10-06T19:25:57Z",
+          "conclusion": "success",
+          "databaseId": 112457630250,
+          "name": "prepare browsers and Linux packages",
+          "startedAt": "2026-10-06T19:23:02Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-06T19:23:05Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-06T19:23:04Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:07Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "startedAt": "2026-10-06T19:23:05Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:09Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 3,
+              "startedAt": "2026-10-06T19:23:07Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:14Z",
+              "conclusion": "success",
+              "name": "Run npm install --global --ignore-scripts npm@11.14.1",
+              "number": 4,
+              "startedAt": "2026-10-06T19:23:09Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:27Z",
+              "conclusion": "success",
+              "name": "Run npm ci --ignore-scripts",
+              "number": 5,
+              "startedAt": "2026-10-06T19:23:14Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:27Z",
+              "conclusion": "success",
+              "name": "Identify the complete resource and its verifier",
+              "number": 6,
+              "startedAt": "2026-10-06T19:23:27Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:27Z",
+              "conclusion": "success",
+              "name": "Restore browsers and offline Linux packages for this exact toolchain",
+              "number": 7,
+              "startedAt": "2026-10-06T19:23:27Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:25:38Z",
+              "conclusion": "success",
+              "name": "Prepare all browsers and retain offline Linux packages",
+              "number": 8,
+              "startedAt": "2026-10-06T19:23:27Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:25:38Z",
+              "conclusion": "skipped",
+              "name": "Validate the restored kit and install without network",
+              "number": 9,
+              "startedAt": "2026-10-06T19:25:38Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:25:40Z",
+              "conclusion": "success",
+              "name": "Assert installed versions and attest this revision and run attempt",
+              "number": 10,
+              "startedAt": "2026-10-06T19:25:38Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:25:45Z",
+              "conclusion": "success",
+              "name": "Save the validated complete resource on a cache miss",
+              "number": 11,
+              "startedAt": "2026-10-06T19:25:40Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:25:45Z",
+              "conclusion": "success",
+              "name": "Name the prepared resource by revision and run attempt",
+              "number": 12,
+              "startedAt": "2026-10-06T19:25:45Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:25:54Z",
+              "conclusion": "success",
+              "name": "Upload prepared browsers and Linux packages",
+              "number": 13,
+              "startedAt": "2026-10-06T19:25:45Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:25:54Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 25,
+              "startedAt": "2026-10-06T19:25:54Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:25:54Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 26,
+              "startedAt": "2026-10-06T19:25:54Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:25:54Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 27,
+              "startedAt": "2026-10-06T19:25:54Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386599/job/112457630250"
+        },
+        {
+          "completedAt": "2026-10-06T19:31:50Z",
+          "conclusion": "success",
+          "databaseId": 112458898032,
+          "name": "verify-release",
+          "startedAt": "2026-10-06T19:26:01Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-06T19:26:03Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-06T19:26:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:14Z",
+              "conclusion": "success",
+              "name": "Initialize containers",
+              "number": 2,
+              "startedAt": "2026-10-06T19:26:03Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:17Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 3,
+              "startedAt": "2026-10-06T19:26:14Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:17Z",
+              "conclusion": "success",
+              "name": "Escopo (quais tiers caros se aplicam)",
+              "number": 4,
+              "startedAt": "2026-10-06T19:26:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:18Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 5,
+              "startedAt": "2026-10-06T19:26:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:22Z",
+              "conclusion": "success",
+              "name": "Run npm install --global --ignore-scripts npm@11.14.1",
+              "number": 6,
+              "startedAt": "2026-10-06T19:26:18Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:31Z",
+              "conclusion": "success",
+              "name": "Run npm ci --ignore-scripts",
+              "number": 7,
+              "startedAt": "2026-10-06T19:26:22Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:31Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:work-package-guard",
+              "number": 8,
+              "startedAt": "2026-10-06T19:26:31Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:31Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:debts-guard",
+              "number": 9,
+              "startedAt": "2026-10-06T19:26:31Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:31Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:temporal-guard",
+              "number": 10,
+              "startedAt": "2026-10-06T19:26:31Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:32Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:state:check",
+              "number": 11,
+              "startedAt": "2026-10-06T19:26:31Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:32Z",
+              "conclusion": "success",
+              "name": "Run npm run guard:upgrade",
+              "number": 12,
+              "startedAt": "2026-10-06T19:26:32Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:32Z",
+              "conclusion": "success",
+              "name": "Run npm run check:migration-toolchain",
+              "number": 13,
+              "startedAt": "2026-10-06T19:26:32Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:33Z",
+              "conclusion": "success",
+              "name": "Run npm run guard:contracts",
+              "number": 14,
+              "startedAt": "2026-10-06T19:26:32Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:33Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:boundaries",
+              "number": 15,
+              "startedAt": "2026-10-06T19:26:33Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:35Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:secrets-audit",
+              "number": 16,
+              "startedAt": "2026-10-06T19:26:33Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:36Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:matrix:check",
+              "number": 17,
+              "startedAt": "2026-10-06T19:26:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:36Z",
+              "conclusion": "success",
+              "name": "Run npm run check:ui-stack",
+              "number": 18,
+              "startedAt": "2026-10-06T19:26:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:36Z",
+              "conclusion": "success",
+              "name": "Run npm run check:no-supabase-runtime",
+              "number": 19,
+              "startedAt": "2026-10-06T19:26:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:26:54Z",
+              "conclusion": "success",
+              "name": "Run npm run format:check",
+              "number": 20,
+              "startedAt": "2026-10-06T19:26:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:27:02Z",
+              "conclusion": "success",
+              "name": "Run npm run typecheck",
+              "number": 21,
+              "startedAt": "2026-10-06T19:26:54Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:27:12Z",
+              "conclusion": "success",
+              "name": "Run npm run lint",
+              "number": 22,
+              "startedAt": "2026-10-06T19:27:02Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:28:12Z",
+              "conclusion": "success",
+              "name": "Run npm run test",
+              "number": 23,
+              "startedAt": "2026-10-06T19:27:12Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:28:35Z",
+              "conclusion": "success",
+              "name": "Run npm run db:test",
+              "number": 24,
+              "startedAt": "2026-10-06T19:28:12Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:28:35Z",
+              "conclusion": "success",
+              "name": "Run npm run db:check",
+              "number": 25,
+              "startedAt": "2026-10-06T19:28:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:28:35Z",
+              "conclusion": "skipped",
+              "name": "Banco \u2014 pulado por escopo (nenhum caminho de banco no diff)",
+              "number": 26,
+              "startedAt": "2026-10-06T19:28:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:28:35Z",
+              "conclusion": "success",
+              "name": "Configure isolated runtime and E2E credentials",
+              "number": 27,
+              "startedAt": "2026-10-06T19:28:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:28:39Z",
+              "conclusion": "success",
+              "name": "Run npm run build",
+              "number": 28,
+              "startedAt": "2026-10-06T19:28:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:28:40Z",
+              "conclusion": "success",
+              "name": "Run npm run check:bundle",
+              "number": 29,
+              "startedAt": "2026-10-06T19:28:39Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:28:40Z",
+              "conclusion": "success",
+              "name": "Audit dependencies",
+              "number": 30,
+              "startedAt": "2026-10-06T19:28:40Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:28:41Z",
+              "conclusion": "success",
+              "name": "Upload bundle evidence",
+              "number": 31,
+              "startedAt": "2026-10-06T19:28:40Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:28:41Z",
+              "conclusion": "success",
+              "name": "Navegadores por tier",
+              "number": 32,
+              "startedAt": "2026-10-06T19:28:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:29:12Z",
+              "conclusion": "success",
+              "name": "Download prepared browser resources",
+              "number": 33,
+              "startedAt": "2026-10-06T19:28:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:29:41Z",
+              "conclusion": "success",
+              "name": "Verify kit identity and install Linux packages offline",
+              "number": 34,
+              "startedAt": "2026-10-06T19:29:12Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:31:46Z",
+              "conclusion": "success",
+              "name": "Run npx playwright test --project=chromium --project=firefox --project=webkit --project=mobile",
+              "number": 35,
+              "startedAt": "2026-10-06T19:29:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:31:47Z",
+              "conclusion": "success",
+              "name": "Upload browser evidence",
+              "number": 36,
+              "startedAt": "2026-10-06T19:31:46Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:31:47Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 70,
+              "startedAt": "2026-10-06T19:31:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:31:47Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 71,
+              "startedAt": "2026-10-06T19:31:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:31:48Z",
+              "conclusion": "success",
+              "name": "Stop containers",
+              "number": 72,
+              "startedAt": "2026-10-06T19:31:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:31:48Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 73,
+              "startedAt": "2026-10-06T19:31:48Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386599/job/112458898032"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386599"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 37517379242,
+      "event": "push",
+      "headSha": "ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff",
+      "jobs": [
+        {
+          "completedAt": "2026-10-06T19:16:17Z",
+          "conclusion": "success",
+          "databaseId": 112453675730,
+          "name": "prepare browsers and Linux packages",
+          "startedAt": "2026-10-06T19:13:53Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-06T19:13:55Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-06T19:13:54Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:13:57Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "startedAt": "2026-10-06T19:13:55Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:13:57Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 3,
+              "startedAt": "2026-10-06T19:13:57Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:02Z",
+              "conclusion": "success",
+              "name": "Run npm install --global --ignore-scripts npm@11.14.1",
+              "number": 4,
+              "startedAt": "2026-10-06T19:13:57Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:15Z",
+              "conclusion": "success",
+              "name": "Run npm ci --ignore-scripts",
+              "number": 5,
+              "startedAt": "2026-10-06T19:14:02Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:15Z",
+              "conclusion": "success",
+              "name": "Identify the complete resource and its verifier",
+              "number": 6,
+              "startedAt": "2026-10-06T19:14:15Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:15Z",
+              "conclusion": "success",
+              "name": "Restore browsers and offline Linux packages for this exact toolchain",
+              "number": 7,
+              "startedAt": "2026-10-06T19:14:15Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:05Z",
+              "conclusion": "success",
+              "name": "Prepare all browsers and retain offline Linux packages",
+              "number": 8,
+              "startedAt": "2026-10-06T19:14:15Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:05Z",
+              "conclusion": "skipped",
+              "name": "Validate the restored kit and install without network",
+              "number": 9,
+              "startedAt": "2026-10-06T19:16:05Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:07Z",
+              "conclusion": "success",
+              "name": "Assert installed versions and attest this revision and run attempt",
+              "number": 10,
+              "startedAt": "2026-10-06T19:16:05Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:10Z",
+              "conclusion": "success",
+              "name": "Save the validated complete resource on a cache miss",
+              "number": 11,
+              "startedAt": "2026-10-06T19:16:07Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:10Z",
+              "conclusion": "success",
+              "name": "Name the prepared resource by revision and run attempt",
+              "number": 12,
+              "startedAt": "2026-10-06T19:16:10Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:15Z",
+              "conclusion": "success",
+              "name": "Upload prepared browsers and Linux packages",
+              "number": 13,
+              "startedAt": "2026-10-06T19:16:10Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:15Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 25,
+              "startedAt": "2026-10-06T19:16:15Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:16Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 26,
+              "startedAt": "2026-10-06T19:16:15Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:16Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 27,
+              "startedAt": "2026-10-06T19:16:16Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517379242/job/112453675730"
+        },
+        {
+          "completedAt": "2026-10-06T19:23:12Z",
+          "conclusion": "success",
+          "databaseId": 112454747921,
+          "name": "verify",
+          "startedAt": "2026-10-06T19:16:20Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-06T19:16:22Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-06T19:16:21Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:34Z",
+              "conclusion": "success",
+              "name": "Initialize containers",
+              "number": 2,
+              "startedAt": "2026-10-06T19:16:22Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:38Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 3,
+              "startedAt": "2026-10-06T19:16:34Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:38Z",
+              "conclusion": "success",
+              "name": "Escopo (quais tiers caros se aplicam)",
+              "number": 4,
+              "startedAt": "2026-10-06T19:16:38Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:43Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 5,
+              "startedAt": "2026-10-06T19:16:38Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:48Z",
+              "conclusion": "success",
+              "name": "Run npm install --global --ignore-scripts npm@11.14.1",
+              "number": 6,
+              "startedAt": "2026-10-06T19:16:43Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:01Z",
+              "conclusion": "success",
+              "name": "Run npm ci --ignore-scripts",
+              "number": 7,
+              "startedAt": "2026-10-06T19:16:48Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:01Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:work-package-guard",
+              "number": 8,
+              "startedAt": "2026-10-06T19:17:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:01Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:debts-guard",
+              "number": 9,
+              "startedAt": "2026-10-06T19:17:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:02Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:temporal-guard",
+              "number": 10,
+              "startedAt": "2026-10-06T19:17:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:02Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:state:check",
+              "number": 11,
+              "startedAt": "2026-10-06T19:17:02Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:03Z",
+              "conclusion": "success",
+              "name": "Run npm run guard:upgrade",
+              "number": 12,
+              "startedAt": "2026-10-06T19:17:02Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:03Z",
+              "conclusion": "success",
+              "name": "Run npm run check:migration-toolchain",
+              "number": 13,
+              "startedAt": "2026-10-06T19:17:03Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:03Z",
+              "conclusion": "success",
+              "name": "Run npm run guard:contracts",
+              "number": 14,
+              "startedAt": "2026-10-06T19:17:03Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:04Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:boundaries",
+              "number": 15,
+              "startedAt": "2026-10-06T19:17:03Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:06Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:secrets-audit",
+              "number": 16,
+              "startedAt": "2026-10-06T19:17:04Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:08Z",
+              "conclusion": "success",
+              "name": "Run npm run m02:matrix:check",
+              "number": 17,
+              "startedAt": "2026-10-06T19:17:06Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:08Z",
+              "conclusion": "success",
+              "name": "Run npm run check:ui-stack",
+              "number": 18,
+              "startedAt": "2026-10-06T19:17:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:08Z",
+              "conclusion": "success",
+              "name": "Run npm run check:no-supabase-runtime",
+              "number": 19,
+              "startedAt": "2026-10-06T19:17:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:33Z",
+              "conclusion": "success",
+              "name": "Run npm run format:check",
+              "number": 20,
+              "startedAt": "2026-10-06T19:17:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:45Z",
+              "conclusion": "success",
+              "name": "Run npm run typecheck",
+              "number": 21,
+              "startedAt": "2026-10-06T19:17:33Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:17:59Z",
+              "conclusion": "success",
+              "name": "Run npm run lint",
+              "number": 22,
+              "startedAt": "2026-10-06T19:17:45Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:19:32Z",
+              "conclusion": "success",
+              "name": "Run npm run test",
+              "number": 23,
+              "startedAt": "2026-10-06T19:17:59Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:20:04Z",
+              "conclusion": "success",
+              "name": "Run npm run db:test",
+              "number": 24,
+              "startedAt": "2026-10-06T19:19:32Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:20:05Z",
+              "conclusion": "success",
+              "name": "Run npm run db:check",
+              "number": 25,
+              "startedAt": "2026-10-06T19:20:04Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:20:05Z",
+              "conclusion": "skipped",
+              "name": "Banco \u2014 pulado por escopo (nenhum caminho de banco no diff)",
+              "number": 26,
+              "startedAt": "2026-10-06T19:20:05Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:20:05Z",
+              "conclusion": "success",
+              "name": "Configure isolated runtime and E2E credentials",
+              "number": 27,
+              "startedAt": "2026-10-06T19:20:05Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:20:10Z",
+              "conclusion": "success",
+              "name": "Run npm run build",
+              "number": 28,
+              "startedAt": "2026-10-06T19:20:05Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:20:11Z",
+              "conclusion": "success",
+              "name": "Run npm run check:bundle",
+              "number": 29,
+              "startedAt": "2026-10-06T19:20:10Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:20:11Z",
+              "conclusion": "success",
+              "name": "Audit dependencies",
+              "number": 30,
+              "startedAt": "2026-10-06T19:20:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:20:13Z",
+              "conclusion": "success",
+              "name": "Upload bundle evidence",
+              "number": 31,
+              "startedAt": "2026-10-06T19:20:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:20:13Z",
+              "conclusion": "success",
+              "name": "Navegadores por tier",
+              "number": 32,
+              "startedAt": "2026-10-06T19:20:13Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:21:16Z",
+              "conclusion": "success",
+              "name": "Download prepared browser resources",
+              "number": 33,
+              "startedAt": "2026-10-06T19:20:13Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:21:47Z",
+              "conclusion": "success",
+              "name": "Verify kit identity and install Linux packages offline",
+              "number": 34,
+              "startedAt": "2026-10-06T19:21:16Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:06Z",
+              "conclusion": "success",
+              "name": "Run npx playwright test --project=chromium --project=mobile",
+              "number": 35,
+              "startedAt": "2026-10-06T19:21:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:08Z",
+              "conclusion": "success",
+              "name": "Upload browser evidence",
+              "number": 36,
+              "startedAt": "2026-10-06T19:23:06Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:08Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 70,
+              "startedAt": "2026-10-06T19:23:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:08Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 71,
+              "startedAt": "2026-10-06T19:23:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:09Z",
+              "conclusion": "success",
+              "name": "Stop containers",
+              "number": 72,
+              "startedAt": "2026-10-06T19:23:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:23:09Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 73,
+              "startedAt": "2026-10-06T19:23:09Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517379242/job/112454747921"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517379242"
+    },
+    {
+      "conclusion": "failure",
+      "databaseId": 37517386580,
+      "event": "pull_request",
+      "headSha": "ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff",
+      "jobs": [
+        {
+          "completedAt": "2026-10-06T19:14:04Z",
+          "conclusion": "success",
+          "databaseId": 112453700909,
+          "name": "Fork-guard + presen\u00e7a de segredo",
+          "startedAt": "2026-10-06T19:14:01Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-06T19:14:02Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-06T19:14:02Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:02Z",
+              "conclusion": "success",
+              "name": "Decide",
+              "number": 2,
+              "startedAt": "2026-10-06T19:14:02Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:02Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 3,
+              "startedAt": "2026-10-06T19:14:02Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386580/job/112453700909"
+        },
+        {
+          "completedAt": "2026-10-06T19:14:46Z",
+          "conclusion": "failure",
+          "databaseId": 112453773462,
+          "name": "Branch ef\u00eamera \u00b7 migrate \u00b7 integra\u00e7\u00e3o \u00b7 RLS probe \u00b7 E2E",
+          "startedAt": "2026-10-06T19:14:07Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-06T19:14:10Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-06T19:14:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:12Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "startedAt": "2026-10-06T19:14:10Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:13Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 3,
+              "startedAt": "2026-10-06T19:14:12Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:14Z",
+              "conclusion": "success",
+              "name": "Create ephemeral branch pr-<num> (\u00a712.4 parent production para main, develop para os demais)",
+              "number": 4,
+              "startedAt": "2026-10-06T19:14:13Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:15Z",
+              "conclusion": "success",
+              "name": "Rede de seguran\u00e7a \u00a712.5 (expires-at +24h) + URIs da branch em RUNNER_TEMP",
+              "number": 5,
+              "startedAt": "2026-10-06T19:14:14Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:24Z",
+              "conclusion": "success",
+              "name": "Install dependencies",
+              "number": 6,
+              "startedAt": "2026-10-06T19:14:15Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:26Z",
+              "conclusion": "success",
+              "name": "Migrations via DIRECT da branch (drill-branch, journal no-op esperado)",
+              "number": 7,
+              "startedAt": "2026-10-06T19:14:24Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:33Z",
+              "conclusion": "success",
+              "name": "Schema diff \u00a712.5 (compare_schema + veredito por n\u00edvel de migration)",
+              "number": 8,
+              "startedAt": "2026-10-06T19:14:26Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:34Z",
+              "conclusion": "success",
+              "name": "Upload schema diff \u00a712.5",
+              "number": 9,
+              "startedAt": "2026-10-06T19:14:33Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:44Z",
+              "conclusion": "failure",
+              "name": "Integra\u00e7\u00e3o (suites db:test) contra a branch",
+              "number": 10,
+              "startedAt": "2026-10-06T19:14:34Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:44Z",
+              "conclusion": "skipped",
+              "name": "Seed sint\u00e9tico + sonda RLS adversarial contra o DIRECT da branch (H-07)",
+              "number": 11,
+              "startedAt": "2026-10-06T19:14:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:44Z",
+              "conclusion": "skipped",
+              "name": "Prova de journal (read-only)",
+              "number": 12,
+              "startedAt": "2026-10-06T19:14:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:44Z",
+              "conclusion": "skipped",
+              "name": "E2E Playwright contra a branch ef\u00eamera (\u00a712.5 \u00b7 \u00a726.7)",
+              "number": 13,
+              "startedAt": "2026-10-06T19:14:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:44Z",
+              "conclusion": "skipped",
+              "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 25,
+              "startedAt": "2026-10-06T19:14:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:44Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 26,
+              "startedAt": "2026-10-06T19:14:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:44Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 27,
+              "startedAt": "2026-10-06T19:14:44Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386580/job/112453773462"
+        },
+        {
+          "completedAt": "2026-10-06T19:15:03Z",
+          "conclusion": "success",
+          "databaseId": 112454081075,
+          "name": "Cleanup always() com prova (\u00a712.5)",
+          "startedAt": "2026-10-06T19:14:49Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-06T19:14:52Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-06T19:14:51Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:59Z",
+              "conclusion": "success",
+              "name": "Delete branch ef\u00eamera",
+              "number": 2,
+              "startedAt": "2026-10-06T19:14:52Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:15:01Z",
+              "conclusion": "success",
+              "name": "Prova de cleanup + coment\u00e1rio no PR",
+              "number": 3,
+              "startedAt": "2026-10-06T19:14:59Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:15:01Z",
+              "conclusion": "success",
+              "name": "Post Delete branch ef\u00eamera",
+              "number": 6,
+              "startedAt": "2026-10-06T19:15:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:15:01Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 7,
+              "startedAt": "2026-10-06T19:15:01Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386580/job/112454081075"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386580"
+    },
+    {
+      "conclusion": "failure",
+      "databaseId": 37517386392,
+      "event": "pull_request",
+      "headSha": "ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff",
+      "jobs": [
+        {
+          "completedAt": "2026-10-06T19:16:19Z",
+          "conclusion": "success",
+          "databaseId": 112453699707,
+          "name": "scan + cobertura",
+          "startedAt": "2026-10-06T19:13:56Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-06T19:13:58Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-06T19:13:57Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:00Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "startedAt": "2026-10-06T19:13:58Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:01Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 3,
+              "startedAt": "2026-10-06T19:14:00Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:03Z",
+              "conclusion": "success",
+              "name": "Medir baseline main (M2, leitura por SHA)",
+              "number": 4,
+              "startedAt": "2026-10-06T19:14:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:14:10Z",
+              "conclusion": "success",
+              "name": "Instalar (como o CI instala)",
+              "number": 5,
+              "startedAt": "2026-10-06T19:14:03Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:15:14Z",
+              "conclusion": "success",
+              "name": "Su\u00edte com cobertura (lcov)",
+              "number": 6,
+              "startedAt": "2026-10-06T19:14:10Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:15:14Z",
+              "conclusion": "success",
+              "name": "Conferir o relat\u00f3rio antes de enviar",
+              "number": 7,
+              "startedAt": "2026-10-06T19:15:14Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:14Z",
+              "conclusion": "success",
+              "name": "sonar-scanner",
+              "number": 8,
+              "startedAt": "2026-10-06T19:15:14Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:14Z",
+              "conclusion": "success",
+              "name": "Conferir que a cobertura foi CONSUMIDA",
+              "number": 9,
+              "startedAt": "2026-10-06T19:16:14Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:15Z",
+              "conclusion": "success",
+              "name": "Nomear veredito do CE desta an\u00e1lise (sem token no log)",
+              "number": 10,
+              "startedAt": "2026-10-06T19:16:14Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:15Z",
+              "conclusion": "skipped",
+              "name": "Medir main somente ap\u00f3s a an\u00e1lise do push",
+              "number": 11,
+              "startedAt": "2026-10-06T19:16:15Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:15Z",
+              "conclusion": "success",
+              "name": "Seal scanner LCOV provenance",
+              "number": 12,
+              "startedAt": "2026-10-06T19:16:15Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:16Z",
+              "conclusion": "success",
+              "name": "Guardar o lcov como artefato",
+              "number": 13,
+              "startedAt": "2026-10-06T19:16:15Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:17Z",
+              "conclusion": "success",
+              "name": "Guardar o veredito do CE e a baseline (sem credenciais)",
+              "number": 14,
+              "startedAt": "2026-10-06T19:16:16Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:17Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 27,
+              "startedAt": "2026-10-06T19:16:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:17Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 28,
+              "startedAt": "2026-10-06T19:16:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:17Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 29,
+              "startedAt": "2026-10-06T19:16:17Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386392/job/112453699707"
+        },
+        {
+          "completedAt": "2026-10-06T19:16:46Z",
+          "conclusion": "failure",
+          "databaseId": 112454766590,
+          "name": "main-coverage-mirror",
+          "startedAt": "2026-10-06T19:16:23Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-06T19:16:25Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-06T19:16:24Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:29Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "startedAt": "2026-10-06T19:16:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:33Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 3,
+              "startedAt": "2026-10-06T19:16:29Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:36Z",
+              "conclusion": "success",
+              "name": "Read authoritative main units at the current SHA",
+              "number": 4,
+              "startedAt": "2026-10-06T19:16:33Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:38Z",
+              "conclusion": "success",
+              "name": "Observe authenticated source unit capabilities without exposing source or tokens",
+              "number": 5,
+              "startedAt": "2026-10-06T19:16:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:39Z",
+              "conclusion": "success",
+              "name": "Download candidate scanner LCOV",
+              "number": 6,
+              "startedAt": "2026-10-06T19:16:38Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:41Z",
+              "conclusion": "success",
+              "name": "Download candidate CE identity",
+              "number": 7,
+              "startedAt": "2026-10-06T19:16:39Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:41Z",
+              "conclusion": "success",
+              "name": "Locate original main scanner run by immutable SHA",
+              "number": 8,
+              "startedAt": "2026-10-06T19:16:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:42Z",
+              "conclusion": "success",
+              "name": "Download original main scanner LCOV candidate",
+              "number": 9,
+              "startedAt": "2026-10-06T19:16:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:42Z",
+              "conclusion": "failure",
+              "name": "Map all main units only with original scanner provenance",
+              "number": 10,
+              "startedAt": "2026-10-06T19:16:42Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:42Z",
+              "conclusion": "failure",
+              "name": "Require individually mapped new-code units before granting coverage credit",
+              "number": 11,
+              "startedAt": "2026-10-06T19:16:42Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:44Z",
+              "conclusion": "success",
+              "name": "Preserve the measured gap and precondition verdict",
+              "number": 12,
+              "startedAt": "2026-10-06T19:16:42Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:44Z",
+              "conclusion": "skipped",
+              "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 23,
+              "startedAt": "2026-10-06T19:16:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:44Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 24,
+              "startedAt": "2026-10-06T19:16:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-06T19:16:44Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 25,
+              "startedAt": "2026-10-06T19:16:44Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386392/job/112454766590"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37517386392"
+    }
+  ]
+}

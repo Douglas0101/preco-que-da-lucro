@@ -138,10 +138,13 @@ describe("comparação e faixa de versão", () => {
   });
 
   it("o teto `major.99.99` da política real é lido como a linha inteira do major", () => {
-    // `@tanstack/react-start` é `1.168.0 .. 1.99.99`. Lido como trio cru, min > max e a política
-    // real seria inválida por construção. O `99` do minor é CORINGA: a faixa é [1.168.0, 2.0.0).
+    // `@tanstack/react-start` é `1.168.60 .. 1.99.99`. Lido como trio cru, min > max e a política
+    // real seria inválida por construção. O `99` do minor é CORINGA: a faixa é [1.168.60, 2.0.0).
     const start = policyEntry("@tanstack/react-start");
-    expect(inRange("1.168.26", start.min, start.max)).toBe(true);
+    expect(inRange("1.168.26", start.min, start.max)).toBe(false);
+    // GHSA-qx66-fv34-fjm8: a revisão bloqueada pela Vercel permanece abaixo do piso corrigido.
+    expect(inRange("1.168.49", start.min, start.max)).toBe(false);
+    expect(inRange("1.168.60", start.min, start.max)).toBe(true);
     // Minor ACIMA de 99 é o que o coringa existe para admitir: 200 > 99, mas é a mesma linha 1.x.
     expect(inRange("1.200.0", start.min, start.max)).toBe(true);
     expect(inRange("1.170.32", start.min, start.max)).toBe(true);

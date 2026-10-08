@@ -1,0 +1,41 @@
+# Controle negativo AMPLIADO — verificação adversarial (T1), 2026-10-06T00:41-01:0xZ
+# Autor: verificador adversarial independente (contexto limpo). Senha literal invalida em todos os
+# probes ('senha-invalida-de-probe'); nenhum valor real de credencial lido, impresso ou usado.
+
+## Matriz de hosts (user neondb_owner, db neondb, senha invalida)
+LIVE-pooled   ep-long-violet-aye9g0bn-pooler.c-5.us-east-2.aws.neon.tech -> {"code":"28P01","message":"password authentication failed for user 'neondb_owner'"}  tls=TLSv1.3 alpn=postgresql authorized=true
+LIVE-direct   ep-long-violet-aye9g0bn.c-5.us-east-2.aws.neon.tech        -> 28P01 identico
+DEAD-pooled   ep-lively-recipe-ayuct9gp-pooler.c-5.us-east-2.aws.neon.tech -> 28P01 identico
+DEAD-direct   ep-lively-recipe-ayuct9gp.c-5.us-east-2.aws.neon.tech      -> 28P01 identico
+RANDOM-pooled ep-adversarial-probe-zzzzzzzz-pooler.c-5.us-east-2.aws.neon.tech -> 28P01 identico
+
+DNS: os 5 hosts resolvem OS MESMOS 6 IPs (wildcard *.c-5.us-east-2.aws.neon.tech) -> a camada DNS
+tambem nao discrimina. TCP 5432 OK (150-716 ms) e TLS OK nos quatro hosts testados.
+
+## Extensoes que refutam leituras alternativas da mesma mensagem
+role INEXISTENTE (usuario_inexistente_probe)          -> 28P01 com o nome inventado (mesmo padrao)
+sslmode=disable (ou ausencia de sslmode)              -> {"code":"28000","message":"connection is insecure (try using `sslmode=require`)"} em 300 ms
+sslmode=verify-full                                   -> 28P01 nos 4 hosts (certificado valido ate no host morto)
+conjunto exato do app (channel_binding=require&sslmode=require) -> 28P01 nos 4 hosts + no inventado
+
+Consequencia: o 28P01 nao discrimina senha, usuario nem endpoint; ja o modo de transporte SIM
+(28000 quando nao ha TLS). Logo o 28P01 do app publicado veio de conexao JA em TLS, na camada de
+autenticacao — e um endpoint inexistente produz exatamente a mesma mensagem.
+
+## Hipótese "28P01 = cache de credencial do pooler apos rotacao" — REFUTADA
+1. NESTE PROJETO: zero evidencia. grep por supavisor/cache de credencial no repositorio = 0 ocorrencias pertinentes.
+2. NAO HOUVE ROTACAO: neondb_owner authentication_method=password, updated_at=2026-09-12T02:44:44Z;
+   list_operations(100) na janela 2026-10-04T01:21Z..2026-10-06T03:44Z -> zero acao de role/senha
+   (acoes distintas: start_compute, suspend_compute, timeline_unarchive, timeline_archive,
+   delete_timeline, create_branch, timeline_update_protected_config, check_availability, epc_sync).
+   Ressalva de escopo: a janela de 100 operacoes cobre ~2 dias; o reset de 09-12 esta fora dela e e
+   atestado pelo updated_at do role.
+3. DOCUMENTACAO DO FORNECEDOR DIZ O OPOSTO: Neon docs/manage/roles.md — "A password reset takes
+   effect immediately. The old password stops working on the next connection... Resets are
+   branch-scoped"; docs/connect/connection-errors.md lista como causas de "password authentication
+   failed" apenas conexao mal configurada ou driver sem SNI; docs/connect/connection-pooling.md
+   descreve PgBouncer (pool_mode=transaction), NAO Supavisor (que e o pooler da Supabase).
+   Ou seja: o mecanismo existe na documentacao de OUTRO fornecedor; em Neon e negado por documento e
+   ausente neste projeto.
+4. Observavel: o app autentica hoje pelo host pooled (ready 200, re-medido pelo verificador) com uma
+   senha cujo role nao e tocada desde 09-12 -> nao ha staleness a explicar.

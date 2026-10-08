@@ -1,0 +1,5 @@
+Bounded independent review, not full S6 or release approval.
+Original preserved REJECTED (F1 candidate BRDA missing allowed; F2 original DA missing still refused).
+R2 LOCAL-VERIFIED for both repairs through 11 pure end-to-end probes; full suite/check by parent.
+/home/douglas-souza/.codex/artifacts/ciclo-28/reviews/payment-review.md: sha256=b4fa3dfebe1d904832e9ee0ba7f6d6be6470ace33d16257f496e5222ef2c4361,mode=0o600
+/home/douglas-souza/.codex/artifacts/ciclo-28/reviews/payment-review-r2.md: sha256=59d685874c0c989838d3c8476e1767d1ab705c44bc3756a6de923a0d53a72b71,mode=0o600

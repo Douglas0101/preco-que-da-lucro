@@ -45,8 +45,13 @@ jobs:
     # job as a protected gate. It must not contain production credentials.
     environment:
       name: neon-readiness
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
+    outputs:
+      branch_id: ${{ steps.adopt.outputs.branch_id || steps.neon.outputs.branch_id }}
+      created: ${{ steps.adopt.outputs.created || steps.neon.outputs.created }}
+      started_at: ${{ steps.resource.outputs.started_at }}
+      expires_at: ${{ steps.resource.outputs.expires_at }}
     env:
       EXPECTED_POSTGRES_MAJOR: "17"
 
@@ -151,21 +156,47 @@ jobs:
       - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
 
+      - name: Assert permanent identities and plan a new 24-hour resource
+        id: resource
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: node scripts/ci/neon-resource.ts prepare
+
       - name: Create disposable Neon readiness branch
         id: neon
-        uses: neondatabase/create-branch-action@fb620d43d4c565abaf088b848a4e28e5c4ea4d9c # 6.3.1
+        uses: neondatabase/create-branch-action@72ed4f69a12b6be9c16aebfad893f6a21e9aba8b # 6.4.0
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           api_key: ${{ secrets.NEON_API_KEY }}
           # The readiness branch is always a disposable child of develop.
           # Production is never a readiness target.
           parent_branch: develop
-          branch_name: readiness/develop-${{ github.run_id }}
+          branch_name: ${{ steps.resource.outputs.branch_name }}
+          expires_at: ${{ steps.resource.outputs.expires_at }}
           database: ${{ vars.NEON_DATABASE || 'neondb' }}
           role: ${{ vars.NEON_ADMIN_ROLE || 'neondb_owner' }}
 
+      - name: Verify new resource ownership, parent and expiry before tests
+        id: adopt
+        if: always() && steps.resource.outputs.started_at != ''
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          BRANCH_ID: ${{ steps.neon.outputs.branch_id }}
+          BRANCH_CREATED: ${{ steps.neon.outputs.created }}
+          RESOURCE_STARTED_AT: ${{ steps.resource.outputs.started_at }}
+          RESOURCE_EXPIRES_AT: ${{ steps.resource.outputs.expires_at }}
+        run: node scripts/ci/neon-resource.ts adopt
+
       - name: Prove direct and pooled connection URLs
         env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          BRANCH_ID: ${{ steps.adopt.outputs.branch_id }}
+          BRANCH_CREATED: ${{ steps.adopt.outputs.created }}
+          RESOURCE_STARTED_AT: ${{ steps.resource.outputs.started_at }}
+          RESOURCE_EXPIRES_AT: ${{ steps.resource.outputs.expires_at }}
           DATABASE_ADMIN_URL: ${{ steps.neon.outputs.db_url }}
           DATABASE_URL: ${{ steps.neon.outputs.db_url_pooled }}
           EVIDENCE_PATH: ${{ github.workspace }}/.artifacts/neon-readiness/connection-contract.json
@@ -179,43 +210,50 @@ jobs:
             exit 1
           }
 
-          echo "::add-mask::$DATABASE_ADMIN_URL"
-          echo "::add-mask::$DATABASE_URL"
           mkdir -p "$(dirname "$EVIDENCE_PATH")"
           chmod 700 "$(dirname "$EVIDENCE_PATH")"
 
           node --input-type=module <<'NODE'
-          import { writeFile } from "node:fs/promises";
+          import { appendFile, chmod, writeFile } from "node:fs/promises";
           import { Client } from "pg";
+          import { MaskedSecrets, NeonResources, pinConnection, resourcePlan } from "./scripts/ci/neon-resource.ts";
 
-          const directUrl = new URL(process.env.DATABASE_ADMIN_URL);
-          const pooledUrl = new URL(process.env.DATABASE_URL);
-          if (directUrl.hostname === pooledUrl.hostname) {
-            throw new Error("direct and pooled endpoints must use distinct hosts");
+          const secrets = new MaskedSecrets();
+          for (const raw of [process.env.DATABASE_ADMIN_URL, process.env.DATABASE_URL])
+            process.stdout.write(secrets.mask(raw));
+          const direct = pinConnection(process.env.DATABASE_ADMIN_URL, false);
+          const pooled = pinConnection(process.env.DATABASE_URL, true);
+          for (const uri of [direct, pooled]) {
+            process.stdout.write(secrets.mask(uri));
+            const password = new URL(uri).password;
+            process.stdout.write(secrets.mask(password));
+            process.stdout.write(secrets.mask(decodeURIComponent(password)));
           }
-
-          const isNeonHostname = (hostname) =>
-            hostname.endsWith(".neon.tech") || hostname.endsWith(".aws.neon.tech");
-          if (isNeonHostname(directUrl.hostname) && directUrl.hostname.includes("-pooler")) {
-            throw new Error("DATABASE_ADMIN_URL must use the direct Neon endpoint");
-          }
-          if (isNeonHostname(pooledUrl.hostname) && !pooledUrl.hostname.includes("-pooler")) {
-            throw new Error("DATABASE_URL must use the pooled Neon endpoint");
-          }
+          const now = new Date();
+          const resource = await new NeonResources(
+            resourcePlan(process.env, now),
+            process.env.NEON_API_KEY ?? "",
+          ).connections(
+            process.env.BRANCH_ID ?? "",
+            process.env.BRANCH_CREATED ?? "",
+            direct,
+            pooled,
+            now,
+          );
 
           const expectedMajor = Number(process.env.EXPECTED_POSTGRES_MAJOR);
           const connections = [
-            ["direct", process.env.DATABASE_ADMIN_URL],
-            ["pooled", process.env.DATABASE_URL],
+            ["direct", direct],
+            ["pooled", pooled],
           ];
           const evidence = {
             generatedAt: new Date().toISOString(),
+            resource,
             direct: { connected: false },
             pooled: { connected: false },
           };
 
           for (const [kind, connectionString] of connections) {
-            const url = new URL(connectionString);
             const client = new Client({ connectionString });
             try {
               await client.connect();
@@ -228,7 +266,6 @@ jobs:
               }
               evidence[kind] = {
                 connected: true,
-                host: url.hostname,
                 database: result.rows[0]?.database ?? null,
                 user: result.rows[0]?.user ?? null,
                 postgresMajor,
@@ -244,25 +281,31 @@ jobs:
             `${JSON.stringify(evidence, null, 2)}\n`,
             { mode: 0o600 },
           );
+          await chmod(process.env.GITHUB_ENV, 0o600);
+          await appendFile(
+            process.env.GITHUB_ENV,
+            `DATABASE_ADMIN_URL=${direct}\nDATABASE_URL=${pooled}\nDATABASE_URL_UNPOOLED=${direct}\n`,
+          );
           NODE
 
       - name: Validate migrations, runtime privileges and RLS
         env:
-          DATABASE_ADMIN_URL: ${{ steps.neon.outputs.db_url }}
-          DATABASE_URL: ${{ steps.neon.outputs.db_url_pooled }}
+          DATABASE_DRIVER: node-postgres
+          NEON_MIGRATION_TARGET_KIND: drill-branch
+          ALLOW_REMOTE_DB: "Readiness run ${{ github.run_id }} attempt ${{ github.run_attempt }} on disposable develop child ${{ steps.neon.outputs.branch_id }}"
         run: npm run db:test
 
       - name: Validate migration drift
         env:
-          DATABASE_ADMIN_URL: ${{ steps.neon.outputs.db_url }}
+          DATABASE_DRIVER: node-postgres
+          ALLOW_REMOTE_DB: "Readiness migration drift on disposable develop child ${{ steps.neon.outputs.branch_id }} for run ${{ github.run_id }}"
         run: npm run db:check
 
       - name: Run controlled Supabase to Neon migration
         if: steps.config.outputs.legacy_source == 'true' && steps.config.outputs.legacy_authorized == 'true'
         env:
-          DATABASE_ADMIN_URL: ${{ steps.neon.outputs.db_url }}
-          DATABASE_URL: ${{ steps.neon.outputs.db_url_pooled }}
           SUPABASE_MIGRATION_DATABASE_URL: ${{ secrets.SUPABASE_MIGRATION_DATABASE_URL }}
+          ALLOW_REMOTE_DB: "Authorized legacy rehearsal on disposable develop child ${{ steps.neon.outputs.branch_id }} for run ${{ github.run_id }}"
           MIGRATION_APPLY: ${{ steps.config.outputs.migration_apply }}
           MIGRATION_ALLOW_UPSERT: "false"
           MIGRATION_REPORT_PATH: ${{ steps.config.outputs.report_path }}
@@ -329,7 +372,7 @@ jobs:
               echo "- Legacy rehearsal: skipped; fresh-provision schema checks only on this disposable branch"
             fi
             echo "- Production mutation/cutover: **not performed**"
-            echo "- Branch cleanup: requested in the final step, including failures"
+            echo "- Branch cleanup: separate always job, GET 404 plus paginated identity/absence checks required"
             if [[ -n "$BRANCH_ID" ]]; then
               echo "- Neon branch was created for this run; its identifier is retained in the private job log."
             else
@@ -337,20 +380,41 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload protected readiness evidence
-        if: always()
+      - name: Upload readiness evidence
+        if: always() && steps.resource.outputs.started_at != ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: neon-readiness-${{ github.run_id }}
+          name: neon-readiness-${{ github.run_id }}-${{ github.run_attempt }}
           path: .artifacts/neon-readiness
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 7
 
-      - name: Delete disposable Neon readiness branch
-        if: always() && steps.neon.outputs.branch_id != ''
-        uses: neondatabase/delete-branch-action@4468d825d5a88ef4012f1705a82f02ec3072f776 # v3.2.1
+  cleanup:
+    name: Discard readiness resource and prove absence
+    needs: readiness
+    if: always() && needs.readiness.outputs.started_at != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          project_id: ${{ vars.NEON_PROJECT_ID }}
-          api_key: ${{ secrets.NEON_API_KEY }}
-          branch: ${{ steps.neon.outputs.branch_id }}
+          node-version-file: .nvmrc
+      - name: Delete only this run's verified temporary resource
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          BRANCH_ID: ${{ needs.readiness.outputs.branch_id }}
+          BRANCH_CREATED: ${{ needs.readiness.outputs.created }}
+          RESOURCE_STARTED_AT: ${{ needs.readiness.outputs.started_at }}
+          RESOURCE_EXPIRES_AT: ${{ needs.readiness.outputs.expires_at }}
+        run: node scripts/ci/neon-resource.ts cleanup
+      - name: Preserve cleanup proof even if verification fails
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: neon-readiness-cleanup-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .artifacts/neon-readiness/cleanup.json
+          if-no-files-found: error
+          retention-days: 7

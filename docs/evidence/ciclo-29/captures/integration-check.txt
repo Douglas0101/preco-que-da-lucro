@@ -1,0 +1,10 @@
+gate: check66
+command: npm run check
+source-log-sha256: df47776708153d3d6b5c9a8520abf6c28dac67d0feb7a7aed2bb79342ae01cfc
+exit:0
+observable-readout:
+ Test Files  131 passed | 1 skipped (132)
+      Tests  1785 passed | 18 skipped (1803)
+   Duration  166.48s (transform 3.16s, setup 11.56s, import 32.08s, tests 34.87s, environment 71.99s)
+PASS assets/index-BVbV81Tl.js: 238766 minified, 73644 gzip, 64165 Brotli bytes, sha256=232eab50fb0a
+Initial graph (9 chunks): 473712 minified, 152150 gzip, 134126 Brotli bytes, sha256=fab60a575df7

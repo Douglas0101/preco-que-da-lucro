@@ -1,0 +1,286 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/neon-resource.test.ts (34 tests | 10 failed) 42ms
+     × requires permanent identity and default for develop, production and the empty fixture base 5ms
+     × refuses reusing a preexisting resource of the same run name 7ms
+     × reports the empty fixture base among the permanent ids it must never delete 2ms
+     × observes identity before DELETE, GET404 afterward, and independent paginated absence 2ms
+     × rejects a same-name replacement and a missing permanent branch after deletion 5ms
+     × a missing output is not exercise closure and does not hide an orphan 1ms
+     × missing connection outputs and expiry do not prevent discarding a proven owned resource 1ms
+     × adopts an owned orphan and measures expiry again after PATCH, without DB_URL 0ms
+     × an expiry PATCH failure is red, while cleanup remains possible 1ms
+     × fails closed for malformed/truncated/cyclic inventory and HTML404 1ms
+ ❯ src/test/neon-fixture-provision.test.ts (35 tests | 2 failed) 40ms
+     × plans a parent-data child of the permanent empty base with a 24h TTL 13ms
+     × creates the zero-row parent-data child once, hands the branch id to cleanup before compute, and writes masked private URIs 8ms
+ ❯ src/test/neon-fixture.test.ts (40 tests | 2 failed) 23ms
+     × accepts a zero-row parent-data child of the empty base bound to the exact run and endpoint 6ms
+     × does not infer connection ownership from an ID or matching table counts 4ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > zero-row parent-data fixture provisioning plan from the empty base > plans a parent-data child of the permanent empty base with a 24h TTL
+AssertionError: expected { …(4) } to deeply equal { …(4) }
+
+- Expected
++ Received
+
+  {
+    "branchName": "pr-60-123-2",
+    "expiresAt": "2026-10-08T02:00:00Z",
+-   "parentId": undefined,
++   "parentId": "br-small-hill-aymcu14y",
+    "projectId": "damp-forest-57346541",
+  }
+
+ ❯ src/test/neon-fixture-provision.test.ts:119:18
+    117|   it("plans a parent-data child of the permanent empty base with a 24h…
+    118|     const plan = provisionPlan(env, new Date(now));
+    119|     expect(plan).toEqual({
+       |                  ^
+    120|       projectId: PROJECT_ID,
+    121|       parentId: FIXTURE_BASE_ID,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  src/test/neon-fixture-provision.test.ts > REST provisioning with masked credentials and sanitized refusals > creates the zero-row parent-data child once, hands the branch id to cleanup before compute, and writes masked private URIs
+AssertionError: expected { branch: { …(4) }, …(1) } to deeply equal { branch: { …(4) }, …(1) }
+
+- Expected
++ Received
+
+@@ -1,11 +1,11 @@
+  {
+    "branch": {
+      "expires_at": "2026-10-08T02:00:00Z",
+-     "init_source": "parent-data",
++     "init_source": "parent-schema",
+      "name": "pr-60-123-2",
+-     "parent_id": undefined,
++     "parent_id": "br-small-hill-aymcu14y",
+    },
+    "endpoints": [
+      {
+        "type": "read_write",
+      },
+
+ ❯ src/test/neon-fixture-provision.test.ts:178:40
+    176|     await expect(run()).resolves.toEqual({ verdict: "OK", branchId });
+    177|     expect(calls[0].method).toBe("POST");
+    178|     expect(JSON.parse(calls[0].body!)).toEqual({
+       |                                        ^
+    179|       branch: {
+    180|         name: "pr-60-123-2",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > Neon PR fixture ownership and endpoint binding > accepts a zero-row parent-data child of the empty base bound to the exact run and endpoint
+Error: fixture schema-only child/parent/expiry/freshness identity differs
+ ❯ fixtureIdentity scripts/ci/prepare-neon-fixture.ts:58:11
+     56|     expiry - created > 24 * 3600_000 + 120_000
+     57|   )
+     58|     throw new Error("fixture schema-only child/parent/expiry/freshness…
+       |           ^
+     59|   const endpoints =
+     60|     record(endpointBody) && Array.isArray(endpointBody.endpoints) ? en…
+ ❯ src/test/neon-fixture.test.ts:65:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > Neon PR fixture ownership and endpoint binding > does not infer connection ownership from an ID or matching table counts
+AssertionError: expected [Function] to throw error including 'endpoint' but got 'fixture schema-only child/parent/expi…'
+
+Expected: "endpoint"
+Received: "fixture schema-only child/parent/expiry/freshness identity differs"
+
+ ❯ src/test/neon-fixture.test.ts:135:74
+    133|       const body = endpoints();
+    134|       Object.assign(body.endpoints[0], patch);
+    135|       expect(() => fixtureIdentity(branch(), body, ...urls(), env, now…
+       |                                                                          ^
+    136|     }
+    137|     expect(() => fixtureIdentity(branch(), { endpoints: [] }, ...urls(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > requires permanent identity and default for develop, production and the empty fixture base
+AssertionError: expected [Function] to throw an error
+ ❯ src/test/neon-resource.test.ts:99:67
+     97|       assertPermanentInventory([permanent[0], { ...permanent[1], defau…
+     98|     ).toThrow();
+     99|     expect(() => assertPermanentInventory(permanent.slice(0, 2))).toTh…
+       |                                                                   ^
+    100|     expect(() =>
+    101|       assertPermanentInventory([permanent[0], permanent[1], { ...perma…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > refuses reusing a preexisting resource of the same run name
+AssertionError: expected [Function] to throw error including 'never reuse' but got 'branch inventory identity is absent'
+
+Expected: "never reuse"
+Received: "branch inventory identity is absent"
+
+ ❯ src/test/neon-resource.test.ts:118:70
+    116|   it("refuses reusing a preexisting resource of the same run name", as…
+    117|     const { impl } = mock([{ body: inventory([...permanent, temp()]) }…
+    118|     await expect(new NeonResources(plan, "test-key", impl).prepare()).…
+       |                                                                      ^
+    119|       "never reuse",
+    120|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > reports the empty fixture base among the permanent ids it must never delete
+Error: branch inventory identity is absent
+ ❯ NeonResources.branches scripts/ci/neon-resource.ts:273:17
+    271|           typeof item.default !== "boolean"
+    272|         )
+    273|           throw new Error("branch inventory identity is absent");
+       |                 ^
+    274|         branches.push(item as unknown as Branch);
+    275|       }
+ ❯ NeonResources.prepare scripts/ci/neon-resource.ts:289:22
+ ❯ src/test/neon-resource.test.ts:147:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > observes identity before DELETE, GET404 afterward, and independent paginated absence
+Error: branch inventory identity is absent
+ ❯ NeonResources.branches scripts/ci/neon-resource.ts:273:17
+    271|           typeof item.default !== "boolean"
+    272|         )
+    273|           throw new Error("branch inventory identity is absent");
+       |                 ^
+    274|         branches.push(item as unknown as Branch);
+    275|       }
+ ❯ NeonResources.cleanup scripts/ci/neon-resource.ts:401:22
+ ❯ src/test/neon-resource.test.ts:162:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > rejects a same-name replacement and a missing permanent branch after deletion
+AssertionError: promise resolved "{ schema: 'neon-resource/1', …(8) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "absentByIdAndName": true,
++   "branchId": "br-disposable-example",
++   "created": true,
++   "deletePerformed": true,
++   "getStatus": 404,
++   "permanentIds": [
++     "br-small-hill-aymcu14y",
++     "br-snowy-violet-aymcvvvv",
++   ],
++   "phase": "discarded-verified",
++   "plan": {
++     "expiresAt": "2026-10-03T23:00:00Z",
++     "name": "readiness/develop-1234-2",
++     "parentId": "br-small-hill-aymcu14y",
++     "projectId": "damp-forest-57346541",
++     "purpose": "readiness",
++     "runAttempt": "2",
++     "runId": "1234",
++     "sourceSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "startedAt": "2026-10-02T23:00:00.000Z",
++   },
++   "schema": "neon-resource/1",
+  }
+
+ ❯ src/test/neon-resource.test.ts:218:8
+    216|       await expect(
+    217|         new NeonResources(plan, "test-key", impl).cleanup(id, "true", …
+    218|       ).rejects.toThrow();
+       |        ^
+    219|     }
+    220|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > a missing output is not exercise closure and does not hide an orphan
+Error: branch inventory identity is absent
+ ❯ NeonResources.branches scripts/ci/neon-resource.ts:273:17
+    271|           typeof item.default !== "boolean"
+    272|         )
+    273|           throw new Error("branch inventory identity is absent");
+       |                 ^
+    274|         branches.push(item as unknown as Branch);
+    275|       }
+ ❯ NeonResources.discover scripts/ci/neon-resource.ts:328:22
+ ❯ NeonResources.cleanup scripts/ci/neon-resource.ts:375:19
+ ❯ src/test/neon-resource.test.ts:224:8
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > missing connection outputs and expiry do not prevent discarding a proven owned resource
+Error: branch inventory identity is absent
+ ❯ NeonResources.branches scripts/ci/neon-resource.ts:273:17
+    271|           typeof item.default !== "boolean"
+    272|         )
+    273|           throw new Error("branch inventory identity is absent");
+       |                 ^
+    274|         branches.push(item as unknown as Branch);
+    275|       }
+ ❯ NeonResources.cleanup scripts/ci/neon-resource.ts:401:22
+ ❯ src/test/neon-resource.test.ts:248:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > adopts an owned orphan and measures expiry again after PATCH, without DB_URL
+Error: branch inventory identity is absent
+ ❯ NeonResources.branches scripts/ci/neon-resource.ts:273:17
+    271|           typeof item.default !== "boolean"
+    272|         )
+    273|           throw new Error("branch inventory identity is absent");
+       |                 ^
+    274|         branches.push(item as unknown as Branch);
+    275|       }
+ ❯ NeonResources.discover scripts/ci/neon-resource.ts:328:22
+ ❯ NeonResources.adopt scripts/ci/neon-resource.ts:335:20
+ ❯ src/test/neon-resource.test.ts:256:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > an expiry PATCH failure is red, while cleanup remains possible
+Error: branch inventory identity is absent
+ ❯ NeonResources.branches scripts/ci/neon-resource.ts:273:17
+    271|           typeof item.default !== "boolean"
+    272|         )
+    273|           throw new Error("branch inventory identity is absent");
+       |                 ^
+    274|         branches.push(item as unknown as Branch);
+    275|       }
+ ❯ NeonResources.cleanup scripts/ci/neon-resource.ts:401:22
+ ❯ src/test/neon-resource.test.ts:273:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/14]⎯
+
+ FAIL  src/test/neon-resource.test.ts > run-scoped Neon readiness resource lifecycle > fails closed for malformed/truncated/cyclic inventory and HTML404
+AssertionError: expected [Function] to throw error including 'pagination' but got 'branch inventory identity is absent'
+
+Expected: "pagination"
+Received: "branch inventory identity is absent"
+
+ ❯ src/test/neon-resource.test.ts:295:78
+    293|     }
+    294|     const cyclic = mock([{ body: inventory(permanent, "same") }, { bod…
+    295|     await expect(new NeonResources(plan, "test-key", cyclic.impl).bran…
+       |                                                                              ^
+    296|       "pagination",
+    297|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/14]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  14 failed | 95 passed (109)
+   Start at  21:28:05
+   Duration  2.46s (transform 212ms, setup 253ms, import 247ms, tests 105ms, environment 1.48s)
+

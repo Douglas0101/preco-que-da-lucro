@@ -51,6 +51,90 @@ export interface EndpointResult {
   readonly sha256: string;
 }
 
+export const ROTATION_PROVIDERS = [
+  "neon",
+  "vercel",
+  "sonar",
+  "context7",
+  "deepseek",
+  "github",
+] as const;
+export type RotationProvider = (typeof ROTATION_PROVIDERS)[number];
+export interface ProviderProbe extends EndpointResult {
+  provider: RotationProvider;
+  anonymous_status: number;
+  authentication: "authenticated" | "rejected" | "NO-VERDICT";
+  identity_match: boolean;
+}
+const object = (value: unknown): Record<string, unknown> | undefined =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+
+export function providerEndpoint(provider: RotationProvider, identity: string): string {
+  if (!ROTATION_PROVIDERS.includes(provider) || !/^[A-Za-z0-9_.-]{1,128}$/.test(identity))
+    throw new SidecarError(
+      "precondicao",
+      "provedor/identidade invalido (somente metadado, nunca token)",
+    );
+  switch (provider) {
+    case "neon":
+      return `https://console.neon.tech/api/v2/projects/${identity}`;
+    case "vercel":
+      return `https://api.vercel.com/v9/projects/${identity}`;
+    case "github":
+      return "https://api.github.com/user";
+    case "sonar":
+      return "https://sonarcloud.io/api/user_tokens/search";
+    case "context7":
+      return "https://context7.com/api/v2/policies";
+    case "deepseek":
+      return "https://api.deepseek.com/user/balance";
+  }
+}
+
+export function classifyProviderProbe(
+  provider: RotationProvider,
+  identity: string,
+  status: number,
+  body: unknown,
+  anonymousStatus: number,
+) {
+  // A protected 401 is authentication rejection; 403 can mean insufficient scope.
+  if (status === 401 && [401, 403].includes(anonymousStatus))
+    return { authentication: "rejected" as const, identity_match: false };
+  const data = object(body);
+  if (status !== 200 || ![401, 403].includes(anonymousStatus) || !data)
+    return { authentication: "NO-VERDICT" as const, identity_match: false };
+  let identityMatch = false;
+  switch (provider) {
+    case "neon":
+      identityMatch = object(data.project)?.id === identity || data.id === identity;
+      break;
+    case "vercel":
+      identityMatch = data.id === identity;
+      break;
+    case "github":
+      identityMatch = data.login === identity;
+      break;
+    case "sonar":
+      identityMatch =
+        Array.isArray(data.userTokens) &&
+        data.userTokens.some((token) => object(token)?.name === identity);
+      break;
+    // These protected replies do not expose a verified account/key identity in the
+    // documented shape. Keep identity closure pending, never infer it from 200.
+    case "context7":
+      break;
+    case "deepseek":
+      break;
+  }
+  return {
+    authentication: identityMatch ? ("authenticated" as const) : ("NO-VERDICT" as const),
+    identity_match: identityMatch,
+  };
+}
+
 export interface ConsoleInjection {
   readonly status: string;
 }
@@ -347,13 +431,8 @@ export class SecretSidecar {
     return { status: String(status) };
   }
 
-  /**
-   * Sonda de autenticação. Devolve `status`, latência e o hash do que foi testado.
-   *
-   * A distinção que a torna útil é `401` (a credencial existe e foi **recusada**) contra
-   * `200` (aceita): é exatamente o par que o teste de fechamento do DBT-36 exige — "a
-   * antiga dá 401, a nova dá 200". Um teste de alcance TCP não distingue os dois e por isso
-   * não serviria.
+  /** Low-level HTTP/DB status probe. Synthetic selftests use 200/401;
+   * provider rotation requires the protected identity probe and provider revocation proof.
    */
   async test_endpoint(ref: string, kind: "http" | "db", target?: string): Promise<EndpointResult> {
     let secret: Uint8Array;
@@ -389,6 +468,71 @@ export class SecretSidecar {
       detail: { kind, status, latency_ms },
     });
     return { status, latency_ms, sha256 };
+  }
+
+  async test_provider(
+    ref: string,
+    provider: RotationProvider,
+    identity: string,
+  ): Promise<ProviderProbe> {
+    const url = providerEndpoint(provider, identity);
+    const secret = await this.keychain.get(ref);
+    const sha256 = hashOf(secret);
+    const started = this.now();
+    async function get(auth?: Uint8Array): Promise<{ status: number; body: unknown }> {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            Accept: "application/json",
+            ...(auth ? { Authorization: `Bearer ${new TextDecoder().decode(auth)}` } : {}),
+          },
+          redirect: "error",
+          signal: AbortSignal.timeout(10_000),
+        });
+        // Read only transiently: replies can contain token metadata or billing data.
+        // Never persist or return the body, including on parse failures.
+        return { status: response.status, body: await response.json().catch(() => null) };
+      } catch {
+        return { status: 0, body: null };
+      }
+    }
+    const anonymous = await get();
+    const authenticated = await get(secret);
+    const verdict = classifyProviderProbe(
+      provider,
+      identity,
+      authenticated.status,
+      authenticated.body,
+      anonymous.status,
+    );
+    const latency_ms = this.now() - started;
+    await this.record({
+      op: "test_endpoint",
+      ref,
+      sha256,
+      outcome:
+        verdict.authentication === "authenticated"
+          ? "ok"
+          : verdict.authentication === "rejected"
+            ? "fail"
+            : "precondicao",
+      detail: {
+        provider,
+        status: authenticated.status,
+        anonymous_status: anonymous.status,
+        authentication: verdict.authentication,
+        identity_match: Number(verdict.identity_match),
+        latency_ms,
+      },
+    });
+    return {
+      provider,
+      status: authenticated.status,
+      anonymous_status: anonymous.status,
+      ...verdict,
+      latency_ms,
+      sha256,
+    };
   }
 
   private async probeHttp(secret: Uint8Array, url: string): Promise<number> {

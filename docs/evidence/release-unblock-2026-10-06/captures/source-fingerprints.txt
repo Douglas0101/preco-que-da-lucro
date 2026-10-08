@@ -1,0 +1,10 @@
+cc5327d65fe471683bf957ed2939d84c46f55e517b18d50fe1fd8c5c8a6262be  AGENTS.md
+a5693a540494b8932c98224ef00828ac18da3c30c2287826daddb3a4f3982005  .github/workflows/sonar.yml
+bf388c646874d2e13e91792699f3d004b24a811a11c0e558534460501e00d0ae  .github/workflows/neon-pr-branch.yml
+25f1db71062a0cb5f770d181d170e15c09dba0a9001db513ca2cd4a224b3e8f1  scripts/lib/m02-ci-coverage.ts
+722d9706e27946b484c5fd6b375aab5e46d4c83a49bfaf510795e5bd88b220bf  scripts/sonar/gate-readout.ts
+1a5f1a6f1638424c8bbbaf0f469b9327008851f484e7b90310821d8c457106b7  scripts/ci/prepare-neon-fixture.ts
+aaf9c10bd9f49ea9ce572915d2bf3f20b9700b3ebb33821065a57cfb5b4b76fe  src/test/m02-ci-coverage.test.ts
+95c4d58718aca88da569edcdabc1b74f575fb093adcb6df9f1a23ecd2038f8dc  src/test/sonar-gate-readout.test.ts
+975edbc22233b7c2025b82632c083a515b9db2900fca396f946e55f6b4392feb  src/test/neon-fixture.test.ts
+bedd274eede571d14485370abf7c834b7fba0bae48674e849154bc11ded59751  docs/adr/ADR-042-cobertura-minima-60-publicacao.md

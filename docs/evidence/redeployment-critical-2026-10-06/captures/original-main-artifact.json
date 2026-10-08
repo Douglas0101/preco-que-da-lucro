@@ -1,0 +1,11 @@
+{
+  "runId": 36879749754,
+  "event": "push",
+  "branch": "main",
+  "headSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+  "artifactId": 11170691973,
+  "discoveredFiles": ["lcov.info"],
+  "bytes": 291864,
+  "sha256": "52b3823c7e90b548af44c44ef83734b226757cb9080fc1a9ef94abb162601f9c",
+  "scannerProvenanceSidecarPresent": false
+}

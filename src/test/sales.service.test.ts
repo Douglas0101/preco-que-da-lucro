@@ -13,6 +13,12 @@ class FakeSalesRepository implements SalesRepository {
     return { sale: {} as Sale, items: [] as SaleItem[] };
   }
 
+  async itemSummaryForPeriod(): Promise<
+    Array<{ productId: string; quantity: string; totalAmount: string }>
+  > {
+    return [];
+  }
+
   async revenue(): Promise<string> {
     return "0.0000";
   }

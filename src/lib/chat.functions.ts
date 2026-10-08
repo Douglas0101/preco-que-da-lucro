@@ -5,6 +5,8 @@ import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import { recordSafely } from "@/instrumentation/safe-record";
 import { assertGatewayEndpoint } from "@/lib/ai-endpoint.server";
 import { ApplicationError } from "@/lib/api-error";
+import { readEnv } from "@/lib/env.server";
+import { withWireSafeErrors } from "@/lib/wire-safe-error.server";
 import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
 import { executeSendChatMessage } from "@/lib/chat-execution.server";
 import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
@@ -23,7 +25,27 @@ interface GatewayMessage {
 
 interface GatewayToolCall {
   id: string;
+  type?: "function";
   function: { name: string; arguments: string };
+}
+
+/**
+ * O desserializador do destino nativo exige `type: "function"` em cada item de
+ * `tool_calls` quando o histórico do assistente volta na rodada seguinte. A
+ * OpenAI tolera a ausência; o DeepSeek responde HTTP 422
+ * (`messages[6]: missing field 'type'`) e derruba a rodada — medido no Ciclo 29
+ * na primeira conversa viva. Normalizar no limite do fetch mantém o contrato do
+ * provedor em um único ponto, em vez de depender de cada chamador.
+ */
+function normalizeToolCallTypes(messages: GatewayMessage[]): GatewayMessage[] {
+  return messages.map((message) =>
+    message.tool_calls
+      ? {
+          ...message,
+          tool_calls: message.tool_calls.map((call) => ({ ...call, type: "function" as const })),
+        }
+      : message,
+  );
 }
 
 const gatewayResponseSchema = z.object({
@@ -37,6 +59,7 @@ const gatewayResponseSchema = z.object({
             .array(
               z.object({
                 id: z.string().min(1),
+                type: z.literal("function").optional(),
                 function: z.object({
                   name: z.string().min(1),
                   arguments: z.string(),
@@ -107,6 +130,36 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
 
 type GatewayResponse = z.output<typeof gatewayResponseSchema>;
 
+/**
+ * Campos de `error.type`/`error.message` do corpo de erro, por varredura de
+ * texto: um `JSON.parse` em `try/catch` devolveria valor neutro num caminho de
+ * dado (INV-013) e um corpo não-JSON ainda precisa virar detalhe auditável.
+ */
+function upstreamErrorFields(raw: string): string[] {
+  const fields: string[] = [];
+  for (const match of raw.matchAll(/"(\w+)"\s*:\s*"((?:[^"\\]|\\.){1,400})"/g))
+    if (match[1] === "type" || match[1] === "message") fields.push(match[2] ?? "");
+  return fields.filter((field) => field.length > 0);
+}
+
+/**
+ * Detalhe limitado da recusa do provedor. Sem ele, uma rejeição 4xx do gateway
+ * vira `DEPENDENCY_ERROR` sem causa registrada — medido no Ciclo 29: a rodada 1
+ * com ferramentas falhava em ~750 ms desde que o zod descartava o `type` das
+ * tool_calls e o motivo era descartado dentro do fetch. Carrega apenas o corpo
+ * limitado, nunca cabeçalhos; a própria chave é removida antes de logar e o
+ * redator do logger cobre o resto. Falha de leitura do corpo propaga para o
+ * retry/DEPENDENCY_ERROR do chamador em vez de virar sucesso vazio.
+ */
+async function readUpstreamErrorDetail(response: Response, apiKey: string): Promise<string | null> {
+  const raw = await response.text();
+  if (raw.length === 0) return null;
+  const fields = upstreamErrorFields(raw);
+  const detail = (fields.length > 0 ? fields.join(": ") : raw).replace(/\s+/g, " ").trim();
+  const withoutKey = apiKey.length >= 8 ? detail.split(apiKey).join("[REDACTED]") : detail;
+  return withoutKey.slice(0, 240) || null;
+}
+
 type ModelCaller = (
   messages: GatewayMessage[],
   tools: GatewayTool[],
@@ -140,8 +193,25 @@ async function fetchModelAttempt({
     () =>
       fetch(endpoint, {
         method: "POST",
+        redirect: "error",
         headers: { Authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-        body: JSON.stringify({ model, messages, tools, tool_choice: "auto" }),
+        body: JSON.stringify({
+          model,
+          messages: normalizeToolCallTypes(messages),
+          tools,
+          tool_choice: "auto",
+          ...(endpoint.hostname === "api.deepseek.com"
+            ? {
+                // The existing history does not retain reasoning_content. Explicit
+                // non-thinking mode keeps native tool round-trips compatible.
+                thinking: { type: "disabled" },
+                max_tokens: Math.min(
+                  8192,
+                  numberSetting("AI_CONSERVATIVE_TOKEN_BUDGET", 8192, 1, 1_000_000),
+                ),
+              }
+            : {}),
+        }),
         signal,
       }),
   );
@@ -155,10 +225,27 @@ async function fetchModelAttempt({
       await delay(retryDelayMs(attempt), requestSignal);
       return null;
     }
+    // Recusa definitiva do provedor: preserva status e motivo (limitados e
+    // redigidos) antes de descartar o corpo — sem isto a causa não é auditável.
+    logJson("warn", "ai.model_rejected", {
+      model,
+      attempt,
+      status: response.status,
+      detail: await readUpstreamErrorDetail(response, apiKey),
+    });
     throw new ApplicationError("DEPENDENCY_ERROR");
   }
   const parsed = gatewayResponseSchema.safeParse(await response.json());
-  if (!parsed.success) throw new ApplicationError("DEPENDENCY_ERROR");
+  if (!parsed.success) {
+    logJson("warn", "ai.model_unparsable", {
+      model,
+      attempt,
+      issues: parsed.error.issues
+        .slice(0, 5)
+        .map((issue) => `${issue.path.join(".") || "(root)"}:${issue.code}`),
+    });
+    throw new ApplicationError("DEPENDENCY_ERROR");
+  }
   return parsed.data;
 }
 
@@ -237,14 +324,41 @@ async function callModel(
   tools: GatewayTool[],
   requestSignal: AbortSignal,
 ): Promise<GatewayResponse> {
-  const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new ApplicationError("DEPENDENCY_ERROR");
+  // `readEnv`, não `??`: a plataforma define a variável como string vazia
+  // quando o registro existe e nunca foi preenchido, e `"" ?? default` devolve
+  // `""` — o guard recusava a URL vazia e derrubava todo turno antes do fetch.
   const endpoint =
-    process.env.AI_GATEWAY_URL ?? "https://ai.gateway.lovable.dev/v1/chat/completions";
+    readEnv("AI_GATEWAY_URL") ?? "https://ai.gateway.lovable.dev/v1/chat/completions";
   // Guard anti-SSRF na origem (G-SEC #10-13): o URL validado é o único que
   // alcança o fetch nos retries, cobrindo todas as instâncias com um check.
   const gatewayEndpoint = assertGatewayEndpoint(endpoint);
-  const model = process.env.AI_MODEL ?? "google/gemini-3.6-flash";
+  const deepseek = gatewayEndpoint.hostname === "api.deepseek.com";
+  const model = readEnv("AI_MODEL") ?? (deepseek ? "deepseek-flash" : "google/gemini-3.6-flash");
+  if (
+    deepseek &&
+    (gatewayEndpoint.origin !== "https://api.deepseek.com" ||
+      gatewayEndpoint.pathname !== "/chat/completions" ||
+      gatewayEndpoint.username ||
+      gatewayEndpoint.password ||
+      gatewayEndpoint.search ||
+      gatewayEndpoint.hash ||
+      model !== "deepseek-flash")
+  )
+    throw new ApplicationError("DEPENDENCY_ERROR");
+  // A provider-specific credential may never fall back to another issuer's key.
+  const apiKey = deepseek
+    ? readEnv("DEEPSEEK_API_KEY")
+    : (readEnv("AI_GATEWAY_API_KEY") ?? readEnv("LOVABLE_API_KEY"));
+  if (!apiKey || apiKey.trim() !== apiKey) {
+    // Sem o nome do provedor o operador não distingue "credencial ausente" de
+    // "provedor recusou" no log. O detalhe é do servidor, nunca da resposta.
+    logJson("error", "ai.credential_unusable", {
+      provider: deepseek ? "deepseek" : "gateway",
+      host: gatewayEndpoint.hostname,
+      reason: apiKey === undefined ? "absent" : "padded",
+    });
+    throw new ApplicationError("DEPENDENCY_ERROR");
+  }
   const attempts = numberSetting("AI_MODEL_MAX_ATTEMPTS", 2, 1, 2);
   const timeoutMs = numberSetting("AI_MODEL_TIMEOUT_MS", 30_000, 1_000, 30_000);
 
@@ -344,7 +458,11 @@ export const sendChatMessage = createServerFn({ method: "POST" })
   .middleware([requireDatabaseIdentity])
   .validator((input: unknown) => sendInput.parse(input))
   .handler(async ({ data, context }) =>
-    executeSendChatMessage(data, context.requestIdentity, { modelCaller: callModel }),
+    // A UI de chat renderiza `error.message` como fala do consultor
+    // (`novo-produto.tsx`): só a mensagem de política cruza esta fronteira.
+    withWireSafeErrors(context.requestIdentity.correlationId, () =>
+      executeSendChatMessage(data, context.requestIdentity, { modelCaller: callModel }),
+    ),
   );
 
 export { callModel as callModelForTests, retryDelayMs as retryDelayMsForTests };

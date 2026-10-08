@@ -1,0 +1,4 @@
+fa8edd02a956adaec8490cb006ad07e1236eaaca03fc7abef171e2b5f3f649e6  scripts/lib/dependency-family-guard.ts
+57ab74c1f1b9b329fb9ebec72792425f86d0e05f704d336ae7ad6d7fd036d7ee  scripts/lib/upgrade-guard.ts
+704737f79a4525b50ea0b2ed635f4d8b93d02119ea852418325b57f9a2fd6dbb  src/test/dependency-family-guard.test.ts
+e9f183262c7516d1b44d7fd612a060e6a921f61b5b96e7bdbbcea483d4cc89b9  AGENTS.md

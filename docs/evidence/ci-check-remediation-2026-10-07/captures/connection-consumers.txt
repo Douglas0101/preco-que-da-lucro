@@ -1,0 +1,7 @@
+Discovery: grep pinConnection|MaskedSecrets|assertConnectionPair and neon-resource.ts|outputs.db_url in scripts, src/test and .github/workflows.
+Affected production consumers:
+1. PR provisioner: shared pinConnection -> private masked URIs -> prepare-neon-fixture assertConnectionPair.
+2. Readiness Prove Node: shared masks/pin -> strict pair -> actual PG Client -> proved environment pair600.
+3. Readiness SQL three stages: inherit that proved environment; no raw action overrides.
+4. Neon drill connections CLI: shared pin -> strict pair -> owned resource + endpoint API binding, no DB connection.
+No alias/re-export remains in the provisioner. Bare Node shared import and both changed CLI entrypoints were exercised. All transport intercepted; this is local program evidence, not provider acceptance.

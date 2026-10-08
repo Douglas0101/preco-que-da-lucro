@@ -1,0 +1,18 @@
+{
+  "overall_correctness": "incorrect",
+  "explanation": "Read-only review of the current bytes (no tests, no network, no edits): install-before-create order holds (checkout, setup-node, npm ci --ignore-scripts, then npx --no-install tsx with tsx pinned in devDependencies and the identical pattern already running in sonar.yml); the POST is schema-only with explicit parent, 24h TTL and read_write endpoint in a single call; branch_id is appended to GITHUB_OUTPUT immediately after creation and before any compute/URI wait, and the catch path returns it, so cleanup keeps it when endpoints/URIs fail; masking fires on arrival before validation, provider bodies never persist (412 = status+code only, exactly one POST, nextStep explicitly refuses to identify a cause), redaction precedes stderr/report, and t…
+  "confidence": 0.55,
+  "findings": [
+    {
+      "title": "Pin action connection URIs before tightened assertConnectionPair in neon-readiness",
+      "body": "The patch tightens the shared helper: scripts/ci/neon-resource.ts:150-154 now requires explicit port 5432 and an sslmode-only query in assertConnectionPair. One consumer was left untouched and is outside the declared write-set: .github/workflows/neon-readiness.yml:194-195 and 217 feed steps.neon.outputs.db_url and db_url_pooled from neondatabase/create-branch-action directly into assertConnectionPair with no pinning step. Every Neon connection URI recorded in this repository has no explicit port (docs/evidence/branch-lifecycle-e2e-2026-09-15.md:88), and the production console URI also carries an extra channel_binding parameter (docs/evidence/hostinger-recovery-2026-10-06/captures/env-var-names.json:30), which the new sslmode-only allowlist rej…
+      "priority": 2,
+      "confidence": 0.55,
+      "file_path": "scripts/ci/neon-resource.ts",
+      "line_start": 150,
+      "line_end": 154
+    }
+  ]
+}
+
+[Some lines truncated to 768 chars]

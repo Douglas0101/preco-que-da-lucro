@@ -1,0 +1,196 @@
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+ ❯ src/test/neon-fixture.test.ts (53 tests | 16 failed) 42ms
+     × checks every discovered table while locked and rebuilds the migration-owned schemas 10ms
+     × drops exactly the migration-owned schemas in discovered order and keeps the managed ones 2ms
+     × accepts the managed neon_auth schema of the zero-row copy when empty, keeping it 1ms
+     × accepts the managed pgrst schema of the zero-row copy when empty, keeping it 1ms
+     × projects an identity-phase plain error with no error content at all 0ms
+     × projects a validated SQLSTATE from a pg-shaped error 0ms
+     × projects a node errno code from a connect-phase failure 0ms
+     × never projects a credential-looking or invalid code "42501'" 0ms
+     × never projects a credential-looking or invalid code "postgres://u:p@h/x" 0ms
+     × never projects a credential-looking or invalid code "lower_case" 0ms
+     × never projects a credential-looking or invalid code "4250" 0ms
+     × never projects a credential-looking or invalid code "425011234567890123456789" 0ms
+     × never projects a credential-looking or invalid code "" 0ms
+     × never projects a credential-looking or invalid code 42 0ms
+     × never projects a credential-looking or invalid code undefined 0ms
+     × projects a non-object error without throwing 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 16 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/neon-fixture.test.ts > empty schema preparation refuses inherited data before any destructive SQL > checks every discovered table while locked and rebuilds the migration-owned schemas
+AssertionError: expected { discoveredTables: 2, …(2) } to deeply equal { discoveredTables: 2, …(3) }
+
+- Expected
++ Received
+
+  {
+    "checkedTables": 2,
+    "discoveredTables": 2,
+-   "keptSchemas": [],
+    "rowsErased": 0,
+  }
+
+ ❯ src/test/neon-fixture.test.ts:191:41
+    189|   it("checks every discovered table while locked and rebuilds the migr…
+    190|     const db = database();
+    191|     expect(await resetEmptyFixture(db)).toEqual({
+       |                                         ^
+    192|       discoveredTables: 2,
+    193|       checkedTables: 2,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > empty schema preparation refuses inherited data before any destructive SQL > drops exactly the migration-owned schemas in discovered order and keeps the managed ones
+AssertionError: expected { discoveredTables: 3, …(2) } to deeply equal { discoveredTables: 3, …(3) }
+
+- Expected
++ Received
+
+  {
+    "checkedTables": 3,
+    "discoveredTables": 3,
+-   "keptSchemas": [
+-     "neon_auth",
+-     "pgrst",
+-   ],
+    "rowsErased": 0,
+  }
+
+ ❯ src/test/neon-fixture.test.ts:216:41
+    214|       ],
+    215|     });
+    216|     expect(await resetEmptyFixture(db)).toEqual({
+       |                                         ^
+    217|       discoveredTables: 3,
+    218|       checkedTables: 3,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/16]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > empty schema preparation refuses inherited data before any destructive SQL > accepts the managed neon_auth schema of the zero-row copy when empty, keeping it
+AssertionError: expected { discoveredTables: 2, …(2) } to deeply equal { discoveredTables: 2, …(3) }
+
+- Expected
++ Received
+
+  {
+    "checkedTables": 2,
+    "discoveredTables": 2,
+-   "keptSchemas": [
+-     "neon_auth",
+-   ],
+    "rowsErased": 0,
+  }
+
+ ❯ src/test/neon-fixture.test.ts:255:41
+    253|   it("accepts the managed neon_auth schema of the zero-row copy when e…
+    254|     const db = database({ schemas: ["app_private", "drizzle", "neon_au…
+    255|     expect(await resetEmptyFixture(db)).toEqual({
+       |                                         ^
+    256|       discoveredTables: 2,
+    257|       checkedTables: 2,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/16]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > empty schema preparation refuses inherited data before any destructive SQL > accepts the managed pgrst schema of the zero-row copy when empty, keeping it
+AssertionError: expected { discoveredTables: 2, …(2) } to deeply equal { discoveredTables: 2, …(3) }
+
+- Expected
++ Received
+
+  {
+    "checkedTables": 2,
+    "discoveredTables": 2,
+-   "keptSchemas": [
+-     "neon_auth",
+-     "pgrst",
+-   ],
+    "rowsErased": 0,
+  }
+
+ ❯ src/test/neon-fixture.test.ts:269:41
+    267|   it("accepts the managed pgrst schema of the zero-row copy when empty…
+    268|     const db = database({ schemas: ["app_private", "drizzle", "neon_au…
+    269|     expect(await resetEmptyFixture(db)).toEqual({
+       |                                         ^
+    270|       discoveredTables: 2,
+    271|       checkedTables: 2,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/16]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > projects an identity-phase plain error with no error content at all
+TypeError: refusalProjection is not a function
+ ❯ src/test/neon-fixture.test.ts:300:24
+    298| describe("sanitized refusal projection of the preparation step", () =>…
+    299|   it("projects an identity-phase plain error with no error content at …
+    300|     const projection = refusalProjection("identity", new Error("passwo…
+       |                        ^
+    301|     expect(projection).toBe(
+    302|       "Neon fixture refused: phase=identity, code=none; no credentials…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/16]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > projects a validated SQLSTATE from a pg-shaped error
+TypeError: refusalProjection is not a function
+ ❯ src/test/neon-fixture.test.ts:309:7
+    307|   it("projects a validated SQLSTATE from a pg-shaped error", () => {
+    308|     expect(
+    309|       refusalProjection("prepare", {
+       |       ^
+    310|         code: "42501",
+    311|         message: "must be owner of schema neon_auth",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/16]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > projects a node errno code from a connect-phase failure
+TypeError: refusalProjection is not a function
+ ❯ src/test/neon-fixture.test.ts:316:12
+    314|   });
+    315|   it("projects a node errno code from a connect-phase failure", () => {
+    316|     expect(refusalProjection("connect", { code: "ENOTFOUND" })).toBe(
+       |            ^
+    317|       "Neon fixture refused: phase=connect, code=ENOTFOUND; no credent…
+    318|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/16]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > never projects a credential-looking or invalid code "42501'"
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > never projects a credential-looking or invalid code "postgres://u:p@h/x"
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > never projects a credential-looking or invalid code "lower_case"
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > never projects a credential-looking or invalid code "4250"
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > never projects a credential-looking or invalid code "425011234567890123456789"
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > never projects a credential-looking or invalid code ""
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > never projects a credential-looking or invalid code 42
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > never projects a credential-looking or invalid code undefined
+TypeError: refusalProjection is not a function
+ ❯ src/test/neon-fixture.test.ts:334:7
+    332|   ])("never projects a credential-looking or invalid code %j", (code) …
+    333|     expect(
+    334|       refusalProjection("connect", { code, message: "must be owner of …
+       |       ^
+    335|     ).toBe("Neon fixture refused: phase=connect, code=none; no credent…
+    336|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/16]⎯
+
+ FAIL  src/test/neon-fixture.test.ts > sanitized refusal projection of the preparation step > projects a non-object error without throwing
+TypeError: refusalProjection is not a function
+ ❯ src/test/neon-fixture.test.ts:338:12
+    336|   });
+    337|   it("projects a non-object error without throwing", () => {
+    338|     expect(refusalProjection("prepare", "raw-string")).toBe(
+       |            ^
+    339|       "Neon fixture refused: phase=prepare, code=none; no credentials …
+    340|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/16]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  16 failed | 37 passed (53)
+   Start at  01:45:53
+   Duration  1.29s (transform 192ms, setup 124ms, import 218ms, tests 42ms, environment 736ms)
+

@@ -1,0 +1,464 @@
+{
+  "schema": "c27-implementation-status/1",
+  "observedAt": "2026-10-03T05:14:08.513796+00:00",
+  "verdict": "NO-GO",
+  "lastCodeRevision": "4bd512c6a5ff0e4d2973f7208da26c3d93f800ef",
+  "mainRevision": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+  "publishedCommitsBeforeThisMilestone": 6,
+  "budget": 13,
+  "reservedReleaseCommits": 2,
+  "localQualityC05": {
+    "suitesPassed": 125,
+    "testsPassed": 1545,
+    "testsSkipped": 14
+  },
+  "uiRelease": {
+    "runId": 37084295303,
+    "attempt": 1,
+    "headRevision": "ec2785d0d0dee7de9b5b00d56ab8c1e3aecd0670",
+    "checkoutRevision": "51792c5e57775d72f262222f3e12450bc42fdb39",
+    "producerSeconds": 67,
+    "verifySeconds": 414,
+    "conclusion": "SUCCESS",
+    "e2e": {
+      "startTime": "2026-10-03T01:04:35.580Z",
+      "duration": 153706.565,
+      "expected": 76,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "projects": ["chromium", "firefox", "webkit", "mobile"]
+  },
+  "exactCacheHit": {
+    "runId": 37082909883,
+    "producerSeconds": 88,
+    "verifySeconds": 419,
+    "conclusion": "SUCCESS"
+  },
+  "neon": {
+    "prRunId": 37084295335,
+    "conclusion": "SUCCESS",
+    "cleanupConclusion": "SUCCESS",
+    "temporaryBranchId": "br-withered-mode-ayjjp017",
+    "independentGetStatus": 404,
+    "independentAbsent": true,
+    "readinessRunId": 37080532930,
+    "readinessRevision": "ccef6e55eb44e6db7bb09682526d00d2fb2f55d2",
+    "readinessDbSuites": 17,
+    "permanentDevelopPrepared": false,
+    "previewCleanup": {
+      "schema": "c27-neon-preview-cleanup/1",
+      "observedAt": "2026-10-03T01:25:51.986Z",
+      "authority": "Existing user confirmation: GitHub and Neon keep develop/main and develop/production",
+      "deletedBranchId": "br-snowy-term-ay5634m3",
+      "deleteResponse": null,
+      "getStatus": 404,
+      "independentAbsenceById": true,
+      "independentAbsenceByName": true,
+      "permanents": [
+        {
+          "id": "br-snowy-violet-aymcvvvv",
+          "name": "production",
+          "default": true,
+          "current_state": "ready"
+        },
+        {
+          "id": "br-small-hill-aymcu14y",
+          "name": "develop",
+          "default": false,
+          "current_state": "ready"
+        }
+      ],
+      "integrationSuspensionVerified": false
+    }
+  },
+  "sonarMain": {
+    "observedAt": "2026-10-03T01:02:21.407Z",
+    "analysisId": "1dc2baf9-b289-42f4-b2ca-dd7b662b3679",
+    "analysisDate": "2026-10-01T14:53:36+0000",
+    "status": "ERROR",
+    "units": {
+      "total": 2995,
+      "covered": 1894,
+      "coverage": 63.23873121869783,
+      "gap": 502,
+      "floor": 1498
+    }
+  },
+  "sonarPr": {
+    "analysisId": "5853ff89-2868-483a-8763-285ecc4c17d5",
+    "runnerRevision": "51792c5e57775d72f262222f3e12450bc42fdb39",
+    "status": "OK",
+    "coverageConditionPresent": false
+  },
+  "mirror": {
+    "schema": "main-mirror/1",
+    "mainSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+    "analysisId": "1dc2baf9-b289-42f4-b2ca-dd7b662b3679",
+    "target": {
+      "total": 2995,
+      "covered": 1894,
+      "coverage": 63.23873121869783,
+      "gap": 502,
+      "floor": 1498
+    },
+    "verdict": "NO-VERDICT",
+    "reason": "authenticated per-unit Sonar mapping is unavailable"
+  },
+  "runtime": [
+    {
+      "schema": "runtime-probe/1",
+      "origin": "https://preco-que-da-lucro-sage.vercel.app",
+      "observedAt": "2026-10-03T01:33:21.705Z",
+      "scope": "anonymous GET only; login, tenant isolation and release revision not proved",
+      "pass": true,
+      "rows": [
+        {
+          "path": "/api/health/live",
+          "kind": "live",
+          "http": 200,
+          "contentType": "application/json",
+          "bytes": 15,
+          "bodySha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+          "verdict": "PASS",
+          "reason": "health contract observed; login/tenant/revision not proved",
+          "latencyMs": 1155
+        },
+        {
+          "path": "/api/health/ready",
+          "kind": "ready",
+          "http": 200,
+          "contentType": "application/json",
+          "bytes": 51,
+          "bodySha256": "9ab95ca3f29ec351e409b9f79a39657841286f5e49b6ee2ae904928581f30260",
+          "verdict": "PASS",
+          "reason": "health contract observed; login/tenant/revision not proved",
+          "latencyMs": 1805
+        },
+        {
+          "path": "/api/auth/get-session",
+          "kind": "session",
+          "http": 200,
+          "contentType": "application/json",
+          "bytes": 4,
+          "bodySha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "verdict": "PASS",
+          "reason": "anonymous route only; login/tenant/revision not proved",
+          "latencyMs": 1985
+        }
+      ],
+      "observation": {
+        "samples": 1,
+        "consecutiveFailures": 0,
+        "incidentsOpened": 0,
+        "incidentOpen": false,
+        "startedAt": "2026-10-03T01:33:21.705Z",
+        "observedAt": "2026-10-03T01:33:21.705Z"
+      }
+    },
+    {
+      "schema": "runtime-probe/1",
+      "origin": "https://darkgray-pony-545965.hostingersite.com",
+      "observedAt": "2026-10-03T01:33:20.907Z",
+      "scope": "anonymous GET only; login, tenant isolation and release revision not proved",
+      "pass": false,
+      "rows": [
+        {
+          "path": "/api/health/live",
+          "kind": "live",
+          "http": 200,
+          "contentType": "application/json",
+          "bytes": 15,
+          "bodySha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+          "verdict": "PASS",
+          "reason": "health contract observed; login/tenant/revision not proved",
+          "latencyMs": 397
+        },
+        {
+          "path": "/api/health/ready",
+          "kind": "ready",
+          "http": 503,
+          "contentType": "application/json",
+          "bytes": 64,
+          "bodySha256": "0a47f8870ddd261e4e80c6cda6707db80dca3aa9e795e62eaf9b6d468faca656",
+          "verdict": "FAIL",
+          "reason": "API HTTP status is not 200",
+          "latencyMs": 1214
+        },
+        {
+          "path": "/api/auth/get-session",
+          "kind": "session",
+          "http": 500,
+          "contentType": "text/html",
+          "bytes": 1312,
+          "bodySha256": "7bda1ad24ab9d11b6b7039b1296d95982eee5cd6812224564749812b040c010a",
+          "verdict": "FAIL",
+          "reason": "API did not return JSON content type",
+          "latencyMs": 1220
+        }
+      ],
+      "observation": {
+        "samples": 1,
+        "consecutiveFailures": 1,
+        "incidentsOpened": 0,
+        "incidentOpen": false,
+        "startedAt": "2026-10-03T01:33:20.907Z",
+        "observedAt": "2026-10-03T01:33:20.907Z"
+      }
+    },
+    {
+      "schema": "runtime-probe/1",
+      "origin": "https://diretrizprecifica.com",
+      "observedAt": "2026-10-03T01:33:21.177Z",
+      "scope": "anonymous GET only; login, tenant isolation and release revision not proved",
+      "pass": false,
+      "rows": [
+        {
+          "path": "/api/health/live",
+          "kind": "live",
+          "http": 200,
+          "contentType": "text/html",
+          "bytes": 7956,
+          "bodySha256": "b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c",
+          "verdict": "FAIL",
+          "reason": "API did not return JSON content type",
+          "latencyMs": 478
+        },
+        {
+          "path": "/api/health/ready",
+          "kind": "ready",
+          "http": 200,
+          "contentType": "text/html",
+          "bytes": 7956,
+          "bodySha256": "b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c",
+          "verdict": "FAIL",
+          "reason": "API did not return JSON content type",
+          "latencyMs": 249
+        },
+        {
+          "path": "/api/auth/get-session",
+          "kind": "session",
+          "http": 200,
+          "contentType": "text/html",
+          "bytes": 7956,
+          "bodySha256": "b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c",
+          "verdict": "FAIL",
+          "reason": "API did not return JSON content type",
+          "latencyMs": 1506
+        }
+      ],
+      "observation": {
+        "samples": 1,
+        "consecutiveFailures": 1,
+        "incidentsOpened": 0,
+        "incidentOpen": false,
+        "startedAt": "2026-10-03T01:33:21.177Z",
+        "observedAt": "2026-10-03T01:33:21.177Z"
+      }
+    }
+  ],
+  "recoveryFixture": {
+    "scope": "LOCAL controlled PG17 fixture only; no production/S3/PITR/key-custody/provider-outage proof",
+    "source_revision": "ec2785d0d0dee7de9b5b00d56ab8c1e3aecd0670",
+    "snapshot_at": "2026-10-03T01:32:59.261Z",
+    "result": "LOCAL-FIXTURE-PASS",
+    "checks": {
+      "inventories_match": true,
+      "tenant_positive_and_cross_negative": true,
+      "auth_table_denied_to_runtime": true,
+      "dump_bytes_authenticated": true,
+      "schema_journal_owner_grants_rls_preserved": true,
+      "removed_grant_detected": true
+    },
+    "metrics": {
+      "fixture_restore_validation_seconds": 3.064,
+      "exercise_elapsed_seconds": 8.162,
+      "recovered_fixture_last_write": "all pre-snapshot fixture commits recovered; no writes during dump",
+      "rpo_production": null,
+      "rto_production": null
+    },
+    "containers": [
+      {
+        "id": "bd5abe339318d91fad74a4f8acc577c3f953966a15a55e58c2ddd989bf0d66b3",
+        "phase": "source",
+        "image": "postgres@sha256:d4bb0a8c1b7bb2e29f976d099e7bfb9a5d8858cffe9e46b35cd302cd1f1f8168",
+        "network": "none",
+        "published_ports": []
+      },
+      {
+        "id": "41ee6d2c10d5b99563b52263331706ace560b6202c04ba5f3ce4dc8ee305eb5f",
+        "phase": "restore",
+        "image": "postgres@sha256:d4bb0a8c1b7bb2e29f976d099e7bfb9a5d8858cffe9e46b35cd302cd1f1f8168",
+        "network": "none",
+        "published_ports": []
+      }
+    ],
+    "cleanup": [
+      {
+        "id": "41ee6d2c10d5b99563b52263331706ace560b6202c04ba5f3ce4dc8ee305eb5f",
+        "phase": "restore",
+        "removed_and_absent": true
+      },
+      {
+        "id": "bd5abe339318d91fad74a4f8acc577c3f953966a15a55e58c2ddd989bf0d66b3",
+        "phase": "source",
+        "removed_and_absent": true
+      }
+    ]
+  },
+  "recoveryIndependent": {
+    "awsReal": false,
+    "pitr7dObserved": false,
+    "keyCustodyIndependentObserved": false,
+    "scheduledBackupObserved": false,
+    "productionRpoSeconds": null,
+    "productionRtoSeconds": null
+  },
+  "humanPending": [
+    "Hostinger Via A runtime connection",
+    "six credential rotations",
+    "Neon PITR seven-day contracting",
+    "segregated S3 account/bucket/operational key",
+    "SonarCloud authenticated unit mapping",
+    "second Vercel team and termination review"
+  ],
+  "s6": "NOT-STARTED",
+  "registry": {
+    "total": 63,
+    "statuses": {
+      "ABERTA": 49,
+      "FECHADA": 13,
+      "EM_TRATAMENTO": 1
+    },
+    "scoreHumanUnchanged": {
+      "D": 150,
+      "P": 29,
+      "NS": 8,
+      "UNV": 0,
+      "denominator": 187
+    }
+  },
+  "evidenceDigests": [
+    {
+      "relativePath": "ci-c05/sonar-ce/c25-gate-readout.json",
+      "sha256": "0a6045bdc1906f28a1cac0e1372f06b84aed1dafd93fc8f15cb85f4d8e9bb9e8"
+    },
+    {
+      "relativePath": "ci-c05/sonar-mirror/c24-main-baseline.json",
+      "sha256": "e37fec21280472818993c4f2200120687b44dba91ded14f9d44fea58f7ae88c5"
+    },
+    {
+      "relativePath": "ci-c05/sonar-mirror/c26-main-mirror.json",
+      "sha256": "7aac8c44d04ab47ab040e9f99ffb7282bd86aa8db2120dad848f0f7695963441"
+    },
+    {
+      "relativePath": "ci-c05/browser-evidence/.artifacts/playwright-results.json",
+      "sha256": "e2b4fbef15b25b9640fd05ae35d83a89bf86185c0d4b1d959dc39a921f52803e"
+    },
+    {
+      "relativePath": "captures/neon-preview-cleanup.json",
+      "sha256": "98005f277f44efb67bb77684ccb437710707700b5e7b5d9b0d1d0f6f1b43239e"
+    },
+    {
+      "relativePath": "local-recovery-diagnostic/inventory-diff.json",
+      "sha256": "6597a7519235558c4c880962364e3189815660c3d597a8caf2aeb41cfe0945a3"
+    },
+    {
+      "relativePath": "local-recovery-qualified/result.json",
+      "sha256": "ef2da286a843d0ca45072323362c29705cf3fba16f1345260a17996135017785"
+    }
+  ],
+  "continuation": {
+    "schema": "c27-continuation/1",
+    "committedBeforeC10": 9,
+    "plannedAfterDocumentaryMilestone": 11,
+    "localCommits": {
+      "C07": "715a6be43113779562545234af9fdb13abe936cf",
+      "C08": "f27fffbfee3793577dba5ec8e083668d49b3e9c3",
+      "C09": "1b9322f8d14918eb7a06530d3b5f34ab4c36875b",
+      "C10": "de4370539d39de5d4ec05223be75b73aee14a397"
+    },
+    "localQualityFinal": {
+      "state": "PASS",
+      "testFiles": 126,
+      "testsPassed": 1594,
+      "testsSkipped": 14,
+      "gatewayTests": 18,
+      "cycleTests": 25,
+      "qualityLogSha256": "7a37ac5de4d9c0276bca67ad718bdd5f350e0e1a72f9135c2e507d12e45f40d1"
+    },
+    "publicBundleBoundary": {
+      "schema": "deepseek-server-boundary/1",
+      "observedAt": "2026-10-03T05:08:35.635333+00:00",
+      "checkExit": 0,
+      "checkedPublicJs": 46,
+      "canaryHits": 0,
+      "serverVariableHits": 0,
+      "actualProviderKey": false,
+      "realApiCall": false,
+      "verdict": "PASS"
+    },
+    "npmAudit": {
+      "vulnerabilities": 0,
+      "dependencies": 744
+    },
+    "readiness": {
+      "runId": 37093942014,
+      "revision": "4bd512c6a5ff0e4d2973f7208da26c3d93f800ef",
+      "conclusion": "SUCCESS",
+      "dbSuites": 17,
+      "temporaryId": "br-snowy-feather-aywq49ha",
+      "cleanupGet404": true,
+      "independentAbsence": true,
+      "permanentDevelopPrepared": false
+    },
+    "preview": {
+      "id": "br-rough-dust-ay3mpgwy",
+      "creationSource": "vercel",
+      "deleteStatus": 401,
+      "get404Proved": false,
+      "uiNames": ["production", "develop"],
+      "uiAbsenceByName": true,
+      "apiCleanup": "NO-VERDICT",
+      "integrationSuspension": "NOT-PROVED"
+    },
+    "pitrAttempt": {
+      "requestedSeconds": 604800,
+      "httpStatus": 400,
+      "maximumSeconds": 21600,
+      "actualSeconds": 21600,
+      "contracting": false
+    },
+    "nativeCollectorDrill": {
+      "attempts": 2,
+      "dumpStarted": false,
+      "result": "NO-VERDICT",
+      "decision": "ESCALATED",
+      "resourcesCreated": [2, 1],
+      "createdResourcesRemoved": true,
+      "concurrentWriterSnapshotProved": false
+    },
+    "deepseekWeb": {
+      "scope": "Web server only",
+      "model": "deepseek-flash",
+      "secretEnvName": "DEEPSEEK_API_KEY",
+      "authenticatedProviderConsumer": "NOT-STARTED",
+      "rotationProved": false,
+      "credentialValueCaptured": false,
+      "codexConfigured": false
+    },
+    "newHeadCi": "NOT-STARTED",
+    "formalS6": "NOT-STARTED",
+    "qualificationRevision": {
+      "originalCommit": "8dddbbfc2fd3c381ffd998b9172347d393bf4d0b",
+      "originalSealPreserved": true,
+      "originalBundleVerified": true,
+      "publishedHistoryRewritten": false,
+      "restoreTarget": "EC2 ARN in recovery account and approved region",
+      "neonProviderRestoreRefused": true,
+      "correctedRevision": "1b9322f8d14918eb7a06530d3b5f34ab4c36875b"
+    },
+    "committedBeforeDocumentaryMilestone": 10
+  }
+}

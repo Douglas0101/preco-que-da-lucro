@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { saveSimulation } from "@/lib/financial.functions";
+import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import {
   expensesQueryOptions,
   financialSimulationQueryOptions,
@@ -347,13 +348,15 @@ function Simulacoes() {
 
   const saveSimulationMutation = useMutation({
     mutationFn: () =>
-      saveSimulation({
-        data: {
-          product_id: selectedProductId || null,
-          name: simulationName.trim(),
-          params: debouncedInput ?? EMPTY_SIMULATION_INPUT,
-        },
-      }),
+      unwrapServerFn(
+        saveSimulation({
+          data: {
+            product_id: selectedProductId || null,
+            name: simulationName.trim(),
+            params: debouncedInput ?? EMPTY_SIMULATION_INPUT,
+          },
+        }),
+      ),
     onSuccess: async () => {
       toast.success("Simulação salva");
       setSimulationName("");
@@ -402,7 +405,11 @@ function Simulacoes() {
           <CardContent className="p-5">
             <div className="max-w-md space-y-1">
               <Label htmlFor="simulacoes-produto">Produto</Label>
-              <Select value={selectedProductId} onValueChange={setProductId}>
+              <Select
+                value={selectedProductId}
+                onValueChange={setProductId}
+                items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
+              >
                 <SelectTrigger id="simulacoes-produto">
                   <SelectValue placeholder="Escolha um produto" />
                 </SelectTrigger>

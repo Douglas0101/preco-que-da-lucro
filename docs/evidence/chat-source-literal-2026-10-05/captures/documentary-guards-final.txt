@@ -1,0 +1,36 @@
+COMMAND npx prettier --check docs/evidence/chat-source-literal-2026-10-05 docs/evidence/chat-production-2026-10-05 docs/evidence/agent-state/DEBTS.md docs/evidence/agent-state/PROGRESS.md src/lib/ai/financial-output-grounding.ts src/lib/chat-execution.server.ts src/lib/chat-markdown-parser.ts src/lib/chat-markdown.tsx src/test/chat-financial-grounding.test.ts
+Checking formatting...
+All matched files use Prettier code style!
+OBSERVED exit=0
+COMMAND node scripts/m02-work-package-guard.mjs
+work-package guard: OK (17 itens, 5 secoes, taxonomia e layout do selo) — docs/evidence/_templates/work-package.md
+OBSERVED exit=0
+COMMAND node scripts/m02-debts-guard.mjs
+debts guard: OK (78 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md
+OBSERVED exit=0
+COMMAND node scripts/m02-temporal-guard.mjs
+m02-temporal-guard: superficie viva, as-of 2026-10-06
+  docs/evidence/agent-state/PROGRESS.md [secao-1] — 4 âncora(s), 0 linha(s) com prazo vivo
+  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 42 âncora(s), 1 linha(s) com prazo vivo
+  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [fora-do-fechado] — 0 âncora(s), 1 linha(s) com prazo vivo
+m02-temporal-guard: OK (3 superficies vivas, 0 violacao)
+OBSERVED exit=0
+COMMAND npx tsx scripts/m02-state-check.ts
+M-02 ancestral state marker is valid for HEAD cafde4e8689a97bd6983490f965ca14f377c2e38 (folga 12/13 commits).
+Worktree: dirty (preservado e auditável).
+External state: not inspected by this local check.
+OBSERVED exit=0
+COMMAND npm run m02:matrix:check
+
+> m02:matrix:check
+> tsx scripts/m02-matrix.ts --check
+
+M-02 matrix is deterministic and up to date.
+OBSERVED exit=0
+COMMAND npm run m02:boundaries
+
+> m02:boundaries
+> tsx scripts/m02-boundaries.ts
+
+M-02 BFF boundary is clean: all database reachability is allowlisted or repository-only.
+OBSERVED exit=0

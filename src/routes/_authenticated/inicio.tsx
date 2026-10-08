@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardSummaryQueryOptions } from "@/lib/query-options";
-import type { DashboardPeriod } from "@/lib/dashboard.functions";
+import { isDashboardSummaryValid } from "@/lib/dashboard-summary-guard";
+import type { ConsolidatedMargin, DashboardPeriod } from "@/lib/dashboard.functions";
 import { brl, pct } from "@/lib/format";
 import { CONTRIBUTION_MARGIN_PCT_FORMULA } from "@/lib/calc-explanation";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,7 @@ interface Metrics {
   alerts: string[];
   period: DashboardPeriod;
   sales: { revenue: string; count: number };
+  consolidatedMargin: ConsolidatedMargin;
 }
 
 type LoadStatus = "loading" | "ready" | "error";
@@ -73,16 +75,17 @@ function Inicio() {
   const summaryQuery = useQuery(dashboardSummaryQueryOptions(period));
   const loadStatus = loadStatusFor(summaryQuery);
   const metrics = summaryQuery.data as Metrics | undefined;
+  const hasInvalidPayload = metrics !== undefined && !isDashboardSummaryValid(metrics);
   const errorReference = useMemo(
-    () => (summaryQuery.isError ? createErrorReference("DASH") : null),
-    [summaryQuery.isError],
+    () => (summaryQuery.isError || hasInvalidPayload ? createErrorReference("DASH") : null),
+    [summaryQuery.isError, hasInvalidPayload],
   );
 
   if (loadStatus === "loading") {
     return <InicioSkeleton />;
   }
 
-  if (loadStatus === "error") {
+  if (loadStatus === "error" || hasInvalidPayload) {
     return (
       <Card role="alert" className="border-destructive/40">
         <CardContent className="space-y-3 p-5">
@@ -92,7 +95,7 @@ function Inicio() {
               Referência de atendimento: {errorReference}
             </p>
           )}
-          <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+          <Button type="button" variant="outline" onClick={() => void summaryQuery.refetch()}>
             Tentar novamente
           </Button>
         </CardContent>
@@ -223,28 +226,9 @@ function Inicio() {
             }
           />
         )}
-        <MetricCard
-          icon={TrendingUp}
-          label="Margem consolidada"
-          value="—"
-          description="Registre vendas reais para calcular o mix real de vendas."
-          explain={
-            <p>
-              A margem consolidada é a margem de contribuição ponderada pelo mix real de vendas —
-              quantas unidades de <span className="font-medium">cada</span> produto foram vendidas,
-              não apenas o faturamento total. Sem esse mix qualquer número seria um chute, por isso
-              o card fica indisponível em vez de exibir uma margem média dos produtos cadastrados.
-            </p>
-          }
-          badge={
-            <Badge
-              variant="outline"
-              title="Faltam vendas reais registradas para calcular a margem consolidada."
-              className="shrink-0 border-amber-500/60 text-amber-700 dark:text-amber-400"
-            >
-              DADOS INCOMPLETOS
-            </Badge>
-          }
+        <ConsolidatedMarginCard
+          margin={metrics.consolidatedMargin}
+          salesCount={metrics.sales.count}
         />
       </div>
 
@@ -309,6 +293,90 @@ function Inicio() {
   );
 }
 
+const MARGIN_UNAVAILABLE_BADGE = (
+  <Badge
+    variant="outline"
+    title="A margem consolidada está indisponível: um dado factual necessário está ausente."
+    className="shrink-0 border-amber-500/60 text-amber-700 dark:text-amber-400"
+  >
+    DADOS INCOMPLETOS
+  </Badge>
+);
+
+function ConsolidatedMarginCard({
+  margin,
+  salesCount,
+}: Readonly<{ margin: ConsolidatedMargin; salesCount: number }>) {
+  const formula = (
+    <>
+      <p>
+        <span className="font-medium">Fórmula:</span> (faturamento real − custo das unidades
+        vendidas − impostos e taxas sobre os valores vendidos) ÷ faturamento real do período.
+      </p>
+      <p>
+        A margem é ponderada pelo mix real de vendas — quantas unidades de{" "}
+        <span className="font-medium">cada</span> produto foram vendidas, não apenas o faturamento
+        total — e usa o preço registrado em cada venda e as premissas de custo, impostos e taxas
+        atuais dos produtos. Ela não reconstrói custos históricos.
+      </p>
+    </>
+  );
+  if (margin.state === "ok") {
+    return (
+      <MetricCard
+        icon={TrendingUp}
+        label="Margem consolidada"
+        value={pct(margin.valuePct)}
+        description={`Margem sobre o faturamento real (${salesCount} venda(s) no período).`}
+        explain={formula}
+      />
+    );
+  }
+  if (margin.state === "incomplete") {
+    const cause = margin.zeroRevenue
+      ? "O faturamento real do período é zero; a margem consolidada exige faturamento."
+      : margin.salesMismatch
+        ? "Os valores das vendas e de seus itens não conciliam. A margem fica indisponível até conferir descontos e ajustes."
+        : `${margin.incompleteProductCount} produto(s) vendido(s) sem custo calculável; a margem exige o custo de tudo que foi vendido.`;
+    return (
+      <MetricCard
+        icon={TrendingUp}
+        label="Margem consolidada"
+        value="—"
+        description={cause}
+        explain={
+          <>
+            {formula}
+            <p>
+              O card fica indisponível em vez de exibir uma margem parcial ou inventada: sem o custo
+              de tudo que foi vendido, qualquer número seria um chute.
+            </p>
+          </>
+        }
+        badge={MARGIN_UNAVAILABLE_BADGE}
+      />
+    );
+  }
+  return (
+    <MetricCard
+      icon={TrendingUp}
+      label="Margem consolidada"
+      value="—"
+      description="Registre vendas reais para calcular o mix real de vendas."
+      badge={MARGIN_UNAVAILABLE_BADGE}
+      explain={
+        <>
+          {formula}
+          <p>
+            Sem vendas registradas no período não há mix para ponderar: o card fica indisponível em
+            vez de presumir volume ou exibir uma margem média dos produtos cadastrados.
+          </p>
+        </>
+      }
+    />
+  );
+}
+
 function InicioSkeleton() {
   return (
     <LoadingSkeleton className="space-y-6">
@@ -362,7 +430,7 @@ function MetricCard({
     <Card>
       <CardContent className="p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {label}
             </div>

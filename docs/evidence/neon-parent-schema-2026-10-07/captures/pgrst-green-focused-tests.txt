@@ -1,0 +1,12 @@
+$ npx vitest run src/test/neon-fixture.test.ts src/test/neon-fixture-provision.test.ts
+# executed 2026-10-07T23:01:22Z against prepare-neon-fixture.ts with pgrst allowlisted
+
+ RUN  v4.1.11 /home/douglas-souza/preco-que-d-main
+
+
+ Test Files  2 passed (2)
+      Tests  76 passed (76)
+   Start at  20:01:22
+   Duration  1.60s (transform 173ms, setup 168ms, import 185ms, tests 54ms, environment 972ms)
+
+exit=0

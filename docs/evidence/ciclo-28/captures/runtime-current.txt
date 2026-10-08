@@ -1,0 +1,128 @@
+[
+  {
+    "schema": "runtime-probe/1",
+    "origin": "https://preco-que-da-lucro-sage.vercel.app",
+    "observedAt": "2026-10-03T19:55:16.491Z",
+    "scope": "anonymous GET only; login, tenant isolation and release revision not proved",
+    "pass": true,
+    "rows": [
+      {
+        "path": "/api/health/live",
+        "kind": "live",
+        "http": 200,
+        "contentType": "application/json",
+        "bytes": 15,
+        "bodySha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+        "verdict": "PASS",
+        "reason": "health contract observed; login/tenant/revision not proved",
+        "latencyMs": 1144
+      },
+      {
+        "path": "/api/health/ready",
+        "kind": "ready",
+        "http": 200,
+        "contentType": "application/json",
+        "bytes": 51,
+        "bodySha256": "9ab95ca3f29ec351e409b9f79a39657841286f5e49b6ee2ae904928581f30260",
+        "verdict": "PASS",
+        "reason": "health contract observed; login/tenant/revision not proved",
+        "latencyMs": 3800
+      },
+      {
+        "path": "/api/auth/get-session",
+        "kind": "session",
+        "http": 200,
+        "contentType": "application/json",
+        "bytes": 4,
+        "bodySha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "verdict": "PASS",
+        "reason": "anonymous route only; login/tenant/revision not proved",
+        "latencyMs": 3959
+      }
+    ]
+  },
+  {
+    "schema": "runtime-probe/1",
+    "origin": "https://darkgray-pony-545965.hostingersite.com",
+    "observedAt": "2026-10-03T19:55:13.777Z",
+    "scope": "anonymous GET only; login, tenant isolation and release revision not proved",
+    "pass": false,
+    "rows": [
+      {
+        "path": "/api/health/live",
+        "kind": "live",
+        "http": 200,
+        "contentType": "application/json",
+        "bytes": 15,
+        "bodySha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+        "verdict": "PASS",
+        "reason": "health contract observed; login/tenant/revision not proved",
+        "latencyMs": 341
+      },
+      {
+        "path": "/api/health/ready",
+        "kind": "ready",
+        "http": 503,
+        "contentType": "application/json",
+        "bytes": 64,
+        "bodySha256": "0a47f8870ddd261e4e80c6cda6707db80dca3aa9e795e62eaf9b6d468faca656",
+        "verdict": "FAIL",
+        "reason": "API HTTP status is not 200",
+        "latencyMs": 1242
+      },
+      {
+        "path": "/api/auth/get-session",
+        "kind": "session",
+        "http": 500,
+        "contentType": "text/html",
+        "bytes": 1312,
+        "bodySha256": "7bda1ad24ab9d11b6b7039b1296d95982eee5cd6812224564749812b040c010a",
+        "verdict": "FAIL",
+        "reason": "API did not return JSON content type",
+        "latencyMs": 1240
+      }
+    ]
+  },
+  {
+    "schema": "runtime-probe/1",
+    "origin": "https://diretrizprecifica.com",
+    "observedAt": "2026-10-03T19:55:13.005Z",
+    "scope": "anonymous GET only; login, tenant isolation and release revision not proved",
+    "pass": false,
+    "rows": [
+      {
+        "path": "/api/health/live",
+        "kind": "live",
+        "http": 200,
+        "contentType": "text/html",
+        "bytes": 7956,
+        "bodySha256": "b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c",
+        "verdict": "FAIL",
+        "reason": "API did not return JSON content type",
+        "latencyMs": 467
+      },
+      {
+        "path": "/api/health/ready",
+        "kind": "ready",
+        "http": 200,
+        "contentType": "text/html",
+        "bytes": 7956,
+        "bodySha256": "b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c",
+        "verdict": "FAIL",
+        "reason": "API did not return JSON content type",
+        "latencyMs": 456
+      },
+      {
+        "path": "/api/auth/get-session",
+        "kind": "session",
+        "http": 200,
+        "contentType": "text/html",
+        "bytes": 7956,
+        "bodySha256": "b3546636a9de3e90f7fdaa557617d7ae6c43ef677a2ad33741035850e321ec6c",
+        "verdict": "FAIL",
+        "reason": "API did not return JSON content type",
+        "latencyMs": 458
+      }
+    ]
+  }
+]

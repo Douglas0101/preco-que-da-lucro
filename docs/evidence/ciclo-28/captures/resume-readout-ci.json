@@ -1,0 +1,129 @@
+{
+  "schema": "c28-resume-ci/1",
+  "recordedAt": "2026-10-03T23:10:26.762908+00:00",
+  "evidenceClass": "REMOTE-OBSERVED",
+  "method": "N1 visible GitHub run summaries and named outer log panels; no raw scanner context or credentials",
+  "sourceSha": "6fcba0d1f0be3aec6683d738553deee7177bdc8b",
+  "mainSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+  "prMergeRefSha": "ffcd0f89ebb517750a9a035ee080f5be646bb9ed",
+  "refsMethod": "git ls-remote origin refs/heads/develop refs/heads/main refs/pull/60/merge",
+  "runs": [
+    {
+      "id": "37159504312",
+      "event": "push",
+      "workflow": "UI stack",
+      "status": "SUCCESS",
+      "durationSeconds": 309,
+      "e2eProjects": ["chromium", "mobile"],
+      "dbTier": "SKIPPED with scope notice"
+    },
+    {
+      "id": "37159506187",
+      "event": "pull_request",
+      "workflow": "UI stack",
+      "status": "SUCCESS",
+      "durationSeconds": 440,
+      "e2eProjects": ["chromium", "firefox", "webkit", "mobile"],
+      "checkoutSha": "ffcd0f89ebb517750a9a035ee080f5be646bb9ed",
+      "reportCaveat": "GitHub summary labels 1654 passes; do not infer skip accounting from the summary"
+    },
+    {
+      "id": "37159506174",
+      "event": "pull_request",
+      "workflow": "Neon PR branch CI",
+      "status": "SUCCESS",
+      "durationSeconds": 392,
+      "rls": "PASS",
+      "ownedBranchId": "br-morning-band-ay4xfzfz",
+      "cleanup": "workflow summary attests GET404; current N1 inventory lacks the owned branch name"
+    },
+    {
+      "id": "37159504345",
+      "event": "push",
+      "workflow": "CI light",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "37159506170",
+      "event": "pull_request",
+      "workflow": "CI light",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "37159506193",
+      "event": "pull_request",
+      "workflow": "SonarCloud",
+      "status": "FAILURE",
+      "scanJob": "111309809406",
+      "scanStatus": "SUCCESS",
+      "scanDurationSeconds": 193,
+      "mirrorJob": "111310357844",
+      "mirrorStatus": "FAILURE",
+      "mirrorDurationSeconds": 18,
+      "mirrorExit": 2,
+      "mirrorMessage": "NO-VERDICT: complete per-unit mapping/provenance unavailable or inconsistent",
+      "candidateLcovDownload": "SUCCESS",
+      "candidateCeDownload": "SUCCESS",
+      "originalMainRunLookup": "SUCCESS",
+      "originalMainLcovDownload": "SUCCESS"
+    }
+  ],
+  "ce": {
+    "observedAt": "2026-10-03T22:48:31.768Z",
+    "runnerSha": "ffcd0f89ebb517750a9a035ee080f5be646bb9ed",
+    "checkoutSha": "ffcd0f89ebb517750a9a035ee080f5be646bb9ed",
+    "providerIdentity": {
+      "revision": "ffcd0f89ebb517750a9a035ee080f5be646bb9ed",
+      "branch": "develop",
+      "pullRequest": "60"
+    },
+    "ceTaskId": "AaED9EH6JFJI_uD6L7UK",
+    "analysisId": "bcaf5573-af0d-4d18-8f02-b98b484ba736",
+    "status": "OK",
+    "ignoredConditions": false,
+    "newCoverage": "100.0",
+    "newCoverageThreshold": "80",
+    "scope": "PR60; no main credit"
+  },
+  "baseline": {
+    "observedAt": "2026-10-03T22:48:48.251Z",
+    "mainSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+    "analysisId": "1dc2baf9-b289-42f4-b2ca-dd7b662b3679",
+    "analysisDate": "2026-10-01T14:53:36+0000",
+    "periodMode": "days",
+    "periodParameter": "30",
+    "gateStatus": "ERROR",
+    "newLinesToCover": 1904,
+    "newUncoveredLines": 690,
+    "newConditionsToCover": 1091,
+    "newUncoveredConditions": 411,
+    "totalUnits": 2995,
+    "coveredUnits": 1894,
+    "coverage": 63.23873121869783,
+    "gapTo80": 502,
+    "lineOnlyGapTo80": 310,
+    "note": "line-only gap cannot pay condition units"
+  },
+  "artifacts": [
+    {
+      "name": "coverage-lcov",
+      "id": "11287690493",
+      "providerDigest": "8659944d2c3b9171315f11d4439de39402650f18fddd164d6a730b826d8b0f37"
+    },
+    {
+      "name": "main-mirror-verdict",
+      "id": "11286538684",
+      "providerDigest": "70a4e9a2c2f3673649b643c1970eb71bdf9b7b267b95c5b1c90368f5e0c1d81a"
+    },
+    {
+      "name": "sonar-gate-readout",
+      "id": "11287685567",
+      "providerDigest": "e9e8727bd6152e87ceb02618a28a31066478d73849c4dbe07337c9262430568f"
+    }
+  ],
+  "artifactArchiveDigestLocallyVerified": false,
+  "downloadLimitation": "Documented browser download operations timed out; no authenticated network or credential workaround attempted",
+  "adapterSpecificCatchCause": "NOT-OBSERVED from artifact; log proves incomplete/inconsistent mapping/provenance",
+  "releaseVerdict": "NO-GO",
+  "formalS6": "NOT-STARTED"
+}

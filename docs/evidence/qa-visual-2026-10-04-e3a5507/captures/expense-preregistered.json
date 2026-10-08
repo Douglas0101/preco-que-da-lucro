@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-10-04T15:51:00.779Z",
+  "newExpense": {
+    "name": "QA despesa fixa 50",
+    "type": "fixa",
+    "category": "Outros",
+    "amount": "50"
+  },
+  "priorFixed": "600",
+  "expectedFixed": "650",
+  "productContributionUnit": "7",
+  "expectedDiscreteBreakEven": "93",
+  "formula": "ceil(650/7)",
+  "scope": "synthetic local fixture retained for review"
+}

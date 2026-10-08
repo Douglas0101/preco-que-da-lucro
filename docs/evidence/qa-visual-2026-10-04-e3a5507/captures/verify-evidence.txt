@@ -1,0 +1,58 @@
+// Execute from /tmp/pqd-develop using the owned private fixture environment.
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {Client} from 'pg';
+import {findSecretLeaks} from './src/lib/observability/visual-redaction.ts';
+const root='docs/evidence/qa-visual-2026-10-04-e3a5507';
+const digest=x=>createHash('sha256').update(x).digest('hex');
+const sourceHashes=JSON.parse(await fs.readFile('/home/douglas-souza/.codex/artifacts/ciclo-28/auth-gate/app-source-hashes.json','utf8'));
+assert(Object.keys(sourceHashes).length>0);
+const sources=[];
+for(const [file,expected] of Object.entries(sourceHashes)){
+  const actual=digest(await fs.readFile(file));assert.equal(actual,expected,file);sources.push({file,expected,actual});
+}
+await fs.writeFile(root+'/captures/source-fingerprints.json',JSON.stringify(sources,null,2)+'\n');
+const index=JSON.parse(await fs.readFile(root+'/captures/visual-index.json','utf8'));
+assert(index.length>0);
+const rawExpected=new Set();
+for(const item of index){
+  for(const key of ['png','a11y','dom']) rawExpected.add(path.basename(item[key]));
+  const png=await fs.readFile(item.png);assert.equal(digest(png),item.hash,item.label);
+  assert(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));
+  for(const key of ['a11y','dom']){
+    const text=await fs.readFile(item[key],'utf8');const metadata=JSON.parse(text);
+    assert.equal(metadata.hash,item.hash);assert.equal(metadata.label,item.label);
+    assert.equal(metadata.correlationId,null);
+    assert.deepEqual(findSecretLeaks(text,process.env),[],item.label+' '+key);
+  }
+}
+assert.equal(rawExpected.size,index.length*3);
+const rawDiscovered=(await fs.readdir('docs/evidence/visual')).filter(name=>name>='2026-10-04T15-26' && /\.(png|a11y\.json|dom\.json)$/.test(name));
+assert.deepEqual([...rawExpected].sort(),rawDiscovered.sort(),'checked === discovered for this session capture window');
+const c=new Client({connectionString:process.env.DATABASE_ADMIN_URL});await c.connect();
+try{
+ const a='00000000-0000-4000-8000-000000000002',b='00000000-0000-4000-8000-000000000202';
+ const rows=(await c.query('select s.id,s.tenant_id,s.occurred_at,s.channel,s.gross_amount,s.net_amount,i.id as item_id,i.product_id,i.quantity,i.unit_price,i.total_amount from sales s join sales_items i on s.id=i.sale_id and s.tenant_id=i.tenant_id where s.tenant_id=$1 order by s.occurred_at desc,s.created_at desc',[a])).rows;
+ assert.equal(rows.length,5);assert(rows.every(r=>r.product_id==='00000000-0000-4000-8000-000000000010'));
+ const first=rows.find(r=>r.channel==='QA visual');assert(first);assert.equal(first.quantity,'2.000000');assert.equal(first.unit_price,'25.0000');assert.equal(first.total_amount,'50.0000');assert.equal(first.net_amount,'50.0000');
+ const mobile=rows.find(r=>r.channel==='QA movel decimal');assert(mobile);assert.equal(mobile.quantity,'1.000000');assert.equal(mobile.unit_price,'12.5000');assert.equal(mobile.total_amount,'12.5000');
+ const historical=rows.find(r=>r.channel==='QA setembro via controle nativo');assert(historical);assert.equal(historical.occurred_at.toISOString(),'2026-09-15T12:00:00.000Z');assert.equal(historical.net_amount,'30.0000');
+ const sums=(await c.query("select sum(net_amount) filter(where occurred_at >= '2026-10-01T00:00:00-03:00')::text as month,sum(net_amount) filter(where occurred_at >= '2026-10-01T00:00:00-03:00')::text as quarter,sum(net_amount) filter(where occurred_at >= '2026-01-01T00:00:00-03:00')::text as year from sales where tenant_id=$1",[a])).rows[0];
+ assert.deepEqual(sums,{month:'122.5000',quarter:'122.5000',year:'152.5000'});
+ const simulation=(await c.query('select id,tenant_id,user_id,name,scenario_type,params,result from simulations where tenant_id=$1 and name=$2',[a,'QA visual 50 unidades'])).rows;
+ assert.equal(simulation.length,1);const sim=simulation[0];assert.equal(sim.scenario_type,'manual_simulation');assert.equal(sim.params.volumeSource,'manual_simulation');assert.equal(sim.result.status,'ok');assert.equal(sim.result.value.revenue,'1000.0000');assert.equal(sim.result.value.result,'500.0000');assert.equal(sim.result.value.breakEvenUnits.roundedUnits,'9.000000');
+ const packaging=(await c.query('select id,tenant_id,package_price,units_per_package from product_packaging where tenant_id=$1',[a])).rows;
+ assert.equal(packaging.length,1);assert.equal(packaging[0].package_price,'100.0000');assert.equal(packaging[0].units_per_package,'10.000000');
+ const expenses=(await c.query('select id,tenant_id,name,amount,type,category from expenses where tenant_id=$1 order by created_at',[a])).rows;
+ assert.equal(expenses.length,3);const exp=expenses.find(r=>r.name==='QA despesa fixa 50');assert(exp);assert.equal(exp.amount,'50.0000');assert.equal(exp.type,'fixa');
+ const totals=(await c.query("select sum(amount) filter(where type='fixa')::text as fixed,sum(amount) filter(where type='variavel')::text as variable from expenses where tenant_id=$1",[a])).rows[0];
+ assert.equal(totals.fixed,'650.0000');assert.equal(totals.variable,'200.0000');
+ const foreign=(await c.query('select p.id,p.name,p.tenant_id,p.user_id,m.role from products p join tenant_memberships m on m.tenant_id=p.tenant_id and m.user_id=p.user_id where p.tenant_id=$1',[b])).rows;
+ assert.equal(foreign.length,1);assert.equal(foreign[0].id,'00000000-0000-4000-8000-000000000210');assert.equal(foreign[0].user_id,'00000000-0000-4000-8000-000000000201');assert.equal(foreign[0].role,'owner');
+ const data={timestamp:new Date().toISOString(),source:'Independent read-only SQL against owned synthetic PG17',sales:rows,sums,simulation,packaging,expenses,expenseTotals:totals,foreignTenantIdentity:foreign};
+ await fs.writeFile(root+'/captures/db-final-arithmetic.json',JSON.stringify(data,null,2)+'\n');
+ const result={timestamp:data.timestamp,sourceFilesChecked:sources.length,sourceFilesChanged:0,triosChecked:index.length,rawFilesChecked:rawExpected.size,rawFilesDiscovered:rawDiscovered.length,secretResidues:0,correlationIds:'null, not observed',salesChecked:rows.length,sums,simulationOracle:'1000 revenue / 500 result / 9 break-even units',expenseTotals:totals,verdict:'PASS for integrity and arithmetic only; application findings remain OPEN'};
+ await fs.writeFile(root+'/captures/verification.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result,null,2));
+}finally{await c.end();}

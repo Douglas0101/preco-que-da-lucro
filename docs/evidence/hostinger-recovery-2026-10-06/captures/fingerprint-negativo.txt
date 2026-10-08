@@ -1,0 +1,7 @@
+# Controle negativo: a mensagem de erro NAO discrimina endpoint vivo de endpoint inexistente.
+# Senha deliberadamente invalida; nenhum valor real de credencial usado ou impresso.
+# executado em 2026-10-06T03:4xZ
+
+production (endpoint vivo): code=28P01 | msg=password authentication failed for user 'neondb_owner'
+develop (endpoint vivo): code=28P01 | msg=password authentication failed for user 'neondb_owner'
+INEXISTENTE (controle negativo): code=28P01 | msg=password authentication failed for user 'neondb_owner'

@@ -328,17 +328,130 @@ export function auditWorkflowDiscovery(input: WorkflowDiscoveryInput): string[] 
  * workflow verde 8/8 com 0 % silencioso — `DBT-57` renascendo), e a atribuição de
  * PR existe porque sem ela a análise da PR é gravada como `main` (`DBT-61`).
  */
+/** Executable run body of a named Sonar step; comments and other steps do not satisfy a guard. */
+export function sonarStepRun(yaml: string, name: string): string | null {
+  const lines = yaml.split("\n");
+  const start = lines.findIndex((line) => line.trim() === `- name: ${name}`);
+  if (start < 0) return null;
+  let end = start + 1;
+  while (end < lines.length && !/^ {6}- /.test(lines[end]!)) end += 1;
+  const step = lines.slice(start + 1, end);
+  const run = step.findIndex((line) => /^ {8}run: \|\s*$/.test(line));
+  if (run < 0) return null;
+  return step
+    .slice(run + 1)
+    .map((line) => line.replace(/^ {10}/, ""))
+    .join("\n");
+}
+
 export function auditSonarPipeline(yaml: string): string[] {
   const findings: string[] = [];
   const claims: Array<[string, RegExp]> = [
     ["roda a suíte com cobertura", /npm run test:coverage/],
-    ["recusa lcov ausente ou vazio", /coverage\/lcov\.info/],
     ["envia o relatório ao scanner", /sonar\.javascript\.lcov\.reportPaths=coverage\/lcov\.info/],
     ["observa que o sensor de cobertura rodou", /Sensor JavaScript\/TypeScript Coverage/],
     ["atribui a análise a pull request", /sonar\.pullrequest\.key/],
   ];
   for (const [claim, padrao] of claims) {
     if (!padrao.test(yaml)) findings.push(`sonar.yml sem a claim: ${claim}`);
+  }
+  const lcovGuard = sonarStepRun(yaml, "Conferir o relatório antes de enviar");
+  if (
+    lcovGuard === null ||
+    !/if\s+\[\s+!\s+-s\s+coverage\/lcov\.info\s+\];\s*then[\s\S]*?\bexit\s+1\b[\s\S]*?\bfi\b/.test(
+      lcovGuard,
+    )
+  ) {
+    findings.push("sonar.yml sem a claim: recusa lcov ausente ou vazio");
+  }
+  const scanner = sonarStepRun(yaml, "sonar-scanner");
+  if (scanner === null || !/^\s*-Dsonar\.qualitygate\.wait=false\s+\\\s*$/m.test(scanner)) {
+    findings.push("sonar.yml sem a claim: separa submissão da decisão de release ADR-042");
+  }
+  const step = (name: string) => {
+    const lines = yaml.split("\n");
+    const index = lines.findIndex((line) => line.trim() === `- name: ${name}`);
+    let end = index + 1;
+    while (end < lines.length && !/^ {6}- /.test(lines[end]!)) end++;
+    return { index, text: index < 0 ? "" : lines.slice(index, end).join("\n") };
+  };
+  const before = step("Medir baseline main (M2, leitura por SHA)");
+  const scan = step("sonar-scanner");
+  const ce = step("Nomear veredito do CE desta análise (sem token no log)");
+  const after = step("Medir main somente após a análise do push");
+  if (
+    before.index < 0 ||
+    before.index >= scan.index ||
+    !/^ {8}if: github\.event_name == 'pull_request'\s*$/m.test(before.text) ||
+    !/run: node scripts\/sonar\/main-baseline\.mjs/.test(before.text)
+  )
+    findings.push("sonar.yml: baseline anterior ao scanner deve ser exclusiva de PR");
+  if (
+    after.index < 0 ||
+    ce.index <= scan.index ||
+    after.index <= ce.index ||
+    !/^ {8}if: always\(\) && github\.ref == 'refs\/heads\/main' && github\.event_name != 'pull_request'\s*$/m.test(
+      after.text,
+    ) ||
+    !/run: node scripts\/sonar\/main-baseline\.mjs/.test(after.text)
+  )
+    findings.push("sonar.yml: push main exige scanner, CE e baseline posterior nesta ordem");
+  if (
+    !/sonar\.scm\.revision=\$\(git rev-parse HEAD\)/.test(scan.text) ||
+    !/EXPECTED_PR:/.test(ce.text) ||
+    !/EXPECTED_BRANCH:/.test(ce.text) ||
+    !/run: npx --no-install tsx scripts\/sonar\/gate-readout\.ts/.test(ce.text)
+  )
+    findings.push("sonar.yml: CE deve conferir revisão do provider e superfície esperada");
+  const scanJob = yaml.split(/^ {2}scan:\s*$/m)[1]?.split(/^ {2}[\w-]+:\s*$/m)[0] ?? "";
+  if (
+    !/^ {8}if: always\(\)\s*$/m.test(ce.text) ||
+    // S6-R2/N02: qualquer forma de continue-on-error (literal ou expressão)
+    // torna a decisão de release opcional; comandos que engolem erro idem.
+    /continue-on-error:/m.test(ce.text) ||
+    /^ {4}continue-on-error:/m.test(scanJob) ||
+    /\|\|\s*true\b|set\s+\+e\b|set\s+\+o\s+errexit\b/.test(ce.text)
+  )
+    findings.push("sonar.yml: decisão de release do CE deve bloquear sem continue-on-error");
+  if (
+    !/^ {8}shell: bash\s*$/m.test(ce.text) ||
+    !/^ {10}BASH_ENV: ['"]['"]\s*$/m.test(ce.text) ||
+    ce.text
+      .split("\n")
+      .some((line) => line.includes("shell:") && !/\bshell:\s*bash(?:\s|$)/.test(line))
+  )
+    findings.push("sonar.yml: passo do CE fixa shell bash e BASH_ENV vazio");
+  const mirrorJob =
+    yaml.split(/^ {2}main-coverage-mirror:\s*$/m)[1]?.split(/^ {2}[\w-]+:\s*$/m)[0] ?? "";
+  if (
+    !/^ {8}continue-on-error:\s*true\b/m.test(before.text) ||
+    !/^ {8}continue-on-error:\s*true\b/m.test(after.text)
+  )
+    findings.push("sonar.yml: baseline e espelho são observações ADR-042");
+  if (
+    !mirrorJob ||
+    /^\s*continue-on-error:/m.test(mirrorJob) ||
+    /\|\|\s*true\b|set\s+\+e\b|set\s+\+o\s+errexit\b/.test(mirrorJob) ||
+    !/^ {8}shell: bash\s*$/m.test(mirrorJob) ||
+    !/^ {6}BASH_ENV: ['"]['"]\s*$/m.test(mirrorJob)
+  )
+    findings.push("sonar.yml: espelho observacional não pode ocultar falhas de execução");
+  for (const kind of ["adapter", "mirror"]) {
+    const command = new RegExp(
+      `^ {8}run: node scripts/sonar/mirror-observation\\.ts ${kind}\\s*$`,
+      "m",
+    );
+    if (!command.test(mirrorJob))
+      findings.push(
+        `sonar.yml: observação ${kind} exige classificador de evidência e código bruto`,
+      );
+  }
+  for (const receipt of [
+    "c29-main-unit-adapter-observation.json",
+    "c29-main-mirror-observation.json",
+  ]) {
+    if (!mirrorJob.includes(`\${{ runner.temp }}/${receipt}`))
+      findings.push(`sonar.yml: espelho deve preservar recibo observacional ${receipt}`);
   }
   return findings;
 }

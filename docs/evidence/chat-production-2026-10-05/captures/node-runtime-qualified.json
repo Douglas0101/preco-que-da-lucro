@@ -1,0 +1,38 @@
+{
+  "observedAt": "2026-10-06T01:26:56Z",
+  "anonymousGetOnly": true,
+  "boundedQualification": true,
+  "initialCaptureErrata": "http-observed.json readiness field status was overwritten by application status; use httpStatus here, not the initial field for HTTP code",
+  "probes": [
+    {
+      "url": "https://darkgray-pony-545965.hostingersite.com/api/health/ready",
+      "transport": "failed",
+      "errorType": "URLError",
+      "seconds": 30.163
+    },
+    {
+      "url": "https://darkgray-pony-545965.hostingersite.com/api/auth/get-session",
+      "transport": "failed",
+      "errorType": "URLError",
+      "seconds": 30.03
+    },
+    {
+      "url": "https://darkgray-pony-545965.hostingersite.com/api/health/live",
+      "transport": "failed",
+      "errorType": "URLError",
+      "seconds": 30.037
+    },
+    {
+      "url": "https://darkgray-pony-545965.hostingersite.com/",
+      "observedAt": "2026-10-06T01:26:56Z",
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "bodySha256": "f6c2fe27f5b1c2ee99203a38bd9da0c764718ed847d48c14607d1adce0f40a34",
+      "bytes": 9891,
+      "seconds": 1.057,
+      "server": "hcdn",
+      "bodyKind": "html",
+      "title": "Pre\u00e7o que D\u00e1 Lucro \u2014 avalie pre\u00e7os sustent\u00e1veis para seu produto"
+    }
+  ]
+}

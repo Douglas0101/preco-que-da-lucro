@@ -1,0 +1,63 @@
+Actual bare Node connections command consumed by neon-drill-ops; own Git fixture, GET-only intercepted transport, portless action-style inputs. No real API/DB resource.
+[
+  {
+    "case": "owned",
+    "exit": 0,
+    "report": {
+      "schema": "neon-resource/1",
+      "phase": "connection-identity-verified",
+      "branchId": "br-resource-smoke-owned",
+      "directAndPooled": true,
+      "hostname": "ep-resource-smoke.c-5.us-east-2.aws.neon.tech"
+    },
+    "requestTrace": [
+      {
+        "method": "GET",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-resource-smoke-owned"
+      },
+      {
+        "method": "GET",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-resource-smoke-owned/endpoints"
+      }
+    ]
+  },
+  {
+    "case": "foreign-endpoint",
+    "exit": 2,
+    "report": {
+      "schema": "neon-resource/1",
+      "phase": "connections",
+      "verdict": "NO-VERDICT",
+      "reason": "resource connection endpoint does not belong to the owned branch"
+    },
+    "requestTrace": [
+      {
+        "method": "GET",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-resource-smoke-owned"
+      },
+      {
+        "method": "GET",
+        "path": "/api/v2/projects/damp-forest-57346541/branches/br-resource-smoke-owned/endpoints"
+      }
+    ]
+  }
+]
+
+TRANSPORT
+import assert from 'node:assert/strict';
+import { appendFileSync } from 'node:fs';
+const id = 'br-resource-smoke-owned';
+const host = 'ep-resource-smoke.c-5.us-east-2.aws.neon.tech';
+globalThis.fetch = async (input, init) => {
+  const url = new URL(input);
+  assert.equal(url.origin, 'https://console.neon.tech');
+  assert.equal(init.method, 'GET');
+  appendFileSync(process.env.RESOURCE_SMOKE_TRACE, JSON.stringify({ method: init.method, path: url.pathname }) + '\n');
+  let body;
+  if (url.pathname.endsWith('/branches/' + id)) {
+    body = { branch: { id, name: 'provisioning/develop-876543-1', project_id: 'damp-forest-57346541', parent_id: 'br-snowy-violet-aymcvvvv', default: false, created_at: process.env.RESOURCE_STARTED_AT, expires_at: process.env.RESOURCE_EXPIRES_AT } };
+  } else if (url.pathname.endsWith('/branches/' + id + '/endpoints')) {
+    body = { endpoints: [{ host, project_id: 'damp-forest-57346541', branch_id: process.env.RESOURCE_SMOKE_FOREIGN === 'true' ? 'br-unrelated' : id }] };
+  } else throw new Error('Unexpected resource smoke request; external transport denied');
+  return new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
+};

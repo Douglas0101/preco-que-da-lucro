@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createSale } from "@/lib/sales.functions";
+import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import { productsListQueryOptions, salesListQueryOptions } from "@/lib/query-options";
 import { brl, num } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -71,19 +72,21 @@ function Vendas() {
 
   const createSaleMutation = useMutation({
     mutationFn: () =>
-      createSale({
-        data: {
-          occurred_at: new Date(`${occurredAt}T12:00:00Z`).toISOString(),
-          channel: channel.trim() || "Venda direta",
-          items: [
-            {
-              product_id: selectedProductId,
-              quantity: toApiDecimal(quantity) ?? "0",
-              unit_price: toApiDecimal(unitPrice) ?? "0",
-            },
-          ],
-        },
-      }),
+      unwrapServerFn(
+        createSale({
+          data: {
+            occurred_at: new Date(`${occurredAt}T12:00:00Z`).toISOString(),
+            channel: channel.trim() || "Venda direta",
+            items: [
+              {
+                product_id: selectedProductId,
+                quantity: toApiDecimal(quantity) ?? "0",
+                unit_price: toApiDecimal(unitPrice) ?? "0",
+              },
+            ],
+          },
+        }),
+      ),
     onSuccess: async () => {
       toast.success("Venda registrada");
       setQuantity("");
@@ -154,10 +157,14 @@ function Vendas() {
             <CardTitle className="text-base">Registrar venda</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={submit} className="grid max-w-2xl gap-4 md:grid-cols-2">
+            <form onSubmit={submit} className="grid max-w-2xl gap-4 [&>*]:min-w-0 md:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="venda-produto">Produto</Label>
-                <Select value={selectedProductId} onValueChange={setProductId}>
+                <Select
+                  value={selectedProductId}
+                  onValueChange={setProductId}
+                  items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
+                >
                   <SelectTrigger id="venda-produto">
                     <SelectValue placeholder="Escolha um produto" />
                   </SelectTrigger>
