@@ -1,0 +1,42 @@
+
+> predb:test
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> db:test
+> tsx scripts/db/check-migration-classes.ts && tsx scripts/db/test-migrations.ts && tsx scripts/db/test-concurrency.ts && tsx scripts/db/test-auth-integration.ts && tsx scripts/db/test-oauth-boundary.ts && tsx scripts/db/test-tool-security.ts && tsx scripts/db/test-sql-injection.ts && tsx scripts/db/test-chat-semantics.ts && tsx scripts/db/test-ai-budget.ts && tsx scripts/db/test-rum-persistence.ts && tsx scripts/db/test-rate-limit-burst.ts && tsx scripts/db/test-outbox.ts && tsx scripts/db/test-backfill.ts && tsx scripts/db/test-memory.ts && tsx scripts/db/test-products-fk-conflict.ts && tsx scripts/db/test-product-contracts.ts && tsx scripts/db/test-reconcile-ai-usage.ts && tsx scripts/db/test-dashboard-margin.ts
+
+✔ 20/20 classificadas
+/home/douglas-souza/preco-que-d-main/node_modules/pg/lib/client.js:694
+          Error.captureStackTrace(err)
+                ^
+
+error: rollback 0010 BLOQUEADO: 2 conta(s) presentes. Após o purge DB-01 toda conta é tráfego real; rollback de issuer somente via restore de snapshot (BAK-01).
+    at /home/douglas-souza/preco-que-d-main/node_modules/pg/lib/client.js:694:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async applyDowns (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:758:5)
+    at async rollbackTo0003 (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:766:3)
+    at async assertUpgradeFrom0003 (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:770:3)
+    at async main (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:958:5)
+    at async <anonymous> (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:983:1) {
+  length: 271,
+  severity: 'ERROR',
+  code: 'P0001',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'PL/pgSQL function inline_code_block line 7 at RAISE',
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'pl_exec.c',
+  line: '3897',
+  routine: 'exec_stmt_raise'
+}
+
+Node.js v24.21.0
+DB_TEST_EXIT=1

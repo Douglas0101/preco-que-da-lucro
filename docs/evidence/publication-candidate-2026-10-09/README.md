@@ -27,7 +27,8 @@ em runtime: `/api/health/ready` devolveu `503 not_ready` e
   `CHECK_EXIT=0`, 21/21 passos, 141 arquivos de teste / 2136 testes aprovados,
   18 condicionais.
 - **VERIFIED.** A cadeia `npm run db:test` passou inteira contra o container
-  PG17 efêmero: `DB_TEST_EXIT=0`, 18/18 suítes.
+  PG17 efêmero: `DB_TEST_EXIT=0`, 18/18 suítes — e foi **reexecutada sobre o
+  estado que ela própria produz**, sem zerar nada (`DB_TEST_RERUN_EXIT=0`).
 - **BLOCKED.** A causa raiz do 503 **não** foi isolada, e o experimento decisivo
   está bloqueado pelo fornecedor.
 - **BLOCKED.** Os valores de `AI_MODEL`, `AI_GATEWAY_URL`, `DEEPSEEK_API_KEY` e
@@ -202,24 +203,51 @@ Ordenada por dependência, em `GO-NO-GO-2026-10-09.md` §5.
 
 ---
 
+## A cadeia de banco: quatro execuções, quatro desfechos
+
+Um agente paralelo mediu a **primeira** execução do `npm run db:test` e a
+reportou como "a cadeia aborta". A leitura correta é mais estreita, e está
+registrada em `captures/db-test-reproducibility.txt`:
+
+1. **RECUSADA.** O volume nomeado `preco-que-d-main_postgres-data` carregava
+   `accounts=2` de rodada anterior da própria bancada; o guarda em
+   `drizzle/rollback/0010_to_0009_down.sql:26-37` (mesma transação do `UPDATE`
+   destrutivo) recusa com SQLSTATE `P0001` quando `count(*)` de `accounts` é
+   `> 0` — **qualquer** linha, sem filtro. Assinatura idêntica à já registrada
+   como DBT-96. Nenhuma conta foi apagada à força.
+2. **VERDE.** Volume zerado pelo procedimento documentado no runbook; 18/18
+   suítes.
+3. **VERDE.** Reexecutada sobre o estado deixado pela execução 2
+   (`accounts=0`, `journal_rows=20`, `tables=38`), sem zerar nada.
+4. **DRIFT (sonda isolada).** Recusa reproduzida em container PG17 efêmero
+   próprio: o abort deixa 9 downs commitados **sem a poda do journal**
+   (`schema != journal`) e fixtures residuais; a reexecução sem zerar falha
+   antes e com outra assinatura. Recuperação = a zeragem documentada — o que a
+   execução 2 fez.
+
+Ou seja: a recusa é **condição de entrada** — conta herdada — e não defeito de
+reprodutividade; a **saída verde** da cadeia é reexecutável (execução 3), mas o
+**aborto não é** (execução 4). Todas as execuções usaram loopback e nenhuma
+tocou Neon ou produção; a bancada `:5432` foi conferida intacta depois da sonda.
+
 ## Auto-verificação pré-S6
 
-| item do checklist                   | situação                                                                                                           |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| controle negativo                   | **sim** — `captures/negative-control.txt`: GREEN 44 → RED 21 → RESTORED 44                                         |
-| fronteira nas duas direções         | **sim** — código fora da tabela aprovada devolve `code: null`; tabela completa é exercitada teste a teste          |
-| identidade, não cardinalidade       | **sim** — a classe do erro é publicada, nunca a mensagem; a ausência de código vira `null`, não string vazia       |
-| proibido exit-code-only             | **sim** — o probe imprime a classificação de cada cenário, não só o exit code                                      |
-| proibido sleep fixo                 | **sim** — nenhum timeout arbitrário; só limites de profundidade/largura                                            |
-| sem valor degenerado na identidade  | **sim** — `unknown` não é código; `null` não é `"null"`                                                            |
-| precondição de estado compartilhado | **sim** — o `db:test` reprova se o container guardar dado de rodada anterior (medido, ver §Limites)                |
-| sentinela real por cenário          | **sim** — `S1..S5`, cada um com código esperado distinto                                                           |
-| fingerprint de revisão              | **sim** — SHA do HEAD em `captures/git-state.txt`                                                                  |
-| `checked === discovered`            | **sim** — `MANIFEST.sha256` cobre a lista descoberta do pacote                                                     |
-| falha alta / fail-closed            | **sim** — `AUTOVERIFY` reprova o probe se alguma substring de credencial alcançar o stdout                         |
-| isolamento de bancada assertado     | **sim** — banco loopback descartável; produção nunca é alvo                                                        |
-| descoberta multi-sítio              | **parcial** — o catálogo `env-nullish-catalog` reprovou um comentário novo; corrigido por reescrita, sem allowlist |
-| run de CI atado ao commit selado    | **N/A** — nenhum push foi autorizado nesta sessão                                                                  |
+| item do checklist                   | situação                                                                                                                                                                                 |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| controle negativo                   | **sim** — `captures/negative-control.txt`: GREEN 44 → RED 21 → RESTORED 44                                                                                                               |
+| fronteira nas duas direções         | **sim** — código fora da tabela aprovada devolve `code: null`; tabela completa é exercitada teste a teste                                                                                |
+| identidade, não cardinalidade       | **sim** — a classe do erro é publicada, nunca a mensagem; a ausência de código vira `null`, não string vazia                                                                             |
+| proibido exit-code-only             | **sim** — o probe imprime a classificação de cada cenário, não só o exit code                                                                                                            |
+| proibido sleep fixo                 | **sim** — nenhum timeout arbitrário; só limites de profundidade/largura                                                                                                                  |
+| sem valor degenerado na identidade  | **sim** — `unknown` não é código; `null` não é `"null"`                                                                                                                                  |
+| precondição de estado compartilhado | **sim** — o `db:test` recusa quando o container guarda `accounts>0` de rodada anterior; quatro execuções medidas: RECUSADA, VERDE, VERDE, DRIFT (`captures/db-test-reproducibility.txt`) |
+| sentinela real por cenário          | **sim** — `S1..S5`, cada um com código esperado distinto                                                                                                                                 |
+| fingerprint de revisão              | **sim** — SHA do HEAD em `captures/git-state.txt`                                                                                                                                        |
+| `checked === discovered`            | **sim** — `MANIFEST.sha256` cobre a lista descoberta do pacote                                                                                                                           |
+| falha alta / fail-closed            | **sim** — `AUTOVERIFY` reprova o probe se alguma substring de credencial alcançar o stdout                                                                                               |
+| isolamento de bancada assertado     | **sim** — banco loopback descartável; produção nunca é alvo                                                                                                                              |
+| descoberta multi-sítio              | **parcial** — o catálogo `env-nullish-catalog` reprovou um comentário novo; corrigido por reescrita, sem allowlist                                                                       |
+| run de CI atado ao commit selado    | **N/A** — nenhum push foi autorizado nesta sessão                                                                                                                                        |
 
 ## Rollback
 

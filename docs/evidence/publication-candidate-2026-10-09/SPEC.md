@@ -121,11 +121,21 @@ Criado, e somente isto:
 4. **SSO continua habilitado** e nenhum link de bypass de autenticação foi usado.
    A verificação de runtime do candidato em ambiente protegido fica, portanto,
    sem evidência própria — está declarada como **BLOCKED**, não como verificada.
-5. O `npm run db:test` só passou depois de zerar o volume local
-   (`docker volume rm`), porque o container guardava dados de rodada anterior e o
-   guarda de rollback recusava prosseguir. Isso é condição de bancada, não
-   evidência de produção; a primeira execução reprovada está registrada no
-   README.
+5. **A primeira execução do `npm run db:test` foi RECUSADA, e a recusa é
+   específica.** O guarda em `drizzle/rollback/0010_to_0009_down.sql:26-37`
+   (mesma transação do `UPDATE` destrutivo) recusa com SQLSTATE `P0001` quando
+   `count(*)` de `accounts` é `> 0` — **qualquer** linha, sem filtro; o volume
+   nomeado `preco-que-d-main_postgres-data` sobrevive a `npm run db:down` e
+   carregava 2 contas de rodada anterior da própria bancada. A assinatura é a
+   mesma já registrada como DBT-96. **A recusa não foi contornada:** nenhuma
+   conta foi apagada à força; o volume foi zerado pelo procedimento documentado
+   no runbook e a cadeia passou. Medido que a cadeia, quando passa, deixa
+   `accounts=0` — ou seja, é **reexecutável** sobre o estado que ela própria
+   produz; medido também, em sonda isolada, que o **aborto deixa drift**
+   (9 downs commitados sem a poda do journal; `schema != journal`) e uma
+   reexecução sem zerar não se cura (`captures/db-test-reproducibility.txt` e
+   `captures/db-test-abort-drift.txt`, quatro execuções: RECUSADA, VERDE,
+   VERDE, DRIFT).
 6. Nenhum teste foi removido, ignorado ou afrouxado para obter verde.
 
 ## 6. DoD (critérios binários)
@@ -136,7 +146,7 @@ Criado, e somente isto:
 | 2   | Piso de segurança verificado em spec, lockfile e `node_modules`, sem cópia aninhada | `captures/version-inventory.txt`                               |
 | 3   | Advisory primário conferido (faixa afetada × patched)                               | `README.md` §E                                                 |
 | 4   | Cadeia `npm run check` verde, integral versionada                                   | `captures/gate-check-summary.txt`, `gate-check-full.log.txt`   |
-| 5   | Cadeia `npm run db:test` (18 suítes) verde contra container PG17 efêmero            | `captures/db-test-summary.txt`, `db-test-full.log.txt`         |
+| 5   | Cadeia `npm run db:test` (18 suítes) verde e **reexecutável** na bancada efêmera    | `captures/db-test-summary.txt`, `db-test-reproducibility.txt`  |
 | 6   | `SELECT 1` real pelo caminho da aplicação contra banco isolado                      | `captures/db-connectivity-probe.txt`                           |
 | 7   | Classificador discrimina cinco formas de falha sem vazar credencial                 | `captures/db-connectivity-probe.txt`                           |
 | 8   | Controle negativo do classificador: GREEN → RED → RESTORED                          | `captures/negative-control.txt`, `probes/negative-control.mjs` |
