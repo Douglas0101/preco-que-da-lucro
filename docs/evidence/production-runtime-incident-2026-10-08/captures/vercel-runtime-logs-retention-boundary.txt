@@ -1,0 +1,82 @@
+# Runtime-log retention boundary, measured live on 2026-10-08 (UTC).
+# All three calls were read-only. None mutated anything.
+#
+# RESULT: the "runtime logs are unavailable on Hobby" claim is only
+# PARTIALLY true. The boundary is the WINDOW, not the plan:
+#   since=7d  -> 400 bad_request  "The hobby plan does not retain runtime
+#                                 logs for the requested time range."
+#   since=1h  -> 400 bad_request  (same message)
+#   since=30m -> SUCCESS, logs returned
+#
+# The 30m success is the decisive correction: retention on this project is
+# shorter than 1 hour, so every artifact emitted during the incident window
+# (17:50:54Z - 19:00:34Z) is outside retention and cannot be retrieved by
+# ANY window value. The error-cluster API (see
+# vercel-runtime-errors-7d.txt) is the only surface that still holds them.
+
+=== CALL 1: since=7d ===
+Tool: vercel_get_runtime_logs
+      projectId=prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+      teamId=team_2NnkSYjw5NRHAFnQFEPSHGmW
+      since=7d  limit=5
+
+## Runtime Logs
+
+**Project:** prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+**Time range:** 2026-10-01T22:48:26.045Z → 2026-10-08T22:48:26.045Z
+
+The runtime log query failed before returning results — this is an error from the logs API, not an absence of logs. See the details below and retry.
+
+Notes:
+- Runtime log query failed at page 0: Vercel API request failed (400: bad_request). The hobby plan does not retain runtime logs for the requested time range.
+- 400  The window may exceed your plan’s runtime-log retention or require Observability Plus. Try a recent window such as since: "30m"; Hobby retains 1 hour, Pro 1 day, and Enterprise 3 days without Plus.
+
+
+=== CALL 2: since=1h ===
+Tool: vercel_get_runtime_logs
+      projectId=prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+      teamId=team_2NnkSYjw5NRHAFnQFEPSHGmW
+      since=1h  limit=5
+
+## Runtime Logs
+
+**Project:** prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+**Time range:** 2026-10-08T21:54:48.821Z → 2026-10-08T22:54:48.821Z
+
+The runtime log query failed before returning results — this is an error from the logs API, not an absence of logs. See the details below and retry.
+
+Notes:
+- Runtime log query failed at page 0: Vercel API request failed (400: bad_request). The hobby plan does not retain runtime logs for the requested time range.
+- 400  The window may exceed your plan’s runtime-log retention or require Observability Plus. Try a recent window such as since: "30m"; Hobby retains 1 hour, Pro 1 day, and Enterprise 3 days without Plus.
+
+
+=== CALL 3: since=30m (the API's own suggested remedy — and it SUCCEEDS) ===
+Tool: vercel_get_runtime_logs
+      projectId=prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+      teamId=team_2NnkSYjw5NRHAFnQFEPSHGmW
+      since=30m  limit=5
+
+## Runtime Logs
+
+**Project:** prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+**Time range:** 2026-10-08T22:25:05.008Z → 2026-10-08T22:55:05.008Z
+
+### 2026-10-08T22:48:38.007Z POST /api/csp-report [info/function]
+dep=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL branch=main request=tflp9-1791499717907-c1315cf430eb domain=preco-que-da-lucro-sage.vercel.app environment=production region=gru1 runtime=nodejs24.x stream=stdout
+    {"timestamp":"2026-10-08T22:48:38.006Z","level":"info","event":"request.completed","correlationId":"f2011e25-c629-4f59-ad73-8dcf29e9909c","method":"POST","pathname":"/api/csp-report","status":204,"durationMs":2}
+
+### 2026-10-08T22:48:38.006Z POST /api/csp-report [warn/function]
+dep=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL branch=main request=tflp9-1791499717907-c1315cf430eb domain=preco-que-da-lucro-sage.vercel.app environment=production region=gru1 runtime=nodejs24.x stream=stderr
+    {"timestamp":"2026-10-08T22:48:38.006Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/assets/index-DX7G5_dG.js","lineNumber":10,"columnNumber":46363,"disposition":"report","sample":null}
+
+### 2026-10-08T22:48:38.006Z POST /api/csp-report [warn/function]
+dep=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL branch=main request=tflp9-1791499717907-c1315cf430eb domain=preco-que-da-lucro-sage.vercel.app environment=production region=gru1 runtime=nodejs24.x stream=stderr
+    {"timestamp":"2026-10-08T22:48:38.005Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/assets/index-DX7G5_dG.js","lineNumber":10,"columnNumber":46416,"disposition":"report","sample":null}
+
+### 2026-10-08T22:48:38.006Z POST /api/csp-report [warn/function]
+dep=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL branch=main request=tflp9-1791499717907-c1315cf430eb domain=preco-que-da-lucro-sage.vercel.app environment=production region=gru1 runtime=nodejs24.x stream=stderr
+    {"timestamp":"2026-10-08T22:48:38.005Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/","lineNumber":1,"columnNumber":8664,"disposition":"report","sample":null}
+
+### 2026-10-08T22:47:38.318Z POST /api/csp-report [info/function]
+dep=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL branch=main request=mhpqc-1791499657909-91b008ef43eb domain=preco-que-da-lucro-sage.vercel.app environment=production region=gru1 runtime=nodejs24.x stream=stdout
+    {"timestamp":"2026-10-08T22:47:38.317Z","level":"info","event":"request.completed","correlationId":"75cdc93f-95db-4593-bb20-191e385484e2","method":"POST","pathname":"/api/csp-report","status":204,"durationMs":20}

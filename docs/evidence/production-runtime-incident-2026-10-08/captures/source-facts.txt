@@ -1,0 +1,161 @@
+# Source-level facts verified on 2026-10-08 (UTC) by direct file reads.
+#
+# *** WORKING-TREE CAVEAT (read this before using any line number below) ***
+# Another task owns src/, scripts/ and e2e/ and was editing this tree WHILE
+# this package was written. Three files under src/ are modified on disk and two
+# test files are untracked. Therefore every line number below was re-read at
+# capture time from the CURRENT working tree, not from any commit.
+#   disk blob of src/db/client.server.ts = 632f74f07dd1af3d4682f1d514791067678e2a60
+#   blob at HEAD 974581a                = 2b0e977896ce4cfefd0daf1111065769960044e2
+#   git status --porcelain src/         =
+#      M src/db/client.server.ts
+#      M src/instrumentation/telemetry.ts
+#      M src/server/email/email-adapter.server.ts
+#     ?? src/test/env-empty-defaults.test.ts
+#     ?? src/test/env.server.test.ts
+#
+# Identity claims between the two DEPLOYED revisions are unaffected by the
+# working tree: they are git-object comparisons, reproduced in
+# blob-identity-verification.txt.
+
+=== 1. src/db/client.server.ts — the DATABASE_URL guard, current working tree ===
+82:  const connectionString = readEnv("DATABASE_URL");
+84:    throw new Error("DATABASE_URL não configurada");
+--- context around the guard ---
+     1	function createDatabase() {
+     2	  // `readEnv`, não `??` nem truthiness: `DATABASE_URL=""` passava pelo guard e
+     3	  // chegava ao pool, que caía silenciosamente em `localhost:5432` — a classe do
+     4	  // 503 de produção. Definida e vazia agora dá o MESMO erro explícito de
+     5	  // ausente, sem nenhuma tentativa de conexão.
+     6	  const connectionString = readEnv("DATABASE_URL");
+     7	  if (!connectionString) {
+     8	    throw new Error("DATABASE_URL não configurada");
+     9	  }
+    10	
+    11	  const driver = readEnv("DATABASE_DRIVER") ?? "neon-serverless";
+    12	  if (driver === "node-postgres") {
+    13	    // CI and local integration tests use a regular ephemeral PostgreSQL server.
+    14	    // Production remains on Neon pooled through @neondatabase/serverless.
+
+=== 2. the SAME guard as shipped in the two deployed revisions ===
+--- d4b9395 (old, serving, healthy) ---
+63:  const connectionString = process.env.DATABASE_URL;
+65:    throw new Error("DATABASE_URL não configurada");
+--- fa45632 (new, failed) ---
+63:  const connectionString = process.env.DATABASE_URL;
+65:    throw new Error("DATABASE_URL não configurada");
+--- both resolve to the same blob? ---
+d4b9395: 2b0e977896ce4cfefd0daf1111065769960044e2
+fa45632: 2b0e977896ce4cfefd0daf1111065769960044e2
+
+=== 3. src/routes/api/health/ready.ts — the 503 branch that logs the artifact ===
+     1	async function readiness(): Promise<Response> {
+     2	  try {
+     3	    await getDatabase().execute(sql`select 1 as ready`);
+     4	    return Response.json(
+     5	      { status: "ready", dependencies: { postgres: "ok" } },
+     6	      { headers: { "cache-control": "no-store" } },
+     7	    );
+     8	  } catch (error) {
+     9	    logJson("error", "health.readiness_failed", { dependency: "postgres", error });
+    10	    return Response.json(
+    11	      { status: "not_ready", dependencies: { postgres: "unavailable" } },
+    12	      { status: 503, headers: { "cache-control": "no-store" } },
+    13	    );
+    14	  }
+    15	}
+blob d4b9395: 2cdd37e1d164bea0596e5831057c71ea841811cf
+blob fa45632: 2cdd37e1d164bea0596e5831057c71ea841811cf
+
+=== 4. src/server/auth/auth.server.ts:15-17 — default parameter calls getDatabase() ===
+     1	export function createAuthInstance(database: Database = getDatabase()) {
+     2	  const policy = resolveAuthPolicy();
+     3	  const google = resolveGoogleCredentials();
+=== 5. src/server/auth/auth.server.ts — memoisation ===
+119:let auth: ReturnType<typeof createAuthInstance> | undefined;
+122:  auth ??= createAuthInstance();
+
+=== 6. src/server/auth/auth-policy.ts — BETTER_AUTH_URL obligation ===
+     1	export function resolveAuthPolicy(
+     2	  environment: Readonly<Record<string, string | undefined>> = process.env,
+     3	): AuthRuntimePolicy {
+     4	  const production = environment.NODE_ENV === "production";
+     5	  const baseURL = environment.BETTER_AUTH_URL
+     6	    ? parseOrigin(environment.BETTER_AUTH_URL, "BETTER_AUTH_URL")
+     7	    : undefined;
+     8	
+     9	  if (production && !baseURL) {
+    10	    throw new Error("BETTER_AUTH_URL é obrigatória em produção");
+    11	  }
+blob d4b9395: 2223fadce483c7ddc72996bb73c65f5d69b05abb
+blob fa45632: 2223fadce483c7ddc72996bb73c65f5d69b05abb
+
+=== 7. src/routes/api/auth/$.ts — the catch-all that returns 500 when auth throws ===
+     1	import { createFileRoute } from "@tanstack/react-router";
+     2	import { getAuth } from "@/server/auth/auth.server";
+     3	
+     4	async function handleAuthRequest({ request }: { request: Request }): Promise<Response> {
+     5	  const response = await getAuth().handler(request);
+     6	  const headers = new Headers(response.headers);
+     7	  headers.set("Cache-Control", "private, no-store");
+     8	  headers.append("Vary", "Cookie");
+     9	  return new Response(response.body, {
+    10	    status: response.status,
+    11	    statusText: response.statusText,
+    12	    headers,
+    13	  });
+    14	}
+    15	
+    16	export const Route = createFileRoute("/api/auth/$")({
+    17	  server: {
+    18	    handlers: {
+    19	      GET: handleAuthRequest,
+    20	      POST: handleAuthRequest,
+    21	    },
+    22	  },
+    23	});
+
+=== 8. src/lib/env.server.ts — readEnv already existed in the FAILED revision ===
+17:export function readEnv(name: string): string | undefined {
+     1	export function readEnv(name: string): string | undefined {
+     2	  const raw = process.env[name];
+     3	  if (raw === undefined || raw.trim() === "") return undefined;
+     4	  return raw;
+     5	}
+present in d4b9395: NO   present in fa45632: YES   (see check below)
+  d4b9395 NO
+  fa45632 YES
+
+=== 9. vercel.json — NEW between the two deployed revisions ===
+--- fa45632 ---
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": false
+  }
+}
+--- d4b9395 ---
+ABSENT
+
+=== 10. doc: docs/runbooks/dia-d-2026-09-12.md:45-60 ===
+
+Ordem: **(1) vars → (2) reimplantar → (3) associar domínio → (4) SSL → (5) probes canônicos →
+(6) integridade de e-mail**. Cada passo tem carimbo próprio (§3) e evidência própria em
+`docs/evidence/dia-d-2026-09-12/`.
+
+**Por que a ordem é dura:**
+
+- Envs **injetadas no build e no runtime** e **salvar env var dispara o redeploy** na Hostinger
+  (`docs/evidence/hpanel-docmap-2026-09-12.md:256`); na Vercel, mudar env **não** altera deployment
+  existente — exige novo deployment (`hpanel-docmap-2026-09-12.md:255-257` + adendo; `vercel-prod-fix-2026-09-10.md` §Cadeia causal).
+  Logo, probe canônico antes do redeploy mede artefato **antigo** e mente.
+- Associar o domínio antes do 11/11 (ou antes das vars) expõe um host que ainda não é o artefato
+  correto — proibido por `cutover-A4.md:257-263` e `hpanel-homologacao.md:3,19`.
+- `BETTER_AUTH_URL` é **obrigatória em produção** e, se ausente/inválida, o app **lança na construção
+  do auth** (`src/server/auth/auth-policy.ts:38-45`) — o probe de auth é o único que detecta isso.
+
+
+=== 11. doc: hostinger-recovery-2026-10-06/captures/fingerprint-negativo.txt:5-7 ===
+production (endpoint vivo): code=28P01 | msg=password authentication failed for user 'neondb_owner'
+develop (endpoint vivo): code=28P01 | msg=password authentication failed for user 'neondb_owner'
+INEXISTENTE (controle negativo): code=28P01 | msg=password authentication failed for user 'neondb_owner'

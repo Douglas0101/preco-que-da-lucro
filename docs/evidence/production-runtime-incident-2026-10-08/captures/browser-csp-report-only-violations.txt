@@ -1,0 +1,47 @@
+# Content-Security-Policy violations, reproduced 2026-10-08 (UTC).
+# Read-only. Chrome DevTools MCP, isolated temporary profile, page owned by
+# this session. Target: https://preco-que-da-lucro-sage.vercel.app/
+#
+# Context: the response header is `content-security-policy-report-only`, NOT an
+# enforcing `content-security-policy` (see landing-headers.txt). So every
+# violation below is DISPOSITION=report — logged, never blocked.
+
+=== A. securitypolicyviolation events captured in the page ===
+initScript on navigate:
+  window.__csp = [];
+  document.addEventListener('securitypolicyviolation', (e) => { window.__csp.push({ directive: e.effectiveDirective, blocked: e.blockedURI, violated: e.violatedDirective, disposition: e.disposition, sample: (e.sample||'').slice(0,120) }); });
+
+evaluate_script(() => new Promise((resolve) => setTimeout(() => resolve({ url: location.href, title: document.title, cspViolations: window.__csp || 'ARRAY_MISSING' }), 6000)))
+->
+{"url":"https://preco-que-da-lucro-sage.vercel.app/","title":"Preço que Dá Lucro — avalie preços sustentáveis para seu produto","cspViolations":[{"directive":"script-src-elem","blocked":"inline","violated":"script-src-elem","disposition":"report","sample":""},{"directive":"script-src-elem","blocked":"inline","violated":"script-src-elem","disposition":"report","sample":""},{"directive":"style-src-elem","blocked":"inline","violated":"style-src-elem","disposition":"report","sample":""},{"directive":"style-src-elem","blocked":"inline","violated":"style-src-elem","disposition":"report","sample":""}]}
+
+=== B. full console, verbatim (types error,warn,info,verbose,debug) ===
+Showing 1-11 of 11 (Page 1 of 1).
+
+msgid=1 [info] Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken. (0 args)
+msgid=3 [info] Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-iC1tm3t7zIbdrnhnUm6Pwkz4uLBuir5Vm3jbPYOqPfQ='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken. (0 args)
+msgid=4 [info] Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken. (0 args)
+msgid=5 [info] Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken. (0 args)
+msgid=6 [info] Evaluating a string as JavaScript violates the following Content Security Policy directive because 'unsafe-eval' is not an allowed source of script: "script-src 'self'".
+ The policy is report-only, so the violation has been logged but no further action has been taken. (0 args)
+msgid=8 [verbose] [DOM] Input elements should have autocomplete attributes (suggested: "username"): (More info: https://goo.gl/9p2vKq) %o (0 args)
+msgid=10 [error] Failed to load resource: the server responded with a status of 401 () (0 args)
+msgid=11 [info] Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken. (0 args)
+msgid=13 [info] Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-pKJctZmN4UVBtCY7/28MZmJb0J+Ns/aJ3m0zAa1qsmA='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken. (0 args)
+msgid=14 [info] Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken. (0 args)
+msgid=15 [info] Applying inline style violates the following Content Security Policy directive 'style-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY='), or a nonce ('nonce-...') is required to enable inline execution. The policy is report-only, so the violation has been logged but no further action has been taken. (0 args)
+
+=== C. server-side confirmation (independent of the browser) ===
+The same violations reach the application as structured log events. Verbatim
+from vercel-runtime-logs-retention-boundary.txt (since=30m):
+
+    2026-10-08T22:48:38.006Z POST /api/csp-report [warn/function]
+    dep=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL branch=main domain=preco-que-da-lucro-sage.vercel.app environment=production region=gru1 runtime=nodejs24.x stream=stderr
+        {"timestamp":"2026-10-08T22:48:38.006Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/assets/index-DX7G5_dG.js","lineNumber":10,"columnNumber":46363,"disposition":"report","sample":null}
+
+VERDICT: VERIFIED. 2x inline <script> (script-src-elem / script-src 'self'),
+2x inline style (style-src-elem / style-src 'self') and 1x eval
+(script-src 'self', unsafe-eval not allowed). All disposition=report, so none
+of them is currently blocking production; the enforcing header is absent.
+This is an OBSERVATION about the current production revision, not a defect
+introduced by this incident, and it is NOT part of the DB incident scope.

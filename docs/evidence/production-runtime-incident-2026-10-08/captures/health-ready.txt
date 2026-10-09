@@ -1,0 +1,4 @@
+=== GET /api/health/ready ===
+HTTP 200 | time_total 1.180595s | size 51
+--- body ---
+{"status":"ready","dependencies":{"postgres":"ok"}}

@@ -1,0 +1,23 @@
+{
+  "result": {
+    "alias": "preco-que-da-lucro-sage.vercel.app",
+    "created": "2026-09-10T02:59:06.265Z",
+    "createdAt": 1789009146265,
+    "creator": {
+      "uid": "43PGP1C63dgekITZiVlzAzYp",
+      "email": "douglas.ultimatesouza@gmail.com",
+      "username": "douglasultimatesouza-5127"
+    },
+    "deletedAt": null,
+    "deployment": {
+      "id": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+      "url": "preco-que-da-lucro-1bxqn5vm2.vercel.app"
+    },
+    "deploymentId": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+    "projectId": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+    "redirect": null,
+    "redirectStatusCode": null,
+    "uid": "0c4f3f6bc441d7f9c6d66fc9841ee5a736018f703ee9557a4ba5a8ca0f6d67bc42e406ad45bec709e7e3deccaec88c6a6a80a7952f6b54a85ae2e39e828355de",
+    "updatedAt": 1791486033986
+  }
+}
