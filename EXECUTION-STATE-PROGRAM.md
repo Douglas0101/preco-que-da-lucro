@@ -3537,3 +3537,22 @@ pela autorização de promoção.
 Evidência: docs/evidence/migration-drift-hardening-2026-10-09/; PROGRESS L799–L800.
 
 Latest state marker parent = `84e535ca1251eec479629ab23e14ace534c72055`,
+
+## Bloco aditivo — re-pin do marcador M-02 após as correções do espelho de cobertura (2026-10-09)
+
+As correções do espelho conservador exigidas pela observação remota do job `main-coverage-mirror`
+avançaram a linhagem além da folga de 13 commits do marcador anterior (`84e535c…`), e o
+`m02:state:check` prescreveu o re-pin. Os commits `8b71214`, `854c337`, `0446692`, `23ab1cb`,
+`f1e30f8`, `997df52`, `233d5c3` e `be05e28` fecham, em sequência medida: charset do censo com `$`
+(rota splat `src/routes/api/auth/$.ts`), completude de identidade dos 33 arquivos do censo sem
+registro no LCOV, diagnósticos fixos da fase de mapeamento (com digest de caminho e de linha),
+regra de linha do importador LCOV do SonarJS (DA prevalece; branch é fallback) e o `lineState`
+único entre adapter e espelho. O adapter conclui `MAPPED` com o denominador autoritativo; a
+projeção do espelho recusa, por desenho (ADR-038 §3), os 3 arquivos com unidades alterados pelo
+candidato. O PR #61 (`develop → main`) é a fronteira de release; a publicação de produção segue
+gated pelos valores de ambiente Via A e pela autorização de promoção.
+
+Evidência: docs/evidence/agent-state/PROGRESS.md L808–L815; artifacts das runs `38004467171` e
+`38005933292`; reprodução local com os artefatos reais.
+
+Latest state marker parent = `be05e28dce282c43ed5f99c2e6d102bad9ae5251`,
