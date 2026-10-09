@@ -209,7 +209,7 @@ jobs:
       # TEMPORÁRIO (2026-10-09): nomeia por medição o bloco que reprova
       # `new_duplicated_lines_density` no PR; removido no commit seguinte à leitura.
       - name: Sonda temporaria de duplicacao do codigo novo
-        if: github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           EXPECTED_PR: ${{ github.event.pull_request.number }}
