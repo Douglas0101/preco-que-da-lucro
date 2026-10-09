@@ -201,5 +201,19 @@ docs/evidence/infra-recon-2026-09-17/screenshots/
 # Vão como artifacts de CI (.github/workflows/ui-stack.yml, browser-evidence).
 docs/evidence/visual/
 
+# Untracked run output from the PR-60 publication evidence package (2026-10-07).
+# The raw `docs/evidence/visual/**` sibling is already ignored (above); the copy
+# nested under this package's captures escaped because the `.prettierignore` seal
+# is root-anchored and cannot match a deeper path, so `prettier --check .` walked
+# the raw Playwright/visual captures as source. Its two siblings (SonarCloud main
+# mirror-verdict reads + two emitted contracts) are the same untracked run output
+# and failed the formatter the same way. Listed by exact path — the curated, tracked
+# evidence in captures/ (check-*, ruleset-*, source-hashes-*, reconciliation-*) keeps
+# being formatted — never a broad `docs/**` or `captures/**` rule.
+docs/evidence/pr-60-publication-2026-10-07/captures/browser-published/
+docs/evidence/pr-60-publication-2026-10-07/captures/sonar-published/
+docs/evidence/pr-60-publication-2026-10-07/captures/neon-public-contract.json
+docs/evidence/pr-60-publication-2026-10-07/captures/release-decision.json
+
 ## Chave DeepSeek local (Via A) — nunca versionar.
 API-DeepSeek*.txt
