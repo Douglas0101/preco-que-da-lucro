@@ -3521,3 +3521,19 @@ completa, GET 404 e inventário independente das três permanentes) e `DBT-96` p
 Evidência: docs/evidence/neon-fixture-base-2026-10-07/; PROGRESS L779–L782.
 
 Latest state marker parent = `4a266e1d4d3bdf09ba2561885a96c885a9806e0a`,
+
+## Bloco aditivo — re-pin do marcador M-02 após o endurecimento de migrações e as correções de qualidade do candidato (2026-10-09)
+
+O endurecimento do harness de migrações (`7244eb7` — chain de downs atômico, pré-condições
+fail-closed contra deriva e resíduo de seed, cenários de interrupção) e as correções que o
+gate do SonarCloud exigiu no PR #61 (`6757b9b` — `crypto.randomUUID` no lugar do fallback de
+PRNG, `@import` antes de `@source`, `??=`, construção única do diagnóstico; `84e535c` — a
+union de categorias em dois grupos de cinco, fora do bloco de dez linhas que o detector de
+duplicação contava) avançaram a linhagem além da folga de 13 commits do marcador anterior
+(`4a266e1d…`), e o `m02:state:check` prescreveu o re-pin. O PR #61 (`develop → main`) é a
+fronteira de release; a publicação de produção segue gated pelos valores de ambiente Via A e
+pela autorização de promoção.
+
+Evidência: docs/evidence/migration-drift-hardening-2026-10-09/; PROGRESS L799–L800.
+
+Latest state marker parent = `84e535ca1251eec479629ab23e14ace534c72055`,
