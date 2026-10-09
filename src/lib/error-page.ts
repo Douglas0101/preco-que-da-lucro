@@ -1,3 +1,24 @@
+/**
+ * Página de falha catastrófica (HTTP 500), emitida por `src/server.ts` e
+ * `src/start.ts` — e ambas as respostas carregam `securityHeaders()`, ou seja,
+ * `style-src 'self'` e `script-src 'self'`.
+ *
+ * Por isso o HTML fica restrito ao que a política autoriza:
+ *
+ * - **nenhum `<style>` inline.** Um bloco `<style>` no documento é
+ *   `style-src-elem`/`blockedURI: inline` e não pode receber nonce nem hash por
+ *   declaração de spec (§20.1 não usa nonce). A aparência vem da folha estática
+ *   `/error-page.css`, servida pela própria origem — o único tipo de estilo que
+ *   `style-src 'self'` permite.
+ * - **nenhum handler inline.** `onclick` é `script-src-attr`: um atributo de
+ *   evento nunca pode ser nonced nem hasheado, então a única saída CSP-limpa é
+ *   não usá-lo. "Tentar novamente" é um `<a href="">`: a URL vazia resolve para
+ *   o endereço do próprio documento, o que recarrega a página sem JavaScript e
+ *   sem depender do bundle da aplicação (que pode ser justamente o que falhou).
+ * - **nenhum `<script>`.** Um script externo seria `script-src 'self'` e
+ *   portanto permitido, mas numa página de 500 o bundle pode não existir; o link
+ *   é estritamente melhor.
+ */
 export function renderErrorPage(): string {
   return `<!doctype html>
 <html lang="en">
@@ -5,23 +26,14 @@ export function renderErrorPage(): string {
     <meta charset="utf-8" />
     <title>This page didn't load</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      body { font: 15px/1.5 system-ui, -apple-system, sans-serif; background: #fafafa; color: #111; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
-      .card { max-width: 28rem; width: 100%; text-align: center; padding: 2rem; }
-      h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
-      p { color: #4b5563; margin: 0 0 1.5rem; }
-      .actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
-      a, button { padding: 0.5rem 1rem; border-radius: 0.375rem; font: inherit; cursor: pointer; text-decoration: none; border: 1px solid transparent; }
-      .primary { background: #111; color: #fff; }
-      .secondary { background: #fff; color: #111; border-color: #d1d5db; }
-    </style>
+    <link rel="stylesheet" href="/error-page.css" />
   </head>
   <body>
     <div class="card">
       <h1>This page didn't load</h1>
       <p>Something went wrong on our end. You can try refreshing or head back home.</p>
       <div class="actions">
-        <button class="primary" onclick="location.reload()">Try again</button>
+        <a class="primary" href="">Try again</a>
         <a class="secondary" href="/">Go home</a>
       </div>
     </div>

@@ -1,6 +1,13 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+/* `sonner/dist/styles.css` é o CSS público do pacote — as mesmas regras que
+   `node_modules/sonner/dist/index.mjs:457` injeta em runtime dentro de um
+   `<style>` (bloqueado por `style-src 'self'`). Importar aqui traz as regras
+   para a folha estática, servida da própria origem. Nota honesta: isto torna a
+   injeção redundante do ponto de vista funcional, mas NÃO elimina o relatório
+   de `style-src-elem` — o `<style>` continua sendo criado. */
+@import "sonner/dist/styles.css";
 
 @custom-variant dark (&:is(.dark *));
 

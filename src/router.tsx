@@ -1,3 +1,6 @@
+// Tem de ser a PRIMEIRA importação: `zod` sonda `new Function("")` na construção
+// do primeiro `z.object()` e o resultado fica cacheado. Ver o módulo.
+import { disableZodJitForCsp } from "./lib/csp/zod-jitless";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { createIsomorphicFn } from "@tanstack/react-start";
@@ -5,6 +8,11 @@ import { routeTree } from "./routeTree.gen";
 import { initWebVitals } from "@/lib/web-vitals.client";
 import { OPERATIONAL_STALE_TIME } from "@/lib/query-stale-time";
 import { isAuthenticationError } from "@/lib/server-fn-envelope";
+
+// `sideEffects: false` na raiz derruba uma importação por efeito colateral pura;
+// importar o binding e chamá-lo mantém o módulo no grafo (e a chamada é
+// idempotente — o módulo já se aplica no próprio escopo, antes das rotas).
+disableZodJitForCsp();
 
 // router.tsx is also part of the SSR graph; the isomorphic wrapper keeps the
 // web-vitals collector out of the server bundle (import protection).
