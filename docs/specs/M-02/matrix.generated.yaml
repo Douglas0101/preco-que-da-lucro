@@ -580,6 +580,8 @@
       "operations": [],
       "imports": [
         "@/db/client.server",
+        "@/lib/db-failure-classifier",
+        "@/lib/deployment-identity.server",
         "@/lib/structured-logger",
         "@tanstack/react-router",
         "drizzle-orm"
