@@ -206,6 +206,15 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      # TEMPORÁRIO (2026-10-09): nomeia por medição o bloco que reprova
+      # `new_duplicated_lines_density` no PR; removido no commit seguinte à leitura.
+      - name: Sonda temporaria de duplicacao do codigo novo
+        if: github.event_name == 'pull_request'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          EXPECTED_PR: ${{ github.event.pull_request.number }}
+        run: node scripts/sonar/duplication-probe.mjs
+
   main-coverage-mirror:
     name: main-coverage-mirror
     if: always() && github.event_name == 'pull_request'
