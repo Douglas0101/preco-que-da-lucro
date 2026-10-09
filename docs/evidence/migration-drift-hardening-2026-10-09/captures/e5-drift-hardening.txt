@@ -1,0 +1,108 @@
+# E5 — endurecimento do harness de migrações contra deriva (2026-10-09)
+#
+# Alvo: containers PG17 efemeros PROPRIOS, sem volume (55434/55435/55436).
+# A bancada (:5432), o volume nomeado, Neon e producao NAO sao tocados.
+
+$ docker image inspect postgres:17-alpine --format image_id={{.Id}}
+image_id=sha256:d4bb0a8c1b7bb2e29f976d099e7bfb9a5d8858cffe9e46b35cd302cd1f1f8168
+
+## E5.1 — suite endurecida em container virgem
+
+$ docker run -d --rm --name pqd-e5a -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=probe -p 127.0.0.1:55434:5432 postgres:17-alpine
+$ DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55434/probe DATABASE_ADMIN_URL=... DATABASE_DRIVER=node-postgres npx tsx scripts/db/test-migrations.ts
+PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+E5_1_EXIT=0
+
+## E5.2 — reexecucao sobre a saida verde (pre-condicao de residuo precisa passar)
+
+$ npx tsx scripts/db/test-migrations.ts
+PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+E5_2_EXIT=0
+
+
+## E5.3 — deriva externa (estado residual de E1: 9 downs aplicados, journal nao podado)
+
+$ docker run -d --rm --name pqd-e5b -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=probe -p 127.0.0.1:55434:5432 postgres:17-alpine
+$ # preparacao: suite verde para deixar o banco no head
+$ npx tsx scripts/db/test-migrations.ts
+PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+E5_3_PREP_EXIT=0
+
+$ for f in 0019_to_0018 ... 0011_to_0010; do docker exec -i pqd-e5b psql -v ON_ERROR_STOP=1 -f - < drizzle/rollback/${f}_down.sql; done   # 9 downs, journal intacto
+ALTER TABLE
+ALTER TABLE
+DROP INDEX
+ALTER TABLE
+DROP TABLE
+DROP TABLE
+DROP TABLE
+DROP TABLE
+DROP TABLE
+DROP TABLE
+DROP TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+DO
+
+$ docker exec pqd-e5b psql -At -c "select ..."   # estado derivado: journal 20, objetos de 0011/0019 ausentes
+journal_rows=20
+ai_memory_policies=MISSING
+auth_policies=0
+
+$ # reexecucao da suite sobre o estado derivado (antes da correcao: users_pkey 23505 em seedIsolationFixtures)
+$ npx tsx scripts/db/test-migrations.ts
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: objetos de migrações recentes ausentes com journal no head (política auth_service_access de 0011, ai_memory_policies de 0019): banco parcialmente revertido — recrie o ambiente efêmero ou restaure o snapshot antes de reexecutar
++ actual - expected
+
+  {
++   aiMemoryPolicies: false,
++   authPolicy: false
+-   aiMemoryPolicies: true,
+-   authPolicy: true
+  }
+
+E5_3_EXIT=1
+
+$ docker rm -f pqd-e5b
+pqd-e5b
+
+## E5.4 — residuo de seed (controle negativo da pre-condicao)
+
+$ docker run -d --rm --name pqd-e5c -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=probe -p 127.0.0.1:55435:5432 postgres:17-alpine
+$ # preparacao: suite verde
+$ npx tsx scripts/db/test-migrations.ts
+PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+E5_4_PREP_EXIT=0
+
+$ # planta residuo: usuario com o id do fixture userA (30000000-0000-4000-8000-000000000003)
+$ docker exec pqd-e5c psql -v ON_ERROR_STOP=1 -c "insert into users (id, name, email, email_verified) values (...)"
+INSERT 0 1
+
+$ # reexecucao: antes da correcao, o seed colidiria com users_pkey (23505)
+$ npx tsx scripts/db/test-migrations.ts
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: resíduo de execução anterior em users: a cadeia pressupõe banco zerado — recrie o ambiente efêmero (docs/runbooks/postgres-local-docker.md) antes de reexecutar
+
+'1' !== '0'
+
+    at assertNoSeedResidue (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:1021:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+E5_4_EXIT=1
+
+$ docker rm -f pqd-e5c
+pqd-e5c
+
+$ docker ps -a --format "{{.Names}}" | rg pqd-e5 || echo containers-descartados
+pqd-e5
+$ # bancada intacta (mesma medida de antes: accounts=0, journal_rows=20)
+bench_accounts=0
+bench_journal_rows=20

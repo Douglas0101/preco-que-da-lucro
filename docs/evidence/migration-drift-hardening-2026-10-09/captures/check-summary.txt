@@ -1,0 +1,19 @@
+# npm run check — gate local completo (2026-10-09)
+
+Comando: `npm run check` (encadeamento integral do package.json)
+
+    CHECK_EXIT=0
+
+- Testes: **141 arquivos aprovados** (1 pulado de 142), **2136 testes aprovados**,
+  18 pulados (2154 no total) — mesma contagem da rodada do candidato, sem
+  regressão.
+- Bundle: `PASS assets/index-DRI3LDON.js: 249790 minified, 77208 gzip, 67166
+  Brotli bytes, sha256=30ca04baaa66` — byte-identico a rodada anterior do
+  candidato (o endurecimento do harness nao entra no bundle).
+- Encadeamento verificado: lockfile, upgrade, migration-toolchain, contracts,
+  work-package, debts, temporal, state, boundaries, secrets-audit, mcp-runtime,
+  seal-dts, matrix, ui-stack, no-supabase-runtime, format, lint, typecheck,
+  test, build e bundle — todos verdes.
+- Log integral: `captures/check-full.log.txt` (19.772 linhas).
+
+Nenhum teste foi removido, pulado ou afrouxado; nenhum budget renegociado.
