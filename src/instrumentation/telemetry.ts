@@ -6,6 +6,7 @@ import {
   type ObservableResult,
   type Span,
 } from "@opentelemetry/api";
+import { readEnv } from "@/lib/env.server";
 import { logJson } from "@/lib/structured-logger";
 
 const tracer = trace.getTracer("preco-que-da-lucro", "1.0.0");
@@ -224,9 +225,31 @@ function shutdownActiveSdk(): Promise<void> {
   return shutdownPromise;
 }
 
+/** Configuração do SDK OTEL resolvida de ambiente.
+ *
+ * Os dois sítios de leitura eram `??` sobre `process.env`:
+ * `OTEL_SERVICE_NAME=""` chegaria ao `NodeSDK` como `serviceName` vazio —
+ * o serviço exportado fica sem nome — e `OTEL_METRIC_EXPORT_INTERVAL_MS=""`
+ * viraria `Number("") = 0`. `readEnv` trata "definida e vazia" como não
+ * configurada (catálogo do DBT-97), e a faixa mantém o piso de 1 s já
+ * validado abaixo com um teto de 1 h, para um intervalo absurdo não desligar
+ * a exportação por omissão. Ausente e vazio resultam no MESMO default. */
+export function resolveOtelSdkConfig(): { serviceName: string; exportIntervalMillis: number } {
+  const rawInterval = readEnv("OTEL_METRIC_EXPORT_INTERVAL_MS");
+  const parsedInterval = rawInterval === undefined ? Number.NaN : Number(rawInterval);
+  return {
+    serviceName: readEnv("OTEL_SERVICE_NAME") ?? "preco-que-da-lucro",
+    exportIntervalMillis:
+      Number.isFinite(parsedInterval) && parsedInterval >= 1_000 && parsedInterval <= 3_600_000
+        ? parsedInterval
+        : 15_000,
+  };
+}
+
 /** OTLP is opt-in and initialization failures never block or fail a request. */
 export function ensureTelemetryStarted(): void {
-  if (telemetryStarted || telemetryStarting || !process.env.OTEL_EXPORTER_OTLP_ENDPOINT) return;
+  const endpoint = readEnv("OTEL_EXPORTER_OTLP_ENDPOINT");
+  if (telemetryStarted || telemetryStarting || !endpoint) return;
   telemetryStarting = (async () => {
     try {
       // These packages are server-only. Variable, vite-ignored imports prevent a
@@ -253,17 +276,13 @@ export function ensureTelemetryStarted(): void {
           typeof import("@opentelemetry/sdk-metrics")
         >,
       ]);
-      const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT!.replace(/\/$/, "");
-      const exportIntervalMillis = Number(process.env.OTEL_METRIC_EXPORT_INTERVAL_MS ?? 15_000);
+      const { serviceName, exportIntervalMillis } = resolveOtelSdkConfig();
       const sdk = new NodeSDK({
-        serviceName: process.env.OTEL_SERVICE_NAME ?? "preco-que-da-lucro",
+        serviceName,
         traceExporter: new OTLPTraceExporter({ url: `${endpoint}/v1/traces` }),
         metricReader: new PeriodicExportingMetricReader({
           exporter: new OTLPMetricExporter({ url: `${endpoint}/v1/metrics` }),
-          exportIntervalMillis:
-            Number.isFinite(exportIntervalMillis) && exportIntervalMillis >= 1_000
-              ? exportIntervalMillis
-              : 15_000,
+          exportIntervalMillis,
         }),
       });
       sdk.start();
