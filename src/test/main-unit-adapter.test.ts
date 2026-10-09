@@ -187,6 +187,19 @@ describe("complete unit adapter, original scanner provenance and conservative CL
     expect(snapshot.total).toBe(5);
     expect(snapshot.covered).toBe(5);
     expect(snapshot.units.filter((unit) => unit.line === 3)).toHaveLength(3);
+    // O espelho precisa aceitar a unidade de linha coberta só por branch: sem o
+    // lineState, before.get("...:3:line") é undefined e a unidade coberta reprova
+    // ("coverage mapping unavailable" — medido com os artefatos reais no
+    // audit.repository.ts:28).
+    expect(
+      mirror(snapshot, text, text, {
+        mainSha: revision,
+        analysisId: "main-analysis",
+        instrumentation,
+        sourceHashes: { [file]: source },
+        now,
+      }),
+    ).toMatchObject({ total: 5, covered: 5, paid: [], lost: [] });
     // Linha declarada coberta pelo provedor sem NENHUMA identidade no LCOV segue recusada.
     let refusal: unknown;
     try {

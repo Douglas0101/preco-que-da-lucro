@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { apiReader, type RequestObservation } from "./api.ts";
 import { coverageMetadata } from "./main-unit-probe.ts";
-import { authoritativeUnits, lcovUnits, type MainSnapshot } from "./unit-mirror.ts";
+import { authoritativeUnits, lineState, lcovUnits, type MainSnapshot } from "./unit-mirror.ts";
 
 export const sha256 = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");
 export interface LcovProvenance {
@@ -519,9 +519,7 @@ export function mapMainUnits(
         // (3) medição remota em dashboard.service.ts:174 (DA:174,0 com 1 branch
         //     coberta de 4): o provedor declara a linha NÃO coberta — o valor do DA
         //     existente prevalece e a contribuição de branch só vale como fallback.
-        const lineCovered = original.has(lineId)
-          ? original.get(lineId) === true
-          : coveredBranches > 0;
+        const lineCovered = lineState(original, file.path, row.line) === true;
         if (lineCovered !== lineHits > 0)
           throw new MetadataPreconditionError(
             "mapping",
