@@ -210,7 +210,7 @@ function walkErrorChain(error: unknown): WalkResult {
     inspectedCauses += 1;
     const code = readCode(link);
     if (code === null) return null;
-    if (firstCode === null) firstCode = code;
+    firstCode ??= code;
     const { rule, matched } = ruleFor(code);
     if (matched) return { code, rule };
     return null;
@@ -246,12 +246,15 @@ function walkErrorChain(error: unknown): WalkResult {
 }
 
 /**
- * Classifica uma falha de banco para observabilidade. Pura: não toca em rede,
- * relógio, ambiente ou no objeto de erro além de leitura de três propriedades.
+ * Construção única da saída: a chave fixa e a ordem declarada valem para o
+ * diagnóstico normal e para o fallback de contrato, sem duas cópias do literal.
  */
-export function classifyDatabaseFailure(error: unknown): DatabaseFailureDiagnosis {
-  const { code, rule, inspectedCauses } = walkErrorChain(error);
-  const diagnosis: DatabaseFailureDiagnosis = {
+function buildDiagnosis(
+  rule: FailureRule | null,
+  code: string | null,
+  inspectedCauses: number,
+): DatabaseFailureDiagnosis {
+  return {
     component: "postgres",
     category: rule?.category ?? UNKNOWN.category,
     step: rule?.step ?? UNKNOWN.step,
@@ -259,18 +262,20 @@ export function classifyDatabaseFailure(error: unknown): DatabaseFailureDiagnosi
     transient: rule?.transient ?? UNKNOWN.transient,
     inspectedCauses,
   };
+}
+
+/**
+ * Classifica uma falha de banco para observabilidade. Pura: não toca em rede,
+ * relógio, ambiente ou no objeto de erro além de leitura de três propriedades.
+ */
+export function classifyDatabaseFailure(error: unknown): DatabaseFailureDiagnosis {
+  const { code, rule, inspectedCauses } = walkErrorChain(error);
+  const diagnosis = buildDiagnosis(rule, code, inspectedCauses);
   // Defesa de contrato: a saída precisa permanecer com chave fixa e na ordem
   // declarada, para que o log seja comparável entre deploys.
   const keys = Object.keys(diagnosis);
   if (keys.length !== DIAGNOSIS_KEYS.length || DIAGNOSIS_KEYS.some((key, i) => keys[i] !== key)) {
-    return {
-      component: "postgres",
-      category: UNKNOWN.category,
-      step: UNKNOWN.step,
-      code: null,
-      transient: UNKNOWN.transient,
-      inspectedCauses,
-    };
+    return buildDiagnosis(null, null, inspectedCauses);
   }
   return diagnosis;
 }

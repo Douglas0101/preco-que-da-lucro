@@ -10,7 +10,7 @@ import { readEnv } from "@/lib/env.server";
  * revisões com o mesmo sintoma são indistinguíveis no log.
  *
  * Os dois valores são variáveis de sistema que a plataforma Vercel publica em
- * todo deployment. Nenhum dos dois é sensível: são identificadores públicos,
+ * cada deployment. Nenhum dos dois é sensível: são identificadores públicos,
  * comparáveis com o `gitCommitSha` que a API de deployment já devolve.
  *
  * `readEnv`, não a coalescência direta sobre `process.env`: um registro
@@ -49,7 +49,9 @@ export function deploymentIdentity(): DeploymentIdentity {
  */
 export function requestCorrelationId(request: Request): string {
   const supplied = request.headers.get("x-correlation-id");
-  return supplied !== null && UUID_PATTERN.test(supplied)
-    ? supplied
-    : (globalThis.crypto?.randomUUID?.() ?? `corr-${Math.random().toString(36).slice(2)}`);
+  if (supplied !== null && UUID_PATTERN.test(supplied)) return supplied;
+  // `crypto.randomUUID` existe em todo runtime suportado (Node ≥19 / Vercel),
+  // como em `src/server.ts`; um fallback de PRNG não criptográfico não tem uso
+  // legítimo aqui.
+  return globalThis.crypto.randomUUID();
 }
