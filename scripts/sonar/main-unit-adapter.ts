@@ -65,19 +65,25 @@ type MetadataFailureCode =
   | "SOURCE_IDENTITY_UNAVAILABLE"
   | "SOURCE_REQUEST_FAILED"
   | "SOURCE_COVERAGE_INVALID"
-  | "SOURCE_PAGINATION_INVALID";
+  | "SOURCE_PAGINATION_INVALID"
+  | "ORIGIN_IDENTITY_INVALID"
+  | "ORIGIN_PERIOD_INVALID"
+  | "MAPPING_FILE_CENSUS_UNAVAILABLE"
+  | "MAPPING_NEW_CODE_MARKER_UNAVAILABLE"
+  | "MAPPING_PROVIDER_ALIASES_DISAGREE"
+  | "MAPPING_PROVIDER_LINE_DISAGREES"
+  | "MAPPING_PROVIDER_LINE_ABSENT"
+  | "MAPPING_PROVIDER_CONDITION_DISAGREES"
+  | "MAPPING_PROVIDER_CONDITION_WITHOUT_IDENTITY"
+  | "MAPPING_FILE_UNITS_DISAGREE"
+  | "MAPPING_UNITS_DISAGREE_WITH_DENOMINATOR";
 class MetadataPreconditionError extends Error {
   readonly diagnostic: {
-    phase: "components" | "sources";
+    phase: AdapterPhase;
     code: MetadataFailureCode;
     componentPathSha256?: string;
   };
-  constructor(
-    phase: "components" | "sources",
-    code: MetadataFailureCode,
-    message: string,
-    path?: string,
-  ) {
+  constructor(phase: AdapterPhase, code: MetadataFailureCode, message: string, path?: string) {
     super(message);
     this.diagnostic = {
       phase,
@@ -402,7 +408,15 @@ export function mapMainUnits(
   files: FileMetadata[],
   source: (path: string) => { hash: string },
 ): UnitSnapshot {
-  provenance(origin, originalLcov);
+  try {
+    provenance(origin, originalLcov);
+  } catch {
+    throw new MetadataPreconditionError(
+      "origin",
+      "ORIGIN_IDENTITY_INVALID",
+      "original main scanner provenance is unavailable or unsealed",
+    );
+  }
   if (
     origin.revision !== baseline.mainSha ||
     origin.analysisId !== baseline.analysisId ||
@@ -410,33 +424,63 @@ export function mapMainUnits(
     origin.pullRequest !== null ||
     baseline.period == null
   )
-    throw new Error("original main analysis/period identity unavailable");
+    throw new MetadataPreconditionError(
+      "origin",
+      "ORIGIN_IDENTITY_INVALID",
+      "original main analysis/period identity unavailable",
+    );
   const target = authoritativeUnits(baseline.metrics);
   if (
     origin.periodDigest !== sha256(JSON.stringify(baseline.period)) ||
     JSON.stringify(origin.mainUnits) !== JSON.stringify(target)
   )
-    throw new Error("original main period/denominator changed");
+    throw new MetadataPreconditionError(
+      "origin",
+      "ORIGIN_PERIOD_INVALID",
+      "original main period/denominator changed",
+    );
   const original = lcovUnits(originalLcov);
   const units: MainSnapshot["units"] = [];
   const seen = new Set<string>(),
     sourceHashes: Record<string, string> = {};
-  if (files.length === 0) throw new Error("empty authenticated file discovery");
+  if (files.length === 0)
+    throw new MetadataPreconditionError(
+      "mapping",
+      "MAPPING_FILE_CENSUS_UNAVAILABLE",
+      "empty authenticated file discovery",
+    );
   for (const file of files) {
+    // A provenance sela somente os hashes dos arquivos que a rodada de cobertura
+    // carregou: em main sao 111 dos 144 do censo, porque 33 arquivos nunca foram
+    // importados por teste algum e portanto nao tem registro no LCOV. A identidade
+    // desses continua imutavel e vem dos mesmos bytes Git que a provenance sela
+    // para os cobertos — hash selado, quando existe, precisa concordar.
+    const sealed = origin.sourceHashes[file.path],
+      immutable = source(file.path).hash;
     if (
       !sourcePath(file.path) ||
       seen.has(file.path) ||
       file.rows.length === 0 ||
-      source(file.path).hash !== origin.sourceHashes[file.path]
+      (sealed !== undefined && sealed !== immutable)
     )
-      throw new Error("source census/hash unavailable");
+      throw new MetadataPreconditionError(
+        "mapping",
+        "MAPPING_FILE_CENSUS_UNAVAILABLE",
+        "source census/hash unavailable",
+        file.path,
+      );
     seen.add(file.path);
-    sourceHashes[file.path] = origin.sourceHashes[file.path];
+    sourceHashes[file.path] = immutable;
     const start = units.length;
     const lineSeen = new Set<number>();
     for (const row of file.rows) {
       if (lineSeen.has(row.line) || row.isNew === null)
-        throw new Error("new-code line identity unavailable");
+        throw new MetadataPreconditionError(
+          "mapping",
+          "MAPPING_NEW_CODE_MARKER_UNAVAILABLE",
+          "new-code line identity unavailable",
+          file.path,
+        );
       lineSeen.add(row.line);
       if (!row.isNew) continue;
       for (const [overall, unit] of [
@@ -445,7 +489,12 @@ export function mapMainUnits(
         [row.coveredConditions, row.utCoveredConditions],
       ])
         if (overall !== null && unit !== null && overall !== unit)
-          throw new Error("provider coverage aliases disagree");
+          throw new MetadataPreconditionError(
+            "mapping",
+            "MAPPING_PROVIDER_ALIASES_DISAGREE",
+            "provider coverage aliases disagree",
+            file.path,
+          );
       const lineId = `${file.path}:${row.line}:line`;
       const lineHits = row.lineHits ?? row.utLineHits;
       if (lineHits !== null) {
@@ -454,9 +503,20 @@ export function mapMainUnits(
         // coberto quando o provedor também declara a linha não coberta; linha declarada
         // coberta com DA ausente segue reprovando.
         if ((original.get(lineId) ?? false) !== lineHits > 0)
-          throw new Error("original line coverage disagrees with provider");
+          throw new MetadataPreconditionError(
+            "mapping",
+            "MAPPING_PROVIDER_LINE_DISAGREES",
+            "original line coverage disagrees with provider",
+            file.path,
+          );
         units.push({ file: file.path, line: row.line, covered: lineHits > 0 });
-      } else if (original.has(lineId)) throw new Error("provider line coverage absent");
+      } else if (original.has(lineId))
+        throw new MetadataPreconditionError(
+          "mapping",
+          "MAPPING_PROVIDER_LINE_ABSENT",
+          "provider line coverage absent",
+          file.path,
+        );
       const prefix = `${file.path}:${row.line}:`;
       const branches = [...original].filter(([id]) => id.startsWith(prefix) && id !== lineId);
       const count = row.conditions ?? row.utConditions,
@@ -467,7 +527,12 @@ export function mapMainUnits(
           covered !== branches.filter(([, hits]) => hits === true).length ||
           branches.some(([, hits]) => hits === null)
         )
-          throw new Error("original condition identity/count disagrees with provider");
+          throw new MetadataPreconditionError(
+            "mapping",
+            "MAPPING_PROVIDER_CONDITION_DISAGREES",
+            "original condition identity/count disagrees with provider",
+            file.path,
+          );
         for (const [id, hits] of branches)
           units.push({
             file: file.path,
@@ -476,7 +541,12 @@ export function mapMainUnits(
             covered: hits!,
           });
       } else if ((count !== null && count !== 0) || (covered !== null && covered !== 0))
-        throw new Error("provider condition has no original LCOV identity");
+        throw new MetadataPreconditionError(
+          "mapping",
+          "MAPPING_PROVIDER_CONDITION_WITHOUT_IDENTITY",
+          "provider condition has no original LCOV identity",
+          file.path,
+        );
     }
     const mapped = units.slice(start);
     const totals = [
@@ -490,11 +560,20 @@ export function mapMainUnits(
         file.metrics[name] !== totals[i] &&
         !(file.metrics[name] == null && totals.every((n) => n === 0))
       )
-        throw new Error("file units disagree with provider metrics");
+        throw new MetadataPreconditionError(
+          "mapping",
+          "MAPPING_FILE_UNITS_DISAGREE",
+          "file units disagree with provider metrics",
+          file.path,
+        );
     });
   }
   if (units.length !== target.total || units.filter((u) => u.covered).length !== target.covered)
-    throw new Error("checked units differ from authoritative main denominator/numerator");
+    throw new MetadataPreconditionError(
+      "mapping",
+      "MAPPING_UNITS_DISAGREE_WITH_DENOMINATOR",
+      "checked units differ from authoritative main denominator/numerator",
+    );
   return {
     schema: "main-unit-snapshot/1",
     mainSha: baseline.mainSha,

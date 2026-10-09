@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import { authoritativeUnits, lcovUnits, mirror } from "./unit-mirror.ts";
 import {
+  gitSource,
   OriginalProvenanceUnavailable,
   readMainScannerOrigin,
   provenance,
@@ -113,12 +114,24 @@ export function evaluateMirrorArtifacts(
     Object.keys(s.sourceHashes).sort().join("\n") !== [...s.discoveredFiles].sort().join("\n")
   )
     throw new Error("snapshot file census differs");
+  // A provenance sela apenas os hashes dos arquivos que a rodada de cobertura
+  // carregou (111 dos 144 do censo em main): os 33 restantes nao tem registro no
+  // LCOV original nem no candidato. Para esses, a identidade e conferida contra os
+  // bytes Git imutaveis de main — a mesma fonte que a provenance usa — e, no lado
+  // candidato, pelo proprio mirror(), que exige igualdade com o snapshot. Hash
+  // selado que existe e discorda continua recusado.
+  const originalHash = (file: string) => {
+    const sealed = before.sourceHashes[file];
+    if (sealed !== undefined) return sealed;
+    return gitSource(b.mainSha as string, file).hash;
+  };
   const currentHashes = Object.fromEntries(files.map((file) => [file, input.sourceHash(file)]));
   if (
     files.some(
       (file) =>
-        before.sourceHashes[file] !== s.sourceHashes[file] ||
-        after.sourceHashes[file] !== currentHashes[file],
+        originalHash(file) !== s.sourceHashes[file] ||
+        (after.sourceHashes[file] !== undefined &&
+          after.sourceHashes[file] !== currentHashes[file]),
     )
   )
     throw new Error("original/candidate source provenance differs");

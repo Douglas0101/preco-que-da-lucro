@@ -139,6 +139,36 @@ describe("complete unit adapter, original scanner provenance and conservative CL
     }
     expect(() => classifyMirrorObservation("mirror", null, 0)).toThrow();
   });
+  it("completes the immutable hash from Git for census files the coverage run never loaded", () => {
+    // Medido no LCOV original de main (run 37817760211): 179 SF, dos quais só 111
+    // são arquivos do censo — 33 dos 144 nunca foram importados por teste e portanto
+    // não têm hash selado na provenance. A identidade continua vinda dos bytes Git.
+    const withoutCensusHash = {
+      ...origin(),
+      sourceHashes: { "src/lib/other.ts": "c".repeat(64) },
+    };
+    const snapshot = mapMainUnits(baseline, withoutCensusHash, lcov(), metadata(), () => ({
+      hash: source,
+    }));
+    expect(snapshot.sourceHashes).toEqual({ [file]: source });
+    expect(snapshot.discoveredFiles).toEqual([file]);
+    // Hash selado que discorda dos bytes imutáveis continua recusado.
+    let refusal: unknown;
+    try {
+      mapMainUnits(
+        baseline,
+        { ...withoutCensusHash, sourceHashes: { [file]: "d".repeat(64) } },
+        lcov(),
+        metadata(),
+        () => ({ hash: source }),
+      );
+    } catch (error) {
+      refusal = error;
+    }
+    expect(refusal).toMatchObject({
+      diagnostic: { phase: "mapping", code: "MAPPING_FILE_CENSUS_UNAVAILABLE" },
+    });
+  });
   it("maps condition IDs from the ORIGINAL consumed LCOV and reconciles provider counts", () => {
     const snapshot = input().snapshot;
     expect(snapshot.units).toHaveLength(5);
@@ -662,6 +692,9 @@ describe("complete unit adapter, original scanner provenance and conservative CL
     try {
       mkdirSync(resolve(directory, "src/lib"), { recursive: true });
       writeFileSync(resolve(directory, file), "// synthetic CLI fixture only\n".repeat(6));
+      // Nunca importado por teste nenhum: não tem registro no LCOV e nenhum hash
+      // selado na provenance, exatamente como 33 dos 144 arquivos do censo de main.
+      writeFileSync(resolve(directory, "src/lib/uncovered.ts"), "// never imported\n");
       writeFileSync(resolve(directory, "src/styles.css"), ":root { color: black; }\n");
       writeFileSync(
         resolve(directory, "vitest.config.ts"),
@@ -688,6 +721,7 @@ describe("complete unit adapter, original scanner provenance and conservative CL
         [
           "add",
           "src/lib/example.ts",
+          "src/lib/uncovered.ts",
           "src/styles.css",
           "vitest.config.ts",
           "package.json",
@@ -818,12 +852,41 @@ describe("complete unit adapter, original scanner provenance and conservative CL
           encoding: "utf8",
         });
       if (mixedCensus) {
-        const css = "src/styles.css";
+        const css = "src/styles.css",
+          uncovered = "src/lib/uncovered.ts";
+        // O denominador autoritativo passa a incluir as duas linhas novas não
+        // cobertas do arquivo que nenhum teste carrega (4+2 linhas, 1 condição).
+        const bMixed = {
+          ...b,
+          metrics: {
+            new_lines_to_cover: 5,
+            new_uncovered_lines: 2,
+            new_conditions_to_cover: 1,
+            new_uncovered_conditions: 1,
+            new_coverage: 50,
+          },
+        };
+        save("c24-main-baseline.json", { schema: "main-baseline/2", ...bMixed });
+        // Hash real por arquivo: a provenance sela o SHA256 dos bytes de cada SF do
+        // LCOV, e com dois SF um hash constante mentiria sobre o segundo.
+        const sealedHash = (path: string) => sha256(readFileSync(resolve(directory, path)));
+        save(
+          "main-origin.json",
+          scannerProvenance(
+            checkoutSha,
+            lcov(),
+            g("main", null),
+            "Sensor JavaScript/TypeScript Coverage",
+            instr,
+            sealedHash,
+            bMixed,
+          ),
+        );
         const payloads = {
           ref: { commit: { sha: checkoutSha } },
           analyses: { analyses: [{ key: b.analysisId, revision: checkoutSha }] },
           tree: {
-            paging: { total: 2 },
+            paging: { total: 3 },
             components: [
               {
                 key: `project:${css}`,
@@ -836,19 +899,34 @@ describe("complete unit adapter, original scanner provenance and conservative CL
               {
                 key: `project:${file}`,
                 path: file,
-                measures: Object.entries(b.metrics)
-                  .filter(([metric]) => metric !== "new_coverage")
-                  .map(([metric, value]) => ({
-                    metric,
-                    period: { index: 1, value: String(value) },
-                  })),
+                // Métricas POR ARQUIVO (4 linhas, 1 condição); o agregado do
+                /// baseline é a soma dos dois arquivos.
+                measures: [
+                  { metric: "new_lines_to_cover", period: { index: 1, value: "4" } },
+                  { metric: "new_uncovered_lines", period: { index: 1, value: "1" } },
+                  { metric: "new_conditions_to_cover", period: { index: 1, value: "1" } },
+                  { metric: "new_uncovered_conditions", period: { index: 1, value: "1" } },
+                ],
+              },
+              {
+                key: `project:${uncovered}`,
+                path: uncovered,
+                measures: [
+                  { metric: "new_lines_to_cover", period: { index: 1, value: "1" } },
+                  { metric: "new_uncovered_lines", period: { index: 1, value: "1" } },
+                  { metric: "new_conditions_to_cover", period: { index: 1, value: "0" } },
+                  { metric: "new_uncovered_conditions", period: { index: 1, value: "0" } },
+                ],
               },
             ],
           },
           lines: {
-            sources: metadata()[0].rows.map((row) =>
-              Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null)),
-            ),
+            [`project:${file}`]: {
+              sources: metadata()[0].rows.map((row) =>
+                Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null)),
+              ),
+            },
+            [`project:${uncovered}`]: { sources: [{ line: 1, isNew: true, lineHits: 0 }] },
           },
         };
         const offlineModule = save(
@@ -861,7 +939,8 @@ globalThis.fetch = async (url) => {
   else if (target.origin === "https://sonarcloud.io") {
     if (target.pathname === "/api/project_analyses/search") payload = payloads.analyses;
     else if (target.pathname === "/api/measures/component_tree") payload = payloads.tree;
-    else if (target.pathname === "/api/sources/lines") payload = payloads.lines;
+    else if (target.pathname === "/api/sources/lines")
+      payload = payloads.lines[target.searchParams.get("key")];
   }
   if (!payload) throw new Error("unexpected isolated API request; external transport forbidden");
   return new Response(JSON.stringify(payload), { status: 200, headers: { "content-type": "application/json" } });
@@ -917,11 +996,11 @@ globalThis.fetch = async (url) => {
         expect(adapter.status, adapter.stderr).toBe(0);
         expect(adapterReport).toMatchObject({
           verdict: "MAPPED",
-          total: 5,
+          total: 6,
           componentCensus: {
-            expectedFiles: 2,
-            discoveredFiles: [css, file],
-            coverageFiles: [file],
+            expectedFiles: 3,
+            discoveredFiles: [css, file, uncovered],
+            coverageFiles: [file, uncovered],
             excludedFiles: [
               {
                 path: css,
@@ -935,8 +1014,21 @@ globalThis.fetch = async (url) => {
           `snapshot_sha256=${adapterReport.snapshotSha256}\n`,
         );
         offlineEnv.SONAR_MAIN_UNIT_SNAPSHOT_SHA256 = adapterReport.snapshotSha256;
-        save("candidate.lcov", lcov(1));
-        save("candidate-origin.json", p(lcov(1), "develop", "60"));
+        // O candidato cobre todas as unidades, inclusive a do arquivo que o LCOV
+        // de main nunca registrou — pagamento sem remapeamento de identidade.
+        const candidatePaying = `${lcov(1)}SF:${uncovered}\nDA:1,1\nend_of_record\n`;
+        save("candidate.lcov", candidatePaying);
+        save(
+          "candidate-origin.json",
+          scannerProvenance(
+            checkoutSha,
+            candidatePaying,
+            g("develop", "60"),
+            "Sensor JavaScript/TypeScript Coverage",
+            instr,
+            sealedHash,
+          ),
+        );
         const mirrored = runOffline("mirror");
         expect(mirrored.status, mirrored.stderr).toBe(0);
         expect(readReport("c29-main-unit-adapter-observation.json")).toMatchObject({
