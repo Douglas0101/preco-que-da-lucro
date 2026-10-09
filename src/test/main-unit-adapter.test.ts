@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  adapterDiagnostic,
   collectMetadata,
   mapMainUnits,
   provenance,
@@ -323,6 +324,192 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       scannerProvenance(revision, lcov(), gate(), "sensor absent", instrumentation, () => source),
     ).toThrow();
   });
+  it.each([false, true])(
+    "accounts for CSS without LCOV credit in the complete census (paginated=%s)",
+    async (paginated) => {
+      const css = "src/styles.css",
+        cssHash = "d".repeat(64);
+      const components = [
+        { key: `project:${css}`, path: css, measures: [] },
+        {
+          key: `project:${file}`,
+          path: file,
+          measures: Object.entries(baseline.metrics)
+            .filter(([metric]) => metric !== "new_coverage")
+            .map(([metric, value]) => ({ metric, period: { index: 1, value: String(value) } })),
+        },
+      ];
+      const calls: string[] = [],
+        checkedSources: string[] = [];
+      const get = (async (_origin: string, endpoint: string) => {
+        calls.push(endpoint);
+        if (endpoint.startsWith("measures/")) {
+          const page = Number(new URLSearchParams(endpoint.split("?")[1]).get("p"));
+          return {
+            paging: { total: components.length },
+            components: paginated ? components.slice(page - 1, page) : components,
+          };
+        }
+        expect(new URLSearchParams(endpoint.split("?")[1]).get("key")).toBe(`project:${file}`);
+        return {
+          sources: metadata()[0].rows.map((row) =>
+            Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null)),
+          ),
+        };
+      }) as ReturnType<typeof apiReader>;
+      const census = {
+        expectedFiles: null,
+        discoveredFiles: [],
+        coverageFiles: [],
+        excludedFiles: [],
+      };
+      const files = await collectMetadata(
+        get,
+        "project",
+        (path) => {
+          checkedSources.push(path);
+          return { hash: path === css ? cssHash : source, lines: path === css ? 1 : 6 };
+        },
+        census,
+      );
+      expect(files.map((entry) => entry.path)).toEqual([file]);
+      expect(census).toEqual({
+        expectedFiles: 2,
+        discoveredFiles: [css, file],
+        coverageFiles: [file],
+        excludedFiles: [{ path: css, reason: "CSS_OUTSIDE_JS_TS_COVERAGE", sourceSha256: cssHash }],
+      });
+      expect([...checkedSources].sort()).toEqual([css, file].sort());
+      expect(calls.filter((call) => call.startsWith("measures/"))).toHaveLength(paginated ? 2 : 1);
+      expect(calls.filter((call) => call.startsWith("sources/"))).toHaveLength(1);
+      const snapshot = mapMainUnits(baseline, origin(), lcov(), files, () => ({ hash: source }));
+      expect(snapshot.units).toHaveLength(5);
+      expect(snapshot.covered).toBe(3);
+      expect(snapshot.discoveredFiles).toEqual([file]);
+    },
+  );
+  it.each([file, "src/styles.css"])(
+    "refuses missing measures without silently classifying %s outside coverage",
+    async (path) => {
+      const get = (async () => ({
+        paging: { total: 1 },
+        components: [{ key: `project:${path}`, path }],
+      })) as ReturnType<typeof apiReader>;
+      await expect(
+        collectMetadata(get, "project", () => ({ hash: source, lines: 1 })),
+      ).rejects.toMatchObject({
+        diagnostic: {
+          phase: "components",
+          code: "COMPONENT_MEASURES_UNAVAILABLE",
+          componentPathSha256: sha256(path),
+        },
+      });
+    },
+  );
+  it.each([
+    "new_lines_to_cover",
+    "new_uncovered_lines",
+    "new_conditions_to_cover",
+    "new_uncovered_conditions",
+  ])("refuses CSS declaring %s instead of dropping measured units", async (metric) => {
+    const path = "src/styles.css";
+    const get = (async () => ({
+      paging: { total: 1 },
+      components: [
+        {
+          key: `project:${path}`,
+          path,
+          measures: [{ metric, period: { index: 1, value: "1" } }],
+        },
+      ],
+    })) as ReturnType<typeof apiReader>;
+    await expect(
+      collectMetadata(get, "project", () => ({ hash: source, lines: 1 })),
+    ).rejects.toMatchObject({ diagnostic: { code: "CSS_COVERAGE_UNSUPPORTED" } });
+  });
+  it.each([file, "src/styles.css"])(
+    "refuses unreadable or duplicated coverage measures for %s",
+    async (path) => {
+      const metric = "new_lines_to_cover";
+      for (const measures of [
+        ...[null, undefined, -1, "-1", "1.5", "NaN", "9007199254740992"].map((value) => [
+          { metric, value },
+        ]),
+        [
+          { metric, value: "0" },
+          { metric, value: "0" },
+        ],
+      ]) {
+        const get = (async () => ({
+          paging: { total: 1 },
+          components: [{ key: `project:${path}`, path, measures }],
+        })) as ReturnType<typeof apiReader>;
+        await expect(
+          collectMetadata(get, "project", () => ({ hash: source, lines: 1 })),
+        ).rejects.toMatchObject({ diagnostic: { code: "COMPONENT_METRIC_INVALID" } });
+      }
+    },
+  );
+  it.each(["src/template.html", "src/../styles.css", "src/test/styles.css"])(
+    "refuses an unregistered component even with empty measures: %s",
+    async (path) => {
+      const get = (async () => ({
+        paging: { total: 1 },
+        components: [{ key: `project:${path}`, path, measures: [] }],
+      })) as ReturnType<typeof apiReader>;
+      await expect(
+        collectMetadata(get, "project", () => ({ hash: source, lines: 1 })),
+      ).rejects.toMatchObject({ diagnostic: { code: "COMPONENT_PATH_UNSUPPORTED" } });
+    },
+  );
+  it("rejects CSS-only discovery and duplicate CSS identities across pages", async () => {
+    const css = { key: "project:src/styles.css", path: "src/styles.css", measures: [] };
+    const cssOnly = (async () => ({
+      paging: { total: 1 },
+      components: [css],
+    })) as ReturnType<typeof apiReader>;
+    await expect(
+      collectMetadata(cssOnly, "project", () => ({ hash: source, lines: 1 })),
+    ).rejects.toMatchObject({ diagnostic: { code: "COVERAGE_CENSUS_EMPTY" } });
+    for (const duplicate of [css, { ...css, key: "another-key" }]) {
+      let page = 0;
+      const get = (async () => ({
+        paging: { total: 2 },
+        components: [++page === 1 ? css : duplicate],
+      })) as ReturnType<typeof apiReader>;
+      await expect(
+        collectMetadata(get, "project", () => ({ hash: source, lines: 1 })),
+      ).rejects.toMatchObject({ diagnostic: { code: "COMPONENT_IDENTITY_INVALID" } });
+    }
+  });
+  it("emits only fixed diagnostics and path digests, never raw errors or source", async () => {
+    const unsafe = "fixture-sensitive-text\n::error::not-a-credential";
+    const get = (async (_origin: string, endpoint: string) => {
+      if (endpoint.startsWith("measures/"))
+        return {
+          paging: { total: 1 },
+          components: [{ key: "k", path: file, measures: [] }],
+        };
+      throw new Error(unsafe);
+    }) as ReturnType<typeof apiReader>;
+    let diagnostic;
+    try {
+      await collectMetadata(get, "project", () => ({ hash: source, lines: 1 }));
+    } catch (error) {
+      diagnostic = adapterDiagnostic(error, "components");
+    }
+    expect(diagnostic).toEqual({
+      phase: "sources",
+      code: "SOURCE_REQUEST_FAILED",
+      componentPathSha256: sha256(file),
+    });
+    expect(adapterDiagnostic(new Error(unsafe), "origin")).toEqual({
+      phase: "origin",
+      code: "EXECUTION_OR_UNCLASSIFIED",
+    });
+    expect(JSON.stringify(diagnostic)).not.toContain(unsafe);
+    expect(JSON.stringify(diagnostic)).not.toContain(file);
+  });
   it("enumerates pages and checks every source line against immutable Git line count", async () => {
     const calls: string[] = [];
     const get = (async (_origin: string, endpoint: string) => {
@@ -392,11 +579,14 @@ describe("complete unit adapter, original scanner provenance and conservative CL
     "corrupt-candidate",
     "corrupt-main-sidecar",
     "missing-main-lcov",
+    "mixed-census",
+    "coverage-census-failure",
   ] as const)("runs the real bare-Node CLI in its own Git fixture: %s", (scenario) => {
     const directory = mkdtempSync(resolve(tmpdir(), "mirror-cli-fixture-"));
     try {
       mkdirSync(resolve(directory, "src/lib"), { recursive: true });
-      writeFileSync(resolve(directory, file), "// synthetic CLI fixture only\n");
+      writeFileSync(resolve(directory, file), "// synthetic CLI fixture only\n".repeat(6));
+      writeFileSync(resolve(directory, "src/styles.css"), ":root { color: black; }\n");
       writeFileSync(
         resolve(directory, "vitest.config.ts"),
         "// fixture instrumentation configuration\n",
@@ -419,7 +609,14 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       execFileSync("git", ["init", "--initial-branch=develop", "--quiet"], { cwd: directory });
       execFileSync(
         "git",
-        ["add", "src/lib/example.ts", "vitest.config.ts", "package.json", "package-lock.json"],
+        [
+          "add",
+          "src/lib/example.ts",
+          "src/styles.css",
+          "vitest.config.ts",
+          "package.json",
+          "package-lock.json",
+        ],
         { cwd: directory },
       );
       execFileSync(
@@ -522,7 +719,8 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       save("candidate-origin.json", p(lcov(), "develop", "60"));
 
       // Exercise the real producer and advisory entrypoints with no external transport.
-      rmSync(env.SONAR_MAIN_LCOV_PROVENANCE);
+      const mixedCensus = scenario === "mixed-census" || scenario === "coverage-census-failure";
+      if (!mixedCensus) rmSync(env.SONAR_MAIN_LCOV_PROVENANCE);
       const advisoryEnv = {
         ...env,
         SONAR_TOKEN: "fixture-not-a-credential",
@@ -530,7 +728,7 @@ describe("complete unit adapter, original scanner provenance and conservative CL
         SONAR_MAIN_UNIT_ADAPTER_REPORT: resolve(directory, "c28-main-unit-adapter.json"),
         SONAR_CANDIDATE_GATE_REPORT: save("gate.json", {
           schema: "c25-ce-gate-readout/1",
-          status: "ERROR",
+          status: mixedCensus ? "OK" : "ERROR",
           ...g("develop", "60"),
         }),
         GITHUB_STEP_SUMMARY: resolve(directory, "summary.md"),
@@ -543,6 +741,144 @@ describe("complete unit adapter, original scanner provenance and conservative CL
           env: advisoryEnv,
           encoding: "utf8",
         });
+      if (mixedCensus) {
+        const css = "src/styles.css";
+        const payloads = {
+          ref: { commit: { sha: checkoutSha } },
+          analyses: { analyses: [{ key: b.analysisId, revision: checkoutSha }] },
+          tree: {
+            paging: { total: 2 },
+            components: [
+              {
+                key: `project:${css}`,
+                path: css,
+                measures:
+                  scenario === "coverage-census-failure"
+                    ? [{ metric: "new_lines_to_cover", value: "1" }]
+                    : [],
+              },
+              {
+                key: `project:${file}`,
+                path: file,
+                measures: Object.entries(b.metrics)
+                  .filter(([metric]) => metric !== "new_coverage")
+                  .map(([metric, value]) => ({
+                    metric,
+                    period: { index: 1, value: String(value) },
+                  })),
+              },
+            ],
+          },
+          lines: {
+            sources: metadata()[0].rows.map((row) =>
+              Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null)),
+            ),
+          },
+        };
+        const offlineModule = save(
+          "offline-api.mjs",
+          `const payloads = ${JSON.stringify(payloads)};
+globalThis.fetch = async (url) => {
+  const target = new URL(String(url));
+  let payload;
+  if (target.origin === "https://api.github.com" && target.pathname.endsWith("/branches/main")) payload = payloads.ref;
+  else if (target.origin === "https://sonarcloud.io") {
+    if (target.pathname === "/api/project_analyses/search") payload = payloads.analyses;
+    else if (target.pathname === "/api/measures/component_tree") payload = payloads.tree;
+    else if (target.pathname === "/api/sources/lines") payload = payloads.lines;
+  }
+  if (!payload) throw new Error("unexpected isolated API request; external transport forbidden");
+  return new Response(JSON.stringify(payload), { status: 200, headers: { "content-type": "application/json" } });
+};
+`,
+        );
+        const offlineEnv = {
+          ...advisoryEnv,
+          NODE_OPTIONS: `--import=${offlineModule}`,
+          SONAR_MAIN_UNIT_SNAPSHOT: resolve(directory, "c28-main-unit-snapshot.json"),
+          SONAR_MAIN_UNIT_SNAPSHOT_SHA256: "",
+        };
+        const runOffline = (kind: "adapter" | "mirror") =>
+          spawnSync(process.execPath, [advisoryCommand, kind], {
+            cwd: directory,
+            env: offlineEnv,
+            encoding: "utf8",
+          });
+        const readReport = (name: string) =>
+          JSON.parse(readFileSync(resolve(directory, name), "utf8"));
+        const adapter = runOffline("adapter"),
+          adapterReport = readReport("c28-main-unit-adapter.json");
+        if (scenario === "coverage-census-failure") {
+          expect(adapter.status, adapter.stderr).toBe(1);
+          expect(adapterReport).toMatchObject({
+            verdict: "NO-VERDICT",
+            reasonCode: "EXECUTION_OR_UNCLASSIFIED",
+            diagnostic: {
+              phase: "components",
+              code: "CSS_COVERAGE_UNSUPPORTED",
+              componentPathSha256: sha256(css),
+            },
+          });
+          expect(adapter.stderr).toContain("CSS_COVERAGE_UNSUPPORTED");
+          const mirrored = runOffline("mirror");
+          expect(mirrored.status, mirrored.stderr).toBe(1);
+          for (const name of [
+            "c29-main-unit-adapter-observation.json",
+            "c29-main-mirror-observation.json",
+          ])
+            expect(readReport(name)).toMatchObject({
+              rawExitCode: 2,
+              rawStatus: "NO-VERDICT",
+              observation: null,
+              outcome: "FAILURE",
+              approvesMain: false,
+            });
+          expect(readReport("c26-main-mirror.json").missingNames).toContain(
+            "SONAR_MAIN_UNIT_SNAPSHOT_SHA256",
+          );
+          return;
+        }
+        expect(adapter.status, adapter.stderr).toBe(0);
+        expect(adapterReport).toMatchObject({
+          verdict: "MAPPED",
+          total: 5,
+          componentCensus: {
+            expectedFiles: 2,
+            discoveredFiles: [css, file],
+            coverageFiles: [file],
+            excludedFiles: [
+              {
+                path: css,
+                reason: "CSS_OUTSIDE_JS_TS_COVERAGE",
+                sourceSha256: sha256(readFileSync(resolve(directory, css))),
+              },
+            ],
+          },
+        });
+        expect(readFileSync(advisoryEnv.GITHUB_OUTPUT, "utf8")).toBe(
+          `snapshot_sha256=${adapterReport.snapshotSha256}\n`,
+        );
+        offlineEnv.SONAR_MAIN_UNIT_SNAPSHOT_SHA256 = adapterReport.snapshotSha256;
+        save("candidate.lcov", lcov(1));
+        save("candidate-origin.json", p(lcov(1), "develop", "60"));
+        const mirrored = runOffline("mirror");
+        expect(mirrored.status, mirrored.stderr).toBe(0);
+        expect(readReport("c29-main-unit-adapter-observation.json")).toMatchObject({
+          rawExitCode: 0,
+          rawStatus: "MAPPED",
+          observation: "MAPPED",
+          outcome: "INFORMATIONAL",
+          approvesMain: false,
+        });
+        expect(readReport("c29-main-mirror-observation.json")).toMatchObject({
+          rawExitCode: 0,
+          rawStatus: "PASS",
+          observation: "PASS",
+          outcome: "INFORMATIONAL",
+          approvesMain: false,
+        });
+        return;
+      }
       if (scenario === "corrupt-main-sidecar") {
         save("main-origin.json", "{broken");
         const observed = runObservation("adapter");

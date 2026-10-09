@@ -35,10 +35,73 @@ export interface FileMetadata {
   metrics: Record<string, number | null>;
   rows: ReturnType<typeof coverageMetadata>["rows"];
 }
+export interface ComponentCensus {
+  expectedFiles: number | null;
+  discoveredFiles: string[];
+  coverageFiles: string[];
+  excludedFiles: {
+    path: string;
+    reason: "CSS_OUTSIDE_JS_TS_COVERAGE";
+    sourceSha256: string | null;
+  }[];
+}
+type AdapterPhase =
+  | "preconditions"
+  | "baseline"
+  | "origin"
+  | "identity"
+  | "components"
+  | "sources"
+  | "mapping"
+  | "persist";
+type MetadataFailureCode =
+  | "COMPONENT_CENSUS_INVALID"
+  | "COMPONENT_IDENTITY_INVALID"
+  | "COMPONENT_PATH_UNSUPPORTED"
+  | "COMPONENT_MEASURES_UNAVAILABLE"
+  | "COMPONENT_METRIC_INVALID"
+  | "CSS_COVERAGE_UNSUPPORTED"
+  | "COVERAGE_CENSUS_EMPTY"
+  | "SOURCE_IDENTITY_UNAVAILABLE"
+  | "SOURCE_REQUEST_FAILED"
+  | "SOURCE_COVERAGE_INVALID"
+  | "SOURCE_PAGINATION_INVALID";
+class MetadataPreconditionError extends Error {
+  readonly diagnostic: {
+    phase: "components" | "sources";
+    code: MetadataFailureCode;
+    componentPathSha256?: string;
+  };
+  constructor(
+    phase: "components" | "sources",
+    code: MetadataFailureCode,
+    message: string,
+    path?: string,
+  ) {
+    super(message);
+    this.diagnostic = {
+      phase,
+      code,
+      ...(path === undefined ? {} : { componentPathSha256: sha256(path) }),
+    };
+  }
+}
+export function adapterDiagnostic(error: unknown, phase: AdapterPhase) {
+  if (error instanceof MetadataPreconditionError) return error.diagnostic;
+  return {
+    phase,
+    code:
+      error instanceof OriginalProvenanceUnavailable
+        ? "ORIGINAL_PROVENANCE_UNAVAILABLE"
+        : "EXECUTION_OR_UNCLASSIFIED",
+  };
+}
 const record = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 const sourcePath = (path: string) =>
   /^src\/(?!test\/)[A-Za-z0-9_./-]+\.(ts|tsx|js|jsx)$/.test(path) && !path.includes("..");
+const cssPath = (path: string) =>
+  /^src\/(?!test\/)[A-Za-z0-9_./-]+\.css$/.test(path) && !path.includes("..");
 const metricNames = [
   "new_lines_to_cover",
   "new_uncovered_lines",
@@ -89,7 +152,7 @@ export function readMainScannerOrigin(lcovPath: string, provenancePath: string) 
 
 // Hash immutable Git bytes locally; never persist source or highlighted API code.
 export function gitSource(revision: string, path: string, cwd = process.cwd()) {
-  if (!/^[a-f0-9]{40}$/.test(revision) || !sourcePath(path))
+  if (!/^[a-f0-9]{40}$/.test(revision) || (!sourcePath(path) && !cssPath(path)))
     throw new Error("source Git identity unavailable");
   const bytes = execFileSync("git", ["show", `${revision}:${path}`], {
     cwd,
@@ -105,7 +168,24 @@ export async function collectMetadata(
   get: ReturnType<typeof apiReader>,
   project: string,
   source: (path: string) => { hash: string; lines: number },
+  census: ComponentCensus = {
+    expectedFiles: null,
+    discoveredFiles: [],
+    coverageFiles: [],
+    excludedFiles: [],
+  },
 ): Promise<FileMetadata[]> {
+  if (
+    census.expectedFiles !== null ||
+    census.discoveredFiles.length ||
+    census.coverageFiles.length ||
+    census.excludedFiles.length
+  )
+    throw new MetadataPreconditionError(
+      "components",
+      "COMPONENT_CENSUS_INVALID",
+      "component census must belong to a fresh discovery",
+    );
   const files: { key: string; path: string; metrics: Record<string, number | null> }[] = [];
   const keys = new Set<string>(),
     paths = new Set<string>();
@@ -130,25 +210,52 @@ export async function collectMetadata(
       tree.components.length === 0 ||
       tree.components.length > 500
     )
-      throw new Error("component discovery is empty, changed or incomplete");
+      throw new MetadataPreconditionError(
+        "components",
+        "COMPONENT_CENSUS_INVALID",
+        "component discovery is empty, changed or incomplete",
+      );
     total = pageTotal;
+    census.expectedFiles = total;
     for (const file of tree.components) {
       if (
         !record(file) ||
         typeof file.key !== "string" ||
+        !file.key ||
         typeof file.path !== "string" ||
-        !sourcePath(file.path) ||
         keys.has(file.key) ||
-        paths.has(file.path) ||
-        !Array.isArray(file.measures)
+        paths.has(file.path)
       )
-        throw new Error("component identity is unsupported or duplicated");
+        throw new MetadataPreconditionError(
+          "components",
+          "COMPONENT_IDENTITY_INVALID",
+          "component identity is unsupported or duplicated",
+          record(file) && typeof file.path === "string" ? file.path : undefined,
+        );
+      if (!sourcePath(file.path) && !cssPath(file.path))
+        throw new MetadataPreconditionError(
+          "components",
+          "COMPONENT_PATH_UNSUPPORTED",
+          "component path is outside the supported coverage census",
+          file.path,
+        );
+      if (!Array.isArray(file.measures))
+        throw new MetadataPreconditionError(
+          "components",
+          "COMPONENT_MEASURES_UNAVAILABLE",
+          "component measures are unavailable",
+          file.path,
+        );
       keys.add(file.key);
       paths.add(file.path);
-      const measures = file.measures;
+      census.discoveredFiles.push(file.path);
+      const path = file.path,
+        measures = file.measures;
       const metrics = Object.fromEntries(
         metricNames.map((name) => {
-          const m = measures.find((m: unknown) => record(m) && m.metric === name);
+          const matches = measures.filter((m: unknown) => record(m) && m.metric === name);
+          if (matches.length === 0) return [name, null];
+          const m = matches[0];
           const period =
             record(m) && record(m.period)
               ? m.period
@@ -156,24 +263,78 @@ export async function collectMetadata(
                 ? m.periods.find((p) => record(p) && p.index === 1)
                 : null;
           const raw = record(m) ? (m.value ?? (record(period) ? period.value : null)) : null;
-          return [name, typeof raw === "string" && /^\d+$/.test(raw) ? Number(raw) : null];
+          if (
+            matches.length !== 1 ||
+            typeof raw !== "string" ||
+            !/^\d+$/.test(raw) ||
+            !Number.isSafeInteger(Number(raw))
+          )
+            throw new MetadataPreconditionError(
+              "components",
+              "COMPONENT_METRIC_INVALID",
+              "component coverage metric is invalid or duplicated",
+              path,
+            );
+          return [name, Number(raw)];
         }),
       );
+      if (cssPath(file.path)) {
+        if (Object.values(metrics).some((value) => value !== null && value !== 0))
+          throw new MetadataPreconditionError(
+            "components",
+            "CSS_COVERAGE_UNSUPPORTED",
+            "CSS declares coverage units outside the JS/TS LCOV contract",
+            file.path,
+          );
+        census.excludedFiles.push({
+          path: file.path,
+          reason: "CSS_OUTSIDE_JS_TS_COVERAGE",
+          sourceSha256: null,
+        });
+        continue;
+      }
       files.push({ key: file.key, path: file.path, metrics });
+      census.coverageFiles.push(file.path);
     }
-    if (files.length === total) break;
-    if (files.length > total! || page === 100)
-      throw new Error("component census differs from total");
+    // Count every validated component, including CSS; the LCOV subset is not the API census.
+    if (paths.size === total) break;
+    if (paths.size > total! || page === 100)
+      throw new MetadataPreconditionError(
+        "components",
+        "COMPONENT_CENSUS_INVALID",
+        "component census differs from total",
+      );
   }
+  if (files.length === 0)
+    throw new MetadataPreconditionError(
+      "components",
+      "COVERAGE_CENSUS_EMPTY",
+      "authenticated JS/TS coverage discovery is empty",
+    );
+  const immutableSource = (path: string) => {
+    try {
+      const identity = source(path);
+      if (
+        !/^[a-f0-9]{64}$/.test(identity.hash) ||
+        !Number.isSafeInteger(identity.lines) ||
+        identity.lines < 1
+      )
+        throw new Error("invalid immutable source identity");
+      return identity;
+    } catch {
+      throw new MetadataPreconditionError(
+        "sources",
+        "SOURCE_IDENTITY_UNAVAILABLE",
+        "immutable source line count unavailable",
+        path,
+      );
+    }
+  };
+  for (const excluded of census.excludedFiles)
+    excluded.sourceSha256 = immutableSource(excluded.path).hash;
   const result: FileMetadata[] = [];
   for (const file of files) {
-    const identity = source(file.path);
-    if (
-      !/^[a-f0-9]{64}$/.test(identity.hash) ||
-      !Number.isInteger(identity.lines) ||
-      identity.lines < 1
-    )
-      throw new Error("immutable source line count unavailable");
+    const identity = immutableSource(file.path);
     const rows: FileMetadata["rows"] = [];
     for (let from = 1; from <= identity.lines; from += 500) {
       const to = Math.min(from + 499, identity.lines);
@@ -183,12 +344,38 @@ export async function collectMetadata(
         from: String(from),
         to: String(to),
       });
-      const page = coverageMetadata(await get("sonar", `sources/lines?${params}`));
+      let response;
+      try {
+        response = await get("sonar", `sources/lines?${params}`);
+      } catch {
+        throw new MetadataPreconditionError(
+          "sources",
+          "SOURCE_REQUEST_FAILED",
+          "authenticated source metadata request failed",
+          file.path,
+        );
+      }
+      let page;
+      try {
+        page = coverageMetadata(response);
+      } catch {
+        throw new MetadataPreconditionError(
+          "sources",
+          "SOURCE_COVERAGE_INVALID",
+          "authenticated source metadata is invalid",
+          file.path,
+        );
+      }
       if (
         page.rows.length !== to - from + 1 ||
         page.rows.some((row, index) => row.line !== from + index)
       )
-        throw new Error("source pagination is truncated, overlapping or unordered");
+        throw new MetadataPreconditionError(
+          "sources",
+          "SOURCE_PAGINATION_INVALID",
+          "source pagination is truncated, overlapping or unordered",
+          file.path,
+        );
       rows.push(...page.rows);
     }
     result.push({ ...file, rows });
@@ -324,11 +511,19 @@ async function main() {
   const root = process.env.RUNNER_TEMP ?? ".";
   const reportPath = resolve(root, "c28-main-unit-adapter.json");
   const requests: RequestObservation[] = [];
+  const componentCensus: ComponentCensus = {
+    expectedFiles: null,
+    discoveredFiles: [],
+    coverageFiles: [],
+    excludedFiles: [],
+  };
   let baseline: Record<string, unknown> | null = null;
+  let phase: AdapterPhase = "preconditions";
   try {
     const paths = [process.env.SONAR_MAIN_LCOV, process.env.SONAR_MAIN_LCOV_PROVENANCE];
     if (paths.some((path) => !path) || !process.env.SONAR_TOKEN || !process.env.GITHUB_TOKEN)
       throw new Error("original main LCOV/provenance or credential names unavailable");
+    phase = "baseline";
     baseline = JSON.parse(readFileSync(resolve(root, "c24-main-baseline.json"), "utf8"));
     if (
       baseline?.schema !== "main-baseline/2" ||
@@ -340,6 +535,7 @@ async function main() {
       throw new Error("authoritative baseline identity unavailable");
     authoritativeUnits(baseline.metrics as Record<string, number | null>);
     const measured = baseline;
+    phase = "origin";
     const { lcov, origin } = readMainScannerOrigin(paths[0]!, paths[1]!);
     const get = apiReader(
       { sonar: process.env.SONAR_TOKEN, github: process.env.GITHUB_TOKEN },
@@ -358,9 +554,17 @@ async function main() {
       )
         throw new Error("main changed during authenticated unit discovery");
     };
+    phase = "identity";
     await assertIdentity();
     const source = (path: string) => gitSource(measured.mainSha as string, path);
-    const files = await collectMetadata(get, "Douglas0101_preco-que-da-lucro", source);
+    phase = "components";
+    const files = await collectMetadata(
+      get,
+      "Douglas0101_preco-que-da-lucro",
+      source,
+      componentCensus,
+    );
+    phase = "mapping";
     const snapshot = mapMainUnits(
       baseline as unknown as Parameters<typeof mapMainUnits>[0],
       origin,
@@ -368,7 +572,9 @@ async function main() {
       files,
       source,
     );
+    phase = "identity";
     await assertIdentity();
+    phase = "persist";
     const snapshotPath = resolve(root, "c28-main-unit-snapshot.json"),
       bytes = JSON.stringify(snapshot, null, 2) + "\n";
     writeFileSync(snapshotPath, bytes);
@@ -383,6 +589,7 @@ async function main() {
           total: snapshot.total,
           metadataDigest: snapshot.metadataDigest,
           snapshotSha256: sha256(bytes),
+          componentCensus,
           requests,
         },
         null,
@@ -392,6 +599,8 @@ async function main() {
     if (process.env.GITHUB_OUTPUT)
       appendFileSync(process.env.GITHUB_OUTPUT, `snapshot_sha256=${sha256(bytes)}\n`);
   } catch (error) {
+    const diagnostic = adapterDiagnostic(error, phase);
+    console.error(`Main unit adapter NO-VERDICT: ${JSON.stringify(diagnostic)}`);
     writeFileSync(
       reportPath,
       JSON.stringify(
@@ -406,6 +615,8 @@ async function main() {
           analysisId: baseline?.analysisId ?? null,
           reason:
             "Complete authenticated metadata and original scanner LCOV provenance are required; no aggregate fallback.",
+          diagnostic,
+          componentCensus,
           requiredNames: [
             "SONAR_MAIN_LCOV",
             "SONAR_MAIN_LCOV_PROVENANCE",
