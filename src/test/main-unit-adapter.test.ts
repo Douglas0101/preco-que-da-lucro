@@ -198,6 +198,57 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       diagnostic: { phase: "mapping", code: "MAPPING_PROVIDER_LINE_DISAGREES" },
     });
   });
+  it("keeps the DA value when the same line also has a covered branch", () => {
+    // Medido no provedor (run 38002724052, dashboard.service.ts:174): DA:174,0 com
+    // 1 branch coberta de 4 blocos — o provedor declarou a linha NÃO coberta. O valor
+    // do DA existente prevalece; a contribuição de branch é fallback só sem DA
+    // (conditions_on_non_executable_lines) e o fallback sem DA foi confirmado no
+    // próprio main (audit.repository.ts 28-30).
+    const metrics = {
+        new_lines_to_cover: 2,
+        new_uncovered_lines: 1,
+        new_conditions_to_cover: 2,
+        new_uncovered_conditions: 1,
+        new_coverage: 50,
+      },
+      period = { mode: "days", date: "2026-09-06T04:15:08+0000", parameter: "30" },
+      text = `TN:\nSF:${file}\nDA:1,1\nDA:2,0\nBRDA:2,0,0,0\nBRDA:2,0,1,10\nend_of_record\n`,
+      withDa = {
+        mainSha: revision,
+        analysisId: "main-analysis",
+        observedAt: now,
+        period,
+        metrics,
+      },
+      originWith = scannerProvenance(
+        revision,
+        text,
+        gate("main"),
+        "Sensor JavaScript/TypeScript Coverage",
+        instrumentation,
+        () => source,
+        withDa,
+      ),
+      entry = [
+        {
+          path: file,
+          key: `project:${file}`,
+          metrics,
+          rows: coverageMetadata({
+            sources: [
+              { line: 1, isNew: true, lineHits: 1 },
+              { line: 2, isNew: true, lineHits: 0, conditions: 2, coveredConditions: 1 },
+            ],
+          }).rows,
+        },
+      ];
+    const snapshot = mapMainUnits(withDa, originWith, text, entry, () => ({ hash: source }));
+    expect(snapshot.total).toBe(4);
+    expect(snapshot.covered).toBe(2);
+    expect(snapshot.units.filter((unit) => unit.line === 2 && !unit.branch)).toEqual([
+      { file, line: 2, covered: false },
+    ]);
+  });
   it("completes the immutable hash from Git for census files the coverage run never loaded", () => {
     // Medido no LCOV original de main (run 37817760211): 179 SF, dos quais só 111
     // são arquivos do censo — 33 dos 144 nunca foram importados por teste e portanto

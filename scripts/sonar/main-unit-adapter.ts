@@ -511,12 +511,18 @@ export function mapMainUnits(
       const coveredBranches = branches.filter(([, hits]) => hits === true).length;
       const lineHits = row.lineHits ?? row.utLineHits;
       if (lineHits !== null) {
-        // Regra oficial do importador LCOV do JS/TS: LCOVParser.FileData.save grava
-        // toda linha DA com o seu contador e toda linha com BRDA (conditions > 0) com
-        // DA + branches cobertas — a condição coberta conta como hit da linha. O LCOV,
-        // portanto, declara a linha coberta quando DA > 0 OU há condição coberta nela;
-        // medido no arquivo real audit.repository.ts (linhas 28-30, só BRDA, BRH 6/6).
-        if ((original.get(lineId) === true || coveredBranches > 0) !== lineHits > 0)
+        // Regra medida no provedor, em três evidências oficiais/reais:
+        // (1) LCOVParser.FileData.save grava as linhas DA e depois as linhas com BRDA
+        //     como DA + branches cobertas; (2) o teste oficial
+        //     conditions_on_non_executable_lines confirma o fallback de branch em
+        //     linha só-BRDA (audit.repository.ts 28-30, BRH 6/6, passa no provedor);
+        // (3) medição remota em dashboard.service.ts:174 (DA:174,0 com 1 branch
+        //     coberta de 4): o provedor declara a linha NÃO coberta — o valor do DA
+        //     existente prevalece e a contribuição de branch só vale como fallback.
+        const lineCovered = original.has(lineId)
+          ? original.get(lineId) === true
+          : coveredBranches > 0;
+        if (lineCovered !== lineHits > 0)
           throw new MetadataPreconditionError(
             "mapping",
             "MAPPING_PROVIDER_LINE_DISAGREES",
