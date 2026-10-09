@@ -1,8 +1,8 @@
 # Cadeia completa do gate local (`npm run check`), 2026-10-09.
-# Fonte: captures/gate-check-full.log (saída integral, sem truncamento).
+# Fonte: captures/gate-check-full.log.txt (saída integral, sem truncamento).
 # Rodada autoritativa: inclui o pacote de evidencia e as correcoes de codigo.
 
-CHECK_EXIT=0
+CHECK_EXIT=0 (rodada final, com os 3 commits locais no HEAD)
 
 ## Veridito por passo (21 passos, na ordem da cadeia)
      1	> check

@@ -1,5 +1,5 @@
 # Cadeia `npm run db:test` contra container PG17 efemero, 2026-10-09.
-# Fonte: captures/db-test-full.log (saida integral).
+# Fonte: captures/db-test-full.log.txt (saida integral).
 
 DB_TEST_EXIT=0
 DATABASE_URL / DATABASE_ADMIN_URL = 127.0.0.1:5432/preco_que_da_lucro_test (loopback, descartavel)

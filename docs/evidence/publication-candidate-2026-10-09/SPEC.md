@@ -135,8 +135,8 @@ Criado, e somente isto:
 | 1   | SHA mínimo com todas as correções identificado e justificado                        | `captures/git-state.txt`                                       |
 | 2   | Piso de segurança verificado em spec, lockfile e `node_modules`, sem cópia aninhada | `captures/version-inventory.txt`                               |
 | 3   | Advisory primário conferido (faixa afetada × patched)                               | `README.md` §E                                                 |
-| 4   | Cadeia `npm run check` verde, integral versionada                                   | `captures/gate-check-summary.txt`, `gate-check-full.log`       |
-| 5   | Cadeia `npm run db:test` (18 suítes) verde contra container PG17 efêmero            | `captures/db-test-summary.txt`, `db-test-full.log`             |
+| 4   | Cadeia `npm run check` verde, integral versionada                                   | `captures/gate-check-summary.txt`, `gate-check-full.log.txt`   |
+| 5   | Cadeia `npm run db:test` (18 suítes) verde contra container PG17 efêmero            | `captures/db-test-summary.txt`, `db-test-full.log.txt`         |
 | 6   | `SELECT 1` real pelo caminho da aplicação contra banco isolado                      | `captures/db-connectivity-probe.txt`                           |
 | 7   | Classificador discrimina cinco formas de falha sem vazar credencial                 | `captures/db-connectivity-probe.txt`                           |
 | 8   | Controle negativo do classificador: GREEN → RED → RESTORED                          | `captures/negative-control.txt`, `probes/negative-control.mjs` |
