@@ -139,6 +139,65 @@ describe("complete unit adapter, original scanner provenance and conservative CL
     }
     expect(() => classifyMirrorObservation("mirror", null, 0)).toThrow();
   });
+  it("treats a BRDA-only line as covered exactly like the official LCOV importer", () => {
+    // LCOVParser.FileData.save (SonarJS): toda linha DA entra com o contador e toda
+    // linha com BRDA entra com DA + branches cobertas — a condição coberta conta como
+    // hit da linha. Medido no arquivo real audit.repository.ts: BRDA:28-30, BRH 6/6,
+    // sem DA, com o provedor declarando a linha coberta.
+    const metrics = {
+        new_lines_to_cover: 3,
+        new_uncovered_lines: 0,
+        new_conditions_to_cover: 2,
+        new_uncovered_conditions: 0,
+        new_coverage: 100,
+      },
+      period = { mode: "days", date: "2026-09-06T04:15:08+0000", parameter: "30" },
+      text = `TN:\nSF:${file}\nDA:1,1\nDA:2,1\nBRDA:3,0,0,1\nBRDA:3,0,1,1\nend_of_record\n`,
+      withBranches = {
+        mainSha: revision,
+        analysisId: "main-analysis",
+        observedAt: now,
+        period,
+        metrics,
+      },
+      originWith = scannerProvenance(
+        revision,
+        text,
+        gate("main"),
+        "Sensor JavaScript/TypeScript Coverage",
+        instrumentation,
+        () => source,
+        withBranches,
+      ),
+      rows = (extra: boolean) =>
+        coverageMetadata({
+          sources: [
+            { line: 1, isNew: true, lineHits: 1 },
+            { line: 2, isNew: true, lineHits: 1 },
+            { line: 3, isNew: true, lineHits: 2, conditions: 2, coveredConditions: 2 },
+            ...(extra ? [{ line: 4, isNew: true, lineHits: 1 }] : []),
+          ],
+        }).rows,
+      entry = (extra: boolean) => [
+        { path: file, key: `project:${file}`, metrics, rows: rows(extra) },
+      ];
+    const snapshot = mapMainUnits(withBranches, originWith, text, entry(false), () => ({
+      hash: source,
+    }));
+    expect(snapshot.total).toBe(5);
+    expect(snapshot.covered).toBe(5);
+    expect(snapshot.units.filter((unit) => unit.line === 3)).toHaveLength(3);
+    // Linha declarada coberta pelo provedor sem NENHUMA identidade no LCOV segue recusada.
+    let refusal: unknown;
+    try {
+      mapMainUnits(withBranches, originWith, text, entry(true), () => ({ hash: source }));
+    } catch (error) {
+      refusal = error;
+    }
+    expect(refusal).toMatchObject({
+      diagnostic: { phase: "mapping", code: "MAPPING_PROVIDER_LINE_DISAGREES" },
+    });
+  });
   it("completes the immutable hash from Git for census files the coverage run never loaded", () => {
     // Medido no LCOV original de main (run 37817760211): 179 SF, dos quais só 111
     // são arquivos do censo — 33 dos 144 nunca foram importados por teste e portanto

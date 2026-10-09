@@ -496,13 +496,17 @@ export function mapMainUnits(
             file.path,
           );
       const lineId = `${file.path}:${row.line}:line`;
+      const prefix = `${file.path}:${row.line}:`;
+      const branches = [...original].filter(([id]) => id.startsWith(prefix) && id !== lineId);
+      const coveredBranches = branches.filter(([, hits]) => hits === true).length;
       const lineHits = row.lineHits ?? row.utLineHits;
       if (lineHits !== null) {
-        // Medido no lcov real (auth-policy.ts 116/117/192): o v8 emite BRDA sem DA para
-        // linhas que o Sonar conta como executáveis. Ausência de DA só equivale a não
-        // coberto quando o provedor também declara a linha não coberta; linha declarada
-        // coberta com DA ausente segue reprovando.
-        if ((original.get(lineId) ?? false) !== lineHits > 0)
+        // Regra oficial do importador LCOV do JS/TS: LCOVParser.FileData.save grava
+        // toda linha DA com o seu contador e toda linha com BRDA (conditions > 0) com
+        // DA + branches cobertas — a condição coberta conta como hit da linha. O LCOV,
+        // portanto, declara a linha coberta quando DA > 0 OU há condição coberta nela;
+        // medido no arquivo real audit.repository.ts (linhas 28-30, só BRDA, BRH 6/6).
+        if ((original.get(lineId) === true || coveredBranches > 0) !== lineHits > 0)
           throw new MetadataPreconditionError(
             "mapping",
             "MAPPING_PROVIDER_LINE_DISAGREES",
@@ -517,8 +521,6 @@ export function mapMainUnits(
           "provider line coverage absent",
           file.path,
         );
-      const prefix = `${file.path}:${row.line}:`;
-      const branches = [...original].filter(([id]) => id.startsWith(prefix) && id !== lineId);
       const count = row.conditions ?? row.utConditions,
         covered = row.coveredConditions ?? row.utCoveredConditions;
       if (branches.length) {
