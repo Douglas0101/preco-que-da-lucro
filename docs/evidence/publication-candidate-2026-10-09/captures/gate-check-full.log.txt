@@ -10,7 +10,7 @@
   "schema": "m02-lockfile-guard/1",
   "ok": true,
   "status": "pass",
-  "generatedAt": "2026-10-09T05:42:44.034Z",
+  "generatedAt": "2026-10-09T05:54:16.619Z",
   "repo": "/home/douglas-souza/preco-que-d-main",
   "observed": {
     "policyRange": {
@@ -69,7 +69,7 @@
   "schema": "upgrade-guard/1",
   "ok": true,
   "status": "pass",
-  "generatedAt": "2026-10-09T05:42:44.469Z",
+  "generatedAt": "2026-10-09T05:54:17.008Z",
   "repo": "/home/douglas-souza/preco-que-d-main",
   "observed": {
     "policySchema": "dependency-policy/1",
@@ -480,7 +480,7 @@
   "schema": "migration-toolchain-guard/1",
   "ok": true,
   "status": "pass",
-  "generatedAt": "2026-10-09T05:42:45.027Z",
+  "generatedAt": "2026-10-09T05:54:17.477Z",
   "repo": "/home/douglas-souza/preco-que-d-main",
   "observed": {
     "repo": "/home/douglas-souza/preco-que-d-main",
@@ -552,7 +552,7 @@
   "schema": "contract-guard/1",
   "ok": true,
   "status": "pass",
-  "generatedAt": "2026-10-09T05:42:45.457Z",
+  "generatedAt": "2026-10-09T05:54:17.917Z",
   "repo": "/home/douglas-souza/preco-que-d-main",
   "observed": {
     "repo": "/home/douglas-souza/preco-que-d-main",
@@ -660,7 +660,7 @@ m02-temporal-guard: OK (3 superficies vivas, 0 violacao)
 > m02:state:check
 > tsx scripts/m02-state-check.ts
 
-M-02 ancestral state marker is valid for HEAD 746c931c4b738721e5e2e1376ec9304a9e95ab24 (folga 9/13 commits).
+M-02 ancestral state marker is valid for HEAD bfc942994e0d25011dde55aba03b1fb9a37d839f (folga 10/13 commits).
 Worktree: dirty (preservado e auditável).
 External state: not inspected by this local check.
 
@@ -675,8 +675,8 @@ M-02 BFF boundary is clean: all database reachability is allowlisted or reposito
 {
   "check": "m02:secrets-audit",
   "read_only": true,
-  "started_at": "2026-10-09T05:42:46.992Z",
-  "finished_at": "2026-10-09T05:42:50.456Z",
+  "started_at": "2026-10-09T05:54:19.536Z",
+  "finished_at": "2026-10-09T05:54:23.311Z",
   "result": "COMPLETE_WITH_LIMITS",
   "limits": "Lexical consumer map; does not prove credential liveness or absence of manual/external consumers. Never authorizes revocation. Env values are discarded; CI metadata contains names only. Evidence, private/vendor directories, tests and symlinks are excluded.",
   "coverage": {
@@ -13935,7 +13935,7 @@ M-02 BFF boundary is clean: all database reachability is allowlisted or reposito
         "reason": "evidence-auditor-or-test-not-consumer"
       },
       {
-        "path": "docs/evidence/publication-candidate-2026-10-09/captures/db-test-full.log",
+        "path": "docs/evidence/publication-candidate-2026-10-09/captures/db-test-full.log.txt",
         "reason": "evidence-auditor-or-test-not-consumer"
       },
       {
@@ -13943,7 +13943,7 @@ M-02 BFF boundary is clean: all database reachability is allowlisted or reposito
         "reason": "evidence-auditor-or-test-not-consumer"
       },
       {
-        "path": "docs/evidence/publication-candidate-2026-10-09/captures/gate-check-full.log",
+        "path": "docs/evidence/publication-candidate-2026-10-09/captures/gate-check-full.log.txt",
         "reason": "evidence-auditor-or-test-not-consumer"
       },
       {
@@ -19500,8 +19500,8 @@ All matched files use Prettier code style!
 
  Test Files  141 passed | 1 skipped (142)
       Tests  2136 passed | 18 skipped (2154)
-   Start at  02:44:18
-   Duration  237.72s (transform 4.48s, setup 16.21s, import 46.90s, tests 46.38s, environment 104.71s)
+   Start at  02:55:52
+   Duration  235.85s (transform 4.24s, setup 16.30s, import 46.87s, tests 45.98s, environment 103.64s)
 
 
 > build
@@ -19561,7 +19561,7 @@ computing gzip size...
 .output/public/assets/tanstack-vendor-B0dT_-Hx.js   159.80 kB │ gzip: 51.91 kB
 .output/public/assets/index-DRI3LDON.js             249.79 kB │ gzip: 78.08 kB
 
-✓ built in 2.71s
+✓ built in 2.90s
 vite v8.2.2 building ssr environment for production...
 transforming...
 ✓ 286 modules transformed.
@@ -19628,7 +19628,7 @@ node_modules/.nitro/vite/services/ssr/assets/chat.functions-BCrHPF1t.js         
 node_modules/.nitro/vite/services/ssr/assets/server-OLDy7Mxa.js                         82.40 kB │ gzip: 21.80 kB
 node_modules/.nitro/vite/services/ssr/assets/auth.server-CHjqY2dA.js                   376.22 kB │ gzip: 91.16 kB
 
-✓ built in 1.97s
+✓ built in 1.74s
 
 [nitro] ◐ Building [Nitro] (preset: node-server, compatibility: 2026-10-04)
 [nitro] ✔ Generated public .output/public
@@ -19729,7 +19729,7 @@ computing gzip size...
 .output/server/_libs/@tanstack/react-router+[...].mjs          751.61 kB │ gzip: 158.16 kB
 .output/server/_libs/@better-auth/core+[...].mjs               851.03 kB │ gzip: 169.62 kB
 
-✓ built in 1.10s
+✓ built in 1.05s
 ℹ Generated .output/nitro.json
 
 [nitro] ✔ You can preview this build using npx vite preview

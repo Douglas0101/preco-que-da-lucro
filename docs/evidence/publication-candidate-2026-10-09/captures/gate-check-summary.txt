@@ -39,3 +39,5 @@ PASS assets/index-DRI3LDON.js: 249790 minified, 77208 gzip, 67166 Brotli bytes, 
 
 ## Observacoes de saida nao-fatais
 DeprecationWarning: 0
+ Test Files  141 passed | 1 skipped (142)
+      Tests  2136 passed | 18 skipped (2154)
