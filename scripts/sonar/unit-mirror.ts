@@ -133,7 +133,7 @@ export function mirror(
   let baselineCovered = 0;
   for (const unit of snapshot.units) {
     if (
-      !/^src\/(?!test\/)[A-Za-z0-9_./-]+\.(?:ts|tsx|js|jsx)$/.test(unit.file) ||
+      !new RegExp("^src/(?!test/)[A-Za-z0-9_$./-]+\\.(?:ts|tsx|js|jsx)$").test(unit.file) ||
       unit.file.includes("..") ||
       !Number.isInteger(unit.line) ||
       unit.line < 1 ||

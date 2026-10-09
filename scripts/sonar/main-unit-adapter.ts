@@ -98,10 +98,16 @@ export function adapterDiagnostic(error: unknown, phase: AdapterPhase) {
 }
 const record = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
+// Alfabeto medido no censo real: `src` exponha apenas ts/tsx/css/md, e o router
+// do Start nomeia a rota splat `src/routes/api/auth/$.ts` — sem `$` no charset,
+// um arquivo JS/TS legitimo era recusado como "tipo nao registrado" (run
+// 37981439098: COMPONENT_PATH_UNSUPPORTED com o digest deste mesmo caminho).
+// `..` continua recusado em todos os predicados.
+const pathName = "[A-Za-z0-9_$./-]+";
 const sourcePath = (path: string) =>
-  /^src\/(?!test\/)[A-Za-z0-9_./-]+\.(ts|tsx|js|jsx)$/.test(path) && !path.includes("..");
+  new RegExp(`^src/(?!test/)${pathName}\\.(ts|tsx|js|jsx)$`).test(path) && !path.includes("..");
 const cssPath = (path: string) =>
-  /^src\/(?!test\/)[A-Za-z0-9_./-]+\.css$/.test(path) && !path.includes("..");
+  new RegExp(`^src/(?!test/)${pathName}\\.css$`).test(path) && !path.includes("..");
 const metricNames = [
   "new_lines_to_cover",
   "new_uncovered_lines",

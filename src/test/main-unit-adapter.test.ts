@@ -388,6 +388,82 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       expect(snapshot.discoveredFiles).toEqual([file]);
     },
   );
+  it.each([false, true])(
+    "accepts the real splat route name as JS/TS coverage and keeps it eligible (paginated=%s)",
+    async (paginated) => {
+      // Run 37981439098 recusou exatamente este caminho: `$` não estava no
+      // charset do censo, e a rota splat do router é arquivo JS/TS legitimio.
+      const css = "src/styles.css",
+        cssHash = "d".repeat(64),
+        splat = "src/routes/api/auth/$.ts",
+        splatLcov = lcov().replaceAll(file, splat),
+        splatRows = metadata().map((entry) => ({
+          ...entry,
+          path: splat,
+          key: `project:${splat}`,
+        })),
+        components = [
+          { key: `project:${css}`, path: css, measures: [] },
+          {
+            key: `project:${splat}`,
+            path: splat,
+            measures: Object.entries(baseline.metrics)
+              .filter(([metric]) => metric !== "new_coverage")
+              .map(([metric, value]) => ({ metric, period: { index: 1, value: String(value) } })),
+          },
+        ],
+        census = { expectedFiles: null, discoveredFiles: [], coverageFiles: [], excludedFiles: [] },
+        checked: string[] = [];
+      const get = (async (_origin: string, endpoint: string) => {
+        if (endpoint.startsWith("measures/")) {
+          const page = Number(new URLSearchParams(endpoint.split("?")[1]).get("p"));
+          return {
+            paging: { total: components.length },
+            components: paginated ? components.slice(page - 1, page) : components,
+          };
+        }
+        expect(new URLSearchParams(endpoint.split("?")[1]).get("key")).toBe(`project:${splat}`);
+        return {
+          sources: splatRows[0].rows.map((row) =>
+            Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null)),
+          ),
+        };
+      }) as ReturnType<typeof apiReader>;
+      const files = await collectMetadata(
+        get,
+        "project",
+        (path) => {
+          checked.push(path);
+          return { hash: path === css ? cssHash : source, lines: path === css ? 1 : 6 };
+        },
+        census,
+      );
+      expect(files.map((entry) => entry.path)).toEqual([splat]);
+      expect(census).toEqual({
+        expectedFiles: 2,
+        discoveredFiles: [css, splat],
+        coverageFiles: [splat],
+        excludedFiles: [{ path: css, reason: "CSS_OUTSIDE_JS_TS_COVERAGE", sourceSha256: cssHash }],
+      });
+      expect([...checked].sort()).toEqual([css, splat].sort());
+      const snapshot = mapMainUnits(baseline, origin(splatLcov), splatLcov, files, () => ({
+        hash: source,
+      }));
+      expect(snapshot.units).toHaveLength(5);
+      expect(snapshot.units.every((unit) => unit.file === splat)).toBe(true);
+      expect(snapshot.covered).toBe(3);
+      // O espelho de unidades precisa aceitar o mesmo caminho sem recusar.
+      expect(
+        mirror(snapshot, splatLcov, splatLcov, {
+          mainSha: revision,
+          analysisId: baseline.analysisId,
+          instrumentation,
+          sourceHashes: { [splat]: source },
+          now,
+        }),
+      ).toMatchObject({ total: 5, covered: 3, pass: false });
+    },
+  );
   it.each([file, "src/styles.css"])(
     "refuses missing measures without silently classifying %s outside coverage",
     async (path) => {
