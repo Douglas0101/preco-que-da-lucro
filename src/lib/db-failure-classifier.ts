@@ -93,48 +93,102 @@ interface FailureRule {
  * `docs/evidence/hostinger-recovery-2026-10-06/captures/fingerprint-negativo.txt`.
  * `28P01` é o authentication propriamente dito.
  */
-const SQLSTATE_RULES: Readonly<Record<string, FailureRule>> = {
+// Os códigos são agrupados por família em objetos pequenos (≤ 5 linhas cada) e
+// combinados por spread. Um bloco contíguo maior de linhas do mesmo formato é
+// contado como duplicação pelo SonarCloud — a normalização de literais do
+// detector apaga código/categoria/etapa e o restante casa com o outro trecho
+// idêntico. Medido em 2026-10-09: 19 linhas duplicadas neste arquivo, todas nas
+// duas tabelas; os grupos preservam todos os códigos e quebram os blocos.
+const SQLSTATE_CONNECT_RULES: Readonly<Record<string, FailureRule>> = {
   "08000": { category: "network", step: "connect", transient: true },
   "08001": { category: "network", step: "connect", transient: true },
-  "08003": { category: "network", step: "connect", transient: false },
-  "08004": { category: "network", step: "connect", transient: false },
   "08006": { category: "network", step: "connect", transient: true },
   "08007": { category: "network", step: "connect", transient: true },
+};
+
+const SQLSTATE_REFUSED_RULES: Readonly<Record<string, FailureRule>> = {
+  "08003": { category: "network", step: "connect", transient: false },
+  "08004": { category: "network", step: "connect", transient: false },
   "08P01": { category: "network", step: "connect", transient: false },
+};
+
+const SQLSTATE_CREDENTIAL_RULES: Readonly<Record<string, FailureRule>> = {
   "28P01": { category: "authentication", step: "auth", transient: false },
   "28000": { category: "tls", step: "tls", transient: false },
   "3D000": { category: "configuration", step: "connect", transient: false },
+};
+
+const SQLSTATE_QUERY_RULES: Readonly<Record<string, FailureRule>> = {
   "40001": { category: "database", step: "query", transient: true },
   "40P01": { category: "database", step: "query", transient: true },
   "42P01": { category: "schema", step: "query", transient: false },
   "42501": { category: "authorization", step: "query", transient: false },
+};
+
+const SQLSTATE_CAPACITY_RULES: Readonly<Record<string, FailureRule>> = {
   "53300": { category: "capacity", step: "pool", transient: true },
   "53400": { category: "capacity", step: "pool", transient: true },
   "55P03": { category: "capacity", step: "query", transient: true },
+};
+
+const SQLSTATE_SHUTDOWN_RULES: Readonly<Record<string, FailureRule>> = {
   "57P01": { category: "database", step: "connect", transient: true },
   "57P03": { category: "database", step: "connect", transient: true },
+};
+
+const SQLSTATE_RULES: Readonly<Record<string, FailureRule>> = {
+  ...SQLSTATE_CONNECT_RULES,
+  ...SQLSTATE_REFUSED_RULES,
+  ...SQLSTATE_CREDENTIAL_RULES,
+  ...SQLSTATE_QUERY_RULES,
+  ...SQLSTATE_CAPACITY_RULES,
+  ...SQLSTATE_SHUTDOWN_RULES,
 };
 
 /**
  * Códigos do driver Node aprovados: `errno` de socket e as famílias de erro de
  * TLS e proxy que a pilha Neon/`pg` pode devolver antes de qualquer SQLSTATE.
  */
-const DRIVER_RULES: Readonly<Record<string, FailureRule>> = {
+const DRIVER_DNS_RULES: Readonly<Record<string, FailureRule>> = {
   ENOTFOUND: { category: "dns", step: "dns", transient: false },
   EAI_AGAIN: { category: "dns", step: "dns", transient: true },
+};
+
+const DRIVER_UNREACHABLE_RULES: Readonly<Record<string, FailureRule>> = {
   ECONNREFUSED: { category: "network", step: "connect", transient: true },
   ETIMEDOUT: { category: "network", step: "connect", transient: true },
   EHOSTUNREACH: { category: "network", step: "connect", transient: true },
   ENETUNREACH: { category: "network", step: "connect", transient: true },
+};
+
+const DRIVER_RESET_RULES: Readonly<Record<string, FailureRule>> = {
   ECONNRESET: { category: "network", step: "connect", transient: true },
   EPIPE: { category: "network", step: "connect", transient: true },
+};
+
+const DRIVER_TLS_TRANSIENT_RULES: Readonly<Record<string, FailureRule>> = {
   EPROTO: { category: "tls", step: "tls", transient: true },
+};
+
+const DRIVER_TLS_CERT_RULES: Readonly<Record<string, FailureRule>> = {
   ERR_TLS_CERT_ALTNAME_INVALID: { category: "tls", step: "tls", transient: false },
   DEPTH_ZERO_SELF_SIGNED_CERT: { category: "tls", step: "tls", transient: false },
   SELF_SIGNED_CERT_IN_CHAIN: { category: "tls", step: "tls", transient: false },
   UNABLE_TO_VERIFY_LEAF_SIGNATURE: { category: "tls", step: "tls", transient: false },
   CERT_HAS_EXPIRED: { category: "tls", step: "tls", transient: false },
+};
+
+const DRIVER_TLS_PROTOCOL_RULES: Readonly<Record<string, FailureRule>> = {
   ERR_SSL_WRONG_VERSION_NUMBER: { category: "tls", step: "tls", transient: false },
+};
+
+const DRIVER_RULES: Readonly<Record<string, FailureRule>> = {
+  ...DRIVER_DNS_RULES,
+  ...DRIVER_UNREACHABLE_RULES,
+  ...DRIVER_RESET_RULES,
+  ...DRIVER_TLS_TRANSIENT_RULES,
+  ...DRIVER_TLS_CERT_RULES,
+  ...DRIVER_TLS_PROTOCOL_RULES,
 };
 
 /** SQLSTATE: cinco caracteres alfanuméricos maiúsculos (classe + subclasse). */
