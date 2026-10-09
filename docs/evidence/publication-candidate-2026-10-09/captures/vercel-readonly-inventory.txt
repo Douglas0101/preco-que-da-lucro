@@ -1,0 +1,67 @@
+# Inventario read-only da Vercel — 2026-10-09 (UTC)
+
+Fonte: chamadas MCP Vercel de **leitura** nesta sessão. Nenhuma mutação
+(deployment, alias, domínio, env, branch) foi executada. Nenhum valor de ambiente
+foi lido: as ferramentas que devolvem registros de env também devolvem valores
+descriptografados, e o contrato do repositório (`docs/runbooks/vercel-prod-env-admin.md`
+§1) proíbe lê-los — por isso elas **não** foram chamadas.
+
+Projeto: `prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q`
+Time: `team_2NnkSYjw5NRHAFnQFEPSHGmW`
+
+## 1. Identidade do alias público (vercel_get_alias)
+
+| campo            | valor                                        |
+| ---------------- | -------------------------------------------- |
+| alias            | `preco-que-da-lucro-sage.vercel.app`          |
+| deploymentId     | `dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL`            |
+| redirect         | `null`                                        |
+| deletedAt        | `null`                                        |
+| updatedAt        | `1791486033986` = 2026-10-08T19:00:33.986Z    |
+
+**VERIFIED:** o alias público continua apontando para o deployment de contenção
+`dpl_DHsbjECX...`, com `updatedAt` idêntico ao registrado no pacote do incidente
+(`docs/evidence/production-runtime-incident-2026-10-08/captures/vercel-alias-sage.json`).
+A contenção executada em 2026-10-08 continua em vigor em 2026-10-09.
+
+## 2. Inventário de deployments (vercel_list_deployments, os 12 mais recentes)
+
+| deployment id                        | sha                                                        | ref       | target     | state  |
+| ------------------------------------ | ---------------------------------------------------------- | --------- | ---------- | ------ |
+| `dpl_6h2LTZX57soGiPP2oTurws7NsgVd`   | `fa45632391ad9ffe1d20d3bad5264a53b565638e`                 | `main`    | production | READY  |
+| `dpl_DjYNWE33zo7J2RBAZ6AQiEpcLg2k`   | `ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff`                 | `develop` | preview    | READY  |
+| `dpl_CzhQ5BmcW1ZPadxH36TKhYy75iQd`   | `ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff`                 | `develop` | preview    | READY  |
+| `dpl_4vNYvd5xcXRBjVRyRcp9Fri7mhxz`   | `d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9`                 | `main`    | production | ERROR  |
+| `dpl_FjFGGUbzRcG8BLKL8ikSjo4Hcfv9`   | `38bd3764c344bdc37a1462430f172260920a247f`                 | `develop` | preview    | READY  |
+| `dpl_CJydCmNNQYFoXELpbQd9d2w5s8m8`   | `9dd39f430ff5d790877feeebb97a520ef84bcdd4`                 | `develop` | preview    | READY  |
+| `dpl_GmXYnU57eqH4USss2GqzKsqRJb4k`   | `ccc7178a286b6460a28767044415770a9a85a843`                 | `develop` | preview    | READY  |
+| `dpl_Q3f5ahDSDSPxX7Z66QxPmBqQDXyM`   | `a352a3a0e68a3d943ec00b9a66e83e42dd1544d5`                 | `develop` | preview    | READY  |
+| `dpl_GTRvpzz1K4jBnrMxD3iicPc5t8pM`   | `2184906d32dae3e64ca91bca0f396c46283c0d2a`                 | `develop` | preview    | READY  |
+| `dpl_7TiBAEp5nGGcPg3dM1zBVbWWBz2W`   | `8285312dda617b51788ef1c0b3c10965e917db95` (dependabot)    | dependabot| preview    | ERROR  |
+| `dpl_7C6Cxzehzk9UbXRuUPyWESe3kvxK`   | `24b8e42adad1d9da2232e009c5c6a158d70dd21f`                 | `develop` | preview    | READY  |
+| `dpl_5NK5LAeM8BdbNurUBLheZWSTTz7N`   | `5dc7a76d7cf6112e39df2d7a7b001d2e9aab943b`                 | `develop` | preview    | READY  |
+
+Fatos que este inventário estabelece:
+
+- **VERIFIED:** nenhum deployment existe para `852dcaf` (HEAD local de `develop`)
+  nem para `974581a` (`origin/develop`). O trabalho desta sessão **nunca foi
+  construído pela plataforma**.
+- **VERIFIED:** o deployment de produção do candidato `fa45632` (`dpl_6h2LTZ`)
+  existe e está `READY`, e **não** carrega o alias público — coerente com a
+  contenção de 2026-10-08.
+- **VERIFIED:** `dpl_4vNYvd5` permanece `ERROR`, a recusa do fornecedor para
+  reconstruir a revisão vulnerável.
+- **VERIFIED:** o deployment mais recente do projeto é `dpl_6h2LTZ` (criado
+  2026-10-08T17:45:32.774Z). Nada foi publicado desde então.
+
+## 3. O que não foi medido
+
+1. O valor de qualquer variável de ambiente (proibido pelo contrato).
+2. A configuracao `ssoProtection` / `passwordProtection` de hoje — a leitura de
+   projeto (`vercel_get_project`) não foi refeita nesta sessão; o valor medido em
+   2026-10-08 está em `docs/evidence/production-runtime-incident-2026-10-08/captures/vercel-project-settings.json`
+   (`ssoProtection.enabled=true`, `deploymentType="all_except_custom_domains"`).
+3. O comportamento de `/api/health/ready` em `dpl_6h2LTZ` hoje: o domínio
+   `*.vercel.app` está atrás de Vercel Authentication, e usar link de bypass de
+   autenticação não foi autorizado — está declarado como **BLOCKED**, não como
+   medido.

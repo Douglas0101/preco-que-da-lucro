@@ -1,0 +1,41 @@
+# Cadeia `npm run db:test` contra container PG17 efemero, 2026-10-09.
+# Fonte: captures/db-test-full.log (saida integral).
+
+DB_TEST_EXIT=0
+DATABASE_URL / DATABASE_ADMIN_URL = 127.0.0.1:5432/preco_que_da_lucro_test (loopback, descartavel)
+DATABASE_DRIVER = node-postgres
+
+## Veridito por suite (18 suites na ordem da cadeia)
+  1. check-migration-classes: EXECUTADA (cadeia alcancou o passo)
+  2. test-migrations: EXECUTADA (cadeia alcancou o passo)
+  3. test-concurrency: EXECUTADA (cadeia alcancou o passo)
+  4. test-auth-integration: EXECUTADA (cadeia alcancou o passo)
+  5. test-oauth-boundary: EXECUTADA (cadeia alcancou o passo)
+  6. test-tool-security: EXECUTADA (cadeia alcancou o passo)
+  7. test-sql-injection: EXECUTADA (cadeia alcancou o passo)
+  8. test-chat-semantics: EXECUTADA (cadeia alcancou o passo)
+  9. test-ai-budget: EXECUTADA (cadeia alcancou o passo)
+  10. test-rum-persistence: EXECUTADA (cadeia alcancou o passo)
+  11. test-rate-limit-burst: EXECUTADA (cadeia alcancou o passo)
+  12. test-outbox: EXECUTADA (cadeia alcancou o passo)
+  13. test-backfill: EXECUTADA (cadeia alcancou o passo)
+  14. test-memory: EXECUTADA (cadeia alcancou o passo)
+  15. test-products-fk-conflict: EXECUTADA (cadeia alcancou o passo)
+  16. test-product-contracts: EXECUTADA (cadeia alcancou o passo)
+  17. test-reconcile-ai-usage: EXECUTADA (cadeia alcancou o passo)
+  18. test-dashboard-margin: EXECUTADA (cadeia alcancou o passo)
+
+## Marcadores OK explicitos na saida
+54
+
+## Provas de banco executadas (vitest contra 127.0.0.1)
+prova de banco (src/test/products-fk-conflict.test.ts) contra 127.0.0.1: 15 passed (15), 0 skipped — admin=127.0.0.1:5432
+prova de banco (src/test/product-contracts.test.ts) contra 127.0.0.1: 15 passed (15), 0 skipped — admin=127.0.0.1:5432
+TRILHO-B: prova de banco da reconciliação concluída (6 casos)
+prova de banco (src/test/dashboard-consolidated-margin.db.test.ts) contra 127.0.0.1: 4 passed (4), 0 skipped — admin=127.0.0.1:5432
+
+## Classificacao de migrations
+✔ 20/20 classificadas
+T5 classificação: 20/20 classificadas · 0017_past_gideon = SAFE/empty + down: OK
+D3/T8 classificação: 20/20 classificadas · 0018_polite_living_tribunal = SAFE/empty + down: OK
+D4/T5 classificação: 20/20 classificadas · 0019_tiresome_robin_chapel = ONLINE_WITH_CARE/empty + idempotent + down: OK

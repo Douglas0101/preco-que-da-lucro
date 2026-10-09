@@ -1,0 +1,41 @@
+# Cadeia completa do gate local (`npm run check`), 2026-10-09.
+# Fonte: captures/gate-check-full.log (saída integral, sem truncamento).
+# Rodada autoritativa: inclui o pacote de evidencia e as correcoes de codigo.
+
+CHECK_EXIT=0
+
+## Veridito por passo (21 passos, na ordem da cadeia)
+     1	> check
+     2	> m02:lockfile-guard
+     3	> guard:upgrade
+     4	> check:migration-toolchain
+     5	> guard:contracts
+     6	> m02:work-package-guard
+     7	> m02:debts-guard
+     8	> m02:temporal-guard
+     9	> m02:state:check
+    10	> m02:boundaries
+    11	> m02:secrets-audit
+    12	> guard:mcp-runtime
+    13	> m02:seal-dts:check
+    14	> m02:matrix:check
+    15	> check:ui-stack
+    16	> check:no-supabase-runtime
+    17	> format:check
+    18	> lint
+    19	> typecheck
+    20	> pretest
+    21	> test
+    22	> build
+    23	> check:bundle
+
+## Resultado da suíte de testes (passo `test`)
+ Test Files  141 passed | 1 skipped (142)
+      Tests  2136 passed | 18 skipped (2154)
+   Duration  234.70s (transform 4.64s, setup 15.75s, import 47.60s, tests 46.23s, environment 102.28s)
+
+## Bundle (passo `check:bundle`)
+PASS assets/index-DRI3LDON.js: 249790 minified, 77208 gzip, 67166 Brotli bytes, sha256=30ca04baaa66
+
+## Observacoes de saida nao-fatais
+DeprecationWarning: 0

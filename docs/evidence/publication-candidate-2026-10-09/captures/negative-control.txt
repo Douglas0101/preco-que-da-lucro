@@ -1,0 +1,4 @@
+GREEN (modulo intacto) exit=0 passed=44 failed=0 elapsed_ms=2930
+RED (mutacao que vaza a mensagem) exit=1 passed=0 failed=21 elapsed_ms=3007
+NEGATIVE-CONTROL=OK
+RESTORED (modulo original de volta) exit=0 passed=44 failed=0 elapsed_ms=2851
