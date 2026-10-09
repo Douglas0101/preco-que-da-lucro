@@ -82,13 +82,21 @@ class MetadataPreconditionError extends Error {
     phase: AdapterPhase;
     code: MetadataFailureCode;
     componentPathSha256?: string;
+    lineSha256?: string;
   };
-  constructor(phase: AdapterPhase, code: MetadataFailureCode, message: string, path?: string) {
+  constructor(
+    phase: AdapterPhase,
+    code: MetadataFailureCode,
+    message: string,
+    path?: string,
+    line?: number,
+  ) {
     super(message);
     this.diagnostic = {
       phase,
       code,
       ...(path === undefined ? {} : { componentPathSha256: sha256(path) }),
+      ...(line === undefined ? {} : { lineSha256: sha256(String(line)) }),
     };
   }
 }
@@ -480,6 +488,7 @@ export function mapMainUnits(
           "MAPPING_NEW_CODE_MARKER_UNAVAILABLE",
           "new-code line identity unavailable",
           file.path,
+          row.line,
         );
       lineSeen.add(row.line);
       if (!row.isNew) continue;
@@ -494,6 +503,7 @@ export function mapMainUnits(
             "MAPPING_PROVIDER_ALIASES_DISAGREE",
             "provider coverage aliases disagree",
             file.path,
+            row.line,
           );
       const lineId = `${file.path}:${row.line}:line`;
       const prefix = `${file.path}:${row.line}:`;
@@ -512,6 +522,7 @@ export function mapMainUnits(
             "MAPPING_PROVIDER_LINE_DISAGREES",
             "original line coverage disagrees with provider",
             file.path,
+            row.line,
           );
         units.push({ file: file.path, line: row.line, covered: lineHits > 0 });
       } else if (original.has(lineId))
@@ -520,6 +531,7 @@ export function mapMainUnits(
           "MAPPING_PROVIDER_LINE_ABSENT",
           "provider line coverage absent",
           file.path,
+          row.line,
         );
       const count = row.conditions ?? row.utConditions,
         covered = row.coveredConditions ?? row.utCoveredConditions;
@@ -534,6 +546,7 @@ export function mapMainUnits(
             "MAPPING_PROVIDER_CONDITION_DISAGREES",
             "original condition identity/count disagrees with provider",
             file.path,
+            row.line,
           );
         for (const [id, hits] of branches)
           units.push({
@@ -548,6 +561,7 @@ export function mapMainUnits(
           "MAPPING_PROVIDER_CONDITION_WITHOUT_IDENTITY",
           "provider condition has no original LCOV identity",
           file.path,
+          row.line,
         );
     }
     const mapped = units.slice(start);
