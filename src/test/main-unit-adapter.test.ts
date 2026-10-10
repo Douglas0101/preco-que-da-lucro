@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  adapterDiagnostic,
   collectMetadata,
   mapMainUnits,
   provenance,
@@ -137,6 +138,159 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       ).toThrow();
     }
     expect(() => classifyMirrorObservation("mirror", null, 0)).toThrow();
+  });
+  it("treats a BRDA-only line as covered exactly like the official LCOV importer", () => {
+    // LCOVParser.FileData.save (SonarJS): toda linha DA entra com o contador e toda
+    // linha com BRDA entra com DA + branches cobertas — a condição coberta conta como
+    // hit da linha. Medido no arquivo real audit.repository.ts: BRDA:28-30, BRH 6/6,
+    // sem DA, com o provedor declarando a linha coberta.
+    const metrics = {
+        new_lines_to_cover: 3,
+        new_uncovered_lines: 0,
+        new_conditions_to_cover: 2,
+        new_uncovered_conditions: 0,
+        new_coverage: 100,
+      },
+      period = { mode: "days", date: "2026-09-06T04:15:08+0000", parameter: "30" },
+      text = `TN:\nSF:${file}\nDA:1,1\nDA:2,1\nBRDA:3,0,0,1\nBRDA:3,0,1,1\nend_of_record\n`,
+      withBranches = {
+        mainSha: revision,
+        analysisId: "main-analysis",
+        observedAt: now,
+        period,
+        metrics,
+      },
+      originWith = scannerProvenance(
+        revision,
+        text,
+        gate("main"),
+        "Sensor JavaScript/TypeScript Coverage",
+        instrumentation,
+        () => source,
+        withBranches,
+      ),
+      rows = (extra: boolean) =>
+        coverageMetadata({
+          sources: [
+            { line: 1, isNew: true, lineHits: 1 },
+            { line: 2, isNew: true, lineHits: 1 },
+            { line: 3, isNew: true, lineHits: 2, conditions: 2, coveredConditions: 2 },
+            ...(extra ? [{ line: 4, isNew: true, lineHits: 1 }] : []),
+          ],
+        }).rows,
+      entry = (extra: boolean) => [
+        { path: file, key: `project:${file}`, metrics, rows: rows(extra) },
+      ];
+    const snapshot = mapMainUnits(withBranches, originWith, text, entry(false), () => ({
+      hash: source,
+    }));
+    expect(snapshot.total).toBe(5);
+    expect(snapshot.covered).toBe(5);
+    expect(snapshot.units.filter((unit) => unit.line === 3)).toHaveLength(3);
+    // O espelho precisa aceitar a unidade de linha coberta só por branch: sem o
+    // lineState, before.get("...:3:line") é undefined e a unidade coberta reprova
+    // ("coverage mapping unavailable" — medido com os artefatos reais no
+    // audit.repository.ts:28).
+    expect(
+      mirror(snapshot, text, text, {
+        mainSha: revision,
+        analysisId: "main-analysis",
+        instrumentation,
+        sourceHashes: { [file]: source },
+        now,
+      }),
+    ).toMatchObject({ total: 5, covered: 5, paid: [], lost: [] });
+    // Linha declarada coberta pelo provedor sem NENHUMA identidade no LCOV segue recusada.
+    let refusal: unknown;
+    try {
+      mapMainUnits(withBranches, originWith, text, entry(true), () => ({ hash: source }));
+    } catch (error) {
+      refusal = error;
+    }
+    expect(refusal).toMatchObject({
+      diagnostic: { phase: "mapping", code: "MAPPING_PROVIDER_LINE_DISAGREES" },
+    });
+  });
+  it("keeps the DA value when the same line also has a covered branch", () => {
+    // Medido no provedor (run 38002724052, dashboard.service.ts:174): DA:174,0 com
+    // 1 branch coberta de 4 blocos — o provedor declarou a linha NÃO coberta. O valor
+    // do DA existente prevalece; a contribuição de branch é fallback só sem DA
+    // (conditions_on_non_executable_lines) e o fallback sem DA foi confirmado no
+    // próprio main (audit.repository.ts 28-30).
+    const metrics = {
+        new_lines_to_cover: 2,
+        new_uncovered_lines: 1,
+        new_conditions_to_cover: 2,
+        new_uncovered_conditions: 1,
+        new_coverage: 50,
+      },
+      period = { mode: "days", date: "2026-09-06T04:15:08+0000", parameter: "30" },
+      text = `TN:\nSF:${file}\nDA:1,1\nDA:2,0\nBRDA:2,0,0,0\nBRDA:2,0,1,10\nend_of_record\n`,
+      withDa = {
+        mainSha: revision,
+        analysisId: "main-analysis",
+        observedAt: now,
+        period,
+        metrics,
+      },
+      originWith = scannerProvenance(
+        revision,
+        text,
+        gate("main"),
+        "Sensor JavaScript/TypeScript Coverage",
+        instrumentation,
+        () => source,
+        withDa,
+      ),
+      entry = [
+        {
+          path: file,
+          key: `project:${file}`,
+          metrics,
+          rows: coverageMetadata({
+            sources: [
+              { line: 1, isNew: true, lineHits: 1 },
+              { line: 2, isNew: true, lineHits: 0, conditions: 2, coveredConditions: 1 },
+            ],
+          }).rows,
+        },
+      ];
+    const snapshot = mapMainUnits(withDa, originWith, text, entry, () => ({ hash: source }));
+    expect(snapshot.total).toBe(4);
+    expect(snapshot.covered).toBe(2);
+    expect(snapshot.units.filter((unit) => unit.line === 2 && !unit.branch)).toEqual([
+      { file, line: 2, covered: false },
+    ]);
+  });
+  it("completes the immutable hash from Git for census files the coverage run never loaded", () => {
+    // Medido no LCOV original de main (run 37817760211): 179 SF, dos quais só 111
+    // são arquivos do censo — 33 dos 144 nunca foram importados por teste e portanto
+    // não têm hash selado na provenance. A identidade continua vinda dos bytes Git.
+    const withoutCensusHash = {
+      ...origin(),
+      sourceHashes: { "src/lib/other.ts": "c".repeat(64) },
+    };
+    const snapshot = mapMainUnits(baseline, withoutCensusHash, lcov(), metadata(), () => ({
+      hash: source,
+    }));
+    expect(snapshot.sourceHashes).toEqual({ [file]: source });
+    expect(snapshot.discoveredFiles).toEqual([file]);
+    // Hash selado que discorda dos bytes imutáveis continua recusado.
+    let refusal: unknown;
+    try {
+      mapMainUnits(
+        baseline,
+        { ...withoutCensusHash, sourceHashes: { [file]: "d".repeat(64) } },
+        lcov(),
+        metadata(),
+        () => ({ hash: source }),
+      );
+    } catch (error) {
+      refusal = error;
+    }
+    expect(refusal).toMatchObject({
+      diagnostic: { phase: "mapping", code: "MAPPING_FILE_CENSUS_UNAVAILABLE" },
+    });
   });
   it("maps condition IDs from the ORIGINAL consumed LCOV and reconciles provider counts", () => {
     const snapshot = input().snapshot;
@@ -323,6 +477,268 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       scannerProvenance(revision, lcov(), gate(), "sensor absent", instrumentation, () => source),
     ).toThrow();
   });
+  it.each([false, true])(
+    "accounts for CSS without LCOV credit in the complete census (paginated=%s)",
+    async (paginated) => {
+      const css = "src/styles.css",
+        cssHash = "d".repeat(64);
+      const components = [
+        { key: `project:${css}`, path: css, measures: [] },
+        {
+          key: `project:${file}`,
+          path: file,
+          measures: Object.entries(baseline.metrics)
+            .filter(([metric]) => metric !== "new_coverage")
+            .map(([metric, value]) => ({ metric, period: { index: 1, value: String(value) } })),
+        },
+      ];
+      const calls: string[] = [],
+        checkedSources: string[] = [];
+      const get = (async (_origin: string, endpoint: string) => {
+        calls.push(endpoint);
+        if (endpoint.startsWith("measures/")) {
+          const page = Number(new URLSearchParams(endpoint.split("?")[1]).get("p"));
+          return {
+            paging: { total: components.length },
+            components: paginated ? components.slice(page - 1, page) : components,
+          };
+        }
+        expect(new URLSearchParams(endpoint.split("?")[1]).get("key")).toBe(`project:${file}`);
+        return {
+          sources: metadata()[0].rows.map((row) =>
+            Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null)),
+          ),
+        };
+      }) as ReturnType<typeof apiReader>;
+      const census = {
+        expectedFiles: null,
+        discoveredFiles: [],
+        coverageFiles: [],
+        excludedFiles: [],
+      };
+      const files = await collectMetadata(
+        get,
+        "project",
+        (path) => {
+          checkedSources.push(path);
+          return { hash: path === css ? cssHash : source, lines: path === css ? 1 : 6 };
+        },
+        census,
+      );
+      expect(files.map((entry) => entry.path)).toEqual([file]);
+      expect(census).toEqual({
+        expectedFiles: 2,
+        discoveredFiles: [css, file],
+        coverageFiles: [file],
+        excludedFiles: [{ path: css, reason: "CSS_OUTSIDE_JS_TS_COVERAGE", sourceSha256: cssHash }],
+      });
+      expect([...checkedSources].sort()).toEqual([css, file].sort());
+      expect(calls.filter((call) => call.startsWith("measures/"))).toHaveLength(paginated ? 2 : 1);
+      expect(calls.filter((call) => call.startsWith("sources/"))).toHaveLength(1);
+      const snapshot = mapMainUnits(baseline, origin(), lcov(), files, () => ({ hash: source }));
+      expect(snapshot.units).toHaveLength(5);
+      expect(snapshot.covered).toBe(3);
+      expect(snapshot.discoveredFiles).toEqual([file]);
+    },
+  );
+  it.each([false, true])(
+    "accepts the real splat route name as JS/TS coverage and keeps it eligible (paginated=%s)",
+    async (paginated) => {
+      // Run 37981439098 recusou exatamente este caminho: `$` não estava no
+      // charset do censo, e a rota splat do router é arquivo JS/TS legitimio.
+      const css = "src/styles.css",
+        cssHash = "d".repeat(64),
+        splat = "src/routes/api/auth/$.ts",
+        splatLcov = lcov().replaceAll(file, splat),
+        splatRows = metadata().map((entry) => ({
+          ...entry,
+          path: splat,
+          key: `project:${splat}`,
+        })),
+        components = [
+          { key: `project:${css}`, path: css, measures: [] },
+          {
+            key: `project:${splat}`,
+            path: splat,
+            measures: Object.entries(baseline.metrics)
+              .filter(([metric]) => metric !== "new_coverage")
+              .map(([metric, value]) => ({ metric, period: { index: 1, value: String(value) } })),
+          },
+        ],
+        census = { expectedFiles: null, discoveredFiles: [], coverageFiles: [], excludedFiles: [] },
+        checked: string[] = [];
+      const get = (async (_origin: string, endpoint: string) => {
+        if (endpoint.startsWith("measures/")) {
+          const page = Number(new URLSearchParams(endpoint.split("?")[1]).get("p"));
+          return {
+            paging: { total: components.length },
+            components: paginated ? components.slice(page - 1, page) : components,
+          };
+        }
+        expect(new URLSearchParams(endpoint.split("?")[1]).get("key")).toBe(`project:${splat}`);
+        return {
+          sources: splatRows[0].rows.map((row) =>
+            Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null)),
+          ),
+        };
+      }) as ReturnType<typeof apiReader>;
+      const files = await collectMetadata(
+        get,
+        "project",
+        (path) => {
+          checked.push(path);
+          return { hash: path === css ? cssHash : source, lines: path === css ? 1 : 6 };
+        },
+        census,
+      );
+      expect(files.map((entry) => entry.path)).toEqual([splat]);
+      expect(census).toEqual({
+        expectedFiles: 2,
+        discoveredFiles: [css, splat],
+        coverageFiles: [splat],
+        excludedFiles: [{ path: css, reason: "CSS_OUTSIDE_JS_TS_COVERAGE", sourceSha256: cssHash }],
+      });
+      expect([...checked].sort()).toEqual([css, splat].sort());
+      const snapshot = mapMainUnits(baseline, origin(splatLcov), splatLcov, files, () => ({
+        hash: source,
+      }));
+      expect(snapshot.units).toHaveLength(5);
+      expect(snapshot.units.every((unit) => unit.file === splat)).toBe(true);
+      expect(snapshot.covered).toBe(3);
+      // O espelho de unidades precisa aceitar o mesmo caminho sem recusar.
+      expect(
+        mirror(snapshot, splatLcov, splatLcov, {
+          mainSha: revision,
+          analysisId: baseline.analysisId,
+          instrumentation,
+          sourceHashes: { [splat]: source },
+          now,
+        }),
+      ).toMatchObject({ total: 5, covered: 3, pass: false });
+    },
+  );
+  it.each([file, "src/styles.css"])(
+    "refuses missing measures without silently classifying %s outside coverage",
+    async (path) => {
+      const get = (async () => ({
+        paging: { total: 1 },
+        components: [{ key: `project:${path}`, path }],
+      })) as ReturnType<typeof apiReader>;
+      await expect(
+        collectMetadata(get, "project", () => ({ hash: source, lines: 1 })),
+      ).rejects.toMatchObject({
+        diagnostic: {
+          phase: "components",
+          code: "COMPONENT_MEASURES_UNAVAILABLE",
+          componentPathSha256: sha256(path),
+        },
+      });
+    },
+  );
+  it.each([
+    "new_lines_to_cover",
+    "new_uncovered_lines",
+    "new_conditions_to_cover",
+    "new_uncovered_conditions",
+  ])("refuses CSS declaring %s instead of dropping measured units", async (metric) => {
+    const path = "src/styles.css";
+    const get = (async () => ({
+      paging: { total: 1 },
+      components: [
+        {
+          key: `project:${path}`,
+          path,
+          measures: [{ metric, period: { index: 1, value: "1" } }],
+        },
+      ],
+    })) as ReturnType<typeof apiReader>;
+    await expect(
+      collectMetadata(get, "project", () => ({ hash: source, lines: 1 })),
+    ).rejects.toMatchObject({ diagnostic: { code: "CSS_COVERAGE_UNSUPPORTED" } });
+  });
+  it.each([file, "src/styles.css"])(
+    "refuses unreadable or duplicated coverage measures for %s",
+    async (path) => {
+      const metric = "new_lines_to_cover";
+      for (const measures of [
+        ...[null, undefined, -1, "-1", "1.5", "NaN", "9007199254740992"].map((value) => [
+          { metric, value },
+        ]),
+        [
+          { metric, value: "0" },
+          { metric, value: "0" },
+        ],
+      ]) {
+        const get = (async () => ({
+          paging: { total: 1 },
+          components: [{ key: `project:${path}`, path, measures }],
+        })) as ReturnType<typeof apiReader>;
+        await expect(
+          collectMetadata(get, "project", () => ({ hash: source, lines: 1 })),
+        ).rejects.toMatchObject({ diagnostic: { code: "COMPONENT_METRIC_INVALID" } });
+      }
+    },
+  );
+  it.each(["src/template.html", "src/../styles.css", "src/test/styles.css"])(
+    "refuses an unregistered component even with empty measures: %s",
+    async (path) => {
+      const get = (async () => ({
+        paging: { total: 1 },
+        components: [{ key: `project:${path}`, path, measures: [] }],
+      })) as ReturnType<typeof apiReader>;
+      await expect(
+        collectMetadata(get, "project", () => ({ hash: source, lines: 1 })),
+      ).rejects.toMatchObject({ diagnostic: { code: "COMPONENT_PATH_UNSUPPORTED" } });
+    },
+  );
+  it("rejects CSS-only discovery and duplicate CSS identities across pages", async () => {
+    const css = { key: "project:src/styles.css", path: "src/styles.css", measures: [] };
+    const cssOnly = (async () => ({
+      paging: { total: 1 },
+      components: [css],
+    })) as ReturnType<typeof apiReader>;
+    await expect(
+      collectMetadata(cssOnly, "project", () => ({ hash: source, lines: 1 })),
+    ).rejects.toMatchObject({ diagnostic: { code: "COVERAGE_CENSUS_EMPTY" } });
+    for (const duplicate of [css, { ...css, key: "another-key" }]) {
+      let page = 0;
+      const get = (async () => ({
+        paging: { total: 2 },
+        components: [++page === 1 ? css : duplicate],
+      })) as ReturnType<typeof apiReader>;
+      await expect(
+        collectMetadata(get, "project", () => ({ hash: source, lines: 1 })),
+      ).rejects.toMatchObject({ diagnostic: { code: "COMPONENT_IDENTITY_INVALID" } });
+    }
+  });
+  it("emits only fixed diagnostics and path digests, never raw errors or source", async () => {
+    const unsafe = "fixture-sensitive-text\n::error::not-a-credential";
+    const get = (async (_origin: string, endpoint: string) => {
+      if (endpoint.startsWith("measures/"))
+        return {
+          paging: { total: 1 },
+          components: [{ key: "k", path: file, measures: [] }],
+        };
+      throw new Error(unsafe);
+    }) as ReturnType<typeof apiReader>;
+    let diagnostic;
+    try {
+      await collectMetadata(get, "project", () => ({ hash: source, lines: 1 }));
+    } catch (error) {
+      diagnostic = adapterDiagnostic(error, "components");
+    }
+    expect(diagnostic).toEqual({
+      phase: "sources",
+      code: "SOURCE_REQUEST_FAILED",
+      componentPathSha256: sha256(file),
+    });
+    expect(adapterDiagnostic(new Error(unsafe), "origin")).toEqual({
+      phase: "origin",
+      code: "EXECUTION_OR_UNCLASSIFIED",
+    });
+    expect(JSON.stringify(diagnostic)).not.toContain(unsafe);
+    expect(JSON.stringify(diagnostic)).not.toContain(file);
+  });
   it("enumerates pages and checks every source line against immutable Git line count", async () => {
     const calls: string[] = [];
     const get = (async (_origin: string, endpoint: string) => {
@@ -392,11 +808,17 @@ describe("complete unit adapter, original scanner provenance and conservative CL
     "corrupt-candidate",
     "corrupt-main-sidecar",
     "missing-main-lcov",
+    "mixed-census",
+    "coverage-census-failure",
   ] as const)("runs the real bare-Node CLI in its own Git fixture: %s", (scenario) => {
     const directory = mkdtempSync(resolve(tmpdir(), "mirror-cli-fixture-"));
     try {
       mkdirSync(resolve(directory, "src/lib"), { recursive: true });
-      writeFileSync(resolve(directory, file), "// synthetic CLI fixture only\n");
+      writeFileSync(resolve(directory, file), "// synthetic CLI fixture only\n".repeat(6));
+      // Nunca importado por teste nenhum: não tem registro no LCOV e nenhum hash
+      // selado na provenance, exatamente como 33 dos 144 arquivos do censo de main.
+      writeFileSync(resolve(directory, "src/lib/uncovered.ts"), "// never imported\n");
+      writeFileSync(resolve(directory, "src/styles.css"), ":root { color: black; }\n");
       writeFileSync(
         resolve(directory, "vitest.config.ts"),
         "// fixture instrumentation configuration\n",
@@ -419,7 +841,15 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       execFileSync("git", ["init", "--initial-branch=develop", "--quiet"], { cwd: directory });
       execFileSync(
         "git",
-        ["add", "src/lib/example.ts", "vitest.config.ts", "package.json", "package-lock.json"],
+        [
+          "add",
+          "src/lib/example.ts",
+          "src/lib/uncovered.ts",
+          "src/styles.css",
+          "vitest.config.ts",
+          "package.json",
+          "package-lock.json",
+        ],
         { cwd: directory },
       );
       execFileSync(
@@ -522,7 +952,8 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       save("candidate-origin.json", p(lcov(), "develop", "60"));
 
       // Exercise the real producer and advisory entrypoints with no external transport.
-      rmSync(env.SONAR_MAIN_LCOV_PROVENANCE);
+      const mixedCensus = scenario === "mixed-census" || scenario === "coverage-census-failure";
+      if (!mixedCensus) rmSync(env.SONAR_MAIN_LCOV_PROVENANCE);
       const advisoryEnv = {
         ...env,
         SONAR_TOKEN: "fixture-not-a-credential",
@@ -530,7 +961,7 @@ describe("complete unit adapter, original scanner provenance and conservative CL
         SONAR_MAIN_UNIT_ADAPTER_REPORT: resolve(directory, "c28-main-unit-adapter.json"),
         SONAR_CANDIDATE_GATE_REPORT: save("gate.json", {
           schema: "c25-ce-gate-readout/1",
-          status: "ERROR",
+          status: mixedCensus ? "OK" : "ERROR",
           ...g("develop", "60"),
         }),
         GITHUB_STEP_SUMMARY: resolve(directory, "summary.md"),
@@ -543,6 +974,202 @@ describe("complete unit adapter, original scanner provenance and conservative CL
           env: advisoryEnv,
           encoding: "utf8",
         });
+      if (mixedCensus) {
+        const css = "src/styles.css",
+          uncovered = "src/lib/uncovered.ts";
+        // O denominador autoritativo passa a incluir as duas linhas novas não
+        // cobertas do arquivo que nenhum teste carrega (4+2 linhas, 1 condição).
+        const bMixed = {
+          ...b,
+          metrics: {
+            new_lines_to_cover: 5,
+            new_uncovered_lines: 2,
+            new_conditions_to_cover: 1,
+            new_uncovered_conditions: 1,
+            new_coverage: 50,
+          },
+        };
+        save("c24-main-baseline.json", { schema: "main-baseline/2", ...bMixed });
+        // Hash real por arquivo: a provenance sela o SHA256 dos bytes de cada SF do
+        // LCOV, e com dois SF um hash constante mentiria sobre o segundo.
+        const sealedHash = (path: string) => sha256(readFileSync(resolve(directory, path)));
+        save(
+          "main-origin.json",
+          scannerProvenance(
+            checkoutSha,
+            lcov(),
+            g("main", null),
+            "Sensor JavaScript/TypeScript Coverage",
+            instr,
+            sealedHash,
+            bMixed,
+          ),
+        );
+        const payloads = {
+          ref: { commit: { sha: checkoutSha } },
+          analyses: { analyses: [{ key: b.analysisId, revision: checkoutSha }] },
+          tree: {
+            paging: { total: 3 },
+            components: [
+              {
+                key: `project:${css}`,
+                path: css,
+                measures:
+                  scenario === "coverage-census-failure"
+                    ? [{ metric: "new_lines_to_cover", value: "1" }]
+                    : [],
+              },
+              {
+                key: `project:${file}`,
+                path: file,
+                // Métricas POR ARQUIVO (4 linhas, 1 condição); o agregado do
+                /// baseline é a soma dos dois arquivos.
+                measures: [
+                  { metric: "new_lines_to_cover", period: { index: 1, value: "4" } },
+                  { metric: "new_uncovered_lines", period: { index: 1, value: "1" } },
+                  { metric: "new_conditions_to_cover", period: { index: 1, value: "1" } },
+                  { metric: "new_uncovered_conditions", period: { index: 1, value: "1" } },
+                ],
+              },
+              {
+                key: `project:${uncovered}`,
+                path: uncovered,
+                measures: [
+                  { metric: "new_lines_to_cover", period: { index: 1, value: "1" } },
+                  { metric: "new_uncovered_lines", period: { index: 1, value: "1" } },
+                  { metric: "new_conditions_to_cover", period: { index: 1, value: "0" } },
+                  { metric: "new_uncovered_conditions", period: { index: 1, value: "0" } },
+                ],
+              },
+            ],
+          },
+          lines: {
+            [`project:${file}`]: {
+              sources: metadata()[0].rows.map((row) =>
+                Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null)),
+              ),
+            },
+            [`project:${uncovered}`]: { sources: [{ line: 1, isNew: true, lineHits: 0 }] },
+          },
+        };
+        const offlineModule = save(
+          "offline-api.mjs",
+          `const payloads = ${JSON.stringify(payloads)};
+globalThis.fetch = async (url) => {
+  const target = new URL(String(url));
+  let payload;
+  if (target.origin === "https://api.github.com" && target.pathname.endsWith("/branches/main")) payload = payloads.ref;
+  else if (target.origin === "https://sonarcloud.io") {
+    if (target.pathname === "/api/project_analyses/search") payload = payloads.analyses;
+    else if (target.pathname === "/api/measures/component_tree") payload = payloads.tree;
+    else if (target.pathname === "/api/sources/lines")
+      payload = payloads.lines[target.searchParams.get("key")];
+  }
+  if (!payload) throw new Error("unexpected isolated API request; external transport forbidden");
+  return new Response(JSON.stringify(payload), { status: 200, headers: { "content-type": "application/json" } });
+};
+`,
+        );
+        const offlineEnv = {
+          ...advisoryEnv,
+          NODE_OPTIONS: `--import=${offlineModule}`,
+          SONAR_MAIN_UNIT_SNAPSHOT: resolve(directory, "c28-main-unit-snapshot.json"),
+          SONAR_MAIN_UNIT_SNAPSHOT_SHA256: "",
+        };
+        const runOffline = (kind: "adapter" | "mirror") =>
+          spawnSync(process.execPath, [advisoryCommand, kind], {
+            cwd: directory,
+            env: offlineEnv,
+            encoding: "utf8",
+          });
+        const readReport = (name: string) =>
+          JSON.parse(readFileSync(resolve(directory, name), "utf8"));
+        const adapter = runOffline("adapter"),
+          adapterReport = readReport("c28-main-unit-adapter.json");
+        if (scenario === "coverage-census-failure") {
+          expect(adapter.status, adapter.stderr).toBe(1);
+          expect(adapterReport).toMatchObject({
+            verdict: "NO-VERDICT",
+            reasonCode: "EXECUTION_OR_UNCLASSIFIED",
+            diagnostic: {
+              phase: "components",
+              code: "CSS_COVERAGE_UNSUPPORTED",
+              componentPathSha256: sha256(css),
+            },
+          });
+          expect(adapter.stderr).toContain("CSS_COVERAGE_UNSUPPORTED");
+          const mirrored = runOffline("mirror");
+          expect(mirrored.status, mirrored.stderr).toBe(1);
+          for (const name of [
+            "c29-main-unit-adapter-observation.json",
+            "c29-main-mirror-observation.json",
+          ])
+            expect(readReport(name)).toMatchObject({
+              rawExitCode: 2,
+              rawStatus: "NO-VERDICT",
+              observation: null,
+              outcome: "FAILURE",
+              approvesMain: false,
+            });
+          expect(readReport("c26-main-mirror.json").missingNames).toContain(
+            "SONAR_MAIN_UNIT_SNAPSHOT_SHA256",
+          );
+          return;
+        }
+        expect(adapter.status, adapter.stderr).toBe(0);
+        expect(adapterReport).toMatchObject({
+          verdict: "MAPPED",
+          total: 6,
+          componentCensus: {
+            expectedFiles: 3,
+            discoveredFiles: [css, file, uncovered],
+            coverageFiles: [file, uncovered],
+            excludedFiles: [
+              {
+                path: css,
+                reason: "CSS_OUTSIDE_JS_TS_COVERAGE",
+                sourceSha256: sha256(readFileSync(resolve(directory, css))),
+              },
+            ],
+          },
+        });
+        expect(readFileSync(advisoryEnv.GITHUB_OUTPUT, "utf8")).toBe(
+          `snapshot_sha256=${adapterReport.snapshotSha256}\n`,
+        );
+        offlineEnv.SONAR_MAIN_UNIT_SNAPSHOT_SHA256 = adapterReport.snapshotSha256;
+        // O candidato cobre todas as unidades, inclusive a do arquivo que o LCOV
+        // de main nunca registrou — pagamento sem remapeamento de identidade.
+        const candidatePaying = `${lcov(1)}SF:${uncovered}\nDA:1,1\nend_of_record\n`;
+        save("candidate.lcov", candidatePaying);
+        save(
+          "candidate-origin.json",
+          scannerProvenance(
+            checkoutSha,
+            candidatePaying,
+            g("develop", "60"),
+            "Sensor JavaScript/TypeScript Coverage",
+            instr,
+            sealedHash,
+          ),
+        );
+        const mirrored = runOffline("mirror");
+        expect(mirrored.status, mirrored.stderr).toBe(0);
+        expect(readReport("c29-main-unit-adapter-observation.json")).toMatchObject({
+          rawExitCode: 0,
+          rawStatus: "MAPPED",
+          observation: "MAPPED",
+          outcome: "INFORMATIONAL",
+          approvesMain: false,
+        });
+        expect(readReport("c29-main-mirror-observation.json")).toMatchObject({
+          rawExitCode: 0,
+          rawStatus: "PASS",
+          observation: "PASS",
+          outcome: "INFORMATIONAL",
+          approvesMain: false,
+        });
+        return;
+      }
       if (scenario === "corrupt-main-sidecar") {
         save("main-origin.json", "{broken");
         const observed = runObservation("adapter");

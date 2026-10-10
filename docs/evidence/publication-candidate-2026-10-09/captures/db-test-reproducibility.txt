@@ -1,0 +1,106 @@
+# Reprodutibilidade da cadeia `npm run db:test` nesta bancada, 2026-10-09
+
+Quatro execucoes, mesmos comandos, desfechos distintos. A distincao importa
+porque o primeiro desfecho foi lido (por um agente paralelo) como "a cadeia
+aborta" — e ela nao aborta: ela recusa uma pre-condicao de higiene.
+
+## E1 — volume herdado de rodada anterior: RECUSADA
+
+Log: `captures/db-test-refused-2026-10-09.log.txt`
+
+    error: rollback 0010 BLOQUEADO: 2 conta(s) presentes. Apos o purge DB-01
+    toda conta e transito real; rollback de issuer somente via restore de
+    snapshot (BAK-01).
+    SQLSTATE P0001, em `drizzle/rollback/0010_to_0009_down.sql:31-35`.
+
+A pre-condicao Recusada e **especifica**, nao "volume sujo": o guarda mora no
+proprio SQL de down (`drizzle/rollback/0010_to_0009_down.sql:26-37`), roda na
+**mesma transacao** do UPDATE destrutivo (`:24-42`) e recusa quando
+`SELECT count(*) FROM "accounts"` (`:30`) e `> 0` — qualquer linha, de
+qualquer provider, sem filtro. Ele e o 10o dos 16 downs do rollback tip->0003
+(`DOWNS_TIP_TO_0003`, `scripts/db/test-migrations.ts:733-750`), alcancado por
+`assertUpgradeFrom0003` (`:769-770`); quando dispara, os 9 primeiros downs ja
+executaram e commitaram.
+
+    SELECT count(*) FROM "accounts";  -> 2   (herdadas de sessao anterior)
+
+O volume nomeado `preco-que-d-main_postgres-data` sobrevive a `npm run db:down`
+(`docs/runbooks/postgres-local-docker.md`), entao ele carregava o estado deixado
+por uma rodada anterior da propria bancada — nao dado de producao: o unico
+ponto da cadeia que insere em `accounts` e a suite `test-auth-integration`
+(`scripts/db/test-auth-integration.ts:304`/`:339`), que limpa os proprios
+fixtures ao completar (`:381-390`); uma rodada interrompida deixa o residuo
+(mecanica medida em E4).
+
+O guarda e fail-closed por decisao, e a assinatura ja e divida registrada:
+DBT-96 (`docs/evidence/agent-state/DEBTS.md:98`) mediu o mesmo
+`rollback 0010 BLOQUEADO: 1 conta(s) presentes` no drill do Neon.
+
+Nao foi feita nenhuma higiene forçada: nenhuma conta foi apagada, nenhuma
+migration foi desfeita, nenhum dado foi destruido.
+
+## E2 — volume zerado: VERDE
+
+Comando: `npm run db:down && docker volume rm preco-que-d-main_postgres-data &&
+npm run db:up`, depois a cadeia completa.
+
+    DB_TEST_EXIT=0
+
+Estado de partida: 0 tabelas, 0 contas, journal ausente. Todas as 18 suítes
+verdes; log integral em `captures/db-test-full.log.txt`.
+
+## E3 — volume produzido pela propria E2, sem zerar: VERDE
+
+Log: `captures/db-test-rerun.log.txt`
+
+    DB_TEST_RERUN_EXIT=0
+
+Estado de partida, medido antes da execucao:
+
+    accounts=0   journal_rows=20   tables=38
+
+Isto e o ponto que E1 sozinho nao mostra: a cadeia, **quando passa**, deixa a
+bancada em estado reexecutavel — ela própria zera as contas que cria. A recusa
+de E1 e, portanto, condicao de entrada (conta herdada), nao defeito de
+reprodutibilidade da saida verde — o que o **aborto** deixa e outra coisa,
+medida em E4.
+
+## E4 — o que o abort deixa (sonda isolada, 2026-10-09)
+
+A recusa nao deixa a bancada reexecutavel sozinha. Medido em container PG17
+efemero proprio (`127.0.0.1:55432`, sem volume, descartado ao final; transcript
+integral em `captures/db-test-abort-drift.txt`):
+
+1. reproduz E1: planta 2 contas e reexecuta -> o MESMO `rollback 0010 BLOQUEADO:
+   2 conta(s) presentes` (SQLSTATE `P0001`), mesmo stack, exit 1;
+2. estado residual medido: `journal_rows=20` — a poda de
+   `drizzle.__drizzle_migrations` (`scripts/db/test-migrations.ts:760-762`) so
+   roda **depois** do loop de downs e nao foi alcancada —, mas o schema perdeu
+   objetos de 0011 (politicas `auth_service_access`) e de 0019
+   (`ai_memory_policies`, colunas `expires_at`/`layer`): 9 downs commitados,
+   journal nao podado. **Schema != journal**;
+3. a terceira execucao, sem zerar, nao se cura: falha antes e com outra
+   assinatura (`duplicate key ... users_pkey`, SQLSTATE `23505`, em
+   `seedIsolationFixtures`, `:85`) — os fixtures da rodada recusada ficaram
+   para tras.
+
+Recuperacao: a zeragem documentada no runbook
+(`docs/runbooks/postgres-local-docker.md`, secao "Rodar migrations e
+contratos") — exatamente o que E2 executou. E3 continua valendo para o que
+mede: a **saida verde** da cadeia e reexecutavel; o **aborto nao e**. As duas
+contas plantadas na sonda sao fixtures locais dela, descartadas com o
+container.
+
+## Leitura honesta dos quatro
+
+- E1 nao invalida E2/E3: foi recusa de pre-condicao (conta herdada), com
+  mensagem que nomeia a causa e o caminho permitido (restore de snapshot).
+- E2 e E3 provam que o **verde** e reproduzivel nesta bancada, inclusive sobre
+  o estado que a propria cadeia produz. E4 delimita a claim: o **aborto** nao e
+  reexecutavel sem zeragem (journal drift + fixtures residuais).
+- Nenhuma das quatro execucoes tocou Neon, producao ou qualquer endpoint
+  remoto: `DATABASE_URL`/`DATABASE_ADMIN_URL` apontavam para loopback
+  (`127.0.0.1:5432` em E1-E3; `127.0.0.1:55432` na sonda E4), e o `env-guard`
+  (pre-hook) aceitou o alvo sem nenhum override. A bancada (:5432) foi
+  conferida intacta depois da sonda (`accounts=0`, `journal_rows=20`).
+- A excecao P0001 de E1 foi **registrada**, nao contornada.

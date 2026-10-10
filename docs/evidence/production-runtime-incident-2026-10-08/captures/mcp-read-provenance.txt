@@ -1,0 +1,77 @@
+# MCP read provenance — 2026-10-08 (UTC)
+#
+# The five `*.json` files in this directory are pure JSON so that
+# `npm run format:check` (prettier) accepts them; a leading `#` comment block
+# makes prettier's JSON parser fail and would break the repo's own gate. The
+# per-file provenance that therefore cannot live inside those files lives here.
+#
+# Every read below was READ-ONLY. No deployment, alias, environment variable,
+# domain, project or Neon resource was created, modified or deleted by this
+# package. The `get_deployment`/`get_alias`/`get_project` tools are pure GETs.
+#
+# WHAT WAS DELIBERATELY NOT READ:
+#   - `vercel_filter_project_envs` / `vercel_get_project_env` /
+#     `vercel_get_shared_env_var`: these return environment variable values.
+#     Reading them is forbidden for diagnosis by the operating rules, and the
+#     task explicitly requires that no environment value be read. NOT CALLED.
+#   - `vercel_get_access_to_vercel_url` / `vercel_web_fetch_vercel_url`: an
+#     authentication bypass link. Reaching the broken deployment through a
+#     bypass is not needed to document the incident. NOT CALLED.
+#   - No Neon MCP tool was called at all.
+
+vercel-deployment-old-dpl_DHsbjECX.json
+    transcribed VERBATIM from vercel_get_deployment
+    idOrUrl=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL
+    teamId=team_2NnkSYjw5NRHAFnQFEPSHGmW  withGitRepoInfo=true
+    Identity of the deployment the public alias currently serves.
+    sha d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9, target production, READY,
+    built 2026-10-01. Its alias[] DOES contain
+    preco-que-da-lucro-sage.vercel.app.
+
+vercel-deployment-new-dpl_6h2LTZX.json
+    transcribed VERBATIM from vercel_get_deployment
+    idOrUrl=dpl_6h2LTZX57soGiPP2oTurws7NsgVd
+    teamId=team_2NnkSYjw5NRHAFnQFEPSHGmW  withGitRepoInfo=true
+    Identity of the deployment that failed at runtime.
+    sha fa45632391ad9ffe1d20d3bad5264a53b565638e (main HEAD, PR #60 merged
+    2026-10-08T17:35:28Z), target production, READY. Its alias[] contains ONLY
+    the two SSO-protected project domains; it does NOT carry
+    preco-que-da-lucro-sage.vercel.app. This is the containment fingerprint.
+
+vercel-deployment-blocked-dpl_4vNYvd5.json
+    transcribed VERBATIM from vercel_get_deployment
+    idOrUrl=dpl_4vNYvd5xcXRBjVRyRcp9Fri7mhxz
+    teamId=team_2NnkSYjw5NRHAFnQFEPSHGmW  withGitRepoInfo=true
+    The failed redeploy of the OLD sha d4b9395: state ERROR, errorCode
+    BLOCKED_PACKAGE, errorStep direct:build, because
+    @tanstack/react-start@1.168.49 is vendor-blocked. This is the reason the
+    decisive "rebuild the old bytes and see whether they still connect"
+    experiment CANNOT be run for d4b9395.
+
+vercel-project-settings.json
+    transcribed VERBATIM from vercel_get_project
+    idOrName=prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+    teamId=team_2NnkSYjw5NRHAFnQFEPSHGmW
+    Project protection state: ssoProtection.enabled=true with
+    deploymentType "all_except_custom_domains"; passwordProtection.enabled=false;
+    framework tanstack-start-lovable; nodeVersion 24.x. Explains why every
+    project-owned deployment host is behind an SSO redirect and only the custom
+    domain is publicly reachable.
+
+vercel-alias-sage.json
+    transcribed VERBATIM from vercel_get_alias
+    idOrAlias=preco-que-da-lucro-sage.vercel.app
+    teamId=team_2NnkSYjw5NRHAFnQFEPSHGmW
+    THE CONTAINMENT READING. alias -> deploymentId
+    dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL, updatedAt 1791486033986
+    (= 2026-10-08T18:20:33.938Z). The public production alias points at the OLD
+    revision, not at the failed one.
+
+vercel-runtime-logs-retention-boundary.txt
+    transcribed from vercel_get_runtime_logs, three window values (7d / 1h /
+    30m). Read-only.
+
+vercel-runtime-errors-7d.txt
+    transcribed from vercel_get_runtime_errors since=7d. Read-only. This is the
+    surface that still holds the incident artifacts after the per-line log API
+    was retention-blocked.

@@ -1,0 +1,35 @@
+# db:test — cadeia completa de 18 suites contra container PG17 efemero proprio (2026-10-09)
+
+Comando (encadeamento exato, scripts/db/test-all via npm):
+
+    check-migration-classes && test-migrations && test-concurrency &&
+    test-auth-integration && test-oauth-boundary && test-tool-security &&
+    test-sql-injection && test-chat-semantics && test-ai-budget &&
+    test-rum-persistence && test-rate-limit-burst && test-outbox &&
+    test-backfill && test-memory && test-products-fk-conflict &&
+    test-product-contracts && test-reconcile-ai-usage && test-dashboard-margin
+
+Alvo: container PG17 efemero PROPRIO (postgres:17-alpine, image_id
+sha256:d4bb0a8c1b7bb2e29f976d099e7bfb9a5d8858cffe9e46b35cd302cd1f1f8168),
+nome pqd-e5d, 127.0.0.1:55436, banco preco_que_da_lucro_test, SEM volume.
+A bancada (:5432), o volume nomeado, Neon e producao NAO sao tocados.
+
+    DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55436/preco_que_da_lucro_test
+    DATABASE_ADMIN_URL=postgresql://postgres:postgres@127.0.0.1:55436/preco_que_da_lucro_test
+    DATABASE_DRIVER=node-postgres
+    npm run db:test
+
+Resultado:
+
+    DB_TEST_EXIT=0
+
+- 18 suites, 54 marcas ": OK" de conclusao no log integral
+  (captures/db-test-full.log.txt, 368 linhas).
+- A suite endurecida (test-migrations) passa com os cenarios novos:
+  "PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant
+  e rollback: OK" — inclui a recusa do guarda 0010 sem deriva residual, a
+  reexecucao recusada com a mesma assinatura e os dois controles negativos
+  (deriva plantada e residuo de seed), verificado em captures/e5-drift-hardening.txt.
+- Inicio da execucao: 2026-10-09T12:18 (timestamps do proprio log).
+
+O container pqd-e5d foi descartado ao final da rodada.

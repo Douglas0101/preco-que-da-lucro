@@ -1,0 +1,13 @@
+=== DNS resolution of preco-que-da-lucro-sage.vercel.app (read-only) ===
+64.29.17.66     STREAM preco-que-da-lucro-sage.vercel.app
+64.29.17.66     DGRAM  
+64.29.17.66     RAW    
+216.198.79.66   STREAM 
+216.198.79.66   DGRAM  
+216.198.79.66   RAW    
+
+=== TLS certificate subject (read-only) ===
+subject=CN=*.vercel.app
+issuer=C=US, O=Google Trust Services, CN=WR1
+notBefore=Aug 29 19:48:09 2026 GMT
+notAfter=Nov 27 19:48:08 2026 GMT

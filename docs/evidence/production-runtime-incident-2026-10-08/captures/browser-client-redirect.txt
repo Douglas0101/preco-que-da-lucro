@@ -1,0 +1,37 @@
+# Browser probe, read-only, 2026-10-08 (UTC).
+# Tool: Chrome DevTools MCP. Page owned by this session (created via new_page),
+# headless isolated temporary profile — not the user's authenticated profile.
+# Target: https://preco-que-da-lucro-sage.vercel.app/novo-produto
+# No data created, no session established, no production mutation.
+
+=== 1. new_page(url=https://preco-que-da-lucro-sage.vercel.app/novo-produto) ===
+1: about:blank
+3: Lovable App (https://preco-que-da-lucro-sage.vercel.app/novo-produto) [selected]
+
+=== 2. evaluate_script(() => ({ url: location.href, title: document.title, readyState: document.readyState })) ===
+{"url":"https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Fnovo-produto","title":"Entrar · Preço que Dá Lucro","readyState":"complete"}
+
+=== 3. take_snapshot() ===
+uid=5_0 RootWebArea "Entrar · Preço que Dá Lucro" url="https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Fnovo-produto"
+  uid=5_1 heading "Preço que Dá Lucro" level="1"
+  uid=5_2 StaticText "Bem-vindo de volta"
+  uid=5_3 button "Continuar com Google"
+  uid=5_4 StaticText "OU"
+  uid=5_5 form
+    uid=5_6 StaticText "E-mail"
+    uid=5_7 textbox "E-mail" required
+    uid=5_8 StaticText "Senha"
+    uid=5_9 textbox "Senha" required
+    uid=5_10 button "Entrar"
+  uid=5_11 StaticText "Ainda não tem conta?"
+  uid=5_12 button "Cadastre-se"
+  uid=5_13 button "Esqueci minha senha"
+  uid=5_14 region "Notifications alt+T" live="polite" relevant="additions text"
+
+VERDICT: VERIFIED. /novo-produto with no session performs a client-side
+redirect to /auth?redirect=%2Fnovo-produto, and the auth page renders fully
+(readyState=complete, real title, real form controls).
+NOTE: the server HTML for /novo-produto does NOT contain the redirect target
+(see probe-novo-produto-shell.txt — grep for '/auth?' finds nothing); the
+redirect is produced by the client router after hydration. A curl-only probe
+therefore cannot observe it, which is why the browser is required here.

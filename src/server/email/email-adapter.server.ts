@@ -1,4 +1,6 @@
 import { Resend } from "resend";
+import { readEnv } from "@/lib/env.server";
+import { authEnvPresence } from "@/server/auth/auth-policy";
 
 export interface AuthEmailMessage {
   to: string;
@@ -61,15 +63,44 @@ export class ResendEmailAdapter implements TransactionalEmailAdapter {
 
 let emailAdapter: TransactionalEmailAdapter | undefined;
 
-export function getEmailAdapter(): TransactionalEmailAdapter {
-  if (emailAdapter) return emailAdapter;
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.AUTH_EMAIL_FROM;
-  if (!apiKey || !from) {
+/**
+ * Nomeia a variável E o estado, para a mensagem não confundir "par ausente"
+ * com "par definido e vazio". Um par `""` é o formato que `.env.example`
+ * documenta (`RESEND_API_KEY=""`) e que um registro de env criado e nunca
+ * preenchido produz: sem a distinção, o operador procura uma variável que
+ * existe e está vazia. A taxonomia de presença é a de `authEnvPresence` — não
+ * há detector paralelo.
+ */
+function emailCredentialState(name: string): string | undefined {
+  const raw = process.env[name];
+  const presence = authEnvPresence(raw);
+  if (presence === "present") return undefined;
+  return `${name} (${presence === "absent" ? "ausente" : "definida e vazia"})`;
+}
+
+/** Par de credenciais de e-mail, ou o erro que nomeia o estado de cada uma. */
+function requireEmailCredentials(): { apiKey: string; from: string } {
+  const apiKey = readEnv("RESEND_API_KEY");
+  const from = readEnv("AUTH_EMAIL_FROM");
+  const missing = [
+    emailCredentialState("RESEND_API_KEY"),
+    emailCredentialState("AUTH_EMAIL_FROM"),
+  ].filter((entry): entry is string => entry !== undefined);
+  // `readEnv` e `authEnvPresence` classificam o MESMO valor com a MESMA regra
+  // (ausente ou sem conteúdo ⇒ não configurada), então `missing` tem exatamente
+  // um item por variável não utilizável e a mensagem nunca fica com a lista
+  // de estados vazia.
+  if (apiKey === undefined || from === undefined) {
     throw new Error(
-      "RESEND_API_KEY e AUTH_EMAIL_FROM são obrigatórias para e-mails de autenticação",
+      `Configuração de e-mail incompleta: ${missing.join(", ")}. RESEND_API_KEY e AUTH_EMAIL_FROM são obrigatórias para e-mails de autenticação.`,
     );
   }
+  return { apiKey, from };
+}
+
+export function getEmailAdapter(): TransactionalEmailAdapter {
+  if (emailAdapter) return emailAdapter;
+  const { apiKey, from } = requireEmailCredentials();
   emailAdapter = new ResendEmailAdapter(apiKey, from);
   return emailAdapter;
 }

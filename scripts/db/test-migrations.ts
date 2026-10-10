@@ -749,17 +749,38 @@ const DOWNS_TIP_TO_0003 = [
   "0004_to_0003_down.sql",
 ];
 
+// O chain de downs roda em UMA transação do cliente. Antes cada arquivo commitava
+// sozinho (autocommit): um aborto no meio do loop — o caso real é o guarda de
+// 0010 recusando com `accounts > 0` — deixava os downs já aplicados commitados e
+// o journal ainda no head (schema != journal; medido em sonda isolada em
+// 2026-10-09). Com a transação única, qualquer falha desfaz TUDO e o journal
+// permanece íntegro.
+//
+// O único arquivo com BEGIN/COMMIT próprio é o 0010 (auto-transação para uso
+// isolado em psql); dentro da transação do harness esses dois comandos são
+// neutralizados — sem isso o COMMIT do 0010 comitaria a transação externa antes
+// do fim do loop. A semântica do arquivo em si não muda.
 async function applyDowns(client: Client, downFiles: string[]): Promise<void> {
   // O chain pode ter migrations além do destino do rollback; é preciso desfazer
   // cada arquivo da lista e remover exatamente o mesmo número de entradas do
   // journal, senão o re-run tenta CREATE/ADD/DROP em objetos que ainda existem.
-  for (const downFile of downFiles) {
-    const sql = await readFile(resolve("drizzle/rollback", downFile), "utf8");
-    await client.query(sql);
+  await client.query("begin");
+  try {
+    for (const downFile of downFiles) {
+      const sql = await readFile(resolve("drizzle/rollback", downFile), "utf8");
+      const neutralizado = sql
+        .replace(/^BEGIN;[ \t]*$/gm, "-- BEGIN neutralizado: a transação é do harness")
+        .replace(/^COMMIT;[ \t]*$/gm, "-- COMMIT neutralizado: a transação é do harness");
+      await client.query(neutralizado);
+    }
+    await client.query(
+      `delete from drizzle.__drizzle_migrations where id in (select id from drizzle.__drizzle_migrations order by id desc limit ${downFiles.length})`,
+    );
+    await client.query("commit");
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
   }
-  await client.query(
-    `delete from drizzle.__drizzle_migrations where id in (select id from drizzle.__drizzle_migrations order by id desc limit ${downFiles.length})`,
-  );
 }
 
 async function rollbackTo0003(client: Client): Promise<void> {
@@ -945,16 +966,167 @@ async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Clie
   });
 }
 
+// ── Pré-condições fail-closed contra deriva silenciosa ──────────────────────
+// A cadeia pressupõe um banco no head completo e sem resíduo de execução
+// anterior. Um aborto no meio de um rollback (o cenário medido em 2026-10-09:
+// 9 downs commitados, journal ainda no head) ou um resíduo de fixtures
+// produziriam falhas criptográficas adiante (`users_pkey`, política RLS
+// ausente). As duas verificações abaixo recusam com mensagem acionável ANTES de
+// qualquer seed ou rollback destrutivo.
+
+async function expectedJournalEntries(): Promise<number> {
+  const journal = JSON.parse(await readFile(resolve("drizzle/meta/_journal.json"), "utf8")) as {
+    entries: unknown[];
+  };
+  return journal.entries.length;
+}
+
+async function assertChainConsistency(client: Client): Promise<void> {
+  const esperado = await expectedJournalEntries();
+  const journal = await client.query<{ count: string }>(
+    "select count(*)::text as count from drizzle.__drizzle_migrations",
+  );
+  assert.equal(
+    journal.rows[0]?.count,
+    String(esperado),
+    `journal com ${journal.rows[0]?.count} entradas, esperado ${esperado} — banco parcialmente revertido: recrie o ambiente efêmero (db:down && docker volume rm <volume> && db:up) ou restaure o snapshot antes de reexecutar`,
+  );
+
+  // Objetos de migrações recentes: se o journal diz head mas o schema não tem
+  // estes objetos, o banco está parcialmente revertido (downs aplicados sem a
+  // poda do journal).
+  const canaries = await client.query<{
+    authPolicy: boolean;
+    aiMemoryPolicies: boolean;
+  }>(`
+    select exists (
+             select 1 from pg_policy p
+              join pg_class c on c.oid = p.polrelid
+             where p.polname = 'auth_service_access' and c.relname = 'users'
+           ) as "authPolicy",
+           to_regclass('public.ai_memory_policies') is not null as "aiMemoryPolicies"
+  `);
+  assert.deepEqual(
+    canaries.rows[0],
+    { authPolicy: true, aiMemoryPolicies: true },
+    "objetos de migrações recentes ausentes com journal no head (política auth_service_access de 0011, ai_memory_policies de 0019): banco parcialmente revertido — recrie o ambiente efêmero ou restaure o snapshot antes de reexecutar",
+  );
+}
+
+async function assertNoSeedResidue(client: Client): Promise<void> {
+  const residue = await client.query<{ count: string }>(
+    "select count(*)::text as count from users where id = any($1::text[])",
+    [[userA, userB]],
+  );
+  assert.equal(
+    residue.rows[0]?.count,
+    "0",
+    "resíduo de execução anterior em users: a cadeia pressupõe banco zerado — recrie o ambiente efêmero (docs/runbooks/postgres-local-docker.md) antes de reexecutar",
+  );
+}
+
+// ── Cenários de interrupção do rollback (evidência E4, 2026-10-09) ───────────
+// 1. a recusa do guarda 0010 com contas presentes não deixa estado parcial
+//    (atomicidade do chain de downs);
+// 2. a reexecução após a recusa é recusada de novo, com a MESMA assinatura;
+// 3. controle negativo: a checagem de consistência detecta deriva plantada;
+// 4. controle negativo: a checagem de resíduo detecta fixture pré-existente.
+
+async function assertRefusedRollbackLeavesNoDrift(client: Client): Promise<void> {
+  await client.query(
+    `insert into accounts (id, account_id, provider_id, issuer, user_id, password)
+     values ('drift-probe-account-1', 'drift-probe-1', 'credential', 'local:credential', $1, 'probe'),
+            ('drift-probe-account-2', 'drift-probe-2', 'credential', 'local:credential', $1, 'probe')`,
+    [userA],
+  );
+
+  const refusal = async () => rollbackTo0003(client);
+  await assert.rejects(
+    refusal,
+    (error: unknown) =>
+      error instanceof Error &&
+      /rollback 0010 BLOQUEADO/.test(error.message) &&
+      (error as { code?: string }).code === "P0001",
+    "o guarda de 0010 deve recusar com P0001 quando há contas",
+  );
+
+  // Depois da recusa: journal íntegro, schema no head, contas intactas — a
+  // transação única do chain de downs não deixou nada aplicado.
+  await assertChainConsistency(client);
+  const accounts = await client.query<{ count: string }>(
+    "select count(*)::text as count from accounts",
+  );
+  assert.equal(
+    accounts.rows[0]?.count,
+    "2",
+    "as contas plantadas não podem ser tocadas pela recusa",
+  );
+
+  // Reexecução: recusa de novo, com a mesma assinatura — nunca uma falha
+  // diferente (o modo de falha medido antes da correção).
+  await assert.rejects(
+    refusal,
+    (error: unknown) =>
+      error instanceof Error &&
+      /rollback 0010 BLOQUEADO/.test(error.message) &&
+      (error as { code?: string }).code === "P0001",
+    "a reexecução após a recusa deve recusar com a mesma assinatura",
+  );
+  await assertChainConsistency(client);
+
+  await client.query(
+    "delete from accounts where id in ('drift-probe-account-1', 'drift-probe-account-2')",
+  );
+}
+
+async function assertPreflightDetectsDrift(client: Client): Promise<void> {
+  // Deriva plantada dentro de uma transação que é desfeita: o schema fica atrás
+  // do journal sem tocar o estado real.
+  await client.query("begin");
+  try {
+    await client.query("drop policy auth_service_access on users");
+    await assert.rejects(
+      () => assertChainConsistency(client),
+      /parcialmente revertido/,
+      "a checagem de consistência deve recusar schema atrás do journal",
+    );
+  } finally {
+    await client.query("rollback");
+  }
+  await assertChainConsistency(client);
+}
+
+async function assertSeedResidueDetected(client: Client): Promise<void> {
+  // Neste ponto os fixtures de seed existem (userA/userB): a checagem de
+  // resíduo deve recusar — controle negativo da pré-condição.
+  await assert.rejects(
+    () => assertNoSeedResidue(client),
+    /resíduo de execução anterior/,
+    "a checagem de resíduo deve recusar quando os fixtures de seed já existem",
+  );
+}
+
 async function main(): Promise<void> {
   await runMigrations(adminUrl);
 
   const client = new Client({ connectionString: adminUrl });
   await client.connect();
   try {
+    // Pré-condições fail-closed: banco no head e sem resíduo de execução
+    // anterior. Um aborto no meio de um rollback deixaria schema != journal;
+    // resíduo de fixtures produziria users_pkey adiante. As duas recusas são
+    // acionáveis ANTES de qualquer seed ou rollback destrutivo.
+    await assertChainConsistency(client);
+    await assertNoSeedResidue(client);
     await ensureRuntimeRoleMembership(client);
     await seedIsolationFixtures(client);
     await assertDatabaseContract(client);
     await assertPurchasePriceConcurrency(adminUrl);
+    // Cenários de interrupção: recusa do guarda 0010 não deixa estado parcial
+    // (atomicidade do chain de downs) e as pré-condições detectam deriva/resíduo.
+    await assertRefusedRollbackLeavesNoDrift(client);
+    await assertPreflightDetectsDrift(client);
+    await assertSeedResidueDetected(client);
     await assertUpgradeFrom0003(adminUrl, client);
     await assertDowngrade0002To0001AndReplay(adminUrl, client);
 

@@ -198,7 +198,7 @@ async function main() {
         record(v) &&
         typeof v.key === "string" &&
         typeof v.path === "string" &&
-        /^src\/(?!test\/)[A-Za-z0-9_./-]+\.(ts|tsx|js|jsx)$/.test(v.path) &&
+        new RegExp("^src/(?!test/)[A-Za-z0-9_$./-]+\\.(ts|tsx|js|jsx)$").test(v.path) &&
         !v.path.includes("..") &&
         (metric(v, "new_lines_to_cover") ?? 0) > 0,
     );

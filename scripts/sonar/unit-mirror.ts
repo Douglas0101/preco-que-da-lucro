@@ -100,6 +100,31 @@ export function lcovUnits(lcov: string): Map<string, boolean | null> {
   return units;
 }
 
+/**
+ * Estado do LCOV para uma unidade de LINHA sob a regra medida do importador
+ * (AGENTS.md/DBT-101): o valor do DA existente prevalece e a contribuição de branch
+ * é fallback apenas para linha sem DA (teste oficial
+ * conditions_on_non_executable_lines + audit.repository.ts 28-30 no provedor).
+ * `undefined` = a linha não tem nenhuma identidade no LCOV.
+ */
+export function lineState(
+  units: Map<string, boolean | null>,
+  file: string,
+  line: number,
+): boolean | undefined {
+  const lineId = `${file}:${line}:line`;
+  if (units.has(lineId)) return units.get(lineId) === true;
+  const prefix = `${file}:${line}:`;
+  let declared = false,
+    covered = false;
+  for (const [id, value] of units)
+    if (id !== lineId && id.startsWith(prefix)) {
+      declared = true;
+      if (value === true) covered = true;
+    }
+  return declared ? covered : undefined;
+}
+
 export function mirror(
   snapshot: MainSnapshot,
   baseline: string,
@@ -133,7 +158,7 @@ export function mirror(
   let baselineCovered = 0;
   for (const unit of snapshot.units) {
     if (
-      !/^src\/(?!test\/)[A-Za-z0-9_./-]+\.(?:ts|tsx|js|jsx)$/.test(unit.file) ||
+      !new RegExp("^src/(?!test/)[A-Za-z0-9_$./-]+\\.(?:ts|tsx|js|jsx)$").test(unit.file) ||
       unit.file.includes("..") ||
       !Number.isInteger(unit.line) ||
       unit.line < 1 ||
@@ -152,8 +177,10 @@ export function mirror(
     // de DA é estado natural (sem crédito). Perda medida (false) contabiliza como lost;
     // dados ausentes em unidade coberta e branch desconhecido ('-') continuam reprovando.
     const uncoveredLine = unit.branch === undefined && !unit.covered;
-    const beforeState = before.get(id),
-      afterState = after.get(id);
+    const beforeState =
+        unit.branch === undefined ? lineState(before, unit.file, unit.line) : before.get(id),
+      afterState =
+        unit.branch === undefined ? lineState(after, unit.file, unit.line) : after.get(id);
     if (
       (beforeState !== unit.covered && !(uncoveredLine && beforeState === undefined)) ||
       (typeof afterState !== "boolean" && !(uncoveredLine && afterState === undefined))

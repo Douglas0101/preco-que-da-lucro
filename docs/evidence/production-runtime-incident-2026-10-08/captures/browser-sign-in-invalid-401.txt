@@ -1,0 +1,73 @@
+# Sign-in with deliberately invalid credentials, 2026-10-08 (UTC).
+# Two independent reproductions: (A) curl, (B) real browser with a
+# MutationObserver on the toaster region. Both read-only. No user data created.
+#
+# The credential is FABRICATED by the author for this probe and is not a real
+# credential of any account:
+#   email    = sonda-inexistente-20261008@example.invalid
+#             (.invalid is a reserved TLD that cannot be registered, so the
+#              address cannot exist)
+#   password = senha-falsa-de-sonda-nao-real
+# No credential value was read from any store; the values above were typed by
+# the author for this probe only.
+
+=========================================================================
+A. curl  (full raw response in sign-in-invalid-401.txt)
+=========================================================================
+Request:  POST /api/auth/sign-in/email
+          Host: preco-que-da-lucro-sage.vercel.app
+          content-type: application/json
+          {"email":"sonda-inexistente-20261008@example.invalid","password":"senha-falsa-de-sonda-nao-real"}
+Result:   HTTP/2 401 | time_total 0.898223s | size 74
+Body:     {"message":"Invalid email or password","code":"INVALID_EMAIL_OR_PASSWORD"}
+Full headers and body: sign-in-invalid-401.txt / sign-in-invalid-401-body.json
+
+=========================================================================
+B. Real browser — user-facing toast captured by MutationObserver
+=========================================================================
+=== B1. observer armed on the toaster region ===
+evaluate_script(() => {
+  window.__toasts = [];
+  const ta = document.querySelector('ol.toaster') || document.querySelector('[aria-label^="Notifications"]');
+  window.__observerTarget = ta ? (ta.className + '|' + (ta.getAttribute('aria-label')||'')) : 'NOT_FOUND';
+  if (ta) {
+    const mo = new MutationObserver((muts) => {
+      for (const m of muts) {
+        for (const n of m.addedNodes) {
+          if (n.nodeType === 1) window.__toasts.push({ tag: n.tagName, cls: n.className, text: (n.textContent||'').trim().slice(0,200) });
+        }
+      }
+    });
+    mo.observe(ta, { childList: true, subtree: true });
+  }
+  return { observerTarget: window.__observerTarget };
+})
+-> {"observerTarget":"|Notifications alt+T"}
+
+=== B2. form filled and submitted (uid 5_7 / 5_9 filled, uid 5_10 clicked) ===
+fill_form: Successfully filled out the form
+click(uid=5_10): Successfully clicked on the element
+
+=== B3. observer readback after 4 s ===
+evaluate_script(() => new Promise((resolve) => setTimeout(() => {
+  const toasts = Array.from(document.querySelectorAll('ol.toaster > li, [aria-label^="Notifications"] > *')).map(n => ({ tag: n.tagName, cls: n.className, text: (n.textContent||'').trim().slice(0,200) }));
+  resolve({ url: location.href, collected: window.__toasts, current: toasts });
+}, 4000)))
+-> {"url":"https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Fnovo-produto","collected":[{"tag":"OL","cls":"toaster group","text":"Invalid email or password"}],"current":[]}
+
+READING: the toast element `<ol class="toaster group">` appeared carrying the
+text "Invalid email or password". `current` is empty because the toast
+auto-dismisses; the observer's `collected` array is the record. `url` did not
+change, so no session was established.
+
+=== B4. no session created ===
+evaluate_script(async () => { const r = await fetch('/api/auth/get-session', { credentials: 'include' }); return { status: r.status, body: await r.text() }; })
+-> {"status":200,"body":"null"}
+
+=== B5. console after the failed sign-in ===
+list_console_messages(types=[error,warn]) ->
+msgid=10 [error] Failed to load resource: the server responded with a status of 401 ()
+
+VERDICT: VERIFIED. Invalid credentials return HTTP 401 with
+{"message":"Invalid email or password","code":"INVALID_EMAIL_OR_PASSWORD"},
+the user sees the toast "Invalid email or password", and no session is created.

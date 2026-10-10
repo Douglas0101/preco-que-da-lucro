@@ -11,7 +11,7 @@
     "concreteOperations": 36,
     "apiRoutes": 5,
     "transactionSites": 114,
-    "directDatabaseFiles": 52
+    "directDatabaseFiles": 53
   },
   "bffs": [
     {
@@ -580,6 +580,8 @@
       "operations": [],
       "imports": [
         "@/db/client.server",
+        "@/lib/db-failure-classifier",
+        "@/lib/deployment-identity.server",
         "@/lib/structured-logger",
         "@tanstack/react-router",
         "drizzle-orm"
@@ -1332,6 +1334,7 @@
     "src/test/break-even.negative-margin.test.tsx",
     "src/test/cross-tenant-denial.perf-waves.test.ts",
     "src/test/dashboard-consolidated-margin.db.test.ts",
+    "src/test/env-empty-defaults.test.ts",
     "src/test/financial-metrics.test.ts",
     "src/test/helpers/chat-execution-fakes.ts",
     "src/test/helpers/tool-runner-fakes.ts",

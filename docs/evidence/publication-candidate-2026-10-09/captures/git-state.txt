@@ -1,0 +1,134 @@
+# Git state, read-only, captured 2026-10-09 (UTC).
+# No mutation: only plumbing/read commands were used.
+
+## branch / HEAD / working tree
+$ git branch --show-current
+develop
+$ git rev-parse HEAD
+852dcaf04180cbe1bf132ed542312c2e543b13c9
+$ git log --oneline -8
+852dcaf docs(evidence): record the 2026-10-08 production runtime incident and close DBT-97
+0807115 fix(security): remove inline script, inline style and eval sinks that keep the CSP unenforceable
+09dfeba fix(db): treat a defined-and-empty environment variable as unset outside the AI path
+445b49a chore(git): ignore unmanifested playwright run output in the release evidence package
+974581a docs(release): record the merged release and the open production runtime incident
+fa45632 release: production chat repair, 60% coverage policy and verified CI attribution (#60)
+2b58f36 docs(release): record the verified release reconciliation before the main merge
+ce7a26e docs(evidence): refresh the check-local capture after the lazy-parse fix
+
+## working tree status (pre-existing WIP of other owners, NOT to be committed)
+$ git status --porcelain=v1
+ M docs/evidence/ciclo-29/MANIFEST.sha256
+ M docs/evidence/ciclo-29/README.md
+ M docs/evidence/neon-fixture-base-2026-10-07/MANIFEST.sha256
+ M docs/evidence/neon-fixture-base-2026-10-07/README.md
+ M docs/evidence/neon-fixture-base-2026-10-07/captures/ci-observed.txt
+ M src/routes/api/health/ready.ts
+ M src/test/model-gateway.test.ts
+?? .zcodeignore
+?? docs/evidence/ciclo-29/captures/remote-ci-observed.json
+?? docs/evidence/local-ci/1b54a89c3fe9d4489828bafdbe98eee30e28f2b8.sha256
+?? docs/evidence/local-ci/1b54a89c3fe9d4489828bafdbe98eee30e28f2b8/
+?? docs/evidence/local-ci/1cf2bc350a688232bedfdfbf99f1e1efbd4512e5.sha256
+?? docs/evidence/local-ci/20cba84100871953ab5377873f8ef2877916feaf.sha256
+?? docs/evidence/local-ci/21a2953547f35492b0a7b5fe5f8002d6867f51dd.sha256
+?? docs/evidence/local-ci/21a2953547f35492b0a7b5fe5f8002d6867f51dd/
+?? docs/evidence/local-ci/3b88391d1cee249cd18ef9adca5fd40d9020930b/
+?? docs/evidence/local-ci/3c088b671c6c4825eaa251dcc24743802b329048.sha256
+?? docs/evidence/local-ci/736e7062b44cd9ed37e416fcaf2d846daad5acc9.sha256
+?? docs/evidence/local-ci/736e7062b44cd9ed37e416fcaf2d846daad5acc9/
+?? docs/evidence/local-ci/_archive/
+?? docs/evidence/local-ci/c7e6a558e0da3abc7e30e36ab698d0119e078b80.sha256
+?? docs/evidence/local-ci/caddf97544bbb6a078331c59e841ae3dc7ebb2fe.sha256
+?? docs/evidence/local-ci/caddf97544bbb6a078331c59e841ae3dc7ebb2fe/
+?? docs/evidence/local-ci/ea11037cb24f726ca3350fef83c6a8791b0b3bf4.sha256
+?? docs/evidence/local-ci/ea11037cb24f726ca3350fef83c6a8791b0b3bf4/
+?? docs/evidence/pr-60-publication-2026-10-07/captures/browser-proof.json
+?? docs/evidence/pr-60-publication-2026-10-07/captures/browser-report-original.txt
+?? docs/evidence/pr-60-publication-2026-10-07/captures/db-container-identity.json
+?? docs/evidence/pr-60-publication-2026-10-07/captures/db-test.txt
+?? docs/evidence/pr-60-publication-2026-10-07/captures/neon-console-diagnostic.json
+?? docs/evidence/pr-60-publication-2026-10-07/captures/neon-published-412.txt
+?? docs/evidence/pr-60-publication-2026-10-07/captures/published-runs.json
+?? docs/evidence/publication-candidate-2026-10-09/
+?? src/lib/db-failure-classifier.ts
+?? src/lib/deployment-identity.server.ts
+?? src/test/db-failure-classifier.test.ts
+?? src/test/health-readiness-logging.test.ts
+
+## ancestry
+$ git merge-base --is-ancestor fa45632 852dcaf && echo YES || echo NO
+YES
+$ git log --oneline --ancestry-path fa45632391ad9ffe1d20d3bad5264a53b565638e..852dcaf
+852dcaf docs(evidence): record the 2026-10-08 production runtime incident and close DBT-97
+0807115 fix(security): remove inline script, inline style and eval sinks that keep the CSP unenforceable
+09dfeba fix(db): treat a defined-and-empty environment variable as unset outside the AI path
+445b49a chore(git): ignore unmanifested playwright run output in the release evidence package
+974581a docs(release): record the merged release and the open production runtime incident
+
+## remote refs
+$ git ls-remote origin refs/heads/main refs/heads/develop
+974581a724c06ea679e076b72e7063aac31b9a54	refs/heads/develop
+fa45632391ad9ffe1d20d3bad5264a53b565638e	refs/heads/main
+
+## commits between origin/develop and local HEAD (unpushed)
+$ git log --oneline origin/develop..HEAD
+852dcaf docs(evidence): record the 2026-10-08 production runtime incident and close DBT-97
+0807115 fix(security): remove inline script, inline style and eval sinks that keep the CSP unenforceable
+09dfeba fix(db): treat a defined-and-empty environment variable as unset outside the AI path
+445b49a chore(git): ignore unmanifested playwright run output in the release evidence package
+
+## files changed per unpushed commit
+--- 445b49a ---
+chore(git): ignore unmanifested playwright run output in the release evidence package
+
+ .gitignore | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+--- 09dfeba ---
+fix(db): treat a defined-and-empty environment variable as unset outside the AI path
+
+ docs/specs/M-02/matrix.generated.yaml    |   3 +-
+ docs/specs/M-02/matrix.yaml              |   3 +-
+ src/db/client.server.ts                  |  31 ++-
+ src/instrumentation/telemetry.ts         |  35 ++-
+ src/server/email/email-adapter.server.ts |  43 +++-
+ src/test/env-empty-defaults.test.ts      | 376 +++++++++++++++++++++++++++++++
+ src/test/env-nullish-catalog.test.ts     | 173 ++++++++++++++
+ src/test/env.server.test.ts              |  84 +++++++
+ 8 files changed, 727 insertions(+), 21 deletions(-)
+--- 0807115 ---
+fix(security): remove inline script, inline style and eval sinks that keep the CSP unenforceable
+
+ public/error-page.css      |  57 +++++++++++++++
+ src/lib/csp/zod-jitless.ts |  41 +++++++++++
+ src/lib/error-page.ts      |  34 ++++++---
+ src/router.tsx             |   8 ++
+ src/styles.css             |   7 ++
+ src/test/csp-sinks.test.ts | 179 +++++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 315 insertions(+), 11 deletions(-)
+--- 852dcaf ---
+docs(evidence): record the 2026-10-08 production runtime incident and close DBT-97
+
+ .../ADR-043-topologia-de-publicacao-e-csp-nonce.md | 254 +++++++++++++++
+ docs/evidence/agent-state/DEBTS.md                 | 170 +++++-----
+ docs/evidence/agent-state/PROGRESS.md              |   4 +
+ .../MANIFEST.sha256                                |  31 ++
+ .../README.md                                      | 316 +++++++++++++++++++
+ .../production-runtime-incident-2026-10-08/SPEC.md | 163 ++++++++++
+ .../captures/alias-dns-tls.txt                     |  13 +
+ .../captures/blob-identity-verification.txt        |  16 +
+ .../captures/browser-client-redirect.txt           |  37 +++
+ .../browser-csp-report-only-violations.txt         |  47 +++
+ .../captures/browser-sign-in-invalid-401.txt       |  73 +++++
+ .../captures/driver-versions.txt                   |  97 ++++++
+ .../captures/get-session.txt                       |  24 ++
+ .../captures/guard-negative-control.mjs            |  26 ++
+ .../captures/guard-negative-control.txt            |   7 +
+ .../captures/health-live.txt                       |   4 +
+ .../captures/health-ready.txt                      |   4 +
+ .../captures/incident-symptom-not-reproducible.txt |  83 +++++
+ .../captures/journal-database-url-record.txt       |  27 ++
+ .../captures/landing-headers.txt                   |  42 +++
+ .../captures/lockfile-diff.txt                     |  44 +++
+ .../captures/mcp-read-provenance.txt               |  77 +++++
+ .../captures/probe-novo-produto-shell.txt          |  27 ++

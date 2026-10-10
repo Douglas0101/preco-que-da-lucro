@@ -1,0 +1,20 @@
+=== GET https://preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app ===
+HTTP/2 302 
+cache-control: no-store, max-age=0
+content-type: text/plain
+date: Thu, 08 Oct 2026 22:42:42 GMT
+location: https://vercel.com/sso-api?url=https%3A%2F%2Fpreco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app%2F&nonce=68af5ccd7f33db685daaa5f7aeb11cd7dc160f0688ec4d6505909d9e854492e3
+server: Vercel
+set-cookie: _vercel_sso_nonce=27b4f4278f6074ecdeabc3672125e8fceb31439e85144289; Max-Age=3600; Path=/; Secure; HttpOnly; SameSite=Lax
+strict-transport-security: max-age=63072000; includeSubDomains; preload
+x-frame-options: DENY
+x-vercel-id: gru1::5q8dl-1791499362518-f908eae54b98
+
+
+--- meta ---
+HTTP 302 | time_total 0.188715s | size 263 | redirect https://vercel.com/sso-api?url=https%3A%2F%2Fpreco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app%2F&nonce=68af5ccd7f33db685daaa5f7aeb11cd7dc160f0688ec4d6505909d9e854492e3
+--- body (first 300 chars) ---
+Protected by Vercel Authentication
+To access this deployment with an authenticated Vercel CLI, run: vercel curl <deployment-url>
+With an authorized Vercel MCP connection (https://mcp.vercel.com), call web_fetch_vercel_url with url set to the full deployment URL.
+

@@ -1,0 +1,51 @@
+# Estado de plataforma consultado read-only (2026-10-09, ~12:00Z)
+
+## Vercel
+
+- Time: `team_2NnkSYjw5NRHAFnQFEPSHGmW` ("douglasultimatesouza-5127's
+  projects", plano hobby).
+- Projeto: `prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q` ("preco-que-da-lucro",
+  framework `tanstack-start-lovable`, Node 24.x), criado em 2026-09-08.
+- Dominio de producao: `preco-que-da-lucro-sage.vercel.app` (verified: true),
+  unico dominio de projeto. **Alias hoje → `dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL`
+  (sha `d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9`), `updatedAt` 1791486033986 =
+  2026-10-08T19:00:33.986Z** — a contencao executada apos o incidente.
+- Saude do dominio agora (medida 2026-10-09T12:06Z): `/api/health/live` →
+  200 `{"status":"ok"}`; `/api/health/ready` → 200
+  `{"status":"ready","dependencies":{"postgres":"ok"}}`; raiz 200.
+- CSP servida em producao: **report-only** (`script-src 'self'`,
+  `style-src 'self'`, sem `unsafe-inline`) — enforcement desligado
+  (`CSP_ENFORCE`); nenhum enfraquecimento, nenhum host novo.
+- Ultimo deployment do projeto: `dpl_6h2LTZX57soGiPP2oTurws7NsgVd` (READY,
+  target **production**, sha `fa45632391ad9ffe1d20d3bad5264a53b565638e`,
+  criado 2026-10-08T20:52Z via API) — **nao serve o alias** (conteudo).
+- Ultimo preview: `dpl_DjYNWE33zo7J2RBAZ6AQiEpcLg2k` (sha `ce9bd44e6…`,
+  branch develop, 2026-10-07T01:56Z).
+- Nenhum deployment criado para os pushes de develop de 2026-10-08
+  (17:35Z e 18:02Z) nem para qualquer commit local nao enviado: a integracao
+  Git **nao cria deployment automatico** no estado atual (verificado por
+  ausencia de deployments apos 2026-10-08T20:52Z enquanto develop avancava).
+- Erros de runtime (janela 7d): o grupo `health.readiness_failed`
+  (`Failed query: select 1 as ready`) ocorre **somente** em `dpl_6h2LTZ`
+  (fa45632), entre 2026-10-08T17:50:54Z e 19:00:34Z; nenhum apos a contencao.
+  Outros grupos sao anteriores (10-06/10-07) e de autenticacao/e-mail.
+- Envs de producao (apenas nome/id/target; **valores nunca lidos**):
+  `AI_MODEL` J5pElDTcKFX90oTm · `AI_GATEWAY_URL` MRVEv4GtTHNQtbMq ·
+  `AI_GATEWAY_API_KEY` rAlJcM0NLgoH2NPk · `DEEPSEEK_API_KEY` RcHEC8R64Y7c2l2g ·
+  `DATABASE_URL` **LQTKQMUeLWmQnHkM** (sensitive; `updatedAt` 1791304643815 =
+  2026-10-06T16:37:37Z — o valor que o incidente aponta como delta entre o
+  build antigo que conecta e o novo que nao conecta) · `DATABASE_URL_UNPOOLED`
+  3a5WC1Pq69PZPRTW (integracao Neon) · `BETTER_AUTH_URL` pccWmkwwwbHNpjYc ·
+  `BETTER_AUTH_SECRET` YrKXMx6MofUNLJYI · `CSP_ENFORCE` GTLnJqI7E2SdFp9C ·
+  `DATABASE_DRIVER` 2rD20ZAbjzHb3lWs · demais chaves AI_/OTEL_/auth presentes.
+- SSO: habilitado (`deploymentType: all_except_custom_domains`) — o dominio
+  sage e publico; URLs de deployment sao protegidas.
+
+## GitHub
+
+- `main` (protegida) = `fa45632391ad9ffe1d20d3bad5264a53b565638e`;
+  `develop` = `974581a724c06ea679e076b72e7063aac31b9a54`. PR #60 MERGED.
+- Runs de main no SHA fa45632: UI stack `37817760209` success (7m51s),
+  SonarCloud `37817760211` success, CI light `37817760130` success.
+- Push para develop funciona (dry-run `974581a..e61ec6e`); a autenticacao `gh`
+  esta ativa (conta Douglas0101).

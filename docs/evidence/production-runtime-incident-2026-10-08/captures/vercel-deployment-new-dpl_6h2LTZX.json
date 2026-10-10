@@ -1,0 +1,39 @@
+{
+  "result": {
+    "deployment": {
+      "id": "dpl_6h2LTZX57soGiPP2oTurws7NsgVd",
+      "name": "preco-que-da-lucro",
+      "url": "preco-que-da-lucro-gssnblvr8.vercel.app",
+      "type": "LAMBDAS",
+      "state": "READY",
+      "createdAt": 1791481532774,
+      "creator": {
+        "uid": "43PGP1C63dgekITZiVlzAzYp",
+        "username": "douglasultimatesouza-5127"
+      },
+      "project": {
+        "id": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+        "name": "preco-que-da-lucro",
+        "framework": "tanstack-start-lovable"
+      },
+      "meta": {
+        "githubCommitRef": "main",
+        "githubCommitSha": "fa45632391ad9ffe1d20d3bad5264a53b565638e",
+        "githubCommitMessage": "release: production chat repair, 60% coverage policy and verified CI attribution (#60)\n\nPR #60 integrada em main pelo circuito completo do SHA 2b58f361247dbb5ad0985832d74e1a86c2024dd3.\n\nEvidência do merge virtual e6b3ac11e9e945cdd0ab06cd814fbfbcbb9beee2 (pais d4b939536f2d2df74ab2d0f1bd02a73fc9ce3...",
+        "githubRepo": "preco-que-da-lucro",
+        "githubOrg": "Douglas0101"
+      },
+      "alias": [
+        "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app",
+        "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app"
+      ],
+      "target": "production",
+      "regions": ["iad1"],
+      "buildingAt": 1791481537612,
+      "ready": 1791481561438,
+      "readyState": "READY",
+      "source": "git",
+      "aliasError": null
+    }
+  }
+}

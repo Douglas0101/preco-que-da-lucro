@@ -239,3 +239,11 @@ mergeable: MERGEABLE · mergeStateStatus: BLOCKED · headRefOid: 2875382b2702c21
 - `scan + cobertura` e `main-coverage-mirror`: FAILURE — a suíte com cobertura estourou o timeout de 5000ms em `m02-transaction-sites.test.ts > importar o gerador não regrava a matriz` (o import do gerador parseava todo o `src/**` no nível do módulo pelo compilador TypeScript instrumentado; o mesmo teste falhou em um run irmão e passou em outro — sensível a carga).
 - Sem LCOV emitido, o gate do CE e o mirror classificaram NO-VERDICT (cascata), não por regressão de código.
 - Corrigendum: `scripts/m02-matrix.ts` passa a adiar o parse (`compiler()`, `parsedFiles()`, `databaseFiles()`, `importGraph()` preguiçosos) e o teste pina o estado com `compilerLoaded() === false` após o import; cobertura focada 21/21 em 1,67s (capturas coverage-import-red/green).
+
+== Runs finais (head ce7a26e, 2026-10-08) ==
+- Neon PR 37740987656: SUCCESS (6m29s) — fixture `br-twilight-river-ayb0xbah` (parent-data, 47/47 tabelas, 0 linhas apagadas, keptSchemas auth/neon_auth/pgrst), migrations, integração, RLS probe PASS, E2E, cleanup GET404; schema diff §12.5 não-vazio (385 linhas; artefatos gerenciados do provedor, ex. extensão `pg_session_jwt`) com journals iguais — observação por desenho, verdict por journals (DBT-56).
+- Sonar 37740987791: SUCCESS (scan + cobertura e mirror) — flake do import corrigido.
+- UI PR 37740987681: SUCCESS — `verify-release` com a matriz completa (chromium/firefox/webkit/mobile).
+- UI push 37740982369: attempts 1–2 reprovaram por `precondition: kit identity mismatch: imageVersion` (race de rollout, versões 20260927.320.1 × 20261004.327.1; DBT-100); **attempt 3 (re-execução completa do workflow) SUCCESS**.
+- Placar do head: 11/11 checks `success` (verify, verify-release, scan+cobertura, mirror, SonarCloud, Branch efêmera, Cleanup, Fork-guard, prepare browsers ×2, docs-light ×2). PR `mergeable`, `mergeStateStatus: BLOCKED` (ruleset de main ainda exige os gates do ADR-042; remoção do freeze/mirror é decisão humana pendente).
+- Inventário independente por console não repetido neste fecho (extensão do navegador desconectou); a prova de descarte do run é GET pós-delete 404 + inventários independentes anteriores (3 permanentes).

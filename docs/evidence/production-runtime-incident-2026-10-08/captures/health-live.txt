@@ -1,0 +1,4 @@
+=== GET /api/health/live ===
+HTTP 200 | time_total 1.813328s | size 15
+--- body ---
+{"status":"ok"}
