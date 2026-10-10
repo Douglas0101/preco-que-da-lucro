@@ -273,6 +273,26 @@ describe("resolvePoolDriver — a segunda leitura de DATABASE_DRIVER", () => {
   });
 });
 
+describe("OTEL — endpoint OTLP normalizado (regressão do PR #61)", () => {
+  it("remove a barra final antes de anexar /v1/traces e /v1/metrics", () => {
+    vi.stubEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://coletor:4318/");
+    expect(resolveOtelSdkConfig().endpoint).toBe("http://coletor:4318");
+  });
+
+  it("mantém o endpoint sem barra final", () => {
+    vi.stubEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://coletor:4318");
+    expect(resolveOtelSdkConfig().endpoint).toBe("http://coletor:4318");
+  });
+
+  it("trata definida e vazia como ausente", () => {
+    vi.stubEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "");
+    expect(resolveOtelSdkConfig().endpoint).toBeUndefined();
+  });
+
+  it("trata ausente como ausente", () => {
+    expect(resolveOtelSdkConfig().endpoint).toBeUndefined();
+  });
+});
 describe("OTEL — serviceName e intervalo de exportação", () => {
   it("cai no nome padrão quando OTEL_SERVICE_NAME está definida e vazia", () => {
     vi.stubEnv("OTEL_SERVICE_NAME", "");

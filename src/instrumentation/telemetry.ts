@@ -234,7 +234,11 @@ function shutdownActiveSdk(): Promise<void> {
  * configurada (catálogo do DBT-97), e a faixa mantém o piso de 1 s já
  * validado abaixo com um teto de 1 h, para um intervalo absurdo não desligar
  * a exportação por omissão. Ausente e vazio resultam no MESMO default. */
-export function resolveOtelSdkConfig(): { serviceName: string; exportIntervalMillis: number } {
+export function resolveOtelSdkConfig(): {
+  serviceName: string;
+  exportIntervalMillis: number;
+  endpoint: string | undefined;
+} {
   const rawInterval = readEnv("OTEL_METRIC_EXPORT_INTERVAL_MS");
   const parsedInterval = rawInterval === undefined ? Number.NaN : Number(rawInterval);
   return {
@@ -243,12 +247,16 @@ export function resolveOtelSdkConfig(): { serviceName: string; exportIntervalMil
       Number.isFinite(parsedInterval) && parsedInterval >= 1_000 && parsedInterval <= 3_600_000
         ? parsedInterval
         : 15_000,
+    // A barra final precisa sair antes de anexar /v1/traces e /v1/metrics: sem isto
+    // o caminho sai com barra dupla e coletores/proxies que a recusam perdem a
+    // telemetria em silêncio (regressão do PR #61; comportamento restaurado do main).
+    endpoint: readEnv("OTEL_EXPORTER_OTLP_ENDPOINT")?.replace(/\/$/, ""),
   };
 }
 
 /** OTLP is opt-in and initialization failures never block or fail a request. */
 export function ensureTelemetryStarted(): void {
-  const endpoint = readEnv("OTEL_EXPORTER_OTLP_ENDPOINT");
+  const { serviceName, exportIntervalMillis, endpoint } = resolveOtelSdkConfig();
   if (telemetryStarted || telemetryStarting || !endpoint) return;
   telemetryStarting = (async () => {
     try {
@@ -276,7 +284,6 @@ export function ensureTelemetryStarted(): void {
           typeof import("@opentelemetry/sdk-metrics")
         >,
       ]);
-      const { serviceName, exportIntervalMillis } = resolveOtelSdkConfig();
       const sdk = new NodeSDK({
         serviceName,
         traceExporter: new OTLPTraceExporter({ url: `${endpoint}/v1/traces` }),
