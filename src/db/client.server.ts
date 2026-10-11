@@ -5,7 +5,9 @@ import { drizzle as drizzleNodePostgres } from "drizzle-orm/node-postgres";
 import { Pool as NodePostgresPool } from "pg";
 import * as schema from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
+import { readEnv } from "@/lib/env.server";
 import { logJson } from "@/lib/structured-logger";
+import { numberSetting } from "@/lib/tenant-transaction";
 import { normalizeSqlOperation, redactSqlText } from "@/instrumentation/sql-redactor";
 import { recordSafely } from "@/instrumentation/safe-record";
 import {
@@ -17,11 +19,24 @@ import {
   type DatabasePoolSnapshot,
 } from "@/instrumentation/telemetry";
 
+/**
+ * Teto do pool por leitura VALIDADA — nunca `Number()` cru sobre `??`.
+ *
+ * `DATABASE_POOL_MAX=""` é o formato que um registro de env criado no import
+ * do projeto e nunca preenchido produz, e `Number("")` é `0`: um pool
+ * construído com `max: 0` não tem teto utilizável. `numberSetting` recusa o
+ * valor fora da faixa medida (1..901 max_connections do plano, Fase 0.3) e
+ * devolve o default 10 — exatamente o comportamento de variável ausente.
+ */
+function poolMaxSetting(): number {
+  return numberSetting("DATABASE_POOL_MAX", 10, 1, 901);
+}
+
 function createNeonDatabase(connectionString: string) {
   // Teto explícito; 901 max_connections medidos no plano (Fase 0.3); default 10 preserva o comportamento atual.
   const pool = new NeonPool({
     connectionString,
-    max: Number(process.env.DATABASE_POOL_MAX ?? "10"),
+    max: poolMaxSetting(),
   });
   instrumentPoolRoundTrips(pool, "neon-serverless");
   return drizzleNeon({ client: pool, schema });
@@ -60,19 +75,23 @@ export interface TransactionManager {
 let database: Database | undefined;
 
 function createDatabase() {
-  const connectionString = process.env.DATABASE_URL;
+  // `readEnv`, não `??` nem truthiness: `DATABASE_URL=""` passava pelo guard e
+  // chegava ao pool, que caía silenciosamente em `localhost:5432` — a classe do
+  // 503 de produção. Definida e vazia agora dá o MESMO erro explícito de
+  // ausente, sem nenhuma tentativa de conexão.
+  const connectionString = readEnv("DATABASE_URL");
   if (!connectionString) {
     throw new Error("DATABASE_URL não configurada");
   }
 
-  const driver = process.env.DATABASE_DRIVER ?? "neon-serverless";
+  const driver = readEnv("DATABASE_DRIVER") ?? "neon-serverless";
   if (driver === "node-postgres") {
     // CI and local integration tests use a regular ephemeral PostgreSQL server.
     // Production remains on Neon pooled through @neondatabase/serverless.
     // Teto explícito; 901 max_connections medidos no plano (Fase 0.3); default 10 preserva o comportamento atual.
     const pool = new NodePostgresPool({
       connectionString,
-      max: Number(process.env.DATABASE_POOL_MAX ?? "10"),
+      max: poolMaxSetting(),
     });
     instrumentPoolRoundTrips(pool, "node-postgres");
     // SAFETY: both driver branches of `createDatabase` must expose the same
@@ -338,7 +357,9 @@ function readPoolCount(value: unknown): number {
 
 function resolvePoolDriver(driver?: string): string {
   if (driver === "neon-serverless" || driver === "node-postgres") return driver;
-  return process.env.DATABASE_DRIVER === "node-postgres" ? "node-postgres" : "neon-serverless";
+  // Segunda leitura independente de DATABASE_DRIVER (o catálogo do DBT-97 só
+  // vê a primeira): mesma regra de "definida e vazia = não configurada".
+  return readEnv("DATABASE_DRIVER") === "node-postgres" ? "node-postgres" : "neon-serverless";
 }
 
 /** Counts real round trips per transaction and emits an `app.context_tx` log

@@ -1,0 +1,1280 @@
+{
+  "schema": "main-unit-adapter/1",
+  "verdict": "MAPPED",
+  "analysisId": "9048008c-3c10-49d6-96e8-b6f06fd89dc8",
+  "mainSha": "fa45632391ad9ffe1d20d3bad5264a53b565638e",
+  "total": 3468,
+  "metadataDigest": "0486fa2790018ee4051d81094d79aff4d259c2d9f5e3a51f6e5e132317d682df",
+  "snapshotSha256": "4913ebef95d49a953aaf493746f7226edaeb3085da5b4cabcea76c1a1d61dead",
+  "componentCensus": {
+    "expectedFiles": 145,
+    "discoveredFiles": [
+      "src/routes/api/auth/$.ts",
+      "src/routes/__root.tsx",
+      "src/lib/ai-endpoint.server.ts",
+      "src/server/repositories/ai-tool.repository.ts",
+      "src/components/ui/alert-dialog.tsx",
+      "src/lib/api-error.ts",
+      "src/components/app-shell.tsx",
+      "src/server/repositories/audit.repository.ts",
+      "src/server/services/audit.service.ts",
+      "src/lib/auth-client.ts",
+      "src/server/auth/auth-policy.ts",
+      "src/server/auth/auth.server.ts",
+      "src/routes/auth.tsx",
+      "src/components/ui/badge.tsx",
+      "src/lib/break-even.functions.ts",
+      "src/server/services/break-even.service.ts",
+      "src/lib/break-even.ts",
+      "src/lib/ai/budget-ledger.server.ts",
+      "src/components/ui/button.tsx",
+      "src/components/ui/calc-explainer.tsx",
+      "src/lib/calc-explanation.ts",
+      "src/server/repositories/calculation-snapshot.repository.ts",
+      "src/server/services/calculation-snapshot.service.ts",
+      "src/components/ui/card.tsx",
+      "src/lib/chat-data.ts",
+      "src/lib/chat-execution.server.ts",
+      "src/lib/chat-fsm.server.ts",
+      "src/lib/chat-fsm.ts",
+      "src/lib/chat-markdown-parser.ts",
+      "src/lib/chat-markdown.tsx",
+      "src/lib/chat.functions.ts",
+      "src/db/client.server.ts",
+      "src/server/auth/compromised-secrets.ts",
+      "src/server/repositories/conversation.repository.ts",
+      "src/server/services/conversation.service.ts",
+      "src/lib/csp-report-payload.ts",
+      "src/routes/api/csp-report.ts",
+      "src/lib/dashboard-summary-guard.ts",
+      "src/lib/dashboard.functions.ts",
+      "src/server/repositories/dashboard.repository.ts",
+      "src/server/services/dashboard.service.ts",
+      "src/routes/_authenticated/despesas.tsx",
+      "src/lib/diagnostic.functions.ts",
+      "src/server/services/diagnostic.service.ts",
+      "src/routes/_authenticated/diagnostico.tsx",
+      "src/server/email/email-adapter.server.ts",
+      "src/lib/env.server.ts",
+      "src/lib/error-capture.ts",
+      "src/lib/error-page.ts",
+      "src/server/contracts/event.contracts.ts",
+      "src/server/services/event.service.ts",
+      "src/server/repositories/expense.repository.ts",
+      "src/server/services/expense.service.ts",
+      "src/lib/expenses.functions.ts",
+      "src/lib/finance.ts",
+      "src/lib/ai/financial-output-grounding.ts",
+      "src/lib/financial-values.ts",
+      "src/lib/financial.functions.ts",
+      "src/server/services/financial.service.ts",
+      "src/lib/format.ts",
+      "src/instrumentation/http-request-span.ts",
+      "src/routes/index.tsx",
+      "src/routes/_authenticated/inicio.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/lib/list-limits.ts",
+      "src/routes/api/health/live.ts",
+      "src/components/loading-skeleton.tsx",
+      "src/lib/lovable-error-reporting.ts",
+      "src/server/auth/membership.service.ts",
+      "src/server/contracts/memory.contracts.ts",
+      "src/server/services/memory.policy.ts",
+      "src/server/repositories/memory.repository.ts",
+      "src/server/services/memory.service.ts",
+      "src/routes/_authenticated/novo-produto.tsx",
+      "src/lib/optimistic-version.ts",
+      "src/server/repositories/outbox.repository.ts",
+      "src/server/services/outbox.worker.ts",
+      "src/lib/output-contract.ts",
+      "src/lib/ai/output-sanitizer.ts",
+      "src/server/auth/password.server.ts",
+      "src/routes/_authenticated/ponto-equilibrio.tsx",
+      "src/routes/_authenticated/precos.tsx",
+      "src/server/services/pricing.service.ts",
+      "src/server/services/product-completeness.ts",
+      "src/server/services/product-detail.service.ts",
+      "src/server/services/product-read-model.service.ts",
+      "src/server/contracts/product.contracts.ts",
+      "src/server/repositories/product.repository.ts",
+      "src/server/services/product.service.ts",
+      "src/lib/products.functions.ts",
+      "src/routes/_authenticated/produtos.tsx",
+      "src/server/repositories/purchase-price.repository.ts",
+      "src/server/services/purchase-price.service.ts",
+      "src/lib/query-options.ts",
+      "src/lib/query-stale-time.ts",
+      "src/server/auth/rate-limit-rules.server.ts",
+      "src/server/auth/rate-limit-storage.server.ts",
+      "src/routes/api/health/ready.ts",
+      "src/lib/request-context.ts",
+      "src/middleware/request-context.ts",
+      "src/routes/_authenticated/route.tsx",
+      "src/router.tsx",
+      "src/routeTree.gen.ts",
+      "src/instrumentation/safe-record.ts",
+      "src/lib/sales.functions.ts",
+      "src/server/repositories/sales.repository.ts",
+      "src/server/services/sales.service.ts",
+      "src/db/schema.ts",
+      "src/lib/security-headers.ts",
+      "src/components/ui/select.tsx",
+      "src/lib/server-fn-envelope.ts",
+      "src/server.ts",
+      "src/lib/session-context.tsx",
+      "src/components/ui/sheet.tsx",
+      "src/routes/_authenticated/simulacoes.tsx",
+      "src/server/repositories/simulation.repository.ts",
+      "src/server/services/simulation.service.ts",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/sonner.tsx",
+      "src/instrumentation/sql-redactor.ts",
+      "src/start.ts",
+      "src/lib/structured-logger.ts",
+      "src/styles.css",
+      "src/instrumentation/telemetry.ts",
+      "src/server/auth/tenant-bootstrap.server.ts",
+      "src/lib/tenant-transaction.ts",
+      "src/components/ui/textarea.tsx",
+      "src/lib/ai/token-usage.ts",
+      "src/lib/ai/tool-payload.ts",
+      "src/lib/ai/tool-registry.ts",
+      "src/lib/ai/tool-runner.ts",
+      "src/server/contracts/transaction.contracts.ts",
+      "src/hooks/use-mobile.tsx",
+      "src/lib/utils.ts",
+      "src/routes/_authenticated/vendas.tsx",
+      "src/lib/vercel-analytics.ts",
+      "src/lib/observability/visual-correlation.ts",
+      "src/lib/observability/visual-perception.ts",
+      "src/lib/observability/visual-redaction.ts",
+      "src/lib/observability/visual-verification.ts",
+      "src/routes/api/vitals.ts",
+      "src/lib/web-vitals-payload.ts",
+      "src/lib/web-vitals.client.ts",
+      "src/lib/wire-safe-error.server.ts"
+    ],
+    "coverageFiles": [
+      "src/routes/api/auth/$.ts",
+      "src/routes/__root.tsx",
+      "src/lib/ai-endpoint.server.ts",
+      "src/server/repositories/ai-tool.repository.ts",
+      "src/components/ui/alert-dialog.tsx",
+      "src/lib/api-error.ts",
+      "src/components/app-shell.tsx",
+      "src/server/repositories/audit.repository.ts",
+      "src/server/services/audit.service.ts",
+      "src/lib/auth-client.ts",
+      "src/server/auth/auth-policy.ts",
+      "src/server/auth/auth.server.ts",
+      "src/routes/auth.tsx",
+      "src/components/ui/badge.tsx",
+      "src/lib/break-even.functions.ts",
+      "src/server/services/break-even.service.ts",
+      "src/lib/break-even.ts",
+      "src/lib/ai/budget-ledger.server.ts",
+      "src/components/ui/button.tsx",
+      "src/components/ui/calc-explainer.tsx",
+      "src/lib/calc-explanation.ts",
+      "src/server/repositories/calculation-snapshot.repository.ts",
+      "src/server/services/calculation-snapshot.service.ts",
+      "src/components/ui/card.tsx",
+      "src/lib/chat-data.ts",
+      "src/lib/chat-execution.server.ts",
+      "src/lib/chat-fsm.server.ts",
+      "src/lib/chat-fsm.ts",
+      "src/lib/chat-markdown-parser.ts",
+      "src/lib/chat-markdown.tsx",
+      "src/lib/chat.functions.ts",
+      "src/db/client.server.ts",
+      "src/server/auth/compromised-secrets.ts",
+      "src/server/repositories/conversation.repository.ts",
+      "src/server/services/conversation.service.ts",
+      "src/lib/csp-report-payload.ts",
+      "src/routes/api/csp-report.ts",
+      "src/lib/dashboard-summary-guard.ts",
+      "src/lib/dashboard.functions.ts",
+      "src/server/repositories/dashboard.repository.ts",
+      "src/server/services/dashboard.service.ts",
+      "src/routes/_authenticated/despesas.tsx",
+      "src/lib/diagnostic.functions.ts",
+      "src/server/services/diagnostic.service.ts",
+      "src/routes/_authenticated/diagnostico.tsx",
+      "src/server/email/email-adapter.server.ts",
+      "src/lib/env.server.ts",
+      "src/lib/error-capture.ts",
+      "src/lib/error-page.ts",
+      "src/server/contracts/event.contracts.ts",
+      "src/server/services/event.service.ts",
+      "src/server/repositories/expense.repository.ts",
+      "src/server/services/expense.service.ts",
+      "src/lib/expenses.functions.ts",
+      "src/lib/finance.ts",
+      "src/lib/ai/financial-output-grounding.ts",
+      "src/lib/financial-values.ts",
+      "src/lib/financial.functions.ts",
+      "src/server/services/financial.service.ts",
+      "src/lib/format.ts",
+      "src/instrumentation/http-request-span.ts",
+      "src/routes/index.tsx",
+      "src/routes/_authenticated/inicio.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/label.tsx",
+      "src/lib/list-limits.ts",
+      "src/routes/api/health/live.ts",
+      "src/components/loading-skeleton.tsx",
+      "src/lib/lovable-error-reporting.ts",
+      "src/server/auth/membership.service.ts",
+      "src/server/contracts/memory.contracts.ts",
+      "src/server/services/memory.policy.ts",
+      "src/server/repositories/memory.repository.ts",
+      "src/server/services/memory.service.ts",
+      "src/routes/_authenticated/novo-produto.tsx",
+      "src/lib/optimistic-version.ts",
+      "src/server/repositories/outbox.repository.ts",
+      "src/server/services/outbox.worker.ts",
+      "src/lib/output-contract.ts",
+      "src/lib/ai/output-sanitizer.ts",
+      "src/server/auth/password.server.ts",
+      "src/routes/_authenticated/ponto-equilibrio.tsx",
+      "src/routes/_authenticated/precos.tsx",
+      "src/server/services/pricing.service.ts",
+      "src/server/services/product-completeness.ts",
+      "src/server/services/product-detail.service.ts",
+      "src/server/services/product-read-model.service.ts",
+      "src/server/contracts/product.contracts.ts",
+      "src/server/repositories/product.repository.ts",
+      "src/server/services/product.service.ts",
+      "src/lib/products.functions.ts",
+      "src/routes/_authenticated/produtos.tsx",
+      "src/server/repositories/purchase-price.repository.ts",
+      "src/server/services/purchase-price.service.ts",
+      "src/lib/query-options.ts",
+      "src/lib/query-stale-time.ts",
+      "src/server/auth/rate-limit-rules.server.ts",
+      "src/server/auth/rate-limit-storage.server.ts",
+      "src/routes/api/health/ready.ts",
+      "src/lib/request-context.ts",
+      "src/middleware/request-context.ts",
+      "src/routes/_authenticated/route.tsx",
+      "src/router.tsx",
+      "src/routeTree.gen.ts",
+      "src/instrumentation/safe-record.ts",
+      "src/lib/sales.functions.ts",
+      "src/server/repositories/sales.repository.ts",
+      "src/server/services/sales.service.ts",
+      "src/db/schema.ts",
+      "src/lib/security-headers.ts",
+      "src/components/ui/select.tsx",
+      "src/lib/server-fn-envelope.ts",
+      "src/server.ts",
+      "src/lib/session-context.tsx",
+      "src/components/ui/sheet.tsx",
+      "src/routes/_authenticated/simulacoes.tsx",
+      "src/server/repositories/simulation.repository.ts",
+      "src/server/services/simulation.service.ts",
+      "src/components/ui/skeleton.tsx",
+      "src/components/ui/sonner.tsx",
+      "src/instrumentation/sql-redactor.ts",
+      "src/start.ts",
+      "src/lib/structured-logger.ts",
+      "src/instrumentation/telemetry.ts",
+      "src/server/auth/tenant-bootstrap.server.ts",
+      "src/lib/tenant-transaction.ts",
+      "src/components/ui/textarea.tsx",
+      "src/lib/ai/token-usage.ts",
+      "src/lib/ai/tool-payload.ts",
+      "src/lib/ai/tool-registry.ts",
+      "src/lib/ai/tool-runner.ts",
+      "src/server/contracts/transaction.contracts.ts",
+      "src/hooks/use-mobile.tsx",
+      "src/lib/utils.ts",
+      "src/routes/_authenticated/vendas.tsx",
+      "src/lib/vercel-analytics.ts",
+      "src/lib/observability/visual-correlation.ts",
+      "src/lib/observability/visual-perception.ts",
+      "src/lib/observability/visual-redaction.ts",
+      "src/lib/observability/visual-verification.ts",
+      "src/routes/api/vitals.ts",
+      "src/lib/web-vitals-payload.ts",
+      "src/lib/web-vitals.client.ts",
+      "src/lib/wire-safe-error.server.ts"
+    ],
+    "excludedFiles": [
+      {
+        "path": "src/styles.css",
+        "reason": "CSS_OUTSIDE_JS_TS_COVERAGE",
+        "sourceSha256": "2fedbc45b46a11c33d5fbeb6b560fadb9d12d86c2b178007e2d87bd2ce5b7774"
+      }
+    ]
+  },
+  "requests": [
+    {
+      "origin": "github",
+      "path": "/repos/Douglas0101/preco-que-da-lucro/branches/main",
+      "status": 200,
+      "latencyMs": 390
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/project_analyses/search",
+      "status": 200,
+      "latencyMs": 548
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/measures/component_tree",
+      "status": 200,
+      "latencyMs": 270
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 297
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 325
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 437
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 344
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 374
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 361
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 232
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 409
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 224
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 212
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 394
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 260
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 254
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 218
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 223
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 222
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 255
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 265
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 259
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 215
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 275
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 213
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 237
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 217
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 237
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 252
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 229
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 256
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 236
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 314
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 260
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 240
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 243
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 292
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 270
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 230
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 229
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 220
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 248
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 232
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 221
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 235
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 233
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 245
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 238
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 221
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 241
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 257
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 248
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 288
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 209
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 385
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 216
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 221
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 223
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 220
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 274
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 394
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 250
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 248
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 224
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 244
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 236
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 246
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 212
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 220
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 283
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 263
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 205
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 220
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 243
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 211
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 203
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 221
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 251
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 239
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 280
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 291
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 250
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 245
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 209
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 240
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 207
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 242
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 252
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 229
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 215
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 225
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 390
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 246
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 271
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 233
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 235
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 224
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 247
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 263
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 233
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 229
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 364
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 250
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 242
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 243
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 207
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 216
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 423
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 206
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 237
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 233
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 233
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 229
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 219
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 227
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 239
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 219
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 220
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 248
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 226
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 258
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 254
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 232
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 282
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 230
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 217
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 245
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 229
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 234
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 253
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 372
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 215
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 218
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 212
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 205
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 241
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 222
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 223
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 247
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 221
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 236
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 210
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 219
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 227
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 245
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 248
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 208
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 250
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 208
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 241
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 218
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 222
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 224
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 269
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 264
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 225
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 208
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 210
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/sources/lines",
+      "status": 200,
+      "latencyMs": 226
+    },
+    {
+      "origin": "github",
+      "path": "/repos/Douglas0101/preco-que-da-lucro/branches/main",
+      "status": 200,
+      "latencyMs": 410
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/project_analyses/search",
+      "status": 200,
+      "latencyMs": 512
+    }
+  ]
+}

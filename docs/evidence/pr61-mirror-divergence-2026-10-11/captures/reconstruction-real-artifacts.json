@@ -1,0 +1,113 @@
+{
+  "census": {
+    "step": "A-census-divergence",
+    "mainSha": "fa45632391ad9ffe1d20d3bad5264a53b565638e",
+    "candidateCheckout": "bd4f02d2553d7f98f67f840c732aa5b1da1891bc",
+    "snapshotDiscoveredFiles": 144,
+    "snapshotSealedHashes": 144,
+    "divergedCount": 6,
+    "diverged": [
+      {
+        "file": "src/db/client.server.ts",
+        "sealed": "f09e09380c0eae5222ba5df37e2d9bcb3d0fd78ff39477c694e3f34c8587346c",
+        "candidate": "178a95b06d0560b24d500f9d94b710dacf8927deecfb5b522d41096db4449cb4"
+      },
+      {
+        "file": "src/instrumentation/telemetry.ts",
+        "sealed": "4e1aea1fa1b534acc88c083ab3796a70238547593298d0c65280bb47c47ee44b",
+        "candidate": "c4bbf4b7bdf29bffdbc72960174dc0a54b924b91e1634ade12b6a8489c0d0ed6"
+      },
+      {
+        "file": "src/lib/error-page.ts",
+        "sealed": "635915886f5d44a18b6add2a53959dbe2e8ba1bb3f7e597fc714650e74157bb6",
+        "candidate": "930453f2458555363f4b4295e5aaccb873c4c0181c6633953fecdccf83aa6d55"
+      },
+      {
+        "file": "src/router.tsx",
+        "sealed": "c37e2863eb9fc5f99f49d3a5a9dd75b918c1129cc463e4ad73e0a527136d0e15",
+        "candidate": "0462936a616e91416ed96c4f0bd68cac3a8d3cfeeec66b251b81acdf43bf8bf9"
+      },
+      {
+        "file": "src/routes/api/health/ready.ts",
+        "sealed": "6fadcfdbe846f2bc3f879955def86f18f5d681a3e345ae7ffc643681b9c787f3",
+        "candidate": "5cc4716999f950915a1878239e0c85700b2ba921a3eebe73ccdad29190481697"
+      },
+      {
+        "file": "src/server/email/email-adapter.server.ts",
+        "sealed": "b6b4fe9a5fe5e697521f24523547ac4f81ef892a7b6363acde7e0a2d55997c9f",
+        "candidate": "f0f7b6b2d051ff4ac3f99c1affa7bcdc970a7158dfea77b96dde0bf1cc49943e"
+      }
+    ],
+    "filesAbsentFromCandidate": [],
+    "unitFiles": 94,
+    "divergedWithUnits": [
+      "src/db/client.server.ts",
+      "src/instrumentation/telemetry.ts",
+      "src/router.tsx"
+    ]
+  },
+  "thrown": {
+    "name": "SourceDivergence",
+    "message": "main/candidate source divergence refuses the projection"
+  },
+  "result": null,
+  "refusal": {
+    "files": [
+      {
+        "path": "src/db/client.server.ts",
+        "mainSha256": "f09e09380c0eae5222ba5df37e2d9bcb3d0fd78ff39477c694e3f34c8587346c",
+        "candidateSha256": "178a95b06d0560b24d500f9d94b710dacf8927deecfb5b522d41096db4449cb4"
+      },
+      {
+        "path": "src/instrumentation/telemetry.ts",
+        "mainSha256": "4e1aea1fa1b534acc88c083ab3796a70238547593298d0c65280bb47c47ee44b",
+        "candidateSha256": "c4bbf4b7bdf29bffdbc72960174dc0a54b924b91e1634ade12b6a8489c0d0ed6"
+      },
+      {
+        "path": "src/router.tsx",
+        "mainSha256": "c37e2863eb9fc5f99f49d3a5a9dd75b918c1129cc463e4ad73e0a527136d0e15",
+        "candidateSha256": "0462936a616e91416ed96c4f0bd68cac3a8d3cfeeec66b251b81acdf43bf8bf9"
+      }
+    ],
+    "eligibleUnits": 221
+  },
+  "report": {
+    "schema": "main-mirror/2",
+    "mainSha": "fa45632391ad9ffe1d20d3bad5264a53b565638e",
+    "analysisId": "9048008c-3c10-49d6-96e8-b6f06fd89dc8",
+    "target": {
+      "total": 3468,
+      "covered": 2507,
+      "coverage": 72.28950403690888,
+      "gap": 268,
+      "floor": 1734
+    },
+    "verdict": "NO-VERDICT",
+    "reasonCode": "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE",
+    "reason": "Main and candidate sources differ inside the eligible unit census; the conservative projection requires the same source (ADR-038 §3).",
+    "diagnostic": {
+      "code": "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE",
+      "divergentFiles": 3,
+      "eligibleUnits": 221,
+      "pathSha256": [
+        "15a5a311e1e1e6f12030c8d3fa46b6a1521d2ced648fbefc4d04d3986eb31291",
+        "2194a569c1e2cb2d5e6be82f85a9b8aa671cb1178cec3dabf1910af929285cb2",
+        "a912dec0b96991e9cd5f7b6382f6577cc69030f4aa566f4e24d23570550bfd2a"
+      ]
+    },
+    "missingNames": []
+  },
+  "observations": {
+    "accepted": "NO-VERDICT",
+    "error": null
+  },
+  "negativeResults": {
+    "exit-0": "REJECTED:NO-VERDICT is not a recognized historical observation.",
+    "adapter-kind": "REJECTED:Advisory evidence schema/identity is unavailable.",
+    "no-diagnostic": "REJECTED:NO-VERDICT source divergence is not a recognized observation.",
+    "zero-files": "REJECTED:NO-VERDICT source divergence is not a recognized observation.",
+    "duplicated-path-digest": "REJECTED:NO-VERDICT source divergence is not a recognized observation.",
+    "eligible-above-denominator": "REJECTED:NO-VERDICT source divergence is not a recognized observation.",
+    "generic-execution-code": "REJECTED:NO-VERDICT is not a recognized historical observation."
+  }
+}

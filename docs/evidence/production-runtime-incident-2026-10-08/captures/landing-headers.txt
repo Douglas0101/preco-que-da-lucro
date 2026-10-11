@@ -1,0 +1,42 @@
+=== GET / (headers) ===
+HTTP/2 200 
+age: 0
+cache-control: public, max-age=0, must-revalidate
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+content-type: text/html; charset=utf-8
+date: Thu, 08 Oct 2026 22:40:59 GMT
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+reporting-endpoints: csp-endpoint="/api/csp-report"
+server: Vercel
+strict-transport-security: max-age=31536000; includeSubDomains
+x-content-type-options: nosniff
+x-correlation-id: 5acb6287-55d3-4fe6-8689-60943c846b8c
+x-vercel-cache: MISS
+x-vercel-id: gru1::iad1::qrmwt-1791499259318-089cfa32def9
+
+
+--- meta ---
+HTTP 200 | time_total 0.326892s | size 9891
+--- title ---
+(grep suprimido: HTML contem bytes nao-ASCII; usado grep -a)
+--- h1/sample ---
+(grep suprimido: HTML contem bytes nao-ASCII; usado grep -a)
+--- title ---
+<title>Preço que Dá Lucro — avalie preços sustentáveis para seu produto</title>
+--- root div / hydration markers ---
+__TSR_key
+--- div id candidates ---
+id="$tsr-stream-barrier"
+--- script count ---
+1
+--- TSR markers ---
+_TSR
+--- script tag count ---
+3
+--- module preload count ---
+14
+--- TSR stream barrier ---
+1
+--- landing heading text ---
+3

@@ -1,0 +1,23 @@
+GIT AND ARTIFACT IDENTITY
+
+repo: Douglas0101/preco-que-da-lucro
+origin/main            fa45632391ad9ffe1d20d3bad5264a53b565638e
+origin/develop         82a2372ee8b00dd5ea93c0ff5e527f4dc8a1739e
+merge-base(main,dev)   fa45632391ad9ffe1d20d3bad5264a53b565638e
+pr61 head (82a2372)    82a2372ee8b00dd5ea93c0ff5e527f4dc8a1739e
+pr61 merge ref         bd4f02d2553d7f98f67f840c732aa5b1da1891bc
+pr61 merge parents     fa45632391ad9ffe1d20d3bad5264a53b565638e 82a2372ee8b00dd5ea93c0ff5e527f4dc8a1739e 
+
+run 38007913293 (SonarCloud scanner + cobertura, event pull_request, head 82a2372)
+  job 114080890458 scan + cobertura            success
+  job 114081413318 main-coverage-mirror       failure (step 11)
+  artifact 11652725068 main-mirror-verdict    33067 bytes
+  artifact 11651918804 coverage-lcov          108100 bytes
+  artifact 11651799049 sonar-gate-readout     1905 bytes
+
+original main scanner run 37817760211 (push main fa45632)
+  artifact 11567568236 coverage-lcov          106124 bytes
+  artifact 11568700516 sonar-gate-readout     1910 bytes
+
+required status checks (ruleset 24333849, refs/heads/main): verify-release, scan + cobertura
+main-coverage-mirror: informational (ADR-042) and NOT a required check

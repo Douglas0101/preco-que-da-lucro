@@ -1,0 +1,12 @@
+{
+  "schema": "main-mirror-observation/1",
+  "kind": "adapter",
+  "rawExitCode": 0,
+  "signal": null,
+  "rawStatus": "MAPPED",
+  "reportName": "c28-main-unit-adapter.json",
+  "reportSha256": "155563a5aaad21f400ca872fde8a1c4257f4c6530af06f90b8713af053379b27",
+  "observation": "MAPPED",
+  "outcome": "INFORMATIONAL",
+  "approvesMain": false
+}

@@ -1,0 +1,27 @@
+=== GET https://preco-que-da-lucro-sage.vercel.app/novo-produto ===
+HTTP/2 200 
+age: 0
+cache-control: public, max-age=0, must-revalidate
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+content-type: text/html; charset=utf-8
+date: Thu, 08 Oct 2026 22:42:43 GMT
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+reporting-endpoints: csp-endpoint="/api/csp-report"
+server: Vercel
+strict-transport-security: max-age=31536000; includeSubDomains
+x-content-type-options: nosniff
+x-correlation-id: 8f30a339-abae-442d-96b1-87118e6c752a
+x-vercel-cache: MISS
+x-vercel-id: gru1::iad1::xf7tc-1791499363106-1ee0f12ef4e9
+
+
+--- meta ---
+HTTP 200 | time_total 0.414187s | size 4231 | redirect 
+--- body (first 300 chars) ---
+<!DOCTYPE html><html lang="pt-BR"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/assets/styles-BqnPtUyt.css" data-precedence="default"/><title>Lovable App</title><meta name="description" content="Lovable Generated Proje
+--- auth redirect target present in HTML? ---
+--- TSR markers ---
+_TSR
+--- script count ---
+3

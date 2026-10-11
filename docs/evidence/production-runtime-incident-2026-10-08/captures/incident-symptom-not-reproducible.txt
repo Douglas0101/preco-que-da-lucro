@@ -1,0 +1,83 @@
+# The incident symptom itself could NOT be reproduced on 2026-10-08, and the
+# reason is recorded here instead of a fabricated capture.
+# All probes read-only. 2026-10-08 (UTC).
+
+WHAT IS MISSING: a live capture of
+  GET /api/health/ready      -> 503 {"status":"not_ready","dependencies":{"postgres":"unavailable"}}
+  GET /api/auth/get-session  -> 500
+on deployment dpl_6h2LTZX57soGiPP2oTurws7NsgVd.
+
+WHY IT CANNOT BE REPRODUCED:
+  1. The public alias no longer serves that deployment.
+     VERIFIED: vercel-alias-sage.json shows preco-que-da-lucro-sage.vercel.app
+     -> dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL, and dpl_6h2LTZX no longer lists that
+     alias (vercel-deployment-new-dpl_6h2LTZX.json).
+  2. The deployment's own domains are SSO-protected, so an unauthenticated
+     probe is redirected away before reaching the function. Verbatim:
+       $ curl -sS -D - https://preco-que-da-lucro-gssnblvr8.vercel.app/api/health/ready
+       HTTP/2 302
+       location: https://vercel.com/sso-api?url=https%3A%2F%2Fpreco-que-da-lucro-gssnblvr8.vercel.app%2Fapi%2Fhealth%2Fready&nonce=3240c4013eb9a5e832bf3bab9385e92c4f8e3e19373ada6c85d471b738be2687
+       set-cookie: _vercel_sso_nonce=b4d3bf4a02b97d0cb418aa24449ee6fc182f7e69eec20c52; Max-Age=3600; Path=/; Secure; HttpOnly; SameSite=Lax
+       x-frame-options: DENY
+       --- body ---
+       Protected by Vercel Authentication
+     Full capture: probe-sso-new-deployment-domain.txt
+  3. Using an authenticated bypass link to reach it was NOT attempted: that
+     would require `vercel get_access_to_vercel_url`, which the operating rules
+     permit only when the access is explicitly needed and authorized. Reaching
+     a broken deployment through an auth bypass is not needed to document an
+     incident, so it was not used.
+  4. The old-500 state is not recoverable by redeploy either: a fresh build of
+     the OLD sha was already tried by the platform and refused with
+     BLOCKED_PACKAGE (vercel-deployment-blocked-dpl_4vNYvd5.json), so that
+     experiment never produced a runtime answer.
+
+WHAT IS AVAILABLE INSTEAD — and it is better than a live reproduction:
+  the server-side structured log line that the 503 branch emits. VERIFIED, in
+  vercel-runtime-errors-7d.txt, cluster 03:
+     {"timestamp":"2026-10-08T17:50:54.712Z","level":"error",
+      "event":"health.readiness_failed","dependency":"postgres",
+      "error":{"name":"Error","message":"Failed query: select 1 as ready\nparams: "}}
+     count=6 users=3 routes=/__server
+     first=2026-10-08T17:50:54.000Z last=2026-10-08T19:00:34.000Z
+     lastDeployment=dpl_6h2LTZX57soGiPP2oTurws7NsgVd
+  plus the corresponding 500s, clusters 09 / 24 / 12:
+     GET /api/auth/get-session code=INTERNAL_ERROR "Failed query: begin"
+     durationMs 130 / 93 / 125, at 17:50:56Z, 17:51:34Z and 18:42:25Z.
+
+So the incident is evidenced by its server-side record, and its symptom is NOT
+re-evidenced by a fresh HTTP capture. Both statements are true and this file
+exists so they cannot be conflated.
+
+----------------------------------------------------------------------
+RECONSTRUCTED TIMELINE (all timestamps VERIFIED from platform reads)
+----------------------------------------------------------------------
+2026-10-01T14:52:06.674Z  dpl_DHsbjECX built, sha d4b9395, target production.
+                           vercel-deployment-old-dpl_DHsbjECX.json (createdAt
+                           1790866326674). Serves sage from here on.
+2026-10-06T18:42:12.760Z  dpl_4vNYvd5 (redeploy of the SAME sha d4b9395)
+                           created -> ERROR / BLOCKED_PACKAGE.
+                           vercel-deployment-blocked-dpl_4vNYvd5.json.
+2026-10-08T17:45:32.774Z  dpl_6h2LTZX created, sha fa45632, target production.
+2026-10-08T17:46:01.438Z  dpl_6h2LTZX READY (createdAt/ready in
+                           vercel-deployment-new-dpl_6h2LTZX.json).
+~2026-10-08T17:46Z        alias sage assigned to dpl_6h2LTZX. INFERRED from
+                           PROGRESS.md L792/L793; not separately measured —
+                           only the LAST alias write is visible.
+2026-10-08T17:50:54.712Z  FIRST health.readiness_failed. count=6 in total.
+                           vercel-runtime-errors-7d.txt cluster 03.
+2026-10-08T17:50:56.670Z  FIRST get-session 500, INTERNAL_ERROR
+                           "Failed query: begin". cluster 09.
+2026-10-08T18:01:25Z      PROGRESS.md L793 records the symptom in the journal.
+2026-10-08T18:34:00Z      PROGRESS.md L794 records the containment INTENT.
+2026-10-08T18:42:25.595Z  another get-session 500. cluster 12. Still serving.
+2026-10-08T19:00:33.986Z  *** CONTAINMENT EXECUTED. ***
+                           alias sage -> dpl_DHsbjECX, alias updatedAt
+                           1791486033986. VERIFIED in vercel-alias-sage.json.
+2026-10-08T19:00:34.000Z  LAST health.readiness_failed, 14 ms after the alias
+                           move. cluster 03 (last=19:00:34.000Z).
+
+NOTE ON THE 14 ms: the last failure and the alias write are 14 ms apart. That
+is consistent with the final failing request arriving immediately before the
+alias switch completed, and it is the tightest available correlation between
+the two. It is NOT proof of ordering beyond what the two timestamps say.

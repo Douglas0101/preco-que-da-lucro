@@ -1,5 +1,5 @@
 d98ee0b6f6b26bd2404fe86528c3ea6dec41c62b67f4a6b7ff875d1a049200ed  docs/evidence/ciclo-29/MANIFEST.visual.sha256
-e143754c0b3f6b74e4718f9181e2b5f775bf9b9b84cd965efb179e5294c026e5  docs/evidence/ciclo-29/README.md
+bdc17f28045ee20ba948c5d11f3798e759f2a964913f0bbdf071c68561184724  docs/evidence/ciclo-29/README.md
 8bcaf507d8e27391e04da33868dc06fa7ad268f398f8d6997970566e1f082227  docs/evidence/ciclo-29/SPEC.md
 19ac333727a7b4d2c00b7fa5346a76d67ce76aabb27df4bdfc94ffe8618ee41c  docs/evidence/ciclo-29/captures/bootstrap-cleanup.json
 043cb933e86d84c8ec44d9daf7f013a1139ebe56175d42508e591577afc8e3e9  docs/evidence/ciclo-29/captures/browser-preconditions.json
@@ -20,6 +20,7 @@ ddd5919ef3d5351d464de74becd241fdb7b374dc135f28bc4782938d307cbf21  docs/evidence/
 aabbd5e142aa2edd20b777e4d3061abdd4cf3f4d84da5a7f6cd2aebc996ffa39  docs/evidence/ciclo-29/captures/principal-install.txt
 760acdbe52e4a6aab345ea391e7689329057855ce1cc5a94a3cb14ba22ddcc15  docs/evidence/ciclo-29/captures/quality-gates.txt
 703918740d9e63d0b96d6bf9bb6c9a134e9c29368f54d7b5b83e1358237d73dc  docs/evidence/ciclo-29/captures/quality-red-lint.txt
+e5d1fee8d8aab8fc926fc042140318bdf56f34924b217c7708444642b0130fcf  docs/evidence/ciclo-29/captures/remote-ci-observed.json
 482f6fedf264f45703db10bffd46ef09aee4e11396d7d0edefbc98ba2863d739  docs/evidence/ciclo-29/captures/select-identity.json
 4290133f1b566f68219554a515afdc1c2062ac1f4430d67a351c7b4f84529076  docs/evidence/ciclo-29/captures/session-baseline.json
 de73e28174dfe7922e0dee25ec5247efd08a9196cca347eba16da5a3c19fa8e9  docs/evidence/ciclo-29/captures/session-gate.json

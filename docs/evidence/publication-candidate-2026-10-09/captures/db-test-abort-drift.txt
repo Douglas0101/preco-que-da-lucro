@@ -1,0 +1,170 @@
+# E4 — o que o abort do guarda de rollback deixa para tras (sonda isolada, 2026-10-09)
+#
+# Alvo: container PG17 efemero PROPRIO, sem volume, 127.0.0.1:55432.
+# O container da bancada (:5432), o volume nomeado, Neon e producao NAO sao tocados.
+# Objetivo: medir o estado residual depois da recusa do guarda de
+# drizzle/rollback/0010_to_0009_down.sql:26-37 (count(*) FROM "accounts" > 0),
+# reproduzindo E1 e reexecutando sobre o estado residual.
+
+$ docker image inspect postgres:17-alpine --format image_id={{.Id}}
+image_id=sha256:d4bb0a8c1b7bb2e29f976d099e7bfb9a5d8858cffe9e46b35cd302cd1f1f8168
+
+$ docker run -d --rm --name pqd-drift-probe -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=probe -p 127.0.0.1:55432:5432 postgres:17-alpine
+8e817c15b11d9ec849c7fd127982ba2c767fc9e9e37cfb19e7083db6e1621bf7
+
+$ until docker exec pqd-drift-probe pg_isready -U postgres -d probe; do sleep 1; done
+/var/run/postgresql:5432 - accepting connections
+
+## E4.1 — execucao verde em container virgem
+
+$ # precondicao: valor exportado vence o --env-file (senao o alvo poderia ser o .env)
+$ PROBE_PRECEDENCE=env node --env-file-if-exists=/tmp/kilo/env-precedence-test -e process.env.PROBE_PRECEDENCE
+precedence=env
+
+$ export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/probe
+$ export DATABASE_ADMIN_URL=$DATABASE_URL
+$ export DATABASE_DRIVER=node-postgres
+
+$ node --env-file-if-exists=.env scripts/env-guard.mjs   # pre-hook do db:test
+ENV_GUARD_EXIT=0
+
+$ npx tsx scripts/db/test-migrations.ts
+PostgreSQL 17, migration zero, constraints, RLS, P1 tables, cross-tenant e rollback: OK
+PROBE_RUN1_EXIT=0
+
+
+## E4.2 — planta 2 contas (condicao de entrada de E1: accounts>0)
+
+$ # delete idempotente: DELETE 0 em ambiente virgem; remove linha de tentativa anterior desta sonda
+$ docker exec pqd-drift-probe psql -U postgres -d probe -c "delete from users where id = 'e4-drift-user'"
+DELETE 1
+
+$ docker exec pqd-drift-probe psql -U postgres -d probe -v ON_ERROR_STOP=1 -c "insert into users (id, name, email, email_verified) values ('e4-drift-user', 'E4 probe', 'e4-drift@example.test', true)"
+INSERT 0 1
+
+$ docker exec pqd-drift-probe psql -U postgres -d probe -v ON_ERROR_STOP=1 -c "insert into accounts (id, account_id, provider_id, issuer, user_id, password) values ('e4-drift-account-1', 'e4-drift-user-1', 'credential', 'local:credential', 'e4-drift-user', 'probe'), ('e4-drift-account-2', 'e4-drift-user-2', 'credential', 'local:credential', 'e4-drift-user', 'probe')"
+INSERT 0 2
+
+$ docker exec pqd-drift-probe psql -U postgres -d probe -At -c "select 'accounts='||count(*) from accounts"
+accounts=2
+
+$ docker exec pqd-drift-probe psql -U postgres -d probe -At -c "select 'journal_rows='||count(*) from drizzle.__drizzle_migrations"
+journal_rows=20
+
+## E4.3 — reexecucao: recusa do guarda (mesma assinatura de E1)
+
+$ export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/probe
+$ export DATABASE_ADMIN_URL=$DATABASE_URL
+$ export DATABASE_DRIVER=node-postgres
+
+$ npx tsx scripts/db/test-migrations.ts
+/home/douglas-souza/preco-que-d-main/node_modules/pg/lib/client.js:694
+          Error.captureStackTrace(err)
+                ^
+
+error: rollback 0010 BLOQUEADO: 2 conta(s) presentes. Após o purge DB-01 toda conta é tráfego real; rollback de issuer somente via restore de snapshot (BAK-01).
+    at /home/douglas-souza/preco-que-d-main/node_modules/pg/lib/client.js:694:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async applyDowns (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:758:5)
+    at async rollbackTo0003 (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:766:3)
+    at async assertUpgradeFrom0003 (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:770:3)
+    at async main (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:958:5)
+    at async <anonymous> (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:983:1) {
+  length: 271,
+  severity: 'ERROR',
+  code: 'P0001',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'PL/pgSQL function inline_code_block line 7 at RAISE',
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'pl_exec.c',
+  line: '3897',
+  routine: 'exec_stmt_raise'
+}
+
+Node.js v24.21.0
+PROBE_RUN2_EXIT=1
+
+## E4.4 — estado residual depois da recusa (medido, nao inferido)
+
+$ docker exec pqd-drift-probe psql -U postgres -d probe -At -c "select 'journal_rows='||count(*) from drizzle.__drizzle_migrations"
+journal_rows=20
+$ docker exec pqd-drift-probe psql -U postgres -d probe -At -c "select 'accounts='||count(*) from accounts"
+accounts=2
+$ docker exec pqd-drift-probe psql -U postgres -d probe -At -c "select 'ai_memory_policies='||coalesce(to_regclass('public.ai_memory_policies')::text, 'MISSING')"   # objeto da migration 0019 (primeiro down executado)
+ai_memory_policies=MISSING
+$ docker exec pqd-drift-probe psql -U postgres -d probe -At -c "select 'ai_memories_expiry_cols='||count(*) from information_schema.columns where table_schema='public' and table_name='ai_memories' and column_name in ('expires_at','layer')"
+ai_memories_expiry_cols=0
+$ docker exec pqd-drift-probe psql -U postgres -d probe -At -c "select 'auth_service_access_policies='||count(*) from pg_policy where polname='auth_service_access'"   # politica da migration 0011 (nono down executado)
+auth_service_access_policies=0
+$ docker exec pqd-drift-probe psql -U postgres -d probe -At -c "select 'users_present='||coalesce(to_regclass('public.users')::text, 'MISSING')"   # controle: o banco nao esta vazio
+users_present=users
+
+# Leitura: o journal continua com 20 entradas (a poda em scripts/db/test-migrations.ts:760-762
+# so roda DEPOIS do loop de downs), mas o schema perdeu os objetos de 0011 (politicas) e
+# 0019 (tabelas/colunas) — 9 downs commitados, journal nao podado. Schema != journal.
+
+## E4.5 — terceira execucao SOBRE o estado residual (sem zerar)
+
+$ export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/probe
+$ export DATABASE_ADMIN_URL=$DATABASE_URL
+$ export DATABASE_DRIVER=node-postgres
+
+$ npx tsx scripts/db/test-migrations.ts
+/home/douglas-souza/preco-que-d-main/node_modules/pg/lib/client.js:694
+          Error.captureStackTrace(err)
+                ^
+
+error: duplicate key value violates unique constraint "users_pkey"
+    at /home/douglas-souza/preco-que-d-main/node_modules/pg/lib/client.js:694:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async seedIsolationFixtures (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:85:3)
+    at async main (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:955:5)
+    at async <anonymous> (/home/douglas-souza/preco-que-d-main/scripts/db/test-migrations.ts:983:1) {
+  length: 215,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (id)=(30000000-0000-4000-8000-000000000003) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'users',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'users_pkey',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+
+Node.js v24.21.0
+PROBE_RUN3_EXIT=1
+
+## E4.6 — descarte da sonda e verificacao de que a bancada (:5432) nao foi tocada
+
+$ docker rm -f pqd-drift-probe
+pqd-drift-probe
+
+$ docker ps --format "{{.Names}} | {{.Ports}}"
+preco-que-da-lucro-postgres | 0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+
+$ docker ps -a --format "{{.Names}}" | rg pqd-drift-probe || echo container-ausente
+container-ausente
+
+$ docker volume ls --format "{{.Name}}" | rg -i "pqd-drift" || echo nenhum-volume-da-sonda
+nenhum-volume-da-sonda
+
+$ # estado da bancada preservado (mesma medida de E3: accounts=0, journal_rows=20)
+$ docker exec preco-que-da-lucro-postgres psql -U postgres -d preco_que_da_lucro_test -At -c "select ..."
+bench_accounts=0
+bench_journal_rows=20

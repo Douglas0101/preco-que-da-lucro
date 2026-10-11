@@ -12,8 +12,9 @@ F3 está LOCAL-VERIFIED: check integral131suítes/1785PASS18skips condicionais,
 cadeia completa18etapas de banco, quatro casos de margem nomeados sem skips,
 db:check e validação UI3.4. Matriz local60/60 em Chromium/Firefox/mobile, zero
 skips/flaky; WebKit não cria página local na precondição. O veredito local
-não cobre a matriz de quatro projetos. F4 local concluiu instalação/check no principal, conforme §9; publicação e
-CI atual pelo SHA ainda são registrados no complemento da integração.
+não cobre a matriz de quatro projetos. F4 concluiu instalação/check no principal (§9), push develop e matriz completa
+atual (§10). O suplemento remoto está em custódia documental local pós-push;
+o bloqueio de release do mirror continua ativo.
 
 Custódia do principal: zero tracked modificados e928untracked, com inventário
 SHA256 privado60-principal-custody.json. SPEC registra o write-set. Fingerprints
@@ -172,3 +173,36 @@ custódia privada com modo0600,fora da área de fonte. Publicação é somente
 develop; main continua congelada. O source fingerprint37 é idêntico ao do
 check77 e dos gates funcionais; alterações deste marco são documentação.
 CI atual e S6 formal ainda são precondições separadas de release.
+
+## 10. F4 — publicação e CI atuais, suplemento pós-push
+
+**REMOTE-OBSERVED**, N1 Chrome, 2026-10-05. Develop publicado e confirmado por
+Git ls-remote em `c940aef855c0c7e85381daf5fa3d58511d0131c0`; integra F1
+`55f3ddfb51fe4617d4b4dbc5fde023ab07979f11`, código F2/F3 `8977ec514a00614a615c5155b193a973bf7b48cd`
+e o marco documental do circuito principal. O checkout virtual usado na PR e
+pelo CE é f70e01fa99bd0fac7702faa74e9b960b446b388b, distinto do head publicado.
+
+- [UI stack push](https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37259858323): SUCCESS.
+- [UI stack PR](https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37259860642): SUCCESS; preparação 1min09s com cache exato, verify-release 5min02s,
+  ambos dentro de 12min; 18 etapas de banco e nova margem 4/4 sem skips;
+  Playwright 80/80 em chromium/firefox/webkit/mobile. A precondição local do
+  WebKit permanece descrita, e a matriz remota atual cobre esse projeto.
+- [Neon PR CI](https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37259860583): SUCCESS; RLS e integração aprovados, E2E 80/80,
+  journals de 20 migrations iguais; cópia br-steep-bread-ayk12x97 descartada
+  com GET 404. Console independente, pelo ID exato, respondeu "Request failed:
+  branch not found". Inventário completo em duas leituras mostra production,
+  develop (Archived branch) e preview/dependabot/npm_and_yarn/tailwind-merge-3.7.0.
+  A terceira branch é drift externo pendente e foi preservada.
+- [Sonar](https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37259860751): scan + cobertura SUCCESS, CE 7997c5b8-f4bd-4bde-b249-17978168a89c
+  OK, identidade PR60/develop/revisão virtual acima, new_coverage 81,8% ≥ 80%.
+  O workflow termina FAILURE: main-coverage-mirror exit 2 / NO-VERDICT por
+  mapeamento/proveniência completo indisponível ou inconsistente. PR60 apresenta
+  11 checks verdes e 1 falho; merge bloqueado e main congelada.
+
+A transcrição estruturada está em `captures/remote-ci-observed.json`. Digests
+mostrados pelo provedor não equivalem a ZIPs revalidados localmente; esses ZIPs
+não foram baixados. Este §10, captura, manifest e observações novas no PROGRESS
+são WIP documental pós-push, mantido para o próximo marco sem criar um ciclo
+extra apenas para publicar o resultado do próprio CI. O código e o registry
+DBT86–89 estão publicados. F4 de implementação/qualificação/push concluída;
+release NO-GO, ADR041 PROPOSTA e S6 formal NOT-STARTED permanecem separados.

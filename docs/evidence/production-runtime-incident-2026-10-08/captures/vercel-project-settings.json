@@ -1,0 +1,37 @@
+{
+  "result": {
+    "id": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+    "name": "preco-que-da-lucro",
+    "framework": "tanstack-start-lovable",
+    "accountId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+    "createdAt": 1788845718676,
+    "updatedAt": 1791334993216,
+    "nodeVersion": "24.x",
+    "live": false,
+    "latestDeployment": {
+      "id": "dpl_6h2LTZX57soGiPP2oTurws7NsgVd",
+      "url": "preco-que-da-lucro-gssnblvr8.vercel.app",
+      "createdAt": 1791481532774,
+      "readyState": "READY",
+      "target": "production"
+    },
+    "domains": [
+      "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app",
+      "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app"
+    ],
+    "passwordProtection": {
+      "enabled": false,
+      "deploymentType": null
+    },
+    "ssoProtection": {
+      "enabled": true,
+      "deploymentType": "all_except_custom_domains"
+    },
+    "trustedIps": {
+      "enabled": false,
+      "deploymentType": null,
+      "addresses": [],
+      "protectionMode": null
+    }
+  }
+}

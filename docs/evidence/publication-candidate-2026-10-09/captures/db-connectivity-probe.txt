@@ -1,0 +1,11 @@
+S1 select-1-ok elapsed_ms=31 pg_major=17 path=getDatabase().execute
+AUTOVERIFY=ok nenhuma substring de credencial alcancou stdout exit=0
+S2 host-inexistente elapsed_ms=10 category=dns step=dns code=ENOTFOUND transient=false inspectedCauses=1
+AUTOVERIFY=ok nenhuma substring de credencial alcancou stdout exit=0
+S3 senha-errada elapsed_ms=20 category=authentication step=auth code=28P01 transient=false inspectedCauses=1
+AUTOVERIFY=ok nenhuma substring de credencial alcancou stdout exit=0
+S4 porta-fechada elapsed_ms=6 category=network step=connect code=ECONNREFUSED transient=true inspectedCauses=1
+AUTOVERIFY=ok nenhuma substring de credencial alcancou stdout exit=0
+S5 banco-inexistente elapsed_ms=22 category=configuration step=connect code=3D000 transient=false inspectedCauses=1
+AUTOVERIFY=ok nenhuma substring de credencial alcancou stdout exit=0
+AUTOVERIFY=ok nenhuma substring de credencial alcancou stdout

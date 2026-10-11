@@ -1,0 +1,40 @@
+{
+  "result": {
+    "deployment": {
+      "id": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+      "name": "preco-que-da-lucro",
+      "url": "preco-que-da-lucro-1bxqn5vm2.vercel.app",
+      "type": "LAMBDAS",
+      "state": "READY",
+      "createdAt": 1790866326674,
+      "creator": {
+        "uid": "43PGP1C63dgekITZiVlzAzYp",
+        "username": "douglasultimatesouza-5127"
+      },
+      "project": {
+        "id": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+        "name": "preco-que-da-lucro",
+        "framework": "tanstack-start-lovable"
+      },
+      "meta": {
+        "githubCommitRef": "main",
+        "githubCommitSha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+        "githubCommitMessage": "release: v1.0.1 — contrato de CI, atribuição de análise e guard de cobertura\n\nrelease: v1.0.1 — contrato de CI enxerga o sonar.yml, atribuição de análise e guard de cobertura",
+        "githubRepo": "preco-que-da-lucro",
+        "githubOrg": "Douglas0101"
+      },
+      "alias": [
+        "preco-que-da-lucro-sage.vercel.app",
+        "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app",
+        "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app"
+      ],
+      "target": "production",
+      "regions": ["iad1"],
+      "buildingAt": 1790866328378,
+      "ready": 1790866348251,
+      "readyState": "READY",
+      "source": "git",
+      "aliasError": null
+    }
+  }
+}

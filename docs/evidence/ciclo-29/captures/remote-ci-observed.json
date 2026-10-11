@@ -1,0 +1,147 @@
+{
+  "schema": "c29-remote-ui-observation/1",
+  "observedAt": "2026-10-05T03:47:57.804794+00:00",
+  "evidenceClass": "REMOTE-OBSERVED",
+  "custody": "local documentary supplement after push; not included in the observed revision",
+  "source": "N1 Chrome authenticated UI, visible job logs/summary, PR checks and independent Neon console; structured transcription of this session tool outputs",
+  "publishedHead": "c940aef855c0c7e85381daf5fa3d58511d0131c0",
+  "sourceMilestone": "8977ec514a00614a615c5155b193a973bf7b48cd",
+  "pr": {
+    "number": 60,
+    "url": "https://github.com/Douglas0101/preco-que-da-lucro/pull/60",
+    "state": "OPEN/BLOCKED",
+    "successfulChecks": 11,
+    "failingChecks": 1,
+    "mergeBlock": "Cannot update this protected ref."
+  },
+  "uiPush": {
+    "runId": 37259858323,
+    "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37259858323",
+    "verify": "SUCCESS"
+  },
+  "uiPr": {
+    "runId": 37259860642,
+    "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37259860642",
+    "checkoutRevision": "f70e01fa99bd0fac7702faa74e9b960b446b388b",
+    "revisionKind": "virtual PR merge checkout, distinct from published head",
+    "prepareSeconds": 69,
+    "verifySeconds": 302,
+    "eachBudgetSeconds": 720,
+    "exactCacheHit": true,
+    "cacheKey": "playwright-kit-v2-ee482e2cc6d54a5ad1c47ffee9a54d7ee5046de8cfbcca3f90d5c9d8bf4d1f32-e0a709c37d857b791fd407679f0005996ca1b72412b1eaafc54eb70e50d5f68c",
+    "verify": "SUCCESS",
+    "dbChainSteps": 18,
+    "dashboardMarginDbPassed": 4,
+    "dashboardMarginDbSkipped": 0,
+    "e2ePassed": 80,
+    "e2eReportedTime": "1.8m",
+    "projects": ["chromium", "firefox", "webkit", "mobile"]
+  },
+  "ciLight": {
+    "pushRun": 37259858342,
+    "prRun": 37259860589,
+    "both": "SUCCESS"
+  },
+  "neonPr": {
+    "runId": 37259860583,
+    "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37259860583",
+    "status": "SUCCESS",
+    "runSeconds": 381,
+    "integrationJobSeconds": 352,
+    "cleanupSeconds": 17,
+    "ephemeralBranchId": "br-steep-bread-ayk12x97",
+    "dbAndRls": "PASS",
+    "e2ePassed": 80,
+    "e2eReportedTime": "2.8m",
+    "schemaJournals": {
+      "isolatedCopy": 20,
+      "productionReadOnly": 20,
+      "repository": 20,
+      "hashesAndOrder": "same per workflow summary"
+    },
+    "postDeleteGet": 404,
+    "independentInventory": {
+      "url": "https://console.neon.tech/app/projects/damp-forest-57346541/branches",
+      "twoFreshReads": true,
+      "unfilteredBranchCount": 3,
+      "names": ["production", "develop", "preview/dependabot/npm_and_yarn/tailwind-merge-3.7.0"],
+      "developLabel": "Archived branch",
+      "exactDeletedIdRoute": "https://console.neon.tech/app/projects/damp-forest-57346541/branches/br-steep-bread-ayk12x97",
+      "exactDeletedIdResult": "Request failed: branch not found",
+      "otherPersistentPreview": "unresolved external drift, preserved, no deletion authorized in C29"
+    }
+  },
+  "sonar": {
+    "runId": 37259860751,
+    "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37259860751",
+    "scanStatus": "SUCCESS",
+    "scanSeconds": 195,
+    "workflowStatus": "FAILURE because main-coverage-mirror failed its precondition",
+    "ceReadout": {
+      "observedAt": "2026-10-05T03:36:01.938Z",
+      "runnerSha": "f70e01fa99bd0fac7702faa74e9b960b446b388b",
+      "checkoutSha": "f70e01fa99bd0fac7702faa74e9b960b446b388b",
+      "providerIdentity": {
+        "revision": "f70e01fa99bd0fac7702faa74e9b960b446b388b",
+        "branch": "develop",
+        "pullRequest": "60"
+      },
+      "ceTaskId": "AaEKIdXNJFJI_uD6MaBi",
+      "analysisId": "7997c5b8-f4bd-4bde-b249-17978168a89c",
+      "status": "OK",
+      "ignoredConditions": false,
+      "conditions": [
+        {
+          "metric": "new_reliability_rating",
+          "status": "OK",
+          "actual": "1",
+          "threshold": "1"
+        },
+        {
+          "metric": "new_security_rating",
+          "status": "OK",
+          "actual": "1",
+          "threshold": "1"
+        },
+        {
+          "metric": "new_maintainability_rating",
+          "status": "OK",
+          "actual": "1",
+          "threshold": "1"
+        },
+        {
+          "metric": "new_coverage",
+          "status": "OK",
+          "actual": "81.8",
+          "threshold": "80"
+        },
+        {
+          "metric": "new_duplicated_lines_density",
+          "status": "OK",
+          "actual": "0.0",
+          "threshold": "3"
+        },
+        {
+          "metric": "new_security_hotspots_reviewed",
+          "status": "OK",
+          "actual": "100.0",
+          "threshold": "100"
+        }
+      ]
+    },
+    "mainMirror": {
+      "jobUrl": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/37259860751/job/111605272906",
+      "status": "NO-VERDICT",
+      "exitCode": 2,
+      "reason": "complete per-unit mapping/provenance unavailable or inconsistent"
+    }
+  },
+  "limits": [
+    "PR coverage does not prove intended main coverage",
+    "provider ZIP artifacts were not downloaded or checksum-revalidated locally",
+    "ADR-041 ratification pending",
+    "formal S6 not started",
+    "main remains frozen at d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+    "no main promotion, deployment, DNS, production write or provider credential action in C29"
+  ]
+}

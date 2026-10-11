@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   authoritativeUnits,
   mirror,
+  SourceDivergence,
   type MainSnapshot,
   type CandidateIdentity,
 } from "../../scripts/sonar/gate-mirror";
@@ -166,6 +167,85 @@ describe("Conservative main coverage mirror by eligible unit", () => {
     const d = fixture();
     d.units[0].file = "src/test/example.test.ts";
     expect(() => mirror(d, lcov(), lcov(1), identity())).toThrow();
+  });
+  it("names a main/candidate source divergence with the complete measured set", () => {
+    // Recusa POR DESENHO (ADR-038 §3): a projeção exige a MESMA fonte. Ela precisa ser
+    // nomeada com o conjunto medido inteiro — não com a primeira unidade encontrada —
+    // para que a observação informacional carregue a causa sem inventar crédito.
+    const c = identity();
+    c.sourceHashes[file] = "c".repeat(64);
+    let caught: unknown;
+    try {
+      mirror(fixture(), lcov(), lcov(1), c);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toMatchObject({
+      name: "SourceDivergence",
+      files: [{ path: file, mainSha256: source, candidateSha256: "c".repeat(64) }],
+      eligibleUnits: 5,
+    });
+    expect(caught).toBeInstanceOf(SourceDivergence);
+  });
+  it("measures every divergent eligible file, not only the first one reached", () => {
+    const other = "src/lib/other.ts",
+      second = "src/lib/second.ts";
+    const s = fixture();
+    s.total = 7;
+    s.floor = 4;
+    s.units = [
+      ...s.units,
+      { file: other, line: 1, covered: true },
+      { file: second, line: 1, covered: false },
+    ];
+    s.sourceHashes[other] = source;
+    s.sourceHashes[second] = source;
+    const c = identity();
+    c.sourceHashes[file] = "c".repeat(64);
+    c.sourceHashes[other] = "d".repeat(64);
+    c.sourceHashes[second] = "e".repeat(64);
+    let caught: unknown;
+    try {
+      mirror(s, lcov(), lcov(1), c);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toMatchObject({
+      name: "SourceDivergence",
+      files: [
+        { path: file, mainSha256: source, candidateSha256: "c".repeat(64) },
+        { path: other, mainSha256: source, candidateSha256: "d".repeat(64) },
+        { path: second, mainSha256: source, candidateSha256: "e".repeat(64) },
+      ],
+      eligibleUnits: 7,
+    });
+    expect(caught).toBeInstanceOf(SourceDivergence);
+  });
+  it("keeps an unsealed source hash a blocking failure, never a named divergence", () => {
+    // Evidência quebrada (hash ausente/malformado) não é divergência de fonte: nomear a
+    // recusa ali esconderia um defeito real de identidade.
+    for (const broken of ["not-a-digest", "", undefined as unknown as string]) {
+      for (const snapshotSide of [true, false]) {
+        const s = fixture(),
+          c = identity();
+        (snapshotSide ? s.sourceHashes : c.sourceHashes)[file] = broken;
+        let caught: unknown;
+        try {
+          mirror(s, lcov(), lcov(1), c);
+        } catch (error) {
+          caught = error;
+        }
+        expect(caught).toBeInstanceOf(Error);
+        expect((caught as Error).name).not.toBe("SourceDivergence");
+        expect((caught as Error).message).toBe(`source mapping unavailable: ${file}`);
+      }
+    }
+  });
+  it("does not name a divergence when the sources are identical", () => {
+    expect(mirror(fixture(), lcov(), lcov(1), identity())).toMatchObject({
+      pass: true,
+      paid: [`${file}:4:line`],
+    });
   });
   it("rejects stale/future baseline, denominator below floor and numerator drift", () => {
     for (const observedAt of ["2026-10-02T12:00:00Z", "2026-10-02T14:00:00Z"]) {

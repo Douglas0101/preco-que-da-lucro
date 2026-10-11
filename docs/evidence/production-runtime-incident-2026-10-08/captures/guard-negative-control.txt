@@ -1,0 +1,7 @@
+undefined (absent)       | truthy=absent   | passesGuard(line64)=false  | AS-EXPECTED
+empty string             | truthy=absent   | passesGuard(line64)=false  | AS-EXPECTED
+whitespace-only          | truthy=present  | passesGuard(line64)=true   | AS-EXPECTED
+literal 'undefined'      | truthy=present  | passesGuard(line64)=true   | AS-EXPECTED
+literal 'null'           | truthy=present  | passesGuard(line64)=true   | AS-EXPECTED
+valid-looking uri        | truthy=present  | passesGuard(line64)=true   | AS-EXPECTED
+uri missing scheme       | truthy=present  | passesGuard(line64)=true   | AS-EXPECTED

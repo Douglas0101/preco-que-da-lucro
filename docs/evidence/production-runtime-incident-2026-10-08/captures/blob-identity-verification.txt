@@ -1,0 +1,16 @@
+=== byte-identity ce9bd44 (preview develop healthy) vs fa45632 ===
+package.json ce9bd44=3e4c205e4fbb4522e175fd9033d1b3e92a854234 fa45632=3e4c205e4fbb4522e175fd9033d1b3e92a854234 SAME
+package-lock.json ce9bd44=958699b63bda50e982966a783e004f0845ed4817 fa45632=958699b63bda50e982966a783e004f0845ed4817 SAME
+src/db/client.server.ts ce9bd44=2b0e977896ce4cfefd0daf1111065769960044e2 fa45632=2b0e977896ce4cfefd0daf1111065769960044e2 SAME
+src/routes/api/health/ready.ts ce9bd44=2cdd37e1d164bea0596e5831057c71ea841811cf fa45632=2cdd37e1d164bea0596e5831057c71ea841811cf SAME
+
+=== ancestry ===
+d4b9395 IS ancestor of fa45632
+commit distance: 103
+
+=== changed files d4b9395..fa45632 (stat) ===
+ src/test/visual-observability.test.ts              |    38 +
+ src/test/wire-safe-error.server.test.ts            |    61 +
+ vercel.json                                        |     6 +
+ vitest.config.ts                                   |     3 +
+ 579 files changed, 425502 insertions(+), 1183 deletions(-)

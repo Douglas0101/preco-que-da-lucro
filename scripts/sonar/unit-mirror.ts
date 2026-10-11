@@ -24,6 +24,44 @@ export interface CandidateIdentity {
 }
 export const unitId = (u: MainUnit) => `${u.file}:${u.line}:${u.branch ?? "line"}`;
 const integer = (n: unknown): n is number => Number.isInteger(n) && (n as number) >= 0;
+const sealed = (value: unknown): value is string =>
+  typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+// Recusa POR DESENHO (ADR-038 §3): a projeção exige a MESMA fonte, então uma fonte
+// alterada entre main e o candidato nunca é projetada. Ela carrega o conjunto medido
+// inteiro — nunca uma unidade paga, nunca um caminho inventado — para que o observador
+// informacional possa distingui-la de uma falha de execução pelo contrato, sem crédito.
+export class SourceDivergence extends Error {
+  readonly files: { path: string; mainSha256: string; candidateSha256: string }[];
+  readonly eligibleUnits: number;
+  constructor(files: SourceDivergence["files"], eligibleUnits: number) {
+    super("main/candidate source divergence refuses the projection");
+    this.name = "SourceDivergence";
+    this.files = files;
+    this.eligibleUnits = eligibleUnits;
+  }
+}
+// Só nomeia a recusa quando o censo elegível INTEIRO tem identidade selada nos dois
+// lados: hash ausente/malformado é evidência quebrada e continua bloqueante.
+function sourceDivergence(
+  snapshot: MainSnapshot,
+  current: CandidateIdentity,
+): SourceDivergence | null {
+  const eligible = [...new Set(snapshot.units.map((unit) => unit.file))].sort();
+  for (const path of eligible)
+    if (!sealed(snapshot.sourceHashes[path]) || !sealed(current.sourceHashes[path])) return null;
+  const divergent = eligible.filter(
+    (path) => snapshot.sourceHashes[path] !== current.sourceHashes[path],
+  );
+  if (divergent.length === 0) return null;
+  return new SourceDivergence(
+    divergent.map((path) => ({
+      path,
+      mainSha256: snapshot.sourceHashes[path],
+      candidateSha256: current.sourceHashes[path],
+    })),
+    snapshot.units.filter((unit) => divergent.includes(unit.file)).length,
+  );
+}
 
 export function authoritativeUnits(metrics: Record<string, number | null>) {
   const names = [
@@ -100,6 +138,31 @@ export function lcovUnits(lcov: string): Map<string, boolean | null> {
   return units;
 }
 
+/**
+ * Estado do LCOV para uma unidade de LINHA sob a regra medida do importador
+ * (AGENTS.md/DBT-101): o valor do DA existente prevalece e a contribuição de branch
+ * é fallback apenas para linha sem DA (teste oficial
+ * conditions_on_non_executable_lines + audit.repository.ts 28-30 no provedor).
+ * `undefined` = a linha não tem nenhuma identidade no LCOV.
+ */
+export function lineState(
+  units: Map<string, boolean | null>,
+  file: string,
+  line: number,
+): boolean | undefined {
+  const lineId = `${file}:${line}:line`;
+  if (units.has(lineId)) return units.get(lineId) === true;
+  const prefix = `${file}:${line}:`;
+  let declared = false,
+    covered = false;
+  for (const [id, value] of units)
+    if (id !== lineId && id.startsWith(prefix)) {
+      declared = true;
+      if (value === true) covered = true;
+    }
+  return declared ? covered : undefined;
+}
+
 export function mirror(
   snapshot: MainSnapshot,
   baseline: string,
@@ -133,7 +196,7 @@ export function mirror(
   let baselineCovered = 0;
   for (const unit of snapshot.units) {
     if (
-      !/^src\/(?!test\/)[A-Za-z0-9_./-]+\.(?:ts|tsx|js|jsx)$/.test(unit.file) ||
+      !new RegExp("^src/(?!test/)[A-Za-z0-9_$./-]+\\.(?:ts|tsx|js|jsx)$").test(unit.file) ||
       unit.file.includes("..") ||
       !Number.isInteger(unit.line) ||
       unit.line < 1 ||
@@ -141,9 +204,18 @@ export function mirror(
       (unit.branch !== undefined && !/^\d+,\d+$/.test(unit.branch))
     )
       throw new Error("invalid/unmapped eligible unit");
-    const sourceHash = snapshot.sourceHashes[unit.file];
-    if (!/^[a-f0-9]{64}$/.test(sourceHash ?? "") || sourceHash !== current.sourceHashes[unit.file])
+    const sourceHash = snapshot.sourceHashes[unit.file],
+      candidateHash = current.sourceHashes[unit.file];
+    // Identidade ausente/malformada é evidência quebrada — nunca divergência de fonte.
+    if (!sealed(sourceHash) || !sealed(candidateHash))
       throw new Error(`source mapping unavailable: ${unit.file}`);
+    // Fonte alterada entre main e o candidato: recusa por desenho, nomeada com o
+    // conjunto medido inteiro (ADR-038 §3), nunca creditada.
+    if (sourceHash !== candidateHash) {
+      const refusal = sourceDivergence(snapshot, current);
+      if (refusal === null) throw new Error(`source mapping unavailable: ${unit.file}`);
+      throw refusal;
+    }
     const id = unitId(unit);
     if (seen.has(id)) throw new Error("duplicated eligible unit");
     seen.add(id);
@@ -152,8 +224,10 @@ export function mirror(
     // de DA é estado natural (sem crédito). Perda medida (false) contabiliza como lost;
     // dados ausentes em unidade coberta e branch desconhecido ('-') continuam reprovando.
     const uncoveredLine = unit.branch === undefined && !unit.covered;
-    const beforeState = before.get(id),
-      afterState = after.get(id);
+    const beforeState =
+        unit.branch === undefined ? lineState(before, unit.file, unit.line) : before.get(id),
+      afterState =
+        unit.branch === undefined ? lineState(after, unit.file, unit.line) : after.get(id);
     if (
       (beforeState !== unit.covered && !(uncoveredLine && beforeState === undefined)) ||
       (typeof afterState !== "boolean" && !(uncoveredLine && afterState === undefined))

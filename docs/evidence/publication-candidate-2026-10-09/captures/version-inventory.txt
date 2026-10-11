@@ -1,0 +1,46 @@
+# Version inventory and divergence matrix, read-only, 2026-10-09 (UTC).
+
+## Component -> SHA -> Deployment -> State
+| component | sha | deployment | target/state | alias |
+| --- | --- | --- | --- | --- |
+| local develop HEAD | 852dcaf04180cbe1bf132ed542312c2e543b13c9 | (never built) | - | - |
+| origin/develop | 974581a724c06ea679e076b72e7063aac31b9a54 | (never built) | - | - |
+| origin/main = production candidate fa45632 | fa45632391ad9ffe1d20d3bad5264a53b565638e | dpl_6h2LTZX57soGiPP2oTurws7NsgVd | production / READY | none (branch aliases only) |
+| CURRENTLY SERVING the public alias (containment) | d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9 | dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL | production / READY | preco-que-da-lucro-sage.vercel.app |
+| blocked rebuild of the serving sha | d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9 | dpl_4vNYvd5xcXRBjVRyRcp9Fri7mhxz | production / ERROR BLOCKED_PACKAGE | none |
+
+## Divergence: local vs origin/main vs serving
+$ git rev-list --left-right --count origin/main...HEAD
+0	5
+  (left = commits in origin/main not in local HEAD; right = commits in local HEAD not in origin/main)
+$ git merge-base --is-ancestor origin/main HEAD && echo local-contains-main || echo main-ahead
+local-contains-main
+
+## CVE-2026-102989 / GHSA-qx66-fv34-fjm8 affected + patched ranges (primary source)
+@tanstack/react-start   affected >= 1.143.12, < 1.168.60  -> patched 1.168.60
+@tanstack/start-server-core affected >= 1.143.12, < 1.169.39 -> patched 1.169.39
+CVSS 3.1 AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N = 9.3 Critical, CWE-79
+source: https://github.com/TanStack/router/security/advisories/GHSA-qx66-fv34-fjm8
+
+## Resolved versions (package.json / lockfile / node_modules)
+@tanstack/react-start spec=1.168.60 lockfile=1.168.60 installed=1.168.60
+@tanstack/start-server-core spec=- lockfile=1.169.39 installed=1.169.39
+@tanstack/react-router spec=1.170.41 lockfile=1.170.41 installed=1.170.41
+@tanstack/router-plugin spec=1.168.42 lockfile=1.168.42 installed=1.168.42
+@tanstack/start-client-core spec=- lockfile=1.170.34 installed=1.170.34
+
+## nested (non-root) copies of the TanStack packages in the lockfile
+node -e "
+const l=require('./package-lock.json');
+const tanstack=Object.keys(l.packages).filter(k=>k.includes('@tanstack/'));
+const nested=tanstack.filter(k=>(k.match(/node_modules\//g)||[]).length>1);
+console.log('tanstack entries:', tanstack.length);
+console.log('nested (non-root) tanstack entries:', nested.length);
+if (nested.length) console.log(JSON.stringify(nested,null,2));
+"
+
+tanstack entries: 25
+nested (non-root) tanstack entries: 0
+
+## npm audit (high)
+found 0 vulnerabilities

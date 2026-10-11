@@ -1,0 +1,24 @@
+=== GET /api/auth/get-session ===
+HTTP/2 200 
+age: 0
+cache-control: private, no-store
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+content-type: application/json
+date: Thu, 08 Oct 2026 22:40:47 GMT
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+pragma: no-cache
+referrer-policy: strict-origin-when-cross-origin
+reporting-endpoints: csp-endpoint="/api/csp-report"
+server: Vercel
+strict-transport-security: max-age=31536000; includeSubDomains
+vary: Cookie
+x-content-type-options: nosniff
+x-correlation-id: 5f60a524-9702-414a-bf8f-745bd58db01b
+x-vercel-cache: MISS
+x-vercel-id: gru1::iad1::tghvt-1791499246525-b18a9d6636be
+
+
+--- meta ---
+HTTP 200 | time_total 0.757458s | size 4
+--- body ---
+null

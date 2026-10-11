@@ -1,0 +1,84 @@
+{
+  "schema": "c25-ce-gate-readout/1",
+  "observedAt": "2026-10-10T00:12:57.468Z",
+  "runnerSha": "bd4f02d2553d7f98f67f840c732aa5b1da1891bc",
+  "checkoutSha": "bd4f02d2553d7f98f67f840c732aa5b1da1891bc",
+  "providerIdentity": {
+    "revision": "bd4f02d2553d7f98f67f840c732aa5b1da1891bc",
+    "branch": "develop",
+    "pullRequest": "61"
+  },
+  "ceTaskId": "AaEjJ8apuoMz_oCESSWm",
+  "analysisId": "a91ae225-40a6-49ee-8d22-76c15aaba3b3",
+  "surface": {
+    "branch": null,
+    "branchType": null,
+    "pullRequest": "61"
+  },
+  "status": "OK",
+  "ignoredConditions": false,
+  "conditions": [
+    {
+      "metric": "new_reliability_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_security_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_maintainability_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_coverage",
+      "status": "OK",
+      "comparator": "LT",
+      "threshold": "80",
+      "actual": "97.4"
+    },
+    {
+      "metric": "new_duplicated_lines_density",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "3",
+      "actual": "0.0"
+    },
+    {
+      "metric": "new_security_hotspots_reviewed",
+      "status": "OK",
+      "comparator": "LT",
+      "threshold": "100",
+      "actual": "100.0"
+    }
+  ],
+  "releasePolicy": {
+    "policy": "ADR-042/coverage-minimum-60",
+    "providerGateStatus": "OK",
+    "status": "OK",
+    "coverage": {
+      "metric": "new_coverage",
+      "minimum": 60,
+      "actual": 97.4,
+      "status": "OK"
+    },
+    "blockingConditions": [],
+    "preservedControls": [
+      "new_security_rating",
+      "new_reliability_rating",
+      "new_maintainability_rating",
+      "new_duplicated_lines_density",
+      "new_security_hotspots_reviewed"
+    ]
+  },
+  "nullSemantics": "métrica ausente é null; gate de PR não equivale ao de main"
+}

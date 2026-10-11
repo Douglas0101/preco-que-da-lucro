@@ -1,0 +1,34 @@
+# Estado git no momento do selo (2026-10-09, somente leitura)
+
+    $ git rev-parse --abbrev-ref HEAD        → develop
+    $ git rev-parse HEAD                     → e61ec6eb75854830283b3439ebfc7223744529d2
+    $ git rev-parse origin/develop           → 974581a724c06ea679e076b72e7063aac31b9a54
+    $ git rev-parse origin/main              → fa45632391ad9ffe1d20d3bad5264a53b565638e
+    $ git rev-list --left-right --count HEAD...origin/develop  → 10  0
+    $ git rev-list --left-right --count HEAD...origin/main     → 11  0
+
+O commit do selo (endurecimento do harness + esta evidencia) acrescenta 1 commit
+sobre e61ec6e; o push avanca origin/develop. O candidato local contem origin/main
+integralmente (0 atras) — publicar o SHA local nao perde nada de main.
+
+Commits entre origin/main (fa45632) e o HEAD local, em ordem:
+
+    974581a docs(release): record the merged release and the open production runtime incident
+    445b49a chore(git): ignore unmanifested playwright run output in the release evidence package
+    09dfeba fix(db): treat a defined-and-empty environment variable as unset outside the AI path
+    0807115 fix(security): remove inline script, inline style and eval sinks that keep the CSP unenforceable
+    852dcaf docs(evidence): record the 2026-10-08 production runtime incident and close DBT-97
+    4972c72 fix(observability): classify Postgres readiness failure instead of serializing the raw Error
+    583bb99 test(ai): reject an opaque panel record value on the DeepSeek destination
+    746c931 docs(evidence): record the 2026-10-09 publication candidate, its NO-GO and the human handoff
+    bfc9429 docs(evidence): pin the final green gate round and rename the log captures to .txt
+    6951f8a docs(evidence): pin the definitive gate round and refresh the manifest
+    e61ec6e docs(evidence): pin the rollback guard predicate and the abort's residual drift
+
+Nenhum deployment Vercel existe para qualquer um destes SHAs (consultado no
+projeto prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q em 2026-10-09).
+
+Arquivos de custodia alheia (`docs/evidence/ciclo-29/**`,
+`docs/evidence/local-ci/**`, `docs/evidence/neon-fixture-base-2026-10-07/**`,
+`.zcodeignore`, `docs/evidence/pr-60-publication-2026-10-07/captures/**`)
+permanecem intocados, fora do commit.

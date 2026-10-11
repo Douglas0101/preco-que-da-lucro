@@ -1,8 +1,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
-import { authoritativeUnits, lcovUnits, mirror } from "./unit-mirror.ts";
+import { authoritativeUnits, lcovUnits, mirror, SourceDivergence } from "./unit-mirror.ts";
 import {
+  gitSource,
   OriginalProvenanceUnavailable,
   readMainScannerOrigin,
   provenance,
@@ -113,12 +114,24 @@ export function evaluateMirrorArtifacts(
     Object.keys(s.sourceHashes).sort().join("\n") !== [...s.discoveredFiles].sort().join("\n")
   )
     throw new Error("snapshot file census differs");
+  // A provenance sela apenas os hashes dos arquivos que a rodada de cobertura
+  // carregou (111 dos 144 do censo em main): os 33 restantes nao tem registro no
+  // LCOV original nem no candidato. Para esses, a identidade e conferida contra os
+  // bytes Git imutaveis de main — a mesma fonte que a provenance usa — e, no lado
+  // candidato, pelo proprio mirror(), que exige igualdade com o snapshot. Hash
+  // selado que existe e discorda continua recusado.
+  const originalHash = (file: string) => {
+    const sealed = before.sourceHashes[file];
+    if (sealed !== undefined) return sealed;
+    return gitSource(b.mainSha as string, file).hash;
+  };
   const currentHashes = Object.fromEntries(files.map((file) => [file, input.sourceHash(file)]));
   if (
     files.some(
       (file) =>
-        before.sourceHashes[file] !== s.sourceHashes[file] ||
-        after.sourceHashes[file] !== currentHashes[file],
+        originalHash(file) !== s.sourceHashes[file] ||
+        (after.sourceHashes[file] !== undefined &&
+          after.sourceHashes[file] !== currentHashes[file]),
     )
   )
     throw new Error("original/candidate source provenance differs");
@@ -239,6 +252,16 @@ export function runMirrorCli() {
     );
     process.exitCode = result.pass ? 0 : 1;
   } catch (error) {
+    // A recusa por fonte alterada é de desenho (ADR-038 §3) e recebe código estável
+    // próprio; tudo o mais continua EXECUTION_OR_UNCLASSIFIED e bloqueante. O
+    // diagnóstico persiste apenas código fixo, contagens e hash de caminho — nunca
+    // caminho, mensagem bruta, corpo de resposta ou credencial.
+    const refusal = error instanceof SourceDivergence ? error : null;
+    const reasonCode = refusal
+      ? "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE"
+      : error instanceof OriginalProvenanceUnavailable
+        ? "ORIGINAL_PROVENANCE_UNAVAILABLE"
+        : "EXECUTION_OR_UNCLASSIFIED";
     writeFileSync(
       reportPath,
       JSON.stringify(
@@ -248,19 +271,27 @@ export function runMirrorCli() {
           analysisId: baseline?.analysisId ?? null,
           target,
           verdict: "NO-VERDICT",
-          reasonCode:
-            error instanceof OriginalProvenanceUnavailable
-              ? "ORIGINAL_PROVENANCE_UNAVAILABLE"
-              : "EXECUTION_OR_UNCLASSIFIED",
-          reason:
-            "Complete sealed per-unit mapping and original/candidate scanner provenance are required.",
+          reasonCode,
+          reason: refusal
+            ? "Main and candidate sources differ inside the eligible unit census; the conservative projection requires the same source (ADR-038 §3)."
+            : "Complete sealed per-unit mapping and original/candidate scanner provenance are required.",
+          ...(refusal
+            ? {
+                diagnostic: {
+                  code: reasonCode,
+                  divergentFiles: refusal.files.length,
+                  eligibleUnits: refusal.eligibleUnits,
+                  pathSha256: refusal.files.map((file) => sha256(file.path)).sort(),
+                },
+              }
+            : {}),
           missingNames: names.filter((name) => !env[name]),
         },
         null,
         2,
       ) + "\n",
     );
-    console.error("NO-VERDICT: complete per-unit mapping/provenance unavailable or inconsistent");
+    console.error(`NO-VERDICT: ${reasonCode}`);
     process.exitCode = 2;
   }
 }

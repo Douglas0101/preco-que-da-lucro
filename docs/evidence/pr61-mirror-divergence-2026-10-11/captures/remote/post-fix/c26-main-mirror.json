@@ -1,0 +1,26 @@
+{
+  "schema": "main-mirror/2",
+  "mainSha": "fa45632391ad9ffe1d20d3bad5264a53b565638e",
+  "analysisId": "9048008c-3c10-49d6-96e8-b6f06fd89dc8",
+  "target": {
+    "total": 3468,
+    "covered": 2507,
+    "coverage": 72.28950403690888,
+    "gap": 268,
+    "floor": 1734
+  },
+  "verdict": "NO-VERDICT",
+  "reasonCode": "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE",
+  "reason": "Main and candidate sources differ inside the eligible unit census; the conservative projection requires the same source (ADR-038 §3).",
+  "diagnostic": {
+    "code": "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE",
+    "divergentFiles": 3,
+    "eligibleUnits": 221,
+    "pathSha256": [
+      "15a5a311e1e1e6f12030c8d3fa46b6a1521d2ced648fbefc4d04d3986eb31291",
+      "2194a569c1e2cb2d5e6be82f85a9b8aa671cb1178cec3dabf1910af929285cb2",
+      "a912dec0b96991e9cd5f7b6382f6577cc69030f4aa566f4e24d23570550bfd2a"
+    ]
+  },
+  "missingNames": []
+}

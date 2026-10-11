@@ -1,0 +1,66 @@
+DIVERGENCE MATRIX (precondition / expected / observed / source / file / function / line / consequence / severity)
+
+P1 census identity: snapshot.sourceHashes has one sealed SHA256 per discovered census file
+   expected: 144/144 well-formed and identity-bound to main fa45632391ad9ffe1d20d3bad5264a53b565638e
+   observed: 144/144 (verified: Object.keys(snapshot.sourceHashes).length === snapshot.discoveredFiles.length)
+   source: artifact c28-main-unit-snapshot.json (sha256 4913ebef...) | severity: none (holds)
+
+P2 same-source precondition inside the eligible unit census (ADR-038 §3)
+   expected: every eligible unit file byte-identical between main and the candidate checkout
+   observed: 3 of 94 unit files differ -> refusal by design
+     - src/db/client.server.ts
+         main   sha256 f09e09380c0eae5222ba5df37e2d9bcb3d0fd78ff39477c694e3f34c8587346c
+         cand   sha256 178a95b06d0560b24d500f9d94b710dacf8927deecfb5b522d41096db4449cb4
+     - src/instrumentation/telemetry.ts
+         main   sha256 4e1aea1fa1b534acc88c083ab3796a70238547593298d0c65280bb47c47ee44b
+         cand   sha256 c4bbf4b7bdf29bffdbc72960174dc0a54b924b91e1634ade12b6a8489c0d0ed6
+     - src/router.tsx
+         main   sha256 c37e2863eb9fc5f99f49d3a5a9dd75b918c1129cc463e4ad73e0a527136d0e15
+         cand   sha256 0462936a616e91416ed96c4f0bd68cac3a8d3cfeeec66b251b81acdf43bf8bf9
+   source: snapshot sourceHashes vs immutable Git bytes of bd4f02d2553d7f98f67f840c732aa5b1da1891bc
+   function: mirror() scripts/sonar/unit-mirror.ts (source-mapping guard)
+   line: the guard that throws when snapshot and checkout hashes differ
+   consequence (pre-fix): plain Error -> reasonCode EXECUTION_OR_UNCLASSIFIED -> observer refusal -> exit 1
+   severity: MEDIUM (informational job red on an expected, by-design refusal; no gate weakened)
+
+P3 refusal identity naming
+   expected: a contract-known refusal carries a stable reason code and a sanitized diagnostic
+   observed pre-fix: reasonCode EXECUTION_OR_UNCLASSIFIED, reason generic, no diagnostic key at all
+   observed post-fix: reasonCode SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE, diagnostic {code, divergentFiles: 3, eligibleUnits: 221, pathSha256: [3 digests]}
+   source: c26-main-mirror.json of the run (sha256 5360607f...) vs local re-execution
+   function: runMirrorCli() catch block scripts/sonar/mirror-runner.ts
+
+P4 observer recognition
+   expected: an identity-bound, by-design refusal stays informational (exit 0), approvesMain false, no credit
+   observed pre-fix: classifyMirrorObservation() threw -> observation null -> outcome FAILURE -> exit 1
+   observed post-fix: observation NO-VERDICT, outcome INFORMATIONAL, approvesMain false, exit 0
+   source: c29-main-mirror-observation.json (sha256 681b8dc6...) vs local re-execution
+   function: classifyMirrorObservation() scripts/sonar/mirror-observation.ts
+
+P5 mandatory release gates untouched
+   expected: ruleset 24333849 requires verify-release and scan + cobertura on refs/heads/main only
+   observed: required_status_checks = [verify-release, scan + cobertura]; main-coverage-mirror is NOT required
+   source: GET /repos/Douglas0101/preco-que-da-lucro/rulesets/24333849
+
+FULL CENSUS DIVERGENCE (all 144 census files, main vs candidate checkout)
+  src/db/client.server.ts
+    main f09e09380c0eae5222ba5df37e2d9bcb3d0fd78ff39477c694e3f34c8587346c
+    cand 178a95b06d0560b24d500f9d94b710dacf8927deecfb5b522d41096db4449cb4
+  src/instrumentation/telemetry.ts
+    main 4e1aea1fa1b534acc88c083ab3796a70238547593298d0c65280bb47c47ee44b
+    cand c4bbf4b7bdf29bffdbc72960174dc0a54b924b91e1634ade12b6a8489c0d0ed6
+  src/lib/error-page.ts
+    main 635915886f5d44a18b6add2a53959dbe2e8ba1bb3f7e597fc714650e74157bb6
+    cand 930453f2458555363f4b4295e5aaccb873c4c0181c6633953fecdccf83aa6d55
+  src/router.tsx
+    main c37e2863eb9fc5f99f49d3a5a9dd75b918c1129cc463e4ad73e0a527136d0e15
+    cand 0462936a616e91416ed96c4f0bd68cac3a8d3cfeeec66b251b81acdf43bf8bf9
+  src/routes/api/health/ready.ts
+    main 6fadcfdbe846f2bc3f879955def86f18f5d681a3e345ae7ffc643681b9c787f3
+    cand 5cc4716999f950915a1878239e0c85700b2ba921a3eebe73ccdad29190481697
+  src/server/email/email-adapter.server.ts
+    main b6b4fe9a5fe5e697521f24523547ac4f81ef892a7b6363acde7e0a2d55997c9f
+    cand f0f7b6b2d051ff4ac3f99c1affa7bcdc970a7158dfea77b96dde0bf1cc49943e
+  files absent from the candidate: 0
+  files carrying eligible units: 94
+  divergent AND carrying units: src/db/client.server.ts, src/instrumentation/telemetry.ts, src/router.tsx

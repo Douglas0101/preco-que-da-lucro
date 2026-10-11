@@ -1,0 +1,128 @@
+# Provenance: transcribed from the Vercel MCP tool result (get_runtime_errors).
+# Tool: vercel_get_runtime_errors
+#       projectId=prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+#       teamId=team_2NnkSYjw5NRHAFnQFEPSHGmW
+#       since=7d
+# Read: 2026-10-08T22:4xZ (UTC). Read-only. No mutation of any kind.
+#
+# THIS IS THE SURFACE THAT STILL HOLDS THE INCIDENT ARTIFACTS.
+# The per-line runtime-log API is retention-blocked for any window >= 1h, but the
+# pre-aggregated error-cluster table answered since=7d and returned the
+# decisive `health.readiness_failed` line for dpl_6h2LTZX57soGiPP2oTurws7NsgVd.
+#
+# VERBATIM transcription of the 30 group headers, most frequent first, followed by
+# full detail for every cluster that bears on this incident. Nothing is elided:
+# group headers that are not expanded are reproduced verbatim in the index below.
+
+## INDEX — all 30 clusters, verbatim headers
+
+01 2026-10-06T09:51:51.549Z ERROR [Better Auth]: Failed to run background task: Error: RESEND_API_KEY e AUTH_EMAIL_FROM são obrigatórias para e-mails de autenticação | count=8 users=3 routes=/__server | first=2026-10-06T09:51:51.000Z last=2026-10-06T23:45:04.000Z | lastDeployment=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL
+02 2026-10-06T09:51:20.851Z ERROR [Better Auth]: Provider not found. Make sure to add the provider in your auth config { provider: 'google' } | count=7 users=2 routes=/__server | first=2026-10-06T09:51:20.000Z last=2026-10-06T16:13:45.000Z | lastDeployment=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL
+03 {"timestamp":"2026-10-08T17:50:54.712Z","level":"error","event":"health.readiness_failed","dependency":"postgres","error":{"name":"Error","message":"Failed query: select 1 as ready\nparams: "}} | count=6 users=3 routes=/__server | first=2026-10-08T17:50:54.000Z last=2026-10-08T19:00:34.000Z | lastDeployment=dpl_6h2LTZX57soGiPP2oTurws7NsgVd
+04 2026-10-06T14:05:41.966Z ERROR [Better Auth]: Invalid origin: https://evil.example | count=4 users=2 routes=/__server | first=2026-10-06T14:05:41.000Z last=2026-10-07T00:32:41.000Z | lastDeployment=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL
+05 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ... on conflict (key) do nothing" | count=1 users=1 | first=2026-10-06T04:59:49.000Z | lastDeployment=dpl_GTRvpzz1K4jBnrMxD3iicPc5t8pM
+06 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ... on conflict (key) do nothing" | count=1 users=1 | first=2026-10-02T02:30:13.352Z | lastDeployment=dpl_5NK5LAeM8BdbNurUBLheZWSTTz7N
+07 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: begin" | count=1 users=1 | first=2026-10-06T19:15:59.741Z | lastDeployment=dpl_CzhQ5BmcW1ZPadxH36TKhYy75iQd   <-- develop preview, sha ce9bd44
+08 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T05:00:14.882Z | lastDeployment=dpl_GTRvpzz1K4jBnrMxD3iicPc5t8pM
+09 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: begin" | count=1 users=1 | first=2026-10-08T17:50:56.670Z | lastDeployment=dpl_6h2LTZX57soGiPP2oTurws7NsgVd   <-- INCIDENT
+10 request.failed / POST /api/auth/sign-in/social / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T05:00:09.075Z | lastDeployment=dpl_GTRvpzz1K4jBnrMxD3iicPc5t8pM
+11 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T06:20:28.850Z | lastDeployment=dpl_Q3f5ahDSDSPxX7Z66QxPmBqDXyM
+12 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: begin" | count=1 users=1 | first=2026-10-08T18:42:25.595Z | lastDeployment=dpl_6h2LTZX57soGiPP2oTurws7NsgVd   <-- AFTER the 18:34Z containment intent
+13 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-02T01:22:12.593Z | lastDeployment=dpl_DPYoGLvxjnnFCxW4vrAmaUR7Wd4w
+14 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-02T02:30:13.023Z | lastDeployment=dpl_5NK5LAeM8BdbNurUBLheZWSTTz7N
+15 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-02T01:23:54.684Z | lastDeployment=dpl_DPYoGLvxjnnFCxW4vrAmaUR7Wd4w
+16 request.failed / GET /api/auth/ok / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T06:29:52.239Z | lastDeployment=dpl_Q3f5ahDSDSPxX7Z66QxPmBqDXyM
+17 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T04:59:50.749Z | lastDeployment=dpl_GTRvpzz1K4jBnrMxD3iicPc5t8pM
+18 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: begin" | count=1 users=1 | first=2026-10-06T19:16:00.527Z | lastDeployment=dpl_CzhQ5BmcW1ZPadxH36TKhYy75iQd
+19 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T02:23:01.144Z | lastDeployment=dpl_7C6Cxzehzk9UbXRuUPyWESe3kvxK
+20 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T06:20:31.499Z | lastDeployment=dpl_Q3f5ahDSDSPxX7Z66QxPmBqDXyM
+21 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T02:23:00.677Z | lastDeployment=dpl_7C6Cxzehzk9UbXRuUPyWESe3kvxK
+22 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-02T02:30:13.435Z | lastDeployment=dpl_5NK5LAeM8BdbNurUBLheZWSTTz7N
+23 request.failed / POST /api/auth/sign-up/email / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T05:00:06.943Z | lastDeployment=dpl_GTRvpzz1K4jBnrMxD3iicPc5t8pM
+24 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: begin" | count=1 users=1 | first=2026-10-08T17:51:34.226Z | lastDeployment=dpl_6h2LTZX57soGiPP2oTurws7NsgVd   <-- INCIDENT
+25 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T06:28:55.619Z | lastDeployment=dpl_Q3f5ahDSDSPxX7Z66QxPmBqDXyM
+26 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T04:59:50.749Z | lastDeployment=dpl_GTRvpzz1K4jBnrMxD3iicPc5t8pM
+27 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-02T01:22:13.430Z | lastDeployment=dpl_DPYoGLvxjnnFCxW4vrAmaUR7Wd4w
+28 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T06:28:42.320Z | lastDeployment=dpl_Q3f5ahDSDSPxX7Z66QxPmBqDXyM
+29 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-06T02:23:01.144Z | lastDeployment=dpl_7C6Cxzehzk9UbXRuUPyWESe3kvxK
+30 request.failed / GET /api/auth/get-session / INTERNAL_ERROR / "Failed query: insert into \"rate_limits\" ..." | count=1 users=1 | first=2026-10-02T03:37:01.435Z | lastDeployment=dpl_7C6Cxzehzk9UbXRuUPyWESe3kvxK
+
+======================================================================
+CLUSTER 03 — THE DECISIVE ARTIFACT, NOW RETRIEVED
+======================================================================
+
+{"timestamp":"2026-10-08T17:50:54.712Z","level":"error","event":"health.readiness_failed","dependency":"postgres","error":{"name":"Error","message":"Failed query: select 1 as ready\nparams: "}}
+count=6 users=3 routes=/__server
+first=2026-10-08T17:50:54.000Z last=2026-10-08T19:00:34.000Z
+lastDeployment=dpl_6h2LTZX57soGiPP2oTurws7NsgVd
+
+    {"timestamp":"2026-10-08T17:50:54.712Z","level":"error","event":"health.readiness_failed","dependency":"postgres","error":{"name":"Error","message":"Failed query: select 1 as ready\nparams: "}}
+    {"timestamp":"2026-10-08T17:51:33.443Z","level":"error","event":"health.readiness_failed","dependency":"postgres","error":{"name":"Error","message":"Failed query: select 1 as ready\nparams: "}}
+    {"timestamp":"2026-10-08T18:01:26.880Z","level":"error","event":"health.readiness_failed","dependency":"postgres","error":{"name":"Error","message":"Failed query: select 1 as ready\nparams: "}}
+
+CRITICAL READING: this is the exact line emitted by
+src/routes/api/health/ready.ts:14. It DOES carry the driver error message —
+but only `error.name` and `error.message`. The serialized message is
+drizzle's generic wrapper, `"Failed query: select 1 as ready\nparams: "`.
+The discriminating cause (SQLSTATE, host, endpoint, DNS/TCP failure) lives
+in `error.cause`, and `error.cause` is NOT serialized by `logJson`.
+So the artifact is now AVAILABLE and still NON-DISCRIMINATING, for a
+reason that is a defect of the log call itself, not of retention alone.
+
+======================================================================
+CLUSTER 09 / 24 / 12 — the /api/auth/get-session 500s on the new deployment
+======================================================================
+
+09: {"timestamp":"2026-10-08T17:50:56.670Z","level":"error","event":"request.failed","correlationId":"a8499878-1217-424e-ab28-8bbf7430aa62","code":"INTERNAL_ERROR","method":"GET","pathname":"/api/auth/get-session","durationMs":130,"error":{"name":"Error","message":"Failed query: begin \nparams: "}}
+    count=1 users=1 routes=/__server
+    first=2026-10-08T17:50:55.000Z last=2026-10-08T17:50:55.000Z
+    lastDeployment=dpl_6h2LTZX57soGiPP2oTurws7NsgVd
+
+24: {"timestamp":"2026-10-08T17:51:34.226Z","level":"error","event":"request.failed","correlationId":"6b0ce8e2-2fe8-429d-81ec-b91d6cb660ea","code":"INTERNAL_ERROR","method":"GET","pathname":"/api/auth/get-session","durationMs":93,"error":{"name":"Error","message":"Failed query: begin \nparams: "}}
+    count=1 users=1 routes=/__server
+    first=2026-10-08T17:51:34.000Z last=2026-10-08T17:51:34.000Z
+    lastDeployment=dpl_6h2LTZX57soGiPP2oTurws7NsgVd
+
+12: {"timestamp":"2026-10-08T18:42:25.595Z","level":"error","event":"request.failed","correlationId":"8a0b3a2c-f6d1-4331-ae44-a36c620b8aa6","code":"INTERNAL_ERROR","method":"GET","pathname":"/api/auth/get-session","durationMs":125,"error":{"name":"Error","message":"Failed query: begin \nparams: "}}
+    count=1 users=1 routes=/__server
+    first=2026-10-08T18:42:24.000Z last=2026-10-08T18:42:24.000Z
+    lastDeployment=dpl_6h2LTZX57soGiPP2oTurws7NsgVd
+
+CLUSTER 12 DATES THE OUTAGE, AND CORRECTS AN EARLIER READING.
+An earlier draft of this file called 18:42:25Z "AFTER the containment". That
+reading was WRONG and is corrected here deliberately, because the alias audit
+timestamp (vercel-alias-sage.json, updatedAt 1791486033986) is
+2026-10-08T19:00:33.986Z, not 18:34:00Z:
+
+  - 18:34:00Z is only the INTENT, recorded at PROGRESS.md L794.
+  - 19:00:33.986Z is when the alias last actually changed. VERIFIED.
+  - cluster 12 (18:42:25.595Z) is therefore ~18 minutes BEFORE the alias move,
+    i.e. dpl_6h2LTZX was still serving the public domain. No contradiction.
+
+Cluster 12 is therefore NOT evidence that the alias was still on the broken
+deployment after containment, and the failure window (last=19:00:34Z) cannot
+be used to date the alias move in either direction. Use the alias audit
+timestamp for that.
+
+======================================================================
+CLUSTER 07 / 18 — the SAME signature on the develop preview sha ce9bd44
+======================================================================
+
+07: {"timestamp":"2026-10-06T19:15:59.741Z","level":"error","event":"request.failed","correlationId":"b636d057-1c30-4058-a73b-82f9b52ca91e","code":"INTERNAL_ERROR","method":"GET","pathname":"/api/auth/get-session","durationMs":117,"error":{"name":"Error","message":"Failed query: begin \nparams: "}}
+    count=1 users=1 routes=/__server
+    first=2026-10-06T19:15:59.000Z last=2026-10-06T19:15:59.000Z
+    lastDeployment=dpl_CzhQ5BmcW1ZPadxH36TKhYy75iQd
+
+18: {"timestamp":"2026-10-06T19:16:00.527Z","level":"error","event":"request.failed","correlationId":"f79fada7-a1ae-42b1-abce-8bb769d62365","code":"INTERNAL_ERROR","method":"GET","pathname":"/api/auth/get-session","durationMs":127,"error":{"name":"Error","message":"Failed query: begin \nparams: "}}
+    count=1 users=1 routes=/__server
+    first=2026-10-06T19:15:59.000Z last=2026-10-06T19:15:59.000Z
+    lastDeployment=dpl_CzhQ5BmcW1ZPadxH36TKhYy75iQd
+
+dpl_CzhQ5BmcW1ZPadxH36TKhYy75iQd is a develop PREVIEW of sha
+ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff — the very revision the journal
+calls the "healthy preview". It produced the identical
+"Failed query: begin" 500 on /api/auth/get-session. The recurrence across
+2026-10-02, 2026-10-06 and 2026-10-08, across at least six distinct
+deployments, is the strongest available signal that the production
+Postgres connectivity fault is INTERMITTENT and NOT specific to the
+new bytes.

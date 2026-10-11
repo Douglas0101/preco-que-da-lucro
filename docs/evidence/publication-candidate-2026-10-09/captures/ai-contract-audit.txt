@@ -1,0 +1,95 @@
+# Auditoria do contrato de configuração de IA (DeepSeek) — read-only, 2026-10-09
+
+Nenhum valor de ambiente foi lido. Nenhuma credencial foi impressa. Nenhuma mutação
+foi executada. Todas as afirmações abaixo são de **código**, citadas por arquivo:linha,
+e portanto reproduzíveis no candidato `852dcaf` + mudanças locais desta sessão.
+
+## 1. Contrato efetivo em `src/lib/chat.functions.ts` (`callModel`)
+
+| #   | linha     | trecho verbatim                                                                                                                                            |
+| --- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 330-331   | `const endpoint = readEnv("AI_GATEWAY_URL") ?? "https://ai.gateway.lovable.dev/v1/chat/completions";`                                                        |
+| 2   | 334       | `const gatewayEndpoint = assertGatewayEndpoint(endpoint);`                                                                                                   |
+| 3   | 335       | `const deepseek = gatewayEndpoint.hostname === "api.deepseek.com";`                                                                                          |
+| 4   | 336       | `const model = readEnv("AI_MODEL") ?? (deepseek ? "deepseek-flash" : "google/gemini-3.6-flash");`                                                             |
+| 5   | 337-347   | `if (deepseek && (origin !== "https://api.deepseek.com" \|\| pathname !== "/chat/completions" \|\| username \|\| password \|\| search \|\| hash \|\| model !== "deepseek-flash")) throw DEPENDENCY_ERROR` |
+| 6   | 349-351   | `const apiKey = deepseek ? readEnv("DEEPSEEK_API_KEY") : (readEnv("AI_GATEWAY_API_KEY") ?? readEnv("LOVABLE_API_KEY"));`                                     |
+| 7   | 352-361   | `if (!apiKey \|\| apiKey.trim() !== apiKey) { logJson("error","ai.credential_unusable",{provider,host,reason:"absent"\|"padded"}); throw DEPENDENCY_ERROR }` |
+| 8   | 362       | `const attempts = numberSetting("AI_MODEL_MAX_ATTEMPTS", 2, 1, 2);`                                                                                          |
+| 9   | 363       | `const timeoutMs = numberSetting("AI_MODEL_TIMEOUT_MS", 30_000, 1_000, 30_000);`                                                                             |
+
+`numberSetting` (`src/lib/tenant-transaction.ts:9-12`) usa `Number(process.env[name])`
+e devolve o fallback quando o valor não é inteiro na faixa — `Number("")` é `0`, que
+cai no fallback; `Number("   ")` é `NaN`, idem. Um registro definido-e-vazio **não**
+cria tentativa zero nem timeout zero.
+
+### Consequências operacionais (VERIFIED por leitura de código)
+
+- endpoint DeepSeek exige o valor exato `https://api.deepseek.com/chat/completions`;
+  qualquer desvio de origem, path, userinfo, query ou fragmento é `DEPENDENCY_ERROR`.
+- No destino DeepSeek, `AI_MODEL` **tem** de ser `deepseek-flash` ou estar ausente.
+  Qualquer outro valor não-vazio — inclusive um identificador opaco de registro de
+  painel, como o record `J5pElDTcKFX90oTm` — quebra **todo** turno com
+  `DEPENDENCY_ERROR`, sem degradar. (Coberto por teste novo, ver §4.)
+- Credencial é específica do emissor: no destino DeepSeek só `DEEPSEEK_API_KEY` vale,
+  e ela **nunca** cai em `AI_GATEWAY_API_KEY`/`LOVABLE_API_KEY`.
+- Padding de espaço no início/fim da credencial é recusado e registrado como
+  `reason:"padded"`, não silenciosamente aceito.
+
+## 2. Guard anti-SSRF (`src/lib/ai-endpoint.server.ts`)
+
+Aceita: `https:` com hostname público não vazio.
+Recusa: protocolo não-https; hostname vazio; IPv6 literal; IPv4 literal em qualquer
+grafia (o parser WHATWG canonicaliza decimal/octal/hex/curta antes da checagem);
+`localhost`, `*.localhost`, `*.local`, `*.internal`. Erro:
+`ApplicationError("DEPENDENCY_ERROR")` com prefixo
+`AI gateway endpoint recusado pelo guard (https público obrigatório):`.
+
+## 3. Inventário de registros documentado em `docs/runbooks/vercel-prod-env-admin.md` §3
+
+| Nome                    | Record id         | Target           | Tipo      | Estado medido / ação exigida                                                                  |
+| ----------------------- | ----------------- | ---------------- | --------- | --------------------------------------------------------------------------------------------- |
+| `AI_GATEWAY_URL`        | `MRVEv4GtTHNQtbMq`| production+preview | sensitive | definido e vazio; **editar no lugar** para `https://api.deepseek.com/chat/completions`          |
+| `AI_MODEL`              | `J5pElDTcKFX90oTm`| production+preview | sensitive | **valor NÃO VERIFICADO**; pré-requisito duro: `deepseek-flash` ou deletar o registro            |
+| `DEEPSEEK_API_KEY`      | `RcHEC8R64Y7c2l2g`| production        | sensitive | Via A apenas; não-vazia e sem padding                                                          |
+| `AI_GATEWAY_API_KEY`    | `rAlJcM0NLgoH2NPk`| production+preview | sensitive | **não deletar** enquanto o SHA antigo (`d4b9395`) servir tráfego                               |
+| `AI_MODEL_PRICING_JSON` | `vT1FaOQa5aOwHZFi`| production+preview | painel     | opcional; JSON malformado é `CONFIG_ERROR` no boot                                             |
+| `DATABASE_URL`          | `LQTKQMUeLWmQnHkM`| production        | sensitive | suspeito principal do 503; reescopado em 2026-10-06 sem campo de valor                         |
+| `RESEND_API_KEY`        | `w4nacFXeB8N4rtNz`| painel            | painel     | par de e-mail; vazio deve ser **deletado**, não preenchido                                     |
+| `AUTH_EMAIL_FROM`       | `PwFFRn9YR6pV7SeZ`| painel            | painel     | segunda metade do par                                                                          |
+
+**Nota de método:** este inventário é a transcrição do runbook. O valores **não** foram
+relidos por API nesta sessão, porque a superfície que devolve registros
+(`GET /v9/projects/{id}/env`) também devolve valores descriptografados e ocontrato
+do repositório proíbe lê-los. Confirmação por nome/target/estado é operação Via A.
+
+## 4. Cobertura dos nove comportamentos exigidos (`src/test/model-gateway.test.ts`)
+
+| comportamento exigido                                     | estado   | teste que cobre                                                                                   |
+| --------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| (a) configuração válida                                   | EXISTS   | "usa a chave do emissor certo, modo compatível e uso medido"                                      |
+| (b) variável ausente                                      | EXISTS   | "não reaproveita credenciais de outros provedores quando falta a chave DeepSeek" + "credencial vazia falha alto e nomeada, sem trocar de emissor" |
+| (c) variável vazia                                        | EXISTS   | bloco `variável definida e vazia conta como ausente` (4 testes: endpoint vazio, só-espaços, AI_MODEL vazia, credencial vazia) |
+| (d) valor incompatível                                    | EXISTS   | "recusa modelo de outro protocolo e credencial com whitespace" + **novo** "recusa valor opaco de registro de painel no destino nativo" |
+| (e) resposta inesperada do provedor                       | EXISTS   | "registra resposta fora do contrato como não interpretável"                                       |
+| (f) timeout / cancelamento                                | EXISTS   | "propaga cancelamento como AI_TIMEOUT" + "limites do gateway de IA"                                |
+| (g) indisponibilidade externa                             | EXISTS   | "repete somente uma falha transitória e limita a duas tentativas" + "não repete quota ou rate limit" |
+| (h) tratamento seguro das mensagens de erro               | EXISTS   | "nunca registra a própria chave no detalhe do erro"                                               |
+| (i) smoke test do fluxo real de chat com dados sintéticos | EXISTS   | suíte de banco `test-chat-semantics` (cadeia `npm run db:test`) e `e2e/` — **com provedor falso**; a chamada real e faturada ao DeepSeek continua pendente Via A |
+
+O item (i) tem duas partes, e a distinção importa: o fluxo real de chat com dados
+sintéticos e provedor falso **existe** e é exercitado pelo `db:test`. A chamada real
+ao provedor externo, com credencial e custo, **não** pode ser executada sem Via A e sem
+autorização de gasto — está declarada como bloqueada, não como verificada.
+
+## 5. O que NÃO foi determinável neste repositório
+
+1. O **valor** de `AI_MODEL` em produção (`J5pElDTcKFX90oTm`). Sem lê-lo, não se pode
+   afirmar que está `deepseek-flash`. O runbook já o classifica como pré-requisito duro
+   de publicação.
+2. O **valor** de `AI_GATEWAY_URL` (`MRVEv4GtTHNQtbMq`) e de `DATABASE_URL`
+   (`LQTKQMUeLWmQnHkM`).
+3. Se `DEEPSEEK_API_KEY` (`RcHEC8R64Y7c2l2g`) está presente e não-vazia no escopo
+   `production`. O runbook a lista como registro a ser confirmado por Via A.
+4. O comportamento de `assertPricingConfigForBoot` (`src/server.ts:14`) depende de
+   `AI_MODEL_PRICING_JSON`, cujo valor não foi lido.

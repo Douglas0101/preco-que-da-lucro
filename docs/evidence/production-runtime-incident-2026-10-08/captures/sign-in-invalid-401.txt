@@ -1,0 +1,25 @@
+=== POST /api/auth/sign-in/email (credencial deliberadamente invalida, nao-real) ===
+--- request body (valor fabricado pelo autor; NAO e credencial real) ---
+{"email":"sonda-inexistente-20261008@example.invalid","password":"senha-falsa-de-sonda-nao-real"}
+--- response ---
+HTTP/2 401 
+cache-control: private, no-store
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+content-type: application/json
+date: Thu, 08 Oct 2026 22:42:28 GMT
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+reporting-endpoints: csp-endpoint="/api/csp-report"
+server: Vercel
+strict-transport-security: max-age=31536000; includeSubDomains
+vary: Cookie
+x-content-type-options: nosniff
+x-correlation-id: 093ecdd6-58ca-4e90-acc8-721bbc169434
+x-vercel-cache: MISS
+x-vercel-id: gru1::iad1::fg9tw-1791499348345-8c75260854f0
+
+
+--- meta ---
+HTTP 401 | time_total 0.898223s | size 74
+--- body ---
+{"message":"Invalid email or password","code":"INVALID_EMAIL_OR_PASSWORD"}

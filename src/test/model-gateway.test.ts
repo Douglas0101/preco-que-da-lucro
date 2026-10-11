@@ -405,4 +405,22 @@ describe("variável definida e vazia conta como ausente", () => {
     expect(logged).toContain("deepseek");
     errorSpy.mockRestore();
   });
+
+  // Registro real de produção: `AI_MODEL` (record `J5pElDTcKFX90oTm`,
+  // `docs/runbooks/vercel-prod-env-admin.md` §3) tem valor NÃO VERIFICADO, e a
+  // forma possível de um registro de painel é um identificador opaco — nem o
+  // nome do documentado (`deepseek-flash`) nem o do outro protocolo
+  // (`google/gemini-3.6-flash`). Um valor assim quebraria **todo** turno de chat
+  // sem degradar; o contrato tem que recusá-lo antes do fetch.
+  it("recusa valor opaco de registro de painel no destino nativo", async () => {
+    vi.stubEnv("DEEPSEEK_API_KEY", crypto.randomUUID());
+    vi.stubEnv("AI_GATEWAY_URL", "https://api.deepseek.com/chat/completions");
+    vi.stubEnv("AI_MODEL", "J5pElDTcKFX90oTm");
+    const f = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", f);
+    await expect(
+      callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal),
+    ).rejects.toMatchObject({ code: "DEPENDENCY_ERROR" });
+    expect(f).not.toHaveBeenCalled();
+  });
 });
