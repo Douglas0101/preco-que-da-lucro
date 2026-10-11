@@ -1,0 +1,7 @@
+2026-10-10T00:13:15.0148549Z C24_MAIN_BASELINE {"schema":"main-baseline/2","observedAt":"2026-10-10T00:13:15.011Z","mainSha":"fa45632391ad9ffe1d20d3bad5264a53b565638e","analysisId":"9048008c-3c10-49d6-96e8-b6f06fd89dc8","analysisDate":"2026-10-08T17:37:32+0000","gate":{"status":"ERROR","conditions":[{"status":"OK","metricKey":"new_reliability_rating","comparator":"GT","periodIndex":1,"errorThresho
+2026-10-10T00:13:17.5831876Z C26_UNIT_CAPABILITY {"schema":"main-unit-probe/1","observedAt":"2026-10-10T00:13:15.090Z","verdict":"NO-VERDICT","scope":"one-file capability probe; no unit credit","requests":[{"origin":"github","path":"/repos/Douglas0101/preco-que-da-lucro/branches/main","status":200,"latencyMs":464},{"origin":"sonar","path":"/api/project_analyses/search","status":200,"latencyMs":434
+2026-10-10T00:14:13.5023389Z   SONAR_MAIN_UNIT_SNAPSHOT_SHA256: 4913ebef95d49a953aaf493746f7226edaeb3085da5b4cabcea76c1a1d61dead
+2026-10-10T00:14:13.8223588Z NO-VERDICT: complete per-unit mapping/provenance unavailable or inconsistent
+2026-10-10T00:14:13.8361225Z ##[error]Mirror observation execution/evidence failed; inspect preserved raw reports.
+2026-10-10T00:14:13.8368357Z Raw status: NO-VERDICT; raw exit: 2.
+2026-10-10T00:14:13.8410051Z ##[error]Process completed with exit code 1.

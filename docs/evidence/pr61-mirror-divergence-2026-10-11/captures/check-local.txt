@@ -1,0 +1,29 @@
+LOCAL QUALITY GATE — npm run check
+
+command:      npm run check
+base revision: acca987b664a1d5c9c892fde6e96b2f82f4b8e6c
+              (+ the working-tree correction carried by this commit)
+environment:  local Linux bench; Node v24.21.0 (matches .nvmrc);
+              npm ci --ignore-scripts; no remote service touched
+exit code:    0
+duration:     204 s
+steps:        21/21 — m02:lockfile-guard, guard:upgrade, check:migration-toolchain,
+              guard:contracts, m02:work-package-guard, m02:debts-guard,
+              m02:temporal-guard, m02:state:check, m02:boundaries,
+              m02:secrets-audit, guard:mcp-runtime, m02:seal-dts:check,
+              m02:matrix:check, check:ui-stack, check:no-supabase-runtime,
+              format:check, lint, typecheck, test, build, check:bundle
+unit tests:   141 files passed | 1 skipped (142); 2168 passed | 18 skipped (2186)
+bundle:       PASS assets/index-DRI3LDON.js 249790 minified / 77208 gzip /
+              67166 Brotli, sha256=30ca04baaa66 — identical to the hash recorded
+              in L819 for the pre-correction tree, as expected: the write-set
+              touches no production source under src/ (tests and scripts only)
+dependency floor: m02:lockfile-guard ok=true; guard:upgrade ok=true status=pass
+db:test:      not run in this cycle — the write-set carries no migration,
+              repository or service change, and the DB tier is not implied by it
+
+DECLARED DEVIATION: this capture was written after the gate ran. It is a
+docs/evidence text file; the guards that can be affected by documentation were
+re-executed against the final tree afterwards (m02:temporal-guard,
+m02:debts-guard, m02:state:check, m02:boundaries, m02:secrets-audit,
+format:check).

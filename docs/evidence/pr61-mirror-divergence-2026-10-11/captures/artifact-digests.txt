@@ -1,0 +1,12 @@
+2b8f652a48221cd0f693adf98fae01b3ed42b507f989419322edeed48303bff9  /tmp/pqd-pr61-evidence/main-mirror-verdict/c24-main-baseline.json
+5360607ff7673e7de62792caae3cc95ce479369601faf2cc0f1dd94f2e52d947  /tmp/pqd-pr61-evidence/main-mirror-verdict/c26-main-mirror.json
+800807affc5077bf9e03eb80c5d5ec8e7d046bf14191e3c2c5b181688113603a  /tmp/pqd-pr61-evidence/main-mirror-verdict/c26-main-unit-probe.json
+34adc75d876fbf2a33ced506c4ab8616c71b52cfb7c540734c127a50f398024b  /tmp/pqd-pr61-evidence/main-mirror-verdict/c28-main-origin-run.json
+155563a5aaad21f400ca872fde8a1c4257f4c6530af06f90b8713af053379b27  /tmp/pqd-pr61-evidence/main-mirror-verdict/c28-main-unit-adapter.json
+4913ebef95d49a953aaf493746f7226edaeb3085da5b4cabcea76c1a1d61dead  /tmp/pqd-pr61-evidence/main-mirror-verdict/c28-main-unit-snapshot.json
+681b8dc6fd9360d61e5665ce39e1ead23302049837171eb6000353b9dc23f0b6  /tmp/pqd-pr61-evidence/main-mirror-verdict/c29-main-mirror-observation.json
+354e14c823dacefe76acdaf7c6f39a632d622bd72a31ab0c1e7253f4396f6d61  /tmp/pqd-pr61-evidence/main-mirror-verdict/c29-main-unit-adapter-observation.json
+9848a9bb683b1c067b1bb4bc88caf9e48964c9b84c939de06e4ad19558a02270  /tmp/pqd-pr61-evidence/coverage-lcov/lcov.info
+af1252d79559bef49c7b83fc78954bf2ea7731d335f368cfd45aa6cbaa5602bf  /tmp/pqd-pr61-evidence/coverage-lcov/lcov-provenance.json
+52ad4ea13effa1d077a6a0e1da248fa82c8ac14aef89e3e36b127c0850585afe  /tmp/pqd-pr61-main-origin/lcov.info
+e3d55501c69e81e2d88b80d0a12a65988beedd6f0808cb8cfe6e7c4216238e91  /tmp/pqd-pr61-main-origin/lcov-provenance.json

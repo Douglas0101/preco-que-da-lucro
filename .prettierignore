@@ -37,3 +37,8 @@ src/integrations/supabase/types.ts
 docs/evidence/neon-repair-2026-10-01/captures/checkpoint-hostinger-pending.json
 docs/evidence/neon-repair-2026-10-01/captures/final-reconciliation.json
 docs/evidence/neon-repair-2026-10-01/captures/post-cleanup-runtime.json
+
+# Raw artifacts of the PR #61 mirror investigation, copied byte-for-byte from the run
+# before the 7-day retention expired. Evidence, not source: sealed like the security
+# scans, never formatter-mutated. Scoped to this package's remote subtree.
+docs/evidence/pr61-mirror-divergence-2026-10-11/captures/remote/**

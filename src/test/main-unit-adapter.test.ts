@@ -139,6 +139,52 @@ describe("complete unit adapter, original scanner provenance and conservative CL
     }
     expect(() => classifyMirrorObservation("mirror", null, 0)).toThrow();
   });
+  it("recognizes a measured source divergence as informational, and only that", () => {
+    // Recusa por desenho (ADR-038 §3) medida pelo produtor: só é informacional com
+    // código exato e evidência estrutural completa. Ela nunca aprova main, nunca
+    // substitui o CE obrigatório e nunca é emitida pelo adapter.
+    const divergence = {
+      schema: "main-mirror/2",
+      verdict: "NO-VERDICT",
+      reasonCode: "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE",
+      reason:
+        "Main and candidate sources differ inside the eligible unit census; the conservative projection requires the same source (ADR-038 §3).",
+      mainSha: revision,
+      analysisId: baseline.analysisId,
+      target: authoritativeUnits(baseline.metrics),
+      diagnostic: {
+        code: "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE",
+        divergentFiles: 2,
+        eligibleUnits: 3,
+        pathSha256: [sha256(file), sha256("src/lib/other.ts")].sort(),
+      },
+    };
+    expect(classifyMirrorObservation("mirror", divergence, 2)).toBe("NO-VERDICT");
+    for (const status of [0, 1, 3, null])
+      expect(() => classifyMirrorObservation("mirror", divergence, status)).toThrow();
+    expect(() => classifyMirrorObservation("adapter", divergence, 2)).toThrow();
+    for (const patch of [
+      { reasonCode: "EXECUTION_OR_UNCLASSIFIED" },
+      { reasonCode: "UNKNOWN_REFUSAL" },
+      { diagnostic: undefined },
+      { diagnostic: { ...divergence.diagnostic, code: "OTHER" } },
+      { diagnostic: { ...divergence.diagnostic, divergentFiles: 0 } },
+      { diagnostic: { ...divergence.diagnostic, divergentFiles: 1.5 } },
+      { diagnostic: { ...divergence.diagnostic, eligibleUnits: 0 } },
+      { diagnostic: { ...divergence.diagnostic, eligibleUnits: 99 } },
+      { diagnostic: { ...divergence.diagnostic, pathSha256: [] } },
+      {
+        diagnostic: {
+          ...divergence.diagnostic,
+          pathSha256: [sha256(file), sha256(file)],
+        },
+      },
+      { diagnostic: { ...divergence.diagnostic, pathSha256: ["not-a-digest", sha256(file)] } },
+      { target: { ...divergence.target, total: 0 } },
+      { target: null },
+    ])
+      expect(() => classifyMirrorObservation("mirror", { ...divergence, ...patch }, 2)).toThrow();
+  });
   it("treats a BRDA-only line as covered exactly like the official LCOV importer", () => {
     // LCOVParser.FileData.save (SonarJS): toda linha DA entra com o contador e toda
     // linha com BRDA entra com DA + branches cobertas — a condição coberta conta como
@@ -808,6 +854,7 @@ describe("complete unit adapter, original scanner provenance and conservative CL
     "corrupt-candidate",
     "corrupt-main-sidecar",
     "missing-main-lcov",
+    "source-divergence",
     "mixed-census",
     "coverage-census-failure",
   ] as const)("runs the real bare-Node CLI in its own Git fixture: %s", (scenario) => {
@@ -946,6 +993,64 @@ describe("complete unit adapter, original scanner provenance and conservative CL
         expect(
           JSON.parse(readFileSync(resolve(directory, "c26-main-mirror.json"), "utf8")).verdict,
         ).toBe("NO-VERDICT");
+        return;
+      }
+      if (scenario === "source-divergence") {
+        // O candidato altera a fonte DEPOIS de o snapshot de main ser selado, e sela a
+        // própria fonte (como na run real): a única divergência medida é main × candidato.
+        // Recusa por desenho (ADR-038 §3) — nomeada, informacional, sem crédito.
+        writeFileSync(
+          resolve(directory, file),
+          "// candidate source changed after the main seal\n".repeat(6),
+        );
+        const mutatedHash = sha256(readFileSync(resolve(directory, file)));
+        save("candidate.lcov", lcov(1));
+        save(
+          "candidate-origin.json",
+          scannerProvenance(
+            checkoutSha,
+            lcov(1),
+            g("develop", "60"),
+            "Sensor JavaScript/TypeScript Coverage",
+            instr,
+            () => mutatedHash,
+          ),
+        );
+        const summaryPath = resolve(directory, "summary.md");
+        const observed = spawnSync(
+          process.execPath,
+          [resolve("scripts/sonar/mirror-observation.ts"), "mirror"],
+          { cwd: directory, env: { ...env, GITHUB_STEP_SUMMARY: summaryPath }, encoding: "utf8" },
+        );
+        expect(observed.status, observed.stderr).toBe(0);
+        const mirrorReport = JSON.parse(
+          readFileSync(resolve(directory, "c26-main-mirror.json"), "utf8"),
+        );
+        expect(mirrorReport).toMatchObject({
+          schema: "main-mirror/2",
+          verdict: "NO-VERDICT",
+          reasonCode: "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE",
+          target: { total: 5, covered: 3 },
+          diagnostic: {
+            code: "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE",
+            divergentFiles: 1,
+            eligibleUnits: 5,
+            pathSha256: [sha256(file)],
+          },
+          missingNames: [],
+        });
+        // Nenhuma unidade paga, nenhum veredito de cobertura, nenhuma aprovação de main.
+        expect(mirrorReport).not.toHaveProperty("result");
+        expect(
+          JSON.parse(readFileSync(resolve(directory, "c29-main-mirror-observation.json"), "utf8")),
+        ).toMatchObject({
+          rawExitCode: 2,
+          rawStatus: "NO-VERDICT",
+          observation: "NO-VERDICT",
+          outcome: "INFORMATIONAL",
+          approvesMain: false,
+        });
+        expect(readFileSync(summaryPath, "utf8")).toContain("Informational only under ADR-042");
         return;
       }
       save("candidate.lcov", lcov());

@@ -1,0 +1,182 @@
+
+ RUN  v4.1.11 /home/douglas/.cline/worktrees/a9e17/preco-que-da-lucro
+
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > accepts only coherent documented observations, never a release verdict 7ms
+ × src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > recognizes a measured source divergence as informational, and only that 6ms
+   → NO-VERDICT is not a recognized historical observation.
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > treats a BRDA-only line as covered exactly like the official LCOV importer 3ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > keeps the DA value when the same line also has a covered branch 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > completes the immutable hash from Git for census files the coverage run never loaded 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > maps condition IDs from the ORIGINAL consumed LCOV and reconciles provider counts 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > treats a Sonar-executable uncovered line without original DA as uncovered and refuses a covered one 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > does not promote numeric branch totals without original individual identities 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > missing new-code markers, ambiguous aliases, duplicate files and changed source cannot map 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > sealed bytes, exact period, expected PR, sensor, source and instrumentation are required 4ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > accounts for CSS without LCOV credit in the complete census (paginated=false) 2ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > accounts for CSS without LCOV credit in the complete census (paginated=true) 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > accepts the real splat route name as JS/TS coverage and keeps it eligible (paginated=false) 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > accepts the real splat route name as JS/TS coverage and keeps it eligible (paginated=true) 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses missing measures without silently classifying src/lib/example.ts outside coverage 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses missing measures without silently classifying src/styles.css outside coverage 0ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses CSS declaring new_lines_to_cover instead of dropping measured units 0ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses CSS declaring new_uncovered_lines instead of dropping measured units 0ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses CSS declaring new_conditions_to_cover instead of dropping measured units 0ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses CSS declaring new_uncovered_conditions instead of dropping measured units 0ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses unreadable or duplicated coverage measures for src/lib/example.ts 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses unreadable or duplicated coverage measures for src/styles.css 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses an unregistered component even with empty measures: src/template.html 0ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses an unregistered component even with empty measures: src/../styles.css 0ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > refuses an unregistered component even with empty measures: src/test/styles.css 0ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > rejects CSS-only discovery and duplicate CSS identities across pages 0ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > emits only fixed diagnostics and path digests, never raw errors or source 0ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > enumerates pages and checks every source line against immutable Git line count 2ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > rejects changed totals and duplicate file identities across component pages 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > selecting a completed immutable main run never substitutes a PR/develop artifact 1ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > runs the real bare-Node CLI in its own Git fixture: direct-contract 318ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > runs the real bare-Node CLI in its own Git fixture: historical-absence 362ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > runs the real bare-Node CLI in its own Git fixture: corrupt-candidate 350ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > runs the real bare-Node CLI in its own Git fixture: corrupt-main-sidecar 191ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > runs the real bare-Node CLI in its own Git fixture: missing-main-lcov 175ms
+ × src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > runs the real bare-Node CLI in its own Git fixture: source-divergence 189ms
+   → NO-VERDICT: complete per-unit mapping/provenance unavailable or inconsistent
+::error::Mirror observation execution/evidence failed; inspect preserved raw reports.
+: expected 1 to be +0 // Object.is equality
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > runs the real bare-Node CLI in its own Git fixture: mixed-census 412ms
+ ✓ src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > runs the real bare-Node CLI in its own Git fixture: coverage-census-failure 376ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > measures lines plus conditions and the anti-empty-window floor 2ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > missing/invalid condition count null is not zero 1ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > missing/invalid condition count -1 is not zero 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > missing/invalid condition count 1.5 is not zero 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > rejects an empty window and inconsistent percentage 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > credits one real eligible unit and reports its identity 1ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > does not credit old lines in the same file (C25 false-green control) 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > subtracts coverage lost while crediting a gain 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > does not treat unknown branch data as uncovered/covered 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > keeps an uncovered line without DA uncovered on both sides and credits only a measured hit 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > rejects covered lines without DA in the baseline or candidate 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > rejects absent BRDA even when the baseline condition was uncovered 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > rejects changed mainSha 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > rejects changed analysisId 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > rejects changed instrumentation 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > rejects changed source, missing units, duplicate units and tests 0ms
+ × src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > names a main/candidate source divergence with the complete measured set 6ms
+   → expected Error: source mapping unavailable: src/li… to match object { name: 'SourceDivergence', …(2) }
+ × src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > measures every divergent eligible file, not only the first one reached 1ms
+   → expected Error: source mapping unavailable: src/li… to match object { name: 'SourceDivergence', …(2) }
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > keeps an unsealed source hash a blocking failure, never a named divergence 1ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > does not name a divergence when the sources are identical 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > rejects stale/future baseline, denominator below floor and numerator drift 0ms
+ ✓ src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > rejects empty, truncated and duplicated LCOV 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > names a main/candidate source divergence with the complete measured set
+AssertionError: expected Error: source mapping unavailable: src/li… to match object { name: 'SourceDivergence', …(2) }
+
+- Expected
++ Received
+
+- {
+-   "eligibleUnits": 5,
+-   "files": [
+-     {
+-       "candidateSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+-       "mainSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+-       "path": "src/lib/example.ts",
+-     },
+-   ],
+-   "name": "SourceDivergence",
++ Error {
++   "message": "source mapping unavailable: src/lib/example.ts",
+  }
+
+ ❯ src/test/gate-mirror.test.ts:183:20
+    181|       caught = error;
+    182|     }
+    183|     expect(caught).toMatchObject({
+       |                    ^
+    184|       name: "SourceDivergence",
+    185|       files: [{ path: file, mainSha256: source, candidateSha256: "c".r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/test/gate-mirror.test.ts > Conservative main coverage mirror by eligible unit > measures every divergent eligible file, not only the first one reached
+AssertionError: expected Error: source mapping unavailable: src/li… to match object { name: 'SourceDivergence', …(2) }
+
+- Expected
++ Received
+
+- {
+-   "eligibleUnits": 7,
+-   "files": [
+-     {
+-       "candidateSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+-       "mainSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+-       "path": "src/lib/example.ts",
+-     },
+-     {
+-       "candidateSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+-       "mainSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+-       "path": "src/lib/other.ts",
+-     },
+-     {
+-       "candidateSha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+-       "mainSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+-       "path": "src/lib/second.ts",
+-     },
+-   ],
+-   "name": "SourceDivergence",
++ Error {
++   "message": "source mapping unavailable: src/lib/example.ts",
+  }
+
+ ❯ src/test/gate-mirror.test.ts:213:20
+    211|       caught = error;
+    212|     }
+    213|     expect(caught).toMatchObject({
+       |                    ^
+    214|       name: "SourceDivergence",
+    215|       files: [
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > recognizes a measured source divergence as informational, and only that
+Error: NO-VERDICT is not a recognized historical observation.
+ ❯ classifyMirrorObservation scripts/sonar/mirror-observation.ts:49:13
+     47|       (kind === "adapter" ? !Array.isArray(report.requests) : !record(…
+     48|     )
+     49|       throw new Error("NO-VERDICT is not a recognized historical obser…
+       |             ^
+     50|     return "NO-VERDICT";
+     51|   }
+ ❯ src/test/main-unit-adapter.test.ts:162:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/test/main-unit-adapter.test.ts > complete unit adapter, original scanner provenance and conservative CLI decision > runs the real bare-Node CLI in its own Git fixture: source-divergence
+AssertionError: NO-VERDICT: complete per-unit mapping/provenance unavailable or inconsistent
+::error::Mirror observation execution/evidence failed; inspect preserved raw reports.
+: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/test/main-unit-adapter.test.ts:1025:50
+    1023|           { cwd: directory, env: { ...env, GITHUB_STEP_SUMMARY: summar…
+    1024|         );
+    1025|         expect(observed.status, observed.stderr).toBe(0);
+       |                                                  ^
+    1026|         const mirrorReport = JSON.parse(
+    1027|           readFileSync(resolve(directory, "c26-main-mirror.json"), "ut…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  4 failed | 56 passed (60)
+   Start at  00:49:26
+   Duration  3.92s (transform 181ms, setup 179ms, import 196ms, tests 2.43s, environment 924ms)
+

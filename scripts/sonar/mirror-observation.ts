@@ -41,13 +41,39 @@ export function classifyMirrorObservation(
   if (report.verdict === "NO-VERDICT") {
     if (
       rawExitCode !== 2 ||
-      report.reasonCode !== "ORIGINAL_PROVENANCE_UNAVAILABLE" ||
       typeof report.reason !== "string" ||
       !report.reason ||
       (kind === "adapter" ? !Array.isArray(report.requests) : !record(report.target))
     )
       throw new Error("NO-VERDICT is not a recognized historical observation.");
-    return "NO-VERDICT";
+    if (report.reasonCode === "ORIGINAL_PROVENANCE_UNAVAILABLE") return "NO-VERDICT";
+    // Recusa POR DESENHO (ADR-038 §3), medida pelo produtor: uma fonte alterada entre
+    // main e o candidato nunca é projetada. Só é informacional com código exato e
+    // evidência estrutural completa; diagnóstico ausente, malformado, duplicado ou
+    // fora do denominador continua reprovando — e ela nunca é emitida pelo adapter.
+    if (kind === "mirror" && report.reasonCode === "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE") {
+      const diagnostic = report.diagnostic,
+        denominator = record(report.target) ? Number(report.target.total) : null;
+      if (
+        denominator === null ||
+        !Number.isSafeInteger(denominator) ||
+        denominator < 1 ||
+        !record(diagnostic) ||
+        diagnostic.code !== "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE" ||
+        !Number.isSafeInteger(diagnostic.divergentFiles) ||
+        Number(diagnostic.divergentFiles) < 1 ||
+        !Number.isSafeInteger(diagnostic.eligibleUnits) ||
+        Number(diagnostic.eligibleUnits) < 1 ||
+        Number(diagnostic.eligibleUnits) > denominator ||
+        !Array.isArray(diagnostic.pathSha256) ||
+        diagnostic.pathSha256.length !== Number(diagnostic.divergentFiles) ||
+        diagnostic.pathSha256.some((digest) => !/^[a-f0-9]{64}$/.test(String(digest))) ||
+        new Set(diagnostic.pathSha256).size !== diagnostic.pathSha256.length
+      )
+        throw new Error("NO-VERDICT source divergence is not a recognized observation.");
+      return "NO-VERDICT";
+    }
+    throw new Error("NO-VERDICT is not a recognized historical observation.");
   }
   if (kind === "adapter") {
     if (
