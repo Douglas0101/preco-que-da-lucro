@@ -1,0 +1,29 @@
+GATE LOCAL — npm run check
+
+command:       npm run check
+base revision: 006bc83306fde67a6efc236a6309a24ad9c3c69c (develop, registro do DBT-103)
+               + a correcao desta sessao no working tree
+environment:   bancada Linux local; Node v24.21.0 (igual ao .nvmrc)
+result:        exit 0 — a cadeia completa roda, sem nenhum 'npm error'
+
+Cadeia, na ordem:
+  m02:lockfile-guard, guard:upgrade, check:migration-toolchain, guard:contracts,
+  m02:work-package-guard, m02:debts-guard, m02:temporal-guard, m02:state:check,
+  m02:boundaries, m02:secrets-audit, guard:mcp-runtime, m02:seal-dts:check,
+  m02:matrix:check, check:ui-stack, check:no-supabase-runtime, format:check,
+  lint, typecheck, test, build, check:bundle
+
+Suite:         Test Files 142 passed e 1 skipped (143)
+               Tests 2180 passed e 18 skipped (2198)
+               Duration 149,67 s
+Bundle:        PASS assets/index-DRI3LDON.js 249790 minificado, sha256=30ca04baaa66
+               O MESMO digest registrado antes da correcao: nenhum byte de aplicacao mudou.
+
+Duas correcoes de gate foram necessarias no caminho, ambas medidas pelo proprio gate:
+  1. format:check reprovou os 3 arquivos alterados; corrigidos com prettier (sem mudanca de logica).
+  2. typecheck reprovou o teste por `as const` tornar a lista readonly (TS2322); a parametrizacao
+     virou 4 casos explicitos, sem remover asserção nenhuma.
+
+Nota de ordem: o gate rodou sobre o estado FINAL do codigo. Depois dele entraram apenas
+`captures/check-local.txt` e `MANIFEST.sha256` (docs), e foram re-executados os guardas do
+pipeline leve e o `sha256sum -c MANIFEST.sha256`.

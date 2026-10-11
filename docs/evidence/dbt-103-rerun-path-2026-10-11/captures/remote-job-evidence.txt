@@ -1,0 +1,24 @@
+EVIDENCIA REMOTA — run 38112535521 (SonarCloud), push de main
+sha: 40c1a35577c70c7d33424640648d52bfdedb8bde
+
+attempt 1   2026-10-11T04:44:25Z   completed/success
+attempt 2   2026-10-11T14:59:31Z   completed/failure   (re-execucao pedida pelo humano)
+  passo que reprova: "Seal scanner LCOV provenance" — exit code 2
+  log: NO-VERDICT: scanner LCOV provenance could not be established (no raw inputs emitted)
+
+check-runs no SHA 40c1a355:
+  scan + cobertura          114499549769   failure    EXIGIDO pelo ruleset 24333849
+  SonarCloud Code Analysis  114391269506   failure    73,3% < 80% (preset embutido; NAO exigido)
+  SonarCloud Code Analysis  114500272020   failure    73,4% < 80% (re-postado no attempt 2)
+  verify                    114391056539   success
+  docs-light                114390899517   success
+  main-coverage-mirror      114500297366   skipped    (if: always() && github.event_name == 'pull_request')
+
+duas analises da MESMA revisao (a causa medida):
+  attempt 1   11893646-49df-4fe9-a029-de9cec53dbf2
+  attempt 2   08d02858-5846-445b-b349-9e1fc4fe6ba3
+  scripts/sonar/main-baseline.mjs:42 exigia matches.length === 1 -> recusava a segunda.
+
+ruleset 24333849 (C24-main-release-gates) exige verify-release + scan + cobertura.
+
+releasePolicy do attempt 2: status OK (new_coverage 73,4 >= 60) — a ADR-042 nao foi afetada.

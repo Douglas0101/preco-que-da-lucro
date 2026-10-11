@@ -1,7 +1,17 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { authoritativeUnits } from "./gate-mirror.ts";
+import { selectMainAnalysis } from "./main-baseline-select.ts";
 import { apiReader } from "./api.ts";
+
+// DBT-103: a recusa é NOMEADA. O código pertence a um conjunto fechado e é validado antes de ser
+// persistido — corpo bruto do provedor nunca entra no artefato nem no log.
+class BaselineRefusal extends Error {
+  constructor(code) {
+    super(code);
+    this.code = code;
+  }
+}
 
 // Read-only CI measurement: credentials come from the runner's Secret store and are never emitted.
 const project = "Douglas0101_preco-que-da-lucro";
@@ -27,6 +37,33 @@ if (!sonarToken || !githubToken) {
 }
 const requests = [];
 const get = apiReader({ github: githubToken, sonar: sonarToken }, requests);
+
+/**
+ * O `analysisId` do CE **deste** run, lido do gate readout que o passo anterior já esperou. É esta
+ * identidade — e não a contagem de análises do histórico — que decide qual análise medir (DBT-103).
+ */
+function ceReadout() {
+  const file = path.join(process.env.RUNNER_TEMP ?? ".", "c25-gate-readout.json");
+  let readout;
+  try {
+    readout = JSON.parse(readFileSync(file, "utf8"));
+  } catch {
+    throw new BaselineRefusal("GATE_READOUT_UNAVAILABLE");
+  }
+  const identity = readout?.providerIdentity;
+  if (
+    readout?.schema !== "c25-ce-gate-readout/1" ||
+    typeof readout.analysisId !== "string" ||
+    readout.analysisId === ""
+  )
+    throw new BaselineRefusal("CE_ANALYSIS_ID_UNAVAILABLE");
+  if (identity?.branch !== "main" || identity?.pullRequest !== null)
+    throw new BaselineRefusal("READOUT_SURFACE_NOT_MAIN");
+  if (!/^[a-f0-9]{40}$/.test(String(identity.revision)))
+    throw new BaselineRefusal("READOUT_REVISION_UNAVAILABLE");
+  return { analysisId: readout.analysisId, revision: identity.revision };
+}
+
 async function mainSha() {
   const result = await get("github", `repos/${repository}/branches/main`);
   const sha = result.commit?.sha;
@@ -37,18 +74,25 @@ async function mainSha() {
 const sonar = (endpoint) => get("sonar", endpoint);
 try {
   const sha = await mainSha();
+  const readout = ceReadout();
+  if (readout.revision !== sha) throw new BaselineRefusal("READOUT_REVISION_DIFFERS_FROM_MAIN");
   const analyses = await sonar(`project_analyses/search?project=${project}&branch=main&ps=100`);
-  const matches = analyses.analyses?.filter((analysis) => analysis.revision === sha) ?? [];
-  if (matches.length !== 1 || analyses.analyses?.[0]?.revision !== sha)
-    throw new Error(`análise de main ausente/ambígua/desatualizada para ${sha}`);
-  const analysis = matches[0];
+  const selection = selectMainAnalysis({
+    analyses: analyses.analyses,
+    mainSha: sha,
+    ceAnalysisId: readout.analysisId,
+  });
+  if (!selection.ok) throw new BaselineRefusal(selection.reasonCode);
+  const analysis = selection.analysis;
   const response = await sonar(
     `measures/component?component=${project}&branch=main&metricKeys=${keys.join(",")}`,
   );
-  const status = await sonar(`qualitygates/project_status?analysisId=${analysis.key}`);
+  const status = await sonar(
+    `qualitygates/project_status?analysisId=${encodeURIComponent(analysis.key)}`,
+  );
   const after = await sonar(`project_analyses/search?project=${project}&branch=main&ps=1`);
   if ((await mainSha()) !== sha || after.analyses?.[0]?.key !== analysis.key)
-    throw new Error("baseline mudou durante a medição");
+    throw new BaselineRefusal("BASELINE_CHANGED_DURING_MEASUREMENT");
   const metrics = Object.fromEntries(
     keys.map((key) => {
       const measure = response.component?.measures?.find((entry) => entry.metric === key);
@@ -91,12 +135,17 @@ try {
   const file = path.join(process.env.RUNNER_TEMP ?? ".", "c24-main-baseline.json");
   writeFileSync(file, `${JSON.stringify(report, null, 2)}\n`);
   console.log(`C24_MAIN_BASELINE ${JSON.stringify(report)}`);
-  if (!hasLineTarget) throw new Error("new line target ausente/inaplicável: NO-VERDICT");
-} catch {
+  if (!hasLineTarget) throw new BaselineRefusal("NEW_LINE_TARGET_UNAVAILABLE");
+} catch (error) {
+  const code =
+    error instanceof BaselineRefusal && /^[A-Z_]{8,40}$/.test(error.code)
+      ? error.code
+      : "BASELINE_PRECONDITION_UNCLASSIFIED";
   const failure = {
     schema: "main-baseline/2",
     verdict: "NO-VERDICT",
     observedAt: new Date().toISOString(),
+    reasonCode: code,
     reason:
       "Baseline identity/metadata/transport precondition failed; raw provider bodies withheld.",
     requests,
@@ -105,6 +154,6 @@ try {
     path.join(process.env.RUNNER_TEMP ?? ".", "c24-main-baseline.json"),
     JSON.stringify(failure, null, 2) + "\n",
   );
-  console.error("precondicao: baseline NO-VERDICT; detalhes sanitizados no artefato");
+  console.error(`precondicao: baseline NO-VERDICT (${code}); detalhes sanitizados no artefato`);
   process.exitCode = 2;
 }

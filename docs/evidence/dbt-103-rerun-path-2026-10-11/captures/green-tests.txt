@@ -1,0 +1,8 @@
+GREEN — mesma assercao, regra corrigida
+
+command:      npx vitest run src/test/main-baseline-select.test.ts
+state:        scripts/sonar/main-baseline-select.ts com a identidade do CE do proprio run
+result:       exit 0 — Test Files 1 passed (1); Tests 12 passed (12)
+
+O par RED/GREEN usa a MESMA assercao: o que mudou foi a regra de selecao, nao o teste.
+Nenhum teste foi removido, pulado ou afrouxado entre as duas medicoes.

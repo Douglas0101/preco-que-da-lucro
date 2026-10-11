@@ -1,0 +1,8 @@
+0e17d6062e7f98a8f2f48e1dde59a6260c1be7624eae4b413e432b63bd7d3aec  docs/evidence/dbt-103-rerun-path-2026-10-11/captures/check-local.txt
+d49ff3710774e0c65f1b3f2a6918c2e4882475b61efca6e3282773241cbd13a6  docs/evidence/dbt-103-rerun-path-2026-10-11/captures/git-identity.txt
+17ac920df45c6d8ebb918f21d68a09bcfde32bdb5c1d27b36038a5a69ac5adbe  docs/evidence/dbt-103-rerun-path-2026-10-11/captures/green-tests.txt
+4d182cc0684797905b3a02aa030f1e82520940b727eddeb2b5232426be48b153  docs/evidence/dbt-103-rerun-path-2026-10-11/captures/real-artifact-repro.txt
+9ba0f34402233eebcbdc8dc8e403188ed12d083df808351feab4701321cfe99d  docs/evidence/dbt-103-rerun-path-2026-10-11/captures/red-tests.txt
+1aed67f374ecf3575bd87a86e7c28471931f8c907fdfb7f45aab2e32c52b2e63  docs/evidence/dbt-103-rerun-path-2026-10-11/captures/remote-job-evidence.txt
+07d3e884ab015f061c051d2156d6ce431ac54b4d9b72b61d8c25df945358c2bf  docs/evidence/dbt-103-rerun-path-2026-10-11/README.md
+ab6e35f386613e68914ba84953d735c01ac767d39327162ed1ed6972a394e1cb  docs/evidence/dbt-103-rerun-path-2026-10-11/SPEC.md

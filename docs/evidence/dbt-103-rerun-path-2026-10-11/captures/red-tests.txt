@@ -1,0 +1,23 @@
+RED — DBT-103 no caminho de RE-EXECUCAO do workflow Sonar
+
+command:      npx vitest run src/test/main-baseline-select.test.ts
+state:        scripts/sonar/main-baseline-select.ts portando FIELMENTE a regra anterior
+              (matches.length !== 1) de scripts/sonar/main-baseline.mjs:42
+result:       exit 1 — Test Files 1 failed (1); Tests 11 failed | 1 passed (12)
+
+Testes que reprovam pela razao CERTA (cenario de re-execucao):
+  x RE-EXECUCAO: duas analises da mesma revisao medem a analise do CE, nao recusam
+      AssertionError: expected { ok: false, ...(1) } to deeply equal { ok: true, analysis: { ...(2) } }
+  x historico com 3 analises da mesma revisao nao muda a selecao
+  x historico com 5 analises da mesma revisao nao muda a selecao
+
+Reprovam por contrato NOVO (identidade do CE e selo nomeado), ausente na regra anterior:
+  x recusa quando a analise mais recente de main nao e a do CE (medicao de terceiro)
+  x recusa quando a analise mais recente e de outra revisao
+  x recusa lista vazia / ausente
+  x recusa sem analysisId do CE
+  x baseline em stub NO-VERDICT (o estado real do attempt 2) recusa com codigo nomeado
+  x gate readout ausente recusa com codigo nomeado distinto
+
+Passa na regra anterior (propriedade preservada, nao removida):
+  ok primeira execucao: uma so analise continua selecionando a mesma analise

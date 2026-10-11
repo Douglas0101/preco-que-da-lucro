@@ -1,0 +1,19 @@
+REPRODUCAO LOCAL COM OS ARTEFATOS REAIS DO attempt 2
+
+Baixados do run 38112535521 antes do vencimento da retencao:
+  c24-main-baseline.json   508 B   verdict NO-VERDICT, SEM reasonCode (bytes ANTERIORES a correcao)
+  c25-gate-readout.json    schema c25-ce-gate-readout/1
+                           analysisId 08d02858-5846-445b-b349-9e1fc4fe6ba3
+                           providerIdentity: branch main, pullRequest null
+
+Comando (cwd = fixture que E um repositorio Git real, como o runner):
+  RUNNER_TEMP=<fixture> node scripts/sonar/lcov-provenance.ts
+
+before (observado no CI, attempt 2, log do run 38112535521):
+  NO-VERDICT: scanner LCOV provenance could not be established (no raw inputs emitted)
+
+after (reproducao local com os MESMOS artefatos reais, bytes corrigidos):
+  NO-VERDICT: scanner LCOV provenance could not be established (BASELINE_ARTIFACT_UNUSABLE)
+
+exit code: 2 nos dois casos. Nomear a causa NAO afrouxa o selo: o passo continua fail-closed.
+Limite declarado: e reprodutibilidade do passo com os artefatos reais, nao o artefato remoto.
