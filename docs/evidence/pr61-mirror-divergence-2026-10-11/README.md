@@ -73,6 +73,8 @@ Nada disso concede crédito: o relatório de recusa não traz `result`, o recibo
 | evidência remota                 | log do job `114081413318`                      | `NO-VERDICT` genérico + exit 1                | `captures/remote-job-evidence.txt`            |
 | identidade Git e artefatos       | `git rev-parse` + API de artifacts             | revisões, runs e IDs                          | `captures/git-identity.txt`                   |
 | matriz de invariantes            | medição das 5 precondições                     | esperado × observado por invariante           | `captures/divergence-matrix.txt`              |
+| gate local                       | `npm run check`                                | exit 0, 21/21 passos, 2168 testes             | `captures/check-local.txt`                    |
+| **aceite remoto pós-correção**   | run `38110574682`, job `114385458516`          | `main-coverage-mirror` **success**            | `captures/remote/post-fix/**`                 |
 
 RED, pela razão correta:
 
@@ -94,8 +96,12 @@ RED, pela razão correta:
 4. **`EXECUTION_OR_UNCLASSIFIED` continua sem diagnóstico de fase.** O produtor do espelho
    não persiste fase/código para falhas não nomeadas; nomear todas aumentaria a superfície
    informacional e é proibido pela ADR-042. Limite declarado em `DBT-102`.
-5. **Aceite remoto pendente.** A dívida não fecha enquanto a run do SHA corrigido não for
-   observada.
+5. **Aceite remoto observado, fechamento de `DBT-102` pendente.** O job
+   `main-coverage-mirror` da run do SHA corrigido terminou **success**, com o relatório e o
+   recibo preservados em `captures/remote/post-fix/`. Os três digests de caminho do
+   diagnóstico remoto são **byte-idênticos** aos da reconstrução local, o que mostra que a
+   medição é determinística entre ambientes. O status da dívida só muda para `FECHADA` com
+   o selo/WP que executou o closure — decisão do MAESTRO, não do agente.
 6. **Os corpos dos dois LCOV não são versionados** (~750 kB): só os digests entram
    (`captures/artifact-digests.txt`). A identidade deles é o que a investigação usa, e ela
    está selada nos dois `lcov-provenance.json` preservados; os corpos são recuperáveis nas

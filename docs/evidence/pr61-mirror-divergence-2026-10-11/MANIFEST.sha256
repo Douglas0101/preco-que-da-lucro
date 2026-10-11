@@ -17,5 +17,8 @@ e3d55501c69e81e2d88b80d0a12a65988beedd6f0808cb8cfe6e7c4216238e91  docs/evidence/
 4913ebef95d49a953aaf493746f7226edaeb3085da5b4cabcea76c1a1d61dead  docs/evidence/pr61-mirror-divergence-2026-10-11/captures/remote/main-mirror-verdict/c28-main-unit-snapshot.json
 681b8dc6fd9360d61e5665ce39e1ead23302049837171eb6000353b9dc23f0b6  docs/evidence/pr61-mirror-divergence-2026-10-11/captures/remote/main-mirror-verdict/c29-main-mirror-observation.json
 354e14c823dacefe76acdaf7c6f39a632d622bd72a31ab0c1e7253f4396f6d61  docs/evidence/pr61-mirror-divergence-2026-10-11/captures/remote/main-mirror-verdict/c29-main-unit-adapter-observation.json
-87e15425c514d50078f6358595ff15b21ee8a62cec5ac25eec1ba7ee82fc176b  docs/evidence/pr61-mirror-divergence-2026-10-11/README.md
+bad8c418c9a0b4b7845e749f0c98d14244bca9fd52c89c55456f192af68f8ad5  docs/evidence/pr61-mirror-divergence-2026-10-11/README.md
 e129f6c20d55df03600159db0c7d775ddfcb63d96026084fddb0501d0300207c  docs/evidence/pr61-mirror-divergence-2026-10-11/SPEC.md
+99a17a1c34a4228200b423f1e8fc2b6f3f21e3aba4898e4e0658a5dcb66ba2df  docs/evidence/pr61-mirror-divergence-2026-10-11/captures/remote/post-fix/c26-main-mirror.json
+57566ac126a4893d46b66cfe46a933e43f6ee42e5f92bb753461347f9acd8950  docs/evidence/pr61-mirror-divergence-2026-10-11/captures/remote/post-fix/c29-main-mirror-observation.json
+cb53f681137c9db52c2a522f4485443031a3742c32c9da8416572d7e7712e080  docs/evidence/pr61-mirror-divergence-2026-10-11/captures/remote/post-fix/c29-main-unit-adapter-observation.json
