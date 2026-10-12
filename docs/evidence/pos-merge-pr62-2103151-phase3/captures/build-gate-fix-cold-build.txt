@@ -1,0 +1,26 @@
+# FASE A.3 — build local de CACHE FRIO pós-correção (gate + supressão na origem)
+# 2026-10-12T22:14:44Z
+
+$ rm -rf node_modules/.vite node_modules/.nitro .output .vercel/output .artifacts
+
+$ npm run build
+.output/server/_libs/@better-auth/core+[...].mjs               851.03 kB │ gzip: 169.62 kB
+
+✓ built in 623ms
+ℹ Generated .output/nitro.json
+
+[nitro] ✔ You can preview this build using npx vite preview
+
+# build exit=0
+
+$ cat .artifacts/build-warnings.json
+{
+  "schemaVersion": 1,
+  "commit": null,
+  "checkedAt": "2026-10-12T22:14:49.138Z",
+  "releaseChannel": "local",
+  "exitCode": 0,
+  "passed": true,
+  "allowlist": [],
+  "observedWarnings": []
+}

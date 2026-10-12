@@ -27,6 +27,14 @@ const lovableConfig = defineConfig({
         build: {
           manifest: true,
           rolldownOptions: {
+            // DBT-109: o diagnóstico [PLUGIN_TIMINGS] do rolldown é telemetria de
+            // performance com texto dinâmico (tempos/contagens variam por build),
+            // irregistrável por assinatura exata no gate de warnings do build — e
+            // derrubou a publicação de produção no cache frio (dpl_8sjNJvBbiFkHrR6hUcMx1iDR1Jrf).
+            // Suprimido na origem com a opção oficial do rolldown ("checks.pluginTimings
+            // !== false" é o gate do recorder; false ⇒ nenhum callback ao nativo).
+            // O gate de warnings permanece fail-closed, sem afrouxamento.
+            checks: { pluginTimings: false },
             output: {
               codeSplitting: {
                 groups: [
@@ -38,6 +46,13 @@ const lovableConfig = defineConfig({
                 ],
               },
             },
+          },
+        },
+      },
+      ssr: {
+        build: {
+          rolldownOptions: {
+            checks: { pluginTimings: false },
           },
         },
       },

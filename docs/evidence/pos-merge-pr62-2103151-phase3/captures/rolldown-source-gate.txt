@@ -1,0 +1,24 @@
+# DBT-109 — mecanismo da supressão na origem (rolldown 1.2.6 instalado)
+# 2026-10-12T22:15:03Z
+
+## Gate exato (create-bundler-option-DSPiA5F7.mjs:3194)
+async function createBundlerOptions(inputOptions, outputOptions, watchMode, measureTimings = false) {
+	const timings = measureTimings && inputOptions.checks?.pluginTimings !== false ? pluginTimingsRecorderFor(inputOptions) : void 0;
+
+## Chamador principal passa measureTimings=true (shared/rolldown-C9Hfg50O.mjs:127)
+		const option = await createBundlerOptions(this.#inputOptions, outputOptions, false, true);
+
+## Sem timings, o callback ao nativo fica undefined (bindingify-input-options-4JJxbZl2.mjs:2206)
+		pluginTimings: timings ? () => summarizePluginTimings(inputOptions) : void 0,
+
+## Descrição oficial da opção (create-bundler-option:1520)
+	pluginTimings: /* @__PURE__ */ pipe(/* @__PURE__ */ optional(/* @__PURE__ */ boolean()), /* @__PURE__ */ description("Whether to emit warnings when plugins take significant time during the build process")),
+
+=> checks.pluginTimings === false ⇒ timings = undefined ⇒ nenhum callback ⇒ o diagnóstico [PLUGIN_TIMINGS]
+   não pode ser emitido, por construção. A supressão é feita na origem (vite.config.ts), sem tocar no gate.
+
+## Probe sintético (auxiliar; o limiar nativo não é atingido com 1 plugin lento)
+$ node .artifacts/probes/rolldown-plugin-timings.mjs default
+probe done (mode=default)
+$ node .artifacts/probes/rolldown-plugin-timings.mjs disabled
+probe done (mode=disabled)

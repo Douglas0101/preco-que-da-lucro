@@ -1,0 +1,39 @@
+{
+  "capturedAt": "2026-10-12T19:16:00Z",
+  "source": "Vercel MCP create_deployment + get_deployment (preview; no production target)",
+  "deployment": {
+    "id": "dpl_GdkNB9Pko1WwpouayY9Zw3oV2JS9",
+    "url": "preco-que-da-lucro-ho2uql3za.vercel.app",
+    "createdMs": 1791832448053,
+    "createdAt": "2026-10-12T19:14:08Z",
+    "buildingAt": "2026-10-12T19:14:10Z",
+    "readyAt": "2026-10-12T19:14:31Z",
+    "buildDurationMs": 20747,
+    "state": "READY",
+    "target": null,
+    "regions": ["iad1"],
+    "ref": "develop",
+    "sha": "cb6baaae23dc242929883806781d4dc483ea9a1c",
+    "branchAlias": "preco-que-da-luc-git-53d0a3-douglasultimatesouza-5127s-projects.vercel.app",
+    "notes": "Manual preview deployment via MCP gitSource (Git-triggered builds remain disabled by vercel.json). Tree equals the merged main revision plus the evidence-docs commit; the preview environment is the one carrying the develop-scoped Neon integration DATABASE_URL."
+  },
+  "protection": {
+    "sso": "enabled (all_except_custom_domains) — direct requests receive 302 to /sso-api; smoke performed through the Vercel share/bypass URL, read-only",
+    "shareLinkExpires": "2026-10-13T18:15:46Z (token not persisted in evidence)"
+  },
+  "healthViaBypass": {
+    "/api/health/ready": {
+      "status": 200,
+      "body": "{\"status\":\"ready\",\"dependencies\":{\"postgres\":\"ok\"}}",
+      "xCorrelationId": "08109a4b-b9b8-48ae-b91e-da899cab5270"
+    }
+  },
+  "directProbes": {
+    "/api/health": 302,
+    "/api/health/ready": 302,
+    "/": 302,
+    "/auth": 302,
+    "meaning": "SSO protection responses, not application responses"
+  },
+  "buildOutcome": "success — Vercel CLI 62.7.0, Node runtime nodejs24.x, vite v8.2.2 (client 3.24s / ssr), nitro vercel preset; warnings only: engines note and npm install-scripts notices (esbuild, protobufjs)"
+}

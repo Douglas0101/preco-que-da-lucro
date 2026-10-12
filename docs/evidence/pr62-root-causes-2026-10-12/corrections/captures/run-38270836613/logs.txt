@@ -1,0 +1,17 @@
+$ gh run view 38270836613 --repo Douglas0101/preco-que-da-lucro --json headSha,event,status,conclusion --jq .
+{"conclusion":"success","event":"pull_request","headSha":"1f559ff47dfc274f7e631337e479b7ab6ad2ee88","status":"completed"}
+
+$ gh run view 38270836613 --json jobs --jq ".jobs[] | {name, conclusion}"
+{"conclusion":"success","name":"scan + cobertura"}
+{"conclusion":"success","name":"main-coverage-mirror"}
+
+# scan + cobertura: passo "Nomear veredito do CE desta análise" exit 0 — releasePolicy NOT_APPLICABLE (ADR-044)
+$ gh run view 38270836613 --log | grep -E "C25_CE_GATE" | grep "Nomear veredito" | cut -c1-360
+scan + cobertura	Nomear veredito do CE desta análise (sem token no log)	2026-10-12T15:34:28.7255659Z C25_CE_GATE {"schema":"c25-ce-gate-readout/1","observedAt":"2026-10-12T15:34:28.714Z","runnerSha":"64a56add8012bf59595951510b3e974c1771e159","checkoutSha":"64a56add8012bf59595951510b3e974c1771e159","providerIdentity":{"revision":"64a56add8012bf59595951510b3e974c1771e159","branch":"develop","pullRequest":"62"},"ceTaskId":"AZ0Lvp4zuxnJ2L...
+
+# por que o SHA difere do head: é o commit sintético de test-merge de 1f559ff em 40c1a355
+# (refs/pull/62/merge), provado por objetos Git na prova ADR-044; GITHUB_SHA é a testemunha.
+
+# PR #62 head 1f559ff: rollup 12/12 SUCCESS, mergeable=MERGEABLE, mergeStateStatus=CLEAN
+$ gh pr view 62 --json headRefOid,mergeable,mergeStateStatus,statusCheckRollup
+{"checks":["SUCCESS Branch efêmera · migrate · integração · RLS probe · E2E","SUCCESS Cleanup always() com prova (§12.5)","SUCCESS Fork-guard + presença de segredo","SUCCESS SonarCloud Code Analysis","SUCCESS docs-light","SUCCESS docs-light","SUCCESS main-coverage-mirror","SUCCESS prepare browsers and Linux packages","SUCCESS prepare browsers and Linux packages","SUCCESS scan + cobertura","SUCCESS verify","SUCCESS verify-release"],"headRefOid":"1f559ff47dfc274f7e631337e479b7ab6ad2ee88","mergeStateStatus":"CLEAN","mergeable":"MERGEABLE"}

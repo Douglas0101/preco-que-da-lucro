@@ -1,0 +1,43 @@
+# Falha do build de PRODUÇÃO dpl_8sjNJvBbiFkHrR6hUcMx1iDR1Jrf (main@2103151) — recorte decisivo
+# Fonte: Vercel MCP list_deployment_events (builds=1, backward). Captura: 2026-10-12T19:34Z.
+# (produção intocada: nenhum alias se moveu; o deployment falho ficou sem alias)
+
+--- Início (recorte) ------------------------------------------------------------------
+19:31:36  Running build in Washington, D.C., USA (East) – iad1 | 2 cores, 8 GB
+19:31:38  Cloning github.com/Douglas0101/preco-que-da-lucro (Branch: main, Commit: 2103151)
+19:31:44  Restored build cache from previous deployment (6h2LTZX57soGiPP2oTurws7NsgVd)   <- cache do fa45632 (antigo)
+19:31:45  Running "vercel build"  ·  Vercel CLI 62.7.0
+19:31:46  Installing dependencies… "up to date in 3s"
+19:31:49  Running "npm run build" → node scripts/build.mjs
+19:31:52  [nitro:vercel] nodejs24.x · web entry format
+19:31:55  vite v8.2.2 client build: ✓ 2361 modules transformed
+19:32:05  vite v8.2.2 ssr/web build: ✓ built in 2.05s   (assets emitidos, nitro.json gerado)
+19:32:02  [success] [nitro] You can deploy this build using `npx nitro deploy --prebuilt`
+
+--- Falha (recorte exato) --------------------------------------------------------------
+          Build emitted unregistered or expired warnings:
+          - [PLUGIN_TIMINGS] Your build spent 89% of 3.3s inside plugin hooks (2.9s).
+          - [PLUGIN_TIMINGS] Those rows are 31% of the build; the rest of the 89% is below.
+          - [PLUGIN_TIMINGS] Measured inside the callback… (linhas de diagnóstico do rolldown)
+          - [PLUGIN_TIMINGS] - - tanstack-router:code-splitter:compile-reference-file transform (31%, 1.0s, 18 calls)
+          - [PLUGIN_TIMINGS] - - tanstack-start-core:import-protection resolveId (1206 calls)
+          - [PLUGIN_TIMINGS] - - tanstack-start-core::server-fn:ssr transform (30 calls)
+          - [PLUGIN_TIMINGS] - Not measurable — 2 hooks whose calls overlap…
+          - [PLUGIN_TIMINGS] See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+Error: Command "npm run build" exited with 1
+
+--- Mecanismo (scripts/build.mjs, linhas 50-100) ---------------------------------------
+- stderrLines = TODAS as linhas não vazias de stderr do processo vite; stdoutWarnings = linhas com WARN/deprecated/(!).
+- accepted = assinatura exata na allowlist E NÃO expirada (today > expiresOn) E canal permitido.
+- passed = exitCode === 0 && unexpectedWarnings.length === 0; senão imprime a mensagem acima e sai 1.
+- Allowlist única: WARN-NITRO-001 ("inlineDynamicImports option is ignored because the codeSplitting option is specified.")
+  releaseChannels [local, pre-beta-internal], recheckedAt 2026-09-07, expiresOn 2026-10-06  <- EXPIRADA hoje (2026-10-12).
+- A política de expiração é intencional e documentada (docs/runbooks/cutover-A4.md:491; emenda env-guard 2026-09-07:129):
+  "expirado = fail-closed".
+- O preview (warm cache do deployment DjYNWE) NÃO emitiu os [PLUGIN_TIMINGS] e passou; o build de produção (cache frio
+  do fa45632) emitiu o diagnóstico do rolldown — daí a assimetria preview-verde × produção-vermelha com o MESMO código.
+
+--- Conclusão --------------------------------------------------------------------------
+Bloqueador de publicação é do GATE do próprio repositório (fail-closed por desenho), não do código nem da Vercel.
+Corrigir exige re-verificar a entrada WARN-NITRO-001 (e classificar o ruído [PLUGIN_TIMINGS]) pelo circuito develop;
+um retry pode passar por sorte de cache, mas não remove o bloqueador. Nenhum alias/DNS/SQL; produção inalterada.
