@@ -56,3 +56,8 @@ docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/*
 # Raw artifacts of the PR #62 run 38270836613 — the round-3 accepted run (both jobs
 # success, releasePolicy NOT_APPLICABLE, mirror informational). Same seal.
 docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38270836613/**
+
+# Raw computer-user captures of the post-merge validation (accessibility snapshots and
+# console logs from the MCP browser session). Evidence, not source: sealed like the
+# other playwright-mcp session captures, never formatter-mutated.
+docs/evidence/pos-merge-pr62-2103151/playwright-mcp*/**

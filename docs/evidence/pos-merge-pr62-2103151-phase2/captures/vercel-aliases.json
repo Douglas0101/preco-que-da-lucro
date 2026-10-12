@@ -1,0 +1,29 @@
+{
+  "capturedAt": "2026-10-12T18:57:29Z",
+  "source": "Vercel MCP get_alias (equivalent of `vercel alias ls` / `vercel inspect <alias>`)",
+  "aliases": [
+    {
+      "alias": "preco-que-da-lucro-sage.vercel.app",
+      "deploymentId": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+      "deploymentUrl": "preco-que-da-lucro-1bxqn5vm2.vercel.app",
+      "revision": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+      "updatedAt": "2026-10-08T19:00:33Z",
+      "protectionBypass": {}
+    },
+    {
+      "alias": "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app",
+      "deploymentId": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+      "deploymentUrl": "preco-que-da-lucro-1bxqn5vm2.vercel.app",
+      "revision": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+      "updatedAt": "2026-10-08T18:48:21Z"
+    },
+    {
+      "alias": "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app",
+      "deploymentId": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+      "deploymentUrl": "preco-que-da-lucro-1bxqn5vm2.vercel.app",
+      "revision": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+      "updatedAt": "2026-10-08T18:48:21Z"
+    }
+  ],
+  "conclusion": "All three in-team aliases (sage, team default, git-main) currently point to dpl_DHsbj (revision d4b9395, old but functional: /api/health/ready -> 200). The production deployment dpl_6h2LTZ (fa45632) is reachable at its own URL and behind Vercel Authentication; it responds 503 postgres unavailable, as does the legacy public alias preco-que-da-lucro.vercel.app."
+}

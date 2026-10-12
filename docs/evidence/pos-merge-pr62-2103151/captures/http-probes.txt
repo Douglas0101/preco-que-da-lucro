@@ -1,0 +1,58 @@
+# Smoke read-only pós-merge PR #62 (main 2103151 / develop ed26ec3)
+# 2026-10-12T17:42:13Z
+
+$ curl -sS -o /tmp/kilo/body.txt -D - -m 20 'https://preco-que-da-lucro-sage.vercel.app/api/health/ready' | head -3
+HTTP/2 200
+content-type: application/json
+server: Vercel
+x-vercel-cache: MISS
+x-vercel-id: gru1::iad1::v9jcm-1791826933957-71694bb5d9df
+body[0:200]: {"status":"ready","dependencies":{"postgres":"ok"}}
+
+$ curl -sS -o /tmp/kilo/body.txt -D - -m 20 'https://preco-que-da-lucro-sage.vercel.app/api/auth/get-session' | head -3
+HTTP/2 200
+content-type: application/json
+server: Vercel
+x-vercel-cache: MISS
+x-vercel-id: gru1::iad1::j69bc-1791826935887-fc192b672587
+body[0:200]: null
+
+$ curl -sS -o /tmp/kilo/body.txt -D - -m 20 'https://preco-que-da-lucro-sage.vercel.app/' | head -3
+HTTP/2 200
+content-type: text/html; charset=utf-8
+server: Vercel
+x-vercel-cache: MISS
+x-vercel-id: gru1::iad1::hk86t-1791826936314-c3b90c47ab45
+body[0:200]: <!DOCTYPE html><html lang="pt-BR"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/assets/styles-BqnPtUyt.css" data-prece
+
+$ curl -sS -o /tmp/kilo/body.txt -D - -m 20 'https://preco-que-da-lucro-gssnblvr8.vercel.app/api/health/ready' | head -3
+HTTP/2 302
+content-type: text/plain
+location: https://vercel.com/sso-api?url=https%3A%2F%2Fpreco-que-da-lucro-gssnblvr8.vercel.app%2Fapi%2Fhealth%2Fready&nonce=2354afcb7f0ca3c1a56eb919d50a9198a63004b0f50882ea483fb1d9a8d27727
+server: Vercel
+x-vercel-id: gru1::l2plr-1791826936916-63609c8f9ea9
+body[0:200]: Protected by Vercel AuthenticationTo access this deployment with an authenticated Vercel CLI, run: vercel curl <deployment-url>With an authorized Vercel MCP connection (https://mcp.vercel.com), call
+
+$ curl -sS -o /tmp/kilo/body.txt -D - -m 20 'https://preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app/api/health/ready' | head -3
+HTTP/2 302
+content-type: text/plain
+location: https://vercel.com/sso-api?url=https%3A%2F%2Fpreco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app%2Fapi%2Fhealth%2Fready&nonce=375f0993eb66d9a723cd59830bf1369c9f574d2f869064e9eb00019ceec517b5
+server: Vercel
+x-vercel-id: gru1::6h889-1791826937867-b82659d1d3a3
+body[0:200]: Protected by Vercel AuthenticationTo access this deployment with an authenticated Vercel CLI, run: vercel curl <deployment-url>With an authorized Vercel MCP connection (https://mcp.vercel.com), call
+
+
+# aliases adicionais (legado público + git-main)
+$ curl -sS -o /tmp/kilo/body.txt -D - -m 20 'https://preco-que-da-lucro.vercel.app/api/health/ready' | head -3
+HTTP/2 503
+content-type: application/json
+x-vercel-cache: MISS
+x-vercel-id: gru1::iad1::2cpbk-1791826947320-c468cf5bf754
+body[0:220]: {"status":"not_ready","dependencies":{"postgres":"unavailable"}}
+
+$ curl -sS -o /tmp/kilo/body.txt -D - -m 20 'https://preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app/api/health/ready' | head -3
+HTTP/2 302
+content-type: text/plain
+location: https://vercel.com/sso-api?url=https%3A%2F%2Fpreco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app%2Fapi%2Fhealth%2Fready&nonce=4e44d46d8d2e9d2b02319510ee9fb26fdf77c607adbbe036b5c7748a3e187336
+x-vercel-id: gru1::zq9m6-1791826948779-e81dbeaa83da
+body[0:220]: Protected by Vercel AuthenticationTo access this deployment with an authenticated Vercel CLI, run: vercel curl <deployment-url>With an authorized Vercel MCP connection (https://mcp.vercel.com), call web_fetch_vercel_ur

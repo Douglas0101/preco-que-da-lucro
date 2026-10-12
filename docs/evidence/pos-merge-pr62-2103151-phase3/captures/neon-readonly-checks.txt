@@ -1,0 +1,27 @@
+# Neon — checagens read-only (Fase 3, pré-deploy)
+# Captura: 2026-10-12T19:04:00Z · projeto damp-forest-57346541 · branch production br-snowy-violet-aymcvvvv
+# Nenhuma escrita/DDL/DML; nenhum valor de credencial lido ou salvo.
+
+[1] SELECT count(*) FROM drizzle.__drizzle_migrations; + status
+-> applied = 20  (journal local: 20 entradas 0000..0019)
+-> última aplicada: 2026-09-18T02:27:54Z
+=> 20/20, ZERO pendências — a revisão de main (2103151) não introduz migração nova.
+
+[2] Conexões / limites
+-> active_connections = 12 (inclui a sessão read-only desta validação)
+-> max_connections = 901
+-> PostgreSQL 17.11 (7d7ea2a)
+
+[3] Estado do compute de produção
+-> suspend_timeout_seconds = 0 (on-demand; suspende ~5 min após o último uso)
+-> suspend automático observado às 2026-10-12T19:02:32Z, logo após a consulta
+=> o compute ativa sob demanda quando o deployment publicado voltar a usar o banco
+
+[4] Branching
+-> production: ready · develop: archived (2026-10-09) · ci-fixture-base: ready (vazia)
+-> nenhuma branch efêmera ativa
+
+# Pré-condições Neon para promoção (checklist 3.3):
+# [x] migrações 20/20, zero pendências
+# [~] pooling: endpoint pooled disponível, mas pooler_enabled=false (registrado como risco/divergência)
+# [x] nenhuma escrita necessária em produção para a validação de deploy

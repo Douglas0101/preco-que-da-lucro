@@ -1,0 +1,11 @@
+{
+  "capturedAt": "2026-10-12T19:05:00Z",
+  "source": "Vercel MCP get_project + get_deployment (the deployment payload exposes no `checks`/`checksState` field); dashboard-side verification requires an authenticated browser session, which this agent does not have",
+  "deploymentChecks": {
+    "configured": "NOT VERIFIABLE BY API/MCP — the toolchain exposes no deployment-checks configuration object, and the repo has no versioned checks configuration (Deployment Checks are dashboard-configured, not part of vercel.json)",
+    "inheritedContext": "Fase 1 (herdada) registrou 'Deployment Checks: não configurados no projeto'",
+    "evidenceInRepository": "vercel.json contém apenas `git.deploymentEnabled=false` — nenhuma seção de checks",
+    "howToConfirm": "humano com sessão Vercel: /douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/build-and-deployment#deployment-checks",
+    "consequence": "Critério 'Deployment Checks: todos passaram' da promoção a produção permanece N/A-declarado até confirmação humana; não é usado como gate nesta fase"
+  }
+}

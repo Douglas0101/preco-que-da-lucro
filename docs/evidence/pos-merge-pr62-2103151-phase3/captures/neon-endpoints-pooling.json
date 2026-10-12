@@ -1,0 +1,38 @@
+{
+  "capturedAt": "2026-10-12T19:04:00Z",
+  "source": "Neon MCP list_postgres_endpoints (equivalent to `neon endpoints list --project-id damp-forest-57346541 --json`)",
+  "project_id": "damp-forest-57346541",
+  "region": "aws-us-east-2",
+  "endpoints": [
+    {
+      "id": "ep-long-violet-aye9g0bn",
+      "branch": "production (br-snowy-violet-aymcvvvv)",
+      "type": "read_write",
+      "current_state": "idle (suspenso às 2026-10-12T19:02:32Z após a consulta read-only)",
+      "pooler_enabled": false,
+      "pooler_mode": "transaction",
+      "autoscaling_min_max_cu": [0.25, 2],
+      "direct_host": "ep-long-violet-aye9g0bn.c-5.us-east-2.aws.neon.tech",
+      "pooled_host": "ep-long-violet-aye9g0bn-pooler.c-5.us-east-2.aws.neon.tech"
+    },
+    {
+      "id": "ep-wandering-glitter-ayzrgv28",
+      "branch": "develop (br-small-hill-aymcu14y, archived)",
+      "type": "read_write",
+      "current_state": "idle",
+      "pooler_enabled": false,
+      "pooled_host": "ep-wandering-glitter-ayzrgv28-pooler.c-5.us-east-2.aws.neon.tech"
+    },
+    {
+      "id": "ep-delicate-sky-ayivte12",
+      "branch": "ci-fixture-base (br-wandering-sky-ayxm5e5s)",
+      "type": "read_write",
+      "current_state": "idle",
+      "pooler_enabled": false,
+      "pooled_host": "ep-delicate-sky-ayivte12-pooler.c-5.us-east-2.aws.neon.tech"
+    }
+  ],
+  "connectionStringFormat": "postgresql://<role>@<pooled-or-direct-host>/<db>?sslmode=require&channel_binding=require — reported as FORMAT ONLY; no connection string was retrieved, decrypted or persisted (secret-handling policy).",
+  "poolingFinding": "pooler_enabled=false em todos os endpoints: as conexões do app usam o host direto (5432). É divergência da recomendação oficial do Neon para serverless (usar o host -pooler), registrada como item de configuração — não é bloqueador nesta escala (11–12 conexões de 901).",
+  "ephemeralNote": "Nenhuma branch efêmera ativa; se a Fase 3 exigir um teste de escrita isolado, criar child de ci-fixture-base e remover ao final (nunca usar production)."
+}

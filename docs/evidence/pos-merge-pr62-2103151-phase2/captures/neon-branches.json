@@ -1,0 +1,36 @@
+{
+  "capturedAt": "2026-10-12T18:56:00Z",
+  "source": "Neon MCP list_branches (equivalent of `neon branches list --json`)",
+  "project_id": "damp-forest-57346541",
+  "branches": [
+    {
+      "id": "br-snowy-violet-aymcvvvv",
+      "name": "production",
+      "current_state": "ready",
+      "primary": true,
+      "default": true,
+      "created_at": "2026-08-17T14:58:47Z",
+      "updated_at": "2026-10-12T18:55:17Z",
+      "logical_size": 34406400,
+      "restricted_actions": ["delete", "delete-rw-endpoint", "move-rw-endpoint-using-api"],
+      "restriction_reason": "vercel production branch"
+    },
+    {
+      "id": "br-small-hill-aymcu14y",
+      "name": "develop",
+      "current_state": "archived",
+      "state_changed_at": "2026-10-09T18:35:05Z",
+      "parent_id": "br-snowy-violet-aymcvvvv",
+      "logical_size": 34324480
+    },
+    {
+      "id": "br-wandering-sky-ayxm5e5s",
+      "name": "ci-fixture-base",
+      "current_state": "ready",
+      "parent_id": "br-snowy-violet-aymcvvvv",
+      "logical_size": 33759232
+    }
+  ],
+  "ephemeral_ci_branches_lingering": [],
+  "conclusion": "Exactly the three permanent branches. No leftover ephemeral CI branch: the round-3 fixture br-falling-hall-ayrfrokv was deleted (delete_timeline finished at 2026-10-12T15:43:03Z). The develop branch remains archived; unarchive/delete is a human decision."
+}

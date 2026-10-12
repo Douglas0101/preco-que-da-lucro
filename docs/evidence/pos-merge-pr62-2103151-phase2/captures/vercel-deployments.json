@@ -1,0 +1,65 @@
+{
+  "capturedAt": "2026-10-12T18:57:29Z",
+  "source": "Vercel MCP (equivalent of `vercel list --json`; Vercel CLI is not installed on this host and no VERCEL_TOKEN is present in the environment — MCP is the authenticated path)",
+  "team": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+  "project": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+  "queries": {
+    "sha=2103151ac32d88847eb97bb97ccd5ff9d7d1a44f": { "count": 0, "deployments": [] },
+    "sha=40c1a35577c70c7d33424640648d52bfdedb8bde": { "count": 0, "deployments": [] }
+  },
+  "productionTop5": [
+    {
+      "id": "dpl_6h2LTZX57soGiPP2oTurws7NsgVd",
+      "url": "preco-que-da-lucro-gssnblvr8.vercel.app",
+      "createdMs": 1791481532774,
+      "createdAt": "2026-10-08T17:45:32Z",
+      "state": "READY",
+      "target": "production",
+      "ref": "main",
+      "sha": "fa45632391ad9ffe1d20d3bad5264a53b565638e"
+    },
+    {
+      "id": "dpl_4vNYvd5xcXRBjVRyRcp9Fri7mhxz",
+      "url": "preco-que-da-lucro-hnl9u4l5o.vercel.app",
+      "createdMs": 1791312132760,
+      "createdAt": "2026-10-06T18:42:12Z",
+      "state": "ERROR",
+      "target": "production",
+      "ref": "main",
+      "sha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9"
+    },
+    {
+      "id": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+      "url": "preco-que-da-lucro-1bxqn5vm2.vercel.app",
+      "createdMs": 1790866326674,
+      "createdAt": "2026-10-01T14:52:06Z",
+      "state": "READY",
+      "target": "production",
+      "ref": "main",
+      "sha": "d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9",
+      "rollbackCandidate": true
+    },
+    {
+      "id": "dpl_HAGFdJTcYqR6CGM8CEvNVcAjgzXp",
+      "url": "preco-que-da-lucro-143um51c3.vercel.app",
+      "createdMs": 1790804961458,
+      "createdAt": "2026-09-30T21:49:21Z",
+      "state": "READY",
+      "target": "production",
+      "ref": "main",
+      "sha": "fd9449f3a29a0c93221fb682c646c4e444c314b8",
+      "rollbackCandidate": true
+    },
+    {
+      "id": "dpl_36XYYB1BqYxAbjbaR7iEJhtQWHSH",
+      "url": "preco-que-da-lucro-btrw2k4ce.vercel.app",
+      "createdMs": 1789269592302,
+      "createdAt": "2026-09-13T03:19:52Z",
+      "state": "READY",
+      "target": "production",
+      "ref": "main",
+      "sha": "9724d2c73b269d0a0199ea305308f3237b38fa09"
+    }
+  ],
+  "conclusion": "No deployment exists for the merged main revision 2103151 (nor for the previous main 40c1a355). The newest production deployment is still fa45632 from 2026-10-08. Automated Git deployments appear disabled (no deployments at all for the post-2026-10-08 merges/pushes)."
+}

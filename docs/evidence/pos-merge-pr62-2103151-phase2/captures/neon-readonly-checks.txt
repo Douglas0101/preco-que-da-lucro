@@ -1,0 +1,33 @@
+# Neon — checagens read-only (sem escrita, sem connection string persistida)
+# Captura: 2026-10-12T18:56:00Z–18:59Z · projeto damp-forest-57346541 · branch production br-snowy-violet-aymcvvvv
+
+[1] SELECT version();
+-> PostgreSQL 17.11 (7d7ea2a) on aarch64-unknown-linux-gnu (64-bit)
+
+[2] SELECT count(*) FROM drizzle.__drizzle_migrations; + last applied
+-> applied = 20 | last_applied = 2026-09-18T02:27:54Z
+   Repositório local: drizzle/meta/_journal.json = 20 entradas (0000..0019) e 20 arquivos .sql
+   => 20/20 aplicadas, ZERO migrações pendentes. Nenhuma migração foi executada.
+
+[3] SELECT count(*) FROM pg_stat_activity; SHOW max_connections;
+-> active_connections = 11 (inclui a própria sessão read-only desta validação; sem pooler)
+-> max_connections = 901
+-> server_version = 17.11
+
+[4] Neon query logs (private beta), janela since=3h, source=pg_endpoint
+-> [] (vazio — telemetria de log não retornou linhas para a janela)
+
+[5] Operações recentes do projeto (neon list_operations, recorte relevante):
+-> 2026-10-12T17:28:38Z start_compute em ep-long-violet (produção) — a consulta read-only desta validação
+-> 2026-10-12T16:47:01Z suspend_compute (produção)
+-> 2026-10-12T16:39:40Z start_compute (produção) — 39 s após o merge do PR #62 (16:39:01Z); origem não
+   identificada por este agente (sem escrita observada; a branch production tem compute on-demand)
+-> 2026-10-12T15:43:01Z delete_timeline de br-falling-hall-ayrfrokv (fixture efêmera da rodada 3 do CI),
+   com suspend anterior — descarte confirmado
+-> 2026-10-12T15:36:26Z create_branch br-falling-hall-ayrfrokv (fixture efêmera do CI)
+
+[6] Branches: production ready · develop archived (desde 2026-10-09T18:35:05Z) · ci-fixture-base ready/vazia.
+    Nenhuma branch efêmera pendente. Nenhuma criação de branch foi feita nesta validação (não foi necessário
+    testar escrita: os fluxos de escrita/E2E com banco são cobertos pelo CI em fixtures efêmeras).
+
+# Limites: nenhuma consulta de escrita; nenhum DDL/DML; nenhuma migração; nenhum valor de credencial lido ou salvo.

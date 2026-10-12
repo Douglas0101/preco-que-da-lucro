@@ -1,0 +1,43 @@
+# FASE 0.1 — Git (fase 3: ciclo de deploy)
+# 2026-10-12T19:02:43Z
+
+$ git fetch --all --prune
+
+$ git status --short
+ M .prettierignore
+ M docs/evidence/agent-state/PROGRESS.md
+?? docs/evidence/pos-merge-pr62-2103151-phase2/
+?? docs/evidence/pos-merge-pr62-2103151-phase3/
+?? docs/evidence/pos-merge-pr62-2103151/
+
+$ git log --oneline --decorate -20 origin/main origin/develop
+ed26ec3 (HEAD -> develop, origin/develop) chore(branches): merge released main back into development
+96caec1 docs(evidence): record the round-3 acceptance and the post-merge reconciliation
+2103151 (origin/main, origin/HEAD) Merge pull request #62 from Douglas0101/develop
+1f559ff fix(ci): declare the scanner staging path ignored for the ADR-044 clean-tree proof
+d8f77f9 fix(sonar): bind the analyzed checkout to Git objects and name the mirror candidate refusal
+d90f8f5 fix(sonar): drop own-CE dependency, normalize preserved readouts and scope PR applicability
+63efb76 docs(evidence): record the reconciliation push and its light-CI run
+200979a docs(evidence): reconcile the production audit and the CI-baseline corrective investigation
+182754f fix(ci): select the main baseline by the run's own CE analysis
+006bc83 docs(evidence): register DBT-103 and journal the failed Sonar re-run of main
+d33bdbf docs(evidence): record the completed main back-merge and the light-only push
+74ab15f chore(branches): merge released main back into development
+d6cf043 docs(evidence): record the intent of the main back-merge before executing it
+abda4a2 docs(evidence): rescue the uncommitted MCP OAuth journal rows under free ids
+40c1a35 Merge pull request #61 from Douglas0101/develop
+d3996f6 (cline/a9e17) docs(evidence): record the observed remote acceptance of the mirror divergence fix
+1ebbbf6 fix(ci): name the by-design source-divergence refusal of the coverage mirror
+acca987 docs(evidence): close the orphan push intent after reconciling the PR #61 circuit
+82a2372 fix(observability): normalize the OTLP endpoint before appending paths
+fe3d9ab docs(evidence): re-pin the M-02 state marker after the mirror corrections
+
+$ git rev-parse origin/main origin/develop
+2103151ac32d88847eb97bb97ccd5ff9d7d1a44f
+ed26ec3db086029476d35c76d19d1cba73dc6d41
+
+$ git merge-base --is-ancestor origin/main origin/develop; echo exit=$?
+exit=0
+
+$ git rev-list --left-right --count origin/main...origin/develop
+0	2

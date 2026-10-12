@@ -1,0 +1,52 @@
+# Vercel env vars — NOMES E METADADOS SOMENTE (valores NUNCA decriptados; ciphertext omitido)
+# Captura: 2026-10-12T18:57:29Z · projeto prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+# Fonte: Vercel MCP filter_project_envs (equivalente a `vercel env ls`); todos os itens vieram com decrypted=false.
+# Nenhum valor, ciphertext ou connection string foi persistido — apenas chave, alvo, tipo e higiene.
+
+# key | targets | type | visibility | securityIssues | updatedAt
+AI_GATEWAY_URL                 | production, preview | sensitive | secret  | []                        | 2026-08-17 (ms 1788845718426)
+AI_GATEWAY_API_KEY             | production, preview | sensitive | secret  | []                        | 2026-08-17
+AI_MODEL                       | production, preview | sensitive | secret  | []                        | 2026-08-17
+AI_MODEL_TIMEOUT_MS            | production, preview | sensitive | secret  | []                        | 2026-08-17
+AI_REQUEST_TIMEOUT_MS          | production, preview | sensitive | secret  | []                        | 2026-08-17
+AI_MODEL_MAX_ATTEMPTS          | production, preview | sensitive | secret  | []                        | 2026-08-17
+AI_MAX_TOOL_ROUNDS             | production, preview | sensitive | secret  | []                        | 2026-08-17
+AI_CHAT_LIMIT_PER_10_MINUTES   | production, preview | sensitive | secret  | []                        | 2026-08-17
+AI_DAILY_CHAT_LIMIT_PER_TENANT | production, preview | sensitive | secret  | []                        | 2026-08-17
+AI_MODEL_PRICING_JSON          | production, preview | sensitive | secret  | []                        | 2026-08-17
+AUTH_TRUSTED_ORIGINS           | production, preview | sensitive | secret  | []                        | 2026-08-17
+AUTH_EMAIL_FROM                | production, preview | sensitive | secret  | []                        | 2026-08-17
+BETTER_AUTH_URL                | production, preview | sensitive | secret  | []                        | 2026-09-07  (ms 1789095069379)
+BETTER_AUTH_SECRET             | production, preview | sensitive | secret  | []                        | 2026-09-07  (ms 1789095485866)
+CSP_ENFORCE                    | production, preview | sensitive | secret  | []                        | 2026-08-17
+DATABASE_DRIVER                | production, preview | sensitive | secret  | []                        | 2026-09-08  (ms 1789094843586)
+DATABASE_URL                   | production          | sensitive | secret  | []                        | 2026-10-06  (ms 1791304643815)   <- manual; ÚNICO DATABASE_URL de production no projeto
+DEEPSEEK_API_KEY               | production, preview | sensitive | secret  | []                        | 2026-10-06  (ms 1791296400270)
+GOOGLE_CLIENT_ID               | production, preview | sensitive | secret  | []                        | 2026-08-17
+GOOGLE_CLIENT_SECRET           | production, preview | sensitive | secret  | []                        | 2026-08-17
+OTEL_EXPORTER_OTLP_ENDPOINT    | production, preview | sensitive | secret  | []                        | 2026-08-17
+OTEL_SERVICE_NAME              | production, preview | sensitive | secret  | []                        | 2026-08-17
+RESEND_API_KEY                 | production, preview | sensitive | secret  | []                        | 2026-08-17
+# Integração Neon (configurationId icfg_eDeLFTSX3j7fPem6tn88RkGS):
+DATABASE_URL                   | preview (gitBranch develop) | encrypted | config | ["readable-secret"] | 2026-10-05 (ms 1791314196420)
+DATABASE_URL_UNPOOLED          | preview (gitBranch develop) | encrypted | config | ["readable-secret"] | 2026-10-05 (ms 1791314196620)
+DATABASE_URL                   | development         | encrypted | config | []                        | 2026-08-17
+DATABASE_URL_UNPOOLED          | development         | encrypted | config | []                        | 2026-08-17
+DATABASE_URL_UNPOOLED          | production          | encrypted | config | ["readable-secret"] | 2026-08-17
+NEON_AUTH_BASE_URL             | preview (gitBranch develop) | encrypted | config | ["readable-secret"] | 2026-09-10 (ms 1789011192472)
+NEON_AUTH_BASE_URL             | production          | encrypted | config | ["readable-secret"] | 2026-09-10 (ms 1789010323965)
+VITE_NEON_AUTH_URL             | preview (gitBranch develop) | encrypted | config | []                        | 2026-09-10
+VITE_NEON_AUTH_URL             | production          | encrypted | config | []                        | 2026-09-10
+AI_GATEWAY_URL                 | preview (gitBranch develop) | plain     | —      | []                        | 2026-10-06 (override DeepSeek: api.deepseek.com/chat/completions)
+AI_MODEL                       | preview (gitBranch develop) | plain     | —      | []                        | 2026-10-06 (deepseek-flash)
+BETTER_AUTH_URL                | preview (gitBranch develop) | plain     | —      | []                        | 2026-10-06 (override de preview)
+
+# Observações (sem valores):
+# 1. Production NÃO recebe DATABASE_URL da integração Neon — apenas DATABASE_URL_UNPOOLED (encrypted).
+#    O DATABASE_URL de production é o segredo manual (sensitive), atualizado em 2026-10-06; o alvo efetivo
+#    não é legível por API sem decriptar (proibido por política), e o deployment fa45632 responde 503
+#    postgres unavailable — a ponte de banco do deployment atual não funciona.
+# 2. Vários itens carregam o aviso de higiene "readable-secret" da Vercel (DATABASE_URL/NEON_AUTH_BASE_URL
+#    de preview e production no escopo da integração). É aviso de visibilidade, não exposição; registrar
+#    como item de higiene, sem ação nesta rodada.
+# 3. hiddenProductionEnvCount = 0.

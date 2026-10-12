@@ -1,0 +1,60 @@
+{
+  "capturedAt": "2026-10-12T19:05:00Z",
+  "source": "Vercel MCP get_project / get_git_deployment_context / list_deployments / get_deployment (Vercel CLI is not installed on this host; no VERCEL_TOKEN in the environment — MCP is the authenticated path)",
+  "project": {
+    "id": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+    "name": "preco-que-da-lucro",
+    "accountId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+    "framework": "tanstack-start-lovable",
+    "nodeVersion": "24.x",
+    "createdAt": "2026-08-17 (ms 1788845718676)",
+    "live": false,
+    "domains": [
+      "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app",
+      "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app"
+    ],
+    "passwordProtection": { "enabled": false, "deploymentType": null },
+    "ssoProtection": { "enabled": true, "deploymentType": "all_except_custom_domains" },
+    "trustedIps": { "enabled": false, "addresses": [], "protectionMode": null }
+  },
+  "gitLink": {
+    "type": "github",
+    "org": "Douglas0101",
+    "repo": "preco-que-da-lucro",
+    "teamPlan": "hobby",
+    "originConnections": []
+  },
+  "repositoryLevelConfiguration": {
+    "file": "vercel.json",
+    "committedContent": {
+      "$schema": "https://openapi.vercel.sh/vercel.json",
+      "git": { "deploymentEnabled": false }
+    },
+    "committedIn": "0bafaeb56b06924ea2c1daedd04ed2a86e9c57fd",
+    "committedAt": "2026-10-02T16:50:13-03:00",
+    "message": "fix(deploy): disable automatic Git publication for the release repository",
+    "effect": "Git-triggered builds (preview AND production) are disabled at the repository level. Every push after this commit produces ZERO deployments; the current production deployment was therefore published manually, not by Git."
+  },
+  "deploymentQueriesBySha": {
+    "2103151ac32d88847eb97bb97ccd5ff9d7d1a44f (main, PR #62 merge)": { "count": 0 },
+    "40c1a35577c70c7d33424640648d52bfdedb8bde (previous main)": { "count": 0 },
+    "ed26ec3db086029476d35c76d19d1cba73dc6d41 (develop, back-merge)": { "count": 0 },
+    "1f559ff47dfc274f7e631337e479b7ab6ad2ee88 (develop, round-3 fix)": { "count": 0 }
+  },
+  "latestDeployment": {
+    "id": "dpl_6h2LTZX57soGiPP2oTurws7NsgVd",
+    "url": "preco-que-da-lucro-gssnblvr8.vercel.app",
+    "createdAt": "2026-10-08T17:45:32Z",
+    "state": "READY",
+    "target": "production",
+    "revision": "fa45632391ad9ffe1d20d3bad5264a53b565638e",
+    "regions": ["iad1"],
+    "note": "Created after deploymentEnabled=false (2026-10-02) → manual publication (not Git-triggered; consistent with docs/evidence/recuperacao-producao-2026-10-12/captures/vercel-topology.txt: 'push não builda; publicação é manual'). Its /api/health/ready returns 503 postgres unavailable."
+  },
+  "notExposedByMcp": [
+    "commandForIgnoringBuildStep / Ignored Build Step (not returned by get_project)",
+    "automatic deployment toggles beyond vercel.json",
+    "deployment checks configuration (dashboard-side; see vercel-deployment-checks.json)"
+  ],
+  "rootCauseForNoDeployOnMain": "By design: vercel.json sets git.deploymentEnabled=false since commit 0bafaeb (2026-10-02); publication is manual/conditional per ADR-042 and AGENTS.md 'Publication is manual and conditional (C26)'. Not a broken Git integration: the GitHub link to Douglas0101/preco-que-da-lucro is present and healthy."
+}

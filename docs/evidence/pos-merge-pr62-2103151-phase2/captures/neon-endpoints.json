@@ -1,0 +1,52 @@
+{
+  "capturedAt": "2026-10-12T18:56:00Z",
+  "source": "Neon MCP list_postgres_endpoints (equivalent of `neon endpoints list --json`)",
+  "project_id": "damp-forest-57346541",
+  "region": "aws-us-east-2",
+  "endpoints": [
+    {
+      "id": "ep-long-violet-aye9g0bn",
+      "branch": "production (br-snowy-violet-aymcvvvv)",
+      "type": "read_write",
+      "current_state": "active (session read-only desta validação)",
+      "pooler_enabled": false,
+      "pooler_mode": "transaction",
+      "autoscaling_limit_min_cu": 0.25,
+      "autoscaling_limit_max_cu": 2,
+      "suspend_timeout_seconds": 0,
+      "passwordless_access": true,
+      "hosts": {
+        "read_write": "ep-long-violet-aye9g0bn.c-5.us-east-2.aws.neon.tech",
+        "read_write_pooled": "ep-long-violet-aye9g0bn-pooler.c-5.us-east-2.aws.neon.tech"
+      }
+    },
+    {
+      "id": "ep-wandering-glitter-ayzrgv28",
+      "branch": "develop (br-small-hill-aymcu14y, archived)",
+      "type": "read_write",
+      "current_state": "idle",
+      "pooler_enabled": false,
+      "pooler_mode": "transaction",
+      "suspended_at": "2026-10-08T18:31:03Z",
+      "hosts": {
+        "read_write": "ep-wandering-glitter-ayzrgv28.c-5.us-east-2.aws.neon.tech",
+        "read_write_pooled": "ep-wandering-glitter-ayzrgv28-pooler.c-5.us-east-2.aws.neon.tech"
+      }
+    },
+    {
+      "id": "ep-delicate-sky-ayivte12",
+      "branch": "ci-fixture-base (br-wandering-sky-ayxm5e5s)",
+      "type": "read_write",
+      "current_state": "idle",
+      "pooler_enabled": false,
+      "pooler_mode": "transaction",
+      "suspended_at": "2026-10-08T05:59:47Z",
+      "hosts": {
+        "read_write": "ep-delicate-sky-ayivte12.c-5.us-east-2.aws.neon.tech",
+        "read_write_pooled": "ep-delicate-sky-ayivte12-pooler.c-5.us-east-2.aws.neon.tech"
+      }
+    }
+  ],
+  "pooling_finding": "pooler_enabled=false em todos os endpoints: o app serverless conecta pelo host direto (porta 5432), não pelo endpoint -pooler. Documentação oficial do Neon recomenda o endpoint pooled para cargas serverless; com max_connections=901 o risco de exaustão é baixo neste porte, mas fica registrado como divergência de configuração versus recomendação oficial.",
+  "note": "Hosts are public endpoints, not credentials; no connection strings were retrieved or persisted."
+}

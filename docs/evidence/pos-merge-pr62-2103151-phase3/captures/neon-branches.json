@@ -1,0 +1,31 @@
+{
+  "capturedAt": "2026-10-12T19:04:00Z",
+  "source": "Neon MCP list_branches (equivalent to `neon branches list --project-id damp-forest-57346541 --json`)",
+  "project_id": "damp-forest-57346541",
+  "branches": [
+    {
+      "id": "br-snowy-violet-aymcvvvv",
+      "name": "production",
+      "current_state": "ready",
+      "primary": true,
+      "default": true,
+      "updated_at": "2026-10-12T19:02:31Z",
+      "restricted_actions": ["delete", "delete-rw-endpoint", "move-rw-endpoint-using-api"],
+      "restriction_reason": "vercel production branch"
+    },
+    {
+      "id": "br-small-hill-aymcu14y",
+      "name": "develop",
+      "current_state": "archived",
+      "state_changed_at": "2026-10-09T18:35:05Z"
+    },
+    {
+      "id": "br-wandering-sky-ayxm5e5s",
+      "name": "ci-fixture-base",
+      "current_state": "ready",
+      "note": "zero-row fixture source per the permanent guard; never a test target in this phase"
+    }
+  ],
+  "ephemeralBranchesActive": [],
+  "conclusion": "Same three permanent branches as Fase 1; no ephemeral leftovers. develop archived is unchanged and remains a human decision."
+}
