@@ -52,3 +52,7 @@ docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/*
 # required check and CANDIDATE_READOUT_UNAVAILABLE on the mirror), copied
 # byte-for-byte from the workflow artifacts. Same seal, same reason.
 docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/**
+
+# Raw artifacts of the PR #62 run 38270836613 — the round-3 accepted run (both jobs
+# success, releasePolicy NOT_APPLICABLE, mirror informational). Same seal.
+docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38270836613/**

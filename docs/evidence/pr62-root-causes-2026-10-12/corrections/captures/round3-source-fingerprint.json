@@ -1,20 +1,20 @@
 {
   "schema": "pr62-local-source-fingerprint/2",
-  "observedAt": "2026-10-12T14:50:51.443Z",
-  "origin": "d8f77f93d48cbde3d999ba311f8e4050c2595cc0",
+  "observedAt": "2026-10-12T15:45:55.116Z",
+  "origin": "1f559ff47dfc274f7e631337e479b7ab6ad2ee88",
   "branch": "develop",
-  "round": "3 (run 38259113709)",
+  "round": "3 (run 38259113709; aceite em 38270836613)",
   "algorithm": "sha256DaFingerprint = sha256(linhas ordenadas byte-wise (LC_ALL=C) \"caminho sha256(bytes)\" separadas por \\n, com \\n final)",
   "files": {
     ".gitignore": "8787a81b7f1eb28406d6e98f07eaebc380e345cc69ac8b8e027a6954a8936dc4",
     "src/test/sonar-pr-applicability.test.ts": "bf8ca663b7ab1d4170b00b2b59a6fa2037013871221643150f038690500fd8cf",
     "docs/adr/ADR-044-aplicabilidade-pr-sem-delta-analisavel.md": "0d73601acc392b65ef9e8461a2a29a2cde0df28599785ac262604c4d2826a608",
     "AGENTS.md": "31be66e246d0df913fc1de523c8dea7d657270032899ef8dfb789ffa3a022cec",
-    "docs/evidence/agent-state/DEBTS.md": "2712c8548af45e37345c7e9c65952b5377a8363ae7ae636b9938b0a6a66ed1d5",
-    "docs/evidence/pr62-root-causes-2026-10-12/corrections/SPEC.md": "636608661802a237ce5b23731590137d16e6a9c1e6c790bbfc009c614c439e70",
-    "docs/evidence/pr62-root-causes-2026-10-12/corrections/README.md": "5858614daed8a15debf596e68d0a818ebd1f803bf8c232905ba2a0656cbaa71f"
+    "docs/evidence/agent-state/DEBTS.md": "a05eba9e6a45ada7fd652c4187177a4b08883a5950ab596ee2677fa881e776d0",
+    "docs/evidence/pr62-root-causes-2026-10-12/corrections/SPEC.md": "e7ac18798ac7704f17211c920e18840e2aecaadcb06ffe24ef1c40d6b1e2b25a",
+    "docs/evidence/pr62-root-causes-2026-10-12/corrections/README.md": "866ed460f5cd469365b137ce124366177c47d2f6672446398b4973be209eddde"
   },
-  "sourceFingerprint": "a3f6de17dfb3a716b9cc4f86b85efc7ae98278128a45f113ed2f789f1f935f2c",
+  "sourceFingerprint": "0ab0be3c19e9432755d544516f79c6fa6d1f3057344fe5b910dd86d77d1b3324",
   "lineCount": 7,
   "published": false,
   "approvesRelease": false

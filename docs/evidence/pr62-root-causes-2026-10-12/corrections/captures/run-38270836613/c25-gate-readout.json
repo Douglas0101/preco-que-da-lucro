@@ -1,0 +1,590 @@
+{
+  "schema": "c25-ce-gate-readout/1",
+  "observedAt": "2026-10-12T15:34:28.714Z",
+  "runnerSha": "64a56add8012bf59595951510b3e974c1771e159",
+  "checkoutSha": "64a56add8012bf59595951510b3e974c1771e159",
+  "providerIdentity": {
+    "revision": "64a56add8012bf59595951510b3e974c1771e159",
+    "branch": "develop",
+    "pullRequest": "62"
+  },
+  "ceTaskId": "AaEwwDG5wPGr5f_xzxce",
+  "analysisId": "41395231-019a-45e3-b4c9-ea3cd833bc9c",
+  "surface": {
+    "branch": null,
+    "branchType": null,
+    "pullRequest": "62"
+  },
+  "status": "OK",
+  "ignoredConditions": false,
+  "conditions": [
+    {
+      "metric": "new_reliability_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_security_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_maintainability_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_security_hotspots_reviewed",
+      "status": "OK",
+      "comparator": "LT",
+      "threshold": "100",
+      "actual": "100.0"
+    }
+  ],
+  "releasePolicy": {
+    "policy": "ADR-044/pr-no-analyzed-delta",
+    "providerGateStatus": "OK",
+    "status": "NOT_APPLICABLE",
+    "coverage": {
+      "metric": "new_coverage",
+      "minimum": 60,
+      "actual": null,
+      "status": "NOT_APPLICABLE"
+    },
+    "duplication": {
+      "metric": "new_duplicated_lines_density",
+      "maximum": 3,
+      "actual": null,
+      "status": "NOT_APPLICABLE"
+    },
+    "blockingConditions": [],
+    "preservedControls": [
+      "new_security_rating",
+      "new_reliability_rating",
+      "new_maintainability_rating",
+      "new_security_hotspots_reviewed"
+    ],
+    "notApplicableControls": [
+      "new_coverage",
+      "new_duplicated_lines_density"
+    ],
+    "applicability": {
+      "schema": "sonar-pr-applicability/1",
+      "policy": "ADR-044",
+      "status": "NOT_APPLICABLE",
+      "ceTaskId": "AaEwwDG5wPGr5f_xzxce",
+      "analysisId": "41395231-019a-45e3-b4c9-ea3cd833bc9c",
+      "providerIdentity": {
+        "revision": "64a56add8012bf59595951510b3e974c1771e159",
+        "branch": "develop",
+        "pullRequest": "62"
+      },
+      "event": {
+        "repository": "Douglas0101/preco-que-da-lucro",
+        "number": 62,
+        "baseBranch": "main",
+        "headBranch": "develop",
+        "baseSha": "40c1a35577c70c7d33424640648d52bfdedb8bde",
+        "headSha": "1f559ff47dfc274f7e631337e479b7ab6ad2ee88",
+        "checkoutSha": "64a56add8012bf59595951510b3e974c1771e159",
+        "analyzedShape": "merge"
+      },
+      "scope": {
+        "sources": "src",
+        "exclusions": "src/test/**"
+      },
+      "changes": [
+        {
+          "status": "M",
+          "path": ".github/workflows/sonar.yml"
+        },
+        {
+          "status": "M",
+          "path": ".gitignore"
+        },
+        {
+          "status": "M",
+          "path": ".prettierignore"
+        },
+        {
+          "status": "M",
+          "path": "AGENTS.md"
+        },
+        {
+          "status": "M",
+          "path": "EXECUTION-STATE-PROGRAM.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/adr/ADR-044-aplicabilidade-pr-sem-delta-analisavel.md"
+        },
+        {
+          "status": "M",
+          "path": "docs/evidence/agent-state/DEBTS.md"
+        },
+        {
+          "status": "M",
+          "path": "docs/evidence/agent-state/PROGRESS.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/auditoria-producao-2026-10-12/MANIFEST.sha256"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/auditoria-producao-2026-10-12/RAW-EVIDENCE-LOG.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/auditoria-producao-2026-10-12/REPORT.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/auditoria-producao-2026-10-12/captures/final-gate.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/auditoria-producao-2026-10-12/captures/git-and-versions.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/auditoria-producao-2026-10-12/captures/http-probes.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/auditoria-producao-2026-10-12/captures/local-verification.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/auditoria-producao-2026-10-12/captures/security-headers.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/dbt-103-rerun-path-2026-10-11/MANIFEST.sha256"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/dbt-103-rerun-path-2026-10-11/README.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/dbt-103-rerun-path-2026-10-11/SPEC.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/dbt-103-rerun-path-2026-10-11/captures/check-local.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/dbt-103-rerun-path-2026-10-11/captures/git-identity.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/dbt-103-rerun-path-2026-10-11/captures/green-tests.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/dbt-103-rerun-path-2026-10-11/captures/real-artifact-repro.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/dbt-103-rerun-path-2026-10-11/captures/red-tests.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/dbt-103-rerun-path-2026-10-11/captures/remote-job-evidence.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/MANIFEST.sha256"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/REPORT.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/baseline-api-fixture-source.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/c24-mirror-main-baseline.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/c24-scan-main-baseline.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/c25-gate-readout.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/c29-main-mirror-observation.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/c29-main-unit-adapter-observation.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/check-local-first-attempt.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/check-local.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/failed-steps.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/local-preconditions-tests.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/public-api-limits.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/reproduce.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/reproduction-source.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/run.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/captures/targeted-tests.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/MANIFEST.sha256"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/README.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/SPEC.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/all-targeted-tests.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/applicability-cli-diagnostic.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/applicability-tests-first-attempt.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/applicability-tests.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/audit-and-lcov-path.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/baseline-and-seal-first-attempt.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/baseline-and-seal-tests.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/check-local-first-attempt.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/check-local.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/final-checks.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/parent-manifest-check.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/pre-push-check.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/publication-preconditions-round2.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/publication-preconditions.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/red-parent-source.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/red-parent.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/round2-check-first-attempt.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/round2-check.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/round2-source-fingerprint.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/round2-tests.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/round3-check-first-attempt.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/round3-check.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/round3-guard-green.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/round3-guard-red.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/round3-source-fingerprint.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/round3-tests.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38112535521/main-lcov-artifact.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/c24-main-baseline.mirror.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/c24-main-baseline.scan.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/c25-gate-readout.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/c26-main-mirror.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/c26-main-unit-probe.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/c28-main-origin-run.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/c28-main-unit-adapter.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/c29-main-mirror-observation.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/c29-main-unit-adapter-observation.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/logs.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/c24-main-baseline.mirror.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/c24-main-baseline.scan.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/c25-gate-readout.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/c26-main-mirror.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/c26-main-unit-probe.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/c28-main-origin-run.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/c28-main-unit-adapter.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/c29-main-mirror-observation.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/c29-main-unit-adapter-observation.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/logs.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/source-fingerprint-before-lint.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/source-fingerprint.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/MANIFEST.sha256"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/RAW-EVIDENCE-LOG.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/REPORT.md"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/captures/ci-main-run.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/captures/domain-probes.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/captures/http-probes.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/captures/local-gate.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/captures/neon-state.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/captures/sonar-run-38112535521/c24-main-baseline.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/captures/sonar-run-38112535521/c25-gate-readout.json"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/captures/sonar-run-38112535521/lcov-sf-paths.txt"
+        },
+        {
+          "status": "A",
+          "path": "docs/evidence/recuperacao-producao-2026-10-12/captures/vercel-topology.txt"
+        },
+        {
+          "status": "M",
+          "path": "scripts/lib/m02-ci-coverage.ts"
+        },
+        {
+          "status": "M",
+          "path": "scripts/sonar/gate-readout.ts"
+        },
+        {
+          "status": "M",
+          "path": "scripts/sonar/lcov-provenance.ts"
+        },
+        {
+          "status": "A",
+          "path": "scripts/sonar/main-baseline-select.ts"
+        },
+        {
+          "status": "M",
+          "path": "scripts/sonar/main-baseline.mjs"
+        },
+        {
+          "status": "M",
+          "path": "scripts/sonar/mirror-runner.ts"
+        },
+        {
+          "status": "A",
+          "path": "scripts/sonar/pr-applicability.ts"
+        },
+        {
+          "status": "A",
+          "path": "scripts/sonar/readout-evidence.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/test/m02-ci-coverage.test.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/test/main-baseline-cli.test.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/test/main-baseline-select.test.ts"
+        },
+        {
+          "status": "M",
+          "path": "src/test/main-unit-adapter.test.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/test/sonar-pr-applicability.test.ts"
+        },
+        {
+          "status": "A",
+          "path": "src/test/sonar-readout-evidence.test.ts"
+        }
+      ],
+      "eligibleChanges": [],
+      "fingerprint": "8716073f1a34bd46cb00e018ee33e5131d4cf3143cc469a59c3ab14b24b446a5",
+      "approvesMain": false
+    }
+  },
+  "nullSemantics": "métrica ausente é null; NOT_APPLICABLE exige prova ADR-044 de PR sem delta analisável, nunca aprova main; demais ausências continuam NO-VERDICT"
+}
