@@ -1,0 +1,23 @@
+$ npm run test -- src/test/build-warnings.test.ts
+# 2026-10-12T22:14:25Z
+
+> test
+> vitest run src/test/build-warnings.test.ts
+
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  19:14:25
+   Duration  726ms (transform 40ms, setup 96ms, import 25ms, tests 8ms, environment 486ms)
+
+
+$ npm run typecheck
+
+> typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+# test_exit=0 typecheck_exit=0

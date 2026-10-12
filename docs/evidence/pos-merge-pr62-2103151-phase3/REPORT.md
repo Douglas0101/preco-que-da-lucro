@@ -2,7 +2,7 @@
 
 ## Status Geral
 
-**VERMELHO para publicação / AMARELO para o código** — a revisão mesclada foi construída e validada em **preview** (build limpo, healthcheck 200, E2E read-only verde); a **publicação autorizada em produção falhou no gate de warnings do build** (`scripts/build.mjs`, fail-closed por desenho) e a produção permanece no deployment antigo `fa45632` (503), agora com o bloqueador nomeado e evidenciado (sem rollback necessário: nenhum alias se moveu).
+**AMARELO** — a revisão mesclada está validada em **preview** (health 200, E2E verde) e o **gate de build foi corrigido na origem** (DBT-109, testes + cache frio local verdes); a publicação de produção aguarda o retry pelo circuito de release (SHA de `main`), com produção ainda no `fa45632` (503) e o bloqueador nomeado.
 
 ## Git
 
@@ -45,9 +45,18 @@ Após autorização humana explícita ("publicar + validar + rollback pronto"), 
 - **Produção inalterada:** nenhum alias se moveu (`sage`/time/`git-main` seguem no `dpl_DHsbj` `d4b9395`, 200); o deployment falho ficou sem alias; **rollback não foi necessário**.
 - Evidência: `captures/vercel-prod-deploy-attempt.json`, `captures/vercel-prod-build-failure.txt`.
 
+## Correção do gate de build (FASE A — DBT-109)
+
+- **Supressão na origem:** `vite.config.ts` desativa o diagnóstico de performance `[PLUGIN_TIMINGS]` do rolldown em **cliente e ssr** (`rolldownOptions.checks.pluginTimings = false`). Prova estrutural no rolldown instalado (1.2.6): `create-bundler-option…mjs:3194` → `checks.pluginTimings !== false` é o gate do recorder; falso ⇒ `pluginTimings` chega `undefined` ao nativo (`bindingify-input-options…mjs:2206`) ⇒ o diagnóstico **não pode** ser emitido. O gate de warnings não foi tocado.
+- **Allowlist:** `WARN-NITRO-001` (expirou em 2026-10-06) foi re-verificada e **removida** — o warning não se reproduz em nenhum canal observado (build local de cache frio, CI e builds Vercel de 2026-10-12). Política de expiração preservada (`fail-closed`).
+- **Lógica do gate extraída** para `scripts/lib/build-warnings.mjs` (+ `build-warnings.d.mts`): comportamento byte a byte idêntico, agora **testável**.
+- **Testes novos** (`src/test/build-warnings.test.ts`, 12 casos): streams limpos passam; stderr/`WARN`/`(!)`/`deprecated` entram; assinatura exige igualdade exata; entrada **expirada** e canal não permitido reprovam; ANSI; **regressão do incidente** (`[PLUGIN_TIMINGS]` reprova se reaparecer por outro caminho); contrato da allowlist real (sem expiradas); pin do DBT-109 no `vite.config.ts`.
+- **Validação local:** testes 12/12 PASS, `typecheck` limpo, **build de cache frio exit 0** com `.artifacts/build-warnings.json` = `passed: true`, `allowlist: []`, `observedWarnings: []` (`captures/build-gate-fix-*.txt`, `captures/rolldown-source-gate.txt`).
+- **Aceite real pendente:** build de produção em cache frio no ambiente Vercel (só possível publicando o SHA de `main` — ver bloqueador 1).
+
 ## Bloqueadores
 
-1. **Publicação bloqueada pelo gate de warnings do build (fail-closed por desenho)** — corrigir exige re-verificar a entrada `WARN-NITRO-001` e classificar o ruído `[PLUGIN_TIMINGS]` pelo circuito `develop` (PR normal); um retry pode passar por sorte de cache, mas não remove o bloqueador. Não será afrouxado sem essa decisão.
+1. **Publicação exige o circuito de release (política):** com o gate corrigido, o aceite remoto do build de produção (cache frio do `fa45632`) só ocorre no ambiente real — e a arquitetura manda publicar o **SHA exato de `main`**, o que requer novo PR de release develop→main (checks do PR) antes do retry de produção. Um deploy direto de um SHA de `develop` violaria a política de publicação.
 2. **Ponte de banco da produção não testada** (não chegamos ao runtime): o `DATABASE_URL` sensitive de produção continua suspeito do 503 do `fa45632`; recomenda-se validar (Via A) antes/junto de nova tentativa.
 3. Deployment Checks não verificáveis sem sessão humana no dashboard.
 4. PR de ativação prescrito é impossível (ruleset) — se a opção for reativar build por Git, o caminho é mudança de `vercel.json` no circuito develop→main.
