@@ -109,6 +109,10 @@ describe("DBT-103 · o selo de proveniência nomeia a causa em vez de sair 2 sem
     checkoutSha: sha,
     analysisId: ceAnalysis,
     ceTaskId: "AaErfPmYHxi1U64p4iLF",
+    status: "OK",
+    ignoredConditions: false,
+    conditions: [],
+    surface: { branch: "main", branchType: "BRANCH", pullRequest: null },
     providerIdentity: { revision: sha, branch: "main", pullRequest: null },
   };
   function seal(files: Record<string, string>) {

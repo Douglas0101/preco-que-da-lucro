@@ -1,6 +1,11 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
+import {
+  assertPrApplicability,
+  prApplicability,
+  type PrApplicability,
+} from "./pr-applicability.ts";
 
 const project = "Douglas0101_preco-que-da-lucro";
 const origin = "https://sonarcloud.io";
@@ -183,8 +188,13 @@ export function ceVerdict(task: CeTask | undefined, gate: Gate | undefined, task
   };
 }
 
-/** ADR-042: only the coverage minimum changes; preserve the provider's raw verdict. */
-export function releaseVerdict(verdict: ReturnType<typeof ceVerdict>) {
+/** ADR-042 remains strict; ADR-044 names only a freshly proven PR-without-analyzed-delta. */
+export function releaseVerdict(
+  verdict: ReturnType<typeof ceVerdict>,
+  applicability?: PrApplicability,
+) {
+  if (applicability) assertPrApplicability(applicability, verdict);
+  const notApplicable = applicability?.status === "NOT_APPLICABLE";
   const controls = new Map([
     ["new_security_rating", { comparator: "GT", threshold: "1" }],
     ["new_reliability_rating", { comparator: "GT", threshold: "1" }],
@@ -199,7 +209,13 @@ export function releaseVerdict(verdict: ReturnType<typeof ceVerdict>) {
     verdict.conditions.some((condition) => !["OK", "ERROR"].includes(condition.status ?? ""))
   )
     throw new Error("gate condições duplicadas, ignoradas ou inconclusivas: NO-VERDICT");
+  if (
+    notApplicable &&
+    (byMetric.has("new_coverage") || byMetric.has("new_duplicated_lines_density"))
+  )
+    throw new Error("gate métricas presentes com delta comprovadamente inexistente: NO-VERDICT");
   for (const [metric, expected] of controls) {
+    if (notApplicable && metric === "new_duplicated_lines_density") continue;
     const condition = byMetric.get(metric);
     if (
       !condition ||
@@ -220,6 +236,28 @@ export function releaseVerdict(verdict: ReturnType<typeof ceVerdict>) {
     )
       throw new Error("gate controle obrigatório tem valor/status inconsistente: NO-VERDICT");
   }
+  const errors = verdict.conditions.filter((condition) => condition.status === "ERROR");
+  if ((verdict.status === "ERROR") !== errors.length > 0)
+    throw new Error("gate status diverge das condições: NO-VERDICT");
+  if (notApplicable)
+    return {
+      policy: "ADR-044/pr-no-analyzed-delta",
+      providerGateStatus: verdict.status,
+      status: errors.length === 0 ? "NOT_APPLICABLE" : "ERROR",
+      coverage: { metric: "new_coverage", minimum: 60, actual: null, status: "NOT_APPLICABLE" },
+      duplication: {
+        metric: "new_duplicated_lines_density",
+        maximum: 3,
+        actual: null,
+        status: "NOT_APPLICABLE",
+      },
+      blockingConditions: errors,
+      preservedControls: [...controls.keys()].filter(
+        (metric) => metric !== "new_duplicated_lines_density",
+      ),
+      notApplicableControls: ["new_coverage", "new_duplicated_lines_density"],
+      applicability,
+    };
   const coverage = byMetric.get("new_coverage");
   if (
     !coverage ||
@@ -237,9 +275,6 @@ export function releaseVerdict(verdict: ReturnType<typeof ceVerdict>) {
   if (actual < 0 || actual > 100) throw new Error("gate new_coverage fora do domínio: NO-VERDICT");
   if ((coverage.status === "ERROR") !== actual < Number(coverage.threshold))
     throw new Error("gate new_coverage tem valor/status inconsistente: NO-VERDICT");
-  const errors = verdict.conditions.filter((condition) => condition.status === "ERROR");
-  if ((verdict.status === "ERROR") !== errors.length > 0)
-    throw new Error("gate status diverge das condições: NO-VERDICT");
   const blocking = errors.filter((condition) => condition.metric !== "new_coverage");
   return {
     policy: "ADR-042/coverage-minimum-60",
@@ -259,6 +294,7 @@ export function releaseVerdict(verdict: ReturnType<typeof ceVerdict>) {
 type Readout = {
   identity?: ReturnType<typeof analysisIdentity>;
   verdict?: ReturnType<typeof ceVerdict>;
+  applicability?: PrApplicability;
 };
 
 /**
@@ -277,6 +313,7 @@ export function readoutReport(
   reason: string;
   providerIdentity?: ReturnType<typeof analysisIdentity>;
   providerObservation?: ReturnType<typeof ceVerdict>;
+  applicability?: PrApplicability;
 } {
   return {
     schema: "c25-ce-gate-readout/1",
@@ -291,6 +328,7 @@ export function readoutReport(
         : "readout unavailable; no raw remote error persisted",
     ...(observed.identity ? { providerIdentity: observed.identity } : {}),
     ...(observed.verdict ? { providerObservation: observed.verdict } : {}),
+    ...(observed.applicability ? { applicability: observed.applicability } : {}),
   };
 }
 
@@ -368,7 +406,11 @@ async function main() {
     );
     const verdict = ceVerdict(task, response.projectStatus, taskRef.id);
     observed.verdict = verdict;
-    const releasePolicy = releaseVerdict(verdict);
+    const applicability = identity.pullRequest
+      ? prApplicability({ identity, ce: verdict, scannerContext: task.scannerContext })
+      : undefined;
+    observed.applicability = applicability;
+    const releasePolicy = releaseVerdict(verdict, applicability);
     const report = {
       schema: "c25-ce-gate-readout/1",
       observedAt: new Date().toISOString(),
@@ -377,11 +419,13 @@ async function main() {
       providerIdentity: identity,
       ...verdict,
       releasePolicy,
-      nullSemantics: "métrica ausente é null; gate de PR não equivale ao de main",
+      nullSemantics:
+        "métrica ausente é null; NOT_APPLICABLE exige prova ADR-044 de PR sem delta analisável, nunca aprova main; demais ausências continuam NO-VERDICT",
     };
     persistReport(file, report);
     console.log(`C25_CE_GATE ${JSON.stringify(report)}`);
-    process.exitCode = releasePolicy.status === "OK" ? 0 : 1;
+    process.exitCode =
+      releasePolicy.status === "OK" || releasePolicy.status === "NOT_APPLICABLE" ? 0 : 1;
   } catch (error) {
     const report = readoutReport(error, { ...observed, observedAt: new Date().toISOString() });
     persistReport(file, report);

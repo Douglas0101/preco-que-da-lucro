@@ -1,0 +1,15 @@
+{
+  "schema": "main-baseline/2",
+  "verdict": "NO-VERDICT",
+  "observedAt": "2026-10-12T02:56:14.580Z",
+  "reasonCode": "GATE_READOUT_UNAVAILABLE",
+  "reason": "Baseline identity/metadata/transport precondition failed; raw provider bodies withheld.",
+  "requests": [
+    {
+      "origin": "github",
+      "path": "/repos/Douglas0101/preco-que-da-lucro/branches/main",
+      "status": 200,
+      "latencyMs": 295
+    }
+  ]
+}

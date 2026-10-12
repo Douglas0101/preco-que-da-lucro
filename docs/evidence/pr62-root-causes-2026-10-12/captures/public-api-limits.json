@@ -1,0 +1,23 @@
+{
+  "observations": [
+    {
+      "authentication": "anonymous; no credential used",
+      "endpoint": "measures/component?component=Douglas0101_preco-que-da-lucro&pullRequest=62&metricKeys=new_lines,new_lines_to_cover,new_conditions_to_cover,new_coverage,new_duplicated_lines_density",
+      "status": 404,
+      "data": {}
+    },
+    {
+      "authentication": "anonymous; no credential used",
+      "endpoint": "project_analyses/search?project=Douglas0101_preco-que-da-lucro&branch=main&ps=5",
+      "status": 404,
+      "data": {}
+    },
+    {
+      "authentication": "anonymous; no credential used",
+      "endpoint": "qualitygates/project_status?analysisId=ca31e0f1-aca3-4431-9bbd-6a314159c532",
+      "status": 404,
+      "data": {}
+    }
+  ],
+  "scope": "anonymous, read-only; HTTP 404 is not proof of absence"
+}

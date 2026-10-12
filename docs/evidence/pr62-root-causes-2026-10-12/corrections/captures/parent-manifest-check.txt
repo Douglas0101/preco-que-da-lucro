@@ -1,0 +1,19 @@
+2026-10-12T04:47:15Z
+Prior verification: repository-relative parent manifest invoked from package directory; all 16 paths refused to open. No bytes or checksums modified.
+COMMAND: sha256sum -c docs/evidence/pr62-root-causes-2026-10-12/MANIFEST.sha256 (cwd = repository root)
+docs/evidence/pr62-root-causes-2026-10-12/captures/baseline-api-fixture-source.txt: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/c24-mirror-main-baseline.json: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/c24-scan-main-baseline.json: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/c25-gate-readout.json: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/c29-main-mirror-observation.json: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/c29-main-unit-adapter-observation.json: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/check-local-first-attempt.txt: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/check-local.txt: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/failed-steps.txt: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/local-preconditions-tests.txt: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/public-api-limits.json: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/reproduce.txt: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/reproduction-source.txt: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/run.json: OK
+docs/evidence/pr62-root-causes-2026-10-12/captures/targeted-tests.txt: OK
+docs/evidence/pr62-root-causes-2026-10-12/REPORT.md: OK

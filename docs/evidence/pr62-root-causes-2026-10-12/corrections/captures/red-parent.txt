@@ -1,0 +1,9 @@
+{"check":"parent-bytes","revision":"63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1","path":"scripts/sonar/main-baseline.mjs","sha256":"2738bea41ede5ac8cec60adf81e0685cf57b658056c6e6e722f238a2cb574d63","verdict":"PASS"}
+{"check":"parent-bytes","revision":"63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1","path":"scripts/sonar/lcov-provenance.ts","sha256":"780a098adce420b0cf5b057c0845324148dfbd78f4375d0d0e232a15dfd666b5","verdict":"PASS"}
+{"check":"parent-bytes","revision":"63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1","path":"scripts/sonar/gate-readout.ts","sha256":"c1173147f49a29ca5d0d419f9dbe42f58f30746ee750279b39f0884ce18123f3","verdict":"PASS"}
+{"check":"baseline-parent-RED","context":"PR-before-scanner","exit":2,"reasonCode":"GATE_READOUT_UNAVAILABLE","requests":[{"origin":"github","path":"/repos/Douglas0101/preco-que-da-lucro/branches/main","status":200,"latencyMs":35}],"verdict":"EXPECTED_REFUSAL"}
+{"check":"baseline-parent-RED","context":"fresh-mirror-runner","exit":2,"reasonCode":"GATE_READOUT_UNAVAILABLE","requests":[{"origin":"github","path":"/repos/Douglas0101/preco-que-da-lucro/branches/main","status":200,"latencyMs":22}],"verdict":"EXPECTED_REFUSAL"}
+{"check":"policy-parent-RED","analysisId":"ca31e0f1-aca3-4431-9bbd-6a314159c532","missing":["new_coverage","new_duplicated_lines_density"],"reason":"gate controle obrigatório ausente ou alterado: NO-VERDICT","verdict":"EXPECTED_REFUSAL"}
+{"check":"seal-parent-RED","readoutStatus":"NO-VERDICT","reason":"LCOV provenance unavailable or unsealed","verdict":"EXPECTED_REFUSAL"}
+{"check":"normalization-GREEN-control","readoutStatus":"NO-VERDICT","analysisId":"ca31e0f1-aca3-4431-9bbd-6a314159c532","taskId":"AaEuDL3Y_VRRlkU-_fKk","lcovSha256":"e2174560c0a1cfde7c64960c45d7db2ddebec956020b644e8c62c7f90c972c1c","approvesRelease":false,"verdict":"PASS"}
+RED/GREEN controls PASS — no release credit, network or shared-state mutation

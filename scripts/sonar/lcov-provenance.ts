@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { authoritativeUnits, lcovUnits } from "./unit-mirror.ts";
 import { provenance, sha256, type LcovProvenance } from "./main-unit-adapter.ts";
+import { readoutEvidence, ReadoutEvidenceRefusal } from "./readout-evidence.ts";
 
 export function instrumentationFingerprint(cwd = process.cwd()) {
   const lock = JSON.parse(readFileSync(resolve(cwd, "package-lock.json"), "utf8"));
@@ -115,7 +116,8 @@ function objectInput(file: string, code: string): Record<string, unknown> {
  * fail-closed (exit 2): nomear não afrouxa o selo.
  */
 function refusalCode(error: unknown): string {
-  if (error instanceof ProvenanceRefusal) return error.code;
+  if (error instanceof ProvenanceRefusal || error instanceof ReadoutEvidenceRefusal)
+    return error.code;
   const message = error instanceof Error ? error.message : "";
   if (/scanner revision\/sensor/.test(message)) return "SCANNER_IDENTITY_UNAVAILABLE";
   if (/main period\/target/.test(message)) return "MAIN_PROVENANCE_UNAVAILABLE";
@@ -132,9 +134,10 @@ function main() {
     } catch {
       throw new ProvenanceRefusal("REVISION_UNAVAILABLE");
     }
-    const gate = objectInput(resolve(root, "c25-gate-readout.json"), "GATE_READOUT_UNAVAILABLE");
-    const identity = gate.providerIdentity as
-      { revision?: string; branch?: string; pullRequest?: string | null } | undefined;
+    const gate = readoutEvidence(
+      objectInput(resolve(root, "c25-gate-readout.json"), "GATE_READOUT_UNAVAILABLE"),
+    );
+    const identity = gate.providerIdentity;
     let baseline: Record<string, unknown> | undefined;
     if (identity?.branch === "main") {
       baseline = objectInput(
@@ -159,7 +162,7 @@ function main() {
     const result = scannerProvenance(
       revision,
       lcov,
-      gate as unknown as Parameters<typeof scannerProvenance>[2],
+      gate,
       textInput("/tmp/scanner.log", "SCANNER_LOG_UNAVAILABLE"),
       instrumentationFingerprint(cwd),
       (path) => {

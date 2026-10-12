@@ -1,0 +1,52 @@
+{
+  "schema": "c25-ce-gate-readout/1",
+  "observedAt": "2026-10-12T02:59:13.724Z",
+  "status": "NO-VERDICT",
+  "reason": "gate controle obrigatório ausente ou alterado: NO-VERDICT",
+  "providerIdentity": {
+    "revision": "8d5daf49767dd6f2761e0b0bb5c687e7e53e4f9d",
+    "branch": "develop",
+    "pullRequest": "62"
+  },
+  "providerObservation": {
+    "ceTaskId": "AaEuDL3Y_VRRlkU-_fKk",
+    "analysisId": "ca31e0f1-aca3-4431-9bbd-6a314159c532",
+    "surface": {
+      "branch": null,
+      "branchType": null,
+      "pullRequest": "62"
+    },
+    "status": "OK",
+    "ignoredConditions": false,
+    "conditions": [
+      {
+        "metric": "new_reliability_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "threshold": "1",
+        "actual": "1"
+      },
+      {
+        "metric": "new_security_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "threshold": "1",
+        "actual": "1"
+      },
+      {
+        "metric": "new_maintainability_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "threshold": "1",
+        "actual": "1"
+      },
+      {
+        "metric": "new_security_hotspots_reviewed",
+        "status": "OK",
+        "comparator": "LT",
+        "threshold": "100",
+        "actual": "100.0"
+      }
+    ]
+  }
+}

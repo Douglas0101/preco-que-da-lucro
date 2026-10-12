@@ -1,0 +1,21 @@
+umask=0022
+debts guard: OK (89 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/m02-debts-guard.test.ts src/test/playwright-kit.test.ts
+
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+dpkg-deb: aviso: diretório raiz /tmp/playwright-deb-JVov7m/package tem proprietário ou grupo incomum 1000:1000
+dpkg-deb: aviso: ignorando 1 aviso sobre o(s) arquivo(s) de controle
+
+ Test Files  2 passed (2)
+      Tests  37 passed (37)
+   Start at  00:30:23
+   Duration  2.04s (transform 54ms, setup 161ms, import 46ms, tests 685ms, environment 948ms)
+

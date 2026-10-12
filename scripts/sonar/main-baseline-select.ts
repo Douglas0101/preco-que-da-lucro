@@ -20,7 +20,8 @@ export type MainAnalysisRefusal =
   | "CE_ANALYSIS_ID_UNAVAILABLE"
   | "ANALYSES_UNAVAILABLE"
   | "NEWEST_ANALYSIS_NOT_OUR_REVISION"
-  | "NEWEST_ANALYSIS_NOT_CE_ANALYSIS";
+  | "NEWEST_ANALYSIS_NOT_CE_ANALYSIS"
+  | "NEWEST_ANALYSIS_ID_UNAVAILABLE";
 
 export type MainAnalysisSelection =
   | { ok: true; analysis: AnalysisSummary & { key: string; revision: string } }
@@ -42,4 +43,20 @@ export function selectMainAnalysis(input: {
   if (newest?.key !== ceAnalysisId)
     return { ok: false, reasonCode: "NEWEST_ANALYSIS_NOT_CE_ANALYSIS" };
   return { ok: true, analysis: { ...newest, key: ceAnalysisId, revision: mainSha } };
+}
+
+/** DBT-104: an independent observation has no own CE, but must measure the current main. */
+export function selectObservedMainAnalysis(input: {
+  analyses: AnalysisSummary[] | undefined;
+  mainSha: string;
+}): MainAnalysisSelection {
+  const { analyses, mainSha } = input;
+  if (!Array.isArray(analyses) || analyses.length === 0)
+    return { ok: false, reasonCode: "ANALYSES_UNAVAILABLE" };
+  const newest = analyses[0];
+  if (!newest || newest.revision !== mainSha)
+    return { ok: false, reasonCode: "NEWEST_ANALYSIS_NOT_OUR_REVISION" };
+  if (typeof newest.key !== "string" || !/^[A-Za-z0-9_-]{1,160}$/.test(newest.key))
+    return { ok: false, reasonCode: "NEWEST_ANALYSIS_ID_UNAVAILABLE" };
+  return { ok: true, analysis: { ...newest, key: newest.key, revision: mainSha } };
 }

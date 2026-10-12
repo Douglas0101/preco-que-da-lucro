@@ -1,0 +1,23 @@
+2026-10-12T04:22:06Z
+63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/sonar-pr-applicability.test.ts src/test/sonar-gate-readout.test.ts
+
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+
+ Test Files  2 passed (2)
+      Tests  96 passed (96)
+   Start at  01:22:06
+   Duration  5.68s (transform 86ms, setup 188ms, import 85ms, tests 4.28s, environment 926ms)
+
+
+> typecheck
+> tsc -p tsconfig.json --noEmit
+

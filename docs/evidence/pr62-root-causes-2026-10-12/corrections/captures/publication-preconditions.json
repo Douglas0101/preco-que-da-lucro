@@ -1,0 +1,20 @@
+{
+  "schema": "pr62-develop-publication-preconditions/1",
+  "observedAt": "2026-10-12T04:59:20.684Z",
+  "authorization": "explicit structured answer: Commit + push develop",
+  "allowed": ["ordinary commit", "fast-forward push develop", "new CI observation"],
+  "forbidden": ["main", "merge", "production deploy", "SQL", "ruleset bypass", "history rewriting"],
+  "origin": "63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1",
+  "baseMain": "40c1a35577c70c7d33424640648d52bfdedb8bde",
+  "implementationFingerprint": "c7968dc57c316a54e026d3a3d39be46280bbcc4b5bbcfb01c9a259fa95918e07",
+  "implementationFiles": 15,
+  "markerParent": "63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1",
+  "markerSha256": "d1adfba2fd72c1431acb1cc6685b4e4ec6a03a024250a6d2943ff947b79f339c",
+  "localCheckExit": 0,
+  "testsPassed": 2266,
+  "existingTestsSkipped": 18,
+  "auditVulnerabilities": 0,
+  "CI": "not-yet-run",
+  "S6": "pending",
+  "approvesRelease": false
+}

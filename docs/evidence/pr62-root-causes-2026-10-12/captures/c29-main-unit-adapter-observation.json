@@ -1,0 +1,12 @@
+{
+  "schema": "main-mirror-observation/1",
+  "kind": "adapter",
+  "rawExitCode": 2,
+  "signal": null,
+  "rawStatus": "NO-VERDICT",
+  "reportName": "c28-main-unit-adapter.json",
+  "reportSha256": "08da8a0b3530aaf96a2edb6e4cd08dff109c1b73ce52351f17de7da9ae12d277",
+  "observation": null,
+  "outcome": "FAILURE",
+  "approvesMain": false
+}

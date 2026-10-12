@@ -1,0 +1,32 @@
+// Isolated, network-free API fixture for the baseline CLI. No credential is read.
+const mainSha = "40c1a35577c70c7d33424640648d52bfdedb8bde";
+const analysisId = "fixture-current-main-analysis";
+const metrics = {
+  new_lines_to_cover: 10,
+  new_uncovered_lines: 2,
+  new_conditions_to_cover: 10,
+  new_uncovered_conditions: 2,
+  new_coverage: 80,
+  new_line_coverage: 80,
+  new_branch_coverage: 80,
+  lines_to_cover: 100,
+  uncovered_lines: 20,
+  coverage: 80,
+  ncloc: 100,
+};
+globalThis.fetch = async (input) => {
+  const url = new URL(String(input));
+  let payload;
+  if (url.origin === "https://api.github.com" && url.pathname === "/repos/Douglas0101/preco-que-da-lucro/branches/main") {
+    payload = { commit: { sha: mainSha } };
+  } else if (url.origin === "https://sonarcloud.io" && url.searchParams.get("branch") === "main" && url.pathname === "/api/project_analyses/search") {
+    payload = { analyses: [{ key: analysisId, revision: mainSha, date: "2026-10-12T00:00:00Z" }] };
+  } else if (url.origin === "https://sonarcloud.io" && url.searchParams.get("branch") === "main" && url.pathname === "/api/measures/component") {
+    payload = { component: { measures: Object.entries(metrics).map(([metric, value]) => ({ metric, value: String(value) })) } };
+  } else if (url.origin === "https://sonarcloud.io" && url.pathname === "/api/qualitygates/project_status" && url.searchParams.get("analysisId") === analysisId) {
+    payload = { projectStatus: { status: "OK", period: { mode: "NUMBER_OF_DAYS", parameter: "30", date: "2026-09-12T00:00:00Z" } } };
+  } else {
+    throw new Error("UNREGISTERED_FIXTURE_REQUEST");
+  }
+  return new Response(JSON.stringify(payload), { status: 200, headers: { "content-type": "application/json" } });
+};

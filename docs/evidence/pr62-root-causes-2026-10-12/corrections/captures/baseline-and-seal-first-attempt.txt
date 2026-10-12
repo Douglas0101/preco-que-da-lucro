@@ -1,0 +1,62 @@
+2026-10-12T03:58:35Z
+63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/main-baseline-cli.test.ts src/test/main-baseline-select.test.ts src/test/sonar-readout-evidence.test.ts src/test/main-unit-adapter.test.ts src/test/sonar-gate-readout.test.ts src/test/m02-ci-coverage.test.ts
+
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+ ❯ src/test/main-baseline-cli.test.ts (23 tests | 2 failed) 3601ms
+     × modo inválido undefined recusa antes da rede 3ms
+     × observação recusa {"first":[{"key":"","revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","date":"2026-10-12T00:00:00Z"}]} com causa NEWEST_ANALYSIS_ID_UNAVAILABLE 220ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/main-baseline-cli.test.ts > DBT-104 · CLI real em cada consumidor descoberto > modo inválido undefined recusa antes da rede
+TypeError: args is not iterable
+ ❯ run src/test/main-baseline-cli.test.ts:91:81
+     89| `,
+     90|     );
+     91|     const result = spawnSync(process.execPath, ["--import", preload, s…
+       |                                                                                 ^
+     92|       cwd: directory,
+     93|       env: {
+ ❯ src/test/main-baseline-cli.test.ts:202:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/test/main-baseline-cli.test.ts > DBT-104 · CLI real em cada consumidor descoberto > observação recusa {"first":[{"key":"","revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","date":"2026-10-12T00:00:00Z"}]} com causa NEWEST_ANALYSIS_ID_UNAVAILABLE
+AssertionError: expected { schema: 'main-baseline/2', …(7) } to match object { verdict: 'NO-VERDICT', …(2) }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "approvesMain": false,
+-   "reasonCode": "NEWEST_ANALYSIS_ID_UNAVAILABLE",
++   "reasonCode": "NEWEST_ANALYSIS_NOT_CE_ANALYSIS",
+    "verdict": "NO-VERDICT",
+  }
+
+ ❯ src/test/main-baseline-cli.test.ts:255:29
+    253|       const result = run(["--mode", mode], scenario, mode === "post-ce…
+    254|       expect(result.status).toBe(2);
+    255|       expect(result.report).toMatchObject({
+       |                             ^
+    256|         verdict: "NO-VERDICT",
+    257|         reasonCode,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  2 failed | 177 passed (179)
+   Start at  00:58:36
+   Duration  10.44s (transform 218ms, setup 508ms, import 262ms, tests 6.29s, environment 2.79s)
+

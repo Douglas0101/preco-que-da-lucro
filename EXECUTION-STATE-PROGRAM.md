@@ -3556,3 +3556,21 @@ Evidência: docs/evidence/agent-state/PROGRESS.md L808–L815; artifacts das run
 `38005933292`; reprodução local com os artefatos reais.
 
 Latest state marker parent = `be05e28dce282c43ed5f99c2e6d102bad9ae5251`,
+
+## Bloco aditivo — contexto da baseline, evidência LCOV e aplicabilidade no PR #62 (2026-10-12)
+
+O run `38197746621` recusou duas precondições determinísticas. A investigação em
+`docs/evidence/pr62-root-causes-2026-10-12/REPORT.md` registra DBT-104/105/106; a implementação
+local em `docs/evidence/pr62-root-causes-2026-10-12/corrections/` separa observe-main/post-ce-main,
+normaliza a identidade preservada sem converter NO-VERDICT em aprovação e aplica a escolha
+humana delegada da ADR-044 somente a PR sem delta de fonte comprovado. Elegíveis e o CE real
+de main continuam sob ADR-042>=60; raw status/conditions não mudam.
+
+O gate completo local passou com 2266 testes e audit0. CI da revisão corrigida e S6 independente
+ainda não existem, portanto as três dívidas seguem ABERTAS e não há selo final, aprovação main
+ou publicação de produção. O dono autorizou explicitamente commit/push apenas develop para
+obter CI novo; sem merge, deploy, SQL ou bypass. O marcador anterior estava na folga13/13;
+este bloco pinado no pai mantém o orçamento13 e a ancestralidade, sem reescrever registro
+anterior nem enfraquecer a guarda.
+
+Latest state marker parent = `63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1`,
