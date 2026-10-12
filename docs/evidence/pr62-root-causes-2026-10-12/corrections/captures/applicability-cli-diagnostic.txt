@@ -1,0 +1,59 @@
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/sonar-pr-applicability.test.ts -t PR script/test/docs
+
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+ ❯ src/test/sonar-pr-applicability.test.ts (43 tests | 1 failed | 42 skipped) 83ms
+     × PR script/test/docs usa CE real e quatro controles, emite NA e exit0 sem atribuir cobertura 82ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > PR script/test/docs usa CE real e quatro controles, emite NA e exit0 sem atribuir cobertura
+AssertionError: file:///tmp/pr-scope-4Yh1P6/api-fixture.mjs:3
+const fixture=JSON.parse(readFileSync("/tmp/pr-scope-4Yh1P6/api.json",'utf8')));
+                                                                              ^
+
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at node:internal/modules/esm/loader:636:32
+    at TracingChannel.tracePromise (node:diagnostics_channel:362:14)
+
+Node.js v24.21.0
+: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:215:79
+    213|   );
+    214|   expect(result.error).toBeUndefined();
+    215|   expect(existsSync(resolve(f.temp, "c25-gate-readout.json")), result.…
+       |                                                                               ^
+    216|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+    217|   for (const sentinel of [
+ ❯ src/test/sonar-pr-applicability.test.ts:434:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 42 skipped (43)
+   Start at  01:21:27
+   Duration  799ms (transform 67ms, setup 88ms, import 62ms, tests 83ms, environment 464ms)
+

@@ -1,7 +1,18 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { authoritativeUnits } from "./gate-mirror.ts";
+import { selectMainAnalysis, selectObservedMainAnalysis } from "./main-baseline-select.ts";
+import { readoutEvidence, ReadoutEvidenceRefusal } from "./readout-evidence.ts";
 import { apiReader } from "./api.ts";
+
+// DBT-103: a recusa é NOMEADA. O código pertence a um conjunto fechado e é validado antes de ser
+// persistido — corpo bruto do provedor nunca entra no artefato nem no log.
+class BaselineRefusal extends Error {
+  constructor(code) {
+    super(code);
+    this.code = code;
+  }
+}
 
 // Read-only CI measurement: credentials come from the runner's Secret store and are never emitted.
 const project = "Douglas0101_preco-que-da-lucro";
@@ -27,6 +38,26 @@ if (!sonarToken || !githubToken) {
 }
 const requests = [];
 const get = apiReader({ github: githubToken, sonar: sonarToken }, requests);
+
+/**
+ * O `analysisId` do CE **deste** run, lido do gate readout que o passo anterior já esperou. É esta
+ * identidade — e não a contagem de análises do histórico — que decide qual análise medir (DBT-103).
+ */
+function ceReadout() {
+  const file = path.join(process.env.RUNNER_TEMP ?? ".", "c25-gate-readout.json");
+  let readout;
+  try {
+    readout = JSON.parse(readFileSync(file, "utf8"));
+  } catch {
+    throw new BaselineRefusal("GATE_READOUT_UNAVAILABLE");
+  }
+  const evidence = readoutEvidence(readout);
+  const identity = evidence.providerIdentity;
+  if (identity.branch !== "main" || identity.pullRequest !== null)
+    throw new BaselineRefusal("READOUT_SURFACE_NOT_MAIN");
+  return { analysisId: evidence.analysisId, revision: identity.revision };
+}
+
 async function mainSha() {
   const result = await get("github", `repos/${repository}/branches/main`);
   const sha = result.commit?.sha;
@@ -35,20 +66,51 @@ async function mainSha() {
   return sha;
 }
 const sonar = (endpoint) => get("sonar", endpoint);
+let mode;
 try {
+  const args = process.argv.slice(2);
+  if (
+    args.length !== 2 ||
+    args[0] !== "--mode" ||
+    !["post-ce-main", "observe-main"].includes(args[1])
+  )
+    throw new BaselineRefusal("BASELINE_MODE_UNAVAILABLE");
+  mode = args[1];
   const sha = await mainSha();
+  const readout = mode === "post-ce-main" ? ceReadout() : undefined;
+  if (readout && readout.revision !== sha)
+    throw new BaselineRefusal("READOUT_REVISION_DIFFERS_FROM_MAIN");
   const analyses = await sonar(`project_analyses/search?project=${project}&branch=main&ps=100`);
-  const matches = analyses.analyses?.filter((analysis) => analysis.revision === sha) ?? [];
-  if (matches.length !== 1 || analyses.analyses?.[0]?.revision !== sha)
-    throw new Error(`análise de main ausente/ambígua/desatualizada para ${sha}`);
-  const analysis = matches[0];
+  const selection = readout
+    ? selectMainAnalysis({
+        analyses: analyses.analyses,
+        mainSha: sha,
+        ceAnalysisId: readout.analysisId,
+      })
+    : selectObservedMainAnalysis({ analyses: analyses.analyses, mainSha: sha });
+  if (!selection.ok) throw new BaselineRefusal(selection.reasonCode);
+  const analysis = selection.analysis;
+  if (typeof analysis.date !== "string" || !Number.isFinite(Date.parse(analysis.date)))
+    throw new BaselineRefusal("ANALYSIS_DATE_UNAVAILABLE");
   const response = await sonar(
     `measures/component?component=${project}&branch=main&metricKeys=${keys.join(",")}`,
   );
-  const status = await sonar(`qualitygates/project_status?analysisId=${analysis.key}`);
+  const status = await sonar(
+    `qualitygates/project_status?analysisId=${encodeURIComponent(analysis.key)}`,
+  );
+  if (
+    response.component?.key !== project ||
+    !["OK", "ERROR"].includes(status.projectStatus?.status)
+  )
+    throw new BaselineRefusal("BASELINE_METADATA_UNAVAILABLE");
   const after = await sonar(`project_analyses/search?project=${project}&branch=main&ps=1`);
-  if ((await mainSha()) !== sha || after.analyses?.[0]?.key !== analysis.key)
-    throw new Error("baseline mudou durante a medição");
+  if (
+    (await mainSha()) !== sha ||
+    after.analyses?.[0]?.key !== analysis.key ||
+    after.analyses?.[0]?.revision !== sha ||
+    after.analyses?.[0]?.date !== analysis.date
+  )
+    throw new BaselineRefusal("BASELINE_CHANGED_DURING_MEASUREMENT");
   const metrics = Object.fromEntries(
     keys.map((key) => {
       const measure = response.component?.measures?.find((entry) => entry.metric === key);
@@ -68,6 +130,8 @@ try {
   const units = authoritativeUnits(metrics);
   const report = {
     schema: "main-baseline/2",
+    mode,
+    approvesMain: false,
     observedAt: new Date().toISOString(),
     mainSha: sha,
     analysisId: analysis.key,
@@ -91,12 +155,20 @@ try {
   const file = path.join(process.env.RUNNER_TEMP ?? ".", "c24-main-baseline.json");
   writeFileSync(file, `${JSON.stringify(report, null, 2)}\n`);
   console.log(`C24_MAIN_BASELINE ${JSON.stringify(report)}`);
-  if (!hasLineTarget) throw new Error("new line target ausente/inaplicável: NO-VERDICT");
-} catch {
+  if (!hasLineTarget) throw new BaselineRefusal("NEW_LINE_TARGET_UNAVAILABLE");
+} catch (error) {
+  const code =
+    (error instanceof BaselineRefusal || error instanceof ReadoutEvidenceRefusal) &&
+    /^[A-Z_]{8,40}$/.test(error.code)
+      ? error.code
+      : "BASELINE_PRECONDITION_UNCLASSIFIED";
   const failure = {
     schema: "main-baseline/2",
     verdict: "NO-VERDICT",
+    mode: mode ?? null,
+    approvesMain: false,
     observedAt: new Date().toISOString(),
+    reasonCode: code,
     reason:
       "Baseline identity/metadata/transport precondition failed; raw provider bodies withheld.",
     requests,
@@ -105,6 +177,6 @@ try {
     path.join(process.env.RUNNER_TEMP ?? ".", "c24-main-baseline.json"),
     JSON.stringify(failure, null, 2) + "\n",
   );
-  console.error("precondicao: baseline NO-VERDICT; detalhes sanitizados no artefato");
+  console.error(`precondicao: baseline NO-VERDICT (${code}); detalhes sanitizados no artefato`);
   process.exitCode = 2;
 }

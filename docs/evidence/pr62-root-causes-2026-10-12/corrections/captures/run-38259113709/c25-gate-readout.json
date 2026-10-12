@@ -1,0 +1,52 @@
+{
+  "schema": "c25-ce-gate-readout/1",
+  "observedAt": "2026-10-12T13:57:49.063Z",
+  "status": "NO-VERDICT",
+  "reason": "gate aplicabilidade indisponível: NO-VERDICT (PR_WORKTREE_DIRTY)",
+  "providerIdentity": {
+    "revision": "53f8d3ac9c6668d01f2317b8e66dcaebd30f9e8d",
+    "branch": "develop",
+    "pullRequest": "62"
+  },
+  "providerObservation": {
+    "ceTaskId": "AaEwZ6pZ8QDfbvNabvK-",
+    "analysisId": "14bec326-9e2c-44b8-87d4-454e09a9d50e",
+    "surface": {
+      "branch": null,
+      "branchType": null,
+      "pullRequest": "62"
+    },
+    "status": "OK",
+    "ignoredConditions": false,
+    "conditions": [
+      {
+        "metric": "new_reliability_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "threshold": "1",
+        "actual": "1"
+      },
+      {
+        "metric": "new_security_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "threshold": "1",
+        "actual": "1"
+      },
+      {
+        "metric": "new_maintainability_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "threshold": "1",
+        "actual": "1"
+      },
+      {
+        "metric": "new_security_hotspots_reviewed",
+        "status": "OK",
+        "comparator": "LT",
+        "threshold": "100",
+        "actual": "100.0"
+      }
+    ]
+  }
+}

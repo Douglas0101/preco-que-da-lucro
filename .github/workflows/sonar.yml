@@ -63,7 +63,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/sonar/main-baseline.mjs
+        run: node scripts/sonar/main-baseline.mjs --mode observe-main
 
       - name: Instalar (como o CI instala)
         run: npm ci --ignore-scripts
@@ -178,7 +178,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/sonar/main-baseline.mjs
+        run: node scripts/sonar/main-baseline.mjs --mode post-ce-main
 
       - name: Seal scanner LCOV provenance
         if: always()
@@ -228,7 +228,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/sonar/main-baseline.mjs
+        run: node scripts/sonar/main-baseline.mjs --mode observe-main
       - name: Observe authenticated source unit capabilities without exposing source or tokens
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

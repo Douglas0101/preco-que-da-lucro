@@ -1,0 +1,26 @@
+{
+  "schema": "pr62-local-source-fingerprint/1",
+  "observedAt": "2026-10-12T04:33:34.862Z",
+  "origin": "63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1",
+  "branch": "develop",
+  "files": {
+    ".github/workflows/sonar.yml": "f052da42131866549636484dc1888fee9542f81a78a5b0d0abbdf0ddf0ca1198",
+    "AGENTS.md": "b093551f4cbffc18ca8defe696fde1f23f99e975fd80e1a9c69c5ec1f2703e1d",
+    "docs/adr/ADR-044-aplicabilidade-pr-sem-delta-analisavel.md": "9fb56717945b44cbc54eacec5d847a03b928705ee1d9f67a70980fe888c7825d",
+    "scripts/lib/m02-ci-coverage.ts": "ed0766f6803f544b8ceddfdf1493d57c3837e7aba2f4f66a0f47990fa00083c9",
+    "scripts/sonar/gate-readout.ts": "31fe067b78b28c41af73885ef06068e75ce7ac3b31b9477403ba1454a97754e2",
+    "scripts/sonar/lcov-provenance.ts": "a49c107b393fe28ff6bdae32b98714013ac23b61a8bb650706c070ccf732130e",
+    "scripts/sonar/main-baseline-select.ts": "83b7eea63393f2c7e6b939e83162afa7314829ac4fc56d379cd9b05fd8fb29c2",
+    "scripts/sonar/main-baseline.mjs": "89dbaa4a024876d789f32d9b211cae4297ca8707cfb2959dbce97c33844b224a",
+    "scripts/sonar/pr-applicability.ts": "bb00fa95fd37693ee2c70d5483ffb5405d8bebf637d2b7c777a67b6ccaff313f",
+    "scripts/sonar/readout-evidence.ts": "1cf9df81c0c353ce20d573a0ca3d032d4c03ecd347554dee6cbcabb6593854ed",
+    "src/test/m02-ci-coverage.test.ts": "d077d04d663ff4c5d4ca61dfcbbd497b6143ecd2659dacdff565e66faa76c01b",
+    "src/test/main-baseline-cli.test.ts": "57325ab03622929f52fbf3ffeec2ec8f7a3a2d2cfe58c022c1b8abf19010e258",
+    "src/test/main-baseline-select.test.ts": "d2d8e4fa1783d2ed9f6b541c0017a352b8ec065ddee75a1a020d2306a85698b9",
+    "src/test/sonar-pr-applicability.test.ts": "6ac9f4e7544df53f4c05ea4f84d19ec10d302ff23aaace522291c8db82ceb5f0",
+    "src/test/sonar-readout-evidence.test.ts": "55c57db30e6880d7e8bb43bb7010c51b678e602db1281d4e09121677a1052f06"
+  },
+  "sourceFingerprint": "7a95615c3854ff66701e7c3ec2442eea0c15c4012c6202d29573a3ba36ceecca",
+  "published": false,
+  "approvesRelease": false
+}

@@ -1,0 +1,223 @@
+{
+  "conclusion": "failure",
+  "event": "pull_request",
+  "headSha": "63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1",
+  "jobs": [
+    {
+      "completedAt": "2026-10-12T02:59:16Z",
+      "conclusion": "failure",
+      "databaseId": 114644123586,
+      "name": "scan + cobertura",
+      "startedAt": "2026-10-12T02:56:09Z",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Medir baseline main (M2, leitura por SHA)",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Instalar (como o CI instala)",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Suíte com cobertura (lcov)",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Conferir o relatório antes de enviar",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "sonar-scanner",
+          "number": 8,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Conferir que a cobertura foi CONSUMIDA",
+          "number": 9,
+          "status": "completed"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Nomear veredito do CE desta análise (sem token no log)",
+          "number": 10,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Medir main somente após a análise do push",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Seal scanner LCOV provenance",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Guardar o lcov como artefato",
+          "number": 13,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Guardar o veredito do CE e a baseline (sem credenciais)",
+          "number": 14,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 27,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 28,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 29,
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/38197746621/job/114644123586"
+    },
+    {
+      "completedAt": "2026-10-12T02:59:37Z",
+      "conclusion": "failure",
+      "databaseId": 114644758426,
+      "name": "main-coverage-mirror",
+      "startedAt": "2026-10-12T02:59:19Z",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Read authoritative main units at the current SHA",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Observe authenticated source unit capabilities without exposing source or tokens",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Download candidate scanner LCOV",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Download candidate CE identity",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Locate original main scanner run by immutable SHA",
+          "number": 8,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Download original main scanner LCOV candidate",
+          "number": 9,
+          "status": "completed"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Map all main units only with original scanner provenance",
+          "number": 10,
+          "status": "completed"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Observe the conservative mirror without granting main approval",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Preserve the measured gap and precondition verdict",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 23,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 24,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 25,
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/38197746621/job/114644758426"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/38197746621"
+}

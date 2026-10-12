@@ -1,0 +1,11 @@
+c0235c6d5eaa72cbebc762b0a23c487df3114722b0f562c0ef7468280c61c5cd  ./captures/ci-main-run.txt
+1d055ce5114aba3d890306756c7fca11dbd2480a47cecced7447017a86236133  ./captures/domain-probes.txt
+cbc2e5851b3e67e8fe345b3a8bd08128f86ca3c1f47d360567b6b5dda13ef4b3  ./captures/http-probes.txt
+ce5d2eff0526159f3b259b2bc3d74ef5f028ce8c99fb6a8bdb6ffabecc19851b  ./captures/local-gate.txt
+1cc8ace9bcbe29998357c26f18deb9582edeb62ec8a7d7e0f1863c6635819e88  ./captures/neon-state.txt
+ff97237e19b16431496b0fe5b4dbab59d845344803b409c72a7fbf8b98b3ab2a  ./captures/sonar-run-38112535521/c24-main-baseline.json
+e4588a7f3bfd59b7e3030cfdd616af00ff1e04acf9b564c07994f3ce9d82d0ee  ./captures/sonar-run-38112535521/c25-gate-readout.json
+28eabf1ffd76447e8049c61a0f1380cef24423488c9e01e95028259d3d6a2dcc  ./captures/sonar-run-38112535521/lcov-sf-paths.txt
+3c9f3a192fda32d4f14c3cb0653cac7093f0bd318aa33466693dc0e5bc3a9566  ./captures/vercel-topology.txt
+66044dc6097cbb4512ddd8394fd0024c7e4df5030b9fe6fd395611005f1cbd29  ./RAW-EVIDENCE-LOG.md
+58ef32192b655f8dbab86099ff7230fddc0c814182ca2fa8941efd685796b9bf  ./REPORT.md

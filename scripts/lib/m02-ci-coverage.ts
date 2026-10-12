@@ -383,7 +383,7 @@ export function auditSonarPipeline(yaml: string): string[] {
     before.index < 0 ||
     before.index >= scan.index ||
     !/^ {8}if: github\.event_name == 'pull_request'\s*$/m.test(before.text) ||
-    !/run: node scripts\/sonar\/main-baseline\.mjs/.test(before.text)
+    !/^ {8}run: node scripts\/sonar\/main-baseline\.mjs --mode observe-main\s*$/m.test(before.text)
   )
     findings.push("sonar.yml: baseline anterior ao scanner deve ser exclusiva de PR");
   if (
@@ -393,7 +393,7 @@ export function auditSonarPipeline(yaml: string): string[] {
     !/^ {8}if: always\(\) && github\.ref == 'refs\/heads\/main' && github\.event_name != 'pull_request'\s*$/m.test(
       after.text,
     ) ||
-    !/run: node scripts\/sonar\/main-baseline\.mjs/.test(after.text)
+    !/^ {8}run: node scripts\/sonar\/main-baseline\.mjs --mode post-ce-main\s*$/m.test(after.text)
   )
     findings.push("sonar.yml: push main exige scanner, CE e baseline posterior nesta ordem");
   if (
@@ -436,6 +436,15 @@ export function auditSonarPipeline(yaml: string): string[] {
     !/^ {6}BASH_ENV: ['"]['"]\s*$/m.test(mirrorJob)
   )
     findings.push("sonar.yml: espelho observacional não pode ocultar falhas de execução");
+  // DBT-104: discovering an additional consumer fails closed; callers are identified, not just counted.
+  const baselineSites = [...yaml.matchAll(/scripts\/sonar\/main-baseline\.mjs\b/g)];
+  if (
+    baselineSites.length !== 3 ||
+    !/^ {8}run: node scripts\/sonar\/main-baseline\.mjs --mode observe-main\s*$/m.test(mirrorJob)
+  )
+    findings.push(
+      "sonar.yml: três consumidores de baseline com modos explícitos e descoberta completa",
+    );
   for (const kind of ["adapter", "mirror"]) {
     const command = new RegExp(
       `^ {8}run: node scripts/sonar/mirror-observation\\.ts ${kind}\\s*$`,

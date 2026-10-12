@@ -1,0 +1,60 @@
+# Neon — estado medido (read-only) em 2026-10-12, projeto damp-forest-57346541
+# Fonte: MCP Neon (list_projects, list_branches, list_postgres_endpoints, list_operations,
+#        run_sql SELECT). NENHUMA escrita/DDL; NENHUMA credencial lida.
+
+## Projeto
+id      = damp-forest-57346541   name = preco-que-da-lucro-g3-pg17   pg = 17   region = aws-us-east-2
+created = 2026-08-17T14:58:47Z   suspend_timeout padrão = 0 (sem auto-suspend por timeout padrão)
+
+## Branches (3 — exatamente as permanentes)
+production        br-snowy-violet-aymcvvvv  state=ready     state_changed=2026-08-17   default=true primary=true
+                  restricted_actions: delete / delete-rw-endpoint / move-rw-endpoint-using-api
+                  reason="vercel production branch"   ← VÍNCULO VERCEL↔NEON CONFIRMADO
+develop           br-small-hill-aymcu14y     state=archived  state_changed=2026-10-09T18:35:05Z (created 2026-08-23)
+ci-fixture-base   br-wandering-sky-ayxm5e5s  state=ready     created=2026-10-07T23:35:37Z (vazia, fonte de fixture)
+
+## Endpoints (read_write por branch)
+ep-long-violet-aye9g0bn    branch=production        state=active  last_active=2026-10-12T01:47:29Z
+ep-wandering-glitter-ayzrgv28  branch=develop      state=idle    last_active=2026-10-08T18:25:43Z  suspended 18:31:03Z
+ep-delicate-sky-ayivte12   branch=ci-fixture-base state=idle    last_active=2026-10-08T05:51:54Z
+# pooler_enabled=false em todos; hosts pooled existem no registro mas o pooler está desligado.
+
+## Operações (recorte; ações create/delete de branches de fixture em 2026-10-09..11 e ciclo
+## start/suspend do compute de produção. Nenhuma deleção do endpoint de produção.)
+2026-10-12T01:47:27Z start_compute ep-long-violet (produção) — correlação com a sonda do -sage (01:47:28Z)
+2026-10-11…           várias create_branch/delete_timeline de br-* de fixture (PR Neon 24h TTL)
+2026-10-08           (janela relevante) — sem operações destrutivas no recorte de 100 ops analisado
+
+## Prova de schema (SELECT read-only, branch production, 2026-10-12T01:52Z)
+applied_migrations = 20   (ledger drizzle.__drizzle_migrations)
+public_tables      = 37
+rls_tables         = 35
+rum_rows           = 129
+# Sem drift: 20 aplicadas = 20 em disco (histórico da auditoria de 2026-10-12 preserva 20/20).
+
+## Discriminante de conexão (medido hoje)
+1. A sonda que repete o 503 no deployment quebrado (dpl_6h2LTZ, 2026-10-12T01:49:44Z) NÃO ativou
+   compute de NENHUM endpoint deste projeto: production seguiu com last_active=01:47:29Z (do -sage),
+   develop continua idle desde 2026-10-08T18:25:43Z, ci-fixture-base desde 08.
+   → O alvo do DATABASE_URL embutido no dpl_6h2LTZ NÃO é um endpoint saudável deste projeto
+     (ou é endpoint de outro projeto/inexistente, ou falha de credencial antes do compute iniciar).
+2. O -sage (dpl_DHsbj, build de 2026-10-01) conecta no endpoint de produção AGORA (readiness 200,
+   get-session 200, escrita de RUM) → o cluster production está saudável e alcançável.
+3. As falhas do dpl_6h2LTZ começaram em 2026-10-08T17:50Z, ~25h ANTES do archiving da branch
+   develop (2026-10-09T18:35:05Z). O archiving da develop é um MECANISMO COMPATÍVEL com a classe
+   do erro (um DATABASE_URL apontando para o endpoint dela falharia ao conectar), mas NÃO é a
+   causa observada do início das falhas — a degradação do deployment é anterior. A atribuição
+   do alvo exige leitura do valor (Via A humana); não foi presumida.
+4. Telemetria de logs do Neon: `query_logs` retorna vazio (7d) — canal indisponível/não habilitado;
+   não foi usado como evidência.
+
+## Cronologia (UTC) — reconstrução com as medições acima
+2026-09-08  projeto Vercel criado; DATABASE_URL (sensitive) criada; integração Neon injeta vars
+2026-10-01T15:32Z  dpl_DHsbj (d4b9395) construído — FUNCIONA até hoje (banco ok)
+2026-10-06T16:37Z  DATABASE_URL de produção EDITADA (única mutação relevante entre os dois builds)
+2026-10-08T17:45Z  dpl_6h2LTZ (fa45632) construído com o valor pós-edição → vai ao ar
+2026-10-08T17:50Z  primeiras falhas de postgres (readiness "Failed query: select 1" ×6; get-session "begin")
+2026-10-08T18:48Z  alias de time re-apontado para dpl_DHsbj (rollback)
+2026-10-08T19:00Z  alias -sage re-apontado; última falha registrada do dpl_6h2LTZ (19:00:34Z)
+2026-10-09T18:35Z  branch Neon develop ARCHIVED
+2026-10-12T01:49Z  sonda atual: dpl_6h2LTZ ainda falha (WS stream error) e não ativa compute algum

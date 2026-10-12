@@ -1,0 +1,19 @@
+$ npm run test -- src/test/main-baseline-cli.test.ts src/test/main-baseline-select.test.ts src/test/sonar-readout-evidence.test.ts src/test/main-unit-adapter.test.ts src/test/sonar-gate-readout.test.ts src/test/sonar-pr-applicability.test.ts src/test/m02-ci-coverage.test.ts
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/main-baseline-cli.test.ts src/test/main-baseline-select.test.ts src/test/sonar-readout-evidence.test.ts src/test/main-unit-adapter.test.ts src/test/sonar-gate-readout.test.ts src/test/sonar-pr-applicability.test.ts src/test/m02-ci-coverage.test.ts
+
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+
+ Test Files  7 passed (7)
+      Tests  234 passed (234)
+   Start at  02:33:47
+   Duration  16.65s (transform 255ms, setup 573ms, import 310ms, tests 11.85s, environment 3.24s)
+
+EXIT=0

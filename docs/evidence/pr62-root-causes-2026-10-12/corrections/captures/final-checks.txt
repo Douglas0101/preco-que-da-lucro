@@ -1,0 +1,62 @@
+2026-10-12T04:46:06Z
+COMMAND: assert source hashes and fingerprint
+PASS source .github/workflows/sonar.yml sha256=f052da42131866549636484dc1888fee9542f81a78a5b0d0abbdf0ddf0ca1198
+PASS source AGENTS.md sha256=b093551f4cbffc18ca8defe696fde1f23f99e975fd80e1a9c69c5ec1f2703e1d
+PASS source docs/adr/ADR-044-aplicabilidade-pr-sem-delta-analisavel.md sha256=9fb56717945b44cbc54eacec5d847a03b928705ee1d9f67a70980fe888c7825d
+PASS source scripts/lib/m02-ci-coverage.ts sha256=ed0766f6803f544b8ceddfdf1493d57c3837e7aba2f4f66a0f47990fa00083c9
+PASS source scripts/sonar/gate-readout.ts sha256=31fe067b78b28c41af73885ef06068e75ce7ac3b31b9477403ba1454a97754e2
+PASS source scripts/sonar/lcov-provenance.ts sha256=a49c107b393fe28ff6bdae32b98714013ac23b61a8bb650706c070ccf732130e
+PASS source scripts/sonar/main-baseline-select.ts sha256=83b7eea63393f2c7e6b939e83162afa7314829ac4fc56d379cd9b05fd8fb29c2
+PASS source scripts/sonar/main-baseline.mjs sha256=89dbaa4a024876d789f32d9b211cae4297ca8707cfb2959dbce97c33844b224a
+PASS source scripts/sonar/pr-applicability.ts sha256=bb00fa95fd37693ee2c70d5483ffb5405d8bebf637d2b7c777a67b6ccaff313f
+PASS source scripts/sonar/readout-evidence.ts sha256=1cf9df81c0c353ce20d573a0ca3d032d4c03ecd347554dee6cbcabb6593854ed
+PASS source src/test/m02-ci-coverage.test.ts sha256=d077d04d663ff4c5d4ca61dfcbbd497b6143ecd2659dacdff565e66faa76c01b
+PASS source src/test/main-baseline-cli.test.ts sha256=027d9fd04357ef6d92732e12f1db24611c4ee0db9423a858a69fde9149396f30
+PASS source src/test/main-baseline-select.test.ts sha256=d2d8e4fa1783d2ed9f6b541c0017a352b8ec065ddee75a1a020d2306a85698b9
+PASS source src/test/sonar-pr-applicability.test.ts sha256=6ac9f4e7544df53f4c05ea4f84d19ec10d302ff23aaace522291c8db82ceb5f0
+PASS source src/test/sonar-readout-evidence.test.ts sha256=55c57db30e6880d7e8bb43bb7010c51b678e602db1281d4e09121677a1052f06
+PASS sourceFingerprint c7968dc57c316a54e026d3a3d39be46280bbcc4b5bbcfb01c9a259fa95918e07
+
+COMMAND: npm run m02:debts-guard
+
+> m02:debts-guard
+> node scripts/m02-debts-guard.mjs
+
+debts guard: OK (89 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md
+
+COMMAND: npm run m02:temporal-guard
+
+> m02:temporal-guard
+> node scripts/m02-temporal-guard.mjs
+
+m02-temporal-guard: superficie viva, as-of 2026-10-12
+  docs/evidence/agent-state/PROGRESS.md [secao-1] — 20 âncora(s), 0 linha(s) com prazo vivo
+  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 58 âncora(s), 1 linha(s) com prazo vivo
+  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [fora-do-fechado] — 0 âncora(s), 1 linha(s) com prazo vivo
+m02-temporal-guard: OK (3 superficies vivas, 0 violacao)
+
+COMMAND: npm run m02:state:check
+
+> m02:state:check
+> tsx scripts/m02-state-check.ts
+
+M-02 ancestral state marker is valid for HEAD 63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1 (folga 13/13 commits).
+Worktree: dirty (preservado e auditável).
+External state: not inspected by this local check.
+
+COMMAND: npm run m02:work-package-guard
+
+> m02:work-package-guard
+> node scripts/m02-work-package-guard.mjs
+
+work-package guard: OK (17 itens, 5 secoes, taxonomia e layout do selo) — docs/evidence/_templates/work-package.md
+
+COMMAND: npm run format:check
+
+> format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+COMMAND: git diff --check

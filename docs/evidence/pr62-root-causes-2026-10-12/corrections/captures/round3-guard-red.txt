@@ -1,0 +1,47 @@
+$ npm run test -- src/test/sonar-pr-applicability.test.ts
+# tentativa RED: .gitignore ainda sem .scannerwork/ (bytes do pai d8f77f9 + teste novo)
+# 2026-10-12T14:20:26Z
+
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/sonar-pr-applicability.test.ts
+
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+ ❯ src/test/sonar-pr-applicability.test.ts (50 tests | 1 failed) 5216ms
+     × descoberta não vazia e todo caminho estagiado em $PWD é ignorado 13ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · o estagiamento do workflow no checkout é declarado ignorado > descoberta não vazia e todo caminho estagiado em $PWD é ignorado
+AssertionError: .scannerwork/report-task.txt: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/test/sonar-pr-applicability.test.ts:649:64
+    647|   it("descoberta não vazia e todo caminho estagiado em $PWD é ignorado…
+    648|     expect(unique.length).toBeGreaterThan(0);
+    649|     for (const path of unique) expect(checkIgnore(path), path).toBe(0);
+       |                                                                ^
+    650|   });
+    651|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 49 passed (50)
+   Start at  11:20:26
+   Duration  6.01s (transform 92ms, setup 118ms, import 81ms, tests 5.22s, environment 484ms)
+
+
+# exit=1

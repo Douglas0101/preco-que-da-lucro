@@ -1,0 +1,12 @@
+2026-10-12T04:43:31Z
+63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1
+
+COMMAND: npm run sonar:lcov-path
+
+> sonar:lcov-path
+> node scripts/sonar/lcov-path-consistency.mjs
+
+lcov-path: os três concordam em "coverage/lcov.info" (propriedades, workflow, test:coverage)
+
+COMMAND: npm audit --audit-level=high
+found 0 vulnerabilities

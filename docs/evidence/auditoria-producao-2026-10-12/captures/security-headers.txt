@@ -1,0 +1,22 @@
+# Cabeçalhos de segurança medidos no deployment funcional (-sage) — 2026-10-12T01:11:14Z
+
+## GET https://preco-que-da-lucro-sage.vercel.app/
+HTTP/2 200 
+cache-control: public, max-age=0, must-revalidate
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+reporting-endpoints: csp-endpoint="/api/csp-report"
+server: Vercel
+strict-transport-security: max-age=31536000; includeSubDomains
+x-content-type-options: nosniff
+x-correlation-id: 980312b6-c3ae-4c49-946c-d5703a9ab6f8
+x-vercel-id: gru1::iad1::cwqxq-1791767474369-4e6f91f0964f
+
+## GET https://preco-que-da-lucro-sage.vercel.app/api/health/ready
+HTTP/2 200 
+cache-control: no-store
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+reporting-endpoints: csp-endpoint="/api/csp-report"
+x-correlation-id: b45abb0e-6821-440a-8695-a7d01d27f838
+x-vercel-id: gru1::iad1::sh2xk-1791767474627-c3b95f25f21e

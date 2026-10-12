@@ -1,0 +1,83 @@
+import assert from "node:assert/strict";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { releaseVerdict } from "/home/douglas/WebstormProjects/preco-que-da-lucro/scripts/sonar/gate-readout.ts";
+import { scannerProvenance, instrumentationFingerprint } from "/home/douglas/WebstormProjects/preco-que-da-lucro/scripts/sonar/lcov-provenance.ts";
+import { sha256 } from "/home/douglas/WebstormProjects/preco-que-da-lucro/scripts/sonar/main-unit-adapter.ts";
+
+const root = "/tmp/pr62-rootcause-20261012";
+const cwd = "/home/douglas/WebstormProjects/preco-que-da-lucro";
+const gate = JSON.parse(readFileSync(resolve(root, "artifacts/sonar-gate-readout/c25-gate-readout.json"), "utf8"));
+const lcov = readFileSync(resolve(root, "artifacts/coverage-lcov/lcov.info"), "utf8");
+const mainSha = "40c1a35577c70c7d33424640648d52bfdedb8bde";
+const mainReadout = {
+  schema: "c25-ce-gate-readout/1",
+  analysisId: "fixture-current-main-analysis",
+  ceTaskId: "fixture-main-ce-task",
+  providerIdentity: { revision: mainSha, branch: "main", pullRequest: null },
+};
+function cli(name: string, readout?: object, failure?: string) {
+  const dir = mkdtempSync(resolve(root, "baseline-bench-"));
+  try {
+    if (readout) writeFileSync(resolve(dir, "c25-gate-readout.json"), JSON.stringify(readout));
+    const result = spawnSync(process.execPath, [resolve(cwd, "scripts/sonar/main-baseline.mjs")], {
+      cwd,
+      encoding: "utf8",
+      env: {
+        PATH: process.env.PATH,
+        HOME: dir,
+        RUNNER_TEMP: dir,
+        GITHUB_TOKEN: "fixture-only-not-a-credential",
+        SONAR_TOKEN: "fixture-only-not-a-credential",
+        NODE_OPTIONS: `--import=${resolve(root, "baseline-api-fixture.mjs")}`,
+      },
+    });
+    const report = JSON.parse(readFileSync(resolve(dir, "c24-main-baseline.json"), "utf8"));
+    assert.equal(result.status, failure ? 2 : 0, result.stderr);
+    if (failure) {
+      assert.equal(report.reasonCode, failure);
+      assert.equal(report.verdict, "NO-VERDICT");
+      assert.equal(report.requests.length, 1);
+      assert.equal(report.requests[0].origin, "github");
+      assert.equal(report.requests[0].status, 200);
+    } else {
+      assert.equal(report.mainSha, mainSha);
+      assert.equal(report.analysisId, mainReadout.analysisId);
+      assert.equal(report.metrics.new_coverage, 80);
+      assert.equal(report.requests.length, 6);
+      assert.ok(report.period);
+    }
+    console.log(JSON.stringify({ scenario: name, exit: result.status, reasonCode: report.reasonCode ?? null, mainSha: report.mainSha ?? null, analysisId: report.analysisId ?? null, requests: report.requests.map(({ origin, path, status }: { origin: string; path: string; status: number }) => ({ origin, path, status })) }));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+const analyzedDelta = execFileSync("git", ["diff", "--name-only", mainSha, "63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1", "--", "src", ":!src/test", ":!src/test/**"], { cwd, encoding: "utf8" }).trim();
+assert.equal(analyzedDelta, "");
+console.log("PASS: PR analyzed source delta = 0 files (src excluding src/test)");
+assert.equal(gate.providerObservation.status, "OK");
+assert.equal(gate.providerObservation.ignoredConditions, false);
+assert.ok(!gate.providerObservation.conditions.some(({ metric }: { metric: string }) => metric === "new_duplicated_lines_density" || metric === "new_coverage"));
+assert.throws(() => releaseVerdict(gate.providerObservation), { message: "gate controle obrigatório ausente ou alterado: NO-VERDICT" });
+console.log("PASS: real PR CE observation reproduces exact mandatory-control refusal, provider OK preserved");
+const source = (path: string) => sha256(readFileSync(resolve(cwd, path)));
+const inputs = [gate.providerIdentity.revision, lcov, gate, "Sensor JavaScript/TypeScript Coverage", instrumentationFingerprint(cwd), source] as Parameters<typeof scannerProvenance>;
+assert.throws(() => scannerProvenance(...inputs), { message: "LCOV provenance unavailable or unsealed" });
+console.log("PASS: real NO-VERDICT shape reproduces provenance cascade (top-level CE IDs missing)");
+const provenance = scannerProvenance(inputs[0], inputs[1], { ...gate.providerObservation, providerIdentity: gate.providerIdentity }, inputs[3], inputs[4], inputs[5]);
+assert.equal(provenance.analysisId, gate.providerObservation.analysisId);
+assert.equal(provenance.taskId, gate.providerObservation.ceTaskId);
+assert.equal(provenance.revision, gate.providerIdentity.revision);
+assert.equal(provenance.lcovSha256, sha256(lcov));
+assert.equal(provenance.branch, "develop");
+assert.equal(provenance.pullRequest, "62");
+console.log(JSON.stringify({ scenario: "candidate-instrumentation-positive-control-not-release-approval", revision: provenance.revision, analysisId: provenance.analysisId, taskId: provenance.taskId, sourceHashes: Object.keys(provenance.sourceHashes).length, lcovSha256: provenance.lcovSha256 }));
+
+cli("PR baseline called before scanner/no readout", undefined, "GATE_READOUT_UNAVAILABLE");
+cli("mirror fresh job/no readout", undefined, "GATE_READOUT_UNAVAILABLE");
+cli("copying real PR report into mirror is not main identity", gate, "CE_ANALYSIS_ID_UNAVAILABLE");
+cli("copying positive PR report still not main", { ...gate, analysisId: gate.providerObservation.analysisId }, "READOUT_SURFACE_NOT_MAIN");
+cli("main post-CE valid readout positive control", mainReadout);
+console.log("PASS: all root-cause reproductions and identity controls");

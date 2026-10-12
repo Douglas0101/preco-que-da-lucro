@@ -1,0 +1,93 @@
+# Verificação local isolada — auditoria de produção 2026-10-12
+
+Executado por subagente de contexto limpo (run `del_mv4jym1k_sqm9`), branch `develop`,
+`HEAD = 182754fe98bb2f01ceafd5cad81bb890b71f18a3`. Nenhum arquivo do repositório foi editado pelo
+executor. Ambiente de banco: **exclusivamente** o container local `postgres:17-alpine`
+(`DATABASE_URL`/`DATABASE_ADMIN_URL` = `127.0.0.1:5432`, `DATABASE_DRIVER=node-postgres`).
+`ALLOW_REMOTE_DB` não usada; nenhuma migration contra banco remoto; `test:e2e`/`test:visual` não
+executados; nenhum `git commit/push/checkout/stash/clean/reset`.
+
+## Comando e invocação
+
+`npm run db:test` e `npm run check` exigem as 3 variáveis locais carregadas no processo
+(`set -a; . ./.env; set +a`) — a forma nua falha com
+`Error: DATABASE_ADMIN_URL é obrigatória para migrations` em `scripts/db/migrate.ts:9`, porque o
+pre-hook `predb:test` é quem carrega `.env` e `npm run db:test` não é um dos comandos do pre-hook.
+Invocação documentada em `docs/runbooks/postgres-local-docker.md:19-24`.
+
+## C) `npm run db:test` — cadeia de 18 suítes
+
+**`EXIT=0`, ~31 s, 18/18 suítes PASS.**
+
+| #   | suíte                        | status | observação                                   |
+| --- | ---------------------------- | ------ | -------------------------------------------- |
+| 1   | `check-migration-classes`    | PASS   | 20/20 migrations classificadas               |
+| 2   | `test-migrations`            | PASS   | zero→migrations, RLS, P1, rollback           |
+| 3   | `test-concurrency`           | PASS   | T2 CAS: 1 OK + 1 CONFLICT                    |
+| 4   | `test-auth-integration`      | PASS   | Better Auth / cookie / sessão                |
+| 5   | `test-oauth-boundary`        | PASS   | AUTH-005 A+B                                 |
+| 6   | `test-tool-security`         | PASS   | registry / AuthZ / idempotência              |
+| 7   | `test-sql-injection`         | PASS   | 6 payloads, 0 mutações                       |
+| 8   | `test-chat-semantics`        | PASS   | GET read-only                                |
+| 9   | `test-ai-budget`             | PASS   | T1–T10                                       |
+| 10  | `test-rum-persistence`       | PASS   | grant 0014                                   |
+| 11  | `test-rate-limit-burst`      | PASS   | T20.5                                        |
+| 12  | `test-outbox`                | PASS   | T1–T5 + §23                                  |
+| 13  | `test-backfill`              | PASS   | §28.1–28.5                                   |
+| 14  | `test-memory`                | PASS   | D2/D3/D4; 20/20 classificadas                |
+| 15  | `test-products-fk-conflict`  | PASS   | 15 passed (1,98 s)                           |
+| 16  | `test-product-contracts`     | PASS   | 15 passed (1,87 s)                           |
+| 17  | `test-reconcile-ai-usage`    | PASS   | 6 casos                                      |
+| 18  | `test-dashboard-margin`      | PASS   | 4 passed (1,94 s)                            |
+
+Os `ERROR`/`warn` no log (`Invalid origin: https://evil.example`, `simulated_post_commit_failure`,
+`forced db failure`) são injeções negativas esperadas pelos próprios testes.
+
+## D) `npm run check` — cadeia de 21 passos
+
+| passo                      | status                    | ~dur       |
+| -------------------------- | ------------------------- | ---------- |
+| 1 `m02:lockfile-guard`     | PASS                      | —          |
+| 2 `guard:upgrade`          | PASS                      | —          |
+| 3 `check:migration-toolchain` | PASS                   | —          |
+| 4 `guard:contracts`        | PASS                      | —          |
+| 5 `m02:work-package-guard` | PASS                      | —          |
+| 6 `m02:debts-guard`        | PASS                      | —          |
+| 7 `m02:temporal-guard`     | PASS                      | —          |
+| 8 `m02:state:check`        | PASS                      | —          |
+| 9 `m02:boundaries`         | PASS                      | —          |
+| 10 `m02:secrets-audit`     | PASS                      | —          |
+| 11 `guard:mcp-runtime`     | PASS                      | —          |
+| 12 `m02:seal-dts:check`    | PASS                      | —          |
+| 13 `m02:matrix:check`      | PASS                      | —          |
+| 14 `check:ui-stack`        | PASS                      | —          |
+| 15 `check:no-supabase-runtime` | PASS                  | —          |
+| **16 `format:check`**      | **FAIL (único)**          | 35 s       |
+| 17 `lint`                  | PASS (isolado)            | 14 s       |
+| 18 `typecheck`             | PASS (isolado)            | 12 s       |
+| 19 `test`                  | PASS (isolado)            | 167 s      |
+| 20 `build`                 | PASS (isolado)            | 5 s        |
+| 21 `check:bundle`          | PASS (isolado)            | 1 s        |
+
+**Leitura:** `EXIT=1` no passo 16 (`format:check`), que reprovou **exclusivamente** por conteúdo
+**não rastreado** recém-criado neste pacote de evidência
+(`docs/evidence/auditoria-producao-2026-10-12/RAW-EVIDENCE-LOG.md`, `REPORT.md`). Nenhum arquivo
+rastreado (`src/**`, `scripts/**`, `docs/**` existentes) está fora de formato — `PROGRESS.md`
+alterado nesta sessão também passa. Como o `&&` interrompeu a cadeia, os passos 17–21 foram
+reexecutados individualmente: **todos PASS**, com `test` = **143 arquivos, 2198 testes, 0 falhas**.
+
+**Depois de formatar o pacote de evidência** (`npx prettier --write` nos dois `.md`), a cadeia
+completa foi reexecutada e passou — ver `captures/final-gate.txt`.
+
+## E) Caveats de método
+
+- **Escritor concorrente:** durante a bateria, o auditor (sessão principal) alterou
+  `docs/evidence/agent-state/PROGRESS.md` (mtime `2026-10-11 22:12:47`) e criou `REPORT.md`. O
+  executor verificou por grep que nenhum teste/código escreve nesse arquivo; `HEAD` não mudou e o
+  `PROGRESS.md` permaneceu prettier-clean.
+- Uma tentativa do executor de medir `format:check` com `--ignore-path` via _process substitution_
+  foi inválida (ignore não aplicado; 46 falsos positivos) e foi descartada — vale o comando real do
+  gate.
+- Nenhum comando estourou 20 min (maior: `npm run test`, 167 s).
+- Esta bancada **não** exercita `test:e2e`, `test:visual`, migrations remotas nem Playwright contra
+  produção — esses limites estão declarados no relatório.

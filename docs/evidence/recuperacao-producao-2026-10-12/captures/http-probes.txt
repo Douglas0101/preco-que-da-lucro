@@ -1,0 +1,61 @@
+# Sondas HTTP — medicao 2026-10-12T01:55:24Z (UTC)
+# Fonte: curl -sS -o /dev/null -w ... e curl -D - contra os hostnames reais
+
+=== preco-que-da-lucro.vercel.app ===
+/api/health/ready        503 0.275455s ct=application/json
+/api/auth/get-session    500 0.232757s ct=text/html; charset=utf-8
+/auth                    200 0.270886s ct=text/html; charset=utf-8
+/                        200 0.247208s ct=text/html; charset=utf-8
+-- body de /api/health/ready (primeiros 120 bytes):
+<!DOCTYPE html><html lang="pt-BR"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initia
+
+=== preco-que-da-lucro-sage.vercel.app ===
+/api/health/ready        200 1.203015s ct=application/json
+/api/auth/get-session    200 0.409909s ct=application/json
+/auth                    200 0.304266s ct=text/html; charset=utf-8
+/                        200 0.244649s ct=text/html; charset=utf-8
+-- body de /api/health/ready (primeiros 120 bytes):
+<!DOCTYPE html><html lang="pt-BR"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initia
+
+=== preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app ===
+/api/health/ready        302 0.135661s ct=text/plain
+/api/auth/get-session    302 0.102872s ct=text/plain
+/auth                    302 0.108440s ct=text/plain
+/                        302 0.094465s ct=text/plain
+-- body de /api/health/ready (primeiros 120 bytes):
+Protected by Vercel Authentication
+To access this deployment with an authenticated Vercel CLI, run: vercel curl <deploym
+
+=== preco-que-da-lucro-gssnblvr8.vercel.app ===
+/api/health/ready        302 0.155532s ct=text/plain
+/api/auth/get-session    302 0.098089s ct=text/plain
+/auth                    302 0.111724s ct=text/plain
+/                        302 0.108735s ct=text/plain
+-- body de /api/health/ready (primeiros 120 bytes):
+Protected by Vercel Authentication
+To access this deployment with an authenticated Vercel CLI, run: vercel curl <deploym
+
+=== repeticao de determinismo no alias publico (5x) ===
+ready: 503 0.224445s
+ready: 503 0.255374s
+ready: 503 0.240612s
+ready: 503 0.226184s
+ready: 503 0.230569s
+
+=== corpos corretos de /api/health/ready por host (2026-10-12T01:55:37Z) ===
+-- preco-que-da-lucro.vercel.app:
+{"status":"not_ready","dependencies":{"postgres":"unavailable"}}
+-- preco-que-da-lucro-sage.vercel.app:
+{"status":"ready","dependencies":{"postgres":"ok"}}
+-- dpl_6h2LTZ direto (via bypass de proteção, fetch MCP): 503 {\"status\":\"not_ready\",\"dependencies\":{\"postgres\":\"unavailable\"}} com x-correlation-id 0520468f-3ba4-4923-b75d-59b298e8da08
+
+=== corpo de /api/auth/get-session no alias publico (500, HTML do error boundary): ===
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>This page didn't load</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font: 15px/1.5 system-ui, -apple-system, sans-serif; background: #fafafa; color: #111; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
+      .card { ma

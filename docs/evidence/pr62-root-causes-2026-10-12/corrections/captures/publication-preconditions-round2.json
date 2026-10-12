@@ -1,0 +1,43 @@
+{
+  "schema": "pr62-develop-publication-preconditions/2",
+  "observedAt": "2026-10-12T05:37:00Z",
+  "origin": "d90f8f5fb13a9a8ec76b415d05705a9bbc5cf12d",
+  "baseMain": "40c1a35577c70c7d33424640648d52bfdedb8bde",
+  "round1Fingerprint": "c7968dc57c316a54e026d3a3d39be46280bbcc4b5bbcfb01c9a259fa95918e07",
+  "round2Fingerprint": "ca844b67de9a2a56dc499b9079d69009db9ed03932b550e3e92349ca96cd1508",
+  "round2FingerprintFile": "round2-source-fingerprint.json",
+  "localPreRegisteredSuites": { "files": 7, "passed": 234 },
+  "localCheck": { "capture": "round2-check.txt", "exit": 0 },
+  "measuredRun": {
+    "id": 38206302116,
+    "event": "pull_request",
+    "headSha": "d90f8f5fb13a9a8ec76b415d05705a9bbc5cf12d",
+    "verdict": "red",
+    "jobs": [
+      {
+        "name": "scan + cobertura",
+        "id": 114670429042,
+        "exit": 2,
+        "reasonCode": "PR_EVENT_IDENTITY_DIVERGENT"
+      },
+      {
+        "name": "main-coverage-mirror",
+        "id": 114671097630,
+        "exit": 1,
+        "reasonCode": "EXECUTION_OR_UNCLASSIFIED"
+      }
+    ],
+    "artifacts": "run-38206302116/"
+  },
+  "historicalProvenanceAbsence": {
+    "run": 38112535521,
+    "artifact": 11706646526,
+    "capture": "run-38112535521/main-lcov-artifact.txt"
+  },
+  "ciForRound2Revision": "not-yet-run",
+  "independentS6": "pending",
+  "debts": ["DBT-104 ABERTA", "DBT-105 ABERTA", "DBT-106 ABERTA", "DBT-107 ABERTA"],
+  "publication": "authorization-required-only-develop",
+  "approvesRelease": false,
+  "notes": "Nada aqui aprova main, cobertura ou release; serve apenas para autorizar (ou não) um novo CI em develop na revisão da rodada 2."
+}

@@ -1,0 +1,81 @@
+# CI main — run 38112535521 (SonarCloud scanner + cobertura), medição 2026-10-12
+# Fonte: `gh api repos/Douglas0101/preco-que-da-lucro/actions/runs/38112535521` e
+#         jobs/artifacts/log do mesmo run; artefatos baixados via `gh run download`.
+
+run.id           = 38112535521
+run.name         = SonarCloud (scanner + cobertura)
+run.head_sha     = 40c1a35577c70c7d33424640648d52bfdedb8bde   (main)
+run.event        = push
+run.created_at   = 2026-10-11T04:44:25Z
+run.updated_at   = 2026-10-11T15:03:07Z
+run.run_attempt  = 2
+run.conclusion   = failure
+# Contexto: o attempt 1 fechou `success`; o re-run humano (`gh run rerun`) criou o attempt 2,
+# que reprovou. O re-run usa o workflow do próprio SHA 40c1a355 (código pré-correção).
+
+job "scan + cobertura"  id=114499549769 attempt=2 conclusion=failure  14:59:36Z → 15:03:06Z
+job "main-coverage-mirror" id=114500297366 attempt=2 conclusion=skipped (por desenho)
+
+## Artefatos do attempt 2 (os do attempt 1 foram substituídos no mesmo run)
+coverage-lcov      id=11706646526 bytes=102542 created=2026-10-11T15:03:03Z   → coverage-lcov/lcov.info
+sonar-gate-readout id=11706302298 bytes=1247   created=2026-10-11T15:03:04Z   → c24-main-baseline.json + c25-gate-readout.json
+
+## Passo que reprovou o check EXIGIDO (`scan + cobertura`)
+step "Seal scanner LCOV provenance"  (node scripts/sonar/lcov-provenance.ts)
+  2026-10-11T15:03:02.958Z  NO-VERDICT: scanner LCOV provenance could not be established (no raw inputs emitted)
+  2026-10-11T15:03:02.971Z  ##[error]Process completed with exit code 2.
+# O passo do baseline tem `continue-on-error`; este NÃO tem — por isso o stub virou veto no check.
+
+## c25-gate-readout.json (identidade do CE do attempt 2 — artefato real)
+  schema          = c25-ce-gate-readout/1
+  runnerSha       = 40c1a35577c70c7d33424640648d52bfdedb8bde
+  checkoutSha     = 40c1a35577c70c7d33424640648d52bfdedb8bde
+  providerIdentity= { revision: 40c1a355..., branch: "main", pullRequest: null }
+  ceTaskId        = AaErfPmYHxi1U64p4iLF
+  analysisId      = 08d02858-5846-445b-b349-9e1fc4fe6ba3
+  surface         = { branch: "main", branchType: "LONG", pullRequest: null }
+  status          = ERROR            (preset do provedor em 80% — coexistência declarada ADR-042 §3)
+  conditions      = new_reliability_rating OK · new_security_rating OK · new_maintainability_rating OK
+                    new_coverage ERROR (LT 80, actual 73.4)
+                    new_duplicated_lines_density OK · new_security_hotspots_reviewed OK
+  releasePolicy   = { policy: "ADR-042/coverage-minimum-60", providerGateStatus: "ERROR",
+                      status: "OK", coverage: { metric: new_coverage, minimum: 60, actual: 73.4, status: "OK" },
+                      blockingConditions: [], preservedControls: [5 métricas] }
+
+## c24-main-baseline.json (artefato real do attempt 2 = STUB NO-VERDICT)
+  schema     = main-baseline/2
+  verdict    = NO-VERDICT
+  observedAt = 2026-10-11T15:03:02.762Z
+  reason     = "Baseline identity/metadata/transport precondition failed; raw provider bodies withheld."
+  requests   = [ { github /repos/.../branches/main 200, 332ms }, { sonar /api/project_analyses/search 200, 216ms } ]
+  # AUSÊNCIA MEDIDA: este artefato NÃO tem o campo `reasonCode` — foi produzido pelo código
+  # PRÉ-CORREÇÃO (40c1a355). O código corrigido em develop sempre emite `reasonCode`.
+
+## Código pré-correção (git show 40c1a355:scripts/sonar/main-baseline.mjs)
+  condição de recusa:  matches.length !== 1 || analyses.analyses?.[0]?.revision !== sha
+  mensagem do throw:   "análise de main ausente/ambígua/desatualizada para ${sha}"
+  # `matches` filtra analyses da REVISÃO. No attempt 2 o histórico de `main` continha DUAS
+  # análises da MESMA revisão 40c1a355:
+  #   attempt 1: analysisId 11893646-49df-4fe9-a029-de9cec53dbf2
+  #   attempt 2: analysisId 08d02858-5846-445b-b349-9e1fc4fe6ba3
+  # → matches.length = 2 → recusa determinística. Uma terceira tentativa daria 3 → mesma recusa.
+
+## Correção em develop (182754f, DBT-103) — verificação de regressão
+  npx vitest run src/test/main-baseline-select.test.ts src/test/sonar-gate-readout.test.ts src/test/sonar-api.test.ts
+  → Test Files 3 passed (3) · Tests 80 passed (80)
+  # O teste `RE-EXECUÇÃO: duas análises da mesma revisão medem a análise do CE, não recusam`
+  # usa os DOIS analysisIds REAIS do attempt 2 e exige seleção por identidade do CE deste run
+  # (análise mais recente de main TEM de ser a nossa e na revisão medida — fail-closed mantido).
+
+## Os 68 caminhos não resolvidos pelo scanner (log real do sensor, attempt 2)
+  15:02:12.823 WARN  Could not resolve 68 file paths in [/usr/src/coverage/lcov.info]
+  15:02:12.825 WARN  First unresolved path: scripts/m02-cutover-t0.mjs (Run in DEBUG mode...)
+  15:02:08.860 INFO    Excluded sources: src/test/**, **/build-wrapper-dump.json
+  15:02:08.876 INFO  149 files indexed (done)
+# Identidade aritmética medida (não inferida):
+#   LCOV (artefato) = 184 caminhos únicos { 121 em src/ (5 sob src/test/) + 63 em scripts/ }
+#   escopo analyzado = sonar.sources=src  (`.sonarcloud.properties`) menos `sonar.exclusions`
+#   não-resolvidos   = 63 (scripts/**) + 5 (src/test/**) = 68  → 184 − 68 = 116 = TODOS os
+#   arquivos in-scope (src/** não-test). Todos os 184 caminhos existem em 40c1a355
+#   (`git cat-file -e`, 0 ausentes). Logo: nenhum arquivo do escopo foi descartado em silêncio;
+#   a advertência é efeito do recorte DECLARADO (ADR-034/DBT-54/DBT-58) e não bloqueia o sensor.

@@ -1,0 +1,19 @@
+$ gh api repos/Douglas0101/preco-que-da-lucro/actions/runs/38112535521/artifacts --jq '.artifacts[] | "\(.id) \(.name) \(.size_in_bytes) expired=\(.expired)"'
+11706646526 coverage-lcov 102542 expired=false
+11706302298 sonar-gate-readout 1247 expired=false
+
+$ gh api repos/Douglas0101/preco-que-da-lucro/actions/artifacts/11706646526/zip > coverage-lcov.zip
+$ unzip -l coverage-lcov.zip
+Archive:  /tmp/pr62main/coverage-lcov.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+   379957  2026-10-11 15:01   lcov.info
+---------                     -------
+   379957                     1 file
+
+$ sha256sum coverage-lcov/lcov.info
+059645f53863dc16cfc4e326958c67456b7a77daf0a769665153125f8391a110  /tmp/pr62main/coverage-lcov/lcov.info
+
+# Conclusão: o artifact da run de push em main (38112535521, headSha 40c1a355) contém APENAS lcov.info;
+# não existe lcov-provenance.json na origem → readMainScannerOrigin() recusa por ENOENT
+# (OriginalProvenanceUnavailable) e o espelho nomeia ORIGINAL_PROVENANCE_UNAVAILABLE.

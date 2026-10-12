@@ -1,0 +1,206 @@
+2026-10-12T04:20:41Z
+63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/sonar-pr-applicability.test.ts src/test/sonar-gate-readout.test.ts
+
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+ ❯ src/test/sonar-pr-applicability.test.ts (43 tests | 13 failed) 3162ms
+     × qualquer fonte renomeada para fora permanece elegível e ausência de métrica continua NO-VERDICT 30ms
+     × PR script/test/docs usa CE real e quatro controles, emite NA e exit0 sem atribuir cobertura 81ms
+     × CLI fonte elegível conserva NO-VERDICT e observação, não selo de aprovação 87ms
+     × CLI evento ausente conserva NO-VERDICT e observação, não selo de aprovação 70ms
+     × CLI escopo ausente conserva NO-VERDICT e observação, não selo de aprovação 77ms
+     × CLI dirty conserva NO-VERDICT e observação, não selo de aprovação 74ms
+     × CLI elegível 59.99 mantém ADR-042 e status bruto do preset80 74ms
+     × CLI elegível 60 mantém ADR-042 e status bruto do preset80 76ms
+     × CLI elegível 80 mantém ADR-042 e status bruto do preset80 72ms
+     × CLI main undefined nunca recebe NA mesmo com evento/lista do PR 75ms
+     × CLI main 59.99 nunca recebe NA mesmo com evento/lista do PR 73ms
+     × CLI main 60 nunca recebe NA mesmo com evento/lista do PR 81ms
+     × API inacessível conserva NO-VERDICT, sem observação fictícia 74ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 / DBT-105 · prova de aplicabilidade por evento e Git reais > qualquer fonte renomeada para fora permanece elegível e ausência de métrica continua NO-VERDICT
+Error: EEXIST: file already exists, mkdir '/tmp/pr-scope-ySbPdp/repo/scripts'
+ ❯ src/test/sonar-pr-applicability.test.ts:286:9
+    284|       if (kind === "excluída") rmSync(resolve(root, "src/fixture.ts"));
+    285|       else if (kind === "renomeada para fora") {
+    286|         mkdirSync(resolve(root, "scripts"));
+       |         ^
+    287|         renameSync(resolve(root, "src/fixture.ts"), resolve(root, "scr…
+    288|       } else if (kind === "renomeada para dentro") {
+ ❯ fixture src/test/sonar-pr-applicability.test.ts:100:3
+ ❯ src/test/sonar-pr-applicability.test.ts:283:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > PR script/test/docs usa CE real e quatro controles, emite NA e exit0 sem atribuir cobertura
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-hjLhGv/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:432:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > CLI fonte elegível conserva NO-VERDICT e observação, não selo de aprovação
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-A4tbTg/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:478:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > CLI evento ausente conserva NO-VERDICT e observação, não selo de aprovação
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-OVU26J/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:478:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > CLI escopo ausente conserva NO-VERDICT e observação, não selo de aprovação
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-Rw8ZXr/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:478:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > CLI dirty conserva NO-VERDICT e observação, não selo de aprovação
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-lITR2b/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:478:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > CLI elegível 59.99 mantém ADR-042 e status bruto do preset80
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-OfuN6b/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:497:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > CLI elegível 60 mantém ADR-042 e status bruto do preset80
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-WhjcDE/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:497:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > CLI elegível 80 mantém ADR-042 e status bruto do preset80
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-gpPOr4/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:497:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > CLI main undefined nunca recebe NA mesmo com evento/lista do PR
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-qy3cjQ/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:526:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > CLI main 59.99 nunca recebe NA mesmo com evento/lista do PR
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-XJ8oeU/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:526:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > CLI main 60 nunca recebe NA mesmo com evento/lista do PR
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-gRVFlP/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:526:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/13]⎯
+
+ FAIL  src/test/sonar-pr-applicability.test.ts > ADR-044 · CLI real conserva CE, prova, veredito e recusas > API inacessível conserva NO-VERDICT, sem observação fictícia
+Error: ENOENT: no such file or directory, open '/tmp/pr-scope-xk5Uyl/runner/c25-gate-readout.json'
+ ❯ readoutCli src/test/sonar-pr-applicability.test.ts:214:29
+    212|   );
+    213|   expect(result.error).toBeUndefined();
+    214|   const report = JSON.parse(readFileSync(resolve(f.temp, "c25-gate-rea…
+       |                             ^
+    215|   for (const sentinel of [
+    216|     "PRIVATE_CONTEXT_SENTINEL",
+ ❯ src/test/sonar-pr-applicability.test.ts:551:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/13]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  13 failed | 83 passed (96)
+   Start at  01:20:41
+   Duration  4.59s (transform 81ms, setup 175ms, import 81ms, tests 3.18s, environment 927ms)
+

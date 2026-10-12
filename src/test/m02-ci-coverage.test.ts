@@ -411,6 +411,24 @@ describe("DBT-62 · claims do pipeline Sonar", () => {
     }
   });
 
+  it("DBT-104: modos ausentes/trocados e consumidor adicional são recusados", () => {
+    const command = "node scripts/sonar/main-baseline.mjs";
+    const mutants = [
+      sonarReal.replace(`${command} --mode observe-main`, command),
+      sonarReal.replace(`${command} --mode post-ce-main`, `${command} --mode observe-main`),
+      sonarReal.replace(`${command} --mode observe-main`, `${command} --mode post-ce-main`),
+      sonarReal.replace(
+        /(main-coverage-mirror:[\s\S]+) --mode observe-main/,
+        "$1 --mode post-ce-main",
+      ),
+      `${sonarReal}\n      - name: Additional consumer\n        run: ${command} --mode observe-main\n`,
+    ];
+    for (const mutant of mutants) {
+      expect(mutant).not.toBe(sonarReal);
+      expect(auditSonarPipeline(mutant)).not.toEqual([]);
+    }
+  });
+
   it("NEG — uma remoção por guarda, preservando as outras guardas", () => {
     const mutacoes: Array<[string, string]> = [
       ["roda a suíte com cobertura", "npm run test:coverage"],

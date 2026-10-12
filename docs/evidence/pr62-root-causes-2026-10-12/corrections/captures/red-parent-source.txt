@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import {execFileSync,spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {tmpdir} from 'node:os';
+import {pathToFileURL} from 'node:url';
+
+const cwd=process.cwd(), revision=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+assert.equal(revision,'63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1','origin must be the investigated parent');
+const hash=(bytes: string|Buffer)=>createHash('sha256').update(bytes).digest('hex');
+const bench=mkdtempSync(resolve(tmpdir(),'pr62-red-parent-'));
+try {
+ const tar=execFileSync('git',['archive',revision,'scripts/sonar','package.json']);
+ execFileSync('tar',['-x','-C',bench],{input:tar});
+ for(const file of ['scripts/sonar/main-baseline.mjs','scripts/sonar/lcov-provenance.ts','scripts/sonar/gate-readout.ts']) {
+  const expected=execFileSync('git',['show',`${revision}:${file}`]);
+  const actual=readFileSync(resolve(bench,file));assert.equal(hash(actual),hash(expected));
+  console.log(JSON.stringify({check:'parent-bytes',revision,path:file,sha256:hash(actual),verdict:'PASS'}));
+ }
+ const mainSha='40c1a35577c70c7d33424640648d52bfdedb8bde';
+ const preload=resolve(bench,'api-fixture.mjs');
+ writeFileSync(preload,`globalThis.fetch=async(input,options)=>{
+const url=new URL(String(input));
+if(url.origin!=='https://api.github.com'||url.pathname!=='/repos/Douglas0101/preco-que-da-lucro/branches/main'||options.headers.Authorization!=='Bearer fixture-only-not-a-credential'||options.redirect!=='error')throw new Error('UNREGISTERED_NETWORK_REFUSED');
+return new Response(JSON.stringify({commit:{sha:'${mainSha}'}}));};\n`);
+ for(const context of ['PR-before-scanner','fresh-mirror-runner']) {
+  const runner=resolve(bench,context);mkdirSync(runner);
+  const child=spawnSync(process.execPath,['--import',preload,resolve(bench,'scripts/sonar/main-baseline.mjs'),'--mode','observe-main'],{cwd:bench,env:{PATH:process.env.PATH,RUNNER_TEMP:runner,SONAR_TOKEN:'fixture-only-not-a-credential',GITHUB_TOKEN:'fixture-only-not-a-credential'},encoding:'utf8',timeout:10000});
+  assert.equal(child.error,undefined);assert.equal(child.status,2);
+  const report=JSON.parse(readFileSync(resolve(runner,'c24-main-baseline.json'),'utf8'));
+  assert.equal(report.verdict,'NO-VERDICT');assert.equal(report.reasonCode,'GATE_READOUT_UNAVAILABLE');
+  assert.equal(report.requests.length,1);assert.equal(report.requests[0].origin,'github');assert.equal(report.requests[0].status,200);
+  console.log(JSON.stringify({check:'baseline-parent-RED',context,exit:child.status,reasonCode:report.reasonCode,requests:report.requests,verdict:'EXPECTED_REFUSAL'}));
+ }
+ const report=JSON.parse(readFileSync(resolve(cwd,'docs/evidence/pr62-root-causes-2026-10-12/captures/c25-gate-readout.json'),'utf8'));
+ const before=JSON.stringify(report);
+ assert.equal(report.status,'NO-VERDICT');assert.equal(report.providerObservation.analysisId,'ca31e0f1-aca3-4431-9bbd-6a314159c532');
+ const {releaseVerdict}=await import(pathToFileURL(resolve(bench,'scripts/sonar/gate-readout.ts')).href);
+ assert.throws(()=>releaseVerdict(report.providerObservation),/gate controle obrigatório ausente ou alterado: NO-VERDICT/);
+ console.log(JSON.stringify({check:'policy-parent-RED',analysisId:report.providerObservation.analysisId,missing:['new_coverage','new_duplicated_lines_density'],reason:'gate controle obrigatório ausente ou alterado: NO-VERDICT',verdict:'EXPECTED_REFUSAL'}));
+ const {scannerProvenance}=await import(pathToFileURL(resolve(bench,'scripts/sonar/lcov-provenance.ts')).href);
+ const lcov='SF:src/fixture.ts\nDA:1,1\nend_of_record\n';
+ assert.throws(()=>scannerProvenance(report.providerIdentity.revision,lcov,report,'Sensor JavaScript/TypeScript Coverage','b'.repeat(64),()=> 'c'.repeat(64)),/LCOV provenance unavailable or unsealed/);
+ console.log(JSON.stringify({check:'seal-parent-RED',readoutStatus:report.status,reason:'LCOV provenance unavailable or unsealed',verdict:'EXPECTED_REFUSAL'}));
+ const {readoutEvidence}=await import(pathToFileURL(resolve(cwd,'scripts/sonar/readout-evidence.ts')).href);
+ const normalized=readoutEvidence(report);
+ const seal=scannerProvenance(report.providerIdentity.revision,lcov,normalized,'Sensor JavaScript/TypeScript Coverage','b'.repeat(64),()=> 'c'.repeat(64));
+ assert.equal(seal.analysisId,report.providerObservation.analysisId);assert.equal(seal.taskId,report.providerObservation.ceTaskId);assert.equal(seal.lcovSha256,hash(lcov));assert.equal(normalized.approvesRelease,false);assert.equal(JSON.stringify(report),before);
+ console.log(JSON.stringify({check:'normalization-GREEN-control',readoutStatus:normalized.readoutStatus,analysisId:seal.analysisId,taskId:seal.taskId,lcovSha256:seal.lcovSha256,approvesRelease:false,verdict:'PASS'}));
+ console.log('RED/GREEN controls PASS — no release credit, network or shared-state mutation');
+} finally {rmSync(bench,{recursive:true,force:true});}

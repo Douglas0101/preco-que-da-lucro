@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { authoritativeUnits, lcovUnits } from "./unit-mirror.ts";
 import { provenance, sha256, type LcovProvenance } from "./main-unit-adapter.ts";
+import { readoutEvidence, ReadoutEvidenceRefusal } from "./readout-evidence.ts";
 
 export function instrumentationFingerprint(cwd = process.cwd()) {
   const lock = JSON.parse(readFileSync(resolve(cwd, "package-lock.json"), "utf8"));
@@ -81,33 +82,105 @@ export function scannerProvenance(
   };
   return provenance(result, lcov);
 }
-function main() {
+class ProvenanceRefusal extends Error {
+  code: string;
+  constructor(code: string) {
+    super(code);
+    this.code = code;
+  }
+}
+function textInput(file: string, code: string): string {
   try {
-    const cwd = process.cwd(),
-      root = process.env.RUNNER_TEMP ?? ".";
-    const revision = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
-    const lcov = readFileSync(resolve(cwd, "coverage/lcov.info"), "utf8");
-    const gate = JSON.parse(readFileSync(resolve(root, "c25-gate-readout.json"), "utf8"));
-    const baseline =
-      gate.providerIdentity?.branch === "main"
-        ? JSON.parse(readFileSync(resolve(root, "c24-main-baseline.json"), "utf8"))
-        : undefined;
+    return readFileSync(file, "utf8");
+  } catch {
+    throw new ProvenanceRefusal(code);
+  }
+}
+function objectInput(file: string, code: string): Record<string, unknown> {
+  let value: unknown;
+  try {
+    value = JSON.parse(textInput(file, code)) as unknown;
+  } catch (error) {
+    if (error instanceof ProvenanceRefusal) throw error;
+    throw new ProvenanceRefusal(code);
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    throw new ProvenanceRefusal(code);
+  return value as Record<string, unknown>;
+}
+/**
+ * A causa é NOMEADA (DBT-103). O passo reprovava o check **exigido** `scan + cobertura` de main com
+ * a mensagem genérica "no raw inputs emitted", que não distinguia baseline inutilizável de gate
+ * ausente nem de lcov ausente — e é isso que tornava a re-execução um diagnóstico cego. Os códigos
+ * são de um conjunto fechado; nenhum valor de provedor entra no log. O veredito permanece
+ * fail-closed (exit 2): nomear não afrouxa o selo.
+ */
+function refusalCode(error: unknown): string {
+  if (error instanceof ProvenanceRefusal || error instanceof ReadoutEvidenceRefusal)
+    return error.code;
+  const message = error instanceof Error ? error.message : "";
+  if (/scanner revision\/sensor/.test(message)) return "SCANNER_IDENTITY_UNAVAILABLE";
+  if (/main period\/target/.test(message)) return "MAIN_PROVENANCE_UNAVAILABLE";
+  if (/instrumentation identity/.test(message)) return "INSTRUMENTATION_IDENTITY_UNAVAILABLE";
+  return "PROVENANCE_UNCLASSIFIED";
+}
+function main() {
+  const cwd = process.cwd(),
+    root = process.env.RUNNER_TEMP ?? ".";
+  try {
+    let revision: string;
+    try {
+      revision = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+    } catch {
+      throw new ProvenanceRefusal("REVISION_UNAVAILABLE");
+    }
+    const gate = readoutEvidence(
+      objectInput(resolve(root, "c25-gate-readout.json"), "GATE_READOUT_UNAVAILABLE"),
+    );
+    const identity = gate.providerIdentity;
+    let baseline: Record<string, unknown> | undefined;
+    if (identity?.branch === "main") {
+      baseline = objectInput(
+        resolve(root, "c24-main-baseline.json"),
+        "BASELINE_ARTIFACT_UNAVAILABLE",
+      );
+      // Um stub `main-baseline/2` com `verdict: NO-VERDICT` (o artefato real do attempt 2 do run
+      // 38112535521) não é baseline: o selo recusa NOMEANDO a causa, em vez de sair 2 em silêncio.
+      if (
+        baseline.schema !== "main-baseline/2" ||
+        baseline.verdict === "NO-VERDICT" ||
+        !/^[a-f0-9]{40}$/.test(String(baseline.mainSha)) ||
+        typeof baseline.analysisId !== "string" ||
+        baseline.analysisId === "" ||
+        typeof baseline.metrics !== "object" ||
+        baseline.metrics === null ||
+        baseline.period == null
+      )
+        throw new ProvenanceRefusal("BASELINE_ARTIFACT_UNUSABLE");
+    }
+    const lcov = textInput(resolve(cwd, "coverage/lcov.info"), "LCOV_UNAVAILABLE");
     const result = scannerProvenance(
       revision,
       lcov,
       gate,
-      readFileSync("/tmp/scanner.log", "utf8"),
+      textInput("/tmp/scanner.log", "SCANNER_LOG_UNAVAILABLE"),
       instrumentationFingerprint(cwd),
-      (path) => sha256(readFileSync(resolve(cwd, path))),
-      baseline,
+      (path) => {
+        try {
+          return sha256(readFileSync(resolve(cwd, path)));
+        } catch {
+          throw new ProvenanceRefusal("SOURCE_FILE_UNAVAILABLE");
+        }
+      },
+      baseline as unknown as Parameters<typeof scannerProvenance>[6],
     );
     writeFileSync(
       resolve(cwd, "coverage/lcov-provenance.json"),
       JSON.stringify(result, null, 2) + "\n",
     );
-  } catch {
+  } catch (error) {
     console.error(
-      "NO-VERDICT: scanner LCOV provenance could not be established (no raw inputs emitted)",
+      `NO-VERDICT: scanner LCOV provenance could not be established (${refusalCode(error)})`,
     );
     process.exitCode = 2;
   }

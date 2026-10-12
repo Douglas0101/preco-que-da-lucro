@@ -1,0 +1,16 @@
+fdaa65dce32c996dd77e9aa0d3d57537c20e23943690e988f4a218c977d60a4f  docs/evidence/pr62-root-causes-2026-10-12/captures/baseline-api-fixture-source.txt
+caf6214065801e49a02b957e2ccb13057691ad32685d4cebf3a5c1e8a15130d6  docs/evidence/pr62-root-causes-2026-10-12/captures/c24-mirror-main-baseline.json
+a541c7fc77356b18d446ad657ffb7b182cf32f6f4402bb61be9a897a497acd46  docs/evidence/pr62-root-causes-2026-10-12/captures/c24-scan-main-baseline.json
+801fb092e8ab542e50f5992b72eed4e49bd35c2cf760a309038bbba11367fe35  docs/evidence/pr62-root-causes-2026-10-12/captures/c25-gate-readout.json
+7ccb5a3a9615d9bb313ec1fb8e85dc6b9a88c248f8a54d02f1d6dd46156e044a  docs/evidence/pr62-root-causes-2026-10-12/captures/c29-main-mirror-observation.json
+3ffead2c167166000df6aef45e11260aebc14bd1924f7c4c287d55e21616719e  docs/evidence/pr62-root-causes-2026-10-12/captures/c29-main-unit-adapter-observation.json
+2f3cf6092d2ea74fd1aa6a06bcab62834dbb183aea0c17eb8d096f274fb22a19  docs/evidence/pr62-root-causes-2026-10-12/captures/check-local-first-attempt.txt
+fba9d8d1c2aef7cba06be3114bc1e29cb4f7711ecb645bb1623e9f97cf917434  docs/evidence/pr62-root-causes-2026-10-12/captures/check-local.txt
+f43bda449cf7b0aca6a42ead8ad4f87573ed779edb68f5f048958bc5dcc7ae9d  docs/evidence/pr62-root-causes-2026-10-12/captures/failed-steps.txt
+ef02fe2e3e13a65512eac21e7e71e69c04e43e813151fa1d2004c2050cb28321  docs/evidence/pr62-root-causes-2026-10-12/captures/local-preconditions-tests.txt
+7dfee3880568f49106c944a54e8ecd25328756b8578570d24f90d02295cbe3c7  docs/evidence/pr62-root-causes-2026-10-12/captures/public-api-limits.json
+81c002bb133155a017805b1b6e47eb1c6bb2f2b59f4425d31c9103956f02351a  docs/evidence/pr62-root-causes-2026-10-12/captures/reproduce.txt
+72c9ec05e2614cb2d83ea981c77b34e83f3652a5610c9967220f5e371bb25db1  docs/evidence/pr62-root-causes-2026-10-12/captures/reproduction-source.txt
+18e6f4d23ea7ed6deb2b1f0547fd970fd617fe01d1becd31db3c3fcb993cbf9a  docs/evidence/pr62-root-causes-2026-10-12/captures/run.json
+6be8a48d70cebcd6ab032dbb1f6a429fd93d050a629ca6bdc017c01e716cef44  docs/evidence/pr62-root-causes-2026-10-12/captures/targeted-tests.txt
+18748369911b854e833ac16b0d1abfb55c583ddda2fba0edb0c88b6ed0776628  docs/evidence/pr62-root-causes-2026-10-12/REPORT.md

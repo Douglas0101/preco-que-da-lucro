@@ -1,0 +1,12 @@
+IDENTIDADE GIT E ESCOPO DA MEDICAO
+
+main ..................... 40c1a35577c70c7d33424640648d52bfdedb8bde
+develop (base do fix) ... 006bc83306fde67a6efc236a6309a24ad9c3c69c   [commit de registro do DBT-103]
+worktree ................ limpo no inicio da correcao (apenas os arquivos da correcao)
+
+arquivos da correcao:
+   M scripts/sonar/lcov-provenance.ts
+   M scripts/sonar/main-baseline.mjs
+  ?? docs/evidence/dbt-103-rerun-path-2026-10-11/
+  ?? scripts/sonar/main-baseline-select.ts
+  ?? src/test/main-baseline-select.test.ts
