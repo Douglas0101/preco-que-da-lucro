@@ -1,0 +1,54 @@
+{
+  "capturedAt": "2026-10-12T22:29:00Z",
+  "source": "Vercel MCP create_deployment / get_deployment / list_deployment_events / web_fetch + Playwright MCP (FASE B)",
+  "deployment": {
+    "id": "dpl_uN5qWefkpuUXyEQwScpVmzNRdhCT",
+    "url": "preco-que-da-lucro-kjwhyausb.vercel.app",
+    "createdMs": 1791844014012,
+    "createdAt": "2026-10-12T22:26:54Z",
+    "readyAt": "2026-10-12T22:27:27Z",
+    "state": "READY",
+    "target": null,
+    "ref": "develop",
+    "sha": "45fe6068f872434c89072f50a21ed18ef071e0c8",
+    "regions": ["iad1"],
+    "note": "Manual preview (Git-triggered builds remain disabled by vercel.json git.deploymentEnabled=false)."
+  },
+  "buildEvidence": {
+    "resultLine": "Build Completed in /vercel/output [18s]",
+    "viteLine": "✓ built in 2.56s",
+    "nitroJson": "Generated .vercel/output/nitro.json",
+    "failureMarkerAbsent": "No 'Build emitted unregistered or expired warnings:' and no [PLUGIN_TIMINGS] in this build",
+    "cache": "Created build cache 23s / uploaded 84.65 MB — this deployment built and cached a fresh lineage"
+  },
+  "healthViaBypass": {
+    "/api/health/ready": {
+      "status": 200,
+      "body": "{\"status\":\"ready\",\"dependencies\":{\"postgres\":\"ok\"}}",
+      "xCorrelationId": "ba0b40ec-6c0e-4f13-b102-688bc257af4c"
+    }
+  },
+  "e2e": {
+    "/": {
+      "http": 200,
+      "title": "Preço que Dá Lucro — avalie preços sustentáveis para seu produto",
+      "consoleErrors": 0,
+      "apiCalls": ["/api/auth/get-session 200"]
+    },
+    "/auth": {
+      "http": 200,
+      "title": "Entrar · Preço que Dá Lucro",
+      "renders": "OAuth Google + formulário e-mail/senha"
+    },
+    "/inicio": {
+      "redirect": "/auth?redirect=%2Finicio",
+      "consoleError": "401 na _serverFn de dados (negação de autorização esperada para sessão nula; não é crash)"
+    },
+    "screenshots": {
+      "e2e-preview-fix-home.png": "sha256 82abe9add8952593e7f8afe653fe9d3614083689fc1ccfb6d25250b425e7050a",
+      "e2e-preview-fix-auth.png": "sha256 8efbbecd80b8c88ee83879fe6e7be9cf695d64428f33d176489b64b24972f28e"
+    },
+    "note": "Screenshot hashes are identical to the pre-fix preview captures — deterministic rendering for the same code and data."
+  },
+  "conclusion": "The gate fix builds and serves cleanly on Vercel (preview). Production publication of the exact main SHA remains the final acceptance and requires the release circuit (develop→main PR), since the repository policy mandates publishing the main SHA."
+}

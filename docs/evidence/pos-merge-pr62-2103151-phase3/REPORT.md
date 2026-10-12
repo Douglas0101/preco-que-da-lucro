@@ -54,6 +54,13 @@ Após autorização humana explícita ("publicar + validar + rollback pronto"), 
 - **Validação local:** testes 12/12 PASS, `typecheck` limpo, **build de cache frio exit 0** com `.artifacts/build-warnings.json` = `passed: true`, `allowlist: []`, `observedWarnings: []` (`captures/build-gate-fix-*.txt`, `captures/rolldown-source-gate.txt`).
 - **Aceite real pendente:** build de produção em cache frio no ambiente Vercel (só possível publicando o SHA de `main` — ver bloqueador 1).
 
+## Preview do novo commit (FASE B — `45fe606`)
+
+- Deployment manual `dpl_uN5qWefkpuUXyEQwScpVmzNRdhCT` (`preco-que-da-lucro-kjwhyausb.vercel.app`, `develop@45fe606`, `READY` em ~33 s).
+- **Build no Vercel verde com o gate corrigido**: `Build Completed in /vercel/output [18s]`, `✓ built in 2.56s`, **sem** `Build emitted unregistered or expired warnings` e **sem** `[PLUGIN_TIMINGS]`; cache novo criado (84,65 MB).
+- `/api/health/ready` → **200** `ready/ok`; E2E: `/` 200 console limpo, `/auth` 200, `/inicio` → redirect com o 401 esperado; screenshots com **hash idêntico** aos do preview anterior (render determinístico).
+- Captura: `captures/vercel-preview-gate-fix.json`; CI do push (`45fe606`): UI stack `38316023401` success + light success.
+
 ## Bloqueadores
 
 1. **Publicação exige o circuito de release (política):** com o gate corrigido, o aceite remoto do build de produção (cache frio do `fa45632`) só ocorre no ambiente real — e a arquitetura manda publicar o **SHA exato de `main`**, o que requer novo PR de release develop→main (checks do PR) antes do retry de produção. Um deploy direto de um SHA de `develop` violaria a política de publicação.
@@ -63,10 +70,13 @@ Após autorização humana explícita ("publicar + validar + rollback pronto"), 
 
 ## Próximos Passos (decisão humana)
 
-- (a) Corrigir o gate de warnings em `develop` (re-verificação da allowlist + decisão sobre `[PLUGIN_TIMINGS]`), depois republicar; (b) novo retry imediato da publicação (aceita o risco de sorte de cache); (c) corrigir/verificar o `DATABASE_URL` de produção antes; (d) manter suspenso. A branch Neon `develop` fica desarquivada (decisão tomada).
+- (a) **FASE C (recomendado):** abrir o PR de release develop→main (checks completos de PR), merge e então publicar o **SHA exato de `main`** em produção com validação imediata (health/logs/E2E) e rollback pronto (reatribuir `sage`/time/`git-main` ao `dpl_DHsbj`, que responde 200).
+- (b) Validar/repontar o `DATABASE_URL` sensitive de produção antes (Via A) — suspeito do 503 do `fa45632` e não testado no runtime.
+- (c) Retry da publicação do `main` atual (`2103151`) — **sem** a correção do gate, depende de sorte de cache; não recomendado.
+- (d) Manter a publicação suspensa. A branch Neon `develop` fica desarquivada (decisão tomada).
 
 ## Evidências
 
 - `docs/evidence/pos-merge-pr62-2103151-phase3/captures/` — `git-state.txt`, `vercel-project-config.json`, `vercel-deployment-checks.json`, `vercel-preview-inspect.json`, `vercel-preview-logs-build.txt`, `vercel-preview-http.txt`, `vercel-prod-deploy-attempt.json`, `vercel-prod-build-failure.txt`, `neon-branches.json`, `neon-endpoints-pooling.json`, `neon-readonly-checks.txt`, `pre-push-check.txt`
 - `docs/evidence/pos-merge-pr62-2103151-phase3/screenshots/` — `e2e-preview-home.png`, `e2e-preview-auth.png`
-- `docs/evidence/pos-merge-pr62-2103151-phase3/playwright-mcp/` — 3 logs de console + 3 snapshots (selados, brutos)
+- `docs/evidence/pos-merge-pr62-2103151-phase3/playwright-mcp/` — snapshots de acessibilidade (`page-*.yml`, commitados, selados byte a byte) e logs de console (`console-logs/*.log`, presentes localmente e cobertos pelo selo do `.prettierignore`; ignorados pelo git pela regra `*.log` do próprio repositório)

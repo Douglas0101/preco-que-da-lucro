@@ -1,0 +1,25 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - img [ref=e6]
+      - heading "Preço que Dá Lucro" [level=1] [ref=e9]
+      - paragraph [ref=e10]: Bem-vindo de volta
+    - generic [ref=e11]:
+      - button "Continuar com Google" [ref=e12] [cursor=pointer]:
+        - img
+        - text: Continuar com Google
+      - generic [ref=e17]: ou
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - text: E-mail
+          - textbox "E-mail" [ref=e20]
+        - generic [ref=e21]:
+          - text: Senha
+          - textbox "Senha" [ref=e22]
+        - button "Entrar" [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - paragraph [ref=e25]:
+          - text: Ainda não tem conta?
+          - button "Cadastre-se" [ref=e26] [cursor=pointer]
+        - button "Esqueci minha senha" [ref=e27] [cursor=pointer]
+  - region "Notifications alt+T"
