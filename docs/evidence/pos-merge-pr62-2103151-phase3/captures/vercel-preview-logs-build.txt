@@ -1,0 +1,28 @@
+# Preview dpl_GdkNB9Pko1WwpouayY9Zw3oV2JS9 — recorte autoral dos eventos de build
+# Fonte: Vercel MCP list_deployment_events (builds=1, direction=forward). Fluxo bruto é denso;
+# aqui ficam as linhas decisivas e TODOS os níveis de warning/erro observados. Captura: 2026-10-12T19:16Z.
+
+19:14:09  Running build in Washington, D.C., USA (East) – iad1
+19:14:09  Build machine configuration: 2 cores, 8 GB
+19:14:10  Cloning github.com/Douglas0101/preco-que-da-lucro (Branch: develop, Commit: cb6baaa)
+19:14:11  Cloning completed: 1.846s
+19:14:12  Restored build cache from previous deployment (DjYNWE33zo7J2RBAZ6AQiEpcLg2k)
+19:14:12  Running "vercel build"  ·  Vercel CLI 62.7.0
+19:14:12  Detected OpenTelemetry dependency: @opentelemetry/api@1.9.1 (>= 1.7.0)
+19:14:13  WARNING engines: "engines": { "node": ">=24.15.0" } will auto-upgrade on new Node major (vercel.link/node-version)
+19:14:13  Installing dependencies… "up to date in 2s" · 201 packages looking for funding
+19:14:13  WARNING npm install-scripts: 3 packages have install scripts not yet covered by allowScripts:
+                esbuild@0.25.12 (postinstall: node install.js)
+                esbuild@0.28.2  (postinstall: node install.js)
+                protobufjs@7.6.6 (postinstall: node scripts/postinstall)
+19:14:16  Running "npm run build" → node scripts/build.mjs
+19:14:17  [nitro:vercel] Using `nodejs24.x` runtime · web entry format
+19:14:18  vite v8.2.2 building client environment for production… ✓ 2361 modules transformed
+19:14:22  ✓ built in 3.24s   (index-5pm_RoH1.js 251.80 kB │ gzip 78.93 kB)
+19:14:22  vite v8.2.2 building ssr environment for production… ✓ 286 modules transformed
+19:14:26  (ssr assets emitted; styles-DcbOlPww.css 56.87 kB │ gzip 10.77 kB)
+19:14:30  Build completed (no errors)
+19:14:31  Deployment READY (build total ≈ 21 s)
+
+# Nenhum evento de nível error. Warnings: 2 categorias, ambas de plataforma (engines/install-scripts) —
+# registradas, não bloqueantes. Log bruto completo disponível via `vercel inspect --logs` (CLI) ou MCP.

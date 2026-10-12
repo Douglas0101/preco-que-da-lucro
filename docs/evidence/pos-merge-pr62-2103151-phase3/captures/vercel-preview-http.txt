@@ -1,0 +1,22 @@
+# Preview dpl_GdkNB9Pko1WwpouayY9Zw3oV2JS9 — smoke HTTP direto (sem bypass)
+# 2026-10-12T19:15:44Z
+
+$ curl -sS -o /dev/null -D - -m 20 'https://preco-que-da-lucro-ho2uql3za.vercel.app/api/health' | head -3
+HTTP/2 302
+location: https://vercel.com/sso-api?url=https%3A%2F%2Fpreco-que-da-lucro-ho2uql3za.vercel.app%2Fapi%2Fhealth&nonce=d363692aecee713185b5d4182c2504035fb9978676be40eb62c1155a8dd2b0b5
+x-vercel-id: gru1::h42wq-1791832544795-f132ea4654c4
+
+$ curl -sS -o /dev/null -D - -m 20 'https://preco-que-da-lucro-ho2uql3za.vercel.app/api/health/ready' | head -3
+HTTP/2 302
+location: https://vercel.com/sso-api?url=https%3A%2F%2Fpreco-que-da-lucro-ho2uql3za.vercel.app%2Fapi%2Fhealth%2Fready&nonce=b744dd53e24a8d07e4d96c210dee29e1ce6a9f0dc1348cb1b76dc40ab53e80d5
+x-vercel-id: gru1::zq9m6-1791832545069-6059b07c0d69
+
+$ curl -sS -o /dev/null -D - -m 20 'https://preco-que-da-lucro-ho2uql3za.vercel.app/' | head -3
+HTTP/2 302
+location: https://vercel.com/sso-api?url=https%3A%2F%2Fpreco-que-da-lucro-ho2uql3za.vercel.app%2F&nonce=082493b9c13f5debd7fb3a0b5ab1611c3c31981b18bfead12129991dfba0f50a
+x-vercel-id: gru1::4247f-1791832545337-ebc6366b1491
+
+$ curl -sS -o /dev/null -D - -m 20 'https://preco-que-da-lucro-ho2uql3za.vercel.app/auth' | head -3
+HTTP/2 302
+location: https://vercel.com/sso-api?url=https%3A%2F%2Fpreco-que-da-lucro-ho2uql3za.vercel.app%2Fauth&nonce=4e26a090149df7df4504aadb0a597865aa80841164c8abeb5ec632dbc2c509d9
+x-vercel-id: gru1::78xmj-1791832545608-e0bba6fed329
