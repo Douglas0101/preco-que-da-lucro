@@ -39,3 +39,18 @@ A fixture não prova a disponibilidade do scannerContext no próximo run. Se nã
 ## Rollback
 
 Reverter em develop por commit ordinário, preservando artefatos e apontando errata. ADR-042 estrita volta a recusar PRs sem métricas. Nunca reescrever história, alterar fonte artificialmente, suprimir teste, afrouxar orçamento ou publicar main para contornar recusa.
+
+## Emenda 2026-10-12 (run 38206302116) — forma do checkout analisado
+
+A primeira versão da prova exigia a forma de test-merge: exatamente dois pais `{base.sha, head.sha}` e `merge_commit_sha` do payload igual à revisão analisada. O CI real do PR faz checkout do commit **sintético** de test-merge criado pelo GitHub (`refs/pull/N/merge`), que existe no runner mas não no clone local, e o campo `merge_commit_sha` do payload é volátil (pode vir nulo ou defasado depois de um push). O run 38206302116 recusou com `PR_EVENT_IDENTITY_DIVERGENT` um checkout que era exatamente o analisado pelo scanner — a prova estava amarrada a um campo que não descreve o objeto.
+
+Decisão: a identidade do analisado é provada por objetos Git, em **duas formas publicadas**:
+
+1. `merge`: a revisão tem exatamente dois pais cujo conjunto ordenado é `{base.sha, head.sha}` e a árvore do merge é igual à árvore do head testemunhado.
+2. `head`: `revision === head.sha` e no máximo um pai (checkout direto do head).
+
+Qualquer outra forma — três ou mais pais, pais estranhos, revisão não resolvível, árvore do merge divergente do head — recusa `PR_REFS_DIVERGENT`. O diff `--name-status -z` passa a ser medido de `base.sha` até `identity.revision` (a revisão efetivamente analisada), não até o head do payload.
+
+O campo `merge_commit_sha` do payload é tratado como **volátil**: nulo, não-SHA ou SHA estranho não alteram o veredito, e nenhuma checagem de identidade depende dele. `GITHUB_SHA` é testemunha e precisa ser a revisão analisada ou o head. As recusas de evento ganharam códigos nomeados por classe (repositório, número, refs, identidade do CE, runner) para que a causa não se perca num único rótulo.
+
+Limites: a emenda não altera o domínio (elegível continua `src` menos `src/test/**`), o mínimo de 60% para código elegível, o CE real de main, nem concede crédito. Ela não fecha dívida alguma: DBT-107 registra o defeito e o fechamento exige run atual observado. O parser do selo e do espelho (segundo sítio de DBT-106) segue recusando um NO-VERDICT preservado sem crédito, agora também na identidade do CE candidato.

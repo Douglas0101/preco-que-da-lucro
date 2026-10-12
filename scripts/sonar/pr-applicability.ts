@@ -39,6 +39,8 @@ export interface PrApplicability {
     baseSha: string;
     headSha: string;
     checkoutSha: string;
+    /** Shape of the analyzed revision, proven on Git objects (see merge_commit_sha note). */
+    analyzedShape: "merge" | "head";
   }>;
   readonly scope: Readonly<{ sources: "src"; exclusions: "src/test/**" }>;
   readonly changes: readonly Readonly<{ status: string; path: string }>[];
@@ -99,26 +101,35 @@ export function prApplicability(input: {
     record(base.repo).full_name !== repository ||
     base.ref !== "main" ||
     head.ref !== "develop" ||
-    identity.branch !== "develop" ||
+    identity.branch !== "develop"
+  )
+    return refuse("PR_EVENT_REPOSITORY_DIVERGENT");
+  if (
     !Number.isSafeInteger(event.number) ||
     Number(event.number) <= 0 ||
     event.number !== pr.number ||
-    String(event.number) !== identity.pullRequest ||
-    !sha(base.sha) ||
-    !sha(head.sha) ||
-    base.sha === head.sha ||
-    !sha(identity.revision) ||
-    env.GITHUB_SHA !== identity.revision ||
-    pr.merge_commit_sha !== identity.revision ||
+    String(event.number) !== identity.pullRequest
+  )
+    return refuse("PR_EVENT_NUMBER_DIVERGENT");
+  if (!sha(base.sha) || !sha(head.sha) || base.sha === head.sha || !sha(identity.revision))
+    return refuse("PR_EVENT_REFS_DIVERGENT");
+  if (
     typeof input.ce.ceTaskId !== "string" ||
     typeof input.ce.analysisId !== "string" ||
     !/^[A-Za-z0-9_-]{1,160}$/.test(input.ce.ceTaskId) ||
     !/^[A-Za-z0-9_-]{1,160}$/.test(input.ce.analysisId)
   )
-    return refuse("PR_EVENT_IDENTITY_DIVERGENT");
+    return refuse("PR_EVENT_CE_IDENTITY_UNAVAILABLE");
+  // `github.sha` num evento pull_request é a revisão de test-merge que o scanner viu
+  // (actions/checkout usa esse valor por default) e pode ser o próprio head quando a
+  // plataforma não constrói a ref de merge. Os dois são fatos do runner para ESTE PR; a
+  // revisão analisada é amarrada nos objetos do Git logo abaixo, então qualquer um dos
+  // dois serve como testemunha.
+  if (env.GITHUB_SHA !== identity.revision && env.GITHUB_SHA !== head.sha)
+    return refuse("PR_EVENT_RUNNER_SHA_DIVERGENT");
   const scannerScope = scope(input.scannerContext);
   const deadline = performance.now() + 10_000;
-  const git = (args: string[]) => {
+  const git = (args: string[], refusal = "PR_GIT_PRECONDITION_UNAVAILABLE") => {
     const remaining = deadline - performance.now();
     if (remaining <= 0) return refuse("PR_GIT_PRECONDITION_UNAVAILABLE");
     try {
@@ -130,7 +141,7 @@ export function prApplicability(input: {
         maxBuffer: 2_000_000,
       });
     } catch {
-      return refuse("PR_GIT_PRECONDITION_UNAVAILABLE");
+      return refuse(refusal);
     }
   };
   if (git(["rev-parse", "--is-shallow-repository"]).trim() !== "false")
@@ -141,20 +152,24 @@ export function prApplicability(input: {
   if (git(["rev-parse", "HEAD"]).trim() !== identity.revision)
     return refuse("PR_CHECKOUT_DIVERGENT");
   for (const commit of [base.sha, head.sha, identity.revision])
-    if (git(["rev-parse", "--verify", `${commit}^{commit}`]).trim() !== commit)
+    if (git(["rev-parse", "--verify", `${commit}^{commit}`], "PR_REFS_DIVERGENT").trim() !== commit)
       return refuse("PR_REFS_DIVERGENT");
+  // A revisão analisada tem de ser ESTE PR: ou o commit de test-merge cujos pais são
+  // exatamente a base e o head registrados, ou o próprio head. O `merge_commit_sha` do
+  // payload não é lido aqui de propósito: o GitHub o documenta como campo depreciado de
+  // test-merge e ele chega nulo ou defasado depois de um push — a relação de merge é
+  // provada nos objetos do Git, não no payload.
   const parents = git(["cat-file", "commit", identity.revision])
     .split("\n\n")[0]
     .split("\n")
     .filter((line) => line.startsWith("parent "))
     .map((line) => line.slice(7));
-  if (parents.join("\n") !== [base.sha, head.sha].join("\n")) return refuse("PR_REFS_DIVERGENT");
-  git(["merge-base", "--is-ancestor", base.sha, head.sha]);
-  if (
-    git(["rev-parse", `${identity.revision}^{tree}`]).trim() !==
-    git(["rev-parse", `${head.sha}^{tree}`]).trim()
-  )
-    return refuse("PR_CHECKOUT_DIVERGENT");
+  const mergeShape =
+    parents.length === 2 &&
+    [...parents].sort().join("\n") === [base.sha, head.sha].sort().join("\n");
+  const headShape = identity.revision === head.sha && parents.length <= 1;
+  if (!mergeShape && !headShape) return refuse("PR_REFS_DIVERGENT");
+  const analyzedShape: "merge" | "head" = mergeShape ? "merge" : "head";
   const clean = () => {
     if (git(["rev-parse", "HEAD"]).trim() !== identity.revision)
       return refuse("PR_CHECKOUT_DIVERGENT");
@@ -185,7 +200,7 @@ export function prApplicability(input: {
     "--name-status",
     "-z",
     base.sha,
-    head.sha,
+    identity.revision,
     "--",
   ]);
   if (bytes === "") return refuse("PR_DIFF_EMPTY");
@@ -217,6 +232,7 @@ export function prApplicability(input: {
     baseSha: base.sha,
     headSha: head.sha,
     checkoutSha: identity.revision,
+    analyzedShape,
   });
   clean();
   const proof: PrApplicability = Object.freeze({
@@ -241,6 +257,7 @@ export function prApplicability(input: {
             revision: identity.revision,
             branch: identity.branch,
             pullRequest: identity.pullRequest,
+            analyzedShape,
           },
           ce: { ceTaskId: input.ce.ceTaskId, analysisId: input.ce.analysisId },
           event: eventIdentity,

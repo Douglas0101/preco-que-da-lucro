@@ -1,0 +1,23 @@
+{
+  "schema": "pr62-local-source-fingerprint/2",
+  "observedAt": "2026-10-12T05:41:59.096Z",
+  "origin": "d90f8f5fb13a9a8ec76b415d05705a9bbc5cf12d",
+  "branch": "develop",
+  "round": "2 (run 38206302116)",
+  "algorithm": "sha256DaFingerprint = sha256(linhas ordenadas \"caminho sha256(bytes)\" separadas por \\n, com \\n final)",
+  "files": {
+    "scripts/sonar/pr-applicability.ts": "0635bad014538f6c3fa8b1e72344f956ecbd56cc317e2e7e79fcd057b699c4a4",
+    "scripts/sonar/mirror-runner.ts": "ddf04b310bdd2835116a073d2eb2f6484da27ff44632982a3e91d63a6bb85862",
+    "src/test/sonar-pr-applicability.test.ts": "5589f9deffcf2cf5c3d2ef3527073e078dcdcafb6a7603273bb8892d7f2b316d",
+    "src/test/main-unit-adapter.test.ts": "ef1d62e9c0a6c2c52b303a456250d24401b3f90968f760495cd3748a2d2e42ea",
+    "docs/adr/ADR-044-aplicabilidade-pr-sem-delta-analisavel.md": "b3aae2c84bcd354168ae88fbafd89488a685520cec66423be87c1909414830a2",
+    "AGENTS.md": "587b8ffaa786a7e08ceee05d0443b0e353fa5041fc7a3b0db4d664845d30ff91",
+    "docs/evidence/agent-state/DEBTS.md": "ebd7a59dd2bd00a5dffbfe8958dbb488541fbbc786e58fe5633bb3421b200ca4",
+    "docs/evidence/pr62-root-causes-2026-10-12/corrections/SPEC.md": "4b773032266d70bdf9594d236e106015cb6bcff2969b1998e1f5279c812d58d4",
+    "docs/evidence/pr62-root-causes-2026-10-12/corrections/README.md": "a1f46f784eeaf140c46b0cc3faece55ebbad29c41ea405bcbd15fc2aab19d992"
+  },
+  "sourceFingerprint": "ca844b67de9a2a56dc499b9079d69009db9ed03932b550e3e92349ca96cd1508",
+  "lineCount": 9,
+  "published": false,
+  "approvesRelease": false
+}

@@ -78,3 +78,24 @@ Em 2026-10-12T04:52Z o dono autorizou explicitamente **Commit + push develop** p
 ## 8. Rollback
 
 Commit ordinário de reversão em develop, preservando evidência e errata. Não mover main, reescrever história ou modificar produção. Remover ADR-044 restaura a recusa estrita por controles ausentes; a correção de identidade não dá crédito de release.
+
+## 9. Segunda rodada — checkpoint local (run 38206302116)
+
+O run 38206302116 mediu a revisão publicada `d90f8f5` e reprovou os dois jobs do Sonar. Fato, causa e correção:
+
+| job / passo                                  | medição                                                   | causa                                                                                            | correção                                                                                                      |
+| -------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `scan + cobertura` 114670429042 passo 10     | exit 2, `PR_EVENT_IDENTITY_DIVERGENT`                     | a prova ADR-044 exigia `merge_commit_sha` do payload; o checkout real é o test-merge `ee4616d8…` | duas formas provadas por objetos Git; diff até a revisão analisada; recusas nomeadas                          |
+| `main-coverage-mirror` 114671097630 passo 11 | exit 1, `EXECUTION_OR_UNCLASSIFIED` → `observation: null` | segundo sítio de DBT-106: `gate.analysisId` lido na raiz de um readout NO-VERDICT                | `candidateGate()` usa o parser estrito; NO-VERDICT preservado vira `CANDIDATE_READOUT_UNAVAILABLE` bloqueante |
+
+Checkpoint 2 (medido localmente nesta revisão ainda não publicada): 7 suítes pré-registradas → **234/234 PASS** (`captures/round2-tests.txt`); `typecheck`, `eslint` e `npm run check` → `captures/round2-check.txt`; identidade dos arquivos da rodada → `captures/round2-source-fingerprint.json`; artefatos brutos do run 38206302116 → `captures/run-38206302116/` (9 JSON, bytes brutos selados no `.prettierignore`, nunca reformatados); prova de ausência de proveniência original na run de main → `captures/run-38112535521/main-lcov-artifact.txt`.
+
+A primeira tentativa do gate completo foi recusada pelo `format:check` nos três JSON brutos do provedor; os bytes foram preservados sem reformatação e o subdireção foi selada no `.prettierignore` (captura da recusa em `captures/round2-check-first-attempt.txt`).
+
+Checklist 17: itens 1–10 e 12–14, 16–17 seguem PASS local com os nomes atualizados; item 11 (S6 de contexto limpo) e item 15 (CI atado ao commit selado) continuam **PENDENTE** — agora com duas medições remotas reprovadas (38197746621 e 38206302116) que _são_ o fato-fonte das correções, não verificação do estado atual. KPI provisório 15/17 (nenhuma promoção nesta rodada).
+
+Limites: nada nesta captura prova que o run corrigido ficará verde; o aceite remoto exige nova publicação autorizada. DBT-104/105/106 permanecem ABERTAS e DBT-107 foi aberta para o defeito de identidade de checkout; S6 independente continua pendente.
+
+## 10. Nota de reprodutibilidade da fingerprint
+
+A fingerprint da rodada 1 (`captures/source-fingerprint.json`) foi produzida por um cálculo ad hoc cujo script não ficou versionado. A rodada 2 grava o algoritmo dentro da própria captura `round2-source-fingerprint.json` (`sha256DaFingerprint = sha256(concatenação ordenada de "caminho" + " " + sha256(bytes) + "\n")`), para que qualquer reexecução seja verificável sem depender de memória.

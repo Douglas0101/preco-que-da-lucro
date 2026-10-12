@@ -1,0 +1,25 @@
+{
+  "schema": "main-unit-adapter/1",
+  "verdict": "NO-VERDICT",
+  "reasonCode": "ORIGINAL_PROVENANCE_UNAVAILABLE",
+  "mainSha": "40c1a35577c70c7d33424640648d52bfdedb8bde",
+  "analysisId": "08d02858-5846-445b-b349-9e1fc4fe6ba3",
+  "reason": "Complete authenticated metadata and original scanner LCOV provenance are required; no aggregate fallback.",
+  "diagnostic": {
+    "phase": "origin",
+    "code": "ORIGINAL_PROVENANCE_UNAVAILABLE"
+  },
+  "componentCensus": {
+    "expectedFiles": null,
+    "discoveredFiles": [],
+    "coverageFiles": [],
+    "excludedFiles": []
+  },
+  "requiredNames": [
+    "SONAR_MAIN_LCOV",
+    "SONAR_MAIN_LCOV_PROVENANCE",
+    "SONAR_TOKEN",
+    "GITHUB_TOKEN"
+  ],
+  "requests": []
+}

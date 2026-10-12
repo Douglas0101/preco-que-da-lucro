@@ -111,7 +111,7 @@ function fixture(
     pull_request: {
       number: 62,
       body: "PRIVATE_EVENT_SENTINEL",
-      merge_commit_sha: checkout,
+      merge_commit_sha: checkout as string | null,
       base: { ref: "main", sha: base, repo: { full_name: repository } },
       head: { ref: "develop", sha: head, repo: { full_name: repository } },
     },
@@ -130,8 +130,13 @@ function fixture(
     EXPECTED_BRANCH: "develop",
     EXPECTED_PR: "62",
   };
-  const identity = { revision: checkout, branch: "develop", pullRequest: "62" };
-  const input = () => ({ identity, ce, scannerContext: context(checkout), env, cwd: root });
+  const input = (revision = checkout) => ({
+    identity: { revision, branch: "develop", pullRequest: "62" },
+    ce,
+    scannerContext: context(checkout),
+    env,
+    cwd: root,
+  });
   const task = () => ({
     id: ce.ceTaskId,
     analysisId: ce.analysisId,
@@ -333,27 +338,82 @@ describe("ADR-044 / DBT-105 · prova de aplicabilidade por evento e Git reais", 
     }
   });
   it.each([
-    "evento ausente",
-    "main",
-    "fork",
-    "PR trocado",
-    "base trocada",
-    "head trocado",
-    "merge trocado",
-    "runner trocado",
-  ])("precondição %s nunca vira dispensa", (kind) => {
+    ["evento ausente", "PR_EVENT_UNAVAILABLE"],
+    ["evento push", "PR_EVENT_UNAVAILABLE"],
+    ["fork", "PR_EVENT_REPOSITORY_DIVERGENT"],
+    ["PR trocado", "PR_EVENT_NUMBER_DIVERGENT"],
+    ["base trocada", "PR_REFS_DIVERGENT"],
+    ["head trocado", "PR_EVENT_REFS_DIVERGENT"],
+    ["revisão estranha", "PR_REFS_DIVERGENT"],
+    ["runner trocado", "PR_EVENT_RUNNER_SHA_DIVERGENT"],
+  ] as const)("precondição %s nunca vira dispensa (%s)", (kind, code) => {
     const f = fixture();
     try {
       if (kind === "evento ausente") delete f.env.GITHUB_EVENT_PATH;
-      if (kind === "main") f.env.GITHUB_EVENT_NAME = "push";
+      if (kind === "evento push") f.env.GITHUB_EVENT_NAME = "push";
       if (kind === "fork") f.event.pull_request.head.repo.full_name = "foreign/fork";
       if (kind === "PR trocado") f.event.number = 63;
       if (kind === "base trocada") f.event.pull_request.base.sha = "b".repeat(40);
       if (kind === "head trocado") f.event.pull_request.head.sha = f.base;
-      if (kind === "merge trocado") f.event.pull_request.merge_commit_sha = f.head;
-      if (kind === "runner trocado") f.env.GITHUB_SHA = f.head;
+      if (kind === "runner trocado") f.env.GITHUB_SHA = "c".repeat(40);
+      if (kind === "revisão estranha") {
+        // HEAD passa a ser um commit pós-merge que não é o merge de base+head nem o head:
+        // checkout coincide, refs resolvem, e só a relação de PR recusa.
+        f.git("commit", "--allow-empty", "-m", "post-merge commit");
+        const unrelated = f.git("rev-parse", "HEAD");
+        f.env.GITHUB_SHA = unrelated;
+        f.saveEvent();
+        expect(() => prApplicability(f.input(unrelated))).toThrow(code);
+        return;
+      }
       f.saveEvent();
-      expect(() => prApplicability(f.input())).toThrow("NO-VERDICT");
+      expect(() => prApplicability(f.input())).toThrow(code);
+    } finally {
+      f.cleanup();
+    }
+  });
+  it.each([null, "defasado-não-sha", "f".repeat(40)])(
+    "merge_commit_sha do payload %s é volátil e nunca decide a identidade",
+    (value) => {
+      const f = fixture();
+      try {
+        f.event.pull_request.merge_commit_sha = value;
+        f.saveEvent();
+        expect(prApplicability(f.input())).toMatchObject({
+          status: "NOT_APPLICABLE",
+          event: { analyzedShape: "merge", checkoutSha: f.checkout },
+        });
+      } finally {
+        f.cleanup();
+      }
+    },
+  );
+  it("head analisado direto (sem test-merge) é aceito e difere contra a base do evento", () => {
+    const f = fixture();
+    try {
+      f.git("checkout", "--detach", f.head);
+      f.env.GITHUB_SHA = f.head;
+      f.event.pull_request.merge_commit_sha = null;
+      f.saveEvent();
+      const proof = prApplicability(f.input(f.head));
+      expect(proof).toMatchObject({ status: "NOT_APPLICABLE", event: { analyzedShape: "head" } });
+      expect(proof.changes.map((change) => change.path)).toEqual([
+        "docs/evidence/fixture.md",
+        "scripts/fixture.ts",
+        "src/test/fixture.test.ts",
+      ]);
+    } finally {
+      f.cleanup();
+    }
+  });
+  it("runner pode testemunhar o head quando a revisão analisada é o test-merge", () => {
+    const f = fixture();
+    try {
+      f.env.GITHUB_SHA = f.head;
+      expect(prApplicability(f.input())).toMatchObject({
+        status: "NOT_APPLICABLE",
+        event: { analyzedShape: "merge" },
+      });
     } finally {
       f.cleanup();
     }

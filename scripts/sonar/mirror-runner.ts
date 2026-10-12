@@ -12,6 +12,42 @@ import {
   type LcovProvenance,
 } from "./main-unit-adapter.ts";
 import { instrumentationFingerprint } from "./lcov-provenance.ts";
+import { readoutEvidence, ReadoutEvidenceRefusal } from "./readout-evidence.ts";
+
+/** Recusa nomeada do próprio produtor do espelho: sempre bloqueante, nunca crédito. */
+export class MirrorEvidenceRefusal extends Error {
+  readonly code: string;
+  constructor(code: string) {
+    super(code);
+    this.name = "MirrorEvidenceRefusal";
+    this.code = code;
+  }
+}
+
+/**
+ * DBT-106 (segundo sítio): a identidade do CE candidato vem do readout pelo parser
+ * estrito, que aceita as duas layouts publicadas — raiz (OK/ERROR) e NO-VERDICT
+ * preservado em `providerObservation`. Ler `gate.analysisId`/`gate.ceTaskId` direto só
+ * enxergava a primeira e transformava um readout NO-VERDICT do scan em "identidade
+ * divergente" sem causa nomeada (EXECUTION_OR_UNCLASSIFIED).
+ */
+export function candidateGate(gate: unknown) {
+  let evidence;
+  try {
+    evidence = readoutEvidence(gate);
+  } catch (error) {
+    if (error instanceof ReadoutEvidenceRefusal)
+      throw new MirrorEvidenceRefusal("CANDIDATE_READOUT_UNAVAILABLE");
+    throw error;
+  }
+  if (evidence.readoutStatus === "NO-VERDICT")
+    throw new MirrorEvidenceRefusal("CANDIDATE_READOUT_UNAVAILABLE");
+  return {
+    analysisId: evidence.analysisId,
+    ceTaskId: evidence.ceTaskId,
+    providerIdentity: evidence.providerIdentity,
+  };
+}
 
 interface CandidateMirrorIdentity {
   candidateGate: {
@@ -90,9 +126,10 @@ export function evaluateMirrorArtifacts(
     s.floor !== target.floor
   )
     throw new Error("snapshot/adapter/authoritative baseline identity differs");
+  const candidateIdentity = { ...input, candidateGate: candidateGate(input.candidateGate) };
   const before = provenance(input.mainOrigin, input.mainLcov),
     after = provenance(input.candidateOrigin, input.candidateLcov);
-  assertCandidateIdentity(after, input);
+  assertCandidateIdentity(after, candidateIdentity);
   if (
     before.revision !== b.mainSha ||
     before.analysisId !== b.analysisId ||
@@ -192,15 +229,13 @@ export function runMirrorCli() {
       );
       const gate = JSON.parse(readFileSync(env.SONAR_CANDIDATE_GATE_REPORT!, "utf8"));
       assertCandidateIdentity(candidate, {
-        candidateGate: gate,
+        candidateGate: candidateGate(gate),
         checkoutSha: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
         expectedBranch: env.EXPECTED_BRANCH!,
         expectedPr: env.EXPECTED_PR!,
         instrumentation: instrumentationFingerprint(),
       });
       if (
-        gate.schema !== "c25-ce-gate-readout/1" ||
-        !["OK", "ERROR"].includes(gate.status) ||
         Object.entries(candidate.sourceHashes).some(
           ([path, hash]) => sha256(readFileSync(resolve(path))) !== hash,
         )
@@ -261,7 +296,9 @@ export function runMirrorCli() {
       ? "SOURCE_DIVERGENCE_MAIN_VS_CANDIDATE"
       : error instanceof OriginalProvenanceUnavailable
         ? "ORIGINAL_PROVENANCE_UNAVAILABLE"
-        : "EXECUTION_OR_UNCLASSIFIED";
+        : error instanceof MirrorEvidenceRefusal
+          ? error.code
+          : "EXECUTION_OR_UNCLASSIFIED";
     writeFileSync(
       reportPath,
       JSON.stringify(
@@ -284,7 +321,9 @@ export function runMirrorCli() {
                   pathSha256: refusal.files.map((file) => sha256(file.path)).sort(),
                 },
               }
-            : {}),
+            : error instanceof MirrorEvidenceRefusal
+              ? { diagnostic: { phase: "candidate-readout", code: reasonCode } }
+              : {}),
           missingNames: names.filter((name) => !env[name]),
         },
         null,

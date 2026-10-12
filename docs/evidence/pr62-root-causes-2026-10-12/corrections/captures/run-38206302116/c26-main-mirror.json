@@ -1,0 +1,18 @@
+{
+  "schema": "main-mirror/2",
+  "mainSha": "40c1a35577c70c7d33424640648d52bfdedb8bde",
+  "analysisId": "08d02858-5846-445b-b349-9e1fc4fe6ba3",
+  "target": {
+    "total": 3480,
+    "covered": 2553,
+    "coverage": 73.36206896551724,
+    "gap": 231,
+    "floor": 1740
+  },
+  "verdict": "NO-VERDICT",
+  "reasonCode": "EXECUTION_OR_UNCLASSIFIED",
+  "reason": "Complete sealed per-unit mapping and original/candidate scanner provenance are required.",
+  "missingNames": [
+    "SONAR_MAIN_UNIT_SNAPSHOT_SHA256"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schema": "main-mirror-observation/1",
+  "kind": "mirror",
+  "rawExitCode": 2,
+  "signal": null,
+  "rawStatus": "NO-VERDICT",
+  "reportName": "c26-main-mirror.json",
+  "reportSha256": "6870c30320c3c19ccf72469b1c12f0bbbc45ea31e351544e286880fa8b24f294",
+  "observation": null,
+  "outcome": "FAILURE",
+  "approvesMain": false
+}

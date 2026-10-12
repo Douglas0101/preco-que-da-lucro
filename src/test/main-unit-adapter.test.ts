@@ -12,7 +12,11 @@ import {
 } from "../../scripts/sonar/main-unit-adapter";
 import { coverageMetadata } from "../../scripts/sonar/main-unit-probe";
 import { instrumentationFingerprint, scannerProvenance } from "../../scripts/sonar/lcov-provenance";
-import { evaluateMirrorArtifacts } from "../../scripts/sonar/mirror-runner";
+import {
+  candidateGate,
+  evaluateMirrorArtifacts,
+  MirrorEvidenceRefusal,
+} from "../../scripts/sonar/mirror-runner";
 import { selectMainOriginRun } from "../../scripts/sonar/main-origin-run";
 import { authoritativeUnits, mirror } from "../../scripts/sonar/unit-mirror";
 import { classifyMirrorObservation } from "../../scripts/sonar/mirror-observation";
@@ -42,6 +46,19 @@ const gate = (branch = "main", pullRequest: string | null = null) => ({
   analysisId: branch === "main" ? "main-analysis" : "pr-analysis",
   ceTaskId: `task-${branch}`,
   providerIdentity: { revision, branch, pullRequest },
+});
+/** Readout completo como o scanner publica: raiz OK/ERROR, com surface e condições. */
+const readout = (
+  branch = "main",
+  pullRequest: string | null = null,
+  status: "OK" | "ERROR" = "ERROR",
+) => ({
+  schema: "c25-ce-gate-readout/1",
+  status,
+  ...gate(branch, pullRequest),
+  surface: { branch, pullRequest },
+  ignoredConditions: false,
+  conditions: [],
 });
 const origin = (text = lcov(), branch = "main", pr: string | null = null) =>
   scannerProvenance(
@@ -90,7 +107,7 @@ function input(candidate = lcov(1)) {
     mainOrigin: origin(),
     candidateLcov: candidate,
     candidateOrigin: origin(candidate, "develop", "60"),
-    candidateGate: gate("develop", "60"),
+    candidateGate: readout("develop", "60"),
     checkoutSha: revision,
     expectedBranch: "develop",
     expectedPr: "60",
@@ -138,6 +155,46 @@ describe("complete unit adapter, original scanner provenance and conservative CL
       ).toThrow();
     }
     expect(() => classifyMirrorObservation("mirror", null, 0)).toThrow();
+  });
+  it("reads the candidate CE identity from both published readout layouts (DBT-106)", () => {
+    // O readout do scan chega em duas formas: raiz (OK/ERROR) ou NO-VERDICT com a
+    // observação preservada. A identidade do candidato tem de funcionar nas duas —
+    // sem creditar nada — e o NO-VERDICT do scan tem de ser recusa nomeada, nunca
+    // uma divergência genérica (o modo de falha do run 38206302116).
+    const observation = {
+      ceTaskId: "candidate-task",
+      analysisId: "candidate-analysis",
+      surface: { branch: "develop", pullRequest: "62" },
+      status: "OK",
+      ignoredConditions: false,
+      conditions: [],
+    };
+    const providerIdentity = { revision, branch: "develop", pullRequest: "62" };
+    expect(
+      candidateGate({
+        schema: "c25-ce-gate-readout/1",
+        ...observation,
+        providerIdentity,
+      }),
+    ).toEqual({ analysisId: "candidate-analysis", ceTaskId: "candidate-task", providerIdentity });
+    for (const status of ["OK", "ERROR"] as const) {
+      let refusal: unknown = null;
+      try {
+        candidateGate({
+          schema: "c25-ce-gate-readout/1",
+          status: "NO-VERDICT",
+          reason: "gate controle obrigatório ausente ou alterado: NO-VERDICT",
+          providerIdentity,
+          providerObservation: { ...observation, status },
+        });
+      } catch (error) {
+        refusal = error;
+      }
+      expect(refusal).toBeInstanceOf(MirrorEvidenceRefusal);
+      expect((refusal as MirrorEvidenceRefusal).code).toBe("CANDIDATE_READOUT_UNAVAILABLE");
+    }
+    for (const broken of [null, {}, { schema: "desconhecido" }])
+      expect(() => candidateGate(broken)).toThrow(MirrorEvidenceRefusal);
   });
   it("recognizes a measured source divergence as informational, and only that", () => {
     // Recusa por desenho (ADR-038 §3) medida pelo produtor: só é informacional com
@@ -963,7 +1020,10 @@ describe("complete unit adapter, original scanner provenance and conservative CL
         SONAR_MAIN_LCOV_PROVENANCE: save("main-origin.json", mainOrigin),
         SONAR_CANDIDATE_LCOV: resolve(directory, "candidate.lcov"),
         SONAR_CANDIDATE_LCOV_PROVENANCE: resolve(directory, "candidate-origin.json"),
-        SONAR_CANDIDATE_GATE_REPORT: save("gate.json", g("develop", "60")),
+        SONAR_CANDIDATE_GATE_REPORT: save("gate.json", {
+          ...readout("develop", "60", "ERROR"),
+          ...g("develop", "60"),
+        }),
       };
       save("c24-main-baseline.json", { schema: "main-baseline/2", ...b });
       const command = resolve("scripts/sonar/gate-mirror.ts");
@@ -1065,8 +1125,7 @@ describe("complete unit adapter, original scanner provenance and conservative CL
         GITHUB_TOKEN: "fixture-not-a-credential",
         SONAR_MAIN_UNIT_ADAPTER_REPORT: resolve(directory, "c28-main-unit-adapter.json"),
         SONAR_CANDIDATE_GATE_REPORT: save("gate.json", {
-          schema: "c25-ce-gate-readout/1",
-          status: mixedCensus ? "OK" : "ERROR",
+          ...readout("develop", "60", mixedCensus ? "OK" : "ERROR"),
           ...g("develop", "60"),
         }),
         GITHUB_STEP_SUMMARY: resolve(directory, "summary.md"),
@@ -1336,6 +1395,46 @@ globalThis.fetch = async (url) => {
           verdict: "NO-VERDICT",
           reasonCode: "ORIGINAL_PROVENANCE_UNAVAILABLE",
           target: { covered: 3 },
+        });
+        // Controle negativo do segundo sítio do DBT-106: o MESMO readout no layout
+        // NO-VERDICT (identidade preservada em providerObservation) não pode virar
+        // "identidade divergente" genérica nem crédito — o produtor nomeia
+        // CANDIDATE_READOUT_UNAVAILABLE e o observador segue bloqueando.
+        const readout = JSON.parse(readFileSync(advisoryEnv.SONAR_CANDIDATE_GATE_REPORT, "utf8"));
+        writeFileSync(
+          advisoryEnv.SONAR_CANDIDATE_GATE_REPORT,
+          JSON.stringify({
+            schema: "c25-ce-gate-readout/1",
+            status: "NO-VERDICT",
+            reason: "gate controle obrigatório ausente ou alterado: NO-VERDICT",
+            providerIdentity: readout.providerIdentity,
+            providerObservation: {
+              ceTaskId: readout.ceTaskId,
+              analysisId: readout.analysisId,
+              surface: readout.surface,
+              status: readout.status,
+              ignoredConditions: readout.ignoredConditions,
+              conditions: readout.conditions,
+            },
+          }),
+        );
+        const refused = runObservation("mirror");
+        expect(refused.status, refused.stderr).toBe(1);
+        expect(
+          JSON.parse(readFileSync(resolve(directory, "c26-main-mirror.json"), "utf8")),
+        ).toMatchObject({
+          verdict: "NO-VERDICT",
+          reasonCode: "CANDIDATE_READOUT_UNAVAILABLE",
+          diagnostic: { phase: "candidate-readout", code: "CANDIDATE_READOUT_UNAVAILABLE" },
+        });
+        expect(
+          JSON.parse(readFileSync(resolve(directory, "c29-main-mirror-observation.json"), "utf8")),
+        ).toMatchObject({
+          rawExitCode: 2,
+          rawStatus: "NO-VERDICT",
+          observation: null,
+          outcome: "FAILURE",
+          approvesMain: false,
         });
       }
     } finally {
