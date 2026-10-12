@@ -1,0 +1,28 @@
+# Bancada local — medições 2026-10-12 (UTC). Fonte: execução nesta sessão.
+# Nenhuma conexão com produção/Neon; container PG17 efêmero em 127.0.0.1:55432, descartado após.
+
+## db:test (18 suítes: migrações, concorrência, auth, RLS, tool-security, SQL-injection,
+## chat-semantics, ai-budget, rum-persistence, rate-limit-burst, outbox, backfill, memory,
+## products-fk, product-contracts, reconcile-ai-usage, dashboard-margin)
+comando: DATABASE_ADMIN_URL=postgres://pqd:***@127.0.0.1:55432/pqd DATABASE_URL=… DATABASE_DRIVER=node-postgres npm run db:test
+resultado: EXIT=0
+final: "prova de banco (src/test/dashboard-consolidated-margin.db.test.ts) contra 127.0.0.1:
+        4 passed (4), 0 skipped — admin=127.0.0.1:55432"
+# A cadeia é estritamente `&&`: a última suíte só roda se todas as anteriores saírem 0.
+
+## npm run check — execução #1 (2026-10-12T01:54:07Z → 01:57:39Z)
+resultado: EXIT=0 · Test Files 142 passed | 1 skipped (143) · Tests 2180 passed | 18 skipped (2198)
+bundle: PASS assets/index-DRI3LDON.js … sha256=30ca04baaa66 (digest idêntico ao da sessão anterior)
+
+## npm run check — execução #2 (ÁRVORE FINAL: journal §1 + L830/L831 + este pacote formatado)
+fim: 2026-10-12T02:03:31Z (arquivo de log)
+resultado: CHECK2_EXIT=0 · Test Files 142 passed | 1 skipped (143) · Tests 2180 passed | 18 skipped (2198)
+bundle: PASS assets/index-DRI3LDON.js … sha256=30ca04baaa66
+# As duas execuções completas do encadeamento `npm run check` (21 passos) fecharam verdes;
+# entre elas só mudaram arquivos sob docs/evidence/**. Após a última edição da árvore,
+# `m02:temporal-guard`, `m02:state:check` e `m02:debts-guard` foram re-executados verdes
+# (o guarda temporal cobre a §1 do PROGRESS.md; ele acusou 19 âncoras, 0 prazos vivos).
+
+## Limites desta bancada (declarados)
+- Não exercita e2e/Playwright, test:visual, migrations remotas nem produção.
+- `db:test` roda contra alvo loopback efêmero; o container `:5432` compartilhado não foi usado.

@@ -1,0 +1,31 @@
+# Captura — refs Git e deployments GitHub — 2026-10-12T01:09:54Z
+
+## git ls-remote (remoto no momento da captura)
+182754fe98bb2f01ceafd5cad81bb890b71f18a3	refs/heads/develop
+40c1a35577c70c7d33424640648d52bfdedb8bde	refs/heads/main
+
+## git log --oneline (linha de release)
+d4b939536f2d2df74ab2d0f1bd02a73fc9ce34c9 2026-10-01 11:52:02 -0300 release: v1.0.1 — contrato de CI, atribuição de análise e guard de cobertura
+fa45632391ad9ffe1d20d3bad5264a53b565638e 2026-10-08 14:35:28 -0300 release: production chat repair, 60% coverage policy and verified CI attribution (#60)
+40c1a35577c70c7d33424640648d52bfdedb8bde 2026-10-11 01:44:21 -0300 Merge pull request #61 from Douglas0101/develop
+182754fe98bb2f01ceafd5cad81bb890b71f18a3 2026-10-11 12:29:00 -0300 fix(ci): select the main baseline by the run's own CE analysis
+
+## GitHub Deployments API (primeira página, campos selecionados)
+id=6942681222 env=Production – preco-que-da-lucro created=2026-10-08T17:46:02Z creator=vercel[bot] sha=fa45632 ref=fa45632391ad9ffe1d20d3bad5264a53b565638e
+id=6893056870 env=Preview – preco-que-da-lucro created=2026-10-06T19:15:56Z creator=vercel[bot] sha=ce9bd44 ref=ce9bd44e6a22228ec623cbb4a99ac2c1be5f2fff
+id=6887707122 env=Preview – preco-que-da-lucro created=2026-10-06T15:10:39Z creator=vercel[bot] sha=38bd376 ref=38bd3764c344bdc37a1462430f172260920a247f
+id=6886511725 env=Preview – preco-que-da-lucro created=2026-10-06T14:21:16Z creator=vercel[bot] sha=9dd39f4 ref=9dd39f430ff5d790877feeebb97a520ef84bcdd4
+id=6886069331 env=Preview – preco-que-da-lucro created=2026-10-06T14:02:55Z creator=vercel[bot] sha=ccc7178 ref=ccc7178a286b6460a28767044415770a9a85a843
+id=6885418012 env=neon-readiness created=2026-10-06T13:35:22Z creator=Douglas0101 sha=ca88fde ref=develop
+id=6877083779 env=Preview – preco-que-da-lucro created=2026-10-06T06:15:19Z creator=vercel[bot] sha=a352a3a ref=a352a3a0e68a3d943ec00b9a66e83e42dd1544d5
+id=6832787088 env=neon-readiness created=2026-10-03T20:36:45Z creator=Douglas0101 sha=482e577 ref=develop
+id=6832671674 env=neon-readiness created=2026-10-03T20:25:19Z creator=Douglas0101 sha=482e577 ref=develop
+id=6822817387 env=neon-readiness created=2026-10-03T03:39:42Z creator=Douglas0101 sha=4bd512c ref=develop
+id=6820773830 env=neon-readiness created=2026-10-03T00:05:14Z creator=Douglas0101 sha=ccef6e5 ref=develop
+id=6814075202 env=Preview created=2026-10-02T17:16:55Z creator=vercel[bot] sha=361e556 ref=361e556157f0a212416fef26c664f4c5023f5e58
+
+## Versões resolvidas das dependências TanStack por revisão (do package-lock.json de cada revisão)
+d4b9395 react-start=1.168.49 start-server-core=1.169.31 router=1.170.32
+fa45632 react-start=1.168.60 start-server-core=1.169.39 router=1.170.41
+182754f react-start=1.168.60 start-server-core=1.169.39 router=1.170.41
+40c1a35 react-start=1.168.60 start-server-core=1.169.39 router=1.170.41

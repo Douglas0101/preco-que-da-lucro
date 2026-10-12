@@ -1,0 +1,38 @@
+# Domínio canônico diretrizprecifica.com — identidade medida em 2026-10-12 (read-only)
+# Fonte: dig, curl, openssl s_client. NENHUMA alteração de DNS/alias/registro.
+
+## Autoridade DNS
+NS   = apollo.dns-parking.com. / athena.dns-parking.com.        (nameservers da Hostinger)
+SOA  = athena.dns-parking.com. dns.hostinger.com. 2026100801 10000 2400 604800 600
+       (serial 2026100801 → revisão de zona de 2026-10-08 #01)
+
+## Roteamento medido
+apex A      = 89.116.213.232, 91.108.127.168
+www CNAME   = www.diretrizprecifica.com.cdn.hstgr.net.   → A 147.79.105.169, 91.108.127.108
+# CDN da Hostinger (hstgr.net) na frente do serviço. Nenhum registro aponta para a Vercel
+# (não há A/CNAME/ALIAS para *.vercel.app ou vercel-dns).
+
+## HTTP (apex e www)
+GET /                    → 200 text/html
+  x-powered-by: Hostinger Horizons
+  server: hcdn · x-hcdn-cache-status: HIT · cache-control: public, s-maxage=604800
+  last-modified: Sun, 06 Sep 2026 05:33:02 GMT
+  x-u4s-request-id / x-hcdn-request-id presentes
+GET /api/health/ready    → 200 text/html (MESMO last-modified)  ← catch-all estático:
+  todo path devolve a página do builder; nenhum 200 medido ali mede a aplicação.
+
+## TLS
+subject  = CN=diretrizprecifica.com
+issuer   = C=US, O=Let's Encrypt, CN=YE1
+validade = 2026-09-05 … 2026-12-04
+SANs     = DNS:diretrizprecifica.com, DNS:www.diretrizprecifica.com
+# Certificado automatizado (padrão Hostinger). Sem erro de cadeia nas sondas.
+
+## Leitura contra o destino declarado (ADR-039)
+ADR-039: "Hostinger Node/Nitro será o destino principal de diretrizprecifica.com APÓS validar
+revisão, banco, autenticação e todo o circuito de release. Vercel será o segundo destino de
+publicação manual do mesmo SHA aprovado. A seleção não comprova readiness nem autoriza conectar
+o domínio a um runtime 503."
+Medido hoje: o domínio serve o **Hostinger Horizons (builder estático)**, que NÃO é nem o runtime
+Node/Nitro da aplicação nem a Vercel. A validação condicionante do ADR-039 (revisão/banco/auth/
+circuito de release) segue não cumprida — portanto a migração não foi autorizada por esta medição.

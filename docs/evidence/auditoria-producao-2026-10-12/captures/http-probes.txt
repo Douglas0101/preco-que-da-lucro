@@ -1,0 +1,44 @@
+# Captura bruta de probes HTTP — sessão 2026-10-12T01:09:42Z (UTC)
+# Comando: curl -sS -o /tmp/body -D /tmp/hdr -w '%{http_code} %{time_total}' <url>
+
+==== HOST https://preco-que-da-lucro-sage.vercel.app
+/                          -> 200 0.264117s 9891b | ct=text/html; charset=utf-8 | x-vercel-id=gru1::iad1::9v4g4-1791767382554-5f963848574c
+   body[:200]=<!DOCTYPE html><html lang="pt-BR"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/assets/styles-BqnPtUyt.css" data-prece
+/api/health/live           -> 200 0.239896s 15b | ct=application/json | x-vercel-id=gru1::iad1::9v4g4-1791767382841-21b0ea84cca0
+   body[:200]={"status":"ok"}
+/api/health/ready          -> 200 0.337151s 51b | ct=application/json | x-vercel-id=gru1::iad1::j2xwb-1791767383107-a2a3e457096e
+   body[:200]={"status":"ready","dependencies":{"postgres":"ok"}}
+/api/health/readiness      -> 404 0.244064s 3381b | ct=text/html; charset=utf-8 | x-vercel-id=gru1::iad1::nfk27-1791767383486-e272bae87b32
+   body[:200]=<!DOCTYPE html><html lang="pt-BR"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/assets/styles-BqnPtUyt.css" data-prece
+/api/auth/get-session      -> 200 0.346006s 4b | ct=application/json | x-vercel-id=gru1::iad1::xk7gq-1791767383769-5c578cf5d313
+   body[:200]=null
+/auth                      -> 200 0.241679s 9063b | ct=text/html; charset=utf-8 | x-vercel-id=gru1::iad1::csrgz-1791767384129-c5ee8e67ab40
+   body[:200]=<!DOCTYPE html><html lang="pt-BR"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/assets/styles-BqnPtUyt.css" data-prece
+
+==== HOST https://preco-que-da-lucro.vercel.app
+/                          -> 200 0.262215s 9891b | ct=text/html; charset=utf-8 | x-vercel-id=gru1::iad1::6pwvb-1791767384392-cd02a1f7cc9e
+   body[:200]=<!DOCTYPE html><html lang="pt-BR"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/assets/styles-BqnPtUyt.css" data-prece
+/api/health/live           -> 200 0.222621s 15b | ct=application/json | x-vercel-id=gru1::iad1::nmz2l-1791767384682-8b054dd24dd5
+   body[:200]={"status":"ok"}
+/api/health/ready          -> 503 0.264303s 64b | ct=application/json | x-vercel-id=gru1::iad1::2rwq7-1791767384960-3638e95798a1
+   body[:200]={"status":"not_ready","dependencies":{"postgres":"unavailable"}}
+/api/health/readiness      -> 404 0.236120s 3381b | ct=text/html; charset=utf-8 | x-vercel-id=gru1::iad1::gnm5v-1791767385246-82d581f1e8c4
+   body[:200]=<!DOCTYPE html><html lang="pt-BR"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/assets/styles-BqnPtUyt.css" data-prece
+/api/auth/get-session      -> 500 0.226458s 1312b | ct=text/html; charset=utf-8 | x-vercel-id=gru1::iad1::2h46f-1791767385503-a66a76b602e8
+   body[:200]=<!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <title>This page didn't load</title> <meta name="viewport" content="width=device-width, initial-scale=1" /> <style> 
+/auth                      -> 200 0.242308s 9063b | ct=text/html; charset=utf-8 | x-vercel-id=gru1::iad1::sh2xk-1791767385758-e63f67cfc496
+   body[:200]=<!DOCTYPE html><html lang="pt-BR"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/assets/styles-BqnPtUyt.css" data-prece
+
+==== HOST https://diretrizprecifica.com
+/                          -> 200 0.259828s 7956b | ct=text/html | x-vercel-id=
+   body[:200]=<!doctype html> <html lang="pt-BR"> 	<head> 		<meta charset="UTF-8" /> 		<link rel="icon" type="image/svg+xml" href="/vite.svg" /> 		<meta name="generator" content="Hostinger AI Builder" /> 		<meta na
+/api/health/live           -> 200 0.290187s 7956b | ct=text/html | x-vercel-id=
+   body[:200]=<!doctype html> <html lang="pt-BR"> 	<head> 		<meta charset="UTF-8" /> 		<link rel="icon" type="image/svg+xml" href="/vite.svg" /> 		<meta name="generator" content="Hostinger AI Builder" /> 		<meta na
+/api/health/ready          -> 200 0.289651s 7956b | ct=text/html | x-vercel-id=
+   body[:200]=<!doctype html> <html lang="pt-BR"> 	<head> 		<meta charset="UTF-8" /> 		<link rel="icon" type="image/svg+xml" href="/vite.svg" /> 		<meta name="generator" content="Hostinger AI Builder" /> 		<meta na
+/api/health/readiness      -> 200 0.289474s 7956b | ct=text/html | x-vercel-id=
+   body[:200]=<!doctype html> <html lang="pt-BR"> 	<head> 		<meta charset="UTF-8" /> 		<link rel="icon" type="image/svg+xml" href="/vite.svg" /> 		<meta name="generator" content="Hostinger AI Builder" /> 		<meta na
+/api/auth/get-session      -> 200 0.283845s 7956b | ct=text/html | x-vercel-id=
+   body[:200]=<!doctype html> <html lang="pt-BR"> 	<head> 		<meta charset="UTF-8" /> 		<link rel="icon" type="image/svg+xml" href="/vite.svg" /> 		<meta name="generator" content="Hostinger AI Builder" /> 		<meta na
+/auth                      -> 200 0.094555s 7956b | ct=text/html | x-vercel-id=
+   body[:200]=<!doctype html> <html lang="pt-BR"> 	<head> 		<meta charset="UTF-8" /> 		<link rel="icon" type="image/svg+xml" href="/vite.svg" /> 		<meta name="generator" content="Hostinger AI Builder" /> 		<meta na

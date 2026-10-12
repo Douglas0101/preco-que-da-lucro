@@ -1,0 +1,91 @@
+# Vercel — topologia medida (read-only) em 2026-10-12, team team_2NnkSYjw5NRHAFnQFEPSHGmW
+# Fonte: MCP Vercel (get_project, list_deployments, get_deployment, list_aliases, get_alias,
+#        filter_project_envs SEM decrypt, get_runtime_errors, get_runtime_logs).
+# REGRA: nenhum valor de variável de ambiente foi lido/decifrado. Apenas nome, tipo, escopo,
+# timestamps e flags de segurança. Nenhum blob cifrado foi copiado para este pacote.
+
+## Projeto
+id            = prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+name          = preco-que-da-lucro
+framework     = tanstack-start-lovable      nodeVersion = 24.x
+ssoProtection = enabled / all_except_custom_domains
+domains       = apenas *.vercel.app (NÃO há custom domain anexado; `diretrizprecifica.com` não consta)
+repo          = Douglas0101/preco-que-da-lucro   (vercel.json: git.deploymentEnabled = false →
+                push de Git NÃO dispara build; publicação é manual por CLI/API)
+
+## Deployments (os 8 mais recentes; target=production marcado)
+dpl_6h2LTZ…  sha=fa45632 (PR #60)  target=production  READY  created=2026-10-08T17:45:32Z  regions=[iad1] type=LAMBDAS
+dpl_DjYNWE…  sha=ce9bd44 (develop) target=preview     READY  created=2026-10-06T19:16:40Z
+dpl_CzhQ5B…  sha=ce9bd44 (develop) target=preview     READY  created=2026-10-06T19:15:18Z
+dpl_4vNYv…   sha=d4b9395 (main)    target=production  ERROR  created=2026-10-06T18:42:12Z
+dpl_DHsbj…   sha=d4b9395 (main)    target=production  READY  created=2026-10-01T15:32:06Z  (rollbackCandidate)
+dpl_HAGFd…   sha=fd9449f (PR #50)  target=production  READY  created=2026-09-30T22:29:21Z
+dpl_36XYY…   sha=9724d2c (PR #47)  target=production  READY  created=2026-09-13T02:39:52Z
+dpl_CifKuc…  sha=ef2110e (PR #44)  target=production  READY  created=2026-09-12T03:15:43Z
+# NENHUM deployment para 40c1a35577c70c7d33424640648d52bfdedb8bde (main pós-PR #61)
+# NENHUM deployment para 182754fe98bb2f01ceafd5cad81bb890b71f18a3 (develop corrente)
+
+## Aliases (registros do projeto; `updatedAt` = último re-apontamento)
+preco-que-da-lucro-sage.vercel.app                                  → dpl_DHsbj (d4b9395)  updated 2026-10-08T19:00:33Z
+preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app   → dpl_DHsbj (d4b9395)  updated 2026-10-08T18:48:22Z
+preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app → dpl_DHsbj  updated 2026-10-08T18:48:22Z
+# Os dois re-apontamentos de 2026-10-08 18:48/19:00 ocorreram APÓS o dpl_6h2LTZ entrar no ar
+# (17:45) e começar a falhar (17:50) — rollback do alias público para a revisão antiga.
+# `preco-que-da-lucro.vercel.app` NÃO existe no escopo do time (GET /v4/aliases → 404) mas
+# RESPONDE publicamente (503/500) → alias legado fora do escopo deste token (humano, Via A).
+
+## Variáveis de ambiente — produção (nomes/escopo/timestamps; SEM valores)
+DATABASE_URL           type=sensitive  target=[production]            id=LQTKQMUeLWmQnHkM  updated=2026-10-06T16:37:23Z
+                       # variável MANUAL (configurationId=null) — a única fonte do valor de produção lido pelo app
+DATABASE_URL_UNPOOLED  type=encrypted  target=[production]            id=3a5WC1Pq69PZPRTW  created=2026-09-08  (configurationId=Neon icfg_eDeLFTSX3j7fPem6tn88RkGS)
+DATABASE_DRIVER        type=sensitive  target=[production, preview]
+BETTER_AUTH_URL · BETTER_AUTH_SECRET · AUTH_TRUSTED_ORIGINS · GOOGLE_CLIENT_ID · GOOGLE_CLIENT_SECRET
+RESEND_API_KEY · AUTH_EMAIL_FROM · AI_GATEWAY_URL · AI_GATEWAY_API_KEY · AI_MODEL · AI_REQUEST_TIMEOUT_MS
+AI_MODEL_TIMEOUT_MS · AI_MODEL_MAX_ATTEMPTS · AI_MAX_TOOL_ROUNDS · AI_CHAT_LIMIT_PER_10_MINUTES
+AI_DAILY_CHAT_LIMIT_PER_TENANT · AI_MODEL_PRICING_JSON · OTEL_SERVICE_NAME · OTEL_EXPORTER_OTLP_ENDPOINT
+CSP_ENFORCE            type=sensitive  target=[production, preview]   (todos presentes; valores nunca lidos)
+hiddenProductionEnvCount = 0
+
+## Variáveis — preview/develop (o que a integração Neon injeta)
+DATABASE_URL (gitBranch=develop) type=encrypted id=Uz32pe0QBkTu9ZRz createdAt=2026-09-08 updatedAt=2026-10-06T19:16:36Z
+DATABASE_URL_UNPOOLED (gitBranch=develop) type=encrypted updatedAt=2026-10-06T19:16:36Z
+NEON_AUTH_BASE_URL / VITE_NEON_AUTH_URL (Neon icfg) — preview(develop) e production
+BETTER_AUTH_URL — valor plain de PREVIEW (URL do deployment, público); AI_GATEWAY_URL/AI_MODEL de preview/develop
+= valores documentados em docs/runbooks/deepseek-web.md (api.deepseek.com/chat/completions, deepseek-flash)
+# Leitura de configuração: A integração Neon (icfg_eDeLFTSX3j7fPem6tn88RkGS, slug=neon) injeta
+# DATABASE_URL em preview/develop e development — mas NÃO há DATABASE_URL de integração para
+# production; lá a integração só mantém DATABASE_URL_UNPOOLED. A produção que o app lê é a
+# variável MANUAL sensitive, editada por último em 2026-10-06T16:37:23Z (ANTES do build do
+# dpl_6h2LTZ em 2026-10-08T17:45:32Z e DEPOIS do build do dpl_DHsbj funcional em 2026-10-01).
+
+## Erros de runtime (agregados, since=7d) — sem reter logs além de 1h no plano Hobby
+Classe 1 — dpl_6h2LTZ (fa45632), primeira hora em produção:
+  2026-10-08T17:50:54Z … 19:00:34Z  health.readiness_failed dependency=postgres
+                                    "Failed query: select 1 as ready\nparams: "  (×6)
+  get-session "Failed query: begin" com correlationIds a8499878-1217-424e-ab28-8bbf7430aa62 (17:50:56Z),
+  6b0ce8e2-2fe8-429d-81ec-b91d6cb660ea (17:51:34Z), 8a0b3a2c-f6d1-4331-ae44-a36c620b8aa6 (18:42:25Z)
+Classe 2 — deploys de preview (Oct 6): Better Auth "RESEND_API_KEY/AUTH_EMAIL_FROM obrigatórias",
+  "Provider not found {provider:'google'}", "Invalid origin", rate_limits em GET /get-session — pré-main,
+  fora do escopo desta missão (registradas para completude).
+
+## Log fresco decisivo — 2026-10-12T01:49:44Z, dpl_6h2LTZ (request cg2s9-1791769783876-dc32a06511b2,
+## domain=preco-que-da-lucro-gssnblvr8.vercel.app, environment=production, region=iad1)
+  stderr  Uncaught Exception: Error: Unhandled error. ()
+          at Un.emit (file:///var/task/_libs/neondatabase__serverless.mjs:1073:28)
+          at kn.idleListener (…/neondatabase__serverless.mjs:3964:24)
+          at kn._handleErrorEvent (…/neondatabase__serverless.mjs:3798:57)
+          at S.reportStreamError (…/neondatabase__serverless.mjs:3574:71)
+          at WebSocket.<anonymous> (…/neondatabase__serverless.mjs:1434:11)
+  error   {"event":"health.readiness_failed","dependency":"postgres","error":{"message":"Failed query: select 1 as ready\nparams: "}}
+  stdout  {"event":"request.completed","correlationId":"a4491fa0-f939-42e7-9ce3-b7547cbd1e6f","status":503,"durationMs":124}
+# Leitura: a falha de HOJE é no driver @neondatabase/serverless (WebSocket/proxy Neon), não no edge
+# da Vercel. O 503 é consequência; o classificador de causa (ready.ts novo, em develop) ainda não
+# está publicado — é exatamente o F4 da auditoria anterior.
+
+## Limites de leitura (declarados)
+1. Retenção de log de runtime no plano Hobby = 1h; `since=2h` e `since=7d` foram rejeitados com
+   400 pelo próprio provedor; o attempt de leitura dos logs de 2026-10-08 é impossível hoje.
+2. Os valores de DATABASE_URL (sensitive/encrypted) nunca foram decifrados — a identidade do
+   endpoint-alvo do deployment quebrado NÃO é legível com este token; exige Via A humana.
+3. `preco-que-da-lucro.vercel.app` está fora do escopo deste token (alias legado); a atribuição
+   "qual deployment o serve" não pôde ser confirmada pela API do time.

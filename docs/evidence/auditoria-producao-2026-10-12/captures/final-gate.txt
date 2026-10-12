@@ -1,0 +1,47 @@
+# Gate local final — árvore definitiva da auditoria
+
+Comando: `set -a; . ./.env; set +a; npm run check`
+Data (UTC): 2026-10-12 · Árvore: `develop` `HEAD = 182754fe98bb2f01ceafd5cad81bb890b71f18a3`
+Estado da árvore no momento do gate: ` M docs/evidence/agent-state/PROGRESS.md` +
+`?? docs/evidence/auditoria-producao-2026-10-12/` (nada mais; zero arquivo de código tocado)
+
+```
+=== CHECK EXIT=0 DURATION=205s ===
+```
+
+Cadeia de 21 passos: **todos verdes**, incluindo `m02:temporal-guard`, `m02:state:check`,
+`m02:work-package-guard`, `m02:debts-guard`, `m02:secrets-audit`, `m02:boundaries`,
+`format:check` (`prettier --check .` → *All matched files use Prettier code style!*), `lint`,
+`typecheck`, `test`, `build`, `check:bundle`.
+
+Suíte de testes (vitest, dentro da cadeia):
+
+```
+ Test Files  143 passed (143)
+      Tests  2198 passed (2198)
+   Duration  148.40s (transform 2.18s, setup 11.25s, import 27.02s, tests 29.88s, environment 66.10s)
+```
+
+`check:bundle`: `assets/index-DRI3LDON.js: 249790 minified, 77208 gzip, 67166 Brotli bytes,
+sha256=30ca04baaa66`; grafo inicial (9 chunks): `484736 minified, 155714 gzip, 137127 Brotli bytes,
+sha256=ffcafa3794f1`.
+
+## Contexto: o FAIL intermediário do mesmo gate (antes de formatar este pacote)
+
+O mesmo comando, executado antes de `npx prettier --write` nos dois `.md` deste pacote, parou em
+`format:check` (passo 16/21, `EXIT=1`) **exclusivamente** por estes arquivos **não rastreados**:
+
+```
+[warn] docs/evidence/auditoria-producao-2026-10-12/RAW-EVIDENCE-LOG.md
+[warn] docs/evidence/auditoria-producao-2026-10-12/REPORT.md
+[warn] Code style issues found in the above file.
+```
+
+Nenhum arquivo rastreado estava fora de formato (o `PROGRESS.md` alterado nesta sessão incluído).
+Após formatar o pacote, a cadeia completa passou (`EXIT=0`, acima). Registrado aqui porque a
+diferença entre os dois resultados é do **pacote**, não do repositório — e não deve ser omitida.
+
+## Limites declarados desta bancada
+
+Não executados: `test:e2e`, `test:visual`, Playwright contra produção, migrations remotas,
+`ALLOW_REMOTE_DB`. Nenhum `git commit/push/checkout/stash/clean/reset`.
