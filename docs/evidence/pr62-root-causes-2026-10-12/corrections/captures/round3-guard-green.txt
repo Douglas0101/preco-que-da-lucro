@@ -1,0 +1,30 @@
+$ mkdir -p .scannerwork && : > .scannerwork/report-task.txt   # o estagiamento real do sonar.yml
+$ git check-ignore --quiet -- .scannerwork/report-task.txt; echo exit=$?
+exit=0
+
+$ git status --porcelain -z --untracked-files=all | tr '\0' '\n' | grep -c scannerwork
+0
+0 (nenhuma entrada do scannerwork visível)
+
+$ npm run test -- src/test/sonar-pr-applicability.test.ts
+# 2026-10-12T14:20:51Z
+
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run src/test/sonar-pr-applicability.test.ts
+
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+
+ Test Files  1 passed (1)
+      Tests  50 passed (50)
+   Start at  11:20:52
+   Duration  6.03s (transform 85ms, setup 109ms, import 78ms, tests 5.23s, environment 505ms)
+
+
+# exit=0

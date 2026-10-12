@@ -1,0 +1,23 @@
+$ gh run view 38259113709 --repo Douglas0101/preco-que-da-lucro --json headSha,event,status,conclusion --jq .
+{"conclusion":"failure","event":"pull_request","headSha":"d8f77f93d48cbde3d999ba311f8e4050c2595cc0","status":"completed"}
+
+$ gh run view 38259113709 --json jobs --jq ".jobs[] | {name, conclusion, failed: [.steps[] | select(.conclusion==\"failure\") | \"\(.number):\(.name)\"]}"
+{"conclusion":"failure","failed":["10:Nomear veredito do CE desta análise (sem token no log)"],"name":"scan + cobertura"}
+{"conclusion":"failure","failed":["11:Observe the conservative mirror without granting main approval"],"name":"main-coverage-mirror"}
+
+# scan + cobertura (job 114844760543): passo 10 "Nomear veredito do CE desta análise" exit 2
+$ gh run view --job 114844760543 --log | grep -E "C25_CE_GATE|##\[error\]"
+scan + cobertura	Nomear veredito do CE desta análise (sem token no log)	2026-10-12T13:57:49.0643082Z C25_CE_GATE {"schema":"c25-ce-gate-readout/1","observedAt":"2026-10-12T13:57:49.063Z","status":"NO-VERDICT","reason":"gate aplicabilidade indisponível: NO-VERDICT (PR_WORKTREE_DIRTY)","providerIdentity":{"revision":"53f8d3ac9c6668d01f2317b8e66dcaebd30f9e8d","branch":"develop","pullRequest":"62"},"p
+scan + cobertura	Nomear veredito do CE desta análise (sem token no log)	2026-10-12T13:57:49.0880571Z ##[error]Process completed with exit code 2.
+
+# main-coverage-mirror (job 114845837000): adapter informacional, espelho exit 1 em CANDIDATE_READOUT_UNAVAILABLE
+$ gh run view --job 114845837000 --log | grep -E "Main unit adapter|NO-VERDICT|##\[error\]"
+main-coverage-mirror	Read authoritative main units at the current SHA	2026-10-12T13:58:06.9498254Z C24_MAIN_BASELINE {"schema":"main-baseline/2","mode":"observe-main","approvesMain":false,"observedAt":"2026-10-12T13:58:06.947Z","mainSha":"40c1a35577c70c7d33424640648d52bfdedb8bde","analysisId":"08d02858-5846-445b-b349-9e1fc4fe6ba3","analysisDate":"2026-10-11T15:02:02+0000","gate":{"status":"ERROR",
+main-coverage-mirror	Observe authenticated source unit capabilities without exposing source or tokens	2026-10-12T13:58:09.3243289Z C26_UNIT_CAPABILITY {"schema":"main-unit-probe/1","observedAt":"2026-10-12T13:58:07.013Z","verdict":"NO-VERDICT","scope":"one-file capability probe; no unit credit","requests":[{"origin":"github","path":"/repos/Douglas0101/preco-que-da-lucro/branches/main","status":200
+main-coverage-mirror	Map all main units only with original scanner provenance	2026-10-12T13:58:13.3031341Z Main unit adapter NO-VERDICT: {"phase":"origin","code":"ORIGINAL_PROVENANCE_UNAVAILABLE"}
+main-coverage-mirror	Map all main units only with original scanner provenance	2026-10-12T13:58:13.3147792Z ### Main coverage adapter: NO-VERDICT
+main-coverage-mirror	Map all main units only with original scanner provenance	2026-10-12T13:58:13.3148298Z Raw status: NO-VERDICT; raw exit: 2.
+main-coverage-mirror	Observe the conservative mirror without granting main approval	2026-10-12T13:58:13.5412387Z NO-VERDICT: CANDIDATE_READOUT_UNAVAILABLE
+main-coverage-mirror	Observe the conservative mirror without granting main approval	2026-10-12T13:58:13.5547083Z ##[error]Mirror observation execution/evidence failed; inspect preserved raw reports.
+main-coverage-mirror	Observe the conservative mirror without granting main approval	2026-10-12T13:58:13.5553375Z Raw status: NO-VERDICT; raw exit: 2.
+main-coverage-mirror	Observe the conservative mirror without granting main approval	2026-10-12T13:58:13.5606505Z ##[error]Process completed with exit code 1.

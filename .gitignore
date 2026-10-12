@@ -73,6 +73,12 @@ dist-ssr
 .tanstack/**
 .nitro
 coverage
+# Metadata do scanner estagiado DENTRO do checkout por `.github/workflows/sonar.yml`
+# antes do passo que constrói a prova ADR-044 (o readout lê este arquivo). A prova
+# exige worktree git-limpo; o artefato é declarado ignorado — mesmo tratamento de
+# `coverage` — e um teste pina todo caminho `$PWD/**` do workflow contra as regras de
+# ignore (`src/test/sonar-pr-applicability.test.ts`, run 38259113709 / DBT-108).
+.scannerwork/
 .artifacts/
 /artifacts/
 /backups/

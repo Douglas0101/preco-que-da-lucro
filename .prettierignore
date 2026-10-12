@@ -47,3 +47,8 @@ docs/evidence/pr61-mirror-divergence-2026-10-11/captures/remote/**
 # artifacts before retention expired. Evidence, not source: sealed like the PR #61
 # remote captures, never formatter-mutated. Scoped to this run's capture subtree.
 docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38206302116/**
+
+# Raw artifacts of the PR #62 run 38259113709 (round 3: PR_WORKTREE_DIRTY on the
+# required check and CANDIDATE_READOUT_UNAVAILABLE on the mirror), copied
+# byte-for-byte from the workflow artifacts. Same seal, same reason.
+docs/evidence/pr62-root-causes-2026-10-12/corrections/captures/run-38259113709/**

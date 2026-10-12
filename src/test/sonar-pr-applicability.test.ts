@@ -10,7 +10,8 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { ceVerdict, releaseVerdict } from "../../scripts/sonar/gate-readout";
 import { prApplicability } from "../../scripts/sonar/pr-applicability";
@@ -621,5 +622,34 @@ describe("ADR-044 · CLI real conserva CE, prova, veredito e recusas", () => {
     } finally {
       f.cleanup();
     }
+  });
+});
+
+/**
+ * ADR-044, terceira rodada (run 38259113709): a precondição de worktree limpo mede o
+ * checkout real, mas o pipeline do scanner estagia o metadata DENTRO dele
+ * (`.scannerwork/report-task.txt`) antes do readout. A fixture declarava
+ * `.scannerwork/` no `.gitignore` e o repositório real não — o run recusou com
+ * `PR_WORKTREE_DIRTY` e o check exigido `scan + cobertura` saiu 2. Este teste pina o
+ * acoplamento nas duas direções: a descoberta vazia reprova e todo caminho `$PWD/**`
+ * referenciado pelo `sonar.yml` real tem de estar coberto pelas regras de ignore do
+ * Git; o controle negativo mostra o mesmo comando distinguindo um caminho não
+ * declarado.
+ */
+describe("ADR-044 · o estagiamento do workflow no checkout é declarado ignorado", () => {
+  const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+  const workflow = readFileSync(resolve(repoRoot, ".github/workflows/sonar.yml"), "utf8");
+  const staged = [...workflow.matchAll(/\$PWD\/([A-Za-z0-9._/-]+)/g)].map((match) => match[1]!);
+  const unique = [...new Set(staged)];
+  const checkIgnore = (path: string) =>
+    spawnSync("git", ["check-ignore", "--quiet", "--", path], { cwd: repoRoot }).status;
+
+  it("descoberta não vazia e todo caminho estagiado em $PWD é ignorado", () => {
+    expect(unique.length).toBeGreaterThan(0);
+    for (const path of unique) expect(checkIgnore(path), path).toBe(0);
+  });
+
+  it("NEG — o mesmo comando distingue um caminho não declarado", () => {
+    expect(checkIgnore("probe-never-ignored.txt")).toBe(1);
   });
 });

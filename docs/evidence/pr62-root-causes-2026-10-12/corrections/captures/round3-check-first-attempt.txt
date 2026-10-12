@@ -1,0 +1,665 @@
+$ npm run check
+# execução final sobre os bytes congelados da rodada 3 (pré-publicação)
+# 2026-10-12T14:49:56Z
+
+
+> check
+> npm run m02:lockfile-guard && npm run guard:upgrade && npm run check:migration-toolchain && npm run guard:contracts && npm run m02:work-package-guard && npm run m02:debts-guard && npm run m02:temporal-guard && npm run m02:state:check && npm run m02:boundaries && npm run m02:secrets-audit && npm run guard:mcp-runtime && npm run m02:seal-dts:check && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle
+
+
+> m02:lockfile-guard
+> node scripts/m02-lockfile-guard.mjs
+
+{
+  "schema": "m02-lockfile-guard/1",
+  "ok": true,
+  "status": "pass",
+  "generatedAt": "2026-10-12T14:49:57.146Z",
+  "repo": "/home/douglas/WebstormProjects/preco-que-da-lucro",
+  "observed": {
+    "policyRange": {
+      "package": "drizzle-kit",
+      "min": "0.31.0",
+      "max": "0.31.99",
+      "criticality": "critical"
+    },
+    "spec": "^0.31.10",
+    "lockSpec": "^0.31.10",
+    "lockResolvedVersion": "0.31.10",
+    "lockSha256": "7e4837436a8566d7e8c0ae30dcc272f77a7870b23b945d76c56688d5a9141676",
+    "headLockSha256": "7e4837436a8566d7e8c0ae30dcc272f77a7870b23b945d76c56688d5a9141676",
+    "installedVersion": "0.31.10"
+  },
+  "checks": [
+    {
+      "id": "dependency-policy",
+      "status": "pass",
+      "detail": "drizzle-kit aprovado em 0.31.0 → 0.31.99"
+    },
+    {
+      "id": "package-json-devdep",
+      "status": "pass",
+      "detail": "spec '^0.31.10'"
+    },
+    {
+      "id": "lock-top-spec",
+      "status": "pass",
+      "detail": "lock '^0.31.10'"
+    },
+    {
+      "id": "lock-resolved",
+      "status": "pass",
+      "detail": "resolvido 0.31.10"
+    },
+    {
+      "id": "lock-sha256-head",
+      "status": "pass",
+      "detail": "7e4837436a8566d7e8c0ae30dcc272f77a7870b23b945d76c56688d5a9141676"
+    },
+    {
+      "id": "node-modules-installed",
+      "status": "pass",
+      "detail": "instalado 0.31.10"
+    }
+  ],
+  "reasons": [],
+  "hint": "git checkout -- package.json package-lock.json && npm ci --ignore-scripts && npm run m02:lockfile-guard"
+}
+
+> guard:upgrade
+> tsx scripts/lib/upgrade-guard.ts
+
+{
+  "schema": "upgrade-guard/1",
+  "ok": true,
+  "status": "pass",
+  "generatedAt": "2026-10-12T14:49:57.494Z",
+  "repo": "/home/douglas/WebstormProjects/preco-que-da-lucro",
+  "observed": {
+    "policySchema": "dependency-policy/1",
+    "policyPackages": 15,
+    "approvalsDir": "scripts/dependency-approvals",
+    "approvals": 0,
+    "specs": 67,
+    "lockResolved": 744,
+    "installed": 15,
+    "headSpecs": 67
+  },
+  "checks": [
+    {
+      "id": "policy-schema",
+      "status": "pass",
+      "detail": "schema dependency-policy/1"
+    },
+    {
+      "id": "policy-entry[0]",
+      "status": "pass",
+      "detail": "drizzle-kit (entrada): critical em 0.31.0..0.31.99"
+    },
+    {
+      "id": "policy-entry[1]",
+      "status": "pass",
+      "detail": "drizzle-orm (entrada): critical em 0.45.0..0.45.99"
+    },
+    {
+      "id": "policy-entry[2]",
+      "status": "pass",
+      "detail": "pg (entrada): critical em 8.23.0..8.99.99"
+    },
+    {
+      "id": "policy-entry[3]",
+      "status": "pass",
+      "detail": "@neondatabase/serverless (entrada): critical em 1.1.0..1.99.99"
+    },
+    {
+      "id": "policy-entry[4]",
+      "status": "pass",
+      "detail": "zod (entrada): critical em 4.4.0..4.99.99"
+    },
+    {
+      "id": "policy-entry[5]",
+      "status": "pass",
+      "detail": "decimal.js (entrada): critical em 10.6.0..10.6.99"
+    },
+    {
+      "id": "policy-entry[6]",
+      "status": "pass",
+      "detail": "@tanstack/react-start (entrada): critical em 1.168.60..1.99.99"
+    },
+    {
+      "id": "policy-entry[7]",
+      "status": "pass",
+      "detail": "@tanstack/react-router (entrada): critical em 1.170.0..1.99.99"
+    },
+    {
+      "id": "policy-entry[8]",
+      "status": "pass",
+      "detail": "@tanstack/react-query (entrada): high em 5.101.0..5.99.99"
+    },
+    {
+      "id": "policy-entry[9]",
+      "status": "pass",
+      "detail": "react (entrada): critical em 19.2.0..19.99.99"
+    },
+    {
+      "id": "policy-entry[10]",
+      "status": "pass",
+      "detail": "react-dom (entrada): critical em 19.2.0..19.99.99"
+    },
+    {
+      "id": "policy-entry[11]",
+      "status": "pass",
+      "detail": "better-auth (entrada): critical em 1.6.0..1.99.99"
+    },
+    {
+      "id": "policy-entry[12]",
+      "status": "pass",
+      "detail": "vite (entrada): high em 8.0.0..8.99.99"
+    },
+    {
+      "id": "policy-entry[13]",
+      "status": "pass",
+      "detail": "typescript (entrada): medium em 5.8.0..5.99.99"
+    },
+    {
+      "id": "policy-entry[14]",
+      "status": "pass",
+      "detail": "vitest (entrada): medium em 4.1.0..4.99.99"
+    },
+    {
+      "id": "spec:drizzle-kit",
+      "status": "pass",
+      "detail": "drizzle-kit (spec): ^0.31.10 => 0.31.10 em 0.31.0 <= versão <= 0.31.99"
+    },
+    {
+      "id": "lock:drizzle-kit",
+      "status": "pass",
+      "detail": "drizzle-kit (lockfile): 0.31.10 em 0.31.0 <= versão <= 0.31.99"
+    },
+    {
+      "id": "installed:drizzle-kit",
+      "status": "pass",
+      "detail": "drizzle-kit (node_modules): 0.31.10 em 0.31.0 <= versão <= 0.31.99"
+    },
+    {
+      "id": "downgrade:drizzle-kit",
+      "status": "pass",
+      "detail": "drizzle-kit (downgrade): observado 0.31.10 a partir de 0.31.10, esperado >= 0.31.10"
+    },
+    {
+      "id": "spec:drizzle-orm",
+      "status": "pass",
+      "detail": "drizzle-orm (spec): ^0.45.2 => 0.45.2 em 0.45.0 <= versão <= 0.45.99"
+    },
+    {
+      "id": "lock:drizzle-orm",
+      "status": "pass",
+      "detail": "drizzle-orm (lockfile): 0.45.2 em 0.45.0 <= versão <= 0.45.99"
+    },
+    {
+      "id": "installed:drizzle-orm",
+      "status": "pass",
+      "detail": "drizzle-orm (node_modules): 0.45.2 em 0.45.0 <= versão <= 0.45.99"
+    },
+    {
+      "id": "downgrade:drizzle-orm",
+      "status": "pass",
+      "detail": "drizzle-orm (downgrade): observado 0.45.2 a partir de 0.45.2, esperado >= 0.45.2"
+    },
+    {
+      "id": "spec:pg",
+      "status": "pass",
+      "detail": "pg (spec): ^8.23.0 => 8.23.0 em 8.23.0 <= versão <= 8.99.99"
+    },
+    {
+      "id": "lock:pg",
+      "status": "pass",
+      "detail": "pg (lockfile): 8.23.0 em 8.23.0 <= versão <= 8.99.99"
+    },
+    {
+      "id": "installed:pg",
+      "status": "pass",
+      "detail": "pg (node_modules): 8.23.0 em 8.23.0 <= versão <= 8.99.99"
+    },
+    {
+      "id": "downgrade:pg",
+      "status": "pass",
+      "detail": "pg (downgrade): observado 8.23.0 a partir de 8.23.0, esperado >= 8.23.0"
+    },
+    {
+      "id": "spec:@neondatabase/serverless",
+      "status": "pass",
+      "detail": "@neondatabase/serverless (spec): ^1.1.0 => 1.1.0 em 1.1.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "lock:@neondatabase/serverless",
+      "status": "pass",
+      "detail": "@neondatabase/serverless (lockfile): 1.1.0 em 1.1.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "installed:@neondatabase/serverless",
+      "status": "pass",
+      "detail": "@neondatabase/serverless (node_modules): 1.1.0 em 1.1.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "downgrade:@neondatabase/serverless",
+      "status": "pass",
+      "detail": "@neondatabase/serverless (downgrade): observado 1.1.0 a partir de 1.1.0, esperado >= 1.1.0"
+    },
+    {
+      "id": "spec:zod",
+      "status": "pass",
+      "detail": "zod (spec): ^4.4.3 => 4.4.3 em 4.4.0 <= versão <= 4.99.99"
+    },
+    {
+      "id": "lock:zod",
+      "status": "pass",
+      "detail": "zod (lockfile): 4.6.5 em 4.4.0 <= versão <= 4.99.99"
+    },
+    {
+      "id": "installed:zod",
+      "status": "pass",
+      "detail": "zod (node_modules): 4.6.5 em 4.4.0 <= versão <= 4.99.99"
+    },
+    {
+      "id": "downgrade:zod",
+      "status": "pass",
+      "detail": "zod (downgrade): observado 4.4.3 a partir de 4.4.3, esperado >= 4.4.3"
+    },
+    {
+      "id": "spec:decimal.js",
+      "status": "pass",
+      "detail": "decimal.js (spec): 10.6.0 => 10.6.0 em 10.6.0 <= versão <= 10.6.99"
+    },
+    {
+      "id": "lock:decimal.js",
+      "status": "pass",
+      "detail": "decimal.js (lockfile): 10.6.0 em 10.6.0 <= versão <= 10.6.99"
+    },
+    {
+      "id": "installed:decimal.js",
+      "status": "pass",
+      "detail": "decimal.js (node_modules): 10.6.0 em 10.6.0 <= versão <= 10.6.99"
+    },
+    {
+      "id": "downgrade:decimal.js",
+      "status": "pass",
+      "detail": "decimal.js (downgrade): observado 10.6.0 a partir de 10.6.0, esperado >= 10.6.0"
+    },
+    {
+      "id": "spec:@tanstack/react-start",
+      "status": "pass",
+      "detail": "@tanstack/react-start (spec): 1.168.60 => 1.168.60 em 1.168.60 <= versão <= 1.99.99"
+    },
+    {
+      "id": "lock:@tanstack/react-start",
+      "status": "pass",
+      "detail": "@tanstack/react-start (lockfile): 1.168.60 em 1.168.60 <= versão <= 1.99.99"
+    },
+    {
+      "id": "installed:@tanstack/react-start",
+      "status": "pass",
+      "detail": "@tanstack/react-start (node_modules): 1.168.60 em 1.168.60 <= versão <= 1.99.99"
+    },
+    {
+      "id": "downgrade:@tanstack/react-start",
+      "status": "pass",
+      "detail": "@tanstack/react-start (downgrade): observado 1.168.60 a partir de 1.168.60, esperado >= 1.168.60"
+    },
+    {
+      "id": "spec:@tanstack/react-router",
+      "status": "pass",
+      "detail": "@tanstack/react-router (spec): 1.170.41 => 1.170.41 em 1.170.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "lock:@tanstack/react-router",
+      "status": "pass",
+      "detail": "@tanstack/react-router (lockfile): 1.170.41 em 1.170.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "installed:@tanstack/react-router",
+      "status": "pass",
+      "detail": "@tanstack/react-router (node_modules): 1.170.41 em 1.170.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "downgrade:@tanstack/react-router",
+      "status": "pass",
+      "detail": "@tanstack/react-router (downgrade): observado 1.170.41 a partir de 1.170.41, esperado >= 1.170.41"
+    },
+    {
+      "id": "spec:@tanstack/react-query",
+      "status": "pass",
+      "detail": "@tanstack/react-query (spec): ^5.101.1 => 5.101.1 em 5.101.0 <= versão <= 5.99.99"
+    },
+    {
+      "id": "lock:@tanstack/react-query",
+      "status": "pass",
+      "detail": "@tanstack/react-query (lockfile): 5.102.8 em 5.101.0 <= versão <= 5.99.99"
+    },
+    {
+      "id": "installed:@tanstack/react-query",
+      "status": "pass",
+      "detail": "@tanstack/react-query (node_modules): 5.102.8 em 5.101.0 <= versão <= 5.99.99"
+    },
+    {
+      "id": "downgrade:@tanstack/react-query",
+      "status": "pass",
+      "detail": "@tanstack/react-query (downgrade): observado 5.101.1 a partir de 5.101.1, esperado >= 5.101.1"
+    },
+    {
+      "id": "spec:react",
+      "status": "pass",
+      "detail": "react (spec): ^19.2.0 => 19.2.0 em 19.2.0 <= versão <= 19.99.99"
+    },
+    {
+      "id": "lock:react",
+      "status": "pass",
+      "detail": "react (lockfile): 19.2.8 em 19.2.0 <= versão <= 19.99.99"
+    },
+    {
+      "id": "installed:react",
+      "status": "pass",
+      "detail": "react (node_modules): 19.2.8 em 19.2.0 <= versão <= 19.99.99"
+    },
+    {
+      "id": "downgrade:react",
+      "status": "pass",
+      "detail": "react (downgrade): observado 19.2.0 a partir de 19.2.0, esperado >= 19.2.0"
+    },
+    {
+      "id": "spec:react-dom",
+      "status": "pass",
+      "detail": "react-dom (spec): ^19.2.0 => 19.2.0 em 19.2.0 <= versão <= 19.99.99"
+    },
+    {
+      "id": "lock:react-dom",
+      "status": "pass",
+      "detail": "react-dom (lockfile): 19.2.8 em 19.2.0 <= versão <= 19.99.99"
+    },
+    {
+      "id": "installed:react-dom",
+      "status": "pass",
+      "detail": "react-dom (node_modules): 19.2.8 em 19.2.0 <= versão <= 19.99.99"
+    },
+    {
+      "id": "downgrade:react-dom",
+      "status": "pass",
+      "detail": "react-dom (downgrade): observado 19.2.0 a partir de 19.2.0, esperado >= 19.2.0"
+    },
+    {
+      "id": "spec:better-auth",
+      "status": "pass",
+      "detail": "better-auth (spec): ^1.6.27 => 1.6.27 em 1.6.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "lock:better-auth",
+      "status": "pass",
+      "detail": "better-auth (lockfile): 1.7.2 em 1.6.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "installed:better-auth",
+      "status": "pass",
+      "detail": "better-auth (node_modules): 1.7.2 em 1.6.0 <= versão <= 1.99.99"
+    },
+    {
+      "id": "downgrade:better-auth",
+      "status": "pass",
+      "detail": "better-auth (downgrade): observado 1.6.27 a partir de 1.6.27, esperado >= 1.6.27"
+    },
+    {
+      "id": "spec:vite",
+      "status": "pass",
+      "detail": "vite (spec): ^8.0.16 => 8.0.16 em 8.0.0 <= versão <= 8.99.99"
+    },
+    {
+      "id": "lock:vite",
+      "status": "pass",
+      "detail": "vite (lockfile): 8.2.2 em 8.0.0 <= versão <= 8.99.99"
+    },
+    {
+      "id": "installed:vite",
+      "status": "pass",
+      "detail": "vite (node_modules): 8.2.2 em 8.0.0 <= versão <= 8.99.99"
+    },
+    {
+      "id": "downgrade:vite",
+      "status": "pass",
+      "detail": "vite (downgrade): observado 8.0.16 a partir de 8.0.16, esperado >= 8.0.16"
+    },
+    {
+      "id": "spec:typescript",
+      "status": "pass",
+      "detail": "typescript (spec): ^5.8.3 => 5.8.3 em 5.8.0 <= versão <= 5.99.99"
+    },
+    {
+      "id": "lock:typescript",
+      "status": "pass",
+      "detail": "typescript (lockfile): 5.9.3 em 5.8.0 <= versão <= 5.99.99"
+    },
+    {
+      "id": "installed:typescript",
+      "status": "pass",
+      "detail": "typescript (node_modules): 5.9.3 em 5.8.0 <= versão <= 5.99.99"
+    },
+    {
+      "id": "downgrade:typescript",
+      "status": "pass",
+      "detail": "typescript (downgrade): observado 5.8.3 a partir de 5.8.3, esperado >= 5.8.3"
+    },
+    {
+      "id": "spec:vitest",
+      "status": "pass",
+      "detail": "vitest (spec): ^4.1.10 => 4.1.10 em 4.1.0 <= versão <= 4.99.99"
+    },
+    {
+      "id": "lock:vitest",
+      "status": "pass",
+      "detail": "vitest (lockfile): 4.1.11 em 4.1.0 <= versão <= 4.99.99"
+    },
+    {
+      "id": "installed:vitest",
+      "status": "pass",
+      "detail": "vitest (node_modules): 4.1.11 em 4.1.0 <= versão <= 4.99.99"
+    },
+    {
+      "id": "downgrade:vitest",
+      "status": "pass",
+      "detail": "vitest (downgrade): observado 4.1.10 a partir de 4.1.10, esperado >= 4.1.10"
+    },
+    {
+      "id": "dependency-families",
+      "status": "pass",
+      "detail": "pares resolvidos React e contratos compartilhados TanStack conferidos"
+    }
+  ],
+  "reasons": [],
+  "informative": [],
+  "hint": "npm run guard:upgrade; downgrade de pacote critical exige Downgrade Request em scripts/dependency-approvals"
+}
+
+> check:migration-toolchain
+> tsx scripts/lib/migration-toolchain-guard.ts
+
+{
+  "schema": "migration-toolchain-guard/1",
+  "ok": true,
+  "status": "pass",
+  "generatedAt": "2026-10-12T14:49:57.785Z",
+  "repo": "/home/douglas/WebstormProjects/preco-que-da-lucro",
+  "observed": {
+    "repo": "/home/douglas/WebstormProjects/preco-que-da-lucro",
+    "policyMin": "0.31.0",
+    "policyMax": "0.31.99",
+    "criticality": "critical",
+    "installedVersion": "0.31.10",
+    "typesPath": "node_modules/drizzle-kit/index.d.mts",
+    "typesDeclaresDefineConfig": true,
+    "dialect": "postgresql",
+    "out": "./drizzle",
+    "configError": null,
+    "migrationsFound": 20,
+    "migrationsClassified": 20,
+    "unclassified": [],
+    "envNames": [
+      "DATABASE_URL",
+      "DATABASE_ADMIN_URL",
+      "DATABASE_DRIVER",
+      "SUPABASE_MIGRATION_DATABASE_URL",
+      "MIGRATION_APPLY",
+      "MIGRATION_ALLOW_UPSERT",
+      "MIGRATION_REPORT_PATH",
+      "BETTER_AUTH_URL",
+      "BETTER_AUTH_SECRET",
+      "AUTH_TRUSTED_ORIGINS",
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "RESEND_API_KEY",
+      "AUTH_EMAIL_FROM",
+      "AI_GATEWAY_URL",
+      "AI_GATEWAY_API_KEY",
+      "AI_MODEL",
+      "AI_REQUEST_TIMEOUT_MS",
+      "AI_MODEL_TIMEOUT_MS",
+      "AI_MODEL_MAX_ATTEMPTS",
+      "AI_MAX_TOOL_ROUNDS",
+      "AI_CHAT_LIMIT_PER_10_MINUTES",
+      "AI_DAILY_CHAT_LIMIT_PER_TENANT",
+      "DEEPSEEK_API_KEY",
+      "AI_MODEL_PRICING_JSON",
+      "OTEL_SERVICE_NAME",
+      "OTEL_EXPORTER_OTLP_ENDPOINT",
+      "OTEL_TRACES_SAMPLER",
+      "OTEL_TRACES_SAMPLER_ARG",
+      "RUM_PERSISTENCE_ENABLED",
+      "CSP_ENFORCE"
+    ],
+    "requiredEnv": [
+      "DATABASE_URL",
+      "DATABASE_ADMIN_URL"
+    ]
+  },
+  "checks": [
+    {
+      "id": "migration-toolchain",
+      "status": "pass",
+      "detail": "toolchain 0.31.10 na faixa 0.31.0..0.31.99; defineConfig presente; 20 migration(s) classificadas; env declarado"
+    }
+  ],
+  "reasons": [],
+  "hint": "Restaure a faixa aprovada em scripts/dependency-policy.json, rode `npm ci --ignore-scripts` e reexecute o guard; para rebaixar de propósito, abra Downgrade Request com teste comparativo (docs/upgrades/MIGRATION-TOOLCHAIN-POLICY.md)."
+}
+
+> guard:contracts
+> tsx scripts/lib/contract-guard.ts
+
+{
+  "schema": "contract-guard/1",
+  "ok": true,
+  "status": "pass",
+  "generatedAt": "2026-10-12T14:49:58.057Z",
+  "repo": "/home/douglas/WebstormProjects/preco-que-da-lucro",
+  "observed": {
+    "repo": "/home/douglas/WebstormProjects/preco-que-da-lucro",
+    "scannedFiles": [
+      "src/lib/break-even.functions.ts",
+      "src/lib/chat.functions.ts",
+      "src/lib/dashboard.functions.ts",
+      "src/lib/diagnostic.functions.ts",
+      "src/lib/expenses.functions.ts",
+      "src/lib/financial.functions.ts",
+      "src/lib/products.functions.ts",
+      "src/lib/sales.functions.ts"
+    ],
+    "serverFunctions": 35,
+    "functionsReceivingInput": 26,
+    "functionsWithoutInput": 9,
+    "validators": 26,
+    "outputContracts": 5,
+    "outputContractCoverage": 0.14285714285714285,
+    "requiredErrorCodes": [
+      "VALIDATION_ERROR",
+      "AUTHENTICATION_ERROR",
+      "AUTHORIZATION_ERROR",
+      "NOT_FOUND",
+      "CONFLICT",
+      "DATABASE_ERROR",
+      "DEPENDENCY_ERROR",
+      "AI_TIMEOUT",
+      "AI_QUOTA"
+    ],
+    "errorCodesDeclared": [
+      "VALIDATION_ERROR",
+      "AUTHENTICATION_ERROR",
+      "AUTHORIZATION_ERROR",
+      "NOT_FOUND",
+      "CONFLICT",
+      "RATE_LIMIT",
+      "DATABASE_ERROR",
+      "DEPENDENCY_ERROR",
+      "AI_TIMEOUT",
+      "AI_QUOTA",
+      "INTERNAL_ERROR"
+    ],
+    "missingErrorCodes": [],
+    "aiTools": 10,
+    "aiToolsWithoutSchema": [],
+    "toolRegistryUsesSafeParse": true,
+    "indeterminateFunctions": []
+  },
+  "checks": [
+    {
+      "id": "contract-discovery",
+      "status": "pass",
+      "detail": "35 server function(s) descoberta(s) em 8 arquivo(s)"
+    },
+    {
+      "id": "contract-input-validated",
+      "status": "pass",
+      "detail": "26 função(ões) com entrada, todas com .validator("
+    },
+    {
+      "id": "contract-schema-declared",
+      "status": "pass",
+      "detail": "26 validator(es), todos com schema Zod reconhecível"
+    },
+    {
+      "id": "contract-error-taxonomy",
+      "status": "pass",
+      "detail": "9 códigos do plano §6.9 declarados em src/lib/api-error.ts"
+    },
+    {
+      "id": "contract-ai-tool-validation",
+      "status": "pass",
+      "detail": "10 tool(s) com schema de entrada e validação por safeParse"
+    },
+    {
+      "id": "contract-output-ratchet",
+      "status": "pass",
+      "detail": "cobertura de contrato de saída 14.285714285714285% (5 de 35); dívida declarada em DBT-25, piso 5 de 35"
+    }
+  ],
+  "reasons": [],
+  "hint": "Rode 'npm run guard:contracts' após qualquer mudança em src/lib/*.functions.ts, src/lib/api-error.ts ou src/lib/ai/tool-registry.ts; o contrato de saída está medido em docs/upgrades/CONTRACT-POLICY.md."
+}
+
+> m02:work-package-guard
+> node scripts/m02-work-package-guard.mjs
+
+work-package guard: OK (17 itens, 5 secoes, taxonomia e layout do selo) — docs/evidence/_templates/work-package.md
+
+> m02:debts-guard
+> node scripts/m02-debts-guard.mjs
+
+debts guard: OK (91 dividas, taxonomia e regra de closure) — docs/evidence/agent-state/DEBTS.md
+
+> m02:temporal-guard
+> node scripts/m02-temporal-guard.mjs
+
+m02-temporal-guard: superficie viva, as-of 2026-10-12
+  docs/evidence/agent-state/PROGRESS.md [secao-1] — 25 âncora(s), 0 linha(s) com prazo vivo
+  EXECUTION-STATE-PROGRAM.md [ultimo-bloco] — 59 âncora(s), 1 linha(s) com prazo vivo
+  docs/evidence/agent-state/DECISIONS-PENDING/REGISTRO-H.md [fora-do-fechado] — 0 âncora(s), 1 linha(s) com prazo vivo
+  T2 âncora não resolve: `30ca04baaa66` (linha 3): - **Missão mais recente (2026-10-12, PR #62):** rodada 3 — o run `38259113709` mediu a revisão corrigida `d8f77f9` da ro
+m02-temporal-guard: 1 ancoras/prazos invalidos em 3 superficies
+
+# exit=1
