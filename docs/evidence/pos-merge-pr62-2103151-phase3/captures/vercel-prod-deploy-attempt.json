@@ -1,0 +1,34 @@
+{
+  "capturedAt": "2026-10-12T19:34:00Z",
+  "source": "Vercel MCP create_deployment / get_deployment / list_deployment_events (authorized production publication attempt)",
+  "authorization": "Human authorization via structured question: 'Publicar + validar + rollback pronto'",
+  "deployment": {
+    "id": "dpl_8sjNJvBbiFkHrR6hUcMx1iDR1Jrf",
+    "url": "preco-que-da-lucro-pc4qrwlyd.vercel.app",
+    "createdMs": 1791833495109,
+    "createdAt": "2026-10-12T19:31:35Z",
+    "state": "ERROR",
+    "readyState": "ERROR",
+    "target": "production",
+    "ref": "main",
+    "sha": "2103151ac32d88847eb97bb97ccd5ff9d7d1a44f",
+    "errorCode": "BUILD_UTILS_SPAWN_1",
+    "errorMessage": "Command \"npm run build\" exited with 1",
+    "errorStep": "buildStep",
+    "buildMachine": "2 cores, 8 GB (iad1)",
+    "buildCache": "restored from 6h2LTZX57soGiPP2oTurws7NsgVd (the old fa45632 production deployment)"
+  },
+  "rootCause": {
+    "mechanism": "scripts/build.mjs treats every child stderr line (plus WARN/deprecated stdout lines) as a warning, accepts only exact allowlist signatures that are not expired and allowed for the release channel, then fails with 'Build emitted unregistered or expired warnings:' and exit 1",
+    "observedFailure": "The production build emitted rolldown [PLUGIN_TIMINGS] diagnostics (stderr) that are not in the allowlist → unexpectedWarnings → exit 1. The plugin-timings diagnostic is cache/speed-dependent: the warm-cache preview build did not emit it and passed.",
+    "latentHazard": "The single allowlist entry WARN-NITRO-001 ('inlineDynamicImports option is ignored…') has expiresOn 2026-10-06 and recheckedAt 2026-09-07 — already expired today (2026-10-12); if that warning reappears in any build, it fails as 'expired'. The expiry pattern is deliberate and documented (docs/runbooks/cutover-A4.md line 491; docs/specs/M-02/emenda-2026-09-07-env-guard.md line 129): expired = fail-closed.",
+    "releaseChannel": "releaseChannel = BUILD_RELEASE_CHANNEL ?? (CI ? 'unclassified-ci' : 'local'); the allowlist entry only covers [local, pre-beta-internal]"
+  },
+  "stateAfterFailure": {
+    "productionAliasesMoved": false,
+    "sageAliasStillPointsTo": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL (d4b9395, 200 ready/ok)",
+    "rollbackNeeded": false,
+    "newProductionDeployment": "ERROR, unaliased (left in history as audit trail)"
+  },
+  "conclusion": "Publishing the merged revision is blocked by the repository's own build-warning gate (fail-closed by design), not by the code or by Vercel. Fix requires re-checking the WARN-NITRO-001 entry (and deciding the PLUGIN_TIMINGS classification) through the develop circuit; retrying the same build may pass by cache luck but does not remove the blocker."
+}
