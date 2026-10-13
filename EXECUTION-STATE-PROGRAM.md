@@ -3574,3 +3574,21 @@ este bloco pinado no pai mantém o orçamento13 e a ancestralidade, sem reescrev
 anterior nem enfraquecer a guarda.
 
 Latest state marker parent = `63efb76ebf8218d46bc0a766fc2f670bbf5cd5f1`,
+
+## Bloco aditivo — re-pin do marcador M-02 após a promoção do gate de build (2026-10-13)
+
+A linhagem avançou do marcador anterior (`63efb76…`) com a rodada pós-merge do PR #62 e a
+correção do gate de build: aceite documentado (`96caec1`), back-merge (`ed26ec3`), evidências
+de validação (`cb6baaa`, `3b5fc16`, `6496173`), correção do gate com supressão do diagnóstico
+dinâmico do rolldown (`45fe606`, DBT-109), checkpoint (`cbd1bac`), release do PR #63 em `main`
+(`5d6049b`, CI de main verde com o CE real satisfeito) e o back-merge final (`20f6ee7`). O
+`m02:state:check` prescrevia o re-pin antes de novos commits (folga 12/13).
+
+Estado corrente: `main` `5d6049b` (release com o gate corrigido), `develop` `20f6ee7` (aceite
+
+- back-merge); o deployment de produção `dpl_GWEFoMxhXfz31E6HxfR2NH1RNZFn` (main@`5d6049b`)
+  está READY e a promoção da superfície pública (`sage`/time/`git-main`) e o fechamento da
+  DBT-110 (credencial de produção, erro `28P01`; reparo Via A declarado concluído pelo
+  proprietário) são a última milha desta fase. Nenhum DNS/SQL foi tocado.
+
+Latest state marker parent = `20f6ee74b20c6a37e9563d455260a5a217c666aa`,
