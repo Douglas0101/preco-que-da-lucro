@@ -1,0 +1,15 @@
+# Metadados da env de produção (SEM valores, SEM ciphertext) — captura 2026-10-13T00:22Z
+# Fonte: Vercel MCP filter_project_envs (decrypted=false em todos os itens).
+
+key=DATABASE_URL  target=[production]  type=sensitive  visibility=secret
+  id=LQTKQMUeLWmQnHkM
+  createdAt=1788845718426 (2026-08-20)
+  updatedAt=1791304643815 (2026-10-06T16:37:23Z)   <- INALTERADO desde 06/10; o reparo Via A
+  updatedBy=douglasultimatesouza-5127                 declarado no handoff NÃO aparece aqui
+  securityIssues=[]
+
+key=DATABASE_URL_UNPOOLED  target=[production]  type=encrypted  source=integration(icfg_eDeLFTSX3j7fPem6tn88RkGS)
+  id=3a5WC1Pq69PZPRTW  updatedAt=1788845878907 (2026-08-17)  <- inalterado
+
+# Não existe DATABASE_URL (pooled) da integração para production: o único DATABASE_URL
+# de produção é o secreto manual acima. Confirmado também: hiddenProductionEnvCount=0.
