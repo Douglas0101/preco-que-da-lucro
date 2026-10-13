@@ -1,0 +1,10 @@
+{
+  "deploymentId": "dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM",
+  "mainSha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+  "observedAt": "2026-10-13T02:06:03.879Z",
+  "freshProbeStart": "2026-10-13T02:04:04.458Z",
+  "filter": "deploymentId:dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM",
+  "filterMatches": true,
+  "probes": [],
+  "allPassed": false
+}

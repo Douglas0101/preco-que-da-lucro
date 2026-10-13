@@ -1,0 +1,19 @@
+{
+  "startedAt": "2026-10-13T03:11:24.453544+00:00",
+  "source": "/tmp/.git",
+  "execution": "custody + complete npm run check in one invocation",
+  "testsChanged": false,
+  "testsSkippedByThisOperation": false,
+  "tmpdir": "/tmp",
+  "custodyTarget": "/tmp/pqd-atomic-check-empty-marker-6_gyqraa/.git",
+  "entryCountBefore": 0,
+  "entryCountAfter": 0,
+  "sameDeviceAndInode": true,
+  "noBytesDeleted": true,
+  "checkedAncestors": ["/tmp", "/"],
+  "gitAncestorsBefore": [],
+  "fullCheckExitCode": 0,
+  "gitAncestorsAfter": [],
+  "completedAt": "2026-10-13T03:15:05.664762+00:00",
+  "qualified": true
+}

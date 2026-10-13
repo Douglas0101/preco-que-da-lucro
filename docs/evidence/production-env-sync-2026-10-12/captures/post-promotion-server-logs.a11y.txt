@@ -1,0 +1,859 @@
+Browser tab: 5, Title: "preco-que-da-lucro – Logs – Vercel", URL: "https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs?search=deploymentId%3Adpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM&live=true".
+1 AXWebArea preco-que-da-lucro – Logs – Vercel, URL: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs?search=deploymentId%3Adpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM&live=true
+	2 container
+		3 link Description: Skip to content, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs?search=deploymentId%3Adpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM&live=true#geist-skip-nav
+		4 container
+			5 container
+				6 link Description: douglasultimatesouza-5127's projects Hobby, Value: vercel.com/douglasultimatesouza-5127s-projects
+				7 button
+					8 image
+				9 button Find F
+					10 image
+					11 text Find
+					12 text F
+				56 container
+					57 button Logs
+						58 image
+						59 text Logs
+					60 text Filters
+					61 button Reset
+					62 button (disabled, expanded) Description: Timeline, ID: collapse-button-_r_bu_, Secondary Actions: Collapse
+					63 container Timeline, ID: collapse-section-_r_bt_
+						64 pop up button (collapsed) Description: 23:04 - 23:34, Secondary Actions: Expand
+							65 image
+						66 container
+							67 text Combobox Menu
+							68 combo box (expanded, settable) Combobox Menu, Value: Last 30 minutes, ID: radix-_r_c7_, Secondary Actions: Collapse
+							69 image
+					70 button (disabled, expanded) Description: Contains Console Level, ID: collapse-button-_r_c9_, Secondary Actions: Collapse
+					71 container Contains Console Level, ID: collapse-section-_r_c8_
+						72 container
+							73 checkbox (settable, integer) ​ Warning 7, Value: 0, ID: warn
+							74 text Warning
+							75 text 7
+							76 checkbox (settable, integer) ​ Error 0, Value: 0, ID: error
+							77 text Error
+							78 text 0
+							79 checkbox (settable, integer) ​ Fatal 0, Value: 0, ID: fatal
+							80 text Fatal
+							81 text 0
+					82 button (collapsed) Description: Resource, ID: collapse-button-_r_ch_, Secondary Actions: Expand
+					83 button (collapsed) Description: Environment, ID: collapse-button-_r_cp_, Secondary Actions: Expand
+					84 button (collapsed) Description: Route, ID: collapse-button-_r_cv_, Secondary Actions: Expand
+					85 button (collapsed) Description: Request Path, ID: collapse-button-_r_d1_, Secondary Actions: Expand
+					86 button (collapsed) Description: Status Code, ID: collapse-button-_r_d3_, Secondary Actions: Expand
+					87 button (collapsed) Description: Request Type, ID: collapse-button-_r_d5_, Secondary Actions: Expand
+					88 button (collapsed) Description: Host, ID: collapse-button-_r_dj_, Secondary Actions: Expand
+					89 button (collapsed) Description: Service, ID: collapse-button-_r_dl_, Secondary Actions: Expand
+					90 button (collapsed) Description: Request Method, ID: collapse-button-_r_dn_, Secondary Actions: Expand
+					91 button (collapsed) Description: Cache, ID: collapse-button-_r_e8_, Secondary Actions: Expand
+					92 button (collapsed) Description: Branch, ID: collapse-button-_r_ea_, Secondary Actions: Expand
+					93 button (collapsed) Description: Workflow Run, ID: collapse-button-_r_ec_, Secondary Actions: Expand
+						94 text Workflow Run
+						95 image
+					96 button (collapsed) Description: Workflow Step, ID: collapse-button-_r_ef_, Secondary Actions: Expand
+						97 text Workflow Step
+						98 image
+					99 button (collapsed) Description: Deployment ID, ID: collapse-button-_r_ei_, Secondary Actions: Expand
+						100 text Deployment ID
+						101 button Clear Deployment ID filter
+							102 image
+							103 text 1
+				36 pop up button (collapsed) Avatar for douglasultimatesouza-5127 douglasultimatesouza-5127, Secondary Actions: Expand
+					104 container Avatar for douglasultimatesouza-5127
+					105 text douglasultimatesouza-5127
+					37 image
+				106 pop up button (collapsed) Description: 30 unseen notifications, Secondary Actions: Expand
+					107 image
+					108 image
+			39 container
+				40 link Description: preco-que-da-lucro, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro
+				41 button
+					42 image
+				43 link Description: Back to team view, Value: vercel.com/douglasultimatesouza-5127s-projects/~/logs
+			109 container Breadcrumb
+				110 text Logs
+			111 button Vercel Agent is available on Pro
+				112 image
+				113 text Agent
+			44 container
+				45 container
+					46 button Enable My Logs
+						47 image
+					48 button Enable Has Traces
+						49 image
+					50 button Configure Trace Sampling
+						51 image
+					52 text entry area (settable) deploymentId:dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM 
+						114 container
+							115 text deploymentId:dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM
+							116 text ×
+					117 button Live
+						118 image
+						119 text Live
+					120 button Refresh Logs
+						121 container Loading
+							122 text Loading...
+					53 pop up button (collapsed) Description: Query Actions, ID: menu-button-_r_bq_, Secondary Actions: Expand
+						54 image
+					55 image
+						123 text 23:03:00
+						124 text 23:14:40
+						125 text 23:34:00
+				126 container
+					127 table Visible log lines
+						128 row
+							129 cell
+								130 text Time
+							131 cell
+								132 text Method
+							133 cell
+								134 text Status
+							135 cell
+								136 text Host
+							137 cell
+								138 text Request
+							139 cell
+								140 text Message
+						141 image
+						142 text Live Mode
+						143 row
+							144 cell
+								145 container 2026-10-13T02:29:09.364Z
+									146 text OCT 12  23:29:09 .36
+							147 cell
+								148 text POST
+							149 cell
+								150 text 204
+							151 cell
+								152 text preco-que-da-lucro-sage.vercel.app
+							153 cell
+								154 text /api/csp-report
+							155 cell {"timestamp":"2026-10-13T02:29:09.476Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/","lineNumber":1,"columnNumber":9945,"disposition":"report","sample":null}
+								156 text 7
+								157 text {"timestamp":"2026-10-13T02:29:09.476Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/","lineNumber":1,"columnNumber":9945,"disposition":"report","sample":null}
+						158 row
+							159 cell
+								160 container 2026-10-13T02:29:09.364Z
+									161 text OCT 12  23:29:09 .36
+							162 cell
+								163 text POST
+							164 cell
+								165 text 204
+							166 cell
+								167 text preco-que-da-lucro-sage.vercel.app
+							168 cell
+								169 text /api/csp-report
+							170 cell {"timestamp":"2026-10-13T02:29:09.485Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/assets/index-5pm_RoH1.js","lineNumber":10,"columnNumber":56064,"disposition":"report","sample":null}
+								171 text 6
+								172 text {"timestamp":"2026-10-13T02:29:09.485Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/assets/index-5pm_RoH1.js","lineNumber":10,"columnNumber":56064,"disposition":"report","sample":null}
+						173 row
+							174 cell
+								175 container 2026-10-13T02:29:09.363Z
+									176 text OCT 12  23:29:09 .36
+							177 cell
+								178 text POST
+							179 cell
+								180 text 204
+							181 cell
+								182 text preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+							183 cell
+								184 text /api/csp-report
+							185 cell {"timestamp":"2026-10-13T02:29:09.584Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app/","sourceFile":"https://preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app/assets/index-5pm_RoH1.js","lineNumber":10,"columnNumber":56011,"disposition":"report","sample":null}
+								186 text 7
+								187 text {"timestamp":"2026-10-13T02:29:09.584Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app/","sourceFile":"https://preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app/assets/index-5pm_RoH1.js","lineNumber":10,"columnNumber":56011,"disposition":"report","sample":null}
+						188 row
+							189 cell
+								190 container 2026-10-13T02:29:09.363Z
+									191 text OCT 12  23:29:09 .36
+							192 cell
+								193 text POST
+							194 cell
+								195 text 204
+							196 cell
+								197 text preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app
+							198 cell
+								199 text /api/csp-report
+							200 cell {"timestamp":"2026-10-13T02:29:09.454Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app/","sourceFile":"https://preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app/assets/index-5pm_RoH1.js","lineNumber":10,"columnNumber":56064,"disposition":"report","sample":null}
+								201 text 7
+								202 text {"timestamp":"2026-10-13T02:29:09.454Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app/","sourceFile":"https://preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app/assets/index-5pm_RoH1.js","lineNumber":10,"columnNumber":56064,"disposition":"report","sample":null}
+						203 row
+							204 cell
+								205 container 2026-10-13T02:28:16.326Z
+									206 text OCT 12  23:28:16 .32
+							207 cell
+								208 text GET
+							209 cell
+								210 text 200
+							211 cell
+								212 text preco-que-da-lucro-sage.vercel.app
+							213 cell
+								214 text /api/auth/get-session
+							215 cell {"timestamp":"2026-10-13T02:28:16.496Z","level":"info","event":"request.completed","correlationId":"8c3ced4e-9575-487a-9f00-3dc76ec3b1da","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":94}
+								216 text 2
+								217 text {"timestamp":"2026-10-13T02:28:16.496Z","level":"info","event":"request.completed","correlationId":"8c3ced4e-9575-487a-9f00-3dc76ec3b1da","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":94}
+						218 row
+							219 cell
+								220 container 2026-10-13T02:28:16.299Z
+									221 text OCT 12  23:28:16 .29
+							222 cell
+								223 text POST
+							224 cell
+								225 text 204
+							226 cell
+								227 text preco-que-da-lucro-sage.vercel.app
+							228 cell
+								229 text /api/vitals
+							230 cell {"timestamp":"2026-10-13T02:28:16.395Z","level":"info","event":"request.completed","correlationId":"ef714a3d-43c0-45d2-b628-1b8c2836c58c","method":"POST","pathname":"/api/vitals","status":204,"durationMs":18}
+								231 text 2
+								232 text {"timestamp":"2026-10-13T02:28:16.395Z","level":"info","event":"request.completed","correlationId":"ef714a3d-43c0-45d2-b628-1b8c2836c58c","method":"POST","pathname":"/api/vitals","status":204,"durationMs":18}
+						233 row
+							234 cell
+								235 container 2026-10-13T02:28:16.294Z
+									236 text OCT 12  23:28:16 .29
+							237 cell
+								238 text POST
+							239 cell
+								240 text 204
+							241 cell
+								242 text preco-que-da-lucro-sage.vercel.app
+							243 cell
+								244 text /api/vitals
+							245 cell {"timestamp":"2026-10-13T02:28:16.385Z","level":"info","event":"request.completed","correlationId":"c9a8257c-6d5b-4ec0-9b32-f6ab0d94a129","method":"POST","pathname":"/api/vitals","status":204,"durationMs":15}
+								246 text 2
+								247 text {"timestamp":"2026-10-13T02:28:16.385Z","level":"info","event":"request.completed","correlationId":"c9a8257c-6d5b-4ec0-9b32-f6ab0d94a129","method":"POST","pathname":"/api/vitals","status":204,"durationMs":15}
+						248 row
+							249 cell
+								250 container 2026-10-13T02:28:15.810Z
+									251 text OCT 12  23:28:15 .81
+							252 cell
+								253 text GET
+							254 cell
+								255 text 200
+							256 cell
+								257 text preco-que-da-lucro-sage.vercel.app
+							258 cell
+								259 text /
+							260 cell {"timestamp":"2026-10-13T02:28:15.942Z","level":"info","event":"request.completed","correlationId":"9976bef5-39df-45b8-a5df-5e9fa333083c","method":"GET","pathname":"/","status":200,"durationMs":44}
+								261 text {"timestamp":"2026-10-13T02:28:15.942Z","level":"info","event":"request.completed","correlationId":"9976bef5-39df-45b8-a5df-5e9fa333083c","method":"GET","pathname":"/","status":200,"durationMs":44}
+						262 row
+							263 cell
+								264 container 2026-10-13T02:28:15.460Z
+									265 text OCT 12  23:28:15 .46
+							266 cell
+								267 text GET
+							268 cell
+								269 text 200
+							270 cell
+								271 text preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app
+							272 cell
+								273 text /api/auth/get-session
+							274 cell {"timestamp":"2026-10-13T02:28:15.626Z","level":"info","event":"request.completed","correlationId":"12d51b82-7d8c-4788-9595-1d476e35144b","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":81}
+								275 text 2
+								276 text {"timestamp":"2026-10-13T02:28:15.626Z","level":"info","event":"request.completed","correlationId":"12d51b82-7d8c-4788-9595-1d476e35144b","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":81}
+						277 row
+							278 cell
+								279 container 2026-10-13T02:28:15.192Z
+									280 text OCT 12  23:28:15 .19
+							281 cell
+								282 text GET
+							283 cell
+								284 text 200
+							285 cell
+								286 text preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app
+							287 cell
+								288 text /api/health/ready
+							289 cell {"timestamp":"2026-10-13T02:28:15.287Z","level":"info","event":"request.completed","correlationId":"28528738-68b1-4514-884e-4b46b2e23299","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":15}
+								290 text {"timestamp":"2026-10-13T02:28:15.287Z","level":"info","event":"request.completed","correlationId":"28528738-68b1-4514-884e-4b46b2e23299","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":15}
+						291 row
+							292 cell
+								293 container 2026-10-13T02:28:15.029Z
+									294 text OCT 12  23:28:15 .02
+							295 cell
+								296 text POST
+							297 cell
+								298 text 204
+							299 cell
+								300 text preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app
+							301 cell
+								302 text /api/vitals
+							303 cell {"timestamp":"2026-10-13T02:28:15.122Z","level":"info","event":"request.completed","correlationId":"e29854f4-e88c-44a8-8bb3-c6456fc55a29","method":"POST","pathname":"/api/vitals","status":204,"durationMs":15}
+								304 text 2
+								305 text {"timestamp":"2026-10-13T02:28:15.122Z","level":"info","event":"request.completed","correlationId":"e29854f4-e88c-44a8-8bb3-c6456fc55a29","method":"POST","pathname":"/api/vitals","status":204,"durationMs":15}
+						306 row
+							307 cell
+								308 container 2026-10-13T02:28:15.026Z
+									309 text OCT 12  23:28:15 .02
+							310 cell
+								311 text POST
+							312 cell
+								313 text 204
+							314 cell
+								315 text preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app
+							316 cell
+								317 text /api/vitals
+							318 cell {"timestamp":"2026-10-13T02:28:15.115Z","level":"info","event":"request.completed","correlationId":"4e82293c-57c8-4b5b-b198-41ea4548a7c4","method":"POST","pathname":"/api/vitals","status":204,"durationMs":16}
+								319 text 2
+								320 text {"timestamp":"2026-10-13T02:28:15.115Z","level":"info","event":"request.completed","correlationId":"4e82293c-57c8-4b5b-b198-41ea4548a7c4","method":"POST","pathname":"/api/vitals","status":204,"durationMs":16}
+						321 row
+							322 cell
+								323 container 2026-10-13T02:28:14.817Z
+									324 text OCT 12  23:28:14 .81
+							325 cell
+								326 text GET
+							327 cell
+								328 text 200
+							329 cell
+								330 text preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app
+							331 cell
+								332 text /api/auth/get-session
+							333 cell {"timestamp":"2026-10-13T02:28:14.971Z","level":"info","event":"request.completed","correlationId":"e6e5c076-3e3a-410b-849e-b5a39135a48c","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":66}
+								334 text 2
+								335 text {"timestamp":"2026-10-13T02:28:14.971Z","level":"info","event":"request.completed","correlationId":"e6e5c076-3e3a-410b-849e-b5a39135a48c","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":66}
+						336 row
+							337 cell
+								338 container 2026-10-13T02:28:14.816Z
+									339 text OCT 12  23:28:14 .81
+							340 cell
+								341 text POST
+							342 cell
+								343 text 204
+							344 cell
+								345 text preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app
+							346 cell
+								347 text /api/vitals
+							348 cell {"timestamp":"2026-10-13T02:28:14.909Z","level":"info","event":"request.completed","correlationId":"b3a48010-a3a2-4999-8fde-5261876ffbea","method":"POST","pathname":"/api/vitals","status":204,"durationMs":16}
+								349 text 2
+								350 text {"timestamp":"2026-10-13T02:28:14.909Z","level":"info","event":"request.completed","correlationId":"b3a48010-a3a2-4999-8fde-5261876ffbea","method":"POST","pathname":"/api/vitals","status":204,"durationMs":16}
+						351 row
+							352 cell
+								353 container 2026-10-13T02:28:14.816Z
+									354 text OCT 12  23:28:14 .81
+							355 cell
+								356 text GET
+							357 cell
+								358 text 200
+							359 cell
+								360 text preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app
+							361 cell
+								362 text /api/health/live
+							363 cell {"timestamp":"2026-10-13T02:28:14.893Z","level":"info","event":"request.completed","correlationId":"85b80345-51a5-44bc-ae08-9f8f3ab3b436","method":"GET","pathname":"/api/health/live","status":200,"durationMs":1}
+								364 text {"timestamp":"2026-10-13T02:28:14.893Z","level":"info","event":"request.completed","correlationId":"85b80345-51a5-44bc-ae08-9f8f3ab3b436","method":"GET","pathname":"/api/health/live","status":200,"durationMs":1}
+						365 row
+							366 cell
+								367 container 2026-10-13T02:28:14.801Z
+									368 text OCT 12  23:28:14 .80
+							369 cell
+								370 text POST
+							371 cell
+								372 text 204
+							373 cell
+								374 text preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app
+							375 cell
+								376 text /api/vitals
+							377 cell {"timestamp":"2026-10-13T02:28:14.890Z","level":"info","event":"request.completed","correlationId":"3ca4d785-317d-453d-acfe-c8865964185d","method":"POST","pathname":"/api/vitals","status":204,"durationMs":18}
+								378 text 2
+								379 text {"timestamp":"2026-10-13T02:28:14.890Z","level":"info","event":"request.completed","correlationId":"3ca4d785-317d-453d-acfe-c8865964185d","method":"POST","pathname":"/api/vitals","status":204,"durationMs":18}
+						380 row
+							381 cell
+								382 container 2026-10-13T02:28:14.304Z
+									383 text OCT 12  23:28:14 .30
+							384 cell
+								385 text GET
+							386 cell
+								387 text 200
+							388 cell
+								389 text preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app
+							390 cell
+								391 text /
+							392 cell {"timestamp":"2026-10-13T02:28:14.392Z","level":"info","event":"request.completed","correlationId":"ecdefc2f-a89f-4639-81f8-17afcf12acf2","method":"GET","pathname":"/","status":200,"durationMs":6}
+								393 text {"timestamp":"2026-10-13T02:28:14.392Z","level":"info","event":"request.completed","correlationId":"ecdefc2f-a89f-4639-81f8-17afcf12acf2","method":"GET","pathname":"/","status":200,"durationMs":6}
+						394 row
+							395 cell
+								396 container 2026-10-13T02:28:13.252Z
+									397 text OCT 12  23:28:13 .25
+							398 cell
+								399 text GET
+							400 cell
+								401 text 200
+							402 cell
+								403 text preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+							404 cell
+								405 text /api/auth/get-session
+							406 cell {"timestamp":"2026-10-13T02:28:13.406Z","level":"info","event":"request.completed","correlationId":"f2761510-b3f0-4e6e-af57-81d578021551","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":66}
+								407 text 2
+								408 text {"timestamp":"2026-10-13T02:28:13.406Z","level":"info","event":"request.completed","correlationId":"f2761510-b3f0-4e6e-af57-81d578021551","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":66}
+						409 row
+							410 cell
+								411 container 2026-10-13T02:28:12.914Z
+									412 text OCT 12  23:28:12 .91
+							413 cell
+								414 text GET
+							415 cell
+								416 text 200
+							417 cell
+								418 text preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+							419 cell
+								420 text /api/health/ready
+							421 cell {"timestamp":"2026-10-13T02:28:13.020Z","level":"info","event":"request.completed","correlationId":"a72c3c09-c2ff-4a23-994c-2a4ca20f53de","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":16}
+								422 text {"timestamp":"2026-10-13T02:28:13.020Z","level":"info","event":"request.completed","correlationId":"a72c3c09-c2ff-4a23-994c-2a4ca20f53de","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":16}
+						423 row
+							424 cell
+								425 container 2026-10-13T02:28:12.729Z
+									426 text OCT 12  23:28:12 .72
+							427 cell
+								428 text POST
+							429 cell
+								430 text 204
+							431 cell
+								432 text preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+							433 cell
+								434 text /api/vitals
+							435 cell {"timestamp":"2026-10-13T02:28:12.817Z","level":"info","event":"request.completed","correlationId":"e9258233-8728-482f-8c02-7876c0ff0e93","method":"POST","pathname":"/api/vitals","status":204,"durationMs":18}
+								436 text 2
+								437 text {"timestamp":"2026-10-13T02:28:12.817Z","level":"info","event":"request.completed","correlationId":"e9258233-8728-482f-8c02-7876c0ff0e93","method":"POST","pathname":"/api/vitals","status":204,"durationMs":18}
+						438 row
+							439 cell
+								440 container 2026-10-13T02:28:12.726Z
+									441 text OCT 12  23:28:12 .72
+							442 cell
+								443 text POST
+							444 cell
+								445 text 204
+							446 cell
+								447 text preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+							448 cell
+								449 text /api/vitals
+							450 cell {"timestamp":"2026-10-13T02:28:12.816Z","level":"info","event":"request.completed","correlationId":"24f98b71-8b5f-405e-8de4-63f9e2312e0f","method":"POST","pathname":"/api/vitals","status":204,"durationMs":15}
+								451 text 2
+								452 text {"timestamp":"2026-10-13T02:28:12.816Z","level":"info","event":"request.completed","correlationId":"24f98b71-8b5f-405e-8de4-63f9e2312e0f","method":"POST","pathname":"/api/vitals","status":204,"durationMs":15}
+						453 row
+							454 cell
+								455 container 2026-10-13T02:28:12.518Z
+									456 text OCT 12  23:28:12 .51
+							457 cell
+								458 text GET
+							459 cell
+								460 text 200
+							461 cell
+								462 text preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+							463 cell
+								464 text /api/auth/get-session
+							465 cell {"timestamp":"2026-10-13T02:28:12.684Z","level":"info","event":"request.completed","correlationId":"57b6eb41-d821-4377-bd72-1e5dd87b0f48","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":85}
+								466 text 2
+								467 text {"timestamp":"2026-10-13T02:28:12.684Z","level":"info","event":"request.completed","correlationId":"57b6eb41-d821-4377-bd72-1e5dd87b0f48","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":85}
+						468 row
+							469 cell
+								470 container 2026-10-13T02:28:12.516Z
+									471 text OCT 12  23:28:12 .51
+							472 cell
+								473 text GET
+							474 cell
+								475 text 200
+							476 cell
+								477 text preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+							478 cell
+								479 text /api/health/live
+							480 cell {"timestamp":"2026-10-13T02:28:12.597Z","level":"info","event":"request.completed","correlationId":"3bdd8449-96b7-4a76-84db-0b625afc0f4c","method":"GET","pathname":"/api/health/live","status":200,"durationMs":2}
+								481 text {"timestamp":"2026-10-13T02:28:12.597Z","level":"info","event":"request.completed","correlationId":"3bdd8449-96b7-4a76-84db-0b625afc0f4c","method":"GET","pathname":"/api/health/live","status":200,"durationMs":2}
+						482 row
+							483 cell
+								484 container 2026-10-13T02:28:12.507Z
+									485 text OCT 12  23:28:12 .50
+							486 cell
+								487 text POST
+							488 cell
+								489 text 204
+							490 cell
+								491 text preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+							492 cell
+								493 text /api/vitals
+							494 cell {"timestamp":"2026-10-13T02:28:12.698Z","level":"info","event":"request.completed","correlationId":"5d1ca695-9c76-4ec6-9ef1-22a008c523dc","method":"POST","pathname":"/api/vitals","status":204,"durationMs":95}
+								495 text 2
+								496 text {"timestamp":"2026-10-13T02:28:12.698Z","level":"info","event":"request.completed","correlationId":"5d1ca695-9c76-4ec6-9ef1-22a008c523dc","method":"POST","pathname":"/api/vitals","status":204,"durationMs":95}
+						497 row
+							498 cell
+								499 container 2026-10-13T02:28:12.505Z
+									500 text OCT 12  23:28:12 .50
+							501 cell
+								502 text POST
+							503 cell
+								504 text 204
+							505 cell
+								506 text preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+							507 cell
+								508 text /api/vitals
+							509 cell {"timestamp":"2026-10-13T02:28:12.628Z","level":"info","event":"request.completed","correlationId":"ed80d0ea-69bc-4233-811b-16fc72c12f28","method":"POST","pathname":"/api/vitals","status":204,"durationMs":23}
+								510 text 2
+								511 text {"timestamp":"2026-10-13T02:28:12.628Z","level":"info","event":"request.completed","correlationId":"ed80d0ea-69bc-4233-811b-16fc72c12f28","method":"POST","pathname":"/api/vitals","status":204,"durationMs":23}
+						512 row
+							513 cell
+								514 container 2026-10-13T02:28:11.992Z
+									515 text OCT 12  23:28:11 .99
+							516 cell
+								517 text GET
+							518 cell
+								519 text 200
+							520 cell
+								521 text preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+							522 cell
+								523 text /
+							524 cell {"timestamp":"2026-10-13T02:28:12.120Z","level":"info","event":"request.completed","correlationId":"1b90748a-d3bd-4d82-9c86-595d591771c7","method":"GET","pathname":"/","status":200,"durationMs":37}
+								525 text {"timestamp":"2026-10-13T02:28:12.120Z","level":"info","event":"request.completed","correlationId":"1b90748a-d3bd-4d82-9c86-595d591771c7","method":"GET","pathname":"/","status":200,"durationMs":37}
+						526 row
+							527 cell
+								528 container 2026-10-13T02:28:10.869Z
+									529 text OCT 12  23:28:10 .86
+							530 cell
+								531 text GET
+							532 cell
+								533 text 200
+							534 cell
+								535 text preco-que-da-lucro-sage.vercel.app
+							536 cell
+								537 text /api/auth/get-session
+							538 cell {"timestamp":"2026-10-13T02:28:11.044Z","level":"info","event":"request.completed","correlationId":"1c1ebe00-b5a2-48c5-a204-44e99769f82f","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":99}
+								539 text 2
+								540 text {"timestamp":"2026-10-13T02:28:11.044Z","level":"info","event":"request.completed","correlationId":"1c1ebe00-b5a2-48c5-a204-44e99769f82f","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":99}
+						541 row
+							542 cell
+								543 container 2026-10-13T02:28:10.592Z
+									544 text OCT 12  23:28:10 .59
+							545 cell
+								546 text GET
+							547 cell
+								548 text 200
+							549 cell
+								550 text preco-que-da-lucro-sage.vercel.app
+							551 cell
+								552 text /api/health/ready
+							553 cell {"timestamp":"2026-10-13T02:28:10.694Z","level":"info","event":"request.completed","correlationId":"6556b81c-33db-49f0-87eb-a09ac4fd29f5","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":17}
+								554 text {"timestamp":"2026-10-13T02:28:10.694Z","level":"info","event":"request.completed","correlationId":"6556b81c-33db-49f0-87eb-a09ac4fd29f5","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":17}
+						555 row
+							556 cell
+								557 container 2026-10-13T02:28:10.450Z
+									558 text OCT 12  23:28:10 .45
+							559 cell
+								560 text POST
+							561 cell
+								562 text 204
+							563 cell
+								564 text preco-que-da-lucro-sage.vercel.app
+							565 cell
+								566 text /api/vitals
+							567 cell {"timestamp":"2026-10-13T02:28:10.544Z","level":"info","event":"request.completed","correlationId":"5d50afb3-af7e-4cb0-9d0c-fb6419747220","method":"POST","pathname":"/api/vitals","status":204,"durationMs":15}
+								568 text 2
+								569 text {"timestamp":"2026-10-13T02:28:10.544Z","level":"info","event":"request.completed","correlationId":"5d50afb3-af7e-4cb0-9d0c-fb6419747220","method":"POST","pathname":"/api/vitals","status":204,"durationMs":15}
+						570 row
+							571 cell
+								572 container 2026-10-13T02:28:10.450Z
+									573 text OCT 12  23:28:10 .45
+							574 cell
+								575 text POST
+							576 cell
+								577 text 204
+							578 cell
+								579 text preco-que-da-lucro-sage.vercel.app
+							580 cell
+								581 text /api/vitals
+							582 cell {"timestamp":"2026-10-13T02:28:10.547Z","level":"info","event":"request.completed","correlationId":"97ba66bd-914a-4fb9-a397-e95f73ef2844","method":"POST","pathname":"/api/vitals","status":204,"durationMs":18}
+								583 text 2
+								584 text {"timestamp":"2026-10-13T02:28:10.547Z","level":"info","event":"request.completed","correlationId":"97ba66bd-914a-4fb9-a397-e95f73ef2844","method":"POST","pathname":"/api/vitals","status":204,"durationMs":18}
+						585 row
+							586 cell
+								587 container 2026-10-13T02:28:09.871Z
+									588 text OCT 12  23:28:09 .87
+							589 cell
+								590 text POST
+							591 cell
+								592 text 204
+							593 cell
+								594 text preco-que-da-lucro-sage.vercel.app
+							595 cell
+								596 text /api/vitals
+							597 cell {"timestamp":"2026-10-13T02:28:10.246Z","level":"info","event":"request.completed","correlationId":"dc126d8c-18b1-45da-9388-310cabdc9ac8","method":"POST","pathname":"/api/vitals","status":204,"durationMs":261}
+								598 text 2
+								599 text {"timestamp":"2026-10-13T02:28:10.246Z","level":"info","event":"request.completed","correlationId":"dc126d8c-18b1-45da-9388-310cabdc9ac8","method":"POST","pathname":"/api/vitals","status":204,"durationMs":261}
+						600 row
+							601 cell
+								602 container 2026-10-13T02:28:09.854Z
+									603 text OCT 12  23:28:09 .85
+							604 cell
+								605 text POST
+							606 cell
+								607 text 204
+							608 cell
+								609 text preco-que-da-lucro-sage.vercel.app
+							610 cell
+								611 text /api/vitals
+							612 cell {"timestamp":"2026-10-13T02:28:10.783Z","level":"info","event":"request.completed","correlationId":"af96787e-0d73-44d7-921f-347e8d9c1404","method":"POST","pathname":"/api/vitals","status":204,"durationMs":136}
+								613 text 2
+								614 text {"timestamp":"2026-10-13T02:28:10.783Z","level":"info","event":"request.completed","correlationId":"af96787e-0d73-44d7-921f-347e8d9c1404","method":"POST","pathname":"/api/vitals","status":204,"durationMs":136}
+						615 row
+							616 cell
+								617 container 2026-10-13T02:28:09.845Z
+									618 text OCT 12  23:28:09 .84
+							619 cell
+								620 text GET
+							621 cell
+								622 text 200
+							623 cell
+								624 text preco-que-da-lucro-sage.vercel.app
+							625 cell
+								626 text /api/auth/get-session
+							627 cell {"timestamp":"2026-10-13T02:28:10.336Z","level":"info","event":"request.completed","correlationId":"1a60422b-f7a7-417e-b560-8bdc6b854d6c","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":424}
+								628 text 2
+								629 text {"timestamp":"2026-10-13T02:28:10.336Z","level":"info","event":"request.completed","correlationId":"1a60422b-f7a7-417e-b560-8bdc6b854d6c","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":424}
+						630 row
+							631 cell
+								632 container 2026-10-13T02:28:09.520Z
+									633 text OCT 12  23:28:09 .52
+							634 cell
+								635 text GET
+							636 cell
+								637 text 200
+							638 cell
+								639 text preco-que-da-lucro-sage.vercel.app
+							640 cell
+								641 text /api/health/live
+							642 cell {"timestamp":"2026-10-13T02:28:10.287Z","level":"info","event":"request.completed","correlationId":"3c0a28c0-3aea-4001-8297-8d5df9be9932","method":"GET","pathname":"/api/health/live","status":200,"durationMs":11}
+								643 text {"timestamp":"2026-10-13T02:28:10.287Z","level":"info","event":"request.completed","correlationId":"3c0a28c0-3aea-4001-8297-8d5df9be9932","method":"GET","pathname":"/api/health/live","status":200,"durationMs":11}
+						644 row
+							645 cell
+								646 container 2026-10-13T02:28:09.431Z
+									647 text OCT 12  23:28:09 .43
+							648 cell
+								649 text POST
+							650 cell
+								651 text 204
+							652 cell
+								653 text preco-que-da-lucro-3ideu7io0.vercel.app
+							654 cell
+								655 text /api/vitals
+							656 cell {"timestamp":"2026-10-13T02:28:10.248Z","level":"info","event":"request.completed","correlationId":"45abe78c-b3c1-4837-9163-6a47c09ab547","method":"POST","pathname":"/api/vitals","status":204,"durationMs":726}
+								657 text 2
+								658 text {"timestamp":"2026-10-13T02:28:10.248Z","level":"info","event":"request.completed","correlationId":"45abe78c-b3c1-4837-9163-6a47c09ab547","method":"POST","pathname":"/api/vitals","status":204,"durationMs":726}
+						659 row
+							660 cell
+								661 container 2026-10-13T02:28:09.430Z
+									662 text OCT 12  23:28:09 .43
+							663 cell
+								664 text POST
+							665 cell
+								666 text 204
+							667 cell
+								668 text preco-que-da-lucro-3ideu7io0.vercel.app
+							669 cell
+								670 text /api/vitals
+							671 cell {"timestamp":"2026-10-13T02:28:10.403Z","level":"info","event":"request.completed","correlationId":"70bd0a02-92fd-4eb1-b6af-cbb0c84f2440","method":"POST","pathname":"/api/vitals","status":204,"durationMs":118}
+								672 text 2
+								673 text {"timestamp":"2026-10-13T02:28:10.403Z","level":"info","event":"request.completed","correlationId":"70bd0a02-92fd-4eb1-b6af-cbb0c84f2440","method":"POST","pathname":"/api/vitals","status":204,"durationMs":118}
+						674 row
+							675 cell
+								676 container 2026-10-13T02:28:09.362Z
+									677 text OCT 12  23:28:09 .36
+							678 cell
+								679 text POST
+							680 cell
+								681 text 204
+							682 cell
+								683 text preco-que-da-lucro-sage.vercel.app
+							684 cell
+								685 text /api/csp-report
+							686 cell {"timestamp":"2026-10-13T02:28:09.449Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/","lineNumber":1,"columnNumber":7818,"disposition":"report","sample":null}
+								687 text 2
+								688 text {"timestamp":"2026-10-13T02:28:09.449Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/","lineNumber":1,"columnNumber":7818,"disposition":"report","sample":null}
+						689 row
+							690 cell
+								691 container 2026-10-13T02:28:08.064Z
+									692 text OCT 12  23:28:08 .06
+							693 cell
+								694 text GET
+							695 cell
+								696 text 200
+							697 cell
+								698 text preco-que-da-lucro-sage.vercel.app
+							699 cell
+								700 text /
+							701 cell {"timestamp":"2026-10-13T02:28:09.006Z","level":"info","event":"request.completed","correlationId":"41501076-4b11-4043-baa5-e546422ba710","method":"GET","pathname":"/","status":200,"durationMs":47}
+								702 text {"timestamp":"2026-10-13T02:28:09.006Z","level":"info","event":"request.completed","correlationId":"41501076-4b11-4043-baa5-e546422ba710","method":"GET","pathname":"/","status":200,"durationMs":47}
+						703 row
+							704 cell
+								705 container 2026-10-13T02:06:28.141Z
+									706 text OCT 12  23:06:28 .14
+							707 cell
+								708 text POST
+							709 cell
+								710 text 204
+							711 cell
+								712 text preco-que-da-lucro-3ideu7io0.vercel.app
+							713 cell
+								714 text /api/csp-report
+							715 cell {"timestamp":"2026-10-13T02:06:28.239Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-3ideu7io0.vercel.app/inicio","sourceFile":"https://preco-que-da-lucro-3ideu7io0.vercel.app/inicio","lineNumber":1,"columnNumber":2870,"disposition":"report","sample":null}
+								716 text 6
+								717 text {"timestamp":"2026-10-13T02:06:28.239Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-3ideu7io0.vercel.app/inicio","sourceFile":"https://preco-que-da-lucro-3ideu7io0.vercel.app/inicio","lineNumber":1,"columnNumber":2870,"disposition":"report","sample":null}
+						718 row
+							719 cell
+								720 container 2026-10-13T02:05:31.169Z
+									721 text OCT 12  23:05:31 .16
+							722 cell
+								723 text POST
+							724 cell
+								725 text 204
+							726 cell
+								727 text preco-que-da-lucro-3ideu7io0.vercel.app
+							728 cell
+								729 text /api/vitals
+							730 cell {"timestamp":"2026-10-13T02:05:31.280Z","level":"info","event":"request.completed","correlationId":"acb193d6-fe36-4234-a685-e258a86fbdca","method":"POST","pathname":"/api/vitals","status":204,"durationMs":24}
+								731 text 2
+								732 text {"timestamp":"2026-10-13T02:05:31.280Z","level":"info","event":"request.completed","correlationId":"acb193d6-fe36-4234-a685-e258a86fbdca","method":"POST","pathname":"/api/vitals","status":204,"durationMs":24}
+						733 row
+							734 cell
+								735 container 2026-10-13T02:05:28.743Z
+									736 text OCT 12  23:05:28 .74
+							737 cell
+								738 text GET
+							739 cell
+								740 text 401
+							741 cell
+								742 text preco-que-da-lucro-3ideu7io0.vercel.app
+							743 cell
+								744 text /_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59
+							745 cell {"timestamp":"2026-10-13T02:05:28.836Z","level":"info","event":"request.completed","correlationId":"6af447c0-44b3-4891-ae35-d5f9815ba5a4","method":"GET","pathname":"/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59","status":401,"durationMs":13}
+								746 text {"timestamp":"2026-10-13T02:05:28.836Z","level":"info","event":"request.completed","correlationId":"6af447c0-44b3-4891-ae35-d5f9815ba5a4","method":"GET","pathname":"/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59","status":401,"durationMs":13}
+						747 row
+							748 cell
+								749 container 2026-10-13T02:05:28.619Z
+									750 text OCT 12  23:05:28 .61
+							751 cell
+								752 text GET
+							753 cell
+								754 text 200
+							755 cell
+								756 text preco-que-da-lucro-3ideu7io0.vercel.app
+							757 cell
+								758 text /api/auth/get-session
+							759 cell {"timestamp":"2026-10-13T02:05:28.765Z","level":"info","event":"request.completed","correlationId":"c4c76708-f5a6-4c0b-b380-73f43743600d","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":68}
+								760 text 2
+								761 text {"timestamp":"2026-10-13T02:05:28.765Z","level":"info","event":"request.completed","correlationId":"c4c76708-f5a6-4c0b-b380-73f43743600d","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":68}
+						762 row
+							763 cell
+								764 container 2026-10-13T02:05:28.261Z
+									765 text OCT 12  23:05:28 .26
+							766 cell
+								767 text GET
+							768 cell
+								769 text 200
+							770 cell
+								771 text preco-que-da-lucro-3ideu7io0.vercel.app
+							772 cell
+								773 text /api/auth/get-session
+							774 cell {"timestamp":"2026-10-13T02:05:28.490Z","level":"info","event":"request.completed","correlationId":"88be4e7a-3abf-40ff-b6c3-a90da7233841","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":142}
+								775 text 2
+								776 text {"timestamp":"2026-10-13T02:05:28.490Z","level":"info","event":"request.completed","correlationId":"88be4e7a-3abf-40ff-b6c3-a90da7233841","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":142}
+						777 row
+							778 cell
+								779 container 2026-10-13T02:05:28.261Z
+									780 text OCT 12  23:05:28 .26
+							781 cell
+								782 text POST
+							783 cell
+								784 text 204
+							785 cell
+								786 text preco-que-da-lucro-3ideu7io0.vercel.app
+							787 cell
+								788 text /api/vitals
+							789 cell {"timestamp":"2026-10-13T02:05:28.431Z","level":"info","event":"request.completed","correlationId":"0ec91458-826e-4b9a-b898-d94d1ec7d116","method":"POST","pathname":"/api/vitals","status":204,"durationMs":74}
+								790 text 2
+								791 text {"timestamp":"2026-10-13T02:05:28.431Z","level":"info","event":"request.completed","correlationId":"0ec91458-826e-4b9a-b898-d94d1ec7d116","method":"POST","pathname":"/api/vitals","status":204,"durationMs":74}
+						792 row
+							793 cell
+								794 container 2026-10-13T02:05:28.138Z
+									795 text OCT 12  23:05:28 .13
+							796 cell
+								797 text POST
+							798 cell
+								799 text 204
+							800 cell
+								801 text preco-que-da-lucro-3ideu7io0.vercel.app
+							802 cell
+								803 text /api/csp-report
+							804 cell {"timestamp":"2026-10-13T02:05:28.218Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-3ideu7io0.vercel.app/inicio","sourceFile":"https://preco-que-da-lucro-3ideu7io0.vercel.app/inicio","lineNumber":1,"columnNumber":2038,"disposition":"report","sample":null}
+								805 text 2
+								806 text {"timestamp":"2026-10-13T02:05:28.218Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-3ideu7io0.vercel.app/inicio","sourceFile":"https://preco-que-da-lucro-3ideu7io0.vercel.app/inicio","lineNumber":1,"columnNumber":2038,"disposition":"report","sample":null}
+						807 row
+							808 cell
+								809 container 2026-10-13T02:05:27.303Z
+									810 text OCT 12  23:05:27 .30
+							811 cell
+								812 text GET
+							813 cell
+								814 text 200
+							815 cell
+								816 text preco-que-da-lucro-3ideu7io0.vercel.app
+							817 cell
+								818 text /inicio
+							819 cell {"timestamp":"2026-10-13T02:05:27.422Z","level":"info","event":"request.completed","correlationId":"b856073f-2928-46bc-a94b-b0377ae68585","method":"GET","pathname":"/inicio","status":200,"durationMs":29}
+								820 text {"timestamp":"2026-10-13T02:05:27.422Z","level":"info","event":"request.completed","correlationId":"b856073f-2928-46bc-a94b-b0377ae68585","method":"GET","pathname":"/inicio","status":200,"durationMs":29}
+						821 row
+							822 cell
+								823 container 2026-10-13T02:04:05.829Z
+									824 text OCT 12  23:04:05 .82
+							825 cell
+								826 text GET
+							827 cell
+								828 text 200
+							829 cell
+								830 text preco-que-da-lucro-3ideu7io0.vercel.app
+							831 cell
+								832 text /api/auth/get-session
+							833 cell {"timestamp":"2026-10-13T02:04:06.011Z","level":"info","event":"request.completed","correlationId":"d01eb54f-d162-47de-b7bb-4c16966603b6","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":102}
+								834 text 2
+								835 text {"timestamp":"2026-10-13T02:04:06.011Z","level":"info","event":"request.completed","correlationId":"d01eb54f-d162-47de-b7bb-4c16966603b6","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":102}
+						836 row
+							837 cell
+								838 container 2026-10-13T02:04:05.418Z
+									839 text OCT 12  23:04:05 .41
+							840 cell
+								841 text GET
+							842 cell
+								843 text 200
+							844 cell
+								845 text preco-que-da-lucro-3ideu7io0.vercel.app
+							846 cell
+								847 text /api/health/ready
+							848 cell {"timestamp":"2026-10-13T02:04:05.524Z","level":"info","event":"request.completed","correlationId":"98ec8f7b-effa-4a35-bf92-bdde8280dccc","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":21}
+								849 text {"timestamp":"2026-10-13T02:04:05.524Z","level":"info","event":"request.completed","correlationId":"98ec8f7b-effa-4a35-bf92-bdde8280dccc","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":21}
+						850 row
+							851 cell
+								852 container 2026-10-13T02:04:04.808Z
+									853 text OCT 12  23:04:04 .80
+							854 cell
+								855 text POST
+							856 cell
+								857 text 204
+							858 cell
+								859 text preco-que-da-lucro-3ideu7io0.vercel.app
+							860 cell
+								861 text /api/vitals
+							862 cell {"timestamp":"2026-10-13T02:04:04.969Z","level":"info","event":"request.completed","correlationId":"9ffec273-4a6f-4eac-a131-05c43eebf872","method":"POST","pathname":"/api/vitals","status":204,"durationMs":65}
+								863 text 2
+								864 text {"timestamp":"2026-10-13T02:04:04.969Z","level":"info","event":"request.completed","correlationId":"9ffec273-4a6f-4eac-a131-05c43eebf872","method":"POST","pathname":"/api/vitals","status":204,"durationMs":65}
+						865 row
+							866 cell
+								867 container 2026-10-13T02:04:04.808Z
+									868 text OCT 12  23:04:04 .80
+							869 cell
+								870 text POST
+							871 cell
+								872 text 204
+							873 cell
+								874 text preco-que-da-lucro-3ideu7io0.vercel.app
+							875 cell
+								876 text /api/vitals
+							877 cell {"timestamp":"2026-10-13T02:04:04.982Z","level":"info","event":"request.completed","correlationId":"ea283f85-e9a4-46b1-94ea-7585b799a274","method":"POST","pathname":"/api/vitals","status":204,"durationMs":82}
+								878 text 2
+								879 text {"timestamp":"2026-10-13T02:04:04.982Z","level":"info","event":"request.completed","correlationId":"ea283f85-e9a4-46b1-94ea-7585b799a274","method":"POST","pathname":"/api/vitals","status":204,"durationMs":82}
+					880 button (disabled) Load More
+
+The focused UI element is 1 AXWebArea preco-que-da-lucro – Logs – Vercel, URL: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs?search=deploymentId%3Adpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM&live=true

@@ -1,0 +1,37 @@
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+ ❯ src/test/m02-cutover-t0.test.ts (2 tests | 1 failed) 129ms
+     × --skip-snapshot não conecta e ainda assim exit 0 com rótulos (smoke de parsing) 126ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/m02-cutover-t0.test.ts > m02-cutover-t0 sem DATABASE_ADMIN_URL (dupla snapshot rotulada) > --skip-snapshot não conecta e ainda assim exit 0 com rótulos (smoke de parsing)
+AssertionError: expected '\n> m02:cutover-t0\n> node scripts/m0…' to contain '"check":"dupla-snapshot"'
+
+- Expected
++ Received
+
+- "check":"dupla-snapshot"
++
++ > m02:cutover-t0
++ > node scripts/m02-cutover-t0.mjs --skip-snapshot --out-dir /tmp/t0-unit
++
++
+
+ ❯ src/test/m02-cutover-t0.test.ts:32:22
+     30|       },
+     31|     );
+     32|     expect(r.stdout).toContain('"check":"dupla-snapshot"');
+       |                      ^
+     33|     expect(r.stdout).toContain("PENDING");
+     34|     expect(r.stdout).toContain('"check":"rls-probe-producao","status":…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  23:58:43
+   Duration  806ms (transform 36ms, setup 81ms, import 26ms, tests 129ms, environment 467ms)
+

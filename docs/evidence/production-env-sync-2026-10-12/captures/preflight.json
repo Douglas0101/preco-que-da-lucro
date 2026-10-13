@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-13T01:30:34Z",
+  "projectId": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+  "teamId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+  "mainSha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+  "developSha": "ca60eb92dda3fad708d46d6ccc1f74c38c3706c6",
+  "productionBranchId": "br-snowy-violet-aymcvvvv",
+  "productionEndpointId": "ep-long-violet-aye9g0bn",
+  "envId": "LQTKQMUeLWmQnHkM",
+  "envKey": "DATABASE_URL",
+  "target": ["production"],
+  "type": "sensitive",
+  "uiLastEdited": "Oct 6",
+  "integrationId": "icfg_eDeLFTSX3j7fPem6tn88RkGS",
+  "mainNewCoverage": 74.1,
+  "releasePolicy": "OK",
+  "oldPublicDeploymentId": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+  "connectorVercel": "403 forbidden scope",
+  "credentialValues": "not read, printed or stored"
+}

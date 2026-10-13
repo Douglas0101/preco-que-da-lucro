@@ -1,0 +1,258 @@
+TimeMethodStatusHostRequestMessage
+
+OCT 12 23:01:37.65
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/csp-report
+6
+{"timestamp":"2026-10-13T02:01:37.854Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-3ideu7io0.vercel.app/auth","sourceFile":"https://preco-que-da-lucro-3ideu7io0.vercel.app/assets/index-5pm_RoH1.js","lineNumber":10,"columnNumber":56011,"disposition":"report","sample":null}
+
+OCT 12 23:00:48.66
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T02:00:48.953Z","level":"info","event":"request.completed","correlationId":"68fded16-3c91-47c9-8414-557a14647d87","method":"POST","pathname":"/api/vitals","status":204,"durationMs":182}
+
+OCT 12 23:00:37.86
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/auth/get-session
+2
+{"timestamp":"2026-10-13T02:00:40.511Z","level":"info","event":"request.completed","correlationId":"69ecc9ff-60ac-4c79-899d-ff92eadbce5d","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":1817}
+
+OCT 12 23:00:37.82
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T02:00:40.420Z","level":"info","event":"request.completed","correlationId":"230811d4-8e73-45d9-8c4e-16d3caabd5ec","method":"POST","pathname":"/api/vitals","status":204,"durationMs":1823}
+
+OCT 12 23:00:37.82
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T02:00:40.420Z","level":"info","event":"request.completed","correlationId":"190b69f1-5f48-46d9-baef-98a15c965ae7","method":"POST","pathname":"/api/vitals","status":204,"durationMs":1818}
+
+OCT 12 23:00:37.65
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/csp-report
+2
+{"timestamp":"2026-10-13T02:00:38.695Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-3ideu7io0.vercel.app/auth","sourceFile":"https://preco-que-da-lucro-3ideu7io0.vercel.app/auth","lineNumber":1,"columnNumber":7046,"disposition":"report","sample":null}
+
+OCT 12 23:00:37.60
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T02:00:40.417Z","level":"info","event":"request.completed","correlationId":"3ad9cb8e-82c9-4af4-8494-356e1fecabc5","method":"POST","pathname":"/api/vitals","status":204,"durationMs":2709}
+
+OCT 12 23:00:37.60
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T02:00:40.419Z","level":"info","event":"request.completed","correlationId":"31e33cc0-c3d1-47d2-934d-731194fba7d6","method":"POST","pathname":"/api/vitals","status":204,"durationMs":1952}
+
+OCT 12 23:00:36.28
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/auth
+{"timestamp":"2026-10-13T02:00:37.475Z","level":"info","event":"request.completed","correlationId":"c1bad89b-e6da-4973-9347-d129b616583b","method":"GET","pathname":"/auth","status":200,"durationMs":66}
+
+OCT 12 22:49:04.38
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/csp-report
+6
+{"timestamp":"2026-10-13T01:49:04.470Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-3ideu7io0.vercel.app/","sourceFile":"https://preco-que-da-lucro-3ideu7io0.vercel.app/assets/index-5pm_RoH1.js","lineNumber":10,"columnNumber":56011,"disposition":"report","sample":null}
+
+OCT 12 22:48:04.66
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/auth/get-session
+2
+{"timestamp":"2026-10-13T01:48:04.872Z","level":"info","event":"request.completed","correlationId":"390b6a89-3f96-4ff3-9d81-9db7b4bc0ad5","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":136}
+
+OCT 12 22:48:04.64
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T01:48:04.852Z","level":"info","event":"request.completed","correlationId":"021d9572-c3c9-449a-adb4-2fde95cc6666","method":"POST","pathname":"/api/vitals","status":204,"durationMs":81}
+
+OCT 12 22:48:04.63
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T01:48:04.818Z","level":"info","event":"request.completed","correlationId":"269efd4f-62f0-47be-93a4-20a80c0efbfb","method":"POST","pathname":"/api/vitals","status":204,"durationMs":100}
+
+OCT 12 22:48:04.38
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/csp-report
+2
+{"timestamp":"2026-10-13T01:48:04.484Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-3ideu7io0.vercel.app/","sourceFile":"https://preco-que-da-lucro-3ideu7io0.vercel.app/","lineNumber":1,"columnNumber":7818,"disposition":"report","sample":null}
+
+OCT 12 22:48:03.94
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/
+{"timestamp":"2026-10-13T01:48:04.075Z","level":"info","event":"request.completed","correlationId":"8e476340-5df1-4f12-b65c-b1f275d741c2","method":"GET","pathname":"/","status":200,"durationMs":11}
+
+OCT 12 22:44:59.97
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/csp-report
+6
+{"timestamp":"2026-10-13T01:45:00.081Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-3ideu7io0.vercel.app/","sourceFile":"https://preco-que-da-lucro-3ideu7io0.vercel.app/","lineNumber":1,"columnNumber":9945,"disposition":"report","sample":null}
+
+OCT 12 22:44:22.42
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T01:44:22.525Z","level":"info","event":"request.completed","correlationId":"02a2180e-e1b5-48fd-9410-b9399a9b734c","method":"POST","pathname":"/api/vitals","status":204,"durationMs":17}
+
+OCT 12 22:44:21.99
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/health/ready
+{"timestamp":"2026-10-13T01:44:22.179Z","level":"info","event":"request.completed","correlationId":"e7aee7d6-be73-49aa-8b5f-6380141cfe9b","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":92}
+
+OCT 12 22:44:00.49
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T01:44:00.586Z","level":"info","event":"request.completed","correlationId":"4f9e2bcf-238f-47fd-a218-819fb6dcb1d7","method":"POST","pathname":"/api/vitals","status":204,"durationMs":16}
+
+OCT 12 22:44:00.39
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T01:44:00.698Z","level":"info","event":"request.completed","correlationId":"7a8b1480-1574-49ee-8dd4-7b2ac6b9f434","method":"POST","pathname":"/api/vitals","status":204,"durationMs":73}
+
+OCT 12 22:44:00.39
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T01:44:00.661Z","level":"info","event":"request.completed","correlationId":"6864c112-98cc-4c41-ac50-7bd3bd8a1d41","method":"POST","pathname":"/api/vitals","status":204,"durationMs":16}
+
+OCT 12 22:44:00.27
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/auth/get-session
+2
+{"timestamp":"2026-10-13T01:44:00.478Z","level":"info","event":"request.completed","correlationId":"6ceb28d3-4b40-45ee-9388-3fc14e4eef4d","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":124}
+
+OCT 12 22:43:59.97
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/csp-report
+2
+{"timestamp":"2026-10-13T01:44:00.052Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-3ideu7io0.vercel.app/","sourceFile":"https://preco-que-da-lucro-3ideu7io0.vercel.app/","lineNumber":1,"columnNumber":7818,"disposition":"report","sample":null}
+
+OCT 12 22:43:59.44
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/
+{"timestamp":"2026-10-13T01:43:59.680Z","level":"info","event":"request.completed","correlationId":"9f08a54c-c0d0-46ab-9760-2718f9abf8e9","method":"GET","pathname":"/","status":200,"durationMs":6}
+
+OCT 12 22:42:30.23
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/health/ready
+{"timestamp":"2026-10-13T01:42:30.424Z","level":"info","event":"request.completed","correlationId":"8f6a373f-96d3-41fb-8714-04dfa73c1c60","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":79}
+
+OCT 12 22:42:07.27
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T01:42:07.335Z","level":"info","event":"request.completed","correlationId":"a40bb819-652f-4b6b-8d19-74a9e7154687","method":"POST","pathname":"/api/vitals","status":204,"durationMs":14}
+
+OCT 12 22:42:06.99
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/auth/get-session
+2
+{"timestamp":"2026-10-13T01:42:07.125Z","level":"info","event":"request.completed","correlationId":"d3671656-e9ec-40e5-a715-9a50f0081fd8","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":54}
+
+OCT 12 22:42:06.97
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T01:42:07.034Z","level":"info","event":"request.completed","correlationId":"1a428269-7bd6-4102-bd28-250c87ce61fd","method":"POST","pathname":"/api/vitals","status":204,"durationMs":14}
+
+OCT 12 22:42:06.90
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T01:42:06.971Z","level":"info","event":"request.completed","correlationId":"b236e5dd-ca1e-4f0f-9001-b8f435dfa0fe","method":"POST","pathname":"/api/vitals","status":204,"durationMs":17}
+
+OCT 12 22:42:06.64
+POST
+204
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/vitals
+2
+{"timestamp":"2026-10-13T01:42:06.845Z","level":"info","event":"request.completed","correlationId":"440bd65e-5f30-4389-986d-c012018e4b0c","method":"POST","pathname":"/api/vitals","status":204,"durationMs":133}
+
+OCT 12 22:42:06.59
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/api/auth/get-session
+2
+{"timestamp":"2026-10-13T01:42:06.880Z","level":"info","event":"request.completed","correlationId":"18e80924-b1fd-4735-b2ef-fb5d49345d66","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":222}
+
+OCT 12 22:42:05.68
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/
+{"timestamp":"2026-10-13T01:42:06.544Z","level":"info","event":"request.completed","correlationId":"05dc5985-f4cc-4abd-bfa8-8573e5516b30","method":"GET","pathname":"/","status":200,"durationMs":45}
+
+OCT 12 22:42:05.63
+GET
+200
+preco-que-da-lucro-3ideu7io0.vercel.app
+/
+{"timestamp":"2026-10-13T01:42:06.071Z","level":"info","event":"request.completed","correlationId":"82cd8028-de78-4b61-8b77-1c9f1111d700","method":"GET","pathname":"/","status":200,"durationMs":50}

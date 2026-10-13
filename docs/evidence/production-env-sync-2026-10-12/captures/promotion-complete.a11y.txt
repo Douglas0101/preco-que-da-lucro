@@ -1,0 +1,138 @@
+Browser tab: 5, Title: "preco-que-da-lucro – Deployment Overview – Vercel", URL: "https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/9v4ni1MyeWA6GhnoE7m3p5mpZRZM".
+1 AXWebArea preco-que-da-lucro – Deployment Overview – Vercel, URL: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/9v4ni1MyeWA6GhnoE7m3p5mpZRZM
+	2 container
+		3 link Description: Skip to content, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/9v4ni1MyeWA6GhnoE7m3p5mpZRZM#geist-skip-nav
+		4 container
+			5 container
+				6 link Description: douglasultimatesouza-5127's projects Hobby, Value: vercel.com/douglasultimatesouza-5127s-projects
+				7 button
+					8 image
+				9 button Find F
+					10 image
+					11 text Find
+					12 text F
+				13 container
+					14 link Description: Overview, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro
+					15 link Description: Deployments, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/deployments
+					16 link Description: Logs, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs
+					17 link Description: Analytics, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/analytics
+					18 link Description: Speed Insights, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/speed-insights
+					19 link Description: Observability, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/observability
+					20 link Description: Firewall, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/firewall
+					21 link Description: CDN, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/cdn
+					22 link Description: Environment Variables, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/environment-variables
+					23 link Description: Domains, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/domains
+					24 link Description: Connect, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/connect
+					25 link Description: Integrations, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/integrations
+					26 link Description: Storage, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/stores
+					27 link Description: Flags, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/flags
+					28 link Description: Agent, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/agent
+					29 link Description: AI Gateway, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/ai-gateway
+					30 link Description: Sandboxes, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/sandboxes
+					31 link Description: Workflows, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/workflows
+					32 link Description: Images, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/images
+					33 link Description: Usage, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/usage
+					34 link Description: Support, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/support
+					35 link Description: Settings, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings
+				36 pop up button (collapsed) Avatar for douglasultimatesouza-5127 douglasultimatesouza-5127, Secondary Actions: Expand
+					37 container Avatar for douglasultimatesouza-5127
+					38 text douglasultimatesouza-5127
+					39 image
+				132 pop up button (collapsed) Description: 30 unseen notifications, Secondary Actions: Expand
+					133 image
+					134 image
+			41 container
+				42 link Description: preco-que-da-lucro, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro
+				43 button
+					44 image
+				45 link Description: Back to team view, Value: vercel.com/douglasultimatesouza-5127s-projects/~/deployments
+			46 container Breadcrumb
+				47 link Description: Deployments, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/deployments
+				48 container
+					49 text 9v4ni1Mye
+					50 button Copy ID
+			51 button Vercel Agent is available on Pro
+				52 image
+				53 text Agent
+			54 container
+				55 container
+					56 link Description: Deployment, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/9v4ni1MyeWA6GhnoE7m3p5mpZRZM
+					57 link Description: Logs, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/9v4ni1MyeWA6GhnoE7m3p5mpZRZM/logs
+					58 link Description: Resources, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/9v4ni1MyeWA6GhnoE7m3p5mpZRZM/resources
+					59 link Description: Source, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/9v4ni1MyeWA6GhnoE7m3p5mpZRZM/source
+					60 link Description: Open Graph, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/9v4ni1MyeWA6GhnoE7m3p5mpZRZM/og
+				61 heading Deployment Details, Value: 3
+					62 text Deployment Details
+				63 button Share
+					64 image
+					65 text Share
+				66 link Description: Logs, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs?deploymentIds=dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM
+				67 link Description: Visit, Value: preco-que-da-lucro-3ideu7io0.vercel.app/
+				68 pop up button (collapsed) Description: Visit with, ID: menu-button-_r_mi_, Secondary Actions: Expand
+					69 image
+				70 pop up button (collapsed) Description: Deployment Actions, ID: menu-button-_r_ng_, Secondary Actions: Expand
+					71 image
+				72 link Description: Visit Deployment, Value: preco-que-da-lucro-3ideu7io0.vercel.app/
+				73 text Created
+				74 container douglasultimatesouza-5127 Avatar
+				75 text douglasultimatesouza-5127 39m ago Status
+				76 container This deployment is ready.
+					77 text Ready
+					78 link Description: Latest, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/deployments?filterBranch=main
+				79 text Duration
+				80 container 12 de out. de 2026, 22:42:04 BRT
+					81 text 43s
+					82 text 38m ago
+				83 text Environment
+				84 image
+				85 link Description: Production, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/environments/production
+				86 text Current Domains
+				87 image
+				88 link Description: preco-que-da-lucro-sage.vercel.app, Value: preco-que-da-lucro-sage.vercel.app/
+				89 container
+					90 text + 1
+				91 image
+				92 link Description: preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app, Value: preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app/
+				93 image
+				94 link Description: preco-que-da-lucro-3ideu7io0.vercel.app, Value: preco-que-da-lucro-3ideu7io0.vercel.app/
+				95 text Source
+				96 image
+				97 link Description: main, Help: Git Branch, Value: github.com/Douglas0101/preco-que-da-lucro/tree/main
+				98 image
+				99 link Description: 5d6049b Merge pull request #63 from Douglas0101/develop, Help: Git Commit, Value: github.com/Douglas0101/preco-que-da-lucro/commit/5d6049b9badf067b804bdc3062c922bab72c46d0
+				100 button (collapsed) Deployment Settings 3 Recommendations, ID: radix-_r_n3_, Secondary Actions: Expand
+					101 image
+					102 text Deployment Settings
+					135 container
+						136 text 3  Recommendation s
+				103 heading Build Logs 3 43s, Value: 2
+					104 container radix-_r_nj_
+						105 image
+						106 text Build Logs
+						107 button 3
+							108 image
+							109 text 3
+						110 text 43s
+						111 image
+				112 heading Deployment Summary Resources, Value: 2
+					113 container radix-_r_n7_
+						114 image
+						115 text Deployment Summary
+						116 link Description: Resources, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/9v4ni1MyeWA6GhnoE7m3p5mpZRZM/resources
+						117 image
+				118 heading Deployment Checks, Value: 2
+					119 container radix-_r_n9_
+						120 image
+						121 text Deployment Checks
+						122 image
+				123 heading Assigning Custom Domains Skipped, Value: 2
+					124 container radix-_r_nb_
+						125 image
+						126 text Assigning Custom Domains Skipped
+						127 image
+				128 link Description: Runtime Logs View and debug runtime logs & errors, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs
+				129 link Description: Observability Monitor app health & performance, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/observability/serverless-functions
+				130 link Description: Speed Insights Not Enabled Performance metrics from real users, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/speed-insights
+				131 link Description: BotID New Classify and detect bot traffic, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/firewall/configure
+
+The focused UI element is 1 AXWebArea preco-que-da-lucro – Deployment Overview – Vercel, URL: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/9v4ni1MyeWA6GhnoE7m3p5mpZRZM

@@ -1,0 +1,26 @@
+[
+  {
+    "url": "https://preco-que-da-lucro-3ideu7io0.vercel.app/api/health/live",
+    "method": "GET",
+    "access": "anonymous-no-cookie-no-bypass",
+    "observedAt": "2026-10-13T01:45:29.528499+00:00",
+    "httpStatus": 401,
+    "redirected": false
+  },
+  {
+    "url": "https://preco-que-da-lucro-3ideu7io0.vercel.app/api/health/ready",
+    "method": "GET",
+    "access": "anonymous-no-cookie-no-bypass",
+    "observedAt": "2026-10-13T01:45:29.863977+00:00",
+    "httpStatus": 401,
+    "redirected": false
+  },
+  {
+    "url": "https://preco-que-da-lucro-3ideu7io0.vercel.app/api/auth/get-session",
+    "method": "GET",
+    "access": "anonymous-no-cookie-no-bypass",
+    "observedAt": "2026-10-13T01:45:29.983729+00:00",
+    "httpStatus": 401,
+    "redirected": false
+  }
+]

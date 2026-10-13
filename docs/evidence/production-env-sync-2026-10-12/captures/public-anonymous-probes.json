@@ -1,0 +1,88 @@
+{
+  "observedAt": "2026-10-13T02:48:56.859000+00:00",
+  "mainSha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+  "deploymentIdCorroboratedByDashboard": "dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM",
+  "source": "Anonymous HTTPS GET with Python urllib, TLS verified, redirects disabled",
+  "cookiesSent": false,
+  "authorizationSent": false,
+  "bypassTokenSent": false,
+  "httpBodiesStored": false,
+  "probes": [
+    {
+      "host": "preco-que-da-lucro-sage.vercel.app",
+      "method": "GET",
+      "pathname": "/api/health/live",
+      "requestedAt": "2026-10-13T02:48:54.272349+00:00",
+      "status": 200,
+      "contentType": "application/json",
+      "cacheControl": "no-store"
+    },
+    {
+      "host": "preco-que-da-lucro-sage.vercel.app",
+      "method": "GET",
+      "pathname": "/api/health/ready",
+      "requestedAt": "2026-10-13T02:48:54.275568+00:00",
+      "status": 200,
+      "contentType": "application/json",
+      "cacheControl": "no-store"
+    },
+    {
+      "host": "preco-que-da-lucro-sage.vercel.app",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "requestedAt": "2026-10-13T02:48:54.277916+00:00",
+      "status": 200,
+      "contentType": "application/json",
+      "cacheControl": "private, no-store"
+    },
+    {
+      "host": "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app",
+      "method": "GET",
+      "pathname": "/api/health/live",
+      "requestedAt": "2026-10-13T02:48:55.601857+00:00",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "host": "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app",
+      "method": "GET",
+      "pathname": "/api/health/ready",
+      "requestedAt": "2026-10-13T02:48:56.354047+00:00",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "host": "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "requestedAt": "2026-10-13T02:48:56.397545+00:00",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "host": "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app",
+      "method": "GET",
+      "pathname": "/api/health/live",
+      "requestedAt": "2026-10-13T02:48:56.545404+00:00",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "host": "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app",
+      "method": "GET",
+      "pathname": "/api/health/ready",
+      "requestedAt": "2026-10-13T02:48:56.652000+00:00",
+      "status": 401,
+      "contentType": "application/json"
+    },
+    {
+      "host": "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "requestedAt": "2026-10-13T02:48:56.664036+00:00",
+      "status": 401,
+      "contentType": "application/json"
+    }
+  ],
+  "allPassed": false
+}

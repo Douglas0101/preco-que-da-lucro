@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+
+ Test Files  1 passed (1)
+      Tests  20 passed (20)
+   Start at  23:53:37
+   Duration  745ms (transform 55ms, setup 106ms, import 45ms, tests 12ms, environment 478ms)
+

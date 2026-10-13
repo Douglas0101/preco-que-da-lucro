@@ -1,0 +1,73 @@
+{
+  "check_runs": [
+    {
+      "app": "github-actions",
+      "completed_at": "2026-10-12T22:45:31Z",
+      "conclusion": "skipped",
+      "details_url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/38318115587/job/115040625832",
+      "head_sha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+      "id": 115040625832,
+      "name": "main-coverage-mirror",
+      "started_at": "2026-10-12T22:45:32Z",
+      "status": "completed"
+    },
+    {
+      "app": "sonarqubecloud",
+      "completed_at": "2026-10-12T22:45:23Z",
+      "conclusion": "failure",
+      "details_url": "https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro\u0026branch=main",
+      "head_sha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+      "id": 115040589587,
+      "name": "SonarCloud Code Analysis",
+      "started_at": "2026-10-12T22:44:27Z",
+      "status": "completed"
+    },
+    {
+      "app": "github-actions",
+      "completed_at": "2026-10-12T22:47:40Z",
+      "conclusion": "success",
+      "details_url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/38318115654/job/115039827668",
+      "head_sha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+      "id": 115039827668,
+      "name": "verify",
+      "started_at": "2026-10-12T22:42:54Z",
+      "status": "completed"
+    },
+    {
+      "app": "github-actions",
+      "completed_at": "2026-10-12T22:42:51Z",
+      "conclusion": "success",
+      "details_url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/38318115654/job/115039516984",
+      "head_sha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+      "id": 115039516984,
+      "name": "prepare browsers and Linux packages",
+      "started_at": "2026-10-12T22:41:51Z",
+      "status": "completed"
+    },
+    {
+      "app": "github-actions",
+      "completed_at": "2026-10-12T22:41:58Z",
+      "conclusion": "success",
+      "details_url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/38318115622/job/115039516936",
+      "head_sha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+      "id": 115039516936,
+      "name": "docs-light",
+      "started_at": "2026-10-12T22:41:51Z",
+      "status": "completed"
+    },
+    {
+      "app": "github-actions",
+      "completed_at": "2026-10-12T22:45:31Z",
+      "conclusion": "success",
+      "details_url": "https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/38318115587/job/115039516817",
+      "head_sha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+      "id": 115039516817,
+      "name": "scan + cobertura",
+      "started_at": "2026-10-12T22:41:51Z",
+      "status": "completed"
+    }
+  ],
+  "revision": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+  "surface": "main",
+  "total_count": 6
+}

@@ -1,0 +1,139 @@
+{
+  "schema": "main-baseline/2",
+  "mode": "post-ce-main",
+  "approvesMain": false,
+  "observedAt": "2026-10-12T22:45:27.888Z",
+  "mainSha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+  "analysisId": "009c844c-e260-4a15-9fa6-0d85f37b48c3",
+  "analysisDate": "2026-10-12T22:44:27+0000",
+  "gate": {
+    "status": "ERROR",
+    "conditions": [
+      {
+        "status": "OK",
+        "metricKey": "new_reliability_rating",
+        "comparator": "GT",
+        "periodIndex": 1,
+        "errorThreshold": "1",
+        "actualValue": "1"
+      },
+      {
+        "status": "OK",
+        "metricKey": "new_security_rating",
+        "comparator": "GT",
+        "periodIndex": 1,
+        "errorThreshold": "1",
+        "actualValue": "1"
+      },
+      {
+        "status": "OK",
+        "metricKey": "new_maintainability_rating",
+        "comparator": "GT",
+        "periodIndex": 1,
+        "errorThreshold": "1",
+        "actualValue": "1"
+      },
+      {
+        "status": "ERROR",
+        "metricKey": "new_coverage",
+        "comparator": "LT",
+        "periodIndex": 1,
+        "errorThreshold": "80",
+        "actualValue": "74.1"
+      },
+      {
+        "status": "OK",
+        "metricKey": "new_duplicated_lines_density",
+        "comparator": "GT",
+        "periodIndex": 1,
+        "errorThreshold": "3",
+        "actualValue": "1.0"
+      },
+      {
+        "status": "OK",
+        "metricKey": "new_security_hotspots_reviewed",
+        "comparator": "LT",
+        "periodIndex": 1,
+        "errorThreshold": "100",
+        "actualValue": "100.0"
+      }
+    ],
+    "periods": [
+      {
+        "index": 1,
+        "mode": "days",
+        "date": "2026-09-05T02:52:52+0000",
+        "parameter": "30"
+      }
+    ],
+    "ignoredConditions": false
+  },
+  "metrics": {
+    "new_lines_to_cover": 2260,
+    "new_uncovered_lines": 604,
+    "new_conditions_to_cover": 1426,
+    "new_uncovered_conditions": 349,
+    "new_coverage": 74.14541508410201,
+    "new_line_coverage": 73.27433628318585,
+    "new_branch_coverage": 75.52594670406732,
+    "lines_to_cover": 5108,
+    "uncovered_lines": 1551,
+    "coverage": 70.4,
+    "ncloc": 21137
+  },
+  "units": {
+    "total": 3686,
+    "covered": 2733,
+    "coverage": 74.14541508410201,
+    "gap": 216,
+    "floor": 1843
+  },
+  "period": [
+    {
+      "index": 1,
+      "mode": "days",
+      "date": "2026-09-05T02:52:52+0000",
+      "parameter": "30"
+    }
+  ],
+  "requests": [
+    {
+      "origin": "github",
+      "path": "/repos/Douglas0101/preco-que-da-lucro/branches/main",
+      "status": 200,
+      "latencyMs": 319
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/project_analyses/search",
+      "status": 200,
+      "latencyMs": 376
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/measures/component",
+      "status": 200,
+      "latencyMs": 207
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/qualitygates/project_status",
+      "status": 200,
+      "latencyMs": 366
+    },
+    {
+      "origin": "sonar",
+      "path": "/api/project_analyses/search",
+      "status": 200,
+      "latencyMs": 178
+    },
+    {
+      "origin": "github",
+      "path": "/repos/Douglas0101/preco-que-da-lucro/branches/main",
+      "status": 200,
+      "latencyMs": 194
+    }
+  ],
+  "lineOnlyGapTo80": 152,
+  "nullSemantics": "valor ausente/ilegível é NO-VERDICT; overall não substitui new; unidades são linhas + condições; snapshot por unidade ainda precisa de adapter validado"
+}

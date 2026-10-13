@@ -1,0 +1,24 @@
+{
+  "deploymentId": "dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM",
+  "freshProbeStart": "2026-10-13T02:04:04.458Z",
+  "probeNavigations": [
+    {
+      "path": "/api/health/live",
+      "requestedAt": "2026-10-13T02:04:04.458Z",
+      "bodyDisplayed": false,
+      "clientNavigationBlocked": true
+    },
+    {
+      "path": "/api/health/ready",
+      "requestedAt": "2026-10-13T02:04:04.768Z",
+      "bodyDisplayed": false,
+      "clientNavigationBlocked": true
+    },
+    {
+      "path": "/api/auth/get-session",
+      "requestedAt": "2026-10-13T02:04:05.726Z",
+      "bodyDisplayed": false,
+      "clientNavigationBlocked": true
+    }
+  ]
+}
