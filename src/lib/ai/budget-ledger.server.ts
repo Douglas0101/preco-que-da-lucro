@@ -283,6 +283,7 @@ function resolveConfig(overrides: Partial<BudgetLedgerConfig> | undefined): Budg
 // production gateway via AI_MODEL_PRICING_JSON before relying on the totals.
 const DEFAULT_MODEL_TOKEN_PRICES: Record<string, ModelTokenPrice> = Object.freeze({
   "google/gemini-3.6-flash": { inputPerMillion: 0.1, outputPerMillion: 0.4 },
+  "deepseek-flash": { inputPerMillion: 0.3, outputPerMillion: 1.2 },
 });
 
 // API-001 §6.9 + INV-014: AI_MODEL_PRICING_JSON is untrusted config and is

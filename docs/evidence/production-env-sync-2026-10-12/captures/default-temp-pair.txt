@@ -1,0 +1,55 @@
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+ ❯ src/test/mcp-runtime-guard.test.ts (20 tests | 2 failed) 16ms
+     × distingue dentro de fora de uma arvore de trabalho 5ms
+     × aprova a mesma linha quando ela e pinada e tem runtime fora de checkout 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/test/mcp-runtime-guard.test.ts > insideWorkTree > distingue dentro de fora de uma arvore de trabalho
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/test/mcp-runtime-guard.test.ts:81:36
+     79|     const inside = join(repo, "sub");
+     80|     mkdirSync(inside, { recursive: true });
+     81|     expect(insideWorkTree(inside)).toBe(false); // ainda sem .git
+       |                                    ^
+     82|
+     83|     mkdirSync(join(inside, ".git"), { recursive: true });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/test/mcp-runtime-guard.test.ts > linhas de config MCP — runner sem pin > aprova a mesma linha quando ela e pinada e tem runtime fora de checkout
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "fixture.json: linha `playwright` aponta `cwd` para dentro de uma arvore de trabalho git (/tmp/mcp-runtime-guard-uPCkhI/runtime) — o runtime tem de ficar fora de qualquer checkout",
++ ]
+
+ ❯ src/test/mcp-runtime-guard.test.ts:119:22
+    117|       }),
+    118|     );
+    119|     expect(findings).toEqual([]);
+       |                      ^
+    120|     expect(preconditions).toEqual([]);
+    121|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  2 failed | 20 passed (22)
+   Start at  00:04:45
+   Duration  5.62s (transform 61ms, setup 182ms, import 54ms, tests 4.28s, environment 895ms)
+

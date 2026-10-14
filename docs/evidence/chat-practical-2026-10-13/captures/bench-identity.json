@@ -1,0 +1,17 @@
+{
+  "createdAt": "2026-10-13T03:58:30.743988+00:00",
+  "containerId": "3722fd94943aecc61ce0aab103a8fc16c231c4746800bbfb58e254ea4914ee25",
+  "containerName": "pqd-chat-practical-20261013-6ad8cb9f",
+  "image": "postgres:17-alpine",
+  "bindHost": "127.0.0.1",
+  "postgresPort": 33253,
+  "httpPort": 51643,
+  "benchUrl": "http://127.0.0.1:51643",
+  "privateDirectory": "/tmp/pqd-chat-practical-private-26e64f_7",
+  "freshContainer": true,
+  "productionDataUsed": false,
+  "existing5432ContainerUntouched": true,
+  "applicationRevision": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+  "checkoutRevision": "f6f95bf401e9c577e83217a9ea1075d4be4f1411",
+  "realApiKeyCopiedToEvidence": false
+}

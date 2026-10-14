@@ -1,0 +1,18 @@
+{
+  "observedAt": "2026-10-13T03:03:19.273368+00:00",
+  "source": "/tmp/.git",
+  "target": "/tmp/pqd-empty-git-marker-custody-fn3drzmj/.git",
+  "custodyCreatedByThisExecution": true,
+  "entryCountBefore": 0,
+  "entryCountAfter": 0,
+  "sameDeviceAndInode": true,
+  "uid": 1000,
+  "gid": 1000,
+  "mode": 493,
+  "mtimeNs": 1791854713609553228,
+  "sourceAbsent": true,
+  "targetPresent": true,
+  "noBytesDeleted": true,
+  "defaultTmpdir": "/tmp",
+  "defaultTmpGitAncestors": []
+}

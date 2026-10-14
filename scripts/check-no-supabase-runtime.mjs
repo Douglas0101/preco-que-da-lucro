@@ -25,7 +25,11 @@ const executableFiles = [
 
 const forbidden = [
   /@supabase\//i,
-  /@lovable\.dev\/cloud-auth-js/i,
+  /@lovable\.dev\//i,
+  /ai\.gateway\.lovable\.dev/i,
+  /\bLOVABLE_API_KEY\b/,
+  /\breportLovableError\b/,
+  /lovable-error-reporting/i,
   /integrations\/supabase/i,
   /\bVITE_SUPABASE_[A-Z0-9_]+\b/,
   /\bSUPABASE_(?!MIGRATION_DATABASE_URL)[A-Z0-9_]+\b/,

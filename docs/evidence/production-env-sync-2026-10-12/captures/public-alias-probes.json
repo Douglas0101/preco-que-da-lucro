@@ -1,0 +1,156 @@
+{
+  "deploymentId": "dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM",
+  "mainSha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+  "observedAt": "2026-10-13T02:34:08.955Z",
+  "postPromotionStart": "2026-10-13T02:28:07.848Z",
+  "filter": "deploymentId:dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM",
+  "source": "Vercel authenticated dashboard accessibility state; exact deployment filter and hostname per request row",
+  "httpBodiesObserved": false,
+  "probes": [
+    {
+      "timestamp": "2026-10-13T02:28:16.496Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "8c3ced4e-9575-487a-9f00-3dc76ec3b1da",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "status": 200,
+      "durationMs": 94,
+      "host": "preco-que-da-lucro-sage.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:15.626Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "12d51b82-7d8c-4788-9595-1d476e35144b",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "status": 200,
+      "durationMs": 81,
+      "host": "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:15.287Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "28528738-68b1-4514-884e-4b46b2e23299",
+      "method": "GET",
+      "pathname": "/api/health/ready",
+      "status": 200,
+      "durationMs": 15,
+      "host": "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:14.971Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "e6e5c076-3e3a-410b-849e-b5a39135a48c",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "status": 200,
+      "durationMs": 66,
+      "host": "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:14.893Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "85b80345-51a5-44bc-ae08-9f8f3ab3b436",
+      "method": "GET",
+      "pathname": "/api/health/live",
+      "status": 200,
+      "durationMs": 1,
+      "host": "preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:13.406Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "f2761510-b3f0-4e6e-af57-81d578021551",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "status": 200,
+      "durationMs": 66,
+      "host": "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:13.020Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "a72c3c09-c2ff-4a23-994c-2a4ca20f53de",
+      "method": "GET",
+      "pathname": "/api/health/ready",
+      "status": 200,
+      "durationMs": 16,
+      "host": "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:12.684Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "57b6eb41-d821-4377-bd72-1e5dd87b0f48",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "status": 200,
+      "durationMs": 85,
+      "host": "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:12.597Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "3bdd8449-96b7-4a76-84db-0b625afc0f4c",
+      "method": "GET",
+      "pathname": "/api/health/live",
+      "status": 200,
+      "durationMs": 2,
+      "host": "preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:11.044Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "1c1ebe00-b5a2-48c5-a204-44e99769f82f",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "status": 200,
+      "durationMs": 99,
+      "host": "preco-que-da-lucro-sage.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:10.694Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "6556b81c-33db-49f0-87eb-a09ac4fd29f5",
+      "method": "GET",
+      "pathname": "/api/health/ready",
+      "status": 200,
+      "durationMs": 17,
+      "host": "preco-que-da-lucro-sage.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:10.336Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "1a60422b-f7a7-417e-b560-8bdc6b854d6c",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "status": 200,
+      "durationMs": 424,
+      "host": "preco-que-da-lucro-sage.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:28:10.287Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "3c0a28c0-3aea-4001-8297-8d5df9be9932",
+      "method": "GET",
+      "pathname": "/api/health/live",
+      "status": 200,
+      "durationMs": 11,
+      "host": "preco-que-da-lucro-sage.vercel.app"
+    }
+  ],
+  "filterMatches": true,
+  "allPassed": true
+}

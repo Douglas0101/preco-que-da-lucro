@@ -1,0 +1,24 @@
+# Runtime error do deployment de produção dpl_GWEFoMxhXfz31E6HxfR2NH1RNZFn (main@5d6049b)
+# Fonte: Vercel MCP get_runtime_errors (since=1h). Linha estruturada JÁ sanitizada pelo
+# próprio app (nenhum host, usuário ou credencial é emitido). Captura: 2026-10-12T22:52Z.
+
+{
+  "timestamp": "2026-10-12T22:50:04.073Z",
+  "level": "error",
+  "event": "health.readiness_failed",
+  "correlationId": "2b027d11-a80b-461c-9f4e-7ba3c6432790",
+  "deploymentId": "dpl_GWEFoMxhXfz31E6HxfR2NH1RNZFn",
+  "commitSha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+  "component": "postgres",
+  "category": "authentication",
+  "step": "auth",
+  "code": "28P01",
+  "transient": false,
+  "inspectedCauses": 2
+}
+
+# Leitura: PostgreSQL 28P01 = invalid_password. O servidor foi alcançado e RECUSOU as
+# credenciais do DATABASE_URL de produção — a mesma falha que derruba o fa45632 desde
+# 2026-10-08 (env atualizado em 2026-10-06). O código está limpo (a mesma árvore serve
+# 200 nos previews com o env escopado). Correção: reparo do DATABASE_URL de produção
+# (Via A) e novo deploy/ativação. Nenhum DNS/SQL foi tocado.

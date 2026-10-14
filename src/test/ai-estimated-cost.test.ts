@@ -87,6 +87,10 @@ describe("estimateModelCost", () => {
       cost: "0.0500",
       status: "known",
     });
+    expect(estimateModelCost("deepseek-flash", 100_000, 100_000)).toEqual({
+      cost: "0.1500",
+      status: "known",
+    });
   });
 });
 
@@ -95,6 +99,10 @@ describe("modelTokenPricesFromEnv validation (API-001 §6.9, INV-014)", () => {
     expect(modelTokenPricesFromEnv({})["google/gemini-3.6-flash"]).toEqual({
       inputPerMillion: 0.1,
       outputPerMillion: 0.4,
+    });
+    expect(modelTokenPricesFromEnv({})["deepseek-flash"]).toEqual({
+      inputPerMillion: 0.3,
+      outputPerMillion: 1.2,
     });
     expect(
       modelTokenPricesFromEnv({ AI_MODEL_PRICING_JSON: "" })["google/gemini-3.6-flash"],

@@ -13,7 +13,6 @@ function successResponse(): Response {
 beforeEach(() => {
   for (const name of [
     "AI_GATEWAY_API_KEY",
-    "LOVABLE_API_KEY",
     "DEEPSEEK_API_KEY",
     "AI_GATEWAY_URL",
     "AI_MODEL",
@@ -42,7 +41,6 @@ describe("DeepSeek restrito ao servidor Web", () => {
   it("usa a chave do emissor certo, modo compatível e uso medido", async () => {
     const key = native();
     vi.stubEnv("AI_GATEWAY_API_KEY", crypto.randomUUID());
-    vi.stubEnv("LOVABLE_API_KEY", crypto.randomUUID());
     const f = vi.fn<typeof fetch>().mockResolvedValue(
       Response.json({
         model: "deepseek-flash",
@@ -118,7 +116,6 @@ describe("DeepSeek restrito ao servidor Web", () => {
     native();
     vi.stubEnv("DEEPSEEK_API_KEY", undefined);
     vi.stubEnv("AI_GATEWAY_API_KEY", crypto.randomUUID());
-    vi.stubEnv("LOVABLE_API_KEY", crypto.randomUUID());
     const f = vi.fn<typeof fetch>();
     vi.stubGlobal("fetch", f);
     await expect(
@@ -211,7 +208,7 @@ describe("DeepSeek restrito ao servidor Web", () => {
 
 describe("limites do gateway de IA", () => {
   it("repete somente uma falha transitória e limita a duas tentativas", async () => {
-    process.env.AI_GATEWAY_API_KEY = crypto.randomUUID();
+    vi.stubEnv("DEEPSEEK_API_KEY", crypto.randomUUID());
     process.env.AI_MODEL_MAX_ATTEMPTS = "2";
     const fetchMock = vi
       .fn<typeof fetch>()
@@ -228,7 +225,7 @@ describe("limites do gateway de IA", () => {
   });
 
   it("não repete quota ou rate limit", async () => {
-    process.env.AI_GATEWAY_API_KEY = crypto.randomUUID();
+    vi.stubEnv("DEEPSEEK_API_KEY", crypto.randomUUID());
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 429 }));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -242,7 +239,7 @@ describe("limites do gateway de IA", () => {
   });
 
   it("propaga cancelamento como AI_TIMEOUT", async () => {
-    process.env.AI_GATEWAY_API_KEY = crypto.randomUUID();
+    vi.stubEnv("DEEPSEEK_API_KEY", crypto.randomUUID());
     const controller = new AbortController();
     controller.abort();
     vi.stubGlobal(
@@ -357,26 +354,28 @@ describe("variável definida e vazia conta como ausente", () => {
     return { url: String(url), options: options!, body: JSON.parse(options!.body as string) };
   }
 
-  it("cai no endpoint default documentado quando AI_GATEWAY_URL está vazia", async () => {
+  it("cai no endpoint default DeepSeek quando AI_GATEWAY_URL está vazia", async () => {
     const key = crypto.randomUUID();
     vi.stubEnv("AI_GATEWAY_URL", "");
-    vi.stubEnv("AI_GATEWAY_API_KEY", key);
+    vi.stubEnv("DEEPSEEK_API_KEY", key);
     const f = vi.fn<typeof fetch>().mockResolvedValue(successResponse());
     vi.stubGlobal("fetch", f);
     await expect(
       callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal),
     ).resolves.toMatchObject({ choices: [{ message: { content: "Tudo bem" } }] });
-    expect(request(f).url).toBe("https://ai.gateway.lovable.dev/v1/chat/completions");
+    expect(request(f).url).toBe("https://api.deepseek.com/chat/completions");
     expect(request(f).options.headers).toMatchObject({ Authorization: `Bearer ${key}` });
+    expect(request(f).body.model).toBe("deepseek-flash");
   });
 
   it("trata só-espaços como ausente, não como endpoint", async () => {
     vi.stubEnv("AI_GATEWAY_URL", "   ");
-    vi.stubEnv("AI_GATEWAY_API_KEY", crypto.randomUUID());
+    vi.stubEnv("DEEPSEEK_API_KEY", crypto.randomUUID());
     const f = vi.fn<typeof fetch>().mockResolvedValue(successResponse());
     vi.stubGlobal("fetch", f);
     await callModelForTests(messages, GATEWAY_TOOLS, new AbortController().signal);
-    expect(request(f).url).toBe("https://ai.gateway.lovable.dev/v1/chat/completions");
+    expect(request(f).url).toBe("https://api.deepseek.com/chat/completions");
+    expect(request(f).body.model).toBe("deepseek-flash");
   });
 
   it("usa deepseek-flash quando AI_MODEL está vazia no destino nativo", async () => {

@@ -1,0 +1,51 @@
+# Vercel runtime-errors (janela 7d) — leitura MCP autenticada em 2026-10-13T20:02Z
+
+Escopo: team_2NnkSYjw5NRHAFnQFEPSHGmW / prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+Origem: ferramenta de runtime-errors do conector Vercel (leitura primária autenticada).
+Este arquivo é um recorte (excerpt): a leitura completa devolveu 18 grupos, ordenados
+por frequência; abaixo estão apenas os grupos com identidade nomeada para DBT-115,
+DBT-116 e o histórico 28P01. Nenhuma mensagem foi reescrita.
+
+## DBT-115 — ai.credential_unusable (deployment vigente)
+
+{"timestamp":"2026-10-13T04:35:37.451Z","level":"error","event":"ai.credential_unusable","provider":"gateway","host":"ai.gateway.lovable.dev","reason":"absent"}
+count=1 users=1 routes=/__server
+first=2026-10-13T04:35:36.000Z last=2026-10-13T04:35:36.000Z
+lastDeployment=dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM
+
+## DBT-116 — Better Auth / e-mail sem entrega (deployment vigente)
+
+2026-10-13T04:33:18.814Z ERROR [Better Auth]: Failed to run background task: Error: Configuração de e-mail incompleta: RESEND_API_KEY (definida e vazia), AUTH_EMAIL_FROM (definida e vazia). RESEND_API_KEY e AUTH_EMAIL_FROM são obrigatórias para e-mails de autenticação.
+count=1 users=1 routes=/__server
+first=2026-10-13T04:33:15.000Z last=2026-10-13T04:33:15.000Z
+lastDeployment=dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM
+    at requireEmailCredentials (file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:9411:50)
+    at getEmailAdapter (file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:9419:27)
+    at Object.sendVerificationEmail (file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:9583:11)
+
+## DBT-116 — mesma classe na publicação anterior (mensagem antiga)
+
+2026-10-06T23:39:19.751Z ERROR [Better Auth]: Failed to run background task: Error: RESEND_API_KEY e AUTH_EMAIL_FROM são obrigatórias para e-mails de autenticação
+count=3 users=1 routes=/__server
+first=2026-10-06T09:51:51.000Z last=2026-10-06T23:45:04.000Z
+lastDeployment=dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL
+
+## Histórico 28P01 (pré-reparo de DATABASE_URL)
+
+{"timestamp":"2026-10-12T01:49:44.837Z","level":"error","event":"health.readiness_failed","dependency":"postgres","error":{"name":"Error","message":"Failed query: select 1 as ready\nparams: "}}
+count=8 users=5 routes=/__server
+first=2026-10-08T17:50:54.000Z last=2026-10-12T17:42:29.000Z
+lastDeployment=dpl_6h2LTZX57soGiPP2oTurws7NsgVd
+
+{"timestamp":"2026-10-12T22:50:04.073Z","level":"error","event":"health.readiness_failed","correlationId":"2b027d11-a80b-461c-9f4e-7ba3c6432790","deploymentId":"dpl_GWEFoMxhXfz31E6HxfR2NH1RNZFn","commitSha":"5d6049b9badf067b804bdc3062c922bab72c46d0","component":"postgres","category":"authentication","step":"auth","code":"28P01","transient":false,"inspectedCauses":2}
+
+{"timestamp":"2026-10-13T00:21:09.378Z","level":"error","event":"health.readiness_failed","correlationId":"6baf4bd8-853f-45f9-abd0-8bb517561847","deploymentId":"dpl_56yK8ntpAEUSbUuR8teDaUKSFdvN","commitSha":"5d6049b9badf067b804bdc3062c922bab72c46d0","component":"postgres","category":"authentication","step":"auth","code":"28P01","transient":false,"inspectedCauses":2}
+
+{"timestamp":"2026-10-13T01:07:10.418Z","level":"error","event":"health.readiness_failed","correlationId":"df3e957f-41c5-4088-9f6b-61062378d6df","deploymentId":"dpl_3ZoSLHvh6DA55pwdy3vEVjMjNAKV","commitSha":"5d6049b9badf067b804bdc3062c922bab72c46d0","component":"postgres","category":"authentication","step":"auth","code":"28P01","transient":false,"inspectedCauses":2}
+
+{"timestamp":"2026-10-13T01:17:09.426Z","level":"error","event":"health.readiness_failed","correlationId":"1234ceff-301a-4936-abea-b4e3791c07b2","deploymentId":"dpl_2TVJzq7cHqk7gKwQNriYGfn9cmTa","commitSha":"5d6049b9badf067b804bdc3062c922bab72c46d0","component":"postgres","category":"authentication","step":"auth","code":"28P01","transient":false,"inspectedCauses":2}
+
+Leitura: a ocorrência 28P01 mais recente é 2026-10-13T01:17:09Z, anterior ao reparo
+(a env de Production foi reinjetada pela integração; deployment novo dpl_9v4ni1 criado
+em 2026-10-13T01:41:15Z e promovido ≈02:17Z). Nenhuma ocorrência 28P01, ai.credential_unusable
+ou e-mail nomeado é mais recente que as linhas acima nesta janela.

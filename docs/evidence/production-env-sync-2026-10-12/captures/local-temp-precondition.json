@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-10-13T02:53:37.638084+00:00",
+  "tempDir": "/var/tmp/pqd-production-check-rnfp20zs",
+  "createdByThisExecution": true,
+  "defaultTmpAncestorGit": ["/tmp/.git"],
+  "checkedAncestors": ["/var/tmp/pqd-production-check-rnfp20zs", "/var/tmp", "/var", "/"],
+  "gitAncestors": [],
+  "allAncestorsChecked": true,
+  "preconditionPassed": true,
+  "productionDatabaseUsed": false
+}

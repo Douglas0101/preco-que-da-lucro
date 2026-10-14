@@ -1,0 +1,68 @@
+{
+  "deploymentId": "dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM",
+  "mainSha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+  "observedAt": "2026-10-13T02:07:59.746Z",
+  "freshProbeStart": "2026-10-13T02:04:04.458Z",
+  "filter": "deploymentId:dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM",
+  "source": "Vercel authenticated dashboard accessibility state; exact deployment filter and hostname; server request.completed events",
+  "httpBodiesObserved": false,
+  "probes": [
+    {
+      "timestamp": "2026-10-13T02:05:28.765Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "c4c76708-f5a6-4c0b-b380-73f43743600d",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "status": 200,
+      "durationMs": 68,
+      "host": "preco-que-da-lucro-3ideu7io0.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:05:28.490Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "88be4e7a-3abf-40ff-b6c3-a90da7233841",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "status": 200,
+      "durationMs": 142,
+      "host": "preco-que-da-lucro-3ideu7io0.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:04:06.011Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "d01eb54f-d162-47de-b7bb-4c16966603b6",
+      "method": "GET",
+      "pathname": "/api/auth/get-session",
+      "status": 200,
+      "durationMs": 102,
+      "host": "preco-que-da-lucro-3ideu7io0.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:04:05.524Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "98ec8f7b-effa-4a35-bf92-bdde8280dccc",
+      "method": "GET",
+      "pathname": "/api/health/ready",
+      "status": 200,
+      "durationMs": 21,
+      "host": "preco-que-da-lucro-3ideu7io0.vercel.app"
+    },
+    {
+      "timestamp": "2026-10-13T02:04:04.629Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "5af09c02-521d-47f9-8f4d-1e82b374e296",
+      "method": "GET",
+      "pathname": "/api/health/live",
+      "status": 200,
+      "durationMs": 6,
+      "host": "preco-que-da-lucro-3ideu7io0.vercel.app"
+    }
+  ],
+  "filterMatches": true,
+  "allPassed": true
+}

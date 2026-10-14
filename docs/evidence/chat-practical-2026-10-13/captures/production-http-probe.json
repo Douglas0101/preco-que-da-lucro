@@ -1,0 +1,35 @@
+{
+  "target": "published-vercel-sage",
+  "anonymous": true,
+  "authenticatedChatTested": false,
+  "results": [
+    {
+      "url": "https://preco-que-da-lucro-sage.vercel.app/api/health/live",
+      "status": 200,
+      "finalUrl": "https://preco-que-da-lucro-sage.vercel.app/api/health/live",
+      "body": {
+        "status": "ok"
+      },
+      "observedAt": "2026-10-13T04:24:28.284382+00:00"
+    },
+    {
+      "url": "https://preco-que-da-lucro-sage.vercel.app/api/health/ready",
+      "status": 200,
+      "finalUrl": "https://preco-que-da-lucro-sage.vercel.app/api/health/ready",
+      "body": {
+        "status": "ready",
+        "dependencies": {
+          "postgres": "ok"
+        }
+      },
+      "observedAt": "2026-10-13T04:24:29.540745+00:00"
+    },
+    {
+      "url": "https://preco-que-da-lucro-sage.vercel.app/api/auth/get-session",
+      "status": 200,
+      "finalUrl": "https://preco-que-da-lucro-sage.vercel.app/api/auth/get-session",
+      "body": null,
+      "observedAt": "2026-10-13T04:24:30.463765+00:00"
+    }
+  ]
+}

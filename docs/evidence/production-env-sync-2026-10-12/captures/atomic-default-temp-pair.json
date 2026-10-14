@@ -1,0 +1,17 @@
+{
+  "startedAt": "2026-10-13T03:07:53.006582+00:00",
+  "before": {
+    "exists": true,
+    "isDir": true,
+    "entryCount": 0
+  },
+  "source": "/tmp/.git",
+  "sourceReappearedAfterPriorCustody": true,
+  "target": "/tmp/pqd-recreated-empty-marker-35n15jvr/.git",
+  "sameDeviceAndInode": true,
+  "noBytesDeleted": true,
+  "absentImmediatelyBeforeTests": true,
+  "testExitCode": 0,
+  "sourceExistsAfterTests": false,
+  "completedAt": "2026-10-13T03:08:00.382166+00:00"
+}

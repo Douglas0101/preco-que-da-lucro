@@ -1,0 +1,10 @@
+Browser tab: 8, Title: "Novo Produto · Preço que Dá Lucro", URL: "http://127.0.0.1:51643/novo-produto".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 21-22
+~		27 text Vamos montar essa pizza passo a passo! 😊
++		28 text Antes de começar, só preciso confirmar uma coisa com você:
++		29 container
++			30 text A pizza margherita tem só esses dois itens de custo (massa R$ 4,00 e queijo R$ 6,00)?  Ou tem mais algum ingrediente (molho, tomate, manjericão etc.)?
++		31 text Me diz isso que eu já sigo com o cadastro.
+~		24 text entry area (settable) Mensagem para o consultor, ID: novo-produto-mensagem
+The focused UI element is 24 text entry area (settable) Mensagem para o consultor, ID: novo-produto-mensagem

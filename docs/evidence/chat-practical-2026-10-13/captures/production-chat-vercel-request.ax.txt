@@ -1,0 +1,447 @@
+Browser tab: 5, Title: "preco-que-da-lucro – Logs – Vercel", URL: "https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs?search=deploymentId%3Adpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM&selectedLogId=w972v-1791866136796-94b3f25cad14".
+0 AXWebArea preco-que-da-lucro – Logs – Vercel, URL: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs?search=deploymentId%3Adpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM&selectedLogId=w972v-1791866136796-94b3f25cad14&panelState=opened
+	1 container
+		2 link Description: Skip to content, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs?search=deploymentId%3Adpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM&selectedLogId=w972v-1791866136796-94b3f25cad14&panelState=opened#geist-skip-nav
+		3 container
+			4 container
+				5 link Description: douglasultimatesouza-5127's projects Hobby, Value: vercel.com/douglasultimatesouza-5127s-projects
+				6 button
+					7 image
+				8 button Find F
+					9 image
+					10 text Find
+					11 text F
+				12 container
+					13 button Logs
+						14 image
+						15 text Logs
+					16 text Filters
+					17 button Reset
+					18 button (disabled, expanded) Description: Timeline, ID: collapse-button-_r_da_, Secondary Actions: Collapse
+					19 container Timeline, ID: collapse-section-_r_d9_
+						20 pop up button (collapsed) Description: 1:08 - 1:38, Secondary Actions: Expand
+							21 image
+						22 container
+							23 text Combobox Menu
+							24 combo box (expanded, settable) Combobox Menu, Value: Last 30 minutes, ID: radix-_r_dj_, Secondary Actions: Collapse
+							25 image
+					26 button (disabled, expanded) Description: Contains Console Level, ID: collapse-button-_r_dl_, Secondary Actions: Collapse
+					27 container Contains Console Level, ID: collapse-section-_r_dk_
+						28 container
+							29 checkbox (settable, integer) ​ Warning 1, Value: 0, ID: warn
+							30 text Warning
+							341 text 1
+							31 checkbox (settable, integer) ​ Error 2, Value: 0, ID: error
+							32 text Error
+							342 text 2
+							33 checkbox (settable, integer) ​ Fatal 0, Value: 0, ID: fatal
+							34 text Fatal
+							343 text 0
+					35 button (collapsed) Description: Resource, ID: collapse-button-_r_dt_, Secondary Actions: Expand
+					36 button (collapsed) Description: Environment, ID: collapse-button-_r_e5_, Secondary Actions: Expand
+					37 button (collapsed) Description: Route, ID: collapse-button-_r_eb_, Secondary Actions: Expand
+					38 button (collapsed) Description: Request Path, ID: collapse-button-_r_ed_, Secondary Actions: Expand
+					39 button (collapsed) Description: Status Code, ID: collapse-button-_r_ef_, Secondary Actions: Expand
+					40 button (collapsed) Description: Request Type, ID: collapse-button-_r_eh_, Secondary Actions: Expand
+					41 button (collapsed) Description: Host, ID: collapse-button-_r_ev_, Secondary Actions: Expand
+					42 button (collapsed) Description: Service, ID: collapse-button-_r_f1_, Secondary Actions: Expand
+					43 button (collapsed) Description: Request Method, ID: collapse-button-_r_f3_, Secondary Actions: Expand
+					44 button (collapsed) Description: Cache, ID: collapse-button-_r_fk_, Secondary Actions: Expand
+					45 button (collapsed) Description: Branch, ID: collapse-button-_r_fm_, Secondary Actions: Expand
+					46 button (collapsed) Description: Workflow Run, ID: collapse-button-_r_fo_, Secondary Actions: Expand
+						47 text Workflow Run
+						48 image
+					49 button (collapsed) Description: Workflow Step, ID: collapse-button-_r_fr_, Secondary Actions: Expand
+						50 text Workflow Step
+						51 image
+					52 button (expanded) Description: Deployment ID, ID: collapse-button-_r_fu_, Secondary Actions: Collapse
+						344 text Deployment ID
+						345 button Clear Deployment ID filter
+							346 image
+							347 text 1
+					92 container Deployment ID, ID: collapse-section-_r_ft_
+						93 text Search deployment IDs
+						94 search text field (settable) Search deployment IDs, Value: dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM, ID: search-deployment-ids-_r_kd_
+						338 container
+							339 checkbox (settable, integer) Description: ​ Current dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM 15, Value: 1, ID: dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM
+							340 text Current dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM 15
+				53 pop up button (collapsed) Avatar for douglasultimatesouza-5127 douglasultimatesouza-5127, Secondary Actions: Expand
+					54 container Avatar for douglasultimatesouza-5127
+					55 text douglasultimatesouza-5127
+					56 image
+				57 pop up button (collapsed) Description: 30 unseen notifications, Secondary Actions: Expand
+					58 image
+					95 image
+			59 container
+				60 link Description: preco-que-da-lucro, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro
+				61 button
+					62 image
+				63 link Description: Back to team view, Value: vercel.com/douglasultimatesouza-5127s-projects/~/logs
+			64 container Breadcrumb
+				65 text Logs
+			66 button Vercel Agent is available on Pro
+				67 image
+				68 text Agent
+			69 container
+				70 container
+					71 button Enable My Logs
+						72 image
+					73 button Enable Has Traces
+						74 image
+					75 button Configure Trace Sampling
+						76 image
+					77 text entry area (settable) deploymentId:dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM 
+						348 container
+							349 text deploymentId:dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM
+							355 text ×
+					80 button Live
+						81 image
+						82 text Live
+					83 button Refresh Logs
+						351 image
+					86 pop up button (collapsed) Description: Query Actions, ID: menu-button-_r_d6_, Secondary Actions: Expand
+						87 image
+					88 image
+						352 text 01:06:00
+						353 text 01:17:10
+						354 text 01:36:00
+				100 container
+					101 table Visible log lines
+						102 row
+							103 cell
+								104 text Time
+							105 cell
+								106 text Method
+							107 cell
+								108 text Status
+							109 cell
+								110 text Host
+							111 cell
+								112 text Request
+							113 cell
+								114 text Message
+						115 row
+							116 cell
+								117 container 2026-10-13T04:35:36.796Z
+									118 text OCT 13  01:35:36 .79
+							119 cell
+								120 text POST
+							121 cell
+								122 text 200
+							123 cell
+								124 text preco-que-da-lucro-sage.vercel.app
+							125 cell
+								126 text /_serverFn/abb0f390d0d9d5c002c238029f7d6ac7eceb5f795c2ff0103d4fb2cfd687a422
+							127 cell {"timestamp":"2026-10-13T04:35:37.451Z","level":"error","event":"ai.credential_unusable","provider":"gateway","host":"ai.gateway.lovable.dev","reason":"absent"}
+								128 text 10
+								129 text {"timestamp":"2026-10-13T04:35:37.451Z","level":"error","event":"ai.credential_unusable","provider":"gateway","host":"ai.gateway.lovable.dev","reason":"absent"}
+						130 row
+							131 cell
+								132 container 2026-10-13T04:34:12.794Z
+									133 text OCT 13  01:34:12 .79
+							134 cell
+								135 text GET
+							136 cell
+								137 text 200
+							138 cell
+								139 text preco-que-da-lucro-sage.vercel.app
+							140 cell
+								141 text /_serverFn/7abc13ed27266db130cdecb54d3823d77aace1d9b0efc8fc122ffccef21ca497
+							142 cell {"timestamp":"2026-10-13T04:34:13.060Z","level":"info","event":"request.completed","correlationId":"a3b687d1-6bb2-4506-8f28-1c9b5b1ff12e","method":"GET","pathname":"/_serverFn/7abc13ed27266db130cdecb54d3823d77aace1d9b0efc8fc122ffccef21ca497","status":200,"durationMs":188}
+								143 text 3
+								144 text {"timestamp":"2026-10-13T04:34:13.060Z","level":"info","event":"request.completed","correlationId":"a3b687d1-6bb2-4506-8f28-1c9b5b1ff12e","method":"GET","pathname":"/_serverFn/7abc13ed27266db130cdecb54d3823d77aace1d9b0efc8fc122ffccef21ca497","status":200,"durationMs":188}
+						145 row
+							146 cell
+								147 container 2026-10-13T04:34:12.390Z
+									148 text OCT 13  01:34:12 .39
+							149 cell
+								150 text GET
+							151 cell
+								152 text 200
+							153 cell
+								154 text preco-que-da-lucro-sage.vercel.app
+							155 cell
+								156 text /api/auth/get-session
+							157 cell {"timestamp":"2026-10-13T04:34:12.597Z","level":"info","event":"request.completed","correlationId":"ae1a9f94-3fdd-46d2-91f1-c885625de4b3","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":112}
+								158 text 2
+								159 text {"timestamp":"2026-10-13T04:34:12.597Z","level":"info","event":"request.completed","correlationId":"ae1a9f94-3fdd-46d2-91f1-c885625de4b3","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":112}
+						160 row
+							161 cell
+								162 container 2026-10-13T04:34:10.967Z
+									163 text OCT 13  01:34:10 .96
+							164 cell
+								165 text POST
+							166 cell
+								167 text 200
+							168 cell
+								169 text preco-que-da-lucro-sage.vercel.app
+							170 cell
+								171 text /api/auth/sign-in/email
+							172 cell {"timestamp":"2026-10-13T04:34:12.281Z","level":"info","event":"request.completed","correlationId":"6dabe1f2-5d31-4977-a61b-e06553f87b7e","method":"POST","pathname":"/api/auth/sign-in/email","status":200,"durationMs":413}
+								173 text 2
+								174 text {"timestamp":"2026-10-13T04:34:12.281Z","level":"info","event":"request.completed","correlationId":"6dabe1f2-5d31-4977-a61b-e06553f87b7e","method":"POST","pathname":"/api/auth/sign-in/email","status":200,"durationMs":413}
+						175 row
+							176 cell
+								177 container 2026-10-13T04:33:15.883Z
+									178 text OCT 13  01:33:15 .88
+							179 cell
+								180 text POST
+							181 cell
+								182 text 200
+							183 cell
+								184 text preco-que-da-lucro-sage.vercel.app
+							185 cell
+								186 text /api/auth/sign-up/email
+							187 cell 2026-10-13T04:33:18.814Z ERROR [Better Auth]: Failed to run background task: Error: Configuração de e-mail incompleta: RESEND_API_KEY (definida e vazia), AUTH_EMAIL_FROM (definida e vazia). RESEND_API_KEY e AUTH_EMAIL_FROM são obrigatórias para e-mails de autenticação. at requireEmailCredentials (file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:9411:50) at getEmailAdapter (file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:9419:27) at Object.sendVerificationEmail (file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:9583:11) at file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:7005:149 at async NeonSession.transaction (file:///var/task/_libs/drizzle-orm.mjs:4464:19) at async file:///var/task/_libs/@better-auth/core+%5B...%5D.mjs:16708:13 at async file:///var/task/_libs/@better-auth/core+%5B...%5D.mjs:16815:11 at async internalHandler (file:///var/task/_libs/@better-auth/core+%5B...%5D.mjs:16098:20) at async file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:7804:18 at async processRequest (file:///var/task/_libs/@better-auth/core+%5B...%5D.mjs:16452:11)
+								188 text 5
+								189 text 2026-10-13T04:33:18.814Z ERROR [Better Auth]: Failed to run background task: Error: Configuração de e-mail incompleta: RESEND_API_KEY (definida e vazia), AUTH_EMAIL_FROM (definida e vazia). RESEND_API_KEY e AUTH_EMAIL_FROM são obrigatórias para e-mails de autenticação.     at requireEmailCredentials (file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:9411:50)     at getEmailAdapter (file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:9419:27)     at Object.sendVerificationEmail (file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:9583:11)     at file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:7005:149     at async NeonSession.transaction (file:///var/task/_libs/drizzle-orm.mjs:4464:19)     at async file:///var/task/_libs/@better-auth/core+%5B...%5D.mjs:16708:13     at async file:///var/task/_libs/@better-auth/core+%5B...%5D.mjs:16815:11     at async internalHandler (file:///var/task/_libs/@better-auth/core+%5B...%5D.mjs:16098:20)     at async file:///var/task/_ssr/auth.server-GXUM1sdF.mjs:7804:18     at async processRequest (file:///var/task/_libs/@better-auth/core+%5B...%5D.mjs:16452:11)
+						190 row
+							191 cell
+								192 container 2026-10-13T04:24:30.552Z
+									193 text OCT 13  01:24:30 .55
+							194 cell
+								195 text GET
+							196 cell
+								197 text 200
+							198 cell
+								199 text preco-que-da-lucro-sage.vercel.app
+							200 cell
+								201 text /api/auth/get-session
+							202 cell {"timestamp":"2026-10-13T04:24:30.771Z","level":"info","event":"request.completed","correlationId":"aee5ce02-c25b-4652-902e-9aabc89bf40a","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":134}
+								203 text 2
+								204 text {"timestamp":"2026-10-13T04:24:30.771Z","level":"info","event":"request.completed","correlationId":"aee5ce02-c25b-4652-902e-9aabc89bf40a","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":134}
+						205 row
+							206 cell
+								207 container 2026-10-13T04:24:29.624Z
+									208 text OCT 13  01:24:29 .62
+							209 cell
+								210 text GET
+							211 cell
+								212 text 200
+							213 cell
+								214 text preco-que-da-lucro-sage.vercel.app
+							215 cell
+								216 text /api/health/ready
+							217 cell {"timestamp":"2026-10-13T04:24:30.379Z","level":"info","event":"request.completed","correlationId":"d5018957-70d2-4728-b0fc-0ba2f53a205a","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":665}
+								218 text {"timestamp":"2026-10-13T04:24:30.379Z","level":"info","event":"request.completed","correlationId":"d5018957-70d2-4728-b0fc-0ba2f53a205a","method":"GET","pathname":"/api/health/ready","status":200,"durationMs":665}
+						219 row
+							220 cell
+								221 container 2026-10-13T04:24:28.460Z
+									222 text OCT 13  01:24:28 .46
+							223 cell
+								224 text GET
+							225 cell
+								226 text 200
+							227 cell
+								228 text preco-que-da-lucro-sage.vercel.app
+							229 cell
+								230 text /api/health/live
+							231 cell {"timestamp":"2026-10-13T04:24:29.453Z","level":"info","event":"request.completed","correlationId":"a99de7de-ce8b-4bd2-af59-feb408719dd4","method":"GET","pathname":"/api/health/live","status":200,"durationMs":10}
+								232 text {"timestamp":"2026-10-13T04:24:29.453Z","level":"info","event":"request.completed","correlationId":"a99de7de-ce8b-4bd2-af59-feb408719dd4","method":"GET","pathname":"/api/health/live","status":200,"durationMs":10}
+						233 row
+							234 cell
+								235 container 2026-10-13T04:16:35.647Z
+									236 text OCT 13  01:16:35 .64
+							237 cell
+								238 text POST
+							239 cell
+								240 text 204
+							241 cell
+								242 text preco-que-da-lucro-sage.vercel.app
+							243 cell
+								244 text /api/vitals
+							245 cell {"timestamp":"2026-10-13T04:16:36.475Z","level":"info","event":"request.completed","correlationId":"cdd5084e-3aa6-479b-95cb-c756822fd8fd","method":"POST","pathname":"/api/vitals","status":204,"durationMs":713}
+								246 text 2
+								247 text {"timestamp":"2026-10-13T04:16:36.475Z","level":"info","event":"request.completed","correlationId":"cdd5084e-3aa6-479b-95cb-c756822fd8fd","method":"POST","pathname":"/api/vitals","status":204,"durationMs":713}
+						248 row
+							249 cell
+								250 container 2026-10-13T04:10:38.895Z
+									251 text OCT 13  01:10:38 .89
+							252 cell
+								253 text POST
+							254 cell
+								255 text 204
+							256 cell
+								257 text preco-que-da-lucro-sage.vercel.app
+							258 cell
+								259 text /api/csp-report
+							260 cell {"timestamp":"2026-10-13T04:10:39.022Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/novo-produto","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/assets/index-5pm_RoH1.js","lineNumber":10,"columnNumber":56011,"disposition":"report","sample":null}
+								261 text 7
+								262 text {"timestamp":"2026-10-13T04:10:39.022Z","level":"warn","event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/novo-produto","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/assets/index-5pm_RoH1.js","lineNumber":10,"columnNumber":56011,"disposition":"report","sample":null}
+						263 row
+							264 cell
+								265 container 2026-10-13T04:10:03.835Z
+									266 text OCT 13  01:10:03 .83
+							267 cell
+								268 text GET
+							269 cell
+								270 text 200
+							271 cell
+								272 text preco-que-da-lucro-sage.vercel.app
+							273 cell
+								274 text /api/auth/get-session
+							275 cell {"timestamp":"2026-10-13T04:10:03.979Z","level":"info","event":"request.completed","correlationId":"81859129-27f6-496d-a82a-bf989dd81cf7","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":63}
+								276 text 2
+								277 text {"timestamp":"2026-10-13T04:10:03.979Z","level":"info","event":"request.completed","correlationId":"81859129-27f6-496d-a82a-bf989dd81cf7","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":63}
+						278 row
+							279 cell
+								280 container 2026-10-13T04:10:02.669Z
+									281 text OCT 13  01:10:02 .66
+							282 cell
+								283 text POST
+							284 cell
+								285 text 204
+							286 cell
+								287 text preco-que-da-lucro-sage.vercel.app
+							288 cell
+								289 text /api/vitals
+							290 cell {"timestamp":"2026-10-13T04:10:03.597Z","level":"info","event":"request.completed","correlationId":"98242d14-11e4-4aa7-b00c-fa4bb304c55d","method":"POST","pathname":"/api/vitals","status":204,"durationMs":127}
+								291 text 2
+								292 text {"timestamp":"2026-10-13T04:10:03.597Z","level":"info","event":"request.completed","correlationId":"98242d14-11e4-4aa7-b00c-fa4bb304c55d","method":"POST","pathname":"/api/vitals","status":204,"durationMs":127}
+						293 row
+							294 cell
+								295 container 2026-10-13T04:10:02.666Z
+									296 text OCT 13  01:10:02 .66
+							297 cell
+								298 text GET
+							299 cell
+								300 text 200
+							301 cell
+								302 text preco-que-da-lucro-sage.vercel.app
+							303 cell
+								304 text /api/auth/get-session
+							305 cell {"timestamp":"2026-10-13T04:10:03.668Z","level":"info","event":"request.completed","correlationId":"e3db88a0-94cc-4afa-b291-b9cdd0127b38","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":205}
+								306 text 2
+								307 text {"timestamp":"2026-10-13T04:10:03.668Z","level":"info","event":"request.completed","correlationId":"e3db88a0-94cc-4afa-b291-b9cdd0127b38","method":"GET","pathname":"/api/auth/get-session","status":200,"durationMs":205}
+						308 row
+							309 cell
+								310 container 2026-10-13T04:10:02.653Z
+									311 text OCT 13  01:10:02 .65
+							312 cell
+								313 text POST
+							314 cell
+								315 text 204
+							316 cell
+								317 text preco-que-da-lucro-sage.vercel.app
+							318 cell
+								319 text /api/vitals
+							320 cell {"timestamp":"2026-10-13T04:10:02.902Z","level":"info","event":"request.completed","correlationId":"ae0a2d86-72ab-4267-87d0-f9b97513a413","method":"POST","pathname":"/api/vitals","status":204,"durationMs":168}
+								321 text 2
+								322 text {"timestamp":"2026-10-13T04:10:02.902Z","level":"info","event":"request.completed","correlationId":"ae0a2d86-72ab-4267-87d0-f9b97513a413","method":"POST","pathname":"/api/vitals","status":204,"durationMs":168}
+						323 row
+							324 cell
+								325 container 2026-10-13T04:10:01.416Z
+									326 text OCT 13  01:10:01 .41
+							327 cell
+								328 text GET
+							329 cell
+								330 text 200
+							331 cell
+								332 text preco-que-da-lucro-sage.vercel.app
+							333 cell
+								334 text /novo-produto
+							335 cell {"timestamp":"2026-10-13T04:10:02.343Z","level":"info","event":"request.completed","correlationId":"8b5d2756-409e-402d-acd4-d5856a150558","method":"GET","pathname":"/novo-produto","status":200,"durationMs":38}
+								336 text {"timestamp":"2026-10-13T04:10:02.343Z","level":"info","event":"request.completed","correlationId":"8b5d2756-409e-402d-acd4-d5856a150558","method":"GET","pathname":"/novo-produto","status":200,"durationMs":38}
+					337 text No more logs to show within selected timeline
+				356 container
+					357 button
+					358 button
+					359 button
+						360 image
+					361 container
+						362 outline
+							363 row (selectable, expanded) Secondary Actions: Collapse
+								364 container
+									365 row (selectable)
+									366 row (selectable)
+									367 row (selectable)
+									368 row (selectable)
+									369 row (selectable)
+									370 row (selectable)
+						371 button
+						372 outline
+							373 row (selectable, expanded) Secondary Actions: Collapse
+								374 container
+									375 row (selectable)
+									376 row (selectable)
+									377 row (selectable)
+									378 row (selectable)
+									379 row (selectable)
+									380 row (selectable)
+						381 button
+						382 outline
+							383 row (selectable, expanded) Secondary Actions: Collapse
+								384 container
+									385 row (selectable)
+									386 row (selectable)
+									387 row (selectable)
+									388 row (selectable)
+									389 row (selectable)
+									390 row (selectable)
+						391 button
+						392 outline
+							393 row (selectable, expanded) Secondary Actions: Collapse
+								394 container
+									395 row (selectable)
+									396 row (selectable)
+									397 row (selectable)
+									398 row (selectable)
+									399 row (selectable)
+									400 row (selectable)
+						401 button
+						402 outline
+							403 row (selectable, expanded) Secondary Actions: Collapse
+								404 container
+									405 row (selectable)
+									406 row (selectable)
+									407 row (selectable)
+									408 row (selectable)
+									409 row (selectable)
+									410 row (selectable)
+									411 row (selectable)
+									412 row (selectable)
+									413 row (selectable)
+									414 row (selectable)
+									415 row (selectable)
+						416 button
+						417 outline
+							418 row (selectable, expanded) Secondary Actions: Collapse
+								419 container
+									420 row (selectable)
+									421 row (selectable)
+									422 row (selectable)
+									423 row (selectable)
+									424 row (selectable)
+									425 row (selectable)
+						426 button
+				427 button
+					428 image
+				429 button
+					430 image
+				431 button
+					432 image
+				433 container
+					434 image
+					435 pop up button (collapsed) Secondary Actions: Expand
+					436 pop up button (collapsed) Secondary Actions: Expand
+					437 pop up button (collapsed) Secondary Actions: Expand
+					438 pop up button (collapsed) Secondary Actions: Expand
+					439 pop up button (collapsed) Secondary Actions: Expand
+					440 pop up button (collapsed) Secondary Actions: Expand
+						441 heading 3
+					442 heading 3
+					443 pop up button (collapsed) Secondary Actions: Expand
+					444 pop up button (collapsed) Secondary Actions: Expand
+					445 heading 3
+					446 button
+						447 heading 3
+					448 heading 2
+					449 pop up button (collapsed) Secondary Actions: Expand
+					450 pop up button (collapsed) Secondary Actions: Expand
+					451 pop up button (collapsed) Secondary Actions: Expand
+		452 container
+			453 image
+			454 container /_serverFn/abb0f390d0d9d5c002c238029f7d6ac7eceb5f795c2ff0103d4fb2cfd687a422
+				455 text /_serverFn/abb0f390d0d9d5c002c238029f7d6ac7eceb5f795c2ff0103d4fb2cfd687a422
+
+The focused UI element is 115 row

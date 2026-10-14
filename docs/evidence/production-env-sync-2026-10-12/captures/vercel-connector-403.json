@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "teamId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+  "projectId": "prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q",
+  "deploymentId": "dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM",
+  "afterUserReportedReauthorization": true,
+  "envDecryptRequested": false,
+  "operations": [
+    {
+      "operation": "GET /v9/projects/{idOrName}",
+      "status": 403,
+      "code": "forbidden",
+      "scope": "douglasultimatesouza-5127s-projects",
+      "teamId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+      "requestId": "gru1:sfo1::h2bzt-1791856889492-a61711de9190",
+      "actor": "unknown"
+    },
+    {
+      "operation": "GET /v13/deployments/{idOrUrl}",
+      "status": 403,
+      "code": "forbidden",
+      "scope": "douglasultimatesouza-5127s-projects",
+      "teamId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+      "requestId": "gru1:sfo1::7trq7-1791856890093-bbc6bfcff72f",
+      "actor": "unknown"
+    },
+    {
+      "operation": "GET /v10/projects/{idOrName}/env",
+      "status": 403,
+      "code": "forbidden",
+      "scope": "douglasultimatesouza-5127s-projects",
+      "teamId": "team_2NnkSYjw5NRHAFnQFEPSHGmW",
+      "requestId": "gru1:sfo1::w5nlj-1791856889810-5ba1543920dd",
+      "actor": "unknown"
+    }
+  ],
+  "fallback": "Authenticated normal dashboard session; CLI not available/authenticated; no temporary access URL supplied.",
+  "credentialsCaptured": false
+}

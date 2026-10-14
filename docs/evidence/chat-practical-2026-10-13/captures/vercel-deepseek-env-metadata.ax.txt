@@ -1,0 +1,27 @@
+Browser tab: 3, Title: "preco-que-da-lucro - Overview – Vercel", URL: "https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/environment-variables".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 100-179
+~				66 search text field (settable) Description: Search, Value: DEEPSEEK, ID: input-_r_14t_
++					184 container
++						185 container Secret environment variable
++						186 button DEEPSEEK_API_KEY
++							187 container
++								188 text DEEPSEEK _API_KEY
++						189 text Preview
++						190 container
++							191 text Added Oct 6
++							192 image
++						193 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1eq_, Secondary Actions: Expand
++							194 image
++					195 container
++						196 container Secret environment variable
++						197 button DEEPSEEK_API_KEY
++							198 container
++								199 text DEEPSEEK _API_KEY
++						200 text Production
++						201 container
++							202 text Added Oct 6
++							203 image
++						204 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1f5_, Secondary Actions: Expand
++							205 image
+The focused UI element is 66 search text field (settable) Description: Search, Value: DEEPSEEK, ID: input-_r_14t_

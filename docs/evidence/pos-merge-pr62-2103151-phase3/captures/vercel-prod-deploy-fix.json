@@ -1,0 +1,59 @@
+{
+  "capturedAt": "2026-10-12T22:52:00Z",
+  "source": "Vercel MCP create_deployment / get_deployment / web_fetch / get_runtime_errors (FASE C — publicação do SHA exato de main)",
+  "authorization": "Handoff do proprietário (FASE C: deploy de produção do SHA validado; merge via pipeline conforme a arquitetura do repo)",
+  "releaseChain": {
+    "pr": 63,
+    "mergedCommit": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+    "mergedAt": "2026-10-12T22:41:44Z",
+    "mainPushCI": {
+      "sonar": {
+        "run": 38318115587,
+        "conclusion": "success",
+        "note": "scan + cobertura success; main-coverage-mirror skipped on main pushes"
+      },
+      "uiStack": { "run": 38318115654, "conclusion": "success" },
+      "light": { "run": 38318115622, "conclusion": "success" }
+    }
+  },
+  "deployment": {
+    "id": "dpl_GWEFoMxhXfz31E6HxfR2NH1RNZFn",
+    "url": "preco-que-da-lucro-bwnjalzid.vercel.app",
+    "createdMs": 1791845290708,
+    "createdAt": "2026-10-12T22:48:10Z",
+    "readyAt": "2026-10-12T22:48:36Z",
+    "state": "READY",
+    "target": "production",
+    "ref": "main",
+    "sha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+    "buildOutcome": "SUCCESS — the gate fix holds in the real cold-cache production environment (the same conditions that failed on dpl_8sjNJvBbiFkHrR6hUcMx1iDR1Jrf). Build ~26 s, no BUILD_UTILS_SPAWN_1, no 'Build emitted unregistered or expired warnings'.",
+    "alias": []
+  },
+  "healthViaBypass": {
+    "/api/health/ready": {
+      "status": 503,
+      "body": "{\"status\":\"not_ready\",\"dependencies\":{\"postgres\":\"unavailable\"}}"
+    }
+  },
+  "runtimeRootCause": {
+    "event": "health.readiness_failed",
+    "component": "postgres",
+    "category": "authentication",
+    "step": "auth",
+    "code": "28P01",
+    "codeMeaning": "PostgreSQL invalid_password — the production DATABASE_URL credentials are rejected by the server",
+    "transient": false,
+    "inspectedCauses": 2,
+    "deploymentId": "dpl_GWEFoMxhXfz31E6HxfR2NH1RNZFn",
+    "commitSha": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+    "interpretation": "The code revision is healthy (the identical tree serves 200 on previews with the develop-scoped env). The production env's DATABASE_URL reaches a Postgres server but with invalid credentials — the build gate and the code are cleared; the remaining blocker is an environment/credential repair (Via A)."
+  },
+  "aliasesUnchanged": {
+    "sage": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL (d4b9395, 200)",
+    "team": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+    "git-main": "dpl_DHsbjECXDyQ5fajQQPvXrT5Rz7eL",
+    "rollbackNeeded": false,
+    "note": "The new production deployment received no aliases; the working public surface remains on the last healthy revision. Once the env is repaired, re-deploy/activate this revision or assign the aliases."
+  },
+  "conclusion": "FASE C executed: the build gate fix is proven in production conditions (deployment READY). The last mile is the production DATABASE_URL credentials (28P01), a human Via A repair; no DNS/SQL was touched and the public surface stayed healthy throughout."
+}
