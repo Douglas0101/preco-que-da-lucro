@@ -1,0 +1,56 @@
+{
+  "source": "selected structured stdout lines observed through write_stdin session 65909, chunk 798efa",
+  "completeRawLog": false,
+  "target": "disposable-loopback-only",
+  "events": [
+    {
+      "timestamp": "2026-10-13T04:17:02.008Z",
+      "level": "info",
+      "event": "ai.model_attempt",
+      "model": "deepseek-flash",
+      "attempt": 1,
+      "durationMs": 2591,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-10-13T04:17:02.008Z",
+      "level": "warn",
+      "event": "ai.financial_output_blocked",
+      "correlationId": "9cab6749-c3f7-445f-8f32-5ffc9acd5615",
+      "unsupportedCount": 2
+    },
+    {
+      "timestamp": "2026-10-13T04:17:02.028Z",
+      "level": "info",
+      "event": "ai.chat_completed",
+      "correlationId": "9cab6749-c3f7-445f-8f32-5ffc9acd5615",
+      "tenantId": "00000000-0000-4000-8000-000000000002",
+      "rounds": 7,
+      "timeToAcknowledgeMs": 1533,
+      "timeToFirstContentMs": 11700,
+      "timeToFinalMs": 11700
+    },
+    {
+      "timestamp": "2026-10-13T04:17:02.035Z",
+      "level": "info",
+      "event": "ai.budget_settled",
+      "usageId": "e40d18cd-2e10-4413-9ed7-9ba8bcc70843",
+      "budget": 64000,
+      "real": 4809,
+      "usageUnknownReason": null,
+      "durationMs": 2622,
+      "outcome": "success",
+      "applied": true
+    },
+    {
+      "timestamp": "2026-10-13T04:17:02.036Z",
+      "level": "info",
+      "event": "request.completed",
+      "correlationId": "9cab6749-c3f7-445f-8f32-5ffc9acd5615",
+      "method": "POST",
+      "pathname": "/_serverFn/abb0f390d0d9d5c002c238029f7d6ac7eceb5f795c2ff0103d4fb2cfd687a422",
+      "status": 200,
+      "durationMs": 11741
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+Browser tab: 7, Title: "Novo Produto · Preço que Dá Lucro", URL: "https://preco-que-da-lucro-sage.vercel.app/novo-produto".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
++		25 text Estou conhecendo o sistema. Quais informações preciso reunir antes de cadastrar uma receita ou produto? Apenas explique os passos, sem criar, editar ou apagar produtos ou despesas nesta resposta.
++		26 container Consultor pensando
+~		22 text entry area (disabled) Mensagem para o consultor, ID: novo-produto-mensagem
+The focused UI element is 0 AXWebArea Novo Produto · Preço que Dá Lucro, URL: preco-que-da-lucro-sage.vercel.app/novo-produto

@@ -1,0 +1,6 @@
+Browser tab: 8, Title: "Novo Produto · Preço que Dá Lucro", URL: "http://127.0.0.1:51643/novo-produto".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
++		32 text Sim, para este cenário são só massa e queijo. Uso 1 unidade de massa e 1 unidade de queijo por pizza. Não uso embalagem.
++		33 container Consultor pensando
+~		24 text entry area (disabled) Mensagem para o consultor, ID: novo-produto-mensagem
+The focused UI element is 0 AXWebArea Novo Produto · Preço que Dá Lucro, URL: 127.0.0.1:51643/novo-produto

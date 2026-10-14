@@ -1,0 +1,44 @@
+E2E autenticado autônomo do chat em produção — DBT-115 — 2026-10-14, 03:03Z
+
+Janela Chrome dedicada no host (playwright persistent-context, perfil /tmp/kilo/pqd-qa-profile).
+A sessão autenticada foi estabelecida na janela durante a espera (detectada 03:03:49.912Z);
+credenciais nunca passaram pelo agente — login humano único, Via A. O driver então executou
+sozinho o turno de sanidade; nenhum env/deploy/alias/secret/SQL/código foi tocado; nada commitado.
+
+Mecânica: browser headed visível no host; capturas salvas no host; nenhum valor de credencial
+lido, logado ou persistido; tenantId redigido nas capturas.
+
+Cliente (driver, horários UTC):
+- 03:03:50.374Z GET /api/auth/get-session 200 (sessão autenticada ativa na janela).
+- 03:03:50.027Z GET /novo-produto 200 — conversa limpa (apenas a saudação; captura 01-before).
+- Mensagem enviada: "Teste de sanidade DBT-115. Responda com OK." (captura 02-typed).
+- 03:03:54.194Z POST /_serverFn/abb0f390d0d9d5c002c238029f7d6ac7eceb5f795c2ff0103d4fb2cfd687a422 -> 200.
+  Corpo bruto (e2e-2026-10-14-serverfn-response.txt):
+  {"t":10,"i":0,"p":{"k":["result","error","context"],"v":[{"t":2,"s":1},{"t":25,"i":1,"s":{"message":{"t":1,"s":"Um serviço necessário está indisponível."}},"c":"$TSR/Error"},{"t":10,"i":2,"p":{"k":[],"v":[]},"o":0}]},"o":0}
+- UI: bolha do assistente "⚠️ Um serviço necessário está indisponível." + toast na mesma mensagem
+  (captura 04-after; 03-busy durante o processamento). Console do navegador sem erro JS; apenas
+  csp.violation report-only (script-src-elem/style-src-elem inline; DBT-112) e aviso de
+  autocomplete (e2e-2026-10-14-console.txt).
+
+Servidor (runtime logs do dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM, janela 30m; tenantId redigido):
+- 03:03:53.932Z ai.budget_reserved usageId=1783ae5f-dc7a-4496-8361-1a0caf2c928e budget=64000
+  real=0 kind=model roundNo=0
+- 03:03:53.933Z ai.credential_unusable {"provider":"gateway","host":"ai.gateway.lovable.dev",
+  "reason":"absent"} (error)
+- 03:03:54.018Z ai.budget_settled usageId=1783ae5f-dc7a-4496-8361-1a0caf2c928e real=0
+  outcome=error_dependency_error applied=true
+- 03:03:54.085Z request.completed POST /_serverFn/abb0f390... status=200 durationMs=659
+  correlationId=5bec3956-4368-4e1c-b8f6-87bd4f7d7051
+- Agregado 24h (conector Vercel): ai.credential_unusable count=2, nova ocorrência
+  2026-10-14T03:03:53.933Z, lastDeployment=dpl_9v4ni1M; grupo de e-mail count=1 (sem ocorrência
+  nova); sem 28P01.
+
+Leitura: exatamente o comportamento previsto pela triagem — o código recusa antes do fetch
+("No outgoing requests" já provado na rodada anterior), projeta a mensagem segura ao cliente e
+liquida a reserva com real:0. A condição de fechamento da DBT-115 permanece: após o preenchimento
+humano das envs, repetir este mesmo turno deve produzir resposta do modelo (deepseek-flash) sem
+ai.credential_unusable.
+
+Limites: o login foi humano (Via A); o driver não lê nem persiste credenciais; a janela dedicada
+segue aberta para testes adicionais; nenhuma captura mostra e-mail ou tenant; não houve request
+externa ao provedor (o turno falha antes do fetch).

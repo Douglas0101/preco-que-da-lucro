@@ -20,11 +20,11 @@ function expectRejected(endpoint: string, messageFragment: string): void {
 }
 
 describe("assertGatewayEndpoint (guard anti-SSRF do AI gateway, G-SEC #10-13)", () => {
-  it("aceita o gateway default da Lovable", () => {
-    const url = assertGatewayEndpoint("https://ai.gateway.lovable.dev/v1/chat/completions");
+  it("aceita o endpoint default DeepSeek do consumidor", () => {
+    const url = assertGatewayEndpoint("https://api.deepseek.com/chat/completions");
     expect(url.protocol).toBe("https:");
-    expect(url.hostname).toBe("ai.gateway.lovable.dev");
-    expect(url.pathname).toBe("/v1/chat/completions");
+    expect(url.hostname).toBe("api.deepseek.com");
+    expect(url.pathname).toBe("/chat/completions");
   });
 
   it("aceita hostname público configurado pelo operador", () => {
@@ -35,7 +35,7 @@ describe("assertGatewayEndpoint (guard anti-SSRF do AI gateway, G-SEC #10-13)", 
   });
 
   it("recusa protocolo não-https", () => {
-    expectRejected("http://ai.gateway.lovable.dev/", 'protocolo "http:" não suportado');
+    expectRejected("http://api.deepseek.com/", 'protocolo "http:" não suportado');
   });
 
   it("recusa endpoint não-URL com cause clara", () => {

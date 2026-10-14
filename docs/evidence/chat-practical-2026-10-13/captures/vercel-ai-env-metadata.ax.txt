@@ -1,0 +1,257 @@
+Browser tab: 3, Title: "preco-que-da-lucro - Overview – Vercel", URL: "https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/environment-variables".
+0 AXWebArea preco-que-da-lucro - Overview – Vercel, URL: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/environment-variables
+	1 container
+		2 link Description: Skip to content, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/environment-variables#geist-skip-nav
+		3 container
+			4 container
+				5 link Description: douglasultimatesouza-5127's projects Hobby, Value: vercel.com/douglasultimatesouza-5127s-projects
+				6 button
+					7 image
+				8 button Find F
+					9 image
+					10 text Find
+					11 text F
+				12 container
+					13 link Description: Overview, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro
+					14 link Description: Deployments, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/deployments
+					15 link Description: Logs, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs
+					16 link Description: Analytics, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/analytics
+					17 link Description: Speed Insights, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/speed-insights
+					18 link Description: Observability, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/observability
+					19 link Description: Firewall, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/firewall
+					20 link Description: CDN, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/cdn
+					21 link Description: Environment Variables, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/environment-variables
+					22 link Description: Domains, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/domains
+					23 link Description: Connect, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/connect
+					24 link Description: Integrations, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings/integrations
+					25 link Description: Storage, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/stores
+					26 link Description: Flags, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/flags
+					27 link Description: Agent, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/agent
+					28 link Description: AI Gateway, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/ai-gateway
+					29 link Description: Sandboxes, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/sandboxes
+					30 link Description: Workflows, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/workflows
+					31 link Description: Images, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/images
+					32 link Description: Usage, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/usage
+					33 link Description: Support, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/support
+					34 link Description: Settings, Value: vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/settings
+				35 pop up button (collapsed) Avatar for douglasultimatesouza-5127 douglasultimatesouza-5127, Secondary Actions: Expand
+					36 container Avatar for douglasultimatesouza-5127
+					37 text douglasultimatesouza-5127
+					38 image
+				39 pop up button (collapsed) Description: 30 unseen notifications, Secondary Actions: Expand
+					40 image
+					41 image
+			42 container
+				43 link vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro
+				44 button
+					45 image
+				46 link Description: Back to team view, Value: vercel.com/douglasultimatesouza-5127s-projects/~/settings/environment-variables
+			47 container Breadcrumb
+				48 text Environment Variables
+			49 button Vercel Agent is available on Pro
+				50 image
+				51 text Agent
+			52 container
+				53 container environment-variables-fieldset
+					54 heading Environment Variables, Value: 2
+						55 text Environment Variables
+					56 container
+						57 text Store API keys, tokens, and config securely.
+						58 link Description: Learn more about environment variables, Value: vercel.com/docs/environment-variables
+						59 text  · 
+						60 link Description: Separate Production Secret Values, Value: vercel.com/douglasultimatesouza-5127s-projects/~/settings/security#disjunctive-production-secret-policy
+					61 button Link Shared Variable
+					62 button Add Environment Variable
+				63 tab group
+					64 tab (selected, settable, boolean) Project, Value: 1
+					65 tab (selectable, settable, boolean) Shared, Value: 0
+				66 search text field (settable) Description: Search, Value: AI_, ID: input-_r_14t_
+				67 container
+					68 pop up button (collapsed, settable) Description: Filter variables by type, Value: All Types, ID: select-_r_14u_, Secondary Actions: Expand
+						69 menu
+							70 (selected) All Types
+							71 Secret
+							72 Config
+					73 image
+				74 combo box (collapsed) Value: All Environments Open menu, Secondary Actions: Expand
+					75 container
+						76 search text field (settable) Value: All Environments, ID: combobox-input-_r_150_
+						77 button Open menu
+							78 image
+				79 combo box (collapsed) Value: All Editors Open menu, Secondary Actions: Expand
+					80 container
+						81 search text field (settable) Description: All Editors, ID: combobox-input-_r_158_
+						82 button Open menu
+							83 image
+				84 container
+					85 pop up button (collapsed, settable) Description: Filter variables by status, Value: All Variables, ID: select-_r_15b_, Secondary Actions: Expand
+						86 menu
+							87 (selected) All Variables
+							88 Needs Attention
+					89 image
+				90 container
+					91 image
+					92 pop up button (collapsed, settable) Value: Last Updated, ID: select-_r_15c_, Secondary Actions: Expand
+						93 menu
+							94 (disabled) Sort by
+							95 (selected) Last Updated
+							96 Name
+							97 Type
+					98 image
+				99 container
+					184 container
+						185 container Config environment variable
+						186 container
+							187 button AI_GATEWAY_URL
+								188 container
+									189 text AI_ GATEWAY_URL
+							190 image
+						191 container
+							192 button Reveal Value
+								193 image
+							194 text •••••••••••••••
+						195 container
+							196 text Preview
+							197 image
+							198 text develop
+						199 container
+							200 text Added Oct 6
+							201 image
+						202 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1fh_, Secondary Actions: Expand
+							203 image
+					204 container
+						205 container Config environment variable
+						206 container
+							207 button AI_MODEL
+								208 container
+									209 text AI_ MODEL
+							210 image
+						211 container
+							212 button Reveal Value
+								213 image
+							214 text •••••••••••••••
+						215 container
+							216 text Preview
+							217 image
+							218 text develop
+						219 container
+							220 text Added Oct 6
+							221 image
+						222 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1ft_, Secondary Actions: Expand
+							223 image
+					224 container
+						225 container Secret environment variable
+						226 button AI_GATEWAY_URL
+							227 container
+								228 text AI_ GATEWAY_URL
+						229 text Production and Preview
+						230 container
+							231 text Added Sep 8
+							232 image
+						233 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1g8_, Secondary Actions: Expand
+							234 image
+					235 container
+						236 container Secret environment variable
+						237 button AI_GATEWAY_API_KEY
+							238 container
+								239 text AI_ GATEWAY_API_KEY
+						240 text Production and Preview
+						241 container
+							242 text Added Sep 8
+							243 image
+						244 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1gj_, Secondary Actions: Expand
+							245 image
+					246 container
+						247 container Secret environment variable
+						248 button AI_MODEL
+							249 container
+								250 text AI_ MODEL
+						251 text Production and Preview
+						252 container
+							253 text Added Sep 8
+							254 image
+						255 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1gu_, Secondary Actions: Expand
+							256 image
+					257 container
+						258 container Secret environment variable
+						259 button AI_REQUEST_TIMEOUT_MS
+							260 container
+								261 text AI_ REQUEST_TIMEOUT_MS
+						262 text Production and Preview
+						263 container
+							264 text Added Sep 8
+							265 image
+						266 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1h9_, Secondary Actions: Expand
+							267 image
+					268 container
+						269 container Secret environment variable
+						270 button AI_MODEL_TIMEOUT_MS
+							271 container
+								272 text AI_ MODEL_TIMEOUT_MS
+						273 text Production and Preview
+						274 container
+							275 text Added Sep 8
+							276 image
+						277 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1hk_, Secondary Actions: Expand
+							278 image
+					279 container
+						280 container Secret environment variable
+						281 button AI_MODEL_MAX_ATTEMPTS
+							282 container
+								283 text AI_ MODEL_MAX_ATTEMPTS
+						284 text Production and Preview
+						285 container
+							286 text Added Sep 8
+							287 image
+						288 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1hv_, Secondary Actions: Expand
+							289 image
+					290 container
+						291 container Secret environment variable
+						292 button AI_MAX_TOOL_ROUNDS
+							293 container
+								294 text AI_ MAX_TOOL_ROUNDS
+						295 text Production and Preview
+						296 container
+							297 text Added Sep 8
+							298 image
+						299 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1ia_, Secondary Actions: Expand
+							300 image
+					301 container
+						302 container Secret environment variable
+						303 button AI_CHAT_LIMIT_PER_10_MINUTES
+							304 container
+								305 text AI_ CHAT_LIMIT_PER_10_MINUTES
+						306 text Production and Preview
+						307 container
+							308 text Added Sep 8
+							309 image
+						310 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1il_, Secondary Actions: Expand
+							311 image
+					312 container
+						313 container Secret environment variable
+						314 button AI_DAILY_CHAT_LIMIT_PER_TENANT
+							315 container
+								316 text AI_ DAILY_CHAT_LIMIT_PER_TENANT
+						317 text Production and Preview
+						318 container
+							319 text Added Sep 8
+							320 image
+						321 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1j0_, Secondary Actions: Expand
+							322 image
+					323 container
+						324 container Secret environment variable
+						325 button AI_MODEL_PRICING_JSON
+							326 container
+								327 text AI_ MODEL_PRICING_JSON
+						328 text Production and Preview
+						329 container
+							330 text Added Sep 8
+							331 image
+						332 pop up button (collapsed) Description: Menu, ID: menu-button-_r_1jb_, Secondary Actions: Expand
+							333 image
+				180 container
+					181 checkbox (settable, integer) Enable access to System Environment Variables, Value: 1, ID: auto-expose-system-envs
+					182 text Enable access to
+					183 link Description: System Environment Variables, Value: vercel.com/docs/environment-variables/system-environment-variables
+
+The focused UI element is 66 search text field (settable) Description: Search, Value: AI_, ID: input-_r_14t_

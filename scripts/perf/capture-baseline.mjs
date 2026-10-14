@@ -31,7 +31,7 @@ const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const DEFAULT_DATABASE_URL =
   "postgresql://postgres:postgres@127.0.0.1:5432/preco_que_da_lucro_test";
 const DEFAULT_AI_MOCK_CONTENT = "Resposta mockada do baseline controlado F0-04.";
-const AI_MOCK_HOST = "ai.gateway.lovable.dev";
+const AI_MOCK_HOST = "api.deepseek.com";
 const VITALS_SETTLE_MS = 500;
 
 const ROUTES = [
@@ -208,6 +208,8 @@ function buildCommandEnv(options, databaseUrl, adminUrl) {
   env.E2E_AUTH_EMAIL = env.E2E_AUTH_EMAIL ?? "perf.controlled@example.test";
   env.E2E_AUTH_PASSWORD = env.E2E_AUTH_PASSWORD ?? "perf-controlled-password-1";
   env.AI_GATEWAY_API_KEY = env.AI_GATEWAY_API_KEY ?? "perf-mock-key";
+  env.DEEPSEEK_API_KEY = env.DEEPSEEK_API_KEY ?? "perf-mock-key";
+  env.AI_GATEWAY_URL = env.AI_GATEWAY_URL ?? "https://api.deepseek.com/chat/completions";
   env.PERF_AI_MOCK = "1";
   env.PERF_AI_MOCK_LATENCY_MS = String(options.aiMockLatencyMs);
   env.PERF_AI_MOCK_CONTENT = env.PERF_AI_MOCK_CONTENT ?? DEFAULT_AI_MOCK_CONTENT;

@@ -327,8 +327,7 @@ async function callModel(
   // `readEnv`, não `??`: a plataforma define a variável como string vazia
   // quando o registro existe e nunca foi preenchido, e `"" ?? default` devolve
   // `""` — o guard recusava a URL vazia e derrubava todo turno antes do fetch.
-  const endpoint =
-    readEnv("AI_GATEWAY_URL") ?? "https://ai.gateway.lovable.dev/v1/chat/completions";
+  const endpoint = readEnv("AI_GATEWAY_URL") ?? "https://api.deepseek.com/chat/completions";
   // Guard anti-SSRF na origem (G-SEC #10-13): o URL validado é o único que
   // alcança o fetch nos retries, cobrindo todas as instâncias com um check.
   const gatewayEndpoint = assertGatewayEndpoint(endpoint);
@@ -346,9 +345,7 @@ async function callModel(
   )
     throw new ApplicationError("DEPENDENCY_ERROR");
   // A provider-specific credential may never fall back to another issuer's key.
-  const apiKey = deepseek
-    ? readEnv("DEEPSEEK_API_KEY")
-    : (readEnv("AI_GATEWAY_API_KEY") ?? readEnv("LOVABLE_API_KEY"));
+  const apiKey = deepseek ? readEnv("DEEPSEEK_API_KEY") : readEnv("AI_GATEWAY_API_KEY");
   if (!apiKey || apiKey.trim() !== apiKey) {
     // Sem o nome do provedor o operador não distingue "credencial ausente" de
     // "provedor recusou" no log. O detalhe é do servidor, nunca da resposta.

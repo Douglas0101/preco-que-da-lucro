@@ -1,0 +1,42 @@
+Browser tab: 8, Title: "Novo Produto · Preço que Dá Lucro", URL: "http://127.0.0.1:51643/novo-produto".
+0 AXWebArea Novo Produto · Preço que Dá Lucro, URL: 127.0.0.1:51643/novo-produto
+	3 container
+		4 link Description: Preço que Dá Lucro seu consultor financeiro, Value: 127.0.0.1:51643/inicio
+		5 link Description: Início, Value: 127.0.0.1:51643/inicio
+		6 link Description: Meus Produtos, Value: 127.0.0.1:51643/produtos
+		7 link Description: Novo Produto, Value: 127.0.0.1:51643/novo-produto
+		8 link Description: Preços de Compra, Value: 127.0.0.1:51643/precos
+		9 link Description: Minhas Despesas, Value: 127.0.0.1:51643/despesas
+		10 link Description: Vendas, Value: 127.0.0.1:51643/vendas
+		11 link Description: Ponto de Equilíbrio, Value: 127.0.0.1:51643/ponto-equilibrio
+		12 link Description: Simulações, Value: 127.0.0.1:51643/simulacoes
+		13 link Description: Diagnóstico, Value: 127.0.0.1:51643/diagnostico
+		14 text [fixture-email-redacted]
+		15 button Sair
+	16 container
+		17 heading Cadastro conversacional, Value: 1
+			18 text Cadastro conversacional
+		19 text Converse como se estivesse falando com um consultor.
+		32 button Ver produto
+		20 pop up button (collapsed) Recomeçar, ID: base-ui-_r_3_, Secondary Actions: Expand
+		26 text Quero cadastrar uma pizza margherita: a massa custa R$ 4,00 e o queijo R$ 6,00 por unidade. A receita rende 1 pizza e eu vendo cada pizza por R$ 30,00.
+		27 text Vamos montar essa pizza passo a passo! 😊
+		28 text Antes de começar, só preciso confirmar uma coisa com você:
+		29 container
+			30 text A pizza margherita tem só esses dois itens de custo (massa R$ 4,00 e queijo R$ 6,00)?  Ou tem mais algum ingrediente (molho, tomate, manjericão etc.)?
+		31 text Me diz isso que eu já sigo com o cadastro.
+		33 text Sim, para este cenário são só massa e queijo. Uso 1 unidade de massa e 1 unidade de queijo por pizza. Não uso embalagem.
+		34 text Rendimento registrado! Agora falta o preço de venda. Você mencionou R$ 30,00 por pizza, mas preciso confirmar duas coisas:
+		35 container
+			36 text 1.  Você paga algum imposto sobre a venda?  Se sim, qual regime (MEI, Simples Nacional, etc.) e qual a alíquota aproximada?
+		37 container
+			38 text 2.  Você paga alguma taxa por venda?  (ex.: taxa de maquininha de cartão, comissão de app de delivery)
+		39 text Se não houver imposto nem taxa, só me avisar que sigo sem eles. 😊
+		40 text Sou MEI. Não tenho a alíquota efetiva de imposto calculada agora; pode registrar como não informada. Não pago taxa de maquininha nem comissão neste cenário.
+		41 text Não posso apresentar valores calculados sem um resultado do motor financeiro. Os dados informados continuam registrados. Consulte Diagnóstico ou Simulações para ver os cálculos disponíveis e os dados que ainda faltam.
+		23 text Mensagem para o consultor
+		24 text entry area (settable) Mensagem para o consultor, ID: novo-produto-mensagem
+		25 button (disabled) Enviar
+	2 container Notifications alt+T
+
+The focused UI element is 24 text entry area (settable) Mensagem para o consultor, ID: novo-produto-mensagem

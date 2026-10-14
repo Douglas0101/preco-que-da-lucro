@@ -1,0 +1,46 @@
+# Vercel env metadata — leitura MCP autenticada em 2026-10-13T20:02Z
+
+Escopo: team_2NnkSYjw5NRHAFnQFEPSHGmW / prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q.
+Recorte do inventário retornado pela API de env do projeto. Transcreve-se apenas
+chave, tipo, targets/branch, id, datas e comentários — NENHUM ciphertext ou valor
+sensível. As duas únicas exceções de valor são as entradas `plain` de
+`preview/develop` cujos valores são configuração nominal já documentada no runbook
+(docs/runbooks/deepseek-web.md), transcritas aqui por serem a evidência do padrão de
+override.
+
+Nota de leitura: entradas `type=sensitive` são devolvidas com `value` vazio e
+`decrypted=false` por desenho do conector — o vazio NÃO provou vacuidade por si só.
+A vacuidade do registro compartilhado `AI_*` é provada (a) pelo comentário da própria
+entrada `plain` de develop criada para contorná-la e (b) pelo comportamento de runtime
+(default `ai.gateway.lovable.dev` + `reason:absent` no log de 2026-10-13T04:35:37.451Z).
+
+## Entradas relevantes (verbatim de metadata)
+
+AI_GATEWAY_URL | sensitive | production, preview | id MRVEv4GtTHNQtbMq | createdAt=updatedAt 2026-09-08T05:35:18Z | comment ""
+AI_GATEWAY_API_KEY | sensitive | production, preview | id rAlJcM0NLgoH2NPk | 2026-09-08T05:35:18Z | comment ""
+AI_MODEL | sensitive | production, preview | id J5pElDTcKFX90oTm | 2026-09-08T05:35:18Z | comment ""
+AI_MODEL_PRICING_JSON | sensitive | production, preview | id vT1FaOQa5aOwHZFi | 2026-09-08T05:35:18Z | comment ""
+AI_REQUEST_TIMEOUT_MS | sensitive | production, preview | id t4Ft5tGqe98jdYxW | 2026-09-08T05:35:18Z
+AI_MODEL_TIMEOUT_MS | sensitive | production, preview | id 2kmso51reRxieA5r | 2026-09-08T05:35:18Z
+AI_MODEL_MAX_ATTEMPTS | sensitive | production, preview | id 1JxVHBzKoDHIqv1g | 2026-09-08T05:35:18Z
+AI_MAX_TOOL_ROUNDS | sensitive | production, preview | id dSjz5QGNzOMt4NW2 | 2026-09-08T05:35:18Z
+AI_CHAT_LIMIT_PER_10_MINUTES | sensitive | production, preview | id SHGknN3VWZhJPPa5 | 2026-09-08T05:35:18Z
+AI_DAILY_CHAT_LIMIT_PER_TENANT | sensitive | production, preview | id 0diumLC3WMkdo2c0 | 2026-09-08T05:35:18Z
+
+DEEPSEEK_API_KEY | sensitive | production | id RcHEC8R64Y7c2l2g | createdAt=updatedAt 2026-10-06T14:20:00Z | comment ""
+DEEPSEEK_API_KEY | sensitive | preview | id wMf48ITJ2QDbDVFD | 2026-10-06T14:20:00Z | comment ""
+
+AI_GATEWAY_URL | plain | preview, gitBranch=develop | id rYwOWdsomqH97E3J | 2026-10-06T14:56:40Z | value "https://api.deepseek.com/chat/completions" | comment "Endpoint DeepSeek do consumidor Web (docs/runbooks/deepseek-web.md); override de preview/develop porque o registro compartilhado esta definido e vazio"
+AI_MODEL | plain | preview, gitBranch=develop | id a78aC93iTn72zPr3 | 2026-10-06T14:56:40Z | value "deepseek-flash" | comment "Modelo nao-thinking do consumidor Web (docs/runbooks/deepseek-web.md)"
+
+RESEND_API_KEY | sensitive | production, preview | id w4nacFXeB8N4rtNz | createdAt=updatedAt 2026-09-08T05:35:18Z | comment ""
+AUTH_EMAIL_FROM | sensitive | production, preview | id PwFFRn9YR6pV7SeZ | createdAt=updatedAt 2026-09-08T05:35:18Z | comment ""
+
+## Contexto (demais inventário, omitido)
+
+O inventário completo também listou DATABASE_URL / DATABASE_URL_UNPOOLED por target
+(entradas gerenciadas pela integração Neon icfg_eDeLFTSX3j7fPem6tn88RkGS; a de
+production foi recriada em ≈2026-10-13T01:39Z na recuperação), NEON_AUTH_BASE_URL,
+VITE_NEON_AUTH_URL, BETTER_AUTH_URL/SECRET, AUTH_TRUSTED_ORIGINS, GOOGLE_CLIENT_ID/SECRET,
+OTEL_*, CSP_ENFORCE e DATABASE_DRIVER. Todos permanecem fora do escopo desta triagem e
+não foram transcritos.

@@ -1,0 +1,321 @@
+Browser tab: 5, Title: "preco-que-da-lucro – Logs – Vercel", URL: "https://vercel.com/douglasultimatesouza-5127s-projects/preco-que-da-lucro/logs?search=deploymentId%3Adpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM&selectedLogId=w972v-1791866136796-94b3f25cad14&panelState=opened".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 448-451
+~					357 button Logs
++					456 container
++						457 text 10  Total
++					458 container
++						459 text 1  Error
+~					358 button Description: Copy Logs, Help: Copy full logs to clipboard
+~					359 button Collapse Logs Panel
++						460 container
++							461 image
++							462 text Function
++						463 text 04:35:37 .104
+~						362 outline JSON
+~							363 row (selectable, expanded) Description: JSON object, Secondary Actions: Collapse
++								464 text {
+~									365 row (selectable) timestamp: 2026-10-13T04:35:37.103Z
++										465 text timestamp
++										466 text :
++										467 text "2026-10-13T04:35:37.103Z"
++										468 text ,
+~									366 row (selectable) level: info
++										469 text level
++										470 text :
++										471 text "info"
++										472 text ,
+~									367 row (selectable) event: app.context_tx
++										473 text event
++										474 text :
++										475 text "app.context_tx"
++										476 text ,
+~									368 row (selectable) round_trips: 4
++										477 text round_trips
++										478 text :
++										479 text 4
++										480 text ,
+~									369 row (selectable) outcome: commit
++										481 text outcome
++										482 text :
++										483 text "commit"
++										484 text ,
+~									370 row (selectable) duration_ms: 60
++										485 text duration_ms
++										486 text :
++										487 text 60
++								488 text }
+~						371 button Description: Copy, Help: Copy message to the clipboard
++						489 text 04:35:37 .275
+~						372 outline JSON
+~							373 row (selectable, expanded) Description: JSON object, Secondary Actions: Collapse
++								490 text {
+~									375 row (selectable) timestamp: 2026-10-13T04:35:37.274Z
++										491 text timestamp
++										492 text :
++										493 text "2026-10-13T04:35:37.274Z"
++										494 text ,
+~									376 row (selectable) level: info
++										495 text level
++										496 text :
++										497 text "info"
++										498 text ,
+~									377 row (selectable) event: app.context_tx
++										499 text event
++										500 text :
++										501 text "app.context_tx"
++										502 text ,
+~									378 row (selectable) round_trips: 10
++										503 text round_trips
++										504 text :
++										505 text 10
++										506 text ,
+~									379 row (selectable) outcome: commit
++										507 text outcome
++										508 text :
++										509 text "commit"
++										510 text ,
+~									380 row (selectable) duration_ms: 168
++										511 text duration_ms
++										512 text :
++										513 text 168
++								514 text }
+~						381 button Description: Copy, Help: Copy message to the clipboard
++						515 text 04:35:37 .336
+~						382 outline JSON
+~							383 row (selectable, expanded) Description: JSON object, Secondary Actions: Collapse
++								516 text {
+~									385 row (selectable) timestamp: 2026-10-13T04:35:37.335Z
++										517 text timestamp
++										518 text :
++										519 text "2026-10-13T04:35:37.335Z"
++										520 text ,
+~									386 row (selectable) level: info
++										521 text level
++										522 text :
++										523 text "info"
++										524 text ,
+~									387 row (selectable) event: app.context_tx
++										525 text event
++										526 text :
++										527 text "app.context_tx"
++										528 text ,
+~									388 row (selectable) round_trips: 4
++										529 text round_trips
++										530 text :
++										531 text 4
++										532 text ,
+~									389 row (selectable) outcome: commit
++										533 text outcome
++										534 text :
++										535 text "commit"
++										536 text ,
+~									390 row (selectable) duration_ms: 60
++										537 text duration_ms
++										538 text :
++										539 text 60
++								540 text }
+~						391 button Description: Copy, Help: Copy message to the clipboard
++						541 text 04:35:37 .450
+~						392 outline JSON
+~							393 row (selectable, expanded) Description: JSON object, Secondary Actions: Collapse
++								542 text {
+~									395 row (selectable) timestamp: 2026-10-13T04:35:37.450Z
++										543 text timestamp
++										544 text :
++										545 text "2026-10-13T04:35:37.450Z"
++										546 text ,
+~									396 row (selectable) level: info
++										547 text level
++										548 text :
++										549 text "info"
++										550 text ,
+~									397 row (selectable) event: app.context_tx
++										551 text event
++										552 text :
++										553 text "app.context_tx"
++										554 text ,
+~									398 row (selectable) round_trips: 7
++										555 text round_trips
++										556 text :
++										557 text 7
++										558 text ,
+~									399 row (selectable) outcome: commit
++										559 text outcome
++										560 text :
++										561 text "commit"
++										562 text ,
+~									400 row (selectable) duration_ms: 113
++										563 text duration_ms
++										564 text :
++										565 text 113
++								566 text }
+~						401 button Description: Copy, Help: Copy message to the clipboard
++						567 text 04:35:37 .450
+~						402 outline JSON
+~							403 row (selectable, expanded) Description: JSON object, Secondary Actions: Collapse
++								568 text {
+~									405 row (selectable) timestamp: 2026-10-13T04:35:37.450Z
++										569 text timestamp
++										570 text :
++										571 text "2026-10-13T04:35:37.450Z"
++										572 text ,
+~									406 row (selectable) level: info
++										573 text level
++										574 text :
++										575 text "info"
++										576 text ,
+~									407 row (selectable) event: ai.budget_reserved
++										577 text event
++										578 text :
++										579 text "ai.budget_reserved"
++										580 text ,
+~									408 row (selectable) tenantId: [REDACTED:tenant-id]
++										581 text tenantId
++										582 text :
++										583 text "[REDACTED:tenant-id]"
++										584 text ,
+~									409 row (selectable) usageId: 585c0912-a5f1-46fc-a579-14f4bcd66de7
++										585 text usageId
++										586 text :
++										587 text "585c0912-a5f1-46fc-a579-14f4bcd66de7"
++										588 text ,
+~									410 row (selectable) budget: 64000
++										589 text budget
++										590 text :
++										591 text 64000
++										592 text ,
+~									411 row (selectable) real: 0
++										593 text real
++										594 text :
++										595 text 0
++										596 text ,
+~									412 row (selectable) durationMs: 0
++										597 text durationMs
++										598 text :
++										599 text 0
++										600 text ,
+~									413 row (selectable) outcome: reserved
++										601 text outcome
++										602 text :
++										603 text "reserved"
++										604 text ,
+~									414 row (selectable) kind: model
++										605 text kind
++										606 text :
++										607 text "model"
++										608 text ,
+~									415 row (selectable) roundNo: 0
++										609 text roundNo
++										610 text :
++										611 text 0
++								612 text }
+~						416 button Description: Copy, Help: Copy message to the clipboard
++						613 text 04:35:37 .451
+~						417 outline JSON
+~							418 row (selectable, expanded) Description: JSON object, Secondary Actions: Collapse
++								614 text {
+~									420 row (selectable) timestamp: 2026-10-13T04:35:37.451Z
++										615 text timestamp
++										616 text :
++										617 text "2026-10-13T04:35:37.451Z"
++										618 text ,
+~									421 row (selectable) level: error
++										619 text level
++										620 text :
++										621 text "error"
++										622 text ,
+~									422 row (selectable) event: ai.credential_unusable
++										623 text event
++										624 text :
++										625 text "ai.credential_unusable"
++										626 text ,
+~									423 row (selectable) provider: gateway
++										627 text provider
++										628 text :
++										629 text "gateway"
++										630 text ,
+~									424 row (selectable) host: ai.gateway.lovable.dev
++										631 text host
++										632 text :
++										633 text "ai.gateway.lovable.dev"
++										634 text ,
+~									425 row (selectable) reason: absent
++										635 text reason
++										636 text :
++										637 text "absent"
++								638 text }
+~						426 button Description: Copy, Help: Copy message to the clipboard
++				639 text POST
++				640 text /_serverFn/abb0f390d0d9d5c002c238029f7d6ac7eceb5f795c2ff0103d4fb2cfd687a422
++				641 text 200
++				642 button (disabled) Up
++					643 image
+~				427 button Down
+~				429 button Copy all context
+~				431 button Close
++					644 text Request started
++					645 text OCT 13
++					646 text 01:35:36
++					647 text .
++					648 text 79
++					649 text GMT-3
+~					435 pop up button (collapsed) Description: Request ID: w972v-1791866136796-94b3f25cad14, ID: menu-button-_r_kj_, Secondary Actions: Expand
++						650 text Request ID
++						651 text w972v-1791866136796-94b3f25cad14
+~					436 pop up button (collapsed) Description: Path: /_serverFn/abb0f390d0d9d5c002c238029f7d6ac7eceb5f795c2ff0103d4fb2cfd687a422, ID: menu-button-_r_kl_, Secondary Actions: Expand
++						652 text Path
++						653 text /_serverFn/abb0f390d0d9d5c002c238029f7d6ac7eceb5f795c2ff0103d4fb2cfd687a422
+~					437 pop up button (collapsed) Description: Host: preco-que-da-lucro-sage.vercel.app, ID: menu-button-_r_kn_, Secondary Actions: Expand
++						654 text Host
++						655 text preco-que-da-lucro-sage.vercel.app
+~					438 pop up button (collapsed) ID: menu-button-_r_kp_, Secondary Actions: Expand, Description: User Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/[REDACTED:ip] Safari/537.36
++						656 text User Agent
++						657 text Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/[REDACTED:ip] Safari/537.36
+~					439 pop up button (collapsed) Description: Referer: https://preco-que-da-lucro-sage.vercel.app/novo-produto, ID: menu-button-_r_kr_, Secondary Actions: Expand
++						658 text Referer
++						659 text https://preco-que-da-lucro-sage.vercel.app/novo-produto
++					660 container
++						661 image
++						662 text Received in São Paulo, Brazil (gru1)
+~					440 pop up button (collapsed) Description: Menu, ID: menu-button-_r_kt_, Secondary Actions: Expand
+~						441 heading Firewall, Value: 3
++							663 text Firewall
++						664 text Allowed
++					665 container
++						666 image
++						667 text Routed to Washington, D.C., USA (iad1)
+~					442 heading Function Invocation, Value: 3
++						668 text Function Invocation
+~					443 pop up button (collapsed) Description: Route: /__server, ID: menu-button-_r_kv_, Secondary Actions: Expand
++						669 text Route
++						670 container
++							671 text / __server
+~					444 pop up button (collapsed) Description: Execution Duration: 696ms , ID: menu-button-_r_l1_, Secondary Actions: Expand
++						672 text Execution Duration / Maximum
++						673 container
++							674 text 696ms /  5m
+~					445 heading External APIs, Value: 3
++						675 text External APIs
++					676 text No outgoing requests
+~					446 button Fluid 228 MB
+~						447 heading Fluid, Value: 3
++							677 text Fluid
++						678 container
++							679 text 228  MB
++					680 container
++						681 image
++						682 text Response finished in 851ms
++					683 container Deployment Information
++						684 heading Deployment Information, Value: 2
++							685 text Deployment Information
++						686 pop up button (collapsed) Description: Deployment ID: dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM, ID: menu-button-_r_l3_, Secondary Actions: Expand
++							687 text Deployment ID
++							688 text dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM
++						689 pop up button (collapsed) Description: Environment: production, ID: menu-button-_r_l5_, Secondary Actions: Expand
++							690 text Environment
++							691 text production
++						692 pop up button (collapsed) Description: Branch: main, ID: menu-button-_r_l9_, Secondary Actions: Expand
++							693 text Branch
++							694 text main
+The focused UI element is 115 row

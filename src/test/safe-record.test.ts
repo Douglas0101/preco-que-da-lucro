@@ -107,7 +107,7 @@ afterEach(() => {
   restoreFakeDatabase();
   setDatabaseForTests(undefined);
   vi.unstubAllGlobals();
-  delete process.env.AI_GATEWAY_API_KEY;
+  delete process.env.DEEPSEEK_API_KEY;
 });
 
 describe("recordSafely: o idioma único de registro de métrica", () => {
@@ -276,7 +276,7 @@ describe("chat.functions.ts: aiDuration dentro do finally de runModelAttempt", (
   const MESSAGES = [{ role: "user" as const, content: "Olá" }];
 
   it("um record que lança não rejeita a resposta do gateway nem pula o log da tentativa", async () => {
-    process.env.AI_GATEWAY_API_KEY = "chave-de-teste";
+    process.env.DEEPSEEK_API_KEY = "chave-de-teste";
     vi.stubGlobal(
       "fetch",
       vi
@@ -464,7 +464,7 @@ describe("args byte-idênticos no caminho saudável (captura sem lançar)", () =
   });
 
   it("chat.functions.ts: aiDuration", async () => {
-    process.env.AI_GATEWAY_API_KEY = "chave-de-teste";
+    process.env.DEEPSEEK_API_KEY = "chave-de-teste";
     vi.stubGlobal(
       "fetch",
       vi

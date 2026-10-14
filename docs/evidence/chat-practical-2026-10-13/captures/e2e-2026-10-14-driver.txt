@@ -1,0 +1,10 @@
+[2026-10-14T03:03:33.661Z] launching persistent chrome (headed)
+[2026-10-14T03:03:34.869Z] waiting for human login (up to 45 min)
+[2026-10-14T03:03:49.912Z] login detected: https://preco-que-da-lucro-sage.vercel.app/novo-produto
+[2026-10-14T03:03:53.227Z] shot ok: 01-before
+[2026-10-14T03:03:53.292Z] shot ok: 02-typed
+[2026-10-14T03:03:54.194Z] serverFn response 200
+[2026-10-14T03:03:54.589Z] shot ok: 03-busy
+[2026-10-14T03:03:54.616Z] UI error message not observed within 90s
+[2026-10-14T03:03:56.156Z] shot ok: 04-after
+[2026-10-14T03:03:56.156Z] test finished; keeping browser open

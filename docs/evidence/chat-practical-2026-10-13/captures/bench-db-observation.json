@@ -1,0 +1,629 @@
+{
+  "observedAt": "2026-10-13T04:24:28.274Z",
+  "target": "disposable-loopback-only",
+  "containerId": "3722fd94943aecc61ce0aab103a8fc16c231c4746800bbfb58e254ea4914ee25",
+  "applicationRevision": "5d6049b9badf067b804bdc3062c922bab72c46d0",
+  "readOnly": true,
+  "identity": {
+    "database": "preco_que_da_lucro_test",
+    "role": "postgres",
+    "version": "17.11"
+  },
+  "conversation": {
+    "id": "4ee3cb5c-6234-4b21-9e8f-b2307cffda8c",
+    "tenant_id": "00000000-0000-4000-8000-000000000002",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "current_product_id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+    "conversation_state": "completed",
+    "confirmed_state": {
+      "lastConfirmedAt": "2026-10-13T04:17:02.014Z",
+      "currentProductId": "362db98f-a395-4900-9b0b-98621e27d5cb",
+      "lastAssistantMessageId": "eebf5853-1a98-44ff-b433-dc9a8d22fcb1"
+    },
+    "created_at": "2026-10-13T04:09:24.696Z",
+    "updated_at": "2026-10-13T04:17:02.014Z"
+  },
+  "messages": [
+    {
+      "id": "dcd06b48-123b-4024-8602-2054f00af91d",
+      "role": "user",
+      "content": "Quero cadastrar uma pizza margherita: a massa custa R$ 4,00 e o queijo R$ 6,00 por unidade. A receita rende 1 pizza e eu vendo cada pizza por R$ 30,00.",
+      "metadata": null,
+      "created_at": "2026-10-13T04:09:24.696Z"
+    },
+    {
+      "id": "22faaeb8-aefa-4944-967c-fbeaef18064f",
+      "role": "assistant",
+      "content": "Vamos montar essa pizza passo a passo! 😊\n\nAntes de começar, só preciso confirmar uma coisa com você:\n\n**A pizza margherita tem só esses dois itens de custo (massa R$ 4,00 e queijo R$ 6,00)?** Ou tem mais algum ingrediente (molho, tomate, manjericão etc.)?\n\nMe diz isso que eu já sigo com o cadastro.",
+      "metadata": {
+        "currentProductId": null
+      },
+      "created_at": "2026-10-13T04:09:27.326Z"
+    },
+    {
+      "id": "39f9c59c-637f-472a-89ab-9f4023b436ed",
+      "role": "user",
+      "content": "Sim, para este cenário são só massa e queijo. Uso 1 unidade de massa e 1 unidade de queijo por pizza. Não uso embalagem.",
+      "metadata": null,
+      "created_at": "2026-10-13T04:16:16.385Z"
+    },
+    {
+      "id": "2a6677b9-5bbe-4de9-9e88-c3cc05b9d13b",
+      "role": "assistant",
+      "content": "Rendimento registrado! Agora falta o preço de venda. Você mencionou R$ 30,00 por pizza, mas preciso confirmar duas coisas:\n\n1. **Você paga algum imposto sobre a venda?** Se sim, qual regime (MEI, Simples Nacional, etc.) e qual a alíquota aproximada?\n2. **Você paga alguma taxa por venda?** (ex.: taxa de maquininha de cartão, comissão de app de delivery)\n\nSe não houver imposto nem taxa, só me avisar que sigo sem eles. 😊",
+      "metadata": {
+        "currentProductId": "6df87d79-6602-4f7b-a0c9-1f90f294b201"
+      },
+      "created_at": "2026-10-13T04:16:24.119Z"
+    },
+    {
+      "id": "d4a726ba-7537-4eae-b21a-baa3010d684e",
+      "role": "user",
+      "content": "Sou MEI. Não tenho a alíquota efetiva de imposto calculada agora; pode registrar como não informada. Não pago taxa de maquininha nem comissão neste cenário.",
+      "metadata": null,
+      "created_at": "2026-10-13T04:16:50.328Z"
+    },
+    {
+      "id": "eebf5853-1a98-44ff-b433-dc9a8d22fcb1",
+      "role": "assistant",
+      "content": "Não posso apresentar valores calculados sem um resultado do motor financeiro. Os dados informados continuam registrados. Consulte Diagnóstico ou Simulações para ver os cálculos disponíveis e os dados que ainda faltam.",
+      "metadata": {
+        "currentProductId": "362db98f-a395-4900-9b0b-98621e27d5cb"
+      },
+      "created_at": "2026-10-13T04:17:02.009Z"
+    }
+  ],
+  "product": {
+    "id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+    "tenant_id": "00000000-0000-4000-8000-000000000002",
+    "user_id": "00000000-0000-4000-8000-000000000001",
+    "name": "Pizza Margherita",
+    "status": "draft",
+    "current_price": "30.0000",
+    "yield_qty": "1.000000",
+    "yield_unit": "unidade",
+    "tax_regime": "MEI",
+    "tax_rate": null,
+    "created_at": "2026-10-13T04:16:51.861Z",
+    "updated_at": "2026-10-13T04:16:57.898Z"
+  },
+  "productsInWindow": [
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "name": "Produto de teste",
+      "current_price": "20.0000",
+      "yield_qty": "10.000000",
+      "yield_unit": "unidade",
+      "tax_regime": null,
+      "tax_rate": "0.100000",
+      "status": "draft",
+      "created_at": "2026-10-13T03:58:32.011Z"
+    },
+    {
+      "id": "6df87d79-6602-4f7b-a0c9-1f90f294b201",
+      "name": "Pizza Margherita",
+      "current_price": null,
+      "yield_qty": "1.000000",
+      "yield_unit": "unidade",
+      "tax_regime": null,
+      "tax_rate": null,
+      "status": "draft",
+      "created_at": "2026-10-13T04:16:18.046Z"
+    },
+    {
+      "id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+      "name": "Pizza Margherita",
+      "current_price": "30.0000",
+      "yield_qty": "1.000000",
+      "yield_unit": "unidade",
+      "tax_regime": "MEI",
+      "tax_rate": null,
+      "status": "draft",
+      "created_at": "2026-10-13T04:16:51.861Z"
+    }
+  ],
+  "ingredients": [
+    {
+      "id": "7bdb0ef7-2b9c-4c89-a648-12f7a0049fcc",
+      "product_id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+      "name": "Massa",
+      "used_qty": "1.000000",
+      "used_unit": "unidade",
+      "package_price": "4.0000",
+      "package_qty": "1.000000",
+      "package_unit": "unidade",
+      "conversion_factor": null
+    },
+    {
+      "id": "9c6a7003-a07b-44dc-9bd9-26da41bdeea5",
+      "product_id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+      "name": "Queijo",
+      "used_qty": "1.000000",
+      "used_unit": "unidade",
+      "package_price": "6.0000",
+      "package_qty": "1.000000",
+      "package_unit": "unidade",
+      "conversion_factor": null
+    }
+  ],
+  "tools": [
+    {
+      "id": "2c19f018-048d-417c-a649-c8aa705ad37a",
+      "correlation_id": "16686fcb-7438-4f57-a059-b6c589928c79",
+      "tool_name": "create_product",
+      "status": "succeeded",
+      "input": {
+        "name": "Pizza Margherita"
+      },
+      "safe_result": {
+        "state": {
+          "currentProductId": "6df87d79-6602-4f7b-a0c9-1f90f294b201"
+        },
+        "result": {
+          "name": "Pizza Margherita",
+          "productId": "6df87d79-6602-4f7b-a0c9-1f90f294b201"
+        }
+      },
+      "error_code": null,
+      "duration_ms": 29,
+      "usage_id": "30ef66dd-f5fc-4723-9311-fa64b0584a11",
+      "started_at": "2026-10-13T04:16:18.046Z",
+      "completed_at": "2026-10-13T04:16:18.089Z"
+    },
+    {
+      "id": "73968301-e126-436b-b981-c5bd718aee29",
+      "correlation_id": "16686fcb-7438-4f57-a059-b6c589928c79",
+      "tool_name": "add_ingredients",
+      "status": "succeeded",
+      "input": {
+        "product_id": "6df87d79-6602-4f7b-a0c9-1f90f294b201",
+        "ingredients": [
+          {
+            "name": "Massa",
+            "used_qty": "1",
+            "used_unit": "unidade"
+          },
+          {
+            "name": "Queijo",
+            "used_qty": "1",
+            "used_unit": "unidade"
+          }
+        ]
+      },
+      "safe_result": {
+        "result": {
+          "ingredients": [
+            {
+              "id": "a3a2f0ee-b26c-49e3-a256-8407485d9178",
+              "name": "Massa"
+            },
+            {
+              "id": "ed1f8cff-ed0d-4e58-84af-31ebf6d7b5cd",
+              "name": "Queijo"
+            }
+          ],
+          "ingredientCount": 2
+        }
+      },
+      "error_code": null,
+      "duration_ms": 21,
+      "usage_id": "8baf6deb-6021-4be7-95b0-070d28a33e35",
+      "started_at": "2026-10-13T04:16:19.210Z",
+      "completed_at": "2026-10-13T04:16:19.234Z"
+    },
+    {
+      "id": "58838eda-33cf-40a5-b39b-c4cbd0ee24f8",
+      "correlation_id": "16686fcb-7438-4f57-a059-b6c589928c79",
+      "tool_name": "set_ingredient_cost",
+      "status": "succeeded",
+      "input": {
+        "package_qty": "1",
+        "package_unit": "unidade",
+        "ingredient_id": "a3a2f0ee-b26c-49e3-a256-8407485d9178",
+        "package_price": "4"
+      },
+      "safe_result": {
+        "result": {
+          "historyId": "0a697f6b-4b47-43c9-a8c5-110e9eeb2b08",
+          "ingredientId": "a3a2f0ee-b26c-49e3-a256-8407485d9178"
+        }
+      },
+      "error_code": null,
+      "duration_ms": 19,
+      "usage_id": "a691ba90-d665-4394-8931-d6aaa81f3ae0",
+      "started_at": "2026-10-13T04:16:20.928Z",
+      "completed_at": "2026-10-13T04:16:20.950Z"
+    },
+    {
+      "id": "f0449f74-adb1-4dc9-a2b2-c5d556fa91d5",
+      "correlation_id": "16686fcb-7438-4f57-a059-b6c589928c79",
+      "tool_name": "set_ingredient_cost",
+      "status": "succeeded",
+      "input": {
+        "package_qty": "1",
+        "package_unit": "unidade",
+        "ingredient_id": "ed1f8cff-ed0d-4e58-84af-31ebf6d7b5cd",
+        "package_price": "6"
+      },
+      "safe_result": {
+        "result": {
+          "historyId": "4fe72aa0-4b60-40e5-af3c-75353dc6c1ca",
+          "ingredientId": "ed1f8cff-ed0d-4e58-84af-31ebf6d7b5cd"
+        }
+      },
+      "error_code": null,
+      "duration_ms": 17,
+      "usage_id": "a691ba90-d665-4394-8931-d6aaa81f3ae0",
+      "started_at": "2026-10-13T04:16:20.967Z",
+      "completed_at": "2026-10-13T04:16:20.986Z"
+    },
+    {
+      "id": "21b4fab2-b1ef-4a85-8da7-a9b44ab7135f",
+      "correlation_id": "16686fcb-7438-4f57-a059-b6c589928c79",
+      "tool_name": "set_yield",
+      "status": "succeeded",
+      "input": {
+        "yield_qty": "1",
+        "product_id": "6df87d79-6602-4f7b-a0c9-1f90f294b201",
+        "yield_unit": "unidade"
+      },
+      "safe_result": {
+        "result": {
+          "productId": "6df87d79-6602-4f7b-a0c9-1f90f294b201"
+        }
+      },
+      "error_code": null,
+      "duration_ms": 11,
+      "usage_id": "18d5dddc-c7fc-46e8-bf5f-885e06ea256e",
+      "started_at": "2026-10-13T04:16:22.358Z",
+      "completed_at": "2026-10-13T04:16:22.372Z"
+    },
+    {
+      "id": "08453944-027a-438b-ba2d-dcf23f5529dd",
+      "correlation_id": "9cab6749-c3f7-445f-8f32-5ffc9acd5615",
+      "tool_name": "create_product",
+      "status": "succeeded",
+      "input": {
+        "name": "Pizza Margherita"
+      },
+      "safe_result": {
+        "state": {
+          "currentProductId": "362db98f-a395-4900-9b0b-98621e27d5cb"
+        },
+        "result": {
+          "name": "Pizza Margherita",
+          "productId": "362db98f-a395-4900-9b0b-98621e27d5cb"
+        }
+      },
+      "error_code": null,
+      "duration_ms": 15,
+      "usage_id": "01911f69-8c87-4523-b49d-33e73024d3db",
+      "started_at": "2026-10-13T04:16:51.861Z",
+      "completed_at": "2026-10-13T04:16:51.878Z"
+    },
+    {
+      "id": "986a2350-9913-425d-af45-e5adf866ff18",
+      "correlation_id": "9cab6749-c3f7-445f-8f32-5ffc9acd5615",
+      "tool_name": "add_ingredients",
+      "status": "succeeded",
+      "input": {
+        "product_id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+        "ingredients": [
+          {
+            "name": "Massa",
+            "used_qty": "1",
+            "used_unit": "unidade"
+          },
+          {
+            "name": "Queijo",
+            "used_qty": "1",
+            "used_unit": "unidade"
+          }
+        ]
+      },
+      "safe_result": {
+        "result": {
+          "ingredients": [
+            {
+              "id": "7bdb0ef7-2b9c-4c89-a648-12f7a0049fcc",
+              "name": "Massa"
+            },
+            {
+              "id": "9c6a7003-a07b-44dc-9bd9-26da41bdeea5",
+              "name": "Queijo"
+            }
+          ],
+          "ingredientCount": 2
+        }
+      },
+      "error_code": null,
+      "duration_ms": 12,
+      "usage_id": "7eb87bcb-848f-424e-86ac-61f3a78fe73e",
+      "started_at": "2026-10-13T04:16:53.130Z",
+      "completed_at": "2026-10-13T04:16:53.145Z"
+    },
+    {
+      "id": "d678192c-d3a9-4372-9682-02365ea595ab",
+      "correlation_id": "9cab6749-c3f7-445f-8f32-5ffc9acd5615",
+      "tool_name": "set_ingredient_cost",
+      "status": "succeeded",
+      "input": {
+        "package_qty": "1",
+        "package_unit": "unidade",
+        "ingredient_id": "7bdb0ef7-2b9c-4c89-a648-12f7a0049fcc",
+        "package_price": "4.00"
+      },
+      "safe_result": {
+        "result": {
+          "historyId": "b0470d96-99d0-43a8-af11-8dce73778b95",
+          "ingredientId": "7bdb0ef7-2b9c-4c89-a648-12f7a0049fcc"
+        }
+      },
+      "error_code": null,
+      "duration_ms": 20,
+      "usage_id": "07a84d20-8875-4112-a9ae-df926e79d19f",
+      "started_at": "2026-10-13T04:16:55.051Z",
+      "completed_at": "2026-10-13T04:16:55.073Z"
+    },
+    {
+      "id": "c6942373-ff63-4bbb-b65b-16d4ae2c2d67",
+      "correlation_id": "9cab6749-c3f7-445f-8f32-5ffc9acd5615",
+      "tool_name": "set_ingredient_cost",
+      "status": "succeeded",
+      "input": {
+        "package_qty": "1",
+        "package_unit": "unidade",
+        "ingredient_id": "9c6a7003-a07b-44dc-9bd9-26da41bdeea5",
+        "package_price": "6.00"
+      },
+      "safe_result": {
+        "result": {
+          "historyId": "e0ad7159-adbe-4217-a819-3f3fccb2bbec",
+          "ingredientId": "9c6a7003-a07b-44dc-9bd9-26da41bdeea5"
+        }
+      },
+      "error_code": null,
+      "duration_ms": 16,
+      "usage_id": "07a84d20-8875-4112-a9ae-df926e79d19f",
+      "started_at": "2026-10-13T04:16:55.092Z",
+      "completed_at": "2026-10-13T04:16:55.110Z"
+    },
+    {
+      "id": "60a49aef-6a4c-49d5-94fa-5052ed83a634",
+      "correlation_id": "9cab6749-c3f7-445f-8f32-5ffc9acd5615",
+      "tool_name": "set_yield",
+      "status": "succeeded",
+      "input": {
+        "yield_qty": "1",
+        "product_id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+        "yield_unit": "unidade"
+      },
+      "safe_result": {
+        "result": {
+          "productId": "362db98f-a395-4900-9b0b-98621e27d5cb"
+        }
+      },
+      "error_code": null,
+      "duration_ms": 9,
+      "usage_id": "b6282a54-e315-4c8f-92ac-05ac30814914",
+      "started_at": "2026-10-13T04:16:56.291Z",
+      "completed_at": "2026-10-13T04:16:56.303Z"
+    },
+    {
+      "id": "8369861e-8329-4ed1-ab76-674d4871ef73",
+      "correlation_id": "9cab6749-c3f7-445f-8f32-5ffc9acd5615",
+      "tool_name": "set_price_and_tax",
+      "status": "succeeded",
+      "input": {
+        "product_id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+        "tax_regime": "MEI",
+        "current_price": "30.00"
+      },
+      "safe_result": {
+        "result": {
+          "productId": "362db98f-a395-4900-9b0b-98621e27d5cb"
+        }
+      },
+      "error_code": null,
+      "duration_ms": 7,
+      "usage_id": "537fb6b0-f69e-466b-8745-f884a1651a31",
+      "started_at": "2026-10-13T04:16:57.891Z",
+      "completed_at": "2026-10-13T04:16:57.900Z"
+    },
+    {
+      "id": "01b457bf-2a03-482b-8530-e5d66465f5c6",
+      "correlation_id": "9cab6749-c3f7-445f-8f32-5ffc9acd5615",
+      "tool_name": "finish_product",
+      "status": "succeeded",
+      "input": {
+        "product_id": "362db98f-a395-4900-9b0b-98621e27d5cb"
+      },
+      "safe_result": {
+        "state": {
+          "currentProductId": "362db98f-a395-4900-9b0b-98621e27d5cb"
+        },
+        "result": {
+          "message": "Produto finalizado. Mostre ao usuário os próximos passos.",
+          "productId": "362db98f-a395-4900-9b0b-98621e27d5cb"
+        }
+      },
+      "error_code": null,
+      "duration_ms": 7,
+      "usage_id": "7fc56134-bd08-48fb-890f-a20c98fbd8ce",
+      "started_at": "2026-10-13T04:16:59.371Z",
+      "completed_at": "2026-10-13T04:16:59.382Z"
+    }
+  ],
+  "usage": [
+    {
+      "usage_id": "654c707a-7977-4038-b0cd-cd1209e4ae2a",
+      "kind": "model",
+      "round_no": 0,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:09:24.765Z",
+      "settled_at": "2026-10-13T04:09:27.347Z",
+      "real_tokens": 1024,
+      "outcome": "success",
+      "estimated_cost": "0.0004",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "30ef66dd-f5fc-4723-9311-fa64b0584a11",
+      "kind": "model",
+      "round_no": 0,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:16.415Z",
+      "settled_at": "2026-10-13T04:16:18.108Z",
+      "real_tokens": 1207,
+      "outcome": "tool_round",
+      "estimated_cost": "0.0005",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "8baf6deb-6021-4be7-95b0-070d28a33e35",
+      "kind": "model",
+      "round_no": 1,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:18.128Z",
+      "settled_at": "2026-10-13T04:16:19.243Z",
+      "real_tokens": 3389,
+      "outcome": "tool_round",
+      "estimated_cost": "0.0011",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "a691ba90-d665-4394-8931-d6aaa81f3ae0",
+      "kind": "model",
+      "round_no": 2,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:19.250Z",
+      "settled_at": "2026-10-13T04:16:20.994Z",
+      "real_tokens": 3770,
+      "outcome": "tool_round",
+      "estimated_cost": "0.0014",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "18d5dddc-c7fc-46e8-bf5f-885e06ea256e",
+      "kind": "model",
+      "round_no": 3,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:21.003Z",
+      "settled_at": "2026-10-13T04:16:22.392Z",
+      "real_tokens": 4059,
+      "outcome": "tool_round",
+      "estimated_cost": "0.0013",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "297568a3-7f91-4f0e-9e9d-72ae8d113cc8",
+      "kind": "model",
+      "round_no": 4,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:22.401Z",
+      "settled_at": "2026-10-13T04:16:24.138Z",
+      "real_tokens": 4241,
+      "outcome": "success",
+      "estimated_cost": "0.0014",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "01911f69-8c87-4523-b49d-33e73024d3db",
+      "kind": "model",
+      "round_no": 0,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:50.365Z",
+      "settled_at": "2026-10-13T04:16:51.903Z",
+      "real_tokens": 3352,
+      "outcome": "tool_round",
+      "estimated_cost": "0.0011",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "7eb87bcb-848f-424e-86ac-61f3a78fe73e",
+      "kind": "model",
+      "round_no": 1,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:51.913Z",
+      "settled_at": "2026-10-13T04:16:53.161Z",
+      "real_tokens": 3546,
+      "outcome": "tool_round",
+      "estimated_cost": "0.0012",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "07a84d20-8875-4112-a9ae-df926e79d19f",
+      "kind": "model",
+      "round_no": 2,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:53.167Z",
+      "settled_at": "2026-10-13T04:16:55.117Z",
+      "real_tokens": 3893,
+      "outcome": "tool_round",
+      "estimated_cost": "0.0014",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "b6282a54-e315-4c8f-92ac-05ac30814914",
+      "kind": "model",
+      "round_no": 3,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:55.139Z",
+      "settled_at": "2026-10-13T04:16:56.315Z",
+      "real_tokens": 4157,
+      "outcome": "tool_round",
+      "estimated_cost": "0.0013",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "537fb6b0-f69e-466b-8745-f884a1651a31",
+      "kind": "model",
+      "round_no": 4,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:56.324Z",
+      "settled_at": "2026-10-13T04:16:57.917Z",
+      "real_tokens": 4327,
+      "outcome": "tool_round",
+      "estimated_cost": "0.0014",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "7fc56134-bd08-48fb-890f-a20c98fbd8ce",
+      "kind": "model",
+      "round_no": 5,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:57.927Z",
+      "settled_at": "2026-10-13T04:16:59.399Z",
+      "real_tokens": 4466,
+      "outcome": "tool_round",
+      "estimated_cost": "0.0014",
+      "cost_status": "known"
+    },
+    {
+      "usage_id": "e40d18cd-2e10-4413-9ed7-9ba8bcc70843",
+      "kind": "model",
+      "round_no": 6,
+      "status": "settled",
+      "reserved_at": "2026-10-13T04:16:59.406Z",
+      "settled_at": "2026-10-13T04:17:02.028Z",
+      "real_tokens": 4809,
+      "outcome": "success",
+      "estimated_cost": "0.0017",
+      "cost_status": "known"
+    }
+  ],
+  "budget": [
+    {
+      "usage_date": "2026-10-13T03:00:00.000Z",
+      "chat_count": 3,
+      "model_call_count": 13,
+      "tool_call_count": 12,
+      "input_tokens": 44236,
+      "output_tokens": 2004,
+      "tokens_reserved": 0,
+      "in_flight": 0,
+      "estimated_cost": "0.0156",
+      "estimated_cost_unknown_count": 0
+    }
+  ]
+}

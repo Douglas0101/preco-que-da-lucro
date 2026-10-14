@@ -1,0 +1,165 @@
+{
+  "identity": {
+    "database": "preco_que_da_lucro_test",
+    "role": "postgres",
+    "version": "17.11"
+  },
+  "conversation": {
+    "id": "4ee3cb5c-6234-4b21-9e8f-b2307cffda8c",
+    "state": "completed",
+    "productId": "362db98f-a395-4900-9b0b-98621e27d5cb"
+  },
+  "productsInWindow": [
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "name": "Produto de teste",
+      "current_price": "20.0000",
+      "yield_qty": "10.000000",
+      "yield_unit": "unidade",
+      "tax_regime": null,
+      "tax_rate": "0.100000",
+      "status": "draft",
+      "created_at": "2026-10-13T03:58:32.011Z"
+    },
+    {
+      "id": "6df87d79-6602-4f7b-a0c9-1f90f294b201",
+      "name": "Pizza Margherita",
+      "current_price": null,
+      "yield_qty": "1.000000",
+      "yield_unit": "unidade",
+      "tax_regime": null,
+      "tax_rate": null,
+      "status": "draft",
+      "created_at": "2026-10-13T04:16:18.046Z"
+    },
+    {
+      "id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+      "name": "Pizza Margherita",
+      "current_price": "30.0000",
+      "yield_qty": "1.000000",
+      "yield_unit": "unidade",
+      "tax_regime": "MEI",
+      "tax_rate": null,
+      "status": "draft",
+      "created_at": "2026-10-13T04:16:51.861Z"
+    }
+  ],
+  "ingredients": [
+    {
+      "id": "7bdb0ef7-2b9c-4c89-a648-12f7a0049fcc",
+      "product_id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+      "name": "Massa",
+      "used_qty": "1.000000",
+      "used_unit": "unidade",
+      "package_price": "4.0000",
+      "package_qty": "1.000000",
+      "package_unit": "unidade",
+      "conversion_factor": null
+    },
+    {
+      "id": "9c6a7003-a07b-44dc-9bd9-26da41bdeea5",
+      "product_id": "362db98f-a395-4900-9b0b-98621e27d5cb",
+      "name": "Queijo",
+      "used_qty": "1.000000",
+      "used_unit": "unidade",
+      "package_price": "6.0000",
+      "package_qty": "1.000000",
+      "package_unit": "unidade",
+      "conversion_factor": null
+    }
+  ],
+  "tools": [
+    {
+      "name": "create_product",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "16686fcb-7438-4f57-a059-b6c589928c79"
+    },
+    {
+      "name": "add_ingredients",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "16686fcb-7438-4f57-a059-b6c589928c79"
+    },
+    {
+      "name": "set_ingredient_cost",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "16686fcb-7438-4f57-a059-b6c589928c79"
+    },
+    {
+      "name": "set_ingredient_cost",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "16686fcb-7438-4f57-a059-b6c589928c79"
+    },
+    {
+      "name": "set_yield",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "16686fcb-7438-4f57-a059-b6c589928c79"
+    },
+    {
+      "name": "create_product",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "9cab6749-c3f7-445f-8f32-5ffc9acd5615"
+    },
+    {
+      "name": "add_ingredients",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "9cab6749-c3f7-445f-8f32-5ffc9acd5615"
+    },
+    {
+      "name": "set_ingredient_cost",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "9cab6749-c3f7-445f-8f32-5ffc9acd5615"
+    },
+    {
+      "name": "set_ingredient_cost",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "9cab6749-c3f7-445f-8f32-5ffc9acd5615"
+    },
+    {
+      "name": "set_yield",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "9cab6749-c3f7-445f-8f32-5ffc9acd5615"
+    },
+    {
+      "name": "set_price_and_tax",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "9cab6749-c3f7-445f-8f32-5ffc9acd5615"
+    },
+    {
+      "name": "finish_product",
+      "status": "succeeded",
+      "error": null,
+      "correlationId": "9cab6749-c3f7-445f-8f32-5ffc9acd5615"
+    }
+  ],
+  "usage": {
+    "rows": 13,
+    "settled": 13,
+    "knownCost": 13,
+    "estimatedUsd": 0.015600000000000003
+  },
+  "budget": [
+    {
+      "usage_date": "2026-10-13T03:00:00.000Z",
+      "chat_count": 3,
+      "model_call_count": 13,
+      "tool_call_count": 12,
+      "input_tokens": 44236,
+      "output_tokens": 2004,
+      "tokens_reserved": 0,
+      "in_flight": 0,
+      "estimated_cost": "0.0156",
+      "estimated_cost_unknown_count": 0
+    }
+  ]
+}
