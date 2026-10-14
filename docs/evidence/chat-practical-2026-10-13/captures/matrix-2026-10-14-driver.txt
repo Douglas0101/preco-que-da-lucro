@@ -1,0 +1,11 @@
+[2026-10-14T04:45:23.507Z] launching persistent chrome (headed)
+[2026-10-14T04:45:27.835Z] E /inicio status=200 title="Início · Preço que Dá Lucro" overflowOk=true jsErr=0 csp=5 ls=0
+[2026-10-14T04:45:30.867Z] F /produtos status=200 title="Meus Produtos · Preço que Dá Lucro" overflowOk=true jsErr=0 csp=5 ls=0
+[2026-10-14T04:45:33.880Z] G /precos status=200 title="Atualizar Preços de Compra · Preço que Dá Lucro" overflowOk=true jsErr=0 csp=5 ls=0
+[2026-10-14T04:45:36.897Z] H /simulacoes status=200 title="Simulações · Preço que Dá Lucro" overflowOk=true jsErr=0 csp=5 ls=0
+[2026-10-14T04:45:39.785Z] I /despesas status=200 title="Minhas Despesas · Preço que Dá Lucro" overflowOk=true jsErr=0 csp=5 ls=0
+[2026-10-14T04:45:42.633Z] J /vendas status=200 title="Vendas · Preço que Dá Lucro" overflowOk=true jsErr=0 csp=5 ls=0
+[2026-10-14T04:45:45.494Z] K /ponto-equilibrio status=200 title="Ponto de Equilíbrio · Preço que Dá Lucro" overflowOk=true jsErr=0 csp=5 ls=0
+[2026-10-14T04:45:48.462Z] L /diagnostico status=200 title="Diagnóstico · Preço que Dá Lucro" overflowOk=true jsErr=0 csp=5 ls=0
+[2026-10-14T04:45:51.454Z] M /novo-produto status=200 title="Novo Produto · Preço que Dá Lucro" overflowOk=true jsErr=0 csp=5 ls=0
+[2026-10-14T04:45:51.455Z] matrix finished; keeping browser open

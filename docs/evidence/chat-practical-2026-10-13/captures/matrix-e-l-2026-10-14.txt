@@ -1,0 +1,35 @@
+Matriz E–L autenticada em produção — 2026-10-14 ~04:45Z (dpl_3zbrc9hxuFff91V4LwgQAy5iXx1c)
+Sessão Via A no Chrome dedicado (perfil /tmp/kilo/pqd-qa-profile). Somente leitura; nada mutado.
+
+Resultado por rota (todas 200, título específico, 0 erro JS, sem overflow, localStorage vazio):
+E /inicio            "Início · Preço que Dá Lucro"                      jsErr=0 overflowOk=true ls=0 csp=5
+F /produtos          "Meus Produtos · Preço que Dá Lucro"               jsErr=0 overflowOk=true ls=0 csp=5
+G /precos            "Atualizar Preços de Compra · Preço que Dá Lucro"  jsErr=0 overflowOk=true ls=0 csp=5
+H /simulacoes        "Simulações · Preço que Dá Lucro"                  jsErr=0 overflowOk=true ls=0 csp=5
+I /despesas          "Minhas Despesas · Preço que Dá Lucro"             jsErr=0 overflowOk=true ls=0 csp=5
+J /vendas            "Vendas · Preço que Dá Lucro"                      jsErr=0 overflowOk=true ls=0 csp=5
+K /ponto-equilibrio  "Ponto de Equilíbrio · Preço que Dá Lucro"         jsErr=0 overflowOk=true ls=0 csp=5
+L /diagnostico       "Diagnóstico · Preço que Dá Lucro"                 jsErr=0 overflowOk=true ls=0 csp=5
+M /novo-produto      "Novo Produto · Preço que Dá Lucro"                jsErr=0 overflowOk=true ls=0 csp=5
+Zero "Lovable App"; localStorage sem chaves de token/sessão/auth (0 chaves em todas).
+
+CSP report-only (DBT-112) — atribuição: TODAS as violações são conteúdo INLINE da própria app
+(documento/SSR e bundle do app), nenhuma origem de plataforma Vercel; disposição "report"
+(nada bloqueado):
+- 2 hashes de script inline comuns a todas as rotas:
+  sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY= e
+  sha256-REkTQ3mZNdOnZ0xWxlKdqBEAWdIVpJdIT6tm57gvq8Y=
+- 2 hashes de estilo inline comuns:
+  sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU= e
+  sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY=
+- 1 hash de script inline específico por rota (lista completa em matrix-2026-10-14-results.txt)
+Leitura: pertence à app (hidratação/stream do TanStack Start + estilos inline); correção, se feita,
+é de app em develop preservando a política — DBT-112 permanece ABERTA com esta atribuição registrada.
+
+SQL read-only (produção, branch br-snowy-violet-aymcvvvv; sem PII):
+ai_usage do turno DBT-115 (usage_id 355c53d3-ec61-4766-affa-83a507b9ae54):
+status=settled · real_tokens=902 · outcome=success · cost_status=known · estimated_cost=0.0003
+— pricing JSON efetivo em produção (Cenário M completo, além do turno já provado em 04:07Z).
+
+Capturas: matrix-2026-10-14-E-inicio.png … matrix-2026-10-14-M-novoproduto.png (9),
+matrix-2026-10-14-results.txt (JSON completo), matrix-2026-10-14-driver.txt.
