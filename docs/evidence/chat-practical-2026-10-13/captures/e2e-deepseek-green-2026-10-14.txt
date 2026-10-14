@@ -1,0 +1,56 @@
+E2E DeepSeek GREEN — DBT-115 FECHADA — 2026-10-14, 04:07Z (produção dpl_3zbrc9hxuFff91V4LwgQAy5iXx1c)
+
+Publicação desta rodada:
+- PR #64 (develop→main) mergeado: main = ef7568e (merge de ff4770d); CI da PR 100% verde
+  (verify-release 7m24s, scan+cobertura, SonarCloud, Neon efêmera+migrate/integração/RLS/E2E, fork-guard).
+- Análise real de main pós-merge (ADR-042): SonarCloud (scanner+cobertura) success; UI stack success —
+  publicação liberada com o resultado real.
+- Back-merge main→develop: develop = ef7568e (fast-forward, pushed).
+- Envs de IA (Production+Preview) atualizadas via conector Vercel: AI_GATEWAY_URL =
+  https://api.deepseek.com/chat/completions; AI_MODEL = deepseek-flash; AI_MODEL_PRICING_JSON =
+  {"deepseek-flash":{"inputPerMillion":0.3,"outputPerMillion":1.2}}.
+  DEEPSEEK_API_KEY gravada pelo dono via painel (Via A; metadata updatedAt 2026-10-14T03:51:58Z;
+  o valor nunca foi lido, logado ou persistido pelo agente).
+- Deployment de produção criado pelo agente para o SHA novo: dpl_3zbrc9hxuFff91V4LwgQAy5iXx1c
+  (READY em ~18s, cache do repositório). Qualificação staged ANTES da promoção: /api/health/ready 200
+  {"status":"ready","dependencies":{"postgres":"ok"}}; HTML com <title> do produto e zero "Lovable App".
+- Aliases promovidos APÓS o 200: sage, team e git-main → dpl_3zbrc9h (saindo de dpl_9v4ni1MyeWA6GhnoE7m3p5mpZRZM
+  = RED).
+- Nota de rodada: em 2026-10-14T03:52 o dono disparou um redeploy manual no painel
+  (dpl_BGgkrf5ywpLAxUeYpoRqYeZJoTx2, SHA antigo 5d6049b com as envs novas); os aliases não se moveram
+  naquele momento e o deployment foi substituído pelo do SHA novo acima.
+
+Turno E2E (browser dedicado, perfil persistente /tmp/kilo/pqd-qa-profile; sessão Via A preservada):
+- 04:07:30Z GET / 200; GET /novo-produto 200; 04:07:32Z GET /api/auth/get-session 200 (sessão ativa).
+- Mensagem enviada: "Teste de sanidade DBT-115. Responda com OK." (capturas 01-before/02-typed).
+- 04:07:36.299Z POST /_serverFn/abb0f390... -> 200; corpo: result.kind="complete", content="OK"
+  (04-after mostra a bolha do assistente "OK"; SEM "⚠️ Um serviço necessário está indisponível.").
+- Servidor (dpl_3zbrc9h; tenantId redigido):
+  04:07:34.930Z ai.budget_reserved usageId=355c53d3-ec61-4766-affa-83a507b9ae54 budget=64000 real=0 kind=model roundNo=0
+  04:07:35.804Z ai.model_attempt model=deepseek-flash attempt=1 outcome=success durationMs=873
+  04:07:35.908Z ai.chat_completed rounds=1 timeToFirstContentMs=1372
+  04:07:36.100Z ai.budget_settled usageId=355c53d3-... real=902 outcome=success applied=true
+  04:07:36.101Z request.completed POST /_serverFn/abb0f390... status=200 durationMs=1669
+  correlationId=8d204d3c-f6e8-46a1-a875-f3d1dba3c048
+- ZERO ocorrências de ai.credential_unusable e ZERO menção a ai.gateway.lovable.dev nesta rodada.
+- Console: apenas csp.violation report-only (DBT-112; hashes/linhas em e2e-deepseek-console.txt) e
+  rum.web_vitals good; sem erro JS.
+- Leitura: RED→GREEN fechado — o mesmo turno que falhava com recusa nomeada antes do fetch agora
+  completa com resposta real do deepseek-flash e liquidação real>0 (902 tokens).
+
+Fechamento documental:
+- DBT-115 promovida a FECHADA no registry com o par RED (dpl_9v4ni1M: 28P01/credential_unusable em
+  2026-10-13) → GREEN (dpl_3zbrc9h: health 200 + E2E "OK" em 2026-10-14).
+- Achado F7 (metadata Lovable) fechado por construção: head do produto no artefato publicado.
+- DBT-116 (par de e-mail vazio) permanece ABERTA — fora do escopo desta missão.
+
+Limpezas opcionais (Via A/painel; sem impacto funcional no caminho DeepSeek):
+- AI_GATEWAY_API_KEY (vazia/inertes; o código só a usa em host custom). LOVABLE_API_KEY não existe no
+  projeto (nada a remover).
+- Rótulo de framework "tanstack-start-lovable" ainda no projeto; os builds de 2026-10-14
+  (dpl_BGgkrf5y e dpl_3zbrc9h) emitiram .vercel/output corretamente com VERCEL=1 — critério
+  "continua sem falhas" satisfeito; renomear o preset exige nova rodada de validação.
+
+Capturas: e2e-deepseek-01-before.png, e2e-deepseek-02-typed.png, e2e-deepseek-03-busy.png,
+e2e-deepseek-04-after.png, e2e-deepseek-console.txt, e2e-deepseek-serverfn-response.txt,
+e2e-deepseek-driver.txt.

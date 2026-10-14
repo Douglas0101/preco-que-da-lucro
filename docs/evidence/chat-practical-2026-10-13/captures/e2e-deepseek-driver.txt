@@ -1,0 +1,8 @@
+[2026-10-14T04:07:30.210Z] launching persistent chrome (headed)
+[2026-10-14T04:07:34.161Z] authenticated at https://preco-que-da-lucro-sage.vercel.app/novo-produto
+[2026-10-14T04:07:34.221Z] shot 01-before
+[2026-10-14T04:07:34.298Z] shot 02-typed
+[2026-10-14T04:07:35.895Z] shot 03-busy
+[2026-10-14T04:07:36.299Z] serverFn response 200
+[2026-10-14T04:07:39.343Z] shot 04-after
+[2026-10-14T04:07:39.347Z] turn finished; keeping browser open

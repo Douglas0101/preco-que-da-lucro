@@ -1,0 +1,2 @@
+POST https://preco-que-da-lucro-sage.vercel.app/_serverFn/abb0f390d0d9d5c002c238029f7d6ac7eceb5f795c2ff0103d4fb2cfd687a422 status=200 at=2026-10-14T04:07:36.299Z
+{"t":10,"i":0,"p":{"k":["result","error","context"],"v":[{"t":10,"i":1,"p":{"k":["kind","content","currentProductId"],"v":[{"t":1,"s":"complete"},{"t":1,"s":"OK"},{"t":2,"s":0}]},"o":0},{"t":2,"s":1},{"t":11,"i":2,"p":{"k":[],"v":[]},"o":0}]},"o":0}
