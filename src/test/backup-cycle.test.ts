@@ -19,7 +19,6 @@ import {
   runCycle,
   cycleDeadline,
   timerUnits,
-  type CycleConfig,
 } from "../../scripts/ci/backup-cycle";
 import {
   openInventory,

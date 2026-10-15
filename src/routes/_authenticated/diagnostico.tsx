@@ -1,16 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { getDiagnostic } from "@/lib/diagnostic.functions";
 import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import { expensesQueryOptions, productsListQueryOptions } from "@/lib/query-options";
-import type {
-  BreakEvenResult,
-  CalculationResult,
-  FeeRow,
-  ProductComputation,
-  ProductCostComputation,
-} from "@/lib/finance";
+import type { CalculationResult, ProductCostComputation } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { CalcExplainer } from "@/components/ui/calc-explainer";
@@ -28,17 +22,9 @@ import {
 } from "@/components/ui/select";
 import { AlertTriangle, Info, TrendingUp } from "lucide-react";
 
-type DiagnosticAlert = { level: "warn" | "info" | "danger"; text: string };
 type LoadStatus = "loading" | "ready" | "empty" | "error";
 type ProductStatus = "idle" | "loading" | "incomplete" | "invalid" | "error" | "ok";
 type DiagnosticView = Awaited<ReturnType<typeof getDiagnostic>>;
-
-interface CurrentAnalysis {
-  computation: ProductComputation;
-  price: number;
-  breakEvenUnits: BreakEvenResult;
-  alerts: DiagnosticAlert[];
-}
 
 type DiagnosticAssumptions = {
   productId: string;

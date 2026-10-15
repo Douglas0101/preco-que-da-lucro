@@ -508,7 +508,6 @@ export function mapMainUnits(
       const lineId = `${file.path}:${row.line}:line`;
       const prefix = `${file.path}:${row.line}:`;
       const branches = [...original].filter(([id]) => id.startsWith(prefix) && id !== lineId);
-      const coveredBranches = branches.filter(([, hits]) => hits === true).length;
       const lineHits = row.lineHits ?? row.utLineHits;
       if (lineHits !== null) {
         // Regra medida no provedor, em três evidências oficiais/reais:

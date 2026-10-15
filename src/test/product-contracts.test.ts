@@ -248,9 +248,9 @@ dbDescribe("ProductRepository — operações do port sob app_runtime (PG efême
       await pool.query("delete from products where tenant_id = $1", [tenantId]);
       await seedTenant(pool, tenantId, userId, slug);
     }
-    for (const [tenantId, userId, productId, ingredientId, packagingId, feeId, marketId] of [
-      [TENANT_A, USER_A, PRODUCT_A, INGREDIENT_A, PACKAGING_A, FEE_A, MARKET_A],
-      [TENANT_B, USER_B, PRODUCT_B, INGREDIENT_B, PACKAGING_B, FEE_B, null],
+    for (const [tenantId, userId, productId, ingredientId, packagingId, feeId] of [
+      [TENANT_A, USER_A, PRODUCT_A, INGREDIENT_A, PACKAGING_A, FEE_A],
+      [TENANT_B, USER_B, PRODUCT_B, INGREDIENT_B, PACKAGING_B, FEE_B],
     ] as const) {
       await pool.query(
         `insert into products (id, tenant_id, user_id, name, current_price, yield_qty, yield_unit, status, version)

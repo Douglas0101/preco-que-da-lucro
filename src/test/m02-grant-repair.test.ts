@@ -114,8 +114,6 @@ describe("grant repair plan", () => {
   it("writes a reproducible SQL/JSON/Markdown trio into a tmpdir", () => {
     const directory = mkdtempSync(join(tmpdir(), "m02-grant-repair-"));
     tempDirectories.push(directory);
-    const sql =
-      '-- roles-before-grants\nGRANT SELECT ON TABLE "public"."accounts" TO "app_runtime";\n';
     const paths = { markdown: join(directory, "repair.md") };
     writeArtifacts(
       paths.markdown,

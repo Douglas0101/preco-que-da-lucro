@@ -350,7 +350,7 @@ describe("margem consolidada (DBT-88)", () => {
   });
 
   it("estado incomplete: produto com cálculo inválido vendido não entra na margem", async () => {
-    const { okProduct, inputs: rows } = calculableInputs();
+    const { inputs: rows } = calculableInputs();
     const invalidProduct = product({
       id: "90000000-0000-4000-8000-0000000000b2",
       currentPrice: "-1",

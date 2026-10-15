@@ -45,7 +45,6 @@ function writeTrio(
     opts.tamperDump && !opts.tamperSidecar
       ? dumpHash
       : createHash("sha256").update(bytes).digest("hex");
-  const actual = createHash("sha256").update(bytes).digest("hex");
   if (!opts.noSidecar) {
     writeFileSync(
       join(dir, "dump.pgc.sha256"),

@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 /**
@@ -42,7 +42,6 @@ const rec = (path: string, content: string, line = 1) => `${REV}:${path}:${line}
 const fake = (prefix: string, n: number, fill = "A") => `${prefix}${fill.repeat(n)}`;
 // Literais montados em runtime: um fixture que contenha o padrao por extenso faz o PROPRIO scan (e o
 // `m02:secrets-audit`) reprovar este arquivo — o instrumento nao pode carregar o que ele procura.
-const pad = (n: number, ch: string) => ch.repeat(n);
 const pemHeader = `-----BEGIN ${"RSA "}PRIVATE KEY-----`;
 const pgUrl = (port: number) => `postgresql${"://"}postgres:postgres${"@"}127.0.0.1:${port}/db`;
 const hostPlaceholder = `postgresql${"://"}app:x${"@"}<host>/db`;

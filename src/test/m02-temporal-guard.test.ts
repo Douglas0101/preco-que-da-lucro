@@ -131,7 +131,6 @@ describe("m02-temporal-guard — âncoras e prazos da superfície viva", () => {
 });
 
 describe("m02-temporal-guard — endurecimentos do S6 do WP-R7", () => {
-  const asOf = new Date("2026-09-21T10:00:00Z");
   const prazos = (linha: string) => {
     const r = spawnSync(
       process.execPath,

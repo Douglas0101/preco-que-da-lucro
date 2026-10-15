@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { callModelForTests, retryDelayMsForTests } from "@/lib/chat.functions";
+import { callModelForTests } from "@/lib/chat.functions";
 import { GATEWAY_TOOLS } from "@/lib/ai/tool-registry";
 import { budgetConfigFromEnv, estimateModelCost } from "@/lib/ai/budget-ledger.server";
 import { parseAiUsage } from "@/lib/ai/token-usage";

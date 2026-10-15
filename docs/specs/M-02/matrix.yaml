@@ -55,7 +55,7 @@
       "operations": [
         {
           "name": "getChatHistory",
-          "line": 379,
+          "line": 373,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -63,7 +63,7 @@
         },
         {
           "name": "createChatConversation",
-          "line": 424,
+          "line": 418,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -71,7 +71,7 @@
         },
         {
           "name": "clearChatHistory",
-          "line": 436,
+          "line": 430,
           "declaration": "createServerFn",
           "service": "ConversationService",
           "repository": "ConversationRepository",
@@ -79,7 +79,7 @@
         },
         {
           "name": "sendChatMessage",
-          "line": 454,
+          "line": 448,
           "declaration": "createServerFn",
           "service": "ConversationService/ChatExecution",
           "repository": "ConversationRepository + BudgetRepository + AiToolRepository + AuditRepository",

@@ -45,7 +45,6 @@
  *   `${sujeito} (${lado}): observado ${observado}, esperado ${esperado}`
  */
 
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
