@@ -89,8 +89,8 @@ const allDependencies = {
   ...packageJson.devDependencies,
 };
 
-if (components.style !== "base-nova") {
-  issues.push(`components.json must use base-nova, found ${components.style}`);
+if (components.style !== "base-luma") {
+  issues.push(`components.json must use base-luma, found ${components.style}`);
 }
 
 if (!packageJson.packageManager?.startsWith("npm@")) {

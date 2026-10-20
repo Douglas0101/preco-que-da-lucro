@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
+import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider, sessionQueryOptions } from "@/lib/session-context";
 
 function AuthenticatedPending() {
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/_authenticated")({
       <AppShell>
         <Outlet />
       </AppShell>
+      <Toaster richColors position="top-center" />
     </SessionProvider>
   ),
 });

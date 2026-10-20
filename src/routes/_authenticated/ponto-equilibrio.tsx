@@ -243,7 +243,7 @@ function PontoView({
             <Label htmlFor="ponto-equilibrio-produto">Produto</Label>
             <Select
               value={productId}
-              onValueChange={onProductChange}
+              onValueChange={(v) => v && onProductChange(v)}
               items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
             >
               <SelectTrigger id="ponto-equilibrio-produto">

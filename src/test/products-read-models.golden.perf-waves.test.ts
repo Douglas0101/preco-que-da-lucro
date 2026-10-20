@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { type SQL } from "drizzle-orm";
 import { PgDialect, QueryBuilder } from "drizzle-orm/pg-core";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   marketPrices,
   productIngredients,
@@ -384,6 +384,18 @@ async function buildSnapshot() {
 }
 
 describe("T2 perf-waves: golden de leituras consolidadas de produtos", () => {
+  // UI-06: `listPurchasePrices` passou a derivar `age_days` no servidor. O
+  // relógio congelado mantém o golden determinístico (sem isso o campo mudaria
+  // a cada dia e o teste viraria uma falha de calendário, não de contrato).
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-20T00:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("mantém paridade exata da resposta JSON (fixture capturada antes da consolidação)", async () => {
     const current = await buildSnapshot();
     if (!existsSync(FIXTURE_PATH)) {

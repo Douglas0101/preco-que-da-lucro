@@ -197,7 +197,7 @@ function Diagnostico() {
             </Label>
             <Select
               value={selectedProductId}
-              onValueChange={setProductId}
+              onValueChange={(v) => v && setProductId(v)}
               items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
             >
               <SelectTrigger id="diagnostico-produto">
@@ -227,7 +227,11 @@ function Diagnostico() {
             </div>
           )}
           {diagnostic.currentStatus === "incomplete" && (
-            <output className="rounded-xl border p-4 text-muted-foreground">
+            // `block` é o que faltava: `<output>` é `display: inline` por padrão, então as
+            // margens verticais dele eram IGNORADAS e o card seguinte subia 16px dentro
+            // desta faixa (medido 2026-10-18: mb-6 e mt-50 no aviso não moviam nada;
+            // mt-200 no card movia +200). O fundo é o segundo cinto de segurança.
+            <output className="mb-6 block rounded-xl border bg-muted/40 p-4 text-muted-foreground">
               O diagnóstico do preço atual está incompleto, mas os custos conhecidos e a referência
               de mercado continuam disponíveis abaixo.
             </output>

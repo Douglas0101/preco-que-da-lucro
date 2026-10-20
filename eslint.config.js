@@ -82,6 +82,16 @@ export default tseslint.config(
               name: "sonner",
               message: "Import toast and Toaster from @/components/ui/sonner.",
             },
+            {
+              name: "@/components/ui",
+              message:
+                "No barrel imports: import each primitive by its own module (UI-01), e.g. @/components/ui/button.",
+            },
+            {
+              name: "@/components/ui/index",
+              message:
+                "No barrel imports: import each primitive by its own module (UI-01), e.g. @/components/ui/button.",
+            },
           ],
           patterns: [
             {

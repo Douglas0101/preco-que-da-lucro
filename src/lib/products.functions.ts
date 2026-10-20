@@ -729,10 +729,21 @@ export const listPurchasePrices = createServerFn({ method: "GET" })
   .middleware([requireDatabaseAuth])
   .handler(async ({ context }) => {
     const rows = await productService.loadPurchasePriceRows(context.requestContext);
+    // A idade é derivada UMA vez no servidor e viaja no payload: calcular
+    // `Date.now()` durante o render produzia valores diferentes entre SSR e
+    // hidratação na virada do dia (UI-06). Refetch recalcula.
+    const now = Date.now();
+    const withAge = <T extends { price_updated_at: string | null }>(row: T) => ({
+      ...row,
+      age_days:
+        row.price_updated_at === null
+          ? null
+          : Math.max(0, Math.floor((now - new Date(row.price_updated_at).getTime()) / 86_400_000)),
+    });
     return {
       products: rows.products,
-      ingredients: rows.ingredients.map(mapIngredient),
-      packaging: rows.packaging.map(mapPackaging),
+      ingredients: rows.ingredients.map(mapIngredient).map(withAge),
+      packaging: rows.packaging.map(mapPackaging).map(withAge),
     };
   });
 

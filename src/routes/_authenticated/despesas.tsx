@@ -189,7 +189,7 @@ function Despesas() {
                 <Label htmlFor="despesa-categoria">Categoria</Label>
                 <Select
                   value={form.category}
-                  onValueChange={(v) => setForm({ ...form, category: v })}
+                  onValueChange={(v) => v && setForm({ ...form, category: v })}
                 >
                   <SelectTrigger id="despesa-categoria">
                     <SelectValue />
@@ -336,8 +336,12 @@ function ExpenseListState({
             <div className="text-right">
               <div className="font-black">{brl(Number(expense.amount))}</div>
             </div>
+            {/* `outline` (nao `ghost`): o recipiente visivel persistente e o que anuncia
+                o controle como acao. Aqui a acao E destrutiva de verdade — `deleteExpense`
+                faz `DELETE FROM expenses` (hard delete medido em 2026-10-18) — entao o
+                icone vermelho e o aria-label "Excluir" permanecem honestos. */}
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
               onClick={() => onDelete(expense.id)}
               aria-label={`Excluir ${expense.name}`}

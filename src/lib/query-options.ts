@@ -7,6 +7,7 @@ import {
   listProductsWithMetrics,
   listPurchasePrices,
   listProducts,
+  getProduct,
 } from "@/lib/products.functions";
 import { listSales } from "@/lib/sales.functions";
 import { unwrapServerFn } from "@/lib/server-fn-envelope";
@@ -41,6 +42,7 @@ export type FinancialSimulationInput = {
 export const queryKeys = {
   productsWithMetrics: () => ["products", "with-metrics"] as const,
   productsList: () => ["products", "list"] as const,
+  productDetail: (id: string) => ["products", "detail", id] as const,
   expenses: () => ["expenses"] as const,
   dashboardSummary: (period: DashboardPeriod) => ["dashboard", "summary", period] as const,
   salesList: () => ["sales", "list"] as const,
@@ -64,6 +66,15 @@ export function productsWithMetricsQueryOptions() {
   return queryOptions({
     queryKey: queryKeys.productsWithMetrics(),
     queryFn: () => unwrapServerFn(listProductsWithMetrics()),
+    ...authenticatedQueryPolicy,
+    staleTime: OPERATIONAL_STALE_TIME,
+  });
+}
+
+export function productDetailQueryOptions(id: string) {
+  return queryOptions({
+    queryKey: queryKeys.productDetail(id),
+    queryFn: () => unwrapServerFn(getProduct({ data: { id } })),
     ...authenticatedQueryPolicy,
     staleTime: OPERATIONAL_STALE_TIME,
   });

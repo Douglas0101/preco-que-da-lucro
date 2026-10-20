@@ -457,7 +457,7 @@
         },
         {
           "name": "updatePurchasePrice",
-          "line": 739,
+          "line": 750,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "PriceRepository",
@@ -735,13 +735,13 @@
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 133,
+      "line": 134,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
     {
       "path": "src/lib/chat-execution.server.ts",
-      "line": 145,
+      "line": 146,
       "expression": "context.transaction",
       "classification": "compatibility-facade"
     },
