@@ -1,0 +1,56 @@
+# Frente 1 — Toaster lazy: varredura estática (2026-10-20)
+
+$ grep -rn 'toast\.' src --include=*.ts --include=*.tsx
+src/routes/auth.tsx:60:    toast.success("Se a conta existir, enviaremos as instruções de recuperação.");
+src/routes/auth.tsx:68:    toast.success("Senha redefinida. Entre novamente.");
+src/routes/auth.tsx:81:    toast.success("Conta criada! Confirme seu e-mail para entrar.");
+src/routes/auth.tsx:146:        toast.error(error instanceof Error ? error.message : "Não foi possível concluir.");
+src/routes/auth.tsx:154:      toast.error(error instanceof Error ? error.message : "Não foi possível entrar com Google.");
+src/routes/_authenticated/vendas.tsx:91:      toast.success("Venda registrada");
+src/routes/_authenticated/vendas.tsx:98:      toast.error(error instanceof Error ? error.message : "Não foi possível registrar a venda"),
+src/routes/_authenticated/vendas.tsx:104:      toast.error("Cadastre um produto antes de registrar uma venda");
+src/routes/_authenticated/vendas.tsx:115:      toast.error("Informe quantidade e preço unitário válidos");
+src/routes/_authenticated/precos.tsx:133:      toast.error("Informe um preço válido");
+src/routes/_authenticated/precos.tsx:137:      toast.error("Informe a quantidade e a unidade da embalagem antes de registrar o preço");
+src/routes/_authenticated/precos.tsx:161:      toast.success(`Preço de ${item.name} atualizado`);
+src/routes/_authenticated/precos.tsx:163:      toast.error(err instanceof Error ? err.message : "Erro ao atualizar o preço");
+src/routes/_authenticated/produtos.tsx:58:      toast.success("Produto arquivado");
+src/routes/_authenticated/produtos.tsx:61:    onError: () => toast.error("Não foi possível arquivar o produto"),
+src/routes/_authenticated/despesas.tsx:101:      toast.success("Despesa adicionada");
+src/routes/_authenticated/despesas.tsx:104:    onError: () => toast.error("Não foi possível salvar a despesa"),
+src/routes/_authenticated/despesas.tsx:115:    onError: () => toast.error("Não foi possível excluir a despesa"),
+src/routes/_authenticated/despesas.tsx:123:      return toast.error("Preencha nome e valor válido");
+src/routes/_authenticated/simulacoes.tsx:361:      toast.success("Simulação salva");
+src/routes/_authenticated/simulacoes.tsx:366:      toast.error(error instanceof Error ? error.message : "Não foi possível salvar a simulação"),
+src/routes/_authenticated/produtos_.composicao.tsx:154:      toast.success("Produto atualizado.");
+src/routes/_authenticated/produtos_.composicao.tsx:158:      toast.error(
+src/routes/_authenticated/produtos_.composicao.tsx:190:      toast.success(ingredientForm.id ? "Ingrediente atualizado." : "Ingrediente adicionado.");
+src/routes/_authenticated/produtos_.composicao.tsx:193:      toast.error(
+src/routes/_authenticated/produtos_.composicao.tsx:214:      toast.success(packagingForm.id ? "Embalagem atualizada." : "Embalagem adicionada.");
+src/routes/_authenticated/produtos_.composicao.tsx:217:      toast.error(error instanceof Error ? error.message : "Não foi possível salvar a embalagem."),
+src/routes/_authenticated/produtos_.composicao.tsx:235:      toast.success(feeForm.id ? "Taxa atualizada." : "Taxa adicionada.");
+src/routes/_authenticated/produtos_.composicao.tsx:238:      toast.error(error instanceof Error ? error.message : "Não foi possível salvar a taxa."),
+src/routes/_authenticated/produtos_.composicao.tsx:254:      toast.success("Item removido.");
+src/routes/_authenticated/produtos_.composicao.tsx:258:      toast.error(
+src/routes/_authenticated/novo-produto.tsx:116:      toast.error(msg);
+src/routes/_authenticated/novo-produto.tsx:139:      toast.error("Não foi possível apagar a conversa.");
+
+$ grep -rn 'from "@/components/ui/sonner"' src --include=*.ts --include=*.tsx
+src/routes/auth.tsx:7:import { Toaster, toast } from "@/components/ui/sonner";
+src/routes/_authenticated/vendas.tsx:14:import { toast } from "@/components/ui/sonner";
+src/routes/_authenticated/precos.tsx:17:import { toast } from "@/components/ui/sonner";
+src/routes/_authenticated/produtos.tsx:24:import { toast } from "@/components/ui/sonner";
+src/routes/_authenticated/despesas.tsx:33:import { toast } from "@/components/ui/sonner";
+src/routes/_authenticated/simulacoes.tsx:28:import { toast } from "@/components/ui/sonner";
+src/routes/_authenticated/route.tsx:3:import { Toaster } from "@/components/ui/sonner";
+src/routes/_authenticated/produtos_.composicao.tsx:39:import { toast } from "@/components/ui/sonner";
+src/routes/_authenticated/novo-produto.tsx:24:import { toast } from "@/components/ui/sonner";
+
+$ grep -rn 'Toaster' src --include=*.ts --include=*.tsx
+src/routes/auth.tsx:7:import { Toaster, toast } from "@/components/ui/sonner";
+src/routes/auth.tsx:300:      <Toaster richColors position="top-center" />
+src/routes/_authenticated/route.tsx:3:import { Toaster } from "@/components/ui/sonner";
+src/routes/_authenticated/route.tsx:40:      <Toaster richColors position="top-center" />
+src/components/ui/sonner.tsx:1:import { Toaster as Sonner, type ToasterProps } from "sonner";
+src/components/ui/sonner.tsx:10:const Toaster = ({ ...props }: ToasterProps) => {
+src/components/ui/sonner.tsx:43:export { Toaster };

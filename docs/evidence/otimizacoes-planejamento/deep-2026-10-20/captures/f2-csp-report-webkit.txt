@@ -1,0 +1,31 @@
+# Frente 2 — achado REAL: WebKit enviava CSP report no formato do Reporting API sob o media type legado (2026-10-20)
+
+Antes: POST /api/csp-report do WebKit 26.5 -> HTTP 400 (22 ocorrências em 20 ciclos de diálogo).
+Causa: o corpo é um OBJETO {type:'csp-violation', body:{...}} enviado com
+content-type 'application/csp-report'; o parser despachava pelo media type e exigia
+a chave 'csp-report', então recusava a forma real.
+
+Corpo real observado (redigido, sem credenciais):
+{"type":"csp-violation","url":"http://127.0.0.1:4173/produtos","body":{"documentURL":"http://127.0.0.1:4173/produtos","disposition":"report","referrer":"","effectiveDirective":"script-src-elem","blockedURL":"inline","originalPolicy":"default-src 'self'; ...","statusCode":200,"sample":""}}
+
+Correção: recordsOf() passa a reconhecer a forma antes do media type — aceita
+{csp-report}, o objeto único do Reporting API e o array; mantém a allowlist de
+media types e o filtro type === 'csp-violation'.
+
+Depois: o mesmo POST responde 204 e o servidor registra csp.violation.
+
+Teste unitário:
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  01:13:39
+   Duration  850ms (transform 52ms, setup 121ms, import 79ms, tests 20ms, environment 521ms)
+
+
+Eventos csp.violation no log do preview (nomes/diretivas, sem valores):
+"event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"http://127.0.0.1:4173/produtos","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":"report","sample":null
+"event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"http://127.0.0.1:4173/produtos","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":"report","sample":null
+"event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"http://127.0.0.1:4173/produtos","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":"report","sample":null
+"event":"csp.violation","shape":"csp-report","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"http://127.0.0.1:4173/produtos","sourceFile":"http://127.0.0.1:4173/assets/dist-KdOCoUZl.js","lineNumber":1,"columnNumber":344,"disposition":"report","sample":null
+"event":"csp.violation","shape":"csp-report","effectiveDirective":"style-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"http://127.0.0.1:4173/produtos","sourceFile":"http://127.0.0.1:4173/assets/dist-KdOCoUZl.js","lineNumber":1,"columnNumber":397,"disposition":"report","sample":null
+"event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src-elem","violatedDirective":null,"blockedUri":"inline","documentUri":"http://127.0.0.1:4173/produtos","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":"report","sample":null

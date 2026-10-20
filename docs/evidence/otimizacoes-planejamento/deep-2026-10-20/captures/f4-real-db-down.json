@@ -1,0 +1,19 @@
+{
+  "url": "http://127.0.0.1:4174/auth?redirect=%2Finicio",
+  "responses": [
+    {
+      "status": 500,
+      "path": "/api/auth/get-session"
+    },
+    {
+      "status": 503,
+      "path": "/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59"
+    },
+    {
+      "status": 500,
+      "path": "/api/auth/get-session"
+    }
+  ],
+  "pageErrors": [],
+  "body": "Preço que Dá Lucro\n\nEntenda a faixa de preço do seu produto conversando.\n\nVamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu negócio e quanto você precisa vender para começar a ter lucro.\n\nCadastro por conversa\n\nEscreva a receita do seu jeito. A IA organiza tudo para você.\n\nCálculos precisos\n\nCusto, margem de contribuição e preços calculados com premissas explícitas.\n\nPonto de equilíbrio\n\nSaiba exatamente quanto vender para parar de ter prejuízo.\n\nBem-vindo de v"
+}

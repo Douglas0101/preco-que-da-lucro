@@ -1,0 +1,9 @@
+{
+  "alertText": "Não foi possível carregar o resumo financeiro.\n\nReferência de atendimento: DASH-BBEA94C7\n\nTentar novamente",
+  "reference": "Referência de atendimento: DASH-BBEA94C7",
+  "pageErrors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+  ]
+}

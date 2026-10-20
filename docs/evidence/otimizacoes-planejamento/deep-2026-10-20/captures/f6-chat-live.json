@@ -1,0 +1,45 @@
+{
+  "harnessNote": "O turno real terminou (ai.chat_completed) mas o script Playwright estourou o timeout padrao de 30s porque as opcoes de waitForFunction foram passadas como arg; o produto, as mensagens e o usage abaixo sao a prova do turno.",
+  "message": "Bolo de cenoura, rende 12, custa 15, vendo por 5",
+  "assistant": "Produto criado. Agora preciso confirmar o rendimento.\n\nVocê disse \"rende 12\" — esses 12 são **fatias** ou **unidades inteiras** de bolo? E o \"custa 15\" e \"vendo por 5\": o custo de R$ 15,00 é o custo total da receita inteira, e R$ 5,00 é o preço de venda por fatia?",
+  "products": [
+    {
+      "id": "dae95fe5-9e28-4a9b-8f5c-12a29435b452",
+      "name": "Bolo de cenoura",
+      "current_price": null,
+      "yield_qty": null,
+      "yield_unit": null
+    }
+  ],
+  "usage": [
+    {
+      "round_no": 0,
+      "status": "settled",
+      "real_tokens": 1061,
+      "estimated_cost": "0.0004",
+      "cost_status": "known",
+      "outcome": "tool_round",
+      "settled_at": "2026-10-20T04:19:43.845Z"
+    },
+    {
+      "round_no": 1,
+      "status": "settled",
+      "real_tokens": 3199,
+      "estimated_cost": "0.0010",
+      "cost_status": "known",
+      "outcome": "success",
+      "settled_at": "2026-10-20T04:19:45.473Z"
+    }
+  ],
+  "totalRealTokens": 4260,
+  "logEvents": {
+    "request.completed": 10,
+    "app.context_tx": 15,
+    "rum.web_vitals": 3,
+    "ai.budget_reserved": 2,
+    "ai.model_attempt": 2,
+    "ai.budget_settled": 2,
+    "ai.chat_completed": 1
+  },
+  "financialOutputBlocked": 0
+}

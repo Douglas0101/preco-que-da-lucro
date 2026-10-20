@@ -1,0 +1,257 @@
+
+Running 55 tests using 2 workers
+
+  ✓   2 [webkit] › e2e/ui-stack.spec.ts:91:1 › the CSP report channel answers 204 for a violation report (36ms)
+  ✓   3 [webkit] › e2e/ui-stack.spec.ts:107:1 › authentication controls keep accessible names (2.0s)
+  ✓   1 [webkit] › e2e/ui-stack.spec.ts:64:1 › public UI uses valid composed controls and has no serious a11y violations (2.7s)
+  ✓   4 [webkit] › e2e/ui-stack.spec.ts:134:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (1.9s)
+  ✓   5 [webkit] › e2e/ui-stack.spec.ts:153:1 › authorization matrix blocks member mutations with a Better Auth session (4.2s)
+  ✓   6 [webkit] › e2e/ui-stack.spec.ts:174:1 › CSRF rejects a cross-site replay of a server-function mutation (4.9s)
+  ✓   7 [webkit] › e2e/ui-stack.spec.ts:203:1 › authenticated shell uses an HttpOnly session and accessible navigation (7.8s)
+  ✓   8 [webkit] › e2e/ui-stack.spec.ts:254:1 › manual simulation has no fictitious current volume and labels hypothetical results (8.2s)
+  ✓  10 [webkit] › e2e/ui-stack.spec.ts:318:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (4.9s)
+  ✓   9 [webkit] › e2e/ui-stack.spec.ts:285:1 › diagnostic forms prices only from explicit assumptions (7.8s)
+  ✓  12 [webkit] › e2e/ui-stack.spec.ts:64:1 › public UI uses valid composed controls and has no serious a11y violations (3.0s)
+  ✓  13 [webkit] › e2e/ui-stack.spec.ts:91:1 › the CSP report channel answers 204 for a violation report (37ms)
+  ✓  14 [webkit] › e2e/ui-stack.spec.ts:107:1 › authentication controls keep accessible names (2.1s)
+  ✓  11 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.0s)
+  ✓  15 [webkit] › e2e/ui-stack.spec.ts:134:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (1.9s)
+  ✘  17 [webkit] › e2e/ui-stack.spec.ts:153:1 › authorization matrix blocks member mutations with a Better Auth session (1.5s)
+  ✓  16 [webkit] › e2e/ui-stack.spec.ts:174:1 › CSRF rejects a cross-site replay of a server-function mutation (4.3s)
+  ✓  18 [webkit] › e2e/ui-stack.spec.ts:203:1 › authenticated shell uses an HttpOnly session and accessible navigation (8.1s)
+  ✓  19 [webkit] › e2e/ui-stack.spec.ts:254:1 › manual simulation has no fictitious current volume and labels hypothetical results (9.0s)
+  ✓  21 [webkit] › e2e/ui-stack.spec.ts:318:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (8.7s)
+  ✓  20 [webkit] › e2e/ui-stack.spec.ts:285:1 › diagnostic forms prices only from explicit assumptions (11.9s)
+  ✓  23 [webkit] › e2e/ui-stack.spec.ts:64:1 › public UI uses valid composed controls and has no serious a11y violations (3.8s)
+  ✓  24 [webkit] › e2e/ui-stack.spec.ts:91:1 › the CSP report channel answers 204 for a violation report (40ms)
+  ✓  25 [webkit] › e2e/ui-stack.spec.ts:107:1 › authentication controls keep accessible names (2.3s)
+  ✓  22 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (10.3s)
+  ✘  26 [webkit] › e2e/ui-stack.spec.ts:134:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (1.7s)
+  ✘  27 [webkit] › e2e/ui-stack.spec.ts:153:1 › authorization matrix blocks member mutations with a Better Auth session (1.7s)
+  ✘  28 [webkit] › e2e/ui-stack.spec.ts:174:1 › CSRF rejects a cross-site replay of a server-function mutation (1.8s)
+  ✓  29 [webkit] › e2e/ui-stack.spec.ts:203:1 › authenticated shell uses an HttpOnly session and accessible navigation (8.6s)
+  ✓  30 [webkit] › e2e/ui-stack.spec.ts:254:1 › manual simulation has no fictitious current volume and labels hypothetical results (8.3s)
+  ✓  32 [webkit] › e2e/ui-stack.spec.ts:318:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (5.0s)
+  ✓  31 [webkit] › e2e/ui-stack.spec.ts:285:1 › diagnostic forms prices only from explicit assumptions (8.1s)
+  ✓  34 [webkit] › e2e/ui-stack.spec.ts:64:1 › public UI uses valid composed controls and has no serious a11y violations (3.0s)
+  ✓  35 [webkit] › e2e/ui-stack.spec.ts:91:1 › the CSP report channel answers 204 for a violation report (25ms)
+  ✓  36 [webkit] › e2e/ui-stack.spec.ts:107:1 › authentication controls keep accessible names (2.6s)
+  ✓  33 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (9.5s)
+  ✓  37 [webkit] › e2e/ui-stack.spec.ts:134:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (2.1s)
+  ✓  38 [webkit] › e2e/ui-stack.spec.ts:153:1 › authorization matrix blocks member mutations with a Better Auth session (4.6s)
+  ✓  39 [webkit] › e2e/ui-stack.spec.ts:174:1 › CSRF rejects a cross-site replay of a server-function mutation (5.0s)
+  ✓  40 [webkit] › e2e/ui-stack.spec.ts:203:1 › authenticated shell uses an HttpOnly session and accessible navigation (8.0s)
+  ✓  41 [webkit] › e2e/ui-stack.spec.ts:254:1 › manual simulation has no fictitious current volume and labels hypothetical results (8.9s)
+  ✓  43 [webkit] › e2e/ui-stack.spec.ts:318:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (5.3s)
+  ✓  42 [webkit] › e2e/ui-stack.spec.ts:285:1 › diagnostic forms prices only from explicit assumptions (8.1s)
+  ✓  45 [webkit] › e2e/ui-stack.spec.ts:64:1 › public UI uses valid composed controls and has no serious a11y violations (3.2s)
+  ✓  46 [webkit] › e2e/ui-stack.spec.ts:91:1 › the CSP report channel answers 204 for a violation report (54ms)
+  ✓  47 [webkit] › e2e/ui-stack.spec.ts:107:1 › authentication controls keep accessible names (2.2s)
+  ✓  44 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.1s)
+  ✓  48 [webkit] › e2e/ui-stack.spec.ts:134:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (1.8s)
+  ✘  50 [webkit] › e2e/ui-stack.spec.ts:174:1 › CSRF rejects a cross-site replay of a server-function mutation (1.5s)
+  ✓  49 [webkit] › e2e/ui-stack.spec.ts:153:1 › authorization matrix blocks member mutations with a Better Auth session (4.5s)
+  ✓  51 [webkit] › e2e/ui-stack.spec.ts:203:1 › authenticated shell uses an HttpOnly session and accessible navigation (8.0s)
+  ✓  52 [webkit] › e2e/ui-stack.spec.ts:254:1 › manual simulation has no fictitious current volume and labels hypothetical results (8.4s)
+  ✓  54 [webkit] › e2e/ui-stack.spec.ts:318:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (5.1s)
+  ✓  53 [webkit] › e2e/ui-stack.spec.ts:285:1 › diagnostic forms prices only from explicit assumptions (8.2s)
+  ✓  55 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (6.8s)
+
+
+  1) [webkit] › e2e/ui-stack.spec.ts:153:1 › authorization matrix blocks member mutations with a Better Auth session 
+
+    Error: The fixture's Better Auth sign-in must succeed
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      55 |     data: { email, password },
+      56 |   });
+    > 57 |   expect(response.status(), "The fixture's Better Auth sign-in must succeed").toBe(200);
+         |                                                                               ^
+      58 | }
+      59 |
+      60 | async function login(page: Page): Promise<void> {
+        at signInWithBetterAuth (/home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:57:79)
+        at /home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:160:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/ui-stack-authorization-mat-38de7--with-a-Better-Auth-session-webkit-repeat1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/ui-stack-authorization-mat-38de7--with-a-Better-Auth-session-webkit-repeat1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/ui-stack-authorization-mat-38de7--with-a-Better-Auth-session-webkit-repeat1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/ui-stack-authorization-mat-38de7--with-a-Better-Auth-session-webkit-repeat1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/ui-stack-authorization-mat-38de7--with-a-Better-Auth-session-webkit-repeat1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [webkit] › e2e/ui-stack.spec.ts:134:1 › authentication matrix rejects invalid Better Auth credentials and protects routes 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 401
+    Received: 429
+
+      145 |     data: { email: authEmail, password: `${authPassword}-invalid` },
+      146 |   });
+    > 147 |   expect(response.status()).toBe(401);
+          |                             ^
+      148 |
+      149 |   await page.goto("/inicio");
+      150 |   await expect(page).toHaveURL(/\/auth\?redirect=%2Finicio/);
+        at /home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:147:29
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/ui-stack-authentication-ma-97917-entials-and-protects-routes-webkit-repeat2/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/ui-stack-authentication-ma-97917-entials-and-protects-routes-webkit-repeat2/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/ui-stack-authentication-ma-97917-entials-and-protects-routes-webkit-repeat2/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/ui-stack-authentication-ma-97917-entials-and-protects-routes-webkit-repeat2/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/ui-stack-authentication-ma-97917-entials-and-protects-routes-webkit-repeat2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [webkit] › e2e/ui-stack.spec.ts:153:1 › authorization matrix blocks member mutations with a Better Auth session 
+
+    Error: The fixture's Better Auth sign-in must succeed
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      55 |     data: { email, password },
+      56 |   });
+    > 57 |   expect(response.status(), "The fixture's Better Auth sign-in must succeed").toBe(200);
+         |                                                                               ^
+      58 | }
+      59 |
+      60 | async function login(page: Page): Promise<void> {
+        at signInWithBetterAuth (/home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:57:79)
+        at /home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:160:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/ui-stack-authorization-mat-38de7--with-a-Better-Auth-session-webkit-repeat2/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/ui-stack-authorization-mat-38de7--with-a-Better-Auth-session-webkit-repeat2/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/ui-stack-authorization-mat-38de7--with-a-Better-Auth-session-webkit-repeat2/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/ui-stack-authorization-mat-38de7--with-a-Better-Auth-session-webkit-repeat2/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/ui-stack-authorization-mat-38de7--with-a-Better-Auth-session-webkit-repeat2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [webkit] › e2e/ui-stack.spec.ts:174:1 › CSRF rejects a cross-site replay of a server-function mutation 
+
+    Error: The fixture's Better Auth sign-in must succeed
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      55 |     data: { email, password },
+      56 |   });
+    > 57 |   expect(response.status(), "The fixture's Better Auth sign-in must succeed").toBe(200);
+         |                                                                               ^
+      58 | }
+      59 |
+      60 | async function login(page: Page): Promise<void> {
+        at signInWithBetterAuth (/home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:57:79)
+        at /home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:179:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/ui-stack-CSRF-rejects-a-cr-766d8--a-server-function-mutation-webkit-repeat2/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/ui-stack-CSRF-rejects-a-cr-766d8--a-server-function-mutation-webkit-repeat2/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/ui-stack-CSRF-rejects-a-cr-766d8--a-server-function-mutation-webkit-repeat2/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/ui-stack-CSRF-rejects-a-cr-766d8--a-server-function-mutation-webkit-repeat2/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/ui-stack-CSRF-rejects-a-cr-766d8--a-server-function-mutation-webkit-repeat2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [webkit] › e2e/ui-stack.spec.ts:174:1 › CSRF rejects a cross-site replay of a server-function mutation 
+
+    Error: The fixture's Better Auth sign-in must succeed
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 429
+
+      55 |     data: { email, password },
+      56 |   });
+    > 57 |   expect(response.status(), "The fixture's Better Auth sign-in must succeed").toBe(200);
+         |                                                                               ^
+      58 | }
+      59 |
+      60 | async function login(page: Page): Promise<void> {
+        at signInWithBetterAuth (/home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:57:79)
+        at /home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:179:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/ui-stack-CSRF-rejects-a-cr-766d8--a-server-function-mutation-webkit-repeat4/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/ui-stack-CSRF-rejects-a-cr-766d8--a-server-function-mutation-webkit-repeat4/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/ui-stack-CSRF-rejects-a-cr-766d8--a-server-function-mutation-webkit-repeat4/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/ui-stack-CSRF-rejects-a-cr-766d8--a-server-function-mutation-webkit-repeat4/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/ui-stack-CSRF-rejects-a-cr-766d8--a-server-function-mutation-webkit-repeat4/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5 failed
+    [webkit] › e2e/ui-stack.spec.ts:153:1 › authorization matrix blocks member mutations with a Better Auth session 
+    [webkit] › e2e/ui-stack.spec.ts:134:1 › authentication matrix rejects invalid Better Auth credentials and protects routes 
+    [webkit] › e2e/ui-stack.spec.ts:153:1 › authorization matrix blocks member mutations with a Better Auth session 
+    [webkit] › e2e/ui-stack.spec.ts:174:1 › CSRF rejects a cross-site replay of a server-function mutation 
+    [webkit] › e2e/ui-stack.spec.ts:174:1 › CSRF rejects a cross-site replay of a server-function mutation 
+  50 passed (2.5m)
+
+LEITURA (2026-10-20): 50 passed / 5 failed. As 5 falhas são HTTP 429 do Better Auth
+(5/min por IP) porque `--repeat-each=5` repete os testes de autenticação no MESMO
+bucket `x-forwarded-for` do projeto; os error-context mostram
+"Expected: 200/401, Received: 429" em authentication/authorization/CSRF. Nenhuma
+falha de UI, diálogo, foco ou axe. A evidência de interação é o teste manual de
+20 ciclos em `f2-webkit-manual.json` (20/20 foco devolvido, 0 diálogos órfãos,
+nodeDelta 0), que não passa pelo rate limit de sign-in.

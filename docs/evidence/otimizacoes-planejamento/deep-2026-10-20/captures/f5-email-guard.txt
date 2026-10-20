@@ -1,0 +1,16 @@
+# Frente 5 — guard de e-mail (servidor auxiliar :4174, 2026-10-20)
+
+Servidor: porta 4174, banco local de teste, RESEND_API_KEY="" e AUTH_EMAIL_FROM="".
+POST /api/auth/sign-up/email com e-mail novo:
+{"code":"EMAIL_NOT_CONFIGURED","message":"Cadastro por e-mail indisponível: o envio de verificação não está configurado."}
+HTTP:503
+
+POST /api/auth/sign-in/email com o usuário fixture (controle positivo):
+HTTP:200
+
+SELECT count(*) FROM users WHERE email = 'deep-guard-1792468890@example.test' (admin local):
+0
+
+Log do servidor (eventos de guard, sem valores):
+      2 "event":"app.context_tx"
+      3 "event":"request.completed"
