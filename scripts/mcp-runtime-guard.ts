@@ -35,7 +35,7 @@ import { homedir } from "node:os";
 
 export interface SiteSpec {
   path: string;
-  format: "json" | "yaml-text";
+  format: "json" | "opencode-json" | "yaml-text";
   role: string;
   why?: string;
 }
@@ -84,6 +84,51 @@ export function homeCatalog(): SiteSpec[] {
     },
     { path: join(HOME, ".agents", "mcp.json"), format: "json", role: "compatibilidade" },
     { path: join(HOME, ".agents", "mcp", "mcp.json"), format: "json", role: "compatibilidade" },
+    // SITIOS MEDIDOS EM 2026-10-17 (varredura de `mcp*.json` sob o HOME). O
+    // catalogo anterior conhecia `.config/mcp`, `.agents` e o YAML de OUTRO
+    // harness — e nao conhecia o cliente que estava **de fato** rodando. Foi por
+    // esse buraco que um `npx -y <pkg>@<versao>` sem `cwd` sobreviveu na config
+    // do Cline ate falhar de verdade (log do cliente, 2026-10-17T05:17Z).
+    {
+      path: join(HOME, ".cline", "data", "settings", "cline_mcp_settings.json"),
+      format: "json",
+      role: "primario-cline",
+      why: "config viva do Cline CLI/Desktop — o cliente em uso nesta maquina",
+    },
+    {
+      path: join(HOME, ".pi", "agent", "mcp-adapter.json"),
+      format: "json",
+      role: "primario-pi",
+      why: "config do pi-mcp-adapter (o pacote declarado em ~/.pi/agent/settings.json)",
+    },
+    {
+      path: join(HOME, ".pi", "agent", "mcp.json"),
+      format: "json",
+      role: "compatibilidade-pi",
+    },
+    {
+      path: join(HOME, ".cache", "plugins", "github.com-vercel-vercel-plugin", ".mcp.json"),
+      format: "json",
+      role: "plugin-vercel",
+      why: "config MCP publicada pelo plugin Vercel instalado pelo proprio harness",
+    },
+    {
+      path: join(HOME, ".config", "Codex", "executor-plugins", "codex-app-tools", ".mcp.json"),
+      format: "json",
+      role: "plugin-codex",
+    },
+    {
+      path: join(HOME, ".config", "opencode", "opencode.json"),
+      format: "opencode-json",
+      role: "outro-cliente-medido",
+      why: "esquema `mcp.servers` com `command` em ARRAY — formato diferente, auditado por parser proprio",
+    },
+    {
+      path: join(HOME, ".gemini", "config", "mcp_config.json"),
+      format: "json",
+      role: "outro-cliente-medido",
+      why: "arquivo existe com 0 byte em 2026-10-17 — config truncada e um fato, nao um silencio",
+    },
     {
       path: join(HOME, ".dsh", "bundles", "kimi-mcp", "cordis.patch.yml"),
       format: "yaml-text",
@@ -162,6 +207,139 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 }
 
 /**
+ * Um campo declarado como credencial pelo PROPRIO nome (`authorization`,
+ * `key`, `token`, `api_key`, …). O nome e a declaracao: um valor ali e uma
+ * credencial mesmo quando a entropia nao denuncia.
+ */
+const CREDENTIAL_FIELDS =
+  /^(authorization|api[-_]?key|apikey|key|token|secret|password|passwd|access[-_]?token|refresh[-_]?token|client[-_]?secret|pat|personal[-_]?access[-_]?token)$/i;
+
+/**
+ * Piso de tamanho para a deteccao **por nome**. Sem ele, `env.TOKEN = "curto"`
+ * viraria achado, e a guarda passaria a reprovar rotulo em vez de segredo.
+ * Limite declarado no runbook: credencial real menor que isto nao e acusada
+ * pelo nome (a deteccao por entropia continua valendo, sem piso).
+ */
+const CREDENTIAL_MIN_BYTES = 12;
+
+export function isCredentialField(name: string): boolean {
+  return CREDENTIAL_FIELDS.test(name);
+}
+
+/** `Bearer <valor>` / `Token <valor>` / `Basic <valor>` -> o valor; senao `null`. */
+export function bearerCredential(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const match = /^\s*(?:bearer|token|basic)\s+(\S+)\s*$/i.exec(value);
+  return match ? match[1]! : null;
+}
+
+/**
+ * Placeholder de ambiente (`${VAR}`, `$VAR`) — nunca um valor literal. O `$` e
+ * obrigatorio de proposito: sem ele, `github_pat_11ABC…` (que e um identificador
+ * com underscores) passaria por placeholder e a guarda ficaria cega justamente
+ * para o valor que ela existe para acusar.
+ */
+export function isEnvPlaceholder(value: string): boolean {
+  return /^\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$/.test(value);
+}
+
+/** Duas fontes do mesmo saco (`row` e `transport`): o nivel de fora vence. */
+function mergedBag(
+  outer: Record<string, unknown> | null,
+  inner: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!outer) return inner;
+  if (!inner) return outer;
+  return { ...inner, ...outer };
+}
+
+/**
+ * Audita um saco de pares nome/valor (`env`, `headers`, `metadata`,
+ * `environment`) procurando credencial literal. Nunca devolve valor: so o
+ * nome do campo, o tamanho e um fingerprint — e para `Bearer <valor>` o
+ * fingerprint e do **valor**, nunca do cabecalho inteiro.
+ */
+export function auditCredentialBag({
+  label,
+  name,
+  source,
+  bag,
+}: {
+  label: string;
+  name: string;
+  source: string;
+  bag: Record<string, unknown> | null;
+}): string[] {
+  const findings: string[] = [];
+  if (!bag) return findings;
+  for (const [key, value] of Object.entries(bag)) {
+    const bearer = bearerCredential(value);
+    const candidate = bearer ?? (typeof value === "string" ? value : null);
+    if (candidate === null || candidate.length === 0) continue;
+    if (isEnvPlaceholder(candidate)) continue;
+    const byEntropy = looksLikeLiteralSecret(candidate);
+    const byName =
+      isCredentialField(key) && candidate.length >= CREDENTIAL_MIN_BYTES && !/\s/.test(candidate);
+    if (!byEntropy && !byName) continue;
+    findings.push(
+      `${label}: linha \`${name}\` carrega valor literal em \`${source}.${key}\` ` +
+        `(${candidate.length} bytes, ${fingerprint(candidate)}) — ` +
+        `segredo em texto claro no arquivo de configuracao`,
+    );
+  }
+  return findings;
+}
+
+/**
+ * Regras de lancamento (runner sem pin, `cwd` ausente ou dentro de checkout,
+ * caminho relativo como comando). Comum aos dois esquemas de config: o de
+ * `mcpServers` e o de `mcp.servers` do opencode, que difere so na forma de
+ * declarar comando e ambiente.
+ */
+export function auditRunnerRow({
+  label,
+  name,
+  command,
+  args,
+  cwd,
+  cwdGuard = true,
+}: {
+  label: string;
+  name: string;
+  command: unknown;
+  args: unknown[];
+  cwd: unknown;
+  cwdGuard?: boolean;
+}): string[] {
+  const findings: string[] = [];
+  const spec = runnerSpecifier(command, args);
+  if (spec !== null && !isPinned(spec)) {
+    findings.push(
+      `${label}: linha \`${name}\` lanca \`${String(command)}\` sem pin (${
+        spec === "" ? "sem especificador" : spec
+      }) — um runner sem versao exata resolve o que existir mais novo no registro`,
+    );
+  }
+  if (spec !== null && cwdGuard) {
+    if (typeof cwd !== "string" || cwd.length === 0) {
+      findings.push(
+        `${label}: linha \`${name}\` lanca \`${String(command)}\` sem \`cwd\` — o runner sobe a arvore a ` +
+          `partir do diretorio corrente e pode instalar na arvore de um checkout (mecanismo do DBT-32)`,
+      );
+    } else if (insideWorkTree(cwd)) {
+      findings.push(
+        `${label}: linha \`${name}\` aponta \`cwd\` para dentro de uma arvore de trabalho git (${cwd}) — ` +
+          `o runtime tem de ficar fora de qualquer checkout`,
+      );
+    }
+  }
+  if (typeof command === "string" && command.includes("/") && !command.startsWith("/")) {
+    findings.push(`${label}: linha \`${name}\` usa caminho relativo como comando (${command})`);
+  }
+  return findings;
+}
+
+/**
  * Audita as linhas de um config JSON `mcpServers`. Nunca devolve valor de env —
  * so o NOME da variavel, o tamanho e um fingerprint.
  */
@@ -200,51 +378,53 @@ export function auditJsonConfig({
       findings.push(`${label}: linha \`${name}\` nao e um objeto`);
       continue;
     }
+    // O Cline aceita a linha PLANA e a linha ANINHADA em `transport`. Auditar
+    // so a forma plana torna a aninhada invisivel — foi por esse caminho que um
+    // `npx` sem `cwd` sobreviveu na config viva ate falhar em 2026-10-17.
+    const transport = asRecord(row["transport"]);
+    const field = (key: string): unknown => row[key] ?? transport?.[key];
+
+    // Credencial literal e auditada em QUALQUER forma de linha: uma linha http
+    // nao executa processo local, mas carrega token em `headers`.
+    findings.push(
+      ...auditCredentialBag({
+        label,
+        name,
+        source: "env",
+        bag: mergedBag(asRecord(row["env"]), asRecord(transport?.["env"])),
+      }),
+    );
+    findings.push(
+      ...auditCredentialBag({
+        label,
+        name,
+        source: "headers",
+        bag: mergedBag(asRecord(row["headers"]), asRecord(transport?.["headers"])),
+      }),
+    );
+    findings.push(
+      ...auditCredentialBag({
+        label,
+        name,
+        source: "metadata",
+        bag: mergedBag(asRecord(row["metadata"]), asRecord(transport?.["metadata"])),
+      }),
+    );
+
     // Linhas http/oauth (context7, linear, neon) nao executam processo local:
     // nao ha runner, nao ha resolucao de projeto, nao ha o que pinar.
-    if (typeof row["url"] === "string" && row["command"] === undefined) continue;
+    if (typeof field("url") === "string" && field("command") === undefined) continue;
 
-    const command = row["command"];
-    const args = Array.isArray(row["args"]) ? row["args"] : [];
-    const spec = runnerSpecifier(command, args);
-
-    if (spec !== null && !isPinned(spec)) {
-      findings.push(
-        `${label}: linha \`${name}\` lanca \`${String(command)}\` sem pin (${
-          spec === "" ? "sem especificador" : spec
-        }) — um runner sem versao exata resolve o que existir mais novo no registro`,
-      );
-    }
-    if (spec !== null && cwdGuard) {
-      const cwd = row["cwd"];
-      if (typeof cwd !== "string" || cwd.length === 0) {
-        findings.push(
-          `${label}: linha \`${name}\` lanca \`${String(command)}\` sem \`cwd\` — o runner sobe a arvore a ` +
-            `partir do diretorio corrente e pode instalar na arvore de um checkout (mecanismo do DBT-32)`,
-        );
-      } else if (insideWorkTree(cwd)) {
-        findings.push(
-          `${label}: linha \`${name}\` aponta \`cwd\` para dentro de uma arvore de trabalho git (${cwd}) — ` +
-            `o runtime tem de ficar fora de qualquer checkout`,
-        );
-      }
-    }
-    if (typeof command === "string" && command.includes("/") && !command.startsWith("/")) {
-      findings.push(`${label}: linha \`${name}\` usa caminho relativo como comando (${command})`);
-    }
-
-    const env = asRecord(row["env"]);
-    if (env) {
-      for (const [key, value] of Object.entries(env)) {
-        if (looksLikeLiteralSecret(value)) {
-          findings.push(
-            `${label}: linha \`${name}\` carrega valor literal na variavel \`${key}\` ` +
-              `(${(value as string).length} bytes, ${fingerprint(value as string)}) — ` +
-              `segredo em texto claro no arquivo de configuracao`,
-          );
-        }
-      }
-    }
+    findings.push(
+      ...auditRunnerRow({
+        label,
+        name,
+        command: field("command"),
+        args: Array.isArray(field("args")) ? (field("args") as unknown[]) : [],
+        cwd: field("cwd"),
+        cwdGuard,
+      }),
+    );
   }
   return { findings, preconditions };
 }
@@ -277,6 +457,62 @@ export function auditYamlText({ label, raw }: { label: string; raw: string }): R
   return { findings, preconditions: [] };
 }
 
+/**
+ * `~/.config/opencode/opencode.json`: o mapa e `mcp.servers`, o comando vem
+ * como ARRAY (comando + argumentos) e o ambiente como `environment`. Parser
+ * proprio porque "nao e o meu formato" nao pode virar "nao e minha conta" —
+ * um cliente a mais com runner sem pin e um defeito a mais, nao um silencio.
+ */
+export function auditOpencodeConfig({ label, raw }: { label: string; raw: string }): RowAudit {
+  const findings: string[] = [];
+  const preconditions: string[] = [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    preconditions.push(`${label}: JSON ilegivel (${(error as Error).message})`);
+    return { findings, preconditions };
+  }
+  const servers = asRecord(asRecord(asRecord(parsed)?.["mcp"])?.["servers"]);
+  if (!servers) {
+    preconditions.push(`${label}: sem o mapa \`mcp.servers\``);
+    return { findings, preconditions };
+  }
+  const names = Object.keys(servers);
+  if (names.length === 0) {
+    preconditions.push(
+      `${label}: \`mcp.servers\` vazio — nada a auditar, e isso nao e um veredito`,
+    );
+    return { findings, preconditions };
+  }
+  for (const name of names) {
+    const row = asRecord(servers[name]);
+    if (!row) {
+      findings.push(`${label}: linha \`${name}\` nao e um objeto`);
+      continue;
+    }
+    findings.push(
+      ...auditCredentialBag({
+        label,
+        name,
+        source: "environment",
+        bag: asRecord(row["environment"]),
+      }),
+    );
+    findings.push(
+      ...auditCredentialBag({ label, name, source: "headers", bag: asRecord(row["headers"]) }),
+    );
+
+    if (typeof row["url"] === "string" && row["command"] === undefined) continue;
+    const list = Array.isArray(row["command"]) ? row["command"] : [];
+    const command = typeof list[0] === "string" ? list[0] : undefined;
+    findings.push(
+      ...auditRunnerRow({ label, name, command, args: list.slice(1), cwd: row["cwd"] }),
+    );
+  }
+  return { findings, preconditions };
+}
+
 /** Roda o catalogo. Nunca lanca: precondicao e veredito, nao excecao. */
 export function auditSites({ cwd, sites }: { cwd: string; sites: SiteSpec[] }): AuditResult {
   const findings: string[] = [];
@@ -298,6 +534,10 @@ export function auditSites({ cwd, sites }: { cwd: string; sites: SiteSpec[] }): 
     }
     if (site.format === "json") {
       const out = auditJsonConfig({ label: site.path, raw });
+      findings.push(...out.findings);
+      preconditions.push(...out.preconditions);
+    } else if (site.format === "opencode-json") {
+      const out = auditOpencodeConfig({ label: site.path, raw });
       findings.push(...out.findings);
       preconditions.push(...out.preconditions);
     } else {

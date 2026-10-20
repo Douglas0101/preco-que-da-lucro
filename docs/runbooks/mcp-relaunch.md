@@ -20,6 +20,40 @@ O ciclo 13 aplicou a correção. **Ela alcançou o arquivo errado.** Medido em 2
 
 `~/.config/mcp/config.json` e um binário `mcp-client` **não existem** nesta máquina. Se um procedimento mandar invocá-los, o procedimento está desatualizado — e é este runbook que o substitui.
 
+### Sítios auditados pelo guard (medidos em 2026-10-17, varredura de `mcp*.json` sob o `$HOME`)
+
+O catálogo é **explícito e versionado** em `scripts/mcp-runtime-guard.ts` (`homeCatalog()`): um sítio novo
+tem de entrar nele, e um sítio que apareça na máquina e não esteja no catálogo é uma lacuna declarada, não
+um silêncio. Em 2026-10-17 o catálogo anterior conhecia **1** sítio e o cliente que estava de fato rodando
+**não era nenhum deles** — foi por esse buraco que o defeito do `aikido` sobreviveu.
+
+| papel                | caminho                                                      | formato                                            |
+| -------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
+| primário (pi)        | `~/.config/mcp/mcp.json`                                     | `mcpServers`                                       |
+| **primário-cline**   | `~/.cline/data/settings/cline_mcp_settings.json`             | `mcpServers` + `transport` aninhado                |
+| primário-pi          | `~/.pi/agent/mcp-adapter.json`                               | `mcpServers`                                       |
+| compatibilidade-pi   | `~/.pi/agent/mcp.json`                                       | `mcpServers`                                       |
+| plugin-vercel        | `~/.cache/plugins/github.com-vercel-vercel-plugin/.mcp.json` | `mcpServers`                                       |
+| plugin-codex         | `~/.config/Codex/executor-plugins/codex-app-tools/.mcp.json` | `mcpServers`                                       |
+| outro-cliente-medido | `~/.config/opencode/opencode.json`                           | `mcp.servers` (**`command` em array**)             |
+| outro-cliente-medido | `~/.gemini/config/mcp_config.json`                           | `mcpServers` (0 byte em 2026-10-17 → pré-condição) |
+
+O **runtime isolado** `~/.mcp-runtime/` não é config, mas é pré-condição do passo 3: se ele não existir, o
+reparo não tem para onde apontar `cwd`. Ele **pode sumir sem que nada acuse** (medido em 2026-10-17), então
+confira a existência antes de confiar nele:
+
+```bash
+ls -ld ~/.mcp-runtime ~/.mcp-runtime/package.json ~/.mcp-runtime/node_modules/.bin/ 2>&1
+```
+
+Recriá-lo (uma vez, fora de qualquer checkout):
+
+```bash
+umask 077 && mkdir -p ~/.mcp-runtime && cd ~/.mcp-runtime &&
+  printf '%s\n' '{ "name": "mcp-runtime", "private": true }' > package.json &&
+  npm install --save-exact --no-audit --no-fund @aikidosec/mcp@<versão-exata>
+```
+
 Os servidores são processos filhos do cliente, e a configuração é lida **na inicialização**. Por isso "relançar" significa encerrar a sessão do cliente e abrir outra; não existe recarga a quente.
 
 ## Pré-condições
@@ -43,9 +77,11 @@ Os servidores são processos filhos do cliente, e a configuração é lida **na 
 3. **Corrigir a configuração viva, se a medição acusou.** Para cada linha de runner sem pin ou sem `cwd`:
    - trocar o especificador por uma **versão exata** (o cache do npx já contém a resolução real do que estava rodando — use-a, não o `@latest`);
    - acrescentar `cwd` apontando para um runtime **fora de qualquer checkout** (`~/.mcp-runtime` é o runtime isolado criado para isso);
-   - preferir o caminho absoluto do binário já instalado (`~/.mcp-runtime/node_modules/.bin/<pacote>`) a um runner — é o que o ciclo 13 fez no arquivo que **não** era lido, e é a forma correta.
+   - preferir o caminho absoluto do binário já instalado (`~/.mcp-runtime/node_modules/.bin/<pacote>`) a um runner — é o que o ciclo 13 fez no arquivo que **não** era lido, e é o que o reparo de 2026-10-17 fez no arquivo que **era** lido. A forma preferida elimina o runner: sem runner não há resolução de projeto, logo a classe inteira do DBT-32 sai do caminho.
 
-4. **Tirar segredo literal do arquivo.** Um valor literal em `env` é uma credencial em texto claro num arquivo que não está sob versionamento nem auditoria. O caminho correto é o _sidecar_ de injeção (`scripts/secret-sidecar/`, F14-1): o arquivo referencia, o sidecar resolve. Se o sidecar ainda não existe, **não improvise** uma forma alternativa de guardar o segredo — registre como pendência e mantenha a rotação na fila.
+   **Caso medido (2026-10-17), para reconhecer o sintoma:** um _pin correto_ não imuniza a linha. O `aikido` do Cline declarava `@aikidosec/mcp@1.0.9` — versão exata — e **não carregava**, por duas razões somadas: (a) a entrada de cache do npx perdeu o `package.json` (o cliente registrou `code=254` e `npm error ENOENT … /home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json`), e (b) a linha não declarava `cwd`. Se o cliente disser _"failed to initialize"_ com `code=254`/`ENOENT` num diretório `_npx/`, o cache daquele pacote está quebrado: **não** "conserte" o cache (ele é descartável e o defeito volta), troque a linha pela forma com binário absoluto e deixe o cache privatizado/limpo.
+
+4. **Tirar segredo literal do arquivo.** Um valor literal em `env`, em `headers` ou em `metadata` é uma credencial em texto claro num arquivo que não está sob versionamento nem auditoria. O caminho correto é o _sidecar_ de injeção (`scripts/secret-sidecar/`, F14-1): o arquivo referencia, o sidecar resolve. Se o sidecar ainda não existe, **não improvise** uma forma alternativa de guardar o segredo — registre como pendência e mantenha a rotação na fila. Duas exceções medidas nesta máquina ficam **declaradas, não resolvidas**: o cabeçalho do gateway Docker é literal porque o cliente não expande `${VAR}` em `headers` (a contenção é permissão `700`/`600`), e a chave do `context7` é duplicata do servidor que o gateway já serve — removê-la é decisão do dono.
 
 5. **Relançar o cliente** e confirmar a superfície de ferramentas: os servidores `stdio` declarados precisam aparecer, e nenhum processo filho pode estar rodando a partir do diretório do repositório.
 
@@ -79,13 +115,46 @@ que faz um gate ser desligado na primeira semana.
 
 Códigos de saída — diferentes de propósito, porque "não consegui olhar" e "olhei e está sujo" não são o mesmo veredito:
 
-| exit | significado                                                                                  |
-| ---- | -------------------------------------------------------------------------------------------- |
-| `0`  | limpo                                                                                        |
-| `1`  | violação encontrada (runner sem pin, `cwd` dentro de checkout, segredo literal)              |
-| `2`  | **precondição**: alvo ausente, JSON ilegível, `mcpServers` vazio, chave sem regra de emissor |
+| exit | significado                                                                                                                 |
+| ---- | --------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | limpo                                                                                                                       |
+| `1`  | violação encontrada (runner sem pin, sem `cwd` ou com `cwd` em checkout, caminho relativo como comando, credencial literal) |
+| `2`  | **precondição**: alvo ausente, JSON ilegível, `mcpServers`/`mcp.servers` vazio ou ausente                                   |
 
-O guard cita segredo **só** por nome da variável, tamanho e `sha256:<12 hex>`. Nenhum valor, nem recortado, entra em stdout, stderr, log ou evidência — há teste dedicado para essa propriedade (`src/test/mcp-runtime-guard.test.ts`), porque uma guarda de segredo que imprime o segredo é um vetor, não uma guarda.
+### Regras que o guard aplica (2026-10-17)
+
+1. **As duas formas de linha.** O Cline aceita `{ command, args, cwd }` no nível da linha **e** aninhado
+   em `transport`. O guard lê as duas (o nível de fora vence). Antes disto ele lia só a forma plana, e a
+   linha real do `aikido` era aninhada: o defeito passou por baixo da guarda _mesmo com o sítio no
+   catálogo_ (medido nos dois códigos em `docs/evidence/mcp-repair-2026-10-17/captures/08-*`).
+2. **Dois esquemas de config.** `mcpServers` (a maioria) e `mcp.servers` do opencode, onde `command` é um
+   **array**. Um cliente a mais não pode ser um silêncio a mais.
+3. **Credencial por entropia _ou_ por nome de campo.** `authorization`, `key`, `token`, `api_key`, `pat`,
+   `client_secret`… — um valor sob um destes nomes é citado mesmo quando a entropia não denuncia (é o
+   caso da chave do `context7`). `Bearer <valor>` é citado pelo **valor**; placeholder (`${VAR}`) e valor
+   curto não são acusados.
+4. **O guard cita segredo só por nome do campo, tamanho e `sha256:<12 hex>`.** Nenhum valor, nem
+   recortado, entra em stdout, stderr, log ou evidência — há teste dedicado para essa propriedade
+   (`src/test/mcp-runtime-guard.test.ts`), porque uma guarda de segredo que imprime o segredo é um vetor,
+   não uma guarda.
+
+### Limites declarados do guard
+
+- **Piso de 12 bytes para a detecção por nome.** Abaixo dele, um valor sob nome de credencial não é
+  acusado _pelo nome_ (o piso existe para não reprovar rótulo; a detecção por entropia continua valendo,
+  sem piso). Uma credencial real menor que isto passaria.
+- **`oauth.*` está fora do escopo.** `oauth.tokens`/`clientInformation` são o armazenamento do próprio
+  mecanismo OAuth, renovado pelo cliente — um fato a declarar no registry, não um veredito deste guard,
+  que julga o que o **operador** escreveu num arquivo de config. A contenção ali é permissão de arquivo.
+- **O guard mede forma, não existência.** Uma linha `cwd: ~/.mcp-runtime` que aponte para um diretório
+  **inexistente** não é acusada: não há verificador de existência do runtime isolado (dívida registrada).
+- **Config de 0 byte vira pré-condição**, não aprovação nem violação — o cliente pode estar puramente
+  quebrado, e "não consegui olhar" nunca é "está limpo".
+- **O escopo-repositorio é vazio por desenho** (este repositório não versiona config MCP). Ele é passo
+  direto do `verify` no `ui-stack.yml` como proteção **prospectiva**: um PR que versione `.mcp.json` sujo
+  reprova. A metade **light** segue `✘` **nomeado** na tabela do `AGENTS.md` — o pipeline só dispara com
+  **todos** os arquivos alterados sob `docs/evidence/**`, onde nenhum dos dois sítios vive; incluir o
+  passo ali seria vacuidade permanente. A ratificação é humana.
 
 ## Rollback
 

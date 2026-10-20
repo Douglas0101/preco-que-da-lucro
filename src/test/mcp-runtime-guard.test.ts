@@ -8,7 +8,7 @@
 // plantam o texto real do incidente e exigem que a guarda reprove, e plantam a
 // correcao e exigem que ela aprove: medir, nao so aprovar.
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -16,10 +16,15 @@ import { describe, expect, it } from "vitest";
 import {
   REPO_CATALOG,
   auditJsonConfig,
+  auditOpencodeConfig,
   auditSites,
   auditYamlText,
+  bearerCredential,
   fingerprint,
+  homeCatalog,
   insideWorkTree,
+  isCredentialField,
+  isEnvPlaceholder,
   isPinned,
   looksLikeLiteralSecret,
   runnerSpecifier,
@@ -331,5 +336,196 @@ describe("o incidente real, reproduzido", () => {
     expect(findings.filter((f) => f.includes("valor literal"))).toHaveLength(1);
     expect(findings.join("\n")).not.toContain("MCP_DOCKER");
     expect(findings.join("\n")).not.toContain("SOME_VAR");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2026-10-17 — o reparo dos MCPs que nao carregavam.
+//
+// Medido no log do cliente vivo (`~/.cline/data/logs/cline.log`,
+// 2026-10-17T05:17Z): `aikido` foi *skipped* com `code=254` e
+// `npm error ENOENT ... /home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json`.
+// A linha real estava ANINHADA em `transport` e a guarda so lia a forma plana —
+// ou seja: mesmo com o sitio no catalogo, o defeito teria passado. Os testes
+// abaixo plantam a forma real e exigem o veredito; os que vieram antes continuam
+// valendo, porque uma regra nova que silencia a antiga nao e uma regra.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("linha aninhada em `transport` (a forma do Cline)", () => {
+  it("audita a forma aninhada com o defeito real: pinada, mas sem `cwd`", () => {
+    const { findings } = run(
+      jsonConfig({
+        aikido: {
+          transport: { type: "stdio", command: "npx", args: ["-y", "@aikidosec/mcp@1.0.9"] },
+        },
+      }),
+    );
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toContain("sem `cwd`");
+  });
+
+  it("e reprova runner sem pin na mesma forma — a leitura nao e parcial", () => {
+    const { findings } = run(
+      jsonConfig({
+        aikido: {
+          transport: { type: "stdio", command: "npx", args: ["-y", "@aikidosec/mcp@latest"] },
+        },
+      }),
+    );
+    expect(findings).toHaveLength(2);
+    expect(findings[0]).toContain("sem pin");
+    expect(findings[1]).toContain("sem `cwd`");
+  });
+
+  it("o nivel de fora vence quando os dois declaram `cwd`", () => {
+    const runtime = join(bench(), "runtime");
+    const checkout = join(bench(), "repo");
+    mkdirSync(runtime, { recursive: true });
+    mkdirSync(join(checkout, ".git"), { recursive: true });
+    const { findings } = run(
+      jsonConfig({
+        svc: {
+          cwd: runtime,
+          transport: { type: "stdio", command: "npx", args: ["-y", "pkg@1.0.0"], cwd: checkout },
+        },
+      }),
+    );
+    expect(findings).toEqual([]);
+  });
+});
+
+describe("credencial fora de `env`: `headers` e `metadata`", () => {
+  // Forma do token do gateway Docker medido na config viva (64 hex: minusculas +
+  // digitos). A entropia sozinha NAO acusaria — o nome do campo acusa.
+  const TOKEN = "83c3541ab96220d9ea6e0f6cc1ba706b2d518f1fc637211329e33fc5faf1e18a";
+
+  it("acusa `Bearer <valor>` citando o VALOR, nunca o cabecalho", () => {
+    const { findings } = run(
+      jsonConfig({
+        MCP_DOCKER: {
+          type: "streamableHttp",
+          url: "http://127.0.0.1:8811/mcp",
+          headers: { Authorization: `Bearer ${TOKEN}` },
+        },
+      }),
+    );
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toContain("`headers.Authorization`");
+    expect(findings[0]).toContain(`${TOKEN.length} bytes`);
+    expect(findings[0]).toContain(fingerprint(TOKEN));
+    // A propriedade que separa guarda de vetor: nada do valor na saida — nem o
+    // cabecalho inteiro, nem o token, nem um recorte dele.
+    expect(findings[0]).not.toContain(TOKEN);
+    expect(findings[0]).not.toContain(`Bearer ${TOKEN}`);
+    expect(findings[0]).not.toContain(TOKEN.slice(0, 12));
+  });
+
+  it("acusa valor sob nome de credencial sem entropia (o caso context7 medido)", () => {
+    const chave = "ctx7sk" + "a".repeat(37);
+    const { findings } = run(
+      jsonConfig({
+        context7: {
+          transport: { type: "streamableHttp", url: "https://mcp.context7.com/mcp" },
+          metadata: { key: chave },
+        },
+      }),
+    );
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toContain("`metadata.key`");
+    expect(findings[0]).not.toContain(chave);
+  });
+
+  it("placeholder, valor curto e nome nao-credential nao viram achado", () => {
+    const { findings } = run(
+      jsonConfig({
+        a: { url: "https://x/mcp", headers: { Authorization: "Bearer ${GATEWAY_TOKEN}" } },
+        b: { url: "https://x/mcp", metadata: { key: "curto" } },
+        c: { url: "https://x/mcp", headers: { "X-Trace-Id": "32c190d0b7f26b6bba5d1b6a34ee92ee" } },
+      }),
+    );
+    // `X-Trace-Id` nao tem nome de credencial e o valor tem duas classes de
+    // caractere: o limite declarado e nao confundir identificador com token.
+    expect(findings).toEqual([]);
+  });
+
+  it("as regras puras decidem pelos casos que importam", () => {
+    expect(bearerCredential(`Bearer ${TOKEN}`)).toBe(TOKEN);
+    expect(bearerCredential("basic dXNlcjpzZW5oYQ==")).toBe("dXNlcjpzZW5oYQ==");
+    expect(bearerCredential("sem prefixo")).toBeNull();
+    expect(bearerCredential(42)).toBeNull();
+    expect(isCredentialField("Authorization")).toBe(true);
+    expect(isCredentialField("api_key")).toBe(true);
+    expect(isCredentialField("DOCKER_HOST")).toBe(false);
+    expect(isEnvPlaceholder("${VAR}")).toBe(true);
+    expect(isEnvPlaceholder("$VAR")).toBe(true);
+    // O `$` e obrigatorio: sem ele um token em snake_case passaria por placeholder.
+    expect(isEnvPlaceholder("github_pat_11ABCDEFG0abcdefghijklmnop")).toBe(false);
+  });
+});
+
+describe("esquema do opencode (`mcp.servers`, `command` em array)", () => {
+  it("reprova runner sem pin no formato de array", () => {
+    const { findings, preconditions } = auditOpencodeConfig({
+      label: "opencode.json",
+      raw: JSON.stringify({
+        mcp: { servers: { svc: { type: "local", command: ["npx", "-y", "pkg@latest"] } } },
+      }),
+    });
+    expect(preconditions).toEqual([]);
+    expect(findings).toHaveLength(2);
+    expect(findings[0]).toContain("sem pin");
+    expect(findings[1]).toContain("sem `cwd`");
+  });
+
+  it("aprova a config real medida em 2026-10-17", () => {
+    const { findings, preconditions } = auditOpencodeConfig({
+      label: "opencode.json",
+      raw: JSON.stringify({
+        mcp: {
+          servers: {
+            MCP_DOCKER: {
+              type: "local",
+              command: ["docker", "mcp", "gateway", "run", "--profile", "p1"],
+              environment: { DOCKER_HOST: "unix:///home/u/.docker/desktop/docker.sock" },
+            },
+            vercel: { type: "remote", url: "https://mcp.vercel.com" },
+          },
+        },
+      }),
+    });
+    expect(findings).toEqual([]);
+    expect(preconditions).toEqual([]);
+  });
+
+  it("config sem `mcp.servers` e precondicao, nunca aprovacao por vacuidade", () => {
+    const { findings, preconditions } = auditOpencodeConfig({
+      label: "opencode.json",
+      raw: JSON.stringify({ mcpServers: {} }),
+    });
+    expect(findings).toEqual([]);
+    expect(preconditions).toHaveLength(1);
+    expect(preconditions[0]).toContain("mcp.servers");
+  });
+});
+
+describe("catalogo de sitios da maquina", () => {
+  // Este bloco e PURO de proposito: ele julga a FORMA do catalogo, nunca o
+  // estado do HOME de quem roda a suite. `npm run test` nao pode virar um gate
+  // que depende da maquina do contribuidor — o defeito que a guarda combate
+  // (config viva fora do repositorio) nao pode virar dependencia da suite.
+  it("cobre o cliente que de fato carrega MCP nesta maquina, com papel e formato", () => {
+    const sites = homeCatalog();
+    const paths = sites.map((s) => s.path);
+    expect(paths).toContain(
+      join(homedir(), ".cline", "data", "settings", "cline_mcp_settings.json"),
+    );
+    expect(paths).toContain(join(homedir(), ".pi", "agent", "mcp-adapter.json"));
+    // Formato desconhecido cairia no parser de YAML por omissao — que e o jeito
+    // silencioso de nao auditar nada. Todo sitio declara formato conhecido.
+    for (const site of sites) {
+      expect(["json", "opencode-json", "yaml-text"]).toContain(site.format);
+      expect((site.role ?? "").length).toBeGreaterThan(0);
+    }
+    expect(sites.length).toBeGreaterThanOrEqual(8);
   });
 });
