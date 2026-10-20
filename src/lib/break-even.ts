@@ -12,6 +12,7 @@
  * version registrada server-side no snapshot (INV-015).
  */
 import Decimal from "decimal.js";
+import { DECIMAL_ZERO } from "@/lib/decimal-constants";
 import {
   FINANCIAL_DECIMAL_POLICY,
   decimalStringSchema,
@@ -190,7 +191,7 @@ function sumFixedExpenses(values: string[]): {
   errors: BreakEvenServiceError[];
 } {
   const errors: BreakEvenServiceError[] = [];
-  let value = new Decimal(0);
+  let value = DECIMAL_ZERO;
   for (const [index, expense] of values.entries()) {
     try {
       value = value.plus(parseDecimal(expense, `fixedExpenses[${index}]`));
