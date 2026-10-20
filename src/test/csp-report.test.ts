@@ -100,6 +100,50 @@ describe("contrato do endpoint de violações de CSP (§20.1)", () => {
     ]);
   });
 
+  it("aceita o objeto do Reporting API que o WebKit envia sob `application/csp-report`", async () => {
+    const webkitBody = {
+      type: "csp-violation",
+      url: "https://app.example/produtos",
+      body: {
+        documentURL: "https://app.example/produtos",
+        disposition: "report",
+        effectiveDirective: "script-src-elem",
+        blockedURL: "inline",
+        originalPolicy: "default-src 'self'; script-src 'self'",
+        statusCode: 200,
+        sample: "",
+      },
+    };
+    const { status, records } = await ingest(post(JSON.stringify(webkitBody)));
+
+    expect(status).toBe(204);
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({
+      event: "csp.violation",
+      shape: "csp-report",
+      effectiveDirective: "script-src-elem",
+      blockedUri: "inline",
+      documentUri: "https://app.example/produtos",
+      disposition: "report",
+    });
+  });
+
+  it("aceita um único objeto do Reporting API sob `application/reports+json`", async () => {
+    const single = reportingBody[0];
+    const { status, records } = await ingest(
+      post(JSON.stringify(single), "application/reports+json"),
+    );
+
+    expect(status).toBe(204);
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({
+      event: "csp.violation",
+      shape: "reports+json",
+      effectiveDirective: "style-src",
+      blockedUri: "inline",
+    });
+  });
+
   it("aceita `application/reports+json` e ignora relatórios de outro tipo", async () => {
     const { status, records } = await ingest(
       post(JSON.stringify(reportingBody), "application/reports+json"),
