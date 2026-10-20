@@ -71,21 +71,37 @@ let emailAdapter: TransactionalEmailAdapter | undefined;
  * existe e está vazia. A taxonomia de presença é a de `authEnvPresence` — não
  * há detector paralelo.
  */
-function emailCredentialState(name: string): string | undefined {
-  const raw = process.env[name];
+function emailCredentialState(
+  name: string,
+  environment: Readonly<Record<string, string | undefined>>,
+): string | undefined {
+  const raw = environment[name];
   const presence = authEnvPresence(raw);
   if (presence === "present") return undefined;
   return `${name} (${presence === "absent" ? "ausente" : "definida e vazia"})`;
+}
+
+/**
+ * Nomes e estado das credenciais de e-mail que faltam, sem expor valores.
+ *
+ * Exportado para que o cadastro por e-mail possa falhar antes de criar o
+ * usuário quando a verificação não tem como ser entregue; `getEmailAdapter`
+ * continua sendo o guarda de última instância para os demais fluxos.
+ */
+export function missingEmailCredentials(
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): string[] {
+  return [
+    emailCredentialState("RESEND_API_KEY", environment),
+    emailCredentialState("AUTH_EMAIL_FROM", environment),
+  ].filter((entry): entry is string => entry !== undefined);
 }
 
 /** Par de credenciais de e-mail, ou o erro que nomeia o estado de cada uma. */
 function requireEmailCredentials(): { apiKey: string; from: string } {
   const apiKey = readEnv("RESEND_API_KEY");
   const from = readEnv("AUTH_EMAIL_FROM");
-  const missing = [
-    emailCredentialState("RESEND_API_KEY"),
-    emailCredentialState("AUTH_EMAIL_FROM"),
-  ].filter((entry): entry is string => entry !== undefined);
+  const missing = missingEmailCredentials();
   // `readEnv` e `authEnvPresence` classificam o MESMO valor com a MESMA regra
   // (ausente ou sem conteúdo ⇒ não configurada), então `missing` tem exatamente
   // um item por variável não utilizável e a mensagem nunca fica com a lista
