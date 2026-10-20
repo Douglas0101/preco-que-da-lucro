@@ -5,6 +5,9 @@ import { logJson } from "@/lib/structured-logger";
 interface SourceMessage {
   role: string;
   content: string;
+  /** Nome da tool por `id`, usado para saber o que foi REALMENTE registrado no turno. */
+  tool_calls?: Array<{ id: string; function: { name: string } }>;
+  tool_call_id?: string;
 }
 
 interface Figures {
@@ -13,10 +16,77 @@ interface Figures {
   invalid: number;
 }
 
+/**
+ * Sem registro nenhum no turno, a mensagem não pode afirmar que os dados foram
+ * salvos (DBT-127: a versão anterior dizia "continuam registrados" mesmo com
+ * `products=0`, e o cliente lia isso como confirmação).
+ */
 export const UNGROUNDED_FINANCIAL_REPLY =
   "Não posso apresentar valores calculados sem um resultado do motor financeiro. " +
-  "Os dados informados continuam registrados. Consulte Diagnóstico ou Simulações " +
-  "para ver os cálculos disponíveis e os dados que ainda faltam.";
+  "Nenhum dado foi registrado neste turno. Me diga o dado bruto (nome do produto, " +
+  "rendimento, custo do ingrediente ou preço) ou use o cadastro manual; consulte " +
+  "Diagnóstico ou Simulações para ver os cálculos disponíveis e os dados que ainda faltam.";
+
+/** Nome da tool → rótulo do que ela registrou. Sem números, por construção. */
+const TOOL_REGISTRATION_LABELS: Record<string, string> = {
+  create_product: "o produto",
+  add_ingredients: "os ingredientes",
+  set_ingredient_cost: "o custo do ingrediente",
+  set_yield: "o rendimento",
+  add_packaging: "a embalagem",
+  set_price_and_tax: "o preço e o imposto",
+  add_fee: "a taxa",
+  set_market_price: "o preço de mercado",
+  add_expense: "a despesa",
+  finish_product: "a conclusão do cadastro",
+};
+
+/** Parse único do resultado de tool: o catch registra (INV-013) e nunca engole em silêncio. */
+function parseToolResult(content: string): { ok: boolean; result?: unknown } {
+  try {
+    const result: unknown = JSON.parse(content);
+    if (result && typeof result === "object" && "ok" in result) {
+      return { ok: result.ok === true, result };
+    }
+    return { ok: false };
+  } catch {
+    logJson("warn", "ai.financial_source_invalid", { source: "tool", reason: "invalid_json" });
+    return { ok: false };
+  }
+}
+
+/** O que o turno registrou de fato: só tools com resultado `ok:true`. */
+function registeredLabels(messages: readonly SourceMessage[]): string[] {
+  const nameByCallId = new Map<string, string>();
+  for (const message of messages) {
+    for (const call of message.tool_calls ?? []) nameByCallId.set(call.id, call.function.name);
+  }
+  const labels: string[] = [];
+  for (const message of messages) {
+    if (message.role !== "tool" || !message.tool_call_id) continue;
+    if (!parseToolResult(message.content).ok) continue;
+    const name = nameByCallId.get(message.tool_call_id);
+    const label = name ? TOOL_REGISTRATION_LABELS[name] : undefined;
+    if (label && !labels.includes(label)) labels.push(label);
+  }
+  return labels;
+}
+
+/**
+ * Resposta substituta do bloqueio financeiro. Determinística, sem chamada extra
+ * ao modelo e **sem figuras**: confirma somente o que as tools registraram de
+ * fato e mantém o caminho vivo (próximo dado, cadastro manual, Diagnóstico).
+ */
+export function ungroundedFinancialReply(messages: readonly SourceMessage[]): string {
+  const labels = registeredLabels(messages);
+  if (labels.length === 0) return UNGROUNDED_FINANCIAL_REPLY;
+  return (
+    "Não posso apresentar valores calculados sem um resultado do motor financeiro, " +
+    `mas o registro foi feito: ${labels.join(", ")}. ` +
+    "Consulte Diagnóstico ou Simulações para ver os cálculos disponíveis e os dados que ainda faltam. " +
+    "Podemos seguir com o próximo dado que você tiver em mãos."
+  );
+}
 
 // Only explicit financial notation is evidence: dates, quantities and product
 // names such as "Pizza 05-10" cannot authorize a monetary figure of ten reais.
@@ -118,14 +188,8 @@ export function groundFinancialOutput(content: string, messages: readonly Source
       for (const value of source.money) allowed.money.add(value);
       for (const value of source.percent) allowed.percent.add(value);
     } else if (message.role === "tool") {
-      try {
-        const result: unknown = JSON.parse(message.content);
-        if (result && typeof result === "object" && "ok" in result && result.ok === true)
-          collectToolFigures(result, allowed);
-      } catch {
-        // No payload is logged: malformed tool text provides no evidence.
-        logJson("warn", "ai.financial_source_invalid", { source: "tool", reason: "invalid_json" });
-      }
+      const parsed = parseToolResult(message.content);
+      if (parsed.ok && parsed.result) collectToolFigures(parsed.result, allowed);
     }
   }
   const candidate = textFigures(content, "assistant");
@@ -136,7 +200,7 @@ export function groundFinancialOutput(content: string, messages: readonly Source
   const nonFinite = /\b(?:NaN|Infinity)\b|∞/i.test(financialVisibleText(content, "assistant"));
   const blocked = unsupported.length > 0 || candidate.invalid > 0 || nonFinite;
   return {
-    content: blocked ? UNGROUNDED_FINANCIAL_REPLY : content,
+    content: blocked ? ungroundedFinancialReply(messages) : content,
     blocked,
     unsupportedCount: unsupported.length + candidate.invalid + Number(nonFinite),
   };
