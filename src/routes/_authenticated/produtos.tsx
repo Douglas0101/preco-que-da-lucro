@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { PlusCircle, Trash2, MessageCircle, Package, Tag } from "lucide-react";
+import { PlusCircle, Trash2, MessageCircle, Package, Tag, Pencil } from "lucide-react";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/sonner";
@@ -108,6 +108,7 @@ function Produtos() {
           rows={rows}
           onRetry={() => void productsQuery.refetch()}
           onView={(id) => navigate({ to: "/diagnostico", search: { produto: id } })}
+          onCompose={(id) => navigate({ to: "/produtos/composicao", search: { produto: id } })}
           onDelete={setPendingDeleteId}
         />
       </div>
@@ -120,21 +121,25 @@ function Produtos() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir produto?</AlertDialogTitle>
+            {/* Honestidade: o servidor ARQUIVA (`archiveProduct` -> status 'archived'),
+                nao exclui. O texto anterior prometia exclusao permanente e irreversivel
+                — promessa que o comportamento nao cumpria (medido 2026-10-18). */}
+            <AlertDialogTitle>Arquivar produto?</AlertDialogTitle>
             <AlertDialogDescription>
-              O produto selecionado será excluído permanentemente. Esta ação não poderá ser
-              desfeita.
+              O produto sai do catálogo ativo. O histórico de vendas e simulações que o referencia é
+              preservado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            {/* Sem `variant="destructive"`: a acao e reversivel no dado (arquivo, nao
+                exclusao), e vermelho aqui seria a mentira inversa. */}
             <AlertDialogAction
-              variant="destructive"
               onClick={() => {
                 if (pendingDeleteId !== null) archiveProductMutation.mutate(pendingDeleteId);
               }}
             >
-              Excluir produto
+              Arquivar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -154,6 +159,7 @@ function ProductListContent({
   rows,
   onRetry,
   onView,
+  onCompose,
   onDelete,
 }: Readonly<{
   isPending: boolean;
@@ -161,6 +167,7 @@ function ProductListContent({
   rows: Row[];
   onRetry: () => void;
   onView: (id: string) => void;
+  onCompose: (id: string) => void;
   onDelete: (id: string) => void;
 }>) {
   if (isPending) return <ProdutosSkeleton />;
@@ -194,10 +201,7 @@ function ProductListContent({
   return (
     <div className="grid gap-3">
       {rows.map((row) => (
-        <Card
-          key={row.id}
-          className="transition hover:shadow-[var(--shadow-elevated)] motion-reduce:transition-none"
-        >
+        <Card key={row.id} className="lift hover:shadow-md">
           <CardContent className="flex flex-wrap items-center gap-4 p-5">
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
               <Package className="h-6 w-6" />
@@ -231,11 +235,26 @@ function ProductListContent({
               <Button variant="outline" size="sm" onClick={() => onView(row.id)}>
                 Ver
               </Button>
+              {/* Caminho manual de edicao da composicao: o mesmo dado que a IA edita
+                  no chat, sem depender do assistente (paridade exigida pelo dono). */}
               <Button
-                variant="ghost"
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                aria-label={`Editar composição de ${row.name}`}
+                onClick={() => onCompose(row.id)}
+              >
+                <Pencil className="h-4 w-4" /> Composição
+              </Button>
+              {/* `outline` em vez de `ghost`: com fundo e borda transparentes o controle
+                  parecia decoracao e nao se anunciava como acao (medido 2026-10-18:
+                  36x36, background e borderColor rgba(0,0,0,0)). O icone segue
+                  `destructive` e o aria-label nomeia a acao real (arquivar). */}
+              <Button
+                variant="outline"
                 size="icon"
                 onClick={() => onDelete(row.id)}
-                aria-label={`Excluir ${row.name}`}
+                aria-label={`Arquivar ${row.name}`}
               >
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>

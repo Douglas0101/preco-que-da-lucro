@@ -23,6 +23,7 @@ import { Route as AuthenticatedSimulacoesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedVendasRouteImport } from './routes/_authenticated/vendas'
 import { Route as ApiCspReportRouteImport } from './routes/api/csp-report'
 import { Route as ApiVitalsRouteImport } from './routes/api/vitals'
+import { Route as AuthenticatedProdutosComposicaoRouteImport } from './routes/_authenticated/produtos_.composicao'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiHealthLiveRouteImport } from './routes/api/health/live'
 import { Route as ApiHealthReadyRouteImport } from './routes/api/health/ready'
@@ -99,6 +100,12 @@ const ApiVitalsRoute = ApiVitalsRouteImport.update({
   path: '/api/vitals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedProdutosComposicaoRoute =
+  AuthenticatedProdutosComposicaoRouteImport.update({
+    id: '/produtos_/composicao',
+    path: '/produtos/composicao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -129,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/vendas': typeof AuthenticatedVendasRoute
   '/api/csp-report': typeof ApiCspReportRoute
   '/api/vitals': typeof ApiVitalsRoute
+  '/produtos/composicao': typeof AuthenticatedProdutosComposicaoRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
@@ -147,6 +155,7 @@ export interface FileRoutesByTo {
   '/vendas': typeof AuthenticatedVendasRoute
   '/api/csp-report': typeof ApiCspReportRoute
   '/api/vitals': typeof ApiVitalsRoute
+  '/produtos/composicao': typeof AuthenticatedProdutosComposicaoRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
@@ -167,6 +176,7 @@ export interface FileRoutesById {
   '/_authenticated/vendas': typeof AuthenticatedVendasRoute
   '/api/csp-report': typeof ApiCspReportRoute
   '/api/vitals': typeof ApiVitalsRoute
+  '/_authenticated/produtos_/composicao': typeof AuthenticatedProdutosComposicaoRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/health/live': typeof ApiHealthLiveRoute
   '/api/health/ready': typeof ApiHealthReadyRoute
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/vendas'
     | '/api/csp-report'
     | '/api/vitals'
+    | '/produtos/composicao'
     | '/api/auth/$'
     | '/api/health/live'
     | '/api/health/ready'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/vendas'
     | '/api/csp-report'
     | '/api/vitals'
+    | '/produtos/composicao'
     | '/api/auth/$'
     | '/api/health/live'
     | '/api/health/ready'
@@ -224,6 +236,7 @@ export interface FileRouteTypes {
     | '/_authenticated/vendas'
     | '/api/csp-report'
     | '/api/vitals'
+    | '/_authenticated/produtos_/composicao'
     | '/api/auth/$'
     | '/api/health/live'
     | '/api/health/ready'
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVitalsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/produtos_/composicao': {
+      id: '/_authenticated/produtos_/composicao'
+      path: '/produtos/composicao'
+      fullPath: '/produtos/composicao'
+      preLoaderRoute: typeof AuthenticatedProdutosComposicaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -374,6 +394,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProdutosRoute: typeof AuthenticatedProdutosRoute
   AuthenticatedSimulacoesRoute: typeof AuthenticatedSimulacoesRoute
   AuthenticatedVendasRoute: typeof AuthenticatedVendasRoute
+  AuthenticatedProdutosComposicaoRoute: typeof AuthenticatedProdutosComposicaoRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -386,6 +407,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProdutosRoute: AuthenticatedProdutosRoute,
   AuthenticatedSimulacoesRoute: AuthenticatedSimulacoesRoute,
   AuthenticatedVendasRoute: AuthenticatedVendasRoute,
+  AuthenticatedProdutosComposicaoRoute: AuthenticatedProdutosComposicaoRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
