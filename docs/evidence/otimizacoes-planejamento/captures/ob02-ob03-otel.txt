@@ -23,3 +23,9 @@ $ OTEL_EXPORTER_OTLP_ENDPOINT= npx tsx .artifacts/ob02-boot.ts
     "exportTimeoutMillis": 5000
   }
 }
+
+$ OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:9 npx tsx .artifacts/otel-smoke.mts
+started=true
+flushed
+(exit 0: inicialização e dreno do NodeSDK com BatchSpanProcessor; endpoint loopback
+sem coletor — valida o caminho de runtime, não a entrega remota)
