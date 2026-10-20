@@ -1,0 +1,134 @@
+import { createRequire } from 'node:module';
+import { readFileSync, writeFileSync } from 'node:fs';
+const REPO = '/home/douglas/WebstormProjects/preco-que-da-lucro';
+const require = createRequire(`${REPO}/package.json`);
+const { chromium } = require('playwright-core');
+const BASE = 'http://127.0.0.1:4173';
+const creds = {};
+for (const l of readFileSync(`${REPO}/.artifacts/e2e-local.env`, 'utf8').split('\n')) { const i = l.indexOf('='); if (i > 0) creds[l.slice(0, i)] = l.slice(i + 1); }
+
+const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const ctx = await browser.newContext({ baseURL: BASE, extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.10' } });
+const page = await ctx.newPage();
+const log = {};
+const ck = async () => (await ctx.cookies([BASE])).map((c) => ({ name: c.name, domain: c.domain, path: c.path, secure: c.secure, httpOnly: c.httpOnly, sameSite: c.sameSite, expires: c.expires }));
+
+await page.goto(`${BASE}/auth`, { waitUntil: 'domcontentloaded' });
+await page.getByLabel(/e-?mail/i).first().fill(creds.E2E_AUTH_EMAIL);
+await page.getByLabel(/senha/i).first().fill(creds.E2E_AUTH_PASSWORD);
+await page.getByRole('button', { name: /entrar|acessar|continuar com e-?mail/i }).first().click();
+await page.waitForTimeout(2500);
+log.urlAposLogin = page.url();
+log.cookiesAposLogin = await ck();
+
+// a sessao vale para o servidor?
+const s1 = await page.request.get(`${BASE}/api/auth/get-session`);
+log.getSessionAposLogin = s1.status();
+log.getSessionCorpo = (await s1.text().catch(() => '')).slice(0, 80);
+
+// e depois de um reload?
+await page.goto(`${BASE}/inicio`, { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(1500);
+log.urlAposInicio = page.url();
+log.cookiesAposInicio = await ck();
+const s2 = await page.request.get(`${BASE}/api/auth/get-session`);
+log.getSessionAposInicio = s2.status();
+
+// e sem cookie nenhum, o proprio /inicio responde o que?
+const s3 = await page.request.get(`${BASE}/inicio`, { maxRedirects: 0 });
+log.inicioSemCookies = s3.status();
+
+await ctx.storageState({ path: `${REPO}/.artifacts/cu/probe-storage.json` });
+const st = JSON.parse(readFileSync(`${REPO}/.artifacts/cu/probe-storage.json`, 'utf8'));
+log.storageState = { cookies: st.cookies.map((c) => c.name), origins: st.origins.length };
+
+console.log(JSON.stringify(log, null, 1));
+await browser.close();
+
+
+=== probe-login-2.mjs ===
+import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+const REPO = '/home/douglas/WebstormProjects/preco-que-da-lucro';
+const require = createRequire(`${REPO}/package.json`);
+const { chromium, request } = require('playwright-core');
+const BASE = 'http://127.0.0.1:4173';
+const creds = {};
+for (const l of readFileSync(`${REPO}/.artifacts/e2e-local.env`, 'utf8').split('\n')) { const i = l.indexOf('='); if (i > 0) creds[l.slice(0, i)] = l.slice(i + 1); }
+
+// --- via 1: API (como o global-setup da suite)
+const api = await request.newContext({ baseURL: BASE, extraHTTPHeaders: { origin: BASE, 'x-forwarded-for': '198.51.100.10' } });
+const res = await api.post('/api/auth/sign-in/email', { data: { email: creds.E2E_AUTH_EMAIL, password: creds.E2E_AUTH_PASSWORD } });
+console.log('API sign-in status:', res.status(), '| corpo:', (await res.text().catch(() => '')).slice(0, 100));
+const apiCookies = (await api.storageState()).cookies;
+console.log('API cookies:', apiCookies.map((c) => `${c.name}(secure=${c.secure},httpOnly=${c.httpOnly},expires=${c.expires})`).join(' ') || 'NENHUM');
+const gs = await api.get('/api/auth/get-session');
+console.log('API get-session:', gs.status(), (await gs.text().catch(() => '')).slice(0, 60));
+await api.dispose();
+
+// --- via 2: UI, com dump do formulario
+const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const ctx = await browser.newContext({ baseURL: BASE, extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.10' } });
+const page = await ctx.newPage();
+const posts = [];
+page.on('response', (r) => { if (r.request().method() === 'POST') posts.push({ url: r.url().replace(BASE, ''), status: r.status() }); });
+await page.goto(`${BASE}/auth`, { waitUntil: 'networkidle' });
+const buttons = await page.getByRole('button').allTextContents();
+console.log('botoes na pagina:', JSON.stringify(buttons.map((b) => b.trim()).slice(0, 6)));
+const forms = await page.locator('form').count();
+console.log('forms:', forms);
+await page.getByLabel(/e-?mail/i).first().fill(creds.E2E_AUTH_EMAIL);
+await page.getByLabel(/senha/i).first().fill(creds.E2E_AUTH_PASSWORD);
+const target = page.getByRole('button', { name: /entrar|acessar|continuar com e-?mail/i }).first();
+console.log('botao alvo visivel:', await target.isVisible().catch(() => false), '| habilitado:', await target.isEnabled().catch(() => false));
+await target.click();
+await page.waitForTimeout(3000);
+console.log('POSTs observados:', JSON.stringify(posts));
+console.log('url final:', page.url());
+console.log('cookies finais:', (await ctx.cookies([BASE])).map((c) => c.name).join(',') || 'NENHUM');
+const alerta = await page.locator('[role=alert], .text-destructive, [data-sonner-toast]').allTextContents().catch(() => []);
+console.log('mensagens de erro na tela:', JSON.stringify(alerta.map((a) => a.trim()).slice(0, 3)));
+await browser.close();
+
+
+=== probe-sessao-2.mjs ===
+import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+const REPO = '/home/douglas/WebstormProjects/preco-que-da-lucro';
+const require = createRequire(`${REPO}/package.json`);
+const { chromium, request } = require('playwright-core');
+const BASE = 'http://127.0.0.1:4173';
+const creds = {};
+for (const l of readFileSync(`${REPO}/.artifacts/e2e-local.env`, 'utf8').split('\n')) { const i = l.indexOf('='); if (i > 0) creds[l.slice(0, i)] = l.slice(i + 1); }
+
+const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const ctx = await browser.newContext({ baseURL: BASE, extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.10' } });
+const page = await ctx.newPage();
+const estado = async (rotulo) => {
+  const cookies = (await ctx.cookies([BASE])).map((c) => c.name);
+  const el = await page.locator('body').innerText().catch(() => '');
+  console.log(JSON.stringify({ rotulo, url: new URL(page.url()).pathname, cookies, emailVisivel: el.includes('teste@example.test'), h1: (await page.locator('h1, h2').first().textContent().catch(() => null))?.trim().slice(0, 40) }));
+};
+
+// login pela API, como o driver faz
+const api = await request.newContext({ baseURL: BASE, extraHTTPHeaders: { origin: BASE, 'x-forwarded-for': '198.51.100.10' } });
+const res = await api.post('/api/auth/sign-in/email', { data: { email: creds.E2E_AUTH_EMAIL, password: creds.E2E_AUTH_PASSWORD } });
+const st = await api.storageState();
+console.log('API sign-in:', res.status(), '| cookies:', st.cookies.map((c) => `${c.name}(secure=${c.secure})`).join(','));
+await ctx.addCookies(st.cookies);
+await estado('apos addCookies');
+
+await page.goto(`${BASE}/inicio`, { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(2500);
+await estado('apos goto /inicio + 2.5s');
+
+await page.reload({ waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(2000);
+await estado('apos reload');
+
+await page.goto(`${BASE}/produtos`, { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(2500);
+await estado('apos goto /produtos + 2.5s');
+
+await api.dispose();
+await browser.close();

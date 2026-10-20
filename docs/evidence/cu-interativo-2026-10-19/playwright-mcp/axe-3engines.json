@@ -1,0 +1,29 @@
+[
+ {
+  "engine": "chromium",
+  "version": "151.0.7922.34",
+  "realColor": "rgb(108,108,119)",
+  "realRatio": 5.19,
+  "axeBlockingCount": 0,
+  "axeReported": [],
+  "axeRatios": []
+ },
+ {
+  "engine": "firefox",
+  "version": "153.0",
+  "realColor": "rgb(108,108,119)",
+  "realRatio": 5.19,
+  "axeBlockingCount": 0,
+  "axeReported": [],
+  "axeRatios": []
+ },
+ {
+  "engine": "webkit",
+  "version": "26.5",
+  "realColor": "rgb(108,108,119)",
+  "realRatio": 5.19,
+  "axeBlockingCount": 0,
+  "axeReported": [],
+  "axeRatios": []
+ }
+]

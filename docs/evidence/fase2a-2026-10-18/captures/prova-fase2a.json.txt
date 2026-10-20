@@ -1,0 +1,137 @@
+{
+ "passo0": {
+  "botaoAriaLabel": "Editar composição de Produto de teste",
+  "h1AposClique": "Composição do produto",
+  "h1DoPaiPresente": 0,
+  "urlAposClique": "/produtos/composicao?produto=00000000-0000-4000-8000-000000000010",
+  "produtoIdValido": true,
+  "h1DeepLink": "Composição do produto",
+  "h1DoPaiNoDeepLink": 0
+ },
+ "affordance": {
+  "adicionar": {
+   "ariaLabel": null,
+   "fundo": "oklch(1 0 0)",
+   "borda": "oklch(0.92 0.004 286.32)",
+   "recipiente": true,
+   "tamanho": "434x32"
+  },
+  "remover": {
+   "ariaLabel": "Remover embalagem Embalagem",
+   "fundo": "oklch(1 0 0)",
+   "borda": "oklch(0.92 0.004 286.32)",
+   "recipiente": true,
+   "tamanho": "36x36",
+   "focoViaTeclado": true
+  },
+  "editar": {
+   "ariaLabel": "Editar embalagem Embalagem",
+   "fundo": "oklch(1 0 0)",
+   "borda": "oklch(0.92 0.004 286.32)",
+   "recipiente": true,
+   "tamanho": "89x32"
+  },
+  "removerIngrediente": {
+   "ariaLabel": "Remover ingrediente Ingrediente probe",
+   "fundo": "oklch(1 0 0)",
+   "borda": "oklch(0.92 0.004 286.32)",
+   "recipiente": true,
+   "tamanho": "36x36",
+   "focoViaTeclado": true
+  }
+ },
+ "paridade": {
+  "antes": {
+   "yield_qty": "10.000000",
+   "version": "9",
+   "ingredientes": "0",
+   "embalagens": "1",
+   "taxas": "1"
+  },
+  "depoisDoRendimento": {
+   "yield_qty": "20.000000",
+   "version": "10"
+  },
+  "depoisDoCusto": {
+   "ingredientes": "1",
+   "historico": "1",
+   "linhas": "Ingrediente com historico 50.000000 @20.0000"
+  },
+  "depoisDoIngredienteSemPreco": {
+   "ingredientes": "2"
+  },
+  "depoisDeEmbalagemETaxa": {
+   "embalagens": "2",
+   "taxas": "2",
+   "detalhe": "pkg:Embalagem probe|30.0000"
+  }
+ },
+ "guarda": {
+  "dialogo": {
+   "titulo": "Remover Ingrediente com historico?",
+   "corpo": "A remoção é definitiva e não pode ser desfeita. Se houver histórico de preços ou outro registro ligado a este item, o servidor recusa e nada é apagado.",
+   "botoes": [
+    "Cancelar",
+    "Remover"
+   ],
+   "acaoDestructive": 2
+  },
+  "recusa": {
+   "ingredientesAntes": "2",
+   "ingredientesDepois": "2",
+   "historicoIntacto": "1",
+   "avisosNaTela": [
+    "Não foi possível concluir a solicitação."
+   ],
+   "eventosDuranteAGuarda": [
+    "http 409 /_serverFn/596f9ac87aa22d05aa3084895c0325e70959c12f1cc98d9ab",
+    "console: Failed to load resource: the server responded with a status of 409 ()"
+   ]
+  },
+  "esc": {
+   "fechou": true,
+   "focoVoltouAoGatilho": true
+  }
+ },
+ "efeitoCusto": {
+  "comRendimento20": {
+   "custo": "Custo: R$ 10,05 · Preço: R$ 20,00 · Margem: 34,75%",
+   "dadosIncompletos": 0
+  },
+  "comRendimento10": {
+   "custo": "Custo: R$ 10,10 · Preço: R$ 20,00 · Margem: 34,50%",
+   "dadosIncompletos": 0
+  },
+  "yieldRestaurado": "10.000000"
+ },
+ "limpeza": {
+  "aposApagarIngrediente": "1",
+  "depoisDeApagar": {
+   "embalagens": "2",
+   "taxas": "1",
+   "embalagemProbeAindaExiste": "1"
+  },
+  "estadoFinal": {
+   "ingredientes": "0",
+   "embalagens": "1",
+   "taxas": "1",
+   "yield_qty": "10.000000"
+  }
+ },
+ "errosConsoleERede": [
+  "http 409 /_serverFn/596f9ac87aa22d05aa3084895c0325e70959c12f1cc98d9ab",
+  "console: Failed to load resource: the server responded with a status of 409 ()",
+  "http 409 /_serverFn/b109ceabad18148f62fdef5b92efa95105f8cfeffc8ccce32",
+  "console: Failed to load resource: the server responded with a status of 409 ()"
+ ],
+ "envelopesDeErro": [
+  {
+   "status": 409,
+   "corpo": "{\"ok\":false,\"error\":{\"code\":\"CONFLICT\",\"message\":\"A operação conflita com o estado atual.\",\"retryable\":false,\"correlationId\":\"c1666399-1ee0-4cde-9fec-7613ca0d814d\"}}"
+  },
+  {
+   "status": 409,
+   "corpo": "{\"ok\":false,\"error\":{\"code\":\"CONFLICT\",\"message\":\"A operação conflita com o estado atual.\",\"retryable\":false,\"correlationId\":\"6917cd1b-81dd-40d4-865c-4ddd9a3dbb33\"}}"
+  }
+ ]
+}

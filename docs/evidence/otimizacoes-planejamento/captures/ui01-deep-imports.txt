@@ -1,0 +1,13 @@
+# UI-01 — anti-barrel (2026-10-20)
+$ find src/components -name 'index.ts*'
+(vazio = nenhum barrel)
+
+$ grep -rn 'from "@/components/ui"' src
+(vazio = nenhum import de barrel)
+
+Regra ESLint vigente (eslint.config.js):
+86:              name: "@/components/ui",
+87-              message:
+88-                "No barrel imports: import each primitive by its own module (UI-01), e.g. @/components/ui/button.",
+89-            },
+90-            {

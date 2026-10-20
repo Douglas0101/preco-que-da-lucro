@@ -1,0 +1,28 @@
+{
+  "note": "microbenchmark local de 200k iterações; mede apenas a alocação inicial do acumulador, não o custo dominante de plus()",
+  "n": 200000,
+  "samplesMs": [
+    {
+      "shared": 34.558681999999976,
+      "fresh": 29.410563000000025
+    },
+    {
+      "shared": 27.90733799999998,
+      "fresh": 27.149929999999983
+    },
+    {
+      "shared": 28.475054999999998,
+      "fresh": 27.983520999999996
+    },
+    {
+      "shared": 31.674558999999988,
+      "fresh": 28.372293000000013
+    },
+    {
+      "shared": 28.840479000000016,
+      "fresh": 30.45653199999998
+    }
+  ],
+  "medianSharedMs": 28.840479000000016,
+  "medianFreshMs": 28.372293000000013
+}

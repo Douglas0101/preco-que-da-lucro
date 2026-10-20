@@ -1,0 +1,43 @@
+# ARQUIVOS QUE ESTE REPARO TOCOU (estado FINAL, 2026-10-17T05:5xZ)
+# o WIP alheio (frontend/auth/shadcn) que ja estava na arvore NAO foi tocado
+
+$ git status --porcelain (recorte do reparo)
+ M .github/workflows/ui-stack.yml
+ M AGENTS.md
+ M docs/evidence/agent-state/DEBTS.md
+ M docs/evidence/agent-state/PROGRESS.md
+ M docs/runbooks/mcp-relaunch.md
+ M scripts/check-ui-stack.mjs
+ M scripts/mcp-runtime-guard.ts
+ M src/test/mcp-runtime-guard.test.ts
+ M src/test/ui-stack.test.tsx
+?? docs/evidence/mcp-repair-2026-10-17/
+
+$ git diff --stat dos arquivos do reparo
+ .github/workflows/ui-stack.yml        |   8 +
+ AGENTS.md                             |  17 +-
+ docs/evidence/agent-state/DEBTS.md    |   5 +
+ docs/evidence/agent-state/PROGRESS.md |  15 ++
+ docs/runbooks/mcp-relaunch.md         |  87 ++++++++-
+ scripts/mcp-runtime-guard.ts          | 326 +++++++++++++++++++++++++++++-----
+ src/test/mcp-runtime-guard.test.ts    | 198 ++++++++++++++++++++-
+ 7 files changed, 600 insertions(+), 56 deletions(-)
+
+$ git status --porcelain (contagem total da arvore, para contexto)
+40
+
+# pacote de evidencia (novo, nao rastreado)
+docs/evidence/mcp-repair-2026-10-17/captures/01-guard-home-antes.txt
+docs/evidence/mcp-repair-2026-10-17/captures/02-sonda-http.txt
+docs/evidence/mcp-repair-2026-10-17/captures/03-aikido-controle-negativo.txt
+docs/evidence/mcp-repair-2026-10-17/captures/04-cliente-log-falhas.txt
+docs/evidence/mcp-repair-2026-10-17/captures/05-config-diff.txt
+docs/evidence/mcp-repair-2026-10-17/captures/06-guard-depois.txt
+docs/evidence/mcp-repair-2026-10-17/captures/07-aikido-positivo.txt
+docs/evidence/mcp-repair-2026-10-17/captures/08-guarda-classe-antes-depois.txt
+docs/evidence/mcp-repair-2026-10-17/captures/09-invariantes-manifestos.txt
+docs/evidence/mcp-repair-2026-10-17/captures/10-testes.txt
+docs/evidence/mcp-repair-2026-10-17/captures/11-arquivos-tocados.txt
+docs/evidence/mcp-repair-2026-10-17/captures/12-gate-local.txt
+docs/evidence/mcp-repair-2026-10-17/MANIFEST.sha256
+docs/evidence/mcp-repair-2026-10-17/REPORT.md

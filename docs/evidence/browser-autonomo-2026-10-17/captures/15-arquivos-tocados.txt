@@ -1,0 +1,12 @@
+ARQUIVOS PRODUZIDOS (todos fora do Git, em .artifacts/)
+.artifacts/bench-preview.sh          bancada de preview :4173
+.artifacts/bench-browser.mjs         driver CDP (lancamento, login, walk, passos, veredito)
+.artifacts/e2e-local.env             credenciais de bancada (modo 600, gitignored)
+.artifacts/e2e-auth.json             storageState da suite, reutilizado pelo driver
+.artifacts/cu/*.json                 relatorios brutos das rodadas 06..19 + negativos
+.artifacts/cu/cu-19.png              captura final (1440x900, sessao autenticada)
+.artifacts/cu/*.mjs                  sondas (probe-sessao, probe-login-2, probe-sessao-2, summarize)
+.artifacts/README-BANCADA-BROWSER.md metodo e limites
+
+ARQUIVOS DESTE PACOTE
+SPEC.md README.md MANIFEST.sha256 captures/01..15

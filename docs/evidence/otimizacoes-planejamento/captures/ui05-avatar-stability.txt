@@ -1,0 +1,6 @@
+# UI-05 — Avatar (2026-10-20)
+$ grep -rni 'avatar' src | wc -l
+0
+(0 = não existe primitivo Avatar nem imagem de avatar no header autenticado; keepMounted é N/A)
+
+$ grep -rn 'keepMounted' src/components/ui

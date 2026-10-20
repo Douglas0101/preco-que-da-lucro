@@ -1,0 +1,71 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - button [expanded] [ref=e49] [cursor=pointer]:
+            - img
+          - link [ref=e50] [cursor=pointer]:
+            - /url: /inicio
+            - img [ref=e8]
+            - generic [ref=e11]: Preço que Dá Lucro
+        - button [ref=e51] [cursor=pointer]:
+          - img
+    - main [ref=e36]:
+      - alert [ref=e44]:
+        - generic [ref=e45]:
+          - paragraph [ref=e46]: Não foi possível carregar o resumo financeiro.
+          - paragraph [ref=e47]: "Referência de atendimento: DASH-959CEBC6"
+          - button [ref=e52] [cursor=pointer]: Tentar novamente
+  - region "Notifications alt+T"
+  - dialog "Menu principal" [ref=e56]:
+    - generic [ref=e57]:
+      - heading "Menu principal" [level=2]
+      - paragraph: Navegação principal do aplicativo.
+    - generic [ref=e58]:
+      - link "Preço que Dá Lucro seu consultor financeiro" [active] [ref=e59] [cursor=pointer]:
+        - /url: /inicio
+        - img [ref=e61]
+        - generic [ref=e64]:
+          - generic [ref=e65]: Preço que Dá Lucro
+          - generic [ref=e66]: seu consultor financeiro
+      - navigation "Menu principal" [ref=e67]:
+        - link "Início" [ref=e68] [cursor=pointer]:
+          - /url: /inicio
+          - img [ref=e69]
+          - generic [ref=e72]: Início
+        - link "Meus Produtos" [ref=e74] [cursor=pointer]:
+          - /url: /produtos
+          - img [ref=e75]
+          - generic [ref=e79]: Meus Produtos
+        - link "Novo Produto" [ref=e80] [cursor=pointer]:
+          - /url: /novo-produto
+          - img [ref=e81]
+          - generic [ref=e83]: Novo Produto
+        - link "Preços de Compra" [ref=e84] [cursor=pointer]:
+          - /url: /precos
+          - img [ref=e85]
+          - generic [ref=e88]: Preços de Compra
+        - link "Minhas Despesas" [ref=e89] [cursor=pointer]:
+          - /url: /despesas
+          - img [ref=e90]
+          - generic [ref=e93]: Minhas Despesas
+        - link "Vendas" [ref=e94] [cursor=pointer]:
+          - /url: /vendas
+          - img [ref=e95]
+          - generic [ref=e98]: Vendas
+        - link "Ponto de Equilíbrio" [ref=e99] [cursor=pointer]:
+          - /url: /ponto-equilibrio
+          - img [ref=e100]
+          - generic [ref=e104]: Ponto de Equilíbrio
+        - link "Simulações" [ref=e105] [cursor=pointer]:
+          - /url: /simulacoes
+          - img [ref=e106]
+          - generic [ref=e109]: Simulações
+        - link "Diagnóstico" [ref=e110] [cursor=pointer]:
+          - /url: /diagnostico
+          - img [ref=e111]
+          - generic [ref=e115]: Diagnóstico
+    - button "Close" [ref=e116] [cursor=pointer]:
+      - img
+      - generic [ref=e117]: Close

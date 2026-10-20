@@ -1,0 +1,68 @@
+# EVIDENCIA PRIMARIA — a medicao do proprio cliente (Cline CLI), janela 2026-10-17T05:17-05:25Z
+# arquivo: ~/.cline/data/logs/cline.log
+# POLITICA: `code_challenge` e `state` do fluxo PKCE foram recortados na transcricao (nao sao credenciais,
+# mas sao valores de uso unico do fluxo e nao acrescentam nada a prova). Nenhum valor de credencial aparece.
+
+>>> 2026-10-17T05:17:49.702Z
+[mcp] Failed to load tools from MCP server "vercel", skipping: MCP server "vercel" requires OAuth authorization. Run authorizeMcpServerOAuth for this server.
+
+>>> 2026-10-17T05:17:49.702Z
+[mcp] Failed to load tools from MCP server "aikido", skipping: MCP server "aikido" failed to initialize. Newline-delimited attempt: MCP process exited for "aikido" (code=254, signal=null). stderr: npm error code ENOENT
+npm error syscall open
+npm error path /home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: /home/douglas/.npm/_logs/2026-10-17T05_17_47_734Z-debug-0.log Content-Length framed attempt: MCP process exited for "aikido" (code=254, signal=null). stderr: npm error code ENOENT
+npm error syscall open
+npm error path /home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json'
+npm error enoent This is related to npm
+
+>>> 2026-10-17T05:17:49.702Z
+[mcp] Failed to load tools from MCP server "amplitude", skipping: MCP server "amplitude" requires OAuth authorization. Run authorizeMcpServerOAuth for this server and complete this URL: https://mcp.amplitude.com/authorize?response_type=code&client_id=fd098cc1-a90b-4dab-a3d6-89bf4a7cc444&code_challenge=<recortado>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A1456%2Fmcp%2Foauth%2Fcallback&state=<recortado>&scope=all%3Aread+all%3Awrite&resource=https%3A%2F%2Fmcp.amplitude.com%2F
+
+>>> 2026-10-17T05:23:19.396Z
+[mcp] Failed to load tools from MCP server "vercel", skipping: MCP server "vercel" requires OAuth authorization. Run authorizeMcpServerOAuth for this server.
+
+>>> 2026-10-17T05:23:19.396Z
+[mcp] Failed to load tools from MCP server "aikido", skipping: MCP server "aikido" failed to initialize. Newline-delimited attempt: MCP process exited for "aikido" (code=254, signal=null). stderr: npm error code ENOENT
+npm error syscall open
+npm error path /home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: /home/douglas/.npm/_logs/2026-10-17T05_23_17_029Z-debug-0.log Content-Length framed attempt: MCP process exited for "aikido" (code=254, signal=null). stderr: npm error code ENOENT
+npm error syscall open
+npm error path /home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json'
+npm error enoent This is related to npm
+
+>>> 2026-10-17T05:23:19.396Z
+[mcp] Failed to load tools from MCP server "amplitude", skipping: MCP server "amplitude" requires OAuth authorization. Run authorizeMcpServerOAuth for this server and complete this URL: https://mcp.amplitude.com/authorize?response_type=code&client_id=fd098cc1-a90b-4dab-a3d6-89bf4a7cc444&code_challenge=<recortado>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A1456%2Fmcp%2Foauth%2Fcallback&state=<recortado>&scope=all%3Aread+all%3Awrite&resource=https%3A%2F%2Fmcp.amplitude.com%2F
+
+>>> 2026-10-17T05:25:53.440Z
+[mcp] Failed to load tools from MCP server "vercel", skipping: MCP server "vercel" requires OAuth authorization. Run authorizeMcpServerOAuth for this server.
+
+>>> 2026-10-17T05:25:53.441Z
+[mcp] Failed to load tools from MCP server "aikido", skipping: MCP server "aikido" failed to initialize. Newline-delimited attempt: MCP process exited for "aikido" (code=254, signal=null). stderr: npm error code ENOENT
+npm error syscall open
+npm error path /home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: /home/douglas/.npm/_logs/2026-10-17T05_25_51_398Z-debug-0.log Content-Length framed attempt: MCP process exited for "aikido" (code=254, signal=null). stderr: npm error code ENOENT
+npm error syscall open
+npm error path /home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json'
+npm error enoent This is related to npm
+
+>>> 2026-10-17T05:25:53.441Z
+[mcp] Failed to load tools from MCP server "amplitude", skipping: MCP server "amplitude" requires OAuth authorization. Run authorizeMcpServerOAuth for this server and complete this URL: https://mcp.amplitude.com/authorize?response_type=code&client_id=fd098cc1-a90b-4dab-a3d6-89bf4a7cc444&code_challenge=<recortado>&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A1456%2Fmcp%2Foauth%2Fcallback&state=<recortado>&scope=all%3Aread+all%3Awrite&resource=https%3A%2F%2Fmcp.amplitude.com%2F
+

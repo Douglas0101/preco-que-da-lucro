@@ -1,0 +1,14 @@
+# sonda HTTP independente das superficies MCP — 2026-10-17 (mesma janela do reparo)
+# metodo: POST JSON-RPC initialize SEM enviar credencial nenhuma (o 200 nao e prova de autenticacao; o 401 e prova de recusa)
+MCP_DOCKER (gateway systemd)   http=401 auth=sem credencial enviada www-authenticate=Bearer realm="MCP Gateway"
+   Unauthorized 
+dhi                            http=200 auth=sem credencial www-authenticate=-
+   event: message data: {"jsonrpc":"2.0","id":1,"result":{"capabilities":{"logging":{},"tools":{"listChanged":tru
+context7                       http=200 auth=sem credencial www-authenticate=-
+   event: message data: {"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{"listChanged":false},"
+neon                           http=401 auth=sem credencial www-authenticate=Bearer error="invalid_token", error_description="No authorization prov
+   {"error":"invalid_token","error_description":"No authorization provided"}
+vercel                         http=401 auth=sem credencial www-authenticate=Bearer error="invalid_token", error_description="No authorization prov
+   {"error":"invalid_token","error_description":"No authorization provided"}
+amplitude                      http=401 auth=sem credencial www-authenticate=Bearer realm="OAuth", resource_metadata="https://mcp.amplitude.com/.we
+   {"error":"invalid_request","error_description":"Missing authorization header"}

@@ -1,0 +1,57 @@
+DEFEITO MEDIDO E CORRIGIDO — aviso de diagnostico incompleto (/diagnostico)
+Relato do dono: "na sessao de diagnostico, notei sobreposicao" (apontou o card
+"O diagnostico do preco atual esta incompleto, mas os custos conhecidos e a
+referencia de mercado continuam disponiveis abaixo").
+
+MEDICAO ANTES (viewport 1920x1080, produto "Produto incompleto E2E")
+  OUTPUT.rounded-xl.border.p-4   y=362..418 (h=56)   background = rgba(0,0,0,0)
+  card seguinte ("Premissas...")  y=402
+  gapAteProximo        = -16px   (o card comeca DENTRO da faixa do aviso)
+  ultima linha de texto = y 379..401
+  folga ate a borda do card = 1px
+  => o aviso nao tem fundo e a borda do card seguinte atravessa a faixa dele;
+     a 1px da base do texto, qualquer diferenca de renderizacao de fonte encosta.
+
+CAUSA-RAIZ (provada por experimento dentro da pagina, nao por leitura de codigo)
+  `<output>` tem `display: inline` por padrao do navegador => margens VERTICAIS sao
+  ignoradas; `space-y-6` do pai nunca produziu a folga antes do proximo bloco.
+  Testes decisivos:
+    margin-bottom: 200px no aviso  -> cardTop = 402   (NADA: inline ignora)
+    margin-top:    50px no aviso   -> aviso nao se move (inline)
+    margin-top:   200px no card    -> cardTop = 602   (o card obedece: +200)
+  Confirmacao adicional: `--spacing` = .25rem (correto) e a regra de `space-y-6`
+  existe no CSS construido; o problema era o tipo de caixa do proprio `<output>`.
+
+CORRECAO (1 linha + comentario, em src/routes/_authenticated/diagnostico.tsx:230)
+  <output className="mb-6 block rounded-xl border bg-muted/40 p-4 text-muted-foreground">
+  - `block` corrige a causa (margens passam a valer);
+  - `bg-muted/40` e o segundo cinto: mesmo com geometria encostada, fundo transparente
+    era o que deixava a borda alheia visivel por cima da faixa do aviso.
+
+ACEITACAO — criterios PRE-REGISTRADOS no journal (L944) ANTES da edicao
+  (a) gapAteProximo >= 24px .......... ANTES -16px  ->  DEPOIS +24px   PASSA
+  (b) folga ate a borda > 8px ........ ANTES 1px    ->  DEPOIS 42px    PASSA
+  bordaDoCardCruzaOTexto ............. false -> false (agora com 42px de folga)
+  fundo .............................. transparente -> oklab(0.967 .. / 0.4) PASSA
+  (c) erros de console ............... 0 -> 0                          PASSA
+  (d) nada fora do aviso alterado .... diff com 2 hunks: `@@ -197` e WIP ALHEIO
+      pre-existente (onValueChange), preservado byte a byte; `@@ -230` e a correcao.
+
+ERRATA DO AUTOR (registrada, nao apagada)
+  - Duas medicoes anteriores minhas concluiram "nao ha sobreposicao": a primeira olhou
+    o topo da pagina com OUTRO produto selecionado (o aviso so existe com
+    "Produto incompleto E2E"); a segunda usou caixas de ELEMENTO, que supercontam.
+    O detector correto usa caixas de LINHA de texto (Range.getClientRects).
+  - A primeira tentativa de correcao foi `bg-muted/40` sozinho: nao passou no criterio
+    (a) e eu reportei a falha em vez de declarar sucesso. A segunda (`+ mb-6`) tambem
+    nao passou — foi o que revelou o `display: inline`.
+  - Um probe meu subiu a hierarquia ate `<html>` e outro casou o proprio shell do
+    comando; ambos foram descartados e corrigidos, nao "ajustados" ate dar verde.
+
+LIMITES DECLARADOS
+  - A varredura de colisao de linhas de texto ainda acusa interseccoes quando o conteudo
+    esta rolado sob a barra sticky (que e translucida, z-40, backdrop-blur): e o efeito
+    de vidro desenhado, com a nav por cima e clicavel (elementFromPoint devolve a nav).
+  - Zoom do navegador nao altera a geometria CSS (medido em 1.00/1.10/1.25/1.50 via
+    Emulation.setPageScaleFactor); a diferenca que o dono via vem de renderizacao de
+    fonte/DSF da maquina dele, e e justamente o que a folga de 1px nao perdoava.

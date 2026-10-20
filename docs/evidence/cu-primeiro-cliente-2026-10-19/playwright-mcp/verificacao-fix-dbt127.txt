@@ -1,0 +1,40 @@
+# Verificação AO VIVO do conserto do DBT-127 — 2026-10-19
+# Contexto: build novo (npm run build exit 0) + preview ao vivo reiniciado; mesmo cliente novo
+#   (cliente.novo+1792383572814@example.test, tenant f82b69c6-...), banco LOCAL.
+
+## ANTES do conserto (medido 04:24:19Z, turno 2)
+mensagem: "O nome e Bolo de Cenoura. Rendimento: 12 fatias. Ingredientes: R$ 18,50 no total.
+            Embalagem: R$ 2,00 por caixa. Preco de venda: R$ 8,00 por fatia."
+resposta: UNGROUNDED_FINANCIAL_REPLY ("... Os dados informados continuam registrados. ...")
+log: ai.financial_output_blocked, unsupportedCount=2
+banco: products=0, product_ingredients=0, product_packaging=0  -> NADA registrado, sem proxima pergunta
+
+## DEPOIS do conserto (turno novo, mesma conta, mesma natureza de mensagem)
+mensagem: "Vamos registrar agora: nome Bolo de Cenoura, rendimento 12 fatias, ingredientes
+            R$ 18,50, embalagem R$ 2,00, preco de venda R$ 8,00 por fatia."
+resposta: "Produto criado. Agora uma duvida importante sobre os ingredientes: voce disse
+            R$ 18,50 no total, sem detalhar item por item. Para o motor financeiro calcular o
+            custo por fatia, preciso registrar os ingredientes individualmente. Voce prefere:
+            1. Informar cada ingrediente com seu preco, ou 2. Registrar um item unico, por
+            exemplo \"Ingredientes do bolo\" com o total de R$ 18,50? Qual caminho seguimos?"
+log: ai.model_attempt x2 (rodada de tool + rodada final), ai.chat_completed x1,
+     **0 x ai.financial_output_blocked**
+banco: products -> "Bolo de Cenoura" (produto persistido no tenant do cliente)
+
+## Discriminador (o que mudou de fato)
+- a tool EXECUTOU (create_product) e o dado bruto foi persistido;
+- o modelo NAO calculou nada (nenhuma margem, nenhum total);
+- a resposta FAZ a proxima pergunta e oferece duas opcoes reais;
+- figuras exibidas = apenas as literais do usuario (permitidas pelo contrato).
+
+## Contrato preservado (provado por teste, nao por sorte)
+src/test/chat-financial-grounding-reply.test.ts (6 casos):
+  - sem registro -> "Nenhum dado foi registrado neste turno" (nunca "continuam registrados");
+  - com registro -> confirma por rotulo de entidade, sem numeros;
+  - tool com ok:false NAO conta como registro;
+  - a copy substituta nao contem R$ nem digito;
+  - par negativo: figura literal do usuario continua passando (nao bloqueia);
+  - o system prompt mantem a regra 9 (dado bruto antes de responder).
+
+## Custo real da janela
+turnos reais acumulados: 4 (1097 + 1234 + 940 + este)

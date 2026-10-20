@@ -1,0 +1,54 @@
+# GATE LOCAL — cadeia `npm run check` inteira, passo a passo (2026-10-17, apos o reparo)
+
+## passo 1 da cadeia: m02:lockfile-guard — VERMELHO, e o vermelho e PRE-EXISTENTE
+$ npm run m02:lockfile-guard
+      "id": "lock-sha256-head",
+  "reasons": [
+    "lock-sha256-head: lock do worktree a245989fd8c77b3aa4e75ef607e35fcf779575b7352eb3ae799c80b90dcdfb8f != HEAD 4ad2e2b85b470b4dbbf4ed6776838834de0f14dab0ef940817dbbb49943bfd70 (reescrito sem commit)"
+
+# Por que este vermelho NAO e deste reparo:
+#  (a) ele reprova pela comparacao `lock do worktree != lock do HEAD` — os dois manifestos estao
+#      MODIFICADOS na arvore e o reparo nao os escreveu (hashes identicos ao baseline de 05:31Z,
+#      ver 09-invariantes-manifestos.txt);
+#  (b) o diff e de frontend/shadcn, alheio a MCP:
+ 2 files changed, 2991 insertions(+), 74 deletions(-)
++    "@fontsource-variable/jetbrains-mono": "^5.3.0",
++    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
++    "@phosphor-icons/react": "^2.1.10",
++    "cn": "^0.4.0",
++    "next-themes": "^0.4.6",
++    "shadcn": "^4.22.0",
+#  (c) o estado ja existia ANTES desta sessao: o `git status` inicial (05:30Z) listava
+#      " M package.json" e " M package-lock.json" antes de qualquer mutacao;
+#  (d) o remedio que o proprio guard sugere (`git checkout -- package.json package-lock.json`)
+#      DESCARTA trabalho de outra sessao — proibido pela custodia de WIP.
+
+## os 20 passos restantes da cadeia (executados um a um, mesmo comando do `check`)
+guard:upgrade               EXIT=0
+check:migration-toolchain   EXIT=0
+guard:contracts             EXIT=0
+m02:work-package-guard      EXIT=0
+m02:debts-guard             EXIT=0
+m02:temporal-guard          EXIT=0
+m02:state:check             EXIT=0
+m02:boundaries              EXIT=0
+m02:secrets-audit           EXIT=0
+guard:mcp-runtime           EXIT=0
+m02:seal-dts:check          EXIT=0
+m02:matrix:check            EXIT=0
+check:ui-stack              EXIT=0
+check:no-supabase-runtime   EXIT=0
+format:check    EXIT=0
+lint            EXIT=0
+typecheck       EXIT=0
+test            EXIT=0
+build           EXIT=0
+check:bundle    EXIT=0
+
+# (o primeiro lote parou em format:check porque o processo de fundo foi morto com o shell;
+#  os seis ultimos passos foram reexecutados e estao no segundo bloco)
+
+## numeros do passo `test`
+ Test Files  147 passed (147)
+      Tests  2315 passed (2315)
+   Duration  164.68s (transform 2.10s, setup 11.45s, import 33.07s, tests 38.92s, environment 66.98s)

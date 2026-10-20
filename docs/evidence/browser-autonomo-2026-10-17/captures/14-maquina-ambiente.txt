@@ -1,0 +1,8 @@
+AMBIENTE (medido)
+DISPLAY=:0  WAYLAND_DISPLAY=wayland-0  XDG_SESSION_TYPE=wayland
+/usr/bin/google-chrome -> /etc/alternatives/google-chrome -> (alvo) ; binario real /opt/google/chrome/chrome (Chrome 155.0.8059.84)
+~/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome presente (Chromium do Playwright)
+Chromium do cache do Playwright MORRE com SIGTRAP (exit 133) mesmo com --no-sandbox e --headless=new
+  (crashpad + drm + sandbox), enquanto /opt/google/chrome/chrome com --no-sandbox sobe e expoe CDP em ~2s.
+docker: daemon 29.8.2 (Docker Desktop, /opt/docker-desktop/bin/docker-desktop)
+TMPDIR: /tmp e efemero entre comandos do harness (arquivos de analise foram perdidos 1x)

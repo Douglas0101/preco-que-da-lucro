@@ -1,0 +1,19 @@
+SONDA DE SESSAO (probe-sessao-2.mjs) — a medicao que fechou o diagnostico
+API sign-in: 429 | cookies: (nenhum)
+{"rotulo":"apos addCookies","url":"blank","cookies":[],"emailVisivel":false}
+{"rotulo":"apos goto /inicio + 2.5s","url":"/auth","cookies":[],"emailVisivel":false}
+{"rotulo":"apos reload","url":"/auth","cookies":[],"emailVisivel":false}
+{"rotulo":"apos goto /produtos + 2.5s","url":"/auth","cookies":[],"emailVisivel":false}
+
+CAUSA: rate limiter do Better Auth devolveu 429 apos os controles negativos repetidos
+(o seeder E2E limpa rate_limits exatamente por isso: "janelas de 60s vazariam entre
+execucoes E2E encadeadas"). Limpeza aplicada na bancada (nao em producao):
+  delete from rate_limits;  -> rate_limits: 0
+Apos a limpeza o login voltou a 200 e a sessao passou a valer no servidor.
+
+SEGUNDA CAUSA, independente: o driver media conteudo com waitUntil=domcontentloaded, que
+volta antes da hidratacao. Medicao direta (rodada 17):
+  eval => {"cookieVisivel":false,"temEmail":false,"texto":"Carregando..."}
+Ou seja: cookie httpOnly presente no contexto, sessao valida no servidor, e a medicao
+lendo a tela de carregamento. Correcao: espera por sinal observavel (sai de "Carregando...")
+em vez de evento de navegacao ou sleep fixo.

@@ -1,0 +1,231 @@
+CONTROLES NEGATIVOS — a serie, inclusive os que se revelaram cegos
+
+cn-01 (cookie apagado por JS, expect-fail): FALSO — cookie e httpOnly, o driver marcou
+  ok=false por acidente (eval devolveu string) e o veredito inverteu. Instrumento mentiu.
+cn-02 (0 sessoes, sem --login): FALSO — rodada vazia em about:blank saiu verde.
+cn-03 (nao-vacuidade, expect-fail): OK — "nao navegou para pagina real" + "rodada vacia".
+cn-04 (--login com defeito plantado): FALSO — o proprio login restaurou a sessao.
+cn-05 (--skip-login, storageState envenenado pelo login anterior): FALSO.
+cn-06 idem, com sessao orfa valida no banco: FALSO.
+cn-07 (--fresh --skip-login, 0 sessoes): OK — sessaoValida=false, 8/8 rotas expulsas p/ /auth.
+
+--- cn-07 bruto (o unico que falsifica de verdade) ---
+{
+  "launch": {
+    "launched": true,
+    "version": "Chrome/155.0.8059.84",
+    "endpoint": "http://127.0.0.1:9222"
+  },
+  "baseURL": "http://127.0.0.1:4173",
+  "steps": [],
+  "console": {
+    "total": 42,
+    "errors": 1,
+    "sample": [
+      {
+        "tag": "main",
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      }
+    ]
+  },
+  "requests": {
+    "failed": 1,
+    "sample": [
+      {
+        "tag": "main",
+        "url": "http://127.0.0.1:4173/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59?payload=%7B%22t%22%3A%7B%22t%22%3A10%2C%22i%22%3A0%2C%22p%22%3A%7B%22k%22%3A%5B%22data%22%5D%2C%22v%22%3A%5B%7B%22t%22%3A10%2C%22i%22%3A1%2C%22p%22%3A%7B%22k%22%3A%5B%22period%22%5D%2C%22v%22%3A%5B%7B%22t%22%3A1%2C%22s%22%3A%22month%22%7D%5D%7D%2C%22o%22%3A0%7D%5D%7D%2C%22o%22%3A0%7D%2C%22f%22%3A127%2C%22m%22%3A%5B%5D%7D",
+        "status": 401
+      }
+    ]
+  },
+  "cookies": [],
+  "errors": [],
+  "login": {
+    "via": "nenhuma (--skip-login)",
+    "ok": true,
+    "proposital": true
+  },
+  "sessaoServidor": {
+    "status": 200,
+    "token": null,
+    "expiresAt": null
+  },
+  "sessaoValida": false,
+  "walk": [
+    {
+      "route": "/inicio",
+      "status": 200,
+      "finalPath": "/auth",
+      "autenticada": false,
+      "esperado": "qualquer rota fora de /inicio",
+      "heading": "Entenda a faixa de preço do seu produto conversando."
+    },
+    {
+      "route": "/produtos",
+      "status": 200,
+      "finalPath": "/auth",
+      "autenticada": false,
+      "esperado": "qualquer rota fora de /produtos",
+      "heading": "Entenda a faixa de preço do seu produto conversando."
+    },
+    {
+      "route": "/precos",
+      "status": 200,
+      "finalPath": "/auth",
+      "autenticada": false,
+      "esperado": "qualquer rota fora de /precos",
+      "heading": "Entenda a faixa de preço do seu produto conversando."
+    },
+    {
+      "route": "/despesas",
+      "status": 200,
+      "finalPath": "/auth",
+      "autenticada": false,
+      "esperado": "qualquer rota fora de /despesas",
+      "heading": "Entenda a faixa de preço do seu produto conversando."
+    },
+    {
+      "route": "/diagnostico",
+      "status": 200,
+      "finalPath": "/auth",
+      "autenticada": false,
+      "esperado": "qualquer rota fora de /diagnostico",
+      "heading": "Entenda a faixa de preço do seu produto conversando."
+    },
+    {
+      "route": "/ponto-equilibrio",
+      "status": 200,
+      "finalPath": "/auth",
+      "autenticada": false,
+      "esperado": "qualquer rota fora de /ponto-equilibrio",
+      "heading": "Entenda a faixa de preço do seu produto conversando."
+    },
+    {
+      "route": "/simulacoes",
+      "status": 200,
+      "finalPath": "/auth",
+      "autenticada": false,
+      "esperado": "qualquer rota fora de /simulacoes",
+      "heading": "Entenda a faixa de preço do seu produto conversando."
+    },
+    {
+      "route": "/novo-produto",
+      "status": 200,
+      "finalPath": "/auth",
+      "autenticada": false,
+      "esperado": "qualquer rota fora de /novo-produto",
+      "heading": "Entenda a faixa de preço do seu produto conversando."
+    }
+  ],
+  "expulsoesEsperadas": [
+    {
+      "rota": "/inicio",
+      "destino": "/auth"
+    },
+    {
+      "rota": "/produtos",
+      "destino": "/auth"
+    },
+    {
+      "rota": "/precos",
+      "destino": "/auth"
+    },
+    {
+      "rota": "/despesas",
+      "destino": "/auth"
+    },
+    {
+      "rota": "/diagnostico",
+      "destino": "/auth"
+    },
+    {
+      "rota": "/ponto-equilibrio",
+      "destino": "/auth"
+    },
+    {
+      "rota": "/simulacoes",
+      "destino": "/auth"
+    },
+    {
+      "rota": "/novo-produto",
+      "destino": "/auth"
+    }
+  ],
+  "walkFalhas": [],
+  "sessaoPresente": false,
+  "finalUrl": "http://127.0.0.1:4173/auth?redirect=%2Fnovo-produto",
+  "finalPath": "/auth",
+  "naoVacuidade": {
+    "navegou": true,
+    "temSubstancia": true,
+    "passos": 0,
+    "login": true,
+    "walk": 8
+  },
+  "controleNegativo": {
+    "houveFalha": true,
+    "problemas": [
+      "1 erros de console",
+      "cookie de sessao ausente"
+    ],
+    "vereditoInvertido": "PASS (o instrumento reprovou o defeito)"
+  },
+  "veredito": {
+    "ok": true,
+    "controleNegativo": true,
+    "detectou": [
+      "1 erros de console",
+      "cookie de sessao ausente"
+    ]
+  }
+}
+
+--- cn-03 bruto (nao-vacuidade) ---
+{
+  "launch": {
+    "launched": true,
+    "version": "Chrome/155.0.8059.84",
+    "endpoint": "http://127.0.0.1:9222"
+  },
+  "baseURL": "http://127.0.0.1:4173",
+  "steps": [],
+  "console": {
+    "total": 0,
+    "errors": 0,
+    "sample": []
+  },
+  "requests": {
+    "failed": 0,
+    "sample": []
+  },
+  "cookies": [
+    "preco_que_da_lucro.session_token"
+  ],
+  "errors": [],
+  "finalUrl": "about:blank",
+  "finalPath": "blank",
+  "naoVacuidade": {
+    "navegou": false,
+    "temSubstancia": false,
+    "passos": 0,
+    "login": false,
+    "walk": 0
+  },
+  "controleNegativo": {
+    "houveFalha": true,
+    "problemas": [
+      "nao navegou para pagina real (finalUrl=about:blank)",
+      "nenhum passo, login ou walk executado (rodada vacia)"
+    ],
+    "vereditoInvertido": "PASS (o instrumento reprovou o defeito)"
+  },
+  "veredito": {
+    "ok": true,
+    "controleNegativo": true,
+    "detectou": [
+      "nao navegou para pagina real (finalUrl=about:blank)",
+      "nenhum passo, login ou walk executado (rodada vacia)"
+    ]
+  }
+}

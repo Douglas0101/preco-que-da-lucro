@@ -1,0 +1,14 @@
+walk de seções (desktop) — item → path → pill ativa
+Meus Produtos -> /produtos -> "Meus Produtos"
+Precos de Compra -> /precos -> "Precos de Compra"
+Minhas Despesas -> /despesas -> "Minhas Despesas"
+Vendas -> /vendas -> "Vendas"
+Ponto de Equilibrio -> /ponto-equilibrio -> "Ponto de Equilibrio"
+Simulacoes -> /simulacoes -> "Simulacoes"
+Diagnostico -> /diagnostico -> "Diagnostico"
+Inicio -> /inicio -> "Inicio"
+
+chat (ramo controlado, pós-fix): "Ola, quero cadastrar um produto" ->
+"⚠️ Um serviço necessário está indisponível." (hasForbidden=false)
+estado do formulário: Enviar habilitado com texto, desabilitado vazio (sem estado travado)
+menu superior: 9 itens; Sair visível; e-mail visível (fonte única)

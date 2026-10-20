@@ -1,0 +1,19 @@
+# Format proof — src/styles.css (mechanical only)
+# command: tr -d "[:space:]" < FILE | sha256sum
+before-nospace-sha256=34e44f084e3d66cc8311d727f475489cd65f65cc9977166c9a993c40b81c4bc0
+after-nospace-sha256=34e44f084e3d66cc8311d727f475489cd65f65cc9977166c9a993c40b81c4bc0
+# textual diff before -> after:
+--- /tmp/styles.before.css	2026-10-19 00:13:53.789516254 -0300
++++ src/styles.css	2026-10-19 00:13:54.173199031 -0300
+@@ -78,7 +78,9 @@
+   --secondary: oklch(0.967 0.001 286.375);
+   --secondary-foreground: oklch(0.21 0.006 285.885);
+   --muted: oklch(0.967 0.001 286.375);
+-  --muted-foreground: oklch(0.536 0.016 285.938); /* L 0.536: 4.72:1 sobre --muted (AA do axe; 0.552 media 4.39) */
++  --muted-foreground: oklch(
++    0.536 0.016 285.938
++  ); /* L 0.536: 4.72:1 sobre --muted (AA do axe; 0.552 media 4.39) */
+   --accent: oklch(0.967 0.001 286.375);
+   --accent-foreground: oklch(0.21 0.006 285.885);
+   --destructive: oklch(0.577 0.245 27.325);
+# npm run format:check -> exit 0 (All matched files use Prettier code style!)

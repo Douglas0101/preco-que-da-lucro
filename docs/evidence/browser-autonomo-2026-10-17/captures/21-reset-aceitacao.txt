@@ -1,0 +1,49 @@
+ACEITACAO — affordance e semantica do gatilho de reset em /novo-produto
+Sessao: correcao aplicada em 2026-10-17/18. Fonte: src/routes/_authenticated/novo-produto.tsx
+Bancada: preview :4173 reconstruido (npm run build) e reiniciado; PG17 :5432; fixture autenticada.
+
+WIP ALHEIO NO MESMO ARQUIVO (mapeado antes de editar, preservado byte a byte):
+  hunk 1: linha 180  shadow-[var(--shadow-soft)] -> shadow-sm   (caixa do log)
+  hunk 2: linha 209  shadow-[var(--shadow-soft)] -> shadow-sm   (caixa do formulario)
+  => DISJUNTO do gatilho/dialogo/titulo. Decisao: prosseguir com diff minimo.
+
+LINHA DE BASE ANTES DA CORRECAO (build do WIP, 3 mensagens semeadas):
+  chat_messages 3 -> 0 apos o 2o clique; dialogo abria e saia do DOM; 0 erros de console.
+  Defeito confirmado por medicao: botao com background rgba(0,0,0,0) e
+  borderColor rgba(0,0,0,0) (variante ghost) = sem caixa; rotulo "Recomecar" abrindo
+  confirmacao "Iniciar uma nova conversa?" -> "Apagar e recomecar".
+  ACHADO NOVO desta sessao (nao estava no handoff): com conversa VAZIA o gatilho
+  continuava HABILITADO e o reset era no-op (medido: 0 -> 0 mensagens) — UI desonesta.
+
+DEPOIS DA CORRECAO (bateria completa, build reconstruido):
+  A_comHistorico  rotulo="Nova conversa" | caixaVisivel=true | temIcone=true
+                  alvo 147x32 | gap ate o subtitulo 12px | habilitado=true | 3 mensagens
+  A_dialogo       titulo="Apagar esta conversa?"
+                  corpo="O historico atual sera apagado e a conversa volta a saudacao
+                         inicial. Esta acao nao pode ser desfeita."
+                  botoes=["Cancelar","Apagar conversa"]  (acao com variant="destructive")
+  A_focoPreso     true (Tab permanece dentro do dialogo)
+  A_aposApagar    mensagens 3 -> 0 | dialogo fora do DOM | anuncio="Conversa apagada."
+                  gatilho desabilitado depois | 0 erros de console
+  B_vazio         gatilho existe e visivel, habilitado=false (reset seria no-op)
+  C_teclado       Tab alcanca ("Nova conversa") | Enter abre | ESC fecha | foco volta ao gatilho
+  reset final     log volta a saudacao inicial | chat_messages 2 -> 0
+                  reset_at gravado no banco (2026-10-18 01:33) | anuncio presente | 0 erros
+  gate de geracao medido com requisicao atrasada em 2,5s:
+                  habilitado antes=true | durante o envio=false | depois=true
+
+ERRATA DO PROPRIO AUTOR (registrada, nao apagada): a primeira execucao da bateria deu
+  "corpo: null" e "saudacao: false". Nenhum dos dois era defeito da UI: o corpo esta em
+  P[data-slot=alert-dialog-description] e meu seletor `p` nao o alcancava; o `saudacao`
+  usava getByText("Novo começo"), que casa o <p> do cabecalho e nao o [role=log] (DIV).
+  Medicao dirigida corrigiu os dois: log passa a saudacao inicial e reset_at e gravado.
+  Tambem errei um recorte de screenshot (clip na regiao errada) e recapturei medindo a
+  boundingBox do gatilho antes.
+
+LIMITES DECLARADOS
+  - Tier Playwright completo NAO executado nesta sessao (bancada em uso; o preview serve
+    :4173 e o config do Playwright orquestra o proprio webServer). Nenhuma suite cita
+    "Recomecar" (grep em src/test e e2e: zero ocorrencias) e o e2e do chat assere
+    #novo-produto-mensagem, role=log e o heading — todos intactos.
+  - Alvo de toque medido 147x32 < 44px (follow-up; nao alterado para nao inflar o diff).
+  - Undo-toast e persistencia client-vs-servidor do historico: follow-ups declarados.

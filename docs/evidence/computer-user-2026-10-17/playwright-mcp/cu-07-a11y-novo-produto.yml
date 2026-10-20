@@ -1,0 +1,315 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "Preço que Dá Lucro" [ref=e6] [cursor=pointer]:
+          - /url: /inicio
+          - img [ref=e8]
+          - generic [ref=e11]: Preço que Dá Lucro
+        - generic [ref=e12]:
+          - generic [ref=e13]: teste@example.test
+          - button "Sair" [ref=e14] [cursor=pointer]:
+            - img
+            - generic [ref=e15]: Sair
+      - navigation "Menu principal" [ref=e17]:
+        - link "Início" [ref=e18] [cursor=pointer]:
+          - /url: /inicio
+          - generic [ref=e19]: Início
+        - link "Meus Produtos" [ref=e20] [cursor=pointer]:
+          - /url: /produtos
+          - generic [ref=e21]: Meus Produtos
+        - link "Novo Produto" [ref=e22] [cursor=pointer]:
+          - /url: /novo-produto
+          - generic [ref=e23]: Novo Produto
+        - link "Preços de Compra" [ref=e24] [cursor=pointer]:
+          - /url: /precos
+          - generic [ref=e25]: Preços de Compra
+        - link "Minhas Despesas" [ref=e26] [cursor=pointer]:
+          - /url: /despesas
+          - generic [ref=e27]: Minhas Despesas
+        - link "Vendas" [ref=e28] [cursor=pointer]:
+          - /url: /vendas
+          - generic [ref=e29]: Vendas
+        - link "Ponto de Equilíbrio" [ref=e30] [cursor=pointer]:
+          - /url: /ponto-equilibrio
+          - generic [ref=e31]: Ponto de Equilíbrio
+        - link "Simulações" [ref=e32] [cursor=pointer]:
+          - /url: /simulacoes
+          - generic [ref=e33]: Simulações
+        - link "Diagnóstico" [ref=e34] [cursor=pointer]:
+          - /url: /diagnostico
+          - generic [ref=e35]: Diagnóstico
+    - main [ref=e36]:
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - heading "Cadastro conversacional" [level=1] [ref=e41]
+            - paragraph [ref=e42]: Converse como se estivesse falando com um consultor.
+          - generic [ref=e43]:
+            - button "Ver produto" [ref=e44] [cursor=pointer]
+            - button "Recomeçar" [ref=e45] [cursor=pointer]:
+              - img
+              - text: Recomeçar
+        - log [ref=e47]:
+          - generic [ref=e48]:
+            - img [ref=e50]
+            - generic [ref=e54]: Mensagem restaurada do histórico E2E.
+          - generic [ref=e55]:
+            - generic [ref=e56]: Olá! Pode me explicar como funciona o cadastro de produto?
+            - img [ref=e58]
+          - generic [ref=e61]:
+            - img [ref=e63]
+            - generic [ref=e66]:
+              - generic [ref=e67]: Olá! Que bom te ver por aqui. 😊
+              - generic [ref=e68]: "Funciona assim, de forma bem simples: eu vou te fazer perguntas, uma de cada vez, e registro tudo o que você me contar sobre o seu produto. No fim, o motor financeiro faz as contas — eu não calculo nada por conta própria, só organizo os dados com você."
+              - generic [ref=e69]: "O caminho é mais ou menos este:"
+              - generic [ref=e70]:
+                - text: "1."
+                - strong [ref=e71]: Nome do produto
+                - text: — como você chama o que vende.
+              - generic [ref=e72]:
+                - text: "2."
+                - strong [ref=e73]: Ingredientes
+                - text: — o que vai na receita e quanto você usa de cada um.
+              - generic [ref=e74]:
+                - text: "3."
+                - strong [ref=e75]: Custo de cada ingrediente
+                - text: — quanto você paga e em que quantidade vem a embalagem que compra.
+              - generic [ref=e76]:
+                - text: "4."
+                - strong [ref=e77]: Rendimento
+                - text: — quantas unidades a receita rende.
+              - generic [ref=e78]:
+                - text: "5."
+                - strong [ref=e79]: Embalagem
+                - text: — o que você usa para entregar/vender.
+              - generic [ref=e80]:
+                - text: "6."
+                - strong [ref=e81]: Preço e imposto
+                - text: — quanto cobra hoje e qual a alíquota.
+              - generic [ref=e82]:
+                - text: "7."
+                - strong [ref=e83]: Taxas
+                - text: — percentuais que incidem na venda (cartão, plataforma etc.).
+              - generic [ref=e84]:
+                - text: "8."
+                - strong [ref=e85]: Preço de mercado
+                - text: — referências de quanto os concorrentes cobram.
+              - generic [ref=e86]: "Uma regra importante: se você não souber algum dado, a gente deixa em aberto — nunca preencho com zero \"no chute\", porque isso distorceria os resultados."
+              - generic [ref=e87]: "E fica tranquilo: nunca peço senha, token ou documento pessoal."
+              - generic [ref=e88]:
+                - text: "Quer começar? Se sim, me diga:"
+                - strong [ref=e89]: qual é o nome do produto?
+          - generic [ref=e90]:
+            - generic [ref=e91]: Olá! Pode me explicar como funciona o cadastro de produto?
+            - img [ref=e93]
+          - generic [ref=e96]:
+            - img [ref=e98]
+            - generic [ref=e101]:
+              - generic [ref=e102]: Oi de novo! 😊 Vou resumir de um jeito bem direto.
+              - generic [ref=e103]: "O cadastro é uma conversa guiada: eu pergunto, você responde, e eu registro cada informação com você confirmando antes de gravar. As etapas são:"
+              - generic [ref=e104]: "| Etapa | O que você me conta |"
+              - generic [ref=e105]: "|---|---|"
+              - generic [ref=e106]: "| 1. Nome | Como o produto é chamado |"
+              - generic [ref=e107]: "| 2. Ingredientes | O que vai na receita e a quantidade usada |"
+              - generic [ref=e108]: "| 3. Custos | Preço e tamanho da embalagem que você compra |"
+              - generic [ref=e109]: "| 4. Rendimento | Quantas unidades a receita rende |"
+              - generic [ref=e110]: "| 5. Embalagem | Material usado na venda |"
+              - generic [ref=e111]: "| 6. Preço e imposto | Preço atual e alíquota efetiva |"
+              - generic [ref=e112]: "| 7. Taxas | Percentuais sobre a venda (cartão, app etc.) |"
+              - generic [ref=e113]: "| 8. Mercado | Preços de referência dos concorrentes |"
+              - generic [ref=e114]: "Duas coisas importantes:"
+              - generic [ref=e115]:
+                - text: "-"
+                - strong [ref=e116]: Eu não faço cálculos
+                - text: — quem faz é o motor financeiro, de forma determinística. Eu só te explico o resultado seguro que ele devolve.
+              - generic [ref=e117]:
+                - text: "-"
+                - strong [ref=e118]: Nada é preenchido no chute.
+                - text: Se você não souber um dado, ele fica em aberto (nunca vira zero).
+              - generic [ref=e119]: E, por segurança, nunca peço senha, token ou documento pessoal.
+              - generic [ref=e120]:
+                - text: Vamos começar pelo passo 1?
+                - strong [ref=e121]: Qual é o nome do produto que você quer cadastrar?
+          - generic [ref=e122]:
+            - generic [ref=e123]: BUGCHAT-1792254331749
+            - img [ref=e125]
+          - generic [ref=e128]:
+            - img [ref=e130]
+            - generic [ref=e134]:
+              - text: "Perfeito! Só confirmando antes de registrar: o nome do produto é"
+              - strong [ref=e135]: "\"BUGCHAT-1792254331749\""
+              - text: . É isso mesmo?
+          - generic [ref=e136]:
+            - generic [ref=e137]: BUGCHAT-1792254362873
+            - img [ref=e139]
+          - generic [ref=e142]:
+            - img [ref=e144]
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - text: "Entendi que você mandou um nome diferente agora:"
+                - strong [ref=e149]: "\"BUGCHAT-1792254362873\""
+                - text: .
+              - generic [ref=e150]: "Só para eu não registrar nada errado: qual dos dois nomes você quer usar?"
+              - generic [ref=e151]: "- BUGCHAT-1792254331749"
+              - generic [ref=e152]: "- BUGCHAT-1792254362873"
+          - generic [ref=e153]:
+            - generic [ref=e154]: BUGCHAT-1792254497402
+            - img [ref=e156]
+          - generic [ref=e159]:
+            - img [ref=e161]
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - text: "Recebi um terceiro nome agora:"
+                - strong [ref=e166]: "\"BUGCHAT-1792254497402\""
+                - text: . 😅
+              - generic [ref=e167]:
+                - text: "Para eu gravar só um, me confirma por favor: o nome do produto é"
+                - strong [ref=e168]: BUGCHAT-1792254497402
+                - text: "?"
+          - generic [ref=e169]:
+            - generic [ref=e170]: BUGCHAT-1792254709032
+            - img [ref=e172]
+          - generic [ref=e175]:
+            - img [ref=e177]
+            - generic [ref=e180]:
+              - generic [ref=e181]: Vou pausar um pouquinho antes de registrar, combinado? 🙂
+              - generic [ref=e182]: "Já apareceram quatro nomes diferentes:"
+              - generic [ref=e183]: "- BUGCHAT-1792254331749"
+              - generic [ref=e184]: "- BUGCHAT-1792254362873"
+              - generic [ref=e185]: "- BUGCHAT-1792254497402"
+              - generic [ref=e186]: "- BUGCHAT-1792254709032"
+              - generic [ref=e187]:
+                - text: Como o nome é gravado uma vez só, preciso da sua confirmação clara.
+                - strong [ref=e188]: Qual desses é o nome correto do produto?
+                - text: Se preferir, pode escrever um nome novo e definitivo.
+          - generic [ref=e189]:
+            - generic [ref=e190]: BUGCHAT-1792254722515
+            - img [ref=e192]
+          - generic [ref=e195]:
+            - img [ref=e197]
+            - generic [ref=e200]:
+              - generic [ref=e201]: Tudo bem, vamos com calma. 🙂
+              - generic [ref=e202]:
+                - text: "Recebi mais um nome:"
+                - strong [ref=e203]: BUGCHAT-1792254722515
+                - text: . Não vou registrar nada até você confirmar, porque o nome fica gravado uma única vez e depois corrigir dá trabalho.
+              - generic [ref=e204]:
+                - text: "Me responde só isso:"
+                - strong [ref=e205]: é BUGCHAT-1792254722515 o nome definitivo do produto?
+                - text: Se sim, eu registro agora.
+          - generic [ref=e206]:
+            - generic [ref=e207]: BUGCHAT-1792254761345
+            - img [ref=e209]
+          - generic [ref=e212]:
+            - img [ref=e214]
+            - generic [ref=e217]:
+              - generic [ref=e218]: Percebi que cada mensagem traz um nome novo — isso me deixa sem certeza de qual usar. 🙂
+              - generic [ref=e219]:
+                - text: Então, para não gravar errado, preciso de um
+                - strong [ref=e220]: "\"sim, é esse\""
+                - text: "bem explícito. O último que você enviou foi:"
+              - strong [ref=e222]: BUGCHAT-1792254761345
+              - generic [ref=e223]: É esse o nome definitivo? Se sim, responda apenas "sim", que eu registro na hora.
+          - generic [ref=e224]:
+            - generic [ref=e225]: BUGCHAT-1792254773304
+            - img [ref=e227]
+          - generic [ref=e230]:
+            - img [ref=e232]
+            - generic [ref=e235]:
+              - generic [ref=e236]: "Vou ser transparente com você: já são seis nomes seguidos, e nenhum veio com uma confirmação. Por isso continuo sem registrar — gravar o nome errado prejudicaria todo o cadastro depois."
+              - generic [ref=e237]:
+                - text: O último enviado foi
+                - strong [ref=e238]: BUGCHAT-1792254773304
+                - text: .
+              - generic [ref=e239]: "Para destravar, me diga de forma clara, por exemplo:"
+              - generic [ref=e240]: "- \"Sim, é BUGCHAT-1792254773304\" — e eu registro; ou"
+              - generic [ref=e241]: "- me passe o nome correto de verdade, com a confirmação junto."
+              - generic [ref=e242]: Fico no aguardo do seu "sim". 🙂
+          - generic [ref=e243]:
+            - generic [ref=e244]: BUGCHAT-1792254918471
+            - img [ref=e246]
+          - generic [ref=e249]:
+            - img [ref=e251]
+            - generic [ref=e254]:
+              - generic [ref=e255]: "Vou manter o combinado: sem uma confirmação clara, não gravo. 🙏"
+              - generic [ref=e256]:
+                - text: O último nome enviado foi
+                - strong [ref=e257]: BUGCHAT-1792254918471
+                - text: .
+              - generic [ref=e258]:
+                - text: "Para eu seguir, preciso que você escreva algo como:"
+                - strong [ref=e259]: "\"Sim, o nome é BUGCHAT-1792254918471\""
+                - text: . Aí registro na hora e passamos para os ingredientes.
+          - generic [ref=e260]:
+            - generic [ref=e261]: BUGCHAT-1792254984236
+            - img [ref=e263]
+          - generic [ref=e266]:
+            - img [ref=e268]
+            - generic [ref=e271]:
+              - generic [ref=e272]: Continuo no aguardo da confirmação. 🙂
+              - generic [ref=e273]: Já recebi muitos nomes e sigo sem gravar nenhum, como combinamos — assim evito registrar algo que não seja o que você quer.
+              - generic [ref=e274]:
+                - text: "O último foi:"
+                - strong [ref=e275]: BUGCHAT-1792254984236
+              - generic [ref=e276]:
+                - text: "Só me diga com todas as letras:"
+                - strong [ref=e277]: "\"Sim, é BUGCHAT-1792254984236\""
+                - text: — e eu registro imediatamente, seguindo para os ingredientes.
+          - generic [ref=e278]:
+            - generic [ref=e279]: BUGCHAT-1792254997267
+            - img [ref=e281]
+          - generic [ref=e284]:
+            - img [ref=e286]
+            - generic [ref=e289]:
+              - generic [ref=e290]: Ainda estou esperando a confirmação. 🙂
+              - generic [ref=e291]:
+                - text: "Para deixar bem claro o que falta: eu preciso que você escreva uma frase confirmando, como"
+                - strong [ref=e292]: "\"Sim, o nome é BUGCHAT-1792254997267\""
+                - text: . Sem isso, não gravo — é uma proteção para o seu cadastro.
+              - generic [ref=e293]:
+                - text: "Se preferir, também posso fazer diferente: você me diz"
+                - strong [ref=e294]: um nome final
+                - text: e eu repito ele para você confirmar. Como quer seguir?
+          - generic [ref=e295]:
+            - generic [ref=e296]: BUGCHAT-1792255024386
+            - img [ref=e298]
+          - generic [ref=e301]:
+            - img [ref=e303]
+            - generic [ref=e306]:
+              - generic [ref=e307]: Parece que as mensagens estão chegando com nomes diferentes a cada vez, sem uma confirmação. 🙂
+              - generic [ref=e308]:
+                - text: "Vou tentar de outro jeito, mais simples:"
+                - strong [ref=e309]: me diga apenas "sim"
+                - text: se o nome definitivo for o último que você enviou,
+                - strong [ref=e310]: BUGCHAT-1792255024386
+                - text: . Se não for, escreva o nome correto junto com a palavra "confirmo".
+              - generic [ref=e311]: Assim que eu tiver esse "sim" ou "confirmo", registro e seguimos para os ingredientes.
+          - generic [ref=e312]:
+            - generic [ref=e313]: BUGCHAT-1792255107979
+            - img [ref=e315]
+          - generic [ref=e318]:
+            - generic [ref=e319]: BUGCHAT-1792255136043
+            - img [ref=e321]
+          - generic [ref=e324]:
+            - generic [ref=e325]: BUGCHAT-1792255160580
+            - img [ref=e327]
+          - generic [ref=e330]:
+            - generic [ref=e331]: Olá! Pode me explicar como funciona o cadastro de produto?
+            - img [ref=e333]
+          - generic [ref=e336]:
+            - generic [ref=e337]: Olá! Pode me explicar como funciona o cadastro de produto?
+            - img [ref=e339]
+          - generic [ref=e342]:
+            - generic [ref=e343]: Olá, quero cadastrar um produto
+            - img [ref=e345]
+          - generic [ref=e348]:
+            - img [ref=e350]
+            - generic [ref=e354]: ⚠️ Um serviço necessário está indisponível.
+        - generic [ref=e355]:
+          - generic [ref=e356]: Mensagem para o consultor
+          - textbox "Mensagem para o consultor" [active] [ref=e357]:
+            - /placeholder: Escreva sua resposta...
+          - button "Enviar" [disabled]:
+            - img
+  - region "Notifications alt+T"

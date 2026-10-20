@@ -1,0 +1,20 @@
+# ariaSnapshot — header nav "Menu principal" (desktop 1440x900, pós-fix)
+- navigation "Menu principal":
+  - link "Início":
+    - /url: /inicio
+  - link "Meus Produtos":
+    - /url: /produtos
+  - link "Novo Produto":
+    - /url: /novo-produto
+  - link "Preços de Compra":
+    - /url: /precos
+  - link "Minhas Despesas":
+    - /url: /despesas
+  - link "Vendas":
+    - /url: /vendas
+  - link "Ponto de Equilíbrio":
+    - /url: /ponto-equilibrio
+  - link "Simulações":
+    - /url: /simulacoes
+  - link "Diagnóstico":
+    - /url: /diagnostico

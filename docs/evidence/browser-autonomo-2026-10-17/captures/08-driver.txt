@@ -1,0 +1,440 @@
+#!/usr/bin/env node
+/**
+ * Driver CDP reutilizavel para uso autonomo do browser na bancada local.
+ *
+ * Modos:
+ *   --login            digita e-mail/senha na UI de /auth, submete, salva storageState
+ *   --action <lista>   goto | wait | click | fill | press | assert | cookie | a11y | shot
+ *
+ * O Chrome e lancado uma unica vez com --remote-debugging-port e user-data-dir
+ * DEDICADO (nunca o perfil padrao do usuario), e as execucoes seguintes apenas
+ * reatacam o mesmo processo (connectOverCDP), preservando a sessao.
+ */
+import { createRequire } from "node:module";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { execFileSync, spawn } from "node:child_process";
+
+const REPO = "/home/douglas/WebstormProjects/preco-que-da-lucro";
+const require = createRequire(`${REPO}/package.json`);
+const { chromium, request: playwrightRequest } = require("playwright-core");
+
+const PROFILE = `${REPO}/.artifacts/chrome-profile`;
+const AUTH = `${REPO}/.artifacts/e2e-auth.json`;
+const OUT = `${REPO}/.artifacts/cu`;
+const BASE = process.env.BENCH_URL ?? "http://127.0.0.1:4173";
+const PORT = Number(process.env.BENCH_CDP_PORT ?? 9222);
+const FF = process.env.BENCH_XFF ?? "198.51.100.10";
+const CHROME_BIN = process.env.BENCH_CHROME_BIN ?? "/opt/google/chrome/chrome";
+mkdirSync(OUT, { recursive: true });
+mkdirSync(PROFILE, { recursive: true });
+
+// --- credenciais de bancada: lidas do arquivo local, nunca de argumento/transcript
+// Parser por indice de proposito: um regex ancorado em `$` se mostrou nao confiavel
+// neste caminho (medido 2026-10-17), e um parser de 3 linhas nao precisa dele.
+function benchCredentials() {
+  const file = `${REPO}/.artifacts/e2e-local.env`;
+  const out = {};
+  for (const line of readFileSync(file, "utf8").split("\n")) {
+    const eq = line.indexOf("=");
+    if (eq > 0) out[line.slice(0, eq)] = line.slice(eq + 1);
+  }
+  return { email: out.E2E_AUTH_EMAIL, password: out.E2E_AUTH_PASSWORD };
+}
+
+// --- CLI -------------------------------------------------------------------
+const argv = process.argv.slice(2);
+// Percorre TODO o argv e agrega por flag: a versao anterior parava na primeira
+// ocorrencia de `--action` (indexOf), entao `--action A --action B` executava so A
+// — bug medido na rodada 08, onde 4 dos 5 passos sumiram sem erro visivel.
+function parseArgs(list) {
+  const flags = new Map();
+  let current = null;
+  for (const item of list) {
+    if (item.startsWith("--")) {
+      current = item;
+      if (!flags.has(current)) flags.set(current, []);
+    } else if (current) {
+      flags.get(current).push(item);
+    }
+  }
+  return flags;
+}
+const FLAGS = parseArgs(argv);
+const argList = (name) => (FLAGS.has(name) ? FLAGS.get(name) : null);
+const has = (name) => FLAGS.has(name);
+const actions = argList("--action") ?? [];
+const doLogin = has("--login");
+const doLoginUi = has("--login-ui");
+const doShot = has("--shot");
+const doA11y = has("--a11y");
+const doSnap = has("--snap"); // snapshot/click textual (nova pagina)
+const label = (argList("--label") ?? ["run"])[0];
+const headed = !has("--headless");
+const deny = argList("--deny") ?? [];
+
+// --- Chrome dedicado com CDP ----------------------------------------------
+async function endpointAlive() {
+  try {
+    const r = await fetch(`http://127.0.0.1:${PORT}/json/version`);
+    return r.ok ? await r.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+async function launchChromeIfNeeded() {
+  const alive = await endpointAlive();
+  if (alive) return { launched: false, version: alive.Browser, endpoint: `http://127.0.0.1:${PORT}` };
+  // Medido nesta maquina (2026-10-17): o kernel bloqueia o namespace sandbox
+  // (`kernel.apparmor_restrict_unprivileged_userns=1`) e o helper setuid do
+  // Chrome esta quebrado, entao `--no-sandbox` e o que resta para uma janela
+  // REAL. O perfil e DEDICADO a esta bancada, em loopback, sem sessao pessoal
+  // do usuario — o flag nao vale para o perfil padrao dele, que nunca e tocado.
+  const child = spawn(
+    CHROME_BIN,
+    [
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      `--remote-debugging-port=${PORT}`,
+      `--user-data-dir=${PROFILE}`,
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--password-store=basic",
+      "--use-mock-keychain",
+      "--window-size=1440,900",
+      "about:blank",
+    ],
+    { detached: true, stdio: "ignore" },
+  );
+  child.unref();
+  for (let i = 0; i < 60; i++) {
+    await new Promise((r) => setTimeout(r, 500));
+    const info = await endpointAlive();
+    if (info) return { launched: true, version: info.Browser, endpoint: `http://127.0.0.1:${PORT}` };
+  }
+  throw new Error(`Chrome nao expos CDP em ${PORT}s`);
+}
+
+const launch = await launchChromeIfNeeded();
+const browser = await chromium.connectOverCDP(`http://127.0.0.1:${PORT}`);
+const context = await browser.newContext({
+  viewport: { width: 1440, height: 900 },
+  baseURL: BASE,
+  // `sec-fetch-site` e header PROIBIDO ao cliente: declara-lo faz o Chromium
+  // abortar todo subrecurso com net::ERR_INVALID_ARGUMENT (medido em A/B nesta
+  // bancada, 2026-10-17 — a pagina ficava em "Carregando..."). O navegador ja
+  // emite o valor correto sozinho; aqui so vao os que o servidor realmente le.
+  extraHTTPHeaders: { "x-forwarded-for": FF },
+  // `--fresh` ignora o storageState salvo: e o unico jeito de medir o
+  // instrumento contra ausencia de sessao, porque o login anterior reescreve
+  // esse arquivo e o defeito plantado seria desfeito pelo proprio ciclo.
+  ...(existsSync(AUTH) && !has("--fresh") ? { storageState: AUTH } : {}),
+});
+
+const report = { launch, baseURL: BASE, steps: [], console: {}, requests: {}, cookies: [], errors: [] };
+const consoleAll = [];
+const badRequests = [];
+
+function attachLogging(page, tag) {
+  page.on("console", (m) => consoleAll.push({ tag, type: m.type(), text: m.text().slice(0, 400) }));
+  page.on("pageerror", (e) => consoleAll.push({ tag, type: "pageerror", text: String(e).slice(0, 400) }));
+  page.on("requestfailed", (r) => badRequests.push({ tag, url: r.url(), failure: r.failure()?.errorText }));
+  page.on("response", (r) => {
+    if (r.status() >= 400) {
+      badRequests.push({ tag, url: r.url(), status: r.status() });
+      // Corpo do erro: sem ele a evidencia nomeia so o codigo, nunca a causa — e o
+      // log do servidor e rotativo (o do preview desta bancada ja se perdeu uma vez).
+      r.text()
+        .then((t) => {
+          if (t) badRequests.push({ tag, url: r.url(), status: r.status(), corpo: t.slice(0, 200) });
+        })
+        .catch(() => {});
+    }
+  });
+}
+
+const page = await context.newPage();
+attachLogging(page, "main");
+
+// --- login: API primeiro (mesma via do global-setup da suite E2E), UI depois ---
+async function loginViaApi(email, password) {
+  // Contexto proprio: o cookie nasce aqui e e injetado no contexto do browser.
+  const apiCtx = await playwrightRequest.newContext({
+    baseURL: BASE,
+    extraHTTPHeaders: { origin: BASE, "x-forwarded-for": FF },
+  });
+  try {
+    const res = await apiCtx.post("/api/auth/sign-in/email", { data: { email, password } });
+    const body = await res.text().catch(() => "");
+    const state = await apiCtx.storageState();
+    if (!res.ok()) return { via: "api", ok: false, status: res.status(), erro: body.slice(0, 120) };
+    await context.addCookies(state.cookies);
+    const probe = await context.request.get(`${BASE}/api/auth/get-session`);
+    const sess = await probe.text().catch(() => "");
+    await context.storageState({ path: AUTH });
+    return {
+      via: "api",
+      ok: probe.ok() && sess.includes("session"),
+      status: res.status(),
+      getSession: probe.status(),
+      temSessao: sess.includes("session"),
+      cookies: state.cookies.map((c) => c.name),
+    };
+  } finally {
+    await apiCtx.dispose();
+  }
+}
+
+async function login(email, password) {
+  await page.goto(`${BASE}/auth`, { waitUntil: "domcontentloaded" });
+  // A pagina usa rotulos visiveis ("E-mail"/"Senha"), nao `type=email` medido no a11y.
+  const emailField = page.getByLabel(/e-?mail/i).first();
+  const passField = page.getByLabel(/senha/i).first();
+  await emailField.waitFor({ timeout: 20000 });
+  await emailField.fill(email);
+  await passField.fill(password);
+  const before = page.url();
+  await Promise.all([
+    page.waitForURL((u) => new URL(u).pathname !== "/auth", { timeout: 30000 }).catch(() => null),
+    page.getByRole("button", { name: /entrar|acessar|continuar com e-?mail/i }).first().click(),
+  ]);
+  await page.waitForLoadState("domcontentloaded").catch(() => null);
+  const after = page.url();
+  // a sessao tem de valer para o servidor, nao apenas redirecionar o cliente
+  const probe = await page.request.get(`${BASE}/inicio`, { maxRedirects: 0 }).catch(() => null);
+  await context.storageState({ path: AUTH });
+  return { email, urlBefore: before, urlAfter: after, inicioStatus: probe ? probe.status() : null };
+}
+
+// --- passos ---------------------------------------------------------------
+for (const spec of actions) {
+  const [kind, a, b] = spec.split("|");
+  const step = { spec };
+  try {
+    if (kind === "goto") {
+      const res = await page.goto(a.startsWith("http") ? a : `${BASE}${a}`, {
+        waitUntil: "domcontentloaded",
+        timeout: 30000,
+      });
+      step.status = res ? res.status() : null;
+      step.url = page.url();
+      step.title = await page.title();
+    } else if (kind === "wait") {
+      await page.waitForTimeout(Number(a));
+    } else if (kind === "click") {
+      await page.locator(a).first().click({ timeout: 15000 });
+      step.clicked = a;
+    } else if (kind === "fill") {
+      await page.locator(a).first().fill(b ?? "", { timeout: 15000 });
+      step.filled = a;
+    } else if (kind === "press") {
+      await page.locator(a).first().press(b ?? "Enter", { timeout: 15000 });
+      step.pressed = `${a} + ${b}`;
+    } else if (kind === "assert") {
+      const c = page.locator(a).first();
+      await c.waitFor({ timeout: Number(b ?? 15000) });
+      step.asserted = await c.textContent();
+    } else if (kind === "cookie") {
+      const cookies = await context.cookies([BASE]);
+      step.cookies = cookies.map((c) => ({ name: c.name, domain: c.domain, path: c.path, httpOnly: c.httpOnly, secure: c.secure }));
+    } else if (kind === "eval") {
+      // Resultado FALSY reprova o passo: a versao anterior aceitava qualquer retorno
+      // e o passo falhava por acidente em string vazia — o instrumento mentia nas
+      // duas direcoes (o controle negativo de 2026-10-17 pegou isso).
+      const valor = await page.evaluate(a);
+      step.resultado = valor;
+      if (!valor) throw new Error(`eval devolveu valor falsy: ${JSON.stringify(valor)}`);
+    }
+    step.ok = true;
+  } catch (e) {
+    step.ok = false;
+    step.error = String(e).split("\n")[0];
+  }
+  report.steps.push(step);
+}
+
+if (doLogin || doLoginUi || has("--skip-login")) {
+  const { email, password } = benchCredentials();
+  try {
+    // A via API e a mesma do global-setup da suite; a UI fica como verificacao
+    // adicional (`--login-ui`) porque exige a pagina HIDRATADA — clicar antes
+    // disso nao autentica e nao gera erro visivel (medido 2026-10-17).
+    // `--skip-login` NAO autentica de proposito: e assim que se mede o
+    // instrumento contra uma sessao invalida (controle negativo), sem que o
+    // proprio login conserte o defeito plantado antes do walk.
+    if (has("--skip-login")) {
+      report.login = { via: "nenhuma (--skip-login)", ok: true, proposital: true };
+    } else {
+      report.login = doLoginUi && !doLogin ? await login(email, password) : await loginViaApi(email, password);
+      if (doLoginUi && doLogin) report.loginUi = await login(email, password);
+    }
+  } catch (e) {
+    report.login = { ok: false, error: String(e).split("\n")[0] };
+  }
+  if (report.login?.ok !== false) {
+    // Sessao provada no SERVIDOR antes do walk: a rota responde 200 mesmo
+    // deslogada, entao status HTTP nao e prova. Aqui a identidade e o proprio
+    // JSON de sessao devolvido por /api/auth/get-session.
+    const sessResp = await context.request
+      .get(`${BASE}/api/auth/get-session`, { headers: { "x-forwarded-for": FF } })
+      .catch(() => null);
+    const sessTexto = sessResp ? await sessResp.text().catch(() => "") : "";
+    const sessJson = (() => {
+      try {
+        return JSON.parse(sessTexto);
+      } catch {
+        return null;
+      }
+    })();
+    report.sessaoServidor = {
+      status: sessResp ? sessResp.status() : null,
+      token: sessJson?.session?.token ?? null,
+      expiresAt: sessJson?.session?.expiresAt ?? null,
+    };
+    report.sessaoValida = Boolean(sessJson?.session?.token);
+
+    // Walk autenticado: a expectativa e o destino final. A espera e por SINAL
+    // OBSERVAVEL (mudanca de URL), nao por sleep fixo: 700 ms fixos nao alcancavam
+    // o redirect do cliente e uma sessao revogada passava por autenticada — falso
+    // verde medido duas vezes em 2026-10-17.
+    const routes = ["/inicio", "/produtos", "/precos", "/despesas", "/diagnostico", "/ponto-equilibrio", "/simulacoes", "/novo-produto"];
+    report.walk = [];
+    for (const r of routes) {
+      const res = await page.goto(`${BASE}${r}`, { waitUntil: "domcontentloaded" }).catch(() => null);
+      const esperandoSessao = report.sessaoValida;
+      // Com sessao valida, sai do /auth o quanto antes; sem sessao valida, espera
+      // o redirect acontecer (e falha se ele nao vier).
+      await page
+        .waitForURL((u) => (esperandoSessao ? new URL(u).pathname === r : new URL(u).pathname !== r), { timeout: 6000 })
+        .catch(() => null);
+      const finalPath = new URL(page.url()).pathname;
+      // A prova de autenticacao e o CONTEUDO, nao a URL: o shell deslogado responde
+      // 200 com o mesmo <h1> de marketing, entao so a URL ja produziu falso verde
+      // duas vezes nesta sessao (medido 2026-10-17). Marcador causal: o e-mail da
+      // conta de fixture so aparece na barra quando ha sessao.
+      // Espera por SINAL OBSERVAVEL, nunca por evento nem por sleep fixo: o
+      // `domcontentloaded` volta antes da hidratacao e a medicao pegava a tela
+      // "Carregando..." — foi a causa do falso verde de URL e do falso vermelho
+      // de conteudo desta sessao (medido 3x em 2026-10-17).
+      let texto = "";
+      const prazo = Date.now() + 15000;
+      while (Date.now() < prazo) {
+        texto = (await page.locator("body").innerText().catch(() => "")) || "";
+        if (!/Carregando\.\.\./.test(texto)) break;
+        await page.waitForTimeout(250);
+      }
+      const emailVisivel = texto.includes("teste@example.test");
+      const temComposer = await page
+        .locator("textarea, [contenteditable=true]")
+        .count()
+        .catch(() => 0);
+      report.walk.push({
+        route: r,
+        status: res ? res.status() : null,
+        finalPath,
+        emailVisivel,
+        temComposer,
+        autenticada: finalPath === r && emailVisivel,
+        esperado: esperandoSessao ? `${r} com sessao no header` : `qualquer rota fora de ${r}`,
+        heading: (await page.locator("h1, h2").first().textContent().catch(() => null))?.trim().slice(0, 60) ?? null,
+      });
+    }
+    if (report.sessaoValida) {
+      report.walkFalhas = report.walk.filter((w) => !w.autenticada).map((w) => ({ rota: w.route, destino: w.finalPath }));
+    } else {
+      // Sem sessao valida, a expectativa INVERTE: toda rota protegida tem de
+      // expulsar para /auth. Rota que "fica" e falso verde, nao sucesso.
+      report.expulsoesEsperadas = report.walk.map((w) => ({ rota: w.route, destino: w.finalPath }));
+      report.walkFalhas = report.walk.filter((w) => w.finalPath === w.route || w.emailVisivel).map((w) => ({ rota: w.route, destino: w.finalPath, motivo: "nao expulsou (ou manteve marcador de sessao) com sessao invalida" }));
+    }
+    const nomes = (await context.cookies([BASE])).map((c) => c.name);
+    report.sessaoPresente = nomes.includes("preco_que_da_lucro.session_token");
+  }
+}
+
+// --- rede de seguranca: rotas negadas nao podem aparecer -------------------
+if (deny.length) {
+  report.denyCheck = [];
+  for (const d of deny) {
+    const found = actions.some((s) => s.includes(d)) || (report.walk ?? []).some((w) => w.finalPath.includes(d));
+    report.denyCheck.push({ forbidden: d, appeared: found });
+  }
+}
+
+if (doA11y) {
+  const snap = await page.locator("body").ariaSnapshot();
+  const file = `${OUT}/${label}-a11y.yml`;
+  writeFileSync(file, snap);
+  report.a11y = { file, nodes: snap.split("\n").length };
+}
+if (doSnap) {
+  const snap = await page.locator("body").ariaSnapshot();
+  report.snapshot = snap.split("\n").slice(0, 60);
+}
+if (doShot) {
+  const file = `${OUT}/${label}.png`;
+  const buf = await page.screenshot({ fullPage: true });
+  writeFileSync(file, buf);
+  report.screenshot = { file, bytes: buf.length };
+}
+
+// --- console/network agregados ---------------------------------------------
+const errors = consoleAll.filter((c) => c.type === "error" || c.type === "pageerror");
+report.console = {
+  total: consoleAll.length,
+  errors: errors.length,
+  sample: errors.slice(0, 8),
+};
+report.requests = { failed: badRequests.length, sample: badRequests.slice(0, 8) };
+report.finalUrl = page.url();
+report.finalPath = new URL(page.url()).pathname;
+report.cookies = (await context.cookies([BASE])).map((c) => c.name);
+
+// Veredito explicito: erro de console, passo falho, login falho ou walk sem
+// sessao — qualquer um reprova. Sem isso, uma rodada deslogada com console
+// limpo passaria por verde, que e exatamente o falso positivo a evitar.
+const problemas = [];
+if (report.console.errors > 0) problemas.push(`${report.console.errors} erros de console`);
+if (report.steps.some((s) => !s.ok)) problemas.push(`passos falhos: ${report.steps.filter((s) => !s.ok).map((s) => s.spec).join(', ')}`);
+if (report.login && report.login.ok === false) problemas.push('login falhou');
+if (report.sessaoPresente === false) problemas.push('cookie de sessao ausente');
+if (has('--login') && report.sessaoValida === false) problemas.push('sessao do servidor invalida apos login (get-session sem token)');
+if (report.walkFalhas?.length) {
+  problemas.push(
+    (report.sessaoValida ? 'rotas sem sessao: ' : 'rotas nao expulsaram com sessao invalida: ') +
+      report.walkFalhas.map((f) => `${f.rota}->${f.destino}`).join(', '),
+  );
+}
+
+// Nao-vacuidade (precondicao, nao veredito): uma rodada que nao navegou para
+// nenhuma pagina real nao mediu nada. Medido em 2026-10-17: sem `--login` o
+// driver ficava em about:blank, nao executava passo nenhum e saia VERDE — o
+// mesmo falso positivo de "0 = 0" que o repo proibe em guarda de descoberta.
+const navegou = /^https?:/.test(report.finalUrl);
+const temSubstancia = report.steps.length > 0 || Boolean(report.login) || Boolean(report.walk);
+if (!navegou) problemas.push(`nao navegou para pagina real (finalUrl=${report.finalUrl})`);
+if (!temSubstancia) problemas.push('nenhum passo, login ou walk executado (rodada vacia)');
+report.naoVacuidade = { navegou, temSubstancia, passos: report.steps.length, login: Boolean(report.login), walk: report.walk?.length ?? 0 };
+
+// Controle negativo: `--expect-fail` inverte o veredito DE PROPOSITO, para provar
+// que o instrumento reprova quando o defeito existe. Sem isso, um verde so prova
+// que ele nao reclamou — nunca que ele saberia reclamar.
+if (has("--expect-fail")) {
+  report.controleNegativo = {
+    houveFalha: problemas.length > 0,
+    problemas,
+    vereditoInvertido: problemas.length > 0 ? "PASS (o instrumento reprovou o defeito)" : "FAIL (o instrumento NAO reprovou: e cego)",
+  };
+  report.veredito = problemas.length > 0 ? { ok: true, controleNegativo: true, detectou: problemas } : { ok: false, controleNegativo: true, motivo: "instrumento nao detectou o defeito plantado" };
+  console.log(JSON.stringify(report, null, 2));
+  await context.close();
+  await browser.close();
+  process.exitCode = problemas.length > 0 ? 0 : 1;
+} else {
+  report.veredito = problemas.length ? { ok: false, problemas } : { ok: true };
+  console.log(JSON.stringify(report, null, 2));
+  await context.close();
+  await browser.close(); // apenas desconecta do CDP; o Chrome continua vivo
+  process.exitCode = problemas.length ? 1 : 0;
+}

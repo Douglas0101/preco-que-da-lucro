@@ -1,0 +1,12 @@
+MODE light PATH /inicio
+TOKENS {"className":"","backgroundToken":"oklch(100% 0 0)","foregroundToken":"oklch(14.1% .005 285.823)","background":"oklch(1 0 0)","color":"oklch(0.141 0.005 285.823)"}
+BLOCKING 0
+MODE dark PATH /inicio
+TOKENS {"className":"dark","backgroundToken":"oklch(14.1% .005 285.823)","foregroundToken":"oklch(98.5% 0 0)","background":"oklch(0.141 0.005 285.823)","color":"oklch(0.985 0 0)"}
+BLOCKING 0
+MODE light PATH /auth
+TOKENS {"className":"","backgroundToken":"oklch(100% 0 0)","foregroundToken":"oklch(14.1% .005 285.823)","background":"oklch(1 0 0)","color":"oklch(0.141 0.005 285.823)"}
+BLOCKING 0
+MODE dark PATH /auth
+TOKENS {"className":"dark","backgroundToken":"oklch(14.1% .005 285.823)","foregroundToken":"oklch(98.5% 0 0)","background":"oklch(0.141 0.005 285.823)","color":"oklch(0.985 0 0)"}
+BLOCKING 0

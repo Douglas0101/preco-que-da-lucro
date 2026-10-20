@@ -1,0 +1,25 @@
+# OB-02/OB-03 — OTel lazy + batch (2026-10-20)
+
+$ npx vitest run src/test/otel-batch-config.test.ts
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  00:11:04
+   Duration  821ms (transform 63ms, setup 115ms, import 52ms, tests 4ms, environment 532ms)
+
+
+$ OTEL_EXPORTER_OTLP_ENDPOINT= npx tsx .artifacts/ob02-boot.ts
+{
+  "endpointConfigured": false,
+  "sdkStarted": false,
+  "moduleImportMs": 68.008,
+  "ensureTelemetryStartedMs": 0.153,
+  "batchConfig": {
+    "scheduledDelayMillis": 10000,
+    "maxExportBatchSize": 512,
+    "exportTimeoutMillis": 5000
+  }
+}

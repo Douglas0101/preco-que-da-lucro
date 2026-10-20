@@ -1,0 +1,9 @@
+{
+  "escopo": "passe limpo pós-correção do rig (override de Host na interceptação)",
+  "navegacao": ["/inicio", "/produtos", "/simulacoes", "/diagnostico", "/inicio"],
+  "viewport": "1440x900",
+  "consoleErrorsTotal": 0,
+  "nonCspConsoleErrors": [],
+  "badResponses": [],
+  "observacao": "o log do MCP (cu-06) é cumulativo da sessão inteira (desde 05:35Z, inclui 403 pré-fix e ruído do dev :8080); este arquivo é a medição isolada pós-fix"
+}

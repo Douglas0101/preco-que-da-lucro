@@ -1,0 +1,30 @@
+# guard do runtime de MCP — ESCOPO REPOSITORIO (o que o gate e o CI executam)
+$ npx tsx scripts/mcp-runtime-guard.ts
+mcp runtime guard: escopo=repositorio · sitios auditados=0
+  ausente : .mcp.json (projeto-padrao)
+  ausente : .pi/mcp-adapter.json (projeto-adapter)
+  limite  : o repositorio nao versiona config MCP, entao nada aqui e auditavel; a superficie viva e a da maquina (rode com --home)
+mcp runtime guard: OK (nenhum runner sem pin, nenhum segredo literal)
+exit=0
+
+# guard do runtime de MCP — ESCOPO MAQUINA (--home; nao e gate, e o runbook)
+$ npx tsx scripts/mcp-runtime-guard.ts --home
+mcp runtime guard: escopo=repositorio+maquina · sitios auditados=8
+  auditado: /home/douglas/.config/mcp/mcp.json (primario, 662 bytes)
+  auditado: /home/douglas/.cline/data/settings/cline_mcp_settings.json (primario-cline, 9083 bytes)
+  auditado: /home/douglas/.pi/agent/mcp-adapter.json (primario-pi, 2021 bytes)
+  auditado: /home/douglas/.pi/agent/mcp.json (compatibilidade-pi, 147 bytes)
+  auditado: /home/douglas/.cache/plugins/github.com-vercel-vercel-plugin/.mcp.json (plugin-vercel, 565 bytes)
+  auditado: /home/douglas/.config/Codex/executor-plugins/codex-app-tools/.mcp.json (plugin-codex, 1475 bytes)
+  auditado: /home/douglas/.config/opencode/opencode.json (outro-cliente-medido, 819 bytes)
+  auditado: /home/douglas/.gemini/config/mcp_config.json (outro-cliente-medido, 0 bytes)
+  ausente : .mcp.json (projeto-padrao)
+  ausente : .pi/mcp-adapter.json (projeto-adapter)
+  ausente : /home/douglas/.agents/mcp.json (compatibilidade)
+  ausente : /home/douglas/.agents/mcp/mcp.json (compatibilidade)
+  ausente : /home/douglas/.dsh/bundles/kimi-mcp/cordis.patch.yml (outro-cliente)
+mcp runtime guard [precondicao]: /home/douglas/.gemini/config/mcp_config.json: JSON ilegivel (Unexpected end of JSON input)
+mcp runtime guard [violacao]: /home/douglas/.cline/data/settings/cline_mcp_settings.json: linha `MCP_DOCKER` carrega valor literal em `headers.Authorization` (64 bytes, sha256:9a5ae47c7169) — segredo em texto claro no arquivo de configuracao
+mcp runtime guard [violacao]: /home/douglas/.cline/data/settings/cline_mcp_settings.json: linha `context7` carrega valor literal em `metadata.key` (43 bytes, sha256:d54c28e00611) — segredo em texto claro no arquivo de configuracao
+mcp runtime guard: REPROVADO (2 violacao(oes))
+exit=1

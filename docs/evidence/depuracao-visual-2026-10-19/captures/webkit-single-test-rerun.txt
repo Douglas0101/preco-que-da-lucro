@@ -1,0 +1,178 @@
+
+Running 1 test using 1 worker
+
+  ✘  1 [webkit] › e2e/ui-stack.spec.ts:327:1 › financial query failure is not rendered as empty or zero data (2.8s)
+
+
+  1) [webkit] › e2e/ui-stack.spec.ts:327:1 › financial query failure is not rendered as empty or zero data 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  -   1
+    + Received  + 128
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+    +     "help": "Elements must meet minimum color contrast ratio thresholds",
+    +     "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=playwright",
+    +     "id": "color-contrast",
+    +     "impact": "serious",
+    +     "nodes": Array [
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#ffffff",
+    +               "contrastRatio": 2.79,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#9a9aa1",
+    +               "fontSize": "12.0pt (16px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 2.79 (foreground color: #9a9aa1, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<div class=\"min-h-screen bg-background\">",
+    +                 "target": Array [
+    +                   ".min-h-screen",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 2.79 (foreground color: #9a9aa1, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<p class=\"text-muted-foreground\">Teste uma hipótese informada por você. Sem vendas registradas, nenhum cenário é tratado como atual ou factual.</p>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           "div:nth-child(1) > .text-muted-foreground",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#ffffff",
+    +               "contrastRatio": 2.79,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#9a9aa1",
+    +               "fontSize": "9.0pt (12px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 2.79 (foreground color: #9a9aa1, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<div class=\"min-h-screen bg-background\">",
+    +                 "target": Array [
+    +                   ".min-h-screen",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 2.79 (foreground color: #9a9aa1, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<p class=\"text-xs text-muted-foreground\">Referência de atendimento: SIM-C4E534E9</p>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".text-xs.text-muted-foreground",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#ffffff",
+    +               "contrastRatio": 2.79,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#9a9aa1",
+    +               "fontSize": "10.5pt (14px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 2.79 (foreground color: #9a9aa1, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<div data-slot=\"card\" data-size=\"default\" class=\"group/card flex flex...\">",
+    +                 "target": Array [
+    +                   ".group\\/card",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 2.79 (foreground color: #9a9aa1, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<p aria-live=\"polite\" class=\"text-sm text-muted-foreground\">Não foi possível carregar as simulações salvas.</p>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".text-muted-foreground[aria-live=\"polite\"]",
+    +         ],
+    +       },
+    +     ],
+    +     "tags": Array [
+    +       "cat.color",
+    +       "wcag2aa",
+    +       "wcag143",
+    +       "TTv5",
+    +       "TT13.c",
+    +       "EN-301-549",
+    +       "EN-9.1.4.3",
+    +       "ACT",
+    +       "RGAAv4",
+    +       "RGAA-3.2.1",
+    +     ],
+    +   },
+    + ]
+
+      23 |   );
+      24 |
+    > 25 |   expect(blocking).toEqual([]);
+         |                    ^
+      26 | }
+      27 |
+      28 | async function signInWithBetterAuth(page: Page, email: string, password: string): Promise<void> {
+        at expectNoBlockingAxeViolations (/home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:25:20)
+        at /home/douglas/WebstormProjects/preco-que-da-lucro/e2e/ui-stack.spec.ts:339:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/ui-stack-financial-query-f-3ad18-dered-as-empty-or-zero-data-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/ui-stack-financial-query-f-3ad18-dered-as-empty-or-zero-data-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/ui-stack-financial-query-f-3ad18-dered-as-empty-or-zero-data-webkit/video-1.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/ui-stack-financial-query-f-3ad18-dered-as-empty-or-zero-data-webkit/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/ui-stack-financial-query-f-3ad18-dered-as-empty-or-zero-data-webkit/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/ui-stack-financial-query-f-3ad18-dered-as-empty-or-zero-data-webkit/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [webkit] › e2e/ui-stack.spec.ts:327:1 › financial query failure is not rendered as empty or zero data 
+done=0

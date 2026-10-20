@@ -1,0 +1,13 @@
+INCIDENTE — parser de --action parava na primeira ocorrencia
+Sintoma: a rodada 08 executou 1 de 5 passos e saiu VERDE (os 4 restantes nunca rodaram).
+Causa: argList usava argv.indexOf(name), capturando so o primeiro bloco.
+Correcao: parseArgs percorre todo o argv e agrega por flag.
+Verificacao isolada (test-arglist.mjs) com o parser ANTIGO:
+  ["goto|/inicio"]  <- apenas 1
+Relatorio da rodada 09 (parser corrigido): steps.length = 6
+  goto|/inicio ok=true
+  assert|h1, h2 ok=true
+  shot ok=true
+  goto|/novo-produto ok=true
+  assert|main, [role=main] ok=true
+  shot ok=true

@@ -1,0 +1,43 @@
+SUPERADA PELA CORRECAO (2026-10-18): este arquivo e o DIAGNOSTICO do estado ANTERIOR.
+O codigo foi corrigido em src/routes/_authenticated/novo-produto.tsx e a bateria de
+aceitacao pos-correcao esta em `21-reset-aceitacao.txt` (capturas 19 e 20). Mantido
+como registro do "antes", nao como estado vigente.
+
+DEFEITO RELATADO PELO DONO (2026-10-17, na bancada local :4173):
+"nao estou vendo o botao funcional para reiniciar o chat"
+
+MEDICAO — o controle NAO esta quebrado; ele e um fluxo de DOIS cliques com rotulo
+de gatilho ambiguo, e o gatilho nao tem caixa visivel.
+
+Botao medido (desktop 1440x900, /novo-produto, pos-hidratacao):
+  tag=BUTTON type=button texto="Recomecar" rect=123x32 em (1141,140)
+  background=rgba(0,0,0,0)  borderColor=rgba(0,0,0,0)  opacity=1  cursor=pointer
+  => variante "ghost": sem fundo e sem borda. Parece TEXTO, nao botao. Contraste do
+     texto e 13.2:1 (legivel), portanto o problema e de affordance, nao de contraste.
+  => posicao: cola no subtitulo (botao y=140..172, subtitulo y=182) e fica a 34px do
+     fim da nav (y=106); o <h1> da pagina esta INTEIRO sob a barra de navegacao fixa.
+
+Falsificacao das hipoteses concorrentes (todas descartadas com medicao):
+  1. elemento cobrindo o botao? elementFromPoint no centro => o proprio BUTTON
+  2. dialogo nao renderiza? alertdialog visivel, 448x182 em (496,359), dentro da viewport,
+     opacity=1, pointerEvents=auto, zIndex=50, sem inert
+  3. rotulo errado? botoes do dialogo = ["Cancelar", "Apagar e recomecar"]
+  4. ESC/clique fora travam? ESC fecha e devolve o foco ao gatilho
+  5. clique no texto (nao no centro) falha? abre igual
+  6. fluxo so abre e nao apaga? clique 2 apagou de fato: chat_messages 3 -> 0, dialogo
+     saiu do DOM, log resetou para a saudacao inicial, 0 erros de console
+
+ROTULO x ACAO (causa do "nao funciona"): a acao destrutiva esta escrita no rotulo do
+proprio gatilho ("Recomecar" = apagar tudo), mas o gatilho apenas ABRE a confirmacao
+"Apagar e recomecar". Quem le "Recomecar" como "comecar de novo" clica uma vez, ve um
+dialogo de aviso e conclui que o botao nao faz nada.
+
+ERRATA DO PROPRIO AUTOR (medida logo depois, antes de publicar): a primeira versao
+desta captura afirmava "<h1> oculto atras da nav fixa". E FALSO — medicao direta:
+  nav: position=sticky, y=0..106
+  h1 : y=149, altura 36, e elementFromPoint no seu centro devolve o proprio H1
+Nao ha sobreposicao nem corte; o que existe e o botao a 34px do fim da nav e colado ao
+subtitulo. A afirmacao errada foi removida, nao maquiada.
+
+LIMITE DECLARADO: o build testado e o do WIP atual (que inclui mudancas nao commitadas
+em alert-dialog.tsx e novo-produto.tsx); HEAD nao foi testado nesta bancada.

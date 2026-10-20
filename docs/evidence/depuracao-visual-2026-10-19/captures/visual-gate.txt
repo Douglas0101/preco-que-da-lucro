@@ -1,0 +1,15 @@
+
+Running 10 tests using 2 workers
+
+  ✓   2 [chromium] › e2e/visual/visual-observability.spec.ts:82:1 › produtos: estado REAL rotulado e células numéricas em estado ok (2.0s)
+  ✓   1 [chromium] › e2e/visual/visual-observability.spec.ts:95:1 › produto sem rendimento exibe DADOS INCOMPLETOS e nunca zero factual (2.0s)
+  ✓   4 [chromium] › e2e/visual/visual-observability.spec.ts:124:1 › artefato persistido está redigido, selado e correlacionado (1.9s)
+  ✓   3 [chromium] › e2e/visual/visual-observability.spec.ts:110:1 › CLS fica abaixo de 0,1 quando a engine expõe layout-shift (2.4s)
+  ✓   5 [chromium] › e2e/visual/visual-observability.spec.ts:167:1 › chat: desfecho honesto e sem estado travado (2.2s)
+  ✓   6 [mobile] › e2e/visual/visual-observability.spec.ts:82:1 › produtos: estado REAL rotulado e células numéricas em estado ok (2.1s)
+  ✓   7 [mobile] › e2e/visual/visual-observability.spec.ts:95:1 › produto sem rendimento exibe DADOS INCOMPLETOS e nunca zero factual (2.9s)
+  ✓   8 [mobile] › e2e/visual/visual-observability.spec.ts:110:1 › CLS fica abaixo de 0,1 quando a engine expõe layout-shift (3.6s)
+  ✓   9 [mobile] › e2e/visual/visual-observability.spec.ts:124:1 › artefato persistido está redigido, selado e correlacionado (3.6s)
+  ✓  10 [mobile] › e2e/visual/visual-observability.spec.ts:167:1 › chat: desfecho honesto e sem estado travado (3.9s)
+
+  10 passed (16.0s)
