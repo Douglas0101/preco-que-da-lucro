@@ -1,0 +1,18 @@
+# 2026-10-23T06:07Z (UTC) — Vercel deployment dpl_AYh62JKPhjjrixJgEGbe4MuTTkzE
+# SHA 21a6089aa3873c3b66a70cc596a100d91f3954db
+GET https://preco-que-da-lucro-prxao9avc.vercel.app/api/health/live
+HTTP 200
+{"status":"ok"}
+x-vercel-id: gru1:iad1::iad1::8r4b9-1792735655397-469ee2f7c814
+x-correlation-id: f6c664b3-d687-489b-a4ec-c3e32921f95e
+
+GET https://preco-que-da-lucro-prxao9avc.vercel.app/api/health/ready
+HTTP 200
+{"status":"ready","dependencies":{"postgres":"ok"}}
+x-vercel-id: gru1:iad1::iad1::jf9hh-1792735657151-48eb2ffc00d4
+x-correlation-id: 36982298-ef3e-4389-8067-93c899ee3075
+
+GET https://preco-que-da-lucro-sage.vercel.app/api/health/ready
+HTTP 200
+{"status":"ready","dependencies":{"postgres":"ok"}}
+x-vercel-id: gru1:iad1::iad1::vwggp-1792735668050-b53be444c664
