@@ -154,7 +154,12 @@ function Precos() {
       setItems((prev) =>
         prev.map((i) =>
           i.id === item.id
-            ? { ...i, package_price: packagePrice, price_updated_at: res.price_updated_at }
+            ? {
+                ...i,
+                package_price: packagePrice,
+                price_updated_at: res.price_updated_at,
+                age_days: 0,
+              }
             : i,
         ),
       );
