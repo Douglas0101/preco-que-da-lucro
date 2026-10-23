@@ -21,6 +21,10 @@ Non-required PR checks that remain red, with their limit:
 - `main-coverage-mirror`: `coverage-lcov` from main run `38508788726` was uploaded with `retention-days: 7` and had expired; the job reports `EXECUTION_OR_UNCLASSIFIED` / `NO-VERDICT` and does **not** approve main. It is observational, not a required check; the mandatory CE above is the release decision. Retention should be extended in a follow-up.
 - `SonarCloud Code Analysis`: the provider's old 80% preset remains ERROR at PR coverage 60.0. ADR-042 preserves that raw provider status; the required `scan + cobertura` check and its releasePolicy passed.
 
+### Dependabot
+
+GitHub still lists three open `vite` alerts (`#2` medium, `#3` high, `#4` medium). Alert `#3` (GHSA-587h-7wmj-h5pm) covers `>=8.2.0, <=8.2.3`; `main` pins `vite@8.2.4`, the first patched version, and `npm audit --audit-level=high` exits 0 on the release tree. The alerts are stale until GitHub rescans the default branch.
+
 ## Vercel
 
 - Project: `prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q`.
