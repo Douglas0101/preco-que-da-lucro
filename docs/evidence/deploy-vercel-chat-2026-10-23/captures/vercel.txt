@@ -1,0 +1,18 @@
+# Vercel deployment identity (2026-10-23)
+id: dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4
+name: preco-que-da-lucro
+project: prj_aKcy1gnNKvcQzxFlrYifMucpyJ8q
+target: production
+state: READY
+url: preco-que-da-lucro-kcxoavfay.vercel.app
+githubCommitRef: main
+githubCommitSha: cf910bf4754b0097c7bdae653d476cbd9422cdc4
+githubCommitMessage: Merge pull request #67 from Douglas0101/develop
+
+alias -> deployment:
+preco-que-da-lucro-sage.vercel.app -> dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4
+preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app -> dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4
+preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app -> dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4
+
+candidate not promoted: dpl_CoCB7gRSUTmwtbuDZ9N6FuTSCSrm (main@2f18bdd, zod 4.6.5)
+previous production / rollback: dpl_AYh62JKPhjjrixJgEGbe4MuTTkzE (main@21a6089)

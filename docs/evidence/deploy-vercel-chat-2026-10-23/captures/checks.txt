@@ -1,0 +1,11 @@
+# Checks and CE (2026-10-23)
+PR #66 verify-release: run 40018576143 attempt 2 success 8m24s (chromium, firefox, webkit, mobile)
+PR #66 scan+cobertura: run 40018575998 success; new_coverage 86.6; security 1; releasePolicy OK
+PR #67 verify-release: run 40025352913 attempt 2 success 8m46s
+PR #67 scan+cobertura: run 40025352932 success; ADR-044 NOT_APPLICABLE; security 1
+PR #67 Neon PR: run 40025353036 success 9m35s; cleanup success
+Main CE 2f18bdd: run 40023082481 status OK; new_coverage 82.2; releasePolicy OK
+Main CE cf910bf: run 40028082462 status OK; new_coverage 82.2; security 1; releasePolicy OK
+Main push verify cf910bf: run 40028082555 success; audit high 0
+npm audit --audit-level=high: exit 0 (3 moderate vitest advisories remain)
+npm run test: 155 files / 2382 tests PASS
