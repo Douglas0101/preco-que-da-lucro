@@ -88,6 +88,7 @@
     "perf:summarize": "node scripts/perf/summarize.mjs",
     "check:hostinger-runtime": "node scripts/check-hostinger-runtime.mjs",
     "check": "npm run m02:lockfile-guard && npm run guard:upgrade && npm run check:migration-toolchain && npm run guard:contracts && npm run m02:work-package-guard && npm run m02:debts-guard && npm run m02:temporal-guard && npm run m02:state:check && npm run m02:boundaries && npm run m02:secrets-audit && npm run guard:mcp-runtime && npm run m02:seal-dts:check && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle",
+    "check:own": "npm run m02:debts-guard && npm run m02:temporal-guard && npm run m02:secrets-audit && npm run m02:state:check && npm run m02:matrix:check && npm run format:check && npm run lint && npm run typecheck",
     "m02:pitr-check": "node scripts/m02-pitr-check.mjs",
     "m02:neon-spend": "node scripts/m02-neon-spend.mjs",
     "m02:auth-preflight": "tsx scripts/m02-auth-preflight.ts",
@@ -163,11 +164,10 @@
     "jsdom": "^30.0.1",
     "nitro": "3.0.260603-beta",
     "prettier": "^3.7.3",
-    "shadcn": "^4.22.0",
     "tsx": "^4.23.12",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.0.16",
+    "vite": "^8.2.4",
     "vitest": "^4.1.10"
   }
 }
