@@ -7,7 +7,7 @@
    injeção redundante do ponto de vista funcional, mas NÃO elimina o relatório
    de `style-src-elem` — o `\3c style>` continua sendo criado. */
 @import "sonner/dist/styles.css";
-@import "./shadcn-tailwind.css";
+@import "../vendor/shadcn-tailwind.css";
 @import "@fontsource-variable/jetbrains-mono";
 @import "@fontsource-variable/plus-jakarta-sans";
 @source "../src";
