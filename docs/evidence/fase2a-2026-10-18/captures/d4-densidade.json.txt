@@ -1,0 +1,78 @@
+{
+ "desktop-1440": {
+  "achou": true,
+  "cardAltura": 136,
+  "cardLargura": 1088,
+  "controles": [
+   {
+    "rotulo": "Ver",
+    "ariaLabel": null,
+    "w": 48,
+    "h": 32,
+    "y": 282,
+    "fundo": "oklch(1 0 0)",
+    "borda": "oklch(0.92 0.004 286.32)"
+   },
+   {
+    "rotulo": "Composição",
+    "ariaLabel": "Editar composição de Produto de teste",
+    "w": 131,
+    "h": 32,
+    "y": 282,
+    "fundo": "oklch(1 0 0)",
+    "borda": "oklch(0.92 0.004 286.32)"
+   },
+   {
+    "rotulo": null,
+    "ariaLabel": "Arquivar Produto de teste",
+    "w": 36,
+    "h": 36,
+    "y": 282,
+    "fundo": "oklch(1 0 0)",
+    "borda": "oklch(0.92 0.004 286.32)"
+   }
+  ],
+  "linhasDeControles": 1,
+  "menorDimensaoDoControle": 32,
+  "passaWCAG22AA24": true,
+  "passa44": false
+ },
+ "mobile-390": {
+  "achou": true,
+  "cardAltura": 268,
+  "cardLargura": 358,
+  "controles": [
+   {
+    "rotulo": "Ver",
+    "ariaLabel": null,
+    "w": 48,
+    "h": 32,
+    "y": 333,
+    "fundo": "oklch(1 0 0)",
+    "borda": "oklch(0.92 0.004 286.32)"
+   },
+   {
+    "rotulo": "Composição",
+    "ariaLabel": "Editar composição de Produto de teste",
+    "w": 131,
+    "h": 32,
+    "y": 333,
+    "fundo": "oklch(1 0 0)",
+    "borda": "oklch(0.92 0.004 286.32)"
+   },
+   {
+    "rotulo": null,
+    "ariaLabel": "Arquivar Produto de teste",
+    "w": 36,
+    "h": 36,
+    "y": 333,
+    "fundo": "oklch(1 0 0)",
+    "borda": "oklch(0.92 0.004 286.32)"
+   }
+  ],
+  "linhasDeControles": 1,
+  "menorDimensaoDoControle": 32,
+  "passaWCAG22AA24": true,
+  "passa44": false
+ }
+}

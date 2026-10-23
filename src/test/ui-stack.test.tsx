@@ -68,7 +68,7 @@ describe("shadcn/Base UI contracts", () => {
       return (
         <div>
           <Label htmlFor="periodo">Período</Label>
-          <Select value={value} onValueChange={setValue}>
+          <Select value={value} onValueChange={(v) => v && setValue(v)}>
             <SelectTrigger id="periodo">
               <SelectValue />
             </SelectTrigger>

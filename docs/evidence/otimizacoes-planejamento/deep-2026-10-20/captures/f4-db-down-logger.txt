@@ -1,0 +1,27 @@
+# Frente 4 — backend com banco indisponível (:4174) e logger (2026-10-20)
+
+Servidor :4174 com DATABASE_URL/DATABASE_ADMIN_URL apontando para 127.0.0.1:5999 (sem Postgres).
+GET /api/health/ready -> HTTP 503
+GET /inicio (cookie de sessão válido; sem banco) -> HTTP 200
+
+Eventos do log do servidor (nomes/status, sem valores):
+      1 "event":"health.readiness_failed"
+      3 "event":"request.completed"
+
+Linhas de status HTTP registradas:
+      2 "status":200
+      1 "status":503
+
+Trecho de erro (redigido: sem URL/credencial):
+      1 "level":"error"
+
+# Log do servidor :4174 (segunda rodada, banco indisponível)
+      1 "event":"bff.request_failed"
+      5 "event":"request.completed"
+      2 "event":"request.failed"
+      2 "event":"rum.web_vitals"
+      2 "event":"rum.web_vitals_persist_failed"
+status HTTP:
+      2 "status":200
+      2 "status":204
+      1 "status":503

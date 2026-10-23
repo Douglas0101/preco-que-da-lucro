@@ -64,3 +64,9 @@ docs/evidence/pos-merge-pr62-2103151/playwright-mcp*/**
 # Raw computer-user captures of the preview deployment validation (phase 3): browser
 # console logs and accessibility snapshots, sealed byte-for-byte like the other sessions.
 docs/evidence/pos-merge-pr62-2103151-phase3/playwright-mcp*/**
+
+# Raw browser-autonomy bench captures (driver reports per round, including the negative
+# controls): the sealed bytes ARE the proof — reformatting them would change the digest
+# the package manifest covers. Narrowed to captures/** on purpose: SPEC.md and README.md
+# of this package stay formatter-checked.
+docs/evidence/browser-autonomo-2026-10-17/captures/**

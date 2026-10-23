@@ -163,6 +163,12 @@ async function main(): Promise<void> {
   process.env.BETTER_AUTH_SECRET = randomBytes(32).toString("base64url");
   process.env.BETTER_AUTH_URL = "http://localhost:3000";
   process.env.AUTH_TRUSTED_ORIGINS = "http://localhost:3000";
+  // O guard de sign-up falha fechado quando a verificação não tem como ser
+  // entregue (DBT-129). O CI não define credenciais de e-mail, e este teste usa
+  // um adapter de captura — as credenciais abaixo são fixtures determinísticas,
+  // não uma entrega real.
+  process.env.RESEND_API_KEY = "test-resend-key";
+  process.env.AUTH_EMAIL_FROM = "test@example.test";
 
   const email = new CapturingEmailAdapter();
   setEmailAdapterForTests(email);

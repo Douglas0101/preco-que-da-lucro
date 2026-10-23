@@ -1,0 +1,57 @@
+{
+  "desktop": {
+    "prefersReducedMotion": false,
+    "animations": [
+      {
+        "state": "running",
+        "duration": 200,
+        "iterations": 1
+      },
+      {
+        "state": "running",
+        "duration": 150,
+        "iterations": 1
+      },
+      {
+        "state": "running",
+        "duration": 100,
+        "iterations": 1
+      },
+      {
+        "state": "running",
+        "duration": 100,
+        "iterations": 1
+      }
+    ],
+    "cycles": 20,
+    "focusReturned": 20,
+    "openDialogsAfterClose": 0,
+    "nodeDelta": 0,
+    "dropdown": {
+      "optionText": "Produto de teste",
+      "selectedText": "Produto de teste",
+      "opened": true
+    },
+    "pageErrors": [],
+    "consoleErrors": [
+      "[Report Only] Refused to execute a script because its hash, its nonce, or 'unsafe-inline' does not appear in the script-src directive of the Content Security Policy.",
+      "[Report Only] Refused to execute a script because its hash, its nonce, or 'unsafe-inline' does not appear in the script-src directive of the Content Security Policy.",
+      "[Report Only] Refused to execute a script because its hash, its nonce, or 'unsafe-inline' does not appear in the script-src directive of the Content Security Policy.",
+      "[Report Only] Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy.",
+      "[Report Only] Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy.",
+      "[Report Only] Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy.",
+      "[Report Only] Refused to execute a script because its hash, its nonce, or 'unsafe-inline' does not appear in the script-src directive of the Content Security Policy.",
+      "[Report Only] Refused to execute a script because its hash, its nonce, or 'unsafe-inline' does not appear in the script-src directive of the Content Security Policy.",
+      "[Report Only] Refused to execute a script because its hash, its nonce, or 'unsafe-inline' does not appear in the script-src directive of the Content Security Policy.",
+      "[Report Only] Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy.",
+      "[Report Only] Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy.",
+      "[Report Only] Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy."
+    ]
+  },
+  "mobileSheet": {
+    "sheetVisible": true,
+    "focusInside": true,
+    "focusReturnedAfterEscape": "Abrir menu de navegação",
+    "pageErrors": []
+  }
+}

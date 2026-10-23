@@ -1,0 +1,21 @@
+{
+  "publicApiError": {
+    "headingVisible": true,
+    "toasterMounted": false,
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  "authToast": {
+    "visible": true,
+    "text": "Invalid email or password",
+    "afterNavigation": {
+      "toasterMounted": false,
+      "toastCount": 0
+    }
+  },
+  "authenticatedToast": {
+    "text": "Preencha nome e valor válido",
+    "visibleAfterNav": true,
+    "dismissed": true
+  }
+}

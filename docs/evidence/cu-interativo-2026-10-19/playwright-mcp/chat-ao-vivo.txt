@@ -1,0 +1,24 @@
+# Chat AO VIVO na bancada — 2026-10-19 (autorizado pelo dono, L967)
+# preview: entrada direta com banco LOCAL + chave real vinda do .env (nao exportada pelo script)
+
+## log do servidor (turno real)
+{"timestamp":"2026-10-19T04:09:26.334Z","level":"info","event":"ai.budget_reserved","tenantId":"00000000-0000-4000-8000-000000000002","usageId":"f886c861-4944-4258-bec8-912998f8e92a","budget":64000,"real":0,"durationMs":0,"outcome":"reserved","kind":"model","roundNo":0}
+{"timestamp":"2026-10-19T04:09:28.972Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":2637,"outcome":"success"}
+{"timestamp":"2026-10-19T04:09:28.991Z","level":"info","event":"ai.chat_completed","correlationId":"f374451e-7b6c-41c9-ae17-34f88a6f75ee","tenantId":"00000000-0000-4000-8000-000000000002","rounds":1,"timeToAcknowledgeMs":2672,"timeToFirstContentMs":2691,"timeToFinalMs":2691}
+{"timestamp":"2026-10-19T04:09:28.999Z","level":"info","event":"ai.budget_settled","tenantId":"00000000-0000-4000-8000-000000000002","usageId":"f886c861-4944-4258-bec8-912998f8e92a","budget":64000,"real":1097,"usageUnknownReason":null,"durationMs":2671,"outcome":"success","applied":true}
+
+## UI (browser MCP)
+answered=true  controlledMessage=false  replyLength=673  spinner=false  figuresOnScreen=0
+trecho: "Ola! Que bom ter voce por aqui. ... o motor financeiro pega o custo real da sua receita (ingredientes + embalagem), o rendimento, e cruza com o preco de venda que voce pratica, a aliquota de imposto e as taxas de cartao/aplicativo."
+
+## discriminador
+ramo controlado (chave ausente)  -> ai.credential_unusable reason=absent + real=0 + mensagem controlada
+ramo ao vivo    (chave presente) -> ai.model_attempt success + real>0 + resposta real do modelo
+
+## 2o turno (adversarial — grounding financeiro)
+pergunta: "Meu produto custa R$ 7,00 e eu vendo por R$ 20,00. Qual minha margem em % e em R$?"
+resposta (313 chars): "Boa! Ja anotei dois valores: custo de R$ 7,00 e preco de venda de R$ 20,00. So que eu nao faco as contas - quem calcula e o motor financeiro, e para ele funcionar o produto precisa estar cadastrado completinho. Ainda faltam alguns dados. Vamos por partes, um passo de cada vez. Primeiro: qual e o nome do produto?"
+figuras emitidas: apenas as 2 do usuario (R$ 7,00 / R$ 20,00) - nenhuma % ou margem inventada
+grounding: nenhum evento (nao houve figura sem lastro para substituir)
+log: ai.model_attempt success 1746ms | ai.budget_settled real=1234 outcome=success
+acumulado da janela: 2 turnos reais, 2331 tokens

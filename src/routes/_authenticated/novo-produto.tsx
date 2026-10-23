@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, RotateCcw, Send, Bot, User } from "lucide-react";
+import { Sparkles, MessageSquarePlus, Send, Bot, User } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { chatStatusLabel, isChatBusy, transitionChatState, type ChatState } from "@/lib/chat-fsm";
 
@@ -52,6 +52,10 @@ function NovoProduto() {
   const loading = isChatBusy(chatState);
   const [currentProductId, setCurrentProductId] = useState<string | null>(null);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  // Anuncio do reset para leitores de tela: antes o apagamento era silencioso.
+  const [resetAnnouncement, setResetAnnouncement] = useState("");
+  // Reset so faz sentido se ha fala do usuario; a saudacao inicial nao e historico.
+  const conversationEmpty = !messages.some((message) => message.role === "user");
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -129,55 +133,74 @@ function NovoProduto() {
       ]);
       setCurrentProductId(null);
       setChatState((state) => transitionChatState(state, { type: "RESET" }));
+      setResetAnnouncement("Conversa apagada.");
+      window.setTimeout(() => setResetAnnouncement(""), 5000);
     } catch {
-      toast.error("Não foi possível recomeçar a conversa.");
+      toast.error("Não foi possível apagar a conversa.");
     }
   }
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col lg:h-[calc(100vh-6rem)]">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="space-y-1">
           <h1 className="text-2xl font-black md:text-3xl">Cadastro conversacional</h1>
           <p className="text-sm text-muted-foreground">
             Converse como se estivesse falando com um consultor.
           </p>
-        </div>
-        <div className="flex gap-2">
-          {currentProductId && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                navigate({ to: "/diagnostico", search: { produto: currentProductId } })
-              }
-            >
-              Ver produto
-            </Button>
-          )}
-          <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-            <AlertDialogTrigger render={<Button variant="ghost" size="sm" className="gap-2" />}>
-              <RotateCcw className="h-4 w-4" /> Recomeçar
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Iniciar uma nova conversa?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Todo o histórico da conversa atual será apagado permanentemente.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={() => void reset()}>
-                  Apagar e recomeçar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="flex gap-2 pt-2">
+            {currentProductId && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  navigate({ to: "/diagnostico", search: { produto: currentProductId } })
+                }
+              >
+                Ver produto
+              </Button>
+            )}
+            <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+              {/* `outline` (nao `ghost`) + rotulo que nomeia a acao: sem caixa visivel o
+                  gatilho parecia texto, e "Recomecar" prometia reset instantaneo quando
+                  o primeiro clique apenas abre a confirmacao. Desabilitado com conversa
+                  vazia (reset seria no-op) e durante resposta em andamento. */}
+              <AlertDialogTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    disabled={conversationEmpty || loading}
+                  />
+                }
+              >
+                <MessageSquarePlus className="h-4 w-4" /> Nova conversa
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Apagar esta conversa?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    O histórico atual será apagado e a conversa volta à saudação inicial. Esta ação
+                    não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction variant="destructive" onClick={() => void reset()}>
+                    Apagar conversa
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+          <p role="status" aria-live="polite" className="sr-only">
+            {resetAnnouncement}
+          </p>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto rounded-2xl border bg-card p-4 md:p-6 shadow-[var(--shadow-soft)]">
+      <div className="flex-1 overflow-y-auto rounded-2xl border bg-card p-4 md:p-6 shadow-sm">
         <div className="space-y-4" role="log" aria-live="polite" aria-relevant="additions text">
           {messages.map((m, i) => (
             <MessageBubble key={m.id ?? i} role={m.role} content={m.content} />
@@ -206,7 +229,7 @@ function NovoProduto() {
 
       <form
         onSubmit={submit}
-        className="mt-4 flex items-end gap-2 rounded-2xl border bg-card p-3 shadow-[var(--shadow-soft)]"
+        className="mt-4 flex items-end gap-2 rounded-2xl border bg-card p-3 shadow-sm"
       >
         <Label htmlFor="novo-produto-mensagem" className="sr-only">
           Mensagem para o consultor

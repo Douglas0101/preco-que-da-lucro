@@ -1,4 +1,5 @@
 import Decimal from "decimal.js";
+import { DECIMAL_ZERO } from "@/lib/decimal-constants";
 import type { FeeRow, IngredientRow, PackagingRow } from "@/lib/finance";
 import { toDecimalString } from "@/lib/financial-values";
 import type { RequestContext } from "@/lib/request-context";
@@ -98,7 +99,7 @@ function sumFixedExpenses(rows: DashboardInputs["expenseRows"]): {
   value: Decimal;
   invalid: boolean;
 } {
-  let value = new Decimal(0);
+  let value = DECIMAL_ZERO;
   let invalid = false;
   for (const expense of rows) {
     if (expense.type !== "fixa") continue;
@@ -304,7 +305,7 @@ export class DefaultDashboardService implements DashboardService {
     // Net adjustments lack a per-product fiscal allocation. A missing or
     // concurrently changed item aggregate also cannot prove a real margin.
     // Report the reconciliation gap instead of inventing a partial result.
-    const itemRevenue = itemSummary.reduce((sum, row) => sum.plus(row.totalAmount), new Decimal(0));
+    const itemRevenue = itemSummary.reduce((sum, row) => sum.plus(row.totalAmount), DECIMAL_ZERO);
     if (itemSummary.length === 0 || !itemRevenue.eq(revenue)) {
       return {
         state: "incomplete",
@@ -313,7 +314,7 @@ export class DefaultDashboardService implements DashboardService {
         salesMismatch: true,
       };
     }
-    let marginTotal = new Decimal(0);
+    let marginTotal = DECIMAL_ZERO;
     for (const row of itemSummary) {
       const costs = costsByProduct.get(row.productId)!;
       const actualRevenue = new Decimal(row.totalAmount);

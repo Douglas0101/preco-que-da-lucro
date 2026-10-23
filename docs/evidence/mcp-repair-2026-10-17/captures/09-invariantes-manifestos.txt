@@ -1,0 +1,24 @@
+# INVARIANTES DO REPOSITORIO durante o reparo (a asseracao do passo 6 do runbook)
+# hashes medidos em 2026-10-17T05:31Z, ANTES de qualquer mutacao da maquina;
+# reconferidos no fim da operacao: tem de ser identicos.
+
+$ sha256sum package.json package-lock.json
+6851b1cd52ecdf03be945cabb589ff3d9c52a11c99efdda91eefe89699a1fa96  package.json
+a245989fd8c77b3aa4e75ef607e35fcf779575b7352eb3ae799c80b90dcdfb8f  package-lock.json
+
+# baseline declarado em 05:31Z:
+6851b1cd52ecdf03be945cabb589ff3d9c52a11c99efdda91eefe89699a1fa96  package.json
+a245989fd8c77b3aa4e75ef607e35fcf779575b7352eb3ae799c80b90dcdfb8f  package-lock.json
+
+# observacao de honestidade: os dois manifestos JA estavam modificados antes desta sessao
+# (WIP de frontend/auth alheio a este reparo), por isso `git status` nao serve de baseline;
+# o baseline e o hash acima, medido no inicio da janela.
+
+$ git status --porcelain package.json package-lock.json
+ M package-lock.json
+ M package.json
+
+# cache npx: o diretorio corrompido saiu do espaco de hash (quarentena reversivel)
+/home/douglas/.npm/_npx/BROKEN-aikido-cache-20261017T0531Z
+(quarentenado, 792 MB, reversivel: mv de volta restaura o estado anterior)
+hash antigo 9a60de26ed7bbd1b nao existe mais (bom: o npx nao o encontra quebrado)

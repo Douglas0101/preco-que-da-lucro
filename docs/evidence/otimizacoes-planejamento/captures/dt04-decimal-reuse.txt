@@ -1,0 +1,44 @@
+# DT-04 — constantes Decimal (2026-10-20)
+
+$ grep -rn 'new Decimal(0|1|100)' src/lib src/server --exclude=decimal-constants.ts
+(vazio = nenhuma instanciação literal nos caminhos de cálculo)
+
+$ grep -rn 'new Decimal(0|1|100)' src/test
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/test/finance.properties.test.ts:226:        const exact = values.reduce((acc, value) => acc.plus(value), new Decimal(0));
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/test/calc-explainer.test.tsx:295:    const feeRate = input.fees.reduce((sum, fee) => sum.plus(fee.percentage ?? 0), new Decimal(0));
+(testes/fixtures mantêm a forma literal de propósito: são o controle negativo da igualdade)
+
+$ grep -rn 'DECIMAL_ZERO\|DECIMAL_ONE' src
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/dashboard.service.ts:2:import { DECIMAL_ZERO } from "@/lib/decimal-constants";
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/dashboard.service.ts:102:  let value = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/dashboard.service.ts:308:    const itemRevenue = itemSummary.reduce((sum, row) => sum.plus(row.totalAmount), DECIMAL_ZERO);
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/dashboard.service.ts:317:    let marginTotal = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/diagnostic.service.ts:2:import { DECIMAL_ZERO } from "@/lib/decimal-constants";
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/diagnostic.service.ts:145:    let total = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/sales.service.ts:2:import { DECIMAL_ZERO } from "@/lib/decimal-constants";
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/sales.service.ts:50:    let gross = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/break-even.ts:15:import { DECIMAL_ZERO } from "@/lib/decimal-constants";
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/break-even.ts:194:  let value = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/finance.ts:7:import { DECIMAL_ONE, DECIMAL_ZERO } from "@/lib/decimal-constants";
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/finance.ts:128:  let sum = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/finance.ts:249:  let sum = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/finance.ts:268:  let sum = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/finance.ts:301:  let total = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/finance.ts:596:    DECIMAL_ONE.minus(new Decimal(percentageRate).plus(targetContributionRate as number).div(100)),
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/decimal-constants.ts:12:export const DECIMAL_ZERO = Object.freeze(new Decimal(0));
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/decimal-constants.ts:13:export const DECIMAL_ONE = Object.freeze(new Decimal(1));
+
+Definição congelada:
+import Decimal from "decimal.js";
+
+/**
+ * Constantes compartilhadas do motor financeiro (DT-04).
+ *
+ * `Decimal` é imutável em todas as operações públicas: métodos como `plus`,
+ * `mul` e `div` devolvem novas instâncias e nunca mutam o receiver. Reutilizar
+ * `0` e `1` elimina alocações repetidas nos laços de margem, ponto de
+ * equilíbrio e impostos — e `Object.freeze` impede que um chamador futuro
+ * trate-as como acumuladores mutáveis.
+ */
+export const DECIMAL_ZERO = Object.freeze(new Decimal(0));
+export const DECIMAL_ONE = Object.freeze(new Decimal(1));

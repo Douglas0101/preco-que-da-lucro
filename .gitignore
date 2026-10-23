@@ -105,6 +105,18 @@ supabase/.temp/
 supabase/.branches/
 *.local
 
+# Capturas de execução de computer-user (2026-10-15): dumps de acessibilidade do
+# Playwright MCP (`*.ax.txt`), navegações `page-*.yml` e exports de sessão de
+# agente. Diferente da evidência CURADA (por pacote, selada por MANIFEST.sha256 e
+# preservada byte a byte), isto é saída de ferramenta que um `git add .` em
+# `docs/evidence/**` levaria ao histórico. As capturas já versionadas ficam como
+# estão (o selo dos pacotes a que pertencem é prova e não se reescreve); a regra
+# vale daqui para frente.
+docs/evidence/**/*.ax.txt
+docs/evidence/**/page-*.yml
+docs/evidence/agent-state/**/*.jsonl
+docs/evidence/agent-state/**/*.log
+
 # Private key material and local databases
 *.pem
 *.key

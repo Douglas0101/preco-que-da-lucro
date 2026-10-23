@@ -4,6 +4,7 @@
  */
 
 import Decimal from "decimal.js";
+import { DECIMAL_ONE, DECIMAL_ZERO } from "@/lib/decimal-constants";
 import { quantityUnitDimension, type QuantityDimension } from "@/lib/financial-values";
 
 Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
@@ -124,7 +125,7 @@ function nonFiniteResultError(field: string): CalculationError {
 
 /** Soma valores finitos sem deixar overflow ou entrada especial vazar. */
 export function sumFiniteNumbers(values: number[]): number {
-  let sum = new Decimal(0);
+  let sum = DECIMAL_ZERO;
   for (const value of values) {
     if (!Number.isFinite(value)) return Number.NaN;
     sum = sum.plus(value);
@@ -245,7 +246,7 @@ export function calculateIngredientCost(row: IngredientRow): number | null {
 
 export function calculateRecipeCost(rows: IngredientRow[]): number | null {
   // Custo total é desconhecido se qualquer ingrediente for desconhecido.
-  let sum = new Decimal(0);
+  let sum = DECIMAL_ZERO;
   let incomplete = false;
   for (const r of rows) {
     const cost = calculateIngredientCost(r);
@@ -264,7 +265,7 @@ export interface PackagingRow {
   units_per_package: number;
 }
 export function calculatePackagingCost(rows: PackagingRow[]): number {
-  let sum = new Decimal(0);
+  let sum = DECIMAL_ZERO;
   for (const row of rows) {
     if (numericInputError("package_price", row.package_price, { min: 0 })) return Number.NaN;
     if (numericInputError("units_per_package", row.units_per_package, { minExclusive: 0 }))
@@ -297,7 +298,7 @@ export interface FeeRow {
 
 /** SDD §11.7: imposto + taxas sobre preço bruto deve permanecer abaixo de 100%. */
 function combinedRateError(taxRate: number | null, fees: FeeRow[]): CalculationError | null {
-  let total = new Decimal(0);
+  let total = DECIMAL_ZERO;
   for (const value of [taxRate, ...fees.map((fee) => fee.percentage)]) {
     if (value == null) continue;
     if (numericInputError("rateOnGrossPrice", value, { min: 0, max: 100 })) return null;
@@ -592,9 +593,7 @@ function calculatePriceForContributionRate(
     return calcInvalid([nonFiniteResultError("rateOnGrossPrice")]);
 
   const denominator = decimalResult(
-    new Decimal(1).minus(
-      new Decimal(percentageRate).plus(targetContributionRate as number).div(100),
-    ),
+    DECIMAL_ONE.minus(new Decimal(percentageRate).plus(targetContributionRate as number).div(100)),
   );
   if (!Number.isFinite(denominator))
     return calcInvalid([nonFiniteResultError("priceFormationDenominator")]);

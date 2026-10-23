@@ -1,0 +1,31 @@
+# A PROVA DA CLASSE: mesma fixture (a linha real, na forma aninhada), dois codigos
+# fixture: /tmp/fixture-aikido-aninhada/.mcp.json == entrada aikido do backup pre-reparo, verbatim
+{
+  "mcpServers": {
+    "aikido": {
+      "transport": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@aikidosec/mcp@1.0.9"]
+      }
+    }
+  }
+}
+
+## guard ANTES (codigo do HEAD 4206303) — escopo-repositorio sobre a fixture
+mcp runtime guard: escopo=repositorio · sitios auditados=1
+  auditado: .mcp.json (projeto-padrao, 175 bytes)
+  ausente : .pi/mcp-adapter.json (projeto-adapter)
+mcp runtime guard: OK (nenhum runner sem pin, nenhum segredo literal)
+exit=0
+
+## guard DEPOIS (codigo com o reparo) — mesma fixture, mesmo escopo
+mcp runtime guard: escopo=repositorio · sitios auditados=1
+  auditado: .mcp.json (projeto-padrao, 175 bytes)
+  ausente : .pi/mcp-adapter.json (projeto-adapter)
+mcp runtime guard [violacao]: .mcp.json: linha `aikido` lanca `npx` sem `cwd` — o runner sobe a arvore a partir do diretorio corrente e pode instalar na arvore de um checkout (mecanismo do DBT-32)
+mcp runtime guard: REPROVADO (1 violacao(oes))
+exit=1
+
+# Leitura: o codigo anterior lia so a forma PLANA (`command` no nivel da linha) e por isso
+# nao via a linha aninhada em `transport` — o defeito teria passado mesmo com o sitio no catalogo.

@@ -1,0 +1,68 @@
+# Percurso de primeiro cliente — bancada local :4173, 2026-10-19 (sessão CU interativa)
+# Conta nova: cliente.novo+1792383572814@example.test | tenant criado automaticamente: "Cliente Novo"
+
+## 1. Cadastro
+> POST /api/auth/sign-up/email -> 200  ({"token":null, user.emailVerified:false})
+> mensagem exibida (transitoria): "Conta criada! Confirme seu e-mail para entrar."
+
+ACHADO (UX, baixa): a confirmacao e EFEMERA (toast do sonner, some em ~4 s).
+  Medicao: amostragem a cada 250 ms capturou a mensagem; amostragem unica aos 6 s = tela sem mensagem.
+  Nao ha estado persistente de "verifique seu e-mail" nem botao de reenviar.
+  Efeito: o cliente que olha para o outro lado perde a instrucao e fica sem saber se criou a conta.
+
+## 2. Muro da verificacao (DBT-116, local)
+Usuario criado com email_verified = f. Sem provedor de e-mail alcancavel para example.test,
+  o login e recusado. Liberacao local declarada: UPDATE users SET email_verified = true (espelha o clique no link).
+  Log do servidor: NAO ha evento de envio de e-mail; os unicos matches de "email" sao os caminhos
+  /api/auth/sign-up/email e /api/auth/sign-in/email.
+
+## 3. Tenant automatico
+Ao entrar, o app cria o tenant pessoal: tenants "Cliente Novo" (04:19:32Z) + membership.
+  => cold start existe e e guiado: /inicio mostra h1 "Bem-vindo!" + CTA "Comecar agora",
+     com 0 x "R$ 0,00", 0 badge e 0 figura. Nenhum numero inventado para tenant vazio.
+
+## 4. Estados vazios por rota (todos honestos e guiados)
+/inicio           "Bem-vindo! ... Comecar agora"
+/produtos         "Cadastrar primeiro produto" / "Novo produto"
+/precos           (rota existe; o menu aponta para /precos — ATENCAO: /precos-compra devolve 404,
+                   mas esse caminho foi INVENTADO pelo teste, nao pelo app)
+/despesas         "Adicionar despesa"
+/vendas           "Registre vendas reais. So dado factual entra no faturamento do dashboard."
+                  + "Cadastre um produto para registrar a primeira venda." + "0 REGISTRADA(S)"
+/ponto-equilibrio "Cadastre um produto para calcular."
+/simulacoes       "Teste uma hipotese informada por voce. Sem vendas registradas, nenhum cenario
+                   e tratado como atual ou factual." + "0 REGISTRO(S)"
+/diagnostico      "Cadastre um produto para gerar o diagnostico."
+Medido nas 9 rotas: 0 x "R$ 0,00", 0 x NaN/Infinity, 0 falhas HTTP (fora o caminho inventado), 0 erro de console.
+
+## 5. Caminho de criacao do PRIMEIRO produto = somente o chat
+/produtos oferece apenas "Novo produto" / "Cadastrar primeiro produto", ambos apontando para /novo-produto.
+  Nao existe formulario manual de criacao e nao ha aba/modo manual em /novo-produto (0 tabs).
+  A porta manual (composicao) exige produto existente: /produtos/composicao?produto=<uuid>.
+
+## 6. Turno 1 do chat (sem figuras)
+pergunta: "Quero cadastrar um bolo de cenoura caseiro"
+resposta: conversacional normal (sem bloqueio). ai.model_attempt success 1448 ms, budget_settled real=940.
+
+## 7. ACHADO PRINCIPAL — turno 2, mensagem DENSA com os numeros do cliente
+texto do cliente: "O nome e Bolo de Cenoura. Rendimento: 12 fatias. Ingredientes: R$ 18,50 no total.
+                   Embalagem: R$ 2,00 por caixa. Preco de venda: R$ 8,00 por fatia."
+resposta exibida (substituida pelo grounding, texto do modulo):
+  "Nao posso apresentar valores calculados sem um resultado do motor financeiro. Os dados informados
+   continuam registrados. Consulte Diagnostico ou Simulacoes para ver os calculos disponiveis e os
+   dados que ainda faltam."   (src/lib/ai/financial-output-grounding.ts:16-19)
+log: {"event":"ai.financial_output_blocked","level":"warn","unsupportedCount":2}  (04:24:19Z)
+banco do tenant novo: products=0, product_ingredients=0, product_packaging=0, chat_messages=4
+  => NADA foi registrado; nenhuma execucao de tool no turno; a conversa ficou sem proxima pergunta.
+contraste: o turno 1 (sem figuras) NAO foi bloqueado; o total de eventos de bloqueio na janela e 1.
+
+## 8. Correcoes dos meus proprios erros de teste (declaradas)
+(a) Naveguei para /precos-compra (caminho que EU inventei) e quase registrei como bug um 404.
+    Verificacao no codigo: app-shell.tsx:36 aponta "Precos de Compra" para /precos, que existe.
+(b) Meu primeiro seletor de submit casou "Continuar com Google"; a segunda tentativa casou
+    "Voltar para entrar". O submit correto e "Criar conta" (formulario tem name/email/password, sem confirmacao).
+(c) Meu filtro de "CTA/orientacao" olhava apenas botoes e por isso reportou "sem orientacao" em telas
+    cuja orientacao esta em paragrafos — corrigido lendo o texto das rotas.
+
+## 9. Custo real da janela (autorizado pelo dono)
+turnos reais acumulados: 3 (1097 + 1234 + 940 tokens = 3271)

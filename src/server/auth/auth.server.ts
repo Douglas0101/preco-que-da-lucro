@@ -7,10 +7,15 @@ import { getDatabase, type Database } from "@/db/client.server";
 import * as schema from "@/db/schema";
 import { getEmailAdapter } from "@/server/email/email-adapter.server";
 import { createPersonalTenantForUser } from "./tenant-bootstrap.server";
+import { assertEmailSignUpReady } from "./email-signup-guard.server";
 import { resolveAuthPolicy, requireAuthSecret, resolveGoogleCredentials } from "./auth-policy";
 import { hashPassword, verifyPassword } from "./password.server";
 import { createDatabaseRateLimitStorage } from "./rate-limit-storage.server";
 import { AUTH_RATE_LIMIT_RULES } from "./rate-limit-rules.server";
+
+// Uma única fonte para o acoplamento "verificação obrigatória ⇒ e-mail
+// configurado": o guard de sign-up só bloqueia enquanto esta flag for true.
+const REQUIRE_EMAIL_VERIFICATION = true;
 
 export function createAuthInstance(database: Database = getDatabase()) {
   const policy = resolveAuthPolicy();
@@ -36,7 +41,7 @@ export function createAuthInstance(database: Database = getDatabase()) {
       enabled: true,
       minPasswordLength: 10,
       maxPasswordLength: 128,
-      requireEmailVerification: true,
+      requireEmailVerification: REQUIRE_EMAIL_VERIFICATION,
       autoSignIn: false,
       revokeSessionsOnPasswordReset: true,
       password: { hash: hashPassword, verify: verifyPassword },
@@ -65,6 +70,8 @@ export function createAuthInstance(database: Database = getDatabase()) {
     },
     hooks: {
       before: createAuthMiddleware(async (context) => {
+        if (context.path === "/sign-up/email" && REQUIRE_EMAIL_VERIFICATION)
+          assertEmailSignUpReady();
         if (context.path !== "/change-password") return;
         return {
           context: {

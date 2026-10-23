@@ -1,0 +1,29 @@
+# Onda 1 — bundle após as otimizações (2026-10-20)
+
+$ npm run check:bundle
+> node scripts/check-bundle.mjs
+
+PASS assets/index-Cf4QHpXM.js: 219682 minified, 69073 gzip, 60000 Brotli bytes, sha256=66d724b9f2bf
+Initial graph (9 chunks): 451284 minified, 149045 gzip, 131194 Brotli bytes, sha256=456dc93eb1ec
+
+# Grafo inicial (arquivos + bytes) — .artifacts/bundle-report.json
+assets/auth-client-GAuKX51H.js 29344
+assets/button-BSuNCKbn.js 38710
+assets/card-BSmucXAL.js 1292
+assets/index-Cf4QHpXM.js 219682
+assets/loading-skeleton-rT2rhi2o.js 291
+assets/preload-helper-Czpn1I53.js 1196
+assets/rolldown-runtime-hePW80VL.js 716
+assets/skeleton-RXBpDXvS.js 252
+assets/tanstack-vendor-B0dT_-Hx.js 159801
+
+# Comparação medida
+baseline limpo HEAD 4206303 (journal L960): 484.235 B em 9 chunks
+WIP pré-otimização (DBT-125):              500.608 B (entry 265.408)
+após Onda 1:                               451.284 B (entry 219.682; gzip 149.045)
+delta vs baseline HEAD:                    -32.951 B (-6,8%)
+delta vs WIP pré-otimização:               -49.324 B (-9,9%)
+
+LIMITE DECLARADO: a meta de -15% do Gate 1 NÃO foi atingida; o ganho veio de
+mover o Toaster (sonner) do entry root para os layouts que realmente usam toast.
+UI-02 (lazy de componentes >50KB nas rotas) e UI-04 permanecem como delta nomeado.

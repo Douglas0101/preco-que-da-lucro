@@ -1,0 +1,28 @@
+# CONTROLE NEGATIVO: reproducao deterministica da falha medida no cliente (code=254 / ENOENT)
+# Em cache npm PROPRIA (npm_config_cache=/tmp/...), o cache REAL nao e tocado.
+
+## passo 1 - instalar a linha antiga uma vez (cria o diretorio de hash)
+$ npm_config_cache=/tmp/npm-probe-cache-mcp-repair npx -y @aikidosec/mcp@1.0.9 </dev/null >/dev/null 2>&1
+exit=0
+
+## passo 2 - o cache criado
+9a60de26ed7bbd1b
+hash=9a60de26ed7bbd1b
+node_modules
+package-lock.json
+package.json
+
+## passo 3 - apagar o manifesto (o estado medido no cache real em 2026-10-17)
+node_modules
+package-lock.json
+
+## passo 4 - rodar de novo: o erro do cliente reproduzido
+npm error code ENOENT
+npm error syscall open
+npm error path /tmp/npm-probe-cache-mcp-repair/_npx/9a60de26ed7bbd1b/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/tmp/npm-probe-cache-mcp-repair/_npx/9a60de26ed7bbd1b/package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: /tmp/npm-probe-cache-mcp-repair/_logs/2026-10-17T05_39_43_006Z-debug-0.log
+exit(pipeline)=254

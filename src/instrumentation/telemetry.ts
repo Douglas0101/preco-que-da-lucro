@@ -225,6 +225,24 @@ function shutdownActiveSdk(): Promise<void> {
   return shutdownPromise;
 }
 
+/** Tuning único do exportador em lote (OB-03).
+ *
+ * Serverless não ganha nada exportando a cada segundo: lotes maiores e uma
+ * janela de 10 s reduzem timers/serializações sem estourar o orçamento de uma
+ * invocação. O `exportTimeoutMillis` acompanha o teto de 5 s para que um
+ * coletor lento não segure o shutdown.
+ */
+export const OTEL_BATCH_CONFIG = Object.freeze({
+  scheduledDelayMillis: 10_000,
+  maxExportBatchSize: 512,
+  exportTimeoutMillis: 5_000,
+} as const);
+
+/** Exposto para o teste de no-op: sem endpoint o SDK nunca é importado. */
+export function isTelemetryStarted(): boolean {
+  return telemetryStarted;
+}
+
 /** Configuração do SDK OTEL resolvida de ambiente.
  *
  * Os dois sítios de leitura eram `??` sobre `process.env`:
@@ -267,11 +285,13 @@ export function ensureTelemetryStarted(): void {
       const exporterPackage = "@opentelemetry/exporter-trace-otlp-http";
       const metricExporterPackage = "@opentelemetry/exporter-metrics-otlp-http";
       const metricsSdkPackage = "@opentelemetry/sdk-metrics";
+      const traceSdkPackage = "@opentelemetry/sdk-trace-base";
       const [
         { NodeSDK },
         { OTLPTraceExporter },
         { OTLPMetricExporter },
         { PeriodicExportingMetricReader },
+        { BatchSpanProcessor },
       ] = await Promise.all([
         import(/* @vite-ignore */ sdkPackage) as Promise<typeof import("@opentelemetry/sdk-node")>,
         import(/* @vite-ignore */ exporterPackage) as Promise<
@@ -283,13 +303,21 @@ export function ensureTelemetryStarted(): void {
         import(/* @vite-ignore */ metricsSdkPackage) as Promise<
           typeof import("@opentelemetry/sdk-metrics")
         >,
+        import(/* @vite-ignore */ traceSdkPackage) as Promise<
+          typeof import("@opentelemetry/sdk-trace-base")
+        >,
       ]);
       const sdk = new NodeSDK({
         serviceName,
-        traceExporter: new OTLPTraceExporter({ url: `${endpoint}/v1/traces` }),
+        spanProcessors: [
+          new BatchSpanProcessor(new OTLPTraceExporter({ url: `${endpoint}/v1/traces` }), {
+            ...OTEL_BATCH_CONFIG,
+          }),
+        ],
         metricReader: new PeriodicExportingMetricReader({
           exporter: new OTLPMetricExporter({ url: `${endpoint}/v1/metrics` }),
           exportIntervalMillis,
+          exportTimeoutMillis: OTEL_BATCH_CONFIG.exportTimeoutMillis,
         }),
       });
       sdk.start();

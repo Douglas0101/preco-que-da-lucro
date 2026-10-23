@@ -1,0 +1,11 @@
+# guard --home ANTES do reparo (codigo do commit HEAD: 4206303)
+# comando: git show HEAD:scripts/mcp-runtime-guard.ts > /tmp/guard-antes.ts && npx tsx /tmp/guard-antes.ts --home
+mcp runtime guard: escopo=repositorio+maquina · sitios auditados=1
+  auditado: /home/douglas/.config/mcp/mcp.json (primario, 662 bytes)
+  ausente : .mcp.json (projeto-padrao)
+  ausente : .pi/mcp-adapter.json (projeto-adapter)
+  ausente : /home/douglas/.agents/mcp.json (compatibilidade)
+  ausente : /home/douglas/.agents/mcp/mcp.json (compatibilidade)
+  ausente : /home/douglas/.dsh/bundles/kimi-mcp/cordis.patch.yml (outro-cliente)
+mcp runtime guard: OK (nenhum runner sem pin, nenhum segredo literal)
+exit=0

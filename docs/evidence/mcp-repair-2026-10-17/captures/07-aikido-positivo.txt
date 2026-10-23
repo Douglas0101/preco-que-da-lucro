@@ -1,0 +1,9 @@
+# POSITIVO: a linha NOVA da config, exatamente como o cliente a lanca (binario absoluto + cwd)
+$ node /tmp/probe-aikido-novo.mjs
+serverInfo Aikido presente: true
+FERRAMENTAS (10): aikido_issues_list, aikido_scan_paths, aikido_full_scan, aikido_login, aikido_ignore_issue, aikido_unignore_issue, aikido_snooze_issue, aikido_unsnooze_issue, aikido_oss_dependency_scan, aikido_workspaces_list
+stderr: {"level":30,"time":"2026-10-17T05:40:20.693Z","msg":"MCP server is running..."} | {"level":40,"time":"2026-10-17T05:40:20.717Z","msg":"Opengrep setup skipped: Aikido authentication required."}
+
+# O par negativo esta em 03-aikido-controle-negativo.txt: mesma linha ANTIGA (npx, sem cwd, cache sem manifesto) => code=254 + ENOENT.
+# LIMITE DECLARADO: as ferramentas carregam, mas a PRIMEIRA chamada exige login Aikido (navegador);
+# o proprio stderr do servidor diz: Opengrep setup skipped: Aikido authentication required.

@@ -43,16 +43,12 @@ type Item = {
   package_qty: string | null;
   package_unit: string | null;
   price_updated_at: string | null;
+  age_days: number | null;
   kind: "ingrediente" | "embalagem";
   detail: string;
 };
 
 const DIAS_ALERTA = 30;
-
-function diasDesde(iso: string | null) {
-  if (!iso) return null;
-  return Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-}
 
 function dataBR(iso: string | null) {
   if (!iso) return "nunca atualizado";
@@ -89,6 +85,7 @@ function Precos() {
         package_qty: i.package_qty,
         package_unit: i.package_unit,
         price_updated_at: i.price_updated_at,
+        age_days: i.age_days,
         kind: "ingrediente" as const,
         detail:
           i.package_qty && i.package_unit
@@ -103,6 +100,7 @@ function Precos() {
         package_qty: p.units_per_package,
         package_unit: "unidade",
         price_updated_at: p.price_updated_at,
+        age_days: p.age_days,
         kind: "embalagem" as const,
         detail: `pacote com ${qty(p.units_per_package, "unidade(s)")}`,
       })),
@@ -114,7 +112,7 @@ function Precos() {
   const desatualizados = useMemo(
     () =>
       items.filter((i) => {
-        const d = diasDesde(i.price_updated_at);
+        const d = i.age_days;
         return d === null || d > DIAS_ALERTA;
       }).length,
     [items],
@@ -156,7 +154,12 @@ function Precos() {
       setItems((prev) =>
         prev.map((i) =>
           i.id === item.id
-            ? { ...i, package_price: packagePrice, price_updated_at: res.price_updated_at }
+            ? {
+                ...i,
+                package_price: packagePrice,
+                price_updated_at: res.price_updated_at,
+                age_days: 0,
+              }
             : i,
         ),
       );
@@ -311,7 +314,7 @@ function PurchasePriceRow({
   onDraftChange: (id: string, value: string) => void;
   onSave: (item: Item) => Promise<void>;
 }>) {
-  const days = diasDesde(item.price_updated_at);
+  const days = item.age_days;
   const stale = days === null || days > DIAS_ALERTA;
   const inputId = `preco-${item.kind}-${item.id}`;
   const dayLabel = ageLabel(days);

@@ -1,0 +1,12 @@
+# UI-06 — pureza de render (2026-10-20)
+$ grep -rn 'Math.random' src/components src/routes
+(vazio)
+
+$ grep -rn 'Date.now()' src/components src/routes
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/routes/_authenticated/vendas.tsx:307:      : Date.now().toString(36);
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/routes/_authenticated/diagnostico.tsx:695:      : Date.now().toString(36);
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/routes/_authenticated/inicio.tsx:465:      : Date.now().toString(36);
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/routes/_authenticated/simulacoes.tsx:881:      : Date.now().toString(36);
+
+Os usos restantes são createErrorReference() em handlers de erro (não no corpo de render).
+O uso em render de /precos (diasDesde) foi removido; age_days agora vem do servidor.

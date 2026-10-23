@@ -1,0 +1,10 @@
+GATE — o que foi executado nesta sessao e o resultado honesto
+git status --porcelain (contagem): 41 entradas ANTES e DEPOIS (37 modificadas + 4 untracked alheios)
+  => nenhuma fonte tocada; toda a producao desta sessao vive em .artifacts/ (gitignored)
+m02-temporal-guard: OK (3 superficies vivas, 0 violacao)
+prettier --check .artifacts/README-BANCADA-BROWSER.md: All matched files use Prettier code style!
+npm run m02:lockfile-guard: FALHA PRE-EXISTENTE E ALHEIA (lock do worktree != HEAD; WIP de
+  frontend de outra sessao, 2991 insercoes no lock). Nao tocada, nao "consertada".
+npm run check COMPLETO: NAO executado nesta sessao (o passo 1 ja esta vermelho por WIP alheio;
+  declarar verde seria falso). O que foi executado: os gates acima, o build (EXIT=0) e o
+  proprio instrumento desta bancada.

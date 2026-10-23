@@ -1,0 +1,144 @@
+cn-02
+{
+  "launch": {
+    "launched": true,
+    "version": "Chrome/155.0.8059.84",
+    "endpoint": "http://127.0.0.1:9222"
+  },
+  "baseURL": "http://127.0.0.1:4173",
+  "steps": [],
+  "console": {
+    "total": 0,
+    "errors": 0,
+    "sample": []
+  },
+  "requests": {
+    "failed": 0,
+    "sample": []
+  },
+  "cookies": [
+    "preco_que_da_lucro.session_token"
+  ],
+  "errors": [],
+  "finalUrl": "about:blank",
+  "finalPath": "blank",
+  "controleNegativo": {
+    "houveFalha": false,
+    "problemas": [],
+    "vereditoInvertido": "FAIL (o instrumento NAO reprovou: e cego)"
+  },
+  "veredito": {
+    "ok": false,
+    "controleNegativo": true,
+    "motivo": "instrumento nao detectou o defeito plantado"
+  }
+}
+
+
+cn-05
+{
+  "launch": {
+    "launched": true,
+    "version": "Chrome/155.0.8059.84",
+    "endpoint": "http://127.0.0.1:9222"
+  },
+  "baseURL": "http://127.0.0.1:4173",
+  "steps": [],
+  "console": {
+    "total": 40,
+    "errors": 0,
+    "sample": []
+  },
+  "requests": {
+    "failed": 0,
+    "sample": []
+  },
+  "cookies": [
+    "preco_que_da_lucro.session_token"
+  ],
+  "errors": [],
+  "login": {
+    "via": "nenhuma (--skip-login)",
+    "ok": true,
+    "proposital": true
+  },
+  "walk": [
+    {
+      "route": "/inicio",
+      "status": 200,
+      "finalPath": "/inicio",
+      "autenticada": true,
+      "heading": "Olá! 👋"
+    },
+    {
+      "route": "/produtos",
+      "status": 200,
+      "finalPath": "/produtos",
+      "autenticada": true,
+      "heading": "Meus Produtos"
+    },
+    {
+      "route": "/precos",
+      "status": 200,
+      "finalPath": "/precos",
+      "autenticada": true,
+      "heading": "Atualizar Preços de Compra"
+    },
+    {
+      "route": "/despesas",
+      "status": 200,
+      "finalPath": "/despesas",
+      "autenticada": true,
+      "heading": "Minhas Despesas"
+    },
+    {
+      "route": "/diagnostico",
+      "status": 200,
+      "finalPath": "/diagnostico",
+      "autenticada": true,
+      "heading": "Meu Diagnóstico"
+    },
+    {
+      "route": "/ponto-equilibrio",
+      "status": 200,
+      "finalPath": "/ponto-equilibrio",
+      "autenticada": true,
+      "heading": "Ponto de Equilíbrio"
+    },
+    {
+      "route": "/simulacoes",
+      "status": 200,
+      "finalPath": "/simulacoes",
+      "autenticada": true,
+      "heading": "Simulações"
+    },
+    {
+      "route": "/novo-produto",
+      "status": 200,
+      "finalPath": "/novo-produto",
+      "autenticada": true,
+      "heading": "Cadastro conversacional"
+    }
+  ],
+  "walkFalhas": [],
+  "sessaoPresente": true,
+  "finalUrl": "http://127.0.0.1:4173/novo-produto",
+  "finalPath": "/novo-produto",
+  "naoVacuidade": {
+    "navegou": true,
+    "temSubstancia": true,
+    "passos": 0,
+    "login": true,
+    "walk": 8
+  },
+  "controleNegativo": {
+    "houveFalha": false,
+    "problemas": [],
+    "vereditoInvertido": "FAIL (o instrumento NAO reprovou: e cego)"
+  },
+  "veredito": {
+    "ok": false,
+    "controleNegativo": true,
+    "motivo": "instrumento nao detectou o defeito plantado"
+  }
+}

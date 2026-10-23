@@ -3592,3 +3592,21 @@ Estado corrente: `main` `5d6049b` (release com o gate corrigido), `develop` `20f
   proprietário) são a última milha desta fase. Nenhum DNS/SQL foi tocado.
 
 Latest state marker parent = `20f6ee74b20c6a37e9563d455260a5a217c666aa`,
+
+## Bloco aditivo — re-pin do marcador M-02 após a Onda 1 e a regressão profunda (2026-10-20)
+
+A linhagem avançou do marcador anterior (`20f6ee7…`) com a Onda 1 executada em
+`develop`: redesign base-luma + Toaster fora do entry (`5a5f1b2`), constantes
+`Decimal` e tuning OTel (`27f9482`), fallback do grounding (`ec28c12`), guard de
+e-mail (`75da106`), composição manual (`c848cee`), guard MCP no verify
+(`0b8c623`), pacote documental da Onda 1 (`5260b34`, `8a813ee`, `87fd2a3`) e a
+regressão profunda com a correção do CSP report do WebKit (`f9a179a`,
+`e09c0a9`). O `m02:state:check` acusou **15 commits** contra o orçamento
+declarado de 13; este bloco re-pina o estado corrente sem reescrever nenhum
+registro anterior e sem alterar o orçamento ou a verificação de ancestralidade.
+
+Estado corrente: `develop` `e09c0a9` (Onda 1 verde + 92/92 E2E + regressão
+profunda); `main` não mudou nesta rodada; nenhum push, deploy, SQL, Hostinger,
+Vercel ou Neon remoto foi tocado. Preview local restaurado ao ramo controlado.
+
+Latest state marker parent = `e09c0a990cc36e0a4034ff70eeee1d6fbc50af65`,

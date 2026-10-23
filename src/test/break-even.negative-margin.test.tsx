@@ -20,13 +20,7 @@
 import { render, within } from "@testing-library/react";
 import { PgDialect, QueryBuilder } from "drizzle-orm/pg-core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  marketPrices,
-  productIngredients,
-  productPackaging,
-  products,
-  salesFees,
-} from "@/db/schema";
+import { marketPrices, productPackaging, salesFees } from "@/db/schema";
 import type { RequestContext } from "@/lib/request-context";
 
 vi.mock("@tanstack/react-start", () => ({
@@ -161,7 +155,7 @@ function summaryFor(edge: (typeof EDGES)[number]) {
   });
 }
 
-function productRow(packagePrice: number) {
+function productRow() {
   return {
     id: PRODUCT_ID,
     tenantId: TENANT_ID,
@@ -286,7 +280,7 @@ function contextFor(cm: number): RequestContext {
     correlationId: CORRELATION_ID,
     signal: new AbortController().signal,
     transaction: createFakeTransaction({
-      products: [productRow(packagePriceFor(cm))],
+      products: [productRow()],
       ingredients: [ingredientRow(packagePriceFor(cm))],
       packaging: [],
       fees: [],

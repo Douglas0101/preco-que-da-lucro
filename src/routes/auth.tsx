@@ -1,13 +1,12 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Calculator, MessageCircle, Scale, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/sonner";
+import { Toaster, toast } from "@/components/ui/sonner";
 import { authClient } from "@/lib/auth-client";
-
-type AuthMode = "signin" | "signup" | "forgot" | "reset";
+import { safeRedirect, submitAuthForm, type AuthMode } from "@/lib/auth-form";
 
 const modeTitles: Record<AuthMode, string> = {
   signin: "Bem-vindo de volta",
@@ -24,68 +23,6 @@ const submitLabels: Record<AuthMode, string> = {
 };
 
 const PASSWORD_AUTOCOMPLETE = "current-password";
-
-function safeRedirect(value: unknown): string | undefined {
-  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//")
-    ? value
-    : undefined;
-}
-
-async function submitAuthForm({
-  mode,
-  token,
-  email,
-  password,
-  name,
-  redirect,
-  navigate,
-  setMode,
-  setPassword,
-}: Readonly<{
-  mode: AuthMode;
-  token?: string;
-  email: string;
-  password: string;
-  name: string;
-  redirect?: string;
-  navigate: ReturnType<typeof useNavigate>;
-  setMode: (mode: AuthMode) => void;
-  setPassword: (password: string) => void;
-}>): Promise<void> {
-  if (mode === "forgot") {
-    await authClient.requestPasswordReset({
-      email,
-      redirectTo: `${window.location.origin}/auth`,
-    });
-    toast.success("Se a conta existir, enviaremos as instruções de recuperação.");
-    setMode("signin");
-    return;
-  }
-  if (mode === "reset") {
-    if (!token) throw new Error("Link de recuperação inválido.");
-    const result = await authClient.resetPassword({ newPassword: password, token });
-    if (result.error) throw new Error(result.error.message ?? "Não foi possível redefinir.");
-    toast.success("Senha redefinida. Entre novamente.");
-    setMode("signin");
-    setPassword("");
-    return;
-  }
-  if (mode === "signup") {
-    const result = await authClient.signUp.email({
-      name,
-      email,
-      password,
-      callbackURL: `${window.location.origin}${redirect ?? "/inicio"}`,
-    });
-    if (result.error) throw new Error(result.error.message ?? "Não foi possível criar a conta.");
-    toast.success("Conta criada! Confirme seu e-mail para entrar.");
-    setMode("signin");
-    return;
-  }
-  const result = await authClient.signIn.email({ email, password });
-  if (result.error) throw new Error(result.error.message ?? "Credenciais inválidas.");
-  await navigate({ to: redirect ?? "/inicio", replace: true });
-}
 
 async function signInWithGoogle(redirect?: string): Promise<void> {
   const result = await authClient.signIn.social({
@@ -157,98 +94,147 @@ function Auth() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-background px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground">
-            <Sparkles className="h-7 w-7" />
+    <div className="grid min-h-screen bg-background lg:grid-cols-[1.05fr_1fr]">
+      <aside className="relative flex flex-col justify-center overflow-hidden px-6 py-10 sm:px-10 lg:min-h-screen lg:px-12">
+        <div className="mx-auto w-full max-w-lg">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <p className="text-lg font-black tracking-tight">Preço que Dá Lucro</p>
           </div>
-          <h1 className="mt-4 text-2xl font-black">Preço que Dá Lucro</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{modeTitles[mode]}</p>
+          <h1 className="mt-8 text-3xl leading-tight font-black tracking-tight sm:text-4xl">
+            Entenda a <span className="text-primary">faixa de preço</span> do seu produto
+            conversando.
+          </h1>
+          <p className="mt-3 max-w-md text-base text-muted-foreground">
+            Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu
+            negócio e quanto você precisa vender para começar a ter lucro.
+          </p>
+          <ul className="mt-8 hidden flex-col gap-4 lg:flex">
+            {[
+              {
+                icon: MessageCircle,
+                title: "Cadastro por conversa",
+                desc: "Escreva a receita do seu jeito. A IA organiza tudo para você.",
+              },
+              {
+                icon: Calculator,
+                title: "Cálculos precisos",
+                desc: "Custo, margem de contribuição e preços calculados com premissas explícitas.",
+              },
+              {
+                icon: Scale,
+                title: "Ponto de equilíbrio",
+                desc: "Saiba exatamente quanto vender para parar de ter prejuízo.",
+              },
+            ].map((f) => (
+              <li key={f.title} className="flex items-start gap-3">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-bold">{f.title}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{f.desc}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
+      </aside>
 
-        <div className="rounded-2xl border bg-card p-6 shadow-[var(--shadow-soft)]">
-          {(mode === "signin" || mode === "signup") && (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full gap-2"
-                onClick={handleGoogle}
-                disabled={loading}
-              >
-                <GoogleIcon /> Continuar com Google
-              </Button>
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">ou</span>
-                </div>
-              </div>
-            </>
-          )}
+      <div className="grid place-items-center px-4 py-10 sm:px-8">
+        <div className="w-full max-w-md">
+          <div className="mb-6 text-center lg:text-left">
+            <h2 className="text-2xl font-black tracking-tight">
+              <span className="text-primary">{modeTitles[mode]}</span>
+            </h2>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === "signup" && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Como podemos te chamar?</Label>
-                <Input
-                  id="name"
-                  required
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                />
-              </div>
-            )}
-            {mode !== "reset" && (
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-              </div>
-            )}
-            {mode !== "forgot" && (
-              <div className="space-y-2">
-                <Label htmlFor="password">{mode === "reset" ? "Nova senha" : "Senha"}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  minLength={10}
-                  autoComplete={mode === "signin" ? PASSWORD_AUTOCOMPLETE : "new-password"}
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-              </div>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Aguarde..." : submitLabels[mode]}
-            </Button>
-          </form>
-
-          <div className="mt-4 space-y-2 text-center text-sm text-muted-foreground">
-            {mode === "signin" && (
+          <div className="rounded-2xl border p-6">
+            {(mode === "signin" || mode === "signup") && (
               <>
-                <p>
-                  Ainda não tem conta?{" "}
-                  <ModeButton onClick={() => setMode("signup")}>Cadastre-se</ModeButton>
-                </p>
-                <ModeButton onClick={() => setMode("forgot")}>Esqueci minha senha</ModeButton>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={handleGoogle}
+                  disabled={loading}
+                >
+                  <GoogleIcon /> Continuar com Google
+                </Button>
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">ou</span>
+                  </div>
+                </div>
               </>
             )}
-            {mode !== "signin" && (
-              <ModeButton onClick={() => setMode("signin")}>Voltar para entrar</ModeButton>
-            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === "signup" && (
+                <div className="space-y-2">
+                  <Label htmlFor="name">Como podemos te chamar?</Label>
+                  <Input
+                    id="name"
+                    required
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                  />
+                </div>
+              )}
+              {mode !== "reset" && (
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                  />
+                </div>
+              )}
+              {mode !== "forgot" && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">{mode === "reset" ? "Nova senha" : "Senha"}</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    minLength={10}
+                    autoComplete={mode === "signin" ? PASSWORD_AUTOCOMPLETE : "new-password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
+                </div>
+              )}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Aguarde..." : submitLabels[mode]}
+              </Button>
+            </form>
+
+            <div className="mt-4 space-y-2 text-center text-sm text-muted-foreground">
+              {mode === "signin" && (
+                <>
+                  <p>
+                    Ainda não tem conta?{" "}
+                    <ModeButton onClick={() => setMode("signup")}>Cadastre-se</ModeButton>
+                  </p>
+                  <ModeButton onClick={() => setMode("forgot")}>Esqueci minha senha</ModeButton>
+                </>
+              )}
+              {mode !== "signin" && (
+                <ModeButton onClick={() => setMode("signin")}>Voltar para entrar</ModeButton>
+              )}
+            </div>
           </div>
         </div>
       </div>
+      <Toaster richColors position="top-center" />
     </div>
   );
 }

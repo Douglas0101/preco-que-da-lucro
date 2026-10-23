@@ -407,7 +407,7 @@ function Simulacoes() {
               <Label htmlFor="simulacoes-produto">Produto</Label>
               <Select
                 value={selectedProductId}
-                onValueChange={setProductId}
+                onValueChange={(v) => v && setProductId(v)}
                 items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
               >
                 <SelectTrigger id="simulacoes-produto">

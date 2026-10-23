@@ -92,19 +92,27 @@ function isViolation(violation: CspViolation): boolean {
   );
 }
 
-function recordsOf(shape: CspReportShape, payload: unknown): Record<string, unknown>[] | null {
-  if (shape === "csp-report") {
-    if (!isRecord(payload)) return null;
-    const report = payload["csp-report"];
-    return isRecord(report) ? [report] : null;
-  }
-  if (!Array.isArray(payload)) return null;
+function reportingViolations(payload: unknown): Record<string, unknown>[] | null {
+  // O Reporting API chega como array; o WebKit 26.5 envia um único objeto.
+  const entries = Array.isArray(payload) ? payload : isRecord(payload) ? [payload] : null;
+  if (!entries) return null;
   const violations: Record<string, unknown>[] = [];
-  for (const entry of payload) {
+  for (const entry of entries) {
     if (!isRecord(entry) || entry["type"] !== "csp-violation") continue;
     if (isRecord(entry["body"])) violations.push(entry["body"]);
   }
   return violations;
+}
+
+function recordsOf(payload: unknown): Record<string, unknown>[] | null {
+  // A forma vence o media type: o WebKit envia o objeto do Reporting API sob
+  // `application/csp-report` (o tipo legado), e recusá-lo fazia todo relatório
+  // real do WebKit virar 400 e a coleta de DBT-112 ficar cega nessa engine.
+  if (isRecord(payload)) {
+    const legacy = payload["csp-report"];
+    if (isRecord(legacy)) return [legacy];
+  }
+  return reportingViolations(payload);
 }
 
 export function parseCspReport(shape: CspReportShape, raw: string): CspReportParseResult {
@@ -115,7 +123,7 @@ export function parseCspReport(shape: CspReportShape, raw: string): CspReportPar
     return { ok: false, reason: "invalid_json" };
   }
 
-  const records = recordsOf(shape, payload);
+  const records = recordsOf(payload);
   if (!records) return { ok: false, reason: "invalid_payload" };
 
   const violations = records.map(normalize).filter(isViolation);

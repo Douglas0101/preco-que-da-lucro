@@ -1,0 +1,11 @@
+ARQUIVO DE CREDENCIAIS DE BANCADA (gitignored, modo 600)
+caminho: .artifacts/e2e-local.env
+campos presentes: E2E_AUTH_EMAIL, E2E_AUTH_PASSWORD (usada), E2E_DB_RUNTIME_PASSWORD
+valores: NAO transcritos aqui nem em qualquer captura deste pacote.
+storageState: .artifacts/e2e-auth.json (cookie preco_que_da_lucro.session_token, httpOnly)
+
+SUPERFICIE DE HEADERS DO DRIVER (medida em A/B)
+  sec-fetch-site: header PROIBIDO ao cliente. Declarado => 19 subrecursos falham com
+    net::ERR_INVALID_ARGUMENT; pagina fica em "Carregando...". Removido => 0 falhas.
+  x-forwarded-for: aceito e usado (mantem o login fora do bucket de IP compartilhado).
+  origin: aceito, mas desnecessario no contexto do navegador (a pagina ja o envia).

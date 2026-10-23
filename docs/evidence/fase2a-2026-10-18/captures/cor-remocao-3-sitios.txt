@@ -1,0 +1,5 @@
+produtos (soft) => [{"texto":"Cancelar","fundo":"oklch(1 0 0)","bgDestructive":false,"apenasAriaInvalid":true},{"texto":"Arquivar","fundo":"oklch(0.21 0.006 285.885)","bgDestructive":false,"apenasAriaInvalid":true}]
+despesas (hard) => [{"texto":"Cancelar","fundo":"oklch(1 0 0)","bgDestructive":false,"apenasAriaInvalid":true},{"texto":"Excluir despesa","fundo":"oklab(0.577 0.217662 0.112464 / 0.1)","bgDestructive":true,"apenasAriaInvalid":false}]
+composicao gatilho => Remover embalagem Embalagem
+composicao (hard+guarda) => [{"texto":"Cancelar","fundo":"oklch(1 0 0)","bgDestructive":false,"apenasAriaInvalid":true},{"texto":"Remover","fundo":"oklab(0.577 0.217662 0.112464 / 0.1)","bgDestructive":true,"apenasAriaInvalid":false}]
+erros => []

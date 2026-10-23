@@ -1,0 +1,155 @@
+{
+  "launch": {
+    "launched": true,
+    "version": "Chrome/155.0.8059.84",
+    "endpoint": "http://127.0.0.1:9222"
+  },
+  "baseURL": "http://127.0.0.1:4173",
+  "steps": [
+    {
+      "spec": "goto|/inicio",
+      "status": 200,
+      "url": "http://127.0.0.1:4173/inicio",
+      "title": "Preço que Dá Lucro",
+      "ok": true
+    },
+    {
+      "spec": "assert|h1, h2|20000",
+      "asserted": "Olá! 👋",
+      "ok": true
+    }
+  ],
+  "console": {
+    "total": 45,
+    "errors": 0,
+    "sample": []
+  },
+  "requests": {
+    "failed": 0,
+    "sample": []
+  },
+  "cookies": [
+    "preco_que_da_lucro.session_token"
+  ],
+  "errors": [],
+  "login": {
+    "via": "api",
+    "ok": true,
+    "status": 200,
+    "getSession": 200,
+    "temSessao": true,
+    "cookies": [
+      "preco_que_da_lucro.session_token"
+    ]
+  },
+  "sessaoServidor": {
+    "status": 200,
+    "token": "<REDACTED len=32 sha256=582e60ddc2ae>",
+    "expiresAt": "2026-10-24T20:40:00.079Z"
+  },
+  "sessaoValida": true,
+  "walk": [
+    {
+      "route": "/inicio",
+      "status": 200,
+      "finalPath": "/inicio",
+      "emailVisivel": true,
+      "temComposer": 0,
+      "autenticada": true,
+      "esperado": "/inicio com sessao no header",
+      "heading": "Olá! 👋"
+    },
+    {
+      "route": "/produtos",
+      "status": 200,
+      "finalPath": "/produtos",
+      "emailVisivel": true,
+      "temComposer": 0,
+      "autenticada": true,
+      "esperado": "/produtos com sessao no header",
+      "heading": "Meus Produtos"
+    },
+    {
+      "route": "/precos",
+      "status": 200,
+      "finalPath": "/precos",
+      "emailVisivel": true,
+      "temComposer": 0,
+      "autenticada": true,
+      "esperado": "/precos com sessao no header",
+      "heading": "Atualizar Preços de Compra"
+    },
+    {
+      "route": "/despesas",
+      "status": 200,
+      "finalPath": "/despesas",
+      "emailVisivel": true,
+      "temComposer": 0,
+      "autenticada": true,
+      "esperado": "/despesas com sessao no header",
+      "heading": "Minhas Despesas"
+    },
+    {
+      "route": "/diagnostico",
+      "status": 200,
+      "finalPath": "/diagnostico",
+      "emailVisivel": true,
+      "temComposer": 0,
+      "autenticada": true,
+      "esperado": "/diagnostico com sessao no header",
+      "heading": "Meu Diagnóstico"
+    },
+    {
+      "route": "/ponto-equilibrio",
+      "status": 200,
+      "finalPath": "/ponto-equilibrio",
+      "emailVisivel": true,
+      "temComposer": 0,
+      "autenticada": true,
+      "esperado": "/ponto-equilibrio com sessao no header",
+      "heading": "Ponto de Equilíbrio"
+    },
+    {
+      "route": "/simulacoes",
+      "status": 200,
+      "finalPath": "/simulacoes",
+      "emailVisivel": true,
+      "temComposer": 0,
+      "autenticada": true,
+      "esperado": "/simulacoes com sessao no header",
+      "heading": "Simulações"
+    },
+    {
+      "route": "/novo-produto",
+      "status": 200,
+      "finalPath": "/novo-produto",
+      "emailVisivel": true,
+      "temComposer": 1,
+      "autenticada": true,
+      "esperado": "/novo-produto com sessao no header",
+      "heading": "Cadastro conversacional"
+    }
+  ],
+  "walkFalhas": [],
+  "sessaoPresente": true,
+  "a11y": {
+    "file": "/home/douglas/WebstormProjects/preco-que-da-lucro/.artifacts/cu/cu-19-a11y.yml",
+    "nodes": 35
+  },
+  "screenshot": {
+    "file": "/home/douglas/WebstormProjects/preco-que-da-lucro/.artifacts/cu/cu-19.png",
+    "bytes": 36218
+  },
+  "finalUrl": "http://127.0.0.1:4173/novo-produto",
+  "finalPath": "/novo-produto",
+  "naoVacuidade": {
+    "navegou": true,
+    "temSubstancia": true,
+    "passos": 2,
+    "login": true,
+    "walk": 8
+  },
+  "veredito": {
+    "ok": true
+  }
+}

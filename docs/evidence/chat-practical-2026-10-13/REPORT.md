@@ -265,3 +265,17 @@ passou a count=2 para o evento nomeado (nova ocorrência no dpl_9v4ni1M; sem 28P
 env, deploy, alias, SQL ou código foi tocado; tenantId redigido. Recibo:
 `captures/e2e-authenticated-2026-10-14.txt` (+4 PNG, console, corpo do POST e log do driver).
 `MANIFEST.sha256` regenerado.
+
+## Publicação GREEN e fechamento da DBT-115 (2026-10-14, 04:07Z)
+
+PR #64 mergeado (main `ef7568e`; análise real de main e UI stack verdes — ADR-042 satisfeita) e
+back-merge fast-forward em `develop`. Envs de IA de Production+Preview preenchidas
+(`AI_GATEWAY_URL`/`AI_MODEL`/`AI_MODEL_PRICING_JSON` via conector; `DEEPSEEK_API_KEY` via painel,
+Via A — valor nunca lido). Deploy de produção do SHA novo `dpl_3zbrc9hxuFff91V4LwgQAy5iXx1c`
+qualificado staged (`/api/health/ready` 200) ANTES da promoção dos aliases `sage`/team/`git-main`.
+Turno E2E no browser dedicado: "Teste de sanidade DBT-115. Responda com OK." respondeu **"OK" real
+do `deepseek-flash`** (POST `/_serverFn` 200; `ai.model_attempt` success 873 ms; `ai.budget_settled`
+real=902; zero `ai.credential_unusable`). **DBT-115 FECHADA** (RED `dpl_9v4ni1M` → GREEN
+`dpl_3zbrc9h`); F7 fechado (head do produto); DBT-116 segue aberta. Recibo:
+`captures/e2e-deepseek-green-2026-10-14.txt` (+4 PNG, console, corpo e driver).
+`MANIFEST.sha256` regenerado.

@@ -1,0 +1,81 @@
+{
+  "emptyState": {
+    "emptyState": true,
+    "chatCta": {
+      "text": "Cadastrar primeiro produto",
+      "href": "/novo-produto"
+    },
+    "emptyLinks": [
+      {
+        "text": "Preço que Dá Lucro",
+        "href": "/inicio"
+      },
+      {
+        "text": "Início",
+        "href": "/inicio"
+      },
+      {
+        "text": "Meus Produtos",
+        "href": "/produtos"
+      },
+      {
+        "text": "Novo Produto",
+        "href": "/novo-produto"
+      },
+      {
+        "text": "Preços de Compra",
+        "href": "/precos"
+      },
+      {
+        "text": "Minhas Despesas",
+        "href": "/despesas"
+      },
+      {
+        "text": "Vendas",
+        "href": "/vendas"
+      },
+      {
+        "text": "Ponto de Equilíbrio",
+        "href": "/ponto-equilibrio"
+      },
+      {
+        "text": "Simulações",
+        "href": "/simulacoes"
+      },
+      {
+        "text": "Diagnóstico",
+        "href": "/diagnostico"
+      },
+      {
+        "text": "Preços de compra",
+        "href": "/precos"
+      },
+      {
+        "text": "Novo produto",
+        "href": "/novo-produto"
+      },
+      {
+        "text": "Cadastrar primeiro produto",
+        "href": "/novo-produto"
+      }
+    ],
+    "emptyButtons": ["", "Sair"],
+    "manualCreateFormPresent": false
+  },
+  "composition": {
+    "heading": true,
+    "toastText": "Ingrediente adicionado.",
+    "ingredientRows": [
+      {
+        "name": "Farinha Deep",
+        "used_qty": "0.500000",
+        "used_unit": "kg",
+        "package_price": "5.0000",
+        "package_qty": "1.000000",
+        "package_unit": "kg"
+      }
+    ]
+  },
+  "pageErrors": [],
+  "consoleErrors": []
+}

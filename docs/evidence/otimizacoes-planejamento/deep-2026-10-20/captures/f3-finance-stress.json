@@ -1,0 +1,37 @@
+{
+  "loss": {
+    "recipeCost": 30,
+    "packagingCost": 0,
+    "unitCost": 10,
+    "variableCost": 0,
+    "contributionMargin": -6.67,
+    "contributionMarginPct": -200.3003003003003
+  },
+  "profit": {
+    "recipeCost": 30,
+    "packagingCost": 0,
+    "unitCost": 10,
+    "variableCost": 0.6666,
+    "contributionMargin": 9.3334,
+    "contributionMarginPct": 46.667
+  },
+  "zero": {
+    "recipeCost": 30,
+    "packagingCost": 0,
+    "unitCost": 10,
+    "variableCost": 0,
+    "contributionMargin": -10,
+    "contributionMarginPct": 0
+  },
+  "breakEven": {
+    "status": "reachable",
+    "rawUnits": 90.09009009009009,
+    "roundedUnits": 91,
+    "unitMode": "discrete"
+  },
+  "sharedVsFresh": {
+    "shared": 10000,
+    "fresh": 10000
+  },
+  "allFinite": true
+}

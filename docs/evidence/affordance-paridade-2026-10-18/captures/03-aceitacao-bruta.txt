@@ -1,0 +1,25 @@
+MEDICOES BRUTAS — Fase 1 (2026-10-18)
+
+=== linha de base dos botoes (build anterior) ===
+produtos: 36x36 | background rgba(0,0,0,0) | borderColor rgba(0,0,0,0) | texto "": so icone | aria-label "Excluir Produto de teste"
+despesas: 36x36 | background rgba(0,0,0,0) | borderColor rgba(0,0,0,0) | texto "": so icone | aria-label "Excluir Despesas variaveis"
+
+=== depois ===
+produtos: fundo oklch(1 0 0) | borda oklch(0.92 0.004 286.32) | recipientePersistente=true | foco via teclado=true | aria-label "Arquivar Produto de teste"
+despesas: fundo oklch(1 0 0) | borda oklch(0.92 0.004 286.32) | recipientePersistente=true | foco via teclado=true | aria-label "Excluir Despesas variaveis"
+
+=== dialogo do produto ===
+titulo: "Arquivar produto?"
+corpo: "O produto sai do catalogo ativo. O historico de vendas e simulacoes que o referencia e preservado."
+botoes: ["Cancelar","Arquivar"]
+fundo do botao de acao: oklch(0.21 0.006 285.885) | bg-destructive: false
+
+=== dialogo da despesa (controle) ===
+botoes: ["Cancelar","Excluir despesa"]
+fundo do botao de acao: oklab(0.577 0.217662 0.112464 / 0.1) | bg-destructive: true
+
+=== estado no banco apos o fluxo ===
+products: active = 11
+products: archived = 1
+products: draft = 8
+arquivado: Produto de teste as 2026-10-18 03:03:05

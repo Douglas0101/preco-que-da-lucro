@@ -1,0 +1,10 @@
+# date=2026-10-19T03:34Z
+# preview: 224620 node --env-file-if-exists=.env .output/server/index.mjs
+# health root=200 inicio=200 produtos=200
+# seed:
+Fixture Better Auth/PostgreSQL preparada para owner teste@example.test e member teste+member@example.test.
+# AI branch (preview log, 2 chat turns):
+{"timestamp":"2026-10-19T03:33:04.231Z","level":"error","event":"ai.credential_unusable","provider":"deepseek","host":"api.deepseek.com","reason":"absent"}
+{"timestamp":"2026-10-19T03:33:04.241Z","level":"info","event":"ai.budget_settled","tenantId":"00000000-0000-4000-8000-000000000002","usageId":"9017568c-0774-4572-aeab-bc8ffa542e00","budget":64000,"real":0,"usageUnknownReason":null,"durationMs":10,"outcome":"error_dependency_error","applied":true}
+{"timestamp":"2026-10-19T03:33:13.481Z","level":"error","event":"ai.credential_unusable","provider":"deepseek","host":"api.deepseek.com","reason":"absent"}
+{"timestamp":"2026-10-19T03:33:13.491Z","level":"info","event":"ai.budget_settled","tenantId":"00000000-0000-4000-8000-000000000002","usageId":"6d6ca6c6-a699-4ecf-840a-ddf4c7541883","budget":64000,"real":0,"usageUnknownReason":null,"durationMs":23,"outcome":"error_dependency_error","applied":true}

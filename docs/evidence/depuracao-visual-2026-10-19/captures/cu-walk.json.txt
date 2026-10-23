@@ -1,0 +1,51 @@
+{
+ "rotaFallbackAuth": false,
+ "produtos": {
+  "ariaLabel": "Arquivar Produto de teste",
+  "tamanho": "36x36",
+  "background": "oklch(1 0 0)",
+  "borderColor": "oklch(0.92 0.004 286.32)",
+  "recipientePersistente": true,
+  "focoViaTeclado": true
+ },
+ "composicao": {
+  "url": "http://127.0.0.1:4173/produtos/composicao?produto=00000000-0000-4000-8000-000000000010",
+  "caiuEmAuth": false,
+  "h1": "Composição do produto",
+  "texto": "Composição do produto Edite à mão o que a IA também edita no chat. Nada aqui depende do assistente. Voltar aos produtos Produto e rendimento O rendimento é o divisor do custo: (ingredientes + embalagens) ÷ rendimento. Nome Rendimento Unidade do rendimento unidade Salvar produto Ingredientes Quantidade usada por unidade e preço da embalagem comprada. Adicionar Nenhum ingrediente cadastrado. Embalagens e materiais Custo do material por unidade vendida. Adicionar Embalagem R$ 100,00 por pacote · 10"
+ },
+ "despesas": {
+  "ariaLabel": "Excluir Despesas variáveis",
+  "tamanho": "36x36",
+  "background": "oklch(1 0 0)",
+  "borderColor": "oklch(0.92 0.004 286.32)",
+  "recipientePersistente": true,
+  "focoViaTeclado": true
+ },
+ "dialogoProduto": {
+  "abriu": true,
+  "titulo": "Arquivar produto?O produto sai do catálogo ativo. O histórico de vendas e simulações que o referencia é preservado.",
+  "botoes": [
+   "Cancelar",
+   "Arquivar"
+  ],
+  "acao": {
+   "texto": "Arquivar",
+   "background": "oklch(0.21 0.006 285.885)",
+   "bgDestructive": false
+  },
+  "fechouComEsc": true,
+  "focoDepoisDoEsc": "Arquivar Produto de teste"
+ },
+ "dialogoDespesa": {
+  "titulo": "Excluir despesa?A despesa selecionada será excluída permanentemente. Esta ação não poderá ser desfeita.",
+  "acao": {
+   "texto": "Excluir despesa",
+   "background": "oklab(0.577 0.217662 0.112464 / 0.1)",
+   "bgDestructive": true
+  },
+  "fechouComEsc": true
+ },
+ "consolos": [],
+ "falhasRede": []
+}

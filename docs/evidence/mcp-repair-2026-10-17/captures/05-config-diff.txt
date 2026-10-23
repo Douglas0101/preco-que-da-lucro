@@ -1,0 +1,39 @@
+# DIFF DA CONFIG VIVA — entrada `aikido` do Cline
+# backup pre-reparo: ~/.cline/data/settings/cline_mcp_settings.json.bak-pre-mcp-repair-20261017T053105Z (0600)
+
+--- ANTES ---
+{
+  "transport": {
+    "type": "stdio",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@aikidosec/mcp@1.0.9"
+    ]
+  }
+}
+--- DEPOIS ---
+{
+  "transport": {
+    "type": "stdio",
+    "command": "/home/douglas/.mcp-runtime/node_modules/.bin/aikido-mcp",
+    "args": [],
+    "cwd": "/home/douglas/.mcp-runtime"
+  },
+  "disabled": false
+}
+
+# os demais servidores ficaram intactos (nenhum credencial lida ou escrita):
+servidores: vercel, neon, MCP_DOCKER, dhi, context7, aikido, amplitude
+vercel       INALTERADO
+neon         INALTERADO
+MCP_DOCKER   INALTERADO
+dhi          INALTERADO
+context7     INALTERADO
+aikido       ALTERADO
+amplitude    INALTERADO
+
+# runtime isolado restaurado (existia ate 2026-10-17T02:31Z? nao: estava ausente)
+drwx------ 3 douglas douglas 4096 Oct 17 02:31 /home/douglas/.mcp-runtime
+lrwxrwxrwx 1 douglas douglas  31 Oct 17 02:31 /home/douglas/.mcp-runtime/node_modules/.bin/aikido-mcp -> ../@aikidosec/mcp/dist/index.js
+-rw------- 1 douglas douglas 270 Oct 17 02:31 /home/douglas/.mcp-runtime/package.json

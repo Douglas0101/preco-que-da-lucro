@@ -14,7 +14,27 @@ function memberEmail(): string {
 
 const memberPassword = process.env.E2E_AUTH_MEMBER_PASSWORD ?? authPassword;
 
+async function settleFiniteAnimations(page: Page) {
+  // DBT-126: o axe amostrava o texto do alerta DURANTE a animação `enter` no
+  // WebKit e lia a cor composta com α<1 (3,8:1 em vez dos 5,19:1 reais). Esperar
+  // as animações FINITAS assentarem não afrouxa a regra de contraste nem filtra
+  // engines; animações infinitas (spinners) são ignoradas para o teste não travar.
+  await page.evaluate(async () => {
+    const finite = document.getAnimations().filter((animation) => {
+      const timing = animation.effect?.getTiming();
+      return animation.playState === "running" && timing?.iterations !== Infinity;
+    });
+    await Promise.all(finite.map((animation) => animation.finished.catch(() => undefined)));
+  });
+}
+
 async function expectNoBlockingAxeViolations(page: Page) {
+  // DBT-126: além de esperar as animações finitas, força `prefers-reduced-motion`
+  // — a folha estática zera durações nesse modo. Assim uma animação que comece
+  // DEPOIS da espera (corrida sob carga) não deixa o axe amostrar opacidade
+  // intermediária; a regra de contraste e o conjunto de engines permanecem.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await settleFiniteAnimations(page);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();

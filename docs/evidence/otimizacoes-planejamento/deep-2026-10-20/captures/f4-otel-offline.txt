@@ -1,0 +1,9 @@
+# Frente 4 — OTel endpoint offline (2026-10-20)
+
+Servidor :4174 com OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:9 (sem coletor) e banco local.
+/api/health/ready, 10 amostras por cenário:
+sem endpoint (:4173): min=1.73ms median=1.92ms max=8.54ms
+endpoint offline (:4174): min=1.99ms median=3.02ms max=5.13ms
+
+Eventos do log do servidor :4174 (nomes, sem valores):
+     11 "event":"request.completed"

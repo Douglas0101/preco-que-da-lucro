@@ -1,4 +1,5 @@
 import Decimal from "decimal.js";
+import { DECIMAL_ZERO } from "@/lib/decimal-constants";
 import { assertTenantMutationAuthorized, type RequestContext } from "@/lib/request-context";
 import { toDecimalString } from "@/lib/financial-values";
 import {
@@ -46,7 +47,7 @@ export class DefaultSalesService implements SalesService {
     const channel = input.channel.trim();
     if (!channel || channel.length > 40) throw new Error("INVALID_SALE_CHANNEL");
 
-    let gross = new Decimal(0);
+    let gross = DECIMAL_ZERO;
     const items = input.items.map((item) => {
       let quantity: Decimal;
       let unitPrice: Decimal;

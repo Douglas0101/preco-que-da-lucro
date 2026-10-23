@@ -231,6 +231,14 @@ jobs:
       # sem banco e baratas (~2,0 s medidas em 2026-09-23), por isso nao entram em tier.
       - run: npm run m02:boundaries
       - run: npm run m02:secrets-audit
+      # DBT-33 (metade heavy): o guard do runtime de MCP era passo so local. Um PR que
+      # versione `.mcp.json`/`.pi/mcp-adapter.json` com runner sem pin, `cwd` dentro de um
+      # checkout ou segredo literal passa a reprovar aqui — o escopo-repositorio e vazio
+      # hoje, e o valor e prospectivo por desenho. Offline, sem banco, sem `node_modules`
+      # (o guard importa so builtins) e ~0,2 s medidos. A metade light segue declarada como
+      # limite nomeado no AGENTS.md: aquele pipeline so dispara com todo caminho alterado
+      # sob `docs/evidence/`, e nenhum dos dois sitios vive la.
+      - run: npm run guard:mcp-runtime
       - run: npm run m02:matrix:check
       - run: npm run check:ui-stack
       - run: npm run check:no-supabase-runtime

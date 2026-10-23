@@ -132,7 +132,7 @@ describe("símbolo defineConfig na toolchain", () => {
       installedVersion: "0.18.1",
       typesText: "export declare function define(): void;",
     };
-    const findings = auditMigrationToolchain(incident);
+    auditMigrationToolchain(incident);
     expect(findingFor(incident, "installed")).toContain("downgrade");
     expect(findingFor(incident, "types")).toContain(
       "a versão instalada é anterior ao símbolo importado por drizzle.config.ts",

@@ -1,0 +1,17 @@
+# Achados axe FORA do gate atual (descobertos na sessão computer-user 2026-10-17)
+# Ferramenta: @axe-core/playwright, tags wcag2a/wcag2aa/wcag21a/wcag21aa,
+# filtro impacto critical|serious. Bancada: preview :4173 + fixture e2e.
+# Comando: node .artifacts/axe-probe2.mjs (script local, gitignored)
+# Contexto: o spec ui-stack roda axe em /inicio, /simulacoes (pós-preenchimento) e
+# nas telas dos testes com mock; /produtos e o log do chat em /novo-produto NAO sao cobertos.
+
+== /produtos — 1 violacao, 2 nos
+color-contrast  target=[".text-success"] :: 2.15:1 (fg #2ec97a, bg #ffffff, 14px normal) — esperado >=4.5
+color-contrast  target=[".\\[a\\]\\:hover\\:bg-muted"] :: 3.19:1 (fg #e17100, bg #ffffff, 12px normal) — badge ambar-600
+
+== /novo-produto — 1 violacao, 1 no
+scrollable-region-focusable  target=[".flex-1"] :: "Element should have focusable content" (log do chat rolavel sem foco)
+
+# Estado pos-correcao desta sessao (para contraste do rigor):
+# /inicio e /simulacoes pos-fill: 0 violacoes blocking (token --muted-foreground L 0.536 = 4.72:1
+# sobre --muted; badge DADOS INCOMPLETOS do /inicio corrigido para text-amber-700).

@@ -105,11 +105,11 @@ function Inicio() {
 
   if (!metrics || metrics.productCount === 0) {
     return (
-      <div className="mx-auto max-w-2xl rounded-3xl border bg-card p-8 text-center shadow-[var(--shadow-soft)] md:p-12">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-primary text-primary-foreground">
+      <div className="mx-auto max-w-2xl rounded-3xl border border-border p-8 text-center shadow-md md:p-12">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-md">
           <Sparkles className="h-8 w-8" />
         </div>
-        <h1 className="mt-6 text-2xl font-black md:text-3xl">Bem-vindo!</h1>
+        <h1 className="mt-6 text-2xl font-black tracking-tight md:text-3xl">Bem-vindo!</h1>
         <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
           Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu
           negócio e quanto você precisa vender para começar a ter lucro.
@@ -118,7 +118,7 @@ function Inicio() {
           nativeButton={false}
           render={<Link to="/novo-produto" />}
           size="lg"
-          className="mt-6 gap-2"
+          className="mt-8 gap-2 px-8 shadow-md"
         >
           <PlusCircle className="h-5 w-5" /> Começar agora
         </Button>
@@ -128,15 +128,15 @@ function Inicio() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-black">Olá! 👋</h1>
-        <p className="text-muted-foreground">
+      <div className="rounded-2xl border border-primary/20 p-5 shadow-sm md:p-6">
+        <h1 className="text-3xl font-black tracking-tight">Olá! 👋</h1>
+        <p className="mt-1 text-muted-foreground">
           Resumo dos dados cadastrados e das vendas reais, sem presumir volume.
         </p>
       </div>
 
       <div
-        className="flex flex-wrap items-center gap-2"
+        className="inline-flex flex-wrap items-center gap-1 rounded-full border border-border bg-muted p-1"
         role="group"
         aria-label="Período do faturamento"
       >
@@ -147,7 +147,11 @@ function Inicio() {
             variant={period === item.value ? "default" : "outline"}
             aria-pressed={period === item.value}
             onClick={() => setPeriod(item.value)}
-            className="text-sm"
+            className={
+              period === item.value
+                ? "rounded-full text-sm shadow-sm"
+                : "rounded-full border-transparent bg-transparent text-sm text-muted-foreground hover:text-foreground"
+            }
           >
             {item.label}
           </Button>
@@ -233,12 +237,14 @@ function Inicio() {
       </div>
 
       {metrics.bestProduct && (
-        <Card className="border-primary/30">
+        <Card className="border-border shadow-md">
           <CardHeader>
             <CardTitle className="text-base">🏆 Maior margem unitária calculável</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black">{metrics.bestProduct.name}</div>
+            <div className="text-primary text-2xl font-black tracking-tight tabular-nums">
+              {metrics.bestProduct.name}
+            </div>
             <div className="text-muted-foreground">
               Margem de contribuição unitária: {pct(metrics.bestProduct.cmPct)}
             </div>
@@ -265,10 +271,10 @@ function Inicio() {
       )}
 
       {metrics.alerts.length > 0 && (
-        <Card className="border-warning/40 bg-warning/5">
+        <Card className="border-amber-500/40 bg-amber-500/10">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <AlertTriangle className="h-4 w-4 text-warning" /> Alertas financeiros
+              <AlertTriangle className="h-4 w-4 text-amber-400" /> Alertas financeiros
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -282,7 +288,11 @@ function Inicio() {
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button nativeButton={false} render={<Link to="/novo-produto" />} className="gap-2">
+        <Button
+          nativeButton={false}
+          render={<Link to="/novo-produto" />}
+          className="gap-2 shadow-md"
+        >
           <PlusCircle className="h-4 w-4" /> Novo produto
         </Button>
         <Button nativeButton={false} render={<Link to="/diagnostico" />} variant="outline">
@@ -380,24 +390,24 @@ function ConsolidatedMarginCard({
 function InicioSkeleton() {
   return (
     <LoadingSkeleton className="space-y-6">
-      <div>
+      <div className="rounded-2xl border border-primary/20 p-5 md:p-6">
         <Skeleton className="h-9 w-48" />
         <Skeleton className="mt-2 h-6 w-80 max-w-full" />
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="inline-flex flex-wrap items-center gap-1 rounded-full border border-border bg-muted p-1">
         {[0, 1, 2].map((period) => (
-          <Skeleton key={period} className="h-9 w-24" />
+          <Skeleton key={period} className="h-9 w-24 rounded-full" />
         ))}
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((card) => (
-          <Card key={card}>
+          <Card key={card} className="border-border/60">
             <CardContent className="p-5">
               <div className="flex items-center justify-between gap-2">
                 <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-9 w-9 rounded-xl" />
               </div>
-              <Skeleton className="mt-2 h-8 w-24" />
+              <Skeleton className="mt-3 h-9 w-24" />
               <Skeleton className="mt-1 h-4 w-32" />
             </CardContent>
           </Card>
@@ -427,20 +437,20 @@ function MetricCard({
   explain?: ReactNode;
 }>) {
   return (
-    <Card>
+    <Card className="lift border-border/60 shadow-sm hover:shadow-md">
       <CardContent className="p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               {label}
             </div>
             {badge}
           </div>
-          <div className="grid h-8 w-8 place-items-center rounded-lg bg-secondary text-primary">
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary/15 text-primary">
             <Icon className="h-4 w-4" />
           </div>
         </div>
-        <div className="mt-2 text-2xl font-black">{value}</div>
+        <div className="mt-3 text-3xl font-black tabular-nums tracking-tight">{value}</div>
         {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
         {explain && <CalcExplainer className="mt-3">{explain}</CalcExplainer>}
       </CardContent>

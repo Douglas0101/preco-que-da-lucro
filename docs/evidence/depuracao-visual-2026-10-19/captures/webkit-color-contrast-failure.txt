@@ -1,0 +1,26 @@
+# WebKit color-contrast failure — SOBRE /simulacoes (axe color-contrast, WCAG 2 AA)
+# asserção: e2e/ui-stack.spec.ts:339 (expectNoBlockingAxeViolations), determinística 2/2 runs
+# matriz 4 projetos: 91 passed / 1 failed
+
+## alvos (classes medidas no DOM)
+<p class="text-muted-foreground">Teste uma hipótese informada por você. Sem vendas registradas, nenhum cenário é tratado como atual ou factual.</p>
+<p class="text-xs text-muted-foreground">Referência de atendimento: SIM-…</p>
+
+## run A (matriz 4 projetos, 2026-10-19T03:4xZ)
+#   Element has insufficient color contrast of 3.8 (foreground color: #82828b, background color: #ffffff, font size: 10.5pt (14px)
+#   Element has insufficient color contrast of 3.8 (foreground color: #82828b, background color: #ffffff, font size: 12.0pt (16px)
+#   Element has insufficient color contrast of 3.8 (foreground color: #82828b, background color: #ffffff, font size: 9.0pt (12px)
+
+## run B (re-run isolado do mesmo teste, webkit only)
+#   Element has insufficient color contrast of 2.79 (foreground color: #9a9aa1, background color: #ffffff, font size: 10.5pt (14px)
+#   Element has insufficient color contrast of 2.79 (foreground color: #9a9aa1, background color: #ffffff, font size: 12.0pt (16px)
+#   Element has insufficient color contrast of 2.79 (foreground color: #9a9aa1, background color: #ffffff, font size: 9.0pt (12px)
+
+## contraste calculado independentemente (WCAG 2.x, sRGB)
+#   #82828b sobre #ffffff = 3.808:1 (AA normal exige 4.5:1)
+#   #9a9aa1 sobre #ffffff = 2.796:1 (AA normal exige 4.5:1)
+
+## observação aberta
+#   A cor computada do MESMO elemento variou entre os dois runs (A: 3.8:1, B: 2.79:1).
+#   Ambos reprovam AA; a causa da variância (token .dark aplicado intermitentemente ou
+#   resolução de oklch no WebKit) fica declarada e NÃO explicada aqui — registrada em DBT-126.

@@ -52,25 +52,33 @@ function Landing() {
   }, [navigate, queryClient]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
-            <Sparkles className="h-5 w-5" />
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-2">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <span className="font-bold tracking-tight">Preço que Dá Lucro</span>
           </div>
-          <span className="font-bold">Preço que Dá Lucro</span>
+          <Link
+            to="/auth"
+            className={buttonVariants({
+              variant: "ghost",
+              className: "transition-colors duration-200 motion-reduce:transition-none",
+            })}
+          >
+            Entrar
+          </Link>
         </div>
-        <Link to="/auth" className={buttonVariants({ variant: "ghost" })}>
-          Entrar
-        </Link>
       </header>
 
-      <section className="mx-auto max-w-6xl px-6 pt-8 pb-20 md:pt-16">
+      <section className="mx-auto max-w-6xl animate-in px-6 pt-8 pb-20 fade-in-0 duration-500 ease-out slide-in-from-bottom-2 md:pt-16 motion-reduce:animate-none">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-1.5 text-xs font-semibold tracking-wide text-primary">
             <Sparkles className="h-3 w-3" /> IA que conversa como um consultor
           </span>
-          <h1 className="mt-6 text-4xl font-black leading-tight tracking-tight md:text-6xl">
+          <h1 className="mt-6 text-5xl font-black leading-tight tracking-tight md:text-7xl">
             Entenda a <span className="text-primary">faixa de preço</span> do seu produto
             conversando.
           </h1>
@@ -78,8 +86,14 @@ function Landing() {
             Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu
             negócio e quanto você precisa vender para começar a ter lucro.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link to="/auth" className={buttonVariants({ size: "lg", className: "gap-2" })}>
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
+            <Link
+              to="/auth"
+              className={buttonVariants({
+                size: "lg",
+                className: "h-12 gap-2 px-8 text-base font-bold",
+              })}
+            >
               Começar agora <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -91,23 +105,23 @@ function Landing() {
               icon: MessageCircle,
               title: "Cadastro por conversa",
               desc: "Escreva a receita do seu jeito. A IA organiza tudo para você.",
+              chip: "grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground",
             },
             {
               icon: Calculator,
               title: "Cálculos precisos",
               desc: "Custo, margem de contribuição e preços calculados com premissas explícitas.",
+              chip: "grid h-10 w-10 place-items-center rounded-xl border border-border bg-muted text-primary",
             },
             {
               icon: Scale,
               title: "Ponto de equilíbrio",
               desc: "Saiba exatamente quanto vender para parar de ter prejuízo.",
+              chip: "grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground",
             },
           ].map((f) => (
-            <div
-              key={f.title}
-              className="rounded-2xl border bg-card p-6 shadow-[var(--shadow-soft)]"
-            >
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary">
+            <div key={f.title} className="rounded-2xl border border-border p-6">
+              <div className={f.chip}>
                 <f.icon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 font-bold">{f.title}</h3>
@@ -116,6 +130,15 @@ function Landing() {
           ))}
         </div>
       </section>
+
+      <footer className="border-t border-border">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-6 py-8 text-center">
+          <span className="font-bold">Preço que Dá Lucro</span>
+          <p className="text-sm text-muted-foreground">
+            Descubra por quanto vender seu produto conversando com uma IA.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

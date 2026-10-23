@@ -1,4 +1,5 @@
 import Decimal from "decimal.js";
+import { DECIMAL_ZERO } from "@/lib/decimal-constants";
 import { logJson } from "@/lib/structured-logger";
 import {
   calculateBreakEvenUnits,
@@ -141,7 +142,7 @@ function analyzeCurrentProduct(
 
 function fixedExpensesTotal(context: RequestContext): Promise<number> {
   return expenseService.list(context).then((rows) => {
-    let total = new Decimal(0);
+    let total = DECIMAL_ZERO;
     let invalid = false;
     for (const expense of rows) {
       if (expense.type !== "fixa") continue;

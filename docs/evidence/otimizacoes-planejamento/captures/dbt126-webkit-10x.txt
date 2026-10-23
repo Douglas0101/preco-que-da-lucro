@@ -1,0 +1,22 @@
+# DBT-126 — WebKit estável com animações assentadas (2026-10-20)
+
+Correção: expectNoBlockingAxeViolations() força prefers-reduced-motion e
+aguarda document.getAnimations() finitas antes do AxeBuilder. Nenhuma regra
+de contraste foi afrouxada e nenhuma engine foi filtrada.
+
+$ npx playwright test e2e/ui-stack.spec.ts --project=webkit -g "financial query failure" --repeat-each=10
+
+Running 10 tests using 2 workers
+
+  ✓   2 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.3s)
+  ✓   1 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.3s)
+  ✓   3 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.4s)
+  ✓   4 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.4s)
+  ✓   6 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.2s)
+  ✓   5 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.3s)
+  ✓   8 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.5s)
+  ✓   7 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.7s)
+  ✓  10 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.7s)
+  ✓   9 [webkit] › e2e/ui-stack.spec.ts:347:1 › financial query failure is not rendered as empty or zero data (8.8s)
+
+  10 passed (46.1s)

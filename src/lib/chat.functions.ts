@@ -9,7 +9,7 @@ import { readEnv } from "@/lib/env.server";
 import { withWireSafeErrors } from "@/lib/wire-safe-error.server";
 import { createTenantTransaction, numberSetting } from "@/lib/tenant-transaction";
 import { executeSendChatMessage } from "@/lib/chat-execution.server";
-import { gatewayToolsForState, type GatewayTool } from "@/lib/ai/tool-registry";
+import { type GatewayTool } from "@/lib/ai/tool-registry";
 import { conversationService } from "@/server/services/conversation.service";
 import { logJson } from "@/lib/structured-logger";
 import { requireDatabaseIdentity } from "@/middleware/request-context";
@@ -159,12 +159,6 @@ async function readUpstreamErrorDetail(response: Response, apiKey: string): Prom
   const withoutKey = apiKey.length >= 8 ? detail.split(apiKey).join("[REDACTED]") : detail;
   return withoutKey.slice(0, 240) || null;
 }
-
-type ModelCaller = (
-  messages: GatewayMessage[],
-  tools: GatewayTool[],
-  requestSignal: AbortSignal,
-) => Promise<GatewayResponse>;
 
 async function fetchModelAttempt({
   apiKey,

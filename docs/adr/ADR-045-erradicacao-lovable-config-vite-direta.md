@@ -1,6 +1,6 @@
 # ADR-045 — Erradicação do Lovable e configuração Vite direta (substituição de `@lovable.dev/vite-tanstack-config`)
 
-- Status: PROPOSTA — implementação autorizada pelo dono na janela de 2026-10-14 ("erradicação completa do Lovable + integração nativa DeepSeek"); ratificação humana pendente em H-8. Não autoriza publicação por si só; a publicação segue o circuito `develop` → `main` e ADR-042.
+- Status: ACEITA — ratificada pelo dono em 2026-10-14 após a publicação e a verificação em produção: PR #64 mergeado (`main = ef7568e`), deployment `dpl_3zbrc9hxuFff91V4LwgQAy5iXx1c` servindo `sage`/team/`git-main` com `/api/health/ready` 200 e E2E autenticado respondendo com `deepseek-flash`. A publicação seguiu o circuito `develop` → `main` e ADR-042; o registro de proposta permanece em H-8.
 - Data: 2026-10-14.
 - Escopo: build/config (`vite.config.ts`), dependências de dev, telemetria de erro do cliente, metadata de head, defaults do consumidor de IA, scripts de guarda/perf e testes. Não altera banco, RLS, auth nem o contrato Web restrito do DeepSeek.
 - Complementa ADR-013 e o SDD §16: a substituição permanente do wrapper era a alternativa prevista ("fork/substituição permanente exige ADR-013"), executada aqui sem fork, com os plugins oficiais diretos.

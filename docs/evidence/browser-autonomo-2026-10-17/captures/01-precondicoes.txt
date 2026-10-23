@@ -1,0 +1,11 @@
+Bancada de browser autonomo — precondicoes medidas 2026-10-17
+node:            v24.21.0
+playwright-core: 1.62.1
+@playwright/test:1.62.1
+chrome (alvo):   /opt/google/chrome/chrome (Chrome 155.0.8059.84; /usr/bin/google-chrome e symlink)
+postgres:        postgres:17-alpine em 127.0.0.1:5432 (docker compose up -d --wait)
+preview:         http://127.0.0.1:4173 (nitro preview, preset node-server)
+kernel:          kernel.apparmor_restrict_unprivileged_userns=1 (bloqueia o namespace sandbox)
+                 /opt/google/chrome/chrome-sandbox NAO setuid => --no-sandbox obrigatorio (job.confirmado)
+DB:              preco_que_da_lucro_test (fixture E2E; 25 usuarios apos seed)
+build:           npm run build EXIT=0; check:bundle coberto pelo gate em separado

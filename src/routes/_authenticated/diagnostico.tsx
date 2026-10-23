@@ -1,16 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { getDiagnostic } from "@/lib/diagnostic.functions";
 import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import { expensesQueryOptions, productsListQueryOptions } from "@/lib/query-options";
-import type {
-  BreakEvenResult,
-  CalculationResult,
-  FeeRow,
-  ProductComputation,
-  ProductCostComputation,
-} from "@/lib/finance";
+import type { CalculationResult, ProductCostComputation } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { CalcExplainer } from "@/components/ui/calc-explainer";
@@ -28,17 +22,9 @@ import {
 } from "@/components/ui/select";
 import { AlertTriangle, Info, TrendingUp } from "lucide-react";
 
-type DiagnosticAlert = { level: "warn" | "info" | "danger"; text: string };
 type LoadStatus = "loading" | "ready" | "empty" | "error";
 type ProductStatus = "idle" | "loading" | "incomplete" | "invalid" | "error" | "ok";
 type DiagnosticView = Awaited<ReturnType<typeof getDiagnostic>>;
-
-interface CurrentAnalysis {
-  computation: ProductComputation;
-  price: number;
-  breakEvenUnits: BreakEvenResult;
-  alerts: DiagnosticAlert[];
-}
 
 type DiagnosticAssumptions = {
   productId: string;
@@ -211,7 +197,7 @@ function Diagnostico() {
             </Label>
             <Select
               value={selectedProductId}
-              onValueChange={setProductId}
+              onValueChange={(v) => v && setProductId(v)}
               items={Object.fromEntries(products.map((product) => [product.id, product.name]))}
             >
               <SelectTrigger id="diagnostico-produto">
@@ -241,7 +227,11 @@ function Diagnostico() {
             </div>
           )}
           {diagnostic.currentStatus === "incomplete" && (
-            <output className="rounded-xl border p-4 text-muted-foreground">
+            // `block` é o que faltava: `<output>` é `display: inline` por padrão, então as
+            // margens verticais dele eram IGNORADAS e o card seguinte subia 16px dentro
+            // desta faixa (medido 2026-10-18: mb-6 e mt-50 no aviso não moviam nada;
+            // mt-200 no card movia +200). O fundo é o segundo cinto de segurança.
+            <output className="mb-6 block rounded-xl border bg-muted/40 p-4 text-muted-foreground">
               O diagnóstico do preço atual está incompleto, mas os custos conhecidos e a referência
               de mercado continuam disponíveis abaixo.
             </output>

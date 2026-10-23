@@ -363,7 +363,8 @@
         "conversion_factor": "1.00000000",
         "price_updated_at": "2026-01-02T12:00:00.000Z",
         "created_at": "2026-01-03T10:05:00.000Z",
-        "updated_at": "2026-01-03T10:05:00.000Z"
+        "updated_at": "2026-01-03T10:05:00.000Z",
+        "age_days": 290
       },
       {
         "id": "00000000-0000-4000-8000-000000000013",
@@ -379,7 +380,8 @@
         "conversion_factor": "0.50000000",
         "price_updated_at": "2026-01-01T09:00:00.000Z",
         "created_at": "2026-01-02T10:05:00.000Z",
-        "updated_at": "2026-01-02T10:05:00.000Z"
+        "updated_at": "2026-01-02T10:05:00.000Z",
+        "age_days": 291
       },
       {
         "id": "00000000-0000-4000-8000-000000000012",
@@ -395,7 +397,8 @@
         "conversion_factor": null,
         "price_updated_at": null,
         "created_at": "2026-01-03T10:06:00.000Z",
-        "updated_at": "2026-01-03T10:06:00.000Z"
+        "updated_at": "2026-01-03T10:06:00.000Z",
+        "age_days": null
       }
     ],
     "packaging": [
@@ -409,7 +412,8 @@
         "units_per_package": "10.000000",
         "price_updated_at": "2026-01-02T12:00:00.000Z",
         "created_at": "2026-01-03T10:07:00.000Z",
-        "updated_at": "2026-01-03T10:07:00.000Z"
+        "updated_at": "2026-01-03T10:07:00.000Z",
+        "age_days": 290
       },
       {
         "id": "00000000-0000-4000-8000-000000000022",
@@ -421,7 +425,8 @@
         "units_per_package": "1.000000",
         "price_updated_at": null,
         "created_at": "2026-01-02T10:07:00.000Z",
-        "updated_at": "2026-01-02T10:07:00.000Z"
+        "updated_at": "2026-01-02T10:07:00.000Z",
+        "age_days": null
       }
     ]
   },

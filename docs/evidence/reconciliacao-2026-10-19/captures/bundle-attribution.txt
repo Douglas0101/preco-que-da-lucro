@@ -1,0 +1,38 @@
+# Bundle budget attribution — reconciliação 2026-10-19
+# Budget (scripts/check-bundle.mjs): entry <= 500000 minified; initial graph <= 500000 minified.
+
+## WIP — develop working tree, 2026-10-19T03:19Z
+> check:bundle
+FAIL assets/index-DyktPPbp.js: 265408 minified, 81029 gzip, 70277 Brotli bytes, sha256=cb9d395aad47
+Initial graph (10 chunks): 500608 minified, 162371 gzip, 142661 Brotli bytes, sha256=e6705901f206
+
+## Clean baseline — worktree b1dd8 @ 4206303fc2bd32b5033f2d78a24cee32e2b07f78 (npm ci --ignore-scripts + npm run build)
+PASS assets/index-BVqweSjg.js: 249289 minified, 76993 gzip, 67065 Brotli bytes, sha256=4b662bb47d96
+Initial graph (9 chunks): 484235 minified, 155499 gzip, 137026 Brotli bytes, sha256=7da516222ff5
+
+## Delta WIP − baseline (minified)
+entry:         265408 − 249289 = +16119
+initial graph: 500608 − 484235 = +16373
+
+## Attribution of the new route (measured in the built entry chunk)
+AuthenticatedProdutosComposicaoRoute:Gr.update({id:`/produtos_/composicao`,path:`/produtos/composicao`,getParentRoute:()=>qr})
+= 126 bytes. The page chunk (assets/produtos_.composicao-Cz2um2Vp.js) is lazy and is NOT among the
+static imports of the entry, so it is outside the initial graph.
+Removing the route registration from the graph would leave 500608 − 126 = 500482 > 500000 (still +482).
+
+## Static imports of the initial graph (WIP build)
+assets/index-DyktPPbp.js                 265408
+assets/tanstack-vendor-B0dT_-Hx.js       159801
+assets/button-BSuNCKbn.js                 38710
+assets/auth-client-GAuKX51H.js            29344
+assets/react-dom-BnVkLvnk.js               3598
+assets/card-BSmucXAL.js                    1292
+assets/preload-helper-Czpn1I53.js           1196
+assets/rolldown-runtime-hePW80VL.js           716
+assets/loading-skeleton-rT2rhi2o.js           291
+assets/skeleton-RXBpDXvS.js                   252
+total                                      500608
+
+## Verdict
+The overflow is WIP-caused: clean HEAD passes with 15765 bytes of headroom. Fase 2a contributes
+126 bytes and is not the sufficient cause. No limit was raised and no code was deleted to force green.

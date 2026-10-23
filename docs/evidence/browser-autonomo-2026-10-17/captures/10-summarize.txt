@@ -1,0 +1,18 @@
+import { readFileSync } from 'node:fs';
+const r = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+const line = (s) => console.log(s);
+line(`login: ok=${r.login?.ok} ${r.login?.urlBefore} -> ${r.login?.urlAfter} | /inicio status=${r.login?.inicioStatus}`);
+if (r.walk) line('walk: ' + r.walk.map((w) => `${w.finalPath}(${w.status})`).join(' '));
+if (r.walk) {
+  const bad = r.walk.filter((w) => w.finalPath !== w.route);
+  line(`walk desvios: ${bad.length ? bad.map((b) => `${b.route}->${b.finalPath}`).join(' ') : 'nenhum'}`);
+}
+for (const s of r.steps) line(`passo ${s.spec.slice(0, 40).padEnd(40)} ok=${s.ok}${s.error ? ' ERRO: ' + s.error : ''}${s.asserted ? ' texto=' + JSON.stringify(String(s.asserted).trim().slice(0, 60)) : ''}`);
+line(`console: ${r.console.total} total / ${r.console.errors} erros`);
+line(`requisicoes falhas: ${r.requests.failed}`);
+for (const f of r.requests.sample) line(`   ${f.status ?? f.failure} ${String(f.url).replace('http://127.0.0.1:4173', '').slice(0, 90)}`);
+for (const c of r.console.sample) line(`   console ${c.type}: ${JSON.stringify(c.text.slice(0, 120))}`);
+line(`final: ${r.finalPath} | cookies: ${r.cookies.join(',')} | a11y nos: ${r.a11y?.nodes ?? '-'} | png bytes: ${r.screenshot?.bytes ?? '-'}`);
+console.log('veredito:', JSON.stringify(r.veredito));
+console.log('walk autenticadas:', r.walk ? r.walk.filter((w) => w.autenticada).length + '/' + r.walk.length : '-');
+if (r.loginUi) console.log('login UI:', JSON.stringify(r.loginUi).slice(0, 200));
