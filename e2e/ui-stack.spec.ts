@@ -320,7 +320,9 @@ test("chat HTTP dispatch survives a missing framework signal (BUG-CHAT)", async 
   await expect(page.getByRole("heading", { name: "Cadastro conversacional" })).toBeVisible();
 
   const probe = `BUGCHAT-${Date.now()}`;
-  const assistantMessages = page.locator('[role="log"] [data-slot="message"][data-align="start"]');
+  const assistantMessages = page.locator(
+    '[role="log"] [data-slot="message"][data-align="start"]:not([data-loading="true"])',
+  );
   const assistantCount = await assistantMessages.count();
   const responsePromise = page.waitForResponse(
     (response) =>

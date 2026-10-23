@@ -339,7 +339,7 @@ function NovoProduto() {
 
                 {loading && (
                   <MessageScrollerItem messageId="assistant-loading">
-                    <Message align="start">
+                    <Message align="start" data-loading="true">
                       <MessageAvatar className="bg-primary/10 text-primary">
                         <Bot className="size-4" aria-hidden="true" />
                       </MessageAvatar>
