@@ -26,6 +26,10 @@ async function openFirstProductComposition(page: Page): Promise<string> {
 
   await compose.first().click();
   await expect(page).toHaveURL(/\/produtos\/composicao\?produto=/);
+  // Firefox aborta uma navegação de documento enquanto o pushState do clique
+  // ainda está em voo (NS_BINDING_ABORTED). Esperar o conteúdo da rota assentar
+  // mantém a asserção de documento novo no teste seguinte sem mascarar o defeito.
+  await expect(page.getByRole("heading", { name: COMPOSITION_HEADING })).toBeVisible();
   return page.url();
 }
 
