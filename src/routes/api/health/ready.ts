@@ -8,8 +8,15 @@ import { logJson } from "@/lib/structured-logger";
 export async function handleHealthReady({ request }: { request: Request }): Promise<Response> {
   try {
     await getDatabase().execute(sql`select 1 as ready`);
+    const identity = deploymentIdentity();
     return Response.json(
-      { status: "ready", dependencies: { postgres: "ok" } },
+      {
+        status: "ready",
+        ...(identity.commitSha ? { commit: identity.commitSha } : {}),
+        ...(identity.deploymentId ? { deployment: identity.deploymentId } : {}),
+        timestamp: new Date().toISOString(),
+        dependencies: { postgres: "ok" },
+      },
       { headers: { "cache-control": "no-store" } },
     );
   } catch (error) {
