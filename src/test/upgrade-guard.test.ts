@@ -76,6 +76,17 @@ function installedReais(): Record<string, string> {
   return installed;
 }
 
+/**
+ * Um patch ABAIXO da versão dada — o rebaixamento de referência do fixture.
+ * O patch 0 recua para o minor anterior (`8.2.0` → `8.1.99`) para nunca
+ * produzir uma versão inexistente como `8.2.-1`.
+ */
+function umPatchAbaixo(version: string): string {
+  const [maior, menor, patch] = version.split(".").map((parte) => Number(parte));
+  if (patch > 0) return `${maior}.${menor}.${patch - 1}`;
+  return `${maior}.${menor - 1}.99`;
+}
+
 /** Entrada real da política, pelo nome. Lança se o pacote sair do arquivo — é o próprio sinal. */
 function policyEntry(name: string): PolicyEntry {
   const found = readPolicyEntries(realPolicy).find((e) => e.name === name);
@@ -405,9 +416,17 @@ describe("spec não reconhecível é finding, não exceção", () => {
 describe("rebaixamento de high é informativo e não bloqueia", () => {
   // `vite` é `high` (8.0.0..8.99.99). Rebaixar DENTRO da faixa não viola a política, mas é
   // downgrade e precisa aparecer — sem virar reprovação, e sem sumir do relatório.
+  //
+  // O piso NÃO é fixado no teste: ele é a base da spec VIVA de `vite` no `package.json`
+  // (que é o que o guard compara, via `headSpecs`). O rebaixamento do fixture é um patch
+  // abaixo desse piso, então um bump legítimo da dependência não quebra a prova — e o
+  // controle negativo (rebaixamento presente / ausência de rebaixamento) continua o mesmo.
+  const pisoHead = realSpecs.vite.replace(/^[^\d]*/, "");
+  const rebaixado = umPatchAbaixo(pisoHead);
+
   const rebaixadoVite = input({
-    specs: { ...realSpecs, vite: "^8.0.1" },
-    lockResolved: { ...realLockResolved, vite: "8.0.1" },
+    specs: { ...realSpecs, vite: `^${rebaixado}` },
+    lockResolved: { ...realLockResolved, vite: rebaixado },
   });
 
   it("o finding existe, nomeia as duas versões e diz explicitamente que não bloqueia", () => {
@@ -415,8 +434,8 @@ describe("rebaixamento de high é informativo e não bloqueia", () => {
       f.includes("vite (downgrade)"),
     );
     expect(doVite).toHaveLength(1);
-    expect(doVite[0]).toContain("8.0.1");
-    expect(doVite[0]).toContain("8.0.16");
+    expect(doVite[0]).toContain(rebaixado);
+    expect(doVite[0]).toContain(pisoHead);
     expect(doVite[0]).toContain("NÃO bloqueia o guard");
     expect(doVite[0].startsWith(PREFIXO_INFORMATIVO)).toBe(true);
   });
@@ -431,8 +450,8 @@ describe("rebaixamento de high é informativo e não bloqueia", () => {
     expect(
       auditDependencyPolicy(
         input({
-          specs: { ...realSpecs, vite: "^8.2.2" },
-          lockResolved: { ...realLockResolved, vite: "8.2.2" },
+          specs: { ...realSpecs, vite: `^${pisoHead}` },
+          lockResolved: { ...realLockResolved, vite: pisoHead },
         }),
       ),
     ).toEqual([]);
@@ -442,7 +461,7 @@ describe("rebaixamento de high é informativo e não bloqueia", () => {
     const semAprovacao = auditDependencyPolicy(rebaixadoVite).filter(isBlockingFinding);
     const comAprovacao = auditDependencyPolicy({
       ...rebaixadoVite,
-      approvals: ["vite__8.0.16__8.0.1.json"],
+      approvals: [`vite__${pisoHead}__${rebaixado}.json`],
     }).filter(isBlockingFinding);
     expect(semAprovacao).toEqual(comAprovacao);
     expect(semAprovacao).toEqual([]);
