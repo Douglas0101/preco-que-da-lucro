@@ -91,8 +91,11 @@ const SUGGESTIONS = [
   },
 ] as const;
 
+let localMessageSequence = 0;
+
 function localId(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `local-${Date.now()}-${Math.random()}`;
+  localMessageSequence += 1;
+  return `local-${localMessageSequence}`;
 }
 
 function NovoProduto() {
