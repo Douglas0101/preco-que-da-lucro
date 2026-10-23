@@ -169,7 +169,7 @@ test("chat: desfecho honesto e sem estado travado", async ({ page }) => {
 
   const input = page.getByPlaceholder("Escreva sua resposta...");
   await expect(input).toBeVisible();
-  const bubbles = page.locator('[role="log"] > div.flex.items-start:not(.justify-end)');
+  const bubbles = page.locator('[role="log"] [data-slot="message"][data-align="start"]');
   await expect(bubbles.first()).toBeVisible();
   const before = await bubbles.count();
 

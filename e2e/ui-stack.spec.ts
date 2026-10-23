@@ -320,6 +320,8 @@ test("chat HTTP dispatch survives a missing framework signal (BUG-CHAT)", async 
   await expect(page.getByRole("heading", { name: "Cadastro conversacional" })).toBeVisible();
 
   const probe = `BUGCHAT-${Date.now()}`;
+  const assistantMessages = page.locator('[role="log"] [data-slot="message"][data-align="start"]');
+  const assistantCount = await assistantMessages.count();
   const responsePromise = page.waitForResponse(
     (response) =>
       response.url().includes("/_serverFn/") &&
@@ -337,9 +339,8 @@ test("chat HTTP dispatch survives a missing framework signal (BUG-CHAT)", async 
 
   const textarea = page.locator("#novo-produto-mensagem");
   await expect(textarea).toBeEnabled({ timeout: 15_000 });
-  await expect(page.getByRole("log")).toContainText(/⚠️|indisponível|resposta/i, {
-    timeout: 15_000,
-  });
+  await expect(assistantMessages.nth(assistantCount)).toBeVisible();
+  await expect(assistantMessages.nth(assistantCount)).not.toBeEmpty();
   await textarea.fill(`BUGCHAT-followup-${Date.now()}`);
   await expect(page.getByRole("button", { name: "Enviar" })).toBeEnabled({ timeout: 15_000 });
 });
