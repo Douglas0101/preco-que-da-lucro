@@ -1,0 +1,14 @@
+# Neon production — read-only query, 2026-10-23
+project: damp-forest-57346541
+branch: br-snowy-violet-aymcvvvv (production, default, ready)
+
+SQL:
+select count(*)::int as applied, max(created_at)::text as latest_created_at
+from drizzle.__drizzle_migrations;
+
+result:
+applied: 20
+latest_created_at: 1789698474294
+
+Release range ef7568e..21a6089: no drizzle/ path.
+Permanent branches: production (ready/default), ci-fixture-base (archived), develop (archived).
