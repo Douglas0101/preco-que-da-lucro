@@ -25,8 +25,9 @@ export interface DebIdentity {
   architecture: string;
 }
 export interface BrowserKit {
-  schema: "playwright-kit/2";
+  schema: "playwright-kit/3";
   identity: KitIdentity;
+  basePackagesSha256: string;
   browsers: string[];
   changedPackages: Record<string, string>;
   debPackages: Record<string, DebIdentity>;
@@ -59,8 +60,15 @@ function samePackage(name: string, version: string, deb: DebIdentity) {
     (!architecture || architecture === deb.architecture || deb.architecture === "all")
   );
 }
-export function validateKit(kit: BrowserKit, expected: KitIdentity, files: Record<string, string>) {
-  if (kit.schema !== "playwright-kit/2") throw new Error("unknown kit schema");
+export function validateKit(
+  kit: BrowserKit,
+  expected: KitIdentity,
+  files: Record<string, string>,
+  currentBasePackagesSha256?: string,
+) {
+  if (kit.schema !== "playwright-kit/3") throw new Error("unknown kit schema");
+  if (!/^[a-f0-9]{64}$/.test(kit.basePackagesSha256))
+    throw new Error("base package identity is absent");
   if (
     !/^[a-f0-9]{64}$/.test(expected.lockSha256) ||
     expected.imageOS !== "ubuntu24" ||
@@ -68,8 +76,20 @@ export function validateKit(kit: BrowserKit, expected: KitIdentity, files: Recor
   )
     throw new Error("supported runner/lock identity is absent");
   for (const key of identityKeys) {
-    if (!expected[key]?.trim() || kit.identity?.[key] !== expected[key])
-      throw new Error(`kit identity mismatch: ${key}`);
+    if (!expected[key]?.trim())
+      throw new Error(
+        `kit identity mismatch: ${key} (kit=${kit.identity?.[key] ?? "absent"}, runner=absent)`,
+      );
+    if (kit.identity?.[key] === expected[key]) continue;
+    if (
+      key === "imageVersion" &&
+      currentBasePackagesSha256 !== undefined &&
+      kit.basePackagesSha256 === currentBasePackagesSha256
+    )
+      continue;
+    throw new Error(
+      `kit identity mismatch: ${key} (kit=${kit.identity?.[key] ?? "absent"}, runner=${expected[key]})`,
+    );
   }
   if (JSON.stringify(kit.browsers) !== JSON.stringify(requiredBrowsers))
     throw new Error("all three browsers are required");
@@ -158,6 +178,38 @@ export function assertInstalled(changed: Record<string, string>, actual: Record<
   for (const [name, version] of Object.entries(changed))
     if (actual[name] !== version) throw new Error(`system package mismatch: ${name}`);
 }
+/**
+ * Reads `ImageVersion` from the image's own metadata file.
+ *
+ * During a runner-image rollout the Hosted Compute Agent can expose the
+ * *target* release in `$ImageVersion` while the VM is still on the previous
+ * image, and two jobs of the same workflow can receive different values.
+ * The file written by the image build (`/etc/environment`, see
+ * actions/runner-images `configure-environment.sh`) is the identity of the
+ * image that is actually running; the process environment is only a fallback
+ * for environments that do not provide the file.
+ */
+export function imageVersionFromEnvironment(content: string): string {
+  const line = content.split(/\r?\n/).find((entry) => entry.startsWith("ImageVersion="));
+  if (!line) return "";
+  return line
+    .slice("ImageVersion=".length)
+    .trim()
+    .replace(/^["']|["']$/g, "");
+}
+export function resolveImageVersion(
+  imageEnvironment: string,
+  environmentValue: string | undefined,
+): string {
+  return imageVersionFromEnvironment(imageEnvironment) || environmentValue || "";
+}
+function imageEnvironment(): string {
+  try {
+    return readFileSync("/etc/environment", "utf8");
+  } catch {
+    return "";
+  }
+}
 function identity(): KitIdentity {
   if (
     !/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA ?? "") ||
@@ -168,7 +220,7 @@ function identity(): KitIdentity {
   return {
     lockSha256: hash(readFileSync("package-lock.json")),
     imageOS: process.env.ImageOS ?? "",
-    imageVersion: process.env.ImageVersion ?? "",
+    imageVersion: resolveImageVersion(imageEnvironment(), process.env.ImageVersion),
     architecture: process.arch,
     playwrightVersion: JSON.parse(readFileSync("node_modules/playwright-core/package.json", "utf8"))
       .version,
@@ -247,6 +299,13 @@ function installed(kit: BrowserKit) {
       throw new Error(`browser revision absent: ${name}`);
   }
 }
+function dpkgSnapshotHash(): string {
+  return hash(
+    execFileSync("dpkg-query", ["-W", "-f=${binary:Package}\t${Version}\n"], {
+      encoding: "utf8",
+    }),
+  );
+}
 function run(command: string, dir: string, before?: string, after?: string) {
   const expected = identity();
   if (command === "key") {
@@ -260,7 +319,7 @@ function run(command: string, dir: string, before?: string, after?: string) {
       throw new Error("cache output or supported runner is absent");
     writeFileSync(
       process.env.GITHUB_OUTPUT,
-      `key=playwright-kit-v2-${hash(JSON.stringify(expected))}-${hash(readFileSync("scripts/ci/playwright-kit.ts"))}\n`,
+      `key=playwright-kit-v3-${hash(JSON.stringify(expected))}-${hash(readFileSync("scripts/ci/playwright-kit.ts"))}\n`,
       { flag: "a" },
     );
     return;
@@ -284,8 +343,9 @@ function run(command: string, dir: string, before?: string, after?: string) {
         copyFileSync(file, join(resource, "debs", name));
     }
     kit = {
-      schema: "playwright-kit/2",
+      schema: "playwright-kit/3",
       identity: expected,
+      basePackagesSha256: hash(readFileSync(before)),
       browsers: [...requiredBrowsers],
       changedPackages: changed,
       debPackages: debInventory(resource),
@@ -295,7 +355,17 @@ function run(command: string, dir: string, before?: string, after?: string) {
     writeFileSync(manifestPath, JSON.stringify(kit, null, 2) + "\n");
   } else {
     kit = JSON.parse(readFileSync(manifestPath, "utf8"));
-    validateKit(kit, expected, discover(resource));
+    // `verify` proves the pre-install base package set against the manifest.
+    // `installed` runs after the debs are installed, so the live snapshot no
+    // longer matches the manifest; it trusts the base hash that `verify` just
+    // validated in the same shell step (set -euo pipefail).
+    const currentBasePackagesSha256 =
+      command === "verify"
+        ? dpkgSnapshotHash()
+        : command === "installed"
+          ? kit.basePackagesSha256
+          : undefined;
+    validateKit(kit, expected, discover(resource), currentBasePackagesSha256);
     const actualDebs = debInventory(resource);
     for (const [name, deb] of Object.entries(kit.debPackages)) {
       const actual = actualDebs[name];

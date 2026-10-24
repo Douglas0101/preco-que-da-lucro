@@ -7,8 +7,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   assertInstalled,
   changedPackages,
+  imageVersionFromEnvironment,
   parsePackages,
   readDeb,
+  resolveImageVersion,
   validateAttestation,
   validateKit,
   type BrowserKit,
@@ -35,8 +37,9 @@ const attestation = (): KitAttestation => ({
 });
 function fixture(): BrowserKit {
   return {
-    schema: "playwright-kit/2",
+    schema: "playwright-kit/3",
     identity: { ...identity },
+    basePackagesSha256: "a".repeat(64),
     browsers: ["chromium", "firefox", "webkit"],
     changedPackages: { libexample: "1.0" },
     debPackages: {
@@ -71,6 +74,21 @@ describe("Playwright resource cache and current run attestation", () => {
       expect(() => validateKit(kit, identity, files)).toThrow("identity mismatch");
     },
   );
+  it("accepts an imageVersion mismatch when the base package set is identical", () => {
+    const kit = fixture();
+    kit.identity.imageVersion = "20261023.334.3";
+    expect(() => validateKit(kit, identity, files, kit.basePackagesSha256)).not.toThrow();
+  });
+  it("rejects an imageVersion mismatch when the base package set differs", () => {
+    const kit = fixture();
+    kit.identity.imageVersion = "20261023.334.3";
+    expect(() => validateKit(kit, identity, files, "b".repeat(64))).toThrow("imageVersion");
+  });
+  it("requires a base package identity", () => {
+    const kit = fixture();
+    kit.basePackagesSha256 = "short";
+    expect(() => validateKit(kit, identity, files)).toThrow("base package");
+  });
   it("rejects absent identity, unsupported platform and legacy source-bound format", () => {
     for (const expected of [
       { ...identity, lockSha256: "" },
@@ -187,7 +205,7 @@ describe("Playwright resource cache and current run attestation", () => {
     });
     expect(positive.status, positive.stderr).toBe(0);
     expect(readFileSync(output, "utf8")).toMatch(
-      /^key=playwright-kit-v2-[a-f0-9]{64}-[a-f0-9]{64}\n$/,
+      /^key=playwright-kit-v3-[a-f0-9]{64}-[a-f0-9]{64}\n$/,
     );
     const before = createHash("sha256").update(readFileSync(output)).digest("hex");
     const negative = spawnSync(process.execPath, ["scripts/ci/playwright-kit.ts", "key"], {
@@ -222,5 +240,36 @@ describe("Playwright resource cache and current run attestation", () => {
     const actions = [...yaml.matchAll(/uses: ([^\s]+)@([^\s]+)/g)];
     expect(actions.length).toBeGreaterThan(0);
     for (const action of actions) expect(action[2]).toMatch(/^[a-f0-9]{40}$/);
+  });
+});
+
+describe("runner image identity source", () => {
+  it("reads the version from the image metadata file", () => {
+    expect(
+      imageVersionFromEnvironment("PATH=/usr/bin\nImageOS=ubuntu24\nImageVersion=20261012.334.1\n"),
+    ).toBe("20261012.334.1");
+  });
+  it("accepts quoted values and trims whitespace", () => {
+    expect(imageVersionFromEnvironment('ImageVersion="20261023.334.3"\n')).toBe("20261023.334.3");
+    expect(imageVersionFromEnvironment("ImageVersion= 20261012.334.1 \n")).toBe("20261012.334.1");
+  });
+  it("returns an empty string when the file has no image version", () => {
+    expect(imageVersionFromEnvironment("PATH=/usr/bin\n")).toBe("");
+  });
+  it("prefers the image metadata over the provisioner environment", () => {
+    expect(resolveImageVersion("ImageVersion=20261012.334.1\n", "20261023.334.3")).toBe(
+      "20261012.334.1",
+    );
+  });
+  it("falls back to the provisioner environment when the file has no image version", () => {
+    expect(resolveImageVersion("PATH=/usr/bin\n", "20261023.334.3")).toBe("20261023.334.3");
+    expect(resolveImageVersion("", undefined)).toBe("");
+  });
+  it("names both image identities in the mismatch", () => {
+    const kit = fixture();
+    kit.identity.imageVersion = "20261012.334.1";
+    expect(() => validateKit(kit, identity, files)).toThrow(
+      "kit identity mismatch: imageVersion (kit=20261012.334.1, runner=20260928.1.0)",
+    );
   });
 });
