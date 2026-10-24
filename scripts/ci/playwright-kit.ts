@@ -69,7 +69,9 @@ export function validateKit(kit: BrowserKit, expected: KitIdentity, files: Recor
     throw new Error("supported runner/lock identity is absent");
   for (const key of identityKeys) {
     if (!expected[key]?.trim() || kit.identity?.[key] !== expected[key])
-      throw new Error(`kit identity mismatch: ${key}`);
+      throw new Error(
+        `kit identity mismatch: ${key} (kit=${kit.identity?.[key] ?? "absent"}, runner=${expected[key] || "absent"})`,
+      );
   }
   if (JSON.stringify(kit.browsers) !== JSON.stringify(requiredBrowsers))
     throw new Error("all three browsers are required");
@@ -158,6 +160,32 @@ export function assertInstalled(changed: Record<string, string>, actual: Record<
   for (const [name, version] of Object.entries(changed))
     if (actual[name] !== version) throw new Error(`system package mismatch: ${name}`);
 }
+/**
+ * Reads `ImageVersion` from the image's own metadata file.
+ *
+ * During a runner-image rollout the Hosted Compute Agent can expose the
+ * *target* release in `$ImageVersion` while the VM is still on the previous
+ * image, and two jobs of the same workflow can receive different values.
+ * The file written by the image build (`/etc/environment`, see
+ * actions/runner-images `configure-environment.sh`) is the identity of the
+ * image that is actually running; the process environment is only a fallback
+ * for environments that do not provide the file.
+ */
+export function imageVersionFromEnvironment(content: string): string {
+  const line = content.split(/\r?\n/).find((entry) => entry.startsWith("ImageVersion="));
+  if (!line) return "";
+  return line
+    .slice("ImageVersion=".length)
+    .trim()
+    .replace(/^["']|["']$/g, "");
+}
+function imageVersionFromImage(): string {
+  try {
+    return imageVersionFromEnvironment(readFileSync("/etc/environment", "utf8"));
+  } catch {
+    return "";
+  }
+}
 function identity(): KitIdentity {
   if (
     !/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA ?? "") ||
@@ -168,7 +196,7 @@ function identity(): KitIdentity {
   return {
     lockSha256: hash(readFileSync("package-lock.json")),
     imageOS: process.env.ImageOS ?? "",
-    imageVersion: process.env.ImageVersion ?? "",
+    imageVersion: imageVersionFromImage() || process.env.ImageVersion || "",
     architecture: process.arch,
     playwrightVersion: JSON.parse(readFileSync("node_modules/playwright-core/package.json", "utf8"))
       .version,

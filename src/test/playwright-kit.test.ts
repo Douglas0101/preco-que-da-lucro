@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   assertInstalled,
   changedPackages,
+  imageVersionFromEnvironment,
   parsePackages,
   readDeb,
   validateAttestation,
@@ -222,5 +223,27 @@ describe("Playwright resource cache and current run attestation", () => {
     const actions = [...yaml.matchAll(/uses: ([^\s]+)@([^\s]+)/g)];
     expect(actions.length).toBeGreaterThan(0);
     for (const action of actions) expect(action[2]).toMatch(/^[a-f0-9]{40}$/);
+  });
+});
+
+describe("runner image identity source", () => {
+  it("reads the version from the image metadata file", () => {
+    expect(
+      imageVersionFromEnvironment("PATH=/usr/bin\nImageOS=ubuntu24\nImageVersion=20261012.334.1\n"),
+    ).toBe("20261012.334.1");
+  });
+  it("accepts quoted values and trims whitespace", () => {
+    expect(imageVersionFromEnvironment('ImageVersion="20261023.334.3"\n')).toBe("20261023.334.3");
+    expect(imageVersionFromEnvironment("ImageVersion= 20261012.334.1 \n")).toBe("20261012.334.1");
+  });
+  it("returns an empty string when the file has no image version", () => {
+    expect(imageVersionFromEnvironment("PATH=/usr/bin\n")).toBe("");
+  });
+  it("names both image identities in the mismatch", () => {
+    const kit = fixture();
+    kit.identity.imageVersion = "20261012.334.1";
+    expect(() => validateKit(kit, identity, files)).toThrow(
+      "kit identity mismatch: imageVersion (kit=20261012.334.1, runner=20260928.1.0)",
+    );
   });
 });
