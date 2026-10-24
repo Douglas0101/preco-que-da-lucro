@@ -1,0 +1,31 @@
+# Computer user — MCP Playwright (Chromium), produção sage
+# Sessão anônima; nenhuma submissão de formulário, nenhum OAuth, nenhuma escrita.
+
+GET /
+- title: "Preço que Dá Lucro — avalie preços sustentáveis para seu produto"
+- a11y: banner (logo + link Entrar), h1 "Entenda a faixa de preço do seu produto conversando.", 3 cards, footer.
+- console: 0 errors, 0 warnings; 5 mensagens CSP report-only info.
+- network: /api/auth/get-session 200; nenhum 4xx/5xx dinâmico.
+
+GET /auth
+- title: "Entrar · Preço que Dá Lucro"
+- a11y: complementary (marketing) + h2 "Bem-vindo de volta"; Google; E-mail; Senha; Entrar; Cadastre-se; Esqueci minha senha.
+- console: 0 errors, 0 warnings; 6 mensagens CSP info (3 scripts + 2 styles + reports).
+- DOM: e-mail required, type=email, autocomplete=null; senha required, autocomplete=current-password.
+
+Click "Começar agora" (home)
+- URL final: /auth; title "Entrar · Preço que Dá Lucro".
+
+GET /inicio (anônimo)
+- URL final: /auth?redirect=%2Finicio; title "Entrar · Preço que Dá Lucro".
+- 1 console error: 401 no /_serverFn/28aa... (dashboard; payload period=month); redirect em ~0,5-0,9s (medição local).
+- A tela intermediária mostra "Carregando..." antes do redirect.
+
+Click "Cadastre-se" (auth)
+- h2 muda para "Vamos começar juntos"; inputs: nome (text, required), e-mail (email, required), senha (password, required, new-password).
+- console: 0 errors; network: nenhum POST de auth.
+
+GET /rota-inexistente
+- status 404 real; h1 "404"; h2 "Page not found"; texto "The page you're looking for doesn't exist or has been moved."; botão "Go home" -> /.
+- console: 1 error (o próprio documento 404).
+- Página customizada do src/routes/__root.tsx, porém com texto hardcoded em inglês.

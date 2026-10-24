@@ -1,0 +1,10 @@
+# axe-core 4.13.0 — tags wcag2a,wcag2aa,wcag21a,wcag21aa
+# 4 engines x 4 páginas: 0 violações em 16/16.
+# passes: home=9; auth-login=20 (mobile 18); auth-signup=20 (mobile 18); 404=12.
+# WCAG 2.2 extra no mobile (/auth login e signup, tags wcag22aa): 0 violações.
+# overflow: false em 16/16; brokenImages: 0.
+
+# Alvos de toque medidos no Pixel 7 (login):
+# "Cadastre-se" 84x22; "Esqueci minha senha" 149x22; submit "Entrar" 36px de altura.
+# O axe WCAG 2.2 não acusou (exceção de espaçamento/inline); é observação de UX, não falha dura.
+# Geometria do login mobile: viewport 412x839; aside 0-381; card 477-879; form 602-786; submit 750-786 (visível no primeiro viewport).
