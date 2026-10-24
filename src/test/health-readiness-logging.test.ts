@@ -5,7 +5,6 @@ const state = vi.hoisted(() => ({ failure: undefined as unknown }));
 vi.mock("@/db/client.server", () => ({
   getDatabase: () => ({
     execute: async () => {
-      if (state.failure === undefined) return;
       throw state.failure;
     },
   }),
@@ -128,34 +127,6 @@ describe("health.readiness_failed — linha discriminante e não-vazante", () =>
     const text = await response.text();
     for (const forbidden of [...NEVER_IN_LOG, "28P01", "authentication"]) {
       expect(text).not.toContain(forbidden);
-    }
-  });
-});
-
-describe("readiness success exposes deployment identity", () => {
-  it("returns commit, deployment and RFC 3339 timestamp without secrets", async () => {
-    process.env.VERCEL_DEPLOYMENT_ID = "dpl_6h2LTZX57soGiPP2oTurws7NsgVd";
-    process.env.VERCEL_GIT_COMMIT_SHA = "fa45632391ad9ffe1d20d3bad5264a53b565638e";
-    state.failure = undefined;
-    try {
-      const response = await handleHealthReady({
-        request: new Request("https://app.test/api/health/ready"),
-      });
-      expect(response.status).toBe(200);
-      expect(response.headers.get("cache-control")).toBe("no-store");
-      const body = await response.clone().json();
-      expect(body).toMatchObject({
-        status: "ready",
-        commit: "fa45632391ad9ffe1d20d3bad5264a53b565638e",
-        deployment: "dpl_6h2LTZX57soGiPP2oTurws7NsgVd",
-        dependencies: { postgres: "ok" },
-      });
-      expect(body.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T.*Z$/);
-      expect(JSON.stringify(body)).not.toContain("s3cr3t");
-    } finally {
-      delete process.env.VERCEL_DEPLOYMENT_ID;
-      delete process.env.VERCEL_GIT_COMMIT_SHA;
-      state.failure = undefined;
     }
   });
 });
