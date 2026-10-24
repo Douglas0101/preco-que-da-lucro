@@ -37,8 +37,9 @@ const attestation = (): KitAttestation => ({
 });
 function fixture(): BrowserKit {
   return {
-    schema: "playwright-kit/2",
+    schema: "playwright-kit/3",
     identity: { ...identity },
+    basePackagesSha256: "a".repeat(64),
     browsers: ["chromium", "firefox", "webkit"],
     changedPackages: { libexample: "1.0" },
     debPackages: {
@@ -73,6 +74,21 @@ describe("Playwright resource cache and current run attestation", () => {
       expect(() => validateKit(kit, identity, files)).toThrow("identity mismatch");
     },
   );
+  it("accepts an imageVersion mismatch when the base package set is identical", () => {
+    const kit = fixture();
+    kit.identity.imageVersion = "20261023.334.3";
+    expect(() => validateKit(kit, identity, files, kit.basePackagesSha256)).not.toThrow();
+  });
+  it("rejects an imageVersion mismatch when the base package set differs", () => {
+    const kit = fixture();
+    kit.identity.imageVersion = "20261023.334.3";
+    expect(() => validateKit(kit, identity, files, "b".repeat(64))).toThrow("imageVersion");
+  });
+  it("requires a base package identity", () => {
+    const kit = fixture();
+    kit.basePackagesSha256 = "short";
+    expect(() => validateKit(kit, identity, files)).toThrow("base package");
+  });
   it("rejects absent identity, unsupported platform and legacy source-bound format", () => {
     for (const expected of [
       { ...identity, lockSha256: "" },
@@ -189,7 +205,7 @@ describe("Playwright resource cache and current run attestation", () => {
     });
     expect(positive.status, positive.stderr).toBe(0);
     expect(readFileSync(output, "utf8")).toMatch(
-      /^key=playwright-kit-v2-[a-f0-9]{64}-[a-f0-9]{64}\n$/,
+      /^key=playwright-kit-v3-[a-f0-9]{64}-[a-f0-9]{64}\n$/,
     );
     const before = createHash("sha256").update(readFileSync(output)).digest("hex");
     const negative = spawnSync(process.execPath, ["scripts/ci/playwright-kit.ts", "key"], {
