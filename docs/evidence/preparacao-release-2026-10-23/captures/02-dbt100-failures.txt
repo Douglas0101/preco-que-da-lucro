@@ -1,0 +1,66 @@
+# Fase 1 — PR #68 / DBT-100: falhas medidas
+# UTC: 2026-10-24T02:52:12Z
+
+## PR #68 — resumo
+{"baseRefName":"main","headRefName":"develop","headRefOid":"228589e1c2aea0cfaf6ac3c0e5109b0a560a417c","isDraft":false,"mergeable":"MERGEABLE","number":68,"state":"OPEN","title":"release: dependency security follow-up (undici 8.12.3)","url":"https://github.com/Douglas0101/preco-que-da-lucro/pull/68"}
+
+## Checks (nome, conclusão, run)
+docs-light	SUCCESS	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40046525037/job/120729405175
+Fork-guard + presença de segredo	SUCCESS	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40046525060/job/120729671325
+scan + cobertura	SUCCESS	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40046525171/job/120729405390
+prepare browsers and Linux packages	SUCCESS	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40046525035/job/120735096458
+prepare browsers and Linux packages	SUCCESS	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40046519246/job/120733137006
+verify	FAILURE	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40046519246/job/120733448724
+verify-release	FAILURE	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40046525035/job/120735366555
+Branch efêmera · migrate · integração · RLS probe · E2E	SUCCESS	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40046525060/job/120729700994
+main-coverage-mirror	SUCCESS	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40046525171/job/120730335223
+Cleanup always() com prova (§12.5)	SUCCESS	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40046525060/job/120731262766
+Kilo Code Review	SUCCESS	https://app.kilo.ai/code-reviews/462404a8-86c2-47e8-aa8a-3222008f5a86
+SonarCloud Code Analysis	SUCCESS	https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro&pullRequest=68
+
+## Jobs vermelhos e step que falhou
+run 40046519246 (push, verify):
+{"name":"verify","steps":["Verify kit identity and install Linux packages offline"]}
+run 40046525035 (pull_request, verify-release):
+{"name":"verify-release","steps":["Verify kit identity and install Linux packages offline"]}
+
+## Linha exata do log (run 40046519246, job verify)
+$ gh run view 40046519246 --log-failed
+verify	Verify kit identity and install Linux packages offline	2026-10-24T01:04:05.9623263Z precondition: kit identity mismatch: imageVersion
+verify	Verify kit identity and install Linux packages offline	2026-10-24T01:04:05.9734948Z ##[error]Process completed with exit code 2.
+
+## Workflows — nenhuma imagem Docker de Playwright
+$ grep -rn "mcr.microsoft.com/playwright\|image:" .github/workflows/*.yml
+.github/workflows/ui-stack.yml:107:        image: postgres:17-alpine
+
+$ grep -rn "playwright install\|playwright-kit" .github/workflows/*.yml | head
+.github/workflows/neon-pr-branch.yml:325:      # `npx playwright install --with-deps chromium firefox webkit` + `npm run
+.github/workflows/neon-pr-branch.yml:367:          npx playwright install --with-deps chromium firefox webkit
+.github/workflows/ui-stack.yml:44:        run: node scripts/ci/playwright-kit.ts key
+.github/workflows/ui-stack.yml:58:          npx playwright install --with-deps chromium firefox webkit
+.github/workflows/ui-stack.yml:62:          node scripts/ci/playwright-kit.ts capture .artifacts/browser-kit "$RUNNER_TEMP/packages-before.tsv" "$RUNNER_TEMP/packages-after.tsv"
+.github/workflows/ui-stack.yml:68:          node scripts/ci/playwright-kit.ts verify-resource .artifacts/browser-kit
+.github/workflows/ui-stack.yml:78:        run: node scripts/ci/playwright-kit.ts attest .artifacts/browser-kit
+.github/workflows/ui-stack.yml:329:          node scripts/ci/playwright-kit.ts verify .artifacts/browser-kit
+
+## Versão instalada
+$ node -e "..."
+@playwright/test 1.62.1 playwright-core 1.62.1
+
+## Tags MCR para a versão instalada
+$ curl -s https://mcr.microsoft.com/v2/playwright/tags/list | jq -r ".tags[]" | grep -E "^v1\\.62\\.1"
+v1.62.1
+v1.62.1-amd64
+v1.62.1-arm64
+v1.62.1-jammy
+v1.62.1-jammy-amd64
+v1.62.1-jammy-arm64
+v1.62.1-noble
+v1.62.1-noble-amd64
+v1.62.1-noble-arm64
+v1.62.1-resolute
+v1.62.1-resolute-amd64
+v1.62.1-resolute-arm64
+
+## Registry — DBT-100 (colunas id, classe, severidade, status)
+DBT-100 | robustez | media | ABERTA (closure test: par fail-closed de imageVersion; rerun completo do workflow, nunca --failed)

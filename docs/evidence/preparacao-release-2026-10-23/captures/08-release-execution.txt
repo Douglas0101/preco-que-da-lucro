@@ -1,0 +1,53 @@
+# Execução pós-autorização total — release 2026-10-23/24
+# UTC: 2026-10-24T05:09:37Z
+
+## PR #68
+state=MERGED
+mergedAt=2026-10-24T04:54:55Z
+head=0ab2eba35e5a71e6e049566f6c68481027543935
+mergeCommit=b8bc52ec52503c3a299f22ed32e2e445046e0731
+
+## Checks do PR (head 0ab2eba)
+verify-release=SUCCESS (run 40063365002, 6m08s)
+verify=SUCCESS (run 40063361538, 6m00s)
+scan + cobertura=SUCCESS (run 40063365031)
+SonarCloud Code Analysis=SUCCESS
+Neon PR branch + cleanup=SUCCESS (run 40063365006)
+docs-light=SUCCESS; Fork-guard=SUCCESS; main-coverage-mirror=SUCCESS
+Kilo Code Review=ACTION_REQUIRED — conta sem créditos; não é gate obrigatório do ruleset 24333849 e o último review válido não achou defeito de código
+
+## Prova do fix de identidade sob provisioners mistos
+PR run 40063365002: prepare provisioner=20261012.601 image=20261012.334.1; verify provisioner=20261021.618 image=20261012.334.1; resultado=SUCCESS
+O verify aceitou a divergência de imageVersion porque o hash do snapshot dpkg da imagem base era idêntico.
+
+## Main
+main=b8bc52ec52503c3a299f22ed32e2e445046e0731
+develop=b8bc52ec52503c3a299f22ed32e2e445046e0731 (back-merge ff-only)
+UI stack verify=SUCCESS (run 40064210278)
+Sonar main=SUCCESS (run 40064210362)
+CE status=OK; new_coverage=82.2; new_security_rating=1; new_reliability_rating=1; new_maintainability_rating=1; new_duplicated_lines_density=1.1; new_security_hotspots_reviewed=100.0
+releasePolicy=ADR-042/coverage-minimum-60 status=OK actual=82.2 blockingConditions=[]
+runnerSha=checkoutSha=b8bc52e; branch=main; analysisId=3c8921c7-1217-42b8-9103-65f153a3e379; ceTaskId=AaFsRnM9J8I9a074Qtzo
+
+## Vercel production
+deployment=dpl_BtH5YVqmd2QTKs5V2fNRGuomrAeB
+state=READY; target=production; url=preco-que-da-lucro-pty9e7bid.vercel.app
+meta.githubCommitSha=b8bc52ec52503c3a299f22ed32e2e445046e0731
+aliases: preco-que-da-lucro-sage.vercel.app, preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app, preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app -> dpl_BtH (oldDeploymentId=dpl_HfDw)
+health ready=200 {"status":"ready","dependencies":{"postgres":"ok"}}
+health live=200 {"status":"ok"}
+auth get-session=200 null
+runtime errors (1h)=none
+runtime error/fatal logs (30m, deployment)=none
+rollback=dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4 remains READY (main cf910bf)
+
+## Commits de CI incluídos
+b9ba713 fix(ci): read the runner image version from the image metadata
+21933e6 test(ci): cover image-version precedence and fallback
+0ab2eba fix(ci): bind the kit identity to the base package snapshot
+
+## Pendências declaradas
+- G2 health identity: deferido; o PR body registra que será reaplicado em develop em PR futuro quando o gate do provedor for conclusivo.
+- G4 chat no staging com branch Neon efêmera: não executado.
+- G5 Hostinger: apenas plano; nenhuma compra/DNS.
+- G3 auditoria: pacote selado e commitado em develop após a release.

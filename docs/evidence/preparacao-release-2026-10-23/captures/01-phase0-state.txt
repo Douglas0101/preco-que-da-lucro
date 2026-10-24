@@ -1,0 +1,109 @@
+# Fase 0 — estado medido (read-only)
+# UTC: 2026-10-24T02:51:44Z
+
+## Vercel CLI — produção
+$ vercel ls --prod
+Vercel CLI 64.5.0 (Node.js 24.21.0)
+Loading teams…
+Fetching deployments in douglasultimatesouza-5127s-projects
+> Production deployments under douglasultimatesouza-5127s-projects [395ms]
+
+  Age     Project                                                    Deployment                                          Status      Environment     Duration     Username                      
+  5h      douglasultimatesouza-5127s-projects/preco-que-da-lucro     https://preco-que-da-lucro-kcxoavfay.vercel.app     ● Ready     Production      29s          douglasultimatesouza-5127     
+  6h      douglasultimatesouza-5127s-projects/preco-que-da-lucro     https://preco-que-da-lucro-3ij529x81.vercel.app     ● Ready     Production      58s          douglasultimatesouza-5127     
+  21h     douglasultimatesouza-5127s-projects/preco-que-da-lucro     https://preco-que-da-lucro-prxao9avc.vercel.app     ● Ready     Production      37s          douglasultimatesouza-5127     
+  10d     douglasultimatesouza-5127s-projects/preco-que-da-lucro     https://preco-que-da-lucro-dpp7hythn.vercel.app     ● Ready     Production      17s          douglasultimatesouza-5127     
+
+$ vercel alias ls | grep -E 'staging|sage|git-main'
+  preco-que-da-lucro-aik3or5sk.vercel.app    staging.diretrizprecifica.com                                                  4h    
+  preco-que-da-lucro-kcxoavfay.vercel.app    preco-que-da-lucro-sage.vercel.app                                            44d    
+  preco-que-da-lucro-kcxoavfay.vercel.app    preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app    46d    
+
+$ vercel inspect dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4
+Vercel CLI 64.5.0 (Node.js 24.21.0)
+Loading teams…
+Fetching deployment "dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4" in douglasultimatesouza-5127s-projects
+> Fetched deployment "preco-que-da-lucro-kcxoavfay.vercel.app" in douglasultimatesouza-5127s-projects [429ms]
+
+  General
+
+    id		dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4
+    name	preco-que-da-lucro
+    target	production
+    status	● Ready
+    url		https://preco-que-da-lucro-kcxoavfay.vercel.app
+    created	Fri Oct 23 2026 18:44:09 GMT-0300 (Horário Padrão de Brasília) [5h ago]
+
+
+  Build Machine
+
+## Vercel MCP — deployment de produção (subset verbatim)
+{
+  "id": "dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4",
+  "state": "READY",
+  "target": "production",
+  "meta": {
+    "githubCommitRef": "main",
+    "githubCommitSha": "cf910bf4754b0097c7bdae653d476cbd9422cdc4"
+  }
+}
+
+## Produção — health no alias sage
+$ curl -sS -w '%{http_code}' https://preco-que-da-lucro-sage.vercel.app/api/health/ready
+{"status":"ready","dependencies":{"postgres":"ok"}}
+HTTP 200
+
+## Staging — acesso anônimo (proteção ativa)
+$ curl -sSI https://staging.diretrizprecifica.com/api/health/ready
+HTTP/2 302 
+cache-control: no-store, max-age=0
+content-type: text/plain
+date: Sat, 24 Oct 2026 02:51:56 GMT
+location: https://vercel.com/sso-api?url=...&nonce=<redacted-ephemeral>
+server: Vercel
+set-cookie: _vercel_sso_nonce=<redacted-ephemeral>; Max-Age=3600; Path=/; Secure; HttpOnly; SameSite=Lax
+strict-transport-security: max-age=63072000
+
+## Staging — acesso autenticado via MCP (verbatim)
+tool: tools.vercel.web_fetch_vercel_url
+{"success":true,"status":200,"text":"{\"status\":\"ready\",\"commit\":\"12de0bf2e609849cd489e7be66247a1fcc5fc958\",\"deployment\":\"dpl_7cdyMc7xmiwGQR4goQ1ru8Soy2GK\",\"timestamp\":\"2026-10-24T02:44:59.309Z\",\"dependencies\":{\"postgres\":\"ok\"}}"}
+
+## Staging — alias e deployment
+alias staging.diretrizprecifica.com -> dpl_7cdyMc7xmiwGQR4goQ1ru8Soy2GK
+deployment target=preview meta.githubCommitRef=develop meta.githubCommitSha=12de0bf2e609849cd489e7be66247a1fcc5fc958
+
+## Domínio canônico — NÃO é Vercel
+$ curl -sSI https://diretrizprecifica.com/api/health/ready | sed -n '1,12p'
+HTTP/2 200 
+date: Sat, 24 Oct 2026 02:51:57 GMT
+content-type: text/html
+vary: Accept-Encoding
+last-modified: Sun, 06 Sep 2026 05:33:02 GMT
+etag: W/"6a9cfb0e-1f14"
+x-powered-by: Hostinger Horizons
+x-u4s-request-id: 2ce6b4a703fd3078cc3ea7a45c474a12-fra-82
+cache-control: public, s-maxage=604800, max-age=0
+server: hcdn
+alt-svc: h3=":443"; ma=86400
+x-hcdn-request-id: c2f0b0ea0c284b96ba462b081c5ceda1-asc-edge12
+
+$ curl -sS https://diretrizprecifica.com | grep -E 'generator|Hostinger' | head -3
+		<meta name="generator" content="Hostinger AI Builder" />
+
+## Neon produção — read-only
+tool: tools.neon.run_sql (read_only=true)
+project_id=damp-forest-57346541 branch_id=br-snowy-violet-aymcvvvv
+sql: select count(*)::int as applied, max(created_at)::bigint as latest_created_at from drizzle.__drizzle_migrations
+[{"applied":20,"latest_created_at":"1789698474294"}]
+
+## Pacote de auditoria — selo
+$ (cd docs/evidence/deploy-vercel-audit-2026-10-23 && sha256sum -c MANIFEST.sha256)
+./captures/canonical-domain.txt: OK
+./captures/deployment.txt: OK
+./captures/env-names.txt: OK
+./captures/health.txt: OK
+./captures/neon.txt: OK
+./captures/neon-workflow.txt: OK
+./captures/runtime.txt: OK
+./README.md: OK
+./SPEC.md: OK

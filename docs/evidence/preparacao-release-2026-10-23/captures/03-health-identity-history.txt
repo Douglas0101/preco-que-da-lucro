@@ -1,0 +1,46 @@
+# Fase 2 — histórico do health identity (commit e revert)
+# UTC: 2026-10-24T02:56:42Z
+
+## git log
+228589e Revert "feat(health): expose deployment identity in readiness"
+109e1fb fix(deps): bump undici to 8.12.3 for GHSA-4qv8-2p9j-2685
+12de0bf feat(health): expose deployment identity in readiness
+19c36d3 docs(evidence): seal the Vercel chat pre-production deployment
+
+## 12de0bf — feat(health): expose deployment identity in readiness
+12de0bf2e609849cd489e7be66247a1fcc5fc958
+2026-10-23T19:51:53-03:00
+feat(health): expose deployment identity in readiness
+
+ src/routes/api/health/ready.ts            |  9 ++++++++-
+ src/test/health-readiness-logging.test.ts | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+), 1 deletion(-)
+
+## 228589e — Revert
+228589e1c2aea0cfaf6ac3c0e5109b0a560a417c
+2026-10-23T21:45:00-03:00
+Revert "feat(health): expose deployment identity in readiness"
+This reverts commit 12de0bf2e609849cd489e7be66247a1fcc5fc958.
+
+
+ src/routes/api/health/ready.ts            |  9 +--------
+ src/test/health-readiness-logging.test.ts | 29 -----------------------------
+ 2 files changed, 1 insertion(+), 37 deletions(-)
+
+## Diff líquido do health contra main (vazio: o revert anula o commit)
+(sem linhas = sem diferença líquida)
+
+## PR #68 — arquivos alterados (net vs main)
+docs/evidence/deploy-vercel-chat-2026-10-23/MANIFEST.sha256
+docs/evidence/deploy-vercel-chat-2026-10-23/README.md
+docs/evidence/deploy-vercel-chat-2026-10-23/SPEC.md
+docs/evidence/deploy-vercel-chat-2026-10-23/captures/checks.txt
+docs/evidence/deploy-vercel-chat-2026-10-23/captures/health.txt
+docs/evidence/deploy-vercel-chat-2026-10-23/captures/neon.txt
+docs/evidence/deploy-vercel-chat-2026-10-23/captures/runtime.txt
+docs/evidence/deploy-vercel-chat-2026-10-23/captures/vercel.txt
+package-lock.json
+
+## Conclusão
+- o health identity existe no histórico, mas NÃO no HEAD nem no PR #68
+- a intenção do revert não está registrada no journal; reaplicar exige confirmação humana
