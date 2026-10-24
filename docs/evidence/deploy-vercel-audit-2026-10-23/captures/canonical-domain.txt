@@ -1,0 +1,15 @@
+# Canonical domain check (2026-10-23)
+GET https://diretrizprecifica.com
+HTTP/2 200
+content-type: text/html
+x-powered-by: Hostinger Horizons
+server: hcdn
+last-modified: Sun, 06 Sep 2026 05:33:02 GMT
+
+GET https://diretrizprecifica.com/api/health/ready
+HTTP/2 200
+content-type: text/html
+<!doctype html><html lang="pt-BR">... <meta name="generator" content="Hostinger AI Bu...
+
+Conclusion: the canonical domain is a Hostinger AI Builder site, not the Vercel Node app.
+This is a false-green risk for any audit that checks only HTTP 200 there.

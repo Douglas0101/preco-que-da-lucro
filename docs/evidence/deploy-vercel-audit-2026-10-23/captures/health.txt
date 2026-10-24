@@ -1,0 +1,17 @@
+# Vercel health — dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4
+GET https://preco-que-da-lucro-kcxoavfay.vercel.app/api/health/live
+HTTP 200
+{"status":"ok"}
+cache-control: no-store
+x-correlation-id: 833c564e-6226-437d-a0ba-72437e4db81c
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+
+GET https://preco-que-da-lucro-kcxoavfay.vercel.app/api/health/ready
+HTTP 200
+{"status":"ready","dependencies":{"postgres":"ok"}}
+
+GET https://preco-que-da-lucro-sage.vercel.app/api/health/ready
+HTTP 200
+{"status":"ready","dependencies":{"postgres":"ok"}}
+
+Observation: no version/commit/timestamp fields in the success bodies.

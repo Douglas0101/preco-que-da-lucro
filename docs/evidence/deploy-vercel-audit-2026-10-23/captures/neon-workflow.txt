@@ -1,0 +1,10 @@
+# Neon PR workflow root cause (PR #66, run 40018575992)
+job: Branch efêmera · migrate · integração · RLS probe · E2E
+timeout: 30 minutes (neon-pr-branch.yml:95)
+E2E step: 333-367; browser install at :367:
+  npx playwright install --with-deps chromium firefox webkit
+observed: apt downloads/retries including libavcodec62; job canceled at 20:51:55Z after 30m.
+steps before E2E: fixture, migrate, schema diff, integration, RLS probe, journal proof all passed.
+cleanup always(): passed; branch deleted with proof.
+PR #67 rerun: Neon PR branch + cleanup passed in 9m35s.
+Proposed DBT-173: reuse UI-stack prepare-browsers/cache and attestation; closure test = cache hit, E2E executed, cleanup 404; negative control cache miss. Do not silently raise timeout.
