@@ -179,9 +179,15 @@ export function imageVersionFromEnvironment(content: string): string {
     .trim()
     .replace(/^["']|["']$/g, "");
 }
-function imageVersionFromImage(): string {
+export function resolveImageVersion(
+  imageEnvironment: string,
+  environmentValue: string | undefined,
+): string {
+  return imageVersionFromEnvironment(imageEnvironment) || environmentValue || "";
+}
+function imageEnvironment(): string {
   try {
-    return imageVersionFromEnvironment(readFileSync("/etc/environment", "utf8"));
+    return readFileSync("/etc/environment", "utf8");
   } catch {
     return "";
   }
@@ -196,7 +202,7 @@ function identity(): KitIdentity {
   return {
     lockSha256: hash(readFileSync("package-lock.json")),
     imageOS: process.env.ImageOS ?? "",
-    imageVersion: imageVersionFromImage() || process.env.ImageVersion || "",
+    imageVersion: resolveImageVersion(imageEnvironment(), process.env.ImageVersion),
     architecture: process.arch,
     playwrightVersion: JSON.parse(readFileSync("node_modules/playwright-core/package.json", "utf8"))
       .version,

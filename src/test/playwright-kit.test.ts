@@ -10,6 +10,7 @@ import {
   imageVersionFromEnvironment,
   parsePackages,
   readDeb,
+  resolveImageVersion,
   validateAttestation,
   validateKit,
   type BrowserKit,
@@ -238,6 +239,15 @@ describe("runner image identity source", () => {
   });
   it("returns an empty string when the file has no image version", () => {
     expect(imageVersionFromEnvironment("PATH=/usr/bin\n")).toBe("");
+  });
+  it("prefers the image metadata over the provisioner environment", () => {
+    expect(resolveImageVersion("ImageVersion=20261012.334.1\n", "20261023.334.3")).toBe(
+      "20261012.334.1",
+    );
+  });
+  it("falls back to the provisioner environment when the file has no image version", () => {
+    expect(resolveImageVersion("PATH=/usr/bin\n", "20261023.334.3")).toBe("20261023.334.3");
+    expect(resolveImageVersion("", undefined)).toBe("");
   });
   it("names both image identities in the mismatch", () => {
     const kit = fixture();
