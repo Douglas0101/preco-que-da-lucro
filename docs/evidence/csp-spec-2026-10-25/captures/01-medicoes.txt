@@ -1,0 +1,51 @@
+# Medições do Épico A — 2026-10-25T03:13:23Z — HEAD 78215f2
+
+## stack (o prompt presume Next.js App Router; o repo não usa)
+next AUSENTE
+@tanstack/react-start 1.168.60
+@tanstack/react-router 1.170.41
+@tanstack/start-server-core 1.169.39
+vite 8.2.4
+nitro 3.0.260603-beta
+
+middleware.ts: AUSENTE
+
+## capacidade de nonce no TanStack instalado
+372:        nonce?: string;
+42:export declare function createHydrationScripts(nonce: string | undefined, initialSources?: ReadonlyArray<string>): HydrationScripts;
+49:			property: "csp-nonce",
+
+## Sonner 2.0.8: não lê nonce
+versao 2.0.8
+ocorrencias de 'nonce' no dist: 0
+tamanho do CSS injetado: 14931 bytes de literal (CSS servido medido em produção: 14916 B)
+sha256 do literal instalado: StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY=
+
+## scripts inline medidos em produção (dpl_BtH)
+boot 613 B  sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY=   (constante)
+boundary 56 B sha256-REkTQ3mZNdOnZ0xWxlKdqBEAWdIVpJdIT6tm57gvq8Y= (constante)
+$R /inicio      sha256-HZK5M4Xw1A0bU8R8hWAX3eMQd4VLY9pdLiq6UMNGMs4= (página/dado-específico)
+$R /novo-produto sha256-pmnvQiySp6EawGuVT4cvO72jPZOrz8iDaPUaTRpsajY= (página/dado-específico)
+fonte: docs/evidence/production-visual-2026-10-24/captures/03-csp-runtime.txt
+
+## travas atuais no teste de headers (WIP de outra sessão)
+91:    expect(policy).not.toMatch(/unsafe-inline|unsafe-eval|strict-dynamic/);
+93:    expect(policy).not.toContain("nonce-");
+
+## telemetria de soak já existente
+45:    logJson("warn", "csp.violation", { shape, ...violation });
+48:    logJson("warn", "csp.violation_truncated", { shape, suppressed: parsed.suppressed });
+
+## Base UI 1.7.0 escreve atributo style (risco de style-src-attr sob enforcement)
+versao 1.7.0
+otp-field/root/OTPFieldRoot.js
+radio/root/RadioRoot.js
+switch/root/SwitchRoot.js
+tooltip/arrow/TooltipArrow.js
+select/root/SelectRoot.js
+select/backdrop/SelectBackdrop.js
+
+## headers de documento em produção
+age: 0
+cache-control: public, max-age=0, must-revalidate
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
