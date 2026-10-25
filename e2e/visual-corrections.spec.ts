@@ -43,34 +43,41 @@ test("auth: autocomplete correto e título por modo", async ({ page }) => {
   await expectNoAxeViolations(page);
 });
 
-test("rotas protegidas anônimas redirecionam sem 401 de dashboard", async ({ page }) => {
-  await page.context().clearCookies();
-
-  const authFailures: string[] = [];
-  const pageErrors: string[] = [];
-  const consoleErrors: string[] = [];
-
-  page.on("response", (response) => {
-    if (response.url().includes("/_serverFn/") && response.status() === 401) {
-      authFailures.push(response.url());
-    }
-  });
-  page.on("pageerror", (error) => pageErrors.push(String(error)));
-  page.on("console", (message) => {
-    if (message.type() !== "error") return;
-    const text = message.text();
-    if (/Content[- ]Security[- ]Policy/i.test(text)) return;
-    consoleErrors.push(text);
-  });
+// Cada rota abre a própria página: encadear um segundo `page.goto` na mesma
+// página aborta a navegação do primeiro redirect (Firefox: NS_BINDING_ABORTED;
+// WebKit: rejeição de carga abortada) e a asserção passaria a medir o aborto do
+// teste, não a rota. Mesmo precedente de `docs/evidence/f-b1-e2e-2026-09-20`.
+test("rotas protegidas anônimas redirecionam sem 401 de dashboard", async ({ context }) => {
+  await context.clearCookies();
 
   for (const path of ["/inicio", "/novo-produto"]) {
-    await page.goto(path);
-    await expect(page).toHaveURL(/\/auth(?:\?|$)/, { timeout: 10_000 });
-  }
+    const page = await context.newPage();
+    const authFailures: string[] = [];
+    const pageErrors: string[] = [];
+    const consoleErrors: string[] = [];
 
-  expect(authFailures).toEqual([]);
-  expect(pageErrors).toEqual([]);
-  expect(consoleErrors).toEqual([]);
+    page.on("response", (response) => {
+      if (response.url().includes("/_serverFn/") && response.status() === 401) {
+        authFailures.push(response.url());
+      }
+    });
+    page.on("pageerror", (error) => pageErrors.push(String(error)));
+    page.on("console", (message) => {
+      if (message.type() !== "error") return;
+      const text = message.text();
+      if (/Content[- ]Security[- ]Policy/i.test(text)) return;
+      consoleErrors.push(text);
+    });
+
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/auth(?:\?|$)/, { timeout: 15_000 });
+
+    expect({ path, authFailures }).toEqual({ path, authFailures: [] });
+    expect({ path, pageErrors }).toEqual({ path, pageErrors: [] });
+    expect({ path, consoleErrors }).toEqual({ path, consoleErrors: [] });
+
+    await page.close();
+  }
 });
 
 test("links secundários de auth têm alvo de pelo menos 24px no mobile", async ({
