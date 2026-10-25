@@ -1,0 +1,18 @@
+# GREEN + controle negativo — módulo de nonce (2026-10-25T03:27:40Z)
+
+## verde após implementar src/lib/csp/nonce.server.ts
+$ npx vitest run src/test/csp-nonce.test.ts
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Duration  901ms (transform 50ms, setup 130ms, import 33ms, tests 77ms, environment 542ms)
+
+## controle negativo (N6 da spec): trocar o AsyncLocalStorage por estado de módulo
+# patch temporário: currentCspNonce() passa a ler uma variável compartilhada
+× U4: dois contextos concorrentes não vazam nonce entre si
+  AssertionError: expected [ 'peF-6sAwyLnjlR62iDqMDw', …(1) ] to deeply equal [ 'I45Zh84GuyX8U81sHbEMqg', …(1) ]
+× U4b: devolve o valor do callback e propaga exceção sem vazar o contexto
+  AssertionError: expected 'GpSDddDhdGwP_1Ri47VBPQ' to be undefined
+× U5: nonce fora do formato ... (estabeleceu contexto residual)
+ Test Files  1 failed (1)
+
+# restaurado o AsyncLocalStorage: 7 passed (7)

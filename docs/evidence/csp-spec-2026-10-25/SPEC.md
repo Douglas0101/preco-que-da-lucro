@@ -84,3 +84,14 @@ ser declarado `UNVERIFIABLE` se o harness autenticado não estiver disponível �
 | Multi-engine     | `e2e/csp-nonce.spec.ts` roda nos 4 projetos do `playwright.config.ts`                 |
 | Evidência        | capturas desta pasta + `MANIFEST.sha256`; relatório de soak com contagem por diretiva |
 | Commit semântico | `feat(csp):`, `test(csp):`, `docs(adr):` referenciando ADR-048                        |
+
+## 7. Estado de implementação
+
+**Entregue (PR 1, arquivos novos apenas):** `src/lib/csp/nonce.server.ts` (mint, validação, escopo de requisição
+via `AsyncLocalStorage`, fail-closed com código fixo) e `src/test/csp-nonce.test.ts` com U1, U1b, U3-premissa, U4,
+U4b, U5 e U5b. Vermelho capturado em `captures/02-red-first.txt`; verde e controle negativo (N6) em
+`captures/03-green-e-controle-negativo.txt`.
+
+**Pendente (PR 2, bloqueado por P5):** U2/U3 (threading em `getRouter`), U6–U11 (política de documento e hash do
+Sonner) e E1–E8 (e2e de header e de violação). Nada disso foi escrito: depende de `security-headers.ts`,
+`security-headers.test.ts` e `src/start.ts` saírem do WIP alheio.
