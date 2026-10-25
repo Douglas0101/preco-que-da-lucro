@@ -89,8 +89,9 @@ ser declarado `UNVERIFIABLE` se o harness autenticado não estiver disponível �
 
 **Entregue (PR 1, arquivos novos apenas):** `src/lib/csp/nonce.server.ts` (mint, validação, escopo de requisição
 via `AsyncLocalStorage`, fail-closed com código fixo) e `src/test/csp-nonce.test.ts` com U1, U1b, U3-premissa, U4,
-U4b, U5 e U5b. Vermelho capturado em `captures/02-red-first.txt`; verde e controle negativo (N6) em
-`captures/03-green-e-controle-negativo.txt`.
+U4b, U5, U5b e U5c. Vermelho capturado em `captures/02-red-first.txt`; verde e controle negativo (N6) em
+`captures/03-green-e-controle-negativo.txt`. O achado P2 do code review (herança de nonce no caminho de
+recusa) está em `captures/04-review-finding-p2.txt`, com controle negativo próprio.
 
 **Pendente (PR 2, bloqueado por P5):** U2/U3 (threading em `getRouter`), U6–U11 (política de documento e hash do
 Sonner) e E1–E8 (e2e de header e de violação). Nada disso foi escrito: depende de `security-headers.ts`,

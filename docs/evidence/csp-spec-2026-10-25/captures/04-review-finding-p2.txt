@@ -1,0 +1,22 @@
+# Achado P2 do code review na PR #71 (2026-10-25T04:10:02Z)
+
+Thread não resolvido em src/lib/csp/nonce.server.ts:37 (chatgpt-codex-connector),
+que o ruleset 24333849 usa para bloquear o merge (required_review_thread_resolution=true).
+
+## Achado
+withCspNonce(inválido|undefined, run) rodava run() no contexto herdado: dentro de um escopo
+válido, currentCspNonce() devolvia o nonce do pai. O caminho de recusa renderizaria com o nonce
+que deveria descartar — viola o fail-closed da ADR-048 §Decisão 8.
+
+## Correção
+store tipado string | undefined e recusa executada em storage.run(undefined, run).
+
+## Prova (controle negativo)
+$ npx vitest run src/test/csp-nonce.test.ts   # com a correção
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+
+$ # revertendo só a linha para 'return run();'
+× U5c: dentro de um escopo válido, a recusa não herda o nonce do pai
+  AssertionError: expected [ 'lC2VHlHX8c5Ne0bd2SqHxA', …(2) ] to deeply equal [ undefined, undefined, undefined ]
+ FAIL  src/test/csp-nonce.test.ts > nonce de CSP por requisição > U5c

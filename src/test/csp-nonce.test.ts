@@ -103,6 +103,22 @@ describe("nonce de CSP por requisição", () => {
     expect(isValidCspNonce(mintCspNonce())).toBe(true);
   });
 
+  it("U5c: dentro de um escopo válido, a recusa não herda o nonce do pai", () => {
+    const externo = mintCspNonce();
+    const observados: Array<string | undefined> = [];
+
+    withCspNonce(externo, () => {
+      expect(currentCspNonce()).toBe(externo);
+      for (const invalido of [undefined, "x", "a b c d e f g h i j k l"]) {
+        withCspNonce(invalido, () => observados.push(currentCspNonce()));
+      }
+      expect(currentCspNonce()).toBe(externo);
+    });
+
+    expect(observados).toEqual([undefined, undefined, undefined]);
+    expect(currentCspNonce()).toBeUndefined();
+  });
+
   it("U5b: recusa registra código fixo e nunca serializa o valor recebido", () => {
     const registros: string[] = [];
     const espiao = (linha: unknown) => registros.push(String(linha));

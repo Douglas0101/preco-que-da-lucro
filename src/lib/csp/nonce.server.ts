@@ -17,7 +17,7 @@ import { logJson } from "@/lib/structured-logger";
 /** 16 bytes em base64url = 22 caracteres; 128 bits de entropia. */
 export const CSP_NONCE_PATTERN = /^[A-Za-z0-9_-]{22}$/;
 
-const storage = new AsyncLocalStorage<string>();
+const storage = new AsyncLocalStorage<string | undefined>();
 
 export function isValidCspNonce(value: unknown): value is string {
   return typeof value === "string" && CSP_NONCE_PATTERN.test(value);
@@ -30,11 +30,15 @@ export function mintCspNonce(): string {
 /**
  * Executa `run` com o nonce no escopo. Valor inválido **não** estabelece contexto (fail-closed):
  * a resposta sai sem nonce, com código de log fixo. O valor em si nunca é logado.
+ *
+ * A recusa roda em um store **vazio**, não no contexto herdado: dentro de um escopo válido, cair
+ * no pai faria `currentCspNonce()` devolver o nonce externo e o caminho de erro renderizaria com o
+ * nonce que ele deveria descartar (achado P2 do code review na PR #71).
  */
 export function withCspNonce<T>(nonce: string | undefined, run: () => T): T {
   if (!isValidCspNonce(nonce)) {
     if (nonce !== undefined) logJson("warn", "csp.nonce_rejected", { reason: "format" });
-    return run();
+    return storage.run(undefined, run);
   }
   return storage.run(nonce, run);
 }
