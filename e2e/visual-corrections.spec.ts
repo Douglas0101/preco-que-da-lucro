@@ -9,6 +9,24 @@ async function expectNoAxeViolations(page: Page) {
   expect(results.violations).toEqual([]);
 }
 
+/**
+ * O SSR entrega o formulário antes de o React anexar os handlers: um clique
+ * nesse intervalo não troca o modo e o título fica no valor inicial (a mesma
+ * classe documentada em `e2e/helpers/authentication.ts`). A resposta de
+ * `get-session` prova que o efeito de montagem do `/auth` rodou — e o efeito só
+ * existe depois da hidratação —, então o clique seguinte encontra handlers
+ * vivos. Medido no push de `main` (run 40150376452): o clique sem espera deixou
+ * `Entrar · Preço que Dá Lucro` no título por 5 s.
+ */
+async function gotoAuthHydrated(page: Page): Promise<void> {
+  const hydrated = page.waitForResponse(
+    (response) => new URL(response.url()).pathname === "/api/auth/get-session",
+    { timeout: 15_000 },
+  );
+  await page.goto("/auth");
+  await hydrated;
+}
+
 test("404 em pt-BR, com título próprio e link para o início", async ({ page }) => {
   const response = await page.goto("/rota-inexistente");
   expect(response?.status()).toBe(404);
@@ -26,7 +44,7 @@ test("404 em pt-BR, com título próprio e link para o início", async ({ page }
 
 test("auth: autocomplete correto e título por modo", async ({ page }) => {
   await page.context().clearCookies();
-  await page.goto("/auth");
+  await gotoAuthHydrated(page);
   await expect(page).toHaveTitle("Entrar · Preço que Dá Lucro");
 
   await expect(page.getByLabel("E-mail")).toHaveAttribute("autocomplete", "email");
@@ -86,7 +104,7 @@ test("links secundários de auth têm alvo de pelo menos 24px no mobile", async 
   test.skip(testInfo.project.name !== "mobile", "mobile-only");
 
   await page.context().clearCookies();
-  await page.goto("/auth");
+  await gotoAuthHydrated(page);
 
   const forgot = await page.getByRole("button", { name: "Esqueci minha senha" }).boundingBox();
   expect(forgot?.height ?? 0).toBeGreaterThanOrEqual(24);
