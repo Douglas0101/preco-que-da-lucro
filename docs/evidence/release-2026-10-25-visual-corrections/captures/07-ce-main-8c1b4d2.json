@@ -1,0 +1,84 @@
+{
+  "schema": "c25-ce-gate-readout/1",
+  "observedAt": "2026-10-25T02:29:58.515Z",
+  "runnerSha": "8c1b4d2a43e965135098f364f5d4a42698e3f0f6",
+  "checkoutSha": "8c1b4d2a43e965135098f364f5d4a42698e3f0f6",
+  "providerIdentity": {
+    "revision": "8c1b4d2a43e965135098f364f5d4a42698e3f0f6",
+    "branch": "main",
+    "pullRequest": null
+  },
+  "ceTaskId": "AaFw5JqYZaGJAnPJkJEN",
+  "analysisId": "3604ecaf-24eb-4e57-8101-5882600683f1",
+  "surface": {
+    "branch": "main",
+    "branchType": "LONG",
+    "pullRequest": null
+  },
+  "status": "OK",
+  "ignoredConditions": false,
+  "conditions": [
+    {
+      "metric": "new_reliability_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_security_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_maintainability_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_coverage",
+      "status": "OK",
+      "comparator": "LT",
+      "threshold": "80",
+      "actual": "82.4"
+    },
+    {
+      "metric": "new_duplicated_lines_density",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "3",
+      "actual": "1.1"
+    },
+    {
+      "metric": "new_security_hotspots_reviewed",
+      "status": "OK",
+      "comparator": "LT",
+      "threshold": "100",
+      "actual": "100.0"
+    }
+  ],
+  "releasePolicy": {
+    "policy": "ADR-042/coverage-minimum-60",
+    "providerGateStatus": "OK",
+    "status": "OK",
+    "coverage": {
+      "metric": "new_coverage",
+      "minimum": 60,
+      "actual": 82.4,
+      "status": "OK"
+    },
+    "blockingConditions": [],
+    "preservedControls": [
+      "new_security_rating",
+      "new_reliability_rating",
+      "new_maintainability_rating",
+      "new_duplicated_lines_density",
+      "new_security_hotspots_reviewed"
+    ]
+  },
+  "nullSemantics": "métrica ausente é null; NOT_APPLICABLE exige prova ADR-044 de PR sem delta analisável, nunca aprova main; demais ausências continuam NO-VERDICT"
+}

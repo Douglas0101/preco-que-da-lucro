@@ -1,0 +1,111 @@
+{
+  "schema": "c25-ce-gate-readout/1",
+  "observedAt": "2026-10-25T02:16:11.045Z",
+  "runnerSha": "1dfcf846d3f6e46fe637776699cc4cabc85be1dc",
+  "checkoutSha": "1dfcf846d3f6e46fe637776699cc4cabc85be1dc",
+  "providerIdentity": {
+    "revision": "1dfcf846d3f6e46fe637776699cc4cabc85be1dc",
+    "branch": "develop",
+    "pullRequest": "70"
+  },
+  "ceTaskId": "AaFw1_zgJ8I9a074RIa5",
+  "analysisId": "e1837b21-b223-43b2-82eb-37cec7057cba",
+  "surface": {
+    "branch": null,
+    "branchType": null,
+    "pullRequest": "70"
+  },
+  "status": "OK",
+  "ignoredConditions": false,
+  "conditions": [
+    {
+      "metric": "new_reliability_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_security_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_maintainability_rating",
+      "status": "OK",
+      "comparator": "GT",
+      "threshold": "1",
+      "actual": "1"
+    },
+    {
+      "metric": "new_security_hotspots_reviewed",
+      "status": "OK",
+      "comparator": "LT",
+      "threshold": "100",
+      "actual": "100.0"
+    }
+  ],
+  "releasePolicy": {
+    "policy": "ADR-044/pr-no-analyzed-delta",
+    "providerGateStatus": "OK",
+    "status": "NOT_APPLICABLE",
+    "coverage": {
+      "metric": "new_coverage",
+      "minimum": 60,
+      "actual": null,
+      "status": "NOT_APPLICABLE"
+    },
+    "duplication": {
+      "metric": "new_duplicated_lines_density",
+      "maximum": 3,
+      "actual": null,
+      "status": "NOT_APPLICABLE"
+    },
+    "blockingConditions": [],
+    "preservedControls": [
+      "new_security_rating",
+      "new_reliability_rating",
+      "new_maintainability_rating",
+      "new_security_hotspots_reviewed"
+    ],
+    "notApplicableControls": ["new_coverage", "new_duplicated_lines_density"],
+    "applicability": {
+      "schema": "sonar-pr-applicability/1",
+      "policy": "ADR-044",
+      "status": "NOT_APPLICABLE",
+      "ceTaskId": "AaFw1_zgJ8I9a074RIa5",
+      "analysisId": "e1837b21-b223-43b2-82eb-37cec7057cba",
+      "providerIdentity": {
+        "revision": "1dfcf846d3f6e46fe637776699cc4cabc85be1dc",
+        "branch": "develop",
+        "pullRequest": "70"
+      },
+      "event": {
+        "repository": "Douglas0101/preco-que-da-lucro",
+        "number": 70,
+        "baseBranch": "main",
+        "headBranch": "develop",
+        "baseSha": "e51f090bc1b249f8d02e8c7a782bfe6cfe6f1011",
+        "headSha": "8033effe83314b16b2436ea08655c15c6937730c",
+        "checkoutSha": "1dfcf846d3f6e46fe637776699cc4cabc85be1dc",
+        "analyzedShape": "merge"
+      },
+      "scope": {
+        "sources": "src",
+        "exclusions": "src/test/**"
+      },
+      "changes": [
+        {
+          "status": "M",
+          "path": "e2e/visual-corrections.spec.ts"
+        }
+      ],
+      "eligibleChanges": [],
+      "fingerprint": "5ea896543bacb88c135bc74ae0fcfe0dc0dc2a5de9372236821b317ed380d53f",
+      "approvesMain": false
+    }
+  },
+  "nullSemantics": "métrica ausente é null; NOT_APPLICABLE exige prova ADR-044 de PR sem delta analisável, nunca aprova main; demais ausências continuam NO-VERDICT"
+}

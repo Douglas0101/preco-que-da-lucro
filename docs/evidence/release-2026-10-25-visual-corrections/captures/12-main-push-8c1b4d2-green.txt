@@ -1,0 +1,19 @@
+# Push de main em 8c1b4d2 — verify VERDE (runs 40154435106 / 40154435108)
+# gerado: 2026-10-25T02:38:55Z
+
+run UI stack success 8c1b4d2a
+  prepare browsers and Linux packages success
+  verify success
+run Sonar success 8c1b4d2a
+  scan + cobertura success
+  main-coverage-mirror skipped
+
+## e2e de auth no veredito verde (recorte)
+2026-10-25T02:33:24.3287598Z   ✓  24 [chromium] › e2e/visual-corrections.spec.ts:30:1 › 404 em pt-BR, com título próprio e link para o início (2.2s)
+2026-10-25T02:33:26.5182312Z   ✓  26 [chromium] › e2e/visual-corrections.spec.ts:68:1 › rotas protegidas anônimas redirecionam sem 401 de dashboard (2.2s)
+2026-10-25T02:33:26.6906345Z   ✓  25 [chromium] › e2e/visual-corrections.spec.ts:45:1 › auth: autocomplete correto e título por modo (2.9s)
+2026-10-25T02:33:26.8017469Z   -  27 [chromium] › e2e/visual-corrections.spec.ts:101:1 › links secundários de auth têm alvo de pelo menos 24px no mobile
+2026-10-25T02:34:08.3513550Z   ✓  51 [mobile] › e2e/visual-corrections.spec.ts:30:1 › 404 em pt-BR, com título próprio e link para o início (2.3s)
+2026-10-25T02:34:11.0085476Z   ✓  52 [mobile] › e2e/visual-corrections.spec.ts:45:1 › auth: autocomplete correto e título por modo (2.6s)
+2026-10-25T02:34:11.3135530Z   ✓  53 [mobile] › e2e/visual-corrections.spec.ts:68:1 › rotas protegidas anônimas redirecionam sem 401 de dashboard (2.2s)
+2026-10-25T02:34:12.1051813Z   ✓  54 [mobile] › e2e/visual-corrections.spec.ts:101:1 › links secundários de auth têm alvo de pelo menos 24px no mobile (1.1s)

@@ -1,0 +1,12 @@
+# Push de main em e51f090 — verify VERMELHO (run 40150376452)
+# extrato literal do log; o e2e falhou por clique antes da hidratacao
+
+2026-10-25T01:31:35.8252624Z     Error: expect(page).toHaveTitle(expected) failed
+2026-10-25T01:31:35.8253682Z     Expected: "Criar conta · Preço que Dá Lucro"
+2026-10-25T01:31:35.8254621Z     Received: "Entrar · Preço que Dá Lucro"
+2026-10-25T01:31:35.8255209Z     Timeout:  5000ms
+2026-10-25T01:31:35.8256255Z       - Expect "toHaveTitle" with timeout 5000ms
+2026-10-25T01:31:35.8261504Z     > 36 |   await expect(page).toHaveTitle("Criar conta · Preço que Dá Lucro");
+2026-10-25T01:31:35.8289957Z   1 failed
+2026-10-25T01:31:35.8292331Z   52 passed (1.6m)
+2026-10-25T01:31:35.9664844Z ##[error]Process completed with exit code 1.

@@ -1,0 +1,206 @@
+{
+  "base": "https://preco-que-da-lucro-sage.vercel.app",
+  "generatedAt": "2026-10-25T02:37:30.257Z",
+  "engines": {
+    "chromium": {
+      "notFound": {
+        "status": 404,
+        "title": "Página não encontrada · Preço que Dá Lucro",
+        "h1": "404",
+        "h2": "Página não encontrada",
+        "body": true,
+        "ctaHref": "/"
+      },
+      "auth": {
+        "signinTitle": "Entrar · Preço que Dá Lucro",
+        "emailAutocomplete": "email",
+        "passwordAutocomplete": "current-password",
+        "forgotTarget": {
+          "h": 30,
+          "w": 149
+        },
+        "signupTarget": {
+          "h": 30,
+          "w": 84
+        },
+        "signupTitle": "Criar conta · Preço que Dá Lucro",
+        "signupEmailAutocomplete": "email",
+        "signupNameAutocomplete": "name",
+        "signupPasswordAutocomplete": "new-password",
+        "backTarget": {
+          "h": 30,
+          "w": 128
+        },
+        "axeViolations": []
+      },
+      "anonymous": {
+        "/inicio": {
+          "finalUrl": "/auth?redirect=%2Finicio",
+          "redirectMs": 522,
+          "serverFnCalls": 0,
+          "authFailures": [],
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        "/novo-produto": {
+          "finalUrl": "/auth?redirect=%2Fnovo-produto",
+          "redirectMs": 523,
+          "serverFnCalls": 0,
+          "authFailures": [],
+          "pageErrors": [],
+          "consoleErrors": []
+        }
+      }
+    },
+    "firefox": {
+      "notFound": {
+        "status": 404,
+        "title": "Página não encontrada · Preço que Dá Lucro",
+        "h1": "404",
+        "h2": "Página não encontrada",
+        "body": true,
+        "ctaHref": "/"
+      },
+      "auth": {
+        "signinTitle": "Entrar · Preço que Dá Lucro",
+        "emailAutocomplete": "email",
+        "passwordAutocomplete": "current-password",
+        "forgotTarget": {
+          "h": 30,
+          "w": 149
+        },
+        "signupTarget": {
+          "h": 30,
+          "w": 84
+        },
+        "signupTitle": "Criar conta · Preço que Dá Lucro",
+        "signupEmailAutocomplete": "email",
+        "signupNameAutocomplete": "name",
+        "signupPasswordAutocomplete": "new-password",
+        "backTarget": {
+          "h": 30,
+          "w": 128
+        },
+        "axeViolations": []
+      },
+      "anonymous": {
+        "/inicio": {
+          "finalUrl": "/auth?redirect=%2Finicio",
+          "redirectMs": 573,
+          "serverFnCalls": 0,
+          "authFailures": [],
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        "/novo-produto": {
+          "finalUrl": "/auth?redirect=%2Fnovo-produto",
+          "redirectMs": 520,
+          "serverFnCalls": 0,
+          "authFailures": [],
+          "pageErrors": [],
+          "consoleErrors": []
+        }
+      }
+    },
+    "webkit": {
+      "notFound": {
+        "status": 404,
+        "title": "Página não encontrada · Preço que Dá Lucro",
+        "h1": "404",
+        "h2": "Página não encontrada",
+        "body": true,
+        "ctaHref": "/"
+      },
+      "auth": {
+        "signinTitle": "Entrar · Preço que Dá Lucro",
+        "emailAutocomplete": "email",
+        "passwordAutocomplete": "current-password",
+        "forgotTarget": {
+          "h": 30,
+          "w": 149
+        },
+        "signupTarget": {
+          "h": 30,
+          "w": 84
+        },
+        "signupTitle": "Criar conta · Preço que Dá Lucro",
+        "signupEmailAutocomplete": "email",
+        "signupNameAutocomplete": "name",
+        "signupPasswordAutocomplete": "new-password",
+        "backTarget": {
+          "h": 30,
+          "w": 128
+        },
+        "axeViolations": []
+      },
+      "anonymous": {
+        "/inicio": {
+          "finalUrl": "/auth?redirect=%2Finicio",
+          "redirectMs": 628,
+          "serverFnCalls": 0,
+          "authFailures": [],
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        "/novo-produto": {
+          "finalUrl": "/auth?redirect=%2Fnovo-produto",
+          "redirectMs": 830,
+          "serverFnCalls": 0,
+          "authFailures": [],
+          "pageErrors": [],
+          "consoleErrors": []
+        }
+      }
+    },
+    "mobile": {
+      "notFound": {
+        "status": 404,
+        "title": "Página não encontrada · Preço que Dá Lucro",
+        "h1": "404",
+        "h2": "Página não encontrada",
+        "body": true,
+        "ctaHref": "/"
+      },
+      "auth": {
+        "signinTitle": "Entrar · Preço que Dá Lucro",
+        "emailAutocomplete": "email",
+        "passwordAutocomplete": "current-password",
+        "forgotTarget": {
+          "h": 30,
+          "w": 149
+        },
+        "signupTarget": {
+          "h": 30,
+          "w": 84
+        },
+        "signupTitle": "Criar conta · Preço que Dá Lucro",
+        "signupEmailAutocomplete": "email",
+        "signupNameAutocomplete": "name",
+        "signupPasswordAutocomplete": "new-password",
+        "backTarget": {
+          "h": 30,
+          "w": 128
+        },
+        "axeViolations": []
+      },
+      "anonymous": {
+        "/inicio": {
+          "finalUrl": "/auth?redirect=%2Finicio",
+          "redirectMs": 553,
+          "serverFnCalls": 0,
+          "authFailures": [],
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        "/novo-produto": {
+          "finalUrl": "/auth?redirect=%2Fnovo-produto",
+          "redirectMs": 512,
+          "serverFnCalls": 0,
+          "authFailures": [],
+          "pageErrors": [],
+          "consoleErrors": []
+        }
+      }
+    }
+  }
+}

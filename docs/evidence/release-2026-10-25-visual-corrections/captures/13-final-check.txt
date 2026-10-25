@@ -1,0 +1,10 @@
+# Gate local final — HEAD 8c1b4d2a43e965135098f364f5d4a42698e3f0f6 — 2026-10-25T02:44:08Z
+
+npm run check exit=0
+
+m02:lockfile-guard guard:upgrade check:migration-toolchain guard:contracts m02:work-package-guard m02:debts-guard m02:temporal-guard m02:state:check m02:boundaries m02:secrets-audit guard:mcp-runtime m02:seal-dts:check m02:matrix:check check:ui-stack check:no-supabase-runtime format:check lint typecheck test build check:bundle 
+
+ Test Files  158 passed | 2 skipped (160)
+      Tests  2396 passed | 30 skipped (2426)
+PASS assets/index-B_bNnp1O.js: 217824 minified, 68798 gzip, 59790 Brotli bytes, sha256=1ed684e3c5b3
+Initial graph (11 chunks): 486629 minified, 159490 gzip, 140468 Brotli bytes, sha256=585bae701f24

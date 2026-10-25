@@ -1,0 +1,27 @@
+# Identidade da release (SHA final publicado)
+# gerado: 2026-10-25T02:38:01Z
+
+main=8c1b4d2a43e965135098f364f5d4a42698e3f0f6
+develop=8c1b4d2a43e965135098f364f5d4a42698e3f0f6
+
+## deployment
+
+  General
+
+    id		dpl_6BPGAEkTwFCexpUHRNrWkGuxSWqg
+    name	preco-que-da-lucro
+    target	production
+    status	● Ready
+    url		https://preco-que-da-lucro-q07o8d0m3.vercel.app
+    created	Sat Oct 24 2026 23:35:13 GMT-0300 (Horário Padrão de Brasília) [3m ago]
+
+
+
+## aliases
+  preco-que-da-lucro-q07o8d0m3.vercel.app    preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app             45d    
+  preco-que-da-lucro-q07o8d0m3.vercel.app    preco-que-da-lucro-sage.vercel.app                                            45d    
+  preco-que-da-lucro-q07o8d0m3.vercel.app    preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app    47d    
+
+## health
+{"status":"ready","dependencies":{"postgres":"ok"}}
+http_status=200

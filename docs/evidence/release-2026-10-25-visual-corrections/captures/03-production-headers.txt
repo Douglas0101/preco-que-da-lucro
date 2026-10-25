@@ -1,0 +1,19 @@
+# Headers de produção no SHA final (CSP segue report-only: Release 1 não toca CSP)
+# gerado: 2026-10-25T02:38:07Z
+
+HTTP/2 200 
+age: 0
+cache-control: public, max-age=0, must-revalidate
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+content-type: text/html; charset=utf-8
+date: Sun, 25 Oct 2026 02:38:07 GMT
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+reporting-endpoints: csp-endpoint="/api/csp-report"
+server: Vercel
+strict-transport-security: max-age=31536000; includeSubDomains
+x-content-type-options: nosniff
+x-correlation-id: 68c2889e-5a1f-4f63-9a66-3d7a1ef339ab
+x-vercel-cache: MISS
+x-vercel-id: gru1::iad1::5s8mk-1792895887770-d59cd84616a2
+
