@@ -3,6 +3,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardSummaryQueryOptions } from "@/lib/query-options";
 import { isDashboardSummaryValid } from "@/lib/dashboard-summary-guard";
+import { sessionQueryOptions } from "@/lib/session-context";
 import type { ConsolidatedMargin, DashboardPeriod } from "@/lib/dashboard.functions";
 import { brl, pct } from "@/lib/format";
 import { CONTRIBUTION_MARGIN_PCT_FORMULA } from "@/lib/calc-explanation";
@@ -43,6 +44,8 @@ export const Route = createFileRoute("/_authenticated/inicio")({
   // referência. Só o dinâmico mantém query-options (+ *.functions/zod) FORA do
   // grafo inicial (orçamento de bundle §17.7) — loaders não são code-split.
   loader: async ({ context }) => {
+    const session = context.queryClient.getQueryData(sessionQueryOptions().queryKey);
+    if (!session) return null;
     const { dashboardSummaryQueryOptions } = await import("@/lib/query-options");
     return context.queryClient.ensureQueryData(dashboardSummaryQueryOptions()).catch(() => null);
   },
