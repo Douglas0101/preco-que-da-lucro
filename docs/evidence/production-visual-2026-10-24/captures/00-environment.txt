@@ -1,0 +1,11 @@
+# Ambiente da auditoria visual + computer user
+when=2026-10-24T23:44Z..23:54Z
+alias=https://preco-que-da-lucro-sage.vercel.app
+deployment=dpl_BtH5YVqmd2QTKs5V2fNRGuomrAeB
+sha=b8bc52ec52503c3a299f22ed32e2e445046e0731
+target=production
+main=b8bc52ec52503c3a299f22ed32e2e445046e0731
+canonical_domain=diretrizprecifica.com (Hostinger Horizons; NOT this app)
+tools=Playwright MCP (computer user) + Playwright 1.62.1 + @axe-core/playwright 4.13.0 + Chromium/Firefox/WebKit/Pixel 7
+mode=anonymous, read-only, reducedMotion=reduce
+production_writes=0

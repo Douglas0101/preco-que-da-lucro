@@ -9,6 +9,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { useEffect } from "react";
 import { Analytics } from "@vercel/analytics/react";
 
 import appCss from "../styles.css?url";
@@ -16,13 +17,21 @@ import { Button } from "@/components/ui/button";
 import { vercelAnalyticsEnabled } from "@/lib/vercel-analytics";
 
 function NotFoundComponent() {
+  useEffect(() => {
+    const previous = document.title;
+    document.title = "Página não encontrada · Preço que Dá Lucro";
+    return () => {
+      document.title = previous;
+    };
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          A página que você procura não existe ou foi movida.
         </p>
         <div className="mt-6">
           <Button
@@ -30,7 +39,7 @@ function NotFoundComponent() {
             render={<Link to="/" />}
             className="motion-reduce:transition-none"
           >
-            Go home
+            Ir para o início
           </Button>
         </div>
       </div>

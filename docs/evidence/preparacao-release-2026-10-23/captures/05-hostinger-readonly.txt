@@ -1,0 +1,48 @@
+# Fase 5 — Hostinger read-only (nenhuma escrita)
+# UTC: 2026-10-24T02:54:20Z
+
+## Context7 — Hostinger API CLI
+library: /hostinger/api-cli
+excerpt (DNS validate):
+  hostinger dns records validate <domain> [flags]
+  Validate DNS records prior to update for the selected domain.
+  200 Success; 422 Validation error.
+
+## Hostinger MCP — catálogo (search only, no execute)
+read-only DNS operations: dns_records_list, dns_records_validate, dns_snapshots_list, dns_snapshots_get
+write DNS operations (NOT called): dns_records_update, dns_records_delete, dns_records_reset, dns_snapshots_restore
+read-only VPS operations: vps_virtual-machines_list, vps_virtual-machines_get, vps_ssh-keys_list-virtual-machine
+write VPS operations (NOT called): purchase, setup, start, restart, recreate
+
+## dns_records_list — zona atual de diretrizprecifica.com
+@                 ALIAS  diretrizprecifica.com.cdn.hstgr.net.            TTL 300
+@                 TXT    "v=spf1 include:_spf.mail.hostinger.com ~all"  TTL 3600
+@                 MX     10 mx2.hostinger.com / 5 mx1.hostinger.com     TTL 14400
+www               CNAME  www.diretrizprecifica.com.cdn.hstgr.net.      TTL 300
+staging           CNAME  b4a80935dc1e33a0.vercel-dns-017.com.           TTL 300
+autodiscover      CNAME  autodiscover.mail.hostinger.com.               TTL 300
+autoconfig        CNAME  autoconfig.mail.hostinger.com.                 TTL 300
+_dmarc            TXT    "v=DMARC1; p=none"                             TTL 3600
+hostingermail-a._domainkey  CNAME  hostingermail-a.dkim.mail.hostinger.com.  TTL 300
+hostingermail-b._domainkey  CNAME  hostingermail-b.dkim.mail.hostinger.com.  TTL 300
+hostingermail-c._domainkey  CNAME  hostingermail-c.dkim.mail.hostinger.com.  TTL 300
+
+## DNS público (dig)
+$ dig +short diretrizprecifica.com NS
+athena.dns-parking.com.
+apollo.dns-parking.com.
+$ dig +short diretrizprecifica.com A
+147.79.105.183
+89.116.213.32
+$ dig +short www.diretrizprecifica.com CNAME
+www.diretrizprecifica.com.cdn.hstgr.net.
+$ dig +short staging.diretrizprecifica.com CNAME
+b4a80935dc1e33a0.vercel-dns-017.com.
+
+## VPS
+tool: tools.hostinger.execute({operation:'vps_virtual-machines_list'})
+result: []
+
+## Writes
+- nenhuma chamada de escrita executada
+- nenhum DNS alterado; nenhum VPS comprado; nenhum snapshot restaurado

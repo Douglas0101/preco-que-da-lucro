@@ -1,0 +1,11 @@
+# Vercel runtime — dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4
+get_runtime_errors since=1h: "No runtime errors found in the selected time range."
+get_runtime_logs deployment (30m):
+  GET /api/health/live 200 durationMs=2
+  GET /api/health/ready 200 durationMs=17/75
+  POST /api/vitals 204
+  RUM FCP value=1200 rating=good
+get_runtime_logs query=csp.violation deployment (30m): no records.
+get_project_trace requestId=s59sf-1792792154055-61a112589989: 404 trace_not_found.
+get_project_trace requestId=q82fr-1792794518539-68dc40dd90d0: 404 trace_not_found.
+CSP response header remains report-only.

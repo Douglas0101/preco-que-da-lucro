@@ -1,0 +1,51 @@
+# Preflight — preparação release 2026-10-23/24 (read-only)
+# UTC: 2026-10-24T02:51:32Z
+
+## git
+$ git rev-parse --abbrev-ref HEAD && git rev-parse HEAD
+develop
+228589e1c2aea0cfaf6ac3c0e5109b0a560a417c
+
+$ git rev-parse origin/main origin/develop
+cf910bf4754b0097c7bdae653d476cbd9422cdc4
+228589e1c2aea0cfaf6ac3c0e5109b0a560a417c
+
+$ git rev-list --left-right --count origin/main...HEAD
+0	4
+
+$ git status --porcelain | wc -l
+74
+
+$ git diff --cached --name-only | wc -l
+0
+
+## worktrees
+/home/douglas/WebstormProjects/preco-que-da-lucro       228589e [develop]
+/home/douglas/.cline/worktrees/093d6/preco-que-da-lucro 4206303 [cline/093d6]
+/home/douglas/.cline/worktrees/a9e17/preco-que-da-lucro d3996f6 [cline/a9e17]
+/home/douglas/.cline/worktrees/b1dd8/preco-que-da-lucro 4206303 [cline/b1dd8]
+
+## M-02 state marker
+> m02:state:check
+> tsx scripts/m02-state-check.ts
+
+M-02 ancestral state marker is valid for HEAD 228589e1c2aea0cfaf6ac3c0e5109b0a560a417c (folga 7/13 commits).
+Worktree: dirty (preservado e auditável).
+External state: not inspected by this local check.
+
+## OpenCode plugins
+- project plugin: .opencode/plugins/observability/{index.ts,telemetry.ts,policy.ts}
+- global plugins entry: github:vercel/vercel-plugin
+- observability boot log (last event):
+{"ts":"2026-10-24T02:51:32.197Z","type":"tool.before","tool":"shell","callID":"call_5744a3e6e5ba4bd79a7f2feb"}
+- policy decision observed: rule sensitive_env_shell denied a shell command that referenced a sensitive environment filename (plugin active, fail-closed)
+
+## MCP connectivity (read-only calls made in this session)
+- vercel: list_deployments, get_alias, web_fetch_vercel_url (OK)
+- neon: run_sql SELECT read_only (OK)
+- context7: resolve-library-id + query-docs (OK)
+- hostinger: search + dns_records_list + vps_virtual-machines_list (OK, read-only)
+- dhi: not used
+
+## Secrets
+- none read, printed or persisted; no environment file access

@@ -1,0 +1,12 @@
+# Matriz Playwright — 4 engines x 4 páginas (anônimo)
+# status/loadMs; axe=violações WCAG 2.0/2.1 A/AA; overflow=scrollWidth>innerWidth
+engine    home        auth-login  auth-signup 404        axe  overflow  redirect /inicio  /novo-produto
+chromium  200/506ms   200/222ms   200/255ms    404/457ms  0    false    690ms              720ms
+firefox   200/1087ms  200/361ms   200/327ms    404/564ms  0    false    875ms              713ms
+webkit    200/917ms   200/451ms   200/299ms    404/333ms  0    false    531ms              1002ms
+mobile    200/567ms   200/238ms   200/219ms    404/286ms  0    false    537ms              685ms
+
+# axe passes: home=9; auth-login=20 (mobile 18); auth-signup=20 (mobile 18); 404=12; violations=0 em todos.
+# redirects: redirected=true em todos; /inicio e /novo-produto terminam em /auth (com redirect=%2F... quando aplicável).
+# 404: status HTTP 404 real; página customizada do __root.tsx em inglês.
+# overflow: false em 16/16 páginas; brokenImages: 0.

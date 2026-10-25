@@ -1,0 +1,899 @@
+[
+  {
+    "engine": "chromium",
+    "page": "home",
+    "status": 200,
+    "loadMs": 506,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/",
+    "title": "Preço que Dá Lucro — avalie preços sustentáveis para seu produto",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": [],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [],
+    "axe": {
+      "violations": [],
+      "passes": 9
+    },
+    "console": [],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 5,
+    "cspRequests": 0,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/chromium-home.png"
+  },
+  {
+    "engine": "chromium",
+    "page": "auth-login",
+    "status": 200,
+    "loadMs": 222,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth",
+    "title": "Entrar · Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": ["Bem-vindo de volta"],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [
+      {
+        "id": "email",
+        "type": "email",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "password",
+        "type": "password",
+        "autocomplete": "current-password",
+        "required": true
+      }
+    ],
+    "axe": {
+      "violations": [],
+      "passes": 20
+    },
+    "console": [],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 5,
+    "cspRequests": 0,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/chromium-auth-login.png"
+  },
+  {
+    "engine": "chromium",
+    "page": "auth-signup",
+    "status": 200,
+    "loadMs": 255,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth",
+    "title": "Entrar · Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": ["Vamos começar juntos"],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [
+      {
+        "id": "name",
+        "type": "text",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "email",
+        "type": "email",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "password",
+        "type": "password",
+        "autocomplete": "new-password",
+        "required": true
+      }
+    ],
+    "axe": {
+      "violations": [],
+      "passes": 20
+    },
+    "console": [],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 5,
+    "cspRequests": 0,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/chromium-auth-signup.png"
+  },
+  {
+    "engine": "chromium",
+    "page": "404",
+    "status": 404,
+    "loadMs": 457,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/rota-inexistente",
+    "title": "Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["404"],
+    "h2": ["Page not found"],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [],
+    "axe": {
+      "violations": [],
+      "passes": 12
+    },
+    "console": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [
+      {
+        "status": 404,
+        "url": "https://preco-que-da-lucro-sage.vercel.app/rota-inexistente"
+      }
+    ],
+    "cspConsole": 4,
+    "cspRequests": 0,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/chromium-404.png"
+  },
+  {
+    "engine": "chromium",
+    "page": "redirect/inicio",
+    "redirectMs": 690,
+    "redirected": true,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Finicio",
+    "title": "Entrar · Preço que Dá Lucro",
+    "console": [],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": []
+  },
+  {
+    "engine": "chromium",
+    "page": "redirect/novo-produto",
+    "redirectMs": 720,
+    "redirected": true,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Fnovo-produto",
+    "title": "Entrar · Preço que Dá Lucro",
+    "console": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [
+      {
+        "status": 401,
+        "url": "https://preco-que-da-lucro-sage.vercel.app/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59?payload=%7B%22t%22%3A%7B%22t%22%3A10%2C%22i%22%3A0%2C%22p%22%3A%7B%22k%22%3A%5B%22data%22%5D%2C%22v%22"
+      }
+    ]
+  },
+  {
+    "engine": "firefox",
+    "page": "home",
+    "status": 200,
+    "loadMs": 1087,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/",
+    "title": "Preço que Dá Lucro — avalie preços sustentáveis para seu produto",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": [],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [],
+    "axe": {
+      "violations": [],
+      "passes": 9
+    },
+    "console": [
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-pkNiE5BMugfP3XIiqkE7oYFH69Bi0jPw8zuo6FiPYDA=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-REkTQ3mZNdOnZ0xWxlKdqBEAWdIVpJdIT6tm57gvq8Y=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 0,
+    "cspRequests": 2,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/firefox-home.png"
+  },
+  {
+    "engine": "firefox",
+    "page": "auth-login",
+    "status": 200,
+    "loadMs": 361,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth",
+    "title": "Entrar · Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": ["Bem-vindo de volta"],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [
+      {
+        "id": "email",
+        "type": "email",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "password",
+        "type": "password",
+        "autocomplete": "current-password",
+        "required": true
+      }
+    ],
+    "axe": {
+      "violations": [],
+      "passes": 20
+    },
+    "console": [
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/auth\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-aJ5rxisU8jcbQTdAFiqaDc0Ddt8Z4EdefHZrE/Gugqk=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/auth\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-REkTQ3mZNdOnZ0xWxlKdqBEAWdIVpJdIT6tm57gvq8Y=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/auth\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 0,
+    "cspRequests": 2,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/firefox-auth-login.png"
+  },
+  {
+    "engine": "firefox",
+    "page": "auth-signup",
+    "status": 200,
+    "loadMs": 327,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth",
+    "title": "Entrar · Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": ["Vamos começar juntos"],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [
+      {
+        "id": "name",
+        "type": "text",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "email",
+        "type": "email",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "password",
+        "type": "password",
+        "autocomplete": "new-password",
+        "required": true
+      }
+    ],
+    "axe": {
+      "violations": [],
+      "passes": 20
+    },
+    "console": [
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/auth\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-JQcYd4Z9cog4cId53+OwNICLAsdFksIABc5QFXiM+0Y=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/auth\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-REkTQ3mZNdOnZ0xWxlKdqBEAWdIVpJdIT6tm57gvq8Y=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/auth\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 0,
+    "cspRequests": 2,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/firefox-auth-signup.png"
+  },
+  {
+    "engine": "firefox",
+    "page": "404",
+    "status": 404,
+    "loadMs": 564,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/rota-inexistente",
+    "title": "Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["404"],
+    "h2": ["Page not found"],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [],
+    "axe": {
+      "violations": [],
+      "passes": 12
+    },
+    "console": [
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-Cpbl5uwhcQi5+Xhu0wbLGy3qF8vdxCifHqu1H5MLEsw=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/rota-inexistente\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-REkTQ3mZNdOnZ0xWxlKdqBEAWdIVpJdIT6tm57gvq8Y=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/rota-inexistente\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [
+      {
+        "status": 404,
+        "url": "https://preco-que-da-lucro-sage.vercel.app/rota-inexistente"
+      }
+    ],
+    "cspConsole": 0,
+    "cspRequests": 2,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/firefox-404.png"
+  },
+  {
+    "engine": "firefox",
+    "page": "redirect/inicio",
+    "redirectMs": 875,
+    "redirected": true,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Finicio",
+    "title": "Entrar · Preço que Dá Lucro",
+    "console": [
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/inicio\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-pNhOzlraS8byw9dKjYAGS2ciqtFBf4YDohf1umV34/w=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/inicio\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-REkTQ3mZNdOnZ0xWxlKdqBEAWdIVpJdIT6tm57gvq8Y=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/inicio\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [
+      {
+        "status": 401,
+        "url": "https://preco-que-da-lucro-sage.vercel.app/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59?payload=%7B%22t%22%3A%7B%22t%22%3A10%2C%22i%22%3A0%2C%22p%22%3A%7B%22k%22%3A%5B%22data%22%5D%2C%22v%22"
+      }
+    ]
+  },
+  {
+    "engine": "firefox",
+    "page": "redirect/novo-produto",
+    "redirectMs": 713,
+    "redirected": true,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Fnovo-produto",
+    "title": "Preço que Dá Lucro",
+    "console": [
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/novo-produto\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-VKBtHwL92YiNFxot9qg3pJglZ0HRsuI/AvnMvsiwHY4=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/novo-produto\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-REkTQ3mZNdOnZ0xWxlKdqBEAWdIVpJdIT6tm57gvq8Y=') or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/novo-produto\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      },
+      {
+        "type": "error",
+        "text": "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'”. Consider using a hash ('sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY=', requires 'unsafe-hashes' for style attributes) or a nonce.\" {file: \"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js\" line: 1}]"
+      }
+    ],
+    "pageErrors": ["TypeError: NetworkError when attempting to fetch resource."],
+    "failed": [
+      {
+        "url": "https://preco-que-da-lucro-sage.vercel.app/api/auth/get-session",
+        "error": "NS_BINDING_ABORTED"
+      }
+    ],
+    "httpErrors": []
+  },
+  {
+    "engine": "webkit",
+    "page": "home",
+    "status": 200,
+    "loadMs": 917,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/",
+    "title": "Preço que Dá Lucro — avalie preços sustentáveis para seu produto",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": [],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [],
+    "axe": {
+      "violations": [],
+      "passes": 9
+    },
+    "console": [],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 6,
+    "cspRequests": 6,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/webkit-home.png"
+  },
+  {
+    "engine": "webkit",
+    "page": "auth-login",
+    "status": 200,
+    "loadMs": 451,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth",
+    "title": "Entrar · Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": ["Bem-vindo de volta"],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [
+      {
+        "id": "email",
+        "type": "email",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "password",
+        "type": "password",
+        "autocomplete": "current-password",
+        "required": true
+      }
+    ],
+    "axe": {
+      "violations": [],
+      "passes": 20
+    },
+    "console": [],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 6,
+    "cspRequests": 6,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/webkit-auth-login.png"
+  },
+  {
+    "engine": "webkit",
+    "page": "auth-signup",
+    "status": 200,
+    "loadMs": 299,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth",
+    "title": "Entrar · Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": ["Vamos começar juntos"],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [
+      {
+        "id": "name",
+        "type": "text",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "email",
+        "type": "email",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "password",
+        "type": "password",
+        "autocomplete": "new-password",
+        "required": true
+      }
+    ],
+    "axe": {
+      "violations": [],
+      "passes": 20
+    },
+    "console": [],
+    "pageErrors": [],
+    "failed": [
+      {
+        "url": "https://preco-que-da-lucro-sage.vercel.app/api/csp-report",
+        "error": "Load request cancelled"
+      }
+    ],
+    "httpErrors": [],
+    "cspConsole": 6,
+    "cspRequests": 6,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/webkit-auth-signup.png"
+  },
+  {
+    "engine": "webkit",
+    "page": "404",
+    "status": 404,
+    "loadMs": 333,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/rota-inexistente",
+    "title": "Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["404"],
+    "h2": ["Page not found"],
+    "overflow": false,
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [],
+    "axe": {
+      "violations": [],
+      "passes": 12
+    },
+    "console": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [
+      {
+        "url": "https://preco-que-da-lucro-sage.vercel.app/api/csp-report",
+        "error": "Load request cancelled"
+      }
+    ],
+    "httpErrors": [
+      {
+        "status": 404,
+        "url": "https://preco-que-da-lucro-sage.vercel.app/rota-inexistente"
+      }
+    ],
+    "cspConsole": 5,
+    "cspRequests": 5,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/webkit-404.png"
+  },
+  {
+    "engine": "webkit",
+    "page": "redirect/inicio",
+    "redirectMs": 531,
+    "redirected": true,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Finicio",
+    "title": "Entrar · Preço que Dá Lucro",
+    "console": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [
+      {
+        "url": "https://preco-que-da-lucro-sage.vercel.app/api/csp-report",
+        "error": "Load request cancelled"
+      }
+    ],
+    "httpErrors": [
+      {
+        "status": 401,
+        "url": "https://preco-que-da-lucro-sage.vercel.app/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59?payload=%7B%22t%22%3A%7B%22t%22%3A10%2C%22i%22%3A0%2C%22p%22%3A%7B%22k%22%3A%5B%22data%22%5D%2C%22v%22"
+      }
+    ]
+  },
+  {
+    "engine": "webkit",
+    "page": "redirect/novo-produto",
+    "redirectMs": 1002,
+    "redirected": true,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Fnovo-produto",
+    "title": "Entrar · Preço que Dá Lucro",
+    "console": [],
+    "pageErrors": ["Unhandled Promise Rejection: TypeError: Load failed"],
+    "failed": [
+      {
+        "url": "https://preco-que-da-lucro-sage.vercel.app/api/vitals",
+        "error": "Load request cancelled"
+      },
+      {
+        "url": "https://preco-que-da-lucro-sage.vercel.app/api/vitals",
+        "error": "Load request cancelled"
+      },
+      {
+        "url": "https://preco-que-da-lucro-sage.vercel.app/api/auth/get-session",
+        "error": "Load request cancelled"
+      }
+    ],
+    "httpErrors": []
+  },
+  {
+    "engine": "mobile",
+    "page": "home",
+    "status": 200,
+    "loadMs": 567,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/",
+    "title": "Preço que Dá Lucro — avalie preços sustentáveis para seu produto",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": [],
+    "overflow": false,
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [],
+    "axe": {
+      "violations": [],
+      "passes": 9
+    },
+    "console": [],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 5,
+    "cspRequests": 0,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/mobile-home.png"
+  },
+  {
+    "engine": "mobile",
+    "page": "auth-login",
+    "status": 200,
+    "loadMs": 238,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth",
+    "title": "Entrar · Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": ["Bem-vindo de volta"],
+    "overflow": false,
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [
+      {
+        "id": "email",
+        "type": "email",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "password",
+        "type": "password",
+        "autocomplete": "current-password",
+        "required": true
+      }
+    ],
+    "axe": {
+      "violations": [],
+      "passes": 18
+    },
+    "console": [],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 5,
+    "cspRequests": 0,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/mobile-auth-login.png"
+  },
+  {
+    "engine": "mobile",
+    "page": "auth-signup",
+    "status": 200,
+    "loadMs": 219,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth",
+    "title": "Entrar · Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["Entenda a faixa de preço do seu produto conversando."],
+    "h2": ["Vamos começar juntos"],
+    "overflow": false,
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [
+      {
+        "id": "name",
+        "type": "text",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "email",
+        "type": "email",
+        "autocomplete": null,
+        "required": true
+      },
+      {
+        "id": "password",
+        "type": "password",
+        "autocomplete": "new-password",
+        "required": true
+      }
+    ],
+    "axe": {
+      "violations": [],
+      "passes": 18
+    },
+    "console": [],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [],
+    "cspConsole": 5,
+    "cspRequests": 0,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/mobile-auth-signup.png"
+  },
+  {
+    "engine": "mobile",
+    "page": "404",
+    "status": 404,
+    "loadMs": 286,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/rota-inexistente",
+    "title": "Preço que Dá Lucro",
+    "lang": "pt-BR",
+    "h1": ["404"],
+    "h2": ["Page not found"],
+    "overflow": false,
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "bodyBg": "oklch(1 0 0)",
+    "brokenImages": [],
+    "inputs": [],
+    "axe": {
+      "violations": [],
+      "passes": 12
+    },
+    "console": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 ()"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [
+      {
+        "status": 404,
+        "url": "https://preco-que-da-lucro-sage.vercel.app/rota-inexistente"
+      }
+    ],
+    "cspConsole": 4,
+    "cspRequests": 0,
+    "screenshot": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/visual/production-2026-10-24/mobile-404.png"
+  },
+  {
+    "engine": "mobile",
+    "page": "redirect/inicio",
+    "redirectMs": 537,
+    "redirected": true,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Finicio",
+    "title": "Entrar · Preço que Dá Lucro",
+    "console": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 401 ()"
+      }
+    ],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": [
+      {
+        "status": 401,
+        "url": "https://preco-que-da-lucro-sage.vercel.app/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59?payload=%7B%22t%22%3A%7B%22t%22%3A10%2C%22i%22%3A0%2C%22p%22%3A%7B%22k%22%3A%5B%22data%22%5D%2C%22v%22"
+      }
+    ]
+  },
+  {
+    "engine": "mobile",
+    "page": "redirect/novo-produto",
+    "redirectMs": 685,
+    "redirected": true,
+    "url": "https://preco-que-da-lucro-sage.vercel.app/auth?redirect=%2Fnovo-produto",
+    "title": "Entrar · Preço que Dá Lucro",
+    "console": [],
+    "pageErrors": [],
+    "failed": [],
+    "httpErrors": []
+  }
+]

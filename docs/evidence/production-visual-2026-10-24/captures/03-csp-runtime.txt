@@ -1,0 +1,32 @@
+# CSP report-only — coleta real no runtime de produção (dpl_BtH)
+# Endpoint: POST /api/csp-report -> 204; log event=csp.violation level=warn
+# Janela: 2026-10-24T23:49Z; 50+ registros; sample=null (sem PII/segredo).
+
+# /auth — style-src-elem inline, sourceFile = bundle
+{"event":"csp.violation","shape":"csp-report","effectiveDirective":"style-src-elem","blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/auth","sourceFile":"https://preco-que-da-lucro-sage.vercel.app:443/assets/dist-BBRdpqhi.js","lineNumber":1,"columnNumber":400,"disposition":"report","sample":null}
+
+# /auth — script-src-elem inline (SSR)
+{"event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src-elem","blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/auth","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":"report","sample":null}
+
+# /novo-produto — style-src-elem inline via Reporting API
+{"event":"csp.violation","shape":"reports+json","effectiveDirective":"style-src-elem","blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/novo-produto","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/assets/dist-BBRdpqhi.js","lineNumber":1,"columnNumber":389,"disposition":"report","sample":null}
+
+# /inicio — script-src-elem inline via Reporting API
+{"event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/inicio","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/inicio","lineNumber":1,"columnNumber":4524,"disposition":"report","sample":null}
+
+# / — script-src-elem inline (SSR)
+{"event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src-elem","blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":"report","sample":null}
+
+# / — style-src-elem inline via bundle
+{"event":"csp.violation","shape":"csp-report","effectiveDirective":"style-src-elem","blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/","sourceFile":"https://preco-que-da-lucro-sage.vercel.app:443/assets/dist-BBRdpqhi.js","lineNumber":1,"columnNumber":347,"disposition":"report","sample":null}
+
+# /rota-inexistente — script-src-elem inline no HTML 404
+{"event":"csp.violation","shape":"reports+json","effectiveDirective":"script-src-elem","blockedUri":"inline","documentUri":"https://preco-que-da-lucro-sage.vercel.app/rota-inexistente","sourceFile":"https://preco-que-da-lucro-sage.vercel.app/rota-inexistente","lineNumber":1,"columnNumber":3827,"disposition":"report","sample":null}
+
+# Hashes vistos no console (CSP report-only):
+# script-src-elem: sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY= (home/auth/...)
+# script-src-elem: sha256-REkTQ3mZNdOnZ0xWxlKdqBEAWdIVpJdIT6tm57gvq8Y= (comum)
+# script-src-elem: hashes página-específicos (auth, /inicio, /novo-produto, 404)
+# style-src-elem: sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU= (style vazio; requer unsafe-hashes)
+# style-src-elem: sha256-StEaX+se6YS7pqjzrzMIA0KaX9zF/8zAhvQXZAe5epY= (style não-vazio; requer unsafe-hashes)
+# Sob CSP_ENFORCE=true, esses inline scripts/styles seriam bloqueados; a política atual é Report-Only.

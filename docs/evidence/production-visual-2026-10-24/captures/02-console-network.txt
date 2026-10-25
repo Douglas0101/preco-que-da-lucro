@@ -1,0 +1,32 @@
+# Console e rede (por engine/página)
+# Regra: CSP report-only é classificada à parte; 404 do documento e 401 do server function são esperados.
+
+## Chromium
+- home/auth-login/auth-signup: 0 console errors, 0 warnings (5 mensagens CSP info por página).
+- 404: 1 console error "Failed to load resource: 404" (o próprio documento 404).
+- redirect /inicio: 1 console error "Failed to load resource: 401" no _serverFn 28aa... (dashboard; payload period=month).
+- redirect /novo-produto: 1 console error 401 no mesmo _serverFn; redirect para /auth concluído.
+
+## Firefox
+- home/auth-login/auth-signup: 5 console errors de CSP report-only por página (o Firefox loga report-only como erro), 0 outros erros.
+- 404: 4 console errors de CSP + status 404.
+- redirect /inicio: 5 CSP errors + 401 no _serverFn; redirect concluído.
+- redirect /novo-produto: 5 CSP errors + pageError "TypeError: NetworkError when attempting to fetch resource."; redirect concluído; title ficou "Preço que Dá Lucro" no snapshot final.
+
+## WebKit
+- home/auth-login/auth-signup: 0 console errors/warnings (6 mensagens CSP info por página).
+- 404: 1 console error 404 (documento).
+- redirect /inicio: 1 console error 401 no _serverFn; redirect concluído.
+- redirect /novo-produto: pageError "Unhandled Promise Rejection: TypeError: Load failed"; redirect concluído.
+
+## Mobile (Pixel 7, Chromium)
+- home/auth-login/auth-signup: 0 console errors/warnings (5 CSP info por página).
+- 404: 1 console error 404 (documento).
+- redirect /inicio: 1 console error 401 no _serverFn; redirect concluído (537ms).
+- redirect /novo-produto: 0 console errors; redirect concluído (685ms).
+
+## Rede
+- POST /api/vitals: 4 requisições abortadas com net::ERR_ABORTED durante a navegação/redirect. É abort de cliente, não 5xx de servidor.
+- GET /api/auth/get-session: 200 em todas as páginas públicas.
+- GET /_serverFn/28aa...: 401 em /inicio (todas as engines) e em /novo-produto no Chromium; é a guarda de auth, mas o server function é chamado antes do redirect.
+- Nenhum 5xx observado. 404 do documento é o único 404.

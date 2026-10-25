@@ -1,0 +1,57 @@
+# Estado final — idempotência (read-only)
+# UTC: 2026-10-24T02:59:35Z
+
+## Git
+$ git rev-parse HEAD
+228589e1c2aea0cfaf6ac3c0e5109b0a560a417c
+$ git rev-parse --abbrev-ref HEAD
+develop
+$ git rev-parse origin/main origin/develop
+cf910bf4754b0097c7bdae653d476cbd9422cdc4
+228589e1c2aea0cfaf6ac3c0e5109b0a560a417c
+$ git status --porcelain | wc -l
+83
+$ git diff --cached --name-status
+A	docs/evidence/deploy-vercel-audit-2026-10-23/MANIFEST.sha256
+A	docs/evidence/deploy-vercel-audit-2026-10-23/README.md
+A	docs/evidence/deploy-vercel-audit-2026-10-23/SPEC.md
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/canonical-domain.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/deployment.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/env-names.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/health.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/neon-workflow.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/neon.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/runtime.txt
+$ git branch --list 'feat/*'
+(vazio = nenhum branch de feature criado)
+$ git worktree list
+/home/douglas/WebstormProjects/preco-que-da-lucro       228589e [develop]
+/home/douglas/.cline/worktrees/093d6/preco-que-da-lucro 4206303 [cline/093d6]
+/home/douglas/.cline/worktrees/a9e17/preco-que-da-lucro d3996f6 [cline/a9e17]
+/home/douglas/.cline/worktrees/b1dd8/preco-que-da-lucro 4206303 [cline/b1dd8]
+
+## Selos
+- o selo deste pacote é o `MANIFEST.sha256`, gerado após este arquivo; a verificação final é executada em seguida e reportada no encerramento
+- o pacote de auditoria permanece com 9/9 entradas OK (verificado na Fase 3)
+
+## Produção — intocada
+$ curl -sS https://preco-que-da-lucro-sage.vercel.app/api/health/ready
+{"status":"ready","dependencies":{"postgres":"ok"}}
+deployment dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4 target=production state=READY sha=cf910bf4754b0097c7bdae653d476cbd9422cdc4 (MCP, inalterado)
+
+## Staging — intocado
+alias staging.diretrizprecifica.com -> dpl_7cdyMc7xmiwGQR4goQ1ru8Soy2GK (deletedAt=null)
+
+## Neon produção — read-only
+tools.neon.run_sql(read_only=true): applied=20
+
+## Hostinger — intocada
+tools.hostinger.execute(vps_virtual-machines_list): []
+
+## Confirmações
+- nenhum commit: HEAD permanece 228589e
+- nenhum push: origin/develop permanece 228589e
+- nenhum merge: origin/main permanece cf910bf
+- nenhum branch feat/* criado
+- nenhum alias movido; staging e produção nos mesmos deployments
+- nenhuma escrita no Neon; nenhuma escrita na Hostinger

@@ -1,0 +1,15 @@
+503247916277e1f319850bf3d291f50bc189b5d2a441261e754bc0c5fcbe3ffa  ./captures/00-preflight.txt
+9f4c8847adcb0cc23e32ce1aef1e04735b5f875a872e871c6981ba5e57e73295  ./captures/01-phase0-state.txt
+e11a7259cd855356351597e4837307bfeb05260cb5e671fda919666bd6d0d39e  ./captures/02-dbt100-failures.txt
+6e0cec3d50ba51abc69c48eca947cca232ff7e0893a0b65c68b040c4ea109ef9  ./captures/02-dbt100-remediation.md
+179cba4448a23be06399ae771e97b022c032a01636091c5aef961afc67e87d89  ./captures/03-health-identity.diff
+1bdc819083f853d16ccc37e9b786ecdef28a913f94be32b3bc61a2d71789627d  ./captures/03-health-identity-history.txt
+54d8beebeb4708b8ebb599d4296e3bce41fed8dde6678870a8a1fe99eac864c3  ./captures/03-health-identity-test.txt
+2b61524c04a6f5380f46ea4a35e68d8c8344718835b0ed75858c559bbaba3eba  ./captures/04-chat-staging-blocked.md
+c7c258e4129ed370dc3a43ad2363bdb5633c532acef630ed14d868149ad0a0f1  ./captures/05-hostinger-readonly.txt
+66d9938e9f782333c8f7eebbd2bad57a549ee2d93ab972dd33f1db6d23128290  ./captures/06-phase3-stage.txt
+05e694adaccca4d709ea695c73139b2b025cadd6c4a4f72779e650367ac6b592  ./captures/07-final-state.txt
+7cc83eb382276089f6405bfbecc6a001fac79608ef6a019c7d0adb8dd4fcb152  ./captures/08-release-execution.txt
+2ba07ebb04ceaa0a9fb9dc03e31ac7bbe80984d76174c96975e31bb2a6016ce5  ./PLANO-HOSTINGER.md
+55f23f8f91733b72d9b18255783f7cf73688776c11734fc3d80fbdd9b52062db  ./README.md
+eb5781b7a4ab32e6ff2781d5641c4105d7b4ea973170b00710c7b1b7a66db0c1  ./SPEC.md

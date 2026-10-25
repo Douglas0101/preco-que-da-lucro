@@ -1,0 +1,25 @@
+# Local isolated validation — health identity patch applied to develop@228589e
+# UTC: 2026-10-24T02:52:52Z
+# Worktree: /tmp/opencode/health-identity-wt2 (detached, no branch, no commit)
+
+## git apply (patch from captures/03-health-identity.diff)
+APPLY=PASS
+
+## git diff --stat
+ src/routes/api/health/ready.ts            |  9 ++++++++-
+ src/test/health-readiness-logging.test.ts | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+), 1 deletion(-)
+
+## npx vitest run src/test/health-readiness-logging.test.ts
+
+ RUN  v4.1.11 /tmp/opencode/health-identity-wt2
+
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  23:52:53
+   Duration  1.08s (transform 110ms, setup 114ms, import 303ms, tests 16ms, environment 531ms)
+
+
+## npx tsc -p tsconfig.json --noEmit
+TSC_EXIT=0

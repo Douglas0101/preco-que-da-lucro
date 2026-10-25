@@ -1,0 +1,57 @@
+# Fase 3 — stage seletivo do pacote de auditoria (sem commit)
+# UTC: 2026-10-24T02:55:04Z
+
+## Antes
+$ git diff --cached --name-only | wc -l
+0
+
+## Selo antes do stage
+./captures/canonical-domain.txt: OK
+./captures/deployment.txt: OK
+./captures/env-names.txt: OK
+./captures/health.txt: OK
+./captures/neon.txt: OK
+./captures/neon-workflow.txt: OK
+./captures/runtime.txt: OK
+./README.md: OK
+./SPEC.md: OK
+
+## Ação
+$ git add docs/evidence/deploy-vercel-audit-2026-10-23/
+
+## Depois — index
+$ git diff --cached --name-status
+A	docs/evidence/deploy-vercel-audit-2026-10-23/MANIFEST.sha256
+A	docs/evidence/deploy-vercel-audit-2026-10-23/README.md
+A	docs/evidence/deploy-vercel-audit-2026-10-23/SPEC.md
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/canonical-domain.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/deployment.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/env-names.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/health.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/neon-workflow.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/neon.txt
+A	docs/evidence/deploy-vercel-audit-2026-10-23/captures/runtime.txt
+
+## Depois — index count
+10
+
+## WIP alheio fora do index (amostra)
+ M .github/workflows/ui-stack.yml
+ M AGENTS.md
+ M docs/MAPA-OPERACIONAL.md
+ M docs/adr/ADR-035-sonarcloud-escopo-scripts.md
+ M docs/adr/ADR-043-topologia-de-publicacao-e-csp-nonce.md
+ M docs/adr/ADR-045-erradicacao-lovable-config-vite-direta.md
+ M docs/evidence/agent-state/DEBTS.md
+ M docs/evidence/agent-state/PROGRESS.md
+ M docs/evidence/browser-autonomo-2026-10-17/MANIFEST.sha256
+ M docs/evidence/browser-autonomo-2026-10-17/captures/09-bancada-preview.txt
+ M docs/evidence/mcp-repair-2026-10-17/MANIFEST.sha256
+ M docs/evidence/mcp-repair-2026-10-17/REPORT.md
+...
+total de entradas no status: 83
+
+## Confirmação
+- nenhum git commit executado
+- pacote novo docs/evidence/preparacao-release-2026-10-23/ permanece untracked
+- PROGRESS.md permanece unstaged

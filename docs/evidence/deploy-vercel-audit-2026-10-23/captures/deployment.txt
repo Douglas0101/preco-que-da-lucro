@@ -1,0 +1,12 @@
+# Vercel deployment/aliases (2026-10-23)
+current: dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4
+  state=READY target=production sha=cf910bf4754b0097c7bdae653d476cbd9422cdc4
+candidate staged: dpl_CoCB7gRSUTmwtbuDZ9N6FuTSCSrm
+  state=READY target=production sha=2f18bdda545f500628e9da67bb61320fdd7707c6
+previous production: dpl_AYh62JKPhjjrixJgEGbe4MuTTkzE
+  state=READY target=production sha=21a6089aa3873c3b66a70cc596a100d91f3954db
+
+aliases -> dpl_HfDw2V5Py2gd4CKswjaDjgMrjBJ4:
+  preco-que-da-lucro-sage.vercel.app
+  preco-que-da-lucro-douglasultimatesouza-5127s-projects.vercel.app
+  preco-que-da-lucro-git-main-douglasultimatesouza-5127s-projects.vercel.app

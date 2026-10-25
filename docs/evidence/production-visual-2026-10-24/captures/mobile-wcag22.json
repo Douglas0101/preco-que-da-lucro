@@ -1,0 +1,46 @@
+{
+  "login": {
+    "geometry": {
+      "innerHeight": 839,
+      "innerWidth": 412,
+      "formTop": 602,
+      "cardTop": 477,
+      "asideHeight": 381,
+      "formBelowFold": false,
+      "smallTargets": [
+        {
+          "tag": "BUTTON",
+          "text": "Cadastre-se",
+          "w": 84,
+          "h": 22
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Esqueci minha senha",
+          "w": 149,
+          "h": 22
+        }
+      ]
+    },
+    "wcag22": []
+  },
+  "signup": {
+    "geometry": {
+      "innerHeight": 839,
+      "innerWidth": 412,
+      "formTop": 602,
+      "cardTop": 477,
+      "asideHeight": 381,
+      "formBelowFold": false,
+      "smallTargets": [
+        {
+          "tag": "BUTTON",
+          "text": "Voltar para entrar",
+          "w": 128,
+          "h": 22
+        }
+      ]
+    },
+    "wcag22": []
+  }
+}

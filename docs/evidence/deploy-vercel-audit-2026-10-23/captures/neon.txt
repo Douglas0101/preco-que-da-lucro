@@ -1,0 +1,6 @@
+# Neon production read-only (2026-10-23)
+project: damp-forest-57346541
+branch: br-snowy-violet-aymcvvvv (production, default, ready)
+query: select 1 as ok -> 1
+migrations: applied=20, latest_created_at=1789698474294
+release range: no drizzle/ path

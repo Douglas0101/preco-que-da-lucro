@@ -22,6 +22,13 @@ const submitLabels: Record<AuthMode, string> = {
   reset: "Redefinir senha",
 };
 
+const documentTitles: Record<AuthMode, string> = {
+  signin: "Entrar",
+  signup: "Criar conta",
+  forgot: "Recuperar acesso",
+  reset: "Definir nova senha",
+};
+
 const PASSWORD_AUTOCOMPLETE = "current-password";
 
 async function signInWithGoogle(redirect?: string): Promise<void> {
@@ -64,6 +71,10 @@ function Auth() {
       active = false;
     };
   }, [navigate, redirect]);
+
+  useEffect(() => {
+    document.title = `${documentTitles[mode]} · Preço que Dá Lucro`;
+  }, [mode]);
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -180,6 +191,7 @@ function Auth() {
                   <Label htmlFor="name">Como podemos te chamar?</Label>
                   <Input
                     id="name"
+                    autoComplete="name"
                     required
                     value={name}
                     onChange={(event) => setName(event.target.value)}
@@ -192,6 +204,7 @@ function Auth() {
                   <Input
                     id="email"
                     type="email"
+                    autoComplete="email"
                     required
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
@@ -244,7 +257,12 @@ function ModeButton({
   onClick,
 }: Readonly<{ children: React.ReactNode; onClick: () => void }>) {
   return (
-    <Button type="button" variant="link" className="h-auto p-0 font-semibold" onClick={onClick}>
+    <Button
+      type="button"
+      variant="link"
+      className="h-auto min-h-6 p-0 py-1 font-semibold"
+      onClick={onClick}
+    >
       {children}
     </Button>
   );

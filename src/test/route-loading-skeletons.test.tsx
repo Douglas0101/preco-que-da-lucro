@@ -53,6 +53,12 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   };
 });
 
+vi.mock("@/lib/session-context", () => ({
+  sessionQueryOptions: () => ({ queryKey: ["auth", "session"] }),
+  useSessionUser: () => null,
+  SessionProvider: ({ children }: { children: ReactNode }) => children,
+}));
+
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { Route as DiagnosticoRoute } from "@/routes/_authenticated/diagnostico";
 import { Route as InicioRoute } from "@/routes/_authenticated/inicio";
