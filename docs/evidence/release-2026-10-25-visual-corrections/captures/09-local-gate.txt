@@ -1,0 +1,21 @@
+# Gate local — tres tentativas registradas
+
+## tentativa 1 — e51f090 — exit 1 (crash de worker jsdom, sem falha de teste)
+Error: [vitest-pool]: Failed to start forks worker for test files src/test/memory-dedup.test.ts
+Caused by: SyntaxError: missing ) after argument list
+  at exports.installInterfaces node_modules/jsdom/lib/jsdom/living/interfaces.js:258:24
+ Test Files  156 passed | 2 skipped (159)
+      Tests  2375 passed | 30 skipped (2405)
+     Errors  2 errors
+# classe declarada em vitest.config.ts: 'Local fork/jsdom workers have crashed without test failures on this bench.'
+
+## tentativa 2 — e51f090 — exit 0
+Initial graph (11 chunks): 486629 minified, 159490 gzip, 140468 Brotli bytes, sha256=585bae701f24
+PASS assets/index-B_bNnp1O.js: 217824 minified, 68798 gzip, 59790 Brotli bytes
+EXIT=0
+
+## tentativa 3 — 8c1b4d2 — exit 1 apenas em format:check dos dois arquivos deste pacote criados durante o run
+Checking formatting...
+[warn] docs/evidence/release-2026-10-25-visual-corrections/captures/10-ce-pr-70.json
+[warn] docs/evidence/release-2026-10-25-visual-corrections/SPEC.md
+# corrigido por prettier --write; ver captures/13-final-check.txt para o run seguinte

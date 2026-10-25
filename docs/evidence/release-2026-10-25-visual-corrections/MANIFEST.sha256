@@ -1,0 +1,15 @@
+cf5b140ce560552272f588334881cb0cf7504a5bbcd4c41baf27f4d68c4cb313  ./captures/01-release-identity.txt
+7ee92862b4ff54f0f103465f535043be75f18585810d53aec48612bc941306ca  ./captures/02-production-probe.json
+e3e61ff3e91c0abb32098267351c573ee4c33874f96a0c16f4ad99a53e7f7d36  ./captures/03-production-headers.txt
+fd9b55ae1f440d03cbd7bef45b9d0f8882b6b0ceccfa78b145c96ee227ef2ff2  ./captures/04-pr-69-checks.txt
+117aaf7eebc58271bdfd7cc201f6a67c8eb8160aeecaafa9d9c1b71a496a599c  ./captures/05-ce-pr-69.json
+badaeadd7932932d950bd2b082da0ed43abe5495879126f906611b5370841d41  ./captures/06-ce-main-e51f090.json
+a33ec2401427f7a5cd34a56ff18d64a9c104f663b1adf1790dec9c0424470dbf  ./captures/07-ce-main-8c1b4d2.json
+ac6ed0267d8976f368bf27ef9e85b974938a7e3236671650ac5e04dc23f6e7b5  ./captures/08-main-push-e51f090-red.txt
+8d144dcdec69900143aafbf549aa62157010bde9e8b498fd3f598012192f1d2a  ./captures/09-local-gate.txt
+122dba37f941f22eef901ac06588bcd93f8a3bc6df42d836520e70831793a238  ./captures/10-ce-pr-70.json
+550ac9b999e46cdec36827b315ee3bd62e0112019d82a4787e4cb584470b4354  ./captures/11-pr-70-checks.txt
+f63c0a8c049eea92e53eb4964fc52c0a916ca7c5ee1a6856e4207a9d06670058  ./captures/12-main-push-8c1b4d2-green.txt
+27b6de2386de5b41dc67ba82365cb3ae39c6258c2b36b8210039281873ed17fa  ./captures/13-final-check.txt
+c947c5b28e4a7f43dacc2fc6f005a917b78b5d6c709b22806fe9787d135afcce  ./README.md
+1de771a04d159a101deb7f8fd925331a24bc571b44e965cbfa1c8da30e073f81  ./SPEC.md

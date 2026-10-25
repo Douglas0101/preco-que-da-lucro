@@ -1,0 +1,14 @@
+# PR #70 — checks (head 8033eff)
+# gerado: 2026-10-25T02:38:54Z
+
+Kilo Code Review	fail	1s	https://app.kilo.ai/code-reviews/5ec8d6cc-2e10-46c3-b8b0-2f69595ba91e	
+Branch efêmera · migrate · integração · RLS probe · E2E	pass	10m27s	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40153656383/job/121050280564	
+Cleanup always() com prova (§12.5)	pass	15s	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40153656383/job/121052306727	
+Fork-guard + presença de segredo	pass	3s	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40153656383/job/121050258148	
+SonarCloud Code Analysis	pass	21s	https://sonarcloud.io/dashboard?id=Douglas0101_preco-que-da-lucro&pullRequest=70	
+main-coverage-mirror	pass	1m15s	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40153656385/job/121050740097	
+prepare browsers and Linux packages	pass	1m21s	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40153643507/job/121050219847	
+prepare browsers and Linux packages	pass	1m4s	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40153656441/job/121050257901	
+scan + cobertura	pass	2m23s	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40153656385/job/121050258059	
+verify	pass	7m25s	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40153643507/job/121050494171	
+verify-release	pass	8m48s	https://github.com/Douglas0101/preco-que-da-lucro/actions/runs/40153656441/job/121050472489	
