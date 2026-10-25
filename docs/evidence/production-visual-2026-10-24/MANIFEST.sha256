@@ -6,9 +6,9 @@ e0768778f0016f5fb89bce60f0c0f8ec7f8bed6d2b937379acb24c043d47362b  ./captures/04-
 38e29a932e201af94fdfabd67c00dfb01719616d3b3935d37545f0ef76ad4376  ./captures/05-computer-user.txt
 2957c1d945be1f256cbfac7c627e4a261ca1da60d2cd0d923f0678509d472429  ./captures/06-visual-artifacts.sha256
 f87f8c81f7f0f435003acade334e3e0781f00c879645fdcf9f11d755ba17bac1  ./captures/mobile-wcag22.json
-61a731989e853f6c4c88f4ba4ae317a9ca71deb34a3527ceb74ece92e02e0037  ./captures/scripts/mobile-auth-viewport.mjs
-39118a9412f6b8186cc1f3f6beb0787ef4a25f853e4e76cba88772106e909a23  ./captures/scripts/mobile-wcag22.mjs
-17206b2764607f0cadd18a8e5036408cfa7edb95aeb0018b612d7682166eabcf  ./captures/scripts/production-visual-audit.mjs
+5a800b81de6c47b681e7791724f4b47c20fc1707fcbf77755da48396f88dcdd9  ./captures/scripts/mobile-auth-viewport.mjs
+1a283ae13c4bf572190c494a650af322c14f0935d8063907536b4d3380748378  ./captures/scripts/mobile-wcag22.mjs
+f0a31513b612f7827944dcef1550f9862b79141b7c3cce45612b015040ea59f6  ./captures/scripts/production-visual-audit.mjs
 6f29d009c160269d754d55b6e331aafff4e5b56d155e5ef35b2dfcdb2be4a3e5  ./captures/summary.json
 81438c92ec80a353dd4cb11a2c1d48661c9c5c5d374358a18e0c0b70e535db0d  ./README.md
 562951486c682154d765295d292e0b1ba3b91bff85839d13186e792792720785  ./SPEC.md

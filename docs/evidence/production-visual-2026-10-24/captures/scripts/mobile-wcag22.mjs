@@ -65,6 +65,9 @@ await page.getByRole("heading", { name: "Vamos começar juntos" }).waitFor();
 await page.waitForTimeout(250);
 out.signup = { geometry: await measure(), wcag22: await axe22() };
 
-writeFileSync(process.cwd() + "/docs/evidence/visual/production-2026-10-24/mobile-wcag22.json", JSON.stringify(out, null, 2));
+writeFileSync(
+  process.cwd() + "/docs/evidence/visual/production-2026-10-24/mobile-wcag22.json",
+  JSON.stringify(out, null, 2),
+);
 console.log(JSON.stringify(out, null, 2));
 await browser.close();

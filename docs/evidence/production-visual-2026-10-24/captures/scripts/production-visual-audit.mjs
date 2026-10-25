@@ -35,9 +35,23 @@ for (const { name, browser, device } of engines) {
   const b = await browser.launch({ headless: true });
   const context = await b.newContext({ ...device, reducedMotion: "reduce" });
   const page = await context.newPage();
-  let events = { console: [], pageErrors: [], failed: [], httpErrors: [], cspConsole: [], cspRequests: [] };
+  let events = {
+    console: [],
+    pageErrors: [],
+    failed: [],
+    httpErrors: [],
+    cspConsole: [],
+    cspRequests: [],
+  };
   const reset = () => {
-    events = { console: [], pageErrors: [], failed: [], httpErrors: [], cspConsole: [], cspRequests: [] };
+    events = {
+      console: [],
+      pageErrors: [],
+      failed: [],
+      httpErrors: [],
+      cspConsole: [],
+      cspRequests: [],
+    };
   };
   page.on("console", (m) => {
     const t = m.text();
@@ -50,7 +64,8 @@ for (const { name, browser, device } of engines) {
     events.failed.push({ url: r.url().slice(0, 220), error: r.failure()?.errorText }),
   );
   page.on("response", (r) => {
-    if (r.status() >= 400) events.httpErrors.push({ status: r.status(), url: r.url().slice(0, 220) });
+    if (r.status() >= 400)
+      events.httpErrors.push({ status: r.status(), url: r.url().slice(0, 220) });
   });
   page.on("request", (r) => {
     if (r.url().includes("/api/csp-report")) events.cspRequests.push(r.url());
@@ -92,7 +107,10 @@ for (const { name, browser, device } of engines) {
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
         .analyze();
     } catch (e) {
-      axe = { violations: [{ id: "axe-error", impact: "unknown", help: String(e), nodes: [] }], passes: [] };
+      axe = {
+        violations: [{ id: "axe-error", impact: "unknown", help: String(e), nodes: [] }],
+        passes: [],
+      };
     }
     const shot = `${OUT}/${name}-${p.key}.png`;
     await page.screenshot({ path: shot, fullPage: true });
@@ -137,7 +155,9 @@ for (const { name, browser, device } of engines) {
   for (const path of ["/inicio", "/novo-produto"]) {
     reset();
     const t0 = Date.now();
-    await page.goto(BASE + path, { waitUntil: "domcontentloaded", timeout: 30000 }).catch(() => null);
+    await page
+      .goto(BASE + path, { waitUntil: "domcontentloaded", timeout: 30000 })
+      .catch(() => null);
     let redirected = false;
     try {
       await page.waitForURL(/\/auth(\?|$)/, { timeout: 15000 });

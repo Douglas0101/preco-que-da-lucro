@@ -20,7 +20,9 @@ const geo = await page.evaluate(() => {
   };
   return {
     innerHeight: window.innerHeight,
-    visualViewport: window.visualViewport ? { height: Math.round(window.visualViewport.height) } : null,
+    visualViewport: window.visualViewport
+      ? { height: Math.round(window.visualViewport.height) }
+      : null,
     aside: rect(aside),
     card: rect(card),
     form: rect(form),
