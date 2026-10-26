@@ -282,7 +282,10 @@ function ConsultorChat({ variant = "page" }: Readonly<{ variant?: ConsultorChatV
       currentProductId={currentProductId}
       onOpenProduct={() => {
         if (!currentProductId) return;
-        navigate({ to: "/diagnostico", search: { produto: currentProductId } });
+        // O `navigate` do TanStack devolve promessa: sem tratamento ela fica
+        // flutuante, o que o Sonar classifica como bug de confiabilidade
+        // (S6544) e rebaixa o rating de código novo.
+        void navigate({ to: "/diagnostico", search: { produto: currentProductId } });
       }}
       resetDialogOpen={resetDialogOpen}
       onResetDialogOpenChange={setResetDialogOpen}

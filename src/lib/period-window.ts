@@ -104,6 +104,13 @@ function firstMonthOf(period: DashboardPeriod, month: number): number {
   return month;
 }
 
+/** Quantos meses o período cobre — 1, 3 ou 12 (`to` é o início do seguinte). */
+function monthsInPeriod(period: DashboardPeriod): number {
+  if (period === "year") return 12;
+  if (period === "quarter") return MONTHS_PER_QUARTER;
+  return 1;
+}
+
 /**
  * Janela `[from, to)` do período, calculada uma única vez por leitura e usada
  * nas duas agregações do dashboard (ADR-041 §2).
@@ -111,11 +118,10 @@ function firstMonthOf(period: DashboardPeriod, month: number): number {
 export function periodWindow(period: DashboardPeriod, now: Date = new Date()): PeriodWindow {
   const { year, month } = businessParts(now);
   const startMonth = firstMonthOf(period, month);
-  const monthsInPeriod = period === "year" ? 12 : period === "quarter" ? MONTHS_PER_QUARTER : 1;
   // Índice 0-based do mês de abertura do período seguinte. Somar 1 mês aqui
   // fecharia o trimestre em 1 mês e o ano em 1 mês — defeito medido em F2 e
   // coberto por T8–T10.
-  const endIndex = startMonth - 1 + monthsInPeriod;
+  const endIndex = startMonth - 1 + monthsInPeriod(period);
   return {
     from: businessMidnightUtc(year, startMonth, 1),
     to: businessMidnightUtc(year + Math.floor(endIndex / 12), (endIndex % 12) + 1, 1),
