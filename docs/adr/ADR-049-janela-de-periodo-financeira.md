@@ -63,7 +63,8 @@ INCOMPLETOS", contra a distinção de três estados do ADR-041 §3.
   importar do módulo puro. Um único consumidor real (o serviço) usa `periodWindow` diretamente.
 - **`window` é aditivo e não quebra consumidores**, mas o **shape guard ainda não o exige** nem compara
   `payload.period` com o período pedido: um payload sem `window` derruba o render (medido no teste de
-  componente). A lacuna está registrada como **DBT-176** e não é coberta por esta ADR.
+  componente). A lacuna foi **fechada** em 2026-10-26 — ver **DBT-176** (FECHADA): o guard exige
+  `window` (datas ISO com `from < to`) e compara `payload.period` com o período pedido.
 - **Sem migração**: nenhuma coluna, índice ou constraint muda; `transactionSites`/`directDatabaseFiles` não se
   movem por esta decisão.
 - **Fixture determinística**: os testes de banco ganharam quatro tenants de fronteira com instantes calculados
@@ -115,5 +116,6 @@ firefox, webkit e mobile; suíte unitária **2470/2470**.
 - ADR-041 — margem consolidada sobre vendas registradas (três estados; par de fronteiras único).
 - ADR-018 — Decimal, unidades e arredondamento. ADR-032 — Decimal string no wire.
 - `SDD.md` §2.4 (período sempre exibido) e §11.7 (análise com período ≠ mês).
-- DBT-165 (foco na troca de período — fechada), DBT-176 (guard sem `window`/`period` — aberta).
+- DBT-165 (foco na troca de período — fechada), DBT-176 (guard sem `window`/`period` — **fechada em
+  2026-10-26** após o achado P2 do review do PR #72, com controle negativo).
 - `docs/evidence/dashboard-periodo-2026-10-26/` — SPEC, README e capturas.

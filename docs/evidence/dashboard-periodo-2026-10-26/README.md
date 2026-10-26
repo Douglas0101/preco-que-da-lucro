@@ -77,20 +77,20 @@ anteriores fica obsoleta; e o sign-in por API exige `origin` igual ao `BETTER_AU
 
 ## Rastreabilidade (requisito → teste → arquivo)
 
-| Requisito                                          | Teste                                | Arquivo                                                                                            |
-| -------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| FR-PER-001 janela `[from, to)` nas duas agregações | D1–D5; T9/T10                        | `src/server/repositories/sales.repository.ts`, `src/test/dashboard-consolidated-margin.db.test.ts` |
-| FR-PER-002 fuso do negócio independente do `TZ`    | T1–T6 (3 fusos)                      | `src/lib/period-window.ts`, `src/test/period-window.test.ts`                                       |
-| FR-PER-003 janela exibida, atestada no payload     | E2; D (window)                       | `src/routes/_authenticated/inicio.tsx`, `src/server/services/dashboard.service.ts`                 |
-| FR-PER-004 separação invariante × realizado        | E4/E2; medição no browser            | `src/routes/_authenticated/inicio.tsx`                                                             |
-| FR-PER-005 `empty` ≠ `incomplete`                  | E4; visual (badge)                   | `inicio.tsx`, `e2e/visual/visual-observability.spec.ts`                                            |
-| FR-PER-006 guard de coerência `period`×payload     | **não implementado** → DBT-176       | `src/lib/dashboard-summary-guard.ts`                                                               |
-| RNF-PER-001 sem dependência nova                   | `guard:upgrade`, `check:bundle`      | `package.json` (inalterado)                                                                        |
-| RNF-PER-002 foco preservado (DBT-165)              | E3 (4 projetos)                      | `e2e/sales-dashboard.spec.ts`                                                                      |
-| RNF-PER-003 mesmas duas consultas                  | revisão + D1–D5                      | `sales.repository.ts`                                                                              |
-| RNF-PER-004 bundle dentro do limite                | `check:bundle` (487.577 B ≤ 500.000) | `scripts/check-bundle.mjs`                                                                         |
-| RNF-PER-005 determinismo sob `TZ`                  | T1–T10 em UTC/Asia/Tokyo/BRT         | `src/test/period-window.test.ts`                                                                   |
-| INV-006/007 número antigo nunca como atual         | E5 (`aria-busy` + rótulo antigo)     | `inicio.tsx`, `src/lib/query-options.ts`                                                           |
+| Requisito                                          | Teste                                                                                 | Arquivo                                                                                            |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| FR-PER-001 janela `[from, to)` nas duas agregações | D1–D5; T9/T10                                                                         | `src/server/repositories/sales.repository.ts`, `src/test/dashboard-consolidated-margin.db.test.ts` |
+| FR-PER-002 fuso do negócio independente do `TZ`    | T1–T6 (3 fusos)                                                                       | `src/lib/period-window.ts`, `src/test/period-window.test.ts`                                       |
+| FR-PER-003 janela exibida, atestada no payload     | E2; D (window)                                                                        | `src/routes/_authenticated/inicio.tsx`, `src/server/services/dashboard.service.ts`                 |
+| FR-PER-004 separação invariante × realizado        | E4/E2; medição no browser                                                             | `src/routes/_authenticated/inicio.tsx`                                                             |
+| FR-PER-005 `empty` ≠ `incomplete`                  | E4; visual (badge)                                                                    | `inicio.tsx`, `e2e/visual/visual-observability.spec.ts`                                            |
+| FR-PER-006 guard de coerência `period`×payload     | **implementado na F6** — `window` obrigatório + `period` pedido (**DBT-176 fechada**) | `src/lib/dashboard-summary-guard.ts`                                                               |
+| RNF-PER-001 sem dependência nova                   | `guard:upgrade`, `check:bundle`                                                       | `package.json` (inalterado)                                                                        |
+| RNF-PER-002 foco preservado (DBT-165)              | E3 (4 projetos)                                                                       | `e2e/sales-dashboard.spec.ts`                                                                      |
+| RNF-PER-003 mesmas duas consultas                  | revisão + D1–D5                                                                       | `sales.repository.ts`                                                                              |
+| RNF-PER-004 bundle dentro do limite                | `check:bundle` (487.577 B ≤ 500.000)                                                  | `scripts/check-bundle.mjs`                                                                         |
+| RNF-PER-005 determinismo sob `TZ`                  | T1–T10 em UTC/Asia/Tokyo/BRT                                                          | `src/test/period-window.test.ts`                                                                   |
+| INV-006/007 número antigo nunca como atual         | E5 (`aria-busy` + rótulo antigo)                                                      | `inicio.tsx`, `src/lib/query-options.ts`                                                           |
 
 ## Decisões abertas resolvidas
 
@@ -114,7 +114,7 @@ anteriores fica obsoleta; e o sign-in por API exige `origin` igual ao `BETTER_AU
 | 5   | E4 não simula `incomplete` no dashboard                                      | exigiria produto sem custo + venda (fixture frágil); `incomplete` está provado no banco e no visual de produto, e o e2e assere o negativo |
 | 6   | README do WP vive no próprio pacote de evidência                             | o template e o `m02-seal.mjs` exigem `SPEC.md` + `README.md` no mesmo diretório; separar em `docs/specs/` quebraria o selo                |
 | 7   | `periodStart` **não** foi removido                                           | a premissa do prompt não se confirmou: ele continua como atalho de `periodWindow`; o que saiu foi o re-export local no serviço            |
-| 8   | `window` ainda **não** é exigido pelo guard                                  | F4 é documentação-only; a lacuna está em **DBT-176** com closure test definido                                                            |
+| 8   | `window` **não** era exigido pelo guard                                      | **Resolvido na F6** após o achado P2 do review do PR #72: guard exige `window` e `period`, com controle negativo; **DBT-176 FECHADA**     |
 
 ## Bloqueio herdado
 
@@ -123,6 +123,38 @@ de outra sessão, não commitado. O hint do guard pede `git checkout -- package.
 (custódia de WIP alheio). Evidência: `captures/f3-check-lockfile-inherited.txt`. O caminho previsto no `AGENTS.md`
 foi seguido — `check:own` (exit 0), `npm run test` (2470/2470), `npm run build` (0), `npm run check:bundle` (0) —
 e a reexecução do gate completo está registrada como **DBT-175**.
+
+## F6 — achado P2 do review do PR #72 (fecha DBT-176)
+
+O review automático do PR #72 (`chatgpt-codex-connector`) deixou **um thread aberto** em
+`src/routes/_authenticated/inicio.tsx:178`, classificado **P2**: o guard `isDashboardSummaryValid`
+aceitava payload sem `window`, e o `formatWindowLabel(metrics.window)` estourava antes do card de erro
+poder renderizar. O ruleset `24333849` tem `required_review_thread_resolution: true`, então o thread não
+era cosmético: **bloqueava o merge**.
+
+O achado é exatamente o **DBT-176** que esta sessão já havia registrado (Desvio #8). Em vez de resolver o
+thread por retórica, a lacuna foi fechada:
+
+- `src/lib/dashboard-summary-guard.ts` exige `window: { from, to }` — strings ISO parseáveis com
+  `from < to` — e aceita `expectedPeriod`, recusando payload de período divergente (o que importa com
+  `keepPreviousData`, onde o dado anterior segue montado).
+- `src/routes/_authenticated/inicio.tsx` chama o guard com o período pedido, não só com o payload.
+- `src/test/dashboard-summary-guard.test.ts` ganhou dois casos: payload sem/janela invertida/data inválida
+  e mismatch de período.
+- **Controle negativo** (`captures/f6-review-p2-guard.txt`): removida a linha
+  `if (!isWindowValid(candidate.window)) return false;`, o teste novo **falha** (`1 failed | 9 passed`);
+  restaurado, `sha256sum` idêntico (`5f1ad0cf…`) e **10/10** verdes. A guarda é _load-bearing_, não decoração.
+
+**DBT-176 → FECHADA** (registry com 160 dívidas, `m02:debts-guard` OK). O `AGENTS.md` e o ADR-049 foram
+atualizados na mesma passada para não descreverem a lacuna como aberta.
+
+### Kilo Code Review (nota de leitura)
+
+O check **`Kilo Code Review`** aparece vermelho com `action_required`/“Insufficient credits to run review”:
+é **app externo**, cuja instalação não é versionada no repositório e cujo token de App não é acessível ao
+`gh` — logo o agente não pode desinstalá-lo (só o dono, em _Settings → Applications_). O ruleset
+`24333849` exige **apenas** `verify-release` e `scan + cobertura`, ambos verdes; o vermelho do Kilo **não**
+é veredito sobre o código e **não** bloqueia nada.
 
 ## Limites, S6 e selo
 
@@ -141,4 +173,5 @@ e a reexecução do gate completo está registrada como **DBT-175**.
   do commit da F5**, quando a precondição de worktree puder ser satisfeita — junto com a reexecução do gate
   completo (DBT-175).
 - `PROGRESS.md`/`DEBTS.md` **não** entram no manifesto: são journals append-only, e congelar o hash tornaria o
-  selo falso no próximo append; são citados por ID/entrada (`DBT-165`, `DBT-173`–`DBT-176`, `L1010`–`L1018`).
+  selo falso no próximo append; são citados por ID/entrada (`DBT-165`, `DBT-173`–`DBT-175`, **`DBT-176` fechada
+  na F6**, `DBT-177`, `L1010`–`L1022`).
