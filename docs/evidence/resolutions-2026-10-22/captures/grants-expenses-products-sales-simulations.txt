@@ -1,0 +1,11 @@
+expenses|DELETE
+expenses|INSERT
+expenses|SELECT
+expenses|UPDATE
+products|INSERT
+products|SELECT
+products|UPDATE
+sales|INSERT
+sales|SELECT
+simulations|INSERT
+simulations|SELECT

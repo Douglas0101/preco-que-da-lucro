@@ -34,18 +34,23 @@
 
 Cada diagrama deriva de seções específicas do `AGENTS.md` (e dos ADRs citados por elas). Este é o contrato de rastreabilidade do mapa:
 
-| Diagrama | Camada     | Seções do `AGENTS.md` que operacionaliza                                                                                                                               |
-| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1       | Plataforma | **Three CI pipelines** (seleção por path, light × heavy); **Deployment contract** (publicação manual e condicional, C26/ADR-042); Baseline de segurança (CSP)          |
-| D2       | Plataforma | **Three permanent Neon branches only**; **Local database** (env guard, denylist de produção, `ALLOW_REMOTE_DB`); allowlist de URI no provisionamento Neon              |
-| D3       | Plataforma | **Deployment contract** (publish o SHA exato do main só após CE real e runtime checks; "health 200" como pré-condição de promoção de alias)                            |
-| D4       | Processo   | **Branching** (PR-only para `main`, règles 24333849/24347682); **Local quality gate** (cadeia `check`, tiers do `verify`); Sonar/CE (ADR-042/ADR-044)                  |
-| D5       | Processo   | **Deployment contract** + roadmap em `docs/evidence/otimizacoes-planejamento/PLANEJAMENTO.md` (§4 e §8); condição BLQ-03 (ver §6)                                      |
-| D6       | Processo   | `PLANEJAMENTO.md` §3 (fichas) e §4.3 (dependências); fichas bloqueadas 🔶 (TS-03/BD-01/BD-03)                                                                          |
-| D7       | Segurança  | **Security baseline** (INV-008); **Local database** (denylist absoluta de produção); migration `0001_p0_runtime_role_and_rls.sql`; `scripts/rls-probe.mjs` (`db:test`) |
-| D8       | Segurança  | Allowlist de URI no provisionamento Neon (`{sslmode, channel_binding}`, default `require`); **Local database** (env guard)                                             |
-| D9       | Segurança  | **Security baseline** (CSP estrita em `src/start.ts`); **Deployment contract** (previews; Deployment Protection evidenciada)                                           |
-| D10      | Segurança  | **Security baseline** (DeepSeek/Web-only, redaction); ADR-033 (redaction antes de persistir); ADR-043 (CSP nonce); fichas OB-04/OB-05                                  |
+| Diagrama | Camada     | Seções do `AGENTS.md` que operacionaliza                                                                                                                                 |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| D1       | Plataforma | **Three CI pipelines** (seleção por path, light × heavy); **Deployment contract** (publicação manual e condicional, C26/ADR-042); Baseline de segurança (CSP)            |
+| D2       | Plataforma | **Three permanent Neon branches only**; **Local database** (env guard, denylist de produção, `ALLOW_REMOTE_DB`); allowlist de URI no provisionamento Neon                |
+| D3       | Plataforma | **Deployment contract** (publish o SHA exato do main só após CE real e runtime checks; "health 200" como pré-condição de promoção de alias)                              |
+| D4       | Processo   | **Branching** (PR-only para `main`, règles 24333849/24347682); **Local quality gate** (cadeia `check`, tiers do `verify`); Sonar/CE (ADR-042/ADR-044)                    |
+| D5       | Processo   | **Deployment contract** + roadmap em `docs/evidence/otimizacoes-planejamento/PLANEJAMENTO.md` (§4 e §8); condição BLQ-03 (ver §6)                                        |
+| D6       | Processo   | `PLANEJAMENTO.md` §3 (fichas) e §4.3 (dependências); fichas bloqueadas 🔶 (TS-03/BD-01/BD-03)                                                                            |
+| D7       | Segurança  | **Security baseline** (INV-008); **Local database** (denylist absoluta de produção); migration `0001_p0_runtime_role_and_rls.sql`; `scripts/rls-probe.mjs` (`db:test`)   |
+| D8       | Segurança  | Allowlist de URI no provisionamento Neon (`{sslmode, channel_binding}`, default `require`); **Local database** (env guard)                                               |
+| D9       | Segurança  | **Security baseline** (CSP estrita em `src/lib/security-headers.ts`, aplicada por `src/start.ts`); **Deployment contract** (previews; Deployment Protection evidenciada) |
+| D10      | Segurança  | **Security baseline** (DeepSeek/Web-only, redaction); ADR-033 (redaction antes de persistir); ADR-043 (decisão de **não** usar nonce); fichas OB-04/OB-05                |
+
+**Contrato sem diagrama.** A janela de período financeira (ADR-049) é fluxo de **leitura de rota** (`/inicio`),
+não de plataforma, processo ou segurança — não há D11 e não se inventa um. Ela é normatizada no `SDD.md`
+§2.4/§11.7 e no `AGENTS.md` (**Janela de período financeira**), com prova em
+`docs/evidence/dashboard-periodo-2026-10-26/`.
 
 ---
 
@@ -247,7 +252,7 @@ flowchart LR
     subgraph LOCAL["1 · máquina local"]
         direction TB
         DEV["agente em develop"]
-        GATE["npm run check<br/>cadeia completa · 2.274 testes<br/>(baseline herdado — reconfirmar em develop@94e3241)"]
+        GATE["npm run check<br/>cadeia completa · 2.315 testes<br/>(baseline vivo — 149 arquivos PASS + 1 skipped)"]
         GREEN{"verde?"}
     end
 
@@ -310,7 +315,7 @@ flowchart LR
 
 **Legenda — vínculos e gates:**
 
-- **1 · Local:** `npm run check` é o gate de definição de pronto (_Local quality gate_); o número de testes é o baseline herdado e **precisa ser reconfirmado contra `develop@94e3241`** (§0 do planejamento). Push sem o gate local desperdiça um ciclo de CI.
+- **1 · Local:** `npm run check` é o gate de definição de pronto (_Local quality gate_); o número de testes é o baseline vivo (**2.315 testes** — 149 arquivos PASS + 1 skipped), medido em `develop@4206303`+, e **precisa ser reconfirmado** contra esse SHA (§0 do planejamento). Push sem o gate local desperdiça um ciclo de CI.
 - **2 · GitHub Actions:** a seleção por path é contrato (_"Three CI pipelines, selected by paths"_): docs-only sob `docs/evidence/**` → light; qualquer outro path (código, `AGENTS.md`, `docs/` fora de evidence) → heavy; PR sempre roda a matriz completa. Os tiers do `verify` são fail-closed (base desconhecida ⇒ tudo roda).
 - **3 · CE:** `gate-readout` observa a CE real do provedor e aplica o piso ADR-042 (≥ 60%) **sem alterar o veredito do provedor**; `NO-VERDICT`/`ERROR` bloqueiam. A decisão de promoção é **humana** — o gate técnico habilita, nunca autoriza.
 - **4 · Vercel:** `CHECK` reflete o estado do D1 — hoje "não" (BLQ-03 aberto): a promoção manual é a única trava. Quando os Deployment Checks forem vinculados, o ramo "sim" passa a bloquear promoção até os checks verdes.
@@ -326,7 +331,7 @@ flowchart TD
     %% Cada gate existe para impedir que a onda seguinte comece sem base verificada.
     %% BLQ-03 (pooling + Deployment Checks) NÃO é uma onda — é condição de saída.
 
-    F0["Fase 0 · baseline reconfirmado<br/>contra develop@94e3241<br/>— sem isso, todo gate é cego"]
+    F0["Fase 0 · baseline reconfirmado<br/>contra develop@4206303+<br/>— sem isso, todo gate é cego"]
     PRE["Pré-onda INFRA<br/>INFRA-01 pooling · INFRA-02 preview<br/>INFRA-03 Deployment Checks"]
     O1["Onda 1 · Quick wins (semanas 1–2)<br/>UI-01 · UI-03 · UI-05 · UI-06<br/>DT-02 · DT-04 · OB-02 · OB-03"]
     O2["Onda 2 · Core perf (semanas 3–4)<br/>TS-03/04/05 · BD-02/05 · DT-01/03/05<br/>OB-01/04/05 · UI-02/04 · RT-02/03"]
@@ -369,7 +374,7 @@ flowchart TD
 
 - **Fonte:** `PLANEJAMENTO.md` §4.2 (gates com critérios completos e checklists) e §8 (decisões em formato ADR). Este diagrama é o resumo normativo; o detalhe mensurável vive lá.
 - **BLQ-03 é condição, não onda:** os critérios de performance do Gate 3 são **necessários, mas não suficientes** — a publicação exige pooling reconfirmado/ativo **e** Deployment Checks vinculados. Performance verde com BLQ-03 aberto **não libera** promoção.
-- **Fase 0 é pré-condicional:** o baseline de 2.274 testes / `sha256=30ca04baaa66` foi capturado antes do PR #64 — sem a reconfirmação contra `develop@94e3241`, todos os gates comparam contra um número não verificado.
+- **Fase 0 é pré-condicional:** o baseline **herdado** de 2.274 testes / `sha256=30ca04baaa66` foi capturado antes do PR #64 e está **obsoleto**; o baseline vivo é **2.315 testes** (149 arquivos PASS + 1 skipped) no `develop@4206303`+ — sem a reconfirmação contra esse SHA, todos os gates comparam contra um número não verificado.
 - **Porta única permanece:** `FIN` repete o contrato do D3/D1 — CE ≥ 60%, `health/ready` 200, promoção manual.
 
 ### D6 — Grafo de dependências
@@ -607,7 +612,7 @@ flowchart TD
 
     subgraph APLICACAO["aplicação — runtime"]
         direction TB
-        CSP{"CSP com nonce<br/>e sem unsafe-eval?"}
+        CSP{"CSP estrita sem nonce<br/>e sem unsafe-eval?"}
         HEADERS["security headers:<br/>HSTS · X-Content-Type-Options<br/>X-Frame-Options · Referrer-Policy"]
         AUTH{"sessão válida?"}
         DENY["401 / redirect para /auth"]
@@ -660,7 +665,7 @@ flowchart TD
 
 **Legenda — vínculos e gates:**
 
-- **CSP (losango):** a política de `src/start.ts` é estrita (`script-src 'self'`, nonce — ADR-043) e **nunca** ganha `'unsafe-inline'`/hosts novos sem verificação no dist publicado e evidência no PR (_Security baseline_).
+- **CSP (losango):** a política de `src/lib/security-headers.ts` (aplicada por `src/start.ts`) é estrita e **estática**: `script-src 'self'` exato e **sem nonce** — a ADR-043 §Decisão 1 decidiu **não** introduzir nonce, `src/lib/security-headers.ts:11` documenta "nenhum nonce" e `src/test/security-headers.test.ts:93` trava `expect(policy).not.toContain("nonce-")`. Ela **nunca** ganha `'unsafe-inline'`/hosts novos sem verificação no dist publicado e evidência no PR (_Security baseline_).
 - **Deployment Protection (losango):** **evidenciada ativa** — probe 2026-09-12 mediu `302 → vercel.com/sso-api` em deployment URL de preview (`docs/evidence/vercel-docmap-2026-09-12.md`) e os aliases protegidos responderam `401` sem autenticação (fechamento DBT-115); o **escopo exato por ambiente** (preview vs deployment URL vs domínio de produção) segue como reconfirmação de painel — não presumir.
 - **WAF / Log Drains / Audit Logs (tracejados `a verificar`):** sem evidência versionada de configuração no projeto. Norma: verificar/configurar **antes da promoção** (INFRA-03/Gate 3); status vive na §6.
 - **`PREVIEW_PUB` é risco nomeado:** preview aberto é superfície de ataque — o estado alvo é `PREVIEW_PRIV` com Deployment Protection ativa e escopo declarado.
@@ -685,7 +690,7 @@ flowchart LR
     subgraph TRANSITO["trânsito — cada salto protegido"]
         direction TB
         TLS_APP["TLS 1.2/1.3<br/>browser ↔ edge"]
-        CSP["CSP nonce<br/>script inline autorizado"]
+        CSP["CSP estática sem nonce<br/>script-src 'self'"]
         TLS_DB["TLS Neon<br/>allowlist {sslmode, channel_binding}"]
     end
 
@@ -719,7 +724,7 @@ flowchart LR
 **Legenda — vínculos e gates:**
 
 - **Origem:** sessão `better-auth` com cookie cache assinado (ADR-020/ADR-025, ficha DT-05); `BETTER_AUTH_SECRET` nunca em contexto de agente nem em evidência (_Security baseline_).
-- **Trânsito:** cada salto com seu contrato — CSP nonce (ADR-043) no HTML/SSR; TLS do Neon na allowlist validada (D8). Nenhum salto "implícito" é aceito.
+- **Trânsito:** cada salto com seu contrato — CSP estática **sem nonce** (`script-src 'self'`; a ADR-043 §Decisão 1 decidiu **não** introduzir nonce) no HTML/SSR, com os 2× `<script>` inline do SSR TanStack **permanecendo** como violação em report-only (janela de soak = DBT-142); TLS do Neon na allowlist validada (D8). Nenhum salto "implícito" é aceito.
 - **Destino:** a RLS usa as **primitivas reais** (`app_private.current_*`, migration 0001 — não existe `auth.user_id()` neste schema); repouso criptografado pelo Neon; correlação `traceparent` W3C é a ficha **OB-05** (a implementar — ver §6); atributos de span **sem PII** por contrato (ADR-033/redaction; a mesma regra da captura visual: redação antes da persistência, sempre).
 - **MTTR:** a cadeia só fecha quando um Web Vital no navegador e o span correspondente no servidor compartilham o mesmo `traceId` auditável (critério de aceite OB-05).
 
@@ -727,12 +732,12 @@ flowchart LR
 
 ## 5. Gates de segurança (referência cruzada)
 
-| Diagrama | Camada                          | Gate que adiciona                                                                              | Ficha afetada         | Estado (2026-10-16)                                                                                                                 |
-| -------- | ------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| D7       | RLS / tenant isolation          | runtime `app_runtime` (NOSUPERUSER · NOBYPASSRLS · não-owner) + fail-closed a contexto ausente | DT-01, DT-05, OB-04   | **Implementado** (migration `0001`; `rls-probe` no `db:test`; INV-008 visual). `FORCE RLS` ausente — defesa adicional pendente (§6) |
-| D8       | TLS / criptografia em trânsito  | allowlist `{sslmode, channel_binding}` com default `require`; elevação a `verify-full`         | INFRA-01              | Allowlist **implementada** (código + teste); elevação a `verify-full` **pendente de decisão**                                       |
-| D9       | Vercel / defesa em profundidade | CSP + Deployment Protection + WAF + Log Drains verificados **antes da promoção**               | INFRA-03, Gate 3      | CSP estrita **ativa**; Deployment Protection **evidenciada** (302→sso / 401); WAF, Log Drains e Audit Logs **a verificar**          |
-| D10      | Cadeia criptográfica completa   | JWT → TLS → RLS → AES → `traceparent` **sem PII**                                              | OB-04, DT-05, ADR-043 | Até RLS/AES/sessão: ativos; `traceparent` front↔back = **OB-05, a implementar**                                                     |
+| Diagrama | Camada                          | Gate que adiciona                                                                              | Ficha afetada         | Estado (2026-10-16; reconciliado em 2026-10-21)                                                                                                                                                                                                                                                                                                                                                                       |
+| -------- | ------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D7       | RLS / tenant isolation          | runtime `app_runtime` (NOSUPERUSER · NOBYPASSRLS · não-owner) + fail-closed a contexto ausente | DT-01, DT-05, OB-04   | **Implementado** (migration `0001`; `rls-probe` no `db:test`; INV-008 visual). `FORCE RLS` ausente — defesa adicional pendente (§6)                                                                                                                                                                                                                                                                                   |
+| D8       | TLS / criptografia em trânsito  | allowlist `{sslmode, channel_binding}` com default `require`; elevação a `verify-full`         | INFRA-01              | Allowlist **implementada** (código + teste); elevação a `verify-full` **pendente de decisão**                                                                                                                                                                                                                                                                                                                         |
+| D9       | Vercel / defesa em profundidade | CSP + Deployment Protection + WAF + Log Drains verificados **antes da promoção**               | INFRA-03, Gate 3      | CSP estrita servida em modo **Report-Only** (`Content-Security-Policy-Report-Only`): a promoção para `content-security-policy` só ocorre com `CSP_ENFORCE=true` (`src/lib/security-headers.ts:45`) e hoje a resposta **não** traz o header de enforcement (`e2e/ui-stack.spec.ts:79`) — janela de soak = DBT-142; Deployment Protection **evidenciada** (302→sso / 401); WAF, Log Drains e Audit Logs **a verificar** |
+| D10      | Cadeia criptográfica completa   | JWT → TLS → RLS → AES → `traceparent` **sem PII**                                              | OB-04, DT-05, ADR-043 | Até RLS/AES/sessão: ativos; `traceparent` front↔back = **OB-05, a implementar**                                                                                                                                                                                                                                                                                                                                       |
 
 > [!IMPORTANT]
 > Um gate em estado **pendente** não deixa de ser normativo: o agente não pode **produzir o estado que ele proíbe** (ex.: promover alias sem `health 200`, usar owner em runtime, editar prosa de TLS/allowlist, exercer cross-tenant em teste). O que muda é apenas onde a pendência fecha — na §6.
@@ -741,18 +746,28 @@ flowchart LR
 
 Estado corrente do que este mapa declara normativo — cada pendência tem caminho de fechamento nomeado. Nada aqui é presumido:
 
-| #   | Item                                              | Estado                                          | Evidência / onde fecha                                                             |
-| --- | ------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------- |
-| 1   | BLQ-03 — Deployment Checks vinculados (D1/D4)     | **Aberto**                                      | `PLANEJAMENTO.md` §2.6/§4.2/§8; fecha com INFRA-03 + Decisão 2                     |
-| 2   | Pooling do Neon reconfirmado/ativo (D2)           | **A reconfirmar** (observação pré-13/10)        | `captures/neon-endpoints-pooling.json`; fecha com INFRA-01 + Decisão 1             |
-| 3   | `sslmode=verify-full` como padrão (D8)            | **Decisão pendente** (hoje default `require`)   | Código `scripts/ci/neon-resource.ts`; fecha com INFRA-01 + mudança de código/teste |
-| 4   | WAF / Log Drains / Audit Logs configurados (D9)   | **A verificar** (sem evidência versionada)      | Painel/API Vercel; fecha com INFRA-03/Gate 3                                       |
-| 5   | Escopo exato da Deployment Protection (D9)        | **Evidência parcial** (302→sso; 401 em aliases) | `docs/evidence/vercel-docmap-2026-09-12.md`; fecha com reconfirmação de painel     |
-| 6   | `FORCE ROW LEVEL SECURITY` (defesa adicional, D7) | **Ausente hoje** (0 ocorrências)                | `drizzle/*.sql`; fecha com migration + teste, se decidido                          |
-| 7   | Baseline de qualidade reconfirmado (D4/D5)        | **A reconfirmar** contra `develop@94e3241`      | Checklist acionável em `PLANEJAMENTO.md` §0                                        |
-| 8   | Correlação `traceparent` front↔back (D10)         | **A implementar**                               | Ficha OB-05 (`PLANEJAMENTO.md` §3.7)                                               |
+| #   | Item                                                                                                    | Estado                                                                                                       | Evidência / onde fecha                                                                                                                                                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | BLQ-03 — Deployment Checks vinculados (D1/D4)                                                           | **Aberto**                                                                                                   | `PLANEJAMENTO.md` §2.6/§4.2/§8; fecha com INFRA-03 + Decisão 2                                                                                                                                                                                                                  |
+| 2   | Pooling do Neon reconfirmado/ativo (D2)                                                                 | **A reconfirmar** (observação pré-13/10)                                                                     | `captures/neon-endpoints-pooling.json`; fecha com INFRA-01 + Decisão 1                                                                                                                                                                                                          |
+| 3   | `sslmode=verify-full` como padrão (D8)                                                                  | **Decisão pendente** (hoje default `require`)                                                                | Código `scripts/ci/neon-resource.ts`; fecha com INFRA-01 + mudança de código/teste                                                                                                                                                                                              |
+| 4   | WAF / Log Drains / Audit Logs configurados (D9)                                                         | **A verificar** (sem evidência versionada)                                                                   | Painel/API Vercel; fecha com INFRA-03/Gate 3                                                                                                                                                                                                                                    |
+| 5   | Escopo exato da Deployment Protection (D9)                                                              | **Evidência parcial** (302→sso; 401 em aliases)                                                              | `docs/evidence/vercel-docmap-2026-09-12.md`; fecha com reconfirmação de painel                                                                                                                                                                                                  |
+| 6   | `FORCE ROW LEVEL SECURITY` (defesa adicional, D7)                                                       | **Ausente hoje** (0 ocorrências)                                                                             | `drizzle/*.sql`; fecha com migration + teste, se decidido                                                                                                                                                                                                                       |
+| 7   | Baseline de qualidade reconfirmado (D4/D5)                                                              | **A reconfirmar** contra `develop@4206303`+ (baseline vivo: **2.315 testes**, 149 arquivos PASS + 1 skipped) | Checklist acionável em `PLANEJAMENTO.md` §0                                                                                                                                                                                                                                     |
+| 8   | Correlação `traceparent` front↔back (D10)                                                               | **A implementar**                                                                                            | Ficha OB-05 (`PLANEJAMENTO.md` §3.7)                                                                                                                                                                                                                                            |
+| 9   | **DBT-31** — rotação de `BETTER_AUTH_SECRET` recuperável no histórico público                           | **Aberto** · `conformidade` · severidade **alta**                                                            | `DEBTS.md:51`; exige `docs/runbooks/conditional-publication.md:31-33` ("Concluir seis rotações ViaA+consumidores+identidades+revogações … Corrigir env com humano sem valores em log/chat/artefato")                                                                            |
+| 10  | **DBT-64** — checks atados ao SHA / regras de branch                                                    | **Aberto** · `conformidade` · severidade **alta**                                                            | `DEBTS.md:68`; exige `docs/runbooks/conditional-publication.md:9-12` ("verify-release PR com quatro projetos, SonarCE … Comparar head/base novamente antes promoção; resultado antigo, missing/cancelled/NO-VERDICT bloqueia") e `:43` ("Confirmar checks exatos no SHA atual") |
+| 11  | **DBT-75** — PITR de produção só 6 h contra os 7 d exigidos                                             | **Aberto** · `conformidade` · severidade **alta**                                                            | `DEBTS.md:79`; exige `docs/runbooks/conditional-publication.md:31-32` ("PITR gerenciado 7d observado + restore isolado descartado com 404") e `:85-86` ("PITR7d observado e restoreisolado/RPO15min/RTO4h medidos continuam gates")                                             |
+| 12  | **DBT-76** — custódia de keystore/clipboard                                                             | **Aberto** · `robustez` · severidade **média** (não é `alta` no registry)                                    | `DEBTS.md:80`; exige `docs/runbooks/conditional-publication.md:31-34` (rotação Via A de seis credenciais, sem valores em log/chat/artefato)                                                                                                                                     |
+| 13  | **DBT-77** — branch Neon `develop` sem papel `app_runtime` e sem tabelas; o CI de PR clona `production` | **Aberto** · `conformidade` · severidade **alta**                                                            | `DEBTS.md:81`; exige `docs/runbooks/conditional-publication.md:32` ("ConfiguraçãoDB runtime pooled app_runtime, admin direta fora web; produção não recebe testes ou fixtures")                                                                                                 |
+| 14  | **DBT-78** — domínio canônico devolve HTML200 em `/api/health/*` e `/api/auth/get-session`              | **Aberto** · `robustez` · severidade **alta**                                                                | `DEBTS.md:82`; exige `docs/runbooks/conditional-publication.md:60-64` ("precisam responder JSON do backend … HTML com status200, sobretudo quando idêntico ao home, bloqueia esse gate de runtime (DBT-78)")                                                                    |
+| 15  | **DBT-36** — rotação das 6 credenciais de `Keys.txt`                                                    | **EM_TRATAMENTO** · `conformidade` · severidade **alta**                                                     | `DEBTS.md:53`; **bloqueador C26 de release** — a autorização C26 exige rotação antes da release; exige `docs/runbooks/conditional-publication.md:31-34`                                                                                                                         |
 
 Pendências de **verificação live** herdadas (V-01..V-04) permanecem como no planejamento — este mapa não as duplica, apenas as referencia por caminho.
+
+> [!IMPORTANT]
+> As linhas **9–15** são os **blockers de release abertos** que estavam **omitidos** desta tabela de estado: são dívidas do registry (`docs/evidence/agent-state/DEBTS.md`), com o **ID, a classe, a severidade e o status REAIS** lidos da própria linha do registry, e o caminho que **exige** cada uma no runbook de publicação (`docs/runbooks/conditional-publication.md`). A **DBT-36** está `EM_TRATAMENTO` (adiada por decisão do MAESTRO em 2026-09-30, Ciclo 19) e é o **bloqueador C26 de rotação** — 6 credenciais, severidade `alta` inalterada. A **DBT-76** é a única do grupo com severidade `média` (não `alta`) no registry; a classificação é a do registry, não uma reclassificação deste mapa.
 
 ## 7. Manutenção e precedência
 

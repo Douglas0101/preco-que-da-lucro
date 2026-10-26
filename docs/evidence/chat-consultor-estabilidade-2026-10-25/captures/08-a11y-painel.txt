@@ -1,0 +1,30 @@
+# A11y do painel: axe e settle de animações
+
+## Execução
+
+```
+node .artifacts/design/debug-axe.mjs  # login fixture, abre o painel, lista animações, settle e axe
+```
+
+## Saída
+
+```
+signin 200
+animations: [
+ {
+  "state": "running",
+  "iterations": 1,
+  "name": "scroll-fade-reveal-b",
+  "target": "DIV.size-full min-h-0 min-w-0 scroll-fade-b scrollbar-thin scrollbar-gutter-stab",
+  "currentTime": null
+ }
+]
+settle: { count: 1, timedOut: 'TIMEOUT' }
+axe ok in 1379 ms; violations 0
+```
+
+## Teste unitário correspondente
+
+```
+src/test/consultor-chat-dock.test.tsx: axe.run(dialog) com regra color-contrast desligada → violations = []
+```

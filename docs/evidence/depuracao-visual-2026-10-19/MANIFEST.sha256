@@ -1,0 +1,12 @@
+6ccbdd3bd153dd942cdcbf021a7b66eb6f9d0246e0d11f9198338e7c87a9c949  docs/evidence/depuracao-visual-2026-10-19/README.md
+f58165dc679eb5f1d28ca8b50a2d008cbed0ae702cdff9dbfcaadccfb37f5f82  docs/evidence/depuracao-visual-2026-10-19/SPEC.md
+d7002235c9b16b8afd8f627e21e47b6da76f782b6cea4e4795cea8640893699d  docs/evidence/depuracao-visual-2026-10-19/captures/bench-health.txt
+9b7687a509b75262425b69dffde35205838ffbf5aa3cb2bead6ef1867f1c8380  docs/evidence/depuracao-visual-2026-10-19/captures/browser-install.txt
+e985019cab549e382ad314e92df7239c354b5c0f169c0d0e65a90d3545af7481  docs/evidence/depuracao-visual-2026-10-19/captures/cu-walk.json.txt
+89813c71fa7e5246f7103164ae4e043a0fc2aac5a51c2eb747b1e12b539d1071  docs/evidence/depuracao-visual-2026-10-19/captures/e2e-3p-chromium-firefox-mobile.txt
+f4d78136dd120ea0cc818f1eef7666462210c081314a86106e18936e52877b76  docs/evidence/depuracao-visual-2026-10-19/captures/e2e-4p-all-browsers.txt
+e231cbdf8e169330fc8840ab1df0599d5382d1214750374ad2def4b5ba64f61d  docs/evidence/depuracao-visual-2026-10-19/captures/e2e-full.txt
+34e0a1c72f3021b79273ad990af0a414f34cf3a6e667f2243eaa3088e261236c  docs/evidence/depuracao-visual-2026-10-19/captures/visual-gate.txt
+72a3e9c0a4fb089998caadeb2558757e2911b26735081c45b6ab5d71e8bfb33f  docs/evidence/depuracao-visual-2026-10-19/captures/webkit-color-contrast-failure.txt
+09e667fc6db456c9a3facb1f05bac55c1b22b15868ece91e37fee0fe05d55304  docs/evidence/depuracao-visual-2026-10-19/captures/webkit-missing-system-deps.txt
+fa8e5b1231ce880cbe390096c8812136a252a8576bdfde85fbc7e9314ea00cc4  docs/evidence/depuracao-visual-2026-10-19/captures/webkit-single-test-rerun.txt

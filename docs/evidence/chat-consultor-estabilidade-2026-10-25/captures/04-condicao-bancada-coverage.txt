@@ -1,0 +1,22 @@
+# Condição de bancada achada na revisão: coverage/ derruba o secrets-audit
+
+## Evidência (run do check com coverage/ presente)
+
+```
+  "result": "INCOMPLETE",
+coverage/ presente na raiz (gerado por npx vitest run --coverage)
+        "path": "coverage/scripts/m02-secrets-audit.ts.html",
+exit=2
+```
+
+## Correção de bancada e re-execução
+
+```
+rm -rf coverage && npm run m02:secrets-audit
+  "result": "COMPLETE_WITH_LIMITS",
+exit=0
+```
+
+## Leitura
+
+O diretório gerado de coverage é ignorado pelo git, mas o auditor o enumera como evidência do próprio auditor e classifica HTMLs como 'evidence-auditor-or-test-not-consumer'; com isso a cobertura do inventário fica INCOMPLETE (exit 2) e o gate para. É condição de bancada (o CI roda o audit em job limpo), não defeito de código; a condição fica declarada e o diretório é removido antes do gate.

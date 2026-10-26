@@ -1,0 +1,36 @@
+b-visual-baseline — baselines de screenshot (pixel) geradas pelo Agente B em 2026-10-21 (bancada local :4175, Agente B)
+
+Origem das PNGs: .artifacts/bughunt-b/__screenshots__/ (gitignored, NAO versionadas aqui por peso).
+Destino de integração proposto: e2e/visual/__screenshots__/ (a spec e as baselines precisam ser commitadas juntas).
+Spec proposta: e2e/visual/visual-baseline.spec.ts (hoje em .artifacts/bughunt-b/visual-baseline.spec.ts).
+Comando de geração: npx playwright test --config=.artifacts/bughunt-b/playwright.config.ts --update-snapshots
+Comando de verificação: npx playwright test --config=.artifacts/bughunt-b/playwright.config.ts
+Determinismo: relógio congelado em 2026-01-15T12:00:00Z (page.clock.setFixedTime), reducedMotion=reduce +
+  espera das animações finitas (padrão DBT-126), rede ociosa + document.fonts.ready + 2 requestAnimationFrame,
+  viewport 1280x800 (desktop) e 390x844 (mobile), locale pt-BR, timezoneId UTC, maxDiffPixelRatio 0.01.
+
+rota	engine	bytes	sha256
+auth	chromium	88352	6e905e685e9dfded8aac01226d03118306ee08ced277e20f4bc796ce680847a8
+auth	firefox	94732	1a5fba85c26c206b48eb2e65a81e6e5ae68fbb0a4ae5144c3fbe75f1ff3f3f59
+auth	mobile	54255	c4aff1ae664651ce001fb2308ef8bed1fd06aea59bec2a985947ec4782bc2992
+auth	webkit	103432	04d2543e30530555a49b7da2e18149e3633d0b08b6570085b8fc499838672149
+inicio	chromium	101563	068ee28dffbb34876bd4156f9e91b43cc06305fe9e5ae1e7d425ce8c52678b5c
+inicio	firefox	123557	0ecd8249fa23cf5edcd03d6a3c50bb17d59378d59246c7a6cd02d418e097951e
+inicio	mobile	96485	5fc8cee01a037e5aff695cadd8410a3800c354c7346e86d3bdb13845ac46b33b
+inicio	webkit	125363	c94deb4d498c9c4b1dc644d30c0024889dfd50001dff27636bfb1a3774a52f93
+landing	chromium	97555	68d210c29a79edd40bf5cced81166844be96c3f9d37cbac6e573385dc9c2f442
+landing	firefox	113658	ae9d318cb2aa12d1aafa688a9a7cfe0d2ae9dbcd5e2ee05a14cf5b2b04d1a754
+landing	mobile	98152	a92bdbaa026d939ef30fff8c3e3515f81669a2ca1dc848bf9beb53cba6e29291
+landing	webkit	118744	2de93a18dcaad6b0df2a34abb0fb26b238adf044e3a93c6f05cff06d82410a82
+produtos	chromium	63608	76c1272b6d656dd6613aa51895d0dcb9ca9d87f358490ff1e6217a9dff3f0be0
+produtos	firefox	70862	6b398efca20191bab22fba39bc3069f493bc2d498155a8a3d0e0f041ea5e79f9
+produtos	mobile	45360	d11903ed7634e5a2292953f8f34e7f64adaebd8de5fc4280c69b532b14e94700
+produtos	webkit	78831	726bd0d2cce9fde3d346fd2b480ffd886909d3358f514e83f31feaf68a3e63ed
+simulacoes	chromium	117906	9ee07308f9c9dd600f59d55fa61c3234746aa2ede45ec60d2dd6c1896eb710e6
+simulacoes	firefox	138163	6b131a42da5a1f1c2088ffd137f48d99ecee9c143b51f9c335013512138436ea
+simulacoes	mobile	109237	b8ae42ab39073eb160248afd6aeb1268bbe027cb8f28bf1679e2375350d27673
+simulacoes	webkit	151809	0cb6c0046c5412fc6a378994822112801ff7b97aae8b7e611b6e350866e9a30e
+vendas	chromium	57562	2782637fac1c8550a93b8af2642d54521acb909e75aaff492c4a4b4705abc2de
+vendas	firefox	67236	99049496b72ede0a70e9de8a8f7b4aa05e086ec5d10786018913cd65877e1a66
+vendas	mobile	46289	201351beff86c95cc7251434356bcbbd5949c8b4bd656656f07242a76d0bd1d7
+vendas	webkit	70068	86a5d6a6091571ba9f01ee7d19ebe211e47b1e3f4190ce66f7115e473c8cc085

@@ -217,7 +217,7 @@ function ProductListContent({
                   <Badge
                     variant="outline"
                     title="Faltam dados para o cálculo completo. Abra o produto para ver o que falta."
-                    className="shrink-0 border-amber-500/60 text-amber-600 dark:text-amber-400"
+                    className="shrink-0 border-amber-500/60 text-amber-700 dark:text-amber-400"
                   >
                     DADOS INCOMPLETOS
                   </Badge>
@@ -231,7 +231,10 @@ function ProductListContent({
                 </span>
               </div>
             </div>
-            <div className="flex gap-2">
+            {/* No mobile as ações quebram para a própria linha; sem isso o
+                bloco de texto (`min-w-0 flex-1`) colapsa a 0px e o nome do
+                produto some atrás do `truncate` (medido em 390px). */}
+            <div className="flex gap-2 max-sm:w-full max-sm:justify-end">
               <Button variant="outline" size="sm" onClick={() => onView(row.id)}>
                 Ver
               </Button>

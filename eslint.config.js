@@ -11,6 +11,9 @@ export default tseslint.config(
     ignores: [
       "dist",
       ".output",
+      // Build Output API da Vercel (VERCEL=1): mesma natureza do `.output`, mas
+      // ficava fora do ignore e fazia `eslint .` varrer a função empacotada.
+      ".vercel",
       ".vinxi",
       "playwright-report",
       "test-results",

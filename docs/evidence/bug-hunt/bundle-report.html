@@ -1,0 +1,1624 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bundle report — grafo inicial e chunks (build local)</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #ffffff;
+        --fg: #111827;
+        --muted: #4b5563;
+        --line: #e5e7eb;
+        --card: #f9fafb;
+        --ok: #047857;
+        --warn: #b45309;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b1120;
+          --fg: #e5e7eb;
+          --muted: #9ca3af;
+          --line: #1f2937;
+          --card: #111827;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 2rem 1.25rem 4rem;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          15px/1.5 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 0.25rem;
+      }
+      h2 {
+        font-size: 1.1rem;
+        margin: 2.5rem 0 0.75rem;
+      }
+      p.sub {
+        color: var(--muted);
+        margin: 0 0 1.5rem;
+      }
+      .cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      .card {
+        flex: 1 1 200px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        background: var(--card);
+      }
+      .card .label {
+        color: var(--muted);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .card .value {
+        font-size: 1.45rem;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+      }
+      .card .note {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      .ok {
+        color: var(--ok);
+      }
+      .warn {
+        color: var(--warn);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.4rem 0.6rem;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      td.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.82rem;
+      }
+      .entry-row {
+        background: color-mix(in srgb, #b91c1c 9%, transparent);
+      }
+      tr.entry-row td {
+        font-weight: 600;
+      }
+      svg {
+        width: 100%;
+        height: auto;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .tm-label {
+        fill: #ffffff;
+        font:
+          600 13px ui-sans-serif,
+          system-ui,
+          sans-serif;
+      }
+      .tm-value {
+        fill: #ffffff;
+        font:
+          12px ui-monospace,
+          monospace;
+        opacity: 0.92;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .swatch {
+        display: inline-block;
+        width: 0.8rem;
+        height: 0.8rem;
+        border-radius: 3px;
+        margin-right: 0.35rem;
+        vertical-align: -1px;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.85rem;
+      }
+      .note-box {
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--warn);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        background: var(--card);
+      }
+      footer {
+        margin-top: 2.5rem;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Bundle report — build local (Vite manifest)</h1>
+      <p class="sub">
+        Fonte: <code>.output/public/.vite/manifest.json</code> · entry
+        <code>assets/index-C05BJ1eg.js</code> · orçamento de 500.000 B (entry e grafo inicial) ·
+        gzip medido com zlib nível 9. Sem sourcemaps; sem CDN; CSS inline.
+      </p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="label">Entry (minificado)</div>
+          <div class="value">219.697 B</div>
+          <div class="note">
+            gzip 69.086 B · folga 280.303 B (<span class="ok">56.06%</span> do teto)
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Grafo inicial (9 chunks)</div>
+          <div class="value">451.299 B</div>
+          <div class="note">
+            gzip 149.058 B · folga 48.701 B (<span class="ok">9.74%</span> do teto)
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Todo o bundle JS (54 chunks)</div>
+          <div class="value">903.492 B</div>
+          <div class="note">gzip 302.287 B · carregado só sob demanda</div>
+        </div>
+        <div class="card">
+          <div class="label">Delta vs Onda 1 (5260b34 / L975)</div>
+          <div class="value warn">+15 B</div>
+          <div class="note">entry +15 B · gzip +13 B</div>
+        </div>
+      </div>
+
+      <h2>Treemap — grafo inicial (9 chunks, 451.299 B)</h2>
+      <svg
+        viewBox="0 0 1000 380"
+        role="img"
+        aria-label="Treemap de bytes por chunk"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <g>
+          <rect
+            x="0.00"
+            y="0.00"
+            width="486.81"
+            height="380.00"
+            fill="#b91c1c"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>index-C05BJ1eg.js — 219.697 B (48.68%)</title>
+          </rect>
+          <text x="8.00" y="20.00" class="tm-label">index-C05BJ1eg.js</text>
+          <text x="8.00" y="40.00" class="tm-value">219.697 B · 48.7%</text>
+        </g>
+        <g>
+          <rect
+            x="486.81"
+            y="0.00"
+            width="354.09"
+            height="380.00"
+            fill="#0891b2"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>tanstack-vendor-B0dT_-Hx.js — 159.801 B (35.41%)</title>
+          </rect>
+          <text x="494.81" y="20.00" class="tm-label">tanstack-vendor-B0dT_-Hx.js</text>
+          <text x="494.81" y="40.00" class="tm-value">159.801 B · 35.4%</text>
+        </g>
+        <g>
+          <rect
+            x="840.90"
+            y="0.00"
+            width="159.10"
+            height="204.87"
+            fill="#059669"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>button-BSuNCKbn.js — 38.710 B (8.58%)</title>
+          </rect>
+          <text x="848.90" y="20.00" class="tm-label">button-BSuNCKbn.js</text>
+          <text x="848.90" y="40.00" class="tm-value">38.710 B · 8.6%</text>
+        </g>
+        <g>
+          <rect
+            x="840.90"
+            y="204.87"
+            width="159.10"
+            height="155.30"
+            fill="#65a30d"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>auth-client-GAuKX51H.js — 29.344 B (6.50%)</title>
+          </rect>
+          <text x="848.90" y="224.87" class="tm-label">auth-client-GAuKX51H.js</text>
+          <text x="848.90" y="244.87" class="tm-value">29.344 B · 6.5%</text>
+        </g>
+        <g>
+          <rect
+            x="840.90"
+            y="360.17"
+            width="54.86"
+            height="19.83"
+            fill="#ca8a04"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>card-BSmucXAL.js — 1.292 B (0.29%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="895.76"
+            y="360.17"
+            width="50.78"
+            height="19.83"
+            fill="#ea580c"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>preload-helper-Czpn1I53.js — 1.196 B (0.27%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="946.54"
+            y="360.17"
+            width="30.40"
+            height="19.83"
+            fill="#dc2626"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>rolldown-runtime-hePW80VL.js — 716 B (0.16%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="976.94"
+            y="360.17"
+            width="12.36"
+            height="19.83"
+            fill="#c026d3"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>loading-skeleton-rT2rhi2o.js — 291 B (0.06%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="989.30"
+            y="360.17"
+            width="10.70"
+            height="19.83"
+            fill="#7c3aed"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>skeleton-RXBpDXvS.js — 252 B (0.06%)</title>
+          </rect>
+        </g>
+      </svg>
+      <div class="legend">
+        <span
+          ><span class="swatch" style="background: #b91c1c"></span>entry (carregado primeiro)</span
+        >
+        <span>demais chunks do grafo inicial</span>
+      </div>
+
+      <h2>Treemap — todo o bundle JS (54 chunks, 903.492 B)</h2>
+      <svg
+        viewBox="0 0 1000 420"
+        role="img"
+        aria-label="Treemap de bytes por chunk"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <g>
+          <rect
+            x="0.00"
+            y="0.00"
+            width="243.16"
+            height="420.00"
+            fill="#b91c1c"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>index-C05BJ1eg.js — 219.697 B (24.32%)</title>
+          </rect>
+          <text x="8.00" y="20.00" class="tm-label">index-C05BJ1eg.js</text>
+          <text x="8.00" y="40.00" class="tm-value">219.697 B · 24.3%</text>
+        </g>
+        <g>
+          <rect
+            x="243.16"
+            y="0.00"
+            width="176.87"
+            height="420.00"
+            fill="#0891b2"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>tanstack-vendor-B0dT_-Hx.js — 159.801 B (17.69%)</title>
+          </rect>
+          <text x="251.16" y="20.00" class="tm-label">tanstack-vendor-B0dT_-Hx.js</text>
+          <text x="251.16" y="40.00" class="tm-value">159.801 B · 17.7%</text>
+        </g>
+        <g>
+          <rect
+            x="420.03"
+            y="0.00"
+            width="133.15"
+            height="420.00"
+            fill="#059669"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>query-options-DshkRlAg.js — 120.302 B (13.32%)</title>
+          </rect>
+          <text x="428.03" y="20.00" class="tm-label">query-options-DshkRlAg.js</text>
+          <text x="428.03" y="40.00" class="tm-value">120.302 B · 13.3%</text>
+        </g>
+        <g>
+          <rect
+            x="553.19"
+            y="0.00"
+            width="124.96"
+            height="265.05"
+            fill="#65a30d"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>select-k4dZP2HU.js — 71.249 B (7.89%)</title>
+          </rect>
+          <text x="561.19" y="20.00" class="tm-label">select-k4dZP2HU.js</text>
+          <text x="561.19" y="40.00" class="tm-value">71.249 B · 7.9%</text>
+        </g>
+        <g>
+          <rect
+            x="553.19"
+            y="265.05"
+            width="124.96"
+            height="154.95"
+            fill="#ca8a04"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>composite-BtT0TxcC.js — 41.651 B (4.61%)</title>
+          </rect>
+          <text x="561.19" y="285.05" class="tm-label">composite-BtT0TxcC.js</text>
+          <text x="561.19" y="305.05" class="tm-value">41.651 B · 4.6%</text>
+        </g>
+        <g>
+          <rect
+            x="678.15"
+            y="0.00"
+            width="172.29"
+            height="104.44"
+            fill="#ea580c"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>button-BSuNCKbn.js — 38.710 B (4.28%)</title>
+          </rect>
+          <text x="686.15" y="20.00" class="tm-label">button-BSuNCKbn.js</text>
+          <text x="686.15" y="40.00" class="tm-value">38.710 B · 4.3%</text>
+        </g>
+        <g>
+          <rect
+            x="850.44"
+            y="0.00"
+            width="149.56"
+            height="104.44"
+            fill="#dc2626"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>dist-BvApcwu5.js — 33.602 B (3.72%)</title>
+          </rect>
+          <text x="858.44" y="20.00" class="tm-label">dist-BvApcwu5.js</text>
+          <text x="858.44" y="40.00" class="tm-value">33.602 B · 3.7%</text>
+        </g>
+        <g>
+          <rect
+            x="678.15"
+            y="104.44"
+            width="71.07"
+            height="191.92"
+            fill="#c026d3"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>auth-client-GAuKX51H.js — 29.344 B (3.25%)</title>
+          </rect>
+          <text x="686.15" y="124.44" class="tm-label">auth-client-GAuKX51H.js</text>
+          <text x="686.15" y="144.44" class="tm-value">29.344 B · 3.2%</text>
+        </g>
+        <g>
+          <rect
+            x="678.15"
+            y="296.37"
+            width="71.07"
+            height="123.63"
+            fill="#7c3aed"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>produtos_.composicao-Bu4cHzVf.js — 18.903 B (2.09%)</title>
+          </rect>
+          <text x="686.15" y="316.37" class="tm-label">produtos_.composicao-Bu4cHzVf.js</text>
+          <text x="686.15" y="336.37" class="tm-value">18.903 B · 2.1%</text>
+        </g>
+        <g>
+          <rect
+            x="749.22"
+            y="104.44"
+            width="126.78"
+            height="56.60"
+            fill="#4f46e5"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>diagnostico-BEXMaEsJ.js — 15.437 B (1.71%)</title>
+          </rect>
+          <text x="757.22" y="124.44" class="tm-label">diagnostico-BEXMaEsJ.js</text>
+          <text x="757.22" y="144.44" class="tm-value">15.437 B · 1.7%</text>
+        </g>
+        <g>
+          <rect
+            x="876.00"
+            y="104.44"
+            width="124.00"
+            height="56.60"
+            fill="#2563eb"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>simulacoes-CbWC5MYw.js — 15.099 B (1.67%)</title>
+          </rect>
+          <text x="884.00" y="124.44" class="tm-label">simulacoes-CbWC5MYw.js</text>
+          <text x="884.00" y="144.44" class="tm-value">15.099 B · 1.7%</text>
+        </g>
+        <g>
+          <rect
+            x="749.22"
+            y="161.05"
+            width="134.89"
+            height="49.09"
+            fill="#0891b2"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>sonner-D89cxXzt.js — 14.246 B (1.58%)</title>
+          </rect>
+          <text x="757.22" y="181.05" class="tm-label">sonner-D89cxXzt.js</text>
+          <text x="757.22" y="201.05" class="tm-value">14.246 B · 1.6%</text>
+        </g>
+        <g>
+          <rect
+            x="884.11"
+            y="161.05"
+            width="115.89"
+            height="49.09"
+            fill="#059669"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>route-DAk8JYAM.js — 12.239 B (1.35%)</title>
+          </rect>
+          <text x="892.11" y="181.05" class="tm-label">route-DAk8JYAM.js</text>
+          <text x="892.11" y="201.05" class="tm-value">12.239 B · 1.4%</text>
+        </g>
+        <g>
+          <rect
+            x="749.22"
+            y="210.14"
+            width="48.66"
+            height="110.66"
+            fill="#65a30d"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>inicio-x-66CrA4.js — 11.584 B (1.28%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="749.22"
+            y="320.80"
+            width="48.66"
+            height="99.20"
+            fill="#ca8a04"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>ponto-equilibrio-B6bzv7J0.js — 10.384 B (1.15%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="797.88"
+            y="210.14"
+            width="104.36"
+            height="42.57"
+            fill="#ea580c"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>DialogTrigger-D9-nvsk4.js — 9.557 B (1.06%)</title>
+          </rect>
+          <text x="805.88" y="230.14" class="tm-label">DialogTrigger-D9-nvsk4.js</text>
+        </g>
+        <g>
+          <rect
+            x="902.24"
+            y="210.14"
+            width="97.76"
+            height="42.57"
+            fill="#dc2626"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>novo-produto-NVNtTQoT.js — 8.952 B (0.99%)</title>
+          </rect>
+          <text x="910.24" y="230.14" class="tm-label">novo-produto-NVNtTQoT.js</text>
+        </g>
+        <g>
+          <rect
+            x="797.88"
+            y="252.71"
+            width="45.77"
+            height="87.59"
+            fill="#c026d3"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>web-vitals-viX3FQND.js — 8.624 B (0.95%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="797.88"
+            y="340.30"
+            width="45.77"
+            height="79.70"
+            fill="#7c3aed"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>auth-DYyooE9M.js — 7.847 B (0.87%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="843.65"
+            y="252.71"
+            width="81.79"
+            height="42.35"
+            fill="#4f46e5"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>precos-BeOVIfA-.js — 7.451 B (0.82%)</title>
+          </rect>
+          <text x="851.65" y="272.71" class="tm-label">precos-BeOVIfA-.js</text>
+        </g>
+        <g>
+          <rect
+            x="925.44"
+            y="252.71"
+            width="74.56"
+            height="42.35"
+            fill="#2563eb"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>despesas-DhGdVfYv.js — 6.792 B (0.75%)</title>
+          </rect>
+          <text x="933.44" y="272.71" class="tm-label">despesas-DhGdVfYv.js</text>
+        </g>
+        <g>
+          <rect
+            x="843.65"
+            y="295.06"
+            width="46.81"
+            height="62.72"
+            fill="#0891b2"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>produtos-DMzUNuwa.js — 6.316 B (0.70%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="843.65"
+            y="357.78"
+            width="46.81"
+            height="62.22"
+            fill="#059669"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>vendas-BkYTNUNa.js — 6.266 B (0.69%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="890.47"
+            y="295.06"
+            width="56.95"
+            height="40.47"
+            fill="#65a30d"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>routes-CVsZDm5n.js — 4.958 B (0.55%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="947.42"
+            y="295.06"
+            width="52.58"
+            height="40.47"
+            fill="#ca8a04"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>input-XyGjDVm5.js — 4.577 B (0.51%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="890.47"
+            y="335.53"
+            width="25.40"
+            height="58.83"
+            fill="#ea580c"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>alert-dialog-DdU7srKF.js — 3.214 B (0.36%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="890.47"
+            y="394.36"
+            width="25.40"
+            height="25.64"
+            fill="#dc2626"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>badge-SNIc_ouv.js — 1.401 B (0.16%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="915.86"
+            y="335.53"
+            width="42.73"
+            height="14.86"
+            fill="#c026d3"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>createBaseUIEventDetails-Cvj0b3dC.js — 1.366 B (0.15%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="958.59"
+            y="335.53"
+            width="41.41"
+            height="14.86"
+            fill="#7c3aed"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>format-decuS7y6.js — 1.324 B (0.15%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="915.86"
+            y="350.39"
+            width="16.93"
+            height="35.48"
+            fill="#4f46e5"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>card-BSmucXAL.js — 1.292 B (0.14%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="915.86"
+            y="385.87"
+            width="16.93"
+            height="34.13"
+            fill="#2563eb"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>createLucideIcon-B64GakG0.js — 1.243 B (0.14%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="932.79"
+            y="350.39"
+            width="35.43"
+            height="15.69"
+            fill="#0891b2"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>preload-helper-Czpn1I53.js — 1.196 B (0.13%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="968.22"
+            y="350.39"
+            width="31.78"
+            height="15.69"
+            fill="#059669"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>calc-explanation-B5V1T93A.js — 1.073 B (0.12%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="932.79"
+            y="366.08"
+            width="12.35"
+            height="26.96"
+            fill="#65a30d"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>calc-explainer-NS8CoY1v.js — 716 B (0.08%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="932.79"
+            y="393.04"
+            width="12.35"
+            height="26.96"
+            fill="#ca8a04"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>rolldown-runtime-hePW80VL.js — 716 B (0.08%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="945.14"
+            y="366.08"
+            width="10.20"
+            height="29.76"
+            fill="#ea580c"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>IconBase.es-Dy6G3a4f.js — 653 B (0.07%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="945.14"
+            y="395.84"
+            width="10.20"
+            height="24.16"
+            fill="#dc2626"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>calculator-CpWiiBvC.js — 530 B (0.06%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="955.34"
+            y="366.08"
+            width="22.70"
+            height="10.12"
+            fill="#c026d3"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>sparkles-DurQN46y.js — 494 B (0.05%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="978.04"
+            y="366.08"
+            width="21.96"
+            height="10.12"
+            fill="#7c3aed"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>label-A3uQYmiG.js — 478 B (0.05%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="955.34"
+            y="376.20"
+            width="8.01"
+            height="22.22"
+            fill="#4f46e5"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>useServerFn--iFW0qLF.js — 383 B (0.04%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="955.34"
+            y="398.42"
+            width="8.01"
+            height="21.58"
+            fill="#2563eb"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>package-D2tqhVfw.js — 372 B (0.04%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="963.35"
+            y="376.20"
+            width="19.12"
+            height="8.80"
+            fill="#0891b2"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>finance-VT-GFBHe.js — 362 B (0.04%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="982.47"
+            y="376.20"
+            width="17.53"
+            height="8.80"
+            fill="#059669"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>scale-3hrgiOx2.js — 332 B (0.04%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="963.35"
+            y="385.00"
+            width="8.69"
+            height="17.55"
+            fill="#65a30d"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>trash-2-coROWXgM.js — 328 B (0.04%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="963.35"
+            y="402.56"
+            width="8.69"
+            height="17.44"
+            fill="#ca8a04"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>tag-CsG8xDYN.js — 326 B (0.04%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="972.04"
+            y="385.00"
+            width="14.10"
+            height="9.59"
+            fill="#ea580c"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>loading-skeleton-rT2rhi2o.js — 291 B (0.03%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="986.14"
+            y="385.00"
+            width="13.86"
+            height="9.59"
+            fill="#dc2626"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>wallet-BM6ew15u.js — 286 B (0.03%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="972.04"
+            y="394.60"
+            width="9.90"
+            height="12.96"
+            fill="#c026d3"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>pencil-Bk4rr9f0.js — 276 B (0.03%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="972.04"
+            y="407.56"
+            width="9.90"
+            height="12.44"
+            fill="#7c3aed"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>triangle-alert-BkZxcvqr.js — 265 B (0.03%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="981.94"
+            y="394.60"
+            width="18.06"
+            height="6.49"
+            fill="#4f46e5"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>skeleton-RXBpDXvS.js — 252 B (0.03%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="981.94"
+            y="401.08"
+            width="18.06"
+            height="6.20"
+            fill="#2563eb"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>message-circle-Bf6ZmZqK.js — 241 B (0.03%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="981.94"
+            y="407.29"
+            width="7.57"
+            height="12.71"
+            fill="#0891b2"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>circle-plus-DjSO3MGr.js — 207 B (0.02%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="989.51"
+            y="407.29"
+            width="10.49"
+            height="7.75"
+            fill="#059669"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>trending-up-46laUEnX.js — 175 B (0.02%)</title>
+          </rect>
+        </g>
+        <g>
+          <rect
+            x="989.51"
+            y="415.04"
+            width="10.49"
+            height="4.96"
+            fill="#65a30d"
+            stroke="#ffffff"
+            stroke-width="2"
+          >
+            <title>decimal-constants-BOLP2GMT.js — 112 B (0.01%)</title>
+          </rect>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><span class="swatch" style="background: #b91c1c"></span>entry</span>
+        <span>chunks preguiçosos das rotas (sob demanda)</span>
+      </div>
+
+      <h2>Chunks do grafo inicial</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Arquivo</th>
+            <th>Papel</th>
+            <th class="num">Bytes (minificado)</th>
+            <th class="num">Bytes (gzip)</th>
+            <th class="num">% do bundle JS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="entry-row">
+            <td class="mono">assets/index-C05BJ1eg.js</td>
+            <td>entry</td>
+            <td class="num">219.697</td>
+            <td class="num">69.086</td>
+            <td class="num">24.32%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/tanstack-vendor-B0dT_-Hx.js</td>
+            <td>grafo inicial</td>
+            <td class="num">159.801</td>
+            <td class="num">51.240</td>
+            <td class="num">17.69%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/button-BSuNCKbn.js</td>
+            <td>grafo inicial</td>
+            <td class="num">38.710</td>
+            <td class="num">15.608</td>
+            <td class="num">4.28%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/auth-client-GAuKX51H.js</td>
+            <td>grafo inicial</td>
+            <td class="num">29.344</td>
+            <td class="num">11.031</td>
+            <td class="num">3.25%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/card-BSmucXAL.js</td>
+            <td>grafo inicial</td>
+            <td class="num">1.292</td>
+            <td class="num">573</td>
+            <td class="num">0.14%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/preload-helper-Czpn1I53.js</td>
+            <td>grafo inicial</td>
+            <td class="num">1.196</td>
+            <td class="num">675</td>
+            <td class="num">0.13%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/rolldown-runtime-hePW80VL.js</td>
+            <td>grafo inicial</td>
+            <td class="num">716</td>
+            <td class="num">428</td>
+            <td class="num">0.08%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/loading-skeleton-rT2rhi2o.js</td>
+            <td>grafo inicial</td>
+            <td class="num">291</td>
+            <td class="num">211</td>
+            <td class="num">0.03%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/skeleton-RXBpDXvS.js</td>
+            <td>grafo inicial</td>
+            <td class="num">252</td>
+            <td class="num">206</td>
+            <td class="num">0.03%</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Todos os chunks JS do build</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Arquivo</th>
+            <th>Papel</th>
+            <th class="num">Bytes (minificado)</th>
+            <th class="num">Bytes (gzip)</th>
+            <th class="num">% do bundle JS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="entry-row">
+            <td class="mono">assets/index-C05BJ1eg.js</td>
+            <td>entry</td>
+            <td class="num">219.697</td>
+            <td class="num">69.086</td>
+            <td class="num">24.32%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/tanstack-vendor-B0dT_-Hx.js</td>
+            <td>grafo inicial</td>
+            <td class="num">159.801</td>
+            <td class="num">51.240</td>
+            <td class="num">17.69%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/query-options-DshkRlAg.js</td>
+            <td>lazy</td>
+            <td class="num">120.302</td>
+            <td class="num">39.117</td>
+            <td class="num">13.32%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/select-k4dZP2HU.js</td>
+            <td>lazy</td>
+            <td class="num">71.249</td>
+            <td class="num">25.058</td>
+            <td class="num">7.89%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/composite-BtT0TxcC.js</td>
+            <td>lazy</td>
+            <td class="num">41.651</td>
+            <td class="num">14.304</td>
+            <td class="num">4.61%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/button-BSuNCKbn.js</td>
+            <td>grafo inicial</td>
+            <td class="num">38.710</td>
+            <td class="num">15.608</td>
+            <td class="num">4.28%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/dist-BvApcwu5.js</td>
+            <td>lazy</td>
+            <td class="num">33.602</td>
+            <td class="num">9.347</td>
+            <td class="num">3.72%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/auth-client-GAuKX51H.js</td>
+            <td>grafo inicial</td>
+            <td class="num">29.344</td>
+            <td class="num">11.031</td>
+            <td class="num">3.25%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/produtos_.composicao-Bu4cHzVf.js</td>
+            <td>lazy</td>
+            <td class="num">18.903</td>
+            <td class="num">4.656</td>
+            <td class="num">2.09%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/diagnostico-BEXMaEsJ.js</td>
+            <td>lazy</td>
+            <td class="num">15.437</td>
+            <td class="num">4.915</td>
+            <td class="num">1.71%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/simulacoes-CbWC5MYw.js</td>
+            <td>lazy</td>
+            <td class="num">15.099</td>
+            <td class="num">4.970</td>
+            <td class="num">1.67%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/sonner-D89cxXzt.js</td>
+            <td>lazy</td>
+            <td class="num">14.246</td>
+            <td class="num">3.277</td>
+            <td class="num">1.58%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/route-DAk8JYAM.js</td>
+            <td>lazy</td>
+            <td class="num">12.239</td>
+            <td class="num">3.944</td>
+            <td class="num">1.35%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/inicio-x-66CrA4.js</td>
+            <td>lazy</td>
+            <td class="num">11.584</td>
+            <td class="num">4.003</td>
+            <td class="num">1.28%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/ponto-equilibrio-B6bzv7J0.js</td>
+            <td>lazy</td>
+            <td class="num">10.384</td>
+            <td class="num">3.560</td>
+            <td class="num">1.15%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/DialogTrigger-D9-nvsk4.js</td>
+            <td>lazy</td>
+            <td class="num">9.557</td>
+            <td class="num">3.414</td>
+            <td class="num">1.06%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/novo-produto-NVNtTQoT.js</td>
+            <td>lazy</td>
+            <td class="num">8.952</td>
+            <td class="num">3.577</td>
+            <td class="num">0.99%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/web-vitals-viX3FQND.js</td>
+            <td>lazy</td>
+            <td class="num">8.624</td>
+            <td class="num">3.209</td>
+            <td class="num">0.95%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/auth-DYyooE9M.js</td>
+            <td>lazy</td>
+            <td class="num">7.847</td>
+            <td class="num">3.076</td>
+            <td class="num">0.87%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/precos-BeOVIfA-.js</td>
+            <td>lazy</td>
+            <td class="num">7.451</td>
+            <td class="num">2.932</td>
+            <td class="num">0.82%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/despesas-DhGdVfYv.js</td>
+            <td>lazy</td>
+            <td class="num">6.792</td>
+            <td class="num">2.331</td>
+            <td class="num">0.75%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/produtos-DMzUNuwa.js</td>
+            <td>lazy</td>
+            <td class="num">6.316</td>
+            <td class="num">2.342</td>
+            <td class="num">0.70%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/vendas-BkYTNUNa.js</td>
+            <td>lazy</td>
+            <td class="num">6.266</td>
+            <td class="num">2.353</td>
+            <td class="num">0.69%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/routes-CVsZDm5n.js</td>
+            <td>lazy</td>
+            <td class="num">4.958</td>
+            <td class="num">1.943</td>
+            <td class="num">0.55%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/input-XyGjDVm5.js</td>
+            <td>lazy</td>
+            <td class="num">4.577</td>
+            <td class="num">2.092</td>
+            <td class="num">0.51%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/alert-dialog-DdU7srKF.js</td>
+            <td>lazy</td>
+            <td class="num">3.214</td>
+            <td class="num">1.037</td>
+            <td class="num">0.36%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/badge-SNIc_ouv.js</td>
+            <td>lazy</td>
+            <td class="num">1.401</td>
+            <td class="num">646</td>
+            <td class="num">0.16%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/createBaseUIEventDetails-Cvj0b3dC.js</td>
+            <td>lazy</td>
+            <td class="num">1.366</td>
+            <td class="num">766</td>
+            <td class="num">0.15%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/format-decuS7y6.js</td>
+            <td>lazy</td>
+            <td class="num">1.324</td>
+            <td class="num">654</td>
+            <td class="num">0.15%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/card-BSmucXAL.js</td>
+            <td>grafo inicial</td>
+            <td class="num">1.292</td>
+            <td class="num">573</td>
+            <td class="num">0.14%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/createLucideIcon-B64GakG0.js</td>
+            <td>lazy</td>
+            <td class="num">1.243</td>
+            <td class="num">721</td>
+            <td class="num">0.14%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/preload-helper-Czpn1I53.js</td>
+            <td>grafo inicial</td>
+            <td class="num">1.196</td>
+            <td class="num">675</td>
+            <td class="num">0.13%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/calc-explanation-B5V1T93A.js</td>
+            <td>lazy</td>
+            <td class="num">1.073</td>
+            <td class="num">436</td>
+            <td class="num">0.12%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/calc-explainer-NS8CoY1v.js</td>
+            <td>lazy</td>
+            <td class="num">716</td>
+            <td class="num">442</td>
+            <td class="num">0.08%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/rolldown-runtime-hePW80VL.js</td>
+            <td>grafo inicial</td>
+            <td class="num">716</td>
+            <td class="num">428</td>
+            <td class="num">0.08%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/IconBase.es-Dy6G3a4f.js</td>
+            <td>lazy</td>
+            <td class="num">653</td>
+            <td class="num">436</td>
+            <td class="num">0.07%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/calculator-CpWiiBvC.js</td>
+            <td>lazy</td>
+            <td class="num">530</td>
+            <td class="num">281</td>
+            <td class="num">0.06%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/sparkles-DurQN46y.js</td>
+            <td>lazy</td>
+            <td class="num">494</td>
+            <td class="num">279</td>
+            <td class="num">0.05%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/label-A3uQYmiG.js</td>
+            <td>lazy</td>
+            <td class="num">478</td>
+            <td class="num">317</td>
+            <td class="num">0.05%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/useServerFn--iFW0qLF.js</td>
+            <td>lazy</td>
+            <td class="num">383</td>
+            <td class="num">279</td>
+            <td class="num">0.04%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/package-D2tqhVfw.js</td>
+            <td>lazy</td>
+            <td class="num">372</td>
+            <td class="num">256</td>
+            <td class="num">0.04%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/finance-VT-GFBHe.js</td>
+            <td>lazy</td>
+            <td class="num">362</td>
+            <td class="num">259</td>
+            <td class="num">0.04%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/scale-3hrgiOx2.js</td>
+            <td>lazy</td>
+            <td class="num">332</td>
+            <td class="num">222</td>
+            <td class="num">0.04%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/trash-2-coROWXgM.js</td>
+            <td>lazy</td>
+            <td class="num">328</td>
+            <td class="num">216</td>
+            <td class="num">0.04%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/tag-CsG8xDYN.js</td>
+            <td>lazy</td>
+            <td class="num">326</td>
+            <td class="num">248</td>
+            <td class="num">0.04%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/loading-skeleton-rT2rhi2o.js</td>
+            <td>grafo inicial</td>
+            <td class="num">291</td>
+            <td class="num">211</td>
+            <td class="num">0.03%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/wallet-BM6ew15u.js</td>
+            <td>lazy</td>
+            <td class="num">286</td>
+            <td class="num">205</td>
+            <td class="num">0.03%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/pencil-Bk4rr9f0.js</td>
+            <td>lazy</td>
+            <td class="num">276</td>
+            <td class="num">225</td>
+            <td class="num">0.03%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/triangle-alert-BkZxcvqr.js</td>
+            <td>lazy</td>
+            <td class="num">265</td>
+            <td class="num">214</td>
+            <td class="num">0.03%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/skeleton-RXBpDXvS.js</td>
+            <td>grafo inicial</td>
+            <td class="num">252</td>
+            <td class="num">206</td>
+            <td class="num">0.03%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/message-circle-Bf6ZmZqK.js</td>
+            <td>lazy</td>
+            <td class="num">241</td>
+            <td class="num">212</td>
+            <td class="num">0.03%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/circle-plus-DjSO3MGr.js</td>
+            <td>lazy</td>
+            <td class="num">207</td>
+            <td class="num">177</td>
+            <td class="num">0.02%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/trending-up-46laUEnX.js</td>
+            <td>lazy</td>
+            <td class="num">175</td>
+            <td class="num">170</td>
+            <td class="num">0.02%</td>
+          </tr>
+          <tr class="">
+            <td class="mono">assets/decimal-constants-BOLP2GMT.js</td>
+            <td>lazy</td>
+            <td class="num">112</td>
+            <td class="num">111</td>
+            <td class="num">0.01%</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Comparação com o baseline da Onda 1</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Métrica</th>
+            <th class="num">Onda 1 (5260b34 / L975)</th>
+            <th class="num">Build atual</th>
+            <th class="num">Delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Entry (minificado)</td>
+            <td class="num">219.682 B</td>
+            <td class="num">219.697 B</td>
+            <td class="num warn">+15 B</td>
+          </tr>
+          <tr>
+            <td>Grafo inicial (minificado)</td>
+            <td class="num">451.284 B</td>
+            <td class="num">451.299 B</td>
+            <td class="num warn">+15 B</td>
+          </tr>
+          <tr>
+            <td>Grafo inicial (gzip)</td>
+            <td class="num">149.045 B</td>
+            <td class="num">149.058 B</td>
+            <td class="num warn">+13 B</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note-box">
+        <p style="margin: 0 0 0.5rem">
+          <strong>Orçamento.</strong> Teto de 500.000 B para entry e para o grafo inicial
+          (<code>scripts/check-bundle.mjs</code>). Folga medida: entry 280.303 B (56.06%), grafo
+          inicial 48.701 B (9.74%).
+        </p>
+        <p style="margin: 0">
+          <strong>Comparação.</strong> O baseline vem de
+          <code>docs/evidence/otimizacoes-planejamento/captures/build-onda1-after.txt</code>
+          (journal L975). Os 8 chunks não-entry do grafo inicial têm
+          <em>hash de conteúdo</em> idêntico ao baseline: o delta do entry ({deltaEntry > 0 ? "+" :
+          ""}15 B) é a totalidade da diferença observada no grafo inicial.
+        </p>
+      </div>
+
+      <footer>
+        Gerado por <code>node .artifacts/bughunt-a/bundle-report.mjs</code> (agente A, bateria de
+        caça a bugs 2026-10-21). Sem dependência nova; nenhum CDN; nenhum sourcemap incluído.
+      </footer>
+    </main>
+  </body>
+</html>

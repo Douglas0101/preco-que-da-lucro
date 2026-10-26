@@ -1,0 +1,23 @@
+# Precondição de gate: lockfile novo sem commit
+
+## Comando (dentro do npm run check)
+
+```
+npm run m02:lockfile-guard
+```
+
+## Resultado
+
+```
+      "id": "lock-sha256-head",
+      "status": "fail",
+      "detail": "lock do worktree cdae8f9e48aa031c829614ff3c30ffe4e16d7f3062924c6205a5ad71e7ee5328 != HEAD 706b24515411a1d68d183019cd664b8900524906b43a4ba83fa5ac15e08ddd45 (reescrito sem commit)"
+    },
+```
+
+## Leitura
+
+O guard exige que o `package-lock.json` do worktree seja o mesmo do HEAD; adicionar `motion` sem
+commit é, por desenho, um estado que ele reprova ("reescrito sem commit"). Como a sessão não
+commita, o restante da cadeia do `check` foi executado passo a passo (capture 06) e todos os demais
+passos ficaram verdes; o CI, com a dependência commitada, roda o `check` completo.

@@ -41,6 +41,12 @@ export function securityHeaders(): Record<string, string> {
     "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
     "referrer-policy": "strict-origin-when-cross-origin",
     "x-content-type-options": "nosniff",
+    // DBT-157: defesa em profundidade contra clickjacking. `frame-ancestors`
+    // só bloqueia quando a CSP é aplicada; enquanto `CSP_ENFORCE` não está
+    // ligado a política é Report-Only e não impede o embed. XFO é honrado por
+    // todos os motores atuais e vale imediatamente em ambos os modos. Ele é
+    // redundante com `frame-ancestors 'none'` de propósito (OWASP).
+    "x-frame-options": "DENY",
   };
   if (process.env.CSP_ENFORCE === "true") {
     headers["content-security-policy"] = SOURCE_DIRECTIVES.join("; ");

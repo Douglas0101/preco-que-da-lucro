@@ -1,0 +1,96 @@
+# Agente A — origem do delta de +15 B do bundle (hipotese "patch do vite" REFUTADA por rebuild)
+
+## Pergunta
+O grafo inicial mede 451.299 B contra 451.284 B no baseline da Onda 1 (journal L975) => +15 B.
+A hipotese do enunciado era o patch `vite` 8.2.2 -> 8.2.4 (journal L979).
+
+## 1. Diff por chunk (o delta esta isolado no entry)
+$ node .artifacts/bughunt-a/chunk-diff.mjs
+
+chunk                                        baseline   atual     delta  gzip
+assets/auth-client-GAuKX51H.js                  29344    29344       0   11031  idêntico
+assets/button-BSuNCKbn.js                       38710    38710       0   15608  idêntico
+assets/card-BSmucXAL.js                           1292     1292       0     573  idêntico
+assets/index-C05BJ1eg.js                         —     219697       —   69086  NOVO (fora do baseline)
+assets/loading-skeleton-rT2rhi2o.js              291      291       0     211  idêntico
+assets/preload-helper-Czpn1I53.js               1196     1196       0     675  idêntico
+assets/rolldown-runtime-hePW80VL.js               716      716       0     428  idêntico
+assets/skeleton-RXBpDXvS.js                       252      252       0     206  idêntico
+assets/tanstack-vendor-B0dT_-Hx.js             159801   159801       0   51240  idêntico
+
+total baseline (9 chunks): 451284 B
+total atual    (9 chunks): 451299 B
+delta total: 15 B
+chunks idênticos (mesmo hash de conteúdo do Vite): 8/9
+chunks ausentes no build atual: assets/index-Cf4QHpXM.js  (=> index-C05BJ1eg.js)
+
+Os 8 chunks nao-entry tem HASH DE CONTEUDO do Vite identico ao baseline: nao so o tamanho, o
+conteudo. O delta inteiro esta no entry.
+
+## 2. Rebuild controlado: o patch do vite e byte-neutro
+Sandbox isolado em `.artifacts/bughunt-a/scratch-vite822` (node_modules proprio, **sem**
+alterar o node_modules do repo e sem tocar em `.output/` do repo):
+- `git show HEAD:package.json` + `git show HEAD:package-lock.json` => vite 8.2.2 (o lockfile
+  COMMITADO ainda esta em 8.2.2; o bump para 8.2.4 esta no WIP nao commitado).
+- `npm ci --ignore-scripts` => vite 8.2.2 instalado, rolldown 1.2.6 (identico ao do repo).
+- `npm run build` + `node scripts/check-bundle.mjs` na MESMA fonte (arvore de trabalho):
+
+  ARM "WIP atual" com vite 8.2.2:
+    PASS assets/index-C05BJ1eg.js: 219697 minified, 69086 gzip, 60024 Brotli bytes, sha256=358633588df7
+    Initial graph (9 chunks): 451299 minified, 149058 gzip, 131218 Brotli bytes, sha256=e0cb3eb5fa24
+  Build do repo com vite 8.2.4 (mesma fonte):
+    PASS assets/index-C05BJ1eg.js: 219697 minified, 69086 gzip, 60024 Brotli bytes, sha256=358633588df7
+    Initial graph (9 chunks): 451299 minified, 149058 gzip, 131218 Brotli bytes, sha256=e0cb3eb5fa24
+
+  => saida BYTE-IDENTICA (mesmo nome de arquivo, mesmo sha256). O patch vite 8.2.2->8.2.4 NAO
+     produz nenhuma diferenca no bundle deste projeto. A HIPOTESE DO ENUNCIADO ESTA REFUTADA.
+
+## 3. Bissetagem da fonte (mesmo sandbox, fonte trocada via `git archive`)
+$ bash .artifacts/bughunt-a/bisect-source.sh   (log: .artifacts/bughunt-a/bisect-source.txt)
+
+### ARM WIP ATUAL (arvore de trabalho, com WIP alheio)
+    PASS assets/index-C05BJ1eg.js: 219697 minified, 69086 gzip, 60024 Brotli bytes, sha256=358633588df7
+    Initial graph (9 chunks): 451299 minified, 149058 gzip, 131218 Brotli bytes, sha256=e0cb3eb5fa24
+### ARM HEAD 363eb43 (committed, sem WIP)
+    PASS assets/index-DzNa_26_.js: 219682 minified, 69077 gzip, 59955 Brotli bytes, sha256=01eeb59e66fb
+    Initial graph (9 chunks): 451284 minified, 149049 gzip, 131149 Brotli bytes, sha256=0ed3d0e22dee
+### ARM f9a179a (fix observability CSP shape)
+    PASS assets/index-DzNa_26_.js: 219682 minified, 69077 gzip, 59955 Brotli bytes, sha256=01eeb59e66fb
+    Initial graph (9 chunks): 451284 minified, 149049 gzip, 131149 Brotli bytes, sha256=0ed3d0e22dee
+### ARM 5260b34 (commit da Onda 1 / L975)
+    PASS assets/index-DzNa_26_.js: 219682 minified, 69077 gzip, 59955 Brotli bytes, sha256=01eeb59e66fb
+    Initial graph (9 chunks): 451284 minified, 149049 gzip, 131149 Brotli bytes, sha256=0ed3d0e22dee
+
+=> O tamanho de 219.682 B (baseline) e reproduzido por QUALQUER commit da linha; o +15 B so
+   aparece na arvore de trabalho COM O WIP ALHEIO (nao commitado). Nenhum commit posterior a
+   5260b34 introduz o delta.
+
+## 4. Onde estao os 15 bytes (diff byte-a-byte dos dois entry chunks)
+$ node .artifacts/bughunt-a/entry-diff.mjs   (log: .artifacts/bughunt-a/entry-diff.txt)
+A (HEAD/Onda 1): .artifacts/bughunt-a/entry-head.js -> 219682 B
+B (WIP atual)  : .artifacts/bughunt-a/entry-wip.js -> 219697 B
+delta de bytes : 15
+
+Diff por token dos dois entry (42 hunks): 41 hunks sao **renomeacao de hash de chunk**
+(ex.: `route-CPBBviM0.js` -> `route-DAk8JYAM.js`, `sonner-BPU1wm4O.js` -> `sonner-D89cxXzt.js`,
+`composite-Ju9DJKC4.js` -> `composite-BtT0TxcC.js`, `dist-KdOCoUZl.js` -> `dist-BvApcwu5.js`,
+`DialogTrigger-82ixP6gi.js` -> `DialogTrigger-D9-nvsk4.js`, ... + 1 CSS) — todos de **comprimento
+identico** (hashes de 8 chars). O unico hunk com delta real e a **tabela de exportacao do
+entry**, onde o minificador reatribuiu os nomes:
+
+  HEAD: export{At as $,Ut as A,Qe as B,vt as C,gt as D,nt as E,xt as F,E as G,Yt as H,...}
+  WIP : export{rt as $,St as A,at as B,It as C,nt as D,Bt as E,mt as F,_t as G,Wt as H,...}
+
+  O conjunto de exportacoes e IDENTICO; muda so **qual identificador minificado** cada export
+  recebe. Como a atribuicao de nomes do minificador depende da frequencia global dos
+  identificadores no bundle, e 19 chunks lazy + 1 CSS mudaram de conteudo com o WIP, a tabela
+  saiu 15 bytes maior no total (nomes de comprimento diferente).
+
+=> CONCLUSAO: o +15 B **nao e payload novo** e **nao e o patch do vite**. E churn de
+   identificadores minificados, provocado pelas alteracoes de fonte do WIP nao commitado.
+   O numero canonico do build atual e 451.299 B (entry 219.697 B, gzip 149.058 B) e ele esta
+   48.701 B (9,74%) abaixo do teto de 500.000 B.
+
+LIMITE DECLARADO: o sandbox usou `git archive` (leitura) e uma copia da arvore de trabalho; a
+arvore do repo nao foi tocada (nenhum checkout/reset/stash/commit). O node_modules do repo
+permaneceu em vite 8.2.4 e o `.output/` do repo nao foi rebuildado durante o teste.

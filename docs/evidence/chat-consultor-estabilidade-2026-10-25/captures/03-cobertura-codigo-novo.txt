@@ -1,0 +1,13 @@
+# Cobertura do código novo (medição final)
+
+Comando: npx vitest run <4 arquivos de teste de chat> --coverage --coverage.reportsDirectory=/tmp/coverage-review-final
+
+```
+ ✓ src/test/consultor-chat-dock.test.tsx (3 tests) 979ms
+ ✓ src/test/consultor-chat-dock-failure.test.tsx (1 test) 499ms
+All files          |   85.99 |    82.64 |   84.15 |   86.45 |                   
+  ...or-avatar.tsx |     100 |      100 |     100 |     100 |                   
+  ...chat-dock.tsx |     100 |      100 |     100 |     100 |                   
+  ...ltor-chat.tsx |   90.29 |    83.58 |   96.66 |   92.13 | ...94,210,386-387 
+  ...or-persona.ts |     100 |      100 |     100 |     100 |                   
+```

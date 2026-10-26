@@ -1,0 +1,30 @@
+# Gate local completo final (npm run check) — exit 0
+
+Comando: npm run check
+
+## Resumo medido (cadeia inteira do check, worktree develop)
+
+```
+ Test Files  161 passed | 2 skipped (163)
+      Tests  2413 passed | 30 skipped (2443)
+PASS assets/index-BhXXm8Yj.js: 217925 minified, 68894 gzip, 59917 Brotli bytes, sha256=7707ceaeaa9f
+Initial graph (11 chunks): 486738 minified, 159587 gzip, 140556 Brotli bytes, sha256=cff92708e323
+check exit=0
+```
+
+## Últimos passos da cadeia (build + bundle)
+
+```
+.output/server/_libs/@grpc/grpc-js+[...].mjs                               904.09 kB │ gzip: 182.41 kB
+
+✓ built in 1.46s
+ℹ Generated .output/nitro.json
+
+[nitro] ✔ You can preview this build using npx vite preview
+
+> check:bundle
+> node scripts/check-bundle.mjs
+
+PASS assets/index-BhXXm8Yj.js: 217925 minified, 68894 gzip, 59917 Brotli bytes, sha256=7707ceaeaa9f
+Initial graph (11 chunks): 486738 minified, 159587 gzip, 140556 Brotli bytes, sha256=cff92708e323
+```

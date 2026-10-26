@@ -30,6 +30,8 @@ um silêncio. Em 2026-10-17 o catálogo anterior conhecia **1** sítio e o clien
 | papel                | caminho                                                      | formato                                            |
 | -------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
 | primário (pi)        | `~/.config/mcp/mcp.json`                                     | `mcpServers`                                       |
+| compatibilidade      | `~/.agents/mcp.json`                                         | `mcpServers`                                       |
+| compatibilidade      | `~/.agents/mcp/mcp.json`                                     | `mcpServers`                                       |
 | **primário-cline**   | `~/.cline/data/settings/cline_mcp_settings.json`             | `mcpServers` + `transport` aninhado                |
 | primário-pi          | `~/.pi/agent/mcp-adapter.json`                               | `mcpServers`                                       |
 | compatibilidade-pi   | `~/.pi/agent/mcp.json`                                       | `mcpServers`                                       |
@@ -37,6 +39,13 @@ um silêncio. Em 2026-10-17 o catálogo anterior conhecia **1** sítio e o clien
 | plugin-codex         | `~/.config/Codex/executor-plugins/codex-app-tools/.mcp.json` | `mcpServers`                                       |
 | outro-cliente-medido | `~/.config/opencode/opencode.json`                           | `mcp.servers` (**`command` em array**)             |
 | outro-cliente-medido | `~/.gemini/config/mcp_config.json`                           | `mcpServers` (0 byte em 2026-10-17 → pré-condição) |
+| outro-cliente        | `~/.dsh/bundles/kimi-mcp/cordis.patch.yml`                   | YAML textual (`command:`/`cwd:`)                   |
+
+São **11 sítios de máquina**, e o catálogo é **igualdade de conjunto**:
+`src/test/mcp-runtime-guard.test.ts` fixa a lista exata de caminhos, então
+remover ou renomear um sítio reprova o teste e adicionar um sítio exige
+atualizar a lista de propósito. O escopo-repositório tem **2 sítios**
+(`.mcp.json` e `.pi/mcp-adapter.json`), igualmente fixados por asserção.
 
 O **runtime isolado** `~/.mcp-runtime/` não é config, mas é pré-condição do passo 3: se ele não existir, o
 reparo não tem para onde apontar `cwd`. Ele **pode sumir sem que nada acuse** (medido em 2026-10-17), então
@@ -60,7 +69,7 @@ Os servidores são processos filhos do cliente, e a configuração é lida **na 
 
 - [ ] `git status --porcelain` limpo **ou** o motivo da sujeira conhecido (o relançamento não é o lugar de descobrir drift).
 - [ ] `npm run m02:lockfile-guard` verde. Um relançamento com a árvore já driftada não distingue causa nova de causa antiga.
-- [ ] `node scripts/mcp-runtime-guard.ts --home` **executado e lido** antes do relançamento (ver Verificação).
+- [ ] `npm run guard:mcp-runtime -- --home` **executado e lido** antes do relançamento (ver Verificação).
 - [ ] Backup datado da configuração viva: `cp ~/.config/mcp/mcp.json ~/.config/mcp/mcp.json.bak-<AAAAMMDDTHHMMSSZ>`.
 - [ ] Nenhum segredo é digitado, colado ou lido neste procedimento. Se um passo exigir isso, o passo está errado.
 
@@ -80,6 +89,8 @@ Os servidores são processos filhos do cliente, e a configuração é lida **na 
    - preferir o caminho absoluto do binário já instalado (`~/.mcp-runtime/node_modules/.bin/<pacote>`) a um runner — é o que o ciclo 13 fez no arquivo que **não** era lido, e é o que o reparo de 2026-10-17 fez no arquivo que **era** lido. A forma preferida elimina o runner: sem runner não há resolução de projeto, logo a classe inteira do DBT-32 sai do caminho.
 
    **Caso medido (2026-10-17), para reconhecer o sintoma:** um _pin correto_ não imuniza a linha. O `aikido` do Cline declarava `@aikidosec/mcp@1.0.9` — versão exata — e **não carregava**, por duas razões somadas: (a) a entrada de cache do npx perdeu o `package.json` (o cliente registrou `code=254` e `npm error ENOENT … /home/douglas/.npm/_npx/9a60de26ed7bbd1b/package.json`), e (b) a linha não declarava `cwd`. Se o cliente disser _"failed to initialize"_ com `code=254`/`ENOENT` num diretório `_npx/`, o cache daquele pacote está quebrado: **não** "conserte" o cache (ele é descartável e o defeito volta), troque a linha pela forma com binário absoluto e deixe o cache privatizado/limpo.
+
+   **O que o guard vê desse caso — e o que ele não vê.** A guarda audita a **linha de configuração**; ela **não inspeciona o cache do npx**. A linha nomeia um _pacote_ (`npx -y <pkg>@<versão>`), nunca o diretório de cache que o npm vai resolver em runtime — o par (spec → `~/.npm/_npx/<hash>`) é interno do npm e não é contrato. Por isso o sintoma do `code=254`/`ENOENT` aparece **no log do cliente**, e não no veredito do guard. A única forma de o guard ver esse cache é a configuração **nomear** o cache — e isso é reportado: uma linha cujo `cwd` aponta para um diretório `…/.npm/_npx/…` que existe e **não tem `package.json`** é acusada (`cache do npx … não tem package.json`), porque é o caso em que a própria configuração aponta para o cache quebrado. Não existe, e não vai existir, um check que "classifique como saudável" um cache que a configuração não nomeia: a guarda não inventa veredito sobre estado que ela não alcança.
 
 4. **Tirar segredo literal do arquivo.** Um valor literal em `env`, em `headers` ou em `metadata` é uma credencial em texto claro num arquivo que não está sob versionamento nem auditoria. O caminho correto é o _sidecar_ de injeção (`scripts/secret-sidecar/`, F14-1): o arquivo referencia, o sidecar resolve. Se o sidecar ainda não existe, **não improvise** uma forma alternativa de guardar o segredo — registre como pendência e mantenha a rotação na fila. Duas exceções medidas nesta máquina ficam **declaradas, não resolvidas**: o cabeçalho do gateway Docker é literal porque o cliente não expande `${VAR}` em `headers` (a contenção é permissão `700`/`600`), e a chave do `context7` é duplicata do servidor que o gateway já serve — removê-la é decisão do dono.
 
@@ -115,11 +126,11 @@ que faz um gate ser desligado na primeira semana.
 
 Códigos de saída — diferentes de propósito, porque "não consegui olhar" e "olhei e está sujo" não são o mesmo veredito:
 
-| exit | significado                                                                                                                 |
-| ---- | --------------------------------------------------------------------------------------------------------------------------- |
-| `0`  | limpo                                                                                                                       |
-| `1`  | violação encontrada (runner sem pin, sem `cwd` ou com `cwd` em checkout, caminho relativo como comando, credencial literal) |
-| `2`  | **precondição**: alvo ausente, JSON ilegível, `mcpServers`/`mcp.servers` vazio ou ausente                                   |
+| exit | significado                                                                                                                                                           |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | limpo                                                                                                                                                                 |
+| `1`  | violação encontrada (runner sem pin, sem `cwd` ou com `cwd` em checkout, `cwd` no cache do npx sem `package.json`, caminho relativo como comando, credencial literal) |
+| `2`  | **precondição**: alvo ausente, JSON ilegível, `mcpServers`/`mcp.servers` vazio ou ausente                                                                             |
 
 ### Regras que o guard aplica (2026-10-17)
 
@@ -137,9 +148,21 @@ Códigos de saída — diferentes de propósito, porque "não consegui olhar" e 
    recortado, entra em stdout, stderr, log ou evidência — há teste dedicado para essa propriedade
    (`src/test/mcp-runtime-guard.test.ts`), porque uma guarda de segredo que imprime o segredo é um vetor,
    não uma guarda.
+5. **O catálogo é igualdade de conjunto.** 11 sítios de máquina e 2 de repositório, fixados por
+   asserção de lista exata: remover ou renomear um sítio reprova o teste, e adicionar um sítio exige
+   atualizar a lista de propósito. A medição que motivou isso: com a asserção anterior
+   (`length >= 8`), até **três** sítios podiam sumir sem reprovar — e foi exatamente por um sítio
+   ausente que o cliente que de fato carregava MCP passou com defeito.
 
 ### Limites declarados do guard
 
+- **O guard audita a LINHA DE CONFIG, não o cache do npx.** A linha de configuração nomeia um pacote, e
+  não o diretório `~/.npm/_npx/<hash>` que o npm resolve em runtime (esse par é interno do npm). O
+  sintoma de cache quebrado (`code=254` / `ENOENT … package.json`) é visível **no log do cliente** e
+  não no veredito do guard. O que a guarda consegue ver — e reporta — é o caso em que a **própria
+  configuração** aponta para o cache: `cwd` dentro de `…/.npm/_npx/…` cujo diretório existe e não tem
+  `package.json` é acusado como achado. O remedy é o mesmo dos demais casos: binário absoluto em um
+  runtime fora de qualquer checkout (sem runner, sem cache, sem resolução de projeto).
 - **Piso de 12 bytes para a detecção por nome.** Abaixo dele, um valor sob nome de credencial não é
   acusado _pelo nome_ (o piso existe para não reprovar rótulo; a detecção por entropia continua valendo,
   sem piso). Uma credencial real menor que isto passaria.

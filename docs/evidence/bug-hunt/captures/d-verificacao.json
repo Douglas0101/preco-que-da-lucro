@@ -1,0 +1,62 @@
+[
+  {
+    "caso": "chromium (1) botao de periodo: foco apos Space",
+    "observado": "antes={\"focoAntes\":\"BUTTON/Trimestre\",\"pressed\":\"false\",\"mesmoNo\":true} | depois={\"focoDepois\":\"BODY (foco perdido)\",\"pressed\":\"true\",\"noFoiSubstituido\":false,\"marcadoAindaNoFoco\":false}"
+  },
+  {
+    "caso": "chromium (1b) botao de periodo: foco apos clique do mouse",
+    "observado": "{\"focoDepois\":\"BODY (foco perdido)\",\"pressed\":\"true\"}"
+  },
+  {
+    "caso": "chromium (2) Enter no campo do AlertDialog",
+    "observado": "formNoDialogo=0 | botaoSalvarDisabled=true | toastsAntes=0 | depois={\"dialogAberto\":1,\"toasts\":[],\"foco\":\"INPUT#ing-nome:\"}"
+  },
+  {
+    "caso": "chromium (2b) CONTROLE: clique no botao Salvar ingrediente",
+    "observado": "toasts=[\"Ingrediente adicionado.\"] | dialogAberto=0"
+  },
+  {
+    "caso": "chromium (3) inputs ocultos do Base UI",
+    "observado": "[{\"id\":\"base-ui-_r_2_-hidden-input\",\"type\":null,\"ariaHidden\":\"true\",\"tabIndex\":\"-1\",\"w\":1,\"h\":1,\"display\":\"block\",\"visibility\":\"visible\",\"clip\":\"auto\",\"parentAriaHidden\":null}]"
+  },
+  {
+    "caso": "firefox (1) botao de periodo: foco apos Space",
+    "observado": "antes={\"focoAntes\":\"BUTTON/Trimestre\",\"pressed\":\"false\",\"mesmoNo\":true} | depois={\"focoDepois\":\"BODY (foco perdido)\",\"pressed\":\"true\",\"noFoiSubstituido\":false,\"marcadoAindaNoFoco\":false}"
+  },
+  {
+    "caso": "firefox (1b) botao de periodo: foco apos clique do mouse",
+    "observado": "{\"focoDepois\":\"BODY (foco perdido)\",\"pressed\":\"true\"}"
+  },
+  {
+    "caso": "firefox (2) Enter no campo do AlertDialog",
+    "observado": "formNoDialogo=0 | botaoSalvarDisabled=true | toastsAntes=0 | depois={\"dialogAberto\":1,\"toasts\":[],\"foco\":\"INPUT#ing-nome:\"}"
+  },
+  {
+    "caso": "firefox (2b) CONTROLE: clique no botao Salvar ingrediente",
+    "observado": "toasts=[\"Ingrediente adicionado.\"] | dialogAberto=0"
+  },
+  {
+    "caso": "firefox (3) inputs ocultos do Base UI",
+    "observado": "[{\"id\":\"base-ui-_r_2_-hidden-input\",\"type\":null,\"ariaHidden\":\"true\",\"tabIndex\":\"-1\",\"w\":1,\"h\":1,\"display\":\"block\",\"visibility\":\"visible\",\"clip\":\"auto\",\"parentAriaHidden\":null}]"
+  },
+  {
+    "caso": "webkit (1) botao de periodo: foco apos Space",
+    "observado": "antes={\"focoAntes\":\"BUTTON/Trimestre\",\"pressed\":\"false\",\"mesmoNo\":true} | depois={\"focoDepois\":\"BODY (foco perdido)\",\"pressed\":\"true\",\"noFoiSubstituido\":false,\"marcadoAindaNoFoco\":false}"
+  },
+  {
+    "caso": "webkit (1b) botao de periodo: foco apos clique do mouse",
+    "observado": "{\"focoDepois\":\"BODY (foco perdido)\",\"pressed\":\"true\"}"
+  },
+  {
+    "caso": "webkit (2) Enter no campo do AlertDialog",
+    "observado": "formNoDialogo=0 | botaoSalvarDisabled=true | toastsAntes=0 | depois={\"dialogAberto\":1,\"toasts\":[],\"foco\":\"INPUT#ing-nome:\"}"
+  },
+  {
+    "caso": "webkit (2b) CONTROLE: clique no botao Salvar ingrediente",
+    "observado": "toasts=[\"Ingrediente adicionado.\"] | dialogAberto=0"
+  },
+  {
+    "caso": "webkit (3) inputs ocultos do Base UI",
+    "observado": "[{\"id\":\"base-ui-_r_2_-hidden-input\",\"type\":null,\"ariaHidden\":\"true\",\"tabIndex\":\"-1\",\"w\":1,\"h\":1,\"display\":\"block\",\"visibility\":\"visible\",\"clip\":\"auto\",\"parentAriaHidden\":null}]"
+  }
+]

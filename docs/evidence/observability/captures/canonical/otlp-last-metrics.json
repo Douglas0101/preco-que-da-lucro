@@ -1,0 +1,356 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "unknown_service:/home/douglas/.opencode/bin/opencode"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "nodejs"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "2.10.0"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "opencode.observability",
+            "version": "1.0.0"
+          },
+          "metrics": [
+            {
+              "name": "opencode.tool.calls",
+              "description": "Chamadas de ferramenta do OpenCode, por nome e status",
+              "unit": "",
+              "sum": {
+                "aggregationTemporality": 2,
+                "isMonotonic": true,
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "tool",
+                        "value": {
+                          "stringValue": "shell"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "completed"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712826564000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 12
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "tool",
+                        "value": {
+                          "stringValue": "edit"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "completed"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712952233000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 5
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "tool",
+                        "value": {
+                          "stringValue": "write"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "completed"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792713603345000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 2
+                  }
+                ]
+              }
+            },
+            {
+              "name": "opencode.tool.duration",
+              "description": "Duração das chamadas de ferramenta",
+              "unit": "ms",
+              "histogram": {
+                "aggregationTemporality": 2,
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "tool",
+                        "value": {
+                          "stringValue": "shell"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "completed"
+                        }
+                      }
+                    ],
+                    "bucketCounts": [0, 0, 0, 2, 1, 0, 0, 0, 4, 2, 0, 1, 0, 0, 1, 0],
+                    "explicitBounds": [
+                      0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000
+                    ],
+                    "count": 11,
+                    "sum": 12890,
+                    "min": 23,
+                    "max": 8371,
+                    "startTimeUnixNano": "1792712924928000000",
+                    "timeUnixNano": "1792713762743000000"
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "tool",
+                        "value": {
+                          "stringValue": "edit"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "completed"
+                        }
+                      }
+                    ],
+                    "bucketCounts": [0, 2, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "explicitBounds": [
+                      0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000
+                    ],
+                    "count": 5,
+                    "sum": 58,
+                    "min": 3,
+                    "max": 38,
+                    "startTimeUnixNano": "1792712952233000000",
+                    "timeUnixNano": "1792713762743000000"
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "tool",
+                        "value": {
+                          "stringValue": "write"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "completed"
+                        }
+                      }
+                    ],
+                    "bucketCounts": [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "explicitBounds": [
+                      0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000
+                    ],
+                    "count": 2,
+                    "sum": 10,
+                    "min": 5,
+                    "max": 5,
+                    "startTimeUnixNano": "1792713603345000000",
+                    "timeUnixNano": "1792713762743000000"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "opencode.llm.tokens",
+              "description": "Tokens consumidos por tipo, derivados de session.step.ended",
+              "unit": "",
+              "sum": {
+                "aggregationTemporality": 2,
+                "isMonotonic": true,
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "type",
+                        "value": {
+                          "stringValue": "input"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712826704000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 19340
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "type",
+                        "value": {
+                          "stringValue": "output"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712826704000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 8717
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "type",
+                        "value": {
+                          "stringValue": "reasoning"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712826704000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 8301
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "type",
+                        "value": {
+                          "stringValue": "cache_read"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712826704000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 11386752
+                  }
+                ]
+              }
+            },
+            {
+              "name": "opencode.llm.cost_usd",
+              "description": "Custo estimado em USD, derivado de session.step.ended",
+              "unit": "",
+              "sum": {
+                "aggregationTemporality": 2,
+                "isMonotonic": true,
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "currency",
+                        "value": {
+                          "stringValue": "USD"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712826704000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 0.047272055999999986
+                  }
+                ]
+              }
+            },
+            {
+              "name": "opencode.mcp.status.changes",
+              "description": "Mudanças de status de servidores MCP",
+              "unit": "",
+              "sum": {
+                "aggregationTemporality": 2,
+                "isMonotonic": true,
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "server",
+                        "value": {
+                          "stringValue": "mock-offline"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "pending"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792713500886000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 1
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "server",
+                        "value": {
+                          "stringValue": "mock-offline"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "failed"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792713500894000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 1
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "server",
+                        "value": {
+                          "stringValue": "mock-offline"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "unknown"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792713505968000000",
+                    "timeUnixNano": "1792713762743000000",
+                    "asDouble": 1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

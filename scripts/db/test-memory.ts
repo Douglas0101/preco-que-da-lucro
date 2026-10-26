@@ -119,8 +119,39 @@ const MEMORY_D3_MIGRATION_DOWN = "0018_to_0017_down.sql";
 /** Tag do degrau D4 (delete/export + access log + TTL por camada) e seu down. */
 const MEMORY_D4_MIGRATION_TAG = "0019_tiresome_robin_chapel";
 const MEMORY_D4_MIGRATION_DOWN = "0019_to_0018_down.sql";
-/** A cadeia completa do journal (0000…0019) aplicada do zero. */
-const EXPECTED_JOURNAL_COUNT = "20";
+/** A cadeia completa do journal (0000…head) aplicada do zero. Derivada do
+ * próprio journal para não envelhecer a cada migration nova. */
+async function expectedJournalCount(): Promise<string> {
+  const journal = JSON.parse(await readFile(resolve("drizzle/meta/_journal.json"), "utf8")) as {
+    entries: unknown[];
+  };
+  return String(journal.entries.length);
+}
+
+/**
+ * Aplica, de cima para baixo, os downs das migrations POSTERIORES a 0019.
+ *
+ * O caso D4/T4 prova o down da 0019 **com dados**; quando uma migration nova
+ * entra no topo, o journal aponta para ela e desfazer só a 0019 deixaria o
+ * schema e o journal dessincronizados. Derivar do journal mantém a prova
+ * correta sem reescrevê-la a cada degrau novo.
+ */
+async function rollbackMigrationsAboveD4(client: PoolClient): Promise<number> {
+  const journal = JSON.parse(await readFile(resolve("drizzle/meta/_journal.json"), "utf8")) as {
+    entries: { tag: string }[];
+  };
+  const index = journal.entries.findIndex((entry) => entry.tag === MEMORY_D4_MIGRATION_TAG);
+  assert.ok(index >= 0, `tag ${MEMORY_D4_MIGRATION_TAG} ausente do journal`);
+  const above = journal.entries.slice(index + 1).reverse();
+  for (const entry of above) {
+    const position = journal.entries.findIndex((candidate) => candidate.tag === entry.tag);
+    const previous = journal.entries[position - 1];
+    assert.ok(previous, `migration anterior ausente para ${entry.tag}`);
+    const down = `${entry.tag.slice(0, 4)}_to_${previous.tag.slice(0, 4)}_down.sql`;
+    await client.query(await readFile(resolve("drizzle/rollback", down), "utf8"));
+  }
+  return above.length;
+}
 
 /** Segunda conversa do tenant A: prova que o discriminador da chave separa duas
  * conversas com o mesmo conteúdo (senão uma sumiria como "duplicata"). O índice
@@ -2576,8 +2607,8 @@ async function d4T4MigrationWithData(pool: Pool): Promise<void> {
   );
   assert.equal(
     journal.rows[0]?.count,
-    EXPECTED_JOURNAL_COUNT,
-    "a cadeia 0000→0019 precisa estar aplicada do zero no banco descartável",
+    await expectedJournalCount(),
+    "a cadeia 0000→head precisa estar aplicada do zero no banco descartável",
   );
   const policies = await countRows(
     pool,
@@ -2602,9 +2633,12 @@ async function d4T4MigrationWithData(pool: Pool): Promise<void> {
   const downSql = await readFile(resolve("drizzle/rollback", MEMORY_D4_MIGRATION_DOWN), "utf8");
   const client = await pool.connect();
   try {
+    // Desfaz primeiro o que está ACIMA da 0019 (hoje 0020), depois a própria
+    // 0019; sem isto o journal continuaria apontando para a migration nova.
+    const rolledBackAbove = await rollbackMigrationsAboveD4(client);
     await client.query(downSql);
     await client.query(
-      "delete from drizzle.__drizzle_migrations where id in (select id from drizzle.__drizzle_migrations order by id desc limit 1)",
+      `delete from drizzle.__drizzle_migrations where id in (select id from drizzle.__drizzle_migrations order by id desc limit ${1 + rolledBackAbove})`,
     );
     const gone = await client.query<{ log: string | null; policies: string | null }>(
       `select to_regclass('public.ai_memory_access_log')::text as log,
@@ -2674,12 +2708,12 @@ async function d4T4MigrationWithData(pool: Pool): Promise<void> {
   );
   assert.equal(
     journalAfter.rows[0]?.count,
-    EXPECTED_JOURNAL_COUNT,
+    await expectedJournalCount(),
     "o journal volta ao tamanho da cadeia completa",
   );
 
   console.log(
-    "D4/T4 migration: cadeia 20/20 do zero + up→down→up da 0019 com dado preservado e políticas re-semeadas: OK",
+    `D4/T4 migration: cadeia ${await expectedJournalCount()}/head do zero + up→down→up da 0019 com dado preservado e políticas re-semeadas: OK`,
   );
 }
 

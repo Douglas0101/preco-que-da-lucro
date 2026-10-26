@@ -1,0 +1,39 @@
+# Dependência e escopo
+
+## package.json
+
+```
+diff --git a/package.json b/package.json
+index 6abf85d..f51badd 100644
+--- a/package.json
++++ b/package.json
+@@ -122,6 +122,7 @@
+     "decimal.js": "10.6.0",
+     "drizzle-orm": "^0.45.2",
+     "lucide-react": "^0.575.0",
++    "motion": "^12.43.0",
+     "pg": "^8.23.0",
+     "react": "^19.2.0",
+     "react-dom": "^19.2.0",
+```
+
+## package-lock (resumo: só a árvore motion entrou; nada de bump colateral)
+
+```
+ package-lock.json | 72 +++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 70 insertions(+), 2 deletions(-)
++        "motion": "^12.43.0",
++        "motion-dom": "^12.43.0",
++        "motion-utils": "^12.39.0",
++        "framer-motion": "^12.43.0",
++        "motion-utils": "^12.39.0"
+```
+
+## Arquivos novos/alterados nesta mudança
+
+```
+ M package-lock.json
+ M package.json
+?? src/components/consultor-chat.tsx
+?? src/lib/message-animations.ts
+```

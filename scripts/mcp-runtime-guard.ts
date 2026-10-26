@@ -25,6 +25,16 @@
 //                 entra em gate nenhum: um gate de repositorio que depende do
 //                 $HOME reprova o CI por causa da maquina de quem contribui.
 //
+// O QUE ESTA GUARDA NAO VE (declarado, para nao haver leitura errada do
+// veredito):
+//   O cache do `npx`. A linha de config nomeia um PACOTE, nunca o diretorio de
+//   cache que o npm vai resolver em runtime — o par (spec -> `~/.npm/_npx/
+//   <hash>`) e interno do npm e nao e contrato. A consequencia e que o
+//   sintoma medido em 2026-10-17 (`npm error ENOENT .../_npx/<hash>/
+//   package.json`, `code=254` no cliente) so aparece no LOG DO CLIENTE. O que
+//   a guarda PODE ver, e so, e o caso em que a propria config aponta para o
+//   cache — ver `isNpxCachePath` / `npxCacheManifestMissing`.
+//
 // Uso: tsx scripts/mcp-runtime-guard.ts [--home] [--json] [--cwd <dir>]
 // Exit: 0 = limpo · 1 = violacao · 2 = precondicao (alvo ilegivel/ausente)
 
@@ -180,6 +190,34 @@ export function insideWorkTree(dir: string): boolean {
 }
 
 /**
+ * `true` quando o caminho aponta para o cache que o `npx` cria por
+ * combinacao de pacote (`~/.npm/_npx/<hash>`).
+ *
+ * O layout e do npm e nao e contrato publico — por isso esta funcao e
+ * CONSERVADORA: ela reconhece o caminho pelo par de segmentos (`.npm`, `_npx`)
+ * e nao presume hash, versao nem estrutura interna. Um caminho que nao tenha
+ * esse par nao e julgado aqui: a guarda nao inventa um veredito sobre o cache
+ * que ela nao ve.
+ */
+export function isNpxCachePath(value: string): boolean {
+  const segmentos = value.split(/[\\/]+/).filter((s) => s.length > 0);
+  return segmentos.includes(".npm") && segmentos.includes("_npx");
+}
+
+/**
+ * `true` quando o diretorio EXISTE e nao tem `package.json` na raiz.
+ *
+ * E o sintoma medido em 2026-10-17 (`npm error ENOENT .../_npx/<hash>/
+ * package.json`): a entrada de cache perdeu o manifesto e o runner nao
+ * carrega. So e verdade quando o diretorio existe — um `cwd` apontando para
+ * um cache que ainda nao foi criado nao e um cache quebrado.
+ */
+export function npxCacheManifestMissing(dir: string): boolean {
+  if (!existsSync(dir)) return false;
+  return !existsSync(join(dir, "package.json"));
+}
+
+/**
  * Heuristica de valor literal de segredo. Deliberadamente conservadora: entre
  * nao acusar e acusar, acusa — porque o custo de um falso positivo aqui e uma
  * linha de configuracao para reescrever, e o custo de um falso negativo e uma
@@ -330,6 +368,17 @@ export function auditRunnerRow({
       findings.push(
         `${label}: linha \`${name}\` aponta \`cwd\` para dentro de uma arvore de trabalho git (${cwd}) — ` +
           `o runtime tem de ficar fora de qualquer checkout`,
+      );
+    } else if (isNpxCachePath(cwd) && npxCacheManifestMissing(cwd)) {
+      // O cache do npx SEM manifesto e o sintoma medido em 2026-10-17
+      // (`code=254` / `ENOENT .../_npx/<hash>/package.json`): o runner resolve
+      // um cache quebrado e nao carrega. Aqui a propria config nomeia o cache,
+      // entao a guarda pode ver — e o que ela nao ve (a resolucao interna do
+      // npm para `npx -y <pkg>`) esta declarado no cabecalho e no runbook.
+      findings.push(
+        `${label}: linha \`${name}\` aponta \`cwd\` para o cache do npx (${cwd}) e esse cache nao tem ` +
+          `\`package.json\` — o runner vai falhar com ENOENT/code=254; use o binario absoluto ` +
+          `instalado em um runtime fora de qualquer checkout`,
       );
     }
   }

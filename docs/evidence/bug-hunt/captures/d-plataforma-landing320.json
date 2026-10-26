@@ -1,0 +1,68 @@
+[
+  {
+    "engine": "chromium",
+    "viewport": "320x400",
+    "route": "/",
+    "scrollW": 331,
+    "clientW": 320,
+    "hOverflow": true,
+    "fora": [],
+    "h1": "Entenda a faixa de preço do seu produto conversando.",
+    "bodyLen": 622
+  },
+  {
+    "engine": "chromium",
+    "viewport": "320x400",
+    "route": "/auth",
+    "scrollW": 320,
+    "clientW": 320,
+    "hOverflow": false,
+    "fora": [],
+    "h1": "Entenda a faixa de preço do seu produto conversando.",
+    "bodyLen": 340
+  },
+  {
+    "engine": "firefox",
+    "viewport": "320x400",
+    "route": "/",
+    "scrollW": 331,
+    "clientW": 320,
+    "hOverflow": true,
+    "fora": [],
+    "h1": "Entenda a faixa de preço do seu produto conversando.",
+    "bodyLen": 622
+  },
+  {
+    "engine": "firefox",
+    "viewport": "320x400",
+    "route": "/auth",
+    "scrollW": 320,
+    "clientW": 320,
+    "hOverflow": false,
+    "fora": [],
+    "h1": "Entenda a faixa de preço do seu produto conversando.",
+    "bodyLen": 340
+  },
+  {
+    "engine": "webkit",
+    "viewport": "320x400",
+    "route": "/",
+    "scrollW": 331,
+    "clientW": 320,
+    "hOverflow": true,
+    "fora": [],
+    "h1": "Entenda a faixa de preço do seu produto conversando.",
+    "bodyLen": 622
+  },
+  {
+    "engine": "webkit",
+    "viewport": "320x400",
+    "route": "/auth",
+    "scrollW": 320,
+    "clientW": 320,
+    "hOverflow": false,
+    "fora": [],
+    "h1": "Entenda a faixa de preço do seu produto conversando.",
+    "bodyLen": 343
+  }
+]

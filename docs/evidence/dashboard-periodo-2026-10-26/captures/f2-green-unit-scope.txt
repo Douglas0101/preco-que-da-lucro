@@ -1,0 +1,62 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas/WebstormProjects/preco-que-da-lucro[39m
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToAcknowledge.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:27:03.158Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":2,"timeToFirstContentMs":3,"timeToFinalMs":3}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToAcknowledge.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:27:03.158Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFirstContent.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:27:03.160Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFirstContent.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:27:03.160Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFinal.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:27:03.162Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFinal.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:27:03.162Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mtool-runner.ts: toolDuration nos três caminhos[2m > [22m[2mfalha: AI_TIMEOUT não é substituído pelo erro da métrica
+[22m[39m{"timestamp":"2026-10-26T03:27:03.172Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mstart.ts: os três caminhos de requestDuration
+[22m[39m{"timestamp":"2026-10-26T03:27:03.173Z","level":"info","event":"request.completed","correlationId":"28770514-51da-42c1-8e9b-a58925d2e12e","method":"GET","pathname":"/produtos","status":200,"durationMs":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mstart.ts: os três caminhos de requestDuration
+[22m[39m{"timestamp":"2026-10-26T03:27:03.174Z","level":"error","event":"request.failed","correlationId":"c76bc8c3-ce43-4e9a-bfb2-d30147807558","code":"INTERNAL_ERROR","method":"GET","pathname":"/produtos","durationMs":0,"error":{"name":"Error","message":"db exploded"}}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mchat.functions.ts: aiDuration
+[22m[39m{"timestamp":"2026-10-26T03:27:03.176Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mchat-execution.server.ts: as três fases do §29
+[22m[39m{"timestamp":"2026-10-26T03:27:03.177Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mchat-execution.server.ts: as três fases do §29
+[22m[39m{"timestamp":"2026-10-26T03:27:03.177Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mtool-runner.ts: toolDuration nos três caminhos
+[22m[39m{"timestamp":"2026-10-26T03:27:03.179Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+
+ [32m✓[39m src/test/safe-record.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 61[2mms[22m[39m
+ [32m✓[39m src/test/dashboard.service.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m src/test/financial-metrics.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m src/test/observability-spans.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/test/sales.service.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/inicio-loader.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/period-window.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/test/dashboard-summary-guard.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m81 passed[39m[22m[90m (81)[39m
+[2m   Start at [22m 03:27:00
+[2m   Duration [22m 10.85s[2m (transform 771ms, setup 712ms, import 4.57s, tests 150ms, environment 4.49s)[22m
+
+
+exit=0
+HEAD=ec0ed77ee963dec3705275cb4b09d08030dc6499
+a2efa08261786991545fdf9ea6f6dd819e81e0d7e8ffef48e64e99201ff7093a  src/lib/period-window.ts
+aa46da516fe60a3643c58ca859f05fe1db6a8814a56364f0ff8e4509a1c613d8  src/server/services/dashboard.service.ts
+a0688b653dc41624b2ce36922918b5fe6ea4454ace7fb5a74fec730d8ef59d26  src/server/repositories/sales.repository.ts

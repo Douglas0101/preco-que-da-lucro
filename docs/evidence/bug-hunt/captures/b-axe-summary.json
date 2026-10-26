@@ -1,0 +1,630 @@
+{
+  "geradoEm": "2026-10-21",
+  "agente": "B",
+  "baseURL": "http://127.0.0.1:4175",
+  "escopo": "6 rotas x 3 engines x 2 temas = 36 varreduras axe-core",
+  "tags": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
+  "mecanismoTema": {
+    "light": "padrao (sem classe `dark`); tokens de :root",
+    "dark": "classe `dark` no <html> — MEDIDO: `prefers-color-scheme: dark` nao altera token algum (probe-theme.mjs)",
+    "reducedMotion": "emulateMedia({reducedMotion:'reduce'}) + espera das animacoes finitas (padrao DBT-126)",
+    "assentamento": "settleStable: reavalia `document.getAnimations()` ate nao haver transicao em running (o WebKit mantem a cor antiga durante a transicao herdada de `color`)"
+  },
+  "prontidaoDaPagina": "espera pelo heading/role de cada rota antes do axe — sem isso a varredura roda sobre a pagina incompleta (erro proprio, ver ERROS MEUS)",
+  "totais": {
+    "varreduras": 36,
+    "violacoes": 3,
+    "blocking": 3,
+    "regrasAvaliadasPorVarredura": {
+      "min": 9,
+      "max": 22
+    },
+    "itensIncompletos": 6
+  },
+  "violacoes": [
+    {
+      "engine": "chromium",
+      "tema": "light",
+      "rota": "/produtos",
+      "regra": "color-contrast",
+      "impacto": "serious",
+      "seletorCSS": ".text-success",
+      "html": "<span class=\"text-success font-medium\">Margem: 35,00%</span>",
+      "texto": "Margem: 35,00%",
+      "axe": {
+        "fgColor": "#2ec97a",
+        "bgColor": "#ffffff",
+        "contrastRatio": 2.15,
+        "fontSize": "10.5pt (14px)",
+        "fontWeight": "normal",
+        "messageKey": null,
+        "expectedContrastRatio": "4.5:1"
+      },
+      "canvas": {
+        "corTextoResolvida": "#2ec97a",
+        "backgroundEfetivoHex": "#ffffff",
+        "contrasteRecalculado": 2.15,
+        "exigeAA": "4.5:1 (texto normal < 18.66px bold / 24px normal)",
+        "passaAA": false,
+        "alphaTexto": 1,
+        "ancestraisComOpacityMenorQue1": [],
+        "ancestraisIgnoradosPorGradiente": []
+      },
+      "classificacao": "REAL (remediado por canvas, sem alpha/opacity/gradiente na cadeia)"
+    },
+    {
+      "engine": "chromium",
+      "tema": "light",
+      "rota": "/produtos",
+      "regra": "color-contrast",
+      "impacto": "serious",
+      "seletorCSS": ".\\[a\\]\\:hover\\:bg-muted",
+      "html": "<span data-slot=\"badge\" data-variant=\"outline\" class=\"group/badge inline-f...\" title=\"Faltam dados para o ...\">",
+      "texto": "DADOS INCOMPLETOS",
+      "axe": {
+        "fgColor": "#e17100",
+        "bgColor": "#ffffff",
+        "contrastRatio": 3.19,
+        "fontSize": "9.0pt (12px)",
+        "fontWeight": "normal",
+        "messageKey": null,
+        "expectedContrastRatio": "4.5:1"
+      },
+      "canvas": {
+        "corTextoResolvida": "#e17100",
+        "backgroundEfetivoHex": "#ffffff",
+        "contrasteRecalculado": 3.2,
+        "exigeAA": "4.5:1 (texto normal < 18.66px bold / 24px normal)",
+        "passaAA": false,
+        "alphaTexto": 1,
+        "ancestraisComOpacityMenorQue1": [],
+        "ancestraisIgnoradosPorGradiente": []
+      },
+      "classificacao": "REAL (remediado por canvas, sem alpha/opacity/gradiente na cadeia)"
+    },
+    {
+      "engine": "firefox",
+      "tema": "light",
+      "rota": "/produtos",
+      "regra": "color-contrast",
+      "impacto": "serious",
+      "seletorCSS": ".text-success",
+      "html": "<span class=\"text-success font-medium\">Margem: 35,00%</span>",
+      "texto": "Margem: 35,00%",
+      "axe": {
+        "fgColor": "#2ec97a",
+        "bgColor": "#ffffff",
+        "contrastRatio": 2.15,
+        "fontSize": "10.5pt (14px)",
+        "fontWeight": "normal",
+        "messageKey": null,
+        "expectedContrastRatio": "4.5:1"
+      },
+      "canvas": {
+        "corTextoResolvida": "#2ec97a",
+        "backgroundEfetivoHex": "#ffffff",
+        "contrasteRecalculado": 2.15,
+        "exigeAA": "4.5:1 (texto normal < 18.66px bold / 24px normal)",
+        "passaAA": false,
+        "alphaTexto": 1,
+        "ancestraisComOpacityMenorQue1": [],
+        "ancestraisIgnoradosPorGradiente": []
+      },
+      "classificacao": "REAL (remediado por canvas, sem alpha/opacity/gradiente na cadeia)"
+    },
+    {
+      "engine": "firefox",
+      "tema": "light",
+      "rota": "/produtos",
+      "regra": "color-contrast",
+      "impacto": "serious",
+      "seletorCSS": ".\\[a\\]\\:hover\\:bg-muted",
+      "html": "<span data-slot=\"badge\" data-variant=\"outline\" class=\"group/badge inline-f...\" title=\"Faltam dados para o ...\">",
+      "texto": "DADOS INCOMPLETOS",
+      "axe": {
+        "fgColor": "#e17100",
+        "bgColor": "#ffffff",
+        "contrastRatio": 3.19,
+        "fontSize": "9.0pt (12px)",
+        "fontWeight": "normal",
+        "messageKey": null,
+        "expectedContrastRatio": "4.5:1"
+      },
+      "canvas": {
+        "corTextoResolvida": "#e17100",
+        "backgroundEfetivoHex": "#ffffff",
+        "contrasteRecalculado": 3.2,
+        "exigeAA": "4.5:1 (texto normal < 18.66px bold / 24px normal)",
+        "passaAA": false,
+        "alphaTexto": 1,
+        "ancestraisComOpacityMenorQue1": [],
+        "ancestraisIgnoradosPorGradiente": []
+      },
+      "classificacao": "REAL (remediado por canvas, sem alpha/opacity/gradiente na cadeia)"
+    },
+    {
+      "engine": "webkit",
+      "tema": "light",
+      "rota": "/produtos",
+      "regra": "color-contrast",
+      "impacto": "serious",
+      "seletorCSS": ".text-success",
+      "html": "<span class=\"text-success font-medium\">Margem: 35,00%</span>",
+      "texto": "Margem: 35,00%",
+      "axe": {
+        "fgColor": "#2ec97a",
+        "bgColor": "#ffffff",
+        "contrastRatio": 2.15,
+        "fontSize": "10.5pt (14px)",
+        "fontWeight": "normal",
+        "messageKey": null,
+        "expectedContrastRatio": "4.5:1"
+      },
+      "canvas": {
+        "corTextoResolvida": "#2ec97a",
+        "backgroundEfetivoHex": "#ffffff",
+        "contrasteRecalculado": 2.15,
+        "exigeAA": "4.5:1 (texto normal < 18.66px bold / 24px normal)",
+        "passaAA": false,
+        "alphaTexto": 1,
+        "ancestraisComOpacityMenorQue1": [],
+        "ancestraisIgnoradosPorGradiente": []
+      },
+      "classificacao": "REAL (remediado por canvas, sem alpha/opacity/gradiente na cadeia)"
+    },
+    {
+      "engine": "webkit",
+      "tema": "light",
+      "rota": "/produtos",
+      "regra": "color-contrast",
+      "impacto": "serious",
+      "seletorCSS": ".\\[a\\]\\:hover\\:bg-muted",
+      "html": "<span data-slot=\"badge\" data-variant=\"outline\" class=\"group/badge inline-f...\" title=\"Faltam dados para o ...\">",
+      "texto": "DADOS INCOMPLETOS",
+      "axe": {
+        "fgColor": "#e17100",
+        "bgColor": "#ffffff",
+        "contrastRatio": 3.19,
+        "fontSize": "9.0pt (12px)",
+        "fontWeight": "normal",
+        "messageKey": null,
+        "expectedContrastRatio": "4.5:1"
+      },
+      "canvas": {
+        "corTextoResolvida": "#e17100",
+        "backgroundEfetivoHex": "#ffffff",
+        "contrasteRecalculado": 3.2,
+        "exigeAA": "4.5:1 (texto normal < 18.66px bold / 24px normal)",
+        "passaAA": false,
+        "alphaTexto": 1,
+        "ancestraisComOpacityMenorQue1": [],
+        "ancestraisIgnoradosPorGradiente": []
+      },
+      "classificacao": "REAL (remediado por canvas, sem alpha/opacity/gradiente na cadeia)"
+    }
+  ],
+  "incompletosRemediados": [
+    {
+      "engine": "chromium",
+      "tema": "light",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": ".bg-card",
+      "texto": "ou",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 5.19,
+      "passaAA": true,
+      "corTextoResolvida": "#6c6c77",
+      "backgroundEfetivoHex": "#ffffff"
+    },
+    {
+      "engine": "chromium",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": ".bg-card",
+      "texto": "ou",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 6.75,
+      "passaAA": true,
+      "corTextoResolvida": "#9f9fa9",
+      "backgroundEfetivoHex": "#18181b"
+    },
+    {
+      "engine": "firefox",
+      "tema": "light",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": ".bg-card",
+      "texto": "ou",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 5.19,
+      "passaAA": true,
+      "corTextoResolvida": "#6c6c77",
+      "backgroundEfetivoHex": "#ffffff"
+    },
+    {
+      "engine": "firefox",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": ".bg-card",
+      "texto": "ou",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 6.75,
+      "passaAA": true,
+      "corTextoResolvida": "#9f9fa9",
+      "backgroundEfetivoHex": "#18181b"
+    },
+    {
+      "engine": "webkit",
+      "tema": "light",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": ".bg-card",
+      "texto": "ou",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 5.19,
+      "passaAA": true,
+      "corTextoResolvida": "#6c6c77",
+      "backgroundEfetivoHex": "#ffffff"
+    },
+    {
+      "engine": "webkit",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": ".text-lg",
+      "texto": "Preço que Dá Lucro",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 19.06,
+      "passaAA": true,
+      "corTextoResolvida": "#fafafa",
+      "backgroundEfetivoHex": "#09090b"
+    },
+    {
+      "engine": "webkit",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": "h1",
+      "texto": "Entenda a faixa de preço do seu produto conversando.",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 19.06,
+      "passaAA": true,
+      "corTextoResolvida": "#fafafa",
+      "backgroundEfetivoHex": "#09090b"
+    },
+    {
+      "engine": "webkit",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": "li:nth-child(1) > div:nth-child(2) > .font-bold",
+      "texto": "Cadastro por conversa",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 19.06,
+      "passaAA": true,
+      "corTextoResolvida": "#fafafa",
+      "backgroundEfetivoHex": "#09090b"
+    },
+    {
+      "engine": "webkit",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": "li:nth-child(2) > div:nth-child(2) > .font-bold",
+      "texto": "Cálculos precisos",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 19.06,
+      "passaAA": true,
+      "corTextoResolvida": "#fafafa",
+      "backgroundEfetivoHex": "#09090b"
+    },
+    {
+      "engine": "webkit",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": "li:nth-child(3) > div:nth-child(2) > .font-bold",
+      "texto": "Ponto de equilíbrio",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 19.06,
+      "passaAA": true,
+      "corTextoResolvida": "#fafafa",
+      "backgroundEfetivoHex": "#09090b"
+    },
+    {
+      "engine": "webkit",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": ".border-border",
+      "texto": "Continuar com Google",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 19.06,
+      "passaAA": true,
+      "corTextoResolvida": "#fafafa",
+      "backgroundEfetivoHex": "#09090b"
+    },
+    {
+      "engine": "webkit",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": ".bg-card",
+      "texto": "ou",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 6.75,
+      "passaAA": true,
+      "corTextoResolvida": "#9f9fa9",
+      "backgroundEfetivoHex": "#18181b"
+    },
+    {
+      "engine": "webkit",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": "label[for=\"email\"]",
+      "texto": "E-mail",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 19.06,
+      "passaAA": true,
+      "corTextoResolvida": "#fafafa",
+      "backgroundEfetivoHex": "#09090b"
+    },
+    {
+      "engine": "webkit",
+      "tema": "dark",
+      "rota": "/auth",
+      "regra": "color-contrast",
+      "seletorCSS": "label[for=\"password\"]",
+      "texto": "Senha",
+      "motivoDoIncomplete": "elemento sobreposto por irmao (borda do separador) — o axe nao decide o background",
+      "contrasteRecalculadoCanvas": 19.06,
+      "passaAA": true,
+      "corTextoResolvida": "#fafafa",
+      "backgroundEfetivoHex": "#09090b"
+    }
+  ],
+  "controlesNegativos": {
+    "descricao": "injeção de contraste conhecido na página real para provar que o harness não é vazio e que a remediação distingue real de amostragem",
+    "controleA_semOpacidade": "axe=2.84 | canvas=2.85 | delta 0.01 → concordância; violação detectada (harness não-vácuo)",
+    "controleB_comOpacity0_6": "axe=1.78 (fg #c2c2c2 = cor já composta pelo fade) | canvas=2.85 (cor declarada #999999) | delta -1.07 → MECANISMO DBT-126 reproduzido: o número do axe é amostragem, o recalculado é o do token",
+    "controleC_composicaoTransparente": "elemento com background transparent sobre pai #123456 → canvas devolve backgroundEfetivo #123456 e contraste 12.72 (cálculo manual 12.72) → composição correta",
+    "controleD_filtroDeTags": "com as 4 tags: 24 regras avaliadas; sem tags: 38 → o filtro está ativo",
+    "controleE_ordenacaoDoAxe": "24 regras avaliadas por varredura (passes 9..22 conforme a rota)",
+    "arquivos": [
+      ".artifacts/bughunt-b/axe-negative-control.mjs",
+      ".artifacts/bughunt-b/axe-summary.json"
+    ]
+  },
+  "porEngineTemaRota": {
+    "chromium/light/landing": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 9,
+      "incompletos": 0
+    },
+    "chromium/light/auth": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 20,
+      "incompletos": 1
+    },
+    "chromium/light/inicio": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "chromium/light/produtos": {
+      "violacoes": 1,
+      "blocking": 1,
+      "passes": 19,
+      "incompletos": 0
+    },
+    "chromium/light/vendas": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "chromium/light/simulacoes": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "chromium/dark/landing": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 9,
+      "incompletos": 0
+    },
+    "chromium/dark/auth": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 20,
+      "incompletos": 1
+    },
+    "chromium/dark/inicio": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "chromium/dark/produtos": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 19,
+      "incompletos": 0
+    },
+    "chromium/dark/vendas": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "chromium/dark/simulacoes": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "firefox/light/landing": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 9,
+      "incompletos": 0
+    },
+    "firefox/light/auth": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 20,
+      "incompletos": 1
+    },
+    "firefox/light/inicio": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "firefox/light/produtos": {
+      "violacoes": 1,
+      "blocking": 1,
+      "passes": 19,
+      "incompletos": 0
+    },
+    "firefox/light/vendas": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "firefox/light/simulacoes": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "firefox/dark/landing": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 9,
+      "incompletos": 0
+    },
+    "firefox/dark/auth": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 20,
+      "incompletos": 1
+    },
+    "firefox/dark/inicio": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "firefox/dark/produtos": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 19,
+      "incompletos": 0
+    },
+    "firefox/dark/vendas": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "firefox/dark/simulacoes": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "webkit/light/landing": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 9,
+      "incompletos": 0
+    },
+    "webkit/light/auth": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 20,
+      "incompletos": 1
+    },
+    "webkit/light/inicio": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "webkit/light/produtos": {
+      "violacoes": 1,
+      "blocking": 1,
+      "passes": 19,
+      "incompletos": 0
+    },
+    "webkit/light/vendas": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "webkit/light/simulacoes": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "webkit/dark/landing": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 9,
+      "incompletos": 0
+    },
+    "webkit/dark/auth": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 20,
+      "incompletos": 1
+    },
+    "webkit/dark/inicio": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "webkit/dark/produtos": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 19,
+      "incompletos": 0
+    },
+    "webkit/dark/vendas": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    },
+    "webkit/dark/simulacoes": {
+      "violacoes": 0,
+      "blocking": 0,
+      "passes": 22,
+      "incompletos": 0
+    }
+  },
+  "amostragemWebkitDark": {
+    "descricao": "Em webkit/dark o axe le a cor ANTIGA (do tema claro) enquanto a transição herdada de `color` ainda corre.",
+    "violacaoAparente": "#email e #password: fg #09090b sobre bg #1b1b1d = 1.15:1",
+    "violacaoAparenteReproducao": "5/5 repetições (imediatamente após a troca de tema)",
+    "violacaoAposAssentamento": "0/5 repetições",
+    "contrasteRealCanvas": "fg #fafafa sobre bg #1b1b1d = 16.48:1 → passa AA (4.5:1)",
+    "conclusao": "AMOSTRAGEM, não violação real. O número do axe é o da cor composta; o do canvas é o real.",
+    "chromiumFirefox": "0/5 e 0/5",
+    "arquivo": ".artifacts/bughunt-b/contrast-stability.json"
+  }
+}

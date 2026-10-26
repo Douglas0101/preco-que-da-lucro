@@ -1,0 +1,130 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas/WebstormProjects/preco-que-da-lucro[39m
+
+ [31m❯[39m src/test/period-window.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 12[2mms[22m[39m
+     [32m✓[39m T1 — mês começa à meia-noite BRT de 01/10, não à meia-noite UTC[32m 3[2mms[22m[39m
+     [32m✓[39m T2 — trimestre começa à meia-noite BRT de 01/10 (Q4)[32m 0[2mms[22m[39m
+     [32m✓[39m T3 — ano começa à meia-noite BRT de 01/01[32m 0[2mms[22m[39m
+     [32m✓[39m T4 — em janeiro mês, trimestre e ano coincidem (colapso é intencional)[32m 1[2mms[22m[39m
+     [32m✓[39m T5 — o relógio vem do argumento `now`, nunca da parede[32m 0[2mms[22m[39m
+     [32m✓[39m T6 — fevereiro trava o offset: 01/02/2026 00:00 BRT = 03:00Z[32m 0[2mms[22m[39m
+     [32m✓[39m T7a — o regex de mutadores locais reprova o defeito plantado (controle negativo)[32m 0[2mms[22m[39m
+[31m     [31m×[31m T7b — o módulo não usa mutadores de relógio local nem leitores locais de mês[39m[32m 4[2mms[22m[39m
+[31m     [31m×[31m T7c — o módulo declara o fuso de negócio como símbolo de código, não em prosa[39m[32m 1[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/test/period-window.test.ts[2m > [22mfonte de period-window — sem relógio local (guarda independente de fuso)[2m > [22mT7b — o módulo não usa mutadores de relógio local nem leitores locais de mês
+[31m[1mAssertionError[22m: expected '/**\n * Janela de período financeira …' not to match /\b(setHours|setDate|setMonth|setFullY…/[39m
+
+[32m- Expected:[39m
+/\b(setHours|setDate|setMonth|setFullYear|getMonth)\s*\(/
+
+[31m+ Received:[39m
+"/**
+ * Janela de período financeira do dashboard (WP `dashboard-periodo-2026-10-26`).
+ *
+ * **Estado F1 (RED).** Este módulo existe para que o teste de falha rode os
+ * *bytes do pai* em vez de falhar por módulo ausente. A implementação abaixo é
+ * a translação **verbatim** da que vivia em
+ * `src/server/services/dashboard.service.ts:51-62` — inclusive o defeito:
+ * `setHours/setDate/setMonth` mutam o relógio **local do processo**, então a
+ * fronteira do período depende do `TZ` do servidor (em produção, UTC) e não do
+ * fuso do negócio. Nenhuma semântica foi alterada aqui.
+ *
+ * F2 substitui o corpo por uma janela `[from, to)` calculada em
+ * `America/Sao_Paulo` e adiciona `periodEnd`; o import dos consumidores não
+ * muda.
+ */
+
+/** Período factual do dashboard (mês, trimestre ou ano corrente). */
+export type DashboardPeriod = \"month\" | \"quarter\" | \"year\";
+
+/** Início do período — comportamento legado (dependente do `TZ` do processo). */
+export function periodStart(period: DashboardPeriod, now: Date = new Date()): Date {
+  const from = new Date(now);
+  from.setHours(0, 0, 0, 0);
+  from.setDate(1);
+  if (period === \"quarter\") {
+    from.setMonth(Math.floor(from.getMonth() / 3) * 3);
+  }
+  if (period === \"year\") {
+    from.setMonth(0);
+  }
+  return from;
+}
+"
+
+[36m [2m❯[22m src/test/period-window.test.ts:[2m92:24[22m[39m
+    [90m 90|[39m     [35mconst[39m source [33m=[39m [34mreadFileSync[39m(sourcePath[33m,[39m [32m"utf8"[39m)[33m;[39m
+    [90m 91|[39m     const localClockMutator = /\b(setHours|setDate|setMonth|setFullYea…
+    [90m 92|[39m     [34mexpect[39m(source)[33m.[39mnot[33m.[39m[34mtoMatch[39m(localClockMutator)[33m;[39m
+    [90m   |[39m                        [31m^[39m
+    [90m 93|[39m   })[33m;[39m
+    [90m 94|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/test/period-window.test.ts[2m > [22mfonte de period-window — sem relógio local (guarda independente de fuso)[2m > [22mT7c — o módulo declara o fuso de negócio como símbolo de código, não em prosa
+[31m[1mAssertionError[22m: expected '/**\n * Janela de período financeira …' to match /\bBUSINESS_TIME_ZONE\s*=\s*…/Sao_Paulo"[39m
+
+[32m- Expected:[39m
+/\bBUSINESS_TIME_ZONE\s*=\s*"America\/Sao_Paulo"/
+
+[31m+ Received:[39m
+"/**
+ * Janela de período financeira do dashboard (WP `dashboard-periodo-2026-10-26`).
+ *
+ * **Estado F1 (RED).** Este módulo existe para que o teste de falha rode os
+ * *bytes do pai* em vez de falhar por módulo ausente. A implementação abaixo é
+ * a translação **verbatim** da que vivia em
+ * `src/server/services/dashboard.service.ts:51-62` — inclusive o defeito:
+ * `setHours/setDate/setMonth` mutam o relógio **local do processo**, então a
+ * fronteira do período depende do `TZ` do servidor (em produção, UTC) e não do
+ * fuso do negócio. Nenhuma semântica foi alterada aqui.
+ *
+ * F2 substitui o corpo por uma janela `[from, to)` calculada em
+ * `America/Sao_Paulo` e adiciona `periodEnd`; o import dos consumidores não
+ * muda.
+ */
+
+/** Período factual do dashboard (mês, trimestre ou ano corrente). */
+export type DashboardPeriod = \"month\" | \"quarter\" | \"year\";
+
+/** Início do período — comportamento legado (dependente do `TZ` do processo). */
+export function periodStart(period: DashboardPeriod, now: Date = new Date()): Date {
+  const from = new Date(now);
+  from.setHours(0, 0, 0, 0);
+  from.setDate(1);
+  if (period === \"quarter\") {
+    from.setMonth(Math.floor(from.getMonth() / 3) * 3);
+  }
+  if (period === \"year\") {
+    from.setMonth(0);
+  }
+  return from;
+}
+"
+
+[36m [2m❯[22m src/test/period-window.test.ts:[2m99:20[22m[39m
+    [90m 97|[39m     // Ancorar no símbolo (e no uso em `timeZone:`) impede o falso ver…
+    [90m 98|[39m     [90m// F1: a menção em comentário satisfazia um regex frouxo.[39m
+    [90m 99|[39m     expect(source).toMatch(/\bBUSINESS_TIME_ZONE\s*=\s*"America\/Sao_P…
+    [90m   |[39m                    [31m^[39m
+    [90m100|[39m     [34mexpect[39m(source)[33m.[39m[34mtoMatch[39m([36m/timeZone:\s*BUSINESS_TIME_ZONE/[39m)[33m;[39m
+    [90m101|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m7 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 00:14:12
+[2m   Duration [22m 690ms[2m (transform 31ms, setup 81ms, import 21ms, tests 12ms, environment 469ms)[22m
+
+
+exit=1
+TZ=America/Sao_Paulo
+HEAD=ec0ed77ee963dec3705275cb4b09d08030dc6499
+ddb4a486d7021725b9e531ce2696c87fe4e209a8dc49d982d8a4d40140774e84  src/lib/period-window.ts
+0bdec10e7d1c342b9be539a3ec59745927f18a794dfc4610a41cc45f7e45e91f  src/test/period-window.test.ts

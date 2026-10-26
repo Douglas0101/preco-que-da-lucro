@@ -1,0 +1,75 @@
+# Testes e gate (exceto m02:lockfile-guard)
+
+## Cadeia `npm run check` passo a passo
+
+```
+guard:upgrade exit=0
+check:migration-toolchain exit=0
+guard:contracts exit=0
+m02:work-package-guard exit=0
+m02:debts-guard exit=0
+m02:temporal-guard exit=0
+m02:state:check exit=0
+m02:boundaries exit=0
+m02:secrets-audit exit=0
+guard:mcp-runtime exit=0
+m02:seal-dts:check exit=0
+m02:matrix:check exit=0
+check:ui-stack exit=0
+check:no-supabase-runtime exit=0
+format:check exit=0
+lint exit=0
+typecheck exit=0
+test exit=0
+build exit=0
+check:bundle exit=0
+```
+
+## Números do gate
+
+```
+Test Files  162 passed | 2 skipped (164)
+Tests  2424 passed | 30 skipped (2454)
+
+PASS assets/index-BcGQCUJc.js: 218539 minified, 69088 gzip, 60111 Brotli bytes, sha256=e2fcbd9417cd
+Initial graph (11 chunks): 487544 minified, 159874 gzip, 140777 Brotli bytes, sha256=38dcadd0b4ed
+```
+
+## E2E focado (sessão expirada + falha 503, 4 projetos)
+
+```
+[WebServer] {"timestamp":"2026-10-26T01:55:19.973Z","level":"error","event":"server.ssr_failed","correlationId":"12d60fe3-a409-4340-96d8-1b9bd681d0f6","error":{"name":"HTTPError","message":"aborted"}}
+  8 passed (40.4s)
+```
+
+## Matriz Playwright completa (run limpo, `--workers=2`, sem retries)
+
+```
+  3 skipped
+  117 passed (4.7m)
+e2e exit=0
+```
+
+## Distribuição
+
+```
+chromium 29 ✓
+firefox 29 ✓
+webkit 29 ✓
+mobile 30 ✓
+```
+
+## Flakes de bancada observados e repetição isolada
+
+```
+[matriz default, 1ª tentativa] mobile "products list meets WCAG..." → page.evaluate:
+SyntaxError: Unexpected template string. Repetição isolada: 1 passed (2,6 s).
+
+[matriz default, 2ª tentativa] chromium "authorization matrix blocks member mutations..." →
+sign-in da fixture devolveu 401 (esperado 200). Repetição isolada: 1 passed (3,3 s).
+```
+
+Leitura: os dois vermelhos locais não reproduzem isoladamente e são o mesmo tipo de instabilidade
+de ambiente já registrado no `vitest.config` (parser/jsdom sob carga paralela). O run limpo acima,
+com paralelismo reduzido e sem retries, cobre os 120 testes (117 passed + 3 skipped) e o novo
+teste de sessão expirada nos quatro projetos.

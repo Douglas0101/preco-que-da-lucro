@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-10-22T07:16:42.138Z",
+  "control": "old tokens #2ec97a / #e17100 injected over the same /produtos fixture",
+  "ratios": {
+    "margin": 2.153436610417521,
+    "badge": 3.199482614587377
+  },
+  "blockingViolations": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 2
+    }
+  ],
+  "expected": {
+    "marginBelow45": true,
+    "badgeBelow45": true
+  }
+}

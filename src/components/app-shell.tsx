@@ -4,7 +4,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   Home,
   Package,
-  PlusCircle,
   Wallet,
   Scale,
   LineChart,
@@ -28,11 +27,13 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-type NavItem = { to: string; label: string; icon: typeof Home; highlight?: boolean };
+type NavItem = { to: string; label: string; icon: typeof Home };
+/* A precificação saiu do menu: com o launcher do Simon disponível em todas as
+   páginas, a rota `/novo-produto` fica como workspace/deep link (e o launcher
+   some nela), sem duplicar a entrada de navegação. */
 const NAV: NavItem[] = [
   { to: "/inicio", label: "Início", icon: Home },
   { to: "/produtos", label: "Meus Produtos", icon: Package },
-  { to: "/novo-produto", label: "Novo Produto", icon: PlusCircle, highlight: true },
   { to: "/precos", label: "Preços de Compra", icon: Tag },
   { to: "/despesas", label: "Minhas Despesas", icon: Wallet },
   { to: "/vendas", label: "Vendas", icon: Receipt },
@@ -77,7 +78,6 @@ function NavLink({
         active
           ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-xs"
           : "text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
-        item.highlight && !active && "ring-1 ring-sidebar-ring/40",
       )}
     >
       {layout === "drawer" && (
@@ -243,7 +243,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="min-w-0">
         <div
           key={location.pathname}
-          className="mx-auto max-w-6xl animate-in px-4 py-6 fade-in-0 duration-300 ease-out slide-in-from-bottom-2 md:px-8 md:py-10 motion-reduce:animate-none"
+          className={cn(
+            "mx-auto max-w-6xl animate-in px-4 pt-6 fade-in-0 duration-300 ease-out slide-in-from-bottom-2 md:px-8 md:pt-10 motion-reduce:animate-none",
+            // O launcher flutua sobre o conteúdo: reserva a faixa inferior para
+            // o último CTA não ficar embaixo dele. O workspace do chat ocupa a
+            // altura da viewport, então lá o espaço continua o de antes.
+            location.pathname === "/novo-produto" ? "pb-6 md:pb-10" : "pb-24 md:pb-20",
+          )}
         >
           {children}
         </div>

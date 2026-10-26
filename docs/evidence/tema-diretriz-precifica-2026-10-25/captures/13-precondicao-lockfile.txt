@@ -1,0 +1,21 @@
+# Precondição de gate: motion sem commit continua barrando o lockfile-guard
+
+## Comando
+
+```
+npm run m02:lockfile-guard
+```
+
+## Resultado
+
+```
+      "id": "lock-sha256-head",
+      "status": "fail",
+      "detail": "lock do worktree cdae8f9e48aa031c829614ff3c30ffe4e16d7f3062924c6205a5ad71e7ee5328 != HEAD 706b24515411a1d68d183019cd664b8900524906b43a4ba83fa5ac15e08ddd45 (reescrito sem commit)"
+    },
+```
+
+O tema não toca package.json/package-lock.json; a reprovação vem da dependência `motion`
+adicionada na sessão anterior e ainda não commitada (ver
+`docs/evidence/chat-fluxo-animado-2026-10-25/captures/07-lockfile-sem-commit.txt`). A cadeia do
+`check` é rodada passo a passo em capture 11.

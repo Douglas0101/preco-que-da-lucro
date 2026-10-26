@@ -145,7 +145,12 @@ const test = base.extend<{ salesSession: SalesSession }>({
   // registrada." no tenant demo, então vendas E2E nunca podem tocar nele.
   // Por test (não por worker) porque o Playwright reutiliza workers entre
   // projects sob fullyParallel, o que compartilharia vendas entre cenários.
-  salesSession: async ({ browser }, proceed, testInfo) => {
+  //
+  // A troca de cookies vive DENTRO do fixture, não num `beforeEach`: assim um
+  // teste que só lê a tela (janela, foco, placeholder) não pede `salesSession` e
+  // não paga sign-in. O bucket aceita 5/min; com `beforeEach` os sete testes do
+  // arquivo faziam sete logins e o sexto recebia HTTP 429 (medido em F3).
+  salesSession: async ({ context }, proceed, testInfo) => {
     const tenant = await seedTenant(testInfo.project.name);
     try {
       const api = await request.newContext({
@@ -161,7 +166,10 @@ const test = base.extend<{ salesSession: SalesSession }>({
           data: { email: tenant.email, password: tenant.password },
         });
         expect(response.status(), "The sales fixture's Better Auth sign-in must succeed").toBe(200);
-        await proceed({ tenant, cookies: (await api.storageState()).cookies });
+        const cookies = (await api.storageState()).cookies;
+        await context.clearCookies();
+        await context.addCookies(cookies);
+        await proceed({ tenant, cookies });
       } finally {
         await api.dispose();
       }
@@ -169,14 +177,6 @@ const test = base.extend<{ salesSession: SalesSession }>({
       await purgeTenant(tenant);
     }
   },
-});
-
-// Substitui a sessão do tenant demo (storageState global) pela sessão do
-// tenant isolado deste arquivo, preservando contexto/emulação de mídia
-// padrão do Playwright.
-test.beforeEach(async ({ context, salesSession }) => {
-  await context.clearCookies();
-  await context.addCookies(salesSession.cookies);
 });
 
 function metricCard(page: Page, label: string) {
@@ -190,13 +190,17 @@ function metricCard(page: Page, label: string) {
   });
 }
 
-async function registerSaleViaForm(page: Page, tenant: SalesTenant): Promise<void> {
+async function registerSaleViaForm(
+  page: Page,
+  tenant: SalesTenant,
+  occurredAt: Date = new Date(),
+): Promise<void> {
   await page.goto("/vendas");
   await expect(page.getByRole("heading", { name: "Vendas", exact: true })).toBeVisible();
 
   await page.getByLabel("Produto", { exact: true }).click();
   await page.getByRole("option", { name: tenant.productName, exact: true }).click();
-  await page.getByLabel("Data da venda").fill(new Date().toISOString().slice(0, 10));
+  await page.getByLabel("Data da venda").fill(inputDate(occurredAt));
   await page.getByLabel("Quantidade").fill(QUANTIDADE);
   await page.getByLabel("Preço unitário (R$)").fill(PRECO_UNITARIO);
   await page.getByRole("button", { name: "Registrar venda" }).click();
@@ -204,7 +208,97 @@ async function registerSaleViaForm(page: Page, tenant: SalesTenant): Promise<voi
   await expect(page.getByText("Venda registrada", { exact: true })).toBeVisible();
 }
 
-test("dashboard isolado mostra faturamento vazio explícito (INV-006) e margem com DADOS INCOMPLETOS", async ({
+// ---------------------------------------------------------------------------
+// Oráculo de janela (WP dashboard-periodo-2026-10-26).
+//
+// Independente da aplicação: offset literal `-03:00` + calendário em São Paulo
+// por `Intl`. Nunca uma data fixa — um `01/10/2026 – 31/10/2026` hard-coded
+// quebraria no dia seguinte e seria um teste que mente a partir de novembro.
+// ---------------------------------------------------------------------------
+const BUSINESS_TZ = "America/Sao_Paulo";
+const DAY_LABEL = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: BUSINESS_TZ,
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+const INPUT_DATE = new Intl.DateTimeFormat("en-CA", {
+  timeZone: BUSINESS_TZ,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function dayLabel(instant: Date): string {
+  return DAY_LABEL.format(instant);
+}
+
+/** `yyyy-mm-dd` para o input `type="date"`, no fuso do negócio. */
+function inputDate(instant: Date): string {
+  return INPUT_DATE.format(instant);
+}
+
+function brtMidnight(year: number, month: number, day: number): Date {
+  const mm = String(month).padStart(2, "0");
+  const dd = String(day).padStart(2, "0");
+  return new Date(`${year}-${mm}-${dd}T00:00:00-03:00`);
+}
+
+function businessYearMonth(): { year: number; month: number } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TZ,
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+  const read = (type: string) => Number(parts.find((part) => part.type === type)?.value);
+  return { year: read("year"), month: read("month") };
+}
+
+function monthStart(): Date {
+  const { year, month } = businessYearMonth();
+  return brtMidnight(year, month, 1);
+}
+
+function nextMonthStart(): Date {
+  const { year, month } = businessYearMonth();
+  return month === 12 ? brtMidnight(year + 1, 1, 1) : brtMidnight(year, month + 1, 1);
+}
+
+function quarterStart(): Date {
+  const { year, month } = businessYearMonth();
+  return brtMidnight(year, Math.floor((month - 1) / 3) * 3 + 1, 1);
+}
+
+function nextQuarterStart(): Date {
+  const { year, month } = businessYearMonth();
+  const endIndex = Math.floor((month - 1) / 3) * 3 + 3;
+  return brtMidnight(year + Math.floor(endIndex / 12), (endIndex % 12) + 1, 1);
+}
+
+function yearStart(): Date {
+  return brtMidnight(businessYearMonth().year, 1, 1);
+}
+
+function nextYearStart(): Date {
+  return brtMidnight(businessYearMonth().year + 1, 1, 1);
+}
+
+function previousMonthStart(): Date {
+  const { year, month } = businessYearMonth();
+  return month === 1 ? brtMidnight(year - 1, 12, 1) : brtMidnight(year, month - 1, 1);
+}
+
+/** Janela exibida (`to` é exclusivo; o usuário lê o último dia inclusivo). */
+function windowLabel(from: Date, to: Date): string {
+  return `${dayLabel(from)} – ${dayLabel(new Date(to.getTime() - 1))}`;
+}
+
+/** O trimestre corrente começou neste mês? (Q4 em outubro, Q1 em janeiro…) */
+function isFirstMonthOfQuarter(): boolean {
+  return (businessYearMonth().month - 1) % 3 === 0;
+}
+
+test("E4 — estado vazio mostra SEM VENDAS e nunca DADOS INCOMPLETOS (INV-006)", async ({
   page,
   salesSession: { tenant },
 }) => {
@@ -217,10 +311,13 @@ test("dashboard isolado mostra faturamento vazio explícito (INV-006) e margem c
 
   const margin = metricCard(page, "Margem consolidada");
   await expect(margin).toContainText("—");
-  await expect(margin.getByText("DADOS INCOMPLETOS", { exact: true })).toBeVisible();
-  await expect(margin).toContainText("Registre vendas reais para calcular o mix real de vendas.");
+  // ADR-041 §3: `empty` (nada a vender ainda) não é `incomplete` (dado ausente).
+  await expect(margin.getByText("SEM VENDAS", { exact: true })).toBeVisible();
+  await expect(margin).not.toContainText("DADOS INCOMPLETOS");
+  await expect(margin).toContainText("Sem vendas na janela");
 
   await expect(metricCard(page, "Produtos")).toContainText("1");
+  await expect(metricCard(page, "Despesas fixas por mês")).toBeVisible();
 });
 
 test("registrar venda pelo formulário aparece em Vendas recentes", async ({
@@ -251,7 +348,7 @@ test("venda registrada aparece no faturamento real nos períodos Mês e Ano", as
 
   const revenue = metricCard(page, "Faturamento real");
   await expect(revenue).toContainText(VALOR_VENDA);
-  await expect(revenue).toContainText("1 venda(s) no período selecionado.");
+  await expect(revenue).toContainText("1 venda(s) na janela");
   await expect(metricCard(page, "Produtos")).toContainText("1");
   // Preço real25 diverge do catálogo20; sem custo e taxa10%, contribuição45/50=90%.
   // O oracle não reutiliza o helper de cálculo da aplicação.
@@ -265,6 +362,112 @@ test("venda registrada aparece no faturamento real nos períodos Mês e Ano", as
     "true",
   );
   await expect(revenue).toContainText(VALOR_VENDA);
-  await expect(revenue).toContainText("1 venda(s) no período selecionado.");
+  await expect(revenue).toContainText("1 venda(s) na janela");
   await expect(margin).toContainText(/90,00\s?%/);
+});
+
+// ---------------------------------------------------------------------------
+// F3 — janela, foco e integridade (WP dashboard-periodo-2026-10-26).
+// ---------------------------------------------------------------------------
+
+test("E1 — venda do mês anterior não entra em Mês e entra no Ano", async ({
+  page,
+  salesSession: { tenant },
+}) => {
+  await registerSaleViaForm(page, tenant, previousMonthStart());
+
+  await page.goto("/inicio");
+  const revenue = metricCard(page, "Faturamento real");
+  await expect(revenue).toContainText("—");
+  await expect(revenue).toContainText("Nenhuma venda real registrada.");
+
+  const periodGroup = page.getByRole("group", { name: "Período do faturamento" });
+  await periodGroup.getByRole("button", { name: "Ano", exact: true }).click();
+  await expect(page.getByTestId("period-window")).toContainText(
+    windowLabel(yearStart(), nextYearStart()),
+  );
+
+  if (businessYearMonth().month === 1) {
+    // Em janeiro o mês anterior é do ano anterior: fora da janela anual também.
+    // A expectativa é derivada do calendário, não fixada — senão o teste mentiria
+    // por onze meses e quebraria em janeiro.
+    await expect(revenue).toContainText("—");
+  } else {
+    await expect(revenue).toContainText(VALOR_VENDA);
+    await expect(revenue).toContainText("1 venda(s) na janela");
+  }
+});
+
+test("E2 — janela exibida por período e selo de coincidência do trimestre", async ({ page }) => {
+  await page.goto("/inicio");
+  const windowText = page.getByTestId("period-window");
+  await expect(windowText).toContainText(windowLabel(monthStart(), nextMonthStart()));
+
+  const periodGroup = page.getByRole("group", { name: "Período do faturamento" });
+  await periodGroup.getByRole("button", { name: "Trimestre", exact: true }).click();
+  await expect(windowText).toContainText(windowLabel(quarterStart(), nextQuarterStart()));
+
+  const coincidence = page.getByText("Coincidente com o mês atual", { exact: true });
+  if (isFirstMonthOfQuarter()) {
+    // Q4 começa em outubro, Q1 em janeiro: a janela do trimestre é a do mês.
+    await expect(coincidence).toBeVisible();
+  } else {
+    await expect(coincidence).toHaveCount(0);
+  }
+});
+
+test("E3 — trocar período preserva o foco no botão (DBT-165, WCAG 2.4.3)", async ({ page }) => {
+  await page.goto("/inicio");
+  const periodGroup = page.getByRole("group", { name: "Período do faturamento" });
+  const quarter = periodGroup.getByRole("button", { name: "Trimestre", exact: true });
+
+  // Teclado: o nó do botão não pode ser substituído pela troca de período.
+  await quarter.focus();
+  await page.keyboard.press("Space");
+  await expect(quarter).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("period-window")).toContainText(
+    windowLabel(quarterStart(), nextQuarterStart()),
+  );
+  expect(await page.evaluate(() => (document.activeElement?.textContent ?? "").trim())).toBe(
+    "Trimestre",
+  );
+
+  // Mouse: mesmo contrato.
+  const year = periodGroup.getByRole("button", { name: "Ano", exact: true });
+  await year.click();
+  await expect(year).toHaveAttribute("aria-pressed", "true");
+  expect(await page.evaluate(() => (document.activeElement?.textContent ?? "").trim())).toBe("Ano");
+});
+
+test("E5 — durante a troca a janela antiga permanece e o grid não desmonta", async ({ page }) => {
+  await page.goto("/inicio");
+  const windowText = page.getByTestId("period-window");
+  const monthWindow = windowLabel(monthStart(), nextMonthStart());
+  await expect(windowText).toContainText(monthWindow);
+
+  // Atrasa SÓ a próxima leitura do dashboard. Sem o atraso o placeholder dura
+  // poucos milissegundos e a asserção viraria uma corrida (medido em F3: ~32 ms
+  // no ambiente local).
+  let delayed = false;
+  await page.route("**/_serverFn/**", async (route) => {
+    if (!delayed) {
+      delayed = true;
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    }
+    await route.continue();
+  });
+
+  const periodGroup = page.getByRole("group", { name: "Período do faturamento" });
+  await periodGroup.getByRole("button", { name: "Ano", exact: true }).click();
+
+  const realized = page.locator('section[aria-labelledby="inicio-realizado"]');
+  await expect(realized).toHaveAttribute("aria-busy", "true");
+  // Rótulo antigo enquanto o número antigo está na tela: nunca Outubro com
+  // números de Setembro, nunca "Ano" com a janela do mês.
+  await expect(windowText).toContainText(monthWindow);
+  await expect(page.getByRole("heading", { name: "Olá! 👋" })).toBeVisible();
+  await expect(periodGroup.getByRole("button", { name: "Ano", exact: true })).toBeVisible();
+
+  await expect(realized).toHaveAttribute("aria-busy", "false", { timeout: 15_000 });
+  await expect(windowText).toContainText(windowLabel(yearStart(), nextYearStart()));
 });

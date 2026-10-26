@@ -1,0 +1,53 @@
+b-modal-trap — foco dos modais (Sheet mobile e AlertDialog "Arquivar produto?") medido pelo Agente B em 2026-10-21 (bancada local :4175)
+
+METODO
+  Somente teclado. Abertura pelo gatilho (Enter), Tab sucessivo, medindo
+  document.activeElement a cada passo e marcando se o elemento focado está
+  dentro do CONTEUDO do modal. Os focus guards do Base UI (span[aria-hidden]
+  com data-base-ui-focus-guard) NÃO contam como escape — eles são o
+  mecanismo de retenção; o defeito é o foco cair em elemento da PÁGINA.
+  3 repetições por engine.
+
+RESULTADO — ALERTDIALOG "Arquivar produto?" (/produtos, viewport 1280x800)
+  chromium  escapes em 6 Tabs = 4 / 4 / 4  (3/3 repetições)   VAZA
+  webkit    escapes em 6 Tabs = 2 / 2 / 4  (3/3 repetições)   VAZA
+  firefox   escapes em 6 Tabs = 0 / 0 / 0  (3/3 repetições)   não vaza
+
+  Sequência medida no chromium (repetição 1):
+    Tab1 -> button "Arquivar"          (dentro do diálogo)
+    Tab2 -> span[aria-hidden]          (focus guard do Base UI)
+    Tab3 -> body                       (foco saiu do diálogo)
+    Tab4 -> a "Preço que Dá Lucro"     (link do cabeçalho, FORA)
+    Tab5 -> button "Sair"              (LOGOUT, FORA do diálogo)
+    Tab6 -> a "Início"                 (navegação, FORA)
+    Tab7 -> a "Meus Produtos"          (FORA)
+    Tab8 -> a "Novo Produto"           (FORA)
+
+  background da página enquanto o modal está aberto:
+    o elemento raiz da aplicação NÃO fica inert nem aria-hidden
+    (medido: fundosInert = [false, true, false] — o "true" é o portal do
+    próprio diálogo).
+
+  Webkit: mesmo vazamento, mas o foco retorna ao diálogo no 6º Tab.
+  Firefox: o foco fica no focus guard e volta ao diálogo — sem vazamento.
+
+RESULTADO — SHEET DO MENU MOBILE (viewport 390x844, 16 Tabs)
+  chromium  escapes = 5 / 0 / 1  (3/3 repetições com >=1 escape)
+  webkit    escapes = 1 / 0 / 0
+  firefox   escapes = 0 / 0 / 0
+  (o Sheet tem ~10 focáveis: o guard só é alcançado depois do 10º Tab)
+
+FOCO DEVOLVIDO — ESC
+  AlertDialog: 3/3 engines, devolve o foco ao gatilho ("Arquivar Produto
+  de teste") — medido em .artifacts/bughunt-b/alertdialog-probe.json
+  Sheet mobile: 12/12 amostras (3 engines x 4 rotas), devolve o foco ao
+  gatilho — medido em .artifacts/bughunt-b/b-keyboard.json e na captura
+  docs/evidence/bug-hunt/captures/b-keyboard.json
+  (NOTA: o teclado so devolve o foco; ele nao impede que o foco SAIA do
+  modal, como medido acima.)
+
+ARQUIVOS
+  .artifacts/bughunt-b/modal-trap-probe.json   (medição bruta, 3 engines)
+  .artifacts/bughunt-b/alertdialog-focus-guard.json (8 Tabs com atributos)
+  docs/evidence/bug-hunt/captures/b-keyboard.json (resumo)
+  docs/evidence/bug-hunt/screenshots/b-foco-*-produtos-alertdialog.png

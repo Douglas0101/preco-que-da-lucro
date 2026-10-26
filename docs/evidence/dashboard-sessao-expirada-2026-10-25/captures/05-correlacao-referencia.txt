@@ -1,0 +1,25 @@
+# Referência de atendimento agora correlaciona com o log
+
+## Exemplo de log do servidor
+
+```
+
+```
+
+O `correlationId` de uma resposta 401/erro é o que o suporte procura em
+`request.completed`/`request.failed`. Com a correção, uma falha **não autenticada** exibida
+em card (ex.: 503, 500) usa os 8 primeiros caracteres hex desse id:
+
+- `correlationId: 08612561-2bb0-4548-9265-c98fee33390a` → `DASH-08612561`
+- `correlationId: b17de025-8fc7-4f73-8fb8-444b88cdb7d1` → `DASH-B17DE025`
+- `correlationId: f9e35f8d-05d4-4643-95b3-c9ccee08c253` → `DASH-F9E35F8D`
+
+Antes, o token era `crypto.randomUUID()` local e não aparecia em log algum — foi por isso que
+`DASH-94CD7C2C` (relatado pelo dono) não pôde ser localizado retroativamente.
+
+## Testes que fixam o contrato
+
+- `src/test/error-reference.test.ts` (4 casos): envelope, `ApiError` interno, header
+  `x-correlation-id`, fallback sem correlação.
+- Para autenticação (401) o card nem aparece mais: o router redireciona para `/auth`; a
+  referência correlacionada vale para as demais falhas financeiras.

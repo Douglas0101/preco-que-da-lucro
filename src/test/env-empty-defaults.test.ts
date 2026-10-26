@@ -314,18 +314,18 @@ describe("OTEL — serviceName e intervalo de exportação", () => {
   });
 
   /**
-   * LIMITE DECLARADO: `OTEL_METRIC_EXPORT_INTERVAL_MS` NÃO tinha defeito
-   * observável para "definida e vazia" — a valização de `Number.isFinite &&
-   * >= 1_000` logo abaixo já convertia `Number("") = 0` no default 15_000. Os
-   * casos abaixo fixam a defesa que já existia; o ÚNICO comportamento novo é
-   * o teto de 1 h (acima disso, o valor passava direto ao reader).
+   * O piso é `exportTimeoutMillis` (5 s), não 1 s: o
+   * `PeriodicExportingMetricReader` lança quando o intervalo é menor que o
+   * timeout e o construtor derruba traces E métricas (medido no smoke
+   * DBT-148 com 1.000 ms). O teto de 1 h também continua.
    */
   it.each([
     { estado: "definida e vazia", valor: "" },
     { estado: "só espaços", valor: " " },
     { estado: "zero", valor: "0" },
     { estado: "não numérico", valor: "quinze mil" },
-    { estado: "abaixo do piso de 1s", valor: "999" },
+    { estado: "abaixo do piso de exportação (1s)", valor: "1000" },
+    { estado: "abaixo do piso de exportação (4,999s)", valor: "4999" },
     { estado: "acima do teto de 1h", valor: "3600001" },
   ])("cai no intervalo padrão quando é $estado ($valor)", ({ valor }) => {
     vi.stubEnv("OTEL_METRIC_EXPORT_INTERVAL_MS", valor);
@@ -336,7 +336,7 @@ describe("OTEL — serviceName e intervalo de exportação", () => {
     expect(resolveOtelSdkConfig().exportIntervalMillis).toBe(15_000);
   });
 
-  it.each([1_000, 15_000, 60_000, 3_600_000])("mantém um intervalo válido (%d)", (valor) => {
+  it.each([5_000, 15_000, 60_000, 3_600_000])("mantém um intervalo válido (%d)", (valor) => {
     vi.stubEnv("OTEL_METRIC_EXPORT_INTERVAL_MS", String(valor));
     expect(resolveOtelSdkConfig().exportIntervalMillis).toBe(valor);
   });

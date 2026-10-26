@@ -1,0 +1,43 @@
+# Testes e cadeia do gate (exceto lockfile)
+
+## Cadeia do npm run check, passo a passo (sem m02:lockfile-guard — capture 07)
+
+```
+guard:upgrade exit=0
+check:migration-toolchain exit=0
+guard:contracts exit=0
+m02:work-package-guard exit=0
+m02:debts-guard exit=0
+m02:temporal-guard exit=0
+m02:state:check exit=0
+m02:boundaries exit=0
+m02:secrets-audit exit=0
+guard:mcp-runtime exit=0
+m02:seal-dts:check exit=0
+m02:matrix:check exit=0
+check:ui-stack exit=0
+check:no-supabase-runtime exit=0
+format:check exit=0
+lint exit=0
+typecheck exit=0
+test exit=0
+build exit=0
+check:bundle exit=0
+```
+
+## Testes unitários (dentro do passo test)
+
+```
+Test Files  161 passed | 2 skipped (163)
+Tests  2413 passed | 30 skipped (2443)
+```
+
+## E2E focado nos 4 projetos (motion)
+
+```
+  16 passed (1.2m)
+```
+
+Comando: playwright test -g "floating consultor|chat HTTP dispatch|chat: desfecho|products list meets WCAG"
+
+Leitura: `motion` não quebrou foco, axe (via reduced-motion emulado), visibilidade dos turnos nem o layout de /produtos nos quatro engines.

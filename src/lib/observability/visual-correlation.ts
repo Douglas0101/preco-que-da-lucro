@@ -1,16 +1,14 @@
 /**
  * V7 — correlação entre a captura visual e o pipeline OTel.
  *
- * `F-otel-provider-order` (medido, ADR-033): os instrumentos de
- * `src/instrumentation/telemetry.ts` nascem em escopo de módulo, antes de o
- * provider existir — sem provider o `@opentelemetry/api` devolve o noop, e o
- * instrumento criado cedo fica noop para sempre. Aqui a resolução é **tardia**:
- * o meter/tracer só é pedido na primeira emissão, e o cache é invalidado quando
- * o provider muda (o que permite ao teste unitário injetar um fake global).
+ * `F-otel-provider-order` (ADR-033) foi fechado em DBT-148: os instrumentos de
+ * `src/instrumentation/telemetry.ts` também passaram a ser resolvidos depois do
+ * `sdk.start()`. Este módulo já usava a solução correta — resolução **tardia**
+ * do meter/tracer na primeira emissão, com cache invalidado quando o provider
+ * muda (o que permite ao teste unitário injetar um fake global).
  *
  * Sem provider registrado, emitir é noop — limite declarado, não bug: a suíte
- * e2e afirma os veredictos; a exportação para Prometheus/Grafana depende de
- * `F-otel-provider-order` ser fechado.
+ * e2e afirma os veredictos; a exportação depende de um endpoint OTLP ativo.
  */
 
 import {

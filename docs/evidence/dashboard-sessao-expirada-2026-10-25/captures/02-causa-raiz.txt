@@ -1,0 +1,45 @@
+# Causa raiz
+
+## Cadeia do defeito
+
+1. `requireDatabaseAuth` (middleware de toda server function financeira) responde a sessão
+   inexistente com `apiErrorResponse("AUTHENTICATION_ERROR", correlationId)`: HTTP 401,
+   `content-type: application/json`, **sem** `x-tss-serialized`, corpo
+   `{ok:false,error:{code:"AUTHENTICATION_ERROR",...}}` e header `x-correlation-id`.
+2. O fetcher do TanStack Start (`serverFnFetcher.getResponse`) trata resposta JSON sem o
+   protocolo serializado devolvendo ora o JSON, ora o **`Response` cru** para a camada
+   cliente. Medido em 2026-10-25: `unwrapServerFn` recebia `Response` (isResponse=true).
+3. `unwrapServerFnResult` chamava `isFailureEnvelope(result)`; a checagem era
+   `result.ok === false` — e `Response.ok` é `false` para 401. O `Response` era então lido
+   como envelope, mas sem `error`, e o construtor caía no default
+   `INTERNAL_ERROR`/status 500/mensagem padrão.
+4. `router.tsx` só redireciona quando `isAuthenticationError(error)`; com o código trocado
+   para `INTERNAL_ERROR`, a condição era falsa. O `QueryCache.onError` seguia sem limpar o
+   cache e sem navegar para `/auth`, e a rota renderizava o card genérico com a referência
+   aleatória.
+5. Variante adicional: em respostas JSON cruas o wrapper de middleware do Start lança o
+   `ApiError` interno (`{code:"AUTHENTICATION_ERROR"}`) diretamente, sem `status`; o guard
+   também não reconhecia esse formato.
+
+## Segundo defeito (observabilidade)
+
+`createErrorReference` era duplicado em quatro rotas e gerava um UUID aleatório no
+cliente. A referência mostrada ao dono (`DASH-94CD7C2C`) não podia ser encontrada nos
+logs; o servidor só conhece o `correlationId`. Além disso, o handler de sessão expirada
+não exibia aviso algum — o usuário via “serviço indisponível” quando, de fato, precisava
+autenticar de novo.
+
+## O que **não** era a causa
+
+- Dados financeiros válidos: com sessão saudável o mesmo `getDashboardSummary` responde
+  200 com `productCount: 2`, `fixedExpenses: "600.0000"` e margem vazia explícita.
+- Tema/chat/alterações de UI desta sessão: nenhuma participa do fluxo de autenticação
+  das server functions; o 401 vem do middleware e os logs mostram a rota sem sessão.
+- NaN/Invalid payload: o guard `isDashboardSummaryValid` não rejeitou o payload saudável.
+
+## Gatilho provável do caso do dono
+
+A sessão do navegador deixou de existir no servidor (ex.: sign-out em outra aba,
+expiração ou reseed da fixture local que recria o usuário e derruba as sessões) enquanto
+a aba aberta mantinha o contexto de sessão em cache. O primeiro refetch financeiro
+recebeu 401 e foi apresentado como falha genérica.

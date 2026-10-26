@@ -1,0 +1,22 @@
+# reduced-motion: sem animação de entrada
+
+Comando: node .artifacts/design/check-reduced.mjs (contexto Playwright com reducedMotion: reduce)
+
+```
+signin 200
+matchMedia reduce: true
+records reduzidos: [
+ {
+  "t": 43,
+  "label": "tick",
+  "style": "opacity: 1; transform: none;",
+  "opacity": "1",
+  "transform": "none",
+  "animations": 0,
+  "text": "A resposta segue igual, se"
+ }
+]
+alvo reduzido: {"styleAttr":"opacity: 1; transform: none;","opacity":"1","transform":"none","animations":0}
+```
+
+Leitura: matchMedia(reduce)=true; o item novo já está em opacity 1 / transform none, styleAttr final e 0 animações —  desliga o , como no demo oficial.

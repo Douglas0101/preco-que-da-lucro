@@ -1,0 +1,36 @@
+SFDPOT P (plataforma) — chromium/firefox/webkit x 6 viewports + projeto mobile (Pixel 7) | Agente D | bench :4177
+Zoom de NAVEGADOR medido como viewport reduzido (640x400 = 1280@200%, 320x400 = 1280@400%), nao CSS `zoom`
+(que nao altera media query e produziu falsos positivos na 1a execucao — medicao descartada).
+
+== amostra autenticada (app), 209 amostras ==
+  chromium+firefox: 132 (11 rotas x 6 viewports x 2 engines) + mobile Pixel 7 nos 2 engines
+  webkit:           77 (mesma matriz)
+  viewports: 360x640, 768x1024, 1280x800, 1920x1080, 640x400(zoom200%), 320x400(zoom400%), 412x915(Pixel 7)
+  Amostras nao-prontas (bodyLen<120): 0
+
+  hOverflow (overflow horizontal da PAGINA): 3 amostras, todas a 320x400
+    chromium 320x400 /produtos  scrollW=333 clientW=320
+    firefox  320x400 /produtos  scrollW=333 clientW=320   (medicao dirigida, autenticada)
+    webkit   320x400 /produtos  scrollW=333 clientW=320
+    chromium 320x400 /          scrollW=331 clientW=320   (medicao na 1a varredura, autenticada)
+    firefox  320x400 /          scrollW=331 clientW=320   (idem)
+  Causa (/produtos, 2 engines, autenticado): o row de acoes do cabecalho "div.flex.gap-2" contem
+    "a.group/button.inline-flex.shrink-0" (texto "Novo produto") com right=333 — o `shrink-0` impede a reducao.
+  Elemento fora da viewport sem ancestral rolavel: 0
+  Sobreposicao de controles interativos: 0
+  Item de menu fora da viewport: 0
+  Conteudo cortado: 3 amostras — chromium 360x640 /despesas, chromium 320x400 /despesas, firefox 360x640 /despesas
+    (mesmo padrao: card "group/card flex flex-col" clientW=328 scrollW=344; o valor em R$ tem clientW=288 scrollW=324)
+    CONtexto honesto: o corte foi produzido pelo valor de fixture R$ 1.000.000.000.001.345,00 (10^15), que a propria
+    politica de dinheiro do app aceita; com valores realistas o valor cabe. Nao reproduz com o tenant sem despesas.
+
+== landing publica (contexto NAO autenticado), 6 amostras ==
+  "/"      -> scrollW=331 clientW=320 em chromium, firefox e webkit (3/3) => 11px de rolagem horizontal
+  "/auth"  -> scrollW=320 clientW=320 em chromium, firefox e webkit (sem overflow)
+  O culpado da landing NAO foi isolado: nenhum elemento tem bounding-rect com right>320 (o transbordo vem de
+  um descendente que excede a content-box do pai, sem caixa propria visivel alem do limite).
+
+== capturado em JSON ==
+  d-plataforma-webkit.json     (77 amostras webkit autenticadas)
+  d-plataforma-detalhe.json    (medicao dirigida autenticada: /produtos e /despesas a 320/360 em chromium e firefox)
+  d-plataforma-landing320.json (landing publica a 320px nos 3 engines)

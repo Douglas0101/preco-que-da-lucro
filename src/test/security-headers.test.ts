@@ -110,6 +110,24 @@ describe("política de CSP (§20.1)", () => {
     expect(directives["connect-src"]).toBe("'self' https:");
   });
 
+  it("T2b: X-Frame-Options DENY vale nos dois modos, junto de frame-ancestors 'none'", () => {
+    delete process.env.CSP_ENFORCE;
+    const reportOnly = securityHeaders();
+    expect(reportOnly["x-frame-options"]).toBe("DENY");
+    expect(
+      directivesOf(reportOnly["content-security-policy-report-only"] ?? "")["frame-ancestors"],
+    ).toBe("'none'");
+
+    process.env.CSP_ENFORCE = "true";
+    const enforced = securityHeaders();
+    expect(enforced["x-frame-options"]).toBe("DENY");
+    expect(directivesOf(enforced["content-security-policy"] ?? "")["frame-ancestors"]).toBe(
+      "'none'",
+    );
+    // XFO não depende do switch de CSP nem o substitui.
+    expect(enforced["x-frame-options"]).not.toMatch(/ALLOW-FROM|SAMEORIGIN/i);
+  });
+
   it("T3: o canal de coleta segue best-effort, com cap de 8 KiB/10 violações", async () => {
     delete process.env.CSP_ENFORCE;
     const policy = securityHeaders()["content-security-policy-report-only"] ?? "";

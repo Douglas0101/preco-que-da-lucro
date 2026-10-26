@@ -1,0 +1,89 @@
+
+Running 2 tests using 2 workers
+
+  ✘  1 [chromium] › e2e/sales-dashboard.spec.ts:419:1 › E3 — trocar período preserva o foco no botão (DBT-165, WCAG 2.4.3) (2.0s)
+  ✘  2 [chromium] › e2e/sales-dashboard.spec.ts:442:1 › E5 — durante a troca a janela antiga permanece e o grid não desmonta (7.2s)
+
+
+  1) [chromium] › e2e/sales-dashboard.spec.ts:419:1 › E3 — trocar período preserva o foco no botão (DBT-165, WCAG 2.4.3) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "Trimestre"
+    Received: "Preço que Dá Lucroteste@example.testSairInícioMeus ProdutosPreços de CompraMinhas DespesasVendasPonto de EquilíbrioSimulaçõesDiagnósticoOlá! 👋Resumo dos dados cadastrados e das vendas reais, sem presumir volume.Seu negócio agoraCadastro e ficha técnica. Estes números não mudam com o período selecionado.Produtos2Cadastro. Não varia por período.Como calculamos?Contagem direta dos produtos cadastrados na sua conta. É um dado cadastral: nenhum volume de vendas é presumido e o período selecionado não muda este número.Despesas fixas por mêsR$ 600,00Compromisso mensal. Não varia por período.Como calculamos?Fórmula: soma das despesas cadastradas com tipo «fixa», por mês.O valor é mensal e não é multiplicado pelo período selecionado: o trimestre ou o ano em curso ainda não têm meses futuros realizados, e multiplicar seria presumir um compromisso que ninguém registrou.Despesas variáveis ficam de fora: elas dependem do quanto você vende. Uma despesa com valor inválido deixa este indicador indisponível e acende o card de erro no topo da página.Realizado no períodoSó vendas reais registradas. A janela vem do servidor e é a mesma para os dois números.MêsTrimestreAnoJanela do período: 01/10/2026 – 31/12/2026Coincidente com o mês atualFaturamento real—Nenhuma venda real registrada.Como calculamos?Sem vendas registradas na janela exibida não há o que somar: o card mostra «—» em vez de presumir um volume. Vendas da simulação e estimativas não entram neste total.Margem consolidadaSEM VENDAS—Sem vendas na janela. Registre vendas reais para calcular o mix.Como calculamos?Fórmula: (faturamento real − custo das unidades vendidas − impostos e taxas sobre os valores vendidos) ÷ faturamento real do período.A margem é ponderada pelo mix real de vendas — quantas unidades de cada produto foram vendidas, não apenas o faturamento total — e usa o preço registrado em cada venda e as premissas de custo, impostos e taxas atuais dos produtos. Ela não reconstrói custos históricos.Sem vendas registradas na janela exibida não há mix para ponderar: o card fica indisponível em vez de presumir volume ou exibir uma margem média dos produtos cadastrados.🏆 Maior margem unitária calculávelProduto de testeMargem de contribuição unitária: 35,00%Indicador unitário da ficha técnica. Não varia por período.Comparação limitada aos produtos com dados completos.Como calculamos?O destaque é o produto com a maior margem de contribuição unitária em %, entre os que têm dados completos. Produtos com dados incompletos ficam fora da comparação; em caso de empate permanece o primeiro produto avaliado.Fórmula: margem de contribuição unitária ÷ preço de venda × 100 — a margem de contribuição unitária é preço − custo unitário − custo variável unitário (imposto e taxas percentuais). Alertas financeiros1 produto(s) não participa(m) dos destaques por ter dados incompletos. Novo produtoVer diagnóstico completoS"
+
+      429 |     windowLabel(quarterStart(), nextQuarterStart()),
+      430 |   );
+    > 431 |   expect(await page.evaluate(() => (document.activeElement?.textContent ?? "").trim())).toBe(
+          |                                                                                         ^
+      432 |     "Trimestre",
+      433 |   );
+      434 |
+        at /home/douglas/WebstormProjects/preco-que-da-lucro/e2e/sales-dashboard.spec.ts:431:89
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sales-dashboard-E3-—-troca-5ab28-o-botão-DBT-165-WCAG-2-4-3--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/sales-dashboard-E3-—-troca-5ab28-o-botão-DBT-165-WCAG-2-4-3--chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/sales-dashboard-E3-—-troca-5ab28-o-botão-DBT-165-WCAG-2-4-3--chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/sales-dashboard-E3-—-troca-5ab28-o-botão-DBT-165-WCAG-2-4-3--chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/sales-dashboard-E3-—-troca-5ab28-o-botão-DBT-165-WCAG-2-4-3--chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › e2e/sales-dashboard.spec.ts:442:1 › E5 — durante a troca a janela antiga permanece e o grid não desmonta 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('section[aria-labelledby="inicio-realizado"]')
+    Expected: "true"
+    Received: "false"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 5000ms
+      - waiting for locator('section[aria-labelledby="inicio-realizado"]')
+        9 × locator resolved to <section aria-busy="false" class="space-y-3" aria-labelledby="inicio-realizado">…</section>
+          - unexpected value "false"
+
+
+      462 |
+      463 |   const realized = page.locator('section[aria-labelledby="inicio-realizado"]');
+    > 464 |   await expect(realized).toHaveAttribute("aria-busy", "true");
+          |                          ^
+      465 |   // Rótulo antigo enquanto o número antigo está na tela: nunca Outubro com
+      466 |   // números de Setembro, nunca "Ano" com a janela do mês.
+      467 |   await expect(windowText).toContainText(monthWindow);
+        at /home/douglas/WebstormProjects/preco-que-da-lucro/e2e/sales-dashboard.spec.ts:464:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sales-dashboard-E5-—-duran-b0f89-anece-e-o-grid-não-desmonta-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/sales-dashboard-E5-—-duran-b0f89-anece-e-o-grid-não-desmonta-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/sales-dashboard-E5-—-duran-b0f89-anece-e-o-grid-não-desmonta-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/sales-dashboard-E5-—-duran-b0f89-anece-e-o-grid-não-desmonta-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/sales-dashboard-E5-—-duran-b0f89-anece-e-o-grid-não-desmonta-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [chromium] › e2e/sales-dashboard.spec.ts:419:1 › E3 — trocar período preserva o foco no botão (DBT-165, WCAG 2.4.3) 
+    [chromium] › e2e/sales-dashboard.spec.ts:442:1 › E5 — durante a troca a janela antiga permanece e o grid não desmonta 
+mutacao-exit=1
+src/lib/query-options.ts: OK

@@ -1,0 +1,20 @@
+
+> pretest:e2e
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test:e2e
+> playwright test e2e/sales-dashboard.spec.ts --project=chromium --reporter=list
+
+
+Running 7 tests using 2 workers
+
+  ✓  2 [chromium] › e2e/sales-dashboard.spec.ts:301:1 › E4 — estado vazio mostra SEM VENDAS e nunca DADOS INCOMPLETOS (INV-006) (2.2s)
+  ✓  1 [chromium] › e2e/sales-dashboard.spec.ts:323:1 › registrar venda pelo formulário aparece em Vendas recentes (2.6s)
+  ✓  3 [chromium] › e2e/sales-dashboard.spec.ts:336:1 › venda registrada aparece no faturamento real nos períodos Mês e Ano (4.0s)
+  ✓  4 [chromium] › e2e/sales-dashboard.spec.ts:373:1 › E1 — venda do mês anterior não entra em Mês e entra no Ano (3.6s)
+  ✓  5 [chromium] › e2e/sales-dashboard.spec.ts:401:1 › E2 — janela exibida por período e selo de coincidência do trimestre (1.7s)
+  ✓  6 [chromium] › e2e/sales-dashboard.spec.ts:419:1 › E3 — trocar período preserva o foco no botão (DBT-165, WCAG 2.4.3) (1.8s)
+  ✓  7 [chromium] › e2e/sales-dashboard.spec.ts:442:1 › E5 — durante a troca a janela antiga permanece e o grid não desmonta (2.3s)
+
+  7 passed (11.2s)

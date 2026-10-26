@@ -1,0 +1,91 @@
+# Agente A — OTel offline: o app carrega normal (e um achado extra sobre a entrega de telemetria)
+
+## 1. A variavel de ambiente no banco de provas
+`OTEL_EXPORTER_OTLP_ENDPOINT` no `.env` (fallback do bench): **DEFINIDA E VAZIA**.
+`OTEL_SERVICE_NAME`: definida e nao-vazia. `OTEL_TRACES_SAMPLER`: definida e nao-vazia
+(`parentbased_always_on`). `OTEL_TRACES_SAMPLER_ARG`: definida e vazia.
+(processo :4173: a variavel nao aparece em /proc/<pid>/environ porque `node --env-file-if-exists`
+injeta em process.env em runtime, nao no stack inicial — a fonte autoritativa e o `.env`.)
+=> No bench canonico o SDK do OTel **nem e importado**: `shouldStartTelemetry()` so liga quando o
+endpoint e uma string NAO-VAZIA (`src/instrumentation/telemetry.ts:264-272`), e `readEnv` trata
+"definida e vazia" como ausente (`src/lib/env.server.ts:17-21`).
+=> **PREMISSA DO ENUNCIADO CORRIGIDA:** o :4173 NAO usa "o endpoint real"; ele roda com a
+telemetria DESLIGADA. O par medido e, na verdade, mais forte: "telemetria OFF" vs "telemetria LIGADA
+com coletor morto".
+
+## 2. O par medido
+- :4173 (canonico, bench): `bash .artifacts/bench-preview.sh` — ja estava no ar, NAO foi tocado.
+- :4174 (agente A): `.artifacts/bughunt-a/preview-4174.sh` — MESMO build (`.output/`), mesmas
+  variaveis do bench (DATABASE_URL/DATABASE_ADMIN_URL/DATABASE_DRIVER/BETTER_AUTH_URL/
+  AUTH_TRUSTED_ORIGINS, as DUAS chaves de IA VAZIAS => ramo controlado, zero chamada externa),
+  `PORT=4174`, `HOST=127.0.0.1`, e a unica diferenca:
+  `OTEL_EXPORTER_OTLP_ENDPOINT="http://127.0.0.1:9/"` (endpoint MORTO: nada escutando em :9,
+  confirmado por `ss -ltn` e por bind com EACCES por porta privilegiada).
+  Credencial de fixture lida de `.artifacts/e2e-local.env` (modo 600) e NUNCA impressa.
+
+## 3. Tempos medidos (7 amostras por braco; MEDIANA)
+$ node .artifacts/bughunt-a/otel-offline.mjs   (JSON: .artifacts/bughunt-a/otel-offline-timing.json)
+
+braco                                   landing (mediana)   /api/health/ready (mediana)
+:4173 telemetria OFF                         4,13 ms                    3,36 ms
+:4174 telemetria ON, coletor morto           3,90 ms                    2,71 ms
+amostras completas: :4173 landing [37,16 5,67 4,38 3,61 4,13 2,76 2,83] ms
+                 :4174 landing [6,79 3,90 4,61 3,98 3,45 3,11 2,89] ms
+(o primeiro sample de cada braco e o cold start; a mediana e robusta a ele)
+=> **SEM degradacao**: o braco com o SDK no ar e o exportador batendo em endpoint morto foi
+   0,23 ms MAIS rapido na landing e 0,65 ms mais rapido no health (dentro do ruido).
+
+## 4. Render e console do browser (Chromium do Playwright)
+$ node .artifacts/bughunt-a/otel-offline-browser.mjs  (JSON: .artifacts/bughunt-a/otel-offline-browser.json)
+
+:4173 -> status 200 | h1 "Entenda a faixa de preco do seu produto conversando." | 0 erros de console
+        | 0 pageerror | 0 requestfailed
+:4174 -> status 200 | h1 "Entenda a faixa de preco do seu produto conversando." | 0 erros de console
+        | 0 pageerror | 0 requestfailed
+
+## 5. Log do servidor do :4174 (24 linhas, 20 eventos request.completed, todos 200)
+`grep -i "otel|telemetry|initialization_failed|ECONN|error|warn"` => **VAZIO**.
+=> **NENHUM erro de inicializacao do OTel**, nenhum warn, nenhum erro. O app continua servo
+   normalmente (health = {"status":"ready","dependencies":{"postgres":"ok"}}).
+Log bruto: `.artifacts/bughunt-a/preview-4174.log`
+sha256: 46552db25e0a9b789dc7104f75d89c48cd57f3443e2bc2c176204d2f818f5873
+
+## 6. ACHADO EXTRA (nao era o alvo da fase): a telemetria nao chega a nenhum coletor no servidor compilado
+Medido com um coletor OTLP local de mentira (`.artifacts/bughunt-a/otlp-sink.mjs`, 127.0.0.1:19099,
+registra method/url/bytes) e um preview extra na :4176 apontando para ele:
+
+- **Servidor compilado** (`.output/server/index.mjs`): **ZERO** requisicoes OTLP em ~2 min e 4
+  requests HTTP (um deles com query no Postgres => span de DB). Com `NODE_DEBUG=http` (braco :4178)
+  nao ha NENHUMA conexao de cliente HTTP — so trafego de servidor. O exportador nunca tenta sair.
+- **Mesmo codigo em contexto de fonte** (tsx, `.artifacts/bughunt-a/otel-probe.mts`): 4 POSTs
+  `/v1/traces` (2.199 B cada) + 3 POSTs `/v1/metrics` (2.048 B) em ~4 s.
+- O SDK **inicia** no servidor compilado (com `OTEL_LOG_LEVEL=debug`: "EnvDetector/ProcessDetector/
+  HostDetector found resource", "@opentelemetry/api: Registered a global for metrics v1.9.1" e
+  "...for trace v1.9.1") => nao e falha de inicializacao; e entrega silenciosa.
+- No bundle do servidor, `@opentelemetry/api` esta EMPACOTADO
+  (`.output/server/_libs/opentelemetry__api.mjs`, importado pelo chunk `_ssr/client.server-*.mjs`)
+  e os pacotes do SDK **nao** estao no bundle (sao carregados em runtime por specifier bare:
+  `import(/* @vite-ignore */ "@opentelemetry/sdk-node")`) => DUAS copias da API no mesmo processo
+  (medido: `bundled.trace !== node_modules.trace`; a API recusa o registro duplicado — diag medido
+  "Attempted duplicate registration of API: trace").
+- O app obtem tracer/meter NO TOPO DO MODULO, antes de o SDK registrar o provider; o proprio codigo
+  do repo descreve esse modo de falha para as metricas
+  (`src/instrumentation/telemetry.ts:456-466`: "continua emitindo em instrumentos noop, e o
+  PeriodicExportingMetricReader nem invoca o exporter"). Medido: meter obtido antes do SDK => NENHUM
+  POST /v1/metrics; meter obtido depois => POST a cada ciclo.
+- **O MECANISMO DA SILENCIA NO SERVIDOR COMPILADO NAO FOI PINCADO.** As sondas isoladas com as
+  duas copias (nas duas ordens de import) PROPAGARAM o provider para o tracer do app — logo a
+  duplicacao, sozinha, nao reproduz o silencio. O que resta sem prova e a combinacao exata.
+- Consequencia pratica: a evidencia de OB-02/OB-03 do repo
+  (`docs/evidence/otimizacoes-planejamento/captures/ob02-ob03-otel.txt`, "started=true / flushed")
+  prova que o SDK SOBE e DRAINA, **nao** que algo chega ao coletor: apontado para o coletor local,
+  o smoke do repo tambem entrega ZERO requisições.
+
+## 7. Limpeza (portas do agente A)
+:4174, :4176, :4177, :4178 e :19099 -> todos sem listener apos o encerramento;
+`curl` em cada uma => conexao recusada (exit 000). O :4173 canonico segue no ar (200) e NAO foi
+tocado (nenhum outro agente foi afetado).
+
+LIMITE DECLARADO: o par medido (telemetria OFF vs telemetria ON com coletor morto) cobre o
+comportamento de rede do exportador, nao a entrega de telemetria em producao (Vercel/Neon/Hostinger
+nao foram tocados). O mecanismo do achado da secao 6 permanece em aberto, como declarado acima.

@@ -1,0 +1,30 @@
+CU walk — WP dashboard-periodo-2026-10-26
+base=http://localhost:8080  quando=2026-10-26T04:41:35.221Z
+janela esperada: mes=01/10/2026 – 31/10/2026 | trimestre=01/10/2026 – 31/12/2026 | ano=01/01/2026 – 31/12/2026 | coincidencia=true
+checks: 25/25 passed
+PASS  login-api  — HTTP 200
+PASS  A1 duas secoes  — Seu negócio agora | Realizado no período
+PASS  A2 invariante  — Produtos2Cadastro. Não varia por período / Despesas fixas por mêsR$ 600,00Compromis
+PASS  A3 realizado  — Faturamento real—Nenhuma venda real regi / Margem consolidadaSEM VENDAS—Sem vendas 
+PASS  A4 aria-busy=false  — busy=false
+PASS  A5 janela do mes  — esperado=01/10/2026 – 31/10/2026 observado=Janela do período: 01/10/2026 – 31/10/2026
+PASS  A6 SEM VENDAS presente  — badge do estado vazio
+PASS  A7 DADOS INCOMPLETOS ausente  — estado vazio nao e incompleto
+PASS  A8 rotulo de invariante  — 3 ocorrencias
+PASS  A9 sem overflow desktop  — overflow=0px
+PASS  B1 aria-pressed  — pressed=Trimestre
+PASS  B2 foco preservado (DBT-165)  — activeElement=Trimestre
+PASS  B3 grupo nao desmontou  — isConnected=true
+PASS  B4 janela do trimestre  — esperado=01/10/2026 – 31/12/2026 observado=Janela do período: 01/10/2026 – 31/12/2026
+PASS  B5 selo de coincidencia  — esperado=true observado=true
+PASS  B6 aria-busy observado  — busy em algum frame=true
+PASS  C1 foco no botao Ano  — activeElement=Ano
+PASS  C2 janela do ano  — esperado=01/01/2026 – 31/12/2026 observado=Janela do período: 01/01/2026 – 31/12/2026
+PASS  D1 sem overflow /inicio 360px  — overflow=0px
+PASS  D2 sem overflow /produtos 360px  — overflow=0px
+PASS  E /vendas  — h1 presente
+PASS  E /diagnostico  — h1 presente
+PASS  E /ponto-equilibrio  — h1 presente
+PASS  F1 console sem erros  — 0 erros
+PASS  F2 rede sem 4xx/5xx  — 0 falhas
+screenshots: /home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/dashboard-periodo-2026-10-26/playwright-mcp/inicio-desktop.png, /home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/dashboard-periodo-2026-10-26/playwright-mcp/inicio-mobile-360.png

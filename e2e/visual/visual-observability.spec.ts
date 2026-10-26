@@ -39,7 +39,7 @@ import {
 
 const COMPLETE_PRODUCT = "Produto de teste";
 const INCOMPLETE_PRODUCT = "Produto incompleto E2E";
-const STATE_BADGE = /^(REAL|DADOS INCOMPLETOS)$/;
+const STATE_BADGE = /^(REAL|DADOS INCOMPLETOS|SEM VENDAS)$/;
 
 function expectOk(assertion: AssertionResult): void {
   if (assertion.ok) return;
@@ -167,7 +167,7 @@ test("artefato persistido está redigido, selado e correlacionado", async ({ pag
 test("chat: desfecho honesto e sem estado travado", async ({ page }) => {
   await captureVisualScenario(page, `chat-honesty-${test.info().project.name}`, "/novo-produto");
 
-  const input = page.getByPlaceholder("Escreva sua resposta...");
+  const input = page.getByPlaceholder("Pergunte sobre custos, margem ou ponto de equilíbrio…");
   await expect(input).toBeVisible();
   const bubbles = page.locator(
     '[role="log"] [data-slot="message"][data-align="start"]:not([data-loading="true"])',

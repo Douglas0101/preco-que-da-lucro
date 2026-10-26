@@ -1,0 +1,57 @@
+{
+  "headers": {
+    "x-forwarded-for": "198.51.100.21"
+  },
+  "samples": 7,
+  "endpoints": {
+    "4173": "canonico: OTEL_EXPORTER_OTLP_ENDPOINT definida-e-vazia (.env) => SDK do OTel nunca importado",
+    "4174": "agente A: OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:9/ (morto) => SDK sobe, exportador falha"
+  },
+  "arms": [
+    {
+      "port": 4173,
+      "label": "canonico (endpoint OTLP definido-e-vazio => SDK off)",
+      "landingMedianMs": 4.13,
+      "landingAllMs": [37.16, 5.67, 4.38, 3.61, 4.13, 2.76, 2.83],
+      "landingStatus": 200,
+      "healthReadyMedianMs": 3.36,
+      "healthReadyAllMs": [18.04, 3.48, 4.55, 3.36, 3.17, 2.06, 1.97],
+      "healthBody": "{\"status\":\"ready\",\"dependencies\":{\"postgres\":\"ok\"}}"
+    },
+    {
+      "port": 4174,
+      "label": "agente A (endpoint OTLP morto 127.0.0.1:9 => SDK on)",
+      "landingMedianMs": 3.9,
+      "landingAllMs": [6.79, 3.9, 4.61, 3.98, 3.45, 3.11, 2.89],
+      "landingStatus": 200,
+      "healthReadyMedianMs": 2.71,
+      "healthReadyAllMs": [9.78, 2.74, 2.71, 3.13, 2.38, 2.02, 2.22],
+      "healthBody": "{\"status\":\"ready\",\"dependencies\":{\"postgres\":\"ok\"}}"
+    }
+  ],
+  "browser": [
+    {
+      "port": 4173,
+      "status": 200,
+      "h1": "Entenda a faixa de preço do seu produto conversando.",
+      "h1Present": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "failedRequests": 0
+    },
+    {
+      "port": 4174,
+      "status": 200,
+      "h1": "Entenda a faixa de preço do seu produto conversando.",
+      "h1Present": true,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "failedRequests": 0
+    }
+  ],
+  "serverLog": ".artifacts/bughunt-a/preview-4174.log",
+  "serverLogSha256": "46552db25e0a9b789dc7104f75d89c48cd57f3443e2bc2c176204d2f818f5873",
+  "otelErrorsInServerLog": 0,
+  "portsFreedAfter": [4174, 4176, 4177, 4178, 19099],
+  "extraFinding": "servidor compilado nao entrega NENHUM payload OTLP a um coletor no ar (0 requisicoes em ~2 min; NODE_DEBUG=http sem nenhuma conexao de cliente); o mesmo codigo em contexto de fonte entrega em ~4 s"
+}

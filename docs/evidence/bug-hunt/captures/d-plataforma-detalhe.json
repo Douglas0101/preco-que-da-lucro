@@ -1,0 +1,34 @@
+[
+  {
+    "caso": "chromium /produtos @320x400",
+    "observado": "{\n \"scrollW\": 333,\n \"clientW\": 320,\n \"todos\": [\n  {\n   \"d\": \"div.flex.gap-2\",\n   \"right\": 333,\n   \"left\": 16,\n   \"w\": 317,\n   \"h\": 36,\n   \"txt\": \"Preços de compra Novo produto\"\n  },\n  {\n   \"d\": \"a.group/button.inline-flex.shrink-0\",\n   \"right\": 333,\n   \"left\": 192,\n   \"w\": 141,\n   \"h\": 36,\n   \"txt\": \"Novo produto\"\n  }\n ],\n \"culpados\": [\n  {\n   \"el\": \"div.flex.gap-2\",\n   \"right\": 333,\n   \"texto\": \"Preços de compra Novo produto\"\n  },\n  {\n   \"el\": \"a.group/button.inline-flex.shrink-0\",\n   \"right\": 333,\n   \"texto\": \"Novo produto\"\n  }\n ],\n \"cortados\": []\n}"
+  },
+  {
+    "caso": "chromium /despesas @320x400 (card cortado)",
+    "observado": "[\n {\n  \"el\": \"input#base-ui-_r_4_-hidden-input\",\n  \"clientW\": 1,\n  \"scrollW\": 45,\n  \"filhos\": []\n },\n {\n  \"el\": \"input#base-ui-_r_7_-hidden-input\",\n  \"clientW\": 1,\n  \"scrollW\": 24,\n  \"filhos\": []\n }\n]"
+  },
+  {
+    "caso": "chromium /despesas @360x640 (card cortado)",
+    "observado": "[\n {\n  \"el\": \"input#base-ui-_r_4_-hidden-input\",\n  \"clientW\": 1,\n  \"scrollW\": 45,\n  \"filhos\": []\n },\n {\n  \"el\": \"input#base-ui-_r_7_-hidden-input\",\n  \"clientW\": 1,\n  \"scrollW\": 24,\n  \"filhos\": []\n }\n]"
+  },
+  {
+    "caso": "chromium / @320x400 (scrollW=320)",
+    "observado": "{\n \"culpados\": [],\n \"todos\": []\n}"
+  },
+  {
+    "caso": "firefox /produtos @320x400",
+    "observado": "{\n \"scrollW\": 333,\n \"clientW\": 320,\n \"todos\": [\n  {\n   \"d\": \"div.flex.gap-2\",\n   \"right\": 333,\n   \"left\": 16,\n   \"w\": 317,\n   \"h\": 36,\n   \"txt\": \"Preços de compra Novo produto\"\n  },\n  {\n   \"d\": \"a.group/button.inline-flex.shrink-0\",\n   \"right\": 333,\n   \"left\": 192,\n   \"w\": 141,\n   \"h\": 36,\n   \"txt\": \"Novo produto\"\n  }\n ],\n \"culpados\": [\n  {\n   \"el\": \"div.flex.gap-2\",\n   \"right\": 333,\n   \"texto\": \"Preços de compra Novo produto\"\n  },\n  {\n   \"el\": \"a.group/button.inline-flex.shrink-0\",\n   \"right\": 333,\n   \"texto\": \"Novo produto\"\n  }\n ],\n \"cortados\": []\n}"
+  },
+  {
+    "caso": "firefox /despesas @320x400 (card cortado)",
+    "observado": "[\n {\n  \"el\": \"input#base-ui-_r_4_-hidden-input\",\n  \"clientW\": 1,\n  \"scrollW\": 45,\n  \"filhos\": []\n },\n {\n  \"el\": \"input#base-ui-_r_7_-hidden-input\",\n  \"clientW\": 1,\n  \"scrollW\": 24,\n  \"filhos\": []\n }\n]"
+  },
+  {
+    "caso": "firefox /despesas @360x640 (card cortado)",
+    "observado": "[\n {\n  \"el\": \"input#base-ui-_r_4_-hidden-input\",\n  \"clientW\": 1,\n  \"scrollW\": 45,\n  \"filhos\": []\n },\n {\n  \"el\": \"input#base-ui-_r_7_-hidden-input\",\n  \"clientW\": 1,\n  \"scrollW\": 24,\n  \"filhos\": []\n }\n]"
+  },
+  {
+    "caso": "firefox / @320x400 (scrollW=320)",
+    "observado": "{\n \"culpados\": [],\n \"todos\": []\n}"
+  }
+]

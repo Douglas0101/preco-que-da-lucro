@@ -127,10 +127,17 @@ verificação de runtime.**
   GHSA-qx66-fv34-fjm8) e o fornecedor recusa reconstruí-la — o rollback por
   redeploy está fechado. A contenção que restaurou o serviço mantém esse risco
   aberto, e ele não é resolvido por este ADR.
-- **Lacuna de observabilidade.** `src/routes/api/health/ready.ts:14` deveria
-  serializar a causa do driver, não apenas `name`/`message`. Corrigir isso é o
-  que teria tornado o incidente diagnosticável sem ler credencial. Até lá,
-  qualquer recorrência do 503 em produção continua não-discriminante.
+- **Lacuna de observabilidade — RESOLVIDA.** `src/routes/api/health/ready.ts:14` deveria
+  serializar a causa do driver, não apenas `name`/`message`; **isso foi
+  implementado** em `src/routes/api/health/ready.ts:15-26`, onde o `catch` chama
+  `classifyDatabaseFailure(error)` (comentário em `ready.ts:16-21`) e entrega ao
+  `logJson` a classificação fechada — componente, categoria, etapa, código
+  aprovado, `transient` e elos inspecionados — **nunca** o `Error` cru: a
+  mensagem do drizzle é genérica e o `cause` do driver carrega host, porta,
+  usuário e connection string. O incidente deixa de ter um artefato
+  não-discriminante por defeito da chamada de log. A medição de 2026-10-08
+  descrita no §Contexto (item 5) fica como registro do estado **anterior** à
+  correção.
 - Esta decisão não aprova publicação. Nenhum destino público novo é criado por
   ela.
 

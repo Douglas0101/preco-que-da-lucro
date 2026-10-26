@@ -1,0 +1,30 @@
+# Contraste WCAG 2.2 medido (OKLCH/HSL -> sRGB -> luminância relativa)
+
+| par | razão | mínimo | veredito | uso |
+|---|---|---|---|---|
+| foreground / background | 16.66:1 | 4.5:1 | PASS | texto normal |
+| foreground / card | 17.65:1 | 4.5:1 | PASS | texto normal |
+| muted-foreground / background | 6.44:1 | 4.5:1 | PASS | texto normal |
+| muted-foreground / muted | 5.88:1 | 4.5:1 | PASS | texto normal |
+| primary-foreground (navy) / primary (ouro) | 5.75:1 | 4.5:1 | PASS | texto de botão |
+| primary-strong / background | 5.19:1 | 4.5:1 | PASS | links/texto ouro |
+| primary-display / background (large) | 3.32:1 | 3:1 | PASS | texto grande |
+| secondary-foreground / secondary | 12.97:1 | 4.5:1 | PASS | texto normal |
+| accent-foreground / accent | 15.20:1 | 4.5:1 | PASS | texto normal |
+| destructive-foreground / destructive | 4.59:1 | 4.5:1 | PASS | texto normal |
+| sidebar-foreground / sidebar | 16.98:1 | 4.5:1 | PASS | texto normal |
+| sidebar-accent-foreground / sidebar-accent | 12.97:1 | 4.5:1 | PASS | texto normal |
+| sidebar-primary-foreground / sidebar-primary (glifo) | 5.75:1 | 3:1 | PASS | não-texto (ícone) |
+| success (DBT-123) / background | 4.67:1 | 4.5:1 | PASS | margem positiva |
+| warning-foreground (escuro) / warning (âmbar) | 8.86:1 | 4.5:1 | PASS | badge de alerta |
+
+## Notas
+
+- Pares medidos com a mesma fórmula do `checkContrast`/axe (WCAG 2.2, texto normal 4,5:1;
+  texto grande 3:1; componentes não-textuais 3:1).
+- O creme do site (`hsl(40 33% 97%)`) é ligeiramente mais escuro que branco puro; por isso o
+  verde de sucesso cai de 4,95:1 (branco) para 4,68:1 no creme — ainda PASS.
+- O botão do site usa quase-branco sobre ouro (2,95:1): reproduzir isso reprovaria o axe do
+  repositório; por isso o par acessível navy/ouro foi adotado e declarado.
+- `warning` é usado como ícone/borda e como fundo com `--warning-foreground` escuro; o par
+  escuro/âmbar está medido acima como PASS.

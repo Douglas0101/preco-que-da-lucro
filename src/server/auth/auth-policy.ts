@@ -224,3 +224,37 @@ export function resolveGoogleCredentials(
   }
   return { clientId, clientSecret };
 }
+
+/**
+ * Uma única fonte para o acoplamento "verificação obrigatória ⇒ e-mail
+ * configurado": o guard de sign-up e o gate do OAuth só bloqueiam enquanto
+ * esta flag for true.
+ */
+export const REQUIRE_EMAIL_VERIFICATION = true;
+
+/**
+ * Configuração do provider Google **com a exigência de verificação de e-mail**.
+ *
+ * `ProviderOptions.requireEmailVerification` é lido pelo Better Auth em
+ * `node_modules/better-auth/dist/oauth2/link-account.mjs:258` — o valor vem do
+ * objeto de configuração que passamos ao provider (o provider Google o
+ * expõe como `options`). Com a flag ligada, a linha 260 recusa a emissão da
+ * sessão quando o e-mail do usuário não está verificado (o usuário é criado, a
+ * sessão não) e devolve `email_not_verified` no redirect do callback.
+ *
+ * Sem a flag, o provider do Google não tinha nenhuma exigência: o
+ * `requireEmailVerification` do provider era `undefined`, o check de `:260`
+ * era curto-circuitado e a sessão era criada em `:268` mesmo com o e-mail não
+ * verificado. O commit `75da106` (DBT-129) fechou essa classe **apenas** para
+ * `/sign-up/email`; esta função fecha o mesmo bypass no caminho OAuth.
+ *
+ * O par de credenciais continua vindo de `resolveGoogleCredentials` — a única
+ * fonte; aqui ele só ganha a flag de política.
+ */
+export function resolveGoogleProviderOptions(
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): { clientId: string; clientSecret: string; requireEmailVerification: boolean } | undefined {
+  const credentials = resolveGoogleCredentials(environment);
+  if (!credentials) return undefined;
+  return { ...credentials, requireEmailVerification: REQUIRE_EMAIL_VERIFICATION };
+}

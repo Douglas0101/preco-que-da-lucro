@@ -1,0 +1,103 @@
+# Fluxo animado medido no navegador (motion slide-up)
+
+Comando: `node .artifacts/design/debug-motion.mjs` (Playwright/Chromium, dev server, fixture local)
+
+```
+[
+ {
+  "t": 145,
+  "opacity": "0.133451",
+  "transform": "matrix(1, 0, 0, 1, 0, 6.11694)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 148,
+  "opacity": "0.133451",
+  "transform": "matrix(1, 0, 0, 1, 0, 6.11694)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 194,
+  "opacity": "0.77641",
+  "transform": "matrix(1, 0, 0, 1, 0, 1.65093)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 210,
+  "opacity": "0.77641",
+  "transform": "matrix(1, 0, 0, 1, 0, 1.65093)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 237,
+  "opacity": "0.942726",
+  "transform": "matrix(1, 0, 0, 1, 0, 0.49408)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 241,
+  "opacity": "0.942726",
+  "transform": "matrix(1, 0, 0, 1, 0, 0.49408)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 279,
+  "opacity": "0.978836",
+  "transform": "matrix(1, 0, 0, 1, 0, 0.134047)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 300,
+  "opacity": "0.978836",
+  "transform": "matrix(1, 0, 0, 1, 0, 0.134047)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 322,
+  "opacity": "0.996884",
+  "transform": "matrix(1, 0, 0, 1, 0, 0.0220344)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 330,
+  "opacity": "0.996884",
+  "transform": "matrix(1, 0, 0, 1, 0, 0.0220344)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 364,
+  "opacity": "0.999614",
+  "transform": "matrix(1, 0, 0, 1, 0, 0.0007276)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 390,
+  "opacity": "0.999614",
+  "transform": "matrix(1, 0, 0, 1, 0, 0.0007276)",
+  "animations": 1,
+  "text": "Debug motion: qual a m"
+ },
+ {
+  "t": 410,
+  "opacity": "1",
+  "transform": "matrix(1, 0, 0, 1, 0, 0.0007276)",
+  "animations": 0,
+  "text": "Debug motion: qual a m"
+ }
+]
+```
+
+Leitura: o item do turno novo começa com `opacity` < 1 e `translateY` > 0 e termina em `opacity 1` / `transform: none`;
+`getAnimations()` mostra a animação ativa durante a transição e 0 ao final. Os registros acima são do MutationObserver
+no `style` do item (mesma técnica do demo: `motion.create(MessageScrollerItem)` + variantes `slide-up`).

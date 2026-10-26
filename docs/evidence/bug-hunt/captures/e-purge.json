@@ -1,0 +1,33 @@
+{
+  "mode": "purge",
+  "dsn_redacted": "postgresql://<REDACTED>@127.0.0.1:5432/preco_que_da_lucro_test",
+  "count_before": {
+    "tenants": "23",
+    "users": "25",
+    "products": "21",
+    "expenses": "9",
+    "sales": "10",
+    "ingredients": "14",
+    "sessions": "20",
+    "accounts": "5",
+    "profiles": "5",
+    "memberships": "25"
+  },
+  "count_after": {
+    "tenants": "21",
+    "users": "23",
+    "products": "19",
+    "expenses": "3",
+    "sales": "3",
+    "ingredients": "8",
+    "sessions": "15",
+    "accounts": "3",
+    "profiles": "3",
+    "memberships": "23"
+  },
+  "leftover": {
+    "leftover_users": "0",
+    "leftover_tenants": "0",
+    "leftover_products": "0"
+  }
+}

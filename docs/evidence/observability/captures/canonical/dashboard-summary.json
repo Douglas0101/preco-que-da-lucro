@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-10-23T00:04:18.409Z",
+  "evidenceDir": "/home/douglas/WebstormProjects/preco-que-da-lucro/docs/evidence/observability/captures/canonical",
+  "spans": {
+    "total": 88,
+    "toolCalls": 26,
+    "failures": 2,
+    "blocked": 2,
+    "errorRate": 0.0769,
+    "p95DurationMs": 12009,
+    "maxDurationMs": 12078,
+    "byTool": {
+      "shell": {
+        "total": 18,
+        "error": 0,
+        "blocked": 1
+      },
+      "read": {
+        "total": 1,
+        "error": 0,
+        "blocked": 1
+      },
+      "edit": {
+        "total": 5,
+        "error": 0,
+        "blocked": 0
+      },
+      "write": {
+        "total": 2,
+        "error": 0,
+        "blocked": 0
+      }
+    }
+  },
+  "llm": {
+    "tokens": {
+      "input": 612597,
+      "output": 10175,
+      "reasoning": 11511,
+      "cache_read": 16096896
+    },
+    "costUsd": 0.153192
+  },
+  "alerts": [
+    {
+      "severity": "high",
+      "name": "tool_error_rate",
+      "value": 0.0769,
+      "threshold": 0.05,
+      "message": "taxa de erro de tool calls acima de 5%"
+    },
+    {
+      "severity": "high",
+      "name": "tool_max_latency_ms",
+      "value": 12078,
+      "threshold": 10000,
+      "message": "uma tool call durou mais de 10 s"
+    },
+    {
+      "severity": "critical",
+      "name": "policy_violations",
+      "value": 2,
+      "threshold": 0,
+      "message": "ao menos uma tentativa de violação de política foi bloqueada"
+    }
+  ]
+}

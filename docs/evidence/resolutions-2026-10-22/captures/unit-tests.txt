@@ -1,0 +1,19 @@
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run
+
+
+ RUN  v4.1.11 /home/douglas/WebstormProjects/preco-que-da-lucro
+
+dpkg-deb: aviso: diretório raiz /tmp/playwright-deb-1teqHy/package tem proprietário ou grupo incomum 1000:1000
+dpkg-deb: aviso: ignorando 1 aviso sobre o(s) arquivo(s) de controle
+
+ Test Files  151 passed | 2 skipped (153)
+      Tests  2369 passed | 30 skipped (2399)
+   Start at  04:07:11
+   Duration  171.16s (transform 2.19s, setup 11.98s, import 34.14s, tests 39.67s, environment 70.39s)
+

@@ -1,0 +1,14 @@
+-- DBT-160 — a exclusão de despesa é uma operação real da aplicação
+-- (`DrizzleExpenseRepository.remove` → `delete from expenses`), mas o papel de
+-- runtime nunca recebeu DELETE nesta tabela: o GRANT de 0001 concede apenas
+-- SELECT, INSERT e UPDATE a `products`, `expenses`, `simulations` e às demais
+-- tabelas de domínio. Sem o privilégio, o PostgreSQL responde 42501 ANTES de
+-- avaliar a policy de RLS — a policy `tenant_isolation` já cobre DELETE porque
+-- é FOR ALL, mas nunca é alcançada.
+--
+-- Escopo mínimo medido: `expenses` é a única tabela de domínio com caminho de
+-- DELETE no código de produção (`src/server/repositories/expense.repository.ts`).
+-- `products` é arquivado por UPDATE (archiveProduct) e `sales`/`simulations`
+-- não têm operação de exclusão. Conceder DELETE a elas ampliaria privilégio
+-- sem chamador — o oposto do menor privilégio que a própria correção exige.
+GRANT DELETE ON TABLE public.expenses TO app_runtime;

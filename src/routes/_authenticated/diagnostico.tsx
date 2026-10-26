@@ -6,6 +6,7 @@ import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import { expensesQueryOptions, productsListQueryOptions } from "@/lib/query-options";
 import type { CalculationResult, ProductCostComputation } from "@/lib/finance";
 import { brl, num, pct } from "@/lib/format";
+import { createErrorReference } from "@/lib/error-reference";
 import { Button } from "@/components/ui/button";
 import { CalcExplainer } from "@/components/ui/calc-explainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -130,8 +131,8 @@ function Diagnostico() {
   });
   const diagnostic = diagnosticQuery.data as DiagnosticView | undefined;
   const diagnosticErrorReference = useMemo(
-    () => (diagnosticQuery.isError ? createErrorReference("DIAG") : null),
-    [diagnosticQuery.isError],
+    () => (diagnosticQuery.isError ? createErrorReference("DIAG", diagnosticQuery.error) : null),
+    [diagnosticQuery.isError, diagnosticQuery.error],
   );
 
   const productStatus: ProductStatus =
@@ -686,12 +687,4 @@ function parseOptionalNumber(value: string): number | null {
 function toApiDecimal(value: string): string | null {
   const normalized = value.trim().replace(",", ".");
   return normalized === "" ? null : normalized;
-}
-
-function createErrorReference(prefix: string): string {
-  const token =
-    typeof globalThis.crypto?.randomUUID === "function"
-      ? globalThis.crypto.randomUUID().slice(0, 8)
-      : Date.now().toString(36);
-  return `${prefix}-${token}`.toUpperCase();
 }

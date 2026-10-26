@@ -3,14 +3,17 @@ import {
   metrics,
   trace,
   type Attributes,
+  type Meter,
   type ObservableResult,
   type Span,
 } from "@opentelemetry/api";
 import { readEnv } from "@/lib/env.server";
 import { logJson } from "@/lib/structured-logger";
 
+// O tracer é criado no import porque a API o entrega como ProxyTracer: ele
+// resolve o provider vigente no MOMENTO de `startSpan`. Métricas não têm esse
+// proxy — por isso os instrumentos abaixo são lazy (DBT-148/F-otel-provider-order).
 const tracer = trace.getTracer("preco-que-da-lucro", "1.0.0");
-const meter = metrics.getMeter("preco-que-da-lucro", "1.0.0");
 
 export interface DatabasePoolSnapshot {
   driver: string;
@@ -84,53 +87,117 @@ export function aggregatePoolSnapshots(
   return [...byDriver.values()];
 }
 
-export const applicationMetrics = {
-  requestDuration: meter.createHistogram("app.request.duration", { unit: "ms" }),
-  dbDuration: meter.createHistogram("app.db.duration", { unit: "ms" }),
-  dbQueryDuration: meter.createHistogram("app.db.query.duration", { unit: "ms" }),
-  dbPoolWaitTime: meter.createHistogram("app.db.pool.wait_time", { unit: "ms" }),
-  dbPoolConnections: meter.createObservableGauge("app.db.pool.connections", {
-    unit: "{connection}",
-  }),
-  dbPoolInFlightTransactions: meter.createObservableGauge("app.db.pool.in_flight_transactions", {
-    unit: "{transaction}",
-  }),
-  aiDuration: meter.createHistogram("app.ai.duration", { unit: "ms" }),
-  // §29: fases da latência percebida no chat não-streaming. `app.ai.duration`
-  // continua medindo cada tentativa de gateway; estes histogramas medem o
-  // tempo desde o aceite da mensagem até acknowledge/conteúdo/final.
-  aiTimeToAcknowledge: meter.createHistogram("app.ai.time_to_acknowledge", { unit: "ms" }),
-  aiTimeToFirstContent: meter.createHistogram("app.ai.time_to_first_content", { unit: "ms" }),
-  aiTimeToFinal: meter.createHistogram("app.ai.time_to_final", { unit: "ms" }),
-  toolDuration: meter.createHistogram("app.ai.tool.duration", { unit: "ms" }),
-  errors: meter.createCounter("app.errors"),
-  aiTimeouts: meter.createCounter("app.ai.timeouts"),
-  aiQuotas: meter.createCounter("app.ai.quotas"),
-  aiEstimatedCostTotal: meter.createCounter("app.ai.estimated_cost_total"),
-  aiCostUnknownTotal: meter.createCounter("app.ai.cost_unknown_total"),
-  aiUsageUnknownTotal: meter.createCounter("app.ai.usage_unknown_total"),
-  // TRILHO B: o job de reconciliação trata eventos `usage_unknown` que o varredor
-  // de reservas nunca alcança (predicados disjuntos). `total` conta as linhas
-  // tratadas; `failed` conta as que terminaram sem medição. Hoje as duas
-  // coincidem, porque o gateway não expõe retrieval por id e nenhum payload de
-  // uso é persistido — continuarão distintas se um caminho de medição existir.
-  aiReconciliationTotal: meter.createCounter("app.ai.reconciliation_total"),
-  aiReconciliationFailed: meter.createCounter("app.ai.reconciliation_failed"),
-  aiReconciliationOldestAge: meter.createObservableGauge("app.ai.reconciliation_oldest_age_ms", {
-    unit: "ms",
-  }),
-  toolExecutions: meter.createCounter("app.ai.tool.executions"),
-  conversationStateTransitions: meter.createCounter("app.ai.conversation_state_transitions"),
-  conversationInvalidTransitions: meter.createCounter("app.ai.conversation_invalid_transitions"),
-  financialStates: meter.createCounter("app.financial.states"),
-  financialEngineVersion: meter.createCounter("app.financial.engine_version"),
-  salesCreatedTotal: meter.createCounter("app.sales.created_total"),
-  salesSummaryDuration: meter.createHistogram("app.sales.summary_duration", { unit: "ms" }),
-  diagnosticCalculationTotal: meter.createCounter("app.diagnostic.calculation_total"),
-  simulationSavedTotal: meter.createCounter("app.simulation.saved_total"),
-  snapshotCreatedTotal: meter.createCounter("app.snapshot.created_total"),
-  snapshotFailureTotal: meter.createCounter("app.snapshot.failure_total"),
-};
+/**
+ * Instrumentos de métrica são criados DEPOIS de `sdk.start()`. Um instrumento
+ * criado antes recebe o meter noop e não é re-vinculado quando o provider
+ * global é registrado — `@opentelemetry/api` não tem proxy de métrica. A
+ * fábrica é chamada uma única vez, por `getApplicationMetrics()`.
+ */
+function createApplicationMetrics(meter: Meter) {
+  const metricsInstance = {
+    requestDuration: meter.createHistogram("app.request.duration", { unit: "ms" }),
+    dbDuration: meter.createHistogram("app.db.duration", { unit: "ms" }),
+    dbQueryDuration: meter.createHistogram("app.db.query.duration", { unit: "ms" }),
+    dbPoolWaitTime: meter.createHistogram("app.db.pool.wait_time", { unit: "ms" }),
+    dbPoolConnections: meter.createObservableGauge("app.db.pool.connections", {
+      unit: "{connection}",
+    }),
+    dbPoolInFlightTransactions: meter.createObservableGauge("app.db.pool.in_flight_transactions", {
+      unit: "{transaction}",
+    }),
+    aiDuration: meter.createHistogram("app.ai.duration", { unit: "ms" }),
+    // §29: fases da latência percebida no chat não-streaming. `app.ai.duration`
+    // continua medindo cada tentativa de gateway; estes histogramas medem o
+    // tempo desde o aceite da mensagem até acknowledge/conteúdo/final.
+    aiTimeToAcknowledge: meter.createHistogram("app.ai.time_to_acknowledge", { unit: "ms" }),
+    aiTimeToFirstContent: meter.createHistogram("app.ai.time_to_first_content", { unit: "ms" }),
+    aiTimeToFinal: meter.createHistogram("app.ai.time_to_final", { unit: "ms" }),
+    toolDuration: meter.createHistogram("app.ai.tool.duration", { unit: "ms" }),
+    errors: meter.createCounter("app.errors"),
+    aiTimeouts: meter.createCounter("app.ai.timeouts"),
+    aiQuotas: meter.createCounter("app.ai.quotas"),
+    aiEstimatedCostTotal: meter.createCounter("app.ai.estimated_cost_total"),
+    aiCostUnknownTotal: meter.createCounter("app.ai.cost_unknown_total"),
+    aiUsageUnknownTotal: meter.createCounter("app.ai.usage_unknown_total"),
+    // TRILHO B: o job de reconciliação trata eventos `usage_unknown` que o varredor
+    // de reservas nunca alcança (predicados disjuntos). `total` conta as linhas
+    // tratadas; `failed` conta as que terminaram sem medição. Hoje as duas
+    // coincidem, porque o gateway não expõe retrieval por id e nenhum payload de
+    // uso é persistido — continuarão distintas se um caminho de medição existir.
+    aiReconciliationTotal: meter.createCounter("app.ai.reconciliation_total"),
+    aiReconciliationFailed: meter.createCounter("app.ai.reconciliation_failed"),
+    aiReconciliationOldestAge: meter.createObservableGauge("app.ai.reconciliation_oldest_age_ms", {
+      unit: "ms",
+    }),
+    toolExecutions: meter.createCounter("app.ai.tool.executions"),
+    conversationStateTransitions: meter.createCounter("app.ai.conversation_state_transitions"),
+    conversationInvalidTransitions: meter.createCounter("app.ai.conversation_invalid_transitions"),
+    financialStates: meter.createCounter("app.financial.states"),
+    financialEngineVersion: meter.createCounter("app.financial.engine_version"),
+    salesCreatedTotal: meter.createCounter("app.sales.created_total"),
+    salesSummaryDuration: meter.createHistogram("app.sales.summary_duration", { unit: "ms" }),
+    diagnosticCalculationTotal: meter.createCounter("app.diagnostic.calculation_total"),
+    simulationSavedTotal: meter.createCounter("app.simulation.saved_total"),
+    snapshotCreatedTotal: meter.createCounter("app.snapshot.created_total"),
+    snapshotFailureTotal: meter.createCounter("app.snapshot.failure_total"),
+  };
+
+  metricsInstance.dbPoolConnections.addCallback((result) => {
+    reportPoolConnectionObservations(result);
+  });
+  metricsInstance.dbPoolInFlightTransactions.addCallback((result) => {
+    reportPoolInFlightObservations(result);
+  });
+  metricsInstance.aiReconciliationOldestAge.addCallback((result) => {
+    if (reconciliationOldestAgeMs !== null) result.observe(reconciliationOldestAgeMs);
+  });
+
+  return metricsInstance;
+}
+
+type ApplicationMetrics = ReturnType<typeof createApplicationMetrics>;
+
+let applicationMetricsInstance: ApplicationMetrics | undefined;
+let applicationMetricsMeter: Meter | undefined;
+
+/**
+ * Cria os instrumentos contra o provider vigente neste instante.
+ *
+ * O cache é por identidade do meter — o mesmo padrão de
+ * `visual-correlation.ts`. Se algum acesso acontecer antes de `sdk.start()`,
+ * a troca de provider devolve um meter novo e os instrumentos são recriados;
+ * os eventos anteriores ficam perdidos (noop), mas a série futura não.
+ */
+export function getApplicationMetrics(): ApplicationMetrics {
+  const meter = metrics.getMeter("preco-que-da-lucro", "1.0.0");
+  if (applicationMetricsInstance === undefined || applicationMetricsMeter !== meter) {
+    applicationMetricsMeter = meter;
+    applicationMetricsInstance = createApplicationMetrics(meter);
+  }
+  return applicationMetricsInstance;
+}
+
+/**
+ * Fachada estável (DBT-148): os consumidores continuam lendo
+ * `applicationMetrics.errors`, mas cada acesso resolve o instrumento já criado
+ * — nunca um instrumento noop nascido no import. É o que permite mover a
+ * criação para depois do `sdk.start()` sem tocar nos 16 módulos consumidores.
+ */
+const metricOverrides = new Map<PropertyKey, unknown>();
+
+export const applicationMetrics = new Proxy({} as ApplicationMetrics, {
+  get(_target, property) {
+    if (metricOverrides.has(property)) return metricOverrides.get(property);
+    return getApplicationMetrics()[property as keyof ApplicationMetrics];
+  },
+  // O contrato anterior era um literal mutável: testes e sondas substituem um
+  // instrumento inteiro para observar chamadas. O Proxy preserva essa
+  // mutabilidade sem abrir mão da criação tardia.
+  set(_target, property, value) {
+    metricOverrides.set(property, value);
+    return true;
+  },
+});
 
 /** Observa used/idle/waiting/max por driver — `state` evita 4 métricas novas. */
 export function reportPoolConnectionObservations(result: ObservableResult): void {
@@ -156,14 +223,6 @@ export function reportPoolInFlightObservations(result: ObservableResult): void {
   }
 }
 
-applicationMetrics.dbPoolConnections.addCallback((result) => {
-  reportPoolConnectionObservations(result);
-});
-
-applicationMetrics.dbPoolInFlightTransactions.addCallback((result) => {
-  reportPoolInFlightObservations(result);
-});
-
 /** Idade do evento `usage_unknown` mais antigo visto na varredura mais recente
  * da reconciliação. `null` significa **nunca medido** — nenhuma varredura
  * completou, então o gauge não emite ponto nenhum. Uma varredura que completou
@@ -176,10 +235,6 @@ export function reportReconciliationOldestAge(ageMs: number | null): void {
   reconciliationOldestAgeMs =
     typeof ageMs === "number" && Number.isFinite(ageMs) && ageMs >= 0 ? ageMs : null;
 }
-
-applicationMetrics.aiReconciliationOldestAge.addCallback((result) => {
-  if (reconciliationOldestAgeMs !== null) result.observe(reconciliationOldestAgeMs);
-});
 
 /** Abre um span de query sem tornar o contexto ativo (o wrapper de client
  * preserva callback/thenable e finaliza o span manualmente). */
@@ -231,6 +286,11 @@ function shutdownActiveSdk(): Promise<void> {
  * janela de 10 s reduzem timers/serializações sem estourar o orçamento de uma
  * invocação. O `exportTimeoutMillis` acompanha o teto de 5 s para que um
  * coletor lento não segure o shutdown.
+ *
+ * As chaves são as do `BatchSpanProcessor` do `@opentelemetry/sdk-trace-base`
+ * (`scheduledDelayMillis`, `maxExportBatchSize`, `exportTimeoutMillis`);
+ * `exportIntervalMillis` NÃO pertence ao processador de spans — é opção do
+ * leitor de métricas.
  */
 export const OTEL_BATCH_CONFIG = Object.freeze({
   scheduledDelayMillis: 10_000,
@@ -238,9 +298,110 @@ export const OTEL_BATCH_CONFIG = Object.freeze({
   exportTimeoutMillis: 5_000,
 } as const);
 
+/** Tipo do tuning acima, derivado da própria constante (fonte única). */
+export type BatchSpanProcessorConfig = typeof OTEL_BATCH_CONFIG;
+
 /** Exposto para o teste de no-op: sem endpoint o SDK nunca é importado. */
 export function isTelemetryStarted(): boolean {
   return telemetryStarted;
+}
+
+/**
+ * Decisão de partida do SDK, isolada para ser testável sem I/O.
+ *
+ * A regra é a mesma da linha original (`telemetryStarted || telemetryStarting
+ * || !endpoint` → não sai): sem endpoint OTLP o SDK **não** é importado, não
+ * é construído e não é iniciado. Extrair a decisão para uma função pura é o
+ * que permite PROVAR a precondição — o teste antigo só observava a flag
+ * `isTelemetryStarted()`, que também seria `false` se a importação tivesse
+ * falhado por outro motivo.
+ */
+export function shouldStartTelemetry(input: {
+  started: boolean;
+  starting: boolean;
+  endpoint: string | undefined;
+}): boolean {
+  if (input.started) return false;
+  if (input.starting) return false;
+  return typeof input.endpoint === "string" && input.endpoint.length > 0;
+}
+
+/** Construtor de processador de spans (injetado para poder ser observado). */
+export interface SpanProcessorFactory<E = unknown, P = unknown> {
+  new (exporter: E, config: BatchSpanProcessorConfig): P;
+}
+
+/**
+ * Constrói o `BatchSpanProcessor` com o tuning único do módulo.
+ *
+ * A costura existe porque a auditoria mediu que o teste fixava **a
+ * constante** e o "SDK não inicia sem endpoint", mas nunca **a fiação**: nada
+ * provava que o `BatchSpanProcessor` recebia `{...OTEL_BATCH_CONFIG}` e não
+ * outro objeto. Injetar o construtor torna a fiação observável sem mudar a
+ * semântica de produção — o mesmo objeto, a mesma ordem, o mesmo `spread`.
+ */
+export function createSpanProcessor<E, P>(
+  exporter: E,
+  BatchSpanProcessorCtor: SpanProcessorFactory<E, P>,
+): P {
+  return new BatchSpanProcessorCtor(exporter, { ...OTEL_BATCH_CONFIG });
+}
+
+/**
+ * Dependências do SDK — injetadas para que a fiação seja observável.
+ *
+ * Os tipos são os das classes REAIS (via `typeof import(...)`, que é apagado
+ * em tempo de compilação e não vira import no bundle) e não formas
+ * estruturais: um tipo estrutural mais largo passaria a typecheck e
+ * esconderia um erro de fiação real.
+ */
+export interface TelemetrySdkDependencies {
+  NodeSDK: (typeof import("@opentelemetry/sdk-node"))["NodeSDK"];
+  OTLPTraceExporter: (typeof import("@opentelemetry/exporter-trace-otlp-http"))["OTLPTraceExporter"];
+  OTLPMetricExporter: (typeof import("@opentelemetry/exporter-metrics-otlp-http"))["OTLPMetricExporter"];
+  PeriodicExportingMetricReader: (typeof import("@opentelemetry/sdk-metrics"))["PeriodicExportingMetricReader"];
+  BatchSpanProcessor: (typeof import("@opentelemetry/sdk-trace-base"))["BatchSpanProcessor"];
+}
+
+/** Configuração resolvida do SDK (endpoint já vem sem barra final). */
+export interface TelemetrySdkConfig {
+  serviceName: string;
+  endpoint: string;
+  exportIntervalMillis: number;
+}
+
+/**
+ * Monta o `NodeSDK` — processador de spans em lote + leitor periódico.
+ *
+ * O que o teste precisa ver: o `BatchSpanProcessor` é construído com o
+ * exportador de traces e com `{...OTEL_BATCH_CONFIG}`, e o `NodeSDK` recebe
+ * esse MESMO processador em `spanProcessors`. A produção chama esta função
+ * com as classes reais do SDK; o teste chama com dublês e observa as
+ * construções.
+ */
+export function createTelemetrySdk(
+  deps: TelemetrySdkDependencies,
+  config: TelemetrySdkConfig,
+): {
+  sdk: InstanceType<TelemetrySdkDependencies["NodeSDK"]>;
+  spanProcessor: InstanceType<TelemetrySdkDependencies["BatchSpanProcessor"]>;
+  metricReader: InstanceType<TelemetrySdkDependencies["PeriodicExportingMetricReader"]>;
+} {
+  const spanProcessor = createSpanProcessor(
+    new deps.OTLPTraceExporter({ url: `${config.endpoint}/v1/traces` }),
+    deps.BatchSpanProcessor,
+  );
+  const metricReader = new deps.PeriodicExportingMetricReader({
+    exporter: new deps.OTLPMetricExporter({ url: `${config.endpoint}/v1/metrics` }),
+    exportIntervalMillis: config.exportIntervalMillis,
+    exportTimeoutMillis: OTEL_BATCH_CONFIG.exportTimeoutMillis,
+  });
+  const sdk = new deps.NodeSDK({
+    serviceName: config.serviceName,
+    spanProcessors: [spanProcessor],
+    metricReader,
+  });
+  return { sdk, spanProcessor, metricReader };
 }
 
 /** Configuração do SDK OTEL resolvida de ambiente.
@@ -261,8 +422,14 @@ export function resolveOtelSdkConfig(): {
   const parsedInterval = rawInterval === undefined ? Number.NaN : Number(rawInterval);
   return {
     serviceName: readEnv("OTEL_SERVICE_NAME") ?? "preco-que-da-lucro",
+    // O piso é o timeout de exportação, não 1 s: o `PeriodicExportingMetricReader`
+    // recusa intervalo menor que `exportTimeoutMillis` e o construtor lança —
+    // derrubando traces E métricas junto. Medido no smoke DBT-148 com 1.000 ms:
+    // "exportIntervalMillis must be greater than or equal to exportTimeoutMillis".
     exportIntervalMillis:
-      Number.isFinite(parsedInterval) && parsedInterval >= 1_000 && parsedInterval <= 3_600_000
+      Number.isFinite(parsedInterval) &&
+      parsedInterval >= OTEL_BATCH_CONFIG.exportTimeoutMillis &&
+      parsedInterval <= 3_600_000
         ? parsedInterval
         : 15_000,
     // A barra final precisa sair antes de anexar /v1/traces e /v1/metrics: sem isto
@@ -272,20 +439,40 @@ export function resolveOtelSdkConfig(): {
   };
 }
 
-/** OTLP is opt-in and initialization failures never block or fail a request. */
-export function ensureTelemetryStarted(): void {
-  const { serviceName, exportIntervalMillis, endpoint } = resolveOtelSdkConfig();
-  if (telemetryStarted || telemetryStarting || !endpoint) return;
-  telemetryStarting = (async () => {
+/**
+ * OTLP is opt-in and initialization failures never block or fail a request.
+ *
+ * Aguardável de propósito (DBT-148): o chamador que precisa instrumentar a
+ * request espera o `sdk.start()` terminar. Sem isso, a primeira request cria
+ * instrumentos noop e as métricas não são entregues. Com o endpoint ausente
+ * o caminho continua síncrono e barato — nenhum import do SDK acontece.
+ */
+export async function ensureTelemetryStarted(): Promise<void> {
+  if (telemetryStarting) {
+    await telemetryStarting;
+    return;
+  }
+  const config = resolveOtelSdkConfig();
+  // `shouldStartTelemetry` decide a PARTIDA; o `endpoint === undefined` é o
+  // narrowing do TypeScript (a função pura não narrowa) — redundante por
+  // desenho, não um segundo gate.
+  if (
+    !shouldStartTelemetry({
+      started: telemetryStarted,
+      starting: false,
+      endpoint: config.endpoint,
+    }) ||
+    config.endpoint === undefined
+  )
+    return;
+  const { serviceName, exportIntervalMillis, endpoint } = config;
+  const starting = (async () => {
     try {
-      // These packages are server-only. Variable, vite-ignored imports prevent a
-      // server function's shared module graph from pulling Node SDK internals
-      // into the browser bundle while keeping OTLP available at runtime.
-      const sdkPackage = "@opentelemetry/sdk-node";
-      const exporterPackage = "@opentelemetry/exporter-trace-otlp-http";
-      const metricExporterPackage = "@opentelemetry/exporter-metrics-otlp-http";
-      const metricsSdkPackage = "@opentelemetry/sdk-metrics";
-      const traceSdkPackage = "@opentelemetry/sdk-trace-base";
+      // These packages are server-only. Imports LITERAIS (e lazy) para o
+      // bundler empacotar SDK e API no MESMO grafo: um specifier bare em
+      // runtime resolveria outra cópia de `@opentelemetry/api` e os spans
+      // nasceriam num provider que o SDK não enxerga (DBT-148). O carregamento
+      // dinâmico mantém o custo fora do boot quando OTLP não está configurado.
       const [
         { NodeSDK },
         { OTLPTraceExporter },
@@ -293,36 +480,28 @@ export function ensureTelemetryStarted(): void {
         { PeriodicExportingMetricReader },
         { BatchSpanProcessor },
       ] = await Promise.all([
-        import(/* @vite-ignore */ sdkPackage) as Promise<typeof import("@opentelemetry/sdk-node")>,
-        import(/* @vite-ignore */ exporterPackage) as Promise<
-          typeof import("@opentelemetry/exporter-trace-otlp-http")
-        >,
-        import(/* @vite-ignore */ metricExporterPackage) as Promise<
-          typeof import("@opentelemetry/exporter-metrics-otlp-http")
-        >,
-        import(/* @vite-ignore */ metricsSdkPackage) as Promise<
-          typeof import("@opentelemetry/sdk-metrics")
-        >,
-        import(/* @vite-ignore */ traceSdkPackage) as Promise<
-          typeof import("@opentelemetry/sdk-trace-base")
-        >,
+        import("@opentelemetry/sdk-node"),
+        import("@opentelemetry/exporter-trace-otlp-http"),
+        import("@opentelemetry/exporter-metrics-otlp-http"),
+        import("@opentelemetry/sdk-metrics"),
+        import("@opentelemetry/sdk-trace-base"),
       ]);
-      const sdk = new NodeSDK({
-        serviceName,
-        spanProcessors: [
-          new BatchSpanProcessor(new OTLPTraceExporter({ url: `${endpoint}/v1/traces` }), {
-            ...OTEL_BATCH_CONFIG,
-          }),
-        ],
-        metricReader: new PeriodicExportingMetricReader({
-          exporter: new OTLPMetricExporter({ url: `${endpoint}/v1/metrics` }),
-          exportIntervalMillis,
-          exportTimeoutMillis: OTEL_BATCH_CONFIG.exportTimeoutMillis,
-        }),
-      });
+      const { sdk } = createTelemetrySdk(
+        {
+          NodeSDK,
+          OTLPTraceExporter,
+          OTLPMetricExporter,
+          PeriodicExportingMetricReader,
+          BatchSpanProcessor,
+        },
+        { serviceName, endpoint, exportIntervalMillis },
+      );
       sdk.start();
       telemetryStarted = true;
       activeSdk = sdk;
+      // Só depois do provider global: instrumentos de métrica não são
+      // re-vinculados (não há ProxyMeter na API).
+      getApplicationMetrics();
       const shutdown = () => {
         void shutdownActiveSdk();
       };
@@ -334,25 +513,21 @@ export function ensureTelemetryStarted(): void {
       telemetryStarting = undefined;
     }
   })();
+  telemetryStarting = starting;
+  await starting;
 }
 
 /** Variante aguardável de `ensureTelemetryStarted`, para processos curtos
  * (scripts e jobs) que precisam do provider global registrado e não podem
  * terminar antes do primeiro ciclo do exportador periódico.
  *
- * LIMITE MEDIDO — não leia isto como "as métricas passam a sair do processo":
- * o `meter` e os instrumentos de `applicationMetrics` nascem no MOMENTO DO
- * IMPORT deste módulo, quando a API ainda devolve os singletons noop (`NOOP_METER`
- * é compartilhado, `NOOP_COUNTER_METRIC.add` é vazio e `addCallback` nunca
- * registra). Registrar o provider aqui, depois, NÃO re-vincula instrumentos já
- * criados: `@opentelemetry/api` não tem proxy de métrica — o único proxy é o de
- * trace. Um processo que importa este módulo e só então chama `startTelemetry()`
- * continua emitindo em instrumentos noop, e o `PeriodicExportingMetricReader`
- * nem invoca o exporter. Fechado apenas por `F-otel-provider-order`, WP próprio
- * que torna a obtenção do meter lazy. */
+ * DBT-148/F-otel-provider-order: os instrumentos de `applicationMetrics` já
+ * não nascem no import. `ensureTelemetryStarted()` instala o provider global e
+ * só então cria o meter/instrumentos; `startTelemetry()` espera essa cadeia.
+ * A garantia de ENTREGA (≥1 POST /v1/traces e /v1/metrics no coletor) é
+ * medida no smoke de runtime — a existência desta função não a substitui. */
 export async function startTelemetry(): Promise<void> {
-  ensureTelemetryStarted();
-  await telemetryStarting;
+  await ensureTelemetryStarted();
 }
 
 /** Drena o exportador periódico e encerra o SDK.

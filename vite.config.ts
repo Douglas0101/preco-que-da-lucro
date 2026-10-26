@@ -51,6 +51,12 @@ export default defineConfig({
           // !== false" é o gate do recorder; false ⇒ nenhum callback ao nativo).
           // O gate de warnings permanece fail-closed, sem afrouxamento.
           checks: { pluginTimings: false },
+          // DBT-148: o carregamento do SDK é literal para o SSR empacotar SDK
+          // e API no mesmo grafo. No cliente esses módulos nunca executam
+          // (`telemetry.ts` só é alcançável no servidor), mas o bundler os
+          // resolveria e tentaria empacotar `http2`/`tls`. Externos no cliente,
+          // empacotados no SSR.
+          external: [/^@opentelemetry\//],
           output: {
             codeSplitting: {
               groups: [
@@ -94,6 +100,10 @@ export default defineConfig({
     // O preset `vercel` (VERCEL=1) emite a Build Output API (`.vercel/output`), consumida
     // pela Vercel; fora dela (local e CI) o `node-server` é o alvo, servido via
     // `node .output/server/index.mjs` (`npm start`) e `nitro preview`.
+    // DBT-148: SDK e API são empacotados juntos (imports literais em
+    // `telemetry.ts`). Um import bare em runtime resolveria OUTRA cópia da API
+    // e os spans/métricas nasceriam num provider que o SDK não vê — além de
+    // quebrar na Vercel, cuja função não carrega node_modules.
     nitro({ preset: isVercel ? "vercel" : "node-server" }),
     react(),
   ],

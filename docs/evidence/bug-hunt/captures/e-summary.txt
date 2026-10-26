@@ -1,0 +1,54 @@
+Agente E — FASE 5 (Seguranca Basica / OWASP WSTG) — resumo dos numeros medidos.
+
+Preview do Agente E: http://127.0.0.1:4178 (mesmo build .output, banco LOCAL de teste).
+Bench canonico :4173 usado so como segunda medicao de header. Nada de producao foi tocado.
+x-forwarded-for: 198.51.100.25 (exclusivo do Agente E).
+
+5.1 AUTENTICACAO
+  rotas testadas: 9 (/inicio /produtos /vendas /simulacoes /despesas /diagnostico /novo-produto /precos /ponto-equilibrio)
+  HTTP sem sessao: 200 (shell do SPA, 4434 bytes) nas 9 rotas; 307 apenas em /produtos/composicao (redirect de rota)
+  navegador sem sessao: as 9 rotas redirecionam para /auth?redirect=<rota> (client-side)
+  navegador com cookie forjado: as 9 rotas redirecionam para /auth (medido)
+  corpo pre-autenticacao: 0 marcador de dado de tenant/usuario/produto
+  server function: cookie invalido/malformado -> 401 AUTHENTICATION_ERROR
+
+5.2 ISOLAMENTO ENTRE TENANTS
+  API/UI (mesma URL de server fn, payload so com o id trocado):
+    A -> produto de B: 404 NOT_FOUND, 0 dado de B
+    A -> produto de A: 200 (controle positivo)
+    B -> produto de B: 200, inclui ingrediente de B (controle positivo)
+    B -> produto de A: 404 (controle negativo simetrico)
+    A + header x-tenant-id do tenant de B: 403 AUTHORIZATION_ERROR
+  BANCO (papel app_runtime, GUCs de A):
+    sem GUCs: 0 produtos visiveis; como A: 1 produto (o proprio), 0 linhas de B
+    insert no tenant de B: RECUSADO (SQLSTATE 42501, 'new row violates row-level security policy')
+    update na linha de B: 0 linhas afetadas; rastro da tentativa: 0
+  papel de runtime: current_user=app_runtime, rolsuper=false, rolbypassrls=false (pg_stat_activity: 4 conexoes do app como app_runtime)
+
+5.3 INJECAO
+  alvos: nome do produto, nome do ingrediente, nome da despesa, canal da venda, mensagem do chat
+  6 payloads (3 de script + 3 de SQL) x 5 alvos = 30 insercoes
+  execucao: 0 dialogos, window.__xss=false, 0 <script> com alert, 0 atributo onerror, 0 erro de console, 0 HTTP 5xx
+  armazenamento: literal em todos os 30 casos (releitura byte-a-byte)
+  SQL: a tabela products existe ao final; contagem de products inalterada (21 -> 21)
+
+5.4 HEADERS
+  presentes: content-security-policy-report-only, x-content-type-options=nosniff,
+           strict-transport-security=max-age=31536000; includeSubDomains, referrer-policy, permissions-policy
+  AUSENTES: content-security-policy (aplicada) e x-frame-options (em todas as rotas, :4178 e :4173)
+  PROVA: a pagina http://127.0.0.1:4178/ foi embutida num <iframe> de outra origem (http://127.0.0.1:4199) e
+         CARREGOU (titulo 'Preco que Da Lucro — avalie precos sustentaveis para o seu produto');
+         o CONTROLE com X-Frame-Options: DENY foi bloqueado (chrome-error://, titulo vazio).
+         metodo discrimina: true. => frame-ancestors 'none' em report-only NAO e efetivo e nao ha fallback.
+
+5.5 EXPOSICAO DE DADOS
+  respostas HTTP: 0 vazamento de stack trace / tabela / coluna / caminho absoluto / DSN / mensagem de driver
+  banco fora (:4178 com DSN para porta 59999): health/ready 503 generico, get-session 500 com pagina de erro generica,
+         sign-up 500 com pagina de erro generica, server function 503 DATABASE_ERROR (envelope publico)
+  log do servidor (stderr, nao a resposta): carrega SQL com nome de tabela/coluna, caminho absoluto do build,
+         mensagem de driver com host:porta e o token de sessao bruto (32 chars). O token SOZINHO nao autentica (401 medido).
+
+PURGE
+  antes: tenants=23 users=25 products=21 expenses=9 sales=10 ingredients=14 sessions=20
+  depois: tenants=21 users=23 products=19 expenses=3 sales=3 ingredients=8 sessions=15
+  leftover: {"leftover_users":"0","leftover_tenants":"0","leftover_products":"0"}

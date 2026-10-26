@@ -1,0 +1,60 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas/WebstormProjects/preco-que-da-lucro[39m
+
+ [31m❯[39m src/test/period-window.test.ts [2m([22m[2m12 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 15[2mms[22m[39m
+     [32m✓[39m T1 — mês começa à meia-noite BRT de 01/10, não à meia-noite UTC[32m 2[2mms[22m[39m
+     [32m✓[39m T2 — trimestre começa à meia-noite BRT de 01/10 (Q4)[32m 0[2mms[22m[39m
+     [32m✓[39m T3 — ano começa à meia-noite BRT de 01/01[32m 0[2mms[22m[39m
+     [32m✓[39m T4 — em janeiro mês, trimestre e ano coincidem (colapso é intencional)[32m 1[2mms[22m[39m
+     [32m✓[39m T5 — o relógio vem do argumento `now`, nunca da parede[32m 0[2mms[22m[39m
+     [32m✓[39m T6 — fevereiro trava o offset: 01/02/2026 00:00 BRT = 03:00Z[32m 0[2mms[22m[39m
+     [32m✓[39m T8 — dezembro fecha o mês e vira o ano do calendário[32m 0[2mms[22m[39m
+[31m     [31m×[31m T9 — o trimestre tem 3 meses: Q4 de 2026 abre em 01/10 e fecha em 01/01[39m[32m 7[2mms[22m[39m
+[31m     [31m×[31m T10 — o ano tem 12 meses: abre em 01/01 e fecha em 01/01 do ano seguinte[39m[32m 1[2mms[22m[39m
+     [32m✓[39m T7a — o regex de mutadores locais reprova o defeito plantado (controle negativo)[32m 1[2mms[22m[39m
+     [32m✓[39m T7b — o módulo não usa mutadores de relógio local nem leitores locais de mês[32m 0[2mms[22m[39m
+     [32m✓[39m T7c — o módulo declara o fuso de negócio como símbolo de código, não em prosa[32m 0[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/test/period-window.test.ts[2m > [22mperiodStart — fronteira no fuso do negócio (America/Sao_Paulo)[2m > [22mT9 — o trimestre tem 3 meses: Q4 de 2026 abre em 01/10 e fecha em 01/01
+[31m[1mAssertionError[22m: expected '2026-11-01T03:00:00.000Z' to be '2027-01-01T03:00:00.000Z' // Object.is equality[39m
+
+Expected: [32m"202[7m7-0[27m1-01T03:00:00.000Z"[39m
+Received: [31m"202[7m6-1[27m1-01T03:00:00.000Z"[39m
+
+[36m [2m❯[22m src/test/period-window.test.ts:[2m78:28[22m[39m
+    [90m 76|[39m     [35mconst[39m window [33m=[39m [34mperiodWindow[39m([32m"quarter"[39m[33m,[39m [33mOCTOBER[39m)[33m;[39m
+    [90m 77|[39m     [34mexpect[39m([33mISO[39m(window[33m.[39m[35mfrom[39m))[33m.[39m[34mtoBe[39m([32m"2026-10-01T03:00:00.000Z"[39m)[33m;[39m
+    [90m 78|[39m     [34mexpect[39m([33mISO[39m(window[33m.[39mto))[33m.[39m[34mtoBe[39m([32m"2027-01-01T03:00:00.000Z"[39m)[33m;[39m
+    [90m   |[39m                            [31m^[39m
+    [90m 79|[39m   })[33m;[39m
+    [90m 80|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/test/period-window.test.ts[2m > [22mperiodStart — fronteira no fuso do negócio (America/Sao_Paulo)[2m > [22mT10 — o ano tem 12 meses: abre em 01/01 e fecha em 01/01 do ano seguinte
+[31m[1mAssertionError[22m: expected '2026-02-01T03:00:00.000Z' to be '2027-01-01T03:00:00.000Z' // Object.is equality[39m
+
+Expected: [32m"202[7m7[27m-0[7m1[27m-01T03:00:00.000Z"[39m
+Received: [31m"202[7m6[27m-0[7m2[27m-01T03:00:00.000Z"[39m
+
+[36m [2m❯[22m src/test/period-window.test.ts:[2m84:28[22m[39m
+    [90m 82|[39m     [35mconst[39m window [33m=[39m [34mperiodWindow[39m([32m"year"[39m[33m,[39m [33mOCTOBER[39m)[33m;[39m
+    [90m 83|[39m     [34mexpect[39m([33mISO[39m(window[33m.[39m[35mfrom[39m))[33m.[39m[34mtoBe[39m([32m"2026-01-01T03:00:00.000Z"[39m)[33m;[39m
+    [90m 84|[39m     [34mexpect[39m([33mISO[39m(window[33m.[39mto))[33m.[39m[34mtoBe[39m([32m"2027-01-01T03:00:00.000Z"[39m)[33m;[39m
+    [90m   |[39m                            [31m^[39m
+    [90m 85|[39m   })[33m;[39m
+    [90m 86|[39m })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (12)[39m
+[2m   Start at [22m 03:26:42
+[2m   Duration [22m 853ms[2m (transform 45ms, setup 117ms, import 48ms, tests 15ms, environment 547ms)[22m
+
+
+exit=1
+mutacao: endIndex = startMonth - 1 + 1 (defeito de F2 reintroduzido)

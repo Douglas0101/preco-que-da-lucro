@@ -1,0 +1,119 @@
+{
+  "preview": {
+    "base": "http://127.0.0.1:4176",
+    "env": "RESEND_API_KEY=\"\" e AUTH_EMAIL_FROM=\"\" (guard de e-mail ATIVO); AI_GATEWAY_API_KEY/DEEPSEEK_API_KEY NAO exportados -> fornecidos pelo .env (chave real; valor nunca lido/impresso)",
+    "database": "Postgres LOCAL preco_que_da_lucro_test (DSN redigido)"
+  },
+  "turno_real": {
+    "limite_de_turnos": "1 (respeitado: nenhum turno adicional foi disparado)",
+    "model": "deepseek-flash",
+    "rounds": 4,
+    "timeToAcknowledgeMs": 3038,
+    "timeToFirstContentMs": 10005,
+    "timeToFinalMs": 10005,
+    "serverFnDurationMs": 10039,
+    "serverFnStatus": 200,
+    "tool_executions": [
+      {
+        "tool_name": "add_ingredients",
+        "status": "succeeded"
+      },
+      {
+        "tool_name": "set_ingredient_cost",
+        "status": "succeeded"
+      },
+      {
+        "tool_name": "set_ingredient_cost",
+        "status": "succeeded"
+      },
+      {
+        "tool_name": "set_ingredient_cost",
+        "status": "succeeded"
+      },
+      {
+        "tool_name": "set_yield",
+        "status": "succeeded"
+      },
+      {
+        "tool_name": "set_price_and_tax",
+        "status": "succeeded"
+      },
+      {
+        "tool_name": "create_product",
+        "status": "succeeded"
+      }
+    ]
+  },
+  "custo_real": {
+    "fonte": "tabela ai_usage do banco local (kind=model)",
+    "budget_tokens_por_round": 64000,
+    "real_tokens_por_round": [1155, 3344, 3990, 4649],
+    "total_real_tokens": 13138,
+    "estimated_cost_usd_por_round": [0.0004, 0.0011, 0.0017, 0.0017],
+    "total_estimated_cost_usd": 0.0049,
+    "cost_status": ["known"],
+    "status": ["settled", "settled", "settled", "settled"]
+  },
+  "produto_criado": {
+    "name": "Bughunt C Bolo de Cenoura ce11",
+    "current_price": "15.0000",
+    "yield_qty": "12.000000",
+    "yield_unit": "unidade",
+    "tax_rate": null
+  },
+  "ingredientes_criados": [
+    {
+      "name": "farinha",
+      "used_qty": "3.000000",
+      "used_unit": "kg",
+      "package_price": "8.0000",
+      "package_qty": "1.000000",
+      "package_unit": "kg"
+    },
+    {
+      "name": "cenoura",
+      "used_qty": "1.000000",
+      "used_unit": "kg",
+      "package_price": "6.0000",
+      "package_qty": "1.000000",
+      "package_unit": "kg"
+    },
+    {
+      "name": "óleo",
+      "used_qty": "500.000000",
+      "used_unit": "ml",
+      "package_price": "9.0000",
+      "package_qty": "1.000000",
+      "package_unit": "l"
+    }
+  ],
+  "conversa_persistida": {
+    "chat_conversations": {
+      "current_product_id": "40ced46b-41ac-4d1f-a733-a3fa69e2e177",
+      "conversation_state": "completed"
+    },
+    "chat_messages_roles": ["user", "assistant"],
+    "chat_messages_count": 2
+  },
+  "grounding": {
+    "user_message": "Produto: Bughunt C Bolo de Cenoura ce11. Rendimento: 12 unidades. Ingredientes: 3 kg de farinha, pelo preço de R$ 8,00 por kg; 1 kg de cenoura, pelo preço de R$ 6,00 por kg; 500 ml de óleo, pelo preço de R$ 9,00 por litro. Preço de venda: R$ 15,00 por unidade.",
+    "assistant_reply_rendered": "Tudo registrado! Deixa eu confirmar com você o que ficou salvo:\n\n**Produto:** Bughunt C Bolo de Cenoura ce11\n- **Rendimento:** 12 unidades\n- **Ingredientes:**\n  - Farinha — 3 kg usados; compra de R$ 8,00 por kg\n  - Cenoura — 1 kg usado; compra de R$ 6,00 por kg\n  - Óleo — 500 ml usados; compra de R$ 9,00 por litro\n- **Preço de venda:** R$ 15,00 por unidade\n\nAinda faltam algumas informações para o retrato ficar completo. Vamos por partes:\n\n1) Você usa **embalagem** para vender cada unidade (saquinho, caixa, etiqueta)? Se sim, quanto custa o pacote e quantas unidades ele rende?\n2) Você paga **imposto** sobre a venda? Se sim, qual o regime (ex.: MEI, Simples Nacional) e a alíquota efetiva?\n3) Existe **taxa percentual** sobre a venda (cartão, delivery, marketplace)? Qual o percentual?\n4) Você tem **despesas periódicas** (aluguel, luz, gás, internet) que quer considerar?\n5) Você sabe **preços de mercado** parecidos (mínimo, médio e máximo) para comparar?\n\nPode responder só a primeira pergunta por enquanto: **você usa embalagem na venda?**",
+    "figuras_monetarias_na_resposta": ["8", "6", "9", "15"],
+    "figuras_percentuais_na_resposta": [],
+    "figuras_sem_lastro": [],
+    "lastro_de_cada_figura": {
+      "8": "mensagem do usuario (R$ 8,00 por kg) e linha persistida package_price=8.0000",
+      "6": "mensagem do usuario (R$ 6,00 por kg) e linha persistida package_price=6.0000",
+      "9": "mensagem do usuario (R$ 9,00 por litro) e linha persistida package_price=9.0000",
+      "15": "mensagem do usuario (R$ 15,00 por unidade) e linha persistida current_price=15.0000"
+    },
+    "contem_R$": true,
+    "contem_percentual": false,
+    "contem_palavra_margem": false,
+    "perguntas_na_resposta": 6,
+    "veredito": "SEM_NUMERO_SEM_LASTRO",
+    "nota": "O grounding NAO bloqueou o turno (todas as figuras tem lastro); a resposta final nao apresenta nenhum numero calculado sem lastro e termina perguntando o proximo dado (o turno nao travou)."
+  },
+  "screenshot": "docs/evidence/bug-hunt/screenshots/c-chat-real-turn.png",
+  "higiene": "Todas as linhas criadas (users/accounts/tenants/tenant_memberships/profiles/products/product_ingredients/purchase_price_history/chat_*/ai_usage/tool_executions) foram PURGADAS: contagem final 0 em todas as tabelas (ver c-34-chat-purge.txt)."
+}

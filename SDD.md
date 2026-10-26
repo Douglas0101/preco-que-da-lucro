@@ -159,6 +159,9 @@ Itens fora do escopo NÃO DEVEM ser inferidos por mensagens, rótulos ou diagnó
 - O locale é `pt-BR`.
 - O tenant é o usuário autenticado individual.
 - O período financeiro padrão é mensal, sempre exibido.
+  - Implementação (ADR-049): a janela é `[from, to)` em `America/Sao_Paulo`
+    (`src/lib/period-window.ts`) e o dashboard exibe a janela **atestada pelo servidor**
+    (`window` no payload), nunca uma calculada no cliente.
 - Dados de demonstração são segregados de dados reais.
 - Imposto desconhecido permanece desconhecido.
 - O usuário confirma conversões não seguras e mutações financeiras sensíveis.
@@ -1515,6 +1518,8 @@ one_off_monthly_amount = amount se occurrence_date estiver no mês; senão 0
 ```
 
 Análise com período diferente de mês deve somar competências mensais ou usar política versionada específica. Amortização de `one_off` só ocorre por escolha explícita do usuário.
+
+Recorte do período: ADR-049 (`periodWindow`, intervalo semiaberto `[from, to)` no fuso `America/Sao_Paulo`; `to` exclusivo = início do período seguinte). No dashboard, a despesa fixa permanece valor **mensal rotulado** e **não** é multiplicada por 3/12: o trimestre/ano em curso não tem meses futuros realizados, e multiplicar presumiria compromisso não registrado.
 
 ### 11.8 Margem de contribuição
 

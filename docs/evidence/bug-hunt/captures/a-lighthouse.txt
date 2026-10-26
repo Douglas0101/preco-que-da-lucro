@@ -1,0 +1,75 @@
+# Agente A — Lighthouse (medido) na landing do preview canonico :4173
+
+## Ferramenta
+lighthouse 12.8.2 via `npx --yes lighthouse@12` (NAO e dependencia do projeto: roda do cache do
+npm, nao altera package.json nem package-lock.json).
+Chrome: "Google Chrome for Testing 151.0.7922.34" — binario ja instalado pelo Playwright em
+`/home/douglas/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome` (exportado em CHROME_PATH).
+Alvo: http://127.0.0.1:4173/  (preview canonico da bancada, `/api/health/ready` = ready/postgres ok)
+Header anti-colisao: `--extra-headers='{"x-forwarded-for":"198.51.100.21"}'`
+Flags: `--chrome-flags="--headless=new --no-sandbox --disable-dev-shm-usage" --quiet`
+JSON bruto: `.artifacts/bughunt-a/lighthouse-desktop.json` (534.487 B) e
+`.artifacts/bughunt-a/lighthouse-mobile.json` (541.095 B) — FORA de docs/evidence (raw).
+Resumo medido no pacote: `a-lighthouse-summary.json` (3.920 B).
+
+## Comandos
+$ CHROME_PATH=/home/douglas/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome \
+    npx --yes lighthouse@12 http://127.0.0.1:4173/ --output=json \
+    --output-path=.artifacts/bughunt-a/lighthouse-desktop.json \
+    --chrome-flags="--headless=new --no-sandbox --disable-dev-shm-usage" --quiet --preset=desktop \
+    --extra-headers='{"x-forwarded-for":"198.51.100.21"}'
+$ ... (mesmo comando, sem --preset=desktop) --output-path=.artifacts/bughunt-a/lighthouse-mobile.json
+
+## Metricas medidas
+metrica          desktop (simulate, CPU 1x, 40 ms RTT, 10 Mbps)   mobile (simulate, CPU 4x, 150 ms RTT, 1,6 Mbps)
+LCP              974,43 ms (score 0,95)                          4.873,87 ms (score 0,29)
+TBT              0 ms (score 1,00)                                0 ms (score 1,00)
+CLS              0 (score 1,00)                                   0 (score 1,00)
+FCP              866,72 ms (score 0,92)                          4.362,94 ms (score 0,17)
+Speed Index      866,72 ms (score 0,99)                          4.362,94 ms (score 0,75)
+TTI              974,43 ms (score 1,00)                          4.873,87 ms (score 0,78)
+INP              NAO MEDIDO                                       NAO MEDIDO
+score performance 0,98                                          0,71
+score accessibility 0,96                                        0,96
+score best-practices 0,96                                       0,96
+score SEO 1,00                                                  1,00
+
+## INP — por que "nao medido"
+O audit `interaction-to-next-paint` exige um trace timespan com interacao real; o Lighthouse
+12.8.2 nao emite esse audit no modo padrao (single-page load) — o JSON traz o audit AUSENTE
+(status `AUDIT_AUSENTE` no resumo). A landing e estatica e nao ha interacao medida. Nenhum valor
+de INP foi inventado.
+
+## Baseline no repo e veredito de regressao (> 5%)
+- `grep -rli "lighthouse" docs/evidence/` => **NENHUMA** occurrences. Nao existe baseline de
+  Lighthouse no repositorio, entao nao ha como declarar regressao de Lighthouse.
+- O unico baseline de LCP do repo e da propria bateria deep-2026-10-20
+  (`docs/evidence/otimizacoes-planejamento/deep-2026-10-20/captures/f7-lcp-ab.json`): LCP
+  mediana **608 ms**, FCP 168 ms, load 287,6 ms, CLS 0, jsTransferBytes 472.506 — metodo
+  declarado: "Chromium, viewport mobile, CPU 4x, 5 amostras, SEM throttle de rede".
+  O Lighthouse mobile acima NAO e comparavel a ele (o Lighthouse simula Slow-4G com 1,6 Mbps);
+  por isso a comparacao valida foi feita com o **mesmo metodo** do baseline:
+- Re-medicao metodo-compativel (`node .artifacts/bughunt-a/lcp-ab-repro.mjs`, 5 amostras,
+  Chromium 390x844 dSF2, CPU 4x via CDP, sem throttle de rede, mesmo script da bateria deep):
+
+  metrica          baseline deep-2026-10-20   agora       delta
+  LCP (mediana)            608 ms               572 ms      -36 ms (-5,9%)
+  FCP (mediana)            168 ms               120 ms      -48 ms (-28,6%)
+  load (mediana)         287,6 ms             222,0 ms     -65,6 ms (-22,8%)
+  CLS                        0                    0           0
+  js transferido        472.506 B            472.521 B     +15 B
+
+  => **REGRESSÃO > 5%: NAO.** O LCP medido ficou 5,9% ABAIXO do baseline (o proprio baseline
+  tinha amostras de 588 a 700 ms, ou seja, a faixa se sobrepoe). O +15 B do js transferido e o
+  MESMO delta do entry chunk (219.697 - 219.682 = 15) — confirmacao independente de que o
+  delta de +15 B e real e pequeno.
+
+## Oportunidades reportadas pelo proprio Lighthouse (simulated savings)
+desktop: "Enable text compression" 320 ms | "Reduce unused JavaScript" 160 ms
+mobile : "Enable text compression" 2.100 ms | "Reduce unused JavaScript" 1.050 ms
+O item de compressao e o maior: o preset `node-server` do Nitro nao comprime a resposta (o
+HTML/JS saem em uncompressed). Em producao na Vercel a compressao e da borda (CDN), entao o
+impacto real depende do alvo de deploy — registrado como observacao, nao como achado de bug.
+
+LIMITE DECLARADO: medicao de laboratorio em uma unica execucao por form factor (Lighthouse e
+sensivel a variacao); o JSON bruto nao entra no pacote (534/541 KB), so o resumo medido.

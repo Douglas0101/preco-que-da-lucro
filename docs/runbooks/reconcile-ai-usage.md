@@ -59,32 +59,22 @@ estruturado `ai.reconciliation_failed` (`logJson`, nível `warn`), uma linha por
 evento tratado, que cai no log do cron.
 
 As métricas `app.ai.reconciliation_total`, `app.ai.reconciliation_failed` e
-`app.ai.reconciliation_oldest_age_ms` estão declaradas e o job chama
-`startTelemetry()`/`flushTelemetry()` (o flush é obrigatório porque o exportador
-periódico padrão de 15 s nunca dispara em um processo que termina em segundos).
-**Mas elas não saem do processo — nem com o endpoint OTLP configurado.**
+`app.ai.reconciliation_oldest_age_ms` **são exportadas** quando há endpoint
+OTLP. O job chama `startTelemetry()`/`flushTelemetry()` (o flush é obrigatório
+porque o exportador periódico padrão de 15 s nunca dispara em um processo que
+termina em segundos). Desde DBT-148 os instrumentos de `applicationMetrics` são
+criados **depois** do `sdk.start()` — antes nasciam no import, contra o provider
+noop, e não eram re-vinculados (não há proxy de métrica na API).
 
-O motivo é medido, não suposto: o `meter` e os instrumentos de
-`applicationMetrics` são criados no **import** de
-`src/instrumentation/telemetry.ts`, quando a API ainda devolve os singletons
-noop (`NOOP_METER` compartilhado, `add()` vazio, `addCallback()` que não registra
-nada). Registrar o `MeterProvider` depois, dentro de `startTelemetry()`, **não
-re-vincula instrumento já criado** — `@opentelemetry/api` não tem proxy de
-métrica (o único proxy da API é o de trace). Com instrumentos noop o
-`PeriodicExportingMetricReader` nem chega a invocar o exporter.
-
-O defeito é pré-existente e **repo-wide**: atinge os 102 usos de
-`applicationMetrics` em `src/` e `scripts/`, não só este job. Está registrado
-como `F-otel-provider-order` (WP próprio, exige ADR).
-
-> Consequência prática: **não** monte alerta sobre `app.ai.reconciliation_*`
-> enquanto o D7 não for corrigido. Um alarme sobre métrica que nunca é exportada
-> não dispara — exatamente o tipo de controle fantasma que este trilho existe
-> para eliminar. Alerte pelo log:
+> Consequência prática: com `OTEL_EXPORTER_OTLP_ENDPOINT` definido, monte alerta
+> sobre `app.ai.reconciliation_failed` / `app.ai.reconciliation_oldest_age_ms`.
+> Sem endpoint, a métrica não sai — e o alarme que sempre funciona é o log:
 > `grep -c 'ai.reconciliation_failed' /var/log/reconcile-ai-usage.log`.
+> Limite declarado: a entrega do **build compilado** foi medida em DBT-148; o
+> runtime da Vercel não foi exercitado nesta janela.
 
-Linha de cron (a variável OTLP é inócua para ESTE job enquanto o D7 existir;
-mantenha-a apenas se o host já exporta telemetria por outros processos):
+Linha de cron (defina `OTEL_EXPORTER_OTLP_ENDPOINT` no host se quiser a série
+exportada; sem ela o job continua correto e mede pelo log):
 
 ```cron
 17 * * * * cd /srv/preco-que-d && DATABASE_ADMIN_URL="$DATABASE_ADMIN_URL" npm run db:reconcile-ai-usage -- --all-tenants >> /var/log/reconcile-ai-usage.log 2>&1

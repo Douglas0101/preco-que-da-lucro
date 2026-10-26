@@ -1,0 +1,14 @@
+# Escopo
+
+```
+M src/styles.css
+?? src/components/consultor-chat.tsx
+?? src/test/consultor-chat-dock.test.tsx
+
+src/styles.css | 228 +++++++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 142 insertions(+), 86 deletions(-)
+```
+
+`consultor-chat.tsx` e `styles.css` já estavam modificados pelo tema (sessão desta data);
+o diff acima inclui as duas mudanças. A barra em si é o componente `SuggestionScrollBar`,
+o `data-slot="suggestion-scroller"` e o bloco `.suggestion-scrollbar` no CSS.

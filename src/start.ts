@@ -77,7 +77,9 @@ function handleUnexpectedError(
 
 const requestPolicyMiddleware = createMiddleware().server(
   async ({ handlerType, next, request }) => {
-    ensureTelemetryStarted();
+    // DBT-148: aguarda o provider antes de qualquer instrumento de métrica
+    // nascer. Sem endpoint OTLP o caminho retorna sem importar o SDK.
+    await ensureTelemetryStarted();
     const suppliedCorrelationId = request.headers.get("x-correlation-id");
     const correlationId =
       suppliedCorrelationId && uuidPattern.test(suppliedCorrelationId)

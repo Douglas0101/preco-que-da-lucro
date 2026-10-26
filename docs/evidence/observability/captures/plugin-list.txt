@@ -1,0 +1,3 @@
+ID             VERSION  SOURCE
+observability  local    /home/douglas/WebstormProjects/preco-que-da-lucro/.opencode/plugins/observability/index.ts
+vercel-plugin  b97d74d  github:vercel/vercel-plugin

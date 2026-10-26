@@ -1,0 +1,36 @@
+# Agente A — medicao canonica do bundle (npm run check:bundle) e folga contra o teto
+
+$ npm run check:bundle 2>&1 | tee docs/evidence/bug-hunt/captures/a-bundle-check.txt
+> check:bundle
+> node scripts/check-bundle.mjs
+
+PASS assets/index-C05BJ1eg.js: 219697 minified, 69086 gzip, 60024 Brotli bytes, sha256=358633588df7
+Initial graph (9 chunks): 451299 minified, 149058 gzip, 131218 Brotli bytes, sha256=e0cb3eb5fa24
+
+# Numeros medidos neste agente (reproducao independente do que o agente principal mediu)
+entry (assets/index-C05BJ1eg.js):   219.697 B minificado | 69.086 B gzip | 60.024 B brotli
+grafo inicial (9 chunks):           451.299 B minificado | 149.058 B gzip | 131.218 B brotli
+sha256 entry:                       358633588df72e805485279e013ddc7b73678f6e7282591d29bf6dec32e21d4a
+sha256 grafo inicial:               e0cb3eb5fa24b4974bcab3d043289782ceea5ae06b1105798d2250dd1a3de0bb
+
+# Orcamento (scripts/check-bundle.mjs:11-12 -> entryLimitBytes / initialGraphLimitBytes)
+teto do entry:                      500.000 B
+teto do grafo inicial:              500.000 B
+folga do entry:                      280.303 B  (56,07% do teto)
+folga do grafo inicial:              48.701 B  (9,74% do teto)
+veredito: PASS (o gate sai 0; `passed` true nos dois limites)
+
+# Comparacao com o baseline da Onda 1 (journal L975;
+# docs/evidence/otimizacoes-planejamento/captures/build-onda1-after.txt)
+metrica             Onda 1 (5260b34)   build atual    delta
+entry minificado          219.682 B        219.697 B     +15 B
+grafo inicial             451.284 B        451.299 B     +15 B
+grafo inicial gzip        149.045 B        149.058 B     +13 B
+brotli grafo inicial      131.194 B        131.218 B     +24 B
+
+# Estabilidade: o arquivo .artifacts/bundle-report.json (build anterior, antes desta execucao)
+# trazia exatamente 219.697 / 451.299 / 149.058 e os mesmos sha256 -> o build e reproduzivel
+# byte a byte nesta maquina.
+
+LIMITE DECLARADO: o guard `m02:lockfile-guard` segue vermelho por WIP alheio (lockfile reescrito
+sem commit) — pre-existente, documentado no brief (DBT-143/DBT-99), nao e deste agente.

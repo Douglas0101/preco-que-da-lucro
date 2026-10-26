@@ -1,0 +1,15 @@
+HTTP/1.1 200 
+content-security-policy-report-only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint
+content-type: text/html; charset=utf-8
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+reporting-endpoints: csp-endpoint="/api/csp-report"
+strict-transport-security: max-age=31536000; includeSubDomains
+x-content-type-options: nosniff
+x-correlation-id: 3b192c36-9754-4f05-bc74-5ecdeaac55b7
+x-frame-options: DENY
+Date: Thu, 22 Oct 2026 06:02:31 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+

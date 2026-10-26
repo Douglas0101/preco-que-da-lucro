@@ -1,0 +1,84 @@
+# Fonte da paleta: https://diretrizprecifica.com/ (2026-10-25)
+
+Extração por Playwright (Chromium headless, 1440x1000 e 390x844): `getComputedStyle`
+do `<html>` para os custom properties e amostragem de `background-color`/`color`/
+`background-image` de todos os elementos visíveis. Nenhuma cor foi escolhida “a olho”.
+
+## Título do site
+
+- Diretriz Precifica — Precificação que protege o lucro do seu negócio
+
+## Custom properties computados (HSL do site)
+
+```
+--background: 40 33% 97%
+--foreground: 224 47% 12%
+--card: 0 0% 100%
+--card-foreground: 224 47% 12%
+--popover: 0 0% 100%
+--popover-foreground: 224 47% 12%
+--primary: 43 72% 42%
+--primary-foreground: 40 33% 98%
+--secondary: 224 28% 94%
+--secondary-foreground: 224 40% 18%
+--muted: 224 22% 94%
+--muted-foreground: 224 14% 38%
+--accent: 43 45% 94%
+--accent-foreground: 224 47% 14%
+--destructive: 0 72% 51%
+--destructive-foreground: 0 0% 98%
+--border: 224 18% 88%
+--input: 224 18% 88%
+--ring: 43 72% 42%
+--sidebar-background: 40 30% 98%
+--sidebar-foreground: 224 47% 12%
+--sidebar-primary: 43 72% 42%
+--sidebar-primary-foreground: 40 33% 98%
+--sidebar-accent: 224 28% 94%
+--sidebar-accent-foreground: 224 40% 18%
+--sidebar-border: 224 18% 88%
+--sidebar-ring: 43 72% 42%
+```
+
+## Amostras renderizadas
+
+```
+body: bg=rgb(250, 248, 245) color=rgb(16, 24, 45)
+header: bg=rgba(250, 248, 245, 0.9) color=rgb(16, 24, 45)
+nav: bg=rgba(0, 0, 0, 0) color=rgb(16, 24, 45)
+h1: bg=rgba(0, 0, 0, 0) color=rgb(16, 24, 45)
+h2: bg=rgba(0, 0, 0, 0) color=rgb(16, 24, 45)
+paragraph: bg=rgba(0, 0, 0, 0) color=rgb(184, 141, 30)
+link: bg=rgba(0, 0, 0, 0) color=rgb(16, 24, 45)
+button: bg=rgba(0, 0, 0, 0) color=rgb(16, 24, 45)
+footer: bg=rgb(250, 248, 245) color=rgb(16, 24, 45)
+hero: bg=rgba(0, 0, 0, 0) color=rgb(16, 24, 45)
+```
+
+## Cores mais frequentes (computed)
+
+```
+326x rgb(16, 24, 45)
+106x rgb(83, 91, 110)
+ 27x rgb(184, 141, 30)
+ 17x rgba(16, 24, 45, 0.9)
+ 16x rgba(184, 141, 30, 0.7)
+  8x rgb(252, 250, 248)
+  8x rgb(246, 244, 238)
+  4x rgba(235, 238, 244, 0.4)
+  4x rgba(250, 248, 245, 0.5)
+  4x rgba(250, 248, 245, 0.6)
+  3x rgba(255, 255, 255, 0.8)
+  3x rgba(255, 255, 255, 0)
+```
+
+## Gradientes amostrados
+
+```
+linear-gradient(165deg, rgb(255, 255, 255), rgb(251, 250, 248))
+linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(166, 124, 26, 0.55), rgba(0, 0, 0, 0))
+linear-gradient(112deg, rgb(201, 162, 39), rgb(166, 124, 26) 40%, rgb(212, 175, 55), rgb(184, 134, 11))
+linear-gradient(to top, rgba(166, 124, 26, 0.45), rgb(212, 175, 55))
+linear-gradient(145deg, rgb(16, 24, 45), rgb(24, 33, 58))
+radial-gradient(768px 448px at 88% -8%, rgba(201, 150, 46, 0.14), rgba(0, 0, 0, 0) 58%), radial-gradient(576px 384px at 6% 18%, rgba(30, 55, 110, 0.07), rgba(0, 0, 0, 0) 55%), linear-gradient(rgb(252, 251, 248), rgb(250, 248, 245))
+```

@@ -1,0 +1,70 @@
+# Testes e cadeia do gate (exceto m02:lockfile-guard)
+
+## Cadeia `npm run check` passo a passo
+
+```
+guard:upgrade exit=0
+check:migration-toolchain exit=0
+guard:contracts exit=0
+m02:work-package-guard exit=0
+m02:debts-guard exit=0
+m02:temporal-guard exit=0
+m02:state:check exit=0
+m02:boundaries exit=0
+m02:secrets-audit exit=0
+guard:mcp-runtime exit=0
+m02:seal-dts:check exit=0
+m02:matrix:check exit=0
+check:ui-stack exit=0
+check:no-supabase-runtime exit=0
+format:check exit=1
+lint exit=0
+typecheck exit=0
+test exit=0
+build exit=0
+check:bundle exit=0
+```
+
+O único passo que reprovou foi `format:check` porque o JSON bruto da paleta foi copiado para
+`docs/evidence/` **durante** a execução da cadeia; depois de `prettier --write` no artefato,
+`npx prettier --check .` saiu 0 (a cadeia pesada não foi re-executada inteira: `format:check` foi
+rodado de novo isoladamente, e os demais passos já haviam passado sobre o mesmo código).
+
+## Números do gate
+
+```
+Test Files  161 passed | 2 skipped (163)
+Tests  2413 passed | 30 skipped (2443)
+
+ui-stack: UI stack check passed: shadcn/Base UI boundary and catalog are clean.
+PASS assets/index-iZ4mxKy9.js: 217925 minified, 68910 gzip, 59889 Brotli bytes, sha256=803dbbb9c9fb
+Initial graph (11 chunks): 486930 minified, 159696 gzip, 140555 Brotli bytes, sha256=f9e007dc0479
+```
+
+## E2E focado (a11y/contraste/chat, 4 projetos)
+
+```
+[WebServer] {"timestamp":"2026-10-26T00:37:05.190Z","level":"error","event":"server.ssr_failed","correlationId":"3cd44c17-fccb-4f66-a78b-85ef3cc09c4d","error":{"name":"HTTPError","message":"This operation was aborted"}}
+  20 passed (1.2m)
+```
+
+## Matriz Playwright completa
+
+```
+  3 skipped
+  113 passed (4.8m)
+e2e exit=0
+```
+
+## Distribuição por projeto
+
+```
+chromium 28 ✓
+firefox 28 ✓
+webkit 28 ✓
+mobile 29 ✓
+```
+
+Leitura: o tema não introduziu violação `critical/serious` no axe da página pública nem nos
+controles de autenticação; o contraste dos cards de `/produtos` e o painel flutuante continuam
+verdes nos quatro engines.

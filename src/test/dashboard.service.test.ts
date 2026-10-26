@@ -5,9 +5,9 @@ import {
   dashboardService,
   DefaultDashboardService,
   getDashboardSummary,
-  periodStart,
   type DashboardSummary,
 } from "@/server/services/dashboard.service";
+import { periodEnd, periodStart } from "@/lib/period-window";
 import {
   dashboardRepository,
   loadDashboardInputs,
@@ -32,8 +32,8 @@ class FakeDashboardRepository implements DashboardRepository {
 }
 
 class FakeSalesService implements SalesService {
-  readonly calls: Array<{ context: RequestContext; from: Date }> = [];
-  readonly itemCalls: Array<{ context: RequestContext; from: Date }> = [];
+  readonly calls: Array<{ context: RequestContext; from: Date; to: Date }> = [];
+  readonly itemCalls: Array<{ context: RequestContext; from: Date; to: Date }> = [];
 
   constructor(
     private readonly summary: SalesSummary = { revenue: "0.0000", count: 0 },
@@ -48,13 +48,17 @@ class FakeSalesService implements SalesService {
     return "0.0000";
   }
 
-  async summaryForPeriod(context: RequestContext, from: Date): Promise<SalesSummary> {
-    this.calls.push({ context, from });
+  async summaryForPeriod(context: RequestContext, from: Date, to: Date): Promise<SalesSummary> {
+    this.calls.push({ context, from, to });
     return this.summary;
   }
 
-  async itemSummaryForPeriod(context: RequestContext, from: Date): Promise<SaleItemSummaryRow[]> {
-    this.itemCalls.push({ context, from });
+  async itemSummaryForPeriod(
+    context: RequestContext,
+    from: Date,
+    to: Date,
+  ): Promise<SaleItemSummaryRow[]> {
+    this.itemCalls.push({ context, from, to });
     return this.itemSummary;
   }
 
@@ -110,6 +114,7 @@ describe("DefaultDashboardService (DI)", () => {
     expect(sales.calls).toHaveLength(1);
     expect(sales.calls[0]!.context).toBe(context);
     expect(sales.calls[0]!.from).toEqual(periodStart("quarter"));
+    expect(sales.calls[0]!.to).toEqual(periodEnd("quarter"));
     expect(summary).toEqual({
       productCount: 0,
       fixedExpenses: "0.0000",
@@ -124,6 +129,10 @@ describe("DefaultDashboardService (DI)", () => {
         salesMismatch: true,
       },
       period: "quarter",
+      window: {
+        from: periodStart("quarter").toISOString(),
+        to: periodEnd("quarter").toISOString(),
+      },
       sales: { revenue: "150.0000", count: 3 },
     });
   });
@@ -403,6 +412,10 @@ describe("dashboard adapters", () => {
       incompleteProductCount: 0,
       alerts: [],
       period: "year",
+      window: {
+        from: periodStart("year").toISOString(),
+        to: periodEnd("year").toISOString(),
+      },
       sales: { revenue: "0.0000", count: 0 },
     };
     const spy = vi.spyOn(dashboardService, "getSummary").mockResolvedValue(expected);

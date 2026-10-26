@@ -1,0 +1,64 @@
+# /produtos em 390x844: título do card antes/depois
+
+## Antes (matriz mobile, artefato efêmero lido na hora)
+
+```
+locator 'Produto de teste' resolveu 14x e retornou 'hidden'; medição direta: span.font-bold.truncate com width=0;
+pai imediato (span): w=0; bloco min-w-0 flex-1: w=7.328125 (ações na mesma linha).
+```
+
+## Depois (mesma medição, código corrigido)
+
+```
+signin 200
+{
+ "found": true,
+ "rect": {
+  "w": 116.421875,
+  "h": 20
+ },
+ "display": "block",
+ "chain": [
+  {
+   "tag": "SPAN",
+   "cls": "font-bold truncate",
+   "w": 116.421875,
+   "h": 20,
+   "display": "block",
+   "overflow": "hidden"
+  },
+  {
+   "tag": "DIV",
+   "cls": "flex items-center gap-2",
+   "w": 254,
+   "h": 20,
+   "display": "flex",
+   "overflow": "visible"
+  },
+  {
+   "tag": "DIV",
+   "cls": "min-w-0 flex-1",
+   "w": 254,
+   "h": 60,
+   "display": "block",
+   "overflow": "visible"
+  },
+  {
+   "tag": "DIV",
+   "cls": "flex flex-wrap items-center gap-4 p-5",
+   "w": 358,
+   "h": 152,
+   "display": "flex",
+   "overflow": "visible"
+  },
+  {
+   "tag": "DIV",
+   "cls": "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-",
+   "w": 358,
+   "h": 200,
+   "display": "flex",
+   "overflow": "hidden"
+  }
+ ]
+}
+```

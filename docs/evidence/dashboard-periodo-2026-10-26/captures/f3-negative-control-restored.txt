@@ -1,0 +1,8 @@
+
+Running 2 tests using 2 workers
+
+  ✓  2 [chromium] › e2e/sales-dashboard.spec.ts:419:1 › E3 — trocar período preserva o foco no botão (DBT-165, WCAG 2.4.3) (1.8s)
+  ✓  1 [chromium] › e2e/sales-dashboard.spec.ts:442:1 › E5 — durante a troca a janela antiga permanece e o grid não desmonta (2.5s)
+
+  2 passed (3.6s)
+restore-exit=0

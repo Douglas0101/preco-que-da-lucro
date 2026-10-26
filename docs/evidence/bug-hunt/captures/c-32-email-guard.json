@@ -1,0 +1,40 @@
+{
+  "base": "http://127.0.0.1:4176",
+  "xff": "198.51.100.23",
+  "dsn": "postgresql://<REDACTED>@127.0.0.1:5432/preco_que_da_lucro_test",
+  "previewEnv": {
+    "RESEND_API_KEY": "\"\" (definida e vazia)",
+    "AUTH_EMAIL_FROM": "\"\" (definida e vazia)"
+  },
+  "signup": {
+    "email": "bughunt.c.1792633012878@example.test",
+    "status": 503,
+    "body": {
+      "code": "EMAIL_NOT_CONFIGURED",
+      "message": "Cadastro por e-mail indisponível: o envio de verificação não está configurado."
+    },
+    "codeExtracted": "EMAIL_NOT_CONFIGURED",
+    "messageExtracted": "Cadastro por e-mail indisponível: o envio de verificação não está configurado."
+  },
+  "userCounts": {
+    "before": {
+      "total": 25,
+      "forEmail": 0
+    },
+    "after": {
+      "total": 25,
+      "forEmail": 0
+    },
+    "delta": 0,
+    "emailRowsAfter": 0
+  },
+  "signInControl": {
+    "email": "t***@example.test",
+    "status": 200,
+    "body": {
+      "hasUser": true,
+      "hasToken": true,
+      "keys": ["redirect", "token", "user"]
+    }
+  }
+}

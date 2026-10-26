@@ -1,0 +1,12 @@
+{
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Available Libraries:\n\n- Title: OpenTelemetry JavaScript Client\n- Context7-compatible library ID: /open-telemetry/opentelemetry-js\n- Description: The JavaScript version of OpenTelemetry, a framework for collecting traces, metrics, and logs from applications.\n- Code Snippets: 1455\n- Source Reputation: High\n- Benchmark Score: 67.48\n----------\n- Title: OpenTelemetry JS Contrib\n- Context7-compatible library ID: /open-telemetry/opentelemetry-js-contrib\n- Description: A repository for community-maintained OpenTelemetry JavaScript contributions, including instrumentations, metapackages, context propagators, and resource detectors, that are not part of the core repository.\n- Code Snippets: 1036\n- Source Reputation: High\n- Benchmark Score: 72.52\n----------\n- Title: OpenTelemetry JavaScript (DeepWiki)\n- Context7-compatible library ID: /websites/deepwiki_open-telemetry_opentelemetry-js\n- Description: OpenTelemetry JavaScript provides a complete observability framework for collecting, processing, and exporting distributed traces, metrics, and logs from Node.js and browser applications.\n- Code Snippets: 987\n- Source Reputation: High\n- Benchmark Score: 34.5\n----------\n- Title: OpenTelemetry\n- Context7-compatible library ID: /open-telemetry/opentelemetry.io\n- Description: OpenTelemetry is an open-source observability framework that provides APIs, SDKs, and tools for collecting, processing, and exporting metrics, logs, and traces from applications.\n- Code Snippets: 9750\n- Source Reputation: High\n- Benchmark Score: 70.72\n----------\n- Title: OpenTelemetry\n- Context7-compatible library ID: /hyperdxio/opentelemetry.io\n- Description: The OpenTelemetry website and documentation\n- Code Snippets: 1506\n- Source Reputation: High\n- Benchmark Score: 67.6"
+      }
+    ]
+  },
+  "jsonrpc": "2.0",
+  "id": 1
+}

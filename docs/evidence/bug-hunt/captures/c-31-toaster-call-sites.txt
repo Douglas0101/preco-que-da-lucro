@@ -1,0 +1,49 @@
+CALL SITES DE toast() EM src/** — AGENTE C (FASE 3.1) — varredura estática
+Gerado por: grep -rn --include=*.ts --include=*.tsx -E '\btoast\s*\(|toast\.(success|error|...)' src/  (exclui src/test/)
+
+TOASTER MONTADO EM:
+  src/routes/auth.tsx:300            -> <Toaster richColors position="top-center" />
+  src/routes/_authenticated/route.tsx:40 -> <Toaster richColors position="top-center" />
+  (src/components/ui/sonner.tsx reexporta { toast } de 'sonner'; nenhum outro modulo importa 'sonner')
+
+TOTAL DE CALL SITES (fora de src/test/): 33
+
+ROTA: /auth   (5 call sites)
+  src/routes/auth.tsx:60  [success]  toast.success("Se a conta existir, enviaremos as instruções de recuperação.");
+  src/routes/auth.tsx:68  [success]  toast.success("Senha redefinida. Entre novamente.");
+  src/routes/auth.tsx:81  [success]  toast.success("Conta criada! Confirme seu e-mail para entrar.");
+  src/routes/auth.tsx:146  [error]  toast.error(error instanceof Error ? error.message : "Não foi possível concluir.");
+  src/routes/auth.tsx:154  [error]  toast.error(error instanceof Error ? error.message : "Não foi possível entrar com Google.");
+
+ROTA: /_authenticated/* (layout monta <Toaster> em src/routes/_authenticated/route.tsx:40)   (28 call sites)
+  src/routes/_authenticated/vendas.tsx:91  [success]  toast.success("Venda registrada");
+  src/routes/_authenticated/vendas.tsx:98  [error]  toast.error(error instanceof Error ? error.message : "Não foi possível registrar a venda"),
+  src/routes/_authenticated/vendas.tsx:104  [error]  toast.error("Cadastre um produto antes de registrar uma venda");
+  src/routes/_authenticated/vendas.tsx:115  [error]  toast.error("Informe quantidade e preço unitário válidos");
+  src/routes/_authenticated/precos.tsx:133  [error]  toast.error("Informe um preço válido");
+  src/routes/_authenticated/precos.tsx:137  [error]  toast.error("Informe a quantidade e a unidade da embalagem antes de registrar o preço");
+  src/routes/_authenticated/precos.tsx:161  [success]  toast.success(`Preço de ${item.name} atualizado`);
+  src/routes/_authenticated/precos.tsx:163  [error]  toast.error(err instanceof Error ? err.message : "Erro ao atualizar o preço");
+  src/routes/_authenticated/produtos.tsx:58  [success]  toast.success("Produto arquivado");
+  src/routes/_authenticated/produtos.tsx:61  [error]  onError: () => toast.error("Não foi possível arquivar o produto"),
+  src/routes/_authenticated/despesas.tsx:101  [success]  toast.success("Despesa adicionada");
+  src/routes/_authenticated/despesas.tsx:104  [error]  onError: () => toast.error("Não foi possível salvar a despesa"),
+  src/routes/_authenticated/despesas.tsx:115  [error]  onError: () => toast.error("Não foi possível excluir a despesa"),
+  src/routes/_authenticated/despesas.tsx:123  [error]  return toast.error("Preencha nome e valor válido");
+  src/routes/_authenticated/simulacoes.tsx:361  [success]  toast.success("Simulação salva");
+  src/routes/_authenticated/simulacoes.tsx:366  [error]  toast.error(error instanceof Error ? error.message : "Não foi possível salvar a simulação"),
+  src/routes/_authenticated/produtos_.composicao.tsx:171  [success]  toast.success("Produto atualizado.");
+  src/routes/_authenticated/produtos_.composicao.tsx:175  [error]  toast.error(
+  src/routes/_authenticated/produtos_.composicao.tsx:207  [success]  toast.success(ingredientForm.id ? "Ingrediente atualizado." : "Ingrediente adicionado.");
+  src/routes/_authenticated/produtos_.composicao.tsx:210  [error]  toast.error(
+  src/routes/_authenticated/produtos_.composicao.tsx:231  [success]  toast.success(packagingForm.id ? "Embalagem atualizada." : "Embalagem adicionada.");
+  src/routes/_authenticated/produtos_.composicao.tsx:234  [error]  toast.error(error instanceof Error ? error.message : "Não foi possível salvar a embalagem."),
+  src/routes/_authenticated/produtos_.composicao.tsx:252  [success]  toast.success(feeForm.id ? "Taxa atualizada." : "Taxa adicionada.");
+  src/routes/_authenticated/produtos_.composicao.tsx:255  [error]  toast.error(error instanceof Error ? error.message : "Não foi possível salvar a taxa."),
+  src/routes/_authenticated/produtos_.composicao.tsx:271  [success]  toast.success(removeLabel(pendingDelete?.kind ?? null).removed);
+  src/routes/_authenticated/produtos_.composicao.tsx:279  [error]  toast.error(
+  src/routes/_authenticated/novo-produto.tsx:116  [error]  toast.error(msg);
+  src/routes/_authenticated/novo-produto.tsx:139  [error]  toast.error("Não foi possível apagar a conversa.");
+
+VEREDITO DA VARREDURA ESTATICA: todo call site esta em /auth ou em /_authenticated/*; nenhum call site vive numa rota que NAO monta o <Toaster>.
+Rotas SEM <Toaster> (landing /, /api/*): zero call sites de toast().

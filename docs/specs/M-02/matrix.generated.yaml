@@ -11,7 +11,7 @@
     "concreteOperations": 36,
     "apiRoutes": 5,
     "transactionSites": 114,
-    "directDatabaseFiles": 53
+    "directDatabaseFiles": 55
   },
   "bffs": [
     {
@@ -401,7 +401,7 @@
         },
         {
           "name": "upsertPackaging",
-          "line": 637,
+          "line": 695,
           "declaration": "createServerFn",
           "service": "ProductService/PricingService",
           "repository": "ProductCatalogRepository + PriceRepository",
@@ -409,7 +409,7 @@
         },
         {
           "name": "deletePackaging",
-          "line": 662,
+          "line": 738,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -417,7 +417,7 @@
         },
         {
           "name": "upsertFee",
-          "line": 676,
+          "line": 752,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -425,7 +425,7 @@
         },
         {
           "name": "deleteFee",
-          "line": 690,
+          "line": 766,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -433,7 +433,7 @@
         },
         {
           "name": "setMarketPrice",
-          "line": 702,
+          "line": 778,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "MarketPriceRepository",
@@ -441,7 +441,7 @@
         },
         {
           "name": "getProductMetrics",
-          "line": 716,
+          "line": 792,
           "declaration": "createServerFn",
           "service": "ProductService",
           "repository": "ProductCatalogRepository",
@@ -449,7 +449,7 @@
         },
         {
           "name": "listPurchasePrices",
-          "line": 728,
+          "line": 804,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "ProductCatalogRepository",
@@ -457,7 +457,7 @@
         },
         {
           "name": "updatePurchasePrice",
-          "line": 750,
+          "line": 826,
           "declaration": "createServerFn",
           "service": "PricingService",
           "repository": "PriceRepository",
@@ -1227,43 +1227,43 @@
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 64,
+      "line": 71,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 77,
+      "line": 84,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 101,
+      "line": 108,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 110,
+      "line": 117,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 123,
+      "line": 140,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 146,
+      "line": 169,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
     {
       "path": "src/server/repositories/sales.repository.ts",
-      "line": 154,
+      "line": 177,
       "expression": "context.transaction",
       "classification": "repository-fallback"
     },
@@ -1330,6 +1330,8 @@
     "src/test/ai-estimated-cost.test.ts",
     "src/test/ai-usage-unknown.test.ts",
     "src/test/audit.service.test.ts",
+    "src/test/auth-email-signup-guard.test.ts",
+    "src/test/auth-oauth-verification.test.ts",
     "src/test/backfill-runner.test.ts",
     "src/test/break-even.negative-margin.test.tsx",
     "src/test/cross-tenant-denial.perf-waves.test.ts",

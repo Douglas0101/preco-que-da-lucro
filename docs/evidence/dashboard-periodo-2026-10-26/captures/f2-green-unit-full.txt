@@ -1,0 +1,751 @@
+
+> pretest
+> node --env-file-if-exists=.env scripts/env-guard.mjs
+
+
+> test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas/WebstormProjects/preco-que-da-lucro[39m
+
+ [32m✓[39m src/test/m02-seal.test.ts [2m([22m[2m42 tests[22m[2m)[22m[33m 6430[2mms[22m[39m
+     [33m[2m✓[22m[39m o .d.mts no disco é byte a byte o que o gerador emite [33m 1147[2mms[22m[39m
+     [33m[2m✓[22m[39m controle negativo: uma cópia mutada do .d.mts REPROVA a conferência [33m 3025[2mms[22m[39m
+ [32m✓[39m src/test/sonar-pr-applicability.test.ts [2m([22m[2m50 tests[22m[2m)[22m[33m 7209[2mms[22m[39m
+     [33m[2m✓[22m[39m qualquer fonte excluída permanece elegível e ausência de métrica continua NO-VERDICT [33m 313[2mms[22m[39m
+     [33m[2m✓[22m[39m qualquer fonte renomeada para fora permanece elegível e ausência de métrica continua NO-VERDICT [33m 394[2mms[22m[39m
+ [32m✓[39m src/test/m02-cutover-t0.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 5020[2mms[22m[39m
+     [33m[2m✓[22m[39m --skip-snapshot não conecta e ainda assim exit 0 com rótulos (smoke de parsing) [33m 5017[2mms[22m[39m
+ [32m✓[39m src/test/m02-work-package-guard.test.ts [2m([22m[2m25 tests[22m[2m)[22m[33m 4551[2mms[22m[39m
+     [33m[2m✓[22m[39m o template real passa com 17 itens [33m 710[2mms[22m[39m
+     [33m[2m✓[22m[39m item 17 removido reprova por contagem [33m 611[2mms[22m[39m
+     [33m[2m✓[22m[39m demonstração vazia no item 17 reprova (S6 N4 do WP-R5) [33m 462[2mms[22m[39m
+     [33m[2m✓[22m[39m demonstração de fachada (`aaaa`) no item 17 reprova [33m 450[2mms[22m[39m
+     [33m[2m✓[22m[39m origem degenerada reprova nomeando o item [33m 366[2mms[22m[39m
+     [33m[2m✓[22m[39m origem degenerada de 5 caracteres reprova (pino do DEGENERATE, não do length) [33m 361[2mms[22m[39m
+     [33m[2m✓[22m[39m coluna extra no checklist reprova pela contagem de colunas [33m 347[2mms[22m[39m
+     [33m[2m✓[22m[39m campo de auto-verificação pré-S6 ausente reprova (KPI) [33m 355[2mms[22m[39m
+     [33m[2m✓[22m[39m pacote sem manifesto mas na lista de excecao legada NAO reprova [33m 404[2mms[22m[39m
+ [32m✓[39m src/test/m02-boundary-gate.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 3431[2mms[22m[39m
+     [33m[2m✓[22m[39m T1 — m02:boundaries fica VERDE na árvore real (sem falso positivo) [33m 313[2mms[22m[39m
+     [33m[2m✓[22m[39m T2 — m02:boundaries REPROVA quando uma boundary é violada (fixture isolado) [33m 971[2mms[22m[39m
+     [33m[2m✓[22m[39m T4 — m02:boundaries devolve exit 2 de PRECONDIÇÃO com a matriz ausente [33m 660[2mms[22m[39m
+     [33m[2m✓[22m[39m T6 — o CLI do secrets-audit REPROVA na presença do literal (exit 1) [33m 849[2mms[22m[39m
+     [33m[2m✓[22m[39m T7 — o CLI do secrets-audit devolve exit 2 de PRECONDIÇÃO com cobertura incompleta [33m 624[2mms[22m[39m
+ [32m✓[39m src/test/main-baseline-cli.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 6550[2mms[22m[39m
+     [33m[2m✓[22m[39m executa os três comandos completos: PR/espelho não têm readout, pós-CE tem o próprio [33m 1885[2mms[22m[39m
+     [33m[2m✓[22m[39m own-CE também pode preservar um NO-VERDICT sem aprovar main [33m 454[2mms[22m[39m
+ [32m✓[39m src/test/m02-role-membership.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 3541[2mms[22m[39m
+     [33m[2m✓[22m[39m drill-branch mirando produção → DENY pré-conexão [33m 667[2mms[22m[39m
+     [33m[2m✓[22m[39m cutover-window fora de janela → DENY pré-conexão (inclusive dry-run) [33m 1292[2mms[22m[39m
+     [33m[2m✓[22m[39m URL malformada/ausente → fail-closed exit 2, sem vazar valor [33m 1576[2mms[22m[39m
+ [32m✓[39m src/test/main-unit-adapter.test.ts [2m([22m[2m39 tests[22m[2m)[22m[33m 3030[2mms[22m[39m
+     [33m[2m✓[22m[39m runs the real bare-Node CLI in its own Git fixture: direct-contract [33m 348[2mms[22m[39m
+     [33m[2m✓[22m[39m runs the real bare-Node CLI in its own Git fixture: historical-absence [33m 644[2mms[22m[39m
+     [33m[2m✓[22m[39m runs the real bare-Node CLI in its own Git fixture: corrupt-candidate [33m 445[2mms[22m[39m
+     [33m[2m✓[22m[39m runs the real bare-Node CLI in its own Git fixture: mixed-census [33m 428[2mms[22m[39m
+     [33m[2m✓[22m[39m runs the real bare-Node CLI in its own Git fixture: coverage-census-failure [33m 381[2mms[22m[39m
+ [32m✓[39m src/test/calc-explainer.test.tsx [2m([22m[2m12 tests[22m[2m)[22m[33m 1725[2mms[22m[39m
+     [33m[2m✓[22m[39m forecast: mostra as fórmulas do motor e descreve a projeção sem prometer previsão estatística [33m 776[2mms[22m[39m
+     [33m[2m✓[22m[39m simulação manual: a mesma matemática, com o volume declarado hipotético [33m 504[2mms[22m[39m
+ [32m✓[39m src/test/simulation-volume-source.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 2376[2mms[22m[39m
+     [33m[2m✓[22m[39m expõe o grupo, o rótulo e o estado de cada opção (teclado alcança o radio marcado) [33m 331[2mms[22m[39m
+     [33m[2m✓[22m[39m anuncia a estimativa e bloqueia o salvamento com o motivo declarado [33m 1242[2mms[22m[39m
+     [33m[2m✓[22m[39m não tem violações de acessibilidade com a estimativa selecionada [33m 796[2mms[22m[39m
+ [32m✓[39m src/test/novo-produto-chat.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 1013[2mms[22m[39m
+     [33m[2m✓[22m[39m starts with the greeting and sends a suggestion as a real turn [33m 306[2mms[22m[39m
+ [32m✓[39m src/test/m02-temporal-guard.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 1129[2mms[22m[39m
+ [32m✓[39m src/test/consultor-chat-dock.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 799[2mms[22m[39m
+     [33m[2m✓[22m[39m opens the Simon panel, exposes the labelled composer and returns focus on Escape [33m 565[2mms[22m[39m
+ [32m✓[39m src/test/m02-debts-guard.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 518[2mms[22m[39m
+ [32m✓[39m src/test/sonar-readout-evidence.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 585[2mms[22m[39m
+ [32m✓[39m src/test/contracts-driver-independence.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 582[2mms[22m[39m
+     [33m[2m✓[22m[39m compila com @/db/* remapeado para um diretório inexistente [33m 576[2mms[22m[39m
+(node:569874) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/test/dashboard-consolidated-margin.db.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 282[2mms[22m[39m
+ [32m✓[39m src/test/ui-stack.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 514[2mms[22m[39m
+ [32m✓[39m src/test/auth.password-verify.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 514[2mms[22m[39m
+ [32m✓[39m src/test/consultor-chat-dock-failure.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 459[2mms[22m[39m
+     [33m[2m✓[22m[39m shows a recoverable message instead of crashing the shell [33m 458[2mms[22m[39m
+ [32m✓[39m src/test/route-loading-skeletons.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 438[2mms[22m[39m
+ [32m✓[39m src/test/finance.properties.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 376[2mms[22m[39m
+ [32m✓[39m src/test/memory-import-graph.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 312[2mms[22m[39m
+ [32m✓[39m src/test/perf-summarize.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 383[2mms[22m[39m
+ [32m✓[39m src/test/product-contracts.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 309[2mms[22m[39m
+ [32m✓[39m src/test/auth-form-ui.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 266[2mms[22m[39m
+ [32m✓[39m src/test/local-ci-secret-scan.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 347[2mms[22m[39m
+ [32m✓[39m src/test/m02-transaction-sites.test.ts [2m([22m[2m21 tests[22m[2m)[22m[33m 316[2mms[22m[39m
+ [32m✓[39m src/test/main-baseline-select.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 212[2mms[22m[39m
+ [32m✓[39m src/test/m02-ci-tiers.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 239[2mms[22m[39m
+ [32m✓[39m src/test/runtime-health.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 193[2mms[22m[39m
+ [32m✓[39m src/test/m02-snapshot.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 273[2mms[22m[39m
+ [32m✓[39m src/test/auth-email-signup-guard.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 217[2mms[22m[39m
+ [32m✓[39m src/test/independent-backup.test.ts [2m([22m[2m36 tests[22m[2m)[22m[33m 359[2mms[22m[39m
+ [32m✓[39m src/test/break-even.negative-margin.test.tsx [2m([22m[2m15 tests[22m[2m)[22m[32m 239[2mms[22m[39m
+ [32m✓[39m src/test/auth-policy.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 247[2mms[22m[39m
+ [32m✓[39m src/test/m02-pitr-check.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 119[2mms[22m[39m
+ [32m✓[39m src/test/chat-ui.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 213[2mms[22m[39m
+dpkg-deb: aviso: diretório raiz /tmp/playwright-deb-zPKFtX/package tem proprietário ou grupo incomum 1000:1000
+dpkg-deb: aviso: ignorando 1 aviso sobre o(s) arquivo(s) de controle
+ [32m✓[39m src/test/playwright-kit.test.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 203[2mms[22m[39m
+ [32m✓[39m src/test/esbuild-boundary.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 210[2mms[22m[39m
+ [32m✓[39m src/test/products-fk-conflict.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 288[2mms[22m[39m
+[90mstderr[2m | src/test/auth-oauth-verification.test.ts[2m > [22m[2mOAuth — e-mail não verificado pelo provider não abre sessão[2m > [22m[2mNÃO verificado + verificação entregável: o usuário é criado, a sessão NÃO
+[22m[39m[2m2026-10-26T03:29:05.998Z[0m [31mERROR[0m [1m[Better Auth]:[0m email_not_verified
+
+ [32m✓[39m src/test/auth-oauth-verification.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 221[2mms[22m[39m
+ [32m✓[39m src/test/not-found.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 125[2mms[22m[39m
+ [32m✓[39m src/test/m02-neon-spend.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 91[2mms[22m[39m
+ [32m✓[39m src/test/m02-v2b.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 98[2mms[22m[39m
+ [32m✓[39m src/test/backup-cycle.test.ts [2m([22m[2m25 tests[22m[2m)[22m[32m 57[2mms[22m[39m
+ [32m✓[39m src/test/secret-sidecar.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 106[2mms[22m[39m
+ [32m✓[39m src/test/env-nullish-catalog.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 110[2mms[22m[39m
+ [32m✓[39m src/test/finance.result-invariants.test.ts [2m([22m[2m49 tests[22m[2m)[22m[32m 88[2mms[22m[39m
+ [32m✓[39m src/test/rls-probe-contract.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 134[2mms[22m[39m
+ [32m✓[39m src/test/simulation-race.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 105[2mms[22m[39m
+[90mstderr[2m | src/test/csp-nonce.test.ts[2m > [22m[2mnonce de CSP por requisição[2m > [22m[2mU5: nonce fora do formato é recusado e não estabelece contexto (fail-closed)
+[22m[39m{"timestamp":"2026-10-26T03:29:16.905Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.906Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.906Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.906Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.906Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.906Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.906Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.906Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.906Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.906Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.906Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+
+[90mstderr[2m | src/test/csp-nonce.test.ts[2m > [22m[2mnonce de CSP por requisição[2m > [22m[2mU5c: dentro de um escopo válido, a recusa não herda o nonce do pai
+[22m[39m{"timestamp":"2026-10-26T03:29:16.907Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+{"timestamp":"2026-10-26T03:29:16.907Z","level":"warn","event":"csp.nonce_rejected","reason":"format"}
+
+ [32m✓[39m src/test/csp-nonce.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 80[2mms[22m[39m
+ [32m✓[39m src/test/m02-secrets-audit.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+[90mstderr[2m | src/test/tool-runner.validation.test.ts[2m > [22m[2m§14.3: execution failures retain trace and never become empty success[2m > [22m[2mrecords 'missing domain row' as failure, not success
+[22m[39m{"timestamp":"2026-10-26T03:29:19.101Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"DATABASE_ERROR","error":{"name":"Error","message":"DATABASE_ERROR"}}
+
+[90mstderr[2m | src/test/tool-runner.validation.test.ts[2m > [22m[2m§14.3: execution failures retain trace and never become empty success[2m > [22m[2mrecords 'unmapped driver failure' as failure, not success
+[22m[39m{"timestamp":"2026-10-26T03:29:19.102Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"DATABASE_ERROR","error":{"name":"Error","message":"driver unavailable"}}
+
+[90mstderr[2m | src/test/tool-runner.validation.test.ts[2m > [22m[2m§14.3: execution failures retain trace and never become empty success[2m > [22m[2mrecords 'mapped domain failure' as failure, not success
+[22m[39m{"timestamp":"2026-10-26T03:29:19.103Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"NOT_FOUND","error":{"name":"Error","message":"NOT_FOUND"}}
+
+[90mstderr[2m | src/test/tool-runner.validation.test.ts[2m > [22m[2m§14.3: execution failures retain trace and never become empty success[2m > [22m[2mrecords 'invalid public UUID output (INV-014)' as failure, not success
+[22m[39m{"timestamp":"2026-10-26T03:29:19.104Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"DEPENDENCY_ERROR","error":{"name":"Error","message":"DEPENDENCY_ERROR"}}
+
+[90mstderr[2m | src/test/tool-runner.validation.test.ts[2m > [22m[2m§14.3: execution failures retain trace and never become empty success[2m > [22m[2mcancels before executing when the real AbortSignal is already aborted (§14.5)
+[22m[39m{"timestamp":"2026-10-26T03:29:19.105Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+
+ [32m✓[39m src/test/tool-runner.validation.test.ts [2m([22m[2m78 tests[22m[2m)[22m[32m 65[2mms[22m[39m
+ [32m✓[39m src/test/m02-ci-coverage.test.ts [2m([22m[2m40 tests[22m[2m)[22m[32m 63[2mms[22m[39m
+ [32m✓[39m src/test/products-read-models.golden.perf-waves.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+ [32m✓[39m src/test/dependency-family-guard.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m src/test/chat-markdown.test.tsx [2m([22m[2m24 tests[22m[2m)[22m[32m 50[2mms[22m[39m
+ [32m✓[39m src/test/memory-policy.test.ts [2m([22m[2m34 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+[90mstdout[2m | src/test/round-trip-instrumentation.perf-waves.test.ts[2m > [22m[2mT1 perf-waves: instrumentação de round trips por transação (app.context_tx)[2m > [22m[2mignora pools sem connect e não reinstrumenta o mesmo cliente
+[22m[39m{"timestamp":"2026-10-26T03:29:24.528Z","level":"info","event":"app.context_tx","round_trips":2,"outcome":"commit","duration_ms":0}
+
+ [32m✓[39m src/test/round-trip-instrumentation.perf-waves.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+ [32m✓[39m src/test/upgrade-guard.test.ts [2m([22m[2m39 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToAcknowledge.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:29:26.811Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":1,"timeToFirstContentMs":2,"timeToFinalMs":2}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToAcknowledge.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:29:26.811Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFirstContent.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:29:26.813Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFirstContent.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:29:26.814Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFinal.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:29:26.815Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mchat-execution.server.ts: as três fases do §29 não derrubam o chat[2m > [22m[2maiTimeToFinal.record que lança não rejeita o chat
+[22m[39m{"timestamp":"2026-10-26T03:29:26.815Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2mtool-runner.ts: toolDuration nos três caminhos[2m > [22m[2mfalha: AI_TIMEOUT não é substituído pelo erro da métrica
+[22m[39m{"timestamp":"2026-10-26T03:29:26.821Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mstart.ts: os três caminhos de requestDuration
+[22m[39m{"timestamp":"2026-10-26T03:29:26.822Z","level":"info","event":"request.completed","correlationId":"eb4a14b9-2a7a-45a2-ad49-a44ecca309a0","method":"GET","pathname":"/produtos","status":200,"durationMs":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mstart.ts: os três caminhos de requestDuration
+[22m[39m{"timestamp":"2026-10-26T03:29:26.823Z","level":"error","event":"request.failed","correlationId":"f081b84d-4453-4561-b101-5820dfce4efb","code":"INTERNAL_ERROR","method":"GET","pathname":"/produtos","durationMs":0,"error":{"name":"Error","message":"db exploded"}}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mchat.functions.ts: aiDuration
+[22m[39m{"timestamp":"2026-10-26T03:29:26.824Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstdout[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mchat-execution.server.ts: as três fases do §29
+[22m[39m{"timestamp":"2026-10-26T03:29:26.825Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mchat-execution.server.ts: as três fases do §29
+[22m[39m{"timestamp":"2026-10-26T03:29:26.825Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/safe-record.test.ts[2m > [22m[2margs byte-idênticos no caminho saudável (captura sem lançar)[2m > [22m[2mtool-runner.ts: toolDuration nos três caminhos
+[22m[39m{"timestamp":"2026-10-26T03:29:26.828Z","level":"warn","event":"ai.tool_failed","correlationId":"76000000-0000-4000-8000-000000000006","toolName":"create_product","code":"AI_TIMEOUT","error":{"name":"AbortError","message":"This operation was aborted"}}
+
+ [32m✓[39m src/test/safe-record.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 51[2mms[22m[39m
+[90mstdout[2m | src/test/perf-evidence.test.ts[2m > [22m[2mgate §35 — evidência de performance[2m > [22m[2mT5: na árvore real nenhum artefato é isento (checked === discovered) e o baseline controlado entra
+[22m[39mgate §35: 5 descoberto(s) por caminho, 5 checado(s) contra os 7 rótulos, 0 isento(s)
+
+ [32m✓[39m src/test/perf-evidence.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m1. retorno malformado nunca vira sucesso vazio[2m > [22m[2mexpenses.listExpenses: item com `amount` não-decimal rejeita (não devolve lista)
+[22m[39m{"timestamp":"2026-10-26T03:29:28.906Z","level":"error","event":"bff.output_contract_violation","subject":"expenses.listExpenses","issues":[{"path":"0.amount","code":"invalid_format","message":"Use uma string decimal canônica."},{"path":"0.amount","code":"custom","message":"O decimal deve ser finito."}]}
+
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m1. retorno malformado nunca vira sucesso vazio[2m > [22m[2mexpenses.getTotals: soma que chega como número (não string decimal) rejeita
+[22m[39m{"timestamp":"2026-10-26T03:29:28.910Z","level":"error","event":"bff.output_contract_violation","subject":"expenses.getTotals","issues":[{"path":"fixed","code":"invalid_type","message":"Invalid input: expected string, received number"}]}
+
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m1. retorno malformado nunca vira sucesso vazio[2m > [22m[2mfinancial.runSimulation: `result` do motor como número rejeita, e nenhum status é aceito por engano
+[22m[39m{"timestamp":"2026-10-26T03:29:28.913Z","level":"error","event":"bff.output_contract_violation","subject":"financial.runSimulation","issues":[{"path":"value.result","code":"invalid_type","message":"Invalid input: expected string, received number"}]}
+
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m1. retorno malformado nunca vira sucesso vazio[2m > [22m[2mfinancial.listSimulations: `params` que não é JSON object rejeita (não devolve lista)
+[22m[39m{"timestamp":"2026-10-26T03:29:28.915Z","level":"error","event":"bff.output_contract_violation","subject":"financial.listSimulations","issues":[{"path":"0.params","code":"invalid_type","message":"Invalid input: expected record, received string"}]}
+
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m1. retorno malformado nunca vira sucesso vazio[2m > [22m[2mproducts.listProducts: preço formatado para humano (`R$ 10,00`) rejeita (não devolve lista)
+[22m[39m{"timestamp":"2026-10-26T03:29:28.918Z","level":"error","event":"bff.output_contract_violation","subject":"products.listProducts","issues":[{"path":"0.current_price","code":"invalid_format","message":"Use uma string decimal canônica."},{"path":"0.current_price","code":"custom","message":"O decimal deve ser finito."}]}
+
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m1. retorno malformado nunca vira sucesso vazio[2m > [22m[2mproducts.listProducts: `version` que chega como string rejeita
+[22m[39m{"timestamp":"2026-10-26T03:29:28.920Z","level":"error","event":"bff.output_contract_violation","subject":"products.listProducts","issues":[{"path":"0.version","code":"invalid_type","message":"Invalid input: expected number, received string"}]}
+
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m3. outputSchema — canal de falha do contrato[2m > [22m[2mfalha de parse em schema de lista não devolve [] nem null
+[22m[39m{"timestamp":"2026-10-26T03:29:28.926Z","level":"error","event":"bff.output_contract_violation","subject":"teste.contrato","issues":[{"path":"","code":"invalid_type","message":"Invalid input: expected array, received object"}]}
+{"timestamp":"2026-10-26T03:29:28.926Z","level":"error","event":"bff.output_contract_violation","subject":"teste.contrato","issues":[{"path":"","code":"invalid_type","message":"Invalid input: expected array, received null"}]}
+{"timestamp":"2026-10-26T03:29:28.927Z","level":"error","event":"bff.output_contract_violation","subject":"teste.contrato","issues":[{"path":"0.id","code":"invalid_type","message":"Invalid input: expected string, received undefined"}]}
+{"timestamp":"2026-10-26T03:29:28.927Z","level":"error","event":"bff.output_contract_violation","subject":"teste.contrato","issues":[{"path":"0.id","code":"invalid_type","message":"Invalid input: expected string, received number"}]}
+
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m4. N-1 — falha do produtor é classificada, não escapa crua[2m > [22m[2mlistExpenses: linha que quebra o mapeador ⇒ DEPENDENCY_ERROR
+[22m[39m{"timestamp":"2026-10-26T03:29:28.927Z","level":"error","event":"bff.output_mapping_failed","subject":"expenses.listExpenses","error":{"name":"TypeError","message":"Cannot read properties of null (reading 'toISOString')"}}
+
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m4. N-1 — falha do produtor é classificada, não escapa crua[2m > [22m[2mlistSimulations: `params` indefinido ⇒ SyntaxError do JSON.parse, também classificado
+[22m[39m{"timestamp":"2026-10-26T03:29:28.928Z","level":"error","event":"bff.output_mapping_failed","subject":"financial.listSimulations","error":{"name":"SyntaxError","message":"\"undefined\" is not valid JSON"}}
+
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m4. N-1 — falha do produtor é classificada, não escapa crua[2m > [22m[2mlistProducts: a fronteira é o loader, onde os mapeadores de fato rodam
+[22m[39m{"timestamp":"2026-10-26T03:29:28.928Z","level":"error","event":"bff.output_mapping_failed","subject":"products.listProducts","error":{"name":"TypeError","message":"Cannot read properties of null (reading 'toISOString')"}}
+
+[90mstderr[2m | src/test/output-contracts.test.ts[2m > [22m[2m4. N-1 — falha do produtor é classificada, não escapa crua[2m > [22m[2mprodutor assíncrono também é coberto (o loader de produtos é async)
+[22m[39m{"timestamp":"2026-10-26T03:29:28.930Z","level":"error","event":"bff.output_mapping_failed","subject":"teste.async","error":{"name":"TypeError","message":"loader assíncrono quebrou"}}
+
+ [32m✓[39m src/test/output-contracts.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m src/test/neon-fixture-provision.test.ts [2m([22m[2m39 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2musa a chave do emissor certo, modo compatível e uso medido
+[22m[39m{"timestamp":"2026-10-26T03:29:31.034Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":3,"outcome":"success"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mconserva as chamadas e os resultados das ferramentas na rodada seguinte
+[22m[39m{"timestamp":"2026-10-26T03:29:31.042Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"success"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mconserva as chamadas e os resultados das ferramentas na rodada seguinte
+[22m[39m{"timestamp":"2026-10-26T03:29:31.042Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstderr[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mnão reaproveita credenciais de outros provedores quando falta a chave DeepSeek
+[22m[39m{"timestamp":"2026-10-26T03:29:31.044Z","level":"error","event":"ai.credential_unusable","provider":"deepseek","host":"api.deepseek.com","reason":"absent"}
+
+[90mstderr[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mnão envia a chave DeepSeek a outro hostname nem ativa o protocolo nativo ali
+[22m[39m{"timestamp":"2026-10-26T03:29:31.046Z","level":"error","event":"ai.credential_unusable","provider":"gateway","host":"api.deepseek.com.example.org","reason":"absent"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mnão envia a chave DeepSeek a outro hostname nem ativa o protocolo nativo ali
+[22m[39m{"timestamp":"2026-10-26T03:29:31.046Z","level":"info","event":"ai.model_attempt","model":"google/gemini-3.6-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstderr[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mrecusa modelo de outro protocolo e credencial com whitespace
+[22m[39m{"timestamp":"2026-10-26T03:29:31.050Z","level":"error","event":"ai.credential_unusable","provider":"deepseek","host":"api.deepseek.com","reason":"absent"}
+
+[90mstderr[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mrespeita a reserva de tokens existente e não segue redirecionamento
+[22m[39m{"timestamp":"2026-10-26T03:29:31.051Z","level":"warn","event":"ai.model_rejected","model":"deepseek-flash","attempt":1,"status":307,"detail":null}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mrespeita a reserva de tokens existente e não segue redirecionamento
+[22m[39m{"timestamp":"2026-10-26T03:29:31.051Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"DEPENDENCY_ERROR"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mmantém teto de saída dentro do ledger com configuração NaN
+[22m[39m{"timestamp":"2026-10-26T03:29:31.052Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mmantém teto de saída dentro do ledger com configuração 1000001
+[22m[39m{"timestamp":"2026-10-26T03:29:31.053Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mmantém teto de saída dentro do ledger com configuração 1
+[22m[39m{"timestamp":"2026-10-26T03:29:31.054Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mDeepSeek restrito ao servidor Web[2m > [22m[2mmantém teto de saída dentro do ledger com configuração 1000000
+[22m[39m{"timestamp":"2026-10-26T03:29:31.054Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mlimites do gateway de IA[2m > [22m[2mrepete somente uma falha transitória e limita a duas tentativas
+[22m[39m{"timestamp":"2026-10-26T03:29:31.142Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":86,"outcome":"retry"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mlimites do gateway de IA[2m > [22m[2mrepete somente uma falha transitória e limita a duas tentativas
+[22m[39m{"timestamp":"2026-10-26T03:29:31.143Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":2,"durationMs":1,"outcome":"success"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mlimites do gateway de IA[2m > [22m[2mnão repete quota ou rate limit
+[22m[39m{"timestamp":"2026-10-26T03:29:31.145Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"RATE_LIMIT"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mlimites do gateway de IA[2m > [22m[2mpropaga cancelamento como AI_TIMEOUT
+[22m[39m{"timestamp":"2026-10-26T03:29:31.148Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"AI_TIMEOUT"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mdiagnóstico da recusa do provedor[2m > [22m[2mregistra status e motivo do 4xx em vez de descartar a causa
+[22m[39m{"timestamp":"2026-10-26T03:29:31.153Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"DEPENDENCY_ERROR"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mdiagnóstico da recusa do provedor[2m > [22m[2mnunca registra a própria chave no detalhe do erro
+[22m[39m{"timestamp":"2026-10-26T03:29:31.155Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":1,"outcome":"DEPENDENCY_ERROR"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mdiagnóstico da recusa do provedor[2m > [22m[2mregistra resposta fora do contrato como não interpretável
+[22m[39m{"timestamp":"2026-10-26T03:29:31.158Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":2,"outcome":"DEPENDENCY_ERROR"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mvariável definida e vazia conta como ausente[2m > [22m[2mcai no endpoint default DeepSeek quando AI_GATEWAY_URL está vazia
+[22m[39m{"timestamp":"2026-10-26T03:29:31.160Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mvariável definida e vazia conta como ausente[2m > [22m[2mtrata só-espaços como ausente, não como endpoint
+[22m[39m{"timestamp":"2026-10-26T03:29:31.161Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+[90mstdout[2m | src/test/model-gateway.test.ts[2m > [22m[2mvariável definida e vazia conta como ausente[2m > [22m[2musa deepseek-flash quando AI_MODEL está vazia no destino nativo
+[22m[39m{"timestamp":"2026-10-26T03:29:31.163Z","level":"info","event":"ai.model_attempt","model":"deepseek-flash","attempt":1,"durationMs":0,"outcome":"success"}
+
+ [32m✓[39m src/test/model-gateway.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 138[2mms[22m[39m
+ [32m✓[39m src/test/m02-grant-repair.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m src/test/csp-sinks.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+ [32m✓[39m src/test/visual-observability.test.ts [2m([22m[2m33 tests[22m[2m)[22m[32m 45[2mms[22m[39m
+[90mstderr[2m | src/test/chat-grounding-turn-scope.test.ts[2m > [22m[2mfallback financeiro — o que vira rótulo (invariante A)[2m > [22m[2mpayload inválido (JSON ilegível) não vira rótulo
+[22m[39m{"timestamp":"2026-10-26T03:29:33.938Z","level":"warn","event":"ai.financial_source_invalid","source":"tool","reason":"invalid_json"}
+
+ [32m✓[39m src/test/chat-grounding-turn-scope.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/env-empty-defaults.test.ts [2m([22m[2m53 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m src/test/sonar-api.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m src/test/finance.golden.test.ts [2m([22m[2m127 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mgrava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+[22m[39m{"timestamp":"2026-10-26T03:29:37.448Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mgrava real_tokens NULL e outcome 'usage_unknown' quando a medição é desconhecida
+[22m[39m{"timestamp":"2026-10-26T03:29:37.449Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":30000,"outcome":"usage_unknown","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mNÃO libera a reserva e NÃO incrementa os contadores de token
+[22m[39m{"timestamp":"2026-10-26T03:29:37.451Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mNÃO libera a reserva e NÃO incrementa os contadores de token
+[22m[39m{"timestamp":"2026-10-26T03:29:37.451Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":30000,"outcome":"usage_unknown","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-10-26T03:29:37.453Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-10-26T03:29:37.453Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"absent","durationMs":4728577453,"outcome":"usage_unknown","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-10-26T03:29:37.454Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-10-26T03:29:37.454Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"partial","durationMs":4728577454,"outcome":"usage_unknown","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-10-26T03:29:37.454Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mdistinguishes 'absent', 'partial' and 'invalid' without asserting counts
+[22m[39m{"timestamp":"2026-10-26T03:29:37.454Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":null,"usageUnknownReason":"invalid","durationMs":4728577454,"outcome":"usage_unknown","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mREGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+[22m[39m{"timestamp":"2026-10-26T03:29:37.455Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mREGRESSÃO: o caminho numérico legado continua idêntico (libera reserva e incrementa)
+[22m[39m{"timestamp":"2026-10-26T03:29:37.455Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mTokenUsage conhecido usa os valores medidos, não os de options
+[22m[39m{"timestamp":"2026-10-26T03:29:37.456Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mTokenUsage conhecido usa os valores medidos, não os de options
+[22m[39m{"timestamp":"2026-10-26T03:29:37.456Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":155,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mzero explícito conhecido liquida com zero (não confundir com desconhecido)
+[22m[39m{"timestamp":"2026-10-26T03:29:37.457Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — uso desconhecido (INV-006, variante B)[2m > [22m[2mzero explícito conhecido liquida com zero (não confundir com desconhecido)
+[22m[39m{"timestamp":"2026-10-26T03:29:37.458Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":0,"usageUnknownReason":null,"durationMs":4728577457,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mcusto estimado — resolveBudgetCostSetters[2m > [22m[2mknown parseável entra no total conhecido com 4 casas
+[22m[39m{"timestamp":"2026-10-26T03:29:37.464Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":10,"usageUnknownReason":null,"durationMs":7200000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mcusto estimado — resolveBudgetCostSetters[2m > [22m[2mknown sem string parseável vira desconhecido (nunca zero)
+[22m[39m{"timestamp":"2026-10-26T03:29:37.465Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":10,"usageUnknownReason":null,"durationMs":7200000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mcusto estimado — resolveBudgetCostSetters[2m > [22m[2mknown sem string parseável vira desconhecido (nunca zero)
+[22m[39m{"timestamp":"2026-10-26T03:29:37.466Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":10,"usageUnknownReason":null,"durationMs":7200000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mcusto estimado — resolveBudgetCostSetters[2m > [22m[2mknown sem string parseável vira desconhecido (nunca zero)
+[22m[39m{"timestamp":"2026-10-26T03:29:37.466Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":10,"usageUnknownReason":null,"durationMs":7200000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mcusto estimado — resolveBudgetCostSetters[2m > [22m[2mknown sem valor não soma nada e contabiliza o desconhecido
+[22m[39m{"timestamp":"2026-10-26T03:29:37.467Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":10,"usageUnknownReason":null,"durationMs":7200000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mcusto estimado — resolveBudgetCostSetters[2m > [22m[2m'invalid' e 'unknown' deixam o total conhecido intacto
+[22m[39m{"timestamp":"2026-10-26T03:29:37.467Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":10,"usageUnknownReason":null,"durationMs":7200000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mcusto estimado — resolveBudgetCostSetters[2m > [22m[2m'invalid' e 'unknown' deixam o total conhecido intacto
+[22m[39m{"timestamp":"2026-10-26T03:29:37.468Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":10,"usageUnknownReason":null,"durationMs":7200000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msweepOrphans — expiração e reconciliação de contadores[2m > [22m[2magrupa expirados por dia e reconcilia cada contador com a soma
+[22m[39m{"timestamp":"2026-10-26T03:29:37.468Z","level":"info","event":"ai.budget_expired","tenantId":"tenant-1","usageId":"u1","budget":100,"real":0,"durationMs":133200000,"outcome":"ttl_expired"}
+{"timestamp":"2026-10-26T03:29:37.468Z","level":"info","event":"ai.budget_expired","tenantId":"tenant-1","usageId":"u2","budget":250,"real":0,"durationMs":93600000,"outcome":"ttl_expired"}
+{"timestamp":"2026-10-26T03:29:37.468Z","level":"info","event":"ai.budget_expired","tenantId":"tenant-1","usageId":"u3","budget":50,"real":0,"durationMs":86400000,"outcome":"ttl_expired"}
+
+[90mstderr[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mreconcileUnknownUsage — TRILHO B (INV-009)[2m > [22m[2mmarca candidatos por CAS e devolve a idade do mais antigo
+[22m[39m{"timestamp":"2026-10-26T03:29:37.470Z","level":"warn","event":"ai.reconciliation_failed","tenantId":"tenant-1","usageId":"u1","budget":100,"real":null,"durationMs":43200000,"outcome":"reconciliation_failed","reason":"gateway_retrieval_unavailable"}
+{"timestamp":"2026-10-26T03:29:37.470Z","level":"warn","event":"ai.reconciliation_failed","tenantId":"tenant-1","usageId":"u2","budget":200,"real":null,"durationMs":216000000,"outcome":"reconciliation_failed","reason":"gateway_retrieval_unavailable"}
+{"timestamp":"2026-10-26T03:29:37.471Z","level":"warn","event":"ai.reconciliation_failed","tenantId":"tenant-1","usageId":"u3","budget":300,"real":null,"durationMs":129600000,"outcome":"reconciliation_failed","reason":"gateway_retrieval_unavailable"}
+{"timestamp":"2026-10-26T03:29:37.471Z","level":"warn","event":"ai.reconciliation_failed","tenantId":"tenant-1","usageId":"u4","budget":1,"real":null,"durationMs":0,"outcome":"reconciliation_failed","reason":"gateway_retrieval_unavailable"}
+
+[90mstderr[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mreconcileUnknownUsage — TRILHO B (INV-009)[2m > [22m[2mreplay: CAS vazio é no-op e não duplica efeito
+[22m[39m{"timestamp":"2026-10-26T03:29:37.471Z","level":"warn","event":"ai.reconciliation_failed","tenantId":"tenant-1","usageId":"u2","budget":100,"real":null,"durationMs":216000000,"outcome":"reconciliation_failed","reason":"gateway_retrieval_unavailable"}
+
+[90mstderr[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mreleaseUnknownReservation — comando humano[2m > [22m[2mdevolve só tokens_reserved e mantém a medição intacta
+[22m[39m{"timestamp":"2026-10-26T03:29:37.473Z","level":"warn","event":"ai.reservation_released","tenantId":"tenant-1","usageId":"usage-1","budget":500,"real":null,"outcome":"reservation_released","actor":"user-1"}
+
+[90mstderr[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mreserveChatInTransaction[2m > [22m[2mrecusa quando o limite de chat já foi atingido
+[22m[39m{"timestamp":"2026-10-26T03:29:37.475Z","level":"warn","event":"ai.chat_budget_rejected","tenantId":"tenant-1","outcome":"chat_limit"}
+
+[90mstderr[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mreserveAtomic — quota e trilha de uso[2m > [22m[2mdevolve quota_reject quando o UPDATE guardado não afeta linha
+[22m[39m{"timestamp":"2026-10-26T03:29:37.475Z","level":"warn","event":"ai.budget_rejected","tenantId":"tenant-1","budget":1000,"kind":"chat","roundNo":1,"outcome":"budget_limit"}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2mreserveAtomic — quota e trilha de uso[2m > [22m[2musa o relógio injetado quando now é omitido
+[22m[39m{"timestamp":"2026-10-26T03:29:37.476Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — replay, retry e contador ausente[2m > [22m[2mCAS sem linha devolve applied:false sem tocar contadores
+[22m[39m{"timestamp":"2026-10-26T03:29:37.477Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":null,"real":300,"usageUnknownReason":null,"durationMs":null,"outcome":"success","applied":false}
+
+[90mstderr[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — replay, retry e contador ausente[2m > [22m[2mretry após falha do contador liquida na segunda tentativa
+[22m[39m{"timestamp":"2026-10-26T03:29:37.478Z","level":"warn","event":"ai.budget_settlement_retry","tenantId":"tenant-1","usageId":"usage-1","outcome":"success","error":{"name":"Error","message":"A liquidação não encontrou o contador diário correspondente"}}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — replay, retry e contador ausente[2m > [22m[2mretry após falha do contador liquida na segunda tentativa
+[22m[39m{"timestamp":"2026-10-26T03:29:37.478Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":7200000,"outcome":"success","applied":true}
+
+[90mstderr[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — replay, retry e contador ausente[2m > [22m[2mquando o contador nunca aparece, o retry também reprova
+[22m[39m{"timestamp":"2026-10-26T03:29:37.478Z","level":"warn","event":"ai.budget_settlement_retry","tenantId":"tenant-1","usageId":"usage-1","outcome":"success","error":{"name":"Error","message":"A liquidação não encontrou o contador diário correspondente"}}
+
+[90mstdout[2m | src/test/ai-usage-unknown.test.ts[2m > [22m[2msettle — replay, retry e contador ausente[2m > [22m[2mcaminho numérico sem breakdown explícito usa o fallback (input 0, output real)
+[22m[39m{"timestamp":"2026-10-26T03:29:37.479Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":7200000,"outcome":"success","applied":true}
+
+ [32m✓[39m src/test/ai-usage-unknown.test.ts [2m([22m[2m37 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m src/test/contracts.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m src/test/neon-resource.test.ts [2m([22m[2m34 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m src/test/health-readiness-logging.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mchat sem tool: acknowledge, first_content e final no mesmo round
+[22m[39m{"timestamp":"2026-10-26T03:29:40.950Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mchat com uma tool: acknowledge mede só o primeiro round e first_content == final
+[22m[39m{"timestamp":"2026-10-26T03:29:40.955Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
+
+[90mstdout[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mchat com uma tool: acknowledge mede só o primeiro round e first_content == final
+[22m[39m{"timestamp":"2026-10-26T03:29:40.956Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":2,"timeToAcknowledgeMs":120,"timeToFirstContentMs":320,"timeToFinalMs":320}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mchat com uma tool: acknowledge mede só o primeiro round e first_content == final
+[22m[39m{"timestamp":"2026-10-26T03:29:40.956Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":1}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+[22m[39m{"timestamp":"2026-10-26T03:29:40.958Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":0}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+[22m[39m{"timestamp":"2026-10-26T03:29:40.958Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":1}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+[22m[39m{"timestamp":"2026-10-26T03:29:40.958Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"tool_round","model":null,"round":2}
+
+[90mstdout[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+[22m[39m{"timestamp":"2026-10-26T03:29:40.959Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":4,"timeToAcknowledgeMs":10,"timeToFirstContentMs":100,"timeToFinalMs":100}
+
+[90mstderr[2m | src/test/ai-chat-latency.test.ts[2m > [22m[2m§29: fases de latência do chat não-streaming[2m > [22m[2mindependência de round: acknowledge é registrado uma única vez em 4 rounds
+[22m[39m{"timestamp":"2026-10-26T03:29:40.959Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":3}
+
+ [32m✓[39m src/test/ai-chat-latency.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mfronteiras numéricas da resposta financeira[2m > [22m[2mnão aceita campo de ferramenta recusada ou JSON inválido
+[22m[39m{"timestamp":"2026-10-26T03:29:42.088Z","level":"warn","event":"ai.financial_source_invalid","source":"tool","reason":"invalid_json"}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mbloqueia a soma real observada no Chrome, preservando a liquidação da chamada
+[22m[39m{"timestamp":"2026-10-26T03:29:42.094Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mbloqueia a soma real observada no Chrome, preservando a liquidação da chamada
+[22m[39m{"timestamp":"2026-10-26T03:29:42.095Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":3,"timeToFirstContentMs":3,"timeToFinalMs":3}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mbloqueia a soma real observada no Chrome, preservando a liquidação da chamada
+[22m[39m{"timestamp":"2026-10-26T03:29:42.095Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mmantém os valores explícitos do usuário com formatação brasileira
+[22m[39m{"timestamp":"2026-10-26T03:29:42.097Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mmantém os valores explícitos do usuário com formatação brasileira
+[22m[39m{"timestamp":"2026-10-26T03:29:42.097Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão transforma taxa ausente em percentual zero
+[22m[39m{"timestamp":"2026-10-26T03:29:42.098Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão transforma taxa ausente em percentual zero
+[22m[39m{"timestamp":"2026-10-26T03:29:42.098Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão transforma taxa ausente em percentual zero
+[22m[39m{"timestamp":"2026-10-26T03:29:42.098Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2muma resposta antiga do próprio modelo não autoriza valor sem fonte
+[22m[39m{"timestamp":"2026-10-26T03:29:42.099Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2muma resposta antiga do próprio modelo não autoriza valor sem fonte
+[22m[39m{"timestamp":"2026-10-26T03:29:42.099Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2muma resposta antiga do próprio modelo não autoriza valor sem fonte
+[22m[39m{"timestamp":"2026-10-26T03:29:42.099Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: R$ 10 / Perda -R$ 10.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.100Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: R$ 10 / Perda -R$ 10.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.100Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":1,"timeToFinalMs":1}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: R$ 10 / Perda -R$ 10.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.100Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem preço informado / Preço BRL 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.102Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem preço informado / Preço BRL 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.102Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem preço informado / Preço BRL 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.102Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem valor informado / Valor de 1 real.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.103Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem valor informado / Valor de 1 real.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.103Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem valor informado / Valor de 1 real.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.103Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem taxa informada / Taxa de 2,5 por cento.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.103Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem taxa informada / Taxa de 2,5 por cento.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.104Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem taxa informada / Taxa de 2,5 por cento.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.104Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: R$ 1*0,00 / Preço R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.104Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: R$ 1*0,00 / Preço R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.104Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: R$ 1*0,00 / Preço R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.105Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: R$ 1_0,00 / Preço R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.105Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: R$ 1_0,00 / Preço R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.105Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: R$ 1_0,00 / Preço R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.106Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado R$ 1**0**,00. / Custo R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.106Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado R$ 1**0**,00. / Custo R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.106Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado R$ 1**0**,00. / Custo R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.107Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado **R$ 1**0,00. / Custo R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.107Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado **R$ 1**0,00. / Custo R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.107Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado **R$ 1**0,00. / Custo R$ 10,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.107Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Margem informada 3**0**%. / Margem 30%.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.108Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Margem informada 3**0**%. / Margem 30%.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.108Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Margem informada 3**0**%. / Margem 30%.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.108Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado R$ 1**0**,00. / Custo R$ 1,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.109Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado R$ 1**0**,00. / Custo R$ 1,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.109Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado R$ 1**0**,00. / Custo R$ 1,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.109Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado **R$ 1**0,00. / Custo R$ 1,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.110Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado **R$ 1**0,00. / Custo R$ 1,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.110Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Custo informado **R$ 1**0,00. / Custo R$ 1,00.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.110Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Margem informada 3**0%. / Margem 0%.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.110Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Margem informada 3**0%. / Margem 0%.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.110Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Margem informada 3**0%. / Margem 0%.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.110Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem custo informado / Custo R$ **Na**N.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.111Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem custo informado / Custo R$ **Na**N.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.111Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem custo informado / Custo R$ **Na**N.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.111Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem margem informada / Margem **Infi**nity%.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.112Z","level":"warn","event":"ai.financial_output_blocked","correlationId":"60000000-0000-4000-8000-000000000006","unsupportedCount":1}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem margem informada / Margem **Infi**nity%.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.112Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mnão persiste a variação S6: Sem margem informada / Margem **Infi**nity%.
+[22m[39m{"timestamp":"2026-10-26T03:29:42.112Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+[90mstdout[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mmantém a fonte contígua literal e o negrito somente na resposta
+[22m[39m{"timestamp":"2026-10-26T03:29:42.113Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":0,"timeToFirstContentMs":0,"timeToFinalMs":0}
+
+[90mstderr[2m | src/test/chat-financial-grounding.test.ts[2m > [22m[2mchat: valores financeiros com fonte antes de persistir[2m > [22m[2mmantém a fonte contígua literal e o negrito somente na resposta
+[22m[39m{"timestamp":"2026-10-26T03:29:42.113Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+ [32m✓[39m src/test/chat-financial-grounding.test.ts [2m([22m[2m74 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m src/test/local-ci-secret-pattern.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2mreserve and settle never write ai_usage.tool_execution_id (column stays NULL)
+[22m[39m{"timestamp":"2026-10-26T03:29:43.836Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2mreserve and settle never write ai_usage.tool_execution_id (column stays NULL)
+[22m[39m{"timestamp":"2026-10-26T03:29:43.839Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2msettle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
+[22m[39m{"timestamp":"2026-10-26T03:29:43.839Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2msettle without cost writes NULL estimated_cost + 'unknown', never 0.0000 (INV-006 regression)
+[22m[39m{"timestamp":"2026-10-26T03:29:43.840Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2msettle with a known cost adds it to the daily estimated_cost total
+[22m[39m{"timestamp":"2026-10-26T03:29:43.841Z","level":"info","event":"ai.budget_reserved","tenantId":"tenant-1","usageId":"usage-1","budget":1000,"real":0,"durationMs":0,"outcome":"reserved","kind":"chat","roundNo":1}
+
+[90mstdout[2m | src/test/ai-estimated-cost.test.ts[2m > [22m[2mbudget ledger contract (R3 reservation + INV-006)[2m > [22m[2msettle with a known cost adds it to the daily estimated_cost total
+[22m[39m{"timestamp":"2026-10-26T03:29:43.841Z","level":"info","event":"ai.budget_settled","tenantId":"tenant-1","usageId":"usage-1","budget":100,"real":300,"usageUnknownReason":null,"durationMs":30000,"outcome":"success","applied":true}
+
+ [32m✓[39m src/test/ai-estimated-cost.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m src/test/pg-stat-statements.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/test/sonar-gate-readout.test.ts [2m([22m[2m53 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m src/test/tool-runner.persistence.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m src/test/csp-report.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m src/test/format.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/test/api-error-contract.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/test/mcp-runtime-guard.test.ts [2m([22m[2m37 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m src/test/contract-guard.test.ts [2m([22m[2m31 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m src/test/gate-mirror.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m src/test/neon-fixture.test.ts [2m([22m[2m55 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m src/test/git-exec.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/test/db-failure-classifier.test.ts [2m([22m[2m37 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/test/financial-metrics.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m src/test/error-budget.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/test/cross-tenant-denial.perf-waves.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+[90mstderr[2m | src/test/pricing.service.test.ts[2m > [22m[2mDefaultPricingService[2m > [22m[2mengole falha do snapshot mantendo o output do diagnóstico intacto
+[22m[39m{"timestamp":"2026-10-26T03:29:56.579Z","level":"warn","event":"diagnostic.snapshot_failed","productId":"70000000-0000-4000-8000-000000000001","message":"SNAPSHOT_DOWN"}
+
+ [32m✓[39m src/test/pricing.service.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/dashboard.service.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m src/test/server-fn-envelope.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/migration-classes.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/m02-runbook-ledger.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/test/purchase-price.service.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/test/simulation.service.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/observability-spans.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m src/test/token-usage.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/test/main-unit-probe.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/test/api-error-logger.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+[90mstderr[2m | src/test/chat-rate-limit.test.ts[2m > [22m[2m§20.5: admissão do chat por bucket atômico[2m > [22m[2mrecusa com RATE_LIMIT (429) antes do orçamento e do histórico
+[22m[39m{"timestamp":"2026-10-26T03:30:06.089Z","level":"warn","event":"ai.chat_rate_limited","bucket":"chat","retryAfterSeconds":600}
+
+[90mstdout[2m | src/test/chat-rate-limit.test.ts[2m > [22m[2m§20.5: admissão do chat por bucket atômico[2m > [22m[2msegue o turno quando o bucket aprova
+[22m[39m{"timestamp":"2026-10-26T03:30:06.095Z","level":"info","event":"ai.chat_completed","correlationId":"60000000-0000-4000-8000-000000000006","tenantId":"50000000-0000-4000-8000-000000000005","rounds":1,"timeToAcknowledgeMs":1,"timeToFirstContentMs":2,"timeToFinalMs":2}
+
+[90mstderr[2m | src/test/chat-rate-limit.test.ts[2m > [22m[2m§20.5: admissão do chat por bucket atômico[2m > [22m[2msegue o turno quando o bucket aprova
+[22m[39m{"timestamp":"2026-10-26T03:30:06.095Z","level":"warn","event":"ai.usage_unknown","tenantId":"50000000-0000-4000-8000-000000000005","usageId":"usage-1","reason":"absent","flowOutcome":"success","model":null,"round":0}
+
+ [32m✓[39m src/test/chat-rate-limit.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/security-headers.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/test/financial.service.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/check-bundle-identity.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/test/finance.boundaries.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/schema-diff-verdict.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/financial-values.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/tool-registry.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/migration-toolchain-guard.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/query-performance.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/backfill-runner.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/db-target.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/build-warnings.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/bff-create-update-contract.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/m02-matrix-drift.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/auth-submit.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/test/chat-financial-grounding-reply.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m src/test/db-precondition.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/wire-safe-error.server.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/period-window.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/event-service.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+ [32m✓[39m src/test/m02-readiness-snapshot.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m src/test/m02-purge-fixtures.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/test/optimistic-version.repository.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/test/rate-limit-rules.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m src/test/utils-cn.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/memory-service.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/sales.service.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m src/test/web-vitals-payload.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/test/break-even.parity.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/chat-fsm.server.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/finance.required-sales.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/slo-ai-baseline-discipline.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/test/m02-state-check.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/audit.service.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/sql-redactor.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/test/otel-batch-config.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/memory-dedup.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/query-options.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/test/auth.compromised-secrets.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/break-even.service.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/conversation.service.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/inicio-loader.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/dashboard-summary-guard.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/test/env.server.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/test/ai-endpoint.server.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/test/product-completeness.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m src/test/rls-probe-errors.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/test/error-reference.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/test/snapshot-idempotency.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/test/which-analysis.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/test/request-context.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/test/list-limits.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/test/m02-backup-verify.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/test/m02-database-module.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/test/migration-reconcile.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m src/test/chat-fsm.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m src/test/ai-tool.repository.security.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m165 passed[39m[22m[90m (165)[39m
+[2m      Tests [22m [1m[32m2470 passed[39m[22m[90m (2470)[39m
+[2m   Start at [22m 03:27:18
+[2m   Duration [22m 216.24s[2m (transform 2.92s, setup 13.64s, import 43.67s, tests 59.24s, environment 81.78s)[22m
+
+
+HEAD=ec0ed77ee963dec3705275cb4b09d08030dc6499
+summary: 165 files / 2470 tests passed, 0 failed, 296s (pos-correcao de to)
+nota: processo em background; exit proprio nao capturado — ver f2-green-unit-scope.txt (exit=0) e f2-green-db.txt (exit=0)

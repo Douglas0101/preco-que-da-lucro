@@ -1,0 +1,19 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas/WebstormProjects/preco-que-da-lucro[39m
+
+(node:564990) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/test/dashboard-consolidated-margin.db.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 584[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 00:27:01
+[2m   Duration [22m 2.88s[2m (transform 323ms, setup 111ms, import 1.39s, tests 584ms, environment 657ms)[22m
+
+JSON report written to /tmp/trk-dbt88-p4i4IP/summary.json
+prova de banco (src/test/dashboard-consolidated-margin.db.test.ts) contra 127.0.0.1: 8 passed (8), 0 skipped — admin=127.0.0.1:5432
+
+exit=0
+HEAD=ec0ed77ee963dec3705275cb4b09d08030dc6499
+5ca91157ab43d5095901942bd6a364ab5f434a91299e9025b273e62355ac8290  src/test/dashboard-consolidated-margin.db.test.ts
+a2efa08261786991545fdf9ea6f6dd819e81e0d7e8ffef48e64e99201ff7093a  src/lib/period-window.ts

@@ -1,0 +1,166 @@
+{
+  "desktop": {
+    "url": "http://127.0.0.1:4173/",
+    "fetchTime": "2026-10-21T23:57:29.917Z",
+    "lighthouseVersion": "12.8.2",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+    "formFactor": "desktop",
+    "throttlingMethod": "simulate",
+    "throttling": {
+      "rttMs": 40,
+      "throughputKbps": 10240,
+      "requestLatencyMs": 0,
+      "downloadThroughputKbps": 0,
+      "uploadThroughputKbps": 0,
+      "cpuSlowdownMultiplier": 1
+    },
+    "emulatedFormFactor": null,
+    "categories": {
+      "performance": 0.98,
+      "accessibility": 0.96,
+      "bestPractices": 0.96,
+      "seo": 1
+    },
+    "metrics": {
+      "LCP": {
+        "value": 974.43,
+        "displayValue": "1.0 s",
+        "score": 0.95,
+        "status": 0.95
+      },
+      "TBT": {
+        "value": 0,
+        "displayValue": "0 ms",
+        "score": 1,
+        "status": 1
+      },
+      "CLS": {
+        "value": 0,
+        "displayValue": "0",
+        "score": 1,
+        "status": 1
+      },
+      "INP": {
+        "value": null,
+        "status": "AUDIT_AUSENTE"
+      },
+      "FCP": {
+        "value": 866.72,
+        "displayValue": "0.9 s",
+        "score": 0.92,
+        "status": 0.92
+      },
+      "Speed Index": {
+        "value": 866.72,
+        "displayValue": "0.9 s",
+        "score": 0.99,
+        "status": 0.99
+      },
+      "TTI": {
+        "value": 974.43,
+        "displayValue": "1.0 s",
+        "score": 1,
+        "status": 1
+      }
+    },
+    "opportunities": [
+      {
+        "id": "uses-text-compression",
+        "ms": 320,
+        "title": "Enable text compression"
+      },
+      {
+        "id": "unused-javascript",
+        "ms": 160,
+        "title": "Reduce unused JavaScript"
+      },
+      {
+        "id": "server-response-time",
+        "ms": 6,
+        "title": "Initial server response time was short"
+      }
+    ]
+  },
+  "mobile": {
+    "url": "http://127.0.0.1:4173/",
+    "fetchTime": "2026-10-22T00:00:11.962Z",
+    "lighthouseVersion": "12.8.2",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+    "formFactor": "mobile",
+    "throttlingMethod": "simulate",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "emulatedFormFactor": null,
+    "categories": {
+      "performance": 0.71,
+      "accessibility": 0.96,
+      "bestPractices": 0.96,
+      "seo": 1
+    },
+    "metrics": {
+      "LCP": {
+        "value": 4873.87,
+        "displayValue": "4.9 s",
+        "score": 0.29,
+        "status": 0.29
+      },
+      "TBT": {
+        "value": 0,
+        "displayValue": "0 ms",
+        "score": 1,
+        "status": 1
+      },
+      "CLS": {
+        "value": 0,
+        "displayValue": "0",
+        "score": 1,
+        "status": 1
+      },
+      "INP": {
+        "value": null,
+        "status": "AUDIT_AUSENTE"
+      },
+      "FCP": {
+        "value": 4362.94,
+        "displayValue": "4.4 s",
+        "score": 0.17,
+        "status": 0.17
+      },
+      "Speed Index": {
+        "value": 4362.94,
+        "displayValue": "4.4 s",
+        "score": 0.75,
+        "status": 0.75
+      },
+      "TTI": {
+        "value": 4873.87,
+        "displayValue": "4.9 s",
+        "score": 0.78,
+        "status": 0.78
+      }
+    },
+    "opportunities": [
+      {
+        "id": "uses-text-compression",
+        "ms": 2100,
+        "title": "Enable text compression"
+      },
+      {
+        "id": "unused-javascript",
+        "ms": 1050,
+        "title": "Reduce unused JavaScript"
+      },
+      {
+        "id": "server-response-time",
+        "ms": 6,
+        "title": "Initial server response time was short"
+      }
+    ]
+  }
+}

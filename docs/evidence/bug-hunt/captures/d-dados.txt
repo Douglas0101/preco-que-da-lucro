@@ -1,0 +1,51 @@
+SFDPOT D (dados) — complemento da execucao anterior + casos novos | Agente D | bench :4177 | x-forwarded-for 198.51.100.34
+== limiar do DECIMAL_OVERFLOW em /despesas (politica money: precision 19, scale 4 => max 999999999999999.9999) ==
+   valor 999999999999999  -> gravado (expenses +1, amount 999999999999999.0000)
+   valor 1000000000000000 -> pageError 'DECIMAL_OVERFLOW', NENHUMA requisicao, NENHUM toast (botao parece morto)
+   valor 1e24            -> pageError 'DECIMAL_OVERFLOW', NENHUM toast (idem)
+== /despesas: nome so com espacos -> 'Preencha nome e valor valido' (correto) ==
+== /despesas: valor 'abc' -> 'Preencha nome e valor valido' (correto) ==
+== /vendas: validacao do cliente nao pega valor nao numerico ==
+   quantidade 'abc' (preco 25,50 valido) -> passa a validacao do cliente; servidor HTTP 400;
+   toast 'Nao foi possivel concluir a solicitacao.' (nao a mensagem especifica 'Informe quantidade e preco unitario validos')
+   preco 'abc' (quantidade 2 valida)      -> mesmo caminho (HTTP 400 + toast generico)
+   quantidade '1e999' (Infinity)           -> mesmo caminho (HTTP 400 + toast generico)
+   quantidade '0'                         -> barrado no cliente ('Informe quantidade e preco unitario validos')
+   preco '-0'                             -> aceito (venda registrada, gross_amount 0.0000)
+== /vendas: data da venda vazia ou invalida ==
+   campo #venda-data limpo -> toast 'Invalid time value' (RangeError cru em ingles), nenhuma requisicao
+   data invalida '31/12/2099' -> o browser normaliza para '' -> mesmo 'Invalid time value'
+== /vendas: canal so com espacos -> aceito, gravado como 'Venda direta' (fallback correto) ==
+
+== detalhe por caso (medido) ==
+
+   [D-00 formulario de venda presente] inputs=1 | texto="Vendas Registre vendas reais. Só dado factual entra no faturamento do dashboard. Registrar venda Produto Bughunt D2 Produto Editado Data da venda Quantidade Preço unitário (R$) Canal Registrar venda Vendas recentes 1 REGISTRADA(S) 22/10/2026 · Bughunt D2 Canal"
+   [D-E quantidade 'abc' (preco 25,50 valido)] toast="Não foi possível concluir a solicitação." | net=[{"u":"/_serverFn/5d8085a9eb0f3a9c21fe9b289ffe8ecd4a48bec2194f7da7e13fd3fcecf20875","s":400},{"u":"/api/vitals","s":204}] | pageErrors=[]
+   [D-F preco 'abc' (quantidade 2 valida)] toast="Não foi possível concluir a solicitação." | net=[{"u":"/_serverFn/5d8085a9eb0f3a9c21fe9b289ffe8ecd4a48bec2194f7da7e13fd3fcecf20875","s":400}] | pageErrors=[]
+   [D-G quantidade '1e999'] toast="Não foi possível concluir a solicitação." | net=[{"u":"/_serverFn/5d8085a9eb0f3a9c21fe9b289ffe8ecd4a48bec2194f7da7e13fd3fcecf20875","s":400}] | pageErrors=[]
+   [D-G2 quantidade '0' (zero)] toast="Informe quantidade e preço unitário válidos" | net=[] | pageErrors=[]
+   [D-G3 preco '-0'] toast="Venda registrada" | net=[{"u":"/_serverFn/5d8085a9eb0f3a9c21fe9b289ffe8ecd4a48bec2194f7da7e13fd3fcecf20875","s":200},{"u":"/_serverFn/5c94cfbc53234913974454cba7974345d45c169ee5882e2e0498c75561d0286a","s":200}] | pageErrors=[]
+   [D-H data da venda vazia] valorNoCampo="" | toast="Invalid time value" | net=[] | pageErrors=[]
+   [D-I data invalida '31/12/2099'] valorNoCampo="" | toast="Invalid time value" | net=[] | pageErrors=[]
+   [D-J canal so com espacos] toast="Venda registrada" | net=[{"u":"/_serverFn/5d8085a9eb0f3a9c21fe9b289ffe8ecd4a48bec2194f7da7e13fd3fcecf20875","s":200},{"u":"/_serverFn/5c94cfbc53234913974454cba7974345d45c169ee5882e2e0498c75561d0286a","s":200}]
+   [D-Jb vendas gravadas no banco] [{"channel":"Bughunt D2 Canal","gross_amount":"76.5000","occurred_at":"2026-10-22T12:00:00.000Z"},{"channel":"Venda direta","gross_amount":"0.0000","occurred_at":"2026-10-22T12:00:00.000Z"},{"channel":"Venda direta","gross_amount":"10.0000","occurred_at":"2026-10-21T12:00:00.000Z"}]
+   [T2b double-submit REALISTA (dblclick com 10ms)] net=[{"u":"/_serverFn/c86975e06310d8f824e5519dea97577e361244f5cd42fd48baa4ddddbd51adf6","s":200},{"u":"/api/vitals","s":204},{"u":"/_serverFn/1cb08ca963090e16a335051d8f4a530f4166f007e2c6ea643694641dcfd8900f","s":200}] | linhas=1
+   [T2c segundo clique 300ms depois] botaoDesabilitadoApos1oClique=false | net=[{"u":"/_serverFn/c86975e06310d8f824e5519dea97577e361244f5cd42fd48baa4ddddbd51adf6","s":200},{"u":"/_serverFn/1cb08ca963090e16a335051d8f4a530f4166f007e2c6ea643694641dcfd8900f","s":200}] | linhas=1
+   [pageErrors acumulados] []
+
+== complemento D6: /diagnostico, /ponto-equilibrio e /precos (2026-10-22) ==
+   [diagnostico campos] ["base-ui-_r_2_-hidden-input","diagnostico-custo-variavel-unitario","diagnostico-margem-alvo"]
+   [diagnostico diagnostico-margem-alvo="abc" (apos digitar, sem submit)] {"msgViva":["Complete as premissas manuais e os dados financeiros necessários para liberar cada cálculo. Valores ausentes não são tra",""],"alert":[]} | toasts=[] | net=[] | pageErrors=[]
+   [diagnostico diagnostico-margem-alvo="1e24" (apos digitar, sem submit)] {"msgViva":[""],"alert":["Não foi possível carregar os dados do produto.Referência de atendimento: DIAG-0D781B97Tentar novamente"]} | toasts=[] | net=[] | pageErrors=[]
+   [diagnostico diagnostico-margem-alvo="-5"] CAMPO NAO ENCONTRADO
+   [diagnostico diagnostico-custo-variavel-unitario="abc"] CAMPO NAO ENCONTRADO
+   [diagnostico diagnostico-custo-variavel-unitario="1e24"] CAMPO NAO ENCONTRADO
+   [ponto-equilibrio campo 'Despesas fixas / mes' (estado)] {"readOnly":true,"disabled":false,"valor":"R$ 0,00","tag":"INPUT","ariaReadonly":null,"ariaDescribedBy":null}
+   [ponto-equilibrio despesas-fixas="abc"] {"valorNoCampo":"R$ 0,00","ariaInvalid":null,"alert":[],"texto":"Ponto de Equilíbrio Quanto você precisa vender para cobrir suas despesas fixas. Produto Bughunt D2 Produto Base Despesas fixas / mês PREÇO DE VENDA R$ 20,00 CUSTO UNITÁRIO R$ 0,00 MARGEM DE CONTRIBUIÇ"} | toasts=[] | net=[] | pageErrors=[]
+   [ponto-equilibrio despesas-fixas="1e24"] {"valorNoCampo":"R$ 0,00","ariaInvalid":null,"alert":[],"texto":"Ponto de Equilíbrio Quanto você precisa vender para cobrir suas despesas fixas. Produto Bughunt D2 Produto Base Despesas fixas / mês PREÇO DE VENDA R$ 20,00 CUSTO UNITÁRIO R$ 0,00 MARGEM DE CONTRIBUIÇ"} | toasts=[] | net=[] | pageErrors=[]
+   [ponto-equilibrio despesas-fixas="-5"] {"valorNoCampo":"R$ 0,00","ariaInvalid":null,"alert":[],"texto":"Ponto de Equilíbrio Quanto você precisa vender para cobrir suas despesas fixas. Produto Bughunt D2 Produto Base Despesas fixas / mês PREÇO DE VENDA R$ 20,00 CUSTO UNITÁRIO R$ 0,00 MARGEM DE CONTRIBUIÇ"} | toasts=[] | net=[] | pageErrors=[]
+   [precos preparo] toasts=["Ingrediente adicionado."]
+   [precos preco="1,5"] submissao={"valorNoCampo":"1,5","tipo":null} | toasts=["Preço de Bughunt D2 Insumo Com Embalagem atualizado"] | net=[{"u":"/api/vitals","s":204},{"u":"/api/vitals","s":204},{"u":"/api/auth/get-session","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/api/vitals","s":204},{"u":"/_serverFn/582b209ee2b0607cf8cd2a6f73282d32d493ae3ca0c2fbcd37e418000726403c","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/api/vitals","s":204},{"u":"/api/auth/get-session","s":200},{"u":"/api/vitals","s":204},{"u":"/_serverFn/3de81aa1e12b10b13bb221ece7aff5810e13cbdbc9d95473593bd6806ebccd04","s":200},{"u":"/_serverFn/61f94846abccd6c7b051f722fc9300573bd38061afab2f2cad5b7eb1298a6bfe","s":200}] | pageErrors=[]
+   [precos preco="abc"] submissao={"valorNoCampo":"abc","tipo":null} | toasts=["Informe um preço válido"] | net=[{"u":"/api/vitals","s":204},{"u":"/api/vitals","s":204},{"u":"/api/auth/get-session","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/api/vitals","s":204},{"u":"/_serverFn/582b209ee2b0607cf8cd2a6f73282d32d493ae3ca0c2fbcd37e418000726403c","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/api/vitals","s":204},{"u":"/api/auth/get-session","s":200},{"u":"/api/vitals","s":204},{"u":"/_serverFn/3de81aa1e12b10b13bb221ece7aff5810e13cbdbc9d95473593bd6806ebccd04","s":200},{"u":"/_serverFn/61f94846abccd6c7b051f722fc9300573bd38061afab2f2cad5b7eb1298a6bfe","s":200}] | pageErrors=[]
+   [precos preco="1e24"] submissao={"valorNoCampo":"1e24","tipo":null} | toasts=["DECIMAL_OVERFLOW"] | net=[{"u":"/api/vitals","s":204},{"u":"/api/vitals","s":204},{"u":"/api/auth/get-session","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/api/vitals","s":204},{"u":"/_serverFn/582b209ee2b0607cf8cd2a6f73282d32d493ae3ca0c2fbcd37e418000726403c","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/api/vitals","s":204},{"u":"/api/auth/get-session","s":200},{"u":"/api/vitals","s":204},{"u":"/_serverFn/3de81aa1e12b10b13bb221ece7aff5810e13cbdbc9d95473593bd6806ebccd04","s":200},{"u":"/_serverFn/61f94846abccd6c7b051f722fc9300573bd38061afab2f2cad5b7eb1298a6bfe","s":200}] | pageErrors=[]
+   [precos preco="1e15"] submissao={"valorNoCampo":"1e15","tipo":null} | toasts=["DECIMAL_OVERFLOW"] | net=[{"u":"/api/vitals","s":204},{"u":"/api/vitals","s":204},{"u":"/api/auth/get-session","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/api/vitals","s":204},{"u":"/_serverFn/582b209ee2b0607cf8cd2a6f73282d32d493ae3ca0c2fbcd37e418000726403c","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/_serverFn/b1412d2ee3540c641acd3eadee47cab30a74bd74ee33cc79351c015701f7ed17","s":200},{"u":"/api/vitals","s":204},{"u":"/api/auth/get-session","s":200},{"u":"/api/vitals","s":204},{"u":"/_serverFn/3de81aa1e12b10b13bb221ece7aff5810e13cbdbc9d95473593bd6806ebccd04","s":200},{"u":"/_serverFn/61f94846abccd6c7b051f722fc9300573bd38061afab2f2cad5b7eb1298a6bfe","s":200}] | pageErrors=[]

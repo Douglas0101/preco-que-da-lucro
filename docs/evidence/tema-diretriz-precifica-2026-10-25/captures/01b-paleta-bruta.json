@@ -1,0 +1,263 @@
+{
+  "vars": {
+    "--border": "224 18% 88%",
+    "--sidebar-background": "40 30% 98%",
+    "--sidebar-primary-foreground": "40 33% 98%",
+    "--card": "0 0% 100%",
+    "--accent": "43 45% 94%",
+    "--primary-foreground": "40 33% 98%",
+    "--card-foreground": "224 47% 12%",
+    "--secondary-foreground": "224 40% 18%",
+    "--sidebar-accent-foreground": "224 40% 18%",
+    "--muted": "224 22% 94%",
+    "--background": "40 33% 97%",
+    "--accent-foreground": "224 47% 14%",
+    "--popover": "0 0% 100%",
+    "--ring": "43 72% 42%",
+    "--sidebar-border": "224 18% 88%",
+    "--sidebar-foreground": "224 47% 12%",
+    "--muted-foreground": "224 14% 38%",
+    "--sidebar-accent": "224 28% 94%",
+    "--radius": ".75rem",
+    "--popover-foreground": "224 47% 12%",
+    "--input": "224 18% 88%",
+    "--destructive": "0 72% 51%",
+    "--destructive-foreground": "0 0% 98%",
+    "--primary": "43 72% 42%",
+    "--foreground": "224 47% 12%",
+    "--sidebar-primary": "43 72% 42%",
+    "--secondary": "224 28% 94%",
+    "--sidebar-ring": "43 72% 42%"
+  },
+  "topColors": [
+    {
+      "value": "rgb(16, 24, 45)",
+      "count": 326
+    },
+    {
+      "value": "rgb(83, 91, 110)",
+      "count": 106
+    },
+    {
+      "value": "rgb(184, 141, 30)",
+      "count": 27
+    },
+    {
+      "value": "rgba(16, 24, 45, 0.9)",
+      "count": 17
+    },
+    {
+      "value": "rgba(184, 141, 30, 0.7)",
+      "count": 16
+    },
+    {
+      "value": "rgb(252, 250, 248)",
+      "count": 8
+    },
+    {
+      "value": "rgb(246, 244, 238)",
+      "count": 8
+    },
+    {
+      "value": "rgba(235, 238, 244, 0.4)",
+      "count": 4
+    },
+    {
+      "value": "rgba(250, 248, 245, 0.5)",
+      "count": 4
+    },
+    {
+      "value": "rgba(250, 248, 245, 0.6)",
+      "count": 4
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.8)",
+      "count": 3
+    },
+    {
+      "value": "rgba(255, 255, 255, 0)",
+      "count": 3
+    },
+    {
+      "value": "rgba(184, 141, 30, 0.25)",
+      "count": 3
+    },
+    {
+      "value": "rgb(250, 248, 245)",
+      "count": 2
+    },
+    {
+      "value": "rgba(184, 141, 30, 0.1)",
+      "count": 2
+    },
+    {
+      "value": "rgba(235, 238, 244, 0.6)",
+      "count": 2
+    },
+    {
+      "value": "rgba(250, 248, 245, 0.9)",
+      "count": 1
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.95)",
+      "count": 1
+    },
+    {
+      "value": "rgb(235, 238, 244)",
+      "count": 1
+    },
+    {
+      "value": "rgba(235, 238, 244, 0.5)",
+      "count": 1
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.75)",
+      "count": 1
+    },
+    {
+      "value": "rgb(255, 255, 255)",
+      "count": 1
+    },
+    {
+      "value": "rgba(255, 255, 255, 0.7)",
+      "count": 1
+    }
+  ],
+  "topGradients": [
+    {
+      "value": "linear-gradient(165deg, rgb(255, 255, 255), rgb(251, 250, 248))",
+      "count": 22
+    },
+    {
+      "value": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(166, 124, 26, 0.55), rgba(0, 0, 0, 0))",
+      "count": 13
+    },
+    {
+      "value": "linear-gradient(112deg, rgb(201, 162, 39), rgb(166, 124, 26) 40%, rgb(212, 175, 55), rgb(184, 134, 11))",
+      "count": 12
+    },
+    {
+      "value": "linear-gradient(to top, rgba(166, 124, 26, 0.45), rgb(212, 175, 55))",
+      "count": 7
+    },
+    {
+      "value": "linear-gradient(145deg, rgb(16, 24, 45), rgb(24, 33, 58))",
+      "count": 2
+    },
+    {
+      "value": "radial-gradient(768px 448px at 88% -8%, rgba(201, 150, 46, 0.14), rgba(0, 0, 0, 0) 58%), radial-gradient(576px 384px at 6% 18%, rgba(30, 55, 110, 0.07), rgba(0, 0, 0, 0) 55%), linear-gradient(rgb(252, 251, 248), rgb(250, 248, 245))",
+      "count": 1
+    },
+    {
+      "value": "linear-gradient(rgba(30, 55, 110, 0.04) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(30, 55, 110, 0.04) 1px, rgba(0, 0, 0, 0) 1px)",
+      "count": 1
+    },
+    {
+      "value": "linear-gradient(to top, rgba(16, 24, 45, 0.55), rgba(16, 24, 45, 0.08), rgba(0, 0, 0, 0))",
+      "count": 1
+    },
+    {
+      "value": "linear-gradient(to right, rgb(212, 175, 55), rgb(166, 124, 26))",
+      "count": 1
+    },
+    {
+      "value": "radial-gradient(544px 256px at 80% -10%, rgba(201, 150, 46, 0.18), rgba(0, 0, 0, 0) 65%)",
+      "count": 1
+    }
+  ],
+  "topFonts": [
+    {
+      "value": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "count": 430
+    },
+    {
+      "value": "Sora, Inter, ui-sans-serif, sans-serif",
+      "count": 80
+    }
+  ],
+  "samples": {
+    "body": {
+      "selector": "body",
+      "background": "rgb(250, 248, 245)",
+      "backgroundImage": "none",
+      "color": "rgb(16, 24, 45)",
+      "borderColor": "rgb(229, 231, 235)",
+      "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif"
+    },
+    "header": {
+      "selector": "header",
+      "background": "rgba(250, 248, 245, 0.9)",
+      "backgroundImage": "none",
+      "color": "rgb(16, 24, 45)",
+      "borderColor": "rgba(219, 222, 230, 0.8)",
+      "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif"
+    },
+    "nav": {
+      "selector": "nav",
+      "background": "rgba(0, 0, 0, 0)",
+      "backgroundImage": "none",
+      "color": "rgb(16, 24, 45)",
+      "borderColor": "rgb(229, 231, 235)",
+      "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif"
+    },
+    "h1": {
+      "selector": "h1",
+      "background": "rgba(0, 0, 0, 0)",
+      "backgroundImage": "none",
+      "color": "rgb(16, 24, 45)",
+      "borderColor": "rgb(229, 231, 235)",
+      "fontFamily": "Sora, Inter, ui-sans-serif, sans-serif"
+    },
+    "h2": {
+      "selector": "h2",
+      "background": "rgba(0, 0, 0, 0)",
+      "backgroundImage": "none",
+      "color": "rgb(16, 24, 45)",
+      "borderColor": "rgb(229, 231, 235)",
+      "fontFamily": "Sora, Inter, ui-sans-serif, sans-serif"
+    },
+    "paragraph": {
+      "selector": "p",
+      "background": "rgba(0, 0, 0, 0)",
+      "backgroundImage": "none",
+      "color": "rgb(184, 141, 30)",
+      "borderColor": "rgb(229, 231, 235)",
+      "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif"
+    },
+    "link": {
+      "selector": "a",
+      "background": "rgba(0, 0, 0, 0)",
+      "backgroundImage": "none",
+      "color": "rgb(16, 24, 45)",
+      "borderColor": "rgb(229, 231, 235)",
+      "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif"
+    },
+    "button": {
+      "selector": "button",
+      "background": "rgba(0, 0, 0, 0)",
+      "backgroundImage": "none",
+      "color": "rgb(16, 24, 45)",
+      "borderColor": "rgb(219, 222, 230)",
+      "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif"
+    },
+    "footer": {
+      "selector": "footer",
+      "background": "rgb(250, 248, 245)",
+      "backgroundImage": "none",
+      "color": "rgb(16, 24, 45)",
+      "borderColor": "rgba(219, 222, 230, 0.6)",
+      "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif"
+    },
+    "hero": {
+      "selector": "section",
+      "background": "rgba(0, 0, 0, 0)",
+      "backgroundImage": "radial-gradient(768px 448px at 88% -8%, rgba(201, 150, 46, 0.14), rgba(0, 0, 0, 0) 58%), radial-gradient(576px 384px at 6% 18%, rgba(30, 55, 110, 0.07), rgba(0, 0, 0, 0) 55%), linear-gradient(rgb(252, 251, 248), rgb(250, 248, 245))",
+      "color": "rgb(16, 24, 45)",
+      "borderColor": "rgb(229, 231, 235)",
+      "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif"
+    }
+  },
+  "title": "Diretriz Precifica — Precificação que protege o lucro do seu negócio",
+  "bodyClass": "",
+  "htmlClass": ""
+}

@@ -1,0 +1,50 @@
+# Agente A — relatorio HTML do bundle gerado sem dependencia nova
+
+## Como foi gerado (comandos exatos)
+$ node .artifacts/bughunt-a/bundle-report.mjs
+escrito: docs/evidence/bug-hunt/bundle-report.html (33317 B)   <- tamanho antes do prettier
+entry=219697 B  grafo=451299 B  gzip-grafo=149058 B  total-JS=903492 B
+
+$ npx prettier --write docs/evidence/bug-hunt/bundle-report.html
+docs/evidence/bug-hunt/bundle-report.html 141ms
+$ npx prettier --check docs/evidence/bug-hunt/
+Checking formatting...
+All matched files use Prettier code style!
+
+O prettier normaliza o HTML (que e gerado); por isso o sha256 registrado abaixo e o do arquivo
+FINAL, depois do `prettier --write`. Para reproduzir byte a byte: rodar o gerador e depois o
+`prettier --write`.
+
+## Artefato
+caminho:  docs/evidence/bug-hunt/bundle-report.html
+tamanho:  48.262 B  (47,1 KiB) — abaixo do teto de 200 KB pedido
+sha256:   e892c4f9215a072be47270104965e3674d8a75f7c4321b8c72edf9ebf5de69be
+
+## Conteudo
+- 4 cartoes de resumo: entry (219.697 B + gzip 69.086 B + folga 280.303 B = 56,07% do teto),
+  grafo inicial (451.299 B + gzip 149.058 B + folga 48.701 B = 9,74% do teto), todo o bundle JS
+  (903.492 B em 54 chunks, gzip somado) e delta contra o baseline da Onda 1 (+15 B).
+- Treemap SVG do **grafo inicial** (9 chunks) — o entry em vermelho (#b91c1c), demais chunks em
+  paleta; rotulo e % por celula; `<title>` por celula com bytes e %.
+- Treemap SVG de **todo o bundle JS** (54 chunks), highlighting do entry.
+- Tabela do grafo inicial e tabela de todos os chunks JS, com papel (entry / grafo inicial /
+  lazy), bytes minificados, bytes gzip e % do bundle.
+- Tabela de comparacao com o baseline da Onda 1 (entry / grafo / gzip, com delta).
+- Bloco de orcamento com a folga em bytes e em %.
+
+## Verificacao geometrica do treemap (medida)
+svg0 (grafo inicial, viewBox 1000x380): 9 celulas, 100,00% da area, 0 celula fora do viewBox.
+svg1 (bundle JS, viewBox 1000x420): 54 celulas, 100,00% da area, 0 celula fora do viewBox.
+=> nenhuma celula de area zero/negativa (um zero seria um chunk invisivel no relatorio).
+
+## Restricoes respeitadas
+- Nenhuma dependencia nova: o gerador usa apenas `node:fs/promises`, `node:path`, `node:zlib`.
+  `rollup-plugin-visualizer` NAO foi instalado (mexeria `package.json` + `package-lock.json`,
+  fora do write-set, e o `m02:lockfile-guard` ja esta vermelho por WIP alheio).
+- `vite.config.ts` NAO foi editado.
+- HTML autocontido: CSS inline, zero requisicoes externas, zero `http(s)://` no arquivo
+  (verificado por varredura do arquivo final). Sem sourcemaps (o build nao emite).
+- Nenhum arquivo de producao tocado; so `docs/evidence/bug-hunt/**` e `.artifacts/bughunt-a/**`.
+
+LIMITE DECLARADO: o relatorio mede o build LOCAL (`.output/` da bancada), nao um bundle de
+producao. Os numeros batem com `npm run check:bundle` porque ambos leem o mesmo manifest.

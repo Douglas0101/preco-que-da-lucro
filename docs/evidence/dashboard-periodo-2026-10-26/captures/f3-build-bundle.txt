@@ -1,0 +1,4 @@
+build=0
+bundle=0
+PASS assets/index-SvRoVaww.js: 218540 minified, 69074 gzip, 60068 Brotli bytes, sha256=d02c82b5b273
+Initial graph (11 chunks): 487577 minified, 159877 gzip, 140911 Brotli bytes, sha256=daca01e6876b

@@ -52,6 +52,8 @@ const dashboard = vi.hoisted(() => ({
     incompleteProductCount: 1,
     alerts: [],
     period: "month",
+    // Janela atestada pelo servidor (F2): o rótulo da tela deriva daqui.
+    window: { from: "2026-10-01T03:00:00.000Z", to: "2026-11-01T03:00:00.000Z" },
     sales: { revenue: "4800.0000", count: 12 },
     consolidatedMargin: {
       state: "ok",
@@ -239,7 +241,7 @@ describe("/inicio — explicação nos quatro KPIs e no destaque de margem (§18
     const text = normalizedText(view.container);
     expect(text).toContain("Contagem direta dos produtos cadastrados");
     expect(text).toContain("soma das despesas cadastradas com tipo «fixa»");
-    expect(text).toContain("soma das vendas registradas no período selecionado");
+    expect(text).toContain("soma das vendas registradas na janela exibida acima");
     expect(text).toContain("mix real de vendas");
     // A fórmula do destaque é a MESMA string presa ao motor pelo teste de paridade.
     expect(text).toContain(CONTRIBUTION_MARGIN_PCT_FORMULA);
@@ -260,9 +262,9 @@ describe("/inicio — explicação nos quatro KPIs e no destaque de margem (§18
       await screen.findByText("Bolo de cenoura");
 
       const text = normalizedText(view.container);
-      expect(text).toContain("Sem vendas registradas no período selecionado");
+      expect(text).toContain("Sem vendas registradas na janela exibida");
       expect(text).toContain("Vendas da simulação e estimativas não entram neste total.");
-      expect(text).toContain("Sem vendas registradas no período não há mix para ponderar");
+      expect(text).toContain("não há mix para ponderar");
       expect(explainerSummaries(view.container)).toHaveLength(5);
     } finally {
       dashboard.summary = original;

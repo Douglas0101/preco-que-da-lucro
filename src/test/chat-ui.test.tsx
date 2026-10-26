@@ -1,5 +1,6 @@
 import axe from "axe-core";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
@@ -10,13 +11,7 @@ import {
   InputGroupText,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
-import {
-  Message,
-  MessageAvatar,
-  MessageContent,
-  MessageFooter,
-  MessageHeader,
-} from "@/components/ui/message";
+import { Message, MessageContent, MessageFooter } from "@/components/ui/message";
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -38,23 +33,21 @@ describe("chat UI primitives", () => {
     const { container } = render(
       <>
         <Message align="end">
-          <MessageAvatar>V</MessageAvatar>
-          <MessageContent>
-            <MessageHeader>Você</MessageHeader>
-            <Bubble align="end" variant="default">
+          <MessageContent className="gap-2">
+            <Bubble align="end" variant="muted">
               <BubbleContent>Quanto custa meu produto?</BubbleContent>
             </Bubble>
           </MessageContent>
         </Message>
 
         <Message align="start">
-          <MessageAvatar>IA</MessageAvatar>
-          <MessageContent>
-            <MessageHeader>Consultor</MessageHeader>
-            <Bubble align="start" variant="tinted">
-              <BubbleContent>Vamos calcular juntos.</BubbleContent>
-            </Bubble>
-            <MessageFooter>Copiar</MessageFooter>
+          <MessageContent className="gap-2">
+            <p>Vamos calcular juntos.</p>
+            <MessageFooter className="px-0">
+              <button type="button" aria-label="Copiar resposta">
+                Copiar
+              </button>
+            </MessageFooter>
           </MessageContent>
         </Message>
       </>,
@@ -66,11 +59,13 @@ describe("chat UI primitives", () => {
     expect(turns[1]).toHaveAttribute("data-align", "start");
     expect(screen.getByText("Quanto custa meu produto?")).toBeInTheDocument();
     expect(screen.getByText("Vamos calcular juntos.")).toBeInTheDocument();
-    expect(container.querySelector('[data-slot="bubble"][data-variant="tinted"]')).not.toBeNull();
+    expect(container.querySelector('[data-slot="bubble"][data-variant="muted"]')).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Copiar resposta" })).toBeInTheDocument();
     await expectNoAxeViolations(container);
   });
 
-  it("composes the prompt input with a named send action", async () => {
+  it("composes the prompt input with a named send action and a focusable addon", async () => {
+    const user = userEvent.setup();
     const { container } = render(
       <form>
         <InputGroup>
@@ -85,9 +80,15 @@ describe("chat UI primitives", () => {
       </form>,
     );
 
-    expect(screen.getByRole("textbox", { name: "Mensagem para o consultor" })).toBeInTheDocument();
+    const textarea = screen.getByRole("textbox", { name: "Mensagem para o consultor" });
+    expect(textarea).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Enviar" })).toHaveAttribute("type", "submit");
     expect(container.querySelector('[data-slot="input-group"]')).not.toBeNull();
+
+    // O addon é área de toque do campo: clicar no texto devolve o foco ao controle,
+    // mas um clique em botão continua sendo do botão.
+    await user.click(screen.getByText("Enter envia"));
+    expect(textarea).toHaveFocus();
     await expectNoAxeViolations(container);
   });
 
@@ -100,7 +101,7 @@ describe("chat UI primitives", () => {
               <MessageScrollerItem messageId="turn-1" scrollAnchor>
                 <Message align="end">
                   <MessageContent>
-                    <Bubble align="end">
+                    <Bubble align="end" variant="muted">
                       <BubbleContent>Primeira pergunta</BubbleContent>
                     </Bubble>
                   </MessageContent>
