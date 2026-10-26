@@ -11,6 +11,7 @@ function validSummary(): Record<string, unknown> {
     incompleteProductCount: 0,
     alerts: [],
     period: "month",
+    window: { from: "2026-10-01T03:00:00.000Z", to: "2026-11-01T03:00:00.000Z" },
     sales: { revenue: "50.0000", count: 1 },
     consolidatedMargin: { state: "empty" },
   };
@@ -46,6 +47,33 @@ describe("dashboard summary shape guard (DBT-86 1.4)", () => {
   it("rejects an unknown period and a malformed bestProduct", () => {
     expect(isDashboardSummaryValid({ ...validSummary(), period: "decade" })).toBe(false);
     expect(isDashboardSummaryValid({ ...validSummary(), bestProduct: { name: 1 } })).toBe(false);
+  });
+
+  // Achado P2 do review do PR #72 (DBT-176): sem `window` o guard aceitava o
+  // payload e o render morria antes do card de erro.
+  it("rejects a payload without window or with an inverted window (DBT-176)", () => {
+    const withoutWindow = validSummary();
+    delete withoutWindow.window;
+    expect(isDashboardSummaryValid(withoutWindow)).toBe(false);
+    expect(isDashboardSummaryValid({ ...validSummary(), window: {} })).toBe(false);
+    expect(
+      isDashboardSummaryValid({
+        ...validSummary(),
+        window: { from: "2026-11-01T03:00:00.000Z", to: "2026-10-01T03:00:00.000Z" },
+      }),
+    ).toBe(false);
+    expect(
+      isDashboardSummaryValid({
+        ...validSummary(),
+        window: { from: "not-a-date", to: "2026-11-01T03:00:00.000Z" },
+      }),
+    ).toBe(false);
+  });
+
+  it("refuses a payload whose period differs from the requested one (DBT-176)", () => {
+    expect(isDashboardSummaryValid(validSummary(), "month")).toBe(true);
+    expect(isDashboardSummaryValid(validSummary(), "quarter")).toBe(false);
+    expect(isDashboardSummaryValid({ ...validSummary(), period: "year" }, "year")).toBe(true);
   });
 
   it("accepts every honest consolidatedMargin state and rejects foreign ones", () => {

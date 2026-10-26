@@ -19,6 +19,11 @@ export type ConsolidatedMarginShape =
       salesMismatch?: true;
     };
 
+export interface DashboardWindowShape {
+  from: string;
+  to: string;
+}
+
 export interface DashboardSummaryShape {
   productCount: number;
   fixedExpenses: string | null;
@@ -27,8 +32,23 @@ export interface DashboardSummaryShape {
   incompleteProductCount: number;
   alerts: string[];
   period: DashboardPeriod;
+  window: DashboardWindowShape;
   sales: { revenue: string; count: number };
   consolidatedMargin: ConsolidatedMarginShape;
+}
+
+/**
+ * A janela é o contrato que a tela exibe: sem ela o render morre antes do card
+ * de erro (achado P2 do review do PR #72, DBT-176). `from < to` porque `to` é o
+ * início do período seguinte; janela invertida ou vazia é payload estrangeiro.
+ */
+function isWindowValid(value: unknown): value is DashboardWindowShape {
+  if (typeof value !== "object" || value === null) return false;
+  const window = value as Partial<DashboardWindowShape>;
+  if (typeof window.from !== "string" || typeof window.to !== "string") return false;
+  const from = Date.parse(window.from);
+  const to = Date.parse(window.to);
+  return Number.isFinite(from) && Number.isFinite(to) && from < to;
 }
 
 function isConsolidatedMarginValid(value: unknown): value is ConsolidatedMarginShape {
@@ -53,7 +73,10 @@ function isConsolidatedMarginValid(value: unknown): value is ConsolidatedMarginS
   return false;
 }
 
-export function isDashboardSummaryValid(metrics: unknown): metrics is DashboardSummaryShape {
+export function isDashboardSummaryValid(
+  metrics: unknown,
+  expectedPeriod?: DashboardPeriod,
+): metrics is DashboardSummaryShape {
   if (typeof metrics !== "object" || metrics === null) return false;
   const candidate = metrics as Partial<DashboardSummaryShape>;
   if (typeof candidate.productCount !== "number") return false;
@@ -68,6 +91,11 @@ export function isDashboardSummaryValid(metrics: unknown): metrics is DashboardS
   ) {
     return false;
   }
+  // O payload tem de ser da janela que o usuário pediu: com `keepPreviousData`
+  // o dado anterior continua montado, e um período divergente exibiria a janela
+  // errada com o número errado.
+  if (expectedPeriod !== undefined && candidate.period !== expectedPeriod) return false;
+  if (!isWindowValid(candidate.window)) return false;
   if (typeof candidate.sales !== "object" || candidate.sales === null) return false;
   if (typeof candidate.sales.count !== "number") return false;
   if (typeof candidate.sales.revenue !== "string") return false;
