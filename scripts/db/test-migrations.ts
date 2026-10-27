@@ -335,6 +335,8 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     runtime_create_schema: boolean;
     auth_delete: boolean;
     products_delete: boolean;
+    expenses_delete: boolean;
+    simulations_delete: boolean;
     tenants_delete: boolean;
     memberships_delete: boolean;
     audit_select: boolean;
@@ -352,6 +354,8 @@ async function assertDatabaseContract(client: Client): Promise<void> {
        has_schema_privilege('app_runtime', 'public', 'CREATE') as runtime_create_schema,
        has_table_privilege('app_runtime', 'public.users', 'DELETE') as auth_delete,
        has_table_privilege('app_runtime', 'public.products', 'DELETE') as products_delete,
+       has_table_privilege('app_runtime', 'public.expenses', 'DELETE') as expenses_delete,
+       has_table_privilege('app_runtime', 'public.simulations', 'DELETE') as simulations_delete,
        has_table_privilege('app_runtime', 'public.tenants', 'DELETE') as tenants_delete,
        has_table_privilege('app_runtime', 'public.tenant_memberships', 'DELETE') as memberships_delete,
        has_table_privilege('app_runtime', 'public.audit_events', 'SELECT') as audit_select,
@@ -369,6 +373,8 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     runtime_create_schema: false,
     auth_delete: true,
     products_delete: false,
+    expenses_delete: true,
+    simulations_delete: false,
     tenants_delete: false,
     memberships_delete: false,
     audit_select: false,
@@ -382,6 +388,45 @@ async function assertDatabaseContract(client: Client): Promise<void> {
     simulations_update: false,
     snapshots_insert: true,
   });
+
+  // DBT-160: DELETE em expenses é operação real da aplicação. O GRANT devolve
+  // o privilégio de tabela; quem decide QUAIS linhas continua sendo a policy
+  // `tenant_isolation` (FOR ALL, logo também DELETE). A prova é feita dentro de
+  // uma transação com rollback: nada fica no banco.
+  const runtimeExpenseId = "e0000000-0000-4000-8000-0000000000e1";
+  await client.query("begin");
+  try {
+    await client.query(
+      `insert into expenses (id, tenant_id, user_id, name, amount, type, version)
+       values ($1, $2, $3, 'runtime-delete-probe', 10, 'variavel', 0)`,
+      [runtimeExpenseId, tenantA, userA],
+    );
+    await client.query("set local role app_runtime");
+    await client.query("select set_config('app.current_user_id', $1, true)", [userA]);
+    await client.query("select set_config('app.current_tenant_id', $1, true)", [tenantB]);
+    const crossTenantDelete = await client.query(
+      "delete from expenses where id = $1 returning id",
+      [runtimeExpenseId],
+    );
+    assert.equal(
+      crossTenantDelete.rowCount,
+      0,
+      "tenant B não pode excluir despesa de A mesmo com o grant de DELETE",
+    );
+
+    await client.query("select set_config('app.current_tenant_id', $1, true)", [tenantA]);
+    const ownDelete = await client.query<{ id: string }>(
+      "delete from expenses where id = $1 returning id",
+      [runtimeExpenseId],
+    );
+    assert.deepEqual(
+      ownDelete.rows.map((row) => row.id),
+      [runtimeExpenseId],
+      "tenant A deve conseguir excluir a própria despesa como app_runtime",
+    );
+  } finally {
+    await client.query("rollback");
+  }
 
   const p1Columns = await client.query<{
     table_name: string;
@@ -729,8 +774,9 @@ async function assertPurchasePriceConcurrency(adminUrl: string): Promise<void> {
   }
 }
 
-// Downs que levam a chain 0019→0003, na ordem de aplicação (mais nova primeiro).
+// Downs que levam a chain head→0003, na ordem de aplicação (mais nova primeiro).
 const DOWNS_TIP_TO_0003 = [
+  "0020_to_0019_down.sql",
   "0019_to_0018_down.sql",
   "0018_to_0017_down.sql",
   "0017_to_0016_down.sql",
@@ -914,13 +960,17 @@ async function assertDowngrade0002To0001AndReplay(adminUrl: string, client: Clie
   const idempotentAgain = await readFile(resolve("drizzle/rollback/0002_to_0001_down.sql"), "utf8");
   await client.query(idempotentAgain);
 
-  // Replay completo 0002→0019: valida reprodutibilidade de 0002 e 0003.
+  // Replay completo 0002→0020: valida reprodutibilidade de 0002 e 0003.
   await runMigrations(adminUrl);
 
   const replayedJournal = await client.query<{ count: string }>(
     "select count(*)::text as count from drizzle.__drizzle_migrations",
   );
-  assert.equal(replayedJournal.rows[0]?.count, "20", "replay deve restaurar o journal completo");
+  assert.equal(
+    replayedJournal.rows[0]?.count,
+    String(await expectedJournalEntries()),
+    "replay deve restaurar o journal completo",
+  );
 
   const restored = await client.query<{
     rateLimits: boolean;

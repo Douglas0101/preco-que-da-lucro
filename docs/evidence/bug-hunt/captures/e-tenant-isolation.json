@@ -1,0 +1,153 @@
+{
+  "capture": "Agente E — FASE 5.2: isolamento entre tenants (nivel API/UI e nivel BANCO via RLS)",
+  "dsn_redacted": "postgresql://app_runtime:<REDACTED>@127.0.0.1:5432/preco_que_da_lucro_test",
+  "fixtures": {
+    "prefixo": "Bughunt E",
+    "dois_tenants": ["A (owner)", "B (owner)"],
+    "canais": "Postgres LOCAL de teste (preco_que_da_lucro_test); tenant semeado e produtos de fixture NAO foram tocados"
+  },
+  "nivel_api_ui_par_de_controle": [
+    {
+      "cenario": "NEGATIVO: cookie de A + payload com produto de B",
+      "status": 404,
+      "menciona_produto_de_A": false,
+      "menciona_produto_de_B": false,
+      "menciona_nome_do_produto_de_B": false,
+      "menciona_ingrediente_de_B": false,
+      "body_head": "{\"ok\":false,\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"O recurso solicitado não foi encontrado.\",\"retryable\":false,\"correlationId\":\"a65fc9e7-ba0f-4b1e-a916-ca6682c95974\"}}"
+    },
+    {
+      "cenario": "CONTROLE POSITIVO: cookie de A + payload com produto de A",
+      "status": 200,
+      "menciona_produto_de_A": true,
+      "menciona_produto_de_B": false,
+      "menciona_nome_do_produto_de_B": false,
+      "menciona_ingrediente_de_B": false,
+      "body_head": "{\"t\":10,\"i\":0,\"p\":{\"k\":[\"result\",\"error\",\"context\"],\"v\":[{\"t\":10,\"i\":1,\"p\":{\"k\":[\"product\",\"ingredients\",\"packaging\",\"fees\",\"market\"],\"v\":[{\"t\":10,\"i\":2,\"p\":{\"k\":[\"id\",\"tenant_id\",\"user_id\",\"name\",\"status\",\"current_price\",\"yield_qty\",\"yield_unit\",\"tax_regime\",\"tax_rate\",\"is_demo\",\"notes\",\"version\",\"archived_at\",\"created_at\",\"updated_at\"],\"v\":[{\"t\":1,\"s\":\"5bb47f9b-03e3-4cf6-9c31-9560e4ee7c3f\"},{\"t\":1,\"s\":\"6ff97c60-9755-4db4-8f48-0b2eab797178\"},{\"t\":1,\"s\":\"239da21e-32e1-40e0-b689-da5409a6ae0a\"},{\"t\":1,\"s\":\"Bughunt E produto A 2026-10-22T01-24-38-759Z\"},{\"t\":1,\"s\":\"incomplete\"},{\"t\":2,\"s\":0},{\"t\":2,\"s\":0},{\"t\":2,\"s\":0},{\"t\":2,\"s\":0},{\"t\":2,\"s\":0},{\"t\":2,\"s\":3},{\"t\":2,\"s\":0},{\"t\":0,\"s\":0},{\"t\":2"
+    },
+    {
+      "cenario": "CONTROLE POSITIVO: cookie de B + payload com produto de B",
+      "status": 200,
+      "menciona_produto_de_A": false,
+      "menciona_produto_de_B": true,
+      "menciona_nome_do_produto_de_B": true,
+      "menciona_ingrediente_de_B": true,
+      "body_head": "{\"t\":10,\"i\":0,\"p\":{\"k\":[\"result\",\"error\",\"context\"],\"v\":[{\"t\":10,\"i\":1,\"p\":{\"k\":[\"product\",\"ingredients\",\"packaging\",\"fees\",\"market\"],\"v\":[{\"t\":10,\"i\":2,\"p\":{\"k\":[\"id\",\"tenant_id\",\"user_id\",\"name\",\"status\",\"current_price\",\"yield_qty\",\"yield_unit\",\"tax_regime\",\"tax_rate\",\"is_demo\",\"notes\",\"version\",\"archived_at\",\"created_at\",\"updated_at\"],\"v\":[{\"t\":1,\"s\":\"6b638b6f-9312-4bec-9500-257ca5b57225\"},{\"t\":1,\"s\":\"95235917-6a7b-467e-a1bb-79859a50bebe\"},{\"t\":1,\"s\":\"a9b21d32-6a0a-42c1-b271-ecbd71e0f6a7\"},{\"t\":1,\"s\":\"Bughunt E produto B 2026-10-22T01-24-38-759Z\"},{\"t\":1,\"s\":\"incomplete\"},{\"t\":2,\"s\":0},{\"t\":2,\"s\":0},{\"t\":2,\"s\":0},{\"t\":2,\"s\":0},{\"t\":2,\"s\":0},{\"t\":2,\"s\":3},{\"t\":2,\"s\":0},{\"t\":0,\"s\":0},{\"t\":2"
+    },
+    {
+      "cenario": "CONTROLE NEGATIVO: cookie de B + payload com produto de A",
+      "status": 404,
+      "menciona_produto_de_A": false,
+      "menciona_produto_de_B": false,
+      "menciona_nome_do_produto_de_B": false,
+      "menciona_ingrediente_de_B": false,
+      "body_head": "{\"ok\":false,\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"O recurso solicitado não foi encontrado.\",\"retryable\":false,\"correlationId\":\"72f127bf-8aef-470c-a7d8-e7bba682bba6\"}}"
+    },
+    {
+      "cenario": "TENANT EXPLICITO: cookie de A + payload com produto de B + x-tenant-id do tenant de B",
+      "status": 403,
+      "menciona_produto_de_A": false,
+      "menciona_produto_de_B": false,
+      "menciona_nome_do_produto_de_B": false,
+      "menciona_ingrediente_de_B": false,
+      "body_head": "{\"ok\":false,\"error\":{\"code\":\"AUTHORIZATION_ERROR\",\"message\":\"Você não pode realizar esta ação.\",\"retryable\":false,\"correlationId\":\"082b93b7-9507-4764-9ff2-ee99f25daf01\"}}"
+    }
+  ],
+  "nivel_banco_rls": {
+    "sem_gucs_total_products": 0,
+    "sem_gucs_produtos_do_tenant_de_B": 0,
+    "como_A": {
+      "total_products": 1,
+      "produtos_visiveis": [
+        {
+          "id": "5bb47f9b-03e3-4cf6-9c31-9560e4ee7c3f",
+          "name": "Bughunt E produto A 2026-10-22T01-24-38-759Z",
+          "tenant_id": "6ff97c60-9755-4db4-8f48-0b2eab797178"
+        }
+      ],
+      "linhas_do_produto_de_B_visiveis": 0,
+      "expenses_visiveis": 0,
+      "sales_visiveis": 0,
+      "product_ingredients_visiveis": 0,
+      "tenant_memberships_visiveis": 1
+    },
+    "escrita_no_tenant_de_B": {
+      "recusada": true,
+      "sqlstate": "42501",
+      "mensagem": "new row violates row-level security policy for table \"products\""
+    },
+    "update_na_linha_de_B": {
+      "linhas_afetadas": 0
+    },
+    "apos_tentativas_rastro": 0,
+    "produto_de_B_intacto": {
+      "name": "Bughunt E produto B 2026-10-22T01-24-38-759Z"
+    }
+  },
+  "papel_de_runtime": {
+    "pg_stat_activity_por_usuario": [
+      {
+        "usename": "postgres",
+        "client_addr": "192.168.65.1/32",
+        "state": "active",
+        "connections": 1
+      }
+    ],
+    "sessao_do_proprio_dsn_de_runtime": {
+      "current_user": "app_runtime",
+      "session_user": "app_runtime",
+      "server_version": "17.11",
+      "db": "preco_que_da_lucro_test"
+    },
+    "flags_do_papel": {
+      "rolname": "app_runtime",
+      "rolsuper": false,
+      "rolbypassrls": false,
+      "rolcreaterole": false,
+      "rolcreatedb": false,
+      "rolcanlogin": true
+    },
+    "tabelas_com_rls_habilitado": [
+      {
+        "relname": "expenses",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false
+      },
+      {
+        "relname": "product_ingredients",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false
+      },
+      {
+        "relname": "products",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false
+      },
+      {
+        "relname": "profiles",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false
+      },
+      {
+        "relname": "sales",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false
+      },
+      {
+        "relname": "simulations",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false
+      },
+      {
+        "relname": "tenant_memberships",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false
+      },
+      {
+        "relname": "tenants",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false
+      }
+    ]
+  }
+}

@@ -2,6 +2,8 @@ import Decimal from "decimal.js";
 import { DECIMAL_ZERO } from "@/lib/decimal-constants";
 import type { FeeRow, IngredientRow, PackagingRow } from "@/lib/finance";
 import { toDecimalString } from "@/lib/financial-values";
+// Fonte única da janela de período: `[from, to)` em America/Sao_Paulo.
+import { periodWindow, type DashboardPeriod, type PeriodWindow } from "@/lib/period-window";
 import type { RequestContext } from "@/lib/request-context";
 import { applicationMetrics, withSpan } from "@/instrumentation/telemetry";
 import { recordSafely } from "@/instrumentation/safe-record";
@@ -13,7 +15,7 @@ import {
 import { calculateProductReadModel } from "@/server/services/product-read-model.service";
 import { salesService, type SalesService } from "@/server/services/sales.service";
 
-export type DashboardPeriod = "month" | "quarter" | "year";
+export type { DashboardPeriod };
 
 /**
  * Consolidated contribution margin over the period's REAL sales mix (DBT-88).
@@ -41,24 +43,17 @@ export interface DashboardSummary {
   incompleteProductCount: number;
   alerts: string[];
   period: DashboardPeriod;
+  /**
+   * Janela factual que produziu os números, atestada pelo servidor: `[from, to)`
+   * em ISO-8601. O cliente exibe esta janela — nunca uma calculada com o relógio
+   * do browser — para que o rótulo não possa divergir da consulta.
+   */
+  window: { from: string; to: string };
   sales: { revenue: string; count: number };
 }
 
 export interface DashboardService {
   getSummary(context: RequestContext, period?: DashboardPeriod): Promise<DashboardSummary>;
-}
-
-export function periodStart(period: DashboardPeriod, now: Date = new Date()): Date {
-  const from = new Date(now);
-  from.setHours(0, 0, 0, 0);
-  from.setDate(1);
-  if (period === "quarter") {
-    from.setMonth(Math.floor(from.getMonth() / 3) * 3);
-  }
-  if (period === "year") {
-    from.setMonth(0);
-  }
-  return from;
 }
 
 const decimalNumber = (value: string | null): number | null =>
@@ -195,7 +190,7 @@ export class DefaultDashboardService implements DashboardService {
     period: DashboardPeriod = "month",
   ): Promise<DashboardSummary> {
     const input = await this.repository.loadInputs(context);
-    const from = periodStart(period);
+    const window = periodWindow(period);
     const fixedExpenseSummary = sumFixedExpenses(input.expenseRows);
     const startedAt = Date.now();
     const salesSummary = await withSpan(
@@ -206,7 +201,7 @@ export class DefaultDashboardService implements DashboardService {
         "app.dashboard.period": period,
       },
       async (span) => {
-        const summary = await this.sales.summaryForPeriod(context, from);
+        const summary = await this.sales.summaryForPeriod(context, window.from, window.to);
         span.setAttribute("app.sales.count", summary.count);
         return summary;
       },
@@ -255,7 +250,7 @@ export class DefaultDashboardService implements DashboardService {
     const finalHasInvalidCalculation = invalidProductCount > 0 || fixedExpenseSummary.invalid;
     const consolidatedMargin = await this.consolidatedMarginFor(
       context,
-      from,
+      window,
       salesSummary,
       costsByProduct,
     );
@@ -268,6 +263,7 @@ export class DefaultDashboardService implements DashboardService {
       incompleteProductCount,
       alerts,
       period,
+      window: { from: window.from.toISOString(), to: window.to.toISOString() },
       sales: {
         revenue: salesSummary.revenue,
         count: salesSummary.count,
@@ -283,12 +279,12 @@ export class DefaultDashboardService implements DashboardService {
    */
   private async consolidatedMarginFor(
     context: RequestContext,
-    from: Date,
+    window: PeriodWindow,
     salesSummary: { revenue: string; count: number },
     costsByProduct: Map<string, ProductSaleCosts>,
   ): Promise<ConsolidatedMargin> {
     if (salesSummary.count === 0) return { state: "empty" };
-    const itemSummary = await this.sales.itemSummaryForPeriod(context, from);
+    const itemSummary = await this.sales.itemSummaryForPeriod(context, window.from, window.to);
     // Sold products without a read-model margin — explicitly invalid/incomplete
     // ones and products absent from the cadastral set (e.g. archived after the
     // sale) are equally without a calculable unit cost.

@@ -1,0 +1,14 @@
+SFDPOT/Agente D — purga dos tenants de teste (prova de nao tocar o tenant semeado) | 2026-10-22
+Todos os tenants criados pelo Agente D (execucao anterior + retomada) foram removidos.
+Contagem por tabela tenant-scoped (scripts/db/purge-fixtures.ts TENANT_SCOPED_TABLES) antes/depois.
+
+tenant                                        linhas antes   linhas depois   tenants/users/accounts/sessions/memberships restantes
+"Bughunt D 1792632193567"        (execucao ant.)        21              0            0/0/0/0/0
+"Bughunt D2 1792635934102"       (retomada, D2)         29              0            0/0/0/0/0
+"Bughunt D2 N 1792637465472"     (retomada, novato)      1              0            0/0/0/0/0
+"Bughunt D2 1792639434652"       (retomada, complemento) 6              0            0/0/0/0/0
+
+Tenant semeado (00000000-0000-4000-8000-000000000002) — NAO tocado:
+  products = 2 | expenses = 2 | sales = 0   (identico ao estado medido no inicio da fase)
+Total de tenants no banco: 23 -> 20 (os 3 tenants do Agente D foram removidos; o 4o foi criado e removido depois).
+Nenhuma tabela fora de tenant-scoped foi alterada; nenhuma migracao foi executada; nada de producao foi tocado.

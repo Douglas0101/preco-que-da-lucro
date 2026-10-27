@@ -1,0 +1,246 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "unknown_service:/home/douglas/.opencode/bin/opencode"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "nodejs"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "2.10.0"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "opencode.observability",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "traceId": "baf4363382d468289fd146af466a82e1",
+              "spanId": "ca653dd97c64dc6b",
+              "name": "opencode.tool.call",
+              "kind": 1,
+              "startTimeUnixNano": "1792712535283000000",
+              "endTimeUnixNano": "1792712535651000000",
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "shell"
+                  }
+                },
+                {
+                  "key": "tool.session_id",
+                  "value": {
+                    "stringValue": "ses_ea8d681dcffeNt2FDM77YY509t"
+                  }
+                },
+                {
+                  "key": "tool.message_id",
+                  "value": {
+                    "stringValue": "msg_165fbb8fc0011h79hefjkwUqbR"
+                  }
+                },
+                {
+                  "key": "tool.call_id",
+                  "value": {
+                    "stringValue": "call_85970d2f14904e07a8f03190"
+                  }
+                },
+                {
+                  "key": "tool.agent",
+                  "value": {
+                    "stringValue": "build"
+                  }
+                },
+                {
+                  "key": "tool.status",
+                  "value": {
+                    "stringValue": "completed"
+                  }
+                },
+                {
+                  "key": "tool.duration_ms",
+                  "value": {
+                    "intValue": 368
+                  }
+                }
+              ],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "status": {
+                "code": 1
+              },
+              "links": [],
+              "droppedLinksCount": 0,
+              "flags": 257
+            },
+            {
+              "traceId": "63349df0f992aad590e528924b1e9280",
+              "spanId": "f3c76d9c6545ef88",
+              "name": "opencode.llm.usage",
+              "kind": 1,
+              "startTimeUnixNano": "1792712535754000000",
+              "endTimeUnixNano": "1792712535754000000",
+              "attributes": [
+                {
+                  "key": "session.id",
+                  "value": {
+                    "stringValue": "ses_ea8d681dcffeNt2FDM77YY509t"
+                  }
+                },
+                {
+                  "key": "usage.scope",
+                  "value": {
+                    "stringValue": "step"
+                  }
+                },
+                {
+                  "key": "message.id",
+                  "value": {
+                    "stringValue": "msg_165fbb8fc0011h79hefjkwUqbR"
+                  }
+                },
+                {
+                  "key": "llm.cost_usd",
+                  "value": {
+                    "doubleValue": 0.0020652780000000003
+                  }
+                },
+                {
+                  "key": "llm.tokens.input",
+                  "value": {
+                    "intValue": 1537
+                  }
+                },
+                {
+                  "key": "llm.tokens.output",
+                  "value": {
+                    "intValue": 132
+                  }
+                },
+                {
+                  "key": "llm.tokens.reasoning",
+                  "value": {
+                    "intValue": 3
+                  }
+                },
+                {
+                  "key": "llm.tokens.cache_read",
+                  "value": {
+                    "intValue": 584576
+                  }
+                },
+                {
+                  "key": "llm.tokens.cache_write",
+                  "value": {
+                    "intValue": 0
+                  }
+                }
+              ],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "status": {
+                "code": 1
+              },
+              "links": [],
+              "droppedLinksCount": 0,
+              "flags": 257
+            },
+            {
+              "traceId": "027fe4275d6b615d50fef74487c556b1",
+              "spanId": "10c2d6e488098e33",
+              "name": "opencode.llm.usage",
+              "kind": 1,
+              "startTimeUnixNano": "1792712535754000000",
+              "endTimeUnixNano": "1792712535754000000",
+              "attributes": [
+                {
+                  "key": "session.id",
+                  "value": {
+                    "stringValue": "ses_ea8d681dcffeNt2FDM77YY509t"
+                  }
+                },
+                {
+                  "key": "usage.scope",
+                  "value": {
+                    "stringValue": "session"
+                  }
+                },
+                {
+                  "key": "llm.cost_usd",
+                  "value": {
+                    "doubleValue": 0.8257959939999998
+                  }
+                },
+                {
+                  "key": "llm.tokens.input",
+                  "value": {
+                    "intValue": 1811375
+                  }
+                },
+                {
+                  "key": "llm.tokens.output",
+                  "value": {
+                    "intValue": 112538
+                  }
+                },
+                {
+                  "key": "llm.tokens.reasoning",
+                  "value": {
+                    "intValue": 154854
+                  }
+                },
+                {
+                  "key": "llm.tokens.cache_read",
+                  "value": {
+                    "intValue": 131227648
+                  }
+                },
+                {
+                  "key": "llm.tokens.cache_write",
+                  "value": {
+                    "intValue": 0
+                  }
+                }
+              ],
+              "droppedAttributesCount": 0,
+              "events": [],
+              "droppedEventsCount": 0,
+              "status": {
+                "code": 1
+              },
+              "links": [],
+              "droppedLinksCount": 0,
+              "flags": 257
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

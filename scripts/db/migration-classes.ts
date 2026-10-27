@@ -351,4 +351,21 @@ export const migrationClasses: readonly MigrationClassEntry[] = [
     onlineCare:
       "Aplicar fora do pico: os dois ALTER TABLE de ai_memories pegam ACCESS EXCLUSIVE breve (o ADD COLUMN com default constante é metadata-only no PG17, mas a validação do CHECK de status e do CHECK de layer escaneia a tabela) e o seed de políticas é INSERT idempotente de 5 linhas. A tabela de memória não tem escritor em produção (feature não exposta), então o escaneamento incide sobre 0 linhas; o down é executável com dados (coluna com default + seed idempotente).",
   },
+  {
+    tag: "0020_runtime_delete_expenses",
+    class: "SAFE",
+    rationale:
+      "Corrige DBT-160: concede DELETE a app_runtime somente em public.expenses, a única tabela de domínio com caminho real de exclusão (expense.repository.remove); é um GRANT de catálogo, sem DML, sem reescrita de tabela e sem tocar na policy tenant_isolation, que já cobre DELETE por ser FOR ALL. products é arquivado por UPDATE e sales/simulations não têm operação de exclusão — receber DELETE ali ampliaria privilégio sem chamador.",
+    evidence: [
+      "drizzle/0020_runtime_delete_expenses.sql",
+      "drizzle/rollback/0020_to_0019_down.sql",
+      "scripts/db/test-migrations.ts (has_table_privilege em expenses/products/sales/simulations + DELETE real como app_runtime com isolamento de tenant)",
+      "src/server/repositories/expense.repository.ts (remove → delete from expenses)",
+      "src/lib/products.functions.ts (deleteProduct = archiveProduct, UPDATE)",
+      "docs/evidence/agent-state/DEBTS.md (DBT-160)",
+    ],
+    sha256: "439a98d87193fd0120e2b3120453b1eb95ed3503691cbb3902bc1f78166f28d8",
+    rollback: "drizzle/rollback/0020_to_0019_down.sql",
+    appliedOn: "live",
+  },
 ];

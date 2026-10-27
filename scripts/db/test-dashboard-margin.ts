@@ -22,12 +22,18 @@ import { requireAdminUrl } from "./migrate";
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const testFile = "src/test/dashboard-consolidated-margin.db.test.ts";
 
-/** Identidades obrigatórias: estados honestos e preço real por tenant. */
+/** Identidades obrigatórias: estados honestos, preço real e fronteiras de período. */
 const REQUIRED_CASES = [
   "estado empty: tenant sem vendas reais não inventa margem",
   "estado ok: Σ(qty × mc unitária) ÷ receita líquida, em Decimal",
   "estado incomplete: produto vendido sem custo calculável desclassifica o agregado",
   "preço real e identidade: duas unidades vendidas a 40 não usam catálogo de 25",
+  // WP dashboard-periodo-2026-10-26: sem estes quatro títulos, uma renomeação ou
+  // um skip silencioso deixaria a fronteira do período sem prova e a cadeia verde.
+  "fronteira de início: venda à meia-noite BRT do dia 1º entra no mês",
+  "fronteira de fim: venda à meia-noite BRT do mês seguinte não entra no mês",
+  "venda futura (1º/01 do ano seguinte) não entra em mês, trimestre nem ano",
+  "venda do ano anterior (último segundo) não entra em mês, trimestre nem ano",
 ] as const;
 
 interface VitestSummary {

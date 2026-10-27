@@ -109,13 +109,13 @@ function Auth() {
       <aside className="relative flex flex-col justify-center overflow-hidden px-6 py-10 sm:px-10 lg:min-h-screen lg:px-12">
         <div className="mx-auto w-full max-w-lg">
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-foreground text-primary">
               <Sparkles className="h-6 w-6" />
             </div>
             <p className="text-lg font-black tracking-tight">Preço que Dá Lucro</p>
           </div>
           <h1 className="mt-8 text-3xl leading-tight font-black tracking-tight sm:text-4xl">
-            Entenda a <span className="text-primary">faixa de preço</span> do seu produto
+            Entenda a <span className="text-primary-display">faixa de preço</span> do seu produto
             conversando.
           </h1>
           <p className="mt-3 max-w-md text-base text-muted-foreground">
@@ -158,7 +158,7 @@ function Auth() {
         <div className="w-full max-w-md">
           <div className="mb-6 text-center lg:text-left">
             <h2 className="text-2xl font-black tracking-tight">
-              <span className="text-primary">{modeTitles[mode]}</span>
+              <span className="text-primary-strong">{modeTitles[mode]}</span>
             </h2>
           </div>
 

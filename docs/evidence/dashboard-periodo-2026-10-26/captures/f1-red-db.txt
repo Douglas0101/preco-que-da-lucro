@@ -1,0 +1,95 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/home/douglas/WebstormProjects/preco-que-da-lucro[39m
+
+(node:546352) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [31m❯[39m src/test/dashboard-consolidated-margin.db.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 272[2mms[22m[39m
+     [32m✓[39m estado empty: tenant sem vendas reais não inventa margem[32m 14[2mms[22m[39m
+     [32m✓[39m estado ok: Σ(qty × mc unitária) ÷ receita líquida, em Decimal[32m 24[2mms[22m[39m
+     [32m✓[39m estado incomplete: produto vendido sem custo calculável desclassifica o agregado[32m 11[2mms[22m[39m
+     [32m✓[39m preço real e identidade: duas unidades vendidas a 40 não usam catálogo de 25[32m 15[2mms[22m[39m
+     [32m✓[39m fronteira de início: venda à meia-noite BRT do dia 1º entra no mês[32m 10[2mms[22m[39m
+[31m     [31m×[31m fronteira de fim: venda à meia-noite BRT do mês seguinte não entra no mês[39m[32m 15[2mms[22m[39m
+[31m     [31m×[31m venda futura (1º/01 do ano seguinte) não entra em mês, trimestre nem ano[39m[32m 9[2mms[22m[39m
+     [32m✓[39m venda do ano anterior (último segundo) não entra em mês, trimestre nem ano[32m 23[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/test/dashboard-consolidated-margin.db.test.ts[2m > [22mmargem consolidada — caminho real (DBT-88, PG efêmero)[2m > [22mfronteira de fim: venda à meia-noite BRT do mês seguinte não entra no mês
+[31m[1mAssertionError[22m: expected { revenue: '20.0000', count: 1 } to deeply equal { revenue: '0', count: +0 }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "count": 0,[39m
+[32m-   "revenue": "0",[39m
+[31m+   "count": 1,[39m
+[31m+   "revenue": "20.0000",[39m
+[2m  }[22m
+
+[36m [2m❯[22m src/test/dashboard-consolidated-margin.db.test.ts:[2m426:27[22m[39m
+    [90m424|[39m     // Limite exclusivo (`< to`): o instante de abertura do mês seguin…
+    [90m425|[39m     [90m// pertence ao mês seguinte, nunca a este.[39m
+    [90m426|[39m     [34mexpect[39m(summary[33m.[39msales)[33m.[39m[34mtoEqual[39m({ revenue[33m:[39m [32m"0"[39m[33m,[39m count[33m:[39m [34m0[39m })[33m;[39m
+    [90m   |[39m                           [31m^[39m
+    [90m427|[39m   })[33m;[39m
+    [90m428|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/test/dashboard-consolidated-margin.db.test.ts[2m > [22mmargem consolidada — caminho real (DBT-88, PG efêmero)[2m > [22mvenda futura (1º/01 do ano seguinte) não entra em mês, trimestre nem ano
+[31m[1mAssertionError[22m: período month: expected { revenue: '40.0000', count: 1 } to deeply equal { revenue: '0', count: +0 }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "count": 0,[39m
+[32m-   "revenue": "0",[39m
+[31m+   "count": 1,[39m
+[31m+   "revenue": "40.0000",[39m
+[2m  }[22m
+
+[36m [2m❯[22m src/test/dashboard-consolidated-margin.db.test.ts:[2m432:50[22m[39m
+    [90m430|[39m     [35mfor[39m ([35mconst[39m period [35mof[39m [[32m"month"[39m[33m,[39m [32m"quarter"[39m[33m,[39m [32m"year"[39m] [35mas[39m [35mconst[39m) {
+    [90m431|[39m       const summary = await asTenant(TENANT_FUTURE, USER_FUTURE, perio…
+    [90m432|[39m       expect(summary.sales, `período ${period}`).toEqual({ revenue: "0…
+    [90m   |[39m                                                  [31m^[39m
+    [90m433|[39m     }
+    [90m434|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 00:13:47
+[2m   Duration [22m 1.77s[2m (transform 205ms, setup 83ms, import 859ms, tests 272ms, environment 458ms)[22m
+
+JSON report written to /tmp/trk-dbt88-rSstmw/summary.json
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: caso obrigatório não executado: fronteira de fim: venda à meia-noite BRT do mês seguinte não entra no mês
+
+'failed' !== 'passed'
+
+    at main (file:///home/douglas/WebstormProjects/preco-que-da-lucro/scripts/db/test-dashboard-margin.ts:1:2506)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at file:///home/douglas/WebstormProjects/preco-que-da-lucro/scripts/db/test-dashboard-margin.ts:1:3260 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'failed',
+  expected: 'passed',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.21.0
+
+exit=1
+HEAD=ec0ed77ee963dec3705275cb4b09d08030dc6499
+d1489f53156ab33bd0414ea00fe61a3aaadc95dd4e43fbba53ef990d1cadf459  src/test/dashboard-consolidated-margin.db.test.ts
+946e26275d8c28895060e92564f48deaaca4d780ee908ef0c9360bb2e47f9d79  scripts/db/test-dashboard-margin.ts

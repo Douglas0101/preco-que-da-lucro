@@ -1,0 +1,25 @@
+SFDPOT T (time) — recarga, historico, 2 abas, double-submit, logout | Agente D | bench :4177
+== T1 reload (F5) no meio do preenchimento de /despesas ==
+   antes nome='Bughunt D2 MEIO DE FLUXO' | depois nome='' valor='' -> o estado do form NAO sobrevive ao F5 (sem aviso).
+== T2 double-submit ==
+   (a) dois cliques no MESMO tick (programatico) -> 2 requisicoes de mutation -> 2 linhas gravadas (duplicou).
+   (b) dblclick REALISTA (delay 10ms) -> 1 linha (nao duplica).
+   (c) 2o clique 300ms depois -> botao ja desabilitado/estado limpo -> 1 linha (nao duplica).
+   => o duplo registro so acontece com 2 cliques no mesmo tick; um usuario real nao reproduz.
+== T3 voltar/avancar no historico ==
+   /inicio -> /produtos -> voltar -> /inicio (conteudo correto) -> avancar -> /produtos. Sem estado orfao.
+== T4 mesma rota em 2 abas ==
+   aba1 grava despesa; apos reload na aba2 a linha aparece. Sem estado orfao. (Aba2 nao tem auto-refresh antes do reload.)
+== T5 logout ==
+   get-session -> HTTP 200 corpo 'null' (sem sessao); recarregar /inicio -> /auth?redirect=%2Finicio. Logout correto.
+
+== detalhe por caso (medido) ==
+   [T0 sessao ativa?] url=http://127.0.0.1:4177/inicio
+   [D-00 formulario de venda presente] inputs=0
+   [T1 reload no meio do preenchimento] antes nome="Bughunt D2 MEIO DE FLUXO" | depois nome="" valor="" (estado do form apos F5)
+   [T2 double submit (dois cliques no mesmo tick)] net=[{"u":"/_serverFn/c86975e06310d8f824e5519dea97577e361244f5cd42fd48baa4ddddbd51adf6","s":200},{"u":"/_serverFn/c86975e06310d8f824e5519dea97577e361244f5cd42fd48baa4ddddbd51adf6","s":200},{"u":"/_serverFn/1cb08ca963090e16a335051d8f4a530f4166f007e2c6ea643694641dcfd8900f","s":200},{"u":"/_serverFn/1cb08ca963090e16a335051d8f4a530f4166f007e2c6ea643694641dcfd8900f","s":200}] | linhas gravadas=2 (1 = ok, 2 = duplicou)
+   [T3 voltar/avancar no historico] voltar -> http://127.0.0.1:4177/inicio | texto="Preço que Dá Lucro bughunt.d2.1792635934102@example.test Sair Início Meus Produtos Novo Produto Preços de Compra Minhas " | avancar -> http://127.0.0.1:4177/produtos
+   [T4 mesma rota em 2 abas (aba2 nao foi recarregada antes)] aba1 tem "Bughunt D2 ABA 1"?=true | apos reload na aba2, aba2 tem?=true | aba1 antes tinha a linha?=false
+   [T5 logout: corpo de get-session] url=http://127.0.0.1:4177/auth | get-session={"status":200,"body":"null"} | net=[{"u":"/api/vitals","s":204},{"u":"/api/auth/revoke-sessions","s":200},{"u":"/api/auth/sign-out","s":200},{"u":"/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59","s":401},{"u":"/api/auth/get-session","s":200},{"u":"/api/auth/get-session","s":200}]
+   [T5b recarregar /inicio apos logout] url=http://127.0.0.1:4177/auth?redirect=%2Finicio | h1="Entenda a faixa de preço do seu produto conversando."
+   [pageErrors acumulados] []

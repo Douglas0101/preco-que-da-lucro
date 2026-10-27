@@ -25,8 +25,10 @@ import {
   insideWorkTree,
   isCredentialField,
   isEnvPlaceholder,
+  isNpxCachePath,
   isPinned,
   looksLikeLiteralSecret,
+  npxCacheManifestMissing,
   runnerSpecifier,
 } from "../../scripts/mcp-runtime-guard";
 
@@ -526,6 +528,81 @@ describe("catalogo de sitios da maquina", () => {
       expect(["json", "opencode-json", "yaml-text"]).toContain(site.format);
       expect((site.role ?? "").length).toBeGreaterThan(0);
     }
-    expect(sites.length).toBeGreaterThanOrEqual(8);
+  });
+
+  // Igualdade de CONJUNTO, nao "pelo menos N": a auditoria mediu que
+  // `expect(sites.length).toBeGreaterThanOrEqual(8)` permitia remover ate
+  // TRES sitios sem reprovar — exatamente o modo de falha que o catalogo
+  // explicito existe para impedir (o cliente que de fato carregava MCP nao
+  // era nenhum dos sitios de 2026-10-17).
+  // Remover ou renomear um sitio agora reprova; adicionar um sitio exige
+  // atualizar esta lista DE PROPONITO.
+  it("o catalogo de maquina e exatamente o conjunto esperado (11 sitios)", () => {
+    const esperado = [
+      join(homedir(), ".config", "mcp", "mcp.json"),
+      join(homedir(), ".agents", "mcp.json"),
+      join(homedir(), ".agents", "mcp", "mcp.json"),
+      join(homedir(), ".cline", "data", "settings", "cline_mcp_settings.json"),
+      join(homedir(), ".pi", "agent", "mcp-adapter.json"),
+      join(homedir(), ".pi", "agent", "mcp.json"),
+      join(homedir(), ".cache", "plugins", "github.com-vercel-vercel-plugin", ".mcp.json"),
+      join(homedir(), ".config", "Codex", "executor-plugins", "codex-app-tools", ".mcp.json"),
+      join(homedir(), ".config", "opencode", "opencode.json"),
+      join(homedir(), ".gemini", "config", "mcp_config.json"),
+      join(homedir(), ".dsh", "bundles", "kimi-mcp", "cordis.patch.yml"),
+    ];
+    const paths = homeCatalog().map((s) => s.path);
+    expect(paths).toHaveLength(11);
+    expect([...paths].sort()).toEqual([...esperado].sort());
+  });
+
+  it("o catalogo de repositorio e exatamente o conjunto esperado (2 sitios)", () => {
+    expect(REPO_CATALOG.map((s) => s.path)).toEqual([".mcp.json", join(".pi", "mcp-adapter.json")]);
+    expect(REPO_CATALOG).toHaveLength(2);
+  });
+});
+
+describe("cache do npx sem manifesto (o que a guarda ve e o que ela nao ve)", () => {
+  it("reconhece o cache do npx pelo par de segmentos, sem presumir hash", () => {
+    expect(isNpxCachePath("/home/u/.npm/_npx/9a60de26ed7bbd1b")).toBe(true);
+    expect(isNpxCachePath("/home/u/.npm/_npx/9a60de26ed7bbd1b/node_modules/pkg")).toBe(true);
+    expect(isNpxCachePath("/home/u/.mcp-runtime")).toBe(false);
+    expect(isNpxCachePath("/home/u/.npm/_cacache")).toBe(false);
+  });
+
+  it("so reports cache quebrado quando o diretorio existe e nao tem manifesto", () => {
+    const base = bench();
+    const cache = join(base, ".npm", "_npx", "9a60de26ed7bbd1b");
+    // Diretorio inexistente: cache ainda nao criado nao e cache quebrado.
+    expect(npxCacheManifestMissing(cache)).toBe(false);
+    mkdirSync(cache, { recursive: true });
+    expect(npxCacheManifestMissing(cache)).toBe(true);
+    writeFileSync(join(cache, "package.json"), "{}");
+    expect(npxCacheManifestMissing(cache)).toBe(false);
+  });
+
+  it("reprova a linha cujo `cwd` aponta para o cache do npx sem manifesto", () => {
+    const cache = join(bench(), ".npm", "_npx", "9a60de26ed7bbd1b");
+    mkdirSync(cache, { recursive: true });
+    const { findings } = run(
+      jsonConfig({
+        aikido: { command: "npx", args: ["-y", "@aikidosec/mcp@1.0.9"], cwd: cache },
+      }),
+    );
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toContain("cache do npx");
+    expect(findings[0]).toContain("package.json");
+  });
+
+  it("aprova a mesma linha quando o cache tem manifesto", () => {
+    const cache = join(bench(), ".npm", "_npx", "9a60de26ed7bbd1b");
+    mkdirSync(cache, { recursive: true });
+    writeFileSync(join(cache, "package.json"), "{}");
+    const { findings } = run(
+      jsonConfig({
+        aikido: { command: "npx", args: ["-y", "@aikidosec/mcp@1.0.9"], cwd: cache },
+      }),
+    );
+    expect(findings).toEqual([]);
   });
 });

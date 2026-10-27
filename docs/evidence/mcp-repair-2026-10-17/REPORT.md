@@ -129,7 +129,7 @@ O reparo é cirúrgico por medição: dos 7 servidores da config viva, **6 `INAL
 (`05-config-diff.txt`).
 
 O escopo-repositorio da guarda continua **0 sítios / `exit=0`** (este repositório não versiona config
-MCP), e agora ele é **passo direto do `verify`** em `.github/workflows/ui-stack.yml` (DBT-33, metade
+MCP), e agora ele é **passo direto do `verify`** em `.github/workflows/ui-stack.yml` (DBT-121, metade
 heavy), com a linha da tabela do `AGENTS.md` atualizada no mesmo commit e os **59** testes de
 cobertura/tiers verdes (`captures/10-testes.txt`).
 
@@ -153,7 +153,7 @@ cobertura/tiers verdes (`captures/10-testes.txt`).
    como aprovação nem como violação. O arquivo não foi tocado.
 6. **O detector de ausência do runtime isolado não existe**: `~/.mcp-runtime/` sumiu uma vez sem que
    nada acusasse. Registrado como dívida com closure a desenhar.
-7. **A metade light do DBT-33 segue aberta por decisão**, não por esquecimento: aquele pipeline só
+7. **A metade light do DBT-121 segue aberta por decisão**, não por esquecimento: aquele pipeline só
    dispara com **todos** os arquivos alterados sob `docs/evidence/**`, onde nenhum dos dois sítios do
    escopo-repositorio vive — o passo seria vacuidade permanente, e cerimônia em CI é o que este repo
    proíbe. A ratificação do `✘` nomeado (ou a inclusão do passo) é humana.

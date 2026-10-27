@@ -634,12 +634,79 @@ const packagingInput = z.object({
   units_per_package: positiveDecimalStringSchema,
 });
 
+/**
+ * Ponto de preço de uma embalagem: o par (preço do pacote, unidades por
+ * pacote) que define o custo unitário do material.
+ *
+ * `purchase_price_history` registra **variação de preço**, não criação: a linha
+ * `product_packaging` já guarda o **estado corrente** (`package_price` é NOT
+ * NULL — `src/db/schema.ts:303` — o preço é parte da identidade da embalagem,
+ * não um registro opcional como o `product_ingredients.package_price`, que é
+ * NULLABLE em `src/db/schema.ts:261`). Por isso a criação pela composição não
+ * vira entrada de histórico: ela é o estado corrente, e só uma **mudança** do
+ * ponto é um registro de preço.
+ *
+ * O ingrediente é o caso oposto e **não** muda: lá o preço é opcional e, quando
+ * informado, é um registro de preço (por isso `upsertIngredient` só anexa
+ * histórico quando preço + quantidade + unidade existem — ingrediente sem
+ * preço registrado continua removível).
+ */
+interface PackagingPricePoint {
+  price: string;
+  quantity: string;
+}
+
+/**
+ * Dois pontos de preço são o mesmo quando os **valores** são iguais — a escala
+ * não pode ser o critério (`numeric(19,4)` e `numeric(24,6)` guardam "1.2000" e
+ * "10.000000", mas um ponto lido de outra writer pode vir "1.2").
+ *
+ * Os dois lados são decimais válidos por construção (o `numeric` do Postgres e
+ * o `toDecimalString` do payload), então a comparação não tem caminho de
+ * erro: um valor ilegível faria `Decimal` lançar — falha alta, nunca um
+ * "não é o mesmo ponto" silencioso (INV-013: nenhum sucesso vazio em caminho
+ * de dado).
+ */
+function samePricePoint(left: PackagingPricePoint, right: PackagingPricePoint): boolean {
+  return (
+    new Decimal(left.price).eq(new Decimal(right.price)) &&
+    new Decimal(left.quantity).eq(new Decimal(right.quantity))
+  );
+}
+
+/**
+ * Ponto de preço **anterior** da embalagem, lido antes da escrita.
+ *
+ * `null` = não há ponto anterior conhecido: criação (a linha vai nascer com o
+ * preço atual) ou linha que não está entre os filhos do produto informado. Nos
+ * dois casos não há variação a registrar.
+ */
+async function loadPackagingPricePoint(
+  request: RequestContext,
+  productId: string,
+  id: string,
+): Promise<PackagingPricePoint | null> {
+  const detail = await productService.loadDetail(request, productId);
+  const row = detail?.packaging.find((item) => item.id === id);
+  if (!row) return null;
+  return { price: row.packagePrice, quantity: row.unitsPerPackage };
+}
+
 export const upsertPackaging = createServerFn({ method: "POST" })
   .middleware([requireDatabaseAuth])
   .validator((input: unknown) => packagingInput.parse(input))
   .handler(async ({ data, context }) => {
     const request = context.requestContext;
     const priceUpdatedAt = new Date();
+    // O ponto anterior é lido ANTES da escrita: só a **variação** do ponto
+    // (preço ou unidades por pacote) vira entrada de histórico. A criação é o
+    // estado corrente da linha — sem linha de histórico — então a embalagem
+    // criada pela composição continua removível: a FK `ON DELETE restrict` de
+    // `purchase_price_history` só morde quando existe histórico de verdade
+    // (`drizzle/0004_giant_nocturne.sql:32`).
+    const previous = data.id
+      ? await loadPackagingPricePoint(request, data.product_id, data.id)
+      : null;
     const row = await productService.savePackaging(request, {
       id: data.id,
       productId: data.product_id,
@@ -648,14 +715,23 @@ export const upsertPackaging = createServerFn({ method: "POST" })
       unitsPerPackage: toDecimalString(data.units_per_package, 6),
       priceUpdatedAt,
     });
-    await purchasePriceService.append(request, {
-      kind: "packaging",
-      subjectId: row.id,
-      price: data.package_price,
-      quantity: data.units_per_package,
-      unit: "unidade",
-      validFrom: priceUpdatedAt,
-    });
+    const current: PackagingPricePoint = {
+      price: row.packagePrice,
+      quantity: row.unitsPerPackage,
+    };
+    if (previous && !samePricePoint(previous, current)) {
+      // Variação de preço = registro de preço. O ponto gravado é o **novo**
+      // (o vigente a partir de agora), como em `purchasePriceService.update`
+      // (§9.2 ponto 3) e na tool de preço.
+      await purchasePriceService.append(request, {
+        kind: "packaging",
+        subjectId: row.id,
+        price: current.price,
+        quantity: current.quantity,
+        unit: "unidade",
+        validFrom: priceUpdatedAt,
+      });
+    }
     return mapPackaging(row);
   });
 

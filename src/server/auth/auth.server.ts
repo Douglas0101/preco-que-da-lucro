@@ -7,19 +7,23 @@ import { getDatabase, type Database } from "@/db/client.server";
 import * as schema from "@/db/schema";
 import { getEmailAdapter } from "@/server/email/email-adapter.server";
 import { createPersonalTenantForUser } from "./tenant-bootstrap.server";
-import { assertEmailSignUpReady } from "./email-signup-guard.server";
-import { resolveAuthPolicy, requireAuthSecret, resolveGoogleCredentials } from "./auth-policy";
+import {
+  assertEmailSignUpReady,
+  assertVerifiableUserCanBePersisted,
+} from "./email-signup-guard.server";
+import {
+  resolveAuthPolicy,
+  requireAuthSecret,
+  resolveGoogleProviderOptions,
+  REQUIRE_EMAIL_VERIFICATION,
+} from "./auth-policy";
 import { hashPassword, verifyPassword } from "./password.server";
 import { createDatabaseRateLimitStorage } from "./rate-limit-storage.server";
 import { AUTH_RATE_LIMIT_RULES } from "./rate-limit-rules.server";
 
-// Uma única fonte para o acoplamento "verificação obrigatória ⇒ e-mail
-// configurado": o guard de sign-up só bloqueia enquanto esta flag for true.
-const REQUIRE_EMAIL_VERIFICATION = true;
-
 export function createAuthInstance(database: Database = getDatabase()) {
   const policy = resolveAuthPolicy();
-  const google = resolveGoogleCredentials();
+  const google = resolveGoogleProviderOptions();
 
   return betterAuth({
     ...(policy.baseURL ? { baseURL: policy.baseURL } : {}),
@@ -62,6 +66,15 @@ export function createAuthInstance(database: Database = getDatabase()) {
     databaseHooks: {
       user: {
         create: {
+          // Roda ANTES de qualquer escrita (`db/with-hooks.mjs:12-22`): o hook
+          // `before` decide, e só depois `adapter.create` grava a linha
+          // (`with-hooks.mjs:25-29`). Um `throw` aqui aborta a transação
+          // (`link-account.mjs:220` abre a transação que cria o usuário do
+          // OAuth) e nada é persistido — é o que impede o usuário órfão sem
+          // possibilidade de verificação.
+          before: async (user) => {
+            assertVerifiableUserCanBePersisted(user.emailVerified);
+          },
           after: async (user) => {
             await createPersonalTenantForUser(user);
           },

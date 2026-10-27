@@ -12,7 +12,7 @@ set -a
 set +a
 
 DB_HOST="127.0.0.1:5432/preco_que_da_lucro_test"
-export DATABASE_ADMIN_URL="postgresql://postgres:postgres@${DB_HOST}"
+export DATABASE_ADMIN_URL="postgresql://postgres:<REDACTED_BENCH_PASSWORD>@${DB_HOST}"
 export DATABASE_URL="postgresql://app_runtime:${E2E_DB_RUNTIME_PASSWORD}@${DB_HOST}"
 export DATABASE_DRIVER=node-postgres
 export BETTER_AUTH_URL="http://127.0.0.1:4173"

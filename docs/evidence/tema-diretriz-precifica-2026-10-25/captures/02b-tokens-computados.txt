@@ -1,0 +1,38 @@
+# Tokens computados no navegador depois do tema
+
+Comando: `node .artifacts/design/shots-theme.mjs` (Playwright/Chromium, dev server, fixture local)
+
+```json
+{
+ "dashboard": {
+  "tokens": {
+   "--background": "oklch(98% .005 84.6)",
+   "--foreground": "oklch(21.3% .043 267.6)",
+   "--primary": "oklch(66.6% .128 84.7)",
+   "--primary-foreground": "oklch(21.3% .043 267.6)",
+   "--primary-strong": "oklch(52.2% .099 85.1)",
+   "--sidebar": "oklch(98.7% .003 84.6)",
+   "--sidebar-foreground": "oklch(21.3% .043 267.6)",
+   "--sidebar-primary": "oklch(21.3% .043 267.6)",
+   "--muted-foreground": "oklch(47.1% .034 269.4)",
+   "--border": "oklch(90% .011 270)"
+  },
+  "body": {
+   "bg": "oklch(0.98 0.005 84.6)",
+   "color": "oklch(0.213 0.043 267.6)"
+  },
+  "header": {
+   "bg": "oklab(0.987 0.000282325 0.00298669 / 0.85)",
+   "color": "oklch(0.213 0.043 267.6)"
+  },
+  "firstSolidButton": {
+   "bg": "oklch(0.666 0.128 84.7)",
+   "color": "oklch(0.213 0.043 267.6)"
+  }
+ }
+}
+```
+
+Leitura: `body` computa o creme `oklch(0.98 0.005 84.6)`, texto navy `oklch(0.213 0.043 267.6)`,
+header claro com 85% de opacidade, e o primeiro botão sólido é o ouro `oklch(0.666 0.128 84.7)`
+com texto navy `oklch(0.213 0.043 267.6)` — os mesmos valores do `:root` aplicado.

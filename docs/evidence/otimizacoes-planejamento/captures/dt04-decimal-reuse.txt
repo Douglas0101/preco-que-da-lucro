@@ -1,22 +1,72 @@
 # DT-04 — constantes Decimal (2026-10-20)
 
+> **Errata do instrumento (2026-10-21):** o registro original desta captura usava um padrão **BRE**
+> (`grep -rn 'new Decimal(0|1|100)'`), em que `|` é **literal** e `(`/`)` são literais. Esse padrão
+> **só casa com o texto literal `new Decimal(0|1|100)`** — nunca com `new Decimal(0)`,
+> `new Decimal(1)` ou `new Decimal(100)`. O "vazio" da linha 4 original era, portanto, **vacuidade do
+> instrumento**, não ausência de instanciações. A verificação foi **reexecutada com ERE real** (o
+> instrumento agora **pode reprovar**), e o resultado real está abaixo. Verificação de vacuidade e
+> reexecução: 2026-10-21.
+
+## 1. O instrumento anterior (BRE) — vacuidade demonstrada
+
+```
 $ grep -rn 'new Decimal(0|1|100)' src/lib src/server --exclude=decimal-constants.ts
-(vazio = nenhuma instanciação literal nos caminhos de cálculo)
+(saída vazia; exit 1)
+```
 
-$ grep -rn 'new Decimal(0|1|100)' src/test
-/home/douglas/WebstormProjects/preco-que-da-lucro/src/test/finance.properties.test.ts:226:        const exact = values.reduce((acc, value) => acc.plus(value), new Decimal(0));
-/home/douglas/WebstormProjects/preco-que-da-lucro/src/test/calc-explainer.test.tsx:295:    const feeRate = input.fees.reduce((sum, fee) => sum.plus(fee.percentage ?? 0), new Decimal(0));
-(testes/fixtures mantêm a forma literal de propósito: são o controle negativo da igualdade)
+**Controle de vacuidade** — o mesmo padrão BRE contra a string que ele próprio descreve:
 
+```
+$ printf 'const x = new Decimal(0|1|100);\n' > /tmp/kilo/bre-probe.txt
+$ grep -n 'new Decimal(0|1|100)' /tmp/kilo/bre-probe.txt
+1:const x = new Decimal(0|1|100);
+```
+
+O BRE casa **apenas** com o literal `new Decimal(0|1|100)`; contra `new Decimal(0)` — que existe no
+repositório — ele **não** casaria. Logo, o "vazio" original **não provava** nada: o instrumento era
+**vacuoso** (não podia falhar).
+
+## 2. Verificação reexecutada com ERE real (o instrumento pode reprovar)
+
+```
+$ grep -rnE 'new Decimal\((0|1|100)\)' src/
+src/lib/decimal-constants.ts:12:export const DECIMAL_ZERO = Object.freeze(new Decimal(0));
+src/lib/decimal-constants.ts:13:export const DECIMAL_ONE = Object.freeze(new Decimal(1));
+src/test/finance.properties.test.ts:226:        const exact = values.reduce((acc, value) => acc.plus(value), new Decimal(0));
+src/test/calc-explainer.test.tsx:295:    const feeRate = input.fees.reduce((sum, fee) => sum.plus(fee.percentage ?? 0), new Decimal(0));
+(exit 0; 4 ocorrências em src/)
+```
+
+**Resultado real:** **4** ocorrências em `src/` — **2** na definição das constantes e **2** em
+`src/test/`. Fora de `src/lib/decimal-constants.ts` **e** fora de `src/test/`:
+
+```
+$ grep -rnE 'new Decimal\((0|1|100)\)' src/ --exclude=decimal-constants.ts | grep -v '^src/test/'
+(saída vazia; exit 1 — nenhuma instanciação literal nos caminhos de cálculo)
+```
+
+As duas ocorrências em `src/test/` são **controle negativo de propósito** (testes/fixtures mantêm a
+forma literal para provar a igualdade contra a constante reutilizada):
+
+```
+$ grep -rnE 'new Decimal\((0|1|100)\)' src/test
+src/test/finance.properties.test.ts:226:        const exact = values.reduce((acc, value) => acc.plus(value), new Decimal(0));
+src/test/calc-explainer.test.tsx:295:    const feeRate = input.fees.reduce((sum, fee) => sum.plus(fee.percentage ?? 0), new Decimal(0));
+```
+
+## 3. Uso das constantes
+
+```
 $ grep -rn 'DECIMAL_ZERO\|DECIMAL_ONE' src
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/dashboard.service.ts:2:import { DECIMAL_ZERO } from "@/lib/decimal-constants";
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/dashboard.service.ts:102:  let value = DECIMAL_ZERO;
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/dashboard.service.ts:308:    const itemRevenue = itemSummary.reduce((sum, row) => sum.plus(row.totalAmount), DECIMAL_ZERO);
-/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/dashboard.service.ts:317:    let marginTotal = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/dashboard.service.ts:317:  let marginTotal = DECIMAL_ZERO;
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/diagnostic.service.ts:2:import { DECIMAL_ZERO } from "@/lib/decimal-constants";
-/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/diagnostic.service.ts:145:    let total = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/diagnostic.service.ts:145:  let total = DECIMAL_ZERO;
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/sales.service.ts:2:import { DECIMAL_ZERO } from "@/lib/decimal-constants";
-/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/sales.service.ts:50:    let gross = DECIMAL_ZERO;
+/home/douglas/WebstormProjects/preco-que-da-lucro/src/server/services/sales.service.ts:50:  let gross = DECIMAL_ZERO;
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/break-even.ts:15:import { DECIMAL_ZERO } from "@/lib/decimal-constants";
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/break-even.ts:194:  let value = DECIMAL_ZERO;
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/finance.ts:7:import { DECIMAL_ONE, DECIMAL_ZERO } from "@/lib/decimal-constants";
@@ -27,8 +77,10 @@ $ grep -rn 'DECIMAL_ZERO\|DECIMAL_ONE' src
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/finance.ts:596:    DECIMAL_ONE.minus(new Decimal(percentageRate).plus(targetContributionRate as number).div(100)),
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/decimal-constants.ts:12:export const DECIMAL_ZERO = Object.freeze(new Decimal(0));
 /home/douglas/WebstormProjects/preco-que-da-lucro/src/lib/decimal-constants.ts:13:export const DECIMAL_ONE = Object.freeze(new Decimal(1));
+```
 
-Definição congelada:
+## 4. Definição congelada
+
 import Decimal from "decimal.js";
 
 /**

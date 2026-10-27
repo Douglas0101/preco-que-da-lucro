@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-10-22T07:11:31.120Z",
+  "checks": {
+    "clickjacking": {
+      "frames": [
+        {
+          "url": "http://127.0.0.1:4178/",
+          "name": ""
+        },
+        {
+          "url": "chrome-error://chromewebdata/",
+          "name": "target"
+        },
+        {
+          "url": "http://127.0.0.1:4179/",
+          "name": "control"
+        }
+      ],
+      "targetText": null,
+      "targetError": null,
+      "controlText": "CONTROL-FRAME-CONTENT",
+      "blocked": true,
+      "methodDiscriminates": true
+    },
+    "expenseDelete": {
+      "probeName": "Probe DBT-160 1792653094148",
+      "serverFnResponses": [
+        {
+          "url": "http://127.0.0.1:4173/_serverFn/24027b808402dd5fc25b4b0972f5294081037bd918f045a63cc4b37fafb7b0f4",
+          "status": 200
+        },
+        {
+          "url": "http://127.0.0.1:4173/_serverFn/1cb08ca963090e16a335051d8f4a530f4166f007e2c6ea643694641dcfd8900f",
+          "status": 200
+        },
+        {
+          "url": "http://127.0.0.1:4173/_serverFn/1cb08ca963090e16a335051d8f4a530f4166f007e2c6ea643694641dcfd8900f",
+          "status": 200
+        }
+      ],
+      "visibleAfterReload": false,
+      "passed": true
+    }
+  }
+}

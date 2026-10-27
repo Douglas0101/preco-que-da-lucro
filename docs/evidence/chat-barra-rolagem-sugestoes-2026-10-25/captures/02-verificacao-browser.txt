@@ -1,0 +1,28 @@
+{
+ "desktop": {
+  "scrollWidth": 776,
+  "clientWidth": 423,
+  "max": "353",
+  "value": "0",
+  "visible": true
+ },
+ "desktopAfterEnd": {
+  "scrollLeft": 353,
+  "value": "353",
+  "max": "353"
+ },
+ "desktopAxe": [],
+ "mobile": {
+  "scrollWidth": 776,
+  "clientWidth": 365,
+  "max": "411",
+  "value": "0",
+  "visible": true
+ },
+ "mobileAfterEnd": {
+  "scrollLeft": 411,
+  "value": "411",
+  "max": "411"
+ },
+ "mobileAxe": []
+}

@@ -3609,4 +3609,4 @@ Estado corrente: `develop` `e09c0a9` (Onda 1 verde + 92/92 E2E + regressão
 profunda); `main` não mudou nesta rodada; nenhum push, deploy, SQL, Hostinger,
 Vercel ou Neon remoto foi tocado. Preview local restaurado ao ramo controlado.
 
-Latest state marker parent = `e09c0a990cc36e0a4034ff70eeee1d6fbc50af65`,
+Latest state marker parent = `7139d8e0dd551da0f795290b7b5462964f9c56ee`,

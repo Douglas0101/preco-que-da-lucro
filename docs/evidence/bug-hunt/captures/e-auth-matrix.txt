@@ -1,0 +1,67 @@
+Agente E — FASE 5.1: matriz de autenticacao (rota x cenario), status + destino do redirect.
+
+Preview auxiliar do Agente E: http://127.0.0.1:4178 (mesmo build .output, mesmo banco LOCAL de teste).
+x-forwarded-for: 198.51.100.25 (IP de documentacao, exclusivo do Agente E).
+
+== A) NIVEL HTTP (curl -sS -o /dev/null -w '%{http_code} %{redirect_url}') ==
+ROTA                   | S1 sem sessao                      | S2 cookie forjado                  | S3 cookie malformado              
+-----------------------+----------------------------------+----------------------------------+----------------------------------
+/inicio                | 200                                | 200                                | 200                               
+/produtos              | 200                                | 200                                | 200                               
+/vendas                | 200                                | 200                                | 200                               
+/simulacoes            | 200                                | 200                                | 200                               
+/despesas              | 200                                | 200                                | 200                               
+/diagnostico           | 200                                | 200                                | 200                               
+/novo-produto          | 200                                | 200                                | 200                               
+/precos                | 200                                | 200                                | 200                               
+/ponto-equilibrio      | 200                                | 200                                | 200                               
+/produtos/composicao   | 307 http://127.0.0.1:4178/produtos/composicao?produto= | 307 http://127.0.0.1:4178/produtos/composicao?produto= | 307 http://127.0.0.1:4178/produtos/composicao?produto=
+
+=== tamanho do corpo (bytes) por rota — S1 sem sessao ===
+/inicio                4434 bytes
+/produtos              4434 bytes
+/vendas                4434 bytes
+/simulacoes            4434 bytes
+/despesas              4434 bytes
+/diagnostico           4434 bytes
+/novo-produto          4434 bytes
+/precos                4434 bytes
+/ponto-equilibrio      4434 bytes
+/produtos/composicao   0 bytes
+
+== B) NIVEL NAVEGADOR (destino REAL do redirect) ==
+A rota /_authenticated tem ssr:false (src/routes/_authenticated/route.tsx:17): o servidor responde 200
+com o shell do SPA (4434 bytes, pendingComponent 'Carregando...') e o redirect acontece NO CLIENTE.
+Medido por rota, com e sem cookie:
+  S1-sem-sessao        /inicio            http=200 -> /auth?redirect=%2Finicio  auth=true  dado_protegido_visivel=false
+  S1-sem-sessao        /produtos          http=200 -> /auth?redirect=%2Fprodutos  auth=true  dado_protegido_visivel=false
+  S1-sem-sessao        /vendas            http=200 -> /auth?redirect=%2Fvendas  auth=true  dado_protegido_visivel=false
+  S1-sem-sessao        /simulacoes        http=200 -> /auth?redirect=%2Fsimulacoes  auth=true  dado_protegido_visivel=false
+  S1-sem-sessao        /despesas          http=200 -> /auth?redirect=%2Fdespesas  auth=true  dado_protegido_visivel=false
+  S1-sem-sessao        /diagnostico       http=200 -> /auth?redirect=%2Fdiagnostico  auth=true  dado_protegido_visivel=false
+  S1-sem-sessao        /novo-produto      http=200 -> /auth?redirect=%2Fnovo-produto  auth=true  dado_protegido_visivel=false
+  S1-sem-sessao        /precos            http=200 -> /auth?redirect=%2Fprecos  auth=true  dado_protegido_visivel=false
+  S1-sem-sessao        /ponto-equilibrio  http=200 -> /auth?redirect=%2Fponto-equilibrio  auth=true  dado_protegido_visivel=false
+  S2-cookie-forjado    /inicio            http=200 -> /auth?redirect=%2Finicio  auth=true  dado_protegido_visivel=false
+  S2-cookie-forjado    /produtos          http=200 -> /auth?redirect=%2Fprodutos  auth=true  dado_protegido_visivel=false
+  S2-cookie-forjado    /vendas            http=200 -> /auth?redirect=%2Fvendas  auth=true  dado_protegido_visivel=false
+  S2-cookie-forjado    /simulacoes        http=200 -> /auth?redirect=%2Fsimulacoes  auth=true  dado_protegido_visivel=false
+  S2-cookie-forjado    /despesas          http=200 -> /auth?redirect=%2Fdespesas  auth=true  dado_protegido_visivel=false
+  S2-cookie-forjado    /diagnostico       http=200 -> /auth?redirect=%2Fdiagnostico  auth=true  dado_protegido_visivel=false
+  S2-cookie-forjado    /novo-produto      http=200 -> /auth?redirect=%2Fnovo-produto  auth=true  dado_protegido_visivel=false
+  S2-cookie-forjado    /precos            http=200 -> /auth?redirect=%2Fprecos  auth=true  dado_protegido_visivel=false
+  S2-cookie-forjado    /ponto-equilibrio  http=200 -> /auth?redirect=%2Fponto-equilibrio  auth=true  dado_protegido_visivel=false
+
+== C) CONTEUDO PROTEGIDO NO CORPO DA RESPOSTA SEM SESSAO ==
+Arquivo: .artifacts/bughunt-e/out/inicio-s1.html (4434 bytes, shell do SPA).
+Marcadores contados no corpo (grep -a -i -o):
+  'Bughunt'=0  'bughunt-e'=0  '@bughunt'=0  'tenant'=0  'produto'=0  'email'=0
+  'tenant_id'=0  'user_id'=0  'sessao'=0  'session_token'=0
+  'Preco'=2 (titulo/og:title genericos)  'Carregando'=1 (pendingComponent)
+=> NENHUM dado de tenant/usuario/produto chega ao cliente antes da autenticacao.
+
+== D) NIVEL SERVER FUNCTION (a fronteira real de seguranca) ==
+requireDatabaseAuth (src/middleware/request-context.ts:113) resolve a sessao no servidor:
+  cookie INVALIDO  -> HTTP 401 {"ok":false,"error":{"code":"AUTHENTICATION_ERROR",...}}
+  cookie MALFORMADO-> HTTP 401 (mesmo envelope)
+  (captura: e-exposure.json, casos 'serverFn com payload + cookie ...')

@@ -1,0 +1,45 @@
+Tour do novato (retomada) — cadastro por e-mail + estados de 1o uso em tenant novo | Agente D | bench :4177 | x-forwarded-for 198.51.100.34
+e-mail descartavel usado: bughunt.d2.<timestamp>@example.test (senha nunca impressa)
+tenant do tour: "Bughunt D2 N <timestamp>" (criado no banco por workaround de bancada, zero linhas)
+
+[N1] tela de login
+     -> url=http://127.0.0.1:4177/auth | h1="Entenda a faixa de preço do seu produto conversando." | botao-cadastro=1
+[N2] modo cadastro
+     -> campoNomePresente=true | h2="Vamos começar juntos"
+[N3] submit do cadastro (e-mail descartavel unico)
+     -> url=http://127.0.0.1:4177/auth
+     -> toasts=["Cadastro por e-mail indisponível: o envio de verificação não está configurado."]
+     -> net=[{"u":"/api/auth/sign-up/email","s":503,"body":"{\"code\":\"EMAIL_NOT_CONFIGURED\",...}"}]
+[N4] estado do formulario apos a recusa
+     -> modoSignup=true | h2="Vamos começar juntos" | valoresNosCampos={"nome":"Bughunt D2 N <ts>","email":"bughunt.d2.<ts>@example.test"}
+     -> o formulario NAO e' limpo e NAO ha indicacao de "verifique seu e-mail"; a unica pista e' o toast.
+[N5] existe link/botao de 'voltar para o login' no modo cadastro
+     -> links=[]  (a pagina so oferece "Cadastre-se"; nao ha retorno explicito para o modo login alem do recarregar)
+[N6] login da conta nova (workaround de bancada: conta criada direto no banco)
+     -> url=http://127.0.0.1:4177/inicio | toasts=[]
+
+[N7] estado vazio /inicio   (tenant novo, zero dados)
+     -> h1=["Bem-vindo!"] | form=0 | inputs=[] | texto="... Bem-vindo! Vamos descobrir juntos quanto custa o seu produto..."
+[N7] estado vazio /produtos
+     -> h1=["Meus Produtos"] | form=0 | texto="... Meus Produtos 0 produtos cadastrados Preços de compra Novo produto Você ainda não tem produtos Cadastrar primeiro produto"
+[N7] estado vazio /vendas
+     -> h1=["Vendas"] | form=0 | texto="... Cadastre um produto para registrar a primeira venda. Vendas recentes 0 REGISTRADA(S)"
+[N7] estado vazio /simulacoes ate /ponto-equilibrio
+     -> INTERROMPIDO: a partir de /simulacoes as paginas passaram a renderizar a LANDING ("Entenda a faixa de preço...")
+        -> o bucket de /api/auth/get-session para o xff 198.51.100.34 devolveu 429 (326 respostas 429 no log do preview)
+        -> 429 = LIMITE DE BANCADA (nao e' defeito do produto): a sessao visual foi perdida e o app caiu na landing.
+        -> estados vazios de /simulacoes, /despesas, /diagnostico, /novo-produto, /precos e /ponto-equilibrio: NAO MEDIDOS por esse limite.
+
+[N8] existe formulario MANUAL de criacao de produto em /produtos?
+     -> a pagina tem 0 <form> e 0 <input>/<textarea>/<select>; os botoes sao "Preços de compra" e "Novo produto".
+     -> CONFIRMA DBT-128 (o 1o produto so sai pelo chat) — reconfirmado, nao e' achado novo.
+[N9] tela de cadastro conversacional /novo-produto (1o uso)
+     -> h1="Entenda a faixa de preço do seu produto conversando." (nao ha textarea visivel na captura: o chat e' a unica via)
+[N10] envio do 1o produto via CHAT
+     -> NAO EXERCITADO: o ramo de IA esta CONTROLADO (AI_GATEWAY_API_KEY="" e DEEPSEEK_API_KEY=""), logo a resposta seria
+        "servico indisponivel" — isso NAO e' bug e nao gasta token. Declarado como limite.
+
+== limite de bancada declarado ==
+   O tour do novato foi interrompido a partir de /simulacoes pelo 429 do bucket de get-session do xff 198.51.100.34.
+   A execucao anterior (d-novato-cadastro.txt) ja tinha medido o mesmo 503 EMAIL_NOT_CONFIGURED no cadastro por e-mail:
+   o transporte de e-mail nao esta configurado na bancada, o que torna o cadastro por e-mail impossivel aqui.

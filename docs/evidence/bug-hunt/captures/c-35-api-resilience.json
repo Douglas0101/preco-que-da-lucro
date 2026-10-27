@@ -1,0 +1,118 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "xff": "198.51.100.23",
+  "targetPath": "/produtos",
+  "timeoutDelayMs": 12000,
+  "discovery": {
+    "serverFnRequests": [
+      {
+        "url": "http://127.0.0.1:4173/_serverFn/ab4089a3ad45d4832457dabbf1c5beed87b26285b11f2d6c6420b6a0c2938f5e",
+        "method": "GET",
+        "body": ""
+      }
+    ]
+  },
+  "dataUrls": [
+    "http://127.0.0.1:4173/_serverFn/ab4089a3ad45d4832457dabbf1c5beed87b26285b11f2d6c6420b6a0c2938f5e"
+  ],
+  "timeout_12s": {
+    "mode": "timeout",
+    "errorShownAfterMs": 12999,
+    "alertText": "Não foi possível carregar os produtos.\n\nTentar novamente",
+    "bodyTextLength": 286,
+    "bodyTextHead": "Preço que Dá Lucro\nteste@example.test\nSair\nInício\nMeus Produtos\nNovo Produto\nPreços de Compra\nMinhas Despesas\nVendas\nPonto de Equilíbrio\nSimulações\nDiagnóstico\nMeus Produtos\n\n0 produtos cadastrados\n\nPreços de compra\nNovo",
+    "blankScreen": false,
+    "appShellNavPresent": true,
+    "h1": ["Meus Produtos"],
+    "retryButtonCount": 1,
+    "retryButtonText": "Tentar novamente",
+    "retryRequestObserved": true,
+    "retryOutcome": {
+      "alertStillPresent": true
+    },
+    "interceptedRequests": [
+      {
+        "url": "http://127.0.0.1:4173/_serverFn/ab4089a3ad45d4832457dabbf1c5beed87b26285b11f2d6c6420b6a0c2938f5e",
+        "at": 687
+      },
+      {
+        "url": "http://127.0.0.1:4173/_serverFn/ab4089a3ad45d4832457dabbf1c5beed87b26285b11f2d6c6420b6a0c2938f5e",
+        "at": 13070
+      }
+    ],
+    "pageErrorCount": 0,
+    "pageErrors": [],
+    "consoleErrorCount": 2,
+    "consoleErrors": [
+      "error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ]
+  },
+  "http_500": {
+    "mode": "500",
+    "errorShownAfterMs": 870,
+    "alertText": "Não foi possível carregar os produtos.\n\nTentar novamente",
+    "bodyTextLength": 286,
+    "bodyTextHead": "Preço que Dá Lucro\nteste@example.test\nSair\nInício\nMeus Produtos\nNovo Produto\nPreços de Compra\nMinhas Despesas\nVendas\nPonto de Equilíbrio\nSimulações\nDiagnóstico\nMeus Produtos\n\n0 produtos cadastrados\n\nPreços de compra\nNovo",
+    "blankScreen": false,
+    "appShellNavPresent": true,
+    "h1": ["Meus Produtos"],
+    "retryButtonCount": 1,
+    "retryButtonText": "Tentar novamente",
+    "retryRequestObserved": true,
+    "retryOutcome": {
+      "alertStillPresent": true
+    },
+    "interceptedRequests": [
+      {
+        "url": "http://127.0.0.1:4173/_serverFn/ab4089a3ad45d4832457dabbf1c5beed87b26285b11f2d6c6420b6a0c2938f5e",
+        "at": 620
+      },
+      {
+        "url": "http://127.0.0.1:4173/_serverFn/ab4089a3ad45d4832457dabbf1c5beed87b26285b11f2d6c6420b6a0c2938f5e",
+        "at": 972
+      }
+    ],
+    "pageErrorCount": 0,
+    "pageErrors": [],
+    "consoleErrorCount": 2,
+    "consoleErrors": [
+      "error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ]
+  },
+  "network_abort": {
+    "mode": "abort",
+    "errorShownAfterMs": 927,
+    "alertText": "Não foi possível carregar os produtos.\n\nTentar novamente",
+    "bodyTextLength": 286,
+    "bodyTextHead": "Preço que Dá Lucro\nteste@example.test\nSair\nInício\nMeus Produtos\nNovo Produto\nPreços de Compra\nMinhas Despesas\nVendas\nPonto de Equilíbrio\nSimulações\nDiagnóstico\nMeus Produtos\n\n0 produtos cadastrados\n\nPreços de compra\nNovo",
+    "blankScreen": false,
+    "appShellNavPresent": true,
+    "h1": ["Meus Produtos"],
+    "retryButtonCount": 1,
+    "retryButtonText": "Tentar novamente",
+    "retryRequestObserved": true,
+    "retryOutcome": {
+      "alertStillPresent": true
+    },
+    "interceptedRequests": [
+      {
+        "url": "http://127.0.0.1:4173/_serverFn/ab4089a3ad45d4832457dabbf1c5beed87b26285b11f2d6c6420b6a0c2938f5e",
+        "at": 648
+      },
+      {
+        "url": "http://127.0.0.1:4173/_serverFn/ab4089a3ad45d4832457dabbf1c5beed87b26285b11f2d6c6420b6a0c2938f5e",
+        "at": 1054
+      }
+    ],
+    "pageErrorCount": 0,
+    "pageErrors": [],
+    "consoleErrorCount": 2,
+    "consoleErrors": [
+      "error: Failed to load resource: net::ERR_FAILED",
+      "error: Failed to load resource: net::ERR_FAILED"
+    ]
+  },
+  "nota": "interceptadas apenas as server fns de DADOS (URL descoberta na passagem anterior); a sessao (/api/auth/get-session) nunca foi interceptada, senao a rota redirecionaria para /auth"
+}

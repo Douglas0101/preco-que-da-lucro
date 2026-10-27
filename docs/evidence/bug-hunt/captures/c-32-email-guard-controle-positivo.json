@@ -1,0 +1,73 @@
+{
+  "nota": "Controle positivo DETERMINISTICO do guard de e-mail, sem rede e sem credencial inventada: a mesma funcao que roda no request path (assertEmailSignUpReady) com o par de credenciais PRESENTE nao bloqueia.",
+  "fonte": "npx tsx .artifacts/bughunt-c/3.2b-guard-positive.ts",
+  "todosCoerentes": true,
+  "casos": [
+    {
+      "caso": "par ausente",
+      "problems": ["RESEND_API_KEY (ausente)", "AUTH_EMAIL_FROM (ausente)"],
+      "bloqueou": true,
+      "code": "EMAIL_NOT_CONFIGURED",
+      "message": "Cadastro por e-mail indisponível: o envio de verificação não está configurado.",
+      "esperavaBloquear": true,
+      "coerente": true,
+      "codeEsperadoQuandoBloqueia": "EMAIL_NOT_CONFIGURED",
+      "codeConfere": true
+    },
+    {
+      "caso": "par definido e vazio (RESEND_API_KEY=\"\")",
+      "problems": ["RESEND_API_KEY (definida e vazia)"],
+      "bloqueou": true,
+      "code": "EMAIL_NOT_CONFIGURED",
+      "message": "Cadastro por e-mail indisponível: o envio de verificação não está configurado.",
+      "esperavaBloquear": true,
+      "coerente": true,
+      "codeEsperadoQuandoBloqueia": "EMAIL_NOT_CONFIGURED",
+      "codeConfere": true
+    },
+    {
+      "caso": "par definido e vazio (AUTH_EMAIL_FROM=\"\")",
+      "problems": ["AUTH_EMAIL_FROM (definida e vazia)"],
+      "bloqueou": true,
+      "code": "EMAIL_NOT_CONFIGURED",
+      "message": "Cadastro por e-mail indisponível: o envio de verificação não está configurado.",
+      "esperavaBloquear": true,
+      "coerente": true,
+      "codeEsperadoQuandoBloqueia": "EMAIL_NOT_CONFIGURED",
+      "codeConfere": true
+    },
+    {
+      "caso": "par ausente (ambos)",
+      "problems": ["RESEND_API_KEY (ausente)", "AUTH_EMAIL_FROM (ausente)"],
+      "bloqueou": true,
+      "code": "EMAIL_NOT_CONFIGURED",
+      "message": "Cadastro por e-mail indisponível: o envio de verificação não está configurado.",
+      "esperavaBloquear": true,
+      "coerente": true,
+      "codeEsperadoQuandoBloqueia": "EMAIL_NOT_CONFIGURED",
+      "codeConfere": true
+    },
+    {
+      "caso": "remetente inutilizavel",
+      "problems": ["AUTH_EMAIL_FROM (remetente inválido)"],
+      "bloqueou": true,
+      "code": "EMAIL_NOT_CONFIGURED",
+      "message": "Cadastro por e-mail indisponível: o envio de verificação não está configurado.",
+      "esperavaBloquear": true,
+      "coerente": true,
+      "codeEsperadoQuandoBloqueia": "EMAIL_NOT_CONFIGURED",
+      "codeConfere": true
+    },
+    {
+      "caso": "par PRESENTE (controle positivo)",
+      "problems": [],
+      "bloqueou": false,
+      "code": null,
+      "message": null,
+      "esperavaBloquear": false,
+      "coerente": true,
+      "codeEsperadoQuandoBloqueia": "EMAIL_NOT_CONFIGURED",
+      "codeConfere": true
+    }
+  ]
+}

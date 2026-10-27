@@ -1,0 +1,64 @@
+# Testes e cadeia do gate (exceto m02:lockfile-guard)
+
+## Cadeia `npm run check` passo a passo
+
+```
+guard:upgrade exit=0
+check:migration-toolchain exit=0
+guard:contracts exit=0
+m02:work-package-guard exit=0
+m02:debts-guard exit=0
+m02:temporal-guard exit=0
+m02:state:check exit=0
+m02:boundaries exit=0
+m02:secrets-audit exit=0
+guard:mcp-runtime exit=0
+m02:seal-dts:check exit=0
+m02:matrix:check exit=0
+check:ui-stack exit=0
+check:no-supabase-runtime exit=0
+format:check exit=0
+lint exit=0
+typecheck exit=0
+test exit=0
+build exit=0
+check:bundle exit=0
+```
+
+## Números
+
+```
+Test Files  161 passed | 2 skipped (163)
+Tests  2414 passed | 30 skipped (2444)
+
+PASS assets/index-DRhWUaxA.js: 217874 minified, 68880 gzip, 59933 Brotli bytes, sha256=bd9c01a41bae
+Initial graph (11 chunks): 486879 minified, 159666 gzip, 140599 Brotli bytes, sha256=a72e14e36c69
+```
+
+## Matriz Playwright completa (4 projetos)
+
+```
+  3 skipped
+  113 passed (4.6m)
+e2e exit=0
+```
+
+## Distribuição
+
+```
+chromium 28 ✓
+firefox 28 ✓
+webkit 28 ✓
+mobile 29 ✓
+```
+
+## Precondição declarada
+
+`m02:lockfile-guard` fica fora da cadeia: a dependência `motion` da sessão anterior segue sem
+commit (ver pacote de evidência do fluxo animado). Esta mudança não toca `package.json`/lockfile.
+
+## Teste unitário específico
+
+`src/test/consultor-chat-dock.test.tsx` → “exposes a visible scroll bar when the suggestion row
+overflows”: métricas simuladas 620×320 (max 300), mudança do range para 150, `scrollLeft=150` e
+`aria-valuetext=50%` após o evento de scroll.

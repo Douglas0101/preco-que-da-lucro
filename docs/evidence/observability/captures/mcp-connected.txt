@@ -1,0 +1,5 @@
+✓ context7    connected
+✓ dhi         connected
+✓ MCP_DOCKER  connected
+✓ neon        connected
+✓ vercel      connected

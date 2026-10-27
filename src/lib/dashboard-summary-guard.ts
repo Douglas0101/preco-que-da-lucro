@@ -19,6 +19,11 @@ export type ConsolidatedMarginShape =
       salesMismatch?: true;
     };
 
+export interface DashboardWindowShape {
+  from: string;
+  to: string;
+}
+
 export interface DashboardSummaryShape {
   productCount: number;
   fixedExpenses: string | null;
@@ -27,8 +32,23 @@ export interface DashboardSummaryShape {
   incompleteProductCount: number;
   alerts: string[];
   period: DashboardPeriod;
+  window: DashboardWindowShape;
   sales: { revenue: string; count: number };
   consolidatedMargin: ConsolidatedMarginShape;
+}
+
+/**
+ * A janela é o contrato que a tela exibe: sem ela o render morre antes do card
+ * de erro (achado P2 do review do PR #72, DBT-176). `from < to` porque `to` é o
+ * início do período seguinte; janela invertida ou vazia é payload estrangeiro.
+ */
+function isWindowValid(value: unknown): value is DashboardWindowShape {
+  if (typeof value !== "object" || value === null) return false;
+  const window = value as Partial<DashboardWindowShape>;
+  if (typeof window.from !== "string" || typeof window.to !== "string") return false;
+  const from = Date.parse(window.from);
+  const to = Date.parse(window.to);
+  return Number.isFinite(from) && Number.isFinite(to) && from < to;
 }
 
 function isConsolidatedMarginValid(value: unknown): value is ConsolidatedMarginShape {
@@ -68,6 +88,13 @@ export function isDashboardSummaryValid(metrics: unknown): metrics is DashboardS
   ) {
     return false;
   }
+  // Só a **forma** é validada aqui. Coerência entre o `period` pedido e o payload
+  // é decisão de exibição: com `keepPreviousData` o payload anterior — de outro
+  // período — continua montado de propósito, e E3/E5 exigem que a janela antiga
+  // permaneça durante a troca; o rótulo sai de `summary.window`, nunca recalculado.
+  // Recusar o período divergente aqui desmontava o grid e matava o foco (medido na
+  // run 40275083772 do PR #72, captura f6b no pacote de evidência).
+  if (!isWindowValid(candidate.window)) return false;
   if (typeof candidate.sales !== "object" || candidate.sales === null) return false;
   if (typeof candidate.sales.count !== "number") return false;
   if (typeof candidate.sales.revenue !== "string") return false;

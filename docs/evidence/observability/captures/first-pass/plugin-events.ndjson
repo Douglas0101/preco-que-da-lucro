@@ -1,0 +1,2 @@
+{"ts":"2026-10-22T23:22:14.801Z","type":"policy_blocked","tool":"shell","rule":"sensitive_env_shell","sessionID":"ses_ea8d681dcffeNt2FDM77YY509t","callID":"call_31913f7117324c1188cc0be2"}
+{"ts":"2026-10-22T23:22:26.865Z","type":"policy_blocked","tool":"read","rule":"sensitive_env_file","sessionID":"ses_ea8d681dcffeNt2FDM77YY509t","callID":"call_98a40d0b4324413ea296a5c6"}

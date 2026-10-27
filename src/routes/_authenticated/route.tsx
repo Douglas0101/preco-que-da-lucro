@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
+import { ConsultorChatDock } from "@/components/consultor-chat-dock";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider, sessionQueryOptions } from "@/lib/session-context";
 
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/_authenticated")({
         <Outlet />
       </AppShell>
       <Toaster richColors position="top-center" />
+      <ConsultorChatDock />
     </SessionProvider>
   ),
 });

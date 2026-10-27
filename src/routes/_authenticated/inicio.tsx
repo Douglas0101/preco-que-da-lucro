@@ -6,6 +6,7 @@ import { isDashboardSummaryValid } from "@/lib/dashboard-summary-guard";
 import { sessionQueryOptions } from "@/lib/session-context";
 import type { ConsolidatedMargin, DashboardPeriod } from "@/lib/dashboard.functions";
 import { brl, pct } from "@/lib/format";
+import { createErrorReference } from "@/lib/error-reference";
 import { CONTRIBUTION_MARGIN_PCT_FORMULA } from "@/lib/calc-explanation";
 import { Badge } from "@/components/ui/badge";
 import { CalcExplainer } from "@/components/ui/calc-explainer";
@@ -28,6 +29,40 @@ const PERIODS: ReadonlyArray<{ value: DashboardPeriod; label: string }> = [
   { value: "quarter", label: "Trimestre" },
   { value: "year", label: "Ano" },
 ];
+
+const BUSINESS_TIME_ZONE = "America/Sao_Paulo";
+const BUSINESS_MONTH = new Intl.DateTimeFormat("en-CA", {
+  timeZone: BUSINESS_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+});
+const WINDOW_DAY = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: BUSINESS_TIME_ZONE,
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+/**
+ * Rótulo `dd/mm/aaaa – dd/mm/aaaa` a partir da janela **atestada pelo servidor**
+ * (`summary.window`). Nenhuma fronteira é calculada aqui: `to` é exclusivo, então
+ * o último dia que o usuário lê é `to − 1 ms` — uma transformação de exibição,
+ * não uma nova janela.
+ */
+function formatWindowLabel(window: { from: string; to: string }): string {
+  const first = new Date(window.from);
+  const lastInclusive = new Date(new Date(window.to).getTime() - 1);
+  return `${WINDOW_DAY.format(first)} – ${WINDOW_DAY.format(lastInclusive)}`;
+}
+
+/**
+ * Predicado de calendário, não de janela: o trimestre selecionado começou no mês
+ * corrente? Compara no mesmo fuso do servidor para o selo não divergir na virada
+ * do mês.
+ */
+function isSameBusinessMonth(fromIso: string): boolean {
+  return BUSINESS_MONTH.format(new Date(fromIso)) === BUSINESS_MONTH.format(new Date());
+}
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
@@ -61,6 +96,8 @@ interface Metrics {
   incompleteProductCount: number;
   alerts: string[];
   period: DashboardPeriod;
+  /** Janela factual atestada pelo servidor: `[from, to)` em ISO-8601. */
+  window: { from: string; to: string };
   sales: { revenue: string; count: number };
   consolidatedMargin: ConsolidatedMargin;
 }
@@ -78,10 +115,17 @@ function Inicio() {
   const summaryQuery = useQuery(dashboardSummaryQueryOptions(period));
   const loadStatus = loadStatusFor(summaryQuery);
   const metrics = summaryQuery.data as Metrics | undefined;
+  // `keepPreviousData` mantém os números (e o seletor) montados durante a troca
+  // de período; `isPlaceholderData` diz que o que está na tela ainda é a janela
+  // anterior. Nunca desmontar é o que preserva o foco (DBT-165).
+  const isPlaceholderData = summaryQuery.isPlaceholderData;
   const hasInvalidPayload = metrics !== undefined && !isDashboardSummaryValid(metrics);
   const errorReference = useMemo(
-    () => (summaryQuery.isError || hasInvalidPayload ? createErrorReference("DASH") : null),
-    [summaryQuery.isError, hasInvalidPayload],
+    () =>
+      summaryQuery.isError || hasInvalidPayload
+        ? createErrorReference("DASH", summaryQuery.error)
+        : null,
+    [summaryQuery.isError, summaryQuery.error, hasInvalidPayload],
   );
 
   if (loadStatus === "loading") {
@@ -129,6 +173,14 @@ function Inicio() {
     );
   }
 
+  // Depois dos estados de erro/vazio: aqui `metrics` existe e já passou no shape
+  // guard. O rótulo deriva da janela atestada pelo servidor.
+  const windowLabel = formatWindowLabel(metrics.window);
+  // `metrics.period` (atestado pelo servidor), não o estado local: durante o
+  // placeholder o selo precisa descrever a janela que está na tela.
+  const coincidesWithMonth =
+    metrics.period === "quarter" && isSameBusinessMonth(metrics.window.from);
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-primary/20 p-5 shadow-sm md:p-6">
@@ -136,29 +188,6 @@ function Inicio() {
         <p className="mt-1 text-muted-foreground">
           Resumo dos dados cadastrados e das vendas reais, sem presumir volume.
         </p>
-      </div>
-
-      <div
-        className="inline-flex flex-wrap items-center gap-1 rounded-full border border-border bg-muted p-1"
-        role="group"
-        aria-label="Período do faturamento"
-      >
-        {PERIODS.map((item) => (
-          <Button
-            key={item.value}
-            type="button"
-            variant={period === item.value ? "default" : "outline"}
-            aria-pressed={period === item.value}
-            onClick={() => setPeriod(item.value)}
-            className={
-              period === item.value
-                ? "rounded-full text-sm shadow-sm"
-                : "rounded-full border-transparent bg-transparent text-sm text-muted-foreground hover:text-foreground"
-            }
-          >
-            {item.label}
-          </Button>
-        ))}
       </div>
 
       {metrics.hasInvalidCalculation && (
@@ -169,75 +198,161 @@ function Inicio() {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          icon={Package}
-          label="Produtos"
-          value={String(metrics.productCount)}
-          explain={
-            <p>
-              Contagem direta dos produtos cadastrados na sua conta. É um dado cadastral: nenhum
-              volume de vendas é presumido e o período selecionado não muda este número.
-            </p>
-          }
-        />
-        <MetricCard
-          icon={Wallet}
-          label="Despesas fixas cadastradas"
-          value={brl(metrics.fixedExpenses)}
-          explain={
-            <>
-              <p>
-                <span className="font-medium">Fórmula:</span> soma das despesas cadastradas com tipo
-                «fixa».
-              </p>
-              <p>
-                Despesas variáveis ficam de fora: elas dependem do quanto você vende. Uma despesa
-                com valor inválido deixa este indicador indisponível e acende o card de erro no topo
-                da página.
-              </p>
-            </>
-          }
-        />
-        {metrics.sales.count > 0 ? (
+      <section aria-labelledby="inicio-invariante" className="space-y-3">
+        <div>
+          <h2
+            id="inicio-invariante"
+            className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
+          >
+            Seu negócio agora
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Cadastro e ficha técnica. Estes números não mudam com o período selecionado.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
           <MetricCard
-            icon={Scale}
-            label="Faturamento real"
-            value={brl(metrics.sales.revenue)}
-            description={`${metrics.sales.count} venda(s) no período selecionado.`}
+            icon={Package}
+            label="Produtos"
+            value={String(metrics.productCount)}
+            description="Cadastro. Não varia por período."
+            explain={
+              <p>
+                Contagem direta dos produtos cadastrados na sua conta. É um dado cadastral: nenhum
+                volume de vendas é presumido e o período selecionado não muda este número.
+              </p>
+            }
+          />
+          <MetricCard
+            icon={Wallet}
+            label="Despesas fixas por mês"
+            value={brl(metrics.fixedExpenses)}
+            description="Compromisso mensal. Não varia por período."
             explain={
               <>
                 <p>
-                  <span className="font-medium">Fórmula:</span> soma das vendas registradas no
-                  período selecionado (mês, trimestre ou ano).
+                  <span className="font-medium">Fórmula:</span> soma das despesas cadastradas com
+                  tipo «fixa», por mês.
                 </p>
                 <p>
-                  Só entram vendas já registradas: nenhum volume é presumido, projetado ou estimado
-                  neste número.
+                  O valor é mensal e não é multiplicado pelo período selecionado: o trimestre ou o
+                  ano em curso ainda não têm meses futuros realizados, e multiplicar seria presumir
+                  um compromisso que ninguém registrou.
+                </p>
+                <p>
+                  Despesas variáveis ficam de fora: elas dependem do quanto você vende. Uma despesa
+                  com valor inválido deixa este indicador indisponível e acende o card de erro no
+                  topo da página.
                 </p>
               </>
             }
           />
-        ) : (
-          <MetricCard
-            icon={Scale}
-            label="Faturamento real"
-            value="—"
-            description="Nenhuma venda real registrada."
-            explain={
-              <p>
-                Sem vendas registradas no período selecionado não há o que somar: o card mostra «—»
-                em vez de presumir um volume. Vendas da simulação e estimativas não entram neste
-                total.
-              </p>
-            }
-          />
+        </div>
+      </section>
+
+      <section
+        aria-labelledby="inicio-realizado"
+        aria-busy={isPlaceholderData}
+        className="space-y-3"
+      >
+        <div>
+          <h2
+            id="inicio-realizado"
+            className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
+          >
+            Realizado no período
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Só vendas reais registradas. A janela vem do servidor e é a mesma para os dois números.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div
+            className="inline-flex flex-wrap items-center gap-1 rounded-full border border-border bg-muted p-1"
+            role="group"
+            aria-label="Período do faturamento"
+          >
+            {PERIODS.map((item) => (
+              <Button
+                key={item.value}
+                type="button"
+                variant={period === item.value ? "default" : "outline"}
+                aria-pressed={period === item.value}
+                onClick={() => setPeriod(item.value)}
+                className={
+                  period === item.value
+                    ? "rounded-full text-sm shadow-sm"
+                    : "rounded-full border-transparent bg-transparent text-sm text-muted-foreground hover:text-foreground"
+                }
+              >
+                {item.label}
+              </Button>
+            ))}
+          </div>
+          <p
+            aria-live="polite"
+            className="text-sm font-medium tabular-nums text-muted-foreground"
+            data-testid="period-window"
+          >
+            <span className="sr-only">Janela do período: </span>
+            {windowLabel}
+          </p>
+        </div>
+
+        {coincidesWithMonth && (
+          <Badge
+            variant="outline"
+            className="w-fit"
+            title="O trimestre corrente começou neste mês, então a janela do trimestre é a mesma do mês."
+          >
+            Coincidente com o mês atual
+          </Badge>
         )}
-        <ConsolidatedMarginCard
-          margin={metrics.consolidatedMargin}
-          salesCount={metrics.sales.count}
-        />
-      </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {metrics.sales.count > 0 ? (
+            <MetricCard
+              icon={Scale}
+              label="Faturamento real"
+              value={brl(metrics.sales.revenue)}
+              description={`${metrics.sales.count} venda(s) na janela ${windowLabel}.`}
+              explain={
+                <>
+                  <p>
+                    <span className="font-medium">Fórmula:</span> soma das vendas registradas na
+                    janela exibida acima ({windowLabel}).
+                  </p>
+                  <p>
+                    Só entram vendas já registradas: nenhum volume é presumido, projetado ou
+                    estimado neste número.
+                  </p>
+                </>
+              }
+            />
+          ) : (
+            <MetricCard
+              icon={Scale}
+              label="Faturamento real"
+              value="—"
+              description="Nenhuma venda real registrada."
+              explain={
+                <p>
+                  Sem vendas registradas na janela exibida não há o que somar: o card mostra «—» em
+                  vez de presumir um volume. Vendas da simulação e estimativas não entram neste
+                  total.
+                </p>
+              }
+            />
+          )}
+          <ConsolidatedMarginCard
+            margin={metrics.consolidatedMargin}
+            salesCount={metrics.sales.count}
+            windowLabel={windowLabel}
+          />
+        </div>
+      </section>
 
       {metrics.bestProduct && (
         <Card className="border-border shadow-md">
@@ -245,12 +360,15 @@ function Inicio() {
             <CardTitle className="text-base">🏆 Maior margem unitária calculável</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-primary text-2xl font-black tracking-tight tabular-nums">
+            <div className="text-primary-strong text-2xl font-black tracking-tight tabular-nums">
               {metrics.bestProduct.name}
             </div>
             <div className="text-muted-foreground">
               Margem de contribuição unitária: {pct(metrics.bestProduct.cmPct)}
             </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Indicador unitário da ficha técnica. Não varia por período.
+            </p>
             {metrics.incompleteProductCount > 0 && (
               <div className="mt-2 text-sm text-muted-foreground">
                 Comparação limitada aos produtos com dados completos.
@@ -316,10 +434,19 @@ const MARGIN_UNAVAILABLE_BADGE = (
   </Badge>
 );
 
+// Estado vazio não é dado incompleto: nada falta, apenas não há venda registrada
+// na janela. ADR-041 §3 distingue os três estados; a apresentação também precisa.
+const EMPTY_MARGIN_BADGE = (
+  <Badge variant="secondary" title="Nenhuma venda real registrada na janela." className="shrink-0">
+    SEM VENDAS
+  </Badge>
+);
+
 function ConsolidatedMarginCard({
   margin,
   salesCount,
-}: Readonly<{ margin: ConsolidatedMargin; salesCount: number }>) {
+  windowLabel,
+}: Readonly<{ margin: ConsolidatedMargin; salesCount: number; windowLabel: string }>) {
   const formula = (
     <>
       <p>
@@ -340,7 +467,7 @@ function ConsolidatedMarginCard({
         icon={TrendingUp}
         label="Margem consolidada"
         value={pct(margin.valuePct)}
-        description={`Margem sobre o faturamento real (${salesCount} venda(s) no período).`}
+        description={`Margem sobre o faturamento real (${salesCount} venda(s) na janela ${windowLabel}).`}
         explain={formula}
       />
     );
@@ -375,14 +502,15 @@ function ConsolidatedMarginCard({
       icon={TrendingUp}
       label="Margem consolidada"
       value="—"
-      description="Registre vendas reais para calcular o mix real de vendas."
-      badge={MARGIN_UNAVAILABLE_BADGE}
+      description="Sem vendas na janela. Registre vendas reais para calcular o mix."
+      badge={EMPTY_MARGIN_BADGE}
       explain={
         <>
           {formula}
           <p>
-            Sem vendas registradas no período não há mix para ponderar: o card fica indisponível em
-            vez de presumir volume ou exibir uma margem média dos produtos cadastrados.
+            Sem vendas registradas na janela exibida não há mix para ponderar: o card fica
+            indisponível em vez de presumir volume ou exibir uma margem média dos produtos
+            cadastrados.
           </p>
         </>
       }
@@ -459,12 +587,4 @@ function MetricCard({
       </CardContent>
     </Card>
   );
-}
-
-function createErrorReference(prefix: string): string {
-  const token =
-    typeof globalThis.crypto?.randomUUID === "function"
-      ? globalThis.crypto.randomUUID().slice(0, 8)
-      : Date.now().toString(36);
-  return `${prefix}-${token}`.toUpperCase();
 }

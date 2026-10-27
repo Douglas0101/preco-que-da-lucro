@@ -97,18 +97,72 @@ export function missingEmailCredentials(
   ].filter((entry): entry is string => entry !== undefined);
 }
 
+/**
+ * Endereço de remetente utilizável pela Resend.
+ *
+ * A Resend exige um remetente no formato `endereço` ou `Nome <endereço>`; essa
+ * exigência é **determinística** (não depende de rede, de conta, de domínio
+ * verificado nem de chave válida). As duas formas são aceitas aqui, e só elas:
+ * qualquer outra coisa é recusada localmente, sem called externo — inventar
+ * validação de rede no request path seria fabricar um veredito.
+ */
+const SENDER_ADDRESS = /^[^\s@,<>]+@[^\s@,<>]+\.[^\s@,<>]+$/;
+
+/** O endereço do remetente, na forma `endereço` ou `Nome <endereço>`. */
+function senderAddress(value: string): string {
+  const between = value.match(/<([^<>]+)>/);
+  return (between?.[1] ?? value).trim();
+}
+
+/**
+ * Credenciais **presentes mas inutilizáveis** — a fronteira que "ausente ou
+ * vazia" não alcança.
+ *
+ * Um `AUTH_EMAIL_FROM` sem endereço utilizável é recusado pela Resend em toda
+ * entrega: o e-mail de verificação nunca chega, e o usuário já persistido
+ * (quando existe) fica sem possibilidade de verificação. A detecção é local e
+ * determinística; o que **não** é detectável aqui é a credencial presente e
+ * inválida no servidor (chave revogada, domínio não verificado, falha de
+ * rede) — isso continua sendo fronteira aberta, e está declarado na dívida
+ * DBT-116.
+ *
+ * Ausente ou vazia **não** aparece aqui: `missingEmailCredentials` já é a
+ * fonte única desse estado, e as duas listas não podem se sobrepor.
+ */
+export function unusableEmailCredentials(
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): string[] {
+  const from = environment.AUTH_EMAIL_FROM;
+  if (authEnvPresence(from) !== "present") return [];
+  if (SENDER_ADDRESS.test(senderAddress(from as string))) return [];
+  return ["AUTH_EMAIL_FROM (remetente inválido)"];
+}
+
+/**
+ * Tudo que impede a entrega da verificação: credencial ausente, vazia ou
+ * inutilizável. A união das duas listas é o que os guards consultam; cada
+ * guarda decide o que fazer com ela.
+ */
+export function emailCredentialProblems(
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): string[] {
+  return [...missingEmailCredentials(environment), ...unusableEmailCredentials(environment)];
+}
+
 /** Par de credenciais de e-mail, ou o erro que nomeia o estado de cada uma. */
 function requireEmailCredentials(): { apiKey: string; from: string } {
   const apiKey = readEnv("RESEND_API_KEY");
   const from = readEnv("AUTH_EMAIL_FROM");
-  const missing = missingEmailCredentials();
+  const problems = emailCredentialProblems();
   // `readEnv` e `authEnvPresence` classificam o MESMO valor com a MESMA regra
-  // (ausente ou sem conteúdo ⇒ não configurada), então `missing` tem exatamente
+  // (ausente ou sem conteúdo ⇒ não configurada), então `problems` tem exatamente
   // um item por variável não utilizável e a mensagem nunca fica com a lista
-  // de estados vazia.
-  if (apiKey === undefined || from === undefined) {
+  // de estados vazia. `problems.length > 0` é a pergunta "o e-mail pode ser
+  // entregue?" — ausente, vazio ou remetente inutilizável são a mesma
+  // resposta: não.
+  if (apiKey === undefined || from === undefined || problems.length > 0) {
     throw new Error(
-      `Configuração de e-mail incompleta: ${missing.join(", ")}. RESEND_API_KEY e AUTH_EMAIL_FROM são obrigatórias para e-mails de autenticação.`,
+      `Configuração de e-mail incompleta: ${problems.join(", ")}. RESEND_API_KEY e AUTH_EMAIL_FROM são obrigatórias para e-mails de autenticação.`,
     );
   }
   return { apiKey, from };

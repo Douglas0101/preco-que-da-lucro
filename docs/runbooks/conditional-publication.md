@@ -7,7 +7,10 @@ exibida por um painel e a conclusão de build não substituem o veredito do CE.
 ## 1. Precondições do candidato
 
 Guardar SHA atual da PR60, base main e evidências aplicáveis: gate local, PG17/RLS,
-verify-release PR comquatro projetos, SonarCE e espelho confiável porunidade. Comparar
+verify-release PR comquatro projetos e SonarCE (decisão real do CE). O espelho de
+cobertura é **informativo**, não crédito: a ADR-042 §5 (linha 18) tornou baseline e
+main-coverage-mirror observacionais e o ruleset deixou de exigir o espelho — logo
+não há "espelho confiável por unidade" a guardar. Comparar
 head/base novamente antespromoção; resultado antigo, missing/cancelled/NO-VERDICT
 bloqueia. Alertas ativos; dependências corrigidas e lockfile sincronizado emdevelop.
 
@@ -46,9 +49,23 @@ manterproteção reduzida para forçarverde.
 
 ## 3. Veredito real e publicação
 
-Observar push main: verify aplicável e scanner wait=true. Ler CEanalysisId/revision,
-gate>=80 e denominador>=50%M1 com unidadespagas contraM1. Comparar espelho/real;
-erro>2p.p. geraERRATA/suspensão. Mesmoerropequeno não aceita real<80. Na dúvida NO-GO.
+Observar push main: verify aplicável e scanner wait=true. Ler CEanalysisId/revision e
+aplicar a ADR-042 §1 (linha 14): a condição obrigatória é **new_coverage >= 60%** sobre
+a análise real do CE da revisão e a superfície esperada; cobertura abaixo de 60% bloqueia
+e valor ausente, estado pendente, timeout, identidade divergente ou condição ignorada
+são NO-VERDICT e bloqueiam. O limiar de 80% foi substituído (ADR-042, linha 6) e o
+espelho deixou de ser exigido pelo ruleset: baseline e main-coverage-mirror são
+**informativos** e não projetam aprovação de main (ADR-042 §5, linha 18) — não há mais
+denominador/unidades pagas contra M1 a exigir. O status bruto do provedor é preservado:
+se o preset ainda exigir 80%, um ERROR de cobertura entre 60% e 80% pode coexistir com
+releasePolicy.status=OK (ADR-042 §3, linha 16). O caminho **ADR-044 `NOT_APPLICABLE`**
+(linhas 17, 22 e 24) vale **somente em PR**, com conjunto elegível vazio provado e os
+dois campos numéricos omitidos — `actual: null`, nunca 0/100 — e **não** é cobertura,
+**não** é NO-VERDICT e **não** é aprovação de main; `main` **nunca** recebe
+NOT_APPLICABLE e sua análise real da revisão continua obrigatória antes de publicar
+(ADR-042 §6, linha 19; ADR-044, linha 24). Comparar espelho/real é leitura
+informativa: erro>2p.p. gera ERRATA/suspensão sem, sozinho, reprovar o gate. Na dúvida
+NO-GO.
 
 Selecionar somente o SHA imutável aprovado para publicação manual **em ambos**.
 Preservar `git.deploymentEnabled: false` na revisão publicada e o projeto conhecido

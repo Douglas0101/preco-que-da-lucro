@@ -5,7 +5,7 @@ import { DatabaseError, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import * as schema from "@/db/schema";
 import { ApplicationError } from "@/lib/api-error";
-import { deleteIngredient, deletePackaging } from "@/lib/products.functions";
+import { deleteIngredient, deletePackaging, upsertPackaging } from "@/lib/products.functions";
 import type { RequestContext } from "@/lib/request-context";
 import { ensureRuntimeRoleMembership, runMigrations } from "../../scripts/db/migrate";
 import { dbPrecondition, skipLabel } from "./helpers/db-precondition";
@@ -66,6 +66,16 @@ function contextFor(transaction: RequestContext["transaction"]): RequestContext 
 
 function invokeDelete(handler: unknown, id: string, context: RequestContext): Promise<unknown> {
   return (handler as Handler)({ data: { id }, context: { requestContext: context } });
+}
+
+/** Executa `operation` e devolve o erro (ou `null` quando ela conclui). */
+async function errorFrom(operation: () => Promise<unknown>): Promise<unknown> {
+  try {
+    await operation();
+    return null;
+  } catch (error) {
+    return error;
+  }
 }
 
 /**
@@ -338,15 +348,6 @@ dbDescribe("delete de filho com histórico — caminho real do driver (PG efême
     });
   }
 
-  async function errorFrom(operation: () => Promise<unknown>): Promise<unknown> {
-    try {
-      await operation();
-      return null;
-    } catch (error) {
-      return error;
-    }
-  }
-
   it("ingrediente com histórico ⇒ CONFLICT/409 com a mensagem de histórico (antes: erro cru do driver)", async () => {
     const error = await errorFrom(() =>
       asTenant((context) => invokeDelete(deleteIngredient, INGREDIENT, context)),
@@ -392,5 +393,350 @@ dbDescribe("delete de filho com histórico — caminho real do driver (PG efême
       [TENANT],
     );
     expect(children.rows[0]?.count).toBe("1");
+  });
+});
+
+/**
+ * DBT-124 — round-trip da composição manual: **criar** a embalagem pelo caminho
+ * de escrita da tela (`upsertPackaging`) e **removê-la** (`deletePackaging`).
+ *
+ * O histórico de preço registra **variação**, não criação: `product_packaging`
+ * guarda o estado corrente (`package_price` é NOT NULL —
+ * `src/db/schema.ts:303`), e `purchase_price_history` guarda os *pontos* de
+ * preço. A FK `ON DELETE restrict` (`drizzle/0004_giant_nocturne.sql:32`) só
+ * morde quando existe ponto de preço de verdade.
+ *
+ * Fixtures próprios (tenant novo): o bloco acima fixa a semântica da recusa e
+ * não pode ser contaminado por linhas de outro tenant.
+ */
+const RT_TENANT = "d4000000-0000-4000-8000-000000000001";
+const RT_USER = "d4000000-0000-4000-8000-000000000002";
+const RT_PRODUCT = "d4000000-0000-4000-8000-000000000003";
+const RT_INGREDIENT = "d4000000-0000-4000-8000-000000000004";
+const RT_PACKAGING = "d4000000-0000-4000-8000-000000000005";
+const RT_HISTORY_INGREDIENT = "d4000000-0000-4000-8000-000000000006";
+const RT_HISTORY_PACKAGING = "d4000000-0000-4000-8000-000000000007";
+
+/** Payload de escrita de embalagem — o que a tela de composição manda. */
+interface PackagingWrite {
+  id?: string;
+  product_id: string;
+  name: string;
+  package_price: string;
+  units_per_package: string;
+}
+
+function invokeUpsertPackaging(
+  handler: unknown,
+  data: PackagingWrite,
+  context: RequestContext,
+): Promise<{ id: string }> {
+  return (
+    handler as (input: {
+      data: PackagingWrite;
+      context: { requestContext: RequestContext };
+    }) => Promise<{ id: string }>
+  )({ data, context: { requestContext: context } });
+}
+
+dbDescribe("composição manual — round-trip de criação e remoção de embalagem (DBT-124)", () => {
+  const pool = new Pool({ connectionString: adminUrl ?? "", max: 2 });
+  const database = drizzle({ client: pool, schema });
+
+  beforeAll(async () => {
+    await runMigrations(adminUrl);
+    await ensureRuntimeRoleMembership(pool);
+    await pool.query("delete from purchase_price_history where tenant_id = $1", [RT_TENANT]);
+    await pool.query("delete from product_ingredients where tenant_id = $1", [RT_TENANT]);
+    await pool.query("delete from product_packaging where tenant_id = $1", [RT_TENANT]);
+    await pool.query("delete from products where tenant_id = $1", [RT_TENANT]);
+    await pool.query(
+      `insert into users (id, name, email, email_verified)
+       values ($1, 'Usuário Round-Trip', 'round-trip@products-fk.test', true)
+       on conflict (id) do update set name = excluded.name`,
+      [RT_USER],
+    );
+    await pool.query(
+      `insert into tenants (id, name, slug) values ($1, 'Tenant Round-Trip', 'products-round-trip')
+       on conflict (id) do update set name = excluded.name`,
+      [RT_TENANT],
+    );
+    await pool.query(
+      `insert into tenant_memberships (tenant_id, user_id, role) values ($1, $2, 'owner')
+       on conflict (tenant_id, user_id) do update set role = 'owner'`,
+      [RT_TENANT, RT_USER],
+    );
+    await pool.query(
+      `insert into products (id, tenant_id, user_id, name, current_price, yield_qty, yield_unit, status, version)
+       values ($1, $2, $3, 'Produto Round-Trip', '25.0000', '12.000000', 'unidade', 'active', 0)`,
+      [RT_PRODUCT, RT_TENANT, RT_USER],
+    );
+  }, 60_000);
+
+  afterAll(async () => {
+    await pool.end();
+  });
+
+  function roundTripContext(transaction: RequestContext["transaction"]): RequestContext {
+    return {
+      userId: RT_USER,
+      tenantId: RT_TENANT,
+      roles: ["owner"],
+      correlationId: "d4000000-0000-4000-8000-0000000000c1",
+      signal: AbortSignal.timeout(15_000),
+      transaction,
+    };
+  }
+
+  /** Executa `operation` numa transação como `app_runtime` com os GUCs do tenant. */
+  async function asTenant<T>(operation: (context: RequestContext) => Promise<T>): Promise<T> {
+    return database.transaction(async (transaction) => {
+      await transaction.execute(sql`set local role app_runtime`);
+      await transaction.execute(sql`
+        select
+          set_config('app.current_user_id', ${RT_USER}, true),
+          set_config('app.current_tenant_id', ${RT_TENANT}, true),
+          set_config('app.current_roles', 'owner', true)
+      `);
+      return operation(roundTripContext(transaction as unknown as RequestContext["transaction"]));
+    });
+  }
+
+  /** Pontos de preço de uma embalagem (o rastro que a FK RESTRICT protege). */
+  async function packagingHistoryCount(subjectId: string): Promise<number> {
+    const { rows } = await pool.query<{ count: string }>(
+      `select count(*)::text as count from purchase_price_history
+        where tenant_id = $1 and packaging_id = $2`,
+      [RT_TENANT, subjectId],
+    );
+    return Number(rows[0]?.count ?? "0");
+  }
+
+  async function ingredientHistoryCount(subjectId: string): Promise<number> {
+    const { rows } = await pool.query<{ count: string }>(
+      `select count(*)::text as count from purchase_price_history
+        where tenant_id = $1 and ingredient_id = $2`,
+      [RT_TENANT, subjectId],
+    );
+    return Number(rows[0]?.count ?? "0");
+  }
+
+  async function packagingExists(id: string): Promise<boolean> {
+    const { rows } = await pool.query<{ count: string }>(
+      "select count(*)::text as count from product_packaging where tenant_id = $1 and id = $2",
+      [RT_TENANT, id],
+    );
+    return Number(rows[0]?.count ?? "0") > 0;
+  }
+
+  async function ingredientExists(id: string): Promise<boolean> {
+    const { rows } = await pool.query<{ count: string }>(
+      "select count(*)::text as count from product_ingredients where tenant_id = $1 and id = $2",
+      [RT_TENANT, id],
+    );
+    return Number(rows[0]?.count ?? "0") > 0;
+  }
+
+  it("criar pela composição não registra ponto de preço (a criação é o estado corrente)", async () => {
+    const created = await asTenant((context) =>
+      invokeUpsertPackaging(
+        upsertPackaging,
+        {
+          product_id: RT_PRODUCT,
+          name: "Caixa round-trip",
+          package_price: "1.20",
+          units_per_package: "10",
+        },
+        context,
+      ),
+    );
+    // Não-vacuidade: com o append incondicional (comportamento anterior) esta
+    // contagem seria 1 e o round-trip abaixo seria recusado.
+    expect(await packagingHistoryCount(created.id)).toBe(0);
+    expect(await packagingExists(created.id)).toBe(true);
+  });
+
+  it("round-trip: criar → remover conclui com ok, some da lista e não deixa rastro novo", async () => {
+    const created = await asTenant((context) =>
+      invokeUpsertPackaging(
+        upsertPackaging,
+        {
+          product_id: RT_PRODUCT,
+          name: "Caixa removida",
+          package_price: "1.20",
+          units_per_package: "10",
+        },
+        context,
+      ),
+    );
+    expect(await packagingHistoryCount(created.id)).toBe(0);
+
+    const result = await asTenant((context) => invokeDelete(deletePackaging, created.id, context));
+    expect(result).toEqual({ ok: true });
+    expect(await packagingExists(created.id)).toBe(false);
+    expect(await packagingHistoryCount(created.id)).toBe(0);
+  });
+
+  it("edição sem variação de preço não cria linha de histórico e a remoção continua concluindo", async () => {
+    const created = await asTenant((context) =>
+      invokeUpsertPackaging(
+        upsertPackaging,
+        {
+          product_id: RT_PRODUCT,
+          name: "Caixa renomeada",
+          package_price: "1.20",
+          units_per_package: "10",
+        },
+        context,
+      ),
+    );
+    await asTenant((context) =>
+      invokeUpsertPackaging(
+        upsertPackaging,
+        {
+          id: created.id,
+          product_id: RT_PRODUCT,
+          name: "Caixa renomeada outra vez",
+          package_price: "1.20",
+          units_per_package: "10",
+        },
+        context,
+      ),
+    );
+    expect(await packagingHistoryCount(created.id)).toBe(0);
+    const result = await asTenant((context) => invokeDelete(deletePackaging, created.id, context));
+    expect(result).toEqual({ ok: true });
+  });
+
+  it("variação de preço registra UM ponto e a remoção passa a ser recusada", async () => {
+    const created = await asTenant((context) =>
+      invokeUpsertPackaging(
+        upsertPackaging,
+        {
+          product_id: RT_PRODUCT,
+          name: "Caixa com variação",
+          package_price: "1.20",
+          units_per_package: "10",
+        },
+        context,
+      ),
+    );
+    expect(await packagingHistoryCount(created.id)).toBe(0);
+
+    await asTenant((context) =>
+      invokeUpsertPackaging(
+        upsertPackaging,
+        {
+          id: created.id,
+          product_id: RT_PRODUCT,
+          name: "Caixa com variação",
+          package_price: "1.50",
+          units_per_package: "10",
+        },
+        context,
+      ),
+    );
+    expect(await packagingHistoryCount(created.id)).toBe(1);
+
+    const error = await errorFrom(() =>
+      asTenant((context) => invokeDelete(deletePackaging, created.id, context)),
+    );
+    expect(error).toBeInstanceOf(ApplicationError);
+    expect(error).toMatchObject({
+      code: "CONFLICT",
+      status: 409,
+      message: HISTORY_MESSAGE,
+    });
+    expect(await packagingExists(created.id)).toBe(true);
+  });
+
+  it("par negativo: ingrediente com histórico genuíno continua recusando", async () => {
+    await pool.query(
+      `insert into product_ingredients
+         (id, product_id, tenant_id, user_id, name, used_qty, used_unit, package_price, package_qty, package_unit)
+       values ($1, $2, $3, $4, 'Açúcar', '1.000000', 'kg', '8.9000', '5.000000', 'kg')
+       on conflict (id) do update set name = excluded.name`,
+      [RT_INGREDIENT, RT_PRODUCT, RT_TENANT, RT_USER],
+    );
+    await pool.query(
+      `insert into purchase_price_history
+         (id, tenant_id, user_id, subject_type, subject_id, ingredient_id, price, quantity, unit, valid_from)
+       values ($1, $2, $3, 'ingredient', $4, $4, '8.9000', '5.000000', 'kg', now())
+       on conflict (id) do update set price = excluded.price`,
+      [RT_HISTORY_INGREDIENT, RT_TENANT, RT_USER, RT_INGREDIENT],
+    );
+
+    const error = await errorFrom(() =>
+      asTenant((context) => invokeDelete(deleteIngredient, RT_INGREDIENT, context)),
+    );
+    expect(error).toBeInstanceOf(ApplicationError);
+    expect(error).toMatchObject({
+      code: "CONFLICT",
+      status: 409,
+      message: HISTORY_MESSAGE,
+    });
+    expect(await ingredientExists(RT_INGREDIENT)).toBe(true);
+    expect(await ingredientHistoryCount(RT_INGREDIENT)).toBe(1);
+  });
+
+  it("par negativo: embalagem com histórico genuíno continua recusando", async () => {
+    await pool.query(
+      `insert into product_packaging
+         (id, product_id, tenant_id, user_id, name, package_price, units_per_package)
+       values ($1, $2, $3, $4, 'Caixa com histórico', '1.2000', '10.000000')
+       on conflict (id) do update set name = excluded.name`,
+      [RT_PACKAGING, RT_PRODUCT, RT_TENANT, RT_USER],
+    );
+    await pool.query(
+      `insert into purchase_price_history
+         (id, tenant_id, user_id, subject_type, subject_id, packaging_id, price, quantity, unit, valid_from)
+       values ($1, $2, $3, 'packaging', $4, $4, '1.2000', '10.000000', 'unidade', now())
+       on conflict (id) do update set price = excluded.price`,
+      [RT_HISTORY_PACKAGING, RT_TENANT, RT_USER, RT_PACKAGING],
+    );
+
+    const error = await errorFrom(() =>
+      asTenant((context) => invokeDelete(deletePackaging, RT_PACKAGING, context)),
+    );
+    expect(error).toBeInstanceOf(ApplicationError);
+    expect(error).toMatchObject({
+      code: "CONFLICT",
+      status: 409,
+      message: HISTORY_MESSAGE,
+    });
+    expect(await packagingExists(RT_PACKAGING)).toBe(true);
+    expect(await packagingHistoryCount(RT_PACKAGING)).toBe(1);
+  });
+
+  it("o caminho de sucesso não apaga o histórico registrado de propósito", async () => {
+    // A embalagem COM histórico fica (é recusada); a SEM histórico sai. O
+    // rastro da primeira tem de continuar inteiro depois da segunda.
+    const semHistorico = await asTenant((context) =>
+      invokeUpsertPackaging(
+        upsertPackaging,
+        {
+          product_id: RT_PRODUCT,
+          name: "Caixa descartável",
+          package_price: "2.00",
+          units_per_package: "5",
+        },
+        context,
+      ),
+    );
+    const result = await asTenant((context) =>
+      invokeDelete(deletePackaging, semHistorico.id, context),
+    );
+    expect(result).toEqual({ ok: true });
+
+    // O histórico genuíno continua lá, com o mesmo conteúdo.
+    expect(await packagingHistoryCount(RT_PACKAGING)).toBe(1);
+    const { rows } = await pool.query<{ price: string; quantity: string }>(
+      `select price::text as price, quantity::text as quantity
+         from purchase_price_history where tenant_id = $1 and id = $2`,
+      [RT_TENANT, RT_HISTORY_PACKAGING],
+    );
+    expect(rows[0]?.price).toBe("1.2000");
+    expect(rows[0]?.quantity).toBe("10.000000");
+    expect(await packagingExists(RT_PACKAGING)).toBe(true);
   });
 });

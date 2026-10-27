@@ -1,0 +1,57 @@
+{
+  "schema": "m02-lockfile-guard/1",
+  "ok": false,
+  "status": "fail",
+  "generatedAt": "2026-10-22T07:11:46.023Z",
+  "repo": "/home/douglas/WebstormProjects/preco-que-da-lucro",
+  "observed": {
+    "policyRange": {
+      "package": "drizzle-kit",
+      "min": "0.31.0",
+      "max": "0.31.99",
+      "criticality": "critical"
+    },
+    "spec": "^0.31.10",
+    "lockSpec": "^0.31.10",
+    "lockResolvedVersion": "0.31.10",
+    "lockSha256": "61d44458b4a0b1071e265b46c24d60279210bc5e00b62dfea2e1b97d37bcf42e",
+    "headLockSha256": "fecae2eda7c0e6fd2c6bd47db9f5189f12ddb9deb38e2248327c0ec792e20459",
+    "installedVersion": "0.31.10"
+  },
+  "checks": [
+    {
+      "id": "dependency-policy",
+      "status": "pass",
+      "detail": "drizzle-kit aprovado em 0.31.0 → 0.31.99"
+    },
+    {
+      "id": "package-json-devdep",
+      "status": "pass",
+      "detail": "spec '^0.31.10'"
+    },
+    {
+      "id": "lock-top-spec",
+      "status": "pass",
+      "detail": "lock '^0.31.10'"
+    },
+    {
+      "id": "lock-resolved",
+      "status": "pass",
+      "detail": "resolvido 0.31.10"
+    },
+    {
+      "id": "lock-sha256-head",
+      "status": "fail",
+      "detail": "lock do worktree 61d44458b4a0b1071e265b46c24d60279210bc5e00b62dfea2e1b97d37bcf42e != HEAD fecae2eda7c0e6fd2c6bd47db9f5189f12ddb9deb38e2248327c0ec792e20459 (reescrito sem commit)"
+    },
+    {
+      "id": "node-modules-installed",
+      "status": "pass",
+      "detail": "instalado 0.31.10"
+    }
+  ],
+  "reasons": [
+    "lock-sha256-head: lock do worktree 61d44458b4a0b1071e265b46c24d60279210bc5e00b62dfea2e1b97d37bcf42e != HEAD fecae2eda7c0e6fd2c6bd47db9f5189f12ddb9deb38e2248327c0ec792e20459 (reescrito sem commit)"
+  ],
+  "hint": "git checkout -- package.json package-lock.json && npm ci --ignore-scripts && npm run m02:lockfile-guard"
+}

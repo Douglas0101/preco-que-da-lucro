@@ -1,0 +1,38 @@
+[
+  {
+    "caso": "chromium Enter no campo \"Nome\" do dialogo de ingrediente (botao habilitado)",
+    "observado": "{\"botaoHabilitadoAntes\":true,\"formNoDialogo\":0,\"dialogAberto\":1,\"toasts\":[],\"foco\":\"INPUT#ing-nome\",\"valorCampo\":\"Bughunt D2 Enter Ing\"}"
+  },
+  {
+    "caso": "chromium campos do dialogo de embalagem",
+    "observado": "[\"pkg-nome\",\"pkg-preco\",\"pkg-unidades\"]"
+  },
+  {
+    "caso": "chromium Enter no dialogo de embalagem",
+    "observado": "{\"botaoHabilitadoAntes\":false,\"dialogAberto\":1,\"toasts\":[]}"
+  },
+  {
+    "caso": "firefox Enter no campo \"Nome\" do dialogo de ingrediente (botao habilitado)",
+    "observado": "{\"botaoHabilitadoAntes\":true,\"formNoDialogo\":0,\"dialogAberto\":1,\"toasts\":[],\"foco\":\"INPUT#ing-nome\",\"valorCampo\":\"Bughunt D2 Enter Ing\"}"
+  },
+  {
+    "caso": "firefox campos do dialogo de embalagem",
+    "observado": "[\"pkg-nome\",\"pkg-preco\",\"pkg-unidades\"]"
+  },
+  {
+    "caso": "firefox Enter no dialogo de embalagem",
+    "observado": "{\"botaoHabilitadoAntes\":false,\"dialogAberto\":1,\"toasts\":[]}"
+  },
+  {
+    "caso": "webkit Enter no campo \"Nome\" do dialogo de ingrediente (botao habilitado)",
+    "observado": "{\"botaoHabilitadoAntes\":true,\"formNoDialogo\":0,\"dialogAberto\":1,\"toasts\":[],\"foco\":\"INPUT#ing-nome\",\"valorCampo\":\"Bughunt D2 Enter Ing\"}"
+  },
+  {
+    "caso": "webkit campos do dialogo de embalagem",
+    "observado": "[\"pkg-nome\",\"pkg-preco\",\"pkg-unidades\"]"
+  },
+  {
+    "caso": "webkit Enter no dialogo de embalagem",
+    "observado": "{\"botaoHabilitadoAntes\":false,\"dialogAberto\":1,\"toasts\":[]}"
+  }
+]

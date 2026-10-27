@@ -19,9 +19,9 @@ tags:
 
 **Projeto:** Preço Que Dá Lucro
 **Data de referência:** 2026-10-15 (relatório herdado) · reconciliado em **2026-10-16**
-**Base Git reconciliada:** `main` = `ef7568e216ac9871e04af8b13b53f61664503367` (merge do PR #64) · `develop` = `94e32411d29f54270db9759170f27536c3fbf43e`
+**Base Git reconciliada:** `main` = `ef7568e216ac9871e04af8b13b53f61664503367` (merge do PR #64) · `develop` = `4206303`+ (HEAD local `363eb43`; `origin/develop` ainda em `94e32411d29f54270db9759170f27536c3fbf43e` — 13 commits atrás)
 **Estado de sincronização:** `git merge-base --is-ancestor origin/main origin/develop` = OK (back-merge íntegro) · worktree limpo
-**Baseline reportado (a reconfirmar na captura da Fase 0):** 2.274 testes PASS no Vitest · hash de bundle `sha256=30ca04baaa66`
+**Baseline vivo (medido):** **2.315 testes** PASS no Vitest — 149 arquivos PASS + 1 skipped (150 arquivos `src/**/*.test.{ts,tsx}`) — no `develop@4206303`+ (HEAD local `363eb43`) · hash do grafo inicial medido `sha256=456dc93eb1ec` (`docs/evidence/otimizacoes-planejamento/captures/build-onda1-after.txt:7`). O número **herdado** de 2.274 testes / `sha256=30ca04baaa66` é **obsoleto** (capturado antes do merge do PR #64) e não pode se propagar em silêncio.
 **Status:** aguardando gate humano — Decisões 1–4 em §8. Nenhuma alteração de código, env, commit, push ou deploy foi executada.
 
 > [!NOTE]
@@ -81,24 +81,23 @@ O relatório de Fase 0 foi estruturado sobre o estado de **13/10** (pós-PR #62)
 
 ### Estado atual (resumo)
 
-| Item                                          | Valor                                     | Fonte                    | Confiança        |
-| --------------------------------------------- | ----------------------------------------- | ------------------------ | ---------------- |
-| `main`                                        | `ef7568e`                                 | `git log origin/main`    | ✅ Confirmado    |
-| `develop`                                     | `94e3241`                                 | `git log origin/develop` | ✅ Confirmado    |
-| Back-merge `main` → `develop`                 | OK                                        | `git merge-base`         | ✅ Confirmado    |
-| BLQ-01 (503 + pooler) — publicação histórica  | Resolvido (DBT-110/115)                   | Registry (`DEBTS.md`)    | ✅ Confirmado    |
-| BLQ-02 (sem deployment do main) — histórico   | Resolvido (`dpl_3zbrc9h` GREEN)           | Registry (`DEBTS.md`)    | ✅ Confirmado    |
-| BLQ-03 (pooling residual + Deployment Checks) | Em aberto                                 | Análise §2.3/§2.4/§2.6   | ⚠️ Em aberto     |
-| Baseline 2.274 testes / `sha256=30ca04baaa66` | Não reconfirmado contra `develop@94e3241` | Relatório herdado        | ⚠️ A reconfirmar |
+| Item                                                    | Valor                                                                                                    | Fonte                                                                                                     | Confiança        |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------- |
+| `main`                                                  | `ef7568e`                                                                                                | `git log origin/main`                                                                                     | ✅ Confirmado    |
+| `develop`                                               | `4206303`+ (HEAD local `363eb43`; `origin/develop` ainda em `94e3241` — 13 commits atrás)                | `git log -1 develop` / `git log origin/develop`                                                           | ✅ Confirmado    |
+| Back-merge `main` → `develop`                           | OK                                                                                                       | `git merge-base`                                                                                          | ✅ Confirmado    |
+| BLQ-01 (503 + pooler) — publicação histórica            | Resolvido (DBT-110/115)                                                                                  | Registry (`DEBTS.md`)                                                                                     | ✅ Confirmado    |
+| BLQ-02 (sem deployment do main) — histórico             | Resolvido (`dpl_3zbrc9h` GREEN)                                                                          | Registry (`DEBTS.md`)                                                                                     | ✅ Confirmado    |
+| BLQ-03 (pooling residual + Deployment Checks)           | Em aberto                                                                                                | Análise §2.3/§2.4/§2.6                                                                                    | ⚠️ Em aberto     |
+| Baseline 2.274 testes / `sha256=30ca04baaa66` (herdado) | **Obsoleto** — o baseline vivo é `develop@4206303`+ com **2.315 testes** (149 arquivos PASS + 1 skipped) | Journal `PROGRESS.md` L975/L977 · `docs/evidence/otimizacoes-planejamento/captures/build-onda1-after.txt` | ⚠️ A reconfirmar |
 
 > [!WARNING]
-> O baseline de 2.274 testes / hash `30ca04baaa66` foi capturado **antes** do merge do PR #64.
-> Deve ser reconfirmado contra `develop@94e3241` antes de qualquer decisão de gate — o número herdado não pode se propagar silenciosamente.
+> O baseline de 2.274 testes / hash `30ca04baaa66` foi capturado **antes** do merge do PR #64 e está **obsoleto**: o `develop` local está em `4206303`+ (HEAD `363eb43`, 13 commits à frente de `origin/develop`/`94e3241`) e o baseline vivo medido é **2.315 testes** — 149 arquivos PASS + 1 skipped (150 arquivos `src/**/*.test.{ts,tsx}`). O número herdado não pode se propagar silenciosamente; o checklist abaixo é reconfirmado contra o SHA vigente.
 
 Checklist de reconfirmação do baseline:
 
-- [ ] Reconfirmar baseline contra `develop@94e3241`: `npm ci --ignore-scripts && npm run check`
-- [ ] Comparar bundle sha256 com `30ca04baaa66`
+- [ ] Reconfirmar baseline contra `develop@4206303`+ (HEAD local `363eb43`): `npm ci --ignore-scripts && npm run check` — medido: 149 arquivos / **2.315 testes** PASS + 1 skipped
+- [ ] Comparar bundle sha256 com `30ca04baaa66` (herdado) — o digest medido pós-Onda 1 é `456dc93eb1ec` (`captures/build-onda1-after.txt:7`)
 - [ ] Se divergir, atualizar §0 e todas as seções/fichas que citam o baseline
 
 ### Detalhamento da reconciliação
@@ -107,13 +106,13 @@ Esta tabela separa o que está **superado** do que segue **aberto** no relatóri
 
 | #   | Alegação herdada (13/10)                                                            | Estado reconciliado (2026-10-16)                                                                                                                                                                                                                  | Fonte                                             |
 | --- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| 1   | `main` = `2103151` (PR #62); `develop` = `ed26ec3`                                  | **Superado.** `main` = `ef7568e` (PR #64, merge de `develop`); `develop` = `94e3241` (notas de ADR-045/DBT-112); back-merge OK                                                                                                                    | `git rev-parse` / `git log` locais (2026-10-16)   |
+| 1   | `main` = `2103151` (PR #62); `develop` = `ed26ec3`                                  | **Superado.** `main` = `ef7568e` (PR #64, merge de `develop`); `develop` = `94e3241` na reconciliação de 2026-10-16 (notas de ADR-045/DBT-112) — hoje `4206303`+; back-merge OK                                                                   | `git rev-parse` / `git log` locais (2026-10-16)   |
 | 2   | Nenhum deployment gerado para o `main` corrente (`2103151` / `40c1a355`)            | **Superado.** `dpl_3zbrc9hxuFff91V4LwgQAy5iXx1c` (GREEN, `main ef7568e`, análise real de main OK); aliases `sage`/`team`/`git-main` promovidos após `health/ready` estruturado 200                                                                | DBT-115 (FECHADA, `DEBTS.md`)                     |
 | 3   | Produção `fa45632` com HTTP 503 (`postgres unavailable`)                            | **Superado.** `DATABASE_URL` de produção reparada (remoção manual da Secret + reinjeção pela integração Neon da branch `production`); novo deployment `dpl_9v4ni1M` READY, publicação concluída com 9 probes autenticados PASS nos 3 aliases      | DBT-110 / DBT-109 (FECHADAS, `DEBTS.md`)          |
 | 4   | Alias público `sage` servindo `d4b9395` (pin de rollback)                           | **Superado.** Promoção concluída; E2E autenticado DeepSeek verde em 2026-10-14 no deployment do main publicado                                                                                                                                    | DBT-115 (FECHADA)                                 |
 | 5   | `pooler_enabled=false` no endpoint `ep-long-violet-aye9g0bn` (conexão direta :5432) | **Não reconfirmado** desde o reparo da env (2026-10-13). Verificação live obrigatória na captura da Fase 0 (`captures/neon-endpoints-pooling.json`)                                                                                               | Observação herdada; pendência de verificação      |
 | 6   | Deployment Checks ausentes na Vercel                                                | **Presumivelmente ainda ausentes** (nenhum registro em contrário). Adotá-los permanece decisão de reforço aberta (§8, Decisão 2)                                                                                                                  | Não verificado; pendência de verificação          |
-| 7   | Baseline 2.274 testes / hash `30ca04baaa66` / Node `24.21.0` (`.nvmrc`)             | **A reconfirmar** contra `develop@94e3241` — a linhagem avançou (ADR-045, DBT-69/103–107, DBT-112/115) e o número de testes pode ter mudado                                                                                                       | Captura da Fase 0 (`captures/build-baseline.txt`) |
+| 7   | Baseline 2.274 testes / hash `30ca04baaa66` / Node `24.21.0` (`.nvmrc`)             | **A reconfirmar** contra `develop@4206303`+ — a linhagem avançou (ADR-045, DBT-69/103–107, DBT-112/115 e a execução da Onda 1) e o número de testes **mudou**: o baseline vivo é **2.315 testes** (149 arquivos PASS + 1 skipped)                 | Captura da Fase 0 (`captures/build-baseline.txt`) |
 | 8   | Branch de trabalho dedicada para a Onda 1 (Decisão 3 do relatório)                  | **Conflita com a política vigente.** O ruleset `24347682` proíbe a criação de qualquer branch além de `develop`/`main` (sem bypass); o fluxo sancionado é direto em `develop` com gate local antes do push (precedente `74ab15f`). Ver nota na §8 | `AGENTS.md` (Branching) + precedente `74ab15f`    |
 
 ### Pendências de verificação live
@@ -123,7 +122,7 @@ Nenhum valor abaixo foi presumido — todos exigem captura na Fase 0:
 - [ ] V-01 — Lista de deployments da Vercel para o `main` corrente e o `gitSource` associado (`captures/vercel-deployments.json`).
 - [ ] V-02 — Configuração de endpoints/pooling do Neon de produção (`captures/neon-endpoints-pooling.json`).
 - [ ] V-03 — Presença/ausência de Deployment Checks na Vercel (`captures/vercel-project-config.json`).
-- [ ] V-04 — Baseline real de Web Vitals e de bundle contra `develop@94e3241` (`captures/baseline-web-vitals.json`, `captures/build-baseline.txt`).
+- [ ] V-04 — Baseline real de Web Vitals e de bundle contra `develop@4206303`+ (`captures/baseline-web-vitals.json`, `captures/build-baseline.txt`).
 
 O restante do relatório herdado permanece válido como **diagnóstico de sistema** (arquitetura, stack, oportunidades e alvos de otimização) — apenas os fatos de publicação/infra acima foram superados.
 
@@ -152,7 +151,7 @@ Este documento estabelece o planejamento executável, mensurável e auditável p
 ### 2.1 Git (reconciliado em 2026-10-16)
 
 - `main` = `ef7568e216ac9871e04af8b13b53f61664503367` — merge do PR #64 (_"deepseek nativo como default e erradicação dos resquícios do Lovable"_).
-- `develop` = `94e32411d29f54270db9759170f27536c3fbf43e` — inclui o back-merge do main e as notas de ADR-045/DBT-112.
+- `develop` = `4206303`+ (HEAD local `363eb43`) — inclui o back-merge do main, as notas de ADR-045/DBT-112 e a execução da Onda 1; `origin/develop` ainda em `94e32411d29f54270db9759170f27536c3fbf43e` (13 commits atrás — nada foi pushado nesta rodada).
 - `git merge-base --is-ancestor origin/main origin/develop` = OK; referências locais e remotas alinhadas (topologia de `ADR-017`).
 - Worktree limpo; nenhum artefato desta análise estava rastreado até o momento.
 
@@ -178,7 +177,7 @@ Este documento estabelece o planejamento executável, mensurável e auditável p
 ### 2.5 Qualidade e baseline local (herdado — a reconfirmar)
 
 - `npm ci --ignore-scripts`: exit 0.
-- `npm run check`: exit 0, **2.274 testes PASS**, hash determinístico do bundle `sha256=30ca04baaa66` (zero drift) — números reportados contra um snapshot anterior; devem ser recapturados contra `develop@94e3241` nos gates `ADR-037` e `ADR-042` (checklist acionável em §0).
+- `npm run check`: exit 0 — **baseline vivo medido**: **2.315 testes** PASS (149 arquivos PASS + 1 skipped) no `develop@4206303`+ (HEAD local `363eb43`), hash do grafo inicial medido `sha256=456dc93eb1ec` (`captures/build-onda1-after.txt:7`). Os números **herdados** (2.274 testes / `sha256=30ca04baaa66`) vêm de um snapshot anterior e estão **obsoletos**; o checklist acionável está em §0.
 - Captura de tamanho de bundle e Web Vitals: os scripts de captura (Apêndice A) populam `captures/` com saída estruturada; execução depende do host local/sessões MCP.
 
 ### 2.6 Bloqueadores herdados — status reconciliado
@@ -249,42 +248,45 @@ Antes de publicar qualquer onda em produção (mediante aprovação humana expl�
 
 ### 3.0 Índice geral
 
-| ID    | Camada                       | Esforço | Risco | Onda | Dependências principais              | Status       |
-| ----- | ---------------------------- | ------- | ----- | ---- | ------------------------------------ | ------------ |
-| RT-01 | Runtime (React 19)           | G       | Médio | 3    | RT-02, RT-03, ADR-030                | Aberta       |
-| RT-02 | Runtime (React 19)           | M       | Baixo | 2    | — (pré-req. de RT-01/TS-01)          | Aberta       |
-| RT-03 | Runtime (React 19)           | M       | Médio | 2    | UI-01                                | Aberta       |
-| RT-04 | Runtime / Build              | M       | Médio | 3    | UI-06                                | Aberta       |
-| TS-01 | Framework (TanStack Start)   | G       | Alto  | 3    | TS-02, RT-02, ADR-043                | Aberta       |
-| TS-02 | Framework (TanStack Start)   | M       | Médio | 3    | BD-04, ADR-043                       | Aberta       |
-| TS-03 | Roteamento / Build           | P       | Baixo | 2    | — (ver ressalva na ficha)            | 🔶 Bloqueada |
-| TS-04 | Roteamento (TanStack Router) | P       | Baixo | 2    | TS-03, TS-05                         | Aberta       |
-| TS-05 | Estado (TanStack Query)      | P       | Baixo | 2    | ADR-040                              | Aberta       |
-| BD-01 | Build / DX (Vite 8)          | M       | Médio | 3    | ADR-045 (ver ressalva na ficha)      | 🔶 Bloqueada |
-| BD-02 | Build (Vite 8 + Nitro 3)     | P       | Baixo | 2    | —                                    | Aberta       |
-| BD-03 | Build (Vite 8 / Rolldown)    | M       | Médio | 3    | UI-01, DT-02 (ver ressalva na ficha) | 🔶 Bloqueada |
-| BD-04 | Server / Edge (Nitro 3)      | M       | Médio | 3    | TS-02, ADR-019, ADR-043              | Aberta       |
-| BD-05 | Server / Edge (Nitro 3)      | P       | Baixo | 2    | BD-04                                | Aberta       |
-| BD-06 | Server / Roteamento (Nitro)  | M       | Médio | 3    | OB-02                                | Aberta       |
-| UI-01 | UI (shadcn/Base UI)          | P       | Baixo | 1    | ADR-016                              | Aberta       |
-| UI-02 | UI (React lazy)              | M       | Médio | 2    | RT-02, UI-01                         | Aberta       |
-| UI-03 | UI / Styling (Tailwind v4)   | P       | Baixo | 1    | ADR-016, ADR-043                     | Aberta       |
-| UI-04 | UI (Base UI 1.6.0)           | M       | Médio | 2    | UI-01, UI-06                         | Aberta       |
-| UI-05 | UI (Base UI Avatar)          | P       | Baixo | 1    | —                                    | Aberta       |
-| UI-06 | UI / Qualidade de Código     | P       | Baixo | 1    | Pré-req. de RT-04                    | Aberta       |
-| DT-01 | Dados e Validação (Zod 4)    | M       | Médio | 2    | DT-02, ADR-024, ADR-032 (ver RSK-01) | Aberta       |
-| DT-02 | Matemática (decimal.js)      | P       | Baixo | 1    | ADR-018, ADR-032                     | Aberta       |
-| DT-03 | Dados / Bundle Splitting     | M       | Médio | 2    | DT-02, BD-03                         | Aberta       |
-| DT-04 | Matemática (decimal.js)      | P       | Baixo | 1    | ADR-018                              | Aberta       |
-| DT-05 | Autenticação (better-auth)   | M       | Médio | 2    | ADR-020, ADR-025, ADR-019            | Aberta       |
-| OB-01 | Observabilidade (OTel)       | M       | Médio | 2    | OB-02, ADR-022                       | Aberta       |
-| OB-02 | Observabilidade / Runtime    | P       | Baixo | 1    | Pré-req. de OB-01/OB-03/BD-06        | Aberta       |
-| OB-03 | Observabilidade (OTel)       | P       | Baixo | 1    | OB-02                                | Aberta       |
-| OB-04 | Observabilidade (ADR-022)    | M       | Médio | 2    | OB-01, ADR-022                       | Aberta       |
-| OB-05 | Observabilidade Full-Stack   | M       | Médio | 2    | OB-04, ADR-033                       | Aberta       |
+| ID    | Camada                       | Esforço | Risco | Onda | Dependências principais              | Status                                   |
+| ----- | ---------------------------- | ------- | ----- | ---- | ------------------------------------ | ---------------------------------------- |
+| RT-01 | Runtime (React 19)           | G       | Médio | 3    | RT-02, RT-03, ADR-030                | Aberta                                   |
+| RT-02 | Runtime (React 19)           | M       | Baixo | 2    | — (pré-req. de RT-01/TS-01)          | Aberta                                   |
+| RT-03 | Runtime (React 19)           | M       | Médio | 2    | UI-01                                | Aberta                                   |
+| RT-04 | Runtime / Build              | M       | Médio | 3    | UI-06                                | Aberta                                   |
+| TS-01 | Framework (TanStack Start)   | G       | Alto  | 3    | TS-02, RT-02, ADR-043                | Aberta                                   |
+| TS-02 | Framework (TanStack Start)   | M       | Médio | 3    | BD-04, ADR-043                       | Aberta                                   |
+| TS-03 | Roteamento / Build           | P       | Baixo | 2    | — (ver ressalva na ficha)            | 🔶 Bloqueada                             |
+| TS-04 | Roteamento (TanStack Router) | P       | Baixo | 2    | TS-03, TS-05                         | Aberta                                   |
+| TS-05 | Estado (TanStack Query)      | P       | Baixo | 2    | ADR-040                              | Aberta                                   |
+| BD-01 | Build / DX (Vite 8)          | M       | Médio | 3    | ADR-045 (ver ressalva na ficha)      | 🔶 Bloqueada                             |
+| BD-02 | Build (Vite 8 + Nitro 3)     | P       | Baixo | 2    | —                                    | Aberta                                   |
+| BD-03 | Build (Vite 8 / Rolldown)    | M       | Médio | 3    | UI-01, DT-02 (ver ressalva na ficha) | 🔶 Bloqueada                             |
+| BD-04 | Server / Edge (Nitro 3)      | M       | Médio | 3    | TS-02, ADR-019, ADR-043              | Aberta                                   |
+| BD-05 | Server / Edge (Nitro 3)      | P       | Baixo | 2    | BD-04                                | Aberta                                   |
+| BD-06 | Server / Roteamento (Nitro)  | M       | Médio | 3    | OB-02                                | Aberta                                   |
+| UI-01 | UI (shadcn/Base UI)          | P       | Baixo | 1    | ADR-016                              | ✔ Executada (Onda 1)                     |
+| UI-02 | UI (React lazy)              | M       | Médio | 2    | RT-02, UI-01                         | Aberta                                   |
+| UI-03 | UI / Styling (Tailwind v4)   | P       | Baixo | 1    | ADR-016, ADR-043                     | ✔ Executada (Onda 1)                     |
+| UI-04 | UI (Base UI 1.6.0)           | M       | Médio | 2    | UI-01, UI-06                         | Aberta                                   |
+| UI-05 | UI (Base UI Avatar)          | P       | Baixo | 1    | —                                    | N/A medido (não existe primitivo Avatar) |
+| UI-06 | UI / Qualidade de Código     | P       | Baixo | 1    | Pré-req. de RT-04                    | ✔ Executada (Onda 1)                     |
+| DT-01 | Dados e Validação (Zod 4)    | M       | Médio | 2    | DT-02, ADR-024, ADR-032 (ver RSK-01) | Aberta                                   |
+| DT-02 | Matemática (decimal.js)      | P       | Baixo | 1    | ADR-018, ADR-032                     | Aberta (não executada na Onda 1)         |
+| DT-03 | Dados / Bundle Splitting     | M       | Médio | 2    | DT-02, BD-03                         | Aberta                                   |
+| DT-04 | Matemática (decimal.js)      | P       | Baixo | 1    | ADR-018                              | ✔ Executada (Onda 1)                     |
+| DT-05 | Autenticação (better-auth)   | M       | Médio | 2    | ADR-020, ADR-025, ADR-019            | Aberta                                   |
+| OB-01 | Observabilidade (OTel)       | M       | Médio | 2    | OB-02, ADR-022                       | Aberta                                   |
+| OB-02 | Observabilidade / Runtime    | P       | Baixo | 1    | Pré-req. de OB-01/OB-03/BD-06        | ✔ Executada (Onda 1)                     |
+| OB-03 | Observabilidade (OTel)       | P       | Baixo | 1    | OB-02                                | ✔ Executada (Onda 1)                     |
+| OB-04 | Observabilidade (ADR-022)    | M       | Médio | 2    | OB-01, ADR-022                       | Aberta                                   |
+| OB-05 | Observabilidade Full-Stack   | M       | Médio | 2    | OB-04, ADR-033                       | Aberta                                   |
 
 > [!NOTE]
 > Fichas marcadas com 🔶 têm **conflito ou ressalva de reconciliação** com o código/config vigente (TS-03, BD-01, BD-03) e trazem o alerta correspondente acima da tabela-meta. As demais são executáveis como descritas.
+
+> [!NOTE]
+> **Onda 1 — estado executado (2026-10-20).** Sete fichas foram executadas e comprovadas: **UI-01, UI-03, UI-06, DT-04, OB-02, OB-03** (✔ Executada) e **UI-05** (**N/A medido** — não existe primitivo Avatar no projeto, logo não há `keepMounted` a aplicar). **DT-02** permanece **não executada** (exige paridade bit-a-bit sob PBT e é troca de risco alto para o motor financeiro). Evidência: `docs/evidence/otimizacoes-planejamento/README.md` (tabela "Escopo executado") e as capturas em `docs/evidence/otimizacoes-planejamento/captures/`.
 
 ### 3.1 Template de ficha
 
@@ -391,19 +393,19 @@ Todas as 31 fichas de §3.2–§3.7 instanciam exatamente este formato — metad
 
 #### [TS-01] SSR seletivo por rota
 
-| Campo             | Valor                                                                                                      |
-| ----------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Camada**        | Framework (TanStack Start 1.168.60)                                                                        |
-| **Onda**          | 3                                                                                                          |
-| **Impacto**       | Alto · redução de 30% a 45% no tempo de CPU de funções Serverless em navegações internas e TTI mais rápido |
-| **Esforço/Risco** | G / Alto                                                                                                   |
-| **Dependências**  | TS-02, RT-02, ADR-043 (preservação de nonce CSP em rotas com SSR ativo)                                    |
-| **Status**        | Aberta                                                                                                     |
+| Campo             | Valor                                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Camada**        | Framework (TanStack Start 1.168.60)                                                                               |
+| **Onda**          | 3                                                                                                                 |
+| **Impacto**       | Alto · redução de 30% a 45% no tempo de CPU de funções Serverless em navegações internas e TTI mais rápido        |
+| **Esforço/Risco** | G / Alto                                                                                                          |
+| **Dependências**  | TS-02, RT-02, ADR-043 (preservação da CSP estática — `script-src 'self'`, **sem nonce** — em rotas com SSR ativo) |
+| **Status**        | Aberta                                                                                                            |
 
 - **Descrição técnica:** Configurar a propriedade `ssr` seletivamente por rota (`createFileRoute`): manter `ssr: true` (com streaming) para rotas públicas e shell inicial de SEO/autenticação, e configurar `ssr: 'data-only'` ou `ssr: false` em sub-rotas transacionais/interativas pesadas de calculadora onde a renderização no servidor adiciona latência de CPU sem ganho de LCP.
 - **Doc oficial:** <https://tanstack.com/start/latest/docs/framework/react/guide/ssr>
 - **Critérios de aceite:**
-  1. Headers de segurança e CSP nonce (ADR-043) permanecem íntegros em todas as rotas.
+  1. Headers de segurança e a CSP estática (ADR-043: `script-src 'self'`, **sem nonce** — a Decisão 1 da ADR-043 decidiu **não** introduzir nonce) permanecem íntegros em todas as rotas.
   2. LCP < 2.5s na entrada direta e zero flicker de autenticação (ADR-020).
 - **Evidências:** matriz de rotas e modos SSR documentada + probe de headers de segurança em `captures/ts01-ssr-headers.txt`.
 
@@ -955,16 +957,33 @@ flowchart TD
 
 #### Gate 1 — Pós-Onda 1
 
-| Critério                 | Threshold                             | Estado      | Evidência                                                     |
-| ------------------------ | ------------------------------------- | ----------- | ------------------------------------------------------------- |
-| `npm run check`          | exit 0                                | ⬜ Pendente | `captures/build-baseline.txt` (pré) / pós-Onda 1              |
-| Bundle JS inicial        | ≤ 85% do baseline (alvo < 150KB gzip) | ⬜ Pendente | `captures/build-onda1-after.txt`                              |
-| Web Vitals (LCP/INP/CLS) | Sem regressão vs baseline             | ⬜ Pendente | `captures/baseline-web-vitals.json` → `after-web-vitals.json` |
-| Suíte de testes          | 0 regressões                          | ⬜ Pendente | `captures/build-baseline.txt`                                 |
+| Critério                 | Threshold                             | Estado                                                                                                                                 | Evidência                                                                                                                      |
+| ------------------------ | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run check`          | exit 0                                | ✔ **Verde**                                                                                                                            | Journal `PROGRESS.md` L975/L977 — 21 passos verdes, 149 arquivos / **2.315 testes** PASS + 1 skipped, `check:bundle` PASS      |
+| Bundle JS inicial        | ≤ 85% do baseline (alvo < 150KB gzip) | ✘ **Reprovado** — meta de **−15%** não atingida: ganho medido de **−6,8%** (484.235 → 451.284 B)                                       | `captures/build-onda1-after.txt:7,21-25`                                                                                       |
+| Web Vitals (LCP/INP/CLS) | Sem regressão vs baseline             | ⬜ **Não medido** — não existe baseline de produção, e LCP é medição de laboratório: o A/B local (636 → 608 ms) não é baseline de gate | `captures/baseline-web-vitals.json` → `after-web-vitals.json` (não coletados)                                                  |
+| Suíte de testes          | 0 regressões                          | ✔ **Verde** — E2E 4 projetos **92/92**; unitários 149 arquivos / **2.315 testes** PASS                                                 | `deep-2026-10-20/captures/f0-e2e-full-after-fix.txt` (92 passed, 4 projetos) + `captures/dbt126-webkit-10x.txt` (WebKit 10/10) |
 
-- [ ] Fechar Gate 1 somente com os quatro critérios verificados em `develop`.
-- [ ] Registrar o hash do bundle pós-onda (`sha256`) no `captures/`.
-- [ ] Atualizar `MANIFEST.sha256` com os artefatos da Onda 1.
+> [!WARNING]
+> **Gate 1 — REPROVADO.** O critério de **bundle reprova**: a meta de **−15%** do Gate 1 não foi atingida e o ganho medido é de **−6,8%** (484.235 → 451.284 B contra o baseline limpo `4206303`). O **delta remanescente** é nomeado e é a razão do reprovado: **UI-02** (lazy load de componentes > 50 KB por rota) e **UI-04** (interaction splitting), ambos da **Onda 2**. O critério de **Web Vitals** está **não medido** (não há baseline de produção; LCP é medição de laboratório), o que por si só impede o fechamento. **Nenhum limiar nem budget do gate foi alterado** para acomodar o resultado — o gate é reprovado como medido.
+
+- [ ] Fechar Gate 1 somente com os quatro critérios verificados em `develop` — **reprovado**; o delta remanescente é UI-02 e UI-04 (Onda 2) e o Web Vitals segue não medido.
+- [x] Registrar o hash do bundle pós-onda (`sha256`) no `captures/` — `sha256=456dc93eb1ec` (`captures/build-onda1-after.txt:7`).
+- [x] Atualizar `MANIFEST.sha256` com os artefatos da Onda 1 — o manifesto existe (`docs/evidence/otimizacoes-planejamento/MANIFEST.sha256`, 42 entradas).
+
+#### Onda 1 — atribuição medida do ganho de bundle
+
+O ganho real da Onda 1 é **declarado aqui**, e **não** no ADR-045 (que trata da substituição do wrapper do Lovable, não do budget de bundle):
+
+| Comparação                          | Valor medido                                    | Fonte                                  |
+| ----------------------------------- | ----------------------------------------------- | -------------------------------------- |
+| vs WIP de redesign (pré-otimização) | **−49.324 B** (500.608 → 451.284 B)             | `captures/build-onda1-after.txt:22-25` |
+| vs baseline limpo `4206303`         | **−32.951 B** (**−6,8%**) (484.235 → 451.284 B) | `captures/build-onda1-after.txt:21,24` |
+
+- **Causa principal:** o `<Toaster>` no **root** puxava o pacote `sonner` para o **entry** inicial. Mover o `<Toaster>` do root para os layouts que de fato usam toast (`/auth` e `_authenticated`) tirou o `sonner` do entry: **265.408 → 219.682 B** no entry e **500.608 → 451.284 B** no grafo inicial. A landing não usa toast (`docs/evidence/otimizacoes-planejamento/README.md` §Decisões medidas).
+- **Ganho secundário medido:** `cn@0.4.0` foi **mantido** depois de medição — a troca por `clsx`+`tailwind-merge` **aumentou** o chunk do botão (38.710 → 39.786 B, número relatado no README da Onda 1; **só os 38.710 B** têm captura na pasta) e os dois pacotes antigos saíram das dependências diretas.
+- **Delta que permanece aberto:** a meta de **−15%** do Gate 1 **não** foi atingida. A ficha de code-splitting **UI-02** (lazy load de componentes > 50 KB por rota) **permanece aberta para a Onda 2**, junto de **UI-04** (interaction splitting) — são o delta nomeado do reprovado do Gate 1.
+- **Fonte primária:** `docs/evidence/otimizacoes-planejamento/README.md` e `docs/evidence/otimizacoes-planejamento/captures/build-onda1-after.txt`.
 
 #### Gate 2 — Pós-Onda 2
 
@@ -1064,16 +1083,19 @@ flowchart LR
 
 Diretório raiz: `docs/evidence/otimizacoes-planejamento/`.
 
-| ID    | Evidência                                               | Tipo | Arquivo                                                                                            | Estado      | Verificado em |
-| ----- | ------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- | ----------- | ------------- |
-| EV-01 | Estado do Git (SHAs, back-merge, log)                   | text | `captures/git-state.txt`                                                                           | ⬜ Pendente | —             |
-| EV-02 | Build baseline + comparativos por onda (JS/CSS, sha256) | log  | `captures/build-baseline.txt` vs `captures/build-onda{1,2,3}-after.txt`                            | ⬜ Pendente | —             |
-| EV-03 | Árvore de pacotes (depcheck com stderr + npm ls)        | json | `captures/depcheck.json`, `captures/depcheck.err`, `captures/npm-ls.json`                          | ⬜ Pendente | —             |
-| EV-04 | Web Vitals (LCP, INP, CLS, TTFB, FCP)                   | json | `captures/baseline-web-vitals.json` vs `captures/after-web-vitals.json`                            | ⬜ Pendente | —             |
-| EV-05 | Estado Vercel (deploys + Deployment Checks)             | json | `captures/vercel-project-config.json`, `captures/vercel-deployments.json` — tokens **redigidos**   | ⬜ Pendente | —             |
-| EV-06 | Estado Neon (branches + pooling)                        | json | `captures/neon-branches.json`, `captures/neon-endpoints-pooling.json` — string **redigida**        | ⬜ Pendente | —             |
-| EV-07 | Capturas visuais de baseline/estado                     | png  | `screenshots/baseline-home.png`, `screenshots/baseline-auth.png`, `screenshots/ui03-dark-mode.png` | ⬜ Pendente | —             |
-| EV-08 | Assinatura de todos os artefatos da pasta               | hash | `MANIFEST.sha256` (padrão das auditorias anteriores do projeto)                                    | ⬜ Pendente | —             |
+| ID    | Evidência                                               | Tipo | Arquivo                                                                                            | Estado                                                                                 | Verificado em                                 |
+| ----- | ------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------- |
+| EV-01 | Estado do Git (SHAs, back-merge, log)                   | text | `captures/git-state.txt`                                                                           | ⬜ Pendente                                                                            | —                                             |
+| EV-02 | Build baseline + comparativos por onda (JS/CSS, sha256) | log  | `captures/build-baseline.txt` vs `captures/build-onda{1,2,3}-after.txt`                            | ⬜ Pendente (existe só `captures/build-onda1-after.txt`; falta o `build-baseline.txt`) | `captures/build-onda1-after.txt` (2026-10-20) |
+| EV-03 | Árvore de pacotes (depcheck com stderr + npm ls)        | json | `captures/depcheck.json`, `captures/depcheck.err`, `captures/npm-ls.json`                          | ⬜ Pendente                                                                            | —                                             |
+| EV-04 | Web Vitals (LCP, INP, CLS, TTFB, FCP)                   | json | `captures/baseline-web-vitals.json` vs `captures/after-web-vitals.json`                            | ⬜ Pendente                                                                            | —                                             |
+| EV-05 | Estado Vercel (deploys + Deployment Checks)             | json | `captures/vercel-project-config.json`, `captures/vercel-deployments.json` — tokens **redigidos**   | ⬜ Pendente — **nunca coletado**                                                       | —                                             |
+| EV-06 | Estado Neon (branches + pooling)                        | json | `captures/neon-branches.json`, `captures/neon-endpoints-pooling.json` — string **redigida**        | ⬜ Pendente — **nunca coletado**                                                       | —                                             |
+| EV-07 | Capturas visuais de baseline/estado                     | png  | `screenshots/baseline-home.png`, `screenshots/baseline-auth.png`, `screenshots/ui03-dark-mode.png` | ⬜ Pendente (existe só `screenshots/ui03-dark-mode.png`; faltam os dois `baseline-*`)  | `screenshots/ui03-dark-mode.png` (2026-10-20) |
+| EV-08 | Assinatura de todos os artefatos da pasta               | hash | `MANIFEST.sha256` (padrão das auditorias anteriores do projeto)                                    | ✔ **Existente**                                                                        | `MANIFEST.sha256` — 42 entradas (2026-10-20)  |
+
+> [!NOTE]
+> **Motivo real das pendências.** A **EV-08** existe: `MANIFEST.sha256` está na pasta com **42 entradas** e confere byte a byte (a própria edição de `PLANEJAMENTO.md` nesta rodada torna a entrada dele obsoleta — o re-selamento é do coordenador, o manifesto **não** foi tocado aqui). As demais seguem **pendentes** porque os artefatos não foram coletados: **EV-05** (Deployment Checks da Vercel) e **EV-06** (pooling do Neon) **nunca foram coletados** — e é exatamente por isso que **BLQ-03** (o item 1 da §6 do `docs/MAPA-OPERACIONAL.md`) **continua aberto**. **EV-04** (Web Vitals) segue não medida porque não há baseline de produção; **EV-01** e **EV-03** não têm captura correspondente na pasta.
 
 > [!NOTE]
 > Evidências deste documento que sejam de performance devem seguir `docs/evidence/_templates/performance-evidence.md` (7 campos) quando publicadas como artefato de performance — os nomes de arquivo deste plano evitam os padrões varridos pelo gate (`docs/evidence/perf-*/**`, `**/*perf-*.md`) justamente para não colidir com ele.
@@ -1093,13 +1115,13 @@ Diretório raiz: `docs/evidence/otimizacoes-planejamento/`.
 
 ## 6. Riscos e Mitigações
 
-| ID         | Risco identificado                                                                                     | Prob. | Impacto | Mitigação técnica                                                                                                                                                     |
-| ---------- | ------------------------------------------------------------------------------------------------------ | ----- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **RSK-01** | `z.compile()` (DT-01) gerar `EvalError` no browser por CSP estrito com nonce (ADR-043)                 | Alta  | Alto    | Restringir compilação JIT baseada em `new Function` ao runtime Node/Nitro ou validar caminho AOT sem `eval` no cliente                                                |
-| **RSK-02** | `decimal.js-light` (DT-02) divergir em arredondamento/precisão em bordas                               | Baixa | Crítico | Rodar toda a bateria de Property-Based Testing (`fast-check`) e as baterias de break-even/rounding antes de aceitar a troca                                           |
-| **RSK-03** | SWR do Nitro (BD-04) cachear acidentalmente resposta autenticada entre tenants                         | Baixa | Crítico | Aplicar `swr` exclusivamente em rotas públicas/estáticas explícitas + teste automatizado verificando `Cache-Control: private, no-store` em `_authenticated` (ADR-019) |
-| **RSK-04** | `cookieCache` do `better-auth` (DT-05) manter sessão ativa por até 5 min após revogação administrativa | Média | Médio   | Garantir que `signOut` invalide o cookie assinado instantaneamente e que mutações financeiras críticas validem `tenantId` ativo (ADR-025)                             |
-| **RSK-05** | React Compiler (RT-04) alterar comportamento de efeitos que dependiam de referências instáveis         | Média | Médio   | Executar UI-06 previamente, rodar `react-compiler-healthcheck` e habilitar gradualmente se algum arquivo violar as Regras do React                                    |
+| ID         | Risco identificado                                                                                                                                  | Prob. | Impacto | Mitigação técnica                                                                                                                                                     |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **RSK-01** | `z.compile()` (DT-01) gerar `EvalError` no browser por CSP estrito (ADR-043: `script-src 'self'`, **sem nonce** — a decisão é não introduzir nonce) | Alta  | Alto    | Restringir compilação JIT baseada em `new Function` ao runtime Node/Nitro ou validar caminho AOT sem `eval` no cliente                                                |
+| **RSK-02** | `decimal.js-light` (DT-02) divergir em arredondamento/precisão em bordas                                                                            | Baixa | Crítico | Rodar toda a bateria de Property-Based Testing (`fast-check`) e as baterias de break-even/rounding antes de aceitar a troca                                           |
+| **RSK-03** | SWR do Nitro (BD-04) cachear acidentalmente resposta autenticada entre tenants                                                                      | Baixa | Crítico | Aplicar `swr` exclusivamente em rotas públicas/estáticas explícitas + teste automatizado verificando `Cache-Control: private, no-store` em `_authenticated` (ADR-019) |
+| **RSK-04** | `cookieCache` do `better-auth` (DT-05) manter sessão ativa por até 5 min após revogação administrativa                                              | Média | Médio   | Garantir que `signOut` invalide o cookie assinado instantaneamente e que mutações financeiras críticas validem `tenantId` ativo (ADR-025)                             |
+| **RSK-05** | React Compiler (RT-04) alterar comportamento de efeitos que dependiam de referências instáveis                                                      | Média | Médio   | Executar UI-06 previamente, rodar `react-compiler-healthcheck` e habilitar gradualmente se algum arquivo violar as Regras do React                                    |
 
 ---
 

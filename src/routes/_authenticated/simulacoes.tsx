@@ -18,6 +18,7 @@ import {
 } from "@/lib/finance";
 import { scenarioExplanation, type ScenarioEcho } from "@/lib/calc-explanation";
 import { brl, decimalInput, num, pct } from "@/lib/format";
+import { createErrorReference } from "@/lib/error-reference";
 import { CalcExplainer } from "@/components/ui/calc-explainer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -260,8 +261,11 @@ function Simulacoes() {
             ? "empty"
             : "ready";
   const errorReference = useMemo(
-    () => (loadStatus === "error" || !selectedDetail ? createErrorReference("SIM") : null),
-    [loadStatus, selectedDetail],
+    () =>
+      loadStatus === "error" || !selectedDetail
+        ? createErrorReference("SIM", productsQuery.error ?? expensesQuery.error)
+        : null,
+    [loadStatus, selectedDetail, productsQuery.error, expensesQuery.error],
   );
   const base = useMemo<ProductBaseline | null>(() => {
     if (loadStatus !== "ready" || !selectedDetail || selectedDetail.metrics.status !== "ok") {
@@ -331,8 +335,8 @@ function Simulacoes() {
   });
   const simulated = simulationQuery.data ?? null;
   const simulationErrorReference = useMemo(
-    () => (simulationQuery.isError ? createErrorReference("SIM") : null),
-    [simulationQuery.isError],
+    () => (simulationQuery.isError ? createErrorReference("SIM", simulationQuery.error) : null),
+    [simulationQuery.isError, simulationQuery.error],
   );
 
   const missingFields =
@@ -872,14 +876,6 @@ function RemoteErrorState({
       </Button>
     </div>
   );
-}
-
-function createErrorReference(prefix: string): string {
-  const token =
-    typeof globalThis.crypto?.randomUUID === "function"
-      ? globalThis.crypto.randomUUID().slice(0, 8)
-      : Date.now().toString(36);
-  return `${prefix}-${token}`.toUpperCase();
 }
 
 function toApiDecimal(value: string): string | null {

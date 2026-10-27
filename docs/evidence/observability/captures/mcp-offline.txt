@@ -1,0 +1,6 @@
+✓ context7      connected
+✓ dhi           connected
+✓ MCP_DOCKER    connected
+✗ mock-offline  failed: Connection closed: MCP server process exited with code 1
+✓ neon          connected
+✓ vercel        connected

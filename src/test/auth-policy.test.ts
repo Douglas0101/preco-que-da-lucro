@@ -6,6 +6,7 @@ import {
   requireAuthSecret,
   resolveAuthPolicy,
   resolveGoogleCredentials,
+  resolveGoogleProviderOptions,
 } from "@/server/auth/auth-policy";
 import {
   hashPassword,
@@ -55,6 +56,34 @@ describe("Better Auth policy", () => {
   it("requires a sufficiently strong server secret", () => {
     expect(() => requireAuthSecret({ BETTER_AUTH_SECRET: "short" })).toThrow(/32/);
     expect(requireAuthSecret({ BETTER_AUTH_SECRET: "x".repeat(32) })).toHaveLength(32);
+  });
+
+  // O gate do OAuth: sem `requireEmailVerification` no provider, o Better Auth
+  // lia `undefined` em `oauth2/link-account.mjs:258` e o check de `:260` era
+  // curto-circuitado — a sessão era criada em `:268` mesmo com o e-mail não
+  // verificado. A flag é o que fecha o bypass.
+  it("exige verificação de e-mail no provider Google (gate do bypass OAuth)", () => {
+    expect(
+      resolveGoogleProviderOptions({
+        GOOGLE_CLIENT_ID: "client",
+        GOOGLE_CLIENT_SECRET: "client-secret",
+      }),
+    ).toEqual({
+      clientId: "client",
+      clientSecret: "client-secret",
+      requireEmailVerification: true,
+    });
+  });
+
+  it("mantém o par de credenciais como fonte única e desativa o provider sem par", () => {
+    const options = resolveGoogleProviderOptions({
+      GOOGLE_CLIENT_ID: "client",
+      GOOGLE_CLIENT_SECRET: "client-secret",
+    });
+    expect(options?.clientId).toBe("client");
+    expect(options?.clientSecret).toBe("client-secret");
+    expect(resolveGoogleProviderOptions({})).toBeUndefined();
+    expect(() => resolveGoogleProviderOptions({ GOOGLE_CLIENT_ID: "client" })).toThrow(/juntos/);
   });
 });
 

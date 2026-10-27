@@ -1,0 +1,339 @@
+{
+  "capture": "Agente E — FASE 5.3: injecao (script + SQL) em campos de texto",
+  "payloads": [
+    "<script>alert(1)</script>",
+    "<img src=x onerror=alert(1)>",
+    "\"><script>alert(1)</script>",
+    "' OR 1=1--",
+    "'; DROP TABLE products;--",
+    "1' UNION SELECT null--"
+  ],
+  "conclusao_execucao_versus_armazenamento": "ARMAZENAMENTO LITERAL em todos os alvos; NENHUM script executado.",
+  "por_alvo": [
+    {
+      "alvo": "nome do produto",
+      "payload_id": "xss-script",
+      "payload": "<script>alert(1)</script>",
+      "tipo": "script",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Produto atualizado."
+    },
+    {
+      "alvo": "nome do produto",
+      "payload_id": "xss-img-onerror",
+      "payload": "<img src=x onerror=alert(1)>",
+      "tipo": "script",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Produto atualizado."
+    },
+    {
+      "alvo": "nome do produto",
+      "payload_id": "xss-attr-break",
+      "payload": "\"><script>alert(1)</script>",
+      "tipo": "script",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Produto atualizado."
+    },
+    {
+      "alvo": "nome do produto",
+      "payload_id": "sql-or-true",
+      "payload": "' OR 1=1--",
+      "tipo": "sql",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Produto atualizado."
+    },
+    {
+      "alvo": "nome do produto",
+      "payload_id": "sql-drop-table",
+      "payload": "'; DROP TABLE products;--",
+      "tipo": "sql",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Produto atualizado."
+    },
+    {
+      "alvo": "nome do produto",
+      "payload_id": "sql-union-null",
+      "payload": "1' UNION SELECT null--",
+      "tipo": "sql",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Produto atualizado."
+    },
+    {
+      "alvo": "nome do ingrediente",
+      "payload_id": "xss-script",
+      "payload": "<script>alert(1)</script>",
+      "tipo": "script",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Ingrediente adicionado."
+    },
+    {
+      "alvo": "nome do ingrediente",
+      "payload_id": "xss-img-onerror",
+      "payload": "<img src=x onerror=alert(1)>",
+      "tipo": "script",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Ingrediente adicionado."
+    },
+    {
+      "alvo": "nome do ingrediente",
+      "payload_id": "xss-attr-break",
+      "payload": "\"><script>alert(1)</script>",
+      "tipo": "script",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Ingrediente adicionado."
+    },
+    {
+      "alvo": "nome do ingrediente",
+      "payload_id": "sql-or-true",
+      "payload": "' OR 1=1--",
+      "tipo": "sql",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Ingrediente adicionado."
+    },
+    {
+      "alvo": "nome do ingrediente",
+      "payload_id": "sql-drop-table",
+      "payload": "'; DROP TABLE products;--",
+      "tipo": "sql",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Ingrediente adicionado."
+    },
+    {
+      "alvo": "nome do ingrediente",
+      "payload_id": "sql-union-null",
+      "payload": "1' UNION SELECT null--",
+      "tipo": "sql",
+      "relido_literal": true,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": "Ingrediente adicionado."
+    },
+    {
+      "alvo": "nome da despesa",
+      "payload_id": "xss-script",
+      "payload": "<script>alert(1)</script>",
+      "tipo": "script",
+      "relido_literal": null,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": null
+    },
+    {
+      "alvo": "nome da despesa",
+      "payload_id": "xss-img-onerror",
+      "payload": "<img src=x onerror=alert(1)>",
+      "tipo": "script",
+      "relido_literal": null,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": null
+    },
+    {
+      "alvo": "nome da despesa",
+      "payload_id": "xss-attr-break",
+      "payload": "\"><script>alert(1)</script>",
+      "tipo": "script",
+      "relido_literal": null,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": null
+    },
+    {
+      "alvo": "nome da despesa",
+      "payload_id": "sql-or-true",
+      "payload": "' OR 1=1--",
+      "tipo": "sql",
+      "relido_literal": null,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": null
+    },
+    {
+      "alvo": "nome da despesa",
+      "payload_id": "sql-drop-table",
+      "payload": "'; DROP TABLE products;--",
+      "tipo": "sql",
+      "relido_literal": null,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": null
+    },
+    {
+      "alvo": "nome da despesa",
+      "payload_id": "sql-union-null",
+      "payload": "1' UNION SELECT null--",
+      "tipo": "sql",
+      "relido_literal": null,
+      "xss_disparado": false,
+      "erros_de_console_novos": 0,
+      "http_5xx_novos": 0,
+      "toast": null
+    }
+  ],
+  "chat": [
+    {
+      "payload_id": "xss-script",
+      "payload": "<script>alert(1)</script>",
+      "xss_disparado": false,
+      "presente_como_texto_na_tela": true,
+      "http_5xx_novos": 0
+    },
+    {
+      "payload_id": "xss-img-onerror",
+      "payload": "<img src=x onerror=alert(1)>",
+      "xss_disparado": false,
+      "presente_como_texto_na_tela": true,
+      "http_5xx_novos": 0
+    },
+    {
+      "payload_id": "xss-attr-break",
+      "payload": "\"><script>alert(1)</script>",
+      "xss_disparado": false,
+      "presente_como_texto_na_tela": true,
+      "http_5xx_novos": 0
+    },
+    {
+      "payload_id": "sql-or-true",
+      "payload": "' OR 1=1--",
+      "xss_disparado": false,
+      "presente_como_texto_na_tela": true,
+      "http_5xx_novos": 0
+    },
+    {
+      "payload_id": "sql-drop-table",
+      "payload": "'; DROP TABLE products;--",
+      "xss_disparado": false,
+      "presente_como_texto_na_tela": true,
+      "http_5xx_novos": 0
+    },
+    {
+      "payload_id": "sql-union-null",
+      "payload": "1' UNION SELECT null--",
+      "xss_disparado": false,
+      "presente_como_texto_na_tela": true,
+      "http_5xx_novos": 0
+    }
+  ],
+  "dom_apos_render": [
+    {
+      "scripts_com_alert": 0,
+      "elementos_com_onerror": 0,
+      "img_tags": 0,
+      "img_com_onerror": 0,
+      "window_xss": false
+    }
+  ],
+  "banco": {
+    "antes": {
+      "products": 21,
+      "products_table_exists": true,
+      "expenses": 4,
+      "ingredients": 9
+    },
+    "depois": {
+      "products": 21,
+      "products_table_exists": true,
+      "expenses": 10,
+      "ingredients": 15
+    },
+    "tabela_products_ainda_existe": true,
+    "nome_final_do_produto_de_A": "1' UNION SELECT null--",
+    "ingredientes_no_banco": [
+      "<script>alert(1)</script>",
+      "<img src=x onerror=alert(1)>",
+      "\"><script>alert(1)</script>",
+      "' OR 1=1--",
+      "'; DROP TABLE products;--",
+      "1' UNION SELECT null--"
+    ],
+    "despesas_no_banco": [
+      "<script>alert(1)</script>",
+      "<img src=x onerror=alert(1)>",
+      "\"><script>alert(1)</script>",
+      "' OR 1=1--",
+      "'; DROP TABLE products;--",
+      "1' UNION SELECT null--"
+    ],
+    "chat_messages_no_banco": [
+      {
+        "role": "user",
+        "content": "<script>alert(1)</script>"
+      },
+      {
+        "role": "user",
+        "content": "<img src=x onerror=alert(1)>"
+      },
+      {
+        "role": "user",
+        "content": "\"><script>alert(1)</script>"
+      },
+      {
+        "role": "user",
+        "content": "' OR 1=1--"
+      },
+      {
+        "role": "user",
+        "content": "'; DROP TABLE products;--"
+      },
+      {
+        "role": "user",
+        "content": "1' UNION SELECT null--"
+      }
+    ],
+    "canais_de_venda_no_banco": [
+      "<script>alert(1)</script>",
+      "<img src=x onerror=alert(1)>",
+      "\"><script>alert(1)</script>",
+      "' OR 1=1--",
+      "'; DROP TABLE products;--",
+      "1' UNION SELECT null--"
+    ]
+  },
+  "totais": {
+    "dialogos_de_alert": 0,
+    "window_xss_disparado": false,
+    "erros_de_console": 0,
+    "http_5xx": 0,
+    "payloads_gravados_literalmente_no_chat": 6,
+    "payloads_gravados_literalmente_no_canal_de_venda": 6
+  }
+}

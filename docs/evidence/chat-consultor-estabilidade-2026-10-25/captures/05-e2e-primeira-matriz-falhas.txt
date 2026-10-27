@@ -1,0 +1,33 @@
+# Primeira matriz completa (antes das correções) — 4 falhas
+
+## Comando
+
+```
+playwright test  # chromium, firefox, webkit, mobile (webServer: build + preview em 127.0.0.1:4173)
+```
+
+## Resultado persistido no log da execução
+
+```
+  4 failed
+    [chromium] › e2e/ui-stack.spec.ts:418:1 › floating consultor chat opens app-wide and hides on its full page 
+    [firefox] › e2e/ui-stack.spec.ts:418:1 › floating consultor chat opens app-wide and hides on its full page 
+    [mobile] › e2e/ui-stack.spec.ts:256:1 › products list meets WCAG AA text contrast with the seeded rows 
+    [mobile] › e2e/ui-stack.spec.ts:418:1 › floating consultor chat opens app-wide and hides on its full page 
+  3 skipped
+  109 passed (5.2m)
+e2e exit=1
+```
+
+## Causas medidas (artefatos error-context lidos durante a execução; o Playwright limpa test-results a cada run, então o recorte efêmero não é copiado)
+
+1. [chromium] floating consultor — timeout de 30 s em page.evaluate no settle de animações (matriz paralela throttle; sem teto no helper).
+2. [firefox] floating consultor — asserção 'Olá! Sou o Simon…' falhou: o fixture restaura conversa, o herói não existe. Elemento não encontrado em 5 s.
+3. [mobile] floating consultor — mesma asserção do herói.
+4. [mobile] products list contrast — locator 'Produto de teste' resolveu 14× mas retornou hidden; medição direta em 390 px mostrou span com largura 0 (bloco min-w-0 flex-1 colapsado pelas ações na mesma linha). Defeito pré-existente do layout do card no HEAD, não introduzido pelo chat; corrigido nesta revisão.
+
+## Correções aplicadas
+
+- helper de settle ganhou teto de 2 s (mantém a espera quando termina, evita travar sob throttling);
+- teste do painel passou a asserir o histórico restaurado do fixture (determinístico) em vez do herói;
+- card de /produtos: ações com `max-sm:w-full max-sm:justify-end` para o título não colapsar em 390 px.

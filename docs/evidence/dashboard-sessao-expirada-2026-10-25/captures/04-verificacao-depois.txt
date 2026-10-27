@@ -1,0 +1,57 @@
+# Verificação depois da correção
+
+## Resposta 401 crua (sessão revogada) — identidade da falha
+
+```
+signin 200
+serverFnUrl: http://localhost:8080/_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGFzaGJvYXJkLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJnZXREYXNoYm9hcmRTdW1tYXJ5X2NyZWF0
+sign-out 200
+RAW 401: {
+ "status": 401,
+ "contentType": "application/json; charset=utf-8",
+ "correlation": "76a2b02d-e1bc-4588-a7c6-cb8850ab77be",
+ "tss": null,
+ "length": 164,
+ "text": "{\"ok\":false,\"error\":{\"code\":\"AUTHENTICATION_ERROR\",\"message\":\"Faça login para continuar.\",\"retryable\":false,\"correlationId\":\"c931176e-9fa5-4ac3-a717-d6cd96c7074d\"}}"
+}
+```
+
+## Sessão revogada no meio do uso (navegador real)
+
+```
+signin 200
+HTTP 200 | ct: application/json | tss: true | body: {"t":10,"i":0,"p":{"k":["result","error","context"],"v":[{"t":10,"i":1,"p":{"k":["consolidatedMargin","productCount","fixedExpenses","bestProduct","hasInvalidCalculation","incompleteProductCount","alerts","period","sales"],"v":[{"t":10,"i":2,"p":{"k":["state"]
+dashboard carregou; URL: http://localhost:8080/inicio
+sign-out 200
+URL depois do refetch: http://localhost:8080/auth?redirect=%2Finicio
+alert count: 0 | texto: 
+eventos: [
+  'console: Failed to load resource: the server responded with a status of 401 ()',
+  'console: Failed to load resource: the server responded with a status of 401 ()'
+]
+HTTP 401 | ct: application/json; charset=utf-8 | tss: none | body: 
+HTTP 401 | ct: application/json; charset=utf-8 | tss: none | body:
+```
+
+## E2E focado (4 projetos)
+
+```
+[WebServer] {"timestamp":"2026-10-26T01:55:19.972Z","level":"error","event":"request.failed","correlationId":"fc78ce63-5259-4217-93f9-e599429bbae4","code":"INTERNAL_ERROR","method":"GET","pathname":"/_serverFn/28aa4566b749882446c5a87c8cda74ed6b85fd544aa67cdf3d0d14ad32634d59","durationMs":7,"error":{"name":"Error","message":"aborted"}}
+[WebServer] {"timestamp":"2026-10-26T01:55:19.973Z","level":"error","event":"server.ssr_failed","correlationId":"12d60fe3-a409-4340-96d8-1b9bd681d0f6","error":{"name":"HTTPError","message":"aborted"}}
+  ✓  5 [webkit] › e2e/ui-stack.spec.ts:456:1 › financial query failure is not rendered as empty or zero data (10.6s)
+  ✓  8 [mobile] › e2e/ui-stack.spec.ts:487:1 › sessão expirada no meio do uso volta ao login sem referência de suporte (2.8s)
+  ✓  7 [mobile] › e2e/ui-stack.spec.ts:456:1 › financial query failure is not rendered as empty or zero data (8.2s)
+  8 passed (40.4s)
+
+```
+
+## Unitários novos
+
+- `src/test/server-fn-envelope.test.ts` (14 testes): Response cru 401 → AUTHENTICATION_ERROR
+  (status + header de correlação), 503 → DEPENDENCY_ERROR, guard síncrono não confunde
+  `Response.ok=false`, `isAuthenticationError` reconhece Response 401 e `ApiError` interno, recusa
+  403.
+- `src/test/error-reference.test.ts` (4 testes): referência deriva do `correlationId` do
+  envelope/ApiError/header `x-correlation-id`; fallback aleatório quando não há correlação.
+- `src/test/finance.result-invariants.test.ts` (INV-013) segue verde: nenhum `catch` novo engolindo
+  erro (o `Response` é mapeado por status/header, sem parse).

@@ -6,22 +6,29 @@ Hostinger/hpanel, Vercel, Neon remoto, deploy, push ou migration.
 
 ## Escopo executado
 
-| Item                                       | Resultado                                                                                                                               | Evidência                                                                   |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| **DBT-125** — bundle acima do orçamento    | **FECHADA**: grafo inicial **451.284 B** (orçamento 500.000; entry 219.682; gzip 149.045)                                               | `captures/build-onda1-after.txt`                                            |
-| **DBT-126** — flake de contraste no WebKit | **FECHADA**: 10/10 sob 2 workers + suíte completa 4 projetos 92/92                                                                      | `captures/dbt126-webkit-10x.txt`                                            |
-| **UI-01** — anti-barrel                    | Regra `no-restricted-imports` para `@/components/ui`/`index`; zero barrels no código                                                    | `captures/ui01-deep-imports.txt`                                            |
-| **UI-03** — OKLCH + dark sem JS            | Tokens OKLCH no `:root`; dark aplicado por classe, sem runtime; axe 0 bloqueantes em light e dark                                       | `captures/ui03-dark-mode-axe.txt`, `screenshots/ui03-*-{light,dark}.png`    |
-| **UI-05** — `keepMounted` no Avatar        | **N/A medido**: não existe primitivo Avatar nem imagem de avatar no header                                                              | `captures/ui05-avatar-stability.txt`                                        |
-| **UI-06** — pureza de render               | Zero `Math.random` em `components`/`routes`; `Date.now()` restante só em handlers de erro; `age_days` de `/precos` derivado no servidor | `captures/ui06-purity-audit.txt`                                            |
-| **DT-04** — constantes `Decimal`           | `DECIMAL_ZERO`/`DECIMAL_ONE` congeladas e usadas nos laços; zero literais em produção                                                   | `captures/dt04-decimal-reuse.txt`, `captures/dt04-decimal-reuse-bench.json` |
-| **OB-02/OB-03** — OTel lazy + batch        | Sem endpoint o SDK não inicia (0,15 ms); lote 10 s/512/5 s validado por teste                                                           | `captures/ob02-ob03-otel.txt`                                               |
+| Item                                       | Resultado                                                                                                                               | Evidência                                                                                                      |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **DBT-125** — bundle acima do orçamento    | **FECHADA**: grafo inicial **451.284 B** (orçamento 500.000; entry 219.682; gzip 149.045)                                               | `captures/build-onda1-after.txt`                                                                               |
+| **DBT-126** — flake de contraste no WebKit | **FECHADA**: **10/10** sob 2 workers (repetição do teste de falha financeira no projeto `webkit`) + suíte completa 4 projetos **92/92** | `captures/dbt126-webkit-10x.txt` (10/10 WebKit) · `deep-2026-10-20/captures/f0-e2e-full-after-fix.txt` (92/92) |
+| **UI-01** — anti-barrel                    | Regra `no-restricted-imports` para `@/components/ui`/`index`; zero barrels no código                                                    | `captures/ui01-deep-imports.txt`                                                                               |
+| **UI-03** — OKLCH + dark sem JS            | Tokens OKLCH no `:root`; dark aplicado por classe, sem runtime; axe 0 bloqueantes em light e dark                                       | `captures/ui03-dark-mode-axe.txt`, `screenshots/ui03-*-{light,dark}.png`                                       |
+| **UI-05** — `keepMounted` no Avatar        | **N/A medido**: não existe primitivo Avatar nem imagem de avatar no header                                                              | `captures/ui05-avatar-stability.txt`                                                                           |
+| **UI-06** — pureza de render               | Zero `Math.random` em `components`/`routes`; `Date.now()` restante só em handlers de erro; `age_days` de `/precos` derivado no servidor | `captures/ui06-purity-audit.txt`                                                                               |
+| **DT-04** — constantes `Decimal`           | `DECIMAL_ZERO`/`DECIMAL_ONE` congeladas e usadas nos laços; zero literais em produção                                                   | `captures/dt04-decimal-reuse.txt`, `captures/dt04-decimal-reuse-bench.json`                                    |
+| **OB-02/OB-03** — OTel lazy + batch        | Sem endpoint o SDK não inicia (0,15 ms); lote 10 s/512/5 s validado por teste                                                           | `captures/ob02-ob03-otel.txt`                                                                                  |
 
 ## Decisões medidas
 
-- **`cn` venceu `clsx` + `tailwind-merge` no grafo inicial.** A troca para `clsx`+`tailwind-merge`
-  foi medida em build real: o chunk do botão subiu de **38.710** para **39.786 B**. O `cn@0.4.0`
-  foi restaurado e os dois pacotes antigos saíram das dependências diretas.
+- **`cn` venceu `clsx` + `tailwind-merge` no grafo inicial.** O **38.710 B** do chunk do botão está
+  **capturado** — `captures/build-onda1-after.txt:11` (`assets/button-BSuNCKbn.js 38710`). O
+  **39.786 B** da variante `clsx`+`tailwind-merge` **não tem captura nesta pasta**: o número foi
+  **relatado** no journal (**L975**) e a decisão final o corrobora — `package.json` mantém
+  **`cn@^0.4.0`** e **não** declara `clsx` nem `tailwind-merge`. Portanto o contra-experimento é
+  **relatado e não evidenciado por captura**: o byte 39.786 **não** pode ser reconferido a partir
+  deste pacote, e a captura ausente **não** foi fabricada.
+- **O `--repeat-each=5` da suíte WebKit esbarra no rate limit do Better Auth, não no produto.** A
+  rodada deu **50 passed / 5 failed**, todas as **5** com **HTTP 429** no mesmo bucket de IP dos
+  testes de auth. Evidência: `deep-2026-10-20/captures/f2-webkit-5x.txt`.
 - **O ganho grande veio de mover o `<Toaster>` do root para os layouts que realmente usam toast**
   (`/auth` e `_authenticated`). O `sonner` saiu do entry inicial: **265.408 → 219.682 B** no entry
   e **500.608 → 451.284 B** no grafo. A landing não usa toast.

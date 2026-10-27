@@ -1,0 +1,27 @@
+# Matriz Playwright completa com motion — exit 0
+
+Comando: playwright test (chromium, firefox, webkit, mobile)
+
+```
+  3 skipped
+  113 passed (4.7m)
+e2e exit=0
+```
+
+## Distribuição por projeto
+
+```
+chromium 28 ✓
+firefox 28 ✓
+webkit 28 ✓
+mobile 29 ✓
+```
+
+## Teste do painel flutuante nos 4 projetos
+
+```
+  ✓   19 [chromium] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (12.9s)
+  ✓   48 [firefox] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (6.9s)
+  ✓   77 [webkit] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (9.6s)
+  ✓  106 [mobile] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (6.6s)
+```

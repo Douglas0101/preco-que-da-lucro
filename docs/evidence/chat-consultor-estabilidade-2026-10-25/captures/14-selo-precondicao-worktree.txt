@@ -1,0 +1,21 @@
+# m02-seal: precondição não satisfeita (worktree derivado) — 2026-10-25
+
+## Comando
+
+```
+node scripts/m02-seal.mjs --dir docs/evidence/chat-consultor-estabilidade-2026-10-25 --write
+```
+
+## Resultado
+
+```
+exit=2 (PRECONDICAO)
+m02-seal: PRECONDICAO worktree derivado fora do selo: .github/workflows/ui-stack.yml, AGENTS.md, docs/MAPA-OPERACIONAL.md, docs/adr/ADR-035-sonarcloud-escopo-scripts.md, docs/adr/ADR-043-topologia-de-publicacao-e-csp-nonce.md, docs/adr/ADR-045-erradicacao-lovable-config-vite-direta.md, docs/evidence/agent-state/DEBTS.md, docs/evidence/browser-autonomo-2026-10-17/MANIFEST.sha256, docs/evidence/browser-autonomo-2026-10-17/captures/09-bancada-preview.txt, docs/evidence/mcp-repair-2026-10-17/MANIFEST.sha256, docs/evidence/mcp-repair-2026-10-17/REPORT.md, docs/evidence/otimizacoes-planejamento/MANIFEST.sha256, docs/evidence/otimizacoes-planejamento/PLANEJAMENTO.md, docs/evidence/otimizacoes-planejamento/README.md, docs/evidence/otimizacoes-planejamento/captures/dt04-decimal-reuse.txt, docs/evidence/otimizacoes-planejamento/deep-2026-10-20/README.md, docs/runbooks/conditional-publication.md, docs/runbooks/mcp-relaunch.md, docs/runbooks/reconcile-ai-usage.md, docs/specs/M-02/matrix.generated.yaml, docs/specs/M-02/matrix.yaml, drizzle/meta/_journal.json, e2e/ui-stack.spec.ts, e2e/visual/visual-observability.spec.ts, eslint.config.js, scripts/db/migration-classes.ts, scripts/db/reconcile-ai
+… (lista de caminhos derivados truncada; inclui o WIP herdado de outras sessões e os arquivos desta sessão, ainda não commitados)
+```
+
+## Consequência e contorno
+
+- O selo exige worktree limpo **fora** do pacote; com 88 entradas derivadas no worktree (WIP herdado + esta sessão), a precondição é falsa e o selo sai 2.
+- O MANIFEST foi gerado pelo mesmo formato do selo (sha256 + caminho relativo, ordenado) e verificado por recomputação: checked === discovered = 15.
+- Depois do commit da sessão (worktree limpo fora do pacote), o comando acima deve ser re-executado para selar de fato.

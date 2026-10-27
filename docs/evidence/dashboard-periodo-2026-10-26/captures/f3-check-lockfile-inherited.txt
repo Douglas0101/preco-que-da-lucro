@@ -1,0 +1,65 @@
+
+> check
+> npm run m02:lockfile-guard && npm run guard:upgrade && npm run check:migration-toolchain && npm run guard:contracts && npm run m02:work-package-guard && npm run m02:debts-guard && npm run m02:temporal-guard && npm run m02:state:check && npm run m02:boundaries && npm run m02:secrets-audit && npm run guard:mcp-runtime && npm run m02:seal-dts:check && npm run m02:matrix:check && npm run check:ui-stack && npm run check:no-supabase-runtime && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle
+
+
+> m02:lockfile-guard
+> node scripts/m02-lockfile-guard.mjs
+
+{
+  "schema": "m02-lockfile-guard/1",
+  "ok": false,
+  "status": "fail",
+  "generatedAt": "2026-10-26T03:56:45.677Z",
+  "repo": "/home/douglas/WebstormProjects/preco-que-da-lucro",
+  "observed": {
+    "policyRange": {
+      "package": "drizzle-kit",
+      "min": "0.31.0",
+      "max": "0.31.99",
+      "criticality": "critical"
+    },
+    "spec": "^0.31.10",
+    "lockSpec": "^0.31.10",
+    "lockResolvedVersion": "0.31.10",
+    "lockSha256": "cdae8f9e48aa031c829614ff3c30ffe4e16d7f3062924c6205a5ad71e7ee5328",
+    "headLockSha256": "706b24515411a1d68d183019cd664b8900524906b43a4ba83fa5ac15e08ddd45",
+    "installedVersion": "0.31.10"
+  },
+  "checks": [
+    {
+      "id": "dependency-policy",
+      "status": "pass",
+      "detail": "drizzle-kit aprovado em 0.31.0 → 0.31.99"
+    },
+    {
+      "id": "package-json-devdep",
+      "status": "pass",
+      "detail": "spec '^0.31.10'"
+    },
+    {
+      "id": "lock-top-spec",
+      "status": "pass",
+      "detail": "lock '^0.31.10'"
+    },
+    {
+      "id": "lock-resolved",
+      "status": "pass",
+      "detail": "resolvido 0.31.10"
+    },
+    {
+      "id": "lock-sha256-head",
+      "status": "fail",
+      "detail": "lock do worktree cdae8f9e48aa031c829614ff3c30ffe4e16d7f3062924c6205a5ad71e7ee5328 != HEAD 706b24515411a1d68d183019cd664b8900524906b43a4ba83fa5ac15e08ddd45 (reescrito sem commit)"
+    },
+    {
+      "id": "node-modules-installed",
+      "status": "pass",
+      "detail": "instalado 0.31.10"
+    }
+  ],
+  "reasons": [
+    "lock-sha256-head: lock do worktree cdae8f9e48aa031c829614ff3c30ffe4e16d7f3062924c6205a5ad71e7ee5328 != HEAD 706b24515411a1d68d183019cd664b8900524906b43a4ba83fa5ac15e08ddd45 (reescrito sem commit)"
+  ],
+  "hint": "git checkout -- package.json package-lock.json && npm ci --ignore-scripts && npm run m02:lockfile-guard"
+}

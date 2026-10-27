@@ -1,0 +1,23 @@
+# Re-execução focada após as correções — 8 passed (2 testes × 4 projetos)
+
+## Comando
+
+```
+playwright test -g "products list meets WCAG|floating consultor"
+```
+
+## Resultado
+
+```
+  ✓  1 [chromium] › e2e/ui-stack.spec.ts:262:1 › products list meets WCAG AA text contrast with the seeded rows (3.3s)
+  ✓  3 [firefox] › e2e/ui-stack.spec.ts:262:1 › products list meets WCAG AA text contrast with the seeded rows (4.4s)
+  ✓  2 [chromium] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (8.6s)
+  ✓  5 [webkit] › e2e/ui-stack.spec.ts:262:1 › products list meets WCAG AA text contrast with the seeded rows (5.0s)
+  ✓  4 [firefox] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (7.0s)
+[WebServer] {"timestamp":"2026-10-25T18:35:42.032Z","level":"error","event":"request.failed","correlationId":"7af0bb0c-fb83-490a-ba2c-b9a0be43b77d","code":"INTERNAL_ERROR","method":"POST","pathname":"/api/vitals","durationMs":7,"error":{"name":"AbortError","message":"This operation was aborted"}}
+[WebServer] {"timestamp":"2026-10-25T18:35:42.039Z","level":"error","event":"server.ssr_failed","correlationId":"80c27d09-61d6-42f8-bf30-1a0c87c4aaeb","error":{"name":"HTTPError","message":"This operation was aborted"}}
+  ✓  7 [mobile] › e2e/ui-stack.spec.ts:262:1 › products list meets WCAG AA text contrast with the seeded rows (3.7s)
+  ✓  6 [webkit] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (9.5s)
+  ✓  8 [mobile] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (6.9s)
+  8 passed (36.5s)
+```

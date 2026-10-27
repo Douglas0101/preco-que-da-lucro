@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt, lte, sql } from "drizzle-orm";
 import type { DatabaseTransaction } from "@/db/client.server";
 import { products, sales, salesItems, type Sale, type SaleItem } from "@/db/schema";
 import { LIST_LIMITS } from "@/lib/list-limits";
@@ -48,8 +48,15 @@ export interface SaleListRow {
 export interface SalesRepository {
   create(context: RequestContext, input: SaleWrite): Promise<{ sale: Sale; items: SaleItem[] }>;
   revenue(context: RequestContext, range?: { from?: Date; to?: Date }): Promise<string>;
-  summaryForPeriod(context: RequestContext, from: Date): Promise<SalesSummary>;
-  itemSummaryForPeriod(context: RequestContext, from: Date): Promise<SaleItemSummaryRow[]>;
+  // Janela `[from, to)`: `to` é exclusivo e obrigatório. Sem ele o período não
+  // tem limite superior e uma venda datada no futuro entra na janela corrente
+  // (defeito P1 do WP dashboard-periodo-2026-10-26).
+  summaryForPeriod(context: RequestContext, from: Date, to: Date): Promise<SalesSummary>;
+  itemSummaryForPeriod(
+    context: RequestContext,
+    from: Date,
+    to: Date,
+  ): Promise<SaleItemSummaryRow[]>;
   list(
     context: RequestContext,
     range: { from?: Date; to?: Date; limit?: number },
@@ -105,7 +112,7 @@ export class DrizzleSalesRepository implements SalesRepository {
     return row?.revenue ?? "0.0000";
   }
 
-  async summaryForPeriod(context: RequestContext, from: Date): Promise<SalesSummary> {
+  async summaryForPeriod(context: RequestContext, from: Date, to: Date): Promise<SalesSummary> {
     const tx = context.transaction as DatabaseTransaction;
     const [row] = await tx
       .select({
@@ -113,12 +120,22 @@ export class DrizzleSalesRepository implements SalesRepository {
         count: sql<number>`count(${sales.id})::integer`,
       })
       .from(sales)
-      .where(and(eq(sales.tenantId, context.tenantId), gte(sales.occurredAt, from)));
+      .where(
+        and(
+          eq(sales.tenantId, context.tenantId),
+          gte(sales.occurredAt, from),
+          lt(sales.occurredAt, to),
+        ),
+      );
     if (!row) throw new Error("DATABASE_ERROR");
     return { revenue: row.revenue, count: row.count };
   }
 
-  async itemSummaryForPeriod(context: RequestContext, from: Date): Promise<SaleItemSummaryRow[]> {
+  async itemSummaryForPeriod(
+    context: RequestContext,
+    from: Date,
+    to: Date,
+  ): Promise<SaleItemSummaryRow[]> {
     const tx = context.transaction as DatabaseTransaction;
     const rows = await tx
       .select({
@@ -128,7 +145,13 @@ export class DrizzleSalesRepository implements SalesRepository {
       })
       .from(salesItems)
       .innerJoin(sales, eq(salesItems.saleId, sales.id))
-      .where(and(eq(salesItems.tenantId, context.tenantId), gte(sales.occurredAt, from)))
+      .where(
+        and(
+          eq(salesItems.tenantId, context.tenantId),
+          gte(sales.occurredAt, from),
+          lt(sales.occurredAt, to),
+        ),
+      )
       .groupBy(salesItems.productId);
     return rows;
   }

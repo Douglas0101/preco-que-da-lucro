@@ -1,0 +1,1542 @@
+{
+  "geradoEm": "2026-10-21",
+  "agente": "B",
+  "baseURL": "http://127.0.0.1:4175",
+  "escopo": "6 rotas x 3 engines x 2 viewports (1280x800 e 390x844) = 36 amostras, somente teclado (Tab, Shift+Tab, Enter, Escape)",
+  "metodo": {
+    "focaveis": "todos os interativos visiveis recebem data-bk-id unico; a travessia de Tab (ate 80 passos) registra a ordem real",
+    "focoVisivel": "comparacao do estilo computado do elemento COM foco e do MESMO elemento SEM foco (outline/box-shadow/cor); indicador perceptivel = estilo muda OU existe cor visivel (alpha>0) no outline/box-shadow",
+    "armadilha": "anel de tabulacao = elementos antes do primeiro wrap; armadilha = anel curto (<=3) que exclui controles visiveis",
+    "focoPreso": "apos abrir o modal, 8-12 Tabs; o foco nao pode sair do conteudo do modal (os focus guards aria-hidden do Base UI nao contam como escape)",
+    "focoDevolvido": "ESC fecha e `document.activeElement` deve voltar a ser o gatilho (comparado com o gatilho ja focado)",
+    "mutacao": "nenhuma: Enter so em gatilhos inertes (menu, 'Arquivar produto?'); nunca em 'Arquivar' nem em 'Sair'"
+  },
+  "porRota": {
+    "landing": {
+      "nFocaveisPorAmostra": [2],
+      "nInterativosVisiveisPorAmostra": [2],
+      "inalcancaveisTotal": 0,
+      "focoPresoEmTodos": true,
+      "focoDevolvidoEmTodos": true,
+      "modalTestadoEmAmostras": 0,
+      "armadilhaMax": 0,
+      "interativosForaDoAnelTotal": 0,
+      "anelDeTabulacaoPorAmostra": [2],
+      "focoVisivelEmTodos": true,
+      "modalTestado": [null],
+      "amostras": 6
+    },
+    "auth": {
+      "nFocaveisPorAmostra": [6],
+      "nInterativosVisiveisPorAmostra": [6],
+      "inalcancaveisTotal": 0,
+      "focoPresoEmTodos": true,
+      "focoDevolvidoEmTodos": true,
+      "modalTestadoEmAmostras": 0,
+      "armadilhaMax": 0,
+      "interativosForaDoAnelTotal": 0,
+      "anelDeTabulacaoPorAmostra": [6],
+      "focoVisivelEmTodos": true,
+      "modalTestado": [null],
+      "amostras": 6
+    },
+    "inicio": {
+      "nFocaveisPorAmostra": [8, 16],
+      "nInterativosVisiveisPorAmostra": [8, 16],
+      "inalcancaveisTotal": 0,
+      "focoPresoEmTodos": true,
+      "focoDevolvidoEmTodos": true,
+      "modalTestadoEmAmostras": 3,
+      "armadilhaMax": 0,
+      "interativosForaDoAnelTotal": 0,
+      "anelDeTabulacaoPorAmostra": [8, 16],
+      "focoVisivelEmTodos": true,
+      "modalTestado": [null, "Sheet do menu de navegação"],
+      "amostras": 6
+    },
+    "produtos": {
+      "nFocaveisPorAmostra": [11, 19],
+      "nInterativosVisiveisPorAmostra": [11, 19],
+      "inalcancaveisTotal": 0,
+      "focoPresoEmTodos": true,
+      "focoDevolvidoEmTodos": true,
+      "modalTestadoEmAmostras": 3,
+      "armadilhaMax": 0,
+      "interativosForaDoAnelTotal": 0,
+      "anelDeTabulacaoPorAmostra": [11, 19],
+      "focoVisivelEmTodos": true,
+      "modalTestado": [null, "Sheet do menu de navegação"],
+      "amostras": 6
+    },
+    "vendas": {
+      "nFocaveisPorAmostra": [9, 17],
+      "nInterativosVisiveisPorAmostra": [9, 17],
+      "inalcancaveisTotal": 0,
+      "focoPresoEmTodos": true,
+      "focoDevolvidoEmTodos": true,
+      "modalTestadoEmAmostras": 3,
+      "armadilhaMax": 0,
+      "interativosForaDoAnelTotal": 0,
+      "anelDeTabulacaoPorAmostra": [5, 9, 13, 17],
+      "focoVisivelEmTodos": true,
+      "modalTestado": [null, "Sheet do menu de navegação"],
+      "amostras": 6
+    },
+    "simulacoes": {
+      "nFocaveisPorAmostra": [9, 17],
+      "nInterativosVisiveisPorAmostra": [10, 18],
+      "inalcancaveisTotal": 6,
+      "focoPresoEmTodos": true,
+      "focoDevolvidoEmTodos": true,
+      "modalTestadoEmAmostras": 3,
+      "armadilhaMax": 0,
+      "interativosForaDoAnelTotal": 6,
+      "anelDeTabulacaoPorAmostra": [9, 17],
+      "focoVisivelEmTodos": true,
+      "modalTestado": [null, "Sheet do menu de navegação"],
+      "amostras": 6
+    }
+  },
+  "porEngineViewport": {
+    "chromium-desktop": {
+      "landing": {
+        "nFocaveis": 2,
+        "nInterativosVisiveis": 2,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 2,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "auth": {
+        "nFocaveis": 6,
+        "nInterativosVisiveis": 6,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 6,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "inicio": {
+        "nFocaveis": 16,
+        "nInterativosVisiveis": 16,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 16,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "produtos": {
+        "nFocaveis": 19,
+        "nInterativosVisiveis": 19,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 19,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "vendas": {
+        "nFocaveis": 17,
+        "nInterativosVisiveis": 17,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 13,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "simulacoes": {
+        "nFocaveis": 17,
+        "nInterativosVisiveis": 18,
+        "inalcancaveis": 1,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 17,
+        "interativosForaDoAnel": 1,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      }
+    },
+    "chromium-mobile": {
+      "landing": {
+        "nFocaveis": 2,
+        "nInterativosVisiveis": 2,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 2,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "auth": {
+        "nFocaveis": 6,
+        "nInterativosVisiveis": 6,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 6,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "inicio": {
+        "nFocaveis": 8,
+        "nInterativosVisiveis": 8,
+        "inalcancaveis": 0,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 8,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      },
+      "produtos": {
+        "nFocaveis": 11,
+        "nInterativosVisiveis": 11,
+        "inalcancaveis": 0,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 11,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      },
+      "vendas": {
+        "nFocaveis": 9,
+        "nInterativosVisiveis": 9,
+        "inalcancaveis": 0,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 5,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      },
+      "simulacoes": {
+        "nFocaveis": 9,
+        "nInterativosVisiveis": 10,
+        "inalcancaveis": 1,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 9,
+        "interativosForaDoAnel": 1,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      }
+    },
+    "firefox-desktop": {
+      "landing": {
+        "nFocaveis": 2,
+        "nInterativosVisiveis": 2,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 2,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "auth": {
+        "nFocaveis": 6,
+        "nInterativosVisiveis": 6,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 6,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "inicio": {
+        "nFocaveis": 16,
+        "nInterativosVisiveis": 16,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 16,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "produtos": {
+        "nFocaveis": 19,
+        "nInterativosVisiveis": 19,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 19,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "vendas": {
+        "nFocaveis": 17,
+        "nInterativosVisiveis": 17,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 13,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "simulacoes": {
+        "nFocaveis": 17,
+        "nInterativosVisiveis": 18,
+        "inalcancaveis": 1,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 17,
+        "interativosForaDoAnel": 1,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      }
+    },
+    "firefox-mobile": {
+      "landing": {
+        "nFocaveis": 2,
+        "nInterativosVisiveis": 2,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 2,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "auth": {
+        "nFocaveis": 6,
+        "nInterativosVisiveis": 6,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 6,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "inicio": {
+        "nFocaveis": 8,
+        "nInterativosVisiveis": 8,
+        "inalcancaveis": 0,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 8,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      },
+      "produtos": {
+        "nFocaveis": 11,
+        "nInterativosVisiveis": 11,
+        "inalcancaveis": 0,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 11,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      },
+      "vendas": {
+        "nFocaveis": 9,
+        "nInterativosVisiveis": 9,
+        "inalcancaveis": 0,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 5,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      },
+      "simulacoes": {
+        "nFocaveis": 9,
+        "nInterativosVisiveis": 10,
+        "inalcancaveis": 1,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 9,
+        "interativosForaDoAnel": 1,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      }
+    },
+    "webkit-desktop": {
+      "landing": {
+        "nFocaveis": 2,
+        "nInterativosVisiveis": 2,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 2,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "auth": {
+        "nFocaveis": 6,
+        "nInterativosVisiveis": 6,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 6,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "inicio": {
+        "nFocaveis": 16,
+        "nInterativosVisiveis": 16,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 16,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "produtos": {
+        "nFocaveis": 19,
+        "nInterativosVisiveis": 19,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 19,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "vendas": {
+        "nFocaveis": 17,
+        "nInterativosVisiveis": 17,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 17,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "simulacoes": {
+        "nFocaveis": 17,
+        "nInterativosVisiveis": 18,
+        "inalcancaveis": 1,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 17,
+        "interativosForaDoAnel": 1,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      }
+    },
+    "webkit-mobile": {
+      "landing": {
+        "nFocaveis": 2,
+        "nInterativosVisiveis": 2,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 2,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "auth": {
+        "nFocaveis": 6,
+        "nInterativosVisiveis": 6,
+        "inalcancaveis": 0,
+        "focoPreso": null,
+        "focoDevolvido": null,
+        "anelDeTabulacao": 6,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": null
+      },
+      "inicio": {
+        "nFocaveis": 8,
+        "nInterativosVisiveis": 8,
+        "inalcancaveis": 0,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 8,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      },
+      "produtos": {
+        "nFocaveis": 11,
+        "nInterativosVisiveis": 11,
+        "inalcancaveis": 0,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 11,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      },
+      "vendas": {
+        "nFocaveis": 9,
+        "nInterativosVisiveis": 9,
+        "inalcancaveis": 0,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 9,
+        "interativosForaDoAnel": 0,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      },
+      "simulacoes": {
+        "nFocaveis": 9,
+        "nInterativosVisiveis": 10,
+        "inalcancaveis": 1,
+        "focoPreso": true,
+        "focoDevolvido": true,
+        "anelDeTabulacao": 9,
+        "interativosForaDoAnel": 1,
+        "armadilha": 0,
+        "focoVisivelMedido": true,
+        "modalTestado": "Sheet do menu de navegação"
+      }
+    }
+  },
+  "vazamentoDeFocoNosModais": {
+    "chromium": {
+      "alertdialog": [
+        {
+          "repeticao": 1,
+          "escapesEm6Tabs": 4,
+          "passos": [
+            {
+              "passo": 1,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 2,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 3,
+              "dentro": false,
+              "tag": "body",
+              "rotulo": "Preço que Dá Lucroteste@example.testSair",
+              "guard": false
+            },
+            {
+              "passo": 4,
+              "dentro": false,
+              "tag": "a",
+              "rotulo": "Preço que Dá Lucro",
+              "guard": false
+            },
+            {
+              "passo": 5,
+              "dentro": false,
+              "tag": "button",
+              "rotulo": "Sair",
+              "guard": false
+            },
+            {
+              "passo": 6,
+              "dentro": false,
+              "tag": "a",
+              "rotulo": "Início",
+              "guard": false
+            }
+          ],
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 2,
+          "escapesEm6Tabs": 4,
+          "passos": [
+            {
+              "passo": 1,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 2,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 3,
+              "dentro": false,
+              "tag": "body",
+              "rotulo": "Preço que Dá Lucroteste@example.testSair",
+              "guard": false
+            },
+            {
+              "passo": 4,
+              "dentro": false,
+              "tag": "a",
+              "rotulo": "Preço que Dá Lucro",
+              "guard": false
+            },
+            {
+              "passo": 5,
+              "dentro": false,
+              "tag": "button",
+              "rotulo": "Sair",
+              "guard": false
+            },
+            {
+              "passo": 6,
+              "dentro": false,
+              "tag": "a",
+              "rotulo": "Início",
+              "guard": false
+            }
+          ],
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 3,
+          "escapesEm6Tabs": 4,
+          "passos": [
+            {
+              "passo": 1,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 2,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 3,
+              "dentro": false,
+              "tag": "body",
+              "rotulo": "Preço que Dá Lucroteste@example.testSair",
+              "guard": false
+            },
+            {
+              "passo": 4,
+              "dentro": false,
+              "tag": "a",
+              "rotulo": "Preço que Dá Lucro",
+              "guard": false
+            },
+            {
+              "passo": 5,
+              "dentro": false,
+              "tag": "button",
+              "rotulo": "Sair",
+              "guard": false
+            },
+            {
+              "passo": 6,
+              "dentro": false,
+              "tag": "a",
+              "rotulo": "Início",
+              "guard": false
+            }
+          ],
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        }
+      ],
+      "sheetMobile": [
+        {
+          "repeticao": 1,
+          "escapesEm16Tabs": 5,
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 2,
+          "escapesEm16Tabs": 0,
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 3,
+          "escapesEm16Tabs": 1,
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        }
+      ]
+    },
+    "firefox": {
+      "alertdialog": [
+        {
+          "repeticao": 1,
+          "escapesEm6Tabs": 0,
+          "passos": [
+            {
+              "passo": 1,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 2,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 3,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Cancelar",
+              "guard": false
+            },
+            {
+              "passo": 4,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 5,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 6,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Cancelar",
+              "guard": false
+            }
+          ],
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 2,
+          "escapesEm6Tabs": 0,
+          "passos": [
+            {
+              "passo": 1,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 2,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 3,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 4,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 5,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 6,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            }
+          ],
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 3,
+          "escapesEm6Tabs": 0,
+          "passos": [
+            {
+              "passo": 1,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 2,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 3,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 4,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 5,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 6,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            }
+          ],
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        }
+      ],
+      "sheetMobile": [
+        {
+          "repeticao": 1,
+          "escapesEm16Tabs": 0,
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 2,
+          "escapesEm16Tabs": 0,
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 3,
+          "escapesEm16Tabs": 0,
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        }
+      ]
+    },
+    "webkit": {
+      "alertdialog": [
+        {
+          "repeticao": 1,
+          "escapesEm6Tabs": 2,
+          "passos": [
+            {
+              "passo": 1,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 2,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 3,
+              "dentro": false,
+              "tag": "body",
+              "rotulo": "Preço que Dá Lucroteste@example.testSair",
+              "guard": false
+            },
+            {
+              "passo": 4,
+              "dentro": false,
+              "tag": "a",
+              "rotulo": "Preço que Dá Lucro",
+              "guard": false
+            },
+            {
+              "passo": 5,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 6,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Cancelar",
+              "guard": false
+            }
+          ],
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 2,
+          "escapesEm6Tabs": 2,
+          "passos": [
+            {
+              "passo": 1,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 2,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 3,
+              "dentro": false,
+              "tag": "body",
+              "rotulo": "Preço que Dá Lucroteste@example.testSair",
+              "guard": false
+            },
+            {
+              "passo": 4,
+              "dentro": false,
+              "tag": "a",
+              "rotulo": "Preço que Dá Lucro",
+              "guard": false
+            },
+            {
+              "passo": 5,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Cancelar",
+              "guard": false
+            },
+            {
+              "passo": 6,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            }
+          ],
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 3,
+          "escapesEm6Tabs": 4,
+          "passos": [
+            {
+              "passo": 1,
+              "dentro": true,
+              "tag": "button",
+              "rotulo": "Arquivar",
+              "guard": false
+            },
+            {
+              "passo": 2,
+              "dentro": false,
+              "tag": "span",
+              "rotulo": "",
+              "guard": true
+            },
+            {
+              "passo": 3,
+              "dentro": false,
+              "tag": "body",
+              "rotulo": "Preço que Dá Lucroteste@example.testSair",
+              "guard": false
+            },
+            {
+              "passo": 4,
+              "dentro": false,
+              "tag": "a",
+              "rotulo": "Preço que Dá Lucro",
+              "guard": false
+            },
+            {
+              "passo": 5,
+              "dentro": false,
+              "tag": "button",
+              "rotulo": "Sair",
+              "guard": false
+            },
+            {
+              "passo": 6,
+              "dentro": false,
+              "tag": "a",
+              "rotulo": "Início",
+              "guard": false
+            }
+          ],
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        }
+      ],
+      "sheetMobile": [
+        {
+          "repeticao": 1,
+          "escapesEm16Tabs": 1,
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 2,
+          "escapesEm16Tabs": 0,
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        },
+        {
+          "repeticao": 3,
+          "escapesEm16Tabs": 0,
+          "fundoInert": [
+            {
+              "tag": "script",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            },
+            {
+              "tag": "div",
+              "id": null,
+              "inert": false,
+              "ariaHidden": "true",
+              "inertAncestor": false
+            },
+            {
+              "tag": "section",
+              "id": null,
+              "inert": false,
+              "ariaHidden": null,
+              "inertAncestor": false
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "radiogroupNaoAlcancavelPorTab": {
+    "elemento": "input#simulacao-origem-forecast (radio nao selecionado de name=simulacao-origem-volume, em /simulacoes)",
+    "aparenciaEm": "6/6 amostras (3 engines x 2 viewports) como elemento fora do anel de tabulacao",
+    "classificacao": "NAO E DEFEITO — semantica de radiogroup nativo: o grupo e um unico ponto de tabulacao",
+    "prova": {
+      "tabAtingeORadioMarcado": {
+        "chromium": {
+          "id": "simulacao-origem-manual_simulation",
+          "passo": 13
+        },
+        "firefox": {
+          "id": "simulacao-origem-manual_simulation",
+          "passo": 13
+        },
+        "webkit": {
+          "id": "simulacao-origem-manual_simulation",
+          "passo": 13
+        }
+      },
+      "setasAlcancamEOtroRadio": {
+        "chromium": [
+          {
+            "tecla": "ArrowDown",
+            "focado": "simulacao-origem-forecast",
+            "marcado": "simulacao-origem-forecast"
+          },
+          {
+            "tecla": "ArrowRight",
+            "focado": "simulacao-origem-manual_simulation",
+            "marcado": "simulacao-origem-manual_simulation"
+          },
+          {
+            "tecla": "ArrowUp",
+            "focado": "simulacao-origem-forecast",
+            "marcado": "simulacao-origem-forecast"
+          },
+          {
+            "tecla": "ArrowLeft",
+            "focado": "simulacao-origem-manual_simulation",
+            "marcado": "simulacao-origem-manual_simulation"
+          }
+        ],
+        "firefox": [
+          {
+            "tecla": "ArrowDown",
+            "focado": "simulacao-origem-forecast",
+            "marcado": "simulacao-origem-forecast"
+          },
+          {
+            "tecla": "ArrowRight",
+            "focado": "simulacao-origem-manual_simulation",
+            "marcado": "simulacao-origem-manual_simulation"
+          },
+          {
+            "tecla": "ArrowUp",
+            "focado": "simulacao-origem-forecast",
+            "marcado": "simulacao-origem-forecast"
+          },
+          {
+            "tecla": "ArrowLeft",
+            "focado": "simulacao-origem-manual_simulation",
+            "marcado": "simulacao-origem-manual_simulation"
+          }
+        ],
+        "webkit": [
+          {
+            "tecla": "ArrowDown",
+            "focado": "simulacao-origem-forecast",
+            "marcado": "simulacao-origem-forecast"
+          },
+          {
+            "tecla": "ArrowRight",
+            "focado": "simulacao-origem-forecast",
+            "marcado": "simulacao-origem-forecast"
+          },
+          {
+            "tecla": "ArrowUp",
+            "focado": "simulacao-origem-manual_simulation",
+            "marcado": "simulacao-origem-manual_simulation"
+          },
+          {
+            "tecla": "ArrowLeft",
+            "focado": "simulacao-origem-manual_simulation",
+            "marcado": "simulacao-origem-manual_simulation"
+          }
+        ]
+      },
+      "conclusao": "em 3/3 engines as setas movem o foco para #simulacao-origem-forecast E trocam a selecao"
+    }
+  },
+  "screenshots": {
+    "pasta": "docs/evidence/bug-hunt/screenshots/b-foco-*.png (amostra representativa)",
+    "conjuntoCompleto": ".artifacts/bughunt-b/screenshots/ (155 PNGs, 11 MB — gitignored, nao versionado)"
+  }
+}

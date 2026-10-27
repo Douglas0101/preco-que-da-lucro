@@ -87,6 +87,88 @@ describe("server-fn envelope guard (DBT-86)", () => {
     await expect(unwrapServerFn(Promise.resolve({ value: 1 }))).resolves.toEqual({ value: 1 });
   });
 
+  it("normaliza o Response cru do fetcher (401 sem x-tss-serialized) em erro de autenticação", async () => {
+    const raw = new Response(JSON.stringify(envelopeWith("AUTHENTICATION_ERROR")), {
+      status: 401,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "x-correlation-id": "1ec94d13-c484-436e-9547-76bf18eb6a71",
+      },
+    });
+    let caught: unknown;
+    try {
+      await unwrapServerFn(Promise.resolve(raw));
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ServerFnEnvelopeError);
+    const envelopeError = caught as ServerFnEnvelopeError;
+    expect(envelopeError.code).toBe("AUTHENTICATION_ERROR");
+    expect(envelopeError.status).toBe(401);
+    expect(envelopeError.correlationId).toBe("1ec94d13-c484-436e-9547-76bf18eb6a71");
+    expect(isAuthenticationError(caught)).toBe(true);
+  });
+
+  it("mapeia status/header do Response cru quando não há corpo JSON legível", async () => {
+    const raw = new Response(null, {
+      status: 401,
+      headers: { "x-correlation-id": "d1acf4d4-00e2-4c4a-8567-da06ee0f15c5" },
+    });
+    let caught: unknown;
+    try {
+      await unwrapServerFn(Promise.resolve(raw));
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ServerFnEnvelopeError);
+    const envelopeError = caught as ServerFnEnvelopeError;
+    expect(envelopeError.code).toBe("AUTHENTICATION_ERROR");
+    expect(envelopeError.status).toBe(401);
+    expect(envelopeError.correlationId).toBe("d1acf4d4-00e2-4c4a-8567-da06ee0f15c5");
+  });
+
+  it("mapeia Response cru não-autenticado pelo status (503 -> DEPENDENCY_ERROR)", async () => {
+    const raw = new Response("{}", {
+      status: 503,
+      headers: { "content-type": "application/json" },
+    });
+    let caught: unknown;
+    try {
+      await unwrapServerFn(Promise.resolve(raw));
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ServerFnEnvelopeError);
+    expect((caught as ServerFnEnvelopeError).code).toBe("DEPENDENCY_ERROR");
+    expect((caught as ServerFnEnvelopeError).status).toBe(503);
+  });
+
+  it("não confunde Response.ok=false com envelope no guard síncrono", () => {
+    let caught: unknown;
+    try {
+      unwrapServerFnResult(
+        new Response(JSON.stringify(envelopeWith("AUTHENTICATION_ERROR")), { status: 401 }),
+      );
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ServerFnEnvelopeError);
+    expect((caught as ServerFnEnvelopeError).code).toBe("AUTHENTICATION_ERROR");
+    expect((caught as ServerFnEnvelopeError).status).toBe(401);
+  });
+
+  it("isAuthenticationError reconhece Response cru 401 e recusa 403", () => {
+    expect(isAuthenticationError(new Response(null, { status: 401 }))).toBe(true);
+    expect(isAuthenticationError(new Response(null, { status: 403 }))).toBe(false);
+  });
+
+  it("isAuthenticationError reconhece o ApiError interno lançado pelo wrapper de middleware", () => {
+    expect(
+      isAuthenticationError({ code: "AUTHENTICATION_ERROR", retryable: false, correlationId: "x" }),
+    ).toBe(true);
+    expect(isAuthenticationError({ code: "AUTHORIZATION_ERROR" })).toBe(false);
+  });
+
   it("isAuthenticationError matches only the authentication code", () => {
     let authError: unknown;
     try {

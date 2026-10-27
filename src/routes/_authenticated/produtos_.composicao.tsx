@@ -11,7 +11,7 @@ import {
   upsertIngredient,
   upsertPackaging,
 } from "@/lib/products.functions";
-import { unwrapServerFn } from "@/lib/server-fn-envelope";
+import { unwrapServerFn, ServerFnEnvelopeError } from "@/lib/server-fn-envelope";
 import { productDetailQueryOptions, queryKeys } from "@/lib/query-options";
 import { QUANTITY_UNITS } from "@/lib/financial-values";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,23 @@ export const Route = createFileRoute("/_authenticated/produtos_/composicao")({
 
 const UNIDADES = QUANTITY_UNITS as readonly string[];
 const decimal = (value: string) => value.replace(",", ".").trim();
+
+/**
+ * Rótulos de remoção por tipo de filho: o diálogo de confirmação e o toast
+ * dizem **o que** está sendo removido — "Item removido." escondia o alvo logo
+ * abaixo do item que some da lista.
+ */
+const REMOVE_LABELS: Record<"ingredient" | "packaging" | "fee", { kind: string; removed: string }> =
+  {
+    ingredient: { kind: "o ingrediente", removed: "Ingrediente removido." },
+    packaging: { kind: "a embalagem", removed: "Embalagem removida." },
+    fee: { kind: "a taxa", removed: "Taxa removida." },
+  };
+
+/** Rótulo do item que está na mira da remoção (`null` = nenhum alvo). */
+function removeLabel(kind: "ingredient" | "packaging" | "fee" | null) {
+  return kind ? REMOVE_LABELS[kind] : { kind: "o item", removed: "Item removido." };
+}
 
 function brl(value: string | null | undefined) {
   if (value == null || value === "") return "—";
@@ -251,12 +268,20 @@ function Composicao() {
     onSuccess: () => {
       invalidate();
       setPendingDelete(null);
-      toast.success("Item removido.");
+      toast.success(removeLabel(pendingDelete?.kind ?? null).removed);
     },
     onError: (error: unknown) => {
       setPendingDelete(null);
+      // A recusa legítima (histórico de preços registrado) chega como `CONFLICT`.
+      // A mensagem pública do código é genérica ("A operação conflita com o
+      // estado atual."), então o motivo — "nada foi apagado" — é dito aqui, sem
+      // inventar diagnóstico que o servidor não deu.
       toast.error(
-        error instanceof Error ? error.message : "Não foi possível remover: há um registro ligado.",
+        error instanceof ServerFnEnvelopeError && error.code === "CONFLICT"
+          ? "Remoção recusada: este item tem histórico de preços registrado ou outro registro ligado. Nada foi apagado."
+          : error instanceof Error
+            ? error.message
+            : "Não foi possível remover: há um registro ligado.",
       );
     },
   });
@@ -825,10 +850,13 @@ function Composicao() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remover {pendingDelete?.name}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Remover {removeLabel(pendingDelete?.kind ?? null).kind} {pendingDelete?.name}?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              A remoção é definitiva e não pode ser desfeita. Se houver histórico de preços ou outro
-              registro ligado a este item, o servidor recusa e nada é apagado.
+              A remoção é definitiva e não pode ser desfeita. Item sem histórico de preço registrado
+              é removido normalmente; se o item tiver histórico de preços ou outro registro ligado a
+              ele, o servidor recusa a remoção e nada é apagado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

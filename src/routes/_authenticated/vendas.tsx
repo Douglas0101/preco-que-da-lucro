@@ -5,6 +5,7 @@ import { createSale } from "@/lib/sales.functions";
 import { unwrapServerFn } from "@/lib/server-fn-envelope";
 import { productsListQueryOptions, salesListQueryOptions } from "@/lib/query-options";
 import { brl, num } from "@/lib/format";
+import { createErrorReference } from "@/lib/error-reference";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,8 +67,8 @@ function Vendas() {
       : (products[0]?.id ?? "");
 
   const errorReference = useMemo(
-    () => (productsQuery.isError ? createErrorReference("VND") : null),
-    [productsQuery.isError],
+    () => (productsQuery.isError ? createErrorReference("VND", productsQuery.error) : null),
+    [productsQuery.isError, productsQuery.error],
   );
 
   const createSaleMutation = useMutation({
@@ -298,12 +299,4 @@ function formatDate(value: string): string {
 function toApiDecimal(value: string): string | null {
   const normalized = value.trim().replace(",", ".");
   return normalized === "" ? null : normalized;
-}
-
-function createErrorReference(prefix: string): string {
-  const token =
-    typeof globalThis.crypto?.randomUUID === "function"
-      ? globalThis.crypto.randomUUID().slice(0, 8)
-      : Date.now().toString(36);
-  return `${prefix}-${token}`.toUpperCase();
 }

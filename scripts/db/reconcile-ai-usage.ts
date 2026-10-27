@@ -232,14 +232,10 @@ async function main(): Promise<void> {
   let exitCode = 0;
   try {
     // As duas chamadas abaixo garantem provider registrado e dreno antes de sair.
-    // LIMITE MEDIDO — NÃO leia isto como "as métricas deste processo saem":
-    // os instrumentos de `applicationMetrics` nascem no IMPORT do módulo, quando
-    // a API ainda devolve singletons noop (`NOOP_METER` compartilhado, `add()`
-    // vazio), e `@opentelemetry/api` não tem proxy de métrica — registrar o
-    // provider depois não re-vincula instrumento já criado. Enquanto o defeito
-    // D7 (WP `F-otel-provider-order`) não for corrigido, `app.ai.reconciliation_*`
-    // é inerte aqui; o alarme que funciona é o evento estruturado
-    // `ai.reconciliation_failed`, uma linha por evento tratado.
+    // DBT-148/F-otel-provider-order: os instrumentos são criados depois do
+    // `sdk.start()`, então `app.ai.reconciliation_*` agora é exportada quando há
+    // endpoint OTLP. O evento estruturado `ai.reconciliation_failed` continua
+    // sendo a linha por evento tratado; a métrica é a série para alerta.
     await startTelemetry();
     const enumeration = options.allTenants
       ? await listTenantIdentities(pool)
@@ -319,8 +315,9 @@ async function main(): Promise<void> {
       // isso o exit code segue 0; sair != 0 aqui treinaria quem opera a ignorar o
       // cron. Quem alarma de verdade: o evento estruturado
       // `ai.reconciliation_failed`, emitido uma linha por evento tratado.
-      // As métricas `app.ai.reconciliation_*` NÃO servem de alarme hoje — os
-      // instrumentos nascem noop (defeito D7). Não monte alerta sobre elas.
+      // As métricas `app.ai.reconciliation_*` são exportadas desde DBT-148
+      // (instrumentos criados após o provider). O log continua sendo o registro
+      // por evento; a métrica é a série agregada para alerta.
       console.warn(
         `AVISO: ${failedCount} evento(s) sem medição possível. A reserva continua RETIDA. ` +
           `A liberação é decisão humana: scripts/db/release-unknown-reservations.ts --tenant <uuid> --usage-id <uuid> --confirm`,

@@ -1,0 +1,5 @@
+{"at":"2026-10-22T07:05:30.813Z","event":"listening"}
+{"at":"2026-10-22T07:05:37.421Z","method":"POST","path":"/v1/metrics","contentType":"application/json","bytes":4281}
+{"at":"2026-10-22T07:05:42.417Z","method":"POST","path":"/v1/metrics","contentType":"application/json","bytes":4281}
+{"at":"2026-10-22T07:05:42.424Z","method":"POST","path":"/v1/traces","contentType":"application/json","bytes":3866}
+{"at":"2026-10-22T07:05:44.460Z","method":"POST","path":"/v1/metrics","contentType":"application/json","bytes":4281}

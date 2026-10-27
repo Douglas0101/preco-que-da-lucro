@@ -1,0 +1,231 @@
+{
+  "capture": "Agente E — FASE 5.5: exposicao de dados em respostas de erro",
+  "criterios": [
+    "stack trace",
+    "nome de tabela/coluna",
+    "caminho de arquivo absoluto",
+    "versao de driver",
+    "DSN",
+    "mensagem de driver"
+  ],
+  "preview_saudavel": [
+    {
+      "caso": "1a) sign-up email: corpo JSON invalido",
+      "metodo": "POST",
+      "path": "/api/auth/sign-up/email",
+      "status": 400,
+      "body_len": 63,
+      "body_head": "{\"message\":\"Invalid JSON in request body\",\"code\":\"BAD_REQUEST\"}",
+      "vazamentos": []
+    },
+    {
+      "caso": "1b) sign-up email: JSON valido, campos faltando",
+      "metodo": "POST",
+      "path": "/api/auth/sign-up/email",
+      "status": 503,
+      "body_len": 122,
+      "body_head": "{\"code\":\"EMAIL_NOT_CONFIGURED\",\"message\":\"Cadastro por e-mail indisponível: o envio de verificação não está configurado.\"}",
+      "vazamentos": []
+    },
+    {
+      "caso": "1c) sign-up email: sem content-type",
+      "metodo": "POST",
+      "path": "/api/auth/sign-up/email",
+      "status": 415,
+      "body_len": 170,
+      "body_head": "{\"message\":\"Content-Type \\\"text/plain;charset=UTF-8\\\" is not allowed. Allowed types: application/x-www-form-urlencoded, application/json\",\"code\":\"UNSUPPORTED_MEDIA_TYPE\"}",
+      "vazamentos": []
+    },
+    {
+      "caso": "1d) sign-up email: array no corpo",
+      "metodo": "POST",
+      "path": "/api/auth/sign-up/email",
+      "status": 429,
+      "body_len": 56,
+      "body_head": "{\"message\":\"Too many requests. Please try again later.\"}",
+      "vazamentos": []
+    },
+    {
+      "caso": "2a) server function com cookie invalido",
+      "metodo": "GET",
+      "path": "/_serverFn/ab4089a3ad45d4832457dabbf1c5beed87b26285b11f2d6c6420b6a0c2938f5e",
+      "status": 403,
+      "body_len": 9,
+      "body_head": "Forbidden",
+      "vazamentos": []
+    },
+    {
+      "caso": "3a) get-session com cookie malformado",
+      "metodo": "GET",
+      "path": "/api/auth/get-session",
+      "status": 200,
+      "body_len": 4,
+      "body_head": "null",
+      "vazamentos": []
+    },
+    {
+      "caso": "3b) sign-in email com corpo malformado",
+      "metodo": "POST",
+      "path": "/api/auth/sign-in/email",
+      "status": 400,
+      "body_len": 63,
+      "body_head": "{\"message\":\"Invalid JSON in request body\",\"code\":\"BAD_REQUEST\"}",
+      "vazamentos": []
+    },
+    {
+      "caso": "4a) csp-report corpo malformado",
+      "metodo": "POST",
+      "path": "/api/csp-report",
+      "status": 400,
+      "body_len": 0,
+      "body_head": "",
+      "vazamentos": []
+    },
+    {
+      "caso": "4b) csp-report body grande",
+      "metodo": "POST",
+      "path": "/api/csp-report",
+      "status": 400,
+      "body_len": 0,
+      "body_head": "",
+      "vazamentos": []
+    },
+    {
+      "caso": "5) health/ready com banco UP (controle)",
+      "metodo": "GET",
+      "path": "/api/health/ready",
+      "status": 200,
+      "body_len": 51,
+      "body_head": "{\"status\":\"ready\",\"dependencies\":{\"postgres\":\"ok\"}}",
+      "vazamentos": []
+    },
+    {
+      "caso": "6) rota inexistente (controle)",
+      "metodo": "GET",
+      "path": "/rota-que-nao-existe-xyz",
+      "status": 404,
+      "body_len": 3723,
+      "body_head": "<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/assets/styles-9qSUOodx.css\" data-precedence=\"default\"/><title>Preço que Dá Lucro</title><meta name=\"description\" content=\"Precificação int",
+      "vazamentos": []
+    },
+    {
+      "caso": "7) metodo nao permitido numa rota de API",
+      "metodo": "DELETE",
+      "path": "/api/health/ready",
+      "status": 200,
+      "body_len": 3176,
+      "body_head": "<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/assets/styles-9qSUOodx.css\" data-precedence=\"default\"/><title>Preço que Dá Lucro</title><meta name=\"description\" content=\"Precificação int",
+      "vazamentos": []
+    }
+  ],
+  "server_function": [
+    {
+      "caso": "serverFn com payload + cookie INVALIDO (sem sessao)",
+      "status": 401,
+      "body_len": 164,
+      "body_head": "{\"ok\":false,\"error\":{\"code\":\"AUTHENTICATION_ERROR\",\"message\":\"Faça login para continuar.\",\"retryable\":false,\"correlationId\":\"f5c95201-a405-45ec-a823-9fc7cdec2255\"}}",
+      "vazamentos": []
+    },
+    {
+      "caso": "serverFn com payload + cookie MALFORMADO",
+      "status": 401,
+      "body_len": 164,
+      "body_head": "{\"ok\":false,\"error\":{\"code\":\"AUTHENTICATION_ERROR\",\"message\":\"Faça login para continuar.\",\"retryable\":false,\"correlationId\":\"67e519cc-eebe-4cd9-a161-c31f0bcf6d59\"}}",
+      "vazamentos": []
+    },
+    {
+      "caso": "serverFn com payload + header x-tenant-id invalido (nao uuid)",
+      "status": 401,
+      "body_len": 164,
+      "body_head": "{\"ok\":false,\"error\":{\"code\":\"AUTHENTICATION_ERROR\",\"message\":\"Faça login para continuar.\",\"retryable\":false,\"correlationId\":\"92cc0414-b7ae-4e25-87ea-78dfa27db745\"}}",
+      "vazamentos": []
+    }
+  ],
+  "banco_fora": {
+    "comando": "preview auxiliar :4178 reiniciado com DATABASE_URL apontando para 127.0.0.1:59999 (nada escutando); o bench canonico :4173 nao foi tocado",
+    "dsn_redacted": "postgresql://app_runtime:<REDACTED>@127.0.0.1:59999/preco_que_da_lucro_test",
+    "casos": [
+      {
+        "caso": "health/ready com banco fora",
+        "status": 503,
+        "body_len": 64,
+        "body_head": "{\"status\":\"not_ready\",\"dependencies\":{\"postgres\":\"unavailable\"}}",
+        "vazamentos": ["mensagem_driver"]
+      },
+      {
+        "caso": "health/live com banco fora",
+        "status": 200,
+        "body_len": 15,
+        "body_head": "{\"status\":\"ok\"}",
+        "vazamentos": ["mensagem_driver"]
+      },
+      {
+        "caso": "rota autenticada (SPA shell) com banco fora",
+        "status": 200,
+        "body_len": 4420,
+        "body_head": "<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/assets/styles-9qSUOodx.css\" data-precedence=\"default\"/><title>Preço que Dá Lucro</title><meta name=\"description\" content=\"Precificação int",
+        "vazamentos": ["mensagem_driver"]
+      },
+      {
+        "caso": "get-session com banco fora",
+        "status": 500,
+        "body_len": 575,
+        "body_head": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <title>This page didn't load</title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <link rel=\"stylesheet\" href=\"/error-page.css\" />\n  </head>\n  <body>\n    <div class=\"card\">\n      <h1>This pag",
+        "vazamentos": ["mensagem_driver"]
+      },
+      {
+        "caso": "sign-up email com banco fora",
+        "status": 500,
+        "body_len": 575,
+        "body_head": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <title>This page didn't load</title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <link rel=\"stylesheet\" href=\"/error-page.css\" />\n  </head>\n  <body>\n    <div class=\"card\">\n      <h1>This pag",
+        "vazamentos": ["mensagem_driver"]
+      },
+      {
+        "caso": "serverFn (produto) com banco fora + cookie de sessao valido",
+        "status": 503,
+        "body_len": 165,
+        "body_head": "{\"ok\":false,\"error\":{\"code\":\"DATABASE_ERROR\",\"message\":\"Não foi possível acessar os dados.\",\"retryable\":true,\"correlationId\":\"6c326507-c546-43a5-a53a-e7c33929b4fe\"}}",
+        "vazamentos": ["mensagem_driver"]
+      },
+      {
+        "caso": "serverFn (produto) com banco fora + cookie invalido",
+        "status": 401,
+        "body_len": 164,
+        "body_head": "{\"ok\":false,\"error\":{\"code\":\"AUTHENTICATION_ERROR\",\"message\":\"Faça login para continuar.\",\"retryable\":false,\"correlationId\":\"d2b22b30-2d10-4a1b-8f74-82f7fa452ea1\"}}",
+        "vazamentos": ["mensagem_driver"]
+      },
+      {
+        "caso": "csp-report com banco fora",
+        "status": 400,
+        "body_len": 0,
+        "body_head": "",
+        "vazamentos": ["mensagem_driver"]
+      },
+      {
+        "caso": "vitals com banco fora",
+        "status": 400,
+        "body_len": 0,
+        "body_head": "",
+        "vazamentos": ["mensagem_driver"]
+      }
+    ]
+  },
+  "log_do_servidor": {
+    "observacao": "O log do servidor (stderr), e nao a resposta HTTP, carrega o SQL do drizzle com o token de sessao, o nome de tabela/coluna, caminhos absolutos do build e a mensagem do driver com host:porta.",
+    "token_que_apareceu_no_log_sha256_12": "eea1aac00544",
+    "token_que_apareceu_no_log_valor": "<REDACTED>",
+    "o_token_sozinho_autentica": [
+      {
+        "caso": "A) token QUE O LOG VIROU (como cookie de sessao)",
+        "status": 401,
+        "devolve_dados_do_dono": false
+      },
+      {
+        "caso": "B) token FORJADO (controle negativo)",
+        "status": 401,
+        "devolve_dados_do_dono": false
+      }
+    ],
+    "leitura": "O cookie de sessao e 'token(32).assinatura(48)'; o log expoe apenas o token (32). Enviado sozinho como cookie o valor logado devolve 401 AUTHENTICATION_ERROR (medido) => nao e credencial usavel sem a assinatura. A assinatura (48) NAO aparece no log."
+  }
+}

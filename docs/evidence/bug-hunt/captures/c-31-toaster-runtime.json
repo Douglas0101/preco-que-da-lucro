@@ -1,0 +1,121 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "xff": "198.51.100.23",
+  "landing_500": {
+    "mode": "500",
+    "h1Visible": true,
+    "h1Text": "Entenda a faixa de preço do seu produto conversando.",
+    "toasterMountedCount": 0,
+    "toastElementsInDom": 0,
+    "domObserverToastInserts": [],
+    "sonnerVendorChunkLoaded": false,
+    "sonnerVendorPatchApplied": false,
+    "sonnerToastHistoryLength": null,
+    "sonnerActiveToasts": null,
+    "pageErrorCount": 0,
+    "pageErrors": [],
+    "consoleErrorCount": 3,
+    "consoleErrorAppCount": 0,
+    "consoleErrorApp": [],
+    "consoleErrorNetworkCount": 3,
+    "interceptedRequests": [
+      {
+        "url": "http://127.0.0.1:4173/api/vitals",
+        "mode": "500"
+      },
+      {
+        "url": "http://127.0.0.1:4173/api/vitals",
+        "mode": "500"
+      },
+      {
+        "url": "http://127.0.0.1:4173/api/auth/get-session",
+        "mode": "500"
+      }
+    ],
+    "apiRequestTrace": [
+      {
+        "url": "http://127.0.0.1:4173/api/vitals",
+        "method": "POST"
+      },
+      {
+        "url": "http://127.0.0.1:4173/api/vitals",
+        "method": "POST"
+      },
+      {
+        "url": "http://127.0.0.1:4173/api/vitals",
+        "status": 500
+      },
+      {
+        "url": "http://127.0.0.1:4173/api/vitals",
+        "status": 500
+      },
+      {
+        "url": "http://127.0.0.1:4173/api/auth/get-session",
+        "method": "GET"
+      },
+      {
+        "url": "http://127.0.0.1:4173/api/auth/get-session",
+        "status": 500
+      }
+    ]
+  },
+  "landing_abort": {
+    "mode": "abort",
+    "h1Visible": true,
+    "h1Text": "Entenda a faixa de preço do seu produto conversando.",
+    "toasterMountedCount": 0,
+    "toastElementsInDom": 0,
+    "domObserverToastInserts": [],
+    "sonnerVendorChunkLoaded": false,
+    "sonnerVendorPatchApplied": false,
+    "sonnerToastHistoryLength": null,
+    "pageErrorCount": 0,
+    "pageErrors": [],
+    "consoleErrorCount": 4,
+    "consoleErrorAppCount": 1,
+    "consoleErrorApp": [
+      "error: Could not validate the server session TypeError: Failed to fetch\n    at Z (http://127.0.0.1:4173/assets/auth-client-GAuKX51H.js:3:22720)\n    at async t (http://127.0.0.1:4173/assets/auth-client-GAuKX51H.js:3:21115)\n    at async Object.apply (http://127.0.0.1:4173/assets/auth-client-GAuKX51H.js:3:27050)\n    at async On (http://127.0.0.1:4173/assets/index-C05BJ1eg.js:10:56693)"
+    ],
+    "consoleErrorNetworkCount": 3,
+    "interceptedRequests": [
+      {
+        "url": "http://127.0.0.1:4173/api/vitals",
+        "mode": "abort"
+      },
+      {
+        "url": "http://127.0.0.1:4173/api/vitals",
+        "mode": "abort"
+      },
+      {
+        "url": "http://127.0.0.1:4173/api/auth/get-session",
+        "mode": "abort"
+      }
+    ]
+  },
+  "authenticatedToast": {
+    "toasterMounted": false,
+    "inputCount": 2,
+    "triggered": true,
+    "toastVisibleBeforeNav": true,
+    "toastText": "Informe quantidade e preço unitário válidos",
+    "navMs": 104,
+    "toastVisibleAfterNav": true,
+    "toastCountAfterNav": 1,
+    "autoDismissMs": 4410,
+    "sonnerVendorChunkLoaded": true,
+    "sonnerVendorPatchApplied": true,
+    "sonnerToastHistory": [
+      {
+        "id": 1,
+        "type": "error",
+        "title": "Informe quantidade e preço unitário válidos"
+      }
+    ],
+    "sonnerToastHistoryLength": 1,
+    "pageErrorCount": 0,
+    "pageErrors": [],
+    "consoleErrorAppCount": 0,
+    "consoleErrorApp": []
+  },
+  "nota": "O <Toaster> do sonner 2.0.8 so cria o elemento [data-sonner-toaster] no DOM DEPOIS do primeiro toast; por isso a contagem de atributo, sozinha, nao prova montagem/ausencia. A prova decisiva e o carregamento do chunk vendor do sonner: na landing ele NUNCA e requisitado (sonnerVendorChunkLoaded=false), logo o componente <Toaster> nao existe na arvore de modulos da landing e nenhum toast() pode ter disparado."
+}

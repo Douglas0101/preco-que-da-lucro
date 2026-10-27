@@ -1,0 +1,115 @@
+{
+  "capture": "Agente E — FASE 5.4: headers de seguranca + prova empirica do frame-ancestors",
+  "portos_medidos": [
+    "http://127.0.0.1:4178 (preview do Agente E)",
+    "http://127.0.0.1:4173 (bench canonico)"
+  ],
+  "presenca_por_rota": [
+    {
+      "rota": "/",
+      "status": 200,
+      "headers": {
+        "content-security-policy": null,
+        "x-content-type-options": "nosniff",
+        "x-frame-options": null,
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+        "content-security-policy-report-only": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint"
+      }
+    },
+    {
+      "rota": "/auth",
+      "status": 200,
+      "headers": {
+        "content-security-policy": null,
+        "x-content-type-options": "nosniff",
+        "x-frame-options": null,
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+        "content-security-policy-report-only": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint"
+      }
+    },
+    {
+      "rota": "/inicio",
+      "status": 200,
+      "headers": {
+        "content-security-policy": null,
+        "x-content-type-options": "nosniff",
+        "x-frame-options": null,
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+        "content-security-policy-report-only": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint"
+      }
+    },
+    {
+      "rota": "/produtos/composicao",
+      "status": 307,
+      "headers": {
+        "content-security-policy": null,
+        "x-content-type-options": "nosniff",
+        "x-frame-options": null,
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+        "content-security-policy-report-only": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint"
+      }
+    },
+    {
+      "rota": "/api/health/ready",
+      "status": 200,
+      "headers": {
+        "content-security-policy": null,
+        "x-content-type-options": "nosniff",
+        "x-frame-options": null,
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+        "content-security-policy-report-only": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; report-uri /api/csp-report; report-to csp-endpoint"
+      }
+    }
+  ],
+  "estado_medido": {
+    "content-security-policy (aplicada)": "AUSENTE em todas as rotas",
+    "content-security-policy-report-only": "PRESENTE em todas as rotas",
+    "x-content-type-options": "nosniff PRESENTE",
+    "x-frame-options": "AUSENTE em todas as rotas (reconfirmado no bench canonico :4173)",
+    "strict-transport-security": "max-age=31536000; includeSubDomains PRESENTE (NODE_ENV=production)",
+    "referrer-policy": "strict-origin-when-cross-origin PRESENTE",
+    "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=() PRESENTE"
+  },
+  "prova_empirica_do_frame_ancestors": {
+    "metodo": "Servidor estatico adversarial em http://127.0.0.1:4199 serve <iframe src='http://127.0.0.1:4178/'> (origem distinta: porta diferente). O metodo le o inventario de frames do Playwright (page.frames()), que enxerga frames cross-origin, e o titulo/texto do frame filho. O CONTROLE (mesma pagina servida com X-Frame-Options: DENY) valida o metodo.",
+    "caso_real_4178": {
+      "url_do_frame_filho": "http://127.0.0.1:4178/",
+      "titulo_do_frame_filho": "Preço que Dá Lucro — avalie preços sustentáveis para seu produto",
+      "texto_do_frame_filho": "Preço que Dá Lucro Entrar IA que conversa como um consultor Entenda a faixa de preço do seu produto conversando. Vamos descobrir juntos quanto custa o seu produto, qual preço faz sentido para o seu negócio e quanto você precisa vender para começar a ter lucro.",
+      "console": [
+        "Framing 'http://127.0.0.1:4178/' violates the following report-only Content Security Policy directive: \"frame-ancestors 'none'\". The violation has been logged, but no further action has been taken.\n",
+        "Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-zFML+AEdb/HsbX66VlYzBOqJKNNHs5/WNGYP8JiblyY='), or a nonce ('nonce",
+        "Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-okXZgiL4Q8I7WHVjR+Dtkvct46nUYXV6bHGfHI8uPcw='), or a nonce ('nonce",
+        "Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-REkTQ3mZNdOnZ0xWxlKdqBEAWdIVpJdIT6tm57gvq8Y='), or a nonce ('nonce"
+      ]
+    },
+    "caso_real_4173_bench_canonico": {
+      "url_do_frame_filho": "http://127.0.0.1:4173/",
+      "titulo_do_frame_filho": "Preço que Dá Lucro — avalie preços sustentáveis para seu produto"
+    },
+    "controle_x_frame_options_deny": {
+      "url_do_frame_filho": "chrome-error://chromewebdata/",
+      "titulo_do_frame_filho": "",
+      "console": [
+        "Refused to display 'http://127.0.0.1:4199/' in a frame because it set 'X-Frame-Options' to 'deny'."
+      ]
+    },
+    "veredito": {
+      "caso_real_4178_carregou": true,
+      "caso_real_4173_carregou": true,
+      "controle_bloqueou": true,
+      "metodo_discrimina": true
+    },
+    "screenshot": "docs/evidence/bug-hunt/screenshots/e-frame-embed-4178.png"
+  }
+}

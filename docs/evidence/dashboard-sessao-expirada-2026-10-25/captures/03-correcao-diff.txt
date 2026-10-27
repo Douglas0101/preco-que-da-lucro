@@ -1,0 +1,351 @@
+# Correção aplicada
+
+## Status/estatística
+
+```
+ M e2e/ui-stack.spec.ts
+ M src/lib/server-fn-envelope.ts
+ M src/routes/_authenticated/diagnostico.tsx
+ M src/routes/_authenticated/inicio.tsx
+ M src/routes/_authenticated/simulacoes.tsx
+ M src/routes/_authenticated/vendas.tsx
+ M src/test/server-fn-envelope.test.ts
+?? src/lib/error-reference.ts
+?? src/test/error-reference.test.ts
+
+ e2e/ui-stack.spec.ts                      | 150 +++++++++++++++++++++++++++++-
+ src/lib/server-fn-envelope.ts             |  73 +++++++++++++--
+ src/routes/_authenticated/diagnostico.tsx |  13 +--
+ src/routes/_authenticated/inicio.tsx      |  18 ++--
+ src/routes/_authenticated/simulacoes.tsx  |  20 ++--
+ src/routes/_authenticated/vendas.tsx      |  13 +--
+ src/test/server-fn-envelope.test.ts       |  82 ++++++++++++++++
+ 7 files changed, 316 insertions(+), 53 deletions(-)
+
+```
+
+## Normalização de `Response` e detecção de autenticação (`src/lib/server-fn-envelope.ts`)
+
+```diff
+diff --git a/src/lib/server-fn-envelope.ts b/src/lib/server-fn-envelope.ts
+index 2d2120a..b2fbd0a 100644
+--- a/src/lib/server-fn-envelope.ts
++++ b/src/lib/server-fn-envelope.ts
+@@ -4,12 +4,13 @@ import { ApplicationError, type ApiErrorCode } from "@/lib/api-error";
+  * Client-side guard for TanStack Start server-function results (DBT-86).
+  *
+  * `apiErrorResponse` answers failures with a raw JSON body
+- * `{ ok: false, error: ApiError }` and no `x-tss-serialized` header; in that
+- * shape the framework fetcher resolves the body instead of throwing
+- * (`start-client-core/serverFnFetcher.ts` only re-throws errors that went
+- * through its own serialization protocol). Without this guard every
+- * 401/403/400/409/429/5xx from any server function reaches React Query as
+- * *success data* — the cached-envelope dashboard crash of ciclo-28.
++ * `{ ok: false, error: ApiError }` and no `x-tss-serialized` header. O fetcher
++ * do Start pode devolver ora esse JSON, ora o **`Response` cru** (medido em
++ * 2026-10-25 para o 401 de `requireDatabaseAuth`); sem normalizar, o `ok:false`
++ * do `Response` era confundido com envelope e virava `INTERNAL_ERROR/500`,
++ * escondendo a sessão expirada atrás do card “não foi possível carregar”.
++ * Também cobre o envelope JSON direto e impede que 401/403/400/409/429/5xx
++ * cheguem ao React Query como *success data* (DBT-86 / ciclo-28).
+  *
+  * Every client call site of a server function must funnel through
+  * `unwrapServerFn`/`unwrapServerFnResult`; success payloads are returned
+@@ -28,7 +29,33 @@ interface FailureEnvelope {
+   error: ApiErrorBody;
+ }
+ 
++/** Mapa HTTP → código de domínio usado quando o corpo não é um envelope. */
++const HTTP_STATUS_ERROR_CODES: Partial<Record<number, ApiErrorCode>> = {
++  400: "VALIDATION_ERROR",
++  401: "AUTHENTICATION_ERROR",
++  403: "AUTHORIZATION_ERROR",
++  404: "NOT_FOUND",
++  409: "CONFLICT",
++  429: "RATE_LIMIT",
++  503: "DEPENDENCY_ERROR",
++};
++
++function isResponse(value: unknown): value is Response {
++  return typeof Response !== "undefined" && value instanceof Response;
++}
++
++function errorCodeFromStatus(status: number): ApiErrorCode {
++  return HTTP_STATUS_ERROR_CODES[status] ?? "INTERNAL_ERROR";
++}
++
++function correlationIdFromResponse(response: Response): string {
++  return response.headers.get("x-correlation-id") ?? "UNKNOWN";
++}
++
+ function isFailureEnvelope(value: unknown): value is FailureEnvelope {
++  // `Response.ok === false` NÃO é envelope: sem esta exclusão o 401/500 cru do
++  // fetcher era lido como `{ ok: false }` sem `error` e virava INTERNAL_ERROR.
++  if (isResponse(value)) return false;
+   // ok:false is always a failure on the wire — even malformed envelopes
+   // (missing/malformed error field) must throw, never pass through as data.
+   return typeof value === "object" && value !== null && (value as { ok?: unknown }).ok === false;
+@@ -49,6 +76,16 @@ export class ServerFnEnvelopeError extends ApplicationError {
+ }
+ 
+ export function unwrapServerFnResult<T>(result: unknown): T {
++  if (isResponse(result)) {
++    // Corpo não é lido aqui: status + `x-correlation-id` são a identidade
++    // autoritativa da falha (o mesmo id do log), e 401/403/429/5xx já têm
++    // código de domínio definido. Sem `try/catch` de parse o guard não pode
++    // engolir erro (INV-013).
++    throw new ServerFnEnvelopeError({
++      code: errorCodeFromStatus(result.status),
++      correlationId: correlationIdFromResponse(result),
++    });
++  }
+   if (isFailureEnvelope(result)) throw new ServerFnEnvelopeError(result.error);
+   return result as T;
+ }
+@@ -58,6 +95,26 @@ export function unwrapServerFn<T>(promise: Promise<T>): Promise<T> {
+   return promise.then((value: T) => unwrapServerFnResult<T>(value));
+ }
+ 
+-export function isAuthenticationError(error: unknown): error is ServerFnEnvelopeError {
+-  return error instanceof ServerFnEnvelopeError && error.code === "AUTHENTICATION_ERROR";
++function statusOf(error: unknown): number | undefined {
++  if (isResponse(error)) return error.status;
++  if (typeof error === "object" && error !== null && "status" in error) {
++    const value = (error as { status?: unknown }).status;
++    return typeof value === "number" ? value : undefined;
++  }
++  return undefined;
++}
++
++export function isAuthenticationError(error: unknown): boolean {
++  if (error instanceof ServerFnEnvelopeError) {
++    return error.code === "AUTHENTICATION_ERROR" || error.status === 401;
++  }
++  if (statusOf(error) === 401) return true;
++  // O wrapper de middleware do Start, em certas respostas JSON cruas, lança o
++  // `ApiError` interno (sem `status`) em vez do Response/ServerFnEnvelopeError.
++  // Reconhecer o código explícito mantém o redirect de sessão expirada.
++  return (
++    typeof error === "object" &&
++    error !== null &&
++    (error as { code?: unknown }).code === "AUTHENTICATION_ERROR"
++  );
+ }
+
+```
+
+## Referência correlacionada (novo `src/lib/error-reference.ts`)
+
+```ts
+/**
+ * Referência de atendimento exibida nos cards de erro financeiro.
+ *
+ * A referência precisa ser resolvível no log do servidor: quando o erro traz o
+ * `correlationId` (envelope, `Response` cru ou `ApiError` interno), os 8
+ * primeiros caracteres hex vão para o sufixo — o mesmo id que aparece em
+ * `request.completed`/`request.failed`. Sem correlação (payload inválido,
+ * erro de rede), mantém o token aleatório anterior como fallback.
+ */
+function correlationIdOf(error: unknown): string | null {
+  if (typeof error !== "object" || error === null) return null;
+  const candidate = error as {
+    correlationId?: unknown;
+    headers?: { get?: (name: string) => string | null };
+  };
+  if (typeof candidate.correlationId === "string" && candidate.correlationId !== "UNKNOWN") {
+    return candidate.correlationId;
+  }
+  const header = candidate.headers?.get?.("x-correlation-id");
+  if (typeof header === "string" && header.length > 0) return header;
+  return null;
+}
+
+function randomToken(): string {
+  return typeof globalThis.crypto?.randomUUID === "function"
+    ? globalThis.crypto.randomUUID().slice(0, 8)
+    : Date.now().toString(36);
+}
+
+export function createErrorReference(prefix: string, error?: unknown): string {
+  const correlation = correlationIdOf(error);
+  const normalized = correlation?.replace(/[^a-f0-9]/gi, "") ?? "";
+  const token = normalized.length >= 8 ? normalized.slice(0, 8) : randomToken();
+  return `${prefix}-${token}`.toUpperCase();
+}
+
+```
+
+## Rotas financeiras passam o erro para a referência
+
+```diff
+diff --git a/src/routes/_authenticated/diagnostico.tsx b/src/routes/_authenticated/diagnostico.tsx
+index cf48b18..b835b78 100644
+--- a/src/routes/_authenticated/diagnostico.tsx
++++ b/src/routes/_authenticated/diagnostico.tsx
+@@ -6,6 +6,7 @@ import { unwrapServerFn } from "@/lib/server-fn-envelope";
+ import { expensesQueryOptions, productsListQueryOptions } from "@/lib/query-options";
+ import type { CalculationResult, ProductCostComputation } from "@/lib/finance";
+ import { brl, num, pct } from "@/lib/format";
++import { createErrorReference } from "@/lib/error-reference";
+ import { Button } from "@/components/ui/button";
+ import { CalcExplainer } from "@/components/ui/calc-explainer";
+ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+@@ -130,8 +131,8 @@ function Diagnostico() {
+   });
+   const diagnostic = diagnosticQuery.data as DiagnosticView | undefined;
+   const diagnosticErrorReference = useMemo(
+-    () => (diagnosticQuery.isError ? createErrorReference("DIAG") : null),
+-    [diagnosticQuery.isError],
++    () => (diagnosticQuery.isError ? createErrorReference("DIAG", diagnosticQuery.error) : null),
++    [diagnosticQuery.isError, diagnosticQuery.error],
+   );
+ 
+   const productStatus: ProductStatus =
+@@ -687,11 +688,3 @@ function toApiDecimal(value: string): string | null {
+   const normalized = value.trim().replace(",", ".");
+   return normalized === "" ? null : normalized;
+ }
+-
+-function createErrorReference(prefix: string): string {
+-  const token =
+-    typeof globalThis.crypto?.randomUUID === "function"
+-      ? globalThis.crypto.randomUUID().slice(0, 8)
+-      : Date.now().toString(36);
+-  return `${prefix}-${token}`.toUpperCase();
+-}
+diff --git a/src/routes/_authenticated/inicio.tsx b/src/routes/_authenticated/inicio.tsx
+index 886566a..06c027c 100644
+--- a/src/routes/_authenticated/inicio.tsx
++++ b/src/routes/_authenticated/inicio.tsx
+@@ -6,6 +6,7 @@ import { isDashboardSummaryValid } from "@/lib/dashboard-summary-guard";
+ import { sessionQueryOptions } from "@/lib/session-context";
+ import type { ConsolidatedMargin, DashboardPeriod } from "@/lib/dashboard.functions";
+ import { brl, pct } from "@/lib/format";
++import { createErrorReference } from "@/lib/error-reference";
+ import { CONTRIBUTION_MARGIN_PCT_FORMULA } from "@/lib/calc-explanation";
+ import { Badge } from "@/components/ui/badge";
+ import { CalcExplainer } from "@/components/ui/calc-explainer";
+@@ -80,8 +81,11 @@ function Inicio() {
+   const metrics = summaryQuery.data as Metrics | undefined;
+   const hasInvalidPayload = metrics !== undefined && !isDashboardSummaryValid(metrics);
+   const errorReference = useMemo(
+-    () => (summaryQuery.isError || hasInvalidPayload ? createErrorReference("DASH") : null),
+-    [summaryQuery.isError, hasInvalidPayload],
++    () =>
++      summaryQuery.isError || hasInvalidPayload
++        ? createErrorReference("DASH", summaryQuery.error)
++        : null,
++    [summaryQuery.isError, summaryQuery.error, hasInvalidPayload],
+   );
+ 
+   if (loadStatus === "loading") {
+@@ -245,7 +249,7 @@ function Inicio() {
+             <CardTitle className="text-base">🏆 Maior margem unitária calculável</CardTitle>
+           </CardHeader>
+           <CardContent>
+-            <div className="text-primary text-2xl font-black tracking-tight tabular-nums">
++            <div className="text-primary-strong text-2xl font-black tracking-tight tabular-nums">
+               {metrics.bestProduct.name}
+             </div>
+             <div className="text-muted-foreground">
+@@ -460,11 +464,3 @@ function MetricCard({
+     </Card>
+   );
+ }
+-
+-function createErrorReference(prefix: string): string {
+-  const token =
+-    typeof globalThis.crypto?.randomUUID === "function"
+-      ? globalThis.crypto.randomUUID().slice(0, 8)
+-      : Date.now().toString(36);
+-  return `${prefix}-${token}`.toUpperCase();
+-}
+diff --git a/src/routes/_authenticated/simulacoes.tsx b/src/routes/_authenticated/simulacoes.tsx
+index ba85ce3..e950761 100644
+--- a/src/routes/_authenticated/simulacoes.tsx
++++ b/src/routes/_authenticated/simulacoes.tsx
+@@ -18,6 +18,7 @@ import {
+ } from "@/lib/finance";
+ import { scenarioExplanation, type ScenarioEcho } from "@/lib/calc-explanation";
+ import { brl, decimalInput, num, pct } from "@/lib/format";
++import { createErrorReference } from "@/lib/error-reference";
+ import { CalcExplainer } from "@/components/ui/calc-explainer";
+ import { Badge } from "@/components/ui/badge";
+ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+@@ -260,8 +261,11 @@ function Simulacoes() {
+             ? "empty"
+             : "ready";
+   const errorReference = useMemo(
+-    () => (loadStatus === "error" || !selectedDetail ? createErrorReference("SIM") : null),
+-    [loadStatus, selectedDetail],
++    () =>
++      loadStatus === "error" || !selectedDetail
++        ? createErrorReference("SIM", productsQuery.error ?? expensesQuery.error)
++        : null,
++    [loadStatus, selectedDetail, productsQuery.error, expensesQuery.error],
+   );
+   const base = useMemo<ProductBaseline | null>(() => {
+     if (loadStatus !== "ready" || !selectedDetail || selectedDetail.metrics.status !== "ok") {
+@@ -331,8 +335,8 @@ function Simulacoes() {
+   });
+   const simulated = simulationQuery.data ?? null;
+   const simulationErrorReference = useMemo(
+-    () => (simulationQuery.isError ? createErrorReference("SIM") : null),
+-    [simulationQuery.isError],
++    () => (simulationQuery.isError ? createErrorReference("SIM", simulationQuery.error) : null),
++    [simulationQuery.isError, simulationQuery.error],
+   );
+ 
+   const missingFields =
+@@ -874,14 +878,6 @@ function RemoteErrorState({
+   );
+ }
+ 
+-function createErrorReference(prefix: string): string {
+-  const token =
+-    typeof globalThis.crypto?.randomUUID === "function"
+-      ? globalThis.crypto.randomUUID().slice(0, 8)
+-      : Date.now().toString(36);
+-  return `${prefix}-${token}`.toUpperCase();
+-}
+-
+ function toApiDecimal(value: string): string | null {
+   const normalized = value.trim().replace(",", ".");
+   return normalized === "" ? null : normalized;
+diff --git a/src/routes/_authenticated/vendas.tsx b/src/routes/_authenticated/vendas.tsx
+index 572105e..ebbef1b 100644
+--- a/src/routes/_authenticated/vendas.tsx
++++ b/src/routes/_authenticated/vendas.tsx
+@@ -5,6 +5,7 @@ import { createSale } from "@/lib/sales.functions";
+ import { unwrapServerFn } from "@/lib/server-fn-envelope";
+ import { productsListQueryOptions, salesListQueryOptions } from "@/lib/query-options";
+ import { brl, num } from "@/lib/format";
++import { createErrorReference } from "@/lib/error-reference";
+ import { Badge } from "@/components/ui/badge";
+ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+ import { Button } from "@/components/ui/button";
+@@ -66,8 +67,8 @@ function Vendas() {
+       : (products[0]?.id ?? "");
+ 
+   const errorReference = useMemo(
+-    () => (productsQuery.isError ? createErrorReference("VND") : null),
+-    [productsQuery.isError],
++    () => (productsQuery.isError ? createErrorReference("VND", productsQuery.error) : null),
++    [productsQuery.isError, productsQuery.error],
+   );
+ 
+   const createSaleMutation = useMutation({
+@@ -299,11 +300,3 @@ function toApiDecimal(value: string): string | null {
+   const normalized = value.trim().replace(",", ".");
+   return normalized === "" ? null : normalized;
+ }
+-
+-function createErrorReference(prefix: string): string {
+-  const token =
+-    typeof globalThis.crypto?.randomUUID === "function"
+-      ? globalThis.crypto.randomUUID().slice(0, 8)
+-      : Date.now().toString(36);
+-  return `${prefix}-${token}`.toUpperCase();
+-}
+
+```

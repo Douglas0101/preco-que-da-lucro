@@ -1,0 +1,5 @@
+{"ts":"2026-10-22T23:42:29.105Z","type":"tool_after_without_start","tool":"shell","callID":"call_7d0fd472b602458ca7312b0e"}
+{"ts":"2026-10-22T23:44:35.841Z","type":"policy_blocked","tool":"read","rule":"sensitive_env_file","sessionID":"ses_ea8d681dcffeNt2FDM77YY509t","callID":"call_08c005f2d49842b595cf5056"}
+{"ts":"2026-10-22T23:46:49.884Z","type":"policy_blocked","tool":"shell","rule":"sensitive_env_shell","sessionID":"ses_ea8d681dcffeNt2FDM77YY509t","callID":"call_df4dfddf6504433fb9f42f34"}
+{"ts":"2026-10-22T23:47:02.698Z","type":"tool_aborted_on_shutdown","key":"ses_ea8d681dcffeNt2FDM77YY509t:call_e08cd25c559c43d791283c7e"}
+{"ts":"2026-10-22T23:47:06.564Z","type":"tool_after_without_start","tool":"shell","callID":"call_e08cd25c559c43d791283c7e"}

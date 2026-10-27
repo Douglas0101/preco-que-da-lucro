@@ -1,0 +1,41 @@
+{
+  "checked": 23,
+  "toolSpans": 23,
+  "usageSpans": 50,
+  "stepUsage": 25,
+  "sessionUsage": 25,
+  "mcpSpans": 6,
+  "blocked": 2,
+  "failedMcp": 2,
+  "orphan": 0,
+  "bootSetup": 1,
+  "bootHooks": 48,
+  "tokenMetrics": 71,
+  "toolCallMetrics": 22,
+  "durationMetrics": 18,
+  "tokenReconciliation": {
+    "settledCutoff": "2026-10-23T00:02:00.740Z",
+    "settledSteps": 25,
+    "settledTokenMetrics": 71,
+    "stepSums": {
+      "input": 607253,
+      "output": 9312,
+      "reasoning": 8488,
+      "cache_read": 14272768,
+      "cache_write": 0,
+      "cost": 0.14458625399999994
+    },
+    "metricSums": {
+      "input": 607253,
+      "output": 9312,
+      "reasoning": 8488,
+      "cache_read": 14272768,
+      "cache_write": 0,
+      "cost": 0.144586254
+    }
+  },
+  "traceReceipts": 30,
+  "metricReceipts": 119,
+  "policyCases": 17,
+  "issues": []
+}

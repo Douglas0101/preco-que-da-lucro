@@ -1,0 +1,16 @@
+# F6 - achado P2 do review do PR #72 (chatgpt-codex-connector) -> DBT-176
+# comando: TZ=UTC npx vitest run src/test/dashboard-summary-guard.test.ts
+
+## 1. GREEN (guard exige window/period)
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+5f1ad0cf312716eb5775a2f0ad956b5db1136bf65b5f77c916387c858e708d25  src/lib/dashboard-summary-guard.ts
+
+## 2. CONTROLE NEGATIVO: removida a linha isWindowValid(candidate.window)
+ocorrencias_de_isWindowValid_no_guard: 0
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 9 passed (10)
+
+## 3. RESTAURADO
+5f1ad0cf312716eb5775a2f0ad956b5db1136bf65b5f77c916387c858e708d25  src/lib/dashboard-summary-guard.ts
+      Tests  10 passed (10)

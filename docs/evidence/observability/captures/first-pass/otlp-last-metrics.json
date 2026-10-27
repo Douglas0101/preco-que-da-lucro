@@ -1,0 +1,243 @@
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "unknown_service:/home/douglas/.opencode/bin/opencode"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "nodejs"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "opentelemetry"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "2.10.0"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "opencode.observability",
+            "version": "1.0.0"
+          },
+          "metrics": [
+            {
+              "name": "opencode.tool.calls",
+              "description": "Chamadas de ferramenta do OpenCode, por nome e status",
+              "unit": "",
+              "sum": {
+                "aggregationTemporality": 2,
+                "isMonotonic": true,
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "tool",
+                        "value": {
+                          "stringValue": "shell"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "completed"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712103500000000",
+                    "timeUnixNano": "1792712537065000000",
+                    "asDouble": 3
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "tool",
+                        "value": {
+                          "stringValue": "write"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "completed"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712358038000000",
+                    "timeUnixNano": "1792712537065000000",
+                    "asDouble": 1
+                  }
+                ]
+              }
+            },
+            {
+              "name": "opencode.tool.duration",
+              "description": "Duração das chamadas de ferramenta",
+              "unit": "ms",
+              "histogram": {
+                "aggregationTemporality": 2,
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "tool",
+                        "value": {
+                          "stringValue": "shell"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "completed"
+                        }
+                      }
+                    ],
+                    "bucketCounts": [0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    "explicitBounds": [
+                      0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000
+                    ],
+                    "count": 3,
+                    "sum": 403,
+                    "min": 17,
+                    "max": 368,
+                    "startTimeUnixNano": "1792712103500000000",
+                    "timeUnixNano": "1792712537065000000"
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "tool",
+                        "value": {
+                          "stringValue": "write"
+                        }
+                      },
+                      {
+                        "key": "status",
+                        "value": {
+                          "stringValue": "completed"
+                        }
+                      }
+                    ],
+                    "bucketCounts": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "explicitBounds": [
+                      0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000
+                    ],
+                    "count": 1,
+                    "sum": 6,
+                    "min": 6,
+                    "max": 6,
+                    "startTimeUnixNano": "1792712358038000000",
+                    "timeUnixNano": "1792712537065000000"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "opencode.llm.tokens",
+              "description": "Tokens consumidos por tipo, derivados de session.step.ended",
+              "unit": "",
+              "sum": {
+                "aggregationTemporality": 2,
+                "isMonotonic": true,
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "type",
+                        "value": {
+                          "stringValue": "input"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712103610000000",
+                    "timeUnixNano": "1792712537065000000",
+                    "asDouble": 4730
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "type",
+                        "value": {
+                          "stringValue": "output"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712103610000000",
+                    "timeUnixNano": "1792712537065000000",
+                    "asDouble": 1708
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "type",
+                        "value": {
+                          "stringValue": "reasoning"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712103610000000",
+                    "timeUnixNano": "1792712537065000000",
+                    "asDouble": 816
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "type",
+                        "value": {
+                          "stringValue": "cache_read"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712103610000000",
+                    "timeUnixNano": "1792712537065000000",
+                    "asDouble": 2332416
+                  }
+                ]
+              }
+            },
+            {
+              "name": "opencode.llm.cost_usd",
+              "description": "Custo estimado em USD, derivado de session.step.ended",
+              "unit": "",
+              "sum": {
+                "aggregationTemporality": 2,
+                "isMonotonic": true,
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "currency",
+                        "value": {
+                          "stringValue": "USD"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1792712103610000000",
+                    "timeUnixNano": "1792712537065000000",
+                    "asDouble": 0.009221148000000002
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

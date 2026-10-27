@@ -1,0 +1,32 @@
+SFDPOT O (operations) — fluxos reais no tenant descartavel 'Bughunt D2' | Agente D | bench :4177 | x-forwarded-for 198.51.100.34
+== O1 registrar venda (3 x R$ 25,50, canal 'Bughunt D2 Canal') ==
+   toast 'Venda registrada'; sales: 0 -> 1; sales_items: 0 -> 1; linha visivel na lista.
+== O2 criar despesa (R$ 1.200,50) ==
+   toast 'Despesa adicionada'; total de despesas fixas exibido = R$ 1.200,50; linha na lista.
+== O3 excluir despesa (aviso de irreversibilidade) ==
+   Aviso: 'Excluir despesa? A despesa selecionada sera excluida permanentemente. Esta acao nao podera ser desfeita.'
+   Confirmar -> HTTP 503 (INTERNAL_ERROR) -> toast 'Nao foi possivel excluir a despesa'; expenses: 1 -> 1 (NAO excluiu).
+   Causa raiz: app_runtime nao tem DELETE em expenses (drizzle/0001_p0_runtime_role_and_rls.sql:42) => 42501.
+== O4 editar composicao (nome do produto) ==
+   toast 'Produto atualizado.'; valor persiste no campo apos salvar.
+== O5 adicionar ingrediente ==
+   toast 'Ingrediente adicionado.'; product_ingredients +1.
+== O6 salvar simulacao ==
+   Formulario de simulacao NAO renderiza: o produto segue 'Dados incompletos' (falta preco de mercado).
+== O7 arquivar produto ==
+   Aviso: 'Arquivar produto? O produto sai do catalogo ativo. O historico de vendas e simulacoes que o referencia e preservado.'
+   Cancelar mantem o produto; confirmar -> toast 'Produto arquivado'; products.status = 'archived'.
+== O8 logout (botao Sair) ==
+   /api/auth/revoke-sessions 200; /api/auth/sign-out 200; get-session -> 200 com corpo 'null' (sem sessao);
+   recarregar /inicio -> /auth?redirect=%2Finicio. Logout CORRETO (reconfirmado).
+
+== complemento (2a execucao) ==
+   [composicao] campos=["ing-nome","ing-qtd","base-ui-_r_g_-hidden-input","ing-preco","ing-pqtd","base-ui-_r_l_-hidden-input"]
+   [composicao] ["g","kg","mg","ml","l","unidade","un","dúzia"]
+   [composicao] desabilitado=false
+   [composicao] toasts=["Ingrediente atualizado."]
+   [precos] submissao={"valor":"12,50"} | toasts=[]
+   [precos] [{"subject_type":"ingredient","price":"12.5000","quantity":"1.000000","unit":"g"}]
+   [produtos] texto="Meus Produtos 1 produto cadastrado Preços de compra Novo produto Bughunt D2 Produto Editado DADOS INCOMPLETOS Custo: — · Preço: R$ 20,00 · Margem: — Ver Composição"
+   [simulacoes] inputs=["base-ui-_r_2_-hidden-input"] | texto="Simulações Teste uma hipótese informada por você. Sem vendas registradas, nenhum cenário é tratado como atual ou factual. Produto Bughunt D2 Produto Editado Dados incompletos. Preencha os campos financeiros do produto para simular. Simulações salvas 0 REGISTRO(S) Nenhuma simulação salva. Registre um"
+   [simulacoes] formulario de simulacao NAO renderizou (produto ainda incompleto)

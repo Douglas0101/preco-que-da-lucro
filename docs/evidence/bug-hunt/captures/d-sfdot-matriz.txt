@@ -1,0 +1,130 @@
+SFDPOT — matriz 6 dimensoes x 12 rotas | Agente D (fase 4 exploratoria, retomada) | bench :4177 | x-forwarded-for 198.51.100.34
+Rotas: / · /auth · /inicio · /produtos · /vendas · /simulacoes · /despesas · /diagnostico · /novo-produto · /precos · /ponto-equilibrio · /produtos/composicao?produto=<id>
+"_authenticated" e' layout SEM path: nao existe /_authenticated/ no URL (confirmado nas 12 rotas).
+Celula "nao achado" = medido e sem defeito; nunca deixada em branco.
+
+================================================================================
+S — STRUCTURE (hierarquia de headings, landmarks, rotulos, aria-*, orfaos/corte)
+================================================================================
+/inicio        | h1 unico "Olá! 👋"; 0 h2/h3; landmarks header + nav[aria-label="Menu principal"] + main + div[role=group][aria-label="Periodo do faturamento"]; 17 controles, 0 input sem label; scrollW=clientW=1280.
+                | ACHADO (BAIXA): nenhum titulo de secao/card e' heading — todos os titulos das telas sao div/span/p. 12/12 rotas. (WCAG 1.3.1)
+/auth          | h1 "Entenda a faixa de preco do seu produto conversando." (landing) ou h2 "Vamos comecar juntos" (modo cadastro, sem h1); formulario #name/#email/#password com Label; sem landmarks semanticos extras.
+                | ACHADO (BAIXA): no modo cadastro a pagina nao tem h1 (so h2) e nao ha link/botao de retorno ao modo login (medido: links=[]).
+/produtos      | h1 unico "Meus Produtos"; 20 controles, 0 input sem label; badges "DADOS INCOMPLETOS" com title; botoes "Ver"/"Composicao"/"Arquivar" com aria-label proprio.
+                | NAO ACHADO alem do h2 ausente.
+                | RECONFIRMADO: agent B mediu o contraste AA de .text-success (2,15:1) e do badge (3,20:1) em /produtos light —achado do agente B, nao recontabilizado aqui.
+/vendas        | h1 unico "Vendas"; 19 controles; 1 input oculto do Base UI (id base-ui-_r_2_-hidden-input) SEM label.
+                | NAO ACHADO: o input oculto tem aria-hidden="true" e tabindex="-1" (1x1 px) — nao e' exposto a leitor de tela. Medido nos 3 engines.
+/simulacoes    | h1 unico "Simulacoes"; 20 controles; 1 input oculto do Base UI (mesmo caso, nao achado).
+                | ACHADO (BAIXA): com produto incompleto a rota mostra apenas o estado "Dados incompletos" — o formulario de simulacao NAO renderiza (sem campo de preco/custo/volume).
+/despesas      | h1 unico "Minhas Despesas"; 21 controles; 2 inputs ocultos do Base UI (nao achado); Label htmlFor correta em #despesa-nome/#despesa-valor; 0 input sem label.
+/diagnostico   | h1 unico "Meu Diagnostico"; 16 controles; 1 input oculto (nao achado); inputs #diagnostico-margem-alvo e #diagnostico-custo-variavel-unitario com Label.
+/novo-produto   | h1 unico "Cadastro conversacional"; 16 controles; 0 sem label; textarea #novo-produto-mensagem com Label "Mensagem para o consultor"; botao submit com aria-label="Enviar".
+/precos        | h1 unico "Atualizar Precos de Compra"; 14 controles; 0 sem label; sem <form> (a acao e' por onClick).
+/ponto-equilibrio| h1 unico "Ponto de Equilibrio"; 16 controles; 1 input oculto (nao achado); input #ponto-equilibrio-despesas-fixas com Label.
+/produtos/composicao?produto=<id> | h1 unico "Composicao do produto"; 12-23 controles; 0 sem label; ids de campo estaveis (#produto-nome, #produto-rendimento, #produto-unidade, #ing-*, #pkg-*, #fee-*).
+/              | NAO EXISTE como pagina: / redireciona para /inicio (medido em 12/12 navegacoes). Sem h1 proprio.
+
+================================================================================
+F — FUNCTION (clique em tudo: 108 controles na execucao anterior + complemento 2026-10-22)
+================================================================================
+/inicio        | 16 controles: 11 links de navegacao (todos navegam), "Sair" (logout medido: OK), "Mês"/"Trimestre"/"Ano".
+                | ACHADO (MEDIA): "Trimestre"/"Ano" trocam o estado (aria-pressed false->true) mas o FOCO vai para <body> (no nó substituido) — 3/3 engines, teclado e mouse. Ver d-verificacao.json.
+                | NAO ACHADO: "Mês" (periodo ja selecionado) mantem o foco e o estado.
+/produtos      | 19 controles: links de navegacao OK; "Ver" -> /diagnostico?produto=<id> OK; "Editar composicao" -> /produtos/composicao?produto=<id> OK; "Arquivar" -> AlertDialog (texto honesto) OK; "Precos de compra"/"Novo produto" OK.
+                | NAO ACHADO (descartado): "Meus Produtos" apontando para a rota atual nao navega — comportamento esperado de link de pagina atual.
+/vendas        | 13 controles: seletor de produto (1 opcao visivel), "Registrar venda" (cria venda — medido), "Sair".
+                | NAO ACHADO: link "Vendas" da propria rota nao navega (esperado).
+/simulacoes    | 12 controles: seletor de produto + (formulario ausente enquanto o produto esta incompleto) + "Sair".
+                | ACHADO (MEDIA): sem preco de mercado o usuario nao tem NENHUMA via de UI para completar o produto — setMarketPrice so e' chamado pelo chat. Ver achado "produto incompleto".
+/despesas      | 16 controles: "Adicionar despesa" (cria — medido), "Excluir <nome>" (abre aviso; a EXCLUSAO FALHA com 503 — ver achado CRITICA), 2 Selects (Categoria/Tipo), "Sair".
+                | NAO ACHADO: os Selects de Categoria e Tipo abrem e selecionam normalmente.
+/diagnostico   | 12 controles: seletor de produto, inputs de premissa, <details> "Como calculamos?", "Sair". Todos respondem.
+/novo-produto   | COMPLEMENTO: "Nova conversa" (disabled enquanto nao ha conversa), textarea (habilita o botao), "Enviar" (aria-label="Enviar", disabled sem texto).
+                | NAO MEDIDO de ponta a ponta: com a IA controlada o envio nao produz turno real (limite de bancada).
+/precos        | COMPLEMENTO: um input "Preco de compra" (type texto, aceita virgula) por insumo + botao "Atualizar".
+                | ACHADO (MEDIA): "Atualizar" responde SEMPRE "Informe a quantidade e a unidade da embalagem antes de registrar o preco" para um insumo sem qtd/unidade de embalagem — e a /precos NAO tem campo para informar isso. Medido com 1e15, 1e18, 999999999999999 e 1000000000000000: a mesma mensagem nos 4 casos, antes mesmo de validar o preco.
+/ponto-equilibrio| COMPLEMENTO: seletor de produto + input "Despesas fixas / mes" que e' READONLY (display do total fixo, nao editavel).
+/produtos/composicao?produto=<id> | COMPLEMENTO: "Voltar aos produtos", select de unidade, "Salvar produto" (grava — medido), 3x "Adicionar" (ingrediente/embalagem/taxa), "Editar ingrediente"/"Remover ingrediente" (confirmados com aria-label).
+                | ACHADO (MEDIA): Enter num campo de texto do AlertDialog NAO aciona "Salvar ingrediente" (o dialogo nao tem <form>). 3/3 engines, com o botao habilitado. Ver d-verificacao-enter-dialog.json.
+/              | "Sair" (logout) medido em 4 rotas: sign-out 200 + get-session 200/"null" + recarregar /inicio -> /auth?redirect=%2Finicio. NAO ACHADO (correto).
+
+================================================================================
+D — DATA (12 casos da execucao anterior + complemento; ver d-dados.txt)
+================================================================================
+/produtos/composicao | D1 nome 5000 chars -> toast "Nao foi possivel concluir a solicitacao." + SEM overflow horizontal (scrollW=clientW=1280);
+                              | D2 HTML/script no nome -> "Produto atualizado." + 0 script/0 img injetados + 0 alert (XSS Armazenado nao se materializa);
+                              | D3 emoji+RTL+U+202E -> "Produto atualizado." + sem overflow;
+                              | D4 ingrediente 5000 chars + qtd 'abc' -> botao "Salvar ingrediente" DESABILITADO (nenhum feedback explicito alem da descricao do dialogo);
+                              | D5 taxa 999% / D6 embalagem com preco -10 -> "Nao foi possivel concluir a solicitacao." (mensagem generica, sem dizer qual campo).
+/despesas      | D7 nome 5000 chars + valor -100 -> "Preencha nome e valor valido", sem overflow;
+                | D8 valor 1e24 -> ACHADO: pageError "DECIMAL_OVERFLOW", NENHUM toast, NENHUMA requisicao (botao parece morto). Limiar exato: 999999999999999 passa, 1000000000000000 estoura.
+                | D9 valor 'abc' -> "Preencha nome e valor valido" (correto).
+                | COMPLEMENTO: nome so com espacos -> "Preencha nome e valor valido" (correto); limiar 10^15/-1 -> gravado, 10^15 -> DECIMAL_OVERFLOW sem toast.
+/vendas         | D10 quantidade 'abc' + preco -5 -> "Informe quantidade e preco unitario validos" (o -5 e' que disparou a validacao);
+                | D11 quantidade 1e21 + preco 1e308 -> "Nao foi possivel concluir a solicitacao.";
+                | D12 data 2099-12-31 -> o campo aceita a digitacao mas o `max` do input e' a data corrente;
+                | COMPLEMENTO (ACHADO): quantidade 'abc' SO (preco valido) / preco 'abc' SO / '1e999' -> a validacao do cliente NAO pega (Number('abc')<=0 e false) -> HTTP 400 do servidor + toast GENERICO;
+                | COMPLEMENTO (ACHADO): data vazia ou data invalida -> toast "Invalid time value" (RangeError cru em ingles), sem requisicao;
+                | COMPLEMENTO: quantidade '0' barrada no cliente (correto); preco '-0' aceito (venda de R$ 0,00 — coerente com a politica); canal so com espacos -> 'Venda direta' (fallback correto).
+/precos        | D14 'abc' / D15 '-5' -> "Informe um preco valido" (correto);
+                | D16 1e24 e D18 1e15 -> toast "DECIMAL_OVERFLOW" — CODIGO INTERNO CRU no toast (reconfirmado em 2026-10-22 com o par input<->botao correto);
+                | D17 preco '1,5' (virgula) -> NAO REPRODUZIDO nesta montagem: o valor foi GRAVADO ("Preco de Bughunt D2 Insumo Com Embalagem atualizado").
+                |   A execucao anterior mediu "botao desabilitado"; a diferenca e' o par campo/botao medido (aqui o input e' do insumo COM qtd+unidade de embalagem).
+                | COMPLEMENTO: a mensagem de /precos e' SEMPRE a de "quantidade e unidade da embalagem" para um insumo sem esses dados (ver F).
+/auth          | COMPLEMENTO: e-mail invalido no cadastro -> sem toast e sem mensagem; o input #email e' type=email (validacao nativa do navegador), sem aria-invalid nem texto de erro no formulario.
+/produtos      | NAO ACHADO: a rota nao tem input de dado (a listagem e' somente leitura; o dado do produto entra pelo chat).
+/novo-produto   | O unico input e' o textarea de mensagem do chat (texto livre). O efeito de texto extremo NAO foi medido: sem chave de IA o turno nao e' processado (limite de bancada).
+/              | NAO ACHADO: / nao tem input (redireciona para /inicio).
+/simulacoes    | NAO MEDIDO com dados: o formulario so existe para produto completo (ver achado "produto incompleto").
+/diagnostico   | ACHADO (MEDIA): premissa "abc" -> a pagina nao calcula e anuncia em aria-live "Complete as premissas manuais e os dados financeiros necessarios..." (comportamento correto);
+                | ACHADO (MEDIA): premissa "1e24" (ou 1e15) -> a PAGINA INTEIRA vira estado de erro: role=alert "Nao foi possivel carregar os dados do produto. Referencia de atendimento: DIAG-0D781B97" + botao "Tentar novamente";
+                |   o campo de premissa DESAPARECE (os casos seguintes mediram "CAMPO NAO ENCONTRADO") e o diagnostico inteiro some. A mensagem acusa o CARREGAMENTO dos dados, nao a premissa absurda.
+                |   Nao ha toast; nao ha indicacao de qual premissa causou o erro.
+                | -5 na margem-alvo: nao medido (o campo ja nao existia apos o caso 1e24).
+/ponto-equilibrio| O campo "#ponto-equilibrio-despesas-fixas" e' READONLY (readOnly=true, valor "R$ 0,00"): e' um display do total, NAO um input editavel
+                | (correcao de uma leitura anterior minha). Injetar "abc"/"1e24"/"-5" no valor nao muda nada (readonly), sem erro e sem toast — comportamento coerente.
+                | NAO ACHADO: nenhuma acao destrutiva ou estado invalido nessa rota.
+|inicio        | NAO ACHADO: a rota nao tem input de dado (so 3 botoes de periodo e um seletor de produto).
+
+================================================================================
+P — PLATFORM (3 engines x 6 viewports + mobile Pixel 7 = 209 amostras; ver d-plataforma.txt)
+================================================================================
+/produtos      | ACHADO (MEDIA): a 320px de largura (zoom 400%, reflow WCAG 1.4.10) a PAGINA ROLA HORIZONTALMENTE: scrollW=333 > clientW=320.
+                | Causa: a row de acoes do cabecalho "div.flex.gap-2" contem "Novo produto" (a.group/button.inline-flex.shrink-0) com right=333.
+                | Reproduz em chromium, firefox e webkit (mesmo par de elementos) => defeito de produto, nao de engine.
+/              | ACHADO (MEDIA, pagina publica): a LANDING "/" tambem rola horizontalmente a 320px (scrollW=331 > 320) em chromium, firefox e webkit;
+                | "/auth" nao (scrollW=320). O culpado da landing nao foi isolado (nenhum elemento tem right>320).
+/inicio · /vendas · /simulacoes · /despesas · /diagnostico · /novo-produto · /precos · /ponto-equilibrio | NAO ACHADO: sem overflow horizontal, sem sobreposicao de controles, sem item de menu fora da viewport
+                | em 360x640, 768x1024, 1280x800, 1920x1080, 640x400 (zoom 200%) e 412x915 (Pixel 7) nos 3 engines.
+/despesas      | ACHADO (BAIXA): o card-resumo "Despesas fixas / mes" tem conteudo cortado (clientW=328 / scrollW=344; o valor em R$ tem scrollW=324 > clientW=288).
+                | CONtexto honesto: o corte foi produzido pelo valor de fixture R$ 1.000.000.000.001.345,00 (10^15) que a propria politica do app aceita; com valores realistas o valor cabe.
+/produtos/composicao · / | NAO ACHADO nas mesmas viewports.
+/auth          | Medido em contexto NAO autenticado nos 3 engines: a 360x640 sem overflow nem corte; a 320x400 sem overflow (scrollW=320);
+                | formulario com h1 e 4 botoes nomeados.
+
+================================================================================
+O — OPERATIONS (fluxos reais; ver d-operacoes.txt)
+================================================================================
+/vendas         | Registrar venda: FUNCIONA (toast "Venda registrada", sales 0->1, sales_items 0->1, linha na lista).
+/despesas       | Criar despesa: FUNCIONA (toast "Despesa adicionada", total fixo exibido confere).
+                | Excluir despesa: NAO FUNCIONA (ACHADO CRITICA) — 503 INTERNAL_ERROR, toast "Nao foi possivel excluir a despesa", a linha continua na lista.
+                | O aviso de irreversibilidade e' honesto no texto ("A despesa selecionada sera excluida permanentemente. Esta acao nao podera ser desfeita.").
+/produtos       | Arquivar produto: FUNCIONA (toast "Produto arquivado", products.status='archived'); Cancelar preserva; o aviso e' honesto ("O produto sai do catalogo ativo. O historico ... e' preservado.").
+                | PASSO FALTANTE: nao existe "restaurar/desarquivar" na UI (o tenant fica sem o produto apos arquivar).
+/produtos/composicao | Editar nome / adicionar ingrediente / editar ingrediente (com qtd+unidade de embalagem): FUNCIONAM (toasts "Produto atualizado." / "Ingrediente adicionado." / "Ingrediente atualizado.").
+/precos         | Gravar preco de compra: FUNCIONA quando o insumo tem qtd+unidade de embalagem (gravou purchase_price_history: ingredient 12.5000 / 1.000000 / g).
+                | ACHADO: sem qtd/unidade de embalagem o botao sempre recusa com mensagem que aponta para um dado que a pagina nao aceita.
+/simulacoes     | PASSO FALTANTE: "Salvar simulacao" nao pode ser exercitado — o formulario so existe para produto com preco de mercado (ver achado).
+/diagnostico · /ponto-equilibrio | Leitura e edicao das premissas: sem acao destrutiva; nenhuma acao sem retorno visual medida.
+/              | PASSO FALTANTE (global): nao ha interface para CADASTRAR o primeiro produto manualmente (so o chat) — reconfirma DBT-128.
+
+================================================================================
+T — TIME (espera, F5, historico, 2 abas; ver d-tempo.txt)
+================================================================================
+/despesas      | F5 no meio do preenchimento: o estado do form NAO sobrevive (nome/valor vazios) e nao ha aviso — perda silenciosa, comportamento esperado de form nao persistido.
+/vendas         | (mesmo padrao do form de venda)
+/rotas          | Voltar/avancar: /inicio -> /produtos -> back -> /inicio (conteudo correto) -> forward -> /produtos. NAO ACHADO: sem estado orfao, sem tela branca.
+/despesas      | Duas abas na mesma rota: apos recarregar a aba2 a linha criada na aba1 aparece. NAO ACHADO: sem estado orfao (a aba2 so reflete a escrita apos recarregar — nao ha auto-refresh entre abas).
+/despesas      | Double-submit: 2 cliques no MESMO tick gravam 2 linhas; dblclick realista (10ms) e clique com 300ms de intervalo gravam 1. NAO REPRODUZ POR USUARIO REAL.
+/              | Logout: sign-out 200, get-session 200/"null", recarregar /inicio -> /auth?redirect=%2Finicio. NAO ACHADO (correto).

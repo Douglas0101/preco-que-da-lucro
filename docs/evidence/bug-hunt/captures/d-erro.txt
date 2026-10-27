@@ -1,0 +1,36 @@
+SFDPOT/tour do erro — especificidade, referencia ao campo, auto-dismiss | Agente D | bench :4177
+== resultado padrao: a mensagem e' um TOAST que some sozinho (todos os casos) e NUNCA marca o campo ==
+   em todos os casos: aria-invalid=null, aria-describedby=null, [aria-invalid=true]=0, role=alert=[] e o foco NAO vai para o campo.
+
+== detalhe por caso ==
+   [E1 e-mail invalido no cadastro] toasts=[] | campo={"email":"nao-e-um-email","emailInvalid":null,"emailDescribedBy":null,"formErro":[],"tipoDoInput":"email","pattern":null,"required":true,"msgNativa":"Please include an '@' in the email address. 'nao-e-um-email' is missing an '@'."}
+   [E1b a mensagem some sozinha?] toasts=[]
+   [E2 despesa totalmente vazia] mensagem=["Preencha nome e valor válido"] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"","valorCampoVazio":true,"foco":"BUTTON","invalidCount":0,"formErro":[]} | focoAntes=BODY
+   [E3 despesa com valor negativo] mensagem=["Preencha nome e valor válido"] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"-10","valorCampoVazio":false,"foco":"BUTTON","invalidCount":0,"formErro":[]} | focoAntes=BUTTON
+   [E4 despesa com valor gigante (1e24)] mensagem=[] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"1e24","valorCampoVazio":false,"foco":"BUTTON","invalidCount":0,"formErro":[]} | focoAntes=BUTTON
+   [E5 despesa com texto em branco (espacos)] mensagem=["Preencha nome e valor válido"] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"   ","valorCampoVazio":false,"foco":"BUTTON","invalidCount":0,"formErro":[]} | focoAntes=BUTTON
+   [E6 venda totalmente vazia] mensagem=["Informe quantidade e preço unitário válidos"] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"","valorCampoVazio":true,"foco":"BUTTON","invalidCount":0,"formErro":[]} | focoAntes=BODY
+   [E7 venda com quantidade nao numerica] mensagem=["Não foi possível concluir a solicitação."] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"abc","valorCampoVazio":false,"foco":"BODY","invalidCount":0,"formErro":[]} | focoAntes=BUTTON
+   [E8 venda com data invalida (campo limpo)] mensagem=["Invalid time value"] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"","valorCampoVazio":true,"foco":"BUTTON","invalidCount":0,"formErro":[]} | focoAntes=BODY
+   [E9 preco de compra vazio] mensagem=["Informe um preço válido"] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"","valorCampoVazio":true,"foco":"BUTTON","invalidCount":0,"formErro":[]} | focoAntes=BODY
+   [E10 preco de compra nao numerico] mensagem=["Informe um preço válido"] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"abc","valorCampoVazio":false,"foco":"BUTTON","invalidCount":0,"formErro":[]} | focoAntes=BUTTON
+   [E11 preco de compra negativo] mensagem=["Informe um preço válido"] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"-5","valorCampoVazio":false,"foco":"BUTTON","invalidCount":0,"formErro":[]} | focoAntes=BUTTON
+   [E12 preco de compra gigante (1e24)] mensagem=["Informe um preço válido"] | someSozinho=SIM | campo={"ariaInvalid":null,"ariaDescribedBy":null,"valorNoCampo":"1e24","valorCampoVazio":false,"foco":"BUTTON","invalidCount":0,"formErro":[]} | focoAntes=BUTTON
+   [E13 campos do dialogo de ingrediente] ["ing-nome","ing-qtd","base-ui-_r_g_-hidden-input","ing-preco","ing-pqtd","base-ui-_r_l_-hidden-input"]
+   [E13 ingrediente] ERRO: TimeoutError: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locat
+   [E13b erro do dialogo de ingrediente (campos vazios)] toasts=[] | {"ariaInvalid":null,"describedBy":null,"botaoSalvarDesabilitado":[true]} | dialogAberto=true
+   [E13 campos do dialogo de embalagem] ["pkg-nome","pkg-preco","pkg-unidades"]
+   [E13 embalagem] ERRO: TimeoutError: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locat
+   [E13b erro do dialogo de embalagem (campos vazios)] toasts=[] | {"ariaInvalid":null,"describedBy":null,"botaoSalvarDesabilitado":[true]} | dialogAberto=true
+   [E13 campos do dialogo de taxa] ["fee-nome","fee-pct"]
+   [E13 taxa] ERRO: TimeoutError: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locat
+   [E13b erro do dialogo de taxa (campos vazios)] toasts=[] | {"ariaInvalid":null,"describedBy":null,"botaoSalvarDesabilitado":[true]} | dialogAberto=true
+
+== /precos: o que acontece antes da validacao do preco ==
+

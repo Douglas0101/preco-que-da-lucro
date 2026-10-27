@@ -1,0 +1,47 @@
+# Escopo da sessão (arquivos tocados pela revisão) — 2026-10-25
+
+## Comandos
+```
+git status --short -- <arquivos da sessão>
+git diff --stat -- <arquivos da sessão>
+```
+
+## Resultado (antes do commit; worktree develop)
+```
+ M e2e/ui-stack.spec.ts
+ M e2e/visual/visual-observability.spec.ts
+ M src/components/app-shell.tsx
+ M src/components/ui/input-group.tsx
+ M src/components/ui/message-scroller.tsx
+ M src/components/ui/message.tsx
+ M src/components/ui/sheet.tsx
+ M src/routes/_authenticated/novo-produto.tsx
+ M src/routes/_authenticated/produtos.tsx
+ M src/routes/_authenticated/route.tsx
+ M src/test/chat-ui.test.tsx
+ M src/test/novo-produto-chat.test.tsx
+?? src/components/consultor-avatar.tsx
+?? src/components/consultor-chat-dock.tsx
+?? src/components/consultor-chat.tsx
+?? src/lib/consultor-persona.ts
+?? src/test/consultor-chat-dock-failure.test.tsx
+?? src/test/consultor-chat-dock.test.tsx
+
+ e2e/ui-stack.spec.ts                       | 110 ++++++-
+ e2e/visual/visual-observability.spec.ts    |   2 +-
+ src/components/app-shell.tsx               |  16 +-
+ src/components/ui/input-group.tsx          |  13 +-
+ src/components/ui/message-scroller.tsx     |   7 +-
+ src/components/ui/message.tsx              |   2 +-
+ src/components/ui/sheet.tsx                |   2 +-
+ src/routes/_authenticated/novo-produto.tsx | 459 +----------------------------
+ src/routes/_authenticated/produtos.tsx     |   7 +-
+ src/routes/_authenticated/route.tsx        |   2 +
+ src/test/chat-ui.test.tsx                  |  45 +--
+ src/test/novo-produto-chat.test.tsx        | 128 +++++++-
+ 12 files changed, 300 insertions(+), 493 deletions(-)
+```
+
+## Nota
+
+O worktree também carrega 88 entradas modificadas/novas de sessões anteriores (auth, telemetria, docs, scripts). Elas não foram tocadas por esta revisão; os gates foram rodados sobre o worktree inteiro, portanto o verde inclui esse WIP.

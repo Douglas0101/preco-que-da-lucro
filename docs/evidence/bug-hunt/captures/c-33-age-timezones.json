@@ -1,0 +1,66 @@
+{
+  "base": "http://127.0.0.1:4173",
+  "dsn": "postgresql://<REDACTED>@127.0.0.1:5432/preco_que_da_lucro_test",
+  "ageOffset": "2 days 12 hours",
+  "signIn": {
+    "status": 200,
+    "ok": true
+  },
+  "perTimezone": {
+    "America/Sao_Paulo": {
+      "renderedLine": "Última atualização: 19/10/2026 (há 2 dias)",
+      "civilDate": "19/10/2026",
+      "ageDaysRendered": "2",
+      "browserTz": "America/Sao_Paulo",
+      "browserTzOffsetMin": 180,
+      "pageErrors": []
+    },
+    "UTC": {
+      "renderedLine": "Última atualização: 19/10/2026 (há 2 dias)",
+      "civilDate": "19/10/2026",
+      "ageDaysRendered": "2",
+      "browserTz": "UTC",
+      "browserTzOffsetMin": 0,
+      "pageErrors": []
+    },
+    "Asia/Kolkata": {
+      "renderedLine": "Última atualização: 19/10/2026 (há 2 dias)",
+      "civilDate": "19/10/2026",
+      "ageDaysRendered": "2",
+      "browserTz": "Asia/Calcutta",
+      "browserTzOffsetMin": -330,
+      "pageErrors": []
+    },
+    "Pacific/Kiritimati": {
+      "renderedLine": "Última atualização: 20/10/2026 (há 2 dias)",
+      "civilDate": "20/10/2026",
+      "ageDaysRendered": "2",
+      "browserTz": "Pacific/Kiritimati",
+      "browserTzOffsetMin": -840,
+      "pageErrors": []
+    }
+  },
+  "summary": {
+    "ageDaysValues": ["2", "2", "2", "2"],
+    "ageDaysIdenticalAcrossTimezones": true,
+    "civilDateValues": ["19/10/2026", "19/10/2026", "19/10/2026", "20/10/2026"],
+    "civilDateDistinctCount": 2,
+    "civilDateVaries": true,
+    "note": "age_days e calculado no SERVIDOR (Date.now() - price_updated_at): deve ser identico. A data civil usa toLocaleDateString no fuso do BROWSER: pode mudar (esperado)."
+  },
+  "purge": {
+    "before": {
+      "users": 0,
+      "products": 0,
+      "ingredients": 0,
+      "tenants": 0
+    },
+    "after": {
+      "users": 0,
+      "products": 0,
+      "ingredients": 0,
+      "tenants": 0
+    },
+    "ok": true
+  }
+}

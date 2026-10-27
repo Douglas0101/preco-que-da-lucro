@@ -1,0 +1,37 @@
+# Tokens aplicados em src/styles.css (:root)
+
+Fonte: valores HSL do próprio site convertidos para OKLCH pela matriz
+sRGB→OKLab (script local). O bloco `.dark` ganhou espelho navy (o app não o
+aplica hoje). `success`/`warning`/`destructive` continuam semânticos.
+
+| token | site (HSL) | aplicado (OKLCH) | observação |
+|---|---|---|---|
+| `background` | 40 33% 97% | `oklch(0.98 0.005 84.6)` | creme quente do body |
+| `foreground` | 224 47% 12% | `oklch(0.213 0.043 267.6)` | navy dos títulos/texto |
+| `card/popover` | 0 0% 100% | `oklch(1 0 0)` | branco dos cards |
+| `primary` | 43 72% 42% | `oklch(0.666 0.128 84.7)` | ouro dos CTAs |
+| `primary-foreground` | 40 33% 98% (site) → navy | `oklch(0.213 0.043 267.6)` | desvio AA: navy sobre ouro = 5,75:1; branco do site = 2,95:1 |
+| `primary-strong` | — (derivado) | `oklch(0.522 0.099 85.1)` | ouro escuro para texto/links sobre creme (5,19:1) |
+| `primary-display` | — (derivado) | `oklch(0.631 0.121 84.8)` | acento de título grande (3,32:1, mínimo 3:1) |
+| `secondary` | 224 28% 94% | `oklch(0.948 0.009 270)` | cinza-azulado claro |
+| `muted-foreground` | 224 14% 38% | `oklch(0.471 0.034 269.4)` | texto secundário |
+| `accent` | 43 45% 94% | `oklch(0.964 0.014 88.9)` | tinta de ouro clara |
+| `destructive` | 0 72% 51% | `oklch(0.579 0.214 27.2)` | vermelho do site |
+| `border/input` | 224 18% 88% | `oklch(0.9 0.011 270)` | bordas |
+| `ring` | 43 72% 42% (site) → ouro escuro | `oklch(0.522 0.099 85.1)` | desvio AA: foco 5,19:1 contra o creme |
+| `sidebar` | 40 30% 98% | `oklch(0.987 0.003 84.6)` | header claro do site |
+| `sidebar-primary` | 43 72% 42% (site) → navy | `oklch(0.213 0.043 267.6)` | logo navy com glifo ouro, como o site |
+| `sidebar-primary-foreground` | 40 33% 98% (site) → ouro | `oklch(0.666 0.128 84.7)` | glifo ouro sobre navy |
+
+## Desvios declarados do site
+
+- **Texto do botão primário**: o site usa quase-branco sobre o ouro (2,95:1, reprova WCAG AA).
+  O app usa navy (`--primary-foreground`), 5,75:1 — mesma dupla de cores da marca, acessível.
+- **Anel de foco**: o site usa o próprio ouro (2,90:1 contra o creme, abaixo de 3:1 de componente).
+  O app usa `primary-strong` (5,19:1).
+- **Acentos grandes**: `primary-display` (3,32:1) preserva o ouro do site apenas onde o texto é
+  grande (>=18,66px bold), limite 3:1.
+- **Semânticos mantidos**: verde de sucesso e âmbar de alerta não vieram do site (ele não os
+  define) e continuam com os valores aprovados pelo DBT-123/contraste.
+- **Tipografia não muda**: o site usa Sora/Inter; o app mantém Plus Jakarta Sans/JetBrains Mono.
+  Fontes externas exigiriam novo host na CSP — fora do escopo “cores”.

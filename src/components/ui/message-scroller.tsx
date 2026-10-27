@@ -37,7 +37,7 @@ function MessageScrollerViewport({
     <MessageScrollerPrimitive.Viewport
       data-slot="message-scroller-viewport"
       className={cn(
-        "size-full min-h-0 min-w-0 scroll-fade-b overflow-y-auto overscroll-contain contain-content [scrollbar-width:thin]",
+        "size-full min-h-0 min-w-0 scroll-fade-b scrollbar-thin scrollbar-gutter-stable overflow-y-auto overscroll-contain contain-content data-autoscrolling:scrollbar-thumb-transparent data-autoscrolling:scrollbar-track-transparent data-pending-scroll:invisible",
         className,
       )}
       {...props}
@@ -67,6 +67,11 @@ function MessageScrollerItem({
     <MessageScrollerPrimitive.Item
       data-slot="message-scroller-item"
       scrollAnchor={scrollAnchor}
+      // Deliberate deviation from the registry: `content-visibility: auto` (with
+      // `contain-intrinsic-size`) skipped offscreen items, and Firefox/WebKit
+      // returned an empty `innerText` for the mounted assistant turn — commit
+      // f6b518c fixed the chat E2E by removing it. The thread is bounded, so the
+      // skip buys little; do not reintroduce it without re-running that E2E.
       className={cn("min-w-0 shrink-0", className)}
       {...props}
     />

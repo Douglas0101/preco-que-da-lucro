@@ -131,7 +131,8 @@ precedente — em qualquer direção — é decisão nova, não herdada.
      duas vezes.
    - (ii) **Declarar "resolvido" com `scripts/**` fora do escopo sem nomear o limite** reprova o
      próprio ADR — é a mesma classe de defeito que a prosa viva do `AGENTS.md` já teve de corrigir
-     contra o registry (`DBT-34`).
+     contra o registry (a classe "prosa viva × estado real": `DBT-30`, **FECHADA**; a instância
+     viva do par _AGENTS.md × registry_ é `DBT-121`, **ABERTA**).
    - (iii) **Decidir exclusão ou expansão por contagem local** (`cloc`, `wc -l`, contagem por
      `git ls-files`) reprova o controle negativo (ii) do `DBT-58`.
    - (iv) **Fechar apagando ou aceitando os 53 achados** reprova: marcar issue não reduz `ncloc`

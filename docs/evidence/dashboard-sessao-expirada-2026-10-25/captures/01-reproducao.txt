@@ -1,0 +1,50 @@
+# Reprodução do incidente “Não foi possível carregar o resumo financeiro” (DASH-94CD7C2C)
+
+Relato do dono (2026-10-25): “Não foi possível carregar o resumo financeiro.
+Referência de atendimento: DASH-94CD7C2C”.
+
+## Log do servidor (dev) na janela do incidente/reprodução
+
+```
+{"timestamp":"2026-10-26T01:27:59.002Z","level":"info","event":"request.completed","correlationId":"f9802787-b291-4748-a800-78480bef1a75","method":"POST","pathname":"/api/auth/sign-out","status":200,"durationMs":19}
+{"timestamp":"2026-10-26T01:28:21.214Z","level":"info","event":"request.completed","correlationId":"103b52b4-be98-4d7d-977e-fae4e96c68aa","method":"POST","pathname":"/api/auth/sign-out","status":200,"durationMs":30}
+{"timestamp":"2026-10-26T01:38:19.024Z","level":"info","event":"request.completed","correlationId":"76f3e588-bf86-42f8-bfd2-394d47d14474","method":"POST","pathname":"/api/auth/sign-out","status":200,"durationMs":31}
+{"timestamp":"2026-10-26T01:45:23.697Z","level":"info","event":"request.completed","correlationId":"db44808d-3a5c-47e6-86da-16528882bbe5","method":"POST","pathname":"/api/auth/sign-out","status":200,"durationMs":24}
+{"timestamp":"2026-10-26T01:48:52.396Z","level":"info","event":"request.completed","correlationId":"02726e30-92c2-4616-8263-f7dc4ca21c20","method":"POST","pathname":"/api/auth/sign-out","status":200,"durationMs":131}
+{"timestamp":"2026-10-26T01:48:56.591Z","level":"info","event":"request.completed","correlationId":"1656b2b0-819b-40dc-a9d5-4116d32d82b2","method":"POST","pathname":"/api/auth/sign-out","status":200,"durationMs":39}
+```
+
+## Resposta 401 real de `getDashboardSummary` (sessão revogada no meio do uso)
+
+```
+signin 200
+serverFnUrl: http://localhost:8080/_serverFn/eyJmaWxlIjoiL3NyYy9saWIvZGFzaGJvYXJkLmZ1bmN0aW9ucy50cz90c3Mtc2VydmVyZm4tc3BsaXQiLCJleHBvcnQiOiJnZXREYXNoYm9hcmRTdW1tYXJ5X2NyZWF0
+sign-out 200
+RAW 401: {
+ "status": 401,
+ "contentType": "application/json; charset=utf-8",
+ "correlation": "23b88742-6a1a-45f9-922f-d49572ef0b2a",
+ "tss": null,
+ "length": 164,
+ "text": "{\"ok\":false,\"error\":{\"code\":\"AUTHENTICATION_ERROR\",\"message\":\"Faça login para continuar.\",\"retryable\":false,\"correlationId\":\"c7e033f0-97d1-40bf-a9db-43f4cb1844fc\"}}"
+}
+```
+
+## Comportamento medido **antes** da correção
+
+- O refetch do período (Mês → Trimestre) recebia **HTTP 401** com envelope válido
+  `{ok:false,error:{code:"AUTHENTICATION_ERROR",...}}`, sem `x-tss-serialized`.
+- A URL **permanecia `/inicio`** e a tela mostrava o card:
+  “Não foi possível carregar o resumo financeiro.” +
+  “Referência de atendimento: DASH-6A91FCD3” + “Tentar novamente”.
+- “Tentar novamente” repetia o 401; não havia redirect para o login.
+- A referência `DASH-…` era gerada no cliente com `crypto.randomUUID()` e **não existia
+  em nenhum log do servidor** — o código mostrado pelo dono não era correlacionável.
+
+## Instrumentação temporária (removida depois da medição)
+
+No `QueryCache.onError` o erro chegava como `ServerFnEnvelopeError` com
+`status=500`, `code=INTERNAL_ERROR` e `isAuthenticationError=false` — apesar do body
+do 401 dizer `AUTHENTICATION_ERROR`. Em uma variante de teste, o wrapper de middleware
+lançava o `ApiError` interno `{code:"AUTHENTICATION_ERROR"}` como objeto plano,
+também sem `status`, e o handler não reconhecia.

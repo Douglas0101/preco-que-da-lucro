@@ -1,0 +1,41 @@
+# Matriz Playwright completa final — exit 0
+
+## Comando
+
+```
+BETTER_AUTH_URL=http://127.0.0.1:4173 AUTH_TRUSTED_ORIGINS=http://127.0.0.1:4173 E2E_AUTH_EMAIL=<fixture> E2E_AUTH_PASSWORD=<fixture> node --env-file=.env node_modules/@playwright/test/cli.js test
+```
+
+## Resultado
+
+```
+  3 skipped
+  113 passed (4.9m)
+e2e exit=0
+```
+
+## Distribuição por projeto (linhas ✓ do reporter list)
+
+```
+chromium  28 ✓
+firefox   28 ✓
+webkit    28 ✓
+mobile    29 ✓
+skipped   3 -
+```
+
+## Teste novo do painel (nos 4 projetos)
+
+```
+  ✓   19 [chromium] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (9.3s)
+  ✓   48 [firefox] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (8.9s)
+  ✓   77 [webkit] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (9.8s)
+  ✓  106 [mobile] › e2e/ui-stack.spec.ts:424:1 › floating consultor chat opens app-wide and hides on its full page (7.0s)
+```
+
+## Comparação com a primeira matriz
+
+```
+antes: 4 failed (chromium/firefox/mobile painel + mobile products) — capture 05
+depois: 0 failed — esta captura
+```

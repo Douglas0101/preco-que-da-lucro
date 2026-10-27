@@ -1,0 +1,16 @@
+# Bundle após o motion
+
+Comando: npm run build && npm run check:bundle
+
+```
+# (check:bundle rodado separadamente sobre o build acima)
+PASS assets/index-DU0of7RA.js: 217925 minified, 68901 gzip, 60055 Brotli bytes, sha256=7839156a195e
+Initial graph (11 chunks): 486923 minified, 159688 gzip, 140712 Brotli bytes, sha256=bd0468e72df4
+```
+
+## Chunk do chat (motion fica no chunk lazy do chat, não no grafo inicial)
+
+```
+-rw-rw-r-- 1 douglas douglas 164497 Oct 25 16:11 .output/public/assets/consultor-chat-BY1a22ng.js
+.output/public/assets/consultor-chat-BY1a22ng.js
+```

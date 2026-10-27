@@ -1,0 +1,7 @@
+
+Running 2 tests using 2 workers
+
+  ✓  2 [chromium] › e2e/ui-stack.spec.ts:64:1 › public UI uses valid composed controls and has no serious a11y violations (1.6s)
+  ✓  1 [chromium] › e2e/ui-stack.spec.ts:256:1 › products list meets WCAG AA text contrast with the seeded rows (2.2s)
+
+  2 passed (3.2s)

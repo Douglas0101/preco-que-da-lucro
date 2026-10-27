@@ -1,0 +1,19 @@
+PURGA DO TURNO REAL (Agente C) — contagem antes/depois em preco_que_da_lucro_test (local)
+DSN redigido: postgresql://<REDACTED>@127.0.0.1:5432/preco_que_da_lucro_test
+
+ANTES (inicio do turno):
+users(bughunt-c-chat-*)=0  tenants(Bughunt C%)=0  products=0  product_ingredients=0
+chat_conversations=0  chat_messages=0  ai_usage=0  tool_executions=0
+
+DURANTE (depois do turno):
+users=1  tenants=1  products=1  product_ingredients=3  purchase_price_history=1
+chat_conversations=1  chat_messages=2  ai_usage=4  tool_executions=7
+
+DEPOIS (apuracao completa, ordem de FK: purchase_price_history -> product_ingredients ->
+product_packaging -> products -> chat_* -> tool_executions -> ai_usage -> demais tabelas com tenant_id
+-> tenant_memberships -> tenants -> accounts -> sessions -> users):
+users(bughunt-c-chat-*)=0  tenants(Bughunt C%)=0  products(Bughunt C%)=0  product_ingredients=0
+ai_usage=0  chat_messages=0  chat_conversations=0  tool_executions=0  purchase_price_history=0
+
+VEREDITO: nada do turno sobreviveu no banco; a prova (valores medidos) esta em c-34-chat-real-turn.json
+e no screenshot c-chat-real-turn.png.

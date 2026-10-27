@@ -1,0 +1,93 @@
+{
+  "decimalGlobalConfig": {
+    "precision": 40,
+    "rounding": 4
+  },
+  "principal": {
+    "input": {
+      "recipeCost": 30,
+      "unitCostTarget": 10,
+      "yieldQty": 3,
+      "price": 3.33,
+      "taxRate": 0,
+      "fees": 0
+    },
+    "costOnlyStatus": "ok",
+    "costOnly": {
+      "recipeCost": 30,
+      "packagingCost": 0,
+      "unitCost": 10
+    },
+    "productStatus": "ok",
+    "product": {
+      "recipeCost": 30,
+      "packagingCost": 0,
+      "unitCost": 10,
+      "variableCost": 0,
+      "contributionMargin": -6.67,
+      "contributionMarginPct": -200.3003003003003
+    },
+    "exactStrings": {
+      "recipeCost": "30",
+      "packagingCost": "0",
+      "unitCost": "10",
+      "variableCost": "0",
+      "contributionMargin": "-6.67",
+      "contributionMarginPct": "-200.3003003003003"
+    },
+    "allFinite": true,
+    "anyNaNOrInfinity": false,
+    "grossVsRounded": {
+      "grossUnitCostDecimal40": "10",
+      "engineUnitCost": "10",
+      "unitCostEqual": true,
+      "grossContributionDecimal40": "-6.67",
+      "engineContribution": "-6.67",
+      "grossPctDecimal40": "-200.3003003003003003003003003003003003003",
+      "enginePct": "-200.3003003003003",
+      "pctEqual": true,
+      "jsDoublePct": "-200.30030030030028",
+      "pctEqualVsJsDouble": false,
+      "note": "O motor devolve o mesmo numero que o bruto em Decimal(40)/ROUND_HALF_UP (sem arredondar antes)."
+    },
+    "marginPctNegative": "-200.3003003003003"
+  },
+  "repeatingDecimal": {
+    "breakEvenDiscrete": {
+      "status": "reachable",
+      "rawUnits": 90.09009009009009,
+      "roundedUnits": 91,
+      "unitMode": "discrete"
+    },
+    "breakEvenContinuous": {
+      "status": "reachable",
+      "rawUnits": 90.09009009009009,
+      "roundedUnits": 90.09009009009009,
+      "unitMode": "continuous"
+    },
+    "decimalExact": "90.09009009009009009009009009009009009009",
+    "fractionalDigits": "09009009009009009009009009009009009009",
+    "repeatsPeriod090090": true,
+    "repeatsPeriod09": false,
+    "expectedValue": "90,090090090090090090090090090090090090…",
+    "startsWithExpected": true,
+    "note": "100/1,11 = 90,090090… (periodo 090090). Modo discrete arredonda para 91; continuous mantem o bruto."
+  },
+  "decimalIdempotency": {
+    "iterations": 10000,
+    "zeroBefore": "0",
+    "oneBefore": "1",
+    "zeroAfter": "0",
+    "oneAfter": "1",
+    "zeroUnchanged": true,
+    "oneUnchanged": true,
+    "constantsFrozen": true,
+    "accumulatorAfterLoop": "10000",
+    "freshAccumulatorAfterLoop": "10000",
+    "internalArrayMutableProbe": true,
+    "internalArrayProbe": {
+      "before": "0",
+      "after": "4.2"
+    }
+  }
+}

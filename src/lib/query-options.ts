@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { getChatHistory } from "@/lib/chat.functions";
 import { getDashboardSummary, type DashboardPeriod } from "@/lib/dashboard.functions";
 import { listExpenses } from "@/lib/expenses.functions";
@@ -94,6 +94,10 @@ export function dashboardSummaryQueryOptions(period: DashboardPeriod = "month") 
     queryKey: queryKeys.dashboardSummary(period),
     queryFn: () => unwrapServerFn(getDashboardSummary({ data: { period } })),
     ...authenticatedQueryPolicy,
+    // Troca de período não desmonta a tela: os números da janela anterior ficam
+    // visíveis (marcados por `isPlaceholderData`) enquanto a nova chega. É o que
+    // preserva o foco no seletor (DBT-165) e evita o grid inteiro piscar.
+    placeholderData: keepPreviousData,
     staleTime: AGGREGATE_STALE_TIME,
   });
 }

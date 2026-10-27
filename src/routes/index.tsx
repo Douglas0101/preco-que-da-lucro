@@ -56,7 +56,7 @@ function Landing() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-foreground text-primary">
               <Sparkles className="h-5 w-5" />
             </div>
             <span className="font-bold tracking-tight">Preço que Dá Lucro</span>
@@ -75,11 +75,11 @@ function Landing() {
 
       <section className="mx-auto max-w-6xl animate-in px-6 pt-8 pb-20 fade-in-0 duration-500 ease-out slide-in-from-bottom-2 md:pt-16 motion-reduce:animate-none">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-1.5 text-xs font-semibold tracking-wide text-primary">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-1.5 text-xs font-semibold tracking-wide text-primary-strong">
             <Sparkles className="h-3 w-3" /> IA que conversa como um consultor
           </span>
           <h1 className="mt-6 text-5xl font-black leading-tight tracking-tight md:text-7xl">
-            Entenda a <span className="text-primary">faixa de preço</span> do seu produto
+            Entenda a <span className="text-primary-display">faixa de preço</span> do seu produto
             conversando.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
