@@ -157,3 +157,4 @@
 {"ts":"2026-10-25T04:40:14.771Z","type":"tool_after_without_start","tool":"execute","callID":"call_b44031fdc63342a4abc3ce80"}
 {"ts":"2026-10-25T04:40:25.923Z","type":"tool_after_without_start","tool":"execute","callID":"call_f3364f5c7b5b4338bc073606"}
 {"ts":"2026-10-25T04:42:46.160Z","type":"tool_after_without_start","tool":"execute","callID":"call_49cd197453c44ba692027a7f"}
+{"ts":"2026-10-27T02:33:48.082Z","type":"policy_blocked","tool":"shell","rule":"sensitive_env_shell","sessionID":"ses_e8569e770ffeUxNfClkKi8FHMr","callID":"call-fa48765c-56d7-49ec-a0a2-07a2632b5bdf"}

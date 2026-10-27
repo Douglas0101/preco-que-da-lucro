@@ -73,10 +73,7 @@ function isConsolidatedMarginValid(value: unknown): value is ConsolidatedMarginS
   return false;
 }
 
-export function isDashboardSummaryValid(
-  metrics: unknown,
-  expectedPeriod?: DashboardPeriod,
-): metrics is DashboardSummaryShape {
+export function isDashboardSummaryValid(metrics: unknown): metrics is DashboardSummaryShape {
   if (typeof metrics !== "object" || metrics === null) return false;
   const candidate = metrics as Partial<DashboardSummaryShape>;
   if (typeof candidate.productCount !== "number") return false;
@@ -91,10 +88,12 @@ export function isDashboardSummaryValid(
   ) {
     return false;
   }
-  // O payload tem de ser da janela que o usuário pediu: com `keepPreviousData`
-  // o dado anterior continua montado, e um período divergente exibiria a janela
-  // errada com o número errado.
-  if (expectedPeriod !== undefined && candidate.period !== expectedPeriod) return false;
+  // Só a **forma** é validada aqui. Coerência entre o `period` pedido e o payload
+  // é decisão de exibição: com `keepPreviousData` o payload anterior — de outro
+  // período — continua montado de propósito, e E3/E5 exigem que a janela antiga
+  // permaneça durante a troca; o rótulo sai de `summary.window`, nunca recalculado.
+  // Recusar o período divergente aqui desmontava o grid e matava o foco (medido na
+  // run 40275083772 do PR #72, captura f6b no pacote de evidência).
   if (!isWindowValid(candidate.window)) return false;
   if (typeof candidate.sales !== "object" || candidate.sales === null) return false;
   if (typeof candidate.sales.count !== "number") return false;

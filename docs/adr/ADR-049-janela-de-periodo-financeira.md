@@ -64,7 +64,9 @@ INCOMPLETOS", contra a distinção de três estados do ADR-041 §3.
 - **`window` é aditivo e não quebra consumidores**, mas o **shape guard ainda não o exige** nem compara
   `payload.period` com o período pedido: um payload sem `window` derruba o render (medido no teste de
   componente). A lacuna foi **fechada** em 2026-10-26 — ver **DBT-176** (FECHADA): o guard exige
-  `window` (datas ISO com `from < to`) e compara `payload.period` com o período pedido.
+  `window` (datas ISO com `from < to`). Coerência entre `payload.period` e o período pedido **não** é
+  condição do guard: com `keepPreviousData` o payload anterior segue montado e E3/E5 exigem que ele permaneça
+  (run 40275083772 do PR #72); a janela exibida sai sempre de `summary.window`.
 - **Sem migração**: nenhuma coluna, índice ou constraint muda; `transactionSites`/`directDatabaseFiles` não se
   movem por esta decisão.
 - **Fixture determinística**: os testes de banco ganharam quatro tenants de fronteira com instantes calculados

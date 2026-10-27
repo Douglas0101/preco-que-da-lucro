@@ -70,10 +70,12 @@ describe("dashboard summary shape guard (DBT-86 1.4)", () => {
     ).toBe(false);
   });
 
-  it("refuses a payload whose period differs from the requested one (DBT-176)", () => {
-    expect(isDashboardSummaryValid(validSummary(), "month")).toBe(true);
-    expect(isDashboardSummaryValid(validSummary(), "quarter")).toBe(false);
-    expect(isDashboardSummaryValid({ ...validSummary(), period: "year" }, "year")).toBe(true);
+  // Com `keepPreviousData` o payload anterior continua montado durante a troca e
+  // tem `period` diferente do pedido por desenho (E3/E5). O guard valida forma, não
+  // coerência de período: quem exibe a janela é `summary.window`.
+  it("accepts a stale payload from another period while the switch is in flight (E3/E5)", () => {
+    expect(isDashboardSummaryValid({ ...validSummary(), period: "month" })).toBe(true);
+    expect(isDashboardSummaryValid({ ...validSummary(), period: "year" })).toBe(true);
   });
 
   it("accepts every honest consolidatedMargin state and rejects foreign ones", () => {

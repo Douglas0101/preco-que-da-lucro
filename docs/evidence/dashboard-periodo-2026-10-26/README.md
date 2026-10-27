@@ -77,20 +77,20 @@ anteriores fica obsoleta; e o sign-in por API exige `origin` igual ao `BETTER_AU
 
 ## Rastreabilidade (requisito → teste → arquivo)
 
-| Requisito                                          | Teste                                                                                 | Arquivo                                                                                            |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| FR-PER-001 janela `[from, to)` nas duas agregações | D1–D5; T9/T10                                                                         | `src/server/repositories/sales.repository.ts`, `src/test/dashboard-consolidated-margin.db.test.ts` |
-| FR-PER-002 fuso do negócio independente do `TZ`    | T1–T6 (3 fusos)                                                                       | `src/lib/period-window.ts`, `src/test/period-window.test.ts`                                       |
-| FR-PER-003 janela exibida, atestada no payload     | E2; D (window)                                                                        | `src/routes/_authenticated/inicio.tsx`, `src/server/services/dashboard.service.ts`                 |
-| FR-PER-004 separação invariante × realizado        | E4/E2; medição no browser                                                             | `src/routes/_authenticated/inicio.tsx`                                                             |
-| FR-PER-005 `empty` ≠ `incomplete`                  | E4; visual (badge)                                                                    | `inicio.tsx`, `e2e/visual/visual-observability.spec.ts`                                            |
-| FR-PER-006 guard de coerência `period`×payload     | **implementado na F6** — `window` obrigatório + `period` pedido (**DBT-176 fechada**) | `src/lib/dashboard-summary-guard.ts`                                                               |
-| RNF-PER-001 sem dependência nova                   | `guard:upgrade`, `check:bundle`                                                       | `package.json` (inalterado)                                                                        |
-| RNF-PER-002 foco preservado (DBT-165)              | E3 (4 projetos)                                                                       | `e2e/sales-dashboard.spec.ts`                                                                      |
-| RNF-PER-003 mesmas duas consultas                  | revisão + D1–D5                                                                       | `sales.repository.ts`                                                                              |
-| RNF-PER-004 bundle dentro do limite                | `check:bundle` (487.577 B ≤ 500.000)                                                  | `scripts/check-bundle.mjs`                                                                         |
-| RNF-PER-005 determinismo sob `TZ`                  | T1–T10 em UTC/Asia/Tokyo/BRT                                                          | `src/test/period-window.test.ts`                                                                   |
-| INV-006/007 número antigo nunca como atual         | E5 (`aria-busy` + rótulo antigo)                                                      | `inicio.tsx`, `src/lib/query-options.ts`                                                           |
+| Requisito                                          | Teste                                                                                                                  | Arquivo                                                                                            |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| FR-PER-001 janela `[from, to)` nas duas agregações | D1–D5; T9/T10                                                                                                          | `src/server/repositories/sales.repository.ts`, `src/test/dashboard-consolidated-margin.db.test.ts` |
+| FR-PER-002 fuso do negócio independente do `TZ`    | T1–T6 (3 fusos)                                                                                                        | `src/lib/period-window.ts`, `src/test/period-window.test.ts`                                       |
+| FR-PER-003 janela exibida, atestada no payload     | E2; D (window)                                                                                                         | `src/routes/_authenticated/inicio.tsx`, `src/server/services/dashboard.service.ts`                 |
+| FR-PER-004 separação invariante × realizado        | E4/E2; medição no browser                                                                                              | `src/routes/_authenticated/inicio.tsx`                                                             |
+| FR-PER-005 `empty` ≠ `incomplete`                  | E4; visual (badge)                                                                                                     | `inicio.tsx`, `e2e/visual/visual-observability.spec.ts`                                            |
+| FR-PER-006 guard de coerência `period`×payload     | **forma** implementada na F6 (`window` obrigatório); coerência de período é exibição, não guarda (**DBT-176 fechada**) | `src/lib/dashboard-summary-guard.ts`                                                               |
+| RNF-PER-001 sem dependência nova                   | `guard:upgrade`, `check:bundle`                                                                                        | `package.json` (inalterado)                                                                        |
+| RNF-PER-002 foco preservado (DBT-165)              | E3 (4 projetos)                                                                                                        | `e2e/sales-dashboard.spec.ts`                                                                      |
+| RNF-PER-003 mesmas duas consultas                  | revisão + D1–D5                                                                                                        | `sales.repository.ts`                                                                              |
+| RNF-PER-004 bundle dentro do limite                | `check:bundle` (487.577 B ≤ 500.000)                                                                                   | `scripts/check-bundle.mjs`                                                                         |
+| RNF-PER-005 determinismo sob `TZ`                  | T1–T10 em UTC/Asia/Tokyo/BRT                                                                                           | `src/test/period-window.test.ts`                                                                   |
+| INV-006/007 número antigo nunca como atual         | E5 (`aria-busy` + rótulo antigo)                                                                                       | `inicio.tsx`, `src/lib/query-options.ts`                                                           |
 
 ## Decisões abertas resolvidas
 
@@ -105,16 +105,16 @@ anteriores fica obsoleta; e o sign-in por API exige `origin` igual ao `BETTER_AU
 
 ## Desvios declarados
 
-| #   | Desvio                                                                       | Justificativa                                                                                                                             |
-| --- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Seletor continua `role="group"` de botões com `aria-pressed`, não `<Select>` | trocar quebraria os e2e existentes e o contrato de foco que a DBT-165 mede; o grupo já é acessível por teclado                            |
-| 2   | E2 não usa data fixa (`01/10/2026 – 31/10/2026`)                             | data fixa mentiria a partir de 01/11; a janela é derivada por oráculo BRT independente                                                    |
-| 3   | E1 condiciona a expectativa de "Ano" em janeiro                              | em janeiro o mês anterior pertence ao ano anterior; a expectativa vem do calendário                                                       |
-| 4   | Card de maior margem permanece como destaque abaixo dos grupos               | é card largo com explicação, não tile; recebeu rótulo "Não varia por período"                                                             |
-| 5   | E4 não simula `incomplete` no dashboard                                      | exigiria produto sem custo + venda (fixture frágil); `incomplete` está provado no banco e no visual de produto, e o e2e assere o negativo |
-| 6   | README do WP vive no próprio pacote de evidência                             | o template e o `m02-seal.mjs` exigem `SPEC.md` + `README.md` no mesmo diretório; separar em `docs/specs/` quebraria o selo                |
-| 7   | `periodStart` **não** foi removido                                           | a premissa do prompt não se confirmou: ele continua como atalho de `periodWindow`; o que saiu foi o re-export local no serviço            |
-| 8   | `window` **não** era exigido pelo guard                                      | **Resolvido na F6** após o achado P2 do review do PR #72: guard exige `window` e `period`, com controle negativo; **DBT-176 FECHADA**     |
+| #   | Desvio                                                                       | Justificativa                                                                                                                                                                                                                    |
+| --- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Seletor continua `role="group"` de botões com `aria-pressed`, não `<Select>` | trocar quebraria os e2e existentes e o contrato de foco que a DBT-165 mede; o grupo já é acessível por teclado                                                                                                                   |
+| 2   | E2 não usa data fixa (`01/10/2026 – 31/10/2026`)                             | data fixa mentiria a partir de 01/11; a janela é derivada por oráculo BRT independente                                                                                                                                           |
+| 3   | E1 condiciona a expectativa de "Ano" em janeiro                              | em janeiro o mês anterior pertence ao ano anterior; a expectativa vem do calendário                                                                                                                                              |
+| 4   | Card de maior margem permanece como destaque abaixo dos grupos               | é card largo com explicação, não tile; recebeu rótulo "Não varia por período"                                                                                                                                                    |
+| 5   | E4 não simula `incomplete` no dashboard                                      | exigiria produto sem custo + venda (fixture frágil); `incomplete` está provado no banco e no visual de produto, e o e2e assere o negativo                                                                                        |
+| 6   | README do WP vive no próprio pacote de evidência                             | o template e o `m02-seal.mjs` exigem `SPEC.md` + `README.md` no mesmo diretório; separar em `docs/specs/` quebraria o selo                                                                                                       |
+| 7   | `periodStart` **não** foi removido                                           | a premissa do prompt não se confirmou: ele continua como atalho de `periodWindow`; o que saiu foi o re-export local no serviço                                                                                                   |
+| 8   | `window` **não** era exigido pelo guard                                      | **Resolvido na F6** após o achado P2 do review do PR #72: guard exige `window`; a comparação de `period` foi removida porque E3/E5 reprovam com `keepPreviousData` (run 40275083772), com controle negativo; **DBT-176 FECHADA** |
 
 ## Bloqueio herdado
 
@@ -136,14 +136,30 @@ O achado é exatamente o **DBT-176** que esta sessão já havia registrado (Desv
 thread por retórica, a lacuna foi fechada:
 
 - `src/lib/dashboard-summary-guard.ts` exige `window: { from, to }` — strings ISO parseáveis com
-  `from < to` — e aceita `expectedPeriod`, recusando payload de período divergente (o que importa com
-  `keepPreviousData`, onde o dado anterior segue montado).
-- `src/routes/_authenticated/inicio.tsx` chama o guard com o período pedido, não só com o payload.
-- `src/test/dashboard-summary-guard.test.ts` ganhou dois casos: payload sem/janela invertida/data inválida
-  e mismatch de período.
+  `from < to`. É a forma que faltava: sem ela o `formatWindowLabel` estourava antes do card de erro.
+- `src/test/dashboard-summary-guard.test.ts` ganhou dois casos: payload sem `window` / janela invertida /
+  data inválida (recusa) e payload de **outro período** durante a troca (aceita — ver a correção abaixo).
 - **Controle negativo** (`captures/f6-review-p2-guard.txt`): removida a linha
   `if (!isWindowValid(candidate.window)) return false;`, o teste novo **falha** (`1 failed | 9 passed`);
   restaurado, `sha256sum` idêntico (`5f1ad0cf…`) e **10/10** verdes. A guarda é _load-bearing_, não decoração.
+
+### Correção de escopo: o guard valida forma, não coerência de período
+
+A primeira versão da correção foi **além** do achado: além de exigir `window`, comparava `payload.period`
+com o período pedido e recusava divergência. O `verify-release` da run **40275083772** reprovou **E3**
+(esperava `Trimestre` e recebeu o card de erro) e **E5** em chromium e firefox: com `keepPreviousData` o
+payload anterior — de outro período — fica montado **de propósito** durante a troca, e recusá-lo desmonta o
+grid e mata o foco, que é exatamente o contrato que a F3 provou.
+
+A comparação foi removida; sobrou o que o achado pedia (forma). A coerência de período é decisão de
+**exibição**, resolvida pelo fato de o rótulo sair de `summary.window` (atestado pelo servidor) e nunca ser
+recalculado no cliente. O `src/test/dashboard-summary-guard.test.ts` agora **afirma esse contrato**
+(payload de outro período é aceito), em vez de afirmar o comportamento que o E2E reprovou. Evidência da
+regressão e do rerun: `captures/f6b-e2e-period-guard.txt`.
+
+**Custo do ciclo, declarado:** este defeito foi **capturado pelo CI** (tier e2e), não pelo autor — o
+`npm run check` local não roda Playwright por desenho (AGENTS, tabela de guardas), e a mudança foi medida
+só por unidade antes do push. Conta como o **7º** defeito do WP, na coluna do ciclo e não na do autor.
 
 **DBT-176 → FECHADA** (registry com 160 dívidas, `m02:debts-guard` OK). O `AGENTS.md` e o ADR-049 foram
 atualizados na mesma passada para não descreverem a lacuna como aberta.

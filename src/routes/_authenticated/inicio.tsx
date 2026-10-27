@@ -119,7 +119,7 @@ function Inicio() {
   // de período; `isPlaceholderData` diz que o que está na tela ainda é a janela
   // anterior. Nunca desmontar é o que preserva o foco (DBT-165).
   const isPlaceholderData = summaryQuery.isPlaceholderData;
-  const hasInvalidPayload = metrics !== undefined && !isDashboardSummaryValid(metrics, period);
+  const hasInvalidPayload = metrics !== undefined && !isDashboardSummaryValid(metrics);
   const errorReference = useMemo(
     () =>
       summaryQuery.isError || hasInvalidPayload

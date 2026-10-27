@@ -1,0 +1,24 @@
+# F6b - regressao: comparar payload.period no guard quebra E3/E5 (keepPreviousData)
+# origem: PR #72, run 40275083772 (verify-release, head 243dbc1); log bruto nao versionado
+
+## 1. CI: E3/E5 reprovados em chromium/firefox/webkit
+✘   10 [chromium] › e2e/sales-dashboard.spec.ts:419:1 › E3 — trocar período preserva o foco no botão (DBT-165, WCAG 2.4.3) (2.3s)
+✘   11 [chromium] › e2e/sales-dashboard.spec.ts:442:1 › E5 — durante a troca a janela antiga permanece e o grid não desmonta (7.5s)
+✘   44 [firefox] › e2e/sales-dashboard.spec.ts:419:1 › E3 — trocar período preserva o foco no botão (DBT-165, WCAG 2.4.3) (3.0s)
+✘   45 [firefox] › e2e/sales-dashboard.spec.ts:442:1 › E5 — durante a troca a janela antiga permanece e o grid não desmonta (8.0s)
+✘   78 [webkit] › e2e/sales-dashboard.spec.ts:419:1 › E3 — trocar período preserva o foco no botão (DBT-165, WCAG 2.4.3) (2.8s)
+✘   79 [webkit] › e2e/sales-dashboard.spec.ts:442:1 › E5 — durante a troca a janela antiga permanece e o grid não desmonta (8.9s)
+✘  112 [mobile] › e2e/sales-dashboard.spec.ts:419:1 › E3 — trocar período preserva o foco no botão (DBT-165, WCAG 2.4.3) (2.5s)
+✘  113 [mobile] › e2e/sales-dashboard.spec.ts:442:1 › E5 — durante a troca a janela antiga permanece e o grid não desmonta (7.5s)
+
+## 2. Correcao: comparacao de period removida; guard valida apenas a forma de window
+ocorrencias_de_expectedPeriod_no_guard: 0
+
+## 3. Rerun local (chromium, E3+E5) com .artifacts/e2e-local.env
+Running 2 tests using 2 workers
+  2 passed (12.3s)
+e2e_exit=0
+
+bc6bcfcab91c95d6a3790db459894ff9a07b8b55a913f3c2e8d24a9542b028ec  src/lib/dashboard-summary-guard.ts
+d5bd5d2feec2f936a4df68a12a8bec5ddae24b68e1a4e66fae63368391c26098  src/routes/_authenticated/inicio.tsx
+5b5e095b36e2e9d7b874fa2ebf8320ce46f33effaf0c1b8f57d3928321b755e3  src/test/dashboard-summary-guard.test.ts
