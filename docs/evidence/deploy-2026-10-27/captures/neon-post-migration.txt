@@ -1,0 +1,3 @@
+migrations=21
+expenses_privileges=DELETE,INSERT,SELECT,UPDATE
+migration_hash=439a98d87193fd0120e2b3120453b1eb95ed3503691cbb3902bc1f78166f28d8

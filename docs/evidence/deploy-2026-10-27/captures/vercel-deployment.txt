@@ -1,0 +1,6 @@
+dpl_7LAMQDiquHuYVr6x4WnLnPh9fFxr
+url=https://preco-que-da-lucro-jrtfz7aj7.vercel.app
+state=READY
+target=production
+sha=2d309ffba2146d26382ef1751bece21806922b49
+alias=preco-que-da-lucro-sage.vercel.app
