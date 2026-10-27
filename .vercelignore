@@ -1,0 +1,7 @@
+.artifacts
+.playwright-mcp
+test-results
+docs/evidence
+node_modules
+.output
+.vercel
