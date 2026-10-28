@@ -1,0 +1,10 @@
+# npm run test:coverage (develop @ refactor da navegação)
+Statements   : 68.2% ( 9345/13701 )
+Branches     : 66.56% ( 6707/10076 )
+Functions    : 69.22% ( 1878/2713 )
+Lines        : 68.96% ( 8439/12237 )
+
+# LCOV — arquivos novos/alterados do WP
+src/components/app-navigation.ts: lines 6/7 = 85.7%  branches 4/4
+src/components/desktop-navigation.tsx: lines 13/13 = 100.0%  branches 2/2
+src/components/ui/navigation-menu.tsx: lines 8/9 = 88.9%  branches 5/5

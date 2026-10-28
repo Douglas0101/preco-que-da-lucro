@@ -25,6 +25,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -90,6 +98,43 @@ describe("shadcn/Base UI contracts", () => {
 
     expect(screen.getByText("anual", { selector: "output" })).toBeInTheDocument();
     await expectNoAxeViolations(container);
+  });
+
+  it("composes a navigation menu with an active link and no nested controls", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <NavigationMenu aria-label="Menu principal">
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuLink active render={<a href="/inicio">Início</a>} />
+          </NavigationMenuItem>
+          <NavigationMenuItem value="cadastro">
+            <NavigationMenuTrigger>Cadastro</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul>
+                <li>
+                  <NavigationMenuLink render={<a href="/produtos">Meus Produtos</a>} />
+                </li>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>,
+    );
+
+    const nav = screen.getByRole("navigation", { name: "Menu principal" });
+    expect(nav).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Início" })).toHaveAttribute("aria-current", "page");
+    expect(container.querySelector("a button, button a")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Cadastro" }));
+    await waitFor(() => expect(screen.getByRole("link", { name: "Meus Produtos" })).toBeVisible());
+    await expectNoAxeViolations(document.body);
+
+    await user.keyboard("{Escape}");
+    await waitFor(() =>
+      expect(screen.queryByRole("link", { name: "Meus Produtos" })).not.toBeInTheDocument(),
+    );
   });
 
   it("traps Sheet focus, closes with Escape, and restores trigger focus", async () => {

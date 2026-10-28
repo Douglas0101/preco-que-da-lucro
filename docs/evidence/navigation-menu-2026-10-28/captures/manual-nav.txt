@@ -1,0 +1,11 @@
+nav text: "Início | Cadastro | Financeiro"
+cadastro visible: true financeiro visible: true
+after open, products link visible: true
+open content text: "Início | Cadastro | Financeiro"
+after escape, products visible: false
+focus after escape: Cadastro
+financeiro open text: "Início | Cadastro | Financeiro"
+navigated to: http://localhost:8080/vendas
+financeiro data-active: true
+errors: []
+EXIT=0

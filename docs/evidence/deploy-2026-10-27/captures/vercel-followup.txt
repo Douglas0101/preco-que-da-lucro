@@ -1,0 +1,11 @@
+pr=73
+merge_commit=a42f2adc40d00d1ea7f1539b125c4ed1ef517592
+deployment=dpl_Agfv4TXcA6fZHszn1fwbM3qTguSc
+url=https://preco-que-da-lucro-5elbubtw4.vercel.app
+state=READY
+target=production
+sha=a42f2adc40d00d1ea7f1539b125c4ed1ef517592
+alias=preco-que-da-lucro-sage.vercel.app
+probes=/ 200; /auth 200; /inicio 200
+runtime_errors=none
+neon_e2e_check=cancelled (workflow timeout during playwright install --with-deps); not a required check

@@ -1,0 +1,4 @@
+# Antes da integração do NavigationMenu (develop @ a588669)
+PASS assets/index-DVYZNoXW.js: 218540 minified, 69069 gzip, 60118 Brotli bytes, sha256=fcae29bcfd93
+Initial graph (11 chunks): 489890 minified, 160674 gzip, 141693 Brotli bytes, sha256=c87a2d455fd5
+route chunk: 11163 bytes

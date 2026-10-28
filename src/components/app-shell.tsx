@@ -1,19 +1,7 @@
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Home,
-  Package,
-  Wallet,
-  Scale,
-  LineChart,
-  Stethoscope,
-  Tag,
-  Menu,
-  LogOut,
-  Sparkles,
-  Receipt,
-} from "lucide-react";
+import { Menu, LogOut, Sparkles } from "lucide-react";
 import { globalSignOut } from "@/lib/auth-client";
 import { useSessionUser } from "@/lib/session-context";
 import { Button } from "@/components/ui/button";
@@ -26,41 +14,17 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { NAV, currentSection, type NavItem } from "@/components/app-navigation";
+import { DesktopNavigation } from "@/components/desktop-navigation";
 
-type NavItem = { to: string; label: string; icon: typeof Home };
-/* A precificação saiu do menu: com o launcher do Simon disponível em todas as
-   páginas, a rota `/novo-produto` fica como workspace/deep link (e o launcher
-   some nela), sem duplicar a entrada de navegação. */
-const NAV: NavItem[] = [
-  { to: "/inicio", label: "Início", icon: Home },
-  { to: "/produtos", label: "Meus Produtos", icon: Package },
-  { to: "/precos", label: "Preços de Compra", icon: Tag },
-  { to: "/despesas", label: "Minhas Despesas", icon: Wallet },
-  { to: "/vendas", label: "Vendas", icon: Receipt },
-  { to: "/ponto-equilibrio", label: "Ponto de Equilíbrio", icon: Scale },
-  { to: "/simulacoes", label: "Simulações", icon: LineChart },
-  { to: "/diagnostico", label: "Diagnóstico", icon: Stethoscope },
-];
-
-/* Seção por rota: refinamento do prefixo (`/produtos/123` continua
-   "Meus Produtos") para o estado ativo do menu nunca ficar sem contexto. */
-function currentSection(pathname: string): NavItem | undefined {
-  return NAV.filter((item) => pathname === item.to || pathname.startsWith(`${item.to}/`)).sort(
-    (a, b) => b.to.length - a.to.length,
-  )[0];
-}
-
-/* Fonte única do desenho de item: a barra superior usa a variante compacta
-   (sem ícone, texto curto) e o drawer mobile a variante completa. */
+/* Item do drawer mobile. O desktop usa o NavigationMenu agrupado abaixo. */
 function NavLink({
   item,
   active,
-  layout,
   onNavigate,
 }: {
   item: NavItem;
   active: boolean;
-  layout: "bar" | "drawer";
   onNavigate?: () => void;
 }) {
   const Icon = item.icon;
@@ -71,25 +35,20 @@ function NavLink({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group flex items-center font-medium outline-none transition-[background-color,color] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-sidebar-ring motion-reduce:transition-none",
-        layout === "bar"
-          ? "min-h-[36px] shrink-0 whitespace-nowrap rounded-lg px-3 text-sm"
-          : "min-h-[44px] gap-3 rounded-xl px-3 py-2.5 text-sm",
+        "group flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium outline-none transition-[background-color,color] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-sidebar-ring motion-reduce:transition-none",
         active
           ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-xs"
           : "text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
       )}
     >
-      {layout === "drawer" && (
-        <Icon
-          className={cn(
-            "h-4 w-4 shrink-0",
-            active ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/50",
-          )}
-        />
-      )}
+      <Icon
+        className={cn(
+          "h-4 w-4 shrink-0",
+          active ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/50",
+        )}
+      />
       <span className="truncate">{item.label}</span>
-      {active && layout === "drawer" && (
+      {active && (
         <span
           aria-hidden="true"
           className="ms-auto h-1.5 w-1.5 shrink-0 rounded-full bg-sidebar-primary"
@@ -124,13 +83,7 @@ function DrawerContent({ pathname, onNavigate }: { pathname: string; onNavigate:
 
       <nav aria-label="Menu principal" className="flex-1 space-y-1">
         {NAV.map((item) => (
-          <NavLink
-            key={item.to}
-            item={item}
-            active={active === item.to}
-            layout="drawer"
-            onNavigate={onNavigate}
-          />
+          <NavLink key={item.to} item={item} active={active === item.to} onNavigate={onNavigate} />
         ))}
       </nav>
     </div>
@@ -152,7 +105,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   // getSession a cada mount do shell.
   const user = useSessionUser();
   const email = user?.email ?? "";
-  const active = currentSection(location.pathname)?.to;
 
   useEffect(() => {
     setOpen(false);
@@ -229,14 +181,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Menu principal no topo. É o único ponto de navegação no desktop;
             abaixo de `lg` ele desaparece e o drawer assume (mesma lista). */}
         <div className="hidden border-t border-sidebar-border/60 lg:block">
-          <nav
-            aria-label="Menu principal"
-            className="mx-auto flex w-full max-w-6xl items-center gap-1 overflow-x-auto px-4 py-1.5 [scrollbar-width:none] md:px-8 [&::-webkit-scrollbar]:hidden"
-          >
-            {NAV.map((item) => (
-              <NavLink key={item.to} item={item} active={active === item.to} layout="bar" />
-            ))}
-          </nav>
+          <div className="mx-auto w-full max-w-6xl px-4 py-1.5 md:px-8">
+            <DesktopNavigation pathname={location.pathname} />
+          </div>
         </div>
       </header>
 

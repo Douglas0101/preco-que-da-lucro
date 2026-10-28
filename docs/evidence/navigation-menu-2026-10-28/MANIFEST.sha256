@@ -1,0 +1,15 @@
+2e3e0a9a65726d2b2aec1047ec2d1a655b741a457db93f9e4b34212cab2f7dac  ./captures/after-bundle.txt
+d3889f9b1a345e8ac1786d02cd49bd90ea203459661198b9365029fa9114e4b5  ./captures/baseline-bundle.txt
+25ab05f96006c32ce5797905f80eae37d45bfe2bd6e1aa028e0c87992585f3dc  ./captures/check.txt
+09f59b4343da843ae827cba581b580ed73f9e1b698633f285119c8ac2d5bd990  ./captures/check-ui-stack.txt
+2285728963814542c2dbc475fce73a805893047fe09a80684297b54f06cca736  ./captures/coverage.txt
+dacadd6128a05a270511980d9ae763876d1f4e03c189f94eb48892c73685aec7  ./captures/db-test.txt
+477f53ea03f6f4da98361acec1fa546d32a7a8daa82301c8c823f26f0da3d2ee  ./captures/e2e-full-matrix.txt
+ef09a59aaec54104a0840dc0c0345dfa9e8f75d5bc05c7b816314486889a7cc6  ./captures/e2e-ui-stack.txt
+88a506fe4eb0c0915f63efb2381d46ffc3e8385b4f9ea837b6730048b7d23f88  ./captures/hashes.txt
+e05d1a2c2f1b16b2413e6489510743f3740b45ee05f00746be10e91b11b2c703  ./captures/hygiene.txt
+edc5d62c9862d9a59e005a569161fb35a22bf66cd44069bf2e4f08f43b7fe999  ./captures/manual-nav.txt
+5fea5369487b6a9958dcbbecdefcc33a1adfe5678bacfeb54833bb697ddac160  ./captures/unit-ui-stack.txt
+d06fab82d84c6f1a33789d53fcba08639d99068e60f2754418f1bae0e8470ede  ./captures/visual.txt
+06384a640f9724379e7dcd5a3609a51ef177ab29f63b9abd921b1064bab56b04  ./README.md
+f25dea2e75841d0ed6d7c5b02b589ced69960d5cb351a575113da359f9efae6b  ./SPEC.md

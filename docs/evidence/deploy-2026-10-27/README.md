@@ -81,3 +81,18 @@
 | "Fluxo autenticado validado em produção"                | N/A       | Teste manual reservado ao dono; nenhuma credencial de produção usada.                                 |
 
 - CORR: 2 · N: 0 · REJECTED: 0 · UNVERIFIABLE: 0.
+
+## Follow-up redeploy (PR #73)
+
+- PR #73 merged at `a42f2adc40d00d1ea7f1539b125c4ed1ef517592` (merge commit).
+- New production deployment: `dpl_Agfv4TXcA6fZHszn1fwbM3qTguSc`.
+- Source SHA: `a42f2adc40d00d1ea7f1539b125c4ed1ef517592` (`main`), which now tracks
+  `.vercelignore` and this evidence package.
+- Production alias `preco-que-da-lucro-sage.vercel.app` promoted to this deployment.
+- Probes: `GET /`, `/auth`, `/inicio` → HTTP 200; no runtime errors in the observed window.
+- The `Branch efêmera · migrate · integração · RLS probe · E2E` check of PR #73 was cancelled
+  by the workflow timeout (30 min) while `npx playwright install --with-deps` was still installing
+  OS packages from the apt mirror. It is not a required check under ruleset `24333849`; the
+  required `verify-release` (full Playwright matrix) and `scan + cobertura` passed. The cancelled
+  run is not counted as evidence for or against the code.
+- Evidence capture: `captures/vercel-followup.txt`.

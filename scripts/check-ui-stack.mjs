@@ -16,6 +16,7 @@ const expectedUiFiles = [
   "label.tsx",
   "message-scroller.tsx",
   "message.tsx",
+  "navigation-menu.tsx",
   "select.tsx",
   "sheet.tsx",
   "skeleton.tsx",

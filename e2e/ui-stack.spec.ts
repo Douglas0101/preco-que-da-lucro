@@ -219,7 +219,9 @@ test("authenticated shell uses an HttpOnly session and accessible navigation", a
   await expect(page.getByText("Margem média", { exact: true })).toHaveCount(0);
 
   const mobileMenu = page.getByRole("button", { name: "Abrir menu de navegação" });
+  const desktopGroup = page.getByRole("button", { name: "Cadastro" });
   if (await mobileMenu.isVisible()) await mobileMenu.click();
+  else await desktopGroup.click();
 
   const productsLink = page.getByRole("link", { name: "Meus Produtos" }).filter({ visible: true });
   await expect(productsLink).toBeVisible();
@@ -227,7 +229,11 @@ test("authenticated shell uses an HttpOnly session and accessible navigation", a
   await expect(productsLink).toBeFocused();
   await expect(page.locator("button button, a button, button a")).toHaveCount(0);
 
-  if (await mobileMenu.isVisible()) await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  // O Base UI usa focus guards `aria-hidden` + `tabindex=0` enquanto o popup
+  // está aberto; o axe os classifica como `aria-hidden-focus`. O gate roda no
+  // estado fechado (o mesmo em que a rota fica após a navegação) e a abertura
+  // é coberta pelas asserções de teclado abaixo.
   await expectNoBlockingAxeViolations(page);
 
   const serverFnRequestPromise = page.waitForRequest(
@@ -257,6 +263,33 @@ test("authenticated shell uses an HttpOnly session and accessible navigation", a
     ...Object.keys(window.sessionStorage),
   ]);
   expect(storageKeys.filter((key) => /token|session|auth/i.test(key))).toEqual([]);
+});
+
+test("desktop navigation menu groups routes, closes on Escape and marks the active group", async ({
+  page,
+}) => {
+  test.skip(test.info().project.name === "mobile", "desktop-only navigation menu");
+  await page.goto("/inicio");
+
+  const nav = page.getByRole("navigation", { name: "Menu principal" });
+  const trigger = page.getByRole("button", { name: "Cadastro" });
+  await expect(nav).toBeVisible();
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+
+  // O conteúdo é portaled para fora do <nav>; a busca precisa ser global.
+  const productsLink = page.getByRole("link", { name: "Meus Produtos" });
+  await expect(productsLink).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(productsLink).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await expectNoBlockingAxeViolations(page);
+
+  await trigger.click();
+  await productsLink.click();
+  await expect(page).toHaveURL(/\/produtos$/);
+  await expect(trigger).toHaveAttribute("data-active", "true");
 });
 
 test("products list meets WCAG AA text contrast with the seeded rows", async ({ page }) => {

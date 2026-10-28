@@ -1,0 +1,47 @@
+
+Running 30 tests using 2 workers
+
+[WebServer] {"timestamp":"2026-10-28T04:52:33.626Z","level":"warn","event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src","violatedDirective":null,"blockedUri":"https://cdn.example/blocked.js","documentUri":"https://preview.invalid/inicio","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":null,"sample":null}
+  ✓   1 [chromium] › e2e/ui-stack.spec.ts:99:1 › the CSP report channel answers 204 for a violation report (34ms)
+  ✓   2 [chromium] › e2e/ui-stack.spec.ts:70:1 › public UI uses valid composed controls and has no serious a11y violations (2.4s)
+[WebServer] 2026-10-28T04:52:37.048Z WARN [Better Auth]: Invalid password
+[WebServer] (node:1418500) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+[WebServer] (Use `node --trace-deprecation ...` to show where the warning was created)
+  ✓   3 [chromium] › e2e/ui-stack.spec.ts:115:1 › authentication controls keep accessible names (4.0s)
+  ✓   4 [chromium] › e2e/ui-stack.spec.ts:142:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (2.3s)
+[WebServer] {"timestamp":"2026-10-28T04:52:40.953Z","level":"error","event":"bff.request_failed","correlationId":"3df95a44-0115-44f5-8e1c-5953168529f0","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+  ✓   5 [chromium] › e2e/ui-stack.spec.ts:161:1 › authorization matrix blocks member mutations with a Better Auth session (3.5s)
+[WebServer] {"timestamp":"2026-10-28T04:52:41.511Z","level":"error","event":"bff.request_failed","correlationId":"1259fd18-dc89-4db5-a7db-62651facf9c7","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+  ✓   6 [chromium] › e2e/ui-stack.spec.ts:182:1 › CSRF rejects a cross-site replay of a server-function mutation (3.4s)
+  ✓   8 [chromium] › e2e/ui-stack.spec.ts:268:1 › desktop navigation menu groups routes, closes on Escape and marks the active group (4.0s)
+  ✓   7 [chromium] › e2e/ui-stack.spec.ts:211:1 › authenticated shell uses an HttpOnly session and accessible navigation (6.9s)
+  ✓   9 [chromium] › e2e/ui-stack.spec.ts:295:1 › products list meets WCAG AA text contrast with the seeded rows (2.9s)
+  ✓  11 [chromium] › e2e/ui-stack.spec.ts:392:1 › diagnostic forms prices only from explicit assumptions (4.5s)
+  ✓  10 [chromium] › e2e/ui-stack.spec.ts:361:1 › manual simulation has no fictitious current volume and labels hypothetical results (8.1s)
+  ✓  12 [chromium] › e2e/ui-stack.spec.ts:425:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (5.9s)
+  ✓  13 [chromium] › e2e/ui-stack.spec.ts:457:1 › floating consultor chat opens app-wide and hides on its full page (10.7s)
+  ✓  14 [chromium] › e2e/ui-stack.spec.ts:489:1 › financial query failure is not rendered as empty or zero data (9.4s)
+  ✓  15 [chromium] › e2e/ui-stack.spec.ts:520:1 › sessão expirada no meio do uso volta ao login sem referência de suporte (2.3s)
+[WebServer] {"timestamp":"2026-10-28T04:53:10.293Z","level":"warn","event":"csp.violation","shape":"csp-report","effectiveDirective":"script-src","violatedDirective":null,"blockedUri":"https://cdn.example/blocked.js","documentUri":"https://preview.invalid/inicio","sourceFile":null,"lineNumber":null,"columnNumber":null,"disposition":null,"sample":null}
+  ✓  17 [mobile] › e2e/ui-stack.spec.ts:99:1 › the CSP report channel answers 204 for a violation report (64ms)
+  ✓  16 [mobile] › e2e/ui-stack.spec.ts:70:1 › public UI uses valid composed controls and has no serious a11y violations (3.1s)
+[WebServer] 2026-10-28T04:53:13.639Z WARN [Better Auth]: Invalid password
+  ✓  18 [mobile] › e2e/ui-stack.spec.ts:115:1 › authentication controls keep accessible names (4.4s)
+  ✓  19 [mobile] › e2e/ui-stack.spec.ts:142:1 › authentication matrix rejects invalid Better Auth credentials and protects routes (2.5s)
+[WebServer] {"timestamp":"2026-10-28T04:53:17.996Z","level":"error","event":"bff.request_failed","correlationId":"ecafa18a-fa10-4bf6-a882-09381e81e2a8","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+  ✓  20 [mobile] › e2e/ui-stack.spec.ts:161:1 › authorization matrix blocks member mutations with a Better Auth session (3.4s)
+[WebServer] {"timestamp":"2026-10-28T04:53:18.782Z","level":"error","event":"bff.request_failed","correlationId":"4f1fcf2c-afca-452b-aff8-ef784c25125c","code":"AUTHORIZATION_ERROR","error":{"name":"ApplicationError","message":"Você não pode realizar esta ação."}}
+  ✓  21 [mobile] › e2e/ui-stack.spec.ts:182:1 › CSRF rejects a cross-site replay of a server-function mutation (4.2s)
+  -  23 [mobile] › e2e/ui-stack.spec.ts:268:1 › desktop navigation menu groups routes, closes on Escape and marks the active group
+  ✓  24 [mobile] › e2e/ui-stack.spec.ts:295:1 › products list meets WCAG AA text contrast with the seeded rows (3.5s)
+  ✓  22 [mobile] › e2e/ui-stack.spec.ts:211:1 › authenticated shell uses an HttpOnly session and accessible navigation (7.6s)
+  ✓  25 [mobile] › e2e/ui-stack.spec.ts:361:1 › manual simulation has no fictitious current volume and labels hypothetical results (6.0s)
+  ✓  26 [mobile] › e2e/ui-stack.spec.ts:392:1 › diagnostic forms prices only from explicit assumptions (4.8s)
+  ✓  27 [mobile] › e2e/ui-stack.spec.ts:425:1 › chat HTTP dispatch survives a missing framework signal (BUG-CHAT) (4.5s)
+  ✓  28 [mobile] › e2e/ui-stack.spec.ts:457:1 › floating consultor chat opens app-wide and hides on its full page (8.4s)
+  ✓  29 [mobile] › e2e/ui-stack.spec.ts:489:1 › financial query failure is not rendered as empty or zero data (7.1s)
+  ✓  30 [mobile] › e2e/ui-stack.spec.ts:520:1 › sessão expirada no meio do uso volta ao login sem referência de suporte (2.1s)
+
+  1 skipped
+  29 passed (1.3m)
+EXIT=0

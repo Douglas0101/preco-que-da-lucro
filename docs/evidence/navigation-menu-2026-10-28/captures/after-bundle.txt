@@ -1,0 +1,4 @@
+# Depois da integração + refatoração de cobertura
+PASS assets/index--358d5yx.js: 218668 minified, 69130 gzip, 60182 Brotli bytes, sha256=5fee0f6262bb
+Initial graph (11 chunks): 490039 minified, 160746 gzip, 141683 Brotli bytes, sha256=8fb7770c617c
+route chunk: 51167 bytes
