@@ -34,10 +34,15 @@ Após a mudança:
 
 ## Mudanças
 
-- `src/components/app-shell.tsx`: metadados de grupo no `NAV`, `NAV_GROUPS`, `itemsForGroup`,
-  `isGroupActive`, `DesktopNavigation` com `NavigationMenu`, e drawer mobile preservado.
-- `src/test/ui-stack.test.tsx`: caso de composição do `NavigationMenu`, `aria-current`, axe no
-  estado estável e fechamento por Escape.
+- `src/components/app-navigation.ts`: modelo puro (`NAV`, `NAV_GROUPS`, `currentSection`,
+  `itemsForGroup`, `isGroupActive`) extraído para cobertura unitária e reutilização.
+- `src/components/desktop-navigation.tsx`: `DesktopNavigation` com `NavigationMenu`, estado
+  controlado, reset por `pathname` e classes compartilhadas.
+- `src/components/app-shell.tsx`: consome o modelo e o componente; drawer mobile preservado.
+- `src/test/app-navigation.test.ts`: rotas exatas, subrotas, fronteira de prefixo e grupos.
+- `src/test/desktop-navigation.test.tsx`: composição, abertura, `aria-current`, `data-active`,
+  Escape/foco e axe no estado estável.
+- `src/test/ui-stack.test.tsx`: caso de composição do wrapper `NavigationMenu`.
 - `e2e/ui-stack.spec.ts`: teste existente passa a abrir o grupo **Cadastro** no desktop; novo
   teste desktop-only para teclado, foco, navegação e `data-active`.
 - `docs/evidence/navigation-menu-2026-10-28/`: este pacote.
@@ -48,9 +53,11 @@ Após a mudança:
 
 - [x] `npm run check:ui-stack` verde.
 - [x] `npm run typecheck` verde.
-- [x] `npx vitest run src/test/ui-stack.test.tsx` verde.
-- [x] `npx playwright test e2e/ui-stack.spec.ts --project=chromium --project=mobile` verde
-      (29 passed, 1 skipped desktop-only no mobile).
+- [x] `npx vitest run src/test/ui-stack.test.tsx src/test/app-navigation.test.ts src/test/desktop-navigation.test.tsx` verde (12 passed).
+- [x] `npm run test:coverage` verde; novos arquivos 85,7%/100%/88,9%.
+- [x] `npm run db:test` verde em PG17 efêmero (18 suítes).
+- [x] Matriz completa `chromium+firefox+webkit+mobile` verde (59 passed, 1 skipped).
+- [x] `npm run test:visual` verde (33 passed, 3 skipped).
 - [x] `npm run check` verde.
 - [x] `npm run check:bundle` verde com o grafo inicial abaixo de 500.000 bytes.
 - [x] Capturas em `captures/`.

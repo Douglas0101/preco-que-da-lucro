@@ -14,15 +14,18 @@ Os hashes medidos estão em `captures/hashes.txt`, gerado do conjunto versionado
 
 ## Evidência por fase
 
-| fase                  | comando                                                                        | resultado                                   | captura                        |
-| --------------------- | ------------------------------------------------------------------------------ | ------------------------------------------- | ------------------------------ |
-| baseline de bundle    | `npm run check:bundle` antes da integração                                     | grafo inicial 489.890 B; `route` 11.163 B   | `captures/baseline-bundle.txt` |
-| bundle pós-integração | `npm run check:bundle`                                                         | grafo inicial 490.039 B; `route` 51.355 B   | `captures/after-bundle.txt`    |
-| UI stack              | `npm run check:ui-stack`                                                       | passed                                      | `captures/check-ui-stack.txt`  |
-| unitário              | `npx vitest run src/test/ui-stack.test.tsx`                                    | 5 passed                                    | `captures/unit-ui-stack.txt`   |
-| e2e                   | `npx playwright test e2e/ui-stack.spec.ts --project=chromium --project=mobile` | 29 passed, 1 skipped                        | `captures/e2e-ui-stack.txt`    |
-| manual                | Playwright contra o dev local                                                  | nav, dropdown, Escape, foco e `data-active` | `captures/manual-nav.txt`      |
-| gate completo         | `npm run check`                                                                | exit 0                                      | `captures/check.txt`           |
+| fase                             | comando                                                                                                           | resultado                                      | captura                        |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ------------------------------ |
+| baseline de bundle               | `npm run check:bundle` antes da integração                                                                        | grafo inicial 489.890 B; `route` 11.163 B      | `captures/baseline-bundle.txt` |
+| bundle pós-integração + refactor | `npm run check:bundle`                                                                                            | grafo inicial 490.039 B; `route` 51.167 B      | `captures/after-bundle.txt`    |
+| UI stack                         | `npm run check:ui-stack`                                                                                          | passed                                         | `captures/check-ui-stack.txt`  |
+| unitário                         | `npx vitest run src/test/ui-stack.test.tsx src/test/app-navigation.test.ts src/test/desktop-navigation.test.tsx`  | 12 passed                                      | `captures/unit-ui-stack.txt`   |
+| cobertura                        | `npm run test:coverage`                                                                                           | 68,96% linhas; novos arquivos 85,7%/100%/88,9% | `captures/coverage.txt`        |
+| banco                            | `npm run db:test` em PG17 efêmero (`:55432`)                                                                      | 18 suítes, exit 0                              | `captures/db-test.txt`         |
+| e2e completo                     | `npx playwright test e2e/ui-stack.spec.ts --project=chromium --project=firefox --project=webkit --project=mobile` | 59 passed, 1 skipped                           | `captures/e2e-full-matrix.txt` |
+| visual                           | `npm run test:visual`                                                                                             | 33 passed, 3 skipped                           | `captures/visual.txt`          |
+| manual                           | Playwright contra o dev local                                                                                     | nav, dropdown, Escape, foco e `data-active`    | `captures/manual-nav.txt`      |
+| gate completo                    | `npm run check`                                                                                                   | exit 0                                         | `captures/check.txt`           |
 
 ## Checklist anti-vacuoso (item a item)
 
@@ -46,6 +49,22 @@ Os hashes medidos estão em `captures/hashes.txt`, gerado do conjunto versionado
 | 16  | Descoberta multi-sítio                 | A navegação foi inventariada em `NAV` (drawer) e `DesktopNavigation`; os testes cobrem desktop e mobile.                                                                                  |
 | 17  | Precondição de estado ambiente         | O e2e exige banco local, `DATABASE_*`, `E2E_AUTH_*` e preview; o teste falha fechado se o login global não autenticar.                                                                    |
 
+## Cobertura para o gate Sonar (ADR-042)
+
+O PR de release inclui `src/**`, então `new_coverage >= 60%` é obrigatório e ADR-044
+`NOT_APPLICABLE` não se aplica. Para não depender do e2e (que não entra no LCOV), o modelo puro
+foi extraído para `src/components/app-navigation.ts` e `DesktopNavigation` para
+`src/components/desktop-navigation.tsx`, ambos cobertos por unitários:
+
+- `src/components/app-navigation.ts`: **85,7%** de linhas;
+- `src/components/desktop-navigation.tsx`: **100%** de linhas;
+- `src/components/ui/navigation-menu.tsx`: **88,9%** de linhas;
+- cobertura global do `npm run test:coverage`: **68,96%** de linhas.
+
+O `app-shell.tsx` não aparece no LCOV porque não é importado por unitário; as linhas novas ali
+são majoritariamente imports e a troca do bloco desktop pelo componente extraído. A medição real
+do `new_coverage` fica no PR em draft, antes do merge.
+
 ## Auto-verificação pré-S6
 
 - KPI `capturados pelo autor / total`: **2 / 2**.
@@ -60,7 +79,8 @@ Os hashes medidos estão em `captures/hashes.txt`, gerado do conjunto versionado
 | "O menu desktop tem três entradas e o mobile mantém a lista" | ACEITO    | `NAV_GROUPS` + `DesktopNavigation`; drawer inalterado.                                                                                                        |
 | "Escape fecha e devolve o foco ao trigger"                   | ACEITO    | Teste e2e desktop-only.                                                                                                                                       |
 | "Subrota `/produtos/composicao` marca o grupo correto"       | ACEITO    | `isGroupActive` usa `currentSection`; coberto pelo teste de `/produtos`.                                                                                      |
-| "O grafo inicial não cresce com o menu"                      | ACEITO    | 489.890 → 490.039 B; menu no chunk `route` (11.163 → 51.355 B).                                                                                               |
+| "O grafo inicial não cresce com o menu"                      | ACEITO    | 489.890 → 490.039 B; menu no chunk `route` (11.163 → 51.167 B).                                                                                               |
+| "A cobertura nova passa de 60% sem depender do e2e"          | ACEITO    | Modelo puro 85,7%, `DesktopNavigation` 100%, wrapper 88,9%; medição final no PR draft.                                                                        |
 | "O axe cobre o menu aberto sem exceções"                     | REJEITADO | Focus guards do Base UI disparam `aria-hidden-focus`; o gate roda no estado fechado e a abertura é coberta por teclado. Limite declarado, não regra relaxada. |
 
 - CORR: 0 · N: 0 · REJECTED: 0 (o item acima é limite declarado, não claim de release) ·

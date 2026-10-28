@@ -1,31 +1,10 @@
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Home,
-  Package,
-  Wallet,
-  Scale,
-  LineChart,
-  Stethoscope,
-  Tag,
-  Menu,
-  LogOut,
-  Sparkles,
-  Receipt,
-} from "lucide-react";
+import { Menu, LogOut, Sparkles } from "lucide-react";
 import { globalSignOut } from "@/lib/auth-client";
 import { useSessionUser } from "@/lib/session-context";
 import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
 import {
   Sheet,
   SheetContent,
@@ -35,49 +14,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-
-type NavGroupId = "cadastro" | "financeiro";
-type NavItem = {
-  to: string;
-  label: string;
-  icon: typeof Home;
-  group?: NavGroupId;
-};
-/* A precificação saiu do menu: com o launcher do Simon disponível em todas as
-   páginas, a rota `/novo-produto` fica como workspace/deep link (e o launcher
-   some nela), sem duplicar a entrada de navegação. */
-const NAV: NavItem[] = [
-  { to: "/inicio", label: "Início", icon: Home },
-  { to: "/produtos", label: "Meus Produtos", icon: Package, group: "cadastro" },
-  { to: "/precos", label: "Preços de Compra", icon: Tag, group: "cadastro" },
-  { to: "/despesas", label: "Minhas Despesas", icon: Wallet, group: "cadastro" },
-  { to: "/vendas", label: "Vendas", icon: Receipt, group: "financeiro" },
-  { to: "/ponto-equilibrio", label: "Ponto de Equilíbrio", icon: Scale, group: "financeiro" },
-  { to: "/simulacoes", label: "Simulações", icon: LineChart, group: "financeiro" },
-  { to: "/diagnostico", label: "Diagnóstico", icon: Stethoscope, group: "financeiro" },
-];
-
-const NAV_GROUPS: { id: NavGroupId; label: string }[] = [
-  { id: "cadastro", label: "Cadastro" },
-  { id: "financeiro", label: "Financeiro" },
-];
-
-function itemsForGroup(group: NavGroupId): NavItem[] {
-  return NAV.filter((item) => item.group === group);
-}
-
-function isGroupActive(group: NavGroupId, pathname: string): boolean {
-  const section = currentSection(pathname);
-  return section !== undefined && itemsForGroup(group).some((item) => item.to === section.to);
-}
-
-/* Seção por rota: refinamento do prefixo (`/produtos/123` continua
-   "Meus Produtos") para o estado ativo do menu nunca ficar sem contexto. */
-function currentSection(pathname: string): NavItem | undefined {
-  return NAV.filter((item) => pathname === item.to || pathname.startsWith(`${item.to}/`)).sort(
-    (a, b) => b.to.length - a.to.length,
-  )[0];
-}
+import { NAV, currentSection, type NavItem } from "@/components/app-navigation";
+import { DesktopNavigation } from "@/components/desktop-navigation";
 
 /* Item do drawer mobile. O desktop usa o NavigationMenu agrupado abaixo. */
 function NavLink({
@@ -117,80 +55,6 @@ function NavLink({
         />
       )}
     </Link>
-  );
-}
-
-/* Desktop: três entradas no topo — Início direto, Cadastro e Financeiro com
-   dropdown. O estado ativo do grupo vem da seção mais específica da rota, então
-   `/produtos/composicao` continua marcando "Meus Produtos" e "Cadastro". */
-function DesktopNavigation({ pathname }: { pathname: string }) {
-  const [value, setValue] = useState<string | null>(null);
-  const active = currentSection(pathname)?.to;
-
-  useEffect(() => {
-    setValue(null);
-  }, [pathname]);
-
-  return (
-    <NavigationMenu
-      aria-label="Menu principal"
-      value={value}
-      onValueChange={(next) => setValue(next)}
-      className="w-full max-w-none justify-start"
-    >
-      <NavigationMenuList className="justify-start gap-1">
-        {NAV.filter((item) => !item.group).map((item) => (
-          <NavigationMenuItem key={item.to}>
-            <NavigationMenuLink
-              active={active === item.to}
-              render={<Link to={item.to} preload="intent" />}
-              className={cn(
-                navigationMenuTriggerStyle(),
-                "h-9 rounded-lg px-3 text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
-              )}
-            >
-              {item.label}
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-        ))}
-        {NAV_GROUPS.map((group) => {
-          const groupActive = isGroupActive(group.id, pathname);
-          return (
-            <NavigationMenuItem key={group.id} value={group.id}>
-              <NavigationMenuTrigger
-                data-active={groupActive ? "true" : undefined}
-                className={cn(
-                  navigationMenuTriggerStyle(),
-                  "h-9 rounded-lg px-3 text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
-                )}
-              >
-                {group.label}
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-60 gap-1">
-                  {itemsForGroup(group.id).map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <li key={item.to}>
-                        <NavigationMenuLink
-                          active={active === item.to}
-                          closeOnClick
-                          render={<Link to={item.to} preload="intent" />}
-                          className="flex-row items-center gap-2"
-                        >
-                          <Icon className="h-4 w-4 shrink-0 text-sidebar-foreground/50" />
-                          <span>{item.label}</span>
-                        </NavigationMenuLink>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          );
-        })}
-      </NavigationMenuList>
-    </NavigationMenu>
   );
 }
 
