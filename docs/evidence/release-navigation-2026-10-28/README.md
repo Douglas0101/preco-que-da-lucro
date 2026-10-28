@@ -18,7 +18,7 @@ com 21 migrations.
 | e2e local  | matriz completa                   | 59 passed / 1 skipped                                             | `navigation-menu-2026-10-28/captures/e2e-full-matrix.txt` |
 | visual     | `npm run test:visual`             | 33 passed / 3 skipped                                             | `navigation-menu-2026-10-28/captures/visual.txt`          |
 | higiene    | `npm run test:e2e:hygiene`        | 136 passed / 4 skipped                                            | `navigation-menu-2026-10-28/captures/hygiene.txt`         |
-| PR #74     | GitHub checks                     | `verify-release`, `scan + cobertura`, Neon RLS/E2E, mirror verdes | `captures/pr-74.json`                                     |
+| PR #74     | GitHub checks                     | `verify-release`, `scan + cobertura`, Neon RLS/E2E, mirror verdes | `captures/pr-74.json.txt`                                 |
 | CE do PR   | Sonar gate readout                | `new_coverage 95.7%`, status OK                                   | `captures/sonar-pr-readout.json`                          |
 | CE da main | Sonar gate readout                | `new_coverage 82.8%`, status OK                                   | `captures/sonar-main-readout.json`                        |
 | deploy     | Vercel MCP/CLI                    | `READY`, SHA `cb0b7fc`, alias promovido                           | `captures/vercel-deployment.txt`                          |
