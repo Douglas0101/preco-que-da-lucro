@@ -1,0 +1,8 @@
+deployment=dpl_C1H3sPiu3UHkKugoogVv9HiZNR7k
+url=https://preco-que-da-lucro-cr5wx5q5c.vercel.app
+state=READY
+target=production
+sha=cb0b7fcd5d084ce3bb594e5b7225206366f932da
+alias=preco-que-da-lucro-sage.vercel.app
+previous_deployment=dpl_Agfv4TXcA6fZHszn1fwbM3qTguSc
+previous_sha=a42f2adc40d00d1ea7f1539b125c4ed1ef517592

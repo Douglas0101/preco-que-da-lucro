@@ -1,0 +1,9 @@
+7526a62212417d09ce63cc67d01e2edfb509ad3b11542a5b1233cace89e4869a  ./captures/main-baseline.json
+73f5a855dcc67df05c66db62684f9aab4badc7cfe2b7957d92286b4d243f1b61  ./captures/pr-74.json
+baed25b29eb98dd91b760b236930dd1a8df1218dfc998b908cc57da4f0b15718  ./captures/probes.txt
+5e62e479ebcd830836805f9a9bf4c5d6d4340d0a7dd54d84d2be457bb348b9b5  ./captures/runtime-errors.txt
+a48ea44265df16ac409a7f45b089cc84de9f93ed06961c022af2e804fa0c5e54  ./captures/sonar-main-readout.json
+6ba369363ff5afb1655fe2166773376defeb6d447588e6c6a5931f4fefb53d5d  ./captures/sonar-pr-readout.json
+2de38628d2ee16d6316d401c26b3791706d2b20903c96af5cc95630342bd1dd2  ./captures/vercel-deployment.txt
+3975941f74fb7a5b2d9fb1c6dabc6f6f5bada4fd2e3841d029cb5e024feb4151  ./README.md
+d3fccedef1623fb52f5aba9a6f74552621e679b5b6cfe6fe73d7205a6e6a4c73  ./SPEC.md

@@ -1,0 +1,3 @@
+GET / -> 200
+GET /auth -> 200
+GET /inicio -> 200

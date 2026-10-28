@@ -1,0 +1,3 @@
+deployment=dpl_C1H3sPiu3UHkKugoogVv9HiZNR7k
+runtime_errors=none
+observed=runtime logs show GET /api/auth/get-session 200 and RUM FCP 1156/1496 ms (good)
