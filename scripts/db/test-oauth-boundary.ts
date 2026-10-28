@@ -18,6 +18,8 @@ const OAUTH_CALLBACK_URL = `${BASE_URL}${OAUTH_CALLBACK_PATH}`;
 const GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_CLIENT_ID = "test-google-client-id";
 const GOOGLE_CLIENT_SECRET = "test-google-client-secret";
+// better-auth >=1.7.7 namespaces database-backed OAuth state as `auth-state:<state>`.
+const AUTH_STATE_IDENTIFIER_PREFIX = "auth-state:";
 
 interface VerificationRow {
   identifier: string;
@@ -96,9 +98,10 @@ async function main(): Promise<void> {
 
     const verification = await admin.query<VerificationRow>(
       `select identifier, value, expires_at from verifications where identifier = $1`,
-      [state],
+      [`${AUTH_STATE_IDENTIFIER_PREFIX}${state}`],
     );
     assert.equal(verification.rowCount, 1, "o state deve persistir em verifications");
+    assert.equal(verification.rows[0]!.identifier, `${AUTH_STATE_IDENTIFIER_PREFIX}${state}`);
     const expiresInMs = new Date(verification.rows[0]!.expires_at).getTime() - Date.now();
     assert.ok(
       expiresInMs > 9 * 60_000 && expiresInMs < 11 * 60_000,
@@ -140,7 +143,7 @@ async function main(): Promise<void> {
     try {
       if (createdStates.length) {
         await admin.query(`delete from verifications where identifier = any($1::text[])`, [
-          createdStates,
+          createdStates.map((state) => `${AUTH_STATE_IDENTIFIER_PREFIX}${state}`),
         ]);
       }
       await admin.query(`delete from rate_limits where key like $1`, [`${TEST_IP}|%`]);
