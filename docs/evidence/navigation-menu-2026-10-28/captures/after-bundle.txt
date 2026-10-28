@@ -1,0 +1,4 @@
+# Depois da integração do NavigationMenu
+PASS assets/index-CWgf6u3T.js: 218668 minified, 69123 gzip, 60276 Brotli bytes, sha256=15e473644996
+Initial graph (11 chunks): 490039 minified, 160739 gzip, 141777 Brotli bytes, sha256=cdf0b4e5ff6e
+route chunk: 51355 bytes

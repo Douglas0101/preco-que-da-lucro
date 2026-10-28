@@ -1,0 +1,5 @@
+6db698a49b21964f9c258db015ffd47061782d66aa5874e201469c2b7c619076  src/components/app-shell.tsx
+be23d437a17d325d63bc09a8cc750983136284dc849ac164a7305018ad95fe7f  src/test/ui-stack.test.tsx
+2d2145f79faf1263a275b8e6ea42110fe27a533a651aff2fbce110d9f3ff6cfe  e2e/ui-stack.spec.ts
+792a8ddc38644b2bf87362913e751dc6a0d105f0a82146e7d0a88f6eea5761f4  src/components/ui/navigation-menu.tsx
+939d93a78f22a1201113b166cf333b6db904322f77d260c18410bbfc2a5f17e3  scripts/check-ui-stack.mjs

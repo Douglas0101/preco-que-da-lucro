@@ -18,6 +18,15 @@ import { globalSignOut } from "@/lib/auth-client";
 import { useSessionUser } from "@/lib/session-context";
 import { Button } from "@/components/ui/button";
 import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -27,20 +36,40 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-type NavItem = { to: string; label: string; icon: typeof Home };
+type NavGroupId = "cadastro" | "financeiro";
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof Home;
+  group?: NavGroupId;
+};
 /* A precificação saiu do menu: com o launcher do Simon disponível em todas as
    páginas, a rota `/novo-produto` fica como workspace/deep link (e o launcher
    some nela), sem duplicar a entrada de navegação. */
 const NAV: NavItem[] = [
   { to: "/inicio", label: "Início", icon: Home },
-  { to: "/produtos", label: "Meus Produtos", icon: Package },
-  { to: "/precos", label: "Preços de Compra", icon: Tag },
-  { to: "/despesas", label: "Minhas Despesas", icon: Wallet },
-  { to: "/vendas", label: "Vendas", icon: Receipt },
-  { to: "/ponto-equilibrio", label: "Ponto de Equilíbrio", icon: Scale },
-  { to: "/simulacoes", label: "Simulações", icon: LineChart },
-  { to: "/diagnostico", label: "Diagnóstico", icon: Stethoscope },
+  { to: "/produtos", label: "Meus Produtos", icon: Package, group: "cadastro" },
+  { to: "/precos", label: "Preços de Compra", icon: Tag, group: "cadastro" },
+  { to: "/despesas", label: "Minhas Despesas", icon: Wallet, group: "cadastro" },
+  { to: "/vendas", label: "Vendas", icon: Receipt, group: "financeiro" },
+  { to: "/ponto-equilibrio", label: "Ponto de Equilíbrio", icon: Scale, group: "financeiro" },
+  { to: "/simulacoes", label: "Simulações", icon: LineChart, group: "financeiro" },
+  { to: "/diagnostico", label: "Diagnóstico", icon: Stethoscope, group: "financeiro" },
 ];
+
+const NAV_GROUPS: { id: NavGroupId; label: string }[] = [
+  { id: "cadastro", label: "Cadastro" },
+  { id: "financeiro", label: "Financeiro" },
+];
+
+function itemsForGroup(group: NavGroupId): NavItem[] {
+  return NAV.filter((item) => item.group === group);
+}
+
+function isGroupActive(group: NavGroupId, pathname: string): boolean {
+  const section = currentSection(pathname);
+  return section !== undefined && itemsForGroup(group).some((item) => item.to === section.to);
+}
 
 /* Seção por rota: refinamento do prefixo (`/produtos/123` continua
    "Meus Produtos") para o estado ativo do menu nunca ficar sem contexto. */
@@ -50,17 +79,14 @@ function currentSection(pathname: string): NavItem | undefined {
   )[0];
 }
 
-/* Fonte única do desenho de item: a barra superior usa a variante compacta
-   (sem ícone, texto curto) e o drawer mobile a variante completa. */
+/* Item do drawer mobile. O desktop usa o NavigationMenu agrupado abaixo. */
 function NavLink({
   item,
   active,
-  layout,
   onNavigate,
 }: {
   item: NavItem;
   active: boolean;
-  layout: "bar" | "drawer";
   onNavigate?: () => void;
 }) {
   const Icon = item.icon;
@@ -71,31 +97,100 @@ function NavLink({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group flex items-center font-medium outline-none transition-[background-color,color] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-sidebar-ring motion-reduce:transition-none",
-        layout === "bar"
-          ? "min-h-[36px] shrink-0 whitespace-nowrap rounded-lg px-3 text-sm"
-          : "min-h-[44px] gap-3 rounded-xl px-3 py-2.5 text-sm",
+        "group flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium outline-none transition-[background-color,color] duration-200 ease-out focus-visible:ring-2 focus-visible:ring-sidebar-ring motion-reduce:transition-none",
         active
           ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-xs"
           : "text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
       )}
     >
-      {layout === "drawer" && (
-        <Icon
-          className={cn(
-            "h-4 w-4 shrink-0",
-            active ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/50",
-          )}
-        />
-      )}
+      <Icon
+        className={cn(
+          "h-4 w-4 shrink-0",
+          active ? "text-sidebar-accent-foreground" : "text-sidebar-foreground/50",
+        )}
+      />
       <span className="truncate">{item.label}</span>
-      {active && layout === "drawer" && (
+      {active && (
         <span
           aria-hidden="true"
           className="ms-auto h-1.5 w-1.5 shrink-0 rounded-full bg-sidebar-primary"
         />
       )}
     </Link>
+  );
+}
+
+/* Desktop: três entradas no topo — Início direto, Cadastro e Financeiro com
+   dropdown. O estado ativo do grupo vem da seção mais específica da rota, então
+   `/produtos/composicao` continua marcando "Meus Produtos" e "Cadastro". */
+function DesktopNavigation({ pathname }: { pathname: string }) {
+  const [value, setValue] = useState<string | null>(null);
+  const active = currentSection(pathname)?.to;
+
+  useEffect(() => {
+    setValue(null);
+  }, [pathname]);
+
+  return (
+    <NavigationMenu
+      aria-label="Menu principal"
+      value={value}
+      onValueChange={(next) => setValue(next)}
+      className="w-full max-w-none justify-start"
+    >
+      <NavigationMenuList className="justify-start gap-1">
+        {NAV.filter((item) => !item.group).map((item) => (
+          <NavigationMenuItem key={item.to}>
+            <NavigationMenuLink
+              active={active === item.to}
+              render={<Link to={item.to} preload="intent" />}
+              className={cn(
+                navigationMenuTriggerStyle(),
+                "h-9 rounded-lg px-3 text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
+              )}
+            >
+              {item.label}
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        ))}
+        {NAV_GROUPS.map((group) => {
+          const groupActive = isGroupActive(group.id, pathname);
+          return (
+            <NavigationMenuItem key={group.id} value={group.id}>
+              <NavigationMenuTrigger
+                data-active={groupActive ? "true" : undefined}
+                className={cn(
+                  navigationMenuTriggerStyle(),
+                  "h-9 rounded-lg px-3 text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
+                )}
+              >
+                {group.label}
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-60 gap-1">
+                  {itemsForGroup(group.id).map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <li key={item.to}>
+                        <NavigationMenuLink
+                          active={active === item.to}
+                          closeOnClick
+                          render={<Link to={item.to} preload="intent" />}
+                          className="flex-row items-center gap-2"
+                        >
+                          <Icon className="h-4 w-4 shrink-0 text-sidebar-foreground/50" />
+                          <span>{item.label}</span>
+                        </NavigationMenuLink>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          );
+        })}
+      </NavigationMenuList>
+    </NavigationMenu>
   );
 }
 
@@ -124,13 +219,7 @@ function DrawerContent({ pathname, onNavigate }: { pathname: string; onNavigate:
 
       <nav aria-label="Menu principal" className="flex-1 space-y-1">
         {NAV.map((item) => (
-          <NavLink
-            key={item.to}
-            item={item}
-            active={active === item.to}
-            layout="drawer"
-            onNavigate={onNavigate}
-          />
+          <NavLink key={item.to} item={item} active={active === item.to} onNavigate={onNavigate} />
         ))}
       </nav>
     </div>
@@ -152,7 +241,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   // getSession a cada mount do shell.
   const user = useSessionUser();
   const email = user?.email ?? "";
-  const active = currentSection(location.pathname)?.to;
 
   useEffect(() => {
     setOpen(false);
@@ -229,14 +317,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Menu principal no topo. É o único ponto de navegação no desktop;
             abaixo de `lg` ele desaparece e o drawer assume (mesma lista). */}
         <div className="hidden border-t border-sidebar-border/60 lg:block">
-          <nav
-            aria-label="Menu principal"
-            className="mx-auto flex w-full max-w-6xl items-center gap-1 overflow-x-auto px-4 py-1.5 [scrollbar-width:none] md:px-8 [&::-webkit-scrollbar]:hidden"
-          >
-            {NAV.map((item) => (
-              <NavLink key={item.to} item={item} active={active === item.to} layout="bar" />
-            ))}
-          </nav>
+          <div className="mx-auto w-full max-w-6xl px-4 py-1.5 md:px-8">
+            <DesktopNavigation pathname={location.pathname} />
+          </div>
         </div>
       </header>
 
